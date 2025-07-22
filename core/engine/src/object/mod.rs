@@ -2,6 +2,7 @@
 //!
 //! For the builtin object wrappers, please see [`object::builtins`][builtins] for implementors.
 
+use datatypes::ObjectData;
 pub use jsobject::{RecursionLimiter, Ref, RefMut};
 pub use operations::IntegrityLevel;
 pub use property_map::*;
@@ -35,6 +36,7 @@ mod datatypes;
 mod jsobject;
 mod operations;
 mod property_map;
+
 pub mod shape;
 
 pub(crate) use builtins::*;
@@ -161,42 +163,6 @@ impl dyn NativeObject {
     }
 }
 
-// Force alignment to be the same for all JsData types.
-#[derive(Debug, Finalize, Trace)]
-// SAFETY: This does not implement drop, so this is safe.
-#[boa_gc(unsafe_no_drop)]
-#[repr(C, align(8))]
-struct ObjectData<T: ?Sized> {
-    // MUST BE PRIVATE, should not be constructed directly. i.e. { data: ... }
-    // Because we want to trigger the assertion below.
-    //
-    // It is fine if we have deref/deref_mut to it or any access.
-    data: T,
-}
-
-impl<T: Default> Default for ObjectData<T> {
-    #[inline]
-    fn default() -> Self {
-        Self::new(T::default())
-    }
-}
-
-static_assertions::const_assert!(align_of::<Box<()>>() <= 8);
-
-impl<T> ObjectData<T> {
-    const OBJECT_DATA_ALIGNMENT_REQUIREMENT: () = assert!(
-        align_of::<T>() <= 8,
-        "Alignment of JsData must be <= 8, NOTE: you can wrap the data in a Box<T>."
-    );
-
-    pub(crate) fn new(value: T) -> Self {
-        // force assertion to triger when we instantiate
-        let () = Self::OBJECT_DATA_ALIGNMENT_REQUIREMENT;
-
-        Self { data: value }
-    }
-}
-
 /// The internal representation of a JavaScript object.
 #[derive(Debug, Finalize, Trace)]
 // SAFETY: This does not implement drop, so this is safe.
@@ -272,15 +238,15 @@ impl<T: ?Sized> Object<T> {
     /// Returns the data of the object.
     #[inline]
     #[must_use]
-    pub const fn data(&self) -> &T {
-        &self.data.data
+    pub fn data(&self) -> &T {
+        self.data.as_ref()
     }
 
     /// Returns the data of the object.
     #[inline]
     #[must_use]
     pub fn data_mut(&mut self) -> &mut T {
-        &mut self.data.data
+        self.data.as_mut()
     }
 
     /// Gets the prototype instance of this object.

@@ -14,7 +14,7 @@ use std::{
     sync::atomic,
 };
 
-use boa_gc::{Ephemeron, Gc, GcRefCell, Trace, WeakGc, WeakMap};
+use boa_gc::{Ephemeron, Finalize, Gc, GcRefCell, Trace, WeakGc, WeakMap};
 
 use super::internal_methods::{InternalObjectMethods, ORDINARY_INTERNAL_METHODS};
 
@@ -209,3 +209,61 @@ impl<T: Trace + ?Sized, V: Trace> JsData for Ephemeron<T, V> {}
 impl<T: Trace + ?Sized> JsData for GcRefCell<T> {}
 
 impl<K: Trace + ?Sized, V: Trace> JsData for WeakMap<K, V> {}
+
+/// Wrapper type to enforce consistent alignment for all [`JsData`] types.
+///
+/// Ensures alignment is exactly 8 bytes:
+/// - Minimum alignment is set via `#[repr(align(8))]`.
+/// - Maximum alignment is enforced at compile time with a const assertion.
+///
+///
+/// Use [`ObjectData::new`] to construct safely. Inner data is accessible via [`AsRef`] and [`AsMut`].
+#[derive(Debug, Finalize, Trace)]
+// SAFETY: This does not implement drop, so this is safe.
+#[boa_gc(unsafe_no_drop)]
+#[repr(C, align(8))]
+#[non_exhaustive]
+pub(crate) struct ObjectData<T: ?Sized> {
+    // MUST BE PRIVATE, should not be constructed directly. i.e. { data: ... }
+    // Because we want to trigger the compile-time const assertion below.
+    //
+    // It is fine if we have as_ref/as_mut to it or any access.
+    data: T,
+}
+
+impl<T: Default> Default for ObjectData<T> {
+    #[inline]
+    fn default() -> Self {
+        Self::new(T::default())
+    }
+}
+
+static_assertions::const_assert!(align_of::<Box<()>>() <= 8);
+
+impl<T> ObjectData<T> {
+    const OBJECT_DATA_ALIGNMENT_REQUIREMENT: () = assert!(
+        align_of::<T>() <= 8,
+        "Alignment of JsData must be <= 8, consider wrapping the data in a Box<T>."
+    );
+
+    pub(crate) fn new(value: T) -> Self {
+        // force assertion to triger when we instantiate `ObjectData<T>::new`.
+        let () = Self::OBJECT_DATA_ALIGNMENT_REQUIREMENT;
+
+        Self { data: value }
+    }
+}
+
+impl<T: ?Sized> AsRef<T> for ObjectData<T> {
+    #[inline]
+    fn as_ref(&self) -> &T {
+        &self.data
+    }
+}
+
+impl<T: ?Sized> AsMut<T> for ObjectData<T> {
+    #[inline]
+    fn as_mut(&mut self) -> &mut T {
+        &mut self.data
+    }
+}
