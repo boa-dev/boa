@@ -15,7 +15,7 @@
 //!
 //! // Register the Console object to the context. The DefaultLogger simply
 //! // write errors to STDERR and all other logs to STDOUT.
-//! Console::register_with_logger(&mut context, DefaultLogger)
+//! Console::register_with_logger(DefaultLogger, &mut context)
 //!     .expect("the console object shouldn't exist yet");
 //!
 //! // JavaScript source for parsing.
@@ -39,7 +39,7 @@
 //!
 //! # Example: Add all supported Boa's Runtime Web API to your context
 //!
-//! ```ignore
+//! ```no_run
 //! use boa_engine::{js_string, property::Attribute, Context, Source};
 //!
 //! // Create the context.
@@ -47,14 +47,17 @@
 //!
 //! // Register all objects in the context.
 //! boa_runtime::register(
-//!     &mut context,
-//!     boa_runtime::RegisterOptions::default()
-//!         // DefaultLogger is used by default. Enable this line to replace it with
-//!         // NullLogger, which drops all logs.
-//!         // .with_logger(boa_runtime::console::NullLogger)
-//!         // A fetcher needs to be added if the `fetch` feature flag is enabled.
+//!     (
+//!         // Register the default logger.
+//!         boa_runtime::extensions::ConsoleExtension::default(),
+//!         // A fetcher can be added if the `fetch` feature flag is enabled.
 //!         // This fetcher uses the Reqwest blocking API to allow fetching using HTTP.
-//!         .with_fetcher(boa_runtime::fetch::BlockingReqwestFetcher::default()),
+//!         boa_runtime::extensions::FetchExtension(
+//!             boa_runtime::fetch::BlockingReqwestFetcher::default()
+//!         ),
+//!     ),
+//!     None,
+//!     &mut context,
 //! );
 //!
 //! // JavaScript source for parsing.
@@ -115,38 +118,35 @@ pub mod fetch;
 pub mod interval;
 pub mod url;
 
-mod options;
+pub mod extensions;
 
-pub use options::RegisterOptions;
+pub use extensions::RuntimeExtension;
 
 /// Register all the built-in objects and functions of the `WebAPI` runtime.
 ///
 /// # Errors
-/// This will error is any of the built-in objects or functions cannot be registered.
-pub fn register<#[cfg(feature = "fetch")] F: fetch::Fetcher, L: Logger + 'static>(
+/// This will error if any of the built-in objects or functions cannot be registered.
+pub fn register(
+    extensions: impl RuntimeExtension,
+    realm: Option<boa_engine::realm::Realm>,
     ctx: &mut boa_engine::Context,
-    options: options::register_options_type![F, L],
 ) -> boa_engine::JsResult<()> {
-    Console::register_with_logger(ctx, options.console_logger)?;
     TextDecoder::register(ctx)?;
     TextEncoder::register(ctx)?;
 
     #[cfg(feature = "url")]
-    url::Url::register(options.realm.clone(), ctx)?;
-
-    #[cfg(feature = "fetch")]
-    if let Some(fetcher) = options.fetcher {
-        fetch::register(fetcher, options.realm.clone(), ctx)?;
-    }
+    url::Url::register(realm.clone(), ctx)?;
 
     interval::register(ctx)?;
+    extensions.register(realm, ctx)?;
 
     Ok(())
 }
 
 #[cfg(test)]
 pub(crate) mod test {
-    use crate::{RegisterOptions, register};
+    use crate::extensions::ConsoleExtension;
+    use crate::register;
     use boa_engine::{Context, JsResult, JsValue, Source, builtins};
     use std::borrow::Cow;
 
@@ -208,7 +208,8 @@ pub(crate) mod test {
     #[track_caller]
     pub(crate) fn run_test_actions(actions: impl IntoIterator<Item = TestAction>) {
         let context = &mut Context::default();
-        register(context, RegisterOptions::default()).expect("failed to register WebAPI objects");
+        register(ConsoleExtension::default(), None, context)
+            .expect("failed to register WebAPI objects");
         run_test_actions_with(actions, context);
     }
 

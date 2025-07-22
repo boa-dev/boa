@@ -97,7 +97,7 @@ fn formatter_float_format_works() {
 #[test]
 fn console_log_cyclic() {
     let mut context = Context::default();
-    let console = Console::init_with_logger(&mut context, NullLogger);
+    let console = Console::init_with_logger(NullLogger, &mut context);
     context
         .register_global_property(Console::NAME, console, Attribute::all())
         .unwrap();
@@ -180,7 +180,7 @@ const self = globalThis;
 fn wpt_log_symbol_any() {
     let mut context = Context::default();
     let logger = RecordingLogger::default();
-    Console::register_with_logger(&mut context, logger.clone()).unwrap();
+    Console::register_with_logger(logger.clone(), &mut context).unwrap();
 
     run_test_actions_with(
         [
@@ -212,7 +212,7 @@ fn wpt_log_symbol_any() {
 fn wpt_console_is_a_namespace() {
     let mut context = Context::default();
     let logger = RecordingLogger::default();
-    Console::register_with_logger(&mut context, logger.clone()).unwrap();
+    Console::register_with_logger(logger.clone(), &mut context).unwrap();
 
     run_test_actions_with(
         [
@@ -247,7 +247,7 @@ fn wpt_console_is_a_namespace() {
 fn wpt_console_label_conversion() {
     let mut context = Context::default();
     let logger = RecordingLogger::default();
-    Console::register_with_logger(&mut context, logger.clone()).unwrap();
+    Console::register_with_logger(logger.clone(), &mut context).unwrap();
 
     run_test_actions_with(
         [
@@ -291,7 +291,7 @@ fn wpt_console_label_conversion() {
 fn console_namespace_object_class_string() {
     let mut context = Context::default();
     let logger = RecordingLogger::default();
-    Console::register_with_logger(&mut context, logger.clone()).unwrap();
+    Console::register_with_logger(logger.clone(), &mut context).unwrap();
 
     run_test_actions_with(
         [
@@ -342,7 +342,7 @@ fn console_namespace_object_class_string() {
 fn trace_with_stack_trace() {
     let mut context = Context::default();
     let logger = RecordingLogger::default();
-    Console::register_with_logger(&mut context, logger.clone()).unwrap();
+    Console::register_with_logger(logger.clone(), &mut context).unwrap();
 
     run_test_actions_with(
         [
