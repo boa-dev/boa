@@ -7,6 +7,7 @@ use crate::{
     builtins::{
         BuiltInBuilder, BuiltInConstructor, BuiltInObject, IntrinsicObject,
         options::{get_option, get_options_object},
+        temporal::calendar::get_temporal_calendar_slot_value_with_default,
     },
     context::intrinsics::{Intrinsics, StandardConstructor, StandardConstructors},
     js_string,
@@ -24,8 +25,7 @@ use temporal_rs::{
 };
 
 use super::{
-    DateTimeValues, calendar::to_temporal_calendar_slot_value, create_temporal_date,
-    is_partial_temporal_object, to_partial_date_record,
+    DateTimeValues, create_temporal_date, is_partial_temporal_object, to_partial_date_record,
 };
 
 /// The `Temporal.PlainMonthDay` object.
@@ -415,14 +415,12 @@ fn to_temporal_month_day(
     let overflow = get_option::<ArithmeticOverflow>(&options, js_string!("overflow"), context)?
         .unwrap_or(ArithmeticOverflow::Constrain);
 
-    // get the calendar property (string) from the item object
-    let calender_id = item.get_v(js_string!("calendar"), context)?;
-    let calendar = to_temporal_calendar_slot_value(&calender_id)?;
-
     if let Some(obj) = item.as_object() {
         if let Some(md) = obj.downcast_ref::<PlainMonthDay>() {
             return Ok(md.inner.clone());
         }
+        // b. Let calendar be ? GetTemporalCalendarIdentifierWithISODefault(item).
+        let calendar = get_temporal_calendar_slot_value_with_default(&obj, context)?;
         let day = obj
             .get(js_string!("day"), context)?
             .map(|v| {

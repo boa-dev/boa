@@ -152,17 +152,35 @@ impl BuiltInConstructor for PlainTime {
         // 2. If hour is undefined, set hour to 0; else set hour to ? ToIntegerWithTruncation(hour).
         let hour = args.get_or_undefined(0).map_or(Ok::<u8, JsError>(0), |v| {
             let finite = v.to_finitef64(context)?;
-            Ok(finite.as_integer_with_truncation::<u8>())
+            let int = finite.as_integer_with_truncation::<i8>();
+            if int < 0 {
+                return Err(JsNativeError::range()
+                    .with_message("invalid time field")
+                    .into());
+            }
+            Ok(int as u8)
         })?;
         // 3. If minute is undefined, set minute to 0; else set minute to ? ToIntegerWithTruncation(minute).
         let minute = args.get_or_undefined(1).map_or(Ok::<u8, JsError>(0), |v| {
             let finite = v.to_finitef64(context)?;
-            Ok(finite.as_integer_with_truncation::<u8>())
+            let int = finite.as_integer_with_truncation::<i8>();
+            if int < 0 {
+                return Err(JsNativeError::range()
+                    .with_message("invalid time field")
+                    .into());
+            }
+            Ok(int as u8)
         })?;
         // 4. If second is undefined, set second to 0; else set second to ? ToIntegerWithTruncation(second).
         let second = args.get_or_undefined(2).map_or(Ok::<u8, JsError>(0), |v| {
             let finite = v.to_finitef64(context)?;
-            Ok(finite.as_integer_with_truncation::<u8>())
+            let int = finite.as_integer_with_truncation::<i8>();
+            if int < 0 {
+                return Err(JsNativeError::range()
+                    .with_message("invalid time field")
+                    .into());
+            }
+            Ok(int as u8)
         })?;
 
         // 5. If millisecond is undefined, set millisecond to 0; else set millisecond to ? ToIntegerWithTruncation(millisecond).
@@ -170,7 +188,13 @@ impl BuiltInConstructor for PlainTime {
             .get_or_undefined(3)
             .map_or(Ok::<u16, JsError>(0), |v| {
                 let finite = v.to_finitef64(context)?;
-                Ok(finite.as_integer_with_truncation::<u16>())
+                let int = finite.as_integer_with_truncation::<i16>();
+                if int < 0 {
+                    return Err(JsNativeError::range()
+                        .with_message("invalid time field")
+                        .into());
+                }
+                Ok(int as u16)
             })?;
 
         // 6. If microsecond is undefined, set microsecond to 0; else set microsecond to ? ToIntegerWithTruncation(microsecond).
@@ -178,7 +202,13 @@ impl BuiltInConstructor for PlainTime {
             .get_or_undefined(4)
             .map_or(Ok::<u16, JsError>(0), |v| {
                 let finite = v.to_finitef64(context)?;
-                Ok(finite.as_integer_with_truncation::<u16>())
+                let int = finite.as_integer_with_truncation::<i16>();
+                if int < 0 {
+                    return Err(JsNativeError::range()
+                        .with_message("invalid time field")
+                        .into());
+                }
+                Ok(int as u16)
             })?;
 
         // 7. If nanosecond is undefined, set nanosecond to 0; else set nanosecond to ? ToIntegerWithTruncation(nanosecond).
@@ -186,11 +216,17 @@ impl BuiltInConstructor for PlainTime {
             .get_or_undefined(5)
             .map_or(Ok::<u16, JsError>(0), |v| {
                 let finite = v.to_finitef64(context)?;
-                Ok(finite.as_integer_with_truncation::<u16>())
+                let int = finite.as_integer_with_truncation::<i16>();
+                if int < 0 {
+                    return Err(JsNativeError::range()
+                        .with_message("invalid time field")
+                        .into());
+                }
+                Ok(int as u16)
             })?;
 
         let inner =
-            PlainTimeInner::new(hour, minute, second, millisecond, microsecond, nanosecond)?;
+            PlainTimeInner::try_new(hour, minute, second, millisecond, microsecond, nanosecond)?;
 
         // 8. Return ? CreateTemporalTime(hour, minute, second, millisecond, microsecond, nanosecond, NewTarget).
         create_temporal_time(inner, Some(new_target), context).map(Into::into)
