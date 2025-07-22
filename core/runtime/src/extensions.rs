@@ -34,7 +34,7 @@ impl<L: Logger + Debug + 'static> RuntimeExtension for ConsoleExtension<L> {
     }
 }
 
-/// Register the `fetch` JavaScript API with the specified [`Fetcher`].
+/// Register the `fetch` JavaScript API with the specified [`crate::fetch::Fetcher`].
 #[cfg(feature = "fetch")]
 #[derive(Debug)]
 pub struct FetchExtension<F: crate::fetch::Fetcher>(pub F);
