@@ -158,13 +158,19 @@ impl Instant {
         context: &mut Context,
     ) -> JsResult<JsValue> {
         // 1. Set epochMilliseconds to ? ToNumber(epochMilliseconds).
-        let epoch_millis = args.get_or_undefined(0).to_number(context)?;
+        let epoch_millis_f64 = args.get_or_undefined(0).to_number(context)?;
+        // NOTE: NumberToBigInt checks if number is finite, so let's just inline it
         // 2. Set epochMilliseconds to ? NumberToBigInt(epochMilliseconds).
+        if !epoch_millis_f64.is_finite() {
+            return Err(JsNativeError::range()
+                .with_message("number is not finite")
+                .into());
+        }
         // 3. Let epochNanoseconds be epochMilliseconds × ℤ(10**6).
         // 4. If IsValidEpochNanoseconds(epochNanoseconds) is false, throw a RangeError exception.
         // 5. Return ! CreateTemporalInstant(epochNanoseconds).
         create_temporal_instant(
-            InnerInstant::from_epoch_milliseconds(epoch_millis.to_i64().unwrap_or(i64::MAX))?,
+            InnerInstant::from_epoch_milliseconds(epoch_millis_f64.to_i64().unwrap_or(i64::MAX))?,
             None,
             context,
         )
