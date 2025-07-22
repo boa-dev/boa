@@ -8,7 +8,10 @@ use crate::{
     builtins::{
         BuiltInBuilder, BuiltInConstructor, BuiltInObject, IntrinsicObject,
         options::{get_option, get_options_object},
-        temporal::{to_partial_date_record, to_partial_time_record},
+        temporal::{
+            calendar::to_temporal_calendar_identifier, to_partial_date_record,
+            to_partial_time_record,
+        },
     },
     context::intrinsics::{Intrinsics, StandardConstructor, StandardConstructors},
     js_string,
@@ -36,7 +39,7 @@ use temporal_rs::{
 #[allow(unused_imports)]
 use super::{
     PlainDate, ZonedDateTime,
-    calendar::{get_temporal_calendar_slot_value_with_default, to_temporal_calendar_slot_value},
+    calendar::get_temporal_calendar_slot_value_with_default,
     create_temporal_date, create_temporal_duration, create_temporal_time,
     create_temporal_zoneddatetime,
     options::{TemporalUnitGroup, get_difference_settings, get_digits_option, get_temporal_unit},
@@ -358,18 +361,36 @@ impl BuiltInConstructor for PlainDateTime {
         // 5. If hour is undefined, set hour to 0; else set hour to ? ToIntegerWithTruncation(hour).
         let hour = args.get_or_undefined(3).map_or(Ok::<u8, JsError>(0), |v| {
             let finite = v.to_finitef64(context)?;
-            Ok(finite.as_integer_with_truncation::<u8>())
+            let int = finite.as_integer_with_truncation::<i8>();
+            if int < 0 {
+                return Err(JsNativeError::range()
+                    .with_message("invalid time field")
+                    .into());
+            }
+            Ok(int as u8)
         })?;
         // 6. If minute is undefined, set minute to 0; else set minute to ? ToIntegerWithTruncation(minute).
         let minute = args.get_or_undefined(4).map_or(Ok::<u8, JsError>(0), |v| {
             let finite = v.to_finitef64(context)?;
-            Ok(finite.as_integer_with_truncation::<u8>())
+            let int = finite.as_integer_with_truncation::<i8>();
+            if int < 0 {
+                return Err(JsNativeError::range()
+                    .with_message("invalid time field")
+                    .into());
+            }
+            Ok(int as u8)
         })?;
 
         // 7. If second is undefined, set second to 0; else set second to ? ToIntegerWithTruncation(second).
         let second = args.get_or_undefined(5).map_or(Ok::<u8, JsError>(0), |v| {
             let finite = v.to_finitef64(context)?;
-            Ok(finite.as_integer_with_truncation::<u8>())
+            let int = finite.as_integer_with_truncation::<i8>();
+            if int < 0 {
+                return Err(JsNativeError::range()
+                    .with_message("invalid time field")
+                    .into());
+            }
+            Ok(int as u8)
         })?;
 
         // 8. If millisecond is undefined, set millisecond to 0; else set millisecond to ? ToIntegerWithTruncation(millisecond).
@@ -377,7 +398,13 @@ impl BuiltInConstructor for PlainDateTime {
             .get_or_undefined(6)
             .map_or(Ok::<u16, JsError>(0), |v| {
                 let finite = v.to_finitef64(context)?;
-                Ok(finite.as_integer_with_truncation::<u16>())
+                let int = finite.as_integer_with_truncation::<i16>();
+                if int < 0 {
+                    return Err(JsNativeError::range()
+                        .with_message("invalid time field")
+                        .into());
+                }
+                Ok(int as u16)
             })?;
 
         // 9. If microsecond is undefined, set microsecond to 0; else set microsecond to ? ToIntegerWithTruncation(microsecond).
@@ -385,7 +412,13 @@ impl BuiltInConstructor for PlainDateTime {
             .get_or_undefined(7)
             .map_or(Ok::<u16, JsError>(0), |v| {
                 let finite = v.to_finitef64(context)?;
-                Ok(finite.as_integer_with_truncation::<u16>())
+                let int = finite.as_integer_with_truncation::<i16>();
+                if int < 0 {
+                    return Err(JsNativeError::range()
+                        .with_message("invalid time field")
+                        .into());
+                }
+                Ok(int as u16)
             })?;
 
         // 10. If nanosecond is undefined, set nanosecond to 0; else set nanosecond to ? ToIntegerWithTruncation(nanosecond).
@@ -393,7 +426,13 @@ impl BuiltInConstructor for PlainDateTime {
             .get_or_undefined(8)
             .map_or(Ok::<u16, JsError>(0), |v| {
                 let finite = v.to_finitef64(context)?;
-                Ok(finite.as_integer_with_truncation::<u16>())
+                let int = finite.as_integer_with_truncation::<i16>();
+                if int < 0 {
+                    return Err(JsNativeError::range()
+                        .with_message("invalid time field")
+                        .into());
+                }
+                Ok(int as u16)
             })?;
 
         let calendar_slot = args
@@ -409,7 +448,7 @@ impl BuiltInConstructor for PlainDateTime {
             .transpose()?
             .unwrap_or_default();
 
-        let dt = InnerDateTime::new(
+        let dt = InnerDateTime::try_new(
             iso_year,
             iso_month,
             iso_day,
@@ -847,7 +886,7 @@ impl PlainDateTime {
                 JsNativeError::typ().with_message("the this object must be a PlainDateTime object.")
             })?;
 
-        let calendar = to_temporal_calendar_slot_value(args.get_or_undefined(0))?;
+        let calendar = to_temporal_calendar_identifier(args.get_or_undefined(0))?;
 
         create_temporal_datetime(dt.inner.with_calendar(calendar)?, None, context).map(Into::into)
     }

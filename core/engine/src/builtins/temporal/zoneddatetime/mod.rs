@@ -6,7 +6,7 @@ use crate::{
     builtins::{
         BuiltInBuilder, BuiltInConstructor, BuiltInObject, IntrinsicObject,
         options::{get_option, get_options_object},
-        temporal::options::get_digits_option,
+        temporal::{calendar::to_temporal_calendar_identifier, options::get_digits_option},
     },
     context::intrinsics::{Intrinsics, StandardConstructor, StandardConstructors},
     js_string,
@@ -30,7 +30,7 @@ use temporal_rs::{
 };
 
 use super::{
-    calendar::{get_temporal_calendar_slot_value_with_default, to_temporal_calendar_slot_value},
+    calendar::get_temporal_calendar_slot_value_with_default,
     create_temporal_date, create_temporal_datetime, create_temporal_duration,
     create_temporal_instant, create_temporal_time, is_partial_temporal_object,
     options::{TemporalUnitGroup, get_difference_settings, get_temporal_unit},
@@ -994,7 +994,7 @@ impl ZonedDateTime {
                 JsNativeError::typ().with_message("the this object must be a ZonedDateTime object.")
             })?;
 
-        let calendar = to_temporal_calendar_slot_value(args.get_or_undefined(0))?;
+        let calendar = to_temporal_calendar_identifier(args.get_or_undefined(0))?;
 
         let inner = zdt.inner.with_calendar(calendar)?;
         create_temporal_zoneddatetime(inner, None, context).map(Into::into)

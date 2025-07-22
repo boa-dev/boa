@@ -10,6 +10,7 @@ use crate::{
     builtins::{
         BuiltInBuilder, BuiltInConstructor, BuiltInObject, IntrinsicObject,
         options::{get_option, get_options_object},
+        temporal::calendar::to_temporal_calendar_identifier,
     },
     context::intrinsics::{Intrinsics, StandardConstructor, StandardConstructors},
     js_string,
@@ -30,11 +31,10 @@ use super::{create_temporal_month_day, create_temporal_year_month};
 // TODO: Remove once `temporal_rs` funcctionality implemented
 #[allow(unused_imports)]
 use super::{
-    PlainDateTime, ZonedDateTime,
-    calendar::{get_temporal_calendar_slot_value_with_default, to_temporal_calendar_slot_value},
+    PlainDateTime, ZonedDateTime, calendar::get_temporal_calendar_slot_value_with_default,
     create_temporal_datetime, create_temporal_duration, create_temporal_zoneddatetime,
-    options::get_difference_settings,
-    to_temporal_duration_record, to_temporal_time, to_temporal_timezone_identifier,
+    options::get_difference_settings, to_temporal_duration_record, to_temporal_time,
+    to_temporal_timezone_identifier,
 };
 
 #[cfg(feature = "temporal")]
@@ -705,9 +705,12 @@ impl PlainDate {
         create_temporal_date(resolved_date, None, context).map(Into::into)
     }
 
-    /// 3.3.26 Temporal.PlainDate.prototype.withCalendar ( calendarLike )
+    // UPDATED: nekevss, 2025-07-21
+    /// 3.3.24 Temporal.PlainDate.prototype.withCalendar ( calendarLike )
     fn with_calendar(this: &JsValue, args: &[JsValue], context: &mut Context) -> JsResult<JsValue> {
+        // 1. Let plainDate be the this value.
         let object = this.as_object();
+        // 2. Perform ? RequireInternalSlot(plainDate, [[InitializedTemporalDate]]).
         let date = object
             .as_ref()
             .and_then(JsObject::downcast_ref::<Self>)
@@ -715,7 +718,9 @@ impl PlainDate {
                 JsNativeError::typ().with_message("the this object must be a PlainDate object.")
             })?;
 
-        let calendar = to_temporal_calendar_slot_value(args.get_or_undefined(0))?;
+        // 3. Let calendar be ? ToTemporalCalendarIdentifier(calendarLike).
+        let calendar = to_temporal_calendar_identifier(args.get_or_undefined(0))?;
+        // 4. Return ! CreateTemporalDate(plainDate.[[ISODate]], calendar).
         let resolved_date = date.inner.with_calendar(calendar)?;
         create_temporal_date(resolved_date, None, context).map(Into::into)
     }
@@ -793,7 +798,7 @@ impl PlainDate {
 
         // 3. Set temporalTime to ? ToTemporalTimeOrMidnight(temporalTime).
         let time = args
-            .first()
+            .get_or_undefined(0)
             .map(|v| to_temporal_time(v, None, context))
             .transpose()?;
         // 4. Return ? CreateTemporalDateTime(temporalDate.[[ISOYear]], temporalDate.[[ISOMonth]], temporalDate.[[ISODay]], temporalTime.[[ISOHour]], temporalTime.[[ISOMinute]], temporalTime.[[ISOSecond]], temporalTime.[[ISOMillisecond]], temporalTime.[[ISOMicrosecond]], temporalTime.[[ISONanosecond]], temporalDate.[[Calendar]]).
