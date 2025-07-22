@@ -1082,7 +1082,9 @@ impl ContextBuilder {
 
         let module_loader: Rc<dyn DynModuleLoader> = if let Some(loader) = self.module_loader {
             loader
-        } else if let Ok(loader) = SimpleModuleLoader::new(Path::new(".")) {
+        } else if cfg!(not(miri)) // Cannot use the simple module loader when running with Miri.
+            && let Ok(loader) = SimpleModuleLoader::new(Path::new("."))
+        {
             Rc::new(loader)
         } else {
             Rc::new(IdleModuleLoader)
