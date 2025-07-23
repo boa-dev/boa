@@ -262,8 +262,8 @@ mod bits {
         value & MASK_BOOLEAN_VALUE != 0
     }
 
-    fn tag_pointer(value: *mut ()) -> u64 {
-        let value = value.addr() as u64;
+    pub(super) fn tag_pointer<T>(ptr: *mut T, type_mask: u64) -> u64 {
+        let value = ptr.addr() as u64;
         let value_masked: u64 = value & MASK_POINTER_VALUE;
 
         // Assert alignment and location of the pointer.
@@ -276,36 +276,7 @@ mod bits {
         // Cannot have a null pointer.
         assert_ne!(value_masked, 0, "pointer is null");
 
-        value_masked
-    }
-
-    /// Returns a tagged u64 of a boxed [`JsBigInt`].
-    #[inline(always)]
-    #[allow(clippy::identity_op)]
-    pub(super) fn tag_bigint(value: *mut ()) -> u64 {
-        // Simply cast for bits.
-        tag_pointer(value) | MASK_BIGINT
-    }
-
-    /// Returns a tagged u64 of a boxed [`JsObject`].
-    #[inline(always)]
-    pub(super) fn tag_object(value: *mut ()) -> u64 {
-        // Simply cast for bits.
-        tag_pointer(value) | MASK_OBJECT
-    }
-
-    /// Returns a tagged u64 of a boxed [`JsSymbol`].
-    #[inline(always)]
-    pub(super) fn tag_symbol(value: *mut ()) -> u64 {
-        // Simply cast for bits.
-        tag_pointer(value) | MASK_SYMBOL
-    }
-
-    /// Returns a tagged u64 of a boxed [`JsString`].
-    #[inline(always)]
-    pub(super) fn tag_string(value: *mut ()) -> u64 {
-        // Simply cast for bits.
-        tag_pointer(value) | MASK_STRING
+        value_masked | type_mask
     }
 
     /// Returns the pointer address of the inner value.
@@ -402,6 +373,19 @@ impl NanBoxedValue {
         }
     }
 
+    /// Creates a new `NanBoxedValue` from a pointer to an object-like and the tagged address of that
+    /// pointer.
+    ///
+    /// This preserves the provenance of the original pointer.
+    fn from_object_like<T>(ptr: *mut T, addr: u64) -> Self {
+        Self {
+            #[cfg(target_pointer_width = "32")]
+            half: (addr >> 32) as u32,
+            ptr: ptr.cast::<()>().with_addr(addr as usize),
+        }
+    }
+
+    /// Returns the value contained within this structure as a `u64`.
     #[must_use]
     #[inline(always)]
     fn value(&self) -> u64 {
@@ -453,53 +437,36 @@ impl NanBoxedValue {
     #[must_use]
     #[inline(always)]
     pub(crate) fn bigint(value: JsBigInt) -> Self {
-        let value = value.into_raw().cast::<()>().cast_mut();
-        let addr = bits::tag_bigint(value);
-        Self {
-            #[cfg(target_pointer_width = "32")]
-            half: (addr >> 32) as u32,
-            ptr: value.with_addr(addr as usize),
-        }
+        let ptr = value.into_raw().cast_mut();
+        let addr = bits::tag_pointer(ptr, bits::MASK_BIGINT);
+        Self::from_object_like(ptr, addr)
     }
 
     /// Returns a `InnerValue` from a boxed [`JsObject`].
     #[must_use]
     #[inline(always)]
     pub(crate) fn object(value: JsObject) -> Self {
-        let value = value.into_raw().as_ptr().cast::<()>();
-        let addr = bits::tag_object(value);
-
-        Self {
-            #[cfg(target_pointer_width = "32")]
-            half: (addr >> 32) as u32,
-            ptr: value.with_addr(addr as usize),
-        }
+        let ptr = value.into_raw().as_ptr();
+        let addr = bits::tag_pointer(ptr, bits::MASK_OBJECT);
+        Self::from_object_like(ptr, addr)
     }
 
     /// Returns a `InnerValue` from a boxed [`JsSymbol`].
     #[must_use]
     #[inline(always)]
     pub(crate) fn symbol(value: JsSymbol) -> Self {
-        let value = value.into_raw().as_ptr().cast::<()>();
-        let addr = bits::tag_symbol(value);
-        Self {
-            #[cfg(target_pointer_width = "32")]
-            half: (addr >> 32) as u32,
-            ptr: value.with_addr(addr as usize),
-        }
+        let ptr = value.into_raw().as_ptr();
+        let addr = bits::tag_pointer(ptr, bits::MASK_SYMBOL);
+        Self::from_object_like(ptr, addr)
     }
 
     /// Returns a `InnerValue` from a boxed [`JsString`].
     #[must_use]
     #[inline(always)]
     pub(crate) fn string(value: JsString) -> Self {
-        let value = value.into_raw().as_ptr().cast::<()>();
-        let addr = bits::tag_string(value);
-        Self {
-            #[cfg(target_pointer_width = "32")]
-            half: (addr >> 32) as u32,
-            ptr: value.with_addr(addr as usize),
-        }
+        let ptr = value.into_raw().as_ptr();
+        let addr = bits::tag_pointer(ptr, bits::MASK_STRING);
+        Self::from_object_like(ptr, addr)
     }
 
     /// Returns true if a value is undefined.
