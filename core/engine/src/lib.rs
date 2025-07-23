@@ -308,8 +308,20 @@ impl TestAction {
 #[cfg(test)]
 #[track_caller]
 fn run_test_actions(actions: impl IntoIterator<Item = TestAction>) {
-    let context = &mut Context::default();
-    run_test_actions_with(actions, context);
+    let mut context = Context::builder();
+    if cfg!(miri) {
+        // Do not use OS APIs when running with Miri to avoid escaping the
+        // isolated sandbox.
+
+        use std::rc::Rc;
+
+        use crate::{context::time::FixedClock, module::IdleModuleLoader};
+
+        context = context
+            .clock(Rc::new(FixedClock::from_millis(65535)))
+            .module_loader(Rc::new(IdleModuleLoader));
+    }
+    run_test_actions_with(actions, &mut context.build().unwrap());
 }
 
 /// Executes a list of test actions on the provided context.
