@@ -136,9 +136,10 @@ impl RenameScheme {
     }
 
     fn camel_case(s: &str) -> String {
-        #[derive(PartialEq)]
+        #[derive(Debug, PartialEq)]
         enum State {
             First,
+            Middle,
             NextOfUpper,
             NextOfContinuedUpper(char),
             NextOfSepMark,
@@ -153,11 +154,11 @@ impl RenameScheme {
             let is_lower = ch.is_ascii_lowercase();
 
             match (&state, is_upper, is_lower) {
-                (State::First, true, false) => {
+                (State::First | State::Middle, true, false) => {
                     state = State::NextOfUpper;
                     result.push(ch.to_ascii_lowercase());
                 }
-                (State::First, false, true) => {
+                (State::First | State::Middle, false, true) => {
                     state = State::Other;
                     result.push(ch);
                 }
@@ -166,7 +167,7 @@ impl RenameScheme {
                     state = State::NextOfContinuedUpper(ch);
                 }
                 (State::NextOfUpper, false, true) => {
-                    state = State::First;
+                    state = State::Middle;
                     result.push(ch);
                 }
                 (State::NextOfContinuedUpper(last), true, false) => {
@@ -175,7 +176,7 @@ impl RenameScheme {
                 }
                 (State::NextOfContinuedUpper(last), false, true) => {
                     result.push(last.to_ascii_uppercase());
-                    state = State::First;
+                    state = State::Middle;
                     result.push(ch);
                 }
                 (State::NextOfContinuedUpper(last), false, false) => {
@@ -237,6 +238,10 @@ mod tests {
     #[test_case("HELLOWorld", "helloWorld" ; "camel_case_5")]
     #[test_case("helloWORLD", "helloWorld" ; "camel_case_6")]
     #[test_case("HELLO_WORLD", "helloWorld" ; "camel_case_7")]
+    #[test_case("hello_beautiful_world", "helloBeautifulWorld" ; "camel_case_8")]
+    #[test_case("helloBeautifulWorld", "helloBeautifulWorld" ; "camel_case_9")]
+    #[test_case("switch_to_term", "switchToTerm" ; "camel_case_10")]
+    #[test_case("_a_b_c_", "aBC" ; "camel_case_11")]
     fn camel_case(input: &str, expected: &str) {
         assert_eq!(RenameScheme::camel_case(input).as_str(), expected);
     }
