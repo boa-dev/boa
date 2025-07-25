@@ -97,7 +97,7 @@ impl TryFrom<&str> for CompressType {
 }
 
 /// The resulting type of creating an embedded module loader.
-#[derive(Debug, Clone)]
+#[derive(Debug, Default, Clone)]
 #[allow(clippy::module_name_repetitions)]
 pub struct EmbeddedModuleLoader {
     map: HashMap<JsString, RefCell<EmbeddedModuleEntry>>,
