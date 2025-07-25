@@ -45,7 +45,7 @@ impl Hash for JsValue {
             JsVariant::Integer32(integer) => RationalHashable(f64::from(integer)).hash(state),
             JsVariant::BigInt(bigint) => bigint.hash(state),
             JsVariant::Float64(rational) => RationalHashable(rational).hash(state),
-            JsVariant::Symbol(symbol) => Hash::hash(symbol, state),
+            JsVariant::Symbol(symbol) => Hash::hash(&symbol, state),
             JsVariant::Object(object) => object.hash(state),
         }
     }

@@ -1,6 +1,6 @@
 //! A NaN-boxed inner value for JavaScript values.
 //!
-//! This `[JsValue]` is a float using `NaN` values to represent inner
+//! This [`JsValue`] is a float using `NaN` values to represent inner
 //! JavaScript value.
 //!
 //! # Assumptions
@@ -48,7 +48,7 @@
 //!
 //! # Design
 //!
-//! This `[JsValue]` inner type is a NaN-boxed value, which is a 64-bits value
+//! This [`JsValue`] inner type is a NaN-boxed value, which is a 64-bits value
 //! that can represent any JavaScript value. If the integer is a non-NaN value,
 //! it will be stored as a 64-bits float. If it is a `f64::NAN` value, it will
 //! be stored as a quiet `NaN` value. Subnormal numbers are regular float.
@@ -106,27 +106,39 @@
 //! with regular NAN should happen.
 #![allow(clippy::inline_always)]
 
-use crate::{JsBigInt, JsObject, JsSymbol, JsVariant};
-use boa_gc::{Finalize, Trace, custom_trace};
-use boa_string::JsString;
+use crate::{
+    JsBigInt, JsObject, JsSymbol, JsVariant, bigint::RawBigInt, object::ErasedVTableObject,
+    symbol::RawJsSymbol,
+};
+use boa_gc::{Finalize, GcBox, Trace, custom_trace};
+use boa_string::{JsString, RawJsString};
 use core::fmt;
 use static_assertions::const_assert;
+use std::{
+    mem::ManuallyDrop,
+    ptr::{self, NonNull},
+};
 
-// We cannot NaN-box pointers larger than 64 bits.
-const_assert!(size_of::<usize>() <= size_of::<u64>());
+const _NAN_BOX_COMPAT_CHECK: () = const {
+    // We can only NaN-box pointers that are 32 or 64 bits.
+    assert!(
+        size_of::<usize>() == size_of::<u64>() || size_of::<usize>() == size_of::<u32>(),
+        "this platform is not compatible with a nan-boxed `JsValueInner`\n\
+        enable the `jsvalue-enum` feature to use the enum-based `JsValueInner`"
+    );
 
-// We cannot NaN-box pointers that are not 4-bytes aligned.
-const_assert!(align_of::<*mut ()>() >= 4);
+    // We cannot NaN-box pointers that are not 4-bytes aligned.
+    assert!(
+        align_of::<*mut ()>() >= 4,
+        "this platform is not compatible with a nan-boxed `JsValueInner`\n\
+        enable the `jsvalue-enum` feature to use the enum-based `JsValueInner`"
+    );
+};
 
 /// Internal module for bit masks and constants.
 ///
 /// All bit magic is done here.
 mod bits {
-    use crate::object::ErasedVTableObject;
-    use boa_engine::{JsBigInt, JsObject, JsSymbol};
-    use boa_gc::GcBox;
-    use boa_string::{JsString, RawJsString};
-    use std::ptr::NonNull;
 
     /// The mask for the bits that indicate if the value is a NaN-value.
     const MASK_NAN: u64 = 0x7FF0_0000_0000_0000;
@@ -183,18 +195,6 @@ mod bits {
         (value & MASK_NAN != MASK_NAN)
             || (value & MASK_KIND) == (MASK_NAN | TAG_INF)
             || (value & MASK_KIND) == (MASK_NAN | TAG_NAN)
-    }
-
-    /// Checks that a value is a valid undefined.
-    #[inline(always)]
-    pub(super) const fn is_undefined(value: u64) -> bool {
-        value == VALUE_UNDEFINED
-    }
-
-    /// Checks that a value is a valid null.
-    #[inline(always)]
-    pub(super) const fn is_null(value: u64) -> bool {
-        value == VALUE_NULL
     }
 
     /// Checks that a value is a valid integer32.
@@ -262,181 +262,27 @@ mod bits {
         value & MASK_BOOLEAN_VALUE != 0
     }
 
-    /// Returns a tagged u64 of a boxed `[JsBigInt]`.
-    ///
-    /// # Safety
-    /// The pointer must be 4-bits aligned and cannot exceed 51-bits. This will
-    /// result in a panic. Also, the object is not checked for validity.
-    ///
-    /// The box is forgotten after this operation. It must be dropped separately,
-    /// by calling `[Self::drop_pointer]`.
-    #[inline(always)]
-    #[allow(clippy::identity_op)]
-    pub(super) unsafe fn tag_bigint(value: Box<JsBigInt>) -> u64 {
-        let value = Box::into_raw(value) as u64;
+    pub(super) fn tag_pointer<T>(ptr: *mut T, type_mask: u64) -> u64 {
+        let value = ptr.addr() as u64;
         let value_masked: u64 = value & MASK_POINTER_VALUE;
 
         // Assert alignment and location of the pointer.
         assert_eq!(
             value_masked, value,
-            "Pointer is not 4-bits aligned or over 51-bits."
+            "this platform is not compatible with a nan-boxed `JsValueInner`\n\
+            enable the `jsvalue-enum` feature to use the enum-based `JsValueInner`"
         );
-        // Cannot have a null pointer for bigint.
-        assert_ne!(value_masked, 0, "Pointer is NULL.");
 
-        // Simply cast for bits.
-        value_masked | MASK_BIGINT
+        // Cannot have a null pointer.
+        assert_ne!(value_masked, 0, "pointer is null");
+
+        value_masked | type_mask
     }
 
-    /// Returns a tagged u64 of a boxed `[JsObject]`.
-    ///
-    /// # Safety
-    /// The pointer must be 4-bits aligned and cannot exceed 51-bits. This will
-    /// result in a panic. Also, the object is not checked for validity.
-    ///
-    /// The box is forgotten after this operation. It must be dropped separately,
-    /// by calling `[Self::drop_pointer]`.
+    /// Returns the pointer address of the inner value.
     #[inline(always)]
-    pub(super) unsafe fn tag_object(value: JsObject) -> u64 {
-        let value = value.into_raw().as_ptr() as u64;
-        let value_masked: u64 = value & MASK_POINTER_VALUE;
-
-        // Assert alignment and location of the pointer.
-        assert_eq!(
-            value_masked, value,
-            "Pointer is not 4-bits aligned or over 51-bits."
-        );
-        // Cannot have a null pointer for bigint.
-        assert_ne!(value_masked, 0, "Pointer is NULL.");
-
-        // Simply cast for bits.
-        value_masked | MASK_OBJECT
-    }
-
-    /// Returns an owned `JsObject` from a tagged value.
-    ///
-    /// # Safety
-    /// * The pointer must be a valid pointer to a `GcBox<ErasedVTableObject>`.
-    pub(super) unsafe fn untag_object_owned(value: u64) -> JsObject {
-        // This is safe since we already checked the pointer is not null as this point.
-        unsafe {
-            JsObject::from_raw(NonNull::new_unchecked(
-                (value & MASK_POINTER_VALUE) as *mut GcBox<ErasedVTableObject>,
-            ))
-        }
-    }
-
-    /// Returns a tagged u64 of a boxed `[JsSymbol]`.
-    ///
-    /// # Safety
-    /// The pointer must be 4-bits aligned and cannot exceed 51-bits. This will
-    /// result in a panic. Also, the object is not checked for validity.
-    ///
-    /// The box is forgotten after this operation. It must be dropped separately,
-    /// by calling `[Self::drop_pointer]`.
-    #[inline(always)]
-    pub(super) unsafe fn tag_symbol(value: Box<JsSymbol>) -> u64 {
-        let value = Box::into_raw(value) as u64;
-        let value_masked: u64 = value & MASK_POINTER_VALUE;
-
-        // Assert alignment and location of the pointer.
-        assert_eq!(
-            value_masked, value,
-            "Pointer is not 4-bits aligned or over 51-bits."
-        );
-        // Cannot have a null pointer for bigint.
-        assert_ne!(value_masked, 0, "Pointer is NULL.");
-
-        // Simply cast for bits.
-        value_masked | MASK_SYMBOL
-    }
-
-    /// Returns a tagged u64 of a boxed `[JsString]`.
-    ///
-    /// # Safety
-    /// The pointer must be 4-bits aligned and cannot exceed 51-bits. This will
-    /// result in a panic. Also, the object is not checked for validity.
-    ///
-    /// The box is forgotten after this operation. It must be dropped separately,
-    /// by calling `[Self::drop_pointer]`.
-    #[inline(always)]
-    pub(super) unsafe fn tag_string(value: JsString) -> u64 {
-        let value = JsString::into_raw(value).addr().get() as u64;
-        let value_masked: u64 = value & MASK_POINTER_VALUE;
-
-        // Assert alignment and location of the pointer.
-        assert_eq!(
-            value_masked, value,
-            "Pointer is not 4-bits aligned or over 51-bits."
-        );
-        // Cannot have a null pointer for bigint.
-        assert_ne!(value_masked, 0, "Pointer is NULL.");
-
-        // Simply cast for bits.
-        value_masked | MASK_STRING
-    }
-
-    /// Returns a reference to T from a tagged value.
-    ///
-    /// # Safety
-    /// The pointer must be a valid pointer to a T on the heap, otherwise this
-    /// will result in undefined behavior.
-    #[inline(always)]
-    pub(super) const unsafe fn untag_pointer<'a, T>(value: u64) -> &'a T {
-        // This is safe since we already checked the pointer is not null as this point.
-        unsafe { NonNull::new_unchecked((value & MASK_POINTER_VALUE) as *mut T).as_ref() }
-    }
-
-    /// Returns a clone of a [`JsString`] from a tagged value.
-    ///
-    /// # Safety
-    ///
-    /// The pointer must be a valid pointer to a [`JsString`], otherwise this
-    /// will result in undefined behavior.
-    #[inline(always)]
-    pub(super) unsafe fn untag_string_pointer(value: u64) -> JsString {
-        let value = (value & MASK_POINTER_VALUE) as *mut RawJsString;
-
-        // SAFETY: JsValue always holds a valid, non-null JsString, so this is safe.
-        let ptr = unsafe { NonNull::new_unchecked(value) };
-
-        // SAFETY: The caller must guarantee that the JsValue is of type JsString, which is always valid.
-        let this = unsafe { JsString::from_raw(ptr) };
-
-        let result = this.clone();
-
-        // SAFETY: Dropping the `this` would result in a use-after-free if all reference are dropped.
-        std::mem::forget(this);
-
-        result
-    }
-
-    /// Returns a boxed T from a tagged value.
-    ///
-    /// # Safety
-    ///
-    /// The pointer must be a valid pointer to a T on the heap, otherwise this
-    /// will result in undefined behavior.
-    #[allow(clippy::unnecessary_box_returns)]
-    pub(super) unsafe fn untag_pointer_owned<T>(value: u64) -> Box<T> {
-        // This is safe since we already checked the pointer is not null as this point.
-        unsafe { Box::from_raw((value & MASK_POINTER_VALUE) as *mut T) }
-    }
-
-    /// Returns the inner [`JsString`] from a tagged value.
-    ///
-    /// # Safety
-    ///
-    /// The pointer must be a valid pointer to a [`JsString`], otherwise this
-    /// will result in undefined behavior.
-    pub(super) unsafe fn untag_string_owned(value: u64) -> JsString {
-        let value = (value & MASK_POINTER_VALUE) as *mut RawJsString;
-
-        // SAFETY: JsValue always holds a valid, non-null JsString, so this is safe.
-        let ptr = unsafe { NonNull::new_unchecked(value) };
-
-        // SAFETY: The caller must guarantee that the JsValue is of type JsString, which is always valid.
-        unsafe { JsString::from_raw(ptr) }
+    pub(super) const fn untag_pointer(value: u64) -> usize {
+        (value & MASK_POINTER_VALUE) as usize
     }
 }
 
@@ -453,8 +299,12 @@ const_assert!(f64::from_bits(bits::MASK_STRING).is_nan());
 const_assert!(f64::from_bits(bits::MASK_SYMBOL).is_nan());
 const_assert!(f64::from_bits(bits::MASK_BIGINT).is_nan());
 
-/// A NaN-boxed `[JsValue]`'s inner.
-pub(crate) struct NanBoxedValue(pub u64);
+/// A NaN-boxed [`JsValue`]'s inner.
+pub(crate) struct NanBoxedValue {
+    #[cfg(target_pointer_width = "32")]
+    half: u32,
+    ptr: *mut (),
+}
 
 impl fmt::Debug for NanBoxedValue {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
@@ -501,18 +351,50 @@ impl Clone for NanBoxedValue {
         } else if let Some(s) = self.as_symbol() {
             Self::symbol(s.clone())
         } else {
-            Self(self.0)
+            Self {
+                #[cfg(target_pointer_width = "32")]
+                half: self.half,
+                ptr: self.ptr,
+            }
         }
     }
 }
 
 impl NanBoxedValue {
-    /// Creates a new `InnerValue` from an u64 value without checking the validity
+    /// Creates a new `NanBoxedValue` from an u64 value without checking the validity
     /// of the value.
     #[must_use]
     #[inline(always)]
     const fn from_inner_unchecked(inner: u64) -> Self {
-        Self(inner)
+        Self {
+            #[cfg(target_pointer_width = "32")]
+            half: (inner >> 32) as u32,
+            ptr: ptr::without_provenance_mut(inner as usize),
+        }
+    }
+
+    /// Creates a new `NanBoxedValue` from a pointer to an object-like and the tagged address of that
+    /// pointer.
+    ///
+    /// This preserves the provenance of the original pointer.
+    fn from_object_like<T>(ptr: *mut T, addr: u64) -> Self {
+        Self {
+            #[cfg(target_pointer_width = "32")]
+            half: (addr >> 32) as u32,
+            ptr: ptr.cast::<()>().with_addr(addr as usize),
+        }
+    }
+
+    /// Returns the value contained within this structure as a `u64`.
+    #[must_use]
+    #[inline(always)]
+    fn value(&self) -> u64 {
+        let value = self.ptr.addr() as u64;
+
+        #[cfg(target_pointer_width = "32")]
+        let value = ((self.half as u64) << 32) | value;
+
+        value
     }
 
     /// Returns a `InnerValue` from a Null.
@@ -551,103 +433,111 @@ impl NanBoxedValue {
         Self::from_inner_unchecked(bits::tag_bool(value))
     }
 
-    /// Returns a `InnerValue` from a boxed `[JsBigInt]`.
+    /// Returns a `InnerValue` from a boxed [`JsBigInt`].
     #[must_use]
     #[inline(always)]
     pub(crate) fn bigint(value: JsBigInt) -> Self {
-        Self::from_inner_unchecked(unsafe { bits::tag_bigint(Box::new(value)) })
+        let ptr = value.into_raw().cast_mut();
+        let addr = bits::tag_pointer(ptr, bits::MASK_BIGINT);
+        Self::from_object_like(ptr, addr)
     }
 
-    /// Returns a `InnerValue` from a boxed `[JsObject]`.
+    /// Returns a `InnerValue` from a boxed [`JsObject`].
     #[must_use]
     #[inline(always)]
     pub(crate) fn object(value: JsObject) -> Self {
-        Self::from_inner_unchecked(unsafe { bits::tag_object(value) })
+        let ptr = value.into_raw().as_ptr();
+        let addr = bits::tag_pointer(ptr, bits::MASK_OBJECT);
+        Self::from_object_like(ptr, addr)
     }
 
-    /// Returns a `InnerValue` from a boxed `[JsSymbol]`.
+    /// Returns a `InnerValue` from a boxed [`JsSymbol`].
     #[must_use]
     #[inline(always)]
     pub(crate) fn symbol(value: JsSymbol) -> Self {
-        Self::from_inner_unchecked(unsafe { bits::tag_symbol(Box::new(value)) })
+        let ptr = value.into_raw().as_ptr();
+        let addr = bits::tag_pointer(ptr, bits::MASK_SYMBOL);
+        Self::from_object_like(ptr, addr)
     }
 
-    /// Returns a `InnerValue` from a boxed `[JsString]`.
+    /// Returns a `InnerValue` from a boxed [`JsString`].
     #[must_use]
     #[inline(always)]
     pub(crate) fn string(value: JsString) -> Self {
-        Self::from_inner_unchecked(unsafe { bits::tag_string(value) })
+        let ptr = value.into_raw().as_ptr();
+        let addr = bits::tag_pointer(ptr, bits::MASK_STRING);
+        Self::from_object_like(ptr, addr)
     }
 
     /// Returns true if a value is undefined.
     #[must_use]
     #[inline(always)]
-    pub(crate) const fn is_undefined(&self) -> bool {
-        bits::is_undefined(self.0)
+    pub(crate) fn is_undefined(&self) -> bool {
+        self.value() == bits::VALUE_UNDEFINED
     }
 
     /// Returns true if a value is null.
     #[must_use]
     #[inline(always)]
-    pub(crate) const fn is_null(&self) -> bool {
-        bits::is_null(self.0)
+    pub(crate) fn is_null(&self) -> bool {
+        self.value() == bits::VALUE_NULL
     }
 
     /// Returns true if a value is a boolean.
     #[must_use]
     #[inline(always)]
-    pub(crate) const fn is_bool(&self) -> bool {
-        bits::is_bool(self.0)
+    pub(crate) fn is_bool(&self) -> bool {
+        bits::is_bool(self.value())
     }
 
     /// Returns true if a value is a 64-bits float.
     #[must_use]
     #[inline(always)]
-    pub(crate) const fn is_float64(&self) -> bool {
-        bits::is_float(self.0)
+    pub(crate) fn is_float64(&self) -> bool {
+        bits::is_float(self.value())
     }
 
     /// Returns true if a value is a 32-bits integer.
     #[must_use]
     #[inline(always)]
-    pub(crate) const fn is_integer32(&self) -> bool {
-        bits::is_integer32(self.0)
+    pub(crate) fn is_integer32(&self) -> bool {
+        bits::is_integer32(self.value())
     }
 
-    /// Returns true if a value is a `[JsBigInt]`. A `NaN` will not match here.
+    /// Returns true if a value is a [`JsBigInt`]. A `NaN` will not match here.
     #[must_use]
     #[inline(always)]
-    pub(crate) const fn is_bigint(&self) -> bool {
-        bits::is_bigint(self.0)
+    pub(crate) fn is_bigint(&self) -> bool {
+        bits::is_bigint(self.value())
     }
 
     /// Returns true if a value is a boxed Object.
     #[must_use]
     #[inline(always)]
-    pub(crate) const fn is_object(&self) -> bool {
-        bits::is_object(self.0)
+    pub(crate) fn is_object(&self) -> bool {
+        bits::is_object(self.value())
     }
 
     /// Returns true if a value is a boxed Symbol.
     #[must_use]
     #[inline(always)]
-    pub(crate) const fn is_symbol(&self) -> bool {
-        bits::is_symbol(self.0)
+    pub(crate) fn is_symbol(&self) -> bool {
+        bits::is_symbol(self.value())
     }
 
     /// Returns true if a value is a boxed String.
     #[must_use]
     #[inline(always)]
-    pub(crate) const fn is_string(&self) -> bool {
-        bits::is_string(self.0)
+    pub(crate) fn is_string(&self) -> bool {
+        bits::is_string(self.value())
     }
 
     /// Returns the value as a f64 if it is a float.
     #[must_use]
     #[inline(always)]
-    pub(crate) const fn as_float64(&self) -> Option<f64> {
+    pub(crate) fn as_float64(&self) -> Option<f64> {
         if self.is_float64() {
-            Some(f64::from_bits(self.0))
+            Some(f64::from_bits(self.value()))
         } else {
             None
         }
@@ -656,9 +546,9 @@ impl NanBoxedValue {
     /// Returns the value as an i32 if it is an integer.
     #[must_use]
     #[inline(always)]
-    pub(crate) const fn as_integer32(&self) -> Option<i32> {
+    pub(crate) fn as_integer32(&self) -> Option<i32> {
         if self.is_integer32() {
-            Some(bits::untag_i32(self.0))
+            Some(bits::untag_i32(self.value()))
         } else {
             None
         }
@@ -667,82 +557,154 @@ impl NanBoxedValue {
     /// Returns the value as a boolean if it is a boolean.
     #[must_use]
     #[inline(always)]
-    pub(crate) const fn as_bool(&self) -> Option<bool> {
-        match self.0 {
+    pub(crate) fn as_bool(&self) -> Option<bool> {
+        match self.value() {
             bits::VALUE_FALSE => Some(false),
             bits::VALUE_TRUE => Some(true),
             _ => None,
         }
     }
 
-    /// Returns the value as a boxed `[JsBigInt]`.
+    /// Returns the value as a boxed [`JsBigInt`].
     #[must_use]
     #[inline(always)]
-    pub(crate) const fn as_bigint(&self) -> Option<&JsBigInt> {
+    pub(crate) fn as_bigint(&self) -> Option<JsBigInt> {
         if self.is_bigint() {
-            Some(unsafe { bits::untag_pointer::<'_, JsBigInt>(self.0) })
+            // SAFETY: the inner address must hold a valid, non-null JsBigInt.
+            unsafe { Some((*self.as_bigint_unchecked()).clone()) }
         } else {
             None
         }
     }
 
-    /// Returns the value as a boxed `[JsObject]`.
+    /// Returns the value as a [`JsBigInt`] without checking the inner tag.
+    ///
+    /// # Safety
+    ///
+    /// The inner value must be a valid `JsBigInt`.
+    #[must_use]
+    #[inline(always)]
+    unsafe fn as_bigint_unchecked(&self) -> ManuallyDrop<JsBigInt> {
+        let addr = bits::untag_pointer(self.value());
+        // SAFETY: This is guaranteed by the caller.
+        unsafe {
+            ManuallyDrop::new(JsBigInt::from_raw(
+                self.ptr.with_addr(addr).cast::<RawBigInt>().cast_const(),
+            ))
+        }
+    }
+
+    /// Returns the value as a boxed [`JsObject`].
     #[must_use]
     #[inline(always)]
     pub(crate) fn as_object(&self) -> Option<JsObject> {
         if self.is_object() {
-            let obj = unsafe { bits::untag_object_owned(self.0) };
-            let o = obj.clone();
-            core::mem::forget(obj); // Prevent double drop.
-            Some(o)
+            // SAFETY: the inner address must hold a valid, non-null JsObject.
+            unsafe { Some((*self.as_object_unchecked()).clone()) }
         } else {
             None
         }
     }
 
-    /// Returns the value as a boxed `[JsSymbol]`.
+    /// Returns the value as a boxed [`JsObject`] without checking the inner tag.
+    ///
+    /// # Safety
+    ///
+    /// The inner value must be a valid `JsObject`.
     #[must_use]
     #[inline(always)]
-    pub(crate) const fn as_symbol(&self) -> Option<&JsSymbol> {
+    unsafe fn as_object_unchecked(&self) -> ManuallyDrop<JsObject> {
+        let addr = bits::untag_pointer(self.value());
+        // SAFETY: This is guaranteed by the caller.
+        unsafe {
+            ManuallyDrop::new(JsObject::from_raw(NonNull::new_unchecked(
+                self.ptr.with_addr(addr).cast::<GcBox<ErasedVTableObject>>(),
+            )))
+        }
+    }
+
+    /// Returns the value as a [`JsSymbol`].
+    #[must_use]
+    #[inline(always)]
+    pub(crate) fn as_symbol(&self) -> Option<JsSymbol> {
         if self.is_symbol() {
-            Some(unsafe { bits::untag_pointer::<'_, JsSymbol>(self.0) })
+            // SAFETY: the inner address must hold a valid, non-null JsSymbol.
+            unsafe { Some((*self.as_symbol_unchecked()).clone()) }
         } else {
             None
         }
     }
 
-    /// Returns the value as a boxed `[JsString]`.
+    /// Returns the value as a [`JsSymbol`] without checking the inner tag.
+    ///
+    /// # Safety
+    ///
+    /// The inner value must be a valid `JsSymbol`.
+    #[must_use]
+    #[inline(always)]
+    unsafe fn as_symbol_unchecked(&self) -> ManuallyDrop<JsSymbol> {
+        let addr = bits::untag_pointer(self.value());
+        // SAFETY: This is guaranteed by the caller.
+        unsafe {
+            ManuallyDrop::new(JsSymbol::from_raw(NonNull::new_unchecked(
+                self.ptr.with_addr(addr).cast::<RawJsSymbol>(),
+            )))
+        }
+    }
+
+    /// Returns the value as a boxed [`JsString`].
     #[must_use]
     #[inline(always)]
     pub(crate) fn as_string(&self) -> Option<JsString> {
         if self.is_string() {
-            Some(unsafe { bits::untag_string_pointer(self.0) })
+            // SAFETY: the inner address must hold a valid, non-null JsString.
+            unsafe { Some((*self.as_string_unchecked()).clone()) }
         } else {
             None
         }
     }
 
-    /// Returns the `[JsVariant]` of this inner value.
+    /// Returns the value as a [`JsString`] without checking the inner tag.
+    ///
+    /// # Safety
+    ///
+    /// The inner value must be a valid `JsString`.
     #[must_use]
     #[inline(always)]
-    pub(crate) fn as_variant(&self) -> JsVariant<'_> {
-        match self.0 & bits::MASK_KIND {
+    unsafe fn as_string_unchecked(&self) -> ManuallyDrop<JsString> {
+        let addr = bits::untag_pointer(self.value());
+        // SAFETY: the inner address must hold a valid, non-null JsString.
+        unsafe {
+            ManuallyDrop::new(JsString::from_raw(NonNull::new_unchecked(
+                self.ptr.with_addr(addr).cast::<RawJsString>(),
+            )))
+        }
+    }
+
+    /// Returns the [`JsVariant`] of this inner value.
+    #[must_use]
+    #[inline(always)]
+    pub(crate) fn as_variant(&self) -> JsVariant {
+        match self.value() & bits::MASK_KIND {
             bits::MASK_OBJECT => {
-                let obj = unsafe { bits::untag_object_owned(self.0) };
-                let o = obj.clone();
-                core::mem::forget(obj); // Prevent double drop.
-                JsVariant::Object(o)
+                JsVariant::Object(unsafe { (*self.as_object_unchecked()).clone() })
             }
-            bits::MASK_STRING => JsVariant::String(unsafe { bits::untag_string_pointer(self.0) }),
-            bits::MASK_SYMBOL => JsVariant::Symbol(unsafe { bits::untag_pointer(self.0) }),
-            bits::MASK_BIGINT => JsVariant::BigInt(unsafe { bits::untag_pointer(self.0) }),
-            bits::MASK_INT32 => JsVariant::Integer32(bits::untag_i32(self.0)),
-            bits::MASK_BOOLEAN => JsVariant::Boolean(bits::untag_bool(self.0)),
-            bits::MASK_OTHER => match self.0 {
+            bits::MASK_STRING => {
+                JsVariant::String(unsafe { (*self.as_string_unchecked()).clone() })
+            }
+            bits::MASK_SYMBOL => {
+                JsVariant::Symbol(unsafe { (*self.as_symbol_unchecked()).clone() })
+            }
+            bits::MASK_BIGINT => {
+                JsVariant::BigInt(unsafe { (*self.as_bigint_unchecked()).clone() })
+            }
+            bits::MASK_INT32 => JsVariant::Integer32(bits::untag_i32(self.value())),
+            bits::MASK_BOOLEAN => JsVariant::Boolean(bits::untag_bool(self.value())),
+            bits::MASK_OTHER => match self.value() {
                 bits::VALUE_NULL => JsVariant::Null,
                 _ => JsVariant::Undefined,
             },
-            _ => JsVariant::Float64(f64::from_bits(self.0)),
+            _ => JsVariant::Float64(f64::from_bits(self.value())),
         }
     }
 }
@@ -750,11 +712,19 @@ impl NanBoxedValue {
 impl Drop for NanBoxedValue {
     #[inline(always)]
     fn drop(&mut self) {
-        match self.0 & bits::MASK_KIND {
-            bits::MASK_OBJECT => drop(unsafe { bits::untag_object_owned(self.0) }),
-            bits::MASK_STRING => drop(unsafe { bits::untag_string_owned(self.0) }),
-            bits::MASK_SYMBOL => drop(unsafe { bits::untag_pointer_owned::<JsSymbol>(self.0) }),
-            bits::MASK_BIGINT => drop(unsafe { bits::untag_pointer_owned::<JsBigInt>(self.0) }),
+        match self.value() & bits::MASK_KIND {
+            bits::MASK_OBJECT => {
+                unsafe { ManuallyDrop::into_inner(self.as_object_unchecked()) };
+            }
+            bits::MASK_STRING => {
+                unsafe { ManuallyDrop::into_inner(self.as_string_unchecked()) };
+            }
+            bits::MASK_SYMBOL => {
+                unsafe { ManuallyDrop::into_inner(self.as_symbol_unchecked()) };
+            }
+            bits::MASK_BIGINT => {
+                unsafe { ManuallyDrop::into_inner(self.as_bigint_unchecked()) };
+            }
             _ => {}
         }
     }
@@ -837,8 +807,8 @@ macro_rules! assert_type {
     ($value: ident is bigint($scalar: ident)) => {
         assert_type!(@@is $value, 0, 0, 0, 0, 0, 1, 0, 0, 0);
         assert_type!(@@as $value, 0, 0, 0, 0, 0, 1, 0, 0, 0);
-        assert_eq!(Some(&$scalar), $value.as_bigint());
-        assert_eq!($value.as_variant(), JsVariant::BigInt(&$scalar));
+        assert_eq!(Some(&$scalar), $value.as_bigint().as_ref());
+        assert_eq!($value.as_variant(), JsVariant::BigInt($scalar));
     };
     ($value: ident is object($scalar: ident)) => {
         assert_type!(@@is $value, 0, 0, 0, 0, 0, 0, 0, 1, 0);
@@ -849,8 +819,8 @@ macro_rules! assert_type {
     ($value: ident is symbol($scalar: ident)) => {
         assert_type!(@@is $value, 0, 0, 0, 0, 0, 0, 0, 0, 1);
         assert_type!(@@as $value, 0, 0, 0, 0, 0, 0, 0, 0, 1);
-        assert_eq!(Some(&$scalar), $value.as_symbol());
-        assert_eq!($value.as_variant(), JsVariant::Symbol(&$scalar));
+        assert_eq!(Some(&$scalar), $value.as_symbol().as_ref());
+        assert_eq!($value.as_variant(), JsVariant::Symbol($scalar));
     };
     ($value: ident is string($scalar: ident)) => {
         assert_type!(@@is $value, 0, 0, 0, 0, 0, 0, 1, 0, 0);

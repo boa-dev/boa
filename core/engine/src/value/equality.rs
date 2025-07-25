@@ -39,7 +39,7 @@ impl JsValue {
         match (self.variant(), other.variant()) {
             // 2. If Type(x) is Number or BigInt, then
             //    a. Return ! Type(x)::equal(x, y).
-            (JsVariant::BigInt(x), JsVariant::BigInt(y)) => JsBigInt::equal(x, y),
+            (JsVariant::BigInt(x), JsVariant::BigInt(y)) => JsBigInt::equal(&x, &y),
             (JsVariant::Float64(x), JsVariant::Float64(y)) => Number::equal(x, y),
             (JsVariant::Float64(x), JsVariant::Integer32(y)) => Number::equal(x, f64::from(y)),
             (JsVariant::Integer32(x), JsVariant::Float64(y)) => Number::equal(f64::from(x), y),
@@ -93,14 +93,10 @@ impl JsValue {
             //    a. Let n be ! StringToBigInt(y).
             //    b. If n is NaN, return false.
             //    c. Return the result of the comparison x == n.
-            (JsVariant::BigInt(a), JsVariant::String(b)) => {
-                JsBigInt::from_js_string(&b).as_ref() == Some(a)
-            }
+            (JsVariant::BigInt(a), JsVariant::String(b)) => JsBigInt::from_js_string(&b) == Some(a),
 
             // 7. If Type(x) is String and Type(y) is BigInt, return the result of the comparison y == x.
-            (JsVariant::String(a), JsVariant::BigInt(b)) => {
-                JsBigInt::from_js_string(&a).as_ref() == Some(b)
-            }
+            (JsVariant::String(a), JsVariant::BigInt(b)) => JsBigInt::from_js_string(&a) == Some(b),
 
             // 8. If Type(x) is Boolean, return the result of the comparison ! ToNumber(x) == y.
             (JsVariant::Boolean(x), _) => {
@@ -145,10 +141,10 @@ impl JsValue {
             // 12. If Type(x) is BigInt and Type(y) is Number, or if Type(x) is Number and Type(y) is BigInt, then
             //    a. If x or y are any of NaN, +∞, or -∞, return false.
             //    b. If the mathematical value of x is equal to the mathematical value of y, return true; otherwise return false.
-            (JsVariant::BigInt(a), JsVariant::Float64(ref b)) => a == b,
-            (JsVariant::Float64(ref a), JsVariant::BigInt(b)) => a == b,
-            (JsVariant::BigInt(a), JsVariant::Integer32(ref b)) => a == b,
-            (JsVariant::Integer32(ref a), JsVariant::BigInt(b)) => a == b,
+            (JsVariant::BigInt(a), JsVariant::Float64(b)) => a == b,
+            (JsVariant::Float64(a), JsVariant::BigInt(b)) => a == b,
+            (JsVariant::BigInt(a), JsVariant::Integer32(b)) => a == b,
+            (JsVariant::Integer32(a), JsVariant::BigInt(b)) => a == b,
 
             // 13. Return false.
             _ => false,
@@ -172,7 +168,7 @@ impl JsValue {
         match (x.variant(), y.variant()) {
             // 2. If Type(x) is Number or BigInt, then
             //    a. Return ! Type(x)::SameValue(x, y).
-            (JsVariant::BigInt(x), JsVariant::BigInt(y)) => JsBigInt::same_value(x, y),
+            (JsVariant::BigInt(x), JsVariant::BigInt(y)) => JsBigInt::same_value(&x, &y),
             (JsVariant::Float64(x), JsVariant::Float64(y)) => Number::same_value(x, y),
             (JsVariant::Float64(x), JsVariant::Integer32(y)) => Number::same_value(x, f64::from(y)),
             (JsVariant::Integer32(x), JsVariant::Float64(y)) => Number::same_value(f64::from(x), y),
@@ -201,7 +197,7 @@ impl JsValue {
         match (x.variant(), y.variant()) {
             // 2. If Type(x) is Number or BigInt, then
             //    a. Return ! Type(x)::SameValueZero(x, y).
-            (JsVariant::BigInt(x), JsVariant::BigInt(y)) => JsBigInt::same_value_zero(x, y),
+            (JsVariant::BigInt(x), JsVariant::BigInt(y)) => JsBigInt::same_value_zero(&x, &y),
 
             (JsVariant::Float64(x), JsVariant::Float64(y)) => Number::same_value_zero(x, y),
             (JsVariant::Float64(x), JsVariant::Integer32(y)) => {

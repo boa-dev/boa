@@ -6,7 +6,7 @@ use boa_string::JsString;
 /// Represents either a primitive value ([`bool`], [`f64`], [`i32`]) or a reference
 /// to a heap allocated value ([`JsString`], [`JsSymbol`]).
 #[derive(Debug, PartialEq)]
-pub enum JsVariant<'a> {
+pub enum JsVariant {
     /// `null` - A null value, for when a value doesn't exist.
     Null,
     /// `undefined` - An undefined value, for when a field or index doesn't exist.
@@ -22,30 +22,30 @@ pub enum JsVariant<'a> {
     /// `Number` - A 32-bit integer, such as `42`.
     Integer32(i32),
     /// `BigInt` - holds any arbitrary large signed integer.
-    BigInt(&'a JsBigInt),
+    BigInt(JsBigInt),
     /// `Object` - An object, such as `Math`, represented by a binary tree of string keys to Javascript values.
     Object(JsObject),
     /// `Symbol` - A Symbol Primitive type.
-    Symbol(&'a JsSymbol),
+    Symbol(JsSymbol),
 }
 
-impl<'a> From<JsVariant<'a>> for JsValue {
-    fn from(value: JsVariant<'a>) -> Self {
+impl From<JsVariant> for JsValue {
+    fn from(value: JsVariant) -> Self {
         match value {
             JsVariant::Null => JsValue::null(),
             JsVariant::Undefined => JsValue::undefined(),
             JsVariant::Boolean(b) => JsValue::new(b),
-            JsVariant::String(s) => JsValue::new(s.clone()),
+            JsVariant::String(s) => JsValue::new(s),
             JsVariant::Float64(f) => JsValue::new(f),
             JsVariant::Integer32(i) => JsValue::new(i),
-            JsVariant::BigInt(b) => JsValue::new(b.clone()),
-            JsVariant::Object(o) => JsValue::new(o.clone()),
-            JsVariant::Symbol(s) => JsValue::new(s.clone()),
+            JsVariant::BigInt(b) => JsValue::new(b),
+            JsVariant::Object(o) => JsValue::new(o),
+            JsVariant::Symbol(s) => JsValue::new(s),
         }
     }
 }
 
-impl JsVariant<'_> {
+impl JsVariant {
     /// Check if the variant is an `undefined` value.
     #[inline]
     #[must_use]

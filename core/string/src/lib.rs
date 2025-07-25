@@ -30,7 +30,6 @@ pub use crate::{
     iter::Iter,
     str::{JsStr, JsStrVariant},
 };
-use std::borrow::Cow;
 use std::fmt::Write;
 use std::{
     alloc::{Layout, alloc, dealloc},
@@ -41,6 +40,7 @@ use std::{
     ptr::{self, NonNull},
     str::FromStr,
 };
+use std::{borrow::Cow, mem::ManuallyDrop};
 
 fn alloc_overflow() -> ! {
     panic!("detected overflow during string allocation")
@@ -477,27 +477,25 @@ impl JsString {
         self.as_str().display_lossy()
     }
 
-    /// Consumes the [`JsString`], returning a wrapped raw pointer.
+    /// Consumes the [`JsString`], returning a pointer to `RawJsString`.
     ///
-    /// The pointer will be properly aligned and non-null or a tag as a pointer.
+    /// To avoid a memory leak the pointer must be converted back to a `JsString` using
+    /// [`JsString::from_raw`].
     #[inline]
     #[must_use]
     pub fn into_raw(self) -> NonNull<RawJsString> {
-        let ptr = self.ptr;
-
-        // SAFETY: Dropping the value here would result in a use-after-free.
-        std::mem::forget(self);
-
-        ptr
+        ManuallyDrop::new(self).ptr
     }
 
-    /// Constructs a box from a raw pointer.
+    /// Constructs a `JsString` from a pointer to `RawJsString`.
+    ///
+    /// The raw pointer must have been previously returned by a call to
+    /// [`JsString::into_raw`].
     ///
     /// # Safety
     ///
-    /// This function is unsafe because improper use may lead to memory problems.
-    /// For example, a double-free may occur if the function is called twice on
-    /// the same raw pointer.
+    /// This function is unsafe because improper use may lead to memory unsafety,
+    /// even if the returned `JsString` is never accessed.
     #[inline]
     #[must_use]
     pub unsafe fn from_raw(ptr: NonNull<RawJsString>) -> Self {

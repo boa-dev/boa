@@ -198,9 +198,9 @@ impl EnumBasedValue {
     /// Returns the value as a boxed `[JsBigInt]`.
     #[must_use]
     #[inline]
-    pub(crate) const fn as_bigint(&self) -> Option<&JsBigInt> {
+    pub(crate) fn as_bigint(&self) -> Option<JsBigInt> {
         match self {
-            Self::BigInt(value) => Some(value),
+            Self::BigInt(value) => Some(value.clone()),
             _ => None,
         }
     }
@@ -218,9 +218,9 @@ impl EnumBasedValue {
     /// Returns the value as a boxed `[JsSymbol]`.
     #[must_use]
     #[inline]
-    pub(crate) const fn as_symbol(&self) -> Option<&JsSymbol> {
+    pub(crate) fn as_symbol(&self) -> Option<JsSymbol> {
         match self {
-            Self::Symbol(value) => Some(value),
+            Self::Symbol(value) => Some(value.clone()),
             _ => None,
         }
     }
@@ -238,16 +238,16 @@ impl EnumBasedValue {
     /// Returns the `[JsVariant]` of this inner value.
     #[must_use]
     #[inline]
-    pub(crate) fn as_variant(&self) -> JsVariant<'_> {
+    pub(crate) fn as_variant(&self) -> JsVariant {
         match self {
             Self::Undefined => JsVariant::Undefined,
             Self::Null => JsVariant::Null,
             Self::Boolean(v) => JsVariant::Boolean(*v),
             Self::Integer32(v) => JsVariant::Integer32(*v),
             Self::Float64(v) => JsVariant::Float64(*v),
-            Self::BigInt(v) => JsVariant::BigInt(v),
+            Self::BigInt(v) => JsVariant::BigInt(v.clone()),
             Self::Object(v) => JsVariant::Object(v.clone()),
-            Self::Symbol(v) => JsVariant::Symbol(v),
+            Self::Symbol(v) => JsVariant::Symbol(v.clone()),
             Self::String(v) => JsVariant::String(v.clone()),
         }
     }

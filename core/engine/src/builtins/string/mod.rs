@@ -714,7 +714,10 @@ impl String {
         // 3. Let n be ? ToIntegerOrInfinity(count).
         match args.get_or_undefined(0).to_integer_or_infinity(context)? {
             IntegerOrInfinity::Integer(n)
-                if n > 0 && (n as usize) * len <= Self::MAX_STRING_LENGTH =>
+                if u64::try_from(n)
+                    .ok()
+                    .and_then(|n| n.checked_mul(len as u64))
+                    .is_some_and(|total_len| total_len <= (Self::MAX_STRING_LENGTH as u64)) =>
             {
                 if string.is_empty() {
                     return Ok(js_string!().into());

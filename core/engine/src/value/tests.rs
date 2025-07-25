@@ -636,7 +636,7 @@ fn to_int32() {
         check_to_int32!(-3_000_000_000.5 => 1_294_967_296);
         check_to_int32!(-3_000_000_000.75 => 1_294_967_296);
 
-        let base = 2f64.powi(64);
+        let base = 18_446_744_073_709_552_000.0; // approx. 2^64
         check_to_int32!(base + 0.0 => 0);
         check_to_int32!(base + 1117.0 => 0);
         check_to_int32!(base + 2234.0 => 4096);
@@ -667,17 +667,17 @@ fn to_int32() {
         check_to_int32!(base + 30159.0 => 28672);
         check_to_int32!(base + 31276.0 => 32768);
 
-        // bignum is (2^53 - 1) * 2^31 - highest number with bit 31 set.
-        let bignum = 2f64.powi(84) - 2f64.powi(31);
+        // bignum is the highest number with bit 31 set.
+        let bignum = f64::from_bits(0x452f_ffff_ffff_ffff);
         check_to_int32!(bignum => -2_147_483_648);
         check_to_int32!(-bignum => -2_147_483_648);
         check_to_int32!(2.0 * bignum => 0);
         check_to_int32!(-(2.0 * bignum) => 0);
-        check_to_int32!(bignum - 2f64.powi(31) => 0);
-        check_to_int32!(-(bignum - 2f64.powi(31)) => 0);
+        check_to_int32!(bignum - 2_147_483_648.0 => 0);
+        check_to_int32!(-(bignum - 2_147_483_648.0) => 0);
 
         // max_fraction is largest number below 1.
-        let max_fraction = 1.0 - 2f64.powi(-53);
+        let max_fraction = 1.0f64.next_down();
         check_to_int32!(max_fraction => 0);
         check_to_int32!(-max_fraction => 0);
     })]);
