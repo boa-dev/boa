@@ -1055,7 +1055,7 @@ impl Duration {
     ///
     /// [spec]: https://tc39.es/proposal-temporal/#sec-temporal.duration.prototype.tostring
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Temporal/Duration/toString
-    /// [temporal_rs-docs]: https://docs.rs/temporal_rs/latest/temporal_rs/struct.Duration.html#method.to_temporal_string
+    /// [temporal_rs-docs]: https://docs.rs/temporal_rs/latest/temporal_rs/struct.Duration.html#method.as_temporal_string
     pub(crate) fn to_string(
         this: &JsValue,
         args: &[JsValue],
