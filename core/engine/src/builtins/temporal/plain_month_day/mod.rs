@@ -1,4 +1,5 @@
-//! Boa's implementation of the ECMAScript `Temporal.PlainMonthDay` builtin object.
+//! Boa's implementation of the ECMAScript `Temporal.PlainMonthDay` built-in object.
+//!
 use std::str::FromStr;
 
 use crate::{
@@ -28,9 +29,19 @@ use super::{
     DateTimeValues, create_temporal_date, is_partial_temporal_object, to_partial_date_record,
 };
 
-/// The `Temporal.PlainMonthDay` object.
+/// The `Temporal.PlainMonthDay` built-in implementation
+///
+/// More information:
+///
+/// - [ECMAScript Temporal proposal][spec]
+/// - [MDN reference][mdn]
+/// - [`temporal_rs` documentation][temporal_rs-docs]
+///
+/// [spec]: https://tc39.es/proposal-temporal/#sec-temporal-plainmonthday-objects
+/// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Temporal/PlainMonthDay
+/// [temporal_rs-docs]: https://docs.rs/temporal_rs/latest/temporal_rs/struct.PlainMonthDay.html
 #[derive(Debug, Clone, Trace, Finalize, JsData)]
-#[boa_gc(unsafe_empty_trace)] // TODO: Remove this!!! `InnerMonthDay` could contain `Trace` types.
+#[boa_gc(unsafe_empty_trace)] // Safety: PlainMonthDay contains no traceable inner fields.
 pub struct PlainMonthDay {
     pub(crate) inner: InnerMonthDay,
 }
@@ -163,10 +174,18 @@ impl BuiltInConstructor for PlainMonthDay {
     }
 }
 
-// ==== `Temporal.PlainMonthDay` static Methods ====
+// ==== `Temporal.PlainMonthDay` static methods implementation ====
 
 impl PlainMonthDay {
-    // 10.2.2 Temporal.PlainMonthDay.from ( item [ , options ] )
+    /// 10.2.2 `Temporal.PlainMonthDay.from ( item [ , options ] )`
+    ///
+    /// More information:
+    ///
+    /// - [ECMAScript Temporal proposal][spec]
+    /// - [MDN reference][mdn]
+    ///
+    /// [spec]: https://tc39.es/proposal-temporal/#sec-temporal.plainmonthday.from
+    /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Temporal/PlainMonthDay/from
     fn from(_: &JsValue, args: &[JsValue], context: &mut Context) -> JsResult<JsValue> {
         let options = get_options_object(args.get_or_undefined(1))?;
         let item = args.get_or_undefined(0);
@@ -178,6 +197,7 @@ impl PlainMonthDay {
 // ==== `PlainMonthDay` Accessor Implementations ====
 
 impl PlainMonthDay {
+    // Helper for retrieving internal fields
     fn get_internal_field(this: &JsValue, field: &DateTimeValues) -> JsResult<JsValue> {
         let object = this.as_object();
         let month_day = object
@@ -194,6 +214,17 @@ impl PlainMonthDay {
         }
     }
 
+    /// 10.3.3 get `Temporal.PlainMonthDay.prototype.calendarId`
+    ///
+    /// More information:
+    ///
+    /// - [ECMAScript Temporal proposal][spec]
+    /// - [MDN reference][mdn]
+    /// - [`temporal_rs` documentation][temporal_rs-docs]
+    ///
+    /// [spec]: https://tc39.es/proposal-temporal/#sec-get-temporal.plainmonthday.calendarid
+    /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Temporal/PlainMonthDay/calendarId
+    /// [temporal_rs-docs]: https://docs.rs/temporal_rs/latest/temporal_rs/struct.PlainMonthDay.html#method.calendar
     fn get_calendar_id(this: &JsValue, _: &[JsValue], _: &mut Context) -> JsResult<JsValue> {
         let object = this.as_object();
         let month_day = object
@@ -205,10 +236,32 @@ impl PlainMonthDay {
         Ok(js_string!(month_day.inner.calendar().identifier()).into())
     }
 
+    /// 10.3.4 get `Temporal.PlainMonthDay.prototype.day`
+    ///
+    /// More information:
+    ///
+    /// - [ECMAScript Temporal proposal][spec]
+    /// - [MDN reference][mdn]
+    /// - [`temporal_rs` documentation][temporal_rs-docs]
+    ///
+    /// [spec]: https://tc39.es/proposal-temporal/#sec-get-temporal.plainmonthday.day
+    /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Temporal/PlainMonthDay/day
+    /// [temporal_rs-docs]: https://docs.rs/temporal_rs/latest/temporal_rs/struct.PlainMonthDay.html#method.day
     fn get_day(this: &JsValue, _: &[JsValue], _: &mut Context) -> JsResult<JsValue> {
         Self::get_internal_field(this, &DateTimeValues::Day)
     }
 
+    /// 10.3.5 get `Temporal.PlainMonthDay.prototype.monthCode`
+    ///
+    /// More information:
+    ///
+    /// - [ECMAScript Temporal proposal][spec]
+    /// - [MDN reference][mdn]
+    /// - [`temporal_rs` documentation][temporal_rs-docs]
+    ///
+    /// [spec]: https://tc39.es/proposal-temporal/#sec-get-temporal.plainmonthday.monthcode
+    /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Temporal/PlainMonthDay/monthCode
+    /// [temporal_rs-docs]: https://docs.rs/temporal_rs/latest/temporal_rs/struct.PlainMonthDay.html#method.month_code
     fn get_month_code(this: &JsValue, _: &[JsValue], _: &mut Context) -> JsResult<JsValue> {
         Self::get_internal_field(this, &DateTimeValues::MonthCode)
     }
@@ -217,6 +270,17 @@ impl PlainMonthDay {
 // ==== `Temporal.PlainMonthDay` Methods ====
 
 impl PlainMonthDay {
+    /// 10.3.6 `Temporal.PlainMonthDay.prototype.with ( temporalMonthDayLike [ , options ] )`
+    ///
+    /// More information:
+    ///
+    /// - [ECMAScript Temporal proposal][spec]
+    /// - [MDN reference][mdn]
+    /// - [`temporal_rs` documentation][temporal_rs-docs]
+    ///
+    /// [spec]: https://tc39.es/proposal-temporal/#sec-temporal.plainmonthday.with
+    /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Temporal/PlainMonthDay/with
+    /// [temporal_rs-docs]: https://docs.rs/temporal_rs/latest/temporal_rs/struct.PlainMonthDay.html#method.with
     fn with(this: &JsValue, args: &[JsValue], context: &mut Context) -> JsResult<JsValue> {
         // 1. Let monthDay be the this value.
         // 2. Perform ? RequireInternalSlot(monthDay, [[InitializedTemporalMonthDay]]).
@@ -249,6 +313,17 @@ impl PlainMonthDay {
         create_temporal_month_day(month_day.inner.with(partial, overflow)?, None, context)
     }
 
+    /// 10.3.7 `Temporal.PlainMonthDay.prototype.equals ( other )`
+    ///
+    /// More information:
+    ///
+    /// - [ECMAScript Temporal proposal][spec]
+    /// - [MDN reference][mdn]
+    /// - [`temporal_rs` documentation][temporal_rs-docs]
+    ///
+    /// [spec]: https://tc39.es/proposal-temporal/#sec-temporal.plainmonthday.equals
+    /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Temporal/PlainMonthDay/equals
+    /// [temporal_rs-docs]: https://docs.rs/temporal_rs/latest/temporal_rs/struct.PlainMonthDay.html#impl-PartialEq-for-PlainMonthDay
     fn equals(this: &JsValue, args: &[JsValue], context: &mut Context) -> JsResult<JsValue> {
         let object = this.as_object();
         let month_day = object
@@ -264,6 +339,16 @@ impl PlainMonthDay {
     }
 
     /// 10.3.8 `Temporal.PlainMonthDay.prototype.toString ( [ options ] )`
+    ///
+    /// More information:
+    ///
+    /// - [ECMAScript Temporal proposal][spec]
+    /// - [MDN reference][mdn]
+    /// - [`temporal_rs` documentation][temporal_rs-docs]
+    ///
+    /// [spec]: https://tc39.es/proposal-temporal/#sec-temporal.plainmonthday.tostring
+    /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Temporal/PlainMonthDay/toString
+    /// [temporal_rs-docs]: https://docs.rs/temporal_rs/latest/temporal_rs/struct.PlainMonthDay.html#method.to_ixdtf_string
     fn to_string(this: &JsValue, args: &[JsValue], context: &mut Context) -> JsResult<JsValue> {
         // 1. Let monthDay be the this value.
         // 2. Perform ? RequireInternalSlot(monthDay, [[InitializedTemporalMonthDay]]).
@@ -288,6 +373,14 @@ impl PlainMonthDay {
     }
 
     /// 10.3.9 `Temporal.PlainMonthDay.prototype.toLocaleString ( [ locales [ , options ] ] )`
+    ///
+    /// More information:
+    ///
+    /// - [ECMAScript Temporal proposal][spec]
+    /// - [MDN reference][mdn]
+    ///
+    /// [spec]: https://tc39.es/proposal-temporal/#sec-temporal.plainmonthday.tolocalestring
+    /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Temporal/PlainMonthDay/toLocaleString
     pub(crate) fn to_locale_string(
         this: &JsValue,
         _: &[JsValue],
@@ -306,6 +399,14 @@ impl PlainMonthDay {
     }
 
     /// 10.3.10 `Temporal.PlainMonthDay.prototype.toJSON ( )`
+    ///
+    /// More information:
+    ///
+    /// - [ECMAScript Temporal proposal][spec]
+    /// - [MDN reference][mdn]
+    ///
+    /// [spec]: https://tc39.es/proposal-temporal/#sec-temporal.plainmonthday.tojson
+    /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Temporal/PlainMonthDay/toJSON
     pub(crate) fn to_json(this: &JsValue, _: &[JsValue], _: &mut Context) -> JsResult<JsValue> {
         let object = this.as_object();
         let month_day = object
@@ -319,12 +420,31 @@ impl PlainMonthDay {
     }
 
     /// 9.3.11 `Temporal.PlainMonthDay.prototype.valueOf ( )`
+    ///
+    /// More information:
+    ///
+    /// - [ECMAScript Temporal proposal][spec]
+    /// - [MDN reference][mdn]
+    ///
+    /// [spec]: https://tc39.es/proposal-temporal/#sec-temporal.plainmonthday.valueof
+    /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Temporal/PlainMonthDay/valueOf
     pub(crate) fn value_of(_this: &JsValue, _: &[JsValue], _: &mut Context) -> JsResult<JsValue> {
         Err(JsNativeError::typ()
             .with_message("`valueOf` not supported by Temporal built-ins. See 'compare', 'equals', or `toString`")
             .into())
     }
 
+    /// 10.3.12 `Temporal.PlainMonthDay.prototype.toPlainDate ( item )`
+    ///
+    /// More information:
+    ///
+    /// - [ECMAScript Temporal proposal][spec]
+    /// - [MDN reference][mdn]
+    /// - [`temporal_rs` documentation][temporal_rs-docs]
+    ///
+    /// [spec]: https://tc39.es/proposal-temporal/#sec-temporal.plainmonthday.toplaindate
+    /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Temporal/PlainMonthDay/toPlainDate
+    /// [temporal_rs-docs]: https://docs.rs/temporal_rs/latest/temporal_rs/struct.PlainMonthDay.html#method.to_plain_date
     fn to_plain_date(this: &JsValue, args: &[JsValue], context: &mut Context) -> JsResult<JsValue> {
         // 1. Let monthDay be the this value.
         // 2. Perform ? RequireInternalSlot(monthDay, [[InitializedTemporalMonthDay]]).
