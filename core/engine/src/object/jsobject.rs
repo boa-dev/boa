@@ -3,7 +3,7 @@
 //! The `JsObject` is a garbage collected Object.
 
 use super::{
-    JsPrototype, NativeObject, Object, PrivateName, PropertyMap,
+    JsPrototype, NativeObject, Object, ObjectData, PrivateName, PropertyMap,
     internal_methods::{
         InternalMethodPropertyContext, InternalObjectMethods, ORDINARY_INTERNAL_METHODS,
     },
@@ -165,7 +165,7 @@ impl JsObject {
         let internal_methods = data.internal_methods();
         let inner = Gc::new(VTableObject {
             object: GcRefCell::new(Object {
-                data: Box::new(data),
+                data: ObjectData::new(data),
                 properties: PropertyMap::from_prototype_unique_shape(prototype.into()),
                 extensible: true,
                 private_elements: ThinVec::new(),
@@ -191,7 +191,7 @@ impl JsObject {
         let internal_methods = data.internal_methods();
         let inner = Gc::new(VTableObject {
             object: GcRefCell::new(Object {
-                data: Box::new(data),
+                data: ObjectData::new(data),
                 properties: PropertyMap::from_prototype_with_shared_shape(
                     root_shape,
                     prototype.into(),
@@ -821,7 +821,7 @@ impl<T: NativeObject> JsObject<T> {
         let internal_methods = data.internal_methods();
         let inner = Gc::new(VTableObject {
             object: GcRefCell::new(Object {
-                data: Box::new(data),
+                data: ObjectData::new(data),
                 properties: PropertyMap::from_prototype_with_shared_shape(
                     root_shape,
                     prototype.into(),
@@ -843,7 +843,7 @@ impl<T: NativeObject> JsObject<T> {
         let internal_methods = data.internal_methods();
         let inner = Gc::new(VTableObject {
             object: GcRefCell::new(Object {
-                data: Box::new(data),
+                data: ObjectData::new(data),
                 properties: PropertyMap::from_prototype_unique_shape(prototype.into()),
                 extensible: true,
                 private_elements: ThinVec::new(),
@@ -1016,7 +1016,7 @@ impl<T: NativeObject> Debug for JsObject<T> {
             let ptr: *const _ = self.as_ref();
             let ptr = ptr.cast::<()>();
             let obj = self.borrow();
-            let kind = obj.data.type_name_of_value();
+            let kind = obj.data().type_name_of_value();
             if self.is_callable() {
                 let name_prop = obj
                     .properties()

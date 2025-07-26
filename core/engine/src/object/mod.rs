@@ -2,6 +2,7 @@
 //!
 //! For the builtin object wrappers, please see [`object::builtins`][builtins] for implementors.
 
+use datatypes::ObjectData;
 pub use jsobject::{RecursionLimiter, Ref, RefMut};
 pub use operations::IntegrityLevel;
 pub use property_map::*;
@@ -35,6 +36,7 @@ mod datatypes;
 mod jsobject;
 mod operations;
 mod property_map;
+
 pub mod shape;
 
 pub(crate) use builtins::*;
@@ -176,7 +178,7 @@ pub struct Object<T: ?Sized> {
     /// The `[[PrivateElements]]` internal slot.
     private_elements: ThinVec<(PrivateName, PrivateElement)>,
     /// The inner object data
-    pub(crate) data: Box<T>,
+    data: ObjectData<T>,
 }
 
 impl<T: Default> Default for Object<T> {
@@ -185,7 +187,7 @@ impl<T: Default> Default for Object<T> {
             properties: PropertyMap::default(),
             extensible: true,
             private_elements: ThinVec::new(),
-            data: Box::default(),
+            data: ObjectData::default(),
         }
     }
 }
@@ -236,15 +238,15 @@ impl<T: ?Sized> Object<T> {
     /// Returns the data of the object.
     #[inline]
     #[must_use]
-    pub const fn data(&self) -> &T {
-        &self.data
+    pub fn data(&self) -> &T {
+        self.data.as_ref()
     }
 
     /// Returns the data of the object.
     #[inline]
     #[must_use]
     pub fn data_mut(&mut self) -> &mut T {
-        &mut self.data
+        self.data.as_mut()
     }
 
     /// Gets the prototype instance of this object.
@@ -625,13 +627,13 @@ impl<'ctx> ConstructorBuilder<'ctx> {
             context,
             function,
             constructor_object: Object {
-                data: Box::new(OrdinaryObject),
+                data: ObjectData::new(OrdinaryObject),
                 properties: PropertyMap::default(),
                 extensible: true,
                 private_elements: ThinVec::new(),
             },
             prototype: Object {
-                data: Box::new(OrdinaryObject),
+                data: ObjectData::new(OrdinaryObject),
                 properties: PropertyMap::default(),
                 extensible: true,
                 private_elements: ThinVec::new(),
@@ -901,7 +903,7 @@ impl<'ctx> ConstructorBuilder<'ctx> {
                 properties: self.constructor_object.properties,
                 extensible: self.constructor_object.extensible,
                 private_elements: self.constructor_object.private_elements,
-                data: Box::new(data),
+                data: ObjectData::new(data),
             };
 
             constructor.insert(StaticJsStrings::LENGTH, length);
