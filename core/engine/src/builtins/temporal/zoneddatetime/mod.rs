@@ -1567,7 +1567,7 @@ impl ZonedDateTime {
     ///
     /// [spec]: https://tc39.es/proposal-temporal/#sec-temporal.zoneddatetime.prototype.equals
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Temporal/ZonedDateTime/equals
-    /// [temporal_rs-docs]: https://docs.rs/temporal_rs/latest/temporal_rs/struct.ZonedDateTime.html#impl-Eq-for-ZonedDateTime
+    /// [temporal_rs-docs]: https://docs.rs/temporal_rs/latest/temporal_rs/struct.ZonedDateTime.html#impl-PartialEq-for-ZonedDateTime
     fn equals(this: &JsValue, args: &[JsValue], context: &mut Context) -> JsResult<JsValue> {
         let object = this.as_object();
         let zdt = object
