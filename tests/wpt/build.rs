@@ -59,9 +59,9 @@ fn prep_repository(rev: &str, root: impl AsRef<Path>) {
 }
 
 fn main() {
-    const CONFIG_PATH: &'static str = "../../test_wpt_config.toml";
+    const CONFIG_PATH: &str = "../../test_wpt_config.toml";
     println!("cargo:rerun-if-changed=../../tests_wpt");
-    println!("cargo:rerun-if-changed={}", CONFIG_PATH);
+    println!("cargo:rerun-if-changed={CONFIG_PATH}");
 
     let config: Config = {
         let input = std::fs::read_to_string(CONFIG_PATH).expect("Could not read config file");
@@ -77,7 +77,7 @@ fn main() {
 
     // If user already declared WPT_ROOT, keep it.
     if std::env::var("WPT_ROOT").is_err() {
-        println!("cargo:rerun-if-changed={}", root);
-        println!("cargo:rustc-env=WPT_ROOT={}", root);
+        println!("cargo:rerun-if-changed={root}");
+        println!("cargo:rustc-env=WPT_ROOT={root}");
     }
 }

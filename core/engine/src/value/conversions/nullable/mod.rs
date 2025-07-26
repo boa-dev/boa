@@ -135,6 +135,18 @@ impl<T> Nullable<T> {
 
     /// Maps a [`Nullable<T>`] to [`Nullable<U>`] by applying a function to a contained
     /// value.
+    /// # Examples
+    ///
+    /// ```
+    /// # use boa_engine::value::Nullable;
+    /// let maybe_some_string = Nullable::NonNull(String::from("Hello, World!"));
+    /// // `Nullable::map` takes self *by value*, consuming `maybe_some_string`
+    /// let maybe_some_len = maybe_some_string.map(|s| s.len());
+    /// assert_eq!(maybe_some_len, Nullable::NonNull(13));
+    ///
+    /// let x: Nullable<&str> = Nullable::Null;
+    /// assert_eq!(x.map(|s| s.len()), Nullable::Null);
+    /// ```
     #[inline]
     pub fn map<U, F>(self, f: F) -> Nullable<U>
     where
@@ -143,6 +155,36 @@ impl<T> Nullable<T> {
         match self {
             Nullable::NonNull(x) => Nullable::NonNull(f(x)),
             Nullable::Null => Nullable::Null,
+        }
+    }
+
+    /// Returns the contained [`Nullable::NonNull`] value or a default.
+    ///
+    /// Consumes the `self` argument then, if [`Nullable::NonNull`], returns the contained
+    /// value, otherwise if [`Nullable::Null`], returns the [default value] for that
+    /// type.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// # use boa_engine::value::Nullable;
+    /// let x: Nullable<u32> = Nullable::Null;
+    /// let y: Nullable<u32> = Nullable::NonNull(12);
+    ///
+    /// assert_eq!(x.unwrap_or_default(), 0);
+    /// assert_eq!(y.unwrap_or_default(), 12);
+    /// ```
+    ///
+    /// [default value]: Default::default
+    /// [`parse`]: str::parse
+    #[inline]
+    pub fn unwrap_or_default(self) -> T
+    where
+        T: Default,
+    {
+        match self {
+            Nullable::NonNull(x) => x,
+            Nullable::Null => T::default(),
         }
     }
 }

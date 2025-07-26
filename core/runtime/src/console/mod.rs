@@ -29,7 +29,7 @@ use std::{
 };
 
 /// A trait that can be used to forward console logs to an implementation.
-pub trait Logger: Trace + Sized {
+pub trait Logger: Trace {
     /// Log a trace message (`console.trace`). By default, passes the message and the
     /// code block names of each stack trace frame to `log`.
     ///
@@ -295,11 +295,11 @@ impl Console {
     ///
     /// # Errors
     /// This function will return an error if the property cannot be defined on the global object.
-    pub fn register_with_logger<L>(context: &mut Context, logger: L) -> JsResult<()>
+    pub fn register_with_logger<L>(logger: L, context: &mut Context) -> JsResult<()>
     where
         L: Logger + 'static,
     {
-        let console = Self::init_with_logger(context, logger);
+        let console = Self::init_with_logger(logger, context);
         context.register_global_property(
             Self::NAME,
             console,
@@ -311,7 +311,7 @@ impl Console {
 
     /// Initializes the `console` with a special logger.
     #[allow(clippy::too_many_lines)]
-    pub fn init_with_logger<L>(context: &mut Context, logger: L) -> JsObject
+    pub fn init_with_logger<L>(logger: L, context: &mut Context) -> JsObject
     where
         L: Logger + 'static,
     {
@@ -448,7 +448,7 @@ impl Console {
 
     /// Initializes the `console` built-in object.
     pub fn init(context: &mut Context) -> JsObject {
-        Self::init_with_logger(context, DefaultLogger)
+        Self::init_with_logger(DefaultLogger, context)
     }
 
     /// `console.assert(condition, ...data)`

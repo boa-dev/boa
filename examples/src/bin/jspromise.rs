@@ -113,7 +113,8 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
 
     println!("\n4. Converting Rust Future to Promise");
     // Create a promise from an async function
-    let future_promise = JsPromise::from_future(simulate_api_call(true, 100), context);
+    let future_promise =
+        JsPromise::from_async_fn(async |_| simulate_api_call(true, 100).await, context);
     drop(context.run_jobs());
 
     match future_promise.state() {

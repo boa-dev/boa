@@ -549,3 +549,20 @@ mod boa_string_trace {
 
     impl Finalize for boa_string::JsString {}
 }
+
+#[cfg(feature = "either")]
+mod either_trace {
+    use crate::{Finalize, Trace};
+
+    impl<L: Trace, R: Trace> Finalize for either::Either<L, R> {}
+
+    unsafe impl<L: Trace, R: Trace> Trace for either::Either<L, R> {
+        custom_trace!(this, mark, {
+            if let either::Either::Left(l) = this {
+                mark(l);
+            } else if let either::Either::Right(r) = this {
+                mark(r);
+            }
+        });
+    }
+}
