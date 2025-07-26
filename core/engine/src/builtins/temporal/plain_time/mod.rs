@@ -33,7 +33,7 @@ use temporal_rs::{
 ///
 /// - [ECMAScript Temporal proposal][spec]
 /// - [MDN reference][mdn]
-/// - [temporal_rs documentation][temporal_rs-docs]
+/// - [`temporal_rs` documentation][temporal_rs-docs]
 ///
 /// [spec]: https://tc39.es/proposal-temporal/#sec-temporal-plaintime-objects
 /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Temporal/PlainTime
@@ -251,7 +251,7 @@ impl PlainTime {
     ///
     /// - [ECMAScript Temporal proposal][spec]
     /// - [MDN reference][mdn]
-    /// - [temporal_rs documentation][temporal_rs-docs]
+    /// - [`temporal_rs` documentation][temporal_rs-docs]
     ///
     /// [spec]: https://tc39.es/proposal-temporal/#sec-get-temporal.plaintime.prototype.hour
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Temporal/PlainTime/hour
@@ -277,7 +277,7 @@ impl PlainTime {
     ///
     /// - [ECMAScript Temporal proposal][spec]
     /// - [MDN reference][mdn]
-    /// - [temporal_rs documentation][temporal_rs-docs]
+    /// - [`temporal_rs` documentation][temporal_rs-docs]
     ///
     /// [spec]: https://tc39.es/proposal-temporal/#sec-get-temporal.plaintime.prototype.minute
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Temporal/PlainTime/minute
@@ -303,7 +303,7 @@ impl PlainTime {
     ///
     /// - [ECMAScript Temporal proposal][spec]
     /// - [MDN reference][mdn]
-    /// - [temporal_rs documentation][temporal_rs-docs]
+    /// - [`temporal_rs` documentation][temporal_rs-docs]
     ///
     /// [spec]: https://tc39.es/proposal-temporal/#sec-get-temporal.plaintime.prototype.second
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Temporal/PlainTime/second
@@ -329,7 +329,7 @@ impl PlainTime {
     ///
     /// - [ECMAScript Temporal proposal][spec]
     /// - [MDN reference][mdn]
-    /// - [temporal_rs documentation][temporal_rs-docs]
+    /// - [`temporal_rs` documentation][temporal_rs-docs]
     ///
     /// [spec]: https://tc39.es/proposal-temporal/#sec-get-temporal.plaintime.prototype.millisecond
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Temporal/PlainTime/millisecond
@@ -355,7 +355,7 @@ impl PlainTime {
     ///
     /// - [ECMAScript Temporal proposal][spec]
     /// - [MDN reference][mdn]
-    /// - [temporal_rs documentation][temporal_rs-docs]
+    /// - [`temporal_rs` documentation][temporal_rs-docs]
     ///
     /// [spec]: https://tc39.es/proposal-temporal/#sec-get-temporal.plaintime.prototype.microsecond
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Temporal/PlainTime/microsecond
@@ -381,7 +381,7 @@ impl PlainTime {
     ///
     /// - [ECMAScript Temporal proposal][spec]
     /// - [MDN reference][mdn]
-    /// - [temporal_rs documentation][temporal_rs-docs]
+    /// - [`temporal_rs` documentation][temporal_rs-docs]
     ///
     /// [spec]: https://tc39.es/proposal-temporal/#sec-get-temporal.plaintime.prototype.nanosecond
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Temporal/PlainTime/nanosecond
@@ -442,7 +442,7 @@ impl PlainTime {
     ///
     /// - [ECMAScript Temporal proposal][spec]
     /// - [MDN reference][mdn]
-    /// - [temporal_rs documentation][temporal_rs-docs]
+    /// - [`temporal_rs` documentation][temporal_rs-docs]
     ///
     /// [spec]: https://tc39.es/proposal-temporal/#sec-temporal.plaintime.compare
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Temporal/PlainTime/compare
@@ -469,7 +469,7 @@ impl PlainTime {
     ///
     /// - [ECMAScript Temporal proposal][spec]
     /// - [MDN reference][mdn]
-    /// - [temporal_rs documentation][temporal_rs-docs]
+    /// - [`temporal_rs` documentation][temporal_rs-docs]
     ///
     /// [spec]: https://tc39.es/proposal-temporal/#sec-temporal.plaintime.prototype.add
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Temporal/PlainTime/add
@@ -498,7 +498,7 @@ impl PlainTime {
     ///
     /// - [ECMAScript Temporal proposal][spec]
     /// - [MDN reference][mdn]
-    /// - [temporal_rs documentation][temporal_rs-docs]
+    /// - [`temporal_rs` documentation][temporal_rs-docs]
     ///
     /// [spec]: https://tc39.es/proposal-temporal/#sec-temporal.plaintime.prototype.subtract
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Temporal/PlainTime/subtract
@@ -527,7 +527,7 @@ impl PlainTime {
     ///
     /// - [ECMAScript Temporal proposal][spec]
     /// - [MDN reference][mdn]
-    /// - [temporal_rs documentation][temporal_rs-docs]
+    /// - [`temporal_rs` documentation][temporal_rs-docs]
     ///
     /// [spec]: https://tc39.es/proposal-temporal/#sec-temporal.plaintime.prototype.with
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Temporal/PlainTime/with
@@ -569,7 +569,7 @@ impl PlainTime {
     ///
     /// - [ECMAScript Temporal proposal][spec]
     /// - [MDN reference][mdn]
-    /// - [temporal_rs documentation][temporal_rs-docs]
+    /// - [`temporal_rs` documentation][temporal_rs-docs]
     ///
     /// [spec]: https://tc39.es/proposal-temporal/#sec-temporal.plaintime.prototype.until
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Temporal/PlainTime/until
@@ -599,7 +599,7 @@ impl PlainTime {
     ///
     /// - [ECMAScript Temporal proposal][spec]
     /// - [MDN reference][mdn]
-    /// - [temporal_rs documentation][temporal_rs-docs]
+    /// - [`temporal_rs` documentation][temporal_rs-docs]
     ///
     /// [spec]: https://tc39.es/proposal-temporal/#sec-temporal.plaintime.prototype.since
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Temporal/PlainTime/since
@@ -629,7 +629,7 @@ impl PlainTime {
     ///
     /// - [ECMAScript Temporal proposal][spec]
     /// - [MDN reference][mdn]
-    /// - [temporal_rs documentation][temporal_rs-docs]
+    /// - [`temporal_rs` documentation][temporal_rs-docs]
     ///
     /// [spec]: https://tc39.es/proposal-temporal/#sec-temporal.plaintime.prototype.round
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Temporal/PlainTime/round
@@ -710,7 +710,7 @@ impl PlainTime {
     ///
     /// - [ECMAScript Temporal proposal][spec]
     /// - [MDN reference][mdn]
-    /// - [temporal_rs documentation][temporal_rs-docs]
+    /// - [`temporal_rs` documentation][temporal_rs-docs]
     ///
     /// [spec]: https://tc39.es/proposal-temporal/#sec-temporal.plaintime.prototype.equals
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Temporal/PlainTime/equals
@@ -744,7 +744,7 @@ impl PlainTime {
     ///
     /// - [ECMAScript Temporal proposal][spec]
     /// - [MDN reference][mdn]
-    /// - [temporal_rs documentation][temporal_rs-docs]
+    /// - [`temporal_rs` documentation][temporal_rs-docs]
     ///
     /// [spec]: https://tc39.es/proposal-temporal/#sec-temporal.plaintime.prototype.tostring
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Temporal/PlainTime/toString

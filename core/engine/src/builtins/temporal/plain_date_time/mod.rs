@@ -51,7 +51,7 @@ use crate::value::JsVariant;
 ///
 /// - [ECMAScript Temporal proposal][spec]
 /// - [MDN reference][mdn]
-/// - [temporal_rs documentation][temporal_rs-docs]
+/// - [`temporal_rs` documentation][temporal_rs-docs]
 ///
 /// [spec]: https://tc39.es/proposal-temporal/#sec-temporal-plaindatetime-objects
 /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Temporal/PlainDateTime
@@ -483,7 +483,7 @@ impl PlainDateTime {
     ///
     /// - [ECMAScript Temporal proposal][spec]
     /// - [MDN reference][mdn]
-    /// - [temporal_rs documentation][temporal_rs-docs]
+    /// - [`temporal_rs` documentation][temporal_rs-docs]
     ///
     /// [spec]: https://tc39.es/proposal-temporal/#sec-get-temporal.plaindatetime.prototype.calendarid
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Temporal/PlainDateTime/calendarId
@@ -506,7 +506,7 @@ impl PlainDateTime {
     ///
     /// - [ECMAScript Temporal proposal][spec]
     /// - [MDN reference][mdn]
-    /// - [temporal_rs documentation][temporal_rs-docs]
+    /// - [`temporal_rs` documentation][temporal_rs-docs]
     ///
     /// [spec]: https://tc39.es/proposal-temporal/#sec-get-temporal.plaindatetime.prototype.era
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Temporal/PlainDateTime/era
@@ -533,7 +533,7 @@ impl PlainDateTime {
     ///
     /// - [ECMAScript Temporal proposal][spec]
     /// - [MDN reference][mdn]
-    /// - [temporal_rs documentation][temporal_rs-docs]
+    /// - [`temporal_rs` documentation][temporal_rs-docs]
     ///
     /// [spec]: https://tc39.es/proposal-temporal/#sec-get-temporal.plaindatetime.prototype.erayear
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Temporal/PlainDateTime/eraYear
@@ -556,7 +556,7 @@ impl PlainDateTime {
     ///
     /// - [ECMAScript Temporal proposal][spec]
     /// - [MDN reference][mdn]
-    /// - [temporal_rs documentation][temporal_rs-docs]
+    /// - [`temporal_rs` documentation][temporal_rs-docs]
     ///
     /// [spec]: https://tc39.es/proposal-temporal/#sec-get-temporal.plaindatetime.prototype.year
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Temporal/PlainDateTime/year
@@ -579,7 +579,7 @@ impl PlainDateTime {
     ///
     /// - [ECMAScript Temporal proposal][spec]
     /// - [MDN reference][mdn]
-    /// - [temporal_rs documentation][temporal_rs-docs]
+    /// - [`temporal_rs` documentation][temporal_rs-docs]
     ///
     /// [spec]: https://tc39.es/proposal-temporal/#sec-get-temporal.plaindatetime.prototype.month
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Temporal/PlainDateTime/month
@@ -602,7 +602,7 @@ impl PlainDateTime {
     ///
     /// - [ECMAScript Temporal proposal][spec]
     /// - [MDN reference][mdn]
-    /// - [temporal_rs documentation][temporal_rs-docs]
+    /// - [`temporal_rs` documentation][temporal_rs-docs]
     ///
     /// [spec]: https://tc39.es/proposal-temporal/#sec-get-temporal.plaindatetime.prototype.monthcode
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Temporal/PlainDateTime/monthCode
@@ -625,7 +625,7 @@ impl PlainDateTime {
     ///
     /// - [ECMAScript Temporal proposal][spec]
     /// - [MDN reference][mdn]
-    /// - [temporal_rs documentation][temporal_rs-docs]
+    /// - [`temporal_rs` documentation][temporal_rs-docs]
     ///
     /// [spec]: https://tc39.es/proposal-temporal/#sec-get-temporal.plaindatetime.prototype.day
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Temporal/PlainDateTime/day
@@ -648,7 +648,7 @@ impl PlainDateTime {
     ///
     /// - [ECMAScript Temporal proposal][spec]
     /// - [MDN reference][mdn]
-    /// - [temporal_rs documentation][temporal_rs-docs]
+    /// - [`temporal_rs` documentation][temporal_rs-docs]
     ///
     /// [spec]: https://tc39.es/proposal-temporal/#sec-get-temporal.plaindatetime.prototype.hour
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Temporal/PlainDateTime/hour
@@ -674,7 +674,7 @@ impl PlainDateTime {
     ///
     /// - [ECMAScript Temporal proposal][spec]
     /// - [MDN reference][mdn]
-    /// - [temporal_rs documentation][temporal_rs-docs]
+    /// - [`temporal_rs` documentation][temporal_rs-docs]
     ///
     /// [spec]: https://tc39.es/proposal-temporal/#sec-get-temporal.plaindatetime.prototype.minute
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Temporal/PlainDateTime/minute
@@ -700,7 +700,7 @@ impl PlainDateTime {
     ///
     /// - [ECMAScript Temporal proposal][spec]
     /// - [MDN reference][mdn]
-    /// - [temporal_rs documentation][temporal_rs-docs]
+    /// - [`temporal_rs` documentation][temporal_rs-docs]
     ///
     /// [spec]: https://tc39.es/proposal-temporal/#sec-get-temporal.plaindatetime.prototype.second
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Temporal/PlainDateTime/second
@@ -726,7 +726,7 @@ impl PlainDateTime {
     ///
     /// - [ECMAScript Temporal proposal][spec]
     /// - [MDN reference][mdn]
-    /// - [temporal_rs documentation][temporal_rs-docs]
+    /// - [`temporal_rs` documentation][temporal_rs-docs]
     ///
     /// [spec]: https://tc39.es/proposal-temporal/#sec-get-temporal.plaindatetime.prototype.millisecond
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Temporal/PlainDateTime/millisecond
@@ -752,7 +752,7 @@ impl PlainDateTime {
     ///
     /// - [ECMAScript Temporal proposal][spec]
     /// - [MDN reference][mdn]
-    /// - [temporal_rs documentation][temporal_rs-docs]
+    /// - [`temporal_rs` documentation][temporal_rs-docs]
     ///
     /// [spec]: https://tc39.es/proposal-temporal/#sec-get-temporal.plaindatetime.prototype.microsecond
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Temporal/PlainDateTime/microsecond
@@ -778,7 +778,7 @@ impl PlainDateTime {
     ///
     /// - [ECMAScript Temporal proposal][spec]
     /// - [MDN reference][mdn]
-    /// - [temporal_rs documentation][temporal_rs-docs]
+    /// - [`temporal_rs` documentation][temporal_rs-docs]
     ///
     /// [spec]: https://tc39.es/proposal-temporal/#sec-get-temporal.plaindatetime.prototype.nanosecond
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Temporal/PlainDateTime/nanosecond
@@ -804,7 +804,7 @@ impl PlainDateTime {
     ///
     /// - [ECMAScript Temporal proposal][spec]
     /// - [MDN reference][mdn]
-    /// - [temporal_rs documentation][temporal_rs-docs]
+    /// - [`temporal_rs` documentation][temporal_rs-docs]
     ///
     /// [spec]: https://tc39.es/proposal-temporal/#sec-get-temporal.plaindatetime.prototype.dayofweek
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Temporal/PlainDateTime/dayOfWeek
@@ -827,7 +827,7 @@ impl PlainDateTime {
     ///
     /// - [ECMAScript Temporal proposal][spec]
     /// - [MDN reference][mdn]
-    /// - [temporal_rs documentation][temporal_rs-docs]
+    /// - [`temporal_rs` documentation][temporal_rs-docs]
     ///
     /// [spec]: https://tc39.es/proposal-temporal/#sec-get-temporal.plaindatetime.prototype.dayofyear
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Temporal/PlainDateTime/dayOfYear
@@ -850,7 +850,7 @@ impl PlainDateTime {
     ///
     /// - [ECMAScript Temporal proposal][spec]
     /// - [MDN reference][mdn]
-    /// - [temporal_rs documentation][temporal_rs-docs]
+    /// - [`temporal_rs` documentation][temporal_rs-docs]
     ///
     /// [spec]: https://tc39.es/proposal-temporal/#sec-get-temporal.plaindatetime.prototype.weekofyear
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Temporal/PlainDateTime/weekOfYear
@@ -873,7 +873,7 @@ impl PlainDateTime {
     ///
     /// - [ECMAScript Temporal proposal][spec]
     /// - [MDN reference][mdn]
-    /// - [temporal_rs documentation][temporal_rs-docs]
+    /// - [`temporal_rs` documentation][temporal_rs-docs]
     ///
     /// [spec]: https://tc39.es/proposal-temporal/#sec-get-temporal.plaindatetime.prototype.yearofweek
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Temporal/PlainDateTime/yearOfWeek
@@ -896,7 +896,7 @@ impl PlainDateTime {
     ///
     /// - [ECMAScript Temporal proposal][spec]
     /// - [MDN reference][mdn]
-    /// - [temporal_rs documentation][temporal_rs-docs]
+    /// - [`temporal_rs` documentation][temporal_rs-docs]
     ///
     /// [spec]: https://tc39.es/proposal-temporal/#sec-get-temporal.plaindatetime.prototype.daysinweek
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Temporal/PlainDateTime/daysInWeek
@@ -919,7 +919,7 @@ impl PlainDateTime {
     ///
     /// - [ECMAScript Temporal proposal][spec]
     /// - [MDN reference][mdn]
-    /// - [temporal_rs documentation][temporal_rs-docs]
+    /// - [`temporal_rs` documentation][temporal_rs-docs]
     ///
     /// [spec]: https://tc39.es/proposal-temporal/#sec-get-temporal.plaindatetime.prototype.daysinmonth
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Temporal/PlainDateTime/daysInMonth
@@ -942,7 +942,7 @@ impl PlainDateTime {
     ///
     /// - [ECMAScript Temporal proposal][spec]
     /// - [MDN reference][mdn]
-    /// - [temporal_rs documentation][temporal_rs-docs]
+    /// - [`temporal_rs` documentation][temporal_rs-docs]
     ///
     /// [spec]: https://tc39.es/proposal-temporal/#sec-get-temporal.plaindatetime.prototype.daysinyear
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Temporal/PlainDateTime/daysInYear
@@ -965,7 +965,7 @@ impl PlainDateTime {
     ///
     /// - [ECMAScript Temporal proposal][spec]
     /// - [MDN reference][mdn]
-    /// - [temporal_rs documentation][temporal_rs-docs]
+    /// - [`temporal_rs` documentation][temporal_rs-docs]
     ///
     /// [spec]: https://tc39.es/proposal-temporal/#sec-get-temporal.plaindatetime.prototype.monthsinyear
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Temporal/PlainDateTime/monthsInYear
@@ -988,7 +988,7 @@ impl PlainDateTime {
     ///
     /// - [ECMAScript Temporal proposal][spec]
     /// - [MDN reference][mdn]
-    /// - [temporal_rs documentation][temporal_rs-docs]
+    /// - [`temporal_rs` documentation][temporal_rs-docs]
     ///
     /// [spec]: https://tc39.es/proposal-temporal/#sec-get-temporal.plaindatetime.prototype.inleapyear
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Temporal/PlainDateTime/inLeapYear
@@ -1047,7 +1047,7 @@ impl PlainDateTime {
     ///
     /// - [ECMAScript Temporal proposal][spec]
     /// - [MDN reference][mdn]
-    /// - [temporal_rs documentation][temporal_rs-docs]
+    /// - [`temporal_rs` documentation][temporal_rs-docs]
     ///
     /// [spec]: https://tc39.es/proposal-temporal/#sec-temporal.plaindatetime.compare
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Temporal/PlainDateTime/compare
@@ -1076,7 +1076,7 @@ impl PlainDateTime {
     ///
     /// - [ECMAScript Temporal proposal][spec]
     /// - [MDN reference][mdn]
-    /// - [temporal_rs documentation][temporal_rs-docs]
+    /// - [`temporal_rs` documentation][temporal_rs-docs]
     ///
     /// [spec]: https://tc39.es/proposal-temporal/#sec-temporal.plaindatetime.prototype.with
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Temporal/PlainDateTime/with
@@ -1116,7 +1116,7 @@ impl PlainDateTime {
     ///
     /// - [ECMAScript Temporal proposal][spec]
     /// - [MDN reference][mdn]
-    /// - [temporal_rs documentation][temporal_rs-docs]
+    /// - [`temporal_rs` documentation][temporal_rs-docs]
     ///
     /// [spec]: https://tc39.es/proposal-temporal/#sec-temporal.plaindatetime.prototype.withplaintime
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Temporal/PlainDateTime/withPlainTime
@@ -1148,7 +1148,7 @@ impl PlainDateTime {
     ///
     /// - [ECMAScript Temporal proposal][spec]
     /// - [MDN reference][mdn]
-    /// - [temporal_rs documentation][temporal_rs-docs]
+    /// - [`temporal_rs` documentation][temporal_rs-docs]
     ///
     /// [spec]: https://tc39.es/proposal-temporal/#sec-temporal.plaindatetime.prototype.withCalendar
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Temporal/PlainDateTime/withCalendar
@@ -1173,7 +1173,7 @@ impl PlainDateTime {
     ///
     /// - [ECMAScript Temporal proposal][spec]
     /// - [MDN reference][mdn]
-    /// - [temporal_rs documentation][temporal_rs-docs]
+    /// - [`temporal_rs` documentation][temporal_rs-docs]
     ///
     /// [spec]: https://tc39.es/proposal-temporal/#sec-temporal.plaindatetime.prototype.add
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Temporal/PlainDateTime/add
@@ -1207,7 +1207,7 @@ impl PlainDateTime {
     ///
     /// - [ECMAScript Temporal proposal][spec]
     /// - [MDN reference][mdn]
-    /// - [temporal_rs documentation][temporal_rs-docs]
+    /// - [`temporal_rs` documentation][temporal_rs-docs]
     ///
     /// [spec]: https://tc39.es/proposal-temporal/#sec-temporal.plaindatetime.prototype.subtract
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Temporal/PlainDateTime/subtract
@@ -1243,7 +1243,7 @@ impl PlainDateTime {
     ///
     /// - [ECMAScript Temporal proposal][spec]
     /// - [MDN reference][mdn]
-    /// - [temporal_rs documentation][temporal_rs-docs]
+    /// - [`temporal_rs` documentation][temporal_rs-docs]
     ///
     /// [spec]: https://tc39.es/proposal-temporal/#sec-temporal.plaindatetime.prototype.until
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Temporal/PlainDateTime/until
@@ -1271,7 +1271,7 @@ impl PlainDateTime {
     ///
     /// - [ECMAScript Temporal proposal][spec]
     /// - [MDN reference][mdn]
-    /// - [temporal_rs documentation][temporal_rs-docs]
+    /// - [`temporal_rs` documentation][temporal_rs-docs]
     ///
     /// [spec]: https://tc39.es/proposal-temporal/#sec-temporal.plaindatetime.prototype.since
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Temporal/PlainDateTime/since
@@ -1299,7 +1299,7 @@ impl PlainDateTime {
     ///
     /// - [ECMAScript Temporal proposal][spec]
     /// - [MDN reference][mdn]
-    /// - [temporal_rs documentation][temporal_rs-docs]
+    /// - [`temporal_rs` documentation][temporal_rs-docs]
     ///
     /// [spec]: https://tc39.es/proposal-temporal/#sec-temporal.plaindatetime.prototype.round
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Temporal/PlainDateTime/round
@@ -1368,7 +1368,7 @@ impl PlainDateTime {
     ///
     /// - [ECMAScript Temporal proposal][spec]
     /// - [MDN reference][mdn]
-    /// - [temporal_rs documentation][temporal_rs-docs]
+    /// - [`temporal_rs` documentation][temporal_rs-docs]
     ///
     /// [spec]: https://tc39.es/proposal-temporal/#sec-temporal.plaindatetime.prototype.equals
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Temporal/PlainDateTime/equals
@@ -1404,7 +1404,7 @@ impl PlainDateTime {
     ///
     /// - [ECMAScript Temporal proposal][spec]
     /// - [MDN reference][mdn]
-    /// - [temporal_rs documentation][temporal_rs-docs]
+    /// - [`temporal_rs` documentation][temporal_rs-docs]
     ///
     /// [spec]: https://tc39.es/proposal-temporal/#sec-temporal.plaindatetime.prototype.with
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Temporal/PlainDateTime/with
@@ -1509,7 +1509,7 @@ impl PlainDateTime {
     ///
     /// - [ECMAScript Temporal proposal][spec]
     /// - [MDN reference][mdn]
-    /// - [temporal_rs documentation][temporal_rs-docs]
+    /// - [`temporal_rs` documentation][temporal_rs-docs]
     ///
     /// [spec]: https://tc39.es/proposal-temporal/#sec-temporal.plaindatetime.prototype.tozoneddatetime
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Temporal/PlainDateTime/toZonedDateTime
@@ -1554,7 +1554,7 @@ impl PlainDateTime {
     ///
     /// - [ECMAScript Temporal proposal][spec]
     /// - [MDN reference][mdn]
-    /// - [temporal_rs documentation][temporal_rs-docs]
+    /// - [`temporal_rs` documentation][temporal_rs-docs]
     ///
     /// [spec]: https://tc39.es/proposal-temporal/#sec-temporal.plaindatetime.prototype.toplaindate
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Temporal/PlainDateTime/toPlainDate
@@ -1578,7 +1578,7 @@ impl PlainDateTime {
     ///
     /// - [ECMAScript Temporal proposal][spec]
     /// - [MDN reference][mdn]
-    /// - [temporal_rs documentation][temporal_rs-docs]
+    /// - [`temporal_rs` documentation][temporal_rs-docs]
     ///
     /// [spec]: https://tc39.es/proposal-temporal/#sec-temporal.plaindatetime.prototype.toplaintime
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Temporal/PlainDateTime/toPlainTime
