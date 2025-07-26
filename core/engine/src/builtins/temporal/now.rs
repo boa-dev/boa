@@ -89,8 +89,8 @@ impl Now {
     ///  - [ECMAscript specification][spec]
     ///  - [MDN reference][mdn]
     ///
-    /// [spec]:
-    /// [mdn]:
+    /// [spec]: https://tc39.es/proposal-temporal/#sec-temporal.now.instant
+    /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Temporal/Now/instant
     fn instant(_: &JsValue, _: &[JsValue], context: &mut Context) -> JsResult<JsValue> {
         let epoch_nanos = system_nanoseconds(context)?;
         create_temporal_instant(Instant::from(epoch_nanos), None, context)
