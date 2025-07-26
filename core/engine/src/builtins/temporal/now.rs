@@ -1,4 +1,4 @@
-//! Boa's implementation of `Temporal.Now` ECMAScript Builtin object.
+//! Boa's implementation of `Temporal.Now` ECMAScript global namespace object.
 
 use crate::{
     Context, JsArgs, JsNativeError, JsObject, JsResult, JsString, JsSymbol, JsValue,
@@ -20,7 +20,15 @@ use super::{
     create_temporal_zoneddatetime, to_temporal_timezone_identifier,
 };
 
-/// JavaScript `Temporal.Now` object.
+/// The `Temporal.Now` global namespace object
+///
+/// More information:
+///
+/// - [ECMAScript Temporal proposal][spec]
+/// - [MDN reference][mdn]
+///
+/// [spec]: https://tc39.es/proposal-temporal/#sec-temporal-now-object
+/// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Temporal/Now
 #[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash)]
 pub struct Now;
 
@@ -59,10 +67,14 @@ impl BuiltInObject for Now {
 impl Now {
     /// 2.2.1 `Temporal.Now.timeZoneId ( )`
     ///
+    /// Returns the currently active system time zone identifier.
+    ///
     /// More information:
     ///  - [ECMAScript specification][spec]
+    ///  - [MDN reference][mdn]
     ///
     /// [spec]: https://tc39.es/proposal-temporal/#sec-temporal.now.timezone
+    /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Temporal/Now/timeZoneId
     fn time_zone_id(_: &JsValue, _: &[JsValue], _: &mut Context) -> JsResult<JsValue> {
         // TODO: this should be optimized once system time zone is in context
         // 1. Return ! SystemTimeZone().
@@ -70,12 +82,32 @@ impl Now {
     }
 
     /// 2.2.2 `Temporal.Now.instant()`
+    ///
+    /// Returns the current time as an `Temporal.Instant`.
+    ///
+    /// More information:
+    ///  - [ECMAscript specification][spec]
+    ///  - [MDN reference][mdn]
+    ///
+    /// [spec]: https://tc39.es/proposal-temporal/#sec-temporal.now.instant
+    /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Temporal/Now/instant
     fn instant(_: &JsValue, _: &[JsValue], context: &mut Context) -> JsResult<JsValue> {
         let epoch_nanos = system_nanoseconds(context)?;
         create_temporal_instant(Instant::from(epoch_nanos), None, context)
     }
 
     /// 2.2.3 `Temporal.Now.plainDateTimeISO ( [ temporalTimeZoneLike ] )`
+    ///
+    /// Returns the current date and time as a `Temporal.PlainDateTime` with an ISO8601 calendar.
+    ///
+    /// Takes an optional time zone, which defaults to the sytem time zone if undefined.
+    ///
+    /// More information:
+    ///  - [ECMAscript specification][spec]
+    ///  - [MDN reference][mdn]
+    ///
+    /// [spec]: https://tc39.es/proposal-temporal/#sec-temporal.now.plaindatetimeiso
+    /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Temporal/Now/plainDateTimeISO
     fn plain_date_time_iso(
         _: &JsValue,
         args: &[JsValue],
@@ -93,6 +125,17 @@ impl Now {
     }
 
     /// 2.2.4 `Temporal.Now.zonedDateTimeISO ( [ temporalTimeZoneLike ] )`
+    ///
+    /// Returns the current date and time as a `Temporal.ZonedDateTime` with an ISO8601 calendar.
+    ///
+    /// Takes an optional time zone, which defaults to the sytem time zone if undefined.
+    ///
+    /// More information:
+    ///  - [ECMAscript specification][spec]
+    ///  - [MDN reference][mdn]
+    ///
+    /// [spec]: https://tc39.es/proposal-temporal/#sec-temporal.now.zoneddatetimeiso
+    /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Temporal/Now/zonedDateTimeISO
     fn zoned_date_time_iso(
         _: &JsValue,
         args: &[JsValue],
@@ -109,6 +152,17 @@ impl Now {
     }
 
     /// 2.2.5 `Temporal.Now.plainDateISO ( [ temporalTimeZoneLike ] )`
+    ///
+    /// Returns the current date as a `Temporal.PlainDate` with an ISO8601 calendar.
+    ///
+    /// Takes an optional time zone, which defaults to the sytem time zone if undefined.
+    ///
+    /// More information:
+    ///  - [ECMAscript specification][spec]
+    ///  - [MDN reference][mdn]
+    ///
+    /// [spec]: https://tc39.es/proposal-temporal/#sec-temporal.now.plaindateiso
+    /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Temporal/Now/plainDateISO
     fn plain_date_iso(_: &JsValue, args: &[JsValue], context: &mut Context) -> JsResult<JsValue> {
         let time_zone = args
             .get_or_undefined(0)
@@ -122,6 +176,17 @@ impl Now {
     }
 
     /// 2.2.6 `Temporal.Now.plainTimeISO ( [ temporalTimeZoneLike ] )`
+    ///
+    /// Returns the current time as a `Temporal.PlainTime` with an ISO8601 calendar.
+    ///
+    /// Takes an optional time zone, which defaults to the sytem time zone if undefined.
+    ///
+    /// More information:
+    ///  - [ECMAscript specification][spec]
+    ///  - [MDN reference][mdn]
+    ///
+    /// [spec]: https://tc39.es/proposal-temporal/#sec-temporal.now.plaintimeiso
+    /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Temporal/Now/plainTimeISO
     fn plain_time_iso(_: &JsValue, args: &[JsValue], context: &mut Context) -> JsResult<JsValue> {
         let time_zone = args
             .get_or_undefined(0)
@@ -148,6 +213,7 @@ fn system_nanoseconds(context: &mut Context) -> JsResult<EpochNanoseconds> {
     )?)
 }
 
+// TODO: this should be moved to the context.
 fn system_time_zone_id() -> JsResult<String> {
     iana_time_zone::get_timezone()
         .map_err(|e| JsNativeError::range().with_message(e.to_string()).into())

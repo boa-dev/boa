@@ -57,9 +57,19 @@ pub(crate) enum DateTimeValues {
     Nanosecond,
 }
 
-/// The [`Temporal`][spec] builtin object.
+/// `Temporal` built-in implementation
+///
+/// The Temporal implementation in Boa uses `temporal_rs` for the
+/// core implementation.
+///
+/// More information:
+///  - [ECMAScript Temporal proposal][spec]
+///  - [MDN Reference][mdn]
+///  - [`temporal_rs` docs][temporal_rs-docs]
 ///
 /// [spec]: https://tc39.es/proposal-temporal/#sec-temporal-objects
+/// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Temporal
+/// [temporal_rs-docs]: https://docs.rs/temporal_rs/latest/temporal_rs/
 #[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash)]
 pub(crate) struct Temporal;
 

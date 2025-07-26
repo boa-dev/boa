@@ -1,6 +1,6 @@
-//! Boa's implementation of the ECMAScript `Temporal.PlainDate` builtin object.
-
-// TODO (nekevss): DOCS DOCS AND MORE DOCS
+//! Boa's implementation of the ECMAScript `Temporal.PlainDate` built-in object.
+//!
+//! This implementation is a ECMAScript compliant wrapper around the `temporal_rs` library.
 
 use std::str::FromStr;
 
@@ -27,23 +27,34 @@ use temporal_rs::{
     partial::PartialDate,
 };
 
-use super::{create_temporal_month_day, create_temporal_year_month};
-// TODO: Remove once `temporal_rs` funcctionality implemented
-#[allow(unused_imports)]
 use super::{
     PlainDateTime, ZonedDateTime, calendar::get_temporal_calendar_slot_value_with_default,
     create_temporal_datetime, create_temporal_duration, create_temporal_zoneddatetime,
     options::get_difference_settings, to_temporal_duration_record, to_temporal_time,
     to_temporal_timezone_identifier,
 };
+use super::{create_temporal_month_day, create_temporal_year_month};
 
 #[cfg(feature = "temporal")]
 #[cfg(test)]
 mod tests;
 
-/// The `Temporal.PlainDate` object.
+/// `Temporal.PlainDate` built-in implementation
+///
+/// A `Temporal.PlainDate` is a calendar date represented by ISO date fields
+/// and a calendar system.
+///
+/// More information:
+///
+/// - [ECMAScript Temporal proposal][spec]
+/// - [MDN reference][mdn]
+/// - [`temporal_rs` documentation][temporal_rs-docs]
+///
+/// [spec]: https://tc39.es/proposal-temporal/#sec-temporal-plaindate-objects
+/// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Temporal/PlainDate
+/// [temporal_rs-docs]: https://docs.rs/temporal_rs/latest/temporal_rs/struct.PlainDate.html
 #[derive(Debug, Clone, Trace, Finalize, JsData)]
-#[boa_gc(unsafe_empty_trace)] // TODO: Remove this!!! `InnerDate` could contain `Trace` types.
+#[boa_gc(unsafe_empty_trace)]
 pub struct PlainDate {
     pub(crate) inner: InnerDate,
 }
@@ -237,7 +248,7 @@ impl IntrinsicObject for PlainDate {
             .method(Self::until, js_string!("until"), 1)
             .method(Self::since, js_string!("since"), 1)
             .method(Self::equals, js_string!("equals"), 1)
-            .method(Self::to_plain_datetime, js_string!("toPlainDateTime"), 0)
+            .method(Self::to_plain_date_time, js_string!("toPlainDateTime"), 0)
             .method(Self::to_zoned_date_time, js_string!("toZonedDateTime"), 1)
             .method(Self::to_string, js_string!("toString"), 0)
             .method(Self::to_locale_string, js_string!("toLocaleString"), 0)
@@ -301,10 +312,22 @@ impl BuiltInConstructor for PlainDate {
     }
 }
 
-// ==== `PlainDate` getter methods ====
+// ==== `PlainDate` accessors implementation ====
 
 impl PlainDate {
     /// 3.3.3 get `Temporal.PlainDate.prototype.calendarId`
+    ///
+    /// Returns the calendar identifier for this `Temporal.PlainDate`.
+    ///
+    /// More information:
+    ///
+    /// - [ECMAScript Temporal proposal][spec]
+    /// - [MDN reference][mdn]
+    /// - [`temporal_rs` documentation][temporal_rs-docs]
+    ///
+    /// [spec]: https://tc39.es/proposal-temporal/#sec-get-temporal.plaindate.prototype.calendarid
+    /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Temporal/PlainDate/calendarId
+    /// [temporal_rs-docs]: https://docs.rs/temporal_rs/latest/temporal_rs/struct.PlainDate.html#method.calendar
     fn get_calendar_id(this: &JsValue, _: &[JsValue], _: &mut Context) -> JsResult<JsValue> {
         let object = this.as_object();
         let date = object
@@ -318,6 +341,18 @@ impl PlainDate {
     }
 
     /// 3.3.4 get `Temporal.PlainDate.prototype.era`
+    ///
+    /// Returns the era identifier for this `Temporal.PlainDate`.
+    ///
+    /// More information:
+    ///
+    /// - [ECMAScript Temporal proposal][spec]
+    /// - [MDN reference][mdn]
+    /// - [`temporal_rs` documentation][temporal_rs-docs]
+    ///
+    /// [spec]: https://tc39.es/proposal-temporal/#sec-get-temporal.plaindate.prototype.era
+    /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Temporal/PlainDate/era
+    /// [temporal_rs-docs]: https://docs.rs/temporal_rs/latest/temporal_rs/struct.PlainDate.html#method.era
     fn get_era(this: &JsValue, _: &[JsValue], _: &mut Context) -> JsResult<JsValue> {
         let obj = this
             .as_object()
@@ -337,6 +372,18 @@ impl PlainDate {
     }
 
     /// 3.3.5 get `Temporal.PlainDate.prototype.eraYear`
+    ///
+    /// Returns the year within the era for this `Temporal.PlainDate`.
+    ///
+    /// More information:
+    ///
+    /// - [ECMAScript Temporal proposal][spec]
+    /// - [MDN reference][mdn]
+    /// - [`temporal_rs` documentation][temporal_rs-docs]
+    ///
+    /// [spec]: https://tc39.es/proposal-temporal/#sec-get-temporal.plaindate.prototype.erayear
+    /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Temporal/PlainDate/eraYear
+    /// [temporal_rs-docs]: https://docs.rs/temporal_rs/latest/temporal_rs/struct.PlainDate.html#method.era_year
     fn get_era_year(this: &JsValue, _: &[JsValue], _: &mut Context) -> JsResult<JsValue> {
         let obj = this
             .as_object()
@@ -352,6 +399,18 @@ impl PlainDate {
     }
 
     /// 3.3.6 get `Temporal.PlainDate.prototype.year`
+    ///
+    /// Returns the calendar year for this `Temporal.PlainDate`.
+    ///
+    /// More information:
+    ///
+    /// - [ECMAScript Temporal proposal][spec]
+    /// - [MDN reference][mdn]
+    /// - [`temporal_rs` documentation][temporal_rs-docs]
+    ///
+    /// [spec]: https://tc39.es/proposal-temporal/#sec-get-temporal.plaindate.prototype.year
+    /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Temporal/PlainDate/year
+    /// [temporal_rs-docs]: https://docs.rs/temporal_rs/latest/temporal_rs/struct.PlainDate.html#method.year
     fn get_year(this: &JsValue, _: &[JsValue], _: &mut Context) -> JsResult<JsValue> {
         let obj = this
             .as_object()
@@ -367,6 +426,18 @@ impl PlainDate {
     }
 
     /// 3.3.7 get `Temporal.PlainDate.prototype.month`
+    ///
+    /// Returns the calendar month for this `Temporal.PlainDate`.
+    ///
+    /// More information:
+    ///
+    /// - [ECMAScript Temporal proposal][spec]
+    /// - [MDN reference][mdn]
+    /// - [`temporal_rs` documentation][temporal_rs-docs]
+    ///
+    /// [spec]: https://tc39.es/proposal-temporal/#sec-get-temporal.plaindate.prototype.month
+    /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Temporal/PlainDate/month
+    /// [temporal_rs-docs]: https://docs.rs/temporal_rs/latest/temporal_rs/struct.PlainDate.html#method.month
     fn get_month(this: &JsValue, _: &[JsValue], _: &mut Context) -> JsResult<JsValue> {
         let obj = this
             .as_object()
@@ -382,6 +453,18 @@ impl PlainDate {
     }
 
     /// 3.3.8 get Temporal.PlainDate.prototype.monthCode
+    ///
+    /// Returns the month code of the calendar month for this `Temporal.PlainDate`.
+    ///
+    /// More information:
+    ///
+    /// - [ECMAScript Temporal proposal][spec]
+    /// - [MDN reference][mdn]
+    /// - [`temporal_rs` documentation][temporal_rs-docs]
+    ///
+    /// [spec]: https://tc39.es/proposal-temporal/#sec-get-temporal.plaindate.prototype.monthcode
+    /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Temporal/PlainDate/monthCode
+    /// [temporal_rs-docs]: https://docs.rs/temporal_rs/latest/temporal_rs/struct.PlainDate.html#method.month_code
     fn get_month_code(this: &JsValue, _: &[JsValue], _: &mut Context) -> JsResult<JsValue> {
         let obj = this
             .as_object()
@@ -397,6 +480,18 @@ impl PlainDate {
     }
 
     /// 3.3.9 get `Temporal.PlainDate.prototype.day`
+    ///
+    /// Returns the day in the calendar month for this `Temporal.PlainDate`.
+    ///
+    /// More information:
+    ///
+    /// - [ECMAScript Temporal proposal][spec]
+    /// - [MDN reference][mdn]
+    /// - [`temporal_rs` documentation][temporal_rs-docs]
+    ///
+    /// [spec]: https://tc39.es/proposal-temporal/#sec-get-temporal.plaindate.prototype.day
+    /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Temporal/PlainDate/day
+    /// [temporal_rs-docs]: https://docs.rs/temporal_rs/latest/temporal_rs/struct.PlainDate.html#method.day
     fn get_day(this: &JsValue, _: &[JsValue], _: &mut Context) -> JsResult<JsValue> {
         let obj = this
             .as_object()
@@ -412,6 +507,16 @@ impl PlainDate {
     }
 
     /// 3.3.10 get `Temporal.PlainDate.prototype.dayOfWeek`
+    ///
+    /// More information:
+    ///
+    /// - [ECMAScript Temporal proposal][spec]
+    /// - [MDN reference][mdn]
+    /// - [`temporal_rs` documentation][temporal_rs-docs]
+    ///
+    /// [spec]: https://tc39.es/proposal-temporal/#sec-get-temporal.plaindate.prototype.dayofweek
+    /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Temporal/PlainDate/dayOfWeek
+    /// [temporal_rs-docs]: https://docs.rs/temporal_rs/latest/temporal_rs/struct.PlainDate.html#method.day_of_week
     fn get_day_of_week(this: &JsValue, _: &[JsValue], _: &mut Context) -> JsResult<JsValue> {
         let obj = this
             .as_object()
@@ -427,6 +532,16 @@ impl PlainDate {
     }
 
     /// 3.3.11 get `Temporal.PlainDate.prototype.dayOfYear`
+    ///
+    /// More information:
+    ///
+    /// - [ECMAScript Temporal proposal][spec]
+    /// - [MDN reference][mdn]
+    /// - [`temporal_rs` documentation][temporal_rs-docs]
+    ///
+    /// [spec]: https://tc39.es/proposal-temporal/#sec-get-temporal.plaindate.prototype.dayofyear
+    /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Temporal/PlainDate/dayOfYear
+    /// [temporal_rs-docs]: https://docs.rs/temporal_rs/latest/temporal_rs/struct.PlainDate.html#method.day_of_year
     fn get_day_of_year(this: &JsValue, _: &[JsValue], _: &mut Context) -> JsResult<JsValue> {
         let obj = this
             .as_object()
@@ -442,6 +557,16 @@ impl PlainDate {
     }
 
     /// 3.3.12 get `Temporal.PlainDate.prototype.weekOfYear`
+    ///
+    /// More information:
+    ///
+    /// - [ECMAScript Temporal proposal][spec]
+    /// - [MDN reference][mdn]
+    /// - [`temporal_rs` documentation][temporal_rs-docs]
+    ///
+    /// [spec]: https://tc39.es/proposal-temporal/#sec-get-temporal.plaindate.prototype.weekofyear
+    /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Temporal/PlainDate/weekOfYear
+    /// [temporal_rs-docs]: https://docs.rs/temporal_rs/latest/temporal_rs/struct.PlainDate.html#method.week_of_year
     fn get_week_of_year(this: &JsValue, _: &[JsValue], _: &mut Context) -> JsResult<JsValue> {
         let obj = this
             .as_object()
@@ -457,6 +582,16 @@ impl PlainDate {
     }
 
     /// 3.3.13 get `Temporal.PlainDate.prototype.yearOfWeek`
+    ///
+    /// More information:
+    ///
+    /// - [ECMAScript Temporal proposal][spec]
+    /// - [MDN reference][mdn]
+    /// - [`temporal_rs` documentation][temporal_rs-docs]
+    ///
+    /// [spec]: https://tc39.es/proposal-temporal/#sec-get-temporal.plaindate.prototype.yearofweek
+    /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Temporal/PlainDate/yearOfWeek
+    /// [temporal_rs-docs]: https://docs.rs/temporal_rs/latest/temporal_rs/struct.PlainDate.html#method.year_of_week
     fn get_year_of_week(this: &JsValue, _: &[JsValue], _: &mut Context) -> JsResult<JsValue> {
         let obj = this
             .as_object()
@@ -472,6 +607,16 @@ impl PlainDate {
     }
 
     /// 3.3.14 get `Temporal.PlainDate.prototype.daysInWeek`
+    ///
+    /// More information:
+    ///
+    /// - [ECMAScript Temporal proposal][spec]
+    /// - [MDN reference][mdn]
+    /// - [`temporal_rs` documentation][temporal_rs-docs]
+    ///
+    /// [spec]: https://tc39.es/proposal-temporal/#sec-get-temporal.plaindate.prototype.daysinweek
+    /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Temporal/PlainDate/daysInWeek
+    /// [temporal_rs-docs]: https://docs.rs/temporal_rs/latest/temporal_rs/struct.PlainDate.html#method.days_in_week
     fn get_days_in_week(this: &JsValue, _: &[JsValue], _: &mut Context) -> JsResult<JsValue> {
         let obj = this
             .as_object()
@@ -487,6 +632,16 @@ impl PlainDate {
     }
 
     /// 3.3.15 get `Temporal.PlainDate.prototype.daysInMonth`
+    ///
+    /// More information:
+    ///
+    /// - [ECMAScript Temporal proposal][spec]
+    /// - [MDN reference][mdn]
+    /// - [`temporal_rs` documentation][temporal_rs-docs]
+    ///
+    /// [spec]: https://tc39.es/proposal-temporal/#sec-get-temporal.plaindate.prototype.daysinmonth
+    /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Temporal/PlainDate/daysInMonth
+    /// [temporal_rs-docs]: https://docs.rs/temporal_rs/latest/temporal_rs/struct.PlainDate.html#method.days_in_month
     fn get_days_in_month(this: &JsValue, _: &[JsValue], _: &mut Context) -> JsResult<JsValue> {
         let obj = this
             .as_object()
@@ -502,6 +657,16 @@ impl PlainDate {
     }
 
     /// 3.3.16 get `Temporal.PlainDate.prototype.daysInYear`
+    ///
+    /// More information:
+    ///
+    /// - [ECMAScript Temporal proposal][spec]
+    /// - [MDN reference][mdn]
+    /// - [`temporal_rs` documentation][temporal_rs-docs]
+    ///
+    /// [spec]: https://tc39.es/proposal-temporal/#sec-get-temporal.plaindate.prototype.daysinyear
+    /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Temporal/PlainDate/daysInYear
+    /// [temporal_rs-docs]: https://docs.rs/temporal_rs/latest/temporal_rs/struct.PlainDate.html#method.days_in_year
     fn get_days_in_year(this: &JsValue, _: &[JsValue], _: &mut Context) -> JsResult<JsValue> {
         let obj = this
             .as_object()
@@ -517,6 +682,16 @@ impl PlainDate {
     }
 
     /// 3.3.17 get `Temporal.PlainDate.prototype.monthsInYear`
+    ///
+    /// More information:
+    ///
+    /// - [ECMAScript Temporal proposal][spec]
+    /// - [MDN reference][mdn]
+    /// - [`temporal_rs` documentation][temporal_rs-docs]
+    ///
+    /// [spec]: https://tc39.es/proposal-temporal/#sec-get-temporal.plaindate.prototype.monthsinyear
+    /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Temporal/PlainDate/monthsInYear
+    /// [temporal_rs-docs]: https://docs.rs/temporal_rs/latest/temporal_rs/struct.PlainDate.html#method.months_in_year
     fn get_months_in_year(this: &JsValue, _: &[JsValue], _: &mut Context) -> JsResult<JsValue> {
         let obj = this
             .as_object()
@@ -532,6 +707,16 @@ impl PlainDate {
     }
 
     /// 3.3.18 get `Temporal.PlainDate.prototype.inLeapYear`
+    ///
+    /// More information:
+    ///
+    /// - [ECMAScript Temporal proposal][spec]
+    /// - [MDN reference][mdn]
+    /// - [`temporal_rs` documentation][temporal_rs-docs]
+    ///
+    /// [spec]: https://tc39.es/proposal-temporal/#sec-get-temporal.plaindate.prototype.inleapyear
+    /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Temporal/PlainDate/inLeapYear
+    /// [temporal_rs-docs]: https://docs.rs/temporal_rs/latest/temporal_rs/struct.PlainDate.html#method.inLeapYear
     fn get_in_leap_year(this: &JsValue, _: &[JsValue], _: &mut Context) -> JsResult<JsValue> {
         let obj = this
             .as_object()
@@ -547,10 +732,18 @@ impl PlainDate {
     }
 }
 
-// ==== `PlainDate` method implementations ====
+// ==== `PlainDate` static methods implementation ====
 
 impl PlainDate {
-    /// 3.2.2 Temporal.PlainDate.from ( item [ , options ] )
+    /// 3.2.2 `Temporal.PlainDate.from ( item [ , options ] )`
+    ///
+    /// More information:
+    ///
+    /// - [ECMAScript Temporal proposal][spec]
+    /// - [MDN reference][mdn]
+    ///
+    /// [spec]: https://tc39.es/proposal-temporal/#sec-temporal.plaindate.from
+    /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Temporal/PlainDate/from
     fn from(_: &JsValue, args: &[JsValue], context: &mut Context) -> JsResult<JsValue> {
         let item = args.get_or_undefined(0);
         let options = args.get(1);
@@ -566,7 +759,17 @@ impl PlainDate {
         create_temporal_date(resolved_date, None, context).map(Into::into)
     }
 
-    /// 3.2.3 Temporal.PlainDate.compare ( one, two )
+    /// 3.2.3 `Temporal.PlainDate.compare ( one, two )`
+    ///
+    /// More information:
+    ///
+    /// - [ECMAScript Temporal proposal][spec]
+    /// - [MDN reference][mdn]
+    /// - [`temporal_rs` documentation][temporal_rs-docs]
+    ///
+    /// [spec]: https://tc39.es/proposal-temporal/#sec-temporal.plaindate.compare
+    /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Temporal/PlainDate/compare
+    /// [temporal_rs-docs]: https://docs.rs/temporal_rs/latest/temporal_rs/struct.PlainDate.html#method.compare_iso
     fn compare(_: &JsValue, args: &[JsValue], context: &mut Context) -> JsResult<JsValue> {
         let one = to_temporal_date(args.get_or_undefined(0), None, context)?;
         let two = to_temporal_date(args.get_or_undefined(1), None, context)?;
@@ -575,9 +778,20 @@ impl PlainDate {
     }
 }
 
-// ==== `PlainDate.prototype` method implementation ====
+// ==== `PlainDate` method implementation ====
 
 impl PlainDate {
+    /// 3.3.19 `Temporal.PlainDate.toPlainYearMonth ( )`
+    ///
+    /// More information:
+    ///
+    /// - [ECMAScript Temporal proposal][spec]
+    /// - [MDN reference][mdn]
+    /// - [`temporal_rs` documentation][temporal_rs-docs]
+    ///
+    /// [spec]: https://tc39.es/proposal-temporal/#sec-temporal.plaindate.prototype.toplainyearmonth
+    /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Temporal/PlainDate/toPlainYearMonth
+    /// [temporal_rs-docs]: https://docs.rs/temporal_rs/latest/temporal_rs/struct.PlainDate.html#method.to_plain_year_month
     fn to_plain_year_month(
         this: &JsValue,
         _: &[JsValue],
@@ -597,6 +811,17 @@ impl PlainDate {
         create_temporal_year_month(year_month, None, context)
     }
 
+    /// 3.3.20 `Temporal.PlainDate.toPlainMonthDay ( )`
+    ///
+    /// More information:
+    ///
+    /// - [ECMAScript Temporal proposal][spec]
+    /// - [MDN reference][mdn]
+    /// - [`temporal_rs` documentation][temporal_rs-docs]
+    ///
+    /// [spec]: https://tc39.es/proposal-temporal/#sec-temporal.plaindate.prototype.toplainmonthday
+    /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Temporal/PlainDate/toPlainMonthDay
+    /// [temporal_rs-docs]: https://docs.rs/temporal_rs/latest/temporal_rs/struct.PlainDate.html#method.to_plain_month_day
     fn to_plain_month_day(
         this: &JsValue,
         _: &[JsValue],
@@ -616,6 +841,17 @@ impl PlainDate {
         create_temporal_month_day(month_day, None, context)
     }
 
+    /// 3.3.21 `Temporal.PlainDate.add ( temporalDurationLike [ , options ] )`
+    ///
+    /// More information:
+    ///
+    /// - [ECMAScript Temporal proposal][spec]
+    /// - [MDN reference][mdn]
+    /// - [`temporal_rs` documentation][temporal_rs-docs]
+    ///
+    /// [spec]: https://tc39.es/proposal-temporal/#sec-temporal.plaindate.prototype.add
+    /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Temporal/PlainDate/add
+    /// [temporal_rs-docs]: https://docs.rs/temporal_rs/latest/temporal_rs/struct.PlainDate.html#method.add
     fn add(this: &JsValue, args: &[JsValue], context: &mut Context) -> JsResult<JsValue> {
         // 1. Let temporalDate be the this value.
         // 2. Perform ? RequireInternalSlot(temporalDate, [[InitializedTemporalDate]]).
@@ -641,6 +877,17 @@ impl PlainDate {
         create_temporal_date(resolved_date, None, context).map(Into::into)
     }
 
+    /// 3.3.22 `Temporal.PlainDate.subtract ( temporalDurationLike [ , options ] )`
+    ///
+    /// More information:
+    ///
+    /// - [ECMAScript Temporal proposal][spec]
+    /// - [MDN reference][mdn]
+    /// - [`temporal_rs` documentation][temporal_rs-docs]
+    ///
+    /// [spec]: https://tc39.es/proposal-temporal/#sec-temporal.plaindate.prototype.subtract
+    /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Temporal/PlainDate/subtract
+    /// [temporal_rs-docs]: https://docs.rs/temporal_rs/latest/temporal_rs/struct.PlainDate.html#method.subtract
     fn subtract(this: &JsValue, args: &[JsValue], context: &mut Context) -> JsResult<JsValue> {
         // 1. Let temporalDate be the this value.
         // 2. Perform ? RequireInternalSlot(temporalDate, [[InitializedTemporalDate]]).
@@ -666,7 +913,17 @@ impl PlainDate {
         create_temporal_date(resolved_date, None, context).map(Into::into)
     }
 
-    // 3.3.24 Temporal.PlainDate.prototype.with ( temporalDateLike [ , options ] )
+    // 3.3.23 `Temporal.PlainDate.prototype.with ( temporalDateLike [ , options ] )`
+    ///
+    /// More information:
+    ///
+    /// - [ECMAScript Temporal proposal][spec]
+    /// - [MDN reference][mdn]
+    /// - [`temporal_rs` documentation][temporal_rs-docs]
+    ///
+    /// [spec]: https://tc39.es/proposal-temporal/#sec-temporal.plaindate.prototype.with
+    /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Temporal/PlainDate/with
+    /// [temporal_rs-docs]: https://docs.rs/temporal_rs/latest/temporal_rs/struct.PlainDate.html#method.with
     fn with(this: &JsValue, args: &[JsValue], context: &mut Context) -> JsResult<JsValue> {
         // 1. Let temporalDate be the this value.
         // 2. Perform ? RequireInternalSlot(temporalDate, [[InitializedTemporalDate]]).
@@ -706,7 +963,17 @@ impl PlainDate {
     }
 
     // UPDATED: nekevss, 2025-07-21
-    /// 3.3.24 Temporal.PlainDate.prototype.withCalendar ( calendarLike )
+    /// 3.3.24 `Temporal.PlainDate.prototype.withCalendar ( calendarLike )`
+    ///
+    /// More information:
+    ///
+    /// - [ECMAScript Temporal proposal][spec]
+    /// - [MDN reference][mdn]
+    /// - [`temporal_rs` documentation][temporal_rs-docs]
+    ///
+    /// [spec]: https://tc39.es/proposal-temporal/#sec-temporal.plaindate.prototype.withcalendar
+    /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Temporal/PlainDate/withCalendar
+    /// [temporal_rs-docs]: https://docs.rs/temporal_rs/latest/temporal_rs/struct.PlainDate.html#method.with_calendar
     fn with_calendar(this: &JsValue, args: &[JsValue], context: &mut Context) -> JsResult<JsValue> {
         // 1. Let plainDate be the this value.
         let object = this.as_object();
@@ -725,6 +992,17 @@ impl PlainDate {
         create_temporal_date(resolved_date, None, context).map(Into::into)
     }
 
+    /// 3.3.25 `Temporal.PlainDate.prototype.until ( other [ , options ] )`
+    ///
+    /// More information:
+    ///
+    /// - [ECMAScript Temporal proposal][spec]
+    /// - [MDN reference][mdn]
+    /// - [`temporal_rs` documentation][temporal_rs-docs]
+    ///
+    /// [spec]: https://tc39.es/proposal-temporal/#sec-temporal.plaindate.prototype.until
+    /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Temporal/PlainDate/until
+    /// [temporal_rs-docs]: https://docs.rs/temporal_rs/latest/temporal_rs/struct.PlainDate.html#method.until
     fn until(this: &JsValue, args: &[JsValue], context: &mut Context) -> JsResult<JsValue> {
         // 1. Let temporalDate be the this value.
         // 2. Perform ? RequireInternalSlot(temporalDate, [[InitializedTemporalDate]]).
@@ -745,6 +1023,17 @@ impl PlainDate {
         create_temporal_duration(date.inner.until(&other, settings)?, None, context).map(Into::into)
     }
 
+    /// 3.3.26 `Temporal.PlainDate.prototype.since ( other [ , options ] )`
+    ///
+    /// More information:
+    ///
+    /// - [ECMAScript Temporal proposal][spec]
+    /// - [MDN reference][mdn]
+    /// - [`temporal_rs` documentation][temporal_rs-docs]
+    ///
+    /// [spec]: https://tc39.es/proposal-temporal/#sec-temporal.plaindate.prototype.since
+    /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Temporal/PlainDate/since
+    /// [temporal_rs-docs]: https://docs.rs/temporal_rs/latest/temporal_rs/struct.PlainDate.html#method.since
     fn since(this: &JsValue, args: &[JsValue], context: &mut Context) -> JsResult<JsValue> {
         // 1. Let temporalDate be the this value.
         // 2. Perform ? RequireInternalSlot(temporalDate, [[InitializedTemporalDate]]).
@@ -766,6 +1055,16 @@ impl PlainDate {
     }
 
     /// 3.3.27 `Temporal.PlainDate.prototype.equals ( other )`
+    ///
+    /// More information:
+    ///
+    /// - [ECMAScript Temporal proposal][spec]
+    /// - [MDN reference][mdn]
+    /// - [`temporal_rs` documentation][temporal_rs-docs]
+    ///
+    /// [spec]: https://tc39.es/proposal-temporal/#sec-temporal.plaindate.prototype.equals
+    /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Temporal/PlainDate/equals
+    /// [temporal_rs-docs]: https://docs.rs/temporal_rs/latest/temporal_rs/struct.PlainDate.html#impl-Eq-for-PlainDate
     fn equals(this: &JsValue, args: &[JsValue], context: &mut Context) -> JsResult<JsValue> {
         let object = this.as_object();
         let date = object
@@ -780,8 +1079,18 @@ impl PlainDate {
         Ok((date.inner == other).into())
     }
 
-    /// 3.3.30 `Temporal.PlainDate.prototype.toPlainDateTime ( [ temporalTime ] )`
-    fn to_plain_datetime(
+    /// 3.3.28 `Temporal.PlainDate.prototype.toPlainDateTime ( [ temporalTime ] )`
+    ///
+    /// More information:
+    ///
+    /// - [ECMAScript Temporal proposal][spec]
+    /// - [MDN reference][mdn]
+    /// - [`temporal_rs` documentation][temporal_rs-docs]
+    ///
+    /// [spec]: https://tc39.es/proposal-temporal/#sec-temporal.plaindate.prototype.toplaindatetime
+    /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Temporal/PlainDate/toPlainDateTime
+    /// [temporal_rs-docs]: https://docs.rs/temporal_rs/latest/temporal_rs/struct.PlainDate.html#method.to_plain_date_time
+    fn to_plain_date_time(
         this: &JsValue,
         args: &[JsValue],
         context: &mut Context,
@@ -806,7 +1115,17 @@ impl PlainDate {
             .map(Into::into)
     }
 
-    /// `3.3.29 Temporal.PlainDate.prototype.toZonedDateTime ( item )`
+    /// 3.3.29 `Temporal.PlainDate.prototype.toZonedDateTime ( item )`
+    ///
+    /// More information:
+    ///
+    /// - [ECMAScript Temporal proposal][spec]
+    /// - [MDN reference][mdn]
+    /// - [`temporal_rs` documentation][temporal_rs-docs]
+    ///
+    /// [spec]: https://tc39.es/proposal-temporal/#sec-temporal.plaindate.prototype.tozoneddatetime
+    /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Temporal/PlainDate/toZonedDateTime
+    /// [temporal_rs-docs]: https://docs.rs/temporal_rs/latest/temporal_rs/struct.PlainDate.html#method.to_zoned_date_time
     fn to_zoned_date_time(
         this: &JsValue,
         args: &[JsValue],
@@ -863,6 +1182,16 @@ impl PlainDate {
     }
 
     /// 3.3.30 `Temporal.PlainDate.prototype.toString ( [ options ] )`
+    ///
+    /// More information:
+    ///
+    /// - [ECMAScript Temporal proposal][spec]
+    /// - [MDN reference][mdn]
+    /// - [`temporal_rs` documentation][temporal_rs-docs]
+    ///
+    /// [spec]: https://tc39.es/proposal-temporal/#sec-temporal.plaindate.prototype.tostring
+    /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Temporal/PlainDate/toString
+    /// [temporal_rs-docs]: https://docs.rs/temporal_rs/latest/temporal_rs/struct.PlainDate.html#method.to_ixdtf_string
     fn to_string(this: &JsValue, args: &[JsValue], context: &mut Context) -> JsResult<JsValue> {
         let object = this.as_object();
         let date = object
@@ -880,6 +1209,14 @@ impl PlainDate {
     }
 
     /// 3.3.31 `Temporal.PlainDate.prototype.toLocaleString ( [ locales [ , options ] ] )`
+    ///
+    /// More information:
+    ///
+    /// - [ECMAScript Temporal proposal][spec]
+    /// - [MDN reference][mdn]
+    ///
+    /// [spec]: https://tc39.es/proposal-temporal/#sec-temporal.plaindate.prototype.tolocalestring
+    /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Temporal/PlainDate/toLocaleString
     fn to_locale_string(this: &JsValue, _: &[JsValue], _: &mut Context) -> JsResult<JsValue> {
         // TODO: Update for ECMA-402 compliance
         let object = this.as_object();
@@ -894,6 +1231,14 @@ impl PlainDate {
     }
 
     /// 3.3.32 `Temporal.PlainDate.prototype.toJSON ( )`
+    ///
+    /// More information:
+    ///
+    /// - [ECMAScript Temporal proposal][spec]
+    /// - [MDN reference][mdn]
+    ///
+    /// [spec]: https://tc39.es/proposal-temporal/#sec-temporal.plaindate.prototype.toJSON
+    /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Temporal/PlainDate/toJSON
     fn to_json(this: &JsValue, _: &[JsValue], _: &mut Context) -> JsResult<JsValue> {
         let object = this.as_object();
         let date = object
@@ -907,6 +1252,15 @@ impl PlainDate {
     }
 
     /// 3.3.33 `Temporal.PlainDate.prototype.valueOf ( )`
+    ///
+    /// More information:
+    ///
+    /// - [ECMAScript Temporal proposal][spec]
+    /// - [MDN reference][mdn]
+    /// - [`temporal_rs` documentation][temporal_rs-docs]
+    ///
+    /// [spec]: https://tc39.es/proposal-temporal/#sec-temporal.plaindate.prototype.valueof
+    /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Temporal/PlainDate/valueOf
     pub(crate) fn value_of(_this: &JsValue, _: &[JsValue], _: &mut Context) -> JsResult<JsValue> {
         Err(JsNativeError::typ()
             .with_message("`valueOf` not supported by Temporal built-ins. See 'compare', 'equals', or `toString`")
@@ -914,10 +1268,7 @@ impl PlainDate {
     }
 }
 
-// -- `PlainDate` Abstract Operations --
-
-// 3.5.2 `CreateIsoDateRecord`
-// Implemented on `IsoDateRecord`
+// ==== `PlainDate` Abstract Operations ====
 
 /// 3.5.3 `CreateTemporalDate ( isoYear, isoMonth, isoDay, calendar [ , newTarget ] )`
 pub(crate) fn create_temporal_date(
