@@ -69,10 +69,14 @@ impl Drop for WorkerHandles {
 }
 
 /// Creates the object $262 in the context.
-pub(super) fn register_js262(handles: WorkerHandles, context: &mut Context) -> JsObject {
+pub(super) fn register_js262(
+    handles: WorkerHandles,
+    console: bool,
+    context: &mut Context,
+) -> JsObject {
     let global_obj = context.global_object();
 
-    let agent = agent_obj(handles, context);
+    let agent = agent_obj(handles, console, context);
 
     let js262 = ObjectInitializer::new(context)
         .function(
@@ -119,10 +123,12 @@ pub(super) fn register_js262(handles: WorkerHandles, context: &mut Context) -> J
 /// Creates a new ECMAScript Realm, defines this API on the new realm's global object, and
 /// returns the `$262` property of the new realm's global object.
 #[allow(clippy::unnecessary_wraps)]
-fn create_realm(_: &JsValue, _: &[JsValue], _: &mut Context) -> JsResult<JsValue> {
-    let context = &mut Context::default();
+fn create_realm(_: &JsValue, _: &[JsValue], context: &mut Context) -> JsResult<JsValue> {
+    let mut realm = context.create_realm()?;
 
-    let js262 = register_js262(WorkerHandles::new(), context);
+    realm = context.enter_realm(realm);
+    let js262 = register_js262(WorkerHandles::new(), false, context);
+    context.enter_realm(realm);
 
     Ok(JsValue::new(js262))
 }
@@ -192,7 +198,7 @@ fn monotonic_now(_: &JsValue, _: &[JsValue], _: &mut Context) -> JsResult<JsValu
 }
 
 /// Initializes the `$262.agent` object in the main agent.
-fn agent_obj(handles: WorkerHandles, context: &mut Context) -> JsObject {
+fn agent_obj(handles: WorkerHandles, console: bool, context: &mut Context) -> JsObject {
     // TODO: improve initialization of this by using a `[[HostDefined]]` field on `Context`.
     let bus = Rc::new(RefCell::new(bus::Bus::new(1)));
 
@@ -217,8 +223,22 @@ fn agent_obj(handles: WorkerHandles, context: &mut Context) -> JsObject {
                     .map_err(|e| e.to_string())?;
                 register_js262_worker(rx, tx, context);
 
+                if console {
+                    let console = boa_runtime::Console::init(context);
+
+                    context
+                        .register_global_property(
+                            boa_runtime::Console::NAME,
+                            console,
+                            Attribute::all(),
+                        )
+                        .expect("the console builtin shouldn't exist");
+                }
+
                 let src = Source::from_bytes(&script);
+
                 context.eval(src).map_err(|e| e.to_string())?;
+                context.run_jobs().map_err(|e| e.to_string())?;
 
                 Ok(())
             }));
