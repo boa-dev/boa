@@ -1,4 +1,4 @@
-// Boa's implementation of the `Temporal.Duration` Builtin Object.
+// Boa's implementation of the `Temporal.Duration` built-in object.
 
 use super::{
     DateTimeValues, get_relative_to_option,
@@ -29,11 +29,17 @@ use temporal_rs::{
 #[cfg(test)]
 mod tests;
 
-/// The `Temporal.Duration` object.
+/// The `Temporal.Duration` built-in implementation
 ///
-/// Per [spec], `Duration` records are float64-representable integers
+/// More information:
 ///
-/// [spec]: https://tc39.es/proposal-temporal/#sec-properties-of-temporal-duration-instances
+/// - [ECMAScript Temporal proposal][spec]
+/// - [MDN reference][mdn]
+/// - [`temporal_rs` documentation][temporal_rs-docs]
+///
+/// [spec]: https://tc39.es/proposal-temporal/#sec-temporal-duration-objects
+/// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Temporal/Duration
+/// [temporal_rs-docs]: https://docs.rs/temporal_rs/latest/temporal_rs/struct.Duration.html
 #[derive(Debug, Clone, Copy, Trace, Finalize, JsData)]
 #[boa_gc(empty_trace)]
 pub struct Duration {
@@ -318,7 +324,7 @@ impl BuiltInConstructor for Duration {
     }
 }
 
-// -- Duration accessor property implementations --
+// ==== Duration accessor property implementations ====
 
 impl Duration {
     // Internal utility function for getting `Duration` field values.
@@ -350,57 +356,167 @@ impl Duration {
         }
     }
 
-    /// 7.3.3 get Temporal.Duration.prototype.years
+    /// 7.3.3 get `Temporal.Duration.prototype.years`
+    ///
+    /// More information:
+    ///
+    /// - [ECMAScript Temporal proposal][spec]
+    /// - [MDN reference][mdn]
+    /// - [`temporal_rs` documentation][temporal_rs-docs]
+    ///
+    /// [spec]: https://tc39.es/proposal-temporal/#sec-get-temporal.duration.prototype.years
+    /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Temporal/Duration/years
+    /// [temporal_rs-docs]: https://docs.rs/temporal_rs/latest/temporal_rs/struct.Duration.html#method.years
     fn get_years(this: &JsValue, _: &[JsValue], _: &mut Context) -> JsResult<JsValue> {
         Self::get_internal_field(this, &DateTimeValues::Year)
     }
 
-    // 7.3.4 get Temporal.Duration.prototype.months
+    // 7.3.4 get `Temporal.Duration.prototype.months`
+    ///
+    /// More information:
+    ///
+    /// - [ECMAScript Temporal proposal][spec]
+    /// - [MDN reference][mdn]
+    /// - [`temporal_rs` documentation][temporal_rs-docs]
+    ///
+    /// [spec]: https://tc39.es/proposal-temporal/#sec-get-temporal.duration.prototype.months
+    /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Temporal/Duration/months
+    /// [temporal_rs-docs]: https://docs.rs/temporal_rs/latest/temporal_rs/struct.Duration.html#method.months
     fn get_months(this: &JsValue, _: &[JsValue], _: &mut Context) -> JsResult<JsValue> {
         Self::get_internal_field(this, &DateTimeValues::Month)
     }
 
-    /// 7.3.5 get Temporal.Duration.prototype.weeks
+    /// 7.3.5 get `Temporal.Duration.prototype.weeks`
+    ///
+    /// More information:
+    ///
+    /// - [ECMAScript Temporal proposal][spec]
+    /// - [MDN reference][mdn]
+    /// - [`temporal_rs` documentation][temporal_rs-docs]
+    ///
+    /// [spec]: https://tc39.es/proposal-temporal/#sec-get-temporal.duration.prototype.weeks
+    /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Temporal/Duration/weeks
+    /// [temporal_rs-docs]: https://docs.rs/temporal_rs/latest/temporal_rs/struct.Duration.html#method.weeks
     fn get_weeks(this: &JsValue, _: &[JsValue], _: &mut Context) -> JsResult<JsValue> {
         Self::get_internal_field(this, &DateTimeValues::Week)
     }
 
-    /// 7.3.6 get Temporal.Duration.prototype.days
+    /// 7.3.6 get `Temporal.Duration.prototype.days`
+    ///
+    /// More information:
+    ///
+    /// - [ECMAScript Temporal proposal][spec]
+    /// - [MDN reference][mdn]
+    /// - [`temporal_rs` documentation][temporal_rs-docs]
+    ///
+    /// [spec]: https://tc39.es/proposal-temporal/#sec-get-temporal.duration.prototype.days
+    /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Temporal/Duration/days
+    /// [temporal_rs-docs]: https://docs.rs/temporal_rs/latest/temporal_rs/struct.Duration.html#method.days
     fn get_days(this: &JsValue, _: &[JsValue], _: &mut Context) -> JsResult<JsValue> {
         Self::get_internal_field(this, &DateTimeValues::Day)
     }
 
-    /// 7.3.7 get Temporal.Duration.prototype.hours
+    /// 7.3.7 get `Temporal.Duration.prototype.hours`
+    ///
+    /// More information:
+    ///
+    /// - [ECMAScript Temporal proposal][spec]
+    /// - [MDN reference][mdn]
+    /// - [`temporal_rs` documentation][temporal_rs-docs]
+    ///
+    /// [spec]: https://tc39.es/proposal-temporal/#sec-get-temporal.duration.prototype.hours
+    /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Temporal/Duration/hours
+    /// [temporal_rs-docs]: https://docs.rs/temporal_rs/latest/temporal_rs/struct.Duration.html#method.hours
     fn get_hours(this: &JsValue, _: &[JsValue], _: &mut Context) -> JsResult<JsValue> {
         Self::get_internal_field(this, &DateTimeValues::Hour)
     }
 
-    /// 7.3.8 get Temporal.Duration.prototype.minutes
+    /// 7.3.8 get `Temporal.Duration.prototype.minutes`
+    ///
+    /// More information:
+    ///
+    /// - [ECMAScript Temporal proposal][spec]
+    /// - [MDN reference][mdn]
+    /// - [`temporal_rs` documentation][temporal_rs-docs]
+    ///
+    /// [spec]: https://tc39.es/proposal-temporal/#sec-get-temporal.duration.prototype.minutes
+    /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Temporal/Duration/minutes
+    /// [temporal_rs-docs]: https://docs.rs/temporal_rs/latest/temporal_rs/struct.Duration.html#method.minutes
     fn get_minutes(this: &JsValue, _: &[JsValue], _: &mut Context) -> JsResult<JsValue> {
         Self::get_internal_field(this, &DateTimeValues::Minute)
     }
 
-    /// 7.3.9 get Temporal.Duration.prototype.seconds
+    /// 7.3.9 get `Temporal.Duration.prototype.seconds`
+    ///
+    /// More information:
+    ///
+    /// - [ECMAScript Temporal proposal][spec]
+    /// - [MDN reference][mdn]
+    /// - [`temporal_rs` documentation][temporal_rs-docs]
+    ///
+    /// [spec]: https://tc39.es/proposal-temporal/#sec-get-temporal.duration.prototype.seconds
+    /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Temporal/Duration/seconds
+    /// [temporal_rs-docs]: https://docs.rs/temporal_rs/latest/temporal_rs/struct.Duration.html#method.seconds
     fn get_seconds(this: &JsValue, _: &[JsValue], _: &mut Context) -> JsResult<JsValue> {
         Self::get_internal_field(this, &DateTimeValues::Second)
     }
 
-    /// 7.3.10 get Temporal.Duration.prototype.milliseconds
+    /// 7.3.10 get `Temporal.Duration.prototype.milliseconds`
+    ///
+    /// More information:
+    ///
+    /// - [ECMAScript Temporal proposal][spec]
+    /// - [MDN reference][mdn]
+    /// - [`temporal_rs` documentation][temporal_rs-docs]
+    ///
+    /// [spec]: https://tc39.es/proposal-temporal/#sec-get-temporal.duration.prototype.milliseconds
+    /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Temporal/Duration/milliseconds
+    /// [temporal_rs-docs]: https://docs.rs/temporal_rs/latest/temporal_rs/struct.Duration.html#method.milliseconds
     fn get_milliseconds(this: &JsValue, _: &[JsValue], _: &mut Context) -> JsResult<JsValue> {
         Self::get_internal_field(this, &DateTimeValues::Millisecond)
     }
 
-    /// 7.3.11 get Temporal.Duration.prototype.microseconds
+    /// 7.3.11 get `Temporal.Duration.prototype.microseconds`
+    ///
+    /// More information:
+    ///
+    /// - [ECMAScript Temporal proposal][spec]
+    /// - [MDN reference][mdn]
+    /// - [`temporal_rs` documentation][temporal_rs-docs]
+    ///
+    /// [spec]: https://tc39.es/proposal-temporal/#sec-get-temporal.duration.prototype.microseconds
+    /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Temporal/Duration/microseconds
+    /// [temporal_rs-docs]: https://docs.rs/temporal_rs/latest/temporal_rs/struct.Duration.html#method.microseconds
     fn get_microseconds(this: &JsValue, _: &[JsValue], _: &mut Context) -> JsResult<JsValue> {
         Self::get_internal_field(this, &DateTimeValues::Microsecond)
     }
 
-    /// 7.3.12 get Temporal.Duration.prototype.nanoseconds
+    /// 7.3.12 get `Temporal.Duration.prototype.nanoseconds`
+    ///
+    /// More information:
+    ///
+    /// - [ECMAScript Temporal proposal][spec]
+    /// - [MDN reference][mdn]
+    /// - [`temporal_rs` documentation][temporal_rs-docs]
+    ///
+    /// [spec]: https://tc39.es/proposal-temporal/#sec-get-temporal.duration.prototype.nanoseconds
+    /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Temporal/Duration/nanoseconds
+    /// [temporal_rs-docs]: https://docs.rs/temporal_rs/latest/temporal_rs/struct.Duration.html#method.nanoseconds
     fn get_nanoseconds(this: &JsValue, _: &[JsValue], _: &mut Context) -> JsResult<JsValue> {
         Self::get_internal_field(this, &DateTimeValues::Nanosecond)
     }
 
-    /// 7.3.13 get Temporal.Duration.prototype.sign
+    /// 7.3.13 get `Temporal.Duration.prototype.sign`
+    ///
+    /// More information:
+    ///
+    /// - [ECMAScript Temporal proposal][spec]
+    /// - [MDN reference][mdn]
+    /// - [`temporal_rs` documentation][temporal_rs-docs]
+    ///
+    /// [spec]: https://tc39.es/proposal-temporal/#sec-get-temporal.duration.prototype.sign
+    /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Temporal/Duration/sign
+    /// [temporal_rs-docs]: https://docs.rs/temporal_rs/latest/temporal_rs/struct.Duration.html#method.sign
     fn get_sign(this: &JsValue, _: &[JsValue], _: &mut Context) -> JsResult<JsValue> {
         // 1. Let duration be the this value.
         // 2. Perform ? RequireInternalSlot(duration, [[InitializedTemporalDuration]]).
@@ -418,7 +534,17 @@ impl Duration {
         Ok((duration.inner.sign() as i8).into())
     }
 
-    /// 7.3.14 get Temporal.Duration.prototype.blank
+    /// 7.3.14 get `Temporal.Duration.prototype.blank`
+    ///
+    /// More information:
+    ///
+    /// - [ECMAScript Temporal proposal][spec]
+    /// - [MDN reference][mdn]
+    /// - [`temporal_rs` documentation][temporal_rs-docs]
+    ///
+    /// [spec]: https://tc39.es/proposal-temporal/#sec-get-temporal.duration.prototype.blank
+    /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Temporal/Duration/blank
+    /// [temporal_rs-docs]: https://docs.rs/temporal_rs/latest/temporal_rs/struct.Duration.html#method.blank
     fn get_blank(this: &JsValue, _: &[JsValue], _: &mut Context) -> JsResult<JsValue> {
         // 1. Let duration be the this value.
         // 2. Perform ? RequireInternalSlot(duration, [[InitializedTemporalDuration]]).
@@ -439,9 +565,18 @@ impl Duration {
     }
 }
 
-// ==== Duration methods implementations ====
+// ==== Duration static methods implementation ====
 
 impl Duration {
+    /// 7.2.2 `Temporal.Duration.from ( item )`
+    ///
+    /// More information:
+    ///
+    /// - [ECMAScript Temporal proposal][spec]
+    /// - [MDN reference][mdn]
+    ///
+    /// [spec]: https://tc39.es/proposal-temporal/#sec-temporal.duration.from
+    /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Temporal/Duration/from
     fn from(_: &JsValue, args: &[JsValue], context: &mut Context) -> JsResult<JsValue> {
         let item = args.get_or_undefined(0);
         // 1. If item is an Object and item has an [[InitializedTemporalDuration]] internal slot, then
@@ -458,6 +593,17 @@ impl Duration {
             .map(Into::into)
     }
 
+    /// 7.2.3 `Temporal.Duration.compare ( one, two [ , options ] )`
+    ///
+    /// More information:
+    ///
+    /// - [ECMAScript Temporal proposal][spec]
+    /// - [MDN reference][mdn]
+    /// - [`temporal_rs` documentation][temporal_rs-docs]
+    ///
+    /// [spec]: https://tc39.es/proposal-temporal/#sec-temporal.duration.compare
+    /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Temporal/Duration/compare
+    /// [temporal_rs-docs]: https://docs.rs/temporal_rs/latest/temporal_rs/struct.Duration.html#method.compare
     fn compare(_: &JsValue, args: &[JsValue], context: &mut Context) -> JsResult<JsValue> {
         // 1. Set one to ? ToTemporalDuration(one).
         let one = to_temporal_duration(args.get_or_undefined(0), context)?;
@@ -472,10 +618,18 @@ impl Duration {
     }
 }
 
-// ==== Duration.prototype method implementations ====
+// ==== Duration methods implementation ====
 
 impl Duration {
     /// 7.3.15 `Temporal.Duration.prototype.with ( temporalDurationLike )`
+    ///
+    /// More information:
+    ///
+    /// - [ECMAScript Temporal proposal][spec]
+    /// - [MDN reference][mdn]
+    ///
+    /// [spec]: https://tc39.es/proposal-temporal/#sec-temporal.duration.prototype.with
+    /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Temporal/Duration/with
     pub(crate) fn with(
         this: &JsValue,
         args: &[JsValue],
@@ -590,6 +744,16 @@ impl Duration {
     }
 
     /// 7.3.16 `Temporal.Duration.prototype.negated ( )`
+    ///
+    /// More information:
+    ///
+    /// - [ECMAScript Temporal proposal][spec]
+    /// - [MDN reference][mdn]
+    /// - [`temporal_rs` documentation][temporal_rs-docs]
+    ///
+    /// [spec]: https://tc39.es/proposal-temporal/#sec-temporal.duration.prototype.negated
+    /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Temporal/Duration/negated
+    /// [temporal_rs-docs]: https://docs.rs/temporal_rs/latest/temporal_rs/struct.Duration.html#method.negated
     pub(crate) fn negated(
         this: &JsValue,
         _: &[JsValue],
@@ -610,6 +774,16 @@ impl Duration {
     }
 
     /// 7.3.17 `Temporal.Duration.prototype.abs ( )`
+    ///
+    /// More information:
+    ///
+    /// - [ECMAScript Temporal proposal][spec]
+    /// - [MDN reference][mdn]
+    /// - [`temporal_rs` documentation][temporal_rs-docs]
+    ///
+    /// [spec]: https://tc39.es/proposal-temporal/#sec-temporal.duration.prototype.abs
+    /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Temporal/Duration/abs
+    /// [temporal_rs-docs]: https://docs.rs/temporal_rs/latest/temporal_rs/struct.Duration.html#method.abs
     pub(crate) fn abs(this: &JsValue, _: &[JsValue], context: &mut Context) -> JsResult<JsValue> {
         // 1. Let duration be the this value.
         // 2. Perform ? RequireInternalSlot(duration, [[InitializedTemporalDuration]]).
@@ -628,6 +802,16 @@ impl Duration {
     }
 
     /// 7.3.18 `Temporal.Duration.prototype.add ( other [ , options ] )`
+    ///
+    /// More information:
+    ///
+    /// - [ECMAScript Temporal proposal][spec]
+    /// - [MDN reference][mdn]
+    /// - [`temporal_rs` documentation][temporal_rs-docs]
+    ///
+    /// [spec]: https://tc39.es/proposal-temporal/#sec-temporal.duration.prototype.add
+    /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Temporal/Duration/add
+    /// [temporal_rs-docs]: https://docs.rs/temporal_rs/latest/temporal_rs/struct.Duration.html#method.add
     pub(crate) fn add(
         this: &JsValue,
         args: &[JsValue],
@@ -650,6 +834,16 @@ impl Duration {
     }
 
     /// 7.3.19 `Temporal.Duration.prototype.subtract ( other [ , options ] )`
+    ///
+    /// More information:
+    ///
+    /// - [ECMAScript Temporal proposal][spec]
+    /// - [MDN reference][mdn]
+    /// - [`temporal_rs` documentation][temporal_rs-docs]
+    ///
+    /// [spec]: https://tc39.es/proposal-temporal/#sec-temporal.duration.prototype.subtract
+    /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Temporal/Duration/subtract
+    /// [temporal_rs-docs]: https://docs.rs/temporal_rs/latest/temporal_rs/struct.Duration.html#method.subtract
     pub(crate) fn subtract(
         this: &JsValue,
         args: &[JsValue],
@@ -672,6 +866,16 @@ impl Duration {
     }
 
     /// 7.3.20 `Temporal.Duration.prototype.round ( roundTo )`
+    ///
+    /// More information:
+    ///
+    /// - [ECMAScript Temporal proposal][spec]
+    /// - [MDN reference][mdn]
+    /// - [`temporal_rs` documentation][temporal_rs-docs]
+    ///
+    /// [spec]: https://tc39.es/proposal-temporal/#sec-temporal.duration.prototype.round
+    /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Temporal/Duration/round
+    /// [temporal_rs-docs]: https://docs.rs/temporal_rs/latest/temporal_rs/struct.Duration.html#method.round
     pub(crate) fn round(
         this: &JsValue,
         args: &[JsValue],
@@ -764,6 +968,16 @@ impl Duration {
     }
 
     /// 7.3.21 `Temporal.Duration.prototype.total ( totalOf )`
+    ///
+    /// More information:
+    ///
+    /// - [ECMAScript Temporal proposal][spec]
+    /// - [MDN reference][mdn]
+    /// - [`temporal_rs` documentation][temporal_rs-docs]
+    ///
+    /// [spec]: https://tc39.es/proposal-temporal/#sec-temporal.duration.prototype.total
+    /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Temporal/Duration/total
+    /// [temporal_rs-docs]: https://docs.rs/temporal_rs/latest/temporal_rs/struct.Duration.html#method.total
     pub(crate) fn total(
         this: &JsValue,
         args: &[JsValue],
@@ -832,6 +1046,16 @@ impl Duration {
     }
 
     /// 7.3.22 `Temporal.Duration.prototype.toString ( [ options ] )`
+    ///
+    /// More information:
+    ///
+    /// - [ECMAScript Temporal proposal][spec]
+    /// - [MDN reference][mdn]
+    /// - [`temporal_rs` documentation][temporal_rs-docs]
+    ///
+    /// [spec]: https://tc39.es/proposal-temporal/#sec-temporal.duration.prototype.tostring
+    /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Temporal/Duration/toString
+    /// [temporal_rs-docs]: https://docs.rs/temporal_rs/latest/temporal_rs/struct.Duration.html#method.as_temporal_string
     pub(crate) fn to_string(
         this: &JsValue,
         args: &[JsValue],
@@ -861,6 +1085,14 @@ impl Duration {
     }
 
     /// 7.3.23 `Temporal.Duration.prototype.toJSON ( )`
+    ///
+    /// More information:
+    ///
+    /// - [ECMAScript Temporal proposal][spec]
+    /// - [MDN reference][mdn]
+    ///
+    /// [spec]: https://tc39.es/proposal-temporal/#sec-temporal.duration.prototype.tojson
+    /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Temporal/Duration/toJSON
     pub(crate) fn to_json(this: &JsValue, _: &[JsValue], _: &mut Context) -> JsResult<JsValue> {
         let object = this.as_object();
         let duration = object
@@ -877,8 +1109,15 @@ impl Duration {
         Ok(JsString::from(result).into())
     }
 
-    // TODO: Potentially update docs if localeString is inverted.
     /// 7.3.24 `Temporal.Duration.prototype.toLocaleString ( )`
+    ///
+    /// More information:
+    ///
+    /// - [ECMAScript Temporal proposal][spec]
+    /// - [MDN reference][mdn]
+    ///
+    /// [spec]: https://tc39.es/proposal-temporal/#sec-temporal.duration.prototype.tolocalestring
+    /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Temporal/Duration/toLocaleString
     pub(crate) fn to_locale_string(
         this: &JsValue,
         _: &[JsValue],
@@ -901,6 +1140,14 @@ impl Duration {
     }
 
     /// 7.3.25 `Temporal.Duration.prototype.valueOf ( )`
+    ///
+    /// More information:
+    ///
+    /// - [ECMAScript Temporal proposal][spec]
+    /// - [MDN reference][mdn]
+    ///
+    /// [spec]: https://tc39.es/proposal-temporal/#sec-temporal.duration.prototype.valueof
+    /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Temporal/Duration/valueOf
     pub(crate) fn value_of(_this: &JsValue, _: &[JsValue], _: &mut Context) -> JsResult<JsValue> {
         Err(JsNativeError::typ()
             .with_message("`valueOf` not supported by Temporal built-ins. See 'compare', 'equals', or `toString`")
