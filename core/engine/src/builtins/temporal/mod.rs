@@ -65,7 +65,7 @@ pub(crate) enum DateTimeValues {
 /// More information:
 ///  - [ECMAScript Temporal proposal][spec]
 ///  - [MDN Reference][mdn]
-///  - [temporal_rs docs][temporal_rs-docs]
+///  - [`temporal_rs` docs][temporal_rs-docs]
 ///
 /// [spec]: https://tc39.es/proposal-temporal/#sec-temporal-objects
 /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Temporal
