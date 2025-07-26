@@ -1,4 +1,4 @@
-//! Boa's implementation of the ECMAScript `Temporal.PlainTime` builtin object.
+//! Boa's implementation of the ECMAScript `Temporal.PlainTime` built-in object.
 
 use super::{
     PlainDateTime, ZonedDateTime, create_temporal_duration,
