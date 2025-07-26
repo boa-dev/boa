@@ -27,10 +27,19 @@ use temporal_rs::{
     partial::PartialTime,
 };
 
-/// The `Temporal.PlainTime` object.
+/// The `Temporal.PlainTime` built-in implementation.
+///
+/// More information:
+///
+/// - [ECMAScript Temporal proposal][spec]
+/// - [MDN reference][mdn]
+/// - [temporal_rs documentation][temporal_rs-docs]
+///
+/// [spec]: https://tc39.es/proposal-temporal/#sec-temporal-plaintime-objects
+/// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Temporal/PlainTime
+/// [temporal_rs-docs]: https://docs.rs/temporal_rs/latest/temporal_rs/struct.PlainTime.html
 #[derive(Debug, Clone, Copy, Trace, Finalize, JsData)]
-// Safety: Time does not contain any traceable types.
-#[boa_gc(unsafe_empty_trace)]
+#[boa_gc(unsafe_empty_trace)] // Safety: PlainTimeInner does not contain any traceable types.
 pub struct PlainTime {
     inner: PlainTimeInner,
 }
@@ -233,10 +242,20 @@ impl BuiltInConstructor for PlainTime {
     }
 }
 
-// ==== PlainTime Accessor methods ====
+// ==== PlainTime accessor methods implementation ====
 
 impl PlainTime {
     /// 4.3.3 get `Temporal.PlainTime.prototype.hour`
+    ///
+    /// More information:
+    ///
+    /// - [ECMAScript Temporal proposal][spec]
+    /// - [MDN reference][mdn]
+    /// - [temporal_rs documentation][temporal_rs-docs]
+    ///
+    /// [spec]: https://tc39.es/proposal-temporal/#sec-get-temporal.plaintime.prototype.hour
+    /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Temporal/PlainTime/hour
+    /// [temporal_rs-docs]: https://docs.rs/temporal_rs/latest/temporal_rs/struct.PlainTime.html#method.hour
     fn get_hour(this: &JsValue, _: &[JsValue], _: &mut Context) -> JsResult<JsValue> {
         // 1. Let temporalTime be the this value.
         // 2. Perform ? RequireInternalSlot(temporalTime, [[InitializedTemporalTime]]).
@@ -253,6 +272,16 @@ impl PlainTime {
     }
 
     /// 4.3.4 get `Temporal.PlainTime.prototype.minute`
+    ///
+    /// More information:
+    ///
+    /// - [ECMAScript Temporal proposal][spec]
+    /// - [MDN reference][mdn]
+    /// - [temporal_rs documentation][temporal_rs-docs]
+    ///
+    /// [spec]: https://tc39.es/proposal-temporal/#sec-get-temporal.plaintime.prototype.minute
+    /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Temporal/PlainTime/minute
+    /// [temporal_rs-docs]: https://docs.rs/temporal_rs/latest/temporal_rs/struct.PlainTime.html#method.minute
     fn get_minute(this: &JsValue, _: &[JsValue], _: &mut Context) -> JsResult<JsValue> {
         // 1. Let temporalTime be the this value.
         // 2. Perform ? RequireInternalSlot(temporalTime, [[InitializedTemporalTime]]).
@@ -269,6 +298,16 @@ impl PlainTime {
     }
 
     /// 4.3.5 get `Temporal.PlainTime.prototype.second`
+    ///
+    /// More information:
+    ///
+    /// - [ECMAScript Temporal proposal][spec]
+    /// - [MDN reference][mdn]
+    /// - [temporal_rs documentation][temporal_rs-docs]
+    ///
+    /// [spec]: https://tc39.es/proposal-temporal/#sec-get-temporal.plaintime.prototype.second
+    /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Temporal/PlainTime/second
+    /// [temporal_rs-docs]: https://docs.rs/temporal_rs/latest/temporal_rs/struct.PlainTime.html#method.second
     fn get_second(this: &JsValue, _: &[JsValue], _: &mut Context) -> JsResult<JsValue> {
         // 1. Let temporalTime be the this value.
         // 2. Perform ? RequireInternalSlot(temporalTime, [[InitializedTemporalTime]]).
@@ -285,6 +324,16 @@ impl PlainTime {
     }
 
     /// 4.3.6 get `Temporal.PlainTime.prototype.millisecond`
+    ///
+    /// More information:
+    ///
+    /// - [ECMAScript Temporal proposal][spec]
+    /// - [MDN reference][mdn]
+    /// - [temporal_rs documentation][temporal_rs-docs]
+    ///
+    /// [spec]: https://tc39.es/proposal-temporal/#sec-get-temporal.plaintime.prototype.millisecond
+    /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Temporal/PlainTime/millisecond
+    /// [temporal_rs-docs]: https://docs.rs/temporal_rs/latest/temporal_rs/struct.PlainTime.html#method.millisecond
     fn get_millisecond(this: &JsValue, _: &[JsValue], _: &mut Context) -> JsResult<JsValue> {
         // 1. Let temporalTime be the this value.
         // 2. Perform ? RequireInternalSlot(temporalTime, [[InitializedTemporalTime]]).
@@ -301,6 +350,16 @@ impl PlainTime {
     }
 
     /// 4.3.7 get `Temporal.PlainTime.prototype.microsecond`
+    ///
+    /// More information:
+    ///
+    /// - [ECMAScript Temporal proposal][spec]
+    /// - [MDN reference][mdn]
+    /// - [temporal_rs documentation][temporal_rs-docs]
+    ///
+    /// [spec]: https://tc39.es/proposal-temporal/#sec-get-temporal.plaintime.prototype.microsecond
+    /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Temporal/PlainTime/microsecond
+    /// [temporal_rs-docs]: https://docs.rs/temporal_rs/latest/temporal_rs/struct.PlainTime.html#method.microsecond
     fn get_microsecond(this: &JsValue, _: &[JsValue], _: &mut Context) -> JsResult<JsValue> {
         // 1. Let temporalTime be the this value.
         // 2. Perform ? RequireInternalSlot(temporalTime, [[InitializedTemporalTime]]).
@@ -317,6 +376,16 @@ impl PlainTime {
     }
 
     /// 4.3.8 get `Temporal.PlainTime.prototype.nanosecond`
+    ///
+    /// More information:
+    ///
+    /// - [ECMAScript Temporal proposal][spec]
+    /// - [MDN reference][mdn]
+    /// - [temporal_rs documentation][temporal_rs-docs]
+    ///
+    /// [spec]: https://tc39.es/proposal-temporal/#sec-get-temporal.plaintime.prototype.nanosecond
+    /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Temporal/PlainTime/nanosecond
+    /// [temporal_rs-docs]: https://docs.rs/temporal_rs/latest/temporal_rs/struct.PlainTime.html#method.nanosecond
     fn get_nanosecond(this: &JsValue, _: &[JsValue], _: &mut Context) -> JsResult<JsValue> {
         // 1. Let temporalTime be the this value.
         // 2. Perform ? RequireInternalSlot(temporalTime, [[InitializedTemporalTime]]).
@@ -333,10 +402,18 @@ impl PlainTime {
     }
 }
 
-// ==== PlainTime method implementations ====
+// ==== PlainTime static methods implementation ====
 
 impl PlainTime {
-    /// 4.2.2 Temporal.PlainTime.from ( item [ , options ] )
+    /// 4.2.2 `Temporal.PlainTime.from ( item [ , options ] )`
+    ///
+    /// More information:
+    ///
+    /// - [ECMAScript Temporal proposal][spec]
+    /// - [MDN reference][mdn]
+    ///
+    /// [spec]: https://tc39.es/proposal-temporal/#sec-temporal.plaintime.from
+    /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Temporal/PlainTime/from
     fn from(_: &JsValue, args: &[JsValue], context: &mut Context) -> JsResult<JsValue> {
         let item = args.get_or_undefined(0);
         // 1. Set options to ? GetOptionsObject(options).
@@ -359,7 +436,17 @@ impl PlainTime {
         create_temporal_time(time, None, context).map(Into::into)
     }
 
-    /// 4.2.3 Temporal.PlainTime.compare ( one, two )
+    /// 4.2.3 `Temporal.PlainTime.compare ( one, two )`
+    ///
+    /// More information:
+    ///
+    /// - [ECMAScript Temporal proposal][spec]
+    /// - [MDN reference][mdn]
+    /// - [temporal_rs documentation][temporal_rs-docs]
+    ///
+    /// [spec]: https://tc39.es/proposal-temporal/#sec-temporal.plaintime.compare
+    /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Temporal/PlainTime/compare
+    /// [temporal_rs-docs]: https://docs.rs/temporal_rs/latest/temporal_rs/struct.PlainTime.html#impl-Ord-for-PlainTime
     fn compare(_: &JsValue, args: &[JsValue], context: &mut Context) -> JsResult<JsValue> {
         // 1. Set one to ? ToTemporalTime(one).
         let one = to_temporal_time(args.get_or_undefined(0), None, context)?;
@@ -376,7 +463,17 @@ impl PlainTime {
 // ==== PlainTime.prototype method implementations ====
 
 impl PlainTime {
-    /// 4.3.9 Temporal.PlainTime.prototype.add ( temporalDurationLike )
+    /// 4.3.9 `Temporal.PlainTime.prototype.add ( temporalDurationLike )`
+    ///
+    /// More information:
+    ///
+    /// - [ECMAScript Temporal proposal][spec]
+    /// - [MDN reference][mdn]
+    /// - [temporal_rs documentation][temporal_rs-docs]
+    ///
+    /// [spec]: https://tc39.es/proposal-temporal/#sec-temporal.plaintime.prototype.add
+    /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Temporal/PlainTime/add
+    /// [temporal_rs-docs]: https://docs.rs/temporal_rs/latest/temporal_rs/struct.PlainTime.html#method.add
     fn add(this: &JsValue, args: &[JsValue], context: &mut Context) -> JsResult<JsValue> {
         // 1. Let temporalTime be the this value.
         // 2. Perform ? RequireInternalSlot(temporalTime, [[InitializedTemporalTime]]).
@@ -395,7 +492,17 @@ impl PlainTime {
         create_temporal_time(time.inner.add(&duration)?, None, context).map(Into::into)
     }
 
-    /// 4.3.10 Temporal.PlainTime.prototype.subtract ( temporalDurationLike )
+    /// 4.3.10 `Temporal.PlainTime.prototype.subtract ( temporalDurationLike )`
+    ///
+    /// More information:
+    ///
+    /// - [ECMAScript Temporal proposal][spec]
+    /// - [MDN reference][mdn]
+    /// - [temporal_rs documentation][temporal_rs-docs]
+    ///
+    /// [spec]: https://tc39.es/proposal-temporal/#sec-temporal.plaintime.prototype.subtract
+    /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Temporal/PlainTime/subtract
+    /// [temporal_rs-docs]: https://docs.rs/temporal_rs/latest/temporal_rs/struct.PlainTime.html#method.subtract
     fn subtract(this: &JsValue, args: &[JsValue], context: &mut Context) -> JsResult<JsValue> {
         // 1. Let temporalTime be the this value.
         // 2. Perform ? RequireInternalSlot(temporalTime, [[InitializedTemporalTime]]).
@@ -414,6 +521,17 @@ impl PlainTime {
         create_temporal_time(time.inner.subtract(&duration)?, None, context).map(Into::into)
     }
 
+    /// 4.3.11 `Temporal.PlainTime.prototype.with ( temporalTimeLike [ , options ] )`
+    ///
+    /// More information:
+    ///
+    /// - [ECMAScript Temporal proposal][spec]
+    /// - [MDN reference][mdn]
+    /// - [temporal_rs documentation][temporal_rs-docs]
+    ///
+    /// [spec]: https://tc39.es/proposal-temporal/#sec-temporal.plaintime.prototype.with
+    /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Temporal/PlainTime/with
+    /// [temporal_rs-docs]: https://docs.rs/temporal_rs/latest/temporal_rs/struct.PlainTime.html#method.with
     fn with(this: &JsValue, args: &[JsValue], context: &mut Context) -> JsResult<JsValue> {
         // 1.Let temporalTime be the this value.
         // 2. Perform ? RequireInternalSlot(temporalTime, [[InitializedTemporalTime]]).
@@ -445,7 +563,17 @@ impl PlainTime {
         create_temporal_time(time.inner.with(partial, overflow)?, None, context).map(Into::into)
     }
 
-    /// 4.3.12 Temporal.PlainTime.prototype.until ( other [ , options ] )
+    /// 4.3.12 `Temporal.PlainTime.prototype.until ( other [ , options ] )`
+    ///
+    /// More information:
+    ///
+    /// - [ECMAScript Temporal proposal][spec]
+    /// - [MDN reference][mdn]
+    /// - [temporal_rs documentation][temporal_rs-docs]
+    ///
+    /// [spec]: https://tc39.es/proposal-temporal/#sec-temporal.plaintime.prototype.until
+    /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Temporal/PlainTime/until
+    /// [temporal_rs-docs]: https://docs.rs/temporal_rs/latest/temporal_rs/struct.PlainTime.html#method.until
     fn until(this: &JsValue, args: &[JsValue], context: &mut Context) -> JsResult<JsValue> {
         let object = this.as_object();
         let time = object
@@ -465,7 +593,17 @@ impl PlainTime {
         create_temporal_duration(result, None, context).map(Into::into)
     }
 
-    /// 4.3.13 Temporal.PlainTime.prototype.since ( other [ , options ] )
+    /// 4.3.13 `Temporal.PlainTime.prototype.since ( other [ , options ] )`
+    ///
+    /// More information:
+    ///
+    /// - [ECMAScript Temporal proposal][spec]
+    /// - [MDN reference][mdn]
+    /// - [temporal_rs documentation][temporal_rs-docs]
+    ///
+    /// [spec]: https://tc39.es/proposal-temporal/#sec-temporal.plaintime.prototype.since
+    /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Temporal/PlainTime/since
+    /// [temporal_rs-docs]: https://docs.rs/temporal_rs/latest/temporal_rs/struct.PlainTime.html#method.since
     fn since(this: &JsValue, args: &[JsValue], context: &mut Context) -> JsResult<JsValue> {
         let object = this.as_object();
         let time = object
@@ -486,6 +624,16 @@ impl PlainTime {
     }
 
     /// 4.3.14 Temporal.PlainTime.prototype.round ( roundTo )
+    ///
+    /// More information:
+    ///
+    /// - [ECMAScript Temporal proposal][spec]
+    /// - [MDN reference][mdn]
+    /// - [temporal_rs documentation][temporal_rs-docs]
+    ///
+    /// [spec]: https://tc39.es/proposal-temporal/#sec-temporal.plaintime.prototype.round
+    /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Temporal/PlainTime/round
+    /// [temporal_rs-docs]: https://docs.rs/temporal_rs/latest/temporal_rs/struct.PlainTime.html#method.round
     fn round(this: &JsValue, args: &[JsValue], context: &mut Context) -> JsResult<JsValue> {
         // 1. Let temporalTime be the this value.
         // 2. Perform ? RequireInternalSlot(temporalTime, [[InitializedTemporalTime]]).
@@ -557,6 +705,16 @@ impl PlainTime {
     }
 
     /// 4.3.15 Temporal.PlainTime.prototype.equals ( other )
+    ///
+    /// More information:
+    ///
+    /// - [ECMAScript Temporal proposal][spec]
+    /// - [MDN reference][mdn]
+    /// - [temporal_rs documentation][temporal_rs-docs]
+    ///
+    /// [spec]: https://tc39.es/proposal-temporal/#sec-temporal.plaintime.prototype.equals
+    /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Temporal/PlainTime/equals
+    /// [temporal_rs-docs]: https://docs.rs/temporal_rs/latest/temporal_rs/struct.PlainTime.html#impl-Eq-for-PlainTime
     fn equals(this: &JsValue, args: &[JsValue], context: &mut Context) -> JsResult<JsValue> {
         // 1. Let temporalTime be the this value.
         // 2. Perform ? RequireInternalSlot(temporalTime, [[InitializedTemporalTime]]).
@@ -581,6 +739,16 @@ impl PlainTime {
     }
 
     /// 4.3.16 `Temporal.PlainTime.prototype.toString ( [ options ] )`
+    ///
+    /// More information:
+    ///
+    /// - [ECMAScript Temporal proposal][spec]
+    /// - [MDN reference][mdn]
+    /// - [temporal_rs documentation][temporal_rs-docs]
+    ///
+    /// [spec]: https://tc39.es/proposal-temporal/#sec-temporal.plaintime.prototype.tostring
+    /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Temporal/PlainTime/toString
+    /// [temporal_rs-docs]: https://docs.rs/temporal_rs/latest/temporal_rs/struct.PlainTime.html#method.to_ixdtf_string
     fn to_string(this: &JsValue, args: &[JsValue], context: &mut Context) -> JsResult<JsValue> {
         let object = this.as_object();
         let time = object
@@ -609,6 +777,14 @@ impl PlainTime {
     }
 
     /// 4.3.17 `Temporal.PlainTime.prototype.toLocaleString ( [ locales [ , options ] ] )`
+    ///
+    /// More information:
+    ///
+    /// - [ECMAScript Temporal proposal][spec]
+    /// - [MDN reference][mdn]
+    ///
+    /// [spec]: https://tc39.es/proposal-temporal/#sec-temporal.plaintime.prototype.tolocalestring
+    /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Temporal/PlainTime/toLocaleString
     fn to_locale_string(this: &JsValue, _: &[JsValue], _: &mut Context) -> JsResult<JsValue> {
         // TODO: Update for ECMA-402 compliance
         let object = this.as_object();
@@ -626,6 +802,14 @@ impl PlainTime {
     }
 
     /// 4.3.18 `Temporal.PlainTime.prototype.toJSON ( )`
+    ///
+    /// More information:
+    ///
+    /// - [ECMAScript Temporal proposal][spec]
+    /// - [MDN reference][mdn]
+    ///
+    /// [spec]: https://tc39.es/proposal-temporal/#sec-temporal.plaintime.prototype.tojson
+    /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Temporal/PlainTime/toJSON
     fn to_json(this: &JsValue, _: &[JsValue], _: &mut Context) -> JsResult<JsValue> {
         let object = this.as_object();
         let time = object
@@ -641,7 +825,15 @@ impl PlainTime {
         Ok(JsString::from(ixdtf).into())
     }
 
-    /// 4.3.19 Temporal.PlainTime.prototype.valueOf ( )
+    /// 4.3.19 `Temporal.PlainTime.prototype.valueOf ( )`
+    ///
+    /// More information:
+    ///
+    /// - [ECMAScript Temporal proposal][spec]
+    /// - [MDN reference][mdn]
+    ///
+    /// [spec]: https://tc39.es/proposal-temporal/#sec-temporal.plaintime.prototype.valueof
+    /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Temporal/PlainTime/valueOf
     fn value_of(_this: &JsValue, _: &[JsValue], _: &mut Context) -> JsResult<JsValue> {
         // 1. Throw a TypeError exception.
         Err(JsNativeError::typ()
