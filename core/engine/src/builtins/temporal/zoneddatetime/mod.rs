@@ -1,4 +1,4 @@
-//! Boa's implementation of the ECMAScript `Temporal.PlainDateTime` built-in object
+//! Boa's implementation of the ECMAScript `Temporal.ZonedDateTime` built-in object
 
 use std::str::FromStr;
 
