@@ -1,4 +1,4 @@
-//! Boa's implementation of ECMAScript's `Temporal.Instant` builtin object.
+//! Boa's implementation of ECMAScript's `Temporal.Instant` built-in object.
 
 use super::options::{get_difference_settings, get_digits_option};
 use super::{create_temporal_zoneddatetime, to_temporal_timezone_identifier};
@@ -31,10 +31,19 @@ use temporal_rs::{
     options::{RoundingIncrement, RoundingMode, RoundingOptions},
 };
 
-/// The `Temporal.Instant` object.
+/// The `Temporal.Instant` built-in implementation
+///
+/// More information:
+///
+/// - [ECMAScript Temporal proposal][spec]
+/// - [MDN reference][mdn]
+/// - [`temporal_rs` documentation][temporal_rs-docs]
+///
+/// [spec]: https://tc39.es/proposal-temporal/#sec-temporal-instant-objects
+/// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Temporal/Instant
+/// [temporal_rs-docs]: https://docs.rs/temporal_rs/latest/temporal_rs/struct.Instant.html
 #[derive(Debug, Clone, Copy, Trace, Finalize, JsData)]
-// SAFETY: Instant does not contain any traceable values.
-#[boa_gc(unsafe_empty_trace)]
+#[boa_gc(unsafe_empty_trace)] // Safety: Instant does not contain any traceable fields.
 pub struct Instant {
     pub(crate) inner: InnerInstant,
 }
@@ -138,9 +147,18 @@ impl BuiltInConstructor for Instant {
     }
 }
 
-// ==== Instant Static method implementations ====
+// ==== Instant static methods implementation ====
 
 impl Instant {
+    /// 8.2.2 Temporal.Instant.from ( item )
+    ///
+    /// More information:
+    ///
+    /// - [ECMAScript Temporal proposal][spec]
+    /// - [MDN reference][mdn]
+    ///
+    /// [spec]: https://tc39.es/proposal-temporal/#sec-temporal.instant.from
+    /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Temporal/Instant/from
     pub(crate) fn from(_: &JsValue, args: &[JsValue], context: &mut Context) -> JsResult<JsValue> {
         // 1. If item is an Object and item has an [[InitializedTemporalInstant]] internal slot, then
         // a. Return ! CreateTemporalInstant(item.[[Nanoseconds]]).
@@ -152,6 +170,17 @@ impl Instant {
         )
     }
 
+    /// 8.2.3 `Temporal.Instant.fromEpochMilliseconds ( epochMilliseconds )`
+    ///
+    /// More information:
+    ///
+    /// - [ECMAScript Temporal proposal][spec]
+    /// - [MDN reference][mdn]
+    /// - [`temporal_rs` documentation][temporal_rs-docs]
+    ///
+    /// [spec]: https://tc39.es/proposal-temporal/#sec-temporal.instant.from
+    /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Temporal/Instant/from
+    /// [temporal_rs-docs]: https://docs.rs/temporal_rs/latest/temporal_rs/struct.Instant.html#method.from_epoch_milliseconds
     pub(crate) fn from_epoch_milliseconds(
         _: &JsValue,
         args: &[JsValue],
@@ -176,6 +205,17 @@ impl Instant {
         )
     }
 
+    /// 8.2.4 `Temporal.Instant.fromEpochNanoseconds ( epochNanoseconds )`
+    ///
+    /// More information:
+    ///
+    /// - [ECMAScript Temporal proposal][spec]
+    /// - [MDN reference][mdn]
+    /// - [`temporal_rs` documentation][temporal_rs-docs]
+    ///
+    /// [spec]: https://tc39.es/proposal-temporal/#sec-temporal.instant.from
+    /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Temporal/Instant/from
+    /// [temporal_rs-docs]: https://docs.rs/temporal_rs/latest/temporal_rs/struct.Instant.html#method.try_new
     pub(crate) fn from_epoch_nanoseconds(
         _: &JsValue,
         args: &[JsValue],
@@ -193,6 +233,17 @@ impl Instant {
         )
     }
 
+    /// 8.2.5 Temporal.Instant.compare ( one, two )
+    ///
+    /// More information:
+    ///
+    /// - [ECMAScript Temporal proposal][spec]
+    /// - [MDN reference][mdn]
+    /// - [`temporal_rs` documentation][temporal_rs-docs]
+    ///
+    /// [spec]: https://tc39.es/proposal-temporal/#sec-temporal.instant.compare
+    /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Temporal/Instant/compare
+    /// [temporal_rs-docs]: https://docs.rs/temporal_rs/latest/temporal_rs/struct.Instant.html#impl-PartialOrd-for-Instant
     pub(crate) fn compare(
         _: &JsValue,
         args: &[JsValue],
@@ -207,10 +258,20 @@ impl Instant {
     }
 }
 
-// ==== Instant method implementations ====
+// ==== Instant accessors implementation ====
 
 impl Instant {
     /// 8.3.4 get Temporal.Instant.prototype.epochMilliseconds
+    ///
+    /// More information:
+    ///
+    /// - [ECMAScript Temporal proposal][spec]
+    /// - [MDN reference][mdn]
+    /// - [`temporal_rs` documentation][temporal_rs-docs]
+    ///
+    /// [spec]: https://tc39.es/proposal-temporal/#sec-get-temporal.instant.epochmilliseconds
+    /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Temporal/Instant/epochmilliseconds
+    /// [temporal_rs-docs]: https://docs.rs/temporal_rs/latest/temporal_rs/struct.Instant.html#method.epoch_milliseconds
     pub(crate) fn get_epoch_milliseconds(
         this: &JsValue,
         _: &[JsValue],
@@ -232,6 +293,16 @@ impl Instant {
     }
 
     /// 8.3.6 get Temporal.Instant.prototype.epochNanoseconds
+    ///
+    /// More information:
+    ///
+    /// - [ECMAScript Temporal proposal][spec]
+    /// - [MDN reference][mdn]
+    /// - [`temporal_rs` documentation][temporal_rs-docs]
+    ///
+    /// [spec]: https://tc39.es/proposal-temporal/#sec-get-temporal.instant.epochnanoseconds
+    /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Temporal/Instant/epochNanoseconds
+    /// [temporal_rs-docs]: https://docs.rs/temporal_rs/latest/temporal_rs/struct.Instant.html#method.epoch_nanoseconds
     pub(crate) fn get_epoch_nanoseconds(
         this: &JsValue,
         _: &[JsValue],
@@ -250,8 +321,22 @@ impl Instant {
         // 4. Return ns.
         Ok(JsBigInt::from(instant.inner.epoch_nanoseconds().as_i128()).into())
     }
+}
 
+// ==== Instant methods implementation ====
+
+impl Instant {
     /// 8.3.7 `Temporal.Instant.prototype.add ( temporalDurationLike )`
+    ///
+    /// More information:
+    ///
+    /// - [ECMAScript Temporal proposal][spec]
+    /// - [MDN reference][mdn]
+    /// - [`temporal_rs` documentation][temporal_rs-docs]
+    ///
+    /// [spec]: https://tc39.es/proposal-temporal/#sec-temporal.instant.add
+    /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Temporal/Instant/add
+    /// [temporal_rs-docs]: https://docs.rs/temporal_rs/latest/temporal_rs/struct.Instant.html#method.add
     pub(crate) fn add(
         this: &JsValue,
         args: &[JsValue],
@@ -275,6 +360,16 @@ impl Instant {
     }
 
     /// 8.3.8 `Temporal.Instant.prototype.subtract ( temporalDurationLike )`
+    ///
+    /// More information:
+    ///
+    /// - [ECMAScript Temporal proposal][spec]
+    /// - [MDN reference][mdn]
+    /// - [`temporal_rs` documentation][temporal_rs-docs]
+    ///
+    /// [spec]: https://tc39.es/proposal-temporal/#sec-temporal.instant.subtract
+    /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Temporal/Instant/subtract
+    /// [temporal_rs-docs]: https://docs.rs/temporal_rs/latest/temporal_rs/struct.Instant.html#method.subtract
     pub(crate) fn subtract(
         this: &JsValue,
         args: &[JsValue],
@@ -298,6 +393,16 @@ impl Instant {
     }
 
     /// 8.3.9 `Temporal.Instant.prototype.until ( other [ , options ] )`
+    ///
+    /// More information:
+    ///
+    /// - [ECMAScript Temporal proposal][spec]
+    /// - [MDN reference][mdn]
+    /// - [`temporal_rs` documentation][temporal_rs-docs]
+    ///
+    /// [spec]: https://tc39.es/proposal-temporal/#sec-temporal.instant.until
+    /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Temporal/Instant/until
+    /// [temporal_rs-docs]: https://docs.rs/temporal_rs/latest/temporal_rs/struct.Instant.html#method.until
     pub(crate) fn until(
         this: &JsValue,
         args: &[JsValue],
@@ -324,6 +429,16 @@ impl Instant {
     }
 
     /// 8.3.10 `Temporal.Instant.prototype.since ( other [ , options ] )`
+    ///
+    /// More information:
+    ///
+    /// - [ECMAScript Temporal proposal][spec]
+    /// - [MDN reference][mdn]
+    /// - [`temporal_rs` documentation][temporal_rs-docs]
+    ///
+    /// [spec]: https://tc39.es/proposal-temporal/#sec-temporal.instant.since
+    /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Temporal/Instant/since
+    /// [temporal_rs-docs]: https://docs.rs/temporal_rs/latest/temporal_rs/struct.Instant.html#method.since
     pub(crate) fn since(
         this: &JsValue,
         args: &[JsValue],
@@ -348,6 +463,16 @@ impl Instant {
     }
 
     /// 8.3.11 `Temporal.Instant.prototype.round ( roundTo )`
+    ///
+    /// More information:
+    ///
+    /// - [ECMAScript Temporal proposal][spec]
+    /// - [MDN reference][mdn]
+    /// - [`temporal_rs` documentation][temporal_rs-docs]
+    ///
+    /// [spec]: https://tc39.es/proposal-temporal/#sec-temporal.instant.round
+    /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Temporal/Instant/round
+    /// [temporal_rs-docs]: https://docs.rs/temporal_rs/latest/temporal_rs/struct.Instant.html#method.round
     pub(crate) fn round(
         this: &JsValue,
         args: &[JsValue],
@@ -438,6 +563,16 @@ impl Instant {
     }
 
     /// 8.3.12 `Temporal.Instant.prototype.equals ( other )`
+    ///
+    /// More information:
+    ///
+    /// - [ECMAScript Temporal proposal][spec]
+    /// - [MDN reference][mdn]
+    /// - [`temporal_rs` documentation][temporal_rs-docs]
+    ///
+    /// [spec]: https://tc39.es/proposal-temporal/#sec-temporal.instant.equals
+    /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Temporal/Instant/equals
+    /// [temporal_rs-docs]: https://docs.rs/temporal_rs/latest/temporal_rs/struct.Instant.html#impl-PartialEq-for-Instant
     pub(crate) fn equals(
         this: &JsValue,
         args: &[JsValue],
@@ -466,6 +601,16 @@ impl Instant {
     }
 
     /// 8.3.11 `Temporal.Instant.prototype.toString ( [ options ] )`
+    ///
+    /// More information:
+    ///
+    /// - [ECMAScript Temporal proposal][spec]
+    /// - [MDN reference][mdn]
+    /// - [`temporal_rs` documentation][temporal_rs-docs]
+    ///
+    /// [spec]: https://tc39.es/proposal-temporal/#sec-temporal.instant.tostring
+    /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Temporal/Instant/toString
+    /// [temporal_rs-docs]: https://docs.rs/temporal_rs/latest/temporal_rs/struct.Instant.html#method.to_ixdtf_string
     fn to_string(this: &JsValue, args: &[JsValue], context: &mut Context) -> JsResult<JsValue> {
         let object = this.as_object();
         let instant = object
@@ -504,6 +649,14 @@ impl Instant {
     }
 
     /// 8.3.12 `Temporal.Instant.prototype.toLocaleString ( [ locales [ , options ] ] )`
+    ///
+    /// More information:
+    ///
+    /// - [ECMAScript Temporal proposal][spec]
+    /// - [MDN reference][mdn]
+    ///
+    /// [spec]: https://tc39.es/proposal-temporal/#sec-temporal.instant.tolocalestring
+    /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Temporal/Instant/toLocaleString
     fn to_locale_string(this: &JsValue, _: &[JsValue], context: &mut Context) -> JsResult<JsValue> {
         // TODO: Update for ECMA-402 compliance
         let object = this.as_object();
@@ -524,6 +677,14 @@ impl Instant {
     }
 
     /// 8.3.13 `Temporal.Instant.prototype.toJSON ( )`
+    ///
+    /// More information:
+    ///
+    /// - [ECMAScript Temporal proposal][spec]
+    /// - [MDN reference][mdn]
+    ///
+    /// [spec]: https://tc39.es/proposal-temporal/#sec-temporal.instant.tojson
+    /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Temporal/Instant/toJSON
     fn to_json(this: &JsValue, _: &[JsValue], context: &mut Context) -> JsResult<JsValue> {
         let object = this.as_object();
         let instant = object
@@ -543,6 +704,14 @@ impl Instant {
     }
 
     /// 8.3.14 `Temporal.Instant.prototype.valueOf ( )`
+    ///
+    /// More information:
+    ///
+    /// - [ECMAScript Temporal proposal][spec]
+    /// - [MDN reference][mdn]
+    ///
+    /// [spec]: https://tc39.es/proposal-temporal/#sec-temporal.instant.valueof
+    /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Temporal/Instant/valueOf
     fn value_of(_this: &JsValue, _: &[JsValue], _: &mut Context) -> JsResult<JsValue> {
         Err(JsNativeError::typ()
             .with_message("`valueOf` not supported by Temporal built-ins. See 'compare', 'equals', or `toString`")
@@ -550,6 +719,16 @@ impl Instant {
     }
 
     /// 8.3.15 `Temporal.Instant.prototype.toZonedDateTimeISO ( timeZone )`
+    ///
+    /// More information:
+    ///
+    /// - [ECMAScript Temporal proposal][spec]
+    /// - [MDN reference][mdn]
+    /// - [`temporal_rs` documentation][temporal_rs-docs]
+    ///
+    /// [spec]: https://tc39.es/proposal-temporal/#sec-temporal.instant.tozoneddatetimeiso
+    /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Temporal/Instant/toZonedDateTimeISO
+    /// [temporal_rs-docs]: https://docs.rs/temporal_rs/latest/temporal_rs/struct.Instant.html#method.to_zoned_date_time_iso
     pub(crate) fn to_zoned_date_time_iso(
         this: &JsValue,
         args: &[JsValue],
@@ -575,10 +754,7 @@ impl Instant {
     }
 }
 
-// -- Instant Abstract Operations --
-
-// 8.5.1 `IsValidEpochNanoseconds ( epochNanoseconds )`
-// Implemented in `boa_temporal`
+// ==== Instant Abstract Operations ====
 
 /// 8.5.2 `CreateTemporalInstant ( epochNanoseconds [ , newTarget ] )`
 #[inline]
