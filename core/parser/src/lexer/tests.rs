@@ -866,45 +866,46 @@ fn addition_no_spaces_e_number() {
 fn take_while_ascii_pred_simple() {
     let mut cur = Cursor::from(&b"abcdefghijk"[..]);
 
-    let mut buf: Vec<u8> = Vec::new();
+    let mut buf: [u8; 8] = [0; 8];
 
-    cur.take_while_ascii_pred(&mut buf, &|c| c == 'a' || c == 'b' || c == 'c')
+    let slice = cur
+        .take_while_ascii_pred(&mut buf, &|c| c == 'a' || c == 'b' || c == 'c')
         .unwrap();
 
-    assert_eq!(str::from_utf8(buf.as_slice()).unwrap(), "abc");
+    assert_eq!(str::from_utf8(slice).unwrap(), "abc");
 }
 
 #[test]
 fn take_while_ascii_pred_immediate_stop() {
     let mut cur = Cursor::from(&b"abcdefghijk"[..]);
 
-    let mut buf: Vec<u8> = Vec::new();
+    let mut buf: [u8; 8] = [0; 8];
 
-    cur.take_while_ascii_pred(&mut buf, &|_| false).unwrap();
+    let slice = cur.take_while_ascii_pred(&mut buf, &|_| false).unwrap();
 
-    assert_eq!(str::from_utf8(buf.as_slice()).unwrap(), "");
+    assert_eq!(str::from_utf8(slice).unwrap(), "");
 }
 
 #[test]
 fn take_while_ascii_pred_entire_str() {
     let mut cur = Cursor::from(&b"abcdefghijk"[..]);
 
-    let mut buf: Vec<u8> = Vec::new();
+    let mut buf: [u8; 11] = [0; 11];
 
-    cur.take_while_ascii_pred(&mut buf, &|_| true).unwrap();
+    let slice = cur.take_while_ascii_pred(&mut buf, &|_| true).unwrap();
 
-    assert_eq!(str::from_utf8(buf.as_slice()).unwrap(), "abcdefghijk");
+    assert_eq!(str::from_utf8(slice).unwrap(), "abcdefghijk");
 }
 
 #[test]
 fn take_while_ascii_pred_non_ascii_stop() {
     let mut cur = Cursor::from("abcde😀fghijk".as_bytes());
 
-    let mut buf: Vec<u8> = Vec::new();
+    let mut buf: [u8; 12] = [0; 12];
 
-    cur.take_while_ascii_pred(&mut buf, &|_| true).unwrap();
+    let slice = cur.take_while_ascii_pred(&mut buf, &|_| true).unwrap();
 
-    assert_eq!(str::from_utf8(buf.as_slice()).unwrap(), "abcde");
+    assert_eq!(str::from_utf8(slice).unwrap(), "abcde");
 }
 
 #[test]
