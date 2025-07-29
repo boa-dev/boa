@@ -133,7 +133,7 @@ futures-lite = "2.6.0"
 test-case = "3.3.1"
 rstest = "0.25.0"
 url = "2.5.4"
-tokio = { version = "1.46.1", default-features = false }
+tokio = { version = "1.47.0", default-features = false }
 futures-concurrency = "7.6.3"
 dynify = "0.1.0"
 
