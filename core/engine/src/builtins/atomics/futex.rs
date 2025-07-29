@@ -1,4 +1,3 @@
-// Implementation mostly based from https://github.com/v8/v8/blob/main/src/execution/futex-emulation.cc
 // TODO: track https://github.com/rust-lang/rfcs/pull/3467 to see if we can use `UnsafeAliased` instead
 // of raw pointers.
 
@@ -138,144 +137,348 @@
 #![deny(clippy::undocumented_unsafe_blocks)]
 #![allow(clippy::expl_impl_clone_on_copy)]
 
-use std::{cell::UnsafeCell, sync::atomic::Ordering};
+use std::{
+    ptr,
+    sync::{Arc, atomic::Ordering},
+};
 
 use crate::{
-    JsNativeError, JsResult,
+    Context, JsNativeError, JsResult, JsValue,
     builtins::{
         array_buffer::{SharedArrayBuffer, utils::SliceRef},
+        promise::ResolvingFunctions,
         typed_array::Element,
     },
+    job::{GenericJob, OnceFlag, TimeoutJob},
+    js_string,
     sys::time::{Duration, Instant},
 };
 
-mod sync {
-    use std::sync::{Condvar, Mutex, MutexGuard};
+use std::sync::{Condvar, Mutex, MutexGuard};
 
-    use intrusive_collections::{LinkedList, LinkedListLink, UnsafeRef, intrusive_adapter};
-    use small_btree::{Entry, SmallBTreeMap};
+use boa_string::JsString;
+use intrusive_collections::{LinkedList, LinkedListLink, UnsafeRef, intrusive_adapter};
+use rustc_hash::FxHashMap;
+use small_btree::{Entry, SmallBTreeMap};
 
-    use crate::{JsNativeError, JsResult};
-
-    /// A waiter of a memory address.
-    #[derive(Debug, Default)]
-    pub(crate) struct FutexWaiter {
-        pub(super) link: LinkedListLink,
-        pub(super) cond_var: Condvar,
-        pub(super) waiting: bool,
-        addr: usize,
-    }
-
-    intrusive_adapter!(FutexWaiterAdapter = UnsafeRef<FutexWaiter>: FutexWaiter { link: LinkedListLink });
-
-    /// List of memory addresses and its corresponding list of waiters for that address.
-    #[derive(Debug)]
-    pub(super) struct FutexWaiters {
-        waiters: SmallBTreeMap<usize, LinkedList<FutexWaiterAdapter>, 16>,
-    }
-
-    // SAFETY: `FutexWaiters` is not constructable outside its `get` method, and it's only exposed by
-    //          a global lock, meaning the inner data of `FutexWaiters` (which includes non-Send pointers)
-    //          can only be accessed by a single thread at once.
-    unsafe impl Send for FutexWaiters {}
-
-    impl FutexWaiters {
-        /// Gets the map of all shared data addresses and its corresponding list of agents waiting on that location.
-        pub(super) fn get() -> JsResult<MutexGuard<'static, Self>> {
-            static CRITICAL_SECTION: Mutex<FutexWaiters> = Mutex::new(FutexWaiters {
-                waiters: SmallBTreeMap::new(),
-            });
-
-            CRITICAL_SECTION.lock().map_err(|_| {
-                JsNativeError::typ()
-                    .with_message("failed to synchronize with the agent cluster")
-                    .into()
-            })
-        }
-
-        /// Notifies at most `max_count` waiters that are waiting on the address `addr`, and
-        /// returns the number of waiters that were notified.
-        ///
-        /// Equivalent to [`RemoveWaiters`][remove] and [`NotifyWaiter`][notify], but in a single operation.
-        ///
-        /// [remove]: https://tc39.es/ecma262/#sec-removewaiters
-        /// [notify]: https://tc39.es/ecma262/#sec-notifywaiter
-        pub(super) fn notify_many(&mut self, addr: usize, max_count: u64) -> u64 {
-            let Entry::Occupied(mut wl) = self.waiters.entry(addr) else {
-                return 0;
-            };
-
-            for i in 0..max_count {
-                let Some(elem) = wl.get_mut().pop_front() else {
-                    wl.remove();
-                    return i;
-                };
-
-                elem.cond_var.notify_one();
-
-                // SAFETY: all elements of the waiters list are guaranteed to be valid.
-                unsafe {
-                    (*UnsafeRef::into_raw(elem)).waiting = false;
-                }
-            }
-
-            if wl.get().is_empty() {
-                wl.remove();
-            }
-
-            max_count
-        }
-
-        /// # Safety
-        ///
-        /// - `node` must NOT be linked to an existing waiter list.
-        /// - `node` must always point to a valid instance of `FutexWaiter` until `node` is
-        ///   removed from its linked list. This can happen by either `remove_waiter` or `notify_many`.
-        pub(super) unsafe fn add_waiter(&mut self, node: *mut FutexWaiter, addr: usize) {
-            // SAFETY: `node` must point to a valid instance.
-            let node = unsafe {
-                debug_assert!(!(*node).link.is_linked());
-                (*node).waiting = true;
-                (*node).addr = addr;
-                UnsafeRef::from_raw(node)
-            };
-
-            self.waiters
-                .entry(addr)
-                .or_insert_with(|| LinkedList::new(FutexWaiterAdapter::new()))
-                .push_back(node);
-        }
-
-        /// # Safety
-        ///
-        /// - `node` must point to a valid instance of `FutexWaiter`.
-        /// - `node` must be inside the wait list associated with `node.addr`.
-        pub(super) unsafe fn remove_waiter(&mut self, node: *mut FutexWaiter) {
-            // SAFETY: `node` must point to a valid instance.
-            let addr = unsafe { (*node).addr };
-
-            let mut wl = match self.waiters.entry(addr) {
-                Entry::Occupied(wl) => wl,
-                Entry::Vacant(_) => return,
-            };
-
-            // SAFETY: `node` must be inside the wait list associated with `node.addr`.
-            unsafe {
-                wl.get_mut().cursor_mut_from_ptr(node).remove();
-            }
-
-            if wl.get().is_empty() {
-                wl.remove();
-            }
-        }
-    }
-}
-
+/// The result of the [`wait`] and [`wait_async`] functions.
 #[derive(Debug, Clone, Copy)]
 pub(super) enum AtomicsWaitResult {
     NotEqual,
     TimedOut,
     Ok,
+}
+
+impl AtomicsWaitResult {
+    pub(super) fn to_js_string(self) -> JsString {
+        match self {
+            AtomicsWaitResult::NotEqual => js_string!("not-equal"),
+            AtomicsWaitResult::TimedOut => js_string!("timed-out"),
+            AtomicsWaitResult::Ok => js_string!("ok"),
+        }
+    }
+}
+
+/// Data used by async waiters.
+#[derive(Debug)]
+struct AsyncWaiterData {
+    // Only here to ensure the buffer does not get collected before all its
+    // waiters.
+    _buffer: SharedArrayBuffer,
+}
+
+/// A waiter of a memory address.
+#[derive(Debug)]
+struct FutexWaiter {
+    link: LinkedListLink,
+    cond_var: Condvar,
+    addr: usize,
+    async_data: Option<AsyncWaiterData>,
+}
+
+intrusive_adapter!(FutexWaiterAdapter = UnsafeRef<FutexWaiter>: FutexWaiter { link: LinkedListLink });
+
+impl FutexWaiter {
+    /// Creates a new `FutexWaiter` that will block the current thread while waiting.
+    fn new_sync(addr: usize) -> Self {
+        Self {
+            link: LinkedListLink::new(),
+            cond_var: Condvar::new(),
+            addr,
+            async_data: None,
+        }
+    }
+
+    /// Creates a new `FutexWaiter` that will NOT block the current thread while waiting.
+    #[allow(
+        clippy::arc_with_non_send_sync,
+        reason = "across threads we only access the fields that are `Sync`"
+    )]
+    fn new_async(buffer: SharedArrayBuffer, addr: usize) -> Arc<FutexWaiter> {
+        Arc::new(Self {
+            link: LinkedListLink::new(),
+            cond_var: Condvar::new(),
+            addr,
+            async_data: Some(AsyncWaiterData { _buffer: buffer }),
+        })
+    }
+}
+
+/// An async waiter of a memory address.
+#[derive(Clone, Debug)]
+struct AsyncFutexWaiter(Arc<FutexWaiter>);
+
+impl std::hash::Hash for AsyncFutexWaiter {
+    fn hash<H: std::hash::Hasher>(&self, state: &mut H) {
+        Arc::as_ptr(&self.0).addr().hash(state);
+    }
+}
+
+impl PartialEq for AsyncFutexWaiter {
+    fn eq(&self, other: &Self) -> bool {
+        Arc::ptr_eq(&self.0, &other.0)
+    }
+}
+
+impl Eq for AsyncFutexWaiter {}
+
+#[derive(Debug, Default)]
+pub(crate) struct AsyncPendingWaiters {
+    waiters: FxHashMap<AsyncFutexWaiter, (ResolvingFunctions, Option<OnceFlag>)>,
+}
+
+impl AsyncPendingWaiters {
+    /// Creates a new `AsyncPendingWaiters`.
+    pub(crate) fn new() -> Self {
+        Self {
+            waiters: FxHashMap::default(),
+        }
+    }
+
+    fn insert(
+        &mut self,
+        waiter: AsyncFutexWaiter,
+        cap: ResolvingFunctions,
+        timeout_cancel: Option<OnceFlag>,
+    ) {
+        // Should have been added to the waiters list at this point.
+        debug_assert!(waiter.0.link.is_linked());
+        self.waiters.insert(waiter, (cap, timeout_cancel));
+    }
+
+    fn remove(
+        &mut self,
+        waiter: &AsyncFutexWaiter,
+    ) -> Option<(ResolvingFunctions, Option<OnceFlag>)> {
+        self.waiters.remove(waiter)
+    }
+
+    /// Gets the number of waiters in the list of pending waiters.
+    pub(crate) fn len(&self) -> usize {
+        self.waiters.len()
+    }
+
+    /// Gets all waiters that have been notified and enqueues their corresponding
+    /// generic jobs.
+    ///
+    /// This is roughly equivalent to
+    /// [`EnqueueResolveInAgentJob ( agentSignifier, promiseCapability, resolution )`][spec].
+    ///
+    /// [spec]: https://tc39.es/ecma262/#sec-enqueueresolveinagentjob
+    pub(crate) fn enqueue_waiter_jobs(&mut self, context: &mut Context) {
+        for (waiter, (functions, timeout_cancel)) in
+            self.waiters.extract_if(|k, _| Arc::strong_count(&k.0) < 2)
+        {
+            // Should have been removed from the waiters list at this point.
+            debug_assert!(!waiter.0.link.is_linked());
+            let realm = functions
+                .resolve
+                .get_function_realm(context)
+                .expect("cannot fail for the default resolving functions");
+            context.enqueue_job(
+                GenericJob::new(
+                    move |context| {
+                        functions.resolve.call(
+                            &JsValue::undefined(),
+                            &[AtomicsWaitResult::Ok.to_js_string().into()],
+                            context,
+                        )
+                    },
+                    realm,
+                )
+                .into(),
+            );
+            if let Some(timeout_cancel) = timeout_cancel {
+                timeout_cancel.set();
+            }
+        }
+    }
+}
+
+impl Drop for AsyncPendingWaiters {
+    /// If the parent `Context` gets dropped, this will automatically
+    /// remove all active waiters from the waiters list.
+    fn drop(&mut self) {
+        if self.waiters.is_empty() {
+            return;
+        }
+
+        let Ok(mut global_waiters) = FutexWaiters::get() else {
+            // Cannot cleanup a poisoned mutex.
+            return;
+        };
+
+        for (waiter, _) in self.waiters.drain() {
+            if waiter.0.link.is_linked() {
+                // SAFETY: All waiters in the pending waiters map must be valid.
+                unsafe {
+                    global_waiters.remove_waiter(&waiter.0);
+                }
+            }
+        }
+    }
+}
+
+/// List of memory addresses and its corresponding list of waiters for that address.
+#[derive(Debug)]
+struct FutexWaiters {
+    waiters: SmallBTreeMap<usize, LinkedList<FutexWaiterAdapter>, 16>,
+}
+
+// SAFETY: `FutexWaiters` is not constructable outside its `get` method, and it's only exposed by
+//          a global lock, meaning the inner data of `FutexWaiters` (which includes non-Send pointers)
+//          can only be accessed by a single thread at once.
+unsafe impl Send for FutexWaiters {}
+
+impl FutexWaiters {
+    /// Gets the map of all shared data addresses and its corresponding list of agents waiting on that location.
+    fn get() -> JsResult<MutexGuard<'static, Self>> {
+        static CRITICAL_SECTION: Mutex<FutexWaiters> = Mutex::new(FutexWaiters {
+            waiters: SmallBTreeMap::new(),
+        });
+
+        CRITICAL_SECTION.lock().map_err(|_| {
+            JsNativeError::typ()
+                .with_message("failed to synchronize with the agent cluster")
+                .into()
+        })
+    }
+
+    /// Notifies at most `max_count` waiters that are waiting on the address `addr`, and
+    /// returns the number of waiters that were notified.
+    ///
+    /// Equivalent to [`RemoveWaiters`][remove] and [`NotifyWaiter`][notify], but in a single operation.
+    ///
+    /// [remove]: https://tc39.es/ecma262/#sec-removewaiters
+    /// [notify]: https://tc39.es/ecma262/#sec-notifywaiter
+    fn notify_many(&mut self, addr: usize, max_count: u64, context: &mut Context) -> u64 {
+        let Entry::Occupied(mut wl) = self.waiters.entry(addr) else {
+            return 0;
+        };
+
+        for i in 0..max_count {
+            let Some(elem) = wl.get_mut().pop_front() else {
+                wl.remove();
+                return i;
+            };
+
+            elem.cond_var.notify_one();
+
+            if elem.async_data.is_some() {
+                // SAFETY: All entries on the waiter list must be valid, and all async entries
+                // must come from an Arc.
+                let elem = unsafe {
+                    AsyncFutexWaiter(Arc::from_raw(UnsafeRef::into_raw(elem).cast_const()))
+                };
+
+                if let Some((functions, timeout_cancel)) = context.pending_waiters.remove(&elem) {
+                    // The waiter was part of this context, so we can safely resolve the promise from here.
+                    functions
+                        .resolve
+                        .call(
+                            &JsValue::undefined(),
+                            &[AtomicsWaitResult::Ok.to_js_string().into()],
+                            context,
+                        )
+                        .expect("cannot fail per the spec");
+
+                    if let Some(timeout_cancel) = timeout_cancel {
+                        timeout_cancel.set();
+                    }
+                }
+            }
+        }
+
+        if wl.get().is_empty() {
+            wl.remove();
+        }
+
+        max_count
+    }
+
+    /// # Safety
+    ///
+    /// - `node` must NOT be linked to an existing waiter list.
+    /// - `node` must always reference a valid instance of `FutexWaiter` until `node` is
+    ///   removed from its linked list. This can happen by either `remove_waiter` or `notify_many`.
+    unsafe fn add_waiter(&mut self, node: &FutexWaiter) {
+        // SAFETY: `node` must point to a valid instance.
+        let node = unsafe { UnsafeRef::from_raw(ptr::from_ref(node)) };
+
+        self.waiters
+            .entry(node.addr)
+            .or_insert_with(|| LinkedList::new(FutexWaiterAdapter::new()))
+            .push_back(node);
+    }
+
+    /// # Safety
+    ///
+    /// - `node` must NOT be linked to an existing waiter list.
+    unsafe fn add_async_waiter(&mut self, node: Arc<FutexWaiter>) {
+        // SAFETY: `node` is not linked by the guarantees of the caller.
+        let node = unsafe { UnsafeRef::from_raw(Arc::into_raw(node)) };
+
+        self.waiters
+            .entry(node.addr)
+            .or_insert_with(|| LinkedList::new(FutexWaiterAdapter::new()))
+            .push_back(node);
+    }
+
+    /// # Safety
+    ///
+    /// - `node` must point to a valid instance of `FutexWaiter`.
+    /// - `node` must be inside the wait list associated with `node.addr`.
+    #[track_caller]
+    pub(super) unsafe fn remove_waiter(&mut self, node: &FutexWaiter) {
+        debug_assert!(node.link.is_linked());
+
+        let Entry::Occupied(mut wl) = self.waiters.entry(node.addr) else {
+            panic!("node was not a valid `FutexWaiter`");
+        };
+
+        // SAFETY: `node` must be inside the wait list associated with `node.addr`.
+        let node = unsafe {
+            let Some(node) = wl
+                .get_mut()
+                .cursor_mut_from_ptr(ptr::from_ref(node))
+                .remove()
+            else {
+                panic!("node was not a valid `FutexWaiter`")
+            };
+            node
+        };
+
+        if node.async_data.is_some() {
+            // SAFETY: all async entries must be managed by an Arc.
+            unsafe {
+                Arc::from_raw(UnsafeRef::into_raw(node));
+            }
+        }
+
+        if wl.get().is_empty() {
+            wl.remove();
+        }
+    }
 }
 
 /// Adds this agent to the wait queue for the address pointed to by `buffer[offset..]`.
@@ -292,14 +495,14 @@ pub(super) unsafe fn wait<E: Element + PartialEq>(
     check: E,
     timeout: Option<Duration>,
 ) -> JsResult<AtomicsWaitResult> {
-    // 10. Let block be buffer.[[ArrayBufferData]].
-    // 11. Let WL be GetWaiterList(block, indexedPosition).
-    // 12. Perform EnterCriticalSection(WL).
-    let mut waiters = sync::FutexWaiters::get()?;
-
-    let time_info = timeout.map(|timeout| (Instant::now(), timeout));
-
+    // 11. Let block be buffer.[[ArrayBufferData]].
+    // 12. Let offset be typedArray.[[ByteOffset]].
+    // 13. Let byteIndexInBuffer be (i × 4) + offset.
     let buffer = &buffer.bytes_with_len(buf_len)[offset..];
+
+    // 14. Let WL be GetWaiterList(block, indexedPosition).
+    // 18. Perform EnterCriticalSection(WL).
+    let mut waiters = FutexWaiters::get()?;
 
     // 13. Let elementType be TypedArrayElementType(typedArray).
     // 14. Let w be GetValueFromBuffer(buffer, indexedPosition, elementType, true, SeqCst).
@@ -307,23 +510,27 @@ pub(super) unsafe fn wait<E: Element + PartialEq>(
     // SAFETY: The safety of this operation is guaranteed by the caller.
     let value = unsafe { E::read(SliceRef::AtomicSlice(buffer)).load(Ordering::SeqCst) };
 
-    // 15. If v ≠ w, then
-    //     a. Perform LeaveCriticalSection(WL).
-    //     b. Return "not-equal".
+    // 20. If v ≠ w, then
+    // a. Perform LeaveCriticalSection(WL).
+    // b. If mode is sync, return "not-equal".
     if check != value {
         return Ok(AtomicsWaitResult::NotEqual);
     }
 
-    // 16. Let W be AgentSignifier().
-    // 17. Perform AddWaiter(WL, W).
+    // 23. Let now be the time value (UTC) identifying the current time.
+    // 24. Let additionalTimeout be an implementation-defined non-negative mathematical value.
+    // 25. Let timeoutTime be ℝ(now) + t + additionalTimeout.
+    // 26. NOTE: When t is +∞, timeoutTime is also +∞.
+    let timeout_time = timeout.map(|to| (Instant::now(), to));
 
+    // 27. Let waiterRecord be a new Waiter Record { [[AgentSignifier]]: thisAgent, [[PromiseCapability]]: promiseCapability, [[TimeoutTime]]: timeoutTime, [[Result]]: "ok" }.
     // ensure we can have aliased pointers to the waiter in a sound way.
-    let waiter = UnsafeCell::new(sync::FutexWaiter::default());
-    let waiter_ptr = waiter.get();
+    let waiter = FutexWaiter::new_sync(buffer.as_ptr().addr());
 
-    // SAFETY: waiter is valid and we call `remove_node` below.
+    // 28. Perform AddWaiter(WL, waiterRecord).
+    // SAFETY: waiter is valid and we call `remove_waiter` below.
     unsafe {
-        waiters.add_waiter(waiter_ptr, buffer.as_ptr().addr());
+        waiters.add_waiter(&waiter);
     }
 
     // 18. Let notified be SuspendAgent(WL, W, t).
@@ -331,54 +538,46 @@ pub(super) unsafe fn wait<E: Element + PartialEq>(
     // `SuspendAgent(WL, W, t)`
     // https://tc39.es/ecma262/#sec-suspendthisagent
 
+    // In a couple of places here we early return without removing the waiter from
+    // the waiters list. This could seem unsound, but in reality all our early
+    // returns are because the mutex is poisoned, and if that's the case then
+    // no other thread can read the pointer to the waiter, so we can return safely.
     let result = loop {
-        // SAFETY: waiter is still valid
-        if unsafe { !(*waiter_ptr).waiting } {
+        if !waiter.link.is_linked() {
             break AtomicsWaitResult::Ok;
         }
 
-        if let Some((start, timeout)) = time_info {
+        if let Some((start, timeout)) = timeout_time {
             let Some(remaining) = timeout.checked_sub(start.elapsed()) else {
                 break AtomicsWaitResult::TimedOut;
             };
 
-            // Since the mutex is poisoned, `waiter` cannot be read from other threads, meaning
-            // we can return directly.
             // This doesn't use `wait_timeout_while` because it has to mutably borrow `waiter`,
             // which is a big nono since we have pointers to that location while the borrow is
             // active.
-            // SAFETY: waiter is still valid
-            waiters = unsafe {
-                (*waiter_ptr)
-                    .cond_var
-                    .wait_timeout(waiters, remaining)
-                    .map_err(|_| {
-                        JsNativeError::typ()
-                            .with_message("failed to synchronize with the agent cluster")
-                    })?
-                    .0
-            };
-        } else {
-            // SAFETY: waiter is still valid
-            waiters = unsafe {
-                (*waiter_ptr).cond_var.wait(waiters).map_err(|_| {
+            waiters = waiter
+                .cond_var
+                .wait_timeout(waiters, remaining)
+                .map_err(|_| {
                     JsNativeError::typ()
                         .with_message("failed to synchronize with the agent cluster")
                 })?
-            };
+                .0;
+        } else {
+            waiters = waiter.cond_var.wait(waiters).map_err(|_| {
+                JsNativeError::typ().with_message("failed to synchronize with the agent cluster")
+            })?;
         }
     };
 
-    // SAFETY: waiter is valid and contained in its waiter list if `waiting == true`.
-    unsafe {
-        // 20. Else,
-        //     a. Perform RemoveWaiter(WL, W).
-        if (*waiter_ptr).waiting {
-            waiters.remove_waiter(waiter_ptr);
-        } else {
-            // 19. If notified is true, then
-            //     a. Assert: W is not on the list of waiters in WL.
-            debug_assert!(!(*waiter_ptr).link.is_linked());
+    // 19. If notified is true, then
+    //     a. Assert: W is not on the list of waiters in WL.
+    // 20. Else,
+    //     a. Perform RemoveWaiter(WL, W).
+    if waiter.link.is_linked() {
+        // SAFETY: waiter is valid and contained in its waiter list if it is still linked.
+        unsafe {
+            waiters.remove_waiter(&waiter);
         }
     }
 
@@ -390,18 +589,161 @@ pub(super) unsafe fn wait<E: Element + PartialEq>(
     Ok(result)
 }
 
+/// Adds this agent to the wait queue for the address pointed to by `buffer[offset..]`,
+/// without blocking the execution thread.
+///
+/// # Safety
+///
+/// - `addr` must be a multiple of `std::mem::size_of::<E>()`.
+/// - `buffer` must contain at least `std::mem::size_of::<E>()` bytes to read starting from `usize`.
+// our implementation guarantees that `SharedArrayBuffer` is always aligned to `u64` at minimum.
+pub(super) unsafe fn wait_async<E: Element + PartialEq>(
+    buffer: &SharedArrayBuffer,
+    buf_len: usize,
+    offset: usize,
+    check: E,
+    timeout: Option<Duration>,
+    functions: ResolvingFunctions,
+    context: &mut Context,
+) -> JsResult<AtomicsWaitResult> {
+    // 11. Let block be buffer.[[ArrayBufferData]].
+    // 12. Let offset be typedArray.[[ByteOffset]].
+    // 13. Let byteIndexInBuffer be (i × 4) + offset.
+    let buf = &buffer.bytes_with_len(buf_len)[offset..];
+
+    // 14. Let WL be GetWaiterList(block, indexedPosition).
+    // 17. Perform EnterCriticalSection(WL).
+    let mut waiters = FutexWaiters::get()?;
+
+    // 18. Let elementType be TypedArrayElementType(typedArray).
+    // 19. Let w be GetValueFromBuffer(buffer, indexedPosition, elementType, true, SeqCst).
+    // SAFETY: The safety of this operation is guaranteed by the caller.
+    let value = unsafe { E::read(SliceRef::AtomicSlice(buf)).load(Ordering::SeqCst) };
+
+    // 20. If v ≠ w, then
+    //     a. Perform LeaveCriticalSection(WL).
+    //     b. If mode is sync, return "not-equal".
+    if check != value {
+        return Ok(AtomicsWaitResult::NotEqual);
+    }
+
+    // 21. If t = 0 and mode is async, then
+    //     a. NOTE: There is no special handling of synchronous immediate timeouts. Asynchronous immediate
+    //        timeouts have special handling in order to fail fast and avoid unnecessary Promise jobs.
+    //     b. Perform LeaveCriticalSection(WL).
+    if let Some(timeout) = &timeout
+        && timeout.is_zero()
+    {
+        return Ok(AtomicsWaitResult::TimedOut);
+    }
+
+    // 23. Let now be the time value (UTC) identifying the current time.
+    // 24. Let additionalTimeout be an implementation-defined non-negative mathematical value.
+    // 25. Let timeoutTime be ℝ(now) + t + additionalTimeout.
+    // 26. NOTE: When t is +∞, timeoutTime is also +∞.
+
+    // 27. Let waiterRecord be a new Waiter Record { [[AgentSignifier]]: thisAgent,
+    //     [[PromiseCapability]]: promiseCapability, [[TimeoutTime]]: timeoutTime, [[Result]]: "ok"}.
+    // ensure we can have aliased pointers to the waiter in a sound way.
+    let waiter = FutexWaiter::new_async(buffer.clone(), buf.as_ptr().addr());
+    let weak_waiter = Arc::downgrade(&waiter);
+
+    // 28. Perform AddWaiter(WL, waiterRecord).
+    // SAFETY: `waiter` is pinned to the heap, so it must be valid.
+    unsafe {
+        waiters.add_async_waiter(waiter.clone());
+    }
+
+    // 30. Else if timeoutTime is finite, then
+    //     a. Perform EnqueueAtomicsWaitAsyncTimeoutJob(WL, waiterRecord).
+    let timeout_cancel = if let Some(timeout) = timeout {
+        // EnqueueAtomicsWaitAsyncTimeoutJob ( WL, waiterRecord )
+        // https://tc39.es/ecma262/#sec-enqueueatomicswaitasynctimeoutjob
+
+        // 1. Let timeoutJob be a new Job Abstract Closure with no parameters that captures WL and waiterRecord and performs the following steps when called:
+        // TODO: this design is a bit suboptimal since most event loops will wait until all timeouts
+        // are resolved. If we can, we should make it possible to remove the timeout if the waiter
+        // was notified.
+        let job = TimeoutJob::with_realm(
+            move |context| {
+                //    a. Perform EnterCriticalSection(WL).
+                let mut waiters = FutexWaiters::get()?;
+
+                //    b. If WL.[[Waiters]] contains waiterRecord, then
+                if let Some(waiter) = weak_waiter.upgrade()
+                    && waiter.link.is_linked()
+                {
+                    // i. Let timeOfJobExecution be the time value (UTC) identifying the current time.
+                    // ii. Assert: ℝ(timeOfJobExecution) ≥ waiterRecord.[[TimeoutTime]] (ignoring potential non-monotonicity of time values).
+                    // iii. Set waiterRecord.[[Result]] to "timed-out".
+                    // SAFETY: the node is linked and still valid thanks to the reference count.
+                    unsafe {
+                        // iv. Perform RemoveWaiter(WL, waiterRecord).
+                        waiters.remove_waiter(&waiter);
+                    }
+
+                    let Some((functions, _)) =
+                        context.pending_waiters.remove(&AsyncFutexWaiter(waiter))
+                    else {
+                        panic!("timeout job was not executed by its original context")
+                    };
+
+                    // v. Perform NotifyWaiter(WL, waiterRecord).
+                    functions
+                        .resolve
+                        .call(
+                            &JsValue::undefined(),
+                            &[js_string!("timed-out").into()],
+                            context,
+                        )
+                        .expect("default resolving functions cannot error");
+                }
+
+                //    c. Perform LeaveCriticalSection(WL).
+                //    d. Return unused.
+                Ok(JsValue::undefined())
+            },
+            // 3. Let currentRealm be the current Realm Record.
+            context.realm().clone(),
+            // 2. Let now be the time value (UTC) identifying the current time.
+            timeout,
+        );
+
+        let tc = job.cancelled_flag();
+
+        // 4. Perform HostEnqueueTimeoutJob(timeoutJob, currentRealm, 𝔽(waiterRecord.[[TimeoutTime]]) - now).
+        context.enqueue_job(job.into());
+
+        // 5. Return unused.
+        Some(tc)
+    } else {
+        None
+    };
+
+    context
+        .pending_waiters
+        .insert(AsyncFutexWaiter(waiter), functions, timeout_cancel);
+
+    Ok(AtomicsWaitResult::Ok)
+}
+
 /// Notifies at most `count` agents waiting on the memory address pointed to by `buffer[offset..]`.
-pub(super) fn notify(buffer: &SharedArrayBuffer, offset: usize, count: u64) -> JsResult<u64> {
+pub(super) fn notify(
+    buffer: &SharedArrayBuffer,
+    offset: usize,
+    count: u64,
+    context: &mut Context,
+) -> JsResult<u64> {
     let addr = buffer.as_ptr().addr() + offset;
 
     // 7. Let WL be GetWaiterList(block, indexedPosition).
     // 8. Perform EnterCriticalSection(WL).
-    let mut waiters = sync::FutexWaiters::get()?;
+    let mut waiters = FutexWaiters::get()?;
 
     // 9. Let S be RemoveWaiters(WL, c).
     // 10. For each element W of S, do
     //     a. Perform NotifyWaiter(WL, W).
-    let count = waiters.notify_many(addr, count);
+    let count = waiters.notify_many(addr, count, context);
 
     // 11. Perform LeaveCriticalSection(WL).
     drop(waiters);
