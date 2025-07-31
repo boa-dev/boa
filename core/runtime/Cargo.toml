@@ -33,8 +33,9 @@ workspace = true
 all-features = true
 
 [features]
-default = ["all"]
-all = ["fetch", "reqwest", "url"]
+# Default should not add `reqwest` as it is not available on all platforms.
+default = ["fetch", "url"]
+all = ["default", "reqwest"]
 url = ["dep:url"]
 fetch = ["dep:futures-lite", "dep:http", "dep:serde_json", "boa_engine/either"]
 reqwest = ["dep:reqwest", "reqwest/blocking"]
