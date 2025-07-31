@@ -2,6 +2,7 @@ use boa_engine::{Context, Finalize, JsData, JsResult, Trace};
 use boa_gc::Gc;
 use boa_runtime::{ConsoleState, Logger};
 use std::cell::RefCell;
+use std::fmt::Debug;
 use std::rc::Rc;
 use std::sync::atomic::{AtomicUsize, Ordering};
 
@@ -38,6 +39,12 @@ pub(crate) struct RecordingLogger {
 
     #[unsafe_ignore_trace]
     inner: Rc<RefCell<RecordingLoggerInner>>,
+}
+
+impl Debug for RecordingLogger {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        f.write_str("RecordingLogger { ... }")
+    }
 }
 
 impl Logger for RecordingLogger {

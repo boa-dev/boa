@@ -11,7 +11,7 @@ use boa_engine::{
 };
 use boa_interop::{ContextData, IntoJsFunctionCopied};
 use boa_runtime::url::Url;
-use boa_runtime::{DefaultLogger, NullLogger, RegisterOptions};
+use boa_runtime::{DefaultLogger, NullLogger};
 use logger::RecordingLogEvent;
 use std::cell::{OnceCell, RefCell};
 use std::collections::BTreeMap;
@@ -180,10 +180,12 @@ fn create_context(wpt_path: &Path) -> (Context, logger::RecordingLogger, fetcher
 
     let fetcher = fetcher::WptFetcher::new(wpt_path, "web-platform.test:8000".to_string());
     boa_runtime::register(
+        (
+            boa_runtime::extensions::ConsoleExtension(logger.clone()),
+            boa_runtime::extensions::FetchExtension(fetcher.clone()),
+        ),
+        None,
         &mut context,
-        RegisterOptions::new()
-            .with_console_logger(logger.clone())
-            .with_fetcher(fetcher.clone()),
     )
     .expect("Failed to register boa_runtime");
 

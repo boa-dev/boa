@@ -12,6 +12,7 @@ use url::Url;
 pub struct WptFetcher {
     wpt_server: String,
     wpt_root: PathBuf,
+    #[unsafe_ignore_trace]
     current_file: Rc<RefCell<Option<PathBuf>>>,
 
     #[unsafe_ignore_trace]
