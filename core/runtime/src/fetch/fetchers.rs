@@ -3,7 +3,7 @@
 use crate::fetch::Fetcher;
 use crate::fetch::request::JsRequest;
 use crate::fetch::response::JsResponse;
-use boa_engine::{Context, Finalize, JsData, JsError, JsResult, JsString, Trace, js_error};
+use boa_engine::{Context, Finalize, JsData, JsResult, Trace, js_error};
 use std::cell::RefCell;
 use std::rc::Rc;
 
@@ -36,6 +36,8 @@ impl Fetcher for BlockingReqwestFetcher {
         request: JsRequest,
         _context: &RefCell<&mut Context>,
     ) -> JsResult<JsResponse> {
+        use boa_engine::{JsError, JsString};
+
         let request = request.into_inner();
         let url = request.uri().to_string();
         let req = self
