@@ -35,14 +35,14 @@ fn const_item(
         quote! {
             if let Some(ref realm) = realm {
                 realm.register_property(
-                    &boa_engine::js_string!( #name ),
+                    boa_engine::js_string!( #name ),
                     boa_engine::JsValue::from( #ident ),
                     boa_engine::property::Attribute::all(),
                     context,
                 )?;
             } else {
                 context.register_global_property(
-                    &boa_engine::js_string!( #name ),
+                    boa_engine::js_string!( #name ),
                     boa_engine::JsValue::from( #ident ),
                     boa_engine::property::Attribute::all(),
                 )?;
