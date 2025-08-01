@@ -168,7 +168,7 @@ pub fn register_extensions(
 pub(crate) mod test {
     use crate::extensions::ConsoleExtension;
     use crate::register;
-    use boa_engine::{builtins, Context, JsResult, JsValue, Source};
+    use boa_engine::{Context, JsResult, JsValue, Source, builtins};
     use std::borrow::Cow;
 
     /// A test action executed in a test function.

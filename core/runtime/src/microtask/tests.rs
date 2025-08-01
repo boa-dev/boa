@@ -1,6 +1,6 @@
-use crate::console::tests::RecordingLogger;
-use crate::test::{run_test_actions_with, TestAction};
 use crate::RuntimeExtension;
+use crate::console::tests::RecordingLogger;
+use crate::test::{TestAction, run_test_actions_with};
 use boa_engine::Context;
 use indoc::indoc;
 
