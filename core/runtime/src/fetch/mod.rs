@@ -13,8 +13,8 @@ use crate::fetch::response::JsResponse;
 use boa_engine::class::Class;
 use boa_engine::realm::Realm;
 use boa_engine::{
-    js_error, Context, Finalize, JsData, JsError, JsObject, JsResult, JsString, JsValue, NativeObject,
-    Trace,
+    Context, Finalize, JsData, JsError, JsObject, JsResult, JsString, JsValue, NativeObject, Trace,
+    js_error,
 };
 use boa_interop::boa_macros::boa_module;
 use either::Either;
@@ -146,7 +146,7 @@ async fn fetch_inner<T: Fetcher>(
 #[boa_module]
 mod js_module {
     use crate::fetch::request::RequestInit;
-    use crate::fetch::{fetch_inner, Fetcher};
+    use crate::fetch::{Fetcher, fetch_inner};
     use boa_engine::object::builtins::JsPromise;
     use boa_engine::{Context, JsObject, JsString};
     use either::Either;
@@ -155,8 +155,7 @@ mod js_module {
     type JsRequest = super::JsRequest;
     type JsResponse = super::JsResponse;
 
-    /// The `fetch` function. This function MUST be registered using the [`register`]
-    /// function, as it uses host-defined data in the realm to handle fetching.
+    /// The `fetch` function.
     ///
     /// # Errors
     /// If the fetcher is not registered in the context, an error is returned.

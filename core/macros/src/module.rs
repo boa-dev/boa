@@ -1,5 +1,5 @@
 use crate::class::Function;
-use crate::utils::{error, take_name_value_string, take_path_attr, RenameScheme, SpannedResult};
+use crate::utils::{RenameScheme, SpannedResult, error, take_name_value_string, take_path_attr};
 use proc_macro::TokenStream;
 use proc_macro2::TokenStream as TokenStream2;
 use quote::quote;

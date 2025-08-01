@@ -11,24 +11,24 @@ mod debug;
 mod helper;
 
 use boa_engine::{
-    builtins::promise::PromiseState, context::ContextBuilder, job::{Job, JobExecutor, NativeAsyncJob, PromiseJob}, module::{Module, SimpleModuleLoader},
+    Context, JsError, JsResult, Source,
+    builtins::promise::PromiseState,
+    context::ContextBuilder,
+    job::{Job, JobExecutor, NativeAsyncJob, PromiseJob},
+    module::{Module, SimpleModuleLoader},
     optimizer::OptimizerOptions,
     script::Script,
     vm::flowgraph::{Direction, Graph},
-    Context,
-    JsError,
-    JsResult,
-    Source,
 };
 use boa_parser::source::ReadChar;
 use clap::{Parser, ValueEnum, ValueHint};
 use color_eyre::{
-    eyre::{eyre, WrapErr}, Result,
-    Section,
+    Result, Section,
+    eyre::{WrapErr, eyre},
 };
 use colored::Colorize;
 use debug::init_boa_debug_object;
-use rustyline::{config::Config, error::ReadlineError, EditMode, Editor};
+use rustyline::{EditMode, Editor, config::Config, error::ReadlineError};
 use std::{
     cell::RefCell,
     collections::VecDeque,

@@ -9,19 +9,19 @@
 use std::any::TypeId;
 
 use crate::{
-    class::Class, context::{
-        intrinsics::{Intrinsics, StandardConstructor},
+    Context, HostDefined, JsNativeError, JsObject, JsResult, JsString,
+    class::Class,
+    context::{
         HostHooks,
-    }, environments::DeclarativeEnvironment, module::Module, object::shape::RootShape, Context,
-    HostDefined,
-    JsNativeError,
-    JsObject,
-    JsResult,
-    JsString,
+        intrinsics::{Intrinsics, StandardConstructor},
+    },
+    environments::DeclarativeEnvironment,
+    module::Module,
+    object::shape::RootShape,
 };
 use boa_ast::scope::Scope;
-use boa_engine::property::{Attribute, PropertyDescriptor, PropertyKey};
 use boa_engine::JsValue;
+use boa_engine::property::{Attribute, PropertyDescriptor, PropertyKey};
 use boa_gc::{Finalize, Gc, GcRef, GcRefCell, GcRefMut, Trace};
 use rustc_hash::FxHashMap;
 
