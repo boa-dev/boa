@@ -394,11 +394,13 @@ fn console(
 
 /// Test the text encoder/decoder with the WPT test suite.
 #[cfg(not(clippy))]
-#[ignore] // TODO: support all encodings.
 #[rstest::rstest]
 fn encoding(
     #[base_dir = "${WPT_ROOT}"]
-    #[files("encoding/textdecoder-*.any.js")]
+    #[files("encoding/api-*.any.js")]
+    // TODO: re-enable those when better encoding and options are supported.
+    // #[files("encoding/textdecoder-*.any.js")]
+    // #[files("encoding/textencoder-*.any.js")]
     #[exclude("idlharness")]
     path: PathBuf,
 ) {

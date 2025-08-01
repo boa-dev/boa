@@ -53,6 +53,7 @@
 //!         boa_runtime::extensions::ConsoleExtension::default(),
 //!         // A fetcher can be added if the `fetch` feature flag is enabled.
 //!         // This fetcher uses the Reqwest blocking API to allow fetching using HTTP.
+//! #       #[cfg(feature = "reqwest-blocking")]
 //!         boa_runtime::extensions::FetchExtension(
 //!             boa_runtime::fetch::BlockingReqwestFetcher::default()
 //!         ),
@@ -109,15 +110,12 @@ pub mod console;
 #[doc(inline)]
 pub use console::{Console, ConsoleState, DefaultLogger, Logger, NullLogger};
 
-mod text;
-
-#[doc(inline)]
-pub use text::{TextDecoder, TextEncoder};
+pub mod interval;
+pub mod text;
+pub mod url;
 
 #[cfg(feature = "fetch")]
 pub mod fetch;
-pub mod interval;
-pub mod url;
 
 pub mod extensions;
 

@@ -701,6 +701,10 @@ pub(crate) fn class_impl(attr: TokenStream, input: TokenStream) -> TokenStream {
 
     let tokens = quote! {
         // Keep the original implementation as is.
+        // Add `#[allow(clippy::needless_pass_by_value)]`, as clippy can complaint when
+        // using passing-by-value but not using it in the body, except that we cannot
+        // convert the types if we pass by reference.
+        #[allow(clippy::needless_pass_by_value)]
         #impl_
 
         // The boa_engine::Class implementation.

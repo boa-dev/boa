@@ -1,14 +1,15 @@
 use crate::test::{TestAction, run_test_actions_with};
-use crate::{TextDecoder, TextEncoder};
+use crate::text;
 use boa_engine::object::builtins::JsUint8Array;
 use boa_engine::property::Attribute;
 use boa_engine::{Context, JsString, js_str, js_string};
 use indoc::indoc;
+use test_case::test_case;
 
 #[test]
 fn encoder_js() {
     let context = &mut Context::default();
-    TextEncoder::register(context).unwrap();
+    text::register(None, context).unwrap();
 
     run_test_actions_with(
         [
@@ -38,7 +39,7 @@ fn encoder_js_unpaired() {
     use indoc::indoc;
 
     let context = &mut Context::default();
-    TextEncoder::register(context).unwrap();
+    text::register(None, context).unwrap();
 
     let unpaired_surrogates: [u16; 3] = [0xDC58, 0xD83C, 0x0015];
     let text = JsString::from(&unpaired_surrogates);
@@ -71,7 +72,7 @@ fn encoder_js_unpaired() {
 #[test]
 fn decoder_js() {
     let context = &mut Context::default();
-    TextDecoder::register(context).unwrap();
+    text::register(None, context).unwrap();
 
     run_test_actions_with(
         [
@@ -99,7 +100,7 @@ fn decoder_js_invalid() {
     use indoc::indoc;
 
     let context = &mut Context::default();
-    TextDecoder::register(context).unwrap();
+    text::register(None, context).unwrap();
 
     run_test_actions_with(
         [
@@ -124,21 +125,25 @@ fn decoder_js_invalid() {
     );
 }
 
-#[test]
-fn roundtrip() {
+#[test_case("utf-8")]
+#[test_case("utf-16")]
+#[test_case("utf-16le")]
+#[test_case("utf-16be")]
+fn roundtrip(encoding: &'static str) {
     let context = &mut Context::default();
-    TextEncoder::register(context).unwrap();
-    TextDecoder::register(context).unwrap();
+    text::register(None, context).unwrap();
 
     run_test_actions_with(
         [
-            TestAction::run(indoc! {r#"
-                const encoder = new TextEncoder();
-                const decoder = new TextDecoder();
+            TestAction::run(format!(
+                r#"
+                const encoder = new TextEncoder({encoding:?});
+                const decoder = new TextDecoder({encoding:?});
                 const text = "Hello, World!";
                 const encoded = encoder.encode(text);
                 decoded = decoder.decode(encoded);
-            "#}),
+            "#
+            )),
             TestAction::inspect_context(|context| {
                 let decoded = context
                     .global_object()
