@@ -923,6 +923,13 @@ impl From<&[JsString]> for JsString {
     }
 }
 
+impl<const N: usize> From<&[JsString; N]> for JsString {
+    #[inline]
+    fn from(value: &[JsString; N]) -> Self {
+        Self::concat_array(&value.iter().map(Self::as_str).collect::<Vec<_>>()[..])
+    }
+}
+
 impl From<String> for JsString {
     #[inline]
     fn from(s: String) -> Self {
