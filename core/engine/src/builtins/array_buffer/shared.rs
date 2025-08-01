@@ -301,7 +301,7 @@ impl SharedArrayBuffer {
         };
 
         // 2. Perform ? RequireInternalSlot(O, [[ArrayBufferMaxByteLength]]).
-        if buf.borrow().data.is_fixed_len() {
+        if buf.borrow().data().is_fixed_len() {
             return Err(JsNativeError::typ()
                 .with_message("SharedArrayBuffer.grow: cannot grow a fixed-length buffer")
                 .into());
@@ -321,7 +321,7 @@ impl SharedArrayBuffer {
         // 10. Let newByteLengthRawBytes be NumericToRawBytes(biguint64, ℤ(newByteLength), isLittleEndian).
 
         let buf = buf.borrow();
-        let buf = &buf.data;
+        let buf = &buf.data();
 
         // d. If newByteLength < currentByteLength or newByteLength > O.[[ArrayBufferMaxByteLength]], throw a RangeError exception.
         // Extracting this condition outside the CAS since throwing early doesn't affect the correct
@@ -395,7 +395,7 @@ impl SharedArrayBuffer {
             })?;
 
         // 4. Let len be ArrayBufferByteLength(O, seq-cst).
-        let len = buf.borrow().data.len(Ordering::SeqCst);
+        let len = buf.borrow().data().len(Ordering::SeqCst);
 
         // 5. Let relativeStart be ? ToIntegerOrInfinity(start).
         // 6. If relativeStart = -∞, let first be 0.
@@ -423,7 +423,7 @@ impl SharedArrayBuffer {
 
         {
             let buf = buf.borrow();
-            let buf = &buf.data;
+            let buf = &buf.data();
             // 16. Perform ? RequireInternalSlot(new, [[ArrayBufferData]]).
             // 17. If IsSharedArrayBuffer(new) is false, throw a TypeError exception.
             let new = new.downcast_ref::<Self>().ok_or_else(|| {

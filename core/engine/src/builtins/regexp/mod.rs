@@ -903,7 +903,7 @@ impl RegExp {
         input: &JsString,
         context: &mut Context,
     ) -> JsResult<Option<JsObject>> {
-        let rx = this.borrow().data.clone();
+        let rx = this.borrow().data().clone();
         let this = this.upcast();
 
         // 1. Let length be the length of S.

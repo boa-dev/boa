@@ -132,7 +132,7 @@ impl JsArrayBuffer {
     pub fn with_max_byte_length(self, max_byte_len: u64) -> Self {
         self.inner
             .borrow_mut()
-            .data
+            .data_mut()
             .set_max_byte_length(max_byte_len);
         self
     }
@@ -176,7 +176,7 @@ impl JsArrayBuffer {
     #[inline]
     #[must_use]
     pub fn byte_length(&self) -> usize {
-        self.inner.borrow().data.len()
+        self.inner.borrow().data().len()
     }
 
     /// Take the inner `ArrayBuffer`'s `array_buffer_data` field and replace it with `None`
@@ -213,7 +213,7 @@ impl JsArrayBuffer {
     pub fn detach(&self, detach_key: &JsValue) -> JsResult<Vec<u8>> {
         self.inner
             .borrow_mut()
-            .data
+            .data_mut()
             .detach(detach_key)?
             .ok_or_else(|| {
                 JsNativeError::typ()
@@ -251,7 +251,7 @@ impl JsArrayBuffer {
     #[inline]
     #[must_use]
     pub fn data(&self) -> Option<GcRef<'_, [u8]>> {
-        GcRef::try_map(self.inner.borrow(), |o| o.data.bytes())
+        GcRef::try_map(self.inner.borrow(), |o| o.data().bytes())
     }
 
     /// Get a mutable reference to the [`JsArrayBuffer`]'s data.
@@ -284,7 +284,7 @@ impl JsArrayBuffer {
     #[inline]
     #[must_use]
     pub fn data_mut(&self) -> Option<GcRefMut<'_, Object<ArrayBuffer>, [u8]>> {
-        GcRefMut::try_map(self.inner.borrow_mut(), |o| o.data.bytes_mut())
+        GcRefMut::try_map(self.inner.borrow_mut(), |o| o.data_mut().bytes_mut())
     }
 }
 

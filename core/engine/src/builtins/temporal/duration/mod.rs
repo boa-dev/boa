@@ -40,15 +40,17 @@ mod tests;
 /// [spec]: https://tc39.es/proposal-temporal/#sec-temporal-duration-objects
 /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Temporal/Duration
 /// [temporal_rs-docs]: https://docs.rs/temporal_rs/latest/temporal_rs/struct.Duration.html
-#[derive(Debug, Clone, Copy, Trace, Finalize, JsData)]
-#[boa_gc(empty_trace)]
+#[derive(Debug, Clone, Trace, Finalize, JsData)]
+#[boa_gc(unsafe_empty_trace)] // Safety: Does not contain any traceable fields.
 pub struct Duration {
-    pub(crate) inner: InnerDuration,
+    pub(crate) inner: Box<InnerDuration>,
 }
 
 impl Duration {
     pub(crate) fn new(inner: InnerDuration) -> Self {
-        Self { inner }
+        Self {
+            inner: Box::new(inner),
+        }
     }
 }
 
@@ -585,7 +587,7 @@ impl Duration {
             // a. Return ! CreateTemporalDuration(item.[[Years]], item.[[Months]], item.[[Weeks]],
             // item.[[Days]], item.[[Hours]], item.[[Minutes]], item.[[Seconds]], item.[[Milliseconds]],
             // item.[[Microseconds]], item.[[Nanoseconds]]).
-            return create_temporal_duration(duration.inner, None, context).map(Into::into);
+            return create_temporal_duration(*duration.inner, None, context).map(Into::into);
         }
 
         // 2. Return ? ToTemporalDuration(item).
@@ -1166,7 +1168,7 @@ pub(crate) fn to_temporal_duration(
     // 1b. and item has an [[InitializedTemporalDuration]] internal slot, then
     let object = item.as_object();
     if let Some(duration) = object.as_ref().and_then(JsObject::downcast_ref::<Duration>) {
-        return Ok(duration.inner);
+        return Ok(*duration.inner);
     }
 
     // 2. Let result be ? ToTemporalDurationRecord(item).
@@ -1199,7 +1201,7 @@ pub(crate) fn to_temporal_duration_record(
     // 2. If temporalDurationLike has an [[InitializedTemporalDuration]] internal slot, then
     if let Some(duration) = duration_obj.downcast_ref::<Duration>() {
         // a. Return ! CreateDurationRecord(temporalDurationLike.[[Years]], temporalDurationLike.[[Months]], temporalDurationLike.[[Weeks]], temporalDurationLike.[[Days]], temporalDurationLike.[[Hours]], temporalDurationLike.[[Minutes]], temporalDurationLike.[[Seconds]], temporalDurationLike.[[Milliseconds]], temporalDurationLike.[[Microseconds]], temporalDurationLike.[[Nanoseconds]]).
-        return Ok(duration.inner);
+        return Ok(*duration.inner);
     }
 
     // 3. Let result be a new Duration Record with each field set to 0.

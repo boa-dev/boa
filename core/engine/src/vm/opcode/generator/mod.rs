@@ -127,7 +127,7 @@ impl AsyncGeneratorClose {
         // f. Remove acGenContext from the execution context stack and restore the execution context that is at the top of the execution context stack as the running execution context.
 
         // g. Set acGenerator.[[AsyncGeneratorState]] to draining-queue.
-        r#gen.data.state = AsyncGeneratorState::DrainingQueue;
+        r#gen.data_mut().state = AsyncGeneratorState::DrainingQueue;
 
         // h. If result is a normal completion, set result to NormalCompletion(undefined).
         // i. If result is a return completion, set result to NormalCompletion(result.[[Value]]).
