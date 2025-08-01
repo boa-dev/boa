@@ -12,14 +12,14 @@
 //! [mdn]: https://developer.mozilla.org/en-US/docs/Web/API/Console
 
 #[cfg(test)]
-mod tests;
+pub(crate) mod tests;
 
 use boa_engine::property::Attribute;
 use boa_engine::{
-    Context, JsArgs, JsData, JsError, JsResult, JsString, JsSymbol, js_str, js_string,
-    native_function::NativeFunction,
-    object::{JsObject, ObjectInitializer},
-    value::{JsValue, Numeric},
+    js_str, js_string, native_function::NativeFunction, object::{JsObject, ObjectInitializer}, value::{JsValue, Numeric}, Context, JsArgs, JsData, JsError,
+    JsResult,
+    JsString,
+    JsSymbol,
 };
 use boa_gc::{Finalize, Trace};
 use rustc_hash::FxHashMap;

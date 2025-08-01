@@ -53,6 +53,7 @@
 //!         boa_runtime::extensions::ConsoleExtension::default(),
 //!         // A fetcher can be added if the `fetch` feature flag is enabled.
 //!         // This fetcher uses the Reqwest blocking API to allow fetching using HTTP.
+//! #       #[cfg(feature = "reqwest-blocking")]
 //!         boa_runtime::extensions::FetchExtension(
 //!             boa_runtime::fetch::BlockingReqwestFetcher::default()
 //!         ),
@@ -117,11 +118,12 @@ pub use text::{TextDecoder, TextEncoder};
 #[cfg(feature = "fetch")]
 pub mod fetch;
 pub mod interval;
+pub mod microtask;
 pub mod url;
 
 pub mod extensions;
 
-use crate::extensions::{EncodingExtension, TimeoutExtension};
+use crate::extensions::{EncodingExtension, MicrotaskExtension, TimeoutExtension};
 pub use extensions::RuntimeExtension;
 
 /// Register all the built-in objects and functions of the `WebAPI` runtime, plus
@@ -137,6 +139,7 @@ pub fn register(
     (
         TimeoutExtension,
         EncodingExtension,
+        MicrotaskExtension,
         #[cfg(feature = "url")]
         extensions::UrlExtension,
         extensions,
@@ -165,7 +168,7 @@ pub fn register_extensions(
 pub(crate) mod test {
     use crate::extensions::ConsoleExtension;
     use crate::register;
-    use boa_engine::{Context, JsResult, JsValue, Source, builtins};
+    use boa_engine::{builtins, Context, JsResult, JsValue, Source};
     use std::borrow::Cow;
 
     /// A test action executed in a test function.
