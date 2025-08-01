@@ -15,7 +15,7 @@ rust-version.workspace = true
 boa_engine = { workspace = true, features = ["deser", "flowgraph", "trace"] }
 boa_parser.workspace = true
 boa_gc.workspace = true
-boa_runtime = { workspace = true }
+boa_runtime.workspace = true
 rustyline = { workspace = true, features = ["derive", "with-file-history"] }
 clap = { workspace = true, features = ["derive"] }
 serde_json.workspace = true
