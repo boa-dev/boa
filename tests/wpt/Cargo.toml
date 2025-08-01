@@ -8,8 +8,9 @@ edition = "2021"
 boa_engine = { path = "../../core/engine" }
 boa_gc = { path = "../../core/gc" }
 boa_interop = { path = "../../core/interop" }
-boa_runtime = { path = "../../core/runtime" }
+boa_runtime = { path = "../../core/runtime", features = ["all"] }
 rstest = "0.25.0"
+url = { version = "2.5.4", features = [] }
 
 [build-dependencies]
 git2 = "0.20.2"

@@ -1,8 +1,7 @@
 //! A Rust API wrapper for Boa's promise Builtin ECMAScript Object
 
-use std::{future::Future, pin::Pin, task};
-
 use super::{JsArray, JsFunction};
+use crate::value::TryIntoJs;
 use crate::{
     Context, JsArgs, JsError, JsNativeError, JsResult, JsValue, NativeFunction,
     builtins::{
@@ -14,6 +13,8 @@ use crate::{
     value::TryFromJs,
 };
 use boa_gc::{Finalize, Gc, GcRefCell, Trace};
+use std::cell::RefCell;
+use std::{future::Future, pin::Pin, task};
 
 /// An ECMAScript [promise] object.
 ///
@@ -267,18 +268,19 @@ impl JsPromise {
     /// # Examples
     ///
     /// ```
-    /// # use std::error::Error;
+    /// use std::error::Error;
+    /// # use std::cell::RefCell;
     /// # use boa_engine::{
     /// #    object::builtins::JsPromise,
     /// #    builtins::promise::PromiseState,
     /// #    Context, JsResult, JsValue
     /// # };
-    /// async fn f() -> JsResult<JsValue> {
+    /// async fn f(_: &RefCell<&mut Context>) -> JsResult<JsValue> {
     ///     Ok(JsValue::null())
     /// }
     /// let context = &mut Context::default();
     ///
-    /// let promise = JsPromise::from_future(f(), context);
+    /// let promise = JsPromise::from_async_fn(f, context);
     ///
     /// context.run_jobs();
     ///
@@ -286,15 +288,15 @@ impl JsPromise {
     /// ```
     ///
     /// [async_fn]: crate::native_function::NativeFunction::from_async_fn
-    pub fn from_future<Fut>(future: Fut, context: &mut Context) -> Self
+    pub fn from_async_fn<F>(f: F, context: &mut Context) -> Self
     where
-        Fut: IntoFuture<Output = JsResult<JsValue>> + 'static,
+        F: AsyncFnOnce(&RefCell<&mut Context>) -> JsResult<JsValue> + 'static,
     {
         let (promise, resolvers) = Self::new_pending(context);
 
         context.enqueue_job(
             NativeAsyncJob::new(async move |context| {
-                let result = future.await;
+                let result = f(context).await;
 
                 let context = &mut context.borrow_mut();
                 match result {
@@ -1323,6 +1325,12 @@ impl TryFromJs for JsPromise {
                 .with_message("value is not a Promise object")
                 .into())
         }
+    }
+}
+
+impl TryIntoJs for JsPromise {
+    fn try_into_js(&self, _: &mut Context) -> JsResult<JsValue> {
+        Ok(self.clone().into())
     }
 }
 

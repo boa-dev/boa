@@ -96,6 +96,16 @@ pub fn boa_class(attr: TokenStream, item: TokenStream) -> TokenStream {
 
 /// `boa_module` proc macro attribute for declaring a `boa_engine::Module` based
 /// on a Rust module. The original Rust module will also be exposed as is.
+///
+/// This macro exports two functions out of the existing module (and those
+/// functions must not exist in the declared module):
+///
+/// ## `boa_module(realm: Option<Realm>, context: &mut Context) -> JsResult<Module>`
+/// Create a JavaScript module from the rust module's content.
+///
+/// ## `boa_register(realm: Option<Realm>, context: &mut Context) -> JsResult<()>`
+/// Register the constants, classes and functions from the module in the global
+/// scope of the Realm (if specified) or the context (if no realm).
 #[proc_macro_attribute]
 pub fn boa_module(attr: TokenStream, item: TokenStream) -> TokenStream {
     module::module_impl(attr, item)

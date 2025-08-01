@@ -454,8 +454,18 @@ fn main() -> Result<()> {
 
 /// Adds the CLI runtime to the context with default options.
 fn add_runtime(context: &mut Context) {
-    boa_runtime::register(context, boa_runtime::RegisterOptions::new())
-        .expect("should not fail while registering the runtime");
+    boa_runtime::register(
+        (
+            boa_runtime::extensions::ConsoleExtension::default(),
+            #[cfg(feature = "fetch")]
+            boa_runtime::extensions::FetchExtension(
+                boa_runtime::fetch::BlockingReqwestFetcher::default(),
+            ),
+        ),
+        None,
+        context,
+    )
+    .expect("should not fail while registering the runtime");
 }
 
 #[derive(Default)]

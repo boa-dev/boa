@@ -3,7 +3,7 @@
 
 use boa_engine::job::{NativeJob, TimeoutJob};
 use boa_engine::object::builtins::JsFunction;
-use boa_engine::value::IntegerOrInfinity;
+use boa_engine::value::{IntegerOrInfinity, Nullable};
 use boa_engine::{Context, Finalize, JsData, JsResult, JsValue, Trace, js_error, js_string};
 use boa_gc::{Gc, GcRefCell};
 use boa_interop::{IntoJsFunctionCopied, JsRest};
@@ -181,8 +181,8 @@ pub fn set_interval(
 ///
 /// Please note that this is the same exact method as `clearInterval`, as both can be
 /// used interchangeably.
-pub fn clear_timeout(id: Option<u32>, context: &mut Context) {
-    let Some(id) = id else {
+pub fn clear_timeout(id: Nullable<Option<u32>>, context: &mut Context) {
+    let Some(id) = id.flatten() else {
         return;
     };
     let handler_map = IntervalInnerState::from_context(context);

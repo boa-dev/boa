@@ -1,9 +1,19 @@
+use crate::class::Class;
 use crate::{Context, JsNativeError, JsResult, JsString, JsValue};
 
 /// This trait adds a conversions from a Rust Type into [`JsValue`].
 pub trait TryIntoJs: Sized {
     /// This function tries to convert a `Self` into [`JsValue`].
     fn try_into_js(&self, context: &mut Context) -> JsResult<JsValue>;
+}
+
+impl<T> TryIntoJs for T
+where
+    T: Class + Clone,
+{
+    fn try_into_js(&self, context: &mut Context) -> JsResult<JsValue> {
+        T::from_data(self.clone(), context).map(JsValue::from)
+    }
 }
 
 impl TryIntoJs for bool {
@@ -78,11 +88,10 @@ fn convert_safe_i64(value: i64) -> JsValue {
 impl TryIntoJs for i64 {
     fn try_into_js(&self, _context: &mut Context) -> JsResult<JsValue> {
         let value = *self;
-        #[allow(clippy::manual_range_contains)]
-        if value < MIN_SAFE_INTEGER_I64 || MAX_SAFE_INTEGER_I64 < value {
-            Err(err_outside_safe_range())
-        } else {
+        if (MIN_SAFE_INTEGER_I64..MAX_SAFE_INTEGER_I64).contains(&value) {
             Ok(convert_safe_i64(value))
+        } else {
+            Err(err_outside_safe_range())
         }
     }
 }
@@ -90,6 +99,26 @@ impl TryIntoJs for u64 {
     fn try_into_js(&self, _context: &mut Context) -> JsResult<JsValue> {
         let value = *self;
         if (MAX_SAFE_INTEGER_I64 as u64) < value {
+            Err(err_outside_safe_range())
+        } else {
+            Ok(convert_safe_i64(value as i64))
+        }
+    }
+}
+impl TryIntoJs for isize {
+    fn try_into_js(&self, _context: &mut Context) -> JsResult<JsValue> {
+        let value = *self as i64;
+        if (MIN_SAFE_INTEGER_I64..MAX_SAFE_INTEGER_I64).contains(&value) {
+            Ok(convert_safe_i64(value))
+        } else {
+            Err(err_outside_safe_range())
+        }
+    }
+}
+impl TryIntoJs for usize {
+    fn try_into_js(&self, _context: &mut Context) -> JsResult<JsValue> {
+        let value = *self;
+        if (MAX_SAFE_INTEGER_I64 as usize) < value {
             Err(err_outside_safe_range())
         } else {
             Ok(convert_safe_i64(value as i64))

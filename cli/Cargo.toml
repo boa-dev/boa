@@ -34,9 +34,11 @@ default = [
     "boa_engine/intl_bundled",
     "boa_engine/native-backtrace",
     "fast-allocator",
+    "fetch",
 ]
 dhat = ["dep:dhat"]
 fast-allocator = ["dep:mimalloc-safe", "dep:jemallocator"]
+fetch = ["boa_runtime/fetch", "boa_runtime/reqwest-blocking"]
 
 [target.x86_64-unknown-linux-gnu.dependencies]
 jemallocator = { workspace = true, optional = true }

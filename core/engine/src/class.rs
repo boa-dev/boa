@@ -244,7 +244,8 @@ pub struct ClassBuilder<'ctx> {
 }
 
 impl<'ctx> ClassBuilder<'ctx> {
-    pub(crate) fn new<T>(context: &'ctx mut Context) -> Self
+    /// Create a new `ClassBuilder` from a [`Class`] type.
+    pub fn new<T>(context: &'ctx mut Context) -> Self
     where
         T: Class,
     {
@@ -257,7 +258,9 @@ impl<'ctx> ClassBuilder<'ctx> {
         Self { builder }
     }
 
-    pub(crate) fn build(self) -> StandardConstructor {
+    /// Create the [`StandardConstructor`] from this class builder.
+    #[must_use]
+    pub fn build(self) -> StandardConstructor {
         self.builder.build()
     }
 

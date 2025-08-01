@@ -8,11 +8,8 @@
 
 use std::any::TypeId;
 
-use boa_ast::scope::Scope;
-use rustc_hash::FxHashMap;
-
 use crate::{
-    HostDefined, JsNativeError, JsObject, JsResult, JsString,
+    Context, HostDefined, JsNativeError, JsObject, JsResult, JsString,
     class::Class,
     context::{
         HostHooks,
@@ -22,7 +19,11 @@ use crate::{
     module::Module,
     object::shape::RootShape,
 };
+use boa_ast::scope::Scope;
+use boa_engine::JsValue;
+use boa_engine::property::{Attribute, PropertyDescriptor, PropertyKey};
 use boa_gc::{Finalize, Gc, GcRef, GcRefCell, GcRefMut, Trace};
+use rustc_hash::FxHashMap;
 
 /// Representation of a Realm.
 ///
@@ -207,14 +208,43 @@ impl Realm {
         self.inner.template_map.borrow().get(&site).cloned()
     }
 
-    pub(crate) fn register_class<C: Class>(&self, spec: StandardConstructor) {
+    /// Register a property on the global object of this realm.
+    ///
+    /// It will return an error if the property is already defined.
+    pub fn register_property<K, V>(
+        &self,
+        key: K,
+        value: V,
+        attribute: Attribute,
+        context: &mut Context,
+    ) -> JsResult<()>
+    where
+        K: Into<PropertyKey>,
+        V: Into<JsValue>,
+    {
+        self.global_object().define_property_or_throw(
+            key,
+            PropertyDescriptor::builder()
+                .value(value)
+                .writable(attribute.writable())
+                .enumerable(attribute.enumerable())
+                .configurable(attribute.configurable()),
+            context,
+        )?;
+        Ok(())
+    }
+
+    /// Register a class `C` in this realm.
+    pub fn register_class<C: Class>(&self, spec: StandardConstructor) {
         self.inner
             .host_classes
             .borrow_mut()
             .insert(TypeId::of::<C>(), spec);
     }
 
-    pub(crate) fn unregister_class<C: Class>(&self) -> Option<StandardConstructor> {
+    /// Unregister a class `C` in this realm.
+    #[must_use]
+    pub fn unregister_class<C: Class>(&self) -> Option<StandardConstructor> {
         self.inner
             .host_classes
             .borrow_mut()

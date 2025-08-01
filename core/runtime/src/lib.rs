@@ -8,16 +8,14 @@
 //! ```
 //! use boa_engine::{js_string, property::Attribute, Context, Source};
 //! use boa_runtime::Console;
+//! use boa_runtime::console::DefaultLogger;
 //!
 //! // Create the context.
 //! let mut context = Context::default();
 //!
-//! // Initialize the Console object.
-//! let console = Console::init(&mut context);
-//!
-//! // Register the console as a global property to the context.
-//! context
-//!     .register_global_property(js_string!(Console::NAME), console, Attribute::all())
+//! // Register the Console object to the context. The DefaultLogger simply
+//! // write errors to STDERR and all other logs to STDOUT.
+//! Console::register_with_logger(DefaultLogger, &mut context)
 //!     .expect("the console object shouldn't exist yet");
 //!
 //! // JavaScript source for parsing.
@@ -26,6 +24,59 @@
 //! // Parse the source code
 //! match context.eval(Source::from_bytes(js_code)) {
 //!     Ok(res) => {
+//!         println!(
+//!             "{}",
+//!             res.to_string(&mut context).unwrap().to_std_string_escaped()
+//!         );
+//!     }
+//!     Err(e) => {
+//!         // Pretty print the error
+//!         eprintln!("Uncaught {e}");
+//!         # panic!("An error occured in boa_runtime's js_code");
+//!     }
+//! };
+//! ```
+//!
+//! # Example: Add all supported Boa's Runtime Web API to your context
+//!
+//! ```no_run
+//! use boa_engine::{js_string, property::Attribute, Context, Source};
+//!
+//! // Create the context.
+//! let mut context = Context::default();
+//!
+//! // Register all objects in the context. To conditionally register extensions,
+//! // call `register()` directly on the extension.
+//! boa_runtime::register(
+//!     (
+//!         // Register the default logger.
+//!         boa_runtime::extensions::ConsoleExtension::default(),
+//!         // A fetcher can be added if the `fetch` feature flag is enabled.
+//!         // This fetcher uses the Reqwest blocking API to allow fetching using HTTP.
+//!         boa_runtime::extensions::FetchExtension(
+//!             boa_runtime::fetch::BlockingReqwestFetcher::default()
+//!         ),
+//!     ),
+//!     None,
+//!     &mut context,
+//! );
+//!
+//! // JavaScript source for parsing.
+//! let js_code = r#"
+//!     fetch("https://google.com/")
+//!         .then(response => response.text())
+//!         .then(html => console.log(html))
+//! "#;
+//!
+//! // Parse the source code
+//! match context.eval(Source::from_bytes(js_code)) {
+//!     Ok(res) => {
+//!         // The result is a promise, so we need to await it.
+//!         res
+//!             .as_promise()
+//!             .expect("Should be a promise")
+//!             .await_blocking(&mut context)
+//!             .expect("Should resolve()");
 //!         println!(
 //!             "{}",
 //!             res.to_string(&mut context).unwrap().to_std_string_escaped()
@@ -53,7 +104,7 @@
     clippy::let_unit_value
 )]
 
-mod console;
+pub mod console;
 
 #[doc(inline)]
 pub use console::{Console, ConsoleState, DefaultLogger, Logger, NullLogger};
@@ -63,64 +114,57 @@ mod text;
 #[doc(inline)]
 pub use text::{TextDecoder, TextEncoder};
 
+#[cfg(feature = "fetch")]
+pub mod fetch;
+pub mod interval;
 pub mod url;
 
-pub mod interval;
+pub mod extensions;
 
-/// Options used when registering all built-in objects and functions of the `WebAPI` runtime.
-#[derive(Debug)]
-pub struct RegisterOptions<L: Logger> {
-    console_logger: L,
-}
+use crate::extensions::{EncodingExtension, TimeoutExtension};
+pub use extensions::RuntimeExtension;
 
-impl Default for RegisterOptions<DefaultLogger> {
-    fn default() -> Self {
-        Self {
-            console_logger: DefaultLogger,
-        }
-    }
-}
-
-impl RegisterOptions<DefaultLogger> {
-    /// Create a new `RegisterOptions` with the default options.
-    #[must_use]
-    pub fn new() -> Self {
-        Self::default()
-    }
-}
-
-impl<L: Logger> RegisterOptions<L> {
-    /// Set the logger for the console object.
-    pub fn with_console_logger<L2: Logger>(self, logger: L2) -> RegisterOptions<L2> {
-        RegisterOptions::<L2> {
-            console_logger: logger,
-        }
-    }
-}
-
-/// Register all the built-in objects and functions of the `WebAPI` runtime.
+/// Register all the built-in objects and functions of the `WebAPI` runtime, plus
+/// any extensions defined.
 ///
 /// # Errors
-/// This will error is any of the built-in objects or functions cannot be registered.
+/// This will error if any of the built-in objects or functions cannot be registered.
 pub fn register(
+    extensions: impl RuntimeExtension,
+    realm: Option<boa_engine::realm::Realm>,
     ctx: &mut boa_engine::Context,
-    options: RegisterOptions<impl Logger + 'static>,
 ) -> boa_engine::JsResult<()> {
-    Console::register_with_logger(ctx, options.console_logger)?;
-    TextDecoder::register(ctx)?;
-    TextEncoder::register(ctx)?;
+    (
+        TimeoutExtension,
+        EncodingExtension,
+        #[cfg(feature = "url")]
+        extensions::UrlExtension,
+        extensions,
+    )
+        .register(realm, ctx)?;
 
-    #[cfg(feature = "url")]
-    url::Url::register(ctx)?;
+    Ok(())
+}
 
-    interval::register(ctx)?;
+/// Register only the extensions provided. An application can use this to register
+/// extensions that it previously hadn't registered.
+///
+/// # Errors
+/// This will error if any of the built-in objects or functions cannot be registered.
+pub fn register_extensions(
+    extensions: impl RuntimeExtension,
+    realm: Option<boa_engine::realm::Realm>,
+    ctx: &mut boa_engine::Context,
+) -> boa_engine::JsResult<()> {
+    extensions.register(realm, ctx)?;
 
     Ok(())
 }
 
 #[cfg(test)]
 pub(crate) mod test {
-    use crate::{RegisterOptions, register};
+    use crate::extensions::ConsoleExtension;
+    use crate::register;
     use boa_engine::{Context, JsResult, JsValue, Source, builtins};
     use std::borrow::Cow;
 
@@ -182,7 +226,8 @@ pub(crate) mod test {
     #[track_caller]
     pub(crate) fn run_test_actions(actions: impl IntoIterator<Item = TestAction>) {
         let context = &mut Context::default();
-        register(context, RegisterOptions::default()).expect("failed to register WebAPI objects");
+        register(ConsoleExtension::default(), None, context)
+            .expect("failed to register WebAPI objects");
         run_test_actions_with(actions, context);
     }
 

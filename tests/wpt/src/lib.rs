@@ -4,20 +4,21 @@
 use boa_engine::class::Class;
 use boa_engine::parser::source::UTF16Input;
 use boa_engine::property::Attribute;
-use boa_engine::value::TryFromJs;
+use boa_engine::value::{Nullable, TryFromJs};
 use boa_engine::{
     js_error, js_str, js_string, Context, Finalize, JsData, JsResult, JsString, JsValue, Source,
     Trace,
 };
 use boa_interop::{ContextData, IntoJsFunctionCopied};
 use boa_runtime::url::Url;
-use boa_runtime::RegisterOptions;
+use boa_runtime::{DefaultLogger, NullLogger};
 use logger::RecordingLogEvent;
 use std::cell::{OnceCell, RefCell};
 use std::collections::BTreeMap;
 use std::path::{Path, PathBuf};
 use std::rc::Rc;
 
+mod fetcher;
 mod logger;
 
 /// The test status JavaScript type from WPT. This is defined in the test harness.
@@ -60,7 +61,7 @@ impl TryFromJs for TestStatus {
 struct Test {
     name: JsString,
     status: TestStatus,
-    message: Option<JsString>,
+    message: Nullable<JsString>,
     properties: BTreeMap<JsString, JsValue>,
 }
 
@@ -169,12 +170,22 @@ impl TestSuiteSource {
 }
 
 /// Create the BOA context and add the necessary global objects for WPT.
-fn create_context(wpt_path: &Path) -> (Context, logger::RecordingLogger) {
+fn create_context(wpt_path: &Path) -> (Context, logger::RecordingLogger, fetcher::WptFetcher) {
     let mut context = Context::default();
-    let logger = logger::RecordingLogger::new();
+    let logger = if std::env::var("WPT_CONSOLE").is_ok() {
+        logger::RecordingLogger::new(DefaultLogger)
+    } else {
+        logger::RecordingLogger::new(NullLogger)
+    };
+
+    let fetcher = fetcher::WptFetcher::new(wpt_path, "web-platform.test:8000".to_string());
     boa_runtime::register(
+        (
+            boa_runtime::extensions::ConsoleExtension(logger.clone()),
+            boa_runtime::extensions::FetchExtension(fetcher.clone()),
+        ),
+        None,
         &mut context,
-        RegisterOptions::new().with_console_logger(logger.clone()),
     )
     .expect("Failed to register boa_runtime");
 
@@ -197,13 +208,14 @@ fn create_context(wpt_path: &Path) -> (Context, logger::RecordingLogger) {
     let harness = Source::from_filepath(&harness_path).expect("Could not create a source.");
 
     if let Err(e) = context.eval(harness) {
-        panic!("Failed to eval testharness.js: {e:#?}");
+        panic!("Failed to eval testharness.js: {e}");
     }
 
-    (context, logger)
+    (context, logger, fetcher)
 }
 
 /// The result callback for the WPT test.
+#[track_caller]
 fn result_callback__(
     ContextData(logger): ContextData<logger::RecordingLogger>,
     test: Test,
@@ -246,6 +258,7 @@ fn result_callback__(
     Ok(())
 }
 
+#[track_caller]
 fn complete_callback__(ContextData(test_done): ContextData<TestCompletion>) {
     test_done.done();
 }
@@ -276,7 +289,16 @@ fn execute_test_file(path: &Path) {
     let wpt_path = PathBuf::from(
         std::env::var("WPT_ROOT").expect("Could not find the WPT_ROOT environment variable"),
     );
-    let (mut context, logger) = create_context(&wpt_path);
+    let wpt_path = if wpt_path.is_absolute() {
+        wpt_path
+    } else {
+        std::env::current_dir()
+            .unwrap()
+            .join(wpt_path)
+            .canonicalize()
+            .unwrap()
+    };
+    let (mut context, logger, mut fetcher) = create_context(&wpt_path);
     let test_done = TestCompletion::new();
 
     // Insert the logger to be able to access the logs after the test is done.
@@ -314,9 +336,13 @@ fn execute_test_file(path: &Path) {
         let script_path = Path::new(&script);
         let path = if script_path.is_relative() {
             dir.join(script_path)
+        } else if script_path.starts_with(&wpt_path) {
+            script_path.to_path_buf()
         } else {
-            wpt_path.join(script_path.to_string_lossy().trim_start_matches('/'))
+            wpt_path.join(script_path.strip_prefix("/").unwrap())
         };
+
+        let path = path.canonicalize().expect("Could not canonicalize path");
 
         if path.exists() {
             let source = Source::from_filepath(&path).expect("Could not parse the source.");
@@ -327,15 +353,19 @@ fn execute_test_file(path: &Path) {
             panic!("Script does not exist, path = {path:?}");
         }
     }
-    context
-        .eval(source.source())
-        .expect("Could not evaluate the test source");
-    context.run_jobs();
+
+    fetcher.set_current_file(&source.path);
+
+    if let Err(e) = context.eval(source.source()) {
+        panic!("Could not run the test source:\n{e}")
+    }
+
+    context.run_jobs().expect("Could not run jobs");
 
     // Done()
-    context
-        .eval(Source::from_bytes(b"done()"))
-        .expect("Done unexpectedly threw an error.");
+    if let Err(e) = context.eval(Source::from_bytes(b"done()")) {
+        panic!("`done()` returned an error\n{e}");
+    }
 
     let start = std::time::Instant::now();
     while !test_done.is_done() {
@@ -390,6 +420,19 @@ fn url(
     #[exclude("url-origin.any.js")]
     #[exclude("url-setters.any.js")]
     #[exclude("url-constructor.any.js")]
+    path: PathBuf,
+) {
+    execute_test_file(&path);
+}
+
+/// Test the `fetch` with the WPT test suite.
+#[cfg(not(clippy))]
+#[ignore] // This is nowhere near ready for production. It also requires a web-server.
+#[rstest::rstest]
+fn fetch(
+    #[base_dir = "${WPT_ROOT}"]
+    #[files("fetch/api/**/*.any.js")]
+    #[exclude("idlharness")]
     path: PathBuf,
 ) {
     execute_test_file(&path);

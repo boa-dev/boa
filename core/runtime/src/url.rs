@@ -15,7 +15,8 @@
 #[cfg(test)]
 mod tests;
 
-use boa_engine::class::Class;
+use boa_engine::class::{Class, ClassBuilder};
+use boa_engine::realm::Realm;
 use boa_engine::value::Convert;
 use boa_engine::{Context, Finalize, JsData, JsResult, JsString, JsValue, Trace, js_error};
 use boa_interop::boa_macros::boa_class;
@@ -27,12 +28,21 @@ use std::fmt::Display;
 pub struct Url(#[unsafe_ignore_trace] url::Url);
 
 impl Url {
-    /// Register the `URL` class into the realm.
+    /// Register the `URL` class into the realm. Pass `None` for the realm to
+    /// register globally.
     ///
     /// # Errors
     /// This will error if the context or realm cannot register the class.
-    pub fn register(context: &mut Context) -> JsResult<()> {
-        context.register_global_class::<Self>()?;
+    pub fn register(realm: Option<Realm>, context: &mut Context) -> JsResult<()> {
+        if let Some(realm) = realm {
+            let mut class_builder = ClassBuilder::new::<Self>(context);
+            Url::init(&mut class_builder)?;
+            let class = class_builder.build();
+            realm.register_class::<Self>(class);
+        } else {
+            context.register_global_class::<Self>()?;
+        }
+
         Ok(())
     }
 }
