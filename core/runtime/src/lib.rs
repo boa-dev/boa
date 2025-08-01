@@ -45,7 +45,8 @@
 //! // Create the context.
 //! let mut context = Context::default();
 //!
-//! // Register all objects in the context.
+//! // Register all objects in the context. To conditionally register extensions,
+//! // call `register()` directly on the extension.
 //! boa_runtime::register(
 //!     (
 //!         // Register the default logger.
@@ -120,9 +121,11 @@ pub mod url;
 
 pub mod extensions;
 
+use crate::extensions::{EncodingExtension, TimeoutExtension};
 pub use extensions::RuntimeExtension;
 
-/// Register all the built-in objects and functions of the `WebAPI` runtime.
+/// Register all the built-in objects and functions of the `WebAPI` runtime, plus
+/// any extensions defined.
 ///
 /// # Errors
 /// This will error if any of the built-in objects or functions cannot be registered.
@@ -131,13 +134,28 @@ pub fn register(
     realm: Option<boa_engine::realm::Realm>,
     ctx: &mut boa_engine::Context,
 ) -> boa_engine::JsResult<()> {
-    TextDecoder::register(ctx)?;
-    TextEncoder::register(ctx)?;
+    (
+        TimeoutExtension,
+        EncodingExtension,
+        #[cfg(feature = "url")]
+        extensions::UrlExtension,
+        extensions,
+    )
+        .register(realm, ctx)?;
 
-    #[cfg(feature = "url")]
-    url::Url::register(realm.clone(), ctx)?;
+    Ok(())
+}
 
-    interval::register(ctx)?;
+/// Register only the extensions provided. An application can use this to register
+/// extensions that it previously hadn't registered.
+///
+/// # Errors
+/// This will error if any of the built-in objects or functions cannot be registered.
+pub fn register_extensions(
+    extensions: impl RuntimeExtension,
+    realm: Option<boa_engine::realm::Realm>,
+    ctx: &mut boa_engine::Context,
+) -> boa_engine::JsResult<()> {
     extensions.register(realm, ctx)?;
 
     Ok(())
@@ -147,7 +165,7 @@ pub fn register(
 pub(crate) mod test {
     use crate::extensions::ConsoleExtension;
     use crate::register;
-    use boa_engine::{Context, JsResult, JsValue, Source, builtins};
+    use boa_engine::{builtins, Context, JsResult, JsValue, Source};
     use std::borrow::Cow;
 
     /// A test action executed in a test function.

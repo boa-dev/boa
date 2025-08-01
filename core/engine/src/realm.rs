@@ -8,21 +8,22 @@
 
 use std::any::TypeId;
 
-use boa_ast::scope::Scope;
-use rustc_hash::FxHashMap;
-
 use crate::{
-    HostDefined, JsNativeError, JsObject, JsResult, JsString,
-    class::Class,
-    context::{
-        HostHooks,
+    class::Class, context::{
         intrinsics::{Intrinsics, StandardConstructor},
-    },
-    environments::DeclarativeEnvironment,
-    module::Module,
-    object::shape::RootShape,
+        HostHooks,
+    }, environments::DeclarativeEnvironment, module::Module, object::shape::RootShape, Context,
+    HostDefined,
+    JsNativeError,
+    JsObject,
+    JsResult,
+    JsString,
 };
+use boa_ast::scope::Scope;
+use boa_engine::property::{Attribute, PropertyDescriptor, PropertyKey};
+use boa_engine::JsValue;
 use boa_gc::{Finalize, Gc, GcRef, GcRefCell, GcRefMut, Trace};
+use rustc_hash::FxHashMap;
 
 /// Representation of a Realm.
 ///
@@ -205,6 +206,32 @@ impl Realm {
 
     pub(crate) fn lookup_template(&self, site: u64) -> Option<JsObject> {
         self.inner.template_map.borrow().get(&site).cloned()
+    }
+
+    /// Register a property on the global object of this realm.
+    ///
+    /// It will return an error if the property is already defined.
+    pub fn register_property<K, V>(
+        &self,
+        key: K,
+        value: V,
+        attribute: Attribute,
+        context: &mut Context,
+    ) -> JsResult<()>
+    where
+        K: Into<PropertyKey>,
+        V: Into<JsValue>,
+    {
+        self.global_object().define_property_or_throw(
+            key,
+            PropertyDescriptor::builder()
+                .value(value)
+                .writable(attribute.writable())
+                .enumerable(attribute.enumerable())
+                .configurable(attribute.configurable()),
+            context,
+        )?;
+        Ok(())
     }
 
     /// Register a class `C` in this realm.

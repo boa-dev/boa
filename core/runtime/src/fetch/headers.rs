@@ -6,10 +6,10 @@
 use boa_engine::object::builtins::{JsArray, TypedJsFunction};
 use boa_engine::value::{Convert, TryFromJs};
 use boa_engine::{
-    Context, Finalize, JsData, JsObject, JsResult, JsString, JsValue, Trace, js_error,
+    js_error, Context, Finalize, JsData, JsObject, JsResult, JsString, JsValue, Trace,
 };
-use boa_interop::JsClass;
 use boa_interop::boa_macros::boa_class;
+use boa_interop::JsClass;
 use http::header::HeaderMap as HttpHeaderMap;
 use http::{HeaderName, HeaderValue};
 use std::cell::RefCell;
@@ -162,7 +162,7 @@ impl JsHeaders {
                 .iter()
                 .map(|(k, v)| {
                     let k: JsValue = JsString::from(k.as_str()).into();
-                    let v: JsValue = JsString::from(v.to_str().unwrap_or("")).into();
+                    let v: JsValue = JsString::from(v.to_str().unwrap_or_default()).into();
                     JsArray::from_iter([k, v], context).into()
                 })
                 .collect::<Vec<_>>(),

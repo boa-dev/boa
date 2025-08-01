@@ -88,11 +88,10 @@ fn convert_safe_i64(value: i64) -> JsValue {
 impl TryIntoJs for i64 {
     fn try_into_js(&self, _context: &mut Context) -> JsResult<JsValue> {
         let value = *self;
-        #[allow(clippy::manual_range_contains)]
-        if value < MIN_SAFE_INTEGER_I64 || MAX_SAFE_INTEGER_I64 < value {
-            Err(err_outside_safe_range())
-        } else {
+        if (MIN_SAFE_INTEGER_I64..MAX_SAFE_INTEGER_I64).contains(&value) {
             Ok(convert_safe_i64(value))
+        } else {
+            Err(err_outside_safe_range())
         }
     }
 }
@@ -108,12 +107,11 @@ impl TryIntoJs for u64 {
 }
 impl TryIntoJs for isize {
     fn try_into_js(&self, _context: &mut Context) -> JsResult<JsValue> {
-        let value = *self;
-        #[allow(clippy::manual_range_contains)]
-        if value < MIN_SAFE_INTEGER_I64 as isize || (MAX_SAFE_INTEGER_I64 as isize) < value {
-            Err(err_outside_safe_range())
+        let value = *self as i64;
+        if (MIN_SAFE_INTEGER_I64..MAX_SAFE_INTEGER_I64).contains(&value) {
+            Ok(convert_safe_i64(value))
         } else {
-            Ok(convert_safe_i64(value as i64))
+            Err(err_outside_safe_range())
         }
     }
 }

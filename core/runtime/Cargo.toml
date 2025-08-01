@@ -16,8 +16,8 @@ boa_gc.workspace = true
 boa_interop.workspace = true
 either.workspace = true
 futures-lite = { workspace = true, optional = true }
-http = { version = "1.3.1", optional = true }
-reqwest = { version = "0.12.20", optional = true }
+http = { workspace = true, optional = true }
+reqwest = { workspace = true, optional = true }
 rustc-hash = { workspace = true, features = ["std"] }
 serde_json = { workspace = true, optional = true }
 url = { workspace = true, optional = true }
@@ -35,7 +35,7 @@ all-features = true
 [features]
 # Default should not add `reqwest` as it is not available on all platforms.
 default = ["fetch", "url"]
-all = ["default", "reqwest"]
+all = ["default", "reqwest-blocking"]
 url = ["dep:url"]
 fetch = ["dep:futures-lite", "dep:http", "dep:serde_json", "boa_engine/either"]
-reqwest = ["dep:reqwest", "reqwest/blocking"]
+reqwest-blocking = ["dep:reqwest", "reqwest/blocking"]

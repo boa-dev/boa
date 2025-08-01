@@ -5,7 +5,7 @@
 //! [mdn]: https://developer.mozilla.org/en-US/docs/Web/API/Request
 use super::HttpRequest;
 use boa_engine::value::{Convert, TryFromJs};
-use boa_engine::{Finalize, JsData, JsObject, JsResult, JsString, JsValue, Trace, js_error};
+use boa_engine::{js_error, Finalize, JsData, JsObject, JsResult, JsString, JsValue, Trace};
 use boa_interop::boa_macros::boa_class;
 use either::Either;
 use std::collections::BTreeMap;
@@ -62,10 +62,10 @@ impl RequestInit {
     /// If the body is not a valid type, an error is returned.
     pub fn into_request_builder(
         mut self,
-        maybe_request: Option<HttpRequest<Vec<u8>>>,
+        request: Option<HttpRequest<Vec<u8>>>,
     ) -> JsResult<HttpRequest<Vec<u8>>> {
         let mut builder = HttpRequest::builder();
-        if let Some(r) = maybe_request {
+        if let Some(r) = request {
             let (parts, _body) = r.into_parts();
             builder = builder
                 .method(parts.method)
@@ -115,7 +115,7 @@ impl RequestInit {
     }
 }
 
-/// The JavaScript Response class.
+/// The JavaScript `Request` class.
 ///
 /// The `Request` interface of the [Fetch API][mdn] represents a resource request.
 ///

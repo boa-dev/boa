@@ -1,11 +1,11 @@
 //! This module contains the [`TryFromJs`] trait, and conversions to basic Rust types.
 
+use crate::{
+    js_error, Context, JsBigInt, JsNativeError, JsObject, JsResult, JsString, JsValue,
+};
+use boa_string::StaticJsStrings;
 use num_bigint::BigInt;
 use num_traits::AsPrimitive;
-
-use crate::{
-    Context, JsBigInt, JsNativeError, JsObject, JsResult, JsString, JsValue, js_error, js_string,
-};
 
 mod collections;
 mod tuples;
@@ -97,7 +97,7 @@ where
                 .into());
         };
 
-        let length = object.get(js_string!("length"), context)?;
+        let length = object.get(StaticJsStrings::LENGTH, context)?;
         // If there's no length, return an error.
         if length.is_null_or_undefined() {
             return Err(js_error!(TypeError: "Not an array"));
@@ -254,7 +254,7 @@ fn integer_floating_js_value_to_integer() {
 
 #[test]
 fn value_into_vec() {
-    use boa_engine::{TestAction, run_test_actions};
+    use boa_engine::{run_test_actions, TestAction};
     use indoc::indoc;
 
     #[derive(Debug, PartialEq, Eq, boa_macros::TryFromJs)]
@@ -313,7 +313,7 @@ fn value_into_vec() {
 
 #[test]
 fn value_into_tuple() {
-    use boa_engine::{TestAction, run_test_actions};
+    use boa_engine::{run_test_actions, TestAction};
     use indoc::indoc;
 
     run_test_actions([
@@ -363,7 +363,7 @@ fn value_into_tuple() {
 
 #[test]
 fn value_into_map() {
-    use boa_engine::{TestAction, run_test_actions};
+    use boa_engine::{run_test_actions, TestAction};
     use indoc::indoc;
 
     run_test_actions([

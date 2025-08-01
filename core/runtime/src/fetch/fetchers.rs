@@ -1,9 +1,9 @@
 //! Module containing various implementations of the [`Fetcher`] trait.
 
-use crate::fetch::Fetcher;
 use crate::fetch::request::JsRequest;
 use crate::fetch::response::JsResponse;
-use boa_engine::{Context, Finalize, JsData, JsResult, Trace, js_error};
+use crate::fetch::Fetcher;
+use boa_engine::{js_error, Context, Finalize, JsData, JsResult, Trace};
 use std::cell::RefCell;
 use std::rc::Rc;
 
@@ -22,14 +22,14 @@ impl Fetcher for ErrorFetcher {
 }
 
 /// Implementation of `Fetcher` that uses the blocking `reqwest` library as the backend.
-#[cfg(feature = "reqwest")]
+#[cfg(feature = "reqwest-blocking")]
 #[derive(Default, Debug, Clone, Trace, Finalize, JsData)]
 pub struct BlockingReqwestFetcher {
     #[unsafe_ignore_trace]
     client: reqwest::blocking::Client,
 }
 
-#[cfg(feature = "reqwest")]
+#[cfg(feature = "reqwest-blocking")]
 impl Fetcher for BlockingReqwestFetcher {
     async fn fetch(
         self: Rc<Self>,

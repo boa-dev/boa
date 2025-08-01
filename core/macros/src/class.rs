@@ -1,6 +1,6 @@
 use crate::utils::{
-    RenameScheme, SpannedResult, error, take_error_from_attrs, take_length_from_attrs,
-    take_name_value_attr, take_path_attr,
+    error, take_error_from_attrs, take_length_from_attrs, take_name_value_attr, take_path_attr,
+    RenameScheme, SpannedResult,
 };
 use proc_macro::TokenStream;
 use proc_macro2::{Span as Span2, TokenStream as TokenStream2};
@@ -12,8 +12,8 @@ use syn::punctuated::Punctuated;
 use syn::spanned::Spanned;
 use syn::visit_mut::VisitMut;
 use syn::{
-    Attribute, Expr, FnArg, Ident, ImplItemFn, ItemImpl, Lit, Meta, MetaNameValue, PatType,
-    Receiver, ReturnType, Signature, Token, Type,
+    Attribute, ConstParam, Expr, FnArg, GenericParam, Ident, ImplItemFn, ItemImpl, LifetimeParam,
+    Lit, Meta, MetaNameValue, PatType, Receiver, ReturnType, Signature, Token, Type, TypeParam,
 };
 
 /// A function representation. Takes a function from the AST and remember its name, length and
@@ -154,6 +154,26 @@ impl Function {
 
         let fn_name = &sig.ident;
 
+        let generics = if sig.generics.params.is_empty() {
+            quote! {}
+        } else {
+            let generics = sig
+                .generics
+                .params
+                .iter()
+                .map(|param| match param {
+                    GenericParam::Type(TypeParam { ident, .. })
+                    | GenericParam::Const(ConstParam { ident, .. }) => {
+                        quote! { #ident }
+                    }
+                    GenericParam::Lifetime(LifetimeParam { lifetime, .. }) => {
+                        quote! { #lifetime }
+                    }
+                })
+                .collect::<TokenStream2>();
+            quote! { :: < #generics > }
+        };
+
         // A method is static if it has the `#[boa(static)]` attribute, or if it is
         // not a method and doesn't contain `self`.
         let is_static = has_explicit_static || !(has_explicit_method || not_param_count > 0);
@@ -176,7 +196,7 @@ impl Function {
                     let rest = args;
                     #(#args_decl)*
 
-                    let result = #scope #fn_name ( #(#args_call),* );
+                    let result = #scope #fn_name #generics ( #(#args_call),* );
                     boa_engine::TryIntoJsResult::try_into_js_result(result, context)
                 }
             },

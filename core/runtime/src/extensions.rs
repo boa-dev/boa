@@ -17,6 +17,42 @@ pub trait RuntimeExtension: Debug {
     fn register(self, realm: Option<Realm>, context: &mut Context) -> JsResult<()>;
 }
 
+/// Register the Timeout/Interval functions.
+#[derive(Copy, Clone, Debug)]
+pub struct TimeoutExtension;
+
+impl RuntimeExtension for TimeoutExtension {
+    fn register(self, _realm: Option<Realm>, context: &mut Context) -> JsResult<()> {
+        crate::interval::register(context)?;
+        Ok(())
+    }
+}
+
+/// Register the `TextEncoder` and `TextDecoder` classes.
+#[derive(Copy, Clone, Debug)]
+pub struct EncodingExtension;
+
+impl RuntimeExtension for EncodingExtension {
+    fn register(self, _realm: Option<Realm>, context: &mut Context) -> JsResult<()> {
+        crate::TextDecoder::register(context)?;
+        crate::TextEncoder::register(context)?;
+        Ok(())
+    }
+}
+
+/// Register the URL classes.
+#[cfg(feature = "url")]
+#[derive(Copy, Clone, Debug)]
+pub struct UrlExtension;
+
+#[cfg(feature = "url")]
+impl RuntimeExtension for UrlExtension {
+    fn register(self, realm: Option<Realm>, context: &mut Context) -> JsResult<()> {
+        crate::url::Url::register(realm, context)?;
+        Ok(())
+    }
+}
+
 /// Register the `Console` JavaScript object with the specified logger.
 /// Use [`ConsoleExtension::default()`] to register the console with a default logger.
 #[derive(Debug)]
@@ -69,4 +105,5 @@ macro_rules! decl_runtime_ext_tuple {
     };
 }
 
+// Implement RuntimeExtension for all tuples up to 12.
 decl_runtime_ext_tuple!(a: A, b: B, c: C, d: D, e: E, f: F, g: G, h: H, i: I, j: J, k: K, l: L);

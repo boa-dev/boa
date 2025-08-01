@@ -10,15 +10,13 @@
 use crate::fetch::headers::JsHeaders;
 use crate::fetch::request::{JsRequest, RequestInit};
 use crate::fetch::response::JsResponse;
-use boa_engine::class::{Class, ClassBuilder};
-use boa_engine::object::builtins::JsPromise;
-use boa_engine::property::Attribute;
+use boa_engine::class::Class;
 use boa_engine::realm::Realm;
 use boa_engine::{
-    Context, Finalize, JsData, JsError, JsObject, JsResult, JsString, JsValue, NativeObject, Trace,
-    js_error, js_string,
+    js_error, Context, Finalize, JsData, JsError, JsObject, JsResult, JsString, JsValue, NativeObject,
+    Trace,
 };
-use boa_interop::IntoJsFunctionCopied;
+use boa_interop::boa_macros::boa_module;
 use either::Either;
 use http::{HeaderName, HeaderValue, Request as HttpRequest, Request};
 use std::cell::RefCell;
@@ -145,23 +143,39 @@ async fn fetch_inner<T: Fetcher>(
     Ok(result.into())
 }
 
-/// The `fetch` function. This function MUST be registered using the [`register`]
-/// function, as it uses host-defined data in the realm to handle fetching.
-///
-/// # Errors
-/// If the fetcher is not registered in the context, an error is returned.
-/// This function will also return any error that the fetcher returns, or
-/// any conversion to/from JavaScript types.
-pub fn fetch<T: Fetcher>(
-    resource: Either<JsString, JsObject>,
-    options: Option<RequestInit>,
-    context: &mut Context,
-) -> JsPromise {
-    JsPromise::from_async_fn(
-        async move |context| fetch_inner::<T>(resource, options, context).await,
-        context,
-    )
+#[boa_module]
+mod js_module {
+    use crate::fetch::request::RequestInit;
+    use crate::fetch::{fetch_inner, Fetcher};
+    use boa_engine::object::builtins::JsPromise;
+    use boa_engine::{Context, JsObject, JsString};
+    use either::Either;
+
+    type JsHeaders = super::JsHeaders;
+    type JsRequest = super::JsRequest;
+    type JsResponse = super::JsResponse;
+
+    /// The `fetch` function. This function MUST be registered using the [`register`]
+    /// function, as it uses host-defined data in the realm to handle fetching.
+    ///
+    /// # Errors
+    /// If the fetcher is not registered in the context, an error is returned.
+    /// This function will also return any error that the fetcher returns, or
+    /// any conversion to/from JavaScript types.
+    pub fn fetch<T: Fetcher>(
+        resource: Either<JsString, JsObject>,
+        options: Option<RequestInit>,
+        context: &mut Context,
+    ) -> JsPromise {
+        JsPromise::from_async_fn(
+            async move |context| fetch_inner::<T>(resource, options, context).await,
+            context,
+        )
+    }
 }
+
+#[doc(inline)]
+pub use js_module::fetch;
 
 /// Register the `fetch` function in the realm, as well as ALL supporting classes.
 /// Pass `None` as the realm to register globally.
@@ -173,35 +187,12 @@ pub fn register<F: Fetcher>(
     realm: Option<Realm>,
     context: &mut Context,
 ) -> JsResult<()> {
-    if let Some(realm) = realm {
+    if let Some(ref realm) = realm {
         realm.host_defined_mut().insert(FetcherRc(Rc::new(fetcher)));
-
-        let mut class_builder = ClassBuilder::new::<JsHeaders>(context);
-        JsHeaders::init(&mut class_builder)?;
-        let class = class_builder.build();
-        realm.register_class::<JsHeaders>(class);
-
-        let mut class_builder = ClassBuilder::new::<JsRequest>(context);
-        JsRequest::init(&mut class_builder)?;
-        let class = class_builder.build();
-        realm.register_class::<JsRequest>(class);
-
-        let mut class_builder = ClassBuilder::new::<JsResponse>(context);
-        JsResponse::init(&mut class_builder)?;
-        let class = class_builder.build();
-        realm.register_class::<JsResponse>(class);
     } else {
-        context.register_global_class::<JsHeaders>()?;
-        context.register_global_class::<JsRequest>()?;
-        context.register_global_class::<JsResponse>()?;
-
-        let fetch_fn = fetch::<F>
-            .into_js_function_copied(context)
-            .to_js_function(&realm.unwrap_or_else(|| context.realm().clone()));
-
         context.insert_data(FetcherRc(Rc::new(fetcher)));
-        context.register_global_property(js_string!("fetch"), fetch_fn, Attribute::all())?;
     }
+    js_module::boa_register::<F>(realm, context)?;
 
     Ok(())
 }

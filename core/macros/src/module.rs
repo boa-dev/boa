@@ -1,5 +1,5 @@
 use crate::class::Function;
-use crate::utils::{RenameScheme, SpannedResult, error, take_name_value_string, take_path_attr};
+use crate::utils::{error, take_name_value_string, take_path_attr, RenameScheme, SpannedResult};
 use proc_macro::TokenStream;
 use proc_macro2::TokenStream as TokenStream2;
 use quote::quote;
@@ -19,7 +19,10 @@ impl Parse for ModuleArguments {
     }
 }
 
-fn const_item(c: &mut ItemConst, renaming: RenameScheme) -> SpannedResult<(String, TokenStream2)> {
+fn const_item(
+    c: &mut ItemConst,
+    renaming: RenameScheme,
+) -> SpannedResult<(String, TokenStream2, TokenStream2)> {
     let ident = &c.ident;
     let name = take_name_value_string(&mut c.attrs, "rename")?
         .unwrap_or_else(|| renaming.rename(ident.to_string()));
@@ -29,20 +32,35 @@ fn const_item(c: &mut ItemConst, renaming: RenameScheme) -> SpannedResult<(Strin
         quote! {
             m.set_export( &boa_engine::js_string!( #name ), boa_engine::JsValue::from( #ident ) )?;
         },
+        quote! {
+            if let Some(ref realm) = realm {
+                realm.register_property(
+                    &boa_engine::js_string!( #name ),
+                    boa_engine::JsValue::from( #ident ),
+                    boa_engine::property::Attribute::all(),
+                    context,
+                )?;
+            } else {
+                context.register_global_property(
+                    &boa_engine::js_string!( #name ),
+                    boa_engine::JsValue::from( #ident ),
+                    boa_engine::property::Attribute::all(),
+                )?;
+            }
+        },
     ))
 }
 
-fn fn_item(fn_: &mut ItemFn, renaming: RenameScheme) -> SpannedResult<(String, TokenStream2)> {
+fn fn_item(
+    fn_: &mut ItemFn,
+    renaming: RenameScheme,
+) -> SpannedResult<(String, TokenStream2, TokenStream2)> {
     let ident = &fn_.sig.ident;
     let name = take_name_value_string(&mut fn_.attrs, "rename")?
         .unwrap_or_else(|| renaming.rename(ident.to_string()));
 
     if fn_.sig.asyncness.is_some() {
         error(&fn_.sig.asyncness, "Async methods are not supported.")?;
-    }
-
-    if !fn_.sig.generics.params.is_empty() {
-        error(&fn_.sig.generics, "Generic methods are not supported.")?;
     }
 
     let fn_ = Function::from_sig(
@@ -66,10 +84,36 @@ fn fn_item(fn_: &mut ItemFn, renaming: RenameScheme) -> SpannedResult<(String, T
                 ),
             )?;
         },
+        quote! {
+            let function = #fn_body;
+            if let Some(ref realm) = realm {
+                realm.register_property(
+                    boa_engine::js_string!( #name ),
+                    boa_engine::JsValue::from(
+                        boa_engine::NativeFunction::from_fn_ptr( function )
+                            .to_js_function(context.realm())
+                    ),
+                    boa_engine::property::Attribute::all(),
+                    context,
+                )?;
+            } else {
+                context.register_global_property(
+                    boa_engine::js_string!( #name ),
+                    boa_engine::JsValue::from(
+                        boa_engine::NativeFunction::from_fn_ptr( function )
+                            .to_js_function(context.realm())
+                    ),
+                    boa_engine::property::Attribute::all(),
+                )?;
+            }
+        },
     ))
 }
 
-fn type_item(ty: &mut ItemType, renaming: RenameScheme) -> SpannedResult<(String, TokenStream2)> {
+fn type_item(
+    ty: &mut ItemType,
+    renaming: RenameScheme,
+) -> SpannedResult<(String, TokenStream2, TokenStream2)> {
     let ident = &ty.ident;
     let name = take_name_value_string(&mut ty.attrs, "rename")?
         .unwrap_or_else(|| renaming.rename(ident.to_string()));
@@ -78,7 +122,17 @@ fn type_item(ty: &mut ItemType, renaming: RenameScheme) -> SpannedResult<(String
     Ok((
         name.clone(),
         quote! {
-            m.export_named_class::< #path >(&js_string!(#name), context)?;
+            m.export_named_class::< #path >(&boa_engine::js_string!(#name), context)?;
+        },
+        quote! {
+            if let Some(ref realm) = realm {
+                let mut class_builder = boa_engine::class::ClassBuilder::new::<#path>(context);
+                <#path as boa_engine::class::Class>::init(&mut class_builder)?;
+                let class = class_builder.build();
+                realm.register_class::<#path>(class);
+            } else {
+                context.register_global_class::<#path>()?;
+            }
         },
     ))
 }
@@ -96,6 +150,9 @@ pub(crate) fn module_impl(attr: TokenStream, input: TokenStream) -> TokenStream 
     }
 }
 
+// Allow too many lines as this is a giant match with local variables. The logic is still
+// fairly straightforward.
+#[allow(clippy::too_many_lines)]
 fn module_impl_impl(_args: ModuleArguments, mut mod_: ItemMod) -> SpannedResult<TokenStream2> {
     let renaming = RenameScheme::from_named_attrs(&mut mod_.attrs, "rename_all")?
         .unwrap_or(RenameScheme::CamelCase);
@@ -106,7 +163,9 @@ fn module_impl_impl(_args: ModuleArguments, mut mod_: ItemMod) -> SpannedResult<
     // iterate to create an empty JS module.
     let mut original_module_decl = quote! {};
     let mut module_fn = quote! {};
+    let mut global_fn = quote! {};
     let mut module_exports = quote! {};
+    let mut generics = vec![];
 
     for item in mod_.content.map_or_else(Vec::new, |c| c.1).as_mut_slice() {
         // Check for skip attributes.
@@ -139,7 +198,10 @@ fn module_impl_impl(_args: ModuleArguments, mut mod_: ItemMod) -> SpannedResult<
 
         let result = match item {
             Item::Const(c) => const_item(c, renaming),
-            Item::Fn(f) => fn_item(f, renaming),
+            Item::Fn(f) => {
+                generics.extend(f.sig.generics.params.iter().cloned());
+                fn_item(f, renaming)
+            }
             Item::Use(_) => {
                 // Skip use statements. These are valid but ignored.
                 original_module_decl = quote! {
@@ -154,11 +216,15 @@ fn module_impl_impl(_args: ModuleArguments, mut mod_: ItemMod) -> SpannedResult<
                 "Invalid boa_module top-level item.".to_string(),
             )),
         };
-        let (export_name, export_decl) = result?;
+        let (export_name, export_decl, register_global) = result?;
 
         module_fn = quote! {
             #module_fn
             #export_decl
+        };
+        global_fn = quote! {
+            #global_fn
+            #register_global
         };
         module_exports = quote! {
             #module_exports
@@ -178,12 +244,24 @@ fn module_impl_impl(_args: ModuleArguments, mut mod_: ItemMod) -> SpannedResult<
     let attrs = mod_.attrs;
     let safety = mod_.unsafety;
 
+    let generics = quote! {
+        <#(#generics),*>
+    };
+
     let tokens = quote! {
         #(#attrs)*
         #vis #safety mod #name {
             #original_module_decl
 
-            pub(super) fn boa_module(
+            pub(super) fn boa_register #generics (
+                realm: Option<boa_engine::realm::Realm>,
+                context: &mut boa_engine::Context,
+            ) -> boa_engine::JsResult<()> {
+                #global_fn
+                Ok(())
+            }
+
+            pub(super) fn boa_module #generics (
                 realm: Option<boa_engine::realm::Realm>,
                 context: &mut boa_engine::Context,
             ) -> boa_engine::Module {

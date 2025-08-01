@@ -8,6 +8,11 @@ use std::path::PathBuf;
 use std::rc::Rc;
 use url::Url;
 
+/// The Fetcher implementation used by the WPT tests suite.
+/// This implementation understands the current running test script and will
+/// resolve URLs relative to it as a base.
+///
+// TODO: Look into what NodeJS or other browserless runtimes do for WPT tests.
 #[derive(Debug, Clone, Trace, Finalize, JsData)]
 pub struct WptFetcher {
     wpt_server: String,
