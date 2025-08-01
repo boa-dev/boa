@@ -554,6 +554,7 @@ dependencies = [
  "reqwest",
  "rustc-hash 2.1.1",
  "serde_json",
+ "test-case",
  "textwrap",
  "url",
 ]

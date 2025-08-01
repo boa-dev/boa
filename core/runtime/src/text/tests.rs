@@ -4,6 +4,7 @@ use boa_engine::object::builtins::JsUint8Array;
 use boa_engine::property::Attribute;
 use boa_engine::{Context, JsString, js_str, js_string};
 use indoc::indoc;
+use test_case::test_case;
 
 #[test]
 fn encoder_js() {
@@ -124,20 +125,25 @@ fn decoder_js_invalid() {
     );
 }
 
-#[test]
-fn roundtrip() {
+#[test_case("utf-8")]
+#[test_case("utf-16")]
+#[test_case("utf-16le")]
+#[test_case("utf-16be")]
+fn roundtrip(encoding: &'static str) {
     let context = &mut Context::default();
     text::register(None, context).unwrap();
 
     run_test_actions_with(
         [
-            TestAction::run(indoc! {r#"
-                const encoder = new TextEncoder();
-                const decoder = new TextDecoder();
+            TestAction::run(format!(
+                r#"
+                const encoder = new TextEncoder({encoding:?});
+                const decoder = new TextDecoder({encoding:?});
                 const text = "Hello, World!";
                 const encoded = encoder.encode(text);
                 decoded = decoder.decode(encoded);
-            "#}),
+            "#
+            )),
             TestAction::inspect_context(|context| {
                 let decoded = context
                     .global_object()
