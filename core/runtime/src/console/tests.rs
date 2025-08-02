@@ -115,8 +115,8 @@ fn console_log_cyclic() {
 
 /// A logger that records all log messages.
 #[derive(Clone, Debug, Default, boa_engine::Trace, boa_engine::Finalize)]
-struct RecordingLogger {
-    log: Gc<GcRefCell<String>>,
+pub(crate) struct RecordingLogger {
+    pub log: Gc<GcRefCell<String>>,
 }
 
 impl Logger for RecordingLogger {
