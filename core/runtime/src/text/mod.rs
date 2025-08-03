@@ -9,7 +9,6 @@ use boa_engine::{
     Context, Finalize, JsData, JsObject, JsResult, JsString, JsValue, Trace, js_error, js_string,
 };
 use boa_interop::boa_macros::{boa_class, boa_module};
-use std::rc::Rc;
 
 #[cfg(test)]
 mod tests;
@@ -20,8 +19,16 @@ mod encodings;
 /// a specific character encoding, like `utf-8`.
 ///
 /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/API/TextDecoder
-#[derive(Debug, Clone, JsData, Trace, Finalize)]
-pub struct TextDecoder(#[unsafe_ignore_trace] Rc<dyn encodings::Encoder>);
+#[derive(Debug, Default, Clone, JsData, Trace, Finalize)]
+pub enum TextDecoder {
+    /// Decode bytes encoded as UTF-8 into strings.
+    #[default]
+    Utf8,
+    /// Decode bytes encoded as UTF-16 (little endian) into strings.
+    Utf16Le,
+    /// Decode bytes encoded as UTF-16 (big endian) into strings.
+    Utf16Be,
+}
 
 #[boa_class]
 impl TextDecoder {
@@ -33,13 +40,16 @@ impl TextDecoder {
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/API/TextDecoder/TextDecoder
     #[boa(constructor)]
     pub fn constructor(encoding: Option<JsString>, _options: Option<JsObject>) -> JsResult<Self> {
-        let e = encoding.unwrap_or_else(|| js_string!("utf-8"));
-        if let Some(encoder) = encodings::create_encoder(&e) {
-            Ok(Self(encoder))
-        } else {
-            Err(
-                js_error!(RangeError: "The given encoding '{}' is not supported.", e.display_lossy()),
-            )
+        let Some(encoding) = encoding else {
+            return Ok(Self::default());
+        };
+
+        match encoding.to_std_string_lossy().as_str() {
+            "utf-8" => Ok(Self::Utf8),
+            // Default encoding is Little Endian.
+            "utf-16" | "utf-16le" => Ok(Self::Utf16Le),
+            "utf-16be" => Ok(Self::Utf16Be),
+            e => Err(js_error!(RangeError: "The given encoding '{}' is not supported.", e)),
         }
     }
 
@@ -50,7 +60,11 @@ impl TextDecoder {
     #[boa(getter)]
     #[must_use]
     pub fn encoding(&self) -> JsString {
-        self.0.name()
+        match self {
+            Self::Utf8 => js_string!("utf-8"),
+            Self::Utf16Le => js_string!("utf-16le"),
+            Self::Utf16Be => js_string!("utf-16be"),
+        }
     }
 
     /// The [`TextDecoder.decode()`][mdn] method returns a string containing text decoded from the
@@ -76,7 +90,11 @@ impl TextDecoder {
         };
 
         let buffer = bytes.iter(context).collect::<Vec<u8>>();
-        self.0.decode(buffer, context)
+        Ok(match self {
+            Self::Utf8 => encodings::utf8::decode(&buffer),
+            Self::Utf16Le => encodings::utf16le::decode(&buffer),
+            Self::Utf16Be => encodings::utf16be::decode(buffer),
+        })
     }
 }
 
@@ -84,8 +102,16 @@ impl TextDecoder {
 /// a specific character encoding, like `utf-8`.
 ///
 /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/API/TextEncoder
-#[derive(Debug, Clone, JsData, Trace, Finalize)]
-pub struct TextEncoder(#[unsafe_ignore_trace] Rc<dyn encodings::Encoder>);
+#[derive(Debug, Default, Clone, JsData, Trace, Finalize)]
+pub enum TextEncoder {
+    /// Encode UTF-8 strings into buffers.
+    #[default]
+    Utf8,
+    /// Encode UTF-16 strings (little endian) into buffers.
+    Utf16Le,
+    /// Encode UTF-16 strings (big endian) into buffers.
+    Utf16Be,
+}
 
 #[boa_class]
 impl TextEncoder {
@@ -97,13 +123,16 @@ impl TextEncoder {
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/API/TextEncoder/TextEncoder
     #[boa(constructor)]
     pub fn constructor(encoding: Option<JsString>, _options: Option<JsObject>) -> JsResult<Self> {
-        let e = encoding.unwrap_or_else(|| js_string!("utf-8"));
-        if let Some(encoder) = encodings::create_encoder(&e) {
-            Ok(Self(encoder))
-        } else {
-            Err(
-                js_error!(RangeError: "The given encoding '{}' is not supported.", e.display_lossy()),
-            )
+        let Some(encoding) = encoding else {
+            return Ok(Self::default());
+        };
+
+        match encoding.to_std_string_lossy().as_str() {
+            "utf-8" => Ok(Self::Utf8),
+            // Default encoding is Little Endian.
+            "utf-16" | "utf-16le" => Ok(Self::Utf16Le),
+            "utf-16be" => Ok(Self::Utf16Be),
+            e => Err(js_error!(RangeError: "The given encoding '{}' is not supported.", e)),
         }
     }
 
@@ -114,7 +143,11 @@ impl TextEncoder {
     #[boa(getter)]
     #[must_use]
     fn encoding(&self) -> JsString {
-        self.0.name()
+        match self {
+            Self::Utf8 => js_string!("utf-8"),
+            Self::Utf16Le => js_string!("utf-16le"),
+            Self::Utf16Be => js_string!("utf-16be"),
+        }
     }
 
     /// The [`TextEncoder.encode()`][mdn] method takes a string as input, and returns
@@ -129,7 +162,12 @@ impl TextEncoder {
         let Some(text) = text else {
             return JsUint8Array::from_iter([], context);
         };
-        let vec = self.0.encode(&text, context)?;
+
+        let vec = match self {
+            Self::Utf8 => encodings::utf8::encode(&text),
+            Self::Utf16Le => encodings::utf16le::encode(&text),
+            Self::Utf16Be => encodings::utf16be::encode(&text),
+        };
         JsUint8Array::from_iter(vec, context)
     }
 }

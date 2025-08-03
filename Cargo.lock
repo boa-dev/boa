@@ -547,6 +547,7 @@ dependencies = [
  "boa_engine",
  "boa_gc",
  "boa_interop",
+ "bytemuck",
  "either",
  "futures-lite 2.6.0",
  "http 1.3.1",
