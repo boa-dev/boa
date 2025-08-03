@@ -172,8 +172,7 @@ impl Script {
         let record = context.run();
 
         context.vm.pop_frame();
-        // Running jobs will also clear kept objects.
-        context.run_jobs()?;
+        context.clear_kept_objects();
 
         record.consume()
     }

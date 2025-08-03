@@ -14,7 +14,8 @@ fn queue_microtask() {
         .unwrap();
 
     run_test_actions_with(
-        [TestAction::run(indoc! {r#"
+        [
+            TestAction::run(indoc! {r#"
                 console.log(1);
                 queueMicrotask(() => console.log(2));
                 console.log(3);
@@ -28,7 +29,11 @@ fn queue_microtask() {
                     console.log(8);
                 });
                 console.log(9);
-            "#})],
+            "#}),
+            TestAction::inspect_context(|context| {
+                context.run_jobs().unwrap();
+            }),
+        ],
         context,
     );
 
