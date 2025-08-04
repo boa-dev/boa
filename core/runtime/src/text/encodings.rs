@@ -54,7 +54,7 @@ pub(crate) mod utf16be {
 
         // Swap the bytes.
         for b in bytes.as_mut_slice() {
-            *b = *b >> 8 | (*b & 0xFF) << 8;
+            *b = b.swap_bytes();
         }
 
         bytemuck::cast_slice(bytes.as_mut_slice()).to_vec()
