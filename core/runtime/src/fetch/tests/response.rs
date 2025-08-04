@@ -1,6 +1,6 @@
 use super::TestFetcher;
-use crate::test::{TestAction, run_test_actions};
-use boa_engine::{Context, Source, js_str};
+use crate::test::{run_test_actions, TestAction};
+use boa_engine::{js_str, Context};
 use http::{Response, Uri};
 
 fn register(responses: &[(&'static str, Response<Vec<u8>>)], ctx: &mut Context) {
@@ -10,14 +10,12 @@ fn register(responses: &[(&'static str, Response<Vec<u8>>)], ctx: &mut Context) 
         fetcher.add_response(Uri::from_static(url), resp.clone());
     }
     crate::fetch::register(fetcher, None, ctx).expect("failed to register fetch");
-
-    ctx.eval(Source::from_bytes(super::ASSERT_DECL))
-        .expect("Unreachable.");
 }
 
 #[test]
 fn response_error() {
     run_test_actions([
+        TestAction::harness(),
         TestAction::inspect_context(|ctx| register(&[], ctx)),
         TestAction::run(
             r#"
@@ -37,6 +35,7 @@ fn response_error() {
 #[test]
 fn response_text() {
     run_test_actions([
+        TestAction::harness(),
         TestAction::inspect_context(|ctx| {
             register(
                 &[("http://unit.test", Response::new(b"Hello World".to_vec()))],
@@ -63,6 +62,7 @@ fn response_text() {
 #[test]
 fn response_json() {
     run_test_actions([
+        TestAction::harness(),
         TestAction::inspect_context(|ctx| {
             register(
                 &[(
@@ -97,6 +97,7 @@ fn response_json() {
 #[test]
 fn response_bytes() {
     run_test_actions([
+        TestAction::harness(),
         TestAction::inspect_context(|ctx| {
             register(
                 &[("http://unit.test", Response::new(b"Hello World".to_vec()))],
@@ -124,6 +125,7 @@ fn response_bytes() {
 #[test]
 fn response_getter() {
     run_test_actions([
+        TestAction::harness(),
         TestAction::inspect_context(|ctx| {
             let mut response = Response::new(b"Hello World".to_vec());
             response

@@ -2,7 +2,7 @@
 
 use crate::fetch::request::JsRequest;
 use crate::fetch::response::JsResponse;
-use boa_engine::{Context, Finalize, JsData, JsResult, JsString, Trace, js_error};
+use boa_engine::{js_error, Context, Finalize, JsData, JsResult, JsString, Trace};
 use http::{Request, Response, Uri};
 use std::cell::RefCell;
 use std::collections::HashMap;
@@ -14,20 +14,6 @@ mod e2e;
 mod request;
 #[cfg(test)]
 mod response;
-
-#[cfg(test)]
-const ASSERT_DECL: &str = r"
-    function assert(cond, message) {
-        if (!cond) {
-            throw `AssertionError: ${message ? message + ', ' : ''}condition was falsy`;
-        }
-    }
-    function assertEq(lhs, rhs, message) {
-      if (lhs !== rhs) {
-        throw `AssertionError: ${message ? message + ', ' : ''}expected ${JSON.stringify(rhs)}, actual ${JSON.stringify(lhs)}`;
-      }
-    }
-";
 
 /// A [`crate::fetch::Fetcher`] implementation for tests. Maps a URL to a response,
 /// and record requests received for later use.

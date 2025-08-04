@@ -13,17 +13,17 @@
 //! [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/TypedArray
 
 use crate::{
-    Context, JsArgs, JsResult, JsString,
-    builtins::{BuiltInBuilder, BuiltInConstructor, BuiltInObject, IntrinsicObject},
-    context::intrinsics::{Intrinsics, StandardConstructor, StandardConstructors},
-    error::JsNativeError,
-    js_string,
-    object::{JsObject, internal_methods::get_prototype_from_constructor},
+    builtins::{BuiltInBuilder, BuiltInConstructor, BuiltInObject, IntrinsicObject}, context::intrinsics::{Intrinsics, StandardConstructor, StandardConstructors}, error::JsNativeError, js_string,
+    object::{internal_methods::get_prototype_from_constructor, JsObject},
     property::Attribute,
     realm::Realm,
     string::StaticJsStrings,
     symbol::JsSymbol,
     value::{JsValue, Numeric},
+    Context,
+    JsArgs,
+    JsResult,
+    JsString,
 };
 use boa_gc::{Finalize, Trace};
 
@@ -31,7 +31,7 @@ mod builtin;
 mod element;
 mod object;
 
-pub(crate) use builtin::{BuiltinTypedArray, is_valid_integer_index};
+pub(crate) use builtin::{is_valid_integer_index, BuiltinTypedArray};
 pub(crate) use element::{Atomic, ClampedU8, Element};
 pub use object::TypedArray;
 
@@ -338,17 +338,28 @@ pub(crate) enum ContentType {
 /// List of all typed array kinds.
 #[derive(Debug, Copy, Clone, Eq, PartialEq, Trace, Finalize)]
 #[boa_gc(empty_trace)]
-pub(crate) enum TypedArrayKind {
+pub enum TypedArrayKind {
+    /// 8-bit signed integers.
     Int8,
+    /// 8-bit unsigned integers.
     Uint8,
+    /// 8-bit unsigned integers clamped to 0–255.
     Uint8Clamped,
+    /// 16-bit signed integers.
     Int16,
+    /// 16-bit unsigned integers.
     Uint16,
+    /// 32-bit signed integers.
     Int32,
+    /// 32-bit unsigned integers.
     Uint32,
+    /// 64-bit signed integers in the platform byte order.
     BigInt64,
+    /// 64-bit unsigned integers in the platform byte order.
     BigUint64,
+    /// 32-bit floating point numbers in the platform byte order.
     Float32,
+    /// 64-bit floating point numbers in the platform byte order.
     Float64,
 }
 

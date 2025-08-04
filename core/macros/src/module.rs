@@ -1,5 +1,5 @@
 use crate::class::Function;
-use crate::utils::{RenameScheme, SpannedResult, error, take_name_value_string, take_path_attr};
+use crate::utils::{error, take_name_value_string, take_path_attr, RenameScheme, SpannedResult};
 use proc_macro::TokenStream;
 use proc_macro2::TokenStream as TokenStream2;
 use quote::quote;
@@ -231,6 +231,7 @@ fn module_impl_impl(_args: ModuleArguments, mut mod_: ItemMod) -> SpannedResult<
             boa_engine::js_string!( #export_name ),
         };
         original_module_decl = quote! {
+            #[allow(clippy::needless_pass_by_value)]
             #original_module_decl
 
             #[allow(unused)]

@@ -3,22 +3,22 @@
 use std::sync::atomic::Ordering;
 
 use crate::{
-    Context, JsNativeError, JsResult, JsString, JsValue,
-    builtins::array_buffer::BufferObject,
-    object::{
-        JsData, JsObject,
+    builtins::array_buffer::BufferObject, object::{
         internal_methods::{
+            ordinary_define_own_property, ordinary_delete, ordinary_get,
+            ordinary_get_own_property, ordinary_has_property, ordinary_set, ordinary_try_get,
             InternalMethodPropertyContext, InternalObjectMethods, ORDINARY_INTERNAL_METHODS,
-            ordinary_define_own_property, ordinary_delete, ordinary_get, ordinary_get_own_property,
-            ordinary_has_property, ordinary_set, ordinary_try_get,
-        },
-    },
-    property::{PropertyDescriptor, PropertyKey},
+        }, JsData,
+        JsObject,
+    }, property::{PropertyDescriptor, PropertyKey}, Context, JsNativeError,
+    JsResult,
+    JsString,
+    JsValue,
 };
 use boa_gc::{Finalize, Trace};
 use boa_macros::js_str;
 
-use super::{TypedArrayKind, is_valid_integer_index};
+use super::{is_valid_integer_index, TypedArrayKind};
 
 /// A `TypedArray` object is an exotic object that performs special handling of integer
 /// index property keys.
@@ -116,7 +116,7 @@ impl TypedArray {
     }
 
     /// Get the `TypedArray` object's typed array kind.
-    pub(crate) const fn kind(&self) -> TypedArrayKind {
+    pub const fn kind(&self) -> TypedArrayKind {
         self.kind
     }
 

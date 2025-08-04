@@ -1,13 +1,13 @@
 //! Rust API wrappers for the `TypedArray` Builtin ECMAScript Objects
 use crate::{
-    Context, JsResult, JsString, JsValue,
     builtins::{
-        BuiltInConstructor,
         typed_array::{BuiltinTypedArray, TypedArray, TypedArrayKind},
-    },
-    error::JsNativeError,
-    object::{JsArrayBuffer, JsFunction, JsObject},
-    value::{IntoOrUndefined, TryFromJs},
+        BuiltInConstructor,
+    }, error::JsNativeError, object::{JsArrayBuffer, JsFunction, JsObject}, value::{IntoOrUndefined, TryFromJs},
+    Context,
+    JsResult,
+    JsString,
+    JsValue,
 };
 use boa_gc::{Finalize, Trace};
 use std::ops::Deref;
@@ -34,6 +34,15 @@ impl JsTypedArray {
                 .with_message("object is not a TypedArray")
                 .into())
         }
+    }
+
+    /// Return the kind of typed array this is. This can be used in conjunction with
+    /// [`js_typed_array_from_kind`] to create a typed array of the same kind.
+    #[inline]
+    pub fn kind(&self) -> Option<TypedArrayKind> {
+        self.inner
+            .downcast_ref::<TypedArray>()
+            .map(|arr| arr.kind())
     }
 
     /// Get the length of the array.
@@ -1086,6 +1095,14 @@ JsTypedArrayType!(
     u8
 );
 JsTypedArrayType!(
+    JsUint8ClampedArray,
+    Uint8ClampedArray,
+    TypedArrayKind::Uint8Clamped,
+    typed_uint8clamped_array,
+    to_uint8_clamp,
+    u8
+);
+JsTypedArrayType!(
     JsInt8Array,
     Int8Array,
     TypedArrayKind::Int8,
@@ -1126,6 +1143,22 @@ JsTypedArrayType!(
     i32
 );
 JsTypedArrayType!(
+    JsBigInt64Array,
+    BigInt64Array,
+    TypedArrayKind::BigInt64,
+    typed_bigint64_array,
+    to_big_int64,
+    i64
+);
+JsTypedArrayType!(
+    JsBigUint64Array,
+    BigUint64Array,
+    TypedArrayKind::BigUint64,
+    typed_biguint64_array,
+    to_big_uint64,
+    u64
+);
+JsTypedArrayType!(
     JsFloat32Array,
     Float32Array,
     TypedArrayKind::Float32,
@@ -1141,6 +1174,38 @@ JsTypedArrayType!(
     to_number,
     f64
 );
+
+/// Create a [`JsTypedArray`] from a [`TypedArrayKind`] and a backing [`JsArrayBuffer`].
+#[inline]
+pub fn js_typed_array_from_kind(
+    kind: TypedArrayKind,
+    inner: JsArrayBuffer,
+    context: &mut Context,
+) -> JsResult<JsValue> {
+    match kind {
+        TypedArrayKind::Int8 => JsInt8Array::from_array_buffer(inner, context).map(Into::into),
+        TypedArrayKind::Uint8 => JsUint8Array::from_array_buffer(inner, context).map(Into::into),
+        TypedArrayKind::Uint8Clamped => {
+            JsUint8ClampedArray::from_array_buffer(inner, context).map(Into::into)
+        }
+        TypedArrayKind::Int16 => JsInt16Array::from_array_buffer(inner, context).map(Into::into),
+        TypedArrayKind::Uint16 => JsUint16Array::from_array_buffer(inner, context).map(Into::into),
+        TypedArrayKind::Int32 => JsInt32Array::from_array_buffer(inner, context).map(Into::into),
+        TypedArrayKind::Uint32 => JsUint32Array::from_array_buffer(inner, context).map(Into::into),
+        TypedArrayKind::BigInt64 => {
+            JsBigInt64Array::from_array_buffer(inner, context).map(Into::into)
+        }
+        TypedArrayKind::BigUint64 => {
+            JsBigUint64Array::from_array_buffer(inner, context).map(Into::into)
+        }
+        TypedArrayKind::Float32 => {
+            JsFloat32Array::from_array_buffer(inner, context).map(Into::into)
+        }
+        TypedArrayKind::Float64 => {
+            JsFloat64Array::from_array_buffer(inner, context).map(Into::into)
+        }
+    }
+}
 
 #[test]
 fn typed_iterators_uint8() {

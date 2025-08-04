@@ -22,23 +22,23 @@ pub use shared::SharedArrayBuffer;
 use std::sync::atomic::Ordering;
 
 use crate::{
-    Context, JsArgs, JsData, JsResult, JsString, JsValue,
-    builtins::BuiltInObject,
-    context::intrinsics::{Intrinsics, StandardConstructor, StandardConstructors},
-    error::JsNativeError,
-    js_string,
-    object::{JsObject, Object, internal_methods::get_prototype_from_constructor},
-    property::Attribute,
+    builtins::BuiltInObject, context::intrinsics::{Intrinsics, StandardConstructor, StandardConstructors}, error::JsNativeError, js_string, object::{internal_methods::get_prototype_from_constructor, JsObject, Object}, property::Attribute,
     realm::Realm,
     string::StaticJsStrings,
     symbol::JsSymbol,
+    Context,
+    JsArgs,
+    JsData,
+    JsResult,
+    JsString,
+    JsValue,
 };
 use boa_gc::{Finalize, GcRef, GcRefMut, Trace};
 
 use self::utils::{SliceRef, SliceRefMut};
 
 use super::{
-    Array, BuiltInBuilder, BuiltInConstructor, DataView, IntrinsicObject, typed_array::TypedArray,
+    typed_array::TypedArray, Array, BuiltInBuilder, BuiltInConstructor, DataView, IntrinsicObject,
 };
 
 #[derive(Debug, Clone, Copy)]
@@ -256,6 +256,11 @@ impl ArrayBuffer {
         } else {
             None
         }
+    }
+
+    /// Gets the underlying vector for this buffer.
+    pub fn data(&self) -> Option<&[u8]> {
+        self.data.as_deref()
     }
 
     /// Resizes the buffer to the new size, clamped to the maximum byte length if present.

@@ -13,8 +13,8 @@ use crate::fetch::response::JsResponse;
 use boa_engine::class::Class;
 use boa_engine::realm::Realm;
 use boa_engine::{
-    Context, Finalize, JsData, JsError, JsObject, JsResult, JsString, JsValue, NativeObject, Trace,
-    js_error,
+    js_error, Context, Finalize, JsData, JsError, JsObject, JsResult, JsString, JsValue, NativeObject,
+    Trace,
 };
 use boa_interop::boa_macros::boa_module;
 use either::Either;
@@ -143,10 +143,11 @@ async fn fetch_inner<T: Fetcher>(
     Ok(result.into())
 }
 
+/// JavaScript module containing the fetch types and functions.
 #[boa_module]
-mod js_module {
+pub mod js_module {
     use crate::fetch::request::RequestInit;
-    use crate::fetch::{Fetcher, fetch_inner};
+    use crate::fetch::{fetch_inner, Fetcher};
     use boa_engine::object::builtins::JsPromise;
     use boa_engine::{Context, JsObject, JsString};
     use either::Either;
