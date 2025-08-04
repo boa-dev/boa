@@ -3,6 +3,7 @@
 use crate::source::{ReadChar, UTF8Input};
 use boa_ast::{LinearPosition, Position, PositionGroup, SourceText};
 use std::io::{self, Error, ErrorKind};
+use arrayvec::ArrayVec;
 
 /// Cursor over the source code.
 #[derive(Debug)]
@@ -176,6 +177,34 @@ impl<R: ReadChar> Cursor<R> {
                 // next_is_pred will return false if the next value is None so the None case should already be handled.
                 unreachable!();
             }
+        }
+    }
+
+    /// Since it is known that there will not be more than 8 regex flags
+    /// Heap allocating a vector is not needed in that case
+    /// this is a varient of take_while_ascii_pred for use in that case
+    /// Thus this function allows finding the flags on the stack
+    pub(super) fn take_up_to_eight_alpha(&mut self, buf: &mut ArrayVec<u8, 8>) -> Result<(), Error>
+    {
+        while buf.len() < 8 {
+            if !self.next_is_ascii_pred(&char::is_alphabetic)? {
+                return Ok(());
+            } else if let Some(byte) = self.next_char()? {
+                println!("{:?}", byte);
+                #[allow(clippy::cast_possible_truncation)]
+                buf.push(byte as u8);
+            } else {
+                // next_is_pred will return false if the next value is None so the None case should already be handled.
+                unreachable!();
+            }
+        }
+        if self.next_is_ascii_pred(&char::is_alphabetic)? {
+            return Err(Error::new(
+                ErrorKind::Other,
+                format!("Expected no more than 8 flags."),
+            ));
+        } else {
+            return Ok(())
         }
     }
 

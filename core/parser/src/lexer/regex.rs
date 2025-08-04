@@ -8,6 +8,7 @@ use boa_interner::{Interner, Sym};
 use regress::{Flags, Regex};
 use std::fmt::{Display, Write};
 use std::str::{self, FromStr};
+use arrayvec::ArrayVec;
 
 /// Regex literal lexing.
 ///
@@ -36,6 +37,7 @@ impl RegexLiteral {
 }
 
 impl<R> Tokenizer<R> for RegexLiteral {
+    // Lex Regular Expression Body
     fn lex(
         &mut self,
         cursor: &mut Cursor<R>,
@@ -52,7 +54,6 @@ impl<R> Tokenizer<R> for RegexLiteral {
 
         let mut is_class_char = false;
 
-        // Lex RegularExpressionBody.
         loop {
             let next_char = cursor.next_char()?;
             if next_char.is_none() {
@@ -116,10 +117,18 @@ impl<R> Tokenizer<R> for RegexLiteral {
                 _ => body.push(b),
             }
         }
-
-        let mut flags = Vec::new();
+        let mut flags = ArrayVec::<_, 8>::new();
         let flags_start = cursor.pos();
-        cursor.take_while_ascii_pred(&mut flags, &char::is_alphabetic)?;
+        match cursor.take_up_to_eight_alpha(&mut flags) {
+            Err(error) => {
+                return Err(Error::syntax(
+                        format!("Invalid regular expression literal: {error}"),
+                        start_pos,
+                ));
+            }
+            Ok(_) => {},
+        }
+
 
         // SAFETY: We have already checked that the bytes are valid UTF-8.
         let flags_str = unsafe { str::from_utf8_unchecked(flags.as_slice()) };
@@ -144,18 +153,18 @@ impl<R> Tokenizer<R> for RegexLiteral {
 
         if let Err(error) = Regex::from_unicode(body.into_iter(), flags_str) {
             return Err(Error::syntax(
-                format!("Invalid regular expression literal: {error}"),
-                start_pos,
+                    format!("Invalid regular expression literal: {error}"),
+                    start_pos,
             ));
         }
 
         Ok(Token::new_by_position_group(
-            TokenKind::regular_expression_literal(
-                interner.get_or_intern(body_utf16.as_slice()),
-                parse_regex_flags(flags_str, flags_start, interner)?,
-            ),
-            start_pos,
-            cursor.pos_group(),
+                TokenKind::regular_expression_literal(
+                    interner.get_or_intern(body_utf16.as_slice()),
+                    parse_regex_flags(flags_str, flags_start, interner)?,
+                ),
+                start_pos,
+                cursor.pos_group(),
         ))
     }
 }

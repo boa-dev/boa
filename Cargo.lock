@@ -518,6 +518,7 @@ dependencies = [
 name = "boa_parser"
 version = "0.20.0"
 dependencies = [
+ "arrayvec",
  "bitflags 2.9.1",
  "boa_ast",
  "boa_interner",
