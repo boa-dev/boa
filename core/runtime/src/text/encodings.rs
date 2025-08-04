@@ -75,7 +75,7 @@ pub(crate) mod utf16be {
 
         // Swap the bytes.
         for b in &mut *input {
-            *b = *b >> 8 | (*b & 0xFF) << 8;
+            *b = b.swap_bytes();
         }
 
         if dangling {
