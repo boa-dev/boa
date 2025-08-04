@@ -1,6 +1,6 @@
 pub(crate) mod utf8 {
-    use boa_engine::JsString;
     use boa_engine::string::CodePoint;
+    use boa_engine::JsString;
 
     pub(crate) fn encode(input: &JsString) -> Vec<u8> {
         input
@@ -19,12 +19,14 @@ pub(crate) mod utf8 {
 }
 
 pub(crate) mod utf16le {
-    use boa_engine::{JsString, js_string};
+    use boa_engine::string::JsStrVariant;
+    use boa_engine::{js_string, JsString};
 
     pub(crate) fn encode(input: &JsString) -> Vec<u8> {
-        let bytes = input.as_str().to_vec();
-        let bytes = bytes.as_slice();
-        bytemuck::cast_slice(bytes).to_vec()
+        match input.as_str().variant() {
+            JsStrVariant::Latin1(l) => l.iter().flat_map(|c| [*c, 0]).collect(),
+            JsStrVariant::Utf16(s) => bytemuck::cast_slice(s).to_vec(),
+        }
     }
 
     pub(crate) fn decode(mut input: &[u8]) -> JsString {
@@ -39,7 +41,7 @@ pub(crate) mod utf16le {
         let input: &[u16] = bytemuck::cast_slice(input);
 
         if dangling {
-            JsString::from(&[JsString::from(input), js_string!("\u{fffd}")])
+            JsString::from(&[JsString::from(input), js_string!("\u{FFFD}")])
         } else {
             JsString::from(input)
         }
@@ -47,17 +49,14 @@ pub(crate) mod utf16le {
 }
 
 pub(crate) mod utf16be {
-    use boa_engine::{JsString, js_string};
+    use boa_engine::string::JsStrVariant;
+    use boa_engine::{js_string, JsString};
 
     pub(crate) fn encode(input: &JsString) -> Vec<u8> {
-        let mut bytes = input.as_str().to_vec();
-
-        // Swap the bytes.
-        for b in bytes.as_mut_slice() {
-            *b = b.swap_bytes();
+        match input.as_str().variant() {
+            JsStrVariant::Latin1(l) => l.iter().flat_map(|c| [0, *c]).collect(),
+            JsStrVariant::Utf16(s) => s.iter().flat_map(|b| b.to_be_bytes()).collect::<Vec<_>>(),
         }
-
-        bytemuck::cast_slice(bytes.as_mut_slice()).to_vec()
     }
 
     pub(crate) fn decode(mut input: Vec<u8>) -> JsString {
@@ -79,7 +78,7 @@ pub(crate) mod utf16be {
         }
 
         if dangling {
-            JsString::from(&[JsString::from(&*input), js_string!("\u{fffd}")])
+            JsString::from(&[JsString::from(&*input), js_string!("\u{FFFD}")])
         } else {
             JsString::from(&*input)
         }
