@@ -1,6 +1,6 @@
 pub(crate) mod utf8 {
-    use boa_engine::string::CodePoint;
     use boa_engine::JsString;
+    use boa_engine::string::CodePoint;
 
     pub(crate) fn encode(input: &JsString) -> Vec<u8> {
         input
@@ -20,7 +20,7 @@ pub(crate) mod utf8 {
 
 pub(crate) mod utf16le {
     use boa_engine::string::JsStrVariant;
-    use boa_engine::{js_string, JsString};
+    use boa_engine::{JsString, js_string};
 
     pub(crate) fn encode(input: &JsString) -> Vec<u8> {
         match input.as_str().variant() {
@@ -50,7 +50,7 @@ pub(crate) mod utf16le {
 
 pub(crate) mod utf16be {
     use boa_engine::string::JsStrVariant;
-    use boa_engine::{js_string, JsString};
+    use boa_engine::{JsString, js_string};
 
     pub(crate) fn encode(input: &JsString) -> Vec<u8> {
         match input.as_str().variant() {
