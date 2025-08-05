@@ -137,6 +137,10 @@ macro_rules! atomic_op {
                     | TypedArrayElement::Float64(_) => unreachable!(
                         "must have been filtered out by the call to `validate_integer_typed_array`"
                     ),
+                    #[cfg(feature = "float16")]
+                    TypedArrayElement::Float16(_) => unreachable!(
+                        "must have been filtered out by the call to `validate_integer_typed_array`"
+                    ),
                 }
             };
 
@@ -331,6 +335,10 @@ impl Atomics {
                 TypedArrayKind::Uint8Clamped
                 | TypedArrayKind::Float32
                 | TypedArrayKind::Float64 => unreachable!(
+                    "must have been filtered out by the call to `validate_integer_typed_array`"
+                ),
+                #[cfg(feature = "float16")]
+                TypedArrayKind::Float16 => unreachable!(
                     "must have been filtered out by the call to `validate_integer_typed_array`"
                 ),
             }

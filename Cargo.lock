@@ -367,6 +367,7 @@ dependencies = [
  "float-cmp",
  "futures-lite 2.6.1",
  "getrandom 0.3.3",
+ "half",
  "hashbrown 0.15.4",
  "iana-time-zone",
  "icu_calendar",

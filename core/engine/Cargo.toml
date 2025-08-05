@@ -72,6 +72,9 @@ experimental = ["temporal"]
 # Enable binding to JS APIs for system related utilities.
 js = ["dep:web-time", "dep:getrandom"]
 
+# Enable support for Float16 typed arrays
+float16 = ["dep:half"]
+
 # Native Backtraces
 native-backtrace = []
 
@@ -85,6 +88,7 @@ boa_parser.workspace = true
 boa_string.workspace = true
 cow-utils.workspace = true
 futures-lite.workspace = true
+half = { version = "2.6", optional = true }
 serde = { workspace = true, features = ["derive", "rc"] }
 serde_json.workspace = true
 rand.workspace = true

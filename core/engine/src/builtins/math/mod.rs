@@ -29,7 +29,7 @@ pub(crate) struct Math;
 impl IntrinsicObject for Math {
     fn init(realm: &Realm) {
         let attribute = Attribute::READONLY | Attribute::NON_ENUMERABLE | Attribute::PERMANENT;
-        BuiltInBuilder::with_intrinsic::<Self>(realm)
+        let builder = BuiltInBuilder::with_intrinsic::<Self>(realm)
             .static_property(js_string!("E"), std::f64::consts::E, attribute)
             .static_property(js_string!("LN10"), std::f64::consts::LN_10, attribute)
             .static_property(js_string!("LN2"), std::f64::consts::LN_2, attribute)
@@ -81,8 +81,12 @@ impl IntrinsicObject for Math {
                 JsSymbol::to_string_tag(),
                 Self::NAME,
                 Attribute::READONLY | Attribute::NON_ENUMERABLE | Attribute::CONFIGURABLE,
-            )
-            .build();
+            );
+
+        #[cfg(feature = "float16")]
+        let builder = builder.static_method(Self::f16round, js_string!("f16round"), 1);
+
+        builder.build();
     }
 
     fn get(intrinsics: &Intrinsics) -> JsObject {
@@ -445,6 +449,35 @@ impl Math {
             // 5. Return the greatest (closest to +∞) integral Number value that is not greater than n.
             .floor()
             .into())
+    }
+
+    /// The `Math.f16round()` static method returns the nearest 16-bit half precision
+    /// float representation of a number.
+    ///
+    /// More information:
+    ///  - [ECMAScript reference][spec]
+    ///  - [MDN documentation][mdn]
+    ///
+    /// [spec]: https://tc39.es/ecma262/#sec-math.round
+    /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Math/f16round
+    #[allow(clippy::float_cmp)]
+    #[cfg(feature = "float16")]
+    pub(crate) fn f16round(
+        _: &JsValue,
+        args: &[JsValue],
+        context: &mut Context,
+    ) -> JsResult<JsValue> {
+        let num = args
+            .get_or_undefined(0)
+            //1. Let n be ? ToNumber(x).
+            .to_number(context)?;
+
+        // 2. If n is NaN, return NaN.
+        // 3. If n is one of +0𝔽, -0𝔽, +∞𝔽, or -∞𝔽, return n.
+        // 4. Let n16 be the result of converting n to IEEE 754-2019 binary16 format using roundTiesToEven mode.
+        // 5. Let n64 be the result of converting n16 to IEEE 754-2019 binary64 format.
+        // 6. Return the ECMAScript Number value corresponding to n64.
+        Ok(half::f16::from_f64(num).to_f64().into())
     }
 
     /// Get the nearest 32-bit single precision float representation of a number.

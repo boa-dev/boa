@@ -19,7 +19,6 @@ features = [
     "regexp-duplicate-named-groups",
     "RegExp.escape",
     "iterator-helpers",
-    "Float16Array",
     "explicit-resource-management",
 
     ### Pending proposals
