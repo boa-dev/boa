@@ -9,7 +9,6 @@
 //!
 //! [spec]: https://url.spec.whatwg.org/
 //! [mdn]: https://developer.mozilla.org/en-US/docs/Web/API/URL
-#![cfg(feature = "url")]
 #![allow(clippy::needless_pass_by_value)]
 
 #[cfg(test)]
@@ -18,7 +17,7 @@ mod tests;
 use boa_engine::class::{Class, ClassBuilder};
 use boa_engine::realm::Realm;
 use boa_engine::value::Convert;
-use boa_engine::{Context, Finalize, JsData, JsResult, JsString, JsValue, Trace, js_error};
+use boa_engine::{js_error, Context, Finalize, JsData, JsResult, JsString, JsValue, Trace};
 use boa_interop::boa_macros::boa_class;
 use std::fmt::Display;
 

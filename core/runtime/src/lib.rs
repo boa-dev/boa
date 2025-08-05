@@ -110,15 +110,12 @@ pub mod console;
 #[doc(inline)]
 pub use console::{Console, ConsoleState, DefaultLogger, Logger, NullLogger};
 
-mod text;
-
-#[doc(inline)]
-pub use text::{TextDecoder, TextEncoder};
-
 #[cfg(feature = "fetch")]
 pub mod fetch;
 pub mod interval;
 pub mod microtask;
+pub mod text;
+#[cfg(feature = "url")]
 pub mod url;
 
 pub mod extensions;
@@ -168,7 +165,7 @@ pub fn register_extensions(
 pub(crate) mod test {
     use crate::extensions::ConsoleExtension;
     use crate::register;
-    use boa_engine::{Context, JsResult, JsValue, Source, builtins};
+    use boa_engine::{builtins, Context, JsResult, JsValue, Source};
     use std::borrow::Cow;
 
     /// A test action executed in a test function.

@@ -1,4 +1,4 @@
-//! Module for the register extensions type.
+//! This module contains all the Runtime extensions that can be registered.
 
 use crate::{DefaultLogger, Logger};
 use boa_engine::realm::Realm;
@@ -42,9 +42,8 @@ impl RuntimeExtension for MicrotaskExtension {
 pub struct EncodingExtension;
 
 impl RuntimeExtension for EncodingExtension {
-    fn register(self, _realm: Option<Realm>, context: &mut Context) -> JsResult<()> {
-        crate::TextDecoder::register(context)?;
-        crate::TextEncoder::register(context)?;
+    fn register(self, realm: Option<Realm>, context: &mut Context) -> JsResult<()> {
+        crate::text::register(realm, context)?;
         Ok(())
     }
 }
