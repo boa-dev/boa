@@ -211,6 +211,7 @@ pub(crate) mod test {
     }
 
     impl TestAction {
+        #[allow(unused)]
         pub(crate) fn harness() -> Self {
             Self(Inner::RunHarness)
         }
