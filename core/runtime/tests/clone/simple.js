@@ -1,7 +1,7 @@
 // From https://developer.mozilla.org/en-US/docs/Web/API/Window/structuredClone#description
 
 // Create an object with a value and a circular reference to itself.
-const original = {name: "MDN"};
+const original = { name: "MDN" };
 original.itself = original;
 
 // Clone it

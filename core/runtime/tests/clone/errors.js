@@ -1,4 +1,3 @@
 assertThrows(() => {
-    structuredClone(() => {
-    });
-})
+  structuredClone(() => {});
+});

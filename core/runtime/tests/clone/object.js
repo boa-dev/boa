@@ -1,7 +1,7 @@
 // https://developer.mozilla.org/en-US/docs/Web/API/Window/structuredClone#cloning_an_object
 
 const mushrooms1 = {
-    amanita: ["muscaria", "virosa"],
+  amanita: ["muscaria", "virosa"],
 };
 
 const mushrooms2 = structuredClone(mushrooms1);
