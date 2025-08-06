@@ -49,10 +49,6 @@ features = [
     # https://github.com/tc39/proposal-arraybuffer-base64
     "uint8array-base64",
 
-    # Time Zone Canonicalization
-    # https://github.com/tc39/proposal-canonical-tz
-    "canonical-tz",
-
     # Upsert
     # https://github.com/tc39/proposal-upsert
     "upsert",
@@ -75,5 +71,5 @@ tests = [
     "test/staging/sm/regress/regress-554955-2.js",
     "test/staging/sm/class/fields-static-class-name-binding-eval.js",
     "test/staging/sm/regress/regress-554955-1.js",
-    "test/staging/sm/regress/regress-554955-3.js"
+    "test/staging/sm/regress/regress-554955-3.js",
 ]
