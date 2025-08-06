@@ -969,8 +969,8 @@ impl JsValue {
 
     /// Converts a value to a 16-bit floating point.
     #[cfg(feature = "float16")]
-    pub fn to_f16(&self, context: &mut Context) -> JsResult<half::f16> {
-        self.to_number(context).map(half::f16::from_f64)
+    pub fn to_f16(&self, context: &mut Context) -> JsResult<float16::f16> {
+        self.to_number(context).map(float16::f16::from_f64)
     }
 
     /// Converts a value to a 32 bit floating point.

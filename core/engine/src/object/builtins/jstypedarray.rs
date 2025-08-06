@@ -1140,7 +1140,7 @@ JsTypedArrayType!(
     TypedArrayKind::Float16,
     typed_float16_array,
     to_f16,
-    half::f16
+    float16::f16
 );
 JsTypedArrayType!(
     JsFloat32Array,

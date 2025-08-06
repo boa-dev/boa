@@ -190,7 +190,7 @@ impl From<ClampedU8> for Numeric {
 #[cfg(feature = "float16")]
 #[derive(Debug, Clone, Copy, PartialEq, PartialOrd)]
 #[repr(transparent)]
-pub(crate) struct Float16(pub(crate) half::f16);
+pub(crate) struct Float16(pub(crate) float16::f16);
 
 #[cfg(feature = "float16")]
 impl From<Float16> for Numeric {
@@ -362,10 +362,10 @@ element!(
     Float16,
     AtomicU16,
     from_js: |value: &JsValue, context| value.to_f16(context).map(Float16),
-    from_plain: |a: u16| Float16(half::f16::from_bits(a)),
+    from_plain: |a: u16| Float16(float16::f16::from_bits(a)),
     to_plain: |f: Float16| f.0.to_bits(),
-    to_be: |this: Float16| Float16(half::f16::from_bits(this.0.to_bits().to_be())),
-    to_le: |this: Float16| Float16(half::f16::from_bits(this.0.to_bits().to_le())),
+    to_be: |this: Float16| Float16(float16::f16::from_bits(this.0.to_bits().to_be())),
+    to_le: |this: Float16| Float16(float16::f16::from_bits(this.0.to_bits().to_le())),
 );
 
 element!(

@@ -477,7 +477,7 @@ impl Math {
         // 4. Let n16 be the result of converting n to IEEE 754-2019 binary16 format using roundTiesToEven mode.
         // 5. Let n64 be the result of converting n16 to IEEE 754-2019 binary64 format.
         // 6. Return the ECMAScript Number value corresponding to n64.
-        Ok(half::f16::from_f64(num).to_f64().into())
+        Ok(float16::f16::from_f64(num).to_f64().into())
     }
 
     /// Get the nearest 32-bit single precision float representation of a number.
