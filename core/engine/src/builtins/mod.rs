@@ -240,6 +240,8 @@ impl Realm {
         Uint32Array::init(self);
         BigInt64Array::init(self);
         BigUint64Array::init(self);
+        #[cfg(feature = "float16")]
+        typed_array::Float16Array::init(self);
         Float32Array::init(self);
         Float64Array::init(self);
         Symbol::init(self);
@@ -371,6 +373,8 @@ pub(crate) fn set_default_global_bindings(context: &mut Context) -> JsResult<()>
     global_binding::<Uint32Array>(context)?;
     global_binding::<BigInt64Array>(context)?;
     global_binding::<BigUint64Array>(context)?;
+    #[cfg(feature = "float16")]
+    global_binding::<typed_array::Float16Array>(context)?;
     global_binding::<Float32Array>(context)?;
     global_binding::<Float64Array>(context)?;
     global_binding::<Symbol>(context)?;

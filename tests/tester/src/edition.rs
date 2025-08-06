@@ -163,6 +163,7 @@ static FEATURE_EDITION: phf::Map<&'static str, SpecEdition> = phf::phf_map! {
     "const" => SpecEdition::ES6,
     "cross-realm" => SpecEdition::ES6,
     "DataView" => SpecEdition::ES6,
+    "DataView.prototype.getFloat16" => SpecEdition::ES6,
     "DataView.prototype.getFloat32" => SpecEdition::ES6,
     "DataView.prototype.getFloat64" => SpecEdition::ES6,
     "DataView.prototype.getInt16" => SpecEdition::ES6,

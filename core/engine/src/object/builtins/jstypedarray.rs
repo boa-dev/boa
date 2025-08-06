@@ -1143,6 +1143,15 @@ JsTypedArrayType!(
     to_i32,
     i32
 );
+#[cfg(feature = "float16")]
+JsTypedArrayType!(
+    JsFloat16Array,
+    Float16Array,
+    TypedArrayKind::Float16,
+    typed_float16_array,
+    to_f16,
+    float16::f16
+);
 JsTypedArrayType!(
     JsBigInt64Array,
     BigInt64Array,
@@ -1198,6 +1207,10 @@ pub fn js_typed_array_from_kind(
         }
         TypedArrayKind::BigUint64 => {
             JsBigUint64Array::from_array_buffer(inner, context).map(Into::into)
+        }
+        #[cfg(feature = "float16")]
+        TypedArrayKind::Float16 => {
+            JsFloat16Array::from_array_buffer(inner, context).map(Into::into)
         }
         TypedArrayKind::Float32 => {
             JsFloat32Array::from_array_buffer(inner, context).map(Into::into)

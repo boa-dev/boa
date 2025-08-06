@@ -32,6 +32,8 @@ mod element;
 mod object;
 
 pub(crate) use builtin::{BuiltinTypedArray, is_valid_integer_index};
+#[cfg(feature = "float16")]
+pub(crate) use element::Float16;
 pub(crate) use element::{Atomic, ClampedU8, Element};
 pub use object::TypedArray;
 
@@ -310,6 +312,18 @@ impl TypedArrayMarker for BigUint64Array {
 
 /// JavaScript `Float32Array` built-in implementation.
 #[derive(Debug, Copy, Clone)]
+#[cfg(feature = "float16")]
+pub struct Float16Array;
+
+#[cfg(feature = "float16")]
+impl TypedArrayMarker for Float16Array {
+    type Element = Float16;
+
+    const ERASED: TypedArrayKind = TypedArrayKind::Float16;
+}
+
+/// JavaScript `Float32Array` built-in implementation.
+#[derive(Debug, Copy, Clone)]
 pub struct Float32Array;
 
 impl TypedArrayMarker for Float32Array {
@@ -357,6 +371,9 @@ pub enum TypedArrayKind {
     BigInt64,
     /// 64-bit unsigned integers in the platform byte order.
     BigUint64,
+    /// 16-bit floating point numbers in the platform byte order.
+    #[cfg(feature = "float16")]
+    Float16,
     /// 32-bit floating point numbers in the platform byte order.
     Float32,
     /// 64-bit floating point numbers in the platform byte order.
@@ -376,6 +393,8 @@ impl TypedArrayKind {
             TypedArrayKind::Uint32 => StaticJsStrings::UINT32_ARRAY,
             TypedArrayKind::BigInt64 => StaticJsStrings::BIG_INT64_ARRAY,
             TypedArrayKind::BigUint64 => StaticJsStrings::BIG_UINT64_ARRAY,
+            #[cfg(feature = "float16")]
+            TypedArrayKind::Float16 => StaticJsStrings::FLOAT16_ARRAY,
             TypedArrayKind::Float32 => StaticJsStrings::FLOAT32_ARRAY,
             TypedArrayKind::Float64 => StaticJsStrings::FLOAT64_ARRAY,
         }
@@ -393,6 +412,8 @@ impl TypedArrayKind {
             TypedArrayKind::Uint32 => "Uint32",
             TypedArrayKind::BigInt64 => "BigInt64",
             TypedArrayKind::BigUint64 => "BigUint64",
+            #[cfg(feature = "float16")]
+            TypedArrayKind::Float16 => "Float16",
             TypedArrayKind::Float32 => "Float32",
             TypedArrayKind::Float64 => "Float64",
         }
@@ -412,6 +433,8 @@ impl TypedArrayKind {
             TypedArrayKind::Uint32 => StandardConstructors::typed_uint32_array,
             TypedArrayKind::BigInt64 => StandardConstructors::typed_bigint64_array,
             TypedArrayKind::BigUint64 => StandardConstructors::typed_biguint64_array,
+            #[cfg(feature = "float16")]
+            TypedArrayKind::Float16 => StandardConstructors::typed_float16_array,
             TypedArrayKind::Float32 => StandardConstructors::typed_float32_array,
             TypedArrayKind::Float64 => StandardConstructors::typed_float64_array,
         }
@@ -437,6 +460,8 @@ impl TypedArrayKind {
             TypedArrayKind::Uint8Clamped | TypedArrayKind::Float32 | TypedArrayKind::Float64 => {
                 false
             }
+            #[cfg(feature = "float16")]
+            TypedArrayKind::Float16 => false,
         }
     }
 
@@ -447,6 +472,8 @@ impl TypedArrayKind {
                 size_of::<u8>() as u64
             }
             TypedArrayKind::Int16 | TypedArrayKind::Uint16 => size_of::<u16>() as u64,
+            #[cfg(feature = "float16")]
+            TypedArrayKind::Float16 => size_of::<u16>() as u64,
             TypedArrayKind::Int32 | TypedArrayKind::Uint32 | TypedArrayKind::Float32 => {
                 size_of::<u32>() as u64
             }
@@ -469,6 +496,8 @@ impl TypedArrayKind {
             | TypedArrayKind::Uint32
             | TypedArrayKind::Float32
             | TypedArrayKind::Float64 => ContentType::Number,
+            #[cfg(feature = "float16")]
+            TypedArrayKind::Float16 => ContentType::Number,
         }
     }
 
@@ -494,6 +523,10 @@ impl TypedArrayKind {
             TypedArrayKind::BigUint64 => value
                 .to_big_uint64(context)
                 .map(TypedArrayElement::BigUint64),
+            #[cfg(feature = "float16")]
+            TypedArrayKind::Float16 => value
+                .to_f16(context)
+                .map(|f| TypedArrayElement::Float16(Float16(f))),
             TypedArrayKind::Float32 => value
                 .to_number(context)
                 .map(|f| TypedArrayElement::Float32(f as f32)),
@@ -514,6 +547,8 @@ pub(crate) enum TypedArrayElement {
     Uint32(u32),
     BigInt64(i64),
     BigUint64(u64),
+    #[cfg(feature = "float16")]
+    Float16(Float16),
     Float32(f32),
     Float64(f64),
 }
@@ -535,6 +570,8 @@ impl TypedArrayElement {
             TypedArrayElement::Uint32(num) => num as u64,
             TypedArrayElement::BigInt64(num) => num as u64,
             TypedArrayElement::BigUint64(num) => num,
+            #[cfg(feature = "float16")]
+            TypedArrayElement::Float16(num) => num.0.to_bits() as u64,
             TypedArrayElement::Float32(num) => num.to_bits() as u64,
             TypedArrayElement::Float64(num) => num.to_bits(),
         }
@@ -595,6 +632,13 @@ impl From<u64> for TypedArrayElement {
     }
 }
 
+#[cfg(feature = "float16")]
+impl From<Float16> for TypedArrayElement {
+    fn from(value: Float16) -> Self {
+        Self::Float16(value)
+    }
+}
+
 impl From<f32> for TypedArrayElement {
     fn from(value: f32) -> Self {
         Self::Float32(value)
@@ -619,6 +663,8 @@ impl From<TypedArrayElement> for JsValue {
             TypedArrayElement::Uint32(value) => Numeric::from(value),
             TypedArrayElement::BigInt64(value) => Numeric::from(value),
             TypedArrayElement::BigUint64(value) => Numeric::from(value),
+            #[cfg(feature = "float16")]
+            TypedArrayElement::Float16(value) => Numeric::from(value),
             TypedArrayElement::Float32(value) => Numeric::from(value),
             TypedArrayElement::Float64(value) => Numeric::from(value),
         }

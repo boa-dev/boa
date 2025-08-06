@@ -186,6 +186,33 @@ impl From<ClampedU8> for Numeric {
     }
 }
 
+/// A 16-bit float implementing missing traits from the inner `f16`,
+/// used for [`Float16Array`][super::Float16Array].
+#[cfg(feature = "float16")]
+#[derive(Debug, Clone, Copy, PartialEq, PartialOrd)]
+#[repr(transparent)]
+pub(crate) struct Float16(pub(crate) float16::f16);
+
+#[cfg(feature = "float16")]
+impl From<Float16> for Numeric {
+    fn from(value: Float16) -> Self {
+        Numeric::Number(value.0.into())
+    }
+}
+
+#[cfg(feature = "float16")]
+impl std::hash::Hash for Float16 {
+    fn hash<H: std::hash::Hasher>(&self, state: &mut H) {
+        state.write(self.0.to_le_bytes().as_ref());
+    }
+}
+
+#[cfg(feature = "float16")]
+unsafe impl bytemuck::Zeroable for Float16 {}
+
+#[cfg(feature = "float16")]
+unsafe impl bytemuck::Pod for Float16 {}
+
 /// A native element that can be inside a `TypedArray`.
 pub(crate) trait Element:
     Sized + Into<TypedArrayElement> + NoUninit + AnyBitPattern
@@ -329,6 +356,17 @@ element!(
     to_plain: |c: ClampedU8| c.0,
     to_be: |this: ClampedU8| this.to_be(),
     to_le: |this: ClampedU8| this.to_le(),
+);
+
+#[cfg(feature = "float16")]
+element!(
+    Float16,
+    AtomicU16,
+    from_js: |value: &JsValue, context| value.to_f16(context).map(Float16),
+    from_plain: |a: u16| Float16(float16::f16::from_bits(a)),
+    to_plain: |f: Float16| f.0.to_bits(),
+    to_be: |this: Float16| Float16(float16::f16::from_bits(this.0.to_bits().to_be())),
+    to_le: |this: Float16| Float16(float16::f16::from_bits(this.0.to_bits().to_le())),
 );
 
 element!(

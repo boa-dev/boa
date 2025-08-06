@@ -2,16 +2,15 @@
 //!
 //! Javascript values, utility methods and conversion between Javascript values and Rust values.
 
+use num_bigint::BigInt;
+use num_integer::Integer;
+use num_traits::{ToPrimitive, Zero};
 use std::{
     collections::HashSet,
     fmt::{self, Display},
     ops::Sub,
     sync::LazyLock,
 };
-
-use num_bigint::BigInt;
-use num_integer::Integer;
-use num_traits::{ToPrimitive, Zero};
 
 use boa_gc::{Finalize, Trace};
 #[doc(inline)]
@@ -966,6 +965,12 @@ impl JsValue {
                 primitive.to_number(context)
             }
         }
+    }
+
+    /// Converts a value to a 16-bit floating point.
+    #[cfg(feature = "float16")]
+    pub fn to_f16(&self, context: &mut Context) -> JsResult<float16::f16> {
+        self.to_number(context).map(float16::f16::from_f64)
     }
 
     /// Converts a value to a 32 bit floating point.

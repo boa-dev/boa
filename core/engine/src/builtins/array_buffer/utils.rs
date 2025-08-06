@@ -128,6 +128,10 @@ impl SliceRef<'_> {
                 TypedArrayKind::Uint32 => read_elem::<u32>(buffer, order).into(),
                 TypedArrayKind::BigInt64 => read_elem::<i64>(buffer, order).into(),
                 TypedArrayKind::BigUint64 => read_elem::<u64>(buffer, order).into(),
+                #[cfg(feature = "float16")]
+                TypedArrayKind::Float16 => {
+                    read_elem::<crate::builtins::typed_array::Float16>(buffer, order).into()
+                }
                 TypedArrayKind::Float32 => read_elem::<f32>(buffer, order).into(),
                 TypedArrayKind::Float64 => read_elem::<f64>(buffer, order).into(),
             }
@@ -322,6 +326,8 @@ impl SliceRefMut<'_> {
                 TypedArrayElement::Uint32(e) => write_elem(buffer, e, order),
                 TypedArrayElement::BigInt64(e) => write_elem(buffer, e, order),
                 TypedArrayElement::BigUint64(e) => write_elem(buffer, e, order),
+                #[cfg(feature = "float16")]
+                TypedArrayElement::Float16(e) => write_elem(buffer, e, order),
                 TypedArrayElement::Float32(e) => write_elem(buffer, e, order),
                 TypedArrayElement::Float64(e) => write_elem(buffer, e, order),
             }

@@ -158,6 +158,8 @@ pub struct StandardConstructors {
     typed_uint32_array: StandardConstructor,
     typed_bigint64_array: StandardConstructor,
     typed_biguint64_array: StandardConstructor,
+    #[cfg(feature = "float16")]
+    typed_float16_array: StandardConstructor,
     typed_float32_array: StandardConstructor,
     typed_float64_array: StandardConstructor,
     array_buffer: StandardConstructor,
@@ -250,6 +252,8 @@ impl Default for StandardConstructors {
             typed_uint32_array: StandardConstructor::default(),
             typed_bigint64_array: StandardConstructor::default(),
             typed_biguint64_array: StandardConstructor::default(),
+            #[cfg(feature = "float16")]
+            typed_float16_array: StandardConstructor::default(),
             typed_float32_array: StandardConstructor::default(),
             typed_float64_array: StandardConstructor::default(),
             array_buffer: StandardConstructor::default(),
@@ -703,6 +707,19 @@ impl StandardConstructors {
     #[must_use]
     pub const fn typed_biguint64_array(&self) -> &StandardConstructor {
         &self.typed_biguint64_array
+    }
+
+    /// Returns the `Float16Array` constructor.
+    ///
+    /// More information:
+    ///  - [ECMAScript reference][spec]
+    ///
+    /// [spec]: https://tc39.es/ecma262/#sec-typedarray-constructors
+    #[cfg(feature = "float16")]
+    #[inline]
+    #[must_use]
+    pub const fn typed_float16_array(&self) -> &StandardConstructor {
+        &self.typed_float16_array
     }
 
     /// Returns the `Float32Array` constructor.
