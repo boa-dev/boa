@@ -1,6 +1,6 @@
 use super::TestFetcher;
-use crate::test::{run_test_actions, TestAction};
-use boa_engine::{js_str, Context};
+use crate::test::{TestAction, run_test_actions};
+use boa_engine::{Context, js_str};
 use http::{Response, Uri};
 
 fn register(responses: &[(&'static str, Response<Vec<u8>>)], ctx: &mut Context) {

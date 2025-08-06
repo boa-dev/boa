@@ -22,23 +22,23 @@ pub use shared::SharedArrayBuffer;
 use std::sync::atomic::Ordering;
 
 use crate::{
-    builtins::BuiltInObject, context::intrinsics::{Intrinsics, StandardConstructor, StandardConstructors}, error::JsNativeError, js_string, object::{internal_methods::get_prototype_from_constructor, JsObject, Object}, property::Attribute,
+    Context, JsArgs, JsData, JsResult, JsString, JsValue,
+    builtins::BuiltInObject,
+    context::intrinsics::{Intrinsics, StandardConstructor, StandardConstructors},
+    error::JsNativeError,
+    js_string,
+    object::{JsObject, Object, internal_methods::get_prototype_from_constructor},
+    property::Attribute,
     realm::Realm,
     string::StaticJsStrings,
     symbol::JsSymbol,
-    Context,
-    JsArgs,
-    JsData,
-    JsResult,
-    JsString,
-    JsValue,
 };
 use boa_gc::{Finalize, GcRef, GcRefMut, Trace};
 
 use self::utils::{SliceRef, SliceRefMut};
 
 use super::{
-    typed_array::TypedArray, Array, BuiltInBuilder, BuiltInConstructor, DataView, IntrinsicObject,
+    Array, BuiltInBuilder, BuiltInConstructor, DataView, IntrinsicObject, typed_array::TypedArray,
 };
 
 #[derive(Debug, Clone, Copy)]

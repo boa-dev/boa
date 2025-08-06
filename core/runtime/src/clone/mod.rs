@@ -7,7 +7,7 @@ use boa_engine::builtins::array_buffer::ArrayBuffer;
 use boa_engine::object::builtins::{JsArray, JsArrayBuffer, JsTypedArray, JsUint8Array};
 use boa_engine::realm::Realm;
 use boa_engine::value::TryFromJs;
-use boa_engine::{js_error, Context, JsError, JsObject, JsResult, JsValue};
+use boa_engine::{Context, JsError, JsObject, JsResult, JsValue, js_error};
 use boa_interop::boa_macros::boa_module;
 use std::collections::HashMap;
 
@@ -93,6 +93,7 @@ fn clone_array_buffer(buffer: JsArrayBuffer, context: &mut Context) -> JsResult<
 }
 
 fn clone_typed_array(buffer: JsTypedArray, context: &mut Context) -> JsResult<JsValue> {
+    let kind = buffer.kind().ok_or_else(unsupported_type)?;
     let dolly = {
         let buffer = buffer
             .buffer(context)?
@@ -104,7 +105,7 @@ fn clone_typed_array(buffer: JsTypedArray, context: &mut Context) -> JsResult<Js
         let data = buffer.data().ok_or_else(unsupported_type)?;
         JsArrayBuffer::from_byte_block(data.to_vec(), context)?
     };
-    JsUint8Array::from_array_buffer(dolly, context).map(|a| a.into())
+    boa_engine::object::builtins::js_typed_array_from_kind(kind, dolly, context)
 }
 
 fn clone_object(
@@ -128,7 +129,6 @@ fn clone_object(
     }
     if let Ok(typed_array) = JsTypedArray::from_object(object.clone()) {
         let v = clone_typed_array(typed_array, context)?;
-        eprintln!("inserting {v:?}");
         seen.insert(value.clone(), v.clone());
         return Ok(v);
     }
@@ -146,7 +146,6 @@ fn clone_object(
     let keys = object.own_property_keys(context)?;
     for k in keys {
         let value = object.get(k.clone(), context)?;
-        eprintln!("{k} => {value:?}");
         let v = structured_clone_inner(&value, options, seen, context)?;
         dolly.set(k, v, true, context)?;
     }
@@ -172,7 +171,6 @@ fn structured_clone_inner(
 
     // Have we seen this object? If so, return its clone.
     if let Some(o2) = seen.get(value) {
-        eprintln!("seen? {:?}", seen.get(value));
         return Ok(o2.clone());
     }
 

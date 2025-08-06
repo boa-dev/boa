@@ -13,17 +13,17 @@
 //! [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/TypedArray
 
 use crate::{
-    builtins::{BuiltInBuilder, BuiltInConstructor, BuiltInObject, IntrinsicObject}, context::intrinsics::{Intrinsics, StandardConstructor, StandardConstructors}, error::JsNativeError, js_string,
-    object::{internal_methods::get_prototype_from_constructor, JsObject},
+    Context, JsArgs, JsResult, JsString,
+    builtins::{BuiltInBuilder, BuiltInConstructor, BuiltInObject, IntrinsicObject},
+    context::intrinsics::{Intrinsics, StandardConstructor, StandardConstructors},
+    error::JsNativeError,
+    js_string,
+    object::{JsObject, internal_methods::get_prototype_from_constructor},
     property::Attribute,
     realm::Realm,
     string::StaticJsStrings,
     symbol::JsSymbol,
     value::{JsValue, Numeric},
-    Context,
-    JsArgs,
-    JsResult,
-    JsString,
 };
 use boa_gc::{Finalize, Trace};
 
@@ -31,7 +31,7 @@ mod builtin;
 mod element;
 mod object;
 
-pub(crate) use builtin::{is_valid_integer_index, BuiltinTypedArray};
+pub(crate) use builtin::{BuiltinTypedArray, is_valid_integer_index};
 pub(crate) use element::{Atomic, ClampedU8, Element};
 pub use object::TypedArray;
 

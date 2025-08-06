@@ -1,9 +1,7 @@
 use crate::fetch::request::JsRequest;
 use crate::fetch::response::JsResponse;
-use crate::test::{run_test_actions, TestAction};
-use boa_engine::{
-    js_error, js_str, Context, Finalize, JsData, JsError, JsResult, JsString, Trace,
-};
+use crate::test::{TestAction, run_test_actions};
+use boa_engine::{Context, Finalize, JsData, JsError, JsResult, JsString, Trace, js_error, js_str};
 use http::Response;
 use std::cell::RefCell;
 use std::collections::BTreeMap;

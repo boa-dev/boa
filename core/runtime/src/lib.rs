@@ -164,7 +164,7 @@ pub fn register_extensions(
 pub(crate) mod test {
     use crate::extensions::ConsoleExtension;
     use crate::register;
-    use boa_engine::{builtins, Context, JsError, JsResult, JsValue, Source};
+    use boa_engine::{Context, JsError, JsResult, JsValue, Source, builtins};
     use std::borrow::Cow;
     use std::path::{Path, PathBuf};
 

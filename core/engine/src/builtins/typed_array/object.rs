@@ -3,22 +3,22 @@
 use std::sync::atomic::Ordering;
 
 use crate::{
-    builtins::array_buffer::BufferObject, object::{
+    Context, JsNativeError, JsResult, JsString, JsValue,
+    builtins::array_buffer::BufferObject,
+    object::{
+        JsData, JsObject,
         internal_methods::{
-            ordinary_define_own_property, ordinary_delete, ordinary_get,
-            ordinary_get_own_property, ordinary_has_property, ordinary_set, ordinary_try_get,
             InternalMethodPropertyContext, InternalObjectMethods, ORDINARY_INTERNAL_METHODS,
-        }, JsData,
-        JsObject,
-    }, property::{PropertyDescriptor, PropertyKey}, Context, JsNativeError,
-    JsResult,
-    JsString,
-    JsValue,
+            ordinary_define_own_property, ordinary_delete, ordinary_get, ordinary_get_own_property,
+            ordinary_has_property, ordinary_set, ordinary_try_get,
+        },
+    },
+    property::{PropertyDescriptor, PropertyKey},
 };
 use boa_gc::{Finalize, Trace};
 use boa_macros::js_str;
 
-use super::{is_valid_integer_index, TypedArrayKind};
+use super::{TypedArrayKind, is_valid_integer_index};
 
 /// A `TypedArray` object is an exotic object that performs special handling of integer
 /// index property keys.

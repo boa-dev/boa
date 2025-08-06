@@ -2,7 +2,7 @@
 
 use crate::fetch::request::JsRequest;
 use crate::fetch::response::JsResponse;
-use boa_engine::{js_error, Context, Finalize, JsData, JsResult, JsString, Trace};
+use boa_engine::{Context, Finalize, JsData, JsResult, JsString, Trace, js_error};
 use http::{Request, Response, Uri};
 use std::cell::RefCell;
 use std::collections::HashMap;
