@@ -2289,7 +2289,7 @@ pub(crate) fn to_zoned_date_time_fields(
                 .get(js_string!("timeZone"), context)?
                 .map(|v| to_temporal_timezone_identifier(v, context))
                 .transpose()?;
-            if zdt_fields_type == ZdtFieldsType::TimeZoneRequired {
+            if zdt_fields_type == ZdtFieldsType::TimeZoneRequired && time_zone.is_none() {
                 return Err(JsNativeError::typ()
                     .with_message("timeZone is required to construct ZonedDateTime.")
                     .into());
