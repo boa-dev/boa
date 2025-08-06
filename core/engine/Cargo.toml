@@ -12,6 +12,8 @@ repository.workspace = true
 rust-version.workspace = true
 
 [features]
+default = ["float16"]
+
 # Replace the NaN-boxing implementation of `JsValueInner` with an
 # enum-based implementation. This implementation is less performant
 # but compatible with more platforms.
