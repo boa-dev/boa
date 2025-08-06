@@ -109,7 +109,7 @@ impl IntrinsicObject for DataView {
             .name(js_string!("get byteOffset"))
             .build();
 
-        BuiltInBuilder::from_standard_constructor::<Self>(realm)
+        let builder = BuiltInBuilder::from_standard_constructor::<Self>(realm)
             .accessor(
                 js_string!("buffer"),
                 Some(get_buffer),
@@ -152,8 +152,14 @@ impl IntrinsicObject for DataView {
                 JsSymbol::to_string_tag(),
                 Self::NAME,
                 Attribute::READONLY | Attribute::NON_ENUMERABLE | Attribute::CONFIGURABLE,
-            )
-            .build();
+            );
+
+        #[cfg(feature = "float16")]
+        let builder = builder
+            .method(Self::get_float16, js_string!("getFloat16"), 1)
+            .method(Self::set_float16, js_string!("setFloat16"), 2);
+
+        builder.build();
     }
 
     fn get(intrinsics: &Intrinsics) -> JsObject {
@@ -557,7 +563,31 @@ impl DataView {
         Self::get_view_value::<u64>(this, byte_offset, is_little_endian, context)
     }
 
-    /// `DataView.prototype.getBigUint64 ( byteOffset [ , littleEndian ] )`
+    /// `DataView.prototype.getFloat16 ( byteOffset [ , littleEndian ] )`
+    ///
+    /// The `getFloat16()` method gets a signed 16-bit float (float) at the specified byte offset
+    /// from the start of the `DataView`.
+    ///
+    /// More information:
+    ///  - [ECMAScript reference][spec]
+    ///  - [MDN][mdn]
+    ///
+    /// [spec]: https://tc39.es/ecma262/#sec-dataview.prototype.getfloat16
+    /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/DataView/getFloat16
+    #[cfg(feature = "float16")]
+    pub(crate) fn get_float16(
+        this: &JsValue,
+        args: &[JsValue],
+        context: &mut Context,
+    ) -> JsResult<JsValue> {
+        let byte_offset = args.get_or_undefined(0);
+        let is_little_endian = args.get_or_undefined(1);
+        // 1. Let v be the this value.
+        // 2. Return ? GetViewValue(v, byteOffset, littleEndian, BigInt64).
+        Self::get_view_value::<typed_array::Float16>(this, byte_offset, is_little_endian, context)
+    }
+
+    /// `DataView.prototype.getFloat32 ( byteOffset [ , littleEndian ] )`
     ///
     /// The `getFloat32()` method gets a signed 32-bit float (float) at the specified byte offset
     /// from the start of the `DataView`.
@@ -879,6 +909,37 @@ impl DataView {
         // 1. Let v be the this value.
         // 2. Return ? SetViewValue(v, byteOffset, littleEndian, BigUint64, value).
         Self::set_view_value::<u64>(this, byte_offset, is_little_endian, value, context)
+    }
+
+    /// `DataView.prototype.setFloat16 ( byteOffset, value [ , littleEndian ] )`
+    ///
+    /// The `setFloat16()` method stores a signed 16-bit float (float) value at the specified byte
+    /// offset from the start of the `DataView`.
+    ///
+    /// More information:
+    ///  - [ECMAScript reference][spec]
+    ///  - [MDN][mdn]
+    ///
+    /// [spec]: https://tc39.es/ecma262/#sec-dataview.prototype.setfloat16
+    /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/DataView/setFloat16
+    #[cfg(feature = "float16")]
+    pub(crate) fn set_float16(
+        this: &JsValue,
+        args: &[JsValue],
+        context: &mut Context,
+    ) -> JsResult<JsValue> {
+        let byte_offset = args.get_or_undefined(0);
+        let value = args.get_or_undefined(1);
+        let is_little_endian = args.get_or_undefined(2);
+        // 1. Let v be the this value.
+        // 2. Return ? SetViewValue(v, byteOffset, littleEndian, Float32, value).
+        Self::set_view_value::<typed_array::Float16>(
+            this,
+            byte_offset,
+            is_little_endian,
+            value,
+            context,
+        )
     }
 
     /// `DataView.prototype.setFloat32 ( byteOffset, value [ , littleEndian ] )`

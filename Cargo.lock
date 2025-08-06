@@ -365,6 +365,7 @@ dependencies = [
  "fast-float2",
  "fixed_decimal",
  "float-cmp",
+ "float16",
  "futures-lite 2.6.1",
  "getrandom 0.3.3",
  "hashbrown 0.15.4",
@@ -685,7 +686,7 @@ checksum = "dd5eb614ed4c27c5d706420e4320fbe3216ab31fa1c33cd8246ac36dae4479ba"
 dependencies = [
  "camino",
  "cargo-platform",
- "semver",
+ "semver 1.0.26",
  "serde",
  "serde_json",
  "thiserror",
@@ -1381,6 +1382,16 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "b09cf3155332e944990140d967ff5eceb70df778b34f77d8075db46e4704e6d8"
 dependencies = [
  "num-traits",
+]
+
+[[package]]
+name = "float16"
+version = "0.1.3"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "85eb1bdc9979a09caeacb8528039f7a957f8209234e2c21395dd4abd601cd739"
+dependencies = [
+ "cfg-if",
+ "rustc_version",
 ]
 
 [[package]]
@@ -3465,6 +3476,15 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "357703d41365b4b27c590e3ed91eabb1b663f07c4c084095e60cbed4362dff0d"
 
 [[package]]
+name = "rustc_version"
+version = "0.2.3"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "138e3e0acb6c9fb258b19b67cb8abd63c00679d2851805ea151465464fe9030a"
+dependencies = [
+ "semver 0.9.0",
+]
+
+[[package]]
 name = "rustix"
 version = "0.38.44"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -3648,12 +3668,27 @@ dependencies = [
 
 [[package]]
 name = "semver"
+version = "0.9.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "1d7eb9ef2c18661902cc47e535f9bc51b78acd254da71d375c2f6720d9a40403"
+dependencies = [
+ "semver-parser",
+]
+
+[[package]]
+name = "semver"
 version = "1.0.26"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "56e6fa9c48d24d85fb3de5ad847117517440f6beceb7798af16b4a87d616b8d0"
 dependencies = [
  "serde",
 ]
+
+[[package]]
+name = "semver-parser"
+version = "0.7.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "388a1df253eca08550bef6c72392cfe7c30914bf41df5269b68cbd6ff8f570a3"
 
 [[package]]
 name = "serde"
@@ -4830,7 +4865,7 @@ checksum = "161296c618fa2d63f6ed5fffd1112937e803cb9ec71b32b01a76321555660917"
 dependencies = [
  "bitflags 2.9.1",
  "indexmap",
- "semver",
+ "semver 1.0.26",
 ]
 
 [[package]]

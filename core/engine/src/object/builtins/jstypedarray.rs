@@ -1086,6 +1086,14 @@ JsTypedArrayType!(
     u8
 );
 JsTypedArrayType!(
+    JsUint8ClampedArray,
+    Uint8ClampedArray,
+    TypedArrayKind::Uint8Clamped,
+    typed_uint8clamped_array,
+    to_uint8_clamp,
+    u8
+);
+JsTypedArrayType!(
     JsInt8Array,
     Int8Array,
     TypedArrayKind::Int8,
@@ -1124,6 +1132,15 @@ JsTypedArrayType!(
     typed_int32_array,
     to_i32,
     i32
+);
+#[cfg(feature = "float16")]
+JsTypedArrayType!(
+    JsFloat16Array,
+    Float16Array,
+    TypedArrayKind::Float16,
+    typed_float16_array,
+    to_f16,
+    float16::f16
 );
 JsTypedArrayType!(
     JsFloat32Array,
