@@ -141,7 +141,7 @@ impl Entry {
     }
 }
 
-/// The Path and type of [`Source`]. This applies to functions and objects.
+/// The Path and type of [`boa_engine::Source`]. This applies to functions and objects.
 #[derive(Debug, Default, Clone, PartialEq, Eq)]
 pub enum SourcePath {
     /// There was no source associated with this call.
