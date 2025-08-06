@@ -3,10 +3,9 @@
 //! This module will provides everything needed to implement the `CallFrame`
 
 use super::ActiveRunnable;
-use crate::vm::source_info::SourcePath;
 use crate::{
     JsValue, builtins::iterable::IteratorRecord, environments::EnvironmentStack, realm::Realm,
-    vm::CodeBlock,
+    vm::CodeBlock, vm::SourcePath,
 };
 use boa_ast::Position;
 use boa_ast::scope::BindingLocator;
