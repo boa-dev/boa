@@ -81,7 +81,7 @@ impl CallFrame {
         &self.code_block
     }
 
-    /// Retrieves a tuple of `(`[JsString]`, `[SourcePath]`, `[`Position`]`)` to know the
+    /// Retrieves a tuple of `(`[`JsString`]`, `[`SourcePath`]`, `[`Position`]`)` to know the
     /// location of the call frame.
     #[inline]
     #[must_use]
