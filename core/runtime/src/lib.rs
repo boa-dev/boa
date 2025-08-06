@@ -120,7 +120,7 @@ pub mod fetch;
 
 pub mod extensions;
 
-use crate::extensions::{EncodingExtension, TimeoutExtension};
+use crate::extensions::{EncodingExtension, StructuredCloneExtension, TimeoutExtension};
 pub use extensions::RuntimeExtension;
 
 /// Register all the built-in objects and functions of the `WebAPI` runtime, plus
@@ -136,6 +136,7 @@ pub fn register(
     (
         TimeoutExtension,
         EncodingExtension,
+        StructuredCloneExtension,
         #[cfg(feature = "url")]
         extensions::UrlExtension,
         extensions,
