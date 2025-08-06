@@ -142,7 +142,7 @@ impl Entry {
 }
 
 #[derive(Debug, Default, Clone, PartialEq, Eq)]
-pub(crate) enum SourcePath {
+pub enum SourcePath {
     #[default]
     None,
     // TODO: Could add more information, like path in which the eval is located.
