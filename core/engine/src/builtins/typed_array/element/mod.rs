@@ -186,7 +186,8 @@ impl From<ClampedU8> for Numeric {
     }
 }
 
-/// An `u8` that clamps instead of overflowing when converting from a `JsValue`.
+/// A 16-bit float implementing missing traits from the inner `f16`,
+/// used for [`Float16Array`][super::Float16Array].
 #[cfg(feature = "float16")]
 #[derive(Debug, Clone, Copy, PartialEq, PartialOrd)]
 #[repr(transparent)]
