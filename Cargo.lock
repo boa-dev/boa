@@ -1834,9 +1834,9 @@ dependencies = [
 
 [[package]]
 name = "icu_calendar"
-version = "2.0.2"
+version = "2.0.3"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "b7a6ed1ea995a24dff839bc5ca4471ce2fa18ba14d8b09061c2527a46a1c6079"
+checksum = "8e239d6422e2fdcea5d9756b48400caabac25aa4ab91b6608bd4bb6f23f0558c"
 dependencies = [
  "calendrical_calculations",
  "databake",
@@ -4028,9 +4028,9 @@ dependencies = [
 
 [[package]]
 name = "temporal_rs"
-version = "0.0.11"
+version = "0.0.12"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "7807e330b12e288b847a3e2a2b0dcd41ca764d0f90f9e8940f02c6ddd68cd2d7"
+checksum = "dcd01e4b1d98e5d846523404ef2385ae1d37dcf61046d881d9401b23e4820386"
 dependencies = [
  "combine",
  "core_maths",
@@ -4175,9 +4175,9 @@ dependencies = [
 
 [[package]]
 name = "timezone_provider"
-version = "0.0.11"
+version = "0.0.12"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "1d1fc912f1a2ced7bc0cfed255b2ab58cdcf8df442f11bc02c8f3b9245588d4c"
+checksum = "712d45c4f715eebee4896f69dbbac86cbbb8bf594832000cc209d923936cfb4a"
 dependencies = [
  "tinystr",
  "zerotrie",

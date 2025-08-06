@@ -21,8 +21,10 @@ use crate::{
     value::IntoOrUndefined,
 };
 use boa_gc::{Finalize, Trace};
+use icu_calendar::AnyCalendarKind;
 use temporal_rs::{
     Calendar, MonthCode, PlainDate as InnerDate, TinyAsciiStr,
+    fields::CalendarFields,
     options::{ArithmeticOverflow, DisplayCalendar},
     partial::PartialDate,
 };
@@ -528,7 +530,7 @@ impl PlainDate {
                 .into());
         };
 
-        Ok(date.inner.day_of_week()?.into())
+        Ok(date.inner.day_of_week().into())
     }
 
     /// 3.3.11 get `Temporal.PlainDate.prototype.dayOfYear`
@@ -628,7 +630,7 @@ impl PlainDate {
                 .into());
         };
 
-        Ok(date.inner.days_in_week()?.into())
+        Ok(date.inner.days_in_week().into())
     }
 
     /// 3.3.15 get `Temporal.PlainDate.prototype.daysInMonth`
@@ -949,16 +951,15 @@ impl PlainDate {
         // 5. Let fields be ISODateToFields(calendar, temporalDate.[[ISODate]], date).
         // 6. Let partialDate be ? PrepareCalendarFields(calendar, temporalDateLike, « year, month, month-code, day », « », partial).
         // 7. Set fields to CalendarMergeFields(calendar, fields, partialDate).
-        // 8. Let resolvedOptions be ? GetOptionsObject(options).
-        // 9. Let overflow be ? GetTemporalOverflowOption(resolvedOptions).
-        let partial =
-            to_partial_date_record(&partial_object, date.inner.calendar().clone(), context)?;
+        let fields = to_calendar_fields(&partial_object, date.inner.calendar(), context)?;
 
+        // 8. Let resolvedOptions be ? GetOptionsObject(options).
         let options = get_options_object(args.get_or_undefined(1))?;
+        // 9. Let overflow be ? GetTemporalOverflowOption(resolvedOptions).
         let overflow = get_option::<ArithmeticOverflow>(&options, js_string!("overflow"), context)?;
 
         // 10. Return ? CalendarDateFromFields(calendarRec, fields, resolvedOptions).
-        let resolved_date = date.inner.with(partial, overflow)?;
+        let resolved_date = date.inner.with(fields, overflow)?;
         create_temporal_date(resolved_date, None, context).map(Into::into)
     }
 
@@ -1352,10 +1353,10 @@ pub(crate) fn to_temporal_date(
             // ii. Return ! CreateTemporalDate(item.[[ISOYear]], item.[[ISOMonth]], item.[[ISODay]], item.[[Calendar]]).
             return Ok(date);
         }
+        // NOTE: d. is called in to_partial_date_record
         // d. Let calendar be ? GetTemporalCalendarIdentifierWithISODefault(item).
-        let calendar = get_temporal_calendar_slot_value_with_default(&object, context)?;
         // e. Let fields be ? PrepareCalendarFields(calendar, item, « year, month, month-code, day », «», «»).
-        let partial = to_partial_date_record(&object, calendar, context)?;
+        let partial = to_partial_date_record(&object, context)?;
         // f. Let resolvedOptions be ? GetOptionsObject(options).
         let resolved_options = get_options_object(&options)?;
         // g. Let overflow be ? GetTemporalOverflowOption(resolvedOptions).
@@ -1397,12 +1398,23 @@ pub(crate) fn to_temporal_date(
 // TODO: For order of operations, `to_partial_date_record` may need to take a `Option<Calendar>` arg.
 pub(crate) fn to_partial_date_record(
     partial_object: &JsObject,
-    calendar: Calendar,
     context: &mut Context,
 ) -> JsResult<PartialDate> {
-    // let calendar = get_temporal_calendar_slot_value_with_default(partial_object, context)?;
+    let calendar = get_temporal_calendar_slot_value_with_default(partial_object, context)?;
     // TODO: Most likely need to use an iterator to handle.
-    let day = partial_object
+    let calendar_fields = to_calendar_fields(partial_object, &calendar, context)?;
+    Ok(PartialDate {
+        calendar_fields,
+        calendar,
+    })
+}
+
+pub(crate) fn to_calendar_fields(
+    obj: &JsObject,
+    calendar: &Calendar,
+    context: &mut Context,
+) -> JsResult<CalendarFields> {
+    let day = obj
         .get(js_string!("day"), context)?
         .map(|v| {
             let finite = v.to_finitef64(context)?;
@@ -1412,10 +1424,13 @@ pub(crate) fn to_partial_date_record(
         })
         .transpose()?;
     // TODO: `temporal_rs` needs a `has_era` method
-    let (era, era_year) = if calendar == Calendar::default() {
+    let has_no_era = calendar.kind() == AnyCalendarKind::Iso
+        || calendar.kind() == AnyCalendarKind::Chinese
+        || calendar.kind() == AnyCalendarKind::Dangi;
+    let (era, era_year) = if has_no_era {
         (None, None)
     } else {
-        let era = partial_object
+        let era = obj
             .get(js_string!("era"), context)?
             .map(|v| {
                 let v = v.to_primitive(context, crate::value::PreferredType::String)?;
@@ -1430,7 +1445,7 @@ pub(crate) fn to_partial_date_record(
                     .map_err(|e| JsError::from(JsNativeError::range().with_message(e.to_string())))
             })
             .transpose()?;
-        let era_year = partial_object
+        let era_year = obj
             .get(js_string!("eraYear"), context)?
             .map(|v| {
                 let finite = v.to_finitef64(context)?;
@@ -1439,7 +1454,7 @@ pub(crate) fn to_partial_date_record(
             .transpose()?;
         (era, era_year)
     };
-    let month = partial_object
+    let month = obj
         .get(js_string!("month"), context)?
         .map(|v| {
             let finite = v.to_finitef64(context)?;
@@ -1448,7 +1463,7 @@ pub(crate) fn to_partial_date_record(
                 .map_err(JsError::from)
         })
         .transpose()?;
-    let month_code = partial_object
+    let month_code = obj
         .get(js_string!("monthCode"), context)?
         .map(|v| {
             let v = v.to_primitive(context, crate::value::PreferredType::String)?;
@@ -1460,20 +1475,19 @@ pub(crate) fn to_partial_date_record(
             MonthCode::from_str(&month_code.to_std_string_escaped()).map_err(JsError::from)
         })
         .transpose()?;
-    let year = partial_object
+    let year = obj
         .get(js_string!("year"), context)?
         .map(|v| {
             let finite = v.to_finitef64(context)?;
             Ok::<i32, JsError>(finite.as_integer_with_truncation::<i32>())
         })
         .transpose()?;
-    Ok(PartialDate {
+    Ok(CalendarFields {
         year,
         month,
         month_code,
         day,
         era,
         era_year,
-        calendar,
     })
 }

@@ -8,10 +8,7 @@ use crate::{
     builtins::{
         BuiltInBuilder, BuiltInConstructor, BuiltInObject, IntrinsicObject,
         options::{get_option, get_options_object},
-        temporal::{
-            calendar::to_temporal_calendar_identifier, to_partial_date_record,
-            to_partial_time_record,
-        },
+        temporal::calendar::to_temporal_calendar_identifier,
     },
     context::intrinsics::{Intrinsics, StandardConstructor, StandardConstructors},
     js_string,
@@ -26,13 +23,15 @@ use boa_gc::{Finalize, Trace};
 #[cfg(test)]
 mod tests;
 
+use icu_calendar::AnyCalendarKind;
 use temporal_rs::{
     Calendar, MonthCode, PlainDateTime as InnerDateTime, TinyAsciiStr,
+    fields::{CalendarFields, DateTimeFields},
     options::{
         ArithmeticOverflow, Disambiguation, DisplayCalendar, RoundingIncrement, RoundingMode,
         RoundingOptions, ToStringRoundingOptions, Unit,
     },
-    partial::{PartialDate, PartialDateTime, PartialTime},
+    partial::{PartialDateTime, PartialTime},
 };
 
 use super::{
@@ -818,7 +817,7 @@ impl PlainDateTime {
                 JsNativeError::typ().with_message("the this object must be a PlainDateTime object.")
             })?;
 
-        Ok(dt.inner.day_of_week()?.into())
+        Ok(dt.inner.day_of_week().into())
     }
 
     /// 5.3.17 get `Temporal.PlainDateTime.prototype.dayOfYear`
@@ -910,7 +909,7 @@ impl PlainDateTime {
                 JsNativeError::typ().with_message("the this object must be a PlainDateTime object.")
             })?;
 
-        Ok(dt.inner.days_in_week()?.into())
+        Ok(dt.inner.days_in_week().into())
     }
 
     /// 5.3.21 get `Temporal.PlainDateTime.prototype.daysInMonth`
@@ -1082,6 +1081,8 @@ impl PlainDateTime {
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Temporal/PlainDateTime/with
     /// [temporal_rs-docs]: https://docs.rs/temporal_rs/latest/temporal_rs/struct.PlainDateTime.html#method.with
     fn with(this: &JsValue, args: &[JsValue], context: &mut Context) -> JsResult<JsValue> {
+        // 1. Let plainDateTime be the this value.
+        // 2. Perform ? RequireInternalSlot(plainDateTime, [[InitializedTemporalDateTime]]).
         let object = this.as_object();
         let dt = object
             .as_ref()
@@ -1090,6 +1091,7 @@ impl PlainDateTime {
                 JsNativeError::typ().with_message("the this object must be a PlainDateTime object.")
             })?;
 
+        // 3. If ? IsPartialTemporalObject(temporalDateTimeLike) is false, throw a TypeError exception.
         let Some(partial_object) =
             super::is_partial_temporal_object(args.get_or_undefined(0), context)?
         else {
@@ -1097,17 +1099,25 @@ impl PlainDateTime {
                 .with_message("with object was not a PartialTemporalObject.")
                 .into());
         };
-
-        let date = to_partial_date_record(&partial_object, dt.inner.calendar().clone(), context)?;
-        let time = to_partial_time_record(&partial_object, context)?;
-
-        let partial_dt = PartialDateTime { date, time };
-
+        // 4. Let calendar be plainDateTime.[[Calendar]].
+        // 5. Let fields be ISODateToFields(calendar, plainDateTime.[[ISODateTime]].[[ISODate]], date).
+        // 6. Set fields.[[Hour]] to plainDateTime.[[ISODateTime]].[[Time]].[[Hour]].
+        // 7. Set fields.[[Minute]] to plainDateTime.[[ISODateTime]].[[Time]].[[Minute]].
+        // 8. Set fields.[[Second]] to plainDateTime.[[ISODateTime]].[[Time]].[[Second]].
+        // 9. Set fields.[[Millisecond]] to plainDateTime.[[ISODateTime]].[[Time]].[[Millisecond]].
+        // 10. Set fields.[[Microsecond]] to plainDateTime.[[ISODateTime]].[[Time]].[[Microsecond]].
+        // 11. Set fields.[[Nanosecond]] to plainDateTime.[[ISODateTime]].[[Time]].[[Nanosecond]].
+        // 12. Let partialDateTime be ? PrepareCalendarFields(calendar, temporalDateTimeLike, « year, month, month-code, day », « hour, minute, second, millisecond, microsecond, nanosecond », partial).
+        // 13. Set fields to CalendarMergeFields(calendar, fields, partialDateTime).
+        let fields = to_date_time_fields(&partial_object, dt.inner.calendar(), context)?;
+        // 14. Let resolvedOptions be ? GetOptionsObject(options).
         let options = get_options_object(args.get_or_undefined(1))?;
+        // 15. Let overflow be ? GetTemporalOverflowOption(resolvedOptions).
         let overflow = get_option::<ArithmeticOverflow>(&options, js_string!("overflow"), context)?;
 
-        create_temporal_datetime(dt.inner.with(partial_dt, overflow)?, None, context)
-            .map(Into::into)
+        // 16. Let result be ? InterpretTemporalDateTimeFields(calendar, fields, overflow).
+        // 17. Return ? CreateTemporalDateTime(result, calendar).
+        create_temporal_datetime(dt.inner.with(fields, overflow)?, None, context).map(Into::into)
     }
 
     /// 5.3.26 Temporal.PlainDateTime.prototype.withPlainTime ( `[ plainTimeLike ]` )
@@ -1734,6 +1744,15 @@ fn to_partial_datetime(
     context: &mut Context,
 ) -> JsResult<PartialDateTime> {
     let calendar = get_temporal_calendar_slot_value_with_default(partial_object, context)?;
+    let fields = to_date_time_fields(partial_object, &calendar, context)?;
+    Ok(PartialDateTime { fields, calendar })
+}
+
+fn to_date_time_fields(
+    partial_object: &JsObject,
+    calendar: &Calendar,
+    context: &mut Context,
+) -> JsResult<DateTimeFields> {
     let day = partial_object
         .get(js_string!("day"), context)?
         .map(|v| {
@@ -1751,7 +1770,10 @@ fn to_partial_datetime(
         })
         .transpose()?;
     // TODO: `temporal_rs` needs a `has_era` method
-    let (era, era_year) = if calendar == Calendar::default() {
+    let has_no_era = calendar.kind() == AnyCalendarKind::Iso
+        || calendar.kind() == AnyCalendarKind::Chinese
+        || calendar.kind() == AnyCalendarKind::Dangi;
+    let (era, era_year) = if has_no_era {
         (None, None)
     } else {
         let era = partial_object
@@ -1849,16 +1871,14 @@ fn to_partial_datetime(
         })
         .transpose()?;
 
-    let date = PartialDate {
+    let calendar_fields = CalendarFields {
         year,
         month,
         month_code,
         day,
         era,
         era_year,
-        calendar,
     };
-
     let time = PartialTime {
         hour,
         minute,
@@ -1868,5 +1888,8 @@ fn to_partial_datetime(
         nanosecond,
     };
 
-    Ok(PartialDateTime { date, time })
+    Ok(DateTimeFields {
+        calendar_fields,
+        time,
+    })
 }

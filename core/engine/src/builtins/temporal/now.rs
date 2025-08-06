@@ -92,7 +92,7 @@ impl Now {
     /// [spec]: https://tc39.es/proposal-temporal/#sec-temporal.now.instant
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Temporal/Now/instant
     fn instant(_: &JsValue, _: &[JsValue], context: &mut Context) -> JsResult<JsValue> {
-        let epoch_nanos = system_nanoseconds(context)?;
+        let epoch_nanos = system_nanoseconds(context);
         create_temporal_instant(Instant::from(epoch_nanos), None, context)
     }
 
@@ -203,14 +203,12 @@ impl Now {
 fn build_now(context: &mut Context) -> JsResult<NowInner> {
     Ok(NowBuilder::default()
         .with_system_zone(system_time_zone(context)?)
-        .with_system_nanoseconds(system_nanoseconds(context)?)
+        .with_system_nanoseconds(system_nanoseconds(context))
         .build())
 }
 
-fn system_nanoseconds(context: &mut Context) -> JsResult<EpochNanoseconds> {
-    Ok(EpochNanoseconds::try_from(
-        context.clock().now().nanos_since_epoch(),
-    )?)
+fn system_nanoseconds(context: &mut Context) -> EpochNanoseconds {
+    EpochNanoseconds::from(context.clock().now().nanos_since_epoch() as i128)
 }
 
 // TODO: this should be moved to the context.

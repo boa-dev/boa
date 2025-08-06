@@ -30,17 +30,21 @@ pub use self::{
 
 use crate::{
     Context, JsNativeError, JsObject, JsResult, JsString, JsSymbol, JsValue,
-    builtins::{BuiltInBuilder, BuiltInObject, IntrinsicObject},
+    builtins::{
+        BuiltInBuilder, BuiltInObject, IntrinsicObject,
+        temporal::calendar::get_temporal_calendar_slot_value_with_default,
+    },
     context::intrinsics::Intrinsics,
     js_string,
     property::Attribute,
     realm::Realm,
     string::StaticJsStrings,
 };
-use temporal_rs::options::RelativeTo;
 use temporal_rs::{
-    PlainDate as TemporalDate, ZonedDateTime as TemporalZonedDateTime, primitive::FiniteF64,
+    PlainDate as TemporalDate, ZonedDateTime as TemporalZonedDateTime,
+    partial::PartialZonedDateTime, primitive::FiniteF64,
 };
+use temporal_rs::{options::RelativeTo, partial::PartialDate};
 
 // An enum representing common fields across `Temporal` objects.
 pub(crate) enum DateTimeValues {
@@ -185,23 +189,38 @@ pub(crate) fn get_relative_to_option(
             return Ok(Some(RelativeTo::PlainDate(dt.inner.clone().into())));
         }
         // d. Let calendar be ? GetTemporalCalendarIdentifierWithISODefault(value).
+        let calendar = get_temporal_calendar_slot_value_with_default(&object, context)?;
+        // TODO: Check behavior around Partial here.
         // e. Let fields be ? PrepareCalendarFields(calendar, value, « year, month, month-code, day », « hour, minute, second, millisecond, microsecond, nanosecond, offset, time-zone », «»).
-        let partial = to_partial_zoneddatetime(&object, context)?;
+        let (fields, timezone) = to_zoned_date_time_fields(
+            &object,
+            &calendar,
+            ZdtFieldsType::TimeZoneNotRequired,
+            context,
+        )?;
         // f. Let result be ? InterpretTemporalDateTimeFields(calendar, fields, constrain).
         // g. Let timeZone be fields.[[TimeZone]].
         // h. Let offsetString be fields.[[OffsetString]].
         // i. If offsetString is unset, then
         // i. Set offsetBehaviour to wall.
         // j. Let isoDate be result.[[ISODate]].
-        if partial.timezone.is_none() {
+        // TODO: Update in temporal_rs
+        if timezone.is_none() {
             return Ok(Some(RelativeTo::PlainDate(TemporalDate::from_partial(
-                partial.date,
+                PartialDate {
+                    calendar_fields: fields.calendar_fields,
+                    calendar,
+                },
                 None,
             )?)));
         }
         // k. Let time be result.[[Time]].
         let zdt = TemporalZonedDateTime::from_partial_with_provider(
-            partial,
+            PartialZonedDateTime {
+                fields,
+                timezone,
+                calendar,
+            },
             None,
             None,
             None,

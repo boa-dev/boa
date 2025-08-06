@@ -8,7 +8,7 @@ use crate::{
     builtins::{
         BuiltInBuilder, BuiltInConstructor, BuiltInObject, IntrinsicObject,
         options::{get_option, get_options_object},
-        temporal::calendar::get_temporal_calendar_slot_value_with_default,
+        temporal::{calendar::get_temporal_calendar_slot_value_with_default, to_calendar_fields},
     },
     context::intrinsics::{Intrinsics, StandardConstructor, StandardConstructors},
     js_string,
@@ -21,13 +21,12 @@ use boa_gc::{Finalize, Trace};
 
 use temporal_rs::{
     Calendar, MonthCode, PlainMonthDay as InnerMonthDay,
+    fields::CalendarFields,
     options::{ArithmeticOverflow, DisplayCalendar},
     partial::PartialDate,
 };
 
-use super::{
-    DateTimeValues, create_temporal_date, is_partial_temporal_object, to_partial_date_record,
-};
+use super::{DateTimeValues, create_temporal_date, is_partial_temporal_object};
 
 /// The `Temporal.PlainMonthDay` built-in implementation
 ///
@@ -301,7 +300,7 @@ impl PlainMonthDay {
         // 4. Let calendar be monthDay.[[Calendar]].
         // 5. Let fields be ISODateToFields(calendar, monthDay.[[ISODate]], month-day).
         // 6. Let partialMonthDay be ? PrepareCalendarFields(calendar, temporalMonthDayLike, « year, month, month-code, day », « », partial).
-        let partial = to_partial_date_record(&object, month_day.inner.calendar().clone(), context)?;
+        let fields = to_calendar_fields(&object, month_day.inner.calendar(), context)?;
         // 7. Set fields to CalendarMergeFields(calendar, fields, partialMonthDay).
         // 8. Let resolvedOptions be ? GetOptionsObject(options).
         let resolved_options = get_options_object(args.get_or_undefined(1))?;
@@ -310,7 +309,7 @@ impl PlainMonthDay {
             get_option::<ArithmeticOverflow>(&resolved_options, js_string!("overflow"), context)?;
         // 10. Let isoDate be ? CalendarMonthDayFromFields(calendar, fields, overflow).
         // 11. Return ! CreateTemporalMonthDay(isoDate, calendar).
-        create_temporal_month_day(month_day.inner.with(partial, overflow)?, None, context)
+        create_temporal_month_day(month_day.inner.with(fields, overflow)?, None, context)
     }
 
     /// 10.3.7 `Temporal.PlainMonthDay.prototype.equals ( other )`
@@ -476,12 +475,12 @@ impl PlainMonthDay {
             })
             .transpose()?;
 
-        let partial = PartialDate::new().with_year(year);
+        let fields = CalendarFields::new().with_optional_year(year);
 
         // 7. Let mergedFields be CalendarMergeFields(calendar, fields, inputFields).
         // 8. Let isoDate be ? CalendarDateFromFields(calendar, mergedFields, constrain).
         // 9. Return ! CreateTemporalDate(isoDate, calendar).
-        let result = month_day.inner.to_plain_date(Some(partial))?;
+        let result = month_day.inner.to_plain_date(Some(fields))?;
         create_temporal_date(result, None, context).map(Into::into)
     }
 }
@@ -532,8 +531,7 @@ fn to_temporal_month_day(
     context: &mut Context,
 ) -> JsResult<InnerMonthDay> {
     let options = options.unwrap_or(JsObject::with_null_proto());
-    let overflow = get_option::<ArithmeticOverflow>(&options, js_string!("overflow"), context)?
-        .unwrap_or(ArithmeticOverflow::Constrain);
+    let overflow = get_option::<ArithmeticOverflow>(&options, js_string!("overflow"), context)?;
 
     if let Some(obj) = item.as_object() {
         if let Some(md) = obj.downcast_ref::<PlainMonthDay>() {
@@ -576,20 +574,20 @@ fn to_temporal_month_day(
 
         let year = obj
             .get(js_string!("year"), context)?
-            .map_or(Ok::<i32, JsError>(1972), |v| {
+            .map(|v| {
                 let finite = v.to_finitef64(context)?;
-                Ok(finite.as_integer_with_truncation::<i32>())
-            })?;
+                Ok::<i32, JsError>(finite.as_integer_with_truncation::<i32>())
+            })
+            .transpose()?;
 
-        let partial_date = &PartialDate {
-            month,
-            day,
-            year: Some(year),
-            month_code,
-            ..Default::default()
-        };
+        let partial_date = PartialDate::new()
+            .with_month(month)
+            .with_day(day)
+            .with_year(year)
+            .with_month_code(month_code)
+            .with_calendar(calendar);
 
-        return Ok(calendar.month_day_from_partial(partial_date, overflow)?);
+        return Ok(InnerMonthDay::from_partial(partial_date, overflow)?);
     }
 
     let Some(md_string) = item.as_string() else {

@@ -19,10 +19,12 @@ use crate::{
 };
 use boa_gc::{Finalize, Trace};
 
+use icu_calendar::AnyCalendarKind;
 use temporal_rs::{
     Calendar, Duration, MonthCode, PlainYearMonth as InnerYearMonth, TinyAsciiStr,
+    fields::{CalendarFields, YearMonthCalendarFields},
     options::{ArithmeticOverflow, DisplayCalendar},
-    partial::{PartialDate, PartialYearMonth},
+    partial::PartialYearMonth,
 };
 
 use super::{
@@ -562,8 +564,8 @@ impl PlainYearMonth {
         // 5. Let fields be ISODateToFields(calendar, yearMonth.[[ISODate]], year-month).
         // TODO: We may need to throw early on an empty partial for Order of operations, but ideally this is enforced by `temporal_rs`
         // 6. Let partialYearMonth be ? PrepareCalendarFields(calendar, temporalYearMonthLike, « year, month, month-code », « », partial).
-        let partial = to_partial_year_month(&obj, context)?;
         // 7. Set fields to CalendarMergeFields(calendar, fields, partialYearMonth).
+        let fields = to_year_month_calendar_fields(&obj, year_month.inner.calendar(), context)?;
         // 8. Let resolvedOptions be ? GetOptionsObject(options).
         let resolved_options = get_options_object(args.get_or_undefined(1))?;
         // 9. Let overflow be ? GetTemporalOverflowOption(resolvedOptions).
@@ -571,7 +573,7 @@ impl PlainYearMonth {
             get_option::<ArithmeticOverflow>(&resolved_options, js_string!("overflow"), context)?
                 .unwrap_or_default();
         // 10. Let isoDate be ? CalendarYearMonthFromFields(calendar, fields, overflow).
-        let result = year_month.inner.with(partial, Some(overflow))?;
+        let result = year_month.inner.with(fields, Some(overflow))?;
         // 11. Return ! CreateTemporalYearMonth(isoDate, calendar).
         create_temporal_year_month(result, None, context)
     }
@@ -845,11 +847,11 @@ impl PlainYearMonth {
             })
             .transpose()?;
 
-        let partial = PartialDate::new().with_day(day);
+        let fields = CalendarFields::new().with_optional_day(day);
 
         // 7. Let mergedFields be CalendarMergeFields(calendar, fields, inputFields).
         // 8. Let isoDate be ? CalendarDateFromFields(calendar, mergedFields, constrain).
-        let result = year_month.inner.to_plain_date(Some(partial))?;
+        let result = year_month.inner.to_plain_date(Some(fields))?;
         // 9. Return ! CreateTemporalDate(isoDate, calendar).
         create_temporal_date(result, None, context).map(Into::into)
     }
@@ -1007,9 +1009,23 @@ fn to_partial_year_month(
 ) -> JsResult<PartialYearMonth> {
     // a. Let calendar be ? ToTemporalCalendar(item).
     let calendar = get_temporal_calendar_slot_value_with_default(partial_object, context)?;
+    let calendar_fields = to_year_month_calendar_fields(partial_object, &calendar, context)?;
+    Ok(PartialYearMonth {
+        calendar_fields,
+        calendar,
+    })
+}
 
+pub(crate) fn to_year_month_calendar_fields(
+    partial_object: &JsObject,
+    calendar: &Calendar,
+    context: &mut Context,
+) -> JsResult<YearMonthCalendarFields> {
     // TODO: `temporal_rs` needs a `has_era` method
-    let (era, era_year) = if calendar == Calendar::default() {
+    let has_no_era = calendar.kind() == AnyCalendarKind::Iso
+        || calendar.kind() == AnyCalendarKind::Chinese
+        || calendar.kind() == AnyCalendarKind::Dangi;
+    let (era, era_year) = if has_no_era {
         (None, None)
     } else {
         let era = partial_object
@@ -1067,11 +1083,10 @@ fn to_partial_year_month(
         })
         .transpose()?;
 
-    Ok(PartialYearMonth::new()
+    Ok(YearMonthCalendarFields::new()
         .with_era(era)
         .with_era_year(era_year)
-        .with_year(year)
-        .with_month(month)
-        .with_month_code(month_code)
-        .with_calendar(calendar))
+        .with_optional_year(year)
+        .with_optional_month(month)
+        .with_optional_month_code(month_code))
 }
