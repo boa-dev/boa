@@ -4,7 +4,7 @@
 #![allow(clippy::needless_pass_by_value)]
 
 use boa_engine::builtins::array_buffer::ArrayBuffer;
-use boa_engine::object::builtins::{JsArray, JsArrayBuffer, JsTypedArray, JsUint8Array};
+use boa_engine::object::builtins::{JsArray, JsArrayBuffer, JsTypedArray};
 use boa_engine::realm::Realm;
 use boa_engine::value::TryFromJs;
 use boa_engine::{Context, JsError, JsObject, JsResult, JsValue, js_error};
@@ -23,26 +23,12 @@ fn unsupported_type() -> JsError {
 ///
 /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/API/Web_Workers_API/Transferable_objects
 /// [to]: https://developer.mozilla.org/en-US/docs/Web/API/Web_Workers_API/Transferable_objects#supported_objects
-fn transfer_object(
-    value: &JsValue,
-    object: JsObject,
-    _options: Option<&StructuredCloneOptions>,
-    seen: &mut HashMap<JsValue, JsValue>,
-    context: &mut Context,
-) -> JsResult<JsValue> {
+fn transfer_object(object: JsObject, context: &mut Context) -> JsResult<JsValue> {
     if let Some(mut buffer) = object.clone().downcast_mut::<ArrayBuffer>() {
         let data = buffer.detach(&JsValue::undefined())?;
-        let data = data.ok_or_else(
-            || js_error!(Error: "DataCloneError: unsupported type for structured data"),
-        )?;
+        let data = data.ok_or_else(unsupported_type)?;
 
-        let dolly = JsUint8Array::from_array_buffer(
-            JsArrayBuffer::from_byte_block(data, context)?,
-            context,
-        )?;
-        let v: JsValue = dolly.into();
-        seen.insert(value.clone(), v.clone());
-        Ok(v)
+        JsArrayBuffer::from_byte_block(data, context).map(Into::into)
     } else if let Ok(typed_array) = JsTypedArray::from_object(object) {
         let kind = typed_array.kind().ok_or_else(unsupported_type)?;
         let data = typed_array.buffer(context)?;
@@ -55,10 +41,7 @@ fn transfer_object(
         )?;
 
         let buffer = JsArrayBuffer::from_byte_block(data, context)?;
-        let dolly = boa_engine::object::builtins::js_typed_array_from_kind(kind, buffer, context)?;
-        let v: JsValue = dolly.into();
-        seen.insert(value.clone(), v.clone());
-        Ok(v)
+        boa_engine::object::builtins::js_typed_array_from_kind(kind, buffer, context)
     } else {
         Err(unsupported_type())
     }
@@ -84,12 +67,8 @@ fn clone_array(
 }
 
 fn clone_array_buffer(buffer: JsArrayBuffer, context: &mut Context) -> JsResult<JsValue> {
-    let dolly = {
-        let data = buffer.data().ok_or_else(unsupported_type)?;
-        JsArrayBuffer::from_byte_block(data.to_vec(), context)?;
-    };
-
-    Ok(dolly.into())
+    let data = buffer.data().ok_or_else(unsupported_type)?;
+    JsArrayBuffer::from_byte_block(data.to_vec(), context).map(Into::into)
 }
 
 fn clone_typed_array(buffer: JsTypedArray, context: &mut Context) -> JsResult<JsValue> {
@@ -180,7 +159,9 @@ fn structured_clone_inner(
             .and_then(|o| o.transfer.as_ref())
             .map(|t| t.contains(&o))
     {
-        transfer_object(value, o, options, seen, context)
+        let v = transfer_object(o, context)?;
+        seen.insert(value.clone(), v.clone());
+        Ok(v)
     } else {
         clone_object(value, o, options, seen, context)
     }

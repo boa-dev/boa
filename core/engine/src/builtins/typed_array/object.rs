@@ -116,6 +116,7 @@ impl TypedArray {
     }
 
     /// Get the `TypedArray` object's typed array kind.
+    #[must_use]
     pub const fn kind(&self) -> TypedArrayKind {
         self.kind
     }

@@ -259,6 +259,7 @@ impl ArrayBuffer {
     }
 
     /// Gets the underlying vector for this buffer.
+    #[must_use]
     pub fn data(&self) -> Option<&[u8]> {
         self.data.as_deref()
     }

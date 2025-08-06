@@ -12,6 +12,10 @@ const buffer
 const buffer2 = new Uint8Array([5, 6, 7, 8]);
 const buffer3 = new Uint32Array([9, 10, 11, 12]);
 const buffer4 = new Uint32Array([13, 14, 15, 16]);
+const arrayBuffer = new ArrayBuffer(16);
+new DataView(arrayBuffer).setUint32(0, 100);
+const arrayBuffer2 = new ArrayBuffer(10);
+new DataView(arrayBuffer2).setUint32(1, 101);
 
 const original = {
     some: new SomeClass(),
@@ -21,9 +25,11 @@ const original = {
     buffer2Array: [buffer2, buffer2, buffer2, buffer2],
     buffer3,
     buffer4,
+    arrayBuffer,
+    arrayBuffer2,
 };
 
-let dolly = structuredClone(original, {transfer: [buffer, buffer3]})
+let dolly = structuredClone(original, {transfer: [buffer, buffer3, arrayBuffer2]})
 
 assertEq(buffer.byteLength, 0);
 assertEq(buffer2.byteLength, 4);
@@ -62,3 +68,10 @@ assertNEq(dolly.some.constructor, SomeClass);
 assertEq(dolly.some.a, 42n);
 assertEq(dolly.some.x, 1);
 assertEq(dolly.some.repeat, dolly.some);
+
+assertNEq(dolly.arrayBuffer, arrayBuffer);
+assertEq(dolly.arrayBuffer.byteLength, 16);
+assertEq(new DataView(dolly.arrayBuffer).getUint32(0), 100);
+assertNEq(dolly.arrayBuffer2, arrayBuffer2);
+assertEq(dolly.arrayBuffer2.byteLength, 10);
+assertEq(new DataView(dolly.arrayBuffer2).getUint32(1), 101);

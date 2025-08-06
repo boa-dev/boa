@@ -39,6 +39,7 @@ impl JsTypedArray {
     /// Return the kind of typed array this is. This can be used in conjunction with
     /// [`js_typed_array_from_kind`] to create a typed array of the same kind.
     #[inline]
+    #[must_use]
     pub fn kind(&self) -> Option<TypedArrayKind> {
         self.inner
             .downcast_ref::<TypedArray>()
