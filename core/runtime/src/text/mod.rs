@@ -32,7 +32,7 @@ pub enum TextDecoder {
 
 #[boa_class]
 impl TextDecoder {
-    /// The [`TextDecoder()`][mdn] constructor returns a new TextDecoder object.
+    /// The [`TextDecoder()`][mdn] constructor returns a new `TextDecoder` object.
     ///
     /// # Errors
     /// This will return an error if the encoding or options are invalid or unsupported.
@@ -115,7 +115,7 @@ pub enum TextEncoder {
 
 #[boa_class]
 impl TextEncoder {
-    /// The [`TextEncoder()`][mdn] constructor returns a newly created TextEncoder object.
+    /// The [`TextEncoder()`][mdn] constructor returns a newly created `TextEncoder` object.
     ///
     /// # Errors
     /// This will return an error if the encoding or options are invalid or unsupported.
