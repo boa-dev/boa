@@ -325,11 +325,10 @@ fn clone_test262(commit: Option<&str>, verbose: u8) -> Result<()> {
         let (current_commit_hash, current_commit_message) =
             get_last_branch_commit("HEAD", verbose)?;
 
-        if let Some(commit) = commit {
-            if current_commit_hash == commit {
+        if let Some(commit) = commit
+            && current_commit_hash == commit {
                 return Ok(());
             }
-        }
 
         if verbose != 0 {
             println!("Fetching latest test262 commits...");
