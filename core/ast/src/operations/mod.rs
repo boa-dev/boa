@@ -1483,11 +1483,10 @@ where
                 return ControlFlow::Break(CheckLabelsError::IllegalContinueStatement);
             }
 
-            if let Some(label) = node.label() {
-                if !self.continue_iteration_labels.contains(&label) {
+            if let Some(label) = node.label()
+                && !self.continue_iteration_labels.contains(&label) {
                     return ControlFlow::Break(CheckLabelsError::UndefinedContinueTarget(label));
                 }
-            }
             ControlFlow::Continue(())
         }
 
