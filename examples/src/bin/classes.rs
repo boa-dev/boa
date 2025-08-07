@@ -107,12 +107,13 @@ impl Class for Person {
             1,
             NativeFunction::from_fn_ptr(|_this, args, _ctx| {
                 if let Some(arg) = args.first()
-                    && let Some(object) = arg.as_object() {
-                        // We check if the type of `args[0]` is `Person`
-                        if object.is::<Person>() {
-                            return Ok(true.into()); // and return `true` if it is.
-                        }
+                    && let Some(object) = arg.as_object()
+                {
+                    // We check if the type of `args[0]` is `Person`
+                    if object.is::<Person>() {
+                        return Ok(true.into()); // and return `true` if it is.
                     }
+                }
                 Ok(false.into()) // Otherwise we return `false`.
             }),
         );

@@ -679,11 +679,12 @@ pub(crate) fn proxy_exotic_define_own_property(
             {
                 // i. If Desc has a [[Writable]] field and Desc.[[Writable]] is false, throw a TypeError exception.
                 if let Some(writable) = desc.writable()
-                    && !writable {
-                        return Err(JsNativeError::typ()
-                            .with_message("Proxy trap set property with unexpected writable field")
-                            .into());
-                    }
+                    && !writable
+                {
+                    return Err(JsNativeError::typ()
+                        .with_message("Proxy trap set property with unexpected writable field")
+                        .into());
+                }
             }
         }
     }

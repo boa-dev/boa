@@ -1484,9 +1484,10 @@ where
             }
 
             if let Some(label) = node.label()
-                && !self.continue_iteration_labels.contains(&label) {
-                    return ControlFlow::Break(CheckLabelsError::UndefinedContinueTarget(label));
-                }
+                && !self.continue_iteration_labels.contains(&label)
+            {
+                return ControlFlow::Break(CheckLabelsError::UndefinedContinueTarget(label));
+            }
             ControlFlow::Continue(())
         }
 

@@ -260,9 +260,10 @@ impl ToIndentedString for AsyncFunctionExpression {
     fn to_indented_string(&self, interner: &Interner, indentation: usize) -> String {
         let mut buf = "async function".to_owned();
         if self.has_binding_identifier
-            && let Some(name) = self.name {
-                let _ = write!(buf, " {}", interner.resolve_expect(name.sym()));
-            }
+            && let Some(name) = self.name
+        {
+            let _ = write!(buf, " {}", interner.resolve_expect(name.sym()));
+        }
         let _ = write!(buf, "({}", join_nodes(interner, self.parameters.as_ref()));
         if self.body().statements().is_empty() {
             buf.push_str(") {}");

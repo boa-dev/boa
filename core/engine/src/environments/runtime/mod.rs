@@ -415,11 +415,13 @@ impl Context {
             }
         }
 
-        if global && self.realm().environment().poisoned()
-            && let Some(b) = self.realm().scope().get_binding(locator.name()) {
-                locator.set_scope(b.scope());
-                locator.set_binding_index(b.binding_index());
-            }
+        if global
+            && self.realm().environment().poisoned()
+            && let Some(b) = self.realm().scope().get_binding(locator.name())
+        {
+            locator.set_scope(b.scope());
+            locator.set_binding_index(b.binding_index());
+        }
 
         Ok(())
     }

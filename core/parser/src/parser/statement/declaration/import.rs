@@ -44,24 +44,25 @@ impl ImportDeclaration {
         interner: &mut Interner,
     ) -> ParseResult<bool> {
         if let Some(token) = cursor.peek(0, interner)?
-            && let TokenKind::Keyword((Keyword::Import, escaped)) = token.kind() {
-                if *escaped {
-                    return Err(Error::general(
-                        "keyword `import` must not contain escaped characters",
-                        token.span().start(),
-                    ));
-                }
+            && let TokenKind::Keyword((Keyword::Import, escaped)) = token.kind()
+        {
+            if *escaped {
+                return Err(Error::general(
+                    "keyword `import` must not contain escaped characters",
+                    token.span().start(),
+                ));
+            }
 
-                if let Some(token) = cursor.peek(1, interner)? {
-                    match token.kind() {
-                        TokenKind::StringLiteral(_)
-                        | TokenKind::Punctuator(Punctuator::OpenBlock | Punctuator::Mul)
-                        | TokenKind::IdentifierName(_)
-                        | TokenKind::Keyword(_) => return Ok(true),
-                        _ => {}
-                    }
+            if let Some(token) = cursor.peek(1, interner)? {
+                match token.kind() {
+                    TokenKind::StringLiteral(_)
+                    | TokenKind::Punctuator(Punctuator::OpenBlock | Punctuator::Mul)
+                    | TokenKind::IdentifierName(_)
+                    | TokenKind::Keyword(_) => return Ok(true),
+                    _ => {}
                 }
             }
+        }
 
         Ok(false)
     }
@@ -332,16 +333,17 @@ where
                 let name = *name;
 
                 if let Some(token) = cursor.peek(1, interner)?
-                    && token.kind() == &TokenKind::identifier(Sym::AS) {
-                        // export name
-                        cursor.advance(interner);
+                    && token.kind() == &TokenKind::identifier(Sym::AS)
+                {
+                    // export name
+                    cursor.advance(interner);
 
-                        // `as`
-                        cursor.advance(interner);
+                    // `as`
+                    cursor.advance(interner);
 
-                        let binding = ImportedBinding.parse(cursor, interner)?;
-                        return Ok(AstImportSpecifier::new(binding, name));
-                    }
+                    let binding = ImportedBinding.parse(cursor, interner)?;
+                    return Ok(AstImportSpecifier::new(binding, name));
+                }
 
                 let name = ImportedBinding.parse(cursor, interner)?;
 

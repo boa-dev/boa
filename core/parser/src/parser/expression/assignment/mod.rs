@@ -263,9 +263,10 @@ where
                         if (assignop == AssignOp::BoolAnd
                             || assignop == AssignOp::BoolOr
                             || assignop == AssignOp::Coalesce)
-                            && let AssignTarget::Identifier(ident) = target {
-                                rhs.set_anonymous_function_definition_name(&ident);
-                            }
+                            && let AssignTarget::Identifier(ident) = target
+                        {
+                            rhs.set_anonymous_function_definition_name(&ident);
+                        }
                         lhs = Assign::new(assignop, target, rhs).into();
                     } else {
                         return Err(Error::lex(LexError::Syntax(

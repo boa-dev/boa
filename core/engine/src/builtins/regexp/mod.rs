@@ -207,15 +207,16 @@ impl BuiltInConstructor for RegExp {
 
             // b. If patternIsRegExp is true and flags is undefined, then
             if let Some(pattern) = &pattern_is_regexp
-                && flags.is_undefined() {
-                    // i. Let patternConstructor be ? Get(pattern, "constructor").
-                    let pattern_constructor = pattern.get(CONSTRUCTOR, context)?;
+                && flags.is_undefined()
+            {
+                // i. Let patternConstructor be ? Get(pattern, "constructor").
+                let pattern_constructor = pattern.get(CONSTRUCTOR, context)?;
 
-                    // ii. If SameValue(newTarget, patternConstructor) is true, return pattern.
-                    if JsValue::same_value(&new_target, &pattern_constructor) {
-                        return Ok(pattern.clone().into());
-                    }
+                // ii. If SameValue(newTarget, patternConstructor) is true, return pattern.
+                if JsValue::same_value(&new_target, &pattern_constructor) {
+                    return Ok(pattern.clone().into());
                 }
+            }
         }
 
         // 4. If pattern is an Object and pattern has a [[RegExpMatcher]] internal slot, then

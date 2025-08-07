@@ -65,9 +65,10 @@ where
                     cursor.advance(interner);
                 } else if token.kind() == &TokenKind::LineTerminator
                     && let Some(token) = cursor.peek(0, interner)?
-                        && token.kind() == &TokenKind::Punctuator(Punctuator::Semicolon) {
-                            cursor.advance(interner);
-                        }
+                    && token.kind() == &TokenKind::Punctuator(Punctuator::Semicolon)
+                {
+                    cursor.advance(interner);
+                }
             }
 
             None

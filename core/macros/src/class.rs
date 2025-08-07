@@ -595,29 +595,27 @@ impl VisitMut for ClassVisitor {
         let has_method_attr = take_path_attr(&mut item.attrs, "method");
         let has_static_attr = take_path_attr(&mut item.attrs, "static");
 
-        if has_getter_attr
-            && let Err((span, msg)) = self.getter(item) {
-                self.error(span, msg);
-            }
+        if has_getter_attr && let Err((span, msg)) = self.getter(item) {
+            self.error(span, msg);
+        }
 
-        if has_setter_attr
-            && let Err((span, msg)) = self.setter(item) {
-                self.error(span, msg);
-            }
+        if has_setter_attr && let Err((span, msg)) = self.setter(item) {
+            self.error(span, msg);
+        }
 
-        if has_ctor_attr
-            && let Err((span, msg)) = self.constructor(item) {
-                self.error(span, msg);
-            }
+        if has_ctor_attr && let Err((span, msg)) = self.constructor(item) {
+            self.error(span, msg);
+        }
 
         // A function is a method if it has a `#[boa(method)]` attribute or has no
         // method-type related attributes.
         if (has_static_attr
             || has_method_attr
             || !(has_getter_attr || has_ctor_attr || has_setter_attr))
-            && let Err((span, msg)) = self.method(has_method_attr, has_static_attr, item) {
-                self.error(span, msg);
-            }
+            && let Err((span, msg)) = self.method(has_method_attr, has_static_attr, item)
+        {
+            self.error(span, msg);
+        }
 
         syn::visit_mut::visit_impl_item_fn_mut(self, item);
     }

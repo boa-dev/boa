@@ -97,13 +97,14 @@ where
                 .parse(cursor, interner)?;
 
             if let PropertyDefinitionNode::Property(PropertyNameNode::Literal(ident), _) = property
-                && ident.sym() == Sym::__PROTO__ {
-                    if has_proto && duplicate_proto_position.is_none() {
-                        duplicate_proto_position = Some(position);
-                    } else {
-                        has_proto = true;
-                    }
+                && ident.sym() == Sym::__PROTO__
+            {
+                if has_proto && duplicate_proto_position.is_none() {
+                    duplicate_proto_position = Some(position);
+                } else {
+                    has_proto = true;
                 }
+            }
 
             elements.push(property);
 
@@ -124,15 +125,15 @@ where
 
         if let Some(position) = duplicate_proto_position
             && !cursor.json_parse()
-                && cursor
-                    .peek(0, interner)?
-                    .is_none_or(|token| token.kind() != &TokenKind::Punctuator(Punctuator::Assign))
-            {
-                return Err(Error::general(
-                    "Duplicate __proto__ fields are not allowed in object literals.",
-                    position,
-                ));
-            }
+            && cursor
+                .peek(0, interner)?
+                .is_none_or(|token| token.kind() != &TokenKind::Punctuator(Punctuator::Assign))
+        {
+            return Err(Error::general(
+                "Duplicate __proto__ fields are not allowed in object literals.",
+                position,
+            ));
+        }
 
         let start = open_block_token.span().start();
         Ok(literal::ObjectLiteral::new(elements, Span::new(start, end)))
@@ -327,9 +328,10 @@ where
                 .parse(cursor, interner)?;
 
             if let Some(name) = property_name.literal()
-                && name != Sym::__PROTO__ {
-                    value.set_anonymous_function_definition_name(&name);
-                }
+                && name != Sym::__PROTO__
+            {
+                value.set_anonymous_function_definition_name(&name);
+            }
 
             return Ok(PropertyDefinitionNode::Property(property_name, value));
         }

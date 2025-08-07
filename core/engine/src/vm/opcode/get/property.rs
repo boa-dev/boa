@@ -102,14 +102,14 @@ impl GetPropertyByValue {
 
         // Fast Path
         if object.is_array()
-            && let PropertyKey::Index(index) = &key {
-                let object_borrowed = object.borrow();
-                if let Some(element) = object_borrowed.properties().get_dense_property(index.get())
-                {
-                    context.vm.set_register(dst.into(), element);
-                    return Ok(());
-                }
+            && let PropertyKey::Index(index) = &key
+        {
+            let object_borrowed = object.borrow();
+            if let Some(element) = object_borrowed.properties().get_dense_property(index.get()) {
+                context.vm.set_register(dst.into(), element);
+                return Ok(());
             }
+        }
 
         let receiver = context.vm.get_register(receiver.into());
 
@@ -156,15 +156,15 @@ impl GetPropertyByValuePush {
 
         // Fast Path
         if object.is_array()
-            && let PropertyKey::Index(index) = &key_value {
-                let object_borrowed = object.borrow();
-                if let Some(element) = object_borrowed.properties().get_dense_property(index.get())
-                {
-                    context.vm.set_register(key.into(), key_value.into());
-                    context.vm.set_register(dst.into(), element);
-                    return Ok(());
-                }
+            && let PropertyKey::Index(index) = &key_value
+        {
+            let object_borrowed = object.borrow();
+            if let Some(element) = object_borrowed.properties().get_dense_property(index.get()) {
+                context.vm.set_register(key.into(), key_value.into());
+                context.vm.set_register(dst.into(), element);
+                return Ok(());
             }
+        }
 
         let receiver = context.vm.get_register(receiver.into());
 

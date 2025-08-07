@@ -198,13 +198,13 @@ fn formatter(data: &[JsValue], context: &mut Context) -> JsResult<String> {
                             let mut written = false;
                             if let Some(obj) = arg.as_object()
                                 && let Ok(to_string) = obj.get(js_string!("toString"), context)
-                                    && let Some(to_string_fn) = to_string.as_function() {
-                                        let arg = to_string_fn
-                                            .call(arg, &[], context)?
-                                            .to_string(context)?;
-                                        formatted.push_str(&arg.to_std_string_escaped());
-                                        written = true;
-                                    }
+                                && let Some(to_string_fn) = to_string.as_function()
+                            {
+                                let arg =
+                                    to_string_fn.call(arg, &[], context)?.to_string(context)?;
+                                formatted.push_str(&arg.to_std_string_escaped());
+                                written = true;
+                            }
 
                             if !written {
                                 let arg = arg.to_string(context)?.to_std_string_escaped();

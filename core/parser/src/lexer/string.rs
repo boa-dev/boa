@@ -382,10 +382,11 @@ impl StringLiteral {
             if (0x30..=0x33/* 0..=3 */).contains(&init_byte) {
                 // Grammar: ZeroToThree OctalDigit OctalDigit
                 if let Some(c) = cursor.peek_char()?
-                    && (0x30..=0x37/* 0..=7 */).contains(&c) {
-                        cursor.next_char()?;
-                        code_point = (code_point * 8) + c - 0x30 /* 0 */;
-                    }
+                    && (0x30..=0x37/* 0..=7 */).contains(&c)
+                {
+                    cursor.next_char()?;
+                    code_point = (code_point * 8) + c - 0x30 /* 0 */;
+                }
             }
         }
 

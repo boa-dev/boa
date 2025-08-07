@@ -171,18 +171,20 @@ where
             (Some(init), TokenKind::Keyword((kw @ (Keyword::In | Keyword::Of), false))) => {
                 if kw == &Keyword::Of
                     && let ForLoopInitializer::Expression(ast::Expression::Identifier(ident)) = init
-                        && ident.sym() == Sym::LET {
-                            return Err(Error::general("unexpected token", position));
-                        }
+                    && ident.sym() == Sym::LET
+                {
+                    return Err(Error::general("unexpected token", position));
+                }
 
                 if init_is_async_of
                     && let ForLoopInitializer::Expression(ast::Expression::Identifier(ident)) = init
-                        && ident.sym() == Sym::ASYNC {
-                            return Err(Error::lex(LexError::Syntax(
-                                "invalid left-hand side expression 'async' of a for-of loop".into(),
-                                init_position,
-                            )));
-                        }
+                    && ident.sym() == Sym::ASYNC
+                {
+                    return Err(Error::lex(LexError::Syntax(
+                        "invalid left-hand side expression 'async' of a for-of loop".into(),
+                        init_position,
+                    )));
+                }
 
                 let in_loop = kw == &Keyword::In;
                 let init = initializer_to_iterable_loop_initializer(
@@ -254,16 +256,17 @@ where
         };
 
         if let Some(ForLoopInitializer::Lexical(initializer)) = &init
-            && let ast::declaration::LexicalDeclaration::Const(list) = initializer.declaration() {
-                for decl in list.as_ref() {
-                    if decl.init().is_none() {
-                        return Err(Error::general(
-                            "Expected initializer for const declaration",
-                            position,
-                        ));
-                    }
+            && let ast::declaration::LexicalDeclaration::Const(list) = initializer.declaration()
+        {
+            for decl in list.as_ref() {
+                if decl.init().is_none() {
+                    return Err(Error::general(
+                        "Expected initializer for const declaration",
+                        position,
+                    ));
                 }
             }
+        }
 
         cursor.expect(Punctuator::Semicolon, "for statement", interner)?;
 
