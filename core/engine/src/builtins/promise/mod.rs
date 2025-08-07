@@ -2268,7 +2268,12 @@ fn new_promise_reaction_job(
             //   e. Else, let handlerResult be Completion(HostCallJobCallback(handler, undefined, « argument »)).
             Some(handler) => context
                 .host_hooks()
-                .call_job_callback(handler, &JsValue::undefined(), &[argument.clone()], context)
+                .call_job_callback(
+                    handler,
+                    &JsValue::undefined(),
+                    std::slice::from_ref(&argument),
+                    context,
+                )
                 .map_err(|e| e.to_opaque(context)),
         };
 

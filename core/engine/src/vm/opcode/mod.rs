@@ -1,5 +1,5 @@
 #![allow(clippy::inline_always)]
-
+#![allow(clippy::doc_markdown)]
 use crate::{
     Context,
     vm::{completion_record::CompletionRecord, completion_record::IntoCompletionRecord},
@@ -110,6 +110,7 @@ pub(crate) enum BindingOpcode {
 /// any arm of the `OpCode` enum.
 pub(crate) trait Operation {
     const NAME: &'static str;
+    #[allow(unused)] // TODO: need to double check usage.
     const INSTRUCTION: &'static str;
     const COST: u8;
 }

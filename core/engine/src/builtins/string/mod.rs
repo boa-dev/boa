@@ -1494,7 +1494,7 @@ impl String {
             // b. If matcher is not undefined, then
             if let Some(matcher) = matcher {
                 // i. Return ? Call(matcher, regexp, « O »).
-                return matcher.call(regexp, &[o.clone()], context);
+                return matcher.call(regexp, std::slice::from_ref(o), context);
             }
         }
 
@@ -2094,7 +2094,7 @@ impl String {
             let matcher = regexp.get_method(JsSymbol::match_all(), context)?;
             // d. If matcher is not undefined, then
             if let Some(matcher) = matcher {
-                return matcher.call(regexp, &[o.clone()], context);
+                return matcher.call(regexp, std::slice::from_ref(o), context);
             }
         }
 
@@ -2219,7 +2219,7 @@ impl String {
             // b. If searcher is not undefined, then
             if let Some(searcher) = searcher {
                 // i. Return ? Call(searcher, regexp, « O »).
-                return searcher.call(regexp, &[o.clone()], context);
+                return searcher.call(regexp, std::slice::from_ref(o), context);
             }
         }
 

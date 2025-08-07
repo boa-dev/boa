@@ -354,11 +354,10 @@ impl Number {
                 .pop()
                 .expect("already checked that length is bigger than precision")
                 as u8;
-            if let Some(first) = to_round.chars().next() {
-                if first > '4' {
+            if let Some(first) = to_round.chars().next()
+                && first > '4' {
                     digit += 1;
                 }
-            }
 
             if digit as char == ':' {
                 // ':' is '9' + 1

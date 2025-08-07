@@ -513,8 +513,8 @@ impl Json {
         }
 
         // 11. If Type(value) is Object and IsCallable(value) is false, then
-        if let Some(obj) = value.as_object() {
-            if !obj.is_callable() {
+        if let Some(obj) = value.as_object()
+            && !obj.is_callable() {
                 // a. Let isArray be ? IsArray(value).
                 // b. If isArray is true, return ? SerializeJSONArray(state, value).
                 // c. Return ? SerializeJSONObject(state, value).
@@ -524,7 +524,6 @@ impl Json {
                     Ok(Some(Self::serialize_json_object(state, &obj, context)?))
                 };
             }
-        }
 
         // 12. Return undefined.
         Ok(None)

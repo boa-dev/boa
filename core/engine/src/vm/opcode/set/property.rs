@@ -53,7 +53,7 @@ impl SetPropertyByName {
                 if slot.attributes.has_set() && result.is_object() {
                     result.as_object().expect("should contain getter").call(
                         &receiver,
-                        &[value.clone()],
+                        std::slice::from_ref(&value),
                         context,
                     )?;
                 }
@@ -128,21 +128,21 @@ impl SetPropertyByValue {
 
         // Fast Path:
         'fast_path: {
-            if object.is_array() {
-                if let PropertyKey::Index(index) = &key {
-                    let mut object_borrowed = object.borrow_mut();
+            if object.is_array()
+                && let PropertyKey::Index(index) = &key
+            {
+                let mut object_borrowed = object.borrow_mut();
 
-                    // Cannot modify if not extensible.
-                    if !object_borrowed.extensible {
-                        break 'fast_path;
-                    }
+                // Cannot modify if not extensible.
+                if !object_borrowed.extensible {
+                    break 'fast_path;
+                }
 
-                    if object_borrowed
-                        .properties_mut()
-                        .set_dense_property(index.get(), &value)
-                    {
-                        return Ok(());
-                    }
+                if object_borrowed
+                    .properties_mut()
+                    .set_dense_property(index.get(), &value)
+                {
+                    return Ok(());
                 }
             }
         }

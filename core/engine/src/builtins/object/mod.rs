@@ -1480,8 +1480,7 @@ fn object_define_properties(
 
         if let Some(prop_desc) = props
             .__get_own_property__(&next_key, &mut InternalMethodPropertyContext::new(context))?
-        {
-            if prop_desc.expect_enumerable() {
+            && prop_desc.expect_enumerable() {
                 // i. Let descObj be ? Get(props, nextKey).
                 let desc_obj = props.get(next_key.clone(), context)?;
 
@@ -1491,7 +1490,6 @@ fn object_define_properties(
                 // iii. Append the pair (a two element List) consisting of nextKey and desc to the end of descriptors.
                 descriptors.push((next_key, desc));
             }
-        }
     }
 
     // 6. For each element pair of descriptors, do

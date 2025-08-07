@@ -5,7 +5,7 @@ use crate::{
 
 macro_rules! implement_push_numbers_with_conversion {
     ($name:ident, $num_type:ty, $doc_string:literal) => {
-        #[doc= concat!("`", stringify!($name), "` implements the OpCode Operation for `Opcode::", stringify!($name), "`\n")]
+        #[doc= concat!("`", stringify!($name), "` implements the `OpCode` Operation for `Opcode::", stringify!($name), "`\n")]
         #[doc= "\n"]
         #[doc="Operation:\n"]
         #[doc= concat!(" - ", $doc_string)]
@@ -29,7 +29,7 @@ macro_rules! implement_push_numbers_with_conversion {
 
 macro_rules! implement_push_numbers_no_conversion {
     ($name:ident, $num_type:ty, $doc_string:literal) => {
-        #[doc= concat!("`", stringify!($name), "` implements the OpCode Operation for `Opcode::", stringify!($name), "`\n")]
+        #[doc= concat!("`", stringify!($name), "` implements the `OpCode` Operation for `Opcode::", stringify!($name), "`\n")]
         #[doc= "\n"]
         #[doc="Operation:\n"]
         #[doc= concat!(" - ", $doc_string)]

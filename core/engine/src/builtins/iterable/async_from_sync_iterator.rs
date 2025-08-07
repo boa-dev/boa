@@ -180,7 +180,11 @@ impl AsyncFromSyncIterator {
             // 9. If value is present, then
             (Some(r#return), Some(value)) => {
                 // a. Let result be Completion(Call(return, syncIterator, « value »)).
-                r#return.call(&sync_iterator.clone().into(), &[value.clone()], context)
+                r#return.call(
+                    &sync_iterator.clone().into(),
+                    std::slice::from_ref(value),
+                    context,
+                )
             }
             // 10. Else,
             (Some(r#return), None) => {
@@ -270,7 +274,11 @@ impl AsyncFromSyncIterator {
             // 9. If value is present, then
             (Some(throw), Some(value)) => {
                 // a. Let result be Completion(Call(throw, syncIterator, « value »)).
-                throw.call(&sync_iterator.clone().into(), &[value.clone()], context)
+                throw.call(
+                    &sync_iterator.clone().into(),
+                    std::slice::from_ref(value),
+                    context,
+                )
             }
             // 10. Else,
             (Some(throw), None) => {
