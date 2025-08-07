@@ -203,8 +203,8 @@ where
                 cursor.set_goal(InputElement::Div);
                 let tok = cursor.peek(1, interner)?;
 
-                if let Some(tok) = tok {
-                    if matches!(tok.kind(), TokenKind::Punctuator(Punctuator::Colon)) {
+                if let Some(tok) = tok
+                    && matches!(tok.kind(), TokenKind::Punctuator(Punctuator::Colon)) {
                         return LabelledStatement::new(
                             self.allow_yield,
                             self.allow_await,
@@ -213,7 +213,6 @@ where
                         .parse(cursor, interner)
                         .map(ast::Statement::from);
                     }
-                }
 
                 ExpressionStatement::new(self.allow_yield, self.allow_await).parse(cursor, interner)
             }
@@ -695,15 +694,14 @@ where
                 }
             }
 
-            if let Some(peek_token) = cursor.peek(0, interner)? {
-                if peek_token.kind() == &TokenKind::Punctuator(Punctuator::Comma) {
+            if let Some(peek_token) = cursor.peek(0, interner)?
+                && peek_token.kind() == &TokenKind::Punctuator(Punctuator::Comma) {
                     cursor.expect(
                         TokenKind::Punctuator(Punctuator::Comma),
                         "object binding pattern",
                         interner,
                     )?;
                 }
-            }
         }
     }
 }
@@ -903,8 +901,8 @@ where
                 }
             }
 
-            if let Some(peek_token) = cursor.peek(0, interner)? {
-                if peek_token.kind() == &TokenKind::Punctuator(Punctuator::Comma) {
+            if let Some(peek_token) = cursor.peek(0, interner)?
+                && peek_token.kind() == &TokenKind::Punctuator(Punctuator::Comma) {
                     cursor.expect(
                         TokenKind::Punctuator(Punctuator::Comma),
                         "array binding pattern",
@@ -916,7 +914,6 @@ where
                         last_elision_or_first = true;
                     }
                 }
-            }
         }
     }
 }

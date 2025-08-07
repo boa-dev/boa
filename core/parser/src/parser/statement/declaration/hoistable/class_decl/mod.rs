@@ -193,16 +193,14 @@ where
                 .span()
                 .start();
 
-            if super_ref.is_none() {
-                if let Some(constructor) = &constructor {
-                    if contains(constructor, ContainsSymbol::SuperCall) {
+            if super_ref.is_none()
+                && let Some(constructor) = &constructor
+                    && contains(constructor, ContainsSymbol::SuperCall) {
                         return Err(Error::lex(LexError::Syntax(
                             "invalid super usage".into(),
                             body_start,
                         )));
                     }
-                }
-            }
 
             Ok((super_ref, constructor, elements, end))
         }
@@ -326,14 +324,13 @@ where
             match &element {
                 function::ClassElement::MethodDefinition(m) => {
                     // It is a Syntax Error if PropName of MethodDefinition is not "constructor" and HasDirectSuper of MethodDefinition is true.
-                    if let ClassElementName::PropertyName(name) = m.name() {
-                        if contains(name, ContainsSymbol::SuperCall) {
+                    if let ClassElementName::PropertyName(name) = m.name()
+                        && contains(name, ContainsSymbol::SuperCall) {
                             return Err(Error::lex(LexError::Syntax(
                                 "invalid super call usage".into(),
                                 position,
                             )));
                         }
-                    }
                     if contains(m.parameters(), ContainsSymbol::SuperCall)
                         || contains(m.body(), ContainsSymbol::SuperCall)
                     {
@@ -427,14 +424,13 @@ where
                     }
                 }
                 function::ClassElement::PrivateFieldDefinition(field) => {
-                    if let Some(node) = field.initializer() {
-                        if contains(node, ContainsSymbol::SuperCall) {
+                    if let Some(node) = field.initializer()
+                        && contains(node, ContainsSymbol::SuperCall) {
                             return Err(Error::lex(LexError::Syntax(
                                 "invalid super usage".into(),
                                 position,
                             )));
                         }
-                    }
                     if private_elements_names
                         .insert(field.name().description(), PrivateElement::Value)
                         .is_some()
@@ -446,14 +442,13 @@ where
                     }
                 }
                 function::ClassElement::PrivateStaticFieldDefinition(field) => {
-                    if let Some(node) = field.initializer() {
-                        if contains(node, ContainsSymbol::SuperCall) {
+                    if let Some(node) = field.initializer()
+                        && contains(node, ContainsSymbol::SuperCall) {
                             return Err(Error::lex(LexError::Syntax(
                                 "invalid super usage".into(),
                                 position,
                             )));
                         }
-                    }
                     if private_elements_names
                         .insert(field.name().description(), PrivateElement::StaticValue)
                         .is_some()
@@ -466,14 +461,13 @@ where
                 }
                 function::ClassElement::FieldDefinition(field)
                 | function::ClassElement::StaticFieldDefinition(field) => {
-                    if let Some(field) = field.initializer() {
-                        if contains(field, ContainsSymbol::SuperCall) {
+                    if let Some(field) = field.initializer()
+                        && contains(field, ContainsSymbol::SuperCall) {
                             return Err(Error::lex(LexError::Syntax(
                                 "invalid super usage".into(),
                                 position,
                             )));
                         }
-                    }
                 }
                 function::ClassElement::StaticBlock(_) => {}
             }
@@ -705,14 +699,13 @@ where
             TokenKind::Punctuator(Punctuator::Mul) => {
                 let token = cursor.peek(1, interner).or_abrupt()?;
                 let name_position = token.span().start();
-                if !r#static {
-                    if let TokenKind::IdentifierName((Sym::CONSTRUCTOR, _)) = token.kind() {
+                if !r#static
+                    && let TokenKind::IdentifierName((Sym::CONSTRUCTOR, _)) = token.kind() {
                         return Err(Error::general(
                             "class constructor may not be a generator method",
                             token.span().start(),
                         ));
                     }
-                }
                 let strict = cursor.strict();
                 cursor.set_strict(true);
                 let (class_element_name, params, body) =
@@ -1261,25 +1254,23 @@ where
             // It is a Syntax Error if Initializer is present and ContainsArguments of Initializer is true.
             function::ClassElement::FieldDefinition(field)
             | function::ClassElement::StaticFieldDefinition(field) => {
-                if let Some(field) = field.initializer() {
-                    if contains_arguments(field) {
+                if let Some(field) = field.initializer()
+                    && contains_arguments(field) {
                         return Err(Error::general(
                             "'arguments' not allowed in class field definition",
                             position,
                         ));
                     }
-                }
             }
             function::ClassElement::PrivateFieldDefinition(field)
             | function::ClassElement::PrivateStaticFieldDefinition(field) => {
-                if let Some(node) = field.initializer() {
-                    if contains_arguments(node) {
+                if let Some(node) = field.initializer()
+                    && contains_arguments(node) {
                         return Err(Error::general(
                             "'arguments' not allowed in class field definition",
                             position,
                         ));
                     }
-                }
             }
 
             _ => {}

@@ -97,15 +97,13 @@ where
                 .parse(cursor, interner)?;
 
             if let PropertyDefinitionNode::Property(PropertyNameNode::Literal(ident), _) = property
-            {
-                if ident.sym() == Sym::__PROTO__ {
+                && ident.sym() == Sym::__PROTO__ {
                     if has_proto && duplicate_proto_position.is_none() {
                         duplicate_proto_position = Some(position);
                     } else {
                         has_proto = true;
                     }
                 }
-            }
 
             elements.push(property);
 
@@ -124,8 +122,8 @@ where
             }
         };
 
-        if let Some(position) = duplicate_proto_position {
-            if !cursor.json_parse()
+        if let Some(position) = duplicate_proto_position
+            && !cursor.json_parse()
                 && cursor
                     .peek(0, interner)?
                     .is_none_or(|token| token.kind() != &TokenKind::Punctuator(Punctuator::Assign))
@@ -135,7 +133,6 @@ where
                     position,
                 ));
             }
-        }
 
         let start = open_block_token.span().start();
         Ok(literal::ObjectLiteral::new(elements, Span::new(start, end)))
@@ -329,11 +326,10 @@ where
             let mut value = AssignmentExpression::new(true, self.allow_yield, self.allow_await)
                 .parse(cursor, interner)?;
 
-            if let Some(name) = property_name.literal() {
-                if name != Sym::__PROTO__ {
+            if let Some(name) = property_name.literal()
+                && name != Sym::__PROTO__ {
                     value.set_anonymous_function_definition_name(&name);
                 }
-            }
 
             return Ok(PropertyDefinitionNode::Property(property_name, value));
         }
