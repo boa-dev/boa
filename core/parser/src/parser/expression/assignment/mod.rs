@@ -260,13 +260,12 @@ where
                         let assignop = p.as_assign_op().expect("assignop disappeared");
 
                         let mut rhs = self.parse(cursor, interner)?;
-                        if assignop == AssignOp::BoolAnd
+                        if (assignop == AssignOp::BoolAnd
                             || assignop == AssignOp::BoolOr
-                            || assignop == AssignOp::Coalesce
+                            || assignop == AssignOp::Coalesce)
+                            && let AssignTarget::Identifier(ident) = target
                         {
-                            if let AssignTarget::Identifier(ident) = target {
-                                rhs.set_anonymous_function_definition_name(&ident);
-                            }
+                            rhs.set_anonymous_function_definition_name(&ident);
                         }
                         lhs = Assign::new(assignop, target, rhs).into();
                     } else {
