@@ -141,14 +141,20 @@ impl Entry {
     }
 }
 
+/// The Path and type of [`boa_engine::Source`]. This applies to functions and objects.
 #[derive(Debug, Default, Clone, PartialEq, Eq)]
-pub(crate) enum SourcePath {
+pub enum SourcePath {
+    /// There was no source associated with this call.
     #[default]
     None,
+    /// The source is from an `eval()` call.
     // TODO: Could add more information, like path in which the eval is located.
     Eval,
+    /// The source is from a `JSON.parse()` call.
     // TODO: Could add more information, like path in which the JSON.parse is located.
     Json,
+    /// The source is from a file or module. This contains the [`Path`] of the
+    /// module (e.g. the absolute file path).
     Path(Rc<Path>),
 }
 
