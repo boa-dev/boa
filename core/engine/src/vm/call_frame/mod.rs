@@ -32,6 +32,13 @@ bitflags::bitflags! {
     }
 }
 
+#[derive(Debug, Clone, Eq, PartialEq)]
+pub struct CallFrameLocation {
+    pub function_name: JsString,
+    pub path: SourcePath,
+    pub position: Option<Position>,
+}
+
 /// A `CallFrame` holds the state of a function call.
 #[derive(Clone, Debug, Finalize, Trace)]
 pub struct CallFrame {
@@ -84,13 +91,13 @@ impl CallFrame {
     /// location of the call frame.
     #[inline]
     #[must_use]
-    pub fn position(&self) -> (JsString, SourcePath, Option<Position>) {
+    pub fn position(&self) -> CallFrameLocation {
         let source_info = &self.code_block.source_info;
-        (
-            source_info.function_name().clone(),
-            source_info.map().path().clone(),
-            source_info.map().find(self.pc),
-        )
+        CallFrameLocation {
+            function_name: source_info.function_name().clone(),
+            path: source_info.map().path().clone(),
+            position: source_info.map().find(self.pc),
+        }
     }
 }
 

@@ -1,4 +1,5 @@
 use crate::vm::CallFrame;
+use crate::vm::call_frame::CallFrameLocation;
 use crate::vm::source_info::SourcePath;
 use crate::{
     Context, JsNativeErrorKind, JsValue, NativeFunction, TestAction, js_string,
@@ -56,35 +57,35 @@ fn position() {
                 assert_eq!(frame.len(), 4);
                 assert_eq!(
                     frame[0].position(),
-                    (
-                        js_string!("myOtherFunction"),
-                        SourcePath::None,
-                        Some(Position::new(2, 16))
-                    )
+                    CallFrameLocation {
+                        function_name: js_string!("myOtherFunction"),
+                        path: SourcePath::None,
+                        position: Some(Position::new(2, 16))
+                    }
                 );
                 assert_eq!(
                     frame[1].position(),
-                    (
-                        js_string!("<eval>"),
-                        SourcePath::Eval,
-                        Some(Position::new(1, 16))
-                    )
+                    CallFrameLocation {
+                        function_name: js_string!("<eval>"),
+                        path: SourcePath::Eval,
+                        position: Some(Position::new(1, 16))
+                    }
                 );
                 assert_eq!(
                     frame[2].position(),
-                    (
-                        js_string!("myFunction"),
-                        SourcePath::None,
-                        Some(Position::new(5, 9))
-                    )
+                    CallFrameLocation {
+                        function_name: js_string!("myFunction"),
+                        path: SourcePath::None,
+                        position: Some(Position::new(5, 9))
+                    }
                 );
                 assert_eq!(
                     frame[3].position(),
-                    (
-                        js_string!("<main>"),
-                        SourcePath::None,
-                        Some(Position::new(8, 11))
-                    )
+                    CallFrameLocation {
+                        function_name: js_string!("<main>"),
+                        path: SourcePath::None,
+                        position: Some(Position::new(8, 11))
+                    }
                 );
                 Ok(JsValue::undefined())
             }),
