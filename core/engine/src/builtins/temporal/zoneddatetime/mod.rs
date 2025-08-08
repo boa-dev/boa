@@ -20,14 +20,16 @@ use crate::{
 };
 use boa_gc::{Finalize, Trace};
 use cow_utils::CowUtils;
+use icu_calendar::AnyCalendarKind;
 use temporal_rs::{
     Calendar, MonthCode, TimeZone, TinyAsciiStr, UtcOffset, ZonedDateTime as ZonedDateTimeInner,
+    fields::{CalendarFields, ZonedDateTimeFields},
     options::{
         ArithmeticOverflow, Disambiguation, DisplayCalendar, DisplayOffset, DisplayTimeZone,
         OffsetDisambiguation, RoundingIncrement, RoundingMode, RoundingOptions,
         ToStringRoundingOptions, Unit,
     },
-    partial::{PartialDate, PartialTime, PartialZonedDateTime},
+    partial::{PartialTime, PartialZonedDateTime},
     provider::TransitionDirection,
 };
 
@@ -1244,8 +1246,27 @@ impl ZonedDateTime {
                 .with_message("temporalZonedDateTimeLike was not a partial object")
                 .into());
         };
-
-        let partial = to_partial_zoneddatetime(&obj, context)?;
+        // 4. Let epochNs be zonedDateTime.[[EpochNanoseconds]].
+        // 5. Let timeZone be zonedDateTime.[[TimeZone]].
+        // 6. Let calendar be zonedDateTime.[[Calendar]].
+        // 7. Let offsetNanoseconds be GetOffsetNanosecondsFor(timeZone, epochNs).
+        // 8. Let isoDateTime be GetISODateTimeFor(timeZone, epochNs).
+        // 9. Let fields be ISODateToFields(calendar, isoDateTime.[[ISODate]], date).
+        // 10. Set fields.[[Hour]] to isoDateTime.[[Time]].[[Hour]].
+        // 11. Set fields.[[Minute]] to isoDateTime.[[Time]].[[Minute]].
+        // 12. Set fields.[[Second]] to isoDateTime.[[Time]].[[Second]].
+        // 13. Set fields.[[Millisecond]] to isoDateTime.[[Time]].[[Millisecond]].
+        // 14. Set fields.[[Microsecond]] to isoDateTime.[[Time]].[[Microsecond]].
+        // 15. Set fields.[[Nanosecond]] to isoDateTime.[[Time]].[[Nanosecond]].
+        // 16. Set fields.[[OffsetString]] to FormatUTCOffsetNanoseconds(offsetNanoseconds).
+        // 17. Let partialZonedDateTime be ? PrepareCalendarFields(calendar, temporalZonedDateTimeLike, « year, month, month-code, day », « hour, minute, second, millisecond, microsecond, nanosecond, offset », partial).
+        // 18. Set fields to CalendarMergeFields(calendar, fields, partialZonedDateTime).
+        let (fields, _) = to_zoned_date_time_fields(
+            &obj,
+            zdt.inner.calendar(),
+            ZdtFieldsType::NoTimeZone,
+            context,
+        )?;
 
         // 19. Let resolvedOptions be ? GetOptionsObject(options).
         let resolved_options = get_options_object(args.get_or_undefined(1))?;
@@ -1260,7 +1281,7 @@ impl ZonedDateTime {
             get_option::<ArithmeticOverflow>(&resolved_options, js_string!("overflow"), context)?;
 
         let result = zdt.inner.with_with_provider(
-            partial,
+            fields,
             disambiguation,
             offset,
             overflow,
@@ -1580,7 +1601,10 @@ impl ZonedDateTime {
             })?;
 
         let other = to_temporal_zoneddatetime(args.get_or_undefined(0), None, context)?;
-        Ok((*zdt.inner == other).into())
+        Ok(zdt
+            .inner
+            .equals_with_provider(&other, context.tz_provider())?
+            .into())
     }
 
     /// 6.3.41 `Temporal.ZonedDateTime.prototype.toString ( [ options ] )`
@@ -2113,6 +2137,36 @@ pub(crate) fn to_partial_zoneddatetime(
     // b. Let calendar be ? GetTemporalCalendarIdentifierWithISODefault(item).
     // c. Let fields be ? PrepareCalendarFields(calendar, item, « year, month, month-code, day », « hour, minute, second, millisecond, microsecond, nanosecond, offset, time-zone », « time-zone »).
     let calendar = get_temporal_calendar_slot_value_with_default(partial_object, context)?;
+    let (fields, timezone) = to_zoned_date_time_fields(
+        partial_object,
+        &calendar,
+        ZdtFieldsType::TimeZoneRequired,
+        context,
+    )?;
+    Ok(PartialZonedDateTime {
+        fields,
+        timezone,
+        calendar,
+    })
+}
+
+/// This distinguishes the type of `PrepareCalendarField` call used.
+#[derive(Debug, Clone, Copy, PartialEq)]
+pub enum ZdtFieldsType {
+    /// Do not call to the `timeZone` property.
+    NoTimeZone,
+    /// Call to `timeZone`, value can be undefined.
+    TimeZoneNotRequired,
+    /// Call to `timeZone`, value must exist.
+    TimeZoneRequired,
+}
+
+pub(crate) fn to_zoned_date_time_fields(
+    partial_object: &JsObject,
+    calendar: &Calendar,
+    zdt_fields_type: ZdtFieldsType,
+    context: &mut Context,
+) -> JsResult<(ZonedDateTimeFields, Option<TimeZone>)> {
     let day = partial_object
         .get(js_string!("day"), context)?
         .map(|v| {
@@ -2130,7 +2184,10 @@ pub(crate) fn to_partial_zoneddatetime(
         })
         .transpose()?;
     // TODO: `temporal_rs` needs a `has_era` method
-    let (era, era_year) = if calendar == Calendar::default() {
+    let has_no_era = calendar.kind() == AnyCalendarKind::Iso
+        || calendar.kind() == AnyCalendarKind::Chinese
+        || calendar.kind() == AnyCalendarKind::Dangi;
+    let (era, era_year) = if has_no_era {
         (None, None)
     } else {
         let era = partial_object
@@ -2225,10 +2282,21 @@ pub(crate) fn to_partial_zoneddatetime(
         })
         .transpose()?;
 
-    let timezone = partial_object
-        .get(js_string!("timeZone"), context)?
-        .map(|v| to_temporal_timezone_identifier(v, context))
-        .transpose()?;
+    let time_zone = match zdt_fields_type {
+        ZdtFieldsType::NoTimeZone => None,
+        ZdtFieldsType::TimeZoneNotRequired | ZdtFieldsType::TimeZoneRequired => {
+            let time_zone = partial_object
+                .get(js_string!("timeZone"), context)?
+                .map(|v| to_temporal_timezone_identifier(v, context))
+                .transpose()?;
+            if zdt_fields_type == ZdtFieldsType::TimeZoneRequired && time_zone.is_none() {
+                return Err(JsNativeError::typ()
+                    .with_message("timeZone is required to construct ZonedDateTime.")
+                    .into());
+            }
+            time_zone
+        }
+    };
 
     let year = partial_object
         .get(js_string!("year"), context)?
@@ -2238,14 +2306,13 @@ pub(crate) fn to_partial_zoneddatetime(
         })
         .transpose()?;
 
-    let date = PartialDate::new()
-        .with_year(year)
-        .with_month(month)
-        .with_month_code(month_code)
-        .with_day(day)
+    let calendar_fields = CalendarFields::new()
+        .with_optional_year(year)
+        .with_optional_month(month)
+        .with_optional_month_code(month_code)
+        .with_optional_day(day)
         .with_era(era)
-        .with_era_year(era_year)
-        .with_calendar(calendar);
+        .with_era_year(era_year);
 
     let time = PartialTime::new()
         .with_hour(hour)
@@ -2255,11 +2322,12 @@ pub(crate) fn to_partial_zoneddatetime(
         .with_microsecond(microsecond)
         .with_nanosecond(nanosecond);
 
-    Ok(PartialZonedDateTime {
-        date,
-        time,
-        has_utc_designator: false,
-        offset,
-        timezone,
-    })
+    Ok((
+        ZonedDateTimeFields {
+            calendar_fields,
+            time,
+            offset,
+        },
+        time_zone,
+    ))
 }
