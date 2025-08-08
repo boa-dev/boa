@@ -12,7 +12,7 @@
 //! [mdn]: https://developer.mozilla.org/en-US/docs/Web/API/Console
 
 #[cfg(test)]
-mod tests;
+pub(crate) mod tests;
 
 use boa_engine::property::Attribute;
 use boa_engine::{

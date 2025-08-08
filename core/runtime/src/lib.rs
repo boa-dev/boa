@@ -110,16 +110,17 @@ pub mod console;
 #[doc(inline)]
 pub use console::{Console, ConsoleState, DefaultLogger, Logger, NullLogger};
 
-pub mod interval;
-pub mod text;
-pub mod url;
-
 #[cfg(feature = "fetch")]
 pub mod fetch;
+pub mod interval;
+pub mod microtask;
+pub mod text;
+#[cfg(feature = "url")]
+pub mod url;
 
 pub mod extensions;
 
-use crate::extensions::{EncodingExtension, TimeoutExtension};
+use crate::extensions::{EncodingExtension, MicrotaskExtension, TimeoutExtension};
 pub use extensions::RuntimeExtension;
 
 /// Register all the built-in objects and functions of the `WebAPI` runtime, plus
@@ -135,6 +136,7 @@ pub fn register(
     (
         TimeoutExtension,
         EncodingExtension,
+        MicrotaskExtension,
         #[cfg(feature = "url")]
         extensions::UrlExtension,
         extensions,
