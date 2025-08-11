@@ -52,11 +52,11 @@ small_btree = { path = "utils/small_btree" }
 # Shared deps
 arbitrary = "1"
 bitflags = "2.9.1"
-clap = "4.5.42"
+clap = "4.5.43"
 colored = "3.0.0"
 cow-utils = "0.1.3"
 fast-float2 = "0.2.3"
-hashbrown = "0.15.4"
+hashbrown = "0.15.5"
 http = { version = "1.3.1" }
 indexmap = { version = "2.9.0", default-features = false }
 indoc = "2.0.6"
@@ -91,7 +91,7 @@ simple_logger = "5.0.0"
 cargo_metadata = "0.19.2"
 trybuild = "1.0.110"
 rayon = "1.10.0"
-toml = "0.9.4"
+toml = "0.9.5"
 color-eyre = "0.6.3"
 comfy-table = "7.1.4"
 serde_repr = "0.1.20"
@@ -119,7 +119,7 @@ dashmap = "6.1.0"
 num_enum = "0.7.4"
 itertools = { version = "0.14.0", default-features = false }
 portable-atomic = "1.11.0"
-bytemuck = { version = "1.23.1", default-features = false }
+bytemuck = { version = "1.23.2", default-features = false }
 arrayvec = "0.7.6"
 intrusive-collections = "0.9.7"
 cfg-if = "1.0.1"
