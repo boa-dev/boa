@@ -101,14 +101,13 @@ impl GetPropertyByValue {
         let key = key.to_property_key(context)?;
 
         // Fast Path
-        if object.is_array() {
-            if let PropertyKey::Index(index) = &key {
-                let object_borrowed = object.borrow();
-                if let Some(element) = object_borrowed.properties().get_dense_property(index.get())
-                {
-                    context.vm.set_register(dst.into(), element);
-                    return Ok(());
-                }
+        if object.is_array()
+            && let PropertyKey::Index(index) = &key
+        {
+            let object_borrowed = object.borrow();
+            if let Some(element) = object_borrowed.properties().get_dense_property(index.get()) {
+                context.vm.set_register(dst.into(), element);
+                return Ok(());
             }
         }
 
@@ -156,15 +155,14 @@ impl GetPropertyByValuePush {
         let key_value = key_value.to_property_key(context)?;
 
         // Fast Path
-        if object.is_array() {
-            if let PropertyKey::Index(index) = &key_value {
-                let object_borrowed = object.borrow();
-                if let Some(element) = object_borrowed.properties().get_dense_property(index.get())
-                {
-                    context.vm.set_register(key.into(), key_value.into());
-                    context.vm.set_register(dst.into(), element);
-                    return Ok(());
-                }
+        if object.is_array()
+            && let PropertyKey::Index(index) = &key_value
+        {
+            let object_borrowed = object.borrow();
+            if let Some(element) = object_borrowed.properties().get_dense_property(index.get()) {
+                context.vm.set_register(key.into(), key_value.into());
+                context.vm.set_register(dst.into(), element);
+                return Ok(());
             }
         }
 

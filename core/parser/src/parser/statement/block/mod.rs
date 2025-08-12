@@ -77,11 +77,11 @@ where
 
     fn parse(self, cursor: &mut Cursor<R>, interner: &mut Interner) -> ParseResult<Self::Output> {
         cursor.expect(Punctuator::OpenBlock, "block", interner)?;
-        if let Some(tk) = cursor.peek(0, interner)? {
-            if tk.kind() == &TokenKind::Punctuator(Punctuator::CloseBlock) {
-                cursor.advance(interner);
-                return Ok(statement::Block::from((vec![], cursor.linear_pos())));
-            }
+        if let Some(tk) = cursor.peek(0, interner)?
+            && tk.kind() == &TokenKind::Punctuator(Punctuator::CloseBlock)
+        {
+            cursor.advance(interner);
+            return Ok(statement::Block::from((vec![], cursor.linear_pos())));
         }
         let position = cursor.peek(0, interner).or_abrupt()?.span().start();
         let (statement_list, _end) = StatementList::new(

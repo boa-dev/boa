@@ -873,10 +873,11 @@ impl Set {
 
             //    ii. Let resultIndex be SetDataIndex(resultSetData, next).
             //    iii. If resultIndex is not-found, let alreadyInResult be false. Otherwise let alreadyInResult be true.
-            let already_in_result = Set::has(&result_set, &[next.clone()], context)?.to_boolean();
+            let already_in_result =
+                Set::has(&result_set, std::slice::from_ref(&next), context)?.to_boolean();
 
             //    iv. If SetDataHas(O.[[SetData]], next) is true, then
-            if Self::has(this, &[next.clone()], context)?.to_boolean() {
+            if Self::has(this, std::slice::from_ref(&next), context)?.to_boolean() {
                 //  1. If alreadyInResult is true, set resultSetData[resultIndex] to empty.
                 if already_in_result {
                     Self::delete(&result_set, &[next], context)?;
@@ -1019,7 +1020,9 @@ impl Set {
                 };
 
                 //      1. Let inOther be ToBoolean(? Call(otherRec.[[Has]], otherRec.[[SetObject]], « e »)).
-                let in_other = other_rec.has.call(other, &[e.clone()], context)?;
+                let in_other = other_rec
+                    .has
+                    .call(other, std::slice::from_ref(&e), context)?;
                 //      2. If inOther is true, then
                 //         a. NOTE: It is possible for earlier calls to otherRec.[[Has]] to remove and re-add an element of O.[[SetData]], which can cause the same element to be visited twice during this iteration.
                 if in_other.to_boolean() {
@@ -1044,7 +1047,7 @@ impl Set {
                 //     1. Set next to CanonicalizeKeyedCollectionKey(next).
                 let next = canonicalize_keyed_collection_value(next);
                 //     2. Let inThis be SetDataHas(O.[[SetData]], next).
-                let in_this = Self::has(this, &[next.clone()], context)?;
+                let in_this = Self::has(this, std::slice::from_ref(&next), context)?;
                 //     3. If inThis is true, then
                 if in_this.to_boolean() {
                     //        a. NOTE: Because other is an arbitrary object, it is possible for its "keys" iterator to produce the same value more than once.
@@ -1117,7 +1120,7 @@ impl Set {
                     // 1. Let inOther be ToBoolean(? Call(otherRec.[[Has]], otherRec.[[SetObject]], « e »)).
                     let in_other = other_rec
                         .has
-                        .call(other, &[e.clone()], context)?
+                        .call(other, std::slice::from_ref(&e), context)?
                         .to_boolean();
                     // 2. If inOther is true, then
                     if in_other {

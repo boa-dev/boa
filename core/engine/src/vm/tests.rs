@@ -1,7 +1,11 @@
+use crate::vm::CallFrame;
+use crate::vm::call_frame::CallFrameLocation;
+use crate::vm::source_info::SourcePath;
 use crate::{
-    Context, JsNativeErrorKind, JsValue, TestAction, js_string, property::Attribute,
-    run_test_actions,
+    Context, JsNativeErrorKind, JsValue, NativeFunction, TestAction, js_string,
+    property::Attribute, run_test_actions, run_test_actions_with,
 };
+use boa_ast::Position;
 use boa_macros::js_str;
 use boa_parser::Source;
 use indoc::indoc;
@@ -38,6 +42,68 @@ fn basic_op() {
         "#},
         3,
     )]);
+}
+
+#[test]
+fn position() {
+    let context = &mut Context::default();
+    context
+        .register_global_callable(
+            js_string!("check_stack"),
+            2,
+            NativeFunction::from_copy_closure(|_, _, context| {
+                let frame = context.stack_trace().collect::<Vec<&CallFrame>>();
+
+                assert_eq!(frame.len(), 4);
+                assert_eq!(
+                    frame[0].position(),
+                    CallFrameLocation {
+                        function_name: js_string!("myOtherFunction"),
+                        path: SourcePath::None,
+                        position: Some(Position::new(2, 16))
+                    }
+                );
+                assert_eq!(
+                    frame[1].position(),
+                    CallFrameLocation {
+                        function_name: js_string!("<eval>"),
+                        path: SourcePath::Eval,
+                        position: Some(Position::new(1, 16))
+                    }
+                );
+                assert_eq!(
+                    frame[2].position(),
+                    CallFrameLocation {
+                        function_name: js_string!("myFunction"),
+                        path: SourcePath::None,
+                        position: Some(Position::new(5, 9))
+                    }
+                );
+                assert_eq!(
+                    frame[3].position(),
+                    CallFrameLocation {
+                        function_name: js_string!("<main>"),
+                        path: SourcePath::None,
+                        position: Some(Position::new(8, 11))
+                    }
+                );
+                Ok(JsValue::undefined())
+            }),
+        )
+        .expect("Could not register function");
+    run_test_actions_with(
+        [TestAction::run(indoc! {r#"
+            const myOtherFunction = () => {
+                check_stack();
+            };
+            function myFunction() {
+                eval("myOtherFunction()");
+            }
+
+            myFunction();
+        "#})],
+        context,
+    );
 }
 
 #[test]

@@ -2,15 +2,16 @@
 //!
 //! This module will provides everything needed to implement the `CallFrame`
 
+use super::ActiveRunnable;
 use crate::{
     JsValue, builtins::iterable::IteratorRecord, environments::EnvironmentStack, realm::Realm,
-    vm::CodeBlock,
+    vm::CodeBlock, vm::SourcePath,
 };
+use boa_ast::Position;
 use boa_ast::scope::BindingLocator;
 use boa_gc::{Finalize, Gc, Trace};
+use boa_string::JsString;
 use thin_vec::ThinVec;
-
-use super::ActiveRunnable;
 
 bitflags::bitflags! {
     /// Flags associated with a [`CallFrame`].
@@ -29,6 +30,13 @@ bitflags::bitflags! {
         /// If the `this` value has been cached.
         const THIS_VALUE_CACHED = 0b0000_1000;
     }
+}
+
+#[derive(Debug, Clone, Eq, PartialEq)]
+pub struct CallFrameLocation {
+    pub function_name: JsString,
+    pub path: SourcePath,
+    pub position: Option<Position>,
 }
 
 /// A `CallFrame` holds the state of a function call.
@@ -77,6 +85,19 @@ impl CallFrame {
     #[must_use]
     pub const fn code_block(&self) -> &Gc<CodeBlock> {
         &self.code_block
+    }
+
+    /// Retrieves a tuple of `(`[`JsString`]`, `[`SourcePath`]`, `[`Position`]`)` to know the
+    /// location of the call frame.
+    #[inline]
+    #[must_use]
+    pub fn position(&self) -> CallFrameLocation {
+        let source_info = &self.code_block.source_info;
+        CallFrameLocation {
+            function_name: source_info.function_name().clone(),
+            path: source_info.map().path().clone(),
+            position: source_info.map().find(self.pc),
+        }
     }
 }
 

@@ -17,6 +17,7 @@ use thin_vec::ThinVec;
 
 /// Wrapper around `indexmap::IndexMap` for usage in `PropertyMap`.
 #[derive(Debug, Finalize)]
+#[allow(unused)] // TODO: OrderedHashmap is unused, candidate from removal?
 struct OrderedHashMap<K: Trace>(IndexMap<K, PropertyDescriptor, BuildHasherDefault<FxHasher>>);
 
 impl<K: Trace> Default for OrderedHashMap<K> {

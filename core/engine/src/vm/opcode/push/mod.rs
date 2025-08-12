@@ -19,7 +19,7 @@ pub(crate) use object::*;
 
 macro_rules! implement_push_generics {
     ($name:ident, $push_value:expr, $doc_string:literal) => {
-        #[doc= concat!("`", stringify!($name), "` implements the OpCode Operation for `Opcode::", stringify!($name), "`\n")]
+        #[doc= concat!("`", stringify!($name), "` implements the `OpCode` Operation for `Opcode::", stringify!($name), "`\n")]
         #[doc= "\n"]
         #[doc="Operation:\n"]
         #[doc= concat!(" - ", $doc_string)]

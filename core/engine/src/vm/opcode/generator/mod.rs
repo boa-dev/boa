@@ -261,7 +261,7 @@ impl GeneratorDelegateNext {
             GeneratorResumeKind::Normal => {
                 let result = iterator_record.next_method().call(
                     &iterator_record.iterator().clone().into(),
-                    &[received.clone()],
+                    std::slice::from_ref(&received),
                     context,
                 )?;
                 context.vm.set_register(is_return.into(), false.into());
@@ -274,7 +274,7 @@ impl GeneratorDelegateNext {
                 if let Some(throw) = throw {
                     let result = throw.call(
                         &iterator_record.iterator().clone().into(),
-                        &[received.clone()],
+                        std::slice::from_ref(&received),
                         context,
                     )?;
                     context.vm.set_register(is_return.into(), false.into());
@@ -290,7 +290,7 @@ impl GeneratorDelegateNext {
                 if let Some(r#return) = r#return {
                     let result = r#return.call(
                         &iterator_record.iterator().clone().into(),
-                        &[received.clone()],
+                        std::slice::from_ref(&received),
                         context,
                     )?;
                     context.vm.set_register(is_return.into(), true.into());

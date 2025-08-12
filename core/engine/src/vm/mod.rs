@@ -38,7 +38,7 @@ pub use runtime_limits::RuntimeLimits;
 pub use {
     call_frame::{CallFrame, GeneratorResumeKind},
     code_block::CodeBlock,
-    source_info::NativeSourceInfo,
+    source_info::{NativeSourceInfo, SourcePath},
 };
 
 mod call_frame;
@@ -747,14 +747,14 @@ impl Context {
     }
 
     fn handle_throw(&mut self) -> ControlFlow<CompletionRecord> {
-        if let Some(err) = &mut self.vm.pending_exception {
-            if err.backtrace.is_none() {
-                err.backtrace = Some(
-                    self.vm
-                        .shadow_stack
-                        .take(self.vm.runtime_limits.backtrace_limit(), self.vm.frame.pc),
-                );
-            }
+        if let Some(err) = &mut self.vm.pending_exception
+            && err.backtrace.is_none()
+        {
+            err.backtrace = Some(
+                self.vm
+                    .shadow_stack
+                    .take(self.vm.runtime_limits.backtrace_limit(), self.vm.frame.pc),
+            );
         }
 
         let mut env_fp = self.vm.frame().env_fp;
