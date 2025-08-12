@@ -4,16 +4,104 @@
 #![allow(clippy::needless_pass_by_value)]
 
 use boa_engine::builtins::array_buffer::ArrayBuffer;
+use boa_engine::builtins::error::ErrorKind;
+use boa_engine::builtins::regexp::RegExp;
+use boa_engine::builtins::typed_array::TypedArrayKind;
 use boa_engine::object::builtins::{JsArray, JsArrayBuffer, JsTypedArray};
 use boa_engine::realm::Realm;
-use boa_engine::value::TryFromJs;
-use boa_engine::{Context, JsError, JsObject, JsResult, JsValue, js_error};
+use boa_engine::value::{TryFromJs, TryIntoJs};
+use boa_engine::{Context, JsError, JsObject, JsResult, JsString, JsValue, js_error};
 use boa_interop::boa_macros::boa_module;
 use std::collections::HashMap;
+use std::sync::Arc;
 
 #[inline]
 fn unsupported_type() -> JsError {
     js_error!(Error: "DataCloneError: unsupported type for structured data")
+}
+
+/// Inner value for [`ContextFreeJsValue`].
+#[derive(Clone)]
+enum ContextFreeValueInner {
+    /// A primitive value that does not require a context to recreate. Includes
+    /// booleans, null, floats, etc.
+    Primitive(Arc<JsValue>),
+
+    /// A reference to another inner within the same value tree. This is to
+    /// allow recursive data structures.
+    Ref(Arc<ContextFreeValueInner>),
+
+    /// A dictionary of strings to values which should be reconstructed into
+    /// a `JsObject`. Note: the prototype and constructor are not maintained,
+    /// and during reconstruction the default `Object` prototype will be used.
+    Object(HashMap<String, Arc<ContextFreeValueInner>>),
+
+    /// A `Map()` object in JavaScript.
+    Map(HashMap<String, Arc<ContextFreeValueInner>>),
+
+    /// A `Set()` object in JavaScript. The elements are already unique at
+    /// construction.
+    Set(Arc<Vec<ContextFreeValueInner>>),
+
+    /// An `Array` object in JavaScript.
+    Array(Arc<Vec<ContextFreeValueInner>>),
+
+    /// A `Date` object in JavaScript. Although this can be marshalled, it uses
+    /// the system's datetime library to be reconstructed and may diverge.
+    Date(Arc<std::time::Instant>),
+
+    /// Allowed error types (see the structured clone algorithm page).
+    Error {
+        kind: ErrorKind,
+        name: JsString,
+        message: JsString,
+        stack: JsString,
+        cause: JsString,
+    },
+
+    /// Regular expression.
+    RegExp(Arc<JsString>),
+
+    /// Array Buffer and co.
+    ArrayBuffer(Arc<Vec<u8>>),
+    DataView {
+        buffer: Arc<ContextFreeValueInner>,
+        byte_length: usize,
+        byte_offset: usize,
+    },
+    TypedArray(TypedArrayKind, Arc<Vec<u8>>),
+}
+
+/// A [`JsValue`]-like structure that can rebuild its value given any [`Context`].
+/// This follows the rules of the [structured clone algorithm][sca], but does not
+/// require a [`Context`] to copy/move, and is [`Send`].
+///
+/// To deserialize a [`JsValue`] into a [`ContextFreeJsValue`], the application MUST
+/// pass in the context of the initial value.
+///
+/// [sca]: https://developer.mozilla.org/en-US/docs/Web/API/Web_Workers_API/Structured_clone_algorithm
+#[derive(Clone)]
+pub struct ContextFreeJsValue {
+    inner: ContextFreeValueInner,
+}
+
+impl TryIntoJs for ContextFreeJsValue {
+    fn try_into_js(&self, context: &mut Context) -> JsResult<JsValue> {
+        todo!()
+    }
+}
+
+impl ContextFreeJsValue {
+    /// Create a context-free [`JsValue`] equivalent from an existing `JsValue` and the
+    /// [`Context`] that was used to create it. The `transfer` argument allows for
+    /// transferring ownership of the inner data to the context-free value, instead of
+    /// cloning it. By default, if a value isn't in the transfer vector, it is cloned.
+    pub fn try_from_js(
+        value: &JsValue,
+        context: &mut Context,
+        transfer: Vec<JsObject>,
+    ) -> JsResult<Self> {
+    }
 }
 
 /// Transfer an object instead of cloning it. See [mdn].
@@ -176,9 +264,9 @@ pub struct StructuredCloneOptions {
 /// JavaScript module containing the `structuredClone` types and functions.
 #[boa_module]
 pub mod js_module {
-    use super::StructuredCloneOptions;
+    use super::{ContextFreeJsValue, StructuredCloneOptions};
+    use boa_engine::value::TryIntoJs;
     use boa_engine::{Context, JsResult, JsValue};
-    use std::collections::HashMap;
 
     /// The [`structuredClone()`][mdn] method of the Window interface creates a
     /// deep clone of a given value using the [structured clone algorithm][sca].
@@ -194,8 +282,12 @@ pub mod js_module {
         options: Option<StructuredCloneOptions>,
         context: &mut Context,
     ) -> JsResult<JsValue> {
-        // Recursive method to clone.
-        super::structured_clone_inner(&value, options.as_ref(), &mut HashMap::new(), context)
+        let v = ContextFreeJsValue::try_from_js(
+            &value,
+            context,
+            options.and_then(|o| o.transfer).unwrap_or_default(),
+        )?;
+        v.try_into_js(context)
     }
 }
 
