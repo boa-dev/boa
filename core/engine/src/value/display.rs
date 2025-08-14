@@ -6,7 +6,7 @@ use crate::{
         set::ordered_set::OrderedSet,
     },
     js_string,
-    property::PropertyDescriptor,
+    property::{PropertyDescriptor, PropertyKey},
 };
 use std::{borrow::Cow, fmt::Write};
 
@@ -91,7 +91,7 @@ fn print_obj_value_props(
         .borrow()
         .properties()
         .index_property_keys()
-        .map(crate::property::PropertyKey::from)
+        .map(PropertyKey::from)
         .collect();
     keys.extend(obj.borrow().properties().shape.keys());
     let mut result = Vec::default();
@@ -330,11 +330,44 @@ impl JsValue {
                 let closing_indent = String::from_utf8(vec![b' '; indent.wrapping_sub(4)])
                     .expect("Could not create the closing brace's indentation string");
 
-                format!("{{\n{result}\n{closing_indent}}}")
+                let constructor_name = get_constructor_name(&v);
+                let constructor_prefix = match constructor_name {
+                    Some(name) => {
+                        if name == js_string!("Object") {
+                            "".to_string()
+                        } else {
+                            format!("{} ", name.to_std_string_lossy())
+                        }
+                    }
+                    None => "".to_string(),
+                };
+
+                format!("{constructor_prefix}{{\n{result}\n{closing_indent}}}")
             } else {
                 // Every other type of data is printed with the display method
                 data.display().to_string()
             }
+        }
+
+        /// The constructor can be retrieved as
+        /// `Object.getPrototypeOf(obj).constructor`
+        fn get_constructor_name(obj: &JsObject) -> Option<JsString> {
+            let constructor_property = obj
+                .prototype()?
+                .borrow()
+                .properties()
+                .get(&PropertyKey::from(js_string!("constructor")))?;
+            let constructor = constructor_property.value()?;
+
+            let name = constructor
+                .as_object()?
+                .borrow()
+                .properties()
+                .get(&PropertyKey::from(js_string!("name")))?
+                .value()?
+                .as_string()?;
+
+            Some(name)
         }
 
         // We keep track of which objects we have encountered by keeping their
