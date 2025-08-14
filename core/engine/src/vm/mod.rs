@@ -38,7 +38,7 @@ pub use runtime_limits::RuntimeLimits;
 pub use {
     call_frame::{CallFrame, GeneratorResumeKind},
     code_block::CodeBlock,
-    source_info::NativeSourceInfo,
+    source_info::{NativeSourceInfo, SourcePath},
 };
 
 mod call_frame;

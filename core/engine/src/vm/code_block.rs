@@ -185,6 +185,12 @@ impl CodeBlock {
         self.source_info.function_name()
     }
 
+    /// Retrieves the path of this code block.
+    #[must_use]
+    pub fn path(&self) -> &SourcePath {
+        self.source_info.map().path()
+    }
+
     /// Check if the function is traced.
     #[cfg(feature = "trace")]
     pub(crate) fn traceable(&self) -> bool {
