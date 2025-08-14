@@ -1,6 +1,6 @@
 use super::{Display, HashSet, JsValue, JsVariant, fmt};
 use crate::{
-    JsError, JsString,
+    JsError, JsObject, JsString,
     builtins::{
         Array, Promise, error::Error, map::ordered_map::OrderedMap, promise::PromiseState,
         set::ordered_set::OrderedSet,
@@ -29,7 +29,7 @@ impl ValueDisplay<'_> {
     }
 }
 
-/// A helper macro for printing objects
+/// A helper function for printing objects
 /// Can be used to print both properties and internal slots
 /// All of the overloads take:
 /// - The object to be printed
@@ -37,64 +37,89 @@ impl ValueDisplay<'_> {
 /// - The indentation for the current level (for nested objects)
 /// - A `HashSet` with the addresses of the already printed objects for the current branch
 ///   (used to avoid infinite loops when there are cyclic deps)
-macro_rules! print_obj_value {
-    (all of $obj:expr, $display_fn:ident, $indent:expr, $encounters:expr) => {
-        {
-            let mut internals = print_obj_value!(internals of $obj, $display_fn, $indent, $encounters);
-            let mut props = print_obj_value!(props of $obj, $display_fn, $indent, $encounters, true);
+fn print_obj_value_all(
+    obj: &JsObject,
+    display_fn: fn(&JsValue, &mut HashSet<usize>, usize, bool) -> String,
+    indent: usize,
+    encounters: &mut HashSet<usize>,
+) -> Vec<String> {
+    let mut internals = print_obj_value_internals(obj, display_fn, indent, encounters);
+    let mut props = print_obj_value_props(obj, display_fn, indent, encounters, true);
 
-            props.reserve(internals.len());
-            props.append(&mut internals);
+    props.reserve(internals.len());
+    props.append(&mut internals);
+    props
+}
 
-            props
+fn print_obj_value_internals(
+    obj: &JsObject,
+    display_fn: fn(&JsValue, &mut HashSet<usize>, usize, bool) -> String,
+    indent: usize,
+    encounters: &mut HashSet<usize>,
+) -> Vec<String> {
+    let object = obj.borrow();
+    if let Some(object) = object.prototype() {
+        vec![format!(
+            "{:>width$}: {}",
+            "__proto__",
+            display_fn(
+                &object.clone().into(),
+                encounters,
+                indent.wrapping_add(4),
+                true
+            ),
+            width = indent,
+        )]
+    } else {
+        vec![format!(
+            "{:>width$}: {}",
+            "__proto__",
+            JsValue::null().display(),
+            width = indent,
+        )]
+    }
+}
+
+fn print_obj_value_props(
+    obj: &JsObject,
+    display_fn: fn(&JsValue, &mut HashSet<usize>, usize, bool) -> String,
+    indent: usize,
+    encounters: &mut HashSet<usize>,
+    print_internals: bool,
+) -> Vec<String> {
+    let mut keys: Vec<_> = obj
+        .borrow()
+        .properties()
+        .index_property_keys()
+        .map(crate::property::PropertyKey::from)
+        .collect();
+    keys.extend(obj.borrow().properties().shape.keys());
+    let mut result = Vec::default();
+    for key in keys {
+        let val = obj
+            .borrow()
+            .properties()
+            .get(&key)
+            .expect("There should be a value");
+        if val.is_data_descriptor() {
+            let v = &val.expect_value();
+            result.push(format!(
+                "{:>width$}: {}",
+                key,
+                display_fn(v, encounters, indent.wrapping_add(4), print_internals),
+                width = indent,
+            ));
+        } else {
+            let display = match (val.set().is_some(), val.get().is_some()) {
+                (true, true) => "Getter & Setter",
+                (true, false) => "Setter",
+                (false, true) => "Getter",
+                _ => "No Getter/Setter",
+            };
+            result.push(format!("{:>width$}: {}", key, display, width = indent));
         }
-    };
-    (internals of $obj:expr, $display_fn:ident, $indent:expr, $encounters:expr) => {
-        {
-            let object = $obj.borrow();
-            if let Some(object) = object.prototype() {
-                vec![format!(
-                    "{:>width$}: {}",
-                    "__proto__",
-                    $display_fn(&object.clone().into(), $encounters, $indent.wrapping_add(4), true),
-                    width = $indent,
-                )]
-            } else {
-                vec![format!(
-                    "{:>width$}: {}",
-                    "__proto__",
-                    JsValue::null().display(),
-                    width = $indent,
-                )]
-            }
-        }
-    };
-    (props of $obj:expr, $display_fn:ident, $indent:expr, $encounters:expr, $print_internals:expr) => {
-        {let mut keys: Vec<_> = $obj.borrow().properties().index_property_keys().map(crate::property::PropertyKey::from).collect();
-        keys.extend($obj.borrow().properties().shape.keys());
-        let mut result = Vec::default();
-        for key in keys {
-            let val = $obj.borrow().properties().get(&key).expect("There should be a value");
-            if val.is_data_descriptor() {
-                let v = &val.expect_value();
-                result.push(format!(
-                    "{:>width$}: {}",
-                    key,
-                    $display_fn(v, $encounters, $indent.wrapping_add(4), $print_internals),
-                    width = $indent,
-                ));
-            } else {
-               let display = match (val.set().is_some(), val.get().is_some()) {
-                    (true, true) => "Getter & Setter",
-                    (true, false) => "Setter",
-                    (false, true) => "Getter",
-                    _ => "No Getter/Setter"
-                };
-               result.push(format!("{:>width$}: {}", key, display, width = $indent));
-            }
-        }
-        result}
-    };
+    }
+    result
 }
 
 pub(crate) fn log_string_from(x: &JsValue, print_internals: bool, print_children: bool) -> String {
@@ -286,10 +311,16 @@ impl JsValue {
                 encounters.insert(addr);
 
                 let result = if print_internals {
-                    print_obj_value!(all of v, display_obj_internal, indent, encounters).join(",\n")
+                    print_obj_value_all(&v, display_obj_internal, indent, encounters).join(",\n")
                 } else {
-                    print_obj_value!(props of v, display_obj_internal, indent, encounters, print_internals)
-                        .join(",\n")
+                    print_obj_value_props(
+                        &v,
+                        display_obj_internal,
+                        indent,
+                        encounters,
+                        print_internals,
+                    )
+                    .join(",\n")
                 };
 
                 // If the current object is referenced in a different branch,
