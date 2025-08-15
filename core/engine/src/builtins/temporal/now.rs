@@ -211,8 +211,8 @@ fn system_nanoseconds(context: &mut Context) -> EpochNanoseconds {
     EpochNanoseconds::from(context.clock().now().nanos_since_epoch() as i128)
 }
 
-// TODO: this should be moved to the context.
-fn system_time_zone_id() -> JsResult<String> {
+// TODO: promote to context.
+pub(crate) fn system_time_zone_id() -> JsResult<String> {
     iana_time_zone::get_timezone()
         .map_err(|e| JsNativeError::range().with_message(e.to_string()).into())
 }
