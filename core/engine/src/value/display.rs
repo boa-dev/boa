@@ -330,14 +330,10 @@ impl JsValue {
                 let closing_indent = String::from_utf8(vec![b' '; indent.wrapping_sub(4)])
                     .expect("Could not create the closing brace's indentation string");
 
-                let constructor_name = get_constructor_name(&v);
+                let constructor_name = get_constructor_name_not_object(&v);
                 let constructor_prefix = match constructor_name {
                     Some(name) => {
-                        if name == js_string!("Object") {
-                            "".to_string()
-                        } else {
-                            format!("{} ", name.to_std_string_lossy())
-                        }
+                        format!("{} ", name.to_std_string_lossy())
                     }
                     None => "".to_string(),
                 };
@@ -349,11 +345,21 @@ impl JsValue {
             }
         }
 
-        /// The constructor can be retrieved as
-        /// `Object.getPrototypeOf(obj).constructor`
-        fn get_constructor_name(obj: &JsObject) -> Option<JsString> {
-            let constructor_property = obj
-                .prototype()?
+        /// The constructor can be retrieved as `Object.getPrototypeOf(obj).constructor`.
+        ///
+        /// Also return `None` if constructor is `Object` as plain object does not need name.
+        fn get_constructor_name_not_object(obj: &JsObject) -> Option<JsString> {
+            let prototype = obj.prototype()?;
+
+            // To neglect out plain object
+            // `Object.getPrototypeOf(Object.prototype)` => null.
+            // For user created `Object.create(Object.create(null))`,
+            // we also don't need to display its name.
+            if prototype.prototype().is_none() {
+                return None;
+            }
+
+            let constructor_property = prototype
                 .borrow()
                 .properties()
                 .get(&PropertyKey::from(js_string!("constructor")))?;
