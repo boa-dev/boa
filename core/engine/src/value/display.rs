@@ -272,6 +272,23 @@ pub(crate) fn log_string_from(x: &JsValue, print_internals: bool, print_children
                         )),
                     }
                 )
+            } else if v.is_constructor() {
+                // FIXME: ArrayBuffer is not [class ArrayBuffer] but we cannot distinguish it.
+                let name = v
+                    .get_property(&PropertyKey::from(js_string!("name")))
+                    .and_then(|d| Some(d.value()?.as_string()?.to_std_string_escaped()));
+                match name {
+                    Some(name) => format!("[class {name}]"),
+                    None => "[class (anonymous)]".to_string(),
+                }
+            } else if v.is_callable() {
+                let name = v
+                    .get_property(&PropertyKey::from(js_string!("name")))
+                    .and_then(|d| Some(d.value()?.as_string()?.to_std_string_escaped()));
+                match name {
+                    Some(name) => format!("[Function: {name}]"),
+                    None => "[Function (anonymous)]".to_string(),
+                }
             } else {
                 x.display_obj(print_internals)
             }
