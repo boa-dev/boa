@@ -143,8 +143,9 @@ async fn fetch_inner<T: Fetcher>(
     Ok(result.into())
 }
 
+/// JavaScript module containing the fetch types and functions.
 #[boa_module]
-mod js_module {
+pub mod js_module {
     use crate::fetch::request::RequestInit;
     use crate::fetch::{Fetcher, fetch_inner};
     use boa_engine::object::builtins::JsPromise;

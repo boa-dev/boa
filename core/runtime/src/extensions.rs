@@ -39,6 +39,16 @@ impl RuntimeExtension for EncodingExtension {
     }
 }
 
+/// Register the `structuredClone` function.
+#[derive(Copy, Clone, Debug)]
+pub struct StructuredCloneExtension;
+
+impl RuntimeExtension for StructuredCloneExtension {
+    fn register(self, realm: Option<Realm>, context: &mut Context) -> JsResult<()> {
+        crate::clone::register(realm, context)
+    }
+}
+
 /// Register the URL classes.
 #[cfg(feature = "url")]
 #[derive(Copy, Clone, Debug)]

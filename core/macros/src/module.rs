@@ -231,6 +231,7 @@ fn module_impl_impl(_args: ModuleArguments, mut mod_: ItemMod) -> SpannedResult<
             boa_engine::js_string!( #export_name ),
         };
         original_module_decl = quote! {
+            #[allow(clippy::needless_pass_by_value)]
             #original_module_decl
 
             #[allow(unused)]

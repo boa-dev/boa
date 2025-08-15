@@ -116,7 +116,8 @@ impl TypedArray {
     }
 
     /// Get the `TypedArray` object's typed array kind.
-    pub(crate) const fn kind(&self) -> TypedArrayKind {
+    #[must_use]
+    pub const fn kind(&self) -> TypedArrayKind {
         self.kind
     }
 

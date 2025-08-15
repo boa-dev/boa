@@ -15,20 +15,6 @@ mod request;
 #[cfg(test)]
 mod response;
 
-#[cfg(test)]
-const ASSERT_DECL: &str = r"
-    function assert(cond, message) {
-        if (!cond) {
-            throw `AssertionError: ${message ? message + ', ' : ''}condition was falsy`;
-        }
-    }
-    function assertEq(lhs, rhs, message) {
-      if (lhs !== rhs) {
-        throw `AssertionError: ${message ? message + ', ' : ''}expected ${JSON.stringify(rhs)}, actual ${JSON.stringify(lhs)}`;
-      }
-    }
-";
-
 /// A [`crate::fetch::Fetcher`] implementation for tests. Maps a URL to a response,
 /// and record requests received for later use.
 ///
