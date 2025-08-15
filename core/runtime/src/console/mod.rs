@@ -14,6 +14,7 @@
 #[cfg(test)]
 mod tests;
 
+use boa_engine::JsVariant;
 use boa_engine::property::Attribute;
 use boa_engine::{
     Context, JsArgs, JsData, JsError, JsResult, JsString, JsSymbol, js_str, js_string,
@@ -144,13 +145,10 @@ impl Logger for NullLogger {
 
 /// This represents the `console` formatter.
 fn formatter(data: &[JsValue], context: &mut Context) -> JsResult<String> {
-    fn to_string(value: &JsValue, context: &mut Context) -> JsResult<String> {
-        // There is a slight difference between the standard [`JsValue::to_string`] and
-        // the way Console actually logs, w.r.t Symbols.
-        if let Some(s) = value.as_symbol() {
-            Ok(s.to_string())
-        } else {
-            Ok(value.to_string(context)?.to_std_string_escaped())
+    fn to_string(value: &JsValue, _context: &mut Context) -> JsResult<String> {
+        match value.variant() {
+            JsVariant::String(s) => Ok(s.to_std_string_escaped()),
+            _ => Ok(value.display().to_string()),
         }
     }
 
