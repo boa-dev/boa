@@ -9,7 +9,6 @@
 //!
 //! [spec]: https://url.spec.whatwg.org/
 //! [mdn]: https://developer.mozilla.org/en-US/docs/Web/API/URL
-#![cfg(feature = "url")]
 #![allow(clippy::needless_pass_by_value)]
 
 #[cfg(test)]

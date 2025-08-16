@@ -23,8 +23,17 @@ pub struct TimeoutExtension;
 
 impl RuntimeExtension for TimeoutExtension {
     fn register(self, _realm: Option<Realm>, context: &mut Context) -> JsResult<()> {
-        crate::interval::register(context)?;
-        Ok(())
+        crate::interval::register(context)
+    }
+}
+
+/// Register the `queueMicrotask` function.
+#[derive(Copy, Clone, Debug)]
+pub struct MicrotaskExtension;
+
+impl RuntimeExtension for MicrotaskExtension {
+    fn register(self, realm: Option<Realm>, context: &mut Context) -> JsResult<()> {
+        crate::microtask::register(realm, context)
     }
 }
 
@@ -47,8 +56,7 @@ pub struct UrlExtension;
 #[cfg(feature = "url")]
 impl RuntimeExtension for UrlExtension {
     fn register(self, realm: Option<Realm>, context: &mut Context) -> JsResult<()> {
-        crate::url::Url::register(realm, context)?;
-        Ok(())
+        crate::url::Url::register(realm, context)
     }
 }
 
