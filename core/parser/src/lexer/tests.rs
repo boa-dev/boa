@@ -10,6 +10,7 @@ use boa_ast::{Keyword, Position, Span, Spanned};
 use boa_interner::Sym;
 use boa_macros::utf16;
 use std::str;
+use arrayvec::ArrayVec;
 
 fn span(start: (u32, u32), end: (u32, u32)) -> Span {
     Span::new(Position::new(start.0, start.1), Position::new(end.0, end.1))
@@ -905,6 +906,56 @@ fn take_while_ascii_pred_non_ascii_stop() {
     cur.take_while_ascii_pred(&mut buf, &|_| true).unwrap();
 
     assert_eq!(str::from_utf8(buf.as_slice()).unwrap(), "abcde");
+}
+
+#[test]
+fn take_regex_test() {
+    // when all the flags are used
+    let mut curr = Cursor::from("gdimsuvy".as_bytes());
+    let mut buf: ArrayVec<u8, 8> = ArrayVec::new();
+    curr.take_up_to_eight_alpha(&mut buf).unwrap();
+    assert_eq!(str::from_utf8(buf.as_slice()).unwrap(), "gdimsuvy");
+
+    // when only a few flags are used
+    curr = Cursor::from("yi".as_bytes());
+    buf = ArrayVec::new();
+    curr.take_up_to_eight_alpha(&mut buf).unwrap();
+    assert_eq!(str::from_utf8(buf.as_slice()).unwrap(), "yi");
+
+    // only 1 flag
+    curr = Cursor::from("y".as_bytes());
+    buf = ArrayVec::new();
+    curr.take_up_to_eight_alpha(&mut buf).unwrap();
+    assert_eq!(str::from_utf8(buf.as_slice()).unwrap(), "y");
+
+    // a string that contains no flags
+    curr = Cursor::from("42069".as_bytes());
+    buf = ArrayVec::new();
+    curr.take_up_to_eight_alpha(&mut buf).unwrap();
+    assert_eq!(str::from_utf8(buf.as_slice()).unwrap(), "");
+
+    // a empty string
+    curr = Cursor::from("".as_bytes());
+    buf = ArrayVec::new();
+    curr.take_up_to_eight_alpha(&mut buf).unwrap();
+    assert_eq!(str::from_utf8(buf.as_slice()).unwrap(), "");
+
+    // valid flags after a char that is not alpha
+    curr = Cursor::from("$giy".as_bytes());
+    buf = ArrayVec::new();
+    curr.take_up_to_eight_alpha(&mut buf).unwrap();
+    assert_eq!(str::from_utf8(buf.as_slice()).unwrap(), "");
+
+    // more than 8 chars
+    curr = Cursor::from("thisismorethaneightcharslong".as_bytes());
+    buf = ArrayVec::new();
+
+    match curr.take_up_to_eight_alpha(&mut buf) {
+        Err(error) if error.kind() == std::io::ErrorKind::Other => {
+            assert!(true);
+        },
+        _ => assert!(false),
+    }
 }
 
 #[test]

@@ -8,6 +8,7 @@ use boa_interner::{Interner, Sym};
 use regress::{Flags, Regex};
 use std::fmt::{Display, Write};
 use std::str::{self, FromStr};
+use arrayvec::ArrayVec;
 
 /// Regex literal lexing.
 ///
@@ -36,6 +37,7 @@ impl RegexLiteral {
 }
 
 impl<R> Tokenizer<R> for RegexLiteral {
+    // Lex Regular Expression Body
     fn lex(
         &mut self,
         cursor: &mut Cursor<R>,
@@ -52,71 +54,81 @@ impl<R> Tokenizer<R> for RegexLiteral {
 
         let mut is_class_char = false;
 
-        // Lex RegularExpressionBody.
         loop {
-            match cursor.next_char()? {
-                None => {
-                    // Abrupt end.
-                    return Err(Error::syntax(
+            let next_char = cursor.next_char()?;
+            if next_char.is_none() {
+                // Abrupt end.
+                return Err(Error::syntax(
                         "abrupt end on regular expression",
                         cursor.pos(),
+                ));
+            }
+
+            // We just checked that it is not none
+            let b = next_char.unwrap();
+            match b {
+                // /
+                0x2F if !is_class_char => break, // RegularExpressionBody finished.
+                                                 // [
+                0x5B => {
+                    is_class_char = true;
+                    body.push(b);
+                }
+                // ]
+                0x5D if is_class_char => {
+                    is_class_char = false;
+                    body.push(b);
+                }
+                // \n | \r | \u{2028} | \u{2029}
+                0xA | 0xD | 0x2028 | 0x2029 => {
+                    // Not allowed in Regex literal.
+                    return Err(Error::syntax(
+                            "new lines are not allowed in regular expressions",
+                            cursor.pos(),
                     ));
                 }
-                Some(b) => {
-                    match b {
-                        // /
-                        0x2F if !is_class_char => break, // RegularExpressionBody finished.
-                        // [
-                        0x5B => {
-                            is_class_char = true;
-                            body.push(b);
-                        }
-                        // ]
-                        0x5D if is_class_char => {
-                            is_class_char = false;
-                            body.push(b);
-                        }
-                        // \n | \r | \u{2028} | \u{2029}
+                // \
+                0x5C => {
+                    // Escape sequence
+                    body.push(b);
+                    let sc = cursor.next_char()?;
+                    if sc.is_none() {
+                        // Abrupt end of regex.
+                        return Err(Error::syntax(
+                                "abrupt end on regular expression",
+                                cursor.pos(),
+                        ));
+                    }
+
+                    //safe because we just checked if its none ^
+                    let sc = sc.unwrap();
+                    // \n | \r | \u{2028} | \u{2029}
+                    match sc {
                         0xA | 0xD | 0x2028 | 0x2029 => {
                             // Not allowed in Regex literal.
                             return Err(Error::syntax(
-                                "new lines are not allowed in regular expressions",
-                                cursor.pos(),
+                                    "new lines are not allowed in regular expressions",
+                                    cursor.pos(),
                             ));
                         }
-                        // \
-                        0x5C => {
-                            // Escape sequence
-                            body.push(b);
-                            if let Some(sc) = cursor.next_char()? {
-                                match sc {
-                                    // \n | \r | \u{2028} | \u{2029}
-                                    0xA | 0xD | 0x2028 | 0x2029 => {
-                                        // Not allowed in Regex literal.
-                                        return Err(Error::syntax(
-                                            "new lines are not allowed in regular expressions",
-                                            cursor.pos(),
-                                        ));
-                                    }
-                                    b => body.push(b),
-                                }
-                            } else {
-                                // Abrupt end of regex.
-                                return Err(Error::syntax(
-                                    "abrupt end on regular expression",
-                                    cursor.pos(),
-                                ));
-                            }
-                        }
-                        _ => body.push(b),
+                        b => body.push(b),
                     }
                 }
+                _ => body.push(b),
             }
         }
-
-        let mut flags = Vec::new();
+        let mut flags = ArrayVec::<_, 8>::new();
         let flags_start = cursor.pos();
-        cursor.take_while_ascii_pred(&mut flags, &char::is_alphabetic)?;
+        match cursor.take_up_to_eight_alpha(&mut flags) {
+            Err(error) => {
+                return Err(Error::syntax(
+                        format!("Invalid regular expression literal: {error}"),
+                        start_pos,
+                ));
+            }
+            Ok(_) => {},
+        }
+
 
         // SAFETY: We have already checked that the bytes are valid UTF-8.
         let flags_str = unsafe { str::from_utf8_unchecked(flags.as_slice()) };
@@ -141,18 +153,18 @@ impl<R> Tokenizer<R> for RegexLiteral {
 
         if let Err(error) = Regex::from_unicode(body.into_iter(), flags_str) {
             return Err(Error::syntax(
-                format!("Invalid regular expression literal: {error}"),
-                start_pos,
+                    format!("Invalid regular expression literal: {error}"),
+                    start_pos,
             ));
         }
 
         Ok(Token::new_by_position_group(
-            TokenKind::regular_expression_literal(
-                interner.get_or_intern(body_utf16.as_slice()),
-                parse_regex_flags(flags_str, flags_start, interner)?,
-            ),
-            start_pos,
-            cursor.pos_group(),
+                TokenKind::regular_expression_literal(
+                    interner.get_or_intern(body_utf16.as_slice()),
+                    parse_regex_flags(flags_str, flags_start, interner)?,
+                ),
+                start_pos,
+                cursor.pos_group(),
         ))
     }
 }
@@ -209,8 +221,8 @@ impl FromStr for RegExpFlags {
 
             if flags.contains(new_flag) {
                 return Err(format!(
-                    "repeated regular expression flag {}",
-                    char::from(c)
+                        "repeated regular expression flag {}",
+                        char::from(c)
                 ));
             }
             flags.insert(new_flag);
