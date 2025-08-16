@@ -14,13 +14,14 @@
 #[cfg(test)]
 mod tests;
 
-use boa_engine::JsVariant;
 use boa_engine::property::Attribute;
+use boa_engine::JsVariant;
 use boa_engine::{
-    Context, JsArgs, JsData, JsError, JsResult, JsString, JsSymbol, js_str, js_string,
+    js_str, js_string,
     native_function::NativeFunction,
     object::{JsObject, ObjectInitializer},
     value::{JsValue, Numeric},
+    Context, JsArgs, JsData, JsError, JsResult, JsString, JsSymbol,
 };
 use boa_gc::{Finalize, Trace};
 use rustc_hash::FxHashMap;
@@ -145,16 +146,16 @@ impl Logger for NullLogger {
 
 /// This represents the `console` formatter.
 fn formatter(data: &[JsValue], context: &mut Context) -> JsResult<String> {
-    fn to_string(value: &JsValue, _context: &mut Context) -> JsResult<String> {
+    fn to_string(value: &JsValue, _context: &mut Context) -> String {
         match value.variant() {
-            JsVariant::String(s) => Ok(s.to_std_string_escaped()),
-            _ => Ok(value.display().to_string()),
+            JsVariant::String(s) => s.to_std_string_escaped(),
+            _ => value.display().to_string(),
         }
     }
 
     match data {
         [] => Ok(String::new()),
-        [val] => to_string(val, context),
+        [val] => Ok(to_string(val, context)),
         data => {
             let mut formatted = String::new();
             let mut arg_index = 1;
@@ -226,7 +227,7 @@ fn formatter(data: &[JsValue], context: &mut Context) -> JsResult<String> {
             /* unformatted data */
             for rest in data.iter().skip(arg_index) {
                 formatted.push(' ');
-                formatted.push_str(&to_string(rest, context)?);
+                formatted.push_str(&to_string(rest, context));
             }
 
             Ok(formatted)

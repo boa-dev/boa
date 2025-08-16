@@ -1,12 +1,12 @@
-use super::{Display, HashSet, JsValue, JsVariant, fmt};
+use super::{fmt, Display, HashSet, JsValue, JsVariant};
 use crate::{
-    JsError, JsObject, JsString,
     builtins::{
-        Array, Promise, error::Error, map::ordered_map::OrderedMap, promise::PromiseState,
-        set::ordered_set::OrderedSet,
+        error::Error, map::ordered_map::OrderedMap, promise::PromiseState,
+        set::ordered_set::OrderedSet, Array, Promise,
     },
     js_string,
     property::{PropertyDescriptor, PropertyKey},
+    JsError, JsObject, JsString,
 };
 use std::{borrow::Cow, fmt::Write};
 
@@ -116,7 +116,7 @@ fn print_obj_value_props(
                 (false, true) => "Getter",
                 _ => "No Getter/Setter",
             };
-            result.push(format!("{:>width$}: {}", key, display, width = indent));
+            result.push(format!("{key:>indent$}: {display}"));
         }
     }
     result
@@ -352,7 +352,7 @@ impl JsValue {
                     Some(name) => {
                         format!("{} ", name.to_std_string_lossy())
                     }
-                    None => "".to_string(),
+                    None => String::new(),
                 };
 
                 format!("{constructor_prefix}{{\n{result}\n{closing_indent}}}")
@@ -372,9 +372,7 @@ impl JsValue {
             // `Object.getPrototypeOf(Object.prototype)` => null.
             // For user created `Object.create(Object.create(null))`,
             // we also don't need to display its name.
-            if prototype.prototype().is_none() {
-                return None;
-            }
+            prototype.prototype()?;
 
             let constructor_property = prototype
                 .borrow()
