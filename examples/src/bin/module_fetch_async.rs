@@ -175,20 +175,21 @@ impl JobExecutor for Queue {
 
     // ...the async flavor won't, which allows concurrent execution with external async tasks.
     async fn run_jobs_async(self: Rc<Self>, context: &RefCell<&mut Context>) -> JsResult<()> {
-        // Early return in case there were no jobs scheduled.
-        if self.promise_jobs.borrow().is_empty() && self.async_jobs.borrow().is_empty() {
-            return Ok(());
-        }
         let mut group = FutureGroup::new();
         loop {
             for job in std::mem::take(&mut *self.async_jobs.borrow_mut()) {
                 group.insert(job.call(context));
             }
 
-            if group.is_empty() && self.promise_jobs.borrow().is_empty() {
+            if group.is_empty()
+                && self.promise_jobs.borrow().is_empty()
+                && !context.borrow().has_pending_context_jobs()
+            {
                 // Both queues are empty. We can exit.
                 return Ok(());
             }
+
+            context.borrow_mut().enqueue_resolved_context_jobs();
 
             // We have some jobs pending on the microtask queue. Try to poll the pending
             // tasks once to see if any of them finished, and run the pending microtasks

@@ -12,6 +12,7 @@ use intrinsics::Intrinsics;
 #[cfg(feature = "temporal")]
 use temporal_rs::tzdb::FsTzdbProvider;
 
+use crate::builtins::atomics::AsyncPendingWaiters;
 use crate::job::Job;
 use crate::module::DynModuleLoader;
 use crate::vm::RuntimeLimits;
@@ -126,6 +127,8 @@ pub struct Context {
 
     /// Unique identifier for each parser instance used during the context lifetime.
     parser_identifier: u32,
+
+    pub(crate) pending_waiters: AsyncPendingWaiters,
 
     data: HostDefined,
 }
@@ -472,12 +475,23 @@ impl Context {
         self.job_executor().enqueue_job(job, self);
     }
 
+    /// Enqueues resolved context jobs.
+    pub fn enqueue_resolved_context_jobs(&mut self) {
+        let mut waiters = std::mem::take(&mut self.pending_waiters);
+        waiters.enqueue_waiter_jobs(self);
+        self.pending_waiters = waiters;
+    }
+
+    /// Returns `true` if the context will enqueue more jobs in the future.
+    #[must_use]
+    pub fn has_pending_context_jobs(&self) -> bool {
+        self.pending_waiters.len() > 0
+    }
+
     /// Runs all the jobs with the provided job executor.
     #[inline]
     pub fn run_jobs(&mut self) -> JsResult<()> {
-        let result = self.job_executor().run_jobs(self);
-        self.clear_kept_objects();
-        result
+        self.job_executor().run_jobs(self)
     }
 
     /// Abstract operation [`ClearKeptObjects`][clear].
@@ -1124,6 +1138,7 @@ impl ContextBuilder {
             root_shape,
             parser_identifier: 0,
             can_block: self.can_block,
+            pending_waiters: AsyncPendingWaiters::new(),
             data: HostDefined::default(),
         };
 

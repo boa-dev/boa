@@ -2314,7 +2314,7 @@ fn new_promise_reaction_job(
     };
 
     // 4. Return the Record { [[Job]]: job, [[Realm]]: handlerRealm }.
-    PromiseJob::with_realm(job, realm, context)
+    PromiseJob::with_realm(job, realm)
 }
 
 /// More information:
@@ -2368,5 +2368,5 @@ fn new_promise_resolve_thenable_job(
     };
 
     // 6. Return the Record { [[Job]]: job, [[Realm]]: thenRealm }.
-    PromiseJob::with_realm(job, realm, context)
+    PromiseJob::with_realm(job, realm)
 }

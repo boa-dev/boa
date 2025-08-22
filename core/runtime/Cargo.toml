@@ -27,6 +27,7 @@ url = { workspace = true, optional = true }
 indoc.workspace = true
 test-case.workspace = true
 textwrap.workspace = true
+futures-lite.workspace = true
 
 [lints]
 workspace = true

@@ -166,13 +166,14 @@ pub(crate) mod test {
     use crate::extensions::ConsoleExtension;
     use crate::register;
     use boa_engine::{Context, JsResult, JsValue, Source, builtins};
-    use std::borrow::Cow;
+    use std::{borrow::Cow, pin::Pin};
 
     /// A test action executed in a test function.
     #[allow(missing_debug_implementations)]
     pub(crate) struct TestAction(Inner);
 
     #[allow(dead_code)]
+    #[allow(clippy::type_complexity)]
     enum Inner {
         RunHarness,
         Run {
@@ -180,6 +181,9 @@ pub(crate) mod test {
         },
         InspectContext {
             op: Box<dyn FnOnce(&mut Context)>,
+        },
+        InspectContextAsync {
+            op: Box<dyn for<'a> FnOnce(&'a mut Context) -> Pin<Box<dyn Future<Output = ()> + 'a>>>,
         },
         Assert {
             source: Cow<'static, str>,
@@ -219,6 +223,13 @@ pub(crate) mod test {
         /// Useful to make custom assertions that must be done from Rust code.
         pub(crate) fn inspect_context(op: impl FnOnce(&mut Context) + 'static) -> Self {
             Self(Inner::InspectContext { op: Box::new(op) })
+        }
+
+        /// Executes `op` with the currently active context in an async environment.
+        pub(crate) fn inspect_context_async(op: impl AsyncFnOnce(&mut Context) + 'static) -> Self {
+            Self(Inner::InspectContextAsync {
+                op: Box::new(move |ctx| Box::pin(op(ctx))),
+            })
         }
     }
 
@@ -286,6 +297,7 @@ pub(crate) mod test {
                 Inner::InspectContext { op } => {
                     op(context);
                 }
+                Inner::InspectContextAsync { op } => futures_lite::future::block_on(op(context)),
                 Inner::Assert { source } => {
                     let val = match forward_val(context, &source) {
                         Err(e) => panic!("{}\nUncaught {e}", fmt_test(&source, i)),

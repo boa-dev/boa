@@ -172,8 +172,6 @@ impl Script {
         let record = context.run();
 
         context.vm.pop_frame();
-        context.clear_kept_objects();
-
         record.consume()
     }
 
@@ -206,8 +204,6 @@ impl Script {
         let record = context.run_async_with_budget(budget).await;
 
         context.vm.pop_frame();
-        context.clear_kept_objects();
-
         record.consume()
     }
 
