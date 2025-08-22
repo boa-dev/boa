@@ -556,6 +556,10 @@ pub trait JobExecutor: Any {
     /// By default forwards to [`JobExecutor::run_jobs`]. Implementors using async should override this
     /// with a proper algorithm to run jobs asynchronously.
     #[expect(async_fn_in_trait, reason = "all our APIs are single-threaded")]
+    #[expect(
+        clippy::unused_async,
+        reason = "this must be overridden by proper async runtimes"
+    )]
     async fn run_jobs_async(self: Rc<Self>, context: &RefCell<&mut Context>) -> JsResult<()>
     where
         Self: Sized,

@@ -463,7 +463,7 @@ impl Atomics {
             let result = unsafe {
                 if access.kind == TypedArrayKind::BigInt64 {
                     futex::wait_async(
-                        &buffer.borrow().data(),
+                        buffer.borrow().data(),
                         buf_len,
                         access.byte_offset,
                         value,
@@ -474,7 +474,7 @@ impl Atomics {
                 } else {
                     // value must fit into `i32` since it came from an `i32` above.
                     futex::wait_async(
-                        &buffer.borrow().data(),
+                        buffer.borrow().data(),
                         buf_len,
                         access.byte_offset,
                         value as i32,
@@ -501,7 +501,7 @@ impl Atomics {
             let result = unsafe {
                 if access.kind == TypedArrayKind::BigInt64 {
                     futex::wait(
-                        &buffer.borrow().data(),
+                        buffer.borrow().data(),
                         buf_len,
                         access.byte_offset,
                         value,
@@ -510,7 +510,7 @@ impl Atomics {
                 } else {
                     // value must fit into `i32` since it came from an `i32` above.
                     futex::wait(
-                        &buffer.borrow().data(),
+                        buffer.borrow().data(),
                         buf_len,
                         access.byte_offset,
                         value as i32,
