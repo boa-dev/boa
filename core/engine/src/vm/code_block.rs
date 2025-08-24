@@ -801,8 +801,13 @@ impl CodeBlock {
             Instruction::TemplateLookup { address, site, dst } => {
                 format!("address:{address}, site:{site}, dst:{dst}")
             }
-            Instruction::JumpTable { default, addresses } => {
-                let mut operands = format!("#{}: Default: {default:4}", addresses.len());
+            Instruction::JumpTable {
+                index,
+                default,
+                addresses,
+            } => {
+                let mut operands =
+                    format!("index:{index} #{}: Default: {default:4}", addresses.len());
                 for (i, address) in addresses.iter().enumerate() {
                     let _ = write!(operands, ", {i}: {address}");
                 }
