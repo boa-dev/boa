@@ -86,6 +86,9 @@ impl IntrinsicObject for Math {
         #[cfg(feature = "float16")]
         let builder = builder.static_method(Self::f16round, js_string!("f16round"), 1);
 
+        #[cfg(feature = "xsum")]
+        let builder = builder.static_method(Self::sum_precise, js_string!("sumPrecise"), 1);
+
         builder.build();
     }
 
@@ -940,5 +943,121 @@ impl Math {
             // 5. Return the integral Number nearest n in the direction of +0𝔽.
             .trunc()
             .into())
+    }
+
+    /// Sum each value in an iterable
+    ///
+    /// More information:
+    ///  - [ECMAScript reference][spec]
+    ///  - [MDN documentation][mdn]
+    ///
+    /// [spec]: https://tc39.es/ecma262/#sec-math.sumprecise
+    /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Math/sumPrecise
+    #[cfg(feature = "xsum")]
+    pub(crate) fn sum_precise(
+        _: &JsValue,
+        args: &[JsValue],
+        context: &mut Context,
+    ) -> JsResult<JsValue> {
+        const ITERATION_MAX: u64 = 2u64.pow(53) - 1;
+        use xsum::{Xsum, XsumAuto};
+
+        use crate::{builtins::iterable::IteratorHint, js_error};
+
+        #[derive(Debug, PartialEq)]
+        enum SummationState {
+            NotANumber,
+            MinusInfinity,
+            PlusInfinity,
+            MinusZero,
+            Finite,
+        }
+        let items = args.get_or_undefined(0);
+        // NOTE (nekevss): inline `RequireObjectCoercible`
+        // 1. Perform ? RequireObjectCoercible(items).
+        // RequireObjectCoercible, 1. If argument is either undefined or null, throw a TypeError exception.
+        // RequireObjectCoercible, 2. Return argument.
+        if items.is_null_or_undefined() {
+            return Err(js_error!(TypeError: "value must be object coercible."));
+        }
+        // 2. Let iteratorRecord be ? GetIterator(items, sync).
+        let mut iterator_record = items.get_iterator(IteratorHint::Sync, context)?;
+        // 3. Let state be minus-zero.
+        let mut state = SummationState::MinusZero;
+        // 4. Let sum be 0.
+        let mut sum = XsumAuto::new();
+        // 5. Let count be 0.
+        let mut count = 0;
+        // 6. Let next be not-started.
+        // 7. Repeat, while next is not done,
+        // a. Set next to ? IteratorStepValue(iteratorRecord).
+        while let Some(next) = iterator_record.step_value(context)? {
+            // b. If next is not done, then
+            // i. If count ≥ 2**53 - 1, then
+            if count >= ITERATION_MAX {
+                // 1. NOTE: This step is not expected to be reached in practice and is
+                // included only so that implementations may rely on inputs being
+                // "reasonably sized" without violating this specification.
+                // 2. Let error be ThrowCompletion(a newly created RangeError object).
+                let err = Err(js_error!(RangeError: "Summation exceeded maximum iterations"));
+                // 3. Return ? IteratorClose(iteratorRecord, error).
+                return iterator_record.close(err, context);
+            }
+            // ii. If next is not a Number, then
+            let Some(number) = next.as_number() else {
+                // 1. Let error be ThrowCompletion(a newly created TypeError object).
+                let err = Err(js_error!(TypeError: "sumPrecise can only be called on a number."));
+                // 2. Return ? IteratorClose(iteratorRecord, error).
+                return iterator_record.close(err, context);
+            };
+            // iii. Let n be next.
+            // iv. If state is not not-a-number, then
+            if state != SummationState::NotANumber {
+                // 1. If n is NaN, then
+                if number.is_nan() {
+                    // a. Set state to not-a-number.
+                    state = SummationState::NotANumber;
+                // 2. Else if n is +∞𝔽, then
+                } else if number == f64::INFINITY {
+                    state = match state {
+                        // a. If state is minus-infinity, set state to not-a-number.
+                        SummationState::MinusInfinity => SummationState::NotANumber,
+                        // b. Else, set state to plus-infinity.
+                        _ => SummationState::PlusInfinity,
+                    };
+                // 3. Else if n is -∞𝔽, then
+                } else if number == f64::NEG_INFINITY {
+                    state = match state {
+                        // a. If state is plus-infinity, set state to not-a-number.
+                        SummationState::PlusInfinity => SummationState::NotANumber,
+                        // b. Else, set state to minus-infinity.
+                        _ => SummationState::MinusInfinity,
+                    };
+                // 4. Else if n is not -0𝔽 and state is either minus-zero or finite, then
+                } else if !(number == 0.0 && number.is_sign_negative())
+                    && (state == SummationState::MinusZero || state == SummationState::Finite)
+                {
+                    // a. Set state to finite.
+                    state = SummationState::Finite;
+                    // b. Set sum to sum + ℝ(n).
+                    sum.add(number);
+                }
+            }
+            // v. Set count to count + 1.
+            count += 1;
+        }
+        // 8. If state is not-a-number, return NaN.
+        // 9. If state is plus-infinity, return +∞𝔽.
+        // 10. If state is minus-infinity, return -∞𝔽.
+        // 11. If state is minus-zero, return -0𝔽.
+        // 12. Return 𝔽(sum).
+        let result = match state {
+            SummationState::NotANumber => JsValue::nan(),
+            SummationState::PlusInfinity => JsValue::positive_infinity(),
+            SummationState::MinusInfinity => JsValue::negative_infinity(),
+            SummationState::MinusZero => JsValue::from(-0.0),
+            SummationState::Finite => JsValue::from(sum.sum()),
+        };
+        Ok(result)
     }
 }
