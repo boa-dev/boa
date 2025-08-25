@@ -78,7 +78,7 @@ js = ["dep:web-time", "dep:getrandom"]
 # Enable support for Float16 typed arrays
 float16 = ["dep:float16"]
 
-# Enable support for `Math.prototype.sumPrecise`
+# Enable support for `Math.sumPrecise`
 xsum = ["dep:xsum"]
 
 # Native Backtraces
