@@ -131,14 +131,6 @@ impl BuiltInConstructor for PlainMonthDay {
                 .into());
         }
 
-        let ref_year = args
-            .get_or_undefined(3)
-            .map(|v| {
-                let finite = v.to_finitef64(context)?;
-                Ok::<i32, JsError>(finite.as_integer_with_truncation::<i32>())
-            })
-            .transpose()?;
-
         // We can ignore 2 as the underlying temporal library handles the reference year
         let m = args
             .get_or_undefined(0)
@@ -163,13 +155,16 @@ impl BuiltInConstructor for PlainMonthDay {
             .transpose()?
             .unwrap_or_default();
 
-        let inner = InnerMonthDay::new_with_overflow(
-            m,
-            d,
-            calendar,
-            ArithmeticOverflow::Constrain,
-            ref_year,
-        )?;
+        let ref_year = args
+            .get_or_undefined(3)
+            .map(|v| {
+                let finite = v.to_finitef64(context)?;
+                Ok::<i32, JsError>(finite.as_integer_with_truncation::<i32>())
+            })
+            .transpose()?;
+
+        let inner =
+            InnerMonthDay::new_with_overflow(m, d, calendar, ArithmeticOverflow::Reject, ref_year)?;
         create_temporal_month_day(inner, Some(new_target), context)
     }
 }
