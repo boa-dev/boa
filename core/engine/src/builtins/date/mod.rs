@@ -1922,11 +1922,11 @@ impl Date {
         _: &[JsValue],
         context: &mut Context,
     ) -> JsResult<JsValue> {
+        use crate::{builtins::temporal::create_temporal_instant, js_error};
         use num_traits::FromPrimitive;
         use temporal_rs::Instant;
-        const NS_PER_MILLISECOND: i128 = 1_000_000;
 
-        use crate::{builtins::temporal::create_temporal_instant, js_error};
+        const NS_PER_MILLISECOND: i128 = 1_000_000;
         // 1. Let dateObject be the this value.
         // 2. Perform ? RequireInternalSlot(dateObject, [[DateValue]]).
         // 3. Let t be dateObject.[[DateValue]].
