@@ -13,7 +13,7 @@ jobs:
     steps:
       # Checkout the main repository
       - name: Checkout repository
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
         with:
           path: boa
 
@@ -35,7 +35,7 @@ jobs:
 
       # Checkout the `data` repository
       - name: Checkout the data repo
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
         with:
           repository: boa-dev/data
           token: ${{ secrets.GITHUB_TOKEN }}

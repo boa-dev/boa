@@ -18,7 +18,7 @@ jobs:
     timeout-minutes: 60
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
         with:
           submodules: true
           path: boa
@@ -38,7 +38,7 @@ jobs:
           key: ${{ runner.os }}-cargo-test262-${{ hashFiles('**/Cargo.lock') }}
 
       - name: Checkout the data repo
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
         with:
           repository: boa-dev/data
           path: data
