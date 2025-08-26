@@ -12,7 +12,8 @@ repository.workspace = true
 rust-version.workspace = true
 
 [features]
-default = ["float16"]
+default = ["float16", "xsum"]
+
 
 # Replace the NaN-boxing implementation of `JsValueInner` with an
 # enum-based implementation. This implementation is less performant
@@ -77,6 +78,9 @@ js = ["dep:web-time", "dep:getrandom"]
 # Enable support for Float16 typed arrays
 float16 = ["dep:float16"]
 
+# Enable support for `Math.sumPrecise`
+xsum = ["dep:xsum"]
+
 # Native Backtraces
 native-backtrace = []
 
@@ -91,6 +95,7 @@ boa_string.workspace = true
 cow-utils.workspace = true
 futures-lite.workspace = true
 float16 = { version = "0.1", optional = true }
+xsum = { version = "0.1.1", optional = true }
 serde = { workspace = true, features = ["derive", "rc"] }
 serde_json.workspace = true
 rand.workspace = true

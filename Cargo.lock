@@ -410,6 +410,7 @@ dependencies = [
  "tinystr",
  "web-time",
  "writeable",
+ "xsum",
  "yoke",
  "zerofrom",
 ]
@@ -5322,6 +5323,12 @@ checksum = "ea2f10b9bb0928dfb1b42b65e1f9e36f7f54dbdf08457afefb38afcdec4fa2bb"
 dependencies = [
  "either",
 ]
+
+[[package]]
+name = "xsum"
+version = "0.1.1"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "294a1cb991f5548a829039857b4908933f58f898f55fb2f1d50286260e3a371f"
 
 [[package]]
 name = "yoke"
