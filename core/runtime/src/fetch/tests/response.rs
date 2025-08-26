@@ -88,7 +88,7 @@ fn response_json() {
             let response = response.as_promise().unwrap().await_blocking(ctx).unwrap();
             assert_eq!(
                 format!("{}", response.display_obj(false)),
-                "{\nhello world: 123\n}"
+                "{\n    hello world: 123\n}"
             );
         }),
     ]);
