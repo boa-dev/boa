@@ -451,7 +451,12 @@ impl BuiltInConstructor for ZonedDateTime {
             .transpose()?
             .unwrap_or_default();
 
-        let inner = ZonedDateTimeInner::try_new(epoch_nanos.to_i128(), calendar, timezone)?;
+        let inner = ZonedDateTimeInner::try_new_with_provider(
+            epoch_nanos.to_i128(),
+            calendar,
+            timezone,
+            context.tz_provider(),
+        )?;
 
         //  11. Return ? CreateTemporalZonedDateTime(epochNanoseconds, timeZone, calendar, NewTarget).
         create_temporal_zoneddatetime(inner, Some(new_target), context).map(Into::into)
@@ -518,7 +523,7 @@ impl ZonedDateTime {
     /// [spec]: https://tc39.es/proposal-temporal/#sec-get-temporal.zoneddatetime.prototype.era
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Temporal/ZonedDateTime/era
     /// [temporal_rs-docs]: https://docs.rs/temporal_rs/latest/temporal_rs/struct.ZonedDateTime.html#method.era
-    fn get_era(this: &JsValue, _: &[JsValue], context: &mut Context) -> JsResult<JsValue> {
+    fn get_era(this: &JsValue, _: &[JsValue], _: &mut Context) -> JsResult<JsValue> {
         let object = this.as_object();
         let zdt = object
             .as_ref()
@@ -527,7 +532,7 @@ impl ZonedDateTime {
                 JsNativeError::typ().with_message("the this object must be a ZonedDateTime object.")
             })?;
 
-        let era = zdt.inner.era_with_provider(context.tz_provider())?;
+        let era = zdt.inner.era()?;
         Ok(era
             .map(|tinystr| JsString::from(tinystr.cow_to_lowercase()))
             .into_or_undefined())
@@ -544,7 +549,7 @@ impl ZonedDateTime {
     /// [spec]: https://tc39.es/proposal-temporal/#sec-get-temporal.zoneddatetime.prototype.erayear
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Temporal/ZonedDateTime/eraYear
     /// [temporal_rs-docs]: https://docs.rs/temporal_rs/latest/temporal_rs/struct.ZonedDateTime.html#method.era_year
-    fn get_era_year(this: &JsValue, _: &[JsValue], context: &mut Context) -> JsResult<JsValue> {
+    fn get_era_year(this: &JsValue, _: &[JsValue], _: &mut Context) -> JsResult<JsValue> {
         let object = this.as_object();
         let zdt = object
             .as_ref()
@@ -553,10 +558,7 @@ impl ZonedDateTime {
                 JsNativeError::typ().with_message("the this object must be a ZonedDateTime object.")
             })?;
 
-        Ok(zdt
-            .inner
-            .era_year_with_provider(context.tz_provider())?
-            .into_or_undefined())
+        Ok(zdt.inner.era_year()?.into_or_undefined())
     }
 
     /// 6.3.7 get `Temporal.ZonedDateTime.prototype.year`
@@ -570,7 +572,7 @@ impl ZonedDateTime {
     /// [spec]: https://tc39.es/proposal-temporal/#sec-get-temporal.zoneddatetime.prototype.year
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Temporal/ZonedDateTime/year
     /// [temporal_rs-docs]: https://docs.rs/temporal_rs/latest/temporal_rs/struct.ZonedDateTime.html#method.year
-    fn get_year(this: &JsValue, _: &[JsValue], context: &mut Context) -> JsResult<JsValue> {
+    fn get_year(this: &JsValue, _: &[JsValue], _: &mut Context) -> JsResult<JsValue> {
         let object = this.as_object();
         let zdt = object
             .as_ref()
@@ -579,7 +581,7 @@ impl ZonedDateTime {
                 JsNativeError::typ().with_message("the this object must be a ZonedDateTime object.")
             })?;
 
-        Ok(zdt.inner.year_with_provider(context.tz_provider())?.into())
+        Ok(zdt.inner.year()?.into())
     }
 
     /// 6.3.8 get `Temporal.ZonedDateTime.prototype.month`
@@ -593,7 +595,7 @@ impl ZonedDateTime {
     /// [spec]: https://tc39.es/proposal-temporal/#sec-get-temporal.zoneddatetime.prototype.month
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Temporal/ZonedDateTime/month
     /// [temporal_rs-docs]: https://docs.rs/temporal_rs/latest/temporal_rs/struct.ZonedDateTime.html#method.month
-    fn get_month(this: &JsValue, _: &[JsValue], context: &mut Context) -> JsResult<JsValue> {
+    fn get_month(this: &JsValue, _: &[JsValue], _: &mut Context) -> JsResult<JsValue> {
         let object = this.as_object();
         let zdt = object
             .as_ref()
@@ -602,7 +604,7 @@ impl ZonedDateTime {
                 JsNativeError::typ().with_message("the this object must be a ZonedDateTime object.")
             })?;
 
-        Ok(zdt.inner.month_with_provider(context.tz_provider())?.into())
+        Ok(zdt.inner.month()?.into())
     }
 
     /// 6.3.9 get `Temporal.ZonedDateTime.prototype.monthCode`
@@ -616,7 +618,7 @@ impl ZonedDateTime {
     /// [spec]: https://tc39.es/proposal-temporal/#sec-get-temporal.zoneddatetime.prototype.monthcode
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Temporal/ZonedDateTime/monthCode
     /// [temporal_rs-docs]: https://docs.rs/temporal_rs/latest/temporal_rs/struct.ZonedDateTime.html#method.month_code
-    fn get_month_code(this: &JsValue, _: &[JsValue], context: &mut Context) -> JsResult<JsValue> {
+    fn get_month_code(this: &JsValue, _: &[JsValue], _: &mut Context) -> JsResult<JsValue> {
         let object = this.as_object();
         let zdt = object
             .as_ref()
@@ -625,12 +627,7 @@ impl ZonedDateTime {
                 JsNativeError::typ().with_message("the this object must be a ZonedDateTime object.")
             })?;
 
-        Ok(JsString::from(
-            zdt.inner
-                .month_code_with_provider(context.tz_provider())?
-                .as_str(),
-        )
-        .into())
+        Ok(JsString::from(zdt.inner.month_code()?.as_str()).into())
     }
 
     /// 6.3.10 get `Temporal.ZonedDateTime.prototype.day`
@@ -644,7 +641,7 @@ impl ZonedDateTime {
     /// [spec]: https://tc39.es/proposal-temporal/#sec-get-temporal.zoneddatetime.prototype.day
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Temporal/ZonedDateTime/day
     /// [temporal_rs-docs]: https://docs.rs/temporal_rs/latest/temporal_rs/struct.ZonedDateTime.html#method.day
-    fn get_day(this: &JsValue, _: &[JsValue], context: &mut Context) -> JsResult<JsValue> {
+    fn get_day(this: &JsValue, _: &[JsValue], _: &mut Context) -> JsResult<JsValue> {
         let object = this.as_object();
         let zdt = object
             .as_ref()
@@ -653,7 +650,7 @@ impl ZonedDateTime {
                 JsNativeError::typ().with_message("the this object must be a ZonedDateTime object.")
             })?;
 
-        Ok(zdt.inner.day_with_provider(context.tz_provider())?.into())
+        Ok(zdt.inner.day()?.into())
     }
 
     /// 6.3.11 get `Temporal.ZonedDateTime.prototype.hour`
@@ -667,7 +664,7 @@ impl ZonedDateTime {
     /// [spec]: https://tc39.es/proposal-temporal/#sec-get-temporal.zoneddatetime.prototype.hour
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Temporal/ZonedDateTime/hour
     /// [temporal_rs-docs]: https://docs.rs/temporal_rs/latest/temporal_rs/struct.ZonedDateTime.html#method.hour
-    fn get_hour(this: &JsValue, _: &[JsValue], context: &mut Context) -> JsResult<JsValue> {
+    fn get_hour(this: &JsValue, _: &[JsValue], _: &mut Context) -> JsResult<JsValue> {
         let object = this.as_object();
         let zdt = object
             .as_ref()
@@ -676,7 +673,7 @@ impl ZonedDateTime {
                 JsNativeError::typ().with_message("the this object must be a ZonedDateTime object.")
             })?;
 
-        Ok(zdt.inner.hour_with_provider(context.tz_provider())?.into())
+        Ok(zdt.inner.hour()?.into())
     }
 
     /// 6.3.12 get `Temporal.ZonedDateTime.prototype.minute`
@@ -690,7 +687,7 @@ impl ZonedDateTime {
     /// [spec]: https://tc39.es/proposal-temporal/#sec-get-temporal.zoneddatetime.prototype.minute
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Temporal/ZonedDateTime/minute
     /// [temporal_rs-docs]: https://docs.rs/temporal_rs/latest/temporal_rs/struct.ZonedDateTime.html#method.minute
-    fn get_minute(this: &JsValue, _: &[JsValue], context: &mut Context) -> JsResult<JsValue> {
+    fn get_minute(this: &JsValue, _: &[JsValue], _: &mut Context) -> JsResult<JsValue> {
         let object = this.as_object();
         let zdt = object
             .as_ref()
@@ -699,10 +696,7 @@ impl ZonedDateTime {
                 JsNativeError::typ().with_message("the this object must be a ZonedDateTime object.")
             })?;
 
-        Ok(zdt
-            .inner
-            .minute_with_provider(context.tz_provider())?
-            .into())
+        Ok(zdt.inner.minute()?.into())
     }
 
     /// 6.3.13 get `Temporal.ZonedDateTime.prototype.second`
@@ -716,7 +710,7 @@ impl ZonedDateTime {
     /// [spec]: https://tc39.es/proposal-temporal/#sec-get-temporal.zoneddatetime.prototype.second
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Temporal/ZonedDateTime/second
     /// [temporal_rs-docs]: https://docs.rs/temporal_rs/latest/temporal_rs/struct.ZonedDateTime.html#method.second
-    fn get_second(this: &JsValue, _: &[JsValue], context: &mut Context) -> JsResult<JsValue> {
+    fn get_second(this: &JsValue, _: &[JsValue], _: &mut Context) -> JsResult<JsValue> {
         let object = this.as_object();
         let zdt = object
             .as_ref()
@@ -725,10 +719,7 @@ impl ZonedDateTime {
                 JsNativeError::typ().with_message("the this object must be a ZonedDateTime object.")
             })?;
 
-        Ok(zdt
-            .inner
-            .second_with_provider(context.tz_provider())?
-            .into())
+        Ok(zdt.inner.second()?.into())
     }
 
     /// 6.3.14 get `Temporal.ZonedDateTime.prototype.millisecond`
@@ -742,7 +733,7 @@ impl ZonedDateTime {
     /// [spec]: https://tc39.es/proposal-temporal/#sec-get-temporal.zoneddatetime.prototype.millisecond
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Temporal/ZonedDateTime/millisecond
     /// [temporal_rs-docs]: https://docs.rs/temporal_rs/latest/temporal_rs/struct.ZonedDateTime.html#method.millisecond
-    fn get_millisecond(this: &JsValue, _: &[JsValue], context: &mut Context) -> JsResult<JsValue> {
+    fn get_millisecond(this: &JsValue, _: &[JsValue], _: &mut Context) -> JsResult<JsValue> {
         let object = this.as_object();
         let zdt = object
             .as_ref()
@@ -751,10 +742,7 @@ impl ZonedDateTime {
                 JsNativeError::typ().with_message("the this object must be a ZonedDateTime object.")
             })?;
 
-        Ok(zdt
-            .inner
-            .millisecond_with_provider(context.tz_provider())?
-            .into())
+        Ok(zdt.inner.millisecond()?.into())
     }
 
     /// 6.3.15 get `Temporal.ZonedDateTime.prototype.microsecond`
@@ -768,7 +756,7 @@ impl ZonedDateTime {
     /// [spec]: https://tc39.es/proposal-temporal/#sec-get-temporal.zoneddatetime.prototype.microsecond
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Temporal/ZonedDateTime/microsecond
     /// [temporal_rs-docs]: https://docs.rs/temporal_rs/latest/temporal_rs/struct.ZonedDateTime.html#method.microsecond
-    fn get_microsecond(this: &JsValue, _: &[JsValue], context: &mut Context) -> JsResult<JsValue> {
+    fn get_microsecond(this: &JsValue, _: &[JsValue], _: &mut Context) -> JsResult<JsValue> {
         let object = this.as_object();
         let zdt = object
             .as_ref()
@@ -777,10 +765,7 @@ impl ZonedDateTime {
                 JsNativeError::typ().with_message("the this object must be a ZonedDateTime object.")
             })?;
 
-        Ok(zdt
-            .inner
-            .microsecond_with_provider(context.tz_provider())?
-            .into())
+        Ok(zdt.inner.microsecond()?.into())
     }
 
     /// 6.3.16 get `Temporal.ZonedDateTime.prototype.nanosecond`
@@ -794,7 +779,7 @@ impl ZonedDateTime {
     /// [spec]: https://tc39.es/proposal-temporal/#sec-get-temporal.zoneddatetime.prototype.nanosecond
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Temporal/ZonedDateTime/nanosecond
     /// [temporal_rs-docs]: https://docs.rs/temporal_rs/latest/temporal_rs/struct.ZonedDateTime.html#method.nanosecond
-    fn get_nanosecond(this: &JsValue, _: &[JsValue], context: &mut Context) -> JsResult<JsValue> {
+    fn get_nanosecond(this: &JsValue, _: &[JsValue], _: &mut Context) -> JsResult<JsValue> {
         let object = this.as_object();
         let zdt = object
             .as_ref()
@@ -803,10 +788,7 @@ impl ZonedDateTime {
                 JsNativeError::typ().with_message("the this object must be a ZonedDateTime object.")
             })?;
 
-        Ok(zdt
-            .inner
-            .nanosecond_with_provider(context.tz_provider())?
-            .into())
+        Ok(zdt.inner.nanosecond()?.into())
     }
 
     /// 6.3.17 get `Temporal.ZonedDateTime.prototype.epochMilliseconds`
@@ -866,7 +848,7 @@ impl ZonedDateTime {
     /// [spec]: https://tc39.es/proposal-temporal/#sec-get-temporal.zoneddatetime.prototype.dayofweek
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Temporal/ZonedDateTime/dayOfWeek
     /// [temporal_rs-docs]: https://docs.rs/temporal_rs/latest/temporal_rs/struct.ZonedDateTime.html#method.day_of_week
-    fn get_day_of_week(this: &JsValue, _: &[JsValue], context: &mut Context) -> JsResult<JsValue> {
+    fn get_day_of_week(this: &JsValue, _: &[JsValue], _: &mut Context) -> JsResult<JsValue> {
         let object = this.as_object();
         let zdt = object
             .as_ref()
@@ -875,10 +857,7 @@ impl ZonedDateTime {
                 JsNativeError::typ().with_message("the this object must be a ZonedDateTime object.")
             })?;
 
-        Ok(zdt
-            .inner
-            .day_of_week_with_provider(context.tz_provider())?
-            .into())
+        Ok(zdt.inner.day_of_week()?.into())
     }
 
     /// 6.3.20 get `Temporal.ZonedDateTime.prototype.dayOfYear`
@@ -892,7 +871,7 @@ impl ZonedDateTime {
     /// [spec]: https://tc39.es/proposal-temporal/#sec-get-temporal.zoneddatetime.prototype.dayofyear
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Temporal/ZonedDateTime/dayOfYear
     /// [temporal_rs-docs]: https://docs.rs/temporal_rs/latest/temporal_rs/struct.ZonedDateTime.html#method.day_of_year
-    fn get_day_of_year(this: &JsValue, _: &[JsValue], context: &mut Context) -> JsResult<JsValue> {
+    fn get_day_of_year(this: &JsValue, _: &[JsValue], _: &mut Context) -> JsResult<JsValue> {
         let object = this.as_object();
         let zdt = object
             .as_ref()
@@ -901,10 +880,7 @@ impl ZonedDateTime {
                 JsNativeError::typ().with_message("the this object must be a ZonedDateTime object.")
             })?;
 
-        Ok(zdt
-            .inner
-            .day_of_year_with_provider(context.tz_provider())?
-            .into())
+        Ok(zdt.inner.day_of_year()?.into())
     }
 
     /// 6.3.21 get `Temporal.ZonedDateTime.prototype.weekOfYear`
@@ -918,7 +894,7 @@ impl ZonedDateTime {
     /// [spec]: https://tc39.es/proposal-temporal/#sec-get-temporal.zoneddatetime.prototype.weekofyear
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Temporal/ZonedDateTime/weekOfYear
     /// [temporal_rs-docs]: https://docs.rs/temporal_rs/latest/temporal_rs/struct.ZonedDateTime.html#method.week_of_year
-    fn get_week_of_year(this: &JsValue, _: &[JsValue], context: &mut Context) -> JsResult<JsValue> {
+    fn get_week_of_year(this: &JsValue, _: &[JsValue], _: &mut Context) -> JsResult<JsValue> {
         let object = this.as_object();
         let zdt = object
             .as_ref()
@@ -927,10 +903,7 @@ impl ZonedDateTime {
                 JsNativeError::typ().with_message("the this object must be a ZonedDateTime object.")
             })?;
 
-        Ok(zdt
-            .inner
-            .week_of_year_with_provider(context.tz_provider())?
-            .into_or_undefined())
+        Ok(zdt.inner.week_of_year()?.into_or_undefined())
     }
 
     /// 6.3.22 get `Temporal.ZonedDateTime.prototype.yearOfWeek`
@@ -944,7 +917,7 @@ impl ZonedDateTime {
     /// [spec]: https://tc39.es/proposal-temporal/#sec-get-temporal.zoneddatetime.prototype.yearofweek
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Temporal/ZonedDateTime/yearOfWeek
     /// [temporal_rs-docs]: https://docs.rs/temporal_rs/latest/temporal_rs/struct.ZonedDateTime.html#method.year_of_week
-    fn get_year_of_week(this: &JsValue, _: &[JsValue], context: &mut Context) -> JsResult<JsValue> {
+    fn get_year_of_week(this: &JsValue, _: &[JsValue], _: &mut Context) -> JsResult<JsValue> {
         let object = this.as_object();
         let zdt = object
             .as_ref()
@@ -953,10 +926,7 @@ impl ZonedDateTime {
                 JsNativeError::typ().with_message("the this object must be a ZonedDateTime object.")
             })?;
 
-        Ok(zdt
-            .inner
-            .year_of_week_with_provider(context.tz_provider())?
-            .into_or_undefined())
+        Ok(zdt.inner.year_of_week()?.into_or_undefined())
     }
 
     /// 6.3.23 get `Temporal.ZonedDateTime.prototype.hoursInDay`
@@ -996,7 +966,7 @@ impl ZonedDateTime {
     /// [spec]: https://tc39.es/proposal-temporal/#sec-get-temporal.zoneddatetime.prototype.daysinweek
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Temporal/ZonedDateTime/daysInWeek
     /// [temporal_rs-docs]: https://docs.rs/temporal_rs/latest/temporal_rs/struct.ZonedDateTime.html#method.days_in_week
-    fn get_days_in_week(this: &JsValue, _: &[JsValue], context: &mut Context) -> JsResult<JsValue> {
+    fn get_days_in_week(this: &JsValue, _: &[JsValue], _: &mut Context) -> JsResult<JsValue> {
         let object = this.as_object();
         let zdt = object
             .as_ref()
@@ -1005,10 +975,7 @@ impl ZonedDateTime {
                 JsNativeError::typ().with_message("the this object must be a ZonedDateTime object.")
             })?;
 
-        Ok(zdt
-            .inner
-            .days_in_week_with_provider(context.tz_provider())?
-            .into())
+        Ok(zdt.inner.days_in_week()?.into())
     }
 
     /// 6.3.25 get `Temporal.ZonedDateTime.prototype.daysInMonth`
@@ -1022,11 +989,7 @@ impl ZonedDateTime {
     /// [spec]: https://tc39.es/proposal-temporal/#sec-get-temporal.zoneddatetime.prototype.daysinmonth
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Temporal/ZonedDateTime/daysInMonth
     /// [temporal_rs-docs]: https://docs.rs/temporal_rs/latest/temporal_rs/struct.ZonedDateTime.html#method.days_in_month
-    fn get_days_in_month(
-        this: &JsValue,
-        _: &[JsValue],
-        context: &mut Context,
-    ) -> JsResult<JsValue> {
+    fn get_days_in_month(this: &JsValue, _: &[JsValue], _: &mut Context) -> JsResult<JsValue> {
         let object = this.as_object();
         let zdt = object
             .as_ref()
@@ -1035,10 +998,7 @@ impl ZonedDateTime {
                 JsNativeError::typ().with_message("the this object must be a ZonedDateTime object.")
             })?;
 
-        Ok(zdt
-            .inner
-            .days_in_month_with_provider(context.tz_provider())?
-            .into())
+        Ok(zdt.inner.days_in_month()?.into())
     }
 
     /// 6.3.26 get `Temporal.ZonedDateTime.prototype.daysInYear`
@@ -1052,7 +1012,7 @@ impl ZonedDateTime {
     /// [spec]: https://tc39.es/proposal-temporal/#sec-get-temporal.zoneddatetime.prototype.daysinyear
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Temporal/ZonedDateTime/daysInYear
     /// [temporal_rs-docs]: https://docs.rs/temporal_rs/latest/temporal_rs/struct.ZonedDateTime.html#method.days_in_year
-    fn get_days_in_year(this: &JsValue, _: &[JsValue], context: &mut Context) -> JsResult<JsValue> {
+    fn get_days_in_year(this: &JsValue, _: &[JsValue], _: &mut Context) -> JsResult<JsValue> {
         let object = this.as_object();
         let zdt = object
             .as_ref()
@@ -1061,10 +1021,7 @@ impl ZonedDateTime {
                 JsNativeError::typ().with_message("the this object must be a ZonedDateTime object.")
             })?;
 
-        Ok(zdt
-            .inner
-            .days_in_year_with_provider(context.tz_provider())?
-            .into())
+        Ok(zdt.inner.days_in_year()?.into())
     }
 
     /// 6.3.27 get `Temporal.ZonedDateTime.prototype.monthsInYear`
@@ -1078,11 +1035,7 @@ impl ZonedDateTime {
     /// [spec]: https://tc39.es/proposal-temporal/#sec-get-temporal.zoneddatetime.prototype.monthsinyear
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Temporal/ZonedDateTime/monthsInYear
     /// [temporal_rs-docs]: https://docs.rs/temporal_rs/latest/temporal_rs/struct.ZonedDateTime.html#method.months_in_year
-    fn get_months_in_year(
-        this: &JsValue,
-        _: &[JsValue],
-        context: &mut Context,
-    ) -> JsResult<JsValue> {
+    fn get_months_in_year(this: &JsValue, _: &[JsValue], _: &mut Context) -> JsResult<JsValue> {
         let object = this.as_object();
         let zdt = object
             .as_ref()
@@ -1091,10 +1044,7 @@ impl ZonedDateTime {
                 JsNativeError::typ().with_message("the this object must be a ZonedDateTime object.")
             })?;
 
-        Ok(zdt
-            .inner
-            .months_in_year_with_provider(context.tz_provider())?
-            .into())
+        Ok(zdt.inner.months_in_year()?.into())
     }
 
     /// 6.3.28 get `Temporal.ZonedDateTime.prototype.inLeapYear`
@@ -1108,7 +1058,7 @@ impl ZonedDateTime {
     /// [spec]: https://tc39.es/proposal-temporal/#sec-get-temporal.zoneddatetime.prototype.inleapyear
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Temporal/ZonedDateTime/inLeapYear
     /// [temporal_rs-docs]: https://docs.rs/temporal_rs/latest/temporal_rs/struct.ZonedDateTime.html#method.in_leap_year
-    fn get_in_leap_year(this: &JsValue, _: &[JsValue], context: &mut Context) -> JsResult<JsValue> {
+    fn get_in_leap_year(this: &JsValue, _: &[JsValue], _: &mut Context) -> JsResult<JsValue> {
         let object = this.as_object();
         let zdt = object
             .as_ref()
@@ -1117,10 +1067,7 @@ impl ZonedDateTime {
                 JsNativeError::typ().with_message("the this object must be a ZonedDateTime object.")
             })?;
 
-        Ok(zdt
-            .inner
-            .in_leap_year_with_provider(context.tz_provider())?
-            .into())
+        Ok(zdt.inner.in_leap_year()?.into())
     }
 
     /// 6.3.29 get Temporal.ZonedDateTime.prototype.offsetNanoseconds
@@ -1134,11 +1081,7 @@ impl ZonedDateTime {
     /// [spec]: https://tc39.es/proposal-temporal/#sec-get-temporal.zoneddatetime.prototype.offsetnanoseconds
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Temporal/ZonedDateTime/offsetNanoseconds
     /// [temporal_rs-docs]: https://docs.rs/temporal_rs/latest/temporal_rs/struct.ZonedDateTime.html#method.offset_nanoseconds
-    fn get_offset_nanoseconds(
-        this: &JsValue,
-        _: &[JsValue],
-        context: &mut Context,
-    ) -> JsResult<JsValue> {
+    fn get_offset_nanoseconds(this: &JsValue, _: &[JsValue], _: &mut Context) -> JsResult<JsValue> {
         let object = this.as_object();
         let zdt = object
             .as_ref()
@@ -1147,10 +1090,7 @@ impl ZonedDateTime {
                 JsNativeError::typ().with_message("the this object must be a ZonedDateTime object.")
             })?;
 
-        Ok(zdt
-            .inner
-            .offset_nanoseconds_with_provider(context.tz_provider())?
-            .into())
+        Ok(zdt.inner.offset_nanoseconds().into())
     }
 
     /// 6.3.30 get Temporal.ZonedDateTime.prototype.offset
@@ -1164,7 +1104,7 @@ impl ZonedDateTime {
     /// [spec]: https://tc39.es/proposal-temporal/#sec-get-temporal.zoneddatetime.prototype.offset
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Temporal/ZonedDateTime/offset
     /// [temporal_rs-docs]: https://docs.rs/temporal_rs/latest/temporal_rs/struct.ZonedDateTime.html#method.offset
-    fn get_offset(this: &JsValue, _: &[JsValue], context: &mut Context) -> JsResult<JsValue> {
+    fn get_offset(this: &JsValue, _: &[JsValue], _: &mut Context) -> JsResult<JsValue> {
         let object = this.as_object();
         let zdt = object
             .as_ref()
@@ -1173,7 +1113,7 @@ impl ZonedDateTime {
                 JsNativeError::typ().with_message("the this object must be a ZonedDateTime object.")
             })?;
 
-        Ok(JsString::from(zdt.inner.offset_with_provider(context.tz_provider())?).into())
+        Ok(JsString::from(zdt.inner.offset()).into())
     }
 }
 
@@ -1347,7 +1287,9 @@ impl ZonedDateTime {
 
         let timezone = to_temporal_timezone_identifier(args.get_or_undefined(0), context)?;
 
-        let inner = zdt.inner.with_timezone(timezone)?;
+        let inner = zdt
+            .inner
+            .with_timezone_with_provider(timezone, context.tz_provider())?;
         create_temporal_zoneddatetime(inner, None, context).map(Into::into)
     }
 
@@ -1873,9 +1815,7 @@ impl ZonedDateTime {
                 JsNativeError::typ().with_message("the this object must be a ZonedDateTime object.")
             })?;
 
-        let inner = zdt
-            .inner
-            .to_plain_date_with_provider(context.tz_provider())?;
+        let inner = zdt.inner.to_plain_date()?;
         create_temporal_date(inner, None, context).map(Into::into)
     }
 
@@ -1899,9 +1839,7 @@ impl ZonedDateTime {
                 JsNativeError::typ().with_message("the this object must be a ZonedDateTime object.")
             })?;
 
-        let new = zdt
-            .inner
-            .to_plain_time_with_provider(context.tz_provider())?;
+        let new = zdt.inner.to_plain_time()?;
         create_temporal_time(new, None, context).map(Into::into)
     }
 
@@ -1929,9 +1867,7 @@ impl ZonedDateTime {
                 JsNativeError::typ().with_message("the this object must be a ZonedDateTime object.")
             })?;
 
-        let new = zdt
-            .inner
-            .to_plain_datetime_with_provider(context.tz_provider())?;
+        let new = zdt.inner.to_plain_datetime()?;
         create_temporal_datetime(new, None, context).map(Into::into)
     }
 }
