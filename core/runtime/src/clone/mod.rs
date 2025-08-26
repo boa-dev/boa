@@ -3,6 +3,7 @@
 //! See <https://developer.mozilla.org/en-US/docs/Web/API/Window/structuredClone>.
 #![allow(clippy::needless_pass_by_value)]
 
+use boa_engine::bigint::RawBigInt;
 use boa_engine::builtins::array_buffer::ArrayBuffer;
 use boa_engine::builtins::error::ErrorKind;
 use boa_engine::builtins::regexp::RegExp;
@@ -10,98 +11,17 @@ use boa_engine::builtins::typed_array::TypedArrayKind;
 use boa_engine::object::builtins::{JsArray, JsArrayBuffer, JsTypedArray};
 use boa_engine::realm::Realm;
 use boa_engine::value::{TryFromJs, TryIntoJs};
-use boa_engine::{Context, JsError, JsObject, JsResult, JsString, JsValue, js_error};
+use boa_engine::{
+    Context, JsBigInt, JsError, JsObject, JsResult, JsString, JsValue, JsVariant, js_error,
+};
 use boa_interop::boa_macros::boa_module;
-use std::collections::HashMap;
+use std::collections::{HashMap, HashSet};
 use std::sync::Arc;
 
+/// Convenience method to avoid copy-pasting the same message.
 #[inline]
 fn unsupported_type() -> JsError {
     js_error!(Error: "DataCloneError: unsupported type for structured data")
-}
-
-/// Inner value for [`ContextFreeJsValue`].
-#[derive(Clone)]
-enum ContextFreeValueInner {
-    /// A primitive value that does not require a context to recreate. Includes
-    /// booleans, null, floats, etc.
-    Primitive(Arc<JsValue>),
-
-    /// A reference to another inner within the same value tree. This is to
-    /// allow recursive data structures.
-    Ref(Arc<ContextFreeValueInner>),
-
-    /// A dictionary of strings to values which should be reconstructed into
-    /// a `JsObject`. Note: the prototype and constructor are not maintained,
-    /// and during reconstruction the default `Object` prototype will be used.
-    Object(HashMap<String, Arc<ContextFreeValueInner>>),
-
-    /// A `Map()` object in JavaScript.
-    Map(HashMap<String, Arc<ContextFreeValueInner>>),
-
-    /// A `Set()` object in JavaScript. The elements are already unique at
-    /// construction.
-    Set(Arc<Vec<ContextFreeValueInner>>),
-
-    /// An `Array` object in JavaScript.
-    Array(Arc<Vec<ContextFreeValueInner>>),
-
-    /// A `Date` object in JavaScript. Although this can be marshalled, it uses
-    /// the system's datetime library to be reconstructed and may diverge.
-    Date(Arc<std::time::Instant>),
-
-    /// Allowed error types (see the structured clone algorithm page).
-    Error {
-        kind: ErrorKind,
-        name: JsString,
-        message: JsString,
-        stack: JsString,
-        cause: JsString,
-    },
-
-    /// Regular expression.
-    RegExp(Arc<JsString>),
-
-    /// Array Buffer and co.
-    ArrayBuffer(Arc<Vec<u8>>),
-    DataView {
-        buffer: Arc<ContextFreeValueInner>,
-        byte_length: usize,
-        byte_offset: usize,
-    },
-    TypedArray(TypedArrayKind, Arc<Vec<u8>>),
-}
-
-/// A [`JsValue`]-like structure that can rebuild its value given any [`Context`].
-/// This follows the rules of the [structured clone algorithm][sca], but does not
-/// require a [`Context`] to copy/move, and is [`Send`].
-///
-/// To deserialize a [`JsValue`] into a [`ContextFreeJsValue`], the application MUST
-/// pass in the context of the initial value.
-///
-/// [sca]: https://developer.mozilla.org/en-US/docs/Web/API/Web_Workers_API/Structured_clone_algorithm
-#[derive(Clone)]
-pub struct ContextFreeJsValue {
-    inner: ContextFreeValueInner,
-}
-
-impl TryIntoJs for ContextFreeJsValue {
-    fn try_into_js(&self, context: &mut Context) -> JsResult<JsValue> {
-        todo!()
-    }
-}
-
-impl ContextFreeJsValue {
-    /// Create a context-free [`JsValue`] equivalent from an existing `JsValue` and the
-    /// [`Context`] that was used to create it. The `transfer` argument allows for
-    /// transferring ownership of the inner data to the context-free value, instead of
-    /// cloning it. By default, if a value isn't in the transfer vector, it is cloned.
-    pub fn try_from_js(
-        value: &JsValue,
-        context: &mut Context,
-        transfer: Vec<JsObject>,
-    ) -> JsResult<Self> {
-    }
 }
 
 /// Transfer an object instead of cloning it. See [mdn].
@@ -220,38 +140,155 @@ fn clone_object(
     Ok(dolly.into())
 }
 
-/// The core logic of the `structuredClone` function.
-fn structured_clone_inner(
-    value: &JsValue,
-    options: Option<&StructuredCloneOptions>,
-    seen: &mut HashMap<JsValue, JsValue>,
-    context: &mut Context,
-) -> JsResult<JsValue> {
-    // If the value is not an object or object-like, just clone it.
-    let Some(o) = value.as_object() else {
-        // Except symbols... Those are not cloneable.
-        if value.is_symbol() {
-            return Err(unsupported_type());
-        }
-        return Ok(value.clone());
-    };
+/// Inner value for [`ContextFreeJsValue`].
+#[derive(Clone)]
+enum ContextFreeValueInner {
+    /// Primitive values - `null`.
+    Null,
 
-    // Have we seen this object? If so, return its clone.
-    if let Some(o2) = seen.get(value) {
-        return Ok(o2.clone());
+    /// Primitive values - `undefined`.
+    Undefined,
+
+    /// Primitive values - `Boolean`.
+    Boolean(bool),
+
+    /// Primitive values - `float64`. No need to keep integers here, they'll be
+    /// checked when recreating the `JsValue`.
+    Float(f64),
+
+    /// [`JsString`]s are context-free, but not `Send`. Since we want to be
+    /// `Send`, we'll have to make a copy of the data.
+    String(Vec<u16>),
+
+    /// [`JsBigInt`]s are context-free but not `Send`. The Raw version of it
+    /// is though.
+    BigInt(RawBigInt),
+
+    /// A reference to another inner within the same value tree. This is to
+    /// allow recursive data structures.
+    Ref(Arc<ContextFreeValueInner>),
+
+    /// A dictionary of strings to values which should be reconstructed into
+    /// a `JsObject`. Note: the prototype and constructor are not maintained,
+    /// and during reconstruction the default `Object` prototype will be used.
+    Object(HashMap<String, Arc<ContextFreeValueInner>>),
+
+    /// A `Map()` object in JavaScript.
+    Map(HashMap<String, Arc<ContextFreeValueInner>>),
+
+    /// A `Set()` object in JavaScript. The elements are already unique at
+    /// construction.
+    Set(Arc<Vec<ContextFreeValueInner>>),
+
+    /// An `Array` object in JavaScript.
+    Array(Arc<Vec<ContextFreeValueInner>>),
+
+    /// A `Date` object in JavaScript. Although this can be marshalled, it uses
+    /// the system's datetime library to be reconstructed and may diverge.
+    Date(Arc<std::time::Instant>),
+
+    /// Allowed error types (see the structured clone algorithm page).
+    Error {
+        kind: ErrorKind,
+        name: JsString,
+        message: JsString,
+        stack: JsString,
+        cause: JsString,
+    },
+
+    /// Regular expression.
+    RegExp(Arc<JsString>),
+
+    /// Array Buffer.
+    ArrayBuffer(Arc<Vec<u8>>),
+
+    /// Dataview.
+    DataView {
+        buffer: Arc<ContextFreeValueInner>,
+        byte_length: usize,
+        byte_offset: usize,
+    },
+
+    /// Typed Array, including the kind.
+    TypedArray(TypedArrayKind, Arc<Vec<u8>>),
+}
+
+/// A [`JsValue`]-like structure that can rebuild its value given any [`Context`].
+/// This follows the rules of the [structured clone algorithm][sca], but does not
+/// require a [`Context`] to copy/move, and is [`Send`].
+///
+/// To deserialize a [`JsValue`] into a [`ContextFreeJsValue`], the application MUST
+/// pass in the context of the initial value.
+///
+/// [sca]: https://developer.mozilla.org/en-US/docs/Web/API/Web_Workers_API/Structured_clone_algorithm
+#[derive(Clone)]
+pub struct ContextFreeJsValue(ContextFreeValueInner);
+
+impl TryIntoJs for ContextFreeJsValue {
+    fn try_into_js(&self, context: &mut Context) -> JsResult<JsValue> {
+        // Match the value
+        todo!();
+    }
+}
+
+impl ContextFreeJsValue {
+    /// The core logic of the [`ContextFreeJsValue::try_from_js`] function.
+    fn try_from_js_object(
+        value: &JsObject,
+        transfer: &HashSet<JsObject>,
+        seen: &mut HashMap<JsObject, ContextFreeJsValue>,
+        context: &mut Context,
+    ) -> JsResult<ContextFreeJsValue> {
+        // Have we seen this object? If so, return its clone.
+        if let Some(o2) = seen.get(value) {
+            return Ok(o2.clone());
+        }
+
+        // Is it a transferable object?
+        let new_value = if transfer.contains(value) {
+            transfer_object(o, context)?
+        } else {
+            clone_object(value, o, options, seen, context)?
+        };
+
+        seen.insert(value.clone(), new_value.clone());
+        Ok(v)
     }
 
-    // Is it a transferable object?
-    if Some(true)
-        == options
-            .and_then(|o| o.transfer.as_ref())
-            .map(|t| t.contains(&o))
-    {
-        let v = transfer_object(o, context)?;
-        seen.insert(value.clone(), v.clone());
+    fn try_from_js_inner(
+        value: &JsValue,
+        context: &mut Context,
+        transfer: &HashSet<JsObject>,
+        seen: &mut HashMap<JsObject, ContextFreeJsValue>,
+    ) -> JsResult<ContextFreeJsValue> {
+        match value.variant() {
+            JsVariant::Null => Ok(Self(ContextFreeValueInner::Null)),
+            JsVariant::Undefined => Ok(Self(ContextFreeValueInner::Undefined)),
+            JsVariant::Boolean(b) => Ok(Self(ContextFreeValueInner::Boolean(b))),
+            JsVariant::String(s) => Ok(Self(ContextFreeValueInner::String(s.to_vec()))),
+            JsVariant::Float64(f) => Ok(Self(ContextFreeValueInner::Float(f))),
+            JsVariant::Integer32(i) => Ok(Self(ContextFreeValueInner::Float(i as f64))),
+            JsVariant::BigInt(b) => Ok(Self(ContextFreeValueInner::BigInt(b.as_inner().clone()))),
+            JsVariant::Object(o) => Self::try_from_js_object(o, transfer, seen, context),
+
+            // Symbols cannot be transferred/cloned.
+            JsVariant::Symbol(_) => Err(unsupported_type()),
+        }
+    }
+
+    /// Create a context-free [`JsValue`] equivalent from an existing `JsValue` and the
+    /// [`Context`] that was used to create it. The `transfer` argument allows for
+    /// transferring ownership of the inner data to the context-free value, instead of
+    /// cloning it. By default, if a value isn't in the transfer vector, it is cloned.
+    pub fn try_from_js(
+        value: &JsValue,
+        context: &mut Context,
+        transfer: Vec<JsObject>,
+    ) -> JsResult<Self> {
+        let mut seen = HashMap::new();
+        let transfer = transfer.into_iter().collect::<HashSet<_>>();
+        let v = Self::try_from_js_inner(value, context, &transfer, &mut seen)?;
         Ok(v)
-    } else {
-        clone_object(value, o, options, seen, context)
     }
 }
 

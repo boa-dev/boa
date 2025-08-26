@@ -320,7 +320,7 @@ impl JsBigInt {
         Self::new(!x.as_inner())
     }
 
-    pub(crate) fn as_inner(&self) -> &RawBigInt {
+    pub fn as_inner(&self) -> &RawBigInt {
         &self.inner
     }
 
