@@ -66,7 +66,7 @@ impl IntrinsicObject for Date {
             .length(1)
             .build();
 
-        BuiltInBuilder::from_standard_constructor::<Self>(realm)
+        let builder = BuiltInBuilder::from_standard_constructor::<Self>(realm)
             .static_method(Self::now, js_string!("now"), 0)
             .static_method(Self::parse, js_string!("parse"), 1)
             .static_method(Self::utc, js_string!("UTC"), 7)
@@ -164,8 +164,16 @@ impl IntrinsicObject for Date {
                 JsSymbol::to_primitive(),
                 to_primitive,
                 Attribute::READONLY | Attribute::NON_ENUMERABLE | Attribute::CONFIGURABLE,
-            )
-            .build();
+            );
+
+        #[cfg(feature = "temporal")]
+        let builder = builder.method(
+            Self::to_temporal_instant,
+            js_string!("toTemporalInstant"),
+            0,
+        );
+
+        builder.build();
     }
 
     fn get(intrinsics: &Intrinsics) -> JsObject {
@@ -1896,5 +1904,43 @@ impl Date {
 
         // 6. Return ? OrdinaryToPrimitive(O, tryFirst).
         o.ordinary_to_primitive(context, try_first)
+    }
+
+    /// 14.9.1 `Date.prototype.toTemporalInstant ()`
+    ///
+    /// Returns a JavaScript Date as a `Temporal.Instant`.
+    ///
+    /// More information:
+    ///  - [Temporal Proposal][spec]
+    ///  - [MDN documentation][mdn]
+    ///
+    /// [spec]: https://tc39.es/proposal-temporal/#sec-date.prototype.totemporalinstant
+    /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Date/toTemporalInstant/
+    #[cfg(feature = "temporal")]
+    pub(crate) fn to_temporal_instant(
+        this: &JsValue,
+        _: &[JsValue],
+        context: &mut Context,
+    ) -> JsResult<JsValue> {
+        use crate::{builtins::temporal::create_temporal_instant, js_error};
+        use num_traits::FromPrimitive;
+        use temporal_rs::Instant;
+
+        const NS_PER_MILLISECOND: i128 = 1_000_000;
+        // 1. Let dateObject be the this value.
+        // 2. Perform ? RequireInternalSlot(dateObject, [[DateValue]]).
+        // 3. Let t be dateObject.[[DateValue]].
+        let t = this
+            .as_object()
+            .and_then(|obj| obj.downcast_ref::<Date>().as_deref().copied())
+            .ok_or_else(|| js_error!(TypeError: "'this' is not a Date"))?
+            .0;
+
+        // 4. Let ns be ? NumberToBigInt(t) × ℤ(10**6).
+        let ns = i128::from_f64(t)
+            .ok_or(js_error!(RangeError: "[[DateValue]] is not an integral number."))?
+            * NS_PER_MILLISECOND;
+        // 5. Return ! CreateTemporalInstant(ns).
+        create_temporal_instant(Instant::try_new(ns)?, None, context)
     }
 }
