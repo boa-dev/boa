@@ -1933,7 +1933,7 @@ impl Date {
         let t = this
             .as_object()
             .and_then(|obj| obj.downcast_ref::<Date>().as_deref().copied())
-            .ok_or_else(|| JsNativeError::typ().with_message("'this' is not a Date"))?
+            .ok_or_else(|| js_error!(TypeError: "'this' is not a Date"))?
             .0;
 
         // 4. Let ns be ? NumberToBigInt(t) × ℤ(10**6).
