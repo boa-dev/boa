@@ -964,14 +964,6 @@ impl Math {
 
         use crate::{builtins::iterable::IteratorHint, js_error};
 
-        #[derive(Debug, PartialEq)]
-        enum SummationState {
-            NotANumber,
-            MinusInfinity,
-            PlusInfinity,
-            MinusZero,
-            Finite,
-        }
         let items = args.get_or_undefined(0);
         // NOTE (nekevss): inline `RequireObjectCoercible`
         // 1. Perform ? RequireObjectCoercible(items).
@@ -980,10 +972,14 @@ impl Math {
         if items.is_null_or_undefined() {
             return Err(js_error!(TypeError: "value must be object coercible."));
         }
+
+        // TODO / NOTE (nekevss): JSC fast paths arrays by checking if `items` is an
+        // array and fetching the `length`. Potentially look into optimizing this
+        // alongside `XsumSmall` and `XsumLarge`.
+
         // 2. Let iteratorRecord be ? GetIterator(items, sync).
         let mut iterator_record = items.get_iterator(IteratorHint::Sync, context)?;
         // 3. Let state be minus-zero.
-        let mut state = SummationState::MinusZero;
         // 4. Let sum be 0.
         let mut sum = XsumAuto::new();
         // 5. Let count be 0.
@@ -1012,37 +1008,18 @@ impl Math {
             };
             // iii. Let n be next.
             // iv. If state is not not-a-number, then
-            if state != SummationState::NotANumber {
-                // 1. If n is NaN, then
-                if number.is_nan() {
-                    // a. Set state to not-a-number.
-                    state = SummationState::NotANumber;
-                // 2. Else if n is +∞𝔽, then
-                } else if number == f64::INFINITY {
-                    state = match state {
-                        // a. If state is minus-infinity, set state to not-a-number.
-                        SummationState::MinusInfinity => SummationState::NotANumber,
-                        // b. Else, set state to plus-infinity.
-                        _ => SummationState::PlusInfinity,
-                    };
-                // 3. Else if n is -∞𝔽, then
-                } else if number == f64::NEG_INFINITY {
-                    state = match state {
-                        // a. If state is plus-infinity, set state to not-a-number.
-                        SummationState::PlusInfinity => SummationState::NotANumber,
-                        // b. Else, set state to minus-infinity.
-                        _ => SummationState::MinusInfinity,
-                    };
-                // 4. Else if n is not -0𝔽 and state is either minus-zero or finite, then
-                } else if !(number == 0.0 && number.is_sign_negative())
-                    && (state == SummationState::MinusZero || state == SummationState::Finite)
-                {
-                    // a. Set state to finite.
-                    state = SummationState::Finite;
-                    // b. Set sum to sum + ℝ(n).
-                    sum.add(number);
-                }
-            }
+            // 1. If n is NaN, then
+            // a. Set state to not-a-number.
+            // 2. Else if n is +∞𝔽, then
+            // a. If state is minus-infinity, set state to not-a-number.
+            // b. Else, set state to plus-infinity.
+            // 3. Else if n is -∞𝔽, then
+            // a. If state is plus-infinity, set state to not-a-number.
+            // b. Else, set state to minus-infinity.
+            // 4. Else if n is not -0𝔽 and state is either minus-zero or finite, then
+            // a. Set state to finite.
+            // b. Set sum to sum + ℝ(n).
+            sum.add(number);
             // v. Set count to count + 1.
             count += 1;
         }
@@ -1051,13 +1028,6 @@ impl Math {
         // 10. If state is minus-infinity, return -∞𝔽.
         // 11. If state is minus-zero, return -0𝔽.
         // 12. Return 𝔽(sum).
-        let result = match state {
-            SummationState::NotANumber => JsValue::nan(),
-            SummationState::PlusInfinity => JsValue::positive_infinity(),
-            SummationState::MinusInfinity => JsValue::negative_infinity(),
-            SummationState::MinusZero => JsValue::from(-0.0),
-            SummationState::Finite => JsValue::from(sum.sum()),
-        };
-        Ok(result)
+        Ok(sum.sum().into())
     }
 }
