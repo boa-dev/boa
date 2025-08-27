@@ -60,7 +60,8 @@ fn print_obj_value_internals(
     let object = obj.borrow();
     if let Some(object) = object.prototype() {
         vec![format!(
-            "{:>width$}: {}",
+            "{:>width$}{}: {}",
+            "",
             "__proto__",
             display_fn(
                 &object.clone().into(),
@@ -72,7 +73,8 @@ fn print_obj_value_internals(
         )]
     } else {
         vec![format!(
-            "{:>width$}: {}",
+            "{:>width$}{}: {}",
+            "",
             "__proto__",
             JsValue::null().display(),
             width = indent,
@@ -104,7 +106,8 @@ fn print_obj_value_props(
         if val.is_data_descriptor() {
             let v = &val.expect_value();
             result.push(format!(
-                "{:>width$}: {}",
+                "{:>width$}{}: {}",
+                "",
                 key,
                 display_fn(v, encounters, indent.wrapping_add(4), print_internals),
                 width = indent,
