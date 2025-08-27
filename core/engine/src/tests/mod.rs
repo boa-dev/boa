@@ -539,3 +539,66 @@ fn null_bool_in_object_pattern() {
         TestAction::assert_eq("c", 100),
     ]);
 }
+
+// https://github.com/boa-dev/boa/pull/4372
+#[test]
+fn fix_index_access_in_finally_jump_table_in_loop() {
+    run_test_actions([
+        TestAction::run(indoc! {r#"
+        do {
+            try {
+                throw 0; // can be any values
+
+                // This is unreachable, but it forces creation of HandleFinally jump record.
+                break;
+            } catch {
+                // It is important that we enter the finally with rethrow flag set to false,
+                // we do this by just catching the value and ignoring it.
+            } finally {
+                // The index register is released right after allocation, so we can override it
+                // by allocating the next register through an expression statement.
+                "this is used as the index, which triggers unreachable code in JumpTable"
+            }
+        } while (0);
+    "#}),
+        TestAction::run(indoc! {r#"
+        do {
+            try {
+                throw 0; // can be any values
+
+                // This is unreachable, but it forces creation of HandleFinally jump record.
+                continue;
+            } catch {
+                // It is important that we enter the finally with rethrow flag set to false,
+                // we do this by just catching the value and ignoring it.
+            } finally {
+                // The index register is released right after allocation, so we can override it
+                // by allocating the next register through an expression statement.
+                "this is used as the index, which triggers unreachable code in JumpTable"
+            }
+        } while (0);
+    "#}),
+    ]);
+}
+
+// https://github.com/boa-dev/boa/pull/4372
+#[test]
+fn fix_index_access_in_finally_jump_table_in_function() {
+    run_test_actions([TestAction::run(indoc! {r#"
+        (() => {
+            try {
+                throw 0; // can be any values
+
+                // This is unreachable, but it forces creation of HandleFinally jump record.
+                return;
+            } catch {
+                // It is important that we enter the finally with rethrow flag set to false,
+                // we do this by just catching the value and ignoring it.
+            } finally {
+                // The index register is released right after allocation, so we can override it
+                // by allocating the next register through an expression statement.
+                "this is used as the index, which triggers unreachable code in JumpTable"
+            }
+        })()
+    "#})]);
+}
