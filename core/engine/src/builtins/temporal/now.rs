@@ -147,7 +147,7 @@ impl Now {
             .transpose()?;
 
         let now = build_now(context)?;
-        let zdt = now.zoned_date_time_iso(time_zone)?;
+        let zdt = now.zoned_date_time_iso_with_provider(time_zone, context.tz_provider())?;
         create_temporal_zoneddatetime(zdt, None, context).map(Into::into)
     }
 

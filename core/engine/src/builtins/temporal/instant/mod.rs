@@ -362,7 +362,7 @@ impl Instant {
         // 3. Return ? AddDurationToOrSubtractDurationFromInstant(add, instant, temporalDurationLike).
         let temporal_duration_like =
             to_temporal_duration_record(args.get_or_undefined(0), context)?;
-        let result = instant.inner.add(temporal_duration_like)?;
+        let result = instant.inner.add(&temporal_duration_like)?;
         create_temporal_instant(result, None, context)
     }
 
@@ -395,7 +395,7 @@ impl Instant {
         // 3. Return ? AddDurationToOrSubtractDurationFromInstant(subtract, instant, temporalDurationLike).
         let temporal_duration_like =
             to_temporal_duration_record(args.get_or_undefined(0), context)?;
-        let result = instant.inner.subtract(temporal_duration_like)?;
+        let result = instant.inner.subtract(&temporal_duration_like)?;
         create_temporal_instant(result, None, context)
     }
 
@@ -756,7 +756,9 @@ impl Instant {
         let timezone = to_temporal_timezone_identifier(args.get_or_undefined(0), context)?;
 
         // 4. Return ! CreateTemporalZonedDateTime(instant.[[EpochNanoseconds]], timeZone, "iso8601").
-        let zdt = instant.inner.to_zoned_date_time_iso(timezone);
+        let zdt = instant
+            .inner
+            .to_zoned_date_time_iso_with_provider(timezone, context.tz_provider())?;
         create_temporal_zoneddatetime(zdt, None, context).map(Into::into)
     }
 }

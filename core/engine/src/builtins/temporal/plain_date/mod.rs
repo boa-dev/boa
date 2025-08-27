@@ -1337,10 +1337,7 @@ pub(crate) fn to_temporal_date(
             // ii. Let instant be ! CreateTemporalInstant(item.[[Nanoseconds]]).
             // iii. Let plainDateTime be ? GetPlainDateTimeFor(item.[[TimeZone]], instant, item.[[Calendar]]).
             // iv. Return ! CreateTemporalDate(plainDateTime.[[ISOYear]], plainDateTime.[[ISOMonth]], plainDateTime.[[ISODay]], plainDateTime.[[Calendar]]).
-            return zdt
-                .inner
-                .to_plain_date_with_provider(context.tz_provider())
-                .map_err(Into::into);
+            return zdt.inner.to_plain_date().map_err(Into::into);
         // c. If item has an [[InitializedTemporalDateTime]] internal slot, then
         } else if let Some(dt) = object.downcast_ref::<PlainDateTime>() {
             let options_obj = get_options_object(&options)?;
