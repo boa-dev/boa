@@ -4059,9 +4059,9 @@ dependencies = [
 
 [[package]]
 name = "temporal_rs"
-version = "0.0.13"
+version = "0.0.14"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "f06a4dec591ce2d305f0906efc96df997f902d7fd818996fd971c6826a791fac"
+checksum = "867c429d5aec157c6d4c255366315f5d0d4a3521171d4429c6c0a382812c0034"
 dependencies = [
  "combine",
  "core_maths",
@@ -4206,9 +4206,9 @@ dependencies = [
 
 [[package]]
 name = "timezone_provider"
-version = "0.0.13"
+version = "0.0.14"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "8a81bfe17600ec4dd85a846cee19d85cd4e2beee4dde02be595df729b25bfcd4"
+checksum = "f357f8e2cddee6a7b56b69fbb4cab30a7e82914c80ee7f9a5eb799ee3de3f24d"
 dependencies = [
  "tinystr",
  "zerotrie",
