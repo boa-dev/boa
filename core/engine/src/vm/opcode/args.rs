@@ -807,3 +807,48 @@ impl Argument for (VaryingOperand, ThinVec<u32>) {
         ((first.into(), rest), pos + 6 + total_len * 4)
     }
 }
+
+impl Argument for (u32, u32, ThinVec<u32>) {
+    fn encode(self, bytes: &mut Vec<u8>) {
+        // Write first argument
+        write_u32(bytes, self.0);
+
+        // Write length
+        let total_len = self.2.len();
+        write_u16(bytes, total_len as u16);
+
+        // Write second argument
+        write_u32(bytes, self.1);
+
+        // Write remaining arguments
+        for arg in &self.2 {
+            write_u32(bytes, *arg);
+        }
+    }
+
+    fn decode(bytes: &[u8], pos: usize) -> (Self, usize) {
+        // Read the first argument
+        let (first, _) = read::<u32>(bytes, pos);
+
+        // Read the length
+        let (total_len, _) = read::<u16>(bytes, pos + 4);
+        let total_len = total_len as usize;
+
+        assert!(
+            bytes.len() >= pos + 10 + total_len * 4,
+            "buffer too small to read arguments"
+        );
+
+        // Read the second argument
+        let second = unsafe { read_unchecked::<u32>(bytes, pos + 6) };
+
+        // Read remaining arguments
+        let mut rest = ThinVec::with_capacity(total_len);
+        for i in 0..total_len {
+            let value = unsafe { read_unchecked::<u32>(bytes, pos + 10 + i * 4) };
+            rest.push(value);
+        }
+
+        ((first, second, rest), pos + 10 + total_len * 4)
+    }
+}

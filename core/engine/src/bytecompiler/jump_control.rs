@@ -61,7 +61,9 @@ pub(crate) enum JumpRecordAction {
         /// Jump table index.
         index: u32,
         /// Register for the flag that indicated if the finally block needs to re throw.
-        finally_throw: u32,
+        finally_throw_flag: u32,
+        /// Register for the index in the jump table.
+        finally_throw_index: u32,
     },
 }
 
@@ -108,15 +110,13 @@ impl JumpRecord {
                 }
                 JumpRecordAction::HandleFinally {
                     index: value,
-                    finally_throw,
+                    finally_throw_flag,
+                    finally_throw_index,
                 } => {
                     // Note: +1 because 0 is reserved for default entry in jump table (for fallthrough).
                     let index = value as i32 + 1;
-                    let value = compiler.register_allocator.alloc();
-                    compiler.emit_push_integer(index, &value);
-                    compiler.push_from_register(&value);
-                    compiler.bytecode.emit_push_false(finally_throw.into());
-                    compiler.register_allocator.dealloc(value);
+                    compiler.bytecode.emit_push_false(finally_throw_flag.into());
+                    compiler.emit_push_integer_with_index(index, finally_throw_index.into());
                 }
                 JumpRecordAction::CloseIterator { r#async } => {
                     compiler.iterator_close(r#async);
@@ -165,14 +165,14 @@ impl JumpRecord {
 }
 
 /// Boa's `ByteCompiler` jump information tracking struct.
-#[derive(Debug, Clone)]
+#[derive(Debug)]
 pub(crate) struct JumpControlInfo {
     label: Option<Sym>,
     start_address: u32,
     pub(crate) flags: JumpControlInfoFlags,
     pub(crate) jumps: Vec<JumpRecord>,
     current_open_environments_count: u32,
-    pub(crate) finally_throw: Option<u32>,
+    pub(crate) finally_throw: Option<(u32, u32)>,
 }
 
 bitflags! {
@@ -240,8 +240,8 @@ impl JumpControlInfo {
         self
     }
 
-    pub(crate) fn with_try_with_finally_flag(mut self, dst: &Register) -> Self {
-        self.finally_throw = Some(dst.index());
+    pub(crate) fn with_try_with_finally_flag(mut self, flag: &Register, index: &Register) -> Self {
+        self.finally_throw = Some((flag.index(), index.index()));
         self
     }
 
@@ -531,11 +531,12 @@ impl ByteCompiler<'_> {
     /// Pushes a `TryStatement`'s `JumpControlInfo` onto the `jump_info` stack.
     pub(crate) fn push_try_with_finally_control_info(
         &mut self,
-        finally_throw: &Register,
+        flag: &Register,
+        index: &Register,
         use_expr: bool,
     ) {
         let new_info = JumpControlInfo::new(self.current_open_environments_count)
-            .with_try_with_finally_flag(finally_throw);
+            .with_try_with_finally_flag(flag, index);
 
         self.push_contol_info(new_info, use_expr);
     }
@@ -554,12 +555,16 @@ impl ByteCompiler<'_> {
             return;
         }
 
+        let (_, finally_throw_index) = info.finally_throw.expect("try with finally");
+
         for JumpRecord { label, .. } in &info.jumps {
             self.patch_jump_with_target(*label, finally_start);
         }
 
-        let jump_table_index = self.next_opcode_location();
+        // NOTE: +4 to jump past the index operand.
+        let jump_table_index = self.next_opcode_location() + size_of::<u32>() as u32;
         self.bytecode.emit_jump_table(
+            finally_throw_index,
             Self::DUMMY_ADDRESS,
             thin_vec![Self::DUMMY_ADDRESS; info.jumps.len()],
         );
