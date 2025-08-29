@@ -320,6 +320,9 @@ impl JsBigInt {
         Self::new(!x.as_inner())
     }
 
+    /// Returns a reference to the raw inner value.
+    #[inline]
+    #[must_use]
     pub fn as_inner(&self) -> &RawBigInt {
         &self.inner
     }
