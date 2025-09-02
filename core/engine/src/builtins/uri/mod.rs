@@ -441,7 +441,7 @@ where
                 }
 
                 // 2. If k + (3 × (n - 1)) ≥ strLen, throw a URIError exception.
-                if k + (3 * (n - 1)) > str_len {
+                if k + (3 * (n - 1)) >= str_len {
                     return Err(JsNativeError::uri()
                         .with_message("non-terminated escape character found")
                         .into());
@@ -527,6 +527,7 @@ fn decode_hex_byte(high: u16, low: u16) -> Option<u8> {
 #[cfg(test)]
 mod tests {
     use super::*;
+    use crate::JsNativeErrorKind;
 
     /// Checks that the `decode_byte()` function works as expected.
     #[test]
@@ -565,5 +566,14 @@ mod tests {
 
         assert!(decode_hex_byte(0xFACD_u16, u16::from(b'-')).is_none());
         assert!(decode_hex_byte(u16::from(b'-'), 0xA0FD_u16).is_none());
+    }
+
+    #[test]
+    fn decode_uri_reports_uri_error_on_incomplete_sequence() {
+        // "%E7%9A%8" is an incomplete 3-byte UTF-8 sequence and must error with Uri kind
+        let s = js_string!("%E7%9A%8");
+        let err = decode(&s, |_| false).expect_err("should error on incomplete escape");
+        let native = err.as_native().expect("error should be native");
+        assert!(matches!(native.kind, JsNativeErrorKind::Uri));
     }
 }
