@@ -87,9 +87,11 @@ enum ValueStoreInner {
 
     /// A `Date` object in JavaScript. Although this can be marshaled, it uses
     /// the system's datetime library to be reconstructed and may diverge.
+    #[expect(unused)]
     Date(std::time::Instant),
 
     /// Allowed error types (see the structured clone algorithm page).
+    #[expect(unused)]
     Error {
         kind: ErrorKind,
         name: StringStore,
@@ -99,12 +101,14 @@ enum ValueStoreInner {
     },
 
     /// Regular expression. We store the expression itself.
+    #[expect(unused)]
     RegExp(StringStore),
 
     /// Array Buffer.
     ArrayBuffer(Vec<u8>),
 
     /// Dataview.
+    #[expect(unused)]
     DataView {
         buffer: JsValueStore,
         byte_length: usize,
@@ -116,16 +120,6 @@ enum ValueStoreInner {
         kind: TypedArrayKind,
         buffer: JsValueStore,
     },
-}
-
-impl ValueStoreInner {
-    fn replace(&mut self, other: ValueStoreInner) {
-        if let ValueStoreInner::Empty = self {
-            *self = other;
-        } else {
-            unreachable!("Only empty inner values should be replaced");
-        }
-    }
 }
 
 /// A [`JsValue`]-like structure that can rebuild its value given any [`Context`].
@@ -166,7 +160,7 @@ impl JsValueStore {
     /// rule at runtime (and will panic), and the second rule by requiring a mutable
     /// reference. This is still unsafe and relies on unsafe pointer access.
     unsafe fn replace(&mut self, other: ValueStoreInner) {
-        let ptr = (Arc::as_ptr(&self.0) as *mut ValueStoreInner);
+        let ptr = Arc::as_ptr(&self.0).cast_mut();
 
         assert!(!ptr.is_null());
         unsafe {

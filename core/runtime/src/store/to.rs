@@ -147,12 +147,12 @@ pub(super) fn try_value_into_js(
         ValueStoreInner::Map(key_values) => try_into_js_map(store, key_values, seen, context),
         ValueStoreInner::Set(values) => try_into_js_set(store, values, seen, context),
         ValueStoreInner::Array(items) => try_items_into_js_array(store, items, seen, context),
-        ValueStoreInner::Date(_) => todo!(),
-        ValueStoreInner::Error { .. } => todo!(),
-        ValueStoreInner::RegExp(_) => todo!(),
+        ValueStoreInner::Date(_) => unimplemented!(),
+        ValueStoreInner::Error { .. } => unimplemented!(),
+        ValueStoreInner::RegExp(_) => unimplemented!(),
         ValueStoreInner::ArrayBuffer(data) => try_into_js_array_buffer(store, data, seen, context),
         ValueStoreInner::DataView { .. } => {
-            todo!()
+            unimplemented!()
         }
         ValueStoreInner::TypedArray { kind, buffer } => {
             try_into_js_typed_array(store, *kind, buffer, seen, context)

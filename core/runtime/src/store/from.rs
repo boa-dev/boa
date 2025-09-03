@@ -2,9 +2,12 @@
 
 use crate::store::{JsValueStore, StringStore, ValueStoreInner, unsupported_type};
 use boa_engine::builtins::array_buffer::ArrayBuffer;
-use boa_engine::object::builtins::{JsArray, JsArrayBuffer, JsMap, JsSet, JsTypedArray};
+use boa_engine::builtins::error::Error;
+use boa_engine::object::builtins::{
+    JsArray, JsArrayBuffer, JsDataView, JsDate, JsMap, JsRegExp, JsSet, JsTypedArray,
+};
 use boa_engine::property::PropertyKey;
-use boa_engine::{Context, JsObject, JsResult, JsString, JsValue, JsVariant};
+use boa_engine::{Context, JsError, JsObject, JsResult, JsString, JsValue, JsVariant};
 use std::collections::{HashMap, HashSet};
 
 /// A Map of seen objects when walking through the value. We use the address
@@ -38,7 +41,7 @@ fn try_from_js_object(
 
     // Is it a transferable object?
     let new_value = if transfer.contains(value) {
-        try_from_js_object_transfer(value.clone(), context)?
+        try_from_js_object_transfer(value, context)?
     } else {
         try_from_js_object_clone(value, transfer, seen, context)?
     };
@@ -53,8 +56,11 @@ fn try_from_js_object(
 ///
 /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/API/Web_Workers_API/Transferable_objects
 /// [to]: https://developer.mozilla.org/en-US/docs/Web/API/Web_Workers_API/Transferable_objects#supported_objects
-fn try_from_js_object_transfer(object: JsObject, _context: &mut Context) -> JsResult<JsValueStore> {
-    if let Some(mut buffer) = object.clone().downcast_mut::<ArrayBuffer>() {
+fn try_from_js_object_transfer(
+    object: &JsObject,
+    _context: &mut Context,
+) -> JsResult<JsValueStore> {
+    if let Some(mut buffer) = object.downcast_mut::<ArrayBuffer>() {
         let data = buffer.detach(&JsValue::undefined())?;
         let data = data.ok_or_else(unsupported_type)?;
 
@@ -77,7 +83,8 @@ fn try_from_array_clone(
     seen.insert(&JsObject::from(array.clone()), dolly.clone());
 
     let length = array.length(context)?;
-    let mut inner = Vec::with_capacity(length as usize);
+    let length = usize::try_from(length).map_err(JsError::from_rust)?;
+    let mut inner = Vec::with_capacity(length);
     for i in 0..length {
         let v = array
             .borrow()
@@ -189,22 +196,24 @@ fn try_from_js_object_clone(
 
     if let Ok(array) = JsArray::from_object(object.clone()) {
         return try_from_array_clone(&array, transfer, seen, context);
-    }
-    if let Ok(map) = JsMap::from_object(object.clone()) {
+    } else if let Ok(map) = JsMap::from_object(object.clone()) {
         return try_from_map(object, &map, transfer, seen, context);
-    }
-    if let Ok(set) = JsSet::from_object(object.clone()) {
+    } else if let Ok(set) = JsSet::from_object(object.clone()) {
         return try_from_set(object, &set, transfer, seen, context);
-    }
-    if let Ok(ref buffer) = JsArrayBuffer::from_object(object.clone()) {
+    } else if let Ok(ref buffer) = JsArrayBuffer::from_object(object.clone()) {
         return try_from_array_buffer_clone(object, buffer, seen);
-    }
-    if let Ok(ref typed_array) = JsTypedArray::from_object(object.clone()) {
+    } else if let Ok(ref typed_array) = JsTypedArray::from_object(object.clone()) {
         return clone_typed_array(object, typed_array, transfer, seen, context);
-    }
-
-    // Functions are invalid.
-    if object.is_callable() {
+    } else if let Ok(_date) = JsDate::from_object(object.clone()) {
+        unimplemented!();
+    } else if let Ok(_error) = object.clone().downcast::<Error>() {
+        unimplemented!();
+    } else if let Ok(_regexp) = JsRegExp::from_object(object.clone()) {
+        unimplemented!();
+    } else if let Ok(_dataview) = JsDataView::from_object(object.clone()) {
+        unimplemented!();
+    } else if object.is_callable() {
+        // Functions are invalid.
         return Err(unsupported_type());
     }
 
