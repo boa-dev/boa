@@ -4,7 +4,6 @@ use boa_engine::builtins::error::ErrorKind;
 use boa_engine::builtins::typed_array::TypedArrayKind;
 use boa_engine::value::TryIntoJs;
 use boa_engine::{Context, JsError, JsObject, JsResult, JsString, JsValue, js_error};
-use std::cell::RefCell;
 use std::collections::HashSet;
 use std::sync::Arc;
 
@@ -139,11 +138,13 @@ impl ValueStoreInner {
 /// It is not serializable as it allows recursive values.
 ///
 /// To transform a [`JsValue`] into a [`JsValueStore`], the application MUST
-/// pass in the context of the initial value.
+/// pass in the context of the initial value. To transform it back to a
+/// [`JsValue`], the application MUST pass the context that will contain
+/// all prototypes for the new types (e.g. Object).
 ///
 /// [sca]: https://developer.mozilla.org/en-US/docs/Web/API/Web_Workers_API/Structured_clone_algorithm
 #[derive(Debug, Clone, PartialEq)]
-pub struct JsValueStore(Arc<RefCell<ValueStoreInner>>);
+pub struct JsValueStore(Arc<ValueStoreInner>);
 
 impl TryIntoJs for JsValueStore {
     fn try_into_js(&self, context: &mut Context) -> JsResult<JsValue> {
@@ -153,13 +154,39 @@ impl TryIntoJs for JsValueStore {
 }
 
 impl JsValueStore {
+    /// Replace the inner content with a new inner. This is necessary as the inner
+    /// content holder must be allocated before its own inner content is created
+    /// (to allow for recursive data). Therefore, the pattern is to create the
+    /// store with an empty inner, then create the sub-content, and replace the
+    /// empty inner with the new inner.
+    ///
+    /// # SAFETY
+    /// This should only be done if the inner content is [`ValueStoreInner::Empty`],
+    /// and only by the creator of the current [`JsValueStore`]. We enforce the first
+    /// rule at runtime (and will panic), and the second rule by requiring a mutable
+    /// reference. This is still unsafe and relies on unsafe pointer access.
+    unsafe fn replace(&mut self, other: ValueStoreInner) {
+        let ptr = (Arc::as_ptr(&self.0) as *mut ValueStoreInner);
+
+        assert!(!ptr.is_null());
+        unsafe {
+            assert_eq!(
+                *ptr,
+                ValueStoreInner::Empty,
+                "ValueStoreInner must be empty."
+            );
+
+            *ptr = other;
+        }
+    }
+
     /// A still-being-constructed value.
     fn empty() -> Self {
-        Self(Arc::new(RefCell::new(ValueStoreInner::Empty)))
+        Self(Arc::new(ValueStoreInner::Empty))
     }
 
     fn new(inner: ValueStoreInner) -> Self {
-        Self(Arc::new(RefCell::new(inner)))
+        Self(Arc::new(inner))
     }
 
     /// Create a context-free [`JsValue`] equivalent from an existing `JsValue` and the

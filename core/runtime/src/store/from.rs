@@ -2,11 +2,13 @@
 
 use crate::store::{JsValueStore, StringStore, ValueStoreInner, unsupported_type};
 use boa_engine::builtins::array_buffer::ArrayBuffer;
-use boa_engine::object::builtins::{JsArray, JsArrayBuffer, JsMap, JsTypedArray};
+use boa_engine::object::builtins::{JsArray, JsArrayBuffer, JsMap, JsSet, JsTypedArray};
 use boa_engine::property::PropertyKey;
 use boa_engine::{Context, JsObject, JsResult, JsString, JsValue, JsVariant};
 use std::collections::{HashMap, HashSet};
 
+/// A Map of seen objects when walking through the value. We use the address
+/// of the inner object as it is unique per JavaScript value.
 #[derive(Default)]
 pub(super) struct SeenMap(HashMap<usize, JsValueStore>);
 
@@ -41,7 +43,6 @@ fn try_from_js_object(
         try_from_js_object_clone(value, transfer, seen, context)?
     };
 
-    seen.insert(value, new_value.clone());
     Ok(new_value)
 }
 
@@ -72,7 +73,7 @@ fn try_from_array_clone(
     // Create an empty clone, we will replace its inner values after we gather them.
     // To stop the recursion, we need to add the right value to the seen map prior,
     // though.
-    let dolly = JsValueStore::empty();
+    let mut dolly = JsValueStore::empty();
     seen.insert(&JsObject::from(array.clone()), dolly.clone());
 
     let length = array.length(context)?;
@@ -91,7 +92,9 @@ fn try_from_array_clone(
         }
     }
 
-    dolly.0.borrow_mut().replace(ValueStoreInner::Array(inner));
+    unsafe {
+        dolly.replace(ValueStoreInner::Array(inner));
+    }
     Ok(dolly)
 }
 
@@ -131,6 +134,9 @@ fn try_from_map(
     context: &mut Context,
 ) -> JsResult<JsValueStore> {
     let mut new_map = Vec::new();
+    let mut store = JsValueStore::new(ValueStoreInner::Empty);
+    seen.insert(original, store.clone());
+
     map.for_each_native(|k, v| {
         let key = try_from_js_value(&k, transfer, seen, context)?;
         let value = try_from_js_value(&v, transfer, seen, context)?;
@@ -138,8 +144,36 @@ fn try_from_map(
 
         Ok(())
     })?;
-    let store = JsValueStore::new(ValueStoreInner::Map(new_map));
+
+    unsafe {
+        store.replace(ValueStoreInner::Map(new_map));
+    }
+
+    Ok(store)
+}
+
+fn try_from_set(
+    original: &JsObject,
+    set: &JsSet,
+    transfer: &HashSet<JsObject>,
+    seen: &mut SeenMap,
+    context: &mut Context,
+) -> JsResult<JsValueStore> {
+    let mut new_set = Vec::new();
+    let mut store = JsValueStore::new(ValueStoreInner::Empty);
     seen.insert(original, store.clone());
+
+    set.for_each_native(|v| {
+        let value = try_from_js_value(&v, transfer, seen, context)?;
+        new_set.push(value);
+
+        Ok(())
+    })?;
+
+    unsafe {
+        store.replace(ValueStoreInner::Set(new_set));
+    }
+
     Ok(store)
 }
 
@@ -159,6 +193,9 @@ fn try_from_js_object_clone(
     if let Ok(map) = JsMap::from_object(object.clone()) {
         return try_from_map(object, &map, transfer, seen, context);
     }
+    if let Ok(set) = JsSet::from_object(object.clone()) {
+        return try_from_set(object, &set, transfer, seen, context);
+    }
     if let Ok(ref buffer) = JsArrayBuffer::from_object(object.clone()) {
         return try_from_array_buffer_clone(object, buffer, seen);
     }
@@ -173,7 +210,7 @@ fn try_from_js_object_clone(
 
     // Create a new object and add own properties to it. This does not preserve
     // the prototype (nor do we want to).
-    let dolly = JsValueStore::empty();
+    let mut dolly = JsValueStore::empty();
     seen.insert(object, dolly.clone());
 
     let keys = object.own_property_keys(context)?;
@@ -190,7 +227,9 @@ fn try_from_js_object_clone(
         fields.push((key, v));
     }
 
-    dolly.0.replace(ValueStoreInner::Object(fields));
+    unsafe {
+        dolly.replace(ValueStoreInner::Object(fields));
+    }
     Ok(dolly)
 }
 

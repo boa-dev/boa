@@ -1,7 +1,9 @@
 //! All methods for deserializing a [`JsValueStore`] into a [`JsValue`].
 use crate::store::{JsValueStore, StringStore, ValueStoreInner, unsupported_type};
 use boa_engine::builtins::typed_array::TypedArrayKind;
-use boa_engine::object::builtins::{JsArray, JsArrayBuffer, JsMap, js_typed_array_from_kind};
+use boa_engine::object::builtins::{
+    JsArray, JsArrayBuffer, JsMap, JsSet, js_typed_array_from_kind,
+};
 use boa_engine::{Context, JsBigInt, JsObject, JsResult, JsValue};
 use std::collections::HashMap;
 
@@ -59,7 +61,7 @@ fn try_items_into_js_array(
 
 fn try_into_js_array_buffer(
     store: &JsValueStore,
-    data: &Vec<u8>,
+    data: &[u8],
     seen: &mut ReverseSeenMap,
     context: &mut Context,
 ) -> JsResult<JsValue> {
@@ -90,7 +92,7 @@ fn try_into_js_typed_array(
 
 fn try_into_js_map(
     store: &JsValueStore,
-    key_values: &Vec<(JsValueStore, JsValueStore)>,
+    key_values: &[(JsValueStore, JsValueStore)],
     seen: &mut ReverseSeenMap,
     context: &mut Context,
 ) -> JsResult<JsValue> {
@@ -105,6 +107,22 @@ fn try_into_js_map(
     Ok(JsValue::from(map))
 }
 
+fn try_into_js_set(
+    store: &JsValueStore,
+    values: &[JsValueStore],
+    seen: &mut ReverseSeenMap,
+    context: &mut Context,
+) -> JsResult<JsValue> {
+    let set = JsSet::new(context);
+    seen.insert(store, set.clone().into());
+    for v in values {
+        let v = try_value_into_js(v, seen, context)?;
+        set.add(v, context)?;
+    }
+
+    Ok(JsValue::from(set))
+}
+
 pub(super) fn try_value_into_js(
     store: &JsValueStore,
     seen: &mut ReverseSeenMap,
@@ -115,7 +133,7 @@ pub(super) fn try_value_into_js(
     }
 
     // Match the value
-    match &*store.0.borrow() {
+    match &*store.0 {
         ValueStoreInner::Empty => {
             unreachable!("ValueStoreInner::Empty should not exist after storage.");
         }
@@ -127,7 +145,7 @@ pub(super) fn try_value_into_js(
         ValueStoreInner::BigInt(b) => Ok(JsValue::from(JsBigInt::new(b.clone()))),
         ValueStoreInner::Object(fields) => try_fields_into_js_object(store, fields, seen, context),
         ValueStoreInner::Map(key_values) => try_into_js_map(store, key_values, seen, context),
-        ValueStoreInner::Set(_) => todo!(),
+        ValueStoreInner::Set(values) => try_into_js_set(store, values, seen, context),
         ValueStoreInner::Array(items) => try_items_into_js_array(store, items, seen, context),
         ValueStoreInner::Date(_) => todo!(),
         ValueStoreInner::Error { .. } => todo!(),
