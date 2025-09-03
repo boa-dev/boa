@@ -7,7 +7,7 @@ use boa_engine::object::builtins::{
     JsArray, JsArrayBuffer, JsDataView, JsDate, JsMap, JsRegExp, JsSet, JsTypedArray,
 };
 use boa_engine::property::PropertyKey;
-use boa_engine::{Context, JsError, JsObject, JsResult, JsString, JsValue, JsVariant};
+use boa_engine::{Context, JsError, JsObject, JsResult, JsString, JsValue, JsVariant, js_error};
 use std::collections::{HashMap, HashSet};
 
 /// A Map of seen objects when walking through the value. We use the address
@@ -205,13 +205,13 @@ fn try_from_js_object_clone(
     } else if let Ok(ref typed_array) = JsTypedArray::from_object(object.clone()) {
         return clone_typed_array(object, typed_array, transfer, seen, context);
     } else if let Ok(_date) = JsDate::from_object(object.clone()) {
-        unimplemented!();
+        return Err(js_error!(TypeError: "Dates are not supported yet."));
     } else if let Ok(_error) = object.clone().downcast::<Error>() {
-        unimplemented!();
+        return Err(js_error!(TypeError: "Errors are not supported yet."));
     } else if let Ok(_regexp) = JsRegExp::from_object(object.clone()) {
-        unimplemented!();
+        return Err(js_error!(TypeError: "Regular Expressions are not supported yet."));
     } else if let Ok(_dataview) = JsDataView::from_object(object.clone()) {
-        unimplemented!();
+        return Err(js_error!(TypeError: "Data views are not supported yet."));
     } else if object.is_callable() {
         // Functions are invalid.
         return Err(unsupported_type());
