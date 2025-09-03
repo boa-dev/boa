@@ -16,7 +16,7 @@ fn unsupported_type() -> JsError {
     js_error!(Error: "DataCloneError: unsupported type for structured data")
 }
 
-/// A type to help store [`JsString`]. Because [`JsString`] relies on [`std::sync::Rc`],
+/// A type to help store [`JsString`]. Because [`JsString`] relies on [`std::rc::Rc`],
 /// it cannot be `Send`, which is a necessary contract for the Store. The [`StringStore`]
 /// can be transformed from and into `JsString`, but owns its data. It is _not_ copy-on-
 /// write.
@@ -66,8 +66,8 @@ enum ValueStoreInner {
     /// `Send`, we'll have to make a copy of the data.
     String(StringStore),
 
-    /// [`JsBigInt`]s are context-free but not `Send`. The Raw version of it
-    /// is, though.
+    /// [`boa_engine::JsBigInt`]s are context-free but not `Send`. The Raw version
+    /// of it is, though.
     BigInt(RawBigInt),
 
     /// A dictionary of strings to values which should be reconstructed into
