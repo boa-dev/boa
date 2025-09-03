@@ -4,7 +4,7 @@ use crate::store::{JsValueStore, StringStore, ValueStoreInner, unsupported_type}
 use boa_engine::builtins::array_buffer::ArrayBuffer;
 use boa_engine::object::builtins::{JsArray, JsArrayBuffer, JsMap, JsTypedArray};
 use boa_engine::property::PropertyKey;
-use boa_engine::{Context, JsObject, JsResult, JsString, JsValue, JsVariant, js_error};
+use boa_engine::{Context, JsObject, JsResult, JsString, JsValue, JsVariant};
 use std::collections::{HashMap, HashSet};
 
 #[derive(Default)]
@@ -52,7 +52,7 @@ fn try_from_js_object(
 ///
 /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/API/Web_Workers_API/Transferable_objects
 /// [to]: https://developer.mozilla.org/en-US/docs/Web/API/Web_Workers_API/Transferable_objects#supported_objects
-fn try_from_js_object_transfer(object: JsObject, context: &mut Context) -> JsResult<JsValueStore> {
+fn try_from_js_object_transfer(object: JsObject, _context: &mut Context) -> JsResult<JsValueStore> {
     if let Some(mut buffer) = object.clone().downcast_mut::<ArrayBuffer>() {
         let data = buffer.detach(&JsValue::undefined())?;
         let data = data.ok_or_else(unsupported_type)?;
@@ -111,19 +111,14 @@ fn try_from_array_buffer_clone(
 fn clone_typed_array(
     original: &JsObject,
     buffer: &JsTypedArray,
+    transfer: &HashSet<JsObject>,
     seen: &mut SeenMap,
     context: &mut Context,
 ) -> JsResult<JsValueStore> {
     let kind = buffer.kind().ok_or_else(unsupported_type)?;
-    let buffer = buffer
-        .buffer(context)?
-        .as_object()
-        .ok_or_else(unsupported_type)?;
-    let buffer = buffer
-        .downcast_mut::<ArrayBuffer>()
-        .ok_or_else(unsupported_type)?;
-    let data = buffer.data().ok_or_else(unsupported_type)?;
-    let dolly = JsValueStore::new(ValueStoreInner::TypedArray(kind, data.to_vec()));
+    let buffer = buffer.buffer(context)?;
+    let buffer = try_from_js_value(&buffer, transfer, seen, context)?;
+    let dolly = JsValueStore::new(ValueStoreInner::TypedArray { kind, buffer });
     seen.insert(original, dolly.clone());
     Ok(dolly)
 }
@@ -135,14 +130,17 @@ fn try_from_map(
     seen: &mut SeenMap,
     context: &mut Context,
 ) -> JsResult<JsValueStore> {
-    let mut new_map = HashMap::new();
+    let mut new_map = Vec::new();
     map.for_each_native(|k, v| {
         let key = try_from_js_value(&k, transfer, seen, context)?;
         let value = try_from_js_value(&v, transfer, seen, context)?;
+        new_map.push((key, value));
 
         Ok(())
     })?;
-    Ok(JsValueStore::new(ValueStoreInner::Map(new_map)))
+    let store = JsValueStore::new(ValueStoreInner::Map(new_map));
+    seen.insert(original, store.clone());
+    Ok(store)
 }
 
 fn try_from_js_object_clone(
@@ -165,7 +163,7 @@ fn try_from_js_object_clone(
         return try_from_array_buffer_clone(object, buffer, seen);
     }
     if let Ok(ref typed_array) = JsTypedArray::from_object(object.clone()) {
-        return clone_typed_array(object, typed_array, seen, context);
+        return clone_typed_array(object, typed_array, transfer, seen, context);
     }
 
     // Functions are invalid.
@@ -178,8 +176,8 @@ fn try_from_js_object_clone(
     let dolly = JsValueStore::empty();
     seen.insert(object, dolly.clone());
 
-    let mut fields: HashMap<StringStore, JsValueStore> = HashMap::new();
     let keys = object.own_property_keys(context)?;
+    let mut fields: Vec<(StringStore, JsValueStore)> = Vec::with_capacity(keys.len());
     for k in keys {
         let value = object.get(k.clone(), context)?;
         let key = match k {
@@ -189,7 +187,7 @@ fn try_from_js_object_clone(
         };
 
         let v = try_from_js_value(&value, transfer, seen, context)?;
-        fields.insert(key, v);
+        fields.push((key, v));
     }
 
     dolly.0.replace(ValueStoreInner::Object(fields));

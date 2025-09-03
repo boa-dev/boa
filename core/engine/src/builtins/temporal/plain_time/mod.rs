@@ -911,10 +911,7 @@ pub(crate) fn to_temporal_time(
                 let options = get_options_object(options)?;
                 let _overflow =
                     get_option::<ArithmeticOverflow>(&options, js_string!("overflow"), context)?;
-                return zdt
-                    .inner
-                    .to_plain_time_with_provider(context.tz_provider())
-                    .map_err(Into::into);
+                return zdt.inner.to_plain_time().map_err(Into::into);
             // c. If item has an [[InitializedTemporalDateTime]] internal slot, then
             } else if let Some(dt) = object.downcast_ref::<PlainDateTime>() {
                 // i. Return ! CreateTemporalTime(item.[[ISOHour]], item.[[ISOMinute]],

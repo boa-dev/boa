@@ -23,6 +23,7 @@ use temporal_rs::{
     Calendar, MonthCode, PlainMonthDay as InnerMonthDay,
     fields::CalendarFields,
     options::{ArithmeticOverflow, DisplayCalendar},
+    parsed_intermediates::ParsedDate,
     partial::PartialDate,
 };
 
@@ -130,14 +131,6 @@ impl BuiltInConstructor for PlainMonthDay {
                 .into());
         }
 
-        let ref_year = args
-            .get_or_undefined(3)
-            .map(|v| {
-                let finite = v.to_finitef64(context)?;
-                Ok::<i32, JsError>(finite.as_integer_with_truncation::<i32>())
-            })
-            .transpose()?;
-
         // We can ignore 2 as the underlying temporal library handles the reference year
         let m = args
             .get_or_undefined(0)
@@ -162,13 +155,16 @@ impl BuiltInConstructor for PlainMonthDay {
             .transpose()?
             .unwrap_or_default();
 
-        let inner = InnerMonthDay::new_with_overflow(
-            m,
-            d,
-            calendar,
-            ArithmeticOverflow::Constrain,
-            ref_year,
-        )?;
+        let ref_year = args
+            .get_or_undefined(3)
+            .map(|v| {
+                let finite = v.to_finitef64(context)?;
+                Ok::<i32, JsError>(finite.as_integer_with_truncation::<i32>())
+            })
+            .transpose()?;
+
+        let inner =
+            InnerMonthDay::new_with_overflow(m, d, calendar, ArithmeticOverflow::Reject, ref_year)?;
         create_temporal_month_day(inner, Some(new_target), context)
     }
 }
@@ -186,9 +182,9 @@ impl PlainMonthDay {
     /// [spec]: https://tc39.es/proposal-temporal/#sec-temporal.plainmonthday.from
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Temporal/PlainMonthDay/from
     fn from(_: &JsValue, args: &[JsValue], context: &mut Context) -> JsResult<JsValue> {
-        let options = get_options_object(args.get_or_undefined(1))?;
         let item = args.get_or_undefined(0);
-        let inner = to_temporal_month_day(item, Some(options), context)?;
+        let options = args.get_or_undefined(1);
+        let inner = to_temporal_month_day(item, options, context)?;
         create_temporal_month_day(inner, None, context)
     }
 }
@@ -332,7 +328,8 @@ impl PlainMonthDay {
                 JsNativeError::typ().with_message("this value must be a PlainMonthDay object.")
             })?;
 
-        let other = to_temporal_month_day(args.get_or_undefined(0), None, context)?;
+        let other =
+            to_temporal_month_day(args.get_or_undefined(0), &JsValue::undefined(), context)?;
 
         Ok((month_day.inner == other).into())
     }
@@ -527,18 +524,27 @@ pub(crate) fn create_temporal_month_day(
 
 fn to_temporal_month_day(
     item: &JsValue,
-    options: Option<JsObject>,
+    options: &JsValue,
     context: &mut Context,
 ) -> JsResult<InnerMonthDay> {
-    let options = options.unwrap_or(JsObject::with_null_proto());
-    let overflow = get_option::<ArithmeticOverflow>(&options, js_string!("overflow"), context)?;
-
+    // NOTE: One should be guaranteed by caller
+    // 1. If options is not present, set options to undefined.
+    // 2. If item is a Object, then
     if let Some(obj) = item.as_object() {
+        // a. If item has an [[InitializedTemporalMonthDay]] internal slot, then
         if let Some(md) = obj.downcast_ref::<PlainMonthDay>() {
+            // i. Let resolvedOptions be ? GetOptionsObject(options).
+            let options = get_options_object(options)?;
+            // ii. Perform ? GetTemporalOverflowOption(resolvedOptions).
+            let _ = get_option::<ArithmeticOverflow>(&options, js_string!("overflow"), context)?;
+            // iii. Return ! CreateTemporalMonthDay(item.[[ISODate]], item.[[Calendar]]).
             return Ok(md.inner.clone());
         }
+
         // b. Let calendar be ? GetTemporalCalendarIdentifierWithISODefault(item).
         let calendar = get_temporal_calendar_slot_value_with_default(&obj, context)?;
+        // NOTE: inlined
+        // c. Let fields be ? PrepareCalendarFields(calendar, item, « year, month, month-code, day », «», «»).
         let day = obj
             .get(js_string!("day"), context)?
             .map(|v| {
@@ -587,16 +593,40 @@ fn to_temporal_month_day(
             .with_month_code(month_code)
             .with_calendar(calendar);
 
+        // d. Let resolvedOptions be ? GetOptionsObject(options).
+        let options = get_options_object(options)?;
+        // e. Let overflow be ? GetTemporalOverflowOption(resolvedOptions).
+        let overflow = get_option::<ArithmeticOverflow>(&options, js_string!("overflow"), context)?;
+        // f. Let isoDate be ? CalendarMonthDayFromFields(calendar, fields, overflow).
+        // g. Return ! CreateTemporalMonthDay(isoDate, calendar).
         return Ok(InnerMonthDay::from_partial(partial_date, overflow)?);
     }
 
+    // 3. If item is not a String, throw a TypeError exception.
     let Some(md_string) = item.as_string() else {
         return Err(JsNativeError::typ()
             .with_message("item must be an object or a string")
             .into());
     };
-
-    Ok(InnerMonthDay::from_str(
-        md_string.to_std_string_escaped().as_str(),
-    )?)
+    // 4. Let result be ? ParseISODateTime(item, « TemporalMonthDayString »).
+    // 5. Let calendar be result.[[Calendar]].
+    // 6. If calendar is empty, set calendar to "iso8601".
+    // 7. Set calendar to ? CanonicalizeCalendar(calendar).
+    let parse_record =
+        ParsedDate::month_day_from_utf8(md_string.to_std_string_escaped().as_bytes())?;
+    // 8. Let resolvedOptions be ? GetOptionsObject(options).
+    let options = get_options_object(options)?;
+    // 9. Perform ? GetTemporalOverflowOption(resolvedOptions).
+    let _ = get_option::<ArithmeticOverflow>(&options, js_string!("overflow"), context)?;
+    // 10. If calendar is "iso8601", then
+    // a. Let referenceISOYear be 1972 (the first ISO 8601 leap year after the epoch).
+    // b. Let isoDate be CreateISODateRecord(referenceISOYear, result.[[Month]], result.[[Day]]).
+    // c. Return ! CreateTemporalMonthDay(isoDate, calendar).
+    // 11. Let isoDate be CreateISODateRecord(result.[[Year]], result.[[Month]], result.[[Day]]).
+    // 12. If ISODateWithinLimits(isoDate) is false, throw a RangeError exception.
+    // 13. Set result to ISODateToFields(calendar, isoDate, month-day).
+    // 14. NOTE: The following operation is called with constrain regardless of the value of overflow, in order for the calendar to store a canonical value in the [[Year]] field of the [[ISODate]] internal slot of the result.
+    // 15. Set isoDate to ? CalendarMonthDayFromFields(calendar, result, constrain).
+    // 16. Return ! CreateTemporalMonthDay(isoDate, calendar).
+    Ok(InnerMonthDay::from_parsed(parse_record)?)
 }

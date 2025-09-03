@@ -33,4 +33,5 @@
 
     assert(object2.array !== array);
     assertEq(object1.array.byteLength, 0);
+    assertArrayEqual(object2.array, [1, 2, 3, 4]);
 }

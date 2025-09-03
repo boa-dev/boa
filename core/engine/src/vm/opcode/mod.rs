@@ -1545,10 +1545,8 @@ generate_opcodes! {
     /// This is used to handle special cases when we call `continue`, `break` or `return` in a try block,
     /// that has finally block.
     ///
-    /// Operands: default: `u32`, count: `u32`, address: `u32` * count
-    ///
-    /// Stack: value: [`i32`] **=>**
-    JumpTable { default: u32, addresses: ThinVec<u32> },
+    /// Operands: index: Register, default: `u32`, count: `u32`, address: `u32` * count
+    JumpTable { index: u32, default: u32, addresses: ThinVec<u32> },
 
     /// Throw exception.
     ///

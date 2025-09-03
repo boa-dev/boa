@@ -31,6 +31,7 @@
 //! [`Gc`]: boa_gc::Gc
 
 use crate::context::time::{JsDuration, JsInstant};
+use crate::sys::time;
 use crate::{
     Context, JsResult, JsValue,
     object::{JsFunction, NativeObject},
@@ -38,7 +39,9 @@ use crate::{
 };
 use boa_gc::{Finalize, Trace};
 use std::any::Any;
+use std::cell::Cell;
 use std::collections::BTreeMap;
+use std::mem;
 use std::rc::Rc;
 use std::{cell::RefCell, collections::VecDeque, fmt::Debug, future::Future, pin::Pin};
 
@@ -75,7 +78,7 @@ impl NativeJob {
     }
 
     /// Creates a new `NativeJob` from a closure and an execution realm.
-    pub fn with_realm<F>(f: F, realm: Realm, _context: &mut Context) -> Self
+    pub fn with_realm<F>(f: F, realm: Realm) -> Self
     where
         F: FnOnce(&mut Context) -> JsResult<JsValue> + 'static,
     {
@@ -119,26 +122,41 @@ impl NativeJob {
     }
 }
 
+/// Flag that can only be set once.
+#[derive(Debug, Clone)]
+pub(crate) struct OnceFlag(Rc<Cell<bool>>);
+
+impl OnceFlag {
+    /// Creates a new `OnceFlag`.
+    pub(crate) fn new() -> Self {
+        Self(Rc::new(Cell::new(false)))
+    }
+
+    /// Sets this `OnceFlag` to `true`.
+    pub(crate) fn set(&self) {
+        self.0.set(true);
+    }
+
+    /// Returns `true` if this `OnceFlag` has been set, or `false` otherwise.
+    pub(crate) fn is_set(&self) -> bool {
+        self.0.get()
+    }
+}
+
 /// An ECMAScript [Job] that runs after a certain amount of time.
 ///
 /// This represents the [HostEnqueueTimeoutJob] operation from the specification.
 ///
 /// [HostEnqueueTimeoutJob]: https://tc39.es/ecma262/#sec-hostenqueuetimeoutjob
+#[derive(Debug)]
 pub struct TimeoutJob {
     /// The distance in milliseconds in the future when the job should run.
     /// This will be added to the current time when the job is enqueued.
     timeout: JsDuration,
     /// The job to run after the time has passed.
     job: NativeJob,
-}
-
-impl Debug for TimeoutJob {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        f.debug_struct("TimeoutJob")
-            .field("timeout", &self.timeout)
-            .field("job", &self.job)
-            .finish()
-    }
+    /// Signals if the timeout job was cancelled.
+    cancelled: OnceFlag,
 }
 
 impl TimeoutJob {
@@ -148,6 +166,7 @@ impl TimeoutJob {
         Self {
             timeout: JsDuration::from_millis(timeout_in_millis),
             job,
+            cancelled: OnceFlag::new(),
         }
     }
 
@@ -162,19 +181,11 @@ impl TimeoutJob {
 
     /// Creates a new `TimeoutJob` from a closure, a timeout, and an execution realm.
     #[must_use]
-    pub fn with_realm<F>(
-        f: F,
-        realm: Realm,
-        timeout: std::time::Duration,
-        context: &mut Context,
-    ) -> Self
+    pub fn with_realm<F>(f: F, realm: Realm, timeout: time::Duration) -> Self
     where
         F: FnOnce(&mut Context) -> JsResult<JsValue> + 'static,
     {
-        Self::new(
-            NativeJob::with_realm(f, realm, context),
-            timeout.as_millis() as u64,
-        )
+        Self::new(NativeJob::with_realm(f, realm), timeout.as_millis() as u64)
     }
 
     /// Calls the native job with the specified [`Context`].
@@ -192,6 +203,58 @@ impl TimeoutJob {
     #[must_use]
     pub fn timeout(&self) -> JsDuration {
         self.timeout
+    }
+
+    /// Returns `true` if the timeout was cancelled, and its execution can be skipped.
+    #[inline]
+    #[must_use]
+    pub fn is_cancelled(&self) -> bool {
+        self.cancelled.is_set()
+    }
+
+    /// Returns the `OnceFlag` to cancel this timeout job.
+    pub(crate) fn cancelled_flag(&self) -> OnceFlag {
+        self.cancelled.clone()
+    }
+}
+
+/// An ECMAScript Generic [Job].
+///
+/// This represents the [HostEnqueueGenericJob] operation from the specification, which
+/// enqueues a job that is just like a [`PromiseJob`], but unconstrained in relation
+/// to priority and ordering.
+///
+/// [HostEnqueueGenericJob]: https://tc39.es/ecma262/#sec-hostenqueuegenericjob
+pub struct GenericJob(NativeJob);
+
+impl Debug for GenericJob {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        f.debug_struct("GenericJob").finish_non_exhaustive()
+    }
+}
+
+impl GenericJob {
+    /// Creates a new `GenericJob` from a closure and an execution realm.
+    pub fn new<F>(f: F, realm: Realm) -> Self
+    where
+        F: FnOnce(&mut Context) -> JsResult<JsValue> + 'static,
+    {
+        Self(NativeJob::with_realm(f, realm))
+    }
+
+    /// Gets a reference to the execution realm of the job.
+    #[must_use]
+    pub const fn realm(&self) -> &Realm {
+        self.0
+            .realm
+            .as_ref()
+            .expect("all generic jobs must have an execution realm")
+    }
+
+    /// Calls the `GenericJob` with the specified [`Context`], setting the execution
+    /// context to the job's realm before calling the inner closure, and resets it after execution.
+    pub fn call(self, context: &mut Context) -> JsResult<JsValue> {
+        self.0.call(context)
     }
 }
 
@@ -333,11 +396,11 @@ impl PromiseJob {
     }
 
     /// Creates a new `PromiseJob` from a closure and an execution realm.
-    pub fn with_realm<F>(f: F, realm: Realm, context: &mut Context) -> Self
+    pub fn with_realm<F>(f: F, realm: Realm) -> Self
     where
         F: FnOnce(&mut Context) -> JsResult<JsValue> + 'static,
     {
-        Self(NativeJob::with_realm(f, realm, context))
+        Self(NativeJob::with_realm(f, realm))
     }
 
     /// Gets a reference to the execution realm of the `PromiseJob`.
@@ -441,6 +504,10 @@ pub enum Job {
     ///
     /// See [`TimeoutJob`] for more information.
     TimeoutJob(TimeoutJob),
+    /// A generic job.
+    ///
+    /// See [`GenericJob`] for more information.
+    GenericJob(GenericJob),
 }
 
 impl From<NativeAsyncJob> for Job {
@@ -458,6 +525,12 @@ impl From<PromiseJob> for Job {
 impl From<TimeoutJob> for Job {
     fn from(job: TimeoutJob) -> Self {
         Job::TimeoutJob(job)
+    }
+}
+
+impl From<GenericJob> for Job {
+    fn from(job: GenericJob) -> Self {
+        Job::GenericJob(job)
     }
 }
 
@@ -483,6 +556,10 @@ pub trait JobExecutor: Any {
     /// By default forwards to [`JobExecutor::run_jobs`]. Implementors using async should override this
     /// with a proper algorithm to run jobs asynchronously.
     #[expect(async_fn_in_trait, reason = "all our APIs are single-threaded")]
+    #[allow(
+        clippy::unused_async,
+        reason = "this must be overridden by proper async runtimes"
+    )]
     async fn run_jobs_async(self: Rc<Self>, context: &RefCell<&mut Context>) -> JsResult<()>
     where
         Self: Sized,
@@ -531,6 +608,16 @@ pub struct SimpleJobExecutor {
     promise_jobs: RefCell<VecDeque<PromiseJob>>,
     async_jobs: RefCell<VecDeque<NativeAsyncJob>>,
     timeout_jobs: RefCell<BTreeMap<JsInstant, TimeoutJob>>,
+    generic_jobs: RefCell<VecDeque<GenericJob>>,
+}
+
+impl SimpleJobExecutor {
+    fn clear(&self) {
+        self.promise_jobs.borrow_mut().clear();
+        self.async_jobs.borrow_mut().clear();
+        self.timeout_jobs.borrow_mut().clear();
+        self.generic_jobs.borrow_mut().clear();
+    }
 }
 
 impl Debug for SimpleJobExecutor {
@@ -556,51 +643,72 @@ impl JobExecutor for SimpleJobExecutor {
                 let now = context.clock().now();
                 self.timeout_jobs.borrow_mut().insert(now + t.timeout(), t);
             }
+            Job::GenericJob(g) => self.generic_jobs.borrow_mut().push_back(g),
         }
     }
 
     fn run_jobs(self: Rc<Self>, context: &mut Context) -> JsResult<()> {
-        let now = context.clock().now();
+        futures_lite::future::block_on(self.run_jobs_async(&RefCell::new(context)))
+    }
 
-        {
-            let mut timeouts_borrow = self.timeout_jobs.borrow_mut();
-            // `split_off` returns the jobs after (or equal to) the key. So we need to add 1ms to
-            // the current time to get the jobs that are due, then swap with the inner timeout
-            // tree so that we get the jobs to actually run.
-            let jobs_to_keep = timeouts_borrow.split_off(&(now + JsDuration::from_millis(1)));
-            let jobs_to_run = std::mem::replace(&mut *timeouts_borrow, jobs_to_keep);
-            drop(timeouts_borrow);
-
-            for job in jobs_to_run.into_values() {
-                job.call(context)?;
-            }
-        }
-
-        let context = RefCell::new(context);
+    async fn run_jobs_async(self: Rc<Self>, context: &RefCell<&mut Context>) -> JsResult<()>
+    where
+        Self: Sized,
+    {
         loop {
-            if self.promise_jobs.borrow().is_empty() && self.async_jobs.borrow().is_empty() {
+            if self.promise_jobs.borrow().is_empty()
+                && self.async_jobs.borrow().is_empty()
+                && self.generic_jobs.borrow().is_empty()
+                && self.timeout_jobs.borrow().is_empty()
+                && !context.borrow().has_pending_context_jobs()
+            {
                 break;
             }
 
-            // Block on each async jobs running in the queue.
-            let mut next_job = self.async_jobs.borrow_mut().pop_front();
-            while let Some(job) = next_job {
-                if let Err(err) = futures_lite::future::block_on(job.call(&context)) {
-                    self.async_jobs.borrow_mut().clear();
-                    self.promise_jobs.borrow_mut().clear();
+            context.borrow_mut().enqueue_resolved_context_jobs();
+
+            // Block on each job running in the queue.
+            let jobs = mem::take(&mut *self.async_jobs.borrow_mut());
+            for job in jobs {
+                if let Err(err) = job.call(context).await {
+                    self.clear();
                     return Err(err);
                 }
-                next_job = self.async_jobs.borrow_mut().pop_front();
             }
-            let mut next_job = self.promise_jobs.borrow_mut().pop_front();
-            while let Some(job) = next_job {
+
+            {
+                let now = context.borrow().clock().now();
+                let mut timeouts_borrow = self.timeout_jobs.borrow_mut();
+                let mut jobs_to_keep = timeouts_borrow.split_off(&now);
+                jobs_to_keep.retain(|_, job| !job.is_cancelled());
+                let jobs_to_run = mem::replace(&mut *timeouts_borrow, jobs_to_keep);
+                drop(timeouts_borrow);
+
+                for job in jobs_to_run.into_values() {
+                    if let Err(err) = job.call(&mut context.borrow_mut()) {
+                        self.clear();
+                        return Err(err);
+                    }
+                }
+            }
+
+            let jobs = mem::take(&mut *self.promise_jobs.borrow_mut());
+            for job in jobs {
                 if let Err(err) = job.call(&mut context.borrow_mut()) {
-                    self.async_jobs.borrow_mut().clear();
-                    self.promise_jobs.borrow_mut().clear();
+                    self.clear();
                     return Err(err);
                 }
-                next_job = self.promise_jobs.borrow_mut().pop_front();
             }
+
+            let jobs = mem::take(&mut *self.generic_jobs.borrow_mut());
+            for job in jobs {
+                if let Err(err) = job.call(&mut context.borrow_mut()) {
+                    self.clear();
+                    return Err(err);
+                }
+            }
+            context.borrow_mut().clear_kept_objects();
+            futures_lite::future::yield_now().await;
         }
 
         Ok(())

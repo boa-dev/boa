@@ -5,7 +5,7 @@ use boa_engine::builtins::typed_array::TypedArrayKind;
 use boa_engine::value::TryIntoJs;
 use boa_engine::{Context, JsError, JsObject, JsResult, JsString, JsValue, js_error};
 use std::cell::RefCell;
-use std::collections::{HashMap, HashSet};
+use std::collections::HashSet;
 use std::sync::Arc;
 
 mod from;
@@ -43,7 +43,7 @@ impl From<StringStore> for JsString {
 }
 
 /// Inner value for [`JsValueStore`].
-#[derive(Debug)]
+#[derive(Debug, PartialEq)]
 enum ValueStoreInner {
     /// An Empty value that will be filled later. This is only used during
     /// construction, and if encountered at other points will result
@@ -74,10 +74,10 @@ enum ValueStoreInner {
     /// A dictionary of strings to values which should be reconstructed into
     /// a `JsObject`. Note: the prototype and constructor are not maintained,
     /// and during reconstruction the default `Object` prototype will be used.
-    Object(HashMap<StringStore, JsValueStore>),
+    Object(Vec<(StringStore, JsValueStore)>),
 
     /// A `Map()` object in JavaScript.
-    Map(HashMap<JsValueStore, JsValueStore>),
+    Map(Vec<(JsValueStore, JsValueStore)>),
 
     /// A `Set()` object in JavaScript. The elements are already unique at
     /// construction.
@@ -113,7 +113,10 @@ enum ValueStoreInner {
     },
 
     /// Typed Array, including its kind and data.
-    TypedArray(TypedArrayKind, Vec<u8>),
+    TypedArray {
+        kind: TypedArrayKind,
+        buffer: JsValueStore,
+    },
 }
 
 impl ValueStoreInner {
@@ -139,7 +142,7 @@ impl ValueStoreInner {
 /// pass in the context of the initial value.
 ///
 /// [sca]: https://developer.mozilla.org/en-US/docs/Web/API/Web_Workers_API/Structured_clone_algorithm
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, PartialEq)]
 pub struct JsValueStore(Arc<RefCell<ValueStoreInner>>);
 
 impl TryIntoJs for JsValueStore {

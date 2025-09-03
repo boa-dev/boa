@@ -51,14 +51,14 @@ small_btree = { path = "utils/small_btree" }
 
 # Shared deps
 arbitrary = "1"
-bitflags = "2.9.1"
-clap = "4.5.43"
+bitflags = "2.9.3"
+clap = "4.5.46"
 colored = "3.0.0"
 cow-utils = "0.1.3"
 fast-float2 = "0.2.3"
 hashbrown = "0.15.5"
 http = { version = "1.3.1" }
-indexmap = { version = "2.9.0", default-features = false }
+indexmap = { version = "2.11.0", default-features = false }
 indoc = "2.0.6"
 itoa = "1.0.15"
 jemallocator = "0.5.4"
@@ -67,9 +67,9 @@ lz4_flex = "0.11.5"
 num-bigint = "0.4.6"
 num-traits = "0.2.19"
 once_cell = { version = "1.21.3", default-features = false }
-phf = { version = "0.12.1", default-features = false }
+phf = { version = "0.13.1", default-features = false }
 pollster = "0.4.0"
-regex = "1.11.1"
+regex = "1.11.2"
 regress = { version = "0.10.4", features = ["utf16"] }
 reqwest = { version = "0.12.20" }
 rustc-hash = { version = "2.1.1", default-features = false }
@@ -78,7 +78,7 @@ serde = "1.0.219"
 static_assertions = "1.1.0"
 textwrap = "0.16.2"
 thin-vec = "0.2.14"
-time = { version = "0.3.41", default-features = false, features = [
+time = { version = "0.3.42", default-features = false, features = [
     "local-offset",
     "large-dates",
     "wasm-bindgen",
@@ -93,7 +93,7 @@ trybuild = "1.0.110"
 rayon = "1.10.0"
 toml = "0.9.5"
 color-eyre = "0.6.3"
-comfy-table = "7.1.4"
+comfy-table = "7.2.0"
 serde_repr = "0.1.20"
 bus = "2.4.1"
 wasm-bindgen = { version = "0.2.97", default-features = false }
@@ -125,7 +125,7 @@ intrusive-collections = "0.9.7"
 cfg-if = "1.0.1"
 either = "1.15.0"
 sys-locale = "0.3.2"
-temporal_rs = { version = "0.0.12", default-features = false, features = [
+temporal_rs = { version = "0.0.14", default-features = false, features = [
     "tzdb",
 ] }
 web-time = "1.1.0"
@@ -134,10 +134,10 @@ float-cmp = "0.10.0"
 futures-lite = "2.6.1"
 test-case = "3.3.1"
 rstest = "0.25.0"
-url = "2.5.4"
+url = "2.5.7"
 tokio = { version = "1.47.1", default-features = false }
 futures-concurrency = "7.6.3"
-dynify = "0.1.0"
+dynify = "0.1.1"
 
 
 # ICU4X
@@ -146,7 +146,7 @@ icu_provider = { version = "~2.0.0", default-features = false }
 icu_locale = { version = "~2.0.0", default-features = false }
 icu_locale_core = { version = "~2.0.0", default-features = false }
 icu_datetime = { version = "~2.0.0", default-features = false }
-icu_calendar = { version = "~2.0.0", default-features = false }
+icu_calendar = { version = "~2.0.4", default-features = false }
 icu_collator = { version = "~2.0.0", default-features = false }
 icu_plurals = { version = "~2.0.0", default-features = false }
 icu_list = { version = "~2.0.0", default-features = false }

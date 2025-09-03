@@ -2,6 +2,7 @@
 
 use super::options::{get_difference_settings, get_digits_option};
 use super::{create_temporal_zoneddatetime, to_temporal_timezone_identifier};
+use crate::js_error;
 use crate::value::JsVariant;
 use crate::{
     Context, JsArgs, JsBigInt, JsData, JsNativeError, JsObject, JsResult, JsString, JsSymbol,
@@ -196,12 +197,10 @@ impl Instant {
     ) -> JsResult<JsValue> {
         // 1. Set epochMilliseconds to ? ToNumber(epochMilliseconds).
         let epoch_millis_f64 = args.get_or_undefined(0).to_number(context)?;
-        // NOTE: NumberToBigInt checks if number is finite, so let's just inline it
+        // NOTE: inline NumberToBigInt. It checks if the number is integral
         // 2. Set epochMilliseconds to ? NumberToBigInt(epochMilliseconds).
-        if !epoch_millis_f64.is_finite() {
-            return Err(JsNativeError::range()
-                .with_message("number is not finite")
-                .into());
+        if !epoch_millis_f64.is_finite() || epoch_millis_f64.fract() != 0.0 {
+            return Err(js_error!(RangeError: "number is not integral"));
         }
         // 3. Let epochNanoseconds be epochMilliseconds × ℤ(10**6).
         // 4. If IsValidEpochNanoseconds(epochNanoseconds) is false, throw a RangeError exception.
@@ -363,7 +362,7 @@ impl Instant {
         // 3. Return ? AddDurationToOrSubtractDurationFromInstant(add, instant, temporalDurationLike).
         let temporal_duration_like =
             to_temporal_duration_record(args.get_or_undefined(0), context)?;
-        let result = instant.inner.add(temporal_duration_like)?;
+        let result = instant.inner.add(&temporal_duration_like)?;
         create_temporal_instant(result, None, context)
     }
 
@@ -396,7 +395,7 @@ impl Instant {
         // 3. Return ? AddDurationToOrSubtractDurationFromInstant(subtract, instant, temporalDurationLike).
         let temporal_duration_like =
             to_temporal_duration_record(args.get_or_undefined(0), context)?;
-        let result = instant.inner.subtract(temporal_duration_like)?;
+        let result = instant.inner.subtract(&temporal_duration_like)?;
         create_temporal_instant(result, None, context)
     }
 
@@ -757,7 +756,9 @@ impl Instant {
         let timezone = to_temporal_timezone_identifier(args.get_or_undefined(0), context)?;
 
         // 4. Return ! CreateTemporalZonedDateTime(instant.[[EpochNanoseconds]], timeZone, "iso8601").
-        let zdt = instant.inner.to_zoned_date_time_iso(timezone);
+        let zdt = instant
+            .inner
+            .to_zoned_date_time_iso_with_provider(timezone, context.tz_provider())?;
         create_temporal_zoneddatetime(zdt, None, context).map(Into::into)
     }
 }

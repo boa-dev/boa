@@ -1,5 +1,5 @@
 //! All methods for deserializing a [`JsValueStore`] into a [`JsValue`].
-use crate::store::{JsValueStore, StringStore, ValueStoreInner};
+use crate::store::{JsValueStore, StringStore, ValueStoreInner, unsupported_type};
 use boa_engine::builtins::typed_array::TypedArrayKind;
 use boa_engine::object::builtins::{JsArray, JsArrayBuffer, JsMap, js_typed_array_from_kind};
 use boa_engine::{Context, JsBigInt, JsObject, JsResult, JsValue};
@@ -22,7 +22,7 @@ impl ReverseSeenMap {
 
 fn try_fields_into_js_object(
     store: &JsValueStore,
-    fields: &HashMap<StringStore, JsValueStore>,
+    fields: &Vec<(StringStore, JsValueStore)>,
     seen: &mut ReverseSeenMap,
     context: &mut Context,
 ) -> JsResult<JsValue> {
@@ -72,11 +72,15 @@ fn try_into_js_array_buffer(
 fn try_into_js_typed_array(
     store: &JsValueStore,
     kind: TypedArrayKind,
-    data: &[u8],
+    buffer: &JsValueStore,
     seen: &mut ReverseSeenMap,
     context: &mut Context,
 ) -> JsResult<JsValue> {
-    let buffer = JsArrayBuffer::from_byte_block(data.to_vec(), context)?;
+    let buffer = try_value_into_js(buffer, seen, context)?;
+    let Some(buffer) = buffer.as_object() else {
+        return Err(unsupported_type());
+    };
+    let buffer = JsArrayBuffer::from_object(buffer)?;
     let array = js_typed_array_from_kind(kind, buffer, context)?;
     if let Some(o) = array.as_object() {
         seen.insert(store, o);
@@ -86,7 +90,7 @@ fn try_into_js_typed_array(
 
 fn try_into_js_map(
     store: &JsValueStore,
-    key_values: &HashMap<JsValueStore, JsValueStore>,
+    key_values: &Vec<(JsValueStore, JsValueStore)>,
     seen: &mut ReverseSeenMap,
     context: &mut Context,
 ) -> JsResult<JsValue> {
@@ -132,7 +136,7 @@ pub(super) fn try_value_into_js(
         ValueStoreInner::DataView { .. } => {
             todo!()
         }
-        ValueStoreInner::TypedArray(kind, buffer) => {
+        ValueStoreInner::TypedArray { kind, buffer } => {
             try_into_js_typed_array(store, *kind, buffer, seen, context)
         }
     }

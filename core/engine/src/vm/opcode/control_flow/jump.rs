@@ -125,8 +125,11 @@ pub(crate) struct JumpTable;
 
 impl JumpTable {
     #[inline(always)]
-    pub(crate) fn operation((default, addresses): (u32, ThinVec<u32>), context: &mut Context) {
-        let value = context.vm.stack.pop();
+    pub(crate) fn operation(
+        (index, default, addresses): (u32, u32, ThinVec<u32>),
+        context: &mut Context,
+    ) {
+        let value = context.vm.get_register(index as usize);
         if let Some(value) = value.as_i32() {
             let value = value as usize;
             let mut target = None;

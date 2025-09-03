@@ -801,8 +801,13 @@ impl CodeBlock {
             Instruction::TemplateLookup { address, site, dst } => {
                 format!("address:{address}, site:{site}, dst:{dst}")
             }
-            Instruction::JumpTable { default, addresses } => {
-                let mut operands = format!("#{}: Default: {default:4}", addresses.len());
+            Instruction::JumpTable {
+                index,
+                default,
+                addresses,
+            } => {
+                let mut operands =
+                    format!("index:{index} #{}: Default: {default:4}", addresses.len());
                 for (i, address) in addresses.iter().enumerate() {
                     let _ = write!(operands, ", {i}: {address}");
                 }
@@ -941,7 +946,12 @@ impl Display for CodeBlock {
             )?;
             count += 1;
         }
-        writeln!(f, "\nFlags: {:?}", self.flags.get())?;
+        writeln!(
+            f,
+            "\nRegister Count: {}, Flags: {:?}",
+            self.register_count,
+            self.flags.get()
+        )?;
         f.write_str("Constants:")?;
         if self.constants.is_empty() {
             f.write_str(" <empty>\n")?;

@@ -400,12 +400,28 @@ fn debug_object() {
 fn display_object() {
     const DISPLAY: &str = indoc! {r#"
         {
-           a: "a"
+            a: "a"
         }"#
     };
     run_test_actions([TestAction::assert_with_op("({a: 'a'})", |v, _| {
         v.display().to_string() == DISPLAY
     })]);
+}
+
+/// Ensure indentation is always 4 and that the property key is not right-align with
+/// the brackets.
+#[test]
+fn display_object_indent() {
+    const DISPLAY: &str = indoc! {r#"
+        {
+            a: "a",
+            hello: "world"
+        }"#
+    };
+    run_test_actions([TestAction::assert_with_op(
+        "({a: 'a', hello: 'world'})",
+        |v, _| v.display().to_string() == DISPLAY,
+    )]);
 }
 
 #[test]
@@ -1608,7 +1624,7 @@ mod js_value_macro {
 
         assert_eq!(
             format!("{}", o.display()),
-            "{\nfOne: \"Hello\",\nfield2: 42\n}"
+            "{\n    fOne: \"Hello\",\n    field2: 42\n}"
         );
     }
 }

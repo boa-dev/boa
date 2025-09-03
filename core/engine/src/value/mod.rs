@@ -81,7 +81,7 @@ static TWO_E_63: LazyLock<BigInt> = LazyLock::new(|| {
 ///     // Comments are allowed inside.
 ///     "key": (js_string!("value"))
 ///   }, context).display().to_string(),
-///   "{\n key: \"value\"\n}",
+///   "{\n    key: \"value\"\n}",
 /// );
 /// ```
 pub use boa_macros::js_object;
@@ -103,7 +103,7 @@ pub use boa_macros::js_object;
 ///
 /// assert_eq!(
 ///     JsValue::from(value).display().to_string(),
-///     "{\n   3: null,\n key: \"value\",\nalsoKey: 1\n}"
+///     "{\n    3: null,\n    key: \"value\",\n    alsoKey: 1\n}"
 /// );
 /// ```
 pub use boa_macros::js_value;

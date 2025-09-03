@@ -12,8 +12,9 @@
 //! [mdn]: https://developer.mozilla.org/en-US/docs/Web/API/Console
 
 #[cfg(test)]
-mod tests;
+pub(crate) mod tests;
 
+use boa_engine::JsVariant;
 use boa_engine::property::Attribute;
 use boa_engine::{
     Context, JsArgs, JsData, JsError, JsResult, JsString, JsSymbol, js_str, js_string,
@@ -144,19 +145,16 @@ impl Logger for NullLogger {
 
 /// This represents the `console` formatter.
 fn formatter(data: &[JsValue], context: &mut Context) -> JsResult<String> {
-    fn to_string(value: &JsValue, context: &mut Context) -> JsResult<String> {
-        // There is a slight difference between the standard [`JsValue::to_string`] and
-        // the way Console actually logs, w.r.t Symbols.
-        if let Some(s) = value.as_symbol() {
-            Ok(s.to_string())
-        } else {
-            Ok(value.to_string(context)?.to_std_string_escaped())
+    fn to_string(value: &JsValue, _context: &mut Context) -> String {
+        match value.variant() {
+            JsVariant::String(s) => s.to_std_string_escaped(),
+            _ => value.display().to_string(),
         }
     }
 
     match data {
         [] => Ok(String::new()),
-        [val] => to_string(val, context),
+        [val] => Ok(to_string(val, context)),
         data => {
             let mut formatted = String::new();
             let mut arg_index = 1;
@@ -228,7 +226,7 @@ fn formatter(data: &[JsValue], context: &mut Context) -> JsResult<String> {
             /* unformatted data */
             for rest in data.iter().skip(arg_index) {
                 formatted.push(' ');
-                formatted.push_str(&to_string(rest, context)?);
+                formatted.push_str(&to_string(rest, context));
             }
 
             Ok(formatted)

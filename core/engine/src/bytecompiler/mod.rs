@@ -24,7 +24,7 @@ use crate::{
     js_string,
     vm::{
         CallFrame, CodeBlock, CodeBlockFlags, Constant, GeneratorResumeKind, Handler, InlineCache,
-        opcode::{BindingOpcode, ByteCodeEmitter},
+        opcode::{BindingOpcode, ByteCodeEmitter, VaryingOperand},
         source_info::{SourceInfo, SourceMap, SourceMapBuilder, SourcePath},
     },
 };
@@ -974,14 +974,18 @@ impl<'ctx> ByteCompiler<'ctx> {
     }
 
     fn emit_push_integer(&mut self, value: i32, dst: &Register) {
+        self.emit_push_integer_with_index(value, dst.variable());
+    }
+
+    fn emit_push_integer_with_index(&mut self, value: i32, dst: VaryingOperand) {
         match value {
-            0 => self.bytecode.emit_push_zero(dst.variable()),
-            1 => self.bytecode.emit_push_one(dst.variable()),
-            x if i32::from(x as i8) == x => self.bytecode.emit_push_int8(dst.variable(), x as i8),
+            0 => self.bytecode.emit_push_zero(dst),
+            1 => self.bytecode.emit_push_one(dst),
+            x if i32::from(x as i8) == x => self.bytecode.emit_push_int8(dst, x as i8),
             x if i32::from(x as i16) == x => {
-                self.bytecode.emit_push_int16(dst.variable(), x as i16);
+                self.bytecode.emit_push_int16(dst, x as i16);
             }
-            x => self.bytecode.emit_push_int32(dst.variable(), x),
+            x => self.bytecode.emit_push_int32(dst, x),
         }
     }
 

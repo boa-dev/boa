@@ -1401,6 +1401,8 @@ pub(crate) struct ObjectTemplates {
     namespace: ObjectTemplate,
 
     with_resolvers: ObjectTemplate,
+
+    wait_async: ObjectTemplate,
 }
 
 impl ObjectTemplates {
@@ -1535,6 +1537,15 @@ impl ObjectTemplates {
             with_resolvers
         };
 
+        let wait_async = {
+            let mut obj = ordinary_object.clone();
+
+            obj.property(js_string!("async").into(), Attribute::all())
+                .property(js_string!("value").into(), Attribute::all());
+
+            obj
+        };
+
         Self {
             iterator_result,
             ordinary_object,
@@ -1558,6 +1569,7 @@ impl ObjectTemplates {
             function_with_prototype_without_proto,
             namespace,
             with_resolvers,
+            wait_async,
         }
     }
 
@@ -1782,10 +1794,22 @@ impl ObjectTemplates {
     ///
     /// Transitions:
     ///
-    /// 1. `"promise"`: (`WRITABLE`, `ENUMERABLE`, `CONFIGURABLE`)
-    /// 2. `"resolve"`: (`WRITABLE`, `ENUMERABLE`, `CONFIGURABLE`)
-    /// 3. `"reject"`: (`WRITABLE`, `ENUMERABLE`, `CONFIGURABLE`)
+    /// 1. `__proto__`: `Object.prototype`
+    /// 2. `"promise"`: (`WRITABLE`, `ENUMERABLE`, `CONFIGURABLE`)
+    /// 3. `"resolve"`: (`WRITABLE`, `ENUMERABLE`, `CONFIGURABLE`)
+    /// 4. `"reject"`: (`WRITABLE`, `ENUMERABLE`, `CONFIGURABLE`)
     pub(crate) const fn with_resolvers(&self) -> &ObjectTemplate {
         &self.with_resolvers
+    }
+
+    /// Cached object from the `Atomics.waitAsync` method.
+    ///
+    /// Transitions:
+    ///
+    /// 1. `__proto__`: `Object.prototype`
+    /// 2. `"async"`: (`WRITABLE`, `ENUMERABLE`, `CONFIGURABLE`)
+    /// 3. `"value"`: (`WRITABLE`, `ENUMERABLE`, `CONFIGURABLE`)
+    pub(crate) const fn wait_async(&self) -> &ObjectTemplate {
+        &self.wait_async
     }
 }

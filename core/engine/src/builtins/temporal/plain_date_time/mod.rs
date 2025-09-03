@@ -1677,10 +1677,7 @@ pub(crate) fn to_temporal_datetime(
             // ii. Let instant be ! CreateTemporalInstant(item.[[Nanoseconds]]).
             // iii. Let timeZoneRec be ? CreateTimeZoneMethodsRecord(item.[[TimeZone]], « get-offset-nanoseconds-for »).
             // iv. Return ? GetPlainDateTimeFor(timeZoneRec, instant, item.[[Calendar]]).
-            return zdt
-                .inner
-                .to_plain_datetime_with_provider(context.tz_provider())
-                .map_err(Into::into);
+            return zdt.inner.to_plain_datetime().map_err(Into::into);
         // c. If item has an [[InitializedTemporalDate]] internal slot, then
         } else if let Some(date) = object.downcast_ref::<PlainDate>() {
             // i. Perform ? GetTemporalOverflowOption(resolvedOptions).
