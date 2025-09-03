@@ -110,11 +110,12 @@ pub mod console;
 #[doc(inline)]
 pub use console::{Console, ConsoleState, DefaultLogger, Logger, NullLogger};
 
+pub mod clone;
 pub mod interval;
+pub mod store;
 pub mod text;
 pub mod url;
 
-pub mod clone;
 #[cfg(feature = "fetch")]
 pub mod fetch;
 
