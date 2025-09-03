@@ -1,10 +1,10 @@
 class SomeClass {
-    constructor() {
-        this.a = 42n;
-        this.x = 1;
-        this.repeat = this;
-        this.repeatArray = [this, this, this];
-    }
+  constructor() {
+    this.a = 42n;
+    this.x = 1;
+    this.repeat = this;
+    this.repeatArray = [this, this, this];
+  }
 }
 
 const buffer = new Uint8Array([1, 2, 3, 4]);
@@ -17,29 +17,29 @@ const arrayBuffer2 = new ArrayBuffer(10);
 new DataView(arrayBuffer2).setUint32(1, 101);
 
 const original = {
-    some: new SomeClass(),
-    buffer,
-    bufferTArray: [buffer, buffer, buffer, buffer],
-    buffer2,
-    buffer2Array: [buffer2, buffer2, buffer2, buffer2],
-    buffer3,
-    buffer4,
-    arrayBuffer,
-    arrayBuffer2,
+  some: new SomeClass(),
+  buffer,
+  bufferTArray: [buffer, buffer, buffer, buffer],
+  buffer2,
+  buffer2Array: [buffer2, buffer2, buffer2, buffer2],
+  buffer3,
+  buffer4,
+  arrayBuffer,
+  arrayBuffer2,
 };
 
 let dolly = structuredClone(original, {
-    transfer: [buffer.buffer, buffer3.buffer, arrayBuffer2],
+  transfer: [buffer.buffer, buffer3.buffer, arrayBuffer2],
 });
 
 assertEq(buffer.byteLength, 0);
 assertEq(buffer2.byteLength, 4);
 assertEq(buffer3.byteLength, 0);
 assertThrows(() => {
-    new Uint8Array(buffer);
+  new Uint8Array(buffer);
 });
 assertThrows(() => {
-    new Uint32Array(buffer3);
+  new Uint32Array(buffer3);
 });
 
 assertEq(dolly.buffer.constructor, Uint8Array);
