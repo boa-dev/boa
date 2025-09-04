@@ -1,10 +1,10 @@
 #![allow(unused_crate_dependencies)]
 //! A test that mimics the `boa_engine`'s GCD test with a typed callback.
 
+use boa_engine::interop::ContextData;
 use boa_engine::object::builtins::JsFunction;
-use boa_engine::{Context, Module, Source, js_string};
+use boa_engine::{Context, IntoJsFunctionCopied, Module, Source, js_string};
 use boa_gc::Gc;
-use boa_interop::{ContextData, IntoJsFunctionCopied};
 use std::path::PathBuf;
 use std::sync::atomic::{AtomicUsize, Ordering};
 

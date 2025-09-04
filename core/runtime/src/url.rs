@@ -17,8 +17,9 @@ mod tests;
 use boa_engine::class::{Class, ClassBuilder};
 use boa_engine::realm::Realm;
 use boa_engine::value::Convert;
-use boa_engine::{Context, Finalize, JsData, JsResult, JsString, JsValue, Trace, js_error};
-use boa_interop::boa_macros::boa_class;
+use boa_engine::{
+    Context, Finalize, JsData, JsResult, JsString, JsValue, Trace, boa_class, js_error,
+};
 use std::fmt::Display;
 
 /// The `URL` class represents a (properly parsed) Uniform Resource Locator.
@@ -33,16 +34,7 @@ impl Url {
     /// # Errors
     /// This will error if the context or realm cannot register the class.
     pub fn register(realm: Option<Realm>, context: &mut Context) -> JsResult<()> {
-        if let Some(realm) = realm {
-            let mut class_builder = ClassBuilder::new::<Self>(context);
-            Url::init(&mut class_builder)?;
-            let class = class_builder.build();
-            realm.register_class::<Self>(class);
-        } else {
-            context.register_global_class::<Self>()?;
-        }
-
-        Ok(())
+        Url::register(realm, context)
     }
 }
 

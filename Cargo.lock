@@ -384,6 +384,7 @@ dependencies = [
  "intrusive-collections",
  "itertools 0.14.0",
  "jemallocator",
+ "lz4_flex",
  "num-bigint",
  "num-integer",
  "num-traits",
@@ -482,17 +483,6 @@ dependencies = [
 ]
 
 [[package]]
-name = "boa_interop"
-version = "0.20.0"
-dependencies = [
- "boa_engine",
- "boa_gc",
- "boa_macros",
- "lz4_flex",
- "rustc-hash 2.1.1",
-]
-
-[[package]]
 name = "boa_macros"
 version = "0.20.0"
 dependencies = [
@@ -511,6 +501,7 @@ name = "boa_macros_tests"
 version = "0.20.0"
 dependencies = [
  "boa_engine",
+ "boa_gc",
  "trybuild",
 ]
 
@@ -546,7 +537,6 @@ version = "0.20.0"
 dependencies = [
  "boa_engine",
  "boa_gc",
- "boa_interop",
  "bytemuck",
  "either",
  "futures-lite 2.6.1",

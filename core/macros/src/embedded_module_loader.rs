@@ -141,7 +141,7 @@ fn find_all_files(dir: &mut fs::ReadDir, root: &PathBuf) -> Vec<PathBuf> {
 }
 
 /// Implementation of the `embed_module_inner!` macro.
-/// This should not be used directly. Use the `embed_module!` macro from the `boa_interop`
+/// This should not be used directly. Use the `embed_module!` macro from the `boa_engine`
 /// crate instead.
 pub(crate) fn embed_module_impl(input: TokenStream) -> TokenStream {
     let manifest_dir = PathBuf::from(std::env::var("CARGO_MANIFEST_DIR").unwrap_or_default());

@@ -5,9 +5,9 @@
 use std::rc::Rc;
 
 use boa_engine::builtins::promise::PromiseState;
+use boa_engine::embed_module;
+use boa_engine::module::embedded::EmbeddedModuleLoader;
 use boa_engine::{Context, JsString, JsValue, Module, Source, js_string};
-use boa_interop::embed_module;
-use boa_interop::loaders::embedded::EmbeddedModuleLoader;
 
 fn load_module_and_test(module_loader: &Rc<EmbeddedModuleLoader>) {
     let mut context = Context::builder()
