@@ -50,15 +50,18 @@ impl Script {
     }
 
     /// Analyze the scope of the script.
-    pub fn analyze_scope(&mut self, scope: &Scope, interner: &Interner) -> bool {
-        if !collect_bindings(self, self.strict(), false, scope, interner) {
-            return false;
-        }
-        if !analyze_binding_escapes(self, false, scope.clone(), interner) {
-            return false;
-        }
+    ///
+    /// # Errors
+    /// Any scope or binding errors that happened during the analysis.
+    pub fn analyze_scope(
+        &mut self,
+        scope: &Scope,
+        interner: &Interner,
+    ) -> Result<(), &'static str> {
+        collect_bindings(self, self.strict(), false, scope, interner)?;
+        analyze_binding_escapes(self, false, scope.clone(), interner)?;
         optimize_scope_indicies(self, scope);
-        true
+        Ok(())
     }
 
     /// Analyze the scope of the script in eval mode.
@@ -83,12 +86,13 @@ impl Script {
             interner,
         )?;
 
-        if !collect_bindings(self, strict, true, lexical_scope, interner) {
-            return Err(String::from("Failed to analyze scope"));
+        if let Err(reason) = collect_bindings(self, strict, true, lexical_scope, interner) {
+            return Err(format!("Failed to analyze scope: {reason}"));
         }
-        if !analyze_binding_escapes(self, true, lexical_scope.clone(), interner) {
-            return Err(String::from("Failed to analyze scope"));
+        if let Err(reason) = analyze_binding_escapes(self, true, lexical_scope.clone(), interner) {
+            return Err(format!("Failed to analyze scope: {reason}"));
         }
+
         variable_scope.escape_all_bindings();
         lexical_scope.escape_all_bindings();
         variable_scope.reorder_binding_indices();
@@ -160,7 +164,7 @@ impl Module {
         }
     }
 
-    /// Gets the list of itemos of this `ModuleNode`.
+    /// Gets the list of items of this `ModuleNode`.
     #[must_use]
     pub const fn items(&self) -> &ModuleItemList {
         &self.items
@@ -174,15 +178,19 @@ impl Module {
     }
 
     /// Analyze the scope of the module.
-    pub fn analyze_scope(&mut self, scope: &Scope, interner: &Interner) -> bool {
-        if !collect_bindings(self, true, false, scope, interner) {
-            return false;
-        }
-        if !analyze_binding_escapes(self, false, scope.clone(), interner) {
-            return false;
-        }
+    ///
+    /// # Errors
+    /// Any scope or binding errors that happened during the analysis.
+    pub fn analyze_scope(
+        &mut self,
+        scope: &Scope,
+        interner: &Interner,
+    ) -> Result<(), &'static str> {
+        collect_bindings(self, true, false, scope, interner)?;
+        analyze_binding_escapes(self, false, scope.clone(), interner)?;
         optimize_scope_indicies(self, &self.scope.clone());
-        true
+
+        Ok(())
     }
 }
 

@@ -165,9 +165,9 @@ impl<'a, R: ReadChar> Parser<'a, R> {
     ) -> ParseResult<ScriptParseOutput> {
         self.cursor.set_goal(InputElement::HashbangOrRegExp);
         let (mut ast, source) = ScriptParser::new(false).parse(&mut self.cursor, interner)?;
-        if !ast.analyze_scope(scope, interner) {
+        if let Err(reason) = ast.analyze_scope(scope, interner) {
             return Err(Error::general(
-                "invalid scope analysis",
+                format!("invalid scope analysis: {reason}"),
                 Position::new(1, 1),
             ));
         }
@@ -211,9 +211,9 @@ impl<'a, R: ReadChar> Parser<'a, R> {
     {
         self.cursor.set_goal(InputElement::HashbangOrRegExp);
         let (mut module, source) = ModuleParser.parse(&mut self.cursor, interner)?;
-        if !module.analyze_scope(scope, interner) {
+        if let Err(reason) = module.analyze_scope(scope, interner) {
             return Err(Error::general(
-                "invalid scope analysis",
+                format!("invalid scope analysis: {reason}"),
                 Position::new(1, 1),
             ));
         }

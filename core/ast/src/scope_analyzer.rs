@@ -41,7 +41,7 @@ pub(crate) fn collect_bindings<'a, N>(
     eval: bool,
     scope: &Scope,
     interner: &Interner,
-) -> bool
+) -> Result<(), &'static str>
 where
     &'a mut N: Into<NodeRefMut<'a>>,
 {
@@ -52,7 +52,10 @@ where
         scope: scope.clone(),
         interner,
     };
-    !visitor.visit(node).is_break()
+    match visitor.visit(node) {
+        ControlFlow::Continue(()) => Ok(()),
+        ControlFlow::Break(reason) => Err(reason),
+    }
 }
 
 /// Analyze if bindings escape their function scopes.
@@ -62,7 +65,7 @@ pub(crate) fn analyze_binding_escapes<'a, N>(
     in_eval: bool,
     scope: Scope,
     interner: &Interner,
-) -> bool
+) -> Result<(), &'static str>
 where
     &'a mut N: Into<NodeRefMut<'a>>,
 {
@@ -72,7 +75,11 @@ where
         with: false,
         interner,
     };
-    !visitor.visit(node.into()).is_break()
+
+    match visitor.visit(node.into()) {
+        ControlFlow::Continue(()) => Ok(()),
+        ControlFlow::Break(reason) => Err(reason),
+    }
 }
 
 struct BindingEscapeAnalyzer<'interner> {
