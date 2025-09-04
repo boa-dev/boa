@@ -4,7 +4,7 @@ use boa_engine::builtins::typed_array::TypedArrayKind;
 use boa_engine::object::builtins::{
     JsArray, JsArrayBuffer, JsMap, JsSet, js_typed_array_from_kind,
 };
-use boa_engine::{Context, JsBigInt, JsObject, JsResult, JsValue};
+use boa_engine::{Context, JsBigInt, JsObject, JsResult, JsValue, js_error};
 use std::collections::HashMap;
 
 #[derive(Default)]
@@ -147,13 +147,11 @@ pub(super) fn try_value_into_js(
         ValueStoreInner::Map(key_values) => try_into_js_map(store, key_values, seen, context),
         ValueStoreInner::Set(values) => try_into_js_set(store, values, seen, context),
         ValueStoreInner::Array(items) => try_items_into_js_array(store, items, seen, context),
-        ValueStoreInner::Date(_) => unimplemented!(),
-        ValueStoreInner::Error { .. } => unimplemented!(),
-        ValueStoreInner::RegExp(_) => unimplemented!(),
+        ValueStoreInner::Date(_) => Err(js_error!("Not yet implemented.")),
+        ValueStoreInner::Error { .. } => Err(js_error!("Not yet implemented.")),
+        ValueStoreInner::RegExp(_) => Err(js_error!("Not yet implemented.")),
         ValueStoreInner::ArrayBuffer(data) => try_into_js_array_buffer(store, data, seen, context),
-        ValueStoreInner::DataView { .. } => {
-            unimplemented!()
-        }
+        ValueStoreInner::DataView { .. } => Err(js_error!("Not yet implemented.")),
         ValueStoreInner::TypedArray { kind, buffer } => {
             try_into_js_typed_array(store, *kind, buffer, seen, context)
         }

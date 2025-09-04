@@ -99,6 +99,7 @@ fn try_from_array_clone(
         }
     }
 
+    // SAFETY: This is safe as this function is the sole owner of the store.
     unsafe {
         dolly.replace(ValueStoreInner::Array(inner));
     }
@@ -152,6 +153,7 @@ fn try_from_map(
         Ok(())
     })?;
 
+    // SAFETY: This is safe as this function is the sole owner of the store.
     unsafe {
         store.replace(ValueStoreInner::Map(new_map));
     }
@@ -177,6 +179,7 @@ fn try_from_set(
         Ok(())
     })?;
 
+    // SAFETY: This is safe as this function is the sole owner of the store.
     unsafe {
         store.replace(ValueStoreInner::Set(new_set));
     }
@@ -236,6 +239,7 @@ fn try_from_js_object_clone(
         fields.push((key, v));
     }
 
+    // SAFETY: This is safe as this function is the sole owner of the store.
     unsafe {
         dolly.replace(ValueStoreInner::Object(fields));
     }
