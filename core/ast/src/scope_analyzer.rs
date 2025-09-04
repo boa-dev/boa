@@ -34,7 +34,9 @@ use rustc_hash::FxHashMap;
 use std::ops::ControlFlow;
 
 /// Collect bindings and fill the scopes with them.
-#[must_use]
+///
+/// # Errors
+/// Any break in the control flow that happened during the collection.
 pub(crate) fn collect_bindings<'a, N>(
     node: &'a mut N,
     strict: bool,
@@ -59,7 +61,9 @@ where
 }
 
 /// Analyze if bindings escape their function scopes.
-#[must_use]
+///
+/// # Errors
+/// Any break in the control flow that happened during the analysis.
 pub(crate) fn analyze_binding_escapes<'a, N>(
     node: &'a mut N,
     in_eval: bool,

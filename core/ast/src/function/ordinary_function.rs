@@ -271,6 +271,9 @@ impl FunctionExpression {
     }
 
     /// Analyze the scope of the function expression.
+    ///
+    /// # Errors
+    /// Any scope or binding errors that happened during the analysis.
     pub fn analyze_scope(
         &mut self,
         strict: bool,
