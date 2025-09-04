@@ -42,7 +42,9 @@ where
 {
     let mut script = Script::new(StatementList::from((expr.into(), PSEUDO_LINEAR_POS)));
     let scope = Scope::new_global();
-    script.analyze_scope(&scope, interner);
+    script
+        .analyze_scope(&scope, interner)
+        .expect("failed to analyze script");
     assert_eq!(
         Parser::new(Source::from_bytes(js))
             .parse_script(&Scope::new_global(), interner)
@@ -59,7 +61,9 @@ where
 {
     let mut module = Module::new(ModuleItemList::from(expr.into()));
     let scope = Scope::new_global();
-    module.analyze_scope(&scope, interner);
+    module
+        .analyze_scope(&scope, interner)
+        .expect("failed to analyze");
     assert_eq!(
         Parser::new(Source::from_bytes(js))
             .parse_module(&Scope::new_global(), interner)
