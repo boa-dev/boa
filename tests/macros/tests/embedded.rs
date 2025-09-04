@@ -64,7 +64,7 @@ fn load_module_and_test(module_loader: &Rc<EmbeddedModuleLoader>) {
 #[test]
 fn simple() {
     #[cfg(target_family = "unix")]
-    let module_loader = Rc::new(embed_module!("tests/embedded/"));
+    let module_loader = Rc::new(embed_module!("tests/embedded/", compress = "none"));
     #[cfg(target_family = "windows")]
     let module_loader = Rc::new(embed_module!("tests\\embedded\\"));
 
