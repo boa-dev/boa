@@ -1,9 +1,7 @@
 use crate::fetch::request::JsRequest;
 use crate::fetch::response::JsResponse;
 use crate::test::{TestAction, run_test_actions};
-use boa_engine::{
-    Context, Finalize, JsData, JsError, JsResult, JsString, Source, Trace, js_error, js_str,
-};
+use boa_engine::{Context, Finalize, JsData, JsError, JsResult, JsString, Trace, js_error, js_str};
 use http::Response;
 use std::cell::RefCell;
 use std::collections::BTreeMap;
@@ -60,8 +58,6 @@ impl crate::fetch::Fetcher for E2eFetcher {
 fn register(ctx: &mut Context) {
     let fetcher = E2eFetcher;
     crate::fetch::register(fetcher, None, ctx).expect("failed to register fetch");
-    ctx.eval(Source::from_bytes(super::ASSERT_DECL))
-        .expect("Unreachable.");
 }
 
 fn await_response(ctx: &mut Context) {
@@ -72,6 +68,7 @@ fn await_response(ctx: &mut Context) {
 #[test]
 fn custom_header() {
     run_test_actions([
+        TestAction::harness(),
         TestAction::inspect_context(register),
         TestAction::run(
             r#"

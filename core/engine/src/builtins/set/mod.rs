@@ -528,6 +528,49 @@ impl Set {
         Ok(JsValue::undefined())
     }
 
+    /// Call `f` for each `(value)` in the `Set`.
+    ///
+    /// Can not be used in [`Self::for_each`] because it will be running an
+    /// incorrect order for next steps of the algo:
+    /// ```txt
+    /// 2. Perform ? RequireInternalSlot(M, [[SetData]]).
+    /// 3. If IsCallable(callbackfn) is false, throw a TypeError exception.
+    /// ```
+    pub(crate) fn for_each_native<F>(this: &JsValue, mut f: F) -> JsResult<()>
+    where
+        F: FnMut(JsValue) -> JsResult<()>,
+    {
+        // See `Self::for_each` for comments on the algo.
+
+        let set = this.as_object();
+        let set = set
+            .and_then(|obj| obj.downcast::<OrderedSet>().ok())
+            .ok_or_else(|| JsNativeError::typ().with_message("`this` is not a Set"))?;
+
+        let _lock = set.borrow_mut().data_mut().lock(set.clone().upcast());
+
+        let mut index = 0;
+        loop {
+            let v = {
+                let set = set.borrow();
+                let set = set.data();
+
+                if index < set.full_len() {
+                    if let Some(k) = set.get_index(index) {
+                        k.clone()
+                    } else {
+                        continue;
+                    }
+                } else {
+                    return Ok(());
+                }
+            };
+
+            f(v)?;
+            index += 1;
+        }
+    }
+
     /// `Map.prototype.has( key )`
     ///
     /// This method checks if the map contains an entry with the given key.

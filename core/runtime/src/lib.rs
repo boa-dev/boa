@@ -110,17 +110,21 @@ pub mod console;
 #[doc(inline)]
 pub use console::{Console, ConsoleState, DefaultLogger, Logger, NullLogger};
 
+pub mod clone;
 #[cfg(feature = "fetch")]
 pub mod fetch;
 pub mod interval;
 pub mod microtask;
+pub mod store;
 pub mod text;
 #[cfg(feature = "url")]
 pub mod url;
 
 pub mod extensions;
 
-use crate::extensions::{EncodingExtension, MicrotaskExtension, TimeoutExtension};
+use crate::extensions::{
+    EncodingExtension, MicrotaskExtension, StructuredCloneExtension, TimeoutExtension,
+};
 pub use extensions::RuntimeExtension;
 
 /// Register all the built-in objects and functions of the `WebAPI` runtime, plus
@@ -137,6 +141,7 @@ pub fn register(
         TimeoutExtension,
         EncodingExtension,
         MicrotaskExtension,
+        StructuredCloneExtension,
         #[cfg(feature = "url")]
         extensions::UrlExtension,
         extensions,
@@ -165,8 +170,10 @@ pub fn register_extensions(
 pub(crate) mod test {
     use crate::extensions::ConsoleExtension;
     use crate::register;
-    use boa_engine::{Context, JsResult, JsValue, Source, builtins};
-    use std::{borrow::Cow, pin::Pin};
+    use boa_engine::{Context, JsError, JsResult, JsValue, Source, builtins};
+    use std::borrow::Cow;
+    use std::path::{Path, PathBuf};
+    use std::pin::Pin;
 
     /// A test action executed in a test function.
     #[allow(missing_debug_implementations)]
@@ -179,6 +186,10 @@ pub(crate) mod test {
         Run {
             source: Cow<'static, str>,
         },
+        RunFile {
+            path: PathBuf,
+        },
+        RunJobs,
         InspectContext {
             op: Box<dyn FnOnce(&mut Context)>,
         },
@@ -211,6 +222,11 @@ pub(crate) mod test {
     }
 
     impl TestAction {
+        #[allow(unused)]
+        pub(crate) fn harness() -> Self {
+            Self(Inner::RunHarness)
+        }
+
         /// Runs `source`, panicking if the execution throws.
         pub(crate) fn run(source: impl Into<Cow<'static, str>>) -> Self {
             Self(Inner::Run {
@@ -255,6 +271,12 @@ pub(crate) mod test {
         }
 
         #[track_caller]
+        fn forward_file(context: &mut Context, path: impl AsRef<Path>) -> JsResult<JsValue> {
+            let p = path.as_ref();
+            context.eval(Source::from_filepath(p).map_err(JsError::from_rust)?)
+        }
+
+        #[track_caller]
         fn fmt_test(source: &str, test: usize) -> String {
             format!(
                 "\n\nTest case {test}: \n```\n{}\n```",
@@ -268,30 +290,24 @@ pub(crate) mod test {
         for action in actions.into_iter().map(|a| a.0) {
             match action {
                 Inner::RunHarness => {
-                    // add utility functions for testing
-                    // TODO: extract to a file
-                    forward_val(
-                        context,
-                        r#"
-                        function equals(a, b) {
-                            if (Array.isArray(a) && Array.isArray(b)) {
-                                return arrayEquals(a, b);
-                            }
-                            return a === b;
-                        }
-                        function arrayEquals(a, b) {
-                            return Array.isArray(a) &&
-                                Array.isArray(b) &&
-                                a.length === b.length &&
-                                a.every((val, index) => equals(val, b[index]));
-                        }
-                    "#,
-                    )
-                    .expect("failed to evaluate test harness");
+                    if let Err(e) = forward_file(context, "./assets/harness.js") {
+                        panic!("Uncaught {e} in the test harness");
+                    }
                 }
                 Inner::Run { source } => {
                     if let Err(e) = forward_val(context, &source) {
                         panic!("{}\nUncaught {e}", fmt_test(&source, i));
+                    }
+                }
+                Inner::RunFile { path } => {
+                    if let Err(e) = forward_file(context, &path) {
+                        panic!("Uncaught {e} in file {path:?}");
+                    }
+                    forward_file(context, &path).expect("failed to run file");
+                }
+                Inner::RunJobs => {
+                    if let Err(e) = context.run_jobs() {
+                        panic!("Uncaught {e} in a job");
                     }
                 }
                 Inner::InspectContext { op } => {

@@ -24,6 +24,7 @@ url = { workspace = true, optional = true }
 
 [dev-dependencies]
 indoc.workspace = true
+rstest.workspace = true
 test-case.workspace = true
 textwrap.workspace = true
 futures-lite.workspace = true

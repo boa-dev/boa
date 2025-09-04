@@ -141,6 +141,16 @@ impl JsSet {
         )
     }
 
+    /// Executes the provided callback function for each key-value pair within the [`JsSet`].
+    #[inline]
+    pub fn for_each_native<F>(&self, f: F) -> JsResult<()>
+    where
+        F: FnMut(JsValue) -> JsResult<()>,
+    {
+        let this = self.inner.clone().into();
+        Set::for_each_native(&this, f)
+    }
+
     /// Utility: Creates `JsSet` from `JsObject`, if not a Set throw `TypeError`.
     #[inline]
     pub fn from_object(object: JsObject) -> JsResult<Self> {

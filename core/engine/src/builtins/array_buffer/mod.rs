@@ -258,6 +258,12 @@ impl ArrayBuffer {
         }
     }
 
+    /// Gets the underlying vector for this buffer.
+    #[must_use]
+    pub fn data(&self) -> Option<&[u8]> {
+        self.data.as_deref()
+    }
+
     /// Resizes the buffer to the new size, clamped to the maximum byte length if present.
     pub fn resize(&mut self, new_byte_length: u64) -> JsResult<()> {
         let Some(max_byte_len) = self.max_byte_len else {
