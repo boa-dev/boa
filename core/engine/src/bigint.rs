@@ -320,7 +320,10 @@ impl JsBigInt {
         Self::new(!x.as_inner())
     }
 
-    pub(crate) fn as_inner(&self) -> &RawBigInt {
+    /// Returns a reference to the raw inner value.
+    #[inline]
+    #[must_use]
+    pub fn as_inner(&self) -> &RawBigInt {
         &self.inner
     }
 

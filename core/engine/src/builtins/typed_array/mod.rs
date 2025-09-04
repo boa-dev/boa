@@ -352,19 +352,31 @@ pub(crate) enum ContentType {
 /// List of all typed array kinds.
 #[derive(Debug, Copy, Clone, Eq, PartialEq, Trace, Finalize)]
 #[boa_gc(empty_trace)]
-pub(crate) enum TypedArrayKind {
+pub enum TypedArrayKind {
+    /// 8-bit signed integers.
     Int8,
+    /// 8-bit unsigned integers.
     Uint8,
+    /// 8-bit unsigned integers clamped to 0–255.
     Uint8Clamped,
+    /// 16-bit signed integers.
     Int16,
+    /// 16-bit unsigned integers.
     Uint16,
+    /// 32-bit signed integers.
     Int32,
+    /// 32-bit unsigned integers.
     Uint32,
+    /// 64-bit signed integers in the platform byte order.
     BigInt64,
+    /// 64-bit unsigned integers in the platform byte order.
     BigUint64,
+    /// 16-bit floating point numbers in the platform byte order.
     #[cfg(feature = "float16")]
     Float16,
+    /// 32-bit floating point numbers in the platform byte order.
     Float32,
+    /// 64-bit floating point numbers in the platform byte order.
     Float64,
 }
 
