@@ -12,7 +12,7 @@ rust-version.workspace = true
 
 [dev-dependencies]
 trybuild.workspace = true
-boa_engine.workspace = true
+boa_engine = { workspace = true, features = ["embedded_lz4"] }
 boa_gc.workspace = true
 
 [lints]
