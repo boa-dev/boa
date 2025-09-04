@@ -71,7 +71,6 @@ fn simple() {
     load_module_and_test(&module_loader);
 }
 
-#[cfg(feature = "embedded_lz4")]
 #[test]
 fn compressed_lz4() {
     #[cfg(target_family = "unix")]

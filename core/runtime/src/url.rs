@@ -14,11 +14,11 @@
 #[cfg(test)]
 mod tests;
 
-use boa_engine::class::{Class, ClassBuilder};
+use boa_engine::class::Class;
 use boa_engine::realm::Realm;
 use boa_engine::value::Convert;
 use boa_engine::{
-    Context, Finalize, JsData, JsResult, JsString, JsValue, Trace, boa_class, js_error,
+    Context, Finalize, JsData, JsResult, JsString, JsValue, Trace, boa_class, boa_module, js_error,
 };
 use std::fmt::Display;
 
@@ -34,7 +34,7 @@ impl Url {
     /// # Errors
     /// This will error if the context or realm cannot register the class.
     pub fn register(realm: Option<Realm>, context: &mut Context) -> JsResult<()> {
-        Url::register(realm, context)
+        js_module::boa_register(realm, context)
     }
 }
 
@@ -238,4 +238,10 @@ impl Url {
     fn revoke_object_url() -> JsResult<()> {
         Err(js_error!(Error: "URL.revokeObjectURL is not implemented"))
     }
+}
+
+/// JavaScript module containing the Url class.
+#[boa_module]
+pub mod js_module {
+    type Url = super::Url;
 }
