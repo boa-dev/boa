@@ -34,14 +34,16 @@ use rustc_hash::FxHashMap;
 use std::ops::ControlFlow;
 
 /// Collect bindings and fill the scopes with them.
-#[must_use]
+///
+/// # Errors
+/// Any break in the control flow that happened during the collection.
 pub(crate) fn collect_bindings<'a, N>(
     node: &'a mut N,
     strict: bool,
     eval: bool,
     scope: &Scope,
     interner: &Interner,
-) -> bool
+) -> Result<(), &'static str>
 where
     &'a mut N: Into<NodeRefMut<'a>>,
 {
@@ -52,17 +54,22 @@ where
         scope: scope.clone(),
         interner,
     };
-    !visitor.visit(node).is_break()
+    match visitor.visit(node) {
+        ControlFlow::Continue(()) => Ok(()),
+        ControlFlow::Break(reason) => Err(reason),
+    }
 }
 
 /// Analyze if bindings escape their function scopes.
-#[must_use]
+///
+/// # Errors
+/// Any break in the control flow that happened during the analysis.
 pub(crate) fn analyze_binding_escapes<'a, N>(
     node: &'a mut N,
     in_eval: bool,
     scope: Scope,
     interner: &Interner,
-) -> bool
+) -> Result<(), &'static str>
 where
     &'a mut N: Into<NodeRefMut<'a>>,
 {
@@ -72,7 +79,11 @@ where
         with: false,
         interner,
     };
-    !visitor.visit(node.into()).is_break()
+
+    match visitor.visit(node.into()) {
+        ControlFlow::Continue(()) => Ok(()),
+        ControlFlow::Break(reason) => Err(reason),
+    }
 }
 
 struct BindingEscapeAnalyzer<'interner> {

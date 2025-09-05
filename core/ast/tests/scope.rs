@@ -18,7 +18,7 @@ use boa_string::JsString;
 fn empty_script_is_ok() {
     let scope = &Scope::new_global();
     let mut script = Script::default();
-    let ok = script.analyze_scope(scope, &Interner::new());
+    let ok = script.analyze_scope(scope, &Interner::new()).is_ok();
     assert!(ok);
     assert_eq!(scope.num_bindings(), 0);
 }
@@ -41,7 +41,7 @@ fn script_global_let() {
         LinearPosition::default(),
         false,
     ));
-    let ok = script.analyze_scope(&scope, &interner);
+    let ok = script.analyze_scope(&scope, &interner).is_ok();
     assert!(ok);
     assert_eq!(scope.num_bindings(), 1);
     let a = scope.get_binding_reference(&JsString::from("a")).unwrap();
@@ -68,7 +68,7 @@ fn script_global_const() {
         LinearPosition::default(),
         false,
     ));
-    let ok = script.analyze_scope(&scope, &interner);
+    let ok = script.analyze_scope(&scope, &interner).is_ok();
     assert!(ok);
     assert_eq!(scope.num_bindings(), 1);
     let a = scope.get_binding_reference(&JsString::from("a")).unwrap();
@@ -101,7 +101,7 @@ fn script_block_let() {
         LinearPosition::default(),
         false,
     ));
-    let ok = script.analyze_scope(&scope, &interner);
+    let ok = script.analyze_scope(&scope, &interner).is_ok();
     assert!(ok);
     assert_eq!(scope.num_bindings(), 0);
     let StatementListItem::Statement(statement) = script.statements().first().unwrap() else {
@@ -153,7 +153,7 @@ fn script_function_mapped_arguments_not_accessed() {
         LinearPosition::default(),
         false,
     ));
-    let ok = script.analyze_scope(&scope, &interner);
+    let ok = script.analyze_scope(&scope, &interner).is_ok();
     assert!(ok);
     assert_eq!(scope.num_bindings(), 0);
 
@@ -239,7 +239,7 @@ fn script_function_mapped_arguments_accessed() {
         LinearPosition::default(),
         false,
     ));
-    let ok = script.analyze_scope(&scope, &interner);
+    let ok = script.analyze_scope(&scope, &interner).is_ok();
     assert!(ok);
     assert_eq!(scope.num_bindings(), 0);
     let StatementListItem::Declaration(declaration) = script.statements().first().unwrap() else {

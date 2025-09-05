@@ -20,7 +20,7 @@ use crate::{
     context::intrinsics::{Intrinsics, StandardConstructor, StandardConstructors},
     environments::{EnvironmentStack, FunctionSlots, PrivateEnvironment, ThisBindingStatus},
     error::JsNativeError,
-    js_string,
+    js_error, js_string,
     native_function::NativeFunctionObject,
     object::{
         JsData, JsFunction, JsObject, PrivateElement, PrivateName,
@@ -647,10 +647,10 @@ impl BuiltInFunctionObject {
             false,
             Span::new(function_span_start, function_span_end),
         );
-        if !function.analyze_scope(strict, context.realm().scope(), context.interner()) {
-            return Err(JsNativeError::syntax()
-                .with_message("failed to analyze function scope")
-                .into());
+        if let Err(reason) =
+            function.analyze_scope(strict, context.realm().scope(), context.interner())
+        {
+            return Err(js_error!(SyntaxError: "failed to analyze function scope: {}", reason));
         }
 
         let in_with = context.vm.environments.has_object_environment();

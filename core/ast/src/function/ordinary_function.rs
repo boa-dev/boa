@@ -271,10 +271,16 @@ impl FunctionExpression {
     }
 
     /// Analyze the scope of the function expression.
-    pub fn analyze_scope(&mut self, strict: bool, scope: &Scope, interner: &Interner) -> bool {
-        if !collect_bindings(self, strict, false, scope, interner) {
-            return false;
-        }
+    ///
+    /// # Errors
+    /// Any scope or binding errors that happened during the analysis.
+    pub fn analyze_scope(
+        &mut self,
+        strict: bool,
+        scope: &Scope,
+        interner: &Interner,
+    ) -> Result<(), &'static str> {
+        collect_bindings(self, strict, false, scope, interner)?;
         analyze_binding_escapes(self, false, scope.clone(), interner)
     }
 }
