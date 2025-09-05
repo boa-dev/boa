@@ -6,9 +6,9 @@ use boa_engine::object::builtins::{JsArrayBuffer, JsTypedArray, JsUint8Array};
 use boa_engine::realm::Realm;
 use boa_engine::value::TryFromJs;
 use boa_engine::{
-    Context, Finalize, JsData, JsObject, JsResult, JsString, JsValue, Trace, js_error, js_string,
+    Context, Finalize, JsData, JsObject, JsResult, JsString, JsValue, Trace, boa_class, boa_module,
+    js_error, js_string,
 };
-use boa_interop::boa_macros::{boa_class, boa_module};
 
 #[cfg(test)]
 mod tests;

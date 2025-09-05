@@ -1,8 +1,10 @@
 //! Test for the class proc-macro.
 #![allow(unused_crate_dependencies)]
 
-use boa_engine::{Context, JsString, Module, Source, js_string};
-use boa_macros::{Finalize, JsData, Trace, boa_class, boa_module};
+use boa_engine::module::MapModuleLoader;
+use boa_engine::{
+    Context, Finalize, JsData, JsString, Module, Source, Trace, boa_class, boa_module, js_string,
+};
 use std::rc::Rc;
 
 #[derive(Clone, Trace, Finalize, JsData)]
@@ -72,13 +74,13 @@ const ASSERT_DECL: &str = r"
 
 #[test]
 fn boa_module() {
-    let module_loader = Rc::new(boa_interop::loaders::HashMapModuleLoader::new());
+    let module_loader = Rc::new(MapModuleLoader::new());
     let mut context = Context::builder()
         .module_loader(module_loader.clone())
         .build()
         .expect("Could not create context.");
 
-    module_loader.register("/hello.js", hello::boa_module(None, &mut context));
+    module_loader.insert("/hello.js", hello::boa_module(None, &mut context));
 
     context
         .eval(Source::from_bytes(ASSERT_DECL))

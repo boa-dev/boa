@@ -11,12 +11,12 @@ repository.workspace = true
 rust-version.workspace = true
 publish = false
 
+[badges]
+maintenance = { status = "deprecated" }
+
 [dependencies]
 boa_engine.workspace = true
-boa_gc.workspace = true
 boa_macros.workspace = true
-lz4_flex = { workspace = true, optional = true }
-rustc-hash = { workspace = true, features = ["std"] }
 
 [lints]
 workspace = true
@@ -25,4 +25,4 @@ workspace = true
 all-features = true
 
 [features]
-embedded_lz4 = ["boa_macros/embedded_lz4", "lz4_flex"]
+embedded_lz4 = ["boa_engine/embedded_lz4"]

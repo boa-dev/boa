@@ -167,6 +167,7 @@ impl StaticJsStrings {
         (UINT32_ARRAY, "Uint32Array"),
         (BIG_INT64_ARRAY, "BigInt64Array"),
         (BIG_UINT64_ARRAY, "BigUint64Array"),
+        #[cfg(feature = "float16")]
         (FLOAT16_ARRAY, "Float16Array"),
         (FLOAT32_ARRAY, "Float32Array"),
         (FLOAT64_ARRAY, "Float64Array"),

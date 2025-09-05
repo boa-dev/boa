@@ -134,6 +134,9 @@ pub mod prelude {
     pub use boa_parser::Source;
 }
 
+#[doc(inline)]
+pub use boa_macros::{boa_class, boa_module, embed_module_inner as __embed_module_inner};
+
 use std::result::Result as StdResult;
 
 // Export things to root level

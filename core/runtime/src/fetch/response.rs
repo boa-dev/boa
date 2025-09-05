@@ -9,10 +9,10 @@ use crate::fetch::headers::JsHeaders;
 use boa_engine::object::builtins::{JsPromise, JsUint8Array};
 use boa_engine::value::{TryFromJs, TryIntoJs};
 use boa_engine::{
-    Context, JsData, JsNativeError, JsResult, JsString, JsValue, js_error, js_str, js_string,
+    Context, JsData, JsNativeError, JsResult, JsString, JsValue, boa_class, js_error, js_str,
+    js_string,
 };
 use boa_gc::{Finalize, Trace};
-use boa_interop::boa_macros::boa_class;
 use http::StatusCode;
 use std::rc::Rc;
 

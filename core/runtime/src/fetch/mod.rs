@@ -14,9 +14,8 @@ use boa_engine::class::Class;
 use boa_engine::realm::Realm;
 use boa_engine::{
     Context, Finalize, JsData, JsError, JsObject, JsResult, JsString, JsValue, NativeObject, Trace,
-    js_error,
+    boa_module, js_error,
 };
-use boa_interop::boa_macros::boa_module;
 use either::Either;
 use http::{HeaderName, HeaderValue, Request as HttpRequest, Request};
 use std::cell::RefCell;

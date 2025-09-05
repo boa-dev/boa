@@ -1,12 +1,14 @@
 //! A module that declares any functions for dealing with intervals or
 //! timeouts.
 
+use boa_engine::interop::JsRest;
 use boa_engine::job::{NativeJob, TimeoutJob};
 use boa_engine::object::builtins::JsFunction;
 use boa_engine::value::{IntegerOrInfinity, Nullable};
-use boa_engine::{Context, Finalize, JsData, JsResult, JsValue, Trace, js_error, js_string};
+use boa_engine::{
+    Context, Finalize, IntoJsFunctionCopied, JsData, JsResult, JsValue, Trace, js_error, js_string,
+};
 use boa_gc::{Gc, GcRefCell};
-use boa_interop::{IntoJsFunctionCopied, JsRest};
 use std::collections::HashSet;
 
 #[cfg(test)]

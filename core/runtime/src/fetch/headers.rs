@@ -3,13 +3,12 @@
 //! See <https://developer.mozilla.org/en-US/docs/Web/API/Headers>.
 #![allow(clippy::needless_pass_by_value)]
 
+use boa_engine::interop::JsClass;
 use boa_engine::object::builtins::{JsArray, TypedJsFunction};
 use boa_engine::value::{Convert, TryFromJs};
 use boa_engine::{
-    Context, Finalize, JsData, JsObject, JsResult, JsString, JsValue, Trace, js_error,
+    Context, Finalize, JsData, JsObject, JsResult, JsString, JsValue, Trace, boa_class, js_error,
 };
-use boa_interop::JsClass;
-use boa_interop::boa_macros::boa_class;
 use http::header::HeaderMap as HttpHeaderMap;
 use http::{HeaderName, HeaderValue};
 use std::cell::RefCell;

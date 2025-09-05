@@ -11,11 +11,13 @@ use boa_parser::Source;
 
 use crate::script::Script;
 use crate::{
-    Context, JsError, JsNativeError, JsResult, JsString, js_string, object::JsObject, realm::Realm,
-    vm::ActiveRunnable,
+    Context, JsError, JsNativeError, JsResult, JsString, js_error, js_string, object::JsObject,
+    realm::Realm, vm::ActiveRunnable,
 };
 
 use super::Module;
+
+pub mod embedded;
 
 /// Resolves paths from the referrer and the specifier, normalize the paths and ensure the path
 /// is within a base. If the base is empty, that last verification will be skipped.
@@ -263,6 +265,76 @@ impl ModuleLoader for IdleModuleLoader {
         Err(JsNativeError::typ()
             .with_message("module resolution is disabled for this context")
             .into())
+    }
+}
+
+/// A module loader that uses a map of specifier -> Module to resolve.
+/// If the module was not registered, it will not be resolved.
+///
+/// A resolution relative to the referrer is performed when loading a
+/// module.
+#[derive(Default, Debug, Clone)]
+pub struct MapModuleLoader {
+    inner: RefCell<FxHashMap<PathBuf, Module>>,
+}
+
+impl MapModuleLoader {
+    /// Creates an empty map module loader.
+    #[must_use]
+    #[inline]
+    pub fn new() -> Self {
+        Self::default()
+    }
+
+    /// Insert or replace a mapping in the inner map, returning any previous module
+    /// if there was one.
+    #[inline]
+    pub fn insert(&self, specifier: impl AsRef<str>, module: Module) -> Option<Module> {
+        self.inner
+            .borrow_mut()
+            .insert(PathBuf::from(specifier.as_ref()), module)
+    }
+
+    /// Clear the map.
+    pub fn clear(&self) {
+        self.inner.borrow_mut().clear();
+    }
+}
+
+impl FromIterator<(String, Module)> for MapModuleLoader {
+    fn from_iter<T: IntoIterator<Item = (String, Module)>>(iter: T) -> Self {
+        Self {
+            inner: RefCell::new(
+                iter.into_iter()
+                    .map(|(k, v)| (PathBuf::from(k), v))
+                    .collect(),
+            ),
+        }
+    }
+}
+
+impl ModuleLoader for MapModuleLoader {
+    fn load_imported_module(
+        self: Rc<Self>,
+        referrer: Referrer,
+        specifier: JsString,
+        context: &RefCell<&mut Context>,
+    ) -> impl Future<Output = JsResult<Module>> {
+        let result = (|| {
+            let path = resolve_module_specifier(
+                None,
+                &specifier,
+                referrer.path(),
+                &mut context.borrow_mut(),
+            )?;
+            if let Some(module) = self.inner.borrow().get(&path) {
+                Ok(module.clone())
+            } else {
+                Err(js_error!(TypeError: "Module could not be found."))
+            }
+        })();
+
+        async { result }
     }
 }
 

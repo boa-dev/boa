@@ -5,9 +5,9 @@
 use std::rc::Rc;
 
 use boa_engine::builtins::promise::PromiseState;
+use boa_engine::embed_module;
+use boa_engine::module::embedded::EmbeddedModuleLoader;
 use boa_engine::{Context, JsString, JsValue, Module, Source, js_string};
-use boa_interop::embed_module;
-use boa_interop::loaders::embedded::EmbeddedModuleLoader;
 
 fn load_module_and_test(module_loader: &Rc<EmbeddedModuleLoader>) {
     let mut context = Context::builder()
@@ -64,14 +64,13 @@ fn load_module_and_test(module_loader: &Rc<EmbeddedModuleLoader>) {
 #[test]
 fn simple() {
     #[cfg(target_family = "unix")]
-    let module_loader = Rc::new(embed_module!("tests/embedded/"));
+    let module_loader = Rc::new(embed_module!("tests/embedded/", compress = "none"));
     #[cfg(target_family = "windows")]
     let module_loader = Rc::new(embed_module!("tests\\embedded\\"));
 
     load_module_and_test(&module_loader);
 }
 
-#[cfg(feature = "embedded_lz4")]
 #[test]
 fn compressed_lz4() {
     #[cfg(target_family = "unix")]

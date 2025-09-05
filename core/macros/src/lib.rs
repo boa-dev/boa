@@ -43,7 +43,7 @@ pub fn js_object(input: TokenStream) -> TokenStream {
 ///
 /// # Warning
 /// This should not be used directly as is, and instead should be used through
-/// the `embed_module!` macro in `boa_interop` for convenience.
+/// the `embed_module!` macro in `boa_engine` for convenience.
 #[proc_macro]
 pub fn embed_module_inner(input: TokenStream) -> TokenStream {
     embedded_module_loader::embed_module_impl(input)
@@ -88,7 +88,7 @@ pub fn embed_module_inner(input: TokenStream) -> TokenStream {
 ///
 /// # Warning
 /// This should not be used directly as is, and instead should be used through
-/// the `embed_module!` macro in `boa_interop` for convenience.
+/// the `embed_module!` macro in `boa_engine` for convenience.
 #[proc_macro_attribute]
 pub fn boa_class(attr: TokenStream, item: TokenStream) -> TokenStream {
     class::class_impl(attr, item)

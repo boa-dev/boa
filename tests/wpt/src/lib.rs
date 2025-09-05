@@ -2,14 +2,14 @@
 #![allow(unused_crate_dependencies)]
 
 use boa_engine::class::Class;
+use boa_engine::interop::ContextData;
 use boa_engine::parser::source::UTF16Input;
 use boa_engine::property::Attribute;
 use boa_engine::value::{Nullable, TryFromJs};
 use boa_engine::{
-    js_error, js_str, js_string, Context, Finalize, JsData, JsResult, JsString, JsValue, Source,
-    Trace,
+    js_error, js_str, js_string, Context, Finalize, IntoJsFunctionCopied, JsData, JsResult,
+    JsString, JsValue, Source, Trace,
 };
-use boa_interop::{ContextData, IntoJsFunctionCopied};
 use boa_runtime::url::Url;
 use boa_runtime::{DefaultLogger, NullLogger};
 use logger::RecordingLogEvent;
