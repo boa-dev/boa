@@ -5,8 +5,7 @@
 
 use boa_engine::realm::Realm;
 use boa_engine::value::TryFromJs;
-use boa_engine::{Context, JsObject, JsResult};
-use boa_interop::boa_macros::boa_module;
+use boa_engine::{Context, JsObject, JsResult, boa_module};
 
 /// Options used by `structuredClone`. This is currently unused.
 #[derive(Debug, Clone, TryFromJs)]

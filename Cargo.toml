@@ -39,7 +39,6 @@ boa_engine = { version = "~0.20.0", path = "core/engine" }
 boa_gc = { version = "~0.20.0", path = "core/gc" }
 boa_icu_provider = { version = "~0.20.0", path = "core/icu_provider" }
 boa_interner = { version = "~0.20.0", path = "core/interner" }
-boa_interop = { version = "~0.20.0", path = "core/interop" }
 boa_macros = { version = "~0.20.0", path = "core/macros" }
 boa_parser = { version = "~0.20.0", path = "core/parser" }
 boa_runtime = { version = "~0.20.0", path = "core/runtime" }

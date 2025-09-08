@@ -14,6 +14,7 @@ rust-version.workspace = true
 [features]
 default = ["float16", "xsum"]
 
+embedded_lz4 = ["boa_macros/embedded_lz4", "lz4_flex"]
 
 # Replace the NaN-boxing implementation of `JsValueInner` with an
 # enum-based implementation. This implementation is less performant
@@ -95,6 +96,7 @@ boa_string.workspace = true
 cow-utils.workspace = true
 futures-lite.workspace = true
 float16 = { version = "0.1", optional = true }
+lz4_flex = { workspace = true, optional = true }
 xsum = { version = "0.1.1", optional = true }
 serde = { workspace = true, features = ["derive", "rc"] }
 serde_json.workspace = true

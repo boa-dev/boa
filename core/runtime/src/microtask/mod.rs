@@ -1,7 +1,6 @@
 //! Microtask-related functions and types.
 use boa_engine::realm::Realm;
-use boa_engine::{Context, JsResult};
-use boa_interop::boa_macros::boa_module;
+use boa_engine::{Context, JsResult, boa_module};
 
 #[cfg(test)]
 mod tests;

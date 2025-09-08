@@ -20,8 +20,8 @@ use boa_engine::{Context, JsNativeError, JsResult, JsString, Module, Source};
 #[macro_export]
 macro_rules! embed_module {
     ($($x: expr),*) => {
-        $crate::loaders::embedded::EmbeddedModuleLoader::from_iter(
-            $crate::boa_macros::embed_module_inner!($($x),*),
+        $crate::module::embedded::EmbeddedModuleLoader::from_iter(
+            $crate::__embed_module_inner!($($x),*),
         )
     };
 }
@@ -104,11 +104,12 @@ pub struct EmbeddedModuleLoader {
 }
 
 impl EmbeddedModuleLoader {
-    /// Gets a module in the `EmbeddedModuleLoader`.
+    /// Get a module if it has been parsed and created. If the module is not found or
+    /// was not loaded, this will return `None`.
     #[must_use]
-    pub fn get_module(&self, specifier: &JsString) -> Option<Module> {
+    pub fn get_module(&self, name: &JsString) -> Option<Module> {
         self.map
-            .get(specifier)
+            .get(name)
             .and_then(|module| module.borrow().as_module().cloned())
     }
 }
