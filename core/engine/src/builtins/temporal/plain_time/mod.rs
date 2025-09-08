@@ -415,25 +415,9 @@ impl PlainTime {
     /// [spec]: https://tc39.es/proposal-temporal/#sec-temporal.plaintime.from
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Temporal/PlainTime/from
     fn from(_: &JsValue, args: &[JsValue], context: &mut Context) -> JsResult<JsValue> {
-        let item = args.get_or_undefined(0);
-        // 1. Set options to ? GetOptionsObject(options).
-        // 2. Let overflow be ? GetTemporalOverflowOption(options).
-        // 3. If item is an Object and item has an [[InitializedTemporalTime]] internal slot, then
-        let object = item.as_object();
-        let time = if let Some(time) = object
-            .as_ref()
-            .and_then(JsObject::downcast_ref::<PlainTime>)
-        {
-            // a. Return ! CreateTemporalTime(item.[[ISOHour]], item.[[ISOMinute]],
-            // item.[[ISOSecond]], item.[[ISOMillisecond]], item.[[ISOMicrosecond]],
-            // item.[[ISONanosecond]]).
-            time.inner
-        } else {
-            to_temporal_time(item, args.get(1), context)?
-        };
-
-        // 4. Return ? ToTemporalTime(item, overflow).
-        create_temporal_time(time, None, context).map(Into::into)
+        // 1. Return ? ToTemporalTime(item, options).
+        let plain_time = to_temporal_time(args.get_or_undefined(0), args.get(1), context)?;
+        create_temporal_time(plain_time, None, context).map(Into::into)
     }
 
     /// 4.2.3 `Temporal.PlainTime.compare ( one, two )`
@@ -938,9 +922,13 @@ pub(crate) fn to_temporal_time(
         JsVariant::String(str) => {
             // b. Let result be ? ParseTemporalTimeString(item).
             // c. Assert: IsValidTime(result.[[Hour]], result.[[Minute]], result.[[Second]], result.[[Millisecond]], result.[[Microsecond]], result.[[Nanosecond]]) is true.
-            str.to_std_string_escaped()
-                .parse::<PlainTimeInner>()
-                .map_err(Into::into)
+            let result = str.to_std_string_escaped().parse::<PlainTimeInner>()?;
+
+            let options = get_options_object(options)?;
+            let _overflow =
+                get_option::<ArithmeticOverflow>(&options, js_string!("overflow"), context)?;
+
+            Ok(result)
         }
         // a. If item is not a String, throw a TypeError exception.
         _ => Err(JsNativeError::typ()
