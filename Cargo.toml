@@ -85,7 +85,7 @@ time = { version = "0.3.42", default-features = false, features = [
     "formatting",
     "macros",
 ] }
-log = "0.4.27"
+log = "0.4.28"
 simple_logger = "5.0.0"
 cargo_metadata = "0.19.2"
 trybuild = "1.0.110"
@@ -136,7 +136,7 @@ rstest = "0.25.0"
 url = "2.5.7"
 tokio = { version = "1.47.1", default-features = false }
 futures-concurrency = "7.6.3"
-dynify = "0.1.1"
+dynify = "0.1.2"
 
 
 # ICU4X
@@ -145,7 +145,7 @@ icu_provider = { version = "~2.0.0", default-features = false }
 icu_locale = { version = "~2.0.0", default-features = false }
 icu_locale_core = { version = "~2.0.0", default-features = false }
 icu_datetime = { version = "~2.0.0", default-features = false }
-icu_calendar = { version = "~2.0.4", default-features = false }
+icu_calendar = { version = "~2.0.5", default-features = false }
 icu_collator = { version = "~2.0.0", default-features = false }
 icu_plurals = { version = "~2.0.0", default-features = false }
 icu_list = { version = "~2.0.0", default-features = false }
