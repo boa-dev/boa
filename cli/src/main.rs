@@ -10,6 +10,8 @@
 mod debug;
 mod helper;
 
+use boa_engine::context::time::JsInstant;
+use boa_engine::job::{GenericJob, TimeoutJob};
 use boa_engine::{
     Context, JsError, JsResult, Source,
     builtins::promise::PromiseState,
@@ -29,6 +31,7 @@ use color_eyre::{
 use colored::Colorize;
 use debug::init_boa_debug_object;
 use rustyline::{EditMode, Editor, config::Config, error::ReadlineError};
+use std::collections::BTreeMap;
 use std::{
     cell::RefCell,
     collections::VecDeque,
@@ -149,6 +152,11 @@ struct Opt {
     /// Root path from where the module resolver will try to load the modules.
     #[arg(long, short = 'r', default_value_os_t = PathBuf::from("."), requires = "mod")]
     root: PathBuf,
+
+    /// Execute a JavaScript expression then exit. Files (see above) will be
+    /// executed prior to the expression.
+    #[arg(long, short = 'e')]
+    expression: Option<String>,
 }
 
 impl Opt {
@@ -268,6 +276,44 @@ fn generate_flowgraph<R: ReadChar>(
     Ok(result)
 }
 
+fn uncaught_error(error: &JsError) {
+    eprintln!("{}: {}", "Uncaught".red(), error.to_string().red());
+}
+
+fn uncaught_job_error(error: &JsError) {
+    eprintln!(
+        "{}: {}",
+        "Uncaught error (during job evaluation)".red(),
+        error.to_string().red()
+    );
+}
+
+fn evaluate_expr(line: &str, args: &Opt, context: &mut Context) -> Result<()> {
+    if args.has_dump_flag() {
+        dump(Source::from_bytes(&line), args, context)?;
+    } else if let Some(flowgraph) = args.flowgraph {
+        match generate_flowgraph(
+            context,
+            Source::from_bytes(line),
+            flowgraph.unwrap_or(FlowgraphFormat::Graphviz),
+            args.flowgraph_direction,
+        ) {
+            Ok(v) => println!("{v}"),
+            Err(v) => eprintln!("{v:?}"),
+        }
+    } else {
+        match context.eval(Source::from_bytes(line)) {
+            Ok(v) => println!("{}", v.display()),
+            Err(ref v) => uncaught_error(v),
+        }
+        if let Err(err) = context.run_jobs() {
+            eprintln!("{err}");
+        }
+    }
+
+    Ok(())
+}
+
 fn evaluate_file(
     file: &Path,
     args: &Opt,
@@ -315,8 +361,12 @@ fn evaluate_file(
     }
 
     match context.eval(Source::from_filepath(file)?) {
-        Ok(v) => println!("{}", v.display()),
-        Err(v) => eprintln!("Uncaught {v}"),
+        Ok(v) => {
+            if !v.is_undefined() {
+                println!("{}", v.display());
+            }
+        }
+        Err(v) => uncaught_error(&v),
     }
 
     context
@@ -371,6 +421,14 @@ fn main() -> Result<()> {
 
     if !args.files.is_empty() {
         evaluate_files(&args, &mut context, &loader)?;
+
+        if let Some(ref expr) = args.expression {
+            evaluate_expr(expr, &args, &mut context)?;
+        }
+
+        return Ok(());
+    } else if let Some(ref expr) = args.expression {
+        evaluate_expr(expr, &args, &mut context)?;
         return Ok(());
     }
 
@@ -408,31 +466,7 @@ fn main() -> Result<()> {
 
                 editor.add_history_entry(line).map_err(io::Error::other)?;
 
-                if args.has_dump_flag() {
-                    dump(Source::from_bytes(&line), &args, &mut context)?;
-                } else if let Some(flowgraph) = args.flowgraph {
-                    match generate_flowgraph(
-                        &mut context,
-                        Source::from_bytes(line),
-                        flowgraph.unwrap_or(FlowgraphFormat::Graphviz),
-                        args.flowgraph_direction,
-                    ) {
-                        Ok(v) => println!("{v}"),
-                        Err(v) => eprintln!("{v:?}"),
-                    }
-                } else {
-                    match context.eval(Source::from_bytes(line)) {
-                        Ok(v) => {
-                            println!("{}", v.display());
-                        }
-                        Err(v) => {
-                            eprintln!("{}: {}", "Uncaught".red(), v.to_string().red());
-                        }
-                    }
-                    if let Err(err) = context.run_jobs() {
-                        eprintln!("{err}");
-                    }
-                }
+                evaluate_expr(line, &args, &mut context)?;
             }
 
             Err(err) => {
@@ -468,43 +502,90 @@ fn add_runtime(context: &mut Context) {
     .expect("should not fail while registering the runtime");
 }
 
+#[allow(clippy::struct_field_names)]
 #[derive(Default)]
 struct Executor {
     promise_jobs: RefCell<VecDeque<PromiseJob>>,
     async_jobs: RefCell<VecDeque<NativeAsyncJob>>,
+    timeout_jobs: RefCell<BTreeMap<JsInstant, TimeoutJob>>,
+    generic_jobs: RefCell<VecDeque<GenericJob>>,
+}
+
+impl Executor {
+    fn is_empty(&self) -> bool {
+        self.promise_jobs.borrow().is_empty()
+            && self.async_jobs.borrow().is_empty()
+            && self.timeout_jobs.borrow().is_empty()
+            && self.generic_jobs.borrow().is_empty()
+    }
+
+    fn drain_timeout_jobs(&self, context: &mut Context) {
+        let now = context.clock().now();
+
+        let mut timeouts_borrow = self.timeout_jobs.borrow_mut();
+        let mut jobs_to_keep = timeouts_borrow.split_off(&now);
+        jobs_to_keep.retain(|_, job| !job.is_cancelled());
+        let jobs_to_run = std::mem::replace(&mut *timeouts_borrow, jobs_to_keep);
+        drop(timeouts_borrow);
+
+        for job in jobs_to_run.into_values() {
+            if let Err(e) = job.call(context) {
+                uncaught_job_error(&e);
+            }
+        }
+    }
+
+    fn drain_generic_jobs(&self, context: &mut Context) {
+        let job = self.generic_jobs.borrow_mut().pop_front();
+        if let Some(generic) = job
+            && let Err(err) = generic.call(context)
+        {
+            uncaught_job_error(&err);
+        }
+    }
 }
 
 impl JobExecutor for Executor {
-    fn enqueue_job(self: Rc<Self>, job: Job, _: &mut Context) {
+    fn enqueue_job(self: Rc<Self>, job: Job, context: &mut Context) {
         match job {
             Job::PromiseJob(job) => self.promise_jobs.borrow_mut().push_back(job),
             Job::AsyncJob(job) => self.async_jobs.borrow_mut().push_back(job),
+            Job::TimeoutJob(job) => {
+                let now = context.clock().now();
+                self.timeout_jobs
+                    .borrow_mut()
+                    .insert(now + job.timeout(), job);
+            }
+            Job::GenericJob(job) => self.generic_jobs.borrow_mut().push_back(job),
             job => eprintln!("unsupported job type {job:?}"),
         }
     }
 
     fn run_jobs(self: Rc<Self>, context: &mut Context) -> JsResult<()> {
         loop {
-            if self.promise_jobs.borrow().is_empty() && self.async_jobs.borrow().is_empty() {
+            if self.is_empty() {
                 return Ok(());
             }
+
+            self.drain_timeout_jobs(context);
+            self.drain_generic_jobs(context);
 
             let jobs = std::mem::take(&mut *self.promise_jobs.borrow_mut());
             for job in jobs {
                 if let Err(e) = job.call(context) {
-                    eprintln!("Uncaught {e}");
+                    uncaught_job_error(&e);
                 }
             }
 
             let async_jobs = std::mem::take(&mut *self.async_jobs.borrow_mut());
             for async_job in async_jobs {
-                if let Err(err) = pollster::block_on(async_job.call(&RefCell::new(context))) {
-                    eprintln!("Uncaught {err}");
+                if let Err(e) = pollster::block_on(async_job.call(&RefCell::new(context))) {
+                    uncaught_job_error(&e);
                 }
                 let jobs = std::mem::take(&mut *self.promise_jobs.borrow_mut());
                 for job in jobs {
                     if let Err(e) = job.call(context) {
-                        eprintln!("Uncaught {e}");
+                        uncaught_job_error(&e);
                     }
                 }
             }
