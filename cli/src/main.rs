@@ -512,8 +512,9 @@ struct Executor {
 }
 
 impl Executor {
-    fn is_empty(&self) -> bool {
-        self.promise_jobs.borrow().is_empty()
+    fn is_empty(&self, context: &mut Context) -> bool {
+        !context.has_pending_context_jobs()
+            && self.promise_jobs.borrow().is_empty()
             && self.async_jobs.borrow().is_empty()
             && self.timeout_jobs.borrow().is_empty()
             && self.generic_jobs.borrow().is_empty()
@@ -563,9 +564,11 @@ impl JobExecutor for Executor {
 
     fn run_jobs(self: Rc<Self>, context: &mut Context) -> JsResult<()> {
         loop {
-            if self.is_empty() {
+            if self.is_empty(context) {
                 return Ok(());
             }
+
+            context.enqueue_resolved_context_jobs();
 
             self.drain_timeout_jobs(context);
             self.drain_generic_jobs(context);
