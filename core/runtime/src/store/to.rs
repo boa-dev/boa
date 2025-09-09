@@ -125,12 +125,12 @@ fn try_into_js_set(
 
 fn try_into_js_date(
     store: &JsValueStore,
-    msec: f64,
+    ms_since_epoch: f64,
     seen: &mut ReverseSeenMap,
     context: &mut Context,
 ) -> JsResult<JsValue> {
     let date = JsDate::new(context);
-    date.set_time(msec, context)?;
+    date.set_time(ms_since_epoch, context)?;
     seen.insert(store, date.clone().into());
 
     Ok(JsValue::from(date))

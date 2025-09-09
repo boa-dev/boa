@@ -140,12 +140,12 @@ fn clone_date(
     seen: &mut SeenMap,
     context: &mut Context,
 ) -> JsResult<JsValueStore> {
-    let msec_since_epoch = date
+    let ms_since_epoch = date
         .get_time(context)?
         .as_number()
         .ok_or_else(unsupported_type)?;
 
-    let stored = JsValueStore::new(ValueStoreInner::Date(msec_since_epoch));
+    let stored = JsValueStore::new(ValueStoreInner::Date(ms_since_epoch));
     seen.insert(original, stored.clone());
     Ok(stored)
 }
