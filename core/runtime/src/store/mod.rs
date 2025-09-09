@@ -1,9 +1,10 @@
 //! Module containing the types related to the [`JsValueStore`].
 use boa_engine::bigint::RawBigInt;
+use boa_engine::builtins::array_buffer::SharedArrayBuffer;
 use boa_engine::builtins::error::ErrorKind;
 use boa_engine::builtins::typed_array::TypedArrayKind;
 use boa_engine::value::TryIntoJs;
-use boa_engine::{Context, JsError, JsObject, JsResult, JsString, JsValue, js_error};
+use boa_engine::{Context, JsError, JsResult, JsString, JsValue, JsVariant, js_error};
 use std::collections::HashSet;
 use std::sync::Arc;
 
@@ -14,6 +15,11 @@ mod to;
 #[inline]
 fn unsupported_type() -> JsError {
     js_error!(Error: "DataCloneError: unsupported type for structured data")
+}
+
+#[inline]
+fn unsupported_transfer() -> JsError {
+    js_error!(TypeError: "Found an invalid value in transferList")
 }
 
 /// A type to help store [`JsString`]. Because [`JsString`] relies on [`std::rc::Rc`],
@@ -42,7 +48,7 @@ impl From<StringStore> for JsString {
 }
 
 /// Inner value for [`JsValueStore`].
-#[derive(Debug, PartialEq)]
+#[derive(Debug)]
 enum ValueStoreInner {
     /// An Empty value that will be filled later. This is only used during
     /// construction, and if encountered at other points will result
@@ -107,6 +113,9 @@ enum ValueStoreInner {
     /// Array Buffer.
     ArrayBuffer(Vec<u8>),
 
+    /// Shared Array Buffer.
+    SharedArrayBuffer(SharedArrayBuffer),
+
     /// Dataview.
     #[expect(unused)]
     DataView {
@@ -137,7 +146,7 @@ enum ValueStoreInner {
 /// all prototypes for the new types (e.g. Object).
 ///
 /// [sca]: https://developer.mozilla.org/en-US/docs/Web/API/Web_Workers_API/Structured_clone_algorithm
-#[derive(Debug, Clone, PartialEq)]
+#[derive(Debug, Clone)]
 pub struct JsValueStore(Arc<ValueStoreInner>);
 
 impl TryIntoJs for JsValueStore {
@@ -164,9 +173,8 @@ impl JsValueStore {
 
         assert!(!ptr.is_null());
         unsafe {
-            assert_eq!(
-                *ptr,
-                ValueStoreInner::Empty,
+            assert!(
+                matches!(*ptr, ValueStoreInner::Empty),
                 "ValueStoreInner must be empty."
             );
 
@@ -193,10 +201,18 @@ impl JsValueStore {
     pub fn try_from_js(
         value: &JsValue,
         context: &mut Context,
-        transfer: Vec<JsObject>,
+        transfer: Vec<JsValue>,
     ) -> JsResult<Self> {
         let mut seen = from::SeenMap::default();
-        let transfer = transfer.into_iter().collect::<HashSet<_>>();
+        // Verify the validity of the transfer list and make it a set.
+        let transfer = transfer
+            .into_iter()
+            .map(|v| match v.variant() {
+                JsVariant::Object(o) if from::is_transferable(&o) => Ok(o),
+                _ => Err(unsupported_transfer()),
+            })
+            .collect::<Result<HashSet<_>, _>>()?;
+
         let v = from::try_from_js_value(value, &transfer, &mut seen, context)?;
         Ok(v)
     }

@@ -5,12 +5,12 @@
 
 use boa_engine::realm::Realm;
 use boa_engine::value::TryFromJs;
-use boa_engine::{Context, JsObject, JsResult, boa_module};
+use boa_engine::{Context, JsResult, JsValue, boa_module};
 
 /// Options used by `structuredClone`. This is currently unused.
 #[derive(Debug, Clone, TryFromJs)]
 pub struct StructuredCloneOptions {
-    transfer: Option<Vec<JsObject>>,
+    transfer: Option<Vec<JsValue>>,
 }
 
 /// JavaScript module containing the `structuredClone` types and functions.

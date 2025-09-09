@@ -37,8 +37,8 @@ all-features = true
 
 [features]
 # Default should not add `reqwest` as it is not available on all platforms.
-default = ["fetch", "url"]
+default = ["fetch", "url", "boa_engine/either"]
 all = ["default", "reqwest-blocking"]
 url = ["dep:url"]
-fetch = ["dep:futures-lite", "dep:http", "dep:serde_json", "boa_engine/either"]
+fetch = ["dep:futures-lite", "dep:http", "dep:serde_json"]
 reqwest-blocking = ["dep:reqwest", "reqwest/blocking"]
