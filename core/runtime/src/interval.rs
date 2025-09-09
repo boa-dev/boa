@@ -91,7 +91,7 @@ fn handle(
     }
 
     handler_map.borrow_mut().clear_interval(id);
-    Ok(JsValue::undefined())
+    result
 }
 
 /// Set a timeout to call the given function after the given delay.
