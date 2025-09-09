@@ -513,10 +513,13 @@ struct Executor {
 
 impl Executor {
     fn is_empty(&self, context: &mut Context) -> bool {
+        let now = context.clock().now();
+
         !context.has_pending_context_jobs()
             && self.promise_jobs.borrow().is_empty()
             && self.async_jobs.borrow().is_empty()
-            && self.timeout_jobs.borrow().is_empty()
+            // The timeout jobs queue is empty IIF there are no jobs to execute right now.
+            && !self.timeout_jobs.borrow().iter().any(|(t, _)| &now >= t)
             && self.generic_jobs.borrow().is_empty()
     }
 
