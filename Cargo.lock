@@ -364,6 +364,7 @@ dependencies = [
  "fixed_decimal",
  "float-cmp",
  "float16",
+ "futures-channel",
  "futures-lite 2.6.1",
  "getrandom 0.3.3",
  "hashbrown 0.16.0",

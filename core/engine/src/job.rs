@@ -660,12 +660,9 @@ impl JobExecutor for SimpleJobExecutor {
                 && self.async_jobs.borrow().is_empty()
                 && self.generic_jobs.borrow().is_empty()
                 && self.timeout_jobs.borrow().is_empty()
-                && !context.borrow().has_pending_context_jobs()
             {
                 break;
             }
-
-            context.borrow_mut().enqueue_resolved_context_jobs();
 
             // Block on each job running in the queue.
             let jobs = mem::take(&mut *self.async_jobs.borrow_mut());
