@@ -3,9 +3,10 @@ use crate::store::{JsValueStore, StringStore, ValueStoreInner, unsupported_type}
 use boa_engine::builtins::array_buffer::SharedArrayBuffer;
 use boa_engine::builtins::typed_array::TypedArrayKind;
 use boa_engine::object::builtins::{
-    JsArray, JsArrayBuffer, JsMap, JsSet, JsSharedArrayBuffer, js_typed_array_from_kind,
+    JsArray, JsArrayBuffer, JsDataView, JsDate, JsMap, JsRegExp, JsSet, JsSharedArrayBuffer,
+    js_typed_array_from_kind,
 };
-use boa_engine::{Context, JsBigInt, JsObject, JsResult, JsValue, js_error};
+use boa_engine::{Context, JsBigInt, JsObject, JsResult, JsString, JsValue, js_error};
 use std::collections::HashMap;
 
 #[derive(Default)]
@@ -136,6 +137,51 @@ fn try_into_js_set(
     Ok(JsValue::from(set))
 }
 
+fn try_into_js_date(
+    store: &JsValueStore,
+    ms_since_epoch: f64,
+    seen: &mut ReverseSeenMap,
+    context: &mut Context,
+) -> JsResult<JsValue> {
+    let date = JsDate::new(context);
+    date.set_time(ms_since_epoch, context)?;
+    seen.insert(store, date.clone().into());
+
+    Ok(JsValue::from(date))
+}
+
+fn try_into_regexp(
+    store: &JsValueStore,
+    source: &str,
+    flags: &str,
+    seen: &mut ReverseSeenMap,
+    context: &mut Context,
+) -> JsResult<JsValue> {
+    let re = JsRegExp::new(JsString::from(source), JsString::from(flags), context)?;
+    seen.insert(store, re.clone().into());
+    Ok(JsValue::from(re))
+}
+
+fn try_into_data_view(
+    store: &JsValueStore,
+    buffer: &JsValueStore,
+    byte_length: u64,
+    byte_offset: u64,
+    seen: &mut ReverseSeenMap,
+    context: &mut Context,
+) -> JsResult<JsValue> {
+    let buffer = try_value_into_js(buffer, seen, context)?;
+    let data_view = JsDataView::from_js_array_buffer(
+        JsArrayBuffer::from_object(buffer.as_object().ok_or_else(unsupported_type)?)?,
+        Some(byte_offset),
+        Some(byte_length),
+        context,
+    )?;
+
+    seen.insert(store, data_view.clone().into());
+    Ok(JsValue::from(data_view))
+}
+
 pub(super) fn try_value_into_js(
     store: &JsValueStore,
     seen: &mut ReverseSeenMap,
@@ -160,14 +206,20 @@ pub(super) fn try_value_into_js(
         ValueStoreInner::Map(key_values) => try_into_js_map(store, key_values, seen, context),
         ValueStoreInner::Set(values) => try_into_js_set(store, values, seen, context),
         ValueStoreInner::Array(items) => try_items_into_js_array(store, items, seen, context),
-        ValueStoreInner::Date(_) => Err(js_error!("Not yet implemented.")),
+        ValueStoreInner::Date(msec) => try_into_js_date(store, *msec, seen, context),
         ValueStoreInner::Error { .. } => Err(js_error!("Not yet implemented.")),
-        ValueStoreInner::RegExp(_) => Err(js_error!("Not yet implemented.")),
+        ValueStoreInner::RegExp { source, flags } => {
+            try_into_regexp(store, source, flags, seen, context)
+        }
         ValueStoreInner::ArrayBuffer(data) => try_into_js_array_buffer(store, data, seen, context),
         ValueStoreInner::SharedArrayBuffer(inner) => {
             Ok(try_into_js_shared_array_buffer(store, inner, seen, context))
         }
-        ValueStoreInner::DataView { .. } => Err(js_error!("Not yet implemented.")),
+        ValueStoreInner::DataView {
+            buffer,
+            byte_length,
+            byte_offset,
+        } => try_into_data_view(store, buffer, *byte_length, *byte_offset, seen, context),
         ValueStoreInner::TypedArray { kind, buffer } => {
             try_into_js_typed_array(store, *kind, buffer, seen, context)
         }

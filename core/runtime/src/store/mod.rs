@@ -93,8 +93,7 @@ enum ValueStoreInner {
 
     /// A `Date` object in JavaScript. Although this can be marshaled, it uses
     /// the system's datetime library to be reconstructed and may diverge.
-    #[expect(unused)]
-    Date(std::time::Instant),
+    Date(f64),
 
     /// Allowed error types (see the structured clone algorithm page).
     #[expect(unused)]
@@ -106,9 +105,10 @@ enum ValueStoreInner {
         cause: StringStore,
     },
 
-    /// Regular expression. We store the expression itself.
-    #[expect(unused)]
-    RegExp(StringStore),
+    /// Regular expression. We store the expression and its flags. Everything else
+    /// is reset. These are extracted as `String`, so we don't need to use the
+    /// [`StringStore`] type.
+    RegExp { source: String, flags: String },
 
     /// Array Buffer.
     ArrayBuffer(Vec<u8>),
@@ -120,8 +120,8 @@ enum ValueStoreInner {
     #[expect(unused)]
     DataView {
         buffer: JsValueStore,
-        byte_length: usize,
-        byte_offset: usize,
+        byte_length: u64,
+        byte_offset: u64,
     },
 
     /// Typed Array, including its kind and data.
