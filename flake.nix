@@ -36,6 +36,7 @@
             ];
             buildInputs = [
               openssl
+              vulkan-loader
             ];
             nativeBuildInputs = [
               rust-toolchain

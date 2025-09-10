@@ -22,6 +22,8 @@ reqwest = { workspace = true, optional = true }
 rustc-hash = { workspace = true, features = ["std"] }
 serde_json = { workspace = true, optional = true }
 url = { workspace = true, optional = true }
+webgpu = "0.0.1"
+wgpu = "26.0.1"
 
 [dev-dependencies]
 indoc.workspace = true

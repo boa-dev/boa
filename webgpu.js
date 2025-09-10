@@ -1,0 +1,12 @@
+const gpu = new GPU();
+console.log({ gpu });
+const adapter = gpu.requestAdapter();
+console.log({ adapter });
+const device = adapter.requestDevice();
+console.log({ device });
+const queue = device.queue;
+console.log({ queue });
+const buffer = device.createBuffer();
+console.log({ buffer });
+queue.writeBuffer(buffer);
+console.log("success");
