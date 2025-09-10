@@ -129,8 +129,15 @@ fn shared_array_buffer() {
                         const shared = message.shared;
                         const view = new DataView(shared);
                         while (true) {
-                            if (view.getUint32(0) == 1) {
-                                view.setUint32(0, 2);
+                            if (view.getUint8(0) == 1) {
+                                view.setUint8(0, 2);
+                                break;
+                            }
+                        }
+
+                        // Verify that it also comes back.
+                        while (true) {
+                            if (view.getUint8(0) == 3) {
                                 done = true;
                                 break;
                             }
@@ -171,18 +178,18 @@ fn shared_array_buffer() {
         run_test_actions_with(
             [TestAction::run(
                 r#"
-                    const shared = new SharedArrayBuffer(8);
+                    const shared = new SharedArrayBuffer(1);
                     const message = { shared };
                     postMessage(message);
 
                     // Set shared to 1.
                     const view = new DataView(shared);
-                    view.setUint32(0, 1);
+                    view.setUint8(0, 1);
 
                     // This would never work if the two contexts are in the same context.
                     while (true) {
-                        if (view.getUint32(0) == 2) {
-                            view.setUint32(1, 3);
+                        if (view.getUint8(0) == 2) {
+                            view.setUint8(0, 3);
                             break;
                         }
                     }
