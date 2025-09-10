@@ -704,3 +704,6 @@ fn validate_atomic_access(
         kind,
     })
 }
+
+#[cfg(test)]
+mod tests;
