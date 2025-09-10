@@ -12,7 +12,7 @@ use std::time::Duration;
 fn basic() {
     let context = &mut Context::default();
 
-    let sender = OnMessageQueueSender::create(context, 100);
+    let sender = OnMessageQueueSender::create(context, 1);
     message::register(sender, None, context).unwrap();
 
     run_test_actions_with(
@@ -71,11 +71,11 @@ fn shared_multi_thread() {
         );
 
         sender
-            .send(OnMessageQueueSender::create(context, 100))
+            .send(OnMessageQueueSender::create(context, 1))
             .unwrap();
 
         loop {
-            thread::sleep(Duration::from_millis(100));
+            thread::sleep(Duration::from_millis(10));
             context.run_jobs().unwrap();
 
             let global_object = context.global_object();
@@ -100,6 +100,92 @@ fn shared_multi_thread() {
                 r#"
                     const message = { "hello": "world" };
                     postMessage(message);
+                "#,
+            )],
+            context,
+        );
+    });
+
+    source_handle.join().unwrap();
+    destination_handle.join().unwrap();
+}
+
+#[test]
+fn shared_array_buffer() {
+    let (sender, receiver) = std::sync::mpsc::channel::<OnMessageQueueSender>();
+
+    let destination_handle = thread::spawn(move || {
+        let context = &mut Context::default();
+
+        // It's important to declare the `onMessageQueue` function before we might
+        // receive any messages, as those will be lost.
+        run_test_actions_with(
+            [
+                TestAction::harness(),
+                TestAction::run(
+                    r#"
+                    done = false;
+                    function onMessageQueue(message) {
+                        const shared = message.shared;
+                        const view = new DataView(shared);
+                        while (true) {
+                            if (view.getUint32(0) == 1) {
+                                view.setUint32(0, 2);
+                                done = true;
+                                break;
+                            }
+                        }
+                    }
+                "#,
+                ),
+            ],
+            context,
+        );
+
+        sender
+            .send(OnMessageQueueSender::create(context, 1))
+            .unwrap();
+
+        loop {
+            thread::sleep(Duration::from_millis(10));
+            context.run_jobs().unwrap();
+
+            let global_object = context.global_object();
+            if global_object
+                .get(js_string!("done"), context)
+                .unwrap()
+                .as_boolean()
+                == Some(true)
+            {
+                break;
+            }
+        }
+    });
+
+    let source_handle = thread::spawn(move || {
+        let context = &mut Context::default();
+
+        let message_sender = receiver.recv().unwrap();
+        message::register(message_sender, None, context).unwrap();
+
+        run_test_actions_with(
+            [TestAction::run(
+                r#"
+                    const shared = new SharedArrayBuffer(8);
+                    const message = { shared };
+                    postMessage(message);
+
+                    // Set shared to 1.
+                    const view = new DataView(shared);
+                    view.setUint32(0, 1);
+
+                    // This would never work if the two contexts are in the same context.
+                    while (true) {
+                        if (view.getUint32(0) == 2) {
+                            view.setUint32(1, 3);
+                            break;
+                        }
+                    }
                 "#,
             )],
             context,
