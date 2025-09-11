@@ -2,7 +2,7 @@
 //! supporting functions).
 //!
 //! More information:
-//! - [MDN documentation][https://developer.mozilla.org/en-US/docs/Web/API/Window/postMessage]
+//! - [MDN documentation][<https://developer.mozilla.org/en-US/docs/Web/API/Window/postMessage>]
 
 use crate::store::JsValueStore;
 use boa_engine::realm::Realm;
@@ -99,9 +99,9 @@ fn get_sender<T: MessageSender>(context: &mut Context) -> JsResult<Rc<T>> {
 pub mod js_module {
     use crate::message::{MessageSender, PostMessageOptions, get_sender};
     use crate::store::JsValueStore;
-    use boa_engine::JsResult;
-    use boa_engine::{Context, JsString, JsValue};
-    use either::Either;
+    use boa_engine::value::TryFromJs;
+    use boa_engine::{Context, JsValue};
+    use boa_engine::{JsResult, js_error};
 
     /// The `postMessage` function. See [the mdn documentation][mdn].
     ///
@@ -113,17 +113,24 @@ pub mod js_module {
     #[allow(clippy::needless_pass_by_value)]
     pub fn post_message<T: MessageSender>(
         message: JsValue,
-        target_origin_or_options: Option<Either<JsString, PostMessageOptions>>,
+        target_origin_or_options: Option<JsValue>,
         transfer: Option<Vec<JsValue>>,
         context: &mut Context,
     ) -> JsResult<()> {
         // Build the options based on arguments.
-        let (target_origin, transfer) = match target_origin_or_options {
-            None => (None, None),
-            Some(Either::Left(target_origin)) => (Some(target_origin), transfer),
-            Some(Either::Right(options)) => {
+        let (target_origin, transfer) = if let Some(target_origin_or_options) =
+            target_origin_or_options
+        {
+            if let Ok(options) = PostMessageOptions::try_from_js(&target_origin_or_options, context)
+            {
                 (options.target_origin.clone(), options.transfer.clone())
+            } else if let Some(target_origin) = target_origin_or_options.as_string() {
+                (Some(target_origin), transfer)
+            } else {
+                return Err(js_error!(TypeError: "targetOrigin must be a string or option object"));
             }
+        } else {
+            (None, None)
         };
 
         let message = JsValueStore::try_from_js(&message, context, transfer.unwrap_or_default())?;
