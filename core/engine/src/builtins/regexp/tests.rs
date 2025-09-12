@@ -225,3 +225,20 @@ fn regular_expression_construction_independant_of_global_reg_exp() {
         TestAction::run(regex),
     ]);
 }
+
+#[test]
+fn regexp_many_captures_should_return_typeerror() {
+    run_test_actions([TestAction::assert_native_error(
+        indoc! {r#"
+            let num_captures = 1000;
+            let regexp_string = "(a)";
+            for (let i = 0; i < num_captures - 1; i++) {
+                regexp_string += "|()";
+            }
+            let regexp = new RegExp(regexp_string);
+            regexp.exec("a");
+        "#},
+        JsNativeErrorKind::Type,
+        "Too many capture groups in RegExp",
+    )]);
+}

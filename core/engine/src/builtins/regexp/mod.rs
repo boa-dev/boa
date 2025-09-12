@@ -1026,7 +1026,12 @@ impl RegExp {
         let n = match_value.captures.len() as u64;
         // 18. Assert: n = R.[[RegExpRecord]].[[CapturingGroupsCount]].
         // 19. Assert: n < 232 - 1.
-        debug_assert!(n < 23u64.pow(2) - 1);
+        if n >= 23u64.pow(2) - 1 {
+            return Err(JsNativeError::typ()
+                .with_message("Too many capture groups in RegExp")
+                .into());
+        }
+
 
         // 20. Let A be ! ArrayCreate(n + 1).
         // 21. Assert: The mathematical value of A's "length" property is n + 1.
