@@ -12,8 +12,9 @@ use syn::punctuated::Punctuated;
 use syn::spanned::Spanned;
 use syn::visit_mut::VisitMut;
 use syn::{
-    Attribute, ConstParam, Expr, FnArg, GenericParam, Ident, ImplItemFn, ItemImpl, LifetimeParam,
-    Lit, Meta, MetaNameValue, PatType, Receiver, ReturnType, Signature, Token, Type, TypeParam,
+    Attribute, ConstParam, Expr, ExprLit, ExprPath, FnArg, GenericParam, Ident, ImplItemFn,
+    ItemImpl, LifetimeParam, Lit, Meta, MetaNameValue, PatType, Receiver, ReturnType, Signature,
+    Token, Type, TypeParam,
 };
 
 /// A function representation. Takes a function from the AST and remember its name, length and
@@ -508,8 +509,30 @@ impl ClassVisitor {
     }
 
     /// Serialize the `boa_engine::Class` implementation into a token stream.
-    fn serialize_class_impl(&self, class_ty: &Type, class_name: &str) -> TokenStream2 {
+    fn serialize_class_impl(
+        &self,
+        class_ty: &Type,
+        class_name: &str,
+        extends: Option<&Extends>,
+    ) -> TokenStream2 {
         let arg_count = self.constructor.as_ref().map_or(0, |c| c.length);
+
+        let extends = extends.map(|e| match e {
+            Extends::JsValue(js) => quote! {
+                {
+                    let proto = builder.context().eval(
+                        Source::from_bytes( #js ),
+                    ).map_err(|_| boa_engine::js_error!(TypeError: "invalid extends prototype"))?;
+                    builder.inherit(
+                        proto.as_object()
+                            .ok_or_else(|| boa_engine::js_error!(TypeError: "invalid extends prototype"))?
+                    );
+                }
+            },
+            Extends::RustPath(_) => {
+                todo!()
+            }
+        });
 
         let accessors = self.accessors.values().map(Accessor::body);
 
@@ -548,7 +571,7 @@ impl ClassVisitor {
         let constructor_body = self.constructor.as_ref().map_or_else(
             || {
                 quote! {
-                    Ok(Default::default())
+                    Err(boa_engine::JsNativeError::typ().with_message("illegal constructor").into())
                 }
             },
             |c| c.body.clone(),
@@ -568,6 +591,9 @@ impl ClassVisitor {
                 }
 
                 fn init(builder: &mut boa_engine::class::ClassBuilder) -> boa_engine::JsResult<()> {
+                    // Add prototype.
+                    #extends
+
                     // Add all statics.
                     #(#builder_statics)*
 
@@ -622,14 +648,22 @@ impl VisitMut for ClassVisitor {
 }
 
 #[derive(Debug)]
+enum Extends {
+    JsValue(String),
+    RustPath(ExprPath),
+}
+
+#[derive(Debug)]
 struct ClassArguments {
     name: Option<String>,
+    extends: Option<Extends>,
 }
 
 impl Parse for ClassArguments {
     fn parse(input: ParseStream<'_>) -> syn::Result<Self> {
         let args: Punctuated<Meta, Token![,]> = Punctuated::parse_terminated(input)?;
         let mut name = None;
+        let mut extends = None;
 
         for arg in &args {
             match arg {
@@ -643,11 +677,23 @@ impl Parse for ClassArguments {
                         _ => Err(syn::Error::new(lit.span(), "Expected a string literal")),
                     }?);
                 }
+                Meta::NameValue(MetaNameValue { path, value, .. }) if path.is_ident("extends") => {
+                    extends = Some(match value {
+                        Expr::Lit(ExprLit {
+                            lit: Lit::Str(s), ..
+                        }) => Ok(Extends::JsValue(s.value())),
+                        Expr::Path(path) => Ok(Extends::RustPath(path.clone())),
+                        _ => Err(syn::Error::new(
+                            value.span(),
+                            "Expected a string literal or type identifier",
+                        )),
+                    }?);
+                }
                 _ => return Err(syn::Error::new(arg.span(), "Unrecognize argument.")),
             }
         }
 
-        Ok(Self { name })
+        Ok(Self { name, extends })
     }
 }
 
@@ -688,7 +734,8 @@ pub(crate) fn class_impl(attr: TokenStream, input: TokenStream) -> TokenStream {
             .into();
     };
 
-    let class_impl = visitor.serialize_class_impl(&impl_.self_ty, &name.to_string());
+    let class_impl =
+        visitor.serialize_class_impl(&impl_.self_ty, &name.to_string(), args.extends.as_ref());
 
     let debug = take_path_attr(&mut impl_.attrs, "debug");
 

@@ -111,6 +111,7 @@ use crate::{
     object::{ConstructorBuilder, FunctionBinding, JsFunction, JsObject, NativeObject, PROTOTYPE},
     property::{Attribute, PropertyDescriptor, PropertyKey},
 };
+use boa_engine::object::JsPrototype;
 
 /// Native class.
 ///
@@ -262,6 +263,15 @@ impl<'ctx> ClassBuilder<'ctx> {
     #[must_use]
     pub fn build(self) -> StandardConstructor {
         self.builder.build()
+    }
+
+    /// Set the prototype of the class's constructor, making it a subclass.
+    pub fn inherit<T>(&mut self, value: T) -> &mut Self
+    where
+        T: Into<JsPrototype>,
+    {
+        self.builder.inherit(value);
+        self
     }
 
     /// Add a method to the class.
