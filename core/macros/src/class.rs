@@ -520,13 +520,16 @@ impl ClassVisitor {
         let extends = extends.map(|e| match e {
             Extends::JsValue(js) => quote! {
                 {
-                    let proto = builder.context().eval(
-                        Source::from_bytes( #js ),
-                    ).map_err(|_| boa_engine::js_error!(TypeError: "invalid extends prototype"))?;
-                    builder.inherit(
-                        proto.as_object()
-                            .ok_or_else(|| boa_engine::js_error!(TypeError: "invalid extends prototype"))?
-                    );
+                    let proto = builder
+                        .context()
+                        .eval(Source::from_bytes( #js ))
+                        .ok()
+                        .and_then(|p| p.as_object())
+                        .ok_or_else(|| boa_engine::js_error!(TypeError: "invalid extends prototype"))?
+                        .prototype()
+                        .unwrap();
+                    eprintln!("proto: {}", boa_engine::JsValue::from(proto.clone()).display_obj(false));
+                    builder.inherit(proto);
                 }
             },
             Extends::RustPath(_) => {

@@ -195,6 +195,19 @@ pub trait Class: NativeObject + Sized {
                 .prototype()
         };
 
+        eprintln!("proto2: {:?}", prototype);
+        eprintln!(
+            "proto2__: {}",
+            JsValue::from(prototype.clone()).display_obj(false)
+        );
+
+        let proto_of_proto = prototype.__get_prototype_of__(context).unwrap().unwrap();
+        eprintln!("p_o_p: {:?}", proto_of_proto);
+        eprintln!(
+            "p_o_p: {}",
+            JsValue::from(proto_of_proto.clone()).display_obj(false)
+        );
+
         let data = Self::data_constructor(new_target, args, context)?;
 
         let object =
