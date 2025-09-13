@@ -1026,8 +1026,7 @@ impl RegExp {
         let n = match_value.captures.len() as u64;
         // 18. Assert: n = R.[[RegExpRecord]].[[CapturingGroupsCount]].
         // 19. Assert: n < 232 - 1.
-        const MAX_CAPTURE_GROUPS: u64 = (1u64 << 32) - 1;
-        debug_assert!(n < MAX_CAPTURE_GROUPS);
+        debug_assert!(n < (1u64 << 32) - 1);
 
 
         // 20. Let A be ! ArrayCreate(n + 1).
