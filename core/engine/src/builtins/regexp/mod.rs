@@ -1028,7 +1028,6 @@ impl RegExp {
         // 19. Assert: n < 232 - 1.
         debug_assert!(n < (1u64 << 32) - 1);
 
-
         // 20. Let A be ! ArrayCreate(n + 1).
         // 21. Assert: The mathematical value of A's "length" property is n + 1.
         let a = Array::array_create(n + 1, None, context)?;
