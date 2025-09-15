@@ -458,22 +458,16 @@ fn main() -> Result<()> {
     loop {
         match receiver.try_recv() {
             Ok(line) => {
-                if let Err(err) = context.run_jobs() {
-                    printer.print(uncaught_job_error(&err));
-                }
-
                 evaluate_expr(&line, &args, &mut context, &printer)?;
             }
-            Err(TryRecvError::Empty) => {
-                thread::sleep(Duration::from_millis(10));
-                if let Err(err) = context.run_jobs() {
-                    printer.print(uncaught_job_error(&err));
-                }
-            }
-            Err(_err) => {
-                break;
-            }
+            Err(TryRecvError::Empty) => {}
+            Err(TryRecvError::Disconnected) => break,
         }
+
+        if let Err(err) = context.run_jobs() {
+            printer.print(uncaught_job_error(&err));
+        }
+        thread::sleep(Duration::from_millis(10));
     }
 
     handle.join().expect("failed to join thread");
