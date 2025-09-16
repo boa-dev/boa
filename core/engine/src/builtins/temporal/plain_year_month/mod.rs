@@ -23,7 +23,7 @@ use icu_calendar::AnyCalendarKind;
 use temporal_rs::{
     Calendar, Duration, MonthCode, PlainYearMonth as InnerYearMonth, TinyAsciiStr,
     fields::{CalendarFields, YearMonthCalendarFields},
-    options::{ArithmeticOverflow, DisplayCalendar},
+    options::{Overflow, DisplayCalendar},
     partial::PartialYearMonth,
 };
 
@@ -249,7 +249,7 @@ impl BuiltInConstructor for PlainYearMonth {
 
         // 7. Return ? CreateTemporalYearMonth(y, m, calendar, ref, NewTarget).
         let inner =
-            InnerYearMonth::new_with_overflow(y, m, ref_day, calendar, ArithmeticOverflow::Reject)?;
+            InnerYearMonth::new_with_overflow(y, m, ref_day, calendar, Overflow::Reject)?;
 
         create_temporal_year_month(inner, Some(new_target), context)
     }
@@ -307,8 +307,8 @@ impl PlainYearMonth {
             })?;
         let inner = &year_month.inner;
         match field {
-            DateTimeValues::Year => Ok(inner.iso_year().into()),
-            DateTimeValues::Month => Ok(inner.iso_month().into()),
+            DateTimeValues::Year => Ok(inner.year().into()),
+            DateTimeValues::Month => Ok(inner.month().into()),
             DateTimeValues::MonthCode => {
                 Ok(JsString::from(InnerYearMonth::month_code(inner).as_str()).into())
             }
@@ -570,7 +570,7 @@ impl PlainYearMonth {
         let resolved_options = get_options_object(args.get_or_undefined(1))?;
         // 9. Let overflow be ? GetTemporalOverflowOption(resolvedOptions).
         let overflow =
-            get_option::<ArithmeticOverflow>(&resolved_options, js_string!("overflow"), context)?
+            get_option::<Overflow>(&resolved_options, js_string!("overflow"), context)?
                 .unwrap_or_default();
         // 10. Let isoDate be ? CalendarYearMonthFromFields(calendar, fields, overflow).
         let result = year_month.inner.with(fields, Some(overflow))?;
@@ -874,12 +874,12 @@ fn to_temporal_year_month(
             // i. Let resolvedOptions be ? GetOptionsObject(options).
             let resolved_options = get_options_object(&options)?;
             // ii. Perform ? GetTemporalOverflowOption(resolvedOptions).
-            let _overflow = get_option::<ArithmeticOverflow>(
+            let _overflow = get_option::<Overflow>(
                 &resolved_options,
                 js_string!("overflow"),
                 context,
             )?
-            .unwrap_or(ArithmeticOverflow::Constrain);
+            .unwrap_or(Overflow::Constrain);
             // iii. Return ! CreateTemporalYearMonth(item.[[ISODate]], item.[[Calendar]]).
             return Ok(ym.inner.clone());
         }
@@ -890,7 +890,7 @@ fn to_temporal_year_month(
         let resolved_options = get_options_object(&options)?;
         // e. Let overflow be ? GetTemporalOverflowOption(resolvedOptions).
         let overflow =
-            get_option::<ArithmeticOverflow>(&resolved_options, js_string!("overflow"), context)?;
+            get_option::<Overflow>(&resolved_options, js_string!("overflow"), context)?;
         // f. Let isoDate be ? CalendarYearMonthFromFields(calendar, fields, overflow).
         // g. Return ! CreateTemporalYearMonth(isoDate, calendar).
         return Ok(InnerYearMonth::from_partial(partial, overflow)?);
@@ -912,8 +912,8 @@ fn to_temporal_year_month(
     let resolved_options = get_options_object(&options)?;
     // 9. Perform ? GetTemporalOverflowOption(resolvedOptions).
     let _overflow =
-        get_option::<ArithmeticOverflow>(&resolved_options, js_string!("overflow"), context)?
-            .unwrap_or(ArithmeticOverflow::Constrain);
+        get_option::<Overflow>(&resolved_options, js_string!("overflow"), context)?
+            .unwrap_or(Overflow::Constrain);
 
     // 10. Let isoDate be CreateISODateRecord(result.[[Year]], result.[[Month]], result.[[Day]]).
     // 11. If ISOYearMonthWithinLimits(isoDate) is false, throw a RangeError exception.
@@ -983,7 +983,7 @@ fn add_or_subtract_duration(
     };
 
     let overflow = get_option(options, js_string!("overflow"), context)?
-        .unwrap_or(ArithmeticOverflow::Constrain);
+        .unwrap_or(Overflow::Constrain);
 
     let object = this.as_object();
     let year_month = object

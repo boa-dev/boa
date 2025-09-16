@@ -647,7 +647,7 @@ impl Instant {
         };
 
         let ixdtf = instant.inner.to_ixdtf_string_with_provider(
-            timezone.as_ref(),
+            timezone,
             options,
             context.tz_provider(),
         )?;

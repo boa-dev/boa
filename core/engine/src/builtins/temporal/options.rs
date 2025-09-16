@@ -15,8 +15,8 @@ use crate::{
 };
 use temporal_rs::{
     options::{
-        ArithmeticOverflow, DifferenceSettings, Disambiguation, DisplayCalendar, DisplayOffset,
-        DisplayTimeZone, DurationOverflow, OffsetDisambiguation, RoundingIncrement, RoundingMode,
+        Overflow, DifferenceSettings, Disambiguation, DisplayCalendar, DisplayOffset,
+        DisplayTimeZone, OffsetDisambiguation, RoundingIncrement, RoundingMode,
         Unit,
     },
     parsers::Precision,
@@ -147,8 +147,7 @@ fn datetime_units() -> impl Iterator<Item = Unit> {
 }
 
 impl ParsableOptionType for Unit {}
-impl ParsableOptionType for ArithmeticOverflow {}
-impl ParsableOptionType for DurationOverflow {}
+impl ParsableOptionType for Overflow {}
 impl ParsableOptionType for Disambiguation {}
 impl ParsableOptionType for OffsetDisambiguation {}
 impl ParsableOptionType for RoundingMode {}

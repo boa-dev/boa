@@ -28,7 +28,7 @@ use temporal_rs::{
     Calendar, MonthCode, PlainDateTime as InnerDateTime, TinyAsciiStr,
     fields::{CalendarFields, DateTimeFields},
     options::{
-        ArithmeticOverflow, Disambiguation, DisplayCalendar, RoundingIncrement, RoundingMode,
+        Overflow, Disambiguation, DisplayCalendar, RoundingIncrement, RoundingMode,
         RoundingOptions, ToStringRoundingOptions, Unit,
     },
     partial::{PartialDateTime, PartialTime},
@@ -1026,7 +1026,7 @@ impl PlainDateTime {
         let dt = if let Some(pdt) = object.as_ref().and_then(JsObject::downcast_ref::<Self>) {
             // a. Perform ? GetTemporalOverflowOption(options).
             let options = get_options_object(args.get_or_undefined(1))?;
-            let _ = get_option::<ArithmeticOverflow>(&options, js_string!("overflow"), context)?;
+            let _ = get_option::<Overflow>(&options, js_string!("overflow"), context)?;
             // b. Return ! CreateTemporalDateTime(item.[[ISOYear]], item.[[ISOMonth]],
             // item.[[ISODay]], item.[[ISOHour]], item.[[ISOMinute]], item.[[ISOSecond]],
             // item.[[ISOMillisecond]], item.[[ISOMicrosecond]], item.[[ISONanosecond]],
@@ -1113,7 +1113,7 @@ impl PlainDateTime {
         // 14. Let resolvedOptions be ? GetOptionsObject(options).
         let options = get_options_object(args.get_or_undefined(1))?;
         // 15. Let overflow be ? GetTemporalOverflowOption(resolvedOptions).
-        let overflow = get_option::<ArithmeticOverflow>(&options, js_string!("overflow"), context)?;
+        let overflow = get_option::<Overflow>(&options, js_string!("overflow"), context)?;
 
         // 16. Let result be ? InterpretTemporalDateTimeFields(calendar, fields, overflow).
         // 17. Return ? CreateTemporalDateTime(result, calendar).
@@ -1174,7 +1174,7 @@ impl PlainDateTime {
 
         let calendar = to_temporal_calendar_identifier(args.get_or_undefined(0))?;
 
-        create_temporal_datetime(dt.inner.with_calendar(calendar)?, None, context).map(Into::into)
+        create_temporal_datetime(dt.inner.with_calendar(calendar), None, context).map(Into::into)
     }
 
     /// 5.3.28 `Temporal.PlainDateTime.prototype.add ( temporalDurationLike [ , options ] )`
@@ -1204,7 +1204,7 @@ impl PlainDateTime {
 
         // 4. Set options to ? GetOptionsObject(options).
         let options = get_options_object(args.get_or_undefined(1))?;
-        let overflow = get_option::<ArithmeticOverflow>(&options, js_string!("overflow"), context)?;
+        let overflow = get_option::<Overflow>(&options, js_string!("overflow"), context)?;
 
         // 5. Let calendarRec be ? CreateCalendarMethodsRecord(temporalDate.[[Calendar]], « date-add »).
         // 6. Return ? AddDate(calendarRec, temporalDate, duration, options).
@@ -1238,7 +1238,7 @@ impl PlainDateTime {
 
         // 4. Set options to ? GetOptionsObject(options).
         let options = get_options_object(args.get_or_undefined(1))?;
-        let overflow = get_option::<ArithmeticOverflow>(&options, js_string!("overflow"), context)?;
+        let overflow = get_option::<Overflow>(&options, js_string!("overflow"), context)?;
 
         // 5. Let negatedDuration be CreateNegatedTemporalDuration(duration).
         // 6. Let calendarRec be ? CreateCalendarMethodsRecord(temporalDate.[[Calendar]], « date-add »).
@@ -1551,7 +1551,7 @@ impl PlainDateTime {
         // 7. Return ! CreateTemporalZonedDateTime(epochNs, timeZone, dateTime.[[Calendar]]).
 
         let result = dt.inner.to_zoned_date_time_with_provider(
-            &timezone,
+            timezone,
             disambiguation,
             context.tz_provider(),
         )?;
@@ -1578,7 +1578,7 @@ impl PlainDateTime {
                 JsNativeError::typ().with_message("the this object must be a PlainDateTime object.")
             })?;
 
-        let result = dt.inner.to_plain_date()?;
+        let result = dt.inner.to_plain_date();
         create_temporal_date(result, None, context).map(Into::into)
     }
 
@@ -1602,7 +1602,7 @@ impl PlainDateTime {
                 JsNativeError::typ().with_message("the this object must be a PlainDateTime object.")
             })?;
 
-        let result = dt.inner.to_plain_time()?;
+        let result = dt.inner.to_plain_time();
         create_temporal_time(result, None, context).map(Into::into)
     }
 }
@@ -1673,29 +1673,18 @@ pub(crate) fn to_temporal_datetime(
         } else if let Some(zdt) = object.downcast_ref::<ZonedDateTime>() {
             // i. Perform ? GetTemporalOverflowOption(resolvedOptions).
             let options = get_options_object(&options.unwrap_or_default())?;
-            let _ = get_option::<ArithmeticOverflow>(&options, js_string!("overflow"), context)?;
+            let _ = get_option::<Overflow>(&options, js_string!("overflow"), context)?;
             // ii. Let instant be ! CreateTemporalInstant(item.[[Nanoseconds]]).
             // iii. Let timeZoneRec be ? CreateTimeZoneMethodsRecord(item.[[TimeZone]], « get-offset-nanoseconds-for »).
             // iv. Return ? GetPlainDateTimeFor(timeZoneRec, instant, item.[[Calendar]]).
-            return zdt.inner.to_plain_datetime().map_err(Into::into);
+            return Ok(zdt.inner.to_plain_date_time());
         // c. If item has an [[InitializedTemporalDate]] internal slot, then
         } else if let Some(date) = object.downcast_ref::<PlainDate>() {
             // i. Perform ? GetTemporalOverflowOption(resolvedOptions).
             let options = get_options_object(&options.unwrap_or_default())?;
-            let _ = get_option::<ArithmeticOverflow>(&options, js_string!("overflow"), context)?;
+            let _ = get_option::<Overflow>(&options, js_string!("overflow"), context)?;
             // ii. Return ? CreateTemporalDateTime(item.[[ISOYear]], item.[[ISOMonth]], item.[[ISODay]], 0, 0, 0, 0, 0, 0, item.[[Calendar]]).
-            return Ok(InnerDateTime::new(
-                date.inner.iso_year(),
-                date.inner.iso_month(),
-                date.inner.iso_day(),
-                0,
-                0,
-                0,
-                0,
-                0,
-                0,
-                date.inner.calendar().clone(),
-            )?);
+            return Ok(date.inner.to_plain_date_time(None)?)
         }
 
         // d. Let calendar be ? GetTemporalCalendarSlotValueWithISODefault(item).
@@ -1708,7 +1697,7 @@ pub(crate) fn to_temporal_datetime(
         let resolved_options = get_options_object(&options.unwrap_or_default())?;
         // g. Let result be ? InterpretTemporalDateTimeFields(calendarRec, fields, resolvedOptions).
         let overflow =
-            get_option::<ArithmeticOverflow>(&resolved_options, js_string!("overflow"), context)?;
+            get_option::<Overflow>(&resolved_options, js_string!("overflow"), context)?;
         return InnerDateTime::from_partial(partial_dt, overflow).map_err(Into::into);
     }
     // 4. Else,
@@ -1729,7 +1718,7 @@ pub(crate) fn to_temporal_datetime(
     let date = string.to_std_string_escaped().parse::<InnerDateTime>()?;
     // i. Perform ? GetTemporalOverflowOption(resolvedOptions).
     let resolved_options = get_options_object(&options.unwrap_or_default())?;
-    let _ = get_option::<ArithmeticOverflow>(&resolved_options, js_string!("overflow"), context)?;
+    let _ = get_option::<Overflow>(&resolved_options, js_string!("overflow"), context)?;
     // 5. Return ? CreateTemporalDateTime(result.[[Year]], result.[[Month]], result.[[Day]],
     // result.[[Hour]], result.[[Minute]], result.[[Second]], result.[[Millisecond]],
     // result.[[Microsecond]], result.[[Nanosecond]], calendar).
