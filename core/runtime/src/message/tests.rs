@@ -12,7 +12,7 @@ use std::time::Duration;
 fn basic() {
     let context = &mut Context::default();
 
-    let sender = OnMessageQueueSender::create(context, 1);
+    let sender = OnMessageQueueSender::create(context);
     message::register(sender, None, context).unwrap();
 
     run_test_actions_with(
@@ -31,7 +31,9 @@ fn basic() {
             "#,
             ),
             TestAction::inspect_context(move |context| {
+                // futures_lite::future::poll_once(context.)
                 context.run_jobs().unwrap();
+                eprintln!("...");
             }),
             TestAction::run(
                 r#"
@@ -70,9 +72,7 @@ fn shared_multi_thread() {
             context,
         );
 
-        sender
-            .send(OnMessageQueueSender::create(context, 1))
-            .unwrap();
+        sender.send(OnMessageQueueSender::create(context)).unwrap();
 
         loop {
             thread::sleep(Duration::from_millis(10));
@@ -149,9 +149,7 @@ fn shared_array_buffer() {
             context,
         );
 
-        sender
-            .send(OnMessageQueueSender::create(context, 1))
-            .unwrap();
+        sender.send(OnMessageQueueSender::create(context)).unwrap();
 
         loop {
             thread::sleep(Duration::from_millis(10));

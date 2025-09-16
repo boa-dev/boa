@@ -15,7 +15,8 @@ boa_engine.workspace = true
 boa_gc.workspace = true
 bytemuck.workspace = true
 either = { workspace = true, optional = true }
-futures-lite = { workspace = true, optional = true }
+futures = "0.3.31"
+futures-lite.workspace = true
 http = { workspace = true, optional = true }
 reqwest = { workspace = true, optional = true }
 rustc-hash = { workspace = true, features = ["std"] }
@@ -27,7 +28,6 @@ indoc.workspace = true
 rstest.workspace = true
 test-case.workspace = true
 textwrap.workspace = true
-futures-lite.workspace = true
 
 [lints]
 workspace = true
@@ -42,7 +42,6 @@ all = ["default", "reqwest-blocking"]
 url = ["dep:url"]
 fetch = [
     "dep:either",
-    "dep:futures-lite",
     "dep:http",
     "dep:serde_json",
     "boa_engine/either",
