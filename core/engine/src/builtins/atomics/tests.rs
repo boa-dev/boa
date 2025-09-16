@@ -19,9 +19,10 @@ fn waiterlist_block_indexedposition_wake() {
     let i32a = JsInt32Array::from_shared_array_buffer(buffer.clone(), context).unwrap();
 
     std::thread::scope(|s| {
-        let _threads = [0, 2].map(|idx| {
+        let mut threads = Vec::new();
+        for idx in [2, 0] {
             let buffer = inner_buffer.clone();
-            s.spawn(move || {
+            let handle = s.spawn(move || {
                 let context = &mut Context::builder().can_block(true).build().unwrap();
                 let buffer = JsSharedArrayBuffer::from_buffer(buffer, context);
                 let i32a = JsInt32Array::from_shared_array_buffer(buffer, context).unwrap();
@@ -62,8 +63,9 @@ fn waiterlist_block_indexedposition_wake() {
                         .to_std_string_lossy(),
                     "ok"
                 );
-            })
-        });
+            });
+            threads.push(handle);
+        }
 
         while Atomics::load(
             &JsValue::undefined(),
