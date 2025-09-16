@@ -180,7 +180,7 @@ futures-concurrency.workspace = true
 
 # temporal deps
 temporal_rs = { workspace = true, optional = true }
-iana-time-zone = { version = "0.1.63", optional = true }
+iana-time-zone = { version = "0.1.64", optional = true }
 
 [target.'cfg(all(target_family = "wasm", not(any(target_os = "emscripten", target_os = "wasi"))))'.dependencies]
 web-time = { workspace = true, optional = true }
