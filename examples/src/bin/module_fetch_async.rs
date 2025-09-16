@@ -181,15 +181,10 @@ impl JobExecutor for Queue {
                 group.insert(job.call(context));
             }
 
-            if group.is_empty()
-                && self.promise_jobs.borrow().is_empty()
-                && !context.borrow().has_pending_context_jobs()
-            {
+            if group.is_empty() && self.promise_jobs.borrow().is_empty() {
                 // Both queues are empty. We can exit.
                 return Ok(());
             }
-
-            context.borrow_mut().enqueue_resolved_context_jobs();
 
             // We have some jobs pending on the microtask queue. Try to poll the pending
             // tasks once to see if any of them finished, and run the pending microtasks

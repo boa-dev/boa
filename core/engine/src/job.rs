@@ -38,6 +38,8 @@ use crate::{
     realm::Realm,
 };
 use boa_gc::{Finalize, Trace};
+use futures_concurrency::future::FutureGroup;
+use futures_lite::{StreamExt, future};
 use std::any::Any;
 use std::cell::Cell;
 use std::collections::BTreeMap;
@@ -648,32 +650,31 @@ impl JobExecutor for SimpleJobExecutor {
     }
 
     fn run_jobs(self: Rc<Self>, context: &mut Context) -> JsResult<()> {
-        futures_lite::future::block_on(self.run_jobs_async(&RefCell::new(context)))
+        future::block_on(self.run_jobs_async(&RefCell::new(context)))
     }
 
     async fn run_jobs_async(self: Rc<Self>, context: &RefCell<&mut Context>) -> JsResult<()>
     where
         Self: Sized,
     {
+        let mut group = FutureGroup::new();
         loop {
+            for job in mem::take(&mut *self.async_jobs.borrow_mut()) {
+                group.insert(job.call(context));
+            }
+
             if self.promise_jobs.borrow().is_empty()
                 && self.async_jobs.borrow().is_empty()
                 && self.generic_jobs.borrow().is_empty()
                 && self.timeout_jobs.borrow().is_empty()
-                && !context.borrow().has_pending_context_jobs()
+                && group.is_empty()
             {
                 break;
             }
 
-            context.borrow_mut().enqueue_resolved_context_jobs();
-
-            // Block on each job running in the queue.
-            let jobs = mem::take(&mut *self.async_jobs.borrow_mut());
-            for job in jobs {
-                if let Err(err) = job.call(context).await {
-                    self.clear();
-                    return Err(err);
-                }
+            if let Some(Err(err)) = future::poll_once(group.next()).await.flatten() {
+                self.clear();
+                return Err(err);
             }
 
             {
@@ -708,7 +709,7 @@ impl JobExecutor for SimpleJobExecutor {
                 }
             }
             context.borrow_mut().clear_kept_objects();
-            futures_lite::future::yield_now().await;
+            future::yield_now().await;
         }
 
         Ok(())

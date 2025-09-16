@@ -11,7 +11,6 @@
 //! [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Atomics
 
 mod futex;
-pub(crate) use futex::AsyncPendingWaiters;
 
 use std::sync::atomic::Ordering;
 
@@ -563,7 +562,7 @@ impl Atomics {
             return Ok(0.into());
         };
 
-        let count = futex::notify(&shared, access.byte_offset, count, context)?;
+        let count = futex::notify(&shared, access.byte_offset, count)?;
 
         // 12. Let n be the number of elements in S.
         // 13. Return 𝔽(n).
@@ -705,3 +704,6 @@ fn validate_atomic_access(
         kind,
     })
 }
+
+#[cfg(test)]
+mod tests;

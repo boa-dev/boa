@@ -137,7 +137,7 @@ url = "2.5.7"
 tokio = { version = "1.47.1", default-features = false }
 futures-concurrency = "7.6.3"
 dynify = "0.1.2"
-
+futures-channel = "0.3.31"
 
 # ICU4X
 
