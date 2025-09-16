@@ -3,7 +3,10 @@
 use crate::message;
 use crate::message::senders::OnMessageQueueSender;
 use crate::test::{TestAction, run_test_actions_with};
+use boa_engine::job::{JobExecutor, SimpleJobExecutor};
 use boa_engine::{Context, js_string};
+use futures_lite::future;
+use std::cell::RefCell;
 use std::thread;
 use std::time::Duration;
 
@@ -31,9 +34,12 @@ fn basic() {
             "#,
             ),
             TestAction::inspect_context(move |context| {
-                // futures_lite::future::poll_once(context.)
-                context.run_jobs().unwrap();
-                eprintln!("...");
+                drop(future::block_on(future::poll_once(
+                    context
+                        .downcast_job_executor::<SimpleJobExecutor>()
+                        .expect("")
+                        .run_jobs_async(&RefCell::new(context)),
+                )));
             }),
             TestAction::run(
                 r#"
