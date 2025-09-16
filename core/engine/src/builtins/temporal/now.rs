@@ -1,7 +1,7 @@
 //! Boa's implementation of `Temporal.Now` ECMAScript global namespace object.
 
 use crate::{
-    Context, JsArgs, JsNativeError, JsObject, JsResult, JsString, JsSymbol, JsValue,
+    Context, JsArgs, JsObject, JsResult, JsString, JsSymbol, JsValue,
     builtins::{BuiltInBuilder, BuiltInObject, IntrinsicObject},
     context::intrinsics::Intrinsics,
     js_string,
@@ -10,8 +10,10 @@ use crate::{
     string::StaticJsStrings,
 };
 use temporal_rs::{
-    Instant, TimeZone,
-    now::{Now as NowInner, NowBuilder},
+    TemporalError, TemporalResult, TimeZone,
+    host::{HostClock, HostHooks, HostTimeZone},
+    now::Now as InnerNow,
+    provider::TimeZoneProvider,
     unix_time::EpochNanoseconds,
 };
 
@@ -75,10 +77,12 @@ impl Now {
     ///
     /// [spec]: https://tc39.es/proposal-temporal/#sec-temporal.now.timezone
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Temporal/Now/timeZoneId
-    fn time_zone_id(_: &JsValue, _: &[JsValue], _: &mut Context) -> JsResult<JsValue> {
+    fn time_zone_id(_: &JsValue, _: &[JsValue], context: &mut Context) -> JsResult<JsValue> {
         // TODO: this should be optimized once system time zone is in context
         // 1. Return ! SystemTimeZone().
-        Ok(JsString::from(system_time_zone_id()?).into())
+        let context: &Context = context;
+        let time_zone = context.get_system_time_zone(context.tz_provider())?;
+        Ok(JsString::from(time_zone.identifier_with_provider(context.tz_provider())?).into())
     }
 
     /// 2.2.2 `Temporal.Now.instant()`
@@ -92,8 +96,9 @@ impl Now {
     /// [spec]: https://tc39.es/proposal-temporal/#sec-temporal.now.instant
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Temporal/Now/instant
     fn instant(_: &JsValue, _: &[JsValue], context: &mut Context) -> JsResult<JsValue> {
-        let epoch_nanos = system_nanoseconds(context);
-        create_temporal_instant(Instant::from(epoch_nanos), None, context)
+        let now: InnerNow<&Context> = InnerNow::new(context);
+        let instant = now.instant()?;
+        create_temporal_instant(instant, None, context)
     }
 
     /// 2.2.3 `Temporal.Now.plainDateTimeISO ( [ temporalTimeZoneLike ] )`
@@ -118,7 +123,7 @@ impl Now {
             .map(|v| to_temporal_timezone_identifier(v, context))
             .transpose()?;
 
-        let now = build_now(context)?;
+        let now: InnerNow<&Context> = InnerNow::new(context);
 
         let datetime = now.plain_date_time_iso_with_provider(time_zone, context.tz_provider())?;
         create_temporal_datetime(datetime, None, context).map(Into::into)
@@ -146,7 +151,7 @@ impl Now {
             .map(|v| to_temporal_timezone_identifier(v, context))
             .transpose()?;
 
-        let now = build_now(context)?;
+        let now: InnerNow<&Context> = InnerNow::new(context);
         let zdt = now.zoned_date_time_iso_with_provider(time_zone, context.tz_provider())?;
         create_temporal_zoneddatetime(zdt, None, context).map(Into::into)
     }
@@ -169,7 +174,7 @@ impl Now {
             .map(|v| to_temporal_timezone_identifier(v, context))
             .transpose()?;
 
-        let now = build_now(context)?;
+        let now: InnerNow<&Context> = InnerNow::new(context);
 
         let pd = now.plain_date_iso_with_provider(time_zone, context.tz_provider())?;
         create_temporal_date(pd, None, context).map(Into::into)
@@ -193,34 +198,27 @@ impl Now {
             .map(|v| to_temporal_timezone_identifier(v, context))
             .transpose()?;
 
-        let now = build_now(context)?;
+        let now: InnerNow<&Context> = InnerNow::new(context);
 
         let pt = now.plain_time_with_provider(time_zone, context.tz_provider())?;
         create_temporal_time(pt, None, context).map(Into::into)
     }
 }
 
-fn build_now(context: &mut Context) -> JsResult<NowInner> {
-    Ok(NowBuilder::default()
-        .with_system_zone(system_time_zone(context)?)
-        .with_system_nanoseconds(system_nanoseconds(context))
-        .build())
+impl HostHooks for &Context {}
+
+impl HostClock for &Context {
+    fn get_host_epoch_nanoseconds(&self) -> TemporalResult<EpochNanoseconds> {
+        Ok(EpochNanoseconds::from(
+            self.clock().now().nanos_since_epoch() as i128,
+        ))
+    }
 }
 
-fn system_nanoseconds(context: &mut Context) -> EpochNanoseconds {
-    EpochNanoseconds::from(context.clock().now().nanos_since_epoch() as i128)
-}
-
-// TODO: this should be moved to the context.
-fn system_time_zone_id() -> JsResult<String> {
-    iana_time_zone::get_timezone()
-        .map_err(|e| JsNativeError::range().with_message(e.to_string()).into())
-}
-
-// TODO: Move system time zone fetching to context similiar to `Clock` and `TimeZoneProvider`
-fn system_time_zone(context: &Context) -> JsResult<TimeZone> {
-    system_time_zone_id().and_then(|s| {
-        TimeZone::try_from_identifier_str_with_provider(&s, context.tz_provider())
-            .map_err(Into::into)
-    })
+impl HostTimeZone for &Context {
+    fn get_host_time_zone(&self, provider: &impl TimeZoneProvider) -> TemporalResult<TimeZone> {
+        iana_time_zone::get_timezone()
+            .map_err(|_| TemporalError::range().with_message("Unable to fetch system time zone"))
+            .and_then(|id| TimeZone::try_from_str_with_provider(&id, provider))
+    }
 }

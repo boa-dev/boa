@@ -306,8 +306,8 @@ impl PlainYearMonth {
             })?;
         let inner = &year_month.inner;
         match field {
-            DateTimeValues::Year => Ok(inner.iso_year().into()),
-            DateTimeValues::Month => Ok(inner.iso_month().into()),
+            DateTimeValues::Year => Ok(inner.year().into()),
+            DateTimeValues::Month => Ok(inner.month().into()),
             DateTimeValues::MonthCode => {
                 Ok(JsString::from(InnerYearMonth::month_code(inner).as_str()).into())
             }
