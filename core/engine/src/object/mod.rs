@@ -835,6 +835,7 @@ impl<'ctx> ConstructorBuilder<'ctx> {
     /// Default is `Object.prototype`
     pub fn inherit<O: Into<JsPrototype>>(&mut self, prototype: O) -> &mut Self {
         self.inherit = Some(prototype.into());
+        self.kind = Some(ConstructorKind::Derived);
         self
     }
 
