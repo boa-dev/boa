@@ -22,10 +22,11 @@ serde_json.workspace = true
 colored.workspace = true
 regex.workspace = true
 phf = { workspace = true, features = ["macros"] }
-pollster.workspace = true
 dhat = { workspace = true, optional = true }
 color-eyre.workspace = true
 cow-utils.workspace = true
+futures-concurrency.workspace = true
+futures-lite.workspace = true
 
 [features]
 default = [

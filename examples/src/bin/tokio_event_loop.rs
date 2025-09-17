@@ -69,8 +69,6 @@ impl Queue {
     }
 
     fn drain_jobs(&self, context: &mut Context) {
-        context.enqueue_resolved_context_jobs();
-
         // Run the timeout jobs first.
         self.drain_timeout_jobs(context);
 
@@ -127,7 +125,6 @@ impl JobExecutor for Queue {
                 && self.promise_jobs.borrow().is_empty()
                 && self.timeout_jobs.borrow().is_empty()
                 && self.generic_jobs.borrow().is_empty()
-                && !context.borrow().has_pending_context_jobs()
             {
                 // All queues are empty. We can exit.
                 return Ok(());

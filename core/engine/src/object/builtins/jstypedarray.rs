@@ -6,7 +6,7 @@ use crate::{
         typed_array::{BuiltinTypedArray, TypedArray, TypedArrayKind},
     },
     error::JsNativeError,
-    object::{JsArrayBuffer, JsFunction, JsObject},
+    object::{JsArrayBuffer, JsFunction, JsObject, JsSharedArrayBuffer},
     value::{IntoOrUndefined, TryFromJs},
 };
 use boa_gc::{Finalize, Trace};
@@ -983,6 +983,33 @@ macro_rules! JsTypedArrayType {
                 let object = crate::builtins::typed_array::$constructor_function::constructor(
                     &new_target,
                     &[array_buffer.into()],
+                    context,
+                )?
+                .as_object()
+                .expect("object")
+                .clone();
+
+                Ok(Self {
+                    inner: JsTypedArray {
+                        inner: object.into(),
+                    },
+                })
+            }
+
+            /// Create the typed array from a [`JsSharedArrayBuffer`].
+            pub fn from_shared_array_buffer(
+                buffer: JsSharedArrayBuffer,
+                context: &mut Context,
+            ) -> JsResult<Self> {
+                let new_target = context
+                    .intrinsics()
+                    .constructors()
+                    .$constructor_object()
+                    .constructor()
+                    .into();
+                let object = crate::builtins::typed_array::$constructor_function::constructor(
+                    &new_target,
+                    &[buffer.into()],
                     context,
                 )?
                 .as_object()

@@ -32,8 +32,11 @@ use color_eyre::{
 };
 use colored::Colorize;
 use debug::init_boa_debug_object;
+use futures_concurrency::future::FutureGroup;
+use futures_lite::{StreamExt, future};
 use rustyline::{EditMode, Editor, config::Config, error::ReadlineError};
 use std::collections::BTreeMap;
+use std::mem;
 use std::sync::mpsc::{Sender, TryRecvError};
 use std::time::Duration;
 use std::{
@@ -590,8 +593,7 @@ impl Executor {
     fn is_empty(&self, context: &mut Context) -> bool {
         let now = context.clock().now();
 
-        !context.has_pending_context_jobs()
-            && self.promise_jobs.borrow().is_empty()
+        self.promise_jobs.borrow().is_empty()
             && self.async_jobs.borrow().is_empty()
             // The timeout jobs queue is empty IIF there are no jobs to execute right now.
             && !self.timeout_jobs.borrow().iter().any(|(t, _)| &now >= t)
@@ -604,7 +606,7 @@ impl Executor {
         let mut timeouts_borrow = self.timeout_jobs.borrow_mut();
         let mut jobs_to_keep = timeouts_borrow.split_off(&now);
         jobs_to_keep.retain(|_, job| !job.is_cancelled());
-        let jobs_to_run = std::mem::replace(&mut *timeouts_borrow, jobs_to_keep);
+        let jobs_to_run = mem::replace(&mut *timeouts_borrow, jobs_to_keep);
         drop(timeouts_borrow);
 
         for job in jobs_to_run.into_values() {
@@ -641,29 +643,31 @@ impl JobExecutor for Executor {
     }
 
     fn run_jobs(self: Rc<Self>, context: &mut Context) -> JsResult<()> {
+        future::block_on(self.run_jobs_async(&RefCell::new(context)))
+    }
+
+    async fn run_jobs_async(self: Rc<Self>, context: &RefCell<&mut Context>) -> JsResult<()> {
+        let mut group = FutureGroup::new();
+
         loop {
-            if self.is_empty(context) {
+            for job in mem::take(&mut *self.async_jobs.borrow_mut()) {
+                group.insert(job.call(context));
+            }
+
+            if self.is_empty(&mut context.borrow_mut()) && group.is_empty() {
                 return Ok(());
             }
 
-            context.enqueue_resolved_context_jobs();
-
-            self.drain_timeout_jobs(context);
-            self.drain_generic_jobs(context);
-
-            let jobs = std::mem::take(&mut *self.promise_jobs.borrow_mut());
-            for job in jobs {
-                if let Err(e) = job.call(context) {
-                    self.printer.print(uncaught_job_error(&e));
-                }
+            if let Some(Err(e)) = future::poll_once(group.next()).await.flatten() {
+                self.printer.print(uncaught_job_error(&e));
             }
 
-            let async_jobs = std::mem::take(&mut *self.async_jobs.borrow_mut());
-            for async_job in async_jobs {
-                if let Err(e) = pollster::block_on(async_job.call(&RefCell::new(context))) {
-                    self.printer.print(uncaught_job_error(&e));
-                }
-                let jobs = std::mem::take(&mut *self.promise_jobs.borrow_mut());
+            {
+                let context = &mut context.borrow_mut();
+                self.drain_timeout_jobs(context);
+                self.drain_generic_jobs(context);
+
+                let jobs = mem::take(&mut *self.promise_jobs.borrow_mut());
                 for job in jobs {
                     if let Err(e) = job.call(context) {
                         self.printer.print(uncaught_job_error(&e));

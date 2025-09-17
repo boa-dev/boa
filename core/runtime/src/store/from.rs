@@ -49,7 +49,7 @@ fn try_from_js_object(
     Ok(new_value)
 }
 
-/// Transfer an object into a store, instead of cloning it. See [mdn].
+/// Transfer an object into a store instead of cloning it. See [mdn].
 ///
 /// Only [transferable objects][to] can be transferred. Anything else will return an
 /// error. Since any object t
@@ -134,6 +134,36 @@ fn clone_typed_array(
     Ok(dolly)
 }
 
+fn clone_date(
+    original: &JsObject,
+    date: &JsDate,
+    seen: &mut SeenMap,
+    context: &mut Context,
+) -> JsResult<JsValueStore> {
+    let ms_since_epoch = date
+        .get_time(context)?
+        .as_number()
+        .ok_or_else(unsupported_type)?;
+
+    let stored = JsValueStore::new(ValueStoreInner::Date(ms_since_epoch));
+    seen.insert(original, stored.clone());
+    Ok(stored)
+}
+
+fn clone_regexp(
+    original: &JsObject,
+    regexp: &JsRegExp,
+    seen: &mut SeenMap,
+    context: &mut Context,
+) -> JsResult<JsValueStore> {
+    let source = regexp.source(context)?;
+    let flags = regexp.flags(context)?;
+
+    let stored = JsValueStore::new(ValueStoreInner::RegExp { source, flags });
+    seen.insert(original, stored.clone());
+    Ok(stored)
+}
+
 fn try_from_map(
     original: &JsObject,
     map: &JsMap,
@@ -207,12 +237,12 @@ fn try_from_js_object_clone(
         return try_from_array_buffer_clone(object, buffer, seen);
     } else if let Ok(ref typed_array) = JsTypedArray::from_object(object.clone()) {
         return clone_typed_array(object, typed_array, transfer, seen, context);
-    } else if let Ok(_date) = JsDate::from_object(object.clone()) {
-        return Err(js_error!(TypeError: "Dates are not supported yet."));
+    } else if let Ok(ref date) = JsDate::from_object(object.clone()) {
+        return clone_date(object, date, seen, context);
     } else if let Ok(_error) = object.clone().downcast::<Error>() {
         return Err(js_error!(TypeError: "Errors are not supported yet."));
-    } else if let Ok(_regexp) = JsRegExp::from_object(object.clone()) {
-        return Err(js_error!(TypeError: "Regular Expressions are not supported yet."));
+    } else if let Ok(ref regexp) = JsRegExp::from_object(object.clone()) {
+        return clone_regexp(object, regexp, seen, context);
     } else if let Ok(_dataview) = JsDataView::from_object(object.clone()) {
         return Err(js_error!(TypeError: "Data views are not supported yet."));
     } else if object.is_callable() {
