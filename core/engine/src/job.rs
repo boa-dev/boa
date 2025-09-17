@@ -695,7 +695,6 @@ impl JobExecutor for SimpleJobExecutor {
                 && self.async_jobs.borrow().is_empty()
                 && self.generic_jobs.borrow().is_empty()
                 && no_timeout_jobs_to_run
-                && self.timeout_jobs.borrow().is_empty()
                 && group.is_empty()
             {
                 break;
