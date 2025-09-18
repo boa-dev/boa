@@ -228,7 +228,16 @@ pub(crate) struct ObjectData<T: ?Sized> {
     // Because we want to trigger the compile-time const assertion below.
     //
     // It is fine if we have as_ref/as_mut to it or any access.
+    #[cfg(not(miri))]
     data: T,
+
+    // Miri triggers a UB on `downcast_ref` and `downcast_mut` because it cannot
+    // figure out that casting T to U does not result in UB as we check that
+    // objects are U before casting them. Instead of trying to get Miri to
+    // behave properly, we use a `Box<T>` which always has the same size as
+    // `Box<U>`.
+    #[cfg(miri)]
+    data: Box<T>,
 }
 
 impl<T: Default> Default for ObjectData<T> {
@@ -250,7 +259,12 @@ impl<T> ObjectData<T> {
         // force assertion to triger when we instantiate `ObjectData<T>::new`.
         let () = Self::OBJECT_DATA_ALIGNMENT_REQUIREMENT;
 
-        Self { data: value }
+        Self {
+            #[cfg(not(miri))]
+            data: value,
+            #[cfg(miri)]
+            data: Box::new(value),
+        }
     }
 }
 
