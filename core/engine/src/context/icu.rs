@@ -84,7 +84,7 @@ impl IntlProvider {
     ///
     /// Returns an error if any of the tools required cannot be constructed.
     pub(crate) fn try_new_buffer(
-        provider: (impl DynamicDryDataProvider<BufferMarker> + 'static),
+        provider: impl DynamicDryDataProvider<BufferMarker> + 'static,
     ) -> IntlProvider {
         Self {
             locale_canonicalizer: OnceCell::new(),
