@@ -494,8 +494,9 @@ fn readline_thread_main(
 
     let mut editor =
         Editor::with_config(config).wrap_err("failed to set the editor configuration")?;
-    let printer = editor.create_external_printer()?;
-    printer_out.set(printer);
+    if let Ok(printer) = editor.create_external_printer() {
+        printer_out.set(printer);
+    }
 
     // Check if the history file exists. If it doesn't, create it.
     OpenOptions::new()
