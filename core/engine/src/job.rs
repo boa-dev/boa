@@ -681,15 +681,15 @@ impl JobExecutor for SimpleJobExecutor {
     {
         let mut group = FutureGroup::new();
         loop {
+            for job in mem::take(&mut *self.async_jobs.borrow_mut()) {
+                group.insert(job.call(context));
+            }
+
             // There are no timeout jobs to run IIF there are no jobs to execute right now.
             let no_timeout_jobs_to_run = {
                 let now = context.borrow().clock().now();
                 !self.timeout_jobs.borrow().iter().any(|(t, _)| &now >= t)
             };
-
-            for job in mem::take(&mut *self.async_jobs.borrow_mut()) {
-                group.insert(job.call(context));
-            }
 
             if self.promise_jobs.borrow().is_empty()
                 && self.async_jobs.borrow().is_empty()
