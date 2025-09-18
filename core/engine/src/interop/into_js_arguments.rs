@@ -1,4 +1,3 @@
-use boa_engine::object::Object;
 use boa_engine::value::TryFromJs;
 use boa_engine::{Context, JsNativeError, JsObject, JsResult, JsValue, NativeObject};
 use boa_gc::{GcRef, GcRefMut};
@@ -265,7 +264,7 @@ impl<T: NativeObject> JsClass<T> {
     ///
     /// Panics if the object is currently mutably borrowed.
     #[must_use]
-    pub fn borrow_mut(&self) -> GcRefMut<'_, Object<T>, T> {
+    pub fn borrow_mut(&self) -> GcRefMut<'_, T> {
         GcRefMut::map(self.inner.borrow_mut(), |obj| obj.data_mut())
     }
 }
