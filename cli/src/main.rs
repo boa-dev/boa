@@ -9,7 +9,9 @@
 
 mod debug;
 mod helper;
+mod logger;
 
+use crate::logger::SharedExternalPrinterLogger;
 use boa_engine::context::time::JsInstant;
 use boa_engine::job::{GenericJob, TimeoutJob};
 use boa_engine::{
@@ -35,6 +37,8 @@ use futures_lite::{StreamExt, future};
 use rustyline::{EditMode, Editor, config::Config, error::ReadlineError};
 use std::collections::BTreeMap;
 use std::mem;
+use std::sync::mpsc::{Sender, TryRecvError};
+use std::time::Duration;
 use std::{
     cell::RefCell,
     collections::VecDeque,
@@ -44,7 +48,10 @@ use std::{
     path::{Path, PathBuf},
     println,
     rc::Rc,
+    thread,
 };
+
+// ----
 
 #[cfg(all(
     target_arch = "x86_64",
@@ -279,19 +286,26 @@ fn generate_flowgraph<R: ReadChar>(
     Ok(result)
 }
 
-fn uncaught_error(error: &JsError) {
-    eprintln!("{}: {}", "Uncaught".red(), error.to_string().red());
+#[must_use]
+fn uncaught_error(error: &JsError) -> String {
+    format!("{}: {}\n", "Uncaught".red(), error.to_string().red())
 }
 
-fn uncaught_job_error(error: &JsError) {
-    eprintln!(
-        "{}: {}",
+#[must_use]
+fn uncaught_job_error(error: &JsError) -> String {
+    format!(
+        "{}: {}\n",
         "Uncaught error (during job evaluation)".red(),
         error.to_string().red()
-    );
+    )
 }
 
-fn evaluate_expr(line: &str, args: &Opt, context: &mut Context) -> Result<()> {
+fn evaluate_expr(
+    line: &str,
+    args: &Opt,
+    context: &mut Context,
+    printer: &SharedExternalPrinterLogger,
+) -> Result<()> {
     if args.has_dump_flag() {
         dump(Source::from_bytes(&line), args, context)?;
     } else if let Some(flowgraph) = args.flowgraph {
@@ -306,11 +320,8 @@ fn evaluate_expr(line: &str, args: &Opt, context: &mut Context) -> Result<()> {
         }
     } else {
         match context.eval(Source::from_bytes(line)) {
-            Ok(v) => println!("{}", v.display()),
-            Err(ref v) => uncaught_error(v),
-        }
-        if let Err(err) = context.run_jobs() {
-            eprintln!("{err}");
+            Ok(v) => printer.print(format!("{}\n", v.display())),
+            Err(ref v) => printer.print(uncaught_error(v)),
         }
     }
 
@@ -322,6 +333,7 @@ fn evaluate_file(
     args: &Opt,
     context: &mut Context,
     loader: &SimpleModuleLoader,
+    printer: &SharedExternalPrinterLogger,
 ) -> Result<()> {
     if args.has_dump_flag() {
         return dump(Source::from_filepath(file)?, args, context);
@@ -369,7 +381,7 @@ fn evaluate_file(
                 println!("{}", v.display());
             }
         }
-        Err(v) => uncaught_error(&v),
+        Err(v) => printer.print(uncaught_error(&v)),
     }
 
     context
@@ -377,9 +389,14 @@ fn evaluate_file(
         .map_err(|err| err.into_erased(context).into())
 }
 
-fn evaluate_files(args: &Opt, context: &mut Context, loader: &SimpleModuleLoader) -> Result<()> {
+fn evaluate_files(
+    args: &Opt,
+    context: &mut Context,
+    loader: &SimpleModuleLoader,
+    printer: &SharedExternalPrinterLogger,
+) -> Result<()> {
     for file in &args.files {
-        evaluate_file(file, args, context, loader)?;
+        evaluate_file(file, args, context, loader, printer)?;
     }
     Ok(())
 }
@@ -395,7 +412,13 @@ fn main() -> Result<()> {
 
     let args = Opt::parse();
 
-    let executor = Rc::new(Executor::default());
+    // A channel of expressions to run.
+    let (sender, receiver) = std::sync::mpsc::channel::<String>();
+    let printer = SharedExternalPrinterLogger::new();
+    // Start the thread early so we can pass the printer to our console logger.
+    let handle = start_readline_thread(sender, printer.clone(), args.vi_mode);
+
+    let executor = Rc::new(Executor::new(printer.clone()));
     let loader = Rc::new(SimpleModuleLoader::new(&args.root).map_err(|e| eyre!(e.to_string()))?);
     let mut context = ContextBuilder::new()
         .job_executor(executor)
@@ -407,7 +430,7 @@ fn main() -> Result<()> {
     context.strict(args.strict);
 
     // Add `console`.
-    add_runtime(&mut context);
+    add_runtime(printer.clone(), &mut context);
 
     // Trace Output
     context.set_trace(args.trace);
@@ -423,21 +446,46 @@ fn main() -> Result<()> {
     context.set_optimizer_options(optimizer_options);
 
     if !args.files.is_empty() {
-        evaluate_files(&args, &mut context, &loader)?;
+        evaluate_files(&args, &mut context, &loader, &printer)?;
 
         if let Some(ref expr) = args.expression {
-            evaluate_expr(expr, &args, &mut context)?;
+            evaluate_expr(expr, &args, &mut context, &printer)?;
         }
 
         return Ok(());
     } else if let Some(ref expr) = args.expression {
-        evaluate_expr(expr, &args, &mut context)?;
+        evaluate_expr(expr, &args, &mut context, &printer)?;
         return Ok(());
     }
 
+    loop {
+        match receiver.try_recv() {
+            Ok(line) => {
+                evaluate_expr(&line, &args, &mut context, &printer)?;
+            }
+            Err(TryRecvError::Empty) => {}
+            Err(TryRecvError::Disconnected) => break,
+        }
+
+        if let Err(err) = context.run_jobs() {
+            printer.print(uncaught_job_error(&err));
+        }
+        thread::sleep(Duration::from_millis(10));
+    }
+
+    handle.join().expect("failed to join thread");
+
+    Ok(())
+}
+
+fn readline_thread_main(
+    sender: &Sender<String>,
+    printer_out: &SharedExternalPrinterLogger,
+    vi_mode: bool,
+) -> Result<()> {
     let config = Config::builder()
         .keyseq_timeout(Some(1))
-        .edit_mode(if args.vi_mode {
+        .edit_mode(if vi_mode {
             EditMode::Vi
         } else {
             EditMode::Emacs
@@ -446,6 +494,9 @@ fn main() -> Result<()> {
 
     let mut editor =
         Editor::with_config(config).wrap_err("failed to set the editor configuration")?;
+    let printer = editor.create_external_printer()?;
+    printer_out.set(printer);
+
     // Check if the history file exists. If it doesn't, create it.
     OpenOptions::new()
         .read(true)
@@ -466,10 +517,9 @@ fn main() -> Result<()> {
 
             Ok(line) => {
                 let line = line.trim_end();
-
                 editor.add_history_entry(line).map_err(io::Error::other)?;
-
-                evaluate_expr(line, &args, &mut context)?;
+                sender.send(line.to_string())?;
+                thread::sleep(Duration::from_millis(10));
             }
 
             Err(err) => {
@@ -489,11 +539,25 @@ fn main() -> Result<()> {
     Ok(())
 }
 
+/// Create the readline thread which sends lines from stdin back to the main thread.
+fn start_readline_thread(
+    sender: Sender<String>,
+    printer_out: SharedExternalPrinterLogger,
+    vi_mode: bool,
+) -> thread::JoinHandle<()> {
+    thread::spawn(
+        move || match readline_thread_main(&sender, &printer_out, vi_mode) {
+            Ok(()) => {}
+            Err(e) => eprintln!("readline thread failed: {e}"),
+        },
+    )
+}
+
 /// Adds the CLI runtime to the context with default options.
-fn add_runtime(context: &mut Context) {
+fn add_runtime(printer: SharedExternalPrinterLogger, context: &mut Context) {
     boa_runtime::register(
         (
-            boa_runtime::extensions::ConsoleExtension::default(),
+            boa_runtime::extensions::ConsoleExtension(printer),
             #[cfg(feature = "fetch")]
             boa_runtime::extensions::FetchExtension(
                 boa_runtime::fetch::BlockingReqwestFetcher::default(),
@@ -506,19 +570,33 @@ fn add_runtime(context: &mut Context) {
 }
 
 #[allow(clippy::struct_field_names)]
-#[derive(Default)]
 struct Executor {
     promise_jobs: RefCell<VecDeque<PromiseJob>>,
     async_jobs: RefCell<VecDeque<NativeAsyncJob>>,
     timeout_jobs: RefCell<BTreeMap<JsInstant, TimeoutJob>>,
     generic_jobs: RefCell<VecDeque<GenericJob>>,
+
+    printer: SharedExternalPrinterLogger,
 }
 
 impl Executor {
-    fn is_empty(&self) -> bool {
+    fn new(printer: SharedExternalPrinterLogger) -> Self {
+        Self {
+            promise_jobs: RefCell::default(),
+            async_jobs: RefCell::default(),
+            timeout_jobs: RefCell::default(),
+            generic_jobs: RefCell::default(),
+            printer,
+        }
+    }
+
+    fn is_empty(&self, context: &mut Context) -> bool {
+        let now = context.clock().now();
+
         self.promise_jobs.borrow().is_empty()
             && self.async_jobs.borrow().is_empty()
-            && self.timeout_jobs.borrow().is_empty()
+            // The timeout jobs queue is empty IIF there are no jobs to execute right now.
+            && !self.timeout_jobs.borrow().iter().any(|(t, _)| &now >= t)
             && self.generic_jobs.borrow().is_empty()
     }
 
@@ -533,7 +611,7 @@ impl Executor {
 
         for job in jobs_to_run.into_values() {
             if let Err(e) = job.call(context) {
-                uncaught_job_error(&e);
+                self.printer.print(uncaught_job_error(&e));
             }
         }
     }
@@ -543,7 +621,7 @@ impl Executor {
         if let Some(generic) = job
             && let Err(err) = generic.call(context)
         {
-            uncaught_job_error(&err);
+            self.printer.print(uncaught_job_error(&err));
         }
     }
 }
@@ -560,7 +638,7 @@ impl JobExecutor for Executor {
                     .insert(now + job.timeout(), job);
             }
             Job::GenericJob(job) => self.generic_jobs.borrow_mut().push_back(job),
-            job => eprintln!("unsupported job type {job:?}"),
+            job => self.printer.print(format!("unsupported job type {job:?}")),
         }
     }
 
@@ -576,12 +654,12 @@ impl JobExecutor for Executor {
                 group.insert(job.call(context));
             }
 
-            if self.is_empty() && group.is_empty() {
+            if self.is_empty(&mut context.borrow_mut()) && group.is_empty() {
                 return Ok(());
             }
 
             if let Some(Err(e)) = future::poll_once(group.next()).await.flatten() {
-                uncaught_job_error(&e);
+                self.printer.print(uncaught_job_error(&e));
             }
 
             {
@@ -592,7 +670,7 @@ impl JobExecutor for Executor {
                 let jobs = mem::take(&mut *self.promise_jobs.borrow_mut());
                 for job in jobs {
                     if let Err(e) = job.call(context) {
-                        uncaught_job_error(&e);
+                        self.printer.print(uncaught_job_error(&e));
                     }
                 }
             }

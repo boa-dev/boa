@@ -159,6 +159,10 @@ pub struct TimeoutJob {
     job: NativeJob,
     /// Signals if the timeout job was cancelled.
     cancelled: OnceFlag,
+    /// Signals that this job is recurring. A recurring job shouldn't be
+    /// awaited for when considering whether a run of the event loop is
+    /// done.
+    recurring: bool,
 }
 
 impl TimeoutJob {
@@ -169,6 +173,18 @@ impl TimeoutJob {
             timeout: JsDuration::from_millis(timeout_in_millis),
             job,
             cancelled: OnceFlag::new(),
+            recurring: false,
+        }
+    }
+
+    /// Create a new `TimeoutJob` that is marked as recurring.
+    #[must_use]
+    pub fn recurring(job: NativeJob, timeout_in_millis: u64) -> Self {
+        Self {
+            timeout: JsDuration::from_millis(timeout_in_millis),
+            job,
+            cancelled: OnceFlag::new(),
+            recurring: true,
         }
     }
 
@@ -217,6 +233,12 @@ impl TimeoutJob {
     /// Returns the `OnceFlag` to cancel this timeout job.
     pub(crate) fn cancelled_flag(&self) -> OnceFlag {
         self.cancelled.clone()
+    }
+
+    /// Returns `true` if the job is recurring (meaning it happens regularly).
+    #[must_use]
+    pub fn is_recurring(&self) -> bool {
+        self.recurring
     }
 }
 
@@ -663,10 +685,16 @@ impl JobExecutor for SimpleJobExecutor {
                 group.insert(job.call(context));
             }
 
+            // There are no timeout jobs to run IIF there are no jobs to execute right now.
+            let no_timeout_jobs_to_run = {
+                let now = context.borrow().clock().now();
+                !self.timeout_jobs.borrow().iter().any(|(t, _)| &now >= t)
+            };
+
             if self.promise_jobs.borrow().is_empty()
                 && self.async_jobs.borrow().is_empty()
                 && self.generic_jobs.borrow().is_empty()
-                && self.timeout_jobs.borrow().is_empty()
+                && no_timeout_jobs_to_run
                 && group.is_empty()
             {
                 break;

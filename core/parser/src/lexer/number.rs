@@ -142,7 +142,7 @@ where
                 return Err(Error::syntax("separator is not allowed", pos));
             }
             Some(c) => {
-                if char::from_u32(c).map(|ch| ch.is_digit(kind.base())) == Some(true) {
+                if char::from_u32(c).is_some_and(|ch| ch.is_digit(kind.base())) {
                     prev_is_underscore = false;
                     #[allow(clippy::cast_possible_truncation)]
                     buf.push(c as u8);
