@@ -776,7 +776,7 @@ impl JsValue {
         }
 
         // 8. If f is odd, return 𝔽(f + 1).
-        if f as u8 % 2 != 0 {
+        if !(f as u8).is_multiple_of(2) {
             return Ok(f as u8 + 1);
         }
 

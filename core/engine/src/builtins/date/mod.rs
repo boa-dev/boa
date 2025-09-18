@@ -1599,7 +1599,7 @@ impl Date {
         let tv = this.to_primitive(context, PreferredType::Number)?;
 
         // 3. If Type(tv) is Number and tv is not finite, return null.
-        if tv.as_number().map(f64::is_finite) == Some(false) {
+        if tv.as_number().is_some_and(|x| !f64::is_finite(x)) {
             return Ok(JsValue::null());
         }
 
