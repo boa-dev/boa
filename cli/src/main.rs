@@ -415,8 +415,6 @@ fn main() -> Result<()> {
     // A channel of expressions to run.
     let (sender, receiver) = std::sync::mpsc::channel::<String>();
     let printer = SharedExternalPrinterLogger::new();
-    // Start the thread early so we can pass the printer to our console logger.
-    let handle = start_readline_thread(sender, printer.clone(), args.vi_mode);
 
     let executor = Rc::new(Executor::new(printer.clone()));
     let loader = Rc::new(SimpleModuleLoader::new(&args.root).map_err(|e| eyre!(e.to_string()))?);
@@ -457,6 +455,8 @@ fn main() -> Result<()> {
         evaluate_expr(expr, &args, &mut context, &printer)?;
         return Ok(());
     }
+
+    let handle = start_readline_thread(sender, printer.clone(), args.vi_mode);
 
     loop {
         match receiver.try_recv() {
