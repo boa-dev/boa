@@ -79,7 +79,7 @@ fn handle(
     let result = function_ref.call(&JsValue::undefined(), &args, context);
     if let Some(delay) = reschedule {
         if handler_map.borrow().is_interval_valid(id) {
-            let job = TimeoutJob::new(
+            let job = TimeoutJob::recurring(
                 NativeJob::new(move |context| {
                     handle(handler_map, id, function_ref, args, reschedule, context)
                 }),
