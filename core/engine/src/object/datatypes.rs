@@ -228,6 +228,7 @@ pub(crate) struct ObjectData<T: ?Sized> {
     // Because we want to trigger the compile-time const assertion below.
     //
     // It is fine if we have as_ref/as_mut to it or any access.
+    // TODO: see below.
     #[cfg(not(miri))]
     data: T,
 
@@ -236,6 +237,12 @@ pub(crate) struct ObjectData<T: ?Sized> {
     // objects are U before casting them. Instead of trying to get Miri to
     // behave properly, we use a `Box<T>` which always has the same size as
     // `Box<U>`.
+    //
+    // Note: The `tree-borrows` checker is fine with the above in miri, it is
+    //       only the stack borrow checker that complaints.
+    //
+    // TODO: his when we have a task runner OR when tree-borrows is
+    //       the default in Miri.
     #[cfg(miri)]
     data: Box<T>,
 }

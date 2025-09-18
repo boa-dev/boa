@@ -22,7 +22,7 @@ use crate::{
     property::{PropertyDescriptor, PropertyKey},
     value::PreferredType,
 };
-use boa_gc::{self, Finalize, Gc, GcRefCell, Trace};
+use boa_gc::{self, Finalize, Gc, GcRef, GcRefCell, GcRefMut, Trace};
 use core::ptr::fn_addr_eq;
 use std::collections::HashSet;
 use std::{
@@ -42,10 +42,10 @@ use boa_gc::GcBox;
 use std::ptr::NonNull;
 
 /// A wrapper type for an immutably borrowed type T.
-pub type Ref<'a, T> = boa_gc::GcRef<'a, T>;
+pub type Ref<'a, T> = GcRef<'a, T>;
 
 /// A wrapper type for a mutably borrowed type T.
-pub type RefMut<'a, T> = boa_gc::GcRefMut<'a, T>;
+pub type RefMut<'a, T> = GcRefMut<'a, T>;
 
 pub(crate) type ErasedVTableObject = VTableObject<ErasedObjectData>;
 
@@ -250,7 +250,7 @@ impl JsObject {
             let obj = self.borrow();
 
             // SAFETY: We have verified that the object is of type `T`, so we can safely cast it.
-            let obj = unsafe { obj.cast::<Object<T>>() };
+            let obj = unsafe { GcRef::cast::<Object<T>>(obj) };
 
             return Some(Ref::map(obj, |r| r.data()));
         }
@@ -270,7 +270,7 @@ impl JsObject {
             let obj = self.borrow_mut();
 
             // SAFETY: We have verified that the object is of type `T`, so we can safely cast it.
-            let obj = unsafe { obj.cast::<Object<T>>() };
+            let obj = unsafe { GcRefMut::cast::<Object<T>>(obj) };
 
             return Some(RefMut::map(obj, |c| c.data_mut()));
         }

@@ -96,7 +96,7 @@ pub struct GcRefCell<T: ?Sized + 'static> {
     cell: UnsafeCell<T>,
 }
 
-impl<T: Trace> GcRefCell<T> {
+impl<T> GcRefCell<T> {
     /// Creates a new `GcCell` containing `value`.
     pub const fn new(value: T) -> Self {
         Self {
@@ -111,7 +111,7 @@ impl<T: Trace> GcRefCell<T> {
     }
 }
 
-impl<T: Trace + ?Sized> GcRefCell<T> {
+impl<T: ?Sized> GcRefCell<T> {
     /// Immutably borrows the wrapped value.
     ///
     /// The borrow lasts until the returned `GcCellRef` exits scope.
@@ -163,7 +163,9 @@ impl<T: Trace + ?Sized> GcRefCell<T> {
         // SAFETY: calling value on a rooted value may cause Undefined Behavior
         unsafe {
             Ok(GcRef {
-                borrow: &self.borrow,
+                borrow: BorrowGcRef {
+                    borrow: &self.borrow,
+                },
                 value: NonNull::new_unchecked(self.cell.get()),
             })
         }
@@ -189,7 +191,9 @@ impl<T: Trace + ?Sized> GcRefCell<T> {
         // so it cannot be dropped.
         unsafe {
             Ok(GcRefMut {
-                borrow: &self.borrow,
+                borrow: BorrowGcRefMut {
+                    borrow: &self.borrow,
+                },
                 value: NonNull::new_unchecked(self.cell.get()),
                 marker: PhantomData,
             })
@@ -250,10 +254,31 @@ unsafe impl<T: Trace + ?Sized> Trace for GcRefCell<T> {
     }
 }
 
+struct BorrowGcRef<'a> {
+    borrow: &'a Cell<BorrowFlag>,
+}
+
+impl Drop for BorrowGcRef<'_> {
+    fn drop(&mut self) {
+        debug_assert!(self.borrow.get().borrowed() == BorrowState::Reading);
+        self.borrow.set(self.borrow.get().sub_reading());
+    }
+}
+
+impl Clone for BorrowGcRef<'_> {
+    #[inline]
+    fn clone(&self) -> Self {
+        self.borrow.set(self.borrow.get().add_reading());
+        BorrowGcRef {
+            borrow: self.borrow,
+        }
+    }
+}
+
 /// A wrapper type for an immutably borrowed value from a `GcCell<T>`.
 pub struct GcRef<'a, T: ?Sized + 'static> {
     value: NonNull<T>,
-    borrow: &'a Cell<BorrowFlag>,
+    borrow: BorrowGcRef<'a>,
 }
 
 impl<'a, T: ?Sized> GcRef<'a, T> {
@@ -262,20 +287,13 @@ impl<'a, T: ?Sized> GcRef<'a, T> {
     /// # Safety
     /// * The caller must ensure that `T` can be safely cast to `U`.
     #[must_use]
-    pub unsafe fn cast<U>(self) -> GcRef<'a, U> {
-        // SAFETY: This is safe as `GcCellRef` is already borrowed, so the value is rooted.
-        // The caller must ensure that `T` can be safely cast to `U`.
-        let value = self.value.cast::<U>();
-        let cell = GcRef {
-            borrow: self.borrow,
+    pub unsafe fn cast<U>(orig: Self) -> GcRef<'a, U> {
+        let value = orig.value.cast::<U>();
+
+        GcRef {
+            borrow: orig.borrow,
             value,
-        };
-
-        // We have to tell the compiler not to call the destructor of GcCellRef,
-        // because it will update the borrow flags.
-        core::mem::forget(self);
-
-        cell
+        }
     }
 
     /// Copies a `GcCellRef`.
@@ -289,9 +307,8 @@ impl<'a, T: ?Sized> GcRef<'a, T> {
     #[allow(clippy::should_implement_trait)]
     #[must_use]
     pub fn clone(orig: &GcRef<'a, T>) -> GcRef<'a, T> {
-        orig.borrow.set(orig.borrow.get().add_reading());
         GcRef {
-            borrow: orig.borrow,
+            borrow: orig.borrow.clone(),
             value: orig.value,
         }
     }
@@ -309,14 +326,12 @@ impl<'a, T: ?Sized> GcRef<'a, T> {
         U: ?Sized,
         F: FnOnce(&T) -> Option<&U>,
     {
+        let value = NonNull::from(f(&*orig)?);
+
         let ret = GcRef {
             borrow: orig.borrow,
-            value: NonNull::from(f(&*orig)?),
+            value,
         };
-
-        // We have to tell the compiler not to call the destructor of GcCellRef,
-        // because it will update the borrow flags.
-        std::mem::forget(orig);
 
         Some(ret)
     }
@@ -333,16 +348,12 @@ impl<'a, T: ?Sized> GcRef<'a, T> {
         U: ?Sized,
         F: FnOnce(&T) -> &U,
     {
-        let ret = GcRef {
+        let value = NonNull::from(f(&*orig));
+
+        GcRef {
             borrow: orig.borrow,
-            value: NonNull::from(f(&*orig)),
-        };
-
-        // We have to tell the compiler not to call the destructor of GcCellRef,
-        // because it will update the borrow flags.
-        std::mem::forget(orig);
-
-        ret
+            value,
+        }
     }
 
     /// Splits a `GcCellRef` into multiple `GcCellRef`s for different components of the borrowed data.
@@ -358,25 +369,18 @@ impl<'a, T: ?Sized> GcRef<'a, T> {
         F: FnOnce(&T) -> (&U, &V),
     {
         let (a, b) = f(&*orig);
+        let borrow = orig.borrow.clone();
 
-        orig.borrow.set(orig.borrow.get().add_reading());
-
-        let ret = (
+        (
             GcRef {
-                borrow: orig.borrow,
+                borrow,
                 value: NonNull::from(a),
             },
             GcRef {
-                borrow: orig.borrow,
                 value: NonNull::from(b),
+                borrow: orig.borrow,
             },
-        );
-
-        // We have to tell the compiler not to call the destructor of GcCellRef,
-        // because it will update the borrow flags.
-        std::mem::forget(orig);
-
-        ret
+        )
     }
 }
 
@@ -385,13 +389,6 @@ impl<T: ?Sized> Deref for GcRef<'_, T> {
 
     fn deref(&self) -> &T {
         unsafe { self.value.as_ref() }
-    }
-}
-
-impl<T: ?Sized> Drop for GcRef<'_, T> {
-    fn drop(&mut self) {
-        debug_assert!(self.borrow.get().borrowed() == BorrowState::Reading);
-        self.borrow.set(self.borrow.get().sub_reading());
     }
 }
 
@@ -407,13 +404,24 @@ impl<T: ?Sized + Display> Display for GcRef<'_, T> {
     }
 }
 
+struct BorrowGcRefMut<'a> {
+    borrow: &'a Cell<BorrowFlag>,
+}
+
+impl Drop for BorrowGcRefMut<'_> {
+    fn drop(&mut self) {
+        debug_assert_eq!(self.borrow.get().borrowed(), BorrowState::Writing);
+        self.borrow.set(BorrowFlag(UNUSED));
+    }
+}
+
 /// A wrapper type for a mutably borrowed value from a `GcCell<T>`.
 pub struct GcRefMut<'a, T: ?Sized> {
     // NB: we use a pointer instead of `&'a mut U` to avoid `noalias` violations, because
     // a `GcRefMut` argument doesn't hold exclusivity for its whole scope, only until it
     // drops.
     value: NonNull<T>,
-    borrow: &'a Cell<BorrowFlag>,
+    borrow: BorrowGcRefMut<'a>,
     // `NonNull` is covariant over `T`, so we need to reintroduce invariance.
     marker: PhantomData<&'a mut T>,
 }
@@ -424,16 +432,11 @@ impl<'a, T: ?Sized> GcRefMut<'a, T> {
     /// # Safety
     /// * The caller must ensure that `U` can be safely cast to `V`.
     #[must_use]
-    pub unsafe fn cast<V>(self) -> GcRefMut<'a, V> {
-        let borrow = self.borrow;
-        let value = self.value.cast::<V>();
-
-        // We have to tell the compiler not to call the destructor of GcCellRef,
-        // because it will update the borrow flags.
-        std::mem::forget(self);
+    pub unsafe fn cast<V>(orig: Self) -> GcRefMut<'a, V> {
+        let value = orig.value.cast::<V>();
 
         GcRefMut {
-            borrow,
+            borrow: orig.borrow,
             value,
             marker: PhantomData,
         }
@@ -453,15 +456,12 @@ impl<'a, T: ?Sized> GcRefMut<'a, T> {
         F: FnOnce(&mut T) -> Option<&mut V>,
     {
         let value = NonNull::from(f(&mut *orig)?);
+
         let ret = GcRefMut {
             borrow: orig.borrow,
             value,
             marker: PhantomData,
         };
-
-        // We have to tell the compiler not to call the destructor of GcCellRef,
-        // because it will update the borrow flags.
-        std::mem::forget(orig);
 
         Some(ret)
     }
@@ -479,14 +479,10 @@ impl<'a, T: ?Sized> GcRefMut<'a, T> {
         V: ?Sized,
         F: FnOnce(&mut T) -> &mut V,
     {
-        let borrow = orig.borrow;
         let value = NonNull::from(f(&mut *orig));
-        // We have to tell the compiler not to call the destructor of GcCellRefMut,
-        // because it will update the borrow flags.
-        std::mem::forget(orig);
 
         GcRefMut {
-            borrow,
+            borrow: orig.borrow,
             value,
             marker: PhantomData,
         }
@@ -506,13 +502,6 @@ impl<T: ?Sized> DerefMut for GcRefMut<'_, T> {
     fn deref_mut(&mut self) -> &mut T {
         // SAFETY: the value is accessible as long as we hold our borrow.
         unsafe { self.value.as_mut() }
-    }
-}
-
-impl<T: ?Sized> Drop for GcRefMut<'_, T> {
-    fn drop(&mut self) {
-        debug_assert_eq!(self.borrow.get().borrowed(), BorrowState::Writing);
-        self.borrow.set(BorrowFlag(UNUSED));
     }
 }
 
@@ -537,24 +526,24 @@ impl<T: Trace + Clone> Clone for GcRefCell<T> {
     }
 }
 
-impl<T: Trace + Default> Default for GcRefCell<T> {
+impl<T: Default> Default for GcRefCell<T> {
     fn default() -> Self {
         Self::new(Default::default())
     }
 }
 
 #[allow(clippy::inline_always)]
-impl<T: Trace + ?Sized + PartialEq> PartialEq for GcRefCell<T> {
+impl<T: ?Sized + PartialEq> PartialEq for GcRefCell<T> {
     #[inline(always)]
     fn eq(&self, other: &Self) -> bool {
         *self.borrow() == *other.borrow()
     }
 }
 
-impl<T: Trace + ?Sized + Eq> Eq for GcRefCell<T> {}
+impl<T: ?Sized + Eq> Eq for GcRefCell<T> {}
 
 #[allow(clippy::inline_always)]
-impl<T: Trace + ?Sized + PartialOrd> PartialOrd for GcRefCell<T> {
+impl<T: ?Sized + PartialOrd> PartialOrd for GcRefCell<T> {
     #[inline(always)]
     fn partial_cmp(&self, other: &Self) -> Option<Ordering> {
         (*self.borrow()).partial_cmp(&*other.borrow())
@@ -581,13 +570,13 @@ impl<T: Trace + ?Sized + PartialOrd> PartialOrd for GcRefCell<T> {
     }
 }
 
-impl<T: Trace + ?Sized + Ord> Ord for GcRefCell<T> {
+impl<T: ?Sized + Ord> Ord for GcRefCell<T> {
     fn cmp(&self, other: &Self) -> Ordering {
         (*self.borrow()).cmp(&*other.borrow())
     }
 }
 
-impl<T: Trace + ?Sized + Debug> Debug for GcRefCell<T> {
+impl<T: ?Sized + Debug> Debug for GcRefCell<T> {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         match self.borrow.get().borrowed() {
             BorrowState::Unused | BorrowState::Reading => f
