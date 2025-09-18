@@ -57,14 +57,15 @@ impl BorrowFlag {
     /// # Panic
     ///  - This method will panic if the current `BorrowState` is writing.
     ///  - This method will panic after incrementing if the borrow count overflows.
+    #[inline]
     fn add_reading(self) -> Self {
-        assert_ne!(self.borrowed(), BorrowState::Writing);
+        assert!(self.borrowed() != BorrowState::Writing);
         let flags = Self(self.0 + 1);
 
         // This will fail if the borrow count overflows, which shouldn't happen,
         // but let's be safe
         {
-            assert_eq!(flags.borrowed(), BorrowState::Reading);
+            assert!(flags.borrowed() == BorrowState::Reading);
         }
         flags
     }
@@ -74,7 +75,7 @@ impl BorrowFlag {
     /// # Panic
     ///  - This method will panic if the current `BorrowState` is not reading.
     fn sub_reading(self) -> Self {
-        assert_eq!(self.borrowed(), BorrowState::Reading);
+        assert!(self.borrowed() == BorrowState::Reading);
         Self(self.0 - 1)
     }
 }
@@ -410,7 +411,7 @@ struct BorrowGcRefMut<'a> {
 
 impl Drop for BorrowGcRefMut<'_> {
     fn drop(&mut self) {
-        debug_assert_eq!(self.borrow.get().borrowed(), BorrowState::Writing);
+        debug_assert!(self.borrow.get().borrowed() == BorrowState::Writing);
         self.borrow.set(BorrowFlag(UNUSED));
     }
 }
