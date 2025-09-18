@@ -27,7 +27,7 @@ use crate::{
     context::intrinsics::{Intrinsics, StandardConstructor, StandardConstructors},
     error::JsNativeError,
     js_string,
-    object::{JsObject, Object, internal_methods::get_prototype_from_constructor},
+    object::{JsObject, internal_methods::get_prototype_from_constructor},
     property::Attribute,
     realm::Realm,
     string::StaticJsStrings,
@@ -160,10 +160,7 @@ impl BufferObject {
     #[track_caller]
     pub(crate) fn as_buffer_mut(
         &self,
-    ) -> BufferRefMut<
-        GcRefMut<'_, Object<ArrayBuffer>, ArrayBuffer>,
-        GcRefMut<'_, Object<SharedArrayBuffer>, SharedArrayBuffer>,
-    > {
+    ) -> BufferRefMut<GcRefMut<'_, ArrayBuffer>, GcRefMut<'_, SharedArrayBuffer>> {
         match self {
             Self::Buffer(buf) => {
                 BufferRefMut::Buffer(GcRefMut::map(buf.borrow_mut(), |o| o.data_mut()))

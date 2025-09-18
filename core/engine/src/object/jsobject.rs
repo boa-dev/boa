@@ -45,7 +45,7 @@ use std::ptr::NonNull;
 pub type Ref<'a, T> = boa_gc::GcRef<'a, T>;
 
 /// A wrapper type for a mutably borrowed type T.
-pub type RefMut<'a, T, U> = boa_gc::GcRefMut<'a, T, U>;
+pub type RefMut<'a, T> = boa_gc::GcRefMut<'a, T>;
 
 pub(crate) type ErasedVTableObject = VTableObject<ErasedObjectData>;
 
@@ -54,7 +54,7 @@ pub type ErasedObject = Object<ErasedObjectData>;
 
 /// A erased object data type that must never be used directly.
 #[derive(Debug, Trace, Finalize)]
-pub enum ErasedObjectData {}
+pub struct ErasedObjectData {}
 
 impl JsData for ErasedObjectData {}
 
@@ -265,7 +265,7 @@ impl JsObject {
     /// Panics if the object is currently borrowed.
     #[must_use]
     #[track_caller]
-    pub fn downcast_mut<T: NativeObject>(&self) -> Option<RefMut<'_, ErasedObject, T>> {
+    pub fn downcast_mut<T: NativeObject>(&self) -> Option<RefMut<'_, T>> {
         if self.is::<T>() {
             let obj = self.borrow_mut();
 
@@ -676,7 +676,7 @@ impl<T: NativeObject> JsObject<T> {
     #[inline]
     #[must_use]
     #[track_caller]
-    pub fn borrow_mut(&self) -> RefMut<'_, Object<T>, Object<T>> {
+    pub fn borrow_mut(&self) -> RefMut<'_, Object<T>> {
         self.try_borrow_mut().expect("Object already borrowed")
     }
 
@@ -698,7 +698,7 @@ impl<T: NativeObject> JsObject<T> {
     ///
     /// This is the non-panicking variant of [`borrow_mut`](#method.borrow_mut).
     #[inline]
-    pub fn try_borrow_mut(&self) -> StdResult<RefMut<'_, Object<T>, Object<T>>, BorrowMutError> {
+    pub fn try_borrow_mut(&self) -> StdResult<RefMut<'_, Object<T>>, BorrowMutError> {
         self.inner
             .object
             .try_borrow_mut()

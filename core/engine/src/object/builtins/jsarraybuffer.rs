@@ -4,7 +4,7 @@ use crate::{
     builtins::array_buffer::ArrayBuffer,
     context::intrinsics::StandardConstructors,
     error::JsNativeError,
-    object::{JsObject, Object, internal_methods::get_prototype_from_constructor},
+    object::{JsObject, internal_methods::get_prototype_from_constructor},
     value::TryFromJs,
 };
 use boa_gc::{Finalize, GcRef, GcRefMut, Trace};
@@ -283,7 +283,7 @@ impl JsArrayBuffer {
     /// ```
     #[inline]
     #[must_use]
-    pub fn data_mut(&self) -> Option<GcRefMut<'_, Object<ArrayBuffer>, [u8]>> {
+    pub fn data_mut(&self) -> Option<GcRefMut<'_, [u8]>> {
         GcRefMut::try_map(self.inner.borrow_mut(), |o| o.data_mut().bytes_mut())
     }
 }
