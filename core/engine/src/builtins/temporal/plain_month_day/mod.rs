@@ -22,7 +22,7 @@ use boa_gc::{Finalize, Trace};
 use temporal_rs::{
     Calendar, MonthCode, PlainMonthDay as InnerMonthDay,
     fields::CalendarFields,
-    options::{ArithmeticOverflow, DisplayCalendar},
+    options::{DisplayCalendar, Overflow},
     parsed_intermediates::ParsedDate,
     partial::PartialDate,
 };
@@ -163,8 +163,7 @@ impl BuiltInConstructor for PlainMonthDay {
             })
             .transpose()?;
 
-        let inner =
-            InnerMonthDay::new_with_overflow(m, d, calendar, ArithmeticOverflow::Reject, ref_year)?;
+        let inner = InnerMonthDay::new_with_overflow(m, d, calendar, Overflow::Reject, ref_year)?;
         create_temporal_month_day(inner, Some(new_target), context)
     }
 }
@@ -301,8 +300,7 @@ impl PlainMonthDay {
         // 8. Let resolvedOptions be ? GetOptionsObject(options).
         let resolved_options = get_options_object(args.get_or_undefined(1))?;
         // 9. Let overflow be ? GetTemporalOverflowOption(resolvedOptions).
-        let overflow =
-            get_option::<ArithmeticOverflow>(&resolved_options, js_string!("overflow"), context)?;
+        let overflow = get_option::<Overflow>(&resolved_options, js_string!("overflow"), context)?;
         // 10. Let isoDate be ? CalendarMonthDayFromFields(calendar, fields, overflow).
         // 11. Return ! CreateTemporalMonthDay(isoDate, calendar).
         create_temporal_month_day(month_day.inner.with(fields, overflow)?, None, context)
@@ -536,7 +534,7 @@ fn to_temporal_month_day(
             // i. Let resolvedOptions be ? GetOptionsObject(options).
             let options = get_options_object(options)?;
             // ii. Perform ? GetTemporalOverflowOption(resolvedOptions).
-            let _ = get_option::<ArithmeticOverflow>(&options, js_string!("overflow"), context)?;
+            let _ = get_option::<Overflow>(&options, js_string!("overflow"), context)?;
             // iii. Return ! CreateTemporalMonthDay(item.[[ISODate]], item.[[Calendar]]).
             return Ok(md.inner.clone());
         }
@@ -596,7 +594,7 @@ fn to_temporal_month_day(
         // d. Let resolvedOptions be ? GetOptionsObject(options).
         let options = get_options_object(options)?;
         // e. Let overflow be ? GetTemporalOverflowOption(resolvedOptions).
-        let overflow = get_option::<ArithmeticOverflow>(&options, js_string!("overflow"), context)?;
+        let overflow = get_option::<Overflow>(&options, js_string!("overflow"), context)?;
         // f. Let isoDate be ? CalendarMonthDayFromFields(calendar, fields, overflow).
         // g. Return ! CreateTemporalMonthDay(isoDate, calendar).
         return Ok(InnerMonthDay::from_partial(partial_date, overflow)?);
@@ -617,7 +615,7 @@ fn to_temporal_month_day(
     // 8. Let resolvedOptions be ? GetOptionsObject(options).
     let options = get_options_object(options)?;
     // 9. Perform ? GetTemporalOverflowOption(resolvedOptions).
-    let _ = get_option::<ArithmeticOverflow>(&options, js_string!("overflow"), context)?;
+    let _ = get_option::<Overflow>(&options, js_string!("overflow"), context)?;
     // 10. If calendar is "iso8601", then
     // a. Let referenceISOYear be 1972 (the first ISO 8601 leap year after the epoch).
     // b. Let isoDate be CreateISODateRecord(referenceISOYear, result.[[Month]], result.[[Day]]).
