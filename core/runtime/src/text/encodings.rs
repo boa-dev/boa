@@ -31,11 +31,11 @@ pub(crate) mod utf16le {
 
     pub(crate) fn decode(mut input: &[u8]) -> JsString {
         // After this point, input is of even length.
-        let dangling = if input.len() % 2 != 0 {
+        let dangling = if input.len().is_multiple_of(2) {
+            false
+        } else {
             input = &input[0..input.len() - 1];
             true
-        } else {
-            false
         };
 
         let input: &[u16] = bytemuck::cast_slice(input);
@@ -62,12 +62,12 @@ pub(crate) mod utf16be {
     pub(crate) fn decode(mut input: Vec<u8>) -> JsString {
         let mut input = input.as_mut_slice();
         // After this point, input is of even length.
-        let dangling = if input.len() % 2 != 0 {
+        let dangling = if input.len().is_multiple_of(2) {
+            false
+        } else {
             let new_len = input.len() - 1;
             input = &mut input[0..new_len];
             true
-        } else {
-            false
         };
 
         let input: &mut [u16] = bytemuck::cast_slice_mut(input);

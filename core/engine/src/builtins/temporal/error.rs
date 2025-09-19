@@ -7,10 +7,12 @@ impl From<TemporalError> for JsNativeError {
     fn from(value: TemporalError) -> Self {
         match value.kind() {
             ErrorKind::Range | ErrorKind::Syntax => {
-                JsNativeError::range().with_message(value.message().to_owned())
+                JsNativeError::range().with_message(value.into_message().to_owned())
             }
-            ErrorKind::Type => JsNativeError::typ().with_message(value.message().to_owned()),
-            ErrorKind::Generic => JsNativeError::error().with_message(value.message().to_owned()),
+            ErrorKind::Type => JsNativeError::typ().with_message(value.into_message().to_owned()),
+            ErrorKind::Generic => {
+                JsNativeError::error().with_message(value.into_message().to_owned())
+            }
             ErrorKind::Assert => JsNativeError::error().with_message("internal engine error"),
         }
     }

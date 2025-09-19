@@ -10,7 +10,7 @@ pub use hooks::{DefaultHooks, HostHooks};
 pub use icu::IcuError;
 use intrinsics::Intrinsics;
 #[cfg(feature = "temporal")]
-use temporal_rs::tzdb::FsTzdbProvider;
+use timezone_provider::tzif::FsTzdbProvider;
 
 use crate::job::Job;
 use crate::module::DynModuleLoader;

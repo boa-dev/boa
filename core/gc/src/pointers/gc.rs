@@ -276,10 +276,10 @@ impl<T: Trace + ?Sized> Gc<T> {
     #[inline]
     #[must_use]
     pub unsafe fn cast_unchecked<U: Trace + 'static>(this: Self) -> Gc<U> {
-        let inner_ptr = this.inner_ptr.cast();
+        let inner_ptr = this.inner_ptr.cast::<U>();
         core::mem::forget(this); // Prevents double free.
         Gc {
-            inner_ptr,
+            inner_ptr: inner_ptr.cast(),
             marker: PhantomData,
         }
     }
@@ -346,11 +346,13 @@ unsafe impl<T: Trace + ?Sized> Trace for Gc<T> {
 impl<T: Trace + ?Sized> Clone for Gc<T> {
     fn clone(&self) -> Self {
         let ptr = self.inner_ptr();
-        self.inner().inc_ref_count();
         // SAFETY: though `ptr` doesn't come from a `into_raw` call, it essentially does the same,
         // but it skips the call to `std::mem::forget` since we have a reference instead of an owned
         // value.
-        unsafe { Self::from_raw(ptr) }
+        unsafe {
+            ptr.as_ref().inc_ref_count();
+            Self::from_raw(ptr)
+        }
     }
 }
 
