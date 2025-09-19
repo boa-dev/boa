@@ -178,6 +178,10 @@ pub trait Class: NativeObject + Sized {
         let prototype = 'proto: {
             let realm = if let Some(constructor) = new_target.as_object() {
                 if let Some(proto) = constructor.get(PROTOTYPE, context)?.as_object() {
+                    eprintln!(
+                        "construct: {}",
+                        JsValue::from(proto.clone()).display().to_string()
+                    );
                     break 'proto proto.clone();
                 }
                 constructor.get_function_realm(context)?
@@ -194,6 +198,24 @@ pub trait Class: NativeObject + Sized {
                 })?
                 .prototype()
         };
+        let r = context.realm();
+        let pp = r
+            .get_class::<Self>()
+            .ok_or_else(|| {
+                JsNativeError::typ().with_message(format!(
+                    "could not find native class `{}` in the map of registered classes",
+                    Self::NAME
+                ))
+            })?
+            .prototype();
+        eprintln!(
+            "construt pp: {}",
+            JsValue::from(pp.clone()).display().to_string()
+        );
+        eprintln!(
+            "construct 2: {}",
+            JsValue::from(prototype.clone()).display().to_string()
+        );
 
         let data = Self::data_constructor(new_target, args, context)?;
 
@@ -266,11 +288,15 @@ impl<'ctx> ClassBuilder<'ctx> {
     }
 
     /// Set the prototype of the class's constructor, making it a subclass.
-    pub fn inherit<T>(&mut self, value: T) -> &mut Self
+    pub fn extends<T>(&mut self, value: T) -> &mut Self
     where
         T: Into<JsPrototype>,
     {
-        self.builder.inherit(value);
+        let p = value.into();
+        self.builder.inherit(p.clone());
+        if let Some(p) = p {
+            self.builder.custom_prototype(p.prototype());
+        }
         self
     }
 

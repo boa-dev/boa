@@ -835,7 +835,13 @@ impl<'ctx> ConstructorBuilder<'ctx> {
     /// Default is `Object.prototype`
     pub fn inherit<O: Into<JsPrototype>>(&mut self, prototype: O) -> &mut Self {
         self.inherit = Some(prototype.into());
-        self.kind = Some(ConstructorKind::Derived);
+
+        let v = self
+            .inherit
+            .as_ref()
+            .and_then(|o| o.clone())
+            .map(|o| JsValue::new(o.clone()));
+        eprintln!("inherit: {:?}", v.map(|v| v.display().to_string()));
         self
     }
 
@@ -875,10 +881,13 @@ impl<'ctx> ConstructorBuilder<'ctx> {
             .writable(false)
             .enumerable(false)
             .configurable(true);
+        eprintln!("name: {name:?}");
 
         let prototype = {
-            if let Some(proto) = self.inherit.take() {
+            let internal_methods = if let Some(proto) = self.inherit.take() {
+                let v = proto.internal_methods();
                 self.prototype.set_prototype(proto);
+                v
             } else {
                 self.prototype.set_prototype(
                     self.context
@@ -887,9 +896,10 @@ impl<'ctx> ConstructorBuilder<'ctx> {
                         .object()
                         .prototype(),
                 );
-            }
+                &ORDINARY_INTERNAL_METHODS
+            };
 
-            JsObject::from_object_and_vtable(self.prototype, &ORDINARY_INTERNAL_METHODS)
+            JsObject::from_object_and_vtable(self.prototype, internal_methods)
         };
 
         let constructor = {

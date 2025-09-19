@@ -522,14 +522,11 @@ impl ClassVisitor {
                 {
                     let proto = builder
                         .context()
-                        .eval(Source::from_bytes( #js ))
-                        .ok()
-                        .and_then(|p| p.as_object())
-                        .ok_or_else(|| boa_engine::js_error!(TypeError: "invalid extends prototype"))?
-                        .prototype()
-                        .unwrap();
-                    eprintln!("proto: {}", boa_engine::JsValue::from(proto.clone()).display_obj(false));
-                    builder.inherit(proto);
+                        .eval(Source::from_bytes( #js ))?;
+                    builder.extends(
+                        proto.as_object()
+                            .ok_or_else(|| boa_engine::js_error!(TypeError: "invalid extends prototype"))?
+                    );
                 }
             },
             Extends::RustPath(_) => {

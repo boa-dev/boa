@@ -390,6 +390,11 @@ fn native_function_construct(
     argument_count: usize,
     context: &mut InternalMethodCallContext<'_>,
 ) -> JsResult<CallValue> {
+    eprintln!(
+        "native_function_construct {} {}",
+        JsValue::from(obj.clone()).display(),
+        argument_count
+    );
     // We technically don't need this since native functions don't push any new frames to the
     // vm, but we'll eventually have to combine the native stack with the vm stack.
     context.check_runtime_limits()?;

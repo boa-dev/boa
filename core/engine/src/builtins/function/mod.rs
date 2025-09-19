@@ -1080,6 +1080,12 @@ fn function_construct(
     argument_count: usize,
     context: &mut InternalMethodCallContext<'_>,
 ) -> JsResult<CallValue> {
+    eprintln!(
+        "function_construct {} {}",
+        JsValue::from(this_function_object.clone()).display(),
+        argument_count
+    );
+    eprintln!("backtrace: {}", std::backtrace::Backtrace::capture());
     context.check_runtime_limits()?;
 
     let function = this_function_object
