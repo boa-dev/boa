@@ -23,7 +23,7 @@ use crate::{builtins::temporal::options::get_digits_option, value::JsVariant};
 use boa_gc::{Finalize, Trace};
 use temporal_rs::{
     PlainTime as PlainTimeInner,
-    options::{ArithmeticOverflow, RoundingMode, ToStringRoundingOptions, Unit},
+    options::{Overflow, RoundingMode, ToStringRoundingOptions, Unit},
     partial::PartialTime,
 };
 
@@ -542,7 +542,7 @@ impl PlainTime {
         // 17. Let resolvedOptions be ? GetOptionsObject(options).
         // 18. Let overflow be ? GetTemporalOverflowOption(resolvedOptions).
         let options = get_options_object(args.get_or_undefined(1))?;
-        let overflow = get_option::<ArithmeticOverflow>(&options, js_string!("overflow"), context)?;
+        let overflow = get_option::<Overflow>(&options, js_string!("overflow"), context)?;
 
         create_temporal_time(time.inner.with(partial, overflow)?, None, context).map(Into::into)
     }
@@ -881,8 +881,7 @@ pub(crate) fn to_temporal_time(
             if let Some(time) = object.downcast_ref::<PlainTime>() {
                 // i. Return item.
                 let options = get_options_object(options)?;
-                let _overflow =
-                    get_option::<ArithmeticOverflow>(&options, js_string!("overflow"), context)?;
+                let _overflow = get_option::<Overflow>(&options, js_string!("overflow"), context)?;
                 return Ok(time.inner);
             // b. If item has an [[InitializedTemporalZonedDateTime]] internal slot, then
             } else if let Some(zdt) = object.downcast_ref::<ZonedDateTime>() {
@@ -893,8 +892,7 @@ pub(crate) fn to_temporal_time(
                 // plainDateTime.[[ISOSecond]], plainDateTime.[[ISOMillisecond]], plainDateTime.[[ISOMicrosecond]],
                 // plainDateTime.[[ISONanosecond]]).
                 let options = get_options_object(options)?;
-                let _overflow =
-                    get_option::<ArithmeticOverflow>(&options, js_string!("overflow"), context)?;
+                let _overflow = get_option::<Overflow>(&options, js_string!("overflow"), context)?;
                 return zdt.inner.to_plain_time().map_err(Into::into);
             // c. If item has an [[InitializedTemporalDateTime]] internal slot, then
             } else if let Some(dt) = object.downcast_ref::<PlainDateTime>() {
@@ -902,8 +900,7 @@ pub(crate) fn to_temporal_time(
                 // item.[[ISOSecond]], item.[[ISOMillisecond]], item.[[ISOMicrosecond]],
                 // item.[[ISONanosecond]]).
                 let options = get_options_object(options)?;
-                let _overflow =
-                    get_option::<ArithmeticOverflow>(&options, js_string!("overflow"), context)?;
+                let _overflow = get_option::<Overflow>(&options, js_string!("overflow"), context)?;
                 return Ok(PlainTimeInner::from(dt.inner.clone()));
             }
             // d. Let result be ? ToTemporalTimeRecord(item).
@@ -913,8 +910,7 @@ pub(crate) fn to_temporal_time(
             let partial = to_partial_time_record(&object, context)?;
 
             let options = get_options_object(options)?;
-            let overflow =
-                get_option::<ArithmeticOverflow>(&options, js_string!("overflow"), context)?;
+            let overflow = get_option::<Overflow>(&options, js_string!("overflow"), context)?;
 
             PlainTimeInner::from_partial(partial, overflow).map_err(Into::into)
         }
@@ -925,8 +921,7 @@ pub(crate) fn to_temporal_time(
             let result = str.to_std_string_escaped().parse::<PlainTimeInner>()?;
 
             let options = get_options_object(options)?;
-            let _overflow =
-                get_option::<ArithmeticOverflow>(&options, js_string!("overflow"), context)?;
+            let _overflow = get_option::<Overflow>(&options, js_string!("overflow"), context)?;
 
             Ok(result)
         }

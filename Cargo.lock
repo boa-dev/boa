@@ -411,6 +411,7 @@ dependencies = [
  "thin-vec",
  "thiserror",
  "time",
+ "timezone_provider",
  "tinystr",
  "web-time",
  "writeable",
@@ -4142,20 +4143,17 @@ dependencies = [
 
 [[package]]
 name = "temporal_rs"
-version = "0.0.14"
+version = "0.0.16"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "867c429d5aec157c6d4c255366315f5d0d4a3521171d4429c6c0a382812c0034"
+checksum = "b67f9a1bf14704be6400d37f5ec9c10f139e563adae37dee83c4477178818486"
 dependencies = [
- "combine",
  "core_maths",
  "icu_calendar",
  "icu_locale",
  "ixdtf",
- "jiff-tzdb",
  "num-traits",
  "timezone_provider",
  "tinystr",
- "tzif",
  "writeable",
 ]
 
@@ -4288,11 +4286,14 @@ dependencies = [
 
 [[package]]
 name = "timezone_provider"
-version = "0.0.14"
+version = "0.0.16"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "f357f8e2cddee6a7b56b69fbb4cab30a7e82914c80ee7f9a5eb799ee3de3f24d"
+checksum = "14fab21f70d8ca989ca76d399d26f4487747ac2def3816d93eaa966f8dfa2ea7"
 dependencies = [
+ "combine",
+ "jiff-tzdb",
  "tinystr",
+ "tzif",
  "zerotrie",
  "zerovec",
 ]

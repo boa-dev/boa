@@ -25,9 +25,8 @@ use temporal_rs::{
     Calendar, MonthCode, TimeZone, TinyAsciiStr, UtcOffset, ZonedDateTime as ZonedDateTimeInner,
     fields::{CalendarFields, ZonedDateTimeFields},
     options::{
-        ArithmeticOverflow, Disambiguation, DisplayCalendar, DisplayOffset, DisplayTimeZone,
-        OffsetDisambiguation, RoundingIncrement, RoundingMode, RoundingOptions,
-        ToStringRoundingOptions, Unit,
+        Disambiguation, DisplayCalendar, DisplayOffset, DisplayTimeZone, OffsetDisambiguation,
+        Overflow, RoundingIncrement, RoundingMode, RoundingOptions, ToStringRoundingOptions, Unit,
     },
     partial::{PartialTime, PartialZonedDateTime},
     provider::TransitionDirection,
@@ -500,7 +499,7 @@ impl ZonedDateTime {
     /// [spec]: https://tc39.es/proposal-temporal/#sec-get-temporal.zoneddatetime.prototype.timezoneid
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Temporal/ZonedDateTime/timeZoneId
     /// [temporal_rs-docs]: https://docs.rs/temporal_rs/latest/temporal_rs/struct.ZonedDateTime.html#method.timezone
-    fn get_timezone_id(this: &JsValue, _: &[JsValue], _: &mut Context) -> JsResult<JsValue> {
+    fn get_timezone_id(this: &JsValue, _: &[JsValue], context: &mut Context) -> JsResult<JsValue> {
         let object = this.as_object();
         let zdt = object
             .as_ref()
@@ -509,7 +508,12 @@ impl ZonedDateTime {
                 JsNativeError::typ().with_message("the this object must be a ZonedDateTime object.")
             })?;
 
-        Ok(JsString::from(zdt.inner.timezone().identifier()).into())
+        Ok(JsString::from(
+            zdt.inner
+                .timezone()
+                .identifier_with_provider(context.tz_provider())?,
+        )
+        .into())
     }
 
     /// 6.3.5 get `Temporal.ZonedDateTime.prototype.era`
@@ -1217,8 +1221,7 @@ impl ZonedDateTime {
         let offset =
             get_option::<OffsetDisambiguation>(&resolved_options, js_string!("offset"), context)?;
         // 22. Let overflow be ? GetTemporalOverflowOption(resolvedOptions).
-        let overflow =
-            get_option::<ArithmeticOverflow>(&resolved_options, js_string!("overflow"), context)?;
+        let overflow = get_option::<Overflow>(&resolved_options, js_string!("overflow"), context)?;
 
         let result = zdt.inner.with_with_provider(
             fields,
@@ -1342,7 +1345,7 @@ impl ZonedDateTime {
         let duration = to_temporal_duration(args.get_or_undefined(0), context)?;
 
         let options = get_options_object(args.get_or_undefined(1))?;
-        let overflow = get_option::<ArithmeticOverflow>(&options, js_string!("overflow"), context)?;
+        let overflow = get_option::<Overflow>(&options, js_string!("overflow"), context)?;
 
         let result = zdt
             .inner
@@ -1373,7 +1376,7 @@ impl ZonedDateTime {
         let duration = to_temporal_duration(args.get_or_undefined(0), context)?;
 
         let options = get_options_object(args.get_or_undefined(1))?;
-        let overflow = get_option::<ArithmeticOverflow>(&options, js_string!("overflow"), context)?;
+        let overflow = get_option::<Overflow>(&options, js_string!("overflow"), context)?;
 
         let result =
             zdt.inner
@@ -1935,9 +1938,8 @@ pub(crate) fn to_temporal_zoneddatetime(
                     get_option::<OffsetDisambiguation>(&options, js_string!("offset"), context)?
                         .unwrap_or(OffsetDisambiguation::Reject);
                 // v. Perform ? GetTemporalOverflowOption(resolvedOptions).
-                let _overflow =
-                    get_option::<ArithmeticOverflow>(&options, js_string!("overflow"), context)?
-                        .unwrap_or_default();
+                let _overflow = get_option::<Overflow>(&options, js_string!("overflow"), context)?
+                    .unwrap_or_default();
                 // vi. Return ! CreateTemporalZonedDateTime(item.[[EpochNanoseconds]], item.[[TimeZone]], item.[[Calendar]]).
                 return Ok(zdt.inner.as_ref().clone());
             }
@@ -1953,8 +1955,7 @@ pub(crate) fn to_temporal_zoneddatetime(
             let offset_option =
                 get_option::<OffsetDisambiguation>(&options, js_string!("offset"), context)?;
             // j. Let overflow be ? GetTemporalOverflowOption(resolvedOptions).
-            let overflow =
-                get_option::<ArithmeticOverflow>(&options, js_string!("overflow"), context)?;
+            let overflow = get_option::<Overflow>(&options, js_string!("overflow"), context)?;
             // k. Let result be ? InterpretTemporalDateTimeFields(calendar, fields, overflow).
             // l. Let isoDate be result.[[ISODate]].
             // m. Let time be result.[[Time]].
@@ -1991,8 +1992,7 @@ pub(crate) fn to_temporal_zoneddatetime(
                 get_option::<OffsetDisambiguation>(&options, js_string!("offset"), context)?
                     .unwrap_or(OffsetDisambiguation::Reject);
             // p. Perform ? GetTemporalOverflowOption(resolvedOptions).
-            let _overflow =
-                get_option::<ArithmeticOverflow>(&options, js_string!("overflow"), context)?;
+            let _overflow = get_option::<Overflow>(&options, js_string!("overflow"), context)?;
             // q. Let isoDate be CreateISODateRecord(result.[[Year]], result.[[Month]], result.[[Day]]).
             // r. Let time be result.[[Time]].
             // 6. Let offsetNanoseconds be 0.
@@ -2025,7 +2025,7 @@ pub(crate) fn to_temporal_timezone_identifier(
         && let Some(zdt) = obj.downcast_ref::<ZonedDateTime>()
     {
         // i. Return temporalTimeZoneLike.[[TimeZone]].
-        return Ok(zdt.inner.timezone().clone());
+        return Ok(*zdt.inner.timezone());
     }
 
     // 2. If temporalTimeZoneLike is not a String, throw a TypeError exception.
