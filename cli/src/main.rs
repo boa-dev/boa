@@ -415,8 +415,6 @@ fn main() -> Result<()> {
     // A channel of expressions to run.
     let (sender, receiver) = std::sync::mpsc::channel::<String>();
     let printer = SharedExternalPrinterLogger::new();
-    // Start the thread early so we can pass the printer to our console logger.
-    let handle = start_readline_thread(sender, printer.clone(), args.vi_mode);
 
     let executor = Rc::new(Executor::new(printer.clone()));
     let loader = Rc::new(SimpleModuleLoader::new(&args.root).map_err(|e| eyre!(e.to_string()))?);
@@ -458,6 +456,8 @@ fn main() -> Result<()> {
         return Ok(());
     }
 
+    let handle = start_readline_thread(sender, printer.clone(), args.vi_mode);
+
     loop {
         match receiver.try_recv() {
             Ok(line) => {
@@ -494,8 +494,9 @@ fn readline_thread_main(
 
     let mut editor =
         Editor::with_config(config).wrap_err("failed to set the editor configuration")?;
-    let printer = editor.create_external_printer()?;
-    printer_out.set(printer);
+    if let Ok(printer) = editor.create_external_printer() {
+        printer_out.set(printer);
+    }
 
     // Check if the history file exists. If it doesn't, create it.
     OpenOptions::new()

@@ -2,6 +2,7 @@ use boa_engine::{Context, Finalize, JsResult, Trace};
 use boa_runtime::{ConsoleState, Logger};
 use rustyline::ExternalPrinter;
 use std::fmt::Debug;
+use std::io::Write;
 use std::sync::{Arc, Mutex};
 
 #[derive(Clone, Trace, Finalize)]
@@ -28,6 +29,8 @@ impl SharedExternalPrinterLogger {
         if let Some(l) = &mut *self.inner.lock().expect("printer lock failed") {
             // Ignore errors, there's nothing we can do at this point.
             drop(l.print(message));
+        } else {
+            drop(std::io::stdout().write_all(message.as_bytes()));
         }
     }
 }
