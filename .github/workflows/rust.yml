@@ -71,15 +71,16 @@ jobs:
       CARGO_TARGET_X86_64_APPLE_DARWIN_RUSTFLAGS: ${{ (github.ref == 'refs/heads/main' || github.base_ref == 'main') && '-D warnings' || '' }}
       CARGO_TARGET_AARCH64_UNKNOWN_LINUX_GNU: ${{ (github.ref == 'refs/heads/main' || github.base_ref == 'main') && '-D warnings' || '' }}
     strategy:
-       include:
-         - os: macos-14
-           arch: ARM64
-         - os: windows-latest
-           arch: x64
-         - os: ubuntu-24.04-arm
-           arch: ARM64
-         - os: ubuntu-latest
-           arch: X64
+      matrix:
+        include:
+          - os: macos-14
+            arch: ARM64
+          - os: windows-latest
+            arch: x64
+          - os: ubuntu-24.04-arm
+            arch: ARM64
+          - os: ubuntu-latest
+            arch: X64
     steps:
       - name: Checkout repository
         uses: actions/checkout@v5
