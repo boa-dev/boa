@@ -59,6 +59,11 @@ jobs:
             ~/.cargo/registry
           key: ${{ runner.os }}-${{ runner.arch }}-cargo-${{ hashFiles('**/Cargo.lock') }}
 
+      - name: Install wasm-pack
+        uses: baptiste0928/cargo-install@v3.3.2
+        with:
+          crate: wasm-pack
+
       - name: Build Playground
         run: wasm-pack build ./ffi/wasm --verbose
       - name: Test (Chrome)
