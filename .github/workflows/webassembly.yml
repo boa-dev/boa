@@ -49,11 +49,16 @@ jobs:
         with:
           toolchain: stable
 
-      - uses: Swatinem/rust-cache@v2
-      - name: Install wasm-pack
-        uses: baptiste0928/cargo-install@v3.3.2
+
+      - name: Cache cargo
+        uses: actions/cache@v4
         with:
-          crate: wasm-pack
+          path: |
+            target
+            ~/.cargo/git
+            ~/.cargo/registry
+          key: ${{ runner.os }}-${{ runner.arch }}-cargo-${{ hashFiles('**/Cargo.lock') }}
+
       - name: Build Playground
         run: wasm-pack build ./ffi/wasm --verbose
       - name: Test (Chrome)
