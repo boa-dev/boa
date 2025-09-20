@@ -252,7 +252,7 @@ jobs:
             target
             ~/.cargo/git
             ~/.cargo/registry
-          key: ${{ runner.os }}-cargo-${{ hashFiles('**/Cargo.lock') }}
+          key: ${{ runner.os }}-${{ runner.arch }}-cargo-${{ hashFiles('**/Cargo.lock') }}
 
       - name: Install cargo-fuzz
         run: cargo install cargo-fuzz
