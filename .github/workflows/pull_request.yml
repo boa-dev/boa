@@ -34,7 +34,7 @@ jobs:
             target
             ~/.cargo/git
             ~/.cargo/registry
-          key: ${{ runner.os }}-cargo-${{ hashFiles('**/Cargo.lock') }}
+          key: ${{ runner.os }}-${{ runner.arch }}-cargo-${{ hashFiles('**/Cargo.lock') }}
       - uses: boa-dev/criterion-compare-action@v3.2.4
         with:
           token: ${{ secrets.GITHUB_TOKEN }}
