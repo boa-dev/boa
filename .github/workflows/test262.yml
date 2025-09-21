@@ -1,6 +1,6 @@
 name: EcmaScript official test suite (test262)
 on:
-  pull_request:
+  pull_request_target:
     branches:
       - main
       - releases/**
@@ -20,8 +20,8 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v5
         with:
-          submodules: true
           path: boa
+          ref: ${{ github.event.pull_request.head.sha || github.ref }}
 
       - name: Install Rust toolchain
         uses: dtolnay/rust-toolchain@stable
@@ -52,7 +52,7 @@ jobs:
 
       # Run the results comparison
       - name: Compare results
-        if: github.event_name == 'pull_request'
+        if: github.event_name == 'pull_request_target'
         id: compare
         shell: bash
         run: |
@@ -63,12 +63,12 @@ jobs:
           echo "EOF" >> $GITHUB_OUTPUT
 
       - name: Get the PR number
-        if: github.event_name == 'pull_request'
+        if: github.event_name == 'pull_request_target'
         id: pr-number
         uses: kkak10/pr-number-action@v1.3
 
       - name: Find Previous Comment
-        if: github.event_name == 'pull_request'
+        if: github.event_name == 'pull_request_target'
         uses: peter-evans/find-comment@v4
         id: previous-comment
         with:
@@ -76,7 +76,7 @@ jobs:
           body-includes: Test262 conformance changes
 
       - name: Update comment
-        if: github.event_name == 'pull_request' && steps.previous-comment.outputs.comment-id
+        if: github.event_name == 'pull_request_target' && steps.previous-comment.outputs.comment-id
         uses: peter-evans/create-or-update-comment@v5
         continue-on-error: true
         with:
@@ -88,7 +88,7 @@ jobs:
           edit-mode: replace
 
       - name: Write a new comment
-        if: github.event_name == 'pull_request' && !steps.previous-comment.outputs.comment-id
+        if: github.event_name == 'pull_request_target' && !steps.previous-comment.outputs.comment-id
         uses: peter-evans/create-or-update-comment@v5
         continue-on-error: true
         with:
@@ -97,4 +97,3 @@ jobs:
             ### Test262 conformance changes
 
             ${{ steps.compare.outputs.comment }}
-
