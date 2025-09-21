@@ -1,7 +1,7 @@
 //! A Rust API wrapper for Boa's `ArrayBuffer` Builtin ECMAScript Object
 use crate::{
     Context, JsResult, JsValue,
-    builtins::array_buffer::ArrayBuffer,
+    builtins::array_buffer::{AlignedVec, ArrayBuffer},
     context::intrinsics::StandardConstructors,
     error::JsNativeError,
     object::{JsObject, internal_methods::get_prototype_from_constructor},
@@ -94,7 +94,7 @@ impl JsArrayBuffer {
     /// # Ok(())
     /// # }
     /// ```
-    pub fn from_byte_block(byte_block: Vec<u8>, context: &mut Context) -> JsResult<Self> {
+    pub fn from_byte_block(byte_block: AlignedVec<u8>, context: &mut Context) -> JsResult<Self> {
         let constructor = context
             .intrinsics()
             .constructors()
@@ -210,7 +210,7 @@ impl JsArrayBuffer {
     /// # }
     /// ```
     #[inline]
-    pub fn detach(&self, detach_key: &JsValue) -> JsResult<Vec<u8>> {
+    pub fn detach(&self, detach_key: &JsValue) -> JsResult<AlignedVec<u8>> {
         self.inner
             .borrow_mut()
             .data_mut()

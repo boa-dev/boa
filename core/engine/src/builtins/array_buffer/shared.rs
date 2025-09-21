@@ -1,5 +1,5 @@
 use std::{
-    alloc,
+    ptr,
     sync::{Arc, atomic::Ordering},
 };
 
@@ -9,7 +9,10 @@ use boa_gc::{Finalize, Trace};
 
 use crate::{
     Context, JsArgs, JsData, JsNativeError, JsObject, JsResult, JsString, JsSymbol, JsValue,
-    builtins::{Array, BuiltInBuilder, BuiltInConstructor, BuiltInObject, IntrinsicObject},
+    builtins::{
+        Array, BuiltInBuilder, BuiltInConstructor, BuiltInObject, IntrinsicObject,
+        array_buffer::{AlignedBox, AlignedVec},
+    },
     context::intrinsics::{Intrinsics, StandardConstructor, StandardConstructors},
     js_string,
     object::internal_methods::get_prototype_from_constructor,
@@ -31,7 +34,7 @@ pub struct SharedArrayBuffer {
     data: Arc<Inner>,
 }
 
-#[derive(Debug, Default)]
+#[derive(Debug)]
 struct Inner {
     // Technically we should have an `[[ArrayBufferData]]` internal slot,
     // `[[ArrayBufferByteLengthData]]` and `[[ArrayBufferMaxByteLength]]` slots for growable arrays
@@ -41,8 +44,17 @@ struct Inner {
     // The maximum buffer length is represented by `buffer.len()`, and `current_len` has the current
     // buffer length, or `None` if this is a fixed buffer; in this case, `buffer.len()` will be
     // the true length of the buffer.
-    buffer: Box<[AtomicU8]>,
+    buffer: AlignedBox<[AtomicU8]>,
     current_len: Option<AtomicUsize>,
+}
+
+impl Default for Inner {
+    fn default() -> Self {
+        Self {
+            buffer: AlignedVec::new(0).into_boxed_slice(),
+            current_len: None,
+        }
+    }
 }
 
 impl SharedArrayBuffer {
@@ -432,7 +444,7 @@ impl SharedArrayBuffer {
             })?;
 
             // 18. If new.[[ArrayBufferData]] is O.[[ArrayBufferData]], throw a TypeError exception.
-            if std::ptr::eq(buf.as_ptr(), new.as_ptr()) {
+            if ptr::eq(buf.as_ptr(), new.as_ptr()) {
                 return Err(JsNativeError::typ()
                     .with_message("cannot reuse the same SharedArrayBuffer for a slice operation")
                     .into());
@@ -550,7 +562,7 @@ impl SharedArrayBuffer {
 pub(crate) fn create_shared_byte_data_block(
     size: u64,
     context: &mut Context,
-) -> JsResult<Box<[AtomicU8]>> {
+) -> JsResult<AlignedBox<[AtomicU8]>> {
     if size > context.host_hooks().max_buffer_size(context) {
         return Err(JsNativeError::range()
             .with_message(
@@ -567,7 +579,7 @@ pub(crate) fn create_shared_byte_data_block(
 
     if size == 0 {
         // Must ensure we don't allocate a zero-sized buffer.
-        return Ok(Box::default());
+        return Ok(AlignedVec::new(0).into_boxed_slice());
     }
 
     // 2. Let execution be the [[CandidateExecution]] field of the surrounding agent's Agent Record.
@@ -578,38 +590,25 @@ pub(crate) fn create_shared_byte_data_block(
     //     a. Append WriteSharedMemory { [[Order]]: init, [[NoTear]]: true, [[Block]]: db,
     //        [[ByteIndex]]: i, [[ElementSize]]: 1, [[Payload]]: zero } to eventsRecord.[[EventList]].
     // 6. Return db.
-
-    // Initializing a boxed slice of atomics is almost impossible using safe code.
-    // This replaces that with a simple `alloc` and some casts to convert the allocation
-    // to `Box<[AtomicU8]>`.
-
-    let layout = alloc::Layout::array::<AtomicU8>(size).map_err(|e| {
-        JsNativeError::range().with_message(format!("couldn't allocate the data block: {e}"))
+    let mut buf = AlignedVec::<u8>::new(0);
+    buf.try_reserve_exact(size).map_err(|e| {
+        let message = match e {
+            aligned_vec::TryReserveError::CapacityOverflow => {
+                format!("capacity overflow for size {size} while allocating data block")
+            }
+            aligned_vec::TryReserveError::AllocError { layout } => {
+                format!("invalid layout {layout:?} while allocating data block")
+            }
+        };
+        JsNativeError::range().with_message(message)
     })?;
-
-    // SAFETY: We already returned if `size == 0`, making this safe.
-    let ptr: *mut AtomicU8 = unsafe { alloc::alloc_zeroed(layout).cast() };
-
-    if ptr.is_null() {
-        return Err(JsNativeError::range()
-            .with_message("memory allocator failed to allocate buffer")
-            .into());
-    }
-
-    // SAFETY:
-    // - It is ensured by the layout that `buffer` has `size` contiguous elements
-    // on its allocation.
-    // - The original `ptr` doesn't escape outside this function.
-    // - `buffer` is a valid pointer by the null check above.
-    let buffer = unsafe { Box::from_raw(std::slice::from_raw_parts_mut(ptr, size)) };
-
-    // Just for good measure, since our implementation depends on having a pointer aligned
-    // to the alignment of `u64`.
-    // This could be replaced with a custom `Box` implementation, but most architectures
-    // already align pointers to 8 bytes, so it's a lot of work for such a small
-    // compatibility improvement.
-    assert_eq!(buffer.as_ptr().addr() % align_of::<u64>(), 0);
+    buf.resize(size, 0);
+    buf.shrink_to_fit();
+    let (data, align, len, _) = buf.into_raw_parts();
 
     // 3. Return db.
-    Ok(buffer)
+    // SAFETY: `[u8]` must be trasparently castable to `[AtomicU8]`.
+    Ok(unsafe {
+        AlignedBox::from_raw_parts(align, ptr::slice_from_raw_parts_mut(data.cast(), len))
+    })
 }

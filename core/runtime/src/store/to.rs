@@ -1,5 +1,6 @@
 //! All methods for deserializing a [`JsValueStore`] into a [`JsValue`].
 use crate::store::{JsValueStore, StringStore, ValueStoreInner, unsupported_type};
+use boa_engine::builtins::array_buffer::AlignedVec;
 use boa_engine::builtins::typed_array::TypedArrayKind;
 use boa_engine::object::builtins::{
     JsArray, JsArrayBuffer, JsDataView, JsDate, JsMap, JsRegExp, JsSet, js_typed_array_from_kind,
@@ -65,7 +66,7 @@ fn try_into_js_array_buffer(
     seen: &mut ReverseSeenMap,
     context: &mut Context,
 ) -> JsResult<JsValue> {
-    let buffer = JsArrayBuffer::from_byte_block(data.to_vec(), context)?;
+    let buffer = JsArrayBuffer::from_byte_block(AlignedVec::from_slice(0, data), context)?;
     let obj = JsObject::from(buffer);
     seen.insert(store, obj.clone());
     Ok(JsValue::from(obj))
