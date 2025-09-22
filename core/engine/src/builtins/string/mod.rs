@@ -2286,7 +2286,7 @@ impl String {
             IntegerOrInfinity::Integer(int_start) => int_start,
             // 7. Else, set intStart to min(intStart, size).
             //
-            // NOTE: size will always we smaller than +∞
+            // NOTE: size will always be smaller than +∞
             IntegerOrInfinity::PositiveInfinity => size,
         } as usize;
 
