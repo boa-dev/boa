@@ -14,7 +14,7 @@ use futures::channel::mpsc::UnboundedSender;
 /// A [`MessageSender`] that reads the `onMessageQueue` property of the global
 /// object and calls it if it is a function. Note that this does not support
 /// event listeners, only checks the (made-up) `onMessageQueue` property. It
-/// also does not check the `targetOrigin` and accept all messages.
+/// also does not check the `targetOrigin` and accepts all messages.
 #[derive(Debug, Clone, Trace, Finalize, JsData)]
 pub struct OnMessageQueueSender {
     #[unsafe_ignore_trace]
