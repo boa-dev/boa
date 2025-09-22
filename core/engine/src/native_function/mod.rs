@@ -395,6 +395,10 @@ fn native_function_construct(
         JsValue::from(obj.clone()).display(),
         argument_count
     );
+    eprintln!(
+        "native_function_construct proto: {}",
+        JsValue::from(obj.prototype().unwrap()).display()
+    );
     // We technically don't need this since native functions don't push any new frames to the
     // vm, but we'll eventually have to combine the native stack with the vm stack.
     context.check_runtime_limits()?;
@@ -434,7 +438,13 @@ fn native_function_construct(
         .call(&new_target, &args, context)
         .map_err(|err| err.inject_realm(context.realm().clone()))
         .and_then(|v| match v.variant() {
-            JsVariant::Object(o) => Ok(o.clone()),
+            JsVariant::Object(o) => {
+                eprintln!(
+                    "native_function_construct construct object: {}",
+                    JsValue::from(obj.clone()).display()
+                );
+                Ok(o.clone())
+            }
             val => {
                 if constructor.expect("must be a constructor").is_base() || val.is_undefined() {
                     let prototype = get_prototype_from_constructor(

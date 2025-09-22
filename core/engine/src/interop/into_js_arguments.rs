@@ -1,3 +1,5 @@
+use crate::builtins::TypeError;
+use crate::js_error;
 use boa_engine::object::Object;
 use boa_engine::value::TryFromJs;
 use boa_engine::{Context, JsNativeError, JsObject, JsResult, JsValue, NativeObject};
@@ -202,6 +204,33 @@ impl<'a, T: TryFromJs> TryFromJsArgument<'a> for JsAll<T> {
             }
         }
         Ok((JsAll(values), rest))
+    }
+}
+
+/// Captures the `super` keyword in a JS class. This will only work on
+/// classes. It can be typed or not.
+#[derive(Debug, Clone)]
+pub struct JsSuper(JsObject);
+
+impl JsSuper {
+    /// Equivalent of calling `super(...)` in the constructor. It is undefined
+    /// behaviour to call this in
+    pub fn call(&self, args: &[JsValue], context: &mut Context) -> JsResult<()> {
+        self.0.construct(args, Some(&self.0), context)?;
+        Ok(())
+    }
+}
+
+impl<'a> TryFromJsArgument<'a> for JsSuper {
+    fn try_from_js_argument(
+        this: &'a JsValue,
+        rest: &'a [JsValue],
+        _context: &mut Context,
+    ) -> JsResult<(Self, &'a [JsValue])> {
+        let o = this
+            .as_object()
+            .ok_or_else(|| js_error!(TypeError: "this must be an object"))?;
+        Ok((Self(o), rest))
     }
 }
 

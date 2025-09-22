@@ -12,10 +12,10 @@ fn extends_js() {
     #[boa_class(extends = "Base")]
     impl X {
         #[boa(constructor)]
-        fn new(this: JsThis<JsObject>, context: &mut Context) -> Self {
+        fn new(this: JsThis<JsObject>, super: JsSuper, context: &mut Context) -> Self {
             eprintln!(
                 "this.proto: {}",
-                boa_engine::JsValue::from(this.0.prototype().unwrap()).display_obj(true)
+                boa_engine::JsValue::from(this.0.prototype().unwrap()).display()
             );
             eprintln!(
                 "this.proto.is_callable: {}",
