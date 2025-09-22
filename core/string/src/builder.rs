@@ -10,7 +10,6 @@ use std::{
 };
 
 /// A mutable builder to create instance of `JsString`.
-///
 #[derive(Debug)]
 pub struct JsStringBuilder<D: Copy> {
     cap: usize,
@@ -54,7 +53,6 @@ impl<D: Copy> JsStringBuilder<D> {
     ///
     /// - `new_len` must be less than or equal to `capacity()`.
     /// - The elements at `old_len..new_len` must be initialized.
-    ///
     #[inline]
     pub const unsafe fn set_len(&mut self, new_len: usize) {
         debug_assert!(new_len <= self.capacity());
@@ -581,7 +579,7 @@ impl Latin1JsStringBuilder {
 /// let mut s = Utf16JsStringBuilder::new();
 /// s.push(b'x' as u16);
 /// s.extend_from_slice(&[b'1', b'2', b'3'].map(u16::from));
-/// s.extend([0xD83C, 0xDFB9, 0xD83C, 0xDFB6, 0xD83C, 0xDFB5,]); // 🎹🎶🎵
+/// s.extend([0xD83C, 0xDFB9, 0xD83C, 0xDFB6, 0xD83C, 0xDFB5]); // 🎹🎶🎵
 /// let js_string = s.build();
 /// ```
 pub type Utf16JsStringBuilder = JsStringBuilder<u16>;

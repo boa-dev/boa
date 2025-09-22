@@ -1,7 +1,9 @@
 // This example shows how to manipulate a Javascript array using Rust code.
 
 use boa_engine::{
-    Context, JsResult, JsValue, js_string,
+    Context, JsResult, JsValue,
+    builtins::array_buffer::AlignedVec,
+    js_string,
     object::builtins::{JsArrayBuffer, JsDataView, JsUint8Array, JsUint32Array},
     property::Attribute,
 };
@@ -24,7 +26,7 @@ fn main() -> JsResult<()> {
     // We can also create array buffers from a user defined block of data.
     //
     // NOTE: The block data will not be cloned.
-    let blob_of_data: Vec<u8> = (0..=255).collect();
+    let blob_of_data = AlignedVec::from_iter(0, 0..=255);
     let array_buffer = JsArrayBuffer::from_byte_block(blob_of_data, context)?;
 
     // This the byte length of the new array buffer will be the length of block of data.
@@ -60,12 +62,15 @@ fn main() -> JsResult<()> {
         .unwrap();
 
     // We can also take the inner data from a JsArrayBuffer
-    let data_block: Vec<u8> = (0..5).collect();
+    let data_block = AlignedVec::from_iter(0, 0..5);
     let array_buffer = JsArrayBuffer::from_byte_block(data_block, context)?;
 
     let internal_buffer = array_buffer.detach(&JsValue::undefined())?;
 
-    assert_eq!(internal_buffer, (0..5).collect::<Vec<u8>>());
+    assert_eq!(
+        internal_buffer.as_slice(),
+        (0..5).collect::<Vec<u8>>().as_slice()
+    );
     let detached_err = array_buffer.detach(&JsValue::undefined());
     assert!(detached_err.is_err());
 

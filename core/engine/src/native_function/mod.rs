@@ -195,7 +195,6 @@ impl NativeFunction {
     /// }
     /// NativeFunction::from_async_fn(test);
     /// ```
-    ///
     pub fn from_async_fn<F>(f: F) -> Self
     where
         F: AsyncFn(&JsValue, &[JsValue], &RefCell<&mut Context>) -> JsResult<JsValue> + 'static,

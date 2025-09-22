@@ -1,6 +1,6 @@
 //! Module containing the types related to the [`JsValueStore`].
 use boa_engine::bigint::RawBigInt;
-use boa_engine::builtins::array_buffer::SharedArrayBuffer;
+use boa_engine::builtins::array_buffer::{AlignedVec, SharedArrayBuffer};
 use boa_engine::builtins::error::ErrorKind;
 use boa_engine::builtins::typed_array::TypedArrayKind;
 use boa_engine::value::TryIntoJs;
@@ -111,7 +111,7 @@ enum ValueStoreInner {
     RegExp { source: String, flags: String },
 
     /// Array Buffer.
-    ArrayBuffer(Vec<u8>),
+    ArrayBuffer(AlignedVec<u8>),
 
     /// Shared Array Buffer.
     SharedArrayBuffer(SharedArrayBuffer),

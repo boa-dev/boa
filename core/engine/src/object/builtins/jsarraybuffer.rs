@@ -10,6 +10,9 @@ use crate::{
 use boa_gc::{Finalize, GcRef, GcRefMut, Trace};
 use std::ops::Deref;
 
+#[doc(inline)]
+pub use crate::builtins::array_buffer::AlignedVec;
+
 /// `JsArrayBuffer` provides a wrapper for Boa's implementation of the ECMAScript `ArrayBuffer` object
 #[derive(Debug, Clone, Trace, Finalize)]
 #[boa_gc(unsafe_no_drop)]
@@ -46,7 +49,10 @@ impl JsArrayBuffer {
     /// // Creates a blank array buffer of n bytes
     /// let array_buffer = JsArrayBuffer::new(4, context)?;
     ///
-    /// assert_eq!(array_buffer.detach(&JsValue::undefined())?, vec![0_u8; 4]);
+    /// assert_eq!(
+    ///     array_buffer.detach(&JsValue::undefined())?.as_slice(),
+    ///     &[0u8, 0, 0, 0]
+    /// );
     ///
     /// # Ok(())
     /// # }
@@ -76,7 +82,7 @@ impl JsArrayBuffer {
     ///
     /// ```
     /// # use boa_engine::{
-    /// # object::builtins::JsArrayBuffer,
+    /// # object::builtins::{JsArrayBuffer, AlignedVec},
     /// # Context, JsResult, JsValue,
     /// # };
     /// # fn main() -> JsResult<()> {
@@ -84,17 +90,17 @@ impl JsArrayBuffer {
     /// # let context = &mut Context::default();
     ///
     /// // Create a buffer from a chunk of data
-    /// let data_block: Vec<u8> = (0..5).collect();
+    /// let data_block = AlignedVec::from_iter(0, 0..5);
     /// let array_buffer = JsArrayBuffer::from_byte_block(data_block, context)?;
     ///
     /// assert_eq!(
-    ///     array_buffer.detach(&JsValue::undefined())?,
-    ///     (0..5).collect::<Vec<u8>>()
+    ///     array_buffer.detach(&JsValue::undefined())?.as_slice(),
+    ///     &[0u8, 1, 2, 3, 4]
     /// );
     /// # Ok(())
     /// # }
     /// ```
-    pub fn from_byte_block(byte_block: Vec<u8>, context: &mut Context) -> JsResult<Self> {
+    pub fn from_byte_block(byte_block: AlignedVec<u8>, context: &mut Context) -> JsResult<Self> {
         let constructor = context
             .intrinsics()
             .constructors()
@@ -156,14 +162,14 @@ impl JsArrayBuffer {
     ///
     /// ```
     /// # use boa_engine::{
-    /// # object::builtins::JsArrayBuffer,
+    /// # object::builtins::{JsArrayBuffer, AlignedVec},
     /// # Context, JsResult,
     /// # };
     /// # fn main() -> JsResult<()> {
     /// # // Initialize context
     /// # let context = &mut Context::default();
     /// // Create a buffer from a chunk of data
-    /// let data_block: Vec<u8> = (0..5).collect();
+    /// let data_block = AlignedVec::from_iter(0, 0..5);
     /// let array_buffer = JsArrayBuffer::from_byte_block(data_block, context)?;
     ///
     /// // Take the inner buffer
@@ -188,20 +194,20 @@ impl JsArrayBuffer {
     ///
     /// ```
     /// # use boa_engine::{
-    /// # object::builtins::JsArrayBuffer,
+    /// # object::builtins::{JsArrayBuffer, AlignedVec},
     /// # Context, JsResult, JsValue
     /// # };
     /// # fn main() -> JsResult<()> {
     /// # // Initialize context
     /// # let context = &mut Context::default();
     /// // Create a buffer from a chunk of data
-    /// let data_block: Vec<u8> = (0..5).collect();
+    /// let data_block = AlignedVec::from_iter(0, 0..5);
     /// let array_buffer = JsArrayBuffer::from_byte_block(data_block, context)?;
     ///
     /// // Take the inner buffer
     /// let internal_buffer = array_buffer.detach(&JsValue::undefined())?;
     ///
-    /// assert_eq!(internal_buffer, (0..5).collect::<Vec<u8>>());
+    /// assert_eq!(internal_buffer.as_slice(), &[0u8, 1, 2, 3, 4]);
     ///
     /// // Anymore interaction with the buffer will return an error
     /// let detached_err = array_buffer.detach(&JsValue::undefined());
@@ -210,7 +216,7 @@ impl JsArrayBuffer {
     /// # }
     /// ```
     #[inline]
-    pub fn detach(&self, detach_key: &JsValue) -> JsResult<Vec<u8>> {
+    pub fn detach(&self, detach_key: &JsValue) -> JsResult<AlignedVec<u8>> {
         self.inner
             .borrow_mut()
             .data_mut()
@@ -228,23 +234,20 @@ impl JsArrayBuffer {
     ///
     /// ```
     /// # use boa_engine::{
-    /// # object::builtins::JsArrayBuffer,
-    /// # Context, JsResult, JsValue
+    /// # object::builtins::{JsArrayBuffer, AlignedVec},
+    /// # Context, JsResult, JsValue,
     /// # };
     /// # fn main() -> JsResult<()> {
     /// # // Initialize context
     /// # let context = &mut Context::default();
     /// // Create a buffer from a chunk of data
-    /// let data_block: Vec<u8> = (0..5).collect();
+    /// let data_block = AlignedVec::from_iter(0, 0..5);
     /// let array_buffer = JsArrayBuffer::from_byte_block(data_block, context)?;
     ///
     /// // Get a reference to the data.
     /// let internal_buffer = array_buffer.data();
     ///
-    /// assert_eq!(
-    ///     internal_buffer.as_deref(),
-    ///     Some((0..5).collect::<Vec<u8>>().as_slice())
-    /// );
+    /// assert_eq!(internal_buffer.as_deref(), Some(&[0u8, 1, 2, 3, 4][..]));
     /// # Ok(())
     /// # }
     /// ```
@@ -260,14 +263,14 @@ impl JsArrayBuffer {
     ///
     /// ```
     /// # use boa_engine::{
-    /// # object::builtins::JsArrayBuffer,
+    /// # object::builtins::{JsArrayBuffer, AlignedVec},
     /// # Context, JsResult, JsValue
     /// # };
     /// # fn main() -> JsResult<()> {
     /// # // Initialize context
     /// # let context = &mut Context::default();
     /// // Create a buffer from a chunk of data
-    /// let data_block: Vec<u8> = (0..5).collect();
+    /// let data_block = AlignedVec::from_iter(0, 0..5);
     /// let array_buffer = JsArrayBuffer::from_byte_block(data_block, context)?;
     ///
     /// // Get a reference to the data.
@@ -277,7 +280,7 @@ impl JsArrayBuffer {
     ///
     /// internal_buffer.fill(10);
     ///
-    /// assert_eq!(&*internal_buffer, vec![10u8; 5].as_slice());
+    /// assert_eq!(&*internal_buffer, &[10u8, 10, 10, 10, 10]);
     /// # Ok(())
     /// # }
     /// ```

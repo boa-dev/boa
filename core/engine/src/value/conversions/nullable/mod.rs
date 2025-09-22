@@ -66,7 +66,8 @@ mod tests;
 /// # use boa_engine::{Context, JsResult, JsValue};
 /// # use boa_engine::value::Nullable;
 /// # let context = &mut Context::default();
-/// let mut v: JsResult<Nullable<Option<u8>>> = JsValue::undefined().try_js_into(context);
+/// let mut v: JsResult<Nullable<Option<u8>>> =
+///     JsValue::undefined().try_js_into(context);
 /// assert_eq!(v, Ok(Nullable::NonNull(None)));
 ///
 /// v = JsValue::null().try_js_into(context);
