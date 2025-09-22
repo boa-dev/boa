@@ -31,7 +31,7 @@ jobs:
             target
             ~/.cargo/git
             ~/.cargo/registry
-          key: ${{ runner.os }}-cargo-test262-${{ hashFiles('**/Cargo.lock') }}
+          key: ${{ runner.os }}-${{ runner.arch }}-cargo-${{ hashFiles('**/Cargo.lock') }}
 
       # Checkout the `data` repository
       - name: Checkout the data repo
