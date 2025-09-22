@@ -607,7 +607,7 @@ pub(crate) fn create_shared_byte_data_block(
     let (data, align, len, _) = buf.into_raw_parts();
 
     // 3. Return db.
-    // SAFETY: `[u8]` must be trasparently castable to `[AtomicU8]`.
+    // SAFETY: `[u8]` must be transparently castable to `[AtomicU8]`.
     Ok(unsafe {
         AlignedBox::from_raw_parts(align, ptr::slice_from_raw_parts_mut(data.cast(), len))
     })
