@@ -97,7 +97,7 @@ cow-utils.workspace = true
 futures-lite.workspace = true
 float16 = { version = "0.1", optional = true }
 lz4_flex = { workspace = true, optional = true }
-xsum = { version = "0.1.1", optional = true }
+xsum = { version = "0.1.2", optional = true }
 serde = { workspace = true, features = ["derive", "rc"] }
 serde_json.workspace = true
 rand.workspace = true
