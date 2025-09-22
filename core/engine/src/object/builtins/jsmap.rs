@@ -235,7 +235,10 @@ impl JsMap {
     /// js_map.set(js_string!("foo"), js_string!("bar"), context)?;
     /// js_map.set(2, 4, context)?;
     ///
-    /// assert_eq!(js_map.get(js_string!("foo"), context)?, js_string!("bar").into());
+    /// assert_eq!(
+    ///     js_map.get(js_string!("foo"), context)?,
+    ///     js_string!("bar").into()
+    /// );
     /// assert_eq!(js_map.get(2, context)?, 4.into());
     /// # Ok(())
     /// # }
@@ -296,7 +299,10 @@ impl JsMap {
     /// js_map.delete(js_string!("foo"), context)?;
     ///
     /// assert_eq!(js_map.get_size(context)?, 1.into());
-    /// assert_eq!(js_map.get(js_string!("foo"), context)?, JsValue::undefined());
+    /// assert_eq!(
+    ///     js_map.get(js_string!("foo"), context)?,
+    ///     JsValue::undefined()
+    /// );
     /// # Ok(())
     /// # }
     /// ```

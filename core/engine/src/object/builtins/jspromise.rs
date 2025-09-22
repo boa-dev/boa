@@ -35,14 +35,20 @@ use std::{future::Future, pin::Pin, task};
 /// # fn main() -> Result<(), Box<dyn Error>> {
 /// let context = &mut Context::default();
 ///
-/// context.register_global_property(js_string!("finally"), false, Attribute::all());
+/// context.register_global_property(
+///     js_string!("finally"),
+///     false,
+///     Attribute::all(),
+/// );
 ///
 /// let promise = JsPromise::new(
 ///     |resolvers, context| {
 ///         let result = js_string!("hello world!").into();
-///         resolvers
-///             .resolve
-///             .call(&JsValue::undefined(), &[result], context)?;
+///         resolvers.resolve.call(
+///             &JsValue::undefined(),
+///             &[result],
+///             context,
+///         )?;
 ///         Ok(JsValue::undefined())
 ///     },
 ///     context,
@@ -52,7 +58,8 @@ use std::{future::Future, pin::Pin, task};
 ///     .then(
 ///         Some(
 ///             NativeFunction::from_fn_ptr(|_, args, _| {
-///                 Err(JsError::from_opaque(args.get_or_undefined(0).clone()).into())
+///                 Err(JsError::from_opaque(args.get_or_undefined(0).clone())
+///                     .into())
 ///             })
 ///             .to_js_function(context.realm()),
 ///         ),
@@ -60,8 +67,10 @@ use std::{future::Future, pin::Pin, task};
 ///         context,
 ///     )
 ///     .catch(
-///         NativeFunction::from_fn_ptr(|_, args, _| Ok(args.get_or_undefined(0).clone()))
-///             .to_js_function(context.realm()),
+///         NativeFunction::from_fn_ptr(|_, args, _| {
+///             Ok(args.get_or_undefined(0).clone())
+///         })
+///         .to_js_function(context.realm()),
 ///         context,
 ///     )
 ///     .finally(
@@ -132,9 +141,11 @@ impl JsPromise {
     /// let promise = JsPromise::new(
     ///     |resolvers, context| {
     ///         let result = js_string!("hello world").into();
-    ///         resolvers
-    ///             .resolve
-    ///             .call(&JsValue::undefined(), &[result], context)?;
+    ///         resolvers.resolve.call(
+    ///             &JsValue::undefined(),
+    ///             &[result],
+    ///             context,
+    ///         )?;
     ///         Ok(JsValue::undefined())
     ///     },
     ///     context,
@@ -329,7 +340,9 @@ impl JsPromise {
     /// let context = &mut Context::default();
     ///
     /// fn do_thing(success: bool) -> JsResult<JsString> {
-    ///     success.then(|| js_string!("resolved!")).ok_or(js_error!("rejected!"))
+    ///     success
+    ///         .then(|| js_string!("resolved!"))
+    ///         .ok_or(js_error!("rejected!"))
     /// }
     ///
     /// let promise = JsPromise::from_result(do_thing(true), context);
@@ -411,7 +424,10 @@ impl JsPromise {
     /// # };
     /// let context = &mut Context::default();
     ///
-    /// let promise = JsPromise::reject(JsError::from_opaque(js_string!("oops!").into()), context);
+    /// let promise = JsPromise::reject(
+    ///     JsError::from_opaque(js_string!("oops!").into()),
+    ///     context,
+    /// );
     ///
     /// assert_eq!(
     ///     promise.state(),
@@ -496,9 +512,11 @@ impl JsPromise {
     ///
     /// let promise = JsPromise::new(
     ///     |resolvers, context| {
-    ///         resolvers
-    ///             .resolve
-    ///             .call(&JsValue::undefined(), &[255.255.into()], context)?;
+    ///         resolvers.resolve.call(
+    ///             &JsValue::undefined(),
+    ///             &[255.255.into()],
+    ///             context,
+    ///         )?;
     ///         Ok(JsValue::undefined())
     ///     },
     ///     context,
@@ -561,9 +579,11 @@ impl JsPromise {
     ///     |resolvers, context| {
     ///         let error = JsNativeError::typ().with_message("thrown");
     ///         let error = error.to_opaque(context);
-    ///         resolvers
-    ///             .reject
-    ///             .call(&JsValue::undefined(), &[error.into()], context)?;
+    ///         resolvers.reject.call(
+    ///             &JsValue::undefined(),
+    ///             &[error.into()],
+    ///             context,
+    ///         )?;
     ///         Ok(JsValue::undefined())
     ///     },
     ///     context,
@@ -617,15 +637,21 @@ impl JsPromise {
     /// # fn main() -> Result<(), Box<dyn Error>> {
     /// let context = &mut Context::default();
     ///
-    /// context.register_global_property(js_string!("finally"), false, Attribute::all())?;
+    /// context.register_global_property(
+    ///     js_string!("finally"),
+    ///     false,
+    ///     Attribute::all(),
+    /// )?;
     ///
     /// let promise = JsPromise::new(
     ///     |resolvers, context| {
     ///         let error = JsNativeError::typ().with_message("thrown");
     ///         let error = error.to_opaque(context);
-    ///         resolvers
-    ///             .reject
-    ///             .call(&JsValue::undefined(), &[error.into()], context)?;
+    ///         resolvers.reject.call(
+    ///             &JsValue::undefined(),
+    ///             &[error.into()],
+    ///             context,
+    ///         )?;
     ///         Ok(JsValue::undefined())
     ///     },
     ///     context,
@@ -1101,9 +1127,13 @@ impl JsPromise {
     /// # use boa_engine::object::builtins::{JsFunction, JsPromise};
     /// let context = &mut Context::default();
     ///
-    /// let p1 = JsPromise::new(|fns, context| {
-    ///     fns.resolve.call(&JsValue::undefined(), &[JsValue::new(1)], context)
-    /// }, context);
+    /// let p1 = JsPromise::new(
+    ///     |fns, context| {
+    ///         fns.resolve
+    ///             .call(&JsValue::undefined(), &[JsValue::new(1)], context)
+    ///     },
+    ///     context,
+    /// );
     /// let p2 = p1.then(
     ///     Some(
     ///         NativeFunction::from_fn_ptr(|_, args, context| {
@@ -1113,7 +1143,8 @@ impl JsPromise {
     ///         .to_js_function(context.realm()),
     ///     ),
     ///     None,
-    ///     context,);
+    ///     context,
+    /// );
     ///
     /// assert_eq!(p2.await_blocking(context), Ok(JsValue::new(2)));
     /// ```
@@ -1124,19 +1155,20 @@ impl JsPromise {
     /// # use boa_engine::object::builtins::JsPromise;
     ///
     /// let context = &mut Context::default();
-    /// let p1 = JsPromise::new(|fns, context| {
-    ///     fns.resolve.call(&JsValue::undefined(), &[], context)
-    /// }, context)
-    ///     .then(
-    ///         Some(
-    ///             NativeFunction::from_fn_ptr(|_, _, _| {
-    ///                 panic!("This will not happen.");
-    ///             })
-    ///             .to_js_function(context.realm())
-    ///         ),
-    ///         None,
-    ///         context,
-    ///     );
+    /// let p1 = JsPromise::new(
+    ///     |fns, context| fns.resolve.call(&JsValue::undefined(), &[], context),
+    ///     context,
+    /// )
+    /// .then(
+    ///     Some(
+    ///         NativeFunction::from_fn_ptr(|_, _, _| {
+    ///             panic!("This will not happen.");
+    ///         })
+    ///         .to_js_function(context.realm()),
+    ///     ),
+    ///     None,
+    ///     context,
+    /// );
     /// let p2 = JsPromise::resolve(1, context);
     ///
     /// assert_eq!(p2.await_blocking(context), Ok(JsValue::new(1)));

@@ -1056,19 +1056,24 @@ impl JsValue {
     /// # Example
     ///
     /// ```
-    /// use boa_engine::{JsValue, Context};
+    /// use boa_engine::{Context, JsValue};
     ///
     /// let mut context = Context::default();
     ///
     /// let defined_value = JsValue::from(5);
     /// let undefined = JsValue::undefined();
     ///
-    /// let defined_result = defined_value.map(|v| v.add(&JsValue::from(5), &mut context)).transpose().unwrap();
-    /// let undefined_result = undefined.map(|v| v.add(&JsValue::from(5), &mut context)).transpose().unwrap();
+    /// let defined_result = defined_value
+    ///     .map(|v| v.add(&JsValue::from(5), &mut context))
+    ///     .transpose()
+    ///     .unwrap();
+    /// let undefined_result = undefined
+    ///     .map(|v| v.add(&JsValue::from(5), &mut context))
+    ///     .transpose()
+    ///     .unwrap();
     ///
     /// assert_eq!(defined_result, Some(JsValue::from(10u8)));
     /// assert_eq!(undefined_result, None);
-    ///
     /// ```
     #[inline]
     #[must_use]
@@ -1089,7 +1094,7 @@ impl JsValue {
     /// # Example
     ///
     /// ```
-    /// use boa_engine::{JsValue, Context};
+    /// use boa_engine::{Context, JsValue};
     ///
     /// let mut context = Context::default();
     ///
@@ -1097,15 +1102,18 @@ impl JsValue {
     /// let undefined = JsValue::undefined();
     ///
     /// let defined_result = defined_value
-    ///     .map_or(Ok(JsValue::new(true)), |v| v.add(&JsValue::from(5), &mut context))
+    ///     .map_or(Ok(JsValue::new(true)), |v| {
+    ///         v.add(&JsValue::from(5), &mut context)
+    ///     })
     ///     .unwrap();
     /// let undefined_result = undefined
-    ///     .map_or(Ok(JsValue::new(true)), |v| v.add(&JsValue::from(5), &mut context))
+    ///     .map_or(Ok(JsValue::new(true)), |v| {
+    ///         v.add(&JsValue::from(5), &mut context)
+    ///     })
     ///     .unwrap();
     ///
     /// assert_eq!(defined_result, JsValue::new(10));
     /// assert_eq!(undefined_result, JsValue::new(true));
-    ///
     /// ```
     #[inline]
     #[must_use]

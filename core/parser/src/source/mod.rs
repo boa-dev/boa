@@ -51,7 +51,8 @@ impl<'input> Source<'static, UTF16Input<'input>> {
     ///
     /// ```
     /// # use boa_parser::Source;
-    /// let utf16: Vec<u16> = "var array = [5, 4, 3, 2, 1];".encode_utf16().collect();
+    /// let utf16: Vec<u16> =
+    ///     "var array = [5, 4, 3, 2, 1];".encode_utf16().collect();
     /// let source = Source::from_utf16(&utf16);
     /// ```
     ///

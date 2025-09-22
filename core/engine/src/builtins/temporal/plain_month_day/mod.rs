@@ -1,5 +1,4 @@
 //! Boa's implementation of the ECMAScript `Temporal.PlainMonthDay` built-in object.
-//!
 use std::str::FromStr;
 
 use crate::{

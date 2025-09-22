@@ -14,7 +14,9 @@ use time::{OffsetDateTime, format_description::well_known::Rfc3339};
 /// Create a `JsDate` object and set date to December 4 1995
 ///
 /// ```
-/// use boa_engine::{js_string, object::builtins::JsDate, Context, JsResult, JsValue};
+/// use boa_engine::{
+///     Context, JsResult, JsValue, js_string, object::builtins::JsDate,
+/// };
 ///
 /// fn main() -> JsResult<()> {
 ///     // JS mutable Context

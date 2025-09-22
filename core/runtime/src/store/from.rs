@@ -1,7 +1,7 @@
 //! All methods for serializing a [`JsValue`] into a [`JsValueStore`].
 
 use crate::store::{JsValueStore, StringStore, ValueStoreInner, unsupported_type};
-use boa_engine::builtins::array_buffer::ArrayBuffer;
+use boa_engine::builtins::array_buffer::{AlignedVec, ArrayBuffer};
 use boa_engine::builtins::error::Error;
 use boa_engine::object::builtins::{
     JsArray, JsArrayBuffer, JsDataView, JsDate, JsMap, JsRegExp, JsSet, JsTypedArray,
@@ -112,7 +112,7 @@ fn try_from_array_buffer_clone(
     seen: &mut SeenMap,
 ) -> JsResult<JsValueStore> {
     let data = buffer.data().ok_or_else(unsupported_type)?;
-    let data = data.to_vec();
+    let data = AlignedVec::from_slice(0, &data);
     let new_value = JsValueStore::new(ValueStoreInner::ArrayBuffer(data));
     seen.insert(original, new_value.clone());
 

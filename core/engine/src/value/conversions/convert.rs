@@ -22,7 +22,8 @@ use crate::{Context, JsData, JsResult, JsString, JsValue};
 /// # use boa_engine::value::{Convert, TryFromJs};
 /// # let mut context = Context::default();
 /// let value = JsValue::from(js_string!("42"));
-/// let Convert(converted): Convert<i32> = Convert::try_from_js(&value, &mut context).unwrap();
+/// let Convert(converted): Convert<i32> =
+///     Convert::try_from_js(&value, &mut context).unwrap();
 ///
 /// assert_eq!(converted, 42);
 /// ```

@@ -1,9 +1,10 @@
-use std::time::Duration;
+use std::{rc::Rc, time::Duration};
 
 use crate::{
     Context, JsValue,
     builtins::atomics::Atomics,
     js_string,
+    module::IdleModuleLoader,
     object::{JsInt32Array, JsPromise, JsSharedArrayBuffer},
     value::TryFromJs,
 };
@@ -13,7 +14,11 @@ fn waiterlist_block_indexedposition_wake() {
     const NUMAGENT: i32 = 2;
     const RUNNING: i32 = 4;
 
-    let context = &mut Context::builder().can_block(true).build().unwrap();
+    let context = &mut Context::builder()
+        .can_block(true)
+        .module_loader(Rc::new(IdleModuleLoader))
+        .build()
+        .unwrap();
     let buffer = JsSharedArrayBuffer::new(size_of::<i32>() * 5, context).unwrap();
     let inner_buffer = buffer.inner();
     let i32a = JsInt32Array::from_shared_array_buffer(buffer.clone(), context).unwrap();
@@ -23,7 +28,11 @@ fn waiterlist_block_indexedposition_wake() {
         for idx in [2, 0] {
             let buffer = inner_buffer.clone();
             let handle = s.spawn(move || {
-                let context = &mut Context::builder().can_block(true).build().unwrap();
+                let context = &mut Context::builder()
+                    .can_block(true)
+                    .module_loader(Rc::new(IdleModuleLoader))
+                    .build()
+                    .unwrap();
                 let buffer = JsSharedArrayBuffer::from_buffer(buffer, context);
                 let i32a = JsInt32Array::from_shared_array_buffer(buffer, context).unwrap();
 
