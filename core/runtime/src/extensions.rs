@@ -99,6 +99,19 @@ impl<F: crate::fetch::Fetcher + Debug + 'static> RuntimeExtension for FetchExten
     }
 }
 
+/// Register the `postMessage` JavaScript API with the specified
+/// [`crate::message::MessageSender`].
+#[derive(Debug)]
+pub struct PostMessageExtension<S: crate::message::MessageSender>(pub S);
+
+impl<S: crate::message::MessageSender + Debug + 'static> RuntimeExtension
+    for PostMessageExtension<S>
+{
+    fn register(self, realm: Option<Realm>, context: &mut Context) -> JsResult<()> {
+        crate::message::register(self.0, realm, context)
+    }
+}
+
 macro_rules! decl_runtime_ext_tuple {
     ($first_name: ident : $first_type: ident) => {
         impl<$first_type: RuntimeExtension> RuntimeExtension for ($first_type,) {

@@ -35,3 +35,8 @@
   assertEq(object1.array.byteLength, 0);
   assertArrayEqual(object2.array, [1, 2, 3, 4]);
 }
+
+assertThrows(() => structuredClone({}, { transfer: [1] }));
+assertThrows(() => structuredClone({}, { transfer: ["error"] }));
+assertThrows(() => structuredClone({}, { transfer: [{}] }));
+assertThrows(() => structuredClone({}, { transfer: [new Uint8Array([1, 2])] }));

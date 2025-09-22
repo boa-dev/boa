@@ -1,9 +1,10 @@
 //! All methods for deserializing a [`JsValueStore`] into a [`JsValue`].
 use crate::store::{JsValueStore, StringStore, ValueStoreInner, unsupported_type};
-use boa_engine::builtins::array_buffer::AlignedVec;
+use boa_engine::builtins::array_buffer::{AlignedVec, SharedArrayBuffer};
 use boa_engine::builtins::typed_array::TypedArrayKind;
 use boa_engine::object::builtins::{
-    JsArray, JsArrayBuffer, JsDataView, JsDate, JsMap, JsRegExp, JsSet, js_typed_array_from_kind,
+    JsArray, JsArrayBuffer, JsDataView, JsDate, JsMap, JsRegExp, JsSet, JsSharedArrayBuffer,
+    js_typed_array_from_kind,
 };
 use boa_engine::{Context, JsBigInt, JsObject, JsResult, JsString, JsValue, js_error};
 use std::collections::HashMap;
@@ -70,6 +71,18 @@ fn try_into_js_array_buffer(
     let obj = JsObject::from(buffer);
     seen.insert(store, obj.clone());
     Ok(JsValue::from(obj))
+}
+
+fn try_into_js_shared_array_buffer(
+    store: &JsValueStore,
+    inner: &SharedArrayBuffer,
+    seen: &mut ReverseSeenMap,
+    context: &mut Context,
+) -> JsValue {
+    let buffer = JsSharedArrayBuffer::from_buffer(inner.clone(), context);
+    let obj = JsObject::from(buffer);
+    seen.insert(store, obj.clone());
+    JsValue::from(obj)
 }
 
 fn try_into_js_typed_array(
@@ -199,6 +212,9 @@ pub(super) fn try_value_into_js(
             try_into_regexp(store, source, flags, seen, context)
         }
         ValueStoreInner::ArrayBuffer(data) => try_into_js_array_buffer(store, data, seen, context),
+        ValueStoreInner::SharedArrayBuffer(inner) => {
+            Ok(try_into_js_shared_array_buffer(store, inner, seen, context))
+        }
         ValueStoreInner::DataView {
             buffer,
             byte_length,

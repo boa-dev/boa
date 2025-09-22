@@ -114,6 +114,7 @@ pub mod clone;
 #[cfg(feature = "fetch")]
 pub mod fetch;
 pub mod interval;
+pub mod message;
 pub mod microtask;
 pub mod store;
 pub mod text;
