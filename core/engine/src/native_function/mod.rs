@@ -442,6 +442,10 @@ fn native_function_construct(
                         StandardConstructors::object,
                         context,
                     )?;
+                    eprintln!(
+                        "native_function_construct proto: {}",
+                        JsValue::from(prototype.clone()).display()
+                    );
                     Ok(JsObject::from_proto_and_data_with_shared_shape(
                         context.root_shape(),
                         prototype,

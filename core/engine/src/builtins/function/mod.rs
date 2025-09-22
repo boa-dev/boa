@@ -1085,7 +1085,6 @@ fn function_construct(
         JsValue::from(this_function_object.clone()).display(),
         argument_count
     );
-    eprintln!("backtrace: {}", std::backtrace::Backtrace::capture());
     context.check_runtime_limits()?;
 
     let function = this_function_object
@@ -1116,6 +1115,10 @@ fn function_construct(
         // see <https://tc39.es/ecma262/#sec-getprototypefromconstructor>
         let prototype =
             get_prototype_from_constructor(&new_target, StandardConstructors::object, context)?;
+        eprintln!(
+            "function_construct proto: {}",
+            JsValue::from(prototype.clone()).display()
+        );
         let this = JsObject::from_proto_and_data_with_shared_shape(
             context.root_shape(),
             prototype,

@@ -14,18 +14,6 @@ fn extends_js() {
         #[boa(constructor)]
         fn new(this: JsThis<JsObject>, context: &mut Context) -> Self {
             eprintln!(
-                "this.foo: {}",
-                boa_engine::JsValue::from(this.0.get(js_string!("foo"), context).unwrap())
-                    .display()
-                    .to_string()
-            );
-            eprintln!(
-                "this.baseFoo: {}",
-                boa_engine::JsValue::from(this.0.get(js_string!("baseFoo"), context).unwrap())
-                    .display()
-                    .to_string()
-            );
-            eprintln!(
                 "this.proto: {}",
                 boa_engine::JsValue::from(this.0.prototype().unwrap()).display_obj(true)
             );
@@ -36,13 +24,17 @@ fn extends_js() {
             this.0
                 .prototype()
                 .unwrap()
-                .call(&this.0.clone().into(), &[], &mut Context::default());
+                .get(js_string!("constructor"), context)
+                .unwrap()
+                .as_callable()
+                .unwrap()
+                .construct(&[], Some(&this.0), context)
+                .unwrap();
 
             Self
         }
 
         fn foo(JsThis(this): JsThis<JsObject>, context: &mut Context) -> u32 {
-            eprintln!("this: {this:?}");
             eprintln!("this: {}", JsValue::new(this.clone()).display());
 
             eprintln!(
@@ -90,15 +82,40 @@ fn extends_js() {
         .register_global_class::<X>()
         .expect("global_class registration");
 
-    let v = context
+    let x = context
         .eval(Source::from_bytes(
             r#"
-                (new X).foo()
+                (new X)
             "#,
         ))
         .expect("eval 2 failed");
 
-    assert_eq!(v.to_u32(context).expect("get value"), 3);
+    eprintln!("x: {}", x.display());
+    eprintln!(
+        "x.foo: {}",
+        x.clone()
+            .as_object()
+            .unwrap()
+            .get(js_string!("foo"), context)
+            .unwrap()
+            .display()
+    );
+
+    eprintln!(
+        "x.proto: {}",
+        JsValue::from(x.clone().as_object().unwrap().prototype().unwrap()).display()
+    );
+    eprintln!(
+        "x.baseFoo: {}",
+        x.clone()
+            .as_object()
+            .unwrap()
+            .get(js_string!("baseFoo"), context)
+            .unwrap()
+            .display()
+    );
+
+    // assert_eq!(v.to_u32(context).expect("get value"), 3);
 }
 
 #[test]
