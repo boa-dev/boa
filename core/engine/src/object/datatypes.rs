@@ -33,7 +33,8 @@ use super::internal_methods::{InternalObjectMethods, ORDINARY_INTERNAL_METHODS};
 ///     counter: usize,
 /// }
 ///
-/// let object = JsObject::from_proto_and_data(None, CustomStruct { counter: 5 });
+/// let object =
+///     JsObject::from_proto_and_data(None, CustomStruct { counter: 5 });
 ///
 /// assert_eq!(object.downcast_ref::<CustomStruct>().unwrap().counter, 5);
 /// ```

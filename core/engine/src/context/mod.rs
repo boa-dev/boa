@@ -57,10 +57,9 @@ thread_local! {
 ///
 /// ```rust
 /// use boa_engine::{
-///     js_string,
+///     Context, Source, js_string,
 ///     object::ObjectInitializer,
 ///     property::{Attribute, PropertyDescriptor},
-///     Context, Source,
 /// };
 ///
 /// let script = r#"
@@ -215,16 +214,19 @@ impl Context {
     /// # Example
     /// ```
     /// use boa_engine::{
-    ///     js_string,
+    ///     Context, js_string,
     ///     object::ObjectInitializer,
     ///     property::{Attribute, PropertyDescriptor},
-    ///     Context,
     /// };
     ///
     /// let mut context = Context::default();
     ///
     /// context
-    ///     .register_global_property(js_string!("myPrimitiveProperty"), 10, Attribute::all())
+    ///     .register_global_property(
+    ///         js_string!("myPrimitiveProperty"),
+    ///         10,
+    ///         Attribute::all(),
+    ///     )
     ///     .expect("property shouldn't exist");
     ///
     /// let object = ObjectInitializer::new(&mut context)
@@ -232,7 +234,11 @@ impl Context {
     ///     .property(js_string!("y"), 1, Attribute::all())
     ///     .build();
     /// context
-    ///     .register_global_property(js_string!("myObjectProperty"), object, Attribute::all())
+    ///     .register_global_property(
+    ///         js_string!("myObjectProperty"),
+    ///         object,
+    ///         Attribute::all(),
+    ///     )
     ///     .expect("property shouldn't exist");
     /// ```
     pub fn register_global_property<K, V>(

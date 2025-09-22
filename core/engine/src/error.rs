@@ -49,15 +49,21 @@ use thiserror::Error;
 ///
 /// ```
 /// # use boa_engine::{js_str, Context, JsValue};
-/// use boa_engine::{js_error};
+/// use boa_engine::js_error;
 /// let context = &mut Context::default();
 ///
 /// let error = js_error!("error!");
 /// assert!(error.as_opaque().is_some());
-/// assert_eq!(error.as_opaque().unwrap().to_string(context).unwrap(), "error!");
+/// assert_eq!(
+///     error.as_opaque().unwrap().to_string(context).unwrap(),
+///     "error!"
+/// );
 ///
 /// let error = js_error!("error: {}", 5);
-/// assert_eq!(error.as_opaque().unwrap().to_string(context).unwrap(), "error: 5");
+/// assert_eq!(
+///     error.as_opaque().unwrap().to_string(context).unwrap(),
+///     "error: 5"
+/// );
 ///
 /// // Non-string literals must be used as an expression.
 /// let error = js_error!({ true });
@@ -360,7 +366,8 @@ impl JsError {
     /// # use boa_engine::{Context, JsError, JsNativeError};
     /// # use boa_engine::builtins::error::Error;
     /// let context = &mut Context::default();
-    /// let error: JsError = JsNativeError::eval().with_message("invalid script").into();
+    /// let error: JsError =
+    ///     JsNativeError::eval().with_message("invalid script").into();
     /// let error_val = error.to_opaque(context);
     ///
     /// assert!(error_val.as_object().unwrap().is::<Error>());
@@ -540,7 +547,8 @@ impl JsError {
     ///
     /// ```rust
     /// # use boa_engine::{JsError, JsNativeError, JsValue};
-    /// let error: JsError = JsNativeError::error().with_message("Unknown error").into();
+    /// let error: JsError =
+    ///     JsNativeError::error().with_message("Unknown error").into();
     ///
     /// assert!(error.as_native().is_some());
     ///
