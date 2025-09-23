@@ -3,7 +3,7 @@
 use boa_gc::{Finalize, Trace};
 
 use crate::{
-    JsSymbol,
+    JsSymbol, JsValue,
     builtins::{Array, OrdinaryObject, iterable::IteratorPrototypes, uri::UriFunctions},
     js_string,
     object::{
@@ -88,6 +88,11 @@ impl Default for StandardConstructor {
 impl StandardConstructor {
     /// Creates a new `StandardConstructor` from the constructor and the prototype.
     pub(crate) fn new(constructor: JsFunction, prototype: JsObject) -> Self {
+        eprintln!(
+            "StandardConstructor::new\n  ctor: {constructor:?}\n  ctor.proto: {}\n  prototype: {}",
+            JsValue::from(constructor.prototype().clone().unwrap()).display(),
+            JsValue::from(prototype.clone()).display(),
+        );
         Self {
             constructor,
             prototype,

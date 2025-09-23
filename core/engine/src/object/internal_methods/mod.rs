@@ -709,17 +709,11 @@ pub(crate) fn ordinary_get(
     receiver: JsValue,
     context: &mut InternalMethodPropertyContext<'_>,
 ) -> JsResult<JsValue> {
-    eprintln!(
-        "OrdinaryGet - key: {:?} object: {}",
-        key,
-        JsValue::from(obj.clone()).display().to_string()
-    );
     // 1. Assert: IsPropertyKey(P) is true.
     // 2. Let desc be ? O.[[GetOwnProperty]](P).
     match obj.__get_own_property__(key, context)? {
         // If desc is undefined, then
         None => {
-            eprintln!("OrdinaryGet - desc is undefined");
             // a. Let parent be ? O.[[GetPrototypeOf]]().
             if let Some(parent) = obj.__get_prototype_of__(context)? {
                 context.slot().set_not_cachable_if_already_prototype();
@@ -730,32 +724,23 @@ pub(crate) fn ordinary_get(
             }
             // b. If parent is null, return undefined.
             else {
-                eprintln!("OrdinaryGet - parent is null");
                 Ok(JsValue::undefined())
             }
         }
         Some(ref desc) => {
-            eprintln!("OrdinaryGet - desc is Some()");
             match desc.kind() {
                 // 4. If IsDataDescriptor(desc) is true, return desc.[[Value]].
                 DescriptorKind::Data {
                     value: Some(value), ..
-                } => {
-                    eprintln!("OrdinaryGet - value is Some({})", value.clone().display());
-                    Ok(value.clone())
-                }
+                } => Ok(value.clone()),
                 // 5. Assert: IsAccessorDescriptor(desc) is true.
                 // 6. Let getter be desc.[[Get]].
                 DescriptorKind::Accessor { get: Some(get), .. } if !get.is_undefined() => {
                     // 8. Return ? Call(getter, Receiver).
-                    eprintln!("OrdinaryGet - getter is Some({})", get.clone().display());
                     get.call(&receiver, &[], context)
                 }
                 // 7. If getter is undefined, return undefined.
-                _ => {
-                    eprintln!("OrdinaryGet - getter is None");
-                    Ok(JsValue::undefined())
-                }
+                _ => Ok(JsValue::undefined()),
             }
         }
     }

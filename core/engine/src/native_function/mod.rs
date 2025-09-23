@@ -386,30 +386,34 @@ pub(crate) fn native_function_call(
 /// Panics if the object is currently mutably borrowed.
 // <https://tc39.es/ecma262/#sec-built-in-function-objects-construct-argumentslist-newtarget>
 fn native_function_construct(
-    obj: &JsObject,
+    this_function_object: &JsObject,
     argument_count: usize,
     context: &mut InternalMethodCallContext<'_>,
 ) -> JsResult<CallValue> {
     eprintln!(
+        "native_function_construct backtrace: {}",
+        std::backtrace::Backtrace::capture()
+    );
+    eprintln!(
         "native_function_construct {} {}",
-        JsValue::from(obj.clone()).display(),
+        JsValue::from(this_function_object.clone()).display(),
         argument_count
     );
     eprintln!(
         "native_function_construct proto: {}",
-        JsValue::from(obj.prototype().unwrap()).display()
+        JsValue::from(this_function_object.prototype().unwrap()).display()
     );
+
     // We technically don't need this since native functions don't push any new frames to the
     // vm, but we'll eventually have to combine the native stack with the vm stack.
     context.check_runtime_limits()?;
-    let this_function_object = obj.clone();
 
     let NativeFunctionObject {
         f: function,
         name,
         constructor,
         realm,
-    } = obj
+    } = this_function_object
         .downcast_ref::<NativeFunctionObject>()
         .expect("the object should be a native function object")
         .clone();
@@ -424,15 +428,25 @@ fn native_function_construct(
     let mut realm = realm.unwrap_or_else(|| context.realm().clone());
 
     context.swap_realm(&mut realm);
-    context.vm.native_active_function = Some(this_function_object);
+    context.vm.native_active_function = Some(this_function_object.clone());
 
+    eprintln!(
+        "native_function_construct stack:\n{:?}\n-------------",
+        context.vm.stack
+    );
     let new_target = context.vm.stack.pop();
+    eprintln!(
+        "native_function_construct new_target: {} {}",
+        new_target.display_obj(false),
+        argument_count
+    );
+
     let args = context
         .vm
         .stack
         .calling_convention_pop_arguments(argument_count);
     let _func = context.vm.stack.pop();
-    let _this = context.vm.stack.pop();
+    let this = context.vm.stack.pop();
 
     let result = function
         .call(&new_target, &args, context)
@@ -441,7 +455,7 @@ fn native_function_construct(
             JsVariant::Object(o) => {
                 eprintln!(
                     "native_function_construct construct object: {}",
-                    JsValue::from(obj.clone()).display()
+                    JsValue::from(this_function_object.clone()).display()
                 );
                 Ok(o.clone())
             }

@@ -1085,6 +1085,10 @@ fn function_construct(
         JsValue::from(this_function_object.clone()).display(),
         argument_count
     );
+    eprintln!(
+        "function_construct proto: {}",
+        JsValue::from(this_function_object.prototype().unwrap()).display()
+    );
     context.check_runtime_limits()?;
 
     let function = this_function_object
@@ -1105,6 +1109,11 @@ fn function_construct(
     let env_fp = environments.len() as u32;
 
     let new_target = context.vm.stack.pop();
+    eprintln!(
+        "function_construct new_target: {} {}",
+        new_target.display_obj(false),
+        argument_count
+    );
 
     let this = if code.is_derived_constructor() {
         None

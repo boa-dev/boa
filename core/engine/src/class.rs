@@ -293,9 +293,10 @@ impl<'ctx> ClassBuilder<'ctx> {
         T: Into<JsPrototype>,
     {
         let p = value.into();
+        eprintln!("ClassBuilder::extends {:?}", p);
         self.builder.inherit(p.clone());
         if let Some(p) = p {
-            self.builder.custom_prototype(p.prototype());
+            self.builder.custom_prototype(p);
         }
         self
     }

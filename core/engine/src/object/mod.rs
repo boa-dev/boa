@@ -834,6 +834,8 @@ impl<'ctx> ConstructorBuilder<'ctx> {
     ///
     /// Default is `Object.prototype`
     pub fn inherit<O: Into<JsPrototype>>(&mut self, prototype: O) -> &mut Self {
+        eprintln!("ConstructorBuilder::inherit");
+        self.kind = Some(ConstructorKind::Derived);
         self.inherit = Some(prototype.into());
 
         let v = self
@@ -881,7 +883,6 @@ impl<'ctx> ConstructorBuilder<'ctx> {
             .writable(false)
             .enumerable(false)
             .configurable(true);
-        eprintln!("name: {name:?}");
 
         let prototype = {
             let internal_methods = if let Some(proto) = self.inherit.take() {
@@ -901,6 +902,7 @@ impl<'ctx> ConstructorBuilder<'ctx> {
 
             JsObject::from_object_and_vtable(self.prototype, internal_methods)
         };
+        eprintln!("build: {}", JsValue::new(prototype.clone()).display());
 
         let constructor = {
             let data = NativeFunctionObject {
@@ -933,6 +935,9 @@ impl<'ctx> ConstructorBuilder<'ctx> {
             }
 
             if self.has_prototype_property {
+                eprintln!("ConstructorBuilder::build has_prototype_property");
+                eprintln!("prototype: {}", JsValue::from(prototype.clone()).display());
+                let before = constructor.prototype();
                 constructor.insert(
                     PROTOTYPE,
                     PropertyDescriptor::builder()
@@ -940,6 +945,11 @@ impl<'ctx> ConstructorBuilder<'ctx> {
                         .writable(false)
                         .enumerable(false)
                         .configurable(false),
+                );
+                let after = constructor.prototype();
+                eprintln!(
+                    "before: {before:?}, after: {after:?} (== {})",
+                    before == after
                 );
             }
 
@@ -957,6 +967,16 @@ impl<'ctx> ConstructorBuilder<'ctx> {
                     .configurable(true),
             );
         }
+
+        eprintln!(
+            "constructor: {:?} prototype: {}",
+            constructor,
+            JsValue::from(prototype.clone()).display()
+        );
+        eprintln!(
+            "contructor.prototype: {}",
+            JsValue::from(constructor.prototype().unwrap()).display()
+        );
 
         StandardConstructor::new(JsFunction::from_object_unchecked(constructor), prototype)
     }

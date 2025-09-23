@@ -12,7 +12,14 @@ fn extends_js() {
     #[boa_class(extends = "Base")]
     impl X {
         #[boa(constructor)]
-        fn new(this: JsThis<JsObject>, super: JsSuper, context: &mut Context) -> Self {
+        #[boa(length = 0)]
+        fn new(this: JsThis<JsObject>, context: &mut Context) -> Self {
+            eprintln!("X::new() {}", std::backtrace::Backtrace::capture());
+
+            eprintln!(
+                "this: {}",
+                boa_engine::JsValue::from(this.0.clone()).display()
+            );
             eprintln!(
                 "this.proto: {}",
                 boa_engine::JsValue::from(this.0.prototype().unwrap()).display()
@@ -21,15 +28,12 @@ fn extends_js() {
                 "this.proto.is_callable: {}",
                 this.0.prototype().unwrap().is_callable()
             );
-            this.0
-                .prototype()
-                .unwrap()
-                .get(js_string!("constructor"), context)
-                .unwrap()
-                .as_callable()
-                .unwrap()
-                .construct(&[], Some(&this.0), context)
-                .unwrap();
+
+            let proto = this.0.get(js_string!("__proto__"), context);
+            eprintln!(
+                "this.proto2: {}",
+                proto.as_ref().map(JsValue::display).unwrap()
+            );
 
             Self
         }
