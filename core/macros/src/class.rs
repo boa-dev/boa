@@ -12,10 +12,44 @@ use syn::punctuated::Punctuated;
 use syn::spanned::Spanned;
 use syn::visit_mut::VisitMut;
 use syn::{
-    Attribute, ConstParam, Expr, ExprLit, ExprPath, FnArg, GenericParam, Ident, ImplItemFn,
-    ItemImpl, LifetimeParam, Lit, Meta, MetaNameValue, PatType, Receiver, ReturnType, Signature,
-    Token, Type, TypeParam,
+    Attribute, ConstParam, Expr, ExprLit, FnArg, GenericParam, Ident, ImplItemFn, ItemImpl,
+    LifetimeParam, Lit, Meta, MetaNameValue, PatType, Receiver, ReturnType, Signature, Token, Type,
+    TypeParam,
 };
+
+#[derive(Debug, Copy, Clone, PartialEq, Eq)]
+enum FunctionArgumentType {
+    Context,
+    This,
+    Any,
+}
+
+impl FunctionArgumentType {
+    fn from_pat_type(pat_type: &mut PatType) -> Self {
+        let ty = pat_type.ty.as_ref();
+
+        if take_path_attr(&mut pat_type.attrs, "context") {
+            return FunctionArgumentType::Context;
+        }
+
+        if let Type::Reference(syn::TypeReference {
+            elem, mutability, ..
+        }) = ty
+        {
+            if let Type::Path(syn::TypePath { qself: _, path }) = elem.as_ref() {
+                if let Some(maybe_ctx) = path.segments.last() {
+                    match maybe_ctx.ident.to_string().as_str() {
+                        "Context" if mutability.is_some() => return Self::Context,
+                        "JsThis" => return Self::This,
+                        _ => {}
+                    }
+                }
+            }
+        }
+
+        FunctionArgumentType::Any
+    }
+}
 
 /// A function representation. Takes a function from the AST and remember its name, length and
 /// how its body should be in the output AST.
@@ -80,40 +114,29 @@ impl Function {
     fn arg_from_pat_type(
         pat_type: &mut PatType,
         i: usize,
+        allow_this: bool,
     ) -> SpannedResult<(bool, TokenStream2, TokenStream2)> {
-        let ty = pat_type.ty.as_ref();
         let ident = Ident::new(&format!("boa_arg_{i}"), Span2::call_site());
 
-        // Find out if it's a boa context.
-        let is_context = match ty {
-            Type::Reference(syn::TypeReference {
-                elem,
-                mutability: Some(_),
-                ..
-            }) => match elem.as_ref() {
-                Type::Path(syn::TypePath { qself: _, path }) => {
-                    if let Some(maybe_ctx) = path.segments.last() {
-                        maybe_ctx.ident == "Context"
-                    } else {
-                        false
-                    }
-                }
-                _ => take_path_attr(&mut pat_type.attrs, "context"),
-            },
-            _ => false,
-        };
+        let arg_type = FunctionArgumentType::from_pat_type(pat_type);
 
-        if is_context {
-            Ok((true, quote! {}, quote! { context }))
-        } else {
-            Ok((
-                false,
-                quote! {
-                    let (#ident, rest): (#ty, &[boa_engine::JsValue]) =
-                        boa_engine::interop::TryFromJsArgument::try_from_js_argument( this, rest, context )?;
-                },
-                quote! { #ident },
-            ))
+        match arg_type {
+            FunctionArgumentType::Context => Ok((true, quote! {}, quote! { context })),
+            FunctionArgumentType::This if !allow_this => error(
+                pat_type,
+                "Cannot use `this` arguments in the data constructor.",
+            ),
+            _ => {
+                let ty = pat_type.ty.as_ref();
+                Ok((
+                    false,
+                    quote! {
+                        let (#ident, rest): (#ty, &[boa_engine::JsValue]) =
+                            boa_engine::interop::TryFromJsArgument::try_from_js_argument( this, rest, context )?;
+                    },
+                    quote! { #ident },
+                ))
+            }
         }
     }
 
@@ -142,7 +165,7 @@ impl Function {
                     }
                 }
                 FnArg::Typed(ty) => {
-                    let (incr, decl, call) = Self::arg_from_pat_type(ty, i)?;
+                    let (incr, decl, call) = Self::arg_from_pat_type(ty, i, true)?;
                     if incr {
                         not_param_count += 1;
                     }
@@ -256,7 +279,7 @@ impl Function {
             .map(|(i, a)| match a {
                 FnArg::Receiver(receiver) => error(receiver, "Constructors cannot use 'self'"),
                 FnArg::Typed(ty) => {
-                    let (_, decl, call) = Self::arg_from_pat_type(ty, i)?;
+                    let (_, decl, call) = Self::arg_from_pat_type(ty, i, false)?;
                     Ok((decl, call))
                 }
             })
@@ -650,7 +673,8 @@ impl VisitMut for ClassVisitor {
 #[derive(Debug)]
 enum Extends {
     JsValue(String),
-    RustPath(ExprPath),
+    // RustPath(ExprPath),
+    RustPath(()),
 }
 
 #[derive(Debug)]
@@ -682,7 +706,7 @@ impl Parse for ClassArguments {
                         Expr::Lit(ExprLit {
                             lit: Lit::Str(s), ..
                         }) => Ok(Extends::JsValue(s.value())),
-                        Expr::Path(path) => Ok(Extends::RustPath(path.clone())),
+                        Expr::Path(_path) => Ok(Extends::RustPath(() /* path.clone() */)),
                         _ => Err(syn::Error::new(
                             value.span(),
                             "Expected a string literal or type identifier",
