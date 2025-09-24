@@ -3,8 +3,8 @@
 use crate::lexer::{Cursor, Error, Token, TokenKind, Tokenizer};
 use crate::source::ReadChar;
 use bitflags::bitflags;
-use boa_ast::{Position, PositionGroup};
-use boa_interner::{Interner, Sym};
+use boa_ast::PositionGroup;
+use boa_interner::Interner;
 use regress::{Flags, Regex};
 use std::fmt::{Display, Write};
 use std::num::NonZeroU32;
@@ -118,7 +118,6 @@ impl<R> Tokenizer<R> for RegexLiteral {
         }
 
         let mut flags: [Option<NonZeroU32>; MAXIMUM_REGEX_FLAGS] = [None; MAXIMUM_REGEX_FLAGS];
-        let flags_start = cursor.pos();
         cursor.take_array_with_pred(&mut flags, &char::is_alphabetic)?;
         // There can only be a maximum of 8 flags.
         if cursor.peek_char()?.map(|c| {
