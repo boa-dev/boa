@@ -3,6 +3,7 @@
 use crate::source::{ReadChar, UTF8Input};
 use boa_ast::{LinearPosition, Position, PositionGroup, SourceText};
 use std::io::{self, Error, ErrorKind};
+use std::num::NonZeroU32;
 
 /// Cursor over the source code.
 #[derive(Debug)]
@@ -158,31 +159,10 @@ impl<R: ReadChar> Cursor<R> {
         }
     }
 
-    /// Fills the buffer with characters until the first ascii character for which the predicate (pred) is false.
-    /// It also stops when the next character is not an ascii or there is no next character.
-    ///
-    /// Note that all characters up until the stop character are added to the buffer, including the character right before.
-    pub(super) fn take_while_ascii_pred<F>(&mut self, buf: &mut Vec<u8>, pred: &F) -> io::Result<()>
-    where
-        F: Fn(char) -> bool,
-    {
-        loop {
-            if !self.next_is_ascii_pred(pred)? {
-                return Ok(());
-            } else if let Some(byte) = self.next_char()? {
-                #[allow(clippy::cast_possible_truncation)]
-                buf.push(byte as u8);
-            } else {
-                // next_is_pred will return false if the next value is None so the None case should already be handled.
-                unreachable!();
-            }
-        }
-    }
-
     /// Fills a mutable slice up to the end, or while a predicate is true, whichever comes first.
     pub(super) fn take_array_with_pred<F, const N: usize>(
         &mut self,
-        arr: &mut [Option<u32>; N],
+        arr: &mut [Option<NonZeroU32>; N],
         pred: &F,
     ) -> io::Result<()>
     where
@@ -191,7 +171,7 @@ impl<R: ReadChar> Cursor<R> {
         for out in arr.iter_mut() {
             if !self.next_is_ascii_pred(pred)? {
                 return Ok(());
-            } else if let Some(byte) = self.next_char()? {
+            } else if let Some(byte) = self.next_char()?.and_then(NonZeroU32::new) {
                 *out = Some(byte);
             } else {
                 unreachable!();

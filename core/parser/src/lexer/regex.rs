@@ -7,7 +7,10 @@ use boa_ast::{Position, PositionGroup};
 use boa_interner::{Interner, Sym};
 use regress::{Flags, Regex};
 use std::fmt::{Display, Write};
+use std::num::NonZeroU32;
 use std::str::{self, FromStr};
+
+const MAXIMUM_REGEX_FLAGS: usize = 8;
 
 /// Regex literal lexing.
 ///
@@ -114,9 +117,10 @@ impl<R> Tokenizer<R> for RegexLiteral {
             }
         }
 
-        let mut flags: [Option<u32>; 8] = [None; 8];
+        let mut flags: [Option<NonZeroU32>; MAXIMUM_REGEX_FLAGS] = [None; MAXIMUM_REGEX_FLAGS];
         let flags_start = cursor.pos();
         cursor.take_array_with_pred(&mut flags, &char::is_alphabetic)?;
+        // There can only be a maximum of 8 flags.
         if cursor.peek_char()?.map(|c| {
             // # SAFETY
             // This is already checked since it's in the cursor's buffer.
@@ -128,7 +132,8 @@ impl<R> Tokenizer<R> for RegexLiteral {
                 start_pos,
             ));
         }
-        let flags = Flags::new(flags.iter().filter_map(|c| *c));
+        let flags: RegExpFlags =
+            RegExpFlags::try_from(flags.as_slice()).map_err(|e| Error::syntax(e, start_pos))?;
 
         // We have a vague hint of the size of this vector in the best case scenario.
         let mut body_utf16 = Vec::with_capacity(body.len());
@@ -159,7 +164,7 @@ impl<R> Tokenizer<R> for RegexLiteral {
         Ok(Token::new_by_position_group(
             TokenKind::regular_expression_literal(
                 interner.get_or_intern(body_utf16.as_slice()),
-                parse_regex_flags(flags.to_string().as_str(), flags_start, interner)?,
+                interner.get_or_intern(flags.to_string().as_str()),
             ),
             start_pos,
             cursor.pos_group(),
@@ -199,6 +204,60 @@ bitflags! {
     }
 }
 
+impl TryFrom<&[u32]> for RegExpFlags {
+    type Error = String;
+
+    fn try_from(value: &[u32]) -> Result<Self, Self::Error> {
+        let mut flags = Self::default();
+        for c in value {
+            let c = char::from_u32(*c)
+                .ok_or_else(|| format!("Invalid regular expression flag: {c}"))?;
+
+            let new_flag = match c {
+                'g' => Self::GLOBAL,
+                'i' => Self::IGNORE_CASE,
+                'm' => Self::MULTILINE,
+                's' => Self::DOT_ALL,
+                'u' => Self::UNICODE,
+                'y' => Self::STICKY,
+                'd' => Self::HAS_INDICES,
+                'v' => Self::UNICODE_SETS,
+                _ => return Err(format!("invalid regular expression flag {c}")),
+            };
+
+            if flags.contains(new_flag) {
+                return Err(format!("repeated regular expression flag {c}"));
+            }
+            flags.insert(new_flag);
+        }
+
+        if flags.contains(Self::UNICODE) && flags.contains(Self::UNICODE_SETS) {
+            return Err("cannot use both 'u' and 'v' flags".into());
+        }
+
+        Ok(flags)
+    }
+}
+
+impl TryFrom<&[Option<NonZeroU32>]> for RegExpFlags {
+    type Error = String;
+
+    fn try_from(value: &[Option<NonZeroU32>]) -> Result<Self, Self::Error> {
+        if value.len() > MAXIMUM_REGEX_FLAGS {
+            return Err("Invalid regular expression: too many flags".into());
+        }
+
+        let mut buff = [0u32; 8];
+        let mut i = 0;
+        for (c, b) in value.iter().filter_map(|v| *v).zip(buff.iter_mut()) {
+            *b = c.into();
+            i += 1;
+        }
+
+        Self::try_from(&buff[..i])
+    }
+}
+
 impl FromStr for RegExpFlags {
     type Err = String;
 
@@ -231,13 +290,6 @@ impl FromStr for RegExpFlags {
         }
 
         Ok(flags)
-    }
-}
-
-fn parse_regex_flags(s: &str, start: Position, interner: &mut Interner) -> Result<Sym, Error> {
-    match RegExpFlags::from_str(s) {
-        Err(message) => Err(Error::Syntax(message.into(), start)),
-        Ok(flags) => Ok(interner.get_or_intern(flags.to_string().as_str())),
     }
 }
 
