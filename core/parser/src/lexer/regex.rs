@@ -114,14 +114,24 @@ impl<R> Tokenizer<R> for RegexLiteral {
             }
         }
 
-        let mut flags = Vec::new();
+        let mut flags: [Option<u32>; 8] = [None; 8];
         let flags_start = cursor.pos();
-        cursor.take_while_ascii_pred(&mut flags, &char::is_alphabetic)?;
+        cursor.take_array_with_pred(&mut flags, &char::is_alphabetic)?;
+        if cursor.peek_char()?.map(|c| {
+            // # SAFETY
+            // This is already checked since it's in the cursor's buffer.
+            unsafe { char::from_u32_unchecked(c) }.is_alphabetic()
+        }) == Some(true)
+        {
+            return Err(Error::syntax(
+                "Invalid regular expression: too many flags",
+                start_pos,
+            ));
+        }
+        let flags = Flags::new(flags.iter().filter_map(|c| *c));
 
-        // SAFETY: We have already checked that the bytes are valid UTF-8.
-        let flags_str = unsafe { str::from_utf8_unchecked(flags.as_slice()) };
-
-        let mut body_utf16 = Vec::new();
+        // We have a vague hint of the size of this vector in the best case scenario.
+        let mut body_utf16 = Vec::with_capacity(body.len());
 
         // We convert the body to UTF-16 since it may contain code points that are not valid UTF-8.
         // We already know that the body is valid UTF-16. Casting is fine.
@@ -139,7 +149,7 @@ impl<R> Tokenizer<R> for RegexLiteral {
             }
         }
 
-        if let Err(error) = Regex::from_unicode(body.into_iter(), flags_str) {
+        if let Err(error) = Regex::from_unicode(body.into_iter(), flags) {
             return Err(Error::syntax(
                 format!("Invalid regular expression literal: {error}"),
                 start_pos,
@@ -149,7 +159,7 @@ impl<R> Tokenizer<R> for RegexLiteral {
         Ok(Token::new_by_position_group(
             TokenKind::regular_expression_literal(
                 interner.get_or_intern(body_utf16.as_slice()),
-                parse_regex_flags(flags_str, flags_start, interner)?,
+                parse_regex_flags(flags.to_string().as_str(), flags_start, interner)?,
             ),
             start_pos,
             cursor.pos_group(),

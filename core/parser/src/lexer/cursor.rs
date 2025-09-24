@@ -179,6 +179,27 @@ impl<R: ReadChar> Cursor<R> {
         }
     }
 
+    /// Fills a mutable slice up to the end, or while a predicate is true, whichever comes first.
+    pub(super) fn take_array_with_pred<F, const N: usize>(
+        &mut self,
+        arr: &mut [Option<u32>; N],
+        pred: &F,
+    ) -> io::Result<()>
+    where
+        F: Fn(char) -> bool,
+    {
+        for out in arr.iter_mut() {
+            if !self.next_is_ascii_pred(pred)? {
+                return Ok(());
+            } else if let Some(byte) = self.next_char()? {
+                *out = Some(byte);
+            } else {
+                unreachable!();
+            }
+        }
+        Ok(())
+    }
+
     /// Retrieves the next UTF-8 character.
     pub(crate) fn next_char(&mut self) -> Result<Option<u32>, Error> {
         let ch = if let Some(c) = self.peeked[0] {
