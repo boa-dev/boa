@@ -889,7 +889,7 @@ fn take_array_with_pred_immediate_stop() {
 
     cur.take_array_with_pred(&mut buf, &|_| false).unwrap();
 
-    assert!(buf.iter().all(|c| c.is_none()));
+    assert!(buf.iter().all(Option::is_none));
 }
 
 #[test]

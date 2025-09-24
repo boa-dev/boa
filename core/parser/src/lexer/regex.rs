@@ -120,12 +120,11 @@ impl<R> Tokenizer<R> for RegexLiteral {
         let mut flags: [Option<NonZeroU32>; MAXIMUM_REGEX_FLAGS] = [None; MAXIMUM_REGEX_FLAGS];
         cursor.take_array_with_pred(&mut flags, &char::is_alphabetic)?;
         // There can only be a maximum of 8 flags.
-        if cursor.peek_char()?.map(|c| {
+        if cursor.peek_char()?.is_some_and(|c| {
             // # SAFETY
             // This is already checked since it's in the cursor's buffer.
             unsafe { char::from_u32_unchecked(c) }.is_alphabetic()
-        }) == Some(true)
-        {
+        }) {
             return Err(Error::syntax(
                 "Invalid regular expression: too many flags",
                 start_pos,
