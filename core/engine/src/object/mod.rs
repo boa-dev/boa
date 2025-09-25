@@ -873,6 +873,10 @@ impl<'ctx> ConstructorBuilder<'ctx> {
     /// Build the constructor function object.
     #[must_use]
     pub fn build(mut self) -> StandardConstructor {
+        eprintln!(
+            "ConstructorBuilder::build {}",
+            self.name.to_std_string_escaped()
+        );
         let length = PropertyDescriptor::builder()
             .value(self.length)
             .writable(false)

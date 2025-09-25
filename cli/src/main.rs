@@ -389,36 +389,8 @@ fn init_debug_stuff_do_not_merge(context: &mut Context) {
     #[boa_class(extends = "Base")]
     impl X {
         #[boa(constructor)]
+        #[boa(length = 0)]
         fn new(this: JsThis<JsObject>, context: &mut Context) -> Self {
-            eprintln!(
-                "this.proto: {}",
-                boa_engine::JsValue::from(this.0.prototype().unwrap()).display()
-            );
-            eprintln!(
-                "this.proto.is_callable: {}",
-                this.0.prototype().unwrap().is_callable()
-            );
-
-            let proto = this.0.get(js_string!("__proto__"), context);
-            eprintln!(
-                "this.proto2: {}",
-                proto.as_ref().map(JsValue::display).unwrap()
-            );
-
-            let pc = this
-                .0
-                .get(js_string!("__proto__"), context)
-                .unwrap()
-                .as_object()
-                .unwrap()
-                .get(js_string!("constructor"), context)
-                .unwrap()
-                .as_callable()
-                .unwrap();
-            eprintln!("-- pc start {:?}", pc);
-            pc.construct(&[], Some(&this.0), context).unwrap();
-            eprintln!("-- pc end {:?}", JsValue::from(this.0.clone()).display());
-
             Self
         }
 

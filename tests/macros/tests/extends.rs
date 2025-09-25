@@ -13,60 +13,12 @@ fn extends_js() {
     impl X {
         #[boa(constructor)]
         #[boa(length = 0)]
-        fn new(this: JsThis<JsObject>, context: &mut Context) -> Self {
-            eprintln!("X::new() {}", std::backtrace::Backtrace::capture());
-
-            eprintln!(
-                "this: {}",
-                boa_engine::JsValue::from(this.0.clone()).display()
-            );
-            eprintln!(
-                "this.proto: {}",
-                boa_engine::JsValue::from(this.0.prototype().unwrap()).display()
-            );
-            eprintln!(
-                "this.proto.is_callable: {}",
-                this.0.prototype().unwrap().is_callable()
-            );
-
-            let proto = this.0.get(js_string!("__proto__"), context);
-            eprintln!(
-                "this.proto2: {}",
-                proto.as_ref().map(JsValue::display).unwrap()
-            );
-
+        fn new(_this: JsThis<JsObject>, _context: &mut Context) -> Self {
             Self
         }
 
-        fn foo(JsThis(this): JsThis<JsObject>, context: &mut Context) -> u32 {
-            eprintln!("this: {}", JsValue::new(this.clone()).display());
-
-            eprintln!(
-                "zthis.foo: {}",
-                boa_engine::JsValue::from(this.get(js_string!("foo"), context).unwrap())
-                    .display()
-                    .to_string()
-            );
-            eprintln!(
-                "zthis.baseFoo: {}",
-                boa_engine::JsValue::from(this.get(js_string!("baseFoo"), context).unwrap())
-                    .display()
-                    .to_string()
-            );
-            eprintln!(
-                "zthis.proto: {}",
-                boa_engine::JsValue::from(this.prototype().unwrap()).display_obj(true)
-            );
-
-            this.get(js_string!("baseFoo"), context)
-                .unwrap()
-                .as_callable()
-                .expect("as callable")
-                .call(&this.clone().into(), &[JsValue::from(1)], context)
-                .expect("baseFoo() call")
-                .to_u32(context)
-                .expect("to_u32")
-                + 1
+        fn foo(JsThis(_this): JsThis<JsObject>, _context: &mut Context) -> u32 {
+            0
         }
     }
 
@@ -89,37 +41,28 @@ fn extends_js() {
     let x = context
         .eval(Source::from_bytes(
             r#"
+                new Uint8Array();
                 (new X)
             "#,
         ))
         .expect("eval 2 failed");
 
-    eprintln!("x: {}", x.display());
     eprintln!(
-        "x.foo: {}",
-        x.clone()
-            .as_object()
+        "x.foo = {}",
+        x.as_object()
             .unwrap()
             .get(js_string!("foo"), context)
             .unwrap()
             .display()
     );
-
     eprintln!(
-        "x.proto: {}",
-        JsValue::from(x.clone().as_object().unwrap().prototype().unwrap()).display()
-    );
-    eprintln!(
-        "x.baseFoo: {}",
-        x.clone()
-            .as_object()
+        "x.baseFoo = {}",
+        x.as_object()
             .unwrap()
             .get(js_string!("baseFoo"), context)
             .unwrap()
             .display()
     );
-
-    // assert_eq!(v.to_u32(context).expect("get value"), 3);
 }
 
 #[test]

@@ -112,6 +112,7 @@ use crate::{
     property::{Attribute, PropertyDescriptor, PropertyKey},
 };
 use boa_engine::object::JsPrototype;
+use boa_parser::Source;
 
 /// Native class.
 ///
@@ -162,11 +163,16 @@ pub trait Class: NativeObject + Sized {
     /// could lead to weird errors like missing inherited methods or incorrect internal data.
     /// </div>
     fn construct(
-        new_target: &JsValue,
+        this_function_object: &JsValue,
         args: &[JsValue],
         context: &mut Context,
     ) -> JsResult<JsObject> {
-        if new_target.is_undefined() {
+        eprintln!(
+            "Class::construct {} {}",
+            Self::NAME,
+            this_function_object.display()
+        );
+        if this_function_object.is_undefined() {
             return Err(JsNativeError::typ()
                 .with_message(format!(
                     "cannot call constructor of native class `{}` without new",
@@ -176,14 +182,14 @@ pub trait Class: NativeObject + Sized {
         }
 
         let prototype = 'proto: {
-            let realm = if let Some(constructor) = new_target.as_object() {
-                if let Some(proto) = constructor.get(PROTOTYPE, context)?.as_object() {
-                    eprintln!(
-                        "construct: {}",
-                        JsValue::from(proto.clone()).display().to_string()
-                    );
-                    break 'proto proto.clone();
-                }
+            let realm = if let Some(constructor) = this_function_object.as_object() {
+                // if let Some(proto) = constructor.get(PROTOTYPE, context)?.as_object() {
+                //     eprintln!(
+                //         "construct: {}",
+                //         JsValue::from(proto.clone()).display().to_string()
+                //     );
+                //     break 'proto proto.clone();
+                // }
                 constructor.get_function_realm(context)?
             } else {
                 context.realm().clone()
@@ -199,28 +205,19 @@ pub trait Class: NativeObject + Sized {
                 .prototype()
         };
         let r = context.realm();
-        let pp = r
-            .get_class::<Self>()
-            .ok_or_else(|| {
-                JsNativeError::typ().with_message(format!(
-                    "could not find native class `{}` in the map of registered classes",
-                    Self::NAME
-                ))
-            })?
-            .prototype();
-        eprintln!(
-            "construt pp: {}",
-            JsValue::from(pp.clone()).display().to_string()
-        );
-        eprintln!(
-            "construct 2: {}",
-            JsValue::from(prototype.clone()).display().to_string()
-        );
 
-        let data = Self::data_constructor(new_target, args, context)?;
+        let data = Self::data_constructor(this_function_object, args, context)?;
 
-        let object =
-            JsObject::from_proto_and_data_with_shared_shape(context.root_shape(), prototype, data);
+        eprintln!(
+            "Class::construct proto: {}",
+            JsValue::from(prototype.clone()).display()
+        );
+        let object = JsObject::from_proto_and_data_with_shared_shape(
+            context.root_shape(),
+            prototype.clone(),
+            data,
+        );
+        object.set_prototype(Some(prototype));
 
         Self::object_constructor(&object, args, context)?;
 
@@ -296,7 +293,7 @@ impl<'ctx> ClassBuilder<'ctx> {
         eprintln!("ClassBuilder::extends {:?}", p);
         self.builder.inherit(p.clone());
         if let Some(p) = p {
-            self.builder.custom_prototype(p);
+            self.builder.custom_prototype(p.prototype());
         }
         self
     }

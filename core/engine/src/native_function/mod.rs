@@ -391,7 +391,8 @@ fn native_function_construct(
     context: &mut InternalMethodCallContext<'_>,
 ) -> JsResult<CallValue> {
     eprintln!(
-        "native_function_construct backtrace: {}",
+        "native_function_construct backtrace: {:?}\n{}",
+        this_function_object,
         std::backtrace::Backtrace::capture()
     );
     eprintln!(
