@@ -21,7 +21,10 @@ use self::ordered_set::OrderedSet;
 use super::iterable::IteratorHint;
 use crate::{
     Context, JsArgs, JsResult, JsString, JsValue,
-    builtins::{BuiltInBuilder, BuiltInConstructor, BuiltInObject, IntrinsicObject},
+    builtins::{
+        BuiltInBuilder, BuiltInConstructor, BuiltInObject, IntrinsicObject,
+        canonicalize_keyed_collection_value,
+    },
     context::intrinsics::{Intrinsics, StandardConstructor, StandardConstructors},
     error::JsNativeError,
     js_string,
@@ -112,23 +115,6 @@ fn get_set_record(obj: &JsValue, context: &mut Context) -> JsResult<SetRecord> {
         has: has.clone(),
         keys: keys.clone(),
     })
-}
-
-/// [`CanonicalizeKeyedCollectionKey ( key )`][spec]
-///
-/// The abstract operation `CanonicalizeKeyedCollectionKey` takes argument key (an ECMAScript
-/// language value) and returns an ECMAScript language value. It performs the following steps
-/// when called:
-///
-///    1. If key is -0𝔽, return +0𝔽.
-///    2. Return key.
-///
-/// [spec]: https://tc39.es/ecma262/#sec-set-iterable
-fn canonicalize_keyed_collection_value(value: JsValue) -> JsValue {
-    match value.as_number() {
-        Some(n) if n.is_zero() => JsValue::new(0),
-        _ => value,
-    }
 }
 
 #[derive(Debug, Clone)]

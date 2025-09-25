@@ -25,14 +25,14 @@ use crate::{
 use num_traits::Zero;
 
 use super::{
-    BuiltInBuilder, BuiltInConstructor, IntrinsicObject, iterable::if_abrupt_close_iterator,
+    BuiltInBuilder, BuiltInConstructor, IntrinsicObject, canonicalize_keyed_collection_value,
+    iterable::if_abrupt_close_iterator,
 };
 
 mod map_iterator;
 pub(crate) use map_iterator::MapIterator;
 
 pub mod ordered_map;
-use crate::value::JsVariant;
 use ordered_map::OrderedMap;
 
 #[cfg(test)]
@@ -86,6 +86,12 @@ impl IntrinsicObject for Map {
             .method(Self::keys, js_string!("keys"), 0)
             .method(Self::set, js_string!("set"), 2)
             .method(Self::values, js_string!("values"), 0)
+            .method(Self::get_or_insert, js_string!("getOrInsert"), 2)
+            .method(
+                Self::get_or_insert_computed,
+                js_string!("getOrInsertComputed"),
+                2,
+            )
             .accessor(
                 js_string!("size"),
                 Some(get_size),
@@ -229,29 +235,18 @@ impl Map {
     /// [spec]: https://tc39.es/ecma262/#sec-map.prototype.set
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Map/set
     pub(crate) fn set(this: &JsValue, args: &[JsValue], _: &mut Context) -> JsResult<JsValue> {
-        let key = args.get_or_undefined(0);
         let value = args.get_or_undefined(1);
 
         // 1. Let M be the this value.
         // 2. Perform ? RequireInternalSlot(M, [[MapData]]).
-        // 3. Let entries be the List that is M.[[MapData]].
         let map = this.as_object();
         let mut map = map
             .as_ref()
             .and_then(|obj| obj.downcast_mut::<OrderedMap<JsValue>>())
             .ok_or_else(|| JsNativeError::typ().with_message("`this` is not a Map"))?;
 
-        let key = match key.variant() {
-            JsVariant::Float64(r) => {
-                // 5. If key is -0𝔽, set key to +0𝔽.
-                if r.is_zero() {
-                    JsValue::new(0)
-                } else {
-                    key.clone()
-                }
-            }
-            _ => key.clone(),
-        };
+        // 3. Set key to CanonicalizeKeyedCollectionKey(key).
+        let key = canonicalize_keyed_collection_value(args.get_or_undefined(0).clone());
 
         // 4. For each Record { [[Key]], [[Value]] } p of entries, do
         // a. If p.[[Key]] is not empty and SameValueZero(p.[[Key]], key) is true, then
@@ -549,6 +544,111 @@ impl Map {
         MapIterator::create_map_iterator(this, PropertyNameKind::Value, context)
     }
 
+    /// `Map.prototype.getOrInsert(key, value)`
+    ///
+    /// Given a key and a value, the getOrInsert method will return the existing value if it exists.
+    /// Otherwise insert the provided default value and return that value.
+    ///
+    /// More information:
+    ///  - [Upsert proposal reference][spec]
+    ///  - [MDN documentation][mdn]
+    ///
+    /// [spec]: https://tc39.es/proposal-upsert/#sec-map.prototype.getOrInsert
+    /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Map/getOrInsert
+    pub(crate) fn get_or_insert(
+        this: &JsValue,
+        args: &[JsValue],
+        _: &mut Context,
+    ) -> JsResult<JsValue> {
+        let value = args.get_or_undefined(1);
+
+        // 1. Let M be the this value.
+        let map_obj = this.as_object();
+        // 2. Perform ? RequireInternalSlot(M, [[MapData]]).
+        let mut map = map_obj
+            .as_ref()
+            .and_then(|obj| obj.downcast_mut::<OrderedMap<JsValue>>())
+            .ok_or_else(|| JsNativeError::typ().with_message("`this` is not a Map"))?;
+
+        // 3. Set key to CanonicalizeKeyedCollectionKey(key).
+        let key = canonicalize_keyed_collection_value(args.get_or_undefined(0).clone());
+
+        // 4. For each Record { [[Key]], [[Value]] } p of M.[[MapData]], do
+        if let Some(existing) = map.get(&key) {
+            // a. If p.[[Key]] is not empty and SameValue(p.[[Key]], key) is true, return p.[[Value]].
+            return Ok(existing.clone());
+        }
+
+        // 5. Let p be the Record { [[Key]]: key, [[Value]]: value }.
+        // 6. Append p to M.[[MapData]].
+        map.insert(key, value.clone());
+        // 7. Return value.
+        Ok(value.clone())
+    }
+
+    /// `Map.prototype.getOrInsertComputed(key, callback)`
+    ///
+    /// If the key exists in the Map, returns the existing value.
+    /// Otherwise computes a new value by calling `callback` with the key,
+    /// inserts it into the Map, and returns it.
+    ///
+    /// More information:
+    ///  - [Upsert proposal reference][spec]
+    ///  - [MDN documentation][mdn]
+    ///
+    /// [spec]: https://tc39.es/proposal-upsert/#sec-map.prototype.getOrInsertComputed
+    /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Map/getOrInsertComputed
+    pub(crate) fn get_or_insert_computed(
+        this: &JsValue,
+        args: &[JsValue],
+        context: &mut Context,
+    ) -> JsResult<JsValue> {
+        // 1. Let M be the this value.
+        let map_obj = this.as_object();
+        // 2. Perform ? RequireInternalSlot(M, [[MapData]]).
+        let map = map_obj
+            .as_ref()
+            .and_then(|obj| obj.downcast_ref::<OrderedMap<JsValue>>())
+            .ok_or_else(|| JsNativeError::typ().with_message("`this` is not a Map"))?;
+
+        // 3. If IsCallable(callbackfn) is false, throw a TypeError exception.
+        let Some(callback_fn) = args.get_or_undefined(1).as_callable() else {
+            return Err(JsNativeError::typ()
+                .with_message("Method Map.prototype.getOrInsertComputed called with non-callable callback function")
+                .into());
+        };
+
+        // 4. Set key to CanonicalizeKeyedCollectionKey(key).
+        let key = canonicalize_keyed_collection_value(args.get_or_undefined(0).clone());
+
+        // 5. For each Record { [[Key]], [[Value]] } p of M.[[MapData]], do
+        if let Some(existing) = map.get(&key) {
+            // a. If p.[[Key]] is not empty and SameValue(p.[[Key]], key) is true, return p.[[Value]].
+            return Ok(existing.clone());
+        }
+        drop(map);
+
+        // 6. Let value be ? Call(callback, undefined, « key »).
+        // 7. NOTE: The Map may have been modified during execution of callback.
+        let value = callback_fn.call(&JsValue::undefined(), std::slice::from_ref(&key), context)?;
+
+        let mut map = map_obj
+            .as_ref()
+            .and_then(|obj| obj.downcast_mut::<OrderedMap<JsValue>>())
+            .ok_or_else(|| JsNativeError::typ().with_message("`this` is not a Map"))?;
+
+        // 8. For each Record { [[Key]], [[Value]] } p of M.[[MapData]], do
+        // a. If p.[[Key]] is not empty and SameValue(p.[[Key]], key) is true, then
+        // i. Set p.[[Value]] to value.
+        // ii. Return value.
+        // 9. Let p be the Record { [[Key]]: key, [[Value]]: value }.
+        // 10. Append p to M.[[MapData]].
+        // [`OrderedMap::insert`] handles both cases
+        map.insert(key.clone(), value.clone());
+        // 11. Return value.
+        Ok(value)
+    }
+
     /// [`Map.groupBy ( items, callbackfn )`][spec]
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-map.groupby
@@ -617,14 +717,12 @@ impl Map {
             let key = callback.call(&JsValue::undefined(), &[value.clone(), k.into()], context);
 
             // f. IfAbruptCloseIterator(key, iteratorRecord).
-            let mut key = if_abrupt_close_iterator!(key, iterator, context);
+            let key = if_abrupt_close_iterator!(key, iterator, context);
 
             // h. Else,
             //     i. Assert: keyCoercion is collection.
             //     ii. Set key to CanonicalizeKeyedCollectionKey(key).
-            if key.as_number() == Some(-0.0) {
-                key = 0.into();
-            }
+            let key = canonicalize_keyed_collection_value(key);
 
             // i. Perform AddValueToKeyedGroup(groups, key, value).
             groups.entry(key).or_default().push(value);

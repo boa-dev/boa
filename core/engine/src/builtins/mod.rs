@@ -38,6 +38,7 @@ mod builder;
 
 use builder::BuiltInBuilder;
 use error::Error;
+use num_traits::Zero;
 
 #[cfg(feature = "annex-b")]
 pub mod escape;
@@ -192,6 +193,23 @@ fn global_binding<B: BuiltInObject>(context: &mut Context) -> JsResult<()> {
         context,
     )?;
     Ok(())
+}
+
+/// [`CanonicalizeKeyedCollectionKey ( key )`][spec]
+///
+/// The abstract operation `CanonicalizeKeyedCollectionKey` takes argument key (an ECMAScript
+/// language value) and returns an ECMAScript language value. It performs the following steps
+/// when called:
+///
+///    1. If key is -0𝔽, return +0𝔽.
+///    2. Return key.
+///
+/// [spec]: https://tc39.es/ecma262/multipage/keyed-collections.html#sec-canonicalizekeyedcollectionkey
+fn canonicalize_keyed_collection_value(value: JsValue) -> JsValue {
+    match value.as_number() {
+        Some(n) if n.is_zero() => JsValue::new(0),
+        _ => value,
+    }
 }
 
 impl Realm {
