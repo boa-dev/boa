@@ -1553,7 +1553,7 @@ impl PlainDateTime {
         let result = dt.inner.to_zoned_date_time_with_provider(
             timezone,
             disambiguation,
-            context.tz_provider(),
+            context.timezone_provider(),
         )?;
         create_temporal_zoneddatetime(result, None, context).map(Into::into)
     }
