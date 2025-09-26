@@ -5,66 +5,66 @@ commit = "a073f479f80b336256b7fc4e04700c827293e2fe"
 flags = []
 
 features = [
-  ### Unimplemented features:
+    ### Unimplemented features:
 
-  "FinalizationRegistry",
-  "IsHTMLDDA",
-  "symbols-as-weakmap-keys",
-  "Intl.DisplayNames",
-  "Intl.RelativeTimeFormat",
-  "Intl-enumeration",
-  "import-attributes",
-  "json-modules",
-  "Intl.DurationFormat",
-  "regexp-duplicate-named-groups",
-  "RegExp.escape",
-  "iterator-helpers",
-  "explicit-resource-management",
+    "FinalizationRegistry",
+    "IsHTMLDDA",
+    "symbols-as-weakmap-keys",
+    "Intl.DisplayNames",
+    "Intl.RelativeTimeFormat",
+    "Intl-enumeration",
+    "import-attributes",
+    "json-modules",
+    "Intl.DurationFormat",
+    "regexp-duplicate-named-groups",
+    "RegExp.escape",
+    "iterator-helpers",
+    "explicit-resource-management",
 
-  ### Pending proposals
+    ### Pending proposals
 
-  # https://github.com/tc39/proposal-intl-locale-info
-  "Intl.Locale-info",
+    # https://github.com/tc39/proposal-intl-locale-info
+    "Intl.Locale-info",
 
-  # https://github.com/tc39/proposal-regexp-legacy-features
-  "legacy-regexp",
+    # https://github.com/tc39/proposal-regexp-legacy-features
+    "legacy-regexp",
 
-  # https://github.com/tc39/proposal-defer-import-eval
-  "import-defer",
+    # https://github.com/tc39/proposal-defer-import-eval
+    "import-defer",
 
-  # https://github.com/tc39/proposal-iterator-sequencing
-  "iterator-sequencing",
+    # https://github.com/tc39/proposal-iterator-sequencing
+    "iterator-sequencing",
 
-  # https://github.com/tc39/proposal-realms
-  "ShadowRealm",
+    # https://github.com/tc39/proposal-realms
+    "ShadowRealm",
 
-  # https://github.com/tc39/proposal-decorators
-  "decorators",
+    # https://github.com/tc39/proposal-decorators
+    "decorators",
 
-  # https://github.com/tc39/proposal-json-parse-with-source
-  "json-parse-with-source",
+    # https://github.com/tc39/proposal-json-parse-with-source
+    "json-parse-with-source",
 
-  # Uint8Array Base64
-  # https://github.com/tc39/proposal-arraybuffer-base64
-  "uint8array-base64",
+    # Uint8Array Base64
+    # https://github.com/tc39/proposal-arraybuffer-base64
+    "uint8array-base64",
 
-  # Source Phase Imports
-  # https://github.com/tc39/proposal-source-phase-imports
-  "source-phase-imports",
-  # test262 special specifier
-  "source-phase-imports-module-source",
+    # Source Phase Imports
+    # https://github.com/tc39/proposal-source-phase-imports
+    "source-phase-imports",
+    # test262 special specifier
+    "source-phase-imports-module-source",
 
-  ### Non-standard
-  "caller",
+    ### Non-standard
+    "caller",
 ]
 
 tests = [
-  # Should throw an OOM error instead of filling the whole RAM.
-  "test/staging/sm/String/replace-math.js",
-  # Panics
-  "test/staging/sm/expressions/optional-chain-first-expression.js",
-  "test/staging/sm/regress/regress-554955-2.js",
-  "test/staging/sm/class/fields-static-class-name-binding-eval.js",
-  "test/staging/sm/regress/regress-554955-1.js",
-  "test/staging/sm/regress/regress-554955-3.js",
+    # Should throw an OOM error instead of filling the whole RAM.
+    "test/staging/sm/String/replace-math.js",
+    # Panics
+    "test/staging/sm/expressions/optional-chain-first-expression.js",
+    "test/staging/sm/regress/regress-554955-2.js",
+    "test/staging/sm/class/fields-static-class-name-binding-eval.js",
+    "test/staging/sm/regress/regress-554955-1.js",
+    "test/staging/sm/regress/regress-554955-3.js",
 ]
