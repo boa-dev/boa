@@ -11,3 +11,12 @@ indent_style = space
 [{Makefile,**.mk}]
 # Use tabs for indentation (Makefiles require tabs)
 indent_style = tab
+
+[{*.js,*.json,*.mjs}]
+indent_size = 2
+
+[*.md]
+indent_size = 2
+
+[flake.lock]
+#
