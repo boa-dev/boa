@@ -452,8 +452,8 @@ impl BuiltInConstructor for ZonedDateTime {
 
         let inner = ZonedDateTimeInner::try_new_with_provider(
             epoch_nanos.to_i128(),
-            calendar,
             timezone,
+            calendar,
             context.tz_provider(),
         )?;
 
@@ -510,7 +510,7 @@ impl ZonedDateTime {
 
         Ok(JsString::from(
             zdt.inner
-                .timezone()
+                .time_zone()
                 .identifier_with_provider(context.tz_provider())?,
         )
         .into())
@@ -536,7 +536,7 @@ impl ZonedDateTime {
                 JsNativeError::typ().with_message("the this object must be a ZonedDateTime object.")
             })?;
 
-        let era = zdt.inner.era()?;
+        let era = zdt.inner.era();
         Ok(era
             .map(|tinystr| JsString::from(tinystr.cow_to_lowercase()))
             .into_or_undefined())
@@ -562,7 +562,7 @@ impl ZonedDateTime {
                 JsNativeError::typ().with_message("the this object must be a ZonedDateTime object.")
             })?;
 
-        Ok(zdt.inner.era_year()?.into_or_undefined())
+        Ok(zdt.inner.era_year().into_or_undefined())
     }
 
     /// 6.3.7 get `Temporal.ZonedDateTime.prototype.year`
@@ -585,7 +585,7 @@ impl ZonedDateTime {
                 JsNativeError::typ().with_message("the this object must be a ZonedDateTime object.")
             })?;
 
-        Ok(zdt.inner.year()?.into())
+        Ok(zdt.inner.year().into())
     }
 
     /// 6.3.8 get `Temporal.ZonedDateTime.prototype.month`
@@ -608,7 +608,7 @@ impl ZonedDateTime {
                 JsNativeError::typ().with_message("the this object must be a ZonedDateTime object.")
             })?;
 
-        Ok(zdt.inner.month()?.into())
+        Ok(zdt.inner.month().into())
     }
 
     /// 6.3.9 get `Temporal.ZonedDateTime.prototype.monthCode`
@@ -631,7 +631,7 @@ impl ZonedDateTime {
                 JsNativeError::typ().with_message("the this object must be a ZonedDateTime object.")
             })?;
 
-        Ok(JsString::from(zdt.inner.month_code()?.as_str()).into())
+        Ok(JsString::from(zdt.inner.month_code().as_str()).into())
     }
 
     /// 6.3.10 get `Temporal.ZonedDateTime.prototype.day`
@@ -654,7 +654,7 @@ impl ZonedDateTime {
                 JsNativeError::typ().with_message("the this object must be a ZonedDateTime object.")
             })?;
 
-        Ok(zdt.inner.day()?.into())
+        Ok(zdt.inner.day().into())
     }
 
     /// 6.3.11 get `Temporal.ZonedDateTime.prototype.hour`
@@ -677,7 +677,7 @@ impl ZonedDateTime {
                 JsNativeError::typ().with_message("the this object must be a ZonedDateTime object.")
             })?;
 
-        Ok(zdt.inner.hour()?.into())
+        Ok(zdt.inner.hour().into())
     }
 
     /// 6.3.12 get `Temporal.ZonedDateTime.prototype.minute`
@@ -700,7 +700,7 @@ impl ZonedDateTime {
                 JsNativeError::typ().with_message("the this object must be a ZonedDateTime object.")
             })?;
 
-        Ok(zdt.inner.minute()?.into())
+        Ok(zdt.inner.minute().into())
     }
 
     /// 6.3.13 get `Temporal.ZonedDateTime.prototype.second`
@@ -723,7 +723,7 @@ impl ZonedDateTime {
                 JsNativeError::typ().with_message("the this object must be a ZonedDateTime object.")
             })?;
 
-        Ok(zdt.inner.second()?.into())
+        Ok(zdt.inner.second().into())
     }
 
     /// 6.3.14 get `Temporal.ZonedDateTime.prototype.millisecond`
@@ -746,7 +746,7 @@ impl ZonedDateTime {
                 JsNativeError::typ().with_message("the this object must be a ZonedDateTime object.")
             })?;
 
-        Ok(zdt.inner.millisecond()?.into())
+        Ok(zdt.inner.millisecond().into())
     }
 
     /// 6.3.15 get `Temporal.ZonedDateTime.prototype.microsecond`
@@ -769,7 +769,7 @@ impl ZonedDateTime {
                 JsNativeError::typ().with_message("the this object must be a ZonedDateTime object.")
             })?;
 
-        Ok(zdt.inner.microsecond()?.into())
+        Ok(zdt.inner.microsecond().into())
     }
 
     /// 6.3.16 get `Temporal.ZonedDateTime.prototype.nanosecond`
@@ -792,7 +792,7 @@ impl ZonedDateTime {
                 JsNativeError::typ().with_message("the this object must be a ZonedDateTime object.")
             })?;
 
-        Ok(zdt.inner.nanosecond()?.into())
+        Ok(zdt.inner.nanosecond().into())
     }
 
     /// 6.3.17 get `Temporal.ZonedDateTime.prototype.epochMilliseconds`
@@ -861,7 +861,7 @@ impl ZonedDateTime {
                 JsNativeError::typ().with_message("the this object must be a ZonedDateTime object.")
             })?;
 
-        Ok(zdt.inner.day_of_week()?.into())
+        Ok(zdt.inner.day_of_week().into())
     }
 
     /// 6.3.20 get `Temporal.ZonedDateTime.prototype.dayOfYear`
@@ -884,7 +884,7 @@ impl ZonedDateTime {
                 JsNativeError::typ().with_message("the this object must be a ZonedDateTime object.")
             })?;
 
-        Ok(zdt.inner.day_of_year()?.into())
+        Ok(zdt.inner.day_of_year().into())
     }
 
     /// 6.3.21 get `Temporal.ZonedDateTime.prototype.weekOfYear`
@@ -907,7 +907,7 @@ impl ZonedDateTime {
                 JsNativeError::typ().with_message("the this object must be a ZonedDateTime object.")
             })?;
 
-        Ok(zdt.inner.week_of_year()?.into_or_undefined())
+        Ok(zdt.inner.week_of_year().into_or_undefined())
     }
 
     /// 6.3.22 get `Temporal.ZonedDateTime.prototype.yearOfWeek`
@@ -930,7 +930,7 @@ impl ZonedDateTime {
                 JsNativeError::typ().with_message("the this object must be a ZonedDateTime object.")
             })?;
 
-        Ok(zdt.inner.year_of_week()?.into_or_undefined())
+        Ok(zdt.inner.year_of_week().into_or_undefined())
     }
 
     /// 6.3.23 get `Temporal.ZonedDateTime.prototype.hoursInDay`
@@ -979,7 +979,7 @@ impl ZonedDateTime {
                 JsNativeError::typ().with_message("the this object must be a ZonedDateTime object.")
             })?;
 
-        Ok(zdt.inner.days_in_week()?.into())
+        Ok(zdt.inner.days_in_week().into())
     }
 
     /// 6.3.25 get `Temporal.ZonedDateTime.prototype.daysInMonth`
@@ -1002,7 +1002,7 @@ impl ZonedDateTime {
                 JsNativeError::typ().with_message("the this object must be a ZonedDateTime object.")
             })?;
 
-        Ok(zdt.inner.days_in_month()?.into())
+        Ok(zdt.inner.days_in_month().into())
     }
 
     /// 6.3.26 get `Temporal.ZonedDateTime.prototype.daysInYear`
@@ -1025,7 +1025,7 @@ impl ZonedDateTime {
                 JsNativeError::typ().with_message("the this object must be a ZonedDateTime object.")
             })?;
 
-        Ok(zdt.inner.days_in_year()?.into())
+        Ok(zdt.inner.days_in_year().into())
     }
 
     /// 6.3.27 get `Temporal.ZonedDateTime.prototype.monthsInYear`
@@ -1048,7 +1048,7 @@ impl ZonedDateTime {
                 JsNativeError::typ().with_message("the this object must be a ZonedDateTime object.")
             })?;
 
-        Ok(zdt.inner.months_in_year()?.into())
+        Ok(zdt.inner.months_in_year().into())
     }
 
     /// 6.3.28 get `Temporal.ZonedDateTime.prototype.inLeapYear`
@@ -1071,7 +1071,7 @@ impl ZonedDateTime {
                 JsNativeError::typ().with_message("the this object must be a ZonedDateTime object.")
             })?;
 
-        Ok(zdt.inner.in_leap_year()?.into())
+        Ok(zdt.inner.in_leap_year().into())
     }
 
     /// 6.3.29 get Temporal.ZonedDateTime.prototype.offsetNanoseconds
@@ -1292,7 +1292,7 @@ impl ZonedDateTime {
 
         let inner = zdt
             .inner
-            .with_timezone_with_provider(timezone, context.tz_provider())?;
+            .with_time_zone_with_provider(timezone, context.tz_provider())?;
         create_temporal_zoneddatetime(inner, None, context).map(Into::into)
     }
 
@@ -1318,7 +1318,7 @@ impl ZonedDateTime {
 
         let calendar = to_temporal_calendar_identifier(args.get_or_undefined(0))?;
 
-        let inner = zdt.inner.with_calendar(calendar)?;
+        let inner = zdt.inner.with_calendar(calendar);
         create_temporal_zoneddatetime(inner, None, context).map(Into::into)
     }
 
@@ -1818,7 +1818,7 @@ impl ZonedDateTime {
                 JsNativeError::typ().with_message("the this object must be a ZonedDateTime object.")
             })?;
 
-        let inner = zdt.inner.to_plain_date()?;
+        let inner = zdt.inner.to_plain_date();
         create_temporal_date(inner, None, context).map(Into::into)
     }
 
@@ -1842,7 +1842,7 @@ impl ZonedDateTime {
                 JsNativeError::typ().with_message("the this object must be a ZonedDateTime object.")
             })?;
 
-        let new = zdt.inner.to_plain_time()?;
+        let new = zdt.inner.to_plain_time();
         create_temporal_time(new, None, context).map(Into::into)
     }
 
@@ -1870,7 +1870,7 @@ impl ZonedDateTime {
                 JsNativeError::typ().with_message("the this object must be a ZonedDateTime object.")
             })?;
 
-        let new = zdt.inner.to_plain_datetime()?;
+        let new = zdt.inner.to_plain_date_time();
         create_temporal_datetime(new, None, context).map(Into::into)
     }
 }
@@ -2025,7 +2025,7 @@ pub(crate) fn to_temporal_timezone_identifier(
         && let Some(zdt) = obj.downcast_ref::<ZonedDateTime>()
     {
         // i. Return temporalTimeZoneLike.[[TimeZone]].
-        return Ok(*zdt.inner.timezone());
+        return Ok(*zdt.inner.time_zone());
     }
 
     // 2. If temporalTimeZoneLike is not a String, throw a TypeError exception.

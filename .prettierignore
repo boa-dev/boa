@@ -10,3 +10,6 @@ dist
 test262
 playwright-report
 test-results
+
+# For some reason Prettier likes to reformat JSON lock files.
+flake.lock
