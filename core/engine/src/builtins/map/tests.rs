@@ -305,3 +305,94 @@ fn for_of_delete() {
             "#}),
     ]);
 }
+
+#[test]
+fn get_or_insert_inserts_on_miss() {
+    run_test_actions([
+        TestAction::run("let map = new Map();"),
+        TestAction::assert_eq("map.getOrInsert('x', 42)", 42),
+        TestAction::assert("map.has('x')"),
+        TestAction::assert_eq("map.get('x')", 42),
+    ]);
+}
+
+#[test]
+fn get_or_insert_returns_existing_on_hit() {
+    run_test_actions([
+        TestAction::run("let map = new Map([['y', 99]]);"),
+        TestAction::assert_eq("map.getOrInsert('y', 123)", 99),
+        TestAction::assert_eq("map.get('y')", 99), // unchanged
+    ]);
+}
+
+#[test]
+fn get_or_insert_canonicalizes_key() {
+    run_test_actions([
+        TestAction::run("let map = new Map();"),
+        // -0 and +0 should canonicalize to +0
+        TestAction::assert_eq("map.getOrInsert(-0, 'minus zero')", js_str!("minus zero")),
+        TestAction::assert("map.has(0)"),
+        TestAction::assert_eq("map.get(0)", js_str!("minus zero")),
+    ]);
+}
+
+#[test]
+fn get_or_insert_with_undefined_value() {
+    run_test_actions([
+        TestAction::run("let map = new Map();"),
+        TestAction::assert_eq("map.getOrInsert('z', undefined)", JsValue::undefined()),
+        TestAction::assert("map.has('z')"),
+        TestAction::assert_eq("map.get('z')", JsValue::undefined()),
+    ]);
+}
+
+#[test]
+fn get_or_insert_computed_this_not_map() {
+    run_test_actions([TestAction::assert_native_error(
+        "Map.prototype.getOrInsertComputed.call({}, 'k', x => x)",
+        JsNativeErrorKind::Type,
+        "`this` is not a Map",
+    )]);
+}
+
+#[test]
+fn get_or_insert_computed_requires_callable() {
+    run_test_actions([TestAction::assert_native_error(
+        "new Map().getOrInsertComputed('k', undefined)",
+        JsNativeErrorKind::Type,
+        "Method Map.prototype.getOrInsertComputed called with non-callable callback function",
+    )]);
+}
+
+#[test]
+fn get_or_insert_computed_not_called_on_hit() {
+    run_test_actions([
+        TestAction::run("const m = new Map([['k', 7]]); let calls = 0;"),
+        TestAction::assert_eq(
+            "m.getOrInsertComputed('k', (key) => { calls++; return 1; })",
+            7,
+        ),
+        TestAction::assert_eq("calls", 0),
+        TestAction::assert_eq("m.get('k')", 7),
+    ]);
+}
+
+#[test]
+fn get_or_insert_computed_this_is_undefined_and_key_canonicalized() {
+    run_test_actions([
+        TestAction::run(
+            r#"
+            const m = new Map();
+            let seenThis, seenKey;
+            const v = m.getOrInsertComputed(-0, function(k) { 'use strict'; seenThis = this; seenKey = k; return 'ok'; });
+        "#,
+        ),
+        // `this` inside callback is undefined
+        TestAction::assert("seenThis === undefined"),
+        // key argument is canonicalized (-0 → +0)
+        TestAction::assert("Object.is(seenKey, 0)"),
+        TestAction::assert_eq("v", js_str!("ok")),
+        TestAction::assert("m.has(0)"),
+        TestAction::assert_eq("m.get(0)", js_str!("ok")),
+    ]);
+}

@@ -48,10 +48,6 @@ features = [
     # https://github.com/tc39/proposal-arraybuffer-base64
     "uint8array-base64",
 
-    # Upsert
-    # https://github.com/tc39/proposal-upsert
-    "upsert",
-
     # Source Phase Imports
     # https://github.com/tc39/proposal-source-phase-imports
     "source-phase-imports",
