@@ -3,6 +3,7 @@
 use crate::source::{ReadChar, UTF8Input};
 use boa_ast::{LinearPosition, Position, PositionGroup, SourceText};
 use std::io::{self, Error, ErrorKind};
+use std::num::NonZeroU32;
 
 /// Cursor over the source code.
 #[derive(Debug)]
@@ -158,24 +159,28 @@ impl<R: ReadChar> Cursor<R> {
         }
     }
 
-    /// Fills the buffer with characters until the first ascii character for which the predicate (pred) is false.
-    /// It also stops when the next character is not an ascii or there is no next character.
-    ///
-    /// Note that all characters up until the stop character are added to the buffer, including the character right before.
-    pub(super) fn take_while_ascii_pred<F>(&mut self, buf: &mut Vec<u8>, pred: &F) -> io::Result<()>
-    where
-        F: Fn(char) -> bool,
-    {
-        loop {
-            if !self.next_is_ascii_pred(pred)? {
-                return Ok(());
-            } else if let Some(byte) = self.next_char()? {
-                #[allow(clippy::cast_possible_truncation)]
-                buf.push(byte as u8);
-            } else {
-                // next_is_pred will return false if the next value is None so the None case should already be handled.
-                unreachable!();
+    /// Fills a mutable slice up to the ends while characters are alphabetic.
+    pub(super) fn take_array_alphabetic<const N: usize>(
+        &mut self,
+        arr: &mut [Option<NonZeroU32>; N],
+    ) -> io::Result<usize> {
+        for (i, out) in arr.iter_mut().enumerate() {
+            match self.peek_char()? {
+                // A..Z | a..z
+                Some(0x41..=0x5A | 0x61..=0x7A) => {
+                    *out = self
+                        .next_char()?
+                        // # SAFETY: already checked it isn't zero in the pattern.
+                        .map(|x| unsafe { NonZeroU32::new_unchecked(x) });
+                }
+                _ => return Ok(i),
             }
+        }
+        // Check the next character and return N+1 if it's alphabetic.
+        match self.peek_char() {
+            // A..Z | a..z
+            Ok(Some(0x41..=0x5A | 0x61..=0x7A)) => Ok(N + 1),
+            _ => Ok(N),
         }
     }
 
