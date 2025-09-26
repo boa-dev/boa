@@ -119,7 +119,7 @@ impl<R> Tokenizer<R> for RegexLiteral {
 
         let mut flags: [Option<NonZeroU32>; MAXIMUM_REGEX_FLAGS] = [None; MAXIMUM_REGEX_FLAGS];
         let n = cursor.take_array_alphabetic(&mut flags)?;
-        if n == MAXIMUM_REGEX_FLAGS {
+        if n > MAXIMUM_REGEX_FLAGS {
             // There can only be a maximum of 8 flags.
             return Err(Error::syntax(
                 "Invalid regular expression: too many flags",

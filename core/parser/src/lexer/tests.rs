@@ -868,7 +868,7 @@ fn take_array_alphabetic_simple() {
 
     let mut buf: [Option<NonZeroU32>; 8] = [None; 8];
 
-    cur.take_array_alphabetic(&mut buf).unwrap();
+    let n = cur.take_array_alphabetic(&mut buf).unwrap();
 
     assert_eq!(
         buf.iter()
@@ -878,6 +878,7 @@ fn take_array_alphabetic_simple() {
             .as_slice(),
         &['a', 'b', 'c']
     );
+    assert_eq!(n, 3);
 }
 
 #[test]
@@ -886,9 +887,10 @@ fn take_array_alphabetic_immediate_stop() {
 
     let mut buf: [Option<NonZeroU32>; 8] = [None; 8];
 
-    cur.take_array_alphabetic(&mut buf).unwrap();
+    let n = cur.take_array_alphabetic(&mut buf).unwrap();
 
     assert!(buf.iter().all(Option::is_none));
+    assert_eq!(n, 0);
 }
 
 #[test]
@@ -897,7 +899,7 @@ fn take_array_alphabetic_entire_str() {
 
     let mut buf: [Option<NonZeroU32>; 16] = [None; 16];
 
-    cur.take_array_alphabetic(&mut buf).unwrap();
+    let n = cur.take_array_alphabetic(&mut buf).unwrap();
 
     assert_eq!(
         buf.iter()
@@ -907,6 +909,7 @@ fn take_array_alphabetic_entire_str() {
             .as_slice(),
         &['a', 'b', 'c', 'd', 'e', 'f', 'g', 'h', 'i', 'j', 'k']
     );
+    assert_eq!(n, 11);
 }
 
 #[test]
@@ -914,9 +917,29 @@ fn take_array_alphabetic_non_stop() {
     let mut cur = Cursor::from("abcde".as_bytes());
 
     let mut buf: [Option<NonZeroU32>; 16] = [None; 16];
-    cur.take_array_alphabetic(&mut buf).unwrap();
+    let n = cur.take_array_alphabetic(&mut buf).unwrap();
 
     assert_eq!(buf.iter().filter_map(|c| *c).count(), 5);
+    assert_eq!(n, 5);
+}
+
+#[test]
+fn take_array_alphabetic_stop() {
+    let mut cur = Cursor::from("abcde".as_bytes());
+
+    let mut buf: [Option<NonZeroU32>; 4] = [None; 4];
+    let n = cur.take_array_alphabetic(&mut buf).unwrap();
+
+    assert_eq!(buf.iter().filter_map(|c| *c).count(), 4);
+    assert_eq!(
+        buf.iter()
+            .filter_map(|c| *c)
+            .filter_map(|c| char::from_u32(c.into()))
+            .collect::<Vec<_>>()
+            .as_slice(),
+        &['a', 'b', 'c', 'd']
+    );
+    assert_eq!(n, 5);
 }
 
 #[test]

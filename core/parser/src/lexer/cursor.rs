@@ -176,7 +176,12 @@ impl<R: ReadChar> Cursor<R> {
                 _ => return Ok(i),
             }
         }
-        Ok(N)
+        // Check the next character and return N+1 if it's alphabetic.
+        match self.peek_char() {
+            // A..Z | a..z
+            Ok(Some(0x41..=0x5A | 0x61..=0x7A)) => Ok(N + 1),
+            _ => Ok(N),
+        }
     }
 
     /// Retrieves the next UTF-8 character.
