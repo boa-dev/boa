@@ -126,7 +126,7 @@ impl<R> Tokenizer<R> for RegexLiteral {
                 start_pos,
             ));
         }
-        let flags: [u32; MAXIMUM_REGEX_FLAGS] = unsafe { std::mem::transmute(flags) };
+        let flags: [u32; MAXIMUM_REGEX_FLAGS] = flags.map(|c| c.map_or(0, NonZeroU32::get));
         let flags: RegExpFlags =
             RegExpFlags::try_from(&flags[..]).map_err(|e| Error::syntax(e, start_pos))?;
 
