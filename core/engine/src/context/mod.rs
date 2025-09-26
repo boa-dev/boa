@@ -10,7 +10,9 @@ pub use hooks::{DefaultHooks, HostHooks};
 pub use icu::IcuError;
 use intrinsics::Intrinsics;
 #[cfg(feature = "temporal")]
-use timezone_provider::tzif::FsTzdbProvider;
+use temporal_rs::provider::TimeZoneProvider;
+#[cfg(feature = "temporal")]
+use timezone_provider::tzif::CompiledTzdbProvider;
 
 use crate::job::Job;
 use crate::module::DynModuleLoader;
@@ -106,7 +108,7 @@ pub struct Context {
     can_block: bool,
 
     #[cfg(feature = "temporal")]
-    tz_provider: FsTzdbProvider,
+    tz_provider: CompiledTzdbProvider,
 
     /// Intl data provider.
     #[cfg(feature = "intl")]
@@ -890,7 +892,7 @@ impl Context {
 
     /// Get the Time Zone Provider
     #[cfg(feature = "temporal")]
-    pub(crate) fn tz_provider(&self) -> &FsTzdbProvider {
+    pub(crate) fn tz_provider(&self) -> &impl TimeZoneProvider {
         &self.tz_provider
     }
 }
@@ -1101,7 +1103,7 @@ impl ContextBuilder {
             vm,
             strict: false,
             #[cfg(feature = "temporal")]
-            tz_provider: FsTzdbProvider::default(),
+            tz_provider: CompiledTzdbProvider::default(),
             #[cfg(feature = "intl")]
             intl_provider: if let Some(icu) = self.icu {
                 icu

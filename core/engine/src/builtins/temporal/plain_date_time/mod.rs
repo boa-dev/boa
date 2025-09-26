@@ -1174,7 +1174,7 @@ impl PlainDateTime {
 
         let calendar = to_temporal_calendar_identifier(args.get_or_undefined(0))?;
 
-        create_temporal_datetime(dt.inner.with_calendar(calendar)?, None, context).map(Into::into)
+        create_temporal_datetime(dt.inner.with_calendar(calendar), None, context).map(Into::into)
     }
 
     /// 5.3.28 `Temporal.PlainDateTime.prototype.add ( temporalDurationLike [ , options ] )`
@@ -1551,7 +1551,7 @@ impl PlainDateTime {
         // 7. Return ! CreateTemporalZonedDateTime(epochNs, timeZone, dateTime.[[Calendar]]).
 
         let result = dt.inner.to_zoned_date_time_with_provider(
-            &timezone,
+            timezone,
             disambiguation,
             context.tz_provider(),
         )?;
@@ -1578,7 +1578,7 @@ impl PlainDateTime {
                 JsNativeError::typ().with_message("the this object must be a PlainDateTime object.")
             })?;
 
-        let result = dt.inner.to_plain_date()?;
+        let result = dt.inner.to_plain_date();
         create_temporal_date(result, None, context).map(Into::into)
     }
 
@@ -1602,7 +1602,7 @@ impl PlainDateTime {
                 JsNativeError::typ().with_message("the this object must be a PlainDateTime object.")
             })?;
 
-        let result = dt.inner.to_plain_time()?;
+        let result = dt.inner.to_plain_time();
         create_temporal_time(result, None, context).map(Into::into)
     }
 }
@@ -1677,25 +1677,14 @@ pub(crate) fn to_temporal_datetime(
             // ii. Let instant be ! CreateTemporalInstant(item.[[Nanoseconds]]).
             // iii. Let timeZoneRec be ? CreateTimeZoneMethodsRecord(item.[[TimeZone]], « get-offset-nanoseconds-for »).
             // iv. Return ? GetPlainDateTimeFor(timeZoneRec, instant, item.[[Calendar]]).
-            return zdt.inner.to_plain_datetime().map_err(Into::into);
+            return Ok(zdt.inner.to_plain_date_time());
         // c. If item has an [[InitializedTemporalDate]] internal slot, then
         } else if let Some(date) = object.downcast_ref::<PlainDate>() {
             // i. Perform ? GetTemporalOverflowOption(resolvedOptions).
             let options = get_options_object(&options.unwrap_or_default())?;
             let _ = get_option::<Overflow>(&options, js_string!("overflow"), context)?;
             // ii. Return ? CreateTemporalDateTime(item.[[ISOYear]], item.[[ISOMonth]], item.[[ISODay]], 0, 0, 0, 0, 0, 0, item.[[Calendar]]).
-            return Ok(InnerDateTime::new(
-                date.inner.iso_year(),
-                date.inner.iso_month(),
-                date.inner.iso_day(),
-                0,
-                0,
-                0,
-                0,
-                0,
-                0,
-                date.inner.calendar().clone(),
-            )?);
+            return Ok(date.inner.to_plain_date_time(None)?);
         }
 
         // d. Let calendar be ? GetTemporalCalendarSlotValueWithISODefault(item).

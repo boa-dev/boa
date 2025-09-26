@@ -4201,9 +4201,9 @@ dependencies = [
 
 [[package]]
 name = "temporal_rs"
-version = "0.0.16"
+version = "0.1.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "b67f9a1bf14704be6400d37f5ec9c10f139e563adae37dee83c4477178818486"
+checksum = "7305090e19b67670330fde1365b7c2c8a3b5a5ef6c92efc238b3b964a8c395fd"
 dependencies = [
  "core_maths",
  "icu_calendar",
@@ -4345,9 +4345,9 @@ dependencies = [
 
 [[package]]
 name = "timezone_provider"
-version = "0.0.16"
+version = "0.1.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "14fab21f70d8ca989ca76d399d26f4487747ac2def3816d93eaa966f8dfa2ea7"
+checksum = "071d5533454ed925a1f4841f7128d1d248f3465d6a18e9afe298212916cc3269"
 dependencies = [
  "combine",
  "jiff-tzdb",
