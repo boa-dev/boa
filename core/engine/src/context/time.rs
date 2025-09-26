@@ -3,7 +3,10 @@
 use std::fmt::Debug;
 
 #[cfg(feature = "temporal")]
-use timezone_provider::{provider::{TimeZoneId, TimeZoneProvider}, TimeZoneProviderError};
+use timezone_provider::{
+    TimeZoneProviderError,
+    provider::{TimeZoneId, TimeZoneProvider},
+};
 
 /// A monotonic instant in time, in the Boa engine.
 ///
