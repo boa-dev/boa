@@ -1,0 +1,30 @@
+[tasks.format]
+install_crate = "rustfmt"
+command = "cargo"
+args = ["fmt", "--", "--emit=files"]
+workspace = false
+
+[tasks.test]
+command = "cargo"
+args = ["test", "${@}"]
+workspace = false
+
+[tasks.test262]
+command = "cargo"
+args = ["run", "@@remove-empty(RELEASE_ARG)", "--bin", "boa_tester", "--", "run", "${@}"]
+workspace = false
+
+[tasks.bench-js]
+condition = { env_set = [ "BOA_DATA_ROOT" ] }
+command = "cargo"
+args = ["run", "--bin", "boa", "--release", "--", "@@remove-empty(BOA_DATA_ROOT)bench/bench-v8/combined.js"]
+workspace = false
+
+[env.development]
+RELEASE_ARG=""
+
+[env.profiling]
+RELEASE_ARG="--profile=release-dbg"
+
+[env.production]
+RELEASE_ARG="--release"
