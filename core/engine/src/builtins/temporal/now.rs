@@ -81,8 +81,8 @@ impl Now {
         // TODO: this should be optimized once system time zone is in context
         // 1. Return ! SystemTimeZone().
         let context: &Context = context;
-        let time_zone = context.get_system_time_zone(context.tz_provider())?;
-        Ok(JsString::from(time_zone.identifier_with_provider(context.tz_provider())?).into())
+        let time_zone = context.get_system_time_zone(context.timezone_provider())?;
+        Ok(JsString::from(time_zone.identifier_with_provider(context.timezone_provider())?).into())
     }
 
     /// 2.2.2 `Temporal.Now.instant()`
@@ -125,7 +125,8 @@ impl Now {
 
         let now: InnerNow<&Context> = InnerNow::new(context);
 
-        let datetime = now.plain_date_time_iso_with_provider(time_zone, context.tz_provider())?;
+        let datetime =
+            now.plain_date_time_iso_with_provider(time_zone, context.timezone_provider())?;
         create_temporal_datetime(datetime, None, context).map(Into::into)
     }
 
@@ -152,7 +153,7 @@ impl Now {
             .transpose()?;
 
         let now: InnerNow<&Context> = InnerNow::new(context);
-        let zdt = now.zoned_date_time_iso_with_provider(time_zone, context.tz_provider())?;
+        let zdt = now.zoned_date_time_iso_with_provider(time_zone, context.timezone_provider())?;
         create_temporal_zoneddatetime(zdt, None, context).map(Into::into)
     }
 
@@ -176,7 +177,7 @@ impl Now {
 
         let now: InnerNow<&Context> = InnerNow::new(context);
 
-        let pd = now.plain_date_iso_with_provider(time_zone, context.tz_provider())?;
+        let pd = now.plain_date_iso_with_provider(time_zone, context.timezone_provider())?;
         create_temporal_date(pd, None, context).map(Into::into)
     }
 
@@ -200,7 +201,7 @@ impl Now {
 
         let now: InnerNow<&Context> = InnerNow::new(context);
 
-        let pt = now.plain_time_with_provider(time_zone, context.tz_provider())?;
+        let pt = now.plain_time_with_provider(time_zone, context.timezone_provider())?;
         create_temporal_time(pt, None, context).map(Into::into)
     }
 }
