@@ -863,13 +863,12 @@ fn addition_no_spaces_e_number() {
 }
 
 #[test]
-fn take_array_with_pred_simple() {
-    let mut cur = Cursor::from(&b"abcdefghijk"[..]);
+fn take_array_alphabetic_simple() {
+    let mut cur = Cursor::from(&b"abc0defghijk"[..]);
 
     let mut buf: [Option<NonZeroU32>; 8] = [None; 8];
 
-    cur.take_array_with_pred(&mut buf, &|c| c == 'a' || c == 'b' || c == 'c')
-        .unwrap();
+    cur.take_array_alphabetic(&mut buf).unwrap();
 
     assert_eq!(
         buf.iter()
@@ -882,23 +881,23 @@ fn take_array_with_pred_simple() {
 }
 
 #[test]
-fn take_array_with_pred_immediate_stop() {
-    let mut cur = Cursor::from(&b"abcdefghijk"[..]);
+fn take_array_alphabetic_immediate_stop() {
+    let mut cur = Cursor::from(&b"0abcdefghijk"[..]);
 
     let mut buf: [Option<NonZeroU32>; 8] = [None; 8];
 
-    cur.take_array_with_pred(&mut buf, &|_| false).unwrap();
+    cur.take_array_alphabetic(&mut buf).unwrap();
 
     assert!(buf.iter().all(Option::is_none));
 }
 
 #[test]
-fn take_array_with_pred_entire_str() {
+fn take_array_alphabetic_entire_str() {
     let mut cur = Cursor::from(&b"abcdefghijk"[..]);
 
     let mut buf: [Option<NonZeroU32>; 16] = [None; 16];
 
-    cur.take_array_with_pred(&mut buf, &|_| true).unwrap();
+    cur.take_array_alphabetic(&mut buf).unwrap();
 
     assert_eq!(
         buf.iter()
@@ -911,11 +910,11 @@ fn take_array_with_pred_entire_str() {
 }
 
 #[test]
-fn take_array_with_pred_non_stop() {
+fn take_array_alphabetic_non_stop() {
     let mut cur = Cursor::from("abcde".as_bytes());
 
     let mut buf: [Option<NonZeroU32>; 16] = [None; 16];
-    cur.take_array_with_pred(&mut buf, &|_| true).unwrap();
+    cur.take_array_alphabetic(&mut buf).unwrap();
 
     assert_eq!(buf.iter().filter_map(|c| *c).count(), 5);
 }

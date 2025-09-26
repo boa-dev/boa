@@ -159,25 +159,24 @@ impl<R: ReadChar> Cursor<R> {
         }
     }
 
-    /// Fills a mutable slice up to the end, or while a predicate is true, whichever comes first.
-    pub(super) fn take_array_with_pred<F, const N: usize>(
+    /// Fills a mutable slice up to the ends while characters are alphabetic.
+    pub(super) fn take_array_alphabetic<const N: usize>(
         &mut self,
         arr: &mut [Option<NonZeroU32>; N],
-        pred: &F,
-    ) -> io::Result<()>
-    where
-        F: Fn(char) -> bool,
-    {
-        for out in arr.iter_mut() {
-            if !self.next_is_ascii_pred(pred)? {
-                return Ok(());
-            } else if let Some(byte) = self.next_char()?.and_then(NonZeroU32::new) {
-                *out = Some(byte);
-            } else {
-                unreachable!();
+    ) -> io::Result<usize> {
+        for (i, out) in arr.iter_mut().enumerate() {
+            match self.peek_char()? {
+                // A..Z | a..z
+                Some(0x41..=0x5A | 0x61..=0x7A) => {
+                    *out = self
+                        .next_char()?
+                        // # SAFETY: already checked it isn't zero in the pattern.
+                        .map(|x| unsafe { NonZeroU32::new_unchecked(x) });
+                }
+                _ => return Ok(i),
             }
         }
-        Ok(())
+        Ok(N)
     }
 
     /// Retrieves the next UTF-8 character.

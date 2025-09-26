@@ -118,20 +118,17 @@ impl<R> Tokenizer<R> for RegexLiteral {
         }
 
         let mut flags: [Option<NonZeroU32>; MAXIMUM_REGEX_FLAGS] = [None; MAXIMUM_REGEX_FLAGS];
-        cursor.take_array_with_pred(&mut flags, &char::is_alphabetic)?;
-        // There can only be a maximum of 8 flags.
-        if cursor.peek_char()?.is_some_and(|c| {
-            // # SAFETY
-            // This is already checked since it's in the cursor's buffer.
-            unsafe { char::from_u32_unchecked(c) }.is_alphabetic()
-        }) {
+        let n = cursor.take_array_alphabetic(&mut flags)?;
+        if n == MAXIMUM_REGEX_FLAGS {
+            // There can only be a maximum of 8 flags.
             return Err(Error::syntax(
                 "Invalid regular expression: too many flags",
                 start_pos,
             ));
         }
+        let flags: [u32; MAXIMUM_REGEX_FLAGS] = unsafe { std::mem::transmute(flags) };
         let flags: RegExpFlags =
-            RegExpFlags::try_from(flags.as_slice()).map_err(|e| Error::syntax(e, start_pos))?;
+            RegExpFlags::try_from(&flags[..]).map_err(|e| Error::syntax(e, start_pos))?;
 
         // We have a vague hint of the size of this vector in the best case scenario.
         let mut body_utf16 = Vec::with_capacity(body.len());
@@ -220,6 +217,7 @@ impl TryFrom<&[u32]> for RegExpFlags {
                 'y' => Self::STICKY,
                 'd' => Self::HAS_INDICES,
                 'v' => Self::UNICODE_SETS,
+                '\0' => break,
                 _ => return Err(format!("invalid regular expression flag {c}")),
             };
 
@@ -234,25 +232,6 @@ impl TryFrom<&[u32]> for RegExpFlags {
         }
 
         Ok(flags)
-    }
-}
-
-impl TryFrom<&[Option<NonZeroU32>]> for RegExpFlags {
-    type Error = String;
-
-    fn try_from(value: &[Option<NonZeroU32>]) -> Result<Self, Self::Error> {
-        if value.len() > MAXIMUM_REGEX_FLAGS {
-            return Err("Invalid regular expression: too many flags".into());
-        }
-
-        let mut buff = [0u32; 8];
-        let mut i = 0;
-        for (c, b) in value.iter().filter_map(|v| *v).zip(buff.iter_mut()) {
-            *b = c.into();
-            i += 1;
-        }
-
-        Self::try_from(&buff[..i])
     }
 }
 
