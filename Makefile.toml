@@ -1,7 +1,22 @@
+extend = [
+    { path = "./make/ci.toml"}
+]
+
+[config]
+default_to_workspace = false
+
+[tasks.run-ci]
+description = "Run Boa CI locally"
+run_task.name = [
+    "ci-fmt-check",
+    "ci-lint-all-features",
+    "ci-lint-no-features"
+]
+
 [tasks.format]
 install_crate = "rustfmt"
 command = "cargo"
-args = ["fmt", "--", "--emit=files"]
+args = ["fmt", "--all", "--", "--emit=files"]
 workspace = false
 
 [tasks.test]
