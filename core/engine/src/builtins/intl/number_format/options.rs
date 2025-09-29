@@ -5,19 +5,18 @@ use fixed_decimal::{
     UnsignedRoundingMode,
 };
 
-use boa_macros::js_str;
-use icu_decimal::preferences::NumberingSystem;
-use icu_locale::extensions::unicode::Value;
-use tinystr::TinyAsciiStr;
-
 use crate::{
-    Context, JsNativeError, JsObject, JsResult, JsStr, JsString, JsValue,
+    Context, JsNativeError, JsObject, JsResult, JsString, JsValue,
     builtins::{
         intl::options::{default_number_option, get_number_option},
         options::{OptionType, ParsableOptionType, get_option},
     },
     js_string,
 };
+use boa_string::Latin1JsStringBuilder;
+use icu_decimal::preferences::NumberingSystem;
+use icu_locale::extensions::unicode::Value;
+use tinystr::TinyAsciiStr;
 
 impl OptionType for SignedRoundingMode {
     fn from_value(value: JsValue, context: &mut Context) -> JsResult<Self> {
@@ -285,9 +284,9 @@ impl ParsableOptionType for Currency {}
 #[derive(Debug, Eq, PartialEq)]
 pub(crate) struct Unit {
     // INVARIANT: `numerator` must only contain ASCII lowercase alphabetic letters or `-`.
-    numerator: JsStr<'static>,
+    numerator: &'static str,
     // INVARIANT: if `denominator` is not empty, it must only contain ASCII lowercase alphabetic letters or `-`
-    denominator: JsStr<'static>,
+    denominator: &'static str,
 }
 
 impl Unit {
@@ -296,9 +295,15 @@ impl Unit {
         if self.denominator.is_empty() {
             js_string!(self.numerator)
         } else {
-            // TODO: this is not optimal for now, but the new JS strings should
-            // allow us to optimize this to simple casts from ASCII to JsString.
-            js_string!(self.numerator, js_str!("-per-"), self.denominator)
+            let mut builder = Latin1JsStringBuilder::with_capacity(
+                self.numerator.len() + self.denominator.len() + 5,
+            );
+            builder.extend_from_slice(self.numerator.as_bytes());
+            builder.extend_from_slice(b"-per-");
+            builder.extend_from_slice(self.denominator.as_bytes());
+            builder
+                .build()
+                .expect("Builder failed, this should not happen")
         }
     }
 }
@@ -377,17 +382,13 @@ impl std::str::FromStr for Unit {
             .map(|i| SANCTIONED_UNITS[i])
             .map_err(|_| ParseUnitError)?;
 
-        let num = JsStr::latin1(num.as_bytes());
-
-        let den = if den.is_empty() {
-            JsStr::EMPTY
+        let den: &'static str = if den.is_empty() {
+            ""
         } else {
-            let value = SANCTIONED_UNITS
+            SANCTIONED_UNITS
                 .binary_search(&den)
                 .map(|i| SANCTIONED_UNITS[i])
-                .map_err(|_| ParseUnitError)?;
-
-            JsStr::latin1(value.as_bytes())
+                .map_err(|_| ParseUnitError)?
         };
 
         Ok(Self {

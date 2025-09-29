@@ -580,6 +580,7 @@ version = "0.20.0"
 dependencies = [
  "fast-float2",
  "itoa",
+ "measureme",
  "paste",
  "rustc-hash 2.1.1",
  "ryu-js",
