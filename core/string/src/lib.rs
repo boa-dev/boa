@@ -172,11 +172,11 @@ impl std::fmt::Display for CodePoint {
 struct TaggedLen(usize);
 
 impl TaggedLen {
-    const LATIN1_BITFLAG: usize = 1 << 0;
-    const BITFLAG_COUNT: usize = 1;
+    const LATIN1_BITFLAG: usize = 1 << (usize::BITS - 1);
+    const BITFLAG_MASKS: usize = !Self::LATIN1_BITFLAG;
 
     const fn new(len: usize, latin1: bool) -> Self {
-        Self((len << Self::BITFLAG_COUNT) | (latin1 as usize))
+        Self((len & Self::BITFLAG_MASKS) | if latin1 { Self::LATIN1_BITFLAG } else { 0 })
     }
 
     const fn is_latin1(self) -> bool {
@@ -184,8 +184,43 @@ impl TaggedLen {
     }
 
     const fn len(self) -> usize {
-        self.0 >> Self::BITFLAG_COUNT
+        self.0 & Self::BITFLAG_MASKS
     }
+}
+
+/// A sequential memory array of strings.
+#[repr(C, align(8))]
+struct SeqString {
+    tagged_len: TaggedLen,
+    refcount: Cell<usize>,
+    data: [u8; 0],
+}
+
+/// A slice of an existing string.
+#[repr(C, align(8))]
+struct SliceString {
+    data: JsString,
+    start: usize,
+    end: usize,
+}
+
+/// A static constant string, without reference counting.
+#[repr(C, align(8))]
+struct StaticStringLatin1 {
+    data: &'static [u8],
+}
+
+/// Strings can be represented by multiple kinds. This is used as the
+/// tag for the tagged pointer in [`JsString`].
+enum RawStringKind {
+    /// A sequential memory slice of either UTF-8 or UTF-16. See [`SeqString`].
+    SeqString = 0,
+
+    /// A slice of an existing string. See [`SliceString`].
+    SliceString = 1,
+
+    /// A static string that is valid for `'static` lifetime.
+    StaticString = 2,
 }
 
 /// The raw representation of a [`JsString`] in the heap.
@@ -226,7 +261,9 @@ enum Unwrapped<'a> {
 /// memory on the heap to reduce the overhead of memory allocation and reference counting.
 #[allow(clippy::module_name_repetitions)]
 pub struct JsString {
-    ptr: NonNull<RawJsString>,
+    /// A tagged pointer with alignment at least 8. This pointer cannot be NULL so we
+    /// use a `NonNull` instance, but it can point to different types.
+    tagged_pointer: NonNull<()>,
 }
 
 // JsString should always be pointer sized.
@@ -240,8 +277,8 @@ impl<'a> From<&'a JsString> for JsStr<'a> {
 }
 
 impl<'a> IntoIterator for &'a JsString {
-    type IntoIter = Iter<'a>;
     type Item = u16;
+    type IntoIter = Iter<'a>;
 
     #[inline]
     fn into_iter(self) -> Self::IntoIter {
@@ -483,8 +520,8 @@ impl JsString {
     /// [`JsString::from_raw`].
     #[inline]
     #[must_use]
-    pub fn into_raw(self) -> NonNull<RawJsString> {
-        ManuallyDrop::new(self).ptr
+    pub fn into_raw(self) -> NonNull<()> {
+        ManuallyDrop::new(self).tagged_pointer
     }
 
     /// Constructs a `JsString` from a pointer to `RawJsString`.
@@ -498,13 +535,21 @@ impl JsString {
     /// even if the returned `JsString` is never accessed.
     #[inline]
     #[must_use]
-    pub unsafe fn from_raw(ptr: NonNull<RawJsString>) -> Self {
-        Self { ptr }
+    pub unsafe fn from_raw(ptr: NonNull<()>) -> Self {
+        Self {
+            tagged_pointer: ptr,
+        }
     }
 }
 
 // `&JsStr<'static>` must always be aligned so it can be taggged.
 static_assertions::const_assert!(align_of::<*const JsStr<'static>>() >= 2);
+
+/// Dealing with inner types.
+impl JsString {
+    /// Creates a constant string (without reference counting).
+    pub const fn from_static(s)
+}
 
 impl JsString {
     /// Create a [`JsString`] from a static js string.
