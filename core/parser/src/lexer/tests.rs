@@ -866,14 +866,14 @@ fn addition_no_spaces_e_number() {
 fn take_array_alphabetic_simple() {
     let mut cur = Cursor::from(&b"abc0defghijk"[..]);
 
-    let mut buf: [Option<NonZeroU32>; 8] = [None; 8];
+    let mut buf: [u32; 8] = [0; 8];
 
     let n = cur.take_array_alphabetic(&mut buf).unwrap();
 
     assert_eq!(
         buf.iter()
-            .filter_map(|c| *c)
-            .filter_map(|c| char::from_u32(c.into()))
+            .filter(|c| **c != 0)
+            .filter_map(|c| char::from_u32(*c))
             .collect::<Vec<_>>()
             .as_slice(),
         &['a', 'b', 'c']
@@ -885,11 +885,11 @@ fn take_array_alphabetic_simple() {
 fn take_array_alphabetic_immediate_stop() {
     let mut cur = Cursor::from(&b"0abcdefghijk"[..]);
 
-    let mut buf: [Option<NonZeroU32>; 8] = [None; 8];
+    let mut buf: [u32; 8] = [0; 8];
 
     let n = cur.take_array_alphabetic(&mut buf).unwrap();
 
-    assert!(buf.iter().all(Option::is_none));
+    assert!(buf.iter().all(|c| *c == 0));
     assert_eq!(n, 0);
 }
 
@@ -897,14 +897,14 @@ fn take_array_alphabetic_immediate_stop() {
 fn take_array_alphabetic_entire_str() {
     let mut cur = Cursor::from(&b"abcdefghijk"[..]);
 
-    let mut buf: [Option<NonZeroU32>; 16] = [None; 16];
+    let mut buf: [u32; 16] = [0; 16];
 
     let n = cur.take_array_alphabetic(&mut buf).unwrap();
 
     assert_eq!(
         buf.iter()
-            .filter_map(|c| *c)
-            .filter_map(|c| char::from_u32(c.into()))
+            .filter(|c| **c != 0)
+            .filter_map(|c| char::from_u32(*c))
             .collect::<Vec<_>>()
             .as_slice(),
         &['a', 'b', 'c', 'd', 'e', 'f', 'g', 'h', 'i', 'j', 'k']
@@ -916,10 +916,10 @@ fn take_array_alphabetic_entire_str() {
 fn take_array_alphabetic_non_stop() {
     let mut cur = Cursor::from("abcde".as_bytes());
 
-    let mut buf: [Option<NonZeroU32>; 16] = [None; 16];
+    let mut buf: [u32; 16] = [0; 16];
     let n = cur.take_array_alphabetic(&mut buf).unwrap();
 
-    assert_eq!(buf.iter().filter_map(|c| *c).count(), 5);
+    assert_eq!(buf.iter().filter(|c| **c != 0).count(), 5);
     assert_eq!(n, 5);
 }
 
@@ -927,14 +927,14 @@ fn take_array_alphabetic_non_stop() {
 fn take_array_alphabetic_stop() {
     let mut cur = Cursor::from("abcde".as_bytes());
 
-    let mut buf: [Option<NonZeroU32>; 4] = [None; 4];
+    let mut buf: [u32; 4] = [0; 4];
     let n = cur.take_array_alphabetic(&mut buf).unwrap();
 
-    assert_eq!(buf.iter().filter_map(|c| *c).count(), 4);
+    assert_eq!(buf.iter().filter(|c| **c != 0).count(), 4);
     assert_eq!(
         buf.iter()
-            .filter_map(|c| *c)
-            .filter_map(|c| char::from_u32(c.into()))
+            .filter(|c| **c != 0)
+            .filter_map(|c| char::from_u32(*c))
             .collect::<Vec<_>>()
             .as_slice(),
         &['a', 'b', 'c', 'd']

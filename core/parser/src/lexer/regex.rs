@@ -7,7 +7,6 @@ use boa_ast::PositionGroup;
 use boa_interner::Interner;
 use regress::{Flags, Regex};
 use std::fmt::{Display, Write};
-use std::num::NonZeroU32;
 use std::str::{self, FromStr};
 
 const MAXIMUM_REGEX_FLAGS: usize = 8;
@@ -117,7 +116,7 @@ impl<R> Tokenizer<R> for RegexLiteral {
             }
         }
 
-        let mut flags: [Option<NonZeroU32>; MAXIMUM_REGEX_FLAGS] = [None; MAXIMUM_REGEX_FLAGS];
+        let mut flags: [u32; MAXIMUM_REGEX_FLAGS] = [0; MAXIMUM_REGEX_FLAGS];
         let n = cursor.take_array_alphabetic(&mut flags)?;
         if n > MAXIMUM_REGEX_FLAGS {
             // There can only be a maximum of 8 flags.
@@ -126,9 +125,8 @@ impl<R> Tokenizer<R> for RegexLiteral {
                 start_pos,
             ));
         }
-        let flags: [u32; MAXIMUM_REGEX_FLAGS] = flags.map(|c| c.map_or(0, NonZeroU32::get));
         let flags: RegExpFlags =
-            RegExpFlags::try_from(&flags[..]).map_err(|e| Error::syntax(e, start_pos))?;
+            RegExpFlags::try_from(&flags[..n]).map_err(|e| Error::syntax(e, start_pos))?;
 
         // We have a vague hint of the size of this vector in the best case scenario.
         let mut body_utf16 = Vec::with_capacity(body.len());
@@ -217,7 +215,6 @@ impl TryFrom<&[u32]> for RegExpFlags {
                 'y' => Self::STICKY,
                 'd' => Self::HAS_INDICES,
                 'v' => Self::UNICODE_SETS,
-                '\0' => break,
                 _ => return Err(format!("invalid regular expression flag {c}")),
             };
 

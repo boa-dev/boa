@@ -3,7 +3,6 @@
 use crate::source::{ReadChar, UTF8Input};
 use boa_ast::{LinearPosition, Position, PositionGroup, SourceText};
 use std::io::{self, Error, ErrorKind};
-use std::num::NonZeroU32;
 
 /// Cursor over the source code.
 #[derive(Debug)]
@@ -159,19 +158,18 @@ impl<R: ReadChar> Cursor<R> {
         }
     }
 
-    /// Fills a mutable slice up to the ends while characters are alphabetic.
+    /// Fills a mutable slice up to the ends while characters are alphabetic. Returns
+    /// the number of characters read, or `N+1` if the buffer was filled but there were
+    /// still characters after.
     pub(super) fn take_array_alphabetic<const N: usize>(
         &mut self,
-        arr: &mut [Option<NonZeroU32>; N],
+        arr: &mut [u32; N],
     ) -> io::Result<usize> {
         for (i, out) in arr.iter_mut().enumerate() {
             match self.peek_char()? {
                 // A..Z | a..z
                 Some(0x41..=0x5A | 0x61..=0x7A) => {
-                    *out = self
-                        .next_char()?
-                        // # SAFETY: already checked it isn't zero in the pattern.
-                        .map(|x| unsafe { NonZeroU32::new_unchecked(x) });
+                    *out = self.next_char()?.expect("Already checked.")
                 }
                 _ => return Ok(i),
             }
