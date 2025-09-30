@@ -169,7 +169,7 @@ impl<R: ReadChar> Cursor<R> {
             match self.peek_char()? {
                 // A..Z | a..z
                 Some(0x41..=0x5A | 0x61..=0x7A) => {
-                    *out = self.next_char()?.expect("Already checked.")
+                    *out = self.next_char()?.expect("Already checked.");
                 }
                 _ => return Ok(i),
             }
