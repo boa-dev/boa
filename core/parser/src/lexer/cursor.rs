@@ -162,16 +162,28 @@ impl<R: ReadChar> Cursor<R> {
     /// It also stops when the next character is not an ascii or there is no next character.
     ///
     /// Note that all characters up until the stop character are added to the buffer, including the character right before.
-    pub(super) fn take_while_ascii_pred<F>(&mut self, buf: &mut Vec<u8>, pred: &F) -> io::Result<()>
+    #[allow(clippy::cast_possible_truncation)]
+    #[inline]
+    pub(super) fn take_while_ascii_pred<'a, F>(
+        &mut self,
+        buf: &'a mut [u8],
+        pred: &F,
+    ) -> io::Result<&'a [u8]>
     where
         F: Fn(char) -> bool,
     {
+        let mut count = 0;
         loop {
             if !self.next_is_ascii_pred(pred)? {
-                return Ok(());
+                return Ok(&buf[..count]);
             } else if let Some(byte) = self.next_char()? {
-                #[allow(clippy::cast_possible_truncation)]
-                buf.push(byte as u8);
+                buf[count] = byte as u8;
+                count += 1;
+            } else if count >= buf.len() {
+                return Err(Error::new(
+                    ErrorKind::UnexpectedEof,
+                    "Unexpected end of buffer while taking characters",
+                ));
             } else {
                 // next_is_pred will return false if the next value is None so the None case should already be handled.
                 unreachable!();

@@ -3,8 +3,8 @@
 use crate::lexer::{Cursor, Error, Token, TokenKind, Tokenizer};
 use crate::source::ReadChar;
 use bitflags::bitflags;
-use boa_ast::{Position, PositionGroup};
-use boa_interner::{Interner, Sym};
+use boa_ast::PositionGroup;
+use boa_interner::Interner;
 use regress::{Flags, Regex};
 use std::fmt::{Display, Write};
 use std::str::{self, FromStr};
@@ -114,13 +114,17 @@ impl<R> Tokenizer<R> for RegexLiteral {
             }
         }
 
-        let mut flags = Vec::new();
+        let mut flags: [u8; 8] = [0; 8];
         let flags_start = cursor.pos();
-        cursor.take_while_ascii_pred(&mut flags, &char::is_alphabetic)?;
+        let flags_slice = cursor.take_while_ascii_pred(&mut flags, &char::is_alphabetic)?;
 
-        // SAFETY: We have already checked that the bytes are valid UTF-8.
-        let flags_str = unsafe { str::from_utf8_unchecked(flags.as_slice()) };
+        // TODO: Change this to if err() then convert flags_slice to str
+        let flags_string = match RegExpFlags::from_bytes(flags_slice) {
+            Err(message) => return Err(Error::Syntax(message.into(), flags_start)),
+            Ok(regex_flags) => regex_flags.to_string(),
+        };
 
+        let flags_str = flags_string.as_str();
         let mut body_utf16 = Vec::new();
 
         // We convert the body to UTF-16 since it may contain code points that are not valid UTF-8.
@@ -149,7 +153,7 @@ impl<R> Tokenizer<R> for RegexLiteral {
         Ok(Token::new_by_position_group(
             TokenKind::regular_expression_literal(
                 interner.get_or_intern(body_utf16.as_slice()),
-                parse_regex_flags(flags_str, flags_start, interner)?,
+                interner.get_or_intern(flags_str.to_string().as_str()),
             ),
             start_pos,
             cursor.pos_group(),
@@ -189,6 +193,45 @@ bitflags! {
     }
 }
 
+impl RegExpFlags {
+    fn from_bytes(bytes: &[u8]) -> Result<Self, String> {
+        let mut flags = Self::default();
+        for c in bytes {
+            let new_flag = match c {
+                b'g' => Self::GLOBAL,
+                b'i' => Self::IGNORE_CASE,
+                b'm' => Self::MULTILINE,
+                b's' => Self::DOT_ALL,
+                b'u' => Self::UNICODE,
+                b'y' => Self::STICKY,
+                b'd' => Self::HAS_INDICES,
+                b'v' => Self::UNICODE_SETS,
+                0x00 => continue,
+                _ => {
+                    return Err(format!(
+                        "invalid regular expression flag {}",
+                        char::from(c.to_owned())
+                    ));
+                }
+            };
+
+            if flags.contains(new_flag) {
+                return Err(format!(
+                    "repeated regular expression flag {}",
+                    char::from(c.to_owned())
+                ));
+            }
+            flags.insert(new_flag);
+        }
+
+        if flags.contains(Self::UNICODE) && flags.contains(Self::UNICODE_SETS) {
+            return Err("cannot use both 'u' and 'v' flags".into());
+        }
+
+        Ok(flags)
+    }
+}
+
 impl FromStr for RegExpFlags {
     type Err = String;
 
@@ -221,13 +264,6 @@ impl FromStr for RegExpFlags {
         }
 
         Ok(flags)
-    }
-}
-
-fn parse_regex_flags(s: &str, start: Position, interner: &mut Interner) -> Result<Sym, Error> {
-    match RegExpFlags::from_str(s) {
-        Err(message) => Err(Error::Syntax(message.into(), start)),
-        Ok(flags) => Ok(interner.get_or_intern(flags.to_string().as_str())),
     }
 }
 
