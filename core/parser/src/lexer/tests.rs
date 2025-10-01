@@ -9,7 +9,6 @@ use crate::source::ReadChar;
 use boa_ast::{Keyword, Position, Span, Spanned};
 use boa_interner::Sym;
 use boa_macros::utf16;
-use std::str;
 
 fn span(start: (u32, u32), end: (u32, u32)) -> Span {
     Span::new(Position::new(start.0, start.1), Position::new(end.0, end.1))
@@ -863,48 +862,83 @@ fn addition_no_spaces_e_number() {
 }
 
 #[test]
-fn take_while_ascii_pred_simple() {
-    let mut cur = Cursor::from(&b"abcdefghijk"[..]);
+fn take_array_alphabetic_simple() {
+    let mut cur = Cursor::from(&b"abc0defghijk"[..]);
 
-    let mut buf: Vec<u8> = Vec::new();
+    let mut buf: [u32; 8] = [0; 8];
 
-    cur.take_while_ascii_pred(&mut buf, &|c| c == 'a' || c == 'b' || c == 'c')
-        .unwrap();
+    let n = cur.take_array_alphabetic(&mut buf).unwrap();
 
-    assert_eq!(str::from_utf8(buf.as_slice()).unwrap(), "abc");
+    assert_eq!(
+        buf.iter()
+            .filter(|c| **c != 0)
+            .filter_map(|c| char::from_u32(*c))
+            .collect::<Vec<_>>()
+            .as_slice(),
+        &['a', 'b', 'c']
+    );
+    assert_eq!(n, 3);
 }
 
 #[test]
-fn take_while_ascii_pred_immediate_stop() {
-    let mut cur = Cursor::from(&b"abcdefghijk"[..]);
+fn take_array_alphabetic_immediate_stop() {
+    let mut cur = Cursor::from(&b"0abcdefghijk"[..]);
 
-    let mut buf: Vec<u8> = Vec::new();
+    let mut buf: [u32; 8] = [0; 8];
 
-    cur.take_while_ascii_pred(&mut buf, &|_| false).unwrap();
+    let n = cur.take_array_alphabetic(&mut buf).unwrap();
 
-    assert_eq!(str::from_utf8(buf.as_slice()).unwrap(), "");
+    assert!(buf.iter().all(|c| *c == 0));
+    assert_eq!(n, 0);
 }
 
 #[test]
-fn take_while_ascii_pred_entire_str() {
+fn take_array_alphabetic_entire_str() {
     let mut cur = Cursor::from(&b"abcdefghijk"[..]);
 
-    let mut buf: Vec<u8> = Vec::new();
+    let mut buf: [u32; 16] = [0; 16];
 
-    cur.take_while_ascii_pred(&mut buf, &|_| true).unwrap();
+    let n = cur.take_array_alphabetic(&mut buf).unwrap();
 
-    assert_eq!(str::from_utf8(buf.as_slice()).unwrap(), "abcdefghijk");
+    assert_eq!(
+        buf.iter()
+            .filter(|c| **c != 0)
+            .filter_map(|c| char::from_u32(*c))
+            .collect::<Vec<_>>()
+            .as_slice(),
+        &['a', 'b', 'c', 'd', 'e', 'f', 'g', 'h', 'i', 'j', 'k']
+    );
+    assert_eq!(n, 11);
 }
 
 #[test]
-fn take_while_ascii_pred_non_ascii_stop() {
-    let mut cur = Cursor::from("abcde😀fghijk".as_bytes());
+fn take_array_alphabetic_non_stop() {
+    let mut cur = Cursor::from("abcde".as_bytes());
 
-    let mut buf: Vec<u8> = Vec::new();
+    let mut buf: [u32; 16] = [0; 16];
+    let n = cur.take_array_alphabetic(&mut buf).unwrap();
 
-    cur.take_while_ascii_pred(&mut buf, &|_| true).unwrap();
+    assert_eq!(buf.iter().filter(|c| **c != 0).count(), 5);
+    assert_eq!(n, 5);
+}
 
-    assert_eq!(str::from_utf8(buf.as_slice()).unwrap(), "abcde");
+#[test]
+fn take_array_alphabetic_stop() {
+    let mut cur = Cursor::from("abcde".as_bytes());
+
+    let mut buf: [u32; 4] = [0; 4];
+    let n = cur.take_array_alphabetic(&mut buf).unwrap();
+
+    assert_eq!(buf.iter().filter(|c| **c != 0).count(), 4);
+    assert_eq!(
+        buf.iter()
+            .filter(|c| **c != 0)
+            .filter_map(|c| char::from_u32(*c))
+            .collect::<Vec<_>>()
+            .as_slice(),
+        &['a', 'b', 'c', 'd']
+    );
+    assert_eq!(n, 5);
 }
 
 #[test]
