@@ -82,6 +82,16 @@ where
     #[derive(Debug, Clone, Copy)]
     struct ContainsVisitor(ContainsSymbol);
 
+    impl ContainsVisitor {
+        fn visit_contains_eval(&mut self, contains_direct_eval: bool) -> ControlFlow<()> {
+            if self.0 == ContainsSymbol::DirectEval && contains_direct_eval {
+                ControlFlow::Break(())
+            } else {
+                ControlFlow::Continue(())
+            }
+        }
+    }
+
     impl<'ast> Visitor<'ast> for ContainsVisitor {
         type BreakTy = ();
 
@@ -116,57 +126,65 @@ where
 
         fn visit_function_expression(
             &mut self,
-            _: &'ast FunctionExpression,
+            node: &'ast FunctionExpression,
         ) -> ControlFlow<Self::BreakTy> {
+            self.visit_contains_eval(node.contains_direct_eval)?;
             ControlFlow::Continue(())
         }
 
         fn visit_function_declaration(
             &mut self,
-            _: &'ast FunctionDeclaration,
+            node: &'ast FunctionDeclaration,
         ) -> ControlFlow<Self::BreakTy> {
+            self.visit_contains_eval(node.contains_direct_eval)?;
             ControlFlow::Continue(())
         }
 
         fn visit_async_function_expression(
             &mut self,
-            _: &'ast AsyncFunctionExpression,
+            node: &'ast AsyncFunctionExpression,
         ) -> ControlFlow<Self::BreakTy> {
+            self.visit_contains_eval(node.contains_direct_eval)?;
             ControlFlow::Continue(())
         }
 
         fn visit_async_function_declaration(
             &mut self,
-            _: &'ast AsyncFunctionDeclaration,
+            node: &'ast AsyncFunctionDeclaration,
         ) -> ControlFlow<Self::BreakTy> {
+            self.visit_contains_eval(node.contains_direct_eval)?;
             ControlFlow::Continue(())
         }
 
         fn visit_generator_expression(
             &mut self,
-            _: &'ast GeneratorExpression,
+            node: &'ast GeneratorExpression,
         ) -> ControlFlow<Self::BreakTy> {
+            self.visit_contains_eval(node.contains_direct_eval)?;
             ControlFlow::Continue(())
         }
 
         fn visit_generator_declaration(
             &mut self,
-            _: &'ast GeneratorDeclaration,
+            node: &'ast GeneratorDeclaration,
         ) -> ControlFlow<Self::BreakTy> {
+            self.visit_contains_eval(node.contains_direct_eval)?;
             ControlFlow::Continue(())
         }
 
         fn visit_async_generator_expression(
             &mut self,
-            _: &'ast AsyncGeneratorExpression,
+            node: &'ast AsyncGeneratorExpression,
         ) -> ControlFlow<Self::BreakTy> {
+            self.visit_contains_eval(node.contains_direct_eval)?;
             ControlFlow::Continue(())
         }
 
         fn visit_async_generator_declaration(
             &mut self,
-            _: &'ast AsyncGeneratorDeclaration,
+            node: &'ast AsyncGeneratorDeclaration,
         ) -> ControlFlow<Self::BreakTy> {
+            self.visit_contains_eval(node.contains_direct_eval)?;
             ControlFlow::Continue(())
         }
 
