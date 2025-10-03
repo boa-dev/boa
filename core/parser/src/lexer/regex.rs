@@ -5,7 +5,7 @@ use crate::source::ReadChar;
 use bitflags::bitflags;
 use boa_ast::PositionGroup;
 use boa_interner::Interner;
-use regress::{Flags, Regex};
+use regress::Flags;
 use std::fmt::{Display, Write};
 use std::str::{self, FromStr};
 
@@ -147,12 +147,15 @@ impl<R> Tokenizer<R> for RegexLiteral {
             }
         }
 
-        if let Err(error) = Regex::from_unicode(body.into_iter(), flags) {
-            return Err(Error::syntax(
-                format!("Invalid regular expression literal: {error}"),
-                start_pos,
-            ));
-        }
+        // Only try to parse and validate, do not optimize/compile.
+        drop(
+            regress::backends::try_parse(body.into_iter(), flags.into()).map_err(|error| {
+                Error::syntax(
+                    format!("Invalid regular expression literal: {error}"),
+                    start_pos,
+                )
+            })?,
+        );
 
         Ok(Token::new_by_position_group(
             TokenKind::regular_expression_literal(
