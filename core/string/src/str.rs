@@ -60,6 +60,7 @@ struct Inner<'a> {
 
 /// This is equivalent to Rust's `&str`.
 #[derive(Clone, Copy)]
+#[repr(align(8))]
 pub struct JsStr<'a> {
     inner: Inner<'a>,
 }
@@ -106,6 +107,10 @@ impl<'a> JsStr<'a> {
     #[must_use]
     pub const fn len(&self) -> usize {
         self.inner.tagged_len.len()
+    }
+
+    pub(crate) const fn ptr(&self) -> *const u8 {
+        self.inner.ptr
     }
 
     /// Return the inner [`JsStrVariant`] varient of the [`JsStr`].
