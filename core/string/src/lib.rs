@@ -163,20 +163,20 @@ impl std::fmt::Display for CodePoint {
 /// A `usize` contains a flag and the length of Latin1/UTF-16 .
 /// ```text
 /// ┌────────────────────────────────────┐
-/// │ flag(1) │ length (usize::BITS - 1)    │
+/// │ length (usize::BITS - 1) │ flag(1) │
 /// └────────────────────────────────────┘
 /// ```
-/// The latin1/UTF-16 flag is stored in the most significant bit.
+/// The latin1/UTF-16 flag is stored in the bottom bit.
 #[derive(Debug, Copy, Clone, PartialEq, Eq, PartialOrd, Ord)]
 #[repr(transparent)]
 struct TaggedLen(usize);
 
 impl TaggedLen {
-    const LATIN1_BITFLAG: usize = 1 << (usize::BITS - 1);
-    const BITFLAG_MASKS: usize = !Self::LATIN1_BITFLAG;
+    const LATIN1_BITFLAG: usize = 1 << 0;
+    const BITFLAG_COUNT: usize = 1;
 
     const fn new(len: usize, latin1: bool) -> Self {
-        Self((len & Self::BITFLAG_MASKS) | if latin1 { Self::LATIN1_BITFLAG } else { 0 })
+        Self((len << Self::BITFLAG_COUNT) | (latin1 as usize))
     }
 
     const fn is_latin1(self) -> bool {
@@ -184,7 +184,7 @@ impl TaggedLen {
     }
 
     const fn len(self) -> usize {
-        self.0 & Self::BITFLAG_MASKS
+        self.0 >> Self::BITFLAG_COUNT
     }
 }
 

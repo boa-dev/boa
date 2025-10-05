@@ -1906,7 +1906,8 @@ impl String {
         let to = max(final_start, final_end);
 
         // 10. Return the substring of S from from to to.
-        Ok(js_string!(string.get_expect(from..to)).into())
+        // Ok(js_string!(string.get_expect(from..to)).into())
+        Ok(unsafe { JsString::slice_unchecked(string.clone(), from, to).into() })
     }
 
     /// `String.prototype.split ( separator, limit )`

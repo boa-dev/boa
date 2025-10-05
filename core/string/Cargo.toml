@@ -20,13 +20,8 @@ static_assertions.workspace = true
 paste.workspace = true
 fast-float2.workspace = true
 
-measureme = { version = "12.0.3", optional = true }
-
 [lints]
 workspace = true
 
 [package.metadata.docs.rs]
 all-features = true
-
-[features]
-profile = ["dep:measureme"]
