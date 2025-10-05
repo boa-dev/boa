@@ -22,19 +22,17 @@ fn js_string_get(this: &JsValue, key: &PropertyKey) -> Option<JsValue> {
 }
 
 pub(crate) fn get_by_name<const LENGTH: bool>(
-    (dst, value, index): (VaryingOperand, VaryingOperand, VaryingOperand),
+    (dst, object, receiver, index): (VaryingOperand, &JsValue, &JsValue, VaryingOperand),
     context: &mut Context,
 ) -> JsResult<()> {
-    let value_object = context.vm.get_register(value.into()).clone();
-
     if LENGTH {
-        if let Some(object) = value_object.as_object()
+        if let Some(object) = object.as_object()
             && object.is_array()
         {
             let value = object.borrow().properties().storage[0].clone();
             context.vm.set_register(dst.into(), value);
             return Ok(());
-        } else if let Some(string) = value_object.as_string() {
+        } else if let Some(string) = object.as_string() {
             context
                 .vm
                 .set_register(dst.into(), (string.len() as u32).into());
@@ -42,7 +40,7 @@ pub(crate) fn get_by_name<const LENGTH: bool>(
         }
     }
 
-    let object = value_object.base_class(context)?;
+    let object = object.base_class(context)?;
 
     let ic = &context.vm.frame().code_block().ic[usize::from(index)];
     let object_borrowed = object.borrow();
@@ -57,11 +55,11 @@ pub(crate) fn get_by_name<const LENGTH: bool>(
 
         drop(object_borrowed);
         if slot.attributes.has_get() && result.is_object() {
-            result = result.as_object().expect("should contain getter").call(
-                &value_object,
-                &[],
-                context,
-            )?;
+            result =
+                result
+                    .as_object()
+                    .expect("should contain getter")
+                    .call(receiver, &[], context)?;
         }
         context.vm.set_register(dst.into(), result);
         return Ok(());
@@ -72,7 +70,7 @@ pub(crate) fn get_by_name<const LENGTH: bool>(
     let key: PropertyKey = ic.name.clone().into();
 
     let context = &mut InternalMethodPropertyContext::new(context);
-    let result = object.__get__(&key, value_object, context)?;
+    let result = object.__get__(&key, receiver.clone(), context)?;
 
     // Cache the property.
     let slot = *context.slot();
@@ -93,10 +91,11 @@ pub(crate) struct GetLengthProperty;
 impl GetLengthProperty {
     #[inline(always)]
     pub(crate) fn operation(
-        args: (VaryingOperand, VaryingOperand, VaryingOperand),
+        (dst, object, index): (VaryingOperand, VaryingOperand, VaryingOperand),
         context: &mut Context,
     ) -> JsResult<()> {
-        get_by_name::<true>(args, context)
+        let object = context.vm.get_register(object.into()).clone();
+        get_by_name::<true>((dst, &object, &object, index), context)
     }
 }
 
@@ -116,10 +115,11 @@ pub(crate) struct GetPropertyByName;
 impl GetPropertyByName {
     #[inline(always)]
     pub(crate) fn operation(
-        args: (VaryingOperand, VaryingOperand, VaryingOperand),
+        (dst, object, index): (VaryingOperand, VaryingOperand, VaryingOperand),
         context: &mut Context,
     ) -> JsResult<()> {
-        get_by_name::<false>(args, context)
+        let object = context.vm.get_register(object.into()).clone();
+        get_by_name::<false>((dst, &object, &object, index), context)
     }
 }
 
@@ -149,59 +149,7 @@ impl GetPropertyByNameWithThis {
     ) -> JsResult<()> {
         let receiver = context.vm.get_register(receiver.into()).clone();
         let object = context.vm.get_register(value.into()).clone();
-
-        let ic = &context.vm.frame().code_block().ic[usize::from(index)];
-
-        if ic.name == StaticJsStrings::LENGTH
-            && let Some(string) = object.as_string()
-        {
-            context
-                .vm
-                .set_register(dst.into(), (string.len() as u32).into());
-            return Ok(());
-        }
-
-        let object = object.base_class(context)?;
-        let object_borrowed = object.borrow();
-        if let Some((shape, slot)) = ic.match_or_reset(object_borrowed.shape()) {
-            let mut result = if slot.attributes.contains(SlotAttributes::PROTOTYPE) {
-                let prototype = shape.prototype().expect("prototype should have value");
-                let prototype = prototype.borrow();
-                prototype.properties().storage[slot.index as usize].clone()
-            } else {
-                object_borrowed.properties().storage[slot.index as usize].clone()
-            };
-
-            drop(object_borrowed);
-            if slot.attributes.has_get() && result.is_object() {
-                result = result.as_object().expect("should contain getter").call(
-                    &receiver,
-                    &[],
-                    context,
-                )?;
-            }
-            context.vm.set_register(dst.into(), result);
-            return Ok(());
-        }
-
-        drop(object_borrowed);
-
-        let key: PropertyKey = ic.name.clone().into();
-
-        let context = &mut InternalMethodPropertyContext::new(context);
-        let result = object.__get__(&key, receiver.clone(), context)?;
-
-        // Cache the property.
-        let slot = *context.slot();
-        if slot.is_cacheable() {
-            let ic = &context.vm.frame().code_block.ic[usize::from(index)];
-            let object_borrowed = object.borrow();
-            let shape = object_borrowed.shape();
-            ic.set(shape, slot);
-        }
-
-        context.vm.set_register(dst.into(), result);
-        Ok(())
+        get_by_name::<false>((dst, &object, &receiver, index), context)
     }
 }
 
