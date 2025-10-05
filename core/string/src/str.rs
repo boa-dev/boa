@@ -1,5 +1,5 @@
 use crate::{
-    CodePoint, Iter, TaggedLen,
+    CodePoint, Iter, JsString, TaggedLen,
     display::{JsStrDisplayEscaped, JsStrDisplayLossy},
     is_trimmable_whitespace, is_trimmable_whitespace_latin1,
 };
@@ -665,6 +665,8 @@ impl std::fmt::Debug for JsStr<'_> {
 pub trait JsSliceIndex<'a>: SliceIndex<[u8]> + SliceIndex<[u16]> {
     type Value;
 
+    fn get_from_string(str: &JsString, index: Self) -> Option<JsString>;
+
     fn get(_: JsStr<'a>, index: Self) -> Option<Self::Value>;
 
     unsafe fn get_unchecked(value: JsStr<'a>, index: Self) -> Self::Value;
@@ -672,6 +674,11 @@ pub trait JsSliceIndex<'a>: SliceIndex<[u8]> + SliceIndex<[u16]> {
 
 impl<'a> JsSliceIndex<'a> for usize {
     type Value = u16;
+
+    #[inline]
+    fn get_from_string(str: &JsString, index: Self) -> Option<JsString> {
+        str.slice(index, index + 1)
+    }
 
     #[inline]
     fn get(value: JsStr<'a>, index: Self) -> Option<Self::Value> {
@@ -700,6 +707,11 @@ impl<'a> JsSliceIndex<'a> for std::ops::Range<usize> {
     type Value = JsStr<'a>;
 
     #[inline]
+    fn get_from_string(str: &JsString, index: Self) -> Option<JsString> {
+        str.slice(index.start, index.end)
+    }
+
+    #[inline]
     fn get(value: JsStr<'a>, index: Self) -> Option<Self::Value> {
         match value.variant() {
             JsStrVariant::Latin1(v) => v.get(index).map(JsStr::latin1),
@@ -724,6 +736,10 @@ impl<'a> JsSliceIndex<'a> for std::ops::Range<usize> {
 
 impl<'a> JsSliceIndex<'a> for std::ops::RangeInclusive<usize> {
     type Value = JsStr<'a>;
+
+    fn get_from_string(str: &JsString, index: Self) -> Option<JsString> {
+        str.slice(*index.start(), *index.end() + 1)
+    }
 
     #[inline]
     fn get(value: JsStr<'a>, index: Self) -> Option<Self::Value> {
@@ -751,6 +767,10 @@ impl<'a> JsSliceIndex<'a> for std::ops::RangeInclusive<usize> {
 impl<'a> JsSliceIndex<'a> for std::ops::RangeFrom<usize> {
     type Value = JsStr<'a>;
 
+    fn get_from_string(str: &JsString, index: Self) -> Option<JsString> {
+        str.slice(index.start, str.len())
+    }
+
     #[inline]
     fn get(value: JsStr<'a>, index: Self) -> Option<Self::Value> {
         match value.variant() {
@@ -777,6 +797,10 @@ impl<'a> JsSliceIndex<'a> for std::ops::RangeFrom<usize> {
 impl<'a> JsSliceIndex<'a> for std::ops::RangeTo<usize> {
     type Value = JsStr<'a>;
 
+    fn get_from_string(str: &JsString, index: Self) -> Option<JsString> {
+        str.slice(0, index.end)
+    }
+
     #[inline]
     fn get(value: JsStr<'a>, index: Self) -> Option<Self::Value> {
         match value.variant() {
@@ -802,6 +826,10 @@ impl<'a> JsSliceIndex<'a> for std::ops::RangeTo<usize> {
 
 impl<'a> JsSliceIndex<'a> for std::ops::RangeFull {
     type Value = JsStr<'a>;
+
+    fn get_from_string(str: &JsString, _index: Self) -> Option<JsString> {
+        Some(str.clone())
+    }
 
     #[inline]
     fn get(value: JsStr<'a>, _index: Self) -> Option<Self::Value> {

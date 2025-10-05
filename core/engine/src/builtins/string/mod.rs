@@ -803,7 +803,7 @@ impl String {
             Ok(js_string!().into())
         } else {
             // 13. Return the substring of S from from to to.
-            Ok(js_string!(string.get_expect(from..to)).into())
+            Ok(unsafe { JsString::slice_unchecked(string.clone(), from, to).into() })
         }
     }
 
