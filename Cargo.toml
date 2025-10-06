@@ -118,7 +118,7 @@ dashmap = "6.1.0"
 num_enum = "0.7.4"
 itertools = { version = "0.14.0", default-features = false }
 portable-atomic = "1.11.0"
-bytemuck = { version = "1.23.2", default-features = false }
+bytemuck = { version = "1.24.0", default-features = false }
 arrayvec = "0.7.6"
 intrusive-collections = "0.9.7"
 cfg-if = "1.0.1"
