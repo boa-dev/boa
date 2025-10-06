@@ -28,6 +28,9 @@ type NativeWeakMap = boa_gc::WeakMap<ErasedVTableObject, JsValue>;
 #[derive(Debug, Trace, Finalize)]
 pub(crate) struct WeakMap;
 
+#[cfg(test)]
+mod tests;
+
 impl IntrinsicObject for WeakMap {
     fn get(intrinsics: &Intrinsics) -> JsObject {
         Self::STANDARD_CONSTRUCTOR(intrinsics.constructors()).constructor()
@@ -44,6 +47,12 @@ impl IntrinsicObject for WeakMap {
             .method(Self::get, js_string!("get"), 1)
             .method(Self::has, js_string!("has"), 1)
             .method(Self::set, js_string!("set"), 2)
+            .method(Self::get_or_insert, js_string!("getOrInsert"), 2)
+            .method(
+                Self::get_or_insert_computed,
+                js_string!("getOrInsertComputed"),
+                2,
+            )
             .build();
     }
 }
@@ -57,7 +66,7 @@ impl BuiltInObject for WeakMap {
 impl BuiltInConstructor for WeakMap {
     /// The amount of arguments the `WeakMap` constructor takes.
     const CONSTRUCTOR_ARGUMENTS: usize = 0;
-    const PROTOTYPE_STORAGE_SLOTS: usize = 5;
+    const PROTOTYPE_STORAGE_SLOTS: usize = 7;
     const CONSTRUCTOR_STORAGE_SLOTS: usize = 0;
 
     const STANDARD_CONSTRUCTOR: fn(&StandardConstructors) -> &StandardConstructor =
@@ -264,5 +273,134 @@ impl WeakMap {
 
         // 8. Return M.
         Ok(this.clone())
+    }
+
+    /// `WeakMap.prototype.getOrInsert ( key, value )`
+    ///
+    /// Given a key and a value, returns the existing value if it exists; otherwise inserts the
+    /// provided default value and returns that value.
+    ///
+    /// More information:
+    ///  - [Upsert proposal reference][spec]
+    ///  - [MDN documentation][mdn]
+    ///
+    /// [spec]: https://tc39.es/proposal-upsert/#sec-weakmap.prototype.getOrInsert
+    /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/WeakMap/getOrInsert
+    pub(crate) fn get_or_insert(
+        this: &JsValue,
+        args: &[JsValue],
+        _context: &mut Context,
+    ) -> JsResult<JsValue> {
+        // 1. Let M be the this value.
+        // 2. Perform ? RequireInternalSlot(M, [[WeakMapData]]).
+        let object = this.as_object();
+        let mut map = object
+            .as_ref()
+            .and_then(JsObject::downcast_mut::<NativeWeakMap>)
+            .ok_or_else(|| {
+                JsNativeError::typ()
+                    .with_message("WeakMap.getOrInsert: called with non-object value")
+            })?;
+
+        // 3. If CanBeHeldWeakly(key) is false, throw a TypeError exception.
+        // TODO: Implement proper CanBeHeldWeakly once available. For now, only
+        //       objects are accepted as keys; symbols should be allowed in the
+        //       future according to the proposal.
+        let key_val = args.get_or_undefined(0);
+        let Some(key) = key_val.as_object() else {
+            return Err(JsNativeError::typ()
+                .with_message(format!(
+                    "WeakMap.getOrInsert: expected target argument of type `object`, got target of type `{}`",
+                    key_val.type_of()
+                ))
+                .into());
+        };
+
+        // 4. For each Record { [[Key]], [[Value]] } p of M.[[WeakMapData]]
+        if let Some(existing) = map.get(key.inner()) {
+            // a. If p.[[Key]] is not empty and SameValue(p.[[Key]], key) is true, return p.[[Value]].
+            return Ok(existing);
+        }
+
+        // 5-6. Insert the new record with provided value and return it.
+        let value = args.get_or_undefined(1).clone();
+        map.insert(key.inner(), value.clone());
+        Ok(value)
+    }
+
+    /// `WeakMap.prototype.getOrInsertComputed ( key, callback )`
+    ///
+    /// If the key exists, returns the existing value. Otherwise computes a new value by calling
+    /// `callback` with the key, inserts it into the `WeakMap`, and returns it.
+    ///
+    /// More information:
+    ///  - [Upsert proposal reference][spec]
+    ///  - [MDN documentation][mdn]
+    ///
+    /// [spec]: https://tc39.es/proposal-upsert/#sec-weakmap.prototype.getOrInsertComputed
+    /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/WeakMap/getOrInsertComputed
+    pub(crate) fn get_or_insert_computed(
+        this: &JsValue,
+        args: &[JsValue],
+        context: &mut Context,
+    ) -> JsResult<JsValue> {
+        // 1. Let M be the this value.
+        // 2. Perform ? RequireInternalSlot(M, [[WeakMapData]]).
+        let object = this.as_object();
+        let map = object
+            .as_ref()
+            .and_then(JsObject::downcast_ref::<NativeWeakMap>)
+            .ok_or_else(|| {
+                JsNativeError::typ()
+                    .with_message("WeakMap.getOrInsertComputed: called with non-object value")
+            })?;
+
+        // 3. If CanBeHeldWeakly(key) is false, throw a TypeError exception.
+        // TODO: Implement proper CanBeHeldWeakly once available. For now, only
+        //       objects are accepted as keys; symbols should be allowed in the
+        //       future according to the proposal.
+        let key_value = args.get_or_undefined(0).clone();
+        let Some(key_obj) = key_value.as_object() else {
+            return Err(JsNativeError::typ()
+                .with_message(format!(
+                    "WeakMap.getOrInsertComputed: expected target argument of type `object`, got target of type `{}`",
+                    key_value.type_of()
+                ))
+                .into());
+        };
+
+        // 4. If IsCallable(callback) is false, throw a TypeError exception.
+        let Some(callback_fn) = args.get_or_undefined(1).as_callable() else {
+            return Err(JsNativeError::typ()
+                .with_message("Method WeakMap.prototype.getOrInsertComputed called with non-callable callback function")
+                .into());
+        };
+
+        // 5. For each Record { [[Key]], [[Value]] } p of M.[[WeakMapData]]
+        if let Some(existing) = map.get(key_obj.inner()) {
+            // a. If p.[[Key]] is not empty and SameValue(p.[[Key]], key) is true, return p.[[Value]].
+            return Ok(existing);
+        }
+        drop(map);
+
+        // 6. Let value be ? Call(callback, undefined, « key »).
+        // 7. NOTE: The WeakMap may have been modified during execution of callback.
+        let value = callback_fn.call(
+            &JsValue::undefined(),
+            std::slice::from_ref(&key_value),
+            context,
+        )?;
+
+        let mut map = object
+            .as_ref()
+            .and_then(JsObject::downcast_mut::<NativeWeakMap>)
+            .ok_or_else(|| {
+                JsNativeError::typ()
+                    .with_message("WeakMap.getOrInsertComputed: called with non-object value")
+            })?;
+
+        // 8-10. Insert or update the entry and return value.
+        map.insert(key_obj.inner(), value.clone());
+        Ok(value)
     }
 }
