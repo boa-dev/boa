@@ -2003,7 +2003,9 @@ impl String {
         while let Some(index) = j {
             // a. Let T be the substring of S from i to j.
             // b. Append T as the last element of substrings.
-            substrings.push(this_str.get_expect(i..index).into());
+            // SAFETY: we already checked that i and index are within range.
+            let sliced = unsafe { JsString::slice_unchecked(this_str.clone(), i, index) };
+            substrings.push(sliced.into());
 
             // c. If the number of elements of substrings is lim, return ! CreateArrayFromList(substrings).
             if substrings.len() == lim {
