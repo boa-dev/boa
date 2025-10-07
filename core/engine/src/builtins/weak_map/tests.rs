@@ -95,3 +95,21 @@ fn get_or_insert_computed_overwrites_race() {
         TestAction::assert_eq("wm.get(k)", js_str!("computed")),
     ]);
 }
+
+#[test]
+fn get_or_insert_this_not_weakmap() {
+    run_test_actions([TestAction::assert_native_error(
+        "WeakMap.prototype.getOrInsert.call({}, {}, 1)",
+        JsNativeErrorKind::Type,
+        "WeakMap.getOrInsert: called with non-object value",
+    )]);
+}
+
+#[test]
+fn get_or_insert_computed_this_not_weakmap() {
+    run_test_actions([TestAction::assert_native_error(
+        "WeakMap.prototype.getOrInsertComputed.call({}, {}, x => x)",
+        JsNativeErrorKind::Type,
+        "WeakMap.getOrInsertComputed: called with non-object value",
+    )]);
+}
