@@ -22,12 +22,14 @@ either = ["dep:either"]
 
 [dependencies]
 boa_macros.workspace = true
+boa_mempool.workspace = true
 hashbrown.workspace = true
 
 boa_string = { workspace = true, optional = true }
 either = { workspace = true, optional = true }
 thin-vec = { workspace = true, optional = true }
 icu_locale_core = { workspace = true, optional = true }
+
 
 [lints]
 workspace = true

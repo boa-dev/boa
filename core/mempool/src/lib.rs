@@ -18,7 +18,9 @@ use std::ptr::NonNull;
 mod tests;
 
 /// TODO: Make this related to cache size or something.
-const THRESHOLD: usize = 128;
+const THRESHOLD: usize = 256;
+
+const BASE_CAPACITY: usize = 64;
 
 /// An empty slot is a reference (indices within the same pool) to the next free item
 /// after this one.
@@ -43,7 +45,10 @@ impl<T> Pool<T> {
             assert!(size_of::<T>() >= size_of::<EmptySlot>());
         };
 
-        let layout = Layout::array::<T>(count).expect("Could not allocate this pool.");
+        let layout = Layout::array::<T>(count)
+            .and_then(|l| l.align_to(align_of::<T>()))
+            .expect("Could not allocate this pool.")
+            .pad_to_align();
         // SAFETY: This will panic if memory or count is not right, which is safe.
         let slots: *mut T = unsafe { alloc(layout).cast() };
 
@@ -165,7 +170,7 @@ impl<T> MemPoolAllocator<T> {
     /// Create a new empty allocator. Capacity will grow with allocations.
     #[must_use]
     pub fn new() -> Self {
-        Self::with_capacity(16)
+        Self::with_capacity(BASE_CAPACITY)
     }
 
     /// Create an allocator with `capacity` amount of `T`s. That is, the total
@@ -208,9 +213,9 @@ impl<T> MemPoolAllocator<T> {
     }
 
     /// Deallocate an existing slot. If the pointer is not within our pool, this
-    /// will do nothing.
-    pub fn dealloc(&self, ptr: NonNull<T>) {
-        self.pools.borrow_mut().iter_mut().any(|p| p.dealloc(ptr));
+    /// will do nothing and return `false`.
+    pub fn dealloc(&self, ptr: NonNull<T>) -> bool {
+        self.pools.borrow_mut().iter_mut().any(|p| p.dealloc(ptr))
     }
 
     /// Return the total capacity of the pool.

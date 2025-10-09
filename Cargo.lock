@@ -453,6 +453,7 @@ name = "boa_gc"
 version = "0.20.0"
 dependencies = [
  "boa_macros",
+ "boa_mempool",
  "boa_string",
  "either",
  "hashbrown 0.16.0",

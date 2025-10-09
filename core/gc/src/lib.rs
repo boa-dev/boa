@@ -33,6 +33,7 @@ use std::{
 
 pub use crate::trace::{Finalize, Trace, Tracer};
 pub use boa_macros::{Finalize, Trace};
+use boa_mempool::MemPoolAllocator;
 pub use cell::{GcRef, GcRefCell, GcRefMut};
 pub use internals::GcBox;
 pub use pointers::{Ephemeron, Gc, GcErased, WeakGc, WeakMap};
@@ -48,6 +49,7 @@ thread_local!(static BOA_GC: RefCell<BoaGc> = RefCell::new( BoaGc {
     strongs: Vec::default(),
     weaks: Vec::default(),
     weak_maps: Vec::default(),
+    pool: MemPoolAllocator::default(),
 }));
 
 #[derive(Debug, Clone, Copy)]
@@ -84,6 +86,7 @@ struct BoaGc {
     strongs: Vec<GcErasedPointer>,
     weaks: Vec<EphemeronPointer>,
     weak_maps: Vec<ErasedWeakMapBoxPointer>,
+    pool: MemPoolAllocator<[u8; 16]>,
 }
 
 impl Drop for BoaGc {
@@ -134,8 +137,16 @@ impl Allocator {
             let mut gc = st.borrow_mut();
 
             Self::manage_state(&mut gc);
-            // Safety: value cannot be a null pointer, since `Box` cannot return null pointers.
-            let ptr = unsafe { NonNull::new_unchecked(Box::into_raw(Box::new(value))) };
+            // Safety: value cannot be a null pointer, since `MemPool` cannot return null pointers.
+            let ptr = unsafe {
+                if size_of::<T>() <= 128 {
+                    let ptr = gc.pool.alloc().cast();
+                    ptr.write(value);
+                    ptr
+                } else {
+                    NonNull::new_unchecked(Box::into_raw(Box::new(value)))
+                }
+            };
             let erased: NonNull<GcBox<NonTraceable>> = ptr.cast();
 
             gc.strongs.push(erased);
@@ -266,7 +277,11 @@ impl Collector {
                 // SAFETY:
                 // The `Allocator` must always ensure its start node is a valid, non-null pointer that
                 // was allocated by `Box::from_raw(Box::new(..))`.
-                let _unmarked_node = unsafe { Box::from_raw(w.as_ptr()) };
+                unsafe {
+                    if !gc.pool.dealloc(NonNull::new_unchecked(w.as_ptr().cast())) {
+                        drop(Box::from_raw(w.as_ptr()));
+                    }
+                }
 
                 false
             }
