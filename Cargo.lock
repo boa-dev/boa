@@ -528,6 +528,10 @@ dependencies = [
 ]
 
 [[package]]
+name = "boa_mempool"
+version = "0.20.0"
+
+[[package]]
 name = "boa_parser"
 version = "0.20.0"
 dependencies = [
