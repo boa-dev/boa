@@ -31,6 +31,8 @@ pub use crate::{
     str::{JsStr, JsStrVariant},
 };
 use std::fmt::Write;
+use std::num::NonZero;
+use std::ops::BitAnd;
 use std::{
     alloc::{Layout, alloc, dealloc},
     cell::Cell,
@@ -573,13 +575,19 @@ impl JsString {
     }
 
     /// Create a [`JsString`] from an existing `JsString` and start, end
-    /// range.
+    /// range. `end` is 1 past the last character (or `== data.len()`
+    /// for the last character).
+    ///
+    /// # Safety
+    /// It is the responsibility of the caller to ensure:
+    ///   - start >= end. If start == end, the string is empty.
+    ///   - end <= data.len().
     #[inline]
     #[must_use]
     pub unsafe fn slice_unchecked(data: JsString, start: usize, end: usize) -> Self {
         let ptr = Box::into_raw(Box::new(SliceString { data, start, end }));
-        // SAFETY: Guaranteed to be a valid pointer just allocated.
         let ptr = NonNull::new(ptr).unwrap();
+        // SAFETY: Guaranteed to be a valid pointer just allocated.
         let tagged_ptr = unsafe { ptr.byte_add(RawStringKind::SliceString as usize) };
 
         JsString {
@@ -615,35 +623,63 @@ impl JsString {
         }
     }
 
+    /// Get the inner pointer's destination as a reference of type T.
+    ///
+    /// # Safety
+    /// This should only be used when the inner type has been validated. Using
+    /// an unvalidated inner type is undefined behaviour.
+    #[inline]
+    #[must_use]
+    unsafe fn as_inner<T>(&self) -> &T {
+        // SAFETY: The outer function is unsafe and the condition should be respected.
+        unsafe {
+            self.tagged_pointer
+                .cast::<T>()
+                .map_addr(|x| NonZero::new_unchecked(x.get().bitand(!0xF)))
+                .as_ref()
+        }
+    }
+
+    /// Get the inner pointer's destination as a pointer of type T.
+    ///
+    /// # Safety
+    /// This should only be used when the inner type has been validated. Using
+    /// an unvalidated inner type is undefined behaviour.
+    #[inline]
+    #[must_use]
+    unsafe fn as_inner_ptr<T>(&self) -> NonNull<T> {
+        // SAFETY: The outer function is unsafe and the condition should be respected.
+        unsafe {
+            self.tagged_pointer
+                .cast::<T>()
+                .map_addr(|x| NonZero::new_unchecked(x.get().bitand(!0xF)))
+        }
+    }
+
+    #[inline]
+    fn on_kind<T>(
+        &self,
+        if_seq: impl FnOnce(&SeqString) -> T,
+        if_slice: impl FnOnce(&SliceString) -> T,
+        if_static: impl FnOnce(&StaticString) -> T,
+    ) -> T {
+        match self.tagged_pointer.addr().get() & 0x07 {
+            // SAFETY: We're matching on the pointer tag and validated the type of the pointer.
+            0 => if_seq(unsafe { self.as_inner() }),
+            // SAFETY: We're matching on the pointer tag and validated the type of the pointer.
+            1 => if_slice(unsafe { self.as_inner() }),
+            // SAFETY: We're matching on the pointer tag and validated the type of the pointer.
+            2 => if_static(unsafe { self.as_inner() }),
+            // SAFETY: This cannot happen as it's built by one of our constructors.
+            _ => unsafe { std::hint::unreachable_unchecked() },
+        }
+    }
+
     /// Check if the [`JsString`] is static.
     #[inline]
     #[must_use]
     pub fn is_static(&self) -> bool {
         self.kind() == RawStringKind::StaticString
-    }
-
-    /// Returns the StaticString instance, if this is one.
-    #[inline]
-    #[must_use]
-    pub fn as_static(&self) -> Option<&StaticString> {
-        // SAFETY: The tagged pointer is already checked, so this is safe.
-        self.is_static()
-            .then(|| unsafe { self.as_static_unchecked() })
-    }
-
-    /// Dereference the tagged pointer, without checking its validity.
-    ///
-    /// SAFETY: The caller MUST check that the string is of the proper kind.
-    #[inline]
-    #[must_use]
-    unsafe fn as_static_unchecked(&self) -> &StaticString {
-        // SAFETY: The outer function is already unsafe.
-        unsafe {
-            self.tagged_pointer
-                .cast::<StaticString>()
-                .byte_sub(RawStringKind::StaticString as usize)
-                .as_ref()
-        }
     }
 
     /// Check if the [`JsString`] is a [`SeqString`].
@@ -653,50 +689,11 @@ impl JsString {
         self.kind() == RawStringKind::SeqString
     }
 
-    /// Dereference the tagged pointer, without checking its validity.
-    ///
-    /// SAFETY: The caller MUST check that the string is of the proper kind.
-    #[inline]
-    #[must_use]
-    unsafe fn as_seq_unchecked(&self) -> &SeqString {
-        // SAFETY: The outer function is already unsafe.
-        unsafe {
-            self.tagged_pointer
-                .cast::<SeqString>()
-                .byte_sub(RawStringKind::SeqString as usize)
-                .as_ref()
-        }
-    }
-
     /// Check if the [`JsString`] is static.
     #[inline]
     #[must_use]
     pub fn is_slice(&self) -> bool {
         self.kind() == RawStringKind::SliceString
-    }
-
-    /// Returns the SliceString instance if this is one.
-    #[inline]
-    #[must_use]
-    pub fn as_slice(&self) -> Option<&SliceString> {
-        // SAFETY: The tagged pointer is already checked, so this is safe.
-        self.is_slice()
-            .then(|| unsafe { self.as_slice_unchecked() })
-    }
-
-    /// Dereference the tagged pointer, without checking its validity.
-    ///
-    /// SAFETY: The caller MUST check that the string is of the proper kind.
-    #[inline]
-    #[must_use]
-    unsafe fn as_slice_unchecked(&self) -> &SliceString {
-        // SAFETY: The outer function is already unsafe.
-        unsafe {
-            self.tagged_pointer
-                .cast::<SliceString>()
-                .byte_sub(RawStringKind::SliceString as usize)
-                .as_ref()
-        }
     }
 }
 
@@ -708,7 +705,7 @@ impl JsString {
         let (len, is_latin1, ptr) = match self.kind() {
             RawStringKind::SeqString => {
                 // SAFETY: Already checked the kind.
-                let str = unsafe { self.as_seq_unchecked() };
+                let str = unsafe { self.as_inner::<SeqString>() };
                 let len = str.tagged_len.len();
                 let is_latin1 = str.tagged_len.is_latin1();
                 let ptr = (&raw const str.data).cast::<u8>();
@@ -716,7 +713,7 @@ impl JsString {
             }
             RawStringKind::SliceString => {
                 // SAFETY: Already checked the kind.
-                let inner_str = unsafe { self.as_slice_unchecked() };
+                let inner_str = unsafe { self.as_inner::<SliceString>() };
                 let str = inner_str.data.as_str();
                 let len = inner_str.end - inner_str.start;
                 let is_latin1 = str.is_latin1();
@@ -726,7 +723,7 @@ impl JsString {
             }
             RawStringKind::StaticString => {
                 // SAFETY: Already checked the kind.
-                return unsafe { self.as_static_unchecked() }.0;
+                return unsafe { self.as_inner::<StaticString>() }.0;
             }
         };
 
@@ -853,6 +850,7 @@ impl JsString {
         .map_err(|_| None)?;
 
         debug_assert_eq!(offset, DATA_OFFSET);
+        debug_assert_eq!(layout.align(), align_of::<SeqString>());
 
         #[allow(clippy::cast_ptr_alignment)]
         // SAFETY:
@@ -941,13 +939,13 @@ impl JsString {
     #[must_use]
     pub fn refcount(&self) -> Option<usize> {
         match self.kind() {
-            RawStringKind::SliceString => {
-                // SAFETY: We are guaranteed a valid kind of string.
-                unsafe { self.as_slice_unchecked() }.data.refcount()
-            }
             RawStringKind::SeqString => {
                 // SAFETY: We are guaranteed a valid kind of string.
-                Some(unsafe { self.as_seq_unchecked() }.refcount.get())
+                Some(unsafe { self.as_inner::<SeqString>() }.refcount.get())
+            }
+            RawStringKind::SliceString => {
+                // SAFETY: We are guaranteed a valid kind of string.
+                unsafe { self.as_inner::<SliceString>() }.data.refcount()
             }
             RawStringKind::StaticString => None,
         }
@@ -957,31 +955,25 @@ impl JsString {
 impl Clone for JsString {
     #[inline]
     fn clone(&self) -> Self {
-        match self.kind() {
-            RawStringKind::SliceString => {
-                // SAFETY: We are guaranteed a valid kind of string.
-                let inner = unsafe { self.as_slice_unchecked() };
-                unsafe {
-                    // SAFETY: If this string is valid, the new one will be too.
-                    Self::slice_unchecked(inner.data.clone(), inner.start, inner.end)
-                }
-            }
-            RawStringKind::SeqString => {
-                // SAFETY: We are guaranteed a valid kind of string.
-                let inner = unsafe { self.as_seq_unchecked() };
-                let strong = inner.refcount.get().wrapping_add(1);
+        self.on_kind(
+            |seq| {
+                let strong = seq.refcount.get().wrapping_add(1);
                 if strong == 0 {
                     abort()
                 }
-                inner.refcount.set(strong);
+                seq.refcount.set(strong);
                 Self {
                     tagged_pointer: self.tagged_pointer,
                 }
-            }
-            RawStringKind::StaticString => Self {
+            },
+            |slice| {
+                // SAFETY: If this string is valid, the new one will be too.
+                unsafe { Self::slice_unchecked(slice.data.clone(), slice.start, slice.end) }
+            },
+            |_| Self {
                 tagged_pointer: self.tagged_pointer,
             },
-        }
+        )
     }
 }
 
@@ -996,26 +988,20 @@ impl Drop for JsString {
     #[inline]
     fn drop(&mut self) {
         // See https://doc.rust-lang.org/src/alloc/sync.rs.html#1672 for details.
-
         match self.kind() {
             RawStringKind::SliceString => {
                 // Drop the original data, that's it.
                 // SAFETY: This is always guaranteed to be the right kind of pointer.
                 unsafe {
-                    drop(Box::from_raw(
-                        self.tagged_pointer
-                            .cast::<SliceString>()
-                            .byte_sub(RawStringKind::SliceString as usize)
-                            .as_ptr(),
-                    ));
+                    drop(Box::from_raw(self.as_inner_ptr::<SliceString>().as_ptr()));
                 }
             }
             RawStringKind::SeqString => {
                 // SAFETY: `NonNull` and the constructions of `JsString` guarantees that `raw` is always valid.
-                let inner = unsafe { self.as_seq_unchecked() };
-
-                inner.refcount.set(inner.refcount.get() - 1);
-                if inner.refcount.get() != 0 {
+                let inner = unsafe { self.as_inner::<SeqString>() };
+                let new = inner.refcount.get() - 1;
+                inner.refcount.set(new);
+                if new != 0 {
                     return;
                 }
 
@@ -1042,13 +1028,7 @@ impl Drop for JsString {
                 // If refcount is 0 and we call drop, that means this is the last `JsString` which
                 // points to this memory allocation, so deallocating it is safe.
                 unsafe {
-                    dealloc(
-                        self.tagged_pointer
-                            .byte_sub(RawStringKind::SeqString as usize)
-                            .cast()
-                            .as_ptr(),
-                        layout,
-                    );
+                    dealloc(self.as_inner_ptr::<SeqString>().as_ptr().cast(), layout);
                 }
             }
             RawStringKind::StaticString => {
