@@ -1,4 +1,7 @@
-use crate::{DATA_OFFSET, JsStr, JsStrVariant, JsString, SeqString, TaggedLen, alloc_overflow};
+use crate::{
+    DATA_OFFSET, InnerStringKind, JsStr, JsStrVariant, JsString, SeqString, TaggedLen,
+    alloc_overflow,
+};
 
 use std::{
     alloc::{Layout, alloc, dealloc, realloc},
@@ -378,7 +381,7 @@ impl<D: Copy> JsStringBuilder<D> {
         // because we move inner `RawJsString` to `JsString`.
         std::mem::forget(self);
 
-        JsString::from_seq(inner)
+        JsString::from_inner(inner, InnerStringKind::Sequence)
     }
 }
 

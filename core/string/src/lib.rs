@@ -13,6 +13,7 @@
 #![allow(clippy::module_name_repetitions)]
 
 mod builder;
+mod code_point;
 mod common;
 mod display;
 mod iter;
@@ -26,11 +27,11 @@ use crate::display::{JsStrDisplayEscaped, JsStrDisplayLossy};
 #[doc(inline)]
 pub use crate::{
     builder::{CommonJsStringBuilder, Latin1JsStringBuilder, Utf16JsStringBuilder},
+    code_point::CodePoint,
     common::StaticJsStrings,
     iter::Iter,
     str::{JsStr, JsStrVariant},
 };
-use std::fmt::Write;
 use std::num::NonZero;
 use std::ops::BitAnd;
 use std::{
@@ -85,83 +86,6 @@ pub(crate) const fn is_trimmable_whitespace_latin1(c: u8) -> bool {
     )
 }
 
-/// Represents a Unicode codepoint within a [`JsString`], which could be a valid
-/// '[Unicode scalar value]', or an unpaired surrogate.
-///
-/// [Unicode scalar value]: https://www.unicode.org/glossary/#unicode_scalar_value
-#[derive(Clone, Copy, Debug, Eq, PartialEq)]
-pub enum CodePoint {
-    /// A valid Unicode scalar value.
-    Unicode(char),
-
-    /// An unpaired surrogate.
-    UnpairedSurrogate(u16),
-}
-
-impl CodePoint {
-    /// Get the number of UTF-16 code units needed to encode this code point.
-    #[inline]
-    #[must_use]
-    pub const fn code_unit_count(self) -> usize {
-        match self {
-            Self::Unicode(c) => c.len_utf16(),
-            Self::UnpairedSurrogate(_) => 1,
-        }
-    }
-
-    /// Convert the code point to its [`u32`] representation.
-    #[inline]
-    #[must_use]
-    pub fn as_u32(self) -> u32 {
-        match self {
-            Self::Unicode(c) => u32::from(c),
-            Self::UnpairedSurrogate(surr) => u32::from(surr),
-        }
-    }
-
-    /// If the code point represents a valid 'Unicode scalar value', returns its [`char`]
-    /// representation, otherwise returns [`None`] on unpaired surrogates.
-    #[inline]
-    #[must_use]
-    pub const fn as_char(self) -> Option<char> {
-        match self {
-            Self::Unicode(c) => Some(c),
-            Self::UnpairedSurrogate(_) => None,
-        }
-    }
-
-    /// Encodes this code point as UTF-16 into the provided u16 buffer, and then returns the subslice
-    /// of the buffer that contains the encoded character.
-    ///
-    /// # Panics
-    ///
-    /// Panics if the buffer is not large enough. A buffer of length 2 is large enough to encode any
-    /// code point.
-    #[inline]
-    #[must_use]
-    pub fn encode_utf16(self, dst: &mut [u16]) -> &mut [u16] {
-        match self {
-            Self::Unicode(c) => c.encode_utf16(dst),
-            Self::UnpairedSurrogate(surr) => {
-                dst[0] = surr;
-                &mut dst[0..=0]
-            }
-        }
-    }
-}
-
-impl std::fmt::Display for CodePoint {
-    #[inline]
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        match self {
-            CodePoint::Unicode(c) => f.write_char(*c),
-            CodePoint::UnpairedSurrogate(c) => {
-                write!(f, "\\u{c:04X}")
-            }
-        }
-    }
-}
-
 /// A `usize` contains a flag and the length of Latin1/UTF-16 .
 /// ```text
 /// ┌────────────────────────────────────┐
@@ -213,37 +137,18 @@ struct StaticString(JsStr<'static>);
 /// Strings can be represented by multiple kinds. This is used as the
 /// tag for the tagged pointer in [`JsString`].
 #[derive(Clone, Copy, Eq, PartialEq)]
-enum RawStringKind {
+enum InnerStringKind {
     /// A sequential memory slice of either UTF-8 or UTF-16. See [`SeqString`].
-    SeqString = 0,
+    Sequence = 0,
 
     /// A slice of an existing string. See [`SliceString`].
-    SliceString = 1,
+    Slice = 1,
 
     /// A static string that is valid for `'static` lifetime.
-    StaticString = 2,
+    Static = 2,
 }
 
-/// The raw representation of a [`JsString`] in the heap.
-#[repr(C, align(8))]
-#[allow(missing_debug_implementations)]
-pub struct RawJsString {
-    tagged_len: TaggedLen,
-    refcount: Cell<usize>,
-    data: [u8; 0],
-}
-
-impl RawJsString {
-    const fn is_latin1(&self) -> bool {
-        self.tagged_len.is_latin1()
-    }
-
-    const fn len(&self) -> usize {
-        self.tagged_len.len()
-    }
-}
-
-const DATA_OFFSET: usize = size_of::<RawJsString>();
+const DATA_OFFSET: usize = size_of::<SeqString>();
 
 /// A Latin1 or UTF-16–encoded, reference counted, immutable string.
 ///
@@ -510,7 +415,7 @@ impl JsString {
         self.as_str().display_lossy()
     }
 
-    /// Consumes the [`JsString`], returning a pointer to `RawJsString`.
+    /// Consumes the [`JsString`], returning the internal tagged pointer.
     ///
     /// To avoid a memory leak the pointer must be converted back to a `JsString` using
     /// [`JsString::from_raw`].
@@ -520,7 +425,7 @@ impl JsString {
         ManuallyDrop::new(self).tagged_pointer
     }
 
-    /// Constructs a `JsString` from a pointer to `RawJsString`.
+    /// Constructs a `JsString` from the internal tagged pointer.
     ///
     /// The raw pointer must have been previously returned by a call to
     /// [`JsString::into_raw`].
@@ -543,35 +448,14 @@ static_assertions::const_assert!(align_of::<*const JsStr<'static>>() >= 2);
 
 /// Dealing with inner types.
 impl JsString {
-    /// Create a [`JsString`] StaticString from a static js string.
+    /// Create a [`JsString`] `StaticString` from a static js string.
     #[inline]
     #[must_use]
     pub const fn from_static(src: &'static JsStr<'static>) -> Self {
         // SAFETY: A reference cannot be null, so this is safe.
         let ptr = NonNull::from_ref(src);
 
-        // SAFETY:
-        // - Adding one to an aligned pointer will tag the pointer's last bit.
-        // - The pointer's provenance remains unchanged, so this is safe.
-        let tagged_ptr = unsafe { ptr.byte_add(RawStringKind::StaticString as usize) };
-
-        JsString {
-            tagged_pointer: tagged_ptr.cast::<()>(),
-        }
-    }
-
-    /// Create a [`JsString`] from a pointer to a [`SeqString`].
-    #[inline]
-    #[must_use]
-    const fn from_seq(ptr: NonNull<SeqString>) -> Self {
-        // SAFETY:
-        // - Adding one to an aligned pointer will tag the pointer's last bit.
-        // - The pointer's provenance remains unchanged, so this is safe.
-        let tagged_ptr = unsafe { ptr.byte_add(RawStringKind::SeqString as usize) };
-
-        JsString {
-            tagged_pointer: tagged_ptr.cast::<()>(),
-        }
+        Self::from_inner(ptr, InnerStringKind::Static)
     }
 
     /// Create a [`JsString`] from an existing `JsString` and start, end
@@ -586,13 +470,12 @@ impl JsString {
     #[must_use]
     pub unsafe fn slice_unchecked(data: JsString, start: usize, end: usize) -> Self {
         let ptr = Box::into_raw(Box::new(SliceString { data, start, end }));
-        let ptr = NonNull::new(ptr).unwrap();
-        // SAFETY: Guaranteed to be a valid pointer just allocated.
-        let tagged_ptr = unsafe { ptr.byte_add(RawStringKind::SliceString as usize) };
 
-        JsString {
-            tagged_pointer: tagged_ptr.cast::<()>(),
-        }
+        // SAFETY: Allocation worked.
+        Self::from_inner(
+            unsafe { NonNull::new_unchecked(ptr) },
+            InnerStringKind::Slice,
+        )
     }
 
     /// Create a [`JsString`] from an existing `JsString` and start, end
@@ -613,13 +496,24 @@ impl JsString {
     /// Create a new [`JsString`] `SeqString` variant.
     #[inline]
     #[must_use]
-    fn kind(&self) -> RawStringKind {
+    fn kind(&self) -> InnerStringKind {
         match self.tagged_pointer.addr().get() & 0x07 {
-            0 => RawStringKind::SeqString,
-            1 => RawStringKind::SliceString,
-            2 => RawStringKind::StaticString,
+            0 => InnerStringKind::Sequence,
+            1 => InnerStringKind::Slice,
+            2 => InnerStringKind::Static,
             // SAFETY: We never create other variants, so this is unreachable.
             _ => unsafe { std::hint::unreachable_unchecked() },
+        }
+    }
+
+    /// Create a new [`JsString`] with a pointer and a kind.
+    #[inline]
+    #[must_use]
+    const fn from_inner<T>(ptr: NonNull<T>, kind: InnerStringKind) -> Self {
+        Self {
+            // SAFETY: Kind is a known quantity that cannot surpass the alignment
+            // of the pointed to structure.
+            tagged_pointer: unsafe { ptr.cast::<()>().byte_add(kind as usize) },
         }
     }
 
@@ -657,15 +551,15 @@ impl JsString {
     }
 
     #[inline]
-    fn on_kind<T>(
+    fn on_kind_ref<T>(
         &self,
         if_seq: impl FnOnce(&SeqString) -> T,
         if_slice: impl FnOnce(&SliceString) -> T,
         if_static: impl FnOnce(&StaticString) -> T,
     ) -> T {
         match self.tagged_pointer.addr().get() & 0x07 {
-            // SAFETY: We're matching on the pointer tag and validated the type of the pointer.
-            0 => if_seq(unsafe { self.as_inner() }),
+            // SAFETY: This is safe as long as [`InnerStringKind::Sequence`] is 0.
+            0 => if_seq(unsafe { self.tagged_pointer.cast::<SeqString>().as_ref() }),
             // SAFETY: We're matching on the pointer tag and validated the type of the pointer.
             1 => if_slice(unsafe { self.as_inner() }),
             // SAFETY: We're matching on the pointer tag and validated the type of the pointer.
@@ -679,21 +573,21 @@ impl JsString {
     #[inline]
     #[must_use]
     pub fn is_static(&self) -> bool {
-        self.kind() == RawStringKind::StaticString
+        self.kind() == InnerStringKind::Static
     }
 
     /// Check if the [`JsString`] is a [`SeqString`].
     #[inline]
     #[must_use]
     pub fn is_seq(&self) -> bool {
-        self.kind() == RawStringKind::SeqString
+        self.kind() == InnerStringKind::Sequence
     }
 
     /// Check if the [`JsString`] is static.
     #[inline]
     #[must_use]
     pub fn is_slice(&self) -> bool {
-        self.kind() == RawStringKind::SliceString
+        self.kind() == InnerStringKind::Slice
     }
 }
 
@@ -703,7 +597,7 @@ impl JsString {
     #[must_use]
     pub fn as_str(&self) -> JsStr<'_> {
         let (len, is_latin1, ptr) = match self.kind() {
-            RawStringKind::SeqString => {
+            InnerStringKind::Sequence => {
                 // SAFETY: Already checked the kind.
                 let str = unsafe { self.as_inner::<SeqString>() };
                 let len = str.tagged_len.len();
@@ -711,7 +605,7 @@ impl JsString {
                 let ptr = (&raw const str.data).cast::<u8>();
                 (len, is_latin1, ptr)
             }
-            RawStringKind::SliceString => {
+            InnerStringKind::Slice => {
                 // SAFETY: Already checked the kind.
                 let inner_str = unsafe { self.as_inner::<SliceString>() };
                 let str = inner_str.data.as_str();
@@ -721,14 +615,14 @@ impl JsString {
                 let ptr = unsafe { str.ptr().add(inner_str.start) };
                 (len, is_latin1, ptr)
             }
-            RawStringKind::StaticString => {
+            InnerStringKind::Static => {
                 // SAFETY: Already checked the kind.
                 return unsafe { self.as_inner::<StaticString>() }.0;
             }
         };
 
         // SAFETY:
-        // - Unwrapped heap ptr is always a valid heap allocated RawJsString.
+        // - Unwrapped heap ptr is always a valid heap allocated SeqString.
         // - Length of a heap allocated string always contains the correct size of the string.
         unsafe {
             if is_latin1 {
@@ -809,7 +703,7 @@ impl JsString {
                 }
             }
 
-            Self::from_seq(ptr)
+            Self::from_inner(ptr, InnerStringKind::Sequence)
         };
 
         StaticJsStrings::get_string(&string.as_str()).unwrap_or(string)
@@ -854,7 +748,7 @@ impl JsString {
 
         #[allow(clippy::cast_ptr_alignment)]
         // SAFETY:
-        // The layout size of `RawJsString` is never zero, since it has to store
+        // The layout size of `SeqString` is never zero, since it has to store
         // the length of the string and the reference count.
         let inner = unsafe { alloc(layout).cast::<SeqString>() };
 
@@ -867,7 +761,7 @@ impl JsString {
         // `NonNull` verified for us that the pointer returned by `alloc` is valid,
         // meaning we can write to its pointed memory.
         unsafe {
-            // Write the first part, the `RawJsString`.
+            // Write the first part, the `SeqString`.
             inner.as_ptr().write(SeqString {
                 tagged_len: TaggedLen::new(str_len, latin1),
                 refcount: Cell::new(1),
@@ -879,7 +773,7 @@ impl JsString {
             let inner = inner.as_ptr();
             // SAFETY:
             // - `inner` must be a valid pointer, since it comes from a `NonNull`,
-            // meaning we can safely dereference it to `RawJsString`.
+            // meaning we can safely dereference it to `SeqString`.
             // - `offset` should point us to the beginning of the array,
             // and since we requested an `SeqString` layout with a trailing
             // `[u16; str_len]`, the memory of the array must be in the `usize`
@@ -923,7 +817,8 @@ impl JsString {
                 }
             }
         }
-        Self::from_seq(ptr)
+
+        Self::from_inner(ptr, InnerStringKind::Sequence)
     }
 
     /// Creates a new [`JsString`] from `data`.
@@ -939,15 +834,15 @@ impl JsString {
     #[must_use]
     pub fn refcount(&self) -> Option<usize> {
         match self.kind() {
-            RawStringKind::SeqString => {
+            InnerStringKind::Sequence => {
                 // SAFETY: We are guaranteed a valid kind of string.
                 Some(unsafe { self.as_inner::<SeqString>() }.refcount.get())
             }
-            RawStringKind::SliceString => {
+            InnerStringKind::Slice => {
                 // SAFETY: We are guaranteed a valid kind of string.
                 unsafe { self.as_inner::<SliceString>() }.data.refcount()
             }
-            RawStringKind::StaticString => None,
+            InnerStringKind::Static => None,
         }
     }
 }
@@ -955,7 +850,7 @@ impl JsString {
 impl Clone for JsString {
     #[inline]
     fn clone(&self) -> Self {
-        self.on_kind(
+        self.on_kind_ref(
             |seq| {
                 let strong = seq.refcount.get().wrapping_add(1);
                 if strong == 0 {
@@ -989,16 +884,9 @@ impl Drop for JsString {
     fn drop(&mut self) {
         // See https://doc.rust-lang.org/src/alloc/sync.rs.html#1672 for details.
         match self.kind() {
-            RawStringKind::SliceString => {
-                // Drop the original data, that's it.
-                // SAFETY: This is always guaranteed to be the right kind of pointer.
-                unsafe {
-                    drop(Box::from_raw(self.as_inner_ptr::<SliceString>().as_ptr()));
-                }
-            }
-            RawStringKind::SeqString => {
-                // SAFETY: `NonNull` and the constructions of `JsString` guarantees that `raw` is always valid.
-                let inner = unsafe { self.as_inner::<SeqString>() };
+            InnerStringKind::Sequence => {
+                // SAFETY: This is safe as long as [`InnerStringKind::Sequence`] is 0.
+                let inner = unsafe { self.tagged_pointer.cast::<SeqString>().as_ref() };
                 let new = inner.refcount.get() - 1;
                 inner.refcount.set(new);
                 if new != 0 {
@@ -1031,7 +919,14 @@ impl Drop for JsString {
                     dealloc(self.as_inner_ptr::<SeqString>().as_ptr().cast(), layout);
                 }
             }
-            RawStringKind::StaticString => {
+            InnerStringKind::Slice => {
+                // Drop the original data, that's it.
+                // SAFETY: This is always guaranteed to be the right kind of pointer.
+                unsafe {
+                    drop(Box::from_raw(self.as_inner_ptr::<SliceString>().as_ptr()));
+                }
+            }
+            InnerStringKind::Static => {
                 // Do nothing on static strings.
             }
         }
