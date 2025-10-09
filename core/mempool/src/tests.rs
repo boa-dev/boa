@@ -9,7 +9,7 @@ fn allocates_small_objects() {
 
     for _ in 0..100 {
         let _ = pool.alloc();
-        // Oops, leaking memory. Oh well.
+        // Oops, leaking memory. Oh, well.
     }
 
     let total = pool.allocated();
@@ -35,4 +35,30 @@ fn allocates_and_deallocates() {
     assert_eq!(pool.available(), pool.allocated());
     // Deallocating should not change the amount of memory used.
     assert_eq!(pool.allocated(), total);
+}
+
+#[test]
+fn realloc_loops() {
+    let pool = MemPoolAllocator::<usize>::new();
+
+    for i in 0..32 {
+        let mut objs = vec![];
+
+        for j in 0..(i * 16) {
+            let ptr = pool.alloc();
+            unsafe { ptr.write(i * j) };
+            objs.push(ptr);
+        }
+
+        let total = pool.allocated();
+        assert_eq!(pool.available(), total - objs.len());
+
+        for p in objs {
+            pool.dealloc(p);
+        }
+
+        assert_eq!(pool.available(), pool.allocated());
+        // Deallocating should not change the amount of memory used.
+        assert_eq!(pool.allocated(), total);
+    }
 }
