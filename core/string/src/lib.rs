@@ -635,7 +635,7 @@ impl JsString {
         unsafe {
             self.tagged_pointer
                 .cast::<T>()
-                .map_addr(|x| NonZero::new_unchecked(x.get().bitand(!0xF)))
+                .map_addr(|x| NonZero::new_unchecked(x.get().bitand(!0x7)))
                 .as_ref()
         }
     }
@@ -652,7 +652,7 @@ impl JsString {
         unsafe {
             self.tagged_pointer
                 .cast::<T>()
-                .map_addr(|x| NonZero::new_unchecked(x.get().bitand(!0xF)))
+                .map_addr(|x| NonZero::new_unchecked(x.get().bitand(!0x7)))
         }
     }
 
