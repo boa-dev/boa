@@ -18,16 +18,16 @@ use std::ptr::NonNull;
 mod tests;
 
 /// TODO: Make this related to cache size or something.
-const THRESHOLD: usize = 256;
+const THRESHOLD: usize = 5120;
 
-const BASE_CAPACITY: usize = 64;
+const BASE_CAPACITY: usize = 1024;
 
 /// An empty slot is a reference (indices within the same pool) to the next free item
 /// after this one.
 type EmptySlot = usize;
 
 /// A single pool allocated.
-struct Pool<T> {
+struct Chunk<T> {
     layout: Layout,
     total: usize,
     available: usize,
@@ -35,7 +35,7 @@ struct Pool<T> {
     slots: *mut T,
 }
 
-impl<T> Pool<T> {
+impl<T> Chunk<T> {
     /// Create a new pool without checking that `count * size_of::<T>()` is valid.
     #[must_use]
     fn new_unchecked(count: usize) -> Self {
@@ -46,16 +46,17 @@ impl<T> Pool<T> {
         };
 
         let layout = Layout::array::<T>(count)
-            .and_then(|l| l.align_to(align_of::<T>()))
+            .and_then(|l| l.align_to(align_of::<usize>()))
             .expect("Could not allocate this pool.")
             .pad_to_align();
+
         // SAFETY: This will panic if memory or count is not right, which is safe.
         let slots: *mut T = unsafe { alloc(layout).cast() };
 
         // The first slot should always be pointing to itself as an `EmptySlot`.
         // SAFETY: We statically validated that `size_of::<T>() > size_of::<EmptySlot>()`.
         unsafe {
-            slots.cast::<EmptySlot>().write(0);
+            *slots.cast::<EmptySlot>() = 0;
         }
 
         Self {
@@ -125,14 +126,14 @@ impl<T> Pool<T> {
         unsafe {
             self.slots.add(slot_index).cast::<EmptySlot>().write(next);
         }
+
         self.next = slot_index;
         self.available += 1;
-
         true
     }
 }
 
-impl<T> Drop for Pool<T> {
+impl<T> Drop for Chunk<T> {
     fn drop(&mut self) {
         // SAFETY: We use the same layout, so this is sure to work.
         unsafe {
@@ -145,10 +146,10 @@ impl<T> Drop for Pool<T> {
 /// have a size larger than `usize`.
 ///
 /// ```compile_fail
-/// let pool = MemPoolAllocator::<u8>::new();
+/// let pool = boa_mempool::MemPoolAllocator::<u8>::new();
 /// ```
 pub struct MemPoolAllocator<T> {
-    pools: RefCell<Vec<Pool<T>>>,
+    pools: RefCell<Vec<Chunk<T>>>,
 }
 
 impl<T> Debug for MemPoolAllocator<T> {
@@ -180,7 +181,7 @@ impl<T> MemPoolAllocator<T> {
         debug_assert!(capacity.checked_mul(size_of::<T>()).is_some());
 
         Self {
-            pools: RefCell::new(vec![Pool::<T>::new_unchecked(capacity)]),
+            pools: RefCell::new(vec![Chunk::<T>::new_unchecked(capacity)]),
         }
     }
 
@@ -193,18 +194,18 @@ impl<T> MemPoolAllocator<T> {
         let mut pools = self.pools.borrow_mut();
         // Find the first pool with an unused slot. Use reverse because
         // the last pool is the most likely one to have availability.
-        if let Some(p) = pools.iter_mut().find_map(Pool::alloc) {
+        if let Some(p) = pools.iter_mut().find_map(Chunk::alloc) {
             p
         } else {
-            // Allocate twice the last allocation if smaller than THRESHOLD, or 10% more otherwise.
+            // Allocate twice the last allocation if smaller than THRESHOLD, or 20% more otherwise.
             let last_total = pools
                 .last()
                 .expect("There should always be at least one pool.")
                 .total;
-            let mut new_pool = Pool::<T>::new_unchecked(if last_total < THRESHOLD {
+            let mut new_pool = Chunk::<T>::new_unchecked(if last_total < THRESHOLD {
                 last_total * 2
             } else {
-                last_total + last_total / 10
+                last_total + last_total / 20
             });
             let ptr = new_pool.alloc().expect("Could not allocate memory.");
             pools.push(new_pool);

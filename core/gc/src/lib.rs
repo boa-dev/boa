@@ -43,13 +43,15 @@ type EphemeronPointer = NonNull<dyn ErasedEphemeronBox>;
 type ErasedWeakMapBoxPointer = NonNull<dyn ErasedWeakMapBox>;
 
 thread_local!(static GC_DROPPING: Cell<bool> = const { Cell::new(false) });
+thread_local!(static MEM_POOL: RefCell<MemPoolAllocator<[u8; 128]>> = RefCell::new(
+     MemPoolAllocator::default()
+));
 thread_local!(static BOA_GC: RefCell<BoaGc> = RefCell::new( BoaGc {
     config: GcConfig::default(),
     runtime: GcRuntimeData::default(),
     strongs: Vec::default(),
     weaks: Vec::default(),
     weak_maps: Vec::default(),
-    pool: MemPoolAllocator::default(),
 }));
 
 #[derive(Debug, Clone, Copy)]
@@ -86,7 +88,6 @@ struct BoaGc {
     strongs: Vec<GcErasedPointer>,
     weaks: Vec<EphemeronPointer>,
     weak_maps: Vec<ErasedWeakMapBoxPointer>,
-    pool: MemPoolAllocator<[u8; 16]>,
 }
 
 impl Drop for BoaGc {
@@ -140,7 +141,7 @@ impl Allocator {
             // Safety: value cannot be a null pointer, since `MemPool` cannot return null pointers.
             let ptr = unsafe {
                 if size_of::<T>() <= 128 {
-                    let ptr = gc.pool.alloc().cast();
+                    let ptr = MEM_POOL.with_borrow_mut(|pool| pool.alloc().cast());
                     ptr.write(value);
                     ptr
                 } else {
@@ -278,7 +279,9 @@ impl Collector {
                 // The `Allocator` must always ensure its start node is a valid, non-null pointer that
                 // was allocated by `Box::from_raw(Box::new(..))`.
                 unsafe {
-                    if !gc.pool.dealloc(NonNull::new_unchecked(w.as_ptr().cast())) {
+                    if !MEM_POOL.with_borrow_mut(|pool| {
+                        pool.dealloc(NonNull::new_unchecked(w.as_ptr().cast()))
+                    }) {
                         drop(Box::from_raw(w.as_ptr()));
                     }
                 }

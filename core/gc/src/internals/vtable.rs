@@ -1,6 +1,6 @@
 use std::any::TypeId;
 
-use crate::{GcBox, GcErasedPointer, Trace, Tracer};
+use crate::{GcBox, GcErasedPointer, MEM_POOL, Trace, Tracer};
 
 // Workaround: https://users.rust-lang.org/t/custom-vtables-with-integers/78508
 pub(crate) const fn vtable_of<T: Trace + 'static>() -> &'static VTable {
@@ -40,7 +40,12 @@ pub(crate) const fn vtable_of<T: Trace + 'static>() -> &'static VTable {
             let this = this.cast::<GcBox<Self>>();
 
             // SAFETY: The caller must ensure the erased pointer is not droped or deallocated.
-            let _value = unsafe { Box::from_raw(this.as_ptr()) };
+            // let _value = unsafe { Box::from_raw(this.as_ptr()) };
+            let _ = MEM_POOL.try_with(|pool| {
+                if !pool.borrow_mut().dealloc(this.cast()) {
+                    drop(unsafe { Box::from_raw(this.as_ptr()) });
+                }
+            });
         }
 
         fn type_id_fn() -> TypeId {
