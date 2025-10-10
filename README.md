@@ -54,7 +54,7 @@ To start using Boa simply add the `boa_engine` crate to your `Cargo.toml`:
 
 ```toml
 [dependencies]
-boa_engine = "0.20.0"
+boa_engine = "0.21.0"
 ```
 
 Then in `main.rs`, copy the below:
