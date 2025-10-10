@@ -57,7 +57,7 @@ jobs:
         shell: bash
         run: |
           cd boa
-          comment="$(./target/release/boa_tester compare ../data/test262/refs/heads/main/latest.json ../results/test262/pull/latest.json -m)"
+          comment="$(./target/release/boa_tester compare ../data/test262/refs/heads/main/latest.json ../results/test262/refs/heads/main/latest.json -m)"
           echo "comment<<EOF" >> $GITHUB_OUTPUT
           echo "$comment" >> $GITHUB_OUTPUT
           echo "EOF" >> $GITHUB_OUTPUT
