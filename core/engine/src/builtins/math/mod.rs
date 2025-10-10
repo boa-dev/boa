@@ -960,7 +960,7 @@ impl Math {
         context: &mut Context,
     ) -> JsResult<JsValue> {
         const ITERATION_MAX: u64 = 2u64.pow(53) - 1;
-        use xsum::{Xsum, XsumAuto};
+        use xsum::{Xsum, XsumLarge, XsumSmall, XsumVariant, constants::XSUM_THRESHOLD};
 
         use crate::{builtins::iterable::IteratorHint, js_error};
 
@@ -973,15 +973,27 @@ impl Math {
             return Err(js_error!(TypeError: "value must be object coercible."));
         }
 
-        // TODO / NOTE (nekevss): JSC fast paths arrays by checking if `items` is an
-        // array and fetching the `length`. Potentially look into optimizing this
-        // alongside `XsumSmall` and `XsumLarge`.
-
         // 2. Let iteratorRecord be ? GetIterator(items, sync).
         let mut iterator_record = items.get_iterator(IteratorHint::Sync, context)?;
         // 3. Let state be minus-zero.
         // 4. Let sum be 0.
-        let mut sum = XsumAuto::new();
+        let length = if iterator_record.iterator().is_array() {
+            iterator_record
+                .iterator()
+                .length_of_array_like(context)
+                .ok()
+        } else {
+            None
+        };
+        let mut sum = if let Some(length) = length {
+            if length <= XSUM_THRESHOLD as u64 {
+                XsumVariant::Small(XsumSmall::new())
+            } else {
+                XsumVariant::Large(XsumLarge::new())
+            }
+        } else {
+            XsumVariant::Small(XsumSmall::new())
+        };
         // 5. Let count be 0.
         let mut count = 0;
         // 6. Let next be not-started.
