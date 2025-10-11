@@ -1,14 +1,20 @@
 name: EcmaScript official test suite (test262)
 on:
+  # SECURITY WARNING: Using `pull_request_target` can be risky!
+  # It runs workflows with full repo permissions and secrets on code from forks.
+  # If not handled carefully, malicious PRs can exploit this to steal secrets or manipulate the repo.
+  #
+  # Before merging any PR that changes this file, verify that the jobs don't contain
+  # any commands that could expose credentials or secrets.
+  #
+  # GitHub Documentation: <https://docs.github.com/en/actions/reference/workflows-and-actions/events-that-trigger-workflows#pull_request_target>
   pull_request_target:
     branches:
       - main
       - releases/**
-  merge_group:
-    types: [checks_requested]
 
 concurrency:
-  group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
+  group: ${{ github.workflow }}-${{ github.event.pull_request.number }}
   cancel-in-progress: true
 
 jobs:
@@ -21,7 +27,7 @@ jobs:
         uses: actions/checkout@v5
         with:
           path: boa
-          ref: ${{ github.event.pull_request.head.sha || github.ref }}
+          ref: ${{ github.event.pull_request.head.sha }}
 
       - name: Install Rust toolchain
         uses: dtolnay/rust-toolchain@stable
@@ -52,7 +58,6 @@ jobs:
 
       # Run the results comparison
       - name: Compare results
-        if: github.event_name == 'pull_request_target'
         id: compare
         shell: bash
         run: |
@@ -63,12 +68,10 @@ jobs:
           echo "EOF" >> $GITHUB_OUTPUT
 
       - name: Get the PR number
-        if: github.event_name == 'pull_request_target'
         id: pr-number
         uses: kkak10/pr-number-action@v1.3
 
       - name: Find Previous Comment
-        if: github.event_name == 'pull_request_target'
         uses: peter-evans/find-comment@v4
         id: previous-comment
         with:
@@ -76,7 +79,7 @@ jobs:
           body-includes: Test262 conformance changes
 
       - name: Update comment
-        if: github.event_name == 'pull_request_target' && steps.previous-comment.outputs.comment-id
+        if: steps.previous-comment.outputs.comment-id
         uses: peter-evans/create-or-update-comment@v5
         continue-on-error: true
         with:
@@ -88,7 +91,7 @@ jobs:
           edit-mode: replace
 
       - name: Write a new comment
-        if: github.event_name == 'pull_request_target' && !steps.previous-comment.outputs.comment-id
+        if: ! steps.previous-comment.outputs.comment-id
         uses: peter-evans/create-or-update-comment@v5
         continue-on-error: true
         with:
