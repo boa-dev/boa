@@ -5465,9 +5465,9 @@ dependencies = [
 
 [[package]]
 name = "xsum"
-version = "0.1.4"
+version = "0.1.5"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "d5fabb88ff489bf82568f8bec84ef6beca0b94762d0519521fafc739f0464193"
+checksum = "50bb108f04eb86f4390cb4d387bcac9c9db41100990ac0b3d527fb8c24a04daa"
 
 [[package]]
 name = "yoke"
