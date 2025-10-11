@@ -160,9 +160,9 @@ impl BuiltInObject for SharedArrayBuffer {
 }
 
 impl BuiltInConstructor for SharedArrayBuffer {
-    const LENGTH: usize = 1;
-    const P: usize = 6;
-    const SP: usize = 1;
+    const CONSTRUCTOR_ARGUMENTS: usize = 1;
+    const PROTOTYPE_STORAGE_SLOTS: usize = 9;
+    const CONSTRUCTOR_STORAGE_SLOTS: usize = 2;
 
     const STANDARD_CONSTRUCTOR: fn(&StandardConstructors) -> &StandardConstructor =
         StandardConstructors::shared_array_buffer;

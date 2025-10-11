@@ -182,9 +182,9 @@ impl BuiltInObject for Symbol {
 }
 
 impl BuiltInConstructor for Symbol {
-    const LENGTH: usize = 0;
-    const P: usize = 5;
-    const SP: usize = 15;
+    const CONSTRUCTOR_ARGUMENTS: usize = 0;
+    const PROTOTYPE_STORAGE_SLOTS: usize = 6;
+    const CONSTRUCTOR_STORAGE_SLOTS: usize = 15;
 
     const STANDARD_CONSTRUCTOR: fn(&StandardConstructors) -> &StandardConstructor =
         StandardConstructors::symbol;

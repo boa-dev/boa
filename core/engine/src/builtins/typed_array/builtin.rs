@@ -165,9 +165,9 @@ impl BuiltInObject for BuiltinTypedArray {
 }
 
 impl BuiltInConstructor for BuiltinTypedArray {
-    const LENGTH: usize = 0;
-    const P: usize = 37;
-    const SP: usize = 3;
+    const CONSTRUCTOR_ARGUMENTS: usize = 0;
+    const PROTOTYPE_STORAGE_SLOTS: usize = 42;
+    const CONSTRUCTOR_STORAGE_SLOTS: usize = 4;
 
     const STANDARD_CONSTRUCTOR: fn(&StandardConstructors) -> &StandardConstructor =
         StandardConstructors::typed_array;

@@ -54,9 +54,9 @@ impl BuiltInObject for WeakSet {
 
 impl BuiltInConstructor for WeakSet {
     /// The amount of arguments the `WeakSet` constructor takes.
-    const LENGTH: usize = 0;
-    const P: usize = 4;
-    const SP: usize = 0;
+    const CONSTRUCTOR_ARGUMENTS: usize = 0;
+    const PROTOTYPE_STORAGE_SLOTS: usize = 4;
+    const CONSTRUCTOR_STORAGE_SLOTS: usize = 0;
 
     const STANDARD_CONSTRUCTOR: fn(&StandardConstructors) -> &StandardConstructor =
         StandardConstructors::weak_set;

@@ -158,12 +158,22 @@ pub(crate) trait BuiltInObject: IntrinsicObject {
 ///
 /// [built-in object]: https://tc39.es/ecma262/#sec-built-in-object
 pub(crate) trait BuiltInConstructor: BuiltInObject {
-    /// Const Generic `P` is the minimum storage capacity for the prototype's Property table.
-    const P: usize;
-    /// Const Generic `SP` is the minimum storage capacity for the object's Static Property table.
-    const SP: usize;
+    /// The minimum storage capacity for the prototype's Property table.
+    ///
+    /// Note that a "storage slot" is any `JsValue` that needs to be stored
+    /// in the prototype object, so for accessors the storage count would need
+    /// to be increased by two, since accessors can have a getter and a setter
+    /// value.
+    const PROTOTYPE_STORAGE_SLOTS: usize;
+    /// The minimum storage capacity for the object's Static Property table.
+    ///
+    /// Note that a "storage slot" is any `JsValue` that needs to be stored
+    /// in the constructor object, so for accessors the storage count would need
+    /// to be increased by two, since accessors can have a getter and a setter
+    /// value.
+    const CONSTRUCTOR_STORAGE_SLOTS: usize;
     /// The amount of arguments this function object takes.
-    const LENGTH: usize;
+    const CONSTRUCTOR_ARGUMENTS: usize;
 
     /// The corresponding standard constructor of this constructor.
     const STANDARD_CONSTRUCTOR: fn(&StandardConstructors) -> &StandardConstructor;

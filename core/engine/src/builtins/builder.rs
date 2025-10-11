@@ -132,9 +132,6 @@ impl ApplyToObject for OrdinaryObject {
     fn apply_to(self, _: &JsObject) {}
 }
 
-// The number of properties that are always present in a standard constructor. See build method
-const OWN_PROPS: usize = 3;
-
 /// Builder for creating built-in objects, like `Array`.
 ///
 /// The marker `ObjectType` restricts the methods that can be called depending on the
@@ -167,13 +164,17 @@ pub(crate) struct BuiltInConstructorWithPrototype<'ctx> {
     name: JsString,
     length: usize,
 
-    object_property_table: PropertyTableInner,
-    object_storage: Vec<JsValue>,
-    object: JsObject,
+    constructor_property_table: PropertyTableInner,
+    constructor_storage: Vec<JsValue>,
+    constructor: JsObject,
+    #[cfg(debug_assertions)]
+    constructor_storage_slots_expected: usize,
 
     prototype_property_table: PropertyTableInner,
     prototype_storage: Vec<JsValue>,
     prototype: JsObject,
+    #[cfg(debug_assertions)]
+    prototype_storage_slots_expected: usize,
     __proto__: JsPrototype,
     inherits: Option<JsObject>,
     attributes: Attribute,
@@ -181,6 +182,17 @@ pub(crate) struct BuiltInConstructorWithPrototype<'ctx> {
 
 #[allow(dead_code)]
 impl BuiltInConstructorWithPrototype<'_> {
+    /// The number of static properties that are always present in a standard constructor.
+    ///
+    /// See [BuiltInConstructorWithPrototype::build].
+    const OWN_CONSTRUCTOR_STORAGE_SLOTS: usize = 3;
+
+    /// The number of prototype properties that are always present in a standard constructor.
+    ///
+    /// See [BuiltInConstructorWithPrototype::build].
+    const OWN_PROTOTYPE_STORAGE_SLOTS: usize = 1;
+
+    // The nub
     /// Specify how many arguments the constructor function takes.
     ///
     /// Default is `0`.
@@ -216,15 +228,15 @@ impl BuiltInConstructorWithPrototype<'_> {
 
         debug_assert!(
             !self
-                .object_property_table
+                .constructor_property_table
                 .map
                 .contains_key(&binding.binding)
         );
-        self.object_property_table.insert(
+        self.constructor_property_table.insert(
             binding.binding,
             SlotAttributes::WRITABLE | SlotAttributes::CONFIGURABLE,
         );
-        self.object_storage.push(function.into());
+        self.constructor_storage.push(function.into());
         self
     }
 
@@ -236,10 +248,10 @@ impl BuiltInConstructorWithPrototype<'_> {
     {
         let key = key.into();
 
-        debug_assert!(!self.object_property_table.map.contains_key(&key));
-        self.object_property_table
+        debug_assert!(!self.constructor_property_table.map.contains_key(&key));
+        self.constructor_property_table
             .insert(key, SlotAttributes::from_bits_truncate(attribute.bits()));
-        self.object_storage.push(value.into());
+        self.constructor_storage.push(value.into());
         self
     }
 
@@ -261,9 +273,9 @@ impl BuiltInConstructorWithPrototype<'_> {
 
         let key = key.into();
 
-        debug_assert!(!self.object_property_table.map.contains_key(&key));
-        self.object_property_table.insert(key, attributes);
-        self.object_storage.extend([
+        debug_assert!(!self.constructor_property_table.map.contains_key(&key));
+        self.constructor_property_table.insert(key, attributes);
+        self.constructor_storage.extend([
             get.map(JsValue::new).unwrap_or_default(),
             set.map(JsValue::new).unwrap_or_default(),
         ]);
@@ -365,6 +377,7 @@ impl BuiltInConstructorWithPrototype<'_> {
         self
     }
 
+    #[track_caller]
     pub(crate) fn build(mut self) {
         let length = self.length;
         let name = self.name.clone();
@@ -374,8 +387,31 @@ impl BuiltInConstructorWithPrototype<'_> {
         self = self.static_property(PROTOTYPE, prototype, Attribute::empty());
 
         let attributes = self.attributes;
-        let object = self.object.clone();
+        let object = self.constructor.clone();
         self = self.property(CONSTRUCTOR, object, attributes);
+
+        #[cfg(debug_assertions)]
+        {
+            assert!(
+                self.prototype_storage.len()
+                    <= self.prototype_storage_slots_expected + Self::OWN_PROTOTYPE_STORAGE_SLOTS,
+                "expected to allocate at most {} prototype storage slots, got {}. \
+                constant {}::PROTOTYPE_STORAGE_SLOTS may need to be adjusted",
+                self.prototype_storage_slots_expected,
+                self.prototype_storage.len() - Self::OWN_PROTOTYPE_STORAGE_SLOTS,
+                self.name.display_escaped(),
+            );
+            assert!(
+                self.constructor_storage.len()
+                    <= self.constructor_storage_slots_expected
+                        + Self::OWN_CONSTRUCTOR_STORAGE_SLOTS,
+                "expected to allocate at most {} constructor storage slots, got {}. \
+                constant {}::CONSTRUCTOR_STORAGE_SLOTS may need to be adjusted",
+                self.constructor_storage_slots_expected,
+                self.constructor_storage.len() - Self::OWN_CONSTRUCTOR_STORAGE_SLOTS,
+                self.name.display_escaped(),
+            );
+        }
 
         {
             let mut prototype = self.prototype.borrow_mut();
@@ -396,7 +432,7 @@ impl BuiltInConstructorWithPrototype<'_> {
 
         {
             let mut function = self
-                .object
+                .constructor
                 .downcast_mut::<NativeFunctionObject>()
                 .expect("Builtin must be a function object");
             function.f = NativeFunction::from_fn_ptr(self.function);
@@ -404,16 +440,18 @@ impl BuiltInConstructorWithPrototype<'_> {
             function.realm = Some(self.realm.clone());
         }
 
-        let mut object = self.object.borrow_mut();
+        let mut object = self.constructor.borrow_mut();
         object
             .properties_mut()
             .shape
             .as_unique()
             .expect("The object should have a unique shape")
-            .override_internal(self.object_property_table, self.__proto__);
+            .override_internal(self.constructor_property_table, self.__proto__);
 
-        let object_old_storage =
-            std::mem::replace(&mut object.properties_mut().storage, self.object_storage);
+        let object_old_storage = std::mem::replace(
+            &mut object.properties_mut().storage,
+            self.constructor_storage,
+        );
 
         debug_assert_eq!(object_old_storage.len(), 0);
     }
@@ -426,7 +464,7 @@ impl BuiltInConstructorWithPrototype<'_> {
 
         {
             let mut function = self
-                .object
+                .constructor
                 .downcast_mut::<NativeFunctionObject>()
                 .expect("Builtin must be a function object");
             function.f = NativeFunction::from_fn_ptr(self.function);
@@ -434,16 +472,18 @@ impl BuiltInConstructorWithPrototype<'_> {
             function.realm = Some(self.realm.clone());
         }
 
-        let mut object = self.object.borrow_mut();
+        let mut object = self.constructor.borrow_mut();
         object
             .properties_mut()
             .shape
             .as_unique()
             .expect("The object should have a unique shape")
-            .override_internal(self.object_property_table, self.__proto__);
+            .override_internal(self.constructor_property_table, self.__proto__);
 
-        let object_old_storage =
-            std::mem::replace(&mut object.properties_mut().storage, self.object_storage);
+        let object_old_storage = std::mem::replace(
+            &mut object.properties_mut().storage,
+            self.constructor_storage,
+        );
 
         debug_assert_eq!(object_old_storage.len(), 0);
     }
@@ -541,7 +581,10 @@ impl<'ctx> BuiltInBuilder<'ctx, OrdinaryObject> {
 }
 
 impl<'ctx> BuiltInBuilder<'ctx, Callable<Constructor>> {
-    /// Create a new builder for a constructor function setting the properties ahead of time for optimizations (less reallocations)
+    /// Create a new builder for a constructor function.
+    ///
+    /// This sets the properties ahead of time for optimizations
+    /// (less reallocations).
     pub(crate) fn from_standard_constructor<SC: BuiltInConstructor>(
         realm: &'ctx Realm,
     ) -> BuiltInConstructorWithPrototype<'ctx> {
@@ -550,13 +593,29 @@ impl<'ctx> BuiltInBuilder<'ctx, Callable<Constructor>> {
             realm,
             function: SC::constructor,
             name: js_string!(SC::NAME),
-            length: SC::LENGTH,
-            object_property_table: PropertyTableInner::with_capacity(SC::SP + OWN_PROPS),
-            object_storage: Vec::with_capacity(SC::SP + OWN_PROPS),
-            object: constructor.constructor(),
-            prototype_property_table: PropertyTableInner::with_capacity(SC::P),
-            prototype_storage: Vec::with_capacity(SC::P),
+            length: SC::CONSTRUCTOR_ARGUMENTS,
+            constructor_property_table: PropertyTableInner::with_capacity(
+                SC::CONSTRUCTOR_STORAGE_SLOTS
+                    + BuiltInConstructorWithPrototype::OWN_CONSTRUCTOR_STORAGE_SLOTS,
+            ),
+            constructor_storage: Vec::with_capacity(
+                SC::CONSTRUCTOR_STORAGE_SLOTS
+                    + BuiltInConstructorWithPrototype::OWN_CONSTRUCTOR_STORAGE_SLOTS,
+            ),
+            constructor: constructor.constructor(),
+            #[cfg(debug_assertions)]
+            constructor_storage_slots_expected: SC::CONSTRUCTOR_STORAGE_SLOTS,
+            prototype_property_table: PropertyTableInner::with_capacity(
+                SC::PROTOTYPE_STORAGE_SLOTS
+                    + BuiltInConstructorWithPrototype::OWN_PROTOTYPE_STORAGE_SLOTS,
+            ),
+            prototype_storage: Vec::with_capacity(
+                SC::PROTOTYPE_STORAGE_SLOTS
+                    + BuiltInConstructorWithPrototype::OWN_PROTOTYPE_STORAGE_SLOTS,
+            ),
             prototype: constructor.prototype(),
+            #[cfg(debug_assertions)]
+            prototype_storage_slots_expected: SC::PROTOTYPE_STORAGE_SLOTS,
             __proto__: Some(realm.intrinsics().constructors().function().prototype()),
             inherits: Some(realm.intrinsics().constructors().object().prototype()),
             attributes: Attribute::WRITABLE | Attribute::CONFIGURABLE | Attribute::NON_ENUMERABLE,

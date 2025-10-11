@@ -265,9 +265,9 @@ impl IntrinsicObject for PlainDate {
 }
 
 impl BuiltInConstructor for PlainDate {
-    const LENGTH: usize = 3;
-    const P: usize = 26;
-    const SP: usize = 2;
+    const CONSTRUCTOR_ARGUMENTS: usize = 3;
+    const PROTOTYPE_STORAGE_SLOTS: usize = 48;
+    const CONSTRUCTOR_STORAGE_SLOTS: usize = 2;
 
     const STANDARD_CONSTRUCTOR: fn(&StandardConstructors) -> &StandardConstructor =
         StandardConstructors::plain_date;

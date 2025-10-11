@@ -102,9 +102,9 @@ impl BuiltInObject for Proxy {
 }
 
 impl BuiltInConstructor for Proxy {
-    const LENGTH: usize = 2;
-    const P: usize = 0;
-    const SP: usize = 1;
+    const CONSTRUCTOR_ARGUMENTS: usize = 2;
+    const PROTOTYPE_STORAGE_SLOTS: usize = 0;
+    const CONSTRUCTOR_STORAGE_SLOTS: usize = 1;
 
     const STANDARD_CONSTRUCTOR: fn(&StandardConstructors) -> &StandardConstructor =
         StandardConstructors::proxy;

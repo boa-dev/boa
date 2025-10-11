@@ -125,9 +125,9 @@ impl IntrinsicObject for Instant {
 }
 
 impl BuiltInConstructor for Instant {
-    const LENGTH: usize = 1;
-    const P: usize = 13;
-    const SP: usize = 4;
+    const CONSTRUCTOR_ARGUMENTS: usize = 1;
+    const PROTOTYPE_STORAGE_SLOTS: usize = 16;
+    const CONSTRUCTOR_STORAGE_SLOTS: usize = 4;
 
     const STANDARD_CONSTRUCTOR: fn(&StandardConstructors) -> &StandardConstructor =
         StandardConstructors::instant;

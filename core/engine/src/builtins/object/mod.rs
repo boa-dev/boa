@@ -148,9 +148,9 @@ impl BuiltInObject for OrdinaryObject {
 }
 
 impl BuiltInConstructor for OrdinaryObject {
-    const LENGTH: usize = 1;
-    const P: usize = 11;
-    const SP: usize = 23;
+    const CONSTRUCTOR_ARGUMENTS: usize = 1;
+    const PROTOTYPE_STORAGE_SLOTS: usize = 12;
+    const CONSTRUCTOR_STORAGE_SLOTS: usize = 23;
 
     const STANDARD_CONSTRUCTOR: fn(&StandardConstructors) -> &StandardConstructor =
         StandardConstructors::object;

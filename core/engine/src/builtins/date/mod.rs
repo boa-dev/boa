@@ -186,9 +186,9 @@ impl BuiltInObject for Date {
 }
 
 impl BuiltInConstructor for Date {
-    const LENGTH: usize = 7;
-    const P: usize = 47;
-    const SP: usize = 3;
+    const CONSTRUCTOR_ARGUMENTS: usize = 7;
+    const PROTOTYPE_STORAGE_SLOTS: usize = 48;
+    const CONSTRUCTOR_STORAGE_SLOTS: usize = 3;
 
     const STANDARD_CONSTRUCTOR: fn(&StandardConstructors) -> &StandardConstructor =
         StandardConstructors::date;
