@@ -41,7 +41,7 @@ pub(crate) use if_abrupt_close_iterator;
 use super::OrdinaryObject;
 
 /// The built-in iterator prototypes.
-#[derive(Debug, Default, Trace, Finalize)]
+#[derive(Debug, Trace, Finalize)]
 pub struct IteratorPrototypes {
     /// The `IteratorPrototype` object.
     iterator: JsObject,
@@ -73,6 +73,24 @@ pub struct IteratorPrototypes {
     /// The `%SegmentIteratorPrototype%` prototype object.
     #[cfg(feature = "intl")]
     segment: JsObject,
+}
+
+impl Default for IteratorPrototypes {
+    fn default() -> Self {
+        Self {
+            iterator: JsObject::with_null_proto(),
+            async_iterator: JsObject::with_null_proto(),
+            async_from_sync_iterator: JsObject::with_null_proto(),
+            array: JsObject::with_null_proto(),
+            set: JsObject::with_null_proto(),
+            string: JsObject::with_null_proto(),
+            regexp_string: JsObject::with_null_proto(),
+            map: JsObject::with_null_proto(),
+            for_in: JsObject::with_null_proto(),
+            #[cfg(feature = "intl")]
+            segment: JsObject::with_null_proto(),
+        }
+    }
 }
 
 impl IteratorPrototypes {

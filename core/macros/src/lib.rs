@@ -619,7 +619,7 @@ pub fn derive_try_into_js(input: TokenStream) -> TokenStream {
     let expanded = quote! {
         impl ::boa_engine::value::TryIntoJs for #type_name {
             fn try_into_js(&self, context: &mut boa_engine::Context) -> boa_engine::JsResult<boa_engine::JsValue> {
-                let obj = boa_engine::JsObject::default();
+                let obj = boa_engine::JsObject::default(context.intrinsics());
                 #props
                 boa_engine::JsResult::Ok(obj.into())
             }
