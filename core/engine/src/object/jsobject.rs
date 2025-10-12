@@ -85,12 +85,6 @@ pub(crate) struct VTableObject<T: NativeObject + ?Sized> {
     object: GcRefCell<Object<T>>,
 }
 
-impl Default for JsObject {
-    fn default() -> Self {
-        Self::from_proto_and_data(None, OrdinaryObject)
-    }
-}
-
 impl JsObject {
     /// Converts the `JsObject` into a raw pointer to its inner `GcBox<ErasedVTableObject>`.
     #[cfg(not(feature = "jsvalue-enum"))]
@@ -109,6 +103,15 @@ impl JsObject {
         let inner = unsafe { Gc::from_raw(raw) };
 
         JsObject { inner }
+    }
+
+    /// Creates a new ordinary object with its prototype set to the `Object` prototype.
+    ///
+    /// This is an alias for [`Self::with_object_proto`].
+    #[inline]
+    #[must_use]
+    pub fn default(intrinsics: &Intrinsics) -> Self {
+        Self::with_object_proto(intrinsics)
     }
 
     /// Creates a new `JsObject` from its inner object and its vtable.
