@@ -184,12 +184,12 @@ pub(crate) struct BuiltInConstructorWithPrototype<'ctx> {
 impl BuiltInConstructorWithPrototype<'_> {
     /// The number of static properties that are always present in a standard constructor.
     ///
-    /// See [BuiltInConstructorWithPrototype::build].
+    /// See [`BuiltInConstructorWithPrototype::build`].
     const OWN_CONSTRUCTOR_STORAGE_SLOTS: usize = 3;
 
     /// The number of prototype properties that are always present in a standard constructor.
     ///
-    /// See [BuiltInConstructorWithPrototype::build].
+    /// See [`BuiltInConstructorWithPrototype::build`].
     const OWN_PROTOTYPE_STORAGE_SLOTS: usize = 1;
 
     // The nub
