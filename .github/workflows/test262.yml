@@ -91,7 +91,7 @@ jobs:
           edit-mode: replace
 
       - name: Write a new comment
-        if: ! steps.previous-comment.outputs.comment-id
+        if: ${{ !steps.previous-comment.outputs.comment-id }}
         uses: peter-evans/create-or-update-comment@v5
         continue-on-error: true
         with:
