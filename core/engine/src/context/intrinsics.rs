@@ -1138,16 +1138,16 @@ impl IntrinsicObjects {
     #[allow(clippy::unnecessary_wraps)]
     pub(crate) fn uninit() -> Option<Self> {
         Some(Self {
-            reflect: JsObject::default(),
-            math: JsObject::default(),
-            json: JsObject::default(),
+            reflect: JsObject::with_null_proto(),
+            math: JsObject::with_null_proto(),
+            json: JsObject::with_null_proto(),
             throw_type_error: JsFunction::empty_intrinsic_function(false),
             array_prototype_values: JsFunction::empty_intrinsic_function(false),
             array_prototype_to_string: JsFunction::empty_intrinsic_function(false),
             iterator_prototypes: IteratorPrototypes::default(),
-            generator: JsObject::default(),
-            async_generator: JsObject::default(),
-            atomics: JsObject::default(),
+            generator: JsObject::with_null_proto(),
+            async_generator: JsObject::with_null_proto(),
+            atomics: JsObject::with_null_proto(),
             eval: JsFunction::empty_intrinsic_function(false),
             uri_functions: UriFunctions::default(),
             is_finite: JsFunction::empty_intrinsic_function(false),
@@ -1161,11 +1161,11 @@ impl IntrinsicObjects {
             #[cfg(feature = "intl")]
             intl: JsObject::new_unique(None, Intl::new()?),
             #[cfg(feature = "intl")]
-            segments_prototype: JsObject::default(),
+            segments_prototype: JsObject::with_null_proto(),
             #[cfg(feature = "temporal")]
-            temporal: JsObject::default(),
+            temporal: JsObject::with_null_proto(),
             #[cfg(feature = "temporal")]
-            now: JsObject::default(),
+            now: JsObject::with_null_proto(),
         })
     }
 
