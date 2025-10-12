@@ -40,23 +40,6 @@ pub(crate) use if_abrupt_close_iterator;
 
 use super::OrdinaryObject;
 
-impl Default for IteratorPrototypes {
-    fn default() -> Self {
-        Self {
-            iterator: JsObject::from_proto_and_data(None, OrdinaryObject),
-            async_iterator: JsObject::from_proto_and_data(None, OrdinaryObject),
-            async_from_sync_iterator: JsObject::from_proto_and_data(None, OrdinaryObject),
-            array: JsObject::from_proto_and_data(None, OrdinaryObject),
-            set: JsObject::from_proto_and_data(None, OrdinaryObject),
-            string: JsObject::from_proto_and_data(None, OrdinaryObject),
-            regexp_string: JsObject::from_proto_and_data(None, OrdinaryObject),
-            map: JsObject::from_proto_and_data(None, OrdinaryObject),
-            for_in: JsObject::from_proto_and_data(None, OrdinaryObject),
-            segment: JsObject::from_proto_and_data(None, OrdinaryObject),
-        }
-    }
-}
-
 /// The built-in iterator prototypes.
 #[derive(Debug, Trace, Finalize)]
 pub struct IteratorPrototypes {
@@ -90,6 +73,24 @@ pub struct IteratorPrototypes {
     /// The `%SegmentIteratorPrototype%` prototype object.
     #[cfg(feature = "intl")]
     segment: JsObject,
+}
+
+impl Default for IteratorPrototypes {
+    fn default() -> Self {
+        Self {
+            iterator: JsObject::with_null_proto(),
+            async_iterator: JsObject::with_null_proto(),
+            async_from_sync_iterator: JsObject::with_null_proto(),
+            array: JsObject::with_null_proto(),
+            set: JsObject::with_null_proto(),
+            string: JsObject::with_null_proto(),
+            regexp_string: JsObject::with_null_proto(),
+            map: JsObject::with_null_proto(),
+            for_in: JsObject::with_null_proto(),
+            #[cfg(feature = "intl")]
+            segment: JsObject::with_null_proto(),
+        }
+    }
 }
 
 impl IteratorPrototypes {
