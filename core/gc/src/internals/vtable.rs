@@ -1,6 +1,6 @@
+use crate::{GcBox, GcErasedPointer, Trace, Tracer};
+use boa_mempool::MemPoolAllocator;
 use std::any::TypeId;
-
-use crate::{GcBox, GcErasedPointer, MEM_POOL, Trace, Tracer};
 
 // Workaround: https://users.rust-lang.org/t/custom-vtables-with-integers/78508
 pub(crate) const fn vtable_of<T: Trace + 'static>() -> &'static VTable {
@@ -35,17 +35,14 @@ pub(crate) const fn vtable_of<T: Trace + 'static>() -> &'static VTable {
         }
 
         // SAFETY: The caller must ensure that the passed erased pointer is `GcBox<Self>`.
-        unsafe fn drop_fn(this: GcErasedPointer) {
+        unsafe fn drop_fn(this: GcErasedPointer, pool: &MemPoolAllocator<[u8; 128]>) {
             // SAFETY: The caller must ensure that the passed erased pointer is `GcBox<Self>`.
             let this = this.cast::<GcBox<Self>>();
 
-            // SAFETY: The caller must ensure the erased pointer is not droped or deallocated.
-            // let _value = unsafe { Box::from_raw(this.as_ptr()) };
-            let _ = MEM_POOL.try_with(|pool| {
-                if !pool.borrow_mut().dealloc(this.cast()) {
-                    drop(unsafe { Box::from_raw(this.as_ptr()) });
-                }
-            });
+            if !pool.dealloc(this.cast()) {
+                // SAFETY: The caller must ensure the erased pointer is not dropped or deallocated.
+                drop(unsafe { Box::from_raw(this.as_ptr()) });
+            }
         }
 
         fn type_id_fn() -> TypeId {
@@ -72,7 +69,7 @@ pub(crate) const fn vtable_of<T: Trace + 'static>() -> &'static VTable {
 pub(crate) type TraceFn = unsafe fn(this: GcErasedPointer, tracer: &mut Tracer);
 pub(crate) type TraceNonRootsFn = unsafe fn(this: GcErasedPointer);
 pub(crate) type RunFinalizerFn = unsafe fn(this: GcErasedPointer);
-pub(crate) type DropFn = unsafe fn(this: GcErasedPointer);
+pub(crate) type DropFn = unsafe fn(this: GcErasedPointer, pool: &MemPoolAllocator<[u8; 128]>);
 pub(crate) type TypeIdFn = fn() -> TypeId;
 
 #[derive(Debug)]
