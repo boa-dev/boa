@@ -39,9 +39,15 @@ jobs:
       - name: Install Rust toolchain
         uses: dtolnay/rust-toolchain@stable
 
-      - uses: Swatinem/rust-cache@v2
+      - name: Cache cargo
+        uses: actions/cache@v4
         with:
-          key: tarpaulin
+          path: |
+            target
+            ~/.cargo/git
+            ~/.cargo/registry
+          key: ${{ runner.os }}-${{ runner.arch }}-cargo-${{ hashFiles('**/Cargo.lock') }}
+
       - name: Install cargo-tarpaulin
         uses: baptiste0928/cargo-install@v3.3.2
         with:
@@ -66,11 +72,11 @@ jobs:
       CARGO_TARGET_AARCH64_UNKNOWN_LINUX_GNU: ${{ (github.ref == 'refs/heads/main' || github.base_ref == 'main') && '-D warnings' || '' }}
     strategy:
       matrix:
-        os:
-          - macos-13
-          - macos-14
-          - windows-latest
-          - ubuntu-24.04-arm
+        include:
+          - os: macos-14
+          - os: windows-latest
+          - os: ubuntu-24.04-arm
+          - os: ubuntu-latest
     steps:
       - name: Checkout repository
         uses: actions/checkout@v5
@@ -80,7 +86,15 @@ jobs:
         with:
           toolchain: stable
 
-      - uses: Swatinem/rust-cache@v2
+      - name: Cache cargo
+        uses: actions/cache@v4
+        with:
+          path: |
+            target
+            ~/.cargo/git
+            ~/.cargo/registry
+          key: ${{ matrix.os }}-${{ runner.arch }}-cargo-${{ hashFiles('**/Cargo.lock') }}
+
       - name: Build tests
         run: cargo test --no-run --profile ci
       # this order is faster according to rust-analyzer
@@ -157,9 +171,14 @@ jobs:
           toolchain: stable
           components: clippy
 
-      - uses: Swatinem/rust-cache@v2
+      - name: Cache cargo
+        uses: actions/cache@v4
         with:
-          key: clippy
+          path: |
+            target
+            ~/.cargo/git
+            ~/.cargo/registry
+          key: ${{ runner.os }}-${{ runner.arch }}-cargo-${{ hashFiles('**/Cargo.lock') }}
 
       - name: Install cargo-workspaces
         run: cargo install cargo-workspaces
@@ -194,9 +213,15 @@ jobs:
         with:
           toolchain: stable
 
-      - uses: Swatinem/rust-cache@v2
+      - name: Cache cargo
+        uses: actions/cache@v4
         with:
-          key: docs
+          path: |
+            target
+            ~/.cargo/git
+            ~/.cargo/registry
+          key: ${{ runner.os }}-${{ runner.arch }}-cargo-${{ hashFiles('**/Cargo.lock') }}
+
       - name: Generate documentation
         run: cargo doc -v --document-private-items --all-features
 
@@ -217,9 +242,14 @@ jobs:
         with:
           toolchain: stable
 
-      - uses: Swatinem/rust-cache@v2
+      - name: Cache cargo
+        uses: actions/cache@v4
         with:
-          key: build-fuzz
+          path: |
+            target
+            ~/.cargo/git
+            ~/.cargo/registry
+          key: ${{ runner.os }}-${{ runner.arch }}-cargo-${{ hashFiles('**/Cargo.lock') }}
 
       - name: Install cargo-fuzz
         run: cargo install cargo-fuzz
@@ -244,9 +274,14 @@ jobs:
         with:
           toolchain: stable
 
-      - uses: Swatinem/rust-cache@v2
+      - name: Cache cargo
+        uses: actions/cache@v4
         with:
-          key: build-run-examples
+          path: |
+            target
+            ~/.cargo/git
+            ~/.cargo/registry
+          key: ${{ runner.os }}-${{ runner.arch }}-cargo-${{ hashFiles('**/Cargo.lock') }}
 
       - name: Install cargo-workspaces
         run: cargo install cargo-workspaces
