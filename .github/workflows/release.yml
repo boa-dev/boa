@@ -87,17 +87,14 @@ jobs:
         - build: linux
           os: ubuntu-latest
           target: x86_64-unknown-linux-gnu
-          arch: X64
           binary_extension: ""
         - build: macos-arm64
           os: macos-14
           target: aarch64-apple-darwin
-          arch : ARM64
           binary_extension: ""
         - build: win-msvc
           os: windows-latest
           target: x86_64-pc-windows-msvc
-          arch : X64
           binary_extension: ".exe"
     runs-on: ${{ matrix.os }}
     steps:
@@ -117,7 +114,7 @@ jobs:
             target
             ~/.cargo/git
             ~/.cargo/registry
-          key: ${{ matrix.os }}-${{ matrix.arch }}-cargo-${{ hashFiles('**/Cargo.lock') }}
+          key: ${{ matrix.os }}-${{ runner.arch }}-cargo-${{ hashFiles('**/Cargo.lock') }}
 
       - name: Build
         run: cargo build --target ${{ matrix.target }} --verbose --release --locked --bin boa

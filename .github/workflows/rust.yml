@@ -74,13 +74,9 @@ jobs:
       matrix:
         include:
           - os: macos-14
-            arch: ARM64
           - os: windows-latest
-            arch: x64
           - os: ubuntu-24.04-arm
-            arch: ARM64
           - os: ubuntu-latest
-            arch: X64
     steps:
       - name: Checkout repository
         uses: actions/checkout@v5
@@ -97,7 +93,7 @@ jobs:
             target
             ~/.cargo/git
             ~/.cargo/registry
-          key: ${{ matrix.os }}-${{ matrix.arch }}-cargo-${{ hashFiles('**/Cargo.lock') }}
+          key: ${{ matrix.os }}-${{ runner.arch }}-cargo-${{ hashFiles('**/Cargo.lock') }}
 
       - name: Build tests
         run: cargo test --no-run --profile ci
