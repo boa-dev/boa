@@ -68,7 +68,7 @@ num-traits = "0.2.19"
 once_cell = { version = "1.21.3", default-features = false }
 phf = { version = "0.13.1", default-features = false }
 pollster = "0.4.0"
-regex = "1.11.3"
+regex = "1.12.1"
 regress = { version = "0.10.4", features = ["utf16"] }
 reqwest = { version = "0.12.20" }
 rustc-hash = { version = "2.1.1", default-features = false }
@@ -90,7 +90,7 @@ simple_logger = "5.0.0"
 cargo_metadata = "0.19.2"
 trybuild = "1.0.111"
 rayon = "1.10.0"
-toml = "0.9.7"
+toml = "0.9.8"
 color-eyre = "0.6.3"
 comfy-table = "7.2.1"
 serde_repr = "0.1.20"
