@@ -14,6 +14,8 @@ use std::{
     sync::atomic,
 };
 
+use imbl::Vector;
+
 use crate::GcErasedPointer;
 
 /// A queue used to trace [`crate::Gc<T>`] non-recursively.
@@ -345,6 +347,16 @@ unsafe impl<T: Trace> Trace for Box<[T]> {
 impl<T: Trace> Finalize for Vec<T> {}
 // SAFETY: All the inner elements of the `Vec` are correctly marked.
 unsafe impl<T: Trace> Trace for Vec<T> {
+    custom_trace!(this, mark, {
+        for e in this {
+            mark(e);
+        }
+    });
+}
+
+impl<T: Trace> Finalize for Vector<T> {}
+// SAFETY: All the inner elements of the `Vector` are correctly marked.
+unsafe impl<T: Trace> Trace for Vector<T> {
     custom_trace!(this, mark, {
         for e in this {
             mark(e);

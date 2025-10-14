@@ -362,9 +362,13 @@ pub(crate) fn native_function_call(
     context.vm.native_active_function = Some(this_function_object);
 
     let result = if constructor.is_some() {
-        function.call(&JsValue::undefined(), &args, context)
+        function.call(
+            &JsValue::undefined(),
+            &args.into_iter().collect::<Vec<_>>(),
+            context,
+        )
     } else {
-        function.call(&this, &args, context)
+        function.call(&this, &args.into_iter().collect::<Vec<_>>(), context)
     }
     .map_err(|err| err.inject_realm(context.realm().clone()));
 
@@ -425,7 +429,7 @@ fn native_function_construct(
     let _this = context.vm.stack.pop();
 
     let result = function
-        .call(&new_target, &args, context)
+        .call(&new_target, &args.into_iter().collect::<Vec<_>>(), context)
         .map_err(|err| err.inject_realm(context.realm().clone()))
         .and_then(|v| match v.variant() {
             JsVariant::Object(o) => Ok(o.clone()),

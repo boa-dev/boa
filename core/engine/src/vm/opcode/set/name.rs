@@ -85,7 +85,7 @@ impl SetNameByLocator {
         let strict = frame.code_block.strict();
         let binding_locator = frame
             .binding_stack
-            .pop()
+            .pop_back()
             .expect("locator should have been popped before");
         let value = context.vm.get_register(value.into()).clone();
 

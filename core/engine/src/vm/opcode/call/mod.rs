@@ -53,7 +53,7 @@ impl CallEval {
                 .calling_convention_pop_arguments(argument_count.into());
             let _func = context.vm.stack.pop();
             let _this = context.vm.stack.pop();
-            if let Some(x) = arguments.first() {
+            if let Some(x) = arguments.front() {
                 // i. Let argList be ? ArgumentListEvaluation of arguments.
                 // ii. If argList has no elements, return undefined.
                 // iii. Let evalArg be the first element of argList.

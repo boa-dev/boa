@@ -2,7 +2,7 @@ use std::fmt::{Display, Write};
 
 use boa_gc::{Finalize, Trace};
 use boa_string::JsString;
-use thin_vec::ThinVec;
+use imbl::Vector;
 
 use super::source_info::{NativeSourceInfo, SourceInfo};
 
@@ -10,7 +10,7 @@ use super::source_info::{NativeSourceInfo, SourceInfo};
 pub(crate) struct Backtrace {
     // SAFETY: Nothing in `ShadowEntry` requires trace, so this is safe.
     #[unsafe_ignore_trace]
-    stack: ThinVec<ShadowEntry>,
+    stack: Vector<ShadowEntry>,
 }
 
 impl Backtrace {
@@ -75,7 +75,7 @@ impl Display for ShadowEntry {
 
 #[derive(Debug, Default, Clone)]
 pub(crate) struct ShadowStack {
-    stack: ThinVec<ShadowEntry>,
+    stack: Vector<ShadowEntry>,
 }
 
 impl ShadowStack {
@@ -88,12 +88,12 @@ impl ShadowStack {
         // NOTE: pc points to the next opcode, so we offset by -1 to put it within range.
         let last_pc = last_pc.saturating_sub(1);
 
-        match self.stack.last_mut() {
+        match self.stack.back_mut() {
             Some(ShadowEntry::Bytecode { pc, .. }) => *pc = last_pc,
             Some(ShadowEntry::Native { source_info, .. }) => *source_info = native_source_info,
             _ => {}
         }
-        self.stack.push(ShadowEntry::Native {
+        self.stack.push_back(ShadowEntry::Native {
             function_name: Some(function_name),
             source_info: native_source_info,
         });
@@ -103,28 +103,24 @@ impl ShadowStack {
         // NOTE: pc points to the next opcode, so we offset by -1 to put it within range.
         let last_pc = last_pc.saturating_sub(1);
 
-        if let Some(ShadowEntry::Bytecode { pc, .. }) = self.stack.last_mut() {
+        if let Some(ShadowEntry::Bytecode { pc, .. }) = self.stack.back_mut() {
             *pc = last_pc;
         }
         self.stack
-            .push(ShadowEntry::Bytecode { pc: 0, source_info });
+            .push_back(ShadowEntry::Bytecode { pc: 0, source_info });
     }
 
     pub(crate) fn pop(&mut self) -> Option<ShadowEntry> {
-        self.stack.pop()
+        self.stack.pop_back()
     }
 
     pub(crate) fn take(&self, n: usize, last_pc: u32) -> Backtrace {
         let mut stack = self
             .stack
-            .iter()
-            .rev()
-            .take(n)
-            .rev()
-            .cloned()
-            .collect::<ThinVec<_>>();
+            .clone()
+            .split_off(self.stack.len().saturating_sub(n));
 
-        if let Some(ShadowEntry::Bytecode { pc, .. }) = stack.last_mut() {
+        if let Some(ShadowEntry::Bytecode { pc, .. }) = stack.back_mut() {
             // NOTE: pc points to the next opcode, so we offset by -1 to put it within range.
             *pc = last_pc.saturating_sub(1);
         }
@@ -139,7 +135,7 @@ impl ShadowStack {
 
     #[cfg(feature = "native-backtrace")]
     pub(crate) fn patch_last_native(&mut self, new_source_info: NativeSourceInfo) {
-        let Some(ShadowEntry::Native { source_info, .. }) = self.stack.last_mut() else {
+        let Some(ShadowEntry::Native { source_info, .. }) = self.stack.back_mut() else {
             return;
         };
         *source_info = new_source_info;

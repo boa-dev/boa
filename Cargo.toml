@@ -138,6 +138,7 @@ futures-concurrency = "7.6.3"
 dynify = "0.1.2"
 futures-channel = "0.3.31"
 aligned-vec = "0.6.4"
+imbl = { version = "6.1.0" }
 
 # ICU4X
 
@@ -254,3 +255,7 @@ style = { level = "warn", priority = -1 }
 complexity = { level = "warn", priority = -1 }
 perf = { level = "warn", priority = -1 }
 pedantic = { level = "warn", priority = -1 }
+
+[profile.samply]
+inherits = "release"
+debug = true
