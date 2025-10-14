@@ -182,17 +182,18 @@ pub(crate) struct BuiltInConstructorWithPrototype<'ctx> {
 
 #[allow(dead_code)]
 impl BuiltInConstructorWithPrototype<'_> {
-    /// The number of static properties that are always present in a standard constructor.
+    /// The number of storage slots that are always present in a standard
+    /// constructor object.
     ///
     /// See [`BuiltInConstructorWithPrototype::build`].
     const OWN_CONSTRUCTOR_STORAGE_SLOTS: usize = 3;
 
-    /// The number of prototype properties that are always present in a standard constructor.
+    /// The number of storage slots properties that are always present in a
+    /// standard constructor's prototype object.
     ///
     /// See [`BuiltInConstructorWithPrototype::build`].
     const OWN_PROTOTYPE_STORAGE_SLOTS: usize = 1;
 
-    // The nub
     /// Specify how many arguments the constructor function takes.
     ///
     /// Default is `0`.
