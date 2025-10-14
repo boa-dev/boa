@@ -208,9 +208,9 @@ impl IntrinsicObject for Duration {
 }
 
 impl BuiltInConstructor for Duration {
-    const LENGTH: usize = 0;
-    const P: usize = 22;
-    const SP: usize = 1;
+    const CONSTRUCTOR_ARGUMENTS: usize = 0;
+    const PROTOTYPE_STORAGE_SLOTS: usize = 36;
+    const CONSTRUCTOR_STORAGE_SLOTS: usize = 2;
 
     const STANDARD_CONSTRUCTOR: fn(&StandardConstructors) -> &StandardConstructor =
         StandardConstructors::duration;

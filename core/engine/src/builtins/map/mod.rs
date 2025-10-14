@@ -111,9 +111,9 @@ impl BuiltInObject for Map {
 }
 
 impl BuiltInConstructor for Map {
-    const LENGTH: usize = 0;
-    const P: usize = 11;
-    const SP: usize = 2;
+    const CONSTRUCTOR_ARGUMENTS: usize = 0;
+    const PROTOTYPE_STORAGE_SLOTS: usize = 15;
+    const CONSTRUCTOR_STORAGE_SLOTS: usize = 3;
 
     const STANDARD_CONSTRUCTOR: fn(&StandardConstructors) -> &StandardConstructor =
         StandardConstructors::map;

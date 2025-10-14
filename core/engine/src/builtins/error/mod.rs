@@ -191,9 +191,9 @@ impl BuiltInObject for Error {
 }
 
 impl BuiltInConstructor for Error {
-    const LENGTH: usize = 1;
-    const P: usize = 2;
-    const SP: usize = 0;
+    const CONSTRUCTOR_ARGUMENTS: usize = 1;
+    const PROTOTYPE_STORAGE_SLOTS: usize = 3;
+    const CONSTRUCTOR_STORAGE_SLOTS: usize = 1;
 
     const STANDARD_CONSTRUCTOR: fn(&StandardConstructors) -> &StandardConstructor =
         StandardConstructors::error;

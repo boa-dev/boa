@@ -110,9 +110,9 @@ impl IntrinsicObject for PlainMonthDay {
 }
 
 impl BuiltInConstructor for PlainMonthDay {
-    const LENGTH: usize = 2;
-    const P: usize = 5;
-    const SP: usize = 1;
+    const CONSTRUCTOR_ARGUMENTS: usize = 2;
+    const PROTOTYPE_STORAGE_SLOTS: usize = 14;
+    const CONSTRUCTOR_STORAGE_SLOTS: usize = 1;
 
     const STANDARD_CONSTRUCTOR: fn(&StandardConstructors) -> &StandardConstructor =
         StandardConstructors::plain_month_day;
