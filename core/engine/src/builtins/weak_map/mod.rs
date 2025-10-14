@@ -294,9 +294,8 @@ impl WeakMap {
         // 1. Let M be the this value.
         // 2. Perform ? RequireInternalSlot(M, [[WeakMapData]]).
         let object = this.as_object();
-        let mut map = object
-            .as_ref()
-            .and_then(JsObject::downcast_mut::<NativeWeakMap>)
+        let map = object
+            .and_then(|obj| obj.clone().downcast::<NativeWeakMap>().ok())
             .ok_or_else(|| {
                 JsNativeError::typ()
                     .with_message("WeakMap.getOrInsert: called with non-object value")
@@ -317,14 +316,16 @@ impl WeakMap {
         };
 
         // 4. For each Record { [[Key]], [[Value]] } p of M.[[WeakMapData]]
-        if let Some(existing) = map.get(key.inner()) {
+        if let Some(existing) = map.borrow().data().get(key.inner()) {
             // a. If p.[[Key]] is not empty and SameValue(p.[[Key]], key) is true, return p.[[Value]].
             return Ok(existing);
         }
 
         // 5-6. Insert the new record with provided value and return it.
         let value = args.get_or_undefined(1).clone();
-        map.insert(key.inner(), value.clone());
+        map.borrow_mut()
+            .data_mut()
+            .insert(key.inner(), value.clone());
         Ok(value)
     }
 
@@ -348,8 +349,7 @@ impl WeakMap {
         // 2. Perform ? RequireInternalSlot(M, [[WeakMapData]]).
         let object = this.as_object();
         let map = object
-            .as_ref()
-            .and_then(JsObject::downcast_ref::<NativeWeakMap>)
+            .and_then(|obj| obj.clone().downcast::<NativeWeakMap>().ok())
             .ok_or_else(|| {
                 JsNativeError::typ()
                     .with_message("WeakMap.getOrInsertComputed: called with non-object value")
@@ -377,11 +377,10 @@ impl WeakMap {
         };
 
         // 5. For each Record { [[Key]], [[Value]] } p of M.[[WeakMapData]]
-        if let Some(existing) = map.get(key_obj.inner()) {
+        if let Some(existing) = map.borrow().data().get(key_obj.inner()) {
             // a. If p.[[Key]] is not empty and SameValue(p.[[Key]], key) is true, return p.[[Value]].
             return Ok(existing);
         }
-        drop(map);
 
         // 6. Let value be ? Call(callback, undefined, « key »).
         // 7. NOTE: The WeakMap may have been modified during execution of callback.
@@ -391,16 +390,10 @@ impl WeakMap {
             context,
         )?;
 
-        let mut map = object
-            .as_ref()
-            .and_then(JsObject::downcast_mut::<NativeWeakMap>)
-            .ok_or_else(|| {
-                JsNativeError::typ()
-                    .with_message("WeakMap.getOrInsertComputed: called with non-object value")
-            })?;
-
         // 8-10. Insert or update the entry and return value.
-        map.insert(key_obj.inner(), value.clone());
+        map.borrow_mut()
+            .data_mut()
+            .insert(key_obj.inner(), value.clone());
         Ok(value)
     }
 }
