@@ -23,31 +23,36 @@ mod trace;
 
 pub(crate) mod internals;
 
+pub use crate::trace::{Finalize, Trace, Tracer};
+pub use boa_macros::{Finalize, Trace};
+use boa_mempool::MemPoolAllocator;
+pub use cell::{GcRef, GcRefCell, GcRefMut};
+pub use internals::GcBox;
 use internals::{EphemeronBox, ErasedEphemeronBox, ErasedWeakMapBox, WeakMapBox};
+pub use pointers::{Ephemeron, Gc, GcErased, WeakGc, WeakMap};
 use pointers::{NonTraceable, RawWeakMap};
+use std::collections::BTreeMap;
 use std::{
     cell::{Cell, RefCell},
     mem,
     ptr::NonNull,
 };
 
-pub use crate::trace::{Finalize, Trace, Tracer};
-pub use boa_macros::{Finalize, Trace};
-pub use cell::{GcRef, GcRefCell, GcRefMut};
-pub use internals::GcBox;
-pub use pointers::{Ephemeron, Gc, GcErased, WeakGc, WeakMap};
+const MEM_POOL_ELEMENT_SIZE_THRESHOLD: usize = 256;
 
 type GcErasedPointer = NonNull<GcBox<NonTraceable>>;
 type EphemeronPointer = NonNull<dyn ErasedEphemeronBox>;
 type ErasedWeakMapBoxPointer = NonNull<dyn ErasedWeakMapBox>;
 
 thread_local!(static GC_DROPPING: Cell<bool> = const { Cell::new(false) });
-thread_local!(static BOA_GC: RefCell<BoaGc> = RefCell::new( BoaGc {
+thread_local!(static BOA_GC: RefCell<BoaGc> = RefCell::new(BoaGc {
     config: GcConfig::default(),
     runtime: GcRuntimeData::default(),
     strongs: Vec::default(),
     weaks: Vec::default(),
     weak_maps: Vec::default(),
+    pool: MemPoolAllocator::with_capacity(102_400),
+    stats: Default::default(),
 }));
 
 #[derive(Debug, Clone, Copy)]
@@ -84,6 +89,8 @@ struct BoaGc {
     strongs: Vec<GcErasedPointer>,
     weaks: Vec<EphemeronPointer>,
     weak_maps: Vec<ErasedWeakMapBoxPointer>,
+    pool: MemPoolAllocator<[u8; MEM_POOL_ELEMENT_SIZE_THRESHOLD]>,
+    stats: BTreeMap<usize, usize>,
 }
 
 impl Drop for BoaGc {
@@ -134,8 +141,21 @@ impl Allocator {
             let mut gc = st.borrow_mut();
 
             Self::manage_state(&mut gc);
-            // Safety: value cannot be a null pointer, since `Box` cannot return null pointers.
-            let ptr = unsafe { NonNull::new_unchecked(Box::into_raw(Box::new(value))) };
+            // Safety: value cannot be a null pointer, since `MemPool` cannot return null pointers.
+            let ptr = unsafe {
+                gc.stats
+                    .entry(element_size)
+                    .and_modify(|v| *v += 1)
+                    .or_insert(1);
+
+                if size_of::<GcBox<T>>() <= MEM_POOL_ELEMENT_SIZE_THRESHOLD {
+                    let ptr = gc.pool.alloc_unitialized().cast();
+                    ptr.write(value);
+                    ptr
+                } else {
+                    NonNull::new_unchecked(Box::into_raw(Box::new(value)))
+                }
+            };
             let erased: NonNull<GcBox<NonTraceable>> = ptr.cast();
 
             gc.strongs.push(erased);
@@ -250,6 +270,7 @@ impl Collector {
                 &mut gc.strongs,
                 &mut gc.weaks,
                 &mut gc.runtime.bytes_allocated,
+                &gc.pool,
             );
         }
 
@@ -266,7 +287,11 @@ impl Collector {
                 // SAFETY:
                 // The `Allocator` must always ensure its start node is a valid, non-null pointer that
                 // was allocated by `Box::from_raw(Box::new(..))`.
-                let _unmarked_node = unsafe { Box::from_raw(w.as_ptr()) };
+                unsafe {
+                    if !gc.pool.dealloc(NonNull::new_unchecked(w.as_ptr().cast())) {
+                        drop(Box::from_raw(w.as_ptr()));
+                    }
+                }
 
                 false
             }
@@ -447,6 +472,7 @@ impl Collector {
         strong: &mut Vec<GcErasedPointer>,
         weak: &mut Vec<EphemeronPointer>,
         total_allocated: &mut usize,
+        pool: &MemPoolAllocator<[u8; MEM_POOL_ELEMENT_SIZE_THRESHOLD]>,
     ) {
         let _guard = DropGuard::new();
 
@@ -467,7 +493,7 @@ impl Collector {
 
                 // SAFETY: The function pointer is appropriate for this node type because we extract it from it's VTable.
                 unsafe {
-                    drop_fn(*node);
+                    drop_fn(*node, pool);
                 }
 
                 false
@@ -497,6 +523,10 @@ impl Collector {
 
     // Clean up the heap when BoaGc is dropped
     fn dump(gc: &mut BoaGc) {
+        eprintln!("GC Stats:");
+        eprintln!("{:#?}", gc.stats);
+        eprintln!("------------------------------------------------------------\n");
+
         // Weak maps have to be dropped first, since the process dereferences GcBoxes.
         // This can be done without initializing a dropguard since no GcBox's are being dropped.
         for node in mem::take(&mut gc.weak_maps) {
@@ -517,7 +547,7 @@ impl Collector {
 
             // SAFETY: The function pointer is appropriate for this node type because we extract it from it's VTable.
             unsafe {
-                drop_fn(node);
+                drop_fn(node, &gc.pool);
             }
         }
 

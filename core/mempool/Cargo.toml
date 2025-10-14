@@ -1,0 +1,21 @@
+[package]
+name = "boa_mempool"
+description = "Pool Allocator for the Boa JavaScript engine."
+keywords = ["javascript", "js", "alloc", "memory"]
+categories = ["memory-management"]
+version.workspace = true
+edition.workspace = true
+authors.workspace = true
+license.workspace = true
+repository.workspace = true
+rust-version.workspace = true
+
+[features]
+
+[dependencies]
+
+[lints]
+workspace = true
+
+[package.metadata.docs.rs]
+all-features = true
