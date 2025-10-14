@@ -803,7 +803,7 @@ impl String {
             Ok(js_string!().into())
         } else {
             // 13. Return the substring of S from from to to.
-            Ok(js_string!(string.get_expect(from..to)).into())
+            Ok(unsafe { JsString::slice_unchecked(string.clone(), from, to).into() })
         }
     }
 
@@ -1906,7 +1906,8 @@ impl String {
         let to = max(final_start, final_end);
 
         // 10. Return the substring of S from from to to.
-        Ok(js_string!(string.get_expect(from..to)).into())
+        // Ok(js_string!(string.get_expect(from..to)).into())
+        Ok(unsafe { JsString::slice_unchecked(string.clone(), from, to).into() })
     }
 
     /// `String.prototype.split ( separator, limit )`
@@ -2002,7 +2003,9 @@ impl String {
         while let Some(index) = j {
             // a. Let T be the substring of S from i to j.
             // b. Append T as the last element of substrings.
-            substrings.push(this_str.get_expect(i..index).into());
+            // SAFETY: we already checked that i and index are within range.
+            let sliced = unsafe { JsString::slice_unchecked(this_str.clone(), i, index) };
+            substrings.push(sliced.into());
 
             // c. If the number of elements of substrings is lim, return ! CreateArrayFromList(substrings).
             if substrings.len() == lim {

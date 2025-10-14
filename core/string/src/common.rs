@@ -12,7 +12,7 @@ macro_rules! well_known_statics {
             paste!{
                 #[doc = "Gets the static `JsString` for `\"" $string "\"`."]
                 pub const $name: JsString = const {
-                    JsString::from_static_js_str(Self::find_static_js_string($string))
+                    JsString::from_static(Self::find_static_js_string($string))
                 };
             }
         )+
@@ -73,7 +73,7 @@ impl StaticJsStrings {
         // SAFETY: Type of T in is `&'static JsStr<'static>`, so this is safe.
         let ptr = unsafe { std::mem::transmute::<&JsStr<'_>, &'static JsStr<'static>>(str) };
 
-        Some(JsString::from_static_js_str(ptr))
+        Some(JsString::from_static(ptr))
     }
 
     // Some consts are only used on certain features, which triggers the unused lint.

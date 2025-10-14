@@ -1,4 +1,7 @@
-use crate::{DATA_OFFSET, JsStr, JsStrVariant, JsString, RawJsString, TaggedLen, alloc_overflow};
+use crate::{
+    DATA_OFFSET, InnerStringKind, JsStr, JsStrVariant, JsString, SeqString, TaggedLen,
+    alloc_overflow,
+};
 
 use std::{
     alloc::{Layout, alloc, dealloc, realloc},
@@ -14,7 +17,7 @@ use std::{
 pub struct JsStringBuilder<D: Copy> {
     cap: usize,
     len: usize,
-    inner: NonNull<RawJsString>,
+    inner: NonNull<SeqString>,
     phantom_data: PhantomData<D>,
 }
 
@@ -170,7 +173,7 @@ impl<D: Copy> JsStringBuilder<D> {
             // the length of the string and the reference count.
             unsafe { alloc(new_layout) }
         };
-        let Some(new_ptr) = NonNull::new(new_ptr.cast::<RawJsString>()) else {
+        let Some(new_ptr) = NonNull::new(new_ptr.cast::<SeqString>()) else {
             std::alloc::handle_alloc_error(new_layout)
         };
         self.inner = new_ptr;
@@ -221,7 +224,7 @@ impl<D: Copy> JsStringBuilder<D> {
 
     fn new_layout(cap: usize) -> Layout {
         let new_layout = Layout::array::<D>(cap)
-            .and_then(|arr| Layout::new::<RawJsString>().extend(arr))
+            .and_then(|arr| Layout::new::<SeqString>().extend(arr))
             .map(|(layout, offset)| (layout.pad_to_align(), offset))
             .map_err(|_| None);
         match new_layout {
@@ -276,7 +279,7 @@ impl<D: Copy> JsStringBuilder<D> {
     }
 
     /// Allocates memory to the inner `RawJsString` by the given capacity.
-    /// Capacity calculation is from [`std::vec::Vec::reserve`].
+    /// Capacity calculation is from [`Vec::reserve`].
     fn allocate(&mut self, cap: usize) {
         let cap = std::cmp::max(self.capacity() * 2, cap);
         let cap = std::cmp::max(Self::MIN_NON_ZERO_CAP, cap);
@@ -367,7 +370,7 @@ impl<D: Copy> JsStringBuilder<D> {
         // `NonNull` verified for us that the pointer returned by `alloc` is valid,
         // meaning we can write to its pointed memory.
         unsafe {
-            inner.as_ptr().write(RawJsString {
+            inner.as_ptr().write(SeqString {
                 tagged_len: TaggedLen::new(len, latin1),
                 refcount: Cell::new(1),
                 data: [0; 0],
@@ -375,10 +378,10 @@ impl<D: Copy> JsStringBuilder<D> {
         }
 
         // Tell the compiler not to call the destructor of `JsStringBuilder`,
-        // becuase we move inner `RawJsString` to `JsString`.
+        // because we move inner `RawJsString` to `JsString`.
         std::mem::forget(self);
 
-        JsString { ptr: inner }
+        JsString::from_inner(inner, InnerStringKind::Sequence)
     }
 }
 
