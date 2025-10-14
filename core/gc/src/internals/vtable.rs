@@ -1,4 +1,4 @@
-use crate::{GcBox, GcErasedPointer, Trace, Tracer};
+use crate::{GcBox, GcErasedPointer, MEM_POOL_ELEMENT_SIZE_THRESHOLD, Trace, Tracer};
 use boa_mempool::MemPoolAllocator;
 use std::any::TypeId;
 
@@ -35,7 +35,10 @@ pub(crate) const fn vtable_of<T: Trace + 'static>() -> &'static VTable {
         }
 
         // SAFETY: The caller must ensure that the passed erased pointer is `GcBox<Self>`.
-        unsafe fn drop_fn(this: GcErasedPointer, pool: &MemPoolAllocator<[u8; 128]>) {
+        unsafe fn drop_fn(
+            this: GcErasedPointer,
+            pool: &MemPoolAllocator<[u8; MEM_POOL_ELEMENT_SIZE_THRESHOLD]>,
+        ) {
             // SAFETY: The caller must ensure that the passed erased pointer is `GcBox<Self>`.
             let this = this.cast::<GcBox<Self>>();
 
@@ -74,7 +77,10 @@ pub(crate) const fn vtable_of<T: Trace + 'static>() -> &'static VTable {
 pub(crate) type TraceFn = unsafe fn(this: GcErasedPointer, tracer: &mut Tracer);
 pub(crate) type TraceNonRootsFn = unsafe fn(this: GcErasedPointer);
 pub(crate) type RunFinalizerFn = unsafe fn(this: GcErasedPointer);
-pub(crate) type DropFn = unsafe fn(this: GcErasedPointer, pool: &MemPoolAllocator<[u8; 128]>);
+pub(crate) type DropFn = unsafe fn(
+    this: GcErasedPointer,
+    pool: &MemPoolAllocator<[u8; MEM_POOL_ELEMENT_SIZE_THRESHOLD]>,
+);
 pub(crate) type TypeIdFn = fn() -> TypeId;
 
 #[derive(Debug)]

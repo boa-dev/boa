@@ -31,11 +31,14 @@ pub use internals::GcBox;
 use internals::{EphemeronBox, ErasedEphemeronBox, ErasedWeakMapBox, WeakMapBox};
 pub use pointers::{Ephemeron, Gc, GcErased, WeakGc, WeakMap};
 use pointers::{NonTraceable, RawWeakMap};
+use std::collections::BTreeMap;
 use std::{
     cell::{Cell, RefCell},
     mem,
     ptr::NonNull,
 };
+
+const MEM_POOL_ELEMENT_SIZE_THRESHOLD: usize = 256;
 
 type GcErasedPointer = NonNull<GcBox<NonTraceable>>;
 type EphemeronPointer = NonNull<dyn ErasedEphemeronBox>;
@@ -48,7 +51,8 @@ thread_local!(static BOA_GC: RefCell<BoaGc> = RefCell::new(BoaGc {
     strongs: Vec::default(),
     weaks: Vec::default(),
     weak_maps: Vec::default(),
-    pool: MemPoolAllocator::default(),
+    pool: MemPoolAllocator::with_capacity(102_400),
+    stats: Default::default(),
 }));
 
 #[derive(Debug, Clone, Copy)]
@@ -85,7 +89,8 @@ struct BoaGc {
     strongs: Vec<GcErasedPointer>,
     weaks: Vec<EphemeronPointer>,
     weak_maps: Vec<ErasedWeakMapBoxPointer>,
-    pool: MemPoolAllocator<[u8; 128]>,
+    pool: MemPoolAllocator<[u8; MEM_POOL_ELEMENT_SIZE_THRESHOLD]>,
+    stats: BTreeMap<usize, usize>,
 }
 
 impl Drop for BoaGc {
@@ -138,7 +143,12 @@ impl Allocator {
             Self::manage_state(&mut gc);
             // Safety: value cannot be a null pointer, since `MemPool` cannot return null pointers.
             let ptr = unsafe {
-                if size_of::<GcBox<T>>() <= 128 {
+                gc.stats
+                    .entry(element_size)
+                    .and_modify(|v| *v += 1)
+                    .or_insert(1);
+
+                if size_of::<GcBox<T>>() <= MEM_POOL_ELEMENT_SIZE_THRESHOLD {
                     let ptr = gc.pool.alloc_unitialized().cast();
                     ptr.write(value);
                     ptr
@@ -462,7 +472,7 @@ impl Collector {
         strong: &mut Vec<GcErasedPointer>,
         weak: &mut Vec<EphemeronPointer>,
         total_allocated: &mut usize,
-        pool: &MemPoolAllocator<[u8; 128]>,
+        pool: &MemPoolAllocator<[u8; MEM_POOL_ELEMENT_SIZE_THRESHOLD]>,
     ) {
         let _guard = DropGuard::new();
 
@@ -513,6 +523,10 @@ impl Collector {
 
     // Clean up the heap when BoaGc is dropped
     fn dump(gc: &mut BoaGc) {
+        eprintln!("GC Stats:");
+        eprintln!("{:#?}", gc.stats);
+        eprintln!("------------------------------------------------------------\n");
+
         // Weak maps have to be dropped first, since the process dereferences GcBoxes.
         // This can be done without initializing a dropguard since no GcBox's are being dropped.
         for node in mem::take(&mut gc.weak_maps) {
