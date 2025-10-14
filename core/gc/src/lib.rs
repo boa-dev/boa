@@ -138,8 +138,8 @@ impl Allocator {
             Self::manage_state(&mut gc);
             // Safety: value cannot be a null pointer, since `MemPool` cannot return null pointers.
             let ptr = unsafe {
-                if size_of::<T>() <= 128 {
-                    let ptr = gc.pool.alloc().cast();
+                if size_of::<GcBox<T>>() <= 128 {
+                    let ptr = gc.pool.alloc_unitialized().cast();
                     ptr.write(value);
                     ptr
                 } else {

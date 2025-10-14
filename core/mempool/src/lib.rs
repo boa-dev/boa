@@ -109,22 +109,50 @@ impl<T> Chunk<T> {
         Some(unsafe { NonNull::new_unchecked(ptr) })
     }
 
-    /// Free the memory and set its `EmptySlot` value properly.
-    /// Returns false if the pointer is not contained in this pool.
     #[inline]
-    fn dealloc(&mut self, ptr: NonNull<T>) -> bool {
+    fn find_slot(&self, ptr: NonNull<T>) -> Option<usize> {
         if ptr.addr().get() < self.slots.addr() {
-            return false;
+            return None;
         }
         let slot_index = (ptr.addr().get() - self.slots.addr()) / size_of::<T>();
         if slot_index >= self.total {
-            return false;
+            return None;
         }
+        Some(slot_index)
+    }
 
-        let next = self.next;
+    /// Free the memory and set its `EmptySlot` value properly.
+    /// Returns false if the pointer is not contained in this pool.
+    #[inline]
+    fn dealloc_no_drop(&mut self, ptr: NonNull<T>) -> bool {
+        let Some(slot_index) = self.find_slot(ptr) else {
+            return false;
+        };
+
         // SAFETY: We know by now that slot_index is between 0 and `self.total`.
         unsafe {
-            self.slots.add(slot_index).cast::<EmptySlot>().write(next);
+            ptr.cast::<EmptySlot>().write(self.next);
+        }
+
+        self.next = slot_index;
+        self.available += 1;
+        true
+    }
+
+    /// Free the memory, call `T::drop` and set its `EmptySlot` value properly.
+    /// Returns false if the pointer is not contained in this pool.
+    #[inline]
+    fn dealloc(&mut self, ptr: NonNull<T>) -> bool {
+        let Some(slot_index) = self.find_slot(ptr) else {
+            return false;
+        };
+
+        // Call `drop(...)` on the type and cleanup.
+        // SAFETY: We know by now that slot_index is between 0 and `self.total`.
+        unsafe {
+            let ptr = self.slots.add(slot_index);
+            let _unused = ptr.read();
+            ptr.cast::<EmptySlot>().write(self.next);
         }
 
         self.next = slot_index;
@@ -189,8 +217,11 @@ impl<T> MemPoolAllocator<T> {
     ///
     /// # Panics
     /// If allocating a new pool region fails, this will panic. Otherwise, it can't.
+    ///
+    /// # Safety
+    /// It is the responsibility of the caller to initialize this memory.
     #[must_use]
-    pub fn alloc(&self) -> NonNull<T> {
+    pub unsafe fn alloc_unitialized(&self) -> NonNull<T> {
         let mut pools = self.pools.borrow_mut();
         // Find the first pool with an unused slot. Use reverse because
         // the last pool is the most likely one to have availability.
@@ -213,8 +244,43 @@ impl<T> MemPoolAllocator<T> {
         }
     }
 
-    /// Deallocate an existing slot. If the pointer is not within our pool, this
-    /// will do nothing and return `false`.
+    /// Allocate the memory and write the value in it.
+    #[inline]
+    #[must_use]
+    pub fn alloc(&self, value: T) -> NonNull<T> {
+        // Safety: We'll initialize, don't worry.
+        unsafe {
+            let ptr = self.alloc_unitialized();
+            ptr.write(value);
+            ptr
+        }
+    }
+
+    /// Returns true if the pointer is contained within this pool.
+    pub fn contains(&self, ptr: NonNull<T>) -> bool {
+        self.pools
+            .borrow()
+            .iter()
+            .any(|p| p.find_slot(ptr).is_some())
+    }
+
+    /// Deallocate an existing slot without dropping its contained value.
+    /// If the pointer is not within our pool, this will do nothing and
+    /// return `false`.
+    ///
+    /// # Safety
+    /// It is the responsibility of the caller to make sure this value is
+    /// dropped or does not implement the `Drop` trait.
+    pub unsafe fn dealloc_no_drop(&self, ptr: NonNull<T>) -> bool {
+        self.pools
+            .borrow_mut()
+            .iter_mut()
+            .any(|p| p.dealloc_no_drop(ptr))
+    }
+
+    /// Deallocate an existing slot, calling `T::Drop` on its contained value.
+    /// If the pointer is not within our pool, this will do nothing and return
+    /// `false`.
     pub fn dealloc(&self, ptr: NonNull<T>) -> bool {
         self.pools.borrow_mut().iter_mut().any(|p| p.dealloc(ptr))
     }

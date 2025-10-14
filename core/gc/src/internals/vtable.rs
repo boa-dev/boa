@@ -39,8 +39,13 @@ pub(crate) const fn vtable_of<T: Trace + 'static>() -> &'static VTable {
             // SAFETY: The caller must ensure that the passed erased pointer is `GcBox<Self>`.
             let this = this.cast::<GcBox<Self>>();
 
-            if !pool.dealloc(this.cast()) {
+            if pool.contains(this.cast()) {
                 // SAFETY: The caller must ensure the erased pointer is not dropped or deallocated.
+                unsafe {
+                    drop(this.read());
+                    pool.dealloc_no_drop(this.cast());
+                }
+            } else {
                 drop(unsafe { Box::from_raw(this.as_ptr()) });
             }
         }
