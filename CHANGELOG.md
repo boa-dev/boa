@@ -262,7 +262,7 @@
 - perf: Improve `Math.sumPrecise` Performance by @Gumichocopengin8 in https://github.com/boa-dev/boa/pull/4462
 - Bump the rust-dependencies group with 3 updates by @dependabot[bot] in https://github.com/boa-dev/boa/pull/4467
 
-## New Contributors
+### New Contributors
 
 - @zzzdong made their first contribution in https://github.com/boa-dev/boa/pull/4058
 - @albertleigh made their first contribution in https://github.com/boa-dev/boa/pull/4097
