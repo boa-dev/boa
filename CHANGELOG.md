@@ -39,6 +39,9 @@
 - Implement `Math.sumPrecise` by @nekevss in https://github.com/boa-dev/boa/pull/4383
 - Add `Date.prototype.toTemporalInstant` from the Temporal proposal by @nekevss in https://github.com/boa-dev/boa/pull/4382
 - Implement upsert methods for Map by @jasonmilad in https://github.com/boa-dev/boa/pull/4436
+- Change JsObject default method to take `Instrinsics` parameter by @mdrokz in https://github.com/boa-dev/boa/pull/4466
+- Cleanup `BuiltInConstructor` constants to ensure no additional allocations by @jedel1043 in https://github.com/boa-dev/boa/pull/4464
+- Implement Upsert methods for weakMap: getOrInsert and getOrInsertComputed by @rrogerc in https://github.com/boa-dev/boa/pull/4459
 
 ### Bug Fixes
 
@@ -63,6 +66,7 @@
 - Fix UB in implementation of `NanBoxedValue` by @jedel1043 in https://github.com/boa-dev/boa/pull/4346
 - fix(regexp): fix the capture group count assert to have the correct upper limit by @BDeuDev in https://github.com/boa-dev/boa/pull/4419
 - Fix `contains_direct_eval` for ordinary function by @hpp2334 in https://github.com/boa-dev/boa/pull/4453
+- Fix test262 comments on new PR by @jedel1043 in https://github.com/boa-dev/boa/pull/4465
 
 ### Internal Improvements
 
@@ -89,6 +93,7 @@
 - Add Nix flake by @xubaiwang in https://github.com/boa-dev/boa/pull/4381
 - Apply clippy fixes for Rust 1.90 by @hansl in https://github.com/boa-dev/boa/pull/4423
 - Fix UB on unaligned ArrayBuffers by @jedel1043 in https://github.com/boa-dev/boa/pull/4427
+- Use same cache key for builds and tests by @jasonwilliams in https://github.com/boa-dev/boa/pull/4426
 
 ### Other Changes
 
@@ -253,6 +258,9 @@
 - Bump peter-evans/create-or-update-comment from 4 to 5 by @dependabot[bot] in https://github.com/boa-dev/boa/pull/4456
 - Bump peter-evans/find-comment from 3 to 4 by @dependabot[bot] in https://github.com/boa-dev/boa/pull/4457
 - Bump bytemuck from 1.23.2 to 1.24.0 in the rust-dependencies group by @dependabot[bot] in https://github.com/boa-dev/boa/pull/4458
+- Allow printing test262 comment on PRs from forks by @jedel1043 in https://github.com/boa-dev/boa/pull/4428
+- perf: Improve `Math.sumPrecise` Performance by @Gumichocopengin8 in https://github.com/boa-dev/boa/pull/4462
+- Bump the rust-dependencies group with 3 updates by @dependabot[bot] in https://github.com/boa-dev/boa/pull/4467
 
 ## New Contributors
 
@@ -274,6 +282,9 @@
 - @BDeuDev made their first contribution in https://github.com/boa-dev/boa/pull/4419
 - @jasonmilad made their first contribution in https://github.com/boa-dev/boa/pull/4430
 - @hpp2334 made their first contribution in https://github.com/boa-dev/boa/pull/4453
+- @Gumichocopengin8 made their first contribution in https://github.com/boa-dev/boa/pull/4462
+- @mdrokz made their first contribution in https://github.com/boa-dev/boa/pull/4466
+- @rrogerc made their first contribution in https://github.com/boa-dev/boa/pull/4459
 
 **Full Changelog**: https://github.com/boa-dev/boa/compare/v0.20...v0.21
 
