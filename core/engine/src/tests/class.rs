@@ -72,3 +72,21 @@ fn class_can_access_super_from_static_initializer() {
         TestAction::assert_eq("c.field", js_str!("super field")),
     ]);
 }
+
+// https://github.com/boa-dev/boa/issues/4400
+#[test]
+fn class_in_constructor() {
+    run_test_actions([
+        TestAction::run(indoc! {r#"
+            class C {
+                constructor() {
+                    class D {}
+                    this.v = D.name.toString()
+                }
+            }
+            let c = new C()
+
+        "#}),
+        TestAction::assert_eq("c.v", js_str!("D")),
+    ]);
+}
