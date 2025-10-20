@@ -297,3 +297,29 @@ jobs:
           cargo run -p boa_examples --bin 2>&1 \
             | grep -E '^ ' \
             | xargs -n1 sh -c 'cargo run -p boa_examples --profile ci --bin $0 || exit 255'
+
+  runSemVerCheck:
+    name: Check SemVer compatibility
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+    steps:
+      - name: Set environment
+        run: |
+          target=$(rustc -vV | awk '/^host/ { print $2 }' | tr [:lower:] [:upper:] | tr '-' '_')
+          echo "CARGO_TARGET_${target}_RUSTFLAGS=$W_FLAGS" >> $GITHUB_ENV
+      - name: Checkout repository
+        uses: actions/checkout@v5
+        with:
+          fetch-depth: 0
+
+      - name: Cache cargo
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/.cargo/registry
+            ~/.cargo/git
+            target
+          key: ${{ runner.os }}-cargo-${{ hashFiles('**/Cargo.lock') }}
+
+      - name: Check Semver
+        uses: obi1kenobi/cargo-semver-checks-action@v2
