@@ -4,6 +4,11 @@
 //! This provides performance benefits for maps that are expected to be small most of the time,
 //! by avoiding heap allocations for the common case while still supporting larger collections when needed.
 
+#![doc = include_str!("../ABOUT.md")]
+#![doc(
+    html_logo_url = "https://raw.githubusercontent.com/boa-dev/boa/main/assets/logo_black.svg",
+    html_favicon_url = "https://raw.githubusercontent.com/boa-dev/boa/main/assets/logo_black.svg"
+)]
 use std::{
     borrow::Borrow,
     collections::{BTreeMap, btree_map},
