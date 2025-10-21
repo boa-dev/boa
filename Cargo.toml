@@ -45,8 +45,8 @@ boa_runtime = { version = "~0.21.0", path = "core/runtime" }
 boa_string = { version = "~0.21.0", path = "core/string" }
 
 # Utility Repo Crates
-tag_ptr = { path = "utils/tag_ptr" }
-small_btree = { path = "utils/small_btree" }
+tag_ptr = { version = "~0.1.0", path = "utils/tag_ptr" }
+small_btree = { version = "~0.1.0", path = "utils/small_btree" }
 
 # Shared deps
 arbitrary = "1"
