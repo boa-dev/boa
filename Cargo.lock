@@ -4006,7 +4006,7 @@ dependencies = [
 
 [[package]]
 name = "small_btree"
-version = "0.1.0"
+version = "0.21.0"
 dependencies = [
  "arrayvec",
 ]
@@ -4162,7 +4162,7 @@ dependencies = [
 
 [[package]]
 name = "tag_ptr"
-version = "0.1.0"
+version = "0.21.0"
 
 [[package]]
 name = "tap"
