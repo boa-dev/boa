@@ -101,7 +101,7 @@ console_error_panic_hook = "0.1.7"
 wasm-bindgen-test = "0.3.54"
 smol = "2.0.2"
 isahc = "1.7.2"
-rustyline = { version = "15.0.0", default-features = false }
+rustyline = { version = "17.0.2", default-features = false }
 dhat = "0.3.3"
 quote = "1.0.41"
 syn = { version = "2.0.107", default-features = false }
