@@ -101,7 +101,7 @@ impl PushIteratorToArray {
             .vm
             .frame_mut()
             .iterators
-            .pop()
+            .pop_back()
             .expect("iterator stack should have at least an iterator");
         while let Some(next) = iterator.step_value(context)? {
             Array::push(&array, &[next], context)?;

@@ -298,8 +298,8 @@ impl SuperCallDerived {
 
         context.vm.stack.push(JsValue::undefined());
         context.vm.stack.push(super_constructor.clone());
-        for argument in Vec::from(context.vm.stack.get_arguments(context.vm.frame())) {
-            context.vm.stack.push(argument.clone());
+        for argument in context.vm.stack.get_arguments(context.vm.frame()) {
+            context.vm.stack.push(argument);
         }
         context.vm.stack.push(new_target);
 

@@ -136,7 +136,11 @@ impl GetLocator {
             context.vm.frame().code_block.bindings[usize::from(index)].clone();
         context.find_runtime_binding(&mut binding_locator)?;
 
-        context.vm.frame_mut().binding_stack.push(binding_locator);
+        context
+            .vm
+            .frame_mut()
+            .binding_stack
+            .push_back(binding_locator);
 
         Ok(())
     }
@@ -170,7 +174,11 @@ impl GetNameAndLocator {
             JsNativeError::reference().with_message(format!("{name} is not defined"))
         })?;
 
-        context.vm.frame_mut().binding_stack.push(binding_locator);
+        context
+            .vm
+            .frame_mut()
+            .binding_stack
+            .push_back(binding_locator);
         context.vm.set_register(value.into(), result);
         Ok(())
     }

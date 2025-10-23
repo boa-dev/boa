@@ -13,6 +13,7 @@ use crate::{
     script::Script,
 };
 use boa_gc::{Finalize, Gc, Trace, custom_trace};
+use imbl::Vector;
 use shadow_stack::ShadowStack;
 use std::{future::Future, ops::ControlFlow, pin::Pin, task};
 
@@ -155,14 +156,14 @@ pub struct Vm {
 /// ```
 #[derive(Clone, Debug, Trace, Finalize)]
 pub(crate) struct Stack {
-    stack: Vec<JsValue>,
+    stack: Vector<JsValue>,
 }
 
 impl Stack {
     /// Creates a new stack with the given capacity.
-    fn new(capacity: usize) -> Self {
+    fn new(_capacity: usize) -> Self {
         Self {
-            stack: Vec::with_capacity(capacity),
+            stack: Vector::new(),
         }
     }
 
@@ -198,17 +199,22 @@ impl Stack {
     }
 
     /// Get the function arguments of the given frame.
-    pub(crate) fn get_arguments(&self, frame: &CallFrame) -> &[JsValue] {
-        &self.stack[frame.arguments_range()]
+    pub(crate) fn get_arguments(&self, frame: &CallFrame) -> Vector<JsValue> {
+        self.stack.clone().slice(frame.arguments_range())
     }
 
     /// Get a single function argument of the given frame by index.
     pub(crate) fn get_argument(&self, frame: &CallFrame, index: usize) -> Option<&JsValue> {
-        self.get_arguments(frame).get(index)
+        let arg_start = frame.rp as usize - frame.argument_count as usize;
+        if index < frame.argument_count as usize {
+            self.stack.get(arg_start + index)
+        } else {
+            None
+        }
     }
 
     /// Get the rest arguments of the given frame.
-    pub(crate) fn pop_rest_arguments(&mut self, frame: &CallFrame) -> Option<Vec<JsValue>> {
+    pub(crate) fn pop_rest_arguments(&mut self, frame: &CallFrame) -> Option<Vector<JsValue>> {
         let argument_count = frame.argument_count as usize;
         let param_count = frame.code_block().parameter_length as usize;
         if argument_count < param_count {
@@ -217,7 +223,10 @@ impl Stack {
         let rp = frame.rp as usize;
         let rest_count = argument_count - param_count + 1;
 
-        Some(self.stack.drain((rp - rest_count)..rp).collect())
+        let mut rest = self.stack.split_off(rp - rest_count);
+        self.stack.append(rest.split_off(rest_count));
+
+        Some(rest)
     }
 
     /// Set the promise capability for the given frame.
@@ -301,7 +310,7 @@ impl Stack {
     where
         T: Into<JsValue>,
     {
-        self.stack.push(value.into());
+        self.stack.push_back(value.into());
     }
 
     /// Pop a value off the stack.
@@ -311,7 +320,7 @@ impl Stack {
     /// If there is nothing to pop, then this will panic.
     #[track_caller]
     pub(crate) fn pop(&mut self) -> JsValue {
-        self.stack.pop().expect("stack was empty")
+        self.stack.pop_back().expect("stack was empty")
     }
 
     /// Pop the function arguments according to the calling convention.
@@ -319,7 +328,7 @@ impl Stack {
     pub(crate) fn calling_convention_pop_arguments(
         &mut self,
         argument_count: usize,
-    ) -> Vec<JsValue> {
+    ) -> Vector<JsValue> {
         let index = self.stack.len() - argument_count;
         self.stack.split_off(index)
     }
@@ -327,7 +336,7 @@ impl Stack {
     /// Push the function arguments according to the calling convention.
     /// This will push the given values onto the stack.
     pub(crate) fn calling_convention_push_arguments(&mut self, values: &[JsValue]) {
-        self.stack.extend_from_slice(values);
+        self.stack.extend(values.iter().cloned());
     }
 
     /// Get the function object at the top of the stack according to the calling convention.
@@ -365,7 +374,9 @@ impl Stack {
         arguments: &[JsValue],
     ) {
         let index = self.stack.len() - existing_argument_count;
-        self.stack.splice(index..index, arguments.iter().cloned());
+        let tail = self.stack.split_off(index);
+        self.stack.extend(arguments.iter().cloned());
+        self.stack.append(tail);
     }
 
     #[cfg(feature = "trace")]
@@ -468,10 +479,9 @@ impl Vm {
         //       since generator-like functions push the same call
         //       frame with pre-built stack.
         if !frame.registers_already_pushed() {
-            self.stack.stack.resize_with(
-                current_stack_length + frame.code_block.register_count as usize,
-                JsValue::undefined,
-            );
+            for _ in 0..frame.code_block.register_count {
+                self.stack.stack.push_back(JsValue::undefined());
+            }
         }
 
         // Keep carrying the last active runnable in case the current callframe
@@ -557,6 +567,7 @@ impl Context {
     const OPERAND_COLUMN_WIDTH: usize = Self::COLUMN_WIDTH;
     const NUMBER_OF_COLUMNS: usize = 4;
 
+    #[inline(always)]
     pub(crate) fn trace_call_frame(&self) {
         let frame = self.vm.frame();
         let msg = if self.vm.frames.is_empty() {
@@ -584,6 +595,7 @@ impl Context {
         );
     }
 
+    #[inline(always)]
     fn trace_execute_instruction<F>(
         &mut self,
         f: F,
@@ -642,6 +654,7 @@ impl Context {
 }
 
 impl Context {
+    #[inline(always)]
     fn execute_instruction<F>(&mut self, f: F, opcode: Opcode) -> ControlFlow<CompletionRecord>
     where
         F: FnOnce(&mut Context, Opcode) -> ControlFlow<CompletionRecord>,
@@ -649,6 +662,7 @@ impl Context {
         f(self, opcode)
     }
 
+    #[inline(always)]
     fn execute_one<F>(&mut self, f: F, opcode: Opcode) -> ControlFlow<CompletionRecord>
     where
         F: FnOnce(&mut Context, Opcode) -> ControlFlow<CompletionRecord>,
@@ -839,6 +853,7 @@ impl Context {
         CompletionRecord::Throw(JsError::from_native(JsNativeError::error()))
     }
 
+    #[inline(always)]
     pub(crate) fn run(&mut self) -> CompletionRecord {
         #[cfg(feature = "trace")]
         if self.vm.trace {

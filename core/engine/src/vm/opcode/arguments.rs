@@ -54,8 +54,8 @@ pub(crate) struct CreateUnmappedArgumentsObject;
 impl CreateUnmappedArgumentsObject {
     #[inline(always)]
     pub(super) fn operation(dst: VaryingOperand, context: &mut Context) {
-        let args = context.vm.stack.get_arguments(context.vm.frame()).to_vec();
-        let arguments = UnmappedArguments::new(&args, context);
+        let args = context.vm.stack.get_arguments(context.vm.frame());
+        let arguments = UnmappedArguments::new(args, context);
         context.vm.set_register(dst.into(), arguments.into());
     }
 }

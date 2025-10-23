@@ -28,6 +28,7 @@ boa_string = { workspace = true, optional = true }
 either = { workspace = true, optional = true }
 thin-vec = { workspace = true, optional = true }
 icu_locale_core = { workspace = true, optional = true }
+imbl.workspace = true
 
 [lints]
 workspace = true

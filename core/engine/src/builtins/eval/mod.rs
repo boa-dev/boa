@@ -29,6 +29,7 @@ use boa_ast::{
 };
 use boa_gc::Gc;
 use boa_parser::{Parser, Source};
+use imbl::Vector;
 
 use super::{BuiltInBuilder, IntrinsicObject};
 
@@ -93,7 +94,7 @@ impl Eval {
         #[derive(Debug)]
         enum EnvStackAction {
             Truncate(usize),
-            Restore(Vec<Environment>),
+            Restore(Vector<Environment>),
         }
 
         // 1. Assert: If direct is false, then strictCaller is also false.

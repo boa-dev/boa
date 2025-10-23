@@ -4,6 +4,7 @@ use crate::{
 };
 use boa_ast::scope::{BindingLocator, BindingLocatorScope, Scope};
 use boa_gc::{Finalize, Gc, Trace};
+use imbl::Vector;
 
 mod declarative;
 mod private;
@@ -23,9 +24,9 @@ pub(crate) use self::{
 /// because they must be preserved for function calls.
 #[derive(Clone, Debug, Trace, Finalize)]
 pub(crate) struct EnvironmentStack {
-    stack: Vec<Environment>,
+    stack: Vector<Environment>,
     global: Gc<DeclarativeEnvironment>,
-    private_stack: Vec<Gc<PrivateEnvironment>>,
+    private_stack: Vector<Gc<PrivateEnvironment>>,
 }
 
 /// A runtime environment.
@@ -53,9 +54,9 @@ impl EnvironmentStack {
             DeclarativeEnvironmentKind::Global(_)
         ));
         Self {
-            stack: Vec::new(),
+            stack: Vector::new(),
             global,
-            private_stack: Vec::new(),
+            private_stack: Vector::new(),
         }
     }
 
@@ -89,8 +90,8 @@ impl EnvironmentStack {
     }
 
     /// Pop all current environments except the global environment.
-    pub(crate) fn pop_to_global(&mut self) -> Vec<Environment> {
-        let mut envs = Vec::new();
+    pub(crate) fn pop_to_global(&mut self) -> Vector<Environment> {
+        let mut envs = Vector::new();
         std::mem::swap(&mut envs, &mut self.stack);
         envs
     }
@@ -106,7 +107,7 @@ impl EnvironmentStack {
     }
 
     /// Extend the current environment stack with the given environments.
-    pub(crate) fn extend(&mut self, other: Vec<Environment>) {
+    pub(crate) fn extend(&mut self, other: Vector<Environment>) {
         self.stack.extend(other);
     }
 
@@ -151,7 +152,7 @@ impl EnvironmentStack {
 
     /// Push a new object environment on the environments stack.
     pub(crate) fn push_object(&mut self, object: JsObject) {
-        self.stack.push(Environment::Object(object));
+        self.stack.push_back(Environment::Object(object));
     }
 
     /// Push a lexical environment on the environments stack and return it's index.
@@ -175,7 +176,7 @@ impl EnvironmentStack {
 
         let index = self.stack.len() as u32;
 
-        self.stack.push(Environment::Declarative(Gc::new(
+        self.stack.push_back(Environment::Declarative(Gc::new(
             DeclarativeEnvironment::new(DeclarativeEnvironmentKind::Lexical(
                 LexicalEnvironment::new(bindings_count, poisoned, with),
             )),
@@ -205,7 +206,7 @@ impl EnvironmentStack {
             (environment.poisoned(), with || environment.with())
         };
 
-        self.stack.push(Environment::Declarative(Gc::new(
+        self.stack.push_back(Environment::Declarative(Gc::new(
             DeclarativeEnvironment::new(DeclarativeEnvironmentKind::Function(
                 FunctionEnvironment::new(num_bindings, poisoned, with, function_slots, scope),
             )),
@@ -215,7 +216,7 @@ impl EnvironmentStack {
     /// Push a module environment on the environments stack.
     pub(crate) fn push_module(&mut self, scope: Scope) {
         let num_bindings = scope.num_bindings_non_local();
-        self.stack.push(Environment::Declarative(Gc::new(
+        self.stack.push_back(Environment::Declarative(Gc::new(
             DeclarativeEnvironment::new(DeclarativeEnvironmentKind::Module(
                 ModuleEnvironment::new(num_bindings, scope),
             )),
@@ -226,7 +227,7 @@ impl EnvironmentStack {
     #[track_caller]
     pub(crate) fn pop(&mut self) {
         debug_assert!(!self.stack.is_empty());
-        self.stack.pop();
+        self.stack.pop_back();
     }
 
     /// Get the most outer environment.
@@ -309,12 +310,12 @@ impl EnvironmentStack {
 
     /// Push a private environment to the private environment stack.
     pub(crate) fn push_private(&mut self, environment: Gc<PrivateEnvironment>) {
-        self.private_stack.push(environment);
+        self.private_stack.push_back(environment);
     }
 
     /// Pop a private environment from the private environment stack.
     pub(crate) fn pop_private(&mut self) {
-        self.private_stack.pop();
+        self.private_stack.pop_back();
     }
 
     /// `ResolvePrivateIdentifier ( privEnv, identifier )`

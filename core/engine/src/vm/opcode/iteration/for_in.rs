@@ -26,7 +26,7 @@ impl CreateForInIterator {
             .vm
             .frame_mut()
             .iterators
-            .push(IteratorRecord::new(iterator, next_method));
+            .push_back(IteratorRecord::new(iterator, next_method));
 
         Ok(())
     }

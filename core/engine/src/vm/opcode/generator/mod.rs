@@ -254,7 +254,7 @@ impl GeneratorDelegateNext {
             .vm
             .frame_mut()
             .iterators
-            .pop()
+            .pop_back()
             .expect("iterator stack should have at least an iterator");
 
         match resume_kind {
@@ -305,7 +305,7 @@ impl GeneratorDelegateNext {
             }
         }
 
-        context.vm.frame_mut().iterators.push(iterator_record);
+        context.vm.frame_mut().iterators.push_back(iterator_record);
 
         Ok(())
     }
@@ -347,7 +347,7 @@ impl GeneratorDelegateResume {
             .vm
             .frame_mut()
             .iterators
-            .pop()
+            .pop_back()
             .expect("iterator stack should have at least an iterator");
 
         if resume_kind == GeneratorResumeKind::Throw {
@@ -363,7 +363,7 @@ impl GeneratorDelegateResume {
             return Ok(());
         }
 
-        context.vm.frame_mut().iterators.push(iterator);
+        context.vm.frame_mut().iterators.push_front(iterator);
 
         Ok(())
     }

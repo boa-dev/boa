@@ -11,7 +11,7 @@ use boa_ast::Position;
 use boa_ast::scope::BindingLocator;
 use boa_gc::{Finalize, Gc, Trace};
 use boa_string::JsString;
-use thin_vec::ThinVec;
+use imbl::Vector;
 
 bitflags::bitflags! {
     /// Flags associated with a [`CallFrame`].
@@ -53,12 +53,12 @@ pub struct CallFrame {
     pub(crate) env_fp: u32,
 
     // Iterators and their `[[Done]]` flags that must be closed when an abrupt completion is thrown.
-    pub(crate) iterators: ThinVec<IteratorRecord>,
+    pub(crate) iterators: Vector<IteratorRecord>,
 
     // The stack of bindings being updated.
     // SAFETY: Nothing in `BindingLocator` requires tracing, so this is safe.
     #[unsafe_ignore_trace]
-    pub(crate) binding_stack: Vec<BindingLocator>,
+    pub(crate) binding_stack: Vector<BindingLocator>,
 
     /// How many iterations a loop has done.
     pub(crate) loop_iteration_count: u64,
@@ -122,8 +122,8 @@ impl CallFrame {
             rp: 0,
             env_fp: 0,
             argument_count: 0,
-            iterators: ThinVec::new(),
-            binding_stack: Vec::new(),
+            iterators: Vector::new(),
+            binding_stack: Vector::new(),
             code_block,
             loop_iteration_count: 0,
             active_runnable,

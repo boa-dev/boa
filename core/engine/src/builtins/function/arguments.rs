@@ -15,6 +15,7 @@ use crate::{
 use boa_ast::{function::FormalParameterList, operations::bound_names, scope::Scope};
 use boa_gc::{Finalize, Gc, Trace};
 use boa_interner::Interner;
+use imbl::Vector;
 use rustc_hash::FxHashMap;
 use thin_vec::{ThinVec, thin_vec};
 
@@ -30,7 +31,7 @@ impl UnmappedArguments {
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-createunmappedargumentsobject
     #[allow(clippy::new_ret_no_self)]
-    pub(crate) fn new(arguments_list: &[JsValue], context: &mut Context) -> JsObject {
+    pub(crate) fn new(arguments_list: Vector<JsValue>, context: &mut Context) -> JsObject {
         // 1. Let len be the number of elements in argumentsList.
         let len = arguments_list.len();
 
@@ -214,7 +215,7 @@ impl MappedArguments {
     pub(crate) fn new(
         func: &JsObject,
         binding_indices: &[Option<u32>],
-        arguments_list: &[JsValue],
+        arguments_list: Vector<JsValue>,
         env: &Gc<DeclarativeEnvironment>,
         context: &Context,
     ) -> JsObject {
