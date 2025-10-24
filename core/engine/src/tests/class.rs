@@ -90,3 +90,30 @@ fn class_in_constructor() {
         TestAction::assert_eq("c.v", js_str!("D")),
     ]);
 }
+
+#[test]
+fn property_initializer_reference_escaped_variable() {
+    run_test_actions([
+        TestAction::run(indoc! {r#"
+            function run() {
+                const x = "D";
+                class C {
+                    a = x;
+                    static b = x;
+                    #c = x;
+                    static #d = x;
+
+                    getC() { return this.#c }
+                    static getD() { return C.#d }
+                }
+                return C
+            }
+            var Z = run();
+            var z = new Z();
+        "#}),
+        TestAction::assert_eq("z.a", js_str!("D")),
+        TestAction::assert_eq("Z.b", js_str!("D")),
+        TestAction::assert_eq("z.getC()", js_str!("D")),
+        TestAction::assert_eq("Z.getD()", js_str!("D")),
+    ]);
+}
