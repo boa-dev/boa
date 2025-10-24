@@ -789,7 +789,93 @@ impl RegExp {
         args: &[JsValue],
         context: &mut Context,
     ) -> JsResult<JsValue> {
-        Ok(JsValue::new(js_string!("a")))
+        let arg = args.get_or_undefined(0);
+
+        // 1. If S is not a String, throw a TypeError exception.
+        if !arg.is_string() {
+            return Err(JsNativeError::typ()
+                .with_message("RegExp.escape requires a string argument")
+                .into());
+        }
+
+        let string = arg.to_string(context)?;
+
+        // 2. Let escaped be the empty String.
+        let mut escaped = Vec::<u16>::new();
+
+        // 3. Let cpList be StringToCodePoints(S).
+        // 4. For each code point c of cpList, do
+        for (index, c) in string.code_points().enumerate() {
+            let code = c.as_u32();
+
+            // 4.a. If escaped is the empty String and c is matched by either DecimalDigit or AsciiLetter, then
+            if index == 0 {
+                if let CodePoint::Unicode(ch) = c {
+                    if ch.is_ascii_digit() || ch.is_ascii_alphabetic() {
+                        // 4.a.ii-v. Escape using \xXX format
+                        let escape_seq = format!("\\x{:02x}", code);
+                        for ch in escape_seq.encode_utf16() {
+                            escaped.push(ch);
+                        }
+                        continue;
+                    }
+                }
+            }
+
+            // 4.b. Else, set escaped to the string-concatenation of escaped and EncodeForRegExpEscape(c).
+            match c {
+                CodePoint::Unicode(ch) => match ch {
+                    // EncodeForRegExpEscape step 1: SyntaxCharacter or U+002F (SOLIDUS)
+                    '^' | '$' | '\\' | '.' | '*' | '+' | '?' | '(' | ')' | '[' | ']' | '{' | '}' | '|' | '/' => {
+                        escaped.push(b'\\' as u16);
+                        escaped.push(ch as u16);
+                    },
+
+                    // Step 2: ControlEscape characters (Table 63)
+                    '\x09' => {
+                        escaped.push(b'\\' as u16);
+                        escaped.push(b't' as u16);
+                    },
+                    '\x0A' => {
+                        escaped.push(b'\\' as u16);
+                        escaped.push(b'n' as u16);
+                    },
+                    '\x0B' => {
+                        escaped.push(b'\\' as u16);
+                        escaped.push(b'v' as u16);
+                    },
+                    '\x0C' => {
+                        escaped.push(b'\\' as u16);
+                        escaped.push(b'f' as u16);
+                    },
+                    '\x0D' => {
+                        escaped.push(b'\\' as u16);
+                        escaped.push(b'r' as u16);
+                    },
+
+                    // Step 3-5: otherPunctuators, whitespace, line terminators
+                    ',' | '-' | '=' | '<' | '>' | '#' | '&' | '!' | '%' | ':' | ';' | '@' | '~' | '\'' | '`' | '"' | ' ' => {
+                        let escape_seq = format!("\\x{:02x}", ch as u32);
+                        for ch in escape_seq.encode_utf16() {
+                            escaped.push(ch);
+                        }
+                    },
+
+                    // Step 6: All other Unicode characters
+                    _ => {
+                        let mut buf = [0u16; 2];
+                        let encoded = ch.encode_utf16(&mut buf);
+                        escaped.extend_from_slice(encoded);
+                    },
+                },
+                CodePoint::UnpairedSurrogate(surr) => {
+                    escaped.push(surr);
+                }
+            }
+        }
+
+        // 5. Return escaped.
+        Ok(JsValue::new(js_string!(&escaped[..])))
     }
 
     /// `RegExp.prototype.test( string )`
