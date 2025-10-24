@@ -18,7 +18,7 @@ use crate::{
     object::{CONSTRUCTOR, JsObject, internal_methods::get_prototype_from_constructor},
     property::Attribute,
     realm::Realm,
-    string::{CodePoint, JsStrVariant, StaticJsStrings},
+    string::{CodePoint, CommonJsStringBuilder, JsStrVariant, StaticJsStrings},
     symbol::JsSymbol,
     value::JsValue,
 };
@@ -86,6 +86,7 @@ impl IntrinsicObject for RegExp {
             .name(js_string!("get source"))
             .build();
         let regexp = BuiltInBuilder::from_standard_constructor::<Self>(realm)
+            .static_method(Self::escape, js_string!("escape"), 1)
             .static_accessor(
                 JsSymbol::species(),
                 Some(get_species),
@@ -175,7 +176,7 @@ impl BuiltInObject for RegExp {
 impl BuiltInConstructor for RegExp {
     const CONSTRUCTOR_ARGUMENTS: usize = 2;
     const PROTOTYPE_STORAGE_SLOTS: usize = 30;
-    const CONSTRUCTOR_STORAGE_SLOTS: usize = 2;
+    const CONSTRUCTOR_STORAGE_SLOTS: usize = 3;
 
     const STANDARD_CONSTRUCTOR: fn(&StandardConstructors) -> &StandardConstructor =
         StandardConstructors::regexp;
@@ -770,6 +771,163 @@ impl RegExp {
 
             JsValue::new(js_string!(&s[..]))
         }
+    }
+
+    /// `RegExp.escape( string )`
+    ///
+    /// The `RegExp.escape()` static method escapes any potential regex syntax characters in a string,
+    /// and returns a new string that can be safely used as a literal pattern for the `RegExp()` constructor.
+    ///
+    /// More information:
+    ///  - [ECMAScript reference][spec]
+    ///  - [MDN documentation][mdn]
+    ///
+    /// [spec]: https://tc39.es/proposal-regex-escaping/#sec-regexp.escape
+    /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/RegExp/escape
+    ///
+    /// Helper function to check if a character is a `WhiteSpace` character
+    fn is_whitespace(ch: char) -> bool {
+        matches!(
+            ch,
+            '\u{0009}' | // <TAB>
+            '\u{000B}' | // <VT>
+            '\u{000C}' | // <FF>
+            '\u{0020}' | // <SP>
+            '\u{00A0}' | // <NBSP>
+            '\u{FEFF}' | // <ZWNBSP>
+            '\u{1680}' | // Ogham Space Mark
+            '\u{2000}' | '\u{2001}' | '\u{2002}' | '\u{2003}' | '\u{2004}' |
+            '\u{2005}' | '\u{2006}' | '\u{2007}' | '\u{2008}' | '\u{2009}' |
+            '\u{200A}' | // Various space separators
+            '\u{202F}' | // Narrow No-Break Space
+            '\u{205F}' | // Medium Mathematical Space
+            '\u{3000}' // Ideographic Space
+        )
+    }
+
+    /// Helper function to check if a character is a `LineTerminator` character
+    fn is_line_terminator(ch: char) -> bool {
+        matches!(
+            ch,
+            '\u{000A}' | // <LF>
+            '\u{000D}' | // <CR>
+            '\u{2028}' | // <LS>
+            '\u{2029}' // <PS>
+        )
+    }
+
+    pub(crate) fn escape(_: &JsValue, args: &[JsValue], _: &mut Context) -> JsResult<JsValue> {
+        let arg = args.get_or_undefined(0);
+
+        // 1. If S is not a String, throw a TypeError exception.
+        let Some(string) = arg.as_string() else {
+            return Err(JsNativeError::typ()
+                .with_message("RegExp.escape requires a string argument")
+                .into());
+        };
+
+        // 2. Let escaped be the empty String.
+        let mut escaped = CommonJsStringBuilder::new();
+
+        // 3. Let cpList be StringToCodePoints(S).
+        // 4. For each code point c of cpList, do
+        for (index, c) in string.code_points().enumerate() {
+            let code = c.as_u32();
+
+            // 4.a. If escaped is the empty String and c is matched by either DecimalDigit or AsciiLetter, then
+            if index == 0
+                && let CodePoint::Unicode(ch) = c
+                && (ch.is_ascii_digit() || ch.is_ascii_alphabetic())
+            {
+                // 4.a.ii-v. Escape using \xXX format
+                let escape_seq = format!("\\x{code:02x}");
+                escaped.push(escape_seq.as_str());
+                continue;
+            }
+
+            // 4.b. Else, set escaped to the string-concatenation of escaped and EncodeForRegExpEscape(c).
+            match c {
+                CodePoint::Unicode(ch) => {
+                    // EncodeForRegExpEscape step 1: SyntaxCharacter or U+002F (SOLIDUS)
+                    if matches!(
+                        ch,
+                        '^' | '$'
+                            | '\\'
+                            | '.'
+                            | '*'
+                            | '+'
+                            | '?'
+                            | '('
+                            | ')'
+                            | '['
+                            | ']'
+                            | '{'
+                            | '}'
+                            | '|'
+                            | '/'
+                    ) {
+                        escaped.push('\\');
+                        escaped.push(ch);
+                    }
+                    // Step 2: ControlEscape characters (Table 64)
+                    else if ch == '\x09' {
+                        escaped.push("\\t");
+                    } else if ch == '\x0A' {
+                        escaped.push("\\n");
+                    } else if ch == '\x0B' {
+                        escaped.push("\\v");
+                    } else if ch == '\x0C' {
+                        escaped.push("\\f");
+                    } else if ch == '\x0D' {
+                        escaped.push("\\r");
+                    }
+                    // Step 3-5: otherPunctuators or WhiteSpace or LineTerminator
+                    else if matches!(
+                        ch,
+                        ',' | '-'
+                            | '='
+                            | '<'
+                            | '>'
+                            | '#'
+                            | '&'
+                            | '!'
+                            | '%'
+                            | ':'
+                            | ';'
+                            | '@'
+                            | '~'
+                            | '\''
+                            | '`'
+                            | '"'
+                    ) || Self::is_whitespace(ch)
+                        || Self::is_line_terminator(ch)
+                    {
+                        let code = ch as u32;
+                        if code <= 0xFF {
+                            // Use \xXX format
+                            let escape_seq = format!("\\x{code:02x}");
+                            escaped.push(escape_seq.as_str());
+                        } else {
+                            // Use \uXXXX format
+                            let escape_seq = format!("\\u{code:04x}");
+                            escaped.push(escape_seq.as_str());
+                        }
+                    }
+                    // Step 6: All other Unicode characters
+                    else {
+                        escaped.push(ch);
+                    }
+                }
+                CodePoint::UnpairedSurrogate(surr) => {
+                    // Escape unpaired surrogates using \uXXXX format
+                    let escape_seq = format!("\\u{surr:04x}");
+                    escaped.push(escape_seq.as_str());
+                }
+            }
+        }
+
+        // 5. Return escaped.
+        Ok(JsValue::new(escaped.build()))
     }
 
     /// `RegExp.prototype.test( string )`
