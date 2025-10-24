@@ -112,7 +112,7 @@ fn escape() {
             JsNativeErrorKind::Type,
             "RegExp.escape requires a string argument",
         ),
-    ])
+    ]);
 }
 
 #[test]

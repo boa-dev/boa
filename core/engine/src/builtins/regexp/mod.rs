@@ -784,8 +784,8 @@ impl RegExp {
     ///
     /// [spec]: https://tc39.es/proposal-regex-escaping/#sec-regexp.escape
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/RegExp/escape
-
-    /// Helper function to check if a character is a WhiteSpace character
+    ///
+    /// Helper function to check if a character is a `WhiteSpace` character
     fn is_whitespace(ch: char) -> bool {
         matches!(
             ch,
@@ -805,7 +805,7 @@ impl RegExp {
         )
     }
 
-    /// Helper function to check if a character is a LineTerminator character
+    /// Helper function to check if a character is a `LineTerminator` character
     fn is_line_terminator(ch: char) -> bool {
         matches!(
             ch,
@@ -841,17 +841,16 @@ impl RegExp {
             let code = c.as_u32();
 
             // 4.a. If escaped is the empty String and c is matched by either DecimalDigit or AsciiLetter, then
-            if index == 0 {
-                if let CodePoint::Unicode(ch) = c {
-                    if ch.is_ascii_digit() || ch.is_ascii_alphabetic() {
-                        // 4.a.ii-v. Escape using \xXX format
-                        let escape_seq = format!("\\x{:02x}", code);
-                        for ch in escape_seq.encode_utf16() {
-                            escaped.push(ch);
-                        }
-                        continue;
-                    }
+            if index == 0
+                && let CodePoint::Unicode(ch) = c
+                && (ch.is_ascii_digit() || ch.is_ascii_alphabetic())
+            {
+                // 4.a.ii-v. Escape using \xXX format
+                let escape_seq = format!("\\x{code:02x}");
+                for ch in escape_seq.encode_utf16() {
+                    escaped.push(ch);
                 }
+                continue;
             }
 
             // 4.b. Else, set escaped to the string-concatenation of escaped and EncodeForRegExpEscape(c).
@@ -875,25 +874,25 @@ impl RegExp {
                             | '|'
                             | '/'
                     ) {
-                        escaped.push(b'\\' as u16);
+                        escaped.push(u16::from(b'\\'));
                         escaped.push(ch as u16);
                     }
                     // Step 2: ControlEscape characters (Table 64)
                     else if ch == '\x09' {
-                        escaped.push(b'\\' as u16);
-                        escaped.push(b't' as u16);
+                        escaped.push(u16::from(b'\\'));
+                        escaped.push(u16::from(b't'));
                     } else if ch == '\x0A' {
-                        escaped.push(b'\\' as u16);
-                        escaped.push(b'n' as u16);
+                        escaped.push(u16::from(b'\\'));
+                        escaped.push(u16::from(b'n'));
                     } else if ch == '\x0B' {
-                        escaped.push(b'\\' as u16);
-                        escaped.push(b'v' as u16);
+                        escaped.push(u16::from(b'\\'));
+                        escaped.push(u16::from(b'v'));
                     } else if ch == '\x0C' {
-                        escaped.push(b'\\' as u16);
-                        escaped.push(b'f' as u16);
+                        escaped.push(u16::from(b'\\'));
+                        escaped.push(u16::from(b'f'));
                     } else if ch == '\x0D' {
-                        escaped.push(b'\\' as u16);
-                        escaped.push(b'r' as u16);
+                        escaped.push(u16::from(b'\\'));
+                        escaped.push(u16::from(b'r'));
                     }
                     // Step 3-5: otherPunctuators or WhiteSpace or LineTerminator
                     else if matches!(
@@ -919,13 +918,13 @@ impl RegExp {
                         let code = ch as u32;
                         if code <= 0xFF {
                             // Use \xXX format
-                            let escape_seq = format!("\\x{:02x}", code);
+                            let escape_seq = format!("\\x{code:02x}");
                             for ch in escape_seq.encode_utf16() {
                                 escaped.push(ch);
                             }
                         } else {
                             // Use \uXXXX format
-                            let escape_seq = format!("\\u{:04x}", code);
+                            let escape_seq = format!("\\u{code:04x}");
                             for ch in escape_seq.encode_utf16() {
                                 escaped.push(ch);
                             }
@@ -940,7 +939,7 @@ impl RegExp {
                 }
                 CodePoint::UnpairedSurrogate(surr) => {
                     // Escape unpaired surrogates using \uXXXX format
-                    let escape_seq = format!("\\u{:04x}", surr);
+                    let escape_seq = format!("\\u{surr:04x}");
                     for ch in escape_seq.encode_utf16() {
                         escaped.push(ch);
                     }
