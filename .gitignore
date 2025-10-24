@@ -46,3 +46,7 @@ test-results
 # dhat
 dhat-*.json
 perf.data*
+
+# Nix
+/.envrc
+/.direnv
