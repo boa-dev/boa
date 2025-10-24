@@ -787,7 +787,8 @@ impl RegExp {
 
     /// Helper function to check if a character is a WhiteSpace character
     fn is_whitespace(ch: char) -> bool {
-        matches!(ch,
+        matches!(
+            ch,
             '\u{0009}' | // <TAB>
             '\u{000B}' | // <VT>
             '\u{000C}' | // <FF>
@@ -800,17 +801,18 @@ impl RegExp {
             '\u{200A}' | // Various space separators
             '\u{202F}' | // Narrow No-Break Space
             '\u{205F}' | // Medium Mathematical Space
-            '\u{3000}'   // Ideographic Space
+            '\u{3000}' // Ideographic Space
         )
     }
 
     /// Helper function to check if a character is a LineTerminator character
     fn is_line_terminator(ch: char) -> bool {
-        matches!(ch,
+        matches!(
+            ch,
             '\u{000A}' | // <LF>
             '\u{000D}' | // <CR>
             '\u{2028}' | // <LS>
-            '\u{2029}'   // <PS>
+            '\u{2029}' // <PS>
         )
     }
 
@@ -856,7 +858,23 @@ impl RegExp {
             match c {
                 CodePoint::Unicode(ch) => {
                     // EncodeForRegExpEscape step 1: SyntaxCharacter or U+002F (SOLIDUS)
-                    if matches!(ch, '^' | '$' | '\\' | '.' | '*' | '+' | '?' | '(' | ')' | '[' | ']' | '{' | '}' | '|' | '/') {
+                    if matches!(
+                        ch,
+                        '^' | '$'
+                            | '\\'
+                            | '.'
+                            | '*'
+                            | '+'
+                            | '?'
+                            | '('
+                            | ')'
+                            | '['
+                            | ']'
+                            | '{'
+                            | '}'
+                            | '|'
+                            | '/'
+                    ) {
                         escaped.push(b'\\' as u16);
                         escaped.push(ch as u16);
                     }
@@ -864,27 +882,40 @@ impl RegExp {
                     else if ch == '\x09' {
                         escaped.push(b'\\' as u16);
                         escaped.push(b't' as u16);
-                    }
-                    else if ch == '\x0A' {
+                    } else if ch == '\x0A' {
                         escaped.push(b'\\' as u16);
                         escaped.push(b'n' as u16);
-                    }
-                    else if ch == '\x0B' {
+                    } else if ch == '\x0B' {
                         escaped.push(b'\\' as u16);
                         escaped.push(b'v' as u16);
-                    }
-                    else if ch == '\x0C' {
+                    } else if ch == '\x0C' {
                         escaped.push(b'\\' as u16);
                         escaped.push(b'f' as u16);
-                    }
-                    else if ch == '\x0D' {
+                    } else if ch == '\x0D' {
                         escaped.push(b'\\' as u16);
                         escaped.push(b'r' as u16);
                     }
                     // Step 3-5: otherPunctuators or WhiteSpace or LineTerminator
-                    else if matches!(ch, ',' | '-' | '=' | '<' | '>' | '#' | '&' | '!' | '%' | ':' | ';' | '@' | '~' | '\'' | '`' | '"')
-                        || Self::is_whitespace(ch)
-                        || Self::is_line_terminator(ch) {
+                    else if matches!(
+                        ch,
+                        ',' | '-'
+                            | '='
+                            | '<'
+                            | '>'
+                            | '#'
+                            | '&'
+                            | '!'
+                            | '%'
+                            | ':'
+                            | ';'
+                            | '@'
+                            | '~'
+                            | '\''
+                            | '`'
+                            | '"'
+                    ) || Self::is_whitespace(ch)
+                        || Self::is_line_terminator(ch)
+                    {
                         let code = ch as u32;
                         if code <= 0xFF {
                             // Use \xXX format
@@ -906,7 +937,7 @@ impl RegExp {
                         let encoded = ch.encode_utf16(&mut buf);
                         escaped.extend_from_slice(encoded);
                     }
-                },
+                }
                 CodePoint::UnpairedSurrogate(surr) => {
                     // Escape unpaired surrogates using \uXXXX format
                     let escape_seq = format!("\\u{:04x}", surr);
