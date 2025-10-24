@@ -18,7 +18,7 @@ use crate::{
     object::{CONSTRUCTOR, JsObject, internal_methods::get_prototype_from_constructor},
     property::Attribute,
     realm::Realm,
-    string::{CodePoint, JsStrVariant, StaticJsStrings},
+    string::{CodePoint, CommonJsStringBuilder, JsStrVariant, StaticJsStrings},
     symbol::JsSymbol,
     value::JsValue,
 };
@@ -833,7 +833,7 @@ impl RegExp {
         let string = arg.to_string(context)?;
 
         // 2. Let escaped be the empty String.
-        let mut escaped = Vec::<u16>::new();
+        let mut escaped = CommonJsStringBuilder::new();
 
         // 3. Let cpList be StringToCodePoints(S).
         // 4. For each code point c of cpList, do
@@ -847,9 +847,7 @@ impl RegExp {
             {
                 // 4.a.ii-v. Escape using \xXX format
                 let escape_seq = format!("\\x{code:02x}");
-                for ch in escape_seq.encode_utf16() {
-                    escaped.push(ch);
-                }
+                escaped.push(escape_seq.as_str());
                 continue;
             }
 
@@ -874,25 +872,20 @@ impl RegExp {
                             | '|'
                             | '/'
                     ) {
-                        escaped.push(u16::from(b'\\'));
-                        escaped.push(ch as u16);
+                        escaped.push('\\');
+                        escaped.push(ch);
                     }
                     // Step 2: ControlEscape characters (Table 64)
                     else if ch == '\x09' {
-                        escaped.push(u16::from(b'\\'));
-                        escaped.push(u16::from(b't'));
+                        escaped.push("\\t");
                     } else if ch == '\x0A' {
-                        escaped.push(u16::from(b'\\'));
-                        escaped.push(u16::from(b'n'));
+                        escaped.push("\\n");
                     } else if ch == '\x0B' {
-                        escaped.push(u16::from(b'\\'));
-                        escaped.push(u16::from(b'v'));
+                        escaped.push("\\v");
                     } else if ch == '\x0C' {
-                        escaped.push(u16::from(b'\\'));
-                        escaped.push(u16::from(b'f'));
+                        escaped.push("\\f");
                     } else if ch == '\x0D' {
-                        escaped.push(u16::from(b'\\'));
-                        escaped.push(u16::from(b'r'));
+                        escaped.push("\\r");
                     }
                     // Step 3-5: otherPunctuators or WhiteSpace or LineTerminator
                     else if matches!(
@@ -919,36 +912,28 @@ impl RegExp {
                         if code <= 0xFF {
                             // Use \xXX format
                             let escape_seq = format!("\\x{code:02x}");
-                            for ch in escape_seq.encode_utf16() {
-                                escaped.push(ch);
-                            }
+                            escaped.push(escape_seq.as_str());
                         } else {
                             // Use \uXXXX format
                             let escape_seq = format!("\\u{code:04x}");
-                            for ch in escape_seq.encode_utf16() {
-                                escaped.push(ch);
-                            }
+                            escaped.push(escape_seq.as_str());
                         }
                     }
                     // Step 6: All other Unicode characters
                     else {
-                        let mut buf = [0u16; 2];
-                        let encoded = ch.encode_utf16(&mut buf);
-                        escaped.extend_from_slice(encoded);
+                        escaped.push(ch);
                     }
                 }
                 CodePoint::UnpairedSurrogate(surr) => {
                     // Escape unpaired surrogates using \uXXXX format
                     let escape_seq = format!("\\u{surr:04x}");
-                    for ch in escape_seq.encode_utf16() {
-                        escaped.push(ch);
-                    }
+                    escaped.push(escape_seq.as_str());
                 }
             }
         }
 
         // 5. Return escaped.
-        Ok(JsValue::new(js_string!(&escaped[..])))
+        Ok(JsValue::new(escaped.build()))
     }
 
     /// `RegExp.prototype.test( string )`
