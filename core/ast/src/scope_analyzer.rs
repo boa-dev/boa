@@ -447,7 +447,9 @@ impl<'ast> VisitorMut<'ast> for BindingEscapeAnalyzer<'_> {
             ClassElement::FieldDefinition(field) | ClassElement::StaticFieldDefinition(field) => {
                 self.visit_property_name_mut(&mut field.name)?;
                 if let Some(e) = &mut field.initializer {
+                    std::mem::swap(&mut self.scope, &mut field.scope);
                     self.visit_expression_mut(e)?;
+                    std::mem::swap(&mut self.scope, &mut field.scope);
                 }
                 ControlFlow::Continue(())
             }
