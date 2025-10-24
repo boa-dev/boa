@@ -784,6 +784,36 @@ impl RegExp {
     ///
     /// [spec]: https://tc39.es/proposal-regex-escaping/#sec-regexp.escape
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/RegExp/escape
+
+    /// Helper function to check if a character is a WhiteSpace character
+    fn is_whitespace(ch: char) -> bool {
+        matches!(ch,
+            '\u{0009}' | // <TAB>
+            '\u{000B}' | // <VT>
+            '\u{000C}' | // <FF>
+            '\u{0020}' | // <SP>
+            '\u{00A0}' | // <NBSP>
+            '\u{FEFF}' | // <ZWNBSP>
+            '\u{1680}' | // Ogham Space Mark
+            '\u{2000}' | '\u{2001}' | '\u{2002}' | '\u{2003}' | '\u{2004}' |
+            '\u{2005}' | '\u{2006}' | '\u{2007}' | '\u{2008}' | '\u{2009}' |
+            '\u{200A}' | // Various space separators
+            '\u{202F}' | // Narrow No-Break Space
+            '\u{205F}' | // Medium Mathematical Space
+            '\u{3000}'   // Ideographic Space
+        )
+    }
+
+    /// Helper function to check if a character is a LineTerminator character
+    fn is_line_terminator(ch: char) -> bool {
+        matches!(ch,
+            '\u{000A}' | // <LF>
+            '\u{000D}' | // <CR>
+            '\u{2028}' | // <LS>
+            '\u{2029}'   // <PS>
+        )
+    }
+
     pub(crate) fn escape(
         _: &JsValue,
         args: &[JsValue],
@@ -824,52 +854,65 @@ impl RegExp {
 
             // 4.b. Else, set escaped to the string-concatenation of escaped and EncodeForRegExpEscape(c).
             match c {
-                CodePoint::Unicode(ch) => match ch {
+                CodePoint::Unicode(ch) => {
                     // EncodeForRegExpEscape step 1: SyntaxCharacter or U+002F (SOLIDUS)
-                    '^' | '$' | '\\' | '.' | '*' | '+' | '?' | '(' | ')' | '[' | ']' | '{' | '}' | '|' | '/' => {
+                    if matches!(ch, '^' | '$' | '\\' | '.' | '*' | '+' | '?' | '(' | ')' | '[' | ']' | '{' | '}' | '|' | '/') {
                         escaped.push(b'\\' as u16);
                         escaped.push(ch as u16);
-                    },
-
-                    // Step 2: ControlEscape characters (Table 63)
-                    '\x09' => {
+                    }
+                    // Step 2: ControlEscape characters (Table 64)
+                    else if ch == '\x09' {
                         escaped.push(b'\\' as u16);
                         escaped.push(b't' as u16);
-                    },
-                    '\x0A' => {
+                    }
+                    else if ch == '\x0A' {
                         escaped.push(b'\\' as u16);
                         escaped.push(b'n' as u16);
-                    },
-                    '\x0B' => {
+                    }
+                    else if ch == '\x0B' {
                         escaped.push(b'\\' as u16);
                         escaped.push(b'v' as u16);
-                    },
-                    '\x0C' => {
+                    }
+                    else if ch == '\x0C' {
                         escaped.push(b'\\' as u16);
                         escaped.push(b'f' as u16);
-                    },
-                    '\x0D' => {
+                    }
+                    else if ch == '\x0D' {
                         escaped.push(b'\\' as u16);
                         escaped.push(b'r' as u16);
-                    },
-
-                    // Step 3-5: otherPunctuators, whitespace, line terminators
-                    ',' | '-' | '=' | '<' | '>' | '#' | '&' | '!' | '%' | ':' | ';' | '@' | '~' | '\'' | '`' | '"' | ' ' => {
-                        let escape_seq = format!("\\x{:02x}", ch as u32);
-                        for ch in escape_seq.encode_utf16() {
-                            escaped.push(ch);
+                    }
+                    // Step 3-5: otherPunctuators or WhiteSpace or LineTerminator
+                    else if matches!(ch, ',' | '-' | '=' | '<' | '>' | '#' | '&' | '!' | '%' | ':' | ';' | '@' | '~' | '\'' | '`' | '"')
+                        || Self::is_whitespace(ch)
+                        || Self::is_line_terminator(ch) {
+                        let code = ch as u32;
+                        if code <= 0xFF {
+                            // Use \xXX format
+                            let escape_seq = format!("\\x{:02x}", code);
+                            for ch in escape_seq.encode_utf16() {
+                                escaped.push(ch);
+                            }
+                        } else {
+                            // Use \uXXXX format
+                            let escape_seq = format!("\\u{:04x}", code);
+                            for ch in escape_seq.encode_utf16() {
+                                escaped.push(ch);
+                            }
                         }
-                    },
-
+                    }
                     // Step 6: All other Unicode characters
-                    _ => {
+                    else {
                         let mut buf = [0u16; 2];
                         let encoded = ch.encode_utf16(&mut buf);
                         escaped.extend_from_slice(encoded);
-                    },
+                    }
                 },
                 CodePoint::UnpairedSurrogate(surr) => {
-                    escaped.push(surr);
+                    // Escape unpaired surrogates using \uXXXX format
+                    let escape_seq = format!("\\u{:04x}", surr);
+                    for ch in escape_seq.encode_utf16() {
+                        escaped.push(ch);
+                    }
                 }
             }
         }
