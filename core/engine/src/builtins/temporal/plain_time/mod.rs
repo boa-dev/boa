@@ -1,7 +1,5 @@
 //! Boa's implementation of the ECMAScript `Temporal.PlainTime` built-in object.
 
-use std::ops::RangeInclusive;
-
 use super::{
     PlainDateTime, ZonedDateTime, create_temporal_duration,
     options::{TemporalUnitGroup, get_difference_settings, get_temporal_unit},
@@ -964,20 +962,12 @@ pub struct JsPartialTime {
 
 impl JsPartialTime {
     fn as_temporal_partial_time(&self, overflow: Option<Overflow>) -> JsResult<PartialTime> {
-        fn check(
-            value: Option<FiniteF64>,
-            typ: &'static str,
-            range: RangeInclusive<u16>,
-        ) -> JsResult<()> {
+        fn check(value: Option<FiniteF64>, typ: &'static str, max: u16) -> JsResult<()> {
             if let Some(value) = value
                 && value.as_inner().is_sign_negative()
             {
                 return Err(JsNativeError::range()
-                    .with_message(format!(
-                        "time value '{typ}' not in {}..{}: {value}",
-                        range.start(),
-                        range.end()
-                    ))
+                    .with_message(format!("time value '{typ}' not in 0..{max}: {value}"))
                     .into());
             }
             Ok(())
@@ -994,12 +984,12 @@ impl JsPartialTime {
         }
 
         if overflow == Some(Overflow::Reject) {
-            check(self.hour, "hour", 0..=23)?;
-            check(self.minute, "minute", 0..=59)?;
-            check(self.second, "second", 0..=59)?;
-            check(self.millisecond, "millisecond", 0..=999)?;
-            check(self.microsecond, "microsecond", 0..=999)?;
-            check(self.nanosecond, "nanosecond", 0..=999)?;
+            check(self.hour, "hour", 23)?;
+            check(self.minute, "minute", 59)?;
+            check(self.second, "second", 59)?;
+            check(self.millisecond, "millisecond", 999)?;
+            check(self.microsecond, "microsecond", 999)?;
+            check(self.nanosecond, "nanosecond", 999)?;
         }
 
         Ok(PartialTime::new()
