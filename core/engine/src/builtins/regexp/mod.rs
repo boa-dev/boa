@@ -816,21 +816,15 @@ impl RegExp {
         )
     }
 
-    pub(crate) fn escape(
-        _: &JsValue,
-        args: &[JsValue],
-        context: &mut Context,
-    ) -> JsResult<JsValue> {
+    pub(crate) fn escape(_: &JsValue, args: &[JsValue], _: &mut Context) -> JsResult<JsValue> {
         let arg = args.get_or_undefined(0);
 
         // 1. If S is not a String, throw a TypeError exception.
-        if !arg.is_string() {
+        let Some(string) = arg.as_string() else {
             return Err(JsNativeError::typ()
                 .with_message("RegExp.escape requires a string argument")
                 .into());
-        }
-
-        let string = arg.to_string(context)?;
+        };
 
         // 2. Let escaped be the empty String.
         let mut escaped = CommonJsStringBuilder::new();
