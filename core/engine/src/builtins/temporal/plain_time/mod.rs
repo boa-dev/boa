@@ -31,6 +31,9 @@ use temporal_rs::{
     primitive::FiniteF64,
 };
 
+#[cfg(test)]
+mod tests;
+
 /// The `Temporal.PlainTime` built-in implementation.
 ///
 /// More information:
