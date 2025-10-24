@@ -517,7 +517,9 @@ impl AsyncGenerator {
         );
 
         let promise = match promise_completion {
-            Ok(value) => value,
+            Ok(value) => value
+                .downcast::<Promise>()
+                .expect("%Promise% constructor must always return a Promise object"),
             // 8. If promiseCompletion is an abrupt completion, then
             Err(e) => {
                 // a. Perform AsyncGeneratorCompleteStep(generator, promiseCompletion, true).

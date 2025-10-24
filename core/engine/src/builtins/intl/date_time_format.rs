@@ -183,7 +183,7 @@ pub(crate) fn to_date_time_options(
         context.root_shape(),
         options,
         OrdinaryObject,
-    );
+    ).upcast();
 
     // 3. Let needDefaults be true.
     let mut need_defaults = true;

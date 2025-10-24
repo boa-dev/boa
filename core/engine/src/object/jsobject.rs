@@ -190,7 +190,7 @@ impl JsObject {
         root_shape: &RootShape,
         prototype: O,
         data: T,
-    ) -> Self {
+    ) -> JsObject<T> {
         let internal_methods = data.internal_methods();
         let inner = Gc::new(VTableObject {
             object: GcRefCell::new(Object {
@@ -205,7 +205,7 @@ impl JsObject {
             vtable: internal_methods,
         });
 
-        JsObject { inner }.upcast()
+        JsObject { inner }
     }
 
     /// Downcasts the object's inner data if the object is of type `T`.

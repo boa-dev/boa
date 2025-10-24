@@ -44,7 +44,7 @@ impl Segments {
             context.root_shape(),
             context.intrinsics().objects().segments_prototype(),
             Self { segmenter, string },
-        )
+        ).upcast()
     }
 
     /// [`%SegmentsPrototype%.containing ( index )`][spec]
