@@ -616,7 +616,10 @@ impl Duration {
         // 4. Let relativeToRecord be ? GetTemporalRelativeToOption(resolvedOptions).
         let relative_to = get_relative_to_option(&options, context)?;
 
-        Ok((one.compare_with_provider(&two, relative_to, context.tz_provider())? as i8).into())
+        Ok(
+            (one.compare_with_provider(&two, relative_to, context.timezone_provider())? as i8)
+                .into(),
+        )
     }
 }
 
@@ -962,10 +965,11 @@ impl Duration {
         // NOTE: execute step 21 earlier before initial values are shadowed.
         // 21. If smallestUnitPresent is false and largestUnitPresent is false, then
 
-        let rounded_duration =
-            duration
-                .inner
-                .round_with_provider(options, relative_to, context.tz_provider())?;
+        let rounded_duration = duration.inner.round_with_provider(
+            options,
+            relative_to,
+            context.timezone_provider(),
+        )?;
         create_temporal_duration(rounded_duration, None, context).map(Into::into)
     }
 
@@ -1042,7 +1046,7 @@ impl Duration {
 
         Ok(duration
             .inner
-            .total_with_provider(unit, relative_to, context.tz_provider())?
+            .total_with_provider(unit, relative_to, context.timezone_provider())?
             .as_inner()
             .into())
     }
