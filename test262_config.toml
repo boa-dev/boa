@@ -17,7 +17,6 @@ features = [
     "json-modules",
     "Intl.DurationFormat",
     "regexp-duplicate-named-groups",
-    "RegExp.escape",
     "iterator-helpers",
     "explicit-resource-management",
 
