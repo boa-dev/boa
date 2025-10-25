@@ -225,7 +225,7 @@ impl BuiltInConstructor for Set {
             context.root_shape(),
             prototype,
             OrderedSet::default(),
-        );
+        ).upcast();
 
         // 4. If iterable is either undefined or null, return set.
         let iterable = args.get_or_undefined(0);
@@ -269,7 +269,7 @@ impl Set {
             context.root_shape(),
             prototype,
             OrderedSet::new(),
-        )
+        ).upcast()
     }
 
     /// Utility for constructing `Set` objects from an iterator of `JsValue`'s.

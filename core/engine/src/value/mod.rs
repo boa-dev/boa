@@ -262,16 +262,16 @@ impl JsValue {
     /// Returns the value as an object if the value is a promise, otherwise `None`.
     #[inline]
     #[must_use]
-    pub(crate) fn as_promise_object(&self) -> Option<JsObject> {
-        self.as_object().filter(|obj| obj.is::<Promise>())
+    pub(crate) fn as_promise_object(&self) -> Option<JsObject<Promise>> {
+        self.as_object()
+            .and_then(|obj| obj.downcast::<Promise>().ok())
     }
 
     /// Returns the value as a promise if the value is a promise, otherwise `None`.
     #[inline]
     #[must_use]
     pub fn as_promise(&self) -> Option<JsPromise> {
-        self.as_promise_object()
-            .and_then(|o| JsPromise::from_object(o).ok())
+        self.as_promise_object().map(JsPromise::from)
     }
 
     /// Returns true if the value is a regular expression object.

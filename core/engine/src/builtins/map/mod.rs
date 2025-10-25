@@ -148,7 +148,7 @@ impl BuiltInConstructor for Map {
             context.root_shape(),
             prototype,
             <OrderedMap<JsValue>>::new(),
-        );
+        ).upcast();
 
         // 4. If iterable is either undefined or null, return map.
         let iterable = match args.get_or_undefined(0) {

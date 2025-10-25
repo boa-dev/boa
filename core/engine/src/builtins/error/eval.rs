@@ -84,7 +84,7 @@ impl BuiltInConstructor for EvalError {
             context.root_shape(),
             prototype,
             Error::with_caller_position(ErrorKind::Eval, context),
-        );
+        ).upcast();
 
         // 3. If message is not undefined, then
         let message = args.get_or_undefined(0);

@@ -100,7 +100,7 @@ impl BuiltInConstructor for WeakMap {
             context.root_shape(),
             prototype,
             NativeWeakMap::new(),
-        );
+        ).upcast();
 
         // 4. If iterable is either undefined or null, return map.
         let iterable = args.get_or_undefined(0);

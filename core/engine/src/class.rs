@@ -140,7 +140,7 @@ pub trait Class: NativeObject + Sized {
     /// stored inside the native data.
     #[allow(unused_variables)] // Saves work when IDEs autocomplete trait impls.
     fn object_constructor(
-        instance: &JsObject,
+        instance: &JsObject<Self>,
         args: &[JsValue],
         context: &mut Context,
     ) -> JsResult<()> {
@@ -201,7 +201,7 @@ pub trait Class: NativeObject + Sized {
 
         Self::object_constructor(&object, args, context)?;
 
-        Ok(object)
+        Ok(object.upcast())
     }
 
     /// Constructs an instance of this class from its inner native data.
@@ -233,7 +233,7 @@ pub trait Class: NativeObject + Sized {
 
         Self::object_constructor(&object, &[], context)?;
 
-        Ok(object)
+        Ok(object.upcast())
     }
 }
 

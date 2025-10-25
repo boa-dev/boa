@@ -51,7 +51,7 @@ impl Generator {
             });
 
         let generator = if r#async {
-            JsObject::from_proto_and_data_with_shared_shape(
+            let generator = JsObject::from_proto_and_data_with_shared_shape(
                 context.root_shape(),
                 proto,
                 AsyncGenerator {
@@ -59,37 +59,25 @@ impl Generator {
                     context: None,
                     queue: VecDeque::new(),
                 },
-            )
+            );
+            let gen_ctx = GeneratorContext::from_current(context, Some(generator.clone().upcast()));
+            generator.borrow_mut().data_mut().context = Some(gen_ctx);
+            generator.upcast()
         } else {
-            JsObject::from_proto_and_data_with_shared_shape(
+            let generator = JsObject::from_proto_and_data_with_shared_shape(
                 context.root_shape(),
                 proto,
                 crate::builtins::generator::Generator {
                     state: GeneratorState::Completed,
                 },
-            )
+            );
+
+            let gen_ctx = GeneratorContext::from_current(context, None);
+
+            generator.borrow_mut().data_mut().state =
+                GeneratorState::SuspendedStart { context: gen_ctx };
+            generator.upcast()
         };
-
-        if r#async {
-            let generator_context =
-                GeneratorContext::from_current(context, Some(generator.clone()));
-
-            let mut r#gen = generator
-                .downcast_mut::<AsyncGenerator>()
-                .expect("must be object here");
-
-            r#gen.context = Some(generator_context);
-        } else {
-            let generator_context = GeneratorContext::from_current(context, None);
-
-            let mut r#gen = generator
-                .downcast_mut::<crate::builtins::generator::Generator>()
-                .expect("must be object here");
-
-            r#gen.state = GeneratorState::SuspendedStart {
-                context: generator_context,
-            };
-        }
 
         context.vm.set_return_value(generator.into());
         context.handle_yield()

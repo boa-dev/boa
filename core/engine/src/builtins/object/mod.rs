@@ -462,7 +462,7 @@ impl OrdinaryObject {
                     context.root_shape(),
                     prototype.as_object(),
                     OrdinaryObject,
-                )
+                ).upcast()
             }
             _ => {
                 return Err(JsNativeError::typ()

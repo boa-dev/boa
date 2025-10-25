@@ -510,7 +510,8 @@ impl<'ctx> ObjectInitializer<'ctx> {
             context.root_shape(),
             context.intrinsics().constructors().object().prototype(),
             data,
-        );
+        )
+        .upcast();
         Self { context, object }
     }
 
@@ -521,7 +522,8 @@ impl<'ctx> ObjectInitializer<'ctx> {
         context: &'ctx mut Context,
     ) -> Self {
         let object =
-            JsObject::from_proto_and_data_with_shared_shape(context.root_shape(), proto, data);
+            JsObject::from_proto_and_data_with_shared_shape(context.root_shape(), proto, data)
+                .upcast();
         Self { context, object }
     }
 

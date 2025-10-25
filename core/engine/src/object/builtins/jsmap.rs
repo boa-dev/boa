@@ -199,6 +199,7 @@ impl JsMap {
             prototype,
             <OrderedMap<JsValue>>::new(),
         )
+        .upcast()
     }
 
     /// Returns a new [`JsMapIterator`] object that yields the `[key, value]` pairs within the [`JsMap`] in insertion order.

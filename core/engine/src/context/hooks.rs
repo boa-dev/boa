@@ -1,6 +1,6 @@
 use crate::{
     Context, JsResult, JsString, JsValue,
-    builtins::promise::OperationType,
+    builtins::{Promise, promise::OperationType},
     context::intrinsics::Intrinsics,
     job::JobCallback,
     object::{JsFunction, JsObject},
@@ -105,7 +105,7 @@ pub trait HostHooks {
     /// [spec]: https://tc39.es/ecma262/#sec-host-promise-rejection-tracker
     fn promise_rejection_tracker(
         &self,
-        _promise: &JsObject,
+        _promise: &JsObject<Promise>,
         _operation: OperationType,
         _context: &mut Context,
     ) {

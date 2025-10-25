@@ -109,7 +109,7 @@ use std::{future::Future, pin::Pin, task};
 /// [promise]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Promise
 #[derive(Debug, Clone, Trace, Finalize)]
 pub struct JsPromise {
-    inner: JsObject,
+    inner: JsObject<Promise>,
 }
 
 impl JsPromise {
@@ -223,10 +223,8 @@ impl JsPromise {
             Promise::new(),
         );
         let resolvers = Promise::create_resolving_functions(&promise, context);
-        let promise =
-            Self::from_object(promise).expect("this shouldn't fail with a newly created promise");
 
-        (promise, resolvers)
+        (promise.into(), resolvers)
     }
 
     /// Wraps an existing object with the `JsPromise` interface, returning `Err` if the object
@@ -263,12 +261,12 @@ impl JsPromise {
     /// ```
     #[inline]
     pub fn from_object(object: JsObject) -> JsResult<Self> {
-        if !object.is::<Promise>() {
+        let Ok(inner) = object.downcast::<Promise>() else {
             return Err(JsNativeError::typ()
                 .with_message("`object` is not a Promise")
                 .into());
-        }
-        Ok(Self { inner: object })
+        };
+        Ok(Self { inner })
     }
 
     /// Creates a new `JsPromise` from a [`Future`]-like.
@@ -467,11 +465,7 @@ impl JsPromise {
     #[inline]
     #[must_use]
     pub fn state(&self) -> PromiseState {
-        self.inner
-            .downcast_ref::<Promise>()
-            .expect("objects cannot change type after creation")
-            .state()
-            .clone()
+        self.inner.borrow().data().state().clone()
     }
 
     /// Schedules callback functions to run when the promise settles.
@@ -1325,10 +1319,16 @@ impl JsPromise {
     }
 }
 
+impl From<JsObject<Promise>> for JsPromise {
+    fn from(value: JsObject<Promise>) -> Self {
+        Self { inner: value }
+    }
+}
+
 impl From<JsPromise> for JsObject {
     #[inline]
     fn from(o: JsPromise) -> Self {
-        o.inner.clone()
+        o.inner.clone().upcast()
     }
 }
 
@@ -1340,7 +1340,7 @@ impl From<JsPromise> for JsValue {
 }
 
 impl std::ops::Deref for JsPromise {
-    type Target = JsObject;
+    type Target = JsObject<Promise>;
 
     #[inline]
     fn deref(&self) -> &Self::Target {
