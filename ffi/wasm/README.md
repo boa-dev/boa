@@ -26,37 +26,37 @@ yarn add @boa-dev/boa_wasm
 ### Browser
 
 ```javascript
-import init, { evaluate } from '@boa-dev/boa_wasm';
+import init, { evaluate } from "@boa-dev/boa_wasm";
 
 // Initialize the WASM module
 await init();
 
 // Evaluate JavaScript code
 try {
-  const result = evaluate('1 + 1');
+  const result = evaluate("1 + 1");
   console.log(result); // "2"
 } catch (error) {
-  console.error('Evaluation error:', error);
+  console.error("Evaluation error:", error);
 }
 ```
 
 ### Node.js
 
 ```javascript
-const { evaluate } = require('@boa-dev/boa_wasm');
+const { evaluate } = require("@boa-dev/boa_wasm");
 
 try {
-  const result = evaluate('1 + 1');
+  const result = evaluate("1 + 1");
   console.log(result); // "2"
 } catch (error) {
-  console.error('Evaluation error:', error);
+  console.error("Evaluation error:", error);
 }
 ```
 
 ### Advanced Example
 
 ```javascript
-import init, { evaluate } from '@boa-dev/boa_wasm';
+import init, { evaluate } from "@boa-dev/boa_wasm";
 
 await init();
 
@@ -80,17 +80,21 @@ console.log(result); // "55"
 Evaluates the given ECMAScript code and returns the result as a string.
 
 **Parameters:**
+
 - `src` - A string containing the JavaScript code to evaluate
 
 **Returns:**
+
 - A string representation of the evaluation result
 
 **Throws:**
+
 - A `JsValue` error if the execution throws an exception
 
 ## Features
 
 Boa's WASM build includes:
+
 - **Annex B**: Legacy ECMAScript features
 - **Internationalization**: Full Intl API support
 - **Experimental features**: Latest ECMAScript proposals
