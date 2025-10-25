@@ -225,7 +225,7 @@ fn global_binding<B: BuiltInObject>(context: &mut Context) -> JsResult<()> {
 ///    2. Return key.
 ///
 /// [spec]: https://tc39.es/ecma262/multipage/keyed-collections.html#sec-canonicalizekeyedcollectionkey
-fn canonicalize_keyed_collection_value(value: JsValue) -> JsValue {
+pub(crate) fn canonicalize_keyed_collection_key(value: JsValue) -> JsValue {
     match value.as_number() {
         Some(n) if n.is_zero() => JsValue::new(0),
         _ => value,

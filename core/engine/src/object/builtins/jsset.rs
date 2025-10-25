@@ -5,7 +5,10 @@ use boa_gc::{Finalize, Trace};
 
 use crate::{
     Context, JsResult, JsValue,
-    builtins::{Set, iterable::IteratorHint, set::ordered_set::OrderedSet},
+    builtins::{
+        Set, canonicalize_keyed_collection_key, iterable::IteratorHint,
+        set::ordered_set::OrderedSet,
+    },
     error::JsNativeError,
     object::{JsFunction, JsObject, JsSetIterator},
     value::TryFromJs,
@@ -14,7 +17,7 @@ use crate::{
 /// `JsSet` provides a wrapper for Boa's implementation of the ECMAScript `Set` object.
 #[derive(Debug, Clone, Trace, Finalize)]
 pub struct JsSet {
-    inner: JsObject,
+    inner: JsObject<OrderedSet>,
 }
 
 impl JsSet {
@@ -24,17 +27,22 @@ impl JsSet {
     /// similar to Rust initialization.
     #[inline]
     pub fn new(context: &mut Context) -> Self {
-        let inner = Set::set_create(None, context);
-
-        Self { inner }
+        Self {
+            inner: JsObject::from_proto_and_data_with_shared_shape(
+                context.root_shape(),
+                context.intrinsics().constructors().set().prototype(),
+                OrderedSet::new(),
+            ),
+        }
     }
 
     /// Returns the size of the `Set` as an integer.
     ///
     /// Same as JavaScript's `set.size`.
     #[inline]
-    pub fn size(&self) -> JsResult<usize> {
-        Set::get_size(&self.inner.clone().into())
+    #[must_use]
+    pub fn size(&self) -> usize {
+        self.inner.borrow().data().len()
     }
 
     /// Appends value to the Set object.
@@ -58,12 +66,11 @@ impl JsSet {
     }
 
     /// Removes all elements from the Set object.
-    /// Returns `Undefined`.
     ///
     /// Same as JavaScript's `set.clear()`.
     #[inline]
-    pub fn clear(&self, context: &mut Context) -> JsResult<JsValue> {
-        Set::clear(&self.inner.clone().into(), &[JsValue::null()], context)
+    pub fn clear(&self) {
+        self.inner.borrow_mut().data_mut().clear();
     }
 
     /// Removes the element associated to the value.
@@ -71,30 +78,27 @@ impl JsSet {
     /// successfully removed or not.
     ///
     /// Same as JavaScript's `set.delete(value)`.
-    pub fn delete<T>(&self, value: T, context: &mut Context) -> JsResult<bool>
+    pub fn delete<T>(&self, value: T) -> bool
     where
         T: Into<JsValue>,
     {
-        // TODO: Make `delete` return a native `bool`
-        match Set::delete(&self.inner.clone().into(), &[value.into()], context)?.as_boolean() {
-            Some(bool) => Ok(bool),
-            _ => unreachable!("`delete` must always return a bool"),
-        }
+        self.borrow_mut()
+            .data_mut()
+            .delete(&canonicalize_keyed_collection_key(value.into()))
     }
 
     /// Returns a boolean asserting whether an element is present
     /// with the given value in the Set object or not.
     ///
     /// Same as JavaScript's `set.has(value)`.
-    pub fn has<T>(&self, value: T, context: &mut Context) -> JsResult<bool>
+    #[must_use]
+    pub fn has<T>(&self, value: T) -> bool
     where
         T: Into<JsValue>,
     {
-        // TODO: Make `has` return a native `bool`
-        match Set::has(&self.inner.clone().into(), &[value.into()], context)?.as_boolean() {
-            Some(bool) => Ok(bool),
-            _ => unreachable!("`has` must always return a bool"),
-        }
+        self.borrow()
+            .data()
+            .contains(&canonicalize_keyed_collection_key(value.into()))
     }
 
     /// Returns a new iterator object that yields the values
@@ -151,16 +155,10 @@ impl JsSet {
         Set::for_each_native(&this, f)
     }
 
-    /// Utility: Creates `JsSet` from `JsObject`, if not a Set throw `TypeError`.
+    /// Utility: Creates `JsSet` from `JsObject`, otherwise returns the original object as an `Err`.
     #[inline]
-    pub fn from_object(object: JsObject) -> JsResult<Self> {
-        if object.is::<OrderedSet>() {
-            Ok(Self { inner: object })
-        } else {
-            Err(JsNativeError::typ()
-                .with_message("Object is not a Set")
-                .into())
-        }
+    pub fn from_object(object: JsObject) -> Result<Self, JsObject> {
+        object.downcast::<OrderedSet>().map(|o| Self { inner: o })
     }
 
     /// Utility: Creates a `JsSet` from a `<IntoIterator<Item = JsValue>` convertible object.
@@ -168,15 +166,37 @@ impl JsSet {
     where
         I: IntoIterator<Item = JsValue>,
     {
-        let inner = Set::create_set_from_list(elements, context);
-        Self { inner }
+        let elements = elements.into_iter();
+
+        // Create empty Set
+        let mut set = OrderedSet::with_capacity(elements.size_hint().0);
+
+        // For each element e of elements, do
+        for elem in elements {
+            let elem = canonicalize_keyed_collection_key(elem);
+            set.add(elem);
+        }
+
+        Self {
+            inner: JsObject::from_proto_and_data_with_shared_shape(
+                context.root_shape(),
+                context.intrinsics().constructors().set().prototype(),
+                set,
+            ),
+        }
+    }
+}
+
+impl From<JsObject<OrderedSet>> for JsSet {
+    fn from(value: JsObject<OrderedSet>) -> Self {
+        Self { inner: value }
     }
 }
 
 impl From<JsSet> for JsObject {
     #[inline]
     fn from(o: JsSet) -> Self {
-        o.inner.clone()
+        o.inner.clone().upcast()
     }
 }
 
@@ -188,7 +208,7 @@ impl From<JsSet> for JsValue {
 }
 
 impl Deref for JsSet {
-    type Target = JsObject;
+    type Target = JsObject<OrderedSet>;
     #[inline]
     fn deref(&self) -> &Self::Target {
         &self.inner
@@ -197,8 +217,10 @@ impl Deref for JsSet {
 
 impl TryFromJs for JsSet {
     fn try_from_js(value: &JsValue, _context: &mut Context) -> JsResult<Self> {
-        if let Some(o) = value.as_object() {
-            Self::from_object(o.clone())
+        if let Some(o) = value.as_object()
+            && let Ok(set) = Self::from_object(o.clone())
+        {
+            Ok(set)
         } else {
             Err(JsNativeError::typ()
                 .with_message("value is not a Set object")
