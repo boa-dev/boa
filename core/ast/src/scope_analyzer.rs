@@ -447,7 +447,9 @@ impl<'ast> VisitorMut<'ast> for BindingEscapeAnalyzer<'_> {
             ClassElement::FieldDefinition(field) | ClassElement::StaticFieldDefinition(field) => {
                 self.visit_property_name_mut(&mut field.name)?;
                 if let Some(e) = &mut field.initializer {
+                    std::mem::swap(&mut self.scope, &mut field.scope);
                     self.visit_expression_mut(e)?;
+                    std::mem::swap(&mut self.scope, &mut field.scope);
                 }
                 ControlFlow::Continue(())
             }
@@ -1396,7 +1398,15 @@ impl<'ast> VisitorMut<'ast> for ScopeIndexVisitor {
             self.visit_expression_mut(super_ref)?;
         }
         if let Some(constructor) = &mut node.constructor {
-            self.visit_function_expression_mut(constructor)?;
+            let node = constructor;
+            self.visit_function_like(
+                &mut node.body,
+                &mut node.parameters,
+                &mut node.scopes,
+                &mut node.name_scope,
+                false,
+                true,
+            )?;
         }
         for element in &mut *node.elements {
             self.visit_class_element_mut(element)?;
@@ -1636,7 +1646,7 @@ impl ScopeIndexVisitor {
         scopes: &mut FunctionScopes,
         name_scope: &mut Option<Scope>,
         arrow: bool,
-        contains_direct_eval: bool,
+        force_function_scope: bool,
     ) -> ControlFlow<()> {
         let index = self.index;
         if let Some(scope) = name_scope {
@@ -1646,7 +1656,7 @@ impl ScopeIndexVisitor {
             scope.set_index(self.index);
         }
 
-        if contains_direct_eval || !scopes.function_scope().all_bindings_local() {
+        if force_function_scope || !scopes.function_scope().all_bindings_local() {
             scopes.requires_function_scope = true;
             self.index += 1;
         } else if !arrow {
