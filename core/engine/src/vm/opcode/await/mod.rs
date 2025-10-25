@@ -34,7 +34,9 @@ impl Await {
             value.clone(),
             context,
         ) {
-            Ok(promise) => promise,
+            Ok(promise) => promise
+                .downcast::<Promise>()
+                .expect("%Promise% constructor must return a `Promise` object"),
             Err(err) => return context.handle_error(err),
         };
 

@@ -49,14 +49,14 @@
 //!     // This is also called on instance construction, but it receives the object wrapping the
 //!     // native data as its `instance` argument.
 //!     fn object_constructor(
-//!         instance: &JsObject,
+//!         instance: &JsObject<Self>,
 //!         args: &[JsValue],
 //!         context: &mut Context,
 //!     ) -> JsResult<()> {
 //!         let age = args.get_or_undefined(1).to_number(context)?;
 //!
 //!         // Roughly equivalent to `this.age = Number(age)`.
-//!         instance.set(js_string!("age"), age, true, context)?;
+//!         instance.clone().upcast().set(js_string!("age"), age, true, context)?;
 //!
 //!         Ok(())
 //!     }
@@ -140,7 +140,7 @@ pub trait Class: NativeObject + Sized {
     /// stored inside the native data.
     #[allow(unused_variables)] // Saves work when IDEs autocomplete trait impls.
     fn object_constructor(
-        instance: &JsObject,
+        instance: &JsObject<Self>,
         args: &[JsValue],
         context: &mut Context,
     ) -> JsResult<()> {
@@ -201,7 +201,7 @@ pub trait Class: NativeObject + Sized {
 
         Self::object_constructor(&object, args, context)?;
 
-        Ok(object)
+        Ok(object.upcast())
     }
 
     /// Constructs an instance of this class from its inner native data.
@@ -233,7 +233,7 @@ pub trait Class: NativeObject + Sized {
 
         Self::object_constructor(&object, &[], context)?;
 
-        Ok(object)
+        Ok(object.upcast())
     }
 }
 

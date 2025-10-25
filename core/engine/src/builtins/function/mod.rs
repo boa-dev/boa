@@ -1114,7 +1114,8 @@ fn function_construct(
             context.root_shape(),
             prototype,
             OrdinaryObject,
-        );
+        )
+        .upcast();
 
         this.initialize_instance_elements(this_function_object, context)?;
 

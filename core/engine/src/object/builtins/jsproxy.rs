@@ -529,7 +529,8 @@ impl JsProxyBuilder {
             context.root_shape(),
             context.intrinsics().constructors().object().prototype(),
             Proxy::new(self.target, handler),
-        );
+        )
+        .upcast();
 
         JsProxy { inner: proxy }
     }

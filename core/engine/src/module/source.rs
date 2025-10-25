@@ -1322,6 +1322,11 @@ impl SourceTextModule {
             context,
         )
         .expect("cannot fail for the %Promise% intrinsic");
+        let promise = capability
+            .promise
+            .clone()
+            .downcast::<Promise>()
+            .expect("%Promise% constructor must always return a `Promise` object");
 
         // 4. Let fulfilledClosure be a new Abstract Closure with no parameters that captures module and performs the following steps when called:
         // 5. Let onFulfilled be CreateBuiltinFunction(fulfilledClosure, 0, "", « »).
@@ -1358,7 +1363,7 @@ impl SourceTextModule {
 
         // 8. Perform PerformPromiseThen(capability.[[Promise]], onFulfilled, onRejected).
         Promise::perform_promise_then(
-            capability.promise(),
+            &promise,
             Some(on_fulfilled),
             Some(on_rejected),
             None,

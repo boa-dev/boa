@@ -99,6 +99,7 @@ impl SegmentIterator {
                 next_segment_index: 0,
             },
         )
+        .upcast()
     }
     /// [`%SegmentIteratorPrototype%.next ( )`][spec]
     ///

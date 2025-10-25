@@ -463,6 +463,7 @@ impl OrdinaryObject {
                     prototype.as_object(),
                     OrdinaryObject,
                 )
+                .upcast()
             }
             _ => {
                 return Err(JsNativeError::typ()

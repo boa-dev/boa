@@ -72,7 +72,8 @@ impl AsyncFromSyncIterator {
             Self {
                 sync_iterator_record,
             },
-        );
+        )
+        .upcast();
 
         // 3. Let nextMethod be ! Get(asyncIterator, "next").
         let next_method = async_iterator
@@ -347,7 +348,10 @@ impl AsyncFromSyncIterator {
                     "closing an iterator with an error must always return an error back",
                 ))
             }
-            other => other,
+            other => other.map(|o| {
+                o.downcast::<Promise>()
+                    .expect("%Promise% constructor must return a `Promise` object")
+            }),
         };
 
         // 8. IfAbruptRejectPromise(valueWrapper, promiseCapability).

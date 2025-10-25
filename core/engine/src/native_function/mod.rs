@@ -440,7 +440,8 @@ fn native_function_construct(
                         context.root_shape(),
                         prototype,
                         OrdinaryObject,
-                    ))
+                    )
+                    .upcast())
                 } else {
                     Err(JsNativeError::typ()
                         .with_message("derived constructor can only return an Object or undefined")

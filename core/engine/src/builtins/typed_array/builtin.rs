@@ -2776,7 +2776,8 @@ impl BuiltinTypedArray {
         let len = values.len() as u64;
         // 2. Perform ? AllocateTypedArrayBuffer(O, len).
         let buf = Self::allocate_buffer::<T>(len, context)?;
-        let obj = JsObject::from_proto_and_data_with_shared_shape(context.root_shape(), proto, buf);
+        let obj = JsObject::from_proto_and_data_with_shared_shape(context.root_shape(), proto, buf)
+            .upcast();
 
         // 3. Let k be 0.
         // 4. Repeat, while k < len,
@@ -2826,7 +2827,8 @@ impl BuiltinTypedArray {
 
         // 2. Let obj be ! IntegerIndexedObjectCreate(proto).
         let obj =
-            JsObject::from_proto_and_data_with_shared_shape(context.root_shape(), proto, indexed);
+            JsObject::from_proto_and_data_with_shared_shape(context.root_shape(), proto, indexed)
+                .upcast();
 
         // 9. Return obj.
         Ok(obj)
@@ -2981,7 +2983,8 @@ impl BuiltinTypedArray {
                 Some(byte_length),
                 Some(element_length),
             ),
-        );
+        )
+        .upcast();
 
         // 17. Return unused.
         Ok(obj)
@@ -3094,7 +3097,8 @@ impl BuiltinTypedArray {
             context.root_shape(),
             proto,
             TypedArray::new(buffer, T::ERASED, offset, byte_length, array_length),
-        ))
+        )
+        .upcast())
     }
 
     /// `InitializeTypedArrayFromArrayLike ( O, arrayLike )`
@@ -3113,7 +3117,8 @@ impl BuiltinTypedArray {
 
         // 2. Perform ? AllocateTypedArrayBuffer(O, len).
         let buf = Self::allocate_buffer::<T>(len, context)?;
-        let obj = JsObject::from_proto_and_data_with_shared_shape(context.root_shape(), proto, buf);
+        let obj = JsObject::from_proto_and_data_with_shared_shape(context.root_shape(), proto, buf)
+            .upcast();
 
         // 3. Let k be 0.
         // 4. Repeat, while k < len,

@@ -28,7 +28,6 @@ use crate::{
 use boa_gc::{Finalize, Gc, GcRefCell, Trace, custom_trace};
 use boa_macros::JsData;
 use std::{cell::Cell, rc::Rc};
-use tap::{Conv, Pipe};
 
 // ==================== Public API ====================
 
@@ -443,7 +442,7 @@ impl BuiltInConstructor for Promise {
         }
 
         // 11. Return promise.
-        promise.conv::<JsValue>().pipe(Ok)
+        Ok(promise.into())
     }
 }
 
@@ -1512,6 +1511,7 @@ impl Promise {
     ) -> JsResult<JsObject> {
         // 1. If IsPromise(x) is true, then
         if let Some(x) = x.as_promise_object() {
+            let x = x.upcast();
             // a. Let xConstructor be ? Get(x, "constructor").
             let x_constructor = x.get(CONSTRUCTOR, context)?;
             // b. If SameValue(xConstructor, C) is true, return x.
@@ -1519,7 +1519,7 @@ impl Promise {
                 .as_object()
                 .is_some_and(|o| JsObject::equals(&o, c))
             {
-                return Ok(x.clone());
+                return Ok(x);
             }
         }
 
@@ -1776,13 +1776,16 @@ impl Promise {
     /// Schedules callback functions for the eventual completion of `promise` — either fulfillment
     /// or rejection.
     pub(crate) fn inner_then(
-        promise: &JsObject,
+        promise: &JsObject<Promise>,
         on_fulfilled: Option<JsFunction>,
         on_rejected: Option<JsFunction>,
         context: &mut Context,
     ) -> JsResult<JsObject> {
         // 3. Let C be ? SpeciesConstructor(promise, %Promise%).
-        let c = promise.species_constructor(StandardConstructors::promise, context)?;
+        let c = promise
+            .clone()
+            .upcast()
+            .species_constructor(StandardConstructors::promise, context)?;
 
         // 4. Let resultCapability be ? NewPromiseCapability(C).
         let result_capability = PromiseCapability::new(&c, context)?;
@@ -1807,7 +1810,7 @@ impl Promise {
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-performpromisethen
     pub(crate) fn perform_promise_then(
-        promise: &JsObject,
+        promise: &JsObject<Promise>,
         on_fulfilled: Option<JsFunction>,
         on_rejected: Option<JsFunction>,
         result_capability: Option<PromiseCapability>,
@@ -1849,18 +1852,16 @@ impl Promise {
         };
 
         let (state, handled) = {
-            let promise = promise
-                .downcast_ref::<Self>()
-                .expect("IsPromise(promise) is false");
+            let promise = promise.borrow_mut();
+            let promise = promise.data();
             (promise.state.clone(), promise.handled)
         };
 
         match state {
             // 9. If promise.[[PromiseState]] is pending, then
             PromiseState::Pending => {
-                let mut promise = promise
-                    .downcast_mut::<Self>()
-                    .expect("IsPromise(promise) is false");
+                let mut promise = promise.borrow_mut();
+                let promise = promise.data_mut();
                 //   a. Append fulfillReaction as the last element of the List that is promise.[[PromiseFulfillReactions]].
                 promise.fulfill_reactions.push(fulfill_reaction);
 
@@ -1903,10 +1904,7 @@ impl Promise {
                     .enqueue_job(reject_job.into(), context);
 
                 // 12. Set promise.[[PromiseIsHandled]] to true.
-                promise
-                    .downcast_mut::<Self>()
-                    .expect("IsPromise(promise) is false")
-                    .handled = true;
+                promise.borrow_mut().data_mut().handled = true;
             }
         }
 
@@ -1949,7 +1947,7 @@ impl Promise {
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-createresolvingfunctions
     pub(crate) fn create_resolving_functions(
-        promise: &JsObject,
+        promise: &JsObject<Promise>,
         context: &mut Context,
     ) -> ResolvingFunctions {
         /// `TriggerPromiseReactions ( reactions, argument )`
@@ -1994,10 +1992,9 @@ impl Promise {
         /// # Panics
         ///
         /// Panics if `Promise` is not pending.
-        fn fulfill_promise(promise: &JsObject, value: JsValue, context: &mut Context) {
-            let mut promise = promise
-                .downcast_mut::<Promise>()
-                .expect("IsPromise(promise) is false");
+        fn fulfill_promise(promise: &JsObject<Promise>, value: JsValue, context: &mut Context) {
+            let mut promise = promise.borrow_mut();
+            let promise = promise.data_mut();
 
             // 1. Assert: The value of promise.[[PromiseState]] is pending.
             assert!(
@@ -2037,11 +2034,10 @@ impl Promise {
         /// # Panics
         ///
         /// Panics if `Promise` is not pending.
-        fn reject_promise(promise: &JsObject, reason: JsValue, context: &mut Context) {
+        fn reject_promise(promise: &JsObject<Promise>, reason: JsValue, context: &mut Context) {
             let handled = {
-                let mut promise = promise
-                    .downcast_mut::<Promise>()
-                    .expect("IsPromise(promise) is false");
+                let mut promise = promise.borrow_mut();
+                let promise = promise.data_mut();
 
                 // 1. Assert: The value of promise.[[PromiseState]] is pending.
                 assert!(
@@ -2322,7 +2318,7 @@ fn new_promise_reaction_job(
 ///
 /// [spec]: https://tc39.es/ecma262/#sec-newpromiseresolvethenablejob
 fn new_promise_resolve_thenable_job(
-    promise_to_resolve: JsObject,
+    promise_to_resolve: JsObject<Promise>,
     thenable: JsValue,
     then: JobCallback,
     context: &mut Context,
