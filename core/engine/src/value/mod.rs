@@ -614,6 +614,23 @@ impl JsValue {
         }
     }
 
+    pub(crate) fn base_class(&self, context: &Context) -> JsResult<JsObject> {
+        let constructors = context.intrinsics().constructors();
+        match self.variant() {
+            JsVariant::Undefined | JsVariant::Null => Err(JsNativeError::typ()
+                .with_message("cannot convert 'null' or 'undefined' to object")
+                .into()),
+            JsVariant::Boolean(_) => Ok(constructors.boolean().prototype()),
+            JsVariant::Integer32(_) | JsVariant::Float64(_) => {
+                Ok(constructors.number().prototype())
+            }
+            JsVariant::String(_) => Ok(constructors.string().prototype()),
+            JsVariant::Symbol(_) => Ok(constructors.symbol().prototype()),
+            JsVariant::BigInt(_) => Ok(constructors.bigint().prototype()),
+            JsVariant::Object(object) => Ok(object.clone()),
+        }
+    }
+
     /// Converts the value to a `PropertyKey`, that can be used as a key for properties.
     ///
     /// See <https://tc39.es/ecma262/#sec-topropertykey>

@@ -626,7 +626,30 @@ impl CodeBlock {
             Instruction::DeletePropertyByName { object, name_index } => {
                 format!("object:{object}, name_index:{name_index}")
             }
+            Instruction::GetLengthProperty {
+                dst,
+                value,
+                ic_index,
+            } => {
+                let ic = &self.ic[u32::from(*ic_index) as usize];
+                format!(
+                    "dst:{dst}, value:{value}, shape:0x{:x}]",
+                    ic.shape.borrow().to_addr_usize(),
+                )
+            }
             Instruction::GetPropertyByName {
+                dst,
+                value,
+                ic_index,
+            } => {
+                let ic = &self.ic[u32::from(*ic_index) as usize];
+                format!(
+                    "dst:{dst}, value:{value}, ic:[name:{}, shape:0x{:x}]",
+                    ic.name.to_std_string_escaped(),
+                    ic.shape.borrow().to_addr_usize(),
+                )
+            }
+            Instruction::GetPropertyByNameWithThis {
                 dst,
                 receiver,
                 value,
@@ -640,6 +663,17 @@ impl CodeBlock {
                 )
             }
             Instruction::SetPropertyByName {
+                value,
+                object,
+                ic_index,
+            } => {
+                let ic = &self.ic[u32::from(*ic_index) as usize];
+                format!(
+                    "object:{object}, value:{value}, ic:shape:0x{:x}",
+                    ic.shape.borrow().to_addr_usize(),
+                )
+            }
+            Instruction::SetPropertyByNameWithThis {
                 value,
                 receiver,
                 object,
@@ -901,10 +935,7 @@ impl CodeBlock {
             | Instruction::Reserved57
             | Instruction::Reserved58
             | Instruction::Reserved59
-            | Instruction::Reserved60
-            | Instruction::Reserved61
-            | Instruction::Reserved62
-            | Instruction::Reserved63 => unreachable!("Reserved opcodes are unreachable"),
+            | Instruction::Reserved60 => unreachable!("Reserved opcodes are unreachable"),
         }
     }
 }
