@@ -1,6 +1,6 @@
 # @boa-dev/boa_wasm
 
-WebAssembly bindings for [Boa](https://github.com/boa-dev/boa), an experimental JavaScript lexer, parser and interpreter written in Rust.
+WebAssembly bindings for [Boa](https://github.com/boa-dev/boa), a Javascript engine written in Rust.
 
 [![npm version](https://img.shields.io/npm/v/@boa-dev/boa_wasm)](https://www.npmjs.com/package/@boa-dev/boa_wasm)
 [![license](https://img.shields.io/npm/l/@boa-dev/boa_wasm)](https://github.com/boa-dev/boa)
