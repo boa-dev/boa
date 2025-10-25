@@ -83,7 +83,8 @@ impl ForInIterator {
                 .iterator_prototypes()
                 .for_in(),
             Self::new(object),
-        ).upcast()
+        )
+        .upcast()
     }
 
     /// %ForInIteratorPrototype%.next( )

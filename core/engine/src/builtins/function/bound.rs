@@ -73,7 +73,8 @@ impl BoundFunction {
                 this,
                 args,
             },
-        ).upcast())
+        )
+        .upcast())
     }
 
     /// Get a reference to the bound function's this.

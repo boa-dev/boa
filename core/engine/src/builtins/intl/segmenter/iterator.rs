@@ -98,7 +98,8 @@ impl SegmentIterator {
                 string,
                 next_segment_index: 0,
             },
-        ).upcast()
+        )
+        .upcast()
     }
     /// [`%SegmentIteratorPrototype%.next ( )`][spec]
     ///

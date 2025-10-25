@@ -183,7 +183,8 @@ impl Proxy {
             context.root_shape(),
             context.intrinsics().constructors().object().prototype(),
             Self::new(target.clone(), handler.clone()),
-        ).upcast();
+        )
+        .upcast();
 
         // 8. Return P.
         Ok(p)

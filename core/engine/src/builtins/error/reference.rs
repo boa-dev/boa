@@ -84,7 +84,8 @@ impl BuiltInConstructor for ReferenceError {
             context.root_shape(),
             prototype,
             Error::with_caller_position(ErrorKind::Reference, context),
-        ).upcast();
+        )
+        .upcast();
 
         // 3. If message is not undefined, then
         let message = args.get_or_undefined(0);

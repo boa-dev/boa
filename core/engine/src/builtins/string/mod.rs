@@ -271,7 +271,8 @@ impl String {
         // 5. Set S.[[DefineOwnProperty]] as specified in 10.4.3.2.
         // 6. Set S.[[OwnPropertyKeys]] as specified in 10.4.3.3.
         let s =
-            JsObject::from_proto_and_data_with_shared_shape(context.root_shape(), prototype, value).upcast();
+            JsObject::from_proto_and_data_with_shared_shape(context.root_shape(), prototype, value)
+                .upcast();
 
         // 8. Perform ! DefinePropertyOrThrow(S, "length", PropertyDescriptor { [[Value]]: 𝔽(length),
         // [[Writable]]: false, [[Enumerable]]: false, [[Configurable]]: false }).
