@@ -3,9 +3,16 @@
 <p align="center">
   <a href="https://boajs.dev/">
     <picture>
-      <source media="(prefers-color-scheme: dark)" srcset="./assets/logo_yellow.svg">
-      <source media="(prefers-color-scheme: light)" srcset="./assets/logo_black.svg">
-      <img alt="Boa logo" src="./assets/logo.png">
+      <source
+        media="(prefers-color-scheme: dark)"
+        srcset="https://raw.githubusercontent.com/boa-dev/boa/refs/tags/v0.21/assets/logo_yellow.svg">
+      <source
+        media="(prefers-color-scheme: light)"
+        srcset="https://raw.githubusercontent.com/boa-dev/boa/refs/tags/v0.21/assets/logo_black.svg">
+      <img
+        alt="Boa logo"
+        style="width:auto;"
+        src="https://raw.githubusercontent.com/boa-dev/boa/refs/tags/v0.21/assets/logo.png">
     </picture>
     </a>
 </p>
