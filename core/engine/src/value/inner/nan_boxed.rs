@@ -342,20 +342,28 @@ unsafe impl Trace for NanBoxedValue {
 impl Clone for NanBoxedValue {
     #[inline(always)]
     fn clone(&self) -> Self {
-        if let Some(o) = self.as_object() {
-            Self::object(o.clone())
-        } else if let Some(s) = self.as_string() {
-            Self::string(s.clone())
-        } else if let Some(b) = self.as_bigint() {
-            Self::bigint(b.clone())
-        } else if let Some(s) = self.as_symbol() {
-            Self::symbol(s.clone())
-        } else {
-            Self {
-                #[cfg(target_pointer_width = "32")]
-                half: self.half,
-                ptr: self.ptr,
+        match self.value() & bits::MASK_KIND {
+            bits::MASK_OBJECT => unsafe {
+                mem::forget((*self.as_object_unchecked()).clone());
+            },
+            bits::MASK_STRING => unsafe {
+                mem::forget((*self.as_string_unchecked()).clone());
+            },
+            bits::MASK_SYMBOL => unsafe {
+                mem::forget((*self.as_symbol_unchecked()).clone());
+            },
+            bits::MASK_BIGINT => unsafe {
+                mem::forget((*self.as_bigint_unchecked()).clone());
+            },
+            _ => {
+                // Rest of the variants don't need additional handling.
             }
+        }
+
+        Self {
+            #[cfg(target_pointer_width = "32")]
+            half: self.half,
+            ptr: self.ptr,
         }
     }
 }
