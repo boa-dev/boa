@@ -70,12 +70,6 @@ impl GcHeader {
 
         let count = self.ref_count.get();
 
-        // SAFETY: The reference count will never be zero when this is
-        // called.
-        unsafe {
-            hint::assert_unchecked(count != 0);
-        }
-
         self.ref_count.set(count.wrapping_add(1));
 
         if count == 0 {
