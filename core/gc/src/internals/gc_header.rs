@@ -60,6 +60,8 @@ impl GcHeader {
     }
 
     pub(crate) fn inc_ref_count(&self) {
+        // Mark this as `cold` since the ref count will
+        // (almost) never overflow.
         #[cold]
         #[inline(never)]
         fn overflow_panic() {

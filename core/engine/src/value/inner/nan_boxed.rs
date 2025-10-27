@@ -265,6 +265,8 @@ mod bits {
 
     #[inline(always)]
     pub(super) fn tag_pointer<T>(ptr: NonNull<T>, type_mask: u64) -> u64 {
+        // Mark this as `cold` since on well-behaved platforms
+        // this will never be called.
         #[cold]
         #[inline(never)]
         fn unsupported_platform() {
@@ -351,6 +353,9 @@ unsafe impl Trace for NanBoxedValue {
 impl Clone for NanBoxedValue {
     #[inline(always)]
     fn clone(&self) -> Self {
+        // This way of inlining ensures the compiler
+        // knows it can convert the match into a
+        // jump table.
         match self.value() & bits::MASK_KIND {
             bits::MASK_OBJECT => unsafe {
                 mem::forget((*self.as_object_unchecked()).clone());
