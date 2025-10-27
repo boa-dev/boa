@@ -1,4 +1,4 @@
-use std::{cell::Cell, fmt};
+use std::{cell::Cell, fmt, hint};
 
 const MARK_MASK: u32 = 1 << (u32::BITS - 1);
 const NON_ROOTS_MASK: u32 = !MARK_MASK;
@@ -59,12 +59,28 @@ impl GcHeader {
         self.non_root_count.get() & MARK_MASK != 0
     }
 
-    #[inline]
     pub(crate) fn inc_ref_count(&self) {
-        self.ref_count.set(self.ref_count.get() + 1);
+        #[cold]
+        #[inline(never)]
+        fn overflow_panic() {
+            panic!("ref count overflow")
+        }
+
+        let count = self.ref_count.get();
+
+        // SAFETY: The reference count will never be zero when this is
+        // called.
+        unsafe {
+            hint::assert_unchecked(count != 0);
+        }
+
+        self.ref_count.set(count.wrapping_add(1));
+
+        if count == 0 {
+            overflow_panic();
+        }
     }
 
-    #[inline]
     pub(crate) fn dec_ref_count(&self) {
         self.ref_count.set(self.ref_count.get() - 1);
     }
@@ -75,7 +91,6 @@ impl GcHeader {
     ///
     /// This only gives valid result if the we have run through the
     /// tracing non roots phase.
-    #[inline]
     pub(crate) fn is_rooted(&self) -> bool {
         self.non_root_count() < self.ref_count()
     }
