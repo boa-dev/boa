@@ -601,9 +601,16 @@ impl JsValue {
     pub fn to_property_key(&self, context: &mut Context) -> JsResult<PropertyKey> {
         match self.variant() {
             // fast path
+            //
+            // The compiler will surely make this a jump table, but in case it
+            // doesn't, we put the "expected" property key types first
+            // (integer, string, symbol), then the rest of the variants.
             JsVariant::Integer32(integer) => Ok(integer.into()),
             JsVariant::String(string) => Ok(string.into()),
             JsVariant::Symbol(symbol) => Ok(symbol.into()),
+
+            // We also inline the call to `to_string`, removing the
+            // double match against `self.variant()`.
             JsVariant::Float64(float) => Ok(JsString::from(float).into()),
             JsVariant::Undefined => Ok(js_string!("undefined").into()),
             JsVariant::Null => Ok(js_string!("null").into()),
@@ -611,7 +618,7 @@ impl JsValue {
             JsVariant::Boolean(false) => Ok(js_string!("false").into()),
             JsVariant::BigInt(bigint) => Ok(JsString::from(bigint.to_string()).into()),
 
-            // Slow path
+            // slow path
             // Cannot infinitely recurse since it is guaranteed that `to_primitive` returns a non-object
             // value or errors.
             JsVariant::Object(o) => o
