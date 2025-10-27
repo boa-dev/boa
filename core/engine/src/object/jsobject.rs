@@ -18,7 +18,7 @@ use crate::{
     },
     context::intrinsics::Intrinsics,
     error::JsNativeError,
-    js_string,
+    js_error, js_string,
     property::{PropertyDescriptor, PropertyKey},
     value::PreferredType,
 };
@@ -426,9 +426,9 @@ impl JsObject {
         //    v. If Type(result) is not Object, return result.
         //    vi. Throw a TypeError exception.
         if result.is_object() {
-            Err(JsNativeError::typ()
-                .with_message("Symbol.toPrimitive cannot return an object")
-                .into())
+            Err(js_error!(
+                TypeError: "method `[Symbol.toPrimitive]` cannot return an object"
+            ))
         } else {
             Ok(result)
         }
