@@ -398,41 +398,40 @@ impl JsObject {
         preferred_type: PreferredType,
     ) -> JsResult<JsValue> {
         // a. Let exoticToPrim be ? GetMethod(input, @@toPrimitive).
-        let exotic_to_prim = self.get_method(JsSymbol::to_primitive(), context)?;
+        let Some(exotic_to_prim) = self.get_method(JsSymbol::to_primitive(), context)? else {
+            // c. If preferredType is not present, let preferredType be number.
+            let preferred_type = match preferred_type {
+                PreferredType::Default | PreferredType::Number => PreferredType::Number,
+                PreferredType::String => PreferredType::String,
+            };
+            return self.ordinary_to_primitive(context, preferred_type);
+        };
 
         // b. If exoticToPrim is not undefined, then
-        if let Some(exotic_to_prim) = exotic_to_prim {
-            // i. If preferredType is not present, let hint be "default".
-            // ii. Else if preferredType is string, let hint be "string".
-            // iii. Else,
-            //     1. Assert: preferredType is number.
-            //     2. Let hint be "number".
-            let hint = match preferred_type {
-                PreferredType::Default => js_string!("default"),
-                PreferredType::String => js_string!("string"),
-                PreferredType::Number => js_string!("number"),
-            }
-            .into();
-
-            // iv. Let result be ? Call(exoticToPrim, input, « hint »).
-            let result = exotic_to_prim.call(&self.clone().into(), &[hint], context)?;
-            // v. If Type(result) is not Object, return result.
-            // vi. Throw a TypeError exception.
-            return if result.is_object() {
-                Err(JsNativeError::typ()
-                    .with_message("Symbol.toPrimitive cannot return an object")
-                    .into())
-            } else {
-                Ok(result)
-            };
+        //    i. If preferredType is not present, let hint be "default".
+        //    ii. Else if preferredType is string, let hint be "string".
+        //    iii. Else,
+        //        1. Assert: preferredType is number.
+        //        2. Let hint be "number".
+        let hint = match preferred_type {
+            PreferredType::Default => js_string!("default"),
+            PreferredType::String => js_string!("string"),
+            PreferredType::Number => js_string!("number"),
         }
+        .into();
 
-        // c. If preferredType is not present, let preferredType be number.
-        let preferred_type = match preferred_type {
-            PreferredType::Default | PreferredType::Number => PreferredType::Number,
-            PreferredType::String => PreferredType::String,
-        };
-        self.ordinary_to_primitive(context, preferred_type)
+        //    iv. Let result be ? Call(exoticToPrim, input, « hint »).
+        let result = exotic_to_prim.call(&self.clone().into(), &[hint], context)?;
+
+        //    v. If Type(result) is not Object, return result.
+        //    vi. Throw a TypeError exception.
+        if result.is_object() {
+            Err(JsNativeError::typ()
+                .with_message("Symbol.toPrimitive cannot return an object")
+                .into())
+        } else {
+            Ok(result)
+        }
     }
 
     /// Converts an object to a primitive.
