@@ -601,9 +601,9 @@ impl JsValue {
     pub fn to_property_key(&self, context: &mut Context) -> JsResult<PropertyKey> {
         match self.variant() {
             // fast path
+            JsVariant::Integer32(integer) => Ok(integer.into()),
             JsVariant::String(string) => Ok(string.into()),
             JsVariant::Symbol(symbol) => Ok(symbol.into()),
-            JsVariant::Integer32(integer) => Ok(integer.into()),
             JsVariant::Float64(float) => Ok(JsString::from(float).into()),
             JsVariant::Undefined => Ok(js_string!("undefined").into()),
             JsVariant::Null => Ok(js_string!("null").into()),
