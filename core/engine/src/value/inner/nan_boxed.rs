@@ -115,7 +115,7 @@ use boa_string::{JsString, RawJsString};
 use core::fmt;
 use static_assertions::const_assert;
 use std::{
-    mem::ManuallyDrop,
+    mem::{self, ManuallyDrop},
     ptr::{self, NonNull},
 };
 
@@ -139,6 +139,7 @@ const _NAN_BOX_COMPAT_CHECK: () = const {
 ///
 /// All bit magic is done here.
 mod bits {
+    use std::ptr::NonNull;
 
     /// The mask for the bits that indicate if the value is a NaN-value.
     const MASK_NAN: u64 = 0x7FF0_0000_0000_0000;
@@ -262,19 +263,27 @@ mod bits {
         value & MASK_BOOLEAN_VALUE != 0
     }
 
-    pub(super) fn tag_pointer<T>(ptr: *mut T, type_mask: u64) -> u64 {
-        let value = ptr.addr() as u64;
+    #[inline(always)]
+    pub(super) fn tag_pointer<T>(ptr: NonNull<T>, type_mask: u64) -> u64 {
+        #[cold]
+        #[inline(never)]
+        fn unsupported_platform() {
+            panic!(
+                "this platform is not compatible with a nan-boxed `JsValueInner`\n\
+                enable the `jsvalue-enum` feature to use the enum-based `JsValueInner`"
+            )
+        }
+
+        let value = ptr.addr().get() as u64;
         let value_masked: u64 = value & MASK_POINTER_VALUE;
 
         // Assert alignment and location of the pointer.
-        assert_eq!(
-            value_masked, value,
-            "this platform is not compatible with a nan-boxed `JsValueInner`\n\
-            enable the `jsvalue-enum` feature to use the enum-based `JsValueInner`"
-        );
-
-        // Cannot have a null pointer.
-        assert_ne!(value_masked, 0, "pointer is null");
+        // TODO: we may want to have nan-boxing be the default only on
+        // certain platforms, and make it an unsafe operation
+        // to manually enable the implementation.
+        if value_masked != value {
+            unsupported_platform();
+        }
 
         value_masked | type_mask
     }
@@ -385,11 +394,11 @@ impl NanBoxedValue {
     /// pointer.
     ///
     /// This preserves the provenance of the original pointer.
-    fn from_object_like<T>(ptr: *mut T, addr: u64) -> Self {
+    fn from_object_like<T>(ptr: NonNull<T>, addr: u64) -> Self {
         Self {
             #[cfg(target_pointer_width = "32")]
             half: (addr >> 32) as u32,
-            ptr: ptr.cast::<()>().with_addr(addr as usize),
+            ptr: ptr.cast::<()>().as_ptr().with_addr(addr as usize),
         }
     }
 
@@ -445,7 +454,7 @@ impl NanBoxedValue {
     #[must_use]
     #[inline(always)]
     pub(crate) fn bigint(value: JsBigInt) -> Self {
-        let ptr = value.into_raw().cast_mut();
+        let ptr = value.into_raw();
         let addr = bits::tag_pointer(ptr, bits::MASK_BIGINT);
         Self::from_object_like(ptr, addr)
     }
@@ -454,7 +463,7 @@ impl NanBoxedValue {
     #[must_use]
     #[inline(always)]
     pub(crate) fn object(value: JsObject) -> Self {
-        let ptr = value.into_raw().as_ptr();
+        let ptr = value.into_raw();
         let addr = bits::tag_pointer(ptr, bits::MASK_OBJECT);
         Self::from_object_like(ptr, addr)
     }
@@ -463,7 +472,7 @@ impl NanBoxedValue {
     #[must_use]
     #[inline(always)]
     pub(crate) fn symbol(value: JsSymbol) -> Self {
-        let ptr = value.into_raw().as_ptr();
+        let ptr = value.into_raw();
         let addr = bits::tag_pointer(ptr, bits::MASK_SYMBOL);
         Self::from_object_like(ptr, addr)
     }
@@ -472,7 +481,7 @@ impl NanBoxedValue {
     #[must_use]
     #[inline(always)]
     pub(crate) fn string(value: JsString) -> Self {
-        let ptr = value.into_raw().as_ptr();
+        let ptr = value.into_raw();
         let addr = bits::tag_pointer(ptr, bits::MASK_STRING);
         Self::from_object_like(ptr, addr)
     }

@@ -7,6 +7,7 @@ use num_traits::{FromPrimitive, One, ToPrimitive, Zero, pow::Pow};
 use std::{
     fmt::{self, Display},
     ops::{Add, BitAnd, BitOr, BitXor, Div, Mul, Neg, Rem, Shl, Shr, Sub},
+    ptr::NonNull,
     rc::Rc,
 };
 
@@ -334,8 +335,9 @@ impl JsBigInt {
     #[inline]
     #[must_use]
     #[allow(unused, reason = "only used in nan-boxed implementation of JsValue")]
-    pub(crate) fn into_raw(self) -> *const RawBigInt {
-        Rc::into_raw(self.inner)
+    pub(crate) fn into_raw(self) -> NonNull<RawBigInt> {
+        // SAFETY: `Rc::into_raw` must always return a non-null pointer.
+        unsafe { NonNull::new_unchecked(Rc::into_raw(self.inner).cast_mut()) }
     }
 
     /// Constructs a `JsBigInt` from a pointer to [`RawBigInt`].
