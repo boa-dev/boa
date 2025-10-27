@@ -87,7 +87,7 @@ time = { version = "0.3.44", default-features = false, features = [
 ] }
 log = "0.4.28"
 simple_logger = "5.1.0"
-cargo_metadata = "0.19.2"
+cargo_metadata = "0.23.0"
 trybuild = "1.0.112"
 rayon = "1.10.0"
 toml = "0.9.8"
