@@ -1702,7 +1702,7 @@ impl SourceTextModule {
                 ImportBinding::Namespace { locator, module } => {
                     // i. Let namespace be GetModuleNamespace(importedModule).
                     let namespace = module.namespace(context);
-                    context.vm.environments.put_lexical_value(
+                    context.vm.frame.environments.put_lexical_value(
                         locator.scope(),
                         locator.binding_index(),
                         namespace.into(),
@@ -1714,6 +1714,7 @@ impl SourceTextModule {
                 } => match export_locator.binding_name() {
                     BindingName::Name(name) => context
                         .vm
+                        .frame
                         .environments
                         .current_declarative_ref()
                         .expect("must be declarative")
@@ -1723,7 +1724,7 @@ impl SourceTextModule {
                         .set_indirect(locator.binding_index(), export_locator.module, name),
                     BindingName::Namespace => {
                         let namespace = export_locator.module.namespace(context);
-                        context.vm.environments.put_lexical_value(
+                        context.vm.frame.environments.put_lexical_value(
                             locator.scope(),
                             locator.binding_index(),
                             namespace.into(),
@@ -1739,7 +1740,7 @@ impl SourceTextModule {
 
             let function = create_function_object_fast(code, context);
 
-            context.vm.environments.put_lexical_value(
+            context.vm.frame.environments.put_lexical_value(
                 locator.scope(),
                 locator.binding_index(),
                 function.into(),

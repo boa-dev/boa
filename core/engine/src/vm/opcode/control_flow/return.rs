@@ -65,7 +65,7 @@ impl CheckReturn {
             } else {
                 let realm = frame.realm.clone();
 
-                match context.vm.environments.get_this_binding() {
+                match context.vm.frame.environments.get_this_binding() {
                     Err(err) => {
                         let err = err.inject_realm(realm);
                         context.vm.pending_exception = Some(err);

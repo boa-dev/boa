@@ -84,15 +84,11 @@ pub struct Vm {
     ///
     /// This is also used to eliminates [`crate::JsNativeError`] to opaque conversion if not needed.
     pub(crate) pending_exception: Option<JsError>,
-    pub(crate) environments: EnvironmentStack,
     pub(crate) runtime_limits: RuntimeLimits,
 
     /// This is used to assign a native (rust) function as the active function,
     /// because we don't push a frame for them.
     pub(crate) native_active_function: Option<JsObject>,
-
-    /// realm holds both the global object and the environment
-    pub(crate) realm: Realm,
 
     pub(crate) shadow_stack: ShadowStack,
 
@@ -422,11 +418,9 @@ impl Vm {
             ),
             stack: Stack::new(1024),
             return_value: JsValue::undefined(),
-            environments: EnvironmentStack::new(realm.environment().clone()),
             pending_exception: None,
             runtime_limits: RuntimeLimits::default(),
             native_active_function: None,
-            realm,
             shadow_stack: ShadowStack::default(),
             #[cfg(feature = "trace")]
             trace: false,
@@ -461,8 +455,6 @@ impl Vm {
     pub(crate) fn push_frame(&mut self, mut frame: CallFrame) {
         let current_stack_length = self.stack.stack.len();
         frame.set_register_pointer(current_stack_length as u32);
-        std::mem::swap(&mut self.environments, &mut frame.environments);
-        std::mem::swap(&mut self.realm, &mut frame.realm);
 
         // NOTE: We need to check if we already pushed the registers,
         //       since generator-like functions push the same call
@@ -506,8 +498,6 @@ impl Vm {
             self.shadow_stack.pop();
 
             std::mem::swap(&mut self.frame, &mut frame);
-            std::mem::swap(&mut self.environments, &mut frame.environments);
-            std::mem::swap(&mut self.realm, &mut frame.realm);
             Some(frame)
         } else {
             None
@@ -530,7 +520,7 @@ impl Vm {
         // Go to handler location.
         frame.pc = catch_address;
 
-        self.environments.truncate(environment_sp as usize);
+        self.frame.environments.truncate(environment_sp as usize);
 
         true
     }
@@ -687,7 +677,7 @@ impl Context {
             }
 
             let mut frame = None;
-            let mut env_fp = self.vm.environments.len();
+            let mut env_fp = self.vm.frame.environments.len();
             loop {
                 if self.vm.frame.exit_early() {
                     break;
@@ -700,7 +690,7 @@ impl Context {
                 };
                 frame = Some(f);
             }
-            self.vm.environments.truncate(env_fp);
+            self.vm.frame.environments.truncate(env_fp);
             if let Some(frame) = frame {
                 self.vm.stack.truncate_to_frame(&frame);
             }
@@ -759,7 +749,7 @@ impl Context {
 
         let mut env_fp = self.vm.frame().env_fp;
         if self.vm.frame().exit_early() {
-            self.vm.environments.truncate(env_fp as usize);
+            self.vm.frame.environments.truncate(env_fp as usize);
             self.vm.stack.truncate_to_frame(&self.vm.frame);
             return ControlFlow::Break(CompletionRecord::Throw(
                 self.vm
@@ -794,7 +784,7 @@ impl Context {
             };
             frame = f;
         }
-        self.vm.environments.truncate(env_fp as usize);
+        self.vm.frame.environments.truncate(env_fp as usize);
         self.vm.stack.truncate_to_frame(&frame);
         ControlFlow::Continue(())
     }

@@ -115,7 +115,7 @@ impl Json {
         // But if it's incorrect, just call `parser.parse_script_with_source` here
         let script = parser.parse_script(&Scope::new_global(), context.interner_mut())?;
         let code_block = {
-            let in_with = context.vm.environments.has_object_environment();
+            let in_with = context.vm.frame.environments.has_object_environment();
             // If the source is needed then call `parser.parse_script_with_source` and pass `source_text` here.
             let spanned_source_text = SpannedSourceText::new_empty();
             let mut compiler = ByteCompiler::new(
@@ -138,9 +138,9 @@ impl Json {
 
         let realm = context.realm().clone();
 
-        let env_fp = context.vm.environments.len() as u32;
+        let env_fp = context.vm.frame.environments.len() as u32;
         context.vm.push_frame_with_stack(
-            CallFrame::new(code_block, None, context.vm.environments.clone(), realm)
+            CallFrame::new(code_block, None, context.vm.frame.environments.clone(), realm)
                 .with_env_fp(env_fp)
                 .with_flags(CallFrameFlags::EXIT_EARLY),
             JsValue::undefined(),

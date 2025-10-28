@@ -66,7 +66,7 @@ impl GeneratorContext {
     /// Creates a new `GeneratorContext` from the current `Context` state.
     pub(crate) fn from_current(context: &mut Context, async_generator: Option<JsObject>) -> Self {
         let mut frame = context.vm.frame().clone();
-        frame.environments = context.vm.environments.clone();
+        frame.environments = context.vm.frame.environments.clone();
         frame.realm = context.realm().clone();
         let mut stack = context.vm.stack.split_off_frame(&frame);
 
