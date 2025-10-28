@@ -68,9 +68,9 @@ impl GcHeader {
             panic!("too many references to the gc");
         }
 
-        let count = self.ref_count.get();
+        let count = self.ref_count.get().wrapping_add(1);
 
-        self.ref_count.set(count.wrapping_add(1));
+        self.ref_count.set(count);
 
         if count == 0 {
             overflow_panic();
