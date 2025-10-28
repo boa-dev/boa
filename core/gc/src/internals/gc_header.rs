@@ -1,4 +1,4 @@
-use std::{cell::Cell, fmt, hint};
+use std::{cell::Cell, fmt};
 
 const MARK_MASK: u32 = 1 << (u32::BITS - 1);
 const NON_ROOTS_MASK: u32 = !MARK_MASK;
