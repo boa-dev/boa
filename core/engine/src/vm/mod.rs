@@ -82,7 +82,7 @@ pub struct Vm {
     ///
     /// See [`ReThrow`](crate::vm::Opcode::ReThrow) and [`ReThrow`](crate::vm::Opcode::Exception) opcodes.
     ///
-    /// This is also used to eliminates [`crate::JsNativeError`] to opaque conversion if not needed.
+    /// This eliminates the conversion between [`crate::JsNativeError`] and [`crate::JsValue`] if not needed.
     pub(crate) pending_exception: Option<JsError>,
     pub(crate) runtime_limits: RuntimeLimits,
 
@@ -414,7 +414,7 @@ impl Vm {
                 Gc::new(CodeBlock::new(JsString::default(), 0, true)),
                 None,
                 EnvironmentStack::new(realm.environment().clone()),
-                realm.clone(),
+                realm,
             ),
             stack: Stack::new(1024),
             return_value: JsValue::undefined(),

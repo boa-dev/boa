@@ -137,7 +137,13 @@ impl Eval {
         // 8. Let inDerivedConstructor be false.
         // 9. Let inClassFieldInitializer be false.
         // a. Let thisEnvRec be GetThisEnvironment().
-        let flags = match context.vm.frame.environments.get_this_environment().as_function() {
+        let flags = match context
+            .vm
+            .frame
+            .environments
+            .get_this_environment()
+            .as_function()
+        {
             // 10. If direct is true, then
             //     b. If thisEnvRec is a Function Environment Record, then
             Some(function_env) if direct => {
