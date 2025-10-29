@@ -137,7 +137,13 @@ impl Eval {
         // 8. Let inDerivedConstructor be false.
         // 9. Let inClassFieldInitializer be false.
         // a. Let thisEnvRec be GetThisEnvironment().
-        let flags = match context.vm.environments.get_this_environment().as_function() {
+        let flags = match context
+            .vm
+            .frame
+            .environments
+            .get_this_environment()
+            .as_function()
+        {
             // 10. If direct is true, then
             //     b. If thisEnvRec is a Function Environment Record, then
             Some(function_env) if direct => {
@@ -205,11 +211,11 @@ impl Eval {
 
             // Poison the last parent function environment, because it may contain new declarations after/during eval.
             if !strict {
-                context.vm.environments.poison_until_last_function();
+                context.vm.frame.environments.poison_until_last_function();
             }
 
             // Set the compile time environment to the current running environment and save the number of current environments.
-            let environments_len = context.vm.environments.len();
+            let environments_len = context.vm.frame.environments.len();
 
             // Pop any added runtime environments that were not removed during the eval execution.
             EnvStackAction::Truncate(environments_len)
@@ -217,22 +223,22 @@ impl Eval {
             // If the call to eval is indirect, the code is executed in the global environment.
 
             // Pop all environments before the eval execution.
-            let environments = context.vm.environments.pop_to_global();
+            let environments = context.vm.frame.environments.pop_to_global();
 
             // Restore all environments to the state from before the eval execution.
             EnvStackAction::Restore(environments)
         };
 
         let context = &mut context.guard(move |ctx| match action {
-            EnvStackAction::Truncate(len) => ctx.vm.environments.truncate(len),
+            EnvStackAction::Truncate(len) => ctx.vm.frame.environments.truncate(len),
             EnvStackAction::Restore(envs) => {
-                ctx.vm.environments.truncate(0);
-                ctx.vm.environments.extend(envs);
+                ctx.vm.frame.environments.truncate(0);
+                ctx.vm.frame.environments.extend(envs);
             }
         });
 
         let (var_environment, mut variable_scope) =
-            if let Some(e) = context.vm.environments.outer_function_environment() {
+            if let Some(e) = context.vm.frame.environments.outer_function_environment() {
                 (e.0, e.1)
             } else {
                 (
@@ -259,7 +265,7 @@ impl Eval {
             context,
         )?;
 
-        let in_with = context.vm.environments.has_object_environment();
+        let in_with = context.vm.frame.environments.has_object_environment();
 
         let source_text = SourceText::new(source);
         let spanned_source_text = SpannedSourceText::new_source_only(source_text);
@@ -321,8 +327,8 @@ impl Eval {
             var_environment.extend_from_compile();
         }
 
-        let env_fp = context.vm.environments.len() as u32;
-        let environments = context.vm.environments.clone();
+        let env_fp = context.vm.frame.environments.len() as u32;
+        let environments = context.vm.frame.environments.clone();
         let realm = context.realm().clone();
         context.vm.push_frame_with_stack(
             CallFrame::new(code_block, None, environments, realm)

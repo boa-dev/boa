@@ -1071,7 +1071,7 @@ pub(crate) fn create_function_object(
     let is_generator = code.is_generator();
     let function = OrdinaryFunction::new(
         code,
-        context.vm.environments.clone(),
+        context.vm.frame.environments.clone(),
         script_or_module,
         context.realm().clone(),
     );
@@ -1140,7 +1140,7 @@ pub(crate) fn create_function_object_fast(code: Gc<CodeBlock>, context: &mut Con
     let has_prototype_property = code.has_prototype_property();
     let function = OrdinaryFunction::new(
         code,
-        context.vm.environments.clone(),
+        context.vm.frame.environments.clone(),
         script_or_module,
         context.realm().clone(),
     );

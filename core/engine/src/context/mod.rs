@@ -136,7 +136,7 @@ impl std::fmt::Debug for Context {
         let mut debug = f.debug_struct("Context");
 
         debug
-            .field("realm", &self.vm.realm)
+            .field("realm", &self.vm.frame.realm)
             .field("interner", &self.interner)
             .field("vm", &self.vm)
             .field("strict", &self.strict)
@@ -432,21 +432,21 @@ impl Context {
     #[inline]
     #[must_use]
     pub fn global_object(&self) -> JsObject {
-        self.vm.realm.global_object().clone()
+        self.vm.frame.realm.global_object().clone()
     }
 
     /// Returns the currently active intrinsic constructors and objects.
     #[inline]
     #[must_use]
     pub fn intrinsics(&self) -> &Intrinsics {
-        self.vm.realm.intrinsics()
+        self.vm.frame.realm.intrinsics()
     }
 
     /// Returns the currently active realm.
     #[inline]
     #[must_use]
     pub const fn realm(&self) -> &Realm {
-        &self.vm.realm
+        &self.vm.frame.realm
     }
 
     /// Set the value of trace on the context
@@ -521,9 +521,10 @@ impl Context {
     #[inline]
     pub fn enter_realm(&mut self, realm: Realm) -> Realm {
         self.vm
+            .frame
             .environments
             .replace_global(realm.environment().clone());
-        std::mem::replace(&mut self.vm.realm, realm)
+        std::mem::replace(&mut self.vm.frame.realm, realm)
     }
 
     /// Create a new Realm with the default global bindings.
@@ -641,7 +642,7 @@ impl Context {
 
     /// Swaps the currently active realm with `realm`.
     pub(crate) fn swap_realm(&mut self, realm: &mut Realm) {
-        std::mem::swap(&mut self.vm.realm, realm);
+        std::mem::swap(&mut self.vm.frame.realm, realm);
     }
 
     /// Increment and get the parser identifier.

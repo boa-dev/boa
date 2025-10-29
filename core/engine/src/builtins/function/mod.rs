@@ -653,7 +653,7 @@ impl BuiltInFunctionObject {
             return Err(js_error!(SyntaxError: "failed to analyze function scope: {}", reason));
         }
 
-        let in_with = context.vm.environments.has_object_environment();
+        let in_with = context.vm.frame.environments.has_object_environment();
         let spanned_source_text = SpannedSourceText::new_empty();
 
         let code = FunctionCompiler::new(spanned_source_text)
@@ -672,9 +672,9 @@ impl BuiltInFunctionObject {
                 context.interner_mut(),
             );
 
-        let environments = context.vm.environments.pop_to_global();
+        let environments = context.vm.frame.environments.pop_to_global();
         let function_object = crate::vm::create_function_object(code, prototype, context);
-        context.vm.environments.extend(environments);
+        context.vm.frame.environments.extend(environments);
 
         Ok(function_object)
     }
@@ -1050,8 +1050,8 @@ pub(crate) fn function_call(
     let mut last_env = 0;
 
     if code.has_binding_identifier() {
-        let index = context.vm.environments.push_lexical(1);
-        context.vm.environments.put_lexical_value(
+        let index = context.vm.frame.environments.push_lexical(1);
+        context.vm.frame.environments.put_lexical_value(
             BindingLocatorScope::Stack(index),
             0,
             function_object.clone().into(),
@@ -1060,7 +1060,7 @@ pub(crate) fn function_call(
     }
 
     if code.has_function_scope() {
-        context.vm.environments.push_function(
+        context.vm.frame.environments.push_function(
             code.constant_scope(last_env),
             FunctionSlots::new(this, function_object.clone(), None),
         );
@@ -1147,8 +1147,8 @@ fn function_construct(
     let mut last_env = 0;
 
     if code.has_binding_identifier() {
-        let index = context.vm.environments.push_lexical(1);
-        context.vm.environments.put_lexical_value(
+        let index = context.vm.frame.environments.push_lexical(1);
+        context.vm.frame.environments.put_lexical_value(
             BindingLocatorScope::Stack(index),
             0,
             this_function_object.clone().into(),
@@ -1157,7 +1157,7 @@ fn function_construct(
     }
 
     if code.has_function_scope() {
-        context.vm.environments.push_function(
+        context.vm.frame.environments.push_function(
             code.constant_scope(last_env),
             FunctionSlots::new(
                 this.clone().map_or(ThisBindingStatus::Uninitialized, |o| {
