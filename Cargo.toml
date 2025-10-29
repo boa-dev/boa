@@ -127,7 +127,7 @@ sys-locale = "0.3.2"
 timezone_provider = { version = "0.1.0" }
 temporal_rs = { version = "0.1.0", default-features = false }
 web-time = "1.1.0"
-criterion = "0.5.1"
+criterion = "0.7.0"
 float-cmp = "0.10.0"
 futures-lite = "2.6.1"
 test-case = "3.3.1"
@@ -141,28 +141,28 @@ aligned-vec = "0.6.4"
 
 # ICU4X
 
-icu_provider = { version = "~2.0.0", default-features = false }
-icu_locale = { version = "~2.0.0", default-features = false }
-icu_locale_core = { version = "~2.0.0", default-features = false }
-icu_datetime = { version = "~2.0.0", default-features = false }
-icu_calendar = { version = "~2.0.5", default-features = false }
-icu_collator = { version = "~2.0.0", default-features = false }
-icu_plurals = { version = "~2.0.0", default-features = false }
-icu_list = { version = "~2.0.0", default-features = false }
-icu_casemap = { version = "~2.0.0", default-features = false }
-icu_segmenter = { version = "~2.0.0", default-features = false }
-icu_provider_export = { version = "~2.0.0", default-features = false }
-icu_provider_source = { version = "~2.0.1", default-features = false }
-icu_provider_adapters = { version = "~2.0.0", default-features = false }
-icu_provider_blob = { version = "~2.0.0", default-features = false }
-icu_properties = { version = "~2.0.0", default-features = true }
-icu_normalizer = { version = "~2.0.0", default-features = false }
-icu_decimal = { version = "~2.0.0", default-features = false }
-writeable = "~0.6.1"
-tinystr = "~0.8.1"
-yoke = "0.8.0"
+icu_provider = { version = "~2.1.1", default-features = false }
+icu_locale = { version = "~2.1.1", default-features = false }
+icu_locale_core = { version = "~2.1.1", default-features = false }
+icu_datetime = { version = "~2.1.1", default-features = false }
+icu_calendar = { version = "~2.1.1", default-features = false }
+icu_collator = { version = "~2.1.1", default-features = false }
+icu_plurals = { version = "~2.1.1", default-features = false }
+icu_list = { version = "~2.1.1", default-features = false }
+icu_casemap = { version = "~2.1.1", default-features = false }
+icu_segmenter = { version = "~2.1.1", default-features = false }
+icu_provider_export = { version = "~2.1.1", default-features = false }
+icu_provider_source = { version = "~2.1.1", default-features = false }
+icu_provider_adapters = { version = "~2.1.1", default-features = false }
+icu_provider_blob = { version = "~2.1.1", default-features = false }
+icu_properties = { version = "~2.1.1", default-features = true }
+icu_normalizer = { version = "~2.1.1", default-features = false }
+icu_decimal = { version = "~2.1.1", default-features = false }
+writeable = "~0.6.2"
+tinystr = "~0.8.2"
+yoke = "~0.8.1"
 zerofrom = "~0.1.6"
-fixed_decimal = "0.7.0"
+fixed_decimal = "~0.7.1"
 
 [workspace.metadata.workspaces]
 allow_branch = "main"
