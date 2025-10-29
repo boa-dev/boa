@@ -217,7 +217,11 @@ where
 
                 ExpressionStatement::new(self.allow_yield, self.allow_await).parse(cursor, interner)
             }
-
+            TokenKind::Keyword((Keyword::Debugger, _)) => {
+                cursor.advance(interner);
+                cursor.expect_semicolon("debugger statement", interner)?;
+                Ok(ast::Statement::Debugger)
+            }
             _ => {
                 ExpressionStatement::new(self.allow_yield, self.allow_await).parse(cursor, interner)
             }

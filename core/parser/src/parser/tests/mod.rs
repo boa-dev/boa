@@ -803,3 +803,24 @@ fn stress_test_operations() {
             .is_ok()
     );
 }
+
+#[test]
+fn debugger_statement() {
+    check_script_parser(
+        "debugger;",
+        vec![Statement::Debugger.into()],
+        &mut Interner::default(),
+    );
+
+    check_script_parser(
+        "debugger",
+        vec![Statement::Debugger.into()],
+        &mut Interner::default(),
+    );
+
+    check_invalid_script("!debugger");
+
+    check_invalid_script("let x = debugger;");
+
+    check_invalid_script("debugger + debugger");
+}

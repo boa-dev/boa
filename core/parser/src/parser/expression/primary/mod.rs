@@ -128,10 +128,6 @@ where
                     .parse(cursor, interner)
                     .map(Into::into)
             }
-            TokenKind::Keyword((Keyword::Debugger, _)) => {
-                cursor.advance(interner);
-                Ok(ast::Expression::Debugger)
-            }
             TokenKind::Keyword((Keyword::Async, contain_escaped_char)) => {
                 let contain_escaped_char = *contain_escaped_char;
                 let skip_n = if cursor.peek_is_line_terminator(0, interner).or_abrupt()? {
