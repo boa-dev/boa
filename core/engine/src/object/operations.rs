@@ -1,4 +1,5 @@
 use super::internal_methods::InternalMethodPropertyContext;
+use crate::js_error;
 use crate::value::JsVariant;
 use crate::{
     Context, JsResult, JsSymbol, JsValue,
@@ -887,23 +888,28 @@ impl JsObject {
         value: JsValue,
         context: &mut Context,
     ) -> JsResult<()> {
-        // 1. If the host is a web browser, then
-        // a. Perform ? HostEnsureCanAddPrivateElement(O).
+        if !self.extensible() {
+            return Err(js_error!(
+                TypeError: "cannot add private field to non-extensible class instance"
+            )
+            .into());
+        }
+
+        // 2. If the host is a web browser, then
+        //    a. Perform ? HostEnsureCanAddPrivateElement(O).
         context
             .host_hooks()
             .ensure_can_add_private_element(self, context)?;
 
-        // 2. Let entry be PrivateElementFind(O, P).
+        // 3. Let entry be PrivateElementFind(O, P).
         let entry = self.private_element_find(name, false, false);
 
-        // 3. If entry is not empty, throw a TypeError exception.
+        // 4. If entry is not empty, throw a TypeError exception.
         if entry.is_some() {
-            return Err(JsNativeError::typ()
-                .with_message("Private field already exists on prototype")
-                .into());
+            return Err(js_error!(TypeError: "private field already exists on prototype").into());
         }
 
-        // 4. Append PrivateElement { [[Key]]: P, [[Kind]]: field, [[Value]]: value } to O.[[PrivateElements]].
+        // 5. Append PrivateElement { [[Key]]: P, [[Kind]]: field, [[Value]]: value } to O.[[PrivateElements]].
         self.borrow_mut()
             .private_elements
             .push((name.clone(), PrivateElement::Field(value)));
@@ -931,11 +937,26 @@ impl JsObject {
             method,
             PrivateElement::Method(_) | PrivateElement::Accessor { .. }
         ));
+
         let (getter, setter) = if let PrivateElement::Accessor { getter, setter } = method {
             (getter.is_some(), setter.is_some())
         } else {
             (false, false)
         };
+
+        if !self.extensible() {
+            return if getter || setter {
+                Err(js_error!(
+                    TypeError: "cannot add private accessor to non-extensible class instance"
+                )
+                .into())
+            } else {
+                Err(js_error!(
+                    TypeError: "cannot add private method to non-extensible class instance"
+                )
+                .into())
+            };
+        }
 
         // 2. If the host is a web browser, then
         // a. Perform ? HostEnsureCanAddPrivateElement(O).
@@ -948,9 +969,17 @@ impl JsObject {
 
         // 4. If entry is not empty, throw a TypeError exception.
         if entry.is_some() {
-            return Err(JsNativeError::typ()
-                .with_message("Private method already exists on prototype")
-                .into());
+            return if getter || setter {
+                Err(js_error!(
+                    TypeError: "private accessor already exists on class instance"
+                )
+                .into())
+            } else {
+                Err(js_error!(
+                    TypeError: "private method already exists on class instance"
+                )
+                .into())
+            };
         }
 
         // 5. Append method to O.[[PrivateElements]].
