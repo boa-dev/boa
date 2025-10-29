@@ -105,6 +105,18 @@ pub enum Statement {
 
     /// See [`With`].
     With(With),
+
+    /// A `debugger` statement.
+    ///
+    /// The debugger statement invokes any available debugging functionality.
+    ///
+    /// More information:
+    ///  - [ECMAScript reference][spec]
+    ///  - [MDN documentation][mdn]
+    ///
+    /// [spec]: https://tc39.es/ecma262/#sec-debugger-statement
+    /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Statements/debugger
+    Debugger,
 }
 
 impl Statement {
@@ -134,6 +146,7 @@ impl Statement {
             Self::Throw(throw) => throw.to_interned_string(interner),
             Self::Try(try_catch) => return try_catch.to_indented_string(interner, indentation),
             Self::With(with) => return with.to_interned_string(interner),
+            Self::Debugger => "debugger".to_owned(),
         };
         s.push(';');
         s
@@ -195,7 +208,7 @@ impl VisitWith for Statement {
         match self {
             Self::Block(b) => visitor.visit_block(b),
             Self::Var(v) => visitor.visit_var_declaration(v),
-            Self::Empty => {
+            Self::Empty | Self::Debugger => {
                 // do nothing; there is nothing to visit here
                 ControlFlow::Continue(())
             }
@@ -224,7 +237,7 @@ impl VisitWith for Statement {
         match self {
             Self::Block(b) => visitor.visit_block_mut(b),
             Self::Var(v) => visitor.visit_var_declaration_mut(v),
-            Self::Empty => {
+            Self::Empty | Self::Debugger => {
                 // do nothing; there is nothing to visit here
                 ControlFlow::Continue(())
             }
