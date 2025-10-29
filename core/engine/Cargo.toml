@@ -143,7 +143,6 @@ icu_locale = { workspace = true, default-features = false, features = [
 ], optional = true }
 icu_datetime = { workspace = true, default-features = false, features = [
     "serde",
-    "experimental",
 ], optional = true }
 icu_calendar = { workspace = true, default-features = false, optional = true }
 icu_collator = { workspace = true, default-features = false, features = [
@@ -172,7 +171,6 @@ yoke = { workspace = true, optional = true }
 zerofrom = { workspace = true, optional = true }
 fixed_decimal = { workspace = true, features = [
     "ryu",
-    "experimental",
 ], optional = true }
 tinystr = { workspace = true, optional = true }
 dynify.workspace = true

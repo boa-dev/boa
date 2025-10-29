@@ -216,7 +216,10 @@ impl HostClock for &Context {
 }
 
 impl HostTimeZone for &Context {
-    fn get_host_time_zone(&self, provider: &impl TimeZoneProvider) -> TemporalResult<TimeZone> {
+    fn get_host_time_zone(
+        &self,
+        provider: &(impl TimeZoneProvider + ?Sized),
+    ) -> TemporalResult<TimeZone> {
         iana_time_zone::get_timezone()
             .map_err(|_| TemporalError::range().with_message("Unable to fetch system time zone"))
             .and_then(|id| TimeZone::try_from_str_with_provider(&id, provider))
