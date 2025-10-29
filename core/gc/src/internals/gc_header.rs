@@ -59,12 +59,24 @@ impl GcHeader {
         self.non_root_count.get() & MARK_MASK != 0
     }
 
-    #[inline]
     pub(crate) fn inc_ref_count(&self) {
-        self.ref_count.set(self.ref_count.get() + 1);
+        // Mark this as `cold` since the ref count will
+        // (almost) never overflow.
+        #[cold]
+        #[inline(never)]
+        fn overflow_panic() {
+            panic!("too many references to a gc allocation");
+        }
+
+        let count = self.ref_count.get().wrapping_add(1);
+
+        self.ref_count.set(count);
+
+        if count == 0 {
+            overflow_panic();
+        }
     }
 
-    #[inline]
     pub(crate) fn dec_ref_count(&self) {
         self.ref_count.set(self.ref_count.get() - 1);
     }
@@ -75,7 +87,6 @@ impl GcHeader {
     ///
     /// This only gives valid result if the we have run through the
     /// tracing non roots phase.
-    #[inline]
     pub(crate) fn is_rooted(&self) -> bool {
         self.non_root_count() < self.ref_count()
     }
