@@ -250,9 +250,7 @@ impl GetPropertyByValuePush {
                 return Ok(());
             }
         } else if let Some(value) = js_string_get(&base, &key_value) {
-            context
-                .vm
-                .set_register(key.into(), StaticJsStrings::LENGTH.into());
+            context.vm.set_register(key.into(), key_value.into());
             context.vm.set_register(dst.into(), value);
             return Ok(());
         }
