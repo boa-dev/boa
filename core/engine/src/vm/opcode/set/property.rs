@@ -83,7 +83,7 @@ impl SetPropertyByName {
 
         // Cache the property.
         let slot = *context.slot();
-        if succeeded && slot.is_cachable() {
+        if succeeded && slot.is_cacheable() {
             let ic = &context.vm.frame().code_block.ic[usize::from(index)];
             let object_borrowed = object.borrow();
             let shape = object_borrowed.shape();

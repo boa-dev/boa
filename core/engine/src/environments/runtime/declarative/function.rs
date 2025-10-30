@@ -173,7 +173,7 @@ pub(crate) enum ThisBindingStatus {
     Lexical,
     /// Function has a `this` binding, but is uninitialized. (derived constructors)
     Uninitialized,
-    /// Funciton has an initialized `this` binding. (base constructors and most callable objects)
+    /// Function has an initialized `this` binding. (base constructors and most callable objects)
     Initialized(JsValue),
 }
 

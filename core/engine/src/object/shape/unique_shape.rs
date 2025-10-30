@@ -14,7 +14,7 @@ use super::{
 struct Inner {
     /// The property table that maps a [`PropertyKey`] to a slot in the objects storage.
     //
-    // SAFETY: This is safe becasue nothing in this field needs tracing.
+    // SAFETY: This is safe because nothing in this field needs tracing.
     #[unsafe_ignore_trace]
     property_table: RefCell<PropertyTableInner>,
 

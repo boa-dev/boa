@@ -74,7 +74,7 @@ unsafe impl Trace for CodeBlockFlags {
 /// When a throw happens, we search for handler in the [`CodeBlock`] using
 /// the [`CodeBlock::find_handler()`] method.
 ///
-/// If any exception happens and gets cought by this handler, the `pc` will be set to `end` of the
+/// If any exception happens and gets caught by this handler, the `pc` will be set to `end` of the
 /// [`Handler`] and remove any environments or stack values that where pushed after the handler.
 #[derive(Debug, Clone, Copy)]
 pub(crate) struct Handler {
@@ -1126,7 +1126,7 @@ pub(crate) fn create_function_object(
 
 /// Creates a new function object.
 ///
-/// This is prefered over [`create_function_object`] if prototype is [`None`],
+/// This is preferred over [`create_function_object`] if prototype is [`None`],
 /// because it constructs the function from a pre-initialized object template,
 /// with all the properties and prototype set.
 pub(crate) fn create_function_object_fast(code: Gc<CodeBlock>, context: &mut Context) -> JsObject {

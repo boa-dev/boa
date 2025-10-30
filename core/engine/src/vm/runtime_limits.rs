@@ -11,7 +11,7 @@ pub struct RuntimeLimits {
     backtrace_limit: usize,
 
     /// Max function recursion limit
-    resursion: usize,
+    recursion: usize,
 }
 
 impl Default for RuntimeLimits {
@@ -19,7 +19,7 @@ impl Default for RuntimeLimits {
     fn default() -> Self {
         Self {
             loop_iteration: u64::MAX,
-            resursion: 512,
+            recursion: 512,
             backtrace_limit: 50,
             stack_size: 1024 * 10,
         }
@@ -29,7 +29,7 @@ impl Default for RuntimeLimits {
 impl RuntimeLimits {
     /// Return the loop iteration limit.
     ///
-    /// If the limit is exceeded in a loop it will throw and errror.
+    /// If the limit is exceeded in a loop it will throw and error.
     ///
     /// The limit value [`u64::MAX`] means that there is no limit.
     #[inline]
@@ -40,7 +40,7 @@ impl RuntimeLimits {
 
     /// Set the loop iteration limit.
     ///
-    /// If the limit is exceeded in a loop it will throw and errror.
+    /// If the limit is exceeded in a loop it will throw and error.
     ///
     /// Setting the limit to [`u64::MAX`] means that there is no limit.
     #[inline]
@@ -86,12 +86,12 @@ impl RuntimeLimits {
     #[inline]
     #[must_use]
     pub const fn recursion_limit(&self) -> usize {
-        self.resursion
+        self.recursion
     }
 
     /// Set recursion limit before an error is thrown.
     #[inline]
     pub fn set_recursion_limit(&mut self, value: usize) {
-        self.resursion = value;
+        self.recursion = value;
     }
 }

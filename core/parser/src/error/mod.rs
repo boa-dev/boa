@@ -101,7 +101,7 @@ impl Error {
     }
 
     /// Gets the context of the error, if any.
-    #[allow(unused)] // TODO: context method is unsed, candidate for removal?
+    #[allow(unused)] // TODO: context method is unused, candidate for removal?
     const fn context(&self) -> Option<&'static str> {
         if let Self::Expected { context, .. } = self {
             Some(context)

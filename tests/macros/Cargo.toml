@@ -1,7 +1,7 @@
 [package]
 name = "boa_macros_tests"
 description = "Testing crate for boa_macros"
-keywords = ["javascript", "ECMASCript", "compiler", "tester"]
+keywords = ["javascript", "ECMAScript", "compiler", "tester"]
 publish = false
 version.workspace = true
 edition.workspace = true

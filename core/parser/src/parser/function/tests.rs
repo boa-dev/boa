@@ -569,7 +569,7 @@ fn check_arrow_semicolon_insertion() {
 
 /// Checks arrow function with empty return
 #[test]
-fn check_arrow_epty_return() {
+fn check_arrow_empty_return() {
     let interner = &mut Interner::default();
     let params = FormalParameterList::from(vec![
         FormalParameter::new(

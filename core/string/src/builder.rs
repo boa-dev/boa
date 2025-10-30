@@ -143,9 +143,9 @@ impl<D: Copy> JsStringBuilder<D> {
     /// Allocates when there is not sufficient capacity.
     #[allow(clippy::inline_always)]
     #[inline(always)]
-    fn allocate_if_needed(&mut self, reuired_cap: usize) {
-        if reuired_cap > self.capacity() {
-            self.allocate(reuired_cap);
+    fn allocate_if_needed(&mut self, required_cap: usize) {
+        if required_cap > self.capacity() {
+            self.allocate(required_cap);
         }
     }
 
@@ -191,7 +191,7 @@ impl<D: Copy> JsStringBuilder<D> {
 
     /// Pushes elements from slice to `JsStringBuilder` without doing capacity check.
     ///
-    /// Unlike the standard vector, our holded element types are only `u8` and `u16`, which is [`Copy`] derived,
+    /// Unlike the standard vector, our held element types are only `u8` and `u16`, which is [`Copy`] derived,
     ///
     /// so we only need to copy them instead of cloning.
     ///
@@ -375,7 +375,7 @@ impl<D: Copy> JsStringBuilder<D> {
         }
 
         // Tell the compiler not to call the destructor of `JsStringBuilder`,
-        // becuase we move inner `RawJsString` to `JsString`.
+        // because we move inner `RawJsString` to `JsString`.
         std::mem::forget(self);
 
         JsString { ptr: inner }
@@ -505,10 +505,10 @@ impl<D: Copy> Clone for JsStringBuilder<D> {
             }
         }
 
-        // SAFETY: self shoud be allocated after allocation.
+        // SAFETY: self should be allocated after allocation.
         let self_data = unsafe { self.data() };
 
-        // SAFETY: source_len is greter than 0 so source shoud be allocated.
+        // SAFETY: source_len is greater than 0 so source should be allocated.
         let source_data = unsafe { source.data() };
 
         // SAFETY: Borrow checker should not allow this to be overlapped and pointers are valid.
@@ -863,13 +863,13 @@ impl<'seg, 'ref_str: 'seg> CommonJsStringBuilder<'seg> {
                 Segment::String(s) => {
                     let js_str = s.as_str();
                     let Some(s) = js_str.as_latin1() else {
-                        unreachable!("string segment shoud be latin1")
+                        unreachable!("string segment should be latin1")
                     };
                     builder.extend_from_slice(s);
                 }
                 Segment::Str(s) => {
                     let Some(s) = s.as_latin1() else {
-                        unreachable!("string segment shoud be latin1")
+                        unreachable!("string segment should be latin1")
                     };
                     builder.extend_from_slice(s);
                 }

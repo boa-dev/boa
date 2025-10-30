@@ -1020,7 +1020,7 @@ impl ByteCompiler<'_> {
 
         // 22. If argumentsObjectNeeded is true, then
         //
-        // NOTE(HalidOdat): Has been moved up, so "arguments" gets registed as
+        // NOTE(HalidOdat): Has been moved up, so "arguments" gets registered as
         //     the first binding in the environment with index 0.
         if arguments_object_needed {
             let arguments = arguments.to_js_string(self.interner());

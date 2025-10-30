@@ -32,7 +32,7 @@
 //!     Err(e) => {
 //!         // Pretty print the error
 //!         eprintln!("Uncaught {e}");
-//!         # panic!("An error occured in boa_runtime's js_code");
+//!         # panic!("An error occurred in boa_runtime's js_code");
 //!     }
 //! };
 //! ```
@@ -86,7 +86,7 @@
 //!     Err(e) => {
 //!         // Pretty print the error
 //!         eprintln!("Uncaught {e}");
-//!         # panic!("An error occured in boa_runtime's js_code");
+//!         # panic!("An error occurred in boa_runtime's js_code");
 //!     }
 //! };
 //! ```

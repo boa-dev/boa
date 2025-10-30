@@ -511,7 +511,7 @@ impl TryFrom<f64> for JsBigInt {
     fn try_from(n: f64) -> Result<Self, Self::Error> {
         // If the truncated version of the number is not the
         // same as the non-truncated version then the floating-point
-        // number conains a fractional part.
+        // number contains a fractional part.
         if !Number::equal(n.trunc(), n) {
             return Err(TryFromF64Error);
         }

@@ -11,7 +11,7 @@ fn block() {
         another_statement();
         "#,
     );
-    // TODO: Once block labels are implemtned, this should be tested:
+    // TODO: Once block labels are implemented, this should be tested:
     // super::super::test_formatting(
     //     r#"
     //     block_name: {

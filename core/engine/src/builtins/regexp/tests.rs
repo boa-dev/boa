@@ -246,7 +246,7 @@ fn search() {
 }
 
 #[test]
-fn regular_expression_construction_independant_of_global_reg_exp() {
+fn regular_expression_construction_independent_of_global_reg_exp() {
     let regex = "/abc/";
     run_test_actions([
         TestAction::run(regex),

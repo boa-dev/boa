@@ -62,9 +62,9 @@ mod tests;
 pub struct Vm {
     /// The current call frame.
     ///
-    /// Whenever a new frame is pushed, it will be swaped into this field.
+    /// Whenever a new frame is pushed, it will be swapped into this field.
     /// Then the old frame will get pushed to the [`Self::frames`] stack.
-    /// Whenever the current frame gets poped, the last frame on the [`Self::frames`] stack will be swaped into this field.
+    /// Whenever the current frame gets popped, the last frame on the [`Self::frames`] stack will be swapped into this field.
     ///
     /// By default this is a dummy frame that gets pushed to [`Self::frames`] when the first real frame is pushed.
     pub(crate) frame: CallFrame,
@@ -96,7 +96,7 @@ pub struct Vm {
     pub(crate) trace: bool,
 }
 
-/// The stack holds the [`JsValue`]s that the VM is operationg on.
+/// The stack holds the [`JsValue`]s that the VM is operating on.
 ///
 /// The stack is persistent across frames.
 /// It's addressing is relative to the frame pointer.
@@ -704,7 +704,7 @@ impl Context {
             return ControlFlow::Continue(());
         }
 
-        // Inject realm before crossing the function boundry
+        // Inject realm before crossing the function boundary
         let err = err.inject_realm(self.realm().clone());
 
         self.vm.pending_exception = Some(err);

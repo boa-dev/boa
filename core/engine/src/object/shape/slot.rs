@@ -14,7 +14,7 @@ bitflags! {
         const INLINE_CACHE_BITS = 0b1110_0000;
         const PROTOTYPE    = 0b0010_0000;
         const FOUND        = 0b0100_0000;
-        const NOT_CACHABLE = 0b1000_0000;
+        const NOT_CACHEABLE = 0b1000_0000;
     }
 }
 
@@ -38,12 +38,12 @@ impl SlotAttributes {
 
     /// Get the width of the slot.
     pub(crate) fn width(self) -> u32 {
-        // accessor take 2 positions in the storage to accomodate for the `get` and `set` fields.
+        // accessor take 2 positions in the storage to accommodate for the `get` and `set` fields.
         1 + u32::from(self.is_accessor_descriptor())
     }
 
-    pub(crate) const fn is_cachable(self) -> bool {
-        !self.contains(Self::NOT_CACHABLE) && self.contains(Self::FOUND)
+    pub(crate) const fn is_cacheable(self) -> bool {
+        !self.contains(Self::NOT_CACHEABLE) && self.contains(Self::FOUND)
     }
 
     #[cfg(test)]
@@ -70,8 +70,8 @@ impl Slot {
         }
     }
 
-    pub(crate) const fn is_cachable(self) -> bool {
-        self.attributes.is_cachable()
+    pub(crate) const fn is_cacheable(self) -> bool {
+        self.attributes.is_cacheable()
     }
 
     #[cfg(test)]
@@ -105,12 +105,12 @@ impl Slot {
         }
     }
 
-    pub(crate) fn set_not_cachable_if_already_prototype(&mut self) {
+    pub(crate) fn set_not_cacheable_if_already_prototype(&mut self) {
         // NOTE(HalidOdat): This is a bit hack to avoid conditional branches.
         //
         // Equivalent to:
         // if slot.attributes.contains(SlotAttributes::PROTOTYPE) {
-        //     slot.attributes |= SlotAttributes::NOT_CACHABLE;
+        //     slot.attributes |= SlotAttributes::NOT_CACHEABLE;
         // }
         //
         self.attributes |= SlotAttributes::from_bits_retain(

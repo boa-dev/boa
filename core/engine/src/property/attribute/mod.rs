@@ -1,4 +1,4 @@
-//! This module implements the `Attribute` struct which contains the attibutes for property descriptors.
+//! This module implements the `Attribute` struct which contains the attributes for property descriptors.
 
 use bitflags::bitflags;
 
@@ -6,7 +6,7 @@ use bitflags::bitflags;
 mod tests;
 
 bitflags! {
-    /// This struct constains the property flags as described in the ECMAScript specification.
+    /// This struct contains the property flags as described in the ECMAScript specification.
     ///
     /// It contains the following flags:
     ///  - `[[Writable]]` (`WRITABLE`) - If `false`, attempts by ECMAScript code to change the property's
