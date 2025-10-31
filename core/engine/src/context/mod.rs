@@ -917,7 +917,7 @@ pub struct ContextBuilder {
     #[cfg(feature = "intl")]
     icu: Option<icu::IntlProvider>,
     #[cfg(feature = "temporal")]
-    time_zone_provider: Option<Box<dyn TimeZoneProvider>>,
+    timezone_provider: Option<Box<dyn TimeZoneProvider>>,
     #[cfg(feature = "fuzz")]
     instructions_remaining: usize,
 }
@@ -954,7 +954,7 @@ impl std::fmt::Debug for ContextBuilder {
         #[cfg(feature = "temporal")]
         out.field(
             "timezone_provider",
-            &self.time_zone_provider.as_ref().map(|_| "TimeZoneProvider"),
+            &self.timezone_provider.as_ref().map(|_| "TimeZoneProvider"),
         );
 
         #[cfg(feature = "fuzz")]
@@ -1027,8 +1027,8 @@ impl ContextBuilder {
     /// by up to 200 Kb.
     #[cfg(feature = "temporal")]
     #[must_use]
-    pub fn time_zone_provider<T: TimeZoneProvider + 'static>(mut self, provider: T) -> Self {
-        self.time_zone_provider = Some(Box::new(provider));
+    pub fn timezone_provider<T: TimeZoneProvider + 'static>(mut self, provider: T) -> Self {
+        self.timezone_provider = Some(Box::new(provider));
         self
     }
 
@@ -1131,7 +1131,7 @@ impl ContextBuilder {
             vm,
             strict: false,
             #[cfg(feature = "temporal")]
-            timezone_provider: if let Some(provider) = self.time_zone_provider {
+            timezone_provider: if let Some(provider) = self.timezone_provider {
                 provider
             } else {
                 Box::new(CompiledTzdbProvider::default())
