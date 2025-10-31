@@ -485,7 +485,7 @@ enum ArrayLikeStateMachine {
     },
 }
 
-/// Part of [`Array.fromAsync ( asyncItems [ , mapfn [ , thisArg ] ] )`](https://tc39.es/proposal-array-from-async/#sec-array.fromAsync>).
+/// Part of [`Array.fromAsync ( asyncItems [ , mapfn [ , thisArg ] ] )`](https://tc39.es/proposal-array-from-async/#sec-array.fromAsync).
 fn from_array_like(
     mut result: JsResult<JsValue>,
     (global_state, state_machine): &(GlobalState, Cell<Option<ArrayLikeStateMachine>>),
