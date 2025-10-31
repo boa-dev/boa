@@ -860,16 +860,14 @@ impl Test {
 }
 
 /// An outcome for a test.
-#[derive(Debug, Clone)]
+#[derive(Debug, Default, Clone)]
 enum Outcome {
+    #[default]
     Positive,
-    Negative { phase: Phase, error_type: ErrorType },
-}
-
-impl Default for Outcome {
-    fn default() -> Self {
-        Self::Positive
-    }
+    Negative {
+        phase: Phase,
+        error_type: ErrorType,
+    },
 }
 
 impl From<Option<Negative>> for Outcome {
