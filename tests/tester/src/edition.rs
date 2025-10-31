@@ -87,6 +87,14 @@ static FEATURE_EDITION: phf::Map<&'static str, SpecEdition> = phf::phf_map! {
     // https://github.com/tc39/proposal-atomics-microwait
     "Atomics.pause" => SpecEdition::ESNext,
 
+    // Immutable Array Buffer
+    // https://github.com/tc39/proposal-immutable-arraybuffer
+    "immutable-arraybuffer" => SpecEdition::ESNext,
+
+    // Non-extensible Applies to Private
+    // https://github.com/tc39/proposal-nonextensible-applies-to-private
+    "nonextensible-applies-to-private" => SpecEdition::ESNext,
+
     // ===== Next ES version =====
 
     // Error.isError
@@ -240,6 +248,8 @@ static FEATURE_EDITION: phf::Map<&'static str, SpecEdition> = phf::phf_map! {
     "rest-parameters" => SpecEdition::ES6,
     "Set" => SpecEdition::ES6,
     "SharedArrayBuffer" => SpecEdition::ES8,
+    "stable-array-sort" => SpecEdition::ES10,
+    "stable-typedarray-sort" => SpecEdition::ES10,
     "string-trimming" => SpecEdition::ES10,
     "String.fromCodePoint" => SpecEdition::ES6,
     "String.prototype.at" => SpecEdition::ES13,
