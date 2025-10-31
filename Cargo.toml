@@ -125,7 +125,7 @@ cfg-if = "1.0.4"
 either = "1.15.0"
 sys-locale = "0.3.2"
 timezone_provider = { version = "0.1.0" }
-temporal_rs = { version = "0.1.0", default-features = false }
+temporal_rs = { version = "0.1.1", default-features = false }
 web-time = "1.1.0"
 criterion = "0.7.0"
 float-cmp = "0.10.0"

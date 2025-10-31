@@ -108,7 +108,7 @@ pub struct Context {
     can_block: bool,
 
     #[cfg(feature = "temporal")]
-    tz_provider: CompiledTzdbProvider,
+    timezone_provider: Box<dyn TimeZoneProvider>,
 
     /// Intl data provider.
     #[cfg(feature = "intl")]
@@ -148,6 +148,10 @@ impl std::fmt::Debug for Context {
 
         #[cfg(feature = "intl")]
         debug.field("intl_provider", &self.intl_provider);
+
+        // TODO: Support TimeZoneProvider debug names
+        #[cfg(feature = "temporal")]
+        debug.field("timezone_provider", &"TimeZoneProvider");
 
         debug.finish_non_exhaustive()
     }
@@ -893,8 +897,8 @@ impl Context {
 
     /// Get the Time Zone Provider
     #[cfg(feature = "temporal")]
-    pub(crate) fn tz_provider(&self) -> &impl TimeZoneProvider {
-        &self.tz_provider
+    pub(crate) fn timezone_provider(&self) -> &dyn TimeZoneProvider {
+        self.timezone_provider.as_ref()
     }
 }
 
@@ -912,6 +916,8 @@ pub struct ContextBuilder {
     can_block: bool,
     #[cfg(feature = "intl")]
     icu: Option<icu::IntlProvider>,
+    #[cfg(feature = "temporal")]
+    timezone_provider: Option<Box<dyn TimeZoneProvider>>,
     #[cfg(feature = "fuzz")]
     instructions_remaining: usize,
 }
@@ -944,6 +950,12 @@ impl std::fmt::Debug for ContextBuilder {
 
         #[cfg(feature = "intl")]
         out.field("icu", &self.icu);
+
+        #[cfg(feature = "temporal")]
+        out.field(
+            "timezone_provider",
+            &self.timezone_provider.as_ref().map(|_| "TimeZoneProvider"),
+        );
 
         #[cfg(feature = "fuzz")]
         out.field("instructions_remaining", &self.instructions_remaining);
@@ -1003,6 +1015,21 @@ impl ContextBuilder {
     ) -> Result<Self, IcuError> {
         self.icu = Some(icu::IntlProvider::try_new_buffer(provider));
         Ok(self)
+    }
+
+    /// Set the [`timezone_provider::provider::TimeZoneProvider`] that should be used to source
+    /// time zone data.
+    ///
+    /// ## Default
+    ///
+    /// If no time zone provider is provided, a compiled time zone provider will be used
+    /// which includes the time zone data in the binary. This may increase binary sizes
+    /// by up to 200 Kb.
+    #[cfg(feature = "temporal")]
+    #[must_use]
+    pub fn timezone_provider<T: TimeZoneProvider + 'static>(mut self, provider: T) -> Self {
+        self.timezone_provider = Some(Box::new(provider));
+        self
     }
 
     /// Initializes the [`HostHooks`] for the context.
@@ -1104,7 +1131,11 @@ impl ContextBuilder {
             vm,
             strict: false,
             #[cfg(feature = "temporal")]
-            tz_provider: CompiledTzdbProvider::default(),
+            timezone_provider: if let Some(provider) = self.timezone_provider {
+                provider
+            } else {
+                Box::new(CompiledTzdbProvider::default())
+            },
             #[cfg(feature = "intl")]
             intl_provider: if let Some(icu) = self.icu {
                 icu
