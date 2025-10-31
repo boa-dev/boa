@@ -1,0 +1,3619 @@
+utils/tag_ptr/src/lib.rs
+55-        let addr = (tag << 1) | 1;
+56-        // SAFETY: `addr` is never zero, since we always set its LSB to 1
+57:        unsafe { Self(NonNull::new_unchecked(ptr::without_provenance_mut(addr))) }
+58-    }
+59-
+--
+68-    /// - `ptr` must be non null.
+69-    #[inline]
+70:    pub const unsafe fn from_ptr(ptr: *mut T) -> Self {
+71-        // SAFETY: the caller must ensure the invariants hold.
+72:        unsafe { Self(NonNull::new_unchecked(ptr)) }
+73-    }
+74-
+
+examples/src/bin/host_defined.rs
+10-#[derive(Default, Trace, Finalize, JsData)]
+11-struct CustomHostDefinedStruct {
+12:    #[unsafe_ignore_trace]
+13-    counter: usize,
+14-}
+--
+17-#[derive(Trace, Finalize, JsData)]
+18-struct AnotherCustomHostDefinedStruct {
+19:    #[unsafe_ignore_trace]
+20-    counter: usize,
+21-}
+--
+30-#[derive(Default, Trace, Finalize, JsData)]
+31-struct HostDefinedMetrics {
+32:    #[unsafe_ignore_trace]
+33-    counter: usize,
+34-}
+
+examples/src/bin/closures.rs
+146-            js_string!("enumerate"),
+147-            0,
+148:            // Note that it is required to use `unsafe` code, since the compiler cannot verify that the
+149-            // types captured by the closure are not traceable.
+150:            unsafe {
+151-                NativeFunction::from_closure(move |_, _, context| {
+152-                    println!("Called `enumerate`");
+
+tests/wpt/src/logger/mod.rs
+38-    tee: Gc<Box<dyn Logger>>,
+39-
+40:    #[unsafe_ignore_trace]
+41-    inner: Rc<RefCell<RecordingLoggerInner>>,
+42-}
+
+tests/wpt/src/lib.rs
+265-
+266-#[derive(Debug, Clone, Trace, Finalize, JsData)]
+267:struct TestCompletion(#[unsafe_ignore_trace] Rc<RefCell<bool>>);
+268-
+269-impl TestCompletion {
+
+tests/tester/src/exec/mod.rs
+624-        context.realm(),
+625-        // SAFETY: `AsyncResult` has only non-traceable captures, making this safe.
+626:        unsafe {
+627-            NativeFunction::from_closure(move |_, args, context| {
+628-                let message = args
+
+tests/wpt/src/fetcher/mod.rs
+18-    wpt_server: String,
+19-    wpt_root: PathBuf,
+20:    #[unsafe_ignore_trace]
+21-    current_file: Rc<RefCell<Option<PathBuf>>>,
+22-
+23:    #[unsafe_ignore_trace]
+24-    inner: Rc<BlockingReqwestFetcher>,
+25-}
+
+tests/tester/src/exec/js262.rs
+205-    let (reports_tx, reports_rx) = mpsc::channel();
+206-
+207:    let start = unsafe {
+208-        let bus = bus.clone();
+209-        NativeFunction::from_closure(move |_, args, context| {
+--
+248-    };
+249-
+250:    let broadcast = unsafe {
+251-        // should technically also have a second numeric argument, but the test262 never uses it.
+252-        NativeFunction::from_closure(move |_, args, _| {
+--
+267-    };
+268-
+269:    let get_report = unsafe {
+270-        NativeFunction::from_closure(move |_, _, _| {
+271-            let Ok(msg) = reports_rx.try_recv() else {
+--
+297-) {
+298-    let rx = RefCell::new(rx);
+299:    let receive_broadcast = unsafe {
+300-        // should technically also have a second numeric argument, but the test262 never uses it.
+301-        NativeFunction::from_closure(move |_, args, context| {
+--
+314-    };
+315-
+316:    let report = unsafe {
+317-        NativeFunction::from_closure(move |_, args, context| {
+318-            let string = args.get_or_undefined(0).to_string(context)?.to_vec();
+
+cli/src/logger.rs
+8-#[derive(Clone, Trace, Finalize)]
+9-pub(crate) struct SharedExternalPrinterLogger {
+10:    #[unsafe_ignore_trace]
+11-    inner: Arc<Mutex<Option<Box<dyn ExternalPrinter + Send>>>>,
+12-}
+
+core/string/src/tests.rs
+257-#[test]
+258-#[allow(clippy::cast_possible_truncation)]
+259:#[allow(clippy::undocumented_unsafe_blocks)]
+260-fn js_string_builder() {
+261-    let s = "2024年5月21日";
+--
+286-        builder.push(code);
+287-    }
+288:    let s_builder = unsafe { builder.build_as_latin1() };
+289-    assert_eq!(
+290-        s_builder.to_std_string().unwrap_or_default(),
+--
+302-
+303-    // from_iter latin1
+304:    let s_builder = unsafe {
+305-        s_latin1_literal
+306-            .iter()
+--
+323-    let mut builder = Latin1JsStringBuilder::new();
+324-    builder.extend_from_slice(s_latin1_literal);
+325:    let s_builder = unsafe { builder.build_as_latin1() };
+326-    assert_eq!(
+327-        s_builder.to_std_string().unwrap_or_default(),
+
+core/string/src/common.rs
+72-
+73-        // SAFETY: Type of T in is `&'static JsStr<'static>`, so this is safe.
+74:        let ptr = unsafe { std::mem::transmute::<&JsStr<'_>, &'static JsStr<'static>>(str) };
+75-
+76-        Some(JsString::from_static_js_str(ptr))
+--
+217-/// Map from a string inside [`RAW_STATICS`] to its corresponding static index on `RAW_STATICS`.
+218-//
+219:// SAFETY: Must always point to static memory, otherwise this is unsafe.
+220-static RAW_STATICS_CACHE: LazyLock<FxHashSet<&'static JsStr<'static>>> = LazyLock::new(|| {
+221-    RAW_STATICS
+
+core/macros/src/module.rs
+244-    let name = mod_.ident;
+245-    let attrs = mod_.attrs;
+246:    let safety = mod_.unsafety;
+247-
+248-    let generics = quote! {
+
+core/string/src/str.rs
+66-
+67-// SAFETY: Inner<'_> has only immutable references to Sync types (u8/u16), so this is safe.
+68:unsafe impl Sync for JsStr<'_> {}
+69-
+70-// SAFETY: It's read-only, sending this reference to another thread doesn't
+71-//         risk data races (there’s no mutation happening), so this is safe.
+72:unsafe impl Send for JsStr<'_> {}
+73-
+74-impl<'a> JsStr<'a> {
+--
+117-        if self.inner.tagged_len.is_latin1() {
+118-            // SAFETY: We check that the ptr points to a latin1 (i.e. &[u8]), so this is safe.
+119:            let slice = unsafe { std::slice::from_raw_parts(self.inner.ptr, len) };
+120-
+121-            JsStrVariant::Latin1(slice)
+--
+126-
+127-            // SAFETY: We check that the ptr points to an utf16 slice, so this is safe.
+128:            let slice = unsafe { std::slice::from_raw_parts(ptr, len) };
+129-
+130-            JsStrVariant::Utf16(slice)
+--
+147-
+148-            // SAFETY: ptr is always a valid pointer to a slice data.
+149:            let slice = unsafe { std::slice::from_raw_parts(self.inner.ptr, len) };
+150-            return Some(slice);
+151-        }
+--
+253-    #[inline]
+254-    #[must_use]
+255:    pub unsafe fn get_unchecked<I>(self, index: I) -> I::Value
+256-    where
+257-        I: JsSliceIndex<'a>,
+258-    {
+259-        // Safety: Caller must ensure the index is not out of bounds
+260:        unsafe { JsSliceIndex::get_unchecked(self, index) }
+261-    }
+262-
+--
+663-    fn get(_: JsStr<'a>, index: Self) -> Option<Self::Value>;
+664-
+665:    unsafe fn get_unchecked(value: JsStr<'a>, index: Self) -> Self::Value;
+666-}
+667-
+--
+681-    /// Caller must ensure the index is not out of bounds
+682-    #[inline]
+683:    unsafe fn get_unchecked(value: JsStr<'a>, index: Self) -> Self::Value {
+684-        // Safety: Caller must ensure the index is not out of bounds
+685:        unsafe {
+686-            match value.variant() {
+687-                JsStrVariant::Latin1(v) => u16::from(*v.get_unchecked(index)),
+--
+707-    /// Caller must ensure the index is not out of bounds
+708-    #[inline]
+709:    unsafe fn get_unchecked(value: JsStr<'a>, index: Self) -> Self::Value {
+710-        // Safety: Caller must ensure the index is not out of bounds
+711:        unsafe {
+712-            match value.variant() {
+713-                JsStrVariant::Latin1(v) => JsStr::latin1(v.get_unchecked(index)),
+--
+733-    /// Caller must ensure the index is not out of bounds
+734-    #[inline]
+735:    unsafe fn get_unchecked(value: JsStr<'a>, index: Self) -> Self::Value {
+736-        // Safety: Caller must ensure the index is not out of bounds
+737:        unsafe {
+738-            match value.variant() {
+739-                JsStrVariant::Latin1(v) => JsStr::latin1(v.get_unchecked(index)),
+--
+759-    /// Caller must ensure the index is not out of bounds
+760-    #[inline]
+761:    unsafe fn get_unchecked(value: JsStr<'a>, index: Self) -> Self::Value {
+762-        // Safety: Caller must ensure the index is not out of bounds
+763:        unsafe {
+764-            match value.variant() {
+765-                JsStrVariant::Latin1(v) => JsStr::latin1(v.get_unchecked(index)),
+--
+785-    /// Caller must ensure the index is not out of bounds
+786-    #[inline]
+787:    unsafe fn get_unchecked(value: JsStr<'a>, index: Self) -> Self::Value {
+788-        // Safety: Caller must ensure the index is not out of bounds
+789:        unsafe {
+790-            match value.variant() {
+791-                JsStrVariant::Latin1(v) => JsStr::latin1(v.get_unchecked(index)),
+--
+808-    /// Caller must ensure the index is not out of bounds
+809-    #[inline]
+810:    unsafe fn get_unchecked(value: JsStr<'a>, _index: Self) -> Self::Value {
+811-        value
+812-    }
+
+core/macros/src/lib.rs
+198-        quote! {
+199-            #[doc = #doc]
+200:            pub const #ident: Self = unsafe { Self::new_unchecked(#idx) };
+201-        }
+202-    });
+--
+293-
+294-decl_derive! {
+295:    [Trace, attributes(boa_gc, unsafe_ignore_trace)] =>
+296-    /// Derive the `Trace` trait.
+297-    derive_trace
+--
+310-            let i: Ident = input.parse()?;
+311-
+312:            if i != "empty_trace" && i != "unsafe_empty_trace" && i != "unsafe_no_drop" {
+313-                let msg = format!(
+314:                    "expected token \"empty_trace\", \"unsafe_empty_trace\" or \"unsafe_no_drop\", found {i:?}"
+315-                );
+316-                return Err(syn::Error::new_spanned(i.clone(), msg));
+--
+319-            Ok(Self {
+320-                copy: i == "empty_trace",
+321:                drop: i == "empty_trace" || i != "unsafe_no_drop",
+322-            })
+323-        }
+--
+342-            }
+343-
+344:            return s.unsafe_bound_impl(
+345-                quote!(::boa_gc::Trace),
+346-                quote! {
+347-                    #[inline(always)]
+348:                    unsafe fn trace(&self, _tracer: &mut ::boa_gc::Tracer) {}
+349-                    #[inline(always)]
+350:                    unsafe fn trace_non_roots(&self) {}
+351-                    #[inline]
+352-                    fn run_finalizer(&self) {
+--
+362-            .attrs
+363-            .iter()
+364:            .any(|attr| attr.path().is_ident("unsafe_ignore_trace"))
+365-    });
+366-    let trace_body = s.each(|bi| quote!(::boa_gc::Trace::trace(#bi, tracer)));
+--
+368-
+369-    s.add_bounds(AddBounds::Fields);
+370:    let trace_impl = s.unsafe_bound_impl(
+371-        quote!(::boa_gc::Trace),
+372-        quote! {
+373-            #[inline]
+374:            unsafe fn trace(&self, tracer: &mut ::boa_gc::Tracer) {
+375-                #[allow(dead_code)]
+376-                let mut mark = |it: &dyn ::boa_gc::Trace| {
+377-                    // SAFETY: The implementor must ensure that `trace` is correctly implemented.
+378:                    unsafe {
+379-                        ::boa_gc::Trace::trace(it, tracer);
+380-                    }
+--
+383-            }
+384-            #[inline]
+385:            unsafe fn trace_non_roots(&self) {
+386-                #[allow(dead_code)]
+387-                fn mark<T: ::boa_gc::Trace + ?Sized>(it: &T) {
+388-                    // SAFETY: The implementor must ensure that `trace_non_roots` is correctly implemented.
+389:                    unsafe {
+390-                        ::boa_gc::Trace::trace_non_roots(it);
+391-                    }
+--
+398-                #[allow(dead_code)]
+399-                fn mark<T: ::boa_gc::Trace + ?Sized>(it: &T) {
+400:                    unsafe {
+401-                        ::boa_gc::Trace::run_finalizer(it);
+402-                    }
+--
+407-    );
+408-
+409:    // We also implement drop to prevent unsafe drop implementations on this
+410-    // type and encourage people to use Finalize. This implementation will
+411-    // call `Finalize::finalize` if it is safe to do so.
+
+core/interner/src/sym.rs
+13-)]
+14-#[cfg_attr(feature = "arbitrary", derive(arbitrary::Arbitrary))]
+15:#[allow(clippy::unsafe_derive_deserialize)]
+16-#[derive(Debug, Copy, Clone, PartialEq, Eq, PartialOrd, Ord, Hash, Finalize)]
+17-pub struct Sym {
+--
+21-// SAFETY: `NonZeroUsize` is a constrained `usize`, and all primitive types don't need to be traced
+22-// by the garbage collector.
+23:unsafe impl Trace for Sym {
+24-    empty_trace!();
+25-}
+--
+36-    ///
+37-    /// `value` must not be zero.
+38:    pub(super) const unsafe fn new_unchecked(value: usize) -> Self {
+39-        Self {
+40-            value:
+41-            // SAFETY: The caller must ensure the invariants of the function.
+42:            unsafe {
+43-                NonZeroUsize::new_unchecked(value)
+44-            },
+
+core/interner/src/lib.rs
+219-            // that could cause overflows, meaning the indices returned by
+220-            // `idx + 1 + COMMON_STRINGS_UTF8.len()` cannot cause overflows.
+221:            unsafe { index.map(|i| Sym::new_unchecked(i + 1 + COMMON_STRINGS_UTF8.len())) }
+222-        })
+223-    }
+--
+328-            // We only manipulate valid UTF-8 `str`s and convert them to `[u8]` for convenience,
+329-            // so converting back to a `str` is safe.
+330:            let utf8 = unsafe {
+331-                core::str::from_utf8_unchecked(
+332-                    self.utf8_interner
+--
+362-                // In this case, we don't need to worry about overflows because we have a static
+363-                // assertion in place checking that `COMMON_STRINGS.len() < usize::MAX`.
+364:                unsafe { Sym::new_unchecked(idx + 1) }
+365-            }),
+366-            JStrRef::Utf16(s) => COMMON_STRINGS_UTF16.get_index_of(&s).map(|idx| {
+--
+368-                // In this case, we don't need to worry about overflows because we have a static
+369-                // assertion in place checking that `COMMON_STRINGS.len() < usize::MAX`.
+370:                unsafe { Sym::new_unchecked(idx + 1) }
+371-            }),
+372-        }
+
+core/interner/src/raw.rs
+72-        // `string` is a valid slice that doesn't outlive the
+73-        // created `InternedStr`, so this is safe.
+74:        unsafe {
+75-            self.symbol_cache
+76-                .get(&InternedStr::new(string.into()))
+--
+97-        // the lifetime of the created `InternedStr`. This makes this
+98-        // operation safe.
+99:        let string = unsafe { InternedStr::new(string.into()) };
+100-
+101-        // SAFETY:
+--
+103-        // cannot be invalidated by allocations and deallocations,
+104-        // so this is safe.
+105:        unsafe { self.next_index(string) }
+106-    }
+107-
+--
+111-            // SAFETY: We always ensure the stored `InternedStr`s always
+112-            // reference memory inside `head` and `full`
+113:            unsafe {ptr.as_ref()})
+114-    }
+115-
+--
+121-    /// memory inside `head` (or only valid in the case of statics)
+122-    /// and that it won't be invalidated by allocations and deallocations.
+123:    unsafe fn next_index(&mut self, string: InternedStr<Char>) -> usize {
+124-        let next = self.len();
+125-        self.spans.push(string);
+--
+167-        // which we can do by moving it inside the interner itself, specifically
+168-        // on the `full` vector, where every other old `head` also lives.
+169:        let interned_str = unsafe {
+170-            self.head.push(string).unwrap_or_else(|| {
+171-                let new_cap =
+--
+190-        // `head`, which is alive through the whole life of the interner, so
+191-        // this is safe.
+192:        unsafe { self.next_index(interned_str) }
+193-    }
+194-}
+
+core/engine/src/script.rs
+46-struct Inner {
+47-    realm: Realm,
+48:    #[unsafe_ignore_trace]
+49-    source: boa_ast::Script,
+50-    source_text: SourceText,
+
+core/string/src/builder.rs
+55-    /// - The elements at `old_len..new_len` must be initialized.
+56-    #[inline]
+57:    pub const unsafe fn set_len(&mut self, new_len: usize) {
+58-        debug_assert!(new_len <= self.capacity());
+59-
+--
+92-        // The layout size of `RawJsString` is never zero, since it has to store
+93-        // the length of the string and the reference count.
+94:        let ptr = unsafe { alloc(layout) };
+95-
+96-        let Some(ptr) = NonNull::new(ptr.cast()) else {
+--
+117-    /// Caller should ensure that the inner is allocated.
+118-    #[must_use]
+119:    unsafe fn current_layout(&self) -> Layout {
+120-        // SAFETY:
+121-        // Caller should ensure that the inner is allocated.
+122:        unsafe {
+123-            Layout::for_value(self.inner.as_ref())
+124-                .extend(Layout::array::<D>(self.capacity()).unwrap_unchecked())
+--
+135-    /// Caller should ensure that the inner is allocated.
+136-    #[must_use]
+137:    const unsafe fn data(&self) -> *mut D {
+138-        // SAFETY:
+139-        // Caller should ensure that the inner is allocated.
+140:        unsafe { (&raw mut (*self.inner.as_ptr()).data).cast() }
+141-    }
+142-
+--
+159-            // SAFETY:
+160-            // Allocation check has been made above.
+161:            let old_layout = unsafe { self.current_layout() };
+162-            // SAFETY:
+163-            // Valid pointer is required by `realloc` and pointer is checked above to be valid.
+164-            // The layout size of `RawJsString` is never zero, since it has to store
+165-            // the length of the string and the reference count.
+166:            unsafe { realloc(old_ptr.cast(), old_layout, new_layout.size()) }
+167-        } else {
+168-            // SAFETY:
+169-            // The layout size of `RawJsString` is never zero, since it has to store
+170-            // the length of the string and the reference count.
+171:            unsafe { alloc(new_layout) }
+172-        };
+173-        let Some(new_ptr) = NonNull::new(new_ptr.cast::<RawJsString>()) else {
+--
+185-        // SAFETY:
+186-        // Capacity has been expanded to be large enough to hold elements.
+187:        unsafe {
+188-            self.push_unchecked(v);
+189-        }
+--
+200-    /// Caller should ensure the capacity is large enough to hold elements.
+201-    #[inline]
+202:    pub const unsafe fn extend_from_slice_unchecked(&mut self, v: &[D]) {
+203-        // SAFETY: Caller should ensure the capacity is large enough to hold elements.
+204:        unsafe {
+205-            ptr::copy_nonoverlapping(v.as_ptr(), self.data().add(self.len()), v.len());
+206-        }
+--
+215-        // SAFETY:
+216-        // Capacity has been expanded to be large enough to hold elements.
+217:        unsafe {
+218-            self.extend_from_slice_unchecked(v);
+219-        }
+--
+289-    /// Caller should ensure the capacity is large enough to hold elements.
+290-    #[inline]
+291:    pub const unsafe fn push_unchecked(&mut self, v: D) {
+292-        // SAFETY: Caller should ensure the capacity is large enough to hold elements.
+293:        unsafe {
+294-            self.data().add(self.len()).write(v);
+295-            self.len += 1;
+--
+311-        // `NonNull` verified for us that the pointer returned by `alloc` is valid,
+312-        // meaning we can read to its pointed memory.
+313:        let data = unsafe {
+314-            std::slice::from_raw_parts(self.data().cast::<u8>(), self.allocated_data_byte_len())
+315-        };
+--
+324-            // SAFETY:
+325-            // The inner `RawJsString` is allocated which means it is not null.
+326:            unsafe { std::slice::from_raw_parts(self.data(), self.len()) }
+327-        } else {
+328-            &[]
+--
+337-    #[inline]
+338-    #[must_use]
+339:    pub unsafe fn as_mut_slice(&mut self) -> &mut [D] {
+340-        if self.is_allocated() {
+341-            // SAFETY:
+342-            // The inner `RawJsString` is allocated which means it is not null.
+343:            unsafe { std::slice::from_raw_parts_mut(self.data(), self.len()) }
+344-        } else {
+345-            &mut []
+--
+367-        // `NonNull` verified for us that the pointer returned by `alloc` is valid,
+368-        // meaning we can write to its pointed memory.
+369:        unsafe {
+370-            inner.as_ptr().write(RawJsString {
+371-                tagged_len: TaggedLen::new(len, latin1),
+--
+391-            // SAFETY:
+392-            // Allocation check has been made above.
+393:            let layout = unsafe { self.current_layout() };
+394-            // SAFETY:
+395-            // layout: All the checks for the validity of the layout have already been made on `allocate_inner`.
+396-            // `NonNull` verified for us that the pointer returned by `alloc` is valid,
+397-            // meaning we can free its pointed memory.
+398:            unsafe {
+399-                dealloc(self.inner.as_ptr().cast(), layout);
+400-            }
+--
+462-        let mut builder = Self::with_capacity(value.len());
+463-        // SAFETY: The capacity is large enough to hold elements.
+464:        unsafe { builder.extend_from_slice_unchecked(value) };
+465-        builder
+466-    }
+--
+480-            let mut builder = Self::with_capacity(self.capacity());
+481-            // SAFETY: The capacity is large enough to hold elements.
+482:            unsafe { builder.extend_from_slice_unchecked(self.as_slice()) };
+483-            builder
+484-        } else {
+--
+501-            if source_len == 0 {
+502-                // SAFETY: 0 is always less or equal to self's capacity.
+503:                unsafe { self.set_len(0) };
+504-                return;
+505-            }
+--
+507-
+508-        // SAFETY: self shoud be allocated after allocation.
+509:        let self_data = unsafe { self.data() };
+510-
+511-        // SAFETY: source_len is greter than 0 so source shoud be allocated.
+512:        let source_data = unsafe { source.data() };
+513-
+514-        // SAFETY: Borrow checker should not allow this to be overlapped and pointers are valid.
+515:        unsafe { ptr::copy_nonoverlapping(source_data, self_data, source_len) };
+516-
+517-        // SAFETY: source_len has checked to be less or equal to self's capacity.
+518:        unsafe { self.set_len(source_len) };
+519-    }
+520-}
+--
+567-    #[inline]
+568-    #[must_use]
+569:    pub unsafe fn build_as_latin1(self) -> JsString {
+570-        self.build_inner(true)
+571-    }
+--
+840-            // SAFETY:
+841-            // All string segment contains only ascii byte, so this can be encoded as `Latin1`.
+842:            unsafe { self.build_as_latin1() }
+843-        } else {
+844-            self.build_from_utf16()
+--
+857-    #[inline]
+858-    #[must_use]
+859:    pub unsafe fn build_as_latin1(self) -> JsString {
+860-        let mut builder = Latin1JsStringBuilder::new();
+861-        for seg in self.segments {
+--
+879-        }
+880-        // SAFETY: All string segments can be encoded as `Latin1` string.
+881:        unsafe { builder.build_as_latin1() }
+882-    }
+883-}
+
+core/gc/src/trace.rs
+40-    ///
+41-    /// All the pointers inside of the queue must point to valid memory.
+42:    pub(crate) unsafe fn trace_until_empty(&mut self) {
+43-        while let Some(node) = self.queue.pop_front() {
+44:            let node_ref = unsafe { node.as_ref() };
+45-            if node_ref.is_marked() {
+46-                continue;
+--
+51-            // SAFETY: The function pointer is appropriate for this node type because we extract it from it's VTable.
+52-            // Additionally, the node pointer is valid per the caller's guarantee.
+53:            unsafe { trace_fn(node, self) }
+54-        }
+55-    }
+--
+73-///   use-after-free, or Undefined Behaviour in general.
+74-///
+75:/// - Calling any of the functions marked as `unsafe` outside of the context of the garbage collector
+76-///   can result in Undefined Behaviour.
+77:pub unsafe trait Trace: Finalize {
+78-    /// Marks all contained `Gc`s.
+79-    ///
+--
+81-    ///
+82-    /// See [`Trace`].
+83:    unsafe fn trace(&self, tracer: &mut Tracer);
+84-
+85-    /// Trace handles located in GC heap, and mark them as non root.
+--
+88-    ///
+89-    /// See [`Trace`].
+90:    unsafe fn trace_non_roots(&self);
+91-
+92-    /// Runs [`Finalize::finalize`] on this object and all
+--
+102-    () => {
+103-        #[inline]
+104:        unsafe fn trace(&self, _tracer: &mut $crate::Tracer) {}
+105-        #[inline]
+106:        unsafe fn trace_non_roots(&self) {}
+107-        #[inline]
+108-        fn run_finalizer(&self) {
+--
+125-    ($this:ident, $marker:ident, $body:expr) => {
+126-        #[inline]
+127:        unsafe fn trace(&self, tracer: &mut $crate::Tracer) {
+128-            let mut $marker = |it: &dyn $crate::Trace| {
+129-                // SAFETY: The implementor must ensure that `trace` is correctly implemented.
+130:                unsafe {
+131-                    $crate::Trace::trace(it, tracer);
+132-                }
+--
+136-        }
+137-        #[inline]
+138:        unsafe fn trace_non_roots(&self) {
+139-            fn $marker<T: $crate::Trace + ?Sized>(it: &T) {
+140-                // SAFETY: The implementor must ensure that `trace` is correctly implemented.
+141:                unsafe {
+142-                    $crate::Trace::trace_non_roots(it);
+143-                }
+--
+160-impl<T: ?Sized> Finalize for &'static T {}
+161-// SAFETY: 'static references don't need to be traced, since they live indefinitely.
+162:unsafe impl<T: ?Sized> Trace for &'static T {
+163-    empty_trace!();
+164-}
+--
+171-            // SAFETY:
+172-            // Primitive types and string types don't have inner nodes that need to be marked.
+173:            unsafe impl Trace for $T { empty_trace!(); }
+174-        )*
+175-    }
+--
+232-// SAFETY:
+233-// All elements inside the array are correctly marked.
+234:unsafe impl<T: Trace, const N: usize> Trace for [T; N] {
+235-    custom_trace!(this, mark, {
+236-        for v in this {
+--
+245-        // SAFETY:
+246-        // Function pointers don't have inner nodes that need to be marked.
+247:        unsafe impl<Ret $(,$args)*> Trace for $ty { empty_trace!(); }
+248-    }
+249-}
+--
+252-        fn_finalize_trace_one!(extern "Rust" fn () -> Ret);
+253-        fn_finalize_trace_one!(extern "C" fn () -> Ret);
+254:        fn_finalize_trace_one!(unsafe extern "Rust" fn () -> Ret);
+255:        fn_finalize_trace_one!(unsafe extern "C" fn () -> Ret);
+256-    };
+257-    ($($args:ident),*) => {
+--
+259-        fn_finalize_trace_one!(extern "C" fn ($($args),*) -> Ret, $($args),*);
+260-        fn_finalize_trace_one!(extern "C" fn ($($args),*, ...) -> Ret, $($args),*);
+261:        fn_finalize_trace_one!(unsafe extern "Rust" fn ($($args),*) -> Ret, $($args),*);
+262:        fn_finalize_trace_one!(unsafe extern "C" fn ($($args),*) -> Ret, $($args),*);
+263:        fn_finalize_trace_one!(unsafe extern "C" fn ($($args),*, ...) -> Ret, $($args),*);
+264-    }
+265-}
+--
+271-        // SAFETY:
+272-        // All elements inside the tuple are correctly marked.
+273:        unsafe impl<$($args: $crate::Trace),*> Trace for ($($args,)*) {
+274-            custom_trace!(this, mark, {
+275:                #[allow(non_snake_case, unused_unsafe, unused_mut)]
+276-                let mut avoid_lints = |&($(ref $args,)*): &($($args,)*)| {
+277-                    // SAFETY: The implementor must ensure a correct implementation.
+278:                    unsafe { $(mark($args);)* }
+279-                };
+280-                avoid_lints(this)
+--
+311-impl<T: Trace + ?Sized> Finalize for Box<T> {}
+312-// SAFETY: The inner value of the `Box` is correctly marked.
+313:unsafe impl<T: Trace + ?Sized> Trace for Box<T> {
+314-    #[inline]
+315:    unsafe fn trace(&self, tracer: &mut Tracer) {
+316-        // SAFETY: The implementor must ensure that `trace` is correctly implemented.
+317:        unsafe {
+318-            Trace::trace(&**self, tracer);
+319-        }
+320-    }
+321-    #[inline]
+322:    unsafe fn trace_non_roots(&self) {
+323-        // SAFETY: The implementor must ensure that `trace_non_roots` is correctly implemented.
+324:        unsafe {
+325-            Trace::trace_non_roots(&**self);
+326-        }
+--
+335-impl<T: Trace> Finalize for Box<[T]> {}
+336-// SAFETY: All the inner elements of the `Box` array are correctly marked.
+337:unsafe impl<T: Trace> Trace for Box<[T]> {
+338-    custom_trace!(this, mark, {
+339-        for e in &**this {
+--
+345-impl<T: Trace> Finalize for Vec<T> {}
+346-// SAFETY: All the inner elements of the `Vec` are correctly marked.
+347:unsafe impl<T: Trace> Trace for Vec<T> {
+348-    custom_trace!(this, mark, {
+349-        for e in this {
+--
+358-#[cfg(feature = "thin-vec")]
+359-// SAFETY: All the inner elements of the `Vec` are correctly marked.
+360:unsafe impl<T: Trace> Trace for thin_vec::ThinVec<T> {
+361-    custom_trace!(this, mark, {
+362-        for e in this {
+--
+368-impl<T: Trace> Finalize for Option<T> {}
+369-// SAFETY: The inner value of the `Option` is correctly marked.
+370:unsafe impl<T: Trace> Trace for Option<T> {
+371-    custom_trace!(this, mark, {
+372-        if let Some(ref v) = *this {
+--
+378-impl<T: Trace, E: Trace> Finalize for Result<T, E> {}
+379-// SAFETY: Both inner values of the `Result` are correctly marked.
+380:unsafe impl<T: Trace, E: Trace> Trace for Result<T, E> {
+381-    custom_trace!(this, mark, {
+382-        match *this {
+--
+389-impl<T: Ord + Trace> Finalize for BinaryHeap<T> {}
+390-// SAFETY: All the elements of the `BinaryHeap` are correctly marked.
+391:unsafe impl<T: Ord + Trace> Trace for BinaryHeap<T> {
+392-    custom_trace!(this, mark, {
+393-        for v in this {
+--
+399-impl<K: Trace, V: Trace> Finalize for BTreeMap<K, V> {}
+400-// SAFETY: All the elements of the `BTreeMap` are correctly marked.
+401:unsafe impl<K: Trace, V: Trace> Trace for BTreeMap<K, V> {
+402-    custom_trace!(this, mark, {
+403-        for (k, v) in this {
+--
+410-impl<T: Trace> Finalize for BTreeSet<T> {}
+411-// SAFETY: All the elements of the `BTreeSet` are correctly marked.
+412:unsafe impl<T: Trace> Trace for BTreeSet<T> {
+413-    custom_trace!(this, mark, {
+414-        for v in this {
+--
+423-}
+424-// SAFETY: All the elements of the `HashMap` are correctly marked.
+425:unsafe impl<K: Eq + Hash + Trace, V: Trace, S: BuildHasher> Trace
+426-    for hashbrown::hash_map::HashMap<K, V, S>
+427-{
+--
+436-impl<K: Eq + Hash + Trace, V: Trace, S: BuildHasher> Finalize for HashMap<K, V, S> {}
+437-// SAFETY: All the elements of the `HashMap` are correctly marked.
+438:unsafe impl<K: Eq + Hash + Trace, V: Trace, S: BuildHasher> Trace for HashMap<K, V, S> {
+439-    custom_trace!(this, mark, {
+440-        for (k, v) in this {
+--
+447-impl<T: Eq + Hash + Trace, S: BuildHasher> Finalize for HashSet<T, S> {}
+448-// SAFETY: All the elements of the `HashSet` are correctly marked.
+449:unsafe impl<T: Eq + Hash + Trace, S: BuildHasher> Trace for HashSet<T, S> {
+450-    custom_trace!(this, mark, {
+451-        for v in this {
+--
+457-impl<T: Eq + Hash + Trace> Finalize for LinkedList<T> {}
+458-// SAFETY: All the elements of the `LinkedList` are correctly marked.
+459:unsafe impl<T: Eq + Hash + Trace> Trace for LinkedList<T> {
+460-    custom_trace!(this, mark, {
+461-        #[allow(clippy::explicit_iter_loop)]
+--
+468-impl<T> Finalize for PhantomData<T> {}
+469-// SAFETY: A `PhantomData` doesn't have inner data that needs to be marked.
+470:unsafe impl<T> Trace for PhantomData<T> {
+471-    empty_trace!();
+472-}
+--
+474-impl<T: Trace> Finalize for VecDeque<T> {}
+475-// SAFETY: All the elements of the `VecDeque` are correctly marked.
+476:unsafe impl<T: Trace> Trace for VecDeque<T> {
+477-    custom_trace!(this, mark, {
+478-        for v in this {
+--
+485-// SAFETY: 'static references don't need to be traced, since they live indefinitely, and the owned
+486-// variant is correctly marked.
+487:unsafe impl<T: ToOwned + Trace + ?Sized> Trace for Cow<'static, T>
+488-where
+489-    T::Owned: Trace,
+--
+499-// SAFETY: Taking and setting is done in a single action, and recursive traces should find a `None`
+500-// value instead of the original `T`, making this safe.
+501:unsafe impl<T: Trace> Trace for Cell<Option<T>> {
+502-    custom_trace!(this, mark, {
+503-        if let Some(v) = this.take() {
+--
+510-impl<T: Trace> Finalize for OnceCell<T> {}
+511-// SAFETY: We only trace the inner cell if the cell has a value.
+512:unsafe impl<T: Trace> Trace for OnceCell<T> {
+513-    custom_trace!(this, mark, {
+514-        if let Some(v) = this.get() {
+--
+527-
+528-    // SAFETY: `LanguageIdentifier` doesn't have any traceable data.
+529:    unsafe impl Trace for LanguageIdentifier {
+530-        empty_trace!();
+531-    }
+--
+534-
+535-    // SAFETY: `LanguageIdentifier` doesn't have any traceable data.
+536:    unsafe impl Trace for Locale {
+537-        empty_trace!();
+538-    }
+--
+544-
+545-    // SAFETY: `boa_string::JsString` doesn't have any traceable data.
+546:    unsafe impl Trace for boa_string::JsString {
+547-        empty_trace!();
+548-    }
+--
+557-    impl<L: Trace, R: Trace> Finalize for either::Either<L, R> {}
+558-
+559:    unsafe impl<L: Trace, R: Trace> Trace for either::Either<L, R> {
+560-        custom_trace!(this, mark, {
+561-            match this {
+
+core/interner/src/interned_str.rs
+27-    /// Not maintaining the invariants specified on the struct definition
+28-    /// could cause Undefined Behaviour.
+29:    pub(super) const unsafe fn new(ptr: NonNull<[Char]>) -> Self {
+30-        Self { ptr }
+31-    }
+--
+37-    /// Not maintaining the invariants specified on the struct definition
+38-    /// could cause Undefined Behaviour.
+39:    pub(super) unsafe fn as_ref(&self) -> &[Char] {
+40-        // SAFETY:
+41-        // The caller must ensure `ptr` is still valid throughout the
+42-        // lifetime of `self`.
+43:        unsafe { self.ptr.as_ref() }
+44-    }
+45-}
+--
+62-        // SAFETY: The caller must verify the invariants
+63-        // specified in the struct definition.
+64:        unsafe { self.as_ref() == other.as_ref() }
+65-    }
+66-}
+--
+74-        // The caller must ensure `ptr` is still valid throughout the
+75-        // lifetime of `self`.
+76:        unsafe {
+77-            self.as_ref().hash(state);
+78-        }
+
+core/interner/src/fixed_string.rs
+48-    /// The caller is responsible for ensuring `self` outlives the returned
+49-    /// [`InternedStr`].
+50:    pub(super) unsafe fn push(&mut self, string: &[Char]) -> Option<InternedStr<Char>> {
+51-        let capacity = self.inner.capacity();
+52-        (capacity >= self.inner.len() + string.len()).then(|| {
+--
+54-            // The caller is responsible for extending the lifetime
+55-            // of `self` to outlive the return value.
+56:            unsafe { self.push_unchecked(string) }
+57-        })
+58-    }
+--
+68-    /// [`InternedStr`] and that it has enough capacity to store `string` without
+69-    /// reallocating.
+70:    pub(super) unsafe fn push_unchecked(&mut self, string: &[Char]) -> InternedStr<Char> {
+71-        let old_len = self.inner.len();
+72-        self.inner.extend_from_slice(string);
+--
+76-        // the alignment of `string` is correct.
+77-        let ptr = &self.inner[old_len..self.inner.len()];
+78:        unsafe { InternedStr::new(ptr.into()) }
+79-    }
+80-}
+
+core/parser/src/lexer/number.rs
+392-        check_after_numeric_literal(cursor)?;
+393-
+394:        let num_str = unsafe { str::from_utf8_unchecked(buf.as_slice()) };
+395-        let num = match kind {
+396-            NumericKind::BigInt(base) => {
+
+core/gc/src/test/weak.rs
+231-    #[derive(Clone, Trace)]
+232-    struct S {
+233:        #[unsafe_ignore_trace]
+234-        inner: Rc<Cell<u8>>,
+235-    }
+--
+264-    #[derive(Clone, Trace)]
+265-    struct S {
+266:        #[unsafe_ignore_trace]
+267-        inner: Rc<Cell<u8>>,
+268-    }
+
+core/runtime/src/url.rs
+25-/// The `URL` class represents a (properly parsed) Uniform Resource Locator.
+26-#[derive(Debug, Clone, JsData, Trace, Finalize)]
+27:#[boa_gc(unsafe_no_drop)]
+28:pub struct Url(#[unsafe_ignore_trace] url::Url);
+29-
+30-impl Url {
+
+core/gc/src/test/erased.rs
+95-
+96-        // SAFETY: The structs have #[repr(C)] so this is safe.
+97:        let base = unsafe { Gc::cast_unchecked::<Base>(derived.clone()) };
+98-
+99-        assert_eq!(Gc::type_id(&base), TypeId::of::<Derived>());
+
+core/gc/src/pointers/weak_map.rs
+16-}
+17-
+18:unsafe impl<K: Trace + ?Sized + 'static, V: Trace + 'static> Trace for WeakMap<K, V> {
+19-    custom_trace!(this, mark, {
+20-        mark(&this.inner);
+--
+79-
+80-// SAFETY: The implementation correctly marks all ephemerons inside the map.
+81:unsafe impl<K, V, S> Trace for RawWeakMap<K, V, S>
+82-where
+83-    K: Trace + ?Sized + 'static,
+--
+415-    // SAFETY: The return value of `key` is only used to hash it, which
+416-    // cannot trigger a garbage collection,
+417:    unsafe {
+418-        if let Some(val) = eph.inner().key() {
+419-            std::ptr::hash(val, &mut state);
+--
+443-    // SAFETY: The return value of `key` is only used inside eq, which
+444-    // cannot trigger a garbage collection.
+445:    move |eph| unsafe {
+446-        eph.inner().key().is_some_and(|val| {
+447-            let val: *const _ = val;
+
+core/runtime/src/store/mod.rs
+168-    /// and only by the creator of the current [`JsValueStore`]. We enforce the first
+169-    /// rule at runtime (and will panic), and the second rule by requiring a mutable
+170:    /// reference. This is still unsafe and relies on unsafe pointer access.
+171:    unsafe fn replace(&mut self, other: ValueStoreInner) {
+172-        let ptr = Arc::as_ptr(&self.0).cast_mut();
+173-
+174-        assert!(!ptr.is_null());
+175:        unsafe {
+176-            assert!(
+177-                matches!(*ptr, ValueStoreInner::Empty),
+
+core/runtime/src/store/from.rs
+108-
+109-    // SAFETY: This is safe as this function is the sole owner of the store.
+110:    unsafe {
+111-        dolly.replace(ValueStoreInner::Array(inner));
+112-    }
+--
+202-
+203-    // SAFETY: This is safe as this function is the sole owner of the store.
+204:    unsafe {
+205-        store.replace(ValueStoreInner::Map(new_map));
+206-    }
+--
+228-
+229-    // SAFETY: This is safe as this function is the sole owner of the store.
+230:    unsafe {
+231-        store.replace(ValueStoreInner::Set(new_set));
+232-    }
+--
+290-
+291-    // SAFETY: This is safe as this function is the sole owner of the store.
+292:    unsafe {
+293-        dolly.replace(ValueStoreInner::Object(fields));
+294-    }
+
+core/gc/src/pointers/gc.rs
+30-}
+31-
+32:unsafe impl Trace for NonTraceable {
+33:    unsafe fn trace(&self, _tracer: &mut Tracer) {
+34-        unreachable!()
+35-    }
+36:    unsafe fn trace_non_roots(&self) {
+37-        unreachable!()
+38-    }
+--
+104-    #[inline]
+105-    #[must_use]
+106:    pub unsafe fn downcast_unchecked<T: Trace + 'static>(self) -> Gc<T> {
+107-        // SAFETY: It's the callers responsibility to make sure this is valid.
+108:        unsafe { Gc::cast_unchecked::<T>(self.inner) }
+109-    }
+110-
+--
+116-    #[inline]
+117-    #[must_use]
+118:    pub unsafe fn downcast_ref_unchecked<T: Trace + 'static>(&self) -> &Gc<T> {
+119-        // SAFETY: It's the callers responsibility to make sure this is valid.
+120:        unsafe { Gc::cast_ref_unchecked::<T>(&self.inner) }
+121-    }
+122-}
+--
+137-// SAFETY: We only have one transparent field in GcErased that needs trace,
+138-//         so this is safe.
+139:unsafe impl Trace for GcErased {
+140-    custom_trace!(this, mark, {
+141-        mark(&this.inner);
+--
+190-        // SAFETY: The newly allocated ephemeron is only live here, meaning `Ephemeron` is the
+191-        // sole owner of the allocation after passing it to `from_raw`, making this operation safe.
+192:        let weak = unsafe {
+193-            Ephemeron::from_raw(Allocator::alloc_ephemeron(EphemeronBox::new_empty())).into()
+194-        };
+--
+198-        // SAFETY:
+199-        // - `as_mut`: `weak` is properly initialized by `alloc_ephemeron` and cannot escape the
+200:        //   `unsafe` block.
+201-        // - `set_kv`: `weak` is a newly created `EphemeronBox`, meaning it isn't possible to
+202-        //   collect it since `weak` is still live.
+203:        unsafe { weak.inner().inner_ptr().as_mut().set(&gc, ()) }
+204-
+205-        gc
+--
+229-    /// # Safety
+230-    ///
+231:    /// This function is unsafe because improper use may lead to memory corruption, double-free,
+232-    /// or misbehaviour of the garbage collector.
+233-    #[must_use]
+234:    pub const unsafe fn from_raw(inner_ptr: NonNull<GcBox<T>>) -> Self {
+235-        Self {
+236-            inner_ptr,
+--
+266-
+267-        // SAFETY: We check that the type is correct above, so this is safe.
+268:        Some(unsafe { Gc::cast_unchecked::<U>(this) })
+269-    }
+270-
+--
+276-    #[inline]
+277-    #[must_use]
+278:    pub unsafe fn cast_unchecked<U: Trace + 'static>(this: Self) -> Gc<U> {
+279-        let inner_ptr = this.inner_ptr.cast::<U>();
+280-        core::mem::forget(this); // Prevents double free.
+--
+292-    #[inline]
+293-    #[must_use]
+294:    pub unsafe fn cast_ref_unchecked<U: Trace + 'static>(this: &Self) -> &Gc<U> {
+295-        // SAFETY: Casting a Gc<T> to a Gc<U> of any type is safe, as long as you don’t actually access it as a U.
+296-        //         The correct functions for T will still be called during tracing, finalization, and dropping.
+297:        unsafe { &(*(&raw const *this).cast::<Gc<U>>()) }
+298-    }
+299-}
+--
+302-    pub(crate) fn vtable(&self) -> &'static VTable {
+303-        // SAFETY: The inner pointer is valid at all times.
+304:        unsafe { self.inner_ptr.as_ref() }.vtable
+305-    }
+306-
+--
+314-    fn inner(&self) -> &GcBox<T> {
+315-        // SAFETY: Please see Gc::inner_ptr()
+316:        unsafe { self.inner_ptr().as_ref() }
+317-    }
+318-}
+--
+322-        // SAFETY: inner_ptr should be alive when calling finalize.
+323-        // We don't call inner_ptr() to avoid overhead of calling finalizer_safe().
+324:        unsafe {
+325-            self.inner_ptr.as_ref().dec_ref_count();
+326-        }
+--
+330-// SAFETY: `Gc` maintains it's own rootedness and implements all methods of
+331-// Trace. It is not possible to root an already rooted `Gc` and vice versa.
+332:unsafe impl<T: Trace + ?Sized> Trace for Gc<T> {
+333:    unsafe fn trace(&self, tracer: &mut Tracer) {
+334-        tracer.enqueue(self.as_erased_pointer());
+335-    }
+336-
+337:    unsafe fn trace_non_roots(&self) {
+338-        self.inner().inc_non_root_count();
+339-    }
+--
+350-        // but it skips the call to `std::mem::forget` since we have a reference instead of an owned
+351-        // value.
+352:        unsafe {
+353-            ptr.as_ref().inc_ref_count();
+354-            Self::from_raw(ptr)
+
+core/engine/src/bigint.rs
+20-/// JavaScript bigint primitive rust type.
+21-#[allow(
+22:    clippy::unsafe_derive_deserialize,
+23:    reason = "unsafe methods do not add invariants that need to be held"
+24-)]
+25-#[cfg_attr(feature = "deser", derive(Serialize, Deserialize))]
+26-#[derive(Debug, Clone, PartialEq, Eq, PartialOrd, Ord, Hash, Trace, Finalize, JsData)]
+27-// Safety: `JsBigInt` doesn't contain any traceable types.
+28:#[boa_gc(unsafe_empty_trace)]
+29-pub struct JsBigInt {
+30-    inner: Rc<RawBigInt>,
+--
+338-    pub(crate) fn into_raw(self) -> NonNull<RawBigInt> {
+339-        // SAFETY: `Rc::into_raw` must always return a non-null pointer.
+340:        unsafe { NonNull::new_unchecked(Rc::into_raw(self.inner).cast_mut()) }
+341-    }
+342-
+--
+348-    /// # Safety
+349-    ///
+350:    /// This function is unsafe because improper use may lead to memory unsafety,
+351-    /// even if the returned `JsBigInt` is never accessed.
+352-    #[inline]
+353-    #[must_use]
+354-    #[allow(unused, reason = "only used in nan-boxed implementation of JsValue")]
+355:    pub(crate) unsafe fn from_raw(ptr: *const RawBigInt) -> Self {
+356-        Self {
+357-            // SAFETY: the validity of `ptr` is guaranteed by the caller.
+358:            inner: unsafe { Rc::from_raw(ptr) },
+359-        }
+360-    }
+
+core/runtime/src/fetch/tests/mod.rs
+23-#[derive(Default, Debug, Trace, Finalize, JsData)]
+24-pub struct TestFetcher {
+25:    #[unsafe_ignore_trace]
+26-    requests_received: RefCell<Vec<Request<Vec<u8>>>>,
+27:    #[unsafe_ignore_trace]
+28-    request_mapper: HashMap<Uri, Response<Vec<u8>>>,
+29-}
+
+core/engine/src/error.rs
+206-/// ```
+207-#[derive(Debug, Clone, Trace, Finalize)]
+208:#[boa_gc(unsafe_no_drop)]
+209-pub struct JsError {
+210-    inner: Repr,
+--
+235-/// represent that special use case.
+236-#[derive(Debug, Clone, PartialEq, Eq, Trace, Finalize)]
+237:#[boa_gc(unsafe_no_drop)]
+238-enum Repr {
+239-    Native(Box<JsNativeError>),
+--
+815-
+816-// SAFETY: just mirroring the default derive to allow destructuring.
+817:unsafe impl Trace for JsNativeError {
+818-    custom_trace!(this, mark, {
+819-        mark(&this.kind);
+--
+1421-
+1422-// SAFETY: just mirroring the default derive to allow destructuring.
+1423:unsafe impl Trace for JsNativeErrorKind {
+1424-    custom_trace!(
+1425-        this,
+
+core/runtime/src/message/senders.rs
+18-#[derive(Debug, Clone, Trace, Finalize, JsData)]
+19-pub struct OnMessageQueueSender {
+20:    #[unsafe_ignore_trace]
+21-    sender: UnboundedSender<JsValueStore>,
+22-}
+
+core/runtime/src/fetch/response.rs
+99-    url: JsString,
+100-
+101:    #[unsafe_ignore_trace]
+102-    r#type: ResponseType,
+103-
+104:    #[unsafe_ignore_trace]
+105-    status: Option<StatusCode>,
+106-
+107-    headers: JsHeaders,
+108-
+109:    #[unsafe_ignore_trace]
+110-    body: Rc<Vec<u8>>,
+111-}
+
+core/runtime/src/message/mod.rs
+58-/// make API calls.
+59-#[derive(Debug, Trace, Finalize, JsData)]
+60:struct MessageSenderRc<T: MessageSender>(#[unsafe_ignore_trace] Rc<T>);
+61-
+62-impl<T: MessageSender> Clone for MessageSenderRc<T> {
+
+core/runtime/src/fetch/request.rs
+124-#[derive(Clone, Debug, JsData, Trace, Finalize)]
+125-pub struct JsRequest {
+126:    #[unsafe_ignore_trace]
+127-    inner: HttpRequest<Vec<u8>>,
+128-}
+
+core/runtime/src/fetch/mod.rs
+63-/// to make API calls.
+64-#[derive(Debug, Trace, Finalize, JsData)]
+65:struct FetcherRc<T: Fetcher>(#[unsafe_ignore_trace] pub Rc<T>);
+66-
+67-impl<T: Fetcher> Clone for FetcherRc<T> {
+
+core/engine/src/object/mod.rs
+117-            // that check for memory safety because we have implemented NativeObject for all types; no other
+118-            // impls can exist as they would conflict with our impl.
+119:            unsafe { Some(self.downcast_ref_unchecked()) }
+120-        } else {
+121-            None
+--
+129-        if self.is::<T>() {
+130-            // SAFETY: Already checked if inner type is T, so this is safe.
+131:            unsafe { Some(self.downcast_mut_unchecked()) }
+132-        } else {
+133-            None
+--
+142-    /// with the incorrect type is *undefined behavior*.
+143-    #[inline]
+144:    pub unsafe fn downcast_ref_unchecked<T: NativeObject>(&self) -> &T {
+145-        debug_assert!(self.is::<T>());
+146-        let ptr: *const dyn NativeObject = self;
+147-        // SAFETY: caller guarantees that T is the correct type
+148:        unsafe { &*ptr.cast::<T>() }
+149-    }
+150-
+--
+156-    /// with the incorrect type is *undefined behavior*.
+157-    #[inline]
+158:    pub unsafe fn downcast_mut_unchecked<T: NativeObject>(&mut self) -> &mut T {
+159-        debug_assert!(self.is::<T>());
+160-        // SAFETY: caller guarantees that T is the correct type
+161-        let ptr: *mut dyn NativeObject = self;
+162:        unsafe { &mut *ptr.cast::<T>() }
+163-    }
+164-}
+--
+167-#[derive(Debug, Finalize, Trace)]
+168-// SAFETY: This does not implement drop, so this is safe.
+169:#[boa_gc(unsafe_no_drop)]
+170-// SAFETY: This type must use `#[repr(C)]` to prevent the compiler from reordering fields,
+171-//         as it is used for casting between types.
+
+core/engine/src/symbol.rs
+17-
+18-#![deny(
+19:    unsafe_op_in_unsafe_fn,
+20:    clippy::undocumented_unsafe_blocks,
+21-    clippy::missing_safety_doc
+22-)]
+--
+137-// Safety: JsSymbol does not contain any objects which needs to be traced,
+138-// so this is safe.
+139:#[boa_gc(unsafe_empty_trace)]
+140-#[allow(clippy::module_name_repetitions)]
+141-pub struct JsSymbol {
+--
+144-
+145-// SAFETY: `JsSymbol` uses `Arc` to do the reference counting, making this type thread-safe.
+146:unsafe impl Send for JsSymbol {}
+147-// SAFETY: `JsSymbol` uses `Arc` to do the reference counting, making this type thread-safe.
+148:unsafe impl Sync for JsSymbol {}
+149-
+150-macro_rules! well_known_symbols {
+--
+176-        Some(Self {
+177-            // SAFETY: Pointers returned by `Arc::into_raw` must be non-null.
+178:            repr: unsafe { Tagged::from_ptr(Arc::into_raw(arc).cast_mut()) },
+179-        })
+180-    }
+--
+188-                // SAFETY: `ptr` comes from `Arc`, which ensures the validity of the pointer
+189-                // as long as we correctly call `Arc::from_raw` on `Drop`.
+190:                unsafe { ptr.as_ref().description.as_ref().map(|v| js_string!(&**v)) }
+191-            }
+192-            UnwrappedTagged::Tag(tag) => {
+193-                // SAFETY: All tagged reprs always come from `WellKnown` itself, making
+194-                // this operation always safe.
+195:                let wk = unsafe { WellKnown::from_tag(tag).unwrap_unchecked() };
+196-                Some(wk.description())
+197-            }
+--
+209-            // SAFETY: All tagged reprs always come from `WellKnown` itself, making
+210-            // this operation always safe.
+211:            let wk = unsafe { WellKnown::from_tag(tag).unwrap_unchecked() };
+212-            return wk.fn_name();
+213-        }
+--
+227-                // SAFETY: `ptr` comes from `Arc`, which ensures the validity of the pointer
+228-                // as long as we correctly call `Arc::from_raw` on `Drop`.
+229:                unsafe { ptr.as_ref().hash }
+230-            }
+231-            UnwrappedTagged::Tag(tag) => {
+232-                // SAFETY: All tagged reprs always come from `WellKnown` itself, making
+233-                // this operation always safe.
+234:                unsafe { WellKnown::from_tag(tag).unwrap_unchecked().hash() }
+235-            }
+236-        }
+--
+269-    /// # Safety
+270-    ///
+271:    /// This function is unsafe because improper use may lead to memory unsafety,
+272-    /// even if the returned `JsSymbol` is never accessed.
+273-    #[inline]
+274-    #[must_use]
+275-    #[allow(unused, reason = "only used in nan-boxed implementation of JsValue")]
+276:    pub(crate) unsafe fn from_raw(ptr: NonNull<RawJsSymbol>) -> Self {
+277-        Self {
+278-            repr: Tagged::from_non_null(ptr),
+--
+315-            // SAFETY: the pointer returned by `self.repr` must be a valid pointer
+316-            // that came from an `Arc::into_raw` call.
+317:            unsafe {
+318-                let arc = Arc::from_raw(ptr.as_ptr().cast_const());
+319-                // Don't need the Arc since `self` is already a copyable pointer, just need to
+--
+332-            // SAFETY: the pointer returned by `self.repr` must be a valid pointer
+333-            // that came from an `Arc::into_raw` call.
+334:            unsafe { drop(Arc::from_raw(ptr.as_ptr().cast_const())) }
+335-        }
+336-    }
+
+core/engine/src/vm/mod.rs
+397-}
+398-
+399:unsafe impl Trace for ActiveRunnable {
+400-    custom_trace!(this, mark, {
+401-        match this {
+
+core/string/src/lib.rs
+1-//! A Latin1 or UTF-16 encoded, reference counted, immutable string.
+2-
+3:// Required per unsafe code standards to ensure every unsafe usage is properly documented.
+4:// - `unsafe_op_in_unsafe_fn` will be warn-by-default in edition 2024:
+5-//   https://github.com/rust-lang/rust/issues/71668#issuecomment-1189396860
+6:// - `undocumented_unsafe_blocks` and `missing_safety_doc` requires a `Safety:` section in the
+7://   comment or doc of the unsafe block or function, respectively.
+8-#![deny(
+9:    unsafe_op_in_unsafe_fn,
+10:    clippy::undocumented_unsafe_blocks,
+11-    clippy::missing_safety_doc
+12-)]
+--
+439-    #[inline]
+440-    #[must_use]
+441:    pub unsafe fn get_unchecked<'a, I>(&'a self, index: I) -> I::Value
+442-    where
+443-        I: JsSliceIndex<'a>,
+444-    {
+445-        // SAFETY: Caller must ensure the index is not out of bounds
+446:        unsafe { self.as_str().get_unchecked(index) }
+447-    }
+448-
+--
+495-    /// # Safety
+496-    ///
+497:    /// This function is unsafe because improper use may lead to memory unsafety,
+498-    /// even if the returned `JsString` is never accessed.
+499-    #[inline]
+500-    #[must_use]
+501:    pub unsafe fn from_raw(ptr: NonNull<RawJsString>) -> Self {
+502-        Self { ptr }
+503-    }
+--
+516-        //
+517-        // TODO: Replace once `NonNull::from_ref()` is stabilized.
+518:        let ptr = unsafe { NonNull::new_unchecked(src.cast_mut()) };
+519-
+520-        // SAFETY:
+521-        // - Adding one to an aligned pointer will tag the pointer's last bit.
+522-        // - The pointer's provenance remains unchanged, so this is safe.
+523:        let tagged_ptr = unsafe { ptr.byte_add(1) };
+524-
+525-        JsString {
+--
+538-        if self.is_static() {
+539-            // SAFETY: Static pointer is tagged and already checked, so this is safe.
+540:            let ptr = unsafe { self.ptr.byte_sub(1) };
+541-
+542-            // SAFETY: A static pointer always points to a valid JsStr, so this is safe.
+543:            Unwrapped::Static(unsafe { ptr.cast::<JsStr<'static>>().as_ref() })
+544-        } else {
+545-            Unwrapped::Heap(self.ptr)
+--
+559-        // - Unwrapped heap ptr is always a valid heap allocated RawJsString.
+560-        // - Length of a heap allocated string always contains the correct size of the string.
+561:        unsafe {
+562-            let tagged_len = (*ptr).tagged_len;
+563-            let len = tagged_len.len();
+--
+603-        let string = {
+604-            // SAFETY: `allocate_inner` guarantees that `ptr` is a valid pointer.
+605:            let mut data = unsafe { (&raw mut (*ptr.as_ptr()).data).cast::<u8>() };
+606-            for &string in strings {
+607-                // SAFETY:
+--
+615-                // `allocate_inner` must return a valid pointer to newly allocated memory, meaning
+616-                // `ptr` and all `string`s should never overlap.
+617:                unsafe {
+618-                    // NOTE: The aligment is checked when we allocate the array.
+619-                    #[allow(clippy::cast_ptr_alignment)]
+--
+644-            Self {
+645-                // SAFETY: We already know it's a valid heap pointer.
+646:                ptr: unsafe { NonNull::new_unchecked(ptr.as_ptr()) },
+647-            }
+648-        };
+--
+691-        // The layout size of `RawJsString` is never zero, since it has to store
+692-        // the length of the string and the reference count.
+693:        let inner = unsafe { alloc(layout).cast::<RawJsString>() };
+694-
+695-        // We need to verify that the pointer returned by `alloc` is not null, otherwise
+--
+701-        // `NonNull` verified for us that the pointer returned by `alloc` is valid,
+702-        // meaning we can write to its pointed memory.
+703:        unsafe {
+704-            // Write the first part, the `RawJsString`.
+705-            inner.as_ptr().write(RawJsString {
+--
+719-            // `[u16; str_len]`, the memory of the array must be in the `usize`
+720-            // range for the allocation to succeed.
+721:            unsafe {
+722-                ptr::eq(
+723-                    inner.cast::<u8>().add(offset).cast(),
+--
+736-
+737-        // SAFETY: `allocate_inner` guarantees that `ptr` is a valid pointer.
+738:        let data = unsafe { (&raw mut (*ptr.as_ptr()).data).cast::<u8>() };
+739-
+740-        // SAFETY:
+--
+746-        // - `allocate_inner` must return a valid pointer to newly allocated memory, meaning `ptr`
+747-        //   and `data` should never overlap.
+748:        unsafe {
+749-            // NOTE: The aligment is checked when we allocate the array.
+750-            #[allow(clippy::cast_ptr_alignment)]
+--
+779-        // SAFETY:
+780-        // `NonNull` and the constructions of `JsString` guarantee that `inner` is always valid.
+781:        let rc = unsafe { self.ptr.as_ref().refcount.get() };
+782-        Some(rc)
+783-    }
+--
+792-
+793-        // SAFETY: `NonNull` and the constructions of `JsString` guarantee that `inner` is always valid.
+794:        let inner = unsafe { self.ptr.as_ref() };
+795-
+796-        let strong = inner.refcount.get().wrapping_add(1);
+--
+822-
+823-        // SAFETY: `NonNull` and the constructions of `JsString` guarantees that `raw` is always valid.
+824:        let inner = unsafe { self.ptr.as_ref() };
+825-
+826-        inner.refcount.set(inner.refcount.get() - 1);
+--
+832-        // All the checks for the validity of the layout have already been made on `alloc_inner`,
+833-        // so we can skip the unwrap.
+834:        let layout = unsafe {
+835-            if inner.is_latin1() {
+836-                Layout::for_value(inner)
+--
+851-        // If refcount is 0 and we call drop, that means this is the last `JsString` which
+852-        // points to this memory allocation, so deallocating it is safe.
+853:        unsafe {
+854-            dealloc(self.ptr.cast().as_ptr(), layout);
+855-        }
+
+core/engine/src/vm/code_block.rs
+66-
+67-// SAFETY: Nothing in CodeBlockFlags needs tracing, so this is safe.
+68:unsafe impl Trace for CodeBlockFlags {
+69-    empty_trace!();
+70-}
+--
+101-    String(JsString),
+102-    Function(Gc<CodeBlock>),
+103:    BigInt(#[unsafe_ignore_trace] JsBigInt),
+104-
+105-    /// Declarative or function scope.
+106-    // Safety: Nothing in `Scope` needs tracing, so this is safe.
+107:    Scope(#[unsafe_ignore_trace] Scope),
+108-}
+109-
+--
+115-#[derive(Clone, Debug, Trace, Finalize)]
+116-pub struct CodeBlock {
+117:    #[unsafe_ignore_trace]
+118-    pub(crate) flags: Cell<CodeBlockFlags>,
+119-
+--
+129-
+130-    /// Used for constructing a `MappedArguments` object.
+131:    #[unsafe_ignore_trace]
+132-    pub(crate) mapped_arguments_binding_indices: ThinVec<Option<u32>>,
+133-
+134-    /// Bytecode
+135:    #[unsafe_ignore_trace]
+136-    pub(crate) bytecode: ByteCode,
+137-
+--
+139-
+140-    /// Locators for all bindings in the codeblock.
+141:    #[unsafe_ignore_trace]
+142-    pub(crate) bindings: Box<[BindingLocator]>,
+143-
+144-    /// Exception [`Handler`]s.
+145:    #[unsafe_ignore_trace]
+146-    pub(crate) handlers: ThinVec<Handler>,
+147-
+
+core/engine/src/property/nonmaxu32.rs
+12-    /// The caller must ensure that the given value is not `u32::MAX`.
+13-    #[must_use]
+14:    pub const unsafe fn new_unchecked(inner: u32) -> Self {
+15-        debug_assert!(inner != u32::MAX);
+16-
+--
+26-
+27-        // SAFETY: We checked that `inner` is not `u32::MAX`.
+28:        unsafe { Some(Self::new_unchecked(inner)) }
+29-    }
+30-
+
+core/gc/src/pointers/ephemeron.rs
+32-        // SAFETY: this is safe because `Ephemeron` is tracked to always point to a valid pointer
+33-        // `inner_ptr`.
+34:        unsafe { self.inner_ptr.as_ref().value().cloned() }
+35-    }
+36-
+--
+41-        // SAFETY: this is safe because `Ephemeron` is tracked to always point to a valid pointer
+42-        // `inner_ptr`.
+43:        let key_ptr = unsafe { self.inner_ptr.as_ref().key_ptr() }?;
+44-
+45-        // SAFETY: Returned pointer is valid, so this is safe.
+46:        unsafe {
+47-            key_ptr.as_ref().inc_ref_count();
+48-        }
+49-
+50-        // SAFETY: The gc pointer's reference count has been incremented, so this is safe.
+51:        Some(unsafe { Gc::from_raw(key_ptr) })
+52-    }
+53-
+--
+57-        // SAFETY: this is safe because `Ephemeron` is tracked to always point to a valid pointer
+58-        // `inner_ptr`.
+59:        unsafe { self.inner_ptr.as_ref().value().is_some() }
+60-    }
+61-}
+--
+82-    pub(crate) fn inner(&self) -> &EphemeronBox<K, V> {
+83-        // SAFETY: Please see Gc::inner_ptr()
+84:        unsafe { self.inner_ptr().as_ref() }
+85-    }
+86-
+--
+89-    /// # Safety
+90-    ///
+91:    /// This function is unsafe because improper use may lead to memory corruption, double-free,
+92-    /// or misbehaviour of the garbage collector.
+93-    #[must_use]
+94:    pub(crate) const unsafe fn from_raw(inner_ptr: NonNull<EphemeronBox<K, V>>) -> Self {
+95-        Self { inner_ptr }
+96-    }
+--
+101-        // SAFETY: inner_ptr should be alive when calling finalize.
+102-        // We don't call inner_ptr() to avoid overhead of calling finalizer_safe().
+103:        unsafe {
+104-            self.inner_ptr.as_ref().dec_ref_count();
+105-        }
+--
+109-// SAFETY: `Ephemeron`s trace implementation only marks its inner box because we want to stop
+110-// tracing through weakly held pointers.
+111:unsafe impl<K: Trace + ?Sized, V: Trace> Trace for Ephemeron<K, V> {
+112:    unsafe fn trace(&self, _tracer: &mut Tracer) {
+113-        // SAFETY: We need to mark the inner box of the `Ephemeron` since it is reachable
+114-        // from a root and this means it cannot be dropped.
+115:        unsafe {
+116-            self.inner().mark();
+117-        }
+118-    }
+119-
+120:    unsafe fn trace_non_roots(&self) {
+121-        self.inner().inc_non_root_count();
+122-    }
+--
+132-        self.inner().inc_ref_count();
+133-        // SAFETY: `&self` is a valid Ephemeron pointer.
+134:        unsafe { Self::from_raw(ptr) }
+135-    }
+136-}
+
+core/engine/src/object/jsobject.rs
+61-/// Garbage collected `Object`.
+62-#[derive(Trace, Finalize)]
+63:#[boa_gc(unsafe_no_drop)]
+64-pub struct JsObject<T: NativeObject = ErasedObjectData> {
+65-    inner: Gc<VTableObject<T>>,
+--
+81-#[derive(Trace, Finalize)]
+82-pub(crate) struct VTableObject<T: NativeObject + ?Sized> {
+83:    #[unsafe_ignore_trace]
+84-    vtable: &'static InternalObjectMethods,
+85-    object: GcRefCell<Object<T>>,
+--
+99-    /// The pointer must not be null.
+100-    #[cfg(not(feature = "jsvalue-enum"))]
+101:    pub(crate) unsafe fn from_raw(raw: NonNull<GcBox<ErasedVTableObject>>) -> Self {
+102-        // SAFETY: The caller guaranteed the value to be a valid pointer to a `GcBox<ErasedVTableObject>`.
+103:        let inner = unsafe { Gc::from_raw(raw) };
+104-
+105-        JsObject { inner }
+--
+217-        if self.is::<T>() {
+218-            // SAFETY: We have verified that the object is of type `T`, so we can safely cast it.
+219:            let object = unsafe { self.downcast_unchecked::<T>() };
+220-
+221-            Ok(object)
+--
+231-    /// For this cast to be sound, `self` must contain an instance of `T` inside its inner data.
+232-    #[must_use]
+233:    pub unsafe fn downcast_unchecked<T: NativeObject>(self) -> JsObject<T> {
+234-        // SAFETY: The caller guarantees `T` is the original inner data type of the underlying
+235-        // object.
+236-        // The pointer is guaranteed to be valid because we just created it.
+237-        // `VTableObject<ErasedObjectData>` and `VTableObject<T>` have the same size and alignment.
+238:        let inner = unsafe { Gc::cast_unchecked::<VTableObject<T>>(self.inner) };
+239-
+240-        JsObject { inner }
+--
+254-
+255-            // SAFETY: We have verified that the object is of type `T`, so we can safely cast it.
+256:            let obj = unsafe { GcRef::cast::<Object<T>>(obj) };
+257-
+258-            return Some(Ref::map(obj, |r| r.data()));
+--
+274-
+275-            // SAFETY: We have verified that the object is of type `T`, so we can safely cast it.
+276:            let obj = unsafe { GcRefMut::cast::<Object<T>>(obj) };
+277-
+278-            return Some(RefMut::map(obj, |c| c.data_mut()));
+--
+864-        // SAFETY: The pointer is guaranteed to be valid.
+865-        // `VTableObject<ErasedObjectData>` and `VTableObject<T>` have the same size and alignment.
+866:        let inner = unsafe { Gc::cast_unchecked::<ErasedVTableObject>(self.inner) };
+867-
+868-        JsObject { inner }
+
+core/runtime/src/console/mod.rs
+318-        ) -> NativeFunction {
+319-            // SAFETY: `Console` doesn't contain types that need tracing.
+320:            unsafe {
+321-                NativeFunction::from_closure(move |this, args, context| {
+322-                    f(this, args, &state.borrow(), &logger, context)
+--
+330-        ) -> NativeFunction {
+331-            // SAFETY: `Console` doesn't contain types that need tracing.
+332:            unsafe {
+333-                NativeFunction::from_closure(move |this, args, context| {
+334-                    f(this, args, &mut state.borrow_mut(), &logger, context)
+
+core/engine/src/object/shape/unique_shape.rs
+16-    //
+17-    // SAFETY: This is safe becasue nothing in this field needs tracing.
+18:    #[unsafe_ignore_trace]
+19-    property_table: RefCell<PropertyTableInner>,
+20-
+
+core/gc/src/lib.rs
+136-            Self::manage_state(&mut gc);
+137-            // Safety: value cannot be a null pointer, since `Box` cannot return null pointers.
+138:            let ptr = unsafe { NonNull::new_unchecked(Box::into_raw(Box::new(value))) };
+139-            let erased: NonNull<GcBox<NonTraceable>> = ptr.cast();
+140-
+--
+155-            Self::manage_state(&mut gc);
+156-            // Safety: value cannot be a null pointer, since `Box` cannot return null pointers.
+157:            let ptr = unsafe { NonNull::new_unchecked(Box::into_raw(Box::new(value))) };
+158-            let erased: NonNull<dyn ErasedEphemeronBox> = ptr;
+159-
+--
+177-
+178-            // Safety: value cannot be a null pointer, since `Box` cannot return null pointers.
+179:            let ptr = unsafe { NonNull::new_unchecked(Box::into_raw(Box::new(weak_box))) };
+180-            let erased: ErasedWeakMapBoxPointer = ptr;
+181-
+--
+238-            // Finalize all the unreachable nodes.
+239-            // SAFETY: All passed pointers are valid, since we won't deallocate until `Self::sweep`.
+240:            unsafe { Self::finalize(unreachables) };
+241-
+242-            // Reuse the tracer's already allocated capacity.
+--
+246-
+247-        // SAFETY: The head of our linked list is always valid per the invariants of our GC.
+248:        unsafe {
+249-            Self::sweep(
+250-                &mut gc.strongs,
+--
+257-        gc.weak_maps.retain(|w| {
+258-            // SAFETY: The caller must ensure the validity of every node of `heap_start`.
+259:            let node_ref = unsafe { w.as_ref() };
+260-
+261-            if node_ref.is_live() {
+--
+267-                // The `Allocator` must always ensure its start node is a valid, non-null pointer that
+268-                // was allocated by `Box::from_raw(Box::new(..))`.
+269:                let _unmarked_node = unsafe { Box::from_raw(w.as_ptr()) };
+270-
+271-                false
+--
+283-        for node in &gc.strongs {
+284-            // SAFETY: node must be valid as this phase cannot drop any node.
+285:            let trace_non_roots_fn = unsafe { node.as_ref() }.trace_non_roots_fn();
+286-
+287-            // SAFETY: The function pointer is appropriate for this node type because we extract it from it's VTable.
+288:            unsafe {
+289-                trace_non_roots_fn(*node);
+290-            }
+--
+293-        for eph in &gc.weaks {
+294-            // SAFETY: node must be valid as this phase cannot drop any node.
+295:            let eph_ref = unsafe { eph.as_ref() };
+296-            eph_ref.trace_non_roots();
+297-        }
+--
+314-        for node in strongs {
+315-            // SAFETY: node must be valid as this phase cannot drop any node.
+316:            let node_ref = unsafe { node.as_ref() };
+317-            if node_ref.is_rooted() {
+318-                tracer.enqueue(*node);
+319-
+320-                // SAFETY: all nodes must be valid as this phase cannot drop any node.
+321:                unsafe {
+322-                    tracer.trace_until_empty();
+323-                }
+--
+331-            strong_dead.retain_mut(|node| {
+332-                // SAFETY: node must be valid as this phase cannot drop any node.
+333:                unsafe { !node.as_ref().is_marked() }
+334-            });
+335-            return Unreachables {
+--
+347-        for eph in weaks {
+348-            // SAFETY: node must be valid as this phase cannot drop any node.
+349:            let eph_ref = unsafe { eph.as_ref() };
+350-            let header = eph_ref.header();
+351-            if header.is_rooted() {
+--
+353-            }
+354-            // SAFETY: the garbage collector ensures `eph_ref` always points to valid data.
+355:            if unsafe { !eph_ref.trace(tracer) } {
+356-                pending_ephemerons.push(*eph);
+357-            }
+358-
+359-            // SAFETY: all nodes must be valid as this phase cannot drop any node.
+360:            unsafe {
+361-                tracer.trace_until_empty();
+362-            }
+--
+366-        for w in weak_maps {
+367-            // SAFETY: node must be valid as this phase cannot drop any node.
+368:            let node_ref = unsafe { w.as_ref() };
+369-
+370-            // SAFETY: The garbage collector ensures that all nodes are valid.
+371:            unsafe { node_ref.trace(tracer) };
+372-
+373-            // SAFETY: all nodes must be valid as this phase cannot drop any node.
+374:            unsafe {
+375-                tracer.trace_until_empty();
+376-            }
+--
+384-            pending_ephemerons.retain_mut(|eph| {
+385-                // SAFETY: node must be valid as this phase cannot drop any node.
+386:                let eph_ref = unsafe { eph.as_ref() };
+387-                // SAFETY: the garbage collector ensures `eph_ref` always points to valid data.
+388:                let is_key_marked = unsafe { !eph_ref.trace(tracer) };
+389-
+390-                // SAFETY: all nodes must be valid as this phase cannot drop any node.
+391:                unsafe {
+392-                    tracer.trace_until_empty();
+393-                }
+--
+408-        strong_dead.retain_mut(|node| {
+409-            // SAFETY: node must be valid as this phase cannot drop any node.
+410:            unsafe { !node.as_ref().is_marked() }
+411-        });
+412-
+--
+420-    ///
+421-    /// Passing a `strong` or a `weak` vec with invalid pointers will result in Undefined Behaviour.
+422:    unsafe fn finalize(unreachables: Unreachables) {
+423-        for node in unreachables.strong {
+424-            // SAFETY: The caller must ensure all pointers inside `unreachables.strong` are valid.
+425:            let node_ref = unsafe { node.as_ref() };
+426-            let run_finalizer_fn = node_ref.run_finalizer_fn();
+427-
+428-            // SAFETY: The function pointer is appropriate for this node type because we extract it from it's VTable.
+429:            unsafe {
+430-                run_finalizer_fn(node);
+431-            }
+--
+433-        for node in unreachables.weak {
+434-            // SAFETY: The caller must ensure all pointers inside `unreachables.weak` are valid.
+435:            let node = unsafe { node.as_ref() };
+436-            node.finalize_and_clear();
+437-        }
+--
+444-    /// - Providing a list of pointers that weren't allocated by `Box::into_raw(Box::new(..))`
+445-    ///   will result in Undefined Behaviour.
+446:    unsafe fn sweep(
+447-        strong: &mut Vec<GcErasedPointer>,
+448-        weak: &mut Vec<EphemeronPointer>,
+--
+453-        strong.retain(|node| {
+454-            // SAFETY: The caller must ensure the validity of every node of `heap_start`.
+455:            let node_ref = unsafe { node.as_ref() };
+456-            if node_ref.is_marked() {
+457-                node_ref.header.unmark();
+--
+467-
+468-                // SAFETY: The function pointer is appropriate for this node type because we extract it from it's VTable.
+469:                unsafe {
+470-                    drop_fn(*node);
+471-                }
+--
+477-        weak.retain(|eph| {
+478-            // SAFETY: The caller must ensure the validity of every node of `heap_start`.
+479:            let eph_ref = unsafe { eph.as_ref() };
+480-            let header = eph_ref.header();
+481-            if header.is_marked() {
+--
+487-                // SAFETY: The algorithm ensures only unmarked/unreachable pointers are dropped.
+488-                // The caller must ensure all pointers were allocated by `Box::into_raw(Box::new(..))`.
+489:                let unmarked_eph = unsafe { Box::from_raw(eph.as_ptr()) };
+490-                let unallocated_bytes = size_of_val(&*unmarked_eph);
+491-                *total_allocated -= unallocated_bytes;
+--
+504-            // The `Allocator` must always ensure its start node is a valid, non-null pointer that
+505-            // was allocated by `Box::from_raw(Box::new(..))`.
+506:            let _unmarked_node = unsafe { Box::from_raw(node.as_ptr()) };
+507-        }
+508-
+--
+514-            // The `Allocator` must always ensure its start node is a valid, non-null pointer that
+515-            // was allocated by `Box::from_raw(Box::new(..))`.
+516:            let drop_fn = unsafe { node.as_ref() }.drop_fn();
+517-
+518-            // SAFETY: The function pointer is appropriate for this node type because we extract it from it's VTable.
+519:            unsafe {
+520-                drop_fn(node);
+521-            }
+--
+526-            // The `Allocator` must always ensure its start node is a valid, non-null pointer that
+527-            // was allocated by `Box::from_raw(Box::new(..))`.
+528:            let _unmarked_node = unsafe { Box::from_raw(node.as_ptr()) };
+529-        }
+530-    }
+
+core/engine/src/property/mod.rs
+663-        if len == 1 {
+664-            // SAFETY: `0` is not `u32::MAX`.
+665:            return unsafe { Some(NonMaxU32::new_unchecked(0)) };
+666-        }
+667-
+--
+687-        // SAFETY: `result` cannot be `u32::MAX`,
+688-        //         because the length of the input is smaller than `MAX_CHAR_COUNT`.
+689:        unsafe { Some(NonMaxU32::new_unchecked(result)) }
+690-    }
+691-}
+--
+750-    fn from(value: u8) -> Self {
+751-        // SAFETY: `u8` can never be `u32::MAX`.
+752:        unsafe { Self::Index(NonMaxU32::new_unchecked(value.into())) }
+753-    }
+754-}
+--
+757-    fn from(value: u16) -> Self {
+758-        // SAFETY: `u16` can never be `u32::MAX`.
+759:        unsafe { Self::Index(NonMaxU32::new_unchecked(value.into())) }
+760-    }
+761-}
+--
+807-        if !value.is_negative() {
+808-            // Safety: A positive i32 value fits in 31 bits, so it can never be u32::MAX.
+809:            return Self::Index(unsafe { NonMaxU32::new_unchecked(value as u32) });
+810-        }
+811-        Self::String(value.into())
+
+core/runtime/src/fetch/headers.rs
+45-#[derive(Debug, Default, Clone, JsData, Trace, Finalize)]
+46-pub struct JsHeaders {
+47:    #[unsafe_ignore_trace]
+48-    headers: Rc<RefCell<HttpHeaderMap>>,
+49-}
+
+core/engine/src/interop/mod.rs
+20-/// # let mut context = Context::default();
+21-/// let f = |a: i32, b: i32| a + b;
+22:/// let f = unsafe { f.into_js_function_unsafe(&mut context) };
+23-/// let result = f
+24-///     .call(
+--
+42-/// // the compiler cannot be certain it won't outlive `x`, so
+43-/// // we need to create a `Rc<RefCell>` and share it.
+44:/// let f = unsafe {
+45-///     let x = x.clone();
+46-///     move |a: i32| *x.borrow_mut() += a
+47-/// };
+48:/// let f = unsafe { f.into_js_function_unsafe(&mut context) };
+49-/// f.call(&JsValue::undefined(), &[JsValue::from(1)], &mut context)
+50-///     .unwrap();
+--
+57-    ///
+58-    /// # Safety
+59:    /// This function is unsafe to ensure the callee knows the risks of using this trait.
+60-    /// The implementing type must not contain any garbage collected objects.
+61:    unsafe fn into_js_function_unsafe(self, context: &mut Context) -> NativeFunction;
+62-}
+63-
+
+core/runtime/src/fetch/fetchers.rs
+26-#[derive(Default, Debug, Clone, Trace, Finalize, JsData)]
+27-pub struct BlockingReqwestFetcher {
+28:    #[unsafe_ignore_trace]
+29-    client: reqwest::blocking::Client,
+30-}
+
+core/gc/src/internals/weak_map_box.rs
+15-
+16-    /// Traces the weak reference inside of the [`WeakMapBox`] if the weak map is live.
+17:    unsafe fn trace(&self, tracer: &mut Tracer);
+18-}
+19-
+--
+31-    }
+32-
+33:    unsafe fn trace(&self, tracer: &mut Tracer) {
+34-        if self.map.upgrade().is_some() {
+35-            // SAFETY: When the weak map is live, the weak reference should be traced.
+36:            unsafe { self.map.trace(tracer) }
+37-        }
+38-    }
+
+core/engine/src/vm/source_info/mod.rs
+21-#[derive(Debug, Default, Clone, Finalize, Trace)]
+22-// SAFETY: Nothing in Inner needs tracing, so this is safe.
+23:#[boa_gc(unsafe_empty_trace)]
+24-pub(crate) struct SourceInfo {
+25-    inner: Rc<Inner>,
+
+core/engine/src/realm.rs
+63-    /// This is directly related to the global declarative environment.
+64-    // Safety: Nothing in `Scope` needs tracing.
+65:    #[unsafe_ignore_trace]
+66-    scope: Scope,
+67-
+
+core/engine/src/interop/into_js_arguments.rs
+314-/// #[derive(Clone, Debug, Finalize, JsData, Trace)]
+315-/// struct CustomHostDefinedStruct {
+316:///     #[unsafe_ignore_trace]
+317-///     pub counter: usize,
+318-/// }
+
+core/engine/src/object/shape/shared_shape/mod.rs
+29-// SAFETY: Non of the member of this struct are garbage collected,
+30-//         so this should be fine.
+31:unsafe impl Trace for TransitionKey {
+32-    empty_trace!();
+33-}
+--
+81-// SAFETY: Non of the member of this struct are garbage collected,
+82-//         so this should be fine.
+83:unsafe impl Trace for ShapeFlags {
+84-    empty_trace!();
+85-}
+--
+99-    // SAFETY: This is safe because nothing in [`PropertyTable`]
+100-    //         needs tracing
+101:    #[unsafe_ignore_trace]
+102-    property_table: PropertyTable,
+103-
+
+core/engine/src/spanned_source_text.rs
+15-#[derive(Default, Trace, Finalize, Clone)]
+16-pub(crate) struct SourceText {
+17:    #[unsafe_ignore_trace]
+18-    source_text: Option<Rc<Inner>>,
+19-}
+
+core/engine/src/interop/into_js_function_impls.rs
+49-        {
+50-            #[allow(unused_variables)]
+51:            unsafe fn into_js_function_unsafe(self, _context: &mut Context) -> NativeFunction {
+52-                let s = RefCell::new(self);
+53:                unsafe {
+54-                    NativeFunction::from_closure(move |this, args, ctx| {
+55-                        let rest = args;
+--
+75-        {
+76-            #[allow(unused_variables)]
+77:            unsafe fn into_js_function_unsafe(self, _context: &mut Context) -> NativeFunction {
+78-                let s = RefCell::new(self);
+79:                unsafe {
+80-                    NativeFunction::from_closure(move |this, args, ctx| {
+81-                        let rest = args;
+--
+101-        {
+102-            #[allow(unused_variables)]
+103:            unsafe fn into_js_function_unsafe(self, _context: &mut Context) -> NativeFunction {
+104-                let s = RefCell::new(self);
+105:                unsafe {
+106-                    NativeFunction::from_closure(move |this, args, ctx| {
+107-                        let rest = args;
+--
+123-        {
+124-            #[allow(unused_variables)]
+125:            unsafe fn into_js_function_unsafe(self, _context: &mut Context) -> NativeFunction {
+126-                let s = RefCell::new(self);
+127:                unsafe {
+128-                    NativeFunction::from_closure(move |this, args, ctx| {
+129-                        let rest = args;
+
+core/engine/src/vm/shadow_stack.rs
+10-pub(crate) struct Backtrace {
+11-    // SAFETY: Nothing in `ShadowEntry` requires trace, so this is safe.
+12:    #[unsafe_ignore_trace]
+13-    stack: ThinVec<ShadowEntry>,
+14-}
+
+core/engine/src/vm/completion_record.rs
+20-// SAFETY: this matches all possible variants and traces
+21-// their inner contents, which makes this safe.
+22:unsafe impl Trace for CompletionRecord {
+23-    custom_trace!(this, mark, {
+24-        match this {
+
+core/gc/src/internals/vtable.rs
+8-        const VTABLE: &'static VTable;
+9-
+10:        unsafe fn trace_fn(this: GcErasedPointer, tracer: &mut Tracer) {
+11-            // SAFETY: The caller must ensure that the passed erased pointer is `GcBox<Self>`.
+12:            let value = unsafe { this.cast::<GcBox<Self>>().as_ref().value() };
+13-
+14-            // SAFETY: The implementor must ensure that `trace` is correctly implemented.
+15:            unsafe {
+16-                Trace::trace(value, tracer);
+17-            }
+18-        }
+19-
+20:        unsafe fn trace_non_roots_fn(this: GcErasedPointer) {
+21-            // SAFETY: The caller must ensure that the passed erased pointer is `GcBox<Self>`.
+22:            let value = unsafe { this.cast::<GcBox<Self>>().as_ref().value() };
+23-
+24-            // SAFETY: The implementor must ensure that `trace_non_roots` is correctly implemented.
+25:            unsafe {
+26-                Self::trace_non_roots(value);
+27-            }
+28-        }
+29-
+30:        unsafe fn run_finalizer_fn(this: GcErasedPointer) {
+31-            // SAFETY: The caller must ensure that the passed erased pointer is `GcBox<Self>`.
+32:            let value = unsafe { this.cast::<GcBox<Self>>().as_ref().value() };
+33-
+34-            Self::run_finalizer(value);
+--
+36-
+37-        // SAFETY: The caller must ensure that the passed erased pointer is `GcBox<Self>`.
+38:        unsafe fn drop_fn(this: GcErasedPointer) {
+39-            // SAFETY: The caller must ensure that the passed erased pointer is `GcBox<Self>`.
+40-            let this = this.cast::<GcBox<Self>>();
+41-
+42-            // SAFETY: The caller must ensure the erased pointer is not droped or deallocated.
+43:            let _value = unsafe { Box::from_raw(this.as_ptr()) };
+44-        }
+45-
+--
+65-}
+66-
+67:pub(crate) type TraceFn = unsafe fn(this: GcErasedPointer, tracer: &mut Tracer);
+68:pub(crate) type TraceNonRootsFn = unsafe fn(this: GcErasedPointer);
+69:pub(crate) type RunFinalizerFn = unsafe fn(this: GcErasedPointer);
+70:pub(crate) type DropFn = unsafe fn(this: GcErasedPointer);
+71-pub(crate) type TypeIdFn = fn() -> TypeId;
+72-
+
+core/engine/src/builtins/intl/segmenter/mod.rs
+38-#[derive(Debug, Trace, Finalize, JsData)]
+39-// SAFETY: `Segmenter` doesn't contain any traceable data.
+40:#[boa_gc(unsafe_empty_trace)]
+41-pub(crate) struct Segmenter {
+42-    locale: Locale,
+
+core/engine/src/object/property_map.rs
+27-}
+28-
+29:unsafe impl<K: Trace> Trace for OrderedHashMap<K> {
+30-    custom_trace!(this, mark, {
+31-        for (k, v) in &this.0 {
+
+core/engine/src/environments/runtime/private.rs
+14-
+15-// Safety: PrivateEnvironment does not contain any objects that need to be traced.
+16:unsafe impl Trace for PrivateEnvironment {
+17-    empty_trace!();
+18-}
+
+core/engine/src/vm/call_frame/mod.rs
+58-    // The stack of bindings being updated.
+59-    // SAFETY: Nothing in `BindingLocator` requires tracing, so this is safe.
+60:    #[unsafe_ignore_trace]
+61-    pub(crate) binding_stack: Vec<BindingLocator>,
+62-
+--
+74-
+75-    // SAFETY: Nothing in `CallFrameFlags` requires tracing, so this is safe.
+76:    #[unsafe_ignore_trace]
+77-    pub(crate) flags: CallFrameFlags,
+78-}
+
+core/engine/src/host_defined.rs
+26-    // SAFETY: We know that `obj` is of type `T` (due to the INVARIANT of `HostDefined`).
+27-    // See `HostDefined::insert`, `HostDefined::insert_default` and `HostDefined::remove`.
+28:    unsafe { Box::from_raw(raw.cast::<T>()) }
+29-}
+30-
+
+core/engine/src/builtins/intl/plural_rules/mod.rs
+32-#[derive(Debug, Trace, Finalize, JsData)]
+33-// SAFETY: `PluralRules` doesn't contain any traceable data.
+34:#[boa_gc(unsafe_empty_trace)]
+35-pub(crate) struct PluralRules {
+36-    locale: Locale,
+
+core/gc/src/internals/ephemeron_box.rs
+41-    /// The caller must ensure there are no live mutable references to the ephemeron box's data
+42-    /// before calling this method.
+43:    pub(crate) unsafe fn value(&self) -> Option<&V> {
+44-        // SAFETY: the garbage collector ensures the ephemeron doesn't mutate until
+45-        // finalization.
+46:        let data = unsafe { &*self.data.get() };
+47-        data.as_ref().map(|data| &data.value)
+48-    }
+--
+54-    /// The caller must ensure there are no live mutable references to the ephemeron box's data
+55-    /// before calling this method.
+56:    pub(crate) unsafe fn key_ptr(&self) -> Option<NonNull<GcBox<K>>> {
+57-        // SAFETY: the garbage collector ensures the ephemeron doesn't mutate until
+58-        // finalization.
+59:        unsafe {
+60-            let data = &*self.data.get();
+61-            data.as_ref().map(|data| data.key)
+--
+69-    /// The caller must ensure there are no live mutable references to the ephemeron box's data
+70-    /// before calling this method.
+71:    pub(crate) unsafe fn key(&self) -> Option<&GcBox<K>> {
+72-        // SAFETY: the garbage collector ensures the ephemeron doesn't mutate until
+73-        // finalization.
+74:        unsafe { self.key_ptr().map(|data| data.as_ref()) }
+75-    }
+76-
+--
+79-    /// This doesn't mark the inner value of the ephemeron. [`ErasedEphemeronBox::trace`]
+80-    /// does this, and it's called by the garbage collector on demand.
+81:    pub(crate) unsafe fn mark(&self) {
+82-        self.header.mark();
+83-    }
+--
+89-    /// The caller must ensure there are no live mutable references to the ephemeron box's data
+90-    /// before calling this method.
+91:    pub(crate) unsafe fn set(&self, key: &Gc<K>, value: V) {
+92-        // SAFETY: The caller must ensure setting the key and value of the ephemeron box is safe.
+93:        unsafe {
+94-            *self.data.get() = Some(Data {
+95-                key: key.inner_ptr(),
+--
+123-    /// considers ephemerons that are marked but don't have their value anymore as
+124-    /// "successfully traced".
+125:    unsafe fn trace(&self, tracer: &mut Tracer) -> bool;
+126-
+127-    fn trace_non_roots(&self);
+--
+137-    }
+138-
+139:    unsafe fn trace(&self, tracer: &mut Tracer) -> bool {
+140-        if !self.header.is_marked() {
+141-            return false;
+--
+144-        // SAFETY: the garbage collector ensures the ephemeron doesn't mutate until
+145-        // finalization.
+146:        let data = unsafe { &*self.data.get() };
+147-        let Some(data) = data.as_ref() else {
+148-            return true;
+--
+151-        // SAFETY: `key` comes from a `Gc`, and the garbage collector only invalidates
+152-        // `key` when it is unreachable, making `key` always valid.
+153:        let key = unsafe { data.key.as_ref() };
+154-
+155-        let is_key_marked = key.is_marked();
+--
+158-            // SAFETY: this is safe to call, since we want to trace all reachable objects
+159-            // from a marked ephemeron that holds a live `key`.
+160:            unsafe { data.value.trace(tracer) }
+161-        }
+162-
+--
+167-        // SAFETY: Tracing always executes before collecting, meaning this cannot cause
+168-        // use after free.
+169:        unsafe {
+170-            if let Some(value) = self.value() {
+171-                value.trace_non_roots();
+--
+177-        // SAFETY: the invariants of the garbage collector ensures this is only executed when
+178-        // there are no remaining references to the inner data.
+179:        unsafe { (*self.data.get()).take() };
+180-    }
+181-}
+
+core/engine/src/builtins/error/mod.rs
+136-
+137-    // The position of where the Error was created does not affect equality check.
+138:    #[unsafe_ignore_trace]
+139-    pub(crate) position: IgnoreEq<Option<ShadowEntry>>,
+140-}
+
+core/engine/src/builtins/array_buffer/utils.rs
+78-    ///
+79-    /// [spec]: https://tc39.es/ecma262/#sec-getvaluefrombuffer
+80:    pub(crate) unsafe fn get_value(
+81-        &self,
+82-        kind: TypedArrayKind,
+83-        order: Ordering,
+84-    ) -> TypedArrayElement {
+85:        unsafe fn read_elem<T: Element>(buffer: SliceRef<'_>, order: Ordering) -> T {
+86-            // <https://tc39.es/ecma262/#sec-getvaluefrombuffer>
+87-
+--
+112-
+113-            // SAFETY: The invariants of this operation are ensured by the caller.
+114:            unsafe { T::read(buffer).load(order) }
+115-        }
+116-
+--
+118-
+119-        // SAFETY: The invariants of this operation are ensured by the caller.
+120:        unsafe {
+121-            match kind {
+122-                TypedArrayKind::Int8 => read_elem::<i8>(buffer, order).into(),
+--
+173-            // SAFETY: Both buffers are of the same length, `buffer.len()`, which makes this operation
+174-            // safe.
+175:            unsafe {
+176-                memcpy(
+177-                    self.as_ptr(),
+--
+277-    ///
+278-    /// [spec]: https://tc39.es/ecma262/#sec-setvalueinbuffer
+279:    pub(crate) unsafe fn set_value(&mut self, value: TypedArrayElement, order: Ordering) {
+280:        unsafe fn write_elem<T: Element>(buffer: SliceRefMut<'_>, value: T, order: Ordering) {
+281-            // <https://tc39.es/ecma262/#sec-setvalueinbuffer>
+282-
+--
+304-
+305-            // SAFETY: The invariants of this operation are ensured by the caller.
+306:            unsafe {
+307-                T::read_mut(buffer).store(value, order);
+308-            }
+--
+316-
+317-        // SAFETY: The invariants of this operation are ensured by the caller.
+318:        unsafe {
+319-            match value {
+320-                TypedArrayElement::Int8(e) => write_elem(buffer, e, order),
+--
+354-/// - Both `src` and `dest` must have at least `count` bytes to read and write,
+355-///   respectively.
+356:pub(super) unsafe fn copy_shared_to_shared(
+357-    src: *const AtomicU8,
+358-    dest: *const AtomicU8,
+--
+362-    for i in 0..count {
+363-        // SAFETY: The invariants of this operation are ensured by the caller of the function.
+364:        unsafe {
+365-            (*dest.add(i)).store((*src.add(i)).load(Ordering::Relaxed), Ordering::Relaxed);
+366-        }
+--
+374-/// - Both `src` and `dest` must have at least `count` bytes to read and write,
+375-///   respectively.
+376:unsafe fn copy_shared_to_shared_backwards(
+377-    src: *const AtomicU8,
+378-    dest: *const AtomicU8,
+--
+381-    for i in (0..count).rev() {
+382-        // SAFETY: The invariants of this operation are ensured by the caller of the function.
+383:        unsafe {
+384-            (*dest.add(i)).store((*src.add(i)).load(Ordering::Relaxed), Ordering::Relaxed);
+385-        }
+--
+395-/// - The region of memory referenced by `src` must not overlap with the region of memory
+396-///   referenced by `dest`.
+397:pub(crate) unsafe fn memcpy(src: BytesConstPtr, dest: BytesMutPtr, count: usize) {
+398-    // TODO: this could be optimized with batches of writes using `u32/u64` stores instead.
+399-    match (src, dest) {
+400-        // SAFETY: The invariants of this operation are ensured by the caller of the function.
+401:        (BytesConstPtr::Bytes(src), BytesMutPtr::Bytes(dest)) => unsafe {
+402-            ptr::copy_nonoverlapping(src, dest, count);
+403-        },
+404-        // SAFETY: The invariants of this operation are ensured by the caller of the function.
+405:        (BytesConstPtr::Bytes(src), BytesMutPtr::AtomicBytes(dest)) => unsafe {
+406-            for i in 0..count {
+407-                (*dest.add(i)).store(*src.add(i), Ordering::Relaxed);
+--
+409-        },
+410-        // SAFETY: The invariants of this operation are ensured by the caller of the function.
+411:        (BytesConstPtr::AtomicBytes(src), BytesMutPtr::Bytes(dest)) => unsafe {
+412-            for i in 0..count {
+413-                *dest.add(i) = (*src.add(i)).load(Ordering::Relaxed);
+--
+415-        },
+416-        // SAFETY: The invariants of this operation are ensured by the caller of the function.
+417:        (BytesConstPtr::AtomicBytes(src), BytesMutPtr::AtomicBytes(dest)) => unsafe {
+418-            copy_shared_to_shared(src, dest, count);
+419-        },
+--
+432-// but it's the correct behaviour for a weird usage of `%TypedArray%.prototype.slice` so ¯\_(ツ)_/¯.
+433-// Obviously don't use this if you need to implement something that requires a "proper" memmove.
+434:pub(crate) unsafe fn memmove_naive(ptr: BytesMutPtr, from: usize, to: usize, count: usize) {
+435-    match ptr {
+436-        // SAFETY: The invariants of this operation are ensured by the caller of the function.
+437:        BytesMutPtr::Bytes(ptr) => unsafe {
+438-            for i in 0..count {
+439-                ptr::copy(ptr.add(from + i), ptr.add(to + i), 1);
+--
+441-        },
+442-        // SAFETY: The invariants of this operation are ensured by the caller of the function.
+443:        BytesMutPtr::AtomicBytes(ptr) => unsafe {
+444-            let src = ptr.add(from);
+445-            let dest = ptr.add(to);
+--
+455-/// - `ptr` must be valid from the offset `ptr + from` for `count` reads of bytes.
+456-/// - `ptr` must be valid from the offset `ptr + to` for `count` writes of bytes.
+457:pub(crate) unsafe fn memmove(ptr: BytesMutPtr, from: usize, to: usize, count: usize) {
+458-    match ptr {
+459-        // SAFETY: The invariants of this operation are ensured by the caller of the function.
+460:        BytesMutPtr::Bytes(ptr) => unsafe {
+461-            let src = ptr.add(from);
+462-            let dest = ptr.add(to);
+--
+464-        },
+465-        // SAFETY: The invariants of this operation are ensured by the caller of the function.
+466:        BytesMutPtr::AtomicBytes(ptr) => unsafe {
+467-            let src = ptr.add(from);
+468-            let dest = ptr.add(to);
+
+core/engine/src/native_function/mod.rs
+53-    T: Trace,
+54-{
+55:    // SAFETY: `NativeFunction`'s safe API ensures only `Copy` closures are stored; its unsafe API,
+56-    // on the other hand, explains the invariants to hold in order for this to be safe, shifting
+57-    // the responsibility to the caller.
+58:    #[unsafe_ignore_trace]
+59-    f: F,
+60-    captures: T,
+--
+88-
+89-// SAFETY: this traces all fields that need to be traced by the GC.
+90:unsafe impl Trace for NativeFunctionObject {
+91-    custom_trace!(this, mark, {
+92-        mark(&this.f);
+--
+126-/// By limitations of the Rust language, the garbage collector currently cannot inspect closures
+127-/// in order to trace their captured variables. This means that only [`Copy`] closures are 100% safe
+128:/// to use. All other closures can also be stored in a `NativeFunction`, albeit by using an `unsafe`
+129-/// API, but note that passing closures implicitly capturing traceable types could cause
+130-/// **Undefined Behaviour**.
+--
+142-// Manual implementation because deriving `Trace` triggers the `single_use_lifetimes` lint.
+143-// SAFETY: Only closures can contain `Trace` captures, so this implementation is safe.
+144:unsafe impl Trace for NativeFunction {
+145-    custom_trace!(this, mark, {
+146-        if let Inner::Closure(c) = &this.inner {
+--
+232-    {
+233-        // SAFETY: The `Copy` bound ensures there are no traceable types inside the closure.
+234:        unsafe { Self::from_closure(closure) }
+235-    }
+236-
+--
+242-    {
+243-        // SAFETY: The `Copy` bound ensures there are no traceable types inside the closure.
+244:        unsafe { Self::from_closure_with_captures(closure, captures) }
+245-    }
+246-
+--
+253-    /// Behaviour**. See <https://github.com/Manishearth/rust-gc/issues/50> for a technical explanation
+254-    /// on why that is the case.
+255:    pub unsafe fn from_closure<F>(closure: F) -> Self
+256-    where
+257-        F: Fn(&JsValue, &[JsValue], &mut Context) -> JsResult<JsValue> + 'static,
+258-    {
+259-        // SAFETY: The caller must ensure the invariants of the closure hold.
+260:        unsafe {
+261-            Self::from_closure_with_captures(
+262-                move |this, args, (), context| closure(this, args, context),
+--
+274-    /// Behaviour**. See <https://github.com/Manishearth/rust-gc/issues/50> for a technical explanation
+275-    /// on why that is the case.
+276:    pub unsafe fn from_closure_with_captures<F, T>(closure: F, captures: T) -> Self
+277-    where
+278-        F: Fn(&JsValue, &[JsValue], &T, &mut Context) -> JsResult<JsValue> + 'static,
+279-        T: Trace + 'static,
+280-    {
+281:        // Hopefully, this unsafe operation will be replaced by the `CoerceUnsized` API in the
+282-        // future: https://github.com/rust-lang/rust/issues/18598
+283-        let ptr = Gc::into_raw(Gc::new(Closure {
+--
+287-        // SAFETY: The pointer returned by `into_raw` is only used to coerce to a trait object,
+288-        // meaning this is safe.
+289:        unsafe {
+290-            Self {
+291-                inner: Inner::Closure(Gc::from_raw(ptr)),
+
+core/engine/src/builtins/typed_array/builtin.rs
+610-            // SAFETY: All previous checks are made to ensure this memmove is always in-bounds,
+611-            // making this operation safe.
+612:            unsafe {
+613-                memmove(buf.as_ptr(), from_byte_index, to_byte_index, count_bytes);
+614-            }
+--
+1872-
+1873-            // SAFETY: We already asserted that the indices are in bounds.
+1874:            unsafe {
+1875-                memcpy(src.as_ptr(), target.as_ptr(), byte_count);
+1876-            }
+--
+1888-                // i. Let value be GetValueFromBuffer(srcBuffer, srcByteIndex, srcType, true, Unordered).
+1889-
+1890:                let value = unsafe {
+1891-                    src_buffer
+1892-                        .subslice(src_byte_index..)
+--
+1902-                // ii. Perform SetValueInBuffer(targetBuffer, targetByteIndex, targetType, value, true, Unordered).
+1903-                // SAFETY: previous checks preserve the validity  of the indices.
+1904:                unsafe {
+1905-                    target_buffer
+1906-                        .subslice_mut(target_byte_index..)
+--
+2149-
+2150-                // SAFETY: All previous checks put the copied bytes at least within the bounds of `src_buf`.
+2151:                unsafe {
+2152-                    memmove_naive(
+2153-                        src_buf.as_ptr(),
+--
+2174-                // Also, `target_buffer` is precisely allocated to fit all sliced elements from
+2175-                // `src_buffer`, making this operation safe.
+2176:                unsafe {
+2177-                    memcpy(src.as_ptr(), target.as_ptr(), byte_count);
+2178-                }
+--
+2935-                    // SAFETY: All integer indexed objects are always in-bounds and properly
+2936-                    // aligned to their underlying buffer.
+2937:                    let value = unsafe {
+2938-                        src_data
+2939-                            .subslice(src_byte_index..)
+--
+2951-                    // SAFETY: The newly created buffer has at least `element_size * element_length`
+2952-                    // bytes available, which makes `target_byte_index` always in-bounds.
+2953:                    unsafe {
+2954-                        data.subslice_mut(target_byte_index..)
+2955-                            .set_value(value, Ordering::Relaxed);
+
+core/engine/src/builtins/intl/number_format/mod.rs
+50-#[derive(Debug, Trace, Finalize, JsData)]
+51-// Safety: `NumberFormat` only contains non-traceable types.
+52:#[boa_gc(unsafe_empty_trace)]
+53-pub(crate) struct NumberFormat {
+54-    locale: Locale,
+
+core/engine/src/environments/runtime/declarative/module.rs
+17-struct IndirectBinding {
+18-    module: Module,
+19:    #[unsafe_ignore_trace]
+20-    accessor: RefCell<BindingAccessor>,
+21-}
+--
+40-
+41-    // Safety: Nothing in CompileTimeEnvironment needs tracing.
+42:    #[unsafe_ignore_trace]
+43-    compile: Scope,
+44-}
+
+core/engine/src/builtins/date/utils.rs
+761-            }
+762-            // SAFETY: Since all characters are ASCII we can safely convert this into str.
+763:            Cow::Borrowed(unsafe { str::from_utf8_unchecked(s) })
+764-        }
+765-        JsStrVariant::Utf16(s) => {
+
+core/gc/src/cell.rs
+163-
+164-        // SAFETY: calling value on a rooted value may cause Undefined Behavior
+165:        unsafe {
+166-            Ok(GcRef {
+167-                borrow: BorrowGcRef {
+--
+191-        // SAFETY: This is safe as the value is rooted if it was not previously rooted,
+192-        // so it cannot be dropped.
+193:        unsafe {
+194-            Ok(GcRefMut {
+195-                borrow: BorrowGcRefMut {
+--
+229-// Implementing a Trace while the cell is being written to or incorrectly implementing Trace
+230-// on GcCell's value may cause Undefined Behavior
+231:unsafe impl<T: Trace + ?Sized> Trace for GcRefCell<T> {
+232:    unsafe fn trace(&self, tracer: &mut Tracer) {
+233-        match self.borrow.get().borrowed() {
+234-            BorrowState::Writing => (),
+235-            // SAFETY: Please see GcCell's Trace impl Safety note.
+236:            _ => unsafe { (*self.cell.get()).trace(tracer) },
+237-        }
+238-    }
+239-
+240:    unsafe fn trace_non_roots(&self) {
+241-        match self.borrow.get().borrowed() {
+242-            BorrowState::Writing => (),
+243-            // SAFETY: Please see GcCell's Trace impl Safety note.
+244:            _ => unsafe { (*self.cell.get()).trace_non_roots() },
+245-        }
+246-    }
+--
+251-            BorrowState::Writing => (),
+252-            // SAFETY: Please see GcCell's Trace impl Safety note.
+253:            _ => unsafe { (*self.cell.get()).run_finalizer() },
+254-        }
+255-    }
+--
+289-    /// * The caller must ensure that `T` can be safely cast to `U`.
+290-    #[must_use]
+291:    pub unsafe fn cast<U>(orig: Self) -> GcRef<'a, U> {
+292-        let value = orig.value.cast::<U>();
+293-
+--
+390-
+391-    fn deref(&self) -> &T {
+392:        unsafe { self.value.as_ref() }
+393-    }
+394-}
+--
+434-    /// * The caller must ensure that `U` can be safely cast to `V`.
+435-    #[must_use]
+436:    pub unsafe fn cast<V>(orig: Self) -> GcRefMut<'a, V> {
+437-        let value = orig.value.cast::<V>();
+438-
+--
+496-    fn deref(&self) -> &T {
+497-        // SAFETY: the value is accessible as long as we hold our borrow.
+498:        unsafe { self.value.as_ref() }
+499-    }
+500-}
+--
+503-    fn deref_mut(&mut self) -> &mut T {
+504-        // SAFETY: the value is accessible as long as we hold our borrow.
+505:        unsafe { self.value.as_mut() }
+506-    }
+507-}
+--
+520-
+521-// SAFETY: GcCell<T> tracks it's `BorrowState` is `Writing`
+522:unsafe impl<T: ?Sized + Send> Send for GcRefCell<T> {}
+523-
+524-impl<T: Trace + Clone> Clone for GcRefCell<T> {
+
+core/engine/src/environments/runtime/declarative/mod.rs
+271-pub(crate) struct PoisonableEnvironment {
+272-    bindings: GcRefCell<Vec<Option<JsValue>>>,
+273:    #[unsafe_ignore_trace]
+274-    poisoned: Cell<bool>,
+275-    with: bool,
+
+core/engine/src/native_function/continuation.rs
+4-
+5-#[derive(Trace, Finalize)]
+6:#[boa_gc(unsafe_no_drop)]
+7-pub(crate) enum CoroutineState {
+8-    Yielded(JsValue),
+--
+20-    T: Trace,
+21-{
+22:    // SAFETY: `NativeCoroutine`'s safe API ensures only `Copy` closures are stored; its unsafe API,
+23-    // on the other hand, explains the invariants to hold in order for this to be safe, shifting
+24-    // the responsibility to the caller.
+25:    #[unsafe_ignore_trace]
+26-    f: F,
+27-    captures: T,
+--
+44-/// By limitations of the Rust language, the garbage collector currently cannot inspect closures
+45-/// in order to trace their captured variables. This means that only [`Copy`] closures are 100% safe
+46:/// to use. All other closures can also be stored in a `NativeCoroutine`, albeit by using an `unsafe`
+47-/// API, but note that passing closures implicitly capturing traceable types could cause
+48-/// **Undefined Behaviour**.
+--
+66-    {
+67-        // SAFETY: The `Copy` bound ensures there are no traceable types inside the closure.
+68:        unsafe { Self::from_closure_with_captures(closure, captures) }
+69-    }
+70-
+--
+77-    /// Behaviour**. See <https://github.com/Manishearth/rust-gc/issues/50> for a technical explanation
+78-    /// on why that is the case.
+79:    pub(crate) unsafe fn from_closure_with_captures<F, T>(closure: F, captures: T) -> Self
+80-    where
+81-        F: Fn(JsResult<JsValue>, &T, &mut Context) -> CoroutineState + 'static,
+82-        T: Trace + 'static,
+83-    {
+84:        // Hopefully, this unsafe operation will be replaced by the `CoerceUnsized` API in the
+85-        // future: https://github.com/rust-lang/rust/issues/18598
+86-        let ptr = Gc::into_raw(Gc::new(Coroutine {
+--
+90-        // SAFETY: The pointer returned by `into_raw` is only used to coerce to a trait object,
+91-        // meaning this is safe.
+92:        unsafe {
+93-            Self {
+94-                inner: Gc::from_raw(ptr),
+
+core/engine/src/object/datatypes.rs
+30-/// #[derive(Trace, Finalize, JsData)]
+31-/// struct CustomStruct {
+32:///     #[unsafe_ignore_trace]
+33-///     counter: usize,
+34-/// }
+--
+120-        fn_one!(extern "Rust" fn () -> Ret);
+121-        fn_one!(extern "C" fn () -> Ret);
+122:        fn_one!(unsafe extern "Rust" fn () -> Ret);
+123:        fn_one!(unsafe extern "C" fn () -> Ret);
+124-    };
+125-    ($($args:ident),*) => {
+--
+127-        fn_one!(extern "C" fn ($($args),*) -> Ret, $($args),*);
+128-        fn_one!(extern "C" fn ($($args),*, ...) -> Ret, $($args),*);
+129:        fn_one!(unsafe extern "Rust" fn ($($args),*) -> Ret, $($args),*);
+130:        fn_one!(unsafe extern "C" fn ($($args),*) -> Ret, $($args),*);
+131:        fn_one!(unsafe extern "C" fn ($($args),*, ...) -> Ret, $($args),*);
+132-    }
+133-}
+--
+222-#[derive(Debug, Finalize, Trace)]
+223-// SAFETY: This does not implement drop, so this is safe.
+224:#[boa_gc(unsafe_no_drop)]
+225-#[repr(C, align(8))]
+226-#[non_exhaustive]
+
+core/engine/src/builtins/typed_array/object.rs
+637-    // SAFETY: The TypedArray object guarantees that the buffer is aligned.
+638-    // The call to `is_valid_integer_index` guarantees that the index is in-bounds.
+639:    let value = unsafe {
+640-        buffer
+641-            .subslice(byte_index..)
+--
+693-    // SAFETY: The TypedArray object guarantees that the buffer is aligned.
+694-    // The call to `validate_index` guarantees that the index is in-bounds.
+695:    unsafe {
+696-        buffer
+697-            .subslice_mut(byte_index..)
+
+core/engine/src/builtins/intl/mod.rs
+56-/// JavaScript `Intl` object.
+57-#[derive(Debug, Clone, Trace, Finalize, JsData)]
+58:#[boa_gc(unsafe_empty_trace)]
+59-pub struct Intl {
+60-    fallback_symbol: JsSymbol,
+
+core/engine/src/builtins/atomics/mod.rs
+115-            // SAFETY: The integer indexed object guarantees that the buffer is aligned.
+116-            // The call to `validate_atomic_access` guarantees that the index is in-bounds.
+117:            let value: TypedArrayElement = unsafe {
+118-                match value {
+119-                    TypedArrayElement::Int8(num) => {
+--
+209-        // SAFETY: The integer indexed object guarantees that the buffer is aligned.
+210-        // The call to `validate_atomic_access` guarantees that the index is in-bounds.
+211:        let value = unsafe { data.get_value(access.kind, Ordering::SeqCst) };
+212-
+213-        Ok(value.into())
+--
+257-        // SAFETY: The integer indexed object guarantees that the buffer is aligned.
+258-        // The call to `validate_atomic_access` guarantees that the index is in-bounds.
+259:        unsafe {
+260-            data.set_value(value, Ordering::SeqCst);
+261-        }
+--
+315-        // SAFETY: The integer indexed object guarantees that the buffer is aligned.
+316-        // The call to `validate_atomic_access` guarantees that the index is in-bounds.
+317:        let value: TypedArrayElement = unsafe {
+318-            match access.kind {
+319-                TypedArrayKind::Int8 => i8::read_mut(data)
+--
+460-        if ASYNC {
+461-            let (promise, resolvers) = JsPromise::new_pending(context);
+462:            let result = unsafe {
+463-                if access.kind == TypedArrayKind::BigInt64 {
+464-                    futex::wait_async(
+--
+498-                .into())
+499-        } else {
+500:            let result = unsafe {
+501-                if access.kind == TypedArrayKind::BigInt64 {
+502-                    futex::wait(
+
+core/engine/src/module/source.rs
+64-/// [cyclic]: https://tc39.es/ecma262/#table-cyclic-module-fields
+65-#[derive(Debug, Trace, Finalize, Default)]
+66:#[boa_gc(unsafe_no_drop)]
+67-enum ModuleStatus {
+68-    #[default]
+--
+198-/// inner code of the module.
+199-#[derive(Clone, Trace, Finalize)]
+200:#[boa_gc(unsafe_no_drop)]
+201-struct SourceTextContext {
+202-    codeblock: Gc<CodeBlock>,
+--
+224-    async_parent_modules: GcRefCell<Vec<Module>>,
+225-    import_meta: GcRefCell<Option<JsObject>>,
+226:    #[unsafe_ignore_trace]
+227-    code: ModuleCode,
+228-}
+
+core/engine/src/builtins/array_buffer/shared.rs
+31-pub struct SharedArrayBuffer {
+32-    // Shared buffers cannot be detached.
+33:    #[unsafe_ignore_trace]
+34-    data: Arc<Inner>,
+35-}
+--
+475-            // This also means that the newly created buffer will have at least `new_len` elements
+476-            // to write to.
+477:            unsafe { copy_shared_to_shared(from_buf.as_ptr(), to_buf.as_ptr(), new_len) }
+478-        }
+479-
+--
+609-    // 3. Return db.
+610-    // SAFETY: `[u8]` must be transparently castable to `[AtomicU8]`.
+611:    Ok(unsafe {
+612-        AlignedBox::from_raw_parts(align, ptr::slice_from_raw_parts_mut(data.cast(), len))
+613-    })
+
+core/engine/src/environments/runtime/declarative/function.rs
+12-
+13-    // Safety: Nothing in `Scope` needs tracing.
+14:    #[unsafe_ignore_trace]
+15-    scope: Scope,
+16-}
+--
+178-}
+179-
+180:unsafe impl Trace for ThisBindingStatus {
+181-    custom_trace!(this, mark, {
+182-        match this {
+
+core/engine/src/builtins/dataview/mod.rs
+499-        // 13. Return GetValueFromBuffer(view.[[ViewedArrayBuffer]], bufferIndex, type, false, unordered, isLittleEndian).
+500-        // SAFETY: All previous checks ensure the element fits in the buffer.
+501:        let value: TypedArrayElement = unsafe {
+502-            let mut value = T::zeroed();
+503-            memcpy(
+--
+846-        // 15. Perform SetValueInBuffer(view.[[ViewedArrayBuffer]], bufferIndex, type, numberValue, false, unordered, isLittleEndian).
+847-        // SAFETY: All previous checks ensure the element fits in the buffer.
+848:        unsafe {
+849-            let value = if is_little_endian {
+850-                value.to_little_endian()
+
+core/engine/src/builtins/array/from_async.rs
+202-
+203-#[derive(Trace, Finalize)]
+204:#[boa_gc(unsafe_no_drop)]
+205-enum AsyncIteratorStateMachine {
+206-    LoopStart {
+--
+462-
+463-#[derive(Trace, Finalize)]
+464:#[boa_gc(unsafe_no_drop)]
+465-#[allow(clippy::enum_variant_names)]
+466-enum ArrayLikeStateMachine {
+
+core/engine/src/value/inner/nan_boxed.rs
+282-        // Assert alignment and location of the pointer.
+283-        // TODO: we may want to have nan-boxing be the default only on
+284:        // certain platforms, and make it an unsafe operation
+285-        // to manually enable the implementation.
+286-        if value_masked != value {
+--
+342-}
+343-
+344:#[allow(unsafe_op_in_unsafe_fn)]
+345:unsafe impl Trace for NanBoxedValue {
+346-    custom_trace! {this, mark, {
+347-        if let Some(o) = this.as_object() {
+--
+358-        // jump table.
+359-        match self.value() & bits::MASK_KIND {
+360:            bits::MASK_OBJECT => unsafe {
+361-                mem::forget((*self.as_object_unchecked()).clone());
+362-            },
+363:            bits::MASK_STRING => unsafe {
+364-                mem::forget((*self.as_string_unchecked()).clone());
+365-            },
+366:            bits::MASK_SYMBOL => unsafe {
+367-                mem::forget((*self.as_symbol_unchecked()).clone());
+368-            },
+369:            bits::MASK_BIGINT => unsafe {
+370-                mem::forget((*self.as_bigint_unchecked()).clone());
+371-            },
+--
+594-        if self.is_bigint() {
+595-            // SAFETY: the inner address must hold a valid, non-null JsBigInt.
+596:            unsafe { Some((*self.as_bigint_unchecked()).clone()) }
+597-        } else {
+598-            None
+--
+607-    #[must_use]
+608-    #[inline(always)]
+609:    unsafe fn as_bigint_unchecked(&self) -> ManuallyDrop<JsBigInt> {
+610-        let addr = bits::untag_pointer(self.value());
+611-        // SAFETY: This is guaranteed by the caller.
+612:        unsafe {
+613-            ManuallyDrop::new(JsBigInt::from_raw(
+614-                self.ptr.with_addr(addr).cast::<RawBigInt>().cast_const(),
+--
+623-        if self.is_object() {
+624-            // SAFETY: the inner address must hold a valid, non-null JsObject.
+625:            unsafe { Some((*self.as_object_unchecked()).clone()) }
+626-        } else {
+627-            None
+--
+636-    #[must_use]
+637-    #[inline(always)]
+638:    unsafe fn as_object_unchecked(&self) -> ManuallyDrop<JsObject> {
+639-        let addr = bits::untag_pointer(self.value());
+640-        // SAFETY: This is guaranteed by the caller.
+641:        unsafe {
+642-            ManuallyDrop::new(JsObject::from_raw(NonNull::new_unchecked(
+643-                self.ptr.with_addr(addr).cast::<GcBox<ErasedVTableObject>>(),
+--
+652-        if self.is_symbol() {
+653-            // SAFETY: the inner address must hold a valid, non-null JsSymbol.
+654:            unsafe { Some((*self.as_symbol_unchecked()).clone()) }
+655-        } else {
+656-            None
+--
+665-    #[must_use]
+666-    #[inline(always)]
+667:    unsafe fn as_symbol_unchecked(&self) -> ManuallyDrop<JsSymbol> {
+668-        let addr = bits::untag_pointer(self.value());
+669-        // SAFETY: This is guaranteed by the caller.
+670:        unsafe {
+671-            ManuallyDrop::new(JsSymbol::from_raw(NonNull::new_unchecked(
+672-                self.ptr.with_addr(addr).cast::<RawJsSymbol>(),
+--
+681-        if self.is_string() {
+682-            // SAFETY: the inner address must hold a valid, non-null JsString.
+683:            unsafe { Some((*self.as_string_unchecked()).clone()) }
+684-        } else {
+685-            None
+--
+694-    #[must_use]
+695-    #[inline(always)]
+696:    unsafe fn as_string_unchecked(&self) -> ManuallyDrop<JsString> {
+697-        let addr = bits::untag_pointer(self.value());
+698-        // SAFETY: the inner address must hold a valid, non-null JsString.
+699:        unsafe {
+700-            ManuallyDrop::new(JsString::from_raw(NonNull::new_unchecked(
+701-                self.ptr.with_addr(addr).cast::<RawJsString>(),
+--
+710-        match self.value() & bits::MASK_KIND {
+711-            bits::MASK_OBJECT => {
+712:                JsVariant::Object(unsafe { (*self.as_object_unchecked()).clone() })
+713-            }
+714-            bits::MASK_STRING => {
+715:                JsVariant::String(unsafe { (*self.as_string_unchecked()).clone() })
+716-            }
+717-            bits::MASK_SYMBOL => {
+718:                JsVariant::Symbol(unsafe { (*self.as_symbol_unchecked()).clone() })
+719-            }
+720-            bits::MASK_BIGINT => {
+721:                JsVariant::BigInt(unsafe { (*self.as_bigint_unchecked()).clone() })
+722-            }
+723-            bits::MASK_INT32 => JsVariant::Integer32(bits::untag_i32(self.value())),
+--
+737-        match self.value() & bits::MASK_KIND {
+738-            bits::MASK_OBJECT => {
+739:                unsafe { ManuallyDrop::into_inner(self.as_object_unchecked()) };
+740-            }
+741-            bits::MASK_STRING => {
+742:                unsafe { ManuallyDrop::into_inner(self.as_string_unchecked()) };
+743-            }
+744-            bits::MASK_SYMBOL => {
+745:                unsafe { ManuallyDrop::into_inner(self.as_symbol_unchecked()) };
+746-            }
+747-            bits::MASK_BIGINT => {
+748:                unsafe { ManuallyDrop::into_inner(self.as_bigint_unchecked()) };
+749-            }
+750-            _ => {}
+
+core/engine/src/builtins/array/array_iterator.rs
+32-    array: JsObject,
+33-    next_index: u64,
+34:    #[unsafe_ignore_trace]
+35-    kind: PropertyNameKind,
+36-    done: bool,
+
+core/engine/src/object/builtins/jspromise.rs
+1386-struct Inner {
+1387-    result: Option<JsResult<JsValue>>,
+1388:    #[unsafe_ignore_trace]
+1389-    task: Option<task::Waker>,
+1390-}
+
+core/engine/src/builtins/typed_array/element/mod.rs
+1:#![deny(unsafe_op_in_unsafe_fn)]
+2-#![allow(clippy::cast_ptr_alignment)] // Invariants are checked by the caller.
+3-
+--
+209-
+210-#[cfg(feature = "float16")]
+211:unsafe impl bytemuck::Zeroable for Float16 {}
+212-
+213-#[cfg(feature = "float16")]
+214:unsafe impl bytemuck::Pod for Float16 {}
+215-
+216-/// A native element that can be inside a `TypedArray`.
+--
+244-    /// - `buffer` must be aligned to the native alignment of `Self`.
+245-    /// - `buffer` must contain enough bytes to read `std::sizeof::<Self>` bytes.
+246:    unsafe fn read(buffer: SliceRef<'_>) -> ElementRef<'_, Self>;
+247-
+248-    /// Writes the bytes of this element into `buffer`.
+--
+254-    /// - `buffer` must be aligned to the native alignment of `Self`.
+255-    /// - `buffer` must contain enough bytes to store `std::sizeof::<Self>` bytes.
+256:    unsafe fn read_mut(buffer: SliceRefMut<'_>) -> ElementRefMut<'_, Self>;
+257-}
+258-
+--
+279-    ) => {
+280-        #[allow(clippy::redundant_closure_call)]
+281:        #[allow(clippy::undocumented_unsafe_blocks)] // Invariants are checked by the caller.
+282-        impl Element for $element {
+283-            type Atomic = $atomic;
+--
+303-            }
+304-
+305:            unsafe fn read(buffer: SliceRef<'_>) -> ElementRef<'_, Self> {
+306-                #[cfg(debug_assertions)]
+307-                {
+--
+311-
+312-                match buffer {
+313:                    SliceRef::Slice(buffer) => unsafe {
+314-                        ElementRef::Plain(&*buffer.as_ptr().cast())
+315-                    },
+316:                    SliceRef::AtomicSlice(buffer) => unsafe {
+317-                        ElementRef::Atomic(&*buffer.as_ptr().cast::<Self::Atomic>())
+318-                    },
+--
+320-            }
+321-
+322:            unsafe fn read_mut(buffer: SliceRefMut<'_>) -> ElementRefMut<'_, Self> {
+323-                #[cfg(debug_assertions)]
+324-                {
+--
+328-
+329-                match buffer {
+330:                    SliceRefMut::Slice(buffer) => unsafe {
+331-                        ElementRefMut::Plain(&mut *buffer.as_mut_ptr().cast())
+332-                    },
+333:                    SliceRefMut::AtomicSlice(buffer) => unsafe {
+334-                        ElementRefMut::Atomic(&*buffer.as_ptr().cast::<Self::Atomic>())
+335-                    },
+
+core/engine/src/builtins/atomics/futex.rs
+136-// program.
+137-
+138:#![deny(unsafe_op_in_unsafe_fn)]
+139:#![deny(clippy::undocumented_unsafe_blocks)]
+140-#![allow(clippy::expl_impl_clone_on_copy)]
+141-
+--
+248-//          a global lock, meaning the inner data of `FutexWaiters` (which includes non-Send pointers)
+249-//          can only be accessed by a single thread at once.
+250:unsafe impl Send for FutexWaiters {}
+251-
+252-impl FutexWaiters {
+--
+269-    /// - `node` must always reference a valid instance of `FutexWaiter` until `node` is
+270-    ///   removed from its linked list. This can happen by either `remove_waiter` or `notify_many`.
+271:    unsafe fn add_waiter(&mut self, node: &FutexWaiter) {
+272-        // SAFETY: `node` must point to a valid instance.
+273:        let node = unsafe { UnsafeRef::from_raw(ptr::from_ref(node)) };
+274-
+275-        self.waiters
+--
+282-    ///
+283-    /// - `node` must NOT be linked to an existing waiter list.
+284:    unsafe fn add_async_waiter(&mut self, node: Arc<FutexWaiter>) {
+285-        // SAFETY: `node` is not linked by the guarantees of the caller.
+286:        let node = unsafe { UnsafeRef::from_raw(Arc::into_raw(node)) };
+287-
+288-        self.waiters
+--
+315-                // SAFETY: All entries on the waiter list must be valid, and all async entries
+316-                // must come from an Arc.
+317:                unsafe { Arc::from_raw(UnsafeRef::into_raw(elem)) };
+318-                let _ = async_data.sender.send(AtomicsWaitResult::Ok);
+319-            }
+--
+332-    /// - `node` must be inside the wait list associated with `node.addr`.
+333-    #[track_caller]
+334:    pub(super) unsafe fn remove_waiter(&mut self, node: &FutexWaiter) {
+335-        debug_assert!(node.link.is_linked());
+336-
+--
+340-
+341-        // SAFETY: `node` must be inside the wait list associated with `node.addr`.
+342:        let node = unsafe {
+343-            let Some(node) = wl
+344-                .get_mut()
+--
+353-        if let Some(async_data) = node.async_data.take() {
+354-            // SAFETY: all async entries must be managed by an Arc.
+355:            unsafe {
+356-                Arc::from_raw(UnsafeRef::into_raw(node));
+357-            }
+--
+372-/// - `buffer` must contain at least `std::mem::size_of::<E>()` bytes to read starting from `usize`.
+373-// our implementation guarantees that `SharedArrayBuffer` is always aligned to `u64` at minimum.
+374:pub(super) unsafe fn wait<E: Element + PartialEq>(
+375-    buffer: &SharedArrayBuffer,
+376-    buf_len: usize,
+--
+392-
+393-    // SAFETY: The safety of this operation is guaranteed by the caller.
+394:    let value = unsafe { E::read(SliceRef::AtomicSlice(buffer)).load(Ordering::SeqCst) };
+395-
+396-    // 20. If v ≠ w, then
+--
+413-    // 28. Perform AddWaiter(WL, waiterRecord).
+414-    // SAFETY: waiter is valid and we call `remove_waiter` below.
+415:    unsafe {
+416-        waiters.add_waiter(&waiter);
+417-    }
+--
+460-    if waiter.link.is_linked() {
+461-        // SAFETY: waiter is valid and contained in its waiter list if it is still linked.
+462:        unsafe {
+463-            waiters.remove_waiter(&waiter);
+464-        }
+--
+481-/// - `buffer` must contain at least `std::mem::size_of::<E>()` bytes to read starting from `usize`.
+482-// our implementation guarantees that `SharedArrayBuffer` is always aligned to `u64` at minimum.
+483:pub(super) unsafe fn wait_async<E: Element + PartialEq>(
+484-    buffer: &SharedArrayBuffer,
+485-    buf_len: usize,
+--
+502-    // 19. Let w be GetValueFromBuffer(buffer, indexedPosition, elementType, true, SeqCst).
+503-    // SAFETY: The safety of this operation is guaranteed by the caller.
+504:    let value = unsafe { E::read(SliceRef::AtomicSlice(buf)).load(Ordering::SeqCst) };
+505-
+506-    // 20. If v ≠ w, then
+--
+541-    // 28. Perform AddWaiter(WL, waiterRecord).
+542-    // SAFETY: `waiter` is pinned to the heap, so it must be valid.
+543:    unsafe {
+544-        waiters.add_async_waiter(waiter.clone());
+545-    }
+--
+565-                    // iii. Set waiterRecord.[[Result]] to "timed-out".
+566-                    // SAFETY: the node is linked and still valid thanks to the reference count.
+567:                    unsafe {
+568-                        // iv. Perform RemoveWaiter(WL, waiterRecord).
+569-                        waiters.remove_waiter(&waiter);
+
+core/engine/src/module/synthetic.rs
+25-    T: Trace,
+26-{
+27:    // SAFETY: `SyntheticModuleInitializer`'s safe API ensures only `Copy` closures are stored; its unsafe API,
+28-    // on the other hand, explains the invariants to hold in order for this to be safe, shifting
+29-    // the responsibility to the caller.
+30:    #[unsafe_ignore_trace]
+31-    f: F,
+32-    captures: T,
+--
+49-/// By limitations of the Rust language, the garbage collector currently cannot inspect closures
+50-/// in order to trace their captured variables. This means that only [`Copy`] closures are 100% safe
+51:/// to use. All other closures can also be stored in a `NativeFunction`, albeit by using an `unsafe`
+52-/// API, but note that passing closures implicitly capturing traceable types could cause
+53-/// **Undefined Behaviour**.
+--
+71-    {
+72-        // SAFETY: The `Copy` bound ensures there are no traceable types inside the closure.
+73:        unsafe { Self::from_closure(closure) }
+74-    }
+75-
+--
+81-    {
+82-        // SAFETY: The `Copy` bound ensures there are no traceable types inside the closure.
+83:        unsafe { Self::from_closure_with_captures(closure, captures) }
+84-    }
+85-
+--
+92-    /// Behaviour**. See <https://github.com/Manishearth/rust-gc/issues/50> for a technical explanation
+93-    /// on why that is the case.
+94:    pub unsafe fn from_closure<F>(closure: F) -> Self
+95-    where
+96-        F: Fn(&SyntheticModule, &mut Context) -> JsResult<()> + 'static,
+97-    {
+98-        // SAFETY: The caller must ensure the invariants of the closure hold.
+99:        unsafe {
+100-            Self::from_closure_with_captures(
+101-                move |module, (), context| closure(module, context),
+--
+113-    /// Behaviour**. See <https://github.com/Manishearth/rust-gc/issues/50> for a technical explanation
+114-    /// on why that is the case.
+115:    pub unsafe fn from_closure_with_captures<F, T>(closure: F, captures: T) -> Self
+116-    where
+117-        F: Fn(&SyntheticModule, &T, &mut Context) -> JsResult<()> + 'static,
+118-        T: Trace + 'static,
+119-    {
+120:        // Hopefully, this unsafe operation will be replaced by the `CoerceUnsized` API in the
+121-        // future: https://github.com/rust-lang/rust/issues/18598
+122-        let ptr = Gc::into_raw(Gc::new(Callback {
+--
+127-        // SAFETY: The pointer returned by `into_raw` is only used to coerce to a trait object,
+128-        // meaning this is safe.
+129:        unsafe {
+130-            Self {
+131-                inner: Gc::from_raw(ptr),
+--
+143-/// Current status of a [`SyntheticModule`].
+144-#[derive(Debug, Trace, Finalize, Default)]
+145:#[boa_gc(unsafe_no_drop)]
+146-enum ModuleStatus {
+147-    #[default]
+--
+173-#[derive(Trace, Finalize)]
+174-pub struct SyntheticModule {
+175:    #[unsafe_ignore_trace]
+176-    export_names: FxHashSet<JsString>,
+177-    eval_steps: SyntheticModuleInitializer,
+
+core/engine/src/object/builtins/jssharedarraybuffer.rs
+9-/// `JsSharedArrayBuffer` provides a wrapper for Boa's implementation of the ECMAScript `ArrayBuffer` object
+10-#[derive(Debug, Clone, Trace, Finalize)]
+11:#[boa_gc(unsafe_no_drop)]
+12-pub struct JsSharedArrayBuffer {
+13-    inner: JsObject<SharedArrayBuffer>,
+
+core/engine/src/builtins/function/mod.rs
+145-}
+146-
+147:unsafe impl Trace for ClassFieldDefinition {
+148-    custom_trace! {this, mark, {
+149-        match this {
+
+core/engine/src/module/namespace.rs
+25-pub struct ModuleNamespace {
+26-    module: Module,
+27:    #[unsafe_ignore_trace]
+28-    exports: IndexSet<JsString, BuildHasherDefault<FxHasher>>,
+29-}
+
+core/engine/src/builtins/function/arguments.rs
+82-#[derive(Debug, Clone, Trace, Finalize)]
+83-pub(crate) struct MappedArguments {
+84:    #[unsafe_ignore_trace]
+85-    binding_indices: Vec<Option<u32>>,
+86-    environment: Gc<DeclarativeEnvironment>,
+
+core/engine/src/builtins/temporal/zoneddatetime/mod.rs
+53-/// [temporal_rs-docs]: https://docs.rs/temporal_rs/latest/temporal_rs/struct.ZonedDateTime.html
+54-#[derive(Debug, Clone, Trace, Finalize, JsData)]
+55:#[boa_gc(unsafe_empty_trace)] // Safety: Does not contain any traceable fields.
+56-pub struct ZonedDateTime {
+57-    pub(crate) inner: Box<ZonedDateTimeInner>,
+
+core/engine/src/builtins/generator/mod.rs
+44-
+45-// Need to manually implement, since `Trace` adds a `Drop` impl which disallows destructuring.
+46:unsafe impl Trace for GeneratorState {
+47-    custom_trace!(this, mark, {
+48-        match &this {
+
+core/engine/src/builtins/intl/list_format/mod.rs
+36-#[derive(Debug, Trace, Finalize, JsData)]
+37-// Safety: `ListFormat` only contains non-traceable types.
+38:#[boa_gc(unsafe_empty_trace)]
+39-pub(crate) struct ListFormat {
+40-    locale: Locale,
+
+core/engine/src/builtins/intl/collator/mod.rs
+59-
+60-// SAFETY: only `bound_compare` is a traceable object.
+61:unsafe impl Trace for Collator {
+62-    custom_trace!(this, mark, mark(&this.bound_compare));
+63-}
+
+core/engine/src/value/inner/legacy.rs
+29-}
+30-
+31:#[allow(unsafe_op_in_unsafe_fn)]
+32:unsafe impl Trace for EnumBasedValue {
+33-    custom_trace! {this, mark, {
+34-        if let Some(o) = this.as_object() {
+
+core/engine/src/builtins/async_generator/mod.rs
+60-pub struct AsyncGenerator {
+61-    /// The `[[AsyncGeneratorState]]` internal slot.
+62:    #[unsafe_ignore_trace]
+63-    pub(crate) state: AsyncGeneratorState,
+64-
+
+core/engine/src/builtins/set/set_iterator.rs
+32-    iterated_set: JsValue,
+33-    next_index: usize,
+34:    #[unsafe_ignore_trace]
+35-    iteration_kind: PropertyNameKind,
+36-    lock: SetLock,
+
+core/engine/src/builtins/temporal/plain_year_month/mod.rs
+46-/// [temporal_rs-docs]: https://docs.rs/temporal_rs/latest/temporal_rs/struct.PlainYearMonth.html
+47-#[derive(Debug, Clone, Trace, Finalize, JsData)]
+48:#[boa_gc(unsafe_empty_trace)]
+49-pub struct PlainYearMonth {
+50-    pub(crate) inner: InnerYearMonth,
+
+core/engine/src/module/mod.rs
+671-        Module::synthetic(
+672-            exports.as_slice(),
+673:            unsafe {
+674-                SyntheticModuleInitializer::from_closure(move |module, context| {
+675-                    for (name, f) in names.iter().zip(fns.iter()) {
+--
+712-    context.insert_data(Gc::new(GcRefCell::new(JsValue::undefined())));
+713-
+714:    let module = unsafe {
+715-        vec![
+716-            (
+--
+724-                    }
+725-                }
+726:                .into_js_function_unsafe(&mut context),
+727-            ),
+728-            (
+729-                js_string!("bar"),
+730:                UnsafeIntoJsFunction::into_js_function_unsafe(
+731-                    {
+732-                        let counter = bar_count.clone();
+--
+740-            (
+741-                js_string!("dad"),
+742:                UnsafeIntoJsFunction::into_js_function_unsafe(
+743-                    {
+744-                        let counter = dad_count.clone();
+
+core/engine/src/vm/opcode/args.rs
+8-///
+9-/// - The implementor must ensure that the type can be safely read from a byte slice.
+10:pub(super) unsafe trait Readable: Copy + Sized {}
+11-
+12:unsafe impl Readable for u8 {}
+13:unsafe impl Readable for i8 {}
+14:unsafe impl Readable for u16 {}
+15:unsafe impl Readable for i16 {}
+16:unsafe impl Readable for u32 {}
+17:unsafe impl Readable for u64 {}
+18:unsafe impl Readable for f64 {}
+19:unsafe impl Readable for (u8, u8) {}
+20:unsafe impl Readable for (u8, i8) {}
+21:unsafe impl Readable for (u16, u16) {}
+22:unsafe impl Readable for (u16, i16) {}
+23:unsafe impl Readable for (u32, u32) {}
+24:unsafe impl Readable for (u32, i32) {}
+25:unsafe impl Readable for (u8, u8, u8) {}
+26:unsafe impl Readable for (u16, u16, u16) {}
+27:unsafe impl Readable for (u32, u32, u32) {}
+28:unsafe impl Readable for (u8, u8, u8, u8) {}
+29:unsafe impl Readable for (u16, u16, u16, u16) {}
+30:unsafe impl Readable for (u32, u32, u32, u32) {}
+31:unsafe impl Readable for (u32, u32, u32, u32, u32) {}
+32-
+33-#[inline(always)]
+--
+40-
+41-    // Safety: The assertion above ensures that the slice is large enough to read T.
+42:    let result = unsafe { read_unchecked(bytes, offset) };
+43-
+44-    (result, new_offset)
+--
+52-///
+53-/// - The caller must ensure that the byte slice is large enough to contain a value of type T at the given offset.
+54:unsafe fn read_unchecked<T: Readable>(bytes: &[u8], offset: usize) -> T {
+55:    unsafe { bytes.as_ptr().add(offset).cast::<T>().read_unaligned() }
+56-}
+57-
+--
+209-            Format::U16 => {
+210-                assert!(bytes.len() >= pos + 3, "buffer too small to read arguments");
+211:                let (arg1, arg2) = unsafe {
+212-                    (
+213-                        read_unchecked::<u16>(bytes, pos),
+--
+219-            Format::U32 => {
+220-                assert!(bytes.len() >= pos + 5, "buffer too small to read arguments");
+221:                let (arg1, arg2) = unsafe {
+222-                    (
+223-                        read_unchecked::<u32>(bytes, pos),
+--
+259-            Format::U8 => {
+260-                assert!(bytes.len() >= pos + 3, "buffer too small to read arguments");
+261:                let (arg1, arg2) = unsafe {
+262-                    (
+263-                        read_unchecked::<u8>(bytes, pos),
+--
+273-            Format::U32 => {
+274-                assert!(bytes.len() >= pos + 6, "buffer too small to read arguments");
+275:                let (arg1, arg2) = unsafe {
+276-                    (
+277-                        read_unchecked::<u32>(bytes, pos),
+--
+321-        );
+322-
+323:        let (arg1, arg2) = unsafe {
+324-            (
+325-                read_unchecked::<u32>(bytes, pos),
+--
+600-
+601-        // Read the first argument
+602:        let first = unsafe { read_unchecked::<u32>(bytes, pos + 2) };
+603-
+604-        // Read remaining arguments
+605-        let mut rest = ThinVec::with_capacity(total_len);
+606-        for i in 0..total_len {
+607:            let value = unsafe { read_unchecked::<u32>(bytes, pos + 6 + i * 4) };
+608-            rest.push(value.into());
+609-        }
+--
+640-
+641-        // Read the first two arguments
+642:        let (first, second) = unsafe { read_unchecked::<(u32, u32)>(bytes, pos + 2) };
+643-
+644-        // Read remaining arguments
+645-        let mut rest = ThinVec::with_capacity(total_len);
+646-        for i in 0..total_len {
+647:            let value = unsafe { read_unchecked::<u32>(bytes, pos + 10 + i * 4) };
+648-            rest.push(value.into());
+649-        }
+--
+668-            "buffer too small to read arguments"
+669-        );
+670:        let arg1 = unsafe { read_unchecked::<u32>(bytes, pos) };
+671:        let arg2 = unsafe { read_unchecked::<u64>(bytes, pos + 4) };
+672:        let arg3 = unsafe { read_unchecked::<u32>(bytes, pos + 12) };
+673-        ((arg1, arg2, arg3.into()), pos + 16)
+674-    }
+--
+716-
+717-        // Read the first argument
+718:        let first = unsafe { read_unchecked::<u32>(bytes, pos + 2) };
+719-
+720-        // Read remaining arguments
+721-        let mut rest = ThinVec::with_capacity(total_len);
+722-        for i in 0..total_len {
+723:            let value = unsafe { read_unchecked::<u32>(bytes, pos + 6 + i * 4) };
+724-            rest.push(value);
+725-        }
+--
+756-
+757-        // Read first two arguments
+758:        let first = unsafe { read_unchecked::<u64>(bytes, pos + 2) };
+759:        let second = unsafe { read_unchecked::<u32>(bytes, pos + 10) };
+760-
+761-        // Read remaining arguments
+762-        let mut rest = ThinVec::with_capacity(total_len);
+763-        for i in 0..total_len {
+764:            let value = unsafe { read_unchecked::<u32>(bytes, pos + 14 + i * 4) };
+765-            rest.push(value);
+766-        }
+--
+796-
+797-        // Read the first argument
+798:        let first = unsafe { read_unchecked::<u32>(bytes, pos + 2) };
+799-
+800-        // Read remaining arguments
+801-        let mut rest = ThinVec::with_capacity(total_len);
+802-        for i in 0..total_len {
+803:            let value = unsafe { read_unchecked::<u32>(bytes, pos + 6 + i * 4) };
+804-            rest.push(value);
+805-        }
+--
+841-
+842-        // Read the second argument
+843:        let second = unsafe { read_unchecked::<u32>(bytes, pos + 6) };
+844-
+845-        // Read remaining arguments
+846-        let mut rest = ThinVec::with_capacity(total_len);
+847-        for i in 0..total_len {
+848:            let value = unsafe { read_unchecked::<u32>(bytes, pos + 10 + i * 4) };
+849-            rest.push(value);
+850-        }
+
+core/engine/src/builtins/temporal/instant/mod.rs
+45-/// [temporal_rs-docs]: https://docs.rs/temporal_rs/latest/temporal_rs/struct.Instant.html
+46-#[derive(Debug, Clone, Trace, Finalize, JsData)]
+47:#[boa_gc(unsafe_empty_trace)] // Safety: Does not contain any traceable fields.
+48-pub struct Instant {
+49-    pub(crate) inner: Box<InnerInstant>,
+
+core/engine/src/builtins/set/ordered_set.rs
+14-}
+15-
+16:unsafe impl Trace for OrderedSet {
+17-    custom_trace!(this, mark, {
+18-        for v in &this.inner {
+
+core/engine/src/builtins/array_buffer/mod.rs
+8-//! [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/ArrayBuffer
+9-
+10:#![deny(unsafe_op_in_unsafe_fn)]
+11:#![deny(clippy::undocumented_unsafe_blocks)]
+12-
+13-pub(crate) mod shared;
+--
+125-/// A `JsObject` containing a bytes buffer as its inner data.
+126-#[derive(Debug, Clone, Trace, Finalize)]
+127:#[boa_gc(unsafe_no_drop)]
+128-pub(crate) enum BufferObject {
+129-    Buffer(JsObject<ArrayBuffer>),
+--
+202-pub struct ArrayBuffer {
+203-    /// The `[[ArrayBufferData]]` internal slot.
+204:    #[unsafe_ignore_trace]
+205-    data: Option<AlignedVec<u8>>,
+206-
+
+core/engine/src/builtins/number/conversions.rs
+84-    let ret: i32;
+85-    // SAFETY: Number is not nan so no floating-point exception should throw.
+86:    unsafe {
+87-        std::arch::asm!(
+88-            "fjcvtzs {dst:w}, {src:d}",
+
+core/engine/src/object/builtins/jsdataview.rs
+31-/// ```
+32-#[derive(Debug, Clone, Trace, Finalize)]
+33:#[boa_gc(unsafe_no_drop)]
+34-pub struct JsDataView {
+35-    inner: JsObject<DataView>,
+
+core/engine/src/builtins/promise/mod.rs
+43-}
+44-
+45:unsafe impl Trace for PromiseState {
+46-    custom_trace!(this, mark, {
+47-        match this {
+--
+122-
+123-// Manually implementing `Trace` to allow destructuring.
+124:unsafe impl Trace for ResolvingFunctions {
+125-    custom_trace!(this, mark, {
+126-        mark(&this.resolve);
+--
+177-
+178-// SAFETY: manually implementing `Trace` to allow destructuring.
+179:unsafe impl Trace for PromiseCapability {
+180-    custom_trace!(this, mark, {
+181-        mark(&this.promise);
+--
+196-
+197-    /// The `[[Type]]` field.
+198:    #[unsafe_ignore_trace]
+199-    reaction_type: ReactionType,
+200-
+--
+632-        #[derive(Debug, Trace, Finalize)]
+633-        struct ResolveElementCaptures {
+634:            #[unsafe_ignore_trace]
+635-            already_called: Rc<Cell<bool>>,
+636-            index: usize,
+637-            values: Gc<GcRefCell<Vec<JsValue>>>,
+638-            capability_resolve: JsFunction,
+639:            #[unsafe_ignore_trace]
+640-            remaining_elements_count: Rc<Cell<i32>>,
+641-        }
+--
+847-        #[derive(Debug, Trace, Finalize)]
+848-        struct ResolveRejectElementCaptures {
+849:            #[unsafe_ignore_trace]
+850-            already_called: Rc<Cell<bool>>,
+851-            index: usize,
+852-            values: Gc<GcRefCell<Vec<JsValue>>>,
+853-            capability: JsFunction,
+854:            #[unsafe_ignore_trace]
+855-            remaining_elements: Rc<Cell<i32>>,
+856-        }
+--
+1170-        #[derive(Debug, Trace, Finalize)]
+1171-        struct RejectElementCaptures {
+1172:            #[unsafe_ignore_trace]
+1173-            already_called: Rc<Cell<bool>>,
+1174-            index: usize,
+1175-            errors: Gc<GcRefCell<Vec<JsValue>>>,
+1176-            capability_reject: JsFunction,
+1177:            #[unsafe_ignore_trace]
+1178-            remaining_elements_count: Rc<Cell<i32>>,
+1179-        }
+
+core/engine/src/builtins/regexp/mod.rs
+39-#[derive(Debug, Clone, Trace, Finalize, JsData)]
+40-// Safety: `RegExp` does not contain any objects which needs to be traced, so this is safe.
+41:#[boa_gc(unsafe_empty_trace)]
+42-pub struct RegExp {
+43-    /// Regex matcher.
+
+core/engine/src/builtins/map/map_iterator.rs
+32-    iterated_map: Option<JsObject>,
+33-    map_next_index: usize,
+34:    #[unsafe_ignore_trace]
+35-    map_iteration_kind: PropertyNameKind,
+36-    lock: MapLock,
+
+core/engine/src/builtins/temporal/plain_time/mod.rs
+47-/// [temporal_rs-docs]: https://docs.rs/temporal_rs/latest/temporal_rs/struct.PlainTime.html
+48-#[derive(Debug, Clone, Copy, Trace, Finalize, JsData)]
+49:#[boa_gc(unsafe_empty_trace)] // Safety: PlainTimeInner does not contain any traceable types.
+50-pub struct PlainTime {
+51-    inner: PlainTimeInner,
+
+core/engine/src/builtins/temporal/plain_date/mod.rs
+57-/// [temporal_rs-docs]: https://docs.rs/temporal_rs/latest/temporal_rs/struct.PlainDate.html
+58-#[derive(Debug, Clone, Trace, Finalize, JsData)]
+59:#[boa_gc(unsafe_empty_trace)]
+60-pub struct PlainDate {
+61-    pub(crate) inner: InnerDate,
+
+core/engine/src/builtins/map/ordered_map.rs
+42-}
+43-
+44:unsafe impl<V: Trace> Trace for OrderedMap<V> {
+45-    custom_trace!(this, mark, {
+46-        for (k, v) in &this.map {
+
+core/engine/src/object/builtins/jsarraybuffer.rs
+16-/// `JsArrayBuffer` provides a wrapper for Boa's implementation of the ECMAScript `ArrayBuffer` object
+17-#[derive(Debug, Clone, Trace, Finalize)]
+18:#[boa_gc(unsafe_no_drop)]
+19-pub struct JsArrayBuffer {
+20-    inner: JsObject<ArrayBuffer>,
+
+core/engine/src/builtins/temporal/plain_date_time/mod.rs
+57-/// [temporal_rs-docs]: https://docs.rs/temporal_rs/latest/temporal_rs/struct.PlainDateTime.html
+58-#[derive(Debug, Clone, Trace, Finalize, JsData)]
+59:#[boa_gc(unsafe_empty_trace)] // Safety: InnerDateTime does not contain any traceable types.
+60-pub struct PlainDateTime {
+61-    pub(crate) inner: InnerDateTime,
+
+core/engine/src/builtins/string/mod.rs
+360-            // - `nextcp` is not infinite (by the call to `is_float_integer`).
+361-            // - `nextcp` is in the u32 range (by the check above).
+362:            let nextcp = unsafe { nextcp.to_int_unchecked::<u32>() };
+363-
+364-            // d. Set result to the string-concatenation of result and ! UTF16EncodeCodePoint(ℝ(nextCP)).
+
+core/engine/src/builtins/temporal/plain_month_day/mod.rs
+41-/// [temporal_rs-docs]: https://docs.rs/temporal_rs/latest/temporal_rs/struct.PlainMonthDay.html
+42-#[derive(Debug, Clone, Trace, Finalize, JsData)]
+43:#[boa_gc(unsafe_empty_trace)] // Safety: PlainMonthDay contains no traceable inner fields.
+44-pub struct PlainMonthDay {
+45-    pub(crate) inner: InnerMonthDay,
+
+core/engine/src/vm/inline_cache/mod.rs
+22-
+23-    /// The [`Slot`] of the property.
+24:    #[unsafe_ignore_trace]
+25-    pub(crate) slot: Cell<Slot>,
+26-}
+
+core/engine/src/builtins/temporal/duration/mod.rs
+42-/// [temporal_rs-docs]: https://docs.rs/temporal_rs/latest/temporal_rs/struct.Duration.html
+43-#[derive(Debug, Clone, Trace, Finalize, JsData)]
+44:#[boa_gc(unsafe_empty_trace)] // Safety: Does not contain any traceable fields.
+45-pub struct Duration {
+46-    pub(crate) inner: Box<InnerDuration>,
