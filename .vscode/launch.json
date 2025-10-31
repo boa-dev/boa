@@ -42,7 +42,7 @@
         "program": "${workspaceFolder}/target/debug/boa_tester.exe"
       },
       "program": "${workspaceFolder}/target/debug/boa_tester",
-      "args": ["run", "-s", "${input:testPath}", "-vvv", "-d"],
+      "args": ["run", "-s", "test/built-ins/TypedArray/prototype/slice/resize-count-bytes-to-zero.js", "-vvv", "-d"],
       "sourceLanguages": ["rust"],
       "preLaunchTask": "Cargo Build boa_tester"
     }

@@ -2014,7 +2014,7 @@ impl BuiltinTypedArray {
 
         let src_borrow = src.borrow();
 
-        // 3. Let len be TypedArrayLength(taRecord).
+        // 3. Let srcArrayLength be TypedArrayLength(taRecord).
         let src_len = src_borrow.data().array_length(buf_len);
 
         // e. Let srcType be TypedArrayElementType(O).
@@ -2067,8 +2067,15 @@ impl BuiltinTypedArray {
         // c. Set endIndex to min(endIndex, TypedArrayLength(taRecord)).
         let end_index = min(end_index, src_borrow.data().array_length(src_buf_len));
 
-        // d. Set countBytes to max(endIndex - startIndex, 0).
+        // d. Set countBytes to maxlen(endIndex - startIndex, 0).
         let count = end_index.saturating_sub(start_index) as usize;
+
+        // The inner buffer may have resized between getting the indices and getting the buffer
+        // itself. Check that the count is not zero again before proceeding.
+        if count == 0 {
+            drop(target_borrow);
+            return Ok(target.upcast().into());
+        }
 
         // f. Let targetType be TypedArrayElementType(A).
         let target_type = target_borrow.data().kind();
@@ -2161,20 +2168,22 @@ impl BuiltinTypedArray {
                 let mut target_buf = target_buf
                     .bytes(Ordering::SeqCst)
                     .expect("newly created array cannot be detached");
-                let src = src_buf.subslice(src_byte_index..);
-                let mut target = target_buf.subslice_mut(target_byte_index..);
 
                 #[cfg(debug_assertions)]
                 {
-                    assert!(src.len() >= byte_count);
-                    assert!(target.len() >= byte_count);
+                    assert!(src_buf.subslice(src_byte_index..).len() >= byte_count);
+                    assert!(target_buf.subslice_mut(target_byte_index..).len() >= byte_count);
                 }
 
                 // SAFETY: All previous checks put the indices at least within the bounds of `src_buffer`.
                 // Also, `target_buffer` is precisely allocated to fit all sliced elements from
                 // `src_buffer`, making this operation safe.
                 unsafe {
-                    memcpy(src.as_ptr(), target.as_ptr(), byte_count);
+                    memcpy(
+                        src_buf.as_ptr().add(src_byte_index),
+                        target_buf.as_ptr().add(target_byte_index),
+                        byte_count,
+                    );
                 }
             }
         }
