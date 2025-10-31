@@ -468,7 +468,7 @@ pub(crate) fn proxy_exotic_get_own_property(
     key: &PropertyKey,
     context: &mut InternalMethodPropertyContext<'_>,
 ) -> JsResult<Option<PropertyDescriptor>> {
-    context.slot().attributes |= SlotAttributes::NOT_CACHABLE;
+    context.slot().attributes |= SlotAttributes::NOT_CACHEABLE;
 
     // 1. Let handler be O.[[ProxyHandler]].
     // 2. If handler is null, throw a TypeError exception.
@@ -510,7 +510,7 @@ pub(crate) fn proxy_exotic_get_own_property(
             if !desc.expect_configurable() {
                 return Err(JsNativeError::typ()
                     .with_message(
-                        "Proxy trap result is undefined adn target result is not configurable",
+                        "Proxy trap result is undefined and target result is not configurable",
                     )
                     .into());
             }
@@ -593,7 +593,7 @@ pub(crate) fn proxy_exotic_define_own_property(
     desc: PropertyDescriptor,
     context: &mut InternalMethodPropertyContext<'_>,
 ) -> JsResult<bool> {
-    context.slot().attributes |= SlotAttributes::NOT_CACHABLE;
+    context.slot().attributes |= SlotAttributes::NOT_CACHEABLE;
 
     // 1. Let handler be O.[[ProxyHandler]].
     // 2. If handler is null, throw a TypeError exception.
@@ -705,7 +705,7 @@ pub(crate) fn proxy_exotic_has_property(
     key: &PropertyKey,
     context: &mut InternalMethodPropertyContext<'_>,
 ) -> JsResult<bool> {
-    context.slot().attributes |= SlotAttributes::NOT_CACHABLE;
+    context.slot().attributes |= SlotAttributes::NOT_CACHEABLE;
 
     // 1. Let handler be O.[[ProxyHandler]].
     // 2. If handler is null, throw a TypeError exception.
@@ -797,7 +797,7 @@ pub(crate) fn proxy_exotic_get(
     context: &mut InternalMethodPropertyContext<'_>,
 ) -> JsResult<JsValue> {
     // Proxy object can't be cached.
-    context.slot().attributes |= SlotAttributes::NOT_CACHABLE;
+    context.slot().attributes |= SlotAttributes::NOT_CACHEABLE;
 
     // 1. Let handler be O.[[ProxyHandler]].
     // 2. If handler is null, throw a TypeError exception.
@@ -867,7 +867,7 @@ pub(crate) fn proxy_exotic_set(
     receiver: JsValue,
     context: &mut InternalMethodPropertyContext<'_>,
 ) -> JsResult<bool> {
-    context.slot().attributes |= SlotAttributes::NOT_CACHABLE;
+    context.slot().attributes |= SlotAttributes::NOT_CACHEABLE;
 
     // 1. Let handler be O.[[ProxyHandler]].
     // 2. If handler is null, throw a TypeError exception.

@@ -71,7 +71,7 @@ fn main() {
     let result = context.eval(Source::from_bytes("factorial(11)"));
     assert_eq!(result, Ok(JsValue::new(39_916_800)));
 
-    // Setting runtime limit for recustion to 10.
+    // Setting runtime limit for recursion to 10.
     context.runtime_limits_mut().set_recursion_limit(10);
 
     // Run without exceeding recursion limit and assert that it works.

@@ -105,7 +105,7 @@ impl Now {
     ///
     /// Returns the current date and time as a `Temporal.PlainDateTime` with an ISO8601 calendar.
     ///
-    /// Takes an optional time zone, which defaults to the sytem time zone if undefined.
+    /// Takes an optional time zone, which defaults to the system time zone if undefined.
     ///
     /// More information:
     ///  - [ECMAscript specification][spec]
@@ -133,7 +133,7 @@ impl Now {
     ///
     /// Returns the current date and time as a `Temporal.ZonedDateTime` with an ISO8601 calendar.
     ///
-    /// Takes an optional time zone, which defaults to the sytem time zone if undefined.
+    /// Takes an optional time zone, which defaults to the system time zone if undefined.
     ///
     /// More information:
     ///  - [ECMAscript specification][spec]
@@ -160,7 +160,7 @@ impl Now {
     ///
     /// Returns the current date as a `Temporal.PlainDate` with an ISO8601 calendar.
     ///
-    /// Takes an optional time zone, which defaults to the sytem time zone if undefined.
+    /// Takes an optional time zone, which defaults to the system time zone if undefined.
     ///
     /// More information:
     ///  - [ECMAscript specification][spec]
@@ -184,7 +184,7 @@ impl Now {
     ///
     /// Returns the current time as a `Temporal.PlainTime` with an ISO8601 calendar.
     ///
-    /// Takes an optional time zone, which defaults to the sytem time zone if undefined.
+    /// Takes an optional time zone, which defaults to the system time zone if undefined.
     ///
     /// More information:
     ///  - [ECMAscript specification][spec]

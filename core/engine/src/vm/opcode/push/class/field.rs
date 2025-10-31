@@ -15,7 +15,7 @@ pub(crate) struct PushClassField;
 impl PushClassField {
     #[inline(always)]
     pub(crate) fn operation(
-        (class, name, function, is_anonyms_function): (
+        (class, name, function, is_anonymous_function): (
             VaryingOperand,
             VaryingOperand,
             VaryingOperand,
@@ -26,7 +26,7 @@ impl PushClassField {
         let class = context.vm.get_register(class.into()).clone();
         let name = context.vm.get_register(name.into()).clone();
         let function = context.vm.get_register(function.into()).clone();
-        let is_anonyms_function = u32::from(is_anonyms_function) != 0;
+        let is_anonymous_function = u32::from(is_anonymous_function) != 0;
 
         let name = name.to_property_key(context)?;
         let function = function
@@ -45,7 +45,7 @@ impl PushClassField {
             .push_field(
                 name.clone(),
                 JsFunction::from_object_unchecked(function.clone()),
-                if is_anonyms_function {
+                if is_anonymous_function {
                     Some(name)
                 } else {
                     None

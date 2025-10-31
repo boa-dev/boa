@@ -1565,7 +1565,7 @@ generate_opcodes! {
 
     /// Get the thrown pending exception (if it's set) and push on the stack.
     ///
-    /// If there is no pending exception, which can happend if we are handling `return()` call on generator,
+    /// If there is no pending exception, which can happen if we are handling `return()` call on generator,
     /// then we rethrow the empty exception. See [`Opcode::ReThrow`].
     ///
     /// - Registers:
@@ -1904,7 +1904,7 @@ generate_opcodes! {
 
     /// Resumes the current generator function.
     ///
-    /// If the `resume_kind` is `Throw`, then the value is poped and thrown, otherwise if `Return`
+    /// If the `resume_kind` is `Throw`, then the value is popped and thrown, otherwise if `Return`
     /// we pop the value, set it as the return value and throw and empty exception. See [`Opcode::ReThrow`].
     ///
     /// - Registers:

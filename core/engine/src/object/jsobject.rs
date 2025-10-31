@@ -1010,7 +1010,7 @@ impl<T: NativeObject> Debug for JsObject<T> {
         let limiter = RecursionLimiter::new(self.as_ref());
 
         // Typically, using `!limiter.live` would be good enough here.
-        // However, the JS object hierarchy involves quite a bit of repitition, and the sheer amount of data makes
+        // However, the JS object hierarchy involves quite a bit of repetition, and the sheer amount of data makes
         // understanding the Debug output impossible; limiting the usefulness of it.
         //
         // Instead, we check if the object has appeared before in the entire graph. This means that objects will appear

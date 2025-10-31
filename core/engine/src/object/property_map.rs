@@ -170,7 +170,7 @@ impl IndexedProperties {
 
                         // If the key is pointing one past the last element, we push it!
                         //
-                        // Since the previous key is the current key - 1. Meaning that the elements are continuos.
+                        // Since the previous key is the current key - 1. Meaning that the elements are continuous.
                         if key == len {
                             vec.push(value);
                             *self = Self::DenseF64(vec);
@@ -191,7 +191,7 @@ impl IndexedProperties {
 
                         // If the key is pointing one past the last element, we push it!
                         //
-                        // Since the previous key is the current key - 1. Meaning that the elements are continuos.
+                        // Since the previous key is the current key - 1. Meaning that the elements are continuous.
                         if key == len {
                             vec.push(value);
                             *self = Self::DenseElement(vec);
@@ -207,7 +207,7 @@ impl IndexedProperties {
 
                 // If the key is pointing one past the last element, we push it!
                 //
-                // Since the previous key is the current key - 1. Meaning that the elements are continuos.
+                // Since the previous key is the current key - 1. Meaning that the elements are continuous.
                 if key == len {
                     vec.push(value);
                     return false;
@@ -223,7 +223,7 @@ impl IndexedProperties {
                 if let Some(value) = value.as_number() {
                     // If the key is pointing one past the last element, we push it!
                     //
-                    // Since the previous key is the current key - 1. Meaning that the elements are continuos.
+                    // Since the previous key is the current key - 1. Meaning that the elements are continuous.
                     if key == len {
                         vec.push(value);
                         return false;
@@ -242,7 +242,7 @@ impl IndexedProperties {
 
                 // If the key is pointing one past the last element, we push it!
                 //
-                // Since the previous key is the current key - 1. Meaning that the elements are continuos.
+                // Since the previous key is the current key - 1. Meaning that the elements are continuous.
                 if key == len {
                     vec.push(value);
                     *self = Self::DenseElement(vec);
@@ -259,7 +259,7 @@ impl IndexedProperties {
 
                 // If the key is pointing one past the last element, we push it!
                 //
-                // Since the previous key is the current key - 1. Meaning that the elements are continuos.
+                // Since the previous key is the current key - 1. Meaning that the elements are continuous.
                 if key == len {
                     vec.push(value);
                     return false;

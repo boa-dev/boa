@@ -15,7 +15,7 @@ enum TryVariant<'a> {
 }
 
 impl TryVariant<'_> {
-    fn finaly_re_throw_register(&self) -> Option<(&Register, &Register)> {
+    fn finally_re_throw_register(&self) -> Option<(&Register, &Register)> {
         match self {
             TryVariant::Catch(_) => None,
             TryVariant::Finally((_, f, i)) | TryVariant::CatchFinally((_, _, f, i)) => Some((f, i)),
@@ -64,7 +64,7 @@ impl ByteCompiler<'_> {
         // Compile try block
         self.compile_block(t.block(), use_expr);
 
-        if let Some((finally_re_throw, _)) = variant.finaly_re_throw_register() {
+        if let Some((finally_re_throw, _)) = variant.finally_re_throw_register() {
             self.bytecode.emit_push_false(finally_re_throw.variable());
         }
 

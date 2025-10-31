@@ -39,7 +39,7 @@ pub(crate) const fn vtable_of<T: Trace + 'static>() -> &'static VTable {
             // SAFETY: The caller must ensure that the passed erased pointer is `GcBox<Self>`.
             let this = this.cast::<GcBox<Self>>();
 
-            // SAFETY: The caller must ensure the erased pointer is not droped or deallocated.
+            // SAFETY: The caller must ensure the erased pointer is not dropped or deallocated.
             let _value = unsafe { Box::from_raw(this.as_ptr()) };
         }
 

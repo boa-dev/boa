@@ -61,13 +61,13 @@ The above output contains the following information:
   - `Compiled Output`: The bytecode.
     - `Location`: Location of the instruction (instructions are not the same size).
     - `Count`: Instruction count.
-    - `Handler`: Exception handler, if the instruction throws an exception, which handler is responsible for that instruction and where it would jump. Additionally `>` denotes the beggining of a handler and `<` the end.
+    - `Handler`: Exception handler, if the instruction throws an exception, which handler is responsible for that instruction and where it would jump. Additionally `>` denotes the beginning of a handler and `<` the end.
     - `Opcode`: Opcode name.
     - `Operands`: The operands of the opcode.
   - `Literals`: The literals used by the bytecode (like strings).
   - `Bindings`: Binding names used by the bytecode.
   - `Functions`: Function names use by the bytecode.
-  - `Handlers`: Exception handlers use by the bytecode, it contains how many values should be on the stack and evironments (relative to `CallFrame`'s frame pointers).
+  - `Handlers`: Exception handlers use by the bytecode, it contains how many values should be on the stack and environments (relative to `CallFrame`'s frame pointers).
 - The code being executed (marked by `Vm Start` or `Call Frame`).
   - `Time`: The amount of time that instruction took to execute.
   - `Opcode`: Opcode name.

@@ -119,7 +119,7 @@ pub(crate) trait ErasedEphemeronBox {
     fn header(&self) -> &GcHeader;
 
     /// Traces through the `EphemeronBox`'s held value, but only if it's marked and its key is also
-    /// marked. Returns `true` if the ephemeron successfuly traced through its value. This also
+    /// marked. Returns `true` if the ephemeron successfully traced through its value. This also
     /// considers ephemerons that are marked but don't have their value anymore as
     /// "successfully traced".
     unsafe fn trace(&self, tracer: &mut Tracer) -> bool;

@@ -507,7 +507,7 @@ pub struct ByteCompiler<'ctx> {
     /// Whether the function is in a `with` statement.
     pub(crate) in_with: bool,
 
-    /// Used to determine if a we emited a `CreateUnmappedArgumentsObject` opcode
+    /// Used to determine if a we emitted a `CreateUnmappedArgumentsObject` opcode
     pub(crate) emitted_mapped_arguments_object_opcode: bool,
 
     pub(crate) interner: &'ctx mut Interner,

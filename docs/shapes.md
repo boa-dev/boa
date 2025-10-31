@@ -155,7 +155,7 @@ Ok, now let us define a property `z` instead of `y`:
 o2.z = 300;
 ```
 
-The following changes accure to the shape tree:
+The following changes occur to the shape tree:
 
 ```mermaid
 flowchart LR
