@@ -2,12 +2,6 @@
 
 use std::fmt::Debug;
 
-#[cfg(feature = "temporal")]
-use timezone_provider::{
-    TimeZoneProviderError,
-    provider::{TimeZoneId, TimeZoneProvider},
-};
-
 /// A monotonic instant in time, in the Boa engine.
 ///
 /// This type is guaranteed to be monotonic, i.e. if two instants
@@ -184,68 +178,6 @@ impl Clock for FixedClock {
             millis / 1000,
             ((millis % 1000) * 1_000_000) as u32,
         ))
-    }
-}
-
-/// The `DynamicTimeZoneProvider` is a wrapper type that allows users
-/// to dynamically set which time zone provider they would like to use
-/// for sourcing time zone data.
-#[cfg(feature = "temporal")]
-pub(crate) struct DynamicTimeZoneProvider {
-    inner: Box<dyn TimeZoneProvider>,
-}
-
-#[cfg(feature = "temporal")]
-impl DynamicTimeZoneProvider {
-    pub(crate) fn new<T: TimeZoneProvider + 'static>(provider: T) -> Self {
-        let inner = Box::new(provider);
-        Self { inner }
-    }
-}
-
-#[cfg(feature = "temporal")]
-impl TimeZoneProvider for DynamicTimeZoneProvider {
-    fn get(&self, ident: &[u8]) -> Result<TimeZoneId, TimeZoneProviderError> {
-        self.inner.get(ident)
-    }
-
-    fn identifier(
-        &self,
-        id: TimeZoneId,
-    ) -> Result<std::borrow::Cow<'_, str>, TimeZoneProviderError> {
-        self.inner.identifier(id)
-    }
-
-    fn canonicalized(&self, id: TimeZoneId) -> Result<TimeZoneId, TimeZoneProviderError> {
-        self.inner.canonicalized(id)
-    }
-
-    fn transition_nanoseconds_for_utc_epoch_nanoseconds(
-        &self,
-        id: TimeZoneId,
-        epoch_nanoseconds: i128,
-    ) -> Result<temporal_rs::provider::UtcOffsetSeconds, TimeZoneProviderError> {
-        self.inner
-            .transition_nanoseconds_for_utc_epoch_nanoseconds(id, epoch_nanoseconds)
-    }
-
-    fn candidate_nanoseconds_for_local_epoch_nanoseconds(
-        &self,
-        id: TimeZoneId,
-        local_datetime: timezone_provider::provider::IsoDateTime,
-    ) -> Result<temporal_rs::provider::CandidateEpochNanoseconds, TimeZoneProviderError> {
-        self.inner
-            .candidate_nanoseconds_for_local_epoch_nanoseconds(id, local_datetime)
-    }
-
-    fn get_time_zone_transition(
-        &self,
-        id: TimeZoneId,
-        epoch_nanoseconds: i128,
-        direction: temporal_rs::provider::TransitionDirection,
-    ) -> Result<Option<temporal_rs::unix_time::EpochNanoseconds>, TimeZoneProviderError> {
-        self.inner
-            .get_time_zone_transition(id, epoch_nanoseconds, direction)
     }
 }
 

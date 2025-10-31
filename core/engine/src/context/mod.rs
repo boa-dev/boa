@@ -14,8 +14,6 @@ use temporal_rs::provider::TimeZoneProvider;
 #[cfg(feature = "temporal")]
 use timezone_provider::tzif::CompiledTzdbProvider;
 
-#[cfg(feature = "temporal")]
-use crate::context::time::DynamicTimeZoneProvider;
 use crate::job::Job;
 use crate::module::DynModuleLoader;
 use crate::vm::RuntimeLimits;
@@ -110,7 +108,7 @@ pub struct Context {
     can_block: bool,
 
     #[cfg(feature = "temporal")]
-    timezone_provider: DynamicTimeZoneProvider,
+    timezone_provider: Box<dyn TimeZoneProvider>,
 
     /// Intl data provider.
     #[cfg(feature = "intl")]
@@ -899,8 +897,8 @@ impl Context {
 
     /// Get the Time Zone Provider
     #[cfg(feature = "temporal")]
-    pub(crate) fn timezone_provider(&self) -> &impl TimeZoneProvider {
-        &self.timezone_provider
+    pub(crate) fn timezone_provider(&self) -> &dyn TimeZoneProvider {
+        self.timezone_provider.as_ref()
     }
 }
 
@@ -919,7 +917,7 @@ pub struct ContextBuilder {
     #[cfg(feature = "intl")]
     icu: Option<icu::IntlProvider>,
     #[cfg(feature = "temporal")]
-    time_zone_provider: Option<DynamicTimeZoneProvider>,
+    time_zone_provider: Option<Box<dyn TimeZoneProvider>>,
     #[cfg(feature = "fuzz")]
     instructions_remaining: usize,
 }
@@ -1030,7 +1028,7 @@ impl ContextBuilder {
     #[cfg(feature = "temporal")]
     #[must_use]
     pub fn time_zone_provider<T: TimeZoneProvider + 'static>(mut self, provider: T) -> Self {
-        self.time_zone_provider = Some(DynamicTimeZoneProvider::new(provider));
+        self.time_zone_provider = Some(Box::new(provider));
         self
     }
 
@@ -1136,7 +1134,7 @@ impl ContextBuilder {
             timezone_provider: if let Some(provider) = self.time_zone_provider {
                 provider
             } else {
-                DynamicTimeZoneProvider::new(CompiledTzdbProvider::default())
+                Box::new(CompiledTzdbProvider::default())
             },
             #[cfg(feature = "intl")]
             intl_provider: if let Some(icu) = self.icu {
