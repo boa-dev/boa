@@ -123,7 +123,10 @@ impl std::ops::Sub for JsInstant {
     #[inline]
     fn sub(self, rhs: JsInstant) -> Self::Output {
         JsDuration {
-            inner: self.inner - rhs.inner,
+            inner: self
+                .inner
+                .checked_sub(rhs.inner)
+                .expect("overflow when subtracting durations"),
         }
     }
 }
