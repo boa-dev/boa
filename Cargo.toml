@@ -24,7 +24,7 @@ exclude = [
 
 [workspace.package]
 edition = "2024"
-version = "1.0.0"
+version = "1.0.0-dev"
 rust-version = "1.91.0"
 authors = ["boa-dev"]
 repository = "https://github.com/boa-dev/boa"
@@ -34,15 +34,15 @@ description = "Boa is a Javascript lexer, parser and compiler written in Rust. C
 [workspace.dependencies]
 
 # Repo Crates
-boa_ast = { version = "~1.0.0", path = "core/ast" }
-boa_engine = { version = "~1.0.0", path = "core/engine" }
-boa_gc = { version = "~1.0.0", path = "core/gc" }
-boa_icu_provider = { version = "~1.0.0", path = "core/icu_provider" }
-boa_interner = { version = "~1.0.0", path = "core/interner" }
-boa_macros = { version = "~1.0.0", path = "core/macros" }
-boa_parser = { version = "~1.0.0", path = "core/parser" }
-boa_runtime = { version = "~1.0.0", path = "core/runtime" }
-boa_string = { version = "~1.0.0", path = "core/string" }
+boa_ast = { version = "~1.0.0-dev", path = "core/ast" }
+boa_engine = { version = "~1.0.0-dev", path = "core/engine" }
+boa_gc = { version = "~1.0.0-dev", path = "core/gc" }
+boa_icu_provider = { version = "~1.0.0-dev", path = "core/icu_provider" }
+boa_interner = { version = "~1.0.0-dev", path = "core/interner" }
+boa_macros = { version = "~1.0.0-dev", path = "core/macros" }
+boa_parser = { version = "~1.0.0-dev", path = "core/parser" }
+boa_runtime = { version = "~1.0.0-dev", path = "core/runtime" }
+boa_string = { version = "~1.0.0-dev", path = "core/string" }
 
 # Utility Repo Crates
 tag_ptr = { version = "~0.1.0", path = "utils/tag_ptr" }
