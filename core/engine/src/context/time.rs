@@ -1,7 +1,5 @@
 //! Clock related types and functions.
 
-use std::fmt::Debug;
-
 /// A monotonic instant in time, in the Boa engine.
 ///
 /// This type is guaranteed to be monotonic, i.e. if two instants
