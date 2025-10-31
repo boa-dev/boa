@@ -1262,6 +1262,7 @@ impl PlainDate {
     ///
     /// [spec]: https://tc39.es/proposal-temporal/#sec-temporal.plaindate.prototype.valueof
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Temporal/PlainDate/valueOf
+    /// [temporal_rs-docs]: https://docs.rs/temporal_rs/latest/temporal_rs/
     pub(crate) fn value_of(_this: &JsValue, _: &[JsValue], _: &mut Context) -> JsResult<JsValue> {
         Err(JsNativeError::typ()
             .with_message("`valueOf` not supported by Temporal built-ins. See 'compare', 'equals', or `toString`")
