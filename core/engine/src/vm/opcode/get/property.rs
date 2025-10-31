@@ -7,21 +7,7 @@ use crate::{
     vm::opcode::{Operation, VaryingOperand},
 };
 
-fn js_string_get(this: &JsValue, key: &PropertyKey) -> Option<JsValue> {
-    let this = this.as_string()?;
-    match key {
-        PropertyKey::String(name) if *name == StaticJsStrings::LENGTH => Some(this.len().into()),
-        PropertyKey::Index(index) => Some(
-            this.get(index.get() as usize)
-                .map_or_else(JsValue::undefined, |char| {
-                    js_string!([char].as_slice()).into()
-                }),
-        ),
-        _ => None,
-    }
-}
-
-pub(crate) fn get_by_name<const LENGTH: bool>(
+fn get_by_name<const LENGTH: bool>(
     (dst, object, receiver, index): (VaryingOperand, &JsValue, &JsValue, VaryingOperand),
     context: &mut Context,
 ) -> JsResult<()> {
@@ -33,6 +19,9 @@ pub(crate) fn get_by_name<const LENGTH: bool>(
             context.vm.set_register(dst.into(), value);
             return Ok(());
         } else if let Some(string) = object.as_string() {
+            // NOTE: Since we’re using the prototype returned directly by `base_class()`,
+            //       we need to handle string primitives separately due to the
+            //       string exotic internal methods.
             context
                 .vm
                 .set_register(dst.into(), (string.len() as u32).into());
@@ -40,6 +29,12 @@ pub(crate) fn get_by_name<const LENGTH: bool>(
         }
     }
 
+    // OPTIMIZATION:
+    //    Instead of calling `to_object()`, which creates a temporary wrapper object for primitive
+    //    values (e.g., numbers, strings, booleans) just to query their prototype chain.
+    //
+    //    To prevent the creation of a temporary JsObject, we directly retrieve the prototype that
+    //    `to_object()` would produce, such as `Number.prototype`, `String.prototype`, etc.
     let object = object.base_class(context)?;
 
     let ic = &context.vm.frame().code_block().ic[usize::from(index)];
@@ -74,13 +69,89 @@ pub(crate) fn get_by_name<const LENGTH: bool>(
 
     // Cache the property.
     let slot = *context.slot();
-    if slot.is_cachable() {
+    if slot.is_cacheable() {
         let ic = &context.vm.frame().code_block.ic[usize::from(index)];
         let object_borrowed = object.borrow();
         let shape = object_borrowed.shape();
         ic.set(shape, slot);
     }
 
+    context.vm.set_register(dst.into(), result);
+    Ok(())
+}
+
+fn get_by_value<const PUSH_KEY: bool>(
+    (dst, key, receiver, object): (
+        VaryingOperand,
+        VaryingOperand,
+        VaryingOperand,
+        VaryingOperand,
+    ),
+    context: &mut Context,
+) -> JsResult<()> {
+    let key_value = context.vm.get_register(key.into()).clone();
+    let base = context.vm.get_register(object.into()).clone();
+    let object = base.base_class(context)?;
+    let key_value = key_value.to_property_key(context)?;
+
+    // Fast Path
+    //
+    // NOTE: Since we’re using the prototype returned directly by `base_class()`,
+    //       we need to handle string primitives separately due to the
+    //       string exotic internal methods.
+    match &key_value {
+        PropertyKey::Index(index) => {
+            if object.is_array() {
+                let object_borrowed = object.borrow();
+                if let Some(element) = object_borrowed.properties().get_dense_property(index.get())
+                {
+                    if PUSH_KEY {
+                        context.vm.set_register(key.into(), key_value.into());
+                    }
+
+                    context.vm.set_register(dst.into(), element);
+                    return Ok(());
+                }
+            } else if let Some(string) = base.as_string() {
+                let value = string
+                    .get(index.get() as usize)
+                    .map_or_else(JsValue::undefined, |char| {
+                        js_string!([char].as_slice()).into()
+                    });
+
+                if PUSH_KEY {
+                    context.vm.set_register(key.into(), key_value.into());
+                }
+                context.vm.set_register(dst.into(), value);
+                return Ok(());
+            }
+        }
+        PropertyKey::String(string) if *string == StaticJsStrings::LENGTH => {
+            if let Some(string) = base.as_string() {
+                let value = string.len().into();
+
+                if PUSH_KEY {
+                    context.vm.set_register(key.into(), key_value.into());
+                }
+                context.vm.set_register(dst.into(), value);
+                return Ok(());
+            }
+        }
+        _ => {}
+    }
+
+    let receiver = context.vm.get_register(receiver.into());
+
+    // Slow path:
+    let result = object.__get__(
+        &key_value,
+        receiver.clone(),
+        &mut InternalMethodPropertyContext::new(context),
+    )?;
+
+    if PUSH_KEY {
+        context.vm.set_register(key.into(), key_value.into());
+    }
     context.vm.set_register(dst.into(), result);
     Ok(())
 }
@@ -169,7 +240,7 @@ pub(crate) struct GetPropertyByValue;
 impl GetPropertyByValue {
     #[inline(always)]
     pub(crate) fn operation(
-        (dst, key, receiver, object): (
+        args: (
             VaryingOperand,
             VaryingOperand,
             VaryingOperand,
@@ -177,36 +248,7 @@ impl GetPropertyByValue {
         ),
         context: &mut Context,
     ) -> JsResult<()> {
-        let key = context.vm.get_register(key.into()).clone();
-        let base = context.vm.get_register(object.into()).clone();
-        let object = base.base_class(context)?;
-        let key = key.to_property_key(context)?;
-
-        // Fast Path
-        if object.is_array()
-            && let PropertyKey::Index(index) = &key
-        {
-            let object_borrowed = object.borrow();
-            if let Some(element) = object_borrowed.properties().get_dense_property(index.get()) {
-                context.vm.set_register(dst.into(), element);
-                return Ok(());
-            }
-        } else if let Some(value) = js_string_get(&base, &key) {
-            context.vm.set_register(dst.into(), value);
-            return Ok(());
-        }
-
-        let receiver = context.vm.get_register(receiver.into());
-
-        // Slow path:
-        let result = object.__get__(
-            &key,
-            receiver.clone(),
-            &mut InternalMethodPropertyContext::new(context),
-        )?;
-
-        context.vm.set_register(dst.into(), result);
-        Ok(())
+        get_by_value::<false>(args, context)
     }
 }
 
@@ -226,7 +268,7 @@ pub(crate) struct GetPropertyByValuePush;
 impl GetPropertyByValuePush {
     #[inline(always)]
     pub(crate) fn operation(
-        (dst, key, receiver, object): (
+        args: (
             VaryingOperand,
             VaryingOperand,
             VaryingOperand,
@@ -234,39 +276,7 @@ impl GetPropertyByValuePush {
         ),
         context: &mut Context,
     ) -> JsResult<()> {
-        let key_value = context.vm.get_register(key.into()).clone();
-        let base = context.vm.get_register(object.into()).clone();
-        let object = base.base_class(context)?;
-        let key_value = key_value.to_property_key(context)?;
-
-        // Fast Path
-        if object.is_array()
-            && let PropertyKey::Index(index) = &key_value
-        {
-            let object_borrowed = object.borrow();
-            if let Some(element) = object_borrowed.properties().get_dense_property(index.get()) {
-                context.vm.set_register(key.into(), key_value.into());
-                context.vm.set_register(dst.into(), element);
-                return Ok(());
-            }
-        } else if let Some(value) = js_string_get(&base, &key_value) {
-            context.vm.set_register(key.into(), key_value.into());
-            context.vm.set_register(dst.into(), value);
-            return Ok(());
-        }
-
-        let receiver = context.vm.get_register(receiver.into());
-
-        // Slow path:
-        let result = object.__get__(
-            &key_value,
-            receiver.clone(),
-            &mut InternalMethodPropertyContext::new(context),
-        )?;
-
-        context.vm.set_register(key.into(), key_value.into());
-        context.vm.set_register(dst.into(), result);
-        Ok(())
+        get_by_value::<true>(args, context)
     }
 }
 
