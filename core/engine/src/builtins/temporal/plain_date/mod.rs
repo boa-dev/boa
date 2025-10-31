@@ -1258,7 +1258,6 @@ impl PlainDate {
     ///
     /// - [ECMAScript Temporal proposal][spec]
     /// - [MDN reference][mdn]
-    /// - [`temporal_rs` documentation][temporal_rs-docs]
     ///
     /// [spec]: https://tc39.es/proposal-temporal/#sec-temporal.plaindate.prototype.valueof
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Temporal/PlainDate/valueOf

@@ -412,18 +412,13 @@ impl<'a> From<&'a [u8]> for Lexer<UTF8Input<&'a [u8]>> {
 /// ECMAScript goal symbols.
 ///
 /// <https://tc39.es/ecma262/#sec-ecmascript-language-lexical-grammar>
-#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+#[derive(Debug, Default, Clone, Copy, PartialEq, Eq)]
 pub(crate) enum InputElement {
     Div,
+    #[default]
     RegExp,
     TemplateTail,
     HashbangOrRegExp,
-}
-
-impl Default for InputElement {
-    fn default() -> Self {
-        Self::RegExp
-    }
 }
 
 /// Checks if a character is whitespace as per ECMAScript standards.
