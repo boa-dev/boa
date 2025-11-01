@@ -95,6 +95,7 @@ macro_rules! full_benchmarks {
 }
 
 full_benchmarks!(
+    {"String Code Point Sum", string_code_point_sum},
     {"Symbols", symbol_creation},
     {"For loop", for_loop},
     {"Fibonacci", fibonacci},
