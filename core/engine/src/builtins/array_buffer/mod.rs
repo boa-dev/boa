@@ -622,8 +622,8 @@ impl ArrayBuffer {
 
         // TODO: 7. Let hostHandled be ? HostResizeArrayBuffer(O, newByteLength).
         // 8. If hostHandled is handled, return undefined.
-        // Used in engines to handle WASM buffers in a special way, but we don't
-        // have a WASM interpreter in place yet.
+        // Used in engines to handle Wasm buffers in a special way, but we don't
+        // have a Wasm interpreter in place yet.
 
         // 9. Let oldBlock be O.[[ArrayBufferData]].
         // 10. Let newBlock be ? CreateByteDataBlock(newByteLength).

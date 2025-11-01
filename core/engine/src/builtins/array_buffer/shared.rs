@@ -324,8 +324,8 @@ impl SharedArrayBuffer {
 
         // TODO: 5. Let hostHandled be ? HostGrowSharedArrayBuffer(O, newByteLength).
         // 6. If hostHandled is handled, return undefined.
-        // Used in engines to handle WASM buffers in a special way, but we don't
-        // have a WASM interpreter in place yet.
+        // Used in engines to handle Wasm buffers in a special way, but we don't
+        // have a Wasm interpreter in place yet.
 
         // 7. Let isLittleEndian be the value of the [[LittleEndian]] field of the surrounding agent's Agent Record.
         // 8. Let byteLengthBlock be O.[[ArrayBufferByteLengthData]].

@@ -28,7 +28,7 @@ yarn add @boa-dev/boa_wasm
 ```javascript
 import init, { evaluate } from "@boa-dev/boa_wasm";
 
-// Initialize the WASM module
+// Initialize the Wasm module
 await init();
 
 // Evaluate JavaScript code
@@ -93,7 +93,7 @@ Evaluates the given ECMAScript code and returns the result as a string.
 
 ## Features
 
-Boa's WASM build includes:
+Boa's Wasm build includes:
 
 - **Annex B**: Legacy ECMAScript features
 - **Internationalization**: Full Intl API support
