@@ -32,7 +32,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
             Ok(JsValue::undefined())
         },
         context,
-    );
+    )?;
 
     // Add success and error handlers
     let _promise = promise

@@ -465,7 +465,7 @@ impl Module {
     ///
     /// [spec]: https://tc39.es/ecma262/#table-abstract-methods-of-module-records
     #[inline]
-    pub fn evaluate(&self, context: &mut Context) -> JsPromise {
+    pub fn evaluate(&self, context: &mut Context) -> JsResult<JsPromise> {
         match self.kind() {
             ModuleKind::SourceText(src) => src.evaluate(self, context),
             ModuleKind::Synthetic(synth) => synth.evaluate(self, context),
@@ -486,7 +486,7 @@ impl Module {
             // 1. If module is not a Cyclic Module Record, then
             ModuleKind::Synthetic(synth) => {
                 // a. Let promise be ! module.Evaluate().
-                let promise: JsPromise = synth.evaluate(self, context);
+                let promise: JsPromise = synth.evaluate(self, context)?;
                 let state = promise.state();
                 match state {
                     PromiseState::Pending => {
@@ -553,7 +553,7 @@ impl Module {
             .then(
                 Some(
                     NativeFunction::from_copy_closure_with_captures(
-                        |_, _, module, context| Ok(module.evaluate(context).into()),
+                        |_, _, module, context| Ok(module.evaluate(context)?.into()),
                         self.clone(),
                     )
                     .to_js_function(context.realm()),

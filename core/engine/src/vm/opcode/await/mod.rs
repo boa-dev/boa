@@ -212,9 +212,13 @@ impl CompletePromiseCapability {
         };
 
         if let Some(error) = context.vm.pending_exception.take() {
+            let value = match error.into_opaque(context) {
+                Ok(value) => value,
+                Err(err) => return context.handle_error(err),
+            };
             promise_capability
                 .reject()
-                .call(&JsValue::undefined(), &[error.to_opaque(context)], context)
+                .call(&JsValue::undefined(), &[value], context)
                 .expect("cannot fail per spec");
         } else {
             let return_value = context.vm.get_return_value();

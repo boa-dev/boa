@@ -263,7 +263,7 @@ impl AsyncFromSyncIterator {
                         &JsValue::undefined(),
                         &[JsNativeError::typ()
                             .with_message("sync iterator does not have a throw method")
-                            .to_opaque(context)
+                            .into_opaque(context)
                             .into()],
                         context,
                     )

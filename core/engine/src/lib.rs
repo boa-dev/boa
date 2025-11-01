@@ -188,6 +188,9 @@ impl JsArgs for [JsValue] {
 #[cfg(test)]
 use std::borrow::Cow;
 
+#[cfg(test)]
+use crate::error::{EngineError, RuntimeLimitError};
+
 /// A test action executed in a test function.
 #[cfg(test)]
 #[derive(Clone)]
@@ -225,6 +228,10 @@ enum Inner {
     },
     AssertContext {
         op: fn(&mut Context) -> bool,
+    },
+    AssertEngineError {
+        source: Cow<'static, str>,
+        error: EngineError,
     },
 }
 
@@ -298,6 +305,17 @@ impl TestAction {
             source: source.into(),
             kind,
             message,
+        })
+    }
+
+    /// Asserts that evaluating `source` throws a runtime limit error.
+    fn assert_runtime_limit_error(
+        source: impl Into<Cow<'static, str>>,
+        error: RuntimeLimitError,
+    ) -> Self {
+        Self(Inner::AssertEngineError {
+            source: source.into(),
+            error: error.into(),
         })
     }
 
@@ -453,6 +471,26 @@ fn run_test_actions_with(actions: impl IntoIterator<Item = TestAction>, context:
 
                 assert_eq!(&native.kind, &kind, "{}", fmt_test(&source, i));
                 assert_eq!(native.message(), message, "{}", fmt_test(&source, i));
+                i += 1;
+            }
+            Inner::AssertEngineError { source, error } => {
+                let err = match forward_val(context, &source) {
+                    Ok(v) => panic!(
+                        "{}\nExpected error, got value `{}`",
+                        fmt_test(&source, i),
+                        v.display()
+                    ),
+                    Err(e) => e,
+                };
+
+                let Some(err) = err.as_engine() else {
+                    panic!(
+                        "{}\nExpected a native error, got {err}",
+                        fmt_test(&source, i)
+                    )
+                };
+
+                assert_eq!(*err, error);
                 i += 1;
             }
             Inner::AssertContext { op } => {

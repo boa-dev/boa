@@ -99,7 +99,7 @@ pub(crate) struct AsyncGeneratorClose;
 
 impl AsyncGeneratorClose {
     #[inline(always)]
-    pub(super) fn operation((): (), context: &mut Context) {
+    pub(super) fn operation((): (), context: &mut Context) -> JsResult<()> {
         // Step 3.e-g in [AsyncGeneratorStart](https://tc39.es/ecma262/#sec-asyncgeneratorstart)
         let generator = context
             .vm
@@ -130,11 +130,12 @@ impl AsyncGeneratorClose {
         drop(r#gen);
 
         // j. Perform AsyncGeneratorCompleteStep(acGenerator, result, true).
-        AsyncGenerator::complete_step(&generator, result, true, None, context);
+        AsyncGenerator::complete_step(&generator, result, true, None, context)?;
         // k. Perform AsyncGeneratorDrainQueue(acGenerator).
-        AsyncGenerator::drain_queue(&generator, context);
+        AsyncGenerator::drain_queue(&generator, context)?;
 
         // l. Return undefined.
+        Ok(())
     }
 }
 
