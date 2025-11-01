@@ -194,17 +194,15 @@ impl<V> OrderedMap<V> {
         self.map.contains_key(key)
     }
 
-    /// Increases the lock counter and returns a lock object that will decrement the counter when dropped.
+    /// Increases the lock counter.
     ///
     /// This allows objects to be removed from the map during iteration without affecting the indexes until the iteration has completed.
-    // TODO: Take typed `JsObject` instead
-    pub(crate) fn lock(&mut self, map: JsObject) -> MapLock {
+    pub(crate) fn lock(&mut self) {
         self.lock += 1;
-        MapLock(map)
     }
 
     /// Decreases the lock counter and, if 0, removes all empty entries.
-    fn unlock(&mut self) {
+    pub(crate) fn unlock(&mut self) {
         self.lock -= 1;
         if self.lock == 0 {
             self.map.retain(|k, _| matches!(k, MapKey::Key(_)));
@@ -213,17 +211,17 @@ impl<V> OrderedMap<V> {
     }
 }
 
-/// Increases the lock count of the map for the lifetime of the guard. This should not be dropped until iteration has completed.
-#[derive(Debug, Trace)]
-pub(crate) struct MapLock(JsObject);
-impl Finalize for MapLock {
-    fn finalize(&self) {
-        // Avoids panicking inside `Finalize`, with the downside of slightly increasing
-        // memory usage if the map could not be borrowed.
-        // TODO: try_downcast_mut
-        self.0
-            .downcast_mut::<OrderedMap<JsValue>>()
-            .expect("MapLock does not point to a map")
-            .unlock();
+pub(crate) struct MapLock<'a, V: Trace + 'static>(&'a JsObject<OrderedMap<V>>);
+
+impl<'a, V: Trace + 'static> MapLock<'a, V> {
+    pub(crate) fn new(js_object: &'a JsObject<OrderedMap<V>>) -> Self {
+        js_object.borrow_mut().data_mut().lock();
+        Self(js_object)
+    }
+}
+
+impl<V: Trace + 'static> Drop for MapLock<'_, V> {
+    fn drop(&mut self) {
+        self.0.borrow_mut().data_mut().unlock();
     }
 }
