@@ -42,16 +42,10 @@ const RESERVED_TRANSITION_TYPE: u8 = 0b0000_0011;
 
 bitflags! {
     /// Flags of a shape.
-    #[derive(Debug, Clone, Copy, PartialEq, Eq, Finalize)]
+    #[derive(Default, Debug, Clone, Copy, PartialEq, Eq, Finalize)]
     pub struct ShapeFlags: u8 {
         /// Represents the transition type of a [`SharedShape`].
         const TRANSITION_TYPE = 0b0000_0011;
-    }
-}
-
-impl Default for ShapeFlags {
-    fn default() -> Self {
-        Self::empty()
     }
 }
 
