@@ -336,16 +336,15 @@ impl JsValue {
     #[allow(clippy::float_cmp)]
     pub fn as_i32(&self) -> Option<i32> {
         if let Some(integer) = self.0.as_integer32() {
-            Some(integer)
-        } else if let Some(rational) = self.0.as_float64() {
-            if rational == f64::from(rational as i32) {
-                Some(rational as i32)
-            } else {
-                None
-            }
-        } else {
-            None
+            return Some(integer);
         }
+
+        if let Some(rational) = self.0.as_float64()
+            && rational == f64::from(rational as i32)
+        {
+            return Some(rational as i32);
+        }
+        None
     }
 
     /// Returns true if the value is a number.
@@ -431,6 +430,7 @@ impl JsValue {
     /// `PreferredType`.
     ///
     /// <https://tc39.es/ecma262/#sec-toprimitive>
+    #[inline]
     pub fn to_primitive(
         &self,
         context: &mut Context,
@@ -438,45 +438,8 @@ impl JsValue {
     ) -> JsResult<Self> {
         // 1. Assert: input is an ECMAScript language value. (always a value not need to check)
         // 2. If Type(input) is Object, then
-        if let Some(input) = self.as_object() {
-            // a. Let exoticToPrim be ? GetMethod(input, @@toPrimitive).
-            let exotic_to_prim = input.get_method(JsSymbol::to_primitive(), context)?;
-
-            // b. If exoticToPrim is not undefined, then
-            if let Some(exotic_to_prim) = exotic_to_prim {
-                // i. If preferredType is not present, let hint be "default".
-                // ii. Else if preferredType is string, let hint be "string".
-                // iii. Else,
-                //     1. Assert: preferredType is number.
-                //     2. Let hint be "number".
-                let hint = match preferred_type {
-                    PreferredType::Default => js_string!("default"),
-                    PreferredType::String => js_string!("string"),
-                    PreferredType::Number => js_string!("number"),
-                }
-                .into();
-
-                // iv. Let result be ? Call(exoticToPrim, input, « hint »).
-                let result = exotic_to_prim.call(self, &[hint], context)?;
-                // v. If Type(result) is not Object, return result.
-                // vi. Throw a TypeError exception.
-                return if result.is_object() {
-                    Err(JsNativeError::typ()
-                        .with_message("Symbol.toPrimitive cannot return an object")
-                        .into())
-                } else {
-                    Ok(result)
-                };
-            }
-
-            // c. If preferredType is not present, let preferredType be number.
-            let preferred_type = match preferred_type {
-                PreferredType::Default | PreferredType::Number => PreferredType::Number,
-                PreferredType::String => PreferredType::String,
-            };
-
-            // d. Return ? OrdinaryToPrimitive(input, preferredType).
-            return input.ordinary_to_primitive(context, preferred_type);
+        if let Some(o) = self.as_object() {
+            return o.to_primitive(context, preferred_type);
         }
 
         // 3. Return input.
@@ -513,11 +476,10 @@ impl JsValue {
             JsVariant::Integer32(_) | JsVariant::Float64(_) => Err(JsNativeError::typ()
                 .with_message("cannot convert Number to a BigInt")
                 .into()),
-            JsVariant::BigInt(b) => Ok(b.clone()),
-            JsVariant::Object(_) => {
-                let primitive = self.to_primitive(context, PreferredType::Number)?;
-                primitive.to_bigint(context)
-            }
+            JsVariant::BigInt(b) => Ok(b),
+            JsVariant::Object(o) => o
+                .to_primitive(context, PreferredType::Number)?
+                .to_bigint(context),
             JsVariant::Symbol(_) => Err(JsNativeError::typ()
                 .with_message("cannot convert Symbol to a BigInt")
                 .into()),
@@ -558,15 +520,14 @@ impl JsValue {
             JsVariant::Boolean(false) => Ok(js_string!("false")),
             JsVariant::Float64(rational) => Ok(JsString::from(rational)),
             JsVariant::Integer32(integer) => Ok(JsString::from(integer)),
-            JsVariant::String(string) => Ok(string.clone()),
+            JsVariant::String(string) => Ok(string),
             JsVariant::Symbol(_) => Err(JsNativeError::typ()
                 .with_message("can't convert symbol to string")
                 .into()),
             JsVariant::BigInt(bigint) => Ok(bigint.to_string().into()),
-            JsVariant::Object(_) => {
-                let primitive = self.to_primitive(context, PreferredType::String)?;
-                primitive.to_string(context)
-            }
+            JsVariant::Object(o) => o
+                .to_primitive(context, PreferredType::String)?
+                .to_string(context),
         }
     }
 
@@ -595,22 +556,25 @@ impl JsValue {
                 .templates()
                 .number()
                 .create(rational, Vec::default())),
-            JsVariant::String(string) => Ok(context
-                .intrinsics()
-                .templates()
-                .string()
-                .create(string.clone(), vec![string.len().into()])),
+            JsVariant::String(string) => {
+                let len = string.len();
+                Ok(context
+                    .intrinsics()
+                    .templates()
+                    .string()
+                    .create(string, vec![len.into()]))
+            }
             JsVariant::Symbol(symbol) => Ok(context
                 .intrinsics()
                 .templates()
                 .symbol()
-                .create(symbol.clone(), Vec::default())),
+                .create(symbol, Vec::default())),
             JsVariant::BigInt(bigint) => Ok(context
                 .intrinsics()
                 .templates()
                 .bigint()
-                .create(bigint.clone(), Vec::default())),
-            JsVariant::Object(jsobject) => Ok(jsobject.clone()),
+                .create(bigint, Vec::default())),
+            JsVariant::Object(jsobject) => Ok(jsobject),
         }
     }
 
@@ -635,23 +599,32 @@ impl JsValue {
     ///
     /// See <https://tc39.es/ecma262/#sec-topropertykey>
     pub fn to_property_key(&self, context: &mut Context) -> JsResult<PropertyKey> {
-        Ok(match self.variant() {
-            // Fast path:
-            JsVariant::String(string) => string.clone().into(),
-            JsVariant::Symbol(symbol) => symbol.clone().into(),
-            JsVariant::Integer32(integer) => integer.into(),
-            // Slow path:
-            JsVariant::Object(_) => {
-                let primitive = self.to_primitive(context, PreferredType::String)?;
-                match primitive.variant() {
-                    JsVariant::String(string) => string.clone().into(),
-                    JsVariant::Symbol(symbol) => symbol.clone().into(),
-                    JsVariant::Integer32(integer) => integer.into(),
-                    _ => primitive.to_string(context)?.into(),
-                }
-            }
-            _ => self.to_string(context)?.into(),
-        })
+        match self.variant() {
+            // fast path
+            //
+            // The compiler will surely make this a jump table, but in case it
+            // doesn't, we put the "expected" property key types first
+            // (integer, string, symbol), then the rest of the variants.
+            JsVariant::Integer32(integer) => Ok(integer.into()),
+            JsVariant::String(string) => Ok(string.into()),
+            JsVariant::Symbol(symbol) => Ok(symbol.into()),
+
+            // We also inline the call to `to_string`, removing the
+            // double match against `self.variant()`.
+            JsVariant::Float64(float) => Ok(JsString::from(float).into()),
+            JsVariant::Undefined => Ok(js_string!("undefined").into()),
+            JsVariant::Null => Ok(js_string!("null").into()),
+            JsVariant::Boolean(true) => Ok(js_string!("true").into()),
+            JsVariant::Boolean(false) => Ok(js_string!("false").into()),
+            JsVariant::BigInt(bigint) => Ok(JsString::from(bigint.to_string()).into()),
+
+            // slow path
+            // Cannot infinitely recurse since it is guaranteed that `to_primitive` returns a non-object
+            // value or errors.
+            JsVariant::Object(o) => o
+                .to_primitive(context, PreferredType::String)?
+                .to_property_key(context),
+        }
     }
 
     /// It returns value converted to a numeric value of type `Number` or `BigInt`.
@@ -663,7 +636,7 @@ impl JsValue {
 
         // 2. If primValue is a BigInt, return primValue.
         if let Some(bigint) = primitive.as_bigint() {
-            return Ok(bigint.clone().into());
+            return Ok(bigint.into());
         }
 
         // 3. Return ? ToNumber(primValue).
