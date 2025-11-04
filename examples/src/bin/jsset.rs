@@ -9,30 +9,30 @@ fn main() -> Result<(), JsError> {
     // Create an empty set.
     let set = JsSet::new(context);
 
-    assert_eq!(set.size()?, 0);
+    assert_eq!(set.size(), 0);
     set.add(5, context)?;
-    assert_eq!(set.size()?, 1);
+    assert_eq!(set.size(), 1);
     set.add(10, context)?;
-    assert_eq!(set.size()?, 2);
-    set.clear(context)?;
-    assert_eq!(set.size()?, 0);
+    assert_eq!(set.size(), 2);
+    set.clear();
+    assert_eq!(set.size(), 0);
 
     set.add(js_string!("one"), context)?;
     set.add(js_string!("two"), context)?;
     set.add(js_string!("three"), context)?;
 
-    assert!(set.has(js_string!("one"), context)?);
-    assert_eq!(set.has(js_string!("One"), context)?, false);
+    assert!(set.has(js_string!("one")));
+    assert_eq!(set.has(js_string!("One")), false);
 
-    set.delete(js_string!("two"), context)?;
+    set.delete(js_string!("two"));
 
-    assert_eq!(set.has(js_string!("two"), context)?, false);
+    assert_eq!(set.has(js_string!("two"),), false);
 
-    set.clear(context)?;
+    set.clear();
 
-    assert_eq!(set.has(js_string!("one"), context)?, false);
-    assert_eq!(set.has(js_string!("three"), context)?, false);
-    assert_eq!(set.size()?, 0);
+    assert_eq!(set.has(js_string!("one")), false);
+    assert_eq!(set.has(js_string!("three")), false);
+    assert_eq!(set.size(), 0);
 
     // Add a slice into a set;
     set.add_items(
@@ -40,14 +40,14 @@ fn main() -> Result<(), JsError> {
         context,
     )?;
     // Will return 1, as one slice was added.
-    assert_eq!(set.size()?, 1);
+    assert_eq!(set.size(), 1);
 
     // Make a new set from a slice
     let slice_set = JsSet::from_iter([JsValue::new(1), JsValue::new(2), JsValue::new(3)], context);
     // Will return 3, as each element of slice was added into the set.
-    assert_eq!(slice_set.size()?, 3);
+    assert_eq!(slice_set.size(), 3);
 
-    set.clear(context)?;
+    set.clear();
 
     Ok(())
 }
