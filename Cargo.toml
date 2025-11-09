@@ -80,7 +80,6 @@ thin-vec = "0.2.14"
 time = { version = "0.3.44", default-features = false, features = [
     "local-offset",
     "large-dates",
-    "wasm-bindgen",
     "parsing",
     "formatting",
     "macros",
