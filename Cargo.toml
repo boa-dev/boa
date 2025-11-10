@@ -87,7 +87,7 @@ time = { version = "0.3.44", default-features = false, features = [
 log = "0.4.28"
 simple_logger = "5.1.0"
 cargo_metadata = "0.23.0"
-trybuild = "1.0.112"
+trybuild = "1.0.114"
 rayon = "1.10.0"
 toml = "0.9.8"
 color-eyre = "0.6.3"
@@ -102,8 +102,8 @@ smol = "2.0.2"
 isahc = "1.7.2"
 rustyline = { version = "17.0.2", default-features = false }
 dhat = "0.3.3"
-quote = "1.0.41"
-syn = { version = "2.0.108", default-features = false }
+quote = "1.0.42"
+syn = { version = "2.0.110", default-features = false }
 proc-macro2 = "1.0"
 synstructure = "0.13"
 measureme = "12.0.3"
