@@ -27,6 +27,7 @@ simple_logger.workspace = true
 icu_casemap = { workspace = true, features = ["datagen"] }
 icu_collator = { workspace = true, features = ["datagen"] }
 icu_datetime = { workspace = true, features = ["datagen"] }
+icu_time = { workspace = true, features = ["datagen"] }
 icu_decimal = { workspace = true, features = ["datagen"] }
 icu_list = { workspace = true, features = ["datagen"] }
 icu_locale = { workspace = true, features = ["datagen"] }
