@@ -819,8 +819,11 @@ pub(crate) fn ordinary_set(
     // OrdinarySetWithOwnDescriptor ( O, P, V, Receiver, ownDesc )
     // https://tc39.es/ecma262/multipage/ordinary-and-exotic-objects-behaviours.html#sec-ordinarysetwithowndescriptor
 
+    let mut has_own_desc = false;
+
     // 1. Assert: IsPropertyKey(P) is true.
     let own_desc = if let Some(desc) = obj.__get_own_property__(&key, context)? {
+        has_own_desc = true;
         desc
     }
     // 2. If ownDesc is undefined, then
@@ -863,15 +866,25 @@ pub(crate) fn ordinary_set(
             return Ok(false);
         };
 
-        // NOTE(HaledOdat): If the object and receiver are not the same then it's not inline cacheable for now.
-        context.slot().attributes.set(
-            SlotAttributes::NOT_CACHEABLE,
-            !JsObject::equals(obj, &receiver),
-        );
+        let obj_is_receiver = JsObject::equals(obj, &receiver);
 
-        // c. Let existingDescriptor be ? Receiver.[[GetOwnProperty]](P).
+        // NOTE(HaledOdat): If the object and receiver are not the same then it's not inline cacheable for now.
+        context
+            .slot()
+            .attributes
+            .set(SlotAttributes::NOT_CACHEABLE, !obj_is_receiver);
+
+        // OPTIMIZATION: If obj and receiver are the same, there's no need to call [[GetOwnProperty]](P)
+        //              again because it was already performed above.
+        let existing_descriptor = if has_own_desc && obj_is_receiver {
+            Some(own_desc)
+        } else {
+            // c. Let existingDescriptor be ? Receiver.[[GetOwnProperty]](P).
+            receiver.__get_own_property__(&key, context)?
+        };
+
         // d. If existingDescriptor is not undefined, then
-        if let Some(ref existing_desc) = receiver.__get_own_property__(&key, context)? {
+        if let Some(ref existing_desc) = existing_descriptor {
             // i. If IsAccessorDescriptor(existingDescriptor) is true, return false.
             if existing_desc.is_accessor_descriptor() {
                 return Ok(false);
