@@ -118,7 +118,7 @@ pub mod prelude {
     pub use crate::{
         bigint::JsBigInt,
         context::Context,
-        error::{JsError, JsNativeError, JsNativeErrorKind},
+        error::{EngineError, JsError, JsNativeError, JsNativeErrorKind, RuntimeLimitError},
         host_defined::HostDefined,
         interop::{IntoJsFunctionCopied, UnsafeIntoJsFunction},
         module::{IntoJsModule, Module},
@@ -187,9 +187,6 @@ impl JsArgs for [JsValue] {
 
 #[cfg(test)]
 use std::borrow::Cow;
-
-#[cfg(test)]
-use crate::error::{EngineError, RuntimeLimitError};
 
 /// A test action executed in a test function.
 #[cfg(test)]

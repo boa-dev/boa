@@ -646,10 +646,11 @@ impl Context {
     {
         #[cfg(feature = "fuzz")]
         {
+            use crate::error::EngineError;
             if self.instructions_remaining == 0 {
-                return ControlFlow::Break(CompletionRecord::Throw(JsError::from_native(
-                    JsNativeError::no_instructions_remain(),
-                )));
+                return ControlFlow::Break(
+                    CompletionRecord::Throw(EngineError::NoInstructionsRemain.into()),
+                );
             }
             self.instructions_remaining -= 1;
         }
