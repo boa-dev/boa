@@ -1,6 +1,6 @@
 [package]
 name = "boa_wasm"
-description = "WASM compatibility layer for the Boa JavaScript engine."
+description = "Wasm compatibility layer for the Boa JavaScript engine."
 keywords = ["javascript", "compiler", "lexer", "parser", "js"]
 categories = ["parser-implementations", "wasm", "compilers"]
 publish = false
