@@ -286,7 +286,7 @@ fn check_do_while_semicolon_insertion_no_space() {
     );
 }
 
-/// Checks parsing of a while statement which is seperated out with line terminators.
+/// Checks parsing of a while statement which is separated out with line terminators.
 #[test]
 fn while_spaces() {
     check_script_parser(
@@ -314,7 +314,7 @@ fn while_spaces() {
     );
 }
 
-/// Checks parsing of a while statement which is seperated out with line terminators.
+/// Checks parsing of a while statement which is separated out with line terminators.
 #[test]
 fn do_while_spaces() {
     check_script_parser(

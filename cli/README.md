@@ -20,7 +20,7 @@ your CLI.
 
 Once installed, your good to go!
 
-To execute some JavaScript source code, navigate to the directy of your choosing and type:
+To execute some JavaScript source code, navigate to the directory of your choice and type:
 
 ```shell
     boa test.js

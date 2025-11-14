@@ -1217,8 +1217,8 @@ impl BindingCollectorVisitor<'_> {
     }
 }
 
-/// Optimize scope indicies when scopes only contain local bindings.
-pub(crate) fn optimize_scope_indicies<'a, N>(node: &'a mut N, scope: &Scope)
+/// Optimize scope indices when scopes only contain local bindings.
+pub(crate) fn optimize_scope_indices<'a, N>(node: &'a mut N, scope: &Scope)
 where
     &'a mut N: Into<NodeRefMut<'a>>,
 {
@@ -1954,7 +1954,7 @@ fn function_declaration_instantiation(
 
     // 22. If argumentsObjectNeeded is true, then
     //
-    // NOTE(HalidOdat): Has been moved up, so "arguments" gets registed as
+    // NOTE(HalidOdat): Has been moved up, so "arguments" gets registered as
     //     the first binding in the environment with index 0.
     if arguments_object_needed {
         let arguments = arguments.to_js_string(interner);

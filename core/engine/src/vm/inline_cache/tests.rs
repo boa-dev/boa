@@ -44,8 +44,8 @@ fn get_own_property_internal_method() {
     );
 
     assert!(
-        context.slot().is_cachable(),
-        "Since it's an owned property, this should be cachable"
+        context.slot().is_cacheable(),
+        "Since it's an owned property, this should be cacheable"
     );
 
     let shape = o.borrow().shape().clone();
@@ -89,8 +89,8 @@ fn get_internal_method() {
     );
 
     assert!(
-        context.slot().is_cachable(),
-        "Since it's an owned property, this should be cachable"
+        context.slot().is_cacheable(),
+        "Since it's an owned property, this should be cacheable"
     );
 
     let shape = o.borrow().shape().clone();
@@ -137,8 +137,8 @@ fn get_internal_method_in_prototype() {
     );
 
     assert!(
-        context.slot().is_cachable(),
-        "Since it's an prototype property, this should be cachable"
+        context.slot().is_cacheable(),
+        "Since it's an prototype property, this should be cacheable"
     );
 
     let shape = prototype.borrow().shape().clone();
@@ -153,7 +153,7 @@ fn get_internal_method_in_prototype() {
 }
 
 #[test]
-fn define_own_property_internal_method_non_existant_property() {
+fn define_own_property_internal_method_non_existent_property() {
     let context = &mut Context::default();
 
     let o = context
@@ -191,8 +191,8 @@ fn define_own_property_internal_method_non_existant_property() {
     );
 
     assert!(
-        context.slot().is_cachable(),
-        "Since it's an owned property, this should be cachable"
+        context.slot().is_cacheable(),
+        "Since it's an owned property, this should be cacheable"
     );
 
     let shape = o.borrow().shape().clone();
@@ -257,8 +257,8 @@ fn define_own_property_internal_method_existing_property_property() {
     );
 
     assert!(
-        context.slot().is_cachable(),
-        "Since it's an owned property, this should be cachable"
+        context.slot().is_cacheable(),
+        "Since it's an owned property, this should be cacheable"
     );
 
     let shape = o.borrow().shape().clone();
@@ -302,8 +302,8 @@ fn set_internal_method() {
     );
 
     assert!(
-        context.slot().is_cachable(),
-        "Since it's an owned property, this should be cachable"
+        context.slot().is_cacheable(),
+        "Since it's an owned property, this should be cacheable"
     );
 
     let shape = o.borrow().shape().clone();

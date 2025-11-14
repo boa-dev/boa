@@ -279,7 +279,7 @@ fn super_call_get_constructor_before_arguments_execution() {
 }
 
 #[test]
-fn order_of_execution_in_assigment() {
+fn order_of_execution_in_assignment() {
     run_test_actions([
         TestAction::run(indoc! {r#"
                 let i = 0;
@@ -294,7 +294,7 @@ fn order_of_execution_in_assigment() {
 }
 
 #[test]
-fn order_of_execution_in_assigment_with_comma_expressions() {
+fn order_of_execution_in_assignment_with_comma_expressions() {
     run_test_actions([TestAction::assert_eq(
         indoc! {r#"
             let result = "";
@@ -439,7 +439,7 @@ fn truncate_environments_on_non_caught_native_error() {
 }
 
 #[test]
-fn super_construction_with_paramater_expression() {
+fn super_construction_with_parameter_expression() {
     run_test_actions([
         TestAction::run(indoc! {r#"
             class Person {
@@ -460,7 +460,7 @@ fn super_construction_with_paramater_expression() {
 }
 
 #[test]
-fn cross_context_funtion_call() {
+fn cross_context_function_call() {
     let context1 = &mut Context::default();
     let result = context1.eval(Source::from_bytes(indoc! {r"
         var global = 100;

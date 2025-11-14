@@ -204,7 +204,7 @@ const MAX_STATIC_LENGTH: usize = {
     let mut max = 0;
     let mut i = 0;
     while i < RAW_STATICS.len() {
-        // TOOD: Because `get_index` is not const, we are accessing doc hidden stuff, that may change.
+        // TODO: Because `get_index` is not const, we are accessing doc hidden stuff, that may change.
         let len = RAW_STATICS[i].len();
         if len > max {
             max = len;

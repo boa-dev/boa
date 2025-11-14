@@ -542,7 +542,7 @@ fn check_decrement_advances_lexer_2_places() {
         &TokenKind::Punctuator(Punctuator::Dec)
     );
     // Decrementing means adding 2 characters '--', the lexer should consume it as a single token
-    // and move the curser forward by 2, meaning the next token should be a semicolon
+    // and move the cursor forward by 2, meaning the next token should be a semicolon
 
     assert_eq!(
         lexer.next(interner).unwrap().unwrap().kind(),

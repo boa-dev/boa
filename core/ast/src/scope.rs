@@ -103,7 +103,7 @@ pub(crate) struct Inner {
     index: Cell<u32>,
     bindings: RefCell<Vec<Binding>>,
     function: bool,
-    // Has the `this` been accessed/escaped outside the function environment boundry.
+    // Has the `this` been accessed/escaped outside the function environment boundary.
     this_escaped: Cell<bool>,
 }
 
@@ -721,7 +721,7 @@ impl FunctionScopes {
         self.lexical_scope.as_ref()
     }
 
-    /// Returns the effective paramter scope for this function.
+    /// Returns the effective parameter scope for this function.
     #[must_use]
     pub fn parameter_scope(&self) -> Scope {
         if let Some(parameters_eval_scope) = &self.parameters_eval_scope {

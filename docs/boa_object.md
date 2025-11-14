@@ -17,7 +17,7 @@ This force triggers the GC to scan the heap and collect garbage.
 
 ## Module `$boa.function`
 
-In this module are untility functions related to execution and debugging function.
+In this module are utility functions related to execution and debugging function.
 
 ### Function `$boa.function.bytecode(func)`
 
@@ -125,10 +125,10 @@ iter.next();
 
 It can be used to get the instruction flowgraph, like the command-line flag.
 This works on the function level, allows getting the flow graph without
-quiting the boa shell and adding the specified flags.
+quitting the boa shell and adding the specified flags.
 
 Besides the function it also takes an argument that, can be a string or an object.
-If it is a string it represets the flowgraph format, otherwire if it's an object:
+If it is a string it represents the flowgraph format, otherwire if it's an object:
 
 ```JavaScript
 // These are the defaults, if not specified.
@@ -159,7 +159,7 @@ Example:
 let o = { x: 10, y: 20 }
 $boa.object.id(o)    // '0x7F5B3251B718'
 
-// Geting the address of the $boa object in memory
+// Getting the address of the $boa object in memory
 $boa.object.id($boa) // '0x7F5B3251B5D8'
 ```
 

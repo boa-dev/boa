@@ -150,7 +150,7 @@ fn to_fixed() {
         TestAction::assert_eq("(0.5).toFixed(0)", js_str!("1")),
         TestAction::assert_eq("(-0.5).toFixed(0)", js_str!("-1")),
         TestAction::assert_eq("(1.25).toFixed(1)", js_str!("1.3")),
-        // This is bizare, but Spidermonkey and KJS behave the same.
+        // This is bizarre, but Spidermonkey and KJS behave the same.
         TestAction::assert_eq("(234.2040).toFixed(4)", js_str!("234.2040")),
         TestAction::assert_eq("(234.2040506).toFixed(4)", js_str!("234.2041")),
     ]);

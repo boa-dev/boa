@@ -54,7 +54,7 @@ macro_rules! js_string {
     () => {
         $crate::string::JsString::default()
     };
-    ($s:literal) => {{
+    ($s:literal) => {const {
         const LITERAL: &$crate::string::JsStr<'static> = &$crate::js_str!($s);
 
         $crate::string::JsString::from_static_js_str(LITERAL)

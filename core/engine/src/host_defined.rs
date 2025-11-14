@@ -5,7 +5,7 @@ use hashbrown::hash_map::HashMap;
 
 use crate::object::NativeObject;
 
-/// This represents a `ECMASCript` specification \[`HostDefined`\] field.
+/// This represents a `ECMAScript` specification \[`HostDefined`\] field.
 ///
 /// This allows storing types which are mapped by their [`TypeId`].
 #[derive(Default, Trace, Finalize)]

@@ -379,7 +379,7 @@ impl JsString {
         self.as_str().len()
     }
 
-    /// Return true if the [`JsString`] is emtpy.
+    /// Return true if the [`JsString`] is empty.
     #[inline]
     #[must_use]
     pub fn is_empty(&self) -> bool {
@@ -615,7 +615,7 @@ impl JsString {
                 // `allocate_inner` must return a valid pointer to newly allocated memory, meaning
                 // `ptr` and all `string`s should never overlap.
                 unsafe {
-                    // NOTE: The aligment is checked when we allocate the array.
+                    // NOTE: The alignment is checked when we allocate the array.
                     #[allow(clippy::cast_ptr_alignment)]
                     match (latin1_encoding, string.variant()) {
                         (true, JsStrVariant::Latin1(s)) => {
@@ -746,7 +746,7 @@ impl JsString {
         // - `allocate_inner` must return a valid pointer to newly allocated memory, meaning `ptr`
         //   and `data` should never overlap.
         unsafe {
-            // NOTE: The aligment is checked when we allocate the array.
+            // NOTE: The alignment is checked when we allocate the array.
             #[allow(clippy::cast_ptr_alignment)]
             match string.variant() {
                 JsStrVariant::Latin1(s) => {

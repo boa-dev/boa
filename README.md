@@ -103,7 +103,7 @@ For more information on Boa's API, feel free to check out our documentation.
 ## 🏅 Conformance
 
 To know more details about Boa's conformance surrounding the _ECMAScript_ specification,
-you can check out our _ECMASCript Test262_ test suite results [here](https://boajs.dev/conformance).
+you can check out our _ECMAScript Test262_ test suite results [here](https://boajs.dev/conformance).
 
 ## 🪚 Contributing
 

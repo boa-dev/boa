@@ -74,7 +74,7 @@
 //! | `BigInt`          | `7FFF:PPPP:PPPP:PPPP`    | 48-bits pointer. Assumes non-null pointer. |
 //! | `Float64`         | Any other values.        | |
 //!
-//! Another way to vizualize this is by looking at the bit layout of a NaN-boxed
+//! Another way to visualize this is by looking at the bit layout of a NaN-boxed
 //! value:
 //! ```text
 //!                           ....--<| The type of inner value is represented by this.
@@ -257,7 +257,7 @@ mod bits {
         value as u64 | MASK_BOOLEAN
     }
 
-    /// Returns a boolan from a tagged value.
+    /// Returns a boolean from a tagged value.
     #[inline(always)]
     pub(super) const fn untag_bool(value: u64) -> bool {
         value & MASK_BOOLEAN_VALUE != 0

@@ -649,7 +649,7 @@ impl Instant {
         let ixdtf = instant.inner.to_ixdtf_string_with_provider(
             timezone,
             options,
-            context.tz_provider(),
+            context.timezone_provider(),
         )?;
 
         Ok(JsString::from(ixdtf).into())
@@ -678,7 +678,7 @@ impl Instant {
         let ixdtf = instant.inner.to_ixdtf_string_with_provider(
             None,
             ToStringRoundingOptions::default(),
-            context.tz_provider(),
+            context.timezone_provider(),
         )?;
         Ok(JsString::from(ixdtf).into())
     }
@@ -705,7 +705,7 @@ impl Instant {
         let ixdtf = instant.inner.to_ixdtf_string_with_provider(
             None,
             ToStringRoundingOptions::default(),
-            context.tz_provider(),
+            context.timezone_provider(),
         )?;
         Ok(JsString::from(ixdtf).into())
     }
@@ -758,7 +758,7 @@ impl Instant {
         // 4. Return ! CreateTemporalZonedDateTime(instant.[[EpochNanoseconds]], timeZone, "iso8601").
         let zdt = instant
             .inner
-            .to_zoned_date_time_iso_with_provider(timezone, context.tz_provider())?;
+            .to_zoned_date_time_iso_with_provider(timezone, context.timezone_provider())?;
         create_temporal_zoneddatetime(zdt, None, context).map(Into::into)
     }
 }

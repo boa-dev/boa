@@ -397,7 +397,7 @@ impl JsError {
     /// This operation should be considered a lossy conversion, since it
     /// won't store any additional properties of the opaque
     /// error, other than `message`, `cause` and `errors` (in the case of
-    /// `AggregateError`s). If you cannot affort a lossy conversion, clone
+    /// `AggregateError`s). If you cannot afford a lossy conversion, clone
     /// the object before calling [`from_opaque`][JsError::from_opaque]
     /// to preserve its original properties.
     ///

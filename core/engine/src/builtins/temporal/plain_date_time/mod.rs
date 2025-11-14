@@ -346,7 +346,7 @@ impl BuiltInConstructor for PlainDateTime {
         if new_target.is_undefined() {
             // a. Throw a TypeError exception.
             return Err(JsNativeError::typ()
-                .with_message("NewTarget cannot be undefined when contructing PlainDatedt.")
+                .with_message("NewTarget cannot be undefined when constructing PlainDatedt.")
                 .into());
         }
 
@@ -473,7 +473,7 @@ impl BuiltInConstructor for PlainDateTime {
     }
 }
 
-// ==== `PlainDateTimeTime` accessor methods implmentation ====
+// ==== `PlainDateTimeTime` accessor methods implementation ====
 
 impl PlainDateTime {
     /// 5.3.3 get `Temporal.PlainDateTime.prototype.calendarId`
@@ -1553,7 +1553,7 @@ impl PlainDateTime {
         let result = dt.inner.to_zoned_date_time_with_provider(
             timezone,
             disambiguation,
-            context.tz_provider(),
+            context.timezone_provider(),
         )?;
         create_temporal_zoneddatetime(result, None, context).map(Into::into)
     }

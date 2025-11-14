@@ -5,7 +5,7 @@
 //!
 //! [spec]: https://tc39.es/ecma262/#sec-set-iterator-objects
 
-use super::ordered_set::{OrderedSet, SetLock};
+use super::ordered_set::OrderedSet;
 use crate::{
     Context, JsData, JsResult,
     builtins::{
@@ -21,6 +21,22 @@ use crate::{
 };
 use boa_gc::{Finalize, Trace};
 
+#[derive(Debug, Trace)]
+struct SetIteratorLock(JsObject<OrderedSet>);
+
+impl SetIteratorLock {
+    fn new(js_object: JsObject<OrderedSet>) -> Self {
+        js_object.borrow_mut().data_mut().lock();
+        Self(js_object)
+    }
+}
+
+impl Finalize for SetIteratorLock {
+    fn finalize(&self) {
+        self.0.borrow_mut().data_mut().unlock();
+    }
+}
+
 /// The Set Iterator object represents an iteration over a set. It implements the iterator protocol.
 ///
 /// More information:
@@ -29,11 +45,10 @@ use boa_gc::{Finalize, Trace};
 /// [spec]: https://tc39.es/ecma262/#sec-set-iterator-objects
 #[derive(Debug, Finalize, Trace, JsData)]
 pub(crate) struct SetIterator {
-    iterated_set: JsValue,
+    iterated_set: Option<SetIteratorLock>,
     next_index: usize,
     #[unsafe_ignore_trace]
     iteration_kind: PropertyNameKind,
-    lock: SetLock,
 }
 
 impl IntrinsicObject for SetIterator {
@@ -61,16 +76,6 @@ impl IntrinsicObject for SetIterator {
 }
 
 impl SetIterator {
-    /// Constructs a new `SetIterator`, that will iterate over `set`, starting at index 0
-    const fn new(set: JsValue, kind: PropertyNameKind, lock: SetLock) -> Self {
-        Self {
-            iterated_set: set,
-            next_index: 0,
-            iteration_kind: kind,
-            lock,
-        }
-    }
-
     /// Abstract operation `CreateSetIterator( set, kind )`
     ///
     /// Creates a new iterator over the given set.
@@ -80,15 +85,18 @@ impl SetIterator {
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-createsetiterator
     pub(crate) fn create_set_iterator(
-        set: JsValue,
+        set: JsObject<OrderedSet>,
         kind: PropertyNameKind,
-        lock: SetLock,
         context: &Context,
     ) -> JsValue {
         let set_iterator = JsObject::from_proto_and_data_with_shared_shape(
             context.root_shape(),
             context.intrinsics().objects().iterator_prototypes().set(),
-            Self::new(set, kind, lock),
+            Self {
+                iterated_set: Some(SetIteratorLock::new(set)),
+                next_index: 0,
+                iteration_kind: kind,
+            },
         );
         set_iterator.into()
     }
@@ -108,55 +116,35 @@ impl SetIterator {
             .and_then(JsObject::downcast_mut::<Self>)
             .ok_or_else(|| JsNativeError::typ().with_message("`this` is not an SetIterator"))?;
 
-        // The borrow checker cannot see that we're splitting the `GcRefMut` in two
-        // disjointed parts. However, if we manipulate a `&mut` instead, it can
-        // deduce that invariant.
-        let set_iterator = &mut *set_iterator;
-        {
-            let m = &set_iterator.iterated_set;
-            let mut index = set_iterator.next_index;
-            let item_kind = &set_iterator.iteration_kind;
+        let item_kind = set_iterator.iteration_kind;
 
-            if set_iterator.iterated_set.is_undefined() {
-                return Ok(create_iter_result_object(
-                    JsValue::undefined(),
-                    true,
-                    context,
-                ));
-            }
-
-            let object = m.as_object();
-            let entries = object
-                .as_ref()
-                .and_then(|o| o.downcast_ref::<OrderedSet>())
-                .ok_or_else(|| JsNativeError::typ().with_message("'this' is not a Set"))?;
-
-            let num_entries = entries.full_len();
-            while index < num_entries {
-                let e = entries.get_index(index);
-                index += 1;
-                set_iterator.next_index = index;
-                if let Some(value) = e {
-                    match item_kind {
-                        PropertyNameKind::Value => {
-                            return Ok(create_iter_result_object(value.clone(), false, context));
-                        }
-                        PropertyNameKind::KeyAndValue => {
-                            let result = Array::create_array_from_list(
-                                [value.clone(), value.clone()],
-                                context,
-                            );
-                            return Ok(create_iter_result_object(result.into(), false, context));
-                        }
-                        PropertyNameKind::Key => {
-                            panic!("tried to collect only keys of Set")
-                        }
+        if let Some(obj) = set_iterator.iterated_set.take() {
+            let e = {
+                let mut entries = obj.0.borrow_mut();
+                let entries = entries.data_mut();
+                let len = entries.full_len();
+                loop {
+                    let element = entries.get_index(set_iterator.next_index);
+                    set_iterator.next_index += 1;
+                    if element.is_some() || set_iterator.next_index >= len {
+                        break element.cloned();
                     }
                 }
+            };
+            if let Some(element) = e {
+                let item = match item_kind {
+                    PropertyNameKind::KeyAndValue => {
+                        let result =
+                            Array::create_array_from_list([element.clone(), element], context);
+                        Ok(create_iter_result_object(result.into(), false, context))
+                    }
+                    _ => Ok(create_iter_result_object(element, false, context)),
+                };
+                set_iterator.iterated_set = Some(obj);
+                return item;
             }
         }
 
-        set_iterator.iterated_set = JsValue::undefined();
         Ok(create_iter_result_object(
             JsValue::undefined(),
             true,

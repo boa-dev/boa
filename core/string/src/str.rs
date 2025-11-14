@@ -108,7 +108,7 @@ impl<'a> JsStr<'a> {
         self.inner.tagged_len.len()
     }
 
-    /// Return the inner [`JsStrVariant`] varient of the [`JsStr`].
+    /// Return the inner [`JsStrVariant`] variant of the [`JsStr`].
     #[inline]
     #[must_use]
     pub const fn variant(self) -> JsStrVariant<'a> {

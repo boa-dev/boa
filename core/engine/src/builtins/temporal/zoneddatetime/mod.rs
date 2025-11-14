@@ -431,7 +431,7 @@ impl BuiltInConstructor for ZonedDateTime {
         // a. Set timeZone to FormatOffsetTimeZoneIdentifier(timeZoneParse.[[OffsetMinutes]]).
         let timezone = TimeZone::try_from_identifier_str_with_provider(
             &timezone_str.to_std_string_escaped(),
-            context.tz_provider(),
+            context.timezone_provider(),
         )?;
 
         //  8. If calendar is undefined, set calendar to "iso8601".
@@ -454,7 +454,7 @@ impl BuiltInConstructor for ZonedDateTime {
             epoch_nanos.to_i128(),
             timezone,
             calendar,
-            context.tz_provider(),
+            context.timezone_provider(),
         )?;
 
         //  11. Return ? CreateTemporalZonedDateTime(epochNanoseconds, timeZone, calendar, NewTarget).
@@ -511,7 +511,7 @@ impl ZonedDateTime {
         Ok(JsString::from(
             zdt.inner
                 .time_zone()
-                .identifier_with_provider(context.tz_provider())?,
+                .identifier_with_provider(context.timezone_provider())?,
         )
         .into())
     }
@@ -955,7 +955,7 @@ impl ZonedDateTime {
 
         Ok(zdt
             .inner
-            .hours_in_day_with_provider(context.tz_provider())?
+            .hours_in_day_with_provider(context.timezone_provider())?
             .into())
     }
 
@@ -1228,7 +1228,7 @@ impl ZonedDateTime {
             disambiguation,
             offset,
             overflow,
-            context.tz_provider(),
+            context.timezone_provider(),
         )?;
         create_temporal_zoneddatetime(result, None, context).map(Into::into)
     }
@@ -1264,7 +1264,7 @@ impl ZonedDateTime {
 
         let inner = zdt
             .inner
-            .with_plain_time_and_provider(time, context.tz_provider())?;
+            .with_plain_time_and_provider(time, context.timezone_provider())?;
         create_temporal_zoneddatetime(inner, None, context).map(Into::into)
     }
 
@@ -1292,7 +1292,7 @@ impl ZonedDateTime {
 
         let inner = zdt
             .inner
-            .with_time_zone_with_provider(timezone, context.tz_provider())?;
+            .with_time_zone_with_provider(timezone, context.timezone_provider())?;
         create_temporal_zoneddatetime(inner, None, context).map(Into::into)
     }
 
@@ -1347,9 +1347,9 @@ impl ZonedDateTime {
         let options = get_options_object(args.get_or_undefined(1))?;
         let overflow = get_option::<Overflow>(&options, js_string!("overflow"), context)?;
 
-        let result = zdt
-            .inner
-            .add_with_provider(&duration, overflow, context.tz_provider())?;
+        let result =
+            zdt.inner
+                .add_with_provider(&duration, overflow, context.timezone_provider())?;
         create_temporal_zoneddatetime(result, None, context).map(Into::into)
     }
 
@@ -1380,7 +1380,7 @@ impl ZonedDateTime {
 
         let result =
             zdt.inner
-                .subtract_with_provider(&duration, overflow, context.tz_provider())?;
+                .subtract_with_provider(&duration, overflow, context.timezone_provider())?;
         create_temporal_zoneddatetime(result, None, context).map(Into::into)
     }
 
@@ -1409,9 +1409,9 @@ impl ZonedDateTime {
         let options = get_options_object(args.get_or_undefined(1))?;
         let settings = get_difference_settings(&options, context)?;
 
-        let result = zdt
-            .inner
-            .until_with_provider(&other, settings, context.tz_provider())?;
+        let result =
+            zdt.inner
+                .until_with_provider(&other, settings, context.timezone_provider())?;
         create_temporal_duration(result, None, context).map(Into::into)
     }
 
@@ -1440,9 +1440,9 @@ impl ZonedDateTime {
         let options = get_options_object(args.get_or_undefined(1))?;
         let settings = get_difference_settings(&options, context)?;
 
-        let result = zdt
-            .inner
-            .since_with_provider(&other, settings, context.tz_provider())?;
+        let result =
+            zdt.inner
+                .since_with_provider(&other, settings, context.timezone_provider())?;
         create_temporal_duration(result, None, context).map(Into::into)
     }
 
@@ -1521,7 +1521,7 @@ impl ZonedDateTime {
 
         let result = zdt
             .inner
-            .round_with_provider(options, context.tz_provider())?;
+            .round_with_provider(options, context.timezone_provider())?;
         create_temporal_zoneddatetime(result, None, context).map(Into::into)
     }
 
@@ -1548,7 +1548,7 @@ impl ZonedDateTime {
         let other = to_temporal_zoneddatetime(args.get_or_undefined(0), None, context)?;
         Ok(zdt
             .inner
-            .equals_with_provider(&other, context.tz_provider())?
+            .equals_with_provider(&other, context.timezone_provider())?
             .into())
     }
 
@@ -1598,7 +1598,7 @@ impl ZonedDateTime {
             display_timezone,
             show_calendar,
             options,
-            context.tz_provider(),
+            context.timezone_provider(),
         )?;
 
         Ok(JsString::from(ixdtf).into())
@@ -1628,7 +1628,7 @@ impl ZonedDateTime {
             DisplayTimeZone::Auto,
             DisplayCalendar::Auto,
             ToStringRoundingOptions::default(),
-            context.tz_provider(),
+            context.timezone_provider(),
         )?;
 
         Ok(JsString::from(ixdtf).into())
@@ -1657,7 +1657,7 @@ impl ZonedDateTime {
             DisplayTimeZone::Auto,
             DisplayCalendar::Auto,
             ToStringRoundingOptions::default(),
-            context.tz_provider(),
+            context.timezone_provider(),
         )?;
 
         Ok(JsString::from(ixdtf).into())
@@ -1700,7 +1700,7 @@ impl ZonedDateTime {
 
         let new = zdt
             .inner
-            .start_of_day_with_provider(context.tz_provider())?;
+            .start_of_day_with_provider(context.timezone_provider())?;
         create_temporal_zoneddatetime(new, None, context).map(Into::into)
     }
 
@@ -1767,7 +1767,7 @@ impl ZonedDateTime {
         // Step 8-12
         let result = zdt
             .inner
-            .get_time_zone_transition_with_provider(direction, context.tz_provider())?;
+            .get_time_zone_transition_with_provider(direction, context.timezone_provider())?;
 
         match result {
             Some(zdt) => create_temporal_zoneddatetime(zdt, None, context).map(Into::into),
@@ -1964,7 +1964,7 @@ pub(crate) fn to_temporal_zoneddatetime(
                 overflow,
                 disambiguation,
                 offset_option,
-                context.tz_provider(),
+                context.timezone_provider(),
             )?)
         }
         JsVariant::String(zdt_source) => {
@@ -2003,7 +2003,7 @@ pub(crate) fn to_temporal_zoneddatetime(
                 zdt_source.to_std_string_escaped().as_bytes(),
                 disambiguation,
                 offset_option,
-                context.tz_provider(),
+                context.timezone_provider(),
             )?)
         }
         // 5. Else,
@@ -2044,7 +2044,7 @@ pub(crate) fn to_temporal_timezone_identifier(
     // 9. Return timeZoneIdentifierRecord.[[Identifier]].
     let timezone = TimeZone::try_from_str_with_provider(
         &tz_string.to_std_string_escaped(),
-        context.tz_provider(),
+        context.timezone_provider(),
     )?;
 
     Ok(timezone)

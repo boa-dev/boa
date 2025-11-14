@@ -1,4 +1,4 @@
-commit = "a073f479f80b336256b7fc4e04700c827293e2fe"
+commit = "ccf301650fdcbdbf125241a936b7017f19e68b36"
 
 [ignored]
 # Not implemented yet:
@@ -52,6 +52,14 @@ features = [
     "source-phase-imports",
     # test262 special specifier
     "source-phase-imports-module-source",
+
+    # Immutable Array Buffer
+    # https://github.com/tc39/proposal-immutable-arraybuffer
+    "immutable-arraybuffer",
+
+    # Non-extensible Applies to Private
+    # https://github.com/tc39/proposal-nonextensible-applies-to-private
+    "nonextensible-applies-to-private",
 
     ### Non-standard
     "caller",

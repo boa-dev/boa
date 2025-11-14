@@ -200,7 +200,7 @@ pub fn register(context: &mut Context) -> JsResult<()> {
 }
 
 /// Register the interval module without any clock. This still needs the proper
-/// typing for the clock, even if it is not registerd to the context.
+/// typing for the clock, even if it is not registered to the context.
 ///
 /// # Errors
 /// Any error returned by the context when registering the global functions.

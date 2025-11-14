@@ -244,7 +244,7 @@ fn not_a_function() {
     run_test_actions([TestAction::assert_native_error(
         "let map = Map()",
         JsNativeErrorKind::Type,
-        "calling a builtin Map constructor without new is forbidden",
+        "cannot call `Map` constructor without new",
     )]);
 }
 
@@ -351,7 +351,7 @@ fn get_or_insert_computed_this_not_map() {
     run_test_actions([TestAction::assert_native_error(
         "Map.prototype.getOrInsertComputed.call({}, 'k', x => x)",
         JsNativeErrorKind::Type,
-        "`this` is not a Map",
+        "method `Map.prototype.getOrInsertComputed` called on incompatible receiver",
     )]);
 }
 
@@ -360,7 +360,7 @@ fn get_or_insert_computed_requires_callable() {
     run_test_actions([TestAction::assert_native_error(
         "new Map().getOrInsertComputed('k', undefined)",
         JsNativeErrorKind::Type,
-        "Method Map.prototype.getOrInsertComputed called with non-callable callback function",
+        "method `Map.prototype.getOrInsertComputed` called with non-callable callback function",
     )]);
 }
 

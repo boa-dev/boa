@@ -248,7 +248,7 @@ impl<T> ObjectData<T> {
     );
 
     pub(crate) fn new(value: T) -> Self {
-        // force assertion to triger when we instantiate `ObjectData<T>::new`.
+        // force assertion to trigger when we instantiate `ObjectData<T>::new`.
         let () = Self::OBJECT_DATA_ALIGNMENT_REQUIREMENT;
 
         Self { data: value }

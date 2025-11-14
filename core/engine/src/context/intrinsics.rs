@@ -19,7 +19,7 @@ use crate::builtins::intl::Intl;
 
 /// The intrinsic objects and constructors.
 ///
-/// `Intrinsics` is internally stored using a `Gc`, which makes it cheapily clonable
+/// `Intrinsics` is internally stored using a `Gc`, which makes it cheapily cloneable
 /// for multiple references to the same set of intrinsic objects.
 #[derive(Debug, Trace, Finalize)]
 pub struct Intrinsics {
@@ -1709,7 +1709,7 @@ impl ObjectTemplates {
     /// Transitions:
     ///
     /// 1. `__proto__`: `Object.prototype`
-    /// 2. `"contructor"`: (`WRITABLE`, `CONFIGURABLE`, `NON_ENUMERABLE`)
+    /// 2. `"constructor"`: (`WRITABLE`, `CONFIGURABLE`, `NON_ENUMERABLE`)
     pub(crate) const fn function_prototype(&self) -> &ObjectTemplate {
         &self.function_prototype
     }

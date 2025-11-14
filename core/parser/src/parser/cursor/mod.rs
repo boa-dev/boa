@@ -216,7 +216,7 @@ where
             })
     }
 
-    /// Consumes the next token if it is a semicolon, or returns a `Errpr` if it's not.
+    /// Consumes the next token if it is a semicolon, or returns a `Error` if it's not.
     ///
     /// It will automatically insert a semicolon if needed, as specified in the [spec][spec].
     ///
@@ -248,7 +248,7 @@ where
     ///
     /// It expects that the token stream does not end here.
     ///
-    /// This is just syntatic sugar for a `.peek(skip_n)` call followed by a check that the result
+    /// This is just syntactic sugar for a `.peek(skip_n)` call followed by a check that the result
     /// is not a line terminator or `None`.
     pub(super) fn peek_expect_no_lineterminator(
         &mut self,

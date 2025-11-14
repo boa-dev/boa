@@ -77,7 +77,7 @@ impl ObjectTemplate {
         set: bool,
         attributes: Attribute,
     ) -> &mut Self {
-        // TOOD: We don't support indexed keys.
+        // TODO: We don't support indexed keys.
         debug_assert!(!matches!(&key, PropertyKey::Index(_)));
 
         let attributes = {
@@ -125,7 +125,7 @@ impl ObjectTemplate {
     /// Create an object from the [`ObjectTemplate`]
     ///
     /// The storage must match the properties provided. It does not apply to
-    /// the indexed propeties.
+    /// the indexed properties.
     pub(crate) fn create_with_indexed_properties<T: NativeObject>(
         &self,
         data: T,

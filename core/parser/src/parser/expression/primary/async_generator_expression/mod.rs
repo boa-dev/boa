@@ -1,6 +1,6 @@
 //! Async Generator Expression Parser
 //!
-//! Implements `TokenParser` fo`AsyncGeneratorExpression`on and outputs
+//! Implements `TokenParser` for `AsyncGeneratorExpression` and outputs
 //! an `AsyncGeneratorExpr` ast node
 //!
 //!  More information:
