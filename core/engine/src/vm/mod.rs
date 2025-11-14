@@ -648,9 +648,9 @@ impl Context {
         {
             use crate::error::EngineError;
             if self.instructions_remaining == 0 {
-                return ControlFlow::Break(
-                    CompletionRecord::Throw(EngineError::NoInstructionsRemain.into()),
-                );
+                return ControlFlow::Break(CompletionRecord::Throw(
+                    EngineError::NoInstructionsRemain.into(),
+                ));
             }
             self.instructions_remaining -= 1;
         }
