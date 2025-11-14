@@ -6,7 +6,7 @@ use indexmap::IndexSet;
 use std::fmt::Debug;
 
 /// A type wrapping `indexmap::IndexSet`
-#[derive(Clone, Finalize, JsData)]
+#[derive(Default, Clone, Finalize, JsData)]
 pub struct OrderedSet {
     inner: IndexSet<MapKey>,
     lock: u32,
@@ -29,21 +29,11 @@ impl Debug for OrderedSet {
     }
 }
 
-impl Default for OrderedSet {
-    fn default() -> Self {
-        Self::new()
-    }
-}
-
 impl OrderedSet {
     /// Creates a new empty `OrderedSet`.
     #[must_use]
     pub fn new() -> Self {
-        Self {
-            inner: IndexSet::new(),
-            lock: 0,
-            empty_count: 0,
-        }
+        Self::default()
     }
 
     /// Creates a new empty `OrderedSet` with the specified capacity.
