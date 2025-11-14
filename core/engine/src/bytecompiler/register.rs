@@ -28,7 +28,7 @@ pub(crate) struct RegisterEntry {
 
 /// Represent a VM register.
 ///
-/// This is intented to be passed by reference or to be moved, dropping this is a bug,
+/// This is intended to be passed by reference or to be moved, dropping this is a bug,
 /// it should only be dropped though the [`RegisterAllocator::dealloc()`] method.
 /// This doesn't apply to persistent registers.
 ///

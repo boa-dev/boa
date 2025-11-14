@@ -54,7 +54,7 @@ impl Color {
         Self::Rgb { r, g, b }
     }
 
-    /// This funcition takes a random value and converts it to
+    /// This function takes a random value and converts it to
     /// a pleasant to look at RGB color.
     #[inline]
     #[must_use]

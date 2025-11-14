@@ -1057,7 +1057,37 @@ generate_opcodes! {
     ///   - Output: dst
     DeleteName { dst: VaryingOperand, binding_index: VaryingOperand },
 
-    /// Get a property by name from an object an push it on the stack.
+    /// Get the length property by name from an object.
+    ///
+    /// Like `object.name`
+    ///
+    /// - Operands:
+    ///   - ic_index: `VaryingOperand`
+    /// - Registers:
+    ///   - Input: value
+    ///   - Output: dst
+    GetLengthProperty {
+        dst: VaryingOperand,
+        value: VaryingOperand,
+        ic_index: VaryingOperand
+    },
+
+    /// Get a property by name from an object.
+    ///
+    /// Like `object.name`
+    ///
+    /// - Operands:
+    ///   - ic_index: `VaryingOperand`
+    /// - Registers:
+    ///   - Input: value
+    ///   - Output: dst
+    GetPropertyByName {
+        dst: VaryingOperand,
+        value: VaryingOperand,
+        ic_index: VaryingOperand
+    },
+
+    /// Get a property by name from an object.
     ///
     /// Like `object.name`
     ///
@@ -1066,14 +1096,14 @@ generate_opcodes! {
     /// - Registers:
     ///   - Input: receiver, value
     ///   - Output: dst
-    GetPropertyByName {
+    GetPropertyByNameWithThis {
         dst: VaryingOperand,
         receiver: VaryingOperand,
         value: VaryingOperand,
         ic_index: VaryingOperand
     },
 
-    /// Get a property by value from an object an push it on the stack.
+    /// Get a property by value from an object.
     ///
     /// Like `object[key]`
     ///
@@ -1087,13 +1117,13 @@ generate_opcodes! {
         object: VaryingOperand
     },
 
-    /// Get a property by value from an object an push the key and value on the stack.
+    /// Get a property by value from an object.
     ///
     /// Like `object[key]`
     ///
     /// - Registers:
-    ///   - Input: object, receiver, key
-    ///   - Output: dst
+    ///   - Input: object, receiver
+    ///   - Output: dst, key
     GetPropertyByValuePush {
         dst: VaryingOperand,
         key: VaryingOperand,
@@ -1108,8 +1138,22 @@ generate_opcodes! {
     /// - Operands:
     ///   - ic_index: `VaryingOperand`
     /// - Registers:
-    ///   - Input: object,receiver, value
+    ///   - Input: object, value
     SetPropertyByName {
+        value: VaryingOperand,
+        object: VaryingOperand,
+        ic_index: VaryingOperand
+    },
+
+    /// Sets a property by name of an object.
+    ///
+    /// Like `object.name = value`
+    ///
+    /// - Operands:
+    ///   - ic_index: `VaryingOperand`
+    /// - Registers:
+    ///   - Input: object,receiver, value
+    SetPropertyByNameWithThis {
         value: VaryingOperand,
         receiver: VaryingOperand,
         object: VaryingOperand,
@@ -1565,7 +1609,7 @@ generate_opcodes! {
 
     /// Get the thrown pending exception (if it's set) and push on the stack.
     ///
-    /// If there is no pending exception, which can happend if we are handling `return()` call on generator,
+    /// If there is no pending exception, which can happen if we are handling `return()` call on generator,
     /// then we rethrow the empty exception. See [`Opcode::ReThrow`].
     ///
     /// - Registers:
@@ -1904,7 +1948,7 @@ generate_opcodes! {
 
     /// Resumes the current generator function.
     ///
-    /// If the `resume_kind` is `Throw`, then the value is poped and thrown, otherwise if `Return`
+    /// If the `resume_kind` is `Throw`, then the value is popped and thrown, otherwise if `Return`
     /// we pop the value, set it as the return value and throw and empty exception. See [`Opcode::ReThrow`].
     ///
     /// - Registers:
@@ -2212,10 +2256,4 @@ generate_opcodes! {
     Reserved59 => Reserved,
     /// Reserved [`Opcode`].
     Reserved60 => Reserved,
-    /// Reserved [`Opcode`].
-    Reserved61 => Reserved,
-    /// Reserved [`Opcode`].
-    Reserved62 => Reserved,
-    /// Reserved [`Opcode`].
-    Reserved63 => Reserved,
 }

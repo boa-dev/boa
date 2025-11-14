@@ -8,13 +8,13 @@ use crate::{
 };
 
 #[test]
-fn check_contains_this_in_with_statment_expression() {
+fn check_contains_this_in_with_statement_expression() {
     let node = With::new(This::new(Span::EMPTY).into(), Statement::Empty);
     assert!(contains(&node, ContainsSymbol::This));
 }
 
 #[test]
-fn check_contains_new_target_in_with_statment_expression() {
+fn check_contains_new_target_in_with_statement_expression() {
     let node = With::new(NewTarget::new(Span::EMPTY).into(), Statement::Empty);
     assert!(contains(&node, ContainsSymbol::NewTarget));
 }

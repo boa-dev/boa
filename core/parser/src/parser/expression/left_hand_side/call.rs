@@ -87,7 +87,7 @@ where
     }
 }
 
-/// Parses the tail parts of a call expression (property access, sucessive call, array access).
+/// Parses the tail parts of a call expression (property access, successive call, array access).
 #[derive(Debug)]
 pub(super) struct CallExpressionTail {
     allow_yield: AllowYield,

@@ -74,7 +74,7 @@ unsafe impl Trace for CodeBlockFlags {
 /// When a throw happens, we search for handler in the [`CodeBlock`] using
 /// the [`CodeBlock::find_handler()`] method.
 ///
-/// If any exception happens and gets cought by this handler, the `pc` will be set to `end` of the
+/// If any exception happens and gets caught by this handler, the `pc` will be set to `end` of the
 /// [`Handler`] and remove any environments or stack values that where pushed after the handler.
 #[derive(Debug, Clone, Copy)]
 pub(crate) struct Handler {
@@ -626,7 +626,30 @@ impl CodeBlock {
             Instruction::DeletePropertyByName { object, name_index } => {
                 format!("object:{object}, name_index:{name_index}")
             }
+            Instruction::GetLengthProperty {
+                dst,
+                value,
+                ic_index,
+            } => {
+                let ic = &self.ic[u32::from(*ic_index) as usize];
+                format!(
+                    "dst:{dst}, value:{value}, shape:0x{:x}]",
+                    ic.shape.borrow().to_addr_usize(),
+                )
+            }
             Instruction::GetPropertyByName {
+                dst,
+                value,
+                ic_index,
+            } => {
+                let ic = &self.ic[u32::from(*ic_index) as usize];
+                format!(
+                    "dst:{dst}, value:{value}, ic:[name:{}, shape:0x{:x}]",
+                    ic.name.to_std_string_escaped(),
+                    ic.shape.borrow().to_addr_usize(),
+                )
+            }
+            Instruction::GetPropertyByNameWithThis {
                 dst,
                 receiver,
                 value,
@@ -640,6 +663,17 @@ impl CodeBlock {
                 )
             }
             Instruction::SetPropertyByName {
+                value,
+                object,
+                ic_index,
+            } => {
+                let ic = &self.ic[u32::from(*ic_index) as usize];
+                format!(
+                    "object:{object}, value:{value}, ic:shape:0x{:x}",
+                    ic.shape.borrow().to_addr_usize(),
+                )
+            }
+            Instruction::SetPropertyByNameWithThis {
                 value,
                 receiver,
                 object,
@@ -901,10 +935,7 @@ impl CodeBlock {
             | Instruction::Reserved57
             | Instruction::Reserved58
             | Instruction::Reserved59
-            | Instruction::Reserved60
-            | Instruction::Reserved61
-            | Instruction::Reserved62
-            | Instruction::Reserved63 => unreachable!("Reserved opcodes are unreachable"),
+            | Instruction::Reserved60 => unreachable!("Reserved opcodes are unreachable"),
         }
     }
 }
@@ -1126,7 +1157,7 @@ pub(crate) fn create_function_object(
 
 /// Creates a new function object.
 ///
-/// This is prefered over [`create_function_object`] if prototype is [`None`],
+/// This is preferred over [`create_function_object`] if prototype is [`None`],
 /// because it constructs the function from a pre-initialized object template,
 /// with all the properties and prototype set.
 pub(crate) fn create_function_object_fast(code: Gc<CodeBlock>, context: &mut Context) -> JsObject {

@@ -22,7 +22,7 @@ fn main() -> Result<(), Box<dyn Error>> {
 
     // Instantiate the execution context
     let mut context = Context::default();
-    // Add the runtime intrisics
+    // Add the runtime intrinsics
     add_runtime(&mut context);
     // Parse the source code and print the result
     println!("{}", context.eval(source)?.display());

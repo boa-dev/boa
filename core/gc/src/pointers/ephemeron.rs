@@ -7,7 +7,7 @@ use crate::{
 };
 use std::ptr::NonNull;
 
-/// A key-value pair where the value becomes unaccesible when the key is garbage collected.
+/// A key-value pair where the value becomes inaccessible when the key is garbage collected.
 ///
 /// You can read more about ephemerons on:
 /// - Racket's page about [**ephemerons**][eph], which gives a brief overview.

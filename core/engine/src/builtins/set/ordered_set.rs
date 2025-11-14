@@ -82,10 +82,11 @@ impl OrderedSet {
 
     /// Insert a value pair in the set.
     ///
-    /// If an equivalent value already exists in the set: ???
+    /// If an equivalent value already exists in the set, returns `false` leaving
+    /// original value in the set and without altering its insertion order.
     ///
-    /// If no equivalent value existed in the set: the new value is
-    /// inserted, last in order, and false
+    /// If no equivalent value existed in the set, returns `true` and inserts
+    /// the new value at the end of the set.
     ///
     /// Computes in **O(1)** time (amortized average).
     pub fn add(&mut self, value: JsValue) -> bool {
@@ -153,13 +154,12 @@ impl OrderedSet {
     /// Increases the lock counter and returns a lock object that will decrement the counter when dropped.
     ///
     /// This allows objects to be removed from the set during iteration without affecting the indexes until the iteration has completed.
-    pub(crate) fn lock(&mut self, set: JsObject) -> SetLock {
+    pub(crate) fn lock(&mut self) {
         self.lock += 1;
-        SetLock(set)
     }
 
     /// Decreases the lock counter and, if 0, removes all empty entries.
-    fn unlock(&mut self) {
+    pub(crate) fn unlock(&mut self) {
         self.lock -= 1;
         if self.lock == 0 {
             self.inner.retain(|k| matches!(k, MapKey::Key(_)));
@@ -168,19 +168,17 @@ impl OrderedSet {
     }
 }
 
-/// Increases the lock count of the set for the lifetime of the guard.
-/// This should not be dropped until iteration has completed.
-#[derive(Debug, Trace)]
-pub(crate) struct SetLock(JsObject);
+pub(crate) struct SetLock<'a>(&'a JsObject<OrderedSet>);
 
-impl Finalize for SetLock {
-    fn finalize(&self) {
-        // Avoids panicking inside `Finalize`, with the downside of slightly increasing
-        // memory usage if the set could not be borrowed.
-        // TODO: try_downcast_mut
-        self.0
-            .downcast_mut::<OrderedSet>()
-            .expect("SetLock does not point to a set")
-            .unlock();
+impl<'a> SetLock<'a> {
+    pub(crate) fn new(js_object: &'a JsObject<OrderedSet>) -> Self {
+        js_object.borrow_mut().data_mut().lock();
+        Self(js_object)
+    }
+}
+
+impl Drop for SetLock<'_> {
+    fn drop(&mut self) {
+        self.0.borrow_mut().data_mut().unlock();
     }
 }

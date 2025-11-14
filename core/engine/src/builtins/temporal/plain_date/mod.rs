@@ -1174,9 +1174,11 @@ impl PlainDate {
             (to_temporal_timezone_identifier(item, context)?, None)
         };
 
-        let result =
-            date.inner
-                .to_zoned_date_time_with_provider(timezone, time, context.tz_provider())?;
+        let result = date.inner.to_zoned_date_time_with_provider(
+            timezone,
+            time,
+            context.timezone_provider(),
+        )?;
 
         // 7. Return ! CreateTemporalZonedDateTime(epochNs, timeZone, temporalDate.[[Calendar]]).
         create_temporal_zoneddatetime(result, None, context).map(Into::into)
@@ -1258,7 +1260,6 @@ impl PlainDate {
     ///
     /// - [ECMAScript Temporal proposal][spec]
     /// - [MDN reference][mdn]
-    /// - [`temporal_rs` documentation][temporal_rs-docs]
     ///
     /// [spec]: https://tc39.es/proposal-temporal/#sec-temporal.plaindate.prototype.valueof
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Temporal/PlainDate/valueOf

@@ -7,7 +7,7 @@ use crate::{
     scope::Scope,
     scope_analyzer::{
         EvalDeclarationBindings, analyze_binding_escapes, collect_bindings,
-        eval_declaration_instantiation_scope, optimize_scope_indicies,
+        eval_declaration_instantiation_scope, optimize_scope_indices,
     },
     visitor::{VisitWith, Visitor, VisitorMut},
 };
@@ -60,7 +60,7 @@ impl Script {
     ) -> Result<(), &'static str> {
         collect_bindings(self, self.strict(), false, scope, interner)?;
         analyze_binding_escapes(self, false, scope.clone(), interner)?;
-        optimize_scope_indicies(self, scope);
+        optimize_scope_indices(self, scope);
         Ok(())
     }
 
@@ -97,7 +97,7 @@ impl Script {
         lexical_scope.escape_all_bindings();
         variable_scope.reorder_binding_indices();
         lexical_scope.reorder_binding_indices();
-        optimize_scope_indicies(self, lexical_scope);
+        optimize_scope_indices(self, lexical_scope);
 
         Ok(bindings)
     }
@@ -188,7 +188,7 @@ impl Module {
     ) -> Result<(), &'static str> {
         collect_bindings(self, true, false, scope, interner)?;
         analyze_binding_escapes(self, false, scope.clone(), interner)?;
-        optimize_scope_indicies(self, &self.scope.clone());
+        optimize_scope_indices(self, &self.scope.clone());
 
         Ok(())
     }

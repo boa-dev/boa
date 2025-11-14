@@ -153,6 +153,17 @@ jobs:
       - name: Format (rustfmt)
         run: cargo fmt --all --check
 
+  typos:
+    name: Typos
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v5
+
+      - name: Check for typos
+        uses: crate-ci/typos@v1.39.0
+
   clippy:
     name: Lint
     runs-on: ubuntu-latest

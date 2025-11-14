@@ -412,18 +412,13 @@ impl<'a> From<&'a [u8]> for Lexer<UTF8Input<&'a [u8]>> {
 /// ECMAScript goal symbols.
 ///
 /// <https://tc39.es/ecma262/#sec-ecmascript-language-lexical-grammar>
-#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+#[derive(Debug, Default, Clone, Copy, PartialEq, Eq)]
 pub(crate) enum InputElement {
     Div,
+    #[default]
     RegExp,
     TemplateTail,
     HashbangOrRegExp,
-}
-
-impl Default for InputElement {
-    fn default() -> Self {
-        Self::RegExp
-    }
 }
 
 /// Checks if a character is whitespace as per ECMAScript standards.
@@ -438,7 +433,7 @@ const fn is_whitespace(ch: u32) -> bool {
     matches!(
         ch,
         0x0020 | 0x0009 | 0x000B | 0x000C | 0x00A0 | 0xFEFF |
-            // Unicode Space_Seperator category (minus \u{0020} and \u{00A0} which are allready stated above)
+            // Unicode Space_Separator category (minus \u{0020} and \u{00A0} which are already stated above)
             0x1680 | 0x2000..=0x200A | 0x202F | 0x205F | 0x3000
     )
 }

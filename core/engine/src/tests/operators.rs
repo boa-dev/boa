@@ -651,7 +651,7 @@ mod in_operator {
     use super::*;
 
     #[test]
-    fn propery_in_object() {
+    fn property_in_object() {
         run_test_actions([TestAction::assert("'a' in {a: 'x'}")]);
     }
 

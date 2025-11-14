@@ -60,7 +60,7 @@ impl Operation for PushValueToArray {
     const COST: u8 = 3;
 }
 
-/// `PushEllisionToArray` implements the Opcode Operation for `Opcode::PushEllisionToArray`
+/// `PushElisionToArray` implements the Opcode Operation for `Opcode::PushElisionToArray`
 ///
 /// Operation:
 ///  - Push an empty element/hole to an array.

@@ -5,7 +5,7 @@
 //!
 //! [spec]: https://tc39.es/ecma262/#sec-map-iterator-objects
 
-use super::ordered_map::{MapLock, OrderedMap};
+use super::ordered_map::OrderedMap;
 use crate::{
     Context, JsData, JsResult,
     builtins::{
@@ -21,6 +21,22 @@ use crate::{
 };
 use boa_gc::{Finalize, Trace};
 
+#[derive(Debug, Trace)]
+struct MapIteratorLock(JsObject<OrderedMap<JsValue>>);
+
+impl MapIteratorLock {
+    fn new(js_object: JsObject<OrderedMap<JsValue>>) -> Self {
+        js_object.borrow_mut().data_mut().lock();
+        Self(js_object)
+    }
+}
+
+impl Finalize for MapIteratorLock {
+    fn finalize(&self) {
+        self.0.borrow_mut().data_mut().unlock();
+    }
+}
+
 /// The Map Iterator object represents an iteration over a map. It implements the iterator protocol.
 ///
 /// More information:
@@ -29,11 +45,10 @@ use boa_gc::{Finalize, Trace};
 /// [spec]: https://tc39.es/ecma262/#sec-map-iterator-objects
 #[derive(Debug, Finalize, Trace, JsData)]
 pub(crate) struct MapIterator {
-    iterated_map: Option<JsObject>,
-    map_next_index: usize,
+    iterated_map: Option<MapIteratorLock>,
+    next_index: usize,
     #[unsafe_ignore_trace]
-    map_iteration_kind: PropertyNameKind,
-    lock: MapLock,
+    iteration_kind: PropertyNameKind,
 }
 
 impl IntrinsicObject for MapIterator {
@@ -70,30 +85,21 @@ impl MapIterator {
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-createmapiterator
     pub(crate) fn create_map_iterator(
-        map: &JsValue,
+        map: JsObject<OrderedMap<JsValue>>,
         kind: PropertyNameKind,
         context: &mut Context,
-    ) -> JsResult<JsValue> {
-        if let Some(map_obj) = map.as_object()
-            && let Some(mut map) = map_obj.downcast_mut::<OrderedMap<JsValue>>()
-        {
-            let lock = map.lock(map_obj.clone());
-            let iter = Self {
-                iterated_map: Some(map_obj.clone()),
-                map_next_index: 0,
-                map_iteration_kind: kind,
-                lock,
-            };
-            let map_iterator = JsObject::from_proto_and_data_with_shared_shape(
-                context.root_shape(),
-                context.intrinsics().objects().iterator_prototypes().map(),
-                iter,
-            );
-            return Ok(map_iterator.into());
-        }
-        Err(JsNativeError::typ()
-            .with_message("`this` is not a Map")
-            .into())
+    ) -> JsValue {
+        let iter = Self {
+            iterated_map: Some(MapIteratorLock::new(map)),
+            next_index: 0,
+            iteration_kind: kind,
+        };
+        let map_iterator = JsObject::from_proto_and_data_with_shared_shape(
+            context.root_shape(),
+            context.intrinsics().objects().iterator_prototypes().map(),
+            iter,
+        );
+        map_iterator.into()
     }
 
     /// %MapIteratorPrototype%.next( )
@@ -111,20 +117,19 @@ impl MapIterator {
             .and_then(JsObject::downcast_mut::<Self>)
             .ok_or_else(|| JsNativeError::typ().with_message("`this` is not a MapIterator"))?;
 
-        let item_kind = map_iterator.map_iteration_kind;
+        let item_kind = map_iterator.iteration_kind;
 
         if let Some(obj) = map_iterator.iterated_map.take() {
             let e = {
-                let entries = obj
-                    .downcast_ref::<OrderedMap<JsValue>>()
-                    .expect("iterator should only iterate maps");
+                let mut entries = obj.0.borrow_mut();
+                let entries = entries.data_mut();
                 let len = entries.full_len();
                 loop {
                     let element = entries
-                        .get_index(map_iterator.map_next_index)
+                        .get_index(map_iterator.next_index)
                         .map(|(v, k)| (v.clone(), k.clone()));
-                    map_iterator.map_next_index += 1;
-                    if element.is_some() || map_iterator.map_next_index >= len {
+                    map_iterator.next_index += 1;
+                    if element.is_some() || map_iterator.next_index >= len {
                         break element;
                     }
                 }

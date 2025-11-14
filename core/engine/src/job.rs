@@ -685,7 +685,7 @@ impl JobExecutor for SimpleJobExecutor {
                 group.insert(job.call(context));
             }
 
-            // There are no timeout jobs to run IIF there are no jobs to execute right now.
+            // There are no timeout jobs to run IF there are no jobs to execute right now.
             let no_timeout_jobs_to_run = {
                 let now = context.borrow().clock().now();
                 !self.timeout_jobs.borrow().iter().any(|(t, _)| &now >= t)

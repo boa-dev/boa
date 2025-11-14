@@ -1,7 +1,7 @@
 [package]
 name = "boa_tester"
 description = "ECMA-262 tests runner for the Boa JavaScript engine."
-keywords = ["javascript", "ECMASCript", "compiler", "test262", "tester"]
+keywords = ["javascript", "ECMAScript", "compiler", "test262", "tester"]
 categories = ["command-line-utilites"]
 publish = false
 version.workspace = true

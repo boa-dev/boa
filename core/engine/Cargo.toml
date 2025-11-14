@@ -12,7 +12,7 @@ repository.workspace = true
 rust-version.workspace = true
 
 [features]
-default = ["float16", "xsum"]
+default = ["float16", "xsum", "temporal"]
 
 embedded_lz4 = ["boa_macros/embedded_lz4", "lz4_flex"]
 
@@ -71,10 +71,10 @@ annex-b = ["boa_ast/annex-b", "boa_parser/annex-b"]
 temporal = ["dep:icu_calendar", "dep:temporal_rs", "dep:iana-time-zone", "dep:timezone_provider", "timezone_provider/tzif"]
 
 # Enable experimental features, like Stage 3 proposals.
-experimental = ["temporal"]
+experimental = []
 
 # Enable binding to JS APIs for system related utilities.
-js = ["dep:web-time", "dep:getrandom"]
+js = ["dep:web-time", "dep:getrandom", "getrandom/wasm_js", "time/wasm-bindgen"]
 
 # Enable support for Float16 typed arrays
 float16 = ["dep:float16"]

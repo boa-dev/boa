@@ -250,7 +250,7 @@ fn hoisting() {
 }
 
 #[test]
-fn ambigous_regex_divide_expression() {
+fn ambiguous_regex_divide_expression() {
     let s = "1 / a === 1 / b";
 
     let interner = &mut Interner::default();

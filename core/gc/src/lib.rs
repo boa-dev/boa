@@ -530,7 +530,7 @@ impl Collector {
     }
 }
 
-/// Forcefully runs a garbage collection of all unaccessible nodes.
+/// Forcefully runs a garbage collection of all inaccessible nodes.
 pub fn force_collect() {
     BOA_GC.with(|current| {
         let mut gc = current.borrow_mut();

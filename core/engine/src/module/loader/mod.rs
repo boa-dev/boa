@@ -185,7 +185,7 @@ pub trait ModuleLoader: Any {
     /// Host hooks [`HostGetImportMetaProperties ( moduleRecord )`][meta] and
     /// [`HostFinalizeImportMeta ( importMeta, moduleRecord )`][final].
     ///
-    /// This unifies both APIs into a single hook that can be overriden on both cases.
+    /// This unifies both APIs into a single hook that can be overridden on both cases.
     /// The most common usage is to add properties to `import_meta` and return, but this also
     /// allows modifying the import meta object in more exotic ways before exposing it to ECMAScript
     /// code.

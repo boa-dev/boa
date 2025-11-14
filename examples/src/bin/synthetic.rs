@@ -24,7 +24,7 @@ fn main() -> Result<(), Box<dyn Error>> {
         }
     "#;
 
-    // This can be overriden with any custom implementation of `ModuleLoader`.
+    // This can be overridden with any custom implementation of `ModuleLoader`.
     let loader = Rc::new(SimpleModuleLoader::new("./scripts/modules")?);
 
     // Just need to cast to a `ModuleLoader` before passing it to the builder.

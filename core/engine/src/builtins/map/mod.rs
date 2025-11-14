@@ -12,20 +12,19 @@
 
 use crate::{
     Context, JsArgs, JsResult, JsString, JsValue,
-    builtins::{BuiltInObject, iterable::IteratorHint},
+    builtins::{BuiltInObject, iterable::IteratorHint, map::ordered_map::MapLock},
     context::intrinsics::{Intrinsics, StandardConstructor, StandardConstructors},
     error::JsNativeError,
-    js_string,
+    js_error, js_string,
     object::{JsFunction, JsObject, internal_methods::get_prototype_from_constructor},
     property::{Attribute, PropertyNameKind},
     realm::Realm,
     string::StaticJsStrings,
     symbol::JsSymbol,
 };
-use num_traits::Zero;
 
 use super::{
-    BuiltInBuilder, BuiltInConstructor, IntrinsicObject, canonicalize_keyed_collection_value,
+    BuiltInBuilder, BuiltInConstructor, IntrinsicObject, canonicalize_keyed_collection_key,
     iterable::if_abrupt_close_iterator,
 };
 
@@ -135,9 +134,9 @@ impl BuiltInConstructor for Map {
     ) -> JsResult<JsValue> {
         // 1. If NewTarget is undefined, throw a TypeError exception.
         if new_target.is_undefined() {
-            return Err(JsNativeError::typ()
-                .with_message("calling a builtin Map constructor without new is forbidden")
-                .into());
+            return Err(js_error!(
+                TypeError: "cannot call `Map` constructor without new"
+            ));
         }
 
         // 2. Let map be ? OrdinaryCreateFromConstructor(NewTarget, "%Map.prototype%", « [[MapData]] »).
@@ -162,10 +161,9 @@ impl BuiltInConstructor for Map {
         let adder = map
             .get(js_string!("set"), context)?
             .as_function()
-            .ok_or_else(|| {
-                JsNativeError::typ()
-                    .with_message("Map: property `set` on new `Map` must be callable")
-            })?;
+            .ok_or_else(
+                || js_error!(TypeError: "constructor `Map` cannot use non-callable adder"),
+            )?;
 
         // 7. Return ? AddEntriesFromIterable(map, iterable, adder).
         add_entries_from_iterable(&map, iterable, &adder, context)
@@ -205,8 +203,21 @@ impl Map {
         context: &mut Context,
     ) -> JsResult<JsValue> {
         // 1. Let M be the this value.
+        let this = this
+            .as_object()
+            .and_then(|o| o.downcast::<OrderedMap<JsValue>>().ok())
+            .ok_or_else(|| {
+                js_error!(
+                    TypeError: "method `Map.prototype.entries` called on incompatible receiver"
+                )
+            })?;
+
         // 2. Return ? CreateMapIterator(M, key+value).
-        MapIterator::create_map_iterator(this, PropertyNameKind::KeyAndValue, context)
+        Ok(MapIterator::create_map_iterator(
+            this,
+            PropertyNameKind::KeyAndValue,
+            context,
+        ))
     }
 
     /// `Map.prototype.keys()`
@@ -221,8 +232,17 @@ impl Map {
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Map/keys
     pub(crate) fn keys(this: &JsValue, _: &[JsValue], context: &mut Context) -> JsResult<JsValue> {
         // 1. Let M be the this value.
+        let this = this
+            .as_object()
+            .and_then(|o| o.downcast::<OrderedMap<JsValue>>().ok())
+            .ok_or_else(|| js_error!(TypeError: "method `Map.prototype.keys` called on incompatible receiver"))?;
+
         // 2. Return ? CreateMapIterator(M, key).
-        MapIterator::create_map_iterator(this, PropertyNameKind::Key, context)
+        Ok(MapIterator::create_map_iterator(
+            this,
+            PropertyNameKind::Key,
+            context,
+        ))
     }
 
     /// `Map.prototype.set( key, value )`
@@ -240,22 +260,24 @@ impl Map {
 
         // 1. Let M be the this value.
         // 2. Perform ? RequireInternalSlot(M, [[MapData]]).
-        let map = this.as_object();
-        let mut map = map
-            .as_ref()
-            .and_then(|obj| obj.downcast_mut::<OrderedMap<JsValue>>())
-            .ok_or_else(|| JsNativeError::typ().with_message("`this` is not a Map"))?;
+        let map = this
+            .as_object()
+            .and_then(|o| o.downcast::<OrderedMap<JsValue>>().ok())
+            .ok_or_else(|| {
+                js_error!(TypeError: "method `Map.prototype.set` called on incompatible receiver")
+            })?;
 
         // 3. Set key to CanonicalizeKeyedCollectionKey(key).
-        let key = canonicalize_keyed_collection_value(args.get_or_undefined(0).clone());
+        let key = canonicalize_keyed_collection_key(args.get_or_undefined(0).clone());
 
         // 4. For each Record { [[Key]], [[Value]] } p of entries, do
-        // a. If p.[[Key]] is not empty and SameValueZero(p.[[Key]], key) is true, then
-        // i. Set p.[[Value]] to value.
-        // 6. Let p be the Record { [[Key]]: key, [[Value]]: value }.
-        // 7. Append p as the last element of entries.
-        map.insert(key, value.clone());
-        // 8. Return M.
+        //    a. If p.[[Key]] is not empty and SameValueZero(p.[[Key]], key) is true, then
+        //       i. Set p.[[Value]] to value.
+        // 5. Let p be the Record { [[Key]]: key, [[Value]]: value }.
+        // 6. Append p to M.[[MapData]].
+        map.borrow_mut().data_mut().insert(key, value.clone());
+
+        // 7. Return M.
         Ok(this.clone())
     }
 
@@ -274,17 +296,20 @@ impl Map {
         // 1. Let M be the this value.
         // 2. Perform ? RequireInternalSlot(M, [[MapData]]).
         // 3. Let entries be the List that is M.[[MapData]].
-        let map = this.as_object();
-        let map = map
-            .as_ref()
-            .and_then(|obj| obj.downcast_mut::<OrderedMap<JsValue>>())
-            .ok_or_else(|| JsNativeError::typ().with_message("`this` is not a Map"))?;
-
         // 4. Let count be 0.
         // 5. For each Record { [[Key]], [[Value]] } p of entries, do
         // a. If p.[[Key]] is not empty, set count to count + 1.
         // 6. Return 𝔽(count).
-        Ok(map.len().into())
+        Ok(this
+            .as_object()
+            .and_then(|o| o.downcast::<OrderedMap<JsValue>>().ok())
+            .ok_or_else(|| {
+                js_error!(TypeError: "method `Map.prototype.set` called on incompatible receiver")
+            })?
+            .borrow()
+            .data()
+            .len()
+            .into())
     }
 
     /// `Map.prototype.delete( key )`
@@ -301,25 +326,23 @@ impl Map {
     pub(crate) fn delete(this: &JsValue, args: &[JsValue], _: &mut Context) -> JsResult<JsValue> {
         // 1. Let M be the this value.
         // 2. Perform ? RequireInternalSlot(M, [[MapData]]).
-        // 3. Let entries be the List that is M.[[MapData]].
-        let map = this.as_object();
-        let mut map = map
-            .as_ref()
-            .and_then(|obj| obj.downcast_mut::<OrderedMap<JsValue>>())
-            .ok_or_else(|| JsNativeError::typ().with_message("`this` is not a Map"))?;
+        let map = this
+            .as_object()
+            .and_then(|o| o.downcast::<OrderedMap<JsValue>>().ok())
+            .ok_or_else(|| {
+                js_error!(TypeError: "method `Map.prototype.delete` called on incompatible receiver")
+            })?;
 
-        let key = args.get_or_undefined(0);
-        let key = match key.as_number() {
-            Some(n) if n.is_zero() => &JsValue::new(0),
-            _ => key,
-        };
+        // 3. Set key to CanonicalizeKeyedCollectionKey(key).
+        let key = canonicalize_keyed_collection_key(args.get_or_undefined(0).clone());
 
-        // a. If p.[[Key]] is not empty and SameValueZero(p.[[Key]], key) is true, then
-        // i. Set p.[[Key]] to empty.
-        // ii. Set p.[[Value]] to empty.
-        // iii. Return true.
+        // 4. For each Record { [[Key]], [[Value]] } p of M.[[MapData]], do
+        //    a. If p.[[Key]] is not empty and SameValue(p.[[Key]], key) is true, then
+        //       i. Set p.[[Key]] to empty.
+        //       ii. Set p.[[Value]] to empty.
+        //       iii. Return true.
         // 5. Return false.
-        Ok(map.remove(key).is_some().into())
+        Ok(map.borrow_mut().data_mut().remove(&key).is_some().into())
     }
 
     /// `Map.prototype.get( key )`
@@ -335,23 +358,20 @@ impl Map {
     pub(crate) fn get(this: &JsValue, args: &[JsValue], _: &mut Context) -> JsResult<JsValue> {
         // 1. Let M be the this value.
         // 2. Perform ? RequireInternalSlot(M, [[MapData]]).
-        // 3. Let entries be the List that is M.[[MapData]].
-        let map = this.as_object();
-        let map = map
-            .as_ref()
-            .and_then(|obj| obj.downcast_mut::<OrderedMap<JsValue>>())
-            .ok_or_else(|| JsNativeError::typ().with_message("`this` is not a Map"))?;
+        let map = this
+            .as_object()
+            .and_then(|o| o.downcast::<OrderedMap<JsValue>>().ok())
+            .ok_or_else(|| {
+                js_error!(TypeError: "method `Map.prototype.get` called on incompatible receiver")
+            })?;
 
-        let key = args.get_or_undefined(0);
-        let key = match key.as_number() {
-            Some(n) if n.is_zero() => &JsValue::new(0),
-            _ => key,
-        };
+        // 3. Set key to CanonicalizeKeyedCollectionKey(key).
+        let key = canonicalize_keyed_collection_key(args.get_or_undefined(0).clone());
 
-        // 4. For each Record { [[Key]], [[Value]] } p of entries, do
-        // a. If p.[[Key]] is not empty and SameValueZero(p.[[Key]], key) is true, return p.[[Value]].
+        // 4. For each Record { [[Key]], [[Value]] } p of M.[[MapData]], do
+        //    a. If p.[[Key]] is not empty and SameValue(p.[[Key]], key) is true, return p.[[Value]].
         // 5. Return undefined.
-        Ok(map.get(key).cloned().unwrap_or_default())
+        Ok(map.borrow().data().get(&key).cloned().unwrap_or_default())
     }
 
     /// `Map.prototype.clear( )`
@@ -367,19 +387,21 @@ impl Map {
     pub(crate) fn clear(this: &JsValue, _: &[JsValue], _: &mut Context) -> JsResult<JsValue> {
         // 1. Let M be the this value.
         // 2. Perform ? RequireInternalSlot(M, [[MapData]]).
-        // 3. Let entries be the List that is M.[[MapData]].
-        let map = this.as_object();
-        let mut map = map
-            .as_ref()
-            .and_then(|obj| obj.downcast_mut::<OrderedMap<JsValue>>())
-            .ok_or_else(|| JsNativeError::typ().with_message("`this` is not a Map"))?;
+        let map = this
+            .as_object()
+            .and_then(|o| o.downcast::<OrderedMap<JsValue>>().ok())
+            .ok_or_else(|| {
+                js_error!(
+                    TypeError: "method `Map.prototype.clear` called on incompatible receiver"
+                )
+            })?;
 
-        // 4. For each Record { [[Key]], [[Value]] } p of entries, do
-        // a. Set p.[[Key]] to empty.
-        // b. Set p.[[Value]] to empty.
-        map.clear();
+        // 3. For each Record { [[Key]], [[Value]] } p of M.[[MapData]], do
+        //    a. Set p.[[Key]] to empty.
+        //    b. Set p.[[Value]] to empty.
+        map.borrow_mut().data_mut().clear();
 
-        // 5. Return undefined.
+        // 4. Return undefined.
         Ok(JsValue::undefined())
     }
 
@@ -396,23 +418,22 @@ impl Map {
     pub(crate) fn has(this: &JsValue, args: &[JsValue], _: &mut Context) -> JsResult<JsValue> {
         // 1. Let M be the this value.
         // 2. Perform ? RequireInternalSlot(M, [[MapData]]).
-        // 3. Let entries be the List that is M.[[MapData]].
-        let map = this.as_object();
-        let map = map
-            .as_ref()
-            .and_then(|obj| obj.downcast_mut::<OrderedMap<JsValue>>())
-            .ok_or_else(|| JsNativeError::typ().with_message("`this` is not a Map"))?;
+        let map = this
+            .as_object()
+            .and_then(|o| o.downcast::<OrderedMap<JsValue>>().ok())
+            .ok_or_else(|| {
+                js_error!(
+                    TypeError: "method `Map.prototype.has` called on incompatible receiver"
+                )
+            })?;
 
-        let key = args.get_or_undefined(0);
-        let key = match key.as_number() {
-            Some(n) if n.is_zero() => &JsValue::new(0),
-            _ => key,
-        };
+        // 3. Set key to CanonicalizeKeyedCollectionKey(key).
+        let key = canonicalize_keyed_collection_key(args.get_or_undefined(0).clone());
 
-        // 4. For each Record { [[Key]], [[Value]] } p of entries, do
-        // a. If p.[[Key]] is not empty and SameValueZero(p.[[Key]], key) is true, return true.
+        // 4. For each Record { [[Key]], [[Value]] } p of M.[[MapData]], do
+        //    a. If p.[[Key]] is not empty and SameValue(p.[[Key]], key) is true, return true.
         // 5. Return false.
-        Ok(map.contains_key(key).into())
+        Ok(map.borrow().data().contains_key(&key).into())
     }
 
     /// `Map.prototype.forEach( callbackFn [ , thisArg ] )`
@@ -432,16 +453,22 @@ impl Map {
     ) -> JsResult<JsValue> {
         // 1. Let M be the this value.
         // 2. Perform ? RequireInternalSlot(M, [[MapData]]).
-        let map = this.as_object();
-        let map = map
-            .and_then(|obj| obj.downcast::<OrderedMap<JsValue>>().ok())
-            .ok_or_else(|| JsNativeError::typ().with_message("`this` is not a Map"))?;
+        let map = this
+            .as_object()
+            .and_then(|o| o.downcast::<OrderedMap<JsValue>>().ok())
+            .ok_or_else(|| {
+                js_error!(
+                    TypeError: "method `Map.prototype.forEach` called on incompatible receiver"
+                )
+            })?;
 
         // 3. If IsCallable(callbackfn) is false, throw a TypeError exception.
-        let callback = args.get_or_undefined(0);
-        let callback = callback.as_callable().ok_or_else(|| {
-            JsNativeError::typ().with_message(format!("{} is not a function", callback.display()))
-        })?;
+        let Some(callback) = args.get_or_undefined(0).as_callable() else {
+            return Err(js_error!(
+                TypeError:
+                    "Method Map.prototype.forEach called with non-callable callback function"
+            ));
+        };
 
         let this_arg = args.get_or_undefined(1);
 
@@ -454,7 +481,7 @@ impl Map {
         // after it has been visited and then re-added before the forEach call completes.
         // Keys that are deleted after the call to forEach begins and before being visited
         // are not visited unless the key is added again before the forEach call completes.
-        let _lock = map.borrow_mut().data_mut().lock(map.clone().upcast());
+        let _lock = MapLock::new(&map);
 
         // 4. Let entries be the List that is M.[[MapData]].
         // 5. For each Record { [[Key]], [[Value]] } e of entries, do
@@ -496,28 +523,31 @@ impl Map {
     {
         // See `Self::for_each` for comments on the algo.
 
-        let map = this.as_object();
-        let map = map
-            .and_then(|obj| obj.downcast::<OrderedMap<JsValue>>().ok())
-            .ok_or_else(|| JsNativeError::typ().with_message("`this` is not a Map"))?;
+        let map = this
+            .as_object()
+            .and_then(|o| o.downcast::<OrderedMap<JsValue>>().ok())
+            .ok_or_else(|| {
+                js_error!(
+                    TypeError: "method `Map.prototype.forEach` called on incompatible receiver"
+                )
+            })?;
 
-        let _lock = map.borrow_mut().data_mut().lock(map.clone().upcast());
+        let _lock = MapLock::new(&map);
 
         let mut index = 0;
         loop {
             let (k, v) = {
                 let map = map.borrow();
                 let map = map.data();
-
-                if index < map.full_len() {
-                    if let Some((k, v)) = map.get_index(index) {
-                        (k.clone(), v.clone())
-                    } else {
-                        continue;
-                    }
-                } else {
+                if index >= map.full_len() {
                     return Ok(());
                 }
+
+                let Some((k, v)) = map.get_index(index) else {
+                    continue;
+                };
+
+                (k.clone(), v.clone())
             };
 
             f(k, v)?;
@@ -542,7 +572,20 @@ impl Map {
     ) -> JsResult<JsValue> {
         // 1. Let M be the this value.
         // 2. Return ? CreateMapIterator(M, value).
-        MapIterator::create_map_iterator(this, PropertyNameKind::Value, context)
+        let this = this
+            .as_object()
+            .and_then(|o| o.downcast::<OrderedMap<JsValue>>().ok())
+            .ok_or_else(|| {
+                js_error!(
+                    TypeError: "method `Map.prototype.values` called on incompatible receiver"
+                )
+            })?;
+
+        Ok(MapIterator::create_map_iterator(
+            this,
+            PropertyNameKind::Value,
+            context,
+        ))
     }
 
     /// `Map.prototype.getOrInsert(key, value)`
@@ -564,25 +607,29 @@ impl Map {
         let value = args.get_or_undefined(1);
 
         // 1. Let M be the this value.
-        let map_obj = this.as_object();
         // 2. Perform ? RequireInternalSlot(M, [[MapData]]).
-        let mut map = map_obj
-            .as_ref()
-            .and_then(|obj| obj.downcast_mut::<OrderedMap<JsValue>>())
-            .ok_or_else(|| JsNativeError::typ().with_message("`this` is not a Map"))?;
+        let map = this
+            .as_object()
+            .and_then(|o| o.downcast::<OrderedMap<JsValue>>().ok())
+            .ok_or_else(|| {
+                js_error!(
+                    TypeError: "method `Map.prototype.getOrInsert` called on incompatible receiver"
+                )
+            })?;
 
         // 3. Set key to CanonicalizeKeyedCollectionKey(key).
-        let key = canonicalize_keyed_collection_value(args.get_or_undefined(0).clone());
+        let key = canonicalize_keyed_collection_key(args.get_or_undefined(0).clone());
 
         // 4. For each Record { [[Key]], [[Value]] } p of M.[[MapData]], do
-        if let Some(existing) = map.get(&key) {
+        if let Some(existing) = map.borrow().data().get(&key) {
             // a. If p.[[Key]] is not empty and SameValue(p.[[Key]], key) is true, return p.[[Value]].
             return Ok(existing.clone());
         }
 
         // 5. Let p be the Record { [[Key]]: key, [[Value]]: value }.
         // 6. Append p to M.[[MapData]].
-        map.insert(key, value.clone());
+        map.borrow_mut().data_mut().insert(key, value.clone());
+
         // 7. Return value.
         Ok(value.clone())
     }
@@ -605,47 +652,46 @@ impl Map {
         context: &mut Context,
     ) -> JsResult<JsValue> {
         // 1. Let M be the this value.
-        let map_obj = this.as_object();
         // 2. Perform ? RequireInternalSlot(M, [[MapData]]).
-        let map = map_obj
-            .as_ref()
-            .and_then(|obj| obj.downcast_ref::<OrderedMap<JsValue>>())
-            .ok_or_else(|| JsNativeError::typ().with_message("`this` is not a Map"))?;
+        let map = this
+            .as_object()
+            .and_then(|o| o.downcast::<OrderedMap<JsValue>>().ok())
+            .ok_or_else(|| {
+                js_error!(
+                    TypeError: "method `Map.prototype.getOrInsertComputed` called on incompatible receiver"
+                )
+            })?;
 
         // 3. If IsCallable(callbackfn) is false, throw a TypeError exception.
         let Some(callback_fn) = args.get_or_undefined(1).as_callable() else {
-            return Err(JsNativeError::typ()
-                .with_message("Method Map.prototype.getOrInsertComputed called with non-callable callback function")
-                .into());
+            return Err(js_error!(
+                TypeError: "method `Map.prototype.getOrInsertComputed` called with non-callable callback function"
+            ));
         };
 
         // 4. Set key to CanonicalizeKeyedCollectionKey(key).
-        let key = canonicalize_keyed_collection_value(args.get_or_undefined(0).clone());
+        let key = canonicalize_keyed_collection_key(args.get_or_undefined(0).clone());
 
         // 5. For each Record { [[Key]], [[Value]] } p of M.[[MapData]], do
-        if let Some(existing) = map.get(&key) {
+        if let Some(existing) = map.borrow().data().get(&key) {
             // a. If p.[[Key]] is not empty and SameValue(p.[[Key]], key) is true, return p.[[Value]].
             return Ok(existing.clone());
         }
-        drop(map);
 
-        // 6. Let value be ? Call(callback, undefined, « key »).
+        // 6. Let value be ? Call(callback, undefined, « key »).
         // 7. NOTE: The Map may have been modified during execution of callback.
         let value = callback_fn.call(&JsValue::undefined(), std::slice::from_ref(&key), context)?;
 
-        let mut map = map_obj
-            .as_ref()
-            .and_then(|obj| obj.downcast_mut::<OrderedMap<JsValue>>())
-            .ok_or_else(|| JsNativeError::typ().with_message("`this` is not a Map"))?;
-
         // 8. For each Record { [[Key]], [[Value]] } p of M.[[MapData]], do
-        // a. If p.[[Key]] is not empty and SameValue(p.[[Key]], key) is true, then
-        // i. Set p.[[Value]] to value.
-        // ii. Return value.
-        // 9. Let p be the Record { [[Key]]: key, [[Value]]: value }.
+        //    a. If p.[[Key]] is not empty and SameValue(p.[[Key]], key) is true, then
+        //       i. Set p.[[Value]] to value.
+        //       ii. Return value.
+        // 9. Let p be the Record { [[Key]]: key, [[Value]]: value }.
         // 10. Append p to M.[[MapData]].
         // [`OrderedMap::insert`] handles both cases
-        map.insert(key.clone(), value.clone());
+        map.borrow_mut()
+            .data_mut()
+            .insert(key.clone(), value.clone());
         // 11. Return value.
         Ok(value)
     }
@@ -678,7 +724,10 @@ impl Map {
 
         // 2. If IsCallable(callbackfn) is false, throw a TypeError exception.
         let callback = callback.as_callable().ok_or_else(|| {
-            JsNativeError::typ().with_message("callback must be a callable object")
+            js_error!(
+                TypeError:
+                    "method `Map.prototype.groupBy` called with non-callable callback function"
+            )
         })?;
 
         // 3. Let groups be a new empty List.
@@ -723,7 +772,7 @@ impl Map {
             // h. Else,
             //     i. Assert: keyCoercion is collection.
             //     ii. Set key to CanonicalizeKeyedCollectionKey(key).
-            let key = canonicalize_keyed_collection_value(key);
+            let key = canonicalize_keyed_collection_key(key);
 
             // i. Perform AddValueToKeyedGroup(groups, key, value).
             groups.entry(key).or_default().push(value);

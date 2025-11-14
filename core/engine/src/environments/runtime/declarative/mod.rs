@@ -114,7 +114,7 @@ impl DeclarativeEnvironment {
         self.kind.with()
     }
 
-    /// Poisons this environment for future binding searchs.
+    /// Poisons this environment for future binding searches.
     pub(crate) fn poison(&self) {
         self.kind.poison();
     }
