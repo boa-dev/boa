@@ -891,8 +891,7 @@ impl JsObject {
         if !self.extensible() {
             return Err(js_error!(
                 TypeError: "cannot add private field to non-extensible class instance"
-            )
-            .into());
+            ));
         }
 
         // 2. If the host is a web browser, then
@@ -906,7 +905,7 @@ impl JsObject {
 
         // 4. If entry is not empty, throw a TypeError exception.
         if entry.is_some() {
-            return Err(js_error!(TypeError: "private field already exists on prototype").into());
+            return Err(js_error!(TypeError: "private field already exists on prototype"));
         }
 
         // 5. Append PrivateElement { [[Key]]: P, [[Kind]]: field, [[Value]]: value } to O.[[PrivateElements]].
@@ -948,13 +947,11 @@ impl JsObject {
             return if getter || setter {
                 Err(js_error!(
                     TypeError: "cannot add private accessor to non-extensible class instance"
-                )
-                .into())
+                ))
             } else {
                 Err(js_error!(
                     TypeError: "cannot add private method to non-extensible class instance"
-                )
-                .into())
+                ))
             };
         }
 
@@ -972,13 +969,11 @@ impl JsObject {
             return if getter || setter {
                 Err(js_error!(
                     TypeError: "private accessor already exists on class instance"
-                )
-                .into())
+                ))
             } else {
                 Err(js_error!(
                     TypeError: "private method already exists on class instance"
-                )
-                .into())
+                ))
             };
         }
 
