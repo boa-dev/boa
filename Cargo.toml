@@ -188,8 +188,9 @@ strip = "none"
 
 # The test profile, used for `cargo test`.
 [profile.test]
+inherits = "dev"
 # Enables thin local LTO and some optimizations.
-opt-level = 1
+# opt-level = 1
 
 # The benchmark profile, used for `cargo bench`.
 [profile.bench]

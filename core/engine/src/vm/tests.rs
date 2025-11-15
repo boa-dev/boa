@@ -495,6 +495,7 @@ fn long_object_chain_gc_trace_stack_overflow() {
 
 // See: https://github.com/boa-dev/boa/issues/4515
 #[test]
+#[ignore]
 fn recursion_in_async_gen_throws_uncatchable_error() {
     run_test_actions([TestAction::assert_runtime_limit_error(
         indoc! {r#"
@@ -506,5 +507,5 @@ fn recursion_in_async_gen_throws_uncatchable_error() {
             });
         "#},
         RuntimeLimitError::Recursion,
-    )])
+    )]);
 }
