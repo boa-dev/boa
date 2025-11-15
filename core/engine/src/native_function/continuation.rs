@@ -10,13 +10,13 @@ pub(crate) enum CoroutineState {
 }
 
 trait TraceableCoroutine: Trace {
-    fn call(&self, value: JsResult<JsValue>, context: &mut Context) -> CoroutineState;
+    fn call(&self, value: JsResult<JsValue>, context: &mut Context) -> JsResult<CoroutineState>;
 }
 
 #[derive(Trace, Finalize)]
 struct Coroutine<F, T>
 where
-    F: Fn(JsResult<JsValue>, &T, &mut Context) -> CoroutineState,
+    F: Fn(JsResult<JsValue>, &T, &mut Context) -> JsResult<CoroutineState>,
     T: Trace,
 {
     // SAFETY: `NativeCoroutine`'s safe API ensures only `Copy` closures are stored; its unsafe API,
@@ -29,10 +29,10 @@ where
 
 impl<F, T> TraceableCoroutine for Coroutine<F, T>
 where
-    F: Fn(JsResult<JsValue>, &T, &mut Context) -> CoroutineState,
+    F: Fn(JsResult<JsValue>, &T, &mut Context) -> JsResult<CoroutineState>,
     T: Trace,
 {
-    fn call(&self, result: JsResult<JsValue>, context: &mut Context) -> CoroutineState {
+    fn call(&self, result: JsResult<JsValue>, context: &mut Context) -> JsResult<CoroutineState> {
         (self.f)(result, &self.captures, context)
     }
 }
@@ -61,7 +61,7 @@ impl NativeCoroutine {
     /// Creates a `NativeCoroutine` from a `Copy` closure and a list of traceable captures.
     pub(crate) fn from_copy_closure_with_captures<F, T>(closure: F, captures: T) -> Self
     where
-        F: Fn(JsResult<JsValue>, &T, &mut Context) -> CoroutineState + Copy + 'static,
+        F: Fn(JsResult<JsValue>, &T, &mut Context) -> JsResult<CoroutineState> + Copy + 'static,
         T: Trace + 'static,
     {
         // SAFETY: The `Copy` bound ensures there are no traceable types inside the closure.
@@ -78,7 +78,7 @@ impl NativeCoroutine {
     /// on why that is the case.
     pub(crate) unsafe fn from_closure_with_captures<F, T>(closure: F, captures: T) -> Self
     where
-        F: Fn(JsResult<JsValue>, &T, &mut Context) -> CoroutineState + 'static,
+        F: Fn(JsResult<JsValue>, &T, &mut Context) -> JsResult<CoroutineState> + 'static,
         T: Trace + 'static,
     {
         // Hopefully, this unsafe operation will be replaced by the `CoerceUnsized` API in the
@@ -98,7 +98,11 @@ impl NativeCoroutine {
 
     /// Calls this `NativeCoroutine`, forwarding the arguments to the corresponding function.
     #[inline]
-    pub(crate) fn call(&self, result: JsResult<JsValue>, context: &mut Context) -> CoroutineState {
+    pub(crate) fn call(
+        &self,
+        result: JsResult<JsValue>,
+        context: &mut Context,
+    ) -> JsResult<CoroutineState> {
         self.inner.call(result, context)
     }
 }

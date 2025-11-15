@@ -1,7 +1,7 @@
 //! Error-related types and conversions.
 
 use crate::{
-    Context, JsString, JsValue,
+    Context, JsResult, JsString, JsValue,
     builtins::{
         Array,
         error::{Error, ErrorKind},
@@ -236,8 +236,19 @@ impl PartialEq for JsError {
 #[derive(Debug, Clone, PartialEq, Eq, Trace, Finalize)]
 #[boa_gc(unsafe_no_drop)]
 enum Repr {
-    Native(Box<JsNativeError>),
     Opaque(JsValue),
+    Native(Box<JsNativeError>),
+    Engine(EngineError),
+}
+
+impl error::Error for JsError {
+    fn source(&self) -> Option<&(dyn error::Error + 'static)> {
+        match &self.inner {
+            Repr::Native(err) => err.source(),
+            Repr::Opaque(_) => None,
+            Repr::Engine(err) => err.source(),
+        }
+    }
 }
 
 /// The error type returned by the [`JsError::try_native`] method.
@@ -285,15 +296,41 @@ pub enum TryNativeError {
         /// The source error.
         source: JsError,
     },
+    /// The error was an engine error.
+    #[error("could not convert engine error into a native error")]
+    EngineError {
+        /// The source error.
+        source: EngineError,
+    },
 }
 
-impl error::Error for JsError {
-    fn source(&self) -> Option<&(dyn error::Error + 'static)> {
-        match &self.inner {
-            Repr::Native(err) => err.source(),
-            Repr::Opaque(_) => None,
-        }
-    }
+/// Runtime limit related errors.
+#[derive(Debug, Copy, Clone, Eq, PartialEq, Ord, PartialOrd, Error, Trace, Finalize)]
+#[boa_gc(empty_trace)]
+pub enum RuntimeLimitError {
+    /// Error for reaching the iteration loops limit.
+    #[error("reached the maximum number of iteration loops on this execution")]
+    LoopIteration,
+    /// Error for reaching the maximum amount of recursive calls.
+    #[error("reached the maximum number of recursive calls on this execution")]
+    Recursion,
+    /// Error for reaching the maximum stack size
+    #[error("reached the maximum stack size on this execution")]
+    StackSize,
+}
+
+/// Engine error that cannot be caught from within ECMAScript code.
+#[derive(Debug, Copy, Clone, Eq, PartialEq, Ord, PartialOrd, Error, Trace, Finalize)]
+#[boa_gc(empty_trace)]
+pub enum EngineError {
+    /// Error thrown when no instructions remain. Only used in a fuzzing context.
+    #[cfg(feature = "fuzz")]
+    #[error("NoInstructionsRemainError: instruction budget was exhausted")]
+    NoInstructionsRemain,
+
+    /// Error thrown when a runtime limit is exceeded.
+    #[error("RuntimeLimitError: {0}")]
+    RuntimeLimit(#[from] RuntimeLimitError),
 }
 
 impl JsError {
@@ -360,22 +397,33 @@ impl JsError {
     ///
     /// Unwraps the inner `JsValue` if the error is already an opaque error.
     ///
+    /// # Errors
+    ///
+    /// Returns the original error if `self` was an engine error.
+    ///
     /// # Examples
     ///
     /// ```rust
     /// # use boa_engine::{Context, JsError, JsNativeError};
     /// # use boa_engine::builtins::error::Error;
+    /// # use boa_engine::error::{EngineError, RuntimeLimitError};
     /// let context = &mut Context::default();
     /// let error: JsError =
     ///     JsNativeError::eval().with_message("invalid script").into();
-    /// let error_val = error.to_opaque(context);
+    /// let error_val = error.into_opaque(context).unwrap();
     ///
     /// assert!(error_val.as_object().unwrap().is::<Error>());
+    ///
+    /// let error: JsError =
+    ///     EngineError::RuntimeLimit(RuntimeLimitError::Recursion).into();
+    ///
+    /// assert!(error.into_opaque(context).is_err());
     /// ```
-    pub fn to_opaque(&self, context: &mut Context) -> JsValue {
-        match &self.inner {
-            Repr::Native(e) => e.to_opaque(context).into(),
-            Repr::Opaque(v) => v.clone(),
+    pub fn into_opaque(self, context: &mut Context) -> JsResult<JsValue> {
+        match self.inner {
+            Repr::Native(e) => Ok(e.into_opaque(context).into()),
+            Repr::Opaque(v) => Ok(v.clone()),
+            Repr::Engine(_) => Err(self),
         }
     }
 
@@ -409,7 +457,7 @@ impl JsError {
     ///
     /// // create a new, opaque Error object
     /// let error: JsError = JsNativeError::typ().with_message("type error!").into();
-    /// let error_val = error.to_opaque(context);
+    /// let error_val = error.into_opaque(context).unwrap();
     ///
     /// // then, try to recover the original
     /// let error = JsError::from_opaque(error_val).try_native(context).unwrap();
@@ -419,6 +467,7 @@ impl JsError {
     /// ```
     pub fn try_native(&self, context: &mut Context) -> Result<JsNativeError, TryNativeError> {
         match &self.inner {
+            Repr::Engine(e) => Err(TryNativeError::EngineError { source: *e }),
             Repr::Native(e) => Ok(e.as_ref().clone()),
             Repr::Opaque(val) => {
                 let obj = val
@@ -535,7 +584,7 @@ impl JsError {
     #[must_use]
     pub const fn as_opaque(&self) -> Option<&JsValue> {
         match self.inner {
-            Repr::Native(_) => None,
+            Repr::Native(_) | Repr::Engine(_) => None,
             Repr::Opaque(ref v) => Some(v),
         }
     }
@@ -560,7 +609,17 @@ impl JsError {
     pub const fn as_native(&self) -> Option<&JsNativeError> {
         match &self.inner {
             Repr::Native(e) => Some(e),
-            Repr::Opaque(_) => None,
+            Repr::Opaque(_) | Repr::Engine(_) => None,
+        }
+    }
+
+    /// Gets the inner [`JsNativeError`] if the error is an engine
+    /// error, or `None` otherwise.
+    #[must_use]
+    pub const fn as_engine(&self) -> Option<&EngineError> {
+        match &self.inner {
+            Repr::Opaque(_) | Repr::Native(_) => None,
+            Repr::Engine(err) => Some(err),
         }
     }
 
@@ -595,10 +654,18 @@ impl JsError {
     /// );
     /// ```
     pub fn into_erased(self, context: &mut Context) -> JsErasedError {
-        let Ok(native) = self.try_native(context) else {
-            return JsErasedError {
-                inner: ErasedRepr::Opaque(Cow::Owned(self.to_string())),
-            };
+        let native = match self.try_native(context) {
+            Ok(native) => native,
+            Err(TryNativeError::EngineError { source }) => {
+                return JsErasedError {
+                    inner: ErasedRepr::Engine(source),
+                };
+            }
+            Err(_) => {
+                return JsErasedError {
+                    inner: ErasedRepr::Opaque(Cow::Owned(self.to_string())),
+                };
+            }
         };
 
         let JsNativeError {
@@ -624,11 +691,6 @@ impl JsError {
             JsNativeErrorKind::Syntax => JsErasedNativeErrorKind::Syntax,
             JsNativeErrorKind::Type => JsErasedNativeErrorKind::Type,
             JsNativeErrorKind::Uri => JsErasedNativeErrorKind::Uri,
-            JsNativeErrorKind::RuntimeLimit => JsErasedNativeErrorKind::RuntimeLimit,
-            #[cfg(feature = "fuzz")]
-            JsNativeErrorKind::NoInstructionsRemain => unreachable!(
-                "The NoInstructionsRemain native error cannot be converted to an erased kind."
-            ),
         };
 
         JsErasedError {
@@ -656,8 +718,8 @@ impl JsError {
 
     /// Is the [`JsError`] catchable in JavaScript.
     #[inline]
-    pub(crate) fn is_catchable(&self) -> bool {
-        self.as_native().is_none_or(JsNativeError::is_catchable)
+    pub(crate) const fn is_catchable(&self) -> bool {
+        self.as_engine().is_none()
     }
 }
 
@@ -677,10 +739,26 @@ impl From<JsNativeError> for JsError {
     }
 }
 
+impl From<EngineError> for JsError {
+    fn from(value: EngineError) -> Self {
+        Self {
+            inner: Repr::Engine(value),
+            backtrace: None,
+        }
+    }
+}
+
+impl From<RuntimeLimitError> for JsError {
+    fn from(value: RuntimeLimitError) -> Self {
+        EngineError::from(value).into()
+    }
+}
+
 impl fmt::Display for JsError {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         match &self.inner {
             Repr::Native(e) => e.fmt(f)?,
+            Repr::Engine(e) => e.fmt(f)?,
             Repr::Opaque(v) => v.display().fmt(f)?,
         }
 
@@ -849,11 +927,6 @@ impl JsNativeError {
     pub const TYP: Self = Self::typ();
     /// Default `UriError` kind `JsNativeError`.
     pub const URI: Self = Self::uri();
-    #[cfg(feature = "fuzz")]
-    /// Default `NoInstructionsRemain` kind `JsNativeError`.
-    pub const NO_INSTRUCTIONS_REMAIN: Self = Self::no_instructions_remain();
-    /// Default `error` kind `JsNativeError`.
-    pub const RUNTIME_LIMIT: Self = Self::runtime_limit();
 
     /// Creates a new `JsNativeError` from its `kind`, `message` and (optionally) its `cause`.
     #[cfg_attr(feature = "native-backtrace", track_caller)]
@@ -862,6 +935,11 @@ impl JsNativeError {
         message: Cow<'static, str>,
         cause: Option<Box<JsError>>,
     ) -> Self {
+        if let Some(cause) = &cause
+            && cause.as_engine().is_some()
+        {
+            panic!("engine errors cannot be used as the cause of another error");
+        }
         Self {
             kind,
             message,
@@ -1078,42 +1156,6 @@ impl JsNativeError {
         matches!(self.kind, JsNativeErrorKind::Uri)
     }
 
-    /// Creates a new `JsNativeError` that indicates that the context hit its execution limit. This
-    /// is only used in a fuzzing context.
-    #[cfg(feature = "fuzz")]
-    #[must_use]
-    #[cfg_attr(feature = "native-backtrace", track_caller)]
-    pub const fn no_instructions_remain() -> Self {
-        Self::new(
-            JsNativeErrorKind::NoInstructionsRemain,
-            Cow::Borrowed(""),
-            None,
-        )
-    }
-
-    /// Check if it's a [`JsNativeErrorKind::NoInstructionsRemain`].
-    #[must_use]
-    #[inline]
-    #[cfg(feature = "fuzz")]
-    pub const fn is_no_instructions_remain(&self) -> bool {
-        matches!(self.kind, JsNativeErrorKind::NoInstructionsRemain)
-    }
-
-    /// Creates a new `JsNativeError` that indicates that the context exceeded the runtime limits.
-    #[must_use]
-    #[inline]
-    #[cfg_attr(feature = "native-backtrace", track_caller)]
-    pub const fn runtime_limit() -> Self {
-        Self::new(JsNativeErrorKind::RuntimeLimit, Cow::Borrowed(""), None)
-    }
-
-    /// Check if it's a [`JsNativeErrorKind::RuntimeLimit`].
-    #[must_use]
-    #[inline]
-    pub const fn is_runtime_limit(&self) -> bool {
-        matches!(self.kind, JsNativeErrorKind::RuntimeLimit)
-    }
-
     /// Sets the message of this error.
     ///
     /// # Examples
@@ -1151,7 +1193,13 @@ impl JsNativeError {
     where
         V: Into<JsError>,
     {
-        self.cause = Some(Box::new(cause.into()));
+        let err = cause.into();
+        assert!(
+            err.is_catchable(),
+            "uncatchable errors cannot be used as the cause of another error",
+        );
+
+        self.cause = Some(Box::new(err));
         self
     }
 
@@ -1208,7 +1256,7 @@ impl JsNativeError {
     /// let context = &mut Context::default();
     ///
     /// let error = JsNativeError::error().with_message("error!");
-    /// let error_obj = error.to_opaque(context);
+    /// let error_obj = error.into_opaque(context);
     ///
     /// assert!(error_obj.is::<Error>());
     /// assert_eq!(
@@ -1216,12 +1264,8 @@ impl JsNativeError {
     ///     js_string!("error!").into()
     /// )
     /// ```
-    ///
-    /// # Panics
-    ///
-    /// If converting a [`JsNativeErrorKind::RuntimeLimit`] to an opaque object.
     #[inline]
-    pub fn to_opaque(&self, context: &mut Context) -> JsObject {
+    pub fn into_opaque(self, context: &mut Context) -> JsObject {
         let Self {
             kind,
             message,
@@ -1250,15 +1294,6 @@ impl JsNativeError {
             }
             JsNativeErrorKind::Type => (constructors.type_error().prototype(), ErrorKind::Type),
             JsNativeErrorKind::Uri => (constructors.uri_error().prototype(), ErrorKind::Uri),
-            #[cfg(feature = "fuzz")]
-            JsNativeErrorKind::NoInstructionsRemain => {
-                unreachable!(
-                    "The NoInstructionsRemain native error cannot be converted to an opaque type."
-                )
-            }
-            JsNativeErrorKind::RuntimeLimit => {
-                panic!("The RuntimeLimit native error cannot be converted to an opaque type.")
-            }
         };
 
         let o = JsObject::from_proto_and_data_with_shared_shape(
@@ -1277,15 +1312,20 @@ impl JsNativeError {
         if let Some(cause) = cause {
             o.create_non_enumerable_data_property_or_throw(
                 js_string!("cause"),
-                cause.to_opaque(context),
+                cause
+                    .into_opaque(context)
+                    .expect("engine errors cannot be the cause of another error"),
                 context,
             );
         }
 
         if let JsNativeErrorKind::Aggregate(errors) = kind {
             let errors = errors
-                .iter()
-                .map(|e| e.to_opaque(context))
+                .into_iter()
+                .map(|e| {
+                    e.into_opaque(context)
+                        .expect("engine errors cannot be the cause of another error")
+                })
                 .collect::<Vec<_>>();
             let errors = Array::create_array_from_list(errors, context);
             o.define_property_or_throw(
@@ -1306,12 +1346,6 @@ impl JsNativeError {
     pub(crate) fn with_realm(mut self, realm: Realm) -> Self {
         self.realm = Some(realm);
         self
-    }
-
-    /// Is the [`JsNativeError`] catchable in JavaScript.
-    #[inline]
-    pub(crate) fn is_catchable(&self) -> bool {
-        self.kind.is_catchable()
     }
 }
 
@@ -1409,14 +1443,6 @@ pub enum JsNativeErrorKind {
     /// [e_uri]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/encodeURI
     /// [d_uri]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/decodeURI
     Uri,
-
-    /// Error thrown when no instructions remain. Only used in a fuzzing context; not a valid JS
-    /// error variant.
-    #[cfg(feature = "fuzz")]
-    NoInstructionsRemain,
-
-    /// Error thrown when a runtime limit is exceeded. It's not a valid JS error variant.
-    RuntimeLimit,
 }
 
 // SAFETY: just mirroring the default derive to allow destructuring.
@@ -1432,32 +1458,9 @@ unsafe impl Trace for JsNativeErrorKind {
             | Self::Reference
             | Self::Syntax
             | Self::Type
-            | Self::Uri
-            | Self::RuntimeLimit => {}
-            #[cfg(feature = "fuzz")]
-            Self::NoInstructionsRemain => {}
+            | Self::Uri => {}
         }
     );
-}
-
-impl JsNativeErrorKind {
-    /// Is the [`JsNativeErrorKind`] catchable in JavaScript.
-    #[inline]
-    pub(crate) fn is_catchable(&self) -> bool {
-        match self {
-            Self::Aggregate(_)
-            | Self::Error
-            | Self::Eval
-            | Self::Range
-            | Self::Reference
-            | Self::Syntax
-            | Self::Type
-            | Self::Uri => true,
-            Self::RuntimeLimit => false,
-            #[cfg(feature = "fuzz")]
-            Self::NoInstructionsRemain => false,
-        }
-    }
 }
 
 impl PartialEq<ErrorKind> for JsNativeErrorKind {
@@ -1487,9 +1490,6 @@ impl fmt::Display for JsNativeErrorKind {
             Self::Syntax => "SyntaxError",
             Self::Type => "TypeError",
             Self::Uri => "UriError",
-            Self::RuntimeLimit => "RuntimeLimit",
-            #[cfg(feature = "fuzz")]
-            Self::NoInstructionsRemain => "NoInstructionsRemain",
         }
         .fmt(f)
     }
@@ -1513,13 +1513,15 @@ pub struct JsErasedError {
 enum ErasedRepr {
     Native(JsErasedNativeError),
     Opaque(Cow<'static, str>),
+    Engine(EngineError),
 }
 
 impl fmt::Display for JsErasedError {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         match &self.inner {
             ErasedRepr::Native(e) => e.fmt(f),
-            ErasedRepr::Opaque(v) => fmt::Display::fmt(v, f),
+            ErasedRepr::Opaque(v) => v.fmt(f),
+            ErasedRepr::Engine(e) => e.fmt(f),
         }
     }
 }
@@ -1529,6 +1531,7 @@ impl error::Error for JsErasedError {
         match &self.inner {
             ErasedRepr::Native(err) => err.source(),
             ErasedRepr::Opaque(_) => None,
+            ErasedRepr::Engine(err) => err.source(),
         }
     }
 }
@@ -1538,9 +1541,9 @@ impl JsErasedError {
     /// or `None` otherwise.
     #[must_use]
     pub fn as_opaque(&self) -> Option<&str> {
-        match self.inner {
-            ErasedRepr::Native(_) => None,
-            ErasedRepr::Opaque(ref v) => Some(v),
+        match &self.inner {
+            ErasedRepr::Native(_) | ErasedRepr::Engine(_) => None,
+            ErasedRepr::Opaque(v) => Some(v),
         }
     }
 
@@ -1550,7 +1553,17 @@ impl JsErasedError {
     pub const fn as_native(&self) -> Option<&JsErasedNativeError> {
         match &self.inner {
             ErasedRepr::Native(e) => Some(e),
-            ErasedRepr::Opaque(_) => None,
+            ErasedRepr::Opaque(_) | ErasedRepr::Engine(_) => None,
+        }
+    }
+
+    /// Gets the inner [`EngineError`] if the error is an engine
+    /// error, or `None` otherwise.
+    #[must_use]
+    pub const fn as_engine(&self) -> Option<&EngineError> {
+        match &self.inner {
+            ErasedRepr::Engine(e) => Some(e),
+            ErasedRepr::Opaque(_) | ErasedRepr::Native(_) => None,
         }
     }
 }
@@ -1659,7 +1672,7 @@ pub enum JsErasedNativeErrorKind {
     /// [d_uri]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/decodeURI
     Uri,
 
-    /// Error thrown when a runtime limit is exceeded. It's not a valid JS error variant.
+    /// Error thrown when a runtime limit is exceeded.
     RuntimeLimit,
 }
 

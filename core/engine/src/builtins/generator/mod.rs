@@ -380,7 +380,7 @@ impl Generator {
 
         let (value, resume_kind) = match abrupt_completion {
             Ok(value) => (value, GeneratorResumeKind::Return),
-            Err(err) => (err.to_opaque(context), GeneratorResumeKind::Throw),
+            Err(err) => (err.into_opaque(context)?, GeneratorResumeKind::Throw),
         };
 
         let record = generator_context.resume(Some(value), resume_kind, context);

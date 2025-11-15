@@ -271,7 +271,7 @@ async fn load_dyn_import(
     specifier: JsString,
     cap: PromiseCapability,
     context: &RefCell<&mut Context>,
-) {
+) -> JsResult<()> {
     let loader = context.borrow().module_loader();
     let fut = loader.load_imported_module(referrer.clone(), specifier.clone(), context);
     let mut stack = [MaybeUninit::<u8>::uninit(); 16];
@@ -288,13 +288,13 @@ async fn load_dyn_import(
         // 1. If moduleCompletion is an abrupt completion, then
         Err(err) => {
             // a. Perform ! Call(promiseCapability.[[Reject]], undefined, « moduleCompletion.[[Value]] »).
-            let err = err.to_opaque(&mut context.borrow_mut());
+            let err = err.into_opaque(&mut context.borrow_mut())?;
             cap.reject()
                 .call(&JsValue::undefined(), &[err], &mut context.borrow_mut())
                 .expect("default `reject` function cannot throw");
 
             // b. Return unused.
-            return;
+            return Ok(());
         }
         Ok(m) => m,
     };
@@ -369,7 +369,7 @@ async fn load_dyn_import(
                 // b. If link is an abrupt completion, then
                 if let Err(e) = module.link(context) {
                     // i. Perform ! Call(promiseCapability.[[Reject]], undefined, « link.[[Value]] »).
-                    let e = e.to_opaque(context);
+                    let e = e.into_opaque(context)?;
                     cap.reject()
                         .call(&JsValue::undefined(), &[e], context)
                         .expect("default `reject` function cannot throw");
@@ -378,7 +378,7 @@ async fn load_dyn_import(
                 }
 
                 // c. Let evaluatePromise be module.Evaluate().
-                let evaluate = module.evaluate(context);
+                let evaluate = module.evaluate(context)?;
 
                 // d. Let fulfilledClosure be a new Abstract Closure with no parameters that captures module and promiseCapability and performs the following steps when called:
                 // e. Let onFulfilled be CreateBuiltinFunction(fulfilledClosure, 0, "", « »).
@@ -429,6 +429,7 @@ async fn load_dyn_import(
     );
 
     // 9. Return unused.
+    Ok(())
 }
 
 /// `ImportCall` implements the Opcode Operation for `Opcode::ImportCall`
@@ -467,14 +468,14 @@ impl ImportCall {
         match arg.to_string(context) {
             // 7. IfAbruptRejectPromise(specifierString, promiseCapability).
             Err(err) => {
-                let err = err.to_opaque(context);
+                let err = err.into_opaque(context)?;
                 cap.reject().call(&JsValue::undefined(), &[err], context)?;
             }
             // 8. Perform HostLoadImportedModule(referrer, specifierString, empty, promiseCapability).
             Ok(specifier) => {
                 let job = NativeAsyncJob::with_realm(
                     async move |context| {
-                        load_dyn_import(referrer, specifier, cap, context).await;
+                        load_dyn_import(referrer, specifier, cap, context).await?;
                         Ok(JsValue::undefined())
                     },
                     context.realm().clone(),

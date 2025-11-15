@@ -123,7 +123,7 @@ pub enum ErrorKind {
 /// This is used internally to convert between [`JsObject`] and
 /// [`JsNativeError`] correctly, but it can also be used to manually create `Error`
 /// objects. However, the recommended way to create them is to construct a
-/// `JsNativeError` first, then call [`JsNativeError::to_opaque`],
+/// `JsNativeError` first, then call [`JsNativeError::into_opaque`],
 /// which will assign its prototype, properties and kind automatically.
 ///
 /// For a description of every error kind and its usage, see

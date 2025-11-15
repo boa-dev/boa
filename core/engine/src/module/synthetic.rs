@@ -367,7 +367,11 @@ impl SyntheticModule {
     /// Concrete method [`Evaluate ( )`][spec].
     ///
     /// [spec]: https://tc39.es/proposal-json-modules/#sec-smr-Evaluate
-    pub(super) fn evaluate(&self, module_self: &Module, context: &mut Context) -> JsPromise {
+    pub(super) fn evaluate(
+        &self,
+        module_self: &Module,
+        context: &mut Context,
+    ) -> JsResult<JsPromise> {
         let (environments, codeblock) = match &*self.state.borrow() {
             ModuleStatus::Unlinked => {
                 let (promise, ResolvingFunctions { reject, .. }) = JsPromise::new_pending(context);
@@ -376,15 +380,15 @@ impl SyntheticModule {
                         &JsValue::undefined(),
                         &[JsNativeError::typ()
                             .with_message("cannot evaluate unlinked synthetic module")
-                            .to_opaque(context)
+                            .into_opaque(context)
                             .into()],
                         context,
                     )
                     .expect("native resolving functions cannot throw");
-                return promise;
+                return Ok(promise);
             }
             ModuleStatus::Linked { eval_context, .. } => eval_context.clone(),
-            ModuleStatus::Evaluated { promise, .. } => return promise.clone(),
+            ModuleStatus::Evaluated { promise, .. } => return Ok(promise.clone()),
         };
         // 1. Let moduleContext be a new ECMAScript code execution context.
 
@@ -426,7 +430,7 @@ impl SyntheticModule {
             // 15. Perform ! pc.[[Resolve]](result).
             Ok(()) => resolve.call(&JsValue::undefined(), &[], context),
             // 14. IfAbruptRejectPromise(result, pc).
-            Err(err) => reject.call(&JsValue::undefined(), &[err.to_opaque(context)], context),
+            Err(err) => reject.call(&JsValue::undefined(), &[err.into_opaque(context)?], context),
         }
         .expect("default resolving functions cannot throw");
 
@@ -439,7 +443,7 @@ impl SyntheticModule {
         });
 
         // 16. Return pc.[[Promise]].
-        promise
+        Ok(promise)
     }
 
     pub(crate) fn environment(&self) -> Option<Gc<DeclarativeEnvironment>> {

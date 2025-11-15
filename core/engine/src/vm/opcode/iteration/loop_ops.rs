@@ -1,4 +1,4 @@
-use crate::JsNativeError;
+use crate::error::RuntimeLimitError;
 use crate::{Context, JsResult, vm::opcode::Operation};
 
 /// `IncrementLoopIteration` implements the Opcode Operation for `Opcode::IncrementLoopIteration`.
@@ -16,9 +16,7 @@ impl IncrementLoopIteration {
         let previous_iteration_count = frame.loop_iteration_count;
 
         if previous_iteration_count > max {
-            return Err(JsNativeError::runtime_limit()
-                .with_message(format!("Maximum loop iteration limit {max} exceeded"))
-                .into());
+            return Err(RuntimeLimitError::LoopIteration.into());
         }
 
         frame.loop_iteration_count = previous_iteration_count.wrapping_add(1);

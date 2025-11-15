@@ -213,7 +213,7 @@ impl NativeFunction {
                     match result {
                         Ok(v) => resolvers.resolve.call(&JsValue::undefined(), &[v], context),
                         Err(e) => {
-                            let e = e.to_opaque(context);
+                            let e = e.into_opaque(context)?;
                             resolvers.reject.call(&JsValue::undefined(), &[e], context)
                         }
                     }

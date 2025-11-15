@@ -71,7 +71,11 @@ impl AsyncGeneratorYield {
         // TODO: 7. Let previousContext be the second to top element of the execution context stack.
         // TODO: 8. Let previousRealm be previousContext's Realm.
         // 9. Perform AsyncGeneratorCompleteStep(generator, completion, false, previousRealm).
-        AsyncGenerator::complete_step(&async_generator_object, completion, false, None, context);
+        if let Err(err) =
+            AsyncGenerator::complete_step(&async_generator_object, completion, false, None, context)
+        {
+            return context.handle_error(err);
+        }
 
         let mut r#gen = async_generator_object.borrow_mut();
 
@@ -91,7 +95,10 @@ impl AsyncGeneratorYield {
                     GeneratorResumeKind::Return
                 }
                 CompletionRecord::Throw(err) => {
-                    let err = err.to_opaque(context);
+                    let err = match err.into_opaque(context) {
+                        Ok(e) => e,
+                        Err(e) => return context.handle_error(e),
+                    };
                     context.vm.stack.push(err);
                     GeneratorResumeKind::Throw
                 }
