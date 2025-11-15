@@ -105,6 +105,8 @@ pub(crate) struct Inner {
     function: bool,
     // Has the `this` been accessed/escaped outside the function environment boundary.
     this_escaped: Cell<bool>,
+
+    context: Rc<ScopeContext>,
 }
 
 impl Scope {
@@ -119,6 +121,7 @@ impl Scope {
                 bindings: RefCell::default(),
                 function: true,
                 this_escaped: Cell::new(false),
+                context: Rc::default(),
             }),
         }
     }
@@ -126,15 +129,15 @@ impl Scope {
     /// Creates a new scope.
     #[must_use]
     pub fn new(parent: Self, function: bool) -> Self {
-        let index = parent.inner.index.get() + 1;
         Self {
             inner: Rc::new(Inner {
-                unique_id: index,
-                outer: Some(parent),
-                index: Cell::new(index),
+                unique_id: parent.inner.context.next_unique_id(),
+                index: Cell::new(parent.inner.index.get() + 1),
                 bindings: RefCell::default(),
                 function,
                 this_escaped: Cell::new(false),
+                context: parent.inner.context.clone(),
+                outer: Some(parent),
             }),
         }
     }
@@ -494,6 +497,33 @@ impl Scope {
     pub fn outer(&self) -> Option<Self> {
         self.inner.outer.clone()
     }
+
+    /// Returns the unique ID of this scope.
+    #[must_use]
+    pub fn unique_id(&self) -> u32 {
+        self.inner.unique_id
+    }
+}
+
+/// Additional state that all Scopes of a single AST share for bookkeeping.
+#[derive(Debug, PartialEq, Default)]
+struct ScopeContext {
+    /// A counter for unique IDs for Scopes generated as part of this scope tree.
+    ///
+    /// The value is the highest unique ID assigned so far (initialized with 0
+    /// which is also the unique ID of the global scope).
+    ///
+    /// Only used in the root scope.
+    unique_id_ctr: Cell<u32>,
+}
+
+impl ScopeContext {
+    /// Returns the next unique ID for a scope in this scope tree.
+    fn next_unique_id(&self) -> u32 {
+        let id = self.unique_id_ctr.get() + 1;
+        self.unique_id_ctr.set(id);
+        id
+    }
 }
 
 /// A reference to an identifier in a scope.
@@ -624,6 +654,12 @@ impl BindingLocator {
     pub fn set_binding_index(&mut self, index: u32) {
         self.binding_index = index;
     }
+
+    /// Returns the unique scope ID of the binding.
+    #[must_use]
+    pub fn unique_scope_id(&self) -> u32 {
+        self.unique_scope_id
+    }
 }
 
 /// Action that is returned when a fallible binding operation.
@@ -637,7 +673,7 @@ pub enum BindingLocatorError {
 }
 
 /// The scope in which a binding is located.
-#[derive(Clone, Copy, Debug)]
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
 pub enum BindingLocatorScope {
     /// The binding is located on the global object.
     GlobalObject,
