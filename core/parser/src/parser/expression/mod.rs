@@ -8,12 +8,12 @@
 //! [spec]: https://tc39.es/ecma262/#sec-ecmascript-language-expressions
 
 mod assignment;
+mod fpl_or_exp;
 mod identifiers;
 mod left_hand_side;
 mod primary;
 mod unary;
 mod update;
-mod fpl_or_exp;
 
 pub(in crate::parser) mod await_expr;
 
@@ -44,12 +44,12 @@ use boa_interner::{Interner, Sym};
 
 pub(super) use self::{assignment::AssignmentExpression, primary::Initializer};
 pub(in crate::parser) use {
+    fpl_or_exp::FormalParameterListOrExpression,
     identifiers::{BindingIdentifier, LabelIdentifier},
     left_hand_side::LeftHandSideExpression,
     primary::object_initializer::{
         AsyncGeneratorMethod, AsyncMethod, GeneratorMethod, PropertyName,
     },
-    fpl_or_exp::FormalParameterListOrExpression
 };
 
 /// Generates an expression parser for a number of expressions whose production rules are of the following pattern.
@@ -259,7 +259,7 @@ where
                 .parse(cursor, interner)?;
         let mut current_node = match current_node {
             FormalParameterListOrExpression::Expression(expression) => expression,
-            other => return Ok(other)
+            other => return Ok(other),
         };
 
         let mut previous = self.previous;
@@ -279,7 +279,8 @@ where
                     previous = PreviousExpr::Logical;
                     let rhs =
                         BitwiseORExpression::new(self.allow_in, self.allow_yield, self.allow_await)
-                            .parse(cursor, interner)?.try_into_expression()?;
+                            .parse(cursor, interner)?
+                            .try_into_expression()?;
 
                     current_node =
                         Binary::new(BinaryOp::Logical(LogicalOp::And), current_node, rhs).into();
@@ -301,7 +302,8 @@ where
                         self.allow_await,
                         PreviousExpr::Logical,
                     )
-                    .parse(cursor, interner)?.try_into_expression()?;
+                    .parse(cursor, interner)?
+                    .try_into_expression()?;
                     current_node =
                         Binary::new(BinaryOp::Logical(LogicalOp::Or), current_node, rhs).into();
                 }
@@ -318,7 +320,8 @@ where
                     previous = PreviousExpr::Coalesce;
                     let rhs =
                         BitwiseORExpression::new(self.allow_in, self.allow_yield, self.allow_await)
-                            .parse(cursor, interner)?.try_into_expression()?;
+                            .parse(cursor, interner)?
+                            .try_into_expression()?;
                     current_node =
                         Binary::new(BinaryOp::Logical(LogicalOp::Coalesce), current_node, rhs)
                             .into();
@@ -547,7 +550,8 @@ where
                         cursor.advance(interner);
 
                         let rhs = ShiftExpression::new(self.allow_yield, self.allow_await)
-                            .parse(cursor, interner)?.try_into_expression()?;
+                            .parse(cursor, interner)?
+                            .try_into_expression()?;
 
                         return Ok(BinaryInPrivate::new(
                             PrivateName::new(identifier, identifier_span),
@@ -564,7 +568,7 @@ where
             ShiftExpression::new(self.allow_yield, self.allow_await).parse(cursor, interner)?;
         let mut lhs = match lhs {
             FormalParameterListOrExpression::Expression(exp) => exp,
-            other => return Ok(other)
+            other => return Ok(other),
         };
 
         while let Some(tok) = cursor.peek(0, interner)? {
@@ -580,7 +584,8 @@ where
                         op.as_binary_op().expect("Could not get binary operation."),
                         lhs,
                         ShiftExpression::new(self.allow_yield, self.allow_await)
-                            .parse(cursor, interner)?.try_into_expression()?,
+                            .parse(cursor, interner)?
+                            .try_into_expression()?,
                     )
                     .into();
                 }
@@ -599,7 +604,8 @@ where
                         op.as_binary_op().expect("Could not get binary operation."),
                         lhs,
                         ShiftExpression::new(self.allow_yield, self.allow_await)
-                            .parse(cursor, interner)?.try_into_expression()?,
+                            .parse(cursor, interner)?
+                            .try_into_expression()?,
                     )
                     .into();
                 }

@@ -11,12 +11,15 @@ use crate::{
     lexer::TokenKind,
     parser::{
         AllowAwait, AllowYield, Cursor, OrAbrupt, ParseResult, TokenParser,
-        expression::{FormalParameterListOrExpression, unary::UnaryExpression, update::UpdateExpression},
+        expression::{
+            FormalParameterListOrExpression, unary::UnaryExpression, update::UpdateExpression,
+        },
     },
     source::ReadChar,
 };
 use boa_ast::{
-    Keyword, Punctuator, expression::operator::{Binary, binary::ArithmeticOp}
+    Keyword, Punctuator,
+    expression::operator::{Binary, binary::ArithmeticOp},
 };
 use boa_interner::Interner;
 
@@ -62,11 +65,13 @@ where
                 Punctuator::Add | Punctuator::Sub | Punctuator::Not | Punctuator::Neg,
             ) => {
                 return UnaryExpression::new(self.allow_yield, self.allow_await)
-                    .parse(cursor, interner).map(Into::into)
+                    .parse(cursor, interner)
+                    .map(Into::into);
             }
             TokenKind::Keyword((Keyword::Await, _)) if self.allow_await.0 => {
                 return UnaryExpression::new(self.allow_yield, self.allow_await)
-                    .parse(cursor, interner).map(Into::into);
+                    .parse(cursor, interner)
+                    .map(Into::into);
             }
             _ => {}
         }
@@ -75,16 +80,19 @@ where
             UpdateExpression::new(self.allow_yield, self.allow_await).parse(cursor, interner)?;
         let lhs = match lhs {
             FormalParameterListOrExpression::Expression(expression) => expression,
-            other => return Ok(other)
+            other => return Ok(other),
         };
 
         if let Some(tok) = cursor.peek(0, interner)?
             && tok.kind() == &TokenKind::Punctuator(Punctuator::Exp)
         {
             cursor.advance(interner);
-            return Ok(
-                Binary::new(ArithmeticOp::Exp.into(), lhs, self.parse(cursor, interner)?.try_into_expression()?).into(),
-            );
+            return Ok(Binary::new(
+                ArithmeticOp::Exp.into(),
+                lhs,
+                self.parse(cursor, interner)?.try_into_expression()?,
+            )
+            .into());
         }
         Ok(lhs.into())
     }

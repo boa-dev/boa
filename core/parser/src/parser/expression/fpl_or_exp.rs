@@ -1,15 +1,12 @@
-use boa_ast::{
-    self as ast, Position, function::FormalParameterList
-};
 use crate::{Error, error::ParseResult};
-
+use boa_ast::{self as ast, Position, function::FormalParameterList};
 
 pub(crate) enum FormalParameterListOrExpression {
     FormalParameterList {
         fpl: FormalParameterList,
-        span_start: Position
+        span_start: Position,
     },
-    Expression(ast::Expression)
+    Expression(ast::Expression),
 }
 
 impl FormalParameterListOrExpression {
@@ -36,7 +33,9 @@ impl FormalParameterListOrExpression {
 }
 
 impl<T> From<T> for FormalParameterListOrExpression
-where T: Into<ast::Expression> {
+where
+    T: Into<ast::Expression>,
+{
     fn from(value: T) -> Self {
         Self::Expression(value.into())
     }

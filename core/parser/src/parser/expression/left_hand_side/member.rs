@@ -12,7 +12,8 @@ use crate::{
     parser::{
         AllowAwait, AllowYield, Cursor, OrAbrupt, ParseResult, TokenParser,
         expression::{
-            Expression, FormalParameterListOrExpression, left_hand_side::template::TaggedTemplateLiteral, primary::PrimaryExpression
+            Expression, FormalParameterListOrExpression,
+            left_hand_side::template::TaggedTemplateLiteral, primary::PrimaryExpression,
         },
     },
     source::ReadChar,
@@ -212,7 +213,8 @@ where
                                 Span::new(super_token_span.start(), token_span.end()),
                             )
                             .into(),
-                        ).into()
+                        )
+                        .into()
                     }
                     _ => {
                         return Err(Error::unexpected(
@@ -229,7 +231,7 @@ where
 
         let mut lhs = match lhs {
             FormalParameterListOrExpression::Expression(exp) => exp,
-            other => return Ok(other)
+            other => return Ok(other),
         };
 
         cursor.set_goal(InputElement::TemplateTail);

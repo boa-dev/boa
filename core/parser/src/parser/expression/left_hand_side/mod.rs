@@ -22,12 +22,13 @@ use crate::{
     parser::{
         AllowAwait, AllowYield, Cursor, ParseResult, TokenParser,
         expression::{
-            AssignmentExpression, FormalParameterListOrExpression, left_hand_side::{
+            AssignmentExpression, FormalParameterListOrExpression,
+            left_hand_side::{
                 arguments::Arguments,
                 call::{CallExpression, CallExpressionTail},
                 member::MemberExpression,
                 optional::OptionalExpression,
-            }
+            },
         },
     },
     source::ReadChar,
@@ -113,54 +114,65 @@ where
 
         cursor.set_goal(InputElement::TemplateTail);
 
-        let mut lhs: FormalParameterListOrExpression = if let Some(start) = is_keyword_call(Keyword::Super, cursor, interner)? {
-            cursor.advance(interner);
-            let (args, args_span) =
-                Arguments::new(self.allow_yield, self.allow_await).parse(cursor, interner)?;
-            SuperCall::new(args, Span::new(start, args_span.end())).into()
-        } else if let Some(start) = is_keyword_call(Keyword::Import, cursor, interner)? {
-            // `import`
-            cursor.advance(interner);
-            // `(`
-            cursor.advance(interner);
+        let mut lhs: FormalParameterListOrExpression =
+            if let Some(start) = is_keyword_call(Keyword::Super, cursor, interner)? {
+                cursor.advance(interner);
+                let (args, args_span) =
+                    Arguments::new(self.allow_yield, self.allow_await).parse(cursor, interner)?;
+                SuperCall::new(args, Span::new(start, args_span.end())).into()
+            } else if let Some(start) = is_keyword_call(Keyword::Import, cursor, interner)? {
+                // `import`
+                cursor.advance(interner);
+                // `(`
+                cursor.advance(interner);
 
-            let arg = AssignmentExpression::new(true, self.allow_yield, self.allow_await)
-                .parse(cursor, interner)?;
+                let arg = AssignmentExpression::new(true, self.allow_yield, self.allow_await)
+                    .parse(cursor, interner)?;
 
-            let end = cursor
-                .expect(
-                    TokenKind::Punctuator(Punctuator::CloseParen),
-                    "import call",
-                    interner,
-                )?
-                .span()
-                .end();
+                let end = cursor
+                    .expect(
+                        TokenKind::Punctuator(Punctuator::CloseParen),
+                        "import call",
+                        interner,
+                    )?
+                    .span()
+                    .end();
 
-            CallExpressionTail::new(
-                self.allow_yield,
-                self.allow_await,
-                ImportCall::new(arg, Span::new(start, end)).into(),
-            )
-            .parse(cursor, interner)?.into()
-        } else {
-            let member = MemberExpression::new(self.allow_yield, self.allow_await)
-                .parse(cursor, interner)?;
-            if let Some(tok) = cursor.peek(0, interner)?
-                && tok.kind() == &TokenKind::Punctuator(Punctuator::OpenParen)
-            {
-                CallExpression::new(self.allow_yield, self.allow_await, member.expect_expression())
-                    .parse(cursor, interner)?.into()
+                CallExpressionTail::new(
+                    self.allow_yield,
+                    self.allow_await,
+                    ImportCall::new(arg, Span::new(start, end)).into(),
+                )
+                .parse(cursor, interner)?
+                .into()
             } else {
-                member
-            }
-        };
+                let member = MemberExpression::new(self.allow_yield, self.allow_await)
+                    .parse(cursor, interner)?;
+                if let Some(tok) = cursor.peek(0, interner)?
+                    && tok.kind() == &TokenKind::Punctuator(Punctuator::OpenParen)
+                {
+                    CallExpression::new(
+                        self.allow_yield,
+                        self.allow_await,
+                        member.expect_expression(),
+                    )
+                    .parse(cursor, interner)?
+                    .into()
+                } else {
+                    member
+                }
+            };
 
         if let Some(tok) = cursor.peek(0, interner)?
             && tok.kind() == &TokenKind::Punctuator(Punctuator::Optional)
         {
-            lhs = OptionalExpression::new(self.allow_yield, self.allow_await, lhs.expect_expression())
-                .parse(cursor, interner)?
-                .into();
+            lhs = OptionalExpression::new(
+                self.allow_yield,
+                self.allow_await,
+                lhs.expect_expression(),
+            )
+            .parse(cursor, interner)?
+            .into();
         }
 
         Ok(lhs)

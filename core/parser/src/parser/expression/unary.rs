@@ -12,7 +12,9 @@ use crate::{
     lexer::{Error as LexError, TokenKind},
     parser::{
         AllowAwait, AllowYield, Cursor, OrAbrupt, ParseResult, TokenParser,
-        expression::{FormalParameterListOrExpression, await_expr::AwaitExpression, update::UpdateExpression},
+        expression::{
+            FormalParameterListOrExpression, await_expr::AwaitExpression, update::UpdateExpression,
+        },
     },
     source::ReadChar,
 };
