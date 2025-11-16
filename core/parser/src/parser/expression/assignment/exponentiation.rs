@@ -77,7 +77,7 @@ where
         let lhs =
             UpdateExpression::new(self.allow_yield, self.allow_await).parse(cursor, interner)?;
         let FormalParameterListOrExpression::Expression(lhs) = lhs else {
-            return Ok(lhs)
+            return Ok(lhs);
         };
 
         if let Some(tok) = cursor.peek(0, interner)?

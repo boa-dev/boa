@@ -230,7 +230,7 @@ where
         };
 
         let FormalParameterListOrExpression::Expression(mut lhs) = lhs else {
-            return Ok(lhs)
+            return Ok(lhs);
         };
 
         cursor.set_goal(InputElement::TemplateTail);

@@ -566,7 +566,7 @@ where
         let lhs =
             ShiftExpression::new(self.allow_yield, self.allow_await).parse(cursor, interner)?;
         let FormalParameterListOrExpression::Expression(mut lhs) = lhs else {
-            return Ok(lhs)
+            return Ok(lhs);
         };
 
         while let Some(tok) = cursor.peek(0, interner)? {
