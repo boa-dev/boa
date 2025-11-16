@@ -18,12 +18,12 @@ use crate::{
     lexer::{Error as LexError, InputElement, TokenKind},
     parser::{
         AllowAwait, AllowIn, AllowYield, Cursor, OrAbrupt, ParseResult, TokenParser,
-        expression::assignment::{
+        expression::{FormalParameterListOrExpression, assignment::{
             arrow_function::{ArrowFunction, ConciseBody},
             async_arrow_function::AsyncArrowFunction,
             conditional::ConditionalExpression,
             r#yield::YieldExpression,
-        },
+        }},
         name_in_lexically_declared_names,
     },
     source::ReadChar,
@@ -151,11 +151,11 @@ where
         let peek_token = cursor.peek(0, interner).or_abrupt()?;
         let position = peek_token.span().start();
         let start_linear_span = peek_token.linear_span();
-        let mut lhs = ConditionalExpression::new(self.allow_in, self.allow_yield, self.allow_await)
+        let lhs = ConditionalExpression::new(self.allow_in, self.allow_yield, self.allow_await)
             .parse(cursor, interner)?;
 
         // If the left hand side is a parameter list, we must parse an arrow function.
-        if let Expression::FormalParameterList(parameters) = lhs {
+        if let FormalParameterListOrExpression::FormalParameterList { fpl: parameters, .. } = lhs {
             cursor.peek_expect_no_lineterminator(0, "arrow function", interner)?;
 
             cursor.expect(
@@ -225,6 +225,7 @@ where
             )
             .into());
         }
+        let mut lhs = lhs.expect_expression();
 
         // Review if we are trying to assign to an invalid left hand side expression.
         if let Some(tok) = cursor.peek(0, interner)?.cloned() {

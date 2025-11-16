@@ -11,11 +11,11 @@ use crate::{
     lexer::TokenKind,
     parser::{
         AllowAwait, AllowIn, AllowYield, Cursor, ParseResult, TokenParser,
-        expression::{AssignmentExpression, ShortCircuitExpression},
+        expression::{AssignmentExpression, FormalParameterListOrExpression, ShortCircuitExpression},
     },
     source::ReadChar,
 };
-use boa_ast::{Expression, Punctuator, expression::operator::Conditional};
+use boa_ast::{Punctuator, expression::operator::Conditional};
 use boa_interner::Interner;
 
 /// Conditional expression parsing.
@@ -57,7 +57,7 @@ impl<R> TokenParser<R> for ConditionalExpression
 where
     R: ReadChar,
 {
-    type Output = Expression;
+    type Output = FormalParameterListOrExpression;
 
     fn parse(self, cursor: &mut Cursor<R>, interner: &mut Interner) -> ParseResult<Self::Output> {
         let lhs = ShortCircuitExpression::new(self.allow_in, self.allow_yield, self.allow_await)
@@ -66,6 +66,8 @@ where
         if let Some(tok) = cursor.peek(0, interner)?
             && tok.kind() == &TokenKind::Punctuator(Punctuator::Question)
         {
+            let lhs = lhs.expect_expression();
+
             cursor.advance(interner);
             let then_clause = AssignmentExpression::new(true, self.allow_yield, self.allow_await)
                 .parse(cursor, interner)?;
@@ -77,6 +79,6 @@ where
             return Ok(Conditional::new(lhs, then_clause, else_clause).into());
         }
 
-        Ok(lhs)
+        Ok(lhs.into())
     }
 }
