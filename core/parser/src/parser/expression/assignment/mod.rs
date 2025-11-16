@@ -18,12 +18,15 @@ use crate::{
     lexer::{Error as LexError, InputElement, TokenKind},
     parser::{
         AllowAwait, AllowIn, AllowYield, Cursor, OrAbrupt, ParseResult, TokenParser,
-        expression::{FormalParameterListOrExpression, assignment::{
-            arrow_function::{ArrowFunction, ConciseBody},
-            async_arrow_function::AsyncArrowFunction,
-            conditional::ConditionalExpression,
-            r#yield::YieldExpression,
-        }},
+        expression::{
+            FormalParameterListOrExpression,
+            assignment::{
+                arrow_function::{ArrowFunction, ConciseBody},
+                async_arrow_function::AsyncArrowFunction,
+                conditional::ConditionalExpression,
+                r#yield::YieldExpression,
+            },
+        },
         name_in_lexically_declared_names,
     },
     source::ReadChar,
@@ -155,7 +158,10 @@ where
             .parse(cursor, interner)?;
 
         // If the left hand side is a parameter list, we must parse an arrow function.
-        if let FormalParameterListOrExpression::FormalParameterList { fpl: parameters, .. } = lhs {
+        if let FormalParameterListOrExpression::FormalParameterList {
+            fpl: parameters, ..
+        } = lhs
+        {
             cursor.peek_expect_no_lineterminator(0, "arrow function", interner)?;
 
             cursor.expect(

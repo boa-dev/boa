@@ -11,7 +11,9 @@ use crate::{
     lexer::TokenKind,
     parser::{
         AllowAwait, AllowIn, AllowYield, Cursor, ParseResult, TokenParser,
-        expression::{AssignmentExpression, FormalParameterListOrExpression, ShortCircuitExpression},
+        expression::{
+            AssignmentExpression, FormalParameterListOrExpression, ShortCircuitExpression,
+        },
     },
     source::ReadChar,
 };

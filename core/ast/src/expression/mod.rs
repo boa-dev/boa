@@ -16,11 +16,11 @@ use self::{
 };
 use super::{
     Spanned, Statement,
+    function::AsyncArrowFunction,
     function::{
         ArrowFunction, AsyncFunctionExpression, AsyncGeneratorExpression, ClassExpression,
         FunctionExpression, GeneratorExpression,
     },
-    function::AsyncArrowFunction,
 };
 use boa_interner::{Interner, ToIndentedString, ToInternedString};
 use core::ops::ControlFlow;

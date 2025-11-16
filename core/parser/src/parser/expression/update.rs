@@ -11,7 +11,8 @@ use crate::{
     parser::{
         AllowAwait, AllowYield, Cursor, OrAbrupt, ParseResult, TokenParser,
         expression::{
-            FormalParameterListOrExpression, check_strict_arguments_or_eval, left_hand_side::LeftHandSideExpression, unary::UnaryExpression
+            FormalParameterListOrExpression, check_strict_arguments_or_eval,
+            left_hand_side::LeftHandSideExpression, unary::UnaryExpression,
         },
     },
     source::ReadChar,
@@ -93,7 +94,8 @@ where
                     .expect("Punctuator::Inc token disappeared");
 
                 let target = UnaryExpression::new(self.allow_yield, self.allow_await)
-                    .parse(cursor, interner)?.try_into_expression()?;
+                    .parse(cursor, interner)?
+                    .try_into_expression()?;
                 let target_span_end = target.span().end();
 
                 // https://tc39.es/ecma262/#sec-update-expressions-static-semantics-early-errors
@@ -120,7 +122,8 @@ where
                     .expect("Punctuator::Dec token disappeared");
 
                 let target = UnaryExpression::new(self.allow_yield, self.allow_await)
-                    .parse(cursor, interner)?.try_into_expression()?;
+                    .parse(cursor, interner)?
+                    .try_into_expression()?;
                 let target_span_end = target.span().end();
 
                 // https://tc39.es/ecma262/#sec-update-expressions-static-semantics-early-errors
@@ -148,7 +151,7 @@ where
             .parse(cursor, interner)?;
         let lhs = match lhs {
             FormalParameterListOrExpression::Expression(expression) => expression,
-            other => return Ok(other)
+            other => return Ok(other),
         };
         let lhs_span_start = lhs.span().start();
 
