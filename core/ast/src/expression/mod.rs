@@ -20,7 +20,7 @@ use super::{
         ArrowFunction, AsyncFunctionExpression, AsyncGeneratorExpression, ClassExpression,
         FunctionExpression, GeneratorExpression,
     },
-    function::{AsyncArrowFunction, FormalParameterList},
+    function::AsyncArrowFunction,
 };
 use boa_interner::{Interner, ToIndentedString, ToInternedString};
 use core::ops::ControlFlow;
@@ -178,13 +178,6 @@ pub enum Expression {
 
     /// See [`Parenthesized`].
     Parenthesized(Parenthesized),
-
-    /// A FormalParameterList.
-    ///
-    /// This is only used in the parser itself.
-    /// It is not a valid expression node.
-    #[doc(hidden)]
-    FormalParameterList(FormalParameterList),
 }
 
 impl Expression {
@@ -229,7 +222,6 @@ impl Expression {
             Self::Yield(yi) => yi.to_interned_string(interner),
             Self::Parenthesized(expr) => expr.to_interned_string(interner),
             Self::RegExpLiteral(regexp) => regexp.to_interned_string(interner),
-            Self::FormalParameterList(_) => unreachable!(),
         }
     }
 
@@ -322,8 +314,6 @@ impl Spanned for Expression {
             Self::Yield(yi) => yi.span(),
             Self::Parenthesized(expr) => expr.span(),
             Self::RegExpLiteral(regexp) => regexp.span(),
-            // TODO: Remove `FormalParameterList` and `Debugger` nodes
-            Self::FormalParameterList(_) => Span::EMPTY,
         }
     }
 }
@@ -379,7 +369,6 @@ impl VisitWith for Expression {
             Self::Await(a) => visitor.visit_await(a),
             Self::Yield(y) => visitor.visit_yield(y),
             Self::Parenthesized(e) => visitor.visit_parenthesized(e),
-            Self::FormalParameterList(fpl) => visitor.visit_formal_parameter_list(fpl),
             Self::NewTarget(new_target) => visitor.visit_new_target(new_target),
             Self::ImportMeta(import_meta) => visitor.visit_import_meta(import_meta),
         }
@@ -421,7 +410,6 @@ impl VisitWith for Expression {
             Self::Await(a) => visitor.visit_await_mut(a),
             Self::Yield(y) => visitor.visit_yield_mut(y),
             Self::Parenthesized(e) => visitor.visit_parenthesized_mut(e),
-            Self::FormalParameterList(fpl) => visitor.visit_formal_parameter_list_mut(fpl),
             Self::NewTarget(new_target) => visitor.visit_new_target_mut(new_target),
             Self::ImportMeta(import_meta) => visitor.visit_import_meta_mut(import_meta),
         }

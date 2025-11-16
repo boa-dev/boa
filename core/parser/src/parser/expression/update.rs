@@ -11,8 +11,7 @@ use crate::{
     parser::{
         AllowAwait, AllowYield, Cursor, OrAbrupt, ParseResult, TokenParser,
         expression::{
-            check_strict_arguments_or_eval, left_hand_side::LeftHandSideExpression,
-            unary::UnaryExpression,
+            FormalParameterListOrExpression, check_strict_arguments_or_eval, left_hand_side::LeftHandSideExpression, unary::UnaryExpression
         },
     },
     source::ReadChar,
@@ -82,7 +81,7 @@ impl<R> TokenParser<R> for UpdateExpression
 where
     R: ReadChar,
 {
-    type Output = Expression;
+    type Output = FormalParameterListOrExpression;
 
     fn parse(self, cursor: &mut Cursor<R>, interner: &mut Interner) -> ParseResult<Self::Output> {
         let tok = cursor.peek(0, interner).or_abrupt()?;
@@ -94,7 +93,7 @@ where
                     .expect("Punctuator::Inc token disappeared");
 
                 let target = UnaryExpression::new(self.allow_yield, self.allow_await)
-                    .parse(cursor, interner)?;
+                    .parse(cursor, interner)?.try_into_expression()?;
                 let target_span_end = target.span().end();
 
                 // https://tc39.es/ecma262/#sec-update-expressions-static-semantics-early-errors
@@ -121,7 +120,7 @@ where
                     .expect("Punctuator::Dec token disappeared");
 
                 let target = UnaryExpression::new(self.allow_yield, self.allow_await)
-                    .parse(cursor, interner)?;
+                    .parse(cursor, interner)?.try_into_expression()?;
                 let target_span_end = target.span().end();
 
                 // https://tc39.es/ecma262/#sec-update-expressions-static-semantics-early-errors
@@ -147,10 +146,14 @@ where
 
         let lhs = LeftHandSideExpression::new(self.allow_yield, self.allow_await)
             .parse(cursor, interner)?;
+        let lhs = match lhs {
+            FormalParameterListOrExpression::Expression(expression) => expression,
+            other => return Ok(other)
+        };
         let lhs_span_start = lhs.span().start();
 
         if cursor.peek_is_line_terminator(0, interner)?.unwrap_or(true) {
-            return Ok(lhs);
+            return Ok(lhs.into());
         }
 
         if let Some(tok) = cursor.peek(0, interner)? {
@@ -207,6 +210,6 @@ where
             }
         }
 
-        Ok(lhs)
+        Ok(lhs.into())
     }
 }

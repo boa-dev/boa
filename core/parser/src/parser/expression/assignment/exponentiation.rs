@@ -11,13 +11,12 @@ use crate::{
     lexer::TokenKind,
     parser::{
         AllowAwait, AllowYield, Cursor, OrAbrupt, ParseResult, TokenParser,
-        expression::{unary::UnaryExpression, update::UpdateExpression},
+        expression::{FormalParameterListOrExpression, unary::UnaryExpression, update::UpdateExpression},
     },
     source::ReadChar,
 };
 use boa_ast::{
-    Expression, Keyword, Punctuator,
-    expression::operator::{Binary, binary::ArithmeticOp},
+    Keyword, Punctuator, expression::operator::{Binary, binary::ArithmeticOp}
 };
 use boa_interner::Interner;
 
@@ -53,7 +52,7 @@ impl<R> TokenParser<R> for ExponentiationExpression
 where
     R: ReadChar,
 {
-    type Output = Expression;
+    type Output = FormalParameterListOrExpression;
 
     fn parse(self, cursor: &mut Cursor<R>, interner: &mut Interner) -> ParseResult<Self::Output> {
         let next = cursor.peek(0, interner).or_abrupt()?;
@@ -63,25 +62,30 @@ where
                 Punctuator::Add | Punctuator::Sub | Punctuator::Not | Punctuator::Neg,
             ) => {
                 return UnaryExpression::new(self.allow_yield, self.allow_await)
-                    .parse(cursor, interner);
+                    .parse(cursor, interner).map(Into::into)
             }
             TokenKind::Keyword((Keyword::Await, _)) if self.allow_await.0 => {
                 return UnaryExpression::new(self.allow_yield, self.allow_await)
-                    .parse(cursor, interner);
+                    .parse(cursor, interner).map(Into::into);
             }
             _ => {}
         }
 
         let lhs =
             UpdateExpression::new(self.allow_yield, self.allow_await).parse(cursor, interner)?;
+        let lhs = match lhs {
+            FormalParameterListOrExpression::Expression(expression) => expression,
+            other => return Ok(other)
+        };
+
         if let Some(tok) = cursor.peek(0, interner)?
             && tok.kind() == &TokenKind::Punctuator(Punctuator::Exp)
         {
             cursor.advance(interner);
             return Ok(
-                Binary::new(ArithmeticOp::Exp.into(), lhs, self.parse(cursor, interner)?).into(),
+                Binary::new(ArithmeticOp::Exp.into(), lhs, self.parse(cursor, interner)?.try_into_expression()?).into(),
             );
         }
-        Ok(lhs)
+        Ok(lhs.into())
     }
 }
