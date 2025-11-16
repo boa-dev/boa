@@ -153,7 +153,7 @@ impl Debug for Span {
 }
 
 impl Span {
-    #[cfg(feature = "arbitrary")]
+    #[allow(dead_code)]
     pub(crate) const EMPTY: Span = Span {
         start: Position::new(1, 1),
         end: Position::new(1, 1),
