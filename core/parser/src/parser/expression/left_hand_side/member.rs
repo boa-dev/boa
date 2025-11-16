@@ -229,9 +229,8 @@ where
                 .parse(cursor, interner)?,
         };
 
-        let mut lhs = match lhs {
-            FormalParameterListOrExpression::Expression(exp) => exp,
-            other => return Ok(other),
+        let FormalParameterListOrExpression::Expression(mut lhs) = lhs else {
+            return Ok(lhs)
         };
 
         cursor.set_goal(InputElement::TemplateTail);

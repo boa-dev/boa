@@ -65,22 +65,19 @@ where
                 Punctuator::Add | Punctuator::Sub | Punctuator::Not | Punctuator::Neg,
             ) => {
                 return UnaryExpression::new(self.allow_yield, self.allow_await)
-                    .parse(cursor, interner)
-                    .map(Into::into);
+                    .parse(cursor, interner);
             }
             TokenKind::Keyword((Keyword::Await, _)) if self.allow_await.0 => {
                 return UnaryExpression::new(self.allow_yield, self.allow_await)
-                    .parse(cursor, interner)
-                    .map(Into::into);
+                    .parse(cursor, interner);
             }
             _ => {}
         }
 
         let lhs =
             UpdateExpression::new(self.allow_yield, self.allow_await).parse(cursor, interner)?;
-        let lhs = match lhs {
-            FormalParameterListOrExpression::Expression(expression) => expression,
-            other => return Ok(other),
+        let FormalParameterListOrExpression::Expression(lhs) = lhs else {
+            return Ok(lhs)
         };
 
         if let Some(tok) = cursor.peek(0, interner)?

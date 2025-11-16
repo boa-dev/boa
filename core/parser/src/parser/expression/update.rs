@@ -149,9 +149,8 @@ where
 
         let lhs = LeftHandSideExpression::new(self.allow_yield, self.allow_await)
             .parse(cursor, interner)?;
-        let lhs = match lhs {
-            FormalParameterListOrExpression::Expression(expression) => expression,
-            other => return Ok(other),
+        let FormalParameterListOrExpression::Expression(lhs) = lhs else {
+            return Ok(lhs)
         };
         let lhs_span_start = lhs.span().start();
 
