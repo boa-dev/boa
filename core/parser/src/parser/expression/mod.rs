@@ -257,9 +257,8 @@ where
         let current_node =
             BitwiseORExpression::new(self.allow_in, self.allow_yield, self.allow_await)
                 .parse(cursor, interner)?;
-        let mut current_node = match current_node {
-            FormalParameterListOrExpression::Expression(expression) => expression,
-            other => return Ok(other),
+        let FormalParameterListOrExpression::Expression(mut current_node) = current_node else {
+            return Ok(current_node);
         };
 
         let mut previous = self.previous;
@@ -566,9 +565,8 @@ where
 
         let lhs =
             ShiftExpression::new(self.allow_yield, self.allow_await).parse(cursor, interner)?;
-        let mut lhs = match lhs {
-            FormalParameterListOrExpression::Expression(exp) => exp,
-            other => return Ok(other),
+        let FormalParameterListOrExpression::Expression(mut lhs) = lhs else {
+            return Ok(lhs)
         };
 
         while let Some(tok) = cursor.peek(0, interner)? {

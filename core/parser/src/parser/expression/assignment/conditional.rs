@@ -81,6 +81,6 @@ where
             return Ok(Conditional::new(lhs, then_clause, else_clause).into());
         }
 
-        Ok(lhs.into())
+        Ok(lhs)
     }
 }
