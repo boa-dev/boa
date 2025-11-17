@@ -250,7 +250,8 @@ where
         let strict = cursor.strict();
         cursor.set_strict(true);
         let lhs = LeftHandSideExpression::new(self.allow_yield, self.allow_await)
-            .parse(cursor, interner)?;
+            .parse(cursor, interner)?
+            .try_into_expression()?;
         cursor.set_strict(strict);
 
         Ok(lhs)

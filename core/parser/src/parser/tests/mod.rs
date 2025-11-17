@@ -824,3 +824,9 @@ fn debugger_statement() {
 
     check_invalid_script("debugger + debugger");
 }
+
+#[test]
+fn invalid_arrow_function() {
+    check_invalid_script(r#"(!()=>"#);
+    check_invalid_script(r#"!()=>{}"#);
+}

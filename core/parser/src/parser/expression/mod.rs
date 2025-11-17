@@ -8,6 +8,7 @@
 //! [spec]: https://tc39.es/ecma262/#sec-ecmascript-language-expressions
 
 mod assignment;
+mod fpl_or_exp;
 mod identifiers;
 mod left_hand_side;
 mod primary;
@@ -43,6 +44,7 @@ use boa_interner::{Interner, Sym};
 
 pub(super) use self::{assignment::AssignmentExpression, primary::Initializer};
 pub(in crate::parser) use {
+    fpl_or_exp::FormalParameterListOrExpression,
     identifiers::{BindingIdentifier, LabelIdentifier},
     left_hand_side::LeftHandSideExpression,
     primary::object_initializer::{
@@ -73,15 +75,19 @@ macro_rules! expression {
         where
             R: ReadChar
         {
-            type Output = ast::Expression;
+            type Output = FormalParameterListOrExpression;
 
-            fn parse(self, cursor: &mut Cursor<R>, interner: &mut Interner)-> ParseResult<ast::Expression> {
+            fn parse(self, cursor: &mut Cursor<R>, interner: &mut Interner)-> ParseResult<Self::Output> {
 
                 if $goal.is_some() {
                     cursor.set_goal($goal.unwrap());
                 }
 
-                let mut lhs = $lower::new($( self.$low_param ),*).parse(cursor, interner)?;
+                let lhs = $lower::new($( self.$low_param ),*).parse(cursor, interner)?;
+                let FormalParameterListOrExpression::Expression(mut lhs) = lhs else {
+                    return Ok(lhs);
+                };
+
                 while let Some(tok) = cursor.peek(0, interner)? {
                     match *tok.kind() {
                         TokenKind::Punctuator(op) if $( op == $op )||* => {
@@ -89,14 +95,14 @@ macro_rules! expression {
                             lhs = Binary::new(
                                 op.as_binary_op().expect("Could not get binary operation."),
                                 lhs,
-                                $lower::new($( self.$low_param ),*).parse(cursor, interner)?
+                                $lower::new($( self.$low_param ),*).parse(cursor, interner)?.try_into_expression()?
                             ).into();
                         }
                         _ => break
                     }
                 }
 
-                Ok(lhs)
+                Ok(lhs.into())
             }
         }
     };
@@ -244,12 +250,16 @@ impl<R> TokenParser<R> for ShortCircuitExpression
 where
     R: ReadChar,
 {
-    type Output = ast::Expression;
+    type Output = FormalParameterListOrExpression;
 
     fn parse(self, cursor: &mut Cursor<R>, interner: &mut Interner) -> ParseResult<Self::Output> {
-        let mut current_node =
+        let current_node =
             BitwiseORExpression::new(self.allow_in, self.allow_yield, self.allow_await)
                 .parse(cursor, interner)?;
+        let FormalParameterListOrExpression::Expression(mut current_node) = current_node else {
+            return Ok(current_node);
+        };
+
         let mut previous = self.previous;
 
         while let Some(tok) = cursor.peek(0, interner)? {
@@ -267,7 +277,8 @@ where
                     previous = PreviousExpr::Logical;
                     let rhs =
                         BitwiseORExpression::new(self.allow_in, self.allow_yield, self.allow_await)
-                            .parse(cursor, interner)?;
+                            .parse(cursor, interner)?
+                            .try_into_expression()?;
 
                     current_node =
                         Binary::new(BinaryOp::Logical(LogicalOp::And), current_node, rhs).into();
@@ -289,7 +300,8 @@ where
                         self.allow_await,
                         PreviousExpr::Logical,
                     )
-                    .parse(cursor, interner)?;
+                    .parse(cursor, interner)?
+                    .try_into_expression()?;
                     current_node =
                         Binary::new(BinaryOp::Logical(LogicalOp::Or), current_node, rhs).into();
                 }
@@ -306,7 +318,8 @@ where
                     previous = PreviousExpr::Coalesce;
                     let rhs =
                         BitwiseORExpression::new(self.allow_in, self.allow_yield, self.allow_await)
-                            .parse(cursor, interner)?;
+                            .parse(cursor, interner)?
+                            .try_into_expression()?;
                     current_node =
                         Binary::new(BinaryOp::Logical(LogicalOp::Coalesce), current_node, rhs)
                             .into();
@@ -314,7 +327,7 @@ where
                 _ => break,
             }
         }
-        Ok(current_node)
+        Ok(current_node.into())
     }
 }
 
@@ -514,7 +527,7 @@ impl<R> TokenParser<R> for RelationalExpression
 where
     R: ReadChar,
 {
-    type Output = ast::Expression;
+    type Output = FormalParameterListOrExpression;
 
     fn parse(self, cursor: &mut Cursor<R>, interner: &mut Interner) -> ParseResult<Self::Output> {
         if self.allow_in.0 {
@@ -535,7 +548,8 @@ where
                         cursor.advance(interner);
 
                         let rhs = ShiftExpression::new(self.allow_yield, self.allow_await)
-                            .parse(cursor, interner)?;
+                            .parse(cursor, interner)?
+                            .try_into_expression()?;
 
                         return Ok(BinaryInPrivate::new(
                             PrivateName::new(identifier, identifier_span),
@@ -548,8 +562,11 @@ where
             }
         }
 
-        let mut lhs =
+        let lhs =
             ShiftExpression::new(self.allow_yield, self.allow_await).parse(cursor, interner)?;
+        let FormalParameterListOrExpression::Expression(mut lhs) = lhs else {
+            return Ok(lhs);
+        };
 
         while let Some(tok) = cursor.peek(0, interner)? {
             match *tok.kind() {
@@ -564,7 +581,8 @@ where
                         op.as_binary_op().expect("Could not get binary operation."),
                         lhs,
                         ShiftExpression::new(self.allow_yield, self.allow_await)
-                            .parse(cursor, interner)?,
+                            .parse(cursor, interner)?
+                            .try_into_expression()?,
                     )
                     .into();
                 }
@@ -583,7 +601,8 @@ where
                         op.as_binary_op().expect("Could not get binary operation."),
                         lhs,
                         ShiftExpression::new(self.allow_yield, self.allow_await)
-                            .parse(cursor, interner)?,
+                            .parse(cursor, interner)?
+                            .try_into_expression()?,
                     )
                     .into();
                 }
@@ -591,7 +610,7 @@ where
             }
         }
 
-        Ok(lhs)
+        Ok(lhs.into())
     }
 }
 

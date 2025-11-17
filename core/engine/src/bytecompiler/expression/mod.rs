@@ -423,8 +423,6 @@ impl ByteCompiler<'_> {
             Expression::Parenthesized(parenthesized) => {
                 self.compile_expr(parenthesized.expression(), dst);
             }
-            // TODO: try to remove this variant somehow
-            Expression::FormalParameterList(_) => unreachable!(),
         }
     }
 }
