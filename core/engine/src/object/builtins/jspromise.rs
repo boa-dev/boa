@@ -52,7 +52,7 @@ use std::{future::Future, pin::Pin, task};
 ///         Ok(JsValue::undefined())
 ///     },
 ///     context,
-/// );
+/// )?;
 ///
 /// let promise = promise
 ///     .then(
@@ -149,7 +149,7 @@ impl JsPromise {
     ///         Ok(JsValue::undefined())
     ///     },
     ///     context,
-    /// );
+    /// )?;
     ///
     /// context.run_jobs();
     ///
@@ -162,7 +162,7 @@ impl JsPromise {
     /// ```
     ///
     /// [`Promise()`]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Promise/Promise
-    pub fn new<F>(executor: F, context: &mut Context) -> Self
+    pub fn new<F>(executor: F, context: &mut Context) -> JsResult<Self>
     where
         F: FnOnce(&ResolvingFunctions, &mut Context) -> JsResult<JsValue>,
     {
@@ -174,14 +174,14 @@ impl JsPromise {
         let resolvers = Promise::create_resolving_functions(&promise, context);
 
         if let Err(e) = executor(&resolvers, context) {
-            let e = e.to_opaque(context);
+            let e = e.into_opaque(context)?;
             resolvers
                 .reject
                 .call(&JsValue::undefined(), &[e], context)
                 .expect("default `reject` function cannot throw");
         }
 
-        Self { inner: promise }
+        Ok(Self { inner: promise })
     }
 
     /// Creates a new pending promise and returns it and its associated `ResolvingFunctions`.
@@ -311,7 +311,7 @@ impl JsPromise {
                 match result {
                     Ok(v) => resolvers.resolve.call(&JsValue::undefined(), &[v], context),
                     Err(e) => {
-                        let e = e.to_opaque(context);
+                        let e = e.into_opaque(context)?;
                         resolvers.reject.call(&JsValue::undefined(), &[e], context)
                     }
                 }
@@ -401,7 +401,7 @@ impl JsPromise {
             context,
         )
         .and_then(Self::from_object)
-        .expect("default resolving functions cannot throw and must return a promise")
+        .expect("default resolve functions cannot throw and must return a promise")
     }
 
     /// Creates a `JsPromise` that is rejected with the reason `error`.
@@ -436,13 +436,19 @@ impl JsPromise {
     /// [`Promise.reject`]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Promise/reject
     /// [thenable]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Promise#thenables
     pub fn reject<E: Into<JsError>>(error: E, context: &mut Context) -> Self {
+        let error = error.into();
+        assert!(
+            error.is_catchable(),
+            "cannot create a reject function from an uncatchable error"
+        );
+
         Promise::promise_reject(
             &context.intrinsics().constructors().promise().constructor(),
-            &error.into(),
+            error,
             context,
         )
         .and_then(Self::from_object)
-        .expect("default resolving functions cannot throw and must return a promise")
+        .expect("default resolve functions cannot throw and must return a promise")
     }
 
     /// Gets the current state of the promise.
@@ -515,6 +521,7 @@ impl JsPromise {
     ///     },
     ///     context,
     /// )
+    /// .unwrap()
     /// .then(
     ///     Some(
     ///         NativeFunction::from_fn_ptr(|_, args, context| {
@@ -572,7 +579,7 @@ impl JsPromise {
     /// let promise = JsPromise::new(
     ///     |resolvers, context| {
     ///         let error = JsNativeError::typ().with_message("thrown");
-    ///         let error = error.to_opaque(context);
+    ///         let error = error.into_opaque(context);
     ///         resolvers.reject.call(
     ///             &JsValue::undefined(),
     ///             &[error.into()],
@@ -582,6 +589,7 @@ impl JsPromise {
     ///     },
     ///     context,
     /// )
+    /// .unwrap()
     /// .catch(
     ///     NativeFunction::from_fn_ptr(|_, args, context| {
     ///         args.get_or_undefined(0)
@@ -640,7 +648,7 @@ impl JsPromise {
     /// let promise = JsPromise::new(
     ///     |resolvers, context| {
     ///         let error = JsNativeError::typ().with_message("thrown");
-    ///         let error = error.to_opaque(context);
+    ///         let error = error.into_opaque(context);
     ///         resolvers.reject.call(
     ///             &JsValue::undefined(),
     ///             &[error.into()],
@@ -649,7 +657,7 @@ impl JsPromise {
     ///         Ok(JsValue::undefined())
     ///     },
     ///     context,
-    /// )
+    /// )?
     /// .finally(
     ///     NativeFunction::from_fn_ptr(|_, _, context| {
     ///         context.global_object().clone().set(
@@ -1127,7 +1135,8 @@ impl JsPromise {
     ///             .call(&JsValue::undefined(), &[JsValue::new(1)], context)
     ///     },
     ///     context,
-    /// );
+    /// )
+    /// .unwrap();
     /// let p2 = p1.then(
     ///     Some(
     ///         NativeFunction::from_fn_ptr(|_, args, context| {
@@ -1153,6 +1162,7 @@ impl JsPromise {
     ///     |fns, context| fns.resolve.call(&JsValue::undefined(), &[], context),
     ///     context,
     /// )
+    /// .unwrap()
     /// .then(
     ///     Some(
     ///         NativeFunction::from_fn_ptr(|_, _, _| {
@@ -1222,7 +1232,7 @@ impl JsPromise {
                     context.vm.frame_mut().set_register_pointer(rp);
 
                     if let crate::native_function::CoroutineState::Yielded(value) =
-                        continuation.call(Ok(args.get_or_undefined(0).clone()), context)
+                        continuation.call(Ok(args.get_or_undefined(0).clone()), context)?
                     {
                         JsPromise::resolve(value, context)
                             .await_native(continuation.clone(), context);
@@ -1282,7 +1292,7 @@ impl JsPromise {
                         .call(
                             Err(JsError::from_opaque(args.get_or_undefined(0).clone())),
                             context,
-                        )
+                        )?
                     {
                         JsPromise::resolve(value, context)
                             .await_native(continuation.clone(), context);

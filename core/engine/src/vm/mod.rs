@@ -8,6 +8,7 @@ use crate::{
     Context, JsError, JsNativeError, JsObject, JsResult, JsString, JsValue, Module,
     builtins::promise::{PromiseCapability, ResolvingFunctions},
     environments::EnvironmentStack,
+    error::RuntimeLimitError,
     object::JsFunction,
     realm::Realm,
     script::Script,
@@ -645,10 +646,11 @@ impl Context {
     {
         #[cfg(feature = "fuzz")]
         {
+            use crate::error::EngineError;
             if self.instructions_remaining == 0 {
-                return ControlFlow::Break(CompletionRecord::Throw(JsError::from_native(
-                    JsNativeError::no_instructions_remain(),
-                )));
+                return ControlFlow::Break(CompletionRecord::Throw(
+                    EngineError::NoInstructionsRemain.into(),
+                ));
             }
             self.instructions_remaining -= 1;
         }
@@ -858,15 +860,11 @@ impl Context {
     pub(crate) fn check_runtime_limits(&self) -> JsResult<()> {
         // Must throw if the number of recursive calls exceeds the defined limit.
         if self.vm.runtime_limits.recursion_limit() <= self.vm.frames.len() {
-            return Err(JsNativeError::runtime_limit()
-                .with_message("exceeded maximum number of recursive calls")
-                .into());
+            return Err(RuntimeLimitError::Recursion.into());
         }
         // Must throw if the stack size exceeds the defined maximum length.
         if self.vm.runtime_limits.stack_size_limit() <= self.vm.stack.stack.len() {
-            return Err(JsNativeError::runtime_limit()
-                .with_message("exceeded maximum call stack length")
-                .into());
+            return Err(RuntimeLimitError::StackSize.into());
         }
 
         Ok(())

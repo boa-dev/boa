@@ -143,7 +143,7 @@ macro_rules! if_abrupt_reject_promise {
         match $value {
             // 1. If value is an abrupt completion, then
             Err(err) => {
-                let err = err.to_opaque($context);
+                let err = err.into_opaque($context)?;
                 // a. Perform ? Call(capability.[[Reject]], undefined, « value.[[Value]] »).
                 $capability
                     .reject()
@@ -434,7 +434,7 @@ impl BuiltInConstructor for Promise {
 
         // 10. If completion is an abrupt completion, then
         if let Err(e) = completion {
-            let e = e.to_opaque(context);
+            let e = e.into_opaque(context)?;
             // a. Perform ? Call(resolvingFunctions.[[Reject]], undefined, « completion.[[Value]] »).
             resolving_functions
                 .reject
@@ -491,7 +491,7 @@ impl Promise {
         match status {
             // 5. If status is an abrupt completion, then
             Err(err) => {
-                let value = err.to_opaque(context);
+                let value = err.into_opaque(context)?;
 
                 // a. Perform ? Call(promiseCapability.[[Reject]], undefined, « status.[[Value]] »).
                 promise_capability.functions.reject.call(
@@ -1253,7 +1253,7 @@ impl Promise {
                             // c. Return ? Call(promiseCapability.[[Reject]], undefined, « error »).
                             return captures.capability_reject.call(
                                 &JsValue::undefined(),
-                                &[error.to_opaque(context).into()],
+                                &[error.into_opaque(context).into()],
                                 context,
                             );
                         }
@@ -1445,16 +1445,16 @@ impl Promise {
             JsNativeError::typ().with_message("Promise.reject() called on a non-object")
         })?;
 
-        Self::promise_reject(&c, &JsError::from_opaque(r), context).map(JsValue::from)
+        Self::promise_reject(&c, JsError::from_opaque(r), context).map(JsValue::from)
     }
 
     /// Utility function to create a rejected promise.
     pub(crate) fn promise_reject(
         c: &JsObject,
-        e: &JsError,
+        e: JsError,
         context: &mut Context,
     ) -> JsResult<JsObject> {
-        let e = e.to_opaque(context);
+        let e = e.into_opaque(context)?;
 
         // 2. Let promiseCapability be ? NewPromiseCapability(C).
         let promise_capability = PromiseCapability::new(c, context)?;
@@ -2107,7 +2107,7 @@ impl Promise {
                         //   a. Let selfResolutionError be a newly created TypeError object.
                         let self_resolution_error = JsNativeError::typ()
                             .with_message("SameValue(resolution, promise) is true")
-                            .to_opaque(context);
+                            .into_opaque(context);
 
                         //   b. Perform RejectPromise(promise, selfResolutionError).
                         reject_promise(&promise, self_resolution_error.into(), context);
@@ -2130,7 +2130,7 @@ impl Promise {
                         // 10. If then is an abrupt completion, then
                         Err(e) => {
                             //   a. Perform RejectPromise(promise, then.[[Value]]).
-                            reject_promise(&promise, e.to_opaque(context), context);
+                            reject_promise(&promise, e.into_opaque(context)?, context);
 
                             //   b. Return undefined.
                             return Ok(JsValue::undefined());
@@ -2262,15 +2262,15 @@ fn new_promise_reaction_job(
                 }
             },
             //   e. Else, let handlerResult be Completion(HostCallJobCallback(handler, undefined, « argument »)).
-            Some(handler) => context
-                .host_hooks()
-                .call_job_callback(
-                    handler,
-                    &JsValue::undefined(),
-                    std::slice::from_ref(&argument),
-                    context,
-                )
-                .map_err(|e| e.to_opaque(context)),
+            Some(handler) => match context.host_hooks().call_job_callback(
+                handler,
+                &JsValue::undefined(),
+                std::slice::from_ref(&argument),
+                context,
+            ) {
+                Ok(v) => Ok(v),
+                Err(e) => Err(e.into_opaque(context)?),
+            },
         };
 
         match promise_capability {
@@ -2352,7 +2352,7 @@ fn new_promise_resolve_thenable_job(
 
         //    c. If thenCallResult is an abrupt completion, then
         if let Err(value) = then_call_result {
-            let value = value.to_opaque(context);
+            let value = value.into_opaque(context)?;
             //    i. Return ? Call(resolvingFunctions.[[Reject]], undefined, « thenCallResult.[[Value]] »).
             return resolving_functions
                 .reject

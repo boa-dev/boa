@@ -113,7 +113,7 @@ impl Array {
                 // This avoids allocating a new coroutine that will immediately finish.
                 // Spec continues on `from_array_like`...
                 if let CoroutineState::Yielded(value) =
-                    from_array_like(Ok(JsValue::undefined()), &coroutine_state, context)
+                    from_array_like(Ok(JsValue::undefined()), &coroutine_state, context)?
                 {
                     // Coroutine yielded. We need to allocate it for a future execution.
                     JsPromise::resolve(value, context).await_native(
@@ -159,7 +159,7 @@ impl Array {
             // This avoids allocating a new coroutine that will immediately finish.
             // Spec continues on `from_async_iterator`...
             if let CoroutineState::Yielded(value) =
-                from_async_iterator(Ok(JsValue::undefined()), &coroutine_state, context)
+                from_async_iterator(Ok(JsValue::undefined()), &coroutine_state, context)?
             {
                 JsPromise::resolve(value, context).await_native(
                     NativeCoroutine::from_copy_closure_with_captures(
@@ -184,7 +184,7 @@ impl Array {
             // ii. Perform ! Call(promiseCapability.[[Reject]], undefined, « result.[[Value]] »).
             resolvers
                 .reject
-                .call(&JsValue::undefined(), &[err.to_opaque(context)], context)
+                .call(&JsValue::undefined(), &[err.into_opaque(context)?], context)
                 .expect("resolving functions cannot fail");
         }
 
@@ -233,7 +233,7 @@ fn from_async_iterator(
     mut result: JsResult<JsValue>,
     (global_state, state_machine): &(GlobalState, Cell<Option<AsyncIteratorStateMachine>>),
     context: &mut Context,
-) -> CoroutineState {
+) -> JsResult<CoroutineState> {
     let result = (|| {
         let Some(mut sm) = state_machine.take() else {
             return Ok(CoroutineState::Done);
@@ -445,7 +445,7 @@ fn from_async_iterator(
     // AsyncBlockStart ( promiseCapability, asyncBody, asyncContext )
     // https://tc39.es/ecma262/#sec-asyncblockstart
     match result {
-        Ok(cont) => cont,
+        Ok(cont) => Ok(cont),
 
         // i. Assert: result is a throw completion.
         Err(err) => {
@@ -453,9 +453,9 @@ fn from_async_iterator(
             global_state
                 .resolvers
                 .reject
-                .call(&JsValue::undefined(), &[err.to_opaque(context)], context)
+                .call(&JsValue::undefined(), &[err.into_opaque(context)?], context)
                 .expect("resolving functions cannot fail");
-            CoroutineState::Done
+            Ok(CoroutineState::Done)
         }
     }
 }
@@ -490,7 +490,7 @@ fn from_array_like(
     mut result: JsResult<JsValue>,
     (global_state, state_machine): &(GlobalState, Cell<Option<ArrayLikeStateMachine>>),
     context: &mut Context,
-) -> CoroutineState {
+) -> JsResult<CoroutineState> {
     let result: JsResult<_> = (|| {
         let Some(mut sm) = state_machine.take() else {
             return Ok(CoroutineState::Done);
@@ -607,16 +607,16 @@ fn from_array_like(
     // AsyncBlockStart ( promiseCapability, asyncBody, asyncContext )
     // https://tc39.es/ecma262/#sec-asyncblockstart
     match result {
-        Ok(cont) => cont,
+        Ok(cont) => Ok(cont),
         // i. Assert: result is a throw completion.
         Err(err) => {
             // ii. Perform ! Call(promiseCapability.[[Reject]], undefined, « result.[[Value]] »).
             global_state
                 .resolvers
                 .reject
-                .call(&JsValue::undefined(), &[err.to_opaque(context)], context)
+                .call(&JsValue::undefined(), &[err.into_opaque(context)?], context)
                 .expect("resolving functions cannot fail");
-            CoroutineState::Done
+            Ok(CoroutineState::Done)
         }
     }
 }

@@ -457,7 +457,10 @@ impl Test {
                         return (false, format!("Uncaught {err}"));
                     }
 
-                    let promise = module.evaluate(context);
+                    let promise = match module.evaluate(context) {
+                        Ok(p) => p,
+                        Err(err) => return (false, format!("Uncaught {err}")),
+                    };
 
                     if let Err(err) = context.run_jobs() {
                         return (false, format!("Uncaught {err}"));
