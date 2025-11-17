@@ -158,80 +158,81 @@ where
             .parse(cursor, interner)?;
 
         // If the left hand side is a parameter list, we must parse an arrow function.
-        if let FormalParameterListOrExpression::FormalParameterList {
-            fpl: parameters, ..
-        } = lhs
-        {
-            cursor.peek_expect_no_lineterminator(0, "arrow function", interner)?;
+        let mut lhs = match lhs {
+            FormalParameterListOrExpression::FormalParameterList {
+                fpl: parameters, ..
+            } => {
+                cursor.peek_expect_no_lineterminator(0, "arrow function", interner)?;
 
-            cursor.expect(
-                TokenKind::Punctuator(Punctuator::Arrow),
-                "arrow function",
-                interner,
-            )?;
-            let arrow = cursor.arrow();
-            cursor.set_arrow(true);
-            let body = ConciseBody::new(self.allow_in).parse(cursor, interner)?;
-            cursor.set_arrow(arrow);
+                cursor.expect(
+                    TokenKind::Punctuator(Punctuator::Arrow),
+                    "arrow function",
+                    interner,
+                )?;
+                let arrow = cursor.arrow();
+                cursor.set_arrow(true);
+                let body = ConciseBody::new(self.allow_in).parse(cursor, interner)?;
+                cursor.set_arrow(arrow);
 
-            // Early Error: ArrowFormalParameters are UniqueFormalParameters.
-            if parameters.has_duplicates() {
-                return Err(Error::lex(LexError::Syntax(
-                    "Duplicate parameter name not allowed in this context".into(),
+                // Early Error: ArrowFormalParameters are UniqueFormalParameters.
+                if parameters.has_duplicates() {
+                    return Err(Error::lex(LexError::Syntax(
+                        "Duplicate parameter name not allowed in this context".into(),
+                        position,
+                    )));
+                }
+
+                // Early Error: It is a Syntax Error if ArrowParameters Contains YieldExpression is true.
+                if contains(&parameters, ContainsSymbol::YieldExpression) {
+                    return Err(Error::lex(LexError::Syntax(
+                        "Yield expression not allowed in this context".into(),
+                        position,
+                    )));
+                }
+
+                // Early Error: It is a Syntax Error if ArrowParameters Contains AwaitExpression is true.
+                if contains(&parameters, ContainsSymbol::AwaitExpression) {
+                    return Err(Error::lex(LexError::Syntax(
+                        "Await expression not allowed in this context".into(),
+                        position,
+                    )));
+                }
+
+                // Early Error: It is a Syntax Error if ConciseBodyContainsUseStrict of ConciseBody is true
+                // and IsSimpleParameterList of ArrowParameters is false.
+                if body.strict() && !parameters.is_simple() {
+                    return Err(Error::lex(LexError::Syntax(
+                        "Illegal 'use strict' directive in function with non-simple parameter list"
+                            .into(),
+                        position,
+                    )));
+                }
+
+                // It is a Syntax Error if any element of the BoundNames of ArrowParameters
+                // also occurs in the LexicallyDeclaredNames of ConciseBody.
+                // https://tc39.es/ecma262/#sec-arrow-function-definitions-static-semantics-early-errors
+                name_in_lexically_declared_names(
+                    &bound_names(&parameters),
+                    &lexically_declared_names(&body),
                     position,
-                )));
+                    interner,
+                )?;
+
+                let linear_pos_end = body.linear_pos_end();
+                let linear_span = start_linear_span.union(linear_pos_end);
+
+                let body_span_end = body.span().end();
+                return Ok(boa_ast::function::ArrowFunction::new(
+                    None,
+                    parameters,
+                    body,
+                    linear_span,
+                    Span::new(position, body_span_end),
+                )
+                .into());
             }
-
-            // Early Error: It is a Syntax Error if ArrowParameters Contains YieldExpression is true.
-            if contains(&parameters, ContainsSymbol::YieldExpression) {
-                return Err(Error::lex(LexError::Syntax(
-                    "Yield expression not allowed in this context".into(),
-                    position,
-                )));
-            }
-
-            // Early Error: It is a Syntax Error if ArrowParameters Contains AwaitExpression is true.
-            if contains(&parameters, ContainsSymbol::AwaitExpression) {
-                return Err(Error::lex(LexError::Syntax(
-                    "Await expression not allowed in this context".into(),
-                    position,
-                )));
-            }
-
-            // Early Error: It is a Syntax Error if ConciseBodyContainsUseStrict of ConciseBody is true
-            // and IsSimpleParameterList of ArrowParameters is false.
-            if body.strict() && !parameters.is_simple() {
-                return Err(Error::lex(LexError::Syntax(
-                    "Illegal 'use strict' directive in function with non-simple parameter list"
-                        .into(),
-                    position,
-                )));
-            }
-
-            // It is a Syntax Error if any element of the BoundNames of ArrowParameters
-            // also occurs in the LexicallyDeclaredNames of ConciseBody.
-            // https://tc39.es/ecma262/#sec-arrow-function-definitions-static-semantics-early-errors
-            name_in_lexically_declared_names(
-                &bound_names(&parameters),
-                &lexically_declared_names(&body),
-                position,
-                interner,
-            )?;
-
-            let linear_pos_end = body.linear_pos_end();
-            let linear_span = start_linear_span.union(linear_pos_end);
-
-            let body_span_end = body.span().end();
-            return Ok(boa_ast::function::ArrowFunction::new(
-                None,
-                parameters,
-                body,
-                linear_span,
-                Span::new(position, body_span_end),
-            )
-            .into());
-        }
-        let mut lhs = lhs.expect_expression();
+            FormalParameterListOrExpression::Expression(expression) => expression,
+        };
 
         // Review if we are trying to assign to an invalid left hand side expression.
         if let Some(tok) = cursor.peek(0, interner)?.cloned() {

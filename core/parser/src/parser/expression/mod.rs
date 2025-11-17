@@ -84,9 +84,8 @@ macro_rules! expression {
                 }
 
                 let lhs = $lower::new($( self.$low_param ),*).parse(cursor, interner)?;
-                let mut lhs = match lhs {
-                    FormalParameterListOrExpression::Expression(expression) => expression,
-                    other => return Ok(other)
+                let FormalParameterListOrExpression::Expression(mut lhs) = lhs else {
+                    return Ok(lhs);
                 };
 
                 while let Some(tok) = cursor.peek(0, interner)? {
