@@ -71,7 +71,7 @@ impl Config {
 
 /// Structure to allow defining ignored tests, features and files that should
 /// be ignored even when reading.
-#[derive(Debug, Deserialize)]
+#[derive(Default, Debug, Deserialize)]
 struct Ignored {
     #[serde(default)]
     tests: FxHashSet<Box<str>>,
@@ -109,16 +109,6 @@ impl Ignored {
 
     pub(crate) const fn contains_any_flag(&self, flags: TestFlags) -> bool {
         flags.intersects(self.flags)
-    }
-}
-
-impl Default for Ignored {
-    fn default() -> Self {
-        Self {
-            tests: FxHashSet::default(),
-            features: FxHashSet::default(),
-            flags: TestFlags::empty(),
-        }
     }
 }
 

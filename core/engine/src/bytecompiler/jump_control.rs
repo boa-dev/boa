@@ -177,7 +177,7 @@ pub(crate) struct JumpControlInfo {
 
 bitflags! {
     /// A bitflag that contains the type flags and relevant booleans for `JumpControlInfo`.
-    #[derive(Debug, Clone, Copy)]
+    #[derive(Default, Debug, Clone, Copy)]
     pub(crate) struct JumpControlInfoFlags: u8 {
         const LOOP = 0b0000_0001;
         const SWITCH = 0b0000_0010;
@@ -198,12 +198,6 @@ bitflags! {
         ///
         /// This bitflag is inherited if the previous [`JumpControlInfo`].
         const USE_EXPR = 0b1000_0000;
-    }
-}
-
-impl Default for JumpControlInfoFlags {
-    fn default() -> Self {
-        Self::empty()
     }
 }
 
