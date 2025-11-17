@@ -19,7 +19,7 @@ impl Default for RuntimeLimits {
     fn default() -> Self {
         Self {
             loop_iteration: u64::MAX,
-            recursion: 2048,
+            recursion: 512,
             backtrace_limit: 50,
             stack_size: 1024 * 10,
         }
