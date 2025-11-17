@@ -62,7 +62,7 @@ indoc = "2.0.7"
 itoa = "1.0.15"
 jemallocator = "0.5.4"
 mimalloc-safe = "0.1.55"
-lz4_flex = "0.11.5"
+lz4_flex = "0.12.0"
 num-bigint = "0.4.6"
 num-traits = "0.2.19"
 once_cell = { version = "1.21.3", default-features = false }
