@@ -24,7 +24,7 @@
 //! }
 //!
 //! impl Class for Animal {
-//!     // we set the binging name of this function to be `"Animal"`.
+//!     // we set the binding name of this function to be `"Animal"`.
 //!     const NAME: &'static str = "Animal";
 //!
 //!     // We set the length to `2` since we accept 2 arguments in the constructor.
