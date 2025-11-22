@@ -57,26 +57,6 @@ pub(crate) enum Placement {
     End,
 }
 
-/// Helper function to check if a `char` is trimmable.
-pub(crate) const fn is_trimmable_whitespace(c: char) -> bool {
-    // The rust implementation of `trim` does not regard the same characters whitespace as ecma standard does
-    //
-    // Rust uses \p{White_Space} by default, which also includes:
-    // `\u{0085}' (next line)
-    // And does not include:
-    // '\u{FEFF}' (zero width non-breaking space)
-    // Explicit whitespace: https://tc39.es/ecma262/#sec-white-space
-    matches!(
-        c,
-        '\u{0009}' | '\u{000B}' | '\u{000C}' | '\u{0020}' | '\u{00A0}' | '\u{FEFF}' |
-    // Unicode Space_Separator category
-    '\u{1680}' | '\u{2000}'
-            ..='\u{200A}' | '\u{202F}' | '\u{205F}' | '\u{3000}' |
-    // Line terminators: https://tc39.es/ecma262/#sec-line-terminators
-    '\u{000A}' | '\u{000D}' | '\u{2028}' | '\u{2029}'
-    )
-}
-
 /// JavaScript `String` implementation.
 #[derive(Debug, Clone, Copy)]
 pub(crate) struct String;
