@@ -1,5 +1,3 @@
-use std::borrow::Cow;
-
 use boa_gc::{Finalize, Trace};
 use fixed_decimal::{Decimal, FloatPrecision, SignDisplay};
 use icu_decimal::{
@@ -30,7 +28,7 @@ use crate::{
     NativeFunction,
     builtins::{
         BuiltInConstructor, BuiltInObject, IntrinsicObject, builder::BuiltInBuilder,
-        options::get_option, string::is_trimmable_whitespace,
+        options::get_option,
     },
     context::intrinsics::{Intrinsics, StandardConstructor, StandardConstructors},
     js_string,
@@ -825,13 +823,12 @@ fn to_intl_mathematical_value(value: &JsValue, context: &mut Context) -> JsResul
 pub(crate) fn js_string_to_fixed_decimal(string: &JsString) -> Option<Decimal> {
     // 1. Let text be ! StringToCodePoints(str).
     // 2. Let literal be ParseText(text, StringNumericLiteral).
-    let Ok(string) = string.to_std_string() else {
+    let Ok(string) = string.trim().to_std_string() else {
         // 3. If literal is a List of errors, return NaN.
         return None;
     };
     // 4. Return StringNumericValue of literal.
-    let string = string.trim_matches(is_trimmable_whitespace);
-    match string {
+    match string.as_str() {
         "" => return Some(Decimal::from(0)),
         "-Infinity" | "Infinity" | "+Infinity" => return None,
         _ => {}
@@ -856,11 +853,10 @@ pub(crate) fn js_string_to_fixed_decimal(string: &JsString) -> Option<Decimal> {
             return None;
         }
         let int = BigInt::from_str_radix(string, base).ok()?;
-        let int_str = int.to_string();
 
-        Cow::Owned(int_str)
+        int.to_string()
     } else {
-        Cow::Borrowed(string)
+        string
     };
 
     Decimal::try_from_str(&s).ok()
