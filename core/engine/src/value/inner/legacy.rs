@@ -130,6 +130,13 @@ impl EnumBasedValue {
         matches!(self, Self::Float64(_))
     }
 
+    /// Returns true if a value is negative zero (`-0`).
+    #[must_use]
+    #[inline]
+    pub(crate) const fn is_negative_zero(&self) -> bool {
+        matches!(self, Self::Float64(value) if value.to_bits() == (-0f64).to_bits())
+    }
+
     /// Returns true if a value is a 32-bits integer.
     #[must_use]
     #[inline]

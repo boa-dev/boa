@@ -354,6 +354,13 @@ impl JsValue {
         self.0.is_integer32() || self.0.is_float64()
     }
 
+    /// Returns true if the value is a negative zero (`-0`).
+    #[inline]
+    #[must_use]
+    pub fn is_negative_zero(&self) -> bool {
+        self.0.is_negative_zero()
+    }
+
     /// Returns the number if the value is a number, otherwise `None`.
     #[inline]
     #[must_use]
