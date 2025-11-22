@@ -184,6 +184,9 @@ mod bits {
     /// The constant true value.
     pub(super) const VALUE_TRUE: u64 = MASK_BOOLEAN | 1;
 
+    // The constant `-0` value.
+    pub(super) const VALUE_NEGATIVE_ZERO: u64 = (-0f64).to_bits();
+
     /// Checks that a value is a valid boolean (either true or false).
     #[inline(always)]
     pub(super) const fn is_bool(value: u64) -> bool {
@@ -196,6 +199,12 @@ mod bits {
         (value & MASK_NAN != MASK_NAN)
             || (value & MASK_KIND) == (MASK_NAN | TAG_INF)
             || (value & MASK_KIND) == (MASK_NAN | TAG_NAN)
+    }
+
+    /// Checks that a value is a negative zero (`-0`).
+    #[inline(always)]
+    pub(super) const fn is_negative_zero(value: u64) -> bool {
+        value == VALUE_NEGATIVE_ZERO
     }
 
     /// Checks that a value is a valid integer32.
@@ -517,6 +526,13 @@ impl NanBoxedValue {
     #[inline(always)]
     pub(crate) fn is_float64(&self) -> bool {
         bits::is_float(self.value())
+    }
+
+    /// Returns true if a value is negative zero (`-0.0`).
+    #[must_use]
+    #[inline(always)]
+    pub(crate) fn is_negative_zero(&self) -> bool {
+        bits::is_negative_zero(self.value())
     }
 
     /// Returns true if a value is a 32-bits integer.
