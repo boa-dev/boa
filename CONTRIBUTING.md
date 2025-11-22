@@ -91,6 +91,33 @@ be more readable if you disable parallelism with the `-d` flag. All together it 
 cargo run --release --bin boa_tester -- run -vv -d -s test/language/types/number 2> error.log
 ```
 
+To save test results for later comparison, use the `-o` flag to specify an output directory:
+
+```shell
+cargo run --release --bin boa_tester -- run -o ./test-results
+```
+
+### Comparing Test Results
+
+You can compare two test suite runs to see what changed:
+
+```shell
+cargo run --release --bin boa_tester -- compare <base-results> <new-results>
+```
+
+Both arguments can be either result files (e.g., `latest.json`) or directories containing test results.
+When directories are provided, the tester automatically uses the `latest.json` file from each directory.
+
+For example:
+
+```shell
+# Compare using directories
+cargo run --release --bin boa_tester -- compare ./test-results-main ./test-results-feature
+
+# Compare using explicit files
+cargo run --release --bin boa_tester -- compare ./test-results-main/latest.json ./test-results-feature/latest.json
+```
+
 ## Documentation
 
 To build the development documentation, run:
