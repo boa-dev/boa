@@ -24,7 +24,7 @@ jobs:
     timeout-minutes: 60
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v5
+        uses: actions/checkout@v6
         with:
           path: boa
           ref: ${{ github.event.pull_request.head.sha }}
@@ -44,7 +44,7 @@ jobs:
           key: ${{ runner.os }}-${{ runner.arch }}-cargo-${{ hashFiles('**/Cargo.lock') }}
 
       - name: Checkout the data repo
-        uses: actions/checkout@v5
+        uses: actions/checkout@v6
         with:
           repository: boa-dev/data
           path: data
