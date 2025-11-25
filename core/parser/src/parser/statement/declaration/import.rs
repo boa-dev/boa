@@ -14,14 +14,17 @@ use crate::{
     parser::{
         Error, OrAbrupt, ParseResult, TokenParser,
         cursor::Cursor,
-        statement::{BindingIdentifier, declaration::FromClause},
+        statement::{
+            BindingIdentifier,
+            declaration::{FromClause, WithClause},
+        },
     },
     source::ReadChar,
 };
 use boa_ast::{
     Keyword, Punctuator, Spanned,
     declaration::{
-        ImportDeclaration as AstImportDeclaration, ImportKind,
+        ImportAttribute, ImportDeclaration as AstImportDeclaration, ImportKind,
         ImportSpecifier as AstImportSpecifier, ModuleSpecifier,
     },
     expression::Identifier,
@@ -153,8 +156,11 @@ where
         };
 
         let module_identifier = FromClause::new("import declaration").parse(cursor, interner)?;
+        let attributes = WithClause::new("import declaration").parse(cursor, interner)?;
 
-        Ok(import_clause.with_specifier(module_identifier))
+        cursor.expect_semicolon("import declaration", interner)?;
+
+        Ok(import_clause.with_specifier_and_attributes(module_identifier, attributes))
     }
 }
 
@@ -258,13 +264,17 @@ enum ImportClause {
 
 impl ImportClause {
     #[inline]
-    fn with_specifier(self, specifier: ModuleSpecifier) -> AstImportDeclaration {
+    fn with_specifier_and_attributes(
+        self,
+        specifier: ModuleSpecifier,
+        attributes: Box<[ImportAttribute]>,
+    ) -> AstImportDeclaration {
         match self {
             Self::Namespace(default, binding) => AstImportDeclaration::new(
                 default,
                 ImportKind::Namespaced { binding },
                 specifier,
-                Box::default(),
+                attributes,
             ),
             Self::ImportList(default, names) => {
                 if names.is_empty() {
@@ -272,14 +282,14 @@ impl ImportClause {
                         default,
                         ImportKind::DefaultOrUnnamed,
                         specifier,
-                        Box::default(),
+                        attributes,
                     )
                 } else {
                     AstImportDeclaration::new(
                         default,
                         ImportKind::Named { names },
                         specifier,
-                        Box::default(),
+                        attributes,
                     )
                 }
             }
