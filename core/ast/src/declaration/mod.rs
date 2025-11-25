@@ -156,3 +156,61 @@ impl VisitWith for ModuleSpecifier {
         visitor.visit_sym_mut(&mut self.module)
     }
 }
+
+/// An import attribute entry in an [`ImportDeclaration`].
+///
+/// This is a key-value pair, where the key is an identifier or string literal,
+/// and the value is a string literal.
+///
+/// More information:
+///  - [ECMAScript proposal][proposal]
+///
+/// [proposal]: https://tc39.es/proposal-import-attributes/#prod-ImportAttribute
+#[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
+#[cfg_attr(feature = "arbitrary", derive(arbitrary::Arbitrary))]
+#[derive(Clone, Debug, Copy, PartialEq, Eq)]
+pub struct ImportAttribute {
+    key: Sym,
+    value: Sym,
+}
+
+impl ImportAttribute {
+    /// Creates a new `ImportAttribute`.
+    #[inline]
+    #[must_use]
+    pub const fn new(key: Sym, value: Sym) -> Self {
+        Self { key, value }
+    }
+
+    /// Gets the attribute key.
+    #[inline]
+    #[must_use]
+    pub const fn key(self) -> Sym {
+        self.key
+    }
+
+    /// Gets the attribute value.
+    #[inline]
+    #[must_use]
+    pub const fn value(self) -> Sym {
+        self.value
+    }
+}
+
+impl VisitWith for ImportAttribute {
+    fn visit_with<'a, V>(&'a self, visitor: &mut V) -> ControlFlow<V::BreakTy>
+    where
+        V: Visitor<'a>,
+    {
+        visitor.visit_sym(&self.key)?;
+        visitor.visit_sym(&self.value)
+    }
+
+    fn visit_with_mut<'a, V>(&'a mut self, visitor: &mut V) -> ControlFlow<V::BreakTy>
+    where
+        V: VisitorMut<'a>,
+    {
+        visitor.visit_sym_mut(&mut self.key)?;
+        visitor.visit_sym_mut(&mut self.value)
+    }
+}
