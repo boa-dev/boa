@@ -17,6 +17,7 @@ const SERVICES: &[(&str, &[DataMarkerInfo])] = &[
     ("icu_casemap", icu_casemap::provider::MARKERS),
     ("icu_collator", icu_collator::provider::MARKERS),
     ("icu_datetime", icu_datetime::provider::MARKERS),
+    ("icu_time", icu_time::provider::MARKERS),
     ("icu_decimal", icu_decimal::provider::MARKERS),
     ("icu_list", icu_list::provider::MARKERS),
     ("icu_locale", icu_locale::provider::MARKERS),
