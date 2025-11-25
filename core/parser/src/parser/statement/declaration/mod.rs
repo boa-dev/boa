@@ -28,7 +28,7 @@ use crate::{
     parser::{AllowAwait, AllowYield, Cursor, OrAbrupt, ParseResult, TokenParser},
     source::ReadChar,
 };
-use boa_ast::{self as ast, Keyword, Spanned};
+use boa_ast::{self as ast, Keyword, Punctuator, Spanned, declaration::ImportAttribute};
 use boa_interner::{Interner, Sym};
 
 /// Parses a declaration.
@@ -133,5 +133,117 @@ where
         };
 
         Ok((*from).into())
+    }
+}
+
+/// Parses an optional `with` clause for import attributes.
+///
+/// More information:
+///  - [ECMAScript Import Attributes proposal][proposal]
+///
+/// [proposal]: https://tc39.es/proposal-import-attributes/#prod-WithClause
+#[derive(Debug, Clone, Copy)]
+pub(in crate::parser) struct WithClause {
+    context: &'static str,
+}
+
+impl WithClause {
+    /// Creates a new `with` clause parser.
+    #[inline]
+    pub(in crate::parser) const fn new(context: &'static str) -> Self {
+        Self { context }
+    }
+}
+
+impl<R> TokenParser<R> for WithClause
+where
+    R: ReadChar,
+{
+    type Output = Box<[ImportAttribute]>;
+
+    fn parse(self, cursor: &mut Cursor<R>, interner: &mut Interner) -> ParseResult<Self::Output> {
+        // Check if the next token is `with`
+        let Some(tok) = cursor.peek(0, interner)? else {
+            return Ok(Box::default());
+        };
+
+        if tok.kind() != &TokenKind::identifier(Sym::WITH) {
+            return Ok(Box::default());
+        }
+
+        // Consume the `with` keyword
+        cursor.advance(interner);
+
+        // Expect opening brace
+        cursor.expect(Punctuator::OpenBlock, self.context, interner)?;
+
+        let mut attributes = Vec::new();
+
+        // Parse attribute list (may be empty)
+        loop {
+            let tok = cursor.peek(0, interner).or_abrupt()?;
+
+            // Check for closing brace
+            if tok.kind() == &TokenKind::Punctuator(Punctuator::CloseBlock) {
+                break;
+            }
+
+            // Parse attribute key (identifier or string literal)
+            let key_tok = cursor.next(interner).or_abrupt()?;
+            let key = match key_tok.kind() {
+                TokenKind::IdentifierName((name, _))
+                | TokenKind::StringLiteral((name, _)) => *name,
+                _ => {
+                    return Err(Error::expected(
+                        ["identifier".to_owned(), "string literal".to_owned()],
+                        key_tok.to_string(interner),
+                        key_tok.span(),
+                        self.context,
+                    ));
+                }
+            };
+
+            // Expect colon
+            cursor.expect(Punctuator::Colon, self.context, interner)?;
+
+            // Parse attribute value (must be a string literal)
+            let value_tok = cursor.next(interner).or_abrupt()?;
+            let TokenKind::StringLiteral((value, _)) = value_tok.kind() else {
+                return Err(Error::expected(
+                    ["string literal".to_owned()],
+                    value_tok.to_string(interner),
+                    value_tok.span(),
+                    self.context,
+                ));
+            };
+
+            // Check for duplicate keys
+            if attributes.iter().any(|attr: &ImportAttribute| attr.key() == key) {
+                return Err(Error::general(
+                    "duplicate attribute key in import attributes",
+                    key_tok.span().start(),
+                ));
+            }
+
+            attributes.push(ImportAttribute::new(key, *value));
+
+            // Check for comma or end
+            let tok = cursor.peek(0, interner).or_abrupt()?;
+            if tok.kind() == &TokenKind::Punctuator(Punctuator::Comma) {
+                cursor.advance(interner);
+            } else if tok.kind() != &TokenKind::Punctuator(Punctuator::CloseBlock) {
+                return Err(Error::expected(
+                    [",".to_owned(), "}".to_owned()],
+                    tok.to_string(interner),
+                    tok.span(),
+                    self.context,
+                ));
+            }
+        }
+
+        // Consume closing brace
+        cursor.expect(Punctuator::CloseBlock, self.context, interner)?;
+
+        Ok(attributes.into_boxed_slice())
     }
 }
