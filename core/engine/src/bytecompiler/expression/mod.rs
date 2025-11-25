@@ -406,7 +406,7 @@ impl ByteCompiler<'_> {
                 self.bytecode.emit_bind_this_value(dst.variable());
             }
             Expression::ImportCall(import) => {
-                self.compile_expr(import.argument(), dst);
+                self.compile_expr(import.specifier(), dst);
                 self.bytecode.emit_import_call(dst.variable());
             }
             Expression::NewTarget(_new_target) => {

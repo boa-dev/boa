@@ -141,7 +141,7 @@ where
                 CallExpressionTail::new(
                     self.allow_yield,
                     self.allow_await,
-                    ImportCall::new(arg, Span::new(start, end)).into(),
+                    ImportCall::new(arg, None, Span::new(start, end)).into(),
                 )
                 .parse(cursor, interner)?
                 .into()
