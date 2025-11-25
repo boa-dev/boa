@@ -191,8 +191,7 @@ where
             // Parse attribute key (identifier or string literal)
             let key_tok = cursor.next(interner).or_abrupt()?;
             let key = match key_tok.kind() {
-                TokenKind::IdentifierName((name, _))
-                | TokenKind::StringLiteral((name, _)) => *name,
+                TokenKind::IdentifierName((name, _)) | TokenKind::StringLiteral((name, _)) => *name,
                 _ => {
                     return Err(Error::expected(
                         ["identifier".to_owned(), "string literal".to_owned()],
@@ -218,7 +217,10 @@ where
             };
 
             // Check for duplicate keys
-            if attributes.iter().any(|attr: &ImportAttribute| attr.key() == key) {
+            if attributes
+                .iter()
+                .any(|attr: &ImportAttribute| attr.key() == key)
+            {
                 return Err(Error::general(
                     "duplicate attribute key in import attributes",
                     key_tok.span().start(),

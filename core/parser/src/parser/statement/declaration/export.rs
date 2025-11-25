@@ -26,7 +26,7 @@ use boa_ast::{
 use boa_interner::{Interner, Sym};
 
 use super::{
-    Declaration, FromClause, FunctionDeclaration,
+    Declaration, FromClause, FunctionDeclaration, WithClause,
     hoistable::{AsyncFunctionDeclaration, AsyncGeneratorDeclaration, GeneratorDeclaration},
 };
 
@@ -57,7 +57,7 @@ where
 
                 let next = cursor.peek(0, interner).or_abrupt()?;
 
-                let export = match next.kind() {
+                let (kind, specifier) = match next.kind() {
                     TokenKind::IdentifierName((Sym::AS, _)) => {
                         cursor.advance(interner);
                         let tok = cursor.next(interner).or_abrupt()?;
@@ -79,21 +79,13 @@ where
                         let specifier =
                             FromClause::new("export declaration").parse(cursor, interner)?;
 
-                        AstExportDeclaration::ReExport {
-                            kind: ReExportKind::Namespaced { name: Some(alias) },
-                            specifier,
-                            attributes: Box::default(),
-                        }
+                        (ReExportKind::Namespaced { name: Some(alias) }, specifier)
                     }
                     TokenKind::IdentifierName((Sym::FROM, _)) => {
                         let specifier =
                             FromClause::new("export declaration").parse(cursor, interner)?;
 
-                        AstExportDeclaration::ReExport {
-                            kind: ReExportKind::Namespaced { name: None },
-                            specifier,
-                            attributes: Box::default(),
-                        }
+                        (ReExportKind::Namespaced { name: None }, specifier)
                     }
                     _ => {
                         return Err(Error::expected(
@@ -105,9 +97,14 @@ where
                     }
                 };
 
+                let attributes = WithClause::new("export declaration").parse(cursor, interner)?;
                 cursor.expect_semicolon("star re-export", interner)?;
 
-                export
+                AstExportDeclaration::ReExport {
+                    kind,
+                    specifier,
+                    attributes,
+                }
             }
             TokenKind::Punctuator(Punctuator::OpenBlock) => {
                 let names = NamedExports.parse(cursor, interner)?;
@@ -120,13 +117,15 @@ where
                 ) {
                     let specifier =
                         FromClause::new("export declaration").parse(cursor, interner)?;
+                    let attributes =
+                        WithClause::new("export declaration").parse(cursor, interner)?;
 
                     cursor.expect_semicolon("named re-exports", interner)?;
 
                     AstExportDeclaration::ReExport {
                         kind: ReExportKind::Named { names },
                         specifier,
-                        attributes: Box::default(),
+                        attributes,
                     }
                 } else {
                     cursor.expect_semicolon("named exports", interner)?;
