@@ -170,13 +170,26 @@ fn get_test262_commit(test262_path: &Path) -> Result<Box<str>> {
 /// Compares the results of two test suite runs.
 #[allow(clippy::cast_possible_wrap)]
 pub(crate) fn compare_results(base: &Path, new: &Path, markdown: bool) -> Result<()> {
+    // If the path is a directory, use latest.json from that directory
+    let base_path = if base.is_dir() {
+        base.join(LATEST_FILE_NAME)
+    } else {
+        base.to_path_buf()
+    };
+
+    let new_path = if new.is_dir() {
+        new.join(LATEST_FILE_NAME)
+    } else {
+        new.to_path_buf()
+    };
+
     let base_results: ResultInfo = serde_json::from_reader(BufReader::new(
-        fs::File::open(base).wrap_err("could not open the base results file")?,
+        fs::File::open(&base_path).wrap_err("could not open the base results file")?,
     ))
     .wrap_err("could not read the base results")?;
 
     let new_results: ResultInfo = serde_json::from_reader(BufReader::new(
-        fs::File::open(new).wrap_err("could not open the new results file")?,
+        fs::File::open(&new_path).wrap_err("could not open the new results file")?,
     ))
     .wrap_err("could not read the new results")?;
 
