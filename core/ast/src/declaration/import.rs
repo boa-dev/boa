@@ -17,7 +17,7 @@ use crate::{
 };
 use boa_interner::Sym;
 
-use super::ModuleSpecifier;
+use super::{ImportAttribute, ModuleSpecifier};
 
 /// The kind of import in an [`ImportDeclaration`].
 #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
@@ -87,21 +87,25 @@ pub struct ImportDeclaration {
     kind: ImportKind,
     /// Module specifier.
     specifier: ModuleSpecifier,
+    /// Import attributes.
+    attributes: Box<[ImportAttribute]>,
 }
 
 impl ImportDeclaration {
     /// Creates a new import declaration.
     #[inline]
     #[must_use]
-    pub const fn new(
+    pub fn new(
         default: Option<Identifier>,
         kind: ImportKind,
         specifier: ModuleSpecifier,
+        attributes: Box<[ImportAttribute]>,
     ) -> Self {
         Self {
             default,
             kind,
             specifier,
+            attributes,
         }
     }
 
@@ -119,11 +123,18 @@ impl ImportDeclaration {
         self.specifier
     }
 
-    /// Gets the import kind of the import declaration
+    /// Gets the import kind of the import declaration.
     #[inline]
     #[must_use]
     pub const fn kind(&self) -> &ImportKind {
         &self.kind
+    }
+
+    /// Gets the import attributes of the import declaration.
+    #[inline]
+    #[must_use]
+    pub const fn attributes(&self) -> &[ImportAttribute] {
+        &self.attributes
     }
 }
 
@@ -136,7 +147,11 @@ impl VisitWith for ImportDeclaration {
             visitor.visit_identifier(default)?;
         }
         visitor.visit_import_kind(&self.kind)?;
-        visitor.visit_module_specifier(&self.specifier)
+        visitor.visit_module_specifier(&self.specifier)?;
+        for attribute in &*self.attributes {
+            visitor.visit_import_attribute(attribute)?;
+        }
+        ControlFlow::Continue(())
     }
 
     fn visit_with_mut<'a, V>(&'a mut self, visitor: &mut V) -> ControlFlow<V::BreakTy>
@@ -147,7 +162,11 @@ impl VisitWith for ImportDeclaration {
             visitor.visit_identifier_mut(default)?;
         }
         visitor.visit_import_kind_mut(&mut self.kind)?;
-        visitor.visit_module_specifier_mut(&mut self.specifier)
+        visitor.visit_module_specifier_mut(&mut self.specifier)?;
+        for attribute in &mut *self.attributes {
+            visitor.visit_import_attribute_mut(attribute)?;
+        }
+        ControlFlow::Continue(())
     }
 }
 

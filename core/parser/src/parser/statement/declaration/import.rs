@@ -90,6 +90,7 @@ where
                     None,
                     ImportKind::DefaultOrUnnamed,
                     ModuleSpecifier::new(module_identifier),
+                    Box::default(),
                 ));
             }
             TokenKind::Punctuator(Punctuator::OpenBlock) => {
@@ -257,17 +258,29 @@ enum ImportClause {
 
 impl ImportClause {
     #[inline]
-    #[allow(clippy::missing_const_for_fn)]
     fn with_specifier(self, specifier: ModuleSpecifier) -> AstImportDeclaration {
         match self {
-            Self::Namespace(default, binding) => {
-                AstImportDeclaration::new(default, ImportKind::Namespaced { binding }, specifier)
-            }
+            Self::Namespace(default, binding) => AstImportDeclaration::new(
+                default,
+                ImportKind::Namespaced { binding },
+                specifier,
+                Box::default(),
+            ),
             Self::ImportList(default, names) => {
                 if names.is_empty() {
-                    AstImportDeclaration::new(default, ImportKind::DefaultOrUnnamed, specifier)
+                    AstImportDeclaration::new(
+                        default,
+                        ImportKind::DefaultOrUnnamed,
+                        specifier,
+                        Box::default(),
+                    )
                 } else {
-                    AstImportDeclaration::new(default, ImportKind::Named { names }, specifier)
+                    AstImportDeclaration::new(
+                        default,
+                        ImportKind::Named { names },
+                        specifier,
+                        Box::default(),
+                    )
                 }
             }
         }
