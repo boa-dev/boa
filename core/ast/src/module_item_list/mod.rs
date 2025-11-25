@@ -323,7 +323,9 @@ impl ModuleItemList {
                 node: &'ast ExportDeclaration,
             ) -> ControlFlow<Self::BreakTy> {
                 let name = match node {
-                    ExportDeclaration::ReExport { kind, specifier } => {
+                    ExportDeclaration::ReExport {
+                        kind, specifier, ..
+                    } => {
                         let module = specifier.sym();
 
                         match kind {

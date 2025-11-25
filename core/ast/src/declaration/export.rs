@@ -9,7 +9,7 @@
 //! [spec]: https://tc39.es/ecma262/#sec-exports
 //! [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Statements/export
 
-use super::{ModuleSpecifier, VarDeclaration};
+use super::{ImportAttribute, ModuleSpecifier, VarDeclaration};
 use crate::{
     Declaration, Expression,
     function::{
@@ -87,6 +87,8 @@ pub enum ExportDeclaration {
         kind: ReExportKind,
         /// Reexported module specifier.
         specifier: ModuleSpecifier,
+        /// Re-export attributes.
+        attributes: Box<[ImportAttribute]>,
     },
     /// List of exports.
     List(Box<[ExportSpecifier]>),
@@ -114,9 +116,17 @@ impl VisitWith for ExportDeclaration {
         V: Visitor<'a>,
     {
         match self {
-            Self::ReExport { specifier, kind } => {
+            Self::ReExport {
+                specifier,
+                kind,
+                attributes,
+            } => {
                 visitor.visit_module_specifier(specifier)?;
-                visitor.visit_re_export_kind(kind)
+                visitor.visit_re_export_kind(kind)?;
+                for attribute in &**attributes {
+                    visitor.visit_import_attribute(attribute)?;
+                }
+                ControlFlow::Continue(())
             }
             Self::List(list) => {
                 for item in &**list {
@@ -144,9 +154,17 @@ impl VisitWith for ExportDeclaration {
         V: VisitorMut<'a>,
     {
         match self {
-            Self::ReExport { specifier, kind } => {
+            Self::ReExport {
+                specifier,
+                kind,
+                attributes,
+            } => {
                 visitor.visit_module_specifier_mut(specifier)?;
-                visitor.visit_re_export_kind_mut(kind)
+                visitor.visit_re_export_kind_mut(kind)?;
+                for attribute in &mut **attributes {
+                    visitor.visit_import_attribute_mut(attribute)?;
+                }
+                ControlFlow::Continue(())
             }
             Self::List(list) => {
                 for item in &mut **list {

@@ -82,6 +82,7 @@ where
                         AstExportDeclaration::ReExport {
                             kind: ReExportKind::Namespaced { name: Some(alias) },
                             specifier,
+                            attributes: Box::default(),
                         }
                     }
                     TokenKind::IdentifierName((Sym::FROM, _)) => {
@@ -91,6 +92,7 @@ where
                         AstExportDeclaration::ReExport {
                             kind: ReExportKind::Namespaced { name: None },
                             specifier,
+                            attributes: Box::default(),
                         }
                     }
                     _ => {
@@ -124,6 +126,7 @@ where
                     AstExportDeclaration::ReExport {
                         kind: ReExportKind::Named { names },
                         specifier,
+                        attributes: Box::default(),
                     }
                 } else {
                     cursor.expect_semicolon("named exports", interner)?;
