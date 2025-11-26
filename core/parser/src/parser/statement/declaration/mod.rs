@@ -167,7 +167,7 @@ where
             return Ok(Box::default());
         };
 
-        if tok.kind() != &TokenKind::identifier(Sym::WITH) {
+        if !matches!(tok.kind(), TokenKind::Keyword((Keyword::With, _))) {
             return Ok(Box::default());
         }
 
