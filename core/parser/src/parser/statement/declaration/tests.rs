@@ -603,7 +603,10 @@ fn import_duplicate_attribute_key() {
         Parser::new(Source::from_bytes(
             r#"import json from "./foo.json" with { type: "json", type: "css" };"#
         ))
-        .parse_module(&boa_ast::scope::Scope::new_global(), &mut Interner::default())
+        .parse_module(
+            &boa_ast::scope::Scope::new_global(),
+            &mut Interner::default()
+        )
         .is_err()
     );
 }
