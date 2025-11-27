@@ -8,9 +8,9 @@
 use crate::{
     StatementListItem,
     declaration::{
-        ExportDeclaration, ExportEntry, ExportSpecifier, ImportDeclaration, ImportEntry,
-        ImportKind, ImportName, IndirectExportEntry, LocalExportEntry, ModuleSpecifier,
-        ReExportImportName, ReExportKind,
+        ExportDeclaration, ExportEntry, ExportSpecifier, ImportAttribute, ImportDeclaration,
+        ImportEntry, ImportKind, ImportName, IndirectExportEntry, LocalExportEntry,
+        ModuleSpecifier, ReExportImportName, ReExportKind,
     },
     operations::{BoundNamesVisitor, bound_names},
     visitor::{VisitWith, Visitor, VisitorMut},
@@ -258,7 +258,7 @@ impl ModuleItemList {
                 node: &'ast ImportDeclaration,
             ) -> ControlFlow<Self::BreakTy> {
                 let module = node.specifier().sym();
-                let attributes = Box::from(node.attributes());
+                let attributes: Box<[ImportAttribute]> = Box::from(node.attributes());
 
                 if let Some(default) = node.default() {
                     self.0.push(ImportEntry::new(

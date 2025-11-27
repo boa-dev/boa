@@ -73,9 +73,11 @@ fn test_json_module_dynamic_import() {
             context: &RefCell<&mut Context>,
         ) -> JsResult<Module> {
             assert_eq!(request.specifier().to_std_string_escaped(), "basic");
-            
+
             // Verify attributes were passed correctly
-            let type_attr = request.get_attribute("type").expect("should have type attribute");
+            let type_attr = request
+                .get_attribute("type")
+                .expect("should have type attribute");
             assert_eq!(type_attr.to_std_string_escaped(), "json");
 
             let src = self.0.clone();
@@ -109,25 +111,34 @@ fn test_json_module_dynamic_import() {
         .namespace(&mut context)
         .get(js_string!("p"), &mut context)
         .unwrap();
-    
+
     let p_obj = p.as_promise().unwrap();
     context.run_jobs().unwrap();
 
     match p_obj.state() {
         PromiseState::Fulfilled(module_ns) => {
-             let default_export = module_ns
+            let default_export = module_ns
                 .as_object()
                 .unwrap()
                 .get(js_string!("default"), &mut context)
                 .unwrap();
-            
-             assert_eq!(
-                JsString::from(default_export.to_json(&mut context).unwrap().unwrap().to_string()),
+
+            assert_eq!(
+                JsString::from(
+                    default_export
+                        .to_json(&mut context)
+                        .unwrap()
+                        .unwrap()
+                        .to_string()
+                ),
                 json_content
             );
         }
         PromiseState::Rejected(e) => {
-             panic!("Dynamic import failed: {:?}", e.to_string(&mut context).unwrap());
+            panic!(
+                "Dynamic import failed: {:?}",
+                e.to_string(&mut context).unwrap()
+            );
         }
         PromiseState::Pending => panic!("Dynamic import is still pending"),
     }
@@ -144,8 +155,10 @@ fn test_json_module_static_import_with_attributes() {
             context: &RefCell<&mut Context>,
         ) -> JsResult<Module> {
             assert_eq!(request.specifier().to_std_string_escaped(), "basic");
-            
-            let type_attr = request.get_attribute("type").expect("should have type attribute");
+
+            let type_attr = request
+                .get_attribute("type")
+                .expect("should have type attribute");
             assert_eq!(type_attr.to_std_string_escaped(), "json");
 
             let src = self.0.clone();
@@ -197,8 +210,10 @@ fn test_json_module_reexport_with_attributes() {
             context: &RefCell<&mut Context>,
         ) -> JsResult<Module> {
             assert_eq!(request.specifier().to_std_string_escaped(), "basic");
-            
-            let type_attr = request.get_attribute("type").expect("should have type attribute");
+
+            let type_attr = request
+                .get_attribute("type")
+                .expect("should have type attribute");
             assert_eq!(type_attr.to_std_string_escaped(), "json");
 
             let src = self.0.clone();
@@ -277,17 +292,20 @@ fn test_dynamic_import_invalid_options() {
         .namespace(&mut context)
         .get(js_string!("p"), &mut context)
         .unwrap();
-    
+
     let p_obj = p.as_promise().unwrap();
     context.run_jobs().unwrap();
 
     match p_obj.state() {
         PromiseState::Rejected(e) => {
-             let error = e.as_object().unwrap();
-             let name = error.get(js_string!("name"), &mut context).unwrap();
-             assert_eq!(name.as_string().unwrap(), js_string!("TypeError"));
+            let error = e.as_object().unwrap();
+            let name = error.get(js_string!("name"), &mut context).unwrap();
+            assert_eq!(name.as_string().unwrap(), js_string!("TypeError"));
         }
-        state => panic!("Dynamic import should be rejected with TypeError, got {:?}", state),
+        state => panic!(
+            "Dynamic import should be rejected with TypeError, got {:?}",
+            state
+        ),
     }
 }
 
@@ -329,19 +347,25 @@ fn test_dynamic_import_non_string_attribute_value() {
         .namespace(&mut context)
         .get(js_string!("p"), &mut context)
         .unwrap();
-    
+
     let p_obj = p.as_promise().unwrap();
     context.run_jobs().unwrap();
 
     match p_obj.state() {
         PromiseState::Rejected(e) => {
-             let error = e.as_object().unwrap();
-             let name = error.get(js_string!("name"), &mut context).unwrap();
-             assert_eq!(name.as_string().unwrap(), js_string!("TypeError"));
-             let message = error.get(js_string!("message"), &mut context).unwrap();
-             assert_eq!(message.as_string().unwrap(), js_string!("import attribute value must be a string"));
+            let error = e.as_object().unwrap();
+            let name = error.get(js_string!("name"), &mut context).unwrap();
+            assert_eq!(name.as_string().unwrap(), js_string!("TypeError"));
+            let message = error.get(js_string!("message"), &mut context).unwrap();
+            assert_eq!(
+                message.as_string().unwrap(),
+                js_string!("import attribute value must be a string")
+            );
         }
-        state => panic!("Dynamic import should be rejected with TypeError, got {:?}", state),
+        state => panic!(
+            "Dynamic import should be rejected with TypeError, got {:?}",
+            state
+        ),
     }
 }
 
@@ -356,7 +380,7 @@ fn test_dynamic_import_symbol_key() {
             context: &RefCell<&mut Context>,
         ) -> JsResult<Module> {
             assert_eq!(request.specifier().to_std_string_escaped(), "basic");
-            
+
             // Verify attributes were passed correctly (symbol key should be ignored)
             assert!(request.get_attribute("type").is_none());
 
@@ -391,25 +415,34 @@ fn test_dynamic_import_symbol_key() {
         .namespace(&mut context)
         .get(js_string!("p"), &mut context)
         .unwrap();
-    
+
     let p_obj = p.as_promise().unwrap();
     context.run_jobs().unwrap();
 
     match p_obj.state() {
         PromiseState::Fulfilled(module_ns) => {
-             let default_export = module_ns
+            let default_export = module_ns
                 .as_object()
                 .unwrap()
                 .get(js_string!("default"), &mut context)
                 .unwrap();
-            
-             assert_eq!(
-                JsString::from(default_export.to_json(&mut context).unwrap().unwrap().to_string()),
+
+            assert_eq!(
+                JsString::from(
+                    default_export
+                        .to_json(&mut context)
+                        .unwrap()
+                        .unwrap()
+                        .to_string()
+                ),
                 json_content
             );
         }
         PromiseState::Rejected(e) => {
-             panic!("Dynamic import failed: {:?}", e.to_string(&mut context).unwrap());
+            panic!(
+                "Dynamic import failed: {:?}",
+                e.to_string(&mut context).unwrap()
+            );
         }
         PromiseState::Pending => panic!("Dynamic import is still pending"),
     }
@@ -428,7 +461,9 @@ fn test_json_module_dynamic_import_assert() {
             assert_eq!(request.specifier().to_std_string_escaped(), "basic");
 
             // Verify attributes were passed correctly
-            let type_attr = request.get_attribute("type").expect("should have type attribute");
+            let type_attr = request
+                .get_attribute("type")
+                .expect("should have type attribute");
             assert_eq!(type_attr.to_std_string_escaped(), "json");
 
             let src = self.0.clone();
@@ -468,19 +503,28 @@ fn test_json_module_dynamic_import_assert() {
 
     match p_obj.state() {
         PromiseState::Fulfilled(module_ns) => {
-             let default_export = module_ns
+            let default_export = module_ns
                 .as_object()
                 .unwrap()
                 .get(js_string!("default"), &mut context)
                 .unwrap();
 
-             assert_eq!(
-                JsString::from(default_export.to_json(&mut context).unwrap().unwrap().to_string()),
+            assert_eq!(
+                JsString::from(
+                    default_export
+                        .to_json(&mut context)
+                        .unwrap()
+                        .unwrap()
+                        .to_string()
+                ),
                 json_content
             );
         }
         PromiseState::Rejected(e) => {
-             panic!("Dynamic import failed: {:?}", e.to_string(&mut context).unwrap());
+            panic!(
+                "Dynamic import failed: {:?}",
+                e.to_string(&mut context).unwrap()
+            );
         }
         PromiseState::Pending => panic!("Dynamic import is still pending"),
     }
@@ -488,8 +532,8 @@ fn test_json_module_dynamic_import_assert() {
 
 #[test]
 fn test_module_cache_attribute_isolation() {
-    use std::path::Path;
     use boa_engine::module::SimpleModuleLoader;
+    use std::path::Path;
 
     // Use a dummy path for the loader root
     let loader = Rc::new(SimpleModuleLoader::new(Path::new(".")).unwrap());
@@ -507,33 +551,27 @@ fn test_module_cache_attribute_isolation() {
         Source::from_bytes("export const type = 'js';"),
         None,
         &mut context,
-    ).unwrap();
+    )
+    .unwrap();
 
     // Module 2: A JSON module (or just another module to distinguish)
     let module_json = Module::parse(
         Source::from_bytes("export const type = 'json';"),
         None,
         &mut context,
-    ).unwrap();
+    )
+    .unwrap();
 
     // Insert into loader with different attributes
     // 1. Empty attributes (standard JS import)
-    loader.insert_with_attributes(
-        path_js.clone(), 
-        Box::default(), 
-        module_js.clone()
-    );
+    loader.insert_with_attributes(path_js.clone(), Box::default(), module_js.clone());
 
     // 2. JSON attributes
     let json_attrs = vec![(js_string!("type"), js_string!("json"))].into_boxed_slice();
-    loader.insert_with_attributes(
-        path_json.clone(), 
-        json_attrs.clone(), 
-        module_json.clone()
-    );
+    loader.insert_with_attributes(path_json.clone(), json_attrs.clone(), module_json.clone());
 
     // Now retrieve them and verify they are distinct
-    
+
     // Case 1: Get JS module (no attributes)
     let retrieved_js = loader.get_with_attributes(&path_js, &[]);
     assert!(retrieved_js.is_some());
