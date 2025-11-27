@@ -173,7 +173,23 @@ where
             matches!(tok.kind(), TokenKind::IdentifierName((sym, _)) if interner.resolve_expect(*sym).utf8().is_some_and(|s| s == "assert"))
         };
 
+        // Only treat `with` / `assert` as part of a with-clause if it is
+        // followed by an opening `{`. This avoids mis-parsing code like:
+        //
+        // import x from "mod";
+        // assert.sameValue(x, 1);
+        //
+        // where the `assert` identifier on the next line should not be parsed
+        // as an import attributes clause.
         if !is_with && !is_assert {
+            return Ok(Box::default());
+        }
+
+        let Some(next_tok) = cursor.peek(1, interner)? else {
+            return Ok(Box::default());
+        };
+
+        if next_tok.kind() != &TokenKind::Punctuator(Punctuator::OpenBlock) {
             return Ok(Box::default());
         }
 
