@@ -334,7 +334,7 @@ impl SourceTextModule {
                 interner,
                 requests: IndexSet::default(),
             };
-            let _ = visitor.visit_module(&&code);
+            let _ = visitor.visit_module(&code);
             visitor.requests
         };
         // 4. Let importEntries be ImportEntries of body.

@@ -261,7 +261,7 @@ impl Operation for CallSpread {
 /// Parses the import attributes from the options object.
 fn parse_import_attributes(
     specifier: JsString,
-    options: JsValue,
+    options: &JsValue,
     context: &mut Context,
 ) -> JsResult<crate::module::ModuleRequest> {
     if options.is_undefined() {
@@ -272,52 +272,48 @@ fn parse_import_attributes(
         let with_key = crate::js_string!("with");
         let with_val = options_obj.get(with_key, context)?;
 
-        let (attributes_val, is_assert) = if !with_val.is_undefined() {
-            (with_val, false)
-        } else {
+        let (attributes_val, is_assert) = if with_val.is_undefined() {
             let assert_key = crate::js_string!("assert");
             let assert_val = options_obj.get(assert_key, context)?;
             (assert_val, true)
+        } else {
+            (with_val, false)
         };
 
-        if !attributes_val.is_undefined() {
-            if let Some(attributes_obj) = attributes_val.as_object() {
-                let keys = attributes_obj.enumerable_own_property_names(
-                    crate::property::PropertyNameKind::Key,
-                    context,
-                )?;
-
-                let mut attributes = Vec::with_capacity(keys.len());
-                for key in keys {
-                    if !key.is_string() {
-                        continue;
-                    }
-                    let key_str = key.as_string().expect("key must be string").clone();
-                    let value = attributes_obj.get(key_str.clone(), context)?;
-
-                    if !value.is_string() {
-                        return Err(JsNativeError::typ()
-                            .with_message("import attribute value must be a string")
-                            .into());
-                    }
-
-                    let value_str = value.as_string().expect("value must be string").clone();
-                    attributes.push((key_str, value_str));
-                }
-                Ok(crate::module::ModuleRequest::new(
-                    specifier,
-                    attributes.into_boxed_slice(),
-                ))
-            } else {
-                let msg = if is_assert {
-                    "the 'assert' option must be an object"
-                } else {
-                    "the 'with' option must be an object"
-                };
-                Err(JsNativeError::typ().with_message(msg).into())
-            }
-        } else {
+        if attributes_val.is_undefined() {
             Ok(crate::module::ModuleRequest::from_specifier(specifier))
+        } else if let Some(attributes_obj) = attributes_val.as_object() {
+            let keys = attributes_obj
+                .enumerable_own_property_names(crate::property::PropertyNameKind::Key, context)?;
+
+            let mut attributes = Vec::with_capacity(keys.len());
+            for key in keys {
+                if !key.is_string() {
+                    continue;
+                }
+                let key_str = key.as_string().expect("key must be string").clone();
+                let value = attributes_obj.get(key_str.clone(), context)?;
+
+                if !value.is_string() {
+                    return Err(JsNativeError::typ()
+                        .with_message("import attribute value must be a string")
+                        .into());
+                }
+
+                let value_str = value.as_string().expect("value must be string").clone();
+                attributes.push((key_str, value_str));
+            }
+            Ok(crate::module::ModuleRequest::new(
+                specifier,
+                attributes.into_boxed_slice(),
+            ))
+        } else {
+            let msg = if is_assert {
+                "the 'assert' option must be an object"
+            } else {
+                "the 'with' option must be an object"
+            };
+            Err(JsNativeError::typ().with_message(msg).into())
         }
     } else {
         Err(JsNativeError::typ()
@@ -343,7 +339,7 @@ async fn load_dyn_import(
 ) -> JsResult<()> {
     let request = {
         let mut context = context.borrow_mut();
-        parse_import_attributes(specifier, options, &mut context)
+        parse_import_attributes(specifier, &options, &mut context)
     };
 
     let request = match request {

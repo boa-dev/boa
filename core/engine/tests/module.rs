@@ -302,10 +302,7 @@ fn test_dynamic_import_invalid_options() {
             let name = error.get(js_string!("name"), &mut context).unwrap();
             assert_eq!(name.as_string().unwrap(), js_string!("TypeError"));
         }
-        state => panic!(
-            "Dynamic import should be rejected with TypeError, got {:?}",
-            state
-        ),
+        state => panic!("Dynamic import should be rejected with TypeError, got {state:?}"),
     }
 }
 
@@ -362,10 +359,7 @@ fn test_dynamic_import_non_string_attribute_value() {
                 js_string!("import attribute value must be a string")
             );
         }
-        state => panic!(
-            "Dynamic import should be rejected with TypeError, got {:?}",
-            state
-        ),
+        state => panic!("Dynamic import should be rejected with TypeError, got {state:?}"),
     }
 }
 
