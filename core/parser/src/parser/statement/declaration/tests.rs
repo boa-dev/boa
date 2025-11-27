@@ -638,3 +638,44 @@ fn import_non_string_attribute_value() {
         .is_err()
     );
 }
+
+/// Checks import declaration with assert keyword.
+#[test]
+fn import_with_assert_keyword() {
+    let interner = &mut Interner::default();
+    let json = interner.get_or_intern_static("json", utf16!("json"));
+    let foo_json = interner.get_or_intern_static("./foo.json", utf16!("./foo.json"));
+    let type_sym = interner.get_or_intern_static("type", utf16!("type"));
+
+    check_module_parser(
+        r#"import json from "./foo.json" assert { type: "json" };"#,
+        vec![ModuleItem::ImportDeclaration(ImportDeclaration::new(
+            Some(Identifier::new(json, Span::new((1, 8), (1, 12)))),
+            ImportKind::DefaultOrUnnamed,
+            ModuleSpecifier::new(foo_json),
+            vec![ImportAttribute::new(type_sym, json)].into(),
+        ))],
+        interner,
+    );
+}
+
+/// Checks re-export with assert keyword.
+#[test]
+fn reexport_with_assert_keyword() {
+    let interner = &mut Interner::default();
+    let foo_js = interner.get_or_intern_static("./foo.js", utf16!("./foo.js"));
+    let type_sym = interner.get_or_intern_static("type", utf16!("type"));
+    let json = interner.get_or_intern_static("json", utf16!("json"));
+
+    check_module_parser(
+        r#"export * from "./foo.js" assert { type: "json" };"#,
+        vec![ModuleItem::ExportDeclaration(Box::new(
+            ExportDeclaration::ReExport {
+                kind: ReExportKind::Namespaced { name: None },
+                specifier: ModuleSpecifier::new(foo_js),
+                attributes: vec![ImportAttribute::new(type_sym, json)].into(),
+            },
+        ))],
+        interner,
+    );
+}

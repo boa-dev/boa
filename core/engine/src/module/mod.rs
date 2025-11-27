@@ -57,6 +57,62 @@ mod namespace;
 mod source;
 mod synthetic;
 
+/// A module request with optional import attributes.
+///
+/// Represents a module specifier and its associated import attributes.
+/// According to the [Import Attributes proposal][proposal], the module cache key
+/// should be (referrer, specifier, attributes).
+///
+/// [proposal]: https://tc39.es/proposal-import-attributes/
+#[derive(Debug, Clone, PartialEq, Eq, Hash, Trace, Finalize)]
+pub struct ModuleRequest {
+    specifier: JsString,
+    attributes: Box<[(JsString, JsString)]>,
+}
+
+impl ModuleRequest {
+    /// Creates a new module request from a specifier and attributes.
+    #[must_use]
+    pub fn new(specifier: JsString, mut attributes: Box<[(JsString, JsString)]>) -> Self {
+        // Sort attributes by key to ensure canonical cache keys.
+        attributes.sort_unstable_by(|(k1, _), (k2, _)| k1.cmp(k2));
+        Self {
+            specifier,
+            attributes,
+        }
+    }
+
+    /// Creates a new module request from only a specifier, with no attributes.
+    #[must_use]
+    pub fn from_specifier(specifier: JsString) -> Self {
+        Self {
+            specifier,
+            attributes: Box::new([]),
+        }
+    }
+
+    /// Gets the module specifier.
+    #[must_use]
+    pub fn specifier(&self) -> &JsString {
+        &self.specifier
+    }
+
+    /// Gets the import attributes as key-value pairs.
+    #[must_use]
+    pub fn attributes(&self) -> &[(JsString, JsString)] {
+        &self.attributes
+    }
+
+    /// Gets the value of a specific attribute by key.
+    #[must_use]
+    pub fn get_attribute(&self, key: &str) -> Option<&JsString> {
+        self.attributes
+            .iter()
+            .find(|(k, _)| k == key)
+            .map(|(_, v)| v)
+    }
+}
+
 /// ECMAScript's [**Abstract module record**][spec].
 ///
 /// [spec]: https://tc39.es/ecma262/#sec-abstract-module-records
@@ -844,4 +900,27 @@ fn can_throw_exception() {
         promise_result.state().as_rejected(),
         Some(&js_string!("from javascript").into())
     );
+}
+
+#[test]
+fn test_module_request_attribute_sorting() {
+    let request1 = ModuleRequest::new(
+        js_string!("specifier"),
+        Box::new([
+            (js_string!("key2"), js_string!("val2")),
+            (js_string!("key1"), js_string!("val1")),
+        ]),
+    );
+
+    let request2 = ModuleRequest::new(
+        js_string!("specifier"),
+        Box::new([
+            (js_string!("key1"), js_string!("val1")),
+            (js_string!("key2"), js_string!("val2")),
+        ]),
+    );
+
+    assert_eq!(request1, request2);
+    assert_eq!(request1.attributes()[0].0, js_string!("key1"));
+    assert_eq!(request1.attributes()[1].0, js_string!("key2"));
 }

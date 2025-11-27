@@ -240,21 +240,28 @@ pub enum ImportName {
 /// [`ImportEntry`][spec] record.
 ///
 /// [spec]: https://tc39.es/ecma262/#table-importentry-record-fields
-#[derive(Debug, Clone, Copy)]
+#[derive(Debug, Clone)]
 pub struct ImportEntry {
     module_request: Sym,
     import_name: ImportName,
     local_name: Identifier,
+    attributes: Box<[ImportAttribute]>,
 }
 
 impl ImportEntry {
     /// Creates a new `ImportEntry`.
     #[must_use]
-    pub const fn new(module_request: Sym, import_name: ImportName, local_name: Identifier) -> Self {
+    pub fn new(
+        module_request: Sym,
+        import_name: ImportName,
+        local_name: Identifier,
+        attributes: Box<[ImportAttribute]>,
+    ) -> Self {
         Self {
             module_request,
             import_name,
             local_name,
+            attributes,
         }
     }
 
@@ -274,5 +281,11 @@ impl ImportEntry {
     #[must_use]
     pub const fn local_name(&self) -> Identifier {
         self.local_name
+    }
+
+    /// Gets the import attributes.
+    #[must_use]
+    pub fn attributes(&self) -> &[ImportAttribute] {
+        &self.attributes
     }
 }

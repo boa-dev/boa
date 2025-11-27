@@ -129,12 +129,10 @@ where
                 let specifier = AssignmentExpression::new(true, self.allow_yield, self.allow_await)
                     .parse(cursor, interner)?;
 
-                // Check for optional second argument (options with import attributes)
                 let options = if cursor
                     .next_if(TokenKind::Punctuator(Punctuator::Comma), interner)?
                     .is_some()
                 {
-                    // Check for trailing comma (no second argument)
                     if cursor
                         .peek(0, interner)?
                         .is_some_and(|t| t.kind() == &TokenKind::Punctuator(Punctuator::CloseParen))

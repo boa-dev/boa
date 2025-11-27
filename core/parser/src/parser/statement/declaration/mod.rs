@@ -162,33 +162,34 @@ where
     type Output = Box<[ImportAttribute]>;
 
     fn parse(self, cursor: &mut Cursor<R>, interner: &mut Interner) -> ParseResult<Self::Output> {
-        // Check if the next token is `with`
         let Some(tok) = cursor.peek(0, interner)? else {
             return Ok(Box::default());
         };
 
-        if !matches!(tok.kind(), TokenKind::Keyword((Keyword::With, _))) {
+        let is_with = matches!(tok.kind(), TokenKind::Keyword((Keyword::With, _)));
+        let is_assert = if is_with {
+            false
+        } else {
+            matches!(tok.kind(), TokenKind::IdentifierName((sym, _)) if interner.resolve_expect(*sym).utf8().is_some_and(|s| s == "assert"))
+        };
+
+        if !is_with && !is_assert {
             return Ok(Box::default());
         }
 
-        // Consume the `with` keyword
         cursor.advance(interner);
 
-        // Expect opening brace
         cursor.expect(Punctuator::OpenBlock, self.context, interner)?;
 
         let mut attributes = Vec::new();
 
-        // Parse attribute list (may be empty)
         loop {
             let tok = cursor.peek(0, interner).or_abrupt()?;
 
-            // Check for closing brace
             if tok.kind() == &TokenKind::Punctuator(Punctuator::CloseBlock) {
                 break;
             }
 
-            // Parse attribute key (identifier or string literal)
             let key_tok = cursor.next(interner).or_abrupt()?;
             let key = match key_tok.kind() {
                 TokenKind::IdentifierName((name, _)) | TokenKind::StringLiteral((name, _)) => *name,
@@ -202,10 +203,8 @@ where
                 }
             };
 
-            // Expect colon
             cursor.expect(Punctuator::Colon, self.context, interner)?;
 
-            // Parse attribute value (must be a string literal)
             let value_tok = cursor.next(interner).or_abrupt()?;
             let TokenKind::StringLiteral((value, _)) = value_tok.kind() else {
                 return Err(Error::expected(
@@ -216,7 +215,6 @@ where
                 ));
             };
 
-            // Check for duplicate keys
             if attributes
                 .iter()
                 .any(|attr: &ImportAttribute| attr.key() == key)
@@ -229,7 +227,6 @@ where
 
             attributes.push(ImportAttribute::new(key, *value));
 
-            // Check for comma or end
             let tok = cursor.peek(0, interner).or_abrupt()?;
             if tok.kind() == &TokenKind::Punctuator(Punctuator::Comma) {
                 cursor.advance(interner);
@@ -243,7 +240,6 @@ where
             }
         }
 
-        // Consume closing brace
         cursor.expect(Punctuator::CloseBlock, self.context, interner)?;
 
         Ok(attributes.into_boxed_slice())

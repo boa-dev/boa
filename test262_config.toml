@@ -13,8 +13,6 @@ features = [
     "Intl.DisplayNames",
     "Intl.RelativeTimeFormat",
     "Intl-enumeration",
-    "import-attributes",
-    "json-modules",
     "Intl.DurationFormat",
     "regexp-duplicate-named-groups",
     "iterator-helpers",
@@ -60,6 +58,10 @@ features = [
     # Non-extensible Applies to Private
     # https://github.com/tc39/proposal-nonextensible-applies-to-private
     "nonextensible-applies-to-private",
+
+    ### Implemented features
+    "import-attributes",
+    "json-modules",
 
     ### Non-standard
     "caller",

@@ -141,13 +141,13 @@ impl ModuleLoader for EmbeddedModuleLoader {
     fn load_imported_module(
         self: Rc<Self>,
         referrer: Referrer,
-        specifier: JsString,
+        request: boa_engine::module::ModuleRequest,
         context: &RefCell<&mut Context>,
     ) -> impl Future<Output = JsResult<Module>> {
         let result = (|| {
             let specifier_path = boa_engine::module::resolve_module_specifier(
                 None,
-                &specifier,
+                request.specifier(),
                 referrer.path(),
                 &mut context.borrow_mut(),
             )
@@ -155,7 +155,7 @@ impl ModuleLoader for EmbeddedModuleLoader {
                 JsNativeError::typ()
                     .with_message(format!(
                         "could not resolve module specifier `{}`",
-                        specifier.display_escaped()
+                        request.specifier().display_escaped()
                     ))
                     .with_cause(e)
             })?;
@@ -166,7 +166,7 @@ impl ModuleLoader for EmbeddedModuleLoader {
                 .ok_or_else(|| {
                     JsNativeError::typ().with_message(format!(
                         "could not find module `{}`",
-                        specifier.display_escaped()
+                        request.specifier().display_escaped()
                     ))
                 })?;
 

@@ -271,7 +271,7 @@ pub enum ReExportImportName {
 /// [`ExportEntry`][spec] record.
 ///
 /// [spec]: https://tc39.es/ecma262/#table-exportentry-records
-#[derive(Debug, Clone, Copy)]
+#[derive(Debug, Clone)]
 pub enum ExportEntry {
     /// An ordinary export entry
     Ordinary(LocalExportEntry),
@@ -279,6 +279,8 @@ pub enum ExportEntry {
     StarReExport {
         /// The module from where this reexport will import.
         module_request: Sym,
+        /// The import attributes for this reexport.
+        attributes: Box<[ImportAttribute]>,
     },
     /// A reexport entry with an export name.
     ReExport(IndirectExportEntry),
@@ -327,25 +329,28 @@ impl LocalExportEntry {
 }
 
 /// A reexported export entry.
-#[derive(Debug, Clone, Copy)]
+#[derive(Debug, Clone)]
 pub struct IndirectExportEntry {
     module_request: Sym,
     import_name: ReExportImportName,
     export_name: Sym,
+    attributes: Box<[ImportAttribute]>,
 }
 
 impl IndirectExportEntry {
     /// Creates a new `IndirectExportEntry`.
     #[must_use]
-    pub const fn new(
+    pub fn new(
         module_request: Sym,
         import_name: ReExportImportName,
         export_name: Sym,
+        attributes: Box<[ImportAttribute]>,
     ) -> Self {
         Self {
             module_request,
             import_name,
             export_name,
+            attributes,
         }
     }
 
@@ -365,5 +370,11 @@ impl IndirectExportEntry {
     #[must_use]
     pub const fn export_name(&self) -> Sym {
         self.export_name
+    }
+
+    /// Gets the import attributes.
+    #[must_use]
+    pub fn attributes(&self) -> &[ImportAttribute] {
+        &self.attributes
     }
 }

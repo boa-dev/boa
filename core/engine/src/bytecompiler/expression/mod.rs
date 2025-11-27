@@ -407,7 +407,15 @@ impl ByteCompiler<'_> {
             }
             Expression::ImportCall(import) => {
                 self.compile_expr(import.specifier(), dst);
-                self.bytecode.emit_import_call(dst.variable());
+                let options = self.register_allocator.alloc();
+                if let Some(opts) = import.options() {
+                    self.compile_expr(opts, &options);
+                } else {
+                    self.bytecode.emit_push_undefined(options.variable());
+                }
+                self.bytecode
+                    .emit_import_call(dst.variable(), options.variable());
+                self.register_allocator.dealloc(options);
             }
             Expression::NewTarget(_new_target) => {
                 self.bytecode.emit_new_target(dst.variable());
