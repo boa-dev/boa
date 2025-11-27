@@ -384,7 +384,7 @@ impl SimpleModuleLoader {
     pub fn insert_with_attributes(
         &self,
         path: PathBuf,
-        _attributes: Box<[(JsString, JsString)]>,
+        _attributes: &[(JsString, JsString)],
         module: Module,
     ) {
         self.insert(path, module);
@@ -491,11 +491,7 @@ impl ModuleLoader for SimpleModuleLoader {
                 })?
             };
 
-            self.insert_with_attributes(
-                path,
-                request.attributes().to_vec().into_boxed_slice(),
-                module.clone(),
-            );
+            self.insert_with_attributes(path, request.attributes(), module.clone());
             Ok(module)
         })();
 
