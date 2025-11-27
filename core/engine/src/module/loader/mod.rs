@@ -338,7 +338,6 @@ impl ModuleLoader for MapModuleLoader {
     }
 }
 
-
 /// A simple module loader that loads modules relative to a root path.
 ///
 /// # Note
