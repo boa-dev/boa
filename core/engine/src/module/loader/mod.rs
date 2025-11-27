@@ -350,7 +350,7 @@ type ModuleKey = (PathBuf, Box<[(JsString, JsString)]>);
 #[derive(Debug)]
 pub struct SimpleModuleLoader {
     root: PathBuf,
-    module_map: GcRefCell<FxHashMap<ModuleKey, Module>>,
+    module_map: GcRefCell<FxHashMap<PathBuf, Module>>,
 }
 
 impl SimpleModuleLoader {
@@ -373,42 +373,41 @@ impl SimpleModuleLoader {
         })
     }
 
-    /// Inserts a new module onto the module map with empty attributes.
+    /// Inserts a new module onto the module map.
     #[inline]
     pub fn insert(&self, path: PathBuf, module: Module) {
-        self.insert_with_attributes(path, Box::default(), module);
+        self.module_map.borrow_mut().insert(path, module);
     }
 
     /// Inserts a new module onto the module map with the given attributes.
+    ///
+    /// This is an alias for `insert` in this implementation, as it ignores attributes.
     #[inline]
     pub fn insert_with_attributes(
         &self,
         path: PathBuf,
-        attributes: Box<[(JsString, JsString)]>,
+        _attributes: Box<[(JsString, JsString)]>,
         module: Module,
     ) {
-        self.module_map
-            .borrow_mut()
-            .insert((path, attributes), module);
+        self.insert(path, module);
     }
 
-    /// Gets a module from its original path with empty attributes.
+    /// Gets a module from its original path.
     #[inline]
     pub fn get(&self, path: &Path) -> Option<Module> {
-        self.get_with_attributes(path, &[])
+        self.module_map.borrow().get(path).cloned()
     }
 
     /// Gets a module from its original path and attributes.
+    ///
+    /// This is an alias for `get` in this implementation, as it ignores attributes.
     #[inline]
     pub fn get_with_attributes(
         &self,
         path: &Path,
-        attributes: &[(JsString, JsString)],
+        _attributes: &[(JsString, JsString)],
     ) -> Option<Module> {
-        self.module_map
-            .borrow()
-            .get(&(path.to_path_buf(), Box::from(attributes)))
-            .cloned()
+        self.get(path)
     }
 }
 
