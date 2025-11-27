@@ -59,10 +59,6 @@ features = [
     # https://github.com/tc39/proposal-nonextensible-applies-to-private
     "nonextensible-applies-to-private",
 
-    ### Implemented features
-    "import-attributes",
-    "json-modules",
-
     ### Non-standard
     "caller",
 ]
