@@ -209,6 +209,7 @@ where
             let key_tok = cursor.next(interner).or_abrupt()?;
             let key = match key_tok.kind() {
                 TokenKind::IdentifierName((name, _)) | TokenKind::StringLiteral((name, _)) => *name,
+                TokenKind::Keyword((kw, _)) => kw.to_sym(),
                 _ => {
                     return Err(Error::expected(
                         ["identifier".to_owned(), "string literal".to_owned()],

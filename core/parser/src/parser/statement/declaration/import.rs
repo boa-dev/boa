@@ -87,13 +87,16 @@ where
                 let module_identifier = *module_identifier;
 
                 cursor.advance(interner);
+
+                let attributes = WithClause::new("import declaration").parse(cursor, interner)?;
+
                 cursor.expect_semicolon("import declaration", interner)?;
 
                 return Ok(AstImportDeclaration::new(
                     None,
                     ImportKind::DefaultOrUnnamed,
                     ModuleSpecifier::new(module_identifier),
-                    Box::default(),
+                    attributes,
                 ));
             }
             TokenKind::Punctuator(Punctuator::OpenBlock) => {

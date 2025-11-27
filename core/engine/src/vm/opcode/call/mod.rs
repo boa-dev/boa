@@ -332,27 +332,10 @@ fn parse_import_attributes(
 /// [continue]: https://tc39.es/ecma262/#sec-ContinueDynamicImport
 async fn load_dyn_import(
     referrer: Referrer,
-    specifier: JsString,
-    options: JsValue,
+    request: crate::module::ModuleRequest,
     cap: PromiseCapability,
     context: &RefCell<&mut Context>,
 ) -> JsResult<()> {
-    let request = {
-        let mut context = context.borrow_mut();
-        parse_import_attributes(specifier, &options, &mut context)
-    };
-
-    let request = match request {
-        Ok(req) => req,
-        Err(err) => {
-            let err = err.into_opaque(&mut context.borrow_mut())?;
-            cap.reject()
-                .call(&JsValue::undefined(), &[err], &mut context.borrow_mut())
-                .expect("default `reject` function cannot throw");
-            return Ok(());
-        }
-    };
-
     let loader = context.borrow().module_loader();
     let fut = loader.load_imported_module(referrer.clone(), request.clone(), context);
     let mut stack = [MaybeUninit::<u8>::uninit(); 16];
@@ -511,24 +494,35 @@ impl ImportCall {
         let promise = cap.promise().clone();
 
         // 6. Let specifierString be Completion(ToString(specifier)).
-        match arg.to_string(context) {
-            // 7. IfAbruptRejectPromise(specifierString, promiseCapability).
+        let specifier_str = match arg.to_string(context) {
+            Ok(s) => s,
             Err(err) => {
                 let err = err.into_opaque(context)?;
                 cap.reject().call(&JsValue::undefined(), &[err], context)?;
+                context.vm.set_register(specifier_op.into(), promise.into());
+                return Ok(());
             }
-            // 8. Perform HostLoadImportedModule(referrer, specifierString, empty, promiseCapability).
-            Ok(specifier) => {
-                let job = NativeAsyncJob::with_realm(
-                    async move |context| {
-                        load_dyn_import(referrer, specifier, options, cap, context).await?;
-                        Ok(JsValue::undefined())
-                    },
-                    context.realm().clone(),
-                );
-                context.enqueue_job(job.into());
+        };
+
+        let request = match parse_import_attributes(specifier_str, &options, context) {
+            Ok(req) => req,
+            Err(err) => {
+                let err = err.into_opaque(context)?;
+                cap.reject().call(&JsValue::undefined(), &[err], context)?;
+                context.vm.set_register(specifier_op.into(), promise.into());
+                return Ok(());
             }
-        }
+        };
+
+        // 8. Perform HostLoadImportedModule(referrer, specifierString, empty, promiseCapability).
+        let job = NativeAsyncJob::with_realm(
+            async move |context| {
+                load_dyn_import(referrer, request, cap, context).await?;
+                Ok(JsValue::undefined())
+            },
+            context.realm().clone(),
+        );
+        context.enqueue_job(job.into());
 
         // 9. Return promiseCapability.[[Promise]].
         context.vm.set_register(specifier_op.into(), promise.into());

@@ -129,24 +129,29 @@ where
                 let specifier = AssignmentExpression::new(true, self.allow_yield, self.allow_await)
                     .parse(cursor, interner)?;
 
-                let options = if cursor
-                    .next_if(TokenKind::Punctuator(Punctuator::Comma), interner)?
-                    .is_some()
-                {
+                let options =
                     if cursor
-                        .peek(0, interner)?
-                        .is_some_and(|t| t.kind() == &TokenKind::Punctuator(Punctuator::CloseParen))
+                        .next_if(TokenKind::Punctuator(Punctuator::Comma), interner)?
+                        .is_some()
                     {
-                        None
+                        if cursor.peek(0, interner)?.is_some_and(|t| {
+                            t.kind() == &TokenKind::Punctuator(Punctuator::CloseParen)
+                        }) {
+                            None
+                        } else {
+                            let opts =
+                                AssignmentExpression::new(true, self.allow_yield, self.allow_await)
+                                    .parse(cursor, interner)?;
+                            if cursor.peek(0, interner)?.is_some_and(|t| {
+                                t.kind() == &TokenKind::Punctuator(Punctuator::Comma)
+                            }) {
+                                cursor.advance(interner);
+                            }
+                            Some(opts)
+                        }
                     } else {
-                        Some(
-                            AssignmentExpression::new(true, self.allow_yield, self.allow_await)
-                                .parse(cursor, interner)?,
-                        )
-                    }
-                } else {
-                    None
-                };
+                        None
+                    };
 
                 let end = cursor
                     .expect(

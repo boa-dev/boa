@@ -435,16 +435,22 @@ impl ModuleLoader for SimpleModuleLoader {
             for (key, value) in request.attributes() {
                 if key == &type_key {
                     module_type = Some(value);
-                } else {
+                }
+            }
+
+            if path
+                .extension()
+                .is_some_and(|ext| ext.to_string_lossy() == "json")
+            {
+                let is_json_type = module_type.is_some_and(|t| t == &js_string!("json"));
+                if !is_json_type {
                     return Err(JsNativeError::typ()
                         .with_message(format!(
-                            "unsupported attribute `{}` for module `{short_path}`",
-                            key.to_std_string_escaped()
+                            "module `{short_path}` needs an import attribute of type \"json\""
                         ))
                         .into());
                 }
             }
-
             let module = if let Some(ty) = module_type {
                 // Handle different module types based on the type attribute
                 match ty.to_std_string_escaped().as_str() {
