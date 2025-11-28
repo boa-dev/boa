@@ -1,4 +1,4 @@
-use std::fmt::{Display, Write};
+use std::fmt::{self, Display};
 
 use boa_gc::{Finalize, Trace};
 use boa_string::JsString;
@@ -19,6 +19,28 @@ impl Backtrace {
     }
 }
 
+#[derive(Debug, Clone, Trace, Finalize)]
+pub(crate) enum ErrorStack {
+    Position(#[unsafe_ignore_trace] ShadowEntry),
+    Backtrace(#[unsafe_ignore_trace] Backtrace),
+}
+
+impl ErrorStack {
+    pub(crate) fn backtrace(&self) -> Option<&Backtrace> {
+        match self {
+            Self::Backtrace(bt) => Some(bt),
+            Self::Position(_) => None,
+        }
+    }
+
+    pub(crate) fn position(&self) -> Option<&ShadowEntry> {
+        match self {
+            Self::Position(position) => Some(position),
+            Self::Backtrace(bt) => bt.iter().next(),
+        }
+    }
+}
+
 #[derive(Debug, Clone)]
 pub(crate) enum ShadowEntry {
     Native {
@@ -31,42 +53,77 @@ pub(crate) enum ShadowEntry {
     },
 }
 
-impl Display for ShadowEntry {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        match self {
+impl ShadowEntry {
+    /// Create a display wrapper for this entry.
+    ///
+    /// # Arguments
+    ///
+    /// * `show_function_name` - Whether to include the function name in the output.
+    pub(crate) fn display(&self, show_function_name: bool) -> DisplayShadowEntry<'_> {
+        DisplayShadowEntry {
+            entry: self,
+            show_function_name,
+        }
+    }
+}
+
+/// Helper struct to format a shadow entry for display.
+pub(crate) struct DisplayShadowEntry<'a> {
+    entry: &'a ShadowEntry,
+    show_function_name: bool,
+}
+
+impl Display for DisplayShadowEntry<'_> {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        match self.entry {
             ShadowEntry::Native {
                 function_name,
                 source_info,
             } => {
-                if function_name.is_some() || source_info.as_location().is_some() {
-                    f.write_str(" (native")?;
+                if self.show_function_name {
                     if let Some(function_name) = function_name {
-                        write!(f, " {}", function_name.to_std_string_escaped())?;
+                        write!(f, "{}", function_name.to_std_string_escaped())?;
+                    } else {
+                        f.write_str("<anonymous>")?;
                     }
-                    if let Some(location) = source_info.as_location() {
-                        write!(f, " at {location}")?;
-                    }
-                    f.write_char(')')?;
+                }
+
+                if let Some(loc) = source_info.as_location() {
+                    write!(
+                        f,
+                        " (native at {}:{}:{})",
+                        loc.file(),
+                        loc.line(),
+                        loc.column()
+                    )?;
+                } else {
+                    f.write_str(" (native)")?;
                 }
             }
             ShadowEntry::Bytecode { pc, source_info } => {
-                let path = source_info.map().path();
-                let position = source_info.map().find(*pc);
-
-                if path.is_some() || position.is_some() {
-                    write!(f, " ({}", source_info.map().path())?;
-
-                    if let Some(position) = position {
-                        write!(
-                            f,
-                            ":{}:{}",
-                            position.line_number(),
-                            position.column_number()
-                        )?;
+                if self.show_function_name {
+                    let has_function_name = !source_info.function_name().is_empty();
+                    if has_function_name {
+                        write!(f, "{}", source_info.function_name().to_std_string_escaped())?;
+                    } else {
+                        f.write_str("<main>")?;
                     }
-
-                    f.write_char(')')?;
                 }
+                f.write_str(" (")?;
+
+                source_info.map().path().fmt(f)?;
+
+                if let Some(position) = source_info.map().find(*pc) {
+                    write!(
+                        f,
+                        ":{}:{}",
+                        position.line_number(),
+                        position.column_number()
+                    )?;
+                } else {
+                    f.write_str(":?:?")?;
+                }
+                f.write_str(")")?;
             }
         }
         Ok(())
@@ -131,10 +188,38 @@ impl ShadowStack {
         Backtrace { stack }
     }
 
-    pub(crate) fn caller_position(&self) -> Option<ShadowEntry> {
-        // NOTE: We push the function that is currently execution, so the second last is the caller.
-        let index = self.stack.len().checked_sub(2)?;
-        self.stack.get(index).cloned()
+    pub(crate) fn take_and_push(&self, n: usize, last_pc: u32, value: ShadowEntry) -> Backtrace {
+        let mut stack = self
+            .stack
+            .iter()
+            .rev()
+            .take(n)
+            .rev()
+            .cloned()
+            .chain(std::iter::once(value))
+            .collect::<ThinVec<_>>();
+
+        let last = stack.len() - 2;
+        if let Some(ShadowEntry::Bytecode { pc, .. }) = stack.get_mut(last) {
+            // NOTE: pc points to the next opcode, so we offset by -1 to put it within range.
+            *pc = last_pc.saturating_sub(1);
+        }
+        Backtrace { stack }
+    }
+
+    pub(crate) fn caller_position(&self, n: usize) -> Backtrace {
+        // NOTE: We push the function that is currently executing, so skip the last one.
+        let stack = self
+            .stack
+            .iter()
+            .rev()
+            .skip(1)
+            .take(n)
+            .rev()
+            .cloned()
+            .collect::<ThinVec<_>>();
+
+        Backtrace { stack }
     }
 
     #[cfg(feature = "native-backtrace")]
