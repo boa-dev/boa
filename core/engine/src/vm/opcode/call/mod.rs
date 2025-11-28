@@ -264,14 +264,24 @@ fn parse_import_attributes(
     options: &JsValue,
     context: &mut Context,
 ) -> JsResult<crate::module::ModuleRequest> {
+    // Taken from `EvaluateImportCall`
+    //
+    // <https://tc39.es/proposal-import-attributes/#sec-evaluate-import-call>
+
+    // 1. Let attributes be a new empty List.
+    // 2. If options is not undefined, then
     if options.is_undefined() {
         return Ok(crate::module::ModuleRequest::from_specifier(specifier));
     }
 
+    // a. If Type(options) is not Object, throw a TypeError exception.
     if let Some(options_obj) = options.as_object() {
+        // b. Let attributesObj be ? Get(options, "with").
         let with_key = crate::js_string!("with");
         let with_val = options_obj.get(with_key, context)?;
 
+        // c. If attributesObj is undefined, then
+        //     i. Set attributesObj to ? Get(options, "assert").
         let (attributes_val, is_assert) = if with_val.is_undefined() {
             let assert_key = crate::js_string!("assert");
             let assert_val = options_obj.get(assert_key, context)?;
@@ -280,20 +290,28 @@ fn parse_import_attributes(
             (with_val, false)
         };
 
+        // d. If attributesObj is not undefined, then
         if attributes_val.is_undefined() {
             Ok(crate::module::ModuleRequest::from_specifier(specifier))
+        // i. If Type(attributesObj) is not Object, throw a TypeError exception.
         } else if let Some(attributes_obj) = attributes_val.as_object() {
+            // ii. Let entries be ? EnumerableOwnProperties(attributesObj, "key+value").
             let keys = attributes_obj
                 .enumerable_own_property_names(crate::property::PropertyNameKind::Key, context)?;
 
+            // iii. For each entry in entries, do
             let mut attributes = Vec::with_capacity(keys.len());
             for key in keys {
+                // 1. Let key be entry.[[Key]].
                 if !key.is_string() {
                     continue;
                 }
                 let key_str = key.as_string().expect("key must be string").clone();
+
+                // 2. Let value be entry.[[Value]].
                 let value = attributes_obj.get(key_str.clone(), context)?;
 
+                // 3. If Type(value) is not String, throw a TypeError exception.
                 if !value.is_string() {
                     return Err(JsNativeError::typ()
                         .with_message("import attribute value must be a string")
@@ -301,8 +319,12 @@ fn parse_import_attributes(
                 }
 
                 let value_str = value.as_string().expect("value must be string").clone();
+
+                // 4. Append the Record { [[Key]]: key, [[Value]]: value } to attributes.
                 attributes.push((key_str, value_str));
             }
+
+            // 3. Return the Record { [[Specifier]]: specifier, [[Attributes]]: attributes }.
             Ok(crate::module::ModuleRequest::new(
                 specifier,
                 attributes.into_boxed_slice(),
