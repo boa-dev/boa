@@ -163,9 +163,9 @@ impl VisitWith for ModuleSpecifier {
 /// and the value is a string literal.
 ///
 /// More information:
-///  - [ECMAScript proposal][proposal]
+///  - [ECMAScript specification][spec]
 ///
-/// [proposal]: https://tc39.es/proposal-import-attributes/#prod-ImportAttribute
+/// [spec]: https://tc39.es/ecma262/#sec-imports
 #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
 #[cfg_attr(feature = "arbitrary", derive(arbitrary::Arbitrary))]
 #[derive(Clone, Debug, Copy, PartialEq, Eq)]
