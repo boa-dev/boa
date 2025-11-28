@@ -381,7 +381,9 @@ impl SourceTextModule {
                     // ii. Append ee to starExportEntries.
                     let spec = module_request.to_js_string(interner);
                     star_export_entries.push(super::ModuleRequest::from_ast(
-                        spec, &attributes, interner,
+                        spec,
+                        &attributes,
+                        interner,
                     ));
                 }
                 // c. Else,

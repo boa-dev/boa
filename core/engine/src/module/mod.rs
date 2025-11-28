@@ -29,6 +29,7 @@ use std::rc::Rc;
 
 use rustc_hash::FxHashSet;
 
+use boa_ast::declaration::ImportAttribute;
 use boa_engine::js_string;
 use boa_engine::property::PropertyKey;
 use boa_engine::value::TryFromJs;
@@ -36,7 +37,6 @@ use boa_gc::{Finalize, Gc, GcRefCell, Trace};
 use boa_interner::Interner;
 use boa_parser::source::ReadChar;
 use boa_parser::{Parser, Source};
-use boa_ast::declaration::ImportAttribute;
 
 pub use loader::*;
 pub use namespace::ModuleNamespace;
