@@ -406,8 +406,16 @@ impl ByteCompiler<'_> {
                 self.bytecode.emit_bind_this_value(dst.variable());
             }
             Expression::ImportCall(import) => {
-                self.compile_expr(import.argument(), dst);
-                self.bytecode.emit_import_call(dst.variable());
+                self.compile_expr(import.specifier(), dst);
+                let options = self.register_allocator.alloc();
+                if let Some(opts) = import.options() {
+                    self.compile_expr(opts, &options);
+                } else {
+                    self.bytecode.emit_push_undefined(options.variable());
+                }
+                self.bytecode
+                    .emit_import_call(dst.variable(), options.variable());
+                self.register_allocator.dealloc(options);
             }
             Expression::NewTarget(_new_target) => {
                 self.bytecode.emit_new_target(dst.variable());

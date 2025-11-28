@@ -1,11 +1,11 @@
 use std::{cell::RefCell, collections::VecDeque, rc::Rc};
 
 use boa_engine::{
-    Context, JsNativeError, JsResult, JsString, JsValue, Module,
+    Context, JsNativeError, JsResult, JsValue, Module,
     builtins::promise::PromiseState,
     job::{Job, JobExecutor, NativeAsyncJob, PromiseJob},
     js_string,
-    module::ModuleLoader,
+    module::{ModuleLoader, ModuleRequest},
 };
 use boa_parser::Source;
 use futures_concurrency::future::FutureGroup;
@@ -22,10 +22,10 @@ impl ModuleLoader for HttpModuleLoader {
     async fn load_imported_module(
         self: Rc<Self>,
         _referrer: boa_engine::module::Referrer,
-        specifier: JsString,
+        request: ModuleRequest,
         context: &RefCell<&mut Context>,
     ) -> JsResult<Module> {
-        let url = specifier.to_std_string_escaped();
+        let url = request.specifier().to_std_string_escaped();
 
         // Adding some prints to show the non-deterministic nature of the async fetches.
         // Try to run the example several times to see how sometimes the fetches start in order

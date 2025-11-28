@@ -13,8 +13,6 @@ features = [
     "Intl.DisplayNames",
     "Intl.RelativeTimeFormat",
     "Intl-enumeration",
-    "import-attributes",
-    "json-modules",
     "Intl.DurationFormat",
     "regexp-duplicate-named-groups",
     "iterator-helpers",

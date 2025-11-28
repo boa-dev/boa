@@ -126,8 +126,32 @@ where
                 // `(`
                 cursor.advance(interner);
 
-                let arg = AssignmentExpression::new(true, self.allow_yield, self.allow_await)
+                let specifier = AssignmentExpression::new(true, self.allow_yield, self.allow_await)
                     .parse(cursor, interner)?;
+
+                let options =
+                    if cursor
+                        .next_if(TokenKind::Punctuator(Punctuator::Comma), interner)?
+                        .is_some()
+                    {
+                        if cursor.peek(0, interner)?.is_some_and(|t| {
+                            t.kind() == &TokenKind::Punctuator(Punctuator::CloseParen)
+                        }) {
+                            None
+                        } else {
+                            let opts =
+                                AssignmentExpression::new(true, self.allow_yield, self.allow_await)
+                                    .parse(cursor, interner)?;
+                            if cursor.peek(0, interner)?.is_some_and(|t| {
+                                t.kind() == &TokenKind::Punctuator(Punctuator::Comma)
+                            }) {
+                                cursor.advance(interner);
+                            }
+                            Some(opts)
+                        }
+                    } else {
+                        None
+                    };
 
                 let end = cursor
                     .expect(
@@ -141,7 +165,7 @@ where
                 CallExpressionTail::new(
                     self.allow_yield,
                     self.allow_await,
-                    ImportCall::new(arg, Span::new(start, end)).into(),
+                    ImportCall::new(specifier, options, Span::new(start, end)).into(),
                 )
                 .parse(cursor, interner)?
                 .into()
