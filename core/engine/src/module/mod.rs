@@ -60,10 +60,10 @@ mod synthetic;
 /// A module request with optional import attributes.
 ///
 /// Represents a module specifier and its associated import attributes.
-/// According to the [Import Attributes proposal][proposal], the module cache key
+/// According to the [ECMAScript specification][spec], the module cache key
 /// should be (referrer, specifier, attributes).
 ///
-/// [proposal]: https://tc39.es/proposal-import-attributes/
+/// [spec]: https://tc39.es/ecma262/#sec-modulerequest-record
 #[derive(Debug, Clone, PartialEq, Eq, Hash, Trace, Finalize)]
 pub struct ModuleRequest {
     specifier: JsString,

@@ -139,9 +139,9 @@ where
 /// Parses an optional `with` clause for import attributes.
 ///
 /// More information:
-///  - [ECMAScript Import Attributes proposal][proposal]
+///  - [ECMAScript specification][spec]
 ///
-/// [proposal]: https://tc39.es/proposal-import-attributes/#prod-WithClause
+/// [spec]: https://tc39.es/ecma262/#sec-imports
 #[derive(Debug, Clone, Copy)]
 pub(in crate::parser) struct WithClause {
     context: &'static str,
