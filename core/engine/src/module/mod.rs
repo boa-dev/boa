@@ -36,11 +36,14 @@ use boa_gc::{Finalize, Gc, GcRefCell, Trace};
 use boa_interner::Interner;
 use boa_parser::source::ReadChar;
 use boa_parser::{Parser, Source};
+use boa_ast::declaration::ImportAttribute;
+
 pub use loader::*;
 pub use namespace::ModuleNamespace;
 use source::SourceTextModule;
 pub use synthetic::{SyntheticModule, SyntheticModuleInitializer};
 
+use crate::bytecompiler::ToJsString;
 use crate::object::TypedJsFunction;
 use crate::spanned_source_text::SourceText;
 use crate::{
@@ -89,6 +92,26 @@ impl ModuleRequest {
             specifier,
             attributes: Box::new([]),
         }
+    }
+
+    /// Creates a new module request from an AST specifier and attributes.
+    #[must_use]
+    pub(crate) fn from_ast(
+        specifier: JsString,
+        attributes: &[ImportAttribute],
+        interner: &Interner,
+    ) -> Self {
+        let attributes = attributes
+            .iter()
+            .map(|attr| {
+                (
+                    attr.key().to_js_string(interner),
+                    attr.value().to_js_string(interner),
+                )
+            })
+            .collect::<Vec<_>>()
+            .into_boxed_slice();
+        Self::new(specifier, attributes)
     }
 
     /// Gets the module specifier.

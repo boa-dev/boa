@@ -264,19 +264,11 @@ impl<'ast> boa_ast::visitor::Visitor<'ast> for ModuleRequestsVisitor<'_> {
         node: &'ast boa_ast::declaration::ImportDeclaration,
     ) -> std::ops::ControlFlow<Self::BreakTy> {
         let specifier = node.specifier().sym().to_js_string(self.interner);
-        let attributes = node
-            .attributes()
-            .iter()
-            .map(|attr| {
-                (
-                    attr.key().to_js_string(self.interner),
-                    attr.value().to_js_string(self.interner),
-                )
-            })
-            .collect::<Vec<_>>()
-            .into_boxed_slice();
-        self.requests
-            .insert(super::ModuleRequest::new(specifier, attributes));
+        self.requests.insert(super::ModuleRequest::from_ast(
+            specifier,
+            node.attributes(),
+            self.interner,
+        ));
         std::ops::ControlFlow::Continue(())
     }
 
@@ -291,17 +283,11 @@ impl<'ast> boa_ast::visitor::Visitor<'ast> for ModuleRequestsVisitor<'_> {
         } = node
         {
             let spec = specifier.sym().to_js_string(self.interner);
-            let attrs = attributes
-                .iter()
-                .map(|attr| {
-                    (
-                        attr.key().to_js_string(self.interner),
-                        attr.value().to_js_string(self.interner),
-                    )
-                })
-                .collect::<Vec<_>>()
-                .into_boxed_slice();
-            self.requests.insert(super::ModuleRequest::new(spec, attrs));
+            self.requests.insert(super::ModuleRequest::from_ast(
+                spec,
+                attributes,
+                self.interner,
+            ));
         }
         std::ops::ControlFlow::Continue(())
     }
@@ -394,17 +380,9 @@ impl SourceTextModule {
                     // i. Assert: ee.[[ExportName]] is null.
                     // ii. Append ee to starExportEntries.
                     let spec = module_request.to_js_string(interner);
-                    let attrs = attributes
-                        .iter()
-                        .map(|attr| {
-                            (
-                                attr.key().to_js_string(interner),
-                                attr.value().to_js_string(interner),
-                            )
-                        })
-                        .collect::<Vec<_>>()
-                        .into_boxed_slice();
-                    star_export_entries.push(super::ModuleRequest::new(spec, attrs));
+                    star_export_entries.push(super::ModuleRequest::from_ast(
+                        spec, &attributes, interner,
+                    ));
                 }
                 // c. Else,
                 //    i. Append ee to indirectExportEntries.
@@ -690,18 +668,10 @@ impl SourceTextModule {
             // a. If SameValue(exportName, e.[[ExportName]]) is true, then
             if export_name == &e.export_name().to_js_string(interner) {
                 // i. Let importedModule be GetImportedModule(module, e.[[ModuleRequest]]).
-                let module_request = super::ModuleRequest::new(
+                let module_request = super::ModuleRequest::from_ast(
                     e.module_request().to_js_string(interner),
-                    e.attributes()
-                        .iter()
-                        .map(|attr| {
-                            (
-                                attr.key().to_js_string(interner),
-                                attr.value().to_js_string(interner),
-                            )
-                        })
-                        .collect::<Vec<_>>()
-                        .into_boxed_slice(),
+                    e.attributes(),
+                    interner,
                 );
                 let imported_module = self.loaded_modules.borrow()[&module_request].clone();
                 return match e.import_name() {
@@ -1615,19 +1585,10 @@ impl SourceTextModule {
             // 7. For each ImportEntry Record in of module.[[ImportEntries]], do
             for entry in &self.code.import_entries {
                 // a. Let importedModule be GetImportedModule(module, in.[[ModuleRequest]]).
-                let module_request = super::ModuleRequest::new(
+                let module_request = super::ModuleRequest::from_ast(
                     entry.module_request().to_js_string(compiler.interner()),
-                    entry
-                        .attributes()
-                        .iter()
-                        .map(|attr| {
-                            (
-                                attr.key().to_js_string(compiler.interner()),
-                                attr.value().to_js_string(compiler.interner()),
-                            )
-                        })
-                        .collect::<Vec<_>>()
-                        .into_boxed_slice(),
+                    entry.attributes(),
+                    compiler.interner(),
                 );
                 let imported_module = self.loaded_modules.borrow()[&module_request].clone();
 
