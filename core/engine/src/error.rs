@@ -12,15 +12,11 @@ use crate::{
     realm::Realm,
     vm::{
         NativeSourceInfo,
-        shadow_stack::{Backtrace, ShadowEntry},
+        shadow_stack::{Backtrace as ShadowBacktrace, ErrorLocation, ShadowEntry},
     },
 };
 use boa_gc::{Finalize, Trace, custom_trace};
-use std::{
-    borrow::Cow,
-    error,
-    fmt::{self},
-};
+use std::{borrow::Cow, error, fmt};
 use thiserror::Error;
 
 /// Create an error object from a value or string literal. Optionally the
@@ -209,7 +205,8 @@ macro_rules! js_error {
 pub struct JsError {
     inner: Repr,
 
-    pub(crate) backtrace: Option<Backtrace>,
+    #[unsafe_ignore_trace]
+    pub(crate) backtrace: Option<ShadowBacktrace>,
 }
 
 impl Eq for JsError {}
@@ -503,7 +500,7 @@ impl JsError {
 
                 let cause = try_get_property(js_string!("cause"), "cause", context)?;
 
-                let position = error_data.position.clone();
+                let location = error_data.location.clone();
                 let kind = match error_data.tag {
                     ErrorKind::Error => JsNativeErrorKind::Error,
                     ErrorKind::Eval => JsNativeErrorKind::Eval,
@@ -558,7 +555,7 @@ impl JsError {
                     message,
                     cause: cause.map(|v| Box::new(Self::from_opaque(v))),
                     realm: Some(realm),
-                    position,
+                    location,
                 })
             }
         }
@@ -764,54 +761,7 @@ impl fmt::Display for JsError {
 
         if let Some(shadow_stack) = &self.backtrace {
             for entry in shadow_stack.iter().rev() {
-                write!(f, "\n    at ")?;
-                match entry {
-                    ShadowEntry::Native {
-                        function_name,
-                        source_info,
-                    } => {
-                        if let Some(function_name) = function_name {
-                            write!(f, "{}", function_name.to_std_string_escaped())?;
-                        } else {
-                            f.write_str("<anonymous>")?;
-                        }
-
-                        if let Some(loc) = source_info.as_location() {
-                            write!(
-                                f,
-                                " (native at {}:{}:{})",
-                                loc.file(),
-                                loc.line(),
-                                loc.column()
-                            )?;
-                        } else {
-                            f.write_str(" (native)")?;
-                        }
-                    }
-                    ShadowEntry::Bytecode { pc, source_info } => {
-                        let has_function_name = !source_info.function_name().is_empty();
-                        if has_function_name {
-                            write!(f, "{}", source_info.function_name().to_std_string_escaped(),)?;
-                        } else {
-                            f.write_str("<anonymous>")?;
-                        }
-
-                        f.write_str(" (")?;
-                        source_info.map().path().fmt(f)?;
-
-                        if let Some(position) = source_info.map().find(*pc) {
-                            write!(
-                                f,
-                                ":{}:{}",
-                                position.line_number(),
-                                position.column_number()
-                            )?;
-                        } else {
-                            f.write_str(":?:?")?;
-                        }
-                        f.write_str(")")?;
-                    }
-                }
+                write!(f, "\n    at {}", entry.display(true))?;
             }
         }
         Ok(())
@@ -871,7 +821,7 @@ pub struct JsNativeError {
     #[source]
     cause: Option<Box<JsError>>,
     realm: Option<Realm>,
-    position: IgnoreEq<Option<ShadowEntry>>,
+    location: IgnoreEq<ErrorLocation>,
 }
 
 impl fmt::Display for JsNativeError {
@@ -883,8 +833,8 @@ impl fmt::Display for JsNativeError {
             write!(f, ": {message}")?;
         }
 
-        if let Some(position) = &self.position.0 {
-            position.fmt(f)?;
+        if let Some(entry) = self.location.0.position() {
+            write!(f, "{}", entry.display(false))?;
         }
 
         Ok(())
@@ -945,10 +895,10 @@ impl JsNativeError {
             message,
             cause,
             realm: None,
-            position: IgnoreEq(Some(ShadowEntry::Native {
+            location: IgnoreEq(ErrorLocation::Position(Some(ShadowEntry::Native {
                 function_name: None,
                 source_info: NativeSourceInfo::caller(),
-            })),
+            }))),
         }
     }
 
@@ -1271,7 +1221,7 @@ impl JsNativeError {
             message,
             cause,
             realm,
-            position,
+            location,
         } = self;
         let constructors = realm.as_ref().map_or_else(
             || context.intrinsics().constructors(),
@@ -1299,7 +1249,7 @@ impl JsNativeError {
         let o = JsObject::from_proto_and_data_with_shared_shape(
             context.root_shape(),
             prototype,
-            Error::with_shadow_entry(tag, position.0.clone()),
+            Error::with_location(tag, location.0.clone()),
         )
         .upcast();
 
