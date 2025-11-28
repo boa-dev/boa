@@ -342,17 +342,28 @@ async fn load_dyn_import(
     let mut heap = Vec::<MaybeUninit<u8>>::new();
     let completion = fut.init2(&mut stack, &mut heap).await;
 
+    // `ContinueDynamicImport ( promiseCapability, moduleCompletion )`
+    // https://tc39.es/ecma262/#sec-ContinueDynamicImport
+
+    // `FinishLoadingImportedModule ( referrer, specifier, payload, result )`
+    // https://tc39.es/ecma262/#sec-FinishLoadingImportedModule
+
     let module = match completion {
+        // 1. If moduleCompletion is an abrupt completion, then
         Err(err) => {
+            // a. Perform ! Call(promiseCapability.[[Reject]], undefined, « moduleCompletion.[[Value]] »).
             let err = err.into_opaque(&mut context.borrow_mut())?;
             cap.reject()
                 .call(&JsValue::undefined(), &[err], &mut context.borrow_mut())
                 .expect("default `reject` function cannot throw");
+
+            // b. Return unused.
             return Ok(());
         }
         Ok(m) => m,
     };
 
+    // 1. If result is a normal completion, then
     match referrer {
         Referrer::Module(mod_ref) => {
             let ModuleKind::SourceText(src) = mod_ref.kind() else {
@@ -360,11 +371,18 @@ async fn load_dyn_import(
             };
 
             let mut loaded_modules = src.loaded_modules().borrow_mut();
+
+            //     a. If referrer.[[LoadedModules]] contains a Record whose [[Specifier]] is specifier, then
+            //     b. Else,
+            //         i. Append the Record { [[Specifier]]: specifier, [[Module]]: result.[[Value]] } to referrer.[[LoadedModules]].
             let entry = loaded_modules
                 .entry(request)
                 .or_insert_with(|| module.clone());
 
+            //         i. Assert: That Record's [[Module]] is result.[[Value]].
             debug_assert_eq!(&module, entry);
+
+            // Same steps apply to referrers below
         }
         Referrer::Realm(realm) => {
             let mut loaded_modules = realm.loaded_modules().borrow_mut();
@@ -386,13 +404,18 @@ async fn load_dyn_import(
     // 3. Let loadPromise be module.LoadRequestedModules().
     let load = module.load(&mut context.borrow_mut());
 
+    // 4. Let rejectedClosure be a new Abstract Closure with parameters (reason) that captures promiseCapability and performs the following steps when called:
+    // 5. Let onRejected be CreateBuiltinFunction(rejectedClosure, 1, "", « »).
     let on_rejected = FunctionObjectBuilder::new(
         context.borrow().realm(),
         NativeFunction::from_copy_closure_with_captures(
             |_, args, cap, context| {
+                //     a. Perform ! Call(promiseCapability.[[Reject]], undefined, « reason »).
                 cap.reject()
                     .call(&JsValue::undefined(), args, context)
                     .expect("default `reject` function cannot throw");
+
+                //     b. Return unused.
                 Ok(JsValue::undefined())
             },
             cap.clone(),
@@ -400,28 +423,42 @@ async fn load_dyn_import(
     )
     .build();
 
+    // 6. Let linkAndEvaluateClosure be a new Abstract Closure with no parameters that captures module, promiseCapability, and onRejected and performs the following steps when called:
+    // 7. Let linkAndEvaluate be CreateBuiltinFunction(linkAndEvaluateClosure, 0, "", « »).
     let link_evaluate = FunctionObjectBuilder::new(
         context.borrow().realm(),
         NativeFunction::from_copy_closure_with_captures(
             |_, _, (module, cap, on_rejected), context| {
+                // a. Let link be Completion(module.Link()).
+                // b. If link is an abrupt completion, then
                 if let Err(e) = module.link(context) {
+                    // i. Perform ! Call(promiseCapability.[[Reject]], undefined, « link.[[Value]] »).
                     let e = e.into_opaque(context)?;
                     cap.reject()
                         .call(&JsValue::undefined(), &[e], context)
                         .expect("default `reject` function cannot throw");
+                    // ii. Return unused.
                     return Ok(JsValue::undefined());
                 }
 
+                // c. Let evaluatePromise be module.Evaluate().
                 let evaluate = module.evaluate(context)?;
 
+                // d. Let fulfilledClosure be a new Abstract Closure with no parameters that captures module and promiseCapability and performs the following steps when called:
+                // e. Let onFulfilled be CreateBuiltinFunction(fulfilledClosure, 0, "", « »).
                 let fulfill = FunctionObjectBuilder::new(
                     context.realm(),
                     NativeFunction::from_copy_closure_with_captures(
                         |_, _, (module, cap), context| {
+                            // i. Let namespace be GetModuleNamespace(module).
                             let namespace = module.namespace(context);
+
+                            // ii. Perform ! Call(promiseCapability.[[Resolve]], undefined, « namespace »).
                             cap.resolve()
                                 .call(&JsValue::undefined(), &[namespace.into()], context)
                                 .expect("default `resolve` function cannot throw");
+
+                            // iii. Return unused.
                             Ok(JsValue::undefined())
                         },
                         (module.clone(), cap.clone()),
@@ -429,6 +466,7 @@ async fn load_dyn_import(
                 )
                 .build();
 
+                // f. Perform PerformPromiseThen(evaluatePromise, onFulfilled, onRejected).
                 Promise::perform_promise_then(
                     &evaluate,
                     Some(fulfill),
@@ -437,6 +475,7 @@ async fn load_dyn_import(
                     context,
                 );
 
+                // g. Return unused.
                 Ok(JsValue::undefined())
             },
             (module.clone(), cap.clone(), on_rejected.clone()),
@@ -444,6 +483,7 @@ async fn load_dyn_import(
     )
     .build();
 
+    // 8. Perform PerformPromiseThen(loadPromise, linkAndEvaluate, onRejected).
     Promise::perform_promise_then(
         &load,
         Some(link_evaluate),
@@ -452,6 +492,7 @@ async fn load_dyn_import(
         &mut context.borrow_mut(),
     );
 
+    // 9. Return unused.
     Ok(())
 }
 
@@ -496,6 +537,7 @@ impl ImportCall {
         // 6. Let specifierString be Completion(ToString(specifier)).
         let specifier_str = match arg.to_string(context) {
             Ok(s) => s,
+            // 7. IfAbruptRejectPromise(specifierString, promiseCapability).
             Err(err) => {
                 let err = err.into_opaque(context)?;
                 cap.reject().call(&JsValue::undefined(), &[err], context)?;
