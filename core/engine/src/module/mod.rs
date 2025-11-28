@@ -82,7 +82,7 @@ impl ModuleRequest {
         }
     }
 
-    /// Creates a new module request from only a specifier, with no attributes.
+    /// Creates a new module request from only a specifier with no attributes.
     #[must_use]
     pub fn from_specifier(specifier: JsString) -> Self {
         Self {
