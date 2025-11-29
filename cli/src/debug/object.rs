@@ -39,7 +39,8 @@ fn indexed_elements_type(_: &JsValue, args: &[JsValue], _: &mut Context) -> JsRe
         IndexProperties::DenseI32(_) => "DenseI32",
         IndexProperties::DenseF64(_) => "DenseF64",
         IndexProperties::DenseElement(_) => "DenseElement",
-        IndexProperties::Sparse(_) => "SparseElement",
+        IndexProperties::SparseElement(_) => "SparseElement",
+        IndexProperties::SparseProperty(_) => "SparseProperty",
     };
     Ok(js_string!(typ).into())
 }
