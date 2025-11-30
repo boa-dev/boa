@@ -559,6 +559,7 @@ fn add_runtime(printer: SharedExternalPrinterLogger, context: &mut Context) {
     boa_runtime::register(
         (
             boa_runtime::extensions::ConsoleExtension(printer),
+            boa_runtime::extensions::PerformanceExtension,
             #[cfg(feature = "fetch")]
             boa_runtime::extensions::FetchExtension(
                 boa_runtime::fetch::BlockingReqwestFetcher::default(),
