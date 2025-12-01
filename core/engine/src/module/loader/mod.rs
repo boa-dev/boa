@@ -16,7 +16,7 @@ use crate::{
 };
 
 use super::Module;
-use crate::module::ModuleRequest;
+use crate::module::{ImportAttribute, ModuleRequest};
 
 pub mod embedded;
 
@@ -385,7 +385,7 @@ impl SimpleModuleLoader {
     pub fn insert_with_attributes(
         &self,
         path: PathBuf,
-        _attributes: &[(JsString, JsString)],
+        _attributes: &[ImportAttribute],
         module: Module,
     ) {
         self.insert(path, module);
@@ -404,7 +404,7 @@ impl SimpleModuleLoader {
     pub fn get_with_attributes(
         &self,
         path: &Path,
-        _attributes: &[(JsString, JsString)],
+        _attributes: &[ImportAttribute],
     ) -> Option<Module> {
         self.get(path)
     }
@@ -433,9 +433,9 @@ impl ModuleLoader for SimpleModuleLoader {
             // Check for import attribute type
             let mut module_type = None;
             let type_key = js_string!("type");
-            for (key, value) in request.attributes() {
-                if key == &type_key {
-                    module_type = Some(value);
+            for attr in request.attributes() {
+                if attr.key() == &type_key {
+                    module_type = Some(attr.value());
                 }
             }
 

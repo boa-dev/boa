@@ -29,7 +29,7 @@ use std::rc::Rc;
 
 use rustc_hash::FxHashSet;
 
-use boa_ast::declaration::ImportAttribute;
+use boa_ast::declaration::ImportAttribute as AstImportAttribute;
 use boa_engine::js_string;
 use boa_engine::property::PropertyKey;
 use boa_engine::value::TryFromJs;
@@ -60,6 +60,35 @@ mod namespace;
 mod source;
 mod synthetic;
 
+/// Import attribute.
+///
+/// [spec]: https://tc39.es/ecma262/#table-importattribute-fields
+#[derive(Debug, Clone, PartialEq, Eq, Hash, Trace, Finalize)]
+pub struct ImportAttribute {
+    key: JsString,
+    value: JsString,
+}
+
+impl ImportAttribute {
+    /// Creates a new import attribute.
+    #[must_use]
+    pub fn new(key: JsString, value: JsString) -> Self {
+        Self { key, value }
+    }
+
+    /// Gets the attribute key.
+    #[must_use]
+    pub fn key(&self) -> &JsString {
+        &self.key
+    }
+
+    /// Gets the attribute value.
+    #[must_use]
+    pub fn value(&self) -> &JsString {
+        &self.value
+    }
+}
+
 /// A module request with optional import attributes.
 ///
 /// Represents a module specifier and its associated import attributes.
@@ -70,15 +99,15 @@ mod synthetic;
 #[derive(Debug, Clone, PartialEq, Eq, Hash, Trace, Finalize)]
 pub struct ModuleRequest {
     specifier: JsString,
-    attributes: Box<[(JsString, JsString)]>,
+    attributes: Box<[ImportAttribute]>,
 }
 
 impl ModuleRequest {
     /// Creates a new module request from a specifier and attributes.
     #[must_use]
-    pub fn new(specifier: JsString, mut attributes: Box<[(JsString, JsString)]>) -> Self {
+    pub fn new(specifier: JsString, mut attributes: Box<[ImportAttribute]>) -> Self {
         // Sort attributes by key to ensure canonical cache keys.
-        attributes.sort_unstable_by(|(k1, _), (k2, _)| k1.cmp(k2));
+        attributes.sort_unstable_by(|k1, k2| k1.key.cmp(&k2.key));
         Self {
             specifier,
             attributes,
@@ -98,13 +127,13 @@ impl ModuleRequest {
     #[must_use]
     pub(crate) fn from_ast(
         specifier: JsString,
-        attributes: &[ImportAttribute],
+        attributes: &[AstImportAttribute],
         interner: &Interner,
     ) -> Self {
         let attributes = attributes
             .iter()
             .map(|attr| {
-                (
+                ImportAttribute::new(
                     attr.key().to_js_string(interner),
                     attr.value().to_js_string(interner),
                 )
@@ -122,7 +151,7 @@ impl ModuleRequest {
 
     /// Gets the import attributes as key-value pairs.
     #[must_use]
-    pub fn attributes(&self) -> &[(JsString, JsString)] {
+    pub fn attributes(&self) -> &[ImportAttribute] {
         &self.attributes
     }
 
@@ -131,8 +160,8 @@ impl ModuleRequest {
     pub fn get_attribute(&self, key: &str) -> Option<&JsString> {
         self.attributes
             .iter()
-            .find(|(k, _)| k == key)
-            .map(|(_, v)| v)
+            .find(|attr| attr.key == key)
+            .map(|attr| &attr.value)
     }
 }
 
@@ -930,20 +959,20 @@ fn test_module_request_attribute_sorting() {
     let request1 = ModuleRequest::new(
         js_string!("specifier"),
         Box::new([
-            (js_string!("key2"), js_string!("val2")),
-            (js_string!("key1"), js_string!("val1")),
+            ImportAttribute::new(js_string!("key2"), js_string!("val2")),
+            ImportAttribute::new(js_string!("key1"), js_string!("val1")),
         ]),
     );
 
     let request2 = ModuleRequest::new(
         js_string!("specifier"),
         Box::new([
-            (js_string!("key1"), js_string!("val1")),
-            (js_string!("key2"), js_string!("val2")),
+            ImportAttribute::new(js_string!("key1"), js_string!("val1")),
+            ImportAttribute::new(js_string!("key2"), js_string!("val2")),
         ]),
     );
 
     assert_eq!(request1, request2);
-    assert_eq!(request1.attributes()[0].0, js_string!("key1"));
-    assert_eq!(request1.attributes()[1].0, js_string!("key2"));
+    assert_eq!(request1.attributes()[0].key(), &js_string!("key1"));
+    assert_eq!(request1.attributes()[1].key(), &js_string!("key2"));
 }

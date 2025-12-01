@@ -9,7 +9,7 @@ use crate::{
     builtins::{Promise, promise::PromiseCapability},
     error::JsNativeError,
     job::NativeAsyncJob,
-    module::{ModuleKind, ModuleRequest, Referrer},
+    module::{ImportAttribute, ModuleKind, ModuleRequest, Referrer},
     object::FunctionObjectBuilder,
     vm::opcode::Operation,
 };
@@ -321,7 +321,7 @@ fn parse_import_attributes(
                 let value_str = value.as_string().expect("value must be string").clone();
 
                 // 4. Append the Record { [[Key]]: key, [[Value]]: value } to attributes.
-                attributes.push((key_str, value_str));
+                attributes.push(ImportAttribute::new(key_str, value_str));
             }
 
             // 3. Return the Record { [[Specifier]]: specifier, [[Attributes]]: attributes }.
