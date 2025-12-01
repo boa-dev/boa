@@ -271,7 +271,7 @@ fn parse_import_attributes(
     // 1. Let attributes be a new empty List.
     // 2. If options is not undefined, then
     if options.is_undefined() {
-        return Ok(crate::module::ModuleRequest::from_specifier(specifier));
+        return Ok(ModuleRequest::from_specifier(specifier));
     }
 
     // a. If Type(options) is not Object, throw a TypeError exception.
