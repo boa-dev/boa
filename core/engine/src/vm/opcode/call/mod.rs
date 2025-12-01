@@ -275,70 +275,71 @@ fn parse_import_attributes(
     }
 
     // a. If Type(options) is not Object, throw a TypeError exception.
-    if let Some(options_obj) = options.as_object() {
-        // b. Let attributesObj be ? Get(options, "with").
-        let with_key = crate::js_string!("with");
-        let with_val = options_obj.get(with_key, context)?;
-
-        // c. If attributesObj is undefined, then
-        //     i. Set attributesObj to ? Get(options, "assert").
-        let (attributes_val, is_assert) = if with_val.is_undefined() {
-            let assert_key = crate::js_string!("assert");
-            let assert_val = options_obj.get(assert_key, context)?;
-            (assert_val, true)
-        } else {
-            (with_val, false)
-        };
-
-        // d. If attributesObj is not undefined, then
-        if attributes_val.is_undefined() {
-            Ok(ModuleRequest::from_specifier(specifier))
-        // i. If Type(attributesObj) is not Object, throw a TypeError exception.
-        } else if let Some(attributes_obj) = attributes_val.as_object() {
-            // ii. Let entries be ? EnumerableOwnProperties(attributesObj, "key+value").
-            let keys = attributes_obj
-                .enumerable_own_property_names(crate::property::PropertyNameKind::Key, context)?;
-
-            // iii. For each entry in entries, do
-            let mut attributes = Vec::with_capacity(keys.len());
-            for key in keys {
-                // 1. Let key be entry.[[Key]].
-                if !key.is_string() {
-                    continue;
-                }
-                let key_str = key.as_string().expect("key must be string").clone();
-
-                // 2. Let value be entry.[[Value]].
-                let value = attributes_obj.get(key_str.clone(), context)?;
-
-                // 3. If Type(value) is not String, throw a TypeError exception.
-                if !value.is_string() {
-                    return Err(JsNativeError::typ()
-                        .with_message("import attribute value must be a string")
-                        .into());
-                }
-
-                let value_str = value.as_string().expect("value must be string").clone();
-
-                // 4. Append the Record { [[Key]]: key, [[Value]]: value } to attributes.
-                attributes.push(ImportAttribute::new(key_str, value_str));
-            }
-
-            // 3. Return the Record { [[Specifier]]: specifier, [[Attributes]]: attributes }.
-            Ok(ModuleRequest::new(specifier, attributes.into_boxed_slice()))
-        } else {
-            let msg = if is_assert {
-                "the 'assert' option must be an object"
-            } else {
-                "the 'with' option must be an object"
-            };
-            Err(JsNativeError::typ().with_message(msg).into())
-        }
-    } else {
-        Err(JsNativeError::typ()
+    let Some(options_obj) = options.as_object() else {
+        return Err(JsNativeError::typ()
             .with_message("import options must be an object or undefined")
-            .into())
+            .into());
+    };
+
+    // b. Let attributesObj be ? Get(options, "with").
+    let with_key = crate::js_string!("with");
+    let with_val = options_obj.get(with_key, context)?;
+
+    // c. If attributesObj is undefined, then
+    //     i. Set attributesObj to ? Get(options, "assert").
+    let (attributes_val, is_assert) = if with_val.is_undefined() {
+        let assert_key = crate::js_string!("assert");
+        let assert_val = options_obj.get(assert_key, context)?;
+        (assert_val, true)
+    } else {
+        (with_val, false)
+    };
+
+    // d. If attributesObj is not undefined, then
+    if attributes_val.is_undefined() {
+        return Ok(ModuleRequest::from_specifier(specifier));
     }
+
+    // i. If Type(attributesObj) is not Object, throw a TypeError exception.
+    let Some(attributes_obj) = attributes_val.as_object() else {
+        let msg = if is_assert {
+            "the 'assert' option must be an object"
+        } else {
+            "the 'with' option must be an object"
+        };
+        return Err(JsNativeError::typ().with_message(msg).into());
+    };
+
+    // ii. Let entries be ? EnumerableOwnProperties(attributesObj, "key+value").
+    let keys = attributes_obj
+        .enumerable_own_property_names(crate::property::PropertyNameKind::Key, context)?;
+
+    // iii. For each entry in entries, do
+    let mut attributes = Vec::with_capacity(keys.len());
+    for key in keys {
+        // 1. Let key be entry.[[Key]].
+        let Some(key_str) = key.as_string() else {
+            unreachable!("key from enumerable_own_property_names must always be a string");
+        };
+        let key_str = key_str.clone();
+
+        // 2. Let value be entry.[[Value]].
+        let value = attributes_obj.get(key_str.clone(), context)?;
+
+        // 3. If Type(value) is not String, throw a TypeError exception.
+        let Some(value_str) = value.as_string() else {
+            return Err(JsNativeError::typ()
+                .with_message("import attribute value must be a string")
+                .into());
+        };
+        let value_str = value_str.clone();
+
+        // 4. Append the Record { [[Key]]: key, [[Value]]: value } to attributes.
+        attributes.push(ImportAttribute::new(key_str, value_str));
+    }
+
+    // 3. Return the Record { [[Specifier]]: specifier, [[Attributes]]: attributes }.
+    Ok(ModuleRequest::new(specifier, attributes.into_boxed_slice()))
 }
 
 /// Loads the module of a dynamic import. This combines the operations:
