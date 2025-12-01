@@ -15,8 +15,8 @@ use crate::{
     realm::Realm, vm::ActiveRunnable,
 };
 
-use crate::module::ModuleRequest;
 use super::Module;
+use crate::module::ModuleRequest;
 
 pub mod embedded;
 

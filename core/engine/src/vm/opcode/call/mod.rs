@@ -325,10 +325,7 @@ fn parse_import_attributes(
             }
 
             // 3. Return the Record { [[Specifier]]: specifier, [[Attributes]]: attributes }.
-            Ok(ModuleRequest::new(
-                specifier,
-                attributes.into_boxed_slice(),
-            ))
+            Ok(ModuleRequest::new(specifier, attributes.into_boxed_slice()))
         } else {
             let msg = if is_assert {
                 "the 'assert' option must be an object"
