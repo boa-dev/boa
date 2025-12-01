@@ -178,7 +178,7 @@ pub trait ModuleLoader: Any {
     async fn load_imported_module(
         self: Rc<Self>,
         referrer: Referrer,
-        request: super::ModuleRequest,
+        request: ModuleRequest,
         context: &RefCell<&mut Context>,
     ) -> JsResult<Module>;
 
