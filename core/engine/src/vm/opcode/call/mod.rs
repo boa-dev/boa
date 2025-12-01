@@ -9,7 +9,7 @@ use crate::{
     builtins::{Promise, promise::PromiseCapability},
     error::JsNativeError,
     job::NativeAsyncJob,
-    module::{ModuleKind, Referrer},
+    module::{ModuleKind, ModuleRequest, Referrer},
     object::FunctionObjectBuilder,
     vm::opcode::Operation,
 };
@@ -263,7 +263,7 @@ fn parse_import_attributes(
     specifier: JsString,
     options: &JsValue,
     context: &mut Context,
-) -> JsResult<crate::module::ModuleRequest> {
+) -> JsResult<ModuleRequest> {
     // Taken from `EvaluateImportCall`
     //
     // <https://tc39.es/proposal-import-attributes/#sec-evaluate-import-call>
@@ -292,7 +292,7 @@ fn parse_import_attributes(
 
         // d. If attributesObj is not undefined, then
         if attributes_val.is_undefined() {
-            Ok(crate::module::ModuleRequest::from_specifier(specifier))
+            Ok(ModuleRequest::from_specifier(specifier))
         // i. If Type(attributesObj) is not Object, throw a TypeError exception.
         } else if let Some(attributes_obj) = attributes_val.as_object() {
             // ii. Let entries be ? EnumerableOwnProperties(attributesObj, "key+value").
@@ -325,7 +325,7 @@ fn parse_import_attributes(
             }
 
             // 3. Return the Record { [[Specifier]]: specifier, [[Attributes]]: attributes }.
-            Ok(crate::module::ModuleRequest::new(
+            Ok(ModuleRequest::new(
                 specifier,
                 attributes.into_boxed_slice(),
             ))
@@ -354,7 +354,7 @@ fn parse_import_attributes(
 /// [continue]: https://tc39.es/ecma262/#sec-ContinueDynamicImport
 async fn load_dyn_import(
     referrer: Referrer,
-    request: crate::module::ModuleRequest,
+    request: ModuleRequest,
     cap: PromiseCapability,
     context: &RefCell<&mut Context>,
 ) -> JsResult<()> {

@@ -15,6 +15,7 @@ use crate::{
     realm::Realm, vm::ActiveRunnable,
 };
 
+use crate::module::ModuleRequest;
 use super::Module;
 
 pub mod embedded;
@@ -209,9 +210,9 @@ pub(crate) trait DynModuleLoader: Any {
     fn load_imported_module<'a, 'b, 'fut>(
         self: Rc<Self>,
         referrer: Referrer,
-        request: super::ModuleRequest,
+        request: ModuleRequest,
         context: &'a RefCell<&'b mut Context>,
-    ) -> Fn!(Rc<Self>, Referrer, super::ModuleRequest, &'a RefCell<&'b mut Context> => dyn 'fut + Future<Output = JsResult<Module>>)
+    ) -> Fn!(Rc<Self>, Referrer, ModuleRequest, &'a RefCell<&'b mut Context> => dyn 'fut + Future<Output = JsResult<Module>>)
     where
         'a: 'fut,
         'b: 'fut;
@@ -229,9 +230,9 @@ impl<T: ModuleLoader> DynModuleLoader for T {
     fn load_imported_module<'a, 'b, 'fut>(
         self: Rc<Self>,
         referrer: Referrer,
-        request: super::ModuleRequest,
+        request: ModuleRequest,
         context: &'a RefCell<&'b mut Context>,
-    ) -> Fn!(Rc<Self>, Referrer, super::ModuleRequest, &'a RefCell<&'b mut Context> => dyn 'fut + Future<Output = JsResult<Module>>)
+    ) -> Fn!(Rc<Self>, Referrer, ModuleRequest, &'a RefCell<&'b mut Context> => dyn 'fut + Future<Output = JsResult<Module>>)
     where
         'a: 'fut,
         'b: 'fut,
@@ -259,7 +260,7 @@ impl ModuleLoader for IdleModuleLoader {
     async fn load_imported_module(
         self: Rc<Self>,
         _referrer: Referrer,
-        _request: super::ModuleRequest,
+        _request: ModuleRequest,
         _context: &RefCell<&mut Context>,
     ) -> JsResult<Module> {
         Err(JsNativeError::typ()
@@ -317,7 +318,7 @@ impl ModuleLoader for MapModuleLoader {
     fn load_imported_module(
         self: Rc<Self>,
         referrer: Referrer,
-        request: super::ModuleRequest,
+        request: ModuleRequest,
         context: &RefCell<&mut Context>,
     ) -> impl Future<Output = JsResult<Module>> {
         let result = (|| {
@@ -413,7 +414,7 @@ impl ModuleLoader for SimpleModuleLoader {
     fn load_imported_module(
         self: Rc<Self>,
         referrer: Referrer,
-        request: super::ModuleRequest,
+        request: ModuleRequest,
         context: &RefCell<&mut Context>,
     ) -> impl Future<Output = JsResult<Module>> {
         let result = (|| {
