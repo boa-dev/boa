@@ -89,7 +89,7 @@ impl HostDefined {
         let ids = T::as_type_ids();
         let refs: [&TypeId; SIZE] = std::array::from_fn(|i| &ids[i]);
 
-        T::mut_ref_from_anys(self.types.get_many_mut(refs))
+        T::mut_ref_from_anys(self.types.get_disjoint_mut(refs))
     }
 
     /// Clears all the objects.
