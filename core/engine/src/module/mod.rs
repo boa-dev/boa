@@ -90,7 +90,7 @@ impl ModuleRequest {
     pub fn from_specifier(specifier: JsString) -> Self {
         Self {
             specifier,
-            attributes: Box::new([]),
+            attributes: Box::default(),
         }
     }
 
