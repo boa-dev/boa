@@ -532,7 +532,7 @@ impl ImportCall {
 
         // 3. Let argRef be ? Evaluation of AssignmentExpression.
         // 4. Let specifier be ? GetValue(argRef).
-        let arg = context.vm.get_register(specifier_op.into()).clone();
+        let specifier = context.vm.get_register(specifier_op.into()).clone();
 
         // Get options if provided
         let options = context.vm.get_register(options_op.into()).clone();
@@ -546,7 +546,7 @@ impl ImportCall {
         let promise = cap.promise().clone();
 
         // 6. Let specifierString be Completion(ToString(specifier)).
-        let specifier_str = match arg.to_string(context) {
+        let specifier_str = match specifier.to_string(context) {
             Ok(s) => s,
             // 7. IfAbruptRejectPromise(specifierString, promiseCapability).
             Err(err) => {
