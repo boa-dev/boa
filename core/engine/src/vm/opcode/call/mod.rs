@@ -312,19 +312,24 @@ fn parse_import_attributes(
 
     // ii. Let entries be ? EnumerableOwnProperties(attributesObj, "key+value").
     let entries = attributes_obj
-        .enumerable_own_property_names(crate::property::PropertyNameKind::Key, context)?;
+        .enumerable_own_property_names(crate::property::PropertyNameKind::KeyAndValue, context)?;
 
     // iii. For each entry in entries, do
     let mut attributes = Vec::with_capacity(entries.len());
-    for key in entries {
+    for entry in entries {
+        let entry = entry
+            .as_object()
+            .expect("entry from EnumerableOwnProperties must be an object");
+
         // 1. Let key be entry.[[Key]].
-        let Some(key_str) = key.as_string() else {
-            unreachable!("key from enumerable_own_property_names must always be a string");
-        };
-        let key_str = key_str.clone();
+        let key = entry.get(0, context)?;
+        let key_str = key
+            .as_string()
+            .expect("key from EnumerableOwnProperties must be a string")
+            .clone();
 
         // 2. Let value be entry.[[Value]].
-        let value = attributes_obj.get(key_str.clone(), context)?;
+        let value = entry.get(1, context)?;
 
         // 3. If Type(value) is not String, throw a TypeError exception.
         let Some(value_str) = value.as_string() else {
