@@ -166,22 +166,7 @@ where
             return Ok(Box::default());
         };
 
-        let is_with = matches!(tok.kind(), TokenKind::Keyword((Keyword::With, _)));
-        let is_assert = if is_with {
-            false
-        } else {
-            matches!(tok.kind(), TokenKind::IdentifierName((sym, _)) if interner.resolve_expect(*sym).utf8().is_some_and(|s| s == "assert"))
-        };
-
-        // Only treat `with` / `assert` as part of a with-clause if it is
-        // followed by an opening `{`. This avoids mis-parsing code like:
-        //
-        // import x from "mod";
-        // assert.sameValue(x, 1);
-        //
-        // where the `assert` identifier on the next line should not be parsed
-        // as an import attributes clause.
-        if !is_with && !is_assert {
+        if !matches!(tok.kind(), TokenKind::Keyword((Keyword::With, _))) {
             return Ok(Box::default());
         }
 

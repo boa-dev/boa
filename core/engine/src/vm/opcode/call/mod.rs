@@ -282,28 +282,15 @@ fn parse_import_attributes(
 
         // b. Let attributesObj be ? Get(options, "with").
         let with_key = crate::js_string!("with");
-        let with_val = options_obj.get(with_key, context)?;
+        let attributes_val = options_obj.get(with_key, context)?;
 
-        // c. If attributesObj is undefined, then
-        //     i. Set attributesObj to ? Get(options, "assert").
-        let (attributes_val, is_assert) = if with_val.is_undefined() {
-            let assert_key = crate::js_string!("assert");
-            let assert_val = options_obj.get(assert_key, context)?;
-            (assert_val, true)
-        } else {
-            (with_val, false)
-        };
-
-        // d. If attributesObj is not undefined, then
+        // c. If attributesObj is not undefined, then
         if !attributes_val.is_undefined() {
             // i. If Type(attributesObj) is not Object, throw a TypeError exception.
             let Some(attributes_obj) = attributes_val.as_object() else {
-                let msg = if is_assert {
-                    "the 'assert' option must be an object"
-                } else {
-                    "the 'with' option must be an object"
-                };
-                return Err(JsNativeError::typ().with_message(msg).into());
+                return Err(JsNativeError::typ()
+                    .with_message("the 'with' option must be an object")
+                    .into());
             };
 
             // ii. Let entries be ? EnumerableOwnProperties(attributesObj, "key+value").
