@@ -307,8 +307,10 @@ fn parse_import_attributes(
             };
 
             // ii. Let entries be ? EnumerableOwnProperties(attributesObj, "key+value").
-            let entries = attributes_obj
-                .enumerable_own_property_names(crate::property::PropertyNameKind::KeyAndValue, context)?;
+            let entries = attributes_obj.enumerable_own_property_names(
+                crate::property::PropertyNameKind::KeyAndValue,
+                context,
+            )?;
 
             // iii. For each entry in entries, do
             attributes.reserve(entries.len());
