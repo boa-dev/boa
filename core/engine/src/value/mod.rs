@@ -357,7 +357,7 @@ impl JsValue {
     /// Returns true if the value is a negative zero (`-0`).
     #[inline]
     #[must_use]
-    pub fn is_negative_zero(&self) -> bool {
+    pub(crate) fn is_negative_zero(&self) -> bool {
         self.0.is_negative_zero()
     }
 
