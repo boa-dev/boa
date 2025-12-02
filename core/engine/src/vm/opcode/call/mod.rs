@@ -281,13 +281,12 @@ fn parse_import_attributes(
         };
 
         // b. Let attributesObj be ? Get(options, "with").
-        let with_key = crate::js_string!("with");
-        let attributes_val = options_obj.get(with_key, context)?;
+        let attributes_obj = options_obj.get(crate::js_str!("with"), context)?;
 
         // c. If attributesObj is not undefined, then
-        if !attributes_val.is_undefined() {
+        if !attributes_obj.is_undefined() {
             // i. If Type(attributesObj) is not Object, throw a TypeError exception.
-            let Some(attributes_obj) = attributes_val.as_object() else {
+            let Some(attributes_obj) = attributes_obj.as_object() else {
                 return Err(JsNativeError::typ()
                     .with_message("the 'with' option must be an object")
                     .into());
