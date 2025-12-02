@@ -269,78 +269,76 @@ fn parse_import_attributes(
     // <https://tc39.es/ecma262/#sec-evaluate-import-call>
 
     // 1. Let attributes be a new empty List.
+    let mut attributes = Vec::new();
+
     // 2. If options is not undefined, then
-    if options.is_undefined() {
-        return Ok(ModuleRequest::from_specifier(specifier));
-    }
-
-    // a. If Type(options) is not Object, throw a TypeError exception.
-    let Some(options_obj) = options.as_object() else {
-        return Err(JsNativeError::typ()
-            .with_message("import options must be an object or undefined")
-            .into());
-    };
-
-    // b. Let attributesObj be ? Get(options, "with").
-    let with_key = crate::js_string!("with");
-    let with_val = options_obj.get(with_key, context)?;
-
-    // c. If attributesObj is undefined, then
-    //     i. Set attributesObj to ? Get(options, "assert").
-    let (attributes_val, is_assert) = if with_val.is_undefined() {
-        let assert_key = crate::js_string!("assert");
-        let assert_val = options_obj.get(assert_key, context)?;
-        (assert_val, true)
-    } else {
-        (with_val, false)
-    };
-
-    // d. If attributesObj is not undefined, then
-    if attributes_val.is_undefined() {
-        return Ok(ModuleRequest::from_specifier(specifier));
-    }
-
-    // i. If Type(attributesObj) is not Object, throw a TypeError exception.
-    let Some(attributes_obj) = attributes_val.as_object() else {
-        let msg = if is_assert {
-            "the 'assert' option must be an object"
-        } else {
-            "the 'with' option must be an object"
-        };
-        return Err(JsNativeError::typ().with_message(msg).into());
-    };
-
-    // ii. Let entries be ? EnumerableOwnProperties(attributesObj, "key+value").
-    let entries = attributes_obj
-        .enumerable_own_property_names(crate::property::PropertyNameKind::KeyAndValue, context)?;
-
-    // iii. For each entry in entries, do
-    let mut attributes = Vec::with_capacity(entries.len());
-    for entry in entries {
-        let entry = entry
-            .as_object()
-            .expect("entry from EnumerableOwnProperties must be an object");
-
-        // 1. Let key be entry.[[Key]].
-        let key = entry.get(0, context)?;
-        let key_str = key
-            .as_string()
-            .expect("key from EnumerableOwnProperties must be a string")
-            .clone();
-
-        // 2. Let value be entry.[[Value]].
-        let value = entry.get(1, context)?;
-
-        // 3. If Type(value) is not String, throw a TypeError exception.
-        let Some(value_str) = value.as_string() else {
+    if !options.is_undefined() {
+        // a. If Type(options) is not Object, throw a TypeError exception.
+        let Some(options_obj) = options.as_object() else {
             return Err(JsNativeError::typ()
-                .with_message("import attribute value must be a string")
+                .with_message("import options must be an object or undefined")
                 .into());
         };
-        let value_str = value_str.clone();
 
-        // 4. Append the Record { [[Key]]: key, [[Value]]: value } to attributes.
-        attributes.push(ImportAttribute::new(key_str, value_str));
+        // b. Let attributesObj be ? Get(options, "with").
+        let with_key = crate::js_string!("with");
+        let with_val = options_obj.get(with_key, context)?;
+
+        // c. If attributesObj is undefined, then
+        //     i. Set attributesObj to ? Get(options, "assert").
+        let (attributes_val, is_assert) = if with_val.is_undefined() {
+            let assert_key = crate::js_string!("assert");
+            let assert_val = options_obj.get(assert_key, context)?;
+            (assert_val, true)
+        } else {
+            (with_val, false)
+        };
+
+        // d. If attributesObj is not undefined, then
+        if !attributes_val.is_undefined() {
+            // i. If Type(attributesObj) is not Object, throw a TypeError exception.
+            let Some(attributes_obj) = attributes_val.as_object() else {
+                let msg = if is_assert {
+                    "the 'assert' option must be an object"
+                } else {
+                    "the 'with' option must be an object"
+                };
+                return Err(JsNativeError::typ().with_message(msg).into());
+            };
+
+            // ii. Let entries be ? EnumerableOwnProperties(attributesObj, "key+value").
+            let entries = attributes_obj
+                .enumerable_own_property_names(crate::property::PropertyNameKind::KeyAndValue, context)?;
+
+            // iii. For each entry in entries, do
+            attributes.reserve(entries.len());
+            for entry in entries {
+                let entry = entry
+                    .as_object()
+                    .expect("entry from EnumerableOwnProperties must be an object");
+
+                // 1. Let key be entry.[[Key]].
+                let key = entry.get(0, context)?;
+                let key_str = key
+                    .as_string()
+                    .expect("key from EnumerableOwnProperties must be a string")
+                    .clone();
+
+                // 2. Let value be entry.[[Value]].
+                let value = entry.get(1, context)?;
+
+                // 3. If Type(value) is not String, throw a TypeError exception.
+                let Some(value_str) = value.as_string() else {
+                    return Err(JsNativeError::typ()
+                        .with_message("import attribute value must be a string")
+                        .into());
+                };
+                let value_str = value_str.clone();
+
+                // 4. Append the Record { [[Key]]: key, [[Value]]: value } to attributes.
+                attributes.push(ImportAttribute::new(key_str, value_str));
+            }
+        }
     }
 
     // 3. Return the Record { [[Specifier]]: specifier, [[Attributes]]: attributes }.
