@@ -266,7 +266,7 @@ fn parse_import_attributes(
 ) -> JsResult<ModuleRequest> {
     // Taken from `EvaluateImportCall`
     //
-    // <https://tc39.es/proposal-import-attributes/#sec-evaluate-import-call>
+    // <https://tc39.es/ecma262/#sec-evaluate-import-call>
 
     // 1. Let attributes be a new empty List.
     // 2. If options is not undefined, then
