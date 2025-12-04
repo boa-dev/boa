@@ -8,9 +8,9 @@
 use crate::{
     StatementListItem,
     declaration::{
-        ExportDeclaration, ExportEntry, ExportSpecifier, ImportDeclaration, ImportEntry,
-        ImportKind, ImportName, IndirectExportEntry, LocalExportEntry, ModuleSpecifier,
-        ReExportImportName, ReExportKind,
+        ExportDeclaration, ExportEntry, ExportSpecifier, ImportAttribute, ImportDeclaration,
+        ImportEntry, ImportKind, ImportName, IndirectExportEntry, LocalExportEntry,
+        ModuleSpecifier, ReExportImportName, ReExportKind,
     },
     operations::{BoundNamesVisitor, bound_names},
     visitor::{VisitWith, Visitor, VisitorMut},
@@ -258,20 +258,26 @@ impl ModuleItemList {
                 node: &'ast ImportDeclaration,
             ) -> ControlFlow<Self::BreakTy> {
                 let module = node.specifier().sym();
+                let attributes: Box<[ImportAttribute]> = Box::from(node.attributes());
 
                 if let Some(default) = node.default() {
                     self.0.push(ImportEntry::new(
                         module,
                         ImportName::Name(Sym::DEFAULT),
                         default,
+                        attributes.clone(),
                     ));
                 }
 
                 match node.kind() {
                     ImportKind::DefaultOrUnnamed => {}
                     ImportKind::Namespaced { binding } => {
-                        self.0
-                            .push(ImportEntry::new(module, ImportName::Namespace, *binding));
+                        self.0.push(ImportEntry::new(
+                            module,
+                            ImportName::Namespace,
+                            *binding,
+                            attributes.clone(),
+                        ));
                     }
                     ImportKind::Named { names } => {
                         for name in &**names {
@@ -279,6 +285,7 @@ impl ModuleItemList {
                                 module,
                                 ImportName::Name(name.export_name()),
                                 name.binding(),
+                                attributes.clone(),
                             ));
                         }
                     }
@@ -323,8 +330,13 @@ impl ModuleItemList {
                 node: &'ast ExportDeclaration,
             ) -> ControlFlow<Self::BreakTy> {
                 let name = match node {
-                    ExportDeclaration::ReExport { kind, specifier } => {
+                    ExportDeclaration::ReExport {
+                        kind,
+                        specifier,
+                        attributes,
+                    } => {
                         let module = specifier.sym();
+                        let attrs = attributes.clone();
 
                         match kind {
                             ReExportKind::Namespaced { name: Some(name) } => {
@@ -333,6 +345,7 @@ impl ModuleItemList {
                                         module,
                                         ReExportImportName::Star,
                                         *name,
+                                        attrs.clone(),
                                     )
                                     .into(),
                                 );
@@ -340,6 +353,7 @@ impl ModuleItemList {
                             ReExportKind::Namespaced { name: None } => {
                                 self.0.push(ExportEntry::StarReExport {
                                     module_request: module,
+                                    attributes: attrs.clone(),
                                 });
                             }
 
@@ -350,6 +364,7 @@ impl ModuleItemList {
                                             module,
                                             ReExportImportName::Name(name.private_name()),
                                             name.alias(),
+                                            attrs.clone(),
                                         )
                                         .into(),
                                     );

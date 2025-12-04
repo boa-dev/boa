@@ -756,10 +756,12 @@ impl CodeBlock {
             | Instruction::Pos { value }
             | Instruction::Neg { value }
             | Instruction::IsObject { value }
-            | Instruction::ImportCall { value }
             | Instruction::BindThisValue { value }
             | Instruction::BitNot { value } => {
                 format!("value:{value}")
+            }
+            Instruction::ImportCall { specifier, options } => {
+                format!("specifier:{specifier}, options:{options}")
             }
             Instruction::PushClassField {
                 object,

@@ -9,7 +9,7 @@ use crate::{
     builtins::{Promise, promise::PromiseCapability},
     error::JsNativeError,
     job::NativeAsyncJob,
-    module::{ModuleKind, Referrer},
+    module::{ImportAttribute, ModuleKind, ModuleRequest, Referrer},
     object::FunctionObjectBuilder,
     vm::opcode::Operation,
 };
@@ -258,6 +258,81 @@ impl Operation for CallSpread {
     const COST: u8 = 3;
 }
 
+/// Parses the import attributes from the options object.
+fn parse_import_attributes(
+    specifier: JsString,
+    options: &JsValue,
+    context: &mut Context,
+) -> JsResult<ModuleRequest> {
+    // Taken from `EvaluateImportCall`
+    //
+    // <https://tc39.es/ecma262/#sec-evaluate-import-call>
+
+    // 1. Let attributes be a new empty List.
+    let mut attributes = Vec::new();
+
+    // 2. If options is not undefined, then
+    if !options.is_undefined() {
+        // a. If Type(options) is not Object, throw a TypeError exception.
+        let Some(options_obj) = options.as_object() else {
+            return Err(JsNativeError::typ()
+                .with_message("import options must be an object or undefined")
+                .into());
+        };
+
+        // b. Let attributesObj be ? Get(options, "with").
+        let attributes_obj = options_obj.get(crate::js_str!("with"), context)?;
+
+        // c. If attributesObj is not undefined, then
+        if !attributes_obj.is_undefined() {
+            // i. If Type(attributesObj) is not Object, throw a TypeError exception.
+            let Some(attributes_obj) = attributes_obj.as_object() else {
+                return Err(JsNativeError::typ()
+                    .with_message("the 'with' option must be an object")
+                    .into());
+            };
+
+            // ii. Let entries be ? EnumerableOwnProperties(attributesObj, "key+value").
+            let entries = attributes_obj.enumerable_own_property_names(
+                crate::property::PropertyNameKind::KeyAndValue,
+                context,
+            )?;
+
+            // iii. For each entry in entries, do
+            attributes.reserve(entries.len());
+            for entry in entries {
+                let entry = entry
+                    .as_object()
+                    .expect("entry from EnumerableOwnProperties must be an object");
+
+                // 1. Let key be entry.[[Key]].
+                let key = entry.get(0, context)?;
+                let key_str = key
+                    .as_string()
+                    .expect("key from EnumerableOwnProperties must be a string")
+                    .clone();
+
+                // 2. Let value be entry.[[Value]].
+                let value = entry.get(1, context)?;
+
+                // 3. If Type(value) is not String, throw a TypeError exception.
+                let Some(value_str) = value.as_string() else {
+                    return Err(JsNativeError::typ()
+                        .with_message("import attribute value must be a string")
+                        .into());
+                };
+                let value_str = value_str.clone();
+
+                // 4. Append the Record { [[Key]]: key, [[Value]]: value } to attributes.
+                attributes.push(ImportAttribute::new(key_str, value_str));
+            }
+        }
+    }
+
+    // 3. Return the Record { [[Specifier]]: specifier, [[Attributes]]: attributes }.
+    Ok(ModuleRequest::new(specifier, attributes.into_boxed_slice()))
+}
+
 /// Loads the module of a dynamic import. This combines the operations:
 /// - [`HostLoadImportedModule(referrer, specifierString, empty, promiseCapability).`][load]
 /// - [`FinishLoadingImportedModule ( referrer, specifier, payload, result )`][finish]
@@ -268,12 +343,12 @@ impl Operation for CallSpread {
 /// [continue]: https://tc39.es/ecma262/#sec-ContinueDynamicImport
 async fn load_dyn_import(
     referrer: Referrer,
-    specifier: JsString,
+    request: ModuleRequest,
     cap: PromiseCapability,
     context: &RefCell<&mut Context>,
 ) -> JsResult<()> {
     let loader = context.borrow().module_loader();
-    let fut = loader.load_imported_module(referrer.clone(), specifier.clone(), context);
+    let fut = loader.load_imported_module(referrer.clone(), request.clone(), context);
     let mut stack = [MaybeUninit::<u8>::uninit(); 16];
     let mut heap = Vec::<MaybeUninit<u8>>::new();
     let completion = fut.init2(&mut stack, &mut heap).await;
@@ -301,8 +376,8 @@ async fn load_dyn_import(
 
     // 1. If result is a normal completion, then
     match referrer {
-        Referrer::Module(module) => {
-            let ModuleKind::SourceText(src) = module.kind() else {
+        Referrer::Module(mod_ref) => {
+            let ModuleKind::SourceText(src) = mod_ref.kind() else {
                 panic!("referrer cannot be a synthetic module");
             };
 
@@ -312,7 +387,7 @@ async fn load_dyn_import(
             //     b. Else,
             //         i. Append the Record { [[Specifier]]: specifier, [[Module]]: result.[[Value]] } to referrer.[[LoadedModules]].
             let entry = loaded_modules
-                .entry(specifier)
+                .entry(request)
                 .or_insert_with(|| module.clone());
 
             //         i. Assert: That Record's [[Module]] is result.[[Value]].
@@ -323,14 +398,14 @@ async fn load_dyn_import(
         Referrer::Realm(realm) => {
             let mut loaded_modules = realm.loaded_modules().borrow_mut();
             let entry = loaded_modules
-                .entry(specifier)
+                .entry(request.specifier().clone())
                 .or_insert_with(|| module.clone());
             debug_assert_eq!(&module, entry);
         }
         Referrer::Script(script) => {
             let mut loaded_modules = script.loaded_modules().borrow_mut();
             let entry = loaded_modules
-                .entry(specifier)
+                .entry(request.specifier().clone())
                 .or_insert_with(|| module.clone());
             debug_assert_eq!(&module, entry);
         }
@@ -441,7 +516,10 @@ pub(crate) struct ImportCall;
 
 impl ImportCall {
     #[inline(always)]
-    pub(super) fn operation(value: VaryingOperand, context: &mut Context) -> JsResult<()> {
+    pub(super) fn operation(
+        (specifier_op, options_op): (VaryingOperand, VaryingOperand),
+        context: &mut Context,
+    ) -> JsResult<()> {
         // Import Calls
         // Runtime Semantics: Evaluation
         // https://tc39.es/ecma262/#sec-import-call-runtime-semantics-evaluation
@@ -454,7 +532,10 @@ impl ImportCall {
 
         // 3. Let argRef be ? Evaluation of AssignmentExpression.
         // 4. Let specifier be ? GetValue(argRef).
-        let arg = context.vm.get_register(value.into()).clone();
+        let specifier = context.vm.get_register(specifier_op.into()).clone();
+
+        // Get options if provided
+        let options = context.vm.get_register(options_op.into()).clone();
 
         // 5. Let promiseCapability be ! NewPromiseCapability(%Promise%).
         let cap = PromiseCapability::new(
@@ -465,27 +546,39 @@ impl ImportCall {
         let promise = cap.promise().clone();
 
         // 6. Let specifierString be Completion(ToString(specifier)).
-        match arg.to_string(context) {
+        let specifier_str = match specifier.to_string(context) {
+            Ok(s) => s,
             // 7. IfAbruptRejectPromise(specifierString, promiseCapability).
             Err(err) => {
                 let err = err.into_opaque(context)?;
                 cap.reject().call(&JsValue::undefined(), &[err], context)?;
+                context.vm.set_register(specifier_op.into(), promise.into());
+                return Ok(());
             }
-            // 8. Perform HostLoadImportedModule(referrer, specifierString, empty, promiseCapability).
-            Ok(specifier) => {
-                let job = NativeAsyncJob::with_realm(
-                    async move |context| {
-                        load_dyn_import(referrer, specifier, cap, context).await?;
-                        Ok(JsValue::undefined())
-                    },
-                    context.realm().clone(),
-                );
-                context.enqueue_job(job.into());
+        };
+
+        let request = match parse_import_attributes(specifier_str, &options, context) {
+            Ok(req) => req,
+            Err(err) => {
+                let err = err.into_opaque(context)?;
+                cap.reject().call(&JsValue::undefined(), &[err], context)?;
+                context.vm.set_register(specifier_op.into(), promise.into());
+                return Ok(());
             }
-        }
+        };
+
+        // 8. Perform HostLoadImportedModule(referrer, specifierString, empty, promiseCapability).
+        let job = NativeAsyncJob::with_realm(
+            async move |context| {
+                load_dyn_import(referrer, request, cap, context).await?;
+                Ok(JsValue::undefined())
+            },
+            context.realm().clone(),
+        );
+        context.enqueue_job(job.into());
 
         // 9. Return promiseCapability.[[Promise]].
-        context.vm.set_register(value.into(), promise.into());
+        context.vm.set_register(specifier_op.into(), promise.into());
 
         Ok(())
     }
