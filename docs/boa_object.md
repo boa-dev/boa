@@ -170,21 +170,25 @@ This function returns indexed storage type.
 Example:
 
 ```JavaScript
-let a = [1, 2]
+let a = [1, 2];
 
-$boa.object.indexedStorageType(a) // 'DenseI32'
+$boa.object.indexedStorageType(a); // 'DenseI32'
 
-a.push(0xdeadbeef)
-$boa.object.indexedStorageType(a) // 'DenseI32'
+a.push(0xdeadbeef);
+$boa.object.indexedStorageType(a); // 'DenseI32'
 
-a.push(0.5)
-$boa.object.indexedStorageType(a) // 'DenseF64'
+a.push(0.5);
+$boa.object.indexedStorageType(a); // 'DenseF64'
 
-a.push("Hello")
-$boa.object.indexedStorageType(a) // 'DenseElement'
+a.push("Hello");
+$boa.object.indexedStorageType(a); // 'DenseElement'
 
-a[100] = 100 // Make a hole
-$boa.object.indexedStorageType(a) // 'SparseElement'
+a[100] = 100; // Make a hole
+$boa.object.indexedStorageType(a); // 'SparseElement'
+
+// Non-simple property descriptor (e.g., non-writable)
+Object.defineProperty(a, 2, { value: 10, writable: false });
+$boa.object.indexedStorageType(a); // 'SparseProperty'
 ```
 
 ## Module `$boa.optimizer`
