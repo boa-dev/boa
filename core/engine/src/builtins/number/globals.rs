@@ -351,6 +351,7 @@ pub(crate) fn parse_float(
     let value = match trimmed_string.variant() {
         JsStrVariant::Latin1(s) => fast_float2::parse_partial::<f64, _>(s),
         JsStrVariant::Utf16(s) => {
+            // TODO: Explore adding direct UTF-16 parsing support to fast_float2.
             let s = String::from_utf16_lossy(s);
             fast_float2::parse_partial::<f64, _>(s.as_bytes())
         }
