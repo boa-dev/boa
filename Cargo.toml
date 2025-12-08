@@ -84,7 +84,7 @@ time = { version = "0.3.44", default-features = false, features = [
     "formatting",
     "macros",
 ] }
-log = "0.4.28"
+log = "0.4.29"
 simple_logger = "5.1.0"
 cargo_metadata = "0.23.1"
 trybuild = "1.0.114"
@@ -126,7 +126,7 @@ sys-locale = "0.3.2"
 timezone_provider = { version = "0.1.2" }
 temporal_rs = { version = "0.1.2", default-features = false, features = ["float64_representable_durations"] }
 web-time = "1.1.0"
-criterion = "0.7.0"
+criterion = "0.8.1"
 float-cmp = "0.10.0"
 futures-lite = "2.6.1"
 test-case = "3.3.1"
