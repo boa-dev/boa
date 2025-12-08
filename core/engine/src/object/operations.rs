@@ -888,17 +888,19 @@ impl JsObject {
         value: JsValue,
         context: &mut Context,
     ) -> JsResult<()> {
-        if !self.extensible() {
+        // 1. If the host is a web browser, then
+        //    a. Perform ? HostEnsureCanAddPrivateElement(O).
+        context
+            .host_hooks()
+            .ensure_can_add_private_element(self, context)?;
+
+        // 2. If ? IsExtensible(O) is false, throw a TypeError exception.
+        // NOTE: From <https://tc39.es/proposal-nonextensible-applies-to-private/#sec-privatefieldadd>
+        if !self.is_extensible(context)? {
             return Err(js_error!(
                 TypeError: "cannot add private field to non-extensible class instance"
             ));
         }
-
-        // 2. If the host is a web browser, then
-        //    a. Perform ? HostEnsureCanAddPrivateElement(O).
-        context
-            .host_hooks()
-            .ensure_can_add_private_element(self, context)?;
 
         // 3. Let entry be PrivateElementFind(O, P).
         let entry = self.private_element_find(name, false, false);
@@ -943,7 +945,15 @@ impl JsObject {
             (false, false)
         };
 
-        if !self.extensible() {
+        // 2. If the host is a web browser, then
+        // a. Perform ? HostEnsureCanAddPrivateElement(O).
+        context
+            .host_hooks()
+            .ensure_can_add_private_element(self, context)?;
+
+        // 3. If ? IsExtensible(O) is false, throw a TypeError exception.
+        // NOTE: From <https://tc39.es/proposal-nonextensible-applies-to-private/#sec-privatemethodoraccessoradd>
+        if !self.is_extensible(context)? {
             return if getter || setter {
                 Err(js_error!(
                     TypeError: "cannot add private accessor to non-extensible class instance"
@@ -954,12 +964,6 @@ impl JsObject {
                 ))
             };
         }
-
-        // 2. If the host is a web browser, then
-        // a. Perform ? HostEnsureCanAddPrivateElement(O).
-        context
-            .host_hooks()
-            .ensure_can_add_private_element(self, context)?;
 
         // 3. Let entry be PrivateElementFind(O, method.[[Key]]).
         let entry = self.private_element_find(name, getter, setter);
