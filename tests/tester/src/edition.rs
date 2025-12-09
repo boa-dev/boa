@@ -117,6 +117,10 @@ static FEATURE_EDITION: phf::Map<&'static str, SpecEdition> = phf::phf_map! {
     // https://github.com/tc39/proposal-intl-duration-format
     "Intl.DurationFormat" => SpecEdition::ESNext,
 
+    // Intl.Era-monthcode
+    // https://github.com/tc39/proposal-intl-era-monthcode
+    "Intl.Era-monthcode" => SpecEdition::ESNext,
+
     // Duplicate named capturing groups
     // https://github.com/tc39/proposal-duplicate-named-capturing-groups
     "regexp-duplicate-named-groups" => SpecEdition::ESNext,
