@@ -3,7 +3,7 @@
 use std::hash::{BuildHasher, BuildHasherDefault, Hash};
 
 use crate::{
-    CommonJsStringBuilder, JsStr, JsString, Latin1JsStringBuilder, StaticJsStrings,
+    CodePoint, CommonJsStringBuilder, JsStr, JsString, Latin1JsStringBuilder, StaticJsStrings,
     Utf16JsStringBuilder,
 };
 
@@ -468,4 +468,22 @@ fn common_js_string_builder() {
         js_string.to_std_string().unwrap_or_default(),
         "Déjà vu2024年5月21日🎹"
     );
+}
+
+#[test]
+fn code_points_optimization() {
+    // Test Latin1 optimization with extended Latin1 characters
+    let latin1_str = JsStr::latin1(b"Caf\xe9 na\xefve"); // "Café naïve" in Latin1 encoding
+    let latin1_points: Vec<CodePoint> = latin1_str.code_points().collect();
+    let expected_latin1: Vec<CodePoint> = "Café naïve".chars().map(CodePoint::Unicode).collect();
+    assert_eq!(latin1_points, expected_latin1);
+
+    // Test UTF-16 behavior unchanged (including non-ASCII)
+    let utf16_str = JsStr::utf16(&[
+        0x0043, 0x0061, 0x0066, 0x00E9, // "Café"
+        0x0020, // space
+        0x006E, 0x0061, 0x00EF, 0x0076, 0x0065, // "naïve"
+    ]);
+    let utf16_points: Vec<CodePoint> = utf16_str.code_points().collect();
+    assert_eq!(latin1_points, utf16_points); // Same result for same content
 }

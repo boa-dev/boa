@@ -14,14 +14,17 @@ use crate::{
     parser::{
         Error, OrAbrupt, ParseResult, TokenParser,
         cursor::Cursor,
-        statement::{BindingIdentifier, declaration::FromClause},
+        statement::{
+            BindingIdentifier,
+            declaration::{FromClause, WithClause},
+        },
     },
     source::ReadChar,
 };
 use boa_ast::{
     Keyword, Punctuator, Spanned,
     declaration::{
-        ImportDeclaration as AstImportDeclaration, ImportKind,
+        ImportAttribute, ImportDeclaration as AstImportDeclaration, ImportKind,
         ImportSpecifier as AstImportSpecifier, ModuleSpecifier,
     },
     expression::Identifier,
@@ -84,12 +87,16 @@ where
                 let module_identifier = *module_identifier;
 
                 cursor.advance(interner);
+
+                let attributes = WithClause::new("import declaration").parse(cursor, interner)?;
+
                 cursor.expect_semicolon("import declaration", interner)?;
 
                 return Ok(AstImportDeclaration::new(
                     None,
                     ImportKind::DefaultOrUnnamed,
                     ModuleSpecifier::new(module_identifier),
+                    attributes,
                 ));
             }
             TokenKind::Punctuator(Punctuator::OpenBlock) => {
@@ -152,8 +159,11 @@ where
         };
 
         let module_identifier = FromClause::new("import declaration").parse(cursor, interner)?;
+        let attributes = WithClause::new("import declaration").parse(cursor, interner)?;
 
-        Ok(import_clause.with_specifier(module_identifier))
+        cursor.expect_semicolon("import declaration", interner)?;
+
+        Ok(import_clause.with_specifier_and_attributes(module_identifier, attributes))
     }
 }
 
@@ -257,17 +267,33 @@ enum ImportClause {
 
 impl ImportClause {
     #[inline]
-    #[allow(clippy::missing_const_for_fn)]
-    fn with_specifier(self, specifier: ModuleSpecifier) -> AstImportDeclaration {
+    fn with_specifier_and_attributes(
+        self,
+        specifier: ModuleSpecifier,
+        attributes: Box<[ImportAttribute]>,
+    ) -> AstImportDeclaration {
         match self {
-            Self::Namespace(default, binding) => {
-                AstImportDeclaration::new(default, ImportKind::Namespaced { binding }, specifier)
-            }
+            Self::Namespace(default, binding) => AstImportDeclaration::new(
+                default,
+                ImportKind::Namespaced { binding },
+                specifier,
+                attributes,
+            ),
             Self::ImportList(default, names) => {
                 if names.is_empty() {
-                    AstImportDeclaration::new(default, ImportKind::DefaultOrUnnamed, specifier)
+                    AstImportDeclaration::new(
+                        default,
+                        ImportKind::DefaultOrUnnamed,
+                        specifier,
+                        attributes,
+                    )
                 } else {
-                    AstImportDeclaration::new(default, ImportKind::Named { names }, specifier)
+                    AstImportDeclaration::new(
+                        default,
+                        ImportKind::Named { names },
+                        specifier,
+                        attributes,
+                    )
                 }
             }
         }

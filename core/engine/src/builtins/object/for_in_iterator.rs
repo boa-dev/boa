@@ -84,6 +84,7 @@ impl ForInIterator {
                 .for_in(),
             Self::new(object),
         )
+        .upcast()
     }
 
     /// %ForInIteratorPrototype%.next( )

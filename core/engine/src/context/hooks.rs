@@ -1,6 +1,6 @@
 use crate::{
     Context, JsResult, JsString, JsValue,
-    builtins::promise::OperationType,
+    builtins::{Promise, promise::OperationType},
     context::intrinsics::Intrinsics,
     job::JobCallback,
     object::{JsFunction, JsObject},
@@ -105,7 +105,7 @@ pub trait HostHooks {
     /// [spec]: https://tc39.es/ecma262/#sec-host-promise-rejection-tracker
     fn promise_rejection_tracker(
         &self,
-        _promise: &JsObject,
+        _promise: &JsObject<Promise>,
         _operation: OperationType,
         _context: &mut Context,
     ) {
@@ -153,7 +153,7 @@ pub trait HostHooks {
     ///   `NormalCompletion(unused)` and perform no other steps.
     /// - Any two calls of this abstract operation with the same argument must return the same kind
     ///   of *Completion Record*.
-    /// - This abstract operation should only be overriden by ECMAScript hosts that are web browsers.
+    /// - This abstract operation should only be overridden by ECMAScript hosts that are web browsers.
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-hostensurecanaddprivateelement
     fn ensure_can_add_private_element(
@@ -208,7 +208,7 @@ pub trait HostHooks {
     /// Gets the maximum size in bits that can be allocated for an `ArrayBuffer` or a
     /// `SharedArrayBuffer`.
     ///
-    /// This hook will be called before any buffer allocation, which allows to dinamically change
+    /// This hook will be called before any buffer allocation, which allows to dynamically change
     /// the maximum size at runtime. By default, this is set to 1.5GiB per the recommendations of the
     /// [specification]:
     ///

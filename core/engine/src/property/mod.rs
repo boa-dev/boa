@@ -56,7 +56,7 @@ pub struct PropertyDescriptor {
 }
 
 /// `DescriptorKind` represents the different kinds of property descriptors.
-#[derive(Debug, Clone, Trace, Finalize)]
+#[derive(Debug, Default, Clone, Trace, Finalize)]
 pub enum DescriptorKind {
     /// A data property descriptor.
     Data {
@@ -77,13 +77,8 @@ pub enum DescriptorKind {
     },
 
     /// A generic property descriptor.
+    #[default]
     Generic,
-}
-
-impl Default for DescriptorKind {
-    fn default() -> Self {
-        Self::Generic
-    }
 }
 
 impl PropertyDescriptor {

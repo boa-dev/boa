@@ -10,7 +10,7 @@ use super::{
     shape::RootShape,
 };
 use crate::{
-    Context, JsData, JsResult, JsString, JsValue,
+    Context, JsData, JsResult, JsString, JsSymbol, JsValue,
     builtins::{
         array::ARRAY_EXOTIC_INTERNAL_METHODS,
         array_buffer::{ArrayBuffer, BufferObject, SharedArrayBuffer},
@@ -18,7 +18,7 @@ use crate::{
     },
     context::intrinsics::Intrinsics,
     error::JsNativeError,
-    js_string,
+    js_error, js_string,
     property::{PropertyDescriptor, PropertyKey},
     value::PreferredType,
 };
@@ -85,12 +85,6 @@ pub(crate) struct VTableObject<T: NativeObject + ?Sized> {
     object: GcRefCell<Object<T>>,
 }
 
-impl Default for JsObject {
-    fn default() -> Self {
-        Self::from_proto_and_data(None, OrdinaryObject)
-    }
-}
-
 impl JsObject {
     /// Converts the `JsObject` into a raw pointer to its inner `GcBox<ErasedVTableObject>`.
     #[cfg(not(feature = "jsvalue-enum"))]
@@ -109,6 +103,15 @@ impl JsObject {
         let inner = unsafe { Gc::from_raw(raw) };
 
         JsObject { inner }
+    }
+
+    /// Creates a new ordinary object with its prototype set to the `Object` prototype.
+    ///
+    /// This is an alias for [`Self::with_object_proto`].
+    #[inline]
+    #[must_use]
+    pub fn default(intrinsics: &Intrinsics) -> Self {
+        Self::with_object_proto(intrinsics)
     }
 
     /// Creates a new `JsObject` from its inner object and its vtable.
@@ -187,7 +190,7 @@ impl JsObject {
         root_shape: &RootShape,
         prototype: O,
         data: T,
-    ) -> Self {
+    ) -> JsObject<T> {
         let internal_methods = data.internal_methods();
         let inner = Gc::new(VTableObject {
             object: GcRefCell::new(Object {
@@ -202,7 +205,7 @@ impl JsObject {
             vtable: internal_methods,
         });
 
-        JsObject { inner }.upcast()
+        JsObject { inner }
     }
 
     /// Downcasts the object's inner data if the object is of type `T`.
@@ -383,6 +386,52 @@ impl JsObject {
     #[inline]
     pub fn deep_strict_equals(lhs: &Self, rhs: &Self, context: &mut Context) -> JsResult<bool> {
         Self::deep_strict_equals_inner(lhs, rhs, &mut HashSet::new(), context)
+    }
+
+    /// The abstract operation `ToPrimitive` takes an input argument and an optional argument
+    /// `PreferredType`.
+    ///
+    /// <https://tc39.es/ecma262/#sec-toprimitive>
+    pub fn to_primitive(
+        &self,
+        context: &mut Context,
+        preferred_type: PreferredType,
+    ) -> JsResult<JsValue> {
+        // a. Let exoticToPrim be ? GetMethod(input, @@toPrimitive).
+        let Some(exotic_to_prim) = self.get_method(JsSymbol::to_primitive(), context)? else {
+            // c. If preferredType is not present, let preferredType be number.
+            let preferred_type = match preferred_type {
+                PreferredType::Default | PreferredType::Number => PreferredType::Number,
+                PreferredType::String => PreferredType::String,
+            };
+            return self.ordinary_to_primitive(context, preferred_type);
+        };
+
+        // b. If exoticToPrim is not undefined, then
+        //    i. If preferredType is not present, let hint be "default".
+        //    ii. Else if preferredType is string, let hint be "string".
+        //    iii. Else,
+        //        1. Assert: preferredType is number.
+        //        2. Let hint be "number".
+        let hint = match preferred_type {
+            PreferredType::Default => js_string!("default"),
+            PreferredType::String => js_string!("string"),
+            PreferredType::Number => js_string!("number"),
+        }
+        .into();
+
+        //    iv. Let result be ? Call(exoticToPrim, input, « hint »).
+        let result = exotic_to_prim.call(&self.clone().into(), &[hint], context)?;
+
+        //    v. If Type(result) is not Object, return result.
+        //    vi. Throw a TypeError exception.
+        if result.is_object() {
+            Err(js_error!(
+                TypeError: "method `[Symbol.toPrimitive]` cannot return an object"
+            ))
+        } else {
+            Ok(result)
+        }
     }
 
     /// Converts an object to a primitive.
@@ -1007,7 +1056,7 @@ impl<T: NativeObject> Debug for JsObject<T> {
         let limiter = RecursionLimiter::new(self.as_ref());
 
         // Typically, using `!limiter.live` would be good enough here.
-        // However, the JS object hierarchy involves quite a bit of repitition, and the sheer amount of data makes
+        // However, the JS object hierarchy involves quite a bit of repetition, and the sheer amount of data makes
         // understanding the Debug output impossible; limiting the usefulness of it.
         //
         // Instead, we check if the object has appeared before in the entire graph. This means that objects will appear

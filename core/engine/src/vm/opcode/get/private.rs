@@ -25,6 +25,7 @@ impl GetPrivateField {
         let object = object.to_object(context)?;
         let name = context
             .vm
+            .frame
             .environments
             .resolve_private_identifier(name)
             .expect("private name must be in environment");

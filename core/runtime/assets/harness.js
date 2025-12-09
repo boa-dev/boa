@@ -6,13 +6,17 @@ function assert(cond, message) {
 
 function assertEq(lhs, rhs, message) {
   if (lhs !== rhs) {
-    throw `AssertionError: ${message ? message + ", " : ""}expected ${JSON.stringify(rhs)}, actual ${JSON.stringify(lhs)}`;
+    throw `AssertionError: ${
+      message ? message + ", " : ""
+    }expected ${JSON.stringify(rhs)}, actual ${JSON.stringify(lhs)}`;
   }
 }
 
 function assertNEq(lhs, rhs, message) {
   if (lhs === rhs) {
-    throw `AssertionError: ${message ? message + ", " : ""}expected ${JSON.stringify(rhs)}, actual ${JSON.stringify(lhs)}`;
+    throw `AssertionError: ${
+      message ? message + ", " : ""
+    }expected ${JSON.stringify(rhs)}, actual ${JSON.stringify(lhs)}`;
   }
 }
 
@@ -26,7 +30,9 @@ function assertArrayEqual(lhs, rhs, message) {
   try {
     l = [...lhs];
   } catch (e) {
-    throw `AssertionError: ${message ? message + ", " : ""}expected an iterable, actual isn't.`;
+    throw `AssertionError: ${
+      message ? message + ", " : ""
+    }expected an iterable, actual isn't.`;
   }
   const r = [...rhs];
 
@@ -37,7 +43,9 @@ function assertArrayEqual(lhs, rhs, message) {
     return;
   }
 
-  throw `AssertionError: ${message ? message + ", " : ""}expected ${JSON.stringify(rhs)}, actual ${JSON.stringify(lhs)}`;
+  throw `AssertionError: ${
+    message ? message + ", " : ""
+  }expected ${JSON.stringify(rhs)}, actual ${JSON.stringify(lhs)}`;
 }
 
 function assertThrows(fn, message) {
@@ -46,5 +54,7 @@ function assertThrows(fn, message) {
   } catch (e) {
     return;
   }
-  throw `AssertionError: ${message ? message + ", " : ""}function did not throw.`;
+  throw `AssertionError: ${
+    message ? message + ", " : ""
+  }function did not throw.`;
 }

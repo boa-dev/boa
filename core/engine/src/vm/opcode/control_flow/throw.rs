@@ -1,7 +1,7 @@
 use std::ops::ControlFlow;
 
 use crate::{
-    Context, JsError, JsNativeError,
+    Context, JsError, JsNativeError, JsResult,
     vm::{
         CompletionRecord,
         opcode::{Operation, VaryingOperand},
@@ -90,7 +90,10 @@ impl Exception {
         context: &mut Context,
     ) -> ControlFlow<CompletionRecord> {
         if let Some(error) = context.vm.pending_exception.take() {
-            let error = error.to_opaque(context);
+            let error = match error.into_opaque(context) {
+                Ok(e) => e,
+                Err(e) => return context.handle_error(e),
+            };
             context.vm.set_register(dst.into(), error);
             return ControlFlow::Continue(());
         }
@@ -122,14 +125,15 @@ impl MaybeException {
     pub(crate) fn operation(
         (has_exception, exception): (VaryingOperand, VaryingOperand),
         context: &mut Context,
-    ) {
+    ) -> JsResult<()> {
         if let Some(error) = context.vm.pending_exception.take() {
-            let error = error.to_opaque(context);
+            let error = error.into_opaque(context)?;
             context.vm.set_register(exception.into(), error);
             context.vm.set_register(has_exception.into(), true.into());
         } else {
             context.vm.set_register(has_exception.into(), false.into());
         }
+        Ok(())
     }
 }
 

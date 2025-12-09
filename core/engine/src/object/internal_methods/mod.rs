@@ -387,8 +387,8 @@ pub(crate) const ORDINARY_INTERNAL_METHODS: InternalObjectMethods = InternalObje
     __set__: ordinary_set,
     __delete__: ordinary_delete,
     __own_property_keys__: ordinary_own_property_keys,
-    __call__: non_existant_call,
-    __construct__: non_existant_construct,
+    __call__: non_existent_call,
+    __construct__: non_existent_construct,
 };
 
 /// The internal representation of the internal methods of a `JsObject`.
@@ -686,7 +686,7 @@ pub(crate) fn ordinary_has_property(
         // 4. Let parent be ? O.[[GetPrototypeOf]]().
         let parent = obj.__get_prototype_of__(context)?;
 
-        context.slot().set_not_cachable_if_already_prototype();
+        context.slot().set_not_cacheable_if_already_prototype();
         context.slot().attributes |= SlotAttributes::PROTOTYPE;
 
         parent
@@ -716,7 +716,7 @@ pub(crate) fn ordinary_get(
         None => {
             // a. Let parent be ? O.[[GetPrototypeOf]]().
             if let Some(parent) = obj.__get_prototype_of__(context)? {
-                context.slot().set_not_cachable_if_already_prototype();
+                context.slot().set_not_cacheable_if_already_prototype();
                 context.slot().attributes |= SlotAttributes::PROTOTYPE;
 
                 // c. Return ? parent.[[Get]](P, Receiver).
@@ -769,7 +769,7 @@ pub(crate) fn ordinary_try_get(
         None => {
             // a. Let parent be ? O.[[GetPrototypeOf]]().
             if let Some(parent) = obj.__get_prototype_of__(context)? {
-                context.slot().set_not_cachable_if_already_prototype();
+                context.slot().set_not_cacheable_if_already_prototype();
                 context.slot().attributes |= SlotAttributes::PROTOTYPE;
 
                 // c. Return ? parent.[[Get]](P, Receiver).
@@ -819,15 +819,18 @@ pub(crate) fn ordinary_set(
     // OrdinarySetWithOwnDescriptor ( O, P, V, Receiver, ownDesc )
     // https://tc39.es/ecma262/multipage/ordinary-and-exotic-objects-behaviours.html#sec-ordinarysetwithowndescriptor
 
+    let mut has_own_desc = false;
+
     // 1. Assert: IsPropertyKey(P) is true.
     let own_desc = if let Some(desc) = obj.__get_own_property__(&key, context)? {
+        has_own_desc = true;
         desc
     }
     // 2. If ownDesc is undefined, then
     // a. Let parent be ? O.[[GetPrototypeOf]]().
     // b. If parent is not null, then
     else if let Some(parent) = obj.__get_prototype_of__(context)? {
-        context.slot().set_not_cachable_if_already_prototype();
+        context.slot().set_not_cacheable_if_already_prototype();
         context.slot().attributes |= SlotAttributes::PROTOTYPE;
 
         // i. Return ? parent.[[Set]](P, V, Receiver).
@@ -839,7 +842,7 @@ pub(crate) fn ordinary_set(
         context
             .slot()
             .attributes
-            .remove(SlotAttributes::PROTOTYPE | SlotAttributes::NOT_CACHABLE);
+            .remove(SlotAttributes::PROTOTYPE | SlotAttributes::NOT_CACHEABLE);
 
         // i. Set ownDesc to the PropertyDescriptor { [[Value]]: undefined, [[Writable]]: true,
         // [[Enumerable]]: true, [[Configurable]]: true }.
@@ -863,15 +866,25 @@ pub(crate) fn ordinary_set(
             return Ok(false);
         };
 
-        // NOTE(HaledOdat): If the object and receiver are not the same then it's not inline cachable for now.
-        context.slot().attributes.set(
-            SlotAttributes::NOT_CACHABLE,
-            !JsObject::equals(obj, &receiver),
-        );
+        let obj_is_receiver = JsObject::equals(obj, &receiver);
 
-        // c. Let existingDescriptor be ? Receiver.[[GetOwnProperty]](P).
+        // NOTE(HaledOdat): If the object and receiver are not the same then it's not inline cacheable for now.
+        context
+            .slot()
+            .attributes
+            .set(SlotAttributes::NOT_CACHEABLE, !obj_is_receiver);
+
+        // OPTIMIZATION: If obj and receiver are the same, there's no need to call [[GetOwnProperty]](P)
+        //              again because it was already performed above.
+        let existing_descriptor = if has_own_desc && obj_is_receiver {
+            Some(own_desc)
+        } else {
+            // c. Let existingDescriptor be ? Receiver.[[GetOwnProperty]](P).
+            receiver.__get_own_property__(&key, context)?
+        };
+
         // d. If existingDescriptor is not undefined, then
-        if let Some(ref existing_desc) = receiver.__get_own_property__(&key, context)? {
+        if let Some(ref existing_desc) = existing_descriptor {
             // i. If IsAccessorDescriptor(existingDescriptor) is true, return false.
             if existing_desc.is_accessor_descriptor() {
                 return Ok(false);
@@ -1182,7 +1195,7 @@ where
     Ok(default(realm.intrinsics().constructors()).prototype())
 }
 
-fn non_existant_call(
+fn non_existent_call(
     _obj: &JsObject,
     _argument_count: usize,
     context: &mut InternalMethodCallContext<'_>,
@@ -1193,7 +1206,7 @@ fn non_existant_call(
         .into())
 }
 
-fn non_existant_construct(
+fn non_existent_construct(
     _obj: &JsObject,
     _argument_count: usize,
     context: &mut InternalMethodCallContext<'_>,

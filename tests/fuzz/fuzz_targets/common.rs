@@ -39,12 +39,6 @@ impl<'a> Arbitrary<'a> for FuzzData {
                 &mut self,
                 node: &'ast mut Expression,
             ) -> ControlFlow<Self::BreakTy> {
-                if matches!(node, Expression::FormalParameterList(_)) {
-                    match self.u.arbitrary() {
-                        Ok(id) => *node = Expression::Identifier(id),
-                        Err(e) => return ControlFlow::Break(e),
-                    }
-                }
                 node.visit_with_mut(self)
             }
 

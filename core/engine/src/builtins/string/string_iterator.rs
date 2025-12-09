@@ -69,6 +69,7 @@ impl StringIterator {
                 next_index: 0,
             },
         )
+        .upcast()
     }
 
     /// `StringIterator.prototype.next( )`

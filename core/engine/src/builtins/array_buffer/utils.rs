@@ -16,10 +16,36 @@ pub(crate) enum BytesConstPtr {
     AtomicBytes(*const AtomicU8),
 }
 
+impl BytesConstPtr {
+    /// Offsets this const pointer by a positive amount.
+    pub(crate) unsafe fn add(self, count: usize) -> Self {
+        // SAFETY: the operation is guaranteed to be safe by the caller.
+        unsafe {
+            match self {
+                Self::Bytes(p) => Self::Bytes(p.add(count)),
+                Self::AtomicBytes(p) => Self::AtomicBytes(p.add(count)),
+            }
+        }
+    }
+}
+
 #[derive(Clone, Copy)]
 pub(crate) enum BytesMutPtr {
     Bytes(*mut u8),
     AtomicBytes(*const AtomicU8),
+}
+
+impl BytesMutPtr {
+    /// Offsets this mut pointer by a positive amount.
+    pub(crate) unsafe fn add(self, count: usize) -> Self {
+        // SAFETY: the operation is guaranteed to be safe by the caller.
+        unsafe {
+            match self {
+                Self::Bytes(p) => Self::Bytes(p.add(count)),
+                Self::AtomicBytes(p) => Self::AtomicBytes(p.add(count)),
+            }
+        }
+    }
 }
 
 #[derive(Debug, Clone, Copy)]

@@ -196,26 +196,53 @@ impl VisitWith for SuperCall {
 #[cfg_attr(feature = "arbitrary", derive(arbitrary::Arbitrary))]
 #[derive(Clone, Debug, PartialEq)]
 pub struct ImportCall {
-    arg: Box<Expression>,
+    specifier: Box<Expression>,
+    options: Option<Box<Expression>>,
     span: Span,
 }
 
 impl ImportCall {
     /// Creates a new `ImportCall` AST node.
-    pub fn new<A>(arg: A, span: Span) -> Self
+    #[inline]
+    #[must_use]
+    pub fn new<S>(specifier: S, options: Option<Expression>, span: Span) -> Self
     where
-        A: Into<Expression>,
+        S: Into<Expression>,
     {
         Self {
-            arg: Box::new(arg.into()),
+            specifier: Box::new(specifier.into()),
+            options: options.map(Box::new),
             span,
         }
     }
 
-    /// Retrieves the single argument of the import call.
+    /// Retrieves the specifier (first argument) of the import call.
+    #[inline]
     #[must_use]
+    pub const fn specifier(&self) -> &Expression {
+        &self.specifier
+    }
+
+    /// Retrieves the options (second argument) of the import call, if present.
+    ///
+    /// This is used for import attributes:
+    /// ```js
+    /// import("foo.json", { with: { type: "json" } })
+    /// ```
+    #[inline]
+    #[must_use]
+    pub fn options(&self) -> Option<&Expression> {
+        self.options.as_deref()
+    }
+
+    /// Gets the module specifier of the import call.
+    ///
+    /// This is an alias for [`Self::specifier`] for backwards compatibility.
+    #[inline]
+    #[must_use]
+    #[deprecated(since = "0.21.0", note = "use `specifier` instead")]
     pub const fn argument(&self) -> &Expression {
-        &self.arg
+        &self.specifier
     }
 }
 
@@ -229,7 +256,15 @@ impl Spanned for ImportCall {
 impl ToInternedString for ImportCall {
     #[inline]
     fn to_interned_string(&self, interner: &Interner) -> String {
-        format!("import({})", self.arg.to_interned_string(interner))
+        if let Some(options) = &self.options {
+            format!(
+                "import({}, {})",
+                self.specifier.to_interned_string(interner),
+                options.to_interned_string(interner)
+            )
+        } else {
+            format!("import({})", self.specifier.to_interned_string(interner))
+        }
     }
 }
 
@@ -245,13 +280,21 @@ impl VisitWith for ImportCall {
     where
         V: Visitor<'a>,
     {
-        visitor.visit_expression(&self.arg)
+        visitor.visit_expression(&self.specifier)?;
+        if let Some(options) = &self.options {
+            visitor.visit_expression(options)?;
+        }
+        ControlFlow::Continue(())
     }
 
     fn visit_with_mut<'a, V>(&'a mut self, visitor: &mut V) -> ControlFlow<V::BreakTy>
     where
         V: VisitorMut<'a>,
     {
-        visitor.visit_expression_mut(&mut self.arg)
+        visitor.visit_expression_mut(&mut self.specifier)?;
+        if let Some(options) = &mut self.options {
+            visitor.visit_expression_mut(options)?;
+        }
+        ControlFlow::Continue(())
     }
 }

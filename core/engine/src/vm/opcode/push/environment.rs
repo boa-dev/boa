@@ -20,6 +20,7 @@ impl PushScope {
         let scope = context.vm.frame().code_block().constant_scope(index.into());
         context
             .vm
+            .frame
             .environments
             .push_lexical(scope.num_bindings_non_local());
     }
@@ -43,7 +44,7 @@ impl PushObjectEnvironment {
     pub(crate) fn operation(value: VaryingOperand, context: &mut Context) -> JsResult<()> {
         let object = context.vm.get_register(value.into()).clone();
         let object = object.to_object(context)?;
-        context.vm.environments.push_object(object);
+        context.vm.frame.environments.push_object(object);
         Ok(())
     }
 }
@@ -86,7 +87,7 @@ impl PushPrivateEnvironment {
             .downcast_mut::<OrdinaryFunction>()
             .expect("class object must be function")
             .push_private_environment(environment.clone());
-        context.vm.environments.push_private(environment);
+        context.vm.frame.environments.push_private(environment);
     }
 }
 
@@ -106,7 +107,7 @@ pub(crate) struct PopPrivateEnvironment;
 impl PopPrivateEnvironment {
     #[inline(always)]
     pub(crate) fn operation((): (), context: &mut Context) {
-        context.vm.environments.pop_private();
+        context.vm.frame.environments.pop_private();
     }
 }
 

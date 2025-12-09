@@ -6,7 +6,7 @@ use boa_interner::Interner;
 use boa_macros::utf16;
 
 #[test]
-fn peek_skip_accending() {
+fn peek_skip_ascending() {
     let mut cur = BufferedLexer::from(&b"a b c d e f g h i"[..]);
     let interner = &mut Interner::default();
 

@@ -50,9 +50,9 @@ impl BuiltInObject for WeakRef {
 
 impl BuiltInConstructor for WeakRef {
     /// The amount of arguments the `WeakRef` constructor takes.
-    const LENGTH: usize = 1;
-    const P: usize = 2;
-    const SP: usize = 0;
+    const CONSTRUCTOR_ARGUMENTS: usize = 1;
+    const PROTOTYPE_STORAGE_SLOTS: usize = 2;
+    const CONSTRUCTOR_STORAGE_SLOTS: usize = 0;
 
     const STANDARD_CONSTRUCTOR: fn(&StandardConstructors) -> &StandardConstructor =
         StandardConstructors::weak_ref;

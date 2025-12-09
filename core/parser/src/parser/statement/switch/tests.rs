@@ -88,9 +88,9 @@ fn check_switch_unknown_label() {
     );
 }
 
-/// Checks parsing malformed switch with two defaults that are seperated by cases.
+/// Checks parsing malformed switch with two defaults that are separated by cases.
 #[test]
-fn check_switch_seperated_defaults() {
+fn check_switch_separated_defaults() {
     check_invalid_script(
         r#"
         let a = 10;

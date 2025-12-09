@@ -25,6 +25,7 @@ impl This {
 
         let this = context
             .vm
+            .frame
             .environments
             .get_this_binding()?
             .unwrap_or(context.realm().global_this().clone().into());
@@ -82,6 +83,7 @@ impl Super {
         let home_object = {
             let env = context
                 .vm
+                .frame
                 .environments
                 .get_this_environment()
                 .as_function()
@@ -128,6 +130,7 @@ impl SuperCallPrepare {
     pub(super) fn operation(dst: VaryingOperand, context: &mut Context) {
         let this_env = context
             .vm
+            .frame
             .environments
             .get_this_environment()
             .as_function()
@@ -173,6 +176,7 @@ impl SuperCall {
 
         let this_env = context
             .vm
+            .frame
             .environments
             .get_this_environment()
             .as_function()
@@ -237,6 +241,7 @@ impl SuperCallSpread {
 
         let this_env = context
             .vm
+            .frame
             .environments
             .get_this_environment()
             .as_function()
@@ -275,6 +280,7 @@ impl SuperCallDerived {
     pub(super) fn operation((): (), context: &mut Context) -> JsResult<()> {
         let this_env = context
             .vm
+            .frame
             .environments
             .get_this_environment()
             .as_function()
@@ -340,6 +346,7 @@ impl BindThisValue {
         // 7. Let thisER be GetThisEnvironment().
         let this_env = context
             .vm
+            .frame
             .environments
             .get_this_environment()
             .as_function()

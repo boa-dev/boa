@@ -2,7 +2,9 @@
 //! supporting functions).
 //!
 //! More information:
-//! - [MDN documentation][<https://developer.mozilla.org/en-US/docs/Web/API/Window/postMessage>]
+//! - [MDN documentation][mdn]
+//!
+//! [mdn]: https://developer.mozilla.org/en-US/docs/Web/API/Window/postMessage
 
 use crate::store::JsValueStore;
 use boa_engine::realm::Realm;

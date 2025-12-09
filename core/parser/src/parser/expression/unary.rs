@@ -12,7 +12,9 @@ use crate::{
     lexer::{Error as LexError, TokenKind},
     parser::{
         AllowAwait, AllowYield, Cursor, OrAbrupt, ParseResult, TokenParser,
-        expression::{await_expr::AwaitExpression, update::UpdateExpression},
+        expression::{
+            FormalParameterListOrExpression, await_expr::AwaitExpression, update::UpdateExpression,
+        },
     },
     source::ReadChar,
 };
@@ -57,7 +59,7 @@ impl<R> TokenParser<R> for UnaryExpression
 where
     R: ReadChar,
 {
-    type Output = Expression;
+    type Output = FormalParameterListOrExpression;
 
     fn parse(self, cursor: &mut Cursor<R>, interner: &mut Interner) -> ParseResult<Self::Output> {
         let tok = cursor.peek(0, interner).or_abrupt()?;
@@ -69,7 +71,7 @@ where
             TokenKind::Keyword((Keyword::Delete, false)) => {
                 cursor.advance(interner);
                 let position = cursor.peek(0, interner).or_abrupt()?.span().start();
-                let target = self.parse(cursor, interner)?;
+                let target = self.parse(cursor, interner)?.try_into_expression()?;
 
                 match target.flatten() {
                     Expression::Identifier(_) if cursor.strict() => {
@@ -97,7 +99,7 @@ where
             }
             TokenKind::Keyword((Keyword::Void, false)) => {
                 cursor.advance(interner);
-                let target = self.parse(cursor, interner)?;
+                let target = self.parse(cursor, interner)?.try_into_expression()?;
                 let target_span_end = target.span().end();
                 Ok(Unary::new(
                     UnaryOp::Void,
@@ -109,7 +111,7 @@ where
             TokenKind::Keyword((Keyword::TypeOf, false)) => {
                 cursor.advance(interner);
 
-                let target = self.parse(cursor, interner)?;
+                let target = self.parse(cursor, interner)?.try_into_expression()?;
                 let target_span_end = target.span().end();
                 Ok(Unary::new(
                     UnaryOp::TypeOf,
@@ -121,7 +123,7 @@ where
             TokenKind::Punctuator(Punctuator::Add) => {
                 cursor.advance(interner);
 
-                let target = self.parse(cursor, interner)?;
+                let target = self.parse(cursor, interner)?.try_into_expression()?;
                 let target_span_end = target.span().end();
                 Ok(Unary::new(
                     UnaryOp::Plus,
@@ -133,7 +135,7 @@ where
             TokenKind::Punctuator(Punctuator::Sub) => {
                 cursor.advance(interner);
 
-                let target = self.parse(cursor, interner)?;
+                let target = self.parse(cursor, interner)?.try_into_expression()?;
                 let target_span_end = target.span().end();
                 Ok(Unary::new(
                     UnaryOp::Minus,
@@ -145,7 +147,7 @@ where
             TokenKind::Punctuator(Punctuator::Neg) => {
                 cursor.advance(interner);
 
-                let target = self.parse(cursor, interner)?;
+                let target = self.parse(cursor, interner)?.try_into_expression()?;
                 let target_span_end = target.span().end();
                 Ok(Unary::new(
                     UnaryOp::Tilde,
@@ -157,7 +159,7 @@ where
             TokenKind::Punctuator(Punctuator::Not) => {
                 cursor.advance(interner);
 
-                let target = self.parse(cursor, interner)?;
+                let target = self.parse(cursor, interner)?.try_into_expression()?;
                 let target_span_end = target.span().end();
                 Ok(Unary::new(
                     UnaryOp::Not,

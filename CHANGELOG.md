@@ -1,8 +1,294 @@
 # CHANGELOG
 
-## What's Changed
+## [v0.21.0](https://github.com/boa-dev/boa/compare/v0.20...v0.21)
 
-# [0.20.0 (2024-12-5)](https://github.com/boa-dev/boa/compare/v0.19.1...v0.20.0)
+### Feature Enhancements
+
+- Build out Temporal's `ZonedDateTime` and `Now` by @nekevss in https://github.com/boa-dev/boa/pull/4068
+- Add valueOf methods to the Temporal builtins by @nekevss in https://github.com/boa-dev/boa/pull/4079
+- Add more `ZonedDateTime` method implementations by @nekevss in https://github.com/boa-dev/boa/pull/4095
+- Cleanup CLI to use eyre + refactor patterns by @jedel1043 in https://github.com/boa-dev/boa/pull/4108
+- Move methods of `JsString` to `JsStr` by @jedel1043 in https://github.com/boa-dev/boa/pull/4106
+- Implement `Error.isError` by @jedel1043 in https://github.com/boa-dev/boa/pull/4114
+- Improve implementation of example `JobQueue`s by @jedel1043 in https://github.com/boa-dev/boa/pull/4111
+- Implement `PlainDate` string methods by @nekevss in https://github.com/boa-dev/boa/pull/4119
+- Revamp `JobQueue` into `JobExecutor` and introduce `NativeAsyncJob` by @jedel1043 in https://github.com/boa-dev/boa/pull/4118
+- Add `From<Cow<'a, str>>` for `JsString` by @CrazyboyQCD in https://github.com/boa-dev/boa/pull/4134
+- Implement more `toString` and `toJSON` methods on Temporal builtins by @nekevss in https://github.com/boa-dev/boa/pull/4126
+- Implement `Array.fromAsync` by @jedel1043 in https://github.com/boa-dev/boa/pull/4115
+- Implement `toString` and `toJSON` methods for the remaining builtins `Duration`, `PlainMonthDay`, and `PlainYearMonth` by @nekevss in https://github.com/boa-dev/boa/pull/4135
+- Bump temporal_rs and fix instant return by @nekevss in https://github.com/boa-dev/boa/pull/4142
+- Implement toLocaleString and some general cleanup by @nekevss in https://github.com/boa-dev/boa/pull/4156
+- add macos arm64 by @ahaoboy in https://github.com/boa-dev/boa/pull/4160
+- Use NaN-boxing on value::InnerValue by @hansl in https://github.com/boa-dev/boa/pull/4091
+- Split `Tagged<T>` into a utility crate by @HalidOdat in https://github.com/boa-dev/boa/pull/3849
+- Update JsValue::to_json to support undefined by @jamesthurley in https://github.com/boa-dev/boa/pull/4212
+- Change signature of `from_async_fn` to allow capturing the context by @jedel1043 in https://github.com/boa-dev/boa/pull/4215
+- Implement Set methods from ECMAScript Specification Features/#4128 by @Hemenguelbindi in https://github.com/boa-dev/boa/pull/4145
+- Add a `#[boa_module]` macro to automatically implement a Module by @hansl in https://github.com/boa-dev/boa/pull/4277
+- Implement small changes from Intl's 2026 spec by @jedel1043 in https://github.com/boa-dev/boa/pull/4290
+- Bump rustc edition to 2024 and version to 1.88 by @jedel1043 in https://github.com/boa-dev/boa/pull/4315
+- Implement backtrace information for errors by @HalidOdat in https://github.com/boa-dev/boa/pull/4292
+- Add WPT as optional tests for boa_runtime by @hansl in https://github.com/boa-dev/boa/pull/4008
+- Simplify SourcePositionGuard creation by @hansl in https://github.com/boa-dev/boa/pull/4327
+- Make `JobExecutor::run_jobs_async` a plain async method by @jedel1043 in https://github.com/boa-dev/boa/pull/4331
+- Introduce async `ModuleLoader`s by @jedel1043 in https://github.com/boa-dev/boa/pull/4328
+- Use `AsyncFnOnce` in constructors of `NativeAsyncJob` by @jedel1043 in https://github.com/boa-dev/boa/pull/4333
+- Add (optionally) Float16Array and f16round() support and add JsUint8ClampedArray by @hansl in https://github.com/boa-dev/boa/pull/4364
+- Implement `Atomics.waitAsync` by @jedel1043 in https://github.com/boa-dev/boa/pull/4339
+- Implement `Math.sumPrecise` by @nekevss in https://github.com/boa-dev/boa/pull/4383
+- Add `Date.prototype.toTemporalInstant` from the Temporal proposal by @nekevss in https://github.com/boa-dev/boa/pull/4382
+- Implement upsert methods for Map by @jasonmilad in https://github.com/boa-dev/boa/pull/4436
+- Change JsObject default method to take `Instrinsics` parameter by @mdrokz in https://github.com/boa-dev/boa/pull/4466
+- Cleanup `BuiltInConstructor` constants to ensure no additional allocations by @jedel1043 in https://github.com/boa-dev/boa/pull/4464
+- Implement Upsert methods for weakMap: getOrInsert and getOrInsertComputed by @rrogerc in https://github.com/boa-dev/boa/pull/4459
+
+### Bug Fixes
+
+- Fix #4051, parse Arguments should expect `)` not `}` by @zzzdong in https://github.com/boa-dev/boa/pull/4058
+- bug fix: ops that stay strictly at the EOF after assigns ops are ignored by @Nikita-str in https://github.com/boa-dev/boa/pull/4047
+- Patch Temporal.PlainTime and Temporal.Duration constructors by @nekevss in https://github.com/boa-dev/boa/pull/4078
+- Fix bugs on ephemeron and TypedArray.prototype.slice by @jedel1043 in https://github.com/boa-dev/boa/pull/4107
+- Allow bool and null literals in export aliases by @jedel1043 in https://github.com/boa-dev/boa/pull/4113
+- Allow referencing `super` within initializer of static private property by @jedel1043 in https://github.com/boa-dev/boa/pull/4121
+- Fix truncation on max microseconds and nanoseconds by @nekevss in https://github.com/boa-dev/boa/pull/4139
+- Fix issues with `to_temporal_time` and `ZonedDateTime.prototype.withPlainTime` by @nekevss in https://github.com/boa-dev/boa/pull/4154
+- Some cleanup + order of operations fixes by @nekevss in https://github.com/boa-dev/boa/pull/4190
+- Fix JsValue::to_json with cyclic values by @changhc in https://github.com/boa-dev/boa/pull/4176
+- Fixed logo in documentation by @Razican in https://github.com/boa-dev/boa/pull/4208
+- Enable `wasm_js` feature of getrandom in boa_engine crate by @HalidOdat in https://github.com/boa-dev/boa/pull/4241
+- Fix panics on staging TypedArray.slice tests by @jedel1043 in https://github.com/boa-dev/boa/pull/4289
+- Add the legacy enum-based JsValue implementation behind a flag by @hansl in https://github.com/boa-dev/boa/pull/4281
+- Allow non-reserved keywords to be used as identifiers by @cijiugechu in https://github.com/boa-dev/boa/pull/4307
+- Avoid fully awaiting futures in async event loops by @jedel1043 in https://github.com/boa-dev/boa/pull/4332
+- Prevent evalutation of code with `--dump-ast` flag by @HalidOdat in https://github.com/boa-dev/boa/pull/4337
+- Some general bug fixes for Temporal implementation by @nekevss in https://github.com/boa-dev/boa/pull/4349
+- Fix UB in implementation of `NanBoxedValue` by @jedel1043 in https://github.com/boa-dev/boa/pull/4346
+- fix(regexp): fix the capture group count assert to have the correct upper limit by @BDeuDev in https://github.com/boa-dev/boa/pull/4419
+- Fix `contains_direct_eval` for ordinary function by @hpp2334 in https://github.com/boa-dev/boa/pull/4453
+- Fix test262 comments on new PR by @jedel1043 in https://github.com/boa-dev/boa/pull/4465
+
+### Internal Improvements
+
+- Remove `try_break` macro in favour of question mark operator by @jedel1043 in https://github.com/boa-dev/boa/pull/4112
+- Use cow-utils instead by @heygsc in https://github.com/boa-dev/boa/pull/4133
+- Register VM by @HalidOdat in https://github.com/boa-dev/boa/pull/3798
+- Bump MSRV to 1.84 by @jedel1043 in https://github.com/boa-dev/boa/pull/4165
+- Avoid unnecessary calls of `to_string` in `cow_*` by @CrazyboyQCD in https://github.com/boa-dev/boa/pull/4166
+- Apply rustc 1.85 lints by @jedel1043 in https://github.com/boa-dev/boa/pull/4170
+- Some string cleanups by @CrazyboyQCD in https://github.com/boa-dev/boa/pull/4090
+- Refactor bytecode representation by @raskad in https://github.com/boa-dev/boa/pull/4220
+- Refactor registers to use the stack by @raskad in https://github.com/boa-dev/boa/pull/4263
+- Bump Test262 hash commit and cleanup test features by @jedel1043 in https://github.com/boa-dev/boa/pull/4288
+- Replace inner `Gc<T>` with `Rc<T>` for `SourceText` by @HalidOdat in https://github.com/boa-dev/boa/pull/4293
+- Fix more Intl tests for latest ECMA402 spec by @jedel1043 in https://github.com/boa-dev/boa/pull/4304
+- Fix lints for rustc 1.88 by @jedel1043 in https://github.com/boa-dev/boa/pull/4309
+- Migrate `temporal_rs` from `0.0.9` to `0.0.10` by @HalidOdat in https://github.com/boa-dev/boa/pull/4318
+- Mark the error path in `Call::operation` as cold. by @cijiugechu in https://github.com/boa-dev/boa/pull/4319
+- Add arm64 linux nightly build by @nekevss in https://github.com/boa-dev/boa/pull/4321
+- extract small_map as separate utility crate by @countradooku in https://github.com/boa-dev/boa/pull/4214
+- Remove `Box<T>` from `JsValue` for `JsString` by @HalidOdat in https://github.com/boa-dev/boa/pull/4329
+- Add `repr(C)` on `Object` to prevent field reordering by @HalidOdat in https://github.com/boa-dev/boa/pull/4343
+- Fix clippy lints for Rust 1.89 by @nekevss in https://github.com/boa-dev/boa/pull/4368
+- Add Nix flake by @xubaiwang in https://github.com/boa-dev/boa/pull/4381
+- Apply clippy fixes for Rust 1.90 by @hansl in https://github.com/boa-dev/boa/pull/4423
+- Fix UB on unaligned ArrayBuffers by @jedel1043 in https://github.com/boa-dev/boa/pull/4427
+- Use same cache key for builds and tests by @jasonwilliams in https://github.com/boa-dev/boa/pull/4426
+
+### Other Changes
+
+- Bug fix: regex started with `/=` parsed as `AssignDiv` by @Nikita-str in https://github.com/boa-dev/boa/pull/4048
+- Add fast path for number to `JsString` conversion by @CrazyboyQCD in https://github.com/boa-dev/boa/pull/4054
+- Bump the rust-dependencies group with 3 updates by @dependabot[bot] in https://github.com/boa-dev/boa/pull/4069
+- Add `fjcvtzs` instruction for `ARMv8.3` target by @CrazyboyQCD in https://github.com/boa-dev/boa/pull/4084
+- Add a stress test to the parser to parser multi-millions tokens by @hansl in https://github.com/boa-dev/boa/pull/4086
+- Bump the rust-dependencies group with 4 updates by @dependabot[bot] in https://github.com/boa-dev/boa/pull/4088
+- Privatize `JsValue`'s internals and expose it through a JsVariant (with immutable reference) by @hansl in https://github.com/boa-dev/boa/pull/4080
+- Skip creation of arguments object if possible by @raskad in https://github.com/boa-dev/boa/pull/4087
+- Allow resizing of underlying ArrayBuffer from Rust by @hansl in https://github.com/boa-dev/boa/pull/4082
+- Add inline cache for getting bindings from the global object by @raskad in https://github.com/boa-dev/boa/pull/4067
+- Update Temporal ToIntegerIfIntegral, ToIntegerWithTruncation, and ToPositiveIntegerWithTruncation implementation by @nekevss in https://github.com/boa-dev/boa/pull/4081
+- Adjust call to correct method for `PlainDateTime.prototype.since` by @nekevss in https://github.com/boa-dev/boa/pull/4096
+- fix very minor typo shift -> unshift by @albertleigh in https://github.com/boa-dev/boa/pull/4097
+- Bump the `temporal_rs` version and related changes by @nekevss in https://github.com/boa-dev/boa/pull/4098
+- Bump test262 commit and changes to `boa_tester` to support sm changes by @nekevss in https://github.com/boa-dev/boa/pull/4099
+- Bump the rust-dependencies group across 1 directory with 6 updates by @dependabot[bot] in https://github.com/boa-dev/boa/pull/4103
+- Remove some clones and branches in hot `PropertyDescriptor` functions by @raskad in https://github.com/boa-dev/boa/pull/4104
+- Bump syn from 2.0.93 to 2.0.95 in the rust-dependencies group by @dependabot[bot] in https://github.com/boa-dev/boa/pull/4109
+- Fix CI with the latest linter errors introduced in 1.84 by @hansl in https://github.com/boa-dev/boa/pull/4117
+- Use `cow_to_ascii_uppercase` instead by @heygsc in https://github.com/boa-dev/boa/pull/4124
+- Bump the rust-dependencies group across 1 directory with 7 updates by @dependabot[bot] in https://github.com/boa-dev/boa/pull/4131
+- Set the array "length" property in `[[DefineOwnProperty]]` based on the array shape by @raskad in https://github.com/boa-dev/boa/pull/4101
+- Bump the rust-dependencies group with 5 updates by @dependabot[bot] in https://github.com/boa-dev/boa/pull/4137
+- Implement since and until methods for ZonedDateTime by @nekevss in https://github.com/boa-dev/boa/pull/4136
+- Bump baptiste0928/cargo-install from 3.1.1 to 3.3.0 in the ci-dependencies group by @dependabot[bot] in https://github.com/boa-dev/boa/pull/4138
+- Make the HostHooks shareable between app and context by @hansl in https://github.com/boa-dev/boa/pull/4141
+- Bump the rust-dependencies group across 1 directory with 3 updates by @dependabot[bot] in https://github.com/boa-dev/boa/pull/4148
+- Implement an internal time type and Clock trait by @hansl in https://github.com/boa-dev/boa/pull/4149
+- `SourceText` collection & `toString()` for fns and methods by @Nikita-str in https://github.com/boa-dev/boa/pull/4038
+- `setTimeout`, `setInterval` and `clearInterval` (and the same `clearTimeout`) implementations by @hansl in https://github.com/boa-dev/boa/pull/4130
+- Bump the rust-dependencies group with 3 updates by @dependabot[bot] in https://github.com/boa-dev/boa/pull/4151
+- Bump the rust-dependencies group with 5 updates by @dependabot[bot] in https://github.com/boa-dev/boa/pull/4157
+- Add trace function to Logger trait by @jamesthurley in https://github.com/boa-dev/boa/pull/4155
+- Allow local parameters if mapped arguments object is not used by @raskad in https://github.com/boa-dev/boa/pull/4092
+- Bump temporal_rs to Feb. 15 version + adjustments by @nekevss in https://github.com/boa-dev/boa/pull/4162
+- Bump the rust-dependencies group with 3 updates by @dependabot[bot] in https://github.com/boa-dev/boa/pull/4163
+- Add `PlainDateTime.prototype.round` implementation from `temporal_rs` by @nekevss in https://github.com/boa-dev/boa/pull/4164
+- Fix some engine specific bugs and bump version by @nekevss in https://github.com/boa-dev/boa/pull/4167
+- Simplify date parser by @CrazyboyQCD in https://github.com/boa-dev/boa/pull/4143
+- Build out remaining method stubs for temporal by @nekevss in https://github.com/boa-dev/boa/pull/4172
+- Bump the rust-dependencies group with 4 updates by @dependabot[bot] in https://github.com/boa-dev/boa/pull/4174
+- Prioritize drop of common types for nan-boxed `JsValue` by @HalidOdat in https://github.com/boa-dev/boa/pull/4178
+- Add changes from YearMonth parsing update and MonthCode addition by @nekevss in https://github.com/boa-dev/boa/pull/4173
+- implementation of static method compare for duration from temporal.rs by @lockels in https://github.com/boa-dev/boa/pull/4189
+- Unify release workflows by @HalidOdat in https://github.com/boa-dev/boa/pull/4192
+- Temporal bump and fixes by @nekevss in https://github.com/boa-dev/boa/pull/4193
+- Bump ring from 0.17.9 to 0.17.13 by @dependabot[bot] in https://github.com/boa-dev/boa/pull/4201
+- Bump the rust-dependencies group across 1 directory with 20 updates by @dependabot[bot] in https://github.com/boa-dev/boa/pull/4204
+- feat(examples): Add comprehensive JsPromise example by @created-by-varun in https://github.com/boa-dev/boa/pull/4198
+- Temporal bump and implementation of toPlainYearMonth and toPlainMonthDay by @lockels in https://github.com/boa-dev/boa/pull/4207
+- Bump the rust-dependencies group with 5 updates by @dependabot[bot] in https://github.com/boa-dev/boa/pull/4209
+- Bump the rust-dependencies group with 4 updates by @dependabot[bot] in https://github.com/boa-dev/boa/pull/4216
+- Fix Rust 1.86.0 lints and update dependencies by @raskad in https://github.com/boa-dev/boa/pull/4228
+- Move interop and module utilities from boa_interop into boa_engine by @hansl in https://github.com/boa-dev/boa/pull/4218
+- Bump the rust-dependencies group with 3 updates by @dependabot[bot] in https://github.com/boa-dev/boa/pull/4229
+- Temporal bump by @lockels in https://github.com/boa-dev/boa/pull/4231
+- Bump the rust-dependencies group with 2 updates by @dependabot[bot] in https://github.com/boa-dev/boa/pull/4232
+- Enable `PlainDate.prototype.toZonedDateTime` method by @nekevss in https://github.com/boa-dev/boa/pull/4233
+- `PlainDateTime::toZonedDateTime` & `PlainDateTime::toPlainDate` implementations by @nekevss in https://github.com/boa-dev/boa/pull/4234
+- Bump temporal_rs and add ZonedDateTime.prototype.round impl by @nekevss in https://github.com/boa-dev/boa/pull/4236
+- Bump the rust-dependencies group across 1 directory with 6 updates by @dependabot[bot] in https://github.com/boa-dev/boa/pull/4239
+- Bump the rust-dependencies group with 2 updates by @dependabot[bot] in https://github.com/boa-dev/boa/pull/4242
+- Bump temporal_rs and remove dead code by @nekevss in https://github.com/boa-dev/boa/pull/4248
+- Fix Rust 1.87.0 lints by @raskad in https://github.com/boa-dev/boa/pull/4249
+- Avoid range checks in nan-boxing by @raskad in https://github.com/boa-dev/boa/pull/4251
+- Update README.md to new version. by @tomoverlund in https://github.com/boa-dev/boa/pull/4254
+- Fix the Set methods to pass the 262 tests by @hansl in https://github.com/boa-dev/boa/pull/4260
+- Add support for LZ4 compression in embedded module loader by @hansl in https://github.com/boa-dev/boa/pull/4261
+- Bump the rust-dependencies group across 1 directory with 3 updates by @dependabot[bot] in https://github.com/boa-dev/boa/pull/4264
+- Fix AST `contains` operation by @HalidOdat in https://github.com/boa-dev/boa/pull/4267
+- Bump temporal_rs and fix some order of operation issues by @nekevss in https://github.com/boa-dev/boa/pull/4268
+- Escape analyze function scopes on non-arrow functions by @HalidOdat in https://github.com/boa-dev/boa/pull/4266
+- Remove local binding's initialized state in `CallFrame` by @HalidOdat in https://github.com/boa-dev/boa/pull/4269
+- Improve `README.md` by @HalidOdat in https://github.com/boa-dev/boa/pull/4270
+- Add a #[boa_class] proc macro attribute by @hansl in https://github.com/boa-dev/boa/pull/4271
+- Bump ICU4X to 2.0 by @jedel1043 in https://github.com/boa-dev/boa/pull/4274
+- Bump the rust-dependencies group with 2 updates by @dependabot[bot] in https://github.com/boa-dev/boa/pull/4278
+- Add `Span`s to expression nodes by @HalidOdat in https://github.com/boa-dev/boa/pull/4273
+- Bump the rust-dependencies group with 4 updates by @dependabot[bot] in https://github.com/boa-dev/boa/pull/4283
+- Bump temporal_rs to v0.0.9 by @nekevss in https://github.com/boa-dev/boa/pull/4285
+- remove boa_profiler and profiler calls. update docs. (#4272) by @Timkarx in https://github.com/boa-dev/boa/pull/4276
+- Add a #[boa(rename = ...)] attribute to TryFromJs and TryIntoJs derive macros by @hansl in https://github.com/boa-dev/boa/pull/4286
+- Add a js_value! macro to allow creation of JsValue from JSON-like DSL by @hansl in https://github.com/boa-dev/boa/pull/4282
+- Bump baptiste0928/cargo-install from 3.3.0 to 3.3.1 in the ci-dependencies group by @dependabot[bot] in https://github.com/boa-dev/boa/pull/4295
+- Bump the rust-dependencies group with 4 updates by @dependabot[bot] in https://github.com/boa-dev/boa/pull/4296
+- Update phf requirement from 0.11.2 to 0.12.1 in /tests/fuzz in the fuzz-dependencies group by @dependabot[bot] in https://github.com/boa-dev/boa/pull/4297
+- Fix `JsValue::mul` to handle zero times a negative integer by @Rafferty97 in https://github.com/boa-dev/boa/pull/4303
+- Move the URL class to using the boa_class macro by @hansl in https://github.com/boa-dev/boa/pull/4294
+- Hint branch predictor that surrogate pairs are rare by @cijiugechu in https://github.com/boa-dev/boa/pull/4312
+- cli: use `mimalloc` as global allocator on windows by @cijiugechu in https://github.com/boa-dev/boa/pull/4314
+- Refactor the `Binding` modifiers to use bitflags by @cijiugechu in https://github.com/boa-dev/boa/pull/4316
+- Implement type erased `Gc<T>` by @HalidOdat in https://github.com/boa-dev/boa/pull/4291
+- inline `Gc::inner_ptr` by @cijiugechu in https://github.com/boa-dev/boa/pull/4317
+- Shrink `JsStr` from 24 to 16 bytes by @HalidOdat in https://github.com/boa-dev/boa/pull/4322
+- Bump tokio from 1.45.1 to 1.46.1 in the rust-dependencies group by @dependabot[bot] in https://github.com/boa-dev/boa/pull/4324
+- Refactor `JsObject` to always be size 8 by @raskad in https://github.com/boa-dev/boa/pull/4287
+- Add a new `Nullable<T>` type that deserialize null to `Nullable::<T>::Null` by @hansl in https://github.com/boa-dev/boa/pull/4325
+- Refactor `JsString`'s static string tagging by @HalidOdat in https://github.com/boa-dev/boa/pull/4334
+- Bump the rust-dependencies group with 6 updates by @dependabot[bot] in https://github.com/boa-dev/boa/pull/4335
+- Implement native backtrace positions by @HalidOdat in https://github.com/boa-dev/boa/pull/4306
+- Fix documentation for NativeFunction::from_async_fn by @jedel1043 in https://github.com/boa-dev/boa/pull/4344
+- Bump the rust-dependencies group with 2 updates by @dependabot[bot] in https://github.com/boa-dev/boa/pull/4347
+- Bump temporal_rs version to v0.0.11 by @nekevss in https://github.com/boa-dev/boa/pull/4348
+- Add an empty EmbeddedModuleLoader default by @hansl in https://github.com/boa-dev/boa/pull/4351
+- Fix a camel case bug by @hansl in https://github.com/boa-dev/boa/pull/4352
+- Temporal documentation update, part 1 by @nekevss in https://github.com/boa-dev/boa/pull/4353
+- Temporal documentation update, part 2 by @nekevss in https://github.com/boa-dev/boa/pull/4354
+- Temporal documentation, part 3 by @nekevss in https://github.com/boa-dev/boa/pull/4355
+- Temporal documentation update, part 4 by @nekevss in https://github.com/boa-dev/boa/pull/4356
+- Bump tokio from 1.46.1 to 1.47.0 in the rust-dependencies group by @dependabot[bot] in https://github.com/boa-dev/boa/pull/4357
+- `Fetch` API (beta) by @hansl in https://github.com/boa-dev/boa/pull/4338
+- Remove `Box` from `Object`'s data member by @HalidOdat in https://github.com/boa-dev/boa/pull/4342
+- Bump the rust-dependencies group with 6 updates by @dependabot[bot] in https://github.com/boa-dev/boa/pull/4361
+- Add support for utf16(-le|be) and use the class API by @hansl in https://github.com/boa-dev/boa/pull/4358
+- Bump temporal_rs version to v0.0.12 by @nekevss in https://github.com/boa-dev/boa/pull/4367
+- Allow public access to the full position of a call frame by @hansl in https://github.com/boa-dev/boa/pull/4365
+- Bump the rust-dependencies group with 5 updates by @dependabot[bot] in https://github.com/boa-dev/boa/pull/4374
+- Bump slab from 0.4.10 to 0.4.11 by @dependabot[bot] in https://github.com/boa-dev/boa/pull/4376
+- Implement queueMicrotask() and a test for it by @hansl in https://github.com/boa-dev/boa/pull/4359
+- Bump actions/checkout from 4 to 5 by @dependabot[bot] in https://github.com/boa-dev/boa/pull/4386
+- Bump the rust-dependencies group with 4 updates by @dependabot[bot] in https://github.com/boa-dev/boa/pull/4387
+- Improve object display by @xubaiwang in https://github.com/boa-dev/boa/pull/4377
+- Fix broken PlainMonthDay.from tests by @nekevss in https://github.com/boa-dev/boa/pull/4389
+- Fix final Temporal.Instant test in built-ins test suite by @nekevss in https://github.com/boa-dev/boa/pull/4388
+- Remove alignment of property keys with identation by @hansl in https://github.com/boa-dev/boa/pull/4390
+- Bump temporal_rs version to v0.0.14 by @nekevss in https://github.com/boa-dev/boa/pull/4391
+- Update `Math.sumPrecise` to remove `SummationState` by @nekevss in https://github.com/boa-dev/boa/pull/4392
+- Update phf requirement from 0.12.1 to 0.13.1 in /tests/fuzz in the fuzz-dependencies group by @dependabot[bot] in https://github.com/boa-dev/boa/pull/4384
+- Fix index access in `JumpTable` instruction by @HalidOdat in https://github.com/boa-dev/boa/pull/4372
+- Bump the rust-dependencies group with 5 updates by @dependabot[bot] in https://github.com/boa-dev/boa/pull/4395
+- Fix: prevent OOB panic in decodeURI by tightening percent-decoding bounds; add test for incomplete escape %E7%9A%8 (#4404) by @hamflx in https://github.com/boa-dev/boa/pull/4405
+- Implement a `JsValueStore` as well as structuredClone and tests by @hansl in https://github.com/boa-dev/boa/pull/4366
+- Bump baptiste0928/cargo-install from 3.3.1 to 3.3.2 in the ci-dependencies group by @dependabot[bot] in https://github.com/boa-dev/boa/pull/4385
+- Update hashbrown requirement from 0.15.5 to 0.16.0 in /tests/fuzz in the fuzz-dependencies group by @dependabot[bot] in https://github.com/boa-dev/boa/pull/4396
+- Replace the String producing Display logic to using a Formatter by @hansl in https://github.com/boa-dev/boa/pull/4393
+- Propagate AST errors to the user by @hansl in https://github.com/boa-dev/boa/pull/4408
+- Remove the boa_interop module by @hansl in https://github.com/boa-dev/boa/pull/4407
+- Fix final `Temporal.PlainTime.from` tests by @nekevss in https://github.com/boa-dev/boa/pull/4411
+- Bump the rust-dependencies group with 3 updates by @dependabot[bot] in https://github.com/boa-dev/boa/pull/4413
+- Bump actions/setup-node from 4 to 5 by @dependabot[bot] in https://github.com/boa-dev/boa/pull/4412
+- Various quality of life improvements to the CLI by @hansl in https://github.com/boa-dev/boa/pull/4414
+- Implement `Date` and `RegExp` `JsValueStore` from/to by @hansl in https://github.com/boa-dev/boa/pull/4415
+- Use async channels for Atomics.waitAsync implementation by @jedel1043 in https://github.com/boa-dev/boa/pull/4418
+- Bump the rust-dependencies group across 1 directory with 7 updates by @dependabot[bot] in https://github.com/boa-dev/boa/pull/4421
+- Unblock Context::run_jobs when no timeouts need to be run by @hansl in https://github.com/boa-dev/boa/pull/4416
+- Fix 2 UBs, and cleanup `GcRefCell` by @hansl in https://github.com/boa-dev/boa/pull/4422
+- Bump temporal_rs version to v0.0.16 by @nekevss in https://github.com/boa-dev/boa/pull/4425
+- Fix the CLI when it is not attached to a TTY by @hansl in https://github.com/boa-dev/boa/pull/4424
+- Bump the rust-dependencies group with 6 updates by @dependabot[bot] in https://github.com/boa-dev/boa/pull/4429
+- Implement `JsValueStore` for `SharedArrayBuffer` and `postMessage` by @hansl in https://github.com/boa-dev/boa/pull/4417
+- fix: comment typo by @jasonmilad in https://github.com/boa-dev/boa/pull/4430
+- Editorconfig: specify indentation and dont overrule Makefile by @hansl in https://github.com/boa-dev/boa/pull/4446
+- Add a simple cargo-make to the project by @hansl in https://github.com/boa-dev/boa/pull/4437
+- Update to temporal_rs to 0.1 release by @nekevss in https://github.com/boa-dev/boa/pull/4433
+- Add minimal CI task to cargo-make by @nekevss in https://github.com/boa-dev/boa/pull/4448
+- Improve regular expression flags parsing by @hansl in https://github.com/boa-dev/boa/pull/4434
+- Bump the rust-dependencies group with 4 updates by @dependabot[bot] in https://github.com/boa-dev/boa/pull/4449
+- Only validate the RegExp, do not optimize/compile it by @hansl in https://github.com/boa-dev/boa/pull/4451
+- Bump peter-evans/create-or-update-comment from 4 to 5 by @dependabot[bot] in https://github.com/boa-dev/boa/pull/4456
+- Bump peter-evans/find-comment from 3 to 4 by @dependabot[bot] in https://github.com/boa-dev/boa/pull/4457
+- Bump bytemuck from 1.23.2 to 1.24.0 in the rust-dependencies group by @dependabot[bot] in https://github.com/boa-dev/boa/pull/4458
+- Allow printing test262 comment on PRs from forks by @jedel1043 in https://github.com/boa-dev/boa/pull/4428
+- perf: Improve `Math.sumPrecise` Performance by @Gumichocopengin8 in https://github.com/boa-dev/boa/pull/4462
+- Bump the rust-dependencies group with 3 updates by @dependabot[bot] in https://github.com/boa-dev/boa/pull/4467
+
+### New Contributors
+
+- @zzzdong made their first contribution in https://github.com/boa-dev/boa/pull/4058
+- @albertleigh made their first contribution in https://github.com/boa-dev/boa/pull/4097
+- @heygsc made their first contribution in https://github.com/boa-dev/boa/pull/4124
+- @jamesthurley made their first contribution in https://github.com/boa-dev/boa/pull/4155
+- @lockels made their first contribution in https://github.com/boa-dev/boa/pull/4189
+- @changhc made their first contribution in https://github.com/boa-dev/boa/pull/4176
+- @created-by-varun made their first contribution in https://github.com/boa-dev/boa/pull/4198
+- @tomoverlund made their first contribution in https://github.com/boa-dev/boa/pull/4254
+- @Hemenguelbindi made their first contribution in https://github.com/boa-dev/boa/pull/4145
+- @Timkarx made their first contribution in https://github.com/boa-dev/boa/pull/4276
+- @Rafferty97 made their first contribution in https://github.com/boa-dev/boa/pull/4303
+- @cijiugechu made their first contribution in https://github.com/boa-dev/boa/pull/4307
+- @countradooku made their first contribution in https://github.com/boa-dev/boa/pull/4214
+- @xubaiwang made their first contribution in https://github.com/boa-dev/boa/pull/4381
+- @hamflx made their first contribution in https://github.com/boa-dev/boa/pull/4405
+- @BDeuDev made their first contribution in https://github.com/boa-dev/boa/pull/4419
+- @jasonmilad made their first contribution in https://github.com/boa-dev/boa/pull/4430
+- @hpp2334 made their first contribution in https://github.com/boa-dev/boa/pull/4453
+- @Gumichocopengin8 made their first contribution in https://github.com/boa-dev/boa/pull/4462
+- @mdrokz made their first contribution in https://github.com/boa-dev/boa/pull/4466
+- @rrogerc made their first contribution in https://github.com/boa-dev/boa/pull/4459
+
+**Full Changelog**: https://github.com/boa-dev/boa/compare/v0.20...v0.21
+
+## [0.20.0 (2024-12-5)](https://github.com/boa-dev/boa/compare/v0.19.1...v0.20.0)
 
 ### Feature Enhancements
 
@@ -87,7 +373,7 @@
 - Bump dependencies with breaking changes by @jedel1043 in https://github.com/boa-dev/boa/pull/4050
 - Migrate to fast-float2 by @jedel1043 in https://github.com/boa-dev/boa/pull/4052
 
-## New Contributors
+### New Contributors
 
 - @magic-akari made their first contribution in https://github.com/boa-dev/boa/pull/3916
 - @shurizzle made their first contribution in https://github.com/boa-dev/boa/pull/3976
@@ -97,7 +383,7 @@
 
 **Full Changelog**: https://github.com/boa-dev/boa/compare/v0.19...v0.20.0
 
-# [0.19.1 (2024-09-11)](https://github.com/boa-dev/boa/compare/v0.19...v0.19.1)
+## [0.19.1 (2024-09-11)](https://github.com/boa-dev/boa/compare/v0.19...v0.19.1)
 
 ### Bug Fixes
 
@@ -112,7 +398,7 @@
 
 **Full Changelog**: https://github.com/boa-dev/boa/compare/v0.19...v0.19.1
 
-# [0.19.0 (2024-07-08)](https://github.com/boa-dev/boa/compare/v0.18...v0.19)
+## [0.19.0 (2024-07-08)](https://github.com/boa-dev/boa/compare/v0.18...v0.19)
 
 ### Feature Enhancements
 
@@ -201,7 +487,7 @@
 - Cleanup README.md and contributor documentation by @jedel1043 in https://github.com/boa-dev/boa/pull/3909
 - Refactor environment stack to remove some panics by @raskad in https://github.com/boa-dev/boa/pull/3893
 
-## New Contributors
+### New Contributors
 
 - @robot-head made their first contribution in https://github.com/boa-dev/boa/pull/3730
 - @hansl made their first contribution in https://github.com/boa-dev/boa/pull/3755
@@ -213,7 +499,7 @@
 
 **Full Changelog**: https://github.com/boa-dev/boa/compare/v0.18...v0.19
 
-# [0.18.0 (2024-03-04)](https://github.com/boa-dev/boa/compare/v0.17...v0.18)
+## [0.18.0 (2024-03-04)](https://github.com/boa-dev/boa/compare/v0.17...v0.18)
 
 ### Feature Enhancements
 
@@ -427,7 +713,7 @@
 
 **Full Changelog**: https://github.com/boa-dev/boa/compare/v0.17...v0.18
 
-# [0.17.0 (2023-07-05)](https://github.com/boa-dev/boa/compare/v0.16...v0.17)
+## [0.17.0 (2023-07-05)](https://github.com/boa-dev/boa/compare/v0.16...v0.17)
 
 ### Feature Enhancements
 
@@ -740,7 +1026,7 @@
 - Fix rust 1.70 lints by @raskad in [#2990](https://github.com/boa-dev/boa/pull/2990)
 - Simplify/Refactor exception handling and last statement value by @HalidOdat in [#3053](https://github.com/boa-dev/boa/pull/3053)
 
-# [0.16.0 (2022-09-25)](https://github.com/boa-dev/boa/compare/v0.15...v0.16)
+## [0.16.0 (2022-09-25)](https://github.com/boa-dev/boa/compare/v0.15...v0.16)
 
 ### Feature Enhancements
 
@@ -799,7 +1085,7 @@
 
 **Full Changelog**: https://github.com/boa-dev/boa/compare/v0.14...v0.15
 
-# [0.15.0 (2022-06-10)](https://github.com/boa-dev/boa/compare/v0.14...v0.15)
+## [0.15.0 (2022-06-10)](https://github.com/boa-dev/boa/compare/v0.14...v0.15)
 
 ### Feature Enhancements
 
@@ -864,7 +1150,7 @@
 
 **Full Changelog**: https://github.com/boa-dev/boa/compare/v0.14...v0.15
 
-# [0.14.0 (2022-03-15) - Virtual Machine](https://github.com/boa-dev/boa/compare/v0.13...v0.14)
+## [0.14.0 (2022-03-15) - Virtual Machine](https://github.com/boa-dev/boa/compare/v0.13...v0.14)
 
 ### Feature Enhancements
 
@@ -993,7 +1279,7 @@
 
 **Full Changelog**: https://github.com/boa-dev/boa/compare/v0.13...v0.14
 
-# [0.13.0 (2021-09-30) - Many new features and refactors](https://github.com/boa-dev/boa/compare/v0.12.0...v0.13.0)
+## [0.13.0 (2021-09-30) - Many new features and refactors](https://github.com/boa-dev/boa/compare/v0.12.0...v0.13.0)
 
 Feature Enhancements:
 
@@ -1083,7 +1369,7 @@ Internal Improvements:
 - [INTERNAL #1333](https://github.com/boa-dev/boa/pull/1333): adds condition to avoid triggers from dependabot (@neeldug)
 - [INTERNAL #1337](https://github.com/boa-dev/boa/pull/1337): Fix github actions (@neeldug)
 
-# [0.12.0 (2021-06-07) - `Set`, accessors, `@@toStringTag` and no more panics](https://github.com/boa-dev/boa/compare/v0.11.0...v0.12.0)
+## [0.12.0 (2021-06-07) - `Set`, accessors, `@@toStringTag` and no more panics](https://github.com/boa-dev/boa/compare/v0.11.0...v0.12.0)
 
 Feature Enhancements:
 
@@ -1152,7 +1438,7 @@ Internal Improvements:
 - [INTERNAL #1293](https://github.com/boa-dev/boa/pull/1293): Fix test262 comment formatting (@0x7D2B)
 - [INTERNAL #1294](https://github.com/boa-dev/boa/pull/1294): Don't consider panic fixes as "new failures" (@Razican)
 
-# [0.11.0 (2021-01-14) - Faster Parsing & Better compliance](https://github.com/boa-dev/boa/compare/v0.10.0...v0.11.0)
+## [0.11.0 (2021-01-14) - Faster Parsing & Better compliance](https://github.com/boa-dev/boa/compare/v0.10.0...v0.11.0)
 
 Feature Enhancements:
 
@@ -1373,7 +1659,7 @@ Internal Improvements:
 - [INTERNAL #1010](https://github.com/boa-dev/boa/pull/1010):
   Modify environment binding behaviour of function (@54k1)
 
-# [0.10.0 (2020-09-29) - New Lexer & Test 262 Harness](https://github.com/boa-dev/boa/compare/v0.9.0...v0.10.0)
+## [0.10.0 (2020-09-29) - New Lexer & Test 262 Harness](https://github.com/boa-dev/boa/compare/v0.9.0...v0.10.0)
 
 Feature Enhancements:
 
@@ -1562,7 +1848,7 @@ Internal Improvements:
 - [INTERNAL #744](https://github.com/boa-dev/boa/pull/744):
   Add MacOS check and test to CI (@neeldug)
 
-# [# 0.9.0 (2020-07-03) - Move to Organisation, 78% faster execution time](https://github.com/boa-dev/boa/compare/v0.8.0...v0.9.0)
+## [0.9.0 (2020-07-03) - Move to Organisation, 78% faster execution time](https://github.com/boa-dev/boa/compare/v0.8.0...v0.9.0)
 
 Feature Enhancements:
 
@@ -1651,7 +1937,7 @@ Internal Improvements
 - [INTERNAL #427 #429 #430](https://github.com/boa-dev/boa/commit/64dbf13afd15f12f958daa87a3d236dc9af1a9aa):
   Added new benchmarks (@Razican)
 
-# [# 0.8.0 (2020-05-23) - BigInt, Modularized Parser, Faster Hashing](https://github.com/boa-dev/boa/compare/v0.7.0...v0.8.0)
+## [0.8.0 (2020-05-23) - BigInt, Modularized Parser, Faster Hashing](https://github.com/boa-dev/boa/compare/v0.7.0...v0.8.0)
 
 `v0.8.0` brings more language implementations, such as do..while, function objects and also more recent EcmaScript additions, like BigInt.
 We have now moved the Web Assembly build into the `wasm` package, plus added a code of conduct for those contributing.
@@ -1738,13 +2024,13 @@ Security:
 - [SEC #391](https://github.com/boa-dev/boa/pull/391):
   run security audit daily at midnight. (@n14little)
 
-# [# 0.7.0 (2020-04-13) - New Parser is 67% faster](https://github.com/boa-dev/boa/compare/v0.6.0...v0.7.0)
+## [# 0.7.0 (2020-04-13) - New Parser is 67% faster](https://github.com/boa-dev/boa/compare/v0.6.0...v0.7.0)
 
 `v0.7.0` brings a REPL, Improved parser messages and a new parser!
 This is now the default behaviour of Boa, so running Boa without a file argument will bring you into a javascript shell.
 Tests have also been moved to their own files, we had a lot of tests in some modules so it was time to separate.
 
-## New Parser
+### New Parser
 
 Most of the work in this release has been on rewriting the parser. A big task taken on by [HalidOdat](https://github.com/HalidOdat), [Razican](https://github.com/Razican) and [myself](https://github.com/jasonwilliams).
 
@@ -1810,12 +2096,12 @@ Documentation Updates:
 - [DOC #297](https://github.com/boa-dev/boa/pull/297):
   Better user contributed documentation
 
-# [# 0.6.0 (2020-02-14) - Migration to Workspace Architecture + lexer/parser improvements](https://github.com/boa-dev/boa/compare/v0.5.1...v0.6.0)
+## [0.6.0 (2020-02-14) - Migration to Workspace Architecture + lexer/parser improvements](https://github.com/boa-dev/boa/compare/v0.5.1...v0.6.0)
 
 The lexer has had several fixes in this release, including how it parses numbers, scientific notation should be improved.
 On top of that the lexer no longer panics on errors including Syntax Errors (thanks @adumbidiot), instead you get some output on where the error happened.
 
-## Moving to a workspace architecture
+### Moving to a workspace architecture
 
 Boa offers both a CLI and a library, initially these were all in the same binary. The downside is
 those who want to embed boa as-is end up with all of the command-line dependencies.
@@ -1823,7 +2109,7 @@ So the time has come to separate out the two, this is normal procedure, this sho
 and the regex crate.
 Cargo has great support for workspaces, so this shouldn't be an issue.
 
-## Benchmarks
+### Benchmarks
 
 We now have [benchmarks which run against master](https://boajs.dev/boa/dev/bench/)!
 Thanks to Github Actions these will run automatically a commit is merged.
@@ -1862,7 +2148,7 @@ Bug fixes:
 - [BUG #245](https://github.com/boa-dev/boa/pull/245):
   Fixed parsing of floats with scientific notation (@adumbidiot)
 
-# [# 0.5.1 (2019-12-02) - Rest / Spread (almost)](https://github.com/boa-dev/boa/compare/v0.5.0...v0.5.1)
+## [# 0.5.1 (2019-12-02) - Rest / Spread (almost)](https://github.com/boa-dev/boa/compare/v0.5.0...v0.5.1)
 
 Feature enhancements:
 
@@ -1873,7 +2159,7 @@ Feature enhancements:
 - [FEATURE #211](https://github.com/boa-dev/boa/pull/211):
   Better Display support for all Objects (pretty printing)
 
-# [# 0.5.0 (2019-11-06) - Hacktoberfest Release](https://github.com/boa-dev/boa/compare/v0.4.0...v0.5.1)
+## [# 0.5.0 (2019-11-06) - Hacktoberfest Release](https://github.com/boa-dev/boa/compare/v0.4.0...v0.5.1)
 
 Feature enhancements:
 
@@ -1932,7 +2218,7 @@ Bug fixes:
   Correctly handle all whitespaces within the lexer
 - Tidy up Globals being added to Global Object. Thanks @DomParfitt
 
-# 0.4.0 (2019-09-25)
+## 0.4.0 (2019-09-25)
 
 v0.4.0 brings quite a big release. The biggest feature to land is the support of regular expressions.
 Functions now have the arguments object supported and we have a [`debugging`](docs/debugging.md) section in the docs.
@@ -1958,7 +2244,7 @@ Bug fixes:
   Fixed issue with stackoverflow by implementing early returns.
 - Allow to re-assign value to an existing binding. (Thanks @oll3)
 
-# 0.3.0 (2019-07-26)
+## 0.3.0 (2019-07-26)
 
 - UnexpectedKeyword(Else) bug fixed https://github.com/boa-dev/boa/issues/38
 - Contributing guide added
@@ -1976,7 +2262,7 @@ Bug fixes:
 - typo fix - Thanks @palerdot
 - dist cleanup, thanks @zgotsch
 
-# 0.2.1 (2019-06-30)
+## 0.2.1 (2019-06-30)
 
 Some String prototype methods are implemented.
 Thanks to @lennartbuit we have
@@ -1997,7 +2283,7 @@ Bug fixes:
 
 - Plenty
 
-# 0.2.0 (2019-06-10)
+## 0.2.0 (2019-06-10)
 
 Working state reached
 

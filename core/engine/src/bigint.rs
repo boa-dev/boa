@@ -7,6 +7,7 @@ use num_traits::{FromPrimitive, One, ToPrimitive, Zero, pow::Pow};
 use std::{
     fmt::{self, Display},
     ops::{Add, BitAnd, BitOr, BitXor, Div, Mul, Neg, Rem, Shl, Shr, Sub},
+    ptr::NonNull,
     rc::Rc,
 };
 
@@ -334,8 +335,9 @@ impl JsBigInt {
     #[inline]
     #[must_use]
     #[allow(unused, reason = "only used in nan-boxed implementation of JsValue")]
-    pub(crate) fn into_raw(self) -> *const RawBigInt {
-        Rc::into_raw(self.inner)
+    pub(crate) fn into_raw(self) -> NonNull<RawBigInt> {
+        // SAFETY: `Rc::into_raw` must always return a non-null pointer.
+        unsafe { NonNull::new_unchecked(Rc::into_raw(self.inner).cast_mut()) }
     }
 
     /// Constructs a `JsBigInt` from a pointer to [`RawBigInt`].
@@ -509,7 +511,7 @@ impl TryFrom<f64> for JsBigInt {
     fn try_from(n: f64) -> Result<Self, Self::Error> {
         // If the truncated version of the number is not the
         // same as the non-truncated version then the floating-point
-        // number conains a fractional part.
+        // number contains a fractional part.
         if !Number::equal(n.trunc(), n) {
             return Err(TryFromF64Error);
         }

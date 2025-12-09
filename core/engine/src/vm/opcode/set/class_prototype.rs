@@ -34,7 +34,8 @@ impl SetClassPrototype {
             context.root_shape(),
             prototype,
             OrdinaryObject,
-        );
+        )
+        .upcast();
         let class = context.vm.get_register(class.into()).clone();
 
         {

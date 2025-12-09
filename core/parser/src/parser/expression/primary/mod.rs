@@ -35,8 +35,8 @@ use crate::{
     parser::{
         AllowAwait, AllowYield, Cursor, OrAbrupt, ParseResult, TokenParser,
         expression::{
-            BindingIdentifier, Expression, identifiers::IdentifierReference,
-            primary::template::TemplateLiteral,
+            BindingIdentifier, Expression, FormalParameterListOrExpression,
+            identifiers::IdentifierReference, primary::template::TemplateLiteral,
         },
         statement::{ArrayBindingPattern, ObjectBindingPattern},
     },
@@ -91,7 +91,7 @@ impl<R> TokenParser<R> for PrimaryExpression
 where
     R: ReadChar,
 {
-    type Output = ast::Expression;
+    type Output = FormalParameterListOrExpression;
 
     fn parse(self, cursor: &mut Cursor<R>, interner: &mut Interner) -> ParseResult<Self::Output> {
         // TODO: tok currently consumes the token instead of peeking, so the token
@@ -127,10 +127,6 @@ where
                 ClassExpression::new(self.allow_yield, self.allow_await)
                     .parse(cursor, interner)
                     .map(Into::into)
-            }
-            TokenKind::Keyword((Keyword::Debugger, _)) => {
-                cursor.advance(interner);
-                Ok(ast::Expression::Debugger)
             }
             TokenKind::Keyword((Keyword::Async, contain_escaped_char)) => {
                 let contain_escaped_char = *contain_escaped_char;
@@ -310,7 +306,7 @@ impl<R> TokenParser<R> for CoverParenthesizedExpressionAndArrowParameterList
 where
     R: ReadChar,
 {
-    type Output = ast::Expression;
+    type Output = FormalParameterListOrExpression;
 
     fn parse(self, cursor: &mut Cursor<R>, interner: &mut Interner) -> ParseResult<Self::Output> {
         #[derive(Debug)]
@@ -487,7 +483,8 @@ where
                 return Ok(ast::Expression::Parenthesized(Parenthesized::new(
                     expression.clone(),
                     Span::new(span_start.start(), span.end()),
-                )));
+                ))
+                .into());
             }
             return Err(Error::unexpected(
                 Punctuator::CloseParen,
@@ -547,7 +544,10 @@ where
             ));
         }
 
-        Ok(ast::Expression::FormalParameterList(parameters))
+        Ok(FormalParameterListOrExpression::FormalParameterList {
+            fpl: parameters,
+            span_start: span.start(),
+        })
     }
 }
 

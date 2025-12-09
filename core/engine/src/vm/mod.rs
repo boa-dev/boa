@@ -8,6 +8,7 @@ use crate::{
     Context, JsError, JsNativeError, JsObject, JsResult, JsString, JsValue, Module,
     builtins::promise::{PromiseCapability, ResolvingFunctions},
     environments::EnvironmentStack,
+    error::RuntimeLimitError,
     object::JsFunction,
     realm::Realm,
     script::Script,
@@ -62,9 +63,9 @@ mod tests;
 pub struct Vm {
     /// The current call frame.
     ///
-    /// Whenever a new frame is pushed, it will be swaped into this field.
+    /// Whenever a new frame is pushed, it will be swapped into this field.
     /// Then the old frame will get pushed to the [`Self::frames`] stack.
-    /// Whenever the current frame gets poped, the last frame on the [`Self::frames`] stack will be swaped into this field.
+    /// Whenever the current frame gets popped, the last frame on the [`Self::frames`] stack will be swapped into this field.
     ///
     /// By default this is a dummy frame that gets pushed to [`Self::frames`] when the first real frame is pushed.
     pub(crate) frame: CallFrame,
@@ -82,17 +83,13 @@ pub struct Vm {
     ///
     /// See [`ReThrow`](crate::vm::Opcode::ReThrow) and [`ReThrow`](crate::vm::Opcode::Exception) opcodes.
     ///
-    /// This is also used to eliminates [`crate::JsNativeError`] to opaque conversion if not needed.
+    /// This eliminates the conversion between [`crate::JsNativeError`] and [`crate::JsValue`] if not needed.
     pub(crate) pending_exception: Option<JsError>,
-    pub(crate) environments: EnvironmentStack,
     pub(crate) runtime_limits: RuntimeLimits,
 
     /// This is used to assign a native (rust) function as the active function,
     /// because we don't push a frame for them.
     pub(crate) native_active_function: Option<JsObject>,
-
-    /// realm holds both the global object and the environment
-    pub(crate) realm: Realm,
 
     pub(crate) shadow_stack: ShadowStack,
 
@@ -100,7 +97,7 @@ pub struct Vm {
     pub(crate) trace: bool,
 }
 
-/// The stack holds the [`JsValue`]s that the VM is operationg on.
+/// The stack holds the [`JsValue`]s that the VM is operating on.
 ///
 /// The stack is persistent across frames.
 /// It's addressing is relative to the frame pointer.
@@ -418,15 +415,13 @@ impl Vm {
                 Gc::new(CodeBlock::new(JsString::default(), 0, true)),
                 None,
                 EnvironmentStack::new(realm.environment().clone()),
-                realm.clone(),
+                realm,
             ),
             stack: Stack::new(1024),
             return_value: JsValue::undefined(),
-            environments: EnvironmentStack::new(realm.environment().clone()),
             pending_exception: None,
             runtime_limits: RuntimeLimits::default(),
             native_active_function: None,
-            realm,
             shadow_stack: ShadowStack::default(),
             #[cfg(feature = "trace")]
             trace: false,
@@ -461,8 +456,6 @@ impl Vm {
     pub(crate) fn push_frame(&mut self, mut frame: CallFrame) {
         let current_stack_length = self.stack.stack.len();
         frame.set_register_pointer(current_stack_length as u32);
-        std::mem::swap(&mut self.environments, &mut frame.environments);
-        std::mem::swap(&mut self.realm, &mut frame.realm);
 
         // NOTE: We need to check if we already pushed the registers,
         //       since generator-like functions push the same call
@@ -506,8 +499,6 @@ impl Vm {
             self.shadow_stack.pop();
 
             std::mem::swap(&mut self.frame, &mut frame);
-            std::mem::swap(&mut self.environments, &mut frame.environments);
-            std::mem::swap(&mut self.realm, &mut frame.realm);
             Some(frame)
         } else {
             None
@@ -530,7 +521,7 @@ impl Vm {
         // Go to handler location.
         frame.pc = catch_address;
 
-        self.environments.truncate(environment_sp as usize);
+        self.frame.environments.truncate(environment_sp as usize);
 
         true
     }
@@ -655,10 +646,11 @@ impl Context {
     {
         #[cfg(feature = "fuzz")]
         {
+            use crate::error::EngineError;
             if self.instructions_remaining == 0 {
-                return ControlFlow::Break(CompletionRecord::Throw(JsError::from_native(
-                    JsNativeError::no_instructions_remain(),
-                )));
+                return ControlFlow::Break(CompletionRecord::Throw(
+                    EngineError::NoInstructionsRemain.into(),
+                ));
             }
             self.instructions_remaining -= 1;
         }
@@ -687,7 +679,7 @@ impl Context {
             }
 
             let mut frame = None;
-            let mut env_fp = self.vm.environments.len();
+            let mut env_fp = self.vm.frame.environments.len();
             loop {
                 if self.vm.frame.exit_early() {
                     break;
@@ -700,7 +692,7 @@ impl Context {
                 };
                 frame = Some(f);
             }
-            self.vm.environments.truncate(env_fp);
+            self.vm.frame.environments.truncate(env_fp);
             if let Some(frame) = frame {
                 self.vm.stack.truncate_to_frame(&frame);
             }
@@ -714,7 +706,7 @@ impl Context {
             return ControlFlow::Continue(());
         }
 
-        // Inject realm before crossing the function boundry
+        // Inject realm before crossing the function boundary
         let err = err.inject_realm(self.realm().clone());
 
         self.vm.pending_exception = Some(err);
@@ -759,7 +751,7 @@ impl Context {
 
         let mut env_fp = self.vm.frame().env_fp;
         if self.vm.frame().exit_early() {
-            self.vm.environments.truncate(env_fp as usize);
+            self.vm.frame.environments.truncate(env_fp as usize);
             self.vm.stack.truncate_to_frame(&self.vm.frame);
             return ControlFlow::Break(CompletionRecord::Throw(
                 self.vm
@@ -794,7 +786,7 @@ impl Context {
             };
             frame = f;
         }
-        self.vm.environments.truncate(env_fp as usize);
+        self.vm.frame.environments.truncate(env_fp as usize);
         self.vm.stack.truncate_to_frame(&frame);
         ControlFlow::Continue(())
     }
@@ -868,15 +860,11 @@ impl Context {
     pub(crate) fn check_runtime_limits(&self) -> JsResult<()> {
         // Must throw if the number of recursive calls exceeds the defined limit.
         if self.vm.runtime_limits.recursion_limit() <= self.vm.frames.len() {
-            return Err(JsNativeError::runtime_limit()
-                .with_message("exceeded maximum number of recursive calls")
-                .into());
+            return Err(RuntimeLimitError::Recursion.into());
         }
         // Must throw if the stack size exceeds the defined maximum length.
         if self.vm.runtime_limits.stack_size_limit() <= self.vm.stack.stack.len() {
-            return Err(JsNativeError::runtime_limit()
-                .with_message("exceeded maximum call stack length")
-                .into());
+            return Err(RuntimeLimitError::StackSize.into());
         }
 
         Ok(())

@@ -47,9 +47,9 @@ impl BuiltInObject for AggregateError {
 }
 
 impl BuiltInConstructor for AggregateError {
-    const LENGTH: usize = 2;
-    const P: usize = 2;
-    const SP: usize = 0;
+    const CONSTRUCTOR_ARGUMENTS: usize = 2;
+    const PROTOTYPE_STORAGE_SLOTS: usize = 2;
+    const CONSTRUCTOR_STORAGE_SLOTS: usize = 0;
 
     const STANDARD_CONSTRUCTOR: fn(&StandardConstructors) -> &StandardConstructor =
         StandardConstructors::aggregate_error;
@@ -89,7 +89,8 @@ impl BuiltInConstructor for AggregateError {
             context.root_shape(),
             prototype,
             Error::with_caller_position(ErrorKind::Aggregate, context),
-        );
+        )
+        .upcast();
 
         // 3. If message is not undefined, then
         let message = args.get_or_undefined(1);

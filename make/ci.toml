@@ -1,0 +1,12 @@
+[tasks.ci-lint-all-features]
+command = "cargo"
+args = ["clippy", "--all-features", "--all-targets"]
+
+[tasks.ci-lint-no-features]
+command = "cargo"
+args = ["clippy", "--no-default-features"]
+
+[tasks.ci-fmt-check]
+command = "cargo"
+args = ["fmt", "--", "--check"]
+

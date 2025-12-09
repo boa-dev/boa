@@ -90,7 +90,7 @@ fn main() -> Result<(), JsError> {
 
     // Create and register function for getting and setting the realm value.
     //
-    // The funtion lives in the context's realm and has access to the host-defined field.
+    // The function lives in the context's realm and has access to the host-defined field.
     context.register_global_builtin_callable(
         JsString::from("setRealmValue"),
         1,

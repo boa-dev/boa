@@ -39,14 +39,8 @@ pub(crate) const fn vtable_of<T: Trace + 'static>() -> &'static VTable {
             // SAFETY: The caller must ensure that the passed erased pointer is `GcBox<Self>`.
             let this = this.cast::<GcBox<Self>>();
 
-            // SAFETY: The caller must ensure the erased pointer is not droped or deallocated.
+            // SAFETY: The caller must ensure the erased pointer is not dropped or deallocated.
             let _value = unsafe { Box::from_raw(this.as_ptr()) };
-        }
-
-        fn type_id_fn() -> TypeId {
-            // NOTE: Currently `TypeId::of::<T>()` is not const, so we have to wrap it in function call.
-            //       See issue: <https://github.com/rust-lang/rust/issues/77125>
-            TypeId::of::<Self>()
         }
     }
 
@@ -56,7 +50,7 @@ pub(crate) const fn vtable_of<T: Trace + 'static>() -> &'static VTable {
             trace_non_roots_fn: T::trace_non_roots_fn,
             run_finalizer_fn: T::run_finalizer_fn,
             drop_fn: T::drop_fn,
-            type_id_fn: T::type_id_fn,
+            type_id: TypeId::of::<T>(),
             size: size_of::<GcBox<T>>(),
         };
     }
@@ -68,7 +62,6 @@ pub(crate) type TraceFn = unsafe fn(this: GcErasedPointer, tracer: &mut Tracer);
 pub(crate) type TraceNonRootsFn = unsafe fn(this: GcErasedPointer);
 pub(crate) type RunFinalizerFn = unsafe fn(this: GcErasedPointer);
 pub(crate) type DropFn = unsafe fn(this: GcErasedPointer);
-pub(crate) type TypeIdFn = fn() -> TypeId;
 
 #[derive(Debug)]
 pub(crate) struct VTable {
@@ -76,7 +69,7 @@ pub(crate) struct VTable {
     trace_non_roots_fn: TraceNonRootsFn,
     run_finalizer_fn: RunFinalizerFn,
     drop_fn: DropFn,
-    type_id_fn: TypeIdFn,
+    type_id: TypeId,
     size: usize,
 }
 
@@ -97,8 +90,8 @@ impl VTable {
         self.drop_fn
     }
 
-    pub(crate) fn type_id(&self) -> TypeId {
-        (self.type_id_fn)()
+    pub(crate) const fn type_id(&self) -> TypeId {
+        self.type_id
     }
 
     pub(crate) fn size(&self) -> usize {

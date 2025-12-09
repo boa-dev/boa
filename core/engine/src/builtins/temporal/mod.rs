@@ -224,7 +224,7 @@ pub(crate) fn get_relative_to_option(
             None,
             None,
             None,
-            context.tz_provider(),
+            context.timezone_provider(),
         )?;
         return Ok(Some(RelativeTo::ZonedDateTime(zdt)));
     }
@@ -238,7 +238,7 @@ pub(crate) fn get_relative_to_option(
     // Steps 7-12 are handled by temporal_rs
     Ok(Some(RelativeTo::try_from_str_with_provider(
         &relative_to_str.to_std_string_escaped(),
-        context.tz_provider(),
+        context.timezone_provider(),
     )?))
 }
 

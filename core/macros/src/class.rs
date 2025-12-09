@@ -688,7 +688,7 @@ pub(crate) fn class_impl(attr: TokenStream, input: TokenStream) -> TokenStream {
             .into();
     };
 
-    let class_impl = visitor.serialize_class_impl(&impl_.self_ty, &name.to_string());
+    let class_impl = visitor.serialize_class_impl(&impl_.self_ty, &name);
 
     let debug = take_path_attr(&mut impl_.attrs, "debug");
 

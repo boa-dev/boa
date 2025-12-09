@@ -3,9 +3,16 @@
 <p align="center">
   <a href="https://boajs.dev/">
     <picture>
-      <source media="(prefers-color-scheme: dark)" srcset="./assets/logo_yellow.svg">
-      <source media="(prefers-color-scheme: light)" srcset="./assets/logo_black.svg">
-      <img alt="Boa logo" src="./assets/logo.png">
+      <source
+        media="(prefers-color-scheme: dark)"
+        srcset="https://raw.githubusercontent.com/boa-dev/boa/refs/tags/v0.21/assets/logo_yellow.svg">
+      <source
+        media="(prefers-color-scheme: light)"
+        srcset="https://raw.githubusercontent.com/boa-dev/boa/refs/tags/v0.21/assets/logo_black.svg">
+      <img
+        alt="Boa logo"
+        style="width:auto;"
+        src="https://raw.githubusercontent.com/boa-dev/boa/refs/tags/v0.21/assets/logo.png">
     </picture>
     </a>
 </p>
@@ -54,7 +61,7 @@ To start using Boa simply add the `boa_engine` crate to your `Cargo.toml`:
 
 ```toml
 [dependencies]
-boa_engine = "0.20.0"
+boa_engine = "0.21.0"
 ```
 
 Then in `main.rs`, copy the below:
@@ -96,7 +103,7 @@ For more information on Boa's API, feel free to check out our documentation.
 ## 🏅 Conformance
 
 To know more details about Boa's conformance surrounding the _ECMAScript_ specification,
-you can check out our _ECMASCript Test262_ test suite results [here](https://boajs.dev/conformance).
+you can check out our _ECMAScript Test262_ test suite results [here](https://boajs.dev/conformance).
 
 ## 🪚 Contributing
 

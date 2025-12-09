@@ -54,9 +54,9 @@ impl BuiltInObject for WeakSet {
 
 impl BuiltInConstructor for WeakSet {
     /// The amount of arguments the `WeakSet` constructor takes.
-    const LENGTH: usize = 0;
-    const P: usize = 4;
-    const SP: usize = 0;
+    const CONSTRUCTOR_ARGUMENTS: usize = 0;
+    const PROTOTYPE_STORAGE_SLOTS: usize = 4;
+    const CONSTRUCTOR_STORAGE_SLOTS: usize = 0;
 
     const STANDARD_CONSTRUCTOR: fn(&StandardConstructors) -> &StandardConstructor =
         StandardConstructors::weak_set;
@@ -89,7 +89,8 @@ impl BuiltInConstructor for WeakSet {
             context.root_shape(),
             prototype,
             NativeWeakSet::new(),
-        );
+        )
+        .upcast();
 
         // 4. If iterable is either undefined or null, return set.
         let iterable = args.get_or_undefined(0);

@@ -212,7 +212,7 @@ pub(crate) fn eval_declaration_instantiation_context(
     //         i. If privateIdentifiers does not contain binding.[[Description]],
     //            append binding.[[Description]] to privateIdentifiers.
     //     b. Set pointer to pointer.[[OuterPrivateEnvironment]].
-    let private_identifiers = context.vm.environments.private_name_descriptions();
+    let private_identifiers = context.vm.frame.environments.private_name_descriptions();
     let private_identifiers = private_identifiers
         .into_iter()
         .map(|ident| {
@@ -1020,7 +1020,7 @@ impl ByteCompiler<'_> {
 
         // 22. If argumentsObjectNeeded is true, then
         //
-        // NOTE(HalidOdat): Has been moved up, so "arguments" gets registed as
+        // NOTE(HalidOdat): Has been moved up, so "arguments" gets registered as
         //     the first binding in the environment with index 0.
         if arguments_object_needed {
             let arguments = arguments.to_js_string(self.interner());

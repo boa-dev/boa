@@ -250,7 +250,7 @@ fn hoisting() {
 }
 
 #[test]
-fn ambigous_regex_divide_expression() {
+fn ambiguous_regex_divide_expression() {
     let s = "1 / a === 1 / b";
 
     let interner = &mut Interner::default();
@@ -802,4 +802,31 @@ fn stress_test_operations() {
             .parse_script(&Scope::new_global(), &mut Interner::default())
             .is_ok()
     );
+}
+
+#[test]
+fn debugger_statement() {
+    check_script_parser(
+        "debugger;",
+        vec![Statement::Debugger.into()],
+        &mut Interner::default(),
+    );
+
+    check_script_parser(
+        "debugger",
+        vec![Statement::Debugger.into()],
+        &mut Interner::default(),
+    );
+
+    check_invalid_script("!debugger");
+
+    check_invalid_script("let x = debugger;");
+
+    check_invalid_script("debugger + debugger");
+}
+
+#[test]
+fn invalid_arrow_function() {
+    check_invalid_script(r#"(!()=>"#);
+    check_invalid_script(r#"!()=>{}"#);
 }

@@ -413,9 +413,9 @@ impl BuiltInObject for ArrayBuffer {
 }
 
 impl BuiltInConstructor for ArrayBuffer {
-    const P: usize = 9;
-    const SP: usize = 2;
-    const LENGTH: usize = 1;
+    const PROTOTYPE_STORAGE_SLOTS: usize = 13;
+    const CONSTRUCTOR_STORAGE_SLOTS: usize = 3;
+    const CONSTRUCTOR_ARGUMENTS: usize = 1;
 
     const STANDARD_CONSTRUCTOR: fn(&StandardConstructors) -> &StandardConstructor =
         StandardConstructors::array_buffer;

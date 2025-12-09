@@ -31,7 +31,7 @@ fn main() -> Result<(), Box<dyn Error>> {
     ctx.register_global_callable("require".into(), 0, NativeFunction::from_fn_ptr(require))?;
 
     // Adding custom object that mimics 'module.exports'
-    let moduleobj = JsObject::default();
+    let moduleobj = JsObject::default(ctx.intrinsics());
     moduleobj.set(js_string!("exports"), js_string!(" "), false, &mut ctx)?;
 
     ctx.register_global_property(

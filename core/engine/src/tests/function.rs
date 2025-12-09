@@ -161,3 +161,20 @@ fn duplicate_function_name() {
         12,
     )]);
 }
+
+#[test]
+fn eval_out_of_scope() {
+    run_test_actions([
+        TestAction::run(indoc! {
+        r#"
+            function f() {
+                var x = null;
+                return (function() {
+                    return eval("x");
+                })();
+            }
+        "#
+        }),
+        TestAction::assert_eq("f()", JsValue::null()),
+    ]);
+}

@@ -1,6 +1,7 @@
 //! Conversions from JavaScript values into Rust values, and the other way around.
 
 use super::{JsBigInt, JsObject, JsString, JsSymbol, JsValue};
+use crate::NativeObject;
 use crate::value::inner::InnerValue;
 use crate::{js_string, string::JsStr};
 
@@ -91,10 +92,10 @@ impl From<bool> for JsValue {
     }
 }
 
-impl From<JsObject> for JsValue {
+impl<T: NativeObject> From<JsObject<T>> for JsValue {
     #[inline]
-    fn from(object: JsObject) -> Self {
-        Self::from_inner(InnerValue::object(object))
+    fn from(object: JsObject<T>) -> Self {
+        Self::from_inner(InnerValue::object(object.upcast()))
     }
 }
 

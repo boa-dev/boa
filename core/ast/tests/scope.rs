@@ -279,3 +279,37 @@ fn script_function_mapped_arguments_accessed() {
     assert!(a.is_lexical());
     assert!(a.local());
 }
+
+#[test]
+fn multiple_scopes_with_same_parent_have_distinct_ids() {
+    let global = Scope::new_global();
+    let child1 = Scope::new(global.clone(), false);
+    let child2 = Scope::new(global.clone(), false);
+    let child3 = Scope::new(child1.clone(), false);
+    let child4 = Scope::new(child1.clone(), false);
+
+    // Check uniqueness by inserting in a set and asserting that there are
+    // 5 elements numbered from 0 to 4.
+    let mut ids = [global, child1, child2, child3, child4]
+        .into_iter()
+        .map(|scope| scope.unique_id())
+        .collect::<Vec<u32>>();
+    ids.sort_unstable();
+
+    assert_eq!(ids, vec![0, 1, 2, 3, 4]);
+}
+
+#[test]
+fn can_correlate_binding_to_scope() {
+    // GIVEN
+    let global = Scope::new_global();
+    let child1 = Scope::new(global.clone(), false);
+    let child2 = Scope::new(child1.clone(), false);
+    let _unused = child1.create_mutable_binding("x".into(), false);
+
+    // WHEN
+    let binding = child2.get_identifier_reference("x".into());
+
+    // THEN
+    assert_eq!(binding.locator().unique_scope_id(), child1.unique_id());
+}

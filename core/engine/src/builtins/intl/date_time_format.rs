@@ -65,9 +65,9 @@ impl BuiltInObject for DateTimeFormat {
 }
 
 impl BuiltInConstructor for DateTimeFormat {
-    const LENGTH: usize = 0;
-    const P: usize = 0;
-    const SP: usize = 0;
+    const CONSTRUCTOR_ARGUMENTS: usize = 0;
+    const PROTOTYPE_STORAGE_SLOTS: usize = 0;
+    const CONSTRUCTOR_STORAGE_SLOTS: usize = 0;
 
     const STANDARD_CONSTRUCTOR: fn(&StandardConstructors) -> &StandardConstructor =
         StandardConstructors::date_time_format;
@@ -183,7 +183,8 @@ pub(crate) fn to_date_time_options(
         context.root_shape(),
         options,
         OrdinaryObject,
-    );
+    )
+    .upcast();
 
     // 3. Let needDefaults be true.
     let mut need_defaults = true;

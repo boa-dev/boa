@@ -22,7 +22,7 @@ fn id(_: &JsValue, args: &[JsValue], _: &mut Context) -> JsResult<JsValue> {
 }
 
 /// Returns objects pointer in memory.
-fn indexed_elements_type(_: &JsValue, args: &[JsValue], _: &mut Context) -> JsResult<JsValue> {
+fn indexed_storage_type(_: &JsValue, args: &[JsValue], _: &mut Context) -> JsResult<JsValue> {
     let Some(value) = args.first() else {
         return Err(JsNativeError::typ()
             .with_message("expected object argument")
@@ -39,7 +39,8 @@ fn indexed_elements_type(_: &JsValue, args: &[JsValue], _: &mut Context) -> JsRe
         IndexProperties::DenseI32(_) => "DenseI32",
         IndexProperties::DenseF64(_) => "DenseF64",
         IndexProperties::DenseElement(_) => "DenseElement",
-        IndexProperties::Sparse(_) => "SparseElement",
+        IndexProperties::SparseElement(_) => "SparseElement",
+        IndexProperties::SparseProperty(_) => "SparseProperty",
     };
     Ok(js_string!(typ).into())
 }
@@ -48,8 +49,8 @@ pub(super) fn create_object(context: &mut Context) -> JsObject {
     ObjectInitializer::new(context)
         .function(NativeFunction::from_fn_ptr(id), js_string!("id"), 1)
         .function(
-            NativeFunction::from_fn_ptr(indexed_elements_type),
-            js_string!("indexedElementsType"),
+            NativeFunction::from_fn_ptr(indexed_storage_type),
+            js_string!("indexedStorageType"),
             1,
         )
         .build()

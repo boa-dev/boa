@@ -718,7 +718,7 @@ impl ByteCompiler<'_> {
 
         self.register_allocator.dealloc(class_register);
 
-        // NOTE: Reset strict mode to before class declaration/expression evalutation.
+        // NOTE: Reset strict mode to before class declaration/expression evaluation.
         self.code_block_flags.set(CodeBlockFlags::STRICT, strict);
     }
 }

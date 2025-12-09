@@ -210,12 +210,12 @@ impl Script {
     fn prepare_run(&self, context: &mut Context) -> JsResult<()> {
         let codeblock = self.codeblock(context)?;
 
-        let env_fp = context.vm.environments.len() as u32;
+        let env_fp = context.vm.frame.environments.len() as u32;
         context.vm.push_frame_with_stack(
             CallFrame::new(
                 codeblock,
                 Some(ActiveRunnable::Script(self.clone())),
-                context.vm.environments.clone(),
+                context.vm.frame.environments.clone(),
                 self.inner.realm.clone(),
             )
             .with_env_fp(env_fp)

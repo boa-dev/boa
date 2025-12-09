@@ -213,7 +213,7 @@ impl NativeFunction {
                     match result {
                         Ok(v) => resolvers.resolve.call(&JsValue::undefined(), &[v], context),
                         Err(e) => {
-                            let e = e.to_opaque(context);
+                            let e = e.into_opaque(context)?;
                             resolvers.reject.call(&JsValue::undefined(), &[e], context)
                         }
                     }
@@ -440,7 +440,8 @@ fn native_function_construct(
                         context.root_shape(),
                         prototype,
                         OrdinaryObject,
-                    ))
+                    )
+                    .upcast())
                 } else {
                     Err(JsNativeError::typ()
                         .with_message("derived constructor can only return an Object or undefined")

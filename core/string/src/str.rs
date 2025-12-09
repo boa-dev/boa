@@ -9,7 +9,7 @@ use std::{
     slice::SliceIndex,
 };
 
-use super::iter::Windows;
+use super::iter::{CodePointsIter, Windows};
 
 // Modified port of <https://doc.rust-lang.org/std/primitive.slice.html#method.trim_ascii_start>
 #[inline]
@@ -113,7 +113,7 @@ impl<'a> JsStr<'a> {
         self.inner.ptr
     }
 
-    /// Return the inner [`JsStrVariant`] varient of the [`JsStr`].
+    /// Return the inner [`JsStrVariant`] variant of the [`JsStr`].
     #[inline]
     #[must_use]
     pub const fn variant(self) -> JsStrVariant<'a> {
@@ -455,13 +455,10 @@ impl<'a> JsStr<'a> {
     }
 
     /// Gets an iterator of all the Unicode codepoints of a [`JsStr`].
-    // TODO: optimize for Latin1 strings.
     #[inline]
-    pub fn code_points(&self) -> impl Iterator<Item = CodePoint> + Clone + use<'a> {
-        char::decode_utf16(self.iter()).map(|res| match res {
-            Ok(c) => CodePoint::Unicode(c),
-            Err(e) => CodePoint::UnpairedSurrogate(e.unpaired_surrogate()),
-        })
+    #[must_use]
+    pub fn code_points(&self) -> CodePointsIter<'a> {
+        CodePointsIter::new(*self)
     }
 
     /// Checks if the [`JsStr`] contains a byte.

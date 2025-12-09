@@ -220,7 +220,7 @@ impl std::fmt::Debug for SourceTextContext {
 #[derive(Trace, Finalize)]
 pub(crate) struct SourceTextModule {
     status: GcRefCell<ModuleStatus>,
-    loaded_modules: GcRefCell<FxHashMap<JsString, Module>>,
+    loaded_modules: GcRefCell<FxHashMap<super::ModuleRequest, Module>>,
     async_parent_modules: GcRefCell<Vec<Module>>,
     import_meta: GcRefCell<Option<JsObject>>,
     #[unsafe_ignore_trace]
@@ -241,14 +241,63 @@ impl std::fmt::Debug for SourceTextModule {
 #[derive(Debug)]
 struct ModuleCode {
     has_tla: bool,
-    requested_modules: IndexSet<JsString, BuildHasherDefault<FxHasher>>,
+    requested_modules: IndexSet<super::ModuleRequest, BuildHasherDefault<FxHasher>>,
     source: boa_ast::Module,
     source_text: SourceText,
     path: Option<PathBuf>,
     import_entries: Vec<ImportEntry>,
     local_export_entries: Vec<LocalExportEntry>,
     indirect_export_entries: Vec<IndirectExportEntry>,
-    star_export_entries: Vec<JsString>,
+    star_export_entries: Vec<super::ModuleRequest>,
+}
+
+struct ModuleRequestsVisitor<'a> {
+    interner: &'a Interner,
+    requests: IndexSet<super::ModuleRequest, BuildHasherDefault<FxHasher>>,
+}
+
+impl<'ast> boa_ast::visitor::Visitor<'ast> for ModuleRequestsVisitor<'_> {
+    type BreakTy = std::convert::Infallible;
+
+    fn visit_import_declaration(
+        &mut self,
+        node: &'ast boa_ast::declaration::ImportDeclaration,
+    ) -> std::ops::ControlFlow<Self::BreakTy> {
+        let specifier = node.specifier().sym().to_js_string(self.interner);
+        self.requests.insert(super::ModuleRequest::from_ast(
+            specifier,
+            node.attributes(),
+            self.interner,
+        ));
+        std::ops::ControlFlow::Continue(())
+    }
+
+    fn visit_export_declaration(
+        &mut self,
+        node: &'ast boa_ast::declaration::ExportDeclaration,
+    ) -> std::ops::ControlFlow<Self::BreakTy> {
+        if let boa_ast::declaration::ExportDeclaration::ReExport {
+            specifier,
+            attributes,
+            ..
+        } = node
+        {
+            let spec = specifier.sym().to_js_string(self.interner);
+            self.requests.insert(super::ModuleRequest::from_ast(
+                spec,
+                attributes,
+                self.interner,
+            ));
+        }
+        std::ops::ControlFlow::Continue(())
+    }
+
+    fn visit_statement_list_item(
+        &mut self,
+        _: &'ast boa_ast::StatementListItem,
+    ) -> std::ops::ControlFlow<Self::BreakTy> {
+        std::ops::ControlFlow::Continue(())
+    }
 }
 
 impl SourceTextModule {
@@ -264,12 +313,16 @@ impl SourceTextModule {
         path: Option<PathBuf>,
     ) -> Self {
         // 3. Let requestedModules be the ModuleRequests of body.
-        let requested_modules = code
-            .items()
-            .requests()
-            .iter()
-            .map(|name| name.to_js_string(interner))
-            .collect();
+        let requested_modules = {
+            use boa_ast::visitor::Visitor;
+
+            let mut visitor = ModuleRequestsVisitor {
+                interner,
+                requests: IndexSet::default(),
+            };
+            let _ = visitor.visit_module(&code);
+            visitor.requests
+        };
         // 4. Let importEntries be ImportEntries of body.
         let import_entries = code.items().import_entries();
 
@@ -290,10 +343,10 @@ impl SourceTextModule {
                 ExportEntry::Ordinary(entry) => {
                     // ii. Else,
                     //     1. Let ie be the element of importEntries whose [[LocalName]] is ee.[[LocalName]].
-                    if let Some((module, import)) =
+                    if let Some((module, import, attrs)) =
                         import_entries.iter().find_map(|ie| match ie.import_name() {
                             ImportName::Name(name) if ie.local_name() == entry.local_name() => {
-                                Some((ie.module_request(), name))
+                                Some((ie.module_request(), name, ie.attributes()))
                             }
                             _ => None,
                         })
@@ -307,6 +360,7 @@ impl SourceTextModule {
                             module,
                             ReExportImportName::Name(import),
                             entry.export_name(),
+                            attrs.to_vec().into_boxed_slice(),
                         ));
                     } else {
                         // i. If importedBoundNames does not contain ee.[[LocalName]], then
@@ -319,10 +373,18 @@ impl SourceTextModule {
                     }
                 }
                 // b. Else if ee.[[ImportName]] is all-but-default, then
-                ExportEntry::StarReExport { module_request } => {
+                ExportEntry::StarReExport {
+                    module_request,
+                    attributes,
+                } => {
                     // i. Assert: ee.[[ExportName]] is null.
                     // ii. Append ee to starExportEntries.
-                    star_export_entries.push(module_request.to_js_string(interner));
+                    let spec = module_request.to_js_string(interner);
+                    star_export_entries.push(super::ModuleRequest::from_ast(
+                        spec,
+                        &attributes,
+                        interner,
+                    ));
                 }
                 // c. Else,
                 //    i. Append ee to indirectExportEntries.
@@ -385,15 +447,15 @@ impl SourceTextModule {
         /// [finish]: https://tc39.es/ecma262/#sec-FinishLoadingImportedModule
         /// [continue]: https://tc39.es/ecma262/#sec-ContinueModuleLoading
         async fn finish_loading_imported_module(
-            specifier: JsString,
+            request: super::ModuleRequest,
             src: Module,
             state: Rc<GraphLoadingState>,
             context: &RefCell<&mut Context>,
-        ) {
+        ) -> JsResult<()> {
             let loader = context.borrow().module_loader();
             let fut = loader.load_imported_module(
                 Referrer::Module(src.clone()),
-                specifier.clone(),
+                request.clone(),
                 context,
             );
             let mut stack = [MaybeUninit::<u8>::uninit(); 16];
@@ -413,7 +475,7 @@ impl SourceTextModule {
                 //    i. Append the Record { [[Specifier]]: specifier, [[Module]]: result.[[Value]] } to referrer.[[LoadedModules]].
                 let mut loaded_modules = src.loaded_modules.borrow_mut();
                 let entry = loaded_modules
-                    .entry(specifier)
+                    .entry(request)
                     .or_insert_with(|| loaded.clone());
 
                 //    i. Assert: That Record's [[Module]] is result.[[Value]].
@@ -429,7 +491,7 @@ impl SourceTextModule {
 
             // 1. If state.[[IsLoading]] is false, return unused.
             if !state.loading.get() {
-                return;
+                return Ok(());
             }
 
             // 2. If moduleCompletion is a normal completion, then
@@ -443,7 +505,7 @@ impl SourceTextModule {
                     // a. Set state.[[IsLoading]] to false.
                     state.loading.set(false);
 
-                    let err = err.to_opaque(&mut context.borrow_mut());
+                    let err = err.into_opaque(&mut context.borrow_mut())?;
 
                     // b. Perform ! Call(state.[[PromiseCapability]].[[Reject]], undefined, « moduleCompletion.[[Value]] »).
                     state
@@ -455,6 +517,7 @@ impl SourceTextModule {
             }
 
             // 4. Return unused.
+            Ok(())
         }
 
         // 2. If module is a Cyclic Module Record, module.[[Status]] is new, and state.[[Visited]] does not contain
@@ -482,13 +545,12 @@ impl SourceTextModule {
                     //       1. Perform HostLoadImportedModule(module, required, state.[[HostDefined]], state).
                     //       2. NOTE: HostLoadImportedModule will call FinishLoadingImportedModule, which re-enters
                     //          the graph loading process through ContinueModuleLoading.
-                    let name_specifier = required.clone();
+                    let request = required.clone();
                     let src = module_self.clone();
                     let state = state.clone();
                     let async_job = NativeAsyncJob::with_realm(
                         async move |context| {
-                            finish_loading_imported_module(name_specifier, src, state, context)
-                                .await;
+                            finish_loading_imported_module(request, src, state, context).await?;
                             Ok(JsValue::undefined())
                         },
                         context.realm().clone(),
@@ -608,7 +670,11 @@ impl SourceTextModule {
             // a. If SameValue(exportName, e.[[ExportName]]) is true, then
             if export_name == &e.export_name().to_js_string(interner) {
                 // i. Let importedModule be GetImportedModule(module, e.[[ModuleRequest]]).
-                let module_request = e.module_request().to_js_string(interner);
+                let module_request = super::ModuleRequest::from_ast(
+                    e.module_request().to_js_string(interner),
+                    e.attributes(),
+                    interner,
+                );
                 let imported_module = self.loaded_modules.borrow()[&module_request].clone();
                 return match e.import_name() {
                     // ii. If e.[[ImportName]] is all, then
@@ -903,7 +969,11 @@ impl SourceTextModule {
     /// Concrete method [`Evaluate ( )`][spec].
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-moduleevaluation
-    pub(super) fn evaluate(&self, module_self: &Module, context: &mut Context) -> JsPromise {
+    pub(super) fn evaluate(
+        &self,
+        module_self: &Module,
+        context: &mut Context,
+    ) -> JsResult<JsPromise> {
         // 1. Assert: This call to Evaluate is not happening at the same time as another call to Evaluate within the surrounding agent.
         let (module, promise) = {
             match &*self.status.borrow() {
@@ -939,7 +1009,7 @@ impl SourceTextModule {
         // 4. If module.[[TopLevelCapability]] is not empty, then
         if let Some(promise) = promise {
             // a. Return module.[[TopLevelCapability]].[[Promise]].
-            return promise;
+            return Ok(promise);
         }
 
         // 5. Let stack be a new empty List.
@@ -1024,14 +1094,14 @@ impl SourceTextModule {
                 // d. Perform ! Call(capability.[[Reject]], undefined, « result.[[Value]] »).
                 capability
                     .reject()
-                    .call(&JsValue::undefined(), &[err.to_opaque(context)], context)
+                    .call(&JsValue::undefined(), &[err.into_opaque(context)?], context)
                     .expect("cannot fail for the default reject function");
             }
         }
 
         // 11. Return capability.[[Promise]].
-        JsPromise::from_object(capability.promise().clone())
-            .expect("promise created from the %Promise% intrinsic is always native")
+        Ok(JsPromise::from_object(capability.promise().clone())
+            .expect("promise created from the %Promise% intrinsic is always native"))
     }
 
     /// Abstract operation [`InnerModuleEvaluation ( module, stack, index )`][spec]
@@ -1322,6 +1392,11 @@ impl SourceTextModule {
             context,
         )
         .expect("cannot fail for the %Promise% intrinsic");
+        let promise = capability
+            .promise
+            .clone()
+            .downcast::<Promise>()
+            .expect("%Promise% constructor must always return a `Promise` object");
 
         // 4. Let fulfilledClosure be a new Abstract Closure with no parameters that captures module and performs the following steps when called:
         // 5. Let onFulfilled be CreateBuiltinFunction(fulfilledClosure, 0, "", « »).
@@ -1330,7 +1405,7 @@ impl SourceTextModule {
             NativeFunction::from_copy_closure_with_captures(
                 |_, _, module, context| {
                     //     a. Perform AsyncModuleExecutionFulfilled(module).
-                    async_module_execution_fulfilled(module, context);
+                    async_module_execution_fulfilled(module, context)?;
                     //     b. Return undefined.
                     Ok(JsValue::undefined())
                 },
@@ -1347,7 +1422,7 @@ impl SourceTextModule {
                 |_, args, module, context| {
                     let error = JsError::from_opaque(args.get_or_undefined(0).clone());
                     // a. Perform AsyncModuleExecutionRejected(module, error).
-                    async_module_execution_rejected(module, &error, context);
+                    async_module_execution_rejected(module, error, context)?;
                     // b. Return undefined.
                     Ok(JsValue::undefined())
                 },
@@ -1358,7 +1433,7 @@ impl SourceTextModule {
 
         // 8. Perform PerformPromiseThen(capability.[[Promise]], onFulfilled, onRejected).
         Promise::perform_promise_then(
-            capability.promise(),
+            &promise,
             Some(on_fulfilled),
             Some(on_rejected),
             None,
@@ -1512,7 +1587,11 @@ impl SourceTextModule {
             // 7. For each ImportEntry Record in of module.[[ImportEntries]], do
             for entry in &self.code.import_entries {
                 // a. Let importedModule be GetImportedModule(module, in.[[ModuleRequest]]).
-                let module_request = entry.module_request().to_js_string(compiler.interner());
+                let module_request = super::ModuleRequest::from_ast(
+                    entry.module_request().to_js_string(compiler.interner()),
+                    entry.attributes(),
+                    compiler.interner(),
+                );
                 let imported_module = self.loaded_modules.borrow()[&module_request].clone();
 
                 if let ImportName::Name(name) = entry.import_name() {
@@ -1697,7 +1776,7 @@ impl SourceTextModule {
                 ImportBinding::Namespace { locator, module } => {
                     // i. Let namespace be GetModuleNamespace(importedModule).
                     let namespace = module.namespace(context);
-                    context.vm.environments.put_lexical_value(
+                    context.vm.frame.environments.put_lexical_value(
                         locator.scope(),
                         locator.binding_index(),
                         namespace.into(),
@@ -1709,6 +1788,7 @@ impl SourceTextModule {
                 } => match export_locator.binding_name() {
                     BindingName::Name(name) => context
                         .vm
+                        .frame
                         .environments
                         .current_declarative_ref()
                         .expect("must be declarative")
@@ -1718,7 +1798,7 @@ impl SourceTextModule {
                         .set_indirect(locator.binding_index(), export_locator.module, name),
                     BindingName::Namespace => {
                         let namespace = export_locator.module.namespace(context);
-                        context.vm.environments.put_lexical_value(
+                        context.vm.frame.environments.put_lexical_value(
                             locator.scope(),
                             locator.binding_index(),
                             namespace.into(),
@@ -1734,7 +1814,7 @@ impl SourceTextModule {
 
             let function = create_function_object_fast(code, context);
 
-            context.vm.environments.put_lexical_value(
+            context.vm.frame.environments.put_lexical_value(
                 locator.scope(),
                 locator.binding_index(),
                 function.into(),
@@ -1843,7 +1923,7 @@ impl SourceTextModule {
     }
 
     /// Gets the loaded modules of this module.
-    pub(crate) fn loaded_modules(&self) -> &GcRefCell<FxHashMap<JsString, Module>> {
+    pub(crate) fn loaded_modules(&self) -> &GcRefCell<FxHashMap<super::ModuleRequest, Module>> {
         &self.loaded_modules
     }
 
@@ -1863,7 +1943,7 @@ impl SourceTextModule {
 ///
 /// [spec]: https://tc39.es/ecma262/#sec-async-module-execution-fulfilled
 #[allow(clippy::mutable_key_type)]
-fn async_module_execution_fulfilled(module: &Module, context: &mut Context) {
+fn async_module_execution_fulfilled(module: &Module, context: &mut Context) -> JsResult<()> {
     let ModuleKind::SourceText(module_src) = module.kind() else {
         unreachable!("async executed module must be a source text module");
     };
@@ -1873,7 +1953,7 @@ fn async_module_execution_fulfilled(module: &Module, context: &mut Context) {
         //     a. Assert: module.[[EvaluationError]] is not empty.
         assert!(error.is_some());
         //     b. Return unused.
-        return;
+        return Ok(());
     }
 
     // 2. Assert: module.[[Status]] is evaluating-async.
@@ -1961,7 +2041,7 @@ fn async_module_execution_fulfilled(module: &Module, context: &mut Context) {
             //    ii. If result is an abrupt completion, then
             if let Err(e) = result {
                 //    1. Perform AsyncModuleExecutionRejected(m, result.[[Value]]).
-                async_module_execution_rejected(module, &e, context);
+                async_module_execution_rejected(module, e, context)?;
             } else {
                 // iii. Else,
                 //    1. Set m.[[Status]] to evaluated.
@@ -1995,12 +2075,17 @@ fn async_module_execution_fulfilled(module: &Module, context: &mut Context) {
         }
     }
     // 13. Return unused.
+    Ok(())
 }
 
 /// Abstract operation [`AsyncModuleExecutionRejected ( module, error )`][spec].
 ///
 /// [spec]: https://tc39.es/ecma262/#sec-async-module-execution-rejected
-fn async_module_execution_rejected(module: &Module, error: &JsError, context: &mut Context) {
+fn async_module_execution_rejected(
+    module: &Module,
+    error: JsError,
+    context: &mut Context,
+) -> JsResult<()> {
     let ModuleKind::SourceText(module_src) = module.kind() else {
         unreachable!("async executed module must be a source text module");
     };
@@ -2009,7 +2094,7 @@ fn async_module_execution_rejected(module: &Module, error: &JsError, context: &m
         //     a. Assert: module.[[EvaluationError]] is not empty.
         assert!(error.is_some());
         //     b. Return unused.
-        return;
+        return Ok(());
     }
 
     // 2. Assert: module.[[Status]] is evaluating-async.
@@ -2038,7 +2123,7 @@ fn async_module_execution_rejected(module: &Module, error: &JsError, context: &m
     // 7. For each Cyclic Module Record m of module.[[AsyncParentModules]], do
     for m in &*module_src.async_parent_modules.borrow() {
         // a. Perform AsyncModuleExecutionRejected(m, error).
-        async_module_execution_rejected(m, error, context);
+        async_module_execution_rejected(m, error.clone(), context)?;
     }
 
     let status = module_src.status.borrow();
@@ -2049,8 +2134,13 @@ fn async_module_execution_rejected(module: &Module, error: &JsError, context: &m
 
         // b. Perform ! Call(module.[[TopLevelCapability]].[[Reject]], undefined, « error »).
         cap.reject()
-            .call(&JsValue::undefined(), &[error.to_opaque(context)], context)
+            .call(
+                &JsValue::undefined(),
+                &[error.into_opaque(context)?],
+                context,
+            )
             .expect("default `reject` function cannot fail");
     }
     // 9. Return unused.
+    Ok(())
 }

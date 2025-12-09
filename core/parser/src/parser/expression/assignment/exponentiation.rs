@@ -11,12 +11,14 @@ use crate::{
     lexer::TokenKind,
     parser::{
         AllowAwait, AllowYield, Cursor, OrAbrupt, ParseResult, TokenParser,
-        expression::{unary::UnaryExpression, update::UpdateExpression},
+        expression::{
+            FormalParameterListOrExpression, unary::UnaryExpression, update::UpdateExpression,
+        },
     },
     source::ReadChar,
 };
 use boa_ast::{
-    Expression, Keyword, Punctuator,
+    Keyword, Punctuator,
     expression::operator::{Binary, binary::ArithmeticOp},
 };
 use boa_interner::Interner;
@@ -53,7 +55,7 @@ impl<R> TokenParser<R> for ExponentiationExpression
 where
     R: ReadChar,
 {
-    type Output = Expression;
+    type Output = FormalParameterListOrExpression;
 
     fn parse(self, cursor: &mut Cursor<R>, interner: &mut Interner) -> ParseResult<Self::Output> {
         let next = cursor.peek(0, interner).or_abrupt()?;
@@ -74,14 +76,21 @@ where
 
         let lhs =
             UpdateExpression::new(self.allow_yield, self.allow_await).parse(cursor, interner)?;
+        let FormalParameterListOrExpression::Expression(lhs) = lhs else {
+            return Ok(lhs);
+        };
+
         if let Some(tok) = cursor.peek(0, interner)?
             && tok.kind() == &TokenKind::Punctuator(Punctuator::Exp)
         {
             cursor.advance(interner);
-            return Ok(
-                Binary::new(ArithmeticOp::Exp.into(), lhs, self.parse(cursor, interner)?).into(),
-            );
+            return Ok(Binary::new(
+                ArithmeticOp::Exp.into(),
+                lhs,
+                self.parse(cursor, interner)?.try_into_expression()?,
+            )
+            .into());
         }
-        Ok(lhs)
+        Ok(lhs.into())
     }
 }

@@ -1,5 +1,11 @@
 //! Utility library that enables a pointer to be associated with a tag of type `usize`
 
+#![doc = include_str!("../ABOUT.md")]
+#![doc(
+    html_logo_url = "https://raw.githubusercontent.com/boa-dev/boa/main/assets/logo_black.svg",
+    html_favicon_url = "https://raw.githubusercontent.com/boa-dev/boa/main/assets/logo_black.svg"
+)]
+
 use std::ptr::{self, NonNull};
 
 /// A pointer that can be tagged with an `usize`.

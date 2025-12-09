@@ -34,14 +34,20 @@ jobs:
           target=$(rustc -vV | awk '/^host/ { print $2 }' | tr [:lower:] [:upper:] | tr '-' '_')
           echo "CARGO_TARGET_${target}_RUSTFLAGS=$W_FLAGS" >> $GITHUB_ENV
       - name: Checkout repository
-        uses: actions/checkout@v5
+        uses: actions/checkout@v6
 
       - name: Install Rust toolchain
         uses: dtolnay/rust-toolchain@stable
 
-      - uses: Swatinem/rust-cache@v2
+      - name: Cache cargo
+        uses: actions/cache@v4
         with:
-          key: tarpaulin
+          path: |
+            target
+            ~/.cargo/git
+            ~/.cargo/registry
+          key: ${{ runner.os }}-${{ runner.arch }}-cargo-${{ hashFiles('**/Cargo.lock') }}
+
       - name: Install cargo-tarpaulin
         uses: baptiste0928/cargo-install@v3.3.2
         with:
@@ -66,21 +72,29 @@ jobs:
       CARGO_TARGET_AARCH64_UNKNOWN_LINUX_GNU: ${{ (github.ref == 'refs/heads/main' || github.base_ref == 'main') && '-D warnings' || '' }}
     strategy:
       matrix:
-        os:
-          - macos-13
-          - macos-14
-          - windows-latest
-          - ubuntu-24.04-arm
+        include:
+          - os: macos-14
+          - os: windows-latest
+          - os: ubuntu-24.04-arm
+          - os: ubuntu-latest
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v5
+        uses: actions/checkout@v6
 
       - name: Install Rust toolchain
         uses: dtolnay/rust-toolchain@stable
         with:
           toolchain: stable
 
-      - uses: Swatinem/rust-cache@v2
+      - name: Cache cargo
+        uses: actions/cache@v4
+        with:
+          path: |
+            target
+            ~/.cargo/git
+            ~/.cargo/registry
+          key: ${{ matrix.os }}-${{ runner.arch }}-cargo-${{ hashFiles('**/Cargo.lock') }}
+
       - name: Build tests
         run: cargo test --no-run --profile ci
       # this order is faster according to rust-analyzer
@@ -103,7 +117,7 @@ jobs:
           target=$(rustc -vV | awk '/^host/ { print $2 }' | tr [:lower:] [:upper:] | tr '-' '_')
           echo "CARGO_TARGET_${target}_RUSTFLAGS=$W_FLAGS" >> $GITHUB_ENV
       - name: Checkout repository
-        uses: actions/checkout@v5
+        uses: actions/checkout@v6
 
       # Get the rust_version from the Cargo.toml
       - name: Get rust_version
@@ -128,7 +142,7 @@ jobs:
           target=$(rustc -vV | awk '/^host/ { print $2 }' | tr [:lower:] [:upper:] | tr '-' '_')
           echo "CARGO_TARGET_${target}_RUSTFLAGS=$W_FLAGS" >> $GITHUB_ENV
       - name: Checkout repository
-        uses: actions/checkout@v5
+        uses: actions/checkout@v6
 
       - name: Install Rust toolchain
         uses: dtolnay/rust-toolchain@stable
@@ -138,6 +152,17 @@ jobs:
 
       - name: Format (rustfmt)
         run: cargo fmt --all --check
+
+  typos:
+    name: Typos
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v6
+
+      - name: Check for typos
+        uses: crate-ci/typos@v1.40.0
 
   clippy:
     name: Lint
@@ -149,7 +174,7 @@ jobs:
           target=$(rustc -vV | awk '/^host/ { print $2 }' | tr [:lower:] [:upper:] | tr '-' '_')
           echo "CARGO_TARGET_${target}_RUSTFLAGS=$W_FLAGS" >> $GITHUB_ENV
       - name: Checkout repository
-        uses: actions/checkout@v5
+        uses: actions/checkout@v6
 
       - name: Install Rust toolchain
         uses: dtolnay/rust-toolchain@stable
@@ -157,9 +182,14 @@ jobs:
           toolchain: stable
           components: clippy
 
-      - uses: Swatinem/rust-cache@v2
+      - name: Cache cargo
+        uses: actions/cache@v4
         with:
-          key: clippy
+          path: |
+            target
+            ~/.cargo/git
+            ~/.cargo/registry
+          key: ${{ runner.os }}-${{ runner.arch }}-cargo-${{ hashFiles('**/Cargo.lock') }}
 
       - name: Install cargo-workspaces
         run: cargo install cargo-workspaces
@@ -187,16 +217,22 @@ jobs:
           target=$(rustc -vV | awk '/^host/ { print $2 }' | tr [:lower:] [:upper:] | tr '-' '_')
           echo "CARGO_TARGET_${target}_RUSTFLAGS=$W_FLAGS" >> $GITHUB_ENV
       - name: Checkout repository
-        uses: actions/checkout@v5
+        uses: actions/checkout@v6
 
       - name: Install Rust toolchain
         uses: dtolnay/rust-toolchain@stable
         with:
           toolchain: stable
 
-      - uses: Swatinem/rust-cache@v2
+      - name: Cache cargo
+        uses: actions/cache@v4
         with:
-          key: docs
+          path: |
+            target
+            ~/.cargo/git
+            ~/.cargo/registry
+          key: ${{ runner.os }}-${{ runner.arch }}-cargo-${{ hashFiles('**/Cargo.lock') }}
+
       - name: Generate documentation
         run: cargo doc -v --document-private-items --all-features
 
@@ -210,16 +246,21 @@ jobs:
           target=$(rustc -vV | awk '/^host/ { print $2 }' | tr [:lower:] [:upper:] | tr '-' '_')
           echo "CARGO_TARGET_${target}_RUSTFLAGS=$W_FLAGS" >> $GITHUB_ENV
       - name: Checkout repository
-        uses: actions/checkout@v5
+        uses: actions/checkout@v6
 
       - name: Install Rust toolchain
         uses: dtolnay/rust-toolchain@stable
         with:
           toolchain: stable
 
-      - uses: Swatinem/rust-cache@v2
+      - name: Cache cargo
+        uses: actions/cache@v4
         with:
-          key: build-fuzz
+          path: |
+            target
+            ~/.cargo/git
+            ~/.cargo/registry
+          key: ${{ runner.os }}-${{ runner.arch }}-cargo-${{ hashFiles('**/Cargo.lock') }}
 
       - name: Install cargo-fuzz
         run: cargo install cargo-fuzz
@@ -237,16 +278,21 @@ jobs:
           target=$(rustc -vV | awk '/^host/ { print $2 }' | tr [:lower:] [:upper:] | tr '-' '_')
           echo "CARGO_TARGET_${target}_RUSTFLAGS=$W_FLAGS" >> $GITHUB_ENV
       - name: Checkout repository
-        uses: actions/checkout@v5
+        uses: actions/checkout@v6
 
       - name: Install Rust toolchain
         uses: dtolnay/rust-toolchain@stable
         with:
           toolchain: stable
 
-      - uses: Swatinem/rust-cache@v2
+      - name: Cache cargo
+        uses: actions/cache@v4
         with:
-          key: build-run-examples
+          path: |
+            target
+            ~/.cargo/git
+            ~/.cargo/registry
+          key: ${{ runner.os }}-${{ runner.arch }}-cargo-${{ hashFiles('**/Cargo.lock') }}
 
       - name: Install cargo-workspaces
         run: cargo install cargo-workspaces
@@ -262,3 +308,28 @@ jobs:
           cargo run -p boa_examples --bin 2>&1 \
             | grep -E '^ ' \
             | xargs -n1 sh -c 'cargo run -p boa_examples --profile ci --bin $0 || exit 255'
+
+  run-semver-check:
+    name: Check SemVer compatibility
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+    steps:
+      - name: Set environment
+        run: |
+          target=$(rustc -vV | awk '/^host/ { print $2 }' | tr [:lower:] [:upper:] | tr '-' '_')
+          echo "CARGO_TARGET_${target}_RUSTFLAGS=$W_FLAGS" >> $GITHUB_ENV
+      - name: Checkout repository
+        uses: actions/checkout@v6
+
+      - name: Cache cargo
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/.cargo/registry
+            ~/.cargo/git
+            target
+          key: ${{ runner.os }}-cargo-${{ hashFiles('**/Cargo.lock') }}
+
+      - name: Check Semver
+        uses: obi1kenobi/cargo-semver-checks-action@v2
+

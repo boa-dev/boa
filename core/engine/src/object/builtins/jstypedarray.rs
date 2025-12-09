@@ -505,7 +505,7 @@ impl JsTypedArray {
     /// let data: Vec<u8> = (0..=255).collect();
     /// let array = JsUint8Array::from_iter(data, context)?;
     ///
-    /// let greter_than_10_predicate = FunctionObjectBuilder::new(
+    /// let greater_than_10_predicate = FunctionObjectBuilder::new(
     ///     context.realm(),
     ///     NativeFunction::from_fn_ptr(|_this, args, _context| {
     ///         let element = args
@@ -519,7 +519,7 @@ impl JsTypedArray {
     /// )
     /// .build();
     /// assert_eq!(
-    ///     array.find_index(greter_than_10_predicate, None, context),
+    ///     array.find_index(greater_than_10_predicate, None, context),
     ///     Ok(Some(11))
     /// );
     ///

@@ -1,0 +1,12 @@
+[files]
+extend-exclude = ["CHANGELOG.md"]
+
+[default.extend-words]
+ba = "ba"
+beng = "beng"
+fo = "fo"
+forin = "forin"
+mis = "mis"
+pn = "pn"
+tru = "tru"
+Caf = "Caf"

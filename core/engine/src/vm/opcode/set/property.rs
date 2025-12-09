@@ -1,5 +1,4 @@
-use boa_macros::js_str;
-
+use crate::JsValue;
 use crate::value::JsVariant;
 use crate::vm::opcode::VaryingOperand;
 use crate::{
@@ -9,6 +8,78 @@ use crate::{
     property::{PropertyDescriptor, PropertyKey},
     vm::opcode::Operation,
 };
+use boa_macros::js_str;
+
+fn set_by_name(
+    value: VaryingOperand,
+    value_object: &JsValue,
+    receiver: &JsValue,
+    index: VaryingOperand,
+    context: &mut Context,
+) -> JsResult<()> {
+    let value = context.vm.get_register(value.into()).clone();
+
+    let object = value_object.to_object(context)?;
+
+    let ic = &context.vm.frame().code_block().ic[usize::from(index)];
+
+    let object_borrowed = object.borrow();
+    if let Some((shape, slot)) = ic.match_or_reset(object_borrowed.shape()) {
+        let slot_index = slot.index as usize;
+
+        if slot.attributes.is_accessor_descriptor() {
+            let result = if slot.attributes.contains(SlotAttributes::PROTOTYPE) {
+                let prototype = shape.prototype().expect("prototype should have value");
+                let prototype = prototype.borrow();
+
+                prototype.properties().storage[slot_index + 1].clone()
+            } else {
+                object_borrowed.properties().storage[slot_index + 1].clone()
+            };
+
+            drop(object_borrowed);
+            if slot.attributes.has_set() && result.is_object() {
+                result.as_object().expect("should contain getter").call(
+                    receiver,
+                    std::slice::from_ref(&value),
+                    context,
+                )?;
+            }
+        } else if slot.attributes.contains(SlotAttributes::PROTOTYPE) {
+            let prototype = shape.prototype().expect("prototype should have value");
+            let mut prototype = prototype.borrow_mut();
+
+            prototype.properties_mut().storage[slot_index] = value.clone();
+        } else {
+            drop(object_borrowed);
+            let mut object_borrowed = object.borrow_mut();
+            object_borrowed.properties_mut().storage[slot_index] = value.clone();
+        }
+        return Ok(());
+    }
+    drop(object_borrowed);
+
+    let name: PropertyKey = ic.name.clone().into();
+
+    let context = &mut InternalMethodPropertyContext::new(context);
+    let succeeded = object.__set__(name.clone(), value.clone(), receiver.clone(), context)?;
+    if !succeeded && context.vm.frame().code_block.strict() {
+        return Err(JsNativeError::typ()
+            .with_message(format!("cannot set non-writable property: {name}"))
+            .into());
+    }
+
+    // Cache the property.
+    let slot = *context.slot();
+    if succeeded && slot.is_cacheable() {
+        let ic = &context.vm.frame().code_block.ic[usize::from(index)];
+        let object_borrowed = object.borrow();
+        let shape = object_borrowed.shape();
+        ic.set(shape, slot);
+    }
+
+    Ok(())
+}
 
 /// `SetPropertyByName` implements the Opcode Operation for `Opcode::SetPropertyByName`
 ///
@@ -20,6 +91,30 @@ pub(crate) struct SetPropertyByName;
 impl SetPropertyByName {
     #[inline(always)]
     pub(crate) fn operation(
+        (value, object, index): (VaryingOperand, VaryingOperand, VaryingOperand),
+        context: &mut Context,
+    ) -> JsResult<()> {
+        let object = context.vm.get_register(object.into()).clone();
+        set_by_name(value, &object, &object, index, context)
+    }
+}
+
+impl Operation for SetPropertyByNameWithThis {
+    const NAME: &'static str = "SetPropertyByNameWithThis";
+    const INSTRUCTION: &'static str = "INST - SetPropertyByNameWithThis";
+    const COST: u8 = 4;
+}
+
+/// `SetPropertyByNameWithThis` implements the Opcode Operation for `Opcode::SetPropertyByNameWithThis`
+///
+/// Operation:
+///  - Sets a property by name of an object.
+#[derive(Debug, Clone, Copy)]
+pub(crate) struct SetPropertyByNameWithThis;
+
+impl SetPropertyByNameWithThis {
+    #[inline(always)]
+    pub(crate) fn operation(
         (value, receiver, object, index): (
             VaryingOperand,
             VaryingOperand,
@@ -28,69 +123,9 @@ impl SetPropertyByName {
         ),
         context: &mut Context,
     ) -> JsResult<()> {
-        let value = context.vm.get_register(value.into()).clone();
+        let value_object = context.vm.get_register(object.into()).clone();
         let receiver = context.vm.get_register(receiver.into()).clone();
-        let object = context.vm.get_register(object.into()).clone();
-        let object = object.to_object(context)?;
-
-        let ic = &context.vm.frame().code_block().ic[usize::from(index)];
-
-        let object_borrowed = object.borrow();
-        if let Some((shape, slot)) = ic.match_or_reset(object_borrowed.shape()) {
-            let slot_index = slot.index as usize;
-
-            if slot.attributes.is_accessor_descriptor() {
-                let result = if slot.attributes.contains(SlotAttributes::PROTOTYPE) {
-                    let prototype = shape.prototype().expect("prototype should have value");
-                    let prototype = prototype.borrow();
-
-                    prototype.properties().storage[slot_index + 1].clone()
-                } else {
-                    object_borrowed.properties().storage[slot_index + 1].clone()
-                };
-
-                drop(object_borrowed);
-                if slot.attributes.has_set() && result.is_object() {
-                    result.as_object().expect("should contain getter").call(
-                        &receiver,
-                        std::slice::from_ref(&value),
-                        context,
-                    )?;
-                }
-            } else if slot.attributes.contains(SlotAttributes::PROTOTYPE) {
-                let prototype = shape.prototype().expect("prototype should have value");
-                let mut prototype = prototype.borrow_mut();
-
-                prototype.properties_mut().storage[slot_index] = value.clone();
-            } else {
-                drop(object_borrowed);
-                let mut object_borrowed = object.borrow_mut();
-                object_borrowed.properties_mut().storage[slot_index] = value.clone();
-            }
-            return Ok(());
-        }
-        drop(object_borrowed);
-
-        let name: PropertyKey = ic.name.clone().into();
-
-        let context = &mut InternalMethodPropertyContext::new(context);
-        let succeeded = object.__set__(name.clone(), value.clone(), receiver.clone(), context)?;
-        if !succeeded && context.vm.frame().code_block.strict() {
-            return Err(JsNativeError::typ()
-                .with_message(format!("cannot set non-writable property: {name}"))
-                .into());
-        }
-
-        // Cache the property.
-        let slot = *context.slot();
-        if succeeded && slot.is_cachable() {
-            let ic = &context.vm.frame().code_block.ic[usize::from(index)];
-            let object_borrowed = object.borrow();
-            let shape = object_borrowed.shape();
-            ic.set(shape, slot);
-        }
-
-        Ok(())
+        set_by_name(value, &value_object, &receiver, index, context)
     }
 }
 

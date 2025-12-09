@@ -60,7 +60,7 @@ where
     type Output = literal::ArrayLiteral;
 
     fn parse(self, cursor: &mut Cursor<R>, interner: &mut Interner) -> ParseResult<Self::Output> {
-        let open_brancket_token = cursor.expect(
+        let open_bracket_token = cursor.expect(
             TokenKind::Punctuator(Punctuator::OpenBracket),
             "array parsing",
             interner,
@@ -140,7 +140,7 @@ where
             has_trailing_comma_spread = true;
         }
 
-        let start = open_brancket_token.span().start();
+        let start = open_bracket_token.span().start();
         Ok(literal::ArrayLiteral::new(
             elements,
             has_trailing_comma_spread,

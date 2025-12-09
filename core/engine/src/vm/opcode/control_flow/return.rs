@@ -50,11 +50,11 @@ impl CheckReturn {
         } else if !this.is_undefined() {
             this.clone()
         } else if !result.is_undefined() {
-            let realm = context.vm.frame().realm.clone();
             context.vm.pending_exception = Some(
+                // Avoid setting the realm here, since it needs to be set by the parent
+                // execution context.
                 JsNativeError::typ()
                     .with_message("derived constructor can only return an Object or undefined")
-                    .with_realm(realm)
                     .into(),
             );
             return context.handle_throw();
@@ -63,11 +63,10 @@ impl CheckReturn {
             if frame.has_this_value_cached() {
                 this.clone()
             } else {
-                let realm = frame.realm.clone();
-
-                match context.vm.environments.get_this_binding() {
+                match context.vm.frame.environments.get_this_binding() {
                     Err(err) => {
-                        let err = err.inject_realm(realm);
+                        // Avoid setting the realm here, since it needs to be set by the parent
+                        // execution context.
                         context.vm.pending_exception = Some(err);
                         return context.handle_throw();
                     }

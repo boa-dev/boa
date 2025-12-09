@@ -1,3 +1,4 @@
+use crate::error::RuntimeLimitError;
 use crate::vm::CallFrame;
 use crate::vm::call_frame::CallFrameLocation;
 use crate::vm::source_info::SourcePath;
@@ -279,7 +280,7 @@ fn super_call_get_constructor_before_arguments_execution() {
 }
 
 #[test]
-fn order_of_execution_in_assigment() {
+fn order_of_execution_in_assignment() {
     run_test_actions([
         TestAction::run(indoc! {r#"
                 let i = 0;
@@ -294,7 +295,7 @@ fn order_of_execution_in_assigment() {
 }
 
 #[test]
-fn order_of_execution_in_assigment_with_comma_expressions() {
+fn order_of_execution_in_assignment_with_comma_expressions() {
     run_test_actions([TestAction::assert_eq(
         indoc! {r#"
             let result = "";
@@ -321,12 +322,11 @@ fn loop_runtime_limit() {
         TestAction::inspect_context(|context| {
             context.runtime_limits_mut().set_loop_iteration_limit(10);
         }),
-        TestAction::assert_native_error(
+        TestAction::assert_runtime_limit_error(
             indoc! {r#"
                 for (let i = 0; i < 20; ++i) { }
             "#},
-            JsNativeErrorKind::RuntimeLimit,
-            "Maximum loop iteration limit 10 exceeded",
+            RuntimeLimitError::LoopIteration,
         ),
         TestAction::assert_eq(
             indoc! {r#"
@@ -334,12 +334,11 @@ fn loop_runtime_limit() {
             "#},
             JsValue::undefined(),
         ),
-        TestAction::assert_native_error(
+        TestAction::assert_runtime_limit_error(
             indoc! {r#"
                 while (1) { }
             "#},
-            JsNativeErrorKind::RuntimeLimit,
-            "Maximum loop iteration limit 10 exceeded",
+            RuntimeLimitError::LoopIteration,
         ),
     ]);
 }
@@ -361,13 +360,9 @@ fn recursion_runtime_limit() {
         TestAction::inspect_context(|context| {
             context.runtime_limits_mut().set_recursion_limit(10);
         }),
-        TestAction::assert_native_error(
-            "factorial(11)",
-            JsNativeErrorKind::RuntimeLimit,
-            "exceeded maximum number of recursive calls",
-        ),
+        TestAction::assert_runtime_limit_error("factorial(11)", RuntimeLimitError::Recursion),
         TestAction::assert_eq("factorial(8)", JsValue::new(40_320)),
-        TestAction::assert_native_error(
+        TestAction::assert_runtime_limit_error(
             indoc! {r#"
                 function x() {
                     x()
@@ -375,8 +370,7 @@ fn recursion_runtime_limit() {
 
                 x()
             "#},
-            JsNativeErrorKind::RuntimeLimit,
-            "exceeded maximum number of recursive calls",
+            RuntimeLimitError::Recursion,
         ),
     ]);
 }
@@ -439,7 +433,7 @@ fn truncate_environments_on_non_caught_native_error() {
 }
 
 #[test]
-fn super_construction_with_paramater_expression() {
+fn super_construction_with_parameter_expression() {
     run_test_actions([
         TestAction::run(indoc! {r#"
             class Person {
@@ -460,7 +454,7 @@ fn super_construction_with_paramater_expression() {
 }
 
 #[test]
-fn cross_context_funtion_call() {
+fn cross_context_function_call() {
     let context1 = &mut Context::default();
     let result = context1.eval(Source::from_bytes(indoc! {r"
         var global = 100;
@@ -497,4 +491,21 @@ fn long_object_chain_gc_trace_stack_overflow() {
         "#}),
         TestAction::inspect_context(|_| boa_gc::force_collect()),
     ]);
+}
+
+// See: https://github.com/boa-dev/boa/issues/4515
+#[test]
+#[ignore = "TODO(#4535): causes a stack overflow while the issue is not fixed"]
+fn recursion_in_async_gen_throws_uncatchable_error() {
+    run_test_actions([TestAction::assert_runtime_limit_error(
+        indoc! {r#"
+            async function* f() {}
+            f().return({
+              get then() {
+                this.then;
+              },
+            });
+        "#},
+        RuntimeLimitError::Recursion,
+    )]);
 }

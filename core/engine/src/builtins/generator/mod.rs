@@ -66,7 +66,7 @@ impl GeneratorContext {
     /// Creates a new `GeneratorContext` from the current `Context` state.
     pub(crate) fn from_current(context: &mut Context, async_generator: Option<JsObject>) -> Self {
         let mut frame = context.vm.frame().clone();
-        frame.environments = context.vm.environments.clone();
+        frame.environments = context.vm.frame.environments.clone();
         frame.realm = context.realm().clone();
         let mut stack = context.vm.stack.split_off_frame(&frame);
 
@@ -380,7 +380,7 @@ impl Generator {
 
         let (value, resume_kind) = match abrupt_completion {
             Ok(value) => (value, GeneratorResumeKind::Return),
-            Err(err) => (err.to_opaque(context), GeneratorResumeKind::Throw),
+            Err(err) => (err.into_opaque(context)?, GeneratorResumeKind::Throw),
         };
 
         let record = generator_context.resume(Some(value), resume_kind, context);

@@ -195,10 +195,10 @@ impl BuiltInObject for Array {
 }
 
 impl BuiltInConstructor for Array {
-    const P: usize = 41;
-    const SP: usize = 5;
+    const PROTOTYPE_STORAGE_SLOTS: usize = 41;
+    const CONSTRUCTOR_STORAGE_SLOTS: usize = 6;
 
-    const LENGTH: usize = 1;
+    const CONSTRUCTOR_ARGUMENTS: usize = 1;
 
     const STANDARD_CONSTRUCTOR: fn(&StandardConstructors) -> &StandardConstructor =
         StandardConstructors::array;
@@ -366,7 +366,8 @@ impl Array {
         }
 
         let array =
-            JsObject::from_proto_and_data_with_shared_shape(context.root_shape(), prototype, Array);
+            JsObject::from_proto_and_data_with_shared_shape(context.root_shape(), prototype, Array)
+                .upcast();
 
         // 6. Perform ! OrdinaryDefineOwnProperty(A, "length", PropertyDescriptor { [[Value]]: 𝔽(length), [[Writable]]: true, [[Enumerable]]: false, [[Configurable]]: false }).
         ordinary_define_own_property(

@@ -190,9 +190,9 @@ impl IntrinsicObject for PlainYearMonth {
 }
 
 impl BuiltInConstructor for PlainYearMonth {
-    const LENGTH: usize = 2;
-    const P: usize = 16;
-    const SP: usize = 1;
+    const CONSTRUCTOR_ARGUMENTS: usize = 2;
+    const PROTOTYPE_STORAGE_SLOTS: usize = 32;
+    const CONSTRUCTOR_STORAGE_SLOTS: usize = 2;
 
     const STANDARD_CONSTRUCTOR: fn(&StandardConstructors) -> &StandardConstructor =
         StandardConstructors::plain_year_month;
@@ -561,10 +561,15 @@ impl PlainYearMonth {
         };
         // 4. Let calendar be yearMonth.[[Calendar]].
         // 5. Let fields be ISODateToFields(calendar, yearMonth.[[ISODate]], year-month).
-        // TODO: We may need to throw early on an empty partial for Order of operations, but ideally this is enforced by `temporal_rs`
         // 6. Let partialYearMonth be ? PrepareCalendarFields(calendar, temporalYearMonthLike, « year, month, month-code », « », partial).
         // 7. Set fields to CalendarMergeFields(calendar, fields, partialYearMonth).
         let fields = to_year_month_calendar_fields(&obj, year_month.inner.calendar(), context)?;
+        // NOTE: Update temporal_rs to handle this.
+        if fields.is_empty() {
+            return Err(JsNativeError::typ()
+                .with_message("temporalYearMonthLike cannot be an empty object")
+                .into());
+        }
         // 8. Let resolvedOptions be ? GetOptionsObject(options).
         let resolved_options = get_options_object(args.get_or_undefined(1))?;
         // 9. Let overflow be ? GetTemporalOverflowOption(resolvedOptions).

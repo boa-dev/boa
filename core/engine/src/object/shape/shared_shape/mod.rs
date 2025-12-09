@@ -38,20 +38,14 @@ const PROTOTYPE_TRANSITION_TYPE: u8 = 0b0000_0010;
 
 // Reserved for future use!
 #[allow(unused)]
-const RESEREVED_TRANSITION_TYPE: u8 = 0b0000_0011;
+const RESERVED_TRANSITION_TYPE: u8 = 0b0000_0011;
 
 bitflags! {
     /// Flags of a shape.
-    #[derive(Debug, Clone, Copy, PartialEq, Eq, Finalize)]
+    #[derive(Default, Debug, Clone, Copy, PartialEq, Eq, Finalize)]
     pub struct ShapeFlags: u8 {
         /// Represents the transition type of a [`SharedShape`].
         const TRANSITION_TYPE = 0b0000_0011;
-    }
-}
-
-impl Default for ShapeFlags {
-    fn default() -> Self {
-        Self::empty()
     }
 }
 
@@ -340,7 +334,7 @@ impl SharedShape {
 
     /// Rollback to shape before the insertion of the [`PropertyKey`] that is provided.
     ///
-    /// This returns the shape before the insertion, if it sees a prototype transition it will return the lastest one,
+    /// This returns the shape before the insertion, if it sees a prototype transition it will return the latest one,
     /// ignoring any others, [`None`] otherwise. It also will return the property transitions ordered from
     /// latest to oldest that it sees.
     ///

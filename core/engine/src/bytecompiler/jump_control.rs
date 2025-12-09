@@ -21,7 +21,7 @@ use thin_vec::thin_vec;
 /// An actions to be performed for the local control flow.
 #[derive(Debug, Clone, Copy)]
 pub(crate) enum JumpRecordAction {
-    /// Places a [`crate::vm::opcode::Opcode::Jump`], transfers to a specified [`JumpControlInfo`] to be handled when it gets poped.
+    /// Places a [`crate::vm::opcode::Opcode::Jump`], transfers to a specified [`JumpControlInfo`] to be handled when it gets popped.
     Transfer {
         /// [`JumpControlInfo`] index to be transferred.
         index: u32,
@@ -46,7 +46,7 @@ pub(crate) enum JumpRecordAction {
     ///         if (cond) {
     ///             continue;
     ///         }
-    ///         
+    ///
     ///         break;
     ///     } finally {
     ///         // Must execute the finally, even if `continue` is executed or `break` is executed.
@@ -177,7 +177,7 @@ pub(crate) struct JumpControlInfo {
 
 bitflags! {
     /// A bitflag that contains the type flags and relevant booleans for `JumpControlInfo`.
-    #[derive(Debug, Clone, Copy)]
+    #[derive(Default, Debug, Clone, Copy)]
     pub(crate) struct JumpControlInfoFlags: u8 {
         const LOOP = 0b0000_0001;
         const SWITCH = 0b0000_0010;
@@ -198,12 +198,6 @@ bitflags! {
         ///
         /// This bitflag is inherited if the previous [`JumpControlInfo`].
         const USE_EXPR = 0b1000_0000;
-    }
-}
-
-impl Default for JumpControlInfoFlags {
-    fn default() -> Self {
-        Self::empty()
     }
 }
 
@@ -327,14 +321,14 @@ impl ByteCompiler<'_> {
     pub(crate) fn push_empty_loop_jump_control(&mut self, use_expr: bool) {
         let new_info =
             JumpControlInfo::new(self.current_open_environments_count).with_loop_flag(true);
-        self.push_contol_info(new_info, use_expr);
+        self.push_control_info(new_info, use_expr);
     }
 
     pub(crate) fn current_jump_control_mut(&mut self) -> Option<&mut JumpControlInfo> {
         self.jump_info.last_mut()
     }
 
-    pub(crate) fn push_contol_info(&mut self, mut info: JumpControlInfo, use_expr: bool) {
+    pub(crate) fn push_control_info(&mut self, mut info: JumpControlInfo, use_expr: bool) {
         info.flags.set(JumpControlInfoFlags::USE_EXPR, use_expr);
 
         if let Some(last) = self.jump_info.last() {
@@ -406,7 +400,7 @@ impl ByteCompiler<'_> {
             .with_label(Some(label))
             .with_start_address(start_address);
 
-        self.push_contol_info(new_info, use_expr);
+        self.push_control_info(new_info, use_expr);
     }
 
     /// Pops and handles the info for a label's `JumpControlInfo`
@@ -440,7 +434,7 @@ impl ByteCompiler<'_> {
             .with_label(label)
             .with_start_address(start_address);
 
-        self.push_contol_info(new_info, use_expr);
+        self.push_control_info(new_info, use_expr);
     }
 
     /// Pushes a `ForInOfStatement`'s `JumpControlInfo` on to the `jump_info` stack.
@@ -456,7 +450,7 @@ impl ByteCompiler<'_> {
             .with_start_address(start_address)
             .with_iterator_loop(true);
 
-        self.push_contol_info(new_info, use_expr);
+        self.push_control_info(new_info, use_expr);
     }
 
     pub(crate) fn push_loop_control_info_for_await_of_loop(
@@ -472,7 +466,7 @@ impl ByteCompiler<'_> {
             .with_iterator_loop(true)
             .with_for_await_of_loop(true);
 
-        self.push_contol_info(new_info, use_expr);
+        self.push_control_info(new_info, use_expr);
     }
 
     /// Pops and handles the info for a loop control block's `JumpControlInfo`
@@ -506,7 +500,7 @@ impl ByteCompiler<'_> {
             .with_label(label)
             .with_start_address(start_address);
 
-        self.push_contol_info(new_info, use_expr);
+        self.push_control_info(new_info, use_expr);
     }
 
     /// Pops and handles the info for a switch block's `JumpControlInfo`
@@ -538,7 +532,7 @@ impl ByteCompiler<'_> {
         let new_info = JumpControlInfo::new(self.current_open_environments_count)
             .with_try_with_finally_flag(flag, index);
 
-        self.push_contol_info(new_info, use_expr);
+        self.push_control_info(new_info, use_expr);
     }
 
     /// Pops and handles the info for a try statement with a finally block.

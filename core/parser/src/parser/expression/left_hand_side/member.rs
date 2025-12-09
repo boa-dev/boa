@@ -12,7 +12,8 @@ use crate::{
     parser::{
         AllowAwait, AllowYield, Cursor, OrAbrupt, ParseResult, TokenParser,
         expression::{
-            Expression, left_hand_side::template::TaggedTemplateLiteral, primary::PrimaryExpression,
+            Expression, FormalParameterListOrExpression,
+            left_hand_side::template::TaggedTemplateLiteral, primary::PrimaryExpression,
         },
     },
     source::ReadChar,
@@ -57,14 +58,14 @@ impl<R> TokenParser<R> for MemberExpression
 where
     R: ReadChar,
 {
-    type Output = ast::Expression;
+    type Output = FormalParameterListOrExpression;
 
     fn parse(self, cursor: &mut Cursor<R>, interner: &mut Interner) -> ParseResult<Self::Output> {
         cursor.set_goal(InputElement::RegExp);
 
         let token = cursor.peek(0, interner).or_abrupt()?;
         let position = token.span().start();
-        let mut lhs = match token.kind() {
+        let lhs: FormalParameterListOrExpression = match token.kind() {
             TokenKind::Keyword((Keyword::New | Keyword::Super | Keyword::Import, true)) => {
                 return Err(Error::general(
                     "keyword must not contain escaped characters",
@@ -136,7 +137,7 @@ where
                         }
                     }
                 } else {
-                    let lhs_inner = self.parse(cursor, interner)?;
+                    let lhs_inner = self.parse(cursor, interner)?.try_into_expression()?;
                     let (args, args_span) = match cursor.peek(0, interner)? {
                         Some(next)
                             if next.kind() == &TokenKind::Punctuator(Punctuator::OpenParen) =>
@@ -197,7 +198,7 @@ where
                                 ));
                             }
                         };
-                        ast::Expression::PropertyAccess(field.into())
+                        ast::Expression::PropertyAccess(field.into()).into()
                     }
                     TokenKind::Punctuator(Punctuator::OpenBracket) => {
                         let expr = Expression::new(true, self.allow_yield, self.allow_await)
@@ -213,6 +214,7 @@ where
                             )
                             .into(),
                         )
+                        .into()
                     }
                     _ => {
                         return Err(Error::unexpected(
@@ -225,6 +227,10 @@ where
             }
             _ => PrimaryExpression::new(self.allow_yield, self.allow_await)
                 .parse(cursor, interner)?,
+        };
+
+        let FormalParameterListOrExpression::Expression(mut lhs) = lhs else {
+            return Ok(lhs);
         };
 
         cursor.set_goal(InputElement::TemplateTail);
@@ -304,6 +310,6 @@ where
             }
         }
 
-        Ok(lhs)
+        Ok(lhs.into())
     }
 }

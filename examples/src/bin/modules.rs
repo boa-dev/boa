@@ -19,7 +19,7 @@ fn main() -> Result<(), Box<dyn Error>> {
         }
     "#;
 
-    // This can be overriden with any custom implementation of `ModuleLoader`.
+    // This can be overridden with any custom implementation of `ModuleLoader`.
     let loader = Rc::new(SimpleModuleLoader::new("./scripts/modules")?);
 
     // Just need to cast to a `ModuleLoader` before passing it to the builder.
@@ -77,7 +77,7 @@ fn main() -> Result<(), Box<dyn Error>> {
                     // This returns a `JsPromise` since a module could have
                     // top-level await statements, which defers module execution to the
                     // job queue.
-                    |_, _, module, context| Ok(module.evaluate(context).into()),
+                    |_, _, module, context| Ok(module.evaluate(context)?.into()),
                     module.clone(),
                 )
                 .to_js_function(context.realm()),

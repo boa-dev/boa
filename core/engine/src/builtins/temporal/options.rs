@@ -105,7 +105,7 @@ pub(crate) fn get_digits_option(options: &JsObject, context: &mut Context) -> Js
 #[derive(Debug, Clone, Copy)]
 #[allow(unused)]
 pub(crate) enum TemporalUnitGroup {
-    Date, // Need to assert if this is neede anymore with the removal of `Temporal.Calendar`
+    Date, // Need to assert if this is needed anymore with the removal of `Temporal.Calendar`
     Time,
     DateTime,
 }

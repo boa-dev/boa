@@ -123,7 +123,7 @@ pub enum ErrorKind {
 /// This is used internally to convert between [`JsObject`] and
 /// [`JsNativeError`] correctly, but it can also be used to manually create `Error`
 /// objects. However, the recommended way to create them is to construct a
-/// `JsNativeError` first, then call [`JsNativeError::to_opaque`],
+/// `JsNativeError` first, then call [`JsNativeError::into_opaque`],
 /// which will assign its prototype, properties and kind automatically.
 ///
 /// For a description of every error kind and its usage, see
@@ -191,9 +191,9 @@ impl BuiltInObject for Error {
 }
 
 impl BuiltInConstructor for Error {
-    const LENGTH: usize = 1;
-    const P: usize = 2;
-    const SP: usize = 0;
+    const CONSTRUCTOR_ARGUMENTS: usize = 1;
+    const PROTOTYPE_STORAGE_SLOTS: usize = 3;
+    const CONSTRUCTOR_STORAGE_SLOTS: usize = 1;
 
     const STANDARD_CONSTRUCTOR: fn(&StandardConstructors) -> &StandardConstructor =
         StandardConstructors::error;
@@ -223,7 +223,8 @@ impl BuiltInConstructor for Error {
             context.root_shape(),
             prototype,
             Error::with_caller_position(ErrorKind::Error, context),
-        );
+        )
+        .upcast();
 
         // 3. If message is not undefined, then
         let message = args.get_or_undefined(0);
