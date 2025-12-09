@@ -339,10 +339,12 @@ impl JsValue {
             return Some(integer);
         }
 
-        if let Some(rational) = self.0.as_float64()
-            && rational == f64::from(rational as i32)
-        {
-            return Some(rational as i32);
+        if let Some(rational) = self.0.as_float64() {
+            let int_val = rational as i32;
+            // Use bitwise comparison to handle -0.0 correctly
+            if rational.to_bits() == f64::from(int_val).to_bits() {
+                return Some(int_val);
+            }
         }
         None
     }

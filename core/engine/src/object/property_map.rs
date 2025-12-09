@@ -65,8 +65,11 @@ pub enum IndexedProperties {
     /// Dense [`JsValue`] storage.
     DenseElement(ThinVec<JsValue>),
 
-    /// Sparse [`JsValue`] storage.
-    Sparse(Box<FxHashMap<u32, PropertyDescriptor>>),
+    /// Sparse storage that only keeps element values.
+    SparseElement(Box<FxHashMap<u32, JsValue>>),
+
+    /// Sparse storage that keeps full property descriptors.
+    SparseProperty(Box<FxHashMap<u32, PropertyDescriptor>>),
 }
 
 impl Default for IndexedProperties {
@@ -84,13 +87,26 @@ impl IndexedProperties {
         Self::DenseElement(elements)
     }
 
+    #[inline]
+    fn property_simple_value(property: &PropertyDescriptor) -> Option<&JsValue> {
+        if property.writable().unwrap_or(false)
+            && property.enumerable().unwrap_or(false)
+            && property.configurable().unwrap_or(false)
+        {
+            property.value()
+        } else {
+            None
+        }
+    }
+
     /// Get a property descriptor if it exists.
     fn get(&self, key: u32) -> Option<PropertyDescriptor> {
         let value = match self {
             Self::DenseI32(vec) => vec.get(key as usize).copied()?.into(),
             Self::DenseF64(vec) => vec.get(key as usize).copied()?.into(),
             Self::DenseElement(vec) => vec.get(key as usize)?.clone(),
-            Self::Sparse(map) => return map.get(&key).cloned(),
+            Self::SparseElement(map) => map.get(&key)?.clone(),
+            Self::SparseProperty(map) => return map.get(&key).cloned(),
         };
 
         Some(
@@ -126,111 +142,87 @@ impl IndexedProperties {
             .collect()
     }
 
+    fn convert_dense_to_sparse_values<T>(vec: &mut ThinVec<T>) -> FxHashMap<u32, JsValue>
+    where
+        T: Into<JsValue>,
+    {
+        let data = std::mem::take(vec);
+
+        data.into_iter()
+            .enumerate()
+            .map(|(index, value)| (index as u32, value.into()))
+            .collect()
+    }
+
     fn convert_to_sparse_and_insert(&mut self, key: u32, property: PropertyDescriptor) -> bool {
-        let mut map = match self {
+        let mut descriptors = match self {
             Self::DenseI32(vec) => Self::convert_dense_to_sparse(vec),
             Self::DenseF64(vec) => Self::convert_dense_to_sparse(vec),
             Self::DenseElement(vec) => Self::convert_dense_to_sparse(vec),
-            Self::Sparse(map) => {
+            Self::SparseElement(map) => map
+                .iter()
+                .map(|(&index, value)| {
+                    (
+                        index,
+                        PropertyDescriptorBuilder::new()
+                            .writable(true)
+                            .enumerable(true)
+                            .configurable(true)
+                            .value(value.clone())
+                            .build(),
+                    )
+                })
+                .collect(),
+            Self::SparseProperty(map) => {
                 return map.insert(key, property).is_some();
             }
         };
 
-        map.insert(key, property);
-        *self = Self::Sparse(Box::new(map));
-        false
+        let replaced = descriptors.insert(key, property).is_some();
+        *self = Self::SparseProperty(Box::new(descriptors));
+        replaced
     }
 
     /// Inserts a property descriptor with the specified key.
     fn insert(&mut self, key: u32, property: PropertyDescriptor) -> bool {
-        if !property.writable().unwrap_or(false)
-            || !property.enumerable().unwrap_or(false)
-            || !property.configurable().unwrap_or(false)
-        {
-            return self.convert_to_sparse_and_insert(key, property);
-        }
-        let Some(value) = property.value().cloned() else {
+        let Some(value) = Self::property_simple_value(&property) else {
             return self.convert_to_sparse_and_insert(key, property);
         };
 
         match self {
-            // Fast Path: continues array access.
+            // Fast Path: contiguous array access without creating holes.
             Self::DenseI32(vec) if key <= vec.len() as u32 => {
                 let len = vec.len() as u32;
 
-                // If it can fit in a i32 and the truncated version is
-                // equal to the original then it is an integer.
-                let is_rational_integer = |n: f64| n.to_bits() == f64::from(n as i32).to_bits();
-
-                let value = match value.variant() {
-                    JsVariant::Integer32(n) => n,
-                    JsVariant::Float64(n) if is_rational_integer(n) => n as i32,
-                    JsVariant::Float64(value) => {
-                        let mut vec = vec.iter().copied().map(f64::from).collect::<ThinVec<_>>();
-
-                        // If the key is pointing one past the last element, we push it!
-                        //
-                        // Since the previous key is the current key - 1. Meaning that the elements are continuous.
-                        if key == len {
-                            vec.push(value);
-                            *self = Self::DenseF64(vec);
-                            return false;
-                        }
-
-                        // If it the key points in at a already taken index, set it.
-                        vec[key as usize] = value;
-                        *self = Self::DenseF64(vec);
-                        return true;
-                    }
-                    _ => {
-                        let mut vec = vec
-                            .iter()
-                            .copied()
-                            .map(JsValue::from)
-                            .collect::<ThinVec<JsValue>>();
-
-                        // If the key is pointing one past the last element, we push it!
-                        //
-                        // Since the previous key is the current key - 1. Meaning that the elements are continuous.
-                        if key == len {
-                            vec.push(value);
-                            *self = Self::DenseElement(vec);
-                            return false;
-                        }
-
-                        // If it the key points in at a already taken index, set it.
-                        vec[key as usize] = value;
-                        *self = Self::DenseElement(vec);
-                        return true;
-                    }
-                };
-
-                // If the key is pointing one past the last element, we push it!
-                //
-                // Since the previous key is the current key - 1. Meaning that the elements are continuous.
-                if key == len {
-                    vec.push(value);
-                    return false;
-                }
-
-                // If it the key points in at a already taken index, swap and return it.
-                vec[key as usize] = value;
-                true
-            }
-            Self::DenseF64(vec) if key <= vec.len() as u32 => {
-                let len = vec.len() as u32;
-
-                if let Some(value) = value.as_number() {
+                if let Some(val) = value.as_i32() {
                     // If the key is pointing one past the last element, we push it!
                     //
                     // Since the previous key is the current key - 1. Meaning that the elements are continuous.
                     if key == len {
-                        vec.push(value);
+                        vec.push(val);
                         return false;
                     }
 
-                    // If it the key points in at a already taken index, swap and return it.
-                    vec[key as usize] = value;
+                    // If it the key points in at a already taken index, set it.
+                    vec[key as usize] = val;
+                    return true;
+                }
+
+                if let Some(num) = value.as_number() {
+                    let mut vec = vec.iter().copied().map(f64::from).collect::<ThinVec<_>>();
+
+                    // If the key is pointing one past the last element, we push it!
+                    //
+                    // Since the previous key is the current key - 1. Meaning that the elements are continuous.
+                    if key == len {
+                        vec.push(num);
+                        *self = Self::DenseF64(vec);
+                        return false;
+                    }
+
+                    // If it the key points in at a already taken index, set it.
+                    vec[key as usize] = num;
+                    *self = Self::DenseF64(vec);
                     return true;
                 }
 
@@ -244,13 +236,50 @@ impl IndexedProperties {
                 //
                 // Since the previous key is the current key - 1. Meaning that the elements are continuous.
                 if key == len {
-                    vec.push(value);
+                    vec.push(value.clone());
                     *self = Self::DenseElement(vec);
                     return false;
                 }
 
                 // If it the key points in at a already taken index, set it.
-                vec[key as usize] = value;
+                vec[key as usize] = value.clone();
+                *self = Self::DenseElement(vec);
+                true
+            }
+            Self::DenseF64(vec) if key <= vec.len() as u32 => {
+                let len = vec.len() as u32;
+
+                if let Some(num) = value.as_number() {
+                    // If the key is pointing one past the last element, we push it!
+                    //
+                    // Since the previous key is the current key - 1. Meaning that the elements are continuous.
+                    if key == len {
+                        vec.push(num);
+                        return false;
+                    }
+
+                    // If it the key points in at a already taken index, swap and return it.
+                    vec[key as usize] = num;
+                    return true;
+                }
+
+                let mut vec = vec
+                    .iter()
+                    .copied()
+                    .map(JsValue::from)
+                    .collect::<ThinVec<JsValue>>();
+
+                // If the key is pointing one past the last element, we push it!
+                //
+                // Since the previous key is the current key - 1. Meaning that the elements are continuous.
+                if key == len {
+                    vec.push(value.clone());
+                    *self = Self::DenseElement(vec);
+                    return false;
+                }
+
+                // If it the key points in at a already taken index, set it.
+                vec[key as usize] = value.clone();
                 *self = Self::DenseElement(vec);
                 true
             }
@@ -261,29 +290,59 @@ impl IndexedProperties {
                 //
                 // Since the previous key is the current key - 1. Meaning that the elements are continuous.
                 if key == len {
-                    vec.push(value);
+                    vec.push(value.clone());
                     return false;
                 }
 
                 // If it the key points in at a already taken index, set it.
-                vec[key as usize] = value;
+                vec[key as usize] = value.clone();
                 true
             }
-            Self::Sparse(map) => map.insert(key, property).is_some(),
-            _ => self.convert_to_sparse_and_insert(key, property),
+            // Creating a hole: transition dense storage into sparse element storage.
+            Self::DenseI32(vec) => {
+                let mut values = Self::convert_dense_to_sparse_values(vec);
+                let replaced = values.insert(key, value.clone()).is_some();
+                *self = Self::SparseElement(Box::new(values));
+                replaced
+            }
+            Self::DenseF64(vec) => {
+                let mut values = Self::convert_dense_to_sparse_values(vec);
+                let replaced = values.insert(key, value.clone()).is_some();
+                *self = Self::SparseElement(Box::new(values));
+                replaced
+            }
+            Self::DenseElement(vec) => {
+                let mut values = Self::convert_dense_to_sparse_values(vec);
+                let replaced = values.insert(key, value.clone()).is_some();
+                *self = Self::SparseElement(Box::new(values));
+                replaced
+            }
+            Self::SparseElement(map) => map.insert(key, value.clone()).is_some(),
+            Self::SparseProperty(map) => {
+                let descriptor = PropertyDescriptorBuilder::new()
+                    .value(value.clone())
+                    .writable(true)
+                    .enumerable(true)
+                    .configurable(true)
+                    .build();
+                map.insert(key, descriptor).is_some()
+            }
         }
     }
 
     fn convert_to_sparse_and_remove(&mut self, key: u32) -> bool {
-        let mut map = match self {
-            IndexedProperties::DenseI32(vec) => Self::convert_dense_to_sparse(vec),
-            IndexedProperties::DenseF64(vec) => Self::convert_dense_to_sparse(vec),
-            IndexedProperties::DenseElement(vec) => Self::convert_dense_to_sparse(vec),
-            IndexedProperties::Sparse(map) => return map.remove(&key).is_some(),
+        let mut descriptors = match self {
+            IndexedProperties::DenseI32(vec) => Self::convert_dense_to_sparse_values(vec),
+            IndexedProperties::DenseF64(vec) => Self::convert_dense_to_sparse_values(vec),
+            IndexedProperties::DenseElement(vec) => Self::convert_dense_to_sparse_values(vec),
+            IndexedProperties::SparseProperty(map) => return map.remove(&key).is_some(),
+            IndexedProperties::SparseElement(map) => {
+                return map.remove(&key).is_some();
+            }
         };
 
-        let removed = map.remove(&key).is_some();
-        *self = Self::Sparse(Box::new(map));
+        let removed = descriptors.remove(&key).is_some();
+        *self = Self::SparseElement(Box::new(descriptors));
         removed
     }
 
@@ -310,7 +369,8 @@ impl IndexedProperties {
             }
             Self::DenseElement(vec) if key >= vec.len() as u32 => false,
             // Slow Paths: non-contiguous storage.
-            Self::Sparse(map) => map.remove(&key).is_some(),
+            Self::SparseElement(map) => map.remove(&key).is_some(),
+            Self::SparseProperty(map) => map.remove(&key).is_some(),
             _ => self.convert_to_sparse_and_remove(key),
         }
     }
@@ -321,7 +381,8 @@ impl IndexedProperties {
             Self::DenseI32(vec) => (0..vec.len() as u32).contains(&key),
             Self::DenseF64(vec) => (0..vec.len() as u32).contains(&key),
             Self::DenseElement(vec) => (0..vec.len() as u32).contains(&key),
-            Self::Sparse(map) => map.contains_key(&key),
+            Self::SparseElement(map) => map.contains_key(&key),
+            Self::SparseProperty(map) => map.contains_key(&key),
         }
     }
 
@@ -330,7 +391,8 @@ impl IndexedProperties {
             Self::DenseI32(vec) => IndexProperties::DenseI32(vec.iter().enumerate()),
             Self::DenseF64(vec) => IndexProperties::DenseF64(vec.iter().enumerate()),
             Self::DenseElement(vec) => IndexProperties::DenseElement(vec.iter().enumerate()),
-            Self::Sparse(map) => IndexProperties::Sparse(map.iter()),
+            Self::SparseElement(map) => IndexProperties::SparseElement(map.iter()),
+            Self::SparseProperty(map) => IndexProperties::SparseProperty(map.iter()),
         }
     }
 
@@ -339,7 +401,8 @@ impl IndexedProperties {
             Self::DenseI32(vec) => IndexPropertyKeys::Dense(0..vec.len() as u32),
             Self::DenseF64(vec) => IndexPropertyKeys::Dense(0..vec.len() as u32),
             Self::DenseElement(vec) => IndexPropertyKeys::Dense(0..vec.len() as u32),
-            Self::Sparse(map) => IndexPropertyKeys::Sparse(map.keys()),
+            Self::SparseElement(map) => IndexPropertyKeys::SparseElement(map.keys()),
+            Self::SparseProperty(map) => IndexPropertyKeys::SparseProperty(map.keys()),
         }
     }
 
@@ -348,7 +411,8 @@ impl IndexedProperties {
             Self::DenseI32(vec) => IndexPropertyValues::DenseI32(vec.iter()),
             Self::DenseF64(vec) => IndexPropertyValues::DenseF64(vec.iter()),
             Self::DenseElement(vec) => IndexPropertyValues::DenseElement(vec.iter()),
-            Self::Sparse(map) => IndexPropertyValues::Sparse(map.values()),
+            Self::SparseElement(map) => IndexPropertyValues::SparseElement(map.values()),
+            Self::SparseProperty(map) => IndexPropertyValues::SparseProperty(map.values()),
         }
     }
 }
@@ -609,7 +673,7 @@ impl PropertyMap {
                 properties.get(index).copied().map(JsValue::from)
             }
             IndexedProperties::DenseElement(properties) => properties.get(index).cloned(),
-            IndexedProperties::Sparse(_) => None,
+            IndexedProperties::SparseProperty(_) | IndexedProperties::SparseElement(_) => None,
         }
     }
 
@@ -682,7 +746,7 @@ impl PropertyMap {
                 *element = value.clone();
                 true
             }
-            IndexedProperties::Sparse(_) => false,
+            IndexedProperties::SparseProperty(_) | IndexedProperties::SparseElement(_) => false,
         }
     }
 
@@ -696,7 +760,7 @@ impl PropertyMap {
                 Some(properties.iter().copied().map(JsValue::from).collect())
             }
             IndexedProperties::DenseElement(properties) => Some(properties.clone()),
-            IndexedProperties::Sparse(_) => None,
+            IndexedProperties::SparseProperty(_) | IndexedProperties::SparseElement(_) => None,
         }
     }
 
@@ -763,8 +827,11 @@ pub enum IndexProperties<'a> {
     /// An iterator over dense, Vec backed indexed property entries of an `Object`.
     DenseElement(std::iter::Enumerate<std::slice::Iter<'a, JsValue>>),
 
-    /// An iterator over sparse, `HashMap` backed indexed property entries of an `Object`.
-    Sparse(hash_map::Iter<'a, u32, PropertyDescriptor>),
+    /// An iterator over sparse, `HashMap` backed indexed property entries storing raw values.
+    SparseElement(hash_map::Iter<'a, u32, JsValue>),
+
+    /// An iterator over sparse, `HashMap` backed indexed property entries storing descriptors.
+    SparseProperty(hash_map::Iter<'a, u32, PropertyDescriptor>),
 }
 
 impl Iterator for IndexProperties<'_> {
@@ -779,7 +846,12 @@ impl Iterator for IndexProperties<'_> {
                 .next()
                 .map(|(index, value)| (index, JsValue::from(*value)))?,
             Self::DenseElement(vec) => vec.next().map(|(index, value)| (index, value.clone()))?,
-            Self::Sparse(map) => return map.next().map(|(index, value)| (*index, value.clone())),
+            Self::SparseProperty(map) => {
+                return map.next().map(|(index, value)| (*index, value.clone()));
+            }
+            Self::SparseElement(map) => map
+                .next()
+                .map(|(index, value)| (*index as usize, value.clone()))?,
         };
 
         Some((
@@ -799,7 +871,8 @@ impl Iterator for IndexProperties<'_> {
             Self::DenseI32(vec) => vec.size_hint(),
             Self::DenseF64(vec) => vec.size_hint(),
             Self::DenseElement(vec) => vec.size_hint(),
-            Self::Sparse(map) => map.size_hint(),
+            Self::SparseProperty(map) => map.size_hint(),
+            Self::SparseElement(map) => map.size_hint(),
         }
     }
 }
@@ -811,7 +884,8 @@ impl ExactSizeIterator for IndexProperties<'_> {
             Self::DenseI32(vec) => vec.len(),
             Self::DenseF64(vec) => vec.len(),
             Self::DenseElement(vec) => vec.len(),
-            Self::Sparse(map) => map.len(),
+            Self::SparseProperty(map) => map.len(),
+            Self::SparseElement(map) => map.len(),
         }
     }
 }
@@ -825,7 +899,10 @@ pub enum IndexPropertyKeys<'a> {
     Dense(std::ops::Range<u32>),
 
     /// An iterator over sparse, `HashMap` backed indexed property entries of an `Object`.
-    Sparse(hash_map::Keys<'a, u32, PropertyDescriptor>),
+    SparseProperty(hash_map::Keys<'a, u32, PropertyDescriptor>),
+
+    /// An iterator over sparse, `HashMap` backed indexed property entries storing values.
+    SparseElement(hash_map::Keys<'a, u32, JsValue>),
 }
 
 impl Iterator for IndexPropertyKeys<'_> {
@@ -835,7 +912,8 @@ impl Iterator for IndexPropertyKeys<'_> {
     fn next(&mut self) -> Option<Self::Item> {
         match self {
             Self::Dense(vec) => vec.next(),
-            Self::Sparse(map) => map.next().copied(),
+            Self::SparseProperty(map) => map.next().copied(),
+            Self::SparseElement(map) => map.next().copied(),
         }
     }
 
@@ -843,7 +921,8 @@ impl Iterator for IndexPropertyKeys<'_> {
     fn size_hint(&self) -> (usize, Option<usize>) {
         match self {
             Self::Dense(vec) => vec.size_hint(),
-            Self::Sparse(map) => map.size_hint(),
+            Self::SparseProperty(map) => map.size_hint(),
+            Self::SparseElement(map) => map.size_hint(),
         }
     }
 }
@@ -853,7 +932,8 @@ impl ExactSizeIterator for IndexPropertyKeys<'_> {
     fn len(&self) -> usize {
         match self {
             Self::Dense(vec) => vec.len(),
-            Self::Sparse(map) => map.len(),
+            Self::SparseProperty(map) => map.len(),
+            Self::SparseElement(map) => map.len(),
         }
     }
 }
@@ -874,7 +954,10 @@ pub enum IndexPropertyValues<'a> {
     DenseElement(std::slice::Iter<'a, JsValue>),
 
     /// An iterator over sparse, `HashMap` backed indexed property entries of an `Object`.
-    Sparse(hash_map::Values<'a, u32, PropertyDescriptor>),
+    SparseProperty(hash_map::Values<'a, u32, PropertyDescriptor>),
+
+    /// An iterator over sparse, `HashMap` backed indexed property entries storing values.
+    SparseElement(hash_map::Values<'a, u32, JsValue>),
 }
 
 impl Iterator for IndexPropertyValues<'_> {
@@ -885,7 +968,8 @@ impl Iterator for IndexPropertyValues<'_> {
             Self::DenseI32(vec) => vec.next().copied()?.into(),
             Self::DenseF64(vec) => vec.next().copied()?.into(),
             Self::DenseElement(vec) => vec.next().cloned()?,
-            Self::Sparse(map) => return map.next().cloned(),
+            Self::SparseProperty(map) => return map.next().cloned(),
+            Self::SparseElement(map) => map.next().cloned()?,
         };
 
         Some(
@@ -904,7 +988,8 @@ impl Iterator for IndexPropertyValues<'_> {
             Self::DenseI32(vec) => vec.size_hint(),
             Self::DenseF64(vec) => vec.size_hint(),
             Self::DenseElement(vec) => vec.size_hint(),
-            Self::Sparse(map) => map.size_hint(),
+            Self::SparseProperty(map) => map.size_hint(),
+            Self::SparseElement(map) => map.size_hint(),
         }
     }
 }
@@ -916,7 +1001,8 @@ impl ExactSizeIterator for IndexPropertyValues<'_> {
             Self::DenseI32(vec) => vec.len(),
             Self::DenseF64(vec) => vec.len(),
             Self::DenseElement(vec) => vec.len(),
-            Self::Sparse(map) => map.len(),
+            Self::SparseProperty(map) => map.len(),
+            Self::SparseElement(map) => map.len(),
         }
     }
 }
