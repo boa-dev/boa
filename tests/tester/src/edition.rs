@@ -105,6 +105,10 @@ static FEATURE_EDITION: phf::Map<&'static str, SpecEdition> = phf::phf_map! {
     // https://github.com/tc39/proposal-import-attributes/
     "import-attributes" => SpecEdition::ESNext,
 
+    // Joint iteration
+    // https://github.com/tc39/proposal-joint-iteration
+    "joint-iteration" => SpecEdition::ESNext,
+
     // JSON modules
     // https://github.com/tc39/proposal-json-modules
     "json-modules"  => SpecEdition::ESNext,

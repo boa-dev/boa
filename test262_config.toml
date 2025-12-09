@@ -17,6 +17,7 @@ features = [
     "regexp-duplicate-named-groups",
     "iterator-helpers",
     "explicit-resource-management",
+    "joint-iteration",
 
     ### Pending proposals
 
