@@ -476,8 +476,8 @@ impl JsString {
     ///
     /// # Safety
     /// It is the responsibility of the caller to ensure:
-    ///   - start >= end. If start == end, the string is empty.
-    ///   - end <= data.len().
+    ///   - `start` >= `end`. If `start` == `end`, the string is empty.
+    ///   - `end` <= `data.len()`.
     #[inline]
     #[must_use]
     pub unsafe fn slice_unchecked(data: JsString, start: usize, end: usize) -> Self {
@@ -536,9 +536,9 @@ impl JsString {
     /// # Safety
     /// This should only be used when the inner type has been validated. Using
     /// an unvalidated inner type is undefined behaviour.
-    #[inline]
+    #[inline(always)]
     #[must_use]
-    unsafe fn as_inner<T>(&self) -> &T {
+    unsafe fn as_inner<'a, T: 'a>(&'a self) -> &'a T {
         // SAFETY: The outer function is unsafe and the condition should be respected.
         unsafe { self.as_inner_ptr().as_ref() }
     }
@@ -548,7 +548,7 @@ impl JsString {
     /// # Safety
     /// This should only be used when the inner type has been validated. Using
     /// an unvalidated inner type is undefined behaviour.
-    #[inline]
+    #[inline(always)]
     #[must_use]
     unsafe fn as_inner_ptr<T>(&self) -> NonNull<T> {
         // SAFETY: The outer function is unsafe and the condition should be respected.
@@ -560,12 +560,15 @@ impl JsString {
     }
 
     #[inline]
-    fn on_kind_ref<T>(
-        &self,
-        if_seq: impl FnOnce(&SeqString) -> T,
-        if_slice: impl FnOnce(&SliceString) -> T,
-        if_static: impl FnOnce(&StaticString) -> T,
-    ) -> T {
+    fn on_kind_ref<'a, T>(
+        &'a self,
+        if_seq: impl FnOnce(&'a SeqString) -> T,
+        if_slice: impl FnOnce(&'a SliceString) -> T,
+        if_static: impl FnOnce(&'a StaticString) -> T,
+    ) -> T
+    where
+        Self: 'a,
+    {
         match self.tagged_pointer.addr().get() & 0x07 {
             // SAFETY: This is safe as long as [`InnerStringKind::Sequence`] is 0.
             0 => if_seq(unsafe { self.tagged_pointer.cast::<SeqString>().as_ref() }),
@@ -605,10 +608,8 @@ impl JsString {
     #[inline]
     #[must_use]
     pub fn as_str(&self) -> JsStr<'_> {
-        match self.kind() {
-            JsStringKind::Sequence => {
-                // SAFETY: Already checked the kind.
-                let str = unsafe { self.as_inner::<SeqString>() };
+        self.on_kind_ref(
+            |str| {
                 let len = str.tagged_len.len();
                 let is_latin1 = str.tagged_len.is_latin1();
                 let ptr = (&raw const str.data).cast::<u8>();
@@ -625,18 +626,10 @@ impl JsString {
                         JsStr::utf16(std::slice::from_raw_parts(ptr.cast::<u16>(), len))
                     }
                 }
-            }
-            JsStringKind::Slice => {
-                // SAFETY: Already checked the kind.
-                let inner_str = unsafe { self.as_inner::<SliceString>() };
-                let str = inner_str.data.as_str();
-                str.get_expect(inner_str.start..inner_str.end)
-            }
-            JsStringKind::Static => {
-                // SAFETY: Already checked the kind.
-                unsafe { self.as_inner::<StaticString>() }.0
-            }
-        }
+            },
+            |str| str.data.as_str().get_expect(str.start..str.end),
+            |str| str.0,
+        )
     }
 
     /// Creates a new [`JsString`] from the concatenation of `x` and `y`.
