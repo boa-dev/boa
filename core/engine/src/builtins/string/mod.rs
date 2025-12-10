@@ -784,6 +784,7 @@ impl String {
             Ok(js_string!().into())
         } else {
             // 13. Return the substring of S from from to to.
+            // SAFETY: We already checked that `from` and `to` are within bounds.
             Ok(unsafe { JsString::slice_unchecked(string.clone(), from, to).into() })
         }
     }
@@ -1888,6 +1889,7 @@ impl String {
 
         // 10. Return the substring of S from from to to.
         // Ok(js_string!(string.get_expect(from..to)).into())
+        // SAFETY: We already checked that `from` and `to` are within bounds.
         Ok(unsafe { JsString::slice_unchecked(string.clone(), from, to).into() })
     }
 
@@ -1985,8 +1987,10 @@ impl String {
             // a. Let T be the substring of S from i to j.
             // b. Append T as the last element of substrings.
             // SAFETY: we already checked that i and index are within range.
-            let sliced = unsafe { JsString::slice_unchecked(this_str.clone(), i, index) };
-            substrings.push(sliced.into());
+            let Some(sliced) = this_str.slice(i, index) else {
+                unsafe { std::hint::unreachable_unchecked() };
+            };
+            substrings.push(sliced);
 
             // c. If the number of elements of substrings is lim, return ! CreateArrayFromList(substrings).
             if substrings.len() == lim {
@@ -2005,7 +2009,8 @@ impl String {
 
         // 15. Let T be the substring of S from i.
         // 16. Append T to substrings.
-        substrings.push(JsString::from(this_str.get_expect(i..)));
+        let last = this_str.slice(i, this_str.len()).unwrap_or_default();
+        substrings.push(last);
 
         // 17. Return ! CreateArrayFromList(substrings).
         Ok(

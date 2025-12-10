@@ -1,9 +1,11 @@
-//! Display implementations for [`crate::JsString`].
-use crate::{CodePoint, JsStr, JsStrVariant};
+//! Display implementations for [`JsString`].
+
+use crate::{CodePoint, JsStr, JsStrVariant, JsString};
+use std::cell::RefCell;
 use std::fmt;
 use std::fmt::Write;
 
-/// Display implementation for [`crate::JsString`] that escapes unicode characters.
+/// Display implementation for [`JsString`] that escapes unicode characters.
 #[derive(Debug)]
 pub struct JsStrDisplayEscaped<'a> {
     inner: JsStr<'a>,
@@ -34,7 +36,7 @@ impl<'a> From<JsStr<'a>> for JsStrDisplayEscaped<'a> {
     }
 }
 
-/// Display implementation for [`crate::JsString`] that escapes unicode characters.
+/// Display implementation for [`JsString`] that escapes unicode characters.
 #[derive(Debug)]
 pub struct JsStrDisplayLossy<'a> {
     inner: JsStr<'a>,
@@ -51,6 +53,58 @@ impl fmt::Display for JsStrDisplayLossy<'_> {
 
 impl<'a> From<JsStr<'a>> for JsStrDisplayLossy<'a> {
     fn from(inner: JsStr<'a>) -> Self {
+        Self { inner }
+    }
+}
+
+/// Debug displayable for [`JsString`] which shows more information than
+/// debug displaying the original string.
+pub struct JsStringDebugInfo<'a> {
+    inner: &'a JsString,
+}
+
+impl fmt::Debug for JsStringDebugInfo<'_> {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        let inner = self.inner;
+
+        // Show a maximum of 30 characters.
+        let s_repr = if inner.len() > 30 {
+            let it = inner
+                .code_points()
+                .map(|c| c.as_char().unwrap_or('\u{FFFD}'));
+            it.clone()
+                .take(20)
+                .chain("/* ... */".chars())
+                .chain(it.skip(inner.len() - 20))
+                .collect()
+        } else {
+            inner.display_lossy().to_string()
+        };
+
+        let dbg = RefCell::new(f.debug_struct("JsString"));
+
+        dbg.borrow_mut()
+            .field("kind", &inner.kind())
+            .field("length", &inner.len())
+            .field("content", &s_repr);
+
+        // Show kind specific fields from string.
+        self.inner.on_kind_ref(
+            |seq| {
+                dbg.borrow_mut().field("refcount", &seq.refcount.get());
+            },
+            |slice| {
+                dbg.borrow_mut().field("original", &slice.data.debug_info());
+            },
+            |_| {},
+        );
+
+        dbg.borrow_mut().finish()
+    }
+}
+
+impl<'a> From<&'a JsString> for JsStringDebugInfo<'a> {
+    fn from(inner: &'a JsString) -> Self {
         Self { inner }
     }
 }

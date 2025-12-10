@@ -109,10 +109,6 @@ impl<'a> JsStr<'a> {
         self.inner.tagged_len.len()
     }
 
-    pub(crate) const fn ptr(&self) -> *const u8 {
-        self.inner.ptr
-    }
-
     /// Return the inner [`JsStrVariant`] variant of the [`JsStr`].
     #[inline]
     #[must_use]
