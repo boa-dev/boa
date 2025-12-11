@@ -149,6 +149,33 @@ pub(crate) enum JsStringKind {
     Static = 2,
 }
 
+macro_rules! on_kind {
+    ($id: ident,
+        $seq_id: ident => $if_seq: expr,
+        $slice_id: ident => $if_slice: expr,
+        $static_id: ident => $if_static: expr $(,)?
+    ) => {
+        match $id.kind() {
+            JsStringKind::Sequence => {
+                // SAFETY: Just verified the type. This is safe as long as
+                //         [`InnerStringKind::Sequence`] is 0.
+                let $seq_id = unsafe { $id.tagged_pointer.cast::<SeqString>().as_ref() };
+                $if_seq
+            }
+            JsStringKind::Slice => {
+                // SAFETY: Just verified the type.
+                let $slice_id: &SliceString = unsafe { $id.as_inner() };
+                $if_slice
+            }
+            JsStringKind::Static => {
+                // SAFETY: Just verified the type.
+                let $static_id: &StaticString = unsafe { $id.as_inner() };
+                $if_static
+            }
+        }
+    };
+}
+
 const DATA_OFFSET: usize = size_of::<SeqString>();
 
 /// A Latin1 or UTF-16–encoded, reference counted, immutable string.
@@ -315,10 +342,11 @@ impl JsString {
     #[inline]
     #[must_use]
     pub fn len(&self) -> usize {
-        self.on_kind_ref(
-            |seq| seq.tagged_len.len(),
-            |slice| slice.end - slice.start,
-            |s| s.0.len(),
+        on_kind!(
+            self,
+            seq => seq.tagged_len.len(),
+            slice => slice.end - slice.start,
+            s => s.0.len(),
         )
     }
 
@@ -559,28 +587,6 @@ impl JsString {
         }
     }
 
-    #[inline]
-    fn on_kind_ref<'a, T>(
-        &'a self,
-        if_seq: impl FnOnce(&'a SeqString) -> T,
-        if_slice: impl FnOnce(&'a SliceString) -> T,
-        if_static: impl FnOnce(&'a StaticString) -> T,
-    ) -> T
-    where
-        Self: 'a,
-    {
-        match self.tagged_pointer.addr().get() & 0x07 {
-            // SAFETY: This is safe as long as [`InnerStringKind::Sequence`] is 0.
-            0 => if_seq(unsafe { self.tagged_pointer.cast::<SeqString>().as_ref() }),
-            // SAFETY: We're matching on the pointer tag and validated the type of the pointer.
-            1 => if_slice(unsafe { self.as_inner() }),
-            // SAFETY: We're matching on the pointer tag and validated the type of the pointer.
-            2 => if_static(unsafe { self.as_inner() }),
-            // SAFETY: This cannot happen as it's built by one of our constructors.
-            _ => unsafe { std::hint::unreachable_unchecked() },
-        }
-    }
-
     /// Check if the [`JsString`] is static.
     #[inline]
     #[must_use]
@@ -608,8 +614,8 @@ impl JsString {
     #[inline]
     #[must_use]
     pub fn as_str(&self) -> JsStr<'_> {
-        self.on_kind_ref(
-            |str| {
+        on_kind!(self,
+            str => {
                 let len = str.tagged_len.len();
                 let is_latin1 = str.tagged_len.is_latin1();
                 let ptr = (&raw const str.data).cast::<u8>();
@@ -627,8 +633,8 @@ impl JsString {
                     }
                 }
             },
-            |str| str.data.as_str().get_expect(str.start..str.end),
-            |str| str.0,
+            str => str.data.as_str().get_expect(str.start..str.end),
+            str => str.0,
         )
     }
 
@@ -847,8 +853,8 @@ impl JsString {
 impl Clone for JsString {
     #[inline]
     fn clone(&self) -> Self {
-        self.on_kind_ref(
-            |seq| {
+        on_kind!(self,
+            seq => {
                 let Some(strong) = seq.refcount.get().checked_add(1) else {
                     abort();
                 };
@@ -858,7 +864,7 @@ impl Clone for JsString {
                     tagged_pointer: self.tagged_pointer,
                 }
             },
-            |slice| {
+            slice => {
                 let Some(strong) = slice.refcount.get().checked_add(1) else {
                     abort();
                 };
@@ -868,7 +874,7 @@ impl Clone for JsString {
                     tagged_pointer: self.tagged_pointer,
                 }
             },
-            |_| Self {
+            _unused => Self {
                 tagged_pointer: self.tagged_pointer,
             },
         )
@@ -886,10 +892,8 @@ impl Drop for JsString {
     #[inline]
     fn drop(&mut self) {
         // See https://doc.rust-lang.org/src/alloc/sync.rs.html#1672 for details.
-        match self.kind() {
-            JsStringKind::Sequence => {
-                // SAFETY: This is safe as long as [`InnerStringKind::Sequence`] is 0.
-                let inner = unsafe { self.tagged_pointer.cast::<SeqString>().as_ref() };
+        on_kind!(self,
+            inner => {
                 let Some(new) = inner.refcount.get().checked_sub(1) else {
                     abort();
                 };
@@ -923,10 +927,8 @@ impl Drop for JsString {
                 unsafe {
                     dealloc(self.as_inner_ptr::<SeqString>().as_ptr().cast(), layout);
                 }
-            }
-            JsStringKind::Slice => {
-                // SAFETY: This is always guaranteed to be the right kind of pointer.
-                let inner = unsafe { self.as_inner::<SliceString>() };
+            },
+            inner => {
                 let Some(new) = inner.refcount.get().checked_sub(1) else {
                     abort();
                 };
@@ -939,11 +941,11 @@ impl Drop for JsString {
                 unsafe {
                     drop(Box::from_raw(self.as_inner_ptr::<SliceString>().as_ptr()));
                 }
-            }
-            JsStringKind::Static => {
+            },
+            _unused => {
                 // Do nothing on static strings.
             }
-        }
+        );
     }
 }
 
