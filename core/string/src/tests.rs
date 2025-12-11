@@ -204,8 +204,8 @@ fn from_static_js_string() {
     static STATIC_EMOJIS: StaticJsString =
         StaticJsString::new(JsStr::utf16(&[0xD83C, 0xDFB9, 0xD83C, 0xDFB6, 0xD83C, 0xDFB5])); // 🎹🎶🎵
 
-    let latin1 = JsString::from_static(&STATIC_HELLO_WORLD);
-    let utf16 = JsString::from_static(&STATIC_EMOJIS);
+    let latin1 = JsString::from_static_inner(&STATIC_HELLO_WORLD);
+    let utf16 = JsString::from_static_inner(&STATIC_EMOJIS);
 
     // content compare
     assert_eq!(latin1, "hello world");
@@ -235,8 +235,8 @@ fn compare_static_and_dynamic_js_string() {
     static STATIC_EMOJIS: StaticJsString =
         StaticJsString::new(JsStr::utf16(&[0xD83C, 0xDFB9, 0xD83C, 0xDFB6, 0xD83C, 0xDFB5])); // 🎹🎶🎵
 
-    let static_latin1 = JsString::from_static(&STATIC_HELLO_WORLD);
-    let static_utf16 = JsString::from_static(&STATIC_EMOJIS);
+    let static_latin1 = JsString::from_static_inner(&STATIC_HELLO_WORLD);
+    let static_utf16 = JsString::from_static_inner(&STATIC_EMOJIS);
 
     let dynamic_latin1 = JsString::from(JsStr::latin1("hello world".as_bytes()));
     let dynamic_utf16 = JsString::from(&[0xD83C, 0xDFB9, 0xD83C, 0xDFB6, 0xD83C, 0xDFB5]);

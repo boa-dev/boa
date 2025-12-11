@@ -370,7 +370,7 @@ impl<D: Copy> JsStringBuilder<D> {
         // meaning we can write to its pointed memory.
         unsafe {
             inner.as_ptr().write(SeqString {
-                vtable: &SEQ_VTABLE,
+                vtable: SEQ_VTABLE,
                 tagged_len: TaggedLen::new(len, latin1),
                 refcount: Cell::new(1),
                 data: [0; 0],

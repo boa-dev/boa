@@ -43,9 +43,10 @@ use std::{
 };
 use std::{borrow::Cow, mem::ManuallyDrop};
 
-/// VTable for JsString operations. This enables fast dispatch without tag checking
-/// on hot paths.
-#[derive(Debug)]
+/// Embedded vtable for JsString operations. This is stored directly in each string
+/// struct (not as a reference) to eliminate one level of indirection on hot paths.
+#[derive(Debug, Clone, Copy)]
+#[repr(C)]
 struct JsStringVTable {
     /// Clone the string, incrementing the refcount.
     clone: unsafe fn(NonNull<()>) -> JsString,
@@ -131,8 +132,8 @@ impl TaggedLen {
 /// A sequential memory array of strings.
 #[repr(C, align(8))]
 struct SeqString {
-    /// VTable pointer - must be first field for vtable dispatch.
-    vtable: &'static JsStringVTable,
+    /// Embedded VTable - must be first field for vtable dispatch.
+    vtable: JsStringVTable,
     tagged_len: TaggedLen,
     refcount: Cell<usize>,
     data: [u8; 0],
@@ -141,8 +142,8 @@ struct SeqString {
 /// A slice of an existing string.
 #[repr(C, align(8))]
 struct SliceString {
-    /// VTable pointer - must be first field for vtable dispatch.
-    vtable: &'static JsStringVTable,
+    /// Embedded VTable - must be first field for vtable dispatch.
+    vtable: JsStringVTable,
     // Keep this for refcounting the original string.
     owned: JsString,
     // Pointer to the data itself. This is guaranteed to be safe as long as `owned` is
@@ -158,8 +159,8 @@ struct SliceString {
 #[derive(Debug, Clone, Copy)]
 #[repr(C, align(8))]
 pub struct StaticJsString {
-    /// VTable pointer - must be first field for vtable dispatch.
-    vtable: &'static JsStringVTable,
+    /// Embedded VTable - must be first field for vtable dispatch.
+    vtable: JsStringVTable,
     /// The actual string data.
     pub(crate) str: JsStr<'static>,
 }
@@ -361,7 +362,7 @@ impl StaticJsString {
     #[must_use]
     pub const fn new(str: JsStr<'static>) -> Self {
         Self {
-            vtable: &STATIC_VTABLE,
+            vtable: STATIC_VTABLE,
             str,
         }
     }
@@ -716,14 +717,15 @@ impl JsString {
     #[inline]
     #[must_use]
     pub fn is_static(&self) -> bool {
-        ptr::eq(self.vtable(), &STATIC_VTABLE)
+        // Compare function pointers from the embedded vtable
+        self.vtable().clone as usize == static_clone as usize
     }
 
     /// Get the vtable for this string.
     #[inline]
-    fn vtable(&self) -> &'static JsStringVTable {
-        // SAFETY: All JsString variants have vtable as first field.
-        unsafe { *self.ptr.cast::<&'static JsStringVTable>().as_ref() }
+    fn vtable(&self) -> &JsStringVTable {
+        // SAFETY: All JsString variants have vtable as first field (embedded directly).
+        unsafe { self.ptr.cast::<JsStringVTable>().as_ref() }
     }
 
     /// Create a [`JsString`] from a static string.
@@ -740,7 +742,7 @@ impl JsString {
     #[must_use]
     pub fn from_static(src: JsStr<'static>) -> Self {
         let string: &'static _ = Box::leak(Box::new(StaticJsString {
-            vtable: &STATIC_VTABLE,
+            vtable: STATIC_VTABLE,
             str: src,
         }));
         Self::from_static_inner(string)
@@ -771,7 +773,7 @@ impl JsString {
         };
 
         let slice = Box::new(SliceString {
-            vtable: &SLICE_VTABLE,
+            vtable: SLICE_VTABLE,
             owned: data,
             data: offset_ptr,
             tagged_len: TaggedLen::new(end - start, is_latin1),
@@ -802,10 +804,11 @@ impl JsString {
     #[inline]
     #[must_use]
     pub(crate) fn kind(&self) -> JsStringKind {
-        let vtable = self.vtable();
-        if ptr::eq(vtable, &SEQ_VTABLE) {
+        // Compare function pointers from the embedded vtable
+        let clone_fn = self.vtable().clone as usize;
+        if clone_fn == seq_clone as usize {
             JsStringKind::Sequence
-        } else if ptr::eq(vtable, &SLICE_VTABLE) {
+        } else if clone_fn == slice_clone as usize {
             JsStringKind::Slice
         } else {
             JsStringKind::Static
@@ -816,14 +819,14 @@ impl JsString {
     #[inline]
     #[must_use]
     pub fn is_seq(&self) -> bool {
-        ptr::eq(self.vtable(), &SEQ_VTABLE)
+        self.vtable().clone as usize == seq_clone as usize
     }
 
     /// Check if the [`JsString`] is a [`SliceString`].
     #[inline]
     #[must_use]
     pub fn is_slice(&self) -> bool {
-        ptr::eq(self.vtable(), &SLICE_VTABLE)
+        self.vtable().clone as usize == slice_clone as usize
     }
 
     /// Get the inner pointer as a reference of type T.
@@ -975,7 +978,7 @@ impl JsString {
         unsafe {
             // Write the first part, the `SeqString`.
             inner.as_ptr().write(SeqString {
-                vtable: &SEQ_VTABLE,
+                vtable: SEQ_VTABLE,
                 tagged_len: TaggedLen::new(str_len, latin1),
                 refcount: Cell::new(1),
                 data: [0; 0],
