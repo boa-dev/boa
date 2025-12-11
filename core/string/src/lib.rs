@@ -125,10 +125,15 @@ struct SeqString {
 /// A slice of an existing string.
 #[repr(C, align(8))]
 struct SliceString {
-    data: JsString,
+    // Keep this for refcounting the original string.
+    owned: JsString,
+    // Pointer to the data itself. This is guaranteed to be safe as long as `owned` is
+    // owned.
+    data: NonNull<u8>,
+    // Length (and latin1 tag) for this string. We drop start/end.
+    tagged_len: TaggedLen,
+    // Refcount for this string as we need to clone/drop it as well.
     refcount: Cell<usize>,
-    start: usize,
-    end: usize,
 }
 
 /// A static constant string, without reference counting.
@@ -155,19 +160,19 @@ macro_rules! on_kind {
         $slice_id: ident => $if_slice: expr,
         $static_id: ident => $if_static: expr $(,)?
     ) => {
-        match $id.kind() {
-            JsStringKind::Sequence => {
+        match $id.tagged_pointer.addr().get() & 0x07 {
+            0 => {
                 // SAFETY: Just verified the type. This is safe as long as
                 //         [`InnerStringKind::Sequence`] is 0.
                 let $seq_id = unsafe { $id.tagged_pointer.cast::<SeqString>().as_ref() };
                 $if_seq
             }
-            JsStringKind::Slice => {
+            1 => {
                 // SAFETY: Just verified the type.
                 let $slice_id: &SliceString = unsafe { $id.as_inner() };
                 $if_slice
             }
-            JsStringKind::Static => {
+            _ => {
                 // SAFETY: Just verified the type.
                 let $static_id: &StaticString = unsafe { $id.as_inner() };
                 $if_static
@@ -345,7 +350,7 @@ impl JsString {
         on_kind!(
             self,
             seq => seq.tagged_len.len(),
-            slice => slice.end - slice.start,
+            slice => slice.tagged_len.len(),
             s => s.0.len(),
         )
     }
@@ -509,12 +514,35 @@ impl JsString {
     #[inline]
     #[must_use]
     pub unsafe fn slice_unchecked(data: JsString, start: usize, end: usize) -> Self {
-        let ptr = Box::into_raw(Box::new(SliceString {
-            data,
-            refcount: Cell::new(1),
-            start,
-            end,
-        }));
+        let ptr = on_kind!(data,
+            seq => {
+                Box::into_raw(Box::new(SliceString {
+                    owned: data,
+                    // SAFETY: data is always valid here.
+                    data: unsafe { NonNull::new_unchecked(seq.data.as_ptr() as *mut _) },
+                    refcount: Cell::new(1),
+                    tagged_len: TaggedLen::new(end - start, seq.tagged_len.is_latin1())
+                }))
+            },
+            slice => {
+                Box::into_raw(Box::new(SliceString {
+                    owned: slice.owned.clone(),
+                    // SAFETY: The callee must assert that start < end.
+                    data: unsafe { slice.data.add(start) },
+                    refcount: Cell::new(1),
+                    tagged_len: TaggedLen::new(end - start, slice.tagged_len.is_latin1())
+                }))
+            },
+            static_ => {
+                let owned = data.clone();
+                Box::into_raw(Box::new(SliceString {
+                    owned,
+                    data: static_.0.as_ptr(),
+                    refcount: Cell::new(1),
+                    tagged_len: TaggedLen::new(end - start, static_.0.is_latin1())
+                }))
+            }
+        );
 
         // SAFETY: Allocation worked.
         Self::from_inner(unsafe { NonNull::new_unchecked(ptr) }, JsStringKind::Slice)
@@ -615,10 +643,10 @@ impl JsString {
     #[must_use]
     pub fn as_str(&self) -> JsStr<'_> {
         on_kind!(self,
-            str => {
-                let len = str.tagged_len.len();
-                let is_latin1 = str.tagged_len.is_latin1();
-                let ptr = (&raw const str.data).cast::<u8>();
+            seq => {
+                let len = seq.tagged_len.len();
+                let is_latin1 = seq.tagged_len.is_latin1();
+                let ptr = (&raw const seq.data).cast::<u8>();
 
                 // SAFETY:
                 // - Unwrapped heap ptr is always a valid heap allocated SeqString.
@@ -633,8 +661,25 @@ impl JsString {
                     }
                 }
             },
-            str => str.data.as_str().get_expect(str.start..str.end),
-            str => str.0,
+            slice => {
+                let len = slice.tagged_len.len();
+                let is_latin1 = slice.tagged_len.is_latin1();
+                let ptr = slice.data.as_ptr();
+
+                // SAFETY:
+                // - Unwrapped heap ptr is always a valid heap allocated SeqString.
+                // - Length of a heap allocated string always contains the correct size of the string.
+                unsafe {
+                    if is_latin1 {
+                        JsStr::latin1(std::slice::from_raw_parts(ptr, len))
+                    } else {
+                        // SAFETY: Raw data string is always correctly aligned when allocated.
+                        #[allow(clippy::cast_ptr_alignment)]
+                        JsStr::utf16(std::slice::from_raw_parts(ptr.cast::<u16>(), len))
+                    }
+                }
+            },
+            static_ => static_.0,
         )
     }
 
@@ -843,7 +888,7 @@ impl JsString {
             }
             JsStringKind::Slice => {
                 // SAFETY: We are guaranteed a valid kind of string.
-                unsafe { self.as_inner::<SliceString>() }.data.refcount()
+                unsafe { self.as_inner::<SliceString>() }.owned.refcount()
             }
             JsStringKind::Static => None,
         }

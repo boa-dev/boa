@@ -98,7 +98,8 @@ impl fmt::Debug for JsStringDebugInfo<'_> {
             JsStringKind::Slice => {
                 // SAFETY: Just verified the kind.
                 let slice: &SliceString = unsafe { self.inner.as_inner() };
-                dbg.borrow_mut().field("original", &slice.data.debug_info());
+                dbg.borrow_mut()
+                    .field("original", &slice.owned.debug_info());
             }
             JsStringKind::Static => {}
         }
