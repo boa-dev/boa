@@ -1,5 +1,5 @@
 use crate::{
-    DATA_OFFSET, JsStr, JsStrVariant, JsString, JsStringKind, SeqString, TaggedLen, alloc_overflow,
+    DATA_OFFSET, JsStr, JsStrVariant, JsString, SEQ_VTABLE, SeqString, TaggedLen, alloc_overflow,
 };
 
 use std::{
@@ -370,6 +370,7 @@ impl<D: Copy> JsStringBuilder<D> {
         // meaning we can write to its pointed memory.
         unsafe {
             inner.as_ptr().write(SeqString {
+                vtable: &SEQ_VTABLE,
                 tagged_len: TaggedLen::new(len, latin1),
                 refcount: Cell::new(1),
                 data: [0; 0],
@@ -380,7 +381,9 @@ impl<D: Copy> JsStringBuilder<D> {
         // because we move inner `RawJsString` to `JsString`.
         std::mem::forget(self);
 
-        JsString::from_inner(inner, JsStringKind::Sequence)
+        JsString {
+            ptr: inner.cast(),
+        }
     }
 }
 

@@ -136,8 +136,8 @@ impl<'a> JsStr<'a> {
     #[inline]
     #[must_use]
     pub(crate) const fn as_ptr(&self) -> NonNull<u8> {
-        // If this object is created, this should never be null.
-        unsafe { NonNull::new_unchecked(self.inner.ptr as *mut _) }
+        // SAFETY: If this object is created, this should never be null.
+        unsafe { NonNull::new_unchecked(self.inner.ptr.cast_mut()) }
     }
 
     /// Check if the [`JsStr`] is latin1 encoded.
