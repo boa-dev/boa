@@ -4,7 +4,7 @@ use std::hash::{BuildHasher, BuildHasherDefault, Hash};
 
 use crate::{
     CodePoint, CommonJsStringBuilder, JsStr, JsString, JsStringKind, Latin1JsStringBuilder,
-    StaticJsString, StaticJsStrings, Utf16JsStringBuilder,
+    StaticJsStrings, StaticString, Utf16JsStringBuilder,
 };
 
 use rustc_hash::FxHasher;
@@ -199,9 +199,9 @@ fn to_std_string_escaped() {
 
 #[test]
 fn from_static_js_string() {
-    static STATIC_HELLO_WORLD: StaticJsString =
-        StaticJsString::new(JsStr::latin1("hello world".as_bytes()));
-    static STATIC_EMOJIS: StaticJsString = StaticJsString::new(JsStr::utf16(&[
+    static STATIC_HELLO_WORLD: StaticString =
+        StaticString::new(JsStr::latin1("hello world".as_bytes()));
+    static STATIC_EMOJIS: StaticString = StaticString::new(JsStr::utf16(&[
         0xD83C, 0xDFB9, 0xD83C, 0xDFB6, 0xD83C, 0xDFB5,
     ])); // 🎹🎶🎵
 
@@ -231,9 +231,9 @@ fn from_static_js_string() {
 
 #[test]
 fn compare_static_and_dynamic_js_string() {
-    static STATIC_HELLO_WORLD: StaticJsString =
-        StaticJsString::new(JsStr::latin1("hello world".as_bytes()));
-    static STATIC_EMOJIS: StaticJsString = StaticJsString::new(JsStr::utf16(&[
+    static STATIC_HELLO_WORLD: StaticString =
+        StaticString::new(JsStr::latin1("hello world".as_bytes()));
+    static STATIC_EMOJIS: StaticString = StaticString::new(JsStr::utf16(&[
         0xD83C, 0xDFB9, 0xD83C, 0xDFB6, 0xD83C, 0xDFB5,
     ])); // 🎹🎶🎵
 

@@ -18,12 +18,15 @@ mod common;
 mod display;
 mod iter;
 mod str;
+mod vtable;
 
 #[cfg(test)]
 mod tests;
 
 use self::{iter::Windows, str::JsSliceIndex};
 use crate::display::{JsStrDisplayEscaped, JsStrDisplayLossy, JsStringDebugInfo};
+pub use crate::vtable::StaticString;
+use crate::vtable::{SeqString, SliceString};
 #[doc(inline)]
 pub use crate::{
     builder::{CommonJsStringBuilder, Latin1JsStringBuilder, Utf16JsStringBuilder},
@@ -33,32 +36,14 @@ pub use crate::{
     str::{JsStr, JsStrVariant},
 };
 use std::{
-    alloc::{Layout, alloc, dealloc},
-    cell::Cell,
+    alloc::{Layout, alloc},
     convert::Infallible,
     hash::{Hash, Hasher},
-    process::abort,
     ptr::{self, NonNull},
     str::FromStr,
 };
 use std::{borrow::Cow, mem::ManuallyDrop};
-
-/// Embedded vtable for `JsString` operations. This is stored directly in each string
-/// struct (not as a reference) to eliminate one level of indirection on hot paths.
-#[derive(Debug, Clone, Copy)]
-#[repr(C)]
-struct JsStringVTable {
-    /// Clone the string, incrementing the refcount.
-    clone: unsafe fn(NonNull<()>) -> JsString,
-    /// Drop the string, decrementing the refcount and freeing if needed.
-    drop: unsafe fn(NonNull<()>),
-    /// Get the string as a `JsStr`.
-    as_str: unsafe fn(NonNull<()>) -> JsStr<'static>,
-    /// Get the length of the string.
-    len: unsafe fn(NonNull<()>) -> usize,
-    /// Get the refcount, if applicable.
-    refcount: unsafe fn(NonNull<()>) -> Option<usize>,
-}
+use vtable::JsStringVTable;
 
 fn alloc_overflow() -> ! {
     panic!("detected overflow during string allocation")
@@ -66,7 +51,8 @@ fn alloc_overflow() -> ! {
 
 /// Helper function to check if a `char` is trimmable.
 pub(crate) const fn is_trimmable_whitespace(c: char) -> bool {
-    // The rust implementation of `trim` does not regard the same characters whitespace as ecma standard does
+    // The rust implementation of `trim` does not regard the same characters whitespace as
+    // ecma standard does.
     //
     // Rust uses \p{White_Space} by default, which also includes:
     // `\u{0085}' (next line)
@@ -86,7 +72,8 @@ pub(crate) const fn is_trimmable_whitespace(c: char) -> bool {
 
 /// Helper function to check if a `u8` latin1 character is trimmable.
 pub(crate) const fn is_trimmable_whitespace_latin1(c: u8) -> bool {
-    // The rust implementation of `trim` does not regard the same characters whitespace as ecma standard does
+    // The rust implementation of `trim` does not regard the same characters whitespace as
+    // ecma standard does.
     //
     // Rust uses \p{White_Space} by default, which also includes:
     // `\u{0085}' (next line)
@@ -129,267 +116,6 @@ impl TaggedLen {
     }
 }
 
-/// A sequential memory array of strings.
-#[repr(C, align(8))]
-struct SeqString {
-    /// Embedded `VTable` - must be first field for vtable dispatch.
-    vtable: JsStringVTable,
-    tagged_len: TaggedLen,
-    refcount: Cell<usize>,
-    data: [u8; 0],
-}
-
-/// A slice of an existing string.
-#[repr(C, align(8))]
-struct SliceString {
-    /// Embedded `VTable` - must be first field for vtable dispatch.
-    vtable: JsStringVTable,
-    // Keep this for refcounting the original string.
-    owned: JsString,
-    // Pointer to the data itself. This is guaranteed to be safe as long as `owned` is
-    // owned.
-    data: NonNull<u8>,
-    // Length (and latin1 tag) for this string. We drop start/end.
-    tagged_len: TaggedLen,
-    // Refcount for this string as we need to clone/drop it as well.
-    refcount: Cell<usize>,
-}
-
-/// A static string with vtable for uniform dispatch.
-#[derive(Debug, Clone, Copy)]
-#[repr(C, align(8))]
-pub struct StaticJsString {
-    /// Embedded `VTable` - must be first field for vtable dispatch.
-    vtable: JsStringVTable,
-    /// The actual string data.
-    pub(crate) str: JsStr<'static>,
-}
-
-// =============================================================================
-// VTable implementations for SeqString
-// =============================================================================
-
-unsafe fn seq_clone(ptr: NonNull<()>) -> JsString {
-    // SAFETY: Caller guarantees ptr points to a SeqString.
-    let seq = unsafe { ptr.cast::<SeqString>().as_ref() };
-    let Some(strong) = seq.refcount.get().checked_add(1) else {
-        abort();
-    };
-    seq.refcount.set(strong);
-    JsString { ptr }
-}
-
-unsafe fn seq_drop(ptr: NonNull<()>) {
-    // SAFETY: Caller guarantees ptr points to a SeqString.
-    let seq = unsafe { ptr.cast::<SeqString>().as_ref() };
-    let Some(new) = seq.refcount.get().checked_sub(1) else {
-        abort();
-    };
-    seq.refcount.set(new);
-    if new != 0 {
-        return;
-    }
-
-    // SAFETY: All the checks for the validity of the layout have already been made on allocation.
-    let layout = unsafe {
-        if seq.tagged_len.is_latin1() {
-            Layout::for_value(seq)
-                .extend(Layout::array::<u8>(seq.tagged_len.len()).unwrap_unchecked())
-                .unwrap_unchecked()
-                .0
-                .pad_to_align()
-        } else {
-            Layout::for_value(seq)
-                .extend(Layout::array::<u16>(seq.tagged_len.len()).unwrap_unchecked())
-                .unwrap_unchecked()
-                .0
-                .pad_to_align()
-        }
-    };
-
-    // SAFETY: If refcount is 0, this is the last reference, so deallocating is safe.
-    unsafe {
-        dealloc(ptr.as_ptr().cast(), layout);
-    }
-}
-
-unsafe fn seq_as_str(ptr: NonNull<()>) -> JsStr<'static> {
-    // SAFETY: Caller guarantees ptr points to a SeqString.
-    let seq = unsafe { ptr.cast::<SeqString>().as_ref() };
-    let len = seq.tagged_len.len();
-    let is_latin1 = seq.tagged_len.is_latin1();
-    let data_ptr = (&raw const seq.data).cast::<u8>();
-
-    // SAFETY: SeqString data is always valid and properly aligned.
-    unsafe {
-        if is_latin1 {
-            JsStr::latin1(std::slice::from_raw_parts(data_ptr, len))
-        } else {
-            #[allow(clippy::cast_ptr_alignment)]
-            JsStr::utf16(std::slice::from_raw_parts(data_ptr.cast::<u16>(), len))
-        }
-    }
-}
-
-unsafe fn seq_len(ptr: NonNull<()>) -> usize {
-    // SAFETY: Caller guarantees ptr points to a SeqString.
-    unsafe { ptr.cast::<SeqString>().as_ref() }.tagged_len.len()
-}
-
-/// `VTable` function for refcount, need to return an `Option<usize>`.
-#[allow(clippy::unnecessary_wraps)]
-unsafe fn seq_refcount(ptr: NonNull<()>) -> Option<usize> {
-    // SAFETY: Caller guarantees ptr points to a SeqString.
-    Some(unsafe { ptr.cast::<SeqString>().as_ref() }.refcount.get())
-}
-
-static SEQ_VTABLE: JsStringVTable = JsStringVTable {
-    clone: seq_clone,
-    drop: seq_drop,
-    as_str: seq_as_str,
-    len: seq_len,
-    refcount: seq_refcount,
-};
-
-// =============================================================================
-// VTable implementations for SliceString
-// =============================================================================
-
-unsafe fn slice_clone(ptr: NonNull<()>) -> JsString {
-    // SAFETY: Caller guarantees ptr points to a SliceString.
-    let slice = unsafe { ptr.cast::<SliceString>().as_ref() };
-    let Some(strong) = slice.refcount.get().checked_add(1) else {
-        abort();
-    };
-    slice.refcount.set(strong);
-    JsString { ptr }
-}
-
-unsafe fn slice_drop(ptr: NonNull<()>) {
-    // SAFETY: Caller guarantees ptr points to a SliceString.
-    let slice = unsafe { ptr.cast::<SliceString>().as_ref() };
-    let Some(new) = slice.refcount.get().checked_sub(1) else {
-        abort();
-    };
-    slice.refcount.set(new);
-    if new != 0 {
-        return;
-    }
-
-    // SAFETY: This is the last reference, so we can deallocate.
-    unsafe {
-        drop(Box::from_raw(ptr.cast::<SliceString>().as_ptr()));
-    }
-}
-
-unsafe fn slice_as_str(ptr: NonNull<()>) -> JsStr<'static> {
-    // SAFETY: Caller guarantees ptr points to a SliceString.
-    let slice = unsafe { ptr.cast::<SliceString>().as_ref() };
-    let len = slice.tagged_len.len();
-    let is_latin1 = slice.tagged_len.is_latin1();
-    let data_ptr = slice.data.as_ptr();
-
-    // SAFETY: SliceString data points to valid memory owned by owned.
-    unsafe {
-        if is_latin1 {
-            JsStr::latin1(std::slice::from_raw_parts(data_ptr, len))
-        } else {
-            #[allow(clippy::cast_ptr_alignment)]
-            JsStr::utf16(std::slice::from_raw_parts(data_ptr.cast::<u16>(), len))
-        }
-    }
-}
-
-unsafe fn slice_len(ptr: NonNull<()>) -> usize {
-    // SAFETY: Caller guarantees ptr points to a SliceString.
-    unsafe { ptr.cast::<SliceString>().as_ref() }
-        .tagged_len
-        .len()
-}
-
-unsafe fn slice_refcount(ptr: NonNull<()>) -> Option<usize> {
-    // SAFETY: Caller guarantees ptr points to a SliceString.
-    unsafe { ptr.cast::<SliceString>().as_ref() }
-        .owned
-        .refcount()
-}
-
-static SLICE_VTABLE: JsStringVTable = JsStringVTable {
-    clone: slice_clone,
-    drop: slice_drop,
-    as_str: slice_as_str,
-    len: slice_len,
-    refcount: slice_refcount,
-};
-
-// =============================================================================
-// VTable implementations for StaticJsString
-// =============================================================================
-
-unsafe fn static_clone(ptr: NonNull<()>) -> JsString {
-    // Static strings don't need refcounting, just copy the pointer.
-    JsString { ptr }
-}
-
-unsafe fn static_drop(_ptr: NonNull<()>) {
-    // Static strings don't need cleanup.
-}
-
-unsafe fn static_as_str(ptr: NonNull<()>) -> JsStr<'static> {
-    // SAFETY: Caller guarantees ptr points to a StaticJsString.
-    unsafe { ptr.cast::<StaticJsString>().as_ref() }.str
-}
-
-unsafe fn static_len(ptr: NonNull<()>) -> usize {
-    // SAFETY: Caller guarantees ptr points to a StaticJsString.
-    unsafe { ptr.cast::<StaticJsString>().as_ref() }.str.len()
-}
-
-unsafe fn static_refcount(_ptr: NonNull<()>) -> Option<usize> {
-    // Static strings don't have refcount.
-    None
-}
-
-/// `VTable` for static strings.
-static STATIC_VTABLE: JsStringVTable = JsStringVTable {
-    clone: static_clone,
-    drop: static_drop,
-    as_str: static_as_str,
-    len: static_len,
-    refcount: static_refcount,
-};
-
-impl StaticJsString {
-    /// Create a new static string.
-    #[must_use]
-    pub const fn new(str: JsStr<'static>) -> Self {
-        Self {
-            vtable: STATIC_VTABLE,
-            str,
-        }
-    }
-}
-
-impl Hash for StaticJsString {
-    fn hash<H: Hasher>(&self, state: &mut H) {
-        self.str.hash(state);
-    }
-}
-
-impl PartialEq for StaticJsString {
-    fn eq(&self, other: &Self) -> bool {
-        self.str == other.str
-    }
-}
-
-impl Eq for StaticJsString {}
-
-impl std::borrow::Borrow<JsStr<'static>> for &'static StaticJsString {
-    fn borrow(&self) -> &JsStr<'static> {
-        &self.str
-    }
-}
-
 /// Strings can be represented internally by multiple kinds. This is used as the tag for the
 /// tagged pointer in [`JsString`].
 #[derive(Debug, Clone, Copy, Eq, PartialEq)]
@@ -403,8 +129,6 @@ pub(crate) enum JsStringKind {
     /// A static string that is valid for `'static` lifetime.
     Static = 2,
 }
-
-const DATA_OFFSET: usize = size_of::<SeqString>();
 
 /// A Latin1 or UTF-16–encoded, reference counted, immutable string.
 ///
@@ -424,11 +148,11 @@ const DATA_OFFSET: usize = size_of::<SeqString>();
 #[allow(clippy::module_name_repetitions)]
 pub struct JsString {
     /// Pointer to the string data. Always points to a struct whose first field is
-    /// `&'static JsStringVTable` (`SeqString`, `SliceString`, or `StaticJsString`).
-    ptr: NonNull<()>,
+    /// `JsStringVTable`.
+    ptr: NonNull<JsStringVTable<()>>,
 }
 
-// JsString should always be pointer sized.
+// `JsString` should always be pointer sized.
 static_assertions::assert_eq_size!(JsString, *const ());
 
 impl<'a> From<&'a JsString> for JsStr<'a> {
@@ -576,7 +300,7 @@ impl JsString {
     #[must_use]
     pub fn len(&self) -> usize {
         // SAFETY: All JsString variants have vtable as first field.
-        unsafe { (self.vtable().len)(self.ptr) }
+        unsafe { (self.vtable().len)(self.ptr()) }
     }
 
     /// Return true if the [`JsString`] is empty.
@@ -691,7 +415,7 @@ impl JsString {
     #[inline]
     #[must_use]
     pub fn into_raw(self) -> NonNull<()> {
-        ManuallyDrop::new(self).ptr
+        ManuallyDrop::new(self).ptr.cast()
     }
 
     /// Constructs a `JsString` from the internal pointer.
@@ -705,8 +429,22 @@ impl JsString {
     /// even if the returned `JsString` is never accessed.
     #[inline]
     #[must_use]
-    pub unsafe fn from_raw(ptr: NonNull<()>) -> Self {
-        Self { ptr }
+    pub const unsafe fn from_raw(ptr: NonNull<()>) -> Self {
+        Self { ptr: ptr.cast() }
+    }
+
+    /// Constructs a `JsString` from a reference to a `VTable`.
+    ///
+    /// # Safety
+    ///
+    /// This function is unsafe because improper use may lead to memory unsafety,
+    /// even if the returned `JsString` is never accessed.
+    #[inline]
+    #[must_use]
+    pub(crate) const unsafe fn from_ref<T>(ptr: &JsStringVTable<T>) -> Self {
+        let ptr: *const JsStringVTable<T> = ptr;
+        // SAFETY: the function is unsafe already.
+        unsafe { Self::from_raw(NonNull::new_unchecked(ptr as *mut _)) }
     }
 }
 
@@ -720,34 +458,26 @@ impl JsString {
     #[must_use]
     pub fn is_static(&self) -> bool {
         // Compare function pointers from the embedded vtable
-        self.vtable().clone as usize == static_clone as usize
+        self.vtable().clone as usize == vtable::static_clone as usize
     }
 
     /// Get the vtable for this string.
     #[inline]
-    fn vtable(&self) -> &JsStringVTable {
+    #[must_use]
+    const fn vtable(&self) -> &JsStringVTable<()> {
         // SAFETY: All JsString variants have vtable as first field (embedded directly).
-        unsafe { self.ptr.cast::<JsStringVTable>().as_ref() }
+        unsafe { self.ptr.as_ref() }
     }
 
-    /// Create a [`JsString`] from a static string.
+    /// Create a [`JsString`] from a [`StaticString`] instance. This is assumed that the
+    /// static string referenced is available for the duration of the `JsString` instance
+    /// returned.
     #[inline]
     #[must_use]
-    pub const fn from_static_inner(src: &'static StaticJsString) -> Self {
+    pub const fn from_static(str: &'static StaticString) -> Self {
         Self {
-            ptr: NonNull::from_ref(src).cast(),
+            ptr: NonNull::from_ref(str).cast(),
         }
-    }
-
-    /// Create a [`JsString`] from a static [`JsStr`].
-    #[inline]
-    #[must_use]
-    pub fn from_static(src: JsStr<'static>) -> Self {
-        let string: &'static _ = Box::leak(Box::new(StaticJsString {
-            vtable: STATIC_VTABLE,
-            str: src,
-        }));
-        Self::from_static_inner(string)
     }
 
     /// Create a [`JsString`] from an existing `JsString` and start, end
@@ -774,13 +504,7 @@ impl JsString {
             unsafe { data_ptr.byte_add(start * 2) }
         };
 
-        let slice = Box::new(SliceString {
-            vtable: SLICE_VTABLE,
-            owned: data,
-            data: offset_ptr,
-            tagged_len: TaggedLen::new(end - start, is_latin1),
-            refcount: Cell::new(1),
-        });
+        let slice = Box::new(SliceString::new(data, offset_ptr, end - start, is_latin1));
 
         Self {
             ptr: NonNull::from(Box::leak(slice)).cast(),
@@ -788,7 +512,7 @@ impl JsString {
     }
 
     /// Create a [`JsString`] from an existing `JsString` and start, end
-    /// range. Returns None if the start/end are invalid.
+    /// range. Returns None if the start/end is invalid.
     #[inline]
     #[must_use]
     pub fn slice(&self, p1: usize, p2: usize) -> Option<JsString> {
@@ -808,27 +532,13 @@ impl JsString {
     pub(crate) fn kind(&self) -> JsStringKind {
         // Compare function pointers from the embedded vtable
         let clone_fn = self.vtable().clone as usize;
-        if clone_fn == seq_clone as usize {
+        if clone_fn == vtable::seq_clone as usize {
             JsStringKind::Sequence
-        } else if clone_fn == slice_clone as usize {
+        } else if clone_fn == vtable::slice_clone as usize {
             JsStringKind::Slice
         } else {
             JsStringKind::Static
         }
-    }
-
-    /// Check if the [`JsString`] is a [`SeqString`].
-    #[inline]
-    #[must_use]
-    pub fn is_seq(&self) -> bool {
-        self.vtable().clone as usize == seq_clone as usize
-    }
-
-    /// Check if the [`JsString`] is a [`SliceString`].
-    #[inline]
-    #[must_use]
-    pub fn is_slice(&self) -> bool {
-        self.vtable().clone as usize == slice_clone as usize
     }
 
     /// Get the inner pointer as a reference of type T.
@@ -848,8 +558,8 @@ impl JsString {
     #[inline]
     #[must_use]
     pub fn as_str(&self) -> JsStr<'_> {
-        // SAFETY: All JsString variants have vtable as first field.
-        unsafe { (self.vtable().as_str)(self.ptr) }
+        // SAFETY: All JsString variants have vtable as its first field.
+        unsafe { (self.vtable().as_str)(self.ptr()) }
     }
 
     /// Creates a new [`JsString`] from the concatenation of `x` and `y`.
@@ -879,8 +589,8 @@ impl JsString {
         let ptr = Self::allocate_seq(full_count, latin1_encoding);
 
         let string = {
-            // SAFETY: `allocate_inner` guarantees that `ptr` is a valid pointer.
-            let mut data = unsafe { (&raw mut (*ptr.as_ptr()).data).cast::<u8>() };
+            // SAFETY: `allocate_inner` guarantees that `ptr` is a valid pointer to a SeqString.
+            let mut data = unsafe { ptr.as_ref().data().cast_mut() };
             for &string in strings {
                 // SAFETY:
                 // The sum of all `count` for each `string` equals `full_count`, and since we're
@@ -960,7 +670,7 @@ impl JsString {
         .map(|(layout, offset)| (layout.pad_to_align(), offset))
         .map_err(|_| None)?;
 
-        debug_assert_eq!(offset, DATA_OFFSET);
+        debug_assert_eq!(offset, vtable::DATA_OFFSET);
         debug_assert_eq!(layout.align(), align_of::<SeqString>());
 
         #[allow(clippy::cast_ptr_alignment)]
@@ -979,12 +689,7 @@ impl JsString {
         // meaning we can write to its pointed memory.
         unsafe {
             // Write the first part, the `SeqString`.
-            inner.as_ptr().write(SeqString {
-                vtable: SEQ_VTABLE,
-                tagged_len: TaggedLen::new(str_len, latin1),
-                refcount: Cell::new(1),
-                data: [0; 0],
-            });
+            inner.as_ptr().write(SeqString::new(str_len, latin1));
         }
 
         debug_assert!({
@@ -993,13 +698,13 @@ impl JsString {
             // - `inner` must be a valid pointer, since it comes from a `NonNull`,
             // meaning we can safely dereference it to `SeqString`.
             // - `offset` should point us to the beginning of the array,
-            // and since we requested an `SeqString` layout with a trailing
+            // and since we requested a `SeqString` layout with a trailing
             // `[u16; str_len]`, the memory of the array must be in the `usize`
             // range for the allocation to succeed.
             unsafe {
                 ptr::eq(
                     inner.cast::<u8>().add(offset).cast(),
-                    (*inner).data.as_mut_ptr(),
+                    (*inner).data().cast_mut(),
                 )
             }
         });
@@ -1013,7 +718,7 @@ impl JsString {
         let ptr = Self::allocate_seq(count, string.is_latin1());
 
         // SAFETY: `allocate_inner` guarantees that `ptr` is a valid pointer.
-        let data = unsafe { (&raw mut (*ptr.as_ptr()).data).cast::<u8>() };
+        let data = unsafe { ptr.as_ref().data().cast_mut() };
 
         // SAFETY:
         // - We read `count = data.len()` elements from `data`, which is within the bounds of the slice.
@@ -1047,20 +752,31 @@ impl JsString {
         Self::from_slice_skip_interning(string)
     }
 
+    /// Gets the pointer as a reference that can be used to call methods in
+    /// [`JsStringVTable<()>`].
+    ///
+    /// SAFETY: the caller is responsible for validating the type.
+    #[inline]
+    #[must_use]
+    const unsafe fn ptr(&self) -> &() {
+        // SAFETY: the caller is responsible for validating the type.
+        unsafe { self.ptr.cast().as_ref() }
+    }
+
     /// Gets the number of `JsString`s which point to this allocation.
     #[inline]
     #[must_use]
     pub fn refcount(&self) -> Option<usize> {
-        // SAFETY: All JsString variants have vtable as first field.
-        unsafe { (self.vtable().refcount)(self.ptr) }
+        // SAFETY: All JsString variants have vtable as its first field.
+        unsafe { (self.vtable().refcount)(self.ptr()) }
     }
 }
 
 impl Clone for JsString {
     #[inline]
     fn clone(&self) -> Self {
-        // SAFETY: All JsString variants have vtable as first field.
-        unsafe { (self.vtable().clone)(self.ptr) }
+        // SAFETY: All JsString variants have vtable as its first field.
+        unsafe { (self.vtable().clone)(self.ptr()) }
     }
 }
 
@@ -1074,8 +790,8 @@ impl Default for JsString {
 impl Drop for JsString {
     #[inline]
     fn drop(&mut self) {
-        // SAFETY: All JsString variants have vtable as first field.
-        unsafe { (self.vtable().drop)(self.ptr) }
+        // SAFETY: All JsString variants have vtable as its first field.
+        unsafe { (self.vtable().drop)(self.ptr()) }
     }
 }
 

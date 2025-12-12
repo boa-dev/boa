@@ -1,6 +1,6 @@
 //! Display implementations for [`JsString`].
 
-use crate::{CodePoint, JsStr, JsStrVariant, JsString, JsStringKind, SeqString, SliceString};
+use crate::{CodePoint, JsStr, JsStrVariant, JsString, JsStringKind, SliceString};
 use std::cell::RefCell;
 use std::fmt;
 use std::fmt::Write;
@@ -91,15 +91,15 @@ impl fmt::Debug for JsStringDebugInfo<'_> {
         // Show kind specific fields from string.
         match self.inner.kind() {
             JsStringKind::Sequence => {
-                // SAFETY: Just verified the kind.
-                let seq: &SeqString = unsafe { self.inner.as_inner() };
-                dbg.borrow_mut().field("refcount", &seq.refcount.get());
+                if let Some(rc) = self.inner.refcount() {
+                    dbg.borrow_mut().field("refcount", &rc);
+                }
             }
             JsStringKind::Slice => {
                 // SAFETY: Just verified the kind.
                 let slice: &SliceString = unsafe { self.inner.as_inner() };
                 dbg.borrow_mut()
-                    .field("original", &slice.owned.debug_info());
+                    .field("original", &slice.owned().debug_info());
             }
             JsStringKind::Static => {}
         }

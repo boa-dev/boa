@@ -1,10 +1,7 @@
-use crate::{
-    DATA_OFFSET, JsStr, JsStrVariant, JsString, SEQ_VTABLE, SeqString, TaggedLen, alloc_overflow,
-};
+use crate::{JsStr, JsStrVariant, JsString, SeqString, alloc_overflow};
 
 use std::{
     alloc::{Layout, alloc, dealloc, realloc},
-    cell::Cell,
     marker::PhantomData,
     ops::{Add, AddAssign},
     ptr::{self, NonNull},
@@ -78,7 +75,7 @@ impl<D: Copy> JsStringBuilder<D> {
     /// Returns the capacity calculated from given layout.
     #[must_use]
     const fn capacity_from_layout(layout: Layout) -> usize {
-        (layout.size() - DATA_OFFSET) / Self::DATA_SIZE
+        (layout.size() - crate::vtable::DATA_OFFSET) / Self::DATA_SIZE
     }
 
     /// Create a new `JsStringBuilder` with specific capacity
@@ -139,7 +136,7 @@ impl<D: Copy> JsStringBuilder<D> {
     const unsafe fn data(&self) -> *mut D {
         // SAFETY:
         // Caller should ensure that the inner is allocated.
-        unsafe { (&raw mut (*self.inner.as_ptr()).data).cast() }
+        unsafe { self.inner.as_ref() }.data().cast_mut().cast()
     }
 
     /// Allocates when there is not sufficient capacity.
@@ -228,7 +225,7 @@ impl<D: Copy> JsStringBuilder<D> {
             .map_err(|_| None);
         match new_layout {
             Ok((new_layout, offset)) => {
-                debug_assert_eq!(offset, DATA_OFFSET);
+                debug_assert_eq!(offset, crate::vtable::DATA_OFFSET);
                 new_layout
             }
             Err(None) => alloc_overflow(),
@@ -369,12 +366,7 @@ impl<D: Copy> JsStringBuilder<D> {
         // `NonNull` verified for us that the pointer returned by `alloc` is valid,
         // meaning we can write to its pointed memory.
         unsafe {
-            inner.as_ptr().write(SeqString {
-                vtable: SEQ_VTABLE,
-                tagged_len: TaggedLen::new(len, latin1),
-                refcount: Cell::new(1),
-                data: [0; 0],
-            });
+            inner.as_ptr().write(SeqString::new(len, latin1));
         }
 
         // Tell the compiler not to call the destructor of `JsStringBuilder`,
