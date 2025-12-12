@@ -201,8 +201,9 @@ fn to_std_string_escaped() {
 fn from_static_js_string() {
     static STATIC_HELLO_WORLD: StaticJsString =
         StaticJsString::new(JsStr::latin1("hello world".as_bytes()));
-    static STATIC_EMOJIS: StaticJsString =
-        StaticJsString::new(JsStr::utf16(&[0xD83C, 0xDFB9, 0xD83C, 0xDFB6, 0xD83C, 0xDFB5])); // 🎹🎶🎵
+    static STATIC_EMOJIS: StaticJsString = StaticJsString::new(JsStr::utf16(&[
+        0xD83C, 0xDFB9, 0xD83C, 0xDFB6, 0xD83C, 0xDFB5,
+    ])); // 🎹🎶🎵
 
     let latin1 = JsString::from_static_inner(&STATIC_HELLO_WORLD);
     let utf16 = JsString::from_static_inner(&STATIC_EMOJIS);
@@ -232,8 +233,9 @@ fn from_static_js_string() {
 fn compare_static_and_dynamic_js_string() {
     static STATIC_HELLO_WORLD: StaticJsString =
         StaticJsString::new(JsStr::latin1("hello world".as_bytes()));
-    static STATIC_EMOJIS: StaticJsString =
-        StaticJsString::new(JsStr::utf16(&[0xD83C, 0xDFB9, 0xD83C, 0xDFB6, 0xD83C, 0xDFB5])); // 🎹🎶🎵
+    static STATIC_EMOJIS: StaticJsString = StaticJsString::new(JsStr::utf16(&[
+        0xD83C, 0xDFB9, 0xD83C, 0xDFB6, 0xD83C, 0xDFB5,
+    ])); // 🎹🎶🎵
 
     let static_latin1 = JsString::from_static_inner(&STATIC_HELLO_WORLD);
     let static_utf16 = JsString::from_static_inner(&STATIC_EMOJIS);

@@ -222,7 +222,7 @@ const MAX_STATIC_LENGTH: usize = {
     max
 };
 
-/// Map from a JsStr to its corresponding `StaticJsString`.
+/// Map from a `JsStr` to its corresponding `StaticJsString`.
 static RAW_STATICS_CACHE: LazyLock<FxHashMap<JsStr<'static>, &'static StaticJsString>> =
     LazyLock::new(|| RAW_STATICS.iter().map(|s| (s.str, s)).collect());
 

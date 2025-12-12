@@ -43,7 +43,7 @@ use std::{
 };
 use std::{borrow::Cow, mem::ManuallyDrop};
 
-/// Embedded vtable for JsString operations. This is stored directly in each string
+/// Embedded vtable for `JsString` operations. This is stored directly in each string
 /// struct (not as a reference) to eliminate one level of indirection on hot paths.
 #[derive(Debug, Clone, Copy)]
 #[repr(C)]
@@ -52,7 +52,7 @@ struct JsStringVTable {
     clone: unsafe fn(NonNull<()>) -> JsString,
     /// Drop the string, decrementing the refcount and freeing if needed.
     drop: unsafe fn(NonNull<()>),
-    /// Get the string as a JsStr.
+    /// Get the string as a `JsStr`.
     as_str: unsafe fn(NonNull<()>) -> JsStr<'static>,
     /// Get the length of the string.
     len: unsafe fn(NonNull<()>) -> usize,
@@ -132,7 +132,7 @@ impl TaggedLen {
 /// A sequential memory array of strings.
 #[repr(C, align(8))]
 struct SeqString {
-    /// Embedded VTable - must be first field for vtable dispatch.
+    /// Embedded `VTable` - must be first field for vtable dispatch.
     vtable: JsStringVTable,
     tagged_len: TaggedLen,
     refcount: Cell<usize>,
@@ -142,7 +142,7 @@ struct SeqString {
 /// A slice of an existing string.
 #[repr(C, align(8))]
 struct SliceString {
-    /// Embedded VTable - must be first field for vtable dispatch.
+    /// Embedded `VTable` - must be first field for vtable dispatch.
     vtable: JsStringVTable,
     // Keep this for refcounting the original string.
     owned: JsString,
@@ -159,7 +159,7 @@ struct SliceString {
 #[derive(Debug, Clone, Copy)]
 #[repr(C, align(8))]
 pub struct StaticJsString {
-    /// Embedded VTable - must be first field for vtable dispatch.
+    /// Embedded `VTable` - must be first field for vtable dispatch.
     vtable: JsStringVTable,
     /// The actual string data.
     pub(crate) str: JsStr<'static>,
@@ -236,6 +236,8 @@ unsafe fn seq_len(ptr: NonNull<()>) -> usize {
     unsafe { ptr.cast::<SeqString>().as_ref() }.tagged_len.len()
 }
 
+/// `VTable` function for refcount, need to return an `Option<usize>`.
+#[allow(clippy::unnecessary_wraps)]
 unsafe fn seq_refcount(ptr: NonNull<()>) -> Option<usize> {
     // SAFETY: Caller guarantees ptr points to a SeqString.
     Some(unsafe { ptr.cast::<SeqString>().as_ref() }.refcount.get())
@@ -348,7 +350,7 @@ unsafe fn static_refcount(_ptr: NonNull<()>) -> Option<usize> {
     None
 }
 
-/// VTable for static strings.
+/// `VTable` for static strings.
 static STATIC_VTABLE: JsStringVTable = JsStringVTable {
     clone: static_clone,
     drop: static_drop,
@@ -422,7 +424,7 @@ const DATA_OFFSET: usize = size_of::<SeqString>();
 #[allow(clippy::module_name_repetitions)]
 pub struct JsString {
     /// Pointer to the string data. Always points to a struct whose first field is
-    /// `&'static JsStringVTable` (SeqString, SliceString, or StaticJsString).
+    /// `&'static JsStringVTable` (`SeqString`, `SliceString`, or `StaticJsString`).
     ptr: NonNull<()>,
 }
 

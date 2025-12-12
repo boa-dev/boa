@@ -381,9 +381,7 @@ impl<D: Copy> JsStringBuilder<D> {
         // because we move inner `RawJsString` to `JsString`.
         std::mem::forget(self);
 
-        JsString {
-            ptr: inner.cast(),
-        }
+        JsString { ptr: inner.cast() }
     }
 }
 
