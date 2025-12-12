@@ -515,14 +515,15 @@ impl JsString {
     /// range. Returns None if the start/end is invalid.
     #[inline]
     #[must_use]
-    pub fn slice(&self, p1: usize, p2: usize) -> Option<JsString> {
-        if p1 > p2 || p2 > self.len() {
-            None
-        } else if p1 == p2 {
-            Some(StaticJsStrings::EMPTY_STRING)
+    pub fn slice(&self, p1: usize, mut p2: usize) -> JsString {
+        if p2 > self.len() {
+            p2 = self.len();
+        }
+        if p1 >= p2 {
+            StaticJsStrings::EMPTY_STRING
         } else {
             // SAFETY: We just checked the conditions.
-            Some(unsafe { Self::slice_unchecked(self.clone(), p1, p2) })
+            unsafe { Self::slice_unchecked(self.clone(), p1, p2) }
         }
     }
 

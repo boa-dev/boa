@@ -75,7 +75,7 @@ pub(crate) struct SliceString {
     /// Embedded `VTable` - must be first field for vtable dispatch.
     vtable: JsStringVTable<SliceString>,
     // Keep this for refcounting the original string.
-    owned: JsString,
+    owned: NonNull<JsStringVTable<()>>,
     // Pointer to the data itself. This is guaranteed to be safe as long as `owned` is
     // owned.
     data: NonNull<u8>,
@@ -92,7 +92,7 @@ impl SliceString {
     pub(super) fn new(owned: JsString, data: NonNull<u8>, len: usize, is_latin1: bool) -> Self {
         SliceString {
             vtable: SLICE_VTABLE,
-            owned,
+            owned: owned.ptr,
             data,
             tagged_len: TaggedLen::new(len, is_latin1),
             refcount: Cell::new(1),
@@ -102,8 +102,9 @@ impl SliceString {
     /// Returns the owned string as a const reference.
     #[inline]
     #[must_use]
-    pub(crate) fn owned(&self) -> &JsString {
-        &self.owned
+    pub(crate) fn owned(&self) -> &JsStringVTable<()> {
+        // SAFETY: owned is always pointing to a valid VTable.
+        unsafe { self.owned.as_ref() }
     }
 }
 
@@ -247,7 +248,7 @@ fn slice_len(this: &SliceString) -> usize {
 }
 
 fn slice_refcount(this: &SliceString) -> Option<usize> {
-    this.owned.refcount()
+    Some(this.refcount.get())
 }
 
 static SLICE_VTABLE: JsStringVTable<SliceString> = JsStringVTable {
