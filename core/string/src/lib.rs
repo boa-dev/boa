@@ -116,8 +116,8 @@ impl TaggedLen {
     }
 }
 
-/// Strings can be represented internally by multiple kinds. This is used as the tag for the
-/// tagged pointer in [`JsString`].
+/// Strings can be represented internally by multiple kinds. This is used to identify
+/// the storage kind of a string.
 #[derive(Debug, Clone, Copy, Eq, PartialEq)]
 pub(crate) enum JsStringKind {
     /// A sequential memory slice of either UTF-8 or UTF-16. See [`SeqString`].
@@ -143,8 +143,11 @@ pub(crate) enum JsStringKind {
 ///
 /// # Internal representation
 ///
-/// The `ptr` field always points to a structure whose first field is `&'static JsStringVTable`.
+/// The `ptr` field always points to a structure whose first field is a `JsStringVTable`.
 /// This enables uniform vtable dispatch for all string operations without branching.
+///
+/// Because we ensure this invariant at every construction, we can directly point to this
+/// type to allow for better optimization (and simpler code).
 #[allow(clippy::module_name_repetitions)]
 pub struct JsString {
     /// Pointer to the string data. Always points to a struct whose first field is
@@ -152,7 +155,7 @@ pub struct JsString {
     ptr: NonNull<JsStringVTable<()>>,
 }
 
-// `JsString` should always be pointer sized.
+// `JsString` should always be thin-pointer sized.
 static_assertions::assert_eq_size!(JsString, *const ());
 
 impl<'a> From<&'a JsString> for JsStr<'a> {
