@@ -205,8 +205,8 @@ fn from_static_js_string() {
         0xD83C, 0xDFB9, 0xD83C, 0xDFB6, 0xD83C, 0xDFB5,
     ])); // 🎹🎶🎵
 
-    let latin1 = JsString::from_static_inner(&STATIC_HELLO_WORLD);
-    let utf16 = JsString::from_static_inner(&STATIC_EMOJIS);
+    let latin1 = JsString::from_static(&STATIC_HELLO_WORLD);
+    let utf16 = JsString::from_static(&STATIC_EMOJIS);
 
     // content compare
     assert_eq!(latin1, "hello world");
@@ -237,8 +237,8 @@ fn compare_static_and_dynamic_js_string() {
         0xD83C, 0xDFB9, 0xD83C, 0xDFB6, 0xD83C, 0xDFB5,
     ])); // 🎹🎶🎵
 
-    let static_latin1 = JsString::from_static_inner(&STATIC_HELLO_WORLD);
-    let static_utf16 = JsString::from_static_inner(&STATIC_EMOJIS);
+    let static_latin1 = JsString::from_static(&STATIC_HELLO_WORLD);
+    let static_utf16 = JsString::from_static(&STATIC_EMOJIS);
 
     let dynamic_latin1 = JsString::from(JsStr::latin1("hello world".as_bytes()));
     let dynamic_utf16 = JsString::from(&[0xD83C, 0xDFB9, 0xD83C, 0xDFB6, 0xD83C, 0xDFB5]);
@@ -498,35 +498,35 @@ fn slice() {
         let base_str = JsString::from("Hello World");
         assert_eq!(base_str.kind(), JsStringKind::Sequence);
 
-        base_str.slice(1, 5).unwrap()
+        base_str.slice(1, 5)
     };
     assert_eq!(sliced, JsString::from("ello"));
     assert_eq!(sliced.kind(), JsStringKind::Slice);
 
-    let sliced2 = sliced.slice(1, 3).unwrap();
+    let sliced2 = sliced.slice(1, 3);
     drop(sliced);
     assert_eq!(sliced2, JsString::from("ll"));
     assert_eq!(sliced2.kind(), JsStringKind::Slice);
 
-    let sliced3 = sliced2.slice(0, 2).unwrap();
+    let sliced3 = sliced2.slice(0, 2);
     drop(sliced2);
     assert_eq!(sliced3, JsString::from("ll"));
     assert_eq!(sliced3.kind(), JsStringKind::Slice);
 
-    let sliced4 = sliced3.slice(0, 2).unwrap();
+    let sliced4 = sliced3.slice(0, 2);
     drop(sliced3);
     assert_eq!(sliced4, JsString::from("ll"));
     assert_eq!(sliced4.kind(), JsStringKind::Slice);
 
-    let sliced4 = sliced4.slice(0, 2).unwrap();
+    let sliced4 = sliced4.slice(0, 2);
     assert_eq!(sliced4, JsString::from("ll"));
     assert_eq!(sliced4.kind(), JsStringKind::Slice);
 
-    let sliced5 = sliced4.slice(1, 1).unwrap();
+    let sliced5 = sliced4.slice(1, 1);
     assert_eq!(sliced5, JsString::from(""));
     assert_eq!(sliced5.kind(), JsStringKind::Static);
 
-    assert_eq!(sliced5.slice(4, 4), None);
+    assert_eq!(sliced5.slice(4, 4), StaticJsStrings::EMPTY_STRING);
 }
 
 #[test]
@@ -534,8 +534,8 @@ fn split() {
     let base_str = JsString::from("Hello World");
     assert_eq!(base_str.kind(), JsStringKind::Sequence);
 
-    let str1 = base_str.slice(0, 5).unwrap();
-    let str2 = base_str.slice(6, base_str.len()).unwrap();
+    let str1 = base_str.slice(0, 5);
+    let str2 = base_str.slice(6, base_str.len());
 
     assert_eq!(str1, JsString::from("Hello"));
     assert_eq!(str2, JsString::from("World"));

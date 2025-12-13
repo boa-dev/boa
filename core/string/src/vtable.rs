@@ -89,7 +89,7 @@ impl SliceString {
     /// Create a new slice string given its members.
     #[inline]
     #[must_use]
-    pub(super) fn new(owned: JsString, data: NonNull<u8>, len: usize, is_latin1: bool) -> Self {
+    pub(super) fn new(owned: &JsString, data: NonNull<u8>, len: usize, is_latin1: bool) -> Self {
         SliceString {
             vtable: SLICE_VTABLE,
             owned: owned.ptr,
@@ -247,6 +247,8 @@ fn slice_len(this: &SliceString) -> usize {
     this.tagged_len.len()
 }
 
+/// `VTable` function for refcount, need to return an `Option<usize>`.
+#[allow(clippy::unnecessary_wraps)]
 fn slice_refcount(this: &SliceString) -> Option<usize> {
     Some(this.refcount.get())
 }

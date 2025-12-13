@@ -493,7 +493,7 @@ impl JsString {
     ///   - `end` <= `data.len()`.
     #[inline]
     #[must_use]
-    pub unsafe fn slice_unchecked(data: JsString, start: usize, end: usize) -> Self {
+    pub unsafe fn slice_unchecked(data: &JsString, start: usize, end: usize) -> Self {
         let str = data.as_str();
         let is_latin1 = str.is_latin1();
         let data_ptr = str.as_ptr();
@@ -507,7 +507,7 @@ impl JsString {
             unsafe { data_ptr.byte_add(start * 2) }
         };
 
-        let slice = Box::new(SliceString::new(data, offset_ptr, end - start, is_latin1));
+        let slice = Box::new(SliceString::new(&data, offset_ptr, end - start, is_latin1));
 
         Self {
             ptr: NonNull::from(Box::leak(slice)).cast(),
@@ -526,7 +526,7 @@ impl JsString {
             StaticJsStrings::EMPTY_STRING
         } else {
             // SAFETY: We just checked the conditions.
-            unsafe { Self::slice_unchecked(self.clone(), p1, p2) }
+            unsafe { Self::slice_unchecked(self, p1, p2) }
         }
     }
 
