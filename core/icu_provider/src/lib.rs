@@ -116,6 +116,7 @@ static PROVIDER: Lazy<LocaleFallbackProvider<MultiForkByMarkerProvider<LazyBuffe
             provider_from_icu_crate!(icu_casemap),
             provider_from_icu_crate!(icu_collator),
             provider_from_icu_crate!(icu_datetime),
+            provider_from_icu_crate!(icu_time),
             provider_from_icu_crate!(icu_decimal),
             provider_from_icu_crate!(icu_list),
             provider_from_icu_crate!(icu_locale),
