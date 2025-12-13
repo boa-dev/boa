@@ -1,15 +1,15 @@
+use super::iter::{CodePointsIter, Windows};
 use crate::{
     CodePoint, Iter, TaggedLen,
     display::{JsStrDisplayEscaped, JsStrDisplayLossy},
     is_trimmable_whitespace, is_trimmable_whitespace_latin1,
 };
+use std::ptr::NonNull;
 use std::{
     hash::{Hash, Hasher},
     marker::PhantomData,
     slice::SliceIndex,
 };
-
-use super::iter::{CodePointsIter, Windows};
 
 // Modified port of <https://doc.rust-lang.org/std/primitive.slice.html#method.trim_ascii_start>
 #[inline]
@@ -60,6 +60,7 @@ struct Inner<'a> {
 
 /// This is equivalent to Rust's `&str`.
 #[derive(Clone, Copy)]
+#[repr(align(8))]
 pub struct JsStr<'a> {
     inner: Inner<'a>,
 }
@@ -129,6 +130,14 @@ impl<'a> JsStr<'a> {
 
             JsStrVariant::Utf16(slice)
         }
+    }
+
+    /// Returns a pointer to the start of the data.
+    #[inline]
+    #[must_use]
+    pub(crate) const fn as_ptr(&self) -> NonNull<u8> {
+        // SAFETY: If this object is created, this should never be null.
+        unsafe { NonNull::new_unchecked(self.inner.ptr.cast_mut()) }
     }
 
     /// Check if the [`JsStr`] is latin1 encoded.
