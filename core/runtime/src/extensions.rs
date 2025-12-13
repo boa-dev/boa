@@ -87,6 +87,16 @@ impl<L: Logger + Debug + 'static> RuntimeExtension for ConsoleExtension<L> {
     }
 }
 
+/// Register the `Performance` JavaScript object.
+#[derive(Copy, Clone, Debug)]
+pub struct PerformanceExtension;
+
+impl RuntimeExtension for PerformanceExtension {
+    fn register(self, _realm: Option<Realm>, context: &mut Context) -> JsResult<()> {
+        crate::performance::Performance::register(context)
+    }
+}
+
 /// Register the `fetch` JavaScript API with the specified [`crate::fetch::Fetcher`].
 #[cfg(feature = "fetch")]
 #[derive(Debug)]
