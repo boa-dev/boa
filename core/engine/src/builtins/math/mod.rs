@@ -27,8 +27,146 @@ mod tests;
 pub(crate) struct Math;
 
 impl IntrinsicObject for Math {
+    #[allow(clippy::similar_names)]
     fn init(realm: &Realm) {
         let attribute = Attribute::READONLY | Attribute::NON_ENUMERABLE | Attribute::PERMANENT;
+
+        let math_intrinsics = realm.intrinsics().objects().math();
+
+        let abs_function = BuiltInBuilder::callable_with_object(
+            realm,
+            math_intrinsics.abs().clone().into(),
+            Self::abs,
+        )
+        .name(js_string!("abs"))
+        .length(1)
+        .build();
+
+        let floor_function = BuiltInBuilder::callable_with_object(
+            realm,
+            math_intrinsics.floor().clone().into(),
+            Self::floor,
+        )
+        .name(js_string!("floor"))
+        .length(1)
+        .build();
+
+        let ceil_function = BuiltInBuilder::callable_with_object(
+            realm,
+            math_intrinsics.ceil().clone().into(),
+            Self::ceil,
+        )
+        .name(js_string!("ceil"))
+        .length(1)
+        .build();
+
+        let round_function = BuiltInBuilder::callable_with_object(
+            realm,
+            math_intrinsics.round().clone().into(),
+            Self::round,
+        )
+        .name(js_string!("round"))
+        .length(1)
+        .build();
+
+        let sqrt_function = BuiltInBuilder::callable_with_object(
+            realm,
+            math_intrinsics.sqrt().clone().into(),
+            Self::sqrt,
+        )
+        .name(js_string!("sqrt"))
+        .length(1)
+        .build();
+
+        let pow_function = BuiltInBuilder::callable_with_object(
+            realm,
+            math_intrinsics.pow().clone().into(),
+            Self::pow,
+        )
+        .name(js_string!("pow"))
+        .length(2)
+        .build();
+
+        let random_function = BuiltInBuilder::callable_with_object(
+            realm,
+            math_intrinsics.random().clone().into(),
+            Self::random,
+        )
+        .name(js_string!("random"))
+        .length(0)
+        .build();
+
+        let log_function = BuiltInBuilder::callable_with_object(
+            realm,
+            math_intrinsics.log().clone().into(),
+            Self::log,
+        )
+        .name(js_string!("log"))
+        .length(1)
+        .build();
+
+        let exp_function = BuiltInBuilder::callable_with_object(
+            realm,
+            math_intrinsics.exp().clone().into(),
+            Self::exp,
+        )
+        .name(js_string!("exp"))
+        .length(1)
+        .build();
+
+        let log2_function = BuiltInBuilder::callable_with_object(
+            realm,
+            math_intrinsics.log2().clone().into(),
+            Self::log2,
+        )
+        .name(js_string!("log2"))
+        .length(1)
+        .build();
+
+        let log10_function = BuiltInBuilder::callable_with_object(
+            realm,
+            math_intrinsics.log10().clone().into(),
+            Self::log10,
+        )
+        .name(js_string!("log10"))
+        .length(1)
+        .build();
+
+        let max_function = BuiltInBuilder::callable_with_object(
+            realm,
+            math_intrinsics.max().clone().into(),
+            Self::max,
+        )
+        .name(js_string!("max"))
+        .length(2)
+        .build();
+
+        let min_function = BuiltInBuilder::callable_with_object(
+            realm,
+            math_intrinsics.min().clone().into(),
+            Self::min,
+        )
+        .name(js_string!("min"))
+        .length(2)
+        .build();
+
+        let sin_function = BuiltInBuilder::callable_with_object(
+            realm,
+            math_intrinsics.sin().clone().into(),
+            Self::sin,
+        )
+        .name(js_string!("sin"))
+        .length(1)
+        .build();
+
+        let cos_function = BuiltInBuilder::callable_with_object(
+            realm,
+            math_intrinsics.cos().clone().into(),
+            Self::cos,
+        )
+        .name(js_string!("cos"))
+        .length(1)
+        .build();
         let builder = BuiltInBuilder::with_intrinsic::<Self>(realm)
             .static_property(js_string!("E"), std::f64::consts::E, attribute)
             .static_property(js_string!("LN10"), std::f64::consts::LN_10, attribute)
@@ -42,7 +180,11 @@ impl IntrinsicObject for Math {
                 attribute,
             )
             .static_property(js_string!("SQRT2"), std::f64::consts::SQRT_2, attribute)
-            .static_method(Self::abs, js_string!("abs"), 1)
+            .static_property(
+                js_string!("abs"),
+                abs_function,
+                Attribute::WRITABLE | Attribute::NON_ENUMERABLE | Attribute::CONFIGURABLE,
+            )
             .static_method(Self::acos, js_string!("acos"), 1)
             .static_method(Self::acosh, js_string!("acosh"), 1)
             .static_method(Self::asin, js_string!("asin"), 1)
@@ -51,29 +193,85 @@ impl IntrinsicObject for Math {
             .static_method(Self::atanh, js_string!("atanh"), 1)
             .static_method(Self::atan2, js_string!("atan2"), 2)
             .static_method(Self::cbrt, js_string!("cbrt"), 1)
-            .static_method(Self::ceil, js_string!("ceil"), 1)
+            .static_property(
+                js_string!("ceil"),
+                ceil_function,
+                Attribute::WRITABLE | Attribute::NON_ENUMERABLE | Attribute::CONFIGURABLE,
+            )
             .static_method(Self::clz32, js_string!("clz32"), 1)
-            .static_method(Self::cos, js_string!("cos"), 1)
+            .static_property(
+                js_string!("cos"),
+                cos_function,
+                Attribute::WRITABLE | Attribute::NON_ENUMERABLE | Attribute::CONFIGURABLE,
+            )
             .static_method(Self::cosh, js_string!("cosh"), 1)
-            .static_method(Self::exp, js_string!("exp"), 1)
+            .static_property(
+                js_string!("exp"),
+                exp_function,
+                Attribute::WRITABLE | Attribute::NON_ENUMERABLE | Attribute::CONFIGURABLE,
+            )
             .static_method(Self::expm1, js_string!("expm1"), 1)
-            .static_method(Self::floor, js_string!("floor"), 1)
+            .static_property(
+                js_string!("floor"),
+                floor_function,
+                Attribute::WRITABLE | Attribute::NON_ENUMERABLE | Attribute::CONFIGURABLE,
+            )
             .static_method(Self::fround, js_string!("fround"), 1)
             .static_method(Self::hypot, js_string!("hypot"), 2)
             .static_method(Self::imul, js_string!("imul"), 2)
-            .static_method(Self::log, js_string!("log"), 1)
+            .static_property(
+                js_string!("log"),
+                log_function,
+                Attribute::WRITABLE | Attribute::NON_ENUMERABLE | Attribute::CONFIGURABLE,
+            )
+            .static_property(
+                js_string!("log2"),
+                log2_function,
+                Attribute::WRITABLE | Attribute::NON_ENUMERABLE | Attribute::CONFIGURABLE,
+            )
+            .static_property(
+                js_string!("log10"),
+                log10_function,
+                Attribute::WRITABLE | Attribute::NON_ENUMERABLE | Attribute::CONFIGURABLE,
+            )
             .static_method(Self::log1p, js_string!("log1p"), 1)
-            .static_method(Self::log10, js_string!("log10"), 1)
-            .static_method(Self::log2, js_string!("log2"), 1)
-            .static_method(Self::max, js_string!("max"), 2)
-            .static_method(Self::min, js_string!("min"), 2)
-            .static_method(Self::pow, js_string!("pow"), 2)
-            .static_method(Self::random, js_string!("random"), 0)
-            .static_method(Self::round, js_string!("round"), 1)
+            .static_property(
+                js_string!("max"),
+                max_function,
+                Attribute::WRITABLE | Attribute::NON_ENUMERABLE | Attribute::CONFIGURABLE,
+            )
+            .static_property(
+                js_string!("min"),
+                min_function,
+                Attribute::WRITABLE | Attribute::NON_ENUMERABLE | Attribute::CONFIGURABLE,
+            )
+            .static_property(
+                js_string!("pow"),
+                pow_function,
+                Attribute::WRITABLE | Attribute::NON_ENUMERABLE | Attribute::CONFIGURABLE,
+            )
+            .static_property(
+                js_string!("random"),
+                random_function,
+                Attribute::WRITABLE | Attribute::NON_ENUMERABLE | Attribute::CONFIGURABLE,
+            )
+            .static_property(
+                js_string!("round"),
+                round_function,
+                Attribute::WRITABLE | Attribute::NON_ENUMERABLE | Attribute::CONFIGURABLE,
+            )
             .static_method(Self::sign, js_string!("sign"), 1)
-            .static_method(Self::sin, js_string!("sin"), 1)
+            .static_property(
+                js_string!("sin"),
+                sin_function,
+                Attribute::WRITABLE | Attribute::NON_ENUMERABLE | Attribute::CONFIGURABLE,
+            )
             .static_method(Self::sinh, js_string!("sinh"), 1)
-            .static_method(Self::sqrt, js_string!("sqrt"), 1)
+            .static_property(
+                js_string!("sqrt"),
+                sqrt_function,
+                Attribute::WRITABLE | Attribute::NON_ENUMERABLE | Attribute::CONFIGURABLE,
+            )
             .static_method(Self::tan, js_string!("tan"), 1)
             .static_method(Self::tanh, js_string!("tanh"), 1)
             .static_method(Self::trunc, js_string!("trunc"), 1)
@@ -93,7 +291,7 @@ impl IntrinsicObject for Math {
     }
 
     fn get(intrinsics: &Intrinsics) -> JsObject {
-        intrinsics.objects().math()
+        intrinsics.objects().math().object()
     }
 }
 

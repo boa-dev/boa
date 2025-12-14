@@ -117,7 +117,8 @@ full_benchmarks!(
     {"String Object Access", string_object_access},
     {"Arithmetic operations", arithmetic_operations},
     {"Clean js", clean_js},
-    {"Mini js", mini_js}
+    {"Mini js", mini_js},
+    {"Math builtins", math_builtins}
 );
 
 criterion_group!(

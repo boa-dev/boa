@@ -103,6 +103,56 @@ pub(crate) enum BindingOpcode {
     SetName,
 }
 
+/// Builtin functions that can be called with the `CallBuiltin` opcode.
+#[derive(Clone, Copy, Debug, PartialEq)]
+#[repr(u8)]
+pub(crate) enum Builtin {
+    MathAbs,
+    MathFloor,
+    MathCeil,
+    MathRound,
+    MathSqrt,
+    MathPow,
+    MathRandom,
+    MathLog,
+    MathExp,
+    MathLog2,
+    MathLog10,
+    MathMax,
+    MathSin,
+    MathCos,
+    MathMin,
+}
+
+impl From<Builtin> for u8 {
+    fn from(builtin: Builtin) -> Self {
+        builtin as u8
+    }
+}
+
+impl From<u8> for Builtin {
+    fn from(value: u8) -> Self {
+        match value {
+            0 => Self::MathAbs,
+            1 => Self::MathFloor,
+            2 => Self::MathCeil,
+            3 => Self::MathRound,
+            4 => Self::MathSqrt,
+            5 => Self::MathPow,
+            6 => Self::MathRandom,
+            7 => Self::MathLog,
+            8 => Self::MathExp,
+            9 => Self::MathLog2,
+            10 => Self::MathLog10,
+            11 => Self::MathMax,
+            12 => Self::MathMin,
+            13 => Self::MathSin,
+            14 => Self::MathCos,
+            _ => unreachable!("Invalid builtin value: {}", value),
+        }
+    }
+}
+
 /// The `Operation` trait implements the execution code along with the
 /// identifying Name and Instruction value for an Boa Opcode.
 ///
@@ -203,7 +253,7 @@ pub(crate) struct ByteCode {
 }
 
 /// The enum representation of [`VaryingOperand`] values.
-enum VaryingOperandVariant {
+pub(crate) enum VaryingOperandVariant {
     U8(u8),
     U16(u16),
     U32(u32),
@@ -222,7 +272,7 @@ impl VaryingOperand {
     }
 
     /// Return the variant of the [`VaryingOperand`].
-    fn variant(self) -> VaryingOperandVariant {
+    pub(crate) fn variant(self) -> VaryingOperandVariant {
         if let Ok(value) = u8::try_from(self.value) {
             VaryingOperandVariant::U8(value)
         } else if let Ok(value) = u16::try_from(self.value) {
@@ -2136,8 +2186,16 @@ generate_opcodes! {
     /// [spec]: https://tc39.es/ecma262/#sec-createglobalvarbinding
     CreateGlobalVarBinding { configurable: VaryingOperand, name_index: VaryingOperand },
 
-    /// Reserved [`Opcode`].
-    Reserved1 => Reserved,
+    /// Call a builtin function.
+   ///
+   /// - Operands:
+   ///   - builtin: `Builtin`
+   ///   - argument_count: `VaryingOperand`
+   /// - Stack: this, func, argument_1, ... argument_n **=>** result
+    CallBuiltin { builtin: Builtin, argument_count: VaryingOperand },
+
+   /// Reserved [`Opcode`].
+   Reserved1 => Reserved,
     /// Reserved [`Opcode`].
     Reserved2 => Reserved,
     /// Reserved [`Opcode`].
@@ -2254,6 +2312,4 @@ generate_opcodes! {
     Reserved58 => Reserved,
     /// Reserved [`Opcode`].
     Reserved59 => Reserved,
-    /// Reserved [`Opcode`].
-    Reserved60 => Reserved,
 }
