@@ -14,6 +14,8 @@ members = [
     "cli",
     # UTILS
     "utils/*",
+    # BENCHES
+    "benches",
 ]
 
 exclude = [

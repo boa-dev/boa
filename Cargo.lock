@@ -348,6 +348,16 @@ dependencies = [
 ]
 
 [[package]]
+name = "boa_benches"
+version = "0.1.0"
+dependencies = [
+ "boa_engine",
+ "boa_runtime",
+ "criterion",
+ "jemallocator",
+]
+
+[[package]]
 name = "boa_cli"
 version = "1.0.0-dev"
 dependencies = [

@@ -1,0 +1,19 @@
+[package]
+name = "boa_benches"
+version = "0.1.0"
+edition = "2024"
+publish = false
+
+[dependencies]
+boa_engine.workspace = true
+boa_runtime.workspace = true
+
+[dev-dependencies]
+criterion.workspace = true
+
+[target.x86_64-unknown-linux-gnu.dev-dependencies]
+jemallocator.workspace = true
+
+[[bench]]
+name = "string_slice"
+harness = false
