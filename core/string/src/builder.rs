@@ -1,6 +1,5 @@
-use crate::{JsStr, JsStrVariant, JsString, SeqString, alloc_overflow};
-
-use crate::vtable::DATA_OFFSET;
+use crate::vtable::sequence::DATA_OFFSET;
+use crate::{JsStr, JsStrVariant, JsString, SequenceString, alloc_overflow};
 use std::{
     alloc::{Layout, alloc, dealloc, realloc},
     marker::PhantomData,
@@ -14,7 +13,7 @@ use std::{
 pub struct JsStringBuilder<D: Copy> {
     cap: usize,
     len: usize,
-    inner: NonNull<SeqString>,
+    inner: NonNull<SequenceString>,
     phantom_data: PhantomData<D>,
 }
 
@@ -170,7 +169,7 @@ impl<D: Copy> JsStringBuilder<D> {
             // the length of the string and the reference count.
             unsafe { alloc(new_layout) }
         };
-        let Some(new_ptr) = NonNull::new(new_ptr.cast::<SeqString>()) else {
+        let Some(new_ptr) = NonNull::new(new_ptr.cast::<SequenceString>()) else {
             std::alloc::handle_alloc_error(new_layout)
         };
         self.inner = new_ptr;
@@ -221,7 +220,7 @@ impl<D: Copy> JsStringBuilder<D> {
 
     fn new_layout(cap: usize) -> Layout {
         let new_layout = Layout::array::<D>(cap)
-            .and_then(|arr| Layout::new::<SeqString>().extend(arr))
+            .and_then(|arr| Layout::new::<SequenceString>().extend(arr))
             .map(|(layout, offset)| (layout.pad_to_align(), offset))
             .map_err(|_| None);
         match new_layout {
@@ -367,7 +366,7 @@ impl<D: Copy> JsStringBuilder<D> {
         // `NonNull` verified for us that the pointer returned by `alloc` is valid,
         // meaning we can write to its pointed memory.
         unsafe {
-            inner.as_ptr().write(SeqString::new(len, latin1));
+            inner.as_ptr().write(SequenceString::new(len, latin1));
         }
 
         // Tell the compiler not to call the destructor of `JsStringBuilder`,

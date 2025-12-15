@@ -26,7 +26,7 @@ mod tests;
 use self::{iter::Windows, str::JsSliceIndex};
 use crate::display::{JsStrDisplayEscaped, JsStrDisplayLossy, JsStringDebugInfo};
 pub use crate::vtable::StaticString;
-use crate::vtable::{SeqString, SliceString};
+use crate::vtable::{SequenceString, SliceString};
 #[doc(inline)]
 pub use crate::{
     builder::{CommonJsStringBuilder, Latin1JsStringBuilder, Utf16JsStringBuilder},
@@ -117,11 +117,11 @@ impl TaggedLen {
 }
 
 /// Strings can be represented internally by multiple kinds. This is used to identify
-/// the storage kind of a string.
+/// the storage kind of string.
 #[derive(Debug, Clone, Copy, Eq, PartialEq)]
 #[repr(u8)]
 pub(crate) enum JsStringKind {
-    /// A sequential memory slice of either UTF-8 or UTF-16. See [`SeqString`].
+    /// A sequential memory slice of either UTF-8 or UTF-16. See [`SequenceString`].
     Sequence = 0,
 
     /// A slice of an existing string. See [`SliceString`].
@@ -582,10 +582,10 @@ impl JsString {
         let ptr = Self::allocate_seq(full_count, latin1_encoding);
 
         let string = {
-            // SAFETY: `allocate_inner` guarantees that `ptr` is a valid pointer to a SeqString.
+            // SAFETY: `allocate_inner` guarantees that `ptr` is a valid pointer to a `SequenceString`.
             let mut data = unsafe {
                 let seq_ptr = ptr.as_ptr().cast::<u8>();
-                seq_ptr.add(size_of::<SeqString>())
+                seq_ptr.add(size_of::<SequenceString>())
             };
             for &string in strings {
                 // SAFETY:
@@ -632,12 +632,12 @@ impl JsString {
         StaticJsStrings::get_string(&string.as_str()).unwrap_or(string)
     }
 
-    /// Allocates a new [`SeqString`] with an internal capacity of `str_len` chars.
+    /// Allocates a new [`SequenceString`] with an internal capacity of `str_len` chars.
     ///
     /// # Panics
     ///
     /// Panics if `try_allocate_inner` returns `Err`.
-    fn allocate_seq(str_len: usize, latin1: bool) -> NonNull<SeqString> {
+    fn allocate_seq(str_len: usize, latin1: bool) -> NonNull<SequenceString> {
         match Self::try_allocate_seq(str_len, latin1) {
             Ok(v) => v,
             Err(None) => alloc_overflow(),
@@ -647,7 +647,7 @@ impl JsString {
 
     // This is marked as safe because it is always valid to call this function to request any number
     // of `u16`, since this function ought to fail on an OOM error.
-    /// Allocates a new [`SeqString`] with an internal capacity of `str_len` chars.
+    /// Allocates a new [`SequenceString`] with an internal capacity of `str_len` chars.
     ///
     /// # Errors
     ///
@@ -656,24 +656,24 @@ impl JsString {
     fn try_allocate_seq(
         str_len: usize,
         latin1: bool,
-    ) -> Result<NonNull<SeqString>, Option<Layout>> {
+    ) -> Result<NonNull<SequenceString>, Option<Layout>> {
         let (layout, offset) = if latin1 {
             Layout::array::<u8>(str_len)
         } else {
             Layout::array::<u16>(str_len)
         }
-        .and_then(|arr| Layout::new::<SeqString>().extend(arr))
+        .and_then(|arr| Layout::new::<SequenceString>().extend(arr))
         .map(|(layout, offset)| (layout.pad_to_align(), offset))
         .map_err(|_| None)?;
 
-        debug_assert_eq!(offset, vtable::DATA_OFFSET);
-        debug_assert_eq!(layout.align(), align_of::<SeqString>());
+        debug_assert_eq!(offset, vtable::sequence::DATA_OFFSET);
+        debug_assert_eq!(layout.align(), align_of::<SequenceString>());
 
         #[allow(clippy::cast_ptr_alignment)]
         // SAFETY:
-        // The layout size of `SeqString` is never zero, since it has to store
+        // The layout size of `SequenceString` is never zero, since it has to store
         // the length of the string and the reference count.
-        let inner = unsafe { alloc(layout).cast::<SeqString>() };
+        let inner = unsafe { alloc(layout).cast::<SequenceString>() };
 
         // We need to verify that the pointer returned by `alloc` is not null, otherwise
         // we should abort, since an allocation error is pretty unrecoverable for us
@@ -684,17 +684,17 @@ impl JsString {
         // `NonNull` verified for us that the pointer returned by `alloc` is valid,
         // meaning we can write to its pointed memory.
         unsafe {
-            // Write the first part, the `SeqString`.
-            inner.as_ptr().write(SeqString::new(str_len, latin1));
+            // Write the first part, the `SequenceString`.
+            inner.as_ptr().write(SequenceString::new(str_len, latin1));
         }
 
         debug_assert!({
             let inner = inner.as_ptr();
             // SAFETY:
             // - `inner` must be a valid pointer, since it comes from a `NonNull`,
-            // meaning we can safely dereference it to `SeqString`.
+            // meaning we can safely dereference it to `SequenceString`.
             // - `offset` should point us to the beginning of the array,
-            // and since we requested a `SeqString` layout with a trailing
+            // and since we requested a `SequenceString` layout with a trailing
             // `[u16; str_len]`, the memory of the array must be in the `usize`
             // range for the allocation to succeed.
             unsafe {
