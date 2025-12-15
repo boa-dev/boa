@@ -355,6 +355,7 @@ dependencies = [
  "boa_runtime",
  "criterion",
  "jemallocator",
+ "walkdir",
 ]
 
 [[package]]

@@ -10,10 +10,11 @@ boa_runtime.workspace = true
 
 [dev-dependencies]
 criterion.workspace = true
+walkdir = "2"
 
 [target.x86_64-unknown-linux-gnu.dev-dependencies]
 jemallocator.workspace = true
 
 [[bench]]
-name = "string_slice"
+name = "scripts"
 harness = false
