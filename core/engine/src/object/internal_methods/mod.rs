@@ -564,7 +564,8 @@ pub(crate) fn ordinary_set_prototype_of(
         // c. Else,
         // i. If p.[[GetPrototypeOf]] is not the ordinary object internal method defined
         // in 10.1.1, set done to true.
-        else if proto.vtable().__get_prototype_of__ as usize != ordinary_get_prototype_of as usize
+        else if proto.vtable().__get_prototype_of__ as usize
+            != ordinary_get_prototype_of as *const () as usize
         {
             break;
         }
