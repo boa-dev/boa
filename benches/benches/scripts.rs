@@ -3,7 +3,7 @@ use boa_engine::{
     Context, JsValue, Source, js_string, optimizer::OptimizerOptions, script::Script,
 };
 use criterion::{Criterion, criterion_group, criterion_main};
-use std::path::Path;
+use std::{path::Path, time::Duration};
 
 #[cfg(all(target_arch = "x86_64", target_os = "linux", target_env = "gnu"))]
 #[global_allocator]
@@ -15,7 +15,13 @@ fn bench_scripts(c: &mut Criterion) {
     let scripts: Vec<_> = walkdir::WalkDir::new(&scripts_dir)
         .into_iter()
         .filter_map(|e| e.ok())
-        .filter(|e| e.path().extension().is_some_and(|ext| ext == "js"))
+        .filter(|e| {
+            let path = e.path();
+            path.extension().is_some_and(|ext| ext == "js")
+                && path
+                    .file_name()
+                    .is_some_and(|base| !base.display().to_string().starts_with("_"))
+        })
         .collect();
 
     for entry in scripts {
@@ -23,12 +29,15 @@ fn bench_scripts(c: &mut Criterion) {
         let code = std::fs::read_to_string(path).unwrap();
 
         // Create a nice benchmark name from the relative path
-        let name = path
-            .strip_prefix(&scripts_dir)
-            .unwrap()
-            .with_extension("")
-            .display()
-            .to_string();
+        let rel_path = path.strip_prefix(&scripts_dir).unwrap().with_extension("");
+        let name = rel_path.display().to_string();
+
+        let mut group = c.benchmark_group(&name);
+        // Use reduced sample size for slow benchmarks (e.g., v8-benches)
+        if rel_path.starts_with("v8-benches") {
+            group.sample_size(10);
+            group.measurement_time(Duration::from_secs(5));
+        }
 
         let context = &mut Context::default();
 
@@ -59,9 +68,10 @@ fn bench_scripts(c: &mut Criterion) {
             .unwrap_or_else(|| panic!("'main' is not a function in script: {}", path.display()))
             .clone();
 
-        c.bench_function(&format!("{name} (Execution)"), |b| {
+        group.bench_function("Execution", |b| {
             b.iter(|| function.call(&JsValue::undefined(), &[], context));
         });
+        group.finish();
     }
 }
 
