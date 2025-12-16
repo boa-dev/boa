@@ -131,10 +131,12 @@ impl FormatOptions {
     }
 
     pub(super) fn to_length(&self) -> Option<Length> {
-        match (self.month, self.week_day) {
-            (Some(month), _) => Some(month.to_length()),
-            (None, Some(week_day)) => Some(week_day.to_length()),
-            _ => None,
+        match (self.month, self.week_day, self.day_period, self.era) {
+            (Some(month), _, _, _) => Some(month.to_length()),
+            (None, Some(week_day), _, _) => Some(week_day.to_length()),
+            (None, None, Some(day_period), _) => Some(day_period.to_length()),
+            (None, None, None, Some(era)) => Some(era.to_length()),
+            (None, None, None, None) => None,
         }
     }
 
@@ -151,7 +153,7 @@ impl FormatOptions {
             (None, None, Some(_d), Some(_e)) => Some(DateFields::DE),
             (None, None, Some(_d), None) => Some(DateFields::D),
             (None, None, None, Some(_e)) => Some(DateFields::E),
-            _ => None,
+            (None, None, None, None) => None,
         }
     }
 
@@ -167,7 +169,7 @@ impl FormatOptions {
             (_h, _m, Some(_s), None) => Some(TimePrecision::Second),
             (_h, Some(_m), None, None) => Some(TimePrecision::Minute),
             (Some(_h), None, None, None) => Some(TimePrecision::Hour),
-            _ => None,
+            (None, None, None, None) => None,
         }
     }
 
@@ -214,6 +216,16 @@ pub(crate) enum Era {
     Long,
 }
 
+impl Era {
+    pub(crate) fn to_length(self) -> Length {
+        match self {
+            Self::Long => Length::Long,
+            Self::Short => Length::Medium,
+            Self::Narrow => Length::Short,
+        }
+    }
+}
+
 impl OptionType for Era {
     fn from_value(value: crate::JsValue, context: &mut Context) -> JsResult<Self> {
         match value.to_string(context)?.to_std_string_escaped().as_ref() {
@@ -252,7 +264,7 @@ pub(crate) enum Month {
 
 impl Month {
     pub(crate) fn to_length(self) -> Length {
-        // NOTE (nekevss): after a brief glance, nnarrow does not appear to be
+        // NOTE (nekevss): after a brief glance, narrow does not appear to be
         // currently supported by ICU4X ... TBD
         match self {
             Self::Long => Length::Long,
@@ -296,6 +308,16 @@ pub(crate) enum DayPeriod {
     Narrow,
     Short,
     Long,
+}
+
+impl DayPeriod {
+    pub(crate) fn to_length(self) -> Length {
+        match self {
+            Self::Long => Length::Long,
+            Self::Short => Length::Medium,
+            Self::Narrow => Length::Short,
+        }
+    }
 }
 
 impl OptionType for DayPeriod {

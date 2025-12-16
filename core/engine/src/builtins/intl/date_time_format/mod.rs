@@ -356,7 +356,7 @@ impl DateTimeFormat {
                         // a. Return a ToLocalTime Record with the fields calculated from tz for
                         // the given calendar. The calculations should use best available
                         // information about the specified calendar.
-                        let fields = JsDateTimeFields::from_local_epoch_milliseconds(tz)?;
+                        let fields = ToLocalTime::from_local_epoch_milliseconds(tz)?;
 
                         let formatter = DateTimeFormatter::try_new_with_buffer_provider(
                             context.intl_provider().erased_provider(),
@@ -395,8 +395,10 @@ impl DateTimeFormat {
     }
 }
 
-// Stub
-struct JsDateTimeFields {
+// Represents a ISO8601 ToLocalTime Record
+//
+// https://tc39.es/ecma402/#sec-datetimeformat-tolocaltime-records
+struct ToLocalTime {
     year: i32,
     month: u8,
     day: u8,
@@ -406,7 +408,7 @@ struct JsDateTimeFields {
     subsecond: u32,
 }
 
-impl JsDateTimeFields {
+impl ToLocalTime {
     // NOTE (nekevss): we may need to adjust the below steps.
     //
     // The core problem is how to adopt the spec steps while also
@@ -744,19 +746,22 @@ fn date_time_style_format(
         Some(DateStyle::Full | DateStyle::Long) => Some(Length::Long),
         Some(DateStyle::Medium) => Some(Length::Medium),
         Some(DateStyle::Short) => Some(Length::Short),
-        None => None, // TODO (nekevss): What to do here?
+        None => match time_style {
+            Some(TimeStyle::Full | TimeStyle::Long) => Some(Length::Long),
+            Some(TimeStyle::Medium) => Some(Length::Medium),
+            Some(TimeStyle::Short) => Some(Length::Short),
+            None => return Err(js_error!(TypeError: "dateStyle or timeStyle must be defined")),
+        },
     };
     builder.date_fields = match date_style {
         Some(DateStyle::Full) => Some(DateFields::YMDE),
         Some(DateStyle::Long | DateStyle::Medium | DateStyle::Short) => Some(DateFields::YMD),
-        // NOTE (nekevss): It is a TypeError for for DateStyle or TimeStyle
-        // to be provided with explicit format components.
-        None => None,
+        None => None, // NOTE: timeStyle being undefined is checked when setting length
     };
     builder.time_precision = match time_style {
         Some(TimeStyle::Full | TimeStyle::Long | TimeStyle::Medium) => Some(TimePrecision::Second),
         Some(TimeStyle::Short) => Some(TimePrecision::Minute),
-        None => None,
+        None => None, // NOTE: dateStyle being undefined is checked when setting length
     };
     builder
         .build_composite()
