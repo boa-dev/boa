@@ -1,5 +1,5 @@
 [files]
-extend-exclude = ["CHANGELOG.md"]
+extend-exclude = ["CHANGELOG.md", "benches/scripts/**/*.js"]
 
 [default.extend-words]
 ba = "ba"
