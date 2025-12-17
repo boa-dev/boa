@@ -28,6 +28,7 @@ use temporal_rs::{
         Disambiguation, DisplayCalendar, DisplayOffset, DisplayTimeZone, OffsetDisambiguation,
         Overflow, RoundingIncrement, RoundingMode, RoundingOptions, ToStringRoundingOptions, Unit,
     },
+    parsed_intermediates::ParsedZonedDateTime,
     partial::{PartialTime, PartialZonedDateTime},
     provider::TransitionDirection,
 };
@@ -1137,7 +1138,7 @@ impl ZonedDateTime {
         // 1. Return ? ToTemporalZonedDateTime(item, options).
         let item = args.get_or_undefined(0);
         let options = args.get(1);
-        let inner = to_temporal_zoneddatetime(item, options.cloned(), context)?;
+        let inner = to_temporal_zoneddatetime(item, options, context)?;
         create_temporal_zoneddatetime(inner, None, context).map(Into::into)
     }
 
@@ -1912,7 +1913,7 @@ pub(crate) fn create_temporal_zoneddatetime(
 /// 6.5.2 `ToTemporalZonedDateTime ( item [ , options ] )`
 pub(crate) fn to_temporal_zoneddatetime(
     value: &JsValue,
-    options: Option<JsValue>,
+    options: Option<&JsValue>,
     context: &mut Context,
 ) -> JsResult<ZonedDateTimeInner> {
     // 1. If options is not present, set options to undefined.
@@ -1928,7 +1929,7 @@ pub(crate) fn to_temporal_zoneddatetime(
                 // (GetTemporalDisambiguationOption reads "disambiguation", GetTemporalOffsetOption
                 // reads "offset", and GetTemporalOverflowOption reads "overflow").
                 // ii. Let resolvedOptions be ? GetOptionsObject(options).
-                let options = get_options_object(&options.unwrap_or_default())?;
+                let options = get_options_object(options.unwrap_or(&JsValue::undefined()))?;
                 // iii. Perform ? GetTemporalDisambiguationOption(resolvedOptions).
                 let _disambiguation =
                     get_option::<Disambiguation>(&options, js_string!("disambiguation"), context)?
@@ -1947,7 +1948,7 @@ pub(crate) fn to_temporal_zoneddatetime(
             // f. If offsetString is unset, the
             // i. Set offsetBehaviour to wall.
             // g. Let resolvedOptions be ? GetOptionsObject(options).
-            let options = get_options_object(&options.unwrap_or_default())?;
+            let options = get_options_object(options.unwrap_or(&JsValue::undefined()))?;
             // h. Let disambiguation be ? GetTemporalDisambiguationOption(resolvedOptions).
             let disambiguation =
                 get_option::<Disambiguation>(&options, js_string!("disambiguation"), context)?;
@@ -1969,6 +1970,10 @@ pub(crate) fn to_temporal_zoneddatetime(
         }
         JsVariant::String(zdt_source) => {
             // b. Let result be ? ParseISODateTime(item, « TemporalDateTimeString[+Zoned] »).
+            let parsed = ParsedZonedDateTime::from_utf8_with_provider(
+                zdt_source.to_std_string_escaped().as_bytes(),
+                context.timezone_provider(),
+            )?;
             // c. Let annotation be result.[[TimeZone]].[[TimeZoneAnnotation]].
             // d. Assert: annotation is not empty.
             // e. Let timeZone be ? ToTemporalTimeZoneIdentifier(annotation).
@@ -1982,7 +1987,7 @@ pub(crate) fn to_temporal_zoneddatetime(
             // k. Set calendar to ? CanonicalizeCalendar(calendar).
             // l. Set matchBehaviour to match-minutes.
             // m. Let resolvedOptions be ? GetOptionsObject(options).
-            let options = get_options_object(&options.unwrap_or_default())?;
+            let options = get_options_object(options.unwrap_or(&JsValue::undefined()))?;
             // n. Let disambiguation be ? GetTemporalDisambiguationOption(resolvedOptions).
             let disambiguation =
                 get_option::<Disambiguation>(&options, js_string!("disambiguation"), context)?
@@ -1999,8 +2004,8 @@ pub(crate) fn to_temporal_zoneddatetime(
             // 7. If offsetBehaviour is option, then
             //        a. Set offsetNanoseconds to ! ParseDateTimeUTCOffset(offsetString).
             // 8. Let epochNanoseconds be ? InterpretISODateTimeOffset(isoDate, time, offsetBehaviour, offsetNanoseconds, timeZone, disambiguation, offsetOption, matchBehaviour).
-            Ok(ZonedDateTimeInner::from_utf8_with_provider(
-                zdt_source.to_std_string_escaped().as_bytes(),
+            Ok(ZonedDateTimeInner::from_parsed_with_provider(
+                parsed,
                 disambiguation,
                 offset_option,
                 context.timezone_provider(),

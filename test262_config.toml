@@ -1,4 +1,4 @@
-commit = "ccf301650fdcbdbf125241a936b7017f19e68b36"
+commit = "32d19e309108c1a1c9b8eb0395b99268e510df29"
 
 [ignored]
 # Not implemented yet:
@@ -17,6 +17,7 @@ features = [
     "regexp-duplicate-named-groups",
     "iterator-helpers",
     "explicit-resource-management",
+    "joint-iteration",
 
     ### Pending proposals
 
