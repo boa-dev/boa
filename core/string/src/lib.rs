@@ -35,6 +35,7 @@ pub use crate::{
     iter::Iter,
     str::{JsStr, JsStrVariant},
 };
+use std::marker::PhantomData;
 use std::{
     alloc::{Layout, alloc},
     convert::Infallible,
@@ -86,6 +87,13 @@ pub(crate) const fn is_trimmable_whitespace_latin1(c: u8) -> bool {
         // Line terminators: https://tc39.es/ecma262/#sec-line-terminators
         0x0A | 0x0D
     )
+}
+
+/// Opaque type of a raw string pointer.
+#[allow(missing_copy_implementations, missing_debug_implementations)]
+pub struct RawJsString {
+    // Make this non-send, non-sync, invariant and unconstructable.
+    phantom_data: PhantomData<*mut ()>,
 }
 
 /// A `usize` contains a flag and the length of Latin1/UTF-16 .
@@ -417,7 +425,7 @@ impl JsString {
     /// [`JsString::from_raw`].
     #[inline]
     #[must_use]
-    pub fn into_raw(self) -> NonNull<()> {
+    pub fn into_raw(self) -> NonNull<RawJsString> {
         ManuallyDrop::new(self).ptr.cast()
     }
 
@@ -432,7 +440,7 @@ impl JsString {
     /// even if the returned `JsString` is never accessed.
     #[inline]
     #[must_use]
-    pub const unsafe fn from_raw(ptr: NonNull<()>) -> Self {
+    pub const unsafe fn from_raw(ptr: NonNull<RawJsString>) -> Self {
         Self { ptr: ptr.cast() }
     }
 
@@ -582,7 +590,7 @@ impl JsString {
         let ptr = Self::allocate_seq(full_count, latin1_encoding);
 
         let string = {
-            // SAFETY: `allocate_inner` guarantees that `ptr` is a valid pointer to a `SequenceString`.
+            // SAFETY: `allocate_seq` guarantees that `ptr` is a valid pointer to a `SequenceString`.
             let mut data = unsafe {
                 let seq_ptr = ptr.as_ptr().cast::<u8>();
                 seq_ptr.add(size_of::<SequenceString>())
@@ -594,9 +602,9 @@ impl JsString {
                 // in-bounds for `count` reads of each string and `full_count` writes to `data`.
                 //
                 // Each `string` must be properly aligned to be a valid slice, and `data` must be
-                // properly aligned by `allocate_inner`.
+                // properly aligned by `allocate_seq`.
                 //
-                // `allocate_inner` must return a valid pointer to newly allocated memory, meaning
+                // `allocate_seq` must return a valid pointer to newly allocated memory, meaning
                 // `ptr` and all `string`s should never overlap.
                 unsafe {
                     // NOTE: The alignment is checked when we allocate the array.
@@ -636,7 +644,7 @@ impl JsString {
     ///
     /// # Panics
     ///
-    /// Panics if `try_allocate_inner` returns `Err`.
+    /// Panics if `try_allocate_seq` returns `Err`.
     fn allocate_seq(str_len: usize, latin1: bool) -> NonNull<SequenceString> {
         match Self::try_allocate_seq(str_len, latin1) {
             Ok(v) => v,
@@ -713,17 +721,16 @@ impl JsString {
         let count = string.len();
         let ptr = Self::allocate_seq(count, string.is_latin1());
 
-        // SAFETY: `allocate_inner` guarantees that `ptr` is a valid pointer.
-        // let data = unsafe { ptr.as_ref().data().cast_mut() };
+        // SAFETY: `allocate_seq` guarantees that `ptr` is a valid pointer.
         let data = unsafe { (&raw mut (*ptr.as_ptr()).data).cast::<u8>() };
 
         // SAFETY:
         // - We read `count = data.len()` elements from `data`, which is within the bounds of the slice.
-        // - `allocate_inner` must allocate at least `count` elements, which allows us to safely
+        // - `allocate_seq` must allocate at least `count` elements, which allows us to safely
         //   write at least `count` elements.
-        // - `allocate_inner` should already take care of the alignment of `ptr`, and `data` must be
+        // - `allocate_seq` should already take care of the alignment of `ptr`, and `data` must be
         //   aligned to be a valid slice.
-        // - `allocate_inner` must return a valid pointer to newly allocated memory, meaning `ptr`
+        // - `allocate_seq` must return a valid pointer to newly allocated memory, meaning `ptr`
         //   and `data` should never overlap.
         unsafe {
             // NOTE: The alignment is checked when we allocate the array.
