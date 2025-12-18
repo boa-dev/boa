@@ -311,7 +311,7 @@ impl JsString {
     #[inline]
     #[must_use]
     pub fn len(&self) -> usize {
-        (self.vtable().len)(self.ptr)
+        self.vtable().len
     }
 
     /// Return true if the [`JsString`] is empty.
