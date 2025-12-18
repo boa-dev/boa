@@ -26,7 +26,7 @@ mod tests;
 use self::{iter::Windows, str::JsSliceIndex};
 use crate::display::{JsStrDisplayEscaped, JsStrDisplayLossy, JsStringDebugInfo};
 pub use crate::vtable::StaticString;
-use crate::vtable::{SequenceString, SliceString};
+use crate::vtable::{Latin1SequenceString, SliceString, Utf16SequenceString};
 #[doc(inline)]
 pub use crate::{
     builder::{CommonJsStringBuilder, Latin1JsStringBuilder, Utf16JsStringBuilder},
@@ -88,7 +88,8 @@ pub(crate) const fn is_trimmable_whitespace_latin1(c: u8) -> bool {
     )
 }
 
-/// A `usize` contains a flag and the length of Latin1/UTF-16 .
+/// A `usize` contains a flag and the length of Latin1/UTF-16.
+/// Used by `JsStr` to pack the length and encoding flag into a single `usize`.
 /// ```text
 /// ┌────────────────────────────────────┐
 /// │ length (usize::BITS - 1) │ flag(1) │
@@ -97,21 +98,21 @@ pub(crate) const fn is_trimmable_whitespace_latin1(c: u8) -> bool {
 /// The latin1/UTF-16 flag is stored in the bottom bit.
 #[derive(Debug, Copy, Clone, PartialEq, Eq, PartialOrd, Ord)]
 #[repr(transparent)]
-struct TaggedLen(usize);
+pub(crate) struct TaggedLen(usize);
 
 impl TaggedLen {
     const LATIN1_BITFLAG: usize = 1 << 0;
     const BITFLAG_COUNT: usize = 1;
 
-    const fn new(len: usize, latin1: bool) -> Self {
+    pub(crate) const fn new(len: usize, latin1: bool) -> Self {
         Self((len << Self::BITFLAG_COUNT) | (latin1 as usize))
     }
 
-    const fn is_latin1(self) -> bool {
+    pub(crate) const fn is_latin1(self) -> bool {
         (self.0 & Self::LATIN1_BITFLAG) != 0
     }
 
-    const fn len(self) -> usize {
+    pub(crate) const fn len(self) -> usize {
         self.0 >> Self::BITFLAG_COUNT
     }
 }
@@ -121,14 +122,17 @@ impl TaggedLen {
 #[derive(Debug, Clone, Copy, Eq, PartialEq)]
 #[repr(u8)]
 pub(crate) enum JsStringKind {
-    /// A sequential memory slice of either UTF-8 or UTF-16. See [`SequenceString`].
-    Sequence = 0,
+    /// A sequential memory slice of Latin1 bytes. See [`Latin1SequenceString`].
+    Latin1Sequence = 0,
+
+    /// A sequential memory slice of UTF-16 code units. See [`Utf16SequenceString`].
+    Utf16Sequence = 1,
 
     /// A slice of an existing string. See [`SliceString`].
-    Slice = 1,
+    Slice = 2,
 
     /// A static string that is valid for `'static` lifetime.
-    Static = 2,
+    Static = 3,
 }
 
 /// A Latin1 or UTF-16–encoded, reference counted, immutable string.
@@ -497,12 +501,14 @@ impl JsString {
         let data_ptr = str.as_ptr();
 
         // Calculate the offset based on encoding
-        let offset_ptr = if is_latin1 {
-            // SAFETY: start is within bounds per caller contract.
-            unsafe { data_ptr.add(start) }
-        } else {
-            // SAFETY: start is within bounds per caller contract. For UTF-16, each char is 2 bytes.
-            unsafe { data_ptr.byte_add(start * 2) }
+        // SAFETY: start is within bounds per caller contract.
+        let offset_ptr = unsafe {
+            if is_latin1 {
+                data_ptr.add(start)
+            } else {
+                // For UTF-16, each char is 2 bytes.
+                data_ptr.byte_add(start * 2)
+            }
         };
 
         let slice = Box::new(SliceString::new(data, offset_ptr, end - start, is_latin1));
@@ -579,13 +585,19 @@ impl JsString {
             full_count = sum;
         }
 
-        let ptr = Self::allocate_seq(full_count, latin1_encoding);
+        let (ptr, data_offset) = if latin1_encoding {
+            let p = Self::allocate_latin1_seq(full_count);
+            (p.cast::<u8>(), size_of::<Latin1SequenceString>())
+        } else {
+            let p = Self::allocate_utf16_seq(full_count);
+            (p.cast::<u8>(), size_of::<Utf16SequenceString>())
+        };
 
         let string = {
-            // SAFETY: `allocate_inner` guarantees that `ptr` is a valid pointer to a `SequenceString`.
+            // SAFETY: `allocate_*_seq` guarantees that `ptr` is a valid pointer to a sequence string.
             let mut data = unsafe {
-                let seq_ptr = ptr.as_ptr().cast::<u8>();
-                seq_ptr.add(size_of::<SequenceString>())
+                let seq_ptr = ptr.as_ptr();
+                seq_ptr.add(data_offset)
             };
             for &string in strings {
                 // SAFETY:
@@ -632,13 +644,26 @@ impl JsString {
         StaticJsStrings::get_string(&string.as_str()).unwrap_or(string)
     }
 
-    /// Allocates a new [`SequenceString`] with an internal capacity of `str_len` chars.
+    /// Allocates a new [`Latin1SequenceString`] with an internal capacity of `str_len` bytes.
     ///
     /// # Panics
     ///
-    /// Panics if `try_allocate_inner` returns `Err`.
-    fn allocate_seq(str_len: usize, latin1: bool) -> NonNull<SequenceString> {
-        match Self::try_allocate_seq(str_len, latin1) {
+    /// Panics if `try_allocate_latin1_seq` returns `Err`.
+    fn allocate_latin1_seq(str_len: usize) -> NonNull<Latin1SequenceString> {
+        match Self::try_allocate_latin1_seq(str_len) {
+            Ok(v) => v,
+            Err(None) => alloc_overflow(),
+            Err(Some(layout)) => std::alloc::handle_alloc_error(layout),
+        }
+    }
+
+    /// Allocates a new [`Utf16SequenceString`] with an internal capacity of `str_len` u16 code units.
+    ///
+    /// # Panics
+    ///
+    /// Panics if `try_allocate_utf16_seq` returns `Err`.
+    fn allocate_utf16_seq(str_len: usize) -> NonNull<Utf16SequenceString> {
+        match Self::try_allocate_utf16_seq(str_len) {
             Ok(v) => v,
             Err(None) => alloc_overflow(),
             Err(Some(layout)) => std::alloc::handle_alloc_error(layout),
@@ -646,34 +671,29 @@ impl JsString {
     }
 
     // This is marked as safe because it is always valid to call this function to request any number
-    // of `u16`, since this function ought to fail on an OOM error.
-    /// Allocates a new [`SequenceString`] with an internal capacity of `str_len` chars.
+    // of bytes, since this function ought to fail on an OOM error.
+    /// Allocates a new [`Latin1SequenceString`] with an internal capacity of `str_len` bytes.
     ///
     /// # Errors
     ///
     /// Returns `Err(None)` on integer overflows `usize::MAX`.
     /// Returns `Err(Some(Layout))` on allocation error.
-    fn try_allocate_seq(
+    fn try_allocate_latin1_seq(
         str_len: usize,
-        latin1: bool,
-    ) -> Result<NonNull<SequenceString>, Option<Layout>> {
-        let (layout, offset) = if latin1 {
-            Layout::array::<u8>(str_len)
-        } else {
-            Layout::array::<u16>(str_len)
-        }
-        .and_then(|arr| Layout::new::<SequenceString>().extend(arr))
-        .map(|(layout, offset)| (layout.pad_to_align(), offset))
-        .map_err(|_| None)?;
+    ) -> Result<NonNull<Latin1SequenceString>, Option<Layout>> {
+        let (layout, offset) = Layout::array::<u8>(str_len)
+            .and_then(|arr| Layout::new::<Latin1SequenceString>().extend(arr))
+            .map(|(layout, offset)| (layout.pad_to_align(), offset))
+            .map_err(|_| None)?;
 
-        debug_assert_eq!(offset, vtable::sequence::DATA_OFFSET);
-        debug_assert_eq!(layout.align(), align_of::<SequenceString>());
+        debug_assert_eq!(offset, vtable::sequence::LATIN1_DATA_OFFSET);
+        debug_assert_eq!(layout.align(), align_of::<Latin1SequenceString>());
 
         #[allow(clippy::cast_ptr_alignment)]
         // SAFETY:
-        // The layout size of `SequenceString` is never zero, since it has to store
+        // The layout size of `Latin1SequenceString` is never zero, since it has to store
         // the length of the string and the reference count.
-        let inner = unsafe { alloc(layout).cast::<SequenceString>() };
+        let inner = unsafe { alloc(layout).cast::<Latin1SequenceString>() };
 
         // We need to verify that the pointer returned by `alloc` is not null, otherwise
         // we should abort, since an allocation error is pretty unrecoverable for us
@@ -684,17 +704,75 @@ impl JsString {
         // `NonNull` verified for us that the pointer returned by `alloc` is valid,
         // meaning we can write to its pointed memory.
         unsafe {
-            // Write the first part, the `SequenceString`.
-            inner.as_ptr().write(SequenceString::new(str_len, latin1));
+            // Write the first part, the `Latin1SequenceString`.
+            inner.as_ptr().write(Latin1SequenceString::new(str_len));
         }
 
         debug_assert!({
             let inner = inner.as_ptr();
             // SAFETY:
             // - `inner` must be a valid pointer, since it comes from a `NonNull`,
-            // meaning we can safely dereference it to `SequenceString`.
+            // meaning we can safely dereference it to `Latin1SequenceString`.
             // - `offset` should point us to the beginning of the array,
-            // and since we requested a `SequenceString` layout with a trailing
+            // and since we requested a `Latin1SequenceString` layout with a trailing
+            // `[u8; str_len]`, the memory of the array must be in the `usize`
+            // range for the allocation to succeed.
+            unsafe {
+                ptr::eq(
+                    inner.cast::<u8>().add(offset).cast(),
+                    (*inner).data().cast_mut(),
+                )
+            }
+        });
+
+        Ok(inner)
+    }
+
+    // This is marked as safe because it is always valid to call this function to request any number
+    // of u16, since this function ought to fail on an OOM error.
+    /// Allocates a new [`Utf16SequenceString`] with an internal capacity of `str_len` u16 code units.
+    ///
+    /// # Errors
+    ///
+    /// Returns `Err(None)` on integer overflows `usize::MAX`.
+    /// Returns `Err(Some(Layout))` on allocation error.
+    fn try_allocate_utf16_seq(
+        str_len: usize,
+    ) -> Result<NonNull<Utf16SequenceString>, Option<Layout>> {
+        let (layout, offset) = Layout::array::<u16>(str_len)
+            .and_then(|arr| Layout::new::<Utf16SequenceString>().extend(arr))
+            .map(|(layout, offset)| (layout.pad_to_align(), offset))
+            .map_err(|_| None)?;
+
+        debug_assert_eq!(offset, vtable::sequence::UTF16_DATA_OFFSET);
+        debug_assert_eq!(layout.align(), align_of::<Utf16SequenceString>());
+
+        #[allow(clippy::cast_ptr_alignment)]
+        // SAFETY:
+        // The layout size of `Utf16SequenceString` is never zero, since it has to store
+        // the length of the string and the reference count.
+        let inner = unsafe { alloc(layout).cast::<Utf16SequenceString>() };
+
+        // We need to verify that the pointer returned by `alloc` is not null, otherwise
+        // we should abort, since an allocation error is pretty unrecoverable for us
+        // right now.
+        let inner = NonNull::new(inner).ok_or(Some(layout))?;
+
+        // SAFETY:
+        // `NonNull` verified for us that the pointer returned by `alloc` is valid,
+        // meaning we can write to its pointed memory.
+        unsafe {
+            // Write the first part, the `Utf16SequenceString`.
+            inner.as_ptr().write(Utf16SequenceString::new(str_len));
+        }
+
+        debug_assert!({
+            let inner = inner.as_ptr();
+            // SAFETY:
+            // - `inner` must be a valid pointer, since it comes from a `NonNull`,
+            // meaning we can safely dereference it to `Utf16SequenceString`.
+            // - `offset` should point us to the beginning of the array,
+            // and since we requested a `Utf16SequenceString` layout with a trailing
             // `[u16; str_len]`, the memory of the array must be in the `usize`
             // range for the allocation to succeed.
             unsafe {
@@ -711,34 +789,33 @@ impl JsString {
     /// Creates a new [`JsString`] from `data`, without checking if the string is in the interner.
     fn from_slice_skip_interning(string: JsStr<'_>) -> Self {
         let count = string.len();
-        let ptr = Self::allocate_seq(count, string.is_latin1());
-
-        // SAFETY: `allocate_inner` guarantees that `ptr` is a valid pointer.
-        // let data = unsafe { ptr.as_ref().data().cast_mut() };
-        let data = unsafe { (&raw mut (*ptr.as_ptr()).data).cast::<u8>() };
 
         // SAFETY:
         // - We read `count = data.len()` elements from `data`, which is within the bounds of the slice.
-        // - `allocate_inner` must allocate at least `count` elements, which allows us to safely
+        // - `allocate_*_seq` must allocate at least `count` elements, which allows us to safely
         //   write at least `count` elements.
-        // - `allocate_inner` should already take care of the alignment of `ptr`, and `data` must be
+        // - `allocate_*_seq` should already take care of the alignment of `ptr`, and `data` must be
         //   aligned to be a valid slice.
-        // - `allocate_inner` must return a valid pointer to newly allocated memory, meaning `ptr`
+        // - `allocate_*_seq` must return a valid pointer to newly allocated memory, meaning `ptr`
         //   and `data` should never overlap.
         unsafe {
             // NOTE: The alignment is checked when we allocate the array.
             #[allow(clippy::cast_ptr_alignment)]
             match string.variant() {
                 JsStrVariant::Latin1(s) => {
-                    ptr::copy_nonoverlapping(s.as_ptr(), data.cast::<u8>(), count);
+                    let ptr = Self::allocate_latin1_seq(count);
+                    let data = (&raw mut (*ptr.as_ptr()).data).cast::<u8>();
+                    ptr::copy_nonoverlapping(s.as_ptr(), data, count);
+                    Self { ptr: ptr.cast() }
                 }
                 JsStrVariant::Utf16(s) => {
-                    ptr::copy_nonoverlapping(s.as_ptr(), data.cast::<u16>(), count);
+                    let ptr = Self::allocate_utf16_seq(count);
+                    let data = (&raw mut (*ptr.as_ptr()).data).cast::<u16>();
+                    ptr::copy_nonoverlapping(s.as_ptr(), data, count);
+                    Self { ptr: ptr.cast() }
                 }
             }
         }
-
-        Self { ptr: ptr.cast() }
     }
 
     /// Creates a new [`JsString`] from `data`.

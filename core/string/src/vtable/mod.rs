@@ -3,7 +3,7 @@ use crate::{JsStr, JsString, JsStringKind};
 use std::ptr::NonNull;
 
 pub(crate) mod sequence;
-pub(crate) use sequence::SequenceString;
+pub(crate) use sequence::{Latin1SequenceString, Utf16SequenceString};
 
 pub(crate) mod slice;
 pub(crate) use slice::SliceString;
