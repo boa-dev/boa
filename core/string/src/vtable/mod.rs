@@ -24,10 +24,11 @@ pub(crate) struct JsStringVTable {
     /// of the lifetime of the string itself. This is conveyed by the [`JsString`] API
     /// itself rather than this vtable.
     pub as_str: fn(NonNull<JsStringVTable>) -> JsStr<'static>,
-    /// Get the length of the string.
-    pub len: fn(NonNull<JsStringVTable>) -> usize,
     /// Get the refcount, if applicable.
     pub refcount: fn(NonNull<JsStringVTable>) -> Option<usize>,
+    /// Get the length of the string. Since a string is immutable, this does not need
+    /// to be a call, can be calculated at construction.
+    pub len: usize,
     /// Kind tag to identify the string type.
     pub kind: JsStringKind,
 }

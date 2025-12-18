@@ -5,7 +5,7 @@ use std::ptr::NonNull;
 
 /// A static string with vtable for uniform dispatch.
 #[derive(Debug, Clone, Copy)]
-#[repr(C, align(8))]
+#[repr(C)]
 pub struct StaticString {
     /// Embedded `VTable` - must be first field for vtable dispatch.
     vtable: JsStringVTable,
@@ -18,7 +18,14 @@ impl StaticString {
     #[must_use]
     pub const fn new(str: JsStr<'static>) -> Self {
         Self {
-            vtable: STATIC_VTABLE,
+            vtable: JsStringVTable {
+                clone: static_clone,
+                drop: static_drop,
+                as_str: static_as_str,
+                len: str.len(),
+                refcount: static_refcount,
+                kind: JsStringKind::Static,
+            },
             str,
         }
     }
@@ -60,23 +67,7 @@ fn static_as_str(this: NonNull<JsStringVTable>) -> JsStr<'static> {
     this.str
 }
 
-fn static_len(this: NonNull<JsStringVTable>) -> usize {
-    // SAFETY: validated the string outside this function.
-    let this: &StaticString = unsafe { this.cast().as_ref() };
-    this.str.len()
-}
-
 fn static_refcount(_ptr: NonNull<JsStringVTable>) -> Option<usize> {
     // Static strings don't have refcount.
     None
 }
-
-/// `VTable` for static strings.
-static STATIC_VTABLE: JsStringVTable = JsStringVTable {
-    clone: static_clone,
-    drop: static_drop,
-    as_str: static_as_str,
-    len: static_len,
-    refcount: static_refcount,
-    kind: JsStringKind::Static,
-};

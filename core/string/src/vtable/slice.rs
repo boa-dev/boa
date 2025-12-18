@@ -5,7 +5,7 @@ use std::process::abort;
 use std::ptr::NonNull;
 
 /// A slice of an existing string.
-#[repr(C, align(8))]
+#[repr(C)]
 pub(crate) struct SliceString {
     /// Embedded `VTable` - must be first field for vtable dispatch.
     vtable: JsStringVTable,
@@ -26,7 +26,14 @@ impl SliceString {
     #[must_use]
     pub(crate) fn new(owned: &JsString, data: NonNull<u8>, len: usize, is_latin1: bool) -> Self {
         SliceString {
-            vtable: SLICE_VTABLE,
+            vtable: JsStringVTable {
+                clone: slice_clone,
+                drop: slice_drop,
+                as_str: slice_as_str,
+                refcount: slice_refcount,
+                len,
+                kind: JsStringKind::Slice,
+            },
             owned: owned.clone(),
             data,
             tagged_len: TaggedLen::new(len, is_latin1),
@@ -89,12 +96,6 @@ fn slice_as_str(vtable: NonNull<JsStringVTable>) -> JsStr<'static> {
     }
 }
 
-fn slice_len(vtable: NonNull<JsStringVTable>) -> usize {
-    // SAFETY: This is part of the correct vtable which is validated on construction.
-    let this: &SliceString = unsafe { vtable.cast().as_ref() };
-    this.tagged_len.len()
-}
-
 /// `VTable` function for refcount, need to return an `Option<usize>`.
 #[allow(clippy::unnecessary_wraps)]
 fn slice_refcount(vtable: NonNull<JsStringVTable>) -> Option<usize> {
@@ -102,12 +103,3 @@ fn slice_refcount(vtable: NonNull<JsStringVTable>) -> Option<usize> {
     let this: &SliceString = unsafe { vtable.cast().as_ref() };
     Some(this.refcount.get())
 }
-
-static SLICE_VTABLE: JsStringVTable = JsStringVTable {
-    clone: slice_clone,
-    drop: slice_drop,
-    as_str: slice_as_str,
-    len: slice_len,
-    refcount: slice_refcount,
-    kind: JsStringKind::Slice,
-};
