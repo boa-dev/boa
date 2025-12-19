@@ -9,7 +9,7 @@ use std::ptr::NonNull;
 pub(crate) const DATA_OFFSET: usize = size_of::<SequenceString>();
 
 /// A sequential memory array of strings.
-#[repr(C, align(8))]
+#[repr(C)]
 pub(crate) struct SequenceString {
     /// Embedded `VTable` - must be first field for vtable dispatch.
     vtable: JsStringVTable,
@@ -26,7 +26,14 @@ impl SequenceString {
     #[must_use]
     pub(crate) fn new(len: usize, is_latin1: bool) -> Self {
         SequenceString {
-            vtable: SEQ_VTABLE,
+            vtable: JsStringVTable {
+                clone: seq_clone,
+                drop: seq_drop,
+                as_str: seq_as_str,
+                refcount: seq_refcount,
+                len,
+                kind: JsStringKind::Sequence,
+            },
             tagged_len: TaggedLen::new(len, is_latin1),
             refcount: Cell::new(1),
             data: [0; 0],
@@ -105,12 +112,6 @@ fn seq_as_str(vtable: NonNull<JsStringVTable>) -> JsStr<'static> {
     }
 }
 
-fn seq_len(vtable: NonNull<JsStringVTable>) -> usize {
-    // SAFETY: This is part of the correct vtable which is validated on construction.
-    let this: &SequenceString = unsafe { vtable.cast().as_ref() };
-    this.tagged_len.len()
-}
-
 /// `VTable` function for refcount, need to return an `Option<usize>`.
 #[allow(clippy::unnecessary_wraps)]
 fn seq_refcount(vtable: NonNull<JsStringVTable>) -> Option<usize> {
@@ -118,12 +119,3 @@ fn seq_refcount(vtable: NonNull<JsStringVTable>) -> Option<usize> {
     let this: &SequenceString = unsafe { vtable.cast().as_ref() };
     Some(this.refcount.get())
 }
-
-static SEQ_VTABLE: JsStringVTable = JsStringVTable {
-    clone: seq_clone,
-    drop: seq_drop,
-    as_str: seq_as_str,
-    len: seq_len,
-    refcount: seq_refcount,
-    kind: JsStringKind::Sequence,
-};
