@@ -1888,7 +1888,6 @@ impl String {
         let to = max(final_start, final_end);
 
         // 10. Return the substring of S from from to to.
-        // Ok(js_string!(string.get_expect(from..to)).into())
         // SAFETY: We already checked that `from` and `to` are within bounds.
         Ok(unsafe { JsString::slice_unchecked(&string, from, to).into() })
     }

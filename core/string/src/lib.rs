@@ -37,6 +37,7 @@ pub use crate::{
     iter::Iter,
     str::{JsStr, JsStrVariant},
 };
+use std::marker::PhantomData;
 use std::{
     alloc::{Layout, alloc},
     convert::Infallible,
@@ -88,6 +89,13 @@ pub(crate) const fn is_trimmable_whitespace_latin1(c: u8) -> bool {
         // Line terminators: https://tc39.es/ecma262/#sec-line-terminators
         0x0A | 0x0D
     )
+}
+
+/// Opaque type of a raw string pointer.
+#[allow(missing_copy_implementations, missing_debug_implementations)]
+pub struct RawJsString {
+    // Make this non-send, non-sync, invariant and unconstructable.
+    phantom_data: PhantomData<*mut ()>,
 }
 
 /// A `usize` contains a flag and the length of Latin1/UTF-16.
@@ -423,7 +431,7 @@ impl JsString {
     /// [`JsString::from_raw`].
     #[inline]
     #[must_use]
-    pub fn into_raw(self) -> NonNull<()> {
+    pub fn into_raw(self) -> NonNull<RawJsString> {
         ManuallyDrop::new(self).ptr.cast()
     }
 
@@ -438,7 +446,7 @@ impl JsString {
     /// even if the returned `JsString` is never accessed.
     #[inline]
     #[must_use]
-    pub const unsafe fn from_raw(ptr: NonNull<()>) -> Self {
+    pub const unsafe fn from_raw(ptr: NonNull<RawJsString>) -> Self {
         Self { ptr: ptr.cast() }
     }
 
@@ -503,14 +511,12 @@ impl JsString {
         let data_ptr = str.as_ptr();
 
         // Calculate the offset based on encoding
-        // SAFETY: start is within bounds per caller contract.
-        let offset_ptr = unsafe {
-            if is_latin1 {
-                data_ptr.add(start)
-            } else {
-                // For UTF-16, each char is 2 bytes.
-                data_ptr.byte_add(start * 2)
-            }
+        let offset_ptr = if is_latin1 {
+            // SAFETY: start is within bounds per caller contract.
+            unsafe { data_ptr.add(start) }
+        } else {
+            // SAFETY: start is within bounds per caller contract. For UTF-16, each char is 2 bytes.
+            unsafe { data_ptr.byte_add(start * 2) }
         };
 
         let slice = Box::new(SliceString::new(data, offset_ptr, end - start, is_latin1));
@@ -608,9 +614,9 @@ impl JsString {
                 // in-bounds for `count` reads of each string and `full_count` writes to `data`.
                 //
                 // Each `string` must be properly aligned to be a valid slice, and `data` must be
-                // properly aligned by `allocate_inner`.
+                // properly aligned by `allocate_seq`.
                 //
-                // `allocate_inner` must return a valid pointer to newly allocated memory, meaning
+                // `allocate_seq` must return a valid pointer to newly allocated memory, meaning
                 // `ptr` and all `string`s should never overlap.
                 unsafe {
                     // NOTE: The alignment is checked when we allocate the array.

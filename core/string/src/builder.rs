@@ -1,6 +1,5 @@
 use crate::r#type::{Latin1, StringType, Utf16};
-use crate::vtable::SequenceString;
-use crate::{JsStr, JsStrVariant, JsString, alloc_overflow};
+use crate::{JsStr, JsStrVariant, JsString, SequenceString, alloc_overflow};
 use std::{
     alloc::{Layout, alloc, dealloc, realloc},
     marker::PhantomData,
@@ -172,6 +171,7 @@ impl<D: StringType> JsStringBuilder<D> {
             // the length of the string and the reference count.
             unsafe { alloc(new_layout) }
         };
+
         let Some(new_ptr) = NonNull::new(new_ptr.cast::<SequenceString<D>>()) else {
             std::alloc::handle_alloc_error(new_layout)
         };
@@ -222,7 +222,7 @@ impl<D: StringType> JsStringBuilder<D> {
     }
 
     fn new_layout(cap: usize) -> Layout {
-        let new_layout = Layout::array::<D::Byte>(cap)
+        let new_layout = Layout::array::<D::Char>(cap)
             .and_then(|arr| Layout::new::<SequenceString<D>>().extend(arr))
             .map(|(layout, offset)| (layout.pad_to_align(), offset))
             .map_err(|_| None);
