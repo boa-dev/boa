@@ -1,6 +1,6 @@
 //! A NaN-boxed inner value for JavaScript values.
 //!
-//! This [`JsValue`] is a float using `NaN` values to represent inner
+//! This [`JsValue`] is a float using `NaN` values to represent an inner
 //! JavaScript value.
 //!
 //! # Assumptions
@@ -111,7 +111,7 @@ use crate::{
     symbol::RawJsSymbol,
 };
 use boa_gc::{Finalize, GcBox, Trace, custom_trace};
-use boa_string::{JsString, RawJsString};
+use boa_string::JsString;
 use core::fmt;
 use static_assertions::const_assert;
 use std::{
@@ -714,7 +714,7 @@ impl NanBoxedValue {
         // SAFETY: the inner address must hold a valid, non-null JsString.
         unsafe {
             ManuallyDrop::new(JsString::from_raw(NonNull::new_unchecked(
-                self.ptr.with_addr(addr).cast::<RawJsString>(),
+                self.ptr.with_addr(addr).cast(),
             )))
         }
     }
