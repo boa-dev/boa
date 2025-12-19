@@ -13,3 +13,6 @@ test-results
 
 # For some reason Prettier likes to reformat JSON lock files.
 flake.lock
+
+# Assets that should not be checked.
+benches/scripts/v8-benches
