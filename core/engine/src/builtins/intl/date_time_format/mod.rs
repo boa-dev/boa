@@ -611,7 +611,6 @@ fn create_date_time_format(
         //  a. Let timeZoneIdentifierRecord be GetAvailableNamedTimeZoneIdentifier(timeZone).
         //  b. If timeZoneIdentifierRecord is empty, throw a RangeError exception.
         //  c. Set timeZone to timeZoneIdentifierRecord.[[PrimaryIdentifier]].
-        // TODO: This needs to be updated to be a `TimeZoneId`
         let parser =
             IanaParser::try_new_with_buffer_provider(context.intl_provider().erased_provider())
                 .map_err(|_| {
