@@ -1,4 +1,4 @@
-//! `VTable` implementations for [`Latin1SequenceString`] and [`Utf16SequenceString`].
+//! `VTable` implementations for [`SequenceString`].
 use crate::r#type::StringType;
 use crate::vtable::JsStringVTable;
 use crate::{JsStr, JsString};
@@ -20,7 +20,7 @@ pub(crate) struct SequenceString<T: StringType> {
 }
 
 impl<T: StringType> SequenceString<T> {
-    /// Creates a dummy [`Latin1SequenceString`]. This should only be used to write to
+    /// Creates a [`SequenceString`] without data. This should only be used to write to
     /// an allocation which contains all the information.
     #[inline]
     #[must_use]
