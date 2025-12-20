@@ -37,9 +37,11 @@ pub trait StringType: InternalStringType + Sealed {
     type Char: Copy + Eq + 'static;
 }
 
+// It is good defensive programming to have [`Latin1`] `!Copy`, as it should
+// not be used as a value anyway.
 #[allow(missing_copy_implementations)]
 #[derive(Debug)]
-pub struct Latin1;
+pub enum Latin1 {}
 
 impl Sealed for Latin1 {}
 impl StringType for Latin1 {
@@ -61,9 +63,11 @@ impl InternalStringType for Latin1 {
     }
 }
 
+// It is good defensive programming to have [`Utf16`] `!Copy`, as it should
+// not be used as a value anyway.
 #[allow(missing_copy_implementations)]
 #[derive(Debug)]
-pub struct Utf16;
+pub enum Utf16 {}
 
 impl Sealed for Utf16 {}
 impl StringType for Utf16 {

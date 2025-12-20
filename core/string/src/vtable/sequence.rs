@@ -9,7 +9,7 @@ use std::process::abort;
 use std::ptr;
 use std::ptr::NonNull;
 
-/// A sequential memory array of `T::Char` bytes.
+/// A sequential memory array of `T::Char` elements.
 ///
 /// # Notes
 /// A [`SequenceString`] is `!Sync` (using [`Cell`]) and invariant over `T` (strings
