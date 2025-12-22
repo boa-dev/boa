@@ -37,9 +37,11 @@ pub trait StringType: InternalStringType + Sealed {
     type Char: Copy + Eq + 'static;
 }
 
+// It is good defensive programming to have [`Latin1`] `!Copy`, as it should
+// not be used as a value anyway.
 #[allow(missing_copy_implementations)]
 #[derive(Debug)]
-pub struct Latin1;
+pub enum Latin1 {}
 
 impl Sealed for Latin1 {}
 impl StringType for Latin1 {
@@ -48,7 +50,7 @@ impl StringType for Latin1 {
 
 #[allow(private_interfaces)]
 impl InternalStringType for Latin1 {
-    const DATA_OFFSET: usize = size_of::<Latin1SequenceString>();
+    const DATA_OFFSET: usize = size_of::<SequenceString<Self>>();
     const KIND: JsStringKind = JsStringKind::Latin1Sequence;
     type Byte = u8;
 
@@ -61,9 +63,11 @@ impl InternalStringType for Latin1 {
     }
 }
 
+// It is good defensive programming to have [`Utf16`] `!Copy`, as it should
+// not be used as a value anyway.
 #[allow(missing_copy_implementations)]
 #[derive(Debug)]
-pub struct Utf16;
+pub enum Utf16 {}
 
 impl Sealed for Utf16 {}
 impl StringType for Utf16 {
@@ -72,7 +76,7 @@ impl StringType for Utf16 {
 
 #[allow(private_interfaces)]
 impl InternalStringType for Utf16 {
-    const DATA_OFFSET: usize = size_of::<Utf16SequenceString>();
+    const DATA_OFFSET: usize = size_of::<SequenceString<Self>>();
     const KIND: JsStringKind = JsStringKind::Utf16Sequence;
     type Byte = u16;
 
@@ -84,6 +88,3 @@ impl InternalStringType for Utf16 {
         JsStr::utf16(slice)
     }
 }
-
-pub(crate) type Latin1SequenceString = SequenceString<Latin1>;
-pub(crate) type Utf16SequenceString = SequenceString<Utf16>;

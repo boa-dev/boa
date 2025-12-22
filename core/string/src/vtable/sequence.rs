@@ -1,26 +1,32 @@
-//! `VTable` implementations for [`Latin1SequenceString`] and [`Utf16SequenceString`].
+//! `VTable` implementations for [`SequenceString`].
 use crate::r#type::StringType;
 use crate::vtable::JsStringVTable;
-use crate::{JsStr, JsString};
-use std::alloc::{Layout, dealloc};
+use crate::{JsStr, JsString, alloc_overflow};
+use std::alloc::{Layout, alloc, dealloc};
 use std::cell::Cell;
 use std::marker::PhantomData;
 use std::process::abort;
+use std::ptr;
 use std::ptr::NonNull;
 
-/// A sequential memory array of Latin1 bytes.
+/// A sequential memory array of `T::Char` elements.
+///
+/// # Notes
+/// A [`SequenceString`] is `!Sync` (using [`Cell`]) and invariant over `T` (strings
+/// of various types cannot be used interchangeably). The string, however, could be
+/// `Send`, although within Boa this does not make sense.
 #[repr(C)]
 pub(crate) struct SequenceString<T: StringType> {
     /// Embedded `VTable` - must be the first field for vtable dispatch.
     vtable: JsStringVTable,
     refcount: Cell<usize>,
-    // Invariant, `!Send` and `!Sync`.
-    _marker: PhantomData<*mut T>,
+    // Forces invariant contract.
+    _marker: PhantomData<fn() -> T>,
     pub(crate) data: [u8; 0],
 }
 
 impl<T: StringType> SequenceString<T> {
-    /// Creates a dummy [`Latin1SequenceString`]. This should only be used to write to
+    /// Creates a [`SequenceString`] without data. This should only be used to write to
     /// an allocation which contains all the information.
     #[inline]
     #[must_use]
@@ -38,6 +44,74 @@ impl<T: StringType> SequenceString<T> {
             _marker: PhantomData,
             data: [0; 0],
         }
+    }
+
+    /// Allocates a new [`SequenceString`] with an internal capacity of `len` characters.
+    ///
+    /// # Panics
+    ///
+    /// Panics if `try_allocate_seq` returns `Err`.
+    pub(crate) fn allocate(len: usize) -> NonNull<SequenceString<T>> {
+        match Self::try_allocate(len) {
+            Ok(v) => v,
+            Err(None) => alloc_overflow(),
+            Err(Some(layout)) => std::alloc::handle_alloc_error(layout),
+        }
+    }
+
+    /// Allocates a new [`SequenceString`] with an internal capacity of `len` characters.
+    ///
+    /// # Errors
+    ///
+    /// Returns `Err(None)` on integer overflows `usize::MAX`.
+    /// Returns `Err(Some(Layout))` on allocation error.
+    pub(crate) fn try_allocate(len: usize) -> Result<NonNull<Self>, Option<Layout>> {
+        let (layout, offset) = Layout::array::<T::Byte>(len)
+            .and_then(|arr| T::base_layout().extend(arr))
+            .map(|(layout, offset)| (layout.pad_to_align(), offset))
+            .map_err(|_| None)?;
+
+        debug_assert_eq!(offset, T::DATA_OFFSET);
+        debug_assert_eq!(layout.align(), align_of::<Self>());
+
+        #[allow(clippy::cast_ptr_alignment)]
+        // SAFETY:
+        // The layout size of `SequenceString` is never zero, since it has to store
+        // the length of the string and the reference count.
+        let inner = unsafe { alloc(layout).cast::<Self>() };
+
+        // We need to verify that the pointer returned by `alloc` is not null, otherwise
+        // we should abort, since an allocation error is pretty unrecoverable for us
+        // right now.
+        let inner = NonNull::new(inner).ok_or(Some(layout))?;
+
+        // SAFETY:
+        // `NonNull` verified for us that the pointer returned by `alloc` is valid,
+        // meaning we can write to its pointed memory.
+        unsafe {
+            // Write the first part, the `SequenceString`.
+            inner.as_ptr().write(Self::new(len));
+        }
+
+        debug_assert!({
+            let inner = inner.as_ptr();
+            // SAFETY:
+            // - `inner` must be a valid pointer, since it comes from a `NonNull`,
+            // meaning we can safely dereference it to `SequenceString`.
+            // - `offset` should point us to the beginning of the array,
+            // and since we requested a `SequenceString` layout with a trailing
+            // `[T::Byte; str_len]`, the memory of the array must be in the `usize`
+            // range for the allocation to succeed.
+            unsafe {
+                // This is `<u8>` as the offset is in bytes.
+                ptr::eq(
+                    inner.cast::<u8>().add(offset).cast(),
+                    (*inner).data().cast_mut(),
+                )
+            }
+        });
+
+        Ok(inner)
     }
 
     /// Returns the pointer to the data.
