@@ -2,7 +2,7 @@
 use crate::{JsStr, JsString, JsStringKind};
 use std::ptr::NonNull;
 
-pub(crate) mod sequence;
+mod sequence;
 pub(crate) use sequence::SequenceString;
 
 pub(crate) mod slice;

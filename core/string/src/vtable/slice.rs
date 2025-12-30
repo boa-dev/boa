@@ -1,5 +1,5 @@
 use crate::vtable::JsStringVTable;
-use crate::{JsStr, JsString, JsStringKind, TaggedLen};
+use crate::{JsStr, JsString, JsStringKind};
 use std::cell::Cell;
 use std::process::abort;
 use std::ptr::NonNull;
@@ -14,8 +14,10 @@ pub(crate) struct SliceString {
     // Pointer to the data itself. This is guaranteed to be safe as long as `owned` is
     // owned.
     data: NonNull<u8>,
-    // Length (and latin1 tag) for this string. We drop start/end.
-    tagged_len: TaggedLen,
+    // Length of this string slice.
+    len: usize,
+    // Whether the string is Latin1 encoded.
+    is_latin1: bool,
     // Refcount for this string as we need to clone/drop it as well.
     refcount: Cell<usize>,
 }
@@ -36,7 +38,8 @@ impl SliceString {
             },
             owned: owned.clone(),
             data,
-            tagged_len: TaggedLen::new(len, is_latin1),
+            len,
+            is_latin1,
             refcount: Cell::new(1),
         }
     }
@@ -81,8 +84,8 @@ fn slice_drop(vtable: NonNull<JsStringVTable>) {
 fn slice_as_str(vtable: NonNull<JsStringVTable>) -> JsStr<'static> {
     // SAFETY: This is part of the correct vtable which is validated on construction.
     let this: &SliceString = unsafe { vtable.cast().as_ref() };
-    let len = this.tagged_len.len();
-    let is_latin1 = this.tagged_len.is_latin1();
+    let len = this.len;
+    let is_latin1 = this.is_latin1;
     let data_ptr = this.data.as_ptr();
 
     // SAFETY: SliceString data points to valid memory owned by owned.
