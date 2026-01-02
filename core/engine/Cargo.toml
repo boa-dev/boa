@@ -40,6 +40,7 @@ intl = [
     "icu_normalizer/serde",
     "dep:icu_locale",
     "dep:icu_datetime",
+    "dep:icu_time",
     "dep:icu_plurals",
     "dep:icu_provider",
     "dep:icu_calendar",
@@ -54,6 +55,8 @@ intl = [
     "dep:zerofrom",
     "dep:fixed_decimal",
     "dep:tinystr",
+    "dep:timezone_provider",
+    "timezone_provider/tzif",
 ]
 
 fuzz = ["boa_ast/arbitrary", "boa_interner/arbitrary"]
@@ -142,6 +145,9 @@ icu_locale = { workspace = true, default-features = false, features = [
     "serde",
 ], optional = true }
 icu_datetime = { workspace = true, default-features = false, features = [
+    "serde",
+], optional = true }
+icu_time = { workspace = true, default-features = false, features = [
     "serde",
 ], optional = true }
 icu_calendar = { workspace = true, default-features = false, optional = true }
