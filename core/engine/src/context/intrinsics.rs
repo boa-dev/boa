@@ -1053,12 +1053,172 @@ impl StandardConstructors {
 
 /// Cached intrinsic objects
 #[derive(Debug, Trace, Finalize)]
+pub struct MathObject {
+    object: JsObject,
+    abs: JsFunction,
+    floor: JsFunction,
+    ceil: JsFunction,
+    round: JsFunction,
+    sqrt: JsFunction,
+    pow: JsFunction,
+    random: JsFunction,
+    log: JsFunction,
+    exp: JsFunction,
+    log2: JsFunction,
+    log10: JsFunction,
+    max: JsFunction,
+    min: JsFunction,
+    sin: JsFunction,
+    cos: JsFunction,
+}
+
+impl MathObject {
+    fn uninit() -> Self {
+        Self {
+            object: JsObject::with_null_proto(),
+            abs: JsFunction::empty_intrinsic_function(false),
+            floor: JsFunction::empty_intrinsic_function(false),
+            ceil: JsFunction::empty_intrinsic_function(false),
+            round: JsFunction::empty_intrinsic_function(false),
+            sqrt: JsFunction::empty_intrinsic_function(false),
+            pow: JsFunction::empty_intrinsic_function(false),
+            random: JsFunction::empty_intrinsic_function(false),
+            log: JsFunction::empty_intrinsic_function(false),
+            exp: JsFunction::empty_intrinsic_function(false),
+            log2: JsFunction::empty_intrinsic_function(false),
+            log10: JsFunction::empty_intrinsic_function(false),
+            max: JsFunction::empty_intrinsic_function(false),
+            min: JsFunction::empty_intrinsic_function(false),
+            sin: JsFunction::empty_intrinsic_function(false),
+            cos: JsFunction::empty_intrinsic_function(false),
+        }
+    }
+
+    /// Gets the underlying `Math` object.
+    #[inline]
+    #[must_use]
+    pub fn object(&self) -> JsObject {
+        self.object.clone()
+    }
+
+    /// Gets the `Math.abs` function.
+    #[inline]
+    #[must_use]
+    pub fn abs(&self) -> &JsFunction {
+        &self.abs
+    }
+
+    /// Gets the `Math.floor` function.
+    #[inline]
+    #[must_use]
+    pub fn floor(&self) -> &JsFunction {
+        &self.floor
+    }
+
+    /// Gets the `Math.ceil` function.
+    #[inline]
+    #[must_use]
+    pub fn ceil(&self) -> &JsFunction {
+        &self.ceil
+    }
+
+    /// Gets the `Math.round` function.
+    #[inline]
+    #[must_use]
+    pub fn round(&self) -> &JsFunction {
+        &self.round
+    }
+
+    /// Gets the `Math.sqrt` function.
+    #[inline]
+    #[must_use]
+    pub fn sqrt(&self) -> &JsFunction {
+        &self.sqrt
+    }
+
+    /// Gets the `Math.pow` function.
+    #[inline]
+    #[must_use]
+    pub fn pow(&self) -> &JsFunction {
+        &self.pow
+    }
+
+    /// Gets the `Math.random` function.
+    #[inline]
+    #[must_use]
+    pub fn random(&self) -> &JsFunction {
+        &self.random
+    }
+
+    /// Gets the `Math.log` function.
+    #[inline]
+    #[must_use]
+    pub fn log(&self) -> &JsFunction {
+        &self.log
+    }
+
+    /// Gets the `Math.exp` function.
+    #[inline]
+    #[must_use]
+    pub fn exp(&self) -> &JsFunction {
+        &self.exp
+    }
+
+    /// Gets the `Math.log2` function.
+    #[inline]
+    #[must_use]
+    pub fn log2(&self) -> &JsFunction {
+        &self.log2
+    }
+
+    /// Gets the `Math.log10` function.
+    #[inline]
+    #[must_use]
+    pub fn log10(&self) -> &JsFunction {
+        &self.log10
+    }
+
+    /// Gets the `Math.max` function.
+    #[inline]
+    #[must_use]
+    pub fn max(&self) -> &JsFunction {
+        &self.max
+    }
+
+    /// Gets the `Math.min` function.
+    #[inline]
+    #[must_use]
+    pub fn min(&self) -> &JsFunction {
+        &self.min
+    }
+
+    /// Gets the `Math.sin` function.
+    #[inline]
+    #[must_use]
+    pub fn sin(&self) -> &JsFunction {
+        &self.sin
+    }
+
+    /// Gets the `Math.cos` function.
+    #[inline]
+    #[must_use]
+    pub fn cos(&self) -> &JsFunction {
+        &self.cos
+    }
+}
+
+/// The intrinsic objects and constructors.
+///
+/// See [Intrinsic Objects][spec] for the complete list.
+///
+/// [spec]: https://tc39.es/ecma262/#sec-well-known-intrinsic-objects
+#[derive(Debug, Trace, Finalize)]
 pub struct IntrinsicObjects {
     /// [`%Reflect%`](https://tc39.es/ecma262/#sec-reflect)
     reflect: JsObject,
 
-    /// [`%Math%`](https://tc39.es/ecma262/#sec-math)
-    math: JsObject,
+    /// Math intrinsic object and cached handles.
+    math: MathObject,
 
     /// [`%JSON%`](https://tc39.es/ecma262/#sec-json)
     json: JsObject,
@@ -1139,7 +1299,7 @@ impl IntrinsicObjects {
     pub(crate) fn uninit() -> Option<Self> {
         Some(Self {
             reflect: JsObject::with_null_proto(),
-            math: JsObject::with_null_proto(),
+            math: MathObject::uninit(),
             json: JsObject::with_null_proto(),
             throw_type_error: JsFunction::empty_intrinsic_function(false),
             array_prototype_values: JsFunction::empty_intrinsic_function(false),
@@ -1260,8 +1420,8 @@ impl IntrinsicObjects {
     /// [spec]: https://tc39.es/ecma262/#sec-math
     #[inline]
     #[must_use]
-    pub fn math(&self) -> JsObject {
-        self.math.clone()
+    pub fn math(&self) -> &MathObject {
+        &self.math
     }
 
     /// Gets the [`%JSON%`][spec] intrinsic object.

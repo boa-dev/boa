@@ -228,18 +228,50 @@ fn log2() {
 #[test]
 fn max() {
     run_test_actions([
+        TestAction::assert_eq("Math.max()", f64::NEG_INFINITY),
         TestAction::assert_eq("Math.max(10, 20)", 20.0),
         TestAction::assert_eq("Math.max(-10, -20)", -10.0),
         TestAction::assert_eq("Math.max(-10, 20)", 20.0),
+        TestAction::assert_eq("Math.max(1, 2, 3, 4, 5)", 5.0),
+        TestAction::assert_eq("Math.max('5', 2)", 5.0),
+        TestAction::assert_with_op("Math.max(NaN, 1)", |value, _| {
+            value.as_number().unwrap().is_nan()
+        }),
+        TestAction::assert_with_op("Math.max(0, -0)", |value, _| {
+            let number = value.as_number().unwrap();
+            number == 0.0 && number.is_sign_positive()
+        }),
+        TestAction::assert_eq("Math.max(-Infinity, Infinity)", f64::INFINITY),
+        TestAction::assert_with_op(
+            "(function () { const obj = { valueOf() { return 7; } }; return Math.max(obj, 3); })()",
+            |value, _| value.as_number().unwrap() == 7.0,
+        ),
+        TestAction::assert_eq("Math.max(true, false)", 1.0),
     ]);
 }
 
 #[test]
 fn min() {
     run_test_actions([
+        TestAction::assert_eq("Math.min()", f64::INFINITY),
         TestAction::assert_eq("Math.min(10, 20)", 10.0),
         TestAction::assert_eq("Math.min(-10, -20)", -20.0),
         TestAction::assert_eq("Math.min(-10, 20)", -10.0),
+        TestAction::assert_eq("Math.min(1, 2, 3, -4, 5)", -4.0),
+        TestAction::assert_eq("Math.min('5', 2)", 2.0),
+        TestAction::assert_with_op("Math.min(NaN, 1)", |value, _| {
+            value.as_number().unwrap().is_nan()
+        }),
+        TestAction::assert_with_op("Math.min(0, -0)", |value, _| {
+            let number = value.as_number().unwrap();
+            number == 0.0 && number.is_sign_negative()
+        }),
+        TestAction::assert_eq("Math.min(-Infinity, Infinity)", f64::NEG_INFINITY),
+        TestAction::assert_with_op(
+            "(function () { const obj = { valueOf() { return -7; } }; return Math.min(obj, 3); })()",
+            |value, _| value.as_number().unwrap() == -7.0,
+        ),
+        TestAction::assert_eq("Math.min(true, false)", 0.0),
     ]);
 }
 
