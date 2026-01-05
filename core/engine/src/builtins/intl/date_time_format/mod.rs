@@ -17,14 +17,11 @@ use crate::{
         },
         intl::{
             Service,
-            date_time_format::{
-                format::FormatOptions,
-                options::{DateStyle, FormatMatcher, TimeStyle},
-            },
+            date_time_format::options::{DateStyle, FormatMatcher, FormatOptions, TimeStyle},
             locale::{canonicalize_locale_list, resolve_locale, validate_extension},
             options::{IntlOptions, coerce_options_to_object},
         },
-        options::{OptionType, get_option},
+        options::get_option,
     },
     context::{
         icu::IntlProvider,
@@ -51,7 +48,7 @@ use icu_datetime::{
     },
     input::{Date, DateTime, Time, TimeZone, UtcOffset},
     options::{Length, TimePrecision},
-    preferences::HourCycle,
+    preferences::HourCycle as IcuHourCycle,
 };
 use icu_decimal::preferences::NumberingSystem;
 use icu_decimal::provider::DecimalSymbolsV1;
@@ -65,7 +62,6 @@ use icu_time::{
 };
 use timezone_provider::provider::TimeZoneId;
 
-mod format;
 mod options;
 
 #[cfg(all(test, feature = "intl_bundled"))]
@@ -188,7 +184,7 @@ impl Service for DateTimeFormat {
                 if let Some(hc) = locale_preferences
                     .hour_cycle
                     .as_ref()
-                    .and_then(HourCycle::unicode_extension_value)
+                    .and_then(IcuHourCycle::unicode_extension_value)
                 {
                     locale.extensions.unicode.keywords.set(key!("hc"), hc);
                 }
@@ -541,7 +537,7 @@ fn create_date_time_format(
                 if hour_12.is_some() {
                     Ok(None)
                 } else {
-                    HourCycle::try_from(hc).map(Some)
+                    IcuHourCycle::try_from(hc).map(Some)
                 }
             })
             .transpose()
@@ -792,4 +788,3 @@ pub(crate) enum FormatDefaults {
     Time,
     All,
 }
-
