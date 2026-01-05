@@ -496,7 +496,7 @@ fn code_points_optimization() {
 fn slice() {
     let sliced = {
         let base_str = JsString::from("Hello World");
-        assert_eq!(base_str.kind(), JsStringKind::Sequence);
+        assert_eq!(base_str.kind(), JsStringKind::Latin1Sequence);
 
         base_str.slice(1, 5)
     };
@@ -532,7 +532,7 @@ fn slice() {
 #[test]
 fn split() {
     let base_str = JsString::from("Hello World");
-    assert_eq!(base_str.kind(), JsStringKind::Sequence);
+    assert_eq!(base_str.kind(), JsStringKind::Latin1Sequence);
 
     let str1 = base_str.slice(0, 5);
     let str2 = base_str.slice(6, base_str.len());
