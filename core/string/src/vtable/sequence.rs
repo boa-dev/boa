@@ -1,5 +1,5 @@
 //! `VTable` implementations for [`SequenceString`].
-use crate::r#type::StringType;
+use crate::r#type::InternalStringType;
 use crate::vtable::JsStringVTable;
 use crate::{JsStr, JsString, alloc_overflow};
 use std::alloc::{Layout, alloc, dealloc};
@@ -16,7 +16,7 @@ use std::ptr::NonNull;
 /// of various types cannot be used interchangeably). The string, however, could be
 /// `Send`, although within Boa this does not make sense.
 #[repr(C)]
-pub(crate) struct SequenceString<T: StringType> {
+pub(crate) struct SequenceString<T: InternalStringType> {
     /// Embedded `VTable` - must be the first field for vtable dispatch.
     vtable: JsStringVTable,
     refcount: Cell<usize>,
@@ -25,7 +25,7 @@ pub(crate) struct SequenceString<T: StringType> {
     pub(crate) data: [u8; 0],
 }
 
-impl<T: StringType> SequenceString<T> {
+impl<T: InternalStringType> SequenceString<T> {
     /// Creates a [`SequenceString`] without data. This should only be used to write to
     /// an allocation which contains all the information.
     #[inline]
@@ -122,7 +122,7 @@ impl<T: StringType> SequenceString<T> {
     }
 }
 
-fn seq_clone<T: StringType>(vtable: NonNull<JsStringVTable>) -> JsString {
+fn seq_clone<T: InternalStringType>(vtable: NonNull<JsStringVTable>) -> JsString {
     // SAFETY: This is part of the correct vtable which is validated on construction.
     let this: &SequenceString<T> = unsafe { vtable.cast().as_ref() };
     let Some(strong) = this.refcount.get().checked_add(1) else {
@@ -133,7 +133,7 @@ fn seq_clone<T: StringType>(vtable: NonNull<JsStringVTable>) -> JsString {
     unsafe { JsString::from_ptr(vtable) }
 }
 
-fn seq_drop<T: StringType>(vtable: NonNull<JsStringVTable>) {
+fn seq_drop<T: InternalStringType>(vtable: NonNull<JsStringVTable>) {
     // SAFETY: This is part of the correct vtable which is validated on construction.
     let this: &SequenceString<T> = unsafe { vtable.cast().as_ref() };
     let Some(new) = this.refcount.get().checked_sub(1) else {
@@ -159,7 +159,7 @@ fn seq_drop<T: StringType>(vtable: NonNull<JsStringVTable>) {
     }
 }
 
-fn seq_as_str<T: StringType>(vtable: NonNull<JsStringVTable>) -> JsStr<'static> {
+fn seq_as_str<T: InternalStringType>(vtable: NonNull<JsStringVTable>) -> JsStr<'static> {
     // SAFETY: This is part of the correct vtable which is validated on construction.
     let this: &SequenceString<T> = unsafe { vtable.cast().as_ref() };
     let len = this.vtable.len;
@@ -172,7 +172,7 @@ fn seq_as_str<T: StringType>(vtable: NonNull<JsStringVTable>) -> JsStr<'static> 
 
 /// `VTable` function for refcount, need to return an `Option<usize>`.
 #[allow(clippy::unnecessary_wraps)]
-fn seq_refcount<T: StringType>(vtable: NonNull<JsStringVTable>) -> Option<usize> {
+fn seq_refcount<T: InternalStringType>(vtable: NonNull<JsStringVTable>) -> Option<usize> {
     // SAFETY: This is part of the correct vtable which is validated on construction.
     let this: &SequenceString<T> = unsafe { vtable.cast().as_ref() };
     Some(this.refcount.get())

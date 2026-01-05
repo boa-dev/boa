@@ -670,14 +670,14 @@ impl JsString {
                 JsStrVariant::Latin1(s) => {
                     let ptr = SequenceString::<Latin1>::allocate(count);
                     let data = (&raw mut (*ptr.as_ptr()).data)
-                        .cast::<<Latin1 as r#type::sealed::InternalStringType>::Byte>();
+                        .cast::<<Latin1 as r#type::StringType>::Byte>();
                     ptr::copy_nonoverlapping(s.as_ptr(), data, count);
                     Self { ptr: ptr.cast() }
                 }
                 JsStrVariant::Utf16(s) => {
                     let ptr = SequenceString::<Utf16>::allocate(count);
                     let data = (&raw mut (*ptr.as_ptr()).data)
-                        .cast::<<Utf16 as r#type::sealed::InternalStringType>::Byte>();
+                        .cast::<<Utf16 as r#type::StringType>::Byte>();
                     ptr::copy_nonoverlapping(s.as_ptr(), data, count);
                     Self { ptr: ptr.cast() }
                 }
