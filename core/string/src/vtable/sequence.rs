@@ -1,4 +1,5 @@
 //! `VTable` implementations for [`SequenceString`].
+use crate::iter::CodePointsIter;
 use crate::r#type::InternalStringType;
 use crate::vtable::JsStringVTable;
 use crate::{JsStr, JsString, alloc_overflow};
@@ -36,6 +37,7 @@ impl<T: InternalStringType> SequenceString<T> {
                 clone: seq_clone::<T>,
                 drop: seq_drop::<T>,
                 as_str: seq_as_str::<T>,
+                code_points: seq_code_points::<T>,
                 refcount: seq_refcount::<T>,
                 len,
                 kind: T::KIND,
@@ -122,6 +124,7 @@ impl<T: InternalStringType> SequenceString<T> {
     }
 }
 
+#[inline]
 fn seq_clone<T: InternalStringType>(vtable: NonNull<JsStringVTable>) -> JsString {
     // SAFETY: This is part of the correct vtable which is validated on construction.
     let this: &SequenceString<T> = unsafe { vtable.cast().as_ref() };
@@ -133,6 +136,7 @@ fn seq_clone<T: InternalStringType>(vtable: NonNull<JsStringVTable>) -> JsString
     unsafe { JsString::from_ptr(vtable) }
 }
 
+#[inline]
 fn seq_drop<T: InternalStringType>(vtable: NonNull<JsStringVTable>) {
     // SAFETY: This is part of the correct vtable which is validated on construction.
     let this: &SequenceString<T> = unsafe { vtable.cast().as_ref() };
@@ -159,6 +163,7 @@ fn seq_drop<T: InternalStringType>(vtable: NonNull<JsStringVTable>) {
     }
 }
 
+#[inline]
 fn seq_as_str<T: InternalStringType>(vtable: NonNull<JsStringVTable>) -> JsStr<'static> {
     // SAFETY: This is part of the correct vtable which is validated on construction.
     let this: &SequenceString<T> = unsafe { vtable.cast().as_ref() };
@@ -170,7 +175,15 @@ fn seq_as_str<T: InternalStringType>(vtable: NonNull<JsStringVTable>) -> JsStr<'
     T::str_ctor(slice)
 }
 
+#[inline]
+fn seq_code_points<T: InternalStringType>(
+    vtable: NonNull<JsStringVTable>,
+) -> CodePointsIter<'static> {
+    CodePointsIter::new(seq_as_str::<T>(vtable))
+}
+
 /// `VTable` function for refcount, need to return an `Option<usize>`.
+#[inline]
 #[allow(clippy::unnecessary_wraps)]
 fn seq_refcount<T: InternalStringType>(vtable: NonNull<JsStringVTable>) -> Option<usize> {
     // SAFETY: This is part of the correct vtable which is validated on construction.

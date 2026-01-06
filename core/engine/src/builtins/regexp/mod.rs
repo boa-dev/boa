@@ -1788,7 +1788,7 @@ impl RegExp {
         // 17. Return the string-concatenation of accumulatedResult and the substring of S from nextSourcePosition.
         Ok(js_string!(
             &JsString::from(&accumulated_result[..]),
-            s.get_expect(next_source_position..)
+            &s.get_expect(next_source_position..)
         )
         .into())
     }

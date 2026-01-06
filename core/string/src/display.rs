@@ -5,10 +5,11 @@ use std::cell::RefCell;
 use std::fmt;
 use std::fmt::Write;
 
-/// Display implementation for [`JsString`] that escapes unicode characters.
-#[derive(Debug)]
+/// `Display` implementation for [`JsString`] that escapes unicode characters.
+// This should not implement debug, only be shown as a standard display.
+#[allow(missing_debug_implementations)]
 pub struct JsStrDisplayEscaped<'a> {
-    inner: JsStr<'a>,
+    inner: &'a JsString,
 }
 
 impl fmt::Display for JsStrDisplayEscaped<'_> {
@@ -30,14 +31,15 @@ impl fmt::Display for JsStrDisplayEscaped<'_> {
     }
 }
 
-impl<'a> From<JsStr<'a>> for JsStrDisplayEscaped<'a> {
-    fn from(inner: JsStr<'a>) -> Self {
+impl<'a> From<&'a JsString> for JsStrDisplayEscaped<'a> {
+    fn from(inner: &'a JsString) -> Self {
         Self { inner }
     }
 }
 
-/// Display implementation for [`JsString`] that escapes unicode characters.
-#[derive(Debug)]
+/// `Display` implementation for [`JsString`] that escapes unicode characters.
+// This should not implement debug, only be shown as a standard display.
+#[allow(missing_debug_implementations)]
 pub struct JsStrDisplayLossy<'a> {
     inner: JsStr<'a>,
 }
@@ -117,35 +119,35 @@ impl<'a> From<&'a JsString> for JsStringDebugInfo<'a> {
 #[test]
 fn latin1() {
     // 0xE9 is `é` in ISO-8859-1 (see https://www.ascii-code.com/ISO-8859-1).
-    let s = JsStr::latin1(b"Hello \xE9 world!");
+    let s = JsString::from("Hello \u{E9} world!");
 
-    let rust_str = format!("{}", JsStrDisplayEscaped { inner: s });
+    let rust_str = format!("{}", JsStrDisplayEscaped { inner: &s });
     assert_eq!(rust_str, "Hello é world!");
 
-    let rust_str = format!("{}", JsStrDisplayLossy { inner: s });
+    let rust_str = format!("{}", JsStrDisplayLossy { inner: s.as_str() });
     assert_eq!(rust_str, "Hello é world!");
 }
 
 #[test]
 fn emoji() {
     // 0x1F600 is `😀` (see https://www.fileformat.info/info/unicode/char/1f600/index.htm).
-    let s = JsStr::utf16(&[0xD83D, 0xDE00]);
+    let s = JsString::from(&[0xD83D, 0xDE00]);
 
-    let rust_str = format!("{}", JsStrDisplayEscaped { inner: s });
+    let rust_str = format!("{}", JsStrDisplayEscaped { inner: &s });
     assert_eq!(rust_str, "😀");
 
-    let rust_str = format!("{}", JsStrDisplayLossy { inner: s });
+    let rust_str = format!("{}", JsStrDisplayLossy { inner: s.as_str() });
     assert_eq!(rust_str, "😀");
 }
 
 #[test]
 fn unpaired_surrogates() {
     // 0xD800 is an unpaired surrogate (see https://www.fileformat.info/info/unicode/char/d800/index.htm).
-    let s = JsStr::utf16(&[0xD800]);
+    let s = JsString::from(&[0xD800]);
 
-    let rust_str = format!("{}", JsStrDisplayEscaped { inner: s });
+    let rust_str = format!("{}", JsStrDisplayEscaped { inner: &s });
     assert_eq!(rust_str, "\\uD800");
 
-    let rust_str = format!("{}", JsStrDisplayLossy { inner: s });
+    let rust_str = format!("{}", JsStrDisplayLossy { inner: s.as_str() });
     assert_eq!(rust_str, "�");
 }

@@ -546,3 +546,10 @@ fn split() {
     drop(base_str);
     assert_eq!(str3, JsString::from("Hello"));
 }
+
+#[test]
+fn trim() {
+    // Very basic test for trimming. The extensive testing is done by `boa_engine`.
+    let base_str = JsString::from(" \u{000B} Hello World \t ");
+    assert_eq!(base_str.trim(), JsString::from("Hello World"));
+}

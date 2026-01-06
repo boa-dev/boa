@@ -247,7 +247,7 @@ pub(crate) fn parse_int(_: &JsValue, args: &[JsValue], context: &mut Context) ->
     //     0 digit, at the option of the implementation; and if R is not 2, 4, 8, 10, 16, or 32, then
     //     mathInt may be an implementation-approximated value representing the integer value that is
     //     represented by Z in radix-R notation.)
-    let math_int = from_js_str_radix(z, r).expect("Already checked");
+    let math_int = from_js_str_radix(z.as_str(), r).expect("Already checked");
 
     // 15. If mathInt = 0, then
     //     a. If sign = -1, return -0𝔽.
@@ -303,11 +303,6 @@ pub(crate) fn parse_float(
     args: &[JsValue],
     context: &mut Context,
 ) -> JsResult<JsValue> {
-    const PLUS_CHAR: u16 = b'+' as u16;
-    const MINUS_CHAR: u16 = b'-' as u16;
-    const LOWER_CASE_I_CHAR: u16 = b'i' as u16;
-    const UPPER_CASE_I_CHAR: u16 = b'I' as u16;
-
     let Some(string) = args.first() else {
         return Ok(JsValue::nan());
     };
@@ -333,10 +328,20 @@ pub(crate) fn parse_float(
     // 5. Let parsedNumber be ParseText(trimmedPrefix, StrDecimalLiteral).
     // 6. Assert: parsedNumber is a Parse Node.
     // 7. Return the StringNumericValue of parsedNumber.
-    let (positive, prefix) = match trimmed_string.get(0) {
-        Some(PLUS_CHAR) => (true, trimmed_string.get(1..).unwrap_or(JsStr::latin1(&[]))),
-        Some(MINUS_CHAR) => (false, trimmed_string.get(1..).unwrap_or(JsStr::latin1(&[]))),
-        _ => (true, trimmed_string),
+    let (positive, prefix) = match trimmed_string.code_point_at(0).as_char() {
+        Some('+') => (
+            true,
+            trimmed_string
+                .get(1..)
+                .unwrap_or(StaticJsStrings::EMPTY_STRING),
+        ),
+        Some('-') => (
+            false,
+            trimmed_string
+                .get(1..)
+                .unwrap_or(StaticJsStrings::EMPTY_STRING),
+        ),
+        _ => (true, trimmed_string.clone()),
     };
 
     if prefix.starts_with(js_str!("Infinity")) {
@@ -344,7 +349,7 @@ pub(crate) fn parse_float(
             return Ok(JsValue::positive_infinity());
         }
         return Ok(JsValue::negative_infinity());
-    } else if let Some(LOWER_CASE_I_CHAR | UPPER_CASE_I_CHAR) = prefix.get(0) {
+    } else if let Some('I' | 'i') = prefix.code_point_at(0).as_char() {
         return Ok(JsValue::nan());
     }
 

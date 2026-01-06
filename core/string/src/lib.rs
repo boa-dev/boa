@@ -24,8 +24,9 @@ mod vtable;
 #[cfg(test)]
 mod tests;
 
-use self::{iter::Windows, str::JsSliceIndex};
+use self::iter::Windows;
 use crate::display::{JsStrDisplayEscaped, JsStrDisplayLossy, JsStringDebugInfo};
+use crate::iter::CodePointsIter;
 use crate::r#type::{Latin1, Utf16};
 pub use crate::vtable::StaticString;
 use crate::vtable::{SequenceString, SliceString};
@@ -234,8 +235,36 @@ impl JsString {
     /// Decodes a [`JsString`] into an iterator of [`Result<String, u16>`], returning surrogates as
     /// errors.
     #[inline]
-    pub fn to_std_string_with_surrogates(&self) -> impl Iterator<Item = Result<String, u16>> + '_ {
-        self.as_str().to_std_string_with_surrogates()
+    #[allow(clippy::missing_panics_doc)]
+    pub fn to_std_string_with_surrogates(
+        &self,
+    ) -> impl Iterator<Item = Result<String, u16>> + use<'_> {
+        let mut iter = self.code_points().peekable();
+
+        std::iter::from_fn(move || {
+            let cp = iter.next()?;
+            let char = match cp {
+                CodePoint::Unicode(c) => c,
+                CodePoint::UnpairedSurrogate(surr) => return Some(Err(surr)),
+            };
+
+            let mut string = String::from(char);
+
+            loop {
+                let Some(cp) = iter.peek().and_then(|cp| match cp {
+                    CodePoint::Unicode(c) => Some(*c),
+                    CodePoint::UnpairedSurrogate(_) => None,
+                }) else {
+                    break;
+                };
+
+                string.push(cp);
+
+                iter.next().expect("should exist by the check above");
+            }
+
+            Some(Ok(string))
+        })
     }
 
     /// Maps the valid segments of an UTF16 string and leaves the unpaired surrogates unchanged.
@@ -259,8 +288,16 @@ impl JsString {
 
     /// Gets an iterator of all the Unicode codepoints of a [`JsString`].
     #[inline]
-    pub fn code_points(&self) -> impl Iterator<Item = CodePoint> + Clone + '_ {
-        self.as_str().code_points()
+    #[must_use]
+    pub fn code_points(&self) -> CodePointsIter<'_> {
+        (self.vtable().code_points)(self.ptr)
+    }
+
+    /// Get the variant of this string.
+    #[inline]
+    #[must_use]
+    pub fn variant(&self) -> JsStrVariant<'_> {
+        self.as_str().variant()
     }
 
     /// Abstract operation `StringIndexOf ( string, searchValue, fromIndex )`
@@ -343,61 +380,116 @@ impl JsString {
     /// Trim whitespace from the start and end of the [`JsString`].
     #[inline]
     #[must_use]
-    pub fn trim(&self) -> JsStr<'_> {
-        self.as_str().trim()
+    pub fn trim(&self) -> JsString {
+        // Calculate both bounds directly to avoid intermediate allocations.
+        let (start, end) = match self.variant() {
+            JsStrVariant::Latin1(v) => {
+                let Some(start) = v.iter().position(|c| !is_trimmable_whitespace_latin1(*c)) else {
+                    return StaticJsStrings::EMPTY_STRING;
+                };
+                let end = v
+                    .iter()
+                    .rposition(|c| !is_trimmable_whitespace_latin1(*c))
+                    .unwrap_or(start);
+                (start, end)
+            }
+            JsStrVariant::Utf16(v) => {
+                let Some(start) = v
+                    .iter()
+                    .copied()
+                    .position(|r| !char::from_u32(u32::from(r)).is_some_and(is_trimmable_whitespace))
+                else {
+                    return StaticJsStrings::EMPTY_STRING;
+                };
+                let end = v
+                    .iter()
+                    .copied()
+                    .rposition(|r| !char::from_u32(u32::from(r)).is_some_and(is_trimmable_whitespace))
+                    .unwrap_or(start);
+                (start, end)
+            }
+        };
+
+        // SAFETY: `position(...)` and `rposition(...)` cannot exceed the length of the string.
+        unsafe { Self::slice_unchecked(self, start, end + 1) }
     }
 
     /// Trim whitespace from the start of the [`JsString`].
     #[inline]
     #[must_use]
-    pub fn trim_start(&self) -> JsStr<'_> {
-        self.as_str().trim_start()
+    pub fn trim_start(&self) -> JsString {
+        let Some(start) = (match self.variant() {
+            JsStrVariant::Latin1(v) => v.iter().position(|c| !is_trimmable_whitespace_latin1(*c)),
+            JsStrVariant::Utf16(v) => v
+                .iter()
+                .copied()
+                .position(|r| !char::from_u32(u32::from(r)).is_some_and(is_trimmable_whitespace)),
+        }) else {
+            return StaticJsStrings::EMPTY_STRING;
+        };
+
+        // SAFETY: `position(...)` cannot exceed the length of the string.
+        unsafe { Self::slice_unchecked(self, start, self.len()) }
     }
 
     /// Trim whitespace from the end of the [`JsString`].
     #[inline]
     #[must_use]
-    pub fn trim_end(&self) -> JsStr<'_> {
-        self.as_str().trim_end()
+    pub fn trim_end(&self) -> JsString {
+        let Some(end) = (match self.variant() {
+            JsStrVariant::Latin1(v) => v.iter().rposition(|c| !is_trimmable_whitespace_latin1(*c)),
+            JsStrVariant::Utf16(v) => v
+                .iter()
+                .copied()
+                .rposition(|r| !char::from_u32(u32::from(r)).is_some_and(is_trimmable_whitespace)),
+        }) else {
+            return StaticJsStrings::EMPTY_STRING;
+        };
+
+        // SAFETY: `rposition(...)` cannot exceed the length of the string. `end` is the first
+        //         character that is not trimmable, therefore we need to add 1 to it.
+        unsafe { Self::slice_unchecked(self, 0, end + 1) }
     }
 
-    /// Get the element a the given index, [`None`] otherwise.
+    /// Returns true if needle is a prefix of the [`JsStr`].
     #[inline]
     #[must_use]
-    pub fn get<'a, I>(&'a self, index: I) -> Option<I::Value>
-    where
-        I: JsSliceIndex<'a>,
-    {
-        self.as_str().get(index)
+    // We check the size, so this should never panic.
+    #[allow(clippy::missing_panics_doc)]
+    pub fn starts_with(&self, needle: JsStr<'_>) -> bool {
+        self.as_str().starts_with(needle)
     }
 
-    /// Returns an element or subslice depending on the type of index, without doing bounds check.
-    ///
-    /// # Safety
-    ///
-    /// Caller must ensure the index is not out of bounds
+    /// Returns `true` if `needle` is a suffix of the [`JsStr`].
     #[inline]
     #[must_use]
-    pub unsafe fn get_unchecked<'a, I>(&'a self, index: I) -> I::Value
-    where
-        I: JsSliceIndex<'a>,
-    {
-        // SAFETY: Caller must ensure the index is not out of bounds
-        unsafe { self.as_str().get_unchecked(index) }
+    // We check the size, so this should never panic.
+    #[allow(clippy::missing_panics_doc)]
+    pub fn ends_with(&self, needle: JsStr<'_>) -> bool {
+        self.as_str().starts_with(needle)
     }
 
-    /// Get the element a the given index.
+    /// Get the element at the given index, or [`None`] if the index is out of range.
+    #[inline]
+    #[must_use]
+    pub fn get<I>(&self, index: I) -> Option<JsString>
+    where
+        I: JsStringSliceIndex,
+    {
+        index.get(self)
+    }
+
+    /// Get the element at the given index, or panic.
     ///
     /// # Panics
-    ///
-    /// If the index is out of bounds.
+    /// If the index returns `None`, this will panic.
     #[inline]
     #[must_use]
-    pub fn get_expect<'a, I>(&'a self, index: I) -> I::Value
+    pub fn get_expect<I>(&self, index: I) -> JsString
     where
-        I: JsSliceIndex<'a>,
+        I: JsStringSliceIndex,
     {
-        self.as_str().get_expect(index)
+        index.get(self).expect("Unexpected get()")
     }
 
     /// Gets a displayable escaped string. This may be faster and has fewer
@@ -406,7 +498,7 @@ impl JsString {
     #[inline]
     #[must_use]
     pub fn display_escaped(&self) -> JsStrDisplayEscaped<'_> {
-        self.as_str().display_escaped()
+        JsStrDisplayEscaped::from(self)
     }
 
     /// Gets a displayable lossy string. This may be faster and has fewer
@@ -726,7 +818,7 @@ impl std::fmt::Debug for JsString {
     #[inline]
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         f.debug_tuple("JsString")
-            .field(&self.display_escaped())
+            .field(&self.display_escaped().to_string())
             .finish()
     }
 }
@@ -934,5 +1026,55 @@ impl FromStr for JsString {
     #[inline]
     fn from_str(s: &str) -> Result<Self, Self::Err> {
         Ok(Self::from(s))
+    }
+}
+
+/// Similar to [`RangeBounds`] but custom implemented for getting direct indices.
+// TODO: remove [`str::JsSliceIndex`] and rename this when `JsStr` is no more.
+pub trait JsStringSliceIndex {
+    /// Get the substring (or `None` if outside the string).
+    fn get(self, str: &JsString) -> Option<JsString>;
+}
+
+macro_rules! impl_js_string_slice_index {
+    ($($type:ty),+ $(,)?) => {
+        $(
+        impl JsStringSliceIndex for $type {
+            fn get(self, str: &JsString) -> Option<JsString> {
+                let start = match std::ops::RangeBounds::<usize>::start_bound(&self) {
+                    std::ops::Bound::Included(start) => *start,
+                    std::ops::Bound::Excluded(start) => *start + 1,
+                    std::ops::Bound::Unbounded => 0,
+                };
+
+                let end = match std::ops::RangeBounds::<usize>::end_bound(&self) {
+                    std::ops::Bound::Included(end) => *end + 1,
+                    std::ops::Bound::Excluded(end) => *end,
+                    std::ops::Bound::Unbounded => str.len(),
+                };
+
+                Some(str.slice(start, end))
+            }
+        }
+        )+
+    };
+}
+
+impl_js_string_slice_index!(
+    std::ops::Range<usize>,
+    std::ops::RangeInclusive<usize>,
+    std::ops::RangeTo<usize>,
+    std::ops::RangeToInclusive<usize>,
+    std::ops::RangeFrom<usize>,
+    std::ops::RangeFull,
+);
+
+impl JsStringSliceIndex for usize {
+    fn get(self, str: &JsString) -> Option<JsString> {
+        if self >= str.len() {
+            None
+        } else {
+            Some(str.slice(self, self + 1))
+        }
     }
 }
