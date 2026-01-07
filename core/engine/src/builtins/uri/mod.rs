@@ -309,7 +309,7 @@ where
         }
 
         // b. Let C be the code unit at index k within string.
-        let c = string.code_point_at(k).as_u32() as u16;
+        let c = string.code_unit_at(k).expect("Bounds were verified");
 
         // c. If C is in unescapedSet, then
         if unescaped_set(c) {
@@ -406,10 +406,17 @@ where
             // iii. If the code units at index (k + 1) and (k + 2) within string do not represent
             // hexadecimal digits, throw a URIError exception.
             // iv. Let B be the 8-bit value represented by the two hexadecimal digits at index (k + 1) and (k + 2).
-            let b = decode_hex_byte(string.code_point_at(k + 1), string.code_point_at(k + 2))
-                .ok_or_else(|| {
-                    JsNativeError::uri().with_message("invalid hexadecimal digit found")
-                })?;
+
+            // SAFETY: the indices have been verified as valid already.
+            let (high, low) = unsafe {
+                (
+                    string.code_unit_at(k + 1).unwrap_unchecked(),
+                    string.code_unit_at(k + 2).unwrap_unchecked(),
+                )
+            };
+            let b = decode_hex_byte(high, low).ok_or_else(|| {
+                JsNativeError::uri().with_message("invalid hexadecimal digit found")
+            })?;
 
             // v. Set k to k + 2.
             k += 2;
@@ -457,7 +464,7 @@ where
                     k += 1;
 
                     // b. If the code unit at index k within string is not the code unit 0x0025 (PERCENT SIGN), throw a URIError exception.
-                    if string.code_point_at(k).as_u32() != 0x0025 {
+                    if string.code_unit_at(k) != Some(0x0025) {
                         return Err(JsNativeError::uri()
                             .with_message("escape characters must be preceded with a % sign")
                             .into());
@@ -465,11 +472,16 @@ where
 
                     // c. If the code units at index (k + 1) and (k + 2) within string do not represent hexadecimal digits, throw a URIError exception.
                     // d. Let B be the 8-bit value represented by the two hexadecimal digits at index (k + 1) and (k + 2).
-                    let b =
-                        decode_hex_byte(string.code_point_at(k + 1), string.code_point_at(k + 2))
-                            .ok_or_else(|| {
-                            JsNativeError::uri().with_message("invalid hexadecimal digit found")
-                        })?;
+                    // SAFETY: the indices have been verified as valid already.
+                    let (high, low) = unsafe {
+                        (
+                            string.code_unit_at(k + 1).unwrap_unchecked(),
+                            string.code_unit_at(k + 2).unwrap_unchecked(),
+                        )
+                    };
+                    let b = decode_hex_byte(high, low).ok_or_else(|| {
+                        JsNativeError::uri().with_message("invalid hexadecimal digit found")
+                    })?;
 
                     // e. Set k to k + 2.
                     k += 2;
@@ -512,8 +524,8 @@ where
 }
 
 /// Decodes a byte from two unicode code units.
-fn decode_hex_byte(high: CodePoint, low: CodePoint) -> Option<u8> {
-    match (high.as_char(), low.as_char()) {
+fn decode_hex_byte(high: u16, low: u16) -> Option<u8> {
+    match (char::from_u32(high as u32), char::from_u32(low as u32)) {
         (Some(high), Some(low)) => match (high.to_digit(16), low.to_digit(16)) {
             (Some(high), Some(low)) => Some(((high as u8) << 4) + low as u8),
             _ => None,
@@ -532,38 +544,38 @@ mod tests {
     fn decode_byte() {
         // Sunny day tests
         assert_eq!(
-            decode_hex_byte(CodePoint::from('2'), CodePoint::from('0')).unwrap(),
+            decode_hex_byte(u16::from(b'2'), u16::from(b'0')).unwrap(),
             0x20
         );
         assert_eq!(
-            decode_hex_byte(CodePoint::from('2'), CodePoint::from('A')).unwrap(),
+            decode_hex_byte(u16::from(b'2'), u16::from(b'A')).unwrap(),
             0x2A
         );
         assert_eq!(
-            decode_hex_byte(CodePoint::from('3'), CodePoint::from('C')).unwrap(),
+            decode_hex_byte(u16::from(b'3'), u16::from(b'C')).unwrap(),
             0x3C
         );
         assert_eq!(
-            decode_hex_byte(CodePoint::from('4'), CodePoint::from('0')).unwrap(),
+            decode_hex_byte(u16::from(b'4'), u16::from(b'0')).unwrap(),
             0x40
         );
         assert_eq!(
-            decode_hex_byte(CodePoint::from('7'), CodePoint::from('E')).unwrap(),
+            decode_hex_byte(u16::from(b'7'), u16::from(b'E')).unwrap(),
             0x7E
         );
         assert_eq!(
-            decode_hex_byte(CodePoint::from('0'), CodePoint::from('0')).unwrap(),
+            decode_hex_byte(u16::from(b'0'), u16::from(b'0')).unwrap(),
             0x00
         );
 
         // Rainy day tests
-        assert!(decode_hex_byte(CodePoint::from('-'), CodePoint::from('0')).is_none());
-        assert!(decode_hex_byte(CodePoint::from('f'), CodePoint::from('~')).is_none());
-        assert!(decode_hex_byte(CodePoint::from('A'), CodePoint::from(0_u16)).is_none());
-        assert!(decode_hex_byte(CodePoint::from('%'), CodePoint::from('&')).is_none());
+        assert!(decode_hex_byte(u16::from(b'-'), u16::from(b'0')).is_none());
+        assert!(decode_hex_byte(u16::from(b'f'), u16::from(b'~')).is_none());
+        assert!(decode_hex_byte(u16::from(b'A'), 0_u16).is_none());
+        assert!(decode_hex_byte(u16::from(b'%'), u16::from(b'&')).is_none());
 
-        assert!(decode_hex_byte(CodePoint::from(0xFACD_u16), CodePoint::from('-')).is_none());
-        assert!(decode_hex_byte(CodePoint::from('-'), CodePoint::from(0xA0FD_u16)).is_none());
+        assert!(decode_hex_byte(0xFACD_u16, u16::from(b'-')).is_none());
+        assert!(decode_hex_byte(u16::from(b'-'), 0xA0FD_u16).is_none());
     }
 
     #[test]

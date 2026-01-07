@@ -114,7 +114,7 @@ fn get_by_value<const PUSH_KEY: bool>(
                 }
             } else if let Some(string) = base.as_string() {
                 let value = string
-                    .get(index.get() as usize)
+                    .code_unit_at(index.get() as usize)
                     .map_or_else(JsValue::undefined, |char| {
                         js_string!([char].as_slice()).into()
                     });

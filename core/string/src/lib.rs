@@ -469,6 +469,14 @@ impl JsString {
         self.as_str().starts_with(needle)
     }
 
+    /// Get the `u16` code unit at index. This does not parse any characters if there
+    /// are pairs, it is simply the index of the `u16` elements.
+    #[inline]
+    #[must_use]
+    pub fn code_unit_at(&self, index: usize) -> Option<u16> {
+        self.as_str().get(index)
+    }
+
     /// Get the element at the given index, or [`None`] if the index is out of range.
     #[inline]
     #[must_use]
@@ -1068,13 +1076,3 @@ impl_js_string_slice_index!(
     std::ops::RangeFrom<usize>,
     std::ops::RangeFull,
 );
-
-impl JsStringSliceIndex for usize {
-    fn get(self, str: &JsString) -> Option<JsString> {
-        if self >= str.len() {
-            None
-        } else {
-            Some(str.slice(self, self + 1))
-        }
-    }
-}
