@@ -394,17 +394,17 @@ impl JsString {
                 (start, end)
             }
             JsStrVariant::Utf16(v) => {
-                let Some(start) = v
-                    .iter()
-                    .copied()
-                    .position(|r| !char::from_u32(u32::from(r)).is_some_and(is_trimmable_whitespace))
-                else {
+                let Some(start) = v.iter().copied().position(|r| {
+                    !char::from_u32(u32::from(r)).is_some_and(is_trimmable_whitespace)
+                }) else {
                     return StaticJsStrings::EMPTY_STRING;
                 };
                 let end = v
                     .iter()
                     .copied()
-                    .rposition(|r| !char::from_u32(u32::from(r)).is_some_and(is_trimmable_whitespace))
+                    .rposition(|r| {
+                        !char::from_u32(u32::from(r)).is_some_and(is_trimmable_whitespace)
+                    })
                     .unwrap_or(start);
                 (start, end)
             }

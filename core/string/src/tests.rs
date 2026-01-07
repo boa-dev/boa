@@ -145,7 +145,7 @@ fn trim_start_non_ascii_to_ascii() {
     let s = "\u{2029}abc";
     let x = JsString::from(s);
 
-    let y = JsString::from(x.trim_start());
+    let y = x.trim_start();
 
     assert_eq!(&y, s.trim_start());
 }
