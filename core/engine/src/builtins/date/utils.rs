@@ -130,7 +130,7 @@ fn time_from_year(y: f64) -> f64 {
 /// - [ECMAScript reference][spec]
 ///
 /// [spec]: https://tc39.es/ecma262/#sec-yearfromtime
-pub(super) fn year_from_time(t: f64) -> i32 {
+pub(crate) fn year_from_time(t: f64) -> i32 {
     const MS_PER_AVERAGE_YEAR: f64 = 12.0 * 30.436_875 * MS_PER_DAY;
 
     // 1. Return the largest integral Number y (closest to +∞) such that TimeFromYear(y) ≤ t.
@@ -169,7 +169,7 @@ fn in_leap_year(t: f64) -> u16 {
 /// - [ECMAScript reference][spec]
 ///
 /// [spec]: https://tc39.es/ecma262/#sec-monthfromtime
-pub(super) fn month_from_time(t: f64) -> u8 {
+pub(crate) fn month_from_time(t: f64) -> u8 {
     // 1. Let inLeapYear be InLeapYear(t).
     let in_leap_year = in_leap_year(t);
 
@@ -211,7 +211,7 @@ pub(super) fn month_from_time(t: f64) -> u8 {
 /// - [ECMAScript reference][spec]
 ///
 /// [spec]: https://tc39.es/ecma262/#sec-datefromtime
-pub(super) fn date_from_time(t: f64) -> u8 {
+pub(crate) fn date_from_time(t: f64) -> u8 {
     // 1. Let inLeapYear be InLeapYear(t).
     let in_leap_year = in_leap_year(t);
 
@@ -268,7 +268,7 @@ pub(super) fn week_day(t: f64) -> u8 {
 /// - [ECMAScript reference][spec]
 ///
 /// [spec]: https://tc39.es/ecma262/#sec-hourfromtime
-pub(super) fn hour_from_time(t: f64) -> u8 {
+pub(crate) fn hour_from_time(t: f64) -> u8 {
     // 1. Return 𝔽(floor(ℝ(t / msPerHour)) modulo HoursPerDay).
     ((t / MS_PER_HOUR).floor()).rem_euclid(HOURS_PER_DAY) as u8
 }
@@ -279,7 +279,7 @@ pub(super) fn hour_from_time(t: f64) -> u8 {
 /// - [ECMAScript reference][spec]
 ///
 /// [spec]: https://tc39.es/ecma262/#sec-minfromtime
-pub(super) fn min_from_time(t: f64) -> u8 {
+pub(crate) fn min_from_time(t: f64) -> u8 {
     // 1. Return 𝔽(floor(ℝ(t / msPerMinute)) modulo MinutesPerHour).
     ((t / MS_PER_MINUTE).floor()).rem_euclid(MINUTES_PER_HOUR) as u8
 }
@@ -290,7 +290,7 @@ pub(super) fn min_from_time(t: f64) -> u8 {
 /// - [ECMAScript reference][spec]
 ///
 /// [spec]: https://tc39.es/ecma262/#sec-secfromtime
-pub(super) fn sec_from_time(t: f64) -> u8 {
+pub(crate) fn sec_from_time(t: f64) -> u8 {
     // 1. Return 𝔽(floor(ℝ(t / msPerSecond)) modulo SecondsPerMinute).
     ((t / MS_PER_SECOND).floor()).rem_euclid(SECONDS_PER_MINUTE) as u8
 }
@@ -301,7 +301,7 @@ pub(super) fn sec_from_time(t: f64) -> u8 {
 /// - [ECMAScript reference][spec]
 ///
 /// [spec]: https://tc39.es/ecma262/#sec-msfromtime
-pub(super) fn ms_from_time(t: f64) -> u16 {
+pub(crate) fn ms_from_time(t: f64) -> u16 {
     // 1. Return 𝔽(ℝ(t) modulo ℝ(msPerSecond)).
     t.rem_euclid(MS_PER_SECOND) as u16
 }
