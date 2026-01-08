@@ -328,7 +328,10 @@ pub(crate) fn parse_float(
     // 5. Let parsedNumber be ParseText(trimmedPrefix, StrDecimalLiteral).
     // 6. Assert: parsedNumber is a Parse Node.
     // 7. Return the StringNumericValue of parsedNumber.
-    let (positive, prefix) = match trimmed_string.code_point_at(0).as_char() {
+    let (positive, prefix) = match trimmed_string
+        .code_unit_at(0)
+        .and_then(|c| char::from_u32(u32::from(c)))
+    {
         Some('+') => (
             true,
             trimmed_string
@@ -349,7 +352,10 @@ pub(crate) fn parse_float(
             return Ok(JsValue::positive_infinity());
         }
         return Ok(JsValue::negative_infinity());
-    } else if let Some('I' | 'i') = prefix.code_point_at(0).as_char() {
+    } else if let Some('I' | 'i') = prefix
+        .code_unit_at(0)
+        .and_then(|c| char::from_u32(u32::from(c)))
+    {
         return Ok(JsValue::nan());
     }
 
