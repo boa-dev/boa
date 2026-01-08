@@ -622,10 +622,8 @@ impl String {
             // 4. Let size be the length of S.
             IntegerOrInfinity::Integer(i) if i >= 0 && i < string.len() as i64 => {
                 // 6. Return the Number value for the numeric value of the code unit at index position within the String S.
-                Ok(string
-                    .code_unit_at(i as usize)
-                    .expect("Index was checked")
-                    .into())
+                // SAFETY: already validated the index.
+                Ok(unsafe { string.code_unit_at(i as usize).unwrap_unchecked() }.into())
             }
             // 5. If position < 0 or position ≥ size, return NaN.
             _ => Ok(JsValue::nan()),

@@ -1061,7 +1061,12 @@ macro_rules! impl_js_string_slice_index {
                     std::ops::Bound::Unbounded => str.len(),
                 };
 
-                Some(str.slice(start, end))
+                if end > str.len() || start > end {
+                    None
+                } else {
+                    // SAFETY: we just checked the indices.
+                    Some(unsafe { JsString::slice_unchecked(str, start, end) })
+                }
             }
         }
         )+
