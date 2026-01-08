@@ -1037,7 +1037,7 @@ impl FromStr for JsString {
     }
 }
 
-/// Similar to [`RangeBounds`] but custom implemented for getting direct indices.
+/// Similar to [`std::ops::RangeBounds`] but custom implemented for getting direct indices.
 // TODO: remove [`str::JsSliceIndex`] and rename this when `JsStr` is no more.
 pub trait JsStringSliceIndex {
     /// Get the substring (or `None` if outside the string).
