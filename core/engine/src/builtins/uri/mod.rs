@@ -525,7 +525,10 @@ where
 
 /// Decodes a byte from two unicode code units.
 fn decode_hex_byte(high: u16, low: u16) -> Option<u8> {
-    match (char::from_u32(high as u32), char::from_u32(low as u32)) {
+    match (
+        char::from_u32(u32::from(high)),
+        char::from_u32(u32::from(low)),
+    ) {
         (Some(high), Some(low)) => match (high.to_digit(16), low.to_digit(16)) {
             (Some(high), Some(low)) => Some(((high as u8) << 4) + low as u8),
             _ => None,
