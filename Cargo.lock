@@ -445,6 +445,7 @@ dependencies = [
  "icu_plurals",
  "icu_provider",
  "icu_segmenter",
+ "icu_time",
  "indexmap",
  "indoc",
  "intrusive-collections",
@@ -529,6 +530,7 @@ dependencies = [
  "icu_provider_adapters",
  "icu_provider_blob",
  "icu_segmenter",
+ "icu_time",
  "once_cell",
  "paste",
 ]
@@ -1707,6 +1709,7 @@ dependencies = [
  "icu_provider_export",
  "icu_provider_source",
  "icu_segmenter",
+ "icu_time",
  "log",
  "simple_logger",
 ]
