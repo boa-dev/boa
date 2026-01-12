@@ -121,7 +121,7 @@ itertools = { version = "0.14.0", default-features = false }
 portable-atomic = "1.13.0"
 bytemuck = { version = "1.24.0", default-features = false }
 arrayvec = "0.7.6"
-intrusive-collections = "0.9.7"
+intrusive-collections = "0.10.0"
 cfg-if = "1.0.4"
 either = "1.15.0"
 sys-locale = "0.3.2"
