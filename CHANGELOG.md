@@ -1,6 +1,6 @@
 # CHANGELOG
 
-## [v0.21.0](https://github.com/boa-dev/boa/compare/v0.20...v0.21)
+## [v0.21.0 (2025-10-21)](https://github.com/boa-dev/boa/compare/v0.20...v0.21)
 
 ### Feature Enhancements
 
@@ -288,7 +288,7 @@
 
 **Full Changelog**: https://github.com/boa-dev/boa/compare/v0.20...v0.21
 
-## [0.20.0 (2024-12-5)](https://github.com/boa-dev/boa/compare/v0.19.1...v0.20.0)
+## [0.20.0 (2024-12-05)](https://github.com/boa-dev/boa/compare/v0.19.1...v0.20.0)
 
 ### Feature Enhancements
 
