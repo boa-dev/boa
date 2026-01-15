@@ -761,7 +761,7 @@ fn char_at() {
 #[test]
 fn char_code_at() {
     run_test_actions([
-        TestAction::assert_eq("'abc'.charCodeAt-1", f64::NAN),
+        TestAction::assert_eq("'abc'.charCodeAt(-1)", f64::NAN),
         TestAction::assert_eq("'abc'.charCodeAt(1)", 98),
         TestAction::assert_eq("'abc'.charCodeAt(9)", f64::NAN),
         TestAction::assert_eq("'abc'.charCodeAt()", 97),

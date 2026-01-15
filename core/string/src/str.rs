@@ -1,45 +1,11 @@
 use super::iter::{CodePointsIter, Windows};
-use crate::{
-    CodePoint, Iter, TaggedLen,
-    display::{JsStrDisplayEscaped, JsStrDisplayLossy},
-    is_trimmable_whitespace, is_trimmable_whitespace_latin1,
-};
+use crate::{CodePoint, Iter, TaggedLen, display::JsStrDisplayLossy, is_trimmable_whitespace};
 use std::ptr::NonNull;
 use std::{
     hash::{Hash, Hasher},
     marker::PhantomData,
     slice::SliceIndex,
 };
-
-// Modified port of <https://doc.rust-lang.org/std/primitive.slice.html#method.trim_ascii_start>
-#[inline]
-pub(crate) const fn trim_latin1_start(mut bytes: &[u8]) -> &[u8] {
-    // Note: A pattern matching based approach (instead of indexing) allows
-    // making the function const.
-    while let [first, rest @ ..] = bytes {
-        if is_trimmable_whitespace_latin1(*first) {
-            bytes = rest;
-        } else {
-            break;
-        }
-    }
-    bytes
-}
-
-// Modified port of <https://doc.rust-lang.org/std/primitive.slice.html#method.trim_ascii_end>
-#[inline]
-pub(crate) const fn trim_latin1_end(mut bytes: &[u8]) -> &[u8] {
-    // Note: A pattern matching based approach (instead of indexing) allows
-    // making the function const.
-    while let [rest @ .., last] = bytes {
-        if is_trimmable_whitespace_latin1(*last) {
-            bytes = rest;
-        } else {
-            break;
-        }
-    }
-    bytes
-}
 
 /// Inner representation of a [`JsStr`].
 #[derive(Debug, Clone, Copy)]
@@ -181,53 +147,6 @@ impl<'a> JsStr<'a> {
     #[must_use]
     pub fn is_empty(&self) -> bool {
         self.len() == 0
-    }
-
-    /// Trims both leading and trailing space.
-    #[inline]
-    #[must_use]
-    pub fn trim(self) -> JsStr<'a> {
-        self.trim_start().trim_end()
-    }
-
-    /// Trims all leading space.
-    #[inline]
-    #[must_use]
-    pub fn trim_start(self) -> Self {
-        match self.variant() {
-            JsStrVariant::Latin1(s) => Self::latin1(trim_latin1_start(s)),
-            JsStrVariant::Utf16(s) => {
-                let value = if let Some(left) = s.iter().copied().position(|r| {
-                    !char::from_u32(u32::from(r)).is_some_and(is_trimmable_whitespace)
-                }) {
-                    &s[left..]
-                } else {
-                    return Self::EMPTY;
-                };
-
-                Self::utf16(value)
-            }
-        }
-    }
-
-    /// Trims all trailing space.
-    #[inline]
-    #[must_use]
-    pub fn trim_end(self) -> Self {
-        match self.variant() {
-            JsStrVariant::Latin1(s) => Self::latin1(trim_latin1_end(s)),
-            JsStrVariant::Utf16(s) => {
-                let value = if let Some(right) = s.iter().copied().rposition(|r| {
-                    !char::from_u32(u32::from(r)).is_some_and(is_trimmable_whitespace)
-                }) {
-                    &s[..=right]
-                } else {
-                    return Self::EMPTY;
-                };
-
-                Self::utf16(value)
-            }
-        }
     }
 
     /// Returns an element or subslice depending on the type of index, otherwise [`None`].
@@ -483,41 +402,6 @@ impl<'a> JsStr<'a> {
         char::decode_utf16(self.iter()).map(|res| res.unwrap_or('\u{FFFD}'))
     }
 
-    /// Decodes a [`JsStr`] into an iterator of [`Result<String, u16>`], returning surrogates as
-    /// errors.
-    #[inline]
-    #[allow(clippy::missing_panics_doc)]
-    pub fn to_std_string_with_surrogates(
-        &self,
-    ) -> impl Iterator<Item = Result<String, u16>> + use<'a> {
-        let mut iter = self.code_points().peekable();
-
-        std::iter::from_fn(move || {
-            let cp = iter.next()?;
-            let char = match cp {
-                CodePoint::Unicode(c) => c,
-                CodePoint::UnpairedSurrogate(surr) => return Some(Err(surr)),
-            };
-
-            let mut string = String::from(char);
-
-            loop {
-                let Some(cp) = iter.peek().and_then(|cp| match cp {
-                    CodePoint::Unicode(c) => Some(*c),
-                    CodePoint::UnpairedSurrogate(_) => None,
-                }) else {
-                    break;
-                };
-
-                string.push(cp);
-
-                iter.next().expect("should exist by the check above");
-            }
-
-            Some(Ok(string))
-        })
-    }
-
     /// Decodes a [`JsStr`] into a [`String`], returning an error if it contains any invalid data.
     ///
     /// # Errors
@@ -531,31 +415,12 @@ impl<'a> JsStr<'a> {
         }
     }
 
-    /// Decodes a [`JsStr`] into a [`String`], replacing invalid data with its escaped representation
-    /// in 4 digit hexadecimal.
-    #[inline]
-    #[must_use]
-    pub fn to_std_string_escaped(&self) -> String {
-        self.display_escaped().to_string()
-    }
-
     /// Decodes a [`JsStr`] into a [`String`], replacing invalid data with the
     /// replacement character U+FFFD.
     #[inline]
     #[must_use]
     pub fn to_std_string_lossy(&self) -> String {
         self.display_lossy().to_string()
-    }
-
-    /// Gets a displayable escaped string.
-    ///
-    /// This may be faster and has fewer
-    /// allocations than `format!("{}", str.to_string_escaped())` when
-    /// displaying.
-    #[inline]
-    #[must_use]
-    pub fn display_escaped(&self) -> JsStrDisplayEscaped<'a> {
-        JsStrDisplayEscaped::from(*self)
     }
 
     /// Gets a displayable lossy string.
@@ -659,7 +524,7 @@ impl<'a> PartialEq<JsStr<'a>> for [u16] {
 impl std::fmt::Debug for JsStr<'_> {
     #[inline]
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        self.to_std_string_escaped().fmt(f)
+        f.debug_struct("JsStr").field("len", &self.len()).finish()
     }
 }
 

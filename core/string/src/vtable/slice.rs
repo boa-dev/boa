@@ -1,3 +1,4 @@
+use crate::iter::CodePointsIter;
 use crate::vtable::JsStringVTable;
 use crate::{JsStr, JsString, JsStringKind};
 use std::cell::Cell;
@@ -7,7 +8,7 @@ use std::ptr::NonNull;
 /// A slice of an existing string.
 #[repr(C)]
 pub(crate) struct SliceString {
-    /// Embedded `VTable` - must be first field for vtable dispatch.
+    /// Embedded `VTable` - must be the first field for vtable dispatch.
     vtable: JsStringVTable,
     // Keep this for refcounting the original string.
     owned: JsString,
@@ -32,6 +33,7 @@ impl SliceString {
                 clone: slice_clone,
                 drop: slice_drop,
                 as_str: slice_as_str,
+                code_points: slice_code_points,
                 refcount: slice_refcount,
                 len,
                 kind: JsStringKind::Slice,
@@ -52,6 +54,7 @@ impl SliceString {
     }
 }
 
+#[inline]
 pub(super) fn slice_clone(vtable: NonNull<JsStringVTable>) -> JsString {
     // SAFETY: This is part of the correct vtable which is validated on construction.
     let this: &SliceString = unsafe { vtable.cast().as_ref() };
@@ -63,6 +66,7 @@ pub(super) fn slice_clone(vtable: NonNull<JsStringVTable>) -> JsString {
     unsafe { JsString::from_ptr(vtable) }
 }
 
+#[inline]
 fn slice_drop(vtable: NonNull<JsStringVTable>) {
     // SAFETY: This is part of the correct vtable which is validated on construction.
     let this: &SliceString = unsafe { vtable.cast().as_ref() };
@@ -81,6 +85,7 @@ fn slice_drop(vtable: NonNull<JsStringVTable>) {
     }
 }
 
+#[inline]
 fn slice_as_str(vtable: NonNull<JsStringVTable>) -> JsStr<'static> {
     // SAFETY: This is part of the correct vtable which is validated on construction.
     let this: &SliceString = unsafe { vtable.cast().as_ref() };
@@ -99,7 +104,13 @@ fn slice_as_str(vtable: NonNull<JsStringVTable>) -> JsStr<'static> {
     }
 }
 
+#[inline]
+fn slice_code_points(vtable: NonNull<JsStringVTable>) -> CodePointsIter<'static> {
+    CodePointsIter::new(slice_as_str(vtable))
+}
+
 /// `VTable` function for refcount, need to return an `Option<usize>`.
+#[inline]
 #[allow(clippy::unnecessary_wraps)]
 fn slice_refcount(vtable: NonNull<JsStringVTable>) -> Option<usize> {
     // SAFETY: This is part of the correct vtable which is validated on construction.

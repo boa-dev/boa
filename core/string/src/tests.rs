@@ -145,7 +145,7 @@ fn trim_start_non_ascii_to_ascii() {
     let s = "\u{2029}abc";
     let x = JsString::from(s);
 
-    let y = JsString::from(x.trim_start());
+    let y = x.trim_start();
 
     assert_eq!(&y, s.trim_start());
 }
@@ -545,4 +545,11 @@ fn split() {
     assert_eq!(str3, JsString::from("Hello"));
     drop(base_str);
     assert_eq!(str3, JsString::from("Hello"));
+}
+
+#[test]
+fn trim() {
+    // Very basic test for trimming. The extensive testing is done by `boa_engine`.
+    let base_str = JsString::from(" \u{000B} Hello World \t ");
+    assert_eq!(base_str.trim(), JsString::from("Hello World"));
 }

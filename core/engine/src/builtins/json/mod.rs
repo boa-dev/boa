@@ -386,7 +386,7 @@ impl Json {
         // 7. Else if Type(space) is String, then
         } else if let Some(s) = space.as_string() {
             // a. If the length of space is 10 or less, let gap be space; otherwise let gap be the substring of space from 0 to 10.
-            js_string!(s.get(..10).unwrap_or(s.as_str()))
+            s.get(..10).unwrap_or(s)
         // 8. Else,
         } else {
             // a. Let gap be the empty String.

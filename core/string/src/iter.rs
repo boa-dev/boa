@@ -17,6 +17,7 @@ pub struct Iter<'a> {
 }
 
 impl<'a> Iter<'a> {
+    #[inline]
     pub(crate) fn new(s: JsStr<'a>) -> Self {
         let inner = match s.variant() {
             JsStrVariant::Latin1(s) => IterInner::U8(s.iter().copied()),
@@ -65,6 +66,7 @@ pub struct Windows<'a> {
 }
 
 impl<'a> Windows<'a> {
+    #[inline]
     pub(crate) fn new(string: JsStr<'a>, size: usize) -> Self {
         let inner = match string.variant() {
             JsStrVariant::Latin1(v) => WindowsInner::U8(v.windows(size)),
@@ -110,6 +112,7 @@ pub struct CodePointsIter<'a> {
 }
 
 impl<'a> CodePointsIter<'a> {
+    #[inline]
     pub(crate) fn new(s: JsStr<'a>) -> Self {
         let inner = match s.variant() {
             JsStrVariant::Latin1(s) => CodePointsIterInner::Latin1(s.iter().copied()),

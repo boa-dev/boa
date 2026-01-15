@@ -127,7 +127,7 @@ impl SegmentIterator {
                 .segmenter
                 .downcast_ref::<Segmenter>()
                 .expect("segment iterator object should contain a segmenter");
-            let mut segments = segmenter.native.segment(string);
+            let mut segments = segmenter.native.segment(string.variant());
             // the first elem is always 0.
             segments.next();
             segments

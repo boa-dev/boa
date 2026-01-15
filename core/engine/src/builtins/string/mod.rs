@@ -620,11 +620,10 @@ impl String {
 
         match position {
             // 4. Let size be the length of S.
-            IntegerOrInfinity::Integer(i) if i >= 0 => {
+            IntegerOrInfinity::Integer(i) if i >= 0 && i < string.len() as i64 => {
                 // 6. Return the Number value for the numeric value of the code unit at index position within the String S.
-                Ok(string
-                    .get(i as usize)
-                    .map_or_else(JsValue::nan, JsValue::from))
+                // SAFETY: already validated the index.
+                Ok(unsafe { string.code_unit_at(i as usize).unwrap_unchecked() }.into())
             }
             // 5. If position < 0 or position ≥ size, return NaN.
             _ => Ok(JsValue::nan()),
@@ -1043,7 +1042,7 @@ impl String {
         };
 
         // 10. Let preserved be the substring of string from 0 to position.
-        let preserved = JsString::from(string.get_expect(..position));
+        let preserved = string.get_expect(..position);
 
         let replacement = match replace_value {
             // 11. If functionalReplace is true, then
@@ -1080,7 +1079,7 @@ impl String {
         Ok(js_string!(
             &preserved,
             &replacement,
-            &JsString::from(string.get_expect(position + search_length..))
+            &string.get_expect(position + search_length..)
         )
         .into())
     }
@@ -1675,7 +1674,7 @@ impl String {
         // 2. Return ? TrimString(S, end).
         let object = this.require_object_coercible()?;
         let string = object.to_string(context)?;
-        Ok(js_string!(string.trim_end()).into())
+        Ok(string.trim_end().into())
     }
 
     /// [`String.prototype.toUpperCase()`][upper] and [`String.prototype.toLowerCase()`][lower]
@@ -1957,9 +1956,8 @@ impl String {
         if separator_length == 0 {
             // a. Let head be the substring of S from 0 to lim.
             // b. Let codeUnits be a List consisting of the sequence of code units that are the elements of head.
-            let head = this_str
-                .get(..lim)
-                .unwrap_or(this_str.as_str())
+            let head_str = this_str.get(..lim).unwrap_or(this_str);
+            let head = head_str
                 .iter()
                 .map(|code| js_string!(std::slice::from_ref(&code)).into());
 

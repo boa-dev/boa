@@ -76,3 +76,16 @@ impl std::fmt::Display for CodePoint {
         }
     }
 }
+
+impl From<char> for CodePoint {
+    fn from(value: char) -> Self {
+        Self::Unicode(value)
+    }
+}
+
+impl From<u16> for CodePoint {
+    fn from(value: u16) -> Self {
+        char::from_u32(u32::from(value))
+            .map_or_else(|| CodePoint::UnpairedSurrogate(value), CodePoint::Unicode)
+    }
+}

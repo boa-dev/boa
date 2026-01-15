@@ -1,4 +1,5 @@
 //! Module defining the [`JsString`] `VTable` and kinds of strings.
+use crate::iter::CodePointsIter;
 use crate::{JsStr, JsString, JsStringKind};
 use std::ptr::NonNull;
 
@@ -24,6 +25,10 @@ pub(crate) struct JsStringVTable {
     /// of the lifetime of the string itself. This is conveyed by the [`JsString`] API
     /// itself rather than this vtable.
     pub as_str: fn(NonNull<JsStringVTable>) -> JsStr<'static>,
+    /// Get an iterator of code points. This is the basic form of character access.
+    /// Although this is marked as `'static`, this is really of the lifetime of the string
+    /// itself. This is conveyed by the [`JsString`] API itself rather than this vtable.
+    pub code_points: fn(NonNull<JsStringVTable>) -> CodePointsIter<'static>,
     /// Get the refcount, if applicable.
     pub refcount: fn(NonNull<JsStringVTable>) -> Option<usize>,
     /// Get the length of the string. Since a string is immutable, this does not need
