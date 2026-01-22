@@ -223,6 +223,112 @@ pub trait HostHooks {
     fn max_buffer_size(&self, _context: &mut Context) -> u64 {
         1_610_612_736 // 1.5 GiB
     }
+
+    /// Hook called when a `debugger` statement is executed.
+    ///
+    /// This hook allows the host environment to implement debugging functionality,
+    /// such as setting breakpoints, inspecting variables, or pausing execution.
+    ///
+    /// # Requirements
+    ///
+    /// - It must complete normally (i.e. not return an abrupt completion). This is already
+    ///   ensured by the return type.
+    ///
+    /// # Default Implementation
+    ///
+    /// The default implementation does nothing (no-op), allowing the program to continue
+    /// execution as if the debugger statement wasn't there.
+    #[cfg(feature = "debugger")]
+    fn on_debugger_statement(&self, _context: &mut Context) -> JsResult<()> {
+        // The default implementation is a no-op
+        Ok(())
+    }
+
+    /// Hook called when entering a new call frame.
+    ///
+    /// This hook is called when a function is about to be executed and a new
+    /// call frame is pushed onto the call stack.
+    ///
+    /// # Requirements
+    ///
+    /// - It must complete normally in most cases
+    /// - Can return an error to abort execution
+    ///
+    /// # Default Implementation
+    ///
+    /// The default implementation does nothing (no-op).
+    ///
+    /// # Returns
+    ///
+    /// Returns `Ok(true)` to pause execution (for debugging), `Ok(false)` to continue
+    #[cfg(feature = "debugger")]
+    fn on_enter_frame(&self, _context: &mut Context) -> JsResult<bool> {
+        Ok(false)
+    }
+
+    /// Hook called when exiting a call frame.
+    ///
+    /// This hook is called when a function returns and its call frame is
+    /// about to be popped from the call stack.
+    ///
+    /// # Requirements
+    ///
+    /// - It must complete normally in most cases
+    /// - Can return an error to abort execution
+    ///
+    /// # Default Implementation
+    ///
+    /// The default implementation does nothing (no-op).
+    ///
+    /// # Returns
+    ///
+    /// Returns `Ok(true)` to pause execution (for debugging), `Ok(false)` to continue
+    #[cfg(feature = "debugger")]
+    fn on_exit_frame(&self, _context: &mut Context) -> JsResult<bool> {
+        Ok(false)
+    }
+
+    /// Hook called when an exception is being unwound through a frame.
+    ///
+    /// This hook is called during exception handling when an exception
+    /// is propagating up the call stack.
+    ///
+    /// # Requirements
+    ///
+    /// - It must complete normally in most cases
+    /// - Can return an error to replace the original exception
+    ///
+    /// # Default Implementation
+    ///
+    /// The default implementation does nothing (no-op).
+    ///
+    /// # Returns
+    ///
+    /// Returns `Ok(true)` to pause execution (for debugging), `Ok(false)` to continue
+    #[cfg(feature = "debugger")]
+    fn on_exception_unwind(&self, _context: &mut Context) -> JsResult<bool> {
+        Ok(false)
+    }
+
+    /// Hook called before executing each bytecode instruction.
+    ///
+    /// This hook is called before each instruction is executed and is primarily
+    /// used for debugging purposes (e.g., stepping through code, checking
+    /// breakpoints).
+    ///
+    /// # Requirements
+    ///
+    /// - It must complete normally in most cases
+    /// - Can return an error to abort execution
+    /// - Should be efficient as it's called for every instruction
+    ///
+    /// # Default Implementation
+    ///
+    /// The default implementation does nothing (no-op).
+    #[cfg(feature = "debugger")]
+    fn on_step(&self, _context: &mut Context) -> JsResult<()> {
+        Ok(())
+    }
 }
 
 /// Default implementation of [`HostHooks`], which doesn't carry any state.

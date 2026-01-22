@@ -40,6 +40,7 @@ default = [
 dhat = ["dep:dhat"]
 fast-allocator = ["dep:mimalloc-safe", "dep:jemallocator"]
 fetch = ["boa_runtime/fetch", "boa_runtime/reqwest-blocking"]
+dap = ["boa_engine/debugger"]
 
 [target.x86_64-unknown-linux-gnu.dependencies]
 jemallocator = { workspace = true, optional = true }

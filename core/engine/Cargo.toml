@@ -88,6 +88,9 @@ xsum = ["dep:xsum"]
 # Native Backtraces
 native-backtrace = []
 
+# Debugger
+debugger = []
+
 [dependencies]
 tag_ptr.workspace = true
 boa_interner.workspace = true

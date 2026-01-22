@@ -1,0 +1,49 @@
+{
+  "version": "0.2.0",
+  "configurations": [
+    {
+      "type": "boa",
+      "request": "launch",
+      "name": "Debug Current File",
+      "program": "${file}",
+      "useHttp": true,
+      "httpPort": 4711
+    },
+    {
+      "type": "boa",
+      "request": "launch",
+      "name": "Test Boa Debugger",
+      "program": "${workspaceFolder}/basic.js",
+      "useHttp": true,
+      "httpPort": 4711
+    },
+    {
+      "name": "Test Factorial",
+      "type": "boa",
+      "request": "launch",
+      "program": "${workspaceFolder}/factorial.js",
+      "stopOnEntry": false
+    },
+    {
+      "name": "Test Exception",
+      "type": "boa",
+      "request": "launch",
+      "program": "${workspaceFolder}/exception.js",
+      "stopOnEntry": false
+    },
+    {
+      "name": "Test Closures",
+      "type": "boa",
+      "request": "launch",
+      "program": "${workspaceFolder}/closures.js",
+      "stopOnEntry": false
+    },
+    {
+      "name": "Debug Current File",
+      "type": "boa",
+      "request": "launch",
+      "program": "${file}",
+      "stopOnEntry": true
+    }
+  ]
+}

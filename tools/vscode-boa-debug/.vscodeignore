@@ -1,0 +1,8 @@
+# Ignore files when packaging the extension
+.vscode/**
+.vscode-test/**
+node_modules/**
+test-files/**/*.log
+*.vsix
+.gitignore
+.DS_Store

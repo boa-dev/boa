@@ -1,0 +1,128 @@
+{
+  "name": "boa-debugger",
+  "displayName": "Boa JavaScript Debugger",
+  "version": "0.1.0",
+  "publisher": "boa-dev",
+  "description": "Debug JavaScript using the Boa engine",
+  "author": "Boa Dev Team",
+  "license": "MIT OR Apache-2.0",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/boa-dev/boa.git"
+  },
+  "engines": {
+    "vscode": "^1.70.0"
+  },
+  "categories": [
+    "Debuggers"
+  ],
+  "keywords": [
+    "javascript",
+    "debugger",
+    "boa",
+    "debug adapter"
+  ],
+  "activationEvents": [
+    "onDebugResolve:boa",
+    "onDebugDynamicConfigurations:boa",
+    "onCommand:extension.boa-debug.getProgramName"
+  ],
+  "main": "./extension.js",
+  "contributes": {
+    "debuggers": [
+      {
+        "type": "boa",
+        "label": "Boa Debug",
+        "languages": [
+          "javascript"
+        ],
+        "configurationAttributes": {
+          "launch": {
+            "required": [
+              "program"
+            ],
+            "properties": {
+              "program": {
+                "type": "string",
+                "description": "Absolute path to the JavaScript file to debug",
+                "default": "${file}"
+              },
+              "stopOnEntry": {
+                "type": "boolean",
+                "description": "Automatically pause execution after launch",
+                "default": false
+              },
+              "args": {
+                "type": "array",
+                "description": "Command line arguments passed to the program",
+                "items": {
+                  "type": "string"
+                },
+                "default": []
+              },
+              "cwd": {
+                "type": "string",
+                "description": "Working directory of the program",
+                "default": "${workspaceFolder}"
+              },
+              "trace": {
+                "type": "boolean",
+                "description": "Enable verbose logging for debugging the debug adapter",
+                "default": false
+              }
+            }
+          },
+          "attach": {
+            "properties": {
+              "port": {
+                "type": "number",
+                "description": "Port to attach to",
+                "default": 9229
+              }
+            }
+          }
+        },
+        "initialConfigurations": [
+          {
+            "type": "boa",
+            "request": "launch",
+            "name": "Debug JavaScript with Boa",
+            "program": "${file}",
+            "stopOnEntry": false
+          }
+        ],
+        "configurationSnippets": [
+          {
+            "label": "Boa: Launch Current File",
+            "description": "Debug the currently open JavaScript file",
+            "body": {
+              "type": "boa",
+              "request": "launch",
+              "name": "Debug Current File",
+              "program": "^\"\\${file}\""
+            }
+          },
+          {
+            "label": "Boa: Launch Program",
+            "description": "Debug a specific JavaScript file",
+            "body": {
+              "type": "boa",
+              "request": "launch",
+              "name": "Debug Program",
+              "program": "^\"\\${workspaceFolder}/\\${1:main.js}\""
+            }
+          }
+        ]
+      }
+    ],
+    "breakpoints": [
+      {
+        "language": "javascript"
+      }
+    ]
+  },
+  "scripts": {
+    "package": "vsce package",
+    "publish": "vsce publish"
+  }
+}

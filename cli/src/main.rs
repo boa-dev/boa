@@ -167,6 +167,13 @@ struct Opt {
     /// executed prior to the expression.
     #[arg(long, short = 'e')]
     expression: Option<String>,
+
+    /// Run in DAP (Debug Adapter Protocol) mode for IDE debugging support.
+    /// Optionally specify a TCP port (default: 4711).
+    #[cfg(feature = "dap")]
+    #[arg(long)]
+    #[allow(clippy::option_option)]
+    dap: Option<Option<u16>>,
 }
 
 impl Opt {
@@ -411,6 +418,13 @@ fn main() -> Result<()> {
     let _profiler = dhat::Profiler::new_heap();
 
     let args = Opt::parse();
+
+    // If in DAP mode, run the DAP server
+    #[cfg(feature = "dap")]
+    if let Some(port_option) = args.dap {
+        let port = port_option.unwrap_or(4711);
+        return debug::dap::run_dap_server_with_mode(port).map_err(|e| eyre!(e.to_string()));
+    }
 
     // A channel of expressions to run.
     let (sender, receiver) = std::sync::mpsc::channel::<String>();

@@ -18,6 +18,7 @@ mod call;
 mod concat;
 mod control_flow;
 mod copy;
+mod debugger;
 mod define;
 mod delete;
 mod environment;
@@ -53,6 +54,8 @@ pub(crate) use concat::*;
 pub(crate) use control_flow::*;
 #[doc(inline)]
 pub(crate) use copy::*;
+#[doc(inline)]
+pub(crate) use debugger::*;
 #[doc(inline)]
 pub(crate) use define::*;
 #[doc(inline)]
@@ -1640,6 +1643,7 @@ generate_opcodes! {
     ///   - message: `VaryingOperand`
     ThrowNewReferenceError { message: VaryingOperand },
 
+
     /// Pushes `this` value
     ///
     /// - Registers:
@@ -2135,7 +2139,13 @@ generate_opcodes! {
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-createglobalvarbinding
     CreateGlobalVarBinding { configurable: VaryingOperand, name_index: VaryingOperand },
-
+    /// Execute the debugger statement.
+    ///
+    /// This calls the host hook `on_debugger_statement`, which allows
+    /// the host to implement debugging functionality such as breakpoints,
+    /// variable inspection, and stepping.
+    /// [spec]: https://tc39.es/ecma262/#prod-DebuggerStatement
+    Debugger,
     /// Reserved [`Opcode`].
     Reserved1 => Reserved,
     /// Reserved [`Opcode`].
@@ -2254,6 +2264,4 @@ generate_opcodes! {
     Reserved58 => Reserved,
     /// Reserved [`Opcode`].
     Reserved59 => Reserved,
-    /// Reserved [`Opcode`].
-    Reserved60 => Reserved,
 }

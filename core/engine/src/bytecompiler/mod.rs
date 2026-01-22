@@ -2145,6 +2145,7 @@ impl<'ctx> ByteCompiler<'ctx> {
                 self.function_name,
                 self.spanned_source_text,
             ),
+            script_id: None,
         }
     }
 

@@ -100,7 +100,10 @@ impl ByteCompiler<'_> {
                 self.register_allocator.dealloc(value);
             }
             Statement::With(with) => self.compile_with(with, use_expr),
-            Statement::Empty | Statement::Debugger => {}
+            Statement::Debugger => {
+                self.bytecode.emit_debugger();
+            }
+            Statement::Empty => {}
         }
     }
 
