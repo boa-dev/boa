@@ -29,9 +29,9 @@ struct TestService;
 impl Service for TestService {
     type LangMarker = PluralsCardinalV1;
 
-    type LocaleOptions = TestOptions;
+    type Preferences = TestOptions;
 
-    fn resolve(locale: &mut Locale, options: &mut Self::LocaleOptions, provider: &IntlProvider) {
+    fn resolve(locale: &mut Locale, options: &mut Self::Preferences, provider: &IntlProvider) {
         let loc_hc = locale
             .extensions
             .unicode

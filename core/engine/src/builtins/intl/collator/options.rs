@@ -1,13 +1,22 @@
 use std::str::FromStr;
 
 use icu_collator::{
+    CollatorPreferences,
     options::{CaseLevel, Strength},
-    preferences::CollationCaseFirst,
+    preferences::{CollationCaseFirst, CollationType},
+};
+use icu_locale::{LanguageIdentifier, preferences::PreferenceKey};
+use icu_provider::{
+    DataMarker, DataMarkerAttributes, DryDataProvider,
+    prelude::icu_locale_core::{extensions::unicode, preferences::LocalePreferences},
 };
 
 use crate::{
     Context, JsNativeError, JsResult, JsValue,
-    builtins::options::{OptionType, ParsableOptionType},
+    builtins::{
+        intl::{ServicePreferences, locale::validate_extension},
+        options::{OptionType, ParsableOptionType},
+    },
 };
 
 #[derive(Debug, Clone, Copy)]
@@ -95,5 +104,67 @@ impl OptionType for CollationCaseFirst {
                 .with_message("provided string was not `upper`, `lower` or `false`")
                 .into()),
         }
+    }
+}
+
+impl ServicePreferences for CollatorPreferences {
+    fn validate_extensions<M: DataMarker>(
+        &mut self,
+        id: &LanguageIdentifier,
+        provider: &impl DryDataProvider<M>,
+    ) {
+        self.collation_type = self.collation_type.take().filter(|co| {
+            let attr = DataMarkerAttributes::from_str_or_panic(co.as_str());
+            co != &CollationType::Search && validate_extension::<M>(id, attr, provider)
+        });
+    }
+
+    fn set_locale(&mut self, locale: LocalePreferences) {
+        self.locale_preferences = locale
+    }
+
+    fn as_unicode(&self) -> unicode::Unicode {
+        let mut exts = unicode::Unicode::new();
+
+        if let Some(co) = self.collation_type
+            && let Some(value) = co.unicode_extension_value()
+        {
+            exts.keywords.set(unicode::key!("co"), value);
+        }
+
+        if let Some(kn) = self.numeric_ordering
+            && let Some(value) = kn.unicode_extension_value()
+        {
+            exts.keywords.set(unicode::key!("kn"), value);
+        }
+
+        if let Some(kf) = self.case_first
+            && let Some(value) = kf.unicode_extension_value()
+        {
+            exts.keywords.set(unicode::key!("kf"), value);
+        }
+
+        exts
+    }
+
+    fn extend(&mut self, other: &Self) {
+        self.extend(*other);
+    }
+
+    fn intersection(&self, other: &Self) -> Self {
+        let mut inter = self.clone();
+        if inter.locale_preferences != other.locale_preferences {
+            inter.locale_preferences = LocalePreferences::default()
+        }
+        if inter.collation_type != other.collation_type {
+            inter.collation_type.take();
+        }
+        if inter.case_first != other.case_first {
+            inter.case_first.take();
+        }
+        if inter.numeric_ordering != other.numeric_ordering {
+            inter.numeric_ordering.take();
+        }
+        inter
     }
 }

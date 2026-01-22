@@ -11,8 +11,7 @@ use icu_plurals::{
 use crate::{
     Context, JsArgs, JsData, JsNativeError, JsObject, JsResult, JsString, JsSymbol, JsValue,
     builtins::{
-        Array, BuiltInBuilder, BuiltInConstructor, BuiltInObject, IntrinsicObject,
-        options::get_option,
+        Array, BuiltInBuilder, BuiltInConstructor, BuiltInObject, IntrinsicObject, intl::options::EmptyPreferences, options::get_option
     },
     context::intrinsics::{Intrinsics, StandardConstructor, StandardConstructors},
     js_string,
@@ -43,7 +42,7 @@ pub(crate) struct PluralRules {
 impl Service for PluralRules {
     type LangMarker = PluralsCardinalV1;
 
-    type LocaleOptions = ();
+    type Preferences = EmptyPreferences;
 }
 
 impl IntrinsicObject for PluralRules {

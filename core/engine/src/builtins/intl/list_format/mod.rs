@@ -11,9 +11,7 @@ use icu_locale::Locale;
 use crate::{
     Context, JsArgs, JsData, JsNativeError, JsResult, JsString, JsValue,
     builtins::{
-        Array, BuiltInBuilder, BuiltInConstructor, BuiltInObject, IntrinsicObject, OrdinaryObject,
-        iterable::IteratorHint,
-        options::{get_option, get_options_object},
+        Array, BuiltInBuilder, BuiltInConstructor, BuiltInObject, IntrinsicObject, OrdinaryObject, intl::options::EmptyPreferences, iterable::IteratorHint, options::{get_option, get_options_object}
     },
     context::intrinsics::{Intrinsics, StandardConstructor, StandardConstructors},
     js_string,
@@ -48,7 +46,7 @@ impl Service for ListFormat {
 
     const ATTRIBUTES: &'static icu_provider::DataMarkerAttributes = ListFormatterPatterns::WIDE;
 
-    type LocaleOptions = ();
+    type Preferences = EmptyPreferences;
 }
 
 impl IntrinsicObject for ListFormat {

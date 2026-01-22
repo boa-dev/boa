@@ -96,9 +96,9 @@ pub(crate) struct DateTimeFormat {
 impl Service for DateTimeFormat {
     type LangMarker = DecimalSymbolsV1;
 
-    type LocaleOptions = DateTimeFormatterPreferences;
+    type Preferences = DateTimeFormatterPreferences;
 
-    fn resolve(locale: &mut Locale, options: &mut Self::LocaleOptions, provider: &IntlProvider) {
+    fn resolve(locale: &mut Locale, options: &mut Self::Preferences, provider: &IntlProvider) {
         let locale_preferences = DateTimeFormatterPreferences::from(&*locale);
         // TODO: Determine if any locale_preferences processing is needed here.
 

@@ -1,10 +1,12 @@
 use std::{fmt, str::FromStr};
 
+use icu_locale::{LanguageIdentifier, extensions::unicode, preferences::LocalePreferences};
+use icu_provider::{DataMarker, DryDataProvider};
 use num_traits::FromPrimitive;
 
 use crate::{
     Context, JsNativeError, JsResult, JsString, JsValue,
-    builtins::{OrdinaryObject, options::ParsableOptionType},
+    builtins::{OrdinaryObject, intl::ServicePreferences, options::ParsableOptionType},
     object::JsObject,
 };
 
@@ -47,6 +49,32 @@ impl FromStr for LocaleMatcher {
 }
 
 impl ParsableOptionType for LocaleMatcher {}
+
+#[derive(Clone, Copy, Debug, PartialEq, Eq, Default)]
+pub(super) struct EmptyPreferences;
+
+impl From<&icu_locale::Locale> for EmptyPreferences {
+    fn from(_: &icu_locale::Locale) -> Self {
+        Self
+    }
+}
+
+impl ServicePreferences for EmptyPreferences {
+    fn validate_extensions<M: DataMarker>(
+        &mut self,
+        _: &LanguageIdentifier,
+        _: &impl DryDataProvider<M>,
+    ) {
+    }
+    fn set_locale(&mut self, _: LocalePreferences) {}
+    fn as_unicode(&self) -> unicode::Unicode {
+        unicode::Unicode::new()
+    }
+    fn extend(&mut self, _: &Self) {}
+    fn intersection(&self, _: &Self) -> Self {
+        Self
+    }
+}
 
 /// Abstract operation `GetNumberOption ( options, property, minimum, maximum, fallback )`
 ///

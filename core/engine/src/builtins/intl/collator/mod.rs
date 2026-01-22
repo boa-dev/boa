@@ -6,11 +6,7 @@ use icu_collator::{
     provider::CollationMetadataV1,
 };
 
-use icu_locale::{
-    Locale, extensions::unicode, extensions_unicode_key as key, preferences::PreferenceKey,
-    subtags::subtag,
-};
-use icu_provider::DataMarkerAttributes;
+use icu_locale::{Locale, extensions::unicode};
 
 use crate::{
     Context, JsArgs, JsData, JsNativeError, JsResult, JsString, JsValue,
@@ -18,10 +14,9 @@ use crate::{
         BuiltInBuilder, BuiltInConstructor, BuiltInObject, IntrinsicObject, OrdinaryObject,
         options::get_option,
     },
-    context::{
-        icu::IntlProvider,
-        intrinsics::{Intrinsics, StandardConstructor, StandardConstructors},
-    },
+    context::
+        intrinsics::{Intrinsics, StandardConstructor, StandardConstructors}
+    ,
     js_string,
     native_function::NativeFunction,
     object::{
@@ -36,7 +31,7 @@ use crate::{
 
 use super::{
     Service,
-    locale::{canonicalize_locale_list, filter_locales, resolve_locale, validate_extension},
+    locale::{canonicalize_locale_list, filter_locales, resolve_locale},
     options::{IntlOptions, coerce_options_to_object},
 };
 
@@ -72,95 +67,7 @@ impl Collator {
 impl Service for Collator {
     type LangMarker = CollationMetadataV1;
 
-    type LocaleOptions = CollatorPreferences;
-
-    fn resolve(locale: &mut Locale, options: &mut Self::LocaleOptions, provider: &IntlProvider) {
-        let mut locale_preferences = CollatorPreferences::from(&*locale);
-        locale_preferences.collation_type = locale_preferences.collation_type.take().filter(|co| {
-            let attr = DataMarkerAttributes::from_str_or_panic(co.as_str());
-            co != &CollationType::Search
-                && validate_extension::<Self::LangMarker>(locale.id.clone(), attr, provider)
-        });
-        locale.extensions.unicode.clear();
-
-        options.locale_preferences = (&*locale).into();
-
-        options.collation_type = options
-            .collation_type
-            .take()
-            .filter(|co| {
-                let attr = DataMarkerAttributes::from_str_or_panic(co.as_str());
-                co != &CollationType::Search
-                    && validate_extension::<Self::LangMarker>(locale.id.clone(), attr, provider)
-            })
-            .inspect(|co| {
-                if Some(co) == locale_preferences.collation_type.as_ref()
-                    && let Some(co) = co.unicode_extension_value()
-                {
-                    locale.extensions.unicode.keywords.set(key!("co"), co);
-                }
-            })
-            .or_else(|| {
-                if let Some(co) = locale_preferences
-                    .collation_type
-                    .as_ref()
-                    .and_then(CollationType::unicode_extension_value)
-                {
-                    locale.extensions.unicode.keywords.set(key!("co"), co);
-                }
-                locale_preferences.collation_type
-            });
-
-        options.numeric_ordering = options
-            .numeric_ordering
-            .take()
-            .inspect(|kn| {
-                if Some(kn) == locale_preferences.numeric_ordering.as_ref()
-                    && let Some(mut kn) = kn.unicode_extension_value()
-                {
-                    if kn.as_single_subtag() == Some(&subtag!("true")) {
-                        kn = unicode::Value::new_empty();
-                    }
-                    locale.extensions.unicode.keywords.set(key!("kn"), kn);
-                }
-            })
-            .or_else(|| {
-                if let Some(mut kn) = locale_preferences
-                    .numeric_ordering
-                    .as_ref()
-                    .and_then(CollationNumericOrdering::unicode_extension_value)
-                {
-                    if kn.as_single_subtag() == Some(&subtag!("true")) {
-                        kn = unicode::Value::new_empty();
-                    }
-                    locale.extensions.unicode.keywords.set(key!("kn"), kn);
-                }
-
-                locale_preferences.numeric_ordering
-            });
-
-        options.case_first = options
-            .case_first
-            .take()
-            .inspect(|kf| {
-                if Some(kf) == locale_preferences.case_first.as_ref()
-                    && let Some(kn) = kf.unicode_extension_value()
-                {
-                    locale.extensions.unicode.keywords.set(key!("kf"), kn);
-                }
-            })
-            .or_else(|| {
-                if let Some(kf) = locale_preferences
-                    .case_first
-                    .as_ref()
-                    .and_then(CollationCaseFirst::unicode_extension_value)
-                {
-                    locale.extensions.unicode.keywords.set(key!("kf"), kf);
-                }
-
-                locale_preferences.case_first
-            });
-    }
+    type Preferences = CollatorPreferences;
 }
 
 impl IntrinsicObject for Collator {

@@ -26,7 +26,8 @@ use crate::{
 };
 
 use boa_gc::{Finalize, Trace};
-use icu_provider::{DataMarker, DataMarkerAttributes};
+use icu_locale::{LanguageIdentifier, extensions::unicode, preferences::LocalePreferences};
+use icu_provider::{DataMarker, DataMarkerAttributes, DryDataProvider};
 use static_assertions::const_assert;
 
 pub(crate) mod collator;
@@ -178,6 +179,18 @@ impl Intl {
     }
 }
 
+trait ServicePreferences: for<'a> From<&'a icu_locale::Locale> {
+    fn validate_extensions<M: DataMarker>(
+        &mut self,
+        id: &LanguageIdentifier,
+        provider: &impl DryDataProvider<M>,
+    );
+    fn set_locale(&mut self, locale: LocalePreferences);
+    fn as_unicode(&self) -> unicode::Unicode;
+    fn extend(&mut self, other: &Self);
+    fn intersection(&self, other: &Self) -> Self;
+}
+
 /// A service component that is part of the `Intl` API.
 ///
 /// This needs to be implemented for every `Intl` service in order to use the functions
@@ -190,9 +203,9 @@ trait Service {
     /// The attributes used to resolve the locale.
     const ATTRIBUTES: &'static DataMarkerAttributes = DataMarkerAttributes::empty();
 
-    /// The set of options used in the [`Service::resolve`] method to resolve the provided
+    /// The set of preferences used in the [`Service::resolve`] method to resolve the provided
     /// locale.
-    type LocaleOptions;
+    type Preferences: ServicePreferences;
 
     /// Resolves the final value of `locale` from a set of `options`.
     ///
@@ -207,7 +220,7 @@ trait Service {
     ///   skipped.
     fn resolve(
         _locale: &mut icu_locale::Locale,
-        _options: &mut Self::LocaleOptions,
+        _options: &mut Self::Preferences,
         _provider: &IntlProvider,
     ) {
     }
