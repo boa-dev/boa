@@ -110,7 +110,7 @@ impl OptionType for CollationCaseFirst {
 }
 
 impl ServicePreferences for CollatorPreferences {
-    fn validate_extensions(&mut self, id: &LanguageIdentifier, provider: &IntlProvider) {
+    fn validate(&mut self, id: &LanguageIdentifier, provider: &IntlProvider) {
         self.collation_type = self.collation_type.take().filter(|co| {
             let attr = DataMarkerAttributes::from_str_or_panic(co.as_str());
             co != &CollationType::Search
@@ -142,8 +142,10 @@ impl ServicePreferences for CollatorPreferences {
         exts
     }
 
-    fn extend(&mut self, other: &Self) {
-        self.extend(*other);
+    fn extended(&self, other: &Self) -> Self {
+        let mut result = *self;
+        result.extend(*other);
+        result
     }
 
     fn intersection(&self, other: &Self) -> Self {

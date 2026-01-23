@@ -1268,7 +1268,7 @@ impl RoundingType {
 }
 
 impl ServicePreferences for DecimalFormatterPreferences {
-    fn validate_extensions(&mut self, id: &LanguageIdentifier, provider: &IntlProvider) {
+    fn validate(&mut self, id: &LanguageIdentifier, provider: &IntlProvider) {
         self.numbering_system = self.numbering_system.take().filter(|nu| {
             let attr = DataMarkerAttributes::from_str_or_panic(nu.as_str());
             validate_extension::<DecimalSymbolsV1>(id, attr, provider)
@@ -1286,8 +1286,10 @@ impl ServicePreferences for DecimalFormatterPreferences {
         exts
     }
 
-    fn extend(&mut self, other: &Self) {
-        self.extend(*other);
+    fn extended(&self, other: &Self) -> Self {
+        let mut result = *self;
+        result.extend(*other);
+        result
     }
 
     fn intersection(&self, other: &Self) -> Self {

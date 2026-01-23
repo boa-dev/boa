@@ -19,7 +19,7 @@ use crate::{
     context::icu::IntlProvider,
 };
 
-#[derive(Debug, Clone)]
+#[derive(Debug, Copy, Clone)]
 struct TestPreferences {
     nu: Option<NumberingSystem>,
 }
@@ -38,7 +38,7 @@ impl From<&Locale> for TestPreferences {
 }
 
 impl ServicePreferences for TestPreferences {
-    fn validate_extensions(&mut self, id: &LanguageIdentifier, provider: &IntlProvider) {
+    fn validate(&mut self, id: &LanguageIdentifier, provider: &IntlProvider) {
         if self.nu.is_some() {
             return;
         }
@@ -63,14 +63,16 @@ impl ServicePreferences for TestPreferences {
         exts
     }
 
-    fn extend(&mut self, other: &Self) {
-        if self.nu.is_none() {
-            self.nu = other.nu;
+    fn extended(&self, other: &Self) -> Self {
+        let mut result = *self;
+        if result.nu.is_none() {
+            result.nu = other.nu;
         }
+        result
     }
 
     fn intersection(&self, other: &Self) -> Self {
-        let mut inter = self.clone();
+        let mut inter = *self;
         if inter.nu != other.nu {
             inter.nu.take();
         }

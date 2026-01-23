@@ -585,7 +585,7 @@ impl TimeZoneName {
 //
 // See https://tc39.es/ecma402/#sec-intl.datetimeformat-internal-slots
 impl ServicePreferences for DateTimeFormatterPreferences {
-    fn validate_extensions(&mut self, id: &LanguageIdentifier, provider: &IntlProvider) {
+    fn validate(&mut self, id: &LanguageIdentifier, provider: &IntlProvider) {
         // Handle LDML unicode key "nu", Numbering system
         self.numbering_system = self.numbering_system.take().filter(|nu| {
             let attr = DataMarkerAttributes::from_str_or_panic(nu.as_str());
@@ -628,8 +628,10 @@ impl ServicePreferences for DateTimeFormatterPreferences {
         exts
     }
 
-    fn extend(&mut self, other: &Self) {
-        self.extend(*other);
+    fn extended(&self, other: &Self) -> Self {
+        let mut result = *self;
+        result.extend(*other);
+        result
     }
 
     fn intersection(&self, other: &Self) -> Self {

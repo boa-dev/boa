@@ -179,26 +179,36 @@ impl Intl {
     }
 }
 
+/// A set of preferences that can be provided to a [`Service`] through
+/// a locale.
 trait ServicePreferences: for<'a> From<&'a icu_locale::Locale> + Clone {
-    fn validate_extensions(&mut self, id: &LanguageIdentifier, provider: &IntlProvider);
+    /// Validates that every preference value is available.
+    ///
+    /// This usually entails having to query the `IntlProvider` to check
+    /// if it has the required data to support the requested values.
+    fn validate(&mut self, id: &LanguageIdentifier, provider: &IntlProvider);
+
+    /// Converts this set of preferences into a Unicode locale extension.
     fn as_unicode(&self) -> unicode::Unicode;
-    fn extend(&mut self, other: &Self);
+
+    /// Extends all values set in `self` with the values set in `other`.
+    fn extended(&self, other: &Self) -> Self;
+
+    /// Gets the set of preference values that are the same in `self` and `other`.
     fn intersection(&self, other: &Self) -> Self;
 }
 
 /// A service component that is part of the `Intl` API.
 ///
 /// This needs to be implemented for every `Intl` service in order to use the functions
-/// defined in `locale::utils`, such as locale resolution and selection.
+/// defined in `locale::utils`, such as [`resolve_locale`][locale::resolve_locale].
 trait Service {
-    /// The data marker used by [`resolve_locale`][locale::resolve_locale] to decide
-    /// which locales are supported by this service.
+    /// The data marker used to decide which locales are supported by this service.
     type LangMarker: DataMarker;
 
     /// The attributes used to resolve the locale.
     const ATTRIBUTES: &'static DataMarkerAttributes = DataMarkerAttributes::empty();
 
-    /// The set of preferences used in the [`Service::resolve`] method to resolve the provided
-    /// locale.
+    /// The set of preferences used to resolve the provided locale.
     type Preferences: ServicePreferences;
 }

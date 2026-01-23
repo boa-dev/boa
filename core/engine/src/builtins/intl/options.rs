@@ -60,11 +60,13 @@ impl From<&icu_locale::Locale> for EmptyPreferences {
 }
 
 impl ServicePreferences for EmptyPreferences {
-    fn validate_extensions(&mut self, _: &LanguageIdentifier, _: &IntlProvider) {}
+    fn validate(&mut self, _: &LanguageIdentifier, _: &IntlProvider) {}
     fn as_unicode(&self) -> unicode::Unicode {
         unicode::Unicode::new()
     }
-    fn extend(&mut self, _: &Self) {}
+    fn extended(&self, _: &Self) -> Self {
+        Self
+    }
     fn intersection(&self, _: &Self) -> Self {
         Self
     }

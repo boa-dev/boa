@@ -403,15 +403,12 @@ where
         .canonicalize(&mut found_locale);
     let mut locale_prefs = S::Preferences::from(&found_locale);
 
-    options
-        .preferences
-        .validate_extensions(&found_locale.id, provider);
-    locale_prefs.validate_extensions(&found_locale.id, provider);
+    options.preferences.validate(&found_locale.id, provider);
+    locale_prefs.validate(&found_locale.id, provider);
 
-    let mut prefs = locale_prefs.clone();
+    // This should not touch the found locale.
+    let prefs = locale_prefs.extended(&options.preferences);
 
-    // This also sets the locale to the found locale.
-    prefs.extend(&options.preferences);
     found_locale.extensions.unicode = prefs.intersection(&locale_prefs).as_unicode();
     options.preferences = prefs;
 
