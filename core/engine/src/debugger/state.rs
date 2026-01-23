@@ -245,7 +245,7 @@ impl Debugger {
         self.breakpoints
             .get(&script_id)
             .and_then(|bps| bps.get(&pc))
-            .map_or(false, |bp| self.enabled_breakpoints.contains(&bp.id))
+            .is_some_and(|bp| self.enabled_breakpoints.contains(&bp.id))
     }
 
     /// Enables a breakpoint

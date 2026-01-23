@@ -47,7 +47,7 @@ impl DapServer {
     }
 
     /// Handles a DAP request and returns responses/events
-    pub fn handle_request(&mut self, request: Request) -> Vec<ProtocolMessage> {
+    pub fn handle_request(&mut self, request: &Request) -> Vec<ProtocolMessage> {
         let command = request.command.clone();
         let request_seq = request.seq;
 
@@ -58,23 +58,23 @@ impl DapServer {
         );
 
         let result = match command.as_str() {
-            "initialize" => self.handle_initialize(&request),
-            "launch" => self.handle_launch(&request),
-            "attach" => self.handle_attach(&request),
+            "initialize" => self.handle_initialize(request),
+            "launch" => self.handle_launch(request),
+            "attach" => self.handle_attach(request),
             "configurationDone" => {
-                return self.handle_configuration_done(&request);
+                return self.handle_configuration_done(request);
             }
-            "setBreakpoints" => self.handle_set_breakpoints(&request),
-            "continue" => self.handle_continue(&request),
-            "next" => self.handle_next(&request),
-            "stepIn" => self.handle_step_in(&request),
-            "stepOut" => self.handle_step_out(&request),
-            "stackTrace" => self.handle_stack_trace(&request),
-            "scopes" => self.handle_scopes(&request),
-            "variables" => self.handle_variables(&request),
-            "evaluate" => self.handle_evaluate(&request),
-            "threads" => self.handle_threads(&request),
-            "source" => self.handle_source(&request),
+            "setBreakpoints" => self.handle_set_breakpoints(request),
+            "continue" => self.handle_continue(request),
+            "next" => self.handle_next(request),
+            "stepIn" => self.handle_step_in(request),
+            "stepOut" => self.handle_step_out(request),
+            "stackTrace" => self.handle_stack_trace(request),
+            "scopes" => self.handle_scopes(request),
+            "variables" => self.handle_variables(request),
+            "evaluate" => self.handle_evaluate(request),
+            "threads" => self.handle_threads(request),
+            "source" => self.handle_source(request),
             "disconnect" => {
                 return vec![self.create_response(request_seq, &command, true, None, None)];
             }

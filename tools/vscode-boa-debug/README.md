@@ -344,7 +344,6 @@ You can create `.vscode/launch.json` in `test-files/` to customize:
 **Development Guides**:
 - [README.MD](../../core/engine/src/debugger/README.MD) - Architecture & design
 - [ROADMAP.MD](../../core/engine/src/debugger/ROADMAP.MD) - Implementation plan
-- [QUICKSTART.MD](../../core/engine/src/debugger/QUICKSTART.MD) - Building DAP servers
 
 ## Summary
 
@@ -854,7 +853,6 @@ This extension is part of the Boa JavaScript engine project.
 **Related Documentation**:
 - [Debugger Implementation](../../core/engine/src/debugger/README.MD)
 - [Development Roadmap](../../core/engine/src/debugger/ROADMAP.MD)
-- [Quick Start Guide](../../core/engine/src/debugger/QUICKSTART.MD)
 
 **File Locations**:
 - Debugger Core: `core/engine/src/debugger/`

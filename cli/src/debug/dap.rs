@@ -273,7 +273,7 @@ fn handle_tcp_client(stream: std::net::TcpStream) -> io::Result<()> {
                     )?
                 } else {
                     // Process all other requests normally through the server
-                    dap_server.handle_request(dap_request)
+                    dap_server.handle_request(&dap_request)
                 };
 
                 // Send all responses
@@ -448,7 +448,7 @@ fn handle_configuration_done_with_execution<W: Write + Send + 'static>(
     writer: Arc<Mutex<W>>,
 ) -> io::Result<Vec<ProtocolMessage>> {
     // First, let the DAP server handle configurationDone normally
-    let responses = dap_server.handle_request(request);
+    let responses = dap_server.handle_request(&request);
 
     // Get the program path from the session
     let program_path = {

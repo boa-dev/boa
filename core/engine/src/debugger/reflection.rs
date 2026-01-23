@@ -244,6 +244,7 @@ impl DebuggerObject {
     /// Gets the wrapped `JsObject`
     ///
     /// Note: This exposes the internal object and should be used carefully
+    #[must_use]
     pub fn as_js_object(&self) -> &JsObject {
         &self.object
     }
@@ -271,11 +272,13 @@ impl DebuggerObject {
     }
 
     /// Checks if this object is callable (a function)
+    #[must_use]
     pub fn is_callable(&self) -> bool {
         self.object.is_callable()
     }
 
     /// Checks if this object is a constructor
+    #[must_use]
     pub fn is_constructor(&self) -> bool {
         self.object.is_constructor()
     }
