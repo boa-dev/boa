@@ -101,7 +101,10 @@ impl std::fmt::Debug for Debugger {
             .field("step_frame_depth", &self.step_frame_depth)
             .field("attached", &self.attached)
             .field("shutting_down", &self.shutting_down)
-            .field("hooks", &self.hooks.as_ref().map(|_| "Box<dyn DebuggerHooks>"))
+            .field(
+                "hooks",
+                &self.hooks.as_ref().map(|_| "Box<dyn DebuggerHooks>"),
+            )
             .finish()
     }
 }
