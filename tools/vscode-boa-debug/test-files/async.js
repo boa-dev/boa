@@ -7,26 +7,26 @@
 // Note: This may not work if Boa's async support is limited
 
 function delay(ms) {
-    return new Promise(resolve => {
-        // In a full implementation, this would actually delay
-        console.log("Promise created");
-        resolve();
-    });
+  return new Promise((resolve) => {
+    // In a full implementation, this would actually delay
+    console.log("Promise created");
+    resolve();
+  });
 }
 
 async function asyncTest() {
-    console.log("Start");
-    
-    debugger; // Pause before await
-    
-    await delay(100);
-    
-    console.log("After delay");
-    return "Done!";
+  console.log("Start");
+
+  debugger; // Pause before await
+
+  await delay(100);
+
+  console.log("After delay");
+  return "Done!";
 }
 
-asyncTest().then(result => {
-    console.log("Result:", result);
+asyncTest().then((result) => {
+  console.log("Result:", result);
 });
 
 console.log("Main thread continues");

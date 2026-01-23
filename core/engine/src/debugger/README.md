@@ -12,17 +12,17 @@ The Boa debugger is a **SpiderMonkey-inspired** debugging system adapted for Rus
 
 Our design directly maps SpiderMonkey's debugging architecture to Boa's Rust implementation:
 
-| SpiderMonkey | Boa Equivalent | Purpose | Status |
-|--------------|----------------|---------|--------|
-| `JS::Debugger` | `Debugger` (state.rs) | Central debugger state | ⚠️ Basic (pause/resume only) |
-| `js::Breakpoint` | `Breakpoint` (breakpoint.rs) | Breakpoint metadata | ❌ Not implemented |
-| `DebuggerFrame` | `DebuggerFrame` (reflection.rs) | Call stack frame reflection | ⚠️ Basic |
-| `DebuggerScript` | `DebuggerScript` (reflection.rs) | Script/source code reference | ⚠️ Basic |
-| `DebuggerObject` | `DebuggerObject` (reflection.rs) | Safe object inspection | ⚠️ Basic |
-| `onEnterFrame` hook | `HostHooks::on_enter_frame` | Frame entry callback | ❌ Not called |
-| `onExitFrame` hook | `HostHooks::on_exit_frame` | Frame exit callback | ❌ Not called |
-| `onStep` handler | `HostHooks::on_step` | Per-instruction hook | ❌ Not called |
-| `onDebuggerStatement` | `HostHooks::on_debugger_statement` | `debugger;` handling | ❌ Not called |
+| SpiderMonkey          | Boa Equivalent                     | Purpose                      | Status                       |
+| --------------------- | ---------------------------------- | ---------------------------- | ---------------------------- |
+| `JS::Debugger`        | `Debugger` (state.rs)              | Central debugger state       | ⚠️ Basic (pause/resume only) |
+| `js::Breakpoint`      | `Breakpoint` (breakpoint.rs)       | Breakpoint metadata          | ❌ Not implemented           |
+| `DebuggerFrame`       | `DebuggerFrame` (reflection.rs)    | Call stack frame reflection  | ⚠️ Basic                     |
+| `DebuggerScript`      | `DebuggerScript` (reflection.rs)   | Script/source code reference | ⚠️ Basic                     |
+| `DebuggerObject`      | `DebuggerObject` (reflection.rs)   | Safe object inspection       | ⚠️ Basic                     |
+| `onEnterFrame` hook   | `HostHooks::on_enter_frame`        | Frame entry callback         | ❌ Not called                |
+| `onExitFrame` hook    | `HostHooks::on_exit_frame`         | Frame exit callback          | ❌ Not called                |
+| `onStep` handler      | `HostHooks::on_step`               | Per-instruction hook         | ❌ Not called                |
+| `onDebuggerStatement` | `HostHooks::on_debugger_statement` | `debugger;` handling         | ❌ Not called                |
 
 ### Architecture Diagrams
 
@@ -38,7 +38,7 @@ graph TB
         Frames[JS Frame Stack<br/>Direct Access]
         Scripts[Script Registry<br/>Source Mapping]
     end
-    
+
     App -->|Set Breakpoints| JSD
     App -->|Control Execution| JSD
     JSD -->|Register Callbacks| Hooks
@@ -47,7 +47,7 @@ graph TB
     VM -->|Direct Access| Frames
     VM -->|Track Scripts| Scripts
     Hooks -->|Read Frame Data| Frames
-    
+
     style JSD fill:#90EE90
     style VM fill:#FFB6C1
     style Hooks fill:#87CEEB
@@ -66,7 +66,7 @@ graph TB
         Condvar[Condvar<br/>Efficient Waiting]
         Reflection[Reflection API<br/>⚠️ Empty Structs]
     end
-    
+
     DAPServer -->|pause/resume| Debugger
     Debugger -->|Wrapped By| DHH
     DHH -.->|Should Call| HooksAPI
@@ -74,18 +74,19 @@ graph TB
     VM -.->|Should Call on_step| DHH
     Debugger -->|Wait/Notify| Condvar
     HooksAPI -.->|Should Inspect| Reflection
-    
+
     style Debugger fill:#90EE90
     style VM fill:#FFB6C1
     style DHH fill:#87CEEB
     style HooksAPI fill:#FFE4B5
     style Reflection fill:#FFE4B5
-    
+
     classDef notWorking stroke-dasharray: 5 5
     class HooksAPI,Reflection notWorking
 ```
 
 **Legend:**
+
 - 🟢 Solid boxes: Implemented and working
 - 🟡 Dashed boxes: Defined but not functional
 - ➡️ Solid arrows: Working connections
@@ -94,12 +95,14 @@ graph TB
 ### Architectural Philosophy
 
 **SpiderMonkey's Approach:**
+
 - C++ with manual memory management
 - Direct VM frame access
 - Single-threaded execution model
 - Chrome DevTools Protocol
 
 **Boa's Adaptations:**
+
 - Rust with ownership/borrowing rules → wrapped in `Arc<Mutex<>>`
 - Safe reflection wrappers → prevents dangling references
 - Multi-threaded design → condition variables for efficient pausing
@@ -113,17 +116,17 @@ graph TB
 Layer 3: User Application (DAP Server, Custom Tools)
          ↓ Implements DebuggerHooks trait (optional)
          ↓ Receives high-level events (breakpoint hit, step complete)
-         
+
 Layer 2: Debugger State (state.rs)
          - Manages: pause/resume state (breakpoints & stepping planned)
          - Wrapped in: Arc<Mutex<Debugger>>
          - Thread-safe operations
-         
+
 Layer 1: DebuggerHostHooks (host_hooks.rs)
          - Implements: HostHooks trait (VM integration)
          - Translates: Low-level VM events → high-level debugger logic
          - Currently: Only pause/resume, no hook calls from VM yet
-         
+
 Layer 0: VM Execution (Context)
          - Calls: on_step() before each bytecode instruction
          - Executes: JavaScript bytecode
@@ -148,18 +151,18 @@ fn main() -> JsResult<()> {
     // 1. Create debugger
     let debugger = Arc::new(Mutex::new(Debugger::new()));
     let condvar = Arc::new(Condvar::new());
-    
+
     // 2. Create VM integration hooks
     let hooks = DebuggerHostHooks::new(debugger.clone(), condvar.clone());
-    
+
     // 3. Build context with debugging enabled
     let mut context = Context::builder()
         .host_hooks(Box::new(hooks))
         .build()?;
-    
+
     // 4. Pause execution (in another thread, resume with debugger.resume())
     debugger.lock().unwrap().pause();
-    
+
     // 5. Execute - will pause when pause() called
     context.eval(Source::from_bytes("console.log('Hello')"))
 }
@@ -168,11 +171,13 @@ fn main() -> JsResult<()> {
 ## How It Works: Execution Flow
 
 ### Setup Phase
+
 1. Create `Debugger` struct (holds all state)
 2. Wrap it in `DebuggerHostHooks` (VM integration adapter)
 3. Register with `Context` via `.host_hooks()`
 
 ### Execution Phase (Current Implementation)
+
 1. **External thread calls** → `debugger.pause()`
 2. **VM checks pause flag** → periodically (hook integration pending)
 3. **If paused** → wait on condition variable (zero CPU usage)
@@ -186,6 +191,7 @@ fn main() -> JsResult<()> {
 ### ✅ Currently Implemented
 
 **Core Debugger (20%):**
+
 - ✅ Debugger struct with basic state management
 - ✅ Pause/resume with efficient condition variable waiting
 - ✅ Thread-safe via Arc<Mutex<>>
@@ -194,6 +200,7 @@ fn main() -> JsResult<()> {
 - ❌ Attach/detach from contexts
 
 **VM Integration (5%):**
+
 - ✅ DebuggerHostHooks trait defined
 - ❌ on_step hook NOT called from VM
 - ❌ on_debugger_statement NOT called from VM
@@ -201,24 +208,28 @@ fn main() -> JsResult<()> {
 - ❌ Breakpoint checking NOT implemented
 
 **DAP Protocol (30%):**
+
 - ✅ Complete message types (30+ types)
 - ✅ JSON-RPC server with stdio transport
 - ✅ CLI integration (--dap flag)
 - ⚠️ Basic command handlers (pause/resume only)
 
 **Examples:**
+
 - debugger_pause_resume.rs (works)
 - debugger_breakpoints.rs (not functional)
 
 ### ⚠️ Partially Implemented (20-60%)
 
 **Frame Hooks (40%):**
+
 - ✅ Defined in HostHooks
 - ❌ on_enter_frame() NOT called from VM
 - ❌ on_exit_frame() NOT called from VM
 - Blocker: Borrowing challenges with vm.push_frame()
 
 **Reflection (20%):**
+
 - ✅ Structs exist (DebuggerFrame, DebuggerScript, DebuggerObject)
 - ⚠️ Basic methods (name, path, PC)
 - ❌ Frame.eval() not implemented
@@ -226,6 +237,7 @@ fn main() -> JsResult<()> {
 - ❌ Property enumeration missing
 
 **DAP Commands (50%):**
+
 - ✅ Basic: initialize, launch, threads, disconnect
 - ✅ Execution: continue, next, stepIn, stepOut
 - ⚠️ setBreakpoints (needs line-to-PC mapping)
@@ -236,12 +248,14 @@ fn main() -> JsResult<()> {
 ### ❌ Not Implemented (0%)
 
 **Script Registry:**
+
 - No ScriptId → source mapping
 - No script tracking during compilation
 - No line-to-PC bidirectional mapping
 - Impact: Can't set breakpoints by line number
 
 **Advanced Features:**
+
 - Conditional breakpoint evaluation
 - Logpoint message interpolation
 - Exception breakpoints
@@ -287,9 +301,9 @@ struct MyHandler;
 
 impl DebuggerHooks for MyHandler {
     fn on_breakpoint(
-        &mut self, 
-        ctx: &mut Context, 
-        frame: &CallFrame, 
+        &mut self,
+        ctx: &mut Context,
+        frame: &CallFrame,
         bp_id: BreakpointId
     ) -> JsResult<bool> {
         println!("Hit BP {:?} at PC {}", bp_id, frame.pc);
@@ -317,16 +331,16 @@ cargo run --package boa_cli -- --dap
 
 ## Comparison with SpiderMonkey
 
-| Feature | SpiderMonkey | Boa | Status |
-|---------|-------------|-----|--------|
-| Debugger Object | ✅ | ⚠️ | Basic struct only |
-| Breakpoints | ✅ | ❌ | API defined, not functional |
-| Breakpoint Checking | ✅ | ❌ | Not implemented |
-| Stepping | ✅ | ❌ | API defined, not functional |
-| Pause/Resume | ✅ | ✅ | Working! |
-| Frame Hooks | ✅ | ❌ | Defined, not called |
-| Reflection | ✅ | ❌ | Structs exist, empty |
-| Line Mapping | ✅ | ❌ | Not implemented |
+| Feature             | SpiderMonkey | Boa | Status                      |
+| ------------------- | ------------ | --- | --------------------------- |
+| Debugger Object     | ✅           | ⚠️  | Basic struct only           |
+| Breakpoints         | ✅           | ❌  | API defined, not functional |
+| Breakpoint Checking | ✅           | ❌  | Not implemented             |
+| Stepping            | ✅           | ❌  | API defined, not functional |
+| Pause/Resume        | ✅           | ✅  | Working!                    |
+| Frame Hooks         | ✅           | ❌  | Defined, not called         |
+| Reflection          | ✅           | ❌  | Structs exist, empty        |
+| Line Mapping        | ✅           | ❌  | Not implemented             |
 
 ## Feature Completeness vs SpiderMonkey
 
@@ -355,12 +369,13 @@ cargo run --package boa_cli -- --dap
 - **Watch Expressions**: No expression evaluation
 
 **Overall**: ~15% functional (pause/resume only), ~60% API designed, ~25% not started
-├── reflection.rs       # Frame/Script/Object ⚠️
+├── reflection.rs # Frame/Script/Object ⚠️
 └── dap/
-    ├── mod.rs          # Protocol types ✅
-    ├── messages.rs     # DAP messages ✅
-    ├── server.rs       # JSON-RPC server ✅
-    └── session.rs      # Session management ⚠️
+├── mod.rs # Protocol types ✅
+├── messages.rs # DAP messages ✅
+├── server.rs # JSON-RPC server ✅
+└── session.rs # Session management ⚠️
+
 ```
 
 ## Performance
@@ -399,3 +414,4 @@ MIT/Apache 2.0 (same as Boa)
 
 **Status**: Production-ready core, ~60% feature complete
 **Last Updated**: January 2026
+```

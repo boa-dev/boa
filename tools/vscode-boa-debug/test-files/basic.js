@@ -1,5 +1,5 @@
 // Basic debugging test
-// 
+//
 // To test:
 // 1. Set a breakpoint on line 7 (the console.log line)
 // 2. Press F5 to start debugging
@@ -8,9 +8,9 @@
 // 5. Use Step Over (F10) to continue
 
 function greet(name) {
-    const message = "Hello, " + name + "!";
-    console.log(message);
-    return message;
+  const message = "Hello, " + name + "!";
+  console.log(message);
+  return message;
 }
 
 const result = greet("World");

@@ -8,10 +8,10 @@
 // 5. Inspect the 'n' parameter in each frame
 
 function factorial(n) {
-    if (n <= 1) {
-        return 1; // Base case - set breakpoint here to see return
-    }
-    return n * factorial(n - 1); // Recursive case
+  if (n <= 1) {
+    return 1; // Base case - set breakpoint here to see return
+  }
+  return n * factorial(n - 1); // Recursive case
 }
 
 console.log("Computing factorial(5)...");

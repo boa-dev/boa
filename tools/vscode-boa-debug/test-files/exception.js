@@ -7,25 +7,25 @@
 // 4. Inspect the call stack at the exception point
 
 function divide(a, b) {
-    if (b === 0) {
-        throw new Error("Division by zero!");
-    }
-    return a / b;
+  if (b === 0) {
+    throw new Error("Division by zero!");
+  }
+  return a / b;
 }
 
 function calculate() {
-    console.log("10 / 2 =", divide(10, 2));
-    console.log("20 / 4 =", divide(20, 4));
-    
-    debugger; // Pause before the error
-    
-    console.log("10 / 0 =", divide(10, 0)); // This will throw
+  console.log("10 / 2 =", divide(10, 2));
+  console.log("20 / 4 =", divide(20, 4));
+
+  debugger; // Pause before the error
+
+  console.log("10 / 0 =", divide(10, 0)); // This will throw
 }
 
 try {
-    calculate();
+  calculate();
 } catch (error) {
-    console.log("Caught error:", error.message);
+  console.log("Caught error:", error.message);
 }
 
 console.log("Program continues after exception");

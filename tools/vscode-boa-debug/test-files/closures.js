@@ -7,13 +7,13 @@
 // 4. Step through to see how closures maintain their environment
 
 function createCounter(start) {
-    let count = start;
-    
-    return function increment() {
-        count++; // Set breakpoint here
-        console.log("Count:", count);
-        return count;
-    };
+  let count = start;
+
+  return function increment() {
+    count++; // Set breakpoint here
+    console.log("Count:", count);
+    return count;
+  };
 }
 
 const counter1 = createCounter(0);

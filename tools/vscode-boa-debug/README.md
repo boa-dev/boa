@@ -33,6 +33,7 @@ code .
 ### 3. Launch Extension Development Host
 
 Press **F5** in VS Code. This:
+
 - Starts a new VS Code window titled "Extension Development Host"
 - Loads the extension in that window
 - Shows extension logs in Debug Console (original window)
@@ -56,14 +57,14 @@ Minimal code (~150 lines) that:
 
 ```javascript
 // 1. Register 'boa' debug type
-vscode.debug.registerDebugAdapterDescriptorFactory('boa', {
-    createDebugAdapterDescriptor(session) {
-        // 2. Find boa-cli executable
-        const boaPath = findBoaCli();
-        
-        // 3. Launch: boa-cli --dap
-        return new vscode.DebugAdapterExecutable(boaPath, ['--dap']);
-    }
+vscode.debug.registerDebugAdapterDescriptorFactory("boa", {
+  createDebugAdapterDescriptor(session) {
+    // 2. Find boa-cli executable
+    const boaPath = findBoaCli();
+
+    // 3. Launch: boa-cli --dap
+    return new vscode.DebugAdapterExecutable(boaPath, ["--dap"]);
+  },
 });
 ```
 
@@ -72,6 +73,7 @@ vscode.debug.registerDebugAdapterDescriptorFactory('boa', {
 ### Finding boa-cli
 
 Extension automatically searches:
+
 1. `../../target/debug/boa[.exe]` (debug build)
 2. `../../target/release/boa[.exe]` (release build)
 3. System PATH
@@ -108,6 +110,7 @@ No need to restart the Extension Development Host - just rebuild and restart the
 Located in `test-files/` subdirectory:
 
 ### basic.js - Minimal Test
+
 ```javascript
 console.log("Starting...");
 debugger; // Should pause here
@@ -117,11 +120,12 @@ console.log("Resumed");
 **Tests**: Basic pause/resume, `debugger;` statement
 
 ### factorial.js - Recursion
+
 ```javascript
 function factorial(n) {
-    if (n <= 1) return 1;
-    debugger;
-    return n * factorial(n - 1);
+  if (n <= 1) return 1;
+  debugger;
+  return n * factorial(n - 1);
 }
 console.log(factorial(5));
 ```
@@ -129,27 +133,30 @@ console.log(factorial(5));
 **Tests**: Call stack, recursive frames, stepping
 
 ### exception.js - Error Handling
+
 ```javascript
 try {
-    throw new Error("Test error");
+  throw new Error("Test error");
 } catch (e) {
-    console.log("Caught:", e.message);
+  console.log("Caught:", e.message);
 }
 ```
 
 **Tests**: Exception hooks, error handling
 
 ### closures.js - Scoping
+
 ```javascript
 function makeCounter() {
-    let count = 0;
-    return function() {
-        debugger;
-        return ++count;
-    };
+  let count = 0;
+  return function () {
+    debugger;
+    return ++count;
+  };
 }
 const counter = makeCounter();
-counter(); counter();
+counter();
+counter();
 ```
 
 **Tests**: Variable scoping, closures, environment access
@@ -183,6 +190,7 @@ In the **Extension Development Host** window:
 ### Check DAP Communication
 
 In **Debug Console** (Extension Development Host):
+
 ```
 Content-Length: 123
 
@@ -198,6 +206,7 @@ You should see DAP messages flowing back and forth.
 **Problem**: Extension can't find the executable.
 
 **Solution**:
+
 ```bash
 # Build it
 cargo build --package boa_cli
@@ -212,6 +221,7 @@ ls target/debug/boa             # Linux/Mac
 **Problem**: Extension not loaded in Extension Development Host.
 
 **Solution**:
+
 1. Check `package.json` has correct `activationEvents`
 2. Restart Extension Development Host (close window, press F5 again)
 3. Check for errors in Output → Extension Host
@@ -221,6 +231,7 @@ ls target/debug/boa             # Linux/Mac
 **Problem**: DAP server crashed or failed to start.
 
 **Solution**:
+
 1. Test manually: `.\target\debug\boa.exe --dap`
 2. Should print: `[DAP] Starting Boa Debug Adapter`
 3. Check for Rust panics/errors
@@ -254,15 +265,15 @@ vscode-boa-debug/
 {
   "name": "boa-debugger",
   "contributes": {
-    "debuggers": [{
-      "type": "boa",
-      "label": "Boa Debug",
-      "program": "./extension.js"
-    }]
+    "debuggers": [
+      {
+        "type": "boa",
+        "label": "Boa Debug",
+        "program": "./extension.js"
+      }
+    ]
   },
-  "activationEvents": [
-    "onDebug"
-  ]
+  "activationEvents": ["onDebug"]
 }
 ```
 
@@ -338,10 +349,12 @@ You can create `.vscode/launch.json` in `test-files/` to customize:
 ## Related Documentation
 
 **DAP Server Implementation**:
+
 - [DAP Server Code](../../cli/src/debug/dap.rs) - The actual DAP implementation
 - [Debugger Core](../../core/engine/src/debugger/) - Core debugging functionality
 
 **Development Guides**:
+
 - [README.MD](../../core/engine/src/debugger/README.MD) - Architecture & design
 - [ROADMAP.MD](../../core/engine/src/debugger/ROADMAP.MD) - Implementation plan
 
@@ -354,6 +367,7 @@ This extension is a **test harness**, not a product. It's intentionally minimal 
 3. Provide fast iteration cycle for development
 
 All the real work happens in:
+
 - `cli/src/debug/dap.rs` - DAP protocol implementation
 - `core/engine/src/debugger/` - Debugger core
 
@@ -386,16 +400,19 @@ code .
 ### Installing cmake
 
 **Ubuntu/Debian:**
+
 ```bash
 sudo apt-get install cmake
 ```
 
 **macOS:**
+
 ```bash
 brew install cmake
 ```
 
 **Windows:**
+
 - Download from https://cmake.org/download/
 - Or: `choco install cmake`
 
@@ -404,12 +421,14 @@ brew install cmake
 ### Method 1: Extension Development Host (Recommended for Testing)
 
 1. **Build Boa CLI**:
+
    ```bash
    cd /path/to/boa
    cargo build --package boa_cli --release
    ```
 
 2. **Open extension folder**:
+
    ```bash
    cd tools/vscode-boa-debug
    code .
@@ -425,6 +444,7 @@ brew install cmake
 ### Method 2: Install from VSIX (For Distribution)
 
 1. **Package extension**:
+
    ```bash
    npm install -g @vscode/vsce
    cd tools/vscode-boa-debug
@@ -465,15 +485,15 @@ Create `.vscode/launch.json`:
 
 ### Configuration Options
 
-| Option | Type | Description | Default |
-|--------|------|-------------|---------|
-| `program` | string | JavaScript file to debug | `${file}` |
-| `stopOnEntry` | boolean | Pause at entry | `false` |
-| `args` | array | Command line arguments | `[]` |
-| `cwd` | string | Working directory | `${workspaceFolder}` |
-| `trace` | boolean | Enable verbose logging | `false` |
-| `useHttp` | boolean | Use HTTP transport | `false` |
-| `httpPort` | number | HTTP port for DAP | `4711` |
+| Option        | Type    | Description              | Default              |
+| ------------- | ------- | ------------------------ | -------------------- |
+| `program`     | string  | JavaScript file to debug | `${file}`            |
+| `stopOnEntry` | boolean | Pause at entry           | `false`              |
+| `args`        | array   | Command line arguments   | `[]`                 |
+| `cwd`         | string  | Working directory        | `${workspaceFolder}` |
+| `trace`       | boolean | Enable verbose logging   | `false`              |
+| `useHttp`     | boolean | Use HTTP transport       | `false`              |
+| `httpPort`    | number  | HTTP port for DAP        | `4711`               |
 
 ### Available Variables
 
@@ -519,6 +539,7 @@ boa --dap --dap-http-port 4711
 ```
 
 **Test HTTP mode**:
+
 ```bash
 curl -X POST http://127.0.0.1:4711 \
   -H "Content-Type: application/json" \
@@ -545,6 +566,7 @@ BOA_DAP_DEBUG=1 boa --dap
 Sample files in `test-files/`:
 
 **basic.js** - Basic debugging
+
 ```javascript
 console.log("Starting...");
 debugger; // Pauses here
@@ -552,26 +574,29 @@ console.log("Resumed");
 ```
 
 **factorial.js** - Recursion testing
+
 ```javascript
 function factorial(n) {
-    if (n <= 1) return 1;
-    debugger; // Set breakpoint here
-    return n * factorial(n - 1);
+  if (n <= 1) return 1;
+  debugger; // Set breakpoint here
+  return n * factorial(n - 1);
 }
 ```
 
 **exception.js** - Exception handling
+
 ```javascript
 try {
-    throw new Error("Test error");
+  throw new Error("Test error");
 } catch (e) {
-    debugger; // Pauses on exception
+  debugger; // Pauses on exception
 }
 ```
 
 ### Testing Checklist
 
 #### ✅ Basic Functionality
+
 - [ ] Debugger statement pauses execution
 - [ ] Step over (F10) works
 - [ ] Continue (F5) resumes
@@ -579,11 +604,13 @@ try {
 - [ ] Call stack displays current function
 
 #### ✅ Recursion
+
 - [ ] Step into (F11) follows recursive calls
 - [ ] Call stack grows with recursion
 - [ ] Can step out (Shift+F11) from nested calls
 
 #### ✅ Exceptions
+
 - [ ] Enable "Pause on Exceptions"
 - [ ] Pauses when exception thrown
 - [ ] Shows exception details
@@ -601,6 +628,7 @@ If the extension isn't working, follow these steps:
 ### Step 2: Trigger Activation
 
 In the **new window**:
+
 1. Open folder: `test-files/`
 2. Open file: `basic.js`
 3. Press **F5** to start debugging
@@ -608,6 +636,7 @@ In the **new window**:
 ### Step 3: Check Extension Activation
 
 In Extension Development Host:
+
 - **Help → Toggle Developer Tools → Console**
 - Look for:
   ```
@@ -618,6 +647,7 @@ In Extension Development Host:
 ### Step 4: Verify DAP Communication
 
 Check for these messages:
+
 ```
 [Boa Debug] Creating debug adapter for session
 [Boa Debug] Found boa-cli at: Q:\RsWs\boa\target\debug\boa.exe
@@ -631,6 +661,7 @@ Check for these messages:
 **Cause**: Extension not activated
 
 **Fix**:
+
 1. Check Extensions view → "Boa JavaScript Debugger" is enabled
 2. Check Developer Console for activation errors
 3. Verify `package.json` has correct `activationEvents`
@@ -640,6 +671,7 @@ Check for these messages:
 **Cause**: Executable not built or not in PATH
 
 **Fix**:
+
 1. Build: `cargo build --package boa_cli`
 2. Verify exists: `Test-Path target\debug\boa.exe`
 3. Extension looks in:
@@ -652,6 +684,7 @@ Check for these messages:
 **Cause**: DAP protocol issue
 
 **Fix**:
+
 1. Test manually: `.\target\debug\boa.exe --dap`
 2. Should print: `[DAP] Starting Boa Debug Adapter`
 3. Check Debug Console for errors
@@ -661,10 +694,11 @@ Check for these messages:
 **Status**: Known limitation - breakpoint checking in VM not fully integrated
 
 **Workaround**: Use `debugger;` statements
+
 ```javascript
 function test() {
-    debugger; // Will pause here
-    console.log("test");
+  debugger; // Will pause here
+  console.log("test");
 }
 ```
 
@@ -677,6 +711,7 @@ function test() {
 ## Implementation Status
 
 ### ✅ Fully Working
+
 - Extension activation and registration
 - DAP protocol communication (stdio/HTTP)
 - `debugger;` statement pauses execution
@@ -685,12 +720,14 @@ function test() {
 - Process lifecycle management
 
 ### ⚠️ Partially Working
+
 - Variable inspection (returns placeholders)
 - Call stack display (basic info only)
 - Breakpoints (DAP messages sent, VM checking incomplete)
 - Expression evaluation (limited)
 
 ### ❌ Not Yet Implemented
+
 - Line-based breakpoints (needs line-to-PC mapping)
 - Frame enter/exit hooks (needs deeper VM integration)
 - Full variable inspection (needs eval implementation)
@@ -719,22 +756,26 @@ Boa VM (JavaScript execution)
 ### Components
 
 **VS Code Extension** (`extension.js`)
+
 - Registers 'boa' debug type
 - Launches `boa-cli --dap`
 - Manages debug sessions
 
 **DAP Server** (`cli/src/debug/dap.rs`)
+
 - Implements DAP protocol
 - Handles requests: initialize, launch, setBreakpoints, threads, etc.
 - Uses Content-Length framing
 
 **Debugger Core** (`core/engine/src/debugger/`)
+
 - Breakpoint management
 - Execution control (pause/resume/step)
 - Event hooks
 - Reflection objects
 
 **VM Integration** (`core/engine/src/vm/`)
+
 - Calls debugger hooks during execution
 - Checks breakpoints before instructions
 - Pauses when requested
@@ -772,6 +813,7 @@ vscode-boa-debug/
 ### Debugging Extension Code
 
 Set breakpoints in `extension.js`:
+
 - `activate()` - Extension loads
 - `createDebugAdapterDescriptor()` - Debug session starts
 - `findBoaCli()` - Finding executable
@@ -782,13 +824,16 @@ Press F5, then start debugging in Extension Development Host to hit breakpoints.
 ### Viewing Logs
 
 **Extension logs** (original window):
+
 - View → Output → "Extension Host"
 
 **DAP logs** (Extension Development Host):
+
 - Help → Toggle Developer Tools → Console
 - Look for `[BOA EXTENSION]` and `[Boa Debug]` messages
 
 **Debug Console** (Extension Development Host):
+
 - View → Debug Console
 - Shows DAP protocol messages
 
@@ -808,6 +853,7 @@ Press F5, then start debugging in Extension Development Host to hit breakpoints.
 ### [0.1.0] - January 2026
 
 **Added:**
+
 - Initial release of Boa JavaScript Debugger
 - DAP protocol support (stdio and HTTP modes)
 - Basic debugging features:
@@ -820,18 +866,21 @@ Press F5, then start debugging in Extension Development Host to hit breakpoints.
 - Test files for validation
 
 **Known Issues:**
+
 - Breakpoint checking not fully integrated (use `debugger;`)
 - Variable inspection incomplete (needs eval implementation)
 - Frame enter/exit hooks not called
 - Line-to-PC mapping not implemented
 
 **Requirements:**
+
 - Boa CLI with DAP support
 - cmake (for aws-lc-sys dependency)
 
 ### Future Plans
 
 **[0.2.0] - Planned:**
+
 - Complete breakpoint VM integration
 - Full variable inspection with eval
 - Watch expressions
@@ -839,6 +888,7 @@ Press F5, then start debugging in Extension Development Host to hit breakpoints.
 - Hot reload support
 
 **[0.3.0] - Planned:**
+
 - Multi-context debugging
 - Remote debugging support
 - Performance profiling integration
@@ -851,10 +901,12 @@ This extension is part of the Boa JavaScript engine project.
 **Main Repository**: https://github.com/boa-dev/boa
 
 **Related Documentation**:
+
 - [Debugger Implementation](../../core/engine/src/debugger/README.MD)
 - [Development Roadmap](../../core/engine/src/debugger/ROADMAP.MD)
 
 **File Locations**:
+
 - Debugger Core: `core/engine/src/debugger/`
 - DAP Server: `cli/src/debug/dap.rs`
 - This Extension: `tools/vscode-boa-debug/`
@@ -869,17 +921,20 @@ This extension is part of the Boa JavaScript engine project.
 ## Resources
 
 ### Documentation
+
 - [DAP Specification](https://microsoft.github.io/debug-adapter-protocol/)
 - [VS Code Debug API](https://code.visualstudio.com/api/extension-guides/debugger-extension)
 - [Boa Documentation](https://docs.rs/boa_engine/)
 
 ### Support
+
 - [Boa Discord](https://discord.gg/tUFFk9Y)
 - [GitHub Issues](https://github.com/boa-dev/boa/issues)
 
 ## License
 
 This extension is part of the Boa project and is dual-licensed under:
+
 - **MIT License**
 - **Apache License 2.0**
 
