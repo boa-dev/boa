@@ -211,7 +211,7 @@ impl fmt::Debug for FutexWaiter {
     }
 }
 
-intrusive_adapter!(FutexWaiterAdapter = UnsafeRef<FutexWaiter>: FutexWaiter { link: LinkedListLink });
+intrusive_adapter!(FutexWaiterAdapter = UnsafeRef<FutexWaiter>: FutexWaiter { link => LinkedListLink });
 
 impl FutexWaiter {
     /// Creates a new `FutexWaiter` that will block the current thread while waiting.
