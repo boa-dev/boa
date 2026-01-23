@@ -2144,6 +2144,7 @@ generate_opcodes! {
     /// This calls the host hook `on_debugger_statement`, which allows
     /// the host to implement debugging functionality such as breakpoints,
     /// variable inspection, and stepping.
+    ///
     /// [spec]: https://tc39.es/ecma262/#prod-DebuggerStatement
     Debugger,
     /// Reserved [`Opcode`].
