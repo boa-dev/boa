@@ -1,10 +1,12 @@
+use icu_decimal::provider::DecimalSymbolsV1;
 use icu_locale::{
     Locale, extensions_unicode_key as key, extensions_unicode_value as value, locale,
     preferences::extensions::unicode::keywords::NumberingSystem,
 };
 use icu_plurals::provider::PluralsCardinalV1;
 use icu_provider::{
-    DataIdentifierBorrowed, DataLocale, DataRequest, DataRequestMetadata, DryDataProvider,
+    DataIdentifierBorrowed, DataLocale, DataProvider, DataRequest, DataRequestMetadata,
+    DryDataProvider,
     prelude::icu_locale_core::{LanguageIdentifier, extensions::unicode},
 };
 
@@ -36,7 +38,22 @@ impl From<&Locale> for TestPreferences {
 }
 
 impl ServicePreferences for TestPreferences {
-    fn validate_extensions(&mut self, _id: &LanguageIdentifier, _provider: &IntlProvider) {}
+    fn validate_extensions(&mut self, id: &LanguageIdentifier, provider: &IntlProvider) {
+        if self.nu.is_some() {
+            return;
+        }
+
+        let locale = &DataLocale::from(id);
+        let req = DataRequest {
+            id: DataIdentifierBorrowed::for_locale(locale),
+            metadata: DataRequestMetadata::default(),
+        };
+        let data = DataProvider::<DecimalSymbolsV1>::load(provider, req).unwrap();
+        let preferred = data.payload.get().numsys();
+        self.nu = Some(
+            NumberingSystem::try_from(unicode::Value::try_from_str(preferred).unwrap()).unwrap(),
+        );
+    }
 
     fn as_unicode(&self) -> unicode::Unicode {
         let mut exts = unicode::Unicode::new();
@@ -97,7 +114,7 @@ fn locale_resolution() {
     // test lookup
     let mut options = IntlOptions {
         matcher: LocaleMatcher::Lookup,
-        service_options: TestPreferences {
+        preferences: TestPreferences {
             nu: Some(NumberingSystem::try_from(value!("latn")).unwrap()),
         },
     };
@@ -107,7 +124,7 @@ fn locale_resolution() {
     // test best fit
     let mut options = IntlOptions {
         matcher: LocaleMatcher::BestFit,
-        service_options: TestPreferences {
+        preferences: TestPreferences {
             nu: Some(NumberingSystem::try_from(value!("latn")).unwrap()),
         },
     };
@@ -118,7 +135,7 @@ fn locale_resolution() {
     // requested: [es-ES]
     let mut options = IntlOptions {
         matcher: LocaleMatcher::Lookup,
-        service_options: TestPreferences { nu: None },
+        preferences: TestPreferences { nu: None },
     };
 
     let locale =

@@ -270,7 +270,7 @@ impl DateTimeFormat {
                         )
                         .map_err(|e| {
                             JsNativeError::range()
-                                .with_message(format!("Failed to load formatter: {e}"))
+                                .with_message(format!("failed to load formatter: {e}"))
                         })?;
 
                         let dt = fields.to_formattable_datetime();
@@ -408,7 +408,7 @@ fn create_date_time_format(
     // NOTE: We unroll the below const loop in step 6 using the
     // ResolutionOptionDescriptors from the internal slots
     // https://tc39.es/ecma402/#sec-intl.datetimeformat-internal-slots
-    let mut service_options = DateTimeFormatterPreferences::default();
+    let mut preferences = DateTimeFormatterPreferences::default();
 
     // 6. For each Resolution Option Descriptor desc of constructor.[[ResolutionOptionDescriptors]], do
     // a. If desc has a [[Type]] field, let type be desc.[[Type]]. Otherwise, let type be string.
@@ -421,14 +421,14 @@ fn create_date_time_format(
     // f. Set opt.[[<key>]] to value.
 
     // Handle { [[Key]]: "ca", [[Property]]: "calendar" }
-    service_options.calendar_algorithm =
+    preferences.calendar_algorithm =
         get_option::<Value>(&options, js_string!("calendar"), context)?
             .map(|ca| CalendarAlgorithm::try_from(&ca))
             .transpose()
             .map_err(|_icu4x_error| js_error!(RangeError: "unknown calendar algorithm"))?;
 
     // { [[Key]]: "nu", [[Property]]: "numberingSystem" }
-    service_options.numbering_system =
+    preferences.numbering_system =
         get_option::<Value>(&options, js_string!("numberingSystem"), context)?
             .map(NumberingSystem::try_from)
             .transpose()
@@ -438,7 +438,7 @@ fn create_date_time_format(
     let hour_12 = get_option::<bool>(&options, js_string!("hour12"), context)?;
 
     // { [[Key]]: "hc", [[Property]]: "hourCycle", [[Values]]: « "h11", "h12", "h23", "h24" » }
-    service_options.hour_cycle =
+    preferences.hour_cycle =
         get_option::<options::HourCycle>(&options, js_string!("hourCycle"), context)?
             .map(|hc| {
                 // Handle steps 3.a-c here
@@ -455,7 +455,7 @@ fn create_date_time_format(
 
     let mut intl_options = IntlOptions {
         matcher,
-        service_options,
+        preferences,
     };
 
     // ResolveOptions 8. Let resolution be ResolveLocale(constructor.[[AvailableLocales]], requestedLocales,
@@ -546,8 +546,7 @@ fn create_date_time_format(
     //         d. Set formatOptions.[[<prop>]] to value.
     //         e. If value is not undefined, then
     //                i. Set hasExplicitFormatComponents to true.
-    let mut format_options =
-        FormatOptions::try_init(&options, service_options.hour_cycle, context)?;
+    let mut format_options = FormatOptions::try_init(&options, preferences.hour_cycle, context)?;
 
     // TODO: how should formatMatcher be used?
     // 25. Let formatMatcher be ? GetOption(options, "formatMatcher", string, « "basic", "best fit" », "best fit").
@@ -631,7 +630,7 @@ fn create_date_time_format(
         prototype,
         DateTimeFormat {
             locale: resolved_locale,
-            _calendar_algorithm: intl_options.service_options.calendar_algorithm,
+            _calendar_algorithm: intl_options.preferences.calendar_algorithm,
             time_zone,
             fieldset,
             bound_format: None,

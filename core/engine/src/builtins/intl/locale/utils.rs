@@ -401,19 +401,19 @@ where
     provider
         .locale_canonicalizer()?
         .canonicalize(&mut found_locale);
-    let mut locale_prefs: S::Preferences = S::Preferences::from(&found_locale);
+    let mut locale_prefs = S::Preferences::from(&found_locale);
 
     options
-        .service_options
+        .preferences
         .validate_extensions(&found_locale.id, provider);
     locale_prefs.validate_extensions(&found_locale.id, provider);
 
+    let mut prefs = locale_prefs.clone();
+
     // This also sets the locale to the found locale.
-    options.service_options.extend(&locale_prefs);
-    found_locale.extensions.unicode = options
-        .service_options
-        .intersection(&locale_prefs)
-        .as_unicode();
+    prefs.extend(&options.preferences);
+    found_locale.extensions.unicode = prefs.intersection(&locale_prefs).as_unicode();
+    options.preferences = prefs;
 
     // 12. Return result.
     Ok(found_locale)

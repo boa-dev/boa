@@ -17,7 +17,7 @@ use crate::{
 #[derive(Debug, Default)]
 pub(super) struct IntlOptions<O> {
     pub(super) matcher: LocaleMatcher,
-    pub(super) service_options: O,
+    pub(super) preferences: O,
 }
 
 #[derive(Clone, Copy, Debug, PartialEq, Eq, Default)]

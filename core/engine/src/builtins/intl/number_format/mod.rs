@@ -253,7 +253,7 @@ impl NumberFormat {
 
         let mut intl_options = IntlOptions {
             matcher,
-            service_options: {
+            preferences: {
                 let mut prefs = DecimalFormatterPreferences::default();
                 prefs.numbering_system = numbering_system;
                 prefs
@@ -418,7 +418,7 @@ impl NumberFormat {
                 nu: Cell::new(None),
             };
             let formatter = DecimalFormatter::try_new_with_buffer_provider(
-                context.intl_provider().erased_provider(),
+                &inspector,
                 (&locale).into(),
                 options,
             )
@@ -429,7 +429,11 @@ impl NumberFormat {
                 let nu = Value::try_from_str(&nu).ok()?;
                 NumberingSystem::try_from(nu).ok()
             })()
-            .ok_or_else(|| js_error!(TypeError: "invalid numbering system from Intl provider"))?;
+            .ok_or_else(|| {
+                js_error!(
+                    TypeError: "could not obtain resolved numbering system from Intl provider"
+                )
+            })?;
 
             (formatter, nu)
         };

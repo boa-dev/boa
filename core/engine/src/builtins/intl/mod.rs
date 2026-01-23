@@ -179,7 +179,7 @@ impl Intl {
     }
 }
 
-trait ServicePreferences: for<'a> From<&'a icu_locale::Locale> {
+trait ServicePreferences: for<'a> From<&'a icu_locale::Locale> + Clone {
     fn validate_extensions(&mut self, id: &LanguageIdentifier, provider: &IntlProvider);
     fn as_unicode(&self) -> unicode::Unicode;
     fn extend(&mut self, other: &Self);

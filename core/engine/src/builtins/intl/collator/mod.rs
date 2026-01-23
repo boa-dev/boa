@@ -190,7 +190,7 @@ impl BuiltInConstructor for Collator {
 
         let mut intl_options = IntlOptions {
             matcher,
-            service_options: {
+            preferences: {
                 let mut prefs = CollatorPreferences::default();
                 prefs.collation_type = collation;
                 prefs.numeric_ordering = numeric.map(|kn| {
@@ -217,16 +217,16 @@ impl BuiltInConstructor for Collator {
         // 21. Let collation be r.[[co]].
         // 22. If collation is null, let collation be "default".
         // 23. Set collator.[[Collation]] to collation.
-        let collation = intl_options.service_options.collation_type;
+        let collation = intl_options.preferences.collation_type;
 
         // 24. If relevantExtensionKeys contains "kn", then
         //     a. Set collator.[[Numeric]] to SameValue(r.[[kn]], "true").
         let numeric =
-            intl_options.service_options.numeric_ordering == Some(CollationNumericOrdering::True);
+            intl_options.preferences.numeric_ordering == Some(CollationNumericOrdering::True);
 
         // 25. If relevantExtensionKeys contains "kf", then
         //     a. Set collator.[[CaseFirst]] to r.[[kf]].
-        let case_first = intl_options.service_options.case_first;
+        let case_first = intl_options.preferences.case_first;
 
         // 26. Let sensitivity be ? GetOption(options, "sensitivity", string, « "base", "accent", "case", "variant" », undefined).
         // 28. Set collator.[[Sensitivity]] to sensitivity.
@@ -259,12 +259,12 @@ impl BuiltInConstructor for Collator {
         options.max_variable = max_variable;
 
         if usage == Usage::Search {
-            intl_options.service_options.collation_type = Some(CollationType::Search);
+            intl_options.preferences.collation_type = Some(CollationType::Search);
         }
 
         let collator = icu_collator::Collator::try_new_with_buffer_provider(
             context.intl_provider().erased_provider(),
-            intl_options.service_options,
+            intl_options.preferences,
             options,
         )
         .map_err(|e| JsNativeError::typ().with_message(e.to_string()))?;
