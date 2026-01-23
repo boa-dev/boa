@@ -147,9 +147,9 @@ impl ServicePreferences for CollatorPreferences {
     }
 
     fn intersection(&self, other: &Self) -> Self {
-        let mut inter = self.clone();
+        let mut inter = *self;
         if inter.locale_preferences != other.locale_preferences {
-            inter.locale_preferences = LocalePreferences::default()
+            inter.locale_preferences = LocalePreferences::default();
         }
         if inter.collation_type != other.collation_type {
             inter.collation_type.take();

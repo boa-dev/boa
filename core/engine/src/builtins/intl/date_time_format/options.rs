@@ -633,9 +633,9 @@ impl ServicePreferences for DateTimeFormatterPreferences {
     }
 
     fn intersection(&self, other: &Self) -> Self {
-        let mut inter = self.clone();
+        let mut inter = *self;
         if inter.locale_preferences != other.locale_preferences {
-            inter.locale_preferences = LocalePreferences::default()
+            inter.locale_preferences = LocalePreferences::default();
         }
         if inter.numbering_system != other.numbering_system {
             inter.numbering_system.take();

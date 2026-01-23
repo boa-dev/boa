@@ -48,7 +48,7 @@ impl ServicePreferences for TestPreferences {
 
     fn extend(&mut self, other: &Self) {
         if self.nu.is_none() {
-            self.nu = other.nu
+            self.nu = other.nu;
         }
     }
 
