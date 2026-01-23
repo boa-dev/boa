@@ -1,12 +1,12 @@
 use std::{fmt, str::FromStr};
 
-use icu_locale::{LanguageIdentifier, extensions::unicode, preferences::LocalePreferences};
-use icu_provider::{DataMarker, DryDataProvider};
+use icu_locale::{LanguageIdentifier, extensions::unicode};
 use num_traits::FromPrimitive;
 
 use crate::{
     Context, JsNativeError, JsResult, JsString, JsValue,
     builtins::{OrdinaryObject, intl::ServicePreferences, options::ParsableOptionType},
+    context::icu::IntlProvider,
     object::JsObject,
 };
 
@@ -60,13 +60,7 @@ impl From<&icu_locale::Locale> for EmptyPreferences {
 }
 
 impl ServicePreferences for EmptyPreferences {
-    fn validate_extensions<M: DataMarker>(
-        &mut self,
-        _: &LanguageIdentifier,
-        _: &impl DryDataProvider<M>,
-    ) {
-    }
-    fn set_locale(&mut self, _: LocalePreferences) {}
+    fn validate_extensions(&mut self, _: &LanguageIdentifier, _: &IntlProvider) {}
     fn as_unicode(&self) -> unicode::Unicode {
         unicode::Unicode::new()
     }

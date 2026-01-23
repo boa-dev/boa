@@ -6,7 +6,9 @@ use fixed_decimal::{
 };
 
 use boa_macros::js_str;
-use icu_decimal::{DecimalFormatterPreferences, preferences::NumberingSystem};
+use icu_decimal::{
+    DecimalFormatterPreferences, preferences::NumberingSystem, provider::DecimalSymbolsV1,
+};
 use icu_locale::{extensions::unicode::Value, preferences::PreferenceKey};
 use icu_provider::{
     DataMarkerAttributes,
@@ -26,6 +28,7 @@ use crate::{
         },
         options::{OptionType, ParsableOptionType, get_option},
     },
+    context::icu::IntlProvider,
     js_string,
 };
 
@@ -1265,19 +1268,11 @@ impl RoundingType {
 }
 
 impl ServicePreferences for DecimalFormatterPreferences {
-    fn validate_extensions<M: icu_provider::DataMarker>(
-        &mut self,
-        id: &LanguageIdentifier,
-        provider: &impl icu_provider::DryDataProvider<M>,
-    ) {
+    fn validate_extensions(&mut self, id: &LanguageIdentifier, provider: &IntlProvider) {
         self.numbering_system = self.numbering_system.take().filter(|nu| {
             let attr = DataMarkerAttributes::from_str_or_panic(nu.as_str());
-            validate_extension::<M>(id, attr, provider)
+            validate_extension::<DecimalSymbolsV1>(id, attr, provider)
         });
-    }
-
-    fn set_locale(&mut self, locale: LocalePreferences) {
-        self.locale_preferences = locale
     }
 
     fn as_unicode(&self) -> unicode::Unicode {

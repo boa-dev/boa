@@ -1,27 +1,64 @@
-use icu_decimal::provider::DecimalSymbolsV1;
 use icu_locale::{
-    Locale, extensions::unicode::Value, extensions_unicode_key as key,
-    extensions_unicode_value as value, locale,
+    Locale, extensions_unicode_key as key, extensions_unicode_value as value, locale,
     preferences::extensions::unicode::keywords::NumberingSystem,
 };
 use icu_plurals::provider::PluralsCardinalV1;
 use icu_provider::{
-    DataIdentifierBorrowed, DataLocale, DataProvider, DataRequest, DataRequestMetadata,
-    DryDataProvider,
+    DataIdentifierBorrowed, DataLocale, DataRequest, DataRequestMetadata, DryDataProvider,
+    prelude::icu_locale_core::{LanguageIdentifier, extensions::unicode},
 };
 
 use crate::{
     builtins::intl::{
-        Service,
+        Service, ServicePreferences,
         locale::{default_locale, resolve_locale},
         options::{IntlOptions, LocaleMatcher},
     },
     context::icu::IntlProvider,
 };
 
-#[derive(Debug)]
-struct TestOptions {
+#[derive(Debug, Clone)]
+struct TestPreferences {
     nu: Option<NumberingSystem>,
+}
+
+impl From<&Locale> for TestPreferences {
+    fn from(value: &Locale) -> Self {
+        Self {
+            nu: value
+                .extensions
+                .unicode
+                .keywords
+                .get(&unicode::key!("nu"))
+                .and_then(|nu| NumberingSystem::try_from(nu.clone()).ok()),
+        }
+    }
+}
+
+impl ServicePreferences for TestPreferences {
+    fn validate_extensions(&mut self, _id: &LanguageIdentifier, _provider: &IntlProvider) {}
+
+    fn as_unicode(&self) -> unicode::Unicode {
+        let mut exts = unicode::Unicode::new();
+        if let Some(nu) = self.nu {
+            exts.keywords.set(unicode::key!("nu"), nu.into());
+        }
+        exts
+    }
+
+    fn extend(&mut self, other: &Self) {
+        if self.nu.is_none() {
+            self.nu = other.nu
+        }
+    }
+
+    fn intersection(&self, other: &Self) -> Self {
+        let mut inter = self.clone();
+        if inter.nu != other.nu {
+            inter.nu.take();
+        }
+        inter
+    }
 }
 
 struct TestService;
@@ -29,32 +66,7 @@ struct TestService;
 impl Service for TestService {
     type LangMarker = PluralsCardinalV1;
 
-    type Preferences = TestOptions;
-
-    fn resolve(locale: &mut Locale, options: &mut Self::Preferences, provider: &IntlProvider) {
-        let loc_hc = locale
-            .extensions
-            .unicode
-            .keywords
-            .get(&key!("nu"))
-            .and_then(|v| NumberingSystem::try_from(v.clone()).ok());
-        let nu = options.nu.or(loc_hc).unwrap_or_else(|| {
-            let locale = &DataLocale::from(&*locale);
-            let req = DataRequest {
-                id: DataIdentifierBorrowed::for_locale(locale),
-                metadata: DataRequestMetadata::default(),
-            };
-            let data = DataProvider::<DecimalSymbolsV1>::load(provider, req).unwrap();
-            let preferred = data.payload.get().numsys();
-            NumberingSystem::try_from(Value::try_from_str(preferred).unwrap()).unwrap()
-        });
-        locale
-            .extensions
-            .unicode
-            .keywords
-            .set(key!("nu"), nu.into());
-        options.nu = Some(nu);
-    }
+    type Preferences = TestPreferences;
 }
 
 #[test]
@@ -85,7 +97,7 @@ fn locale_resolution() {
     // test lookup
     let mut options = IntlOptions {
         matcher: LocaleMatcher::Lookup,
-        service_options: TestOptions {
+        service_options: TestPreferences {
             nu: Some(NumberingSystem::try_from(value!("latn")).unwrap()),
         },
     };
@@ -95,7 +107,7 @@ fn locale_resolution() {
     // test best fit
     let mut options = IntlOptions {
         matcher: LocaleMatcher::BestFit,
-        service_options: TestOptions {
+        service_options: TestPreferences {
             nu: Some(NumberingSystem::try_from(value!("latn")).unwrap()),
         },
     };
@@ -106,7 +118,7 @@ fn locale_resolution() {
     // requested: [es-ES]
     let mut options = IntlOptions {
         matcher: LocaleMatcher::Lookup,
-        service_options: TestOptions { nu: None },
+        service_options: TestPreferences { nu: None },
     };
 
     let locale =

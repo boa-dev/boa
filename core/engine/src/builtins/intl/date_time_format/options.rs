@@ -3,18 +3,30 @@
 use crate::{
     Context, JsError, JsNativeError, JsObject, JsResult, JsValue,
     builtins::{
-        intl::{date_time_format::FormatType, options::get_number_option},
+        intl::{
+            ServicePreferences, date_time_format::FormatType, locale::validate_extension,
+            options::get_number_option,
+        },
         options::{OptionType, get_option},
     },
+    context::icu::IntlProvider,
     js_error, js_string,
 };
 
 use icu_datetime::{
+    DateTimeFormatterPreferences,
     fieldsets::builder::{DateFields, ZoneStyle},
     options::{Length, SubsecondDigits as IcuSubsecondDigits, TimePrecision},
     preferences::{CalendarAlgorithm, HourCycle as IcuHourCycle},
 };
-use icu_locale::extensions::unicode::Value;
+use icu_decimal::provider::DecimalSymbolsV1;
+use icu_locale::{extensions::unicode::Value, preferences::PreferenceKey};
+use icu_provider::{
+    DataMarkerAttributes,
+    prelude::icu_locale_core::{
+        LanguageIdentifier, extensions::unicode, preferences::LocalePreferences,
+    },
+};
 
 pub(crate) enum HourCycle {
     H11,
@@ -565,5 +577,75 @@ impl TimeZoneName {
             TimeZoneName::Long => ZoneStyle::SpecificLong,
             TimeZoneName::Short => ZoneStyle::SpecificShort,
         }
+    }
+}
+
+// The below handles the [[RelevantExtensionKeys]] of DateTimeFormatters
+// internal slots.
+//
+// See https://tc39.es/ecma402/#sec-intl.datetimeformat-internal-slots
+impl ServicePreferences for DateTimeFormatterPreferences {
+    fn validate_extensions(&mut self, id: &LanguageIdentifier, provider: &IntlProvider) {
+        // Handle LDML unicode key "nu", Numbering system
+        self.numbering_system = self.numbering_system.take().filter(|nu| {
+            let attr = DataMarkerAttributes::from_str_or_panic(nu.as_str());
+            validate_extension::<DecimalSymbolsV1>(id, attr, provider)
+        });
+
+        // Handle LDML unicode key "ca", Calendar algorithm
+        // TODO: determine the correct way to verify the calendar algorithm data.
+
+        // NOTE (nekevss): issue: this will not support `H24` as ICU4X does
+        // not currently support it.
+        //
+        // track: https://github.com/unicode-org/icu4x/issues/6597
+        // Handle LDML unicode key "hc", Hour cycle
+        // No need to validate hour_cycle since it only affects formatting
+        // behaviour.
+    }
+
+    fn as_unicode(&self) -> unicode::Unicode {
+        let mut exts = unicode::Unicode::new();
+
+        if let Some(nu) = self.numbering_system
+            && let Some(value) = nu.unicode_extension_value()
+        {
+            exts.keywords.set(unicode::key!("nu"), value);
+        }
+
+        if let Some(ca) = self.calendar_algorithm
+            && let Some(value) = ca.unicode_extension_value()
+        {
+            exts.keywords.set(unicode::key!("ca"), value);
+        }
+
+        if let Some(hc) = self.hour_cycle
+            && let Some(value) = hc.unicode_extension_value()
+        {
+            exts.keywords.set(unicode::key!("hc"), value);
+        }
+
+        exts
+    }
+
+    fn extend(&mut self, other: &Self) {
+        self.extend(*other);
+    }
+
+    fn intersection(&self, other: &Self) -> Self {
+        let mut inter = self.clone();
+        if inter.locale_preferences != other.locale_preferences {
+            inter.locale_preferences = LocalePreferences::default()
+        }
+        if inter.numbering_system != other.numbering_system {
+            inter.numbering_system.take();
+        }
+        if inter.calendar_algorithm != other.calendar_algorithm {
+            inter.calendar_algorithm.take();
+        }
+        if inter.hour_cycle != other.hour_cycle {
+            inter.hour_cycle.take();
+        }
+        inter
     }
 }

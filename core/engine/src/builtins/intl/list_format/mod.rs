@@ -11,7 +11,10 @@ use icu_locale::Locale;
 use crate::{
     Context, JsArgs, JsData, JsNativeError, JsResult, JsString, JsValue,
     builtins::{
-        Array, BuiltInBuilder, BuiltInConstructor, BuiltInObject, IntrinsicObject, OrdinaryObject, intl::options::EmptyPreferences, iterable::IteratorHint, options::{get_option, get_options_object}
+        Array, BuiltInBuilder, BuiltInConstructor, BuiltInObject, IntrinsicObject, OrdinaryObject,
+        intl::options::EmptyPreferences,
+        iterable::IteratorHint,
+        options::{get_option, get_options_object},
     },
     context::intrinsics::{Intrinsics, StandardConstructor, StandardConstructors},
     js_string,

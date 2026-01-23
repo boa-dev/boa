@@ -14,9 +14,7 @@ use crate::{
         BuiltInBuilder, BuiltInConstructor, BuiltInObject, IntrinsicObject, OrdinaryObject,
         options::get_option,
     },
-    context::
-        intrinsics::{Intrinsics, StandardConstructor, StandardConstructors}
-    ,
+    context::intrinsics::{Intrinsics, StandardConstructor, StandardConstructors},
     js_string,
     native_function::NativeFunction,
     object::{

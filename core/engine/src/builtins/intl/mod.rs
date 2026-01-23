@@ -26,8 +26,8 @@ use crate::{
 };
 
 use boa_gc::{Finalize, Trace};
-use icu_locale::{LanguageIdentifier, extensions::unicode, preferences::LocalePreferences};
-use icu_provider::{DataMarker, DataMarkerAttributes, DryDataProvider};
+use icu_locale::{LanguageIdentifier, extensions::unicode};
+use icu_provider::{DataMarker, DataMarkerAttributes};
 use static_assertions::const_assert;
 
 pub(crate) mod collator;
@@ -180,12 +180,7 @@ impl Intl {
 }
 
 trait ServicePreferences: for<'a> From<&'a icu_locale::Locale> {
-    fn validate_extensions<M: DataMarker>(
-        &mut self,
-        id: &LanguageIdentifier,
-        provider: &impl DryDataProvider<M>,
-    );
-    fn set_locale(&mut self, locale: LocalePreferences);
+    fn validate_extensions(&mut self, id: &LanguageIdentifier, provider: &IntlProvider);
     fn as_unicode(&self) -> unicode::Unicode;
     fn extend(&mut self, other: &Self);
     fn intersection(&self, other: &Self) -> Self;
@@ -206,22 +201,4 @@ trait Service {
     /// The set of preferences used in the [`Service::resolve`] method to resolve the provided
     /// locale.
     type Preferences: ServicePreferences;
-
-    /// Resolves the final value of `locale` from a set of `options`.
-    ///
-    /// The provided `options` will also be modified with the final values, in case there were
-    /// changes in the resolution algorithm.
-    ///
-    /// # Note
-    ///
-    /// - A correct implementation must ensure `locale` and `options` are both written with the
-    ///   new final values.
-    /// - If the implementor service doesn't contain any `[[RelevantExtensionKeys]]`, this can be
-    ///   skipped.
-    fn resolve(
-        _locale: &mut icu_locale::Locale,
-        _options: &mut Self::Preferences,
-        _provider: &IntlProvider,
-    ) {
-    }
 }

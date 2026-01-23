@@ -78,11 +78,6 @@ impl NumberFormat {
     }
 }
 
-#[derive(Debug, Clone)]
-pub(super) struct NumberFormatLocaleOptions {
-    numbering_system: Option<Value>,
-}
-
 impl Service for NumberFormat {
     type LangMarker = DecimalSymbolsV1;
 

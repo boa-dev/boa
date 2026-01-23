@@ -4,10 +4,11 @@ use icu_collator::{
     CollatorPreferences,
     options::{CaseLevel, Strength},
     preferences::{CollationCaseFirst, CollationType},
+    provider::CollationMetadataV1,
 };
 use icu_locale::{LanguageIdentifier, preferences::PreferenceKey};
 use icu_provider::{
-    DataMarker, DataMarkerAttributes, DryDataProvider,
+    DataMarkerAttributes,
     prelude::icu_locale_core::{extensions::unicode, preferences::LocalePreferences},
 };
 
@@ -17,6 +18,7 @@ use crate::{
         intl::{ServicePreferences, locale::validate_extension},
         options::{OptionType, ParsableOptionType},
     },
+    context::icu::IntlProvider,
 };
 
 #[derive(Debug, Clone, Copy)]
@@ -108,19 +110,12 @@ impl OptionType for CollationCaseFirst {
 }
 
 impl ServicePreferences for CollatorPreferences {
-    fn validate_extensions<M: DataMarker>(
-        &mut self,
-        id: &LanguageIdentifier,
-        provider: &impl DryDataProvider<M>,
-    ) {
+    fn validate_extensions(&mut self, id: &LanguageIdentifier, provider: &IntlProvider) {
         self.collation_type = self.collation_type.take().filter(|co| {
             let attr = DataMarkerAttributes::from_str_or_panic(co.as_str());
-            co != &CollationType::Search && validate_extension::<M>(id, attr, provider)
+            co != &CollationType::Search
+                && validate_extension::<CollationMetadataV1>(id, attr, provider)
         });
-    }
-
-    fn set_locale(&mut self, locale: LocalePreferences) {
-        self.locale_preferences = locale
     }
 
     fn as_unicode(&self) -> unicode::Unicode {

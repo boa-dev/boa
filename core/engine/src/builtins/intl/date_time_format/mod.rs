@@ -18,15 +18,12 @@ use crate::{
         intl::{
             Service,
             date_time_format::options::{DateStyle, FormatMatcher, FormatOptions, TimeStyle},
-            locale::{canonicalize_locale_list, resolve_locale, validate_extension},
+            locale::{canonicalize_locale_list, resolve_locale},
             options::{IntlOptions, coerce_options_to_object},
         },
         options::get_option,
     },
-    context::{
-        icu::IntlProvider,
-        intrinsics::{Intrinsics, StandardConstructor, StandardConstructors},
-    },
+    context::intrinsics::{Intrinsics, StandardConstructor, StandardConstructors},
     error::JsNativeError,
     js_error, js_string,
     object::{
@@ -52,10 +49,7 @@ use icu_datetime::{
 };
 use icu_decimal::preferences::NumberingSystem;
 use icu_decimal::provider::DecimalSymbolsV1;
-use icu_locale::{
-    Locale, extensions::unicode::Value, extensions_unicode_key as key, preferences::PreferenceKey,
-};
-use icu_provider::DataMarkerAttributes;
+use icu_locale::{Locale, extensions::unicode::Value};
 use icu_time::{
     TimeZoneInfo, ZonedDateTime,
     zone::{IanaParser, models::Base},
@@ -97,100 +91,6 @@ impl Service for DateTimeFormat {
     type LangMarker = DecimalSymbolsV1;
 
     type Preferences = DateTimeFormatterPreferences;
-
-    fn resolve(locale: &mut Locale, options: &mut Self::Preferences, provider: &IntlProvider) {
-        let locale_preferences = DateTimeFormatterPreferences::from(&*locale);
-        // TODO: Determine if any locale_preferences processing is needed here.
-
-        options.locale_preferences = (&*locale).into();
-
-        // The below handles the [[RelevantExtensionKeys]] of DateTimeFormatters
-        // internal slots.
-        //
-        // See https://tc39.es/ecma402/#sec-intl.datetimeformat-internal-slots
-
-        // Handle LDML unicode key "ca", Calendar algorithm
-        options.calendar_algorithm = options
-            .calendar_algorithm
-            .take()
-            .filter(|ca| {
-                let attr = DataMarkerAttributes::from_str_or_panic(ca.as_str());
-                validate_extension::<Self::LangMarker>(locale.id.clone(), attr, provider)
-            })
-            .inspect(|ca| {
-                if Some(ca) == locale_preferences.calendar_algorithm.as_ref()
-                    && let Some(ca) = ca.unicode_extension_value()
-                {
-                    locale.extensions.unicode.keywords.set(key!("ca"), ca);
-                }
-            })
-            .or_else(|| {
-                if let Some(ca) = locale_preferences
-                    .calendar_algorithm
-                    .as_ref()
-                    .and_then(CalendarAlgorithm::unicode_extension_value)
-                {
-                    locale.extensions.unicode.keywords.set(key!("ca"), ca);
-                }
-                locale_preferences.calendar_algorithm
-            });
-
-        // Handle LDML unicode key "nu", Numbering system
-        options.numbering_system = options
-            .numbering_system
-            .take()
-            .filter(|nu| {
-                let attr = DataMarkerAttributes::from_str_or_panic(nu.as_str());
-                validate_extension::<Self::LangMarker>(locale.id.clone(), attr, provider)
-            })
-            .inspect(|nu| {
-                if Some(nu) == locale_preferences.numbering_system.as_ref()
-                    && let Some(nu) = nu.unicode_extension_value()
-                {
-                    locale.extensions.unicode.keywords.set(key!("nu"), nu);
-                }
-            })
-            .or_else(|| {
-                if let Some(nu) = locale_preferences
-                    .numbering_system
-                    .as_ref()
-                    .and_then(NumberingSystem::unicode_extension_value)
-                {
-                    locale.extensions.unicode.keywords.set(key!("nu"), nu);
-                }
-                locale_preferences.numbering_system
-            });
-
-        // NOTE (nekevss): issue: this will not support `H24` as ICU4X does
-        // not currently support it.
-        //
-        // track: https://github.com/unicode-org/icu4x/issues/6597
-        // Handle LDML unicode key "hc", Hour cycle
-        options.hour_cycle = options
-            .hour_cycle
-            .take()
-            .filter(|hc| {
-                let attr = DataMarkerAttributes::from_str_or_panic(hc.as_str());
-                validate_extension::<Self::LangMarker>(locale.id.clone(), attr, provider)
-            })
-            .inspect(|hc| {
-                if Some(hc) == locale_preferences.hour_cycle.as_ref()
-                    && let Some(hc) = hc.unicode_extension_value()
-                {
-                    locale.extensions.unicode.keywords.set(key!("hc"), hc);
-                }
-            })
-            .or_else(|| {
-                if let Some(hc) = locale_preferences
-                    .hour_cycle
-                    .as_ref()
-                    .and_then(IcuHourCycle::unicode_extension_value)
-                {
-                    locale.extensions.unicode.keywords.set(key!("hc"), hc);
-                }
-                locale_preferences.hour_cycle
-            });
-    }
 }
 
 impl IntrinsicObject for DateTimeFormat {
