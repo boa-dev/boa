@@ -394,7 +394,7 @@ where
     // ensures:
     // - All options provided by the locale are valid.
     // - All options provided by args are valid.
-    // - Options provided by args are extended (but not overriden) by
+    // - Options provided by args are extended (but not overridden) by
     //   options provided in the locale.
     // - Only the locale options that extended the args options are
     //   added to the final locale.
