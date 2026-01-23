@@ -14,6 +14,7 @@ node_modules
 .DS_Store
 yarn-error.log
 .vscode/settings.json
+.zed/settings.json
 
 # debug is used for testing changes locally
 /debug

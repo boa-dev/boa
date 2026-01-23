@@ -323,6 +323,15 @@ impl DateTimeFormat {
 
                         // 5. Return ? FormatDateTime(dtf, x).
 
+                        // A.O 11.5.6 PartitionDateTimePattern
+
+                        // 1. Let x be TimeClip(x).
+                        // 2. If x is NaN, throw a RangeError exception.
+                        let x = time_clip(x);
+                        if x.is_nan() {
+                            return Err(js_error!(RangeError: "formatted date cannot be NaN"));
+                        }
+
                         // A.O 11.5.12 ToLocalTime
                        let time_zone_offset = match dtf.borrow().data().time_zone {
                             // 1. If IsTimeZoneOffsetString(timeZoneIdentifier) is true, then
