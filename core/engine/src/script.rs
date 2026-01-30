@@ -18,6 +18,7 @@ use boa_parser::{Parser, Source, source::ReadChar};
 use crate::{
     Context, HostDefined, JsResult, JsString, JsValue, Module, SpannedSourceText,
     bytecompiler::{ByteCompiler, global_declaration_instantiation_context},
+    environments::EnvironmentStack,
     js_string,
     realm::Realm,
     spanned_source_text::SourceText,
@@ -210,15 +211,15 @@ impl Script {
     fn prepare_run(&self, context: &mut Context) -> JsResult<()> {
         let codeblock = self.codeblock(context)?;
 
-        let env_fp = context.vm.frame.environments.len() as u32;
+        let global_env = EnvironmentStack::new(self.inner.realm.environment().clone());
         context.vm.push_frame_with_stack(
             CallFrame::new(
                 codeblock,
                 Some(ActiveRunnable::Script(self.clone())),
-                context.vm.frame.environments.clone(),
+                global_env,
                 self.inner.realm.clone(),
             )
-            .with_env_fp(env_fp)
+            .with_env_fp(0)
             .with_flags(CallFrameFlags::EXIT_EARLY),
             JsValue::undefined(),
             JsValue::null(),
