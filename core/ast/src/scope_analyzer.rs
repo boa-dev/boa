@@ -1487,14 +1487,13 @@ impl<'ast> VisitorMut<'ast> for ScopeIndexVisitor {
                 ControlFlow::Continue(())
             }
             ClassElement::StaticBlock(node) => {
-                let contains_direct_eval = contains(node.statements(), ContainsSymbol::DirectEval);
                 self.visit_function_like(
                     &mut node.body,
                     &mut FormalParameterList::default(),
                     &mut node.scopes,
                     &mut None,
                     false,
-                    contains_direct_eval,
+                    true,
                 )
             }
         }
