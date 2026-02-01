@@ -357,7 +357,7 @@ impl SimpleModuleLoader {
     pub fn new<P: AsRef<Path>>(root: P) -> JsResult<Self> {
         if cfg!(target_family = "wasm") {
             return Err(JsNativeError::typ()
-                .with_message("cannot resolve a relative path in WASM targets")
+                .with_message("cannot resolve a relative path in Wasm targets")
                 .into());
         }
         let root = root.as_ref();
