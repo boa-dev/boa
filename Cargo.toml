@@ -147,6 +147,8 @@ strum = { version = "0.28", features = ["derive"] }
 unsend = { version = "0.2.1", default-features = false }
 husky-rs = "0.3.2"
 async-channel = "2.5.0"
+data-encoding = "2.11.0"
+data-encoding-macro = "0.1.20"
 
 # ICU4X core
 
