@@ -42,10 +42,6 @@ features = [
     # https://github.com/tc39/proposal-json-parse-with-source
     "json-parse-with-source",
 
-    # Uint8Array Base64
-    # https://github.com/tc39/proposal-arraybuffer-base64
-    "uint8array-base64",
-
     # Source Phase Imports
     # https://github.com/tc39/proposal-source-phase-imports
     "source-phase-imports",
@@ -73,4 +69,7 @@ tests = [
     "test/staging/sm/class/fields-static-class-name-binding-eval.js",
     "test/staging/sm/regress/regress-554955-1.js",
     "test/staging/sm/regress/regress-554955-3.js",
+
+    # simdutf related issue
+    "test/built-ins/Uint8Array/prototype/setFromBase64/trailing-garbage.js"
 ]

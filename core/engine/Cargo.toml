@@ -187,6 +187,9 @@ temporal_rs = { workspace = true, optional = true }
 timezone_provider = { workspace = true, optional = true }
 iana-time-zone = { version = "0.1.65", optional = true }
 
+[target.'cfg(not(target_family = "wasm"))'.dependencies]
+simdutf.workspace = true
+
 [target.'cfg(all(target_family = "wasm", not(any(target_os = "emscripten", target_os = "wasi"))))'.dependencies]
 web-time = { workspace = true, optional = true }
 # NOTE: This enables the wasm_js required for rand to work on wasm
