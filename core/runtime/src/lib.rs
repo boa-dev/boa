@@ -111,20 +111,21 @@ pub mod console;
 pub use console::{Console, ConsoleState, DefaultLogger, Logger, NullLogger};
 
 pub mod clone;
+pub mod extensions;
 #[cfg(feature = "fetch")]
 pub mod fetch;
 pub mod interval;
 pub mod message;
 pub mod microtask;
+pub mod process;
 pub mod store;
 pub mod text;
 #[cfg(feature = "url")]
 pub mod url;
 
-pub mod extensions;
-
 use crate::extensions::{
-    EncodingExtension, MicrotaskExtension, StructuredCloneExtension, TimeoutExtension,
+    EncodingExtension, MicrotaskExtension, ProcessExtension, StructuredCloneExtension,
+    TimeoutExtension,
 };
 pub use extensions::RuntimeExtension;
 
@@ -145,6 +146,7 @@ pub fn register(
         StructuredCloneExtension,
         #[cfg(feature = "url")]
         extensions::UrlExtension,
+        ProcessExtension,
         extensions,
     )
         .register(realm, ctx)?;
