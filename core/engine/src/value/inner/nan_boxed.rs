@@ -28,7 +28,7 @@
 //! ALL 32 bits architectures are compatible, of course, as their pointers
 //! are 32 bits.
 //!
-//! WASM with MEMORY64 (which is very rare) follows the pointer structure
+//! Wasm with MEMORY64 (which is very rare) follows the pointer structure
 //! of its host architecture.
 //! For more info, see
 //! <https://spidermonkey.dev/blog/2025/01/15/is-memory64-actually-worth-using.html>
