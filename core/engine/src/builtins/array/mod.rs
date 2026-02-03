@@ -1768,7 +1768,9 @@ impl Array {
         // 3. Let depthNum be 1
         // 4. If depth is not undefined, then set depthNum to IntegerOrInfinity(depth)
         let depth = args.get_or_undefined(0);
-        let depth_num = if !depth.is_undefined() {
+        let depth_num = if depth.is_undefined() {
+            1
+        } else {
             // a. Set depthNum to ? ToIntegerOrInfinity(depth).
             // b. If depthNum < 0, set depthNum to 0.
             match depth.to_integer_or_infinity(context)? {
@@ -1776,8 +1778,6 @@ impl Array {
                 IntegerOrInfinity::PositiveInfinity => u64::MAX,
                 _ => 0,
             }
-        } else {
-            1
         };
 
         // 5. Let A be ArraySpeciesCreate(O, 0)
