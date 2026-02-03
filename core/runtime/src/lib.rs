@@ -116,10 +116,14 @@ pub mod fetch;
 pub mod interval;
 pub mod message;
 pub mod microtask;
+pub mod performance;
 pub mod store;
 pub mod text;
 #[cfg(feature = "url")]
 pub mod url;
+
+#[doc(inline)]
+pub use performance::Performance;
 
 pub mod extensions;
 
