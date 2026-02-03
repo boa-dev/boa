@@ -28,6 +28,7 @@ indoc.workspace = true
 rstest.workspace = true
 test-case.workspace = true
 textwrap.workspace = true
+temp-env.workspace = true
 
 [lints]
 workspace = true
