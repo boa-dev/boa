@@ -117,15 +117,17 @@ pub mod fetch;
 pub mod interval;
 pub mod message;
 pub mod microtask;
+#[cfg(feature = "process")]
 pub mod process;
 pub mod store;
 pub mod text;
 #[cfg(feature = "url")]
 pub mod url;
 
+#[cfg(feature = "process")]
+use crate::extensions::ProcessExtension;
 use crate::extensions::{
-    EncodingExtension, MicrotaskExtension, ProcessExtension, StructuredCloneExtension,
-    TimeoutExtension,
+    EncodingExtension, MicrotaskExtension, StructuredCloneExtension, TimeoutExtension,
 };
 pub use extensions::RuntimeExtension;
 
@@ -146,6 +148,7 @@ pub fn register(
         StructuredCloneExtension,
         #[cfg(feature = "url")]
         extensions::UrlExtension,
+        #[cfg(feature = "process")]
         ProcessExtension,
         extensions,
     )

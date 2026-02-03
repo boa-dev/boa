@@ -47,3 +47,4 @@ fetch = [
     "boa_engine/either",
 ]
 reqwest-blocking = ["dep:reqwest", "reqwest/blocking"]
+process = []
