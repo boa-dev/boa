@@ -28,6 +28,7 @@ indoc.workspace = true
 rstest.workspace = true
 test-case.workspace = true
 textwrap.workspace = true
+temp-env.workspace = true
 
 [lints]
 workspace = true
@@ -47,3 +48,4 @@ fetch = [
     "boa_engine/either",
 ]
 reqwest-blocking = ["dep:reqwest", "reqwest/blocking"]
+process = []

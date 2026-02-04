@@ -87,6 +87,18 @@ impl<L: Logger + Debug + 'static> RuntimeExtension for ConsoleExtension<L> {
     }
 }
 
+/// Register the `Process` Javascript object.
+#[cfg(feature = "process")]
+#[derive(Copy, Clone, Debug)]
+pub struct ProcessExtension;
+
+#[cfg(feature = "process")]
+impl RuntimeExtension for ProcessExtension {
+    fn register(self, _realm: Option<Realm>, context: &mut Context) -> JsResult<()> {
+        crate::process::Process::register(context)
+    }
+}
+
 /// Register the `fetch` JavaScript API with the specified [`crate::fetch::Fetcher`].
 #[cfg(feature = "fetch")]
 #[derive(Debug)]
