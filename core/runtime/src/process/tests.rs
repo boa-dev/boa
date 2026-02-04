@@ -62,7 +62,7 @@ fn process_property_descriptors() {
 }
 
 #[test]
-#[ignore]
+#[ignore = "Unsafe under parallel test execution as it tempers with env."]
 fn process_env_contains_variables() {
     temp_env::with_vars(
         [
@@ -90,7 +90,7 @@ fn process_env_contains_variables() {
 }
 
 #[test]
-#[ignore]
+#[ignore = "Unsafe under parallel test execution as it tempers with env."]
 fn process_env_properties_writable() {
     temp_env::with_var("TEST_VAR", Some("original"), || {
         let mut context = Context::default();
@@ -135,7 +135,7 @@ fn process_env_object_properties() {
 }
 
 #[test]
-#[ignore]
+#[ignore = "Unsafe under parallel test execution as it tempers with env."]
 fn process_env_iteration() {
     temp_env::with_vars(
         [
