@@ -1,42 +1,92 @@
-//! Boa's implementation of Node.js' `process` object.    
-//!    
-//! The `process` object can be accessed from any global object.    
-//!    
-//! More information:  
-//!  - [Node.js documentation][node]    
+//! Boa's implementation of Node.js' `process` object.  
 //!  
-//! [node]: https://nodejs.org/api/process.html    
+//! The `process` object can be accessed from any global object.  
+//!  
+//! More information:  
+//!  - [Node.js documentation][node]  
+//!  
+//! [node]: https://nodejs.org/api/process.html  
 
 #[cfg(test)]
 pub(crate) mod tests;
 
 use boa_engine::{
-    Context, JsObject, JsResult, JsString, JsValue, js_string, property::Attribute,
-    property::PropertyDescriptor,
+    Context, JsData, JsError, JsObject, JsResult, JsString, JsSymbol, JsValue, js_string,
+    native_function::NativeFunction, object::ObjectInitializer, property::Attribute,
 };
 use boa_gc::{Finalize, Trace};
+use std::collections::HashMap;
+use std::rc::Rc;
 
-/// Boa's implementation of Node.js' `process` object.    
+/// A trait that can be used to forward process provider to an implementation.  
+pub trait ProcessProvider: Trace {
+    /// Get current working directory (`process.cwd()`)  
+    ///  
+    /// # Errors  
+    /// Returns an error if the current directory cannot be obtained.  
+    fn cwd(&self) -> JsResult<JsString>;
+
+    /// Get a `HashMap` of environment variables so as to allow env property (`process.env`)  
+    ///  
+    /// # Errors  
+    /// Returns an error if the environment variables cannot be obtained.  
+    fn env(&self) -> JsResult<HashMap<String, String>>;
+}
+
+/// The default std implementation of the process provider.  
+///  
+/// Implements the [`ProcessProvider`] trait. Outputs the process properties'
+/// values on the basis of std.  
 #[derive(Debug, Trace, Finalize)]
+pub struct StdProcessProvider;
+
+impl ProcessProvider for StdProcessProvider {
+    fn cwd(&self) -> JsResult<JsString> {
+        let path = std::env::current_dir()
+            .map_err(|e| JsError::from_opaque(js_string!(e.to_string()).into()))?;
+        Ok(js_string!(path.to_string_lossy()))
+    }
+
+    fn env(&self) -> JsResult<HashMap<String, String>> {
+        Ok(std::env::vars().collect())
+    }
+}
+
+/// Boa's implementation of Node.js' `process` object.  
+#[derive(Debug, Trace, Finalize, JsData)]
 pub struct Process;
 
 impl Process {
-    /// Name of the built-in `process` property.    
+    /// Name of the built-in `process` property.  
     pub const NAME: JsString = js_string!("process");
 
-    /// Initializes the `process` built-in object.    
+    /// Initializes the `process` built-in object with a custom provider.  
     ///  
     /// # Errors  
     ///  
     /// Returns a `JsError` if:  
-    /// - Setting environment variables on the `env` object fails  
-    /// - Defining the `env` property on the `process` object fails  
-    pub fn init(context: &mut Context) -> JsResult<JsObject> {
-        let process = JsObject::default(context.intrinsics());
+    /// - Custom process provider returns an error  
+    /// - Defining the `cwd` and `env` properties on the `process` object fails  
+    pub fn init_with_provider<P>(context: &mut Context, provider: P) -> JsResult<JsObject>
+    where
+        P: ProcessProvider + 'static,
+    {
+        fn process_method<P: ProcessProvider + 'static>(
+            f: fn(&JsValue, &[JsValue], &P, &mut Context) -> JsResult<JsValue>,
+            provider: Rc<P>,
+        ) -> NativeFunction {
+            // SAFETY: `Process` doesn't contain types that need tracing.
+            unsafe {
+                NativeFunction::from_closure(move |this, args, context| {
+                    f(this, args, &provider, context)
+                })
+            }
+        }
 
-        // Create env object with current environment variables
+        let provider = Rc::new(provider);
+
         let env = JsObject::default(context.intrinsics());
-        for (key, value) in std::env::vars() {
+        for (key, value) in provider.env()? {
             env.set(
                 js_string!(key),
                 JsValue::from(js_string!(value)),
@@ -45,26 +95,37 @@ impl Process {
             )?;
         }
 
-        process.define_property_or_throw(
-            js_string!("env"),
-            PropertyDescriptor::builder()
-                .value(env)
-                .writable(true)
-                .enumerable(false)
-                .configurable(true)
-                .build(),
-            context,
-        )?;
-
-        Ok(process)
+        Ok(ObjectInitializer::new(context)
+            .property(
+                JsSymbol::to_string_tag(),
+                Self::NAME,
+                Attribute::CONFIGURABLE,
+            )
+            .property(
+                js_string!("env"),
+                env,
+                Attribute::WRITABLE | Attribute::CONFIGURABLE,
+            )
+            .function(
+                process_method(
+                    |_, _, provider, _| provider.cwd().map(JsValue::from),
+                    provider.clone(),
+                ),
+                js_string!("cwd"),
+                0,
+            )
+            .build())
     }
 
-    /// Register the `process` object globally.    
-    ///    
-    /// # Errors    
-    /// This function will return an error if the property cannot be defined on the global object.    
-    pub fn register(context: &mut Context) -> JsResult<()> {
-        let process_object = Self::init(context)?;
+    /// Register the `process` object globally by a custom provider.  
+    ///  
+    /// # Errors  
+    /// This function will return an error if the property cannot be defined on the global object.  
+    pub fn register_with_provider<P>(context: &mut Context, provider: P) -> JsResult<()>
+    where
+        P: ProcessProvider + 'static,
+    {
+        let process_object = Self::init_with_provider(context, provider)?;
 
         context.register_global_property(
             js_string!(Self::NAME),
@@ -73,5 +134,24 @@ impl Process {
         )?;
 
         Ok(())
+    }
+
+    /// Initializes the `process` built-in object with the default std provider.  
+    ///  
+    /// # Errors  
+    ///  
+    /// Returns a `JsError` if:  
+    /// - Setting environment variables on the `env` object fails  
+    /// - Defining the `cwd` and `env` properties on the `process` object fails  
+    pub fn init(context: &mut Context) -> JsResult<JsObject> {
+        Self::init_with_provider(context, StdProcessProvider)
+    }
+
+    /// Register the `process` object globally by the default std provider.  
+    ///  
+    /// # Errors  
+    /// This function will return an error if the property cannot be defined on the global object.  
+    pub fn register(context: &mut Context) -> JsResult<()> {
+        Self::register_with_provider(context, StdProcessProvider)
     }
 }

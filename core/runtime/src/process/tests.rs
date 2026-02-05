@@ -62,6 +62,32 @@ fn process_property_descriptors() {
 }
 
 #[test]
+fn process_cwd_method() {
+    let mut context = Context::default();
+    crate::process::Process::register(&mut context).unwrap();
+
+    run_test_actions_with(
+        [
+            TestAction::run(TEST_HARNESS),
+            TestAction::run(indoc! {r#"
+                assert_own_property(process, "cwd");
+                assert_equals(typeof process.cwd, "function");
+                
+                const cwd = process.cwd();
+                assert_equals(typeof cwd, "string");
+                assert_true(cwd.length > 0, "cwd should not be empty");
+                
+                const cwdDesc = Object.getOwnPropertyDescriptor(process, "cwd");
+                assert_equals(cwdDesc.writable, true, "cwd must be writable");
+                assert_equals(cwdDesc.enumerable, false, "cwd must not be enumerable");
+                assert_equals(cwdDesc.configurable, true, "cwd must be configurable");
+            "#}),
+        ],
+        &mut context,
+    );
+}
+
+#[test]
 #[ignore = "Unsafe under parallel test execution as it tempers with env."]
 fn process_env_contains_variables() {
     temp_env::with_vars(
