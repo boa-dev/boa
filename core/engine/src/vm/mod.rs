@@ -667,16 +667,25 @@ impl Context {
     }
 
     fn handle_error(&mut self, mut err: JsError) -> ControlFlow<CompletionRecord> {
+        // Capture the backtrace early, before any exception handler check,
+        // so that errors caught by internal handlers (e.g. async module
+        // evaluation) still carry source position information.
+        if err.backtrace.is_none() {
+            err.backtrace = Some(
+                self.vm
+                    .shadow_stack
+                    .take(self.vm.runtime_limits.backtrace_limit(), self.vm.frame.pc),
+            );
+        }
+
+        // Inject caller position into native errors that don't have one
+        // (e.g. TypeErrors created in Rust code). This ensures the position
+        // survives conversion to a JS Error object through promise rejection.
+        err.inject_position(self.vm.shadow_stack.caller_position());
+
         // If we hit the execution step limit, bubble up the error to the
         // (Rust) caller instead of trying to handle as an exception.
         if !err.is_catchable() {
-            if err.backtrace.is_none() {
-                err.backtrace = Some(
-                    self.vm
-                        .shadow_stack
-                        .take(self.vm.runtime_limits.backtrace_limit(), self.vm.frame.pc),
-                );
-            }
 
             let mut frame = None;
             let mut env_fp = self.vm.frame.environments.len();
