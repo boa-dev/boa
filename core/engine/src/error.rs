@@ -716,6 +716,19 @@ impl JsError {
         self
     }
 
+    /// Injects the bytecode position into the native error's position field,
+    /// if it doesn't already have one. This ensures that errors created in
+    /// Rust opcode handlers (e.g. `JsNativeError::typ()`) carry source
+    /// position information that survives conversion to a JS Error object
+    /// through promise rejection.
+    pub(crate) fn inject_position(&mut self, position: ShadowEntry) {
+        if let Repr::Native(err) = &mut self.inner {
+            if err.position.0.is_none() {
+                err.position = IgnoreEq(Some(position));
+            }
+        }
+    }
+
     /// Is the [`JsError`] catchable in JavaScript.
     #[inline]
     pub(crate) const fn is_catchable(&self) -> bool {
@@ -759,7 +772,22 @@ impl fmt::Display for JsError {
         match &self.inner {
             Repr::Native(e) => e.fmt(f)?,
             Repr::Engine(e) => e.fmt(f)?,
-            Repr::Opaque(v) => v.display().fmt(f)?,
+            Repr::Opaque(v) => {
+                v.display().fmt(f)?;
+
+                // Try to recover position from the Error object's internal
+                // data, since the backtrace is lost when errors pass through
+                // promise rejection (JsError → JsValue → JsError).
+                if self.backtrace.is_none() {
+                    if let Some(obj) = v.as_object() {
+                        if let Some(error) = obj.downcast_ref::<Error>() {
+                            if let Some(position) = &error.position.0 {
+                                position.fmt(f)?;
+                            }
+                        }
+                    }
+                }
+            }
         }
 
         if let Some(shadow_stack) = &self.backtrace {

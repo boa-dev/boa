@@ -667,16 +667,32 @@ impl Context {
     }
 
     fn handle_error(&mut self, mut err: JsError) -> ControlFlow<CompletionRecord> {
+        // Capture the backtrace early, before any exception handler check,
+        // so that errors caught by internal handlers (e.g. async module
+        // evaluation) still carry source position information.
+        if err.backtrace.is_none() {
+            err.backtrace = Some(
+                self.vm
+                    .shadow_stack
+                    .take(self.vm.runtime_limits.backtrace_limit(), self.vm.frame.pc),
+            );
+        }
+
+        // Inject the current bytecode position into native errors that don't
+        // have one (e.g. TypeErrors created in Rust opcode handlers). This
+        // ensures the position survives conversion to a JS Error object
+        // through promise rejection. We use the current frame's PC (not
+        // caller_position) because opcode-level errors occur without pushing
+        // a new frame.
+        let pc = self.vm.frame.pc.saturating_sub(1);
+        err.inject_position(shadow_stack::ShadowEntry::Bytecode {
+            pc,
+            source_info: self.vm.frame.code_block().source_info.clone(),
+        });
+
         // If we hit the execution step limit, bubble up the error to the
         // (Rust) caller instead of trying to handle as an exception.
         if !err.is_catchable() {
-            if err.backtrace.is_none() {
-                err.backtrace = Some(
-                    self.vm
-                        .shadow_stack
-                        .take(self.vm.runtime_limits.backtrace_limit(), self.vm.frame.pc),
-                );
-            }
 
             let mut frame = None;
             let mut env_fp = self.vm.frame.environments.len();
@@ -699,8 +715,6 @@ impl Context {
             return ControlFlow::Break(CompletionRecord::Throw(err));
         }
 
-        // Note: -1 because we increment after fetching the opcode.
-        let pc = self.vm.frame().pc.saturating_sub(1);
         if self.vm.handle_exception_at(pc) {
             self.vm.pending_exception = Some(err);
             return ControlFlow::Continue(());
