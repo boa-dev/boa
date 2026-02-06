@@ -11,11 +11,10 @@
 pub(crate) mod tests;
 
 use boa_engine::{
-    Context, JsData, JsError, JsObject, JsResult, JsString, JsSymbol, JsValue, js_string,
+    Context, JsData, JsObject, JsResult, JsString, JsSymbol, JsValue, js_error, js_string,
     native_function::NativeFunction, object::ObjectInitializer, property::Attribute,
 };
 use boa_gc::{Finalize, Trace};
-use std::collections::HashMap;
 use std::rc::Rc;
 
 /// A trait that can be used to forward process provider to an implementation.  
@@ -26,11 +25,8 @@ pub trait ProcessProvider: Trace {
     /// Returns an error if the current directory cannot be obtained.  
     fn cwd(&self) -> JsResult<JsString>;
 
-    /// Get a `HashMap` of environment variables so as to allow env property (`process.env`)  
-    ///  
-    /// # Errors  
-    /// Returns an error if the environment variables cannot be obtained.  
-    fn env(&self) -> JsResult<HashMap<String, String>>;
+    /// Get environment variables so as to allow env property (`process.env`)
+    fn env(&self) -> impl IntoIterator<Item = (JsString, JsString)>;
 }
 
 /// The default std implementation of the process provider.  
@@ -42,13 +38,14 @@ pub struct StdProcessProvider;
 
 impl ProcessProvider for StdProcessProvider {
     fn cwd(&self) -> JsResult<JsString> {
-        let path = std::env::current_dir()
-            .map_err(|e| JsError::from_opaque(js_string!(e.to_string()).into()))?;
+        let path = std::env::current_dir().map_err(
+            |e| js_error!(TypeError: "failed to get current working directory: {}", e.to_string()),
+        )?;
         Ok(js_string!(path.to_string_lossy()))
     }
 
-    fn env(&self) -> JsResult<HashMap<String, String>> {
-        Ok(std::env::vars().collect())
+    fn env(&self) -> impl IntoIterator<Item = (JsString, JsString)> {
+        std::env::vars().map(|(k, v)| (js_string!(k), js_string!(v)))
     }
 }
 
@@ -86,13 +83,8 @@ impl Process {
         let provider = Rc::new(provider);
 
         let env = JsObject::default(context.intrinsics());
-        for (key, value) in provider.env()? {
-            env.set(
-                js_string!(key),
-                JsValue::from(js_string!(value)),
-                false,
-                context,
-            )?;
+        for (key, value) in provider.env() {
+            env.set(key, JsValue::from(value), false, context)?;
         }
 
         Ok(ObjectInitializer::new(context)
@@ -141,7 +133,6 @@ impl Process {
     /// # Errors  
     ///  
     /// Returns a `JsError` if:  
-    /// - Setting environment variables on the `env` object fails  
     /// - Defining the `cwd` and `env` properties on the `process` object fails  
     pub fn init(context: &mut Context) -> JsResult<JsObject> {
         Self::init_with_provider(context, StdProcessProvider)
