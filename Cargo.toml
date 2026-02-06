@@ -79,7 +79,7 @@ serde = "1.0.219"
 static_assertions = "1.1.0"
 textwrap = "0.16.2"
 thin-vec = "0.2.14"
-time = { version = "0.3.46", default-features = false, features = [
+time = { version = "0.3.47", default-features = false, features = [
     "local-offset",
     "large-dates",
     "parsing",
