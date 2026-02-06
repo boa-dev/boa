@@ -716,19 +716,6 @@ impl JsError {
         self
     }
 
-    /// Injects the caller position from the shadow stack into the native
-    /// error's position field, if it doesn't already have one. This ensures
-    /// that errors created in Rust (e.g. `JsNativeError::typ()`) carry
-    /// source position information that survives conversion to a JS Error
-    /// object through promise rejection.
-    pub(crate) fn inject_position(&mut self, position: Option<ShadowEntry>) {
-        if let Repr::Native(err) = &mut self.inner {
-            if err.position.0.is_none() {
-                err.position = IgnoreEq(position);
-            }
-        }
-    }
-
     /// Is the [`JsError`] catchable in JavaScript.
     #[inline]
     pub(crate) const fn is_catchable(&self) -> bool {
