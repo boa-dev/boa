@@ -251,6 +251,30 @@ fn let_declaration_no_spaces() {
     );
 }
 
+/// Checks `let` declaration with a reserved keyword as identifier.
+#[test]
+fn let_declaration_reserved_keyword_identifier() {
+    let interner = &mut Interner::default();
+    check_script_parser(
+        "let of = 1;",
+        vec![
+            Declaration::Lexical(LexicalDeclaration::Let(
+                vec![Variable::from_identifier(
+                    Identifier::new(
+                        interner.get_or_intern_static("of", utf16!("of")),
+                        Span::new((1, 5), (1, 7)),
+                    ),
+                    Some(Literal::new(1, Span::new((1, 10), (1, 11))).into()),
+                )]
+                .try_into()
+                .unwrap(),
+            ))
+            .into(),
+        ],
+        interner,
+    );
+}
+
 /// Checks empty `let` declaration parsing.
 #[test]
 fn empty_let_declaration() {
