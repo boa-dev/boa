@@ -257,8 +257,8 @@ pub(crate) fn log_value_to(
                     .downcast_ref::<Error>()
                     .expect("already checked object type");
 
-                if let Some(position) = &data.position.0 {
-                    write!(f, "{position}")?;
+                if let Some(entry) = data.stack.0.position() {
+                    write!(f, "{}", entry.display(false))?;
                 }
                 Ok(())
             } else if let Some(promise) = v.downcast_ref::<Promise>() {

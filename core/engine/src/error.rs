@@ -12,15 +12,11 @@ use crate::{
     realm::Realm,
     vm::{
         NativeSourceInfo,
-        shadow_stack::{Backtrace, ShadowEntry},
+        shadow_stack::{Backtrace, ErrorStack, ShadowEntry},
     },
 };
 use boa_gc::{Finalize, Trace, custom_trace};
-use std::{
-    borrow::Cow,
-    error,
-    fmt::{self},
-};
+use std::{borrow::Cow, error, fmt};
 use thiserror::Error;
 
 /// Create an error object from a value or string literal. Optionally the
@@ -75,80 +71,80 @@ use thiserror::Error;
 macro_rules! js_error {
     (Error: $value: literal) => {
         $crate::JsError::from_native(
-            $crate::JsNativeError::ERROR.with_message($value)
+            $crate::JsNativeError::error().with_message($value)
         )
     };
     (Error: $value: literal $(, $args: expr)* $(,)?) => {
         $crate::JsError::from_native(
-            $crate::JsNativeError::ERROR
+            $crate::JsNativeError::error()
                 .with_message(format!($value $(, $args)*))
         )
     };
 
     (TypeError: $value: literal) => {
         $crate::JsError::from_native(
-            $crate::JsNativeError::TYP.with_message($value)
+            $crate::JsNativeError::typ().with_message($value)
         )
     };
     (TypeError: $value: literal $(, $args: expr)* $(,)?) => {
         $crate::JsError::from_native(
-            $crate::JsNativeError::TYP
+            $crate::JsNativeError::typ()
                 .with_message(format!($value $(, $args)*))
         )
     };
 
     (SyntaxError: $value: literal) => {
         $crate::JsError::from_native(
-            $crate::JsNativeError::SYNTAX.with_message($value)
+            $crate::JsNativeError::syntax().with_message($value)
         )
     };
     (SyntaxError: $value: literal $(, $args: expr)* $(,)?) => {
         $crate::JsError::from_native(
-            $crate::JsNativeError::SYNTAX.with_message(format!($value $(, $args)*))
+            $crate::JsNativeError::syntax().with_message(format!($value $(, $args)*))
         )
     };
 
     (RangeError: $value: literal) => {
         $crate::JsError::from_native(
-            $crate::JsNativeError::RANGE.with_message($value)
+            $crate::JsNativeError::range().with_message($value)
         )
     };
     (RangeError: $value: literal $(, $args: expr)* $(,)?) => {
         $crate::JsError::from_native(
-            $crate::JsNativeError::RANGE.with_message(format!($value $(, $args)*))
+            $crate::JsNativeError::range().with_message(format!($value $(, $args)*))
         )
     };
 
     (EvalError: $value: literal) => {
         $crate::JsError::from_native(
-            $crate::JsNativeError::EVAL.with_message($value)
+            $crate::JsNativeError::eval().with_message($value)
         )
     };
     (EvalError: $value: literal $(, $args: expr)* $(,)?) => {
         $crate::JsError::from_native(
-            $crate::JsNativeError::EVAL.with_message(format!($value $(, $args)*))
+            $crate::JsNativeError::eval().with_message(format!($value $(, $args)*))
         )
     };
 
     (ReferenceError: $value: literal) => {
         $crate::JsError::from_native(
-            $crate::JsNativeError::REFERENCE.with_message($value)
+            $crate::JsNativeError::reference().with_message($value)
         )
     };
     (ReferenceError: $value: literal $(, $args: expr)* $(,)?) => {
         $crate::JsError::from_native(
-            $crate::JsNativeError::REFERENCE.with_message(format!($value $(, $args)*))
+            $crate::JsNativeError::reference().with_message(format!($value $(, $args)*))
         )
     };
 
     (URIError: $value: literal) => {
         $crate::JsError::from_native(
-            $crate::JsNativeError::URI.with_message($value)
+            $crate::JsNativeError::uri().with_message($value)
         )
     };
     (URIError: $value: literal $(, $args: expr)* $(,)?) => {
         $crate::JsError::from_native(
-            $crate::JsNativeError::URI.with_message(format!($value $(, $args)*))
+            $crate::JsNativeError::uri().with_message(format!($value $(, $args)*))
         )
     };
 
@@ -208,7 +204,6 @@ macro_rules! js_error {
 #[boa_gc(unsafe_no_drop)]
 pub struct JsError {
     inner: Repr,
-
     pub(crate) backtrace: Option<Backtrace>,
 }
 
@@ -503,7 +498,7 @@ impl JsError {
 
                 let cause = try_get_property(js_string!("cause"), "cause", context)?;
 
-                let position = error_data.position.clone();
+                let location = error_data.stack.clone();
                 let kind = match error_data.tag {
                     ErrorKind::Error => JsNativeErrorKind::Error,
                     ErrorKind::Eval => JsNativeErrorKind::Eval,
@@ -558,7 +553,7 @@ impl JsError {
                     message,
                     cause: cause.map(|v| Box::new(Self::from_opaque(v))),
                     realm: Some(realm),
-                    position,
+                    stack: location,
                 })
             }
         }
@@ -608,6 +603,16 @@ impl JsError {
     #[must_use]
     pub const fn as_native(&self) -> Option<&JsNativeError> {
         match &self.inner {
+            Repr::Native(e) => Some(e),
+            Repr::Opaque(_) | Repr::Engine(_) => None,
+        }
+    }
+
+    /// Gets the inner [`JsNativeError`] if the error is a native
+    /// error, or `None` otherwise.
+    #[must_use]
+    pub const fn as_native_mut(&mut self) -> Option<&mut JsNativeError> {
+        match &mut self.inner {
             Repr::Native(e) => Some(e),
             Repr::Opaque(_) | Repr::Engine(_) => None,
         }
@@ -764,54 +769,7 @@ impl fmt::Display for JsError {
 
         if let Some(shadow_stack) = &self.backtrace {
             for entry in shadow_stack.iter().rev() {
-                write!(f, "\n    at ")?;
-                match entry {
-                    ShadowEntry::Native {
-                        function_name,
-                        source_info,
-                    } => {
-                        if let Some(function_name) = function_name {
-                            write!(f, "{}", function_name.to_std_string_escaped())?;
-                        } else {
-                            f.write_str("<anonymous>")?;
-                        }
-
-                        if let Some(loc) = source_info.as_location() {
-                            write!(
-                                f,
-                                " (native at {}:{}:{})",
-                                loc.file(),
-                                loc.line(),
-                                loc.column()
-                            )?;
-                        } else {
-                            f.write_str(" (native)")?;
-                        }
-                    }
-                    ShadowEntry::Bytecode { pc, source_info } => {
-                        let has_function_name = !source_info.function_name().is_empty();
-                        if has_function_name {
-                            write!(f, "{}", source_info.function_name().to_std_string_escaped(),)?;
-                        } else {
-                            f.write_str("<anonymous>")?;
-                        }
-
-                        f.write_str(" (")?;
-                        source_info.map().path().fmt(f)?;
-
-                        if let Some(position) = source_info.map().find(*pc) {
-                            write!(
-                                f,
-                                ":{}:{}",
-                                position.line_number(),
-                                position.column_number()
-                            )?;
-                        } else {
-                            f.write_str(":?:?")?;
-                        }
-                        f.write_str(")")?;
-                    }
-                }
+                write!(f, "\n    at {}", entry.display(true))?;
             }
         }
         Ok(())
@@ -871,7 +829,7 @@ pub struct JsNativeError {
     #[source]
     cause: Option<Box<JsError>>,
     realm: Option<Realm>,
-    position: IgnoreEq<Option<ShadowEntry>>,
+    pub(crate) stack: IgnoreEq<ErrorStack>,
 }
 
 impl fmt::Display for JsNativeError {
@@ -883,8 +841,8 @@ impl fmt::Display for JsNativeError {
             write!(f, ": {message}")?;
         }
 
-        if let Some(position) = &self.position.0 {
-            position.fmt(f)?;
+        if let Some(entry) = self.stack.0.position() {
+            write!(f, "{}", entry.display(false))?;
         }
 
         Ok(())
@@ -911,23 +869,6 @@ impl fmt::Debug for JsNativeError {
 }
 
 impl JsNativeError {
-    /// Default `AggregateError` kind `JsNativeError`.
-    pub const AGGREGATE: Self = Self::aggregate(Vec::new());
-    /// Default `Error` kind `JsNativeError`.
-    pub const ERROR: Self = Self::error();
-    /// Default `EvalError` kind `JsNativeError`.
-    pub const EVAL: Self = Self::eval();
-    /// Default `RangeError` kind `JsNativeError`.
-    pub const RANGE: Self = Self::range();
-    /// Default `ReferenceError` kind `JsNativeError`.
-    pub const REFERENCE: Self = Self::reference();
-    /// Default `SyntaxError` kind `JsNativeError`.
-    pub const SYNTAX: Self = Self::syntax();
-    /// Default `error` kind `JsNativeError`.
-    pub const TYP: Self = Self::typ();
-    /// Default `UriError` kind `JsNativeError`.
-    pub const URI: Self = Self::uri();
-
     /// Creates a new `JsNativeError` from its `kind`, `message` and (optionally) its `cause`.
     #[cfg_attr(feature = "native-backtrace", track_caller)]
     const fn new(
@@ -945,7 +886,7 @@ impl JsNativeError {
             message,
             cause,
             realm: None,
-            position: IgnoreEq(Some(ShadowEntry::Native {
+            stack: IgnoreEq(ErrorStack::Position(ShadowEntry::Native {
                 function_name: None,
                 source_info: NativeSourceInfo::caller(),
             })),
@@ -1271,7 +1212,7 @@ impl JsNativeError {
             message,
             cause,
             realm,
-            position,
+            stack,
         } = self;
         let constructors = realm.as_ref().map_or_else(
             || context.intrinsics().constructors(),
@@ -1299,7 +1240,7 @@ impl JsNativeError {
         let o = JsObject::from_proto_and_data_with_shared_shape(
             context.root_shape(),
             prototype,
-            Error::with_shadow_entry(tag, position.0.clone()),
+            Error::with_stack(tag, stack.0.clone()),
         )
         .upcast();
 
