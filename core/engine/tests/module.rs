@@ -5,7 +5,7 @@ use std::rc::Rc;
 
 use boa_engine::builtins::promise::PromiseState;
 use boa_engine::module::{ModuleLoader, Referrer};
-use boa_engine::{Context, JsResult, JsString, Module, Source, js_string};
+use boa_engine::{Context, JsError, JsResult, JsString, Module, Source, js_string};
 
 #[test]
 fn test_json_module_from_str() {
@@ -439,5 +439,42 @@ fn test_dynamic_import_symbol_key() {
             );
         }
         PromiseState::Pending => panic!("Dynamic import is still pending"),
+    }
+}
+
+/// Test that errors caught by internal handlers (e.g. async module evaluation)
+/// preserve their backtrace through promise rejection (JsError → JsValue → JsError).
+#[test]
+fn test_module_error_preserves_backtrace() {
+    let mut context = Context::default();
+
+    // This module will throw a TypeError at the top level when it tries to
+    // call undefined as a function. The error goes through async module
+    // evaluation's internal handler → promise rejection → JsError::from_opaque.
+    let source = Source::from_bytes(
+        b"
+        let x = undefined;
+        x();
+    ",
+    );
+
+    let module = Module::parse(source, None, &mut context).unwrap();
+    let promise = module.load_link_evaluate(&mut context);
+    context.run_jobs().unwrap();
+
+    match promise.state() {
+        PromiseState::Rejected(err) => {
+            let js_error = JsError::from_opaque(err);
+            let error_str = js_error.to_string();
+            // The error message should contain backtrace info with "at" entries,
+            // proving the backtrace survived the JsError → JsValue → JsError
+            // round-trip through promise rejection.
+            assert!(
+                error_str.contains("    at "),
+                "Error should contain backtrace with 'at' entries, but got: {error_str}"
+            );
+        }
+        PromiseState::Fulfilled(_) => panic!("Module should have thrown an error"),
+        PromiseState::Pending => panic!("Module evaluation should not be pending"),
     }
 }
