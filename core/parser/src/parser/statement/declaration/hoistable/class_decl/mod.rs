@@ -548,6 +548,7 @@ where
                     | TokenKind::NumericLiteral(_)
                     | TokenKind::Keyword(_)
                     | TokenKind::NullLiteral(_)
+                    | TokenKind::BooleanLiteral(_)
                     | TokenKind::PrivateIdentifier(_)
                     | TokenKind::Punctuator(
                         Punctuator::OpenBracket | Punctuator::Mul | Punctuator::OpenBlock,
@@ -918,6 +919,7 @@ where
                     | TokenKind::NumericLiteral(_)
                     | TokenKind::Keyword(_)
                     | TokenKind::NullLiteral(_)
+                    | TokenKind::BooleanLiteral(_)
                     | TokenKind::Punctuator(Punctuator::OpenBracket) => {
                         let name_position = token.span().start();
                         let name = PropertyName::new(self.allow_yield, self.allow_await)
@@ -1020,6 +1022,7 @@ where
                     | TokenKind::NumericLiteral(_)
                     | TokenKind::Keyword(_)
                     | TokenKind::NullLiteral(_)
+                    | TokenKind::BooleanLiteral(_)
                     | TokenKind::Punctuator(Punctuator::OpenBracket) => {
                         let name = PropertyName::new(self.allow_yield, self.allow_await)
                             .parse(cursor, interner)?;
@@ -1152,6 +1155,7 @@ where
             | TokenKind::NumericLiteral(_)
             | TokenKind::Keyword(_)
             | TokenKind::NullLiteral(_)
+            | TokenKind::BooleanLiteral(_)
             | TokenKind::Punctuator(Punctuator::OpenBracket) => {
                 let start = token.span().start();
                 let name = PropertyName::new(self.allow_yield, self.allow_await)
