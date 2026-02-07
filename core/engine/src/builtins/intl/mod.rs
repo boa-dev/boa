@@ -26,6 +26,7 @@ use crate::{
 };
 
 use boa_gc::{Finalize, Trace};
+use icu_locale::{LanguageIdentifier, extensions::unicode};
 use icu_provider::{DataMarker, DataMarkerAttributes};
 use static_assertions::const_assert;
 
@@ -178,37 +179,36 @@ impl Intl {
     }
 }
 
+/// A set of preferences that can be provided to a [`Service`] through
+/// a locale.
+trait ServicePreferences: for<'a> From<&'a icu_locale::Locale> + Clone {
+    /// Validates that every preference value is available.
+    ///
+    /// This usually entails having to query the `IntlProvider` to check
+    /// if it has the required data to support the requested values.
+    fn validate(&mut self, id: &LanguageIdentifier, provider: &IntlProvider);
+
+    /// Converts this set of preferences into a Unicode locale extension.
+    fn as_unicode(&self) -> unicode::Unicode;
+
+    /// Extends all values set in `self` with the values set in `other`.
+    fn extended(&self, other: &Self) -> Self;
+
+    /// Gets the set of preference values that are the same in `self` and `other`.
+    fn intersection(&self, other: &Self) -> Self;
+}
+
 /// A service component that is part of the `Intl` API.
 ///
 /// This needs to be implemented for every `Intl` service in order to use the functions
-/// defined in `locale::utils`, such as locale resolution and selection.
+/// defined in `locale::utils`, such as [`resolve_locale`][locale::resolve_locale].
 trait Service {
-    /// The data marker used by [`resolve_locale`][locale::resolve_locale] to decide
-    /// which locales are supported by this service.
+    /// The data marker used to decide which locales are supported by this service.
     type LangMarker: DataMarker;
 
     /// The attributes used to resolve the locale.
     const ATTRIBUTES: &'static DataMarkerAttributes = DataMarkerAttributes::empty();
 
-    /// The set of options used in the [`Service::resolve`] method to resolve the provided
-    /// locale.
-    type LocaleOptions;
-
-    /// Resolves the final value of `locale` from a set of `options`.
-    ///
-    /// The provided `options` will also be modified with the final values, in case there were
-    /// changes in the resolution algorithm.
-    ///
-    /// # Note
-    ///
-    /// - A correct implementation must ensure `locale` and `options` are both written with the
-    ///   new final values.
-    /// - If the implementor service doesn't contain any `[[RelevantExtensionKeys]]`, this can be
-    ///   skipped.
-    fn resolve(
-        _locale: &mut icu_locale::Locale,
-        _options: &mut Self::LocaleOptions,
-        _provider: &IntlProvider,
-    ) {
-    }
+    /// The set of preferences used to resolve the provided locale.
+    type Preferences: ServicePreferences;
 }

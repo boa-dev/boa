@@ -6,16 +6,29 @@ use fixed_decimal::{
 };
 
 use boa_macros::js_str;
-use icu_decimal::preferences::NumberingSystem;
-use icu_locale::extensions::unicode::Value;
+use icu_decimal::{
+    DecimalFormatterPreferences, preferences::NumberingSystem, provider::DecimalSymbolsV1,
+};
+use icu_locale::{extensions::unicode::Value, preferences::PreferenceKey};
+use icu_provider::{
+    DataMarkerAttributes,
+    prelude::icu_locale_core::{
+        LanguageIdentifier, extensions::unicode, preferences::LocalePreferences,
+    },
+};
 use tinystr::TinyAsciiStr;
 
 use crate::{
     Context, JsNativeError, JsObject, JsResult, JsStr, JsString, JsValue,
     builtins::{
-        intl::options::{default_number_option, get_number_option},
+        intl::{
+            ServicePreferences,
+            locale::validate_extension,
+            options::{default_number_option, get_number_option},
+        },
         options::{OptionType, ParsableOptionType, get_option},
     },
+    context::icu::IntlProvider,
     js_string,
 };
 
@@ -1251,5 +1264,42 @@ impl RoundingType {
             | Self::FractionDigits(fraction_digits) => Some(fraction_digits),
             Self::SignificantDigits(_) => None,
         }
+    }
+}
+
+impl ServicePreferences for DecimalFormatterPreferences {
+    fn validate(&mut self, id: &LanguageIdentifier, provider: &IntlProvider) {
+        self.numbering_system = self.numbering_system.take().filter(|nu| {
+            let attr = DataMarkerAttributes::from_str_or_panic(nu.as_str());
+            validate_extension::<DecimalSymbolsV1>(id, attr, provider)
+        });
+    }
+
+    fn as_unicode(&self) -> unicode::Unicode {
+        let mut exts = unicode::Unicode::new();
+
+        if let Some(nu) = self.numbering_system
+            && let Some(value) = nu.unicode_extension_value()
+        {
+            exts.keywords.set(unicode::key!("nu"), value);
+        }
+        exts
+    }
+
+    fn extended(&self, other: &Self) -> Self {
+        let mut result = *self;
+        result.extend(*other);
+        result
+    }
+
+    fn intersection(&self, other: &Self) -> Self {
+        let mut inter = *self;
+        if inter.locale_preferences != other.locale_preferences {
+            inter.locale_preferences = LocalePreferences::default();
+        }
+        if inter.numbering_system != other.numbering_system {
+            inter.numbering_system.take();
+        }
+        inter
     }
 }
