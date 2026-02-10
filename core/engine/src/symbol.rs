@@ -383,3 +383,89 @@ impl Hash for JsSymbol {
         self.hash().hash(state);
     }
 }
+
+#[cfg(test)]
+mod tests {
+    use boa_macros::js_str;
+
+    use crate::{
+        Context, JsObject, JsValue, TestAction, builtins::Json, run_test_actions, value::TryIntoJs,
+    };
+
+    use super::JsSymbol;
+    use std::collections::hash_set::HashSet;
+
+    #[test]
+    fn unique() {
+        let max_loop_iterations = 100;
+        let mut set: HashSet<JsSymbol> = HashSet::new();
+        for _ in 0..max_loop_iterations {
+            let symbol = JsSymbol::new(None);
+            if let Some(symbol) = symbol {
+                assert!(set.insert(symbol), "JsSymbol already exists in the set");
+            } else {
+                panic!("JsSymbol::new() failed when creating up to {max_loop_iterations} symbols");
+            }
+        }
+    }
+
+    #[test]
+    fn hidden_in_enumeration() {
+        let mut context = Context::default();
+        let symbol1 = JsSymbol::new(None).unwrap();
+        let symbol2 = JsSymbol::new(None).unwrap();
+        let test_obj = JsObject::from_proto_and_data(None, ());
+        test_obj
+            .set(symbol1, js_str!("Can't see me"), false, &mut context)
+            .unwrap();
+        test_obj
+            .set(js_str!("visible"), true, false, &mut context)
+            .unwrap();
+        test_obj
+            .set(symbol2, js_str!("Still can't see me"), false, &mut context)
+            .unwrap();
+        let values = test_obj
+            .enumerable_own_property_names(crate::property::PropertyNameKind::Value, &mut context)
+            .expect("Test data should be enumerable");
+        assert!(
+            values.len() == 1,
+            "Test data should have exactly one enumerable value, instead found {}",
+            values.len()
+        );
+    }
+
+    #[test]
+    fn hidden_in_stringify() {
+        let mut context = Context::default();
+        let symbol = JsSymbol::new(None).unwrap();
+        let test_obj = JsObject::with_object_proto(context.intrinsics());
+        test_obj
+            .set(symbol, js_str!("This won't show up"), false, &mut context)
+            .unwrap();
+        let json = test_obj
+            .try_into_js(&mut context)
+            .expect("try_into_js() failed");
+        let json_str = Json::stringify(&JsValue::from(0), &[json], &mut context)
+            .expect("Json::stringify() failed")
+            .as_string()
+            .expect("Json::stringify() did not return string");
+        assert_eq!(js_str!("{}"), json_str);
+    }
+    #[test]
+    fn type_conversions() {
+        run_test_actions([
+            TestAction::assert_eq(
+                r#"
+            let symbol = Symbol("symbol");
+            typeof symbol
+        "#,
+                js_str!("symbol"),
+            ),
+            TestAction::assert(
+                r#"
+            symbol == Object(symbol)
+        "#,
+            ),
+        ]);
+    }
+}
