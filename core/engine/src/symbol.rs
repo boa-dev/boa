@@ -400,11 +400,12 @@ mod tests {
         let max_loop_iterations = 100;
         let mut set: HashSet<JsSymbol> = HashSet::new();
         for _ in 0..max_loop_iterations {
-            let symbol = JsSymbol::new(None).expect(&format!(
-                "JsSymbol::new() failed when creating up to {} symbols",
-                max_loop_iterations
-            ));
-            assert!(set.insert(symbol), "JsSymbol already exists in the set");
+            let symbol = JsSymbol::new(None);
+            if let Some(symbol) = symbol {
+                assert!(set.insert(symbol), "JsSymbol already exists in the set");
+            } else {
+                panic!("JsSymbol::new() failed when creating up to {max_loop_iterations} symbols");
+            }
         }
     }
 
@@ -413,7 +414,7 @@ mod tests {
         let mut context = Context::default();
         let symbol1 = JsSymbol::new(None).unwrap();
         let symbol2 = JsSymbol::new(None).unwrap();
-        let test_obj = JsObject::from_proto_and_data(None, {});
+        let test_obj = JsObject::from_proto_and_data(None, ());
         test_obj
             .set(symbol1, js_str!("Can't see me"), false, &mut context)
             .unwrap();
