@@ -432,24 +432,22 @@ impl JsError {
                 // Store the backtrace in the Error object so it survives the
                 // JsError → JsValue → JsError round-trip through promise
                 // rejection.
-                if let Some(backtrace) = self.backtrace {
-                    if let Some(mut error) = obj.downcast_mut::<Error>() {
-                        error.backtrace = IgnoreEq(Some(backtrace));
-                    }
+                if let Some(backtrace) = self.backtrace
+                    && let Some(mut error) = obj.downcast_mut::<Error>()
+                {
+                    error.backtrace = IgnoreEq(Some(backtrace));
                 }
                 Ok(obj.into())
             }
             Repr::Opaque(v) => {
                 // Store the backtrace in the Error object for opaque errors
                 // too (e.g. explicit `throw new Error(...)`).
-                if let Some(backtrace) = self.backtrace {
-                    if let Some(obj) = v.as_object() {
-                        if let Some(mut error) = obj.downcast_mut::<Error>() {
-                            if error.backtrace.0.is_none() {
-                                error.backtrace = IgnoreEq(Some(backtrace));
-                            }
-                        }
-                    }
+                if let Some(backtrace) = self.backtrace
+                    && let Some(obj) = v.as_object()
+                    && let Some(mut error) = obj.downcast_mut::<Error>()
+                    && error.backtrace.0.is_none()
+                {
+                    error.backtrace = IgnoreEq(Some(backtrace));
                 }
                 Ok(v.clone())
             }
