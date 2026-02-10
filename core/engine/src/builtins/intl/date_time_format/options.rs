@@ -20,7 +20,7 @@ use icu_datetime::{
     preferences::{CalendarAlgorithm, HourCycle as IcuHourCycle},
 };
 use icu_decimal::provider::DecimalSymbolsV1;
-use icu_locale::{extensions::unicode::Value, preferences::PreferenceKey};
+use icu_locale::extensions::unicode::Value;
 use icu_provider::{
     DataMarkerAttributes,
     prelude::icu_locale_core::{
@@ -604,50 +604,5 @@ impl ServicePreferences for DateTimeFormatterPreferences {
         // behaviour.
     }
 
-    fn as_unicode(&self) -> unicode::Unicode {
-        let mut exts = unicode::Unicode::new();
-
-        if let Some(nu) = self.numbering_system
-            && let Some(value) = nu.unicode_extension_value()
-        {
-            exts.keywords.set(unicode::key!("nu"), value);
-        }
-
-        if let Some(ca) = self.calendar_algorithm
-            && let Some(value) = ca.unicode_extension_value()
-        {
-            exts.keywords.set(unicode::key!("ca"), value);
-        }
-
-        if let Some(hc) = self.hour_cycle
-            && let Some(value) = hc.unicode_extension_value()
-        {
-            exts.keywords.set(unicode::key!("hc"), value);
-        }
-
-        exts
-    }
-
-    fn extended(&self, other: &Self) -> Self {
-        let mut result = *self;
-        result.extend(*other);
-        result
-    }
-
-    fn intersection(&self, other: &Self) -> Self {
-        let mut inter = *self;
-        if inter.locale_preferences != other.locale_preferences {
-            inter.locale_preferences = LocalePreferences::default();
-        }
-        if inter.numbering_system != other.numbering_system {
-            inter.numbering_system.take();
-        }
-        if inter.calendar_algorithm != other.calendar_algorithm {
-            inter.calendar_algorithm.take();
-        }
-        if inter.hour_cycle != other.hour_cycle {
-            inter.hour_cycle.take();
-        }
-        inter
-    }
+    impl_service_preferences!(numbering_system, calendar_algorithm, hour_cycle);
 }

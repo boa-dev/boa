@@ -30,6 +30,54 @@ use icu_locale::{LanguageIdentifier, extensions::unicode};
 use icu_provider::{DataMarker, DataMarkerAttributes};
 use static_assertions::const_assert;
 
+pub(crate) use self::{
+    collator::Collator, date_time_format::DateTimeFormat, list_format::ListFormat, locale::Locale,
+    number_format::NumberFormat, plural_rules::PluralRules, segmenter::Segmenter,
+};
+
+/// Macro to easily implement `ServicePreferences`.
+///
+/// This macro receives a list of fields, and adds the methods to
+/// correctly implement `ServicePreferences` from the provided fields.
+macro_rules! impl_service_preferences {
+    ($($field:ident),*) => {
+        fn extended(&self, other: &Self) -> Self {
+            let mut result = *self;
+            result.extend(*other);
+            result
+        }
+
+        fn as_unicode(&self) -> unicode::Unicode {
+            let mut exts = unicode::Unicode::new();
+
+            $(
+                if let Some(key) = &self.$field
+                    && let Some((key, value)) = $crate::builtins::intl::get_kv_from_pref(key)
+                {
+                    exts.keywords.set(key, value);
+                }
+            )*
+
+            exts
+        }
+
+        fn intersection(&self, other: &Self) -> Self {
+            let mut inter = *self;
+            if inter.locale_preferences != other.locale_preferences {
+                inter.locale_preferences = LocalePreferences::default();
+            }
+
+            $(
+                if inter.$field != other.$field {
+                    inter.$field.take();
+                }
+            )*
+
+            inter
+        }
+    };
+}
+
 pub(crate) mod collator;
 pub(crate) mod date_time_format;
 pub(crate) mod list_format;
@@ -37,11 +85,6 @@ pub(crate) mod locale;
 pub(crate) mod number_format;
 pub(crate) mod plural_rules;
 pub(crate) mod segmenter;
-
-pub(crate) use self::{
-    collator::Collator, date_time_format::DateTimeFormat, list_format::ListFormat, locale::Locale,
-    number_format::NumberFormat, plural_rules::PluralRules, segmenter::Segmenter,
-};
 
 mod options;
 
@@ -53,6 +96,7 @@ const_assert! {!<ListFormat as Service>::LangMarker::INFO.is_singleton}
 const_assert! {!<NumberFormat as Service>::LangMarker::INFO.is_singleton}
 const_assert! {!<PluralRules as Service>::LangMarker::INFO.is_singleton}
 const_assert! {!<Segmenter as Service>::LangMarker::INFO.is_singleton}
+const_assert! {!<DateTimeFormat as Service>::LangMarker::INFO.is_singleton}
 
 /// JavaScript `Intl` object.
 #[derive(Debug, Clone, Trace, Finalize, JsData)]
@@ -177,6 +221,12 @@ impl Intl {
             context,
         )))
     }
+}
+
+fn get_kv_from_pref<T: icu_locale::preferences::PreferenceKey>(
+    pref: &T,
+) -> Option<(unicode::Key, unicode::Value)> {
+    T::unicode_extension_key().zip(pref.unicode_extension_value())
 }
 
 /// A set of preferences that can be provided to a [`Service`] through

@@ -6,7 +6,7 @@ use icu_collator::{
     preferences::{CollationCaseFirst, CollationType},
     provider::CollationMetadataV1,
 };
-use icu_locale::{LanguageIdentifier, preferences::PreferenceKey};
+use icu_locale::LanguageIdentifier;
 use icu_provider::{
     DataMarkerAttributes,
     prelude::icu_locale_core::{extensions::unicode, preferences::LocalePreferences},
@@ -118,50 +118,5 @@ impl ServicePreferences for CollatorPreferences {
         });
     }
 
-    fn as_unicode(&self) -> unicode::Unicode {
-        let mut exts = unicode::Unicode::new();
-
-        if let Some(co) = self.collation_type
-            && let Some(value) = co.unicode_extension_value()
-        {
-            exts.keywords.set(unicode::key!("co"), value);
-        }
-
-        if let Some(kn) = self.numeric_ordering
-            && let Some(value) = kn.unicode_extension_value()
-        {
-            exts.keywords.set(unicode::key!("kn"), value);
-        }
-
-        if let Some(kf) = self.case_first
-            && let Some(value) = kf.unicode_extension_value()
-        {
-            exts.keywords.set(unicode::key!("kf"), value);
-        }
-
-        exts
-    }
-
-    fn extended(&self, other: &Self) -> Self {
-        let mut result = *self;
-        result.extend(*other);
-        result
-    }
-
-    fn intersection(&self, other: &Self) -> Self {
-        let mut inter = *self;
-        if inter.locale_preferences != other.locale_preferences {
-            inter.locale_preferences = LocalePreferences::default();
-        }
-        if inter.collation_type != other.collation_type {
-            inter.collation_type.take();
-        }
-        if inter.case_first != other.case_first {
-            inter.case_first.take();
-        }
-        if inter.numeric_ordering != other.numeric_ordering {
-            inter.numeric_ordering.take();
-        }
-        inter
-    }
+    impl_service_preferences!(collation_type, numeric_ordering, case_first);
 }
