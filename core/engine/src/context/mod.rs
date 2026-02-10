@@ -446,7 +446,7 @@ impl Context {
         self.vm.frame.realm.intrinsics()
     }
 
-    /// Returns the amount of remaining instructions to br executed
+    /// Returns the amount of remaining instructions to be executed
     #[cfg(feature = "fuzz")]
     #[inline]
     #[must_use]
