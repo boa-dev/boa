@@ -140,6 +140,8 @@ dynify = "0.1.2"
 futures-channel = "0.3.31"
 aligned-vec = "0.6.4"
 temp-env = "0.3.6"
+data-encoding = "2.10.0"
+data-encoding-macro = "0.1.19"
 
 # ICU4X
 

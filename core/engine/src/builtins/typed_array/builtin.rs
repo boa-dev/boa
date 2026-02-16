@@ -6,6 +6,9 @@ use std::{
 use boa_macros::utf16;
 use num_traits::Zero;
 
+use data_encoding::{Encoding, HEXLOWER, HEXLOWER_PERMISSIVE};
+use data_encoding_macro::new_encoding;
+
 use super::{
     ContentType, TypedArray, TypedArrayKind, TypedArrayMarker, object::typed_array_set_element,
 };
@@ -16,7 +19,7 @@ use crate::{
         array::{ArrayIterator, Direction, find_via_predicate},
         array_buffer::{
             ArrayBuffer, BufferObject,
-            utils::{SliceRefMut, memcpy, memmove},
+            utils::{SliceRef, SliceRefMut, memcpy, memmove},
         },
     },
     context::intrinsics::{Intrinsics, StandardConstructor, StandardConstructors},
@@ -34,6 +37,19 @@ use crate::{builtins::array_buffer::utils::memmove_naive, value::JsVariant};
 /// <https://tc39.es/ecma262/#sec-%typedarray%-intrinsic-object>
 #[derive(Debug, Clone, Copy)]
 pub(crate) struct BuiltinTypedArray;
+
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+enum Base64Options {
+    Default,
+    Url,
+}
+
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+enum LastChunkHandlingOptions {
+    Loose,
+    Strict,
+    StopBeforePartial,
+}
 
 impl IntrinsicObject for BuiltinTypedArray {
     fn init(realm: &Realm) {
@@ -3142,6 +3158,767 @@ impl BuiltinTypedArray {
 
         Ok(obj)
     }
+
+    /// `Uint8Array.fromBase64 ( string, options )`
+    ///
+    /// More information:
+    ///  - [proposal-arraybuffer-base64][spec]
+    ///
+    /// [spec]: https://tc39.es/proposal-arraybuffer-base64/spec/#sec-uint8array.frombase64
+    pub(crate) fn from_base64(
+        _: &JsValue,
+        args: &[JsValue],
+        context: &mut Context,
+    ) -> JsResult<JsValue> {
+        // 1. If string is not a String, throw a TypeError exception.
+        let input = args.get_or_undefined(0);
+        // Check if input is a string (not a string object) - match V8's behavior
+        let Some(input_string) = input.as_string() else {
+            return Err(JsNativeError::typ()
+                .with_message("input must be a string")
+                .into());
+        };
+
+        // 2. Let opts be ? GetOptionsObject(options).
+        let options = args.get_or_undefined(1);
+        let (alphabet, last_chunk_handling) = Self::get_base64_options(options, context)?;
+
+        // Convert the input string to bytes preserving code-unit values.
+        // Code units above U+00FF are never valid base64 input and must fail.
+        let input_str = input_string.as_str();
+        let input_bytes: Vec<u8> = if let Some(latin1) = input_str.as_latin1() {
+            latin1.to_vec()
+        } else {
+            let mut bytes = Vec::with_capacity(input_str.len());
+            for code_unit in input_str.iter() {
+                let Ok(byte) = u8::try_from(code_unit) else {
+                    return Err(JsNativeError::syntax()
+                        .with_message("Invalid base64 string")
+                        .into());
+                };
+                bytes.push(byte);
+            }
+            bytes
+        };
+
+        let has_padding = input_bytes.contains(&b'=');
+        let encoding = match (alphabet, last_chunk_handling, has_padding) {
+            (Base64Options::Url, LastChunkHandlingOptions::Loose, false) => &BASE64URL_NOPAD,
+            (Base64Options::Url, LastChunkHandlingOptions::Loose, true) => &BASE64URL,
+            (Base64Options::Url, LastChunkHandlingOptions::Strict, _) => &BASE64URL_STRICT,
+            (_, LastChunkHandlingOptions::Loose, false) => &BASE64_NOPAD,
+            (_, LastChunkHandlingOptions::Loose, true) => &BASE64,
+            (_, LastChunkHandlingOptions::Strict, _) => &BASE64_STRICT,
+            _ => {
+                return Err(JsNativeError::typ()
+                    .with_message("lastChunkHandling 'stop-before-partial' is not supported")
+                    .into());
+            }
+        };
+
+        let output_len = encoding
+            .decode_len(input_bytes.len())
+            .map_err(|_| JsNativeError::syntax().with_message("Invalid base64 string"))?;
+
+        // Create Uint8Array from decoded data
+        let buffer = ArrayBuffer::allocate(
+            &context
+                .intrinsics()
+                .constructors()
+                .array_buffer()
+                .constructor()
+                .into(),
+            output_len as u64,
+            None,
+            context,
+        )?;
+
+        let len = {
+            let mut buffer_data = buffer.borrow_mut();
+            let output = buffer_data
+                .data_mut()
+                .vec_mut()
+                .expect("ArrayBuffer must have mutable vector");
+            let decoded_len = encoding
+                .decode_mut(&input_bytes, output.as_mut_slice())
+                .map_err(|_| JsNativeError::syntax().with_message("Invalid base64 string"))?;
+            output.truncate(decoded_len);
+
+            decoded_len
+        };
+
+        // Create Uint8Array
+        let uint8_array = JsObject::from_proto_and_data_with_shared_shape(
+            context.root_shape(),
+            context
+                .intrinsics()
+                .constructors()
+                .typed_uint8_array()
+                .prototype(),
+            TypedArray::new(
+                BufferObject::Buffer(buffer),
+                TypedArrayKind::Uint8,
+                0,
+                Some(len as u64),
+                Some(len as u64),
+            ),
+        );
+
+        Ok(uint8_array.upcast().into())
+    }
+
+    /// `Uint8Array.prototype.setFromBase64 ( string, options )`
+    ///
+    /// More information:
+    ///  - [proposal-arraybuffer-base64][spec]
+    ///
+    /// [spec]: https://tc39.es/proposal-arraybuffer-base64/spec/#sec-uint8array.prototype.setfrombase64
+    pub(crate) fn set_from_base64(
+        this: &JsValue,
+        args: &[JsValue],
+        context: &mut Context,
+    ) -> JsResult<JsValue> {
+        // 1. Let into be the this value.
+        // 2. Perform ? ValidateUint8Array(into).
+        let uint8array = this
+            .as_object()
+            .and_then(|o| o.clone().downcast::<TypedArray>().ok())
+            .ok_or_else(|| JsNativeError::typ().with_message("Value is not a Uint8Array object"))?;
+
+        let uint8array_borrow = uint8array.borrow();
+        let uint8array_data = uint8array_borrow.data();
+
+        // Verify it's a Uint8Array
+        if uint8array_data.kind() != TypedArrayKind::Uint8 {
+            return Err(JsNativeError::typ()
+                .with_message("Value is not a Uint8Array object")
+                .into());
+        }
+
+        // Check if detached
+        let buffer = uint8array_data.viewed_array_buffer();
+        let Some(buf_len) = buffer.as_buffer().bytes(Ordering::SeqCst).map(|s| s.len()) else {
+            return Err(JsNativeError::typ()
+                .with_message("TypedArray is detached")
+                .into());
+        };
+
+        if uint8array_data.is_out_of_bounds(buf_len) {
+            return Err(JsNativeError::typ()
+                .with_message("TypedArray is out of bounds")
+                .into());
+        }
+
+        let array_length = uint8array_data.array_length(buf_len);
+        let byte_offset = uint8array_data.byte_offset() as usize;
+        drop(uint8array_borrow);
+
+        // 3. If string is not a String, throw a TypeError exception.
+        let input = args.get_or_undefined(0);
+        // Check if input is a string (not a string object) - match V8's behavior
+        let Some(input_string) = input.as_string() else {
+            return Err(JsNativeError::typ()
+                .with_message("input must be a string")
+                .into());
+        };
+
+        // 4. Let opts be ? GetOptionsObject(options).
+        let options = args.get_or_undefined(1);
+        let (alphabet, last_chunk_handling) = Self::get_base64_options(options, context)?;
+
+        // If array length is 0, return early
+        if array_length == 0 {
+            let read = JsValue::from(0);
+            let written = JsValue::from(0);
+            return Self::create_set_from_result(read, written, context);
+        }
+
+        // Convert the input string to bytes preserving code-unit values.
+        // Code units above U+00FF are never valid base64 input and must fail.
+        let input_str = input_string.as_str();
+        let input_bytes: Vec<u8> = if let Some(latin1) = input_str.as_latin1() {
+            latin1.to_vec()
+        } else {
+            let mut bytes = Vec::with_capacity(input_str.len());
+            for code_unit in input_str.iter() {
+                let Ok(byte) = u8::try_from(code_unit) else {
+                    return Err(JsNativeError::syntax()
+                        .with_message("Invalid base64 string")
+                        .into());
+                };
+                bytes.push(byte);
+            }
+            bytes
+        };
+
+        let has_padding = input_bytes.contains(&b'=');
+        let encoding = match (alphabet, last_chunk_handling, has_padding) {
+            (Base64Options::Url, LastChunkHandlingOptions::Loose, false) => &BASE64URL_NOPAD,
+            (Base64Options::Url, LastChunkHandlingOptions::Loose, true) => &BASE64URL,
+            (Base64Options::Url, LastChunkHandlingOptions::Strict, _) => &BASE64URL_STRICT,
+            (_, LastChunkHandlingOptions::Loose, false) => &BASE64_NOPAD,
+            (_, LastChunkHandlingOptions::Loose, true) => &BASE64,
+            (_, LastChunkHandlingOptions::Strict, _) => &BASE64_STRICT,
+            _ => {
+                return Err(JsNativeError::typ()
+                    .with_message("lastChunkHandling 'stop-before-partial' is not supported")
+                    .into());
+            }
+        };
+
+        let output_len = encoding
+            .decode_len(input_bytes.len())
+            .map_err(|_| JsNativeError::syntax().with_message("Invalid base64 string"))?;
+        let mut decoded = vec![0u8; output_len];
+
+        let (decoded_len, read_count, has_decode_error) =
+            match encoding.decode_mut(&input_bytes, &mut decoded) {
+                Ok(decoded_len) => (decoded_len, input_bytes.len(), false),
+                Err(partial) => (partial.written, partial.read, true),
+            };
+
+        decoded.truncate(decoded_len);
+        let written_len = decoded_len.min(array_length as usize);
+
+        // 14. Let result be FromBase64(string, alphabet, lastChunkHandling, byteLength).
+        // 15. Let bytes be result.[[Bytes]].
+        // 16. Let written be the length of bytes.
+        // 17. NOTE: FromBase64 does not invoke any user code, so the ArrayBuffer
+        //     backing into cannot have been detached or shrunk.
+        // 18. Assert: written ≤ byteLength.
+        // 19. Perform SetUint8ArrayBytes(into, bytes).
+        // 20. If result.[[Error]] is not none, then
+        //     a. Throw result.[[Error]].
+        // 21. Let resultObject be OrdinaryObjectCreate(%Object.prototype%).
+        // 22. Perform ! CreateDataPropertyOrThrow(resultObject, "read", 𝔽(result.[[Read]])).
+        // 23. Perform ! CreateDataPropertyOrThrow(resultObject, "written", 𝔽(written)).
+        // 24. Return resultObject.
+
+        {
+            let uint8array_mut = uint8array.borrow_mut();
+            let uint8array_data = uint8array_mut.data();
+            let mut buffer = uint8array_data.viewed_array_buffer().as_buffer_mut();
+            let Some(mut data) = buffer.bytes(Ordering::SeqCst) else {
+                return Err(JsNativeError::typ()
+                    .with_message("Cannot access buffer data")
+                    .into());
+            };
+
+            let mut subslice = data.subslice_mut(byte_offset..byte_offset + array_length as usize);
+            match &mut subslice {
+                SliceRefMut::Slice(slice) => {
+                    slice[..written_len].copy_from_slice(&decoded[..written_len]);
+                }
+                SliceRefMut::AtomicSlice(slice) => {
+                    for (target, value) in slice.iter().zip(decoded.iter()).take(written_len) {
+                        target.store(*value, Ordering::Relaxed);
+                    }
+                }
+            }
+        }
+
+        if has_decode_error {
+            return Err(JsNativeError::syntax()
+                .with_message("Invalid base64 string")
+                .into());
+        }
+
+        let read = JsValue::from(read_count as u64);
+        let written = JsValue::from(written_len as u64);
+        Self::create_set_from_result(read, written, context)
+    }
+
+    /// `Uint8Array.prototype.toBase64 ( options )`
+    ///
+    /// More information:
+    ///  - [proposal-arraybuffer-base64][spec]
+    ///
+    /// [spec]: https://tc39.es/proposal-arraybuffer-base64/spec/#sec-uint8array.prototype.tobase64
+    pub(crate) fn to_base64(
+        this: &JsValue,
+        args: &[JsValue],
+        context: &mut Context,
+    ) -> JsResult<JsValue> {
+        // 1. Let O be the this value.
+        // 2. Perform ? ValidateUint8Array(O).
+        let uint8array = this
+            .as_object()
+            .and_then(|o| o.clone().downcast::<TypedArray>().ok())
+            .ok_or_else(|| JsNativeError::typ().with_message("Value is not a Uint8Array object"))?;
+
+        let uint8array_borrow = uint8array.borrow();
+        let uint8array_data = uint8array_borrow.data();
+
+        // Verify it's a Uint8Array
+        if uint8array_data.kind() != TypedArrayKind::Uint8 {
+            return Err(JsNativeError::typ()
+                .with_message("Value is not a Uint8Array object")
+                .into());
+        }
+
+        // Get buffer info but don't check detached yet
+        let byte_offset = uint8array_data.byte_offset() as usize;
+        drop(uint8array_borrow);
+
+        // 3. Let opts be ? GetOptionsObject(options).
+        // Get options first (this may trigger side effects that detach the buffer)
+        let options = args.get_or_undefined(0);
+        let (alphabet, omit_padding) = Self::get_base64_encode_options(options, context)?;
+
+        // After getting options, check if buffer is detached
+        let uint8array_borrow = uint8array.borrow();
+        let uint8array_data = uint8array_borrow.data();
+        let buffer = uint8array_data.viewed_array_buffer();
+        let Some(buf_len) = buffer.as_buffer().bytes(Ordering::SeqCst).map(|s| s.len()) else {
+            return Err(JsNativeError::typ()
+                .with_message("TypedArray is detached")
+                .into());
+        };
+
+        if uint8array_data.is_out_of_bounds(buf_len) {
+            return Err(JsNativeError::typ()
+                .with_message("TypedArray is out of bounds")
+                .into());
+        }
+
+        let byte_length = uint8array_data.array_length(buf_len) as usize;
+
+        // Get the data
+        let buffer_data = buffer.as_buffer();
+        let Some(data) = buffer_data.bytes(Ordering::SeqCst) else {
+            return Err(JsNativeError::typ()
+                .with_message("Cannot access buffer data")
+                .into());
+        };
+
+        let input = data.subslice(byte_offset..byte_offset + byte_length);
+
+        let is_url = matches!(alphabet, Base64Options::Url);
+        let encoding = match (is_url, omit_padding) {
+            (true, true) => &BASE64URL_NOPAD,
+            (true, false) => &BASE64URL,
+            (false, true) => &BASE64_NOPAD,
+            (false, false) => &BASE64,
+        };
+
+        let output = match input {
+            SliceRef::Slice(slice) => encoding.encode(slice),
+            SliceRef::AtomicSlice(atomic_slice) => {
+                let bytes: Vec<u8> = atomic_slice
+                    .iter()
+                    .map(|byte| byte.load(Ordering::SeqCst))
+                    .collect();
+                encoding.encode(&bytes)
+            }
+        };
+
+        // Convert to JS string
+        let result = JsString::from(output.as_str());
+        Ok(result.into())
+    }
+
+    /// `Uint8Array.fromHex ( string )`
+    ///
+    /// More information:
+    ///  - [proposal-arraybuffer-base64][spec]
+    ///
+    /// [spec]: https://tc39.es/proposal-arraybuffer-base64/spec/#sec-uint8array.fromhex
+    pub(crate) fn from_hex(
+        _: &JsValue,
+        args: &[JsValue],
+        context: &mut Context,
+    ) -> JsResult<JsValue> {
+        // 1. If string is not a String, throw a TypeError exception.
+        let input = args.get_or_undefined(0);
+        // Check if input is a string (not a string object) - match V8's behavior
+        let Some(input_string) = input.as_string() else {
+            return Err(JsNativeError::typ()
+                .with_message("input must be a string")
+                .into());
+        };
+
+        // Convert string to bytes preserving code-unit values.
+        let input_bytes: Vec<u8> = input_string
+            .iter()
+            .map(u8::try_from)
+            .collect::<Result<_, _>>()
+            .map_err(|_| JsNativeError::syntax().with_message("Invalid hex string"))?;
+
+        let output_len = HEXLOWER_PERMISSIVE
+            .decode_len(input_bytes.len())
+            .map_err(|_| JsNativeError::syntax().with_message("Invalid hex string"))?;
+
+        // Create Uint8Array from decoded data
+        let buffer = ArrayBuffer::allocate(
+            &context
+                .intrinsics()
+                .constructors()
+                .array_buffer()
+                .constructor()
+                .into(),
+            output_len as u64,
+            None,
+            context,
+        )?;
+
+        let decoded_len = {
+            let mut buffer_data = buffer.borrow_mut();
+            let bytes = buffer_data
+                .data_mut()
+                .vec_mut()
+                .expect("ArrayBuffer must have mutable vector");
+
+            let decoded_len = HEXLOWER_PERMISSIVE
+                .decode_mut(&input_bytes, bytes.as_mut_slice())
+                .map_err(|_| JsNativeError::syntax().with_message("Invalid hex string"))?;
+            bytes.truncate(decoded_len);
+
+            decoded_len
+        };
+
+        // Create Uint8Array
+        let uint8_array = JsObject::from_proto_and_data_with_shared_shape(
+            context.root_shape(),
+            context
+                .intrinsics()
+                .constructors()
+                .typed_uint8_array()
+                .prototype(),
+            TypedArray::new(
+                BufferObject::Buffer(buffer),
+                TypedArrayKind::Uint8,
+                0,
+                Some(decoded_len as u64),
+                Some(decoded_len as u64),
+            ),
+        );
+
+        Ok(uint8_array.upcast().into())
+    }
+
+    /// `Uint8Array.prototype.setFromHex ( string )`
+    ///
+    /// More information:
+    ///  - [proposal-arraybuffer-base64][spec]
+    ///
+    /// [spec]: https://tc39.es/proposal-arraybuffer-base64/spec/#sec-uint8array.prototype.setfromhex
+    pub(crate) fn set_from_hex(
+        this: &JsValue,
+        args: &[JsValue],
+        context: &mut Context,
+    ) -> JsResult<JsValue> {
+        // 1. Let into be the this value.
+        // 2. Perform ? ValidateUint8Array(into).
+        let uint8array = this
+            .as_object()
+            .and_then(|o| o.clone().downcast::<TypedArray>().ok())
+            .ok_or_else(|| JsNativeError::typ().with_message("Value is not a Uint8Array object"))?;
+
+        let uint8array_borrow = uint8array.borrow();
+        let uint8array_data = uint8array_borrow.data();
+
+        // Verify it's a Uint8Array
+        if uint8array_data.kind() != TypedArrayKind::Uint8 {
+            return Err(JsNativeError::typ()
+                .with_message("Value is not a Uint8Array object")
+                .into());
+        }
+
+        // Check if detached
+        let buffer = uint8array_data.viewed_array_buffer();
+        let Some(buf_len) = buffer.as_buffer().bytes(Ordering::SeqCst).map(|s| s.len()) else {
+            return Err(JsNativeError::typ()
+                .with_message("TypedArray is detached")
+                .into());
+        };
+
+        if uint8array_data.is_out_of_bounds(buf_len) {
+            return Err(JsNativeError::typ()
+                .with_message("TypedArray is out of bounds")
+                .into());
+        }
+
+        let array_length = uint8array_data.array_length(buf_len);
+        let byte_offset = uint8array_data.byte_offset() as usize;
+        drop(uint8array_borrow);
+
+        // 3. If string is not a String, throw a TypeError exception.
+        let input = args.get_or_undefined(0);
+        // Check if input is a string (not a string object) - match V8's behavior
+        let Some(input_string) = input.as_string() else {
+            return Err(JsNativeError::typ()
+                .with_message("input must be a string")
+                .into());
+        };
+
+        // Convert string to bytes preserving code-unit values.
+        let input_bytes: Vec<u8> = input_string
+            .iter()
+            .map(u8::try_from)
+            .collect::<Result<_, _>>()
+            .map_err(|_| JsNativeError::syntax().with_message("Invalid hex string"))?;
+        let input_len = input_bytes.len();
+
+        // Check if length is odd first - this must be done even if array_length is 0
+        // Per spec: FromHex checks length before checking maxLength
+        if !input_len.is_multiple_of(2) {
+            return Err(JsNativeError::syntax()
+                .with_message("Invalid hex string: odd length")
+                .into());
+        }
+
+        // If array length is 0, return early (after checking for odd length)
+        if array_length == 0 {
+            let read = JsValue::from(0);
+            let written = JsValue::from(0);
+            return Self::create_set_from_result(read, written, context);
+        }
+
+        // 4. Let taRecord be MakeTypedArrayWithBufferWitnessRecord(into, seq-cst).
+        // 5. If IsTypedArrayOutOfBounds(taRecord) is true, throw a TypeError exception.
+        // 6. Let byteLength be TypedArrayLength(taRecord).
+        // 7. Let result be FromHex(string, byteLength).
+        // 8. Let bytes be result.[[Bytes]].
+        // 9. Let written be the length of bytes.
+        // 10. NOTE: FromHex does not invoke any user code, so the ArrayBuffer backing
+        //     into cannot have been detached or shrunk.
+        // 11. Assert: written ≤ byteLength.
+        // 12. Perform SetUint8ArrayBytes(into, bytes).
+        // 13. If result.[[Error]] is not none, then
+        //     a. Throw result.[[Error]].
+        // 14. Let resultObject be OrdinaryObjectCreate(%Object.prototype%).
+        // 15. Perform ! CreateDataPropertyOrThrow(resultObject, "read", 𝔽(result.[[Read]])).
+        // 16. Perform ! CreateDataPropertyOrThrow(resultObject, "written", 𝔽(written)).
+        // 17. Return resultObject.
+
+        let output_len = HEXLOWER_PERMISSIVE
+            .decode_len(input_bytes.len())
+            .map_err(|_| JsNativeError::syntax().with_message("Invalid hex string"))?;
+        let mut decoded = vec![0u8; output_len];
+
+        let (decoded_len, read_count, has_decode_error) =
+            match HEXLOWER_PERMISSIVE.decode_mut(&input_bytes, &mut decoded) {
+                Ok(decoded_len) => (decoded_len, input_len, false),
+                Err(partial) => (partial.written, partial.read, true),
+            };
+
+        decoded.truncate(decoded_len);
+        let written_len = decoded_len.min(array_length as usize);
+        let read_count = if decoded_len > written_len {
+            written_len.saturating_mul(2)
+        } else {
+            read_count
+        };
+
+        {
+            let uint8array_mut = uint8array.borrow_mut();
+            let uint8array_data = uint8array_mut.data();
+            let mut buffer = uint8array_data.viewed_array_buffer().as_buffer_mut();
+            let Some(mut data) = buffer.bytes(Ordering::SeqCst) else {
+                return Err(JsNativeError::typ()
+                    .with_message("Cannot access buffer data")
+                    .into());
+            };
+
+            // Get the mutable subslice starting at byte_offset
+            let mut subslice = data.subslice_mut(byte_offset..byte_offset + array_length as usize);
+            match &mut subslice {
+                SliceRefMut::Slice(slice) => {
+                    slice[..written_len].copy_from_slice(&decoded[..written_len]);
+                }
+                SliceRefMut::AtomicSlice(slice) => {
+                    for (target, value) in slice.iter().zip(decoded.iter()).take(written_len) {
+                        target.store(*value, Ordering::Relaxed);
+                    }
+                }
+            }
+        }
+
+        // If there was an error, throw after writing what we could
+        if has_decode_error {
+            return Err(JsNativeError::syntax()
+                .with_message("Invalid hex string")
+                .into());
+        }
+
+        let read = JsValue::from(read_count as u64);
+        let written = JsValue::from(written_len as u64);
+        Self::create_set_from_result(read, written, context)
+    }
+
+    /// `Uint8Array.prototype.toHex ( )`
+    ///
+    /// More information:
+    ///  - [proposal-arraybuffer-base64][spec]
+    ///
+    /// [spec]: https://tc39.es/proposal-arraybuffer-base64/spec/#sec-uint8array.prototype.tohex
+    pub(crate) fn to_hex(
+        this: &JsValue,
+        _: &[JsValue],
+        _context: &mut Context,
+    ) -> JsResult<JsValue> {
+        // 1. Let O be the this value.
+        // 2. Perform ? ValidateUint8Array(O).
+        let uint8array = this
+            .as_object()
+            .and_then(|o| o.clone().downcast::<TypedArray>().ok())
+            .ok_or_else(|| JsNativeError::typ().with_message("Value is not a Uint8Array object"))?;
+
+        let uint8array_borrow = uint8array.borrow();
+        let uint8array_data = uint8array_borrow.data();
+
+        // Verify it's a Uint8Array
+        if uint8array_data.kind() != TypedArrayKind::Uint8 {
+            return Err(JsNativeError::typ()
+                .with_message("Value is not a Uint8Array object")
+                .into());
+        }
+
+        // Check if detached
+        let buffer = uint8array_data.viewed_array_buffer();
+        let Some(buf_len) = buffer.as_buffer().bytes(Ordering::SeqCst).map(|s| s.len()) else {
+            return Err(JsNativeError::typ()
+                .with_message("TypedArray is detached")
+                .into());
+        };
+
+        if uint8array_data.is_out_of_bounds(buf_len) {
+            return Err(JsNativeError::typ()
+                .with_message("TypedArray is out of bounds")
+                .into());
+        }
+
+        let byte_offset = uint8array_data.byte_offset() as usize;
+        let byte_length = uint8array_data.array_length(buf_len) as usize;
+
+        // Get the data
+        let buffer_data = buffer.as_buffer();
+        let Some(data) = buffer_data.bytes(Ordering::SeqCst) else {
+            return Err(JsNativeError::typ()
+                .with_message("Cannot access buffer data")
+                .into());
+        };
+
+        let input = data.subslice(byte_offset..byte_offset + byte_length);
+
+        let output = match input {
+            SliceRef::Slice(slice) => HEXLOWER.encode(slice),
+            SliceRef::AtomicSlice(atomic_slice) => {
+                let bytes: Vec<u8> = atomic_slice
+                    .iter()
+                    .map(|byte| byte.load(Ordering::SeqCst))
+                    .collect();
+                HEXLOWER.encode(&bytes)
+            }
+        };
+
+        // Convert to JS string
+        let result = JsString::from(output.as_str());
+        Ok(result.into())
+    }
+
+    // Helper functions
+
+    fn get_base64_options(
+        options: &JsValue,
+        context: &mut Context,
+    ) -> JsResult<(Base64Options, LastChunkHandlingOptions)> {
+        let mut alphabet = Base64Options::Default;
+        let mut last_chunk_handling = LastChunkHandlingOptions::Loose;
+
+        if let Some(options_obj) = options.as_object() {
+            let alphabet_value = options_obj.get(js_string!("alphabet"), context)?;
+            if !alphabet_value.is_undefined() {
+                let Some(alphabet_str) = alphabet_value.as_string() else {
+                    return Err(JsNativeError::typ()
+                        .with_message("Invalid alphabet option")
+                        .into());
+                };
+                let alphabet_bytes: Vec<u8> = alphabet_str.iter().map(|c| c as u8).collect();
+                match alphabet_bytes.as_slice() {
+                    b"base64" => alphabet = Base64Options::Default,
+                    b"base64url" => alphabet = Base64Options::Url,
+                    _ => {
+                        return Err(JsNativeError::typ()
+                            .with_message("Invalid alphabet option")
+                            .into());
+                    }
+                }
+            }
+
+            let last_chunk_value = options_obj.get(js_string!("lastChunkHandling"), context)?;
+            if !last_chunk_value.is_undefined() {
+                let Some(last_chunk_str) = last_chunk_value.as_string() else {
+                    return Err(JsNativeError::typ()
+                        .with_message("Invalid lastChunkHandling option")
+                        .into());
+                };
+                let last_chunk_bytes: Vec<u8> = last_chunk_str.iter().map(|c| c as u8).collect();
+                match last_chunk_bytes.as_slice() {
+                    b"loose" => last_chunk_handling = LastChunkHandlingOptions::Loose,
+                    b"strict" => last_chunk_handling = LastChunkHandlingOptions::Strict,
+                    b"stop-before-partial" => {
+                        last_chunk_handling = LastChunkHandlingOptions::StopBeforePartial;
+                    }
+                    _ => {
+                        return Err(JsNativeError::typ()
+                            .with_message("Invalid lastChunkHandling option")
+                            .into());
+                    }
+                }
+            }
+        }
+
+        Ok((alphabet, last_chunk_handling))
+    }
+
+    fn get_base64_encode_options(
+        options: &JsValue,
+        context: &mut Context,
+    ) -> JsResult<(Base64Options, bool)> {
+        let mut alphabet = Base64Options::Default;
+        let mut omit_padding = false;
+
+        if let Some(options_obj) = options.as_object() {
+            let alphabet_value = options_obj.get(js_string!("alphabet"), context)?;
+            if !alphabet_value.is_undefined() {
+                let Some(alphabet_str) = alphabet_value.as_string() else {
+                    return Err(JsNativeError::typ()
+                        .with_message("Invalid alphabet option")
+                        .into());
+                };
+                let alphabet_bytes: Vec<u8> = alphabet_str.iter().map(|c| c as u8).collect();
+                match alphabet_bytes.as_slice() {
+                    b"base64" => alphabet = Base64Options::Default,
+                    b"base64url" => alphabet = Base64Options::Url,
+                    _ => {
+                        return Err(JsNativeError::typ()
+                            .with_message("Invalid alphabet option")
+                            .into());
+                    }
+                }
+            }
+
+            let omit_padding_value = options_obj.get(js_string!("omitPadding"), context)?;
+            if !omit_padding_value.is_undefined() {
+                omit_padding = omit_padding_value.to_boolean();
+            }
+        }
+
+        Ok((alphabet, omit_padding))
+    }
+
+    fn create_set_from_result(
+        read: JsValue,
+        written: JsValue,
+        context: &mut Context,
+    ) -> JsResult<JsValue> {
+        // Create { read, written } object
+        let obj = JsObject::with_object_proto(context.intrinsics());
+        obj.set(js_string!("read"), read, false, context)?;
+        obj.set(js_string!("written"), written, false, context)?;
+        Ok(obj.into())
+    }
 }
 
 #[derive(Debug)]
@@ -3266,3 +4043,45 @@ pub(crate) fn is_valid_integer_index(obj: &JsObject, index: f64) -> bool {
 
     inner.validate_index(index, buf_len).is_some()
 }
+
+// ============ base64 alphabet ============
+
+const BASE64: Encoding = new_encoding! {
+    symbols: "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/",
+    padding: '=',
+    ignore: " \t\n\x0C\r",
+    check_trailing_bits: false,
+};
+
+const BASE64URL: Encoding = new_encoding! {
+    symbols: "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789-_",
+    padding: '=',
+    ignore: " \t\n\x0C\r",
+    check_trailing_bits: false,
+};
+
+const BASE64_NOPAD: Encoding = new_encoding! {
+    symbols: "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/",
+    ignore: " \t\n\x0C\r",
+    check_trailing_bits: false,
+};
+
+const BASE64URL_NOPAD: Encoding = new_encoding! {
+    symbols: "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789-_",
+    ignore: " \t\n\x0C\r",
+    check_trailing_bits: false,
+};
+
+const BASE64_STRICT: Encoding = new_encoding! {
+    symbols: "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/",
+    padding: '=',
+    ignore: " \t\n\x0C\r",
+    check_trailing_bits: true,
+};
+
+const BASE64URL_STRICT: Encoding = new_encoding! {
+    symbols: "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789-_",
+    padding: '=',
+    ignore: " \t\n\x0C\r",
+    check_trailing_bits: true,
+};
