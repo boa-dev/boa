@@ -10,12 +10,15 @@ use crate::{
     string::StaticJsStrings,
 };
 use temporal_rs::{
-    TemporalError, TemporalResult, TimeZone,
+    TemporalResult, TimeZone,
     host::{HostClock, HostHooks, HostTimeZone},
     now::Now as InnerNow,
     provider::TimeZoneProvider,
     unix_time::EpochNanoseconds,
 };
+
+#[cfg(feature = "system-time-zone")]
+use temporal_rs::TemporalError;
 
 use super::{
     create_temporal_date, create_temporal_datetime, create_temporal_instant, create_temporal_time,
@@ -221,8 +224,17 @@ impl HostTimeZone for &Context {
         &self,
         provider: &(impl TimeZoneProvider + ?Sized),
     ) -> TemporalResult<TimeZone> {
-        iana_time_zone::get_timezone()
-            .map_err(|_| TemporalError::range().with_message("Unable to fetch system time zone"))
-            .and_then(|id| TimeZone::try_from_str_with_provider(&id, provider))
+        #[cfg(not(feature = "system-time-zone"))]
+        {
+            Ok(TimeZone::utc_with_provider(provider))
+        }
+        #[cfg(feature = "system-time-zone")]
+        {
+            iana_time_zone::get_timezone()
+                .map_err(|_| {
+                    TemporalError::range().with_message("Unable to fetch system time zone")
+                })
+                .and_then(|id| TimeZone::try_from_str_with_provider(&id, provider))
+        }
     }
 }
