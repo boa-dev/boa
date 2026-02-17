@@ -26,8 +26,57 @@ use crate::{
 };
 
 use boa_gc::{Finalize, Trace};
+use icu_locale::{LanguageIdentifier, extensions::unicode};
 use icu_provider::{DataMarker, DataMarkerAttributes};
 use static_assertions::const_assert;
+
+pub(crate) use self::{
+    collator::Collator, date_time_format::DateTimeFormat, list_format::ListFormat, locale::Locale,
+    number_format::NumberFormat, plural_rules::PluralRules, segmenter::Segmenter,
+};
+
+/// Macro to easily implement `ServicePreferences`.
+///
+/// This macro receives a list of fields, and adds the methods to
+/// correctly implement `ServicePreferences` from the provided fields.
+macro_rules! impl_service_preferences {
+    ($($field:ident),*) => {
+        fn extended(&self, other: &Self) -> Self {
+            let mut result = *self;
+            result.extend(*other);
+            result
+        }
+
+        fn as_unicode(&self) -> unicode::Unicode {
+            let mut exts = unicode::Unicode::new();
+
+            $(
+                if let Some(key) = &self.$field
+                    && let Some((key, value)) = $crate::builtins::intl::get_kv_from_pref(key)
+                {
+                    exts.keywords.set(key, value);
+                }
+            )*
+
+            exts
+        }
+
+        fn intersection(&self, other: &Self) -> Self {
+            let mut inter = *self;
+            if inter.locale_preferences != other.locale_preferences {
+                inter.locale_preferences = LocalePreferences::default();
+            }
+
+            $(
+                if inter.$field != other.$field {
+                    inter.$field.take();
+                }
+            )*
+
+            inter
+        }
+    };
+}
 
 pub(crate) mod collator;
 pub(crate) mod date_time_format;
@@ -36,11 +85,6 @@ pub(crate) mod locale;
 pub(crate) mod number_format;
 pub(crate) mod plural_rules;
 pub(crate) mod segmenter;
-
-pub(crate) use self::{
-    collator::Collator, date_time_format::DateTimeFormat, list_format::ListFormat, locale::Locale,
-    number_format::NumberFormat, plural_rules::PluralRules, segmenter::Segmenter,
-};
 
 mod options;
 
@@ -52,6 +96,7 @@ const_assert! {!<ListFormat as Service>::LangMarker::INFO.is_singleton}
 const_assert! {!<NumberFormat as Service>::LangMarker::INFO.is_singleton}
 const_assert! {!<PluralRules as Service>::LangMarker::INFO.is_singleton}
 const_assert! {!<Segmenter as Service>::LangMarker::INFO.is_singleton}
+const_assert! {!<DateTimeFormat as Service>::LangMarker::INFO.is_singleton}
 
 /// JavaScript `Intl` object.
 #[derive(Debug, Clone, Trace, Finalize, JsData)]
@@ -178,37 +223,42 @@ impl Intl {
     }
 }
 
+fn get_kv_from_pref<T: icu_locale::preferences::PreferenceKey>(
+    pref: &T,
+) -> Option<(unicode::Key, unicode::Value)> {
+    T::unicode_extension_key().zip(pref.unicode_extension_value())
+}
+
+/// A set of preferences that can be provided to a [`Service`] through
+/// a locale.
+trait ServicePreferences: for<'a> From<&'a icu_locale::Locale> + Clone {
+    /// Validates that every preference value is available.
+    ///
+    /// This usually entails having to query the `IntlProvider` to check
+    /// if it has the required data to support the requested values.
+    fn validate(&mut self, id: &LanguageIdentifier, provider: &IntlProvider);
+
+    /// Converts this set of preferences into a Unicode locale extension.
+    fn as_unicode(&self) -> unicode::Unicode;
+
+    /// Extends all values set in `self` with the values set in `other`.
+    fn extended(&self, other: &Self) -> Self;
+
+    /// Gets the set of preference values that are the same in `self` and `other`.
+    fn intersection(&self, other: &Self) -> Self;
+}
+
 /// A service component that is part of the `Intl` API.
 ///
 /// This needs to be implemented for every `Intl` service in order to use the functions
-/// defined in `locale::utils`, such as locale resolution and selection.
+/// defined in `locale::utils`, such as [`resolve_locale`][locale::resolve_locale].
 trait Service {
-    /// The data marker used by [`resolve_locale`][locale::resolve_locale] to decide
-    /// which locales are supported by this service.
+    /// The data marker used to decide which locales are supported by this service.
     type LangMarker: DataMarker;
 
     /// The attributes used to resolve the locale.
     const ATTRIBUTES: &'static DataMarkerAttributes = DataMarkerAttributes::empty();
 
-    /// The set of options used in the [`Service::resolve`] method to resolve the provided
-    /// locale.
-    type LocaleOptions;
-
-    /// Resolves the final value of `locale` from a set of `options`.
-    ///
-    /// The provided `options` will also be modified with the final values, in case there were
-    /// changes in the resolution algorithm.
-    ///
-    /// # Note
-    ///
-    /// - A correct implementation must ensure `locale` and `options` are both written with the
-    ///   new final values.
-    /// - If the implementor service doesn't contain any `[[RelevantExtensionKeys]]`, this can be
-    ///   skipped.
-    fn resolve(
-        _locale: &mut icu_locale::Locale,
-        _options: &mut Self::LocaleOptions,
-        _provider: &IntlProvider,
-    ) {
-    }
+    /// The set of preferences used to resolve the provided locale.
+    type Preferences: ServicePreferences;
 }
