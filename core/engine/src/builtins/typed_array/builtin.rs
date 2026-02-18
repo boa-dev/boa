@@ -6,6 +6,9 @@ use std::{
 use boa_macros::utf16;
 use num_traits::Zero;
 
+#[cfg(not(target_family = "wasm"))]
+use simdutf::{Base64Options, LastChunkHandlingOptions};
+
 use super::{
     ContentType, TypedArray, TypedArrayKind, TypedArrayMarker, object::typed_array_set_element,
 };
@@ -16,7 +19,7 @@ use crate::{
         array::{ArrayIterator, Direction, find_via_predicate},
         array_buffer::{
             ArrayBuffer, BufferObject,
-            utils::{SliceRefMut, memcpy, memmove},
+            utils::{SliceRef, SliceRefMut, memcpy, memmove},
         },
     },
     context::intrinsics::{Intrinsics, StandardConstructor, StandardConstructors},
@@ -3141,6 +3144,908 @@ impl BuiltinTypedArray {
         }
 
         Ok(obj)
+    }
+
+    /// `Uint8Array.fromBase64 ( string, options )`
+    ///
+    /// More information:
+    ///  - [proposal-arraybuffer-base64][spec]
+    ///
+    /// [spec]: https://tc39.es/proposal-arraybuffer-base64/spec/#sec-uint8array.frombase64
+    #[cfg(not(target_family = "wasm"))]
+    pub(crate) fn from_base64(
+        _: &JsValue,
+        args: &[JsValue],
+        context: &mut Context,
+    ) -> JsResult<JsValue> {
+        // 1. If string is not a String, throw a TypeError exception.
+        let input = args.get_or_undefined(0);
+        // Check if input is a string (not a string object) - match V8's behavior
+        let Some(input_string) = input.as_string() else {
+            return Err(JsNativeError::typ()
+                .with_message("input must be a string")
+                .into());
+        };
+
+        // 2. Let opts be ? GetOptionsObject(options).
+        let options = args.get_or_undefined(1);
+        let (alphabet, last_chunk_handling) = Self::get_base64_options(options, context)?;
+
+        // Get the string as JsStr to check its representation
+        let input_str = input_string.as_str();
+
+        // Calculate output length and decode based on string representation
+        // Following V8's approach: check if string is Latin1 (OneByte) or UTF-16
+        let (result, output) = if let Some(input_bytes) = input_str.as_latin1() {
+            // Latin1 string: use single-byte path
+            let input_len = input_bytes.len();
+            let max_output_len = unsafe {
+                simdutf::maximal_binary_length_from_base64(input_bytes.as_ptr(), input_len)
+            };
+            let mut output = vec![0u8; max_output_len];
+            let mut output_len = max_output_len;
+            let result = unsafe {
+                simdutf::base64_to_binary_safe(
+                    input_bytes.as_ptr(),
+                    input_len,
+                    output.as_mut_ptr(),
+                    &raw mut output_len,
+                    alphabet,
+                    last_chunk_handling,
+                    true, // decode_up_to_bad_char
+                )
+            };
+            output.truncate(output_len);
+            (result, output)
+        } else {
+            // UTF-16 string: use UTF-16 path
+            let boa_string::JsStrVariant::Utf16(input_utf16) = input_str.variant() else {
+                unreachable!()
+            };
+            let input_len = input_utf16.len();
+            // For UTF-16, calculate max output based on input length
+            // Each UTF-16 code unit can represent one base64 character
+            let max_output_len = input_len * 3 / 4 + 3;
+            let mut output = vec![0u8; max_output_len];
+            let mut output_len = max_output_len;
+            let result = unsafe {
+                simdutf::base64_to_binary_safe_utf16(
+                    input_utf16.as_ptr(),
+                    input_len,
+                    output.as_mut_ptr(),
+                    &raw mut output_len,
+                    alphabet,
+                    last_chunk_handling,
+                    true, // decode_up_to_bad_char
+                )
+            };
+            output.truncate(output_len);
+            (result, output)
+        };
+
+        // Check for errors
+        if result.error != simdutf::ErrorCode::Success {
+            return Err(JsNativeError::syntax()
+                .with_message("Invalid base64 string")
+                .into());
+        }
+
+        let output_len = output.len();
+
+        // Create Uint8Array from decoded data
+        let buffer = ArrayBuffer::allocate(
+            &context
+                .intrinsics()
+                .constructors()
+                .array_buffer()
+                .constructor()
+                .into(),
+            output_len as u64,
+            None,
+            context,
+        )?;
+
+        // Copy data to buffer
+        {
+            let mut buffer_data = buffer.borrow_mut();
+            if let Some(bytes) = buffer_data.data_mut().bytes_mut() {
+                bytes[..output_len].copy_from_slice(&output);
+            }
+        }
+
+        // Create Uint8Array
+        let uint8_array = JsObject::from_proto_and_data_with_shared_shape(
+            context.root_shape(),
+            context
+                .intrinsics()
+                .constructors()
+                .typed_uint8_array()
+                .prototype(),
+            TypedArray::new(
+                BufferObject::Buffer(buffer),
+                TypedArrayKind::Uint8,
+                0,
+                Some(output_len as u64),
+                Some(output_len as u64),
+            ),
+        );
+
+        Ok(uint8_array.upcast().into())
+    }
+
+    /// `Uint8Array.fromBase64 ( string, options )` - WASM stub
+    ///
+    /// More information:
+    ///  - [proposal-arraybuffer-base64][spec]
+    ///
+    /// [spec]: https://tc39.es/proposal-arraybuffer-base64/spec/#sec-uint8array.frombase64
+    #[cfg(target_family = "wasm")]
+    pub(crate) fn from_base64(
+        _: &JsValue,
+        _args: &[JsValue],
+        _context: &mut Context,
+    ) -> JsResult<JsValue> {
+        Err(JsNativeError::typ()
+            .with_message("Uint8Array.fromBase64 is not supported on WASM")
+            .into())
+    }
+
+    /// `Uint8Array.prototype.setFromBase64 ( string, options )`
+    ///
+    /// More information:
+    ///  - [proposal-arraybuffer-base64][spec]
+    ///
+    /// [spec]: https://tc39.es/proposal-arraybuffer-base64/spec/#sec-uint8array.prototype.setfrombase64
+    #[cfg(not(target_family = "wasm"))]
+    pub(crate) fn set_from_base64(
+        this: &JsValue,
+        args: &[JsValue],
+        context: &mut Context,
+    ) -> JsResult<JsValue> {
+        // 1. Let into be the this value.
+        // 2. Perform ? ValidateUint8Array(into).
+        let uint8array = this
+            .as_object()
+            .and_then(|o| o.clone().downcast::<TypedArray>().ok())
+            .ok_or_else(|| JsNativeError::typ().with_message("Value is not a Uint8Array object"))?;
+
+        let uint8array_borrow = uint8array.borrow();
+        let uint8array_data = uint8array_borrow.data();
+
+        // Verify it's a Uint8Array
+        if uint8array_data.kind() != TypedArrayKind::Uint8 {
+            return Err(JsNativeError::typ()
+                .with_message("Value is not a Uint8Array object")
+                .into());
+        }
+
+        // Check if detached
+        let buffer = uint8array_data.viewed_array_buffer();
+        let Some(buf_len) = buffer.as_buffer().bytes(Ordering::SeqCst).map(|s| s.len()) else {
+            return Err(JsNativeError::typ()
+                .with_message("TypedArray is detached")
+                .into());
+        };
+
+        if uint8array_data.is_out_of_bounds(buf_len) {
+            return Err(JsNativeError::typ()
+                .with_message("TypedArray is out of bounds")
+                .into());
+        }
+
+        let array_length = uint8array_data.array_length(buf_len);
+        let byte_offset = uint8array_data.byte_offset() as usize;
+        drop(uint8array_borrow);
+
+        // 3. If string is not a String, throw a TypeError exception.
+        let input = args.get_or_undefined(0);
+        // Check if input is a string (not a string object) - match V8's behavior
+        let Some(input_string) = input.as_string() else {
+            return Err(JsNativeError::typ()
+                .with_message("input must be a string")
+                .into());
+        };
+
+        // 4. Let opts be ? GetOptionsObject(options).
+        let options = args.get_or_undefined(1);
+        let (alphabet, last_chunk_handling) = Self::get_base64_options(options, context)?;
+
+        // If array length is 0, return early
+        if array_length == 0 {
+            let read = JsValue::from(0);
+            let written = JsValue::from(0);
+            return Self::create_set_from_result(read, written, context);
+        }
+
+        // Get the string as JsStr to check its representation
+        let input_str = input_string.as_str();
+
+        // 14. Let result be FromBase64(string, alphabet, lastChunkHandling, byteLength).
+        // 15. Let bytes be result.[[Bytes]].
+        // 16. Let written be the length of bytes.
+        // 17. NOTE: FromBase64 does not invoke any user code, so the ArrayBuffer
+        //     backing into cannot have been detached or shrunk.
+        // 18. Assert: written ≤ byteLength.
+        // 19. Perform SetUint8ArrayBytes(into, bytes).
+        // 20. If result.[[Error]] is not none, then
+        //     a. Throw result.[[Error]].
+        // 21. Let resultObject be OrdinaryObjectCreate(%Object.prototype%).
+        // 22. Perform ! CreateDataPropertyOrThrow(resultObject, "read", 𝔽(result.[[Read]])).
+        // 23. Perform ! CreateDataPropertyOrThrow(resultObject, "written", 𝔽(written)).
+        // 24. Return resultObject.
+
+        // Decode base64 directly into the typed array buffer
+        // Following V8's approach: check if string is Latin1 (OneByte) or UTF-16
+        let mut output_length = array_length as usize;
+        let (result, bytes_read) = {
+            let uint8array_mut = uint8array.borrow_mut();
+            let uint8array_data = uint8array_mut.data();
+            let mut buffer = uint8array_data.viewed_array_buffer().as_buffer_mut();
+            let Some(mut data) = buffer.bytes(Ordering::SeqCst) else {
+                return Err(JsNativeError::typ()
+                    .with_message("Cannot access buffer data")
+                    .into());
+            };
+
+            // Get the mutable subslice starting at byte_offset
+            let mut subslice = data.subslice_mut(byte_offset..byte_offset + array_length as usize);
+            match &mut subslice {
+                SliceRefMut::Slice(slice) => {
+                    if let Some(input_bytes) = input_str.as_latin1() {
+                        // Latin1 string: use single-byte path
+                        let input_len = input_bytes.len();
+                        let result = unsafe {
+                            simdutf::base64_to_binary_safe(
+                                input_bytes.as_ptr(),
+                                input_len,
+                                slice.as_mut_ptr(),
+                                &raw mut output_length,
+                                alphabet,
+                                last_chunk_handling,
+                                true, // decode_up_to_bad_char
+                            )
+                        };
+                        (result, result.count)
+                    } else {
+                        // UTF-16 string: use UTF-16 path
+                        let boa_string::JsStrVariant::Utf16(input_utf16) = input_str.variant()
+                        else {
+                            unreachable!()
+                        };
+                        let input_len = input_utf16.len();
+                        let result = unsafe {
+                            simdutf::base64_to_binary_safe_utf16(
+                                input_utf16.as_ptr(),
+                                input_len,
+                                slice.as_mut_ptr(),
+                                &raw mut output_length,
+                                alphabet,
+                                last_chunk_handling,
+                                true, // decode_up_to_bad_char
+                            )
+                        };
+                        (result, result.count)
+                    }
+                }
+                SliceRefMut::AtomicSlice(_) => {
+                    // For shared buffers, we need to handle atomically
+                    // For now, return an error as this is more complex
+                    return Err(JsNativeError::typ()
+                        .with_message("SharedArrayBuffer not supported for setFromBase64")
+                        .into());
+                }
+            }
+        };
+
+        // Check for errors (but OutputBufferTooSmall is ok for setFromBase64)
+        // the typed array length may be less than the required output length. In that
+        // case, the result has written in typed array to the available length and
+        // we should not throw here.
+        //
+        // Also, if the output buffer is full (output_length bytes were written),
+        // we should not throw even if there are trailing invalid characters.
+        // This is the "trailing garbage" case.
+        if result.error != simdutf::ErrorCode::Success
+            && result.error != simdutf::ErrorCode::OutputBufferTooSmall
+        {
+            // V8 behavior: if output buffer is full, ignore trailing garbage (invalid characters)
+            // This handles the case where decode_up_to_bad_char processes more input
+            // than needed due to trailing garbage after the buffer is full
+            if output_length == array_length as usize && bytes_read > 0 {
+                // Buffer is full, ignore the error (trailing garbage case)
+            } else {
+                return Err(JsNativeError::syntax()
+                    .with_message("Invalid base64 string")
+                    .into());
+            }
+        }
+
+        let read = JsValue::from(bytes_read as u64);
+        let written = JsValue::from(output_length as u64);
+        Self::create_set_from_result(read, written, context)
+    }
+
+    /// `Uint8Array.prototype.setFromBase64 ( string, options )` - WASM stub
+    ///
+    /// More information:
+    ///  - [proposal-arraybuffer-base64][spec]
+    ///
+    /// [spec]: https://tc39.es/proposal-arraybuffer-base64/spec/#sec-uint8array.prototype.setfrombase64
+    #[cfg(target_family = "wasm")]
+    pub(crate) fn set_from_base64(
+        _: &JsValue,
+        _args: &[JsValue],
+        _context: &mut Context,
+    ) -> JsResult<JsValue> {
+        Err(JsNativeError::typ()
+            .with_message("Uint8Array.prototype.setFromBase64 is not supported on WASM")
+            .into())
+    }
+
+    /// `Uint8Array.prototype.toBase64 ( options )`
+    ///
+    /// More information:
+    ///  - [proposal-arraybuffer-base64][spec]
+    ///
+    /// [spec]: https://tc39.es/proposal-arraybuffer-base64/spec/#sec-uint8array.prototype.tobase64
+    #[cfg(not(target_family = "wasm"))]
+    pub(crate) fn to_base64(
+        this: &JsValue,
+        args: &[JsValue],
+        context: &mut Context,
+    ) -> JsResult<JsValue> {
+        // 1. Let O be the this value.
+        // 2. Perform ? ValidateUint8Array(O).
+        let uint8array = this
+            .as_object()
+            .and_then(|o| o.clone().downcast::<TypedArray>().ok())
+            .ok_or_else(|| JsNativeError::typ().with_message("Value is not a Uint8Array object"))?;
+
+        let uint8array_borrow = uint8array.borrow();
+        let uint8array_data = uint8array_borrow.data();
+
+        // Verify it's a Uint8Array
+        if uint8array_data.kind() != TypedArrayKind::Uint8 {
+            return Err(JsNativeError::typ()
+                .with_message("Value is not a Uint8Array object")
+                .into());
+        }
+
+        // Get buffer info but don't check detached yet
+        let byte_offset = uint8array_data.byte_offset() as usize;
+        drop(uint8array_borrow);
+
+        // 3. Let opts be ? GetOptionsObject(options).
+        // Get options first (this may trigger side effects that detach the buffer)
+        let options = args.get_or_undefined(0);
+        let (alphabet, _omit_padding) = Self::get_base64_encode_options(options, context)?;
+
+        // After getting options, check if buffer is detached
+        let uint8array_borrow = uint8array.borrow();
+        let uint8array_data = uint8array_borrow.data();
+        let buffer = uint8array_data.viewed_array_buffer();
+        let Some(buf_len) = buffer.as_buffer().bytes(Ordering::SeqCst).map(|s| s.len()) else {
+            return Err(JsNativeError::typ()
+                .with_message("TypedArray is detached")
+                .into());
+        };
+
+        if uint8array_data.is_out_of_bounds(buf_len) {
+            return Err(JsNativeError::typ()
+                .with_message("TypedArray is out of bounds")
+                .into());
+        }
+
+        let byte_length = uint8array_data.array_length(buf_len) as usize;
+
+        // Get the data
+        let buffer_data = buffer.as_buffer();
+        let Some(data) = buffer_data.bytes(Ordering::SeqCst) else {
+            return Err(JsNativeError::typ()
+                .with_message("Cannot access buffer data")
+                .into());
+        };
+
+        let input = data.subslice(byte_offset..byte_offset + byte_length);
+
+        // Calculate output length
+        let output_len = simdutf::base64_length_from_binary(byte_length, alphabet);
+
+        let mut output = vec![0u8; output_len];
+
+        // Encode to base64
+        let actual_len = unsafe {
+            match input.as_ptr() {
+                crate::builtins::array_buffer::utils::BytesConstPtr::Bytes(ptr) => {
+                    simdutf::binary_to_base64(ptr, byte_length, output.as_mut_ptr(), alphabet)
+                }
+                crate::builtins::array_buffer::utils::BytesConstPtr::AtomicBytes(_) => {
+                    // For shared buffers, we need to copy data first
+                    return Err(JsNativeError::typ()
+                        .with_message("SharedArrayBuffer not fully supported for toBase64")
+                        .into());
+                }
+            }
+        };
+
+        output.truncate(actual_len);
+
+        // Convert to JS string
+        let result = JsString::from(std::str::from_utf8(&output).unwrap_or(""));
+        Ok(result.into())
+    }
+
+    /// `Uint8Array.prototype.toBase64 ( options )` - WASM stub
+    ///
+    /// More information:
+    ///  - [proposal-arraybuffer-base64][spec]
+    ///
+    /// [spec]: https://tc39.es/proposal-arraybuffer-base64/spec/#sec-uint8array.prototype.tobase64
+    #[cfg(target_family = "wasm")]
+    pub(crate) fn to_base64(
+        _: &JsValue,
+        _args: &[JsValue],
+        _context: &mut Context,
+    ) -> JsResult<JsValue> {
+        Err(JsNativeError::typ()
+            .with_message("Uint8Array.prototype.toBase64 is not supported on WASM")
+            .into())
+    }
+
+    /// `Uint8Array.fromHex ( string )`
+    ///
+    /// More information:
+    ///  - [proposal-arraybuffer-base64][spec]
+    ///
+    /// [spec]: https://tc39.es/proposal-arraybuffer-base64/spec/#sec-uint8array.fromhex
+    pub(crate) fn from_hex(
+        _: &JsValue,
+        args: &[JsValue],
+        context: &mut Context,
+    ) -> JsResult<JsValue> {
+        // 1. If string is not a String, throw a TypeError exception.
+        let input = args.get_or_undefined(0);
+        // Check if input is a string (not a string object) - match V8's behavior
+        let Some(input_string) = input.as_string() else {
+            return Err(JsNativeError::typ()
+                .with_message("input must be a string")
+                .into());
+        };
+
+        // Convert string to bytes
+        let input_bytes: Vec<u8> = input_string.iter().map(|c| c as u8).collect();
+
+        // Check if length is even
+        if !input_bytes.len().is_multiple_of(2) {
+            return Err(JsNativeError::syntax()
+                .with_message("Invalid hex string: odd length")
+                .into());
+        }
+
+        let output_len = input_bytes.len() / 2;
+        let mut output = vec![0u8; output_len];
+
+        // Decode hex manually
+        for (i, byte) in output.iter_mut().enumerate() {
+            let high = Self::hex_char_to_value(input_bytes[i * 2])?;
+            let low = Self::hex_char_to_value(input_bytes[i * 2 + 1])?;
+            *byte = (high << 4) | low;
+        }
+
+        // Create Uint8Array from decoded data
+        let buffer = ArrayBuffer::allocate(
+            &context
+                .intrinsics()
+                .constructors()
+                .array_buffer()
+                .constructor()
+                .into(),
+            output_len as u64,
+            None,
+            context,
+        )?;
+
+        // Copy data to buffer
+        {
+            let mut buffer_data = buffer.borrow_mut();
+            if let Some(bytes) = buffer_data.data_mut().bytes_mut() {
+                bytes[..output_len].copy_from_slice(&output);
+            }
+        }
+
+        // Create Uint8Array
+        let uint8_array = JsObject::from_proto_and_data_with_shared_shape(
+            context.root_shape(),
+            context
+                .intrinsics()
+                .constructors()
+                .typed_uint8_array()
+                .prototype(),
+            TypedArray::new(
+                BufferObject::Buffer(buffer),
+                TypedArrayKind::Uint8,
+                0,
+                Some(output_len as u64),
+                Some(output_len as u64),
+            ),
+        );
+
+        Ok(uint8_array.upcast().into())
+    }
+
+    /// `Uint8Array.prototype.setFromHex ( string )`
+    ///
+    /// More information:
+    ///  - [proposal-arraybuffer-base64][spec]
+    ///
+    /// [spec]: https://tc39.es/proposal-arraybuffer-base64/spec/#sec-uint8array.prototype.setfromhex
+    pub(crate) fn set_from_hex(
+        this: &JsValue,
+        args: &[JsValue],
+        context: &mut Context,
+    ) -> JsResult<JsValue> {
+        // 1. Let into be the this value.
+        // 2. Perform ? ValidateUint8Array(into).
+        let uint8array = this
+            .as_object()
+            .and_then(|o| o.clone().downcast::<TypedArray>().ok())
+            .ok_or_else(|| JsNativeError::typ().with_message("Value is not a Uint8Array object"))?;
+
+        let uint8array_borrow = uint8array.borrow();
+        let uint8array_data = uint8array_borrow.data();
+
+        // Verify it's a Uint8Array
+        if uint8array_data.kind() != TypedArrayKind::Uint8 {
+            return Err(JsNativeError::typ()
+                .with_message("Value is not a Uint8Array object")
+                .into());
+        }
+
+        // Check if detached
+        let buffer = uint8array_data.viewed_array_buffer();
+        let Some(buf_len) = buffer.as_buffer().bytes(Ordering::SeqCst).map(|s| s.len()) else {
+            return Err(JsNativeError::typ()
+                .with_message("TypedArray is detached")
+                .into());
+        };
+
+        if uint8array_data.is_out_of_bounds(buf_len) {
+            return Err(JsNativeError::typ()
+                .with_message("TypedArray is out of bounds")
+                .into());
+        }
+
+        let array_length = uint8array_data.array_length(buf_len);
+        let byte_offset = uint8array_data.byte_offset() as usize;
+        drop(uint8array_borrow);
+
+        // 3. If string is not a String, throw a TypeError exception.
+        let input = args.get_or_undefined(0);
+        // Check if input is a string (not a string object) - match V8's behavior
+        let Some(input_string) = input.as_string() else {
+            return Err(JsNativeError::typ()
+                .with_message("input must be a string")
+                .into());
+        };
+
+        // Convert string to bytes
+        let input_bytes: Vec<u8> = input_string.iter().map(|c| c as u8).collect();
+        let input_len = input_bytes.len();
+
+        // Check if length is odd first - this must be done even if array_length is 0
+        // Per spec: FromHex checks length before checking maxLength
+        if !input_len.is_multiple_of(2) {
+            return Err(JsNativeError::syntax()
+                .with_message("Invalid hex string: odd length")
+                .into());
+        }
+
+        // If array length is 0, return early (after checking for odd length)
+        if array_length == 0 {
+            let read = JsValue::from(0);
+            let written = JsValue::from(0);
+            return Self::create_set_from_result(read, written, context);
+        }
+
+        // 4. Let taRecord be MakeTypedArrayWithBufferWitnessRecord(into, seq-cst).
+        // 5. If IsTypedArrayOutOfBounds(taRecord) is true, throw a TypeError exception.
+        // 6. Let byteLength be TypedArrayLength(taRecord).
+        // 7. Let result be FromHex(string, byteLength).
+        // 8. Let bytes be result.[[Bytes]].
+        // 9. Let written be the length of bytes.
+        // 10. NOTE: FromHex does not invoke any user code, so the ArrayBuffer backing
+        //     into cannot have been detached or shrunk.
+        // 11. Assert: written ≤ byteLength.
+        // 12. Perform SetUint8ArrayBytes(into, bytes).
+        // 13. If result.[[Error]] is not none, then
+        //     a. Throw result.[[Error]].
+        // 14. Let resultObject be OrdinaryObjectCreate(%Object.prototype%).
+        // 15. Perform ! CreateDataPropertyOrThrow(resultObject, "read", 𝔽(result.[[Read]])).
+        // 16. Perform ! CreateDataPropertyOrThrow(resultObject, "written", 𝔽(written)).
+        // 17. Return resultObject.
+
+        // Decode hex directly into the typed array buffer
+        let mut bytes_written = 0u64;
+        let mut bytes_read = 0u64;
+        let mut error_occurred = false;
+
+        {
+            let uint8array_mut = uint8array.borrow_mut();
+            let uint8array_data = uint8array_mut.data();
+            let mut buffer = uint8array_data.viewed_array_buffer().as_buffer_mut();
+            let Some(mut data) = buffer.bytes(Ordering::SeqCst) else {
+                return Err(JsNativeError::typ()
+                    .with_message("Cannot access buffer data")
+                    .into());
+            };
+
+            // Get the mutable subslice starting at byte_offset
+            let mut subslice = data.subslice_mut(byte_offset..byte_offset + array_length as usize);
+            match &mut subslice {
+                SliceRefMut::Slice(slice) => {
+                    // Decode hex pairs one by one, stopping at first error
+                    let max_pairs = min(input_len / 2, array_length as usize);
+                    for i in 0..max_pairs {
+                        let high_char = input_bytes[i * 2];
+                        let low_char = input_bytes[i * 2 + 1];
+
+                        // Try to decode this pair
+                        if let (Ok(high), Ok(low)) = (
+                            Self::hex_char_to_value(high_char),
+                            Self::hex_char_to_value(low_char),
+                        ) {
+                            slice[i] = (high << 4) | low;
+                            bytes_written += 1;
+                            bytes_read += 2;
+                        } else {
+                            // Invalid hex character - stop here but keep what we've written
+                            error_occurred = true;
+                            break;
+                        }
+                    }
+
+                    // If we processed all pairs without error, check if there's trailing garbage
+                    // Note: bytes_read already tracks what we've actually read, which is correct
+                    // per spec: when maxLength is reached, we stop and return the current read count
+                }
+                SliceRefMut::AtomicSlice(_) => {
+                    // For shared buffers, we need to handle atomically
+                    return Err(JsNativeError::typ()
+                        .with_message("SharedArrayBuffer not supported for setFromHex")
+                        .into());
+                }
+            }
+        }
+
+        // If there was an error, throw after writing what we could
+        if error_occurred {
+            return Err(JsNativeError::syntax()
+                .with_message("Invalid hex character")
+                .into());
+        }
+
+        let read = JsValue::from(bytes_read);
+        let written = JsValue::from(bytes_written);
+        Self::create_set_from_result(read, written, context)
+    }
+
+    /// `Uint8Array.prototype.toHex ( )`
+    ///
+    /// More information:
+    ///  - [proposal-arraybuffer-base64][spec]
+    ///
+    /// [spec]: https://tc39.es/proposal-arraybuffer-base64/spec/#sec-uint8array.prototype.tohex
+    pub(crate) fn to_hex(
+        this: &JsValue,
+        _: &[JsValue],
+        _context: &mut Context,
+    ) -> JsResult<JsValue> {
+        // 1. Let O be the this value.
+        // 2. Perform ? ValidateUint8Array(O).
+        let uint8array = this
+            .as_object()
+            .and_then(|o| o.clone().downcast::<TypedArray>().ok())
+            .ok_or_else(|| JsNativeError::typ().with_message("Value is not a Uint8Array object"))?;
+
+        let uint8array_borrow = uint8array.borrow();
+        let uint8array_data = uint8array_borrow.data();
+
+        // Verify it's a Uint8Array
+        if uint8array_data.kind() != TypedArrayKind::Uint8 {
+            return Err(JsNativeError::typ()
+                .with_message("Value is not a Uint8Array object")
+                .into());
+        }
+
+        // Check if detached
+        let buffer = uint8array_data.viewed_array_buffer();
+        let Some(buf_len) = buffer.as_buffer().bytes(Ordering::SeqCst).map(|s| s.len()) else {
+            return Err(JsNativeError::typ()
+                .with_message("TypedArray is detached")
+                .into());
+        };
+
+        if uint8array_data.is_out_of_bounds(buf_len) {
+            return Err(JsNativeError::typ()
+                .with_message("TypedArray is out of bounds")
+                .into());
+        }
+
+        let byte_offset = uint8array_data.byte_offset() as usize;
+        let byte_length = uint8array_data.array_length(buf_len) as usize;
+
+        // Get the data
+        let buffer_data = buffer.as_buffer();
+        let Some(data) = buffer_data.bytes(Ordering::SeqCst) else {
+            return Err(JsNativeError::typ()
+                .with_message("Cannot access buffer data")
+                .into());
+        };
+
+        let input = data.subslice(byte_offset..byte_offset + byte_length);
+
+        // Encode to hex
+        let mut output = Vec::with_capacity(byte_length * 2);
+        match input {
+            SliceRef::Slice(slice) => {
+                for byte in slice {
+                    output.push(Self::value_to_hex_char(*byte >> 4));
+                    output.push(Self::value_to_hex_char(*byte & 0x0f));
+                }
+            }
+            SliceRef::AtomicSlice(atomic_slice) => {
+                // For shared buffers, read atomically
+                for atomic_byte in atomic_slice {
+                    let byte = atomic_byte.load(Ordering::SeqCst);
+                    output.push(Self::value_to_hex_char(byte >> 4));
+                    output.push(Self::value_to_hex_char(byte & 0x0f));
+                }
+            }
+        }
+
+        // Convert to JS string
+        let result = JsString::from(std::str::from_utf8(&output).unwrap_or(""));
+        Ok(result.into())
+    }
+
+    // Helper functions
+
+    #[cfg(not(target_family = "wasm"))]
+    fn get_base64_options(
+        options: &JsValue,
+        context: &mut Context,
+    ) -> JsResult<(Base64Options, LastChunkHandlingOptions)> {
+        let mut alphabet = Base64Options::Default;
+        let mut last_chunk_handling = LastChunkHandlingOptions::Loose;
+
+        if let Some(options_obj) = options.as_object() {
+            // Get alphabet option
+            let alphabet_value = options_obj.get(js_string!("alphabet"), context)?;
+            if !alphabet_value.is_undefined() {
+                // Check if it's a string (not a string object)
+                let Some(alphabet_str) = alphabet_value.as_string() else {
+                    return Err(JsNativeError::typ()
+                        .with_message("Invalid alphabet option")
+                        .into());
+                };
+                let alphabet_bytes: Vec<u8> = alphabet_str.iter().map(|c| c as u8).collect();
+                match alphabet_bytes.as_slice() {
+                    b"base64" => alphabet = Base64Options::Default,
+                    b"base64url" => alphabet = Base64Options::Url,
+                    _ => {
+                        return Err(JsNativeError::typ()
+                            .with_message("Invalid alphabet option")
+                            .into());
+                    }
+                }
+            }
+
+            // Get lastChunkHandling option
+            let last_chunk_value = options_obj.get(js_string!("lastChunkHandling"), context)?;
+            if !last_chunk_value.is_undefined() {
+                // Check if it's a string (not a string object) - match V8's behavior
+                let Some(last_chunk_str) = last_chunk_value.as_string() else {
+                    return Err(JsNativeError::typ()
+                        .with_message("Invalid lastChunkHandling option")
+                        .into());
+                };
+                let last_chunk_bytes: Vec<u8> = last_chunk_str.iter().map(|c| c as u8).collect();
+                match last_chunk_bytes.as_slice() {
+                    b"loose" => last_chunk_handling = LastChunkHandlingOptions::Loose,
+                    b"strict" => last_chunk_handling = LastChunkHandlingOptions::Strict,
+                    b"stop-before-partial" => {
+                        last_chunk_handling = LastChunkHandlingOptions::StopBeforePartial;
+                    }
+                    _ => {
+                        return Err(JsNativeError::typ()
+                            .with_message("Invalid lastChunkHandling option")
+                            .into());
+                    }
+                }
+            }
+        }
+
+        Ok((alphabet, last_chunk_handling))
+    }
+
+    #[cfg(not(target_family = "wasm"))]
+    fn get_base64_encode_options(
+        options: &JsValue,
+        context: &mut Context,
+    ) -> JsResult<(Base64Options, bool)> {
+        let mut alphabet = Base64Options::Default;
+        let mut omit_padding = false;
+
+        if let Some(options_obj) = options.as_object() {
+            // Get alphabet option
+            let alphabet_value = options_obj.get(js_string!("alphabet"), context)?;
+            if !alphabet_value.is_undefined() {
+                // Check if it's a string (not a string object)
+                let Some(alphabet_str) = alphabet_value.as_string() else {
+                    return Err(JsNativeError::typ()
+                        .with_message("Invalid alphabet option")
+                        .into());
+                };
+                let alphabet_bytes: Vec<u8> = alphabet_str.iter().map(|c| c as u8).collect();
+                match alphabet_bytes.as_slice() {
+                    b"base64" => alphabet = Base64Options::Default,
+                    b"base64url" => alphabet = Base64Options::Url,
+                    _ => {
+                        return Err(JsNativeError::typ()
+                            .with_message("Invalid alphabet option")
+                            .into());
+                    }
+                }
+            }
+
+            // Get omitPadding option
+            let omit_padding_value = options_obj.get(js_string!("omitPadding"), context)?;
+            if !omit_padding_value.is_undefined() {
+                omit_padding = omit_padding_value.to_boolean();
+            }
+        }
+
+        // Adjust alphabet based on omitPadding
+        // - base64 + omitPadding=true -> base64_default_no_padding
+        // - base64url + omitPadding=false -> base64_url_with_padding
+        alphabet = match (alphabet, omit_padding) {
+            (Base64Options::Default, true) => Base64Options::DefaultNoPadding,
+            (Base64Options::Url, false) => Base64Options::UrlWithPadding,
+            _ => alphabet,
+        };
+
+        Ok((alphabet, omit_padding))
+    }
+
+    fn hex_char_to_value(c: u8) -> JsResult<u8> {
+        match c {
+            b'0'..=b'9' => Ok(c - b'0'),
+            b'a'..=b'f' => Ok(c - b'a' + 10),
+            b'A'..=b'F' => Ok(c - b'A' + 10),
+            _ => Err(JsNativeError::syntax()
+                .with_message("Invalid hex character")
+                .into()),
+        }
+    }
+
+    fn value_to_hex_char(value: u8) -> u8 {
+        match value {
+            0..=9 => b'0' + value,
+            10..=15 => b'a' + (value - 10),
+            _ => b'0',
+        }
+    }
+
+    fn create_set_from_result(
+        read: JsValue,
+        written: JsValue,
+        context: &mut Context,
+    ) -> JsResult<JsValue> {
+        // Create { read, written } object
+        let obj = JsObject::with_object_proto(context.intrinsics());
+        obj.set(js_string!("read"), read, false, context)?;
+        obj.set(js_string!("written"), written, false, context)?;
+        Ok(obj.into())
     }
 }
 
