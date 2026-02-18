@@ -98,35 +98,6 @@ pub struct RawJsString {
     phantom_data: PhantomData<*mut ()>,
 }
 
-/// A `usize` contains a flag and the length of Latin1/UTF-16.
-/// Used by `JsStr` to pack the length and encoding flag into a single `usize`.
-/// ```text
-/// ┌────────────────────────────────────┐
-/// │ length (usize::BITS - 1) │ flag(1) │
-/// └────────────────────────────────────┘
-/// ```
-/// The latin1/UTF-16 flag is stored in the bottom bit.
-#[derive(Debug, Copy, Clone, PartialEq, Eq, PartialOrd, Ord)]
-#[repr(transparent)]
-pub(crate) struct TaggedLen(usize);
-
-impl TaggedLen {
-    const LATIN1_BITFLAG: usize = 1 << 0;
-    const BITFLAG_COUNT: usize = 1;
-
-    pub(crate) const fn new(len: usize, latin1: bool) -> Self {
-        Self((len << Self::BITFLAG_COUNT) | (latin1 as usize))
-    }
-
-    pub(crate) const fn is_latin1(self) -> bool {
-        (self.0 & Self::LATIN1_BITFLAG) != 0
-    }
-
-    pub(crate) const fn len(self) -> usize {
-        self.0 >> Self::BITFLAG_COUNT
-    }
-}
-
 /// Strings can be represented internally by multiple kinds. This is used to identify
 /// the storage kind of string.
 #[derive(Debug, Clone, Copy, Eq, PartialEq)]
@@ -605,20 +576,8 @@ impl JsString {
     #[inline]
     #[must_use]
     pub unsafe fn slice_unchecked(data: &JsString, start: usize, end: usize) -> Self {
-        let str = data.as_str();
-        let is_latin1 = str.is_latin1();
-        let data_ptr = str.as_ptr();
-
-        // Calculate the offset based on encoding
-        let offset_ptr = if is_latin1 {
-            // SAFETY: start is within bounds per caller contract.
-            unsafe { data_ptr.add(start) }
-        } else {
-            // SAFETY: start is within bounds per caller contract. For UTF-16, each char is 2 bytes.
-            unsafe { data_ptr.byte_add(start * 2) }
-        };
-
-        let slice = Box::new(SliceString::new(data, offset_ptr, end - start, is_latin1));
+        // Safety: invariant stated by this whole function.
+        let slice = Box::new(unsafe { SliceString::new(data, start, end) });
 
         Self {
             ptr: NonNull::from(Box::leak(slice)).cast(),
