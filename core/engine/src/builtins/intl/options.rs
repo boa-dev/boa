@@ -1,10 +1,12 @@
 use std::{fmt, str::FromStr};
 
+use icu_locale::{LanguageIdentifier, extensions::unicode};
 use num_traits::FromPrimitive;
 
 use crate::{
     Context, JsNativeError, JsResult, JsString, JsValue,
-    builtins::{OrdinaryObject, options::ParsableOptionType},
+    builtins::{OrdinaryObject, intl::ServicePreferences, options::ParsableOptionType},
+    context::icu::IntlProvider,
     object::JsObject,
 };
 
@@ -15,7 +17,7 @@ use crate::{
 #[derive(Debug, Default)]
 pub(super) struct IntlOptions<O> {
     pub(super) matcher: LocaleMatcher,
-    pub(super) service_options: O,
+    pub(super) preferences: O,
 }
 
 #[derive(Clone, Copy, Debug, PartialEq, Eq, Default)]
@@ -47,6 +49,28 @@ impl FromStr for LocaleMatcher {
 }
 
 impl ParsableOptionType for LocaleMatcher {}
+
+#[derive(Clone, Copy, Debug, PartialEq, Eq, Default)]
+pub(super) struct EmptyPreferences;
+
+impl From<&icu_locale::Locale> for EmptyPreferences {
+    fn from(_: &icu_locale::Locale) -> Self {
+        Self
+    }
+}
+
+impl ServicePreferences for EmptyPreferences {
+    fn validate(&mut self, _: &LanguageIdentifier, _: &IntlProvider) {}
+    fn as_unicode(&self) -> unicode::Unicode {
+        unicode::Unicode::new()
+    }
+    fn extended(&self, _: &Self) -> Self {
+        Self
+    }
+    fn intersection(&self, _: &Self) -> Self {
+        Self
+    }
+}
 
 /// Abstract operation `GetNumberOption ( options, property, minimum, maximum, fallback )`
 ///

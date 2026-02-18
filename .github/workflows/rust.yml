@@ -162,7 +162,7 @@ jobs:
         uses: actions/checkout@v6
 
       - name: Check for typos
-        uses: crate-ci/typos@v1.43.3
+        uses: crate-ci/typos@v1.43.4
 
   clippy:
     name: Lint

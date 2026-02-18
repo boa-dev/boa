@@ -4,6 +4,7 @@ use crate::{
     Context, JsArgs, JsData, JsNativeError, JsResult, JsString, JsSymbol, JsValue,
     builtins::{
         BuiltInBuilder, BuiltInConstructor, BuiltInObject, IntrinsicObject,
+        intl::options::EmptyPreferences,
         options::{get_option, get_options_object},
     },
     context::intrinsics::{Intrinsics, StandardConstructor, StandardConstructors},
@@ -98,7 +99,7 @@ impl Service for Segmenter {
     // and replace when segmenters are locale-aware.
     type LangMarker = CollationDiacriticsV1;
 
-    type LocaleOptions = ();
+    type Preferences = EmptyPreferences;
 }
 
 impl IntrinsicObject for Segmenter {
