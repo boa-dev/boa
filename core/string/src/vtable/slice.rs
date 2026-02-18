@@ -41,7 +41,7 @@ impl SliceString {
                 kind: JsStringKind::Slice,
             },
             owned: owned.clone(),
-            // Safety: this whole function is unsafe for the same invariant.
+            // SAFETY: this inner's lifetime is tied to the owned string above.
             inner: unsafe { inner.as_static() },
             refcount: Cell::new(1),
         }
