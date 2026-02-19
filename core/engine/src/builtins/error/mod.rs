@@ -10,6 +10,8 @@
 //! [spec]: https://tc39.es/ecma262/#sec-error-objects
 //! [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Error
 
+use std::fmt::Write;
+
 use crate::{
     Context, JsArgs, JsData, JsResult, JsString, JsValue,
     builtins::BuiltInObject,
@@ -20,7 +22,10 @@ use crate::{
     property::Attribute,
     realm::Realm,
     string::StaticJsStrings,
-    vm::shadow_stack::ShadowEntry,
+    vm::{
+        NativeSourceInfo,
+        shadow_stack::{ErrorStack, ShadowEntry},
+    },
 };
 use boa_gc::{Finalize, Trace};
 use boa_macros::js_str;
@@ -136,44 +141,67 @@ pub struct Error {
 
     // The position of where the Error was created does not affect equality check.
     #[unsafe_ignore_trace]
-    pub(crate) position: IgnoreEq<Option<ShadowEntry>>,
+    pub(crate) stack: IgnoreEq<ErrorStack>,
 }
 
 impl Error {
     /// Create a new [`Error`].
     #[inline]
     #[must_use]
+    #[cfg_attr(feature = "native-backtrace", track_caller)]
     pub fn new(tag: ErrorKind) -> Self {
         Self {
             tag,
-            position: IgnoreEq(None),
+            stack: IgnoreEq(ErrorStack::Position(ShadowEntry::Native {
+                function_name: None,
+                source_info: NativeSourceInfo::caller(),
+            })),
         }
     }
 
-    /// Create a new [`Error`] with the given optional [`ShadowEntry`].
-    pub(crate) fn with_shadow_entry(tag: ErrorKind, entry: Option<ShadowEntry>) -> Self {
+    /// Create a new [`Error`] with the given [`ErrorStack`].
+    pub(crate) fn with_stack(tag: ErrorKind, location: ErrorStack) -> Self {
         Self {
             tag,
-            position: IgnoreEq(entry),
+            stack: IgnoreEq(location),
         }
     }
 
     /// Get the position from the last called function.
     pub(crate) fn with_caller_position(tag: ErrorKind, context: &Context) -> Self {
+        let limit = context.runtime_limits().backtrace_limit();
+        let backtrace = context.vm.shadow_stack.caller_position(limit);
         Self {
             tag,
-            position: IgnoreEq(context.vm.shadow_stack.caller_position()),
+            stack: IgnoreEq(ErrorStack::Backtrace(backtrace)),
         }
     }
 }
 
 impl IntrinsicObject for Error {
     fn init(realm: &Realm) {
-        let attribute = Attribute::WRITABLE | Attribute::NON_ENUMERABLE | Attribute::CONFIGURABLE;
+        let property_attribute =
+            Attribute::WRITABLE | Attribute::NON_ENUMERABLE | Attribute::CONFIGURABLE;
+        let accessor_attribute = Attribute::NON_ENUMERABLE | Attribute::CONFIGURABLE;
+
+        let get_stack = BuiltInBuilder::callable(realm, Self::get_stack)
+            .name(js_string!("get stack"))
+            .build();
+
+        let set_stack = BuiltInBuilder::callable(realm, Self::set_stack)
+            .name(js_string!("set stack"))
+            .build();
+
         let builder = BuiltInBuilder::from_standard_constructor::<Self>(realm)
-            .property(js_string!("name"), Self::NAME, attribute)
-            .property(js_string!("message"), js_string!(), attribute)
-            .method(Self::to_string, js_string!("toString"), 0);
+            .property(js_string!("name"), Self::NAME, property_attribute)
+            .property(js_string!("message"), js_string!(), property_attribute)
+            .method(Self::to_string, js_string!("toString"), 0)
+            .accessor(
+                js_string!("stack"),
+                Some(get_stack),
+                Some(set_stack),
+                accessor_attribute,
+            );
 
         #[cfg(feature = "experimental")]
         let builder = builder.static_method(Error::is_error, js_string!("isError"), 1);
@@ -192,7 +220,7 @@ impl BuiltInObject for Error {
 
 impl BuiltInConstructor for Error {
     const CONSTRUCTOR_ARGUMENTS: usize = 1;
-    const PROTOTYPE_STORAGE_SLOTS: usize = 3;
+    const PROTOTYPE_STORAGE_SLOTS: usize = 5;
     const CONSTRUCTOR_STORAGE_SLOTS: usize = 1;
 
     const STANDARD_CONSTRUCTOR: fn(&StandardConstructors) -> &StandardConstructor =
@@ -261,6 +289,77 @@ impl Error {
 
         // 2. Return unused.
         Ok(())
+    }
+
+    /// `get Error.prototype.stack`
+    ///
+    /// The accessor property of Error instances represents the stack trace
+    /// when the error was created.
+    ///
+    /// More information:
+    ///  - [Proposal][spec]
+    ///
+    /// [spec]: https://tc39.es/proposal-error-stacks/
+    #[allow(clippy::unnecessary_wraps)]
+    fn get_stack(this: &JsValue, _: &[JsValue], _context: &mut Context) -> JsResult<JsValue> {
+        // 1. Let E be the this value.
+        // 2. If E is not an Object, return undefined.
+        let Some(e) = this.as_object() else {
+            return Ok(JsValue::undefined());
+        };
+
+        // 3. Let errorData be the value of the [[ErrorData]] internal slot of E.
+        // 4. If errorData is undefined, return undefined.
+        let Some(error_data) = e.downcast_ref::<Error>() else {
+            return Ok(JsValue::undefined());
+        };
+
+        // 5. Let stackString be an implementation-defined String value representing the call stack.
+        // 6. Return stackString.
+        if let Some(backtrace) = error_data.stack.0.backtrace() {
+            let stack_string = backtrace
+                .iter()
+                .rev()
+                .fold(String::new(), |mut output, entry| {
+                    let _ = writeln!(&mut output, "    at {}", entry.display(true));
+                    output
+                });
+            return Ok(js_string!(stack_string).into());
+        }
+
+        // 7. If no stack trace is available, return undefined.
+        Ok(JsValue::undefined())
+    }
+
+    /// `set Error.prototype.stack`
+    ///
+    /// The setter for the stack property.
+    ///
+    /// More information:
+    ///  - [Proposal][spec]
+    ///
+    /// [spec]: https://tc39.es/proposal-error-stacks/
+    fn set_stack(this: &JsValue, args: &[JsValue], context: &mut Context) -> JsResult<JsValue> {
+        // 1. Let E be the this value.
+        // 2. If Type(E) is not Object, throw a TypeError exception.
+        let e = this.as_object().ok_or_else(|| {
+            JsNativeError::typ()
+                .with_message("Error.prototype.stack setter requires that 'this' be an Object")
+        })?;
+
+        // 3. Let numberOfArgs be the number of arguments passed to this function call.
+        // 4. If numberOfArgs is 0, throw a TypeError exception.
+        let Some(value) = args.first() else {
+            return Err(JsNativeError::typ()
+                .with_message(
+                    "Error.prototype.stack setter requires at least 1 argument, but only 0 were passed",
+                )
+                .into());
+        };
+
+        // 5. Return ? CreateDataPropertyOrThrow(E, "stack", value).
+        e.create_data_property_or_throw(js_string!("stack"), value.clone(), context)
+            .map(Into::into)
     }
 
     /// `Error.prototype.toString()`

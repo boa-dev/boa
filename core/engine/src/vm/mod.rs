@@ -12,6 +12,7 @@ use crate::{
     object::JsFunction,
     realm::Realm,
     script::Script,
+    vm::shadow_stack::ErrorStack,
 };
 use boa_gc::{Finalize, Gc, Trace, custom_trace};
 use shadow_stack::ShadowStack;
@@ -697,6 +698,17 @@ impl Context {
                 self.vm.stack.truncate_to_frame(&frame);
             }
             return ControlFlow::Break(CompletionRecord::Throw(err));
+        }
+
+        if let Some(native) = err.as_native_mut()
+            && let ErrorStack::Position(position) = &mut native.stack.0
+        {
+            let backtrace = self.vm.shadow_stack.take_and_push(
+                self.vm.runtime_limits.backtrace_limit(),
+                self.vm.frame.pc,
+                position.clone(),
+            );
+            native.stack.0 = ErrorStack::Backtrace(backtrace);
         }
 
         // Note: -1 because we increment after fetching the opcode.
