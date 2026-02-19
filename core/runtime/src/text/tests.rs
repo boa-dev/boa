@@ -125,6 +125,52 @@ fn decoder_js_invalid() {
     );
 }
 
+#[test]
+fn decoder_js_respects_typed_array_subarray() {
+    let context = &mut Context::default();
+    text::register(None, context).unwrap();
+
+    run_test_actions_with(
+        [
+            TestAction::run(indoc! {r#"
+                const d = new TextDecoder();
+                decoded = d.decode(Uint8Array.of(0x42, 0x42).subarray(1));
+            "#}),
+            TestAction::inspect_context(|context| {
+                let decoded = context
+                    .global_object()
+                    .get(js_str!("decoded"), context)
+                    .unwrap();
+                assert_eq!(decoded.as_string(), Some(js_string!("B")));
+            }),
+        ],
+        context,
+    );
+}
+
+#[test]
+fn decoder_js_respects_typed_array_subarray_end() {
+    let context = &mut Context::default();
+    text::register(None, context).unwrap();
+
+    run_test_actions_with(
+        [
+            TestAction::run(indoc! {r#"
+                const d = new TextDecoder();
+                decoded = d.decode(Uint8Array.of(0x41, 0x42, 0x43).subarray(1, 2));
+            "#}),
+            TestAction::inspect_context(|context| {
+                let decoded = context
+                    .global_object()
+                    .get(js_str!("decoded"), context)
+                    .unwrap();
+                assert_eq!(decoded.as_string(), Some(js_string!("B")));
+            }),
+        ],
+        context,
+    );
+}
+
 #[test_case("utf-8")]
 #[test_case("utf-16")]
 #[test_case("utf-16le")]
