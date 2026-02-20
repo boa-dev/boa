@@ -88,12 +88,12 @@ impl TextDecoder {
             };
             let bytes =
                 JsUint8Array::from_array_buffer(JsArrayBuffer::from_object(buffer)?, context)?;
-            let bytes_length = bytes.length(context)?;
+            let backing_buffer_length = bytes.length(context)?;
 
             let Some(end) = byte_offset.checked_add(byte_length) else {
                 return Err(js_error!(TypeError: "Invalid TypedArray byte range."));
             };
-            if end > bytes_length {
+            if end > backing_buffer_length {
                 return Err(js_error!(TypeError: "Invalid TypedArray byte range."));
             }
 
