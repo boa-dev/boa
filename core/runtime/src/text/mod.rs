@@ -93,7 +93,7 @@ impl TextDecoder {
         Ok(match self {
             Self::Utf8 => encodings::utf8::decode(&buffer),
             Self::Utf16Le => encodings::utf16le::decode(&buffer),
-            Self::Utf16Be => encodings::utf16be::decode(buffer),
+            Self::Utf16Be => encodings::utf16be::decode(&buffer),
         })
     }
 }
