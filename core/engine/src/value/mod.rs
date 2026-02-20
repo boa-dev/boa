@@ -588,6 +588,16 @@ impl JsValue {
     }
 
     /// Returns true if the value is undefined.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use boa_engine::JsValue;
+    ///
+    /// assert!(JsValue::undefined().is_undefined());
+    /// assert!(!JsValue::null().is_undefined());
+    /// assert!(!JsValue::new(0).is_undefined());
+    /// ```
     #[inline]
     #[must_use]
     pub fn is_undefined(&self) -> bool {
@@ -595,6 +605,16 @@ impl JsValue {
     }
 
     /// Returns true if the value is null.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use boa_engine::JsValue;
+    ///
+    /// assert!(JsValue::null().is_null());
+    /// assert!(!JsValue::undefined().is_null());
+    /// assert!(!JsValue::new(0).is_null());
+    /// ```
     #[inline]
     #[must_use]
     pub fn is_null(&self) -> bool {
@@ -602,6 +622,17 @@ impl JsValue {
     }
 
     /// Returns true if the value is null or undefined.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use boa_engine::JsValue;
+    ///
+    /// assert!(JsValue::null().is_null_or_undefined());
+    /// assert!(JsValue::undefined().is_null_or_undefined());
+    /// assert!(!JsValue::new(0).is_null_or_undefined());
+    /// assert!(!JsValue::new(false).is_null_or_undefined());
+    /// ```
     #[inline]
     #[must_use]
     pub fn is_null_or_undefined(&self) -> bool {
@@ -614,6 +645,24 @@ impl JsValue {
     /// - [ECMAScript reference][spec]
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-isintegralnumber
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use boa_engine::JsValue;
+    ///
+    /// // Integers are returned directly.
+    /// assert_eq!(JsValue::new(42).as_i32(), Some(42));
+    ///
+    /// // Floats that are whole numbers also succeed.
+    /// assert_eq!(JsValue::new(5.0).as_i32(), Some(5));
+    ///
+    /// // Non-integral floats return None.
+    /// assert_eq!(JsValue::new(3.14).as_i32(), None);
+    ///
+    /// // Non-number types return None.
+    /// assert_eq!(JsValue::new(true).as_i32(), None);
+    /// ```
     #[inline]
     #[must_use]
     #[allow(clippy::float_cmp)]
@@ -633,6 +682,19 @@ impl JsValue {
     }
 
     /// Returns true if the value is a number.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use boa_engine::JsValue;
+    ///
+    /// assert!(JsValue::new(42).is_number());
+    /// assert!(JsValue::new(3.14).is_number());
+    /// assert!(JsValue::nan().is_number());
+    ///
+    /// assert!(!JsValue::new(true).is_number());
+    /// assert!(!JsValue::undefined().is_number());
+    /// ```
     #[inline]
     #[must_use]
     pub fn is_number(&self) -> bool {
@@ -647,6 +709,19 @@ impl JsValue {
     }
 
     /// Returns the number if the value is a number, otherwise `None`.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use boa_engine::JsValue;
+    ///
+    /// assert_eq!(JsValue::new(42).as_number(), Some(42.0));
+    /// assert_eq!(JsValue::new(3.14).as_number(), Some(3.14));
+    ///
+    /// // Non-number types return None.
+    /// assert_eq!(JsValue::null().as_number(), None);
+    /// assert_eq!(JsValue::new(true).as_number(), None);
+    /// ```
     #[inline]
     #[must_use]
     pub fn as_number(&self) -> Option<f64> {
@@ -658,6 +733,18 @@ impl JsValue {
     }
 
     /// Returns true if the value is a string.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use boa_engine::{JsValue, js_string};
+    ///
+    /// let s = JsValue::new(js_string!("hello"));
+    /// assert!(s.is_string());
+    ///
+    /// let number = JsValue::new(42);
+    /// assert!(!number.is_string());
+    /// ```
     #[inline]
     #[must_use]
     pub fn is_string(&self) -> bool {
@@ -665,6 +752,18 @@ impl JsValue {
     }
 
     /// Returns the string if the value is a string, otherwise `None`.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use boa_engine::{JsValue, js_string};
+    ///
+    /// let s = JsValue::new(js_string!("hello"));
+    /// assert_eq!(s.as_string().map(|s| s == js_string!("hello")), Some(true));
+    ///
+    /// let number = JsValue::new(42);
+    /// assert!(number.as_string().is_none());
+    /// ```
     #[inline]
     #[must_use]
     pub fn as_string(&self) -> Option<JsString> {
@@ -672,6 +771,18 @@ impl JsValue {
     }
 
     /// Returns true if the value is a boolean.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use boa_engine::JsValue;
+    ///
+    /// assert!(JsValue::new(true).is_boolean());
+    /// assert!(JsValue::new(false).is_boolean());
+    ///
+    /// assert!(!JsValue::new(1).is_boolean());
+    /// assert!(!JsValue::null().is_boolean());
+    /// ```
     #[inline]
     #[must_use]
     pub fn is_boolean(&self) -> bool {
@@ -679,6 +790,19 @@ impl JsValue {
     }
 
     /// Returns the boolean if the value is a boolean, otherwise `None`.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use boa_engine::JsValue;
+    ///
+    /// assert_eq!(JsValue::new(true).as_boolean(), Some(true));
+    /// assert_eq!(JsValue::new(false).as_boolean(), Some(false));
+    ///
+    /// // Non-boolean types return None, even "truthy" or "falsy" ones.
+    /// assert_eq!(JsValue::new(1).as_boolean(), None);
+    /// assert_eq!(JsValue::new(0).as_boolean(), None);
+    /// ```
     #[inline]
     #[must_use]
     pub fn as_boolean(&self) -> Option<bool> {
@@ -686,6 +810,19 @@ impl JsValue {
     }
 
     /// Returns true if the value is a bigint.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use boa_engine::{JsValue, JsBigInt};
+    ///
+    /// let big = JsValue::new(JsBigInt::from(42));
+    /// assert!(big.is_bigint());
+    ///
+    /// // Regular numbers are not bigints.
+    /// let number = JsValue::new(42);
+    /// assert!(!number.is_bigint());
+    /// ```
     #[inline]
     #[must_use]
     pub fn is_bigint(&self) -> bool {
@@ -693,6 +830,18 @@ impl JsValue {
     }
 
     /// Returns a `BigInt` if the value is a `BigInt` primitive.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use boa_engine::{JsValue, JsBigInt};
+    ///
+    /// let big = JsValue::new(JsBigInt::from(100));
+    /// assert!(big.as_bigint().is_some());
+    ///
+    /// let number = JsValue::new(100);
+    /// assert!(number.as_bigint().is_none());
+    /// ```
     #[inline]
     #[must_use]
     pub fn as_bigint(&self) -> Option<JsBigInt> {
