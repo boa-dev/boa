@@ -16,9 +16,7 @@ use boa_engine::property::PropertyDescriptor;
 use boa_engine::realm::Realm;
 use boa_engine::{
     Context, Finalize, JsData, JsError, JsObject, JsResult, JsString, JsSymbol, JsValue,
-    NativeObject, Trace,
-    boa_module, js_error, js_string,
-    native_function::NativeFunction,
+    NativeObject, Trace, boa_module, js_error, js_string, native_function::NativeFunction,
 };
 use either::Either;
 use http::{HeaderName, HeaderValue, Request as HttpRequest, Request};
