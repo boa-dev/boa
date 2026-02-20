@@ -854,6 +854,30 @@ impl JsValue {
     ///  - [ECMAScript][spec]
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-toboolean
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use boa_engine::{JsValue, js_string};
+    ///
+    /// // Numbers: 0 and NaN are false, everything else is true.
+    /// assert!(!JsValue::new(0).to_boolean());
+    /// assert!(!JsValue::nan().to_boolean());
+    /// assert!(JsValue::new(1).to_boolean());
+    /// assert!(JsValue::new(-1).to_boolean());
+    ///
+    /// // Strings: empty string is false, non-empty is true.
+    /// assert!(!JsValue::new(js_string!("")).to_boolean());
+    /// assert!(JsValue::new(js_string!("hello")).to_boolean());
+    ///
+    /// // null and undefined are always false.
+    /// assert!(!JsValue::null().to_boolean());
+    /// assert!(!JsValue::undefined().to_boolean());
+    ///
+    /// // Booleans pass through.
+    /// assert!(JsValue::new(true).to_boolean());
+    /// assert!(!JsValue::new(false).to_boolean());
+    /// ```
     #[must_use]
     pub fn to_boolean(&self) -> bool {
         match self.variant() {
@@ -1433,6 +1457,20 @@ impl JsValue {
     ///
     /// [table]: https://tc39.es/ecma262/#table-14
     /// [spec]: https://tc39.es/ecma262/#sec-requireobjectcoercible
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use boa_engine::JsValue;
+    ///
+    /// // Most values are object-coercible.
+    /// assert!(JsValue::new(42).require_object_coercible().is_ok());
+    /// assert!(JsValue::new(true).require_object_coercible().is_ok());
+    ///
+    /// // null and undefined are not.
+    /// assert!(JsValue::null().require_object_coercible().is_err());
+    /// assert!(JsValue::undefined().require_object_coercible().is_err());
+    /// ```
     #[inline]
     pub fn require_object_coercible(&self) -> JsResult<&Self> {
         if self.is_null_or_undefined() {
@@ -1469,12 +1507,35 @@ impl JsValue {
     /// - [ECMAScript reference][spec]
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-typeof-operator
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use boa_engine::{JsValue, js_string, JsSymbol};
+    ///
+    /// assert_eq!(JsValue::undefined().type_of(), "undefined");
+    /// assert_eq!(JsValue::null().type_of(), "object");
+    /// assert_eq!(JsValue::new(true).type_of(), "boolean");
+    /// assert_eq!(JsValue::new(42).type_of(), "number");
+    /// assert_eq!(JsValue::new(js_string!("hi")).type_of(), "string");
+    /// assert_eq!(JsValue::new(JsSymbol::new(None).unwrap()).type_of(), "symbol");
+    /// ```
     #[must_use]
     pub fn type_of(&self) -> &'static str {
         self.variant().type_of()
     }
 
     /// Same as [`JsValue::type_of`], but returning a [`JsString`] instead.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use boa_engine::{JsValue, js_string};
+    ///
+    /// assert_eq!(JsValue::new(42).js_type_of(), js_string!("number"));
+    /// assert_eq!(JsValue::new(true).js_type_of(), js_string!("boolean"));
+    /// assert_eq!(JsValue::undefined().js_type_of(), js_string!("undefined"));
+    /// ```
     #[must_use]
     pub fn js_type_of(&self) -> JsString {
         self.variant().js_type_of()
