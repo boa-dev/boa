@@ -20,6 +20,8 @@ concurrency:
 jobs:
   run_test262:
     name: Run the test262 test suite
+    permissions:
+      pull-requests: write
     runs-on: ubuntu-latest
     timeout-minutes: 60
     steps:
