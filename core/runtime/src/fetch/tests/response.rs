@@ -155,3 +155,26 @@ fn response_getter() {
         }),
     ]);
 }
+
+#[test]
+fn response_constructor_with_body_and_status() {
+    run_test_actions([
+        TestAction::harness(),
+        TestAction::inspect_context(|ctx| register(&[], ctx)),
+        TestAction::run(
+            r#"
+                globalThis.response = (async () => {
+                    const response = new Response('Hello World', { status: 404 });
+                    assertEq(response.status, 404);
+                    assertEq(response.type, "basic");
+                    const text = await response.text();
+                    assertEq(text, "Hello World");
+                })();
+            "#,
+        ),
+        TestAction::inspect_context(|ctx| {
+            let response = ctx.global_object().get(js_str!("response"), ctx).unwrap();
+            response.as_promise().unwrap().await_blocking(ctx).unwrap();
+        }),
+    ]);
+}
