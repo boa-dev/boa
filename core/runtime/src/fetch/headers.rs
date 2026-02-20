@@ -153,9 +153,14 @@ impl JsHeaders {
     }
 
     /// Returns an iterator allowing to go through all key/value pairs contained in this object.
-    // TODO: This should return a JsIterator, but not such thing exists yet.
+    /// 
+    /// Note: This creates an intermediate array and returns its iterator. While not as efficient
+    /// as a custom lazy iterator, this approach is pragmatic given that:
+    /// 1. Headers objects typically contain a small number of entries
+    /// 2. Creating a custom iterator would require access to private engine APIs
+    /// 3. The array iterator is well-tested and handles all edge cases correctly
     pub fn entries(&self, context: &mut Context) -> JsValue {
-        JsArray::from_iter(
+        let entries_array = JsArray::from_iter(
             self.headers
                 .borrow()
                 .iter()
@@ -166,8 +171,9 @@ impl JsHeaders {
                 })
                 .collect::<Vec<_>>(),
             context,
-        )
-        .into()
+        );
+        
+        Self::array_to_iterator(entries_array, context)
     }
 
     /// Executes a provided function once for each key/value pair in the Headers object.
@@ -243,13 +249,17 @@ impl JsHeaders {
 
     /// Returns an iterator allowing you to go through all keys of the key/value pairs
     /// contained in this object.
-    #[allow(clippy::unused_self)]
-    fn keys(&self) -> Vec<JsString> {
-        self.headers
-            .borrow()
-            .keys()
-            .map(|k| JsString::from(k.as_str()))
-            .collect()
+    fn keys(&self, context: &mut Context) -> JsValue {
+        let keys_array = JsArray::from_iter(
+            self.headers
+                .borrow()
+                .keys()
+                .map(|k| JsString::from(k.as_str()).into())
+                .collect::<Vec<JsValue>>(),
+            context,
+        );
+        
+        Self::array_to_iterator(keys_array, context)
     }
 
     /// Sets a new value for an existing header inside a Headers object, or adds the
@@ -261,11 +271,37 @@ impl JsHeaders {
         Ok(())
     }
 
-    fn values(&self) -> Vec<JsString> {
-        self.headers
-            .borrow()
-            .values()
-            .map(|v| JsString::from(v.to_str().unwrap_or("")))
-            .collect()
+    fn values(&self, context: &mut Context) -> JsValue {
+        let values_array = JsArray::from_iter(
+            self.headers
+                .borrow()
+                .values()
+                .map(|v| JsString::from(v.to_str().unwrap_or("")).into())
+                .collect::<Vec<JsValue>>(),
+            context,
+        );
+        
+        Self::array_to_iterator(values_array, context)
+    }
+    
+    fn array_to_iterator(array: JsArray, context: &mut Context) -> JsValue {
+        let array_val: JsValue = array.into();
+        let iterator_symbol = boa_engine::symbol::JsSymbol::iterator();
+        
+        if let Ok(array_obj) = array_val.to_object(context) {
+            if let Ok(iterator_fn) = array_obj.get(iterator_symbol, context) {
+                if let Some(iterator_fn_obj) = iterator_fn.as_callable() {
+                    if let Ok(result) = iterator_fn_obj.call(&array_val, &[], context) {
+                        return result;
+                    }
+                }
+            }
+        }
+        
+        array_val
+    }
+    
+    fn iterator(&self, context: &mut Context) -> JsValue {
+        self.entries(context)
     }
 }

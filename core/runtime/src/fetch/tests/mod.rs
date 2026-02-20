@@ -14,6 +14,8 @@ mod e2e;
 mod request;
 #[cfg(test)]
 mod response;
+#[cfg(test)]
+mod headers;
 
 /// A [`crate::fetch::Fetcher`] implementation for tests. Maps a URL to a response,
 /// and record requests received for later use.

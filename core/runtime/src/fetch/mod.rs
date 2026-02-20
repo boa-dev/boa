@@ -14,7 +14,7 @@ use boa_engine::class::Class;
 use boa_engine::realm::Realm;
 use boa_engine::{
     Context, Finalize, JsData, JsError, JsObject, JsResult, JsString, JsValue, NativeObject, Trace,
-    boa_module, js_error,
+    boa_module, js_error, js_string,
 };
 use either::Either;
 use http::{HeaderName, HeaderValue, Request as HttpRequest, Request};
@@ -192,6 +192,23 @@ pub fn register<F: Fetcher>(
         context.insert_data(FetcherRc(Rc::new(fetcher)));
     }
     js_module::boa_register::<F>(realm, context)?;
+
+    // Manually add Symbol.iterator to Headers prototype
+    let global = context.global_object().clone();
+    let headers_constructor = global.get(js_string!("Headers"), context)?;
+    
+    if let Some(headers_constructor) = headers_constructor.as_object() {
+        let prototype: JsValue = headers_constructor.get(js_string!("prototype"), context)?;
+        if let Some(prototype_obj) = prototype.as_object() {
+            let entries_fn: JsValue = prototype_obj.get(js_string!("entries"), context)?;
+            prototype_obj.set(
+                boa_engine::symbol::JsSymbol::iterator(),
+                entries_fn,
+                false,
+                context,
+            )?;
+        }
+    }
 
     Ok(())
 }
