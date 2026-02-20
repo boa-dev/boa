@@ -154,6 +154,7 @@ impl JsHeaders {
 
     /// Returns an iterator allowing to go through all key/value pairs contained in this object.
     // TODO: This should return a JsIterator, but not such thing exists yet.
+    #[boa(method)]
     pub fn entries(&self, context: &mut Context) -> JsValue {
         JsArray::from_iter(
             self.headers
@@ -244,6 +245,7 @@ impl JsHeaders {
     /// Returns an iterator allowing you to go through all keys of the key/value pairs
     /// contained in this object.
     #[allow(clippy::unused_self)]
+    #[boa(method)]
     fn keys(&self) -> Vec<JsString> {
         self.headers
             .borrow()
@@ -261,6 +263,7 @@ impl JsHeaders {
         Ok(())
     }
 
+    #[boa(method)]
     fn values(&self) -> Vec<JsString> {
         self.headers
             .borrow()
