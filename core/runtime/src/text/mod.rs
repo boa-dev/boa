@@ -87,17 +87,21 @@ impl TextDecoder {
                 return Err(js_error!(TypeError: "Invalid buffer backing TypedArray."));
             };
             let bytes =
-                JsUint8Array::from_array_buffer(JsArrayBuffer::from_object(buffer)?, context)?
-                    .iter(context)
-                    .collect::<Vec<u8>>();
+                JsUint8Array::from_array_buffer(JsArrayBuffer::from_object(buffer)?, context)?;
+            let bytes_length = bytes.length(context)?;
 
             let Some(end) = byte_offset.checked_add(byte_length) else {
                 return Err(js_error!(TypeError: "Invalid TypedArray byte range."));
             };
-            let Some(range) = bytes.get(byte_offset..end) else {
+            if end > bytes_length {
                 return Err(js_error!(TypeError: "Invalid TypedArray byte range."));
-            };
-            range.to_vec()
+            }
+
+            bytes
+                .iter(context)
+                .skip(byte_offset)
+                .take(byte_length)
+                .collect::<Vec<u8>>()
         } else {
             return Err(
                 js_error!(TypeError: "Argument 1 must be an ArrayBuffer, TypedArray or DataView."),
