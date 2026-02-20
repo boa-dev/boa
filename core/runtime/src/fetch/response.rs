@@ -166,8 +166,45 @@ impl JsResponse {
     }
 
     #[boa(constructor)]
-    fn constructor(_body: Option<JsValue>, _options: JsResponseOptions) -> Self {
-        Self::basic(js_string!(""), http::Response::new(Vec::new()))
+    fn constructor(
+        body: Option<JsValue>,
+        options: Option<JsResponseOptions>,
+        context: &mut Context,
+    ) -> JsResult<Self> {
+        let (status_code, headers) = match options {
+            Some(ref opts) => (
+                opts.status.unwrap_or(200),
+                opts.headers.clone().unwrap_or_default(),
+            ),
+            None => (200, JsHeaders::default()),
+        };
+
+        let status = StatusCode::from_u16(status_code).map_err(|_| {
+            JsNativeError::range().with_message(format!("Invalid status code - {status_code}"))
+        })?;
+
+        let body_bytes = if let Some(body_val) = body {
+            if let Some(s) = body_val.as_string() {
+                s.to_std_string_lossy().into_bytes()
+            } else if !body_val.is_null() && !body_val.is_undefined() {
+                body_val
+                    .to_string(context)?
+                    .to_std_string_lossy()
+                    .into_bytes()
+            } else {
+                Vec::new()
+            }
+        } else {
+            Vec::new()
+        };
+
+        Ok(Self {
+            url: js_string!(""),
+            r#type: ResponseType::Basic,
+            status: Some(status),
+            headers,
+            body: Rc::new(body_bytes),
+        })
     }
 
     #[boa(getter)]
