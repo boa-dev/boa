@@ -2,7 +2,7 @@
 //!
 //! See <https://developer.mozilla.org/en-US/docs/Web/API/Encoding_API> for more information.
 
-use boa_engine::object::builtins::{JsArrayBuffer, JsTypedArray, JsUint8Array};
+use boa_engine::object::builtins::{JsArrayBuffer, JsTypedArray, JsUint8Array, JsDataView};
 use boa_engine::realm::Realm;
 use boa_engine::value::TryFromJs;
 use boa_engine::{
@@ -76,24 +76,58 @@ impl TextDecoder {
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/API/TextDecoder/decode
     pub fn decode(&self, buffer: JsValue, context: &mut Context) -> JsResult<JsString> {
         // `buffer` can be an `ArrayBuffer`, a `TypedArray` or a `DataView`.
-        let bytes = if let Ok(array_buffer) = JsArrayBuffer::try_from_js(&buffer, context) {
-            JsUint8Array::from_array_buffer(array_buffer, context)?
+        let buffer_bytes = if let Ok(array_buffer) = JsArrayBuffer::try_from_js(&buffer, context) {
+            // For ArrayBuffer, use the entire buffer
+            let Some(data) = array_buffer.data() else {
+                return Err(js_error!(TypeError: "ArrayBuffer is detached."));
+            };
+            data.to_vec()
         } else if let Ok(typed_array) = JsTypedArray::try_from_js(&buffer, context) {
-            let Some(buffer) = typed_array.buffer(context)?.as_object() else {
+            // For TypedArray, respect byteOffset and byteLength
+            let Some(buffer_obj) = typed_array.buffer(context)?.as_object() else {
                 return Err(js_error!(TypeError: "Invalid buffer backing TypedArray."));
             };
-            JsUint8Array::from_array_buffer(JsArrayBuffer::from_object(buffer)?, context)?
+            let array_buffer = JsArrayBuffer::from_object(buffer_obj)?;
+            let Some(data) = array_buffer.data() else {
+                return Err(js_error!(TypeError: "ArrayBuffer is detached."));
+            };
+            
+            let byte_offset = typed_array.byte_offset(context)?;
+            let byte_length = typed_array.byte_length(context)?;
+            let end = byte_offset + byte_length;
+            
+            // Extract the slice respecting byteOffset and byteLength
+            data.get(byte_offset..end)
+                .ok_or_else(|| js_error!(RangeError: "TypedArray access out of bounds."))?
+                .to_vec()
+        } else if let Ok(data_view) = JsDataView::try_from_js(&buffer, context) {
+            // For DataView, respect byteOffset and byteLength
+            let Some(buffer_obj) = data_view.buffer(context)?.as_object() else {
+                return Err(js_error!(TypeError: "Invalid buffer backing DataView."));
+            };
+            let array_buffer = JsArrayBuffer::from_object(buffer_obj)?;
+            let Some(data) = array_buffer.data() else {
+                return Err(js_error!(TypeError: "ArrayBuffer is detached."));
+            };
+            
+            let byte_offset = data_view.byte_offset(context)? as usize;
+            let byte_length = data_view.byte_length(context)? as usize;
+            let end = byte_offset + byte_length;
+            
+            // Extract the slice respecting byteOffset and byteLength
+            data.get(byte_offset..end)
+                .ok_or_else(|| js_error!(RangeError: "DataView access out of bounds."))?
+                .to_vec()
         } else {
             return Err(
                 js_error!(TypeError: "Argument 1 must be an ArrayBuffer, TypedArray or DataView."),
             );
         };
 
-        let buffer = bytes.iter(context).collect::<Vec<u8>>();
         Ok(match self {
-            Self::Utf8 => encodings::utf8::decode(&buffer),
-            Self::Utf16Le => encodings::utf16le::decode(&buffer),
-            Self::Utf16Be => encodings::utf16be::decode(buffer),
+            Self::Utf8 => encodings::utf8::decode(&buffer_bytes),
+            Self::Utf16Le => encodings::utf16le::decode(&buffer_bytes),
+            Self::Utf16Be => encodings::utf16be::decode(buffer_bytes),
         })
     }
 }

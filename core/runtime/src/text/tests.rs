@@ -155,3 +155,63 @@ fn roundtrip(encoding: &'static str) {
         context,
     );
 }
+
+#[test]
+fn decoder_subarray() {
+    let context = &mut Context::default();
+    text::register(None, context).unwrap();
+
+    run_test_actions_with(
+        [
+            TestAction::run(indoc! {r#"
+                const d = new TextDecoder();
+                // Create a Uint8Array with two 'B' characters (0x42, 0x42)
+                // Then create a subarray starting at index 1 (should only contain one 'B')
+                decoded = d.decode(Uint8Array.of(0x42, 0x42).subarray(1));
+            "#}),
+            TestAction::inspect_context(|context| {
+                let decoded = context
+                    .global_object()
+                    .get(js_str!("decoded"), context)
+                    .unwrap();
+                // Should decode to "B" (one character), not "BB" (two characters)
+                assert_eq!(decoded.as_string(), Some(js_string!("B")));
+            }),
+        ],
+        context,
+    );
+}
+
+#[test]
+fn decoder_dataview() {
+    let context = &mut Context::default();
+    text::register(None, context).unwrap();
+
+    run_test_actions_with(
+        [
+            TestAction::run(indoc! {r#"
+                const d = new TextDecoder();
+                // Create an ArrayBuffer with "Hello"
+                const buffer = new ArrayBuffer(5);
+                const arr = new Uint8Array(buffer);
+                arr[0] = 0x48; // 'H'
+                arr[1] = 0x65; // 'e'
+                arr[2] = 0x6c; // 'l'
+                arr[3] = 0x6c; // 'l'
+                arr[4] = 0x6f; // 'o'
+                // Create a DataView with offset 1 and length 3 (should extract "ell")
+                const view = new DataView(buffer, 1, 3);
+                decoded = d.decode(view);
+            "#}),
+            TestAction::inspect_context(|context| {
+                let decoded = context
+                    .global_object()
+                    .get(js_str!("decoded"), context)
+                    .unwrap();
+                // Should decode to "ell"
+                assert_eq!(decoded.as_string(), Some(js_string!("ell")));
+            }),
+        ],
+        context,
+    );
+}
