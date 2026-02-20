@@ -291,6 +291,18 @@ impl JsValue {
     }
 
     /// Returns true if the value is an object.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use boa_engine::{JsValue, object::JsObject};
+    ///
+    /// let obj = JsValue::new(JsObject::with_null_proto());
+    /// assert!(obj.is_object());
+    ///
+    /// let number = JsValue::new(42);
+    /// assert!(!number.is_object());
+    /// ```
     #[inline]
     #[must_use]
     pub fn is_object(&self) -> bool {
@@ -298,6 +310,18 @@ impl JsValue {
     }
 
     /// Returns the object if the value is object, otherwise `None`.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use boa_engine::{JsValue, object::JsObject};
+    ///
+    /// let obj = JsValue::new(JsObject::with_null_proto());
+    /// assert!(obj.as_object().is_some());
+    ///
+    /// let number = JsValue::new(42);
+    /// assert!(number.as_object().is_none());
+    /// ```
     #[inline]
     #[must_use]
     pub fn as_object(&self) -> Option<JsObject> {
@@ -305,6 +329,19 @@ impl JsValue {
     }
 
     /// Consumes the value and return the inner object if it was an object.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use boa_engine::{JsValue, object::JsObject};
+    ///
+    /// let obj = JsValue::new(JsObject::with_null_proto());
+    /// let inner = obj.into_object();
+    /// assert!(inner.is_some());
+    ///
+    /// let number = JsValue::new(42);
+    /// assert!(number.into_object().is_none());
+    /// ```
     #[inline]
     #[must_use]
     pub fn into_object(self) -> Option<JsObject> {
@@ -317,6 +354,20 @@ impl JsValue {
     /// - [ECMAScript reference][spec]
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-iscallable
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use boa_engine::{Context, JsValue, Source};
+    ///
+    /// let mut context = Context::default();
+    /// // Evaluate a function expression to get a callable value.
+    /// let func = context.eval(Source::from_bytes(b"(function() {})")).unwrap();
+    /// assert!(func.is_callable());
+    ///
+    /// let number = JsValue::new(42);
+    /// assert!(!number.is_callable());
+    /// ```
     #[inline]
     #[must_use]
     pub fn is_callable(&self) -> bool {
@@ -324,6 +375,19 @@ impl JsValue {
     }
 
     /// Returns the callable value if the value is callable, otherwise `None`.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use boa_engine::{Context, JsValue, Source};
+    ///
+    /// let mut context = Context::default();
+    /// let func = context.eval(Source::from_bytes(b"(function() {})")).unwrap();
+    /// assert!(func.as_callable().is_some());
+    ///
+    /// let number = JsValue::new(42);
+    /// assert!(number.as_callable().is_none());
+    /// ```
     #[inline]
     #[must_use]
     pub fn as_callable(&self) -> Option<JsObject> {
@@ -332,6 +396,19 @@ impl JsValue {
 
     /// Returns a [`JsFunction`] if the value is callable, otherwise `None`.
     /// This is equivalent to `JsFunction::from_object(value.as_callable()?)`.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use boa_engine::{Context, JsValue, Source};
+    ///
+    /// let mut context = Context::default();
+    /// let func = context.eval(Source::from_bytes(b"(function() {})")).unwrap();
+    /// assert!(func.as_function().is_some());
+    ///
+    /// let number = JsValue::new(42);
+    /// assert!(number.as_function().is_none());
+    /// ```
     #[inline]
     #[must_use]
     pub fn as_function(&self) -> Option<JsFunction> {
@@ -339,6 +416,21 @@ impl JsValue {
     }
 
     /// Returns true if the value is a constructor object.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use boa_engine::{Context, JsValue, Source};
+    ///
+    /// let mut context = Context::default();
+    /// // Classes and regular functions are constructors.
+    /// let class = context.eval(Source::from_bytes(b"(class {})")).unwrap();
+    /// assert!(class.is_constructor());
+    ///
+    /// // Arrow functions are not constructors.
+    /// let arrow = context.eval(Source::from_bytes(b"(() => {})")).unwrap();
+    /// assert!(!arrow.is_constructor());
+    /// ```
     #[inline]
     #[must_use]
     pub fn is_constructor(&self) -> bool {
@@ -348,6 +440,19 @@ impl JsValue {
     }
 
     /// Returns the constructor if the value is a constructor, otherwise `None`.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use boa_engine::{Context, JsValue, Source};
+    ///
+    /// let mut context = Context::default();
+    /// let class = context.eval(Source::from_bytes(b"(class {})")).unwrap();
+    /// assert!(class.as_constructor().is_some());
+    ///
+    /// let number = JsValue::new(42);
+    /// assert!(number.as_constructor().is_none());
+    /// ```
     #[inline]
     #[must_use]
     pub fn as_constructor(&self) -> Option<JsObject> {
@@ -355,6 +460,19 @@ impl JsValue {
     }
 
     /// Returns true if the value is a promise object.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use boa_engine::{Context, JsValue, Source};
+    ///
+    /// let mut context = Context::default();
+    /// let promise = context.eval(Source::from_bytes(b"new Promise((r) => r())")).unwrap();
+    /// assert!(promise.is_promise());
+    ///
+    /// let number = JsValue::new(42);
+    /// assert!(!number.is_promise());
+    /// ```
     #[inline]
     #[must_use]
     pub fn is_promise(&self) -> bool {
@@ -370,6 +488,19 @@ impl JsValue {
     }
 
     /// Returns the value as a promise if the value is a promise, otherwise `None`.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use boa_engine::{Context, JsValue, Source};
+    ///
+    /// let mut context = Context::default();
+    /// let promise = context.eval(Source::from_bytes(b"new Promise((r) => r())")).unwrap();
+    /// assert!(promise.as_promise().is_some());
+    ///
+    /// let number = JsValue::new(42);
+    /// assert!(number.as_promise().is_none());
+    /// ```
     #[inline]
     #[must_use]
     pub fn as_promise(&self) -> Option<JsPromise> {
@@ -377,6 +508,19 @@ impl JsValue {
     }
 
     /// Returns true if the value is a regular expression object.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use boa_engine::{Context, JsValue, Source};
+    ///
+    /// let mut context = Context::default();
+    /// let regex = context.eval(Source::from_bytes(b"/abc/g")).unwrap();
+    /// assert!(regex.is_regexp());
+    ///
+    /// let string = JsValue::new(boa_engine::js_string!("abc"));
+    /// assert!(!string.is_regexp());
+    /// ```
     #[inline]
     #[must_use]
     pub fn is_regexp(&self) -> bool {
@@ -384,6 +528,19 @@ impl JsValue {
     }
 
     /// Returns the value as a regular expression if the value is a regexp, otherwise `None`.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use boa_engine::{Context, JsValue, Source};
+    ///
+    /// let mut context = Context::default();
+    /// let regex = context.eval(Source::from_bytes(b"/abc/g")).unwrap();
+    /// assert!(regex.as_regexp().is_some());
+    ///
+    /// let number = JsValue::new(42);
+    /// assert!(number.as_regexp().is_none());
+    /// ```
     #[inline]
     #[must_use]
     pub fn as_regexp(&self) -> Option<JsRegExp> {
@@ -393,6 +550,18 @@ impl JsValue {
     }
 
     /// Returns true if the value is a symbol.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use boa_engine::{JsValue, JsSymbol};
+    ///
+    /// let sym = JsValue::new(JsSymbol::new(None).unwrap());
+    /// assert!(sym.is_symbol());
+    ///
+    /// let string = JsValue::new(boa_engine::js_string!("hello"));
+    /// assert!(!string.is_symbol());
+    /// ```
     #[inline]
     #[must_use]
     pub fn is_symbol(&self) -> bool {
@@ -400,6 +569,18 @@ impl JsValue {
     }
 
     /// Returns the symbol if the value is a symbol, otherwise `None`.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use boa_engine::{JsValue, JsSymbol};
+    ///
+    /// let sym = JsValue::new(JsSymbol::new(None).unwrap());
+    /// assert!(sym.as_symbol().is_some());
+    ///
+    /// let number = JsValue::new(42);
+    /// assert!(number.as_symbol().is_none());
+    /// ```
     #[inline]
     #[must_use]
     pub fn as_symbol(&self) -> Option<JsSymbol> {
