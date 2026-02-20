@@ -130,6 +130,21 @@ impl JsValue {
     }
 
     /// Create a new [`JsValue`].
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use boa_engine::JsValue;
+    ///
+    /// let integer = JsValue::new(42);
+    /// assert_eq!(integer.as_number(), Some(42.0));
+    ///
+    /// let float = JsValue::new(3.14);
+    /// assert_eq!(float.as_number(), Some(3.14));
+    ///
+    /// let boolean = JsValue::new(true);
+    /// assert_eq!(boolean.as_boolean(), Some(true));
+    /// ```
     #[inline]
     #[must_use]
     pub fn new<T>(value: T) -> Self
@@ -140,6 +155,23 @@ impl JsValue {
     }
 
     /// Return the variant of this value.
+    ///
+    /// This can be used to match on the underlying type of the value.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use boa_engine::{JsValue, value::JsVariant};
+    ///
+    /// let value = JsValue::new(42);
+    /// match value.variant() {
+    ///     JsVariant::Integer32(n) => assert_eq!(n, 42),
+    ///     _ => unreachable!(),
+    /// }
+    ///
+    /// let value = JsValue::undefined();
+    /// assert!(matches!(value.variant(), JsVariant::Undefined));
+    /// ```
     #[inline]
     #[must_use]
     pub fn variant(&self) -> JsVariant {
@@ -147,6 +179,17 @@ impl JsValue {
     }
 
     /// Creates a new `undefined` value.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use boa_engine::JsValue;
+    ///
+    /// let value = JsValue::undefined();
+    /// assert!(value.is_undefined());
+    /// assert!(value.is_null_or_undefined());
+    /// assert_eq!(value.display().to_string(), "undefined");
+    /// ```
     #[inline]
     #[must_use]
     pub const fn undefined() -> Self {
@@ -154,6 +197,17 @@ impl JsValue {
     }
 
     /// Creates a new `null` value.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use boa_engine::JsValue;
+    ///
+    /// let value = JsValue::null();
+    /// assert!(value.is_null());
+    /// assert!(value.is_null_or_undefined());
+    /// assert_eq!(value.display().to_string(), "null");
+    /// ```
     #[inline]
     #[must_use]
     pub const fn null() -> Self {
@@ -161,6 +215,18 @@ impl JsValue {
     }
 
     /// Creates a new number with `NaN` value.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use boa_engine::JsValue;
+    ///
+    /// let value = JsValue::nan();
+    /// assert!(value.is_number());
+    /// // NaN is not equal to itself.
+    /// assert!(value.as_number().unwrap().is_nan());
+    /// assert_eq!(value.display().to_string(), "NaN");
+    /// ```
     #[inline]
     #[must_use]
     pub const fn nan() -> Self {
@@ -168,6 +234,17 @@ impl JsValue {
     }
 
     /// Creates a new number with `Infinity` value.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use boa_engine::JsValue;
+    ///
+    /// let value = JsValue::positive_infinity();
+    /// assert!(value.is_number());
+    /// assert_eq!(value.as_number(), Some(f64::INFINITY));
+    /// assert_eq!(value.display().to_string(), "Infinity");
+    /// ```
     #[inline]
     #[must_use]
     pub const fn positive_infinity() -> Self {
@@ -175,6 +252,17 @@ impl JsValue {
     }
 
     /// Creates a new number with `-Infinity` value.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use boa_engine::JsValue;
+    ///
+    /// let value = JsValue::negative_infinity();
+    /// assert!(value.is_number());
+    /// assert_eq!(value.as_number(), Some(f64::NEG_INFINITY));
+    /// assert_eq!(value.display().to_string(), "-Infinity");
+    /// ```
     #[inline]
     #[must_use]
     pub const fn negative_infinity() -> Self {
@@ -182,6 +270,20 @@ impl JsValue {
     }
 
     /// Creates a new number from a float.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use boa_engine::JsValue;
+    ///
+    /// let value = JsValue::rational(3.14);
+    /// assert!(value.is_number());
+    /// assert_eq!(value.as_number(), Some(3.14));
+    ///
+    /// // Can also represent special float values.
+    /// let neg_zero = JsValue::rational(-0.0);
+    /// assert!(neg_zero.is_number());
+    /// ```
     // #[inline]
     #[must_use]
     pub fn rational(rational: f64) -> Self {
