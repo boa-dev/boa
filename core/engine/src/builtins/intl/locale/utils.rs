@@ -13,6 +13,7 @@ use crate::{
     object::JsObject,
 };
 
+use icu_locale::extensions::unicode::value;
 use icu_locale::{LanguageIdentifier, Locale, LocaleCanonicalizer};
 use icu_provider::{
     DataIdentifierBorrowed, DataLocale, DataMarker, DataMarkerAttributes, DataRequest,
@@ -79,6 +80,26 @@ pub(crate) fn locale_from_value(tag: &JsValue, context: &mut Context) -> JsResul
         .locale_canonicalizer()?
         .canonicalize(&mut tag);
 
+    let keys: Vec<_> = tag
+        .extensions
+        .unicode
+        .keywords
+        .iter()
+        .map(|(k, _)| k.clone())
+        .collect();
+
+    for k in keys {
+        if let Some(v) = tag.extensions.unicode.keywords.get_mut(&k) {
+            if v.to_string() == "yes" {
+                match k.as_str() {
+                    "kb" | "kc" | "kh" | "kk" | "kn" => {
+                        *v = value!("true");
+                    }
+                    _ => {}
+                }
+            }
+        }
+    }
     Ok(tag)
 }
 
