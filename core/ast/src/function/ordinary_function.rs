@@ -5,7 +5,9 @@ use crate::{
     join_nodes,
     operations::{ContainsSymbol, contains},
     scope::{FunctionScopes, Scope},
-    scope_analyzer::{analyze_binding_escapes, collect_bindings},
+    scope_analyzer::{
+        analyze_binding_escapes, collect_bindings, optimize_scope_indices_with_root_function_scope,
+    },
     visitor::{VisitWith, Visitor, VisitorMut},
 };
 use boa_interner::{Interner, ToIndentedString};
@@ -280,8 +282,24 @@ impl FunctionExpression {
         scope: &Scope,
         interner: &Interner,
     ) -> Result<(), &'static str> {
+        self.analyze_scope_with_options(strict, scope, interner, false)
+    }
+
+    /// Analyze the scope of the function expression, with extra scope analysis options.
+    ///
+    /// # Errors
+    /// Any scope or binding errors that happened during the analysis.
+    pub fn analyze_scope_with_options(
+        &mut self,
+        strict: bool,
+        scope: &Scope,
+        interner: &Interner,
+        force_function_scope: bool,
+    ) -> Result<(), &'static str> {
         collect_bindings(self, strict, false, scope, interner)?;
-        analyze_binding_escapes(self, false, scope.clone(), interner)
+        analyze_binding_escapes(self, false, scope.clone(), interner)?;
+        optimize_scope_indices_with_root_function_scope(self, scope, force_function_scope);
+        Ok(())
     }
 }
 

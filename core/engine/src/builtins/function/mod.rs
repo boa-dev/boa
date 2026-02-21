@@ -647,9 +647,12 @@ impl BuiltInFunctionObject {
             false,
             Span::new(function_span_start, function_span_end),
         );
-        if let Err(reason) =
-            function.analyze_scope(strict, context.realm().scope(), context.interner())
-        {
+        if let Err(reason) = function.analyze_scope_with_options(
+            strict,
+            context.realm().scope(),
+            context.interner(),
+            true,
+        ) {
             return Err(js_error!(SyntaxError: "failed to analyze function scope: {}", reason));
         }
 
