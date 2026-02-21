@@ -662,3 +662,120 @@ fn import_non_string_attribute_value() {
         .is_err()
     );
 }
+
+/// Checks `using` declaration parsing.
+#[test]
+fn using_declaration() {
+    let interner = &mut Interner::default();
+    check_script_parser(
+        "using x = resource;",
+        vec![
+            Declaration::Lexical(LexicalDeclaration::Using(
+                vec![Variable::from_identifier(
+                    Identifier::new(
+                        interner.get_or_intern_static("x", utf16!("x")),
+                        Span::new((1, 7), (1, 8)),
+                    ),
+                    Some(
+                        Identifier::new(
+                            interner.get_or_intern_static("resource", utf16!("resource")),
+                            Span::new((1, 11), (1, 19)),
+                        )
+                        .into(),
+                    ),
+                )]
+                .try_into()
+                .unwrap(),
+            ))
+            .into(),
+        ],
+        interner,
+    );
+}
+
+/// Checks `using` declaration with multiple bindings.
+#[test]
+fn using_declaration_multiple() {
+    let interner = &mut Interner::default();
+    check_script_parser(
+        "using a = res1, b = res2;",
+        vec![
+            Declaration::Lexical(LexicalDeclaration::Using(
+                vec![
+                    Variable::from_identifier(
+                        Identifier::new(
+                            interner.get_or_intern_static("a", utf16!("a")),
+                            Span::new((1, 7), (1, 8)),
+                        ),
+                        Some(
+                            Identifier::new(
+                                interner.get_or_intern_static("res1", utf16!("res1")),
+                                Span::new((1, 11), (1, 15)),
+                            )
+                            .into(),
+                        ),
+                    ),
+                    Variable::from_identifier(
+                        Identifier::new(
+                            interner.get_or_intern_static("b", utf16!("b")),
+                            Span::new((1, 17), (1, 18)),
+                        ),
+                        Some(
+                            Identifier::new(
+                                interner.get_or_intern_static("res2", utf16!("res2")),
+                                Span::new((1, 21), (1, 25)),
+                            )
+                            .into(),
+                        ),
+                    ),
+                ]
+                .try_into()
+                .unwrap(),
+            ))
+            .into(),
+        ],
+        interner,
+    );
+}
+
+/// Checks that `using` declaration without initializer fails.
+#[test]
+fn using_declaration_no_init() {
+    check_invalid_script("using x;");
+}
+
+/// Checks `await using` declaration parsing.
+#[test]
+fn await_using_declaration() {
+    let interner = &mut Interner::default();
+    check_script_parser(
+        "await using x = resource;",
+        vec![
+            Declaration::Lexical(LexicalDeclaration::AwaitUsing(
+                vec![Variable::from_identifier(
+                    Identifier::new(
+                        interner.get_or_intern_static("x", utf16!("x")),
+                        Span::new((1, 13), (1, 14)),
+                    ),
+                    Some(
+                        Identifier::new(
+                            interner.get_or_intern_static("resource", utf16!("resource")),
+                            Span::new((1, 17), (1, 25)),
+                        )
+                        .into(),
+                    ),
+                )]
+                .try_into()
+                .unwrap(),
+            ))
+            .into(),
+        ],
+        interner,
+    );
+}
+
+/// Checks that `await using` declaration without initializer fails.
+#[test]
+fn await_using_declaration_no_init() {
+    check_invalid_script("await using x;");
+}

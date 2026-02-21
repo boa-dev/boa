@@ -66,16 +66,42 @@ where
 
     fn parse(self, cursor: &mut Cursor<R>, interner: &mut Interner) -> ParseResult<Self::Output> {
         let tok = cursor.peek(0, interner).or_abrupt()?;
+        let tok_kind = tok.kind().clone();
+        let tok_span = tok.span();
+        let tok_str = tok.to_string(interner);
 
-        match tok.kind() {
+        match tok_kind {
             TokenKind::Keyword((Keyword::Function | Keyword::Async | Keyword::Class, _)) => {
                 HoistableDeclaration::new(self.allow_yield, self.allow_await, false)
                     .parse(cursor, interner)
             }
-            TokenKind::Keyword((Keyword::Const | Keyword::Let, _)) => {
+            TokenKind::Keyword((Keyword::Const | Keyword::Let | Keyword::Using, _)) => {
                 LexicalDeclaration::new(true, self.allow_yield, self.allow_await, false)
                     .parse(cursor, interner)
                     .map(Into::into)
+            }
+            TokenKind::Keyword((Keyword::Await, false)) => {
+                // Check if this is `await using`
+                if let Some(next_tok) = cursor.peek(1, interner)? {
+                    if matches!(next_tok.kind(), TokenKind::Keyword((Keyword::Using, false))) {
+                        return LexicalDeclaration::new(true, self.allow_yield, self.allow_await, false)
+                            .parse(cursor, interner)
+                            .map(Into::into);
+                    }
+                }
+                Err(Error::expected(
+                    [
+                        Keyword::Function.to_string(),
+                        Keyword::Async.to_string(),
+                        Keyword::Class.to_string(),
+                        Keyword::Const.to_string(),
+                        Keyword::Let.to_string(),
+                        Keyword::Using.to_string(),
+                    ],
+                    tok_str,
+                    tok_span,
+                    "export declaration",
+                ))
             }
             _ => Err(Error::expected(
                 [
@@ -84,9 +110,10 @@ where
                     Keyword::Class.to_string(),
                     Keyword::Const.to_string(),
                     Keyword::Let.to_string(),
+                    Keyword::Using.to_string(),
                 ],
-                tok.to_string(interner),
-                tok.span(),
+                tok_str,
+                tok_span,
                 "export declaration",
             )),
         }

@@ -445,6 +445,16 @@ pub enum Keyword {
     /// [spec]: https://tc39.es/ecma262/#prod-YieldExpression
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Operators/yield
     Yield,
+
+    /// The `using` keyword.
+    ///
+    /// More information:
+    ///  - [ECMAScript reference][spec]
+    ///  - [MDN documentation][mdn]
+    ///
+    /// [spec]: https://tc39.es/proposal-explicit-resource-management/
+    /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Statements/using
+    Using,
 }
 
 impl Keyword {
@@ -501,6 +511,7 @@ impl Keyword {
             Self::While => ("while", utf16!("while")),
             Self::With => ("with", utf16!("with")),
             Self::Yield => ("yield", utf16!("yield")),
+            Self::Using => ("using", utf16!("using")),
         }
     }
 
@@ -546,6 +557,7 @@ impl Keyword {
             Self::While => Sym::WHILE,
             Self::With => Sym::WITH,
             Self::Yield => Sym::YIELD,
+            Self::Using => Sym::USING,
         }
     }
 }
@@ -615,6 +627,7 @@ impl FromStr for Keyword {
             "while" => Ok(Self::While),
             "with" => Ok(Self::With),
             "yield" => Ok(Self::Yield),
+            "using" => Ok(Self::Using),
             _ => Err(KeywordError),
         }
     }
