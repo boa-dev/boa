@@ -680,28 +680,28 @@ fn date_proto_set_utc_full_year() {
 fn date_proto_set_utc_hours() {
     run_test_actions([
         TestAction::assert_eq(
-            "new Date(2020, 6, 8, 9, 16, 15, 779).setUTCHours(11)",
+            "new Date(Date.UTC(2020, 6, 8, 9, 16, 15, 779)).setUTCHours(11)",
             timestamp_from_utc(2020, 7, 8, 11, 16, 15, 779),
         ),
         TestAction::assert_eq(
-            "new Date(2020, 6, 8, 9, 16, 15, 779).setUTCHours(11, 35)",
+            "new Date(Date.UTC(2020, 6, 8, 9, 16, 15, 779)).setUTCHours(11, 35)",
             timestamp_from_utc(2020, 7, 8, 11, 35, 15, 779),
         ),
         TestAction::assert_eq(
-            "new Date(2020, 6, 8, 9, 16, 15, 779).setUTCHours(11, 35, 23)",
+            "new Date(Date.UTC(2020, 6, 8, 9, 16, 15, 779)).setUTCHours(11, 35, 23)",
             timestamp_from_utc(2020, 7, 8, 11, 35, 23, 779),
         ),
         TestAction::assert_eq(
-            "new Date(2020, 6, 8, 9, 16, 15, 779).setUTCHours(11, 35, 23, 537)",
+            "new Date(Date.UTC(2020, 6, 8, 9, 16, 15, 779)).setUTCHours(11, 35, 23, 537)",
             timestamp_from_utc(2020, 7, 8, 11, 35, 23, 537),
         ),
         // Out-of-bounds
         TestAction::assert_eq(
-            "new Date(2020, 6, 8, 9, 16, 15, 779).setUTCHours(10000, 20000, 30000, 40123)",
+            "new Date(Date.UTC(2020, 6, 8, 9, 16, 15, 779)).setUTCHours(10000, 20000, 30000, 40123)",
             timestamp_from_utc(2021, 9, 11, 21, 40, 40, 123),
         ),
         TestAction::assert_eq(
-            "new Date(2020, 6, 8, 9, 16, 15, 779).setUTCHours(1/0)",
+            "new Date(Date.UTC(2020, 6, 8, 9, 16, 15, 779)).setUTCHours(1/0)",
             f64::NAN,
         ),
     ]);
