@@ -18,7 +18,7 @@ use crate::{
 use boa_gc::{Finalize, Trace};
 use boa_macros::js_str;
 
-use super::{TypedArrayKind, is_valid_integer_index};
+use super::{TypedArrayKind, byte_index_to_usize, is_valid_integer_index};
 
 /// A `TypedArray` object is an exotic object that performs special handling of integer
 /// index property keys.
@@ -628,7 +628,7 @@ fn typed_array_get_element(obj: &JsObject, index: f64) -> Option<JsValue> {
     let size = inner.kind.element_size();
 
     // 4. Let byteIndexInBuffer be (ℝ(index) × elementSize) + offset.
-    let byte_index = ((index * size) + offset) as usize;
+    let byte_index = byte_index_to_usize((index * size) + offset).ok()?;
 
     // 5. Let elementType be TypedArrayElementType(O).
     let elem_type = inner.kind();
@@ -687,7 +687,7 @@ pub(crate) fn typed_array_set_element(
     let size = elem_type.element_size();
 
     //     c. Let byteIndexInBuffer be (ℝ(index) × elementSize) + offset.
-    let byte_index = ((index * size) + offset) as usize;
+    let byte_index = byte_index_to_usize((index * size) + offset)?;
 
     //     e. Perform SetValueInBuffer(O.[[ViewedArrayBuffer]], byteIndexInBuffer, elementType, numValue, true, unordered).
     // SAFETY: The TypedArray object guarantees that the buffer is aligned.
