@@ -80,6 +80,9 @@ pub(crate) fn locale_from_value(tag: &JsValue, context: &mut Context) -> JsResul
         .locale_canonicalizer()?
         .canonicalize(&mut tag);
 
+    // TODO: Remove this workaround once ICU4X supports canonicalization of
+    // Unicode extension value aliases (unicode-org/icu4x#3483).
+    // Currently ICU4X does not canonicalize "yes" → "true" for certain keys.
     let keys: Vec<_> = tag
         .extensions
         .unicode
