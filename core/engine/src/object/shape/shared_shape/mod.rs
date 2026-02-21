@@ -121,7 +121,7 @@ impl SharedShape {
     fn property_count(&self) -> u32 {
         self.inner.property_count
     }
-    /// Return the index to the property in the the [`PropertyTable`].
+    /// Return the index to the property in the [`PropertyTable`].
     fn property_index(&self) -> u32 {
         self.inner.property_count.saturating_sub(1)
     }
