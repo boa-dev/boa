@@ -450,7 +450,7 @@ impl Context {
     #[cfg(feature = "fuzz")]
     #[inline]
     #[must_use]
-    pub fn instructions_remaining(&self) -> usize { 
+    pub fn instructions_remaining(&self) -> usize {
         self.instructions_remaining
     }
 
