@@ -1224,14 +1224,30 @@ pub(crate) fn optimize_scope_indices<'a, N>(node: &'a mut N, scope: &Scope)
 where
     &'a mut N: Into<NodeRefMut<'a>>,
 {
+    optimize_scope_indices_with_root_function_scope(node, scope, false);
+}
+
+/// Optimize scope indices when scopes only contain local bindings, optionally forcing the
+/// root function-like scope to be treated as requiring a function environment.
+pub(crate) fn optimize_scope_indices_with_root_function_scope<'a, N>(
+    node: &'a mut N,
+    scope: &Scope,
+    force_root_function_scope: bool,
+) where
+    &'a mut N: Into<NodeRefMut<'a>>,
+{
     let mut visitor = ScopeIndexVisitor {
         index: scope.scope_index(),
+        force_root_function_scope,
+        root_function_scope_forced: false,
     };
     let _ = visitor.visit(node.into());
 }
 
 struct ScopeIndexVisitor {
     index: u32,
+    force_root_function_scope: bool,
+    root_function_scope_forced: bool,
 }
 
 impl<'ast> VisitorMut<'ast> for ScopeIndexVisitor {
@@ -1657,6 +1673,14 @@ impl ScopeIndexVisitor {
             }
             scope.set_index(self.index);
         }
+
+        let force_function_scope =
+            if !arrow && self.force_root_function_scope && !self.root_function_scope_forced {
+                self.root_function_scope_forced = true;
+                true
+            } else {
+                force_function_scope
+            };
 
         if force_function_scope || !scopes.function_scope().all_bindings_local() {
             scopes.requires_function_scope = true;

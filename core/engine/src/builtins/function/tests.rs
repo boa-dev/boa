@@ -194,3 +194,39 @@ fn function_constructor_early_errors_super() {
         ),
     ]);
 }
+
+#[test]
+fn function_constructor_nested_scope_indices_regression() {
+    run_test_actions([TestAction::assert_eq(
+        indoc! {r#"
+            (() => {
+                const compiledCode = `
+                    const noop = () => {}
+                    function Counter() {
+                        const [v, setV] = [0, noop]
+
+                        const onClick = () => {
+                            setV(v => v + 1)
+                        }
+
+                        return null
+                    }
+                    return Counter()
+                `;
+
+                const React = {};
+                const f = new Function("React", compiledCode);
+                return f(React);
+            })()
+        "#},
+        JsValue::null(),
+    )]);
+}
+
+#[test]
+fn function_constructor_nested_lexical_capture() {
+    run_test_actions([TestAction::assert_eq(
+        "Function(\"function f(){ const x = 1; return () => x; } return f()()\")()",
+        1,
+    )]);
+}
