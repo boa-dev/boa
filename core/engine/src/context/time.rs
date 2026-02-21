@@ -135,18 +135,48 @@ pub trait Clock {
     fn now(&self) -> JsInstant;
 }
 
-/// A clock that uses the standard system clock.
+/// A clock that uses a monotonic source anchored to the system clock.
 #[derive(Debug, Clone, Copy, Default)]
 pub struct StdClock;
 
-impl Clock for StdClock {
-    fn now(&self) -> JsInstant {
-        let now = std::time::SystemTime::now();
-        let duration = now
-            .duration_since(std::time::UNIX_EPOCH)
-            .expect("System clock is before Unix epoch");
+impl StdClock {
+    /// Returns a `JsInstant` for the current moment, using a monotonic `Instant` anchored
+    /// to the system clock at startup. This preserves monotonicity even if the system
+    /// clock jumps backwards, while still reporting a time since the Unix epoch.
+    fn now_internal() -> JsInstant {
+        use std::sync::OnceLock;
+
+        #[derive(Debug, Clone, Copy)]
+        struct Anchor {
+            epoch_offset: std::time::Duration,
+            instant: std::time::Instant,
+        }
+
+        static ANCHOR: OnceLock<Anchor> = OnceLock::new();
+
+        let anchor = ANCHOR.get_or_init(|| {
+            let system_now = std::time::SystemTime::now();
+            let epoch_offset = system_now
+                .duration_since(std::time::UNIX_EPOCH)
+                .expect("System clock is before Unix epoch");
+            let instant = std::time::Instant::now();
+
+            Anchor {
+                epoch_offset,
+                instant,
+            }
+        });
+
+        let elapsed = anchor.instant.elapsed();
+        let duration = anchor.epoch_offset.saturating_add(elapsed);
 
         JsInstant::new_unchecked(duration)
+    }
+}
+
+impl Clock for StdClock {
+    fn now(&self) -> JsInstant {
+        Self::now_internal()
     }
 }
 
@@ -211,4 +241,16 @@ fn basic() {
     let now4 = fixed.now();
     assert_eq!(now4.millis_since_epoch(), u64::MAX);
     assert!(now4 > now3);
+}
+
+#[test]
+fn stdclock_is_monotonic() {
+    let clock = StdClock;
+
+    let t1 = clock.now();
+    let t2 = clock.now();
+    let t3 = clock.now();
+
+    assert!(t2 >= t1);
+    assert!(t3 >= t2);
 }
