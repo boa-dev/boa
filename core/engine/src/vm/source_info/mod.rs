@@ -124,7 +124,7 @@ pub(crate) struct Entry {
     /// Represents the start of a bytecode range that falls under the given position.
     ///
     /// The end of the range is the pc of the next entry.
-    /// If the entry is the last the the end of the range is [`u32::MAX`].
+    /// If the entry is the last, the end of the range is [`u32::MAX`].
     pub(crate) pc: u32,
 
     /// Source code [`Position`].
