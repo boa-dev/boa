@@ -305,7 +305,7 @@ pub(crate) fn typed_array_exotic_get_own_property(
     // 1.b. If numericIndex is not undefined, then
     if let Some(numeric_index) = p {
         // i. Let value be IntegerIndexedElementGet(O, numericIndex).
-        let value = typed_array_get_element(obj, numeric_index);
+        let value = typed_array_get_element(obj, numeric_index)?;
 
         // ii. If value is undefined, return undefined.
         // iii. Return the PropertyDescriptor { [[Value]]: value, [[Writable]]: true, [[Enumerable]]: true, [[Configurable]]: true }.
@@ -444,7 +444,7 @@ pub(crate) fn typed_array_exotic_try_get(
     // 1.b. If numericIndex is not undefined, then
     if let Some(numeric_index) = p {
         // i. Return IntegerIndexedElementGet(O, numericIndex).
-        return Ok(typed_array_get_element(obj, numeric_index));
+        return Ok(typed_array_get_element(obj, numeric_index)?);
     }
 
     // 2. Return ? OrdinaryGet(O, P, Receiver).
@@ -476,7 +476,7 @@ pub(crate) fn typed_array_exotic_get(
     // 1.b. If numericIndex is not undefined, then
     if let Some(numeric_index) = p {
         // i. Return IntegerIndexedElementGet(O, numericIndex).
-        return Ok(typed_array_get_element(obj, numeric_index).unwrap_or_default());
+        return Ok(typed_array_get_element(obj, numeric_index)?.unwrap_or_default());
     }
 
     // 2. Return ? OrdinaryGet(O, P, Receiver).
@@ -609,7 +609,7 @@ pub(crate) fn typed_array_exotic_own_property_keys(
 ///  - [ECMAScript reference][spec]
 ///
 /// [spec]: https://tc39.es/ecma262/sec-typedarraygetelement
-fn typed_array_get_element(obj: &JsObject, index: f64) -> Option<JsValue> {
+fn typed_array_get_element(obj: &JsObject, index: f64) -> JsResult<Option<JsValue>> {
     let inner = obj
         .downcast_ref::<TypedArray>()
         .expect("Must be an TypedArray object");
@@ -617,9 +617,13 @@ fn typed_array_get_element(obj: &JsObject, index: f64) -> Option<JsValue> {
     let buffer = buffer.as_buffer();
 
     // 1. If IsValidIntegerIndex(O, index) is false, return undefined.
-    let buffer = buffer.bytes(Ordering::Relaxed)?;
+    let Some(buffer) = buffer.bytes(Ordering::Relaxed) else {
+        return Ok(None);
+    };
 
-    let index = inner.validate_index(index, buffer.len())?;
+    let Some(index) = inner.validate_index(index, buffer.len()) else {
+        return Ok(None);
+    };
 
     // 2. Let offset be O.[[ByteOffset]].
     let offset = inner.byte_offset();
@@ -628,21 +632,23 @@ fn typed_array_get_element(obj: &JsObject, index: f64) -> Option<JsValue> {
     let size = inner.kind.element_size();
 
     // 4. Let byteIndexInBuffer be (ℝ(index) × elementSize) + offset.
-    let byte_index = ((index * size) + offset) as usize;
+    let byte_index = usize::try_from((index * size) + offset).map_err(|_| {
+        JsNativeError::range().with_message("byte index exceeds addressable range").into()
+    })?;
 
     // 5. Let elementType be TypedArrayElementType(O).
     let elem_type = inner.kind();
 
     // 6. Return GetValueFromBuffer(O.[[ViewedArrayBuffer]], byteIndexInBuffer, elementType, true, unordered).
     // SAFETY: The TypedArray object guarantees that the buffer is aligned.
-    // The call to `is_valid_integer_index` guarantees that the index is in-bounds.
+    // The call to `validate_index` and try_from guarantee that the index is in-bounds and addressable.
     let value = unsafe {
         buffer
             .subslice(byte_index..)
             .get_value(elem_type, Ordering::Relaxed)
     };
 
-    Some(value.into())
+    Ok(Some(value.into()))
 }
 
 /// Abstract operation `TypedArraySetElement ( O, index, value )`.
@@ -687,11 +693,13 @@ pub(crate) fn typed_array_set_element(
     let size = elem_type.element_size();
 
     //     c. Let byteIndexInBuffer be (ℝ(index) × elementSize) + offset.
-    let byte_index = ((index * size) + offset) as usize;
+    let byte_index = usize::try_from((index * size) + offset).map_err(|_| {
+        JsNativeError::range().with_message("byte index exceeds addressable range").into()
+    })?;
 
     //     e. Perform SetValueInBuffer(O.[[ViewedArrayBuffer]], byteIndexInBuffer, elementType, numValue, true, unordered).
     // SAFETY: The TypedArray object guarantees that the buffer is aligned.
-    // The call to `validate_index` guarantees that the index is in-bounds.
+    // The call to `validate_index` and try_from guarantee that the index is in-bounds and addressable.
     unsafe {
         buffer
             .subslice_mut(byte_index..)

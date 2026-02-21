@@ -29,6 +29,16 @@ use crate::{
 };
 use crate::{builtins::array_buffer::utils::memmove_naive, value::JsVariant};
 
+/// Converts a byte index or length from `u64` to `usize`, returning a `RangeError` on 32-bit
+/// when the value exceeds the platform's addressable range (e.g. for buffer indexing).
+fn byte_index_to_usize(v: u64) -> JsResult<usize> {
+    usize::try_from(v).map_err(|_| {
+        JsNativeError::range()
+            .with_message("byte index exceeds addressable range")
+            .into()
+    })
+}
+
 /// The JavaScript `%TypedArray%` object.
 ///
 /// <https://tc39.es/ecma262/#sec-%typedarray%-intrinsic-object>
@@ -559,16 +569,16 @@ impl BuiltinTypedArray {
             let byte_offset = ta.byte_offset();
 
             // h. Let bufferByteLimit be (len × elementSize) + byteOffset.
-            let buffer_byte_limit = ((len * element_size) + byte_offset) as usize;
+            let buffer_byte_limit = byte_index_to_usize((len * element_size) + byte_offset)?;
 
             // i. Let toByteIndex be (targetIndex × elementSize) + byteOffset.
-            let to_byte_index = (to * element_size + byte_offset) as usize;
+            let to_byte_index = byte_index_to_usize(to * element_size + byte_offset)?;
 
             // j. Let fromByteIndex be (startIndex × elementSize) + byteOffset.
-            let from_byte_index = (from * element_size + byte_offset) as usize;
+            let from_byte_index = byte_index_to_usize(from * element_size + byte_offset)?;
 
             // k. Let countBytes be count × elementSize.
-            let mut count_bytes = (count * element_size) as usize;
+            let mut count_bytes = byte_index_to_usize(count * element_size)?;
 
             // Readjust considering the buffer_byte_limit. A resize could
             // have readjusted the buffer size, which could put `count_bytes`
@@ -1808,8 +1818,8 @@ impl BuiltinTypedArray {
         // 19. If SameValue(srcBuffer, targetBuffer) is true or sameSharedArrayBuffer is true, then
         let src_byte_index = if BufferObject::equals(&src_buf_obj, &target_buf_obj) {
             // a. Let srcByteLength be source.[[ByteLength]].
-            let src_byte_offset = src_byte_offset as usize;
-            let src_byte_length = src_byte_length as usize;
+            let src_byte_offset_usize = byte_index_to_usize(src_byte_offset)?;
+            let src_byte_length_usize = byte_index_to_usize(src_byte_length)?;
 
             let s = {
                 let slice = src_buf_obj.as_buffer();
@@ -1819,7 +1829,7 @@ impl BuiltinTypedArray {
 
                 // b. Set srcBuffer to ? CloneArrayBuffer(srcBuffer, srcByteOffset, srcByteLength, %ArrayBuffer%).
                 // c. NOTE: %ArrayBuffer% is used to clone srcBuffer because is it known to not have any observable side-effects.
-                let subslice = slice.subslice(src_byte_offset..src_byte_offset + src_byte_length);
+                let subslice = slice.subslice(src_byte_offset_usize..src_byte_offset_usize + src_byte_length_usize);
                 src_buf_len = subslice.len();
 
                 subslice.clone(context)?
@@ -1851,9 +1861,9 @@ impl BuiltinTypedArray {
 
         // 24. If srcType is the same as targetType, then
         if src_type == target_type {
-            let src_byte_index = src_byte_index as usize;
-            let target_byte_index = target_byte_index as usize;
-            let byte_count = (target_element_size * src_length) as usize;
+            let src_byte_index = byte_index_to_usize(src_byte_index)?;
+            let target_byte_index = byte_index_to_usize(target_byte_index)?;
+            let byte_count = byte_index_to_usize(target_element_size * src_length)?;
 
             // a. NOTE: If srcType and targetType are the same, the transfer must be performed in a manner that preserves the bit-level encoding of the source data.
             // b. Repeat, while targetByteIndex < limit,
@@ -1878,10 +1888,10 @@ impl BuiltinTypedArray {
         // 25. Else,
         else {
             // 23. Let limit be targetByteIndex + targetElementSize × srcLength.
-            let limit = (target_byte_index + target_element_size * src_length) as usize;
+            let limit = byte_index_to_usize(target_byte_index + target_element_size * src_length)?;
 
-            let mut src_byte_index = src_byte_index as usize;
-            let mut target_byte_index = target_byte_index as usize;
+            let mut src_byte_index = byte_index_to_usize(src_byte_index)?;
+            let mut target_byte_index = byte_index_to_usize(target_byte_index)?;
 
             // a. Repeat, while targetByteIndex < limit,
             while target_byte_index < limit {
@@ -1908,10 +1918,15 @@ impl BuiltinTypedArray {
                 }
 
                 // iii. Set srcByteIndex to srcByteIndex + srcElementSize.
-                src_byte_index += src_element_size as usize;
+                // SAFETY: element_size() is always 1, 2, 4, or 8, which fits in usize on all platforms.
+                #[allow(clippy::cast_possible_truncation)]
+                let src_element_size_usize = src_element_size as usize;
+                src_byte_index += src_element_size_usize;
 
                 // iv. Set targetByteIndex to targetByteIndex + targetElementSize.
-                target_byte_index += target_element_size as usize;
+                #[allow(clippy::cast_possible_truncation)]
+                let target_element_size_usize = target_element_size as usize;
+                target_byte_index += target_element_size_usize;
             }
         }
 
@@ -2068,7 +2083,7 @@ impl BuiltinTypedArray {
         let end_index = min(end_index, src_borrow.data().array_length(src_buf_len));
 
         // d. Set countBytes to maxlen(endIndex - startIndex, 0).
-        let count = end_index.saturating_sub(start_index) as usize;
+        let count = byte_index_to_usize(end_index.saturating_sub(start_index))?;
 
         // The inner buffer may have resized between getting the indices and getting the buffer
         // itself. Check that the count is not zero again before proceeding.
@@ -2110,7 +2125,10 @@ impl BuiltinTypedArray {
 
         // g. If srcType is targetType, then
         {
-            let byte_count = count * src_type.element_size() as usize;
+            // element_size() is always 1-8; count is already bounded by byte_index_to_usize.
+            #[allow(clippy::cast_possible_truncation)]
+            let element_size_usize = src_type.element_size() as usize;
+            let byte_count = count * element_size_usize;
 
             // i. NOTE: The transfer must be performed in a manner that preserves the bit-level encoding of the source data.
             // ii. Let srcBuffer be O.[[ViewedArrayBuffer]].
@@ -2123,10 +2141,10 @@ impl BuiltinTypedArray {
             let src_byte_offset = src_borrow.data().byte_offset();
 
             // vi. Let srcByteIndex be (startIndex × elementSize) + srcByteOffset.
-            let src_byte_index = (start_index * element_size + src_byte_offset) as usize;
+            let src_byte_index = byte_index_to_usize(start_index * element_size + src_byte_offset)?;
 
             // vii. Let targetByteIndex be A.[[ByteOffset]].
-            let target_byte_index = target_borrow.data().byte_offset() as usize;
+            let target_byte_index = byte_index_to_usize(target_borrow.data().byte_offset())?;
 
             // viii. Let endByteIndex be targetByteIndex + (countBytes × elementSize).
             // Not needed by the impl.
@@ -2892,8 +2910,8 @@ impl BuiltinTypedArray {
         // 11. If elementType is srcType, then
 
         let new_buffer = if element_type == src_type {
-            let start = src_byte_offset as usize;
-            let count = byte_length as usize;
+            let start = byte_index_to_usize(src_byte_offset)?;
+            let count = byte_index_to_usize(byte_length)?;
             // a. Let data be ? CloneArrayBuffer(srcData, srcByteOffset, byteLength).
             src_data.subslice(start..start + count).clone(context)?
         } else {
@@ -2926,11 +2944,14 @@ impl BuiltinTypedArray {
                         .into());
                 }
 
+                // element_size() is always 1, 2, 4, or 8, which fits in usize on all platforms.
+                #[allow(clippy::cast_possible_truncation)]
                 let src_element_size = src_element_size as usize;
+                #[allow(clippy::cast_possible_truncation)]
                 let target_element_size = element_size as usize;
 
                 // c. Let srcByteIndex be srcByteOffset.
-                let mut src_byte_index = src_byte_offset as usize;
+                let mut src_byte_index = byte_index_to_usize(src_byte_offset)?;
 
                 // d. Let targetByteIndex be 0.
                 let mut target_byte_index = 0;
