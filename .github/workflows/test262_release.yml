@@ -53,7 +53,7 @@ jobs:
           cd data
           git config user.name "GitHub Actions"
           git config user.email "actions@github.com"
-          git add test262/refs/tags/${{ github.ref_name }}
+          git add test262
           git commit -m "Update Test262 results for release ${{ github.ref_name }}"
           git push
         env:
