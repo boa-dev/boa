@@ -482,9 +482,11 @@ fn resolve_plural(plural_rules: &PluralRules, n: f64) -> ResolvedPlural {
     // 9. Let operands be ! GetOperands(s).
     // 10. Let p be ! PluralRuleSelect(locale, type, n, operands).
 
-    //let category = plural_rules.native.rules().category_for(&fixed);
-
     let category = if let NotationKind::Compact = plural_rules.notation {
+        // TODO: Handle scientific and engineering notation once ICU4X adds support:
+        // https://github.com/unicode-org/icu4x/issues/3983
+        // https://github.com/unicode-org/icu4x/issues/3984
+
         // get the compact exponent from magnitude
         let exp = (*fixed.magnitude_range().end()).max(0) as u8;
         //instead of using full number, this constructs a compact representation (eg: 1500000 => significand = 1.5, exponent= 6)
