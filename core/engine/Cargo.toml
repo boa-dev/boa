@@ -139,6 +139,8 @@ either = { workspace = true, optional = true }
 static_assertions.workspace = true
 futures-channel.workspace = true
 aligned-vec.workspace = true
+data-encoding.workspace = true
+data-encoding-macro.workspace = true
 
 # intl deps
 boa_icu_provider = { workspace = true, features = ["std"], optional = true }
