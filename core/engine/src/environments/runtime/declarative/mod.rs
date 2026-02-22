@@ -50,7 +50,7 @@ impl DeclarativeEnvironment {
         Self { kind }
     }
 
-    /// Returns a reference to the the kind of the environment.
+    /// Returns a reference to the kind of the environment.
     pub(crate) const fn kind(&self) -> &DeclarativeEnvironmentKind {
         &self.kind
     }

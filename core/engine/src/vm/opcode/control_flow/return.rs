@@ -129,7 +129,10 @@ impl Operation for Move {
     const COST: u8 = 2;
 }
 
-/// TODO: doc
+/// `PopIntoRegister` implements the Opcode Operation for `Opcode::PopIntoRegister`.
+///
+/// Operation:
+///  - Pop a value from the stack and store it in a register.
 #[derive(Debug, Clone, Copy)]
 pub(crate) struct PopIntoRegister;
 
@@ -147,7 +150,10 @@ impl Operation for PopIntoRegister {
     const COST: u8 = 2;
 }
 
-/// TODO: doc
+/// `PushFromRegister` implements the Opcode Operation for `Opcode::PushFromRegister`.
+///
+/// Operation:
+///  - Read a value from a register and push it onto the stack.
 #[derive(Debug, Clone, Copy)]
 pub(crate) struct PushFromRegister;
 

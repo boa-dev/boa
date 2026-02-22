@@ -212,7 +212,10 @@ fn formatter(data: &[JsValue], context: &mut Context) -> JsResult<String> {
                             arg_index += 1;
                         }
                         '%' => formatted.push('%'),
-                        /* TODO: %c is not implemented */
+                        /* CSS styling — consume the argument but don't apply styling in terminal */
+                        'c' => {
+                            arg_index += 1;
+                        }
                         c => {
                             formatted.push('%');
                             formatted.push(c);
