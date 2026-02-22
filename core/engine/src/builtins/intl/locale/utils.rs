@@ -60,7 +60,6 @@ pub(crate) fn locale_from_value(tag: &JsValue, context: &mut Context) -> JsResul
     // iv. Else,
     // 1. Let tag be ? ToString(kValue).
     let tag = tag.to_string(context)?.to_std_string_escaped();
-
     if tag.contains('_') {
         return Err(JsNativeError::range()
             .with_message("locale is not a structurally valid language tag")
@@ -83,6 +82,7 @@ pub(crate) fn locale_from_value(tag: &JsValue, context: &mut Context) -> JsResul
 
     // TODO: Remove this workaround once ICU4X supports canonicalization of
     // Unicode extension value aliases (unicode-org/icu4x#3483).
+    // Currently ICU4X does not canonicalize "yes" → "true" for certain keys.
     let keys: Vec<_> = tag
         .extensions
         .unicode
@@ -93,61 +93,16 @@ pub(crate) fn locale_from_value(tag: &JsValue, context: &mut Context) -> JsResul
 
     for k in keys {
         if let Some(v) = tag.extensions.unicode.keywords.get_mut(&k) {
-            let value_str = v.to_string();
-
-            match (k.as_str(), value_str.as_str()) {
-                // yes → true
-                ("kb" | "kc" | "kh" | "kk" | "kn", "yes") => {
-                    *v = value!("true");
+            if v.to_string() == "yes" {
+                match k.as_str() {
+                    "kb" | "kc" | "kh" | "kk" | "kn" => {
+                        *v = value!("true");
+                    }
+                    _ => {}
                 }
-
-                // Calendar aliases
-                ("ca", "ethiopic-amete-alem") => {
-                    *v = value!("ethioaa");
-                }
-
-                ("ca", "islamicc") => {
-                    *v = "islamic-civil".parse().unwrap(); //value!() only supports single Unicode subtags.
-                }
-
-                // Measurement system alias
-                ("ms", "imperial") => {
-                    *v = value!("uksystem");
-                }
-
-                // Collation strength aliases
-                ("ks", "primary") => {
-                    *v = value!("level1");
-                }
-                ("ks", "tertiary") => {
-                    *v = value!("level3");
-                }
-
-                // Timezone
-                ("tz", "cnckg") => {
-                    *v = value!("cnsha");
-                }
-                ("tz", "eire") => {
-                    *v = value!("iedub");
-                }
-                ("tz", "est") => {
-                    *v = value!("papty");
-                }
-                ("tz", "gmt0") => {
-                    *v = value!("gmt");
-                }
-                ("tz", "uct") => {
-                    *v = value!("utc");
-                }
-                ("tz", "zulu") => {
-                    *v = value!("utc");
-                }
-
-                _ => {}
             }
         }
     }
-
     Ok(tag)
 }
 
