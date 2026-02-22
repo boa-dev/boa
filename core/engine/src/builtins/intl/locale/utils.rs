@@ -88,7 +88,7 @@ pub(crate) fn locale_from_value(tag: &JsValue, context: &mut Context) -> JsResul
         .unicode
         .keywords
         .iter()
-        .map(|(k, _)| k.clone())
+        .map(|(k, _)| *k)
         .collect();
 
     for k in keys {
