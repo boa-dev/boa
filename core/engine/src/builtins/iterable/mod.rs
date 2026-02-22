@@ -67,9 +67,6 @@ pub struct IteratorPrototypes {
     /// The `MapIteratorPrototype` prototype object.
     map: JsObject,
 
-    /// The `ForInIteratorPrototype` prototype object.
-    for_in: JsObject,
-
     /// The `%SegmentIteratorPrototype%` prototype object.
     #[cfg(feature = "intl")]
     segment: JsObject,
@@ -86,8 +83,7 @@ impl Default for IteratorPrototypes {
             string: JsObject::with_null_proto(),
             regexp_string: JsObject::with_null_proto(),
             map: JsObject::with_null_proto(),
-            for_in: JsObject::with_null_proto(),
-            #[cfg(feature = "intl")]
+            #[cfg(feature = "intl")]]
             segment: JsObject::with_null_proto(),
         }
     }
@@ -148,13 +144,6 @@ impl IteratorPrototypes {
     #[must_use]
     pub fn map(&self) -> JsObject {
         self.map.clone()
-    }
-
-    /// Returns the `ForInIteratorPrototype` object.
-    #[inline]
-    #[must_use]
-    pub fn for_in(&self) -> JsObject {
-        self.for_in.clone()
     }
 
     /// Returns the `%SegmentIteratorPrototype%` object.

@@ -5,18 +5,13 @@
 //!
 //! [spec]: https://tc39.es/ecma262/#sec-for-in-iterator-objects
 
-// TODO: This should not be a builtin, since this cannot be seen by ECMAScript code per the spec.
-// Opportunity to optimize this for iteration speed.
-
 use crate::{
-    Context, JsData, JsResult, JsString, JsValue,
-    builtins::{BuiltInBuilder, IntrinsicObject, iterable::create_iter_result_object},
-    context::intrinsics::Intrinsics,
+    Context, JsData, JsResult, JsString, JsValue, NativeFunction,
+    builtins::iterable::create_iter_result_object,
     error::JsNativeError,
     js_string,
-    object::{JsObject, internal_methods::InternalMethodPropertyContext},
+    object::{FunctionObjectBuilder, JsObject, internal_methods::InternalMethodPropertyContext},
     property::PropertyKey,
-    realm::Realm,
 };
 use boa_gc::{Finalize, Trace};
 use rustc_hash::FxHashSet;
@@ -37,25 +32,6 @@ pub(crate) struct ForInIterator {
     object_was_visited: bool,
 }
 
-impl IntrinsicObject for ForInIterator {
-    fn init(realm: &Realm) {
-        BuiltInBuilder::with_intrinsic::<Self>(realm)
-            .prototype(
-                realm
-                    .intrinsics()
-                    .objects()
-                    .iterator_prototypes()
-                    .iterator(),
-            )
-            .static_method(Self::next, js_string!("next"), 0)
-            .build();
-    }
-
-    fn get(intrinsics: &Intrinsics) -> JsObject {
-        intrinsics.objects().iterator_prototypes().for_in()
-    }
-}
-
 impl ForInIterator {
     fn new(object: JsValue) -> Self {
         Self {
@@ -70,21 +46,34 @@ impl ForInIterator {
     ///
     /// Creates a new iterator over the given object.
     ///
+    /// Returns the iterator object and its `next` method as a pair,
+    /// avoiding the need to look up `next` through the prototype chain.
+    ///
     /// More information:
     ///  - [ECMA reference][spec]
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-createforiniterator
-    pub(crate) fn create_for_in_iterator(object: JsValue, context: &Context) -> JsObject {
-        JsObject::from_proto_and_data_with_shared_shape(
+    pub(crate) fn create_for_in_iterator(object: JsValue, context: &Context) -> (JsObject, JsValue) {
+        let iterator = JsObject::from_proto_and_data_with_shared_shape(
             context.root_shape(),
             context
                 .intrinsics()
                 .objects()
                 .iterator_prototypes()
-                .for_in(),
+                .iterator(),
             Self::new(object),
         )
-        .upcast()
+        .upcast();
+
+        let next_method = FunctionObjectBuilder::new(
+            context.realm(),
+            NativeFunction::from_fn_ptr(Self::next),
+        )
+        .name(js_string!("next"))
+        .length(0)
+        .build();
+
+        (iterator, next_method.into())
     }
 
     /// %ForInIteratorPrototype%.next( )
