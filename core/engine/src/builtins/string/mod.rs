@@ -1915,12 +1915,14 @@ impl String {
 
         // 2. If separator is neither undefined nor null, then
         if !separator.is_null_or_undefined() {
-            // a. Let splitter be ? GetMethod(separator, @@split).
-            let splitter = separator.get_method(JsSymbol::split(), context)?;
-            // b. If splitter is not undefined, then
-            if let Some(splitter) = splitter {
-                // i. Return ? Call(splitter, separator, « O, limit »).
-                return splitter.call(separator, &[this.clone(), limit.clone()], context);
+            if let Some(separator_obj) = separator.as_object() {
+                // a. Let splitter be ? GetMethod(separator, @@split).
+                let splitter = separator_obj.get_method(JsSymbol::split(), context)?;
+                // b. If splitter is not undefined, then
+                if let Some(splitter) = splitter {
+                    // i. Return ? Call(splitter, separator, « O, limit »).
+                    return splitter.call(separator, &[this.clone(), limit.clone()], context);
+                }
             }
         }
 
