@@ -140,7 +140,7 @@ jobs:
         run: cargo miri setup
 
       - name: Run miri tests
-        run: cargo miri test --workspace --exclude boa_cli miri
+        run: cargo miri test --workspace --exclude boa_cli --exclude boa_examples miri
 
   msrv:
     name: MSRV
