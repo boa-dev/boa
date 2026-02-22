@@ -332,6 +332,8 @@ fn set_property_by_name_set_inline_cache_on_property_load() -> JsResult<()> {
 
     assert_eq!(code.ic.len(), 1);
     assert_eq!(code.ic[0].shape.borrow().clone(), WeakShape::None);
+    assert_eq!(code.ic[0].entry_count(), 0);
+    assert!(!code.ic[0].is_megamorphic());
 
     let o = ObjectInitializer::new(context)
         .property(js_string!("test"), 0, Attribute::all())
@@ -341,6 +343,8 @@ fn set_property_by_name_set_inline_cache_on_property_load() -> JsResult<()> {
     function.call(&JsValue::undefined(), &[o.clone().into()], context)?;
 
     assert_eq!(code.ic[0].shape.borrow().clone(), WeakShape::from(&o_shape));
+    assert_eq!(code.ic[0].entry_count(), 1);
+    assert!(!code.ic[0].is_megamorphic());
 
     Ok(())
 }
@@ -353,6 +357,8 @@ fn get_property_by_name_set_inline_cache_on_property_load() -> JsResult<()> {
 
     assert_eq!(code.ic.len(), 1);
     assert_eq!(code.ic[0].shape.borrow().clone(), WeakShape::None);
+    assert_eq!(code.ic[0].entry_count(), 0);
+    assert!(!code.ic[0].is_megamorphic());
 
     let o = ObjectInitializer::new(context)
         .property(js_string!("test"), 0, Attribute::all())
@@ -362,6 +368,92 @@ fn get_property_by_name_set_inline_cache_on_property_load() -> JsResult<()> {
     function.call(&JsValue::undefined(), &[o.clone().into()], context)?;
 
     assert_eq!(code.ic[0].shape.borrow().clone(), WeakShape::from(&o_shape));
+    assert_eq!(code.ic[0].entry_count(), 1);
+    assert!(!code.ic[0].is_megamorphic());
+
+    Ok(())
+}
+
+#[test]
+fn get_property_by_name_uses_pic_for_polymorphic_shapes() -> JsResult<()> {
+    let context = &mut Context::default();
+    let function = context.eval(Source::from_bytes("(function (o) { return o.test; })"))?;
+    let (function, code) = get_codeblock(&function).unwrap();
+
+    let o1 = ObjectInitializer::new(context)
+        .property(js_string!("test"), 1, Attribute::all())
+        .build();
+    let o2 = ObjectInitializer::new(context)
+        .property(js_string!("test"), 1, Attribute::all())
+        .property(js_string!("a"), 2, Attribute::all())
+        .build();
+    let o3 = ObjectInitializer::new(context)
+        .property(js_string!("test"), 1, Attribute::all())
+        .property(js_string!("b"), 3, Attribute::all())
+        .build();
+    let o4 = ObjectInitializer::new(context)
+        .property(js_string!("test"), 1, Attribute::all())
+        .property(js_string!("c"), 4, Attribute::all())
+        .build();
+
+    let s1 = o1.borrow().shape().clone();
+    let s2 = o2.borrow().shape().clone();
+    let s3 = o3.borrow().shape().clone();
+    let s4 = o4.borrow().shape().clone();
+
+    function.call(&JsValue::undefined(), &[o1.into()], context)?;
+    function.call(&JsValue::undefined(), &[o2.into()], context)?;
+    function.call(&JsValue::undefined(), &[o3.into()], context)?;
+    function.call(&JsValue::undefined(), &[o4.into()], context)?;
+
+    assert_eq!(code.ic[0].entry_count(), 4);
+    assert!(!code.ic[0].is_megamorphic());
+    assert!(code.ic[0].contains_shape(&s1));
+    assert!(code.ic[0].contains_shape(&s2));
+    assert!(code.ic[0].contains_shape(&s3));
+    assert!(code.ic[0].contains_shape(&s4));
+
+    Ok(())
+}
+
+#[test]
+fn property_by_name_pic_transitions_to_megamorphic() -> JsResult<()> {
+    let context = &mut Context::default();
+    let function = context.eval(Source::from_bytes("(function (o) { return o.test; })"))?;
+    let (function, code) = get_codeblock(&function).unwrap();
+
+    let o1 = ObjectInitializer::new(context)
+        .property(js_string!("test"), 1, Attribute::all())
+        .build();
+    let o2 = ObjectInitializer::new(context)
+        .property(js_string!("test"), 1, Attribute::all())
+        .property(js_string!("a"), 2, Attribute::all())
+        .build();
+    let o3 = ObjectInitializer::new(context)
+        .property(js_string!("test"), 1, Attribute::all())
+        .property(js_string!("b"), 3, Attribute::all())
+        .build();
+    let o4 = ObjectInitializer::new(context)
+        .property(js_string!("test"), 1, Attribute::all())
+        .property(js_string!("c"), 4, Attribute::all())
+        .build();
+    let o5 = ObjectInitializer::new(context)
+        .property(js_string!("test"), 1, Attribute::all())
+        .property(js_string!("d"), 5, Attribute::all())
+        .build();
+
+    function.call(&JsValue::undefined(), &[o1.into()], context)?;
+    function.call(&JsValue::undefined(), &[o2.into()], context)?;
+    function.call(&JsValue::undefined(), &[o3.into()], context)?;
+    function.call(&JsValue::undefined(), &[o4.into()], context)?;
+
+    assert_eq!(code.ic[0].entry_count(), 4);
+    assert!(!code.ic[0].is_megamorphic());
+
+    function.call(&JsValue::undefined(), &[o5.into()], context)?;
+
+    assert!(code.ic[0].is_megamorphic());
+    assert_eq!(code.ic[0].entry_count(), 0);
 
     Ok(())
 }
