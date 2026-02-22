@@ -134,7 +134,7 @@ impl TextDecoder {
         let strip_bom = !self.ignore_bom;
 
         let Some(data) = array_buffer.data() else {
-            return Err(js_error!(TypeError: "Detached ArrayBuffer"));
+            return Err(js_error!(TypeError: "cannot decode a detached ArrayBuffer"));
         };
 
         Ok(match self.encoding {
