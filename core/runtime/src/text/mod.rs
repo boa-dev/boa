@@ -19,61 +19,65 @@ mod encodings;
 /// a specific character encoding, like `utf-8`.
 ///
 /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/API/TextDecoder
-#[derive(Debug, Default, Clone, JsData, Trace, Finalize)]
+#[derive(Debug, Clone, JsData, Trace, Finalize)]
 pub enum TextDecoder {
-    /// Decode bytes encoded as UTF-8 into strings.
-    #[default]
-    Utf8,
-    /// Decode bytes encoded as UTF-16 (little endian) into strings.
-    Utf16Le,
-    /// Decode bytes encoded as UTF-16 (big endian) into strings.
-    Utf16Be,
+    Utf8 {
+        fatal: bool,
+    },
+    Utf16Le {
+        fatal: bool,
+    },
+    Utf16Be {
+        fatal: bool,
+    },
+}
+
+impl Default for TextDecoder {
+    fn default() -> Self {
+        Self::Utf8 { fatal: false }
+    }
 }
 
 #[boa_class]
 impl TextDecoder {
-    /// The [`TextDecoder()`][mdn] constructor returns a new `TextDecoder` object.
-    ///
-    /// # Errors
-    /// This will return an error if the encoding or options are invalid or unsupported.
-    ///
-    /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/API/TextDecoder/TextDecoder
     #[boa(constructor)]
-    pub fn constructor(encoding: Option<JsString>, _options: Option<JsObject>) -> JsResult<Self> {
-        let Some(encoding) = encoding else {
-            return Ok(Self::default());
+    pub fn constructor(encoding: Option<JsString>, options: Option<JsObject>) -> JsResult<Self> {
+        let encoding = encoding.as_ref().map(|e| e.to_std_string_lossy());
+        let fatal = if let Some(options) = options {
+            options
+                .get(js_string!("fatal"), &mut Context::default())?
+                .to_boolean()
+        } else {
+            false
         };
 
-        match encoding.to_std_string_lossy().as_str() {
-            "utf-8" => Ok(Self::Utf8),
+        match encoding.as_deref() {
+            None | Some("utf-8") => Ok(Self::Utf8 { fatal }),
             // Default encoding is Little Endian.
-            "utf-16" | "utf-16le" => Ok(Self::Utf16Le),
-            "utf-16be" => Ok(Self::Utf16Be),
-            e => Err(js_error!(RangeError: "The given encoding '{}' is not supported.", e)),
+            Some("utf-16" | "utf-16le") => Ok(Self::Utf16Le { fatal }),
+            Some("utf-16be") => Ok(Self::Utf16Be { fatal }),
+            Some(e) => Err(js_error!(RangeError: "The given encoding '{}' is not supported.", e)),
         }
     }
 
-    /// The [`TextDecoder.encoding`][mdn] read-only property returns a string containing
-    /// the name of the character encoding that this decoder will use.
-    ///
-    /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/API/TextDecoder/encoding
     #[boa(getter)]
     #[must_use]
     pub fn encoding(&self) -> JsString {
         match self {
-            Self::Utf8 => js_string!("utf-8"),
-            Self::Utf16Le => js_string!("utf-16le"),
-            Self::Utf16Be => js_string!("utf-16be"),
+            Self::Utf8 { .. } => js_string!("utf-8"),
+            Self::Utf16Le { .. } => js_string!("utf-16le"),
+            Self::Utf16Be { .. } => js_string!("utf-16be"),
         }
     }
 
-    /// The [`TextDecoder.decode()`][mdn] method returns a string containing text decoded from the
-    /// buffer passed as a parameter.
-    ///
-    /// # Errors
-    /// Any error that arises during decoding the specific encoding.
-    ///
-    /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/API/TextDecoder/decode
+    #[boa(getter)]
+    #[must_use]
+    pub fn fatal(&self) -> bool {
+        match self {
+            Self::Utf8 { fatal } | Self::Utf16Le { fatal } | Self::Utf16Be { fatal } => *fatal,
+        }
+    }
+
     pub fn decode(&self, buffer: JsValue, context: &mut Context) -> JsResult<JsString> {
         // `buffer` can be an `ArrayBuffer`, a `TypedArray` or a `DataView`.
         let bytes = if let Ok(array_buffer) = JsArrayBuffer::try_from_js(&buffer, context) {
@@ -90,11 +94,11 @@ impl TextDecoder {
         };
 
         let buffer = bytes.iter(context).collect::<Vec<u8>>();
-        Ok(match self {
-            Self::Utf8 => encodings::utf8::decode(&buffer),
-            Self::Utf16Le => encodings::utf16le::decode(&buffer),
-            Self::Utf16Be => encodings::utf16be::decode(buffer),
-        })
+        match self {
+            Self::Utf8 { fatal } => encodings::utf8::decode(&buffer, *fatal),
+            Self::Utf16Le { fatal } => encodings::utf16le::decode(&buffer, *fatal),
+            Self::Utf16Be { fatal } => encodings::utf16be::decode(buffer, *fatal),
+        }
     }
 }
 

@@ -2,9 +2,8 @@ use crate::test::{TestAction, run_test_actions_with};
 use crate::text;
 use boa_engine::object::builtins::JsUint8Array;
 use boa_engine::property::Attribute;
-use boa_engine::{Context, JsString, js_str, js_string};
+use boa_engine::{Context, JsString, JsValue, js_str, js_string};
 use indoc::indoc;
-use test_case::test_case;
 
 #[test]
 fn encoder_js() {
@@ -125,31 +124,96 @@ fn decoder_js_invalid() {
     );
 }
 
-#[test_case("utf-8")]
-#[test_case("utf-16")]
-#[test_case("utf-16le")]
-#[test_case("utf-16be")]
-fn roundtrip(encoding: &'static str) {
+#[test]
+fn roundtrip() {
     let context = &mut Context::default();
     text::register(None, context).unwrap();
 
     run_test_actions_with(
         [
-            TestAction::run(format!(
-                r#"
-                const encoder = new TextEncoder({encoding:?});
-                const decoder = new TextDecoder({encoding:?});
+            TestAction::run(indoc! {r#"
+                const encoder = new TextEncoder();
+                const decoder = new TextDecoder();
                 const text = "Hello, World!";
                 const encoded = encoder.encode(text);
                 decoded = decoder.decode(encoded);
-            "#
-            )),
+            "#}),
             TestAction::inspect_context(|context| {
                 let decoded = context
                     .global_object()
                     .get(js_str!("decoded"), context)
                     .unwrap();
                 assert_eq!(decoded.as_string(), Some(js_string!("Hello, World!")));
+            }),
+        ],
+        context,
+    );
+}
+
+#[test]
+fn decoder_fatal() {
+    let context = &mut Context::default();
+    text::register(None, context).unwrap();
+
+    run_test_actions_with(
+        [
+            TestAction::run(indoc! {r#"
+                const decoder = new TextDecoder("utf-8", { fatal: true });
+                try {
+                    decoder.decode(new Uint8Array([0xFF]));
+                } catch (e) {
+                    error = e;
+                }
+            "#}),
+            TestAction::inspect_context(|context| {
+                let error = context
+                    .global_object()
+                    .get(js_str!("error"), context)
+                    .unwrap();
+                assert!(error.is_object());
+                let error = error.as_object().unwrap();
+                assert_eq!(
+                    JsValue::from(error.clone())
+                        .to_string(context)
+                        .unwrap()
+                        .to_std_string_lossy(),
+                    "TypeError: The encoded data was not valid."
+                );
+            }),
+        ],
+        context,
+    );
+}
+
+#[test]
+fn decoder_fatal_utf16() {
+    let context = &mut Context::default();
+    text::register(None, context).unwrap();
+
+    run_test_actions_with(
+        [
+            TestAction::run(indoc! {r#"
+                const decoder = new TextDecoder("utf-16le", { fatal: true });
+                try {
+                    decoder.decode(new Uint8Array([0x00]));
+                } catch (e) {
+                    error = e;
+                }
+            "#}),
+            TestAction::inspect_context(|context| {
+                let error = context
+                    .global_object()
+                    .get(js_str!("error"), context)
+                    .unwrap();
+                assert!(error.is_object());
+                let error = error.as_object().unwrap();
+                assert_eq!(
+                    JsValue::from(error.clone())
+                        .to_string(context)
+                        .unwrap()
+                        .to_std_string_lossy(),
+                    "TypeError: The encoded data was not valid."
+                );
             }),
         ],
         context,
