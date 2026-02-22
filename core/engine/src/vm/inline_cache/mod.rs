@@ -103,6 +103,22 @@ impl InlineCache {
         None
     }
 
+    /// Returns the address of the first cached shape.
+    ///
+    /// This is only used for VM disassembly/debug output.
+    pub(crate) fn first_shape_addr(&self) -> usize {
+        if self.megamorphic.get() {
+            return 0;
+        }
+
+        let mut entries = self.entries.borrow_mut();
+        entries.retain(|entry| entry.shape.to_addr_usize() != 0);
+        entries
+            .first()
+            .map(|entry| entry.shape.to_addr_usize())
+            .unwrap_or_default()
+    }
+
     #[cfg(test)]
     pub(crate) fn is_megamorphic(&self) -> bool {
         self.megamorphic.get()
