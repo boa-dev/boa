@@ -66,10 +66,10 @@ jobs:
     env:
       RUSTUP_WINDOWS_PATH_ADD_BIN: 1
       # TODO: Make a small Rust tool that does this
-      CARGO_TARGET_X86_64_PC_WINDOWS_MSVC_RUSTFLAGS: ${{ env.W_FLAGS }}
-      CARGO_TARGET_AARCH64_APPLE_DARWIN_RUSTFLAGS: ${{ env.W_FLAGS }}
-      CARGO_TARGET_X86_64_APPLE_DARWIN_RUSTFLAGS: ${{ env.W_FLAGS }}
-      CARGO_TARGET_AARCH64_UNKNOWN_LINUX_GNU_RUSTFLAGS: ${{ env.W_FLAGS }}
+      CARGO_TARGET_X86_64_PC_WINDOWS_MSVC_RUSTFLAGS: -D warnings
+      CARGO_TARGET_AARCH64_APPLE_DARWIN_RUSTFLAGS: -D warnings
+      CARGO_TARGET_X86_64_APPLE_DARWIN_RUSTFLAGS: -D warnings
+      CARGO_TARGET_AARCH64_UNKNOWN_LINUX_GNU_RUSTFLAGS: -D warnings
     strategy:
       matrix:
         include:
@@ -245,7 +245,7 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 60
     env:
-      RUSTDOCFLAGS: ${{ env.W_FLAGS }}
+      RUSTDOCFLAGS: -D warnings
     steps:
       - name: Set environment
         run: |
