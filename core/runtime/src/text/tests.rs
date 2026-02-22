@@ -157,19 +157,24 @@ fn roundtrip(encoding: &'static str) {
 }
 
 // Default behavior: BOM is stripped
-#[test_case("utf-8", "0xEF, 0xBB, 0xBF, 72, 105")]
-#[test_case("utf-16le", "0xFF, 0xFE, 72, 0, 105, 0")]
-#[test_case("utf-16be", "0xFE, 0xFF, 0, 72, 0, 105")]
-fn decoder_bom_default_stripped(encoding: &'static str, bytes: &'static str) {
+#[test_case("utf-8", &[0xEF, 0xBB, 0xBF, 72, 105])]
+#[test_case("utf-16le", &[0xFF, 0xFE, 72, 0, 105, 0])]
+#[test_case("utf-16be", &[0xFE, 0xFF, 0, 72, 0, 105])]
+fn decoder_bom_default_stripped(encoding: &'static str, bytes: &'static [u8]) {
     let context = &mut Context::default();
     text::register(None, context).unwrap();
+
+    let input = JsUint8Array::from_iter(bytes.iter().copied(), context).unwrap();
+    context
+        .register_global_property(js_str!("input"), input, Attribute::default())
+        .unwrap();
 
     run_test_actions_with(
         [
             TestAction::run(format!(
                 r#"
                 const d = new TextDecoder({encoding:?});
-                decoded = d.decode(Uint8Array.from([{bytes}]));
+                decoded = d.decode(input);
             "#
             )),
             TestAction::inspect_context(|context| {
@@ -185,19 +190,24 @@ fn decoder_bom_default_stripped(encoding: &'static str, bytes: &'static str) {
 }
 
 // ignoreBOM: true — BOM is kept in the output
-#[test_case("utf-8", "0xEF, 0xBB, 0xBF, 72, 105")]
-#[test_case("utf-16le", "0xFF, 0xFE, 72, 0, 105, 0")]
-#[test_case("utf-16be", "0xFE, 0xFF, 0, 72, 0, 105")]
-fn decoder_bom_ignore_bom_true(encoding: &'static str, bytes: &'static str) {
+#[test_case("utf-8", &[0xEF, 0xBB, 0xBF, 72, 105])]
+#[test_case("utf-16le", &[0xFF, 0xFE, 72, 0, 105, 0])]
+#[test_case("utf-16be", &[0xFE, 0xFF, 0, 72, 0, 105])]
+fn decoder_bom_ignore_bom_true(encoding: &'static str, bytes: &'static [u8]) {
     let context = &mut Context::default();
     text::register(None, context).unwrap();
+
+    let input = JsUint8Array::from_iter(bytes.iter().copied(), context).unwrap();
+    context
+        .register_global_property(js_str!("input"), input, Attribute::default())
+        .unwrap();
 
     run_test_actions_with(
         [
             TestAction::run(format!(
                 r#"
                 const d = new TextDecoder({encoding:?}, {{ ignoreBOM: true }});
-                decoded = d.decode(Uint8Array.from([{bytes}]));
+                decoded = d.decode(input);
             "#
             )),
             TestAction::inspect_context(|context| {
@@ -213,19 +223,24 @@ fn decoder_bom_ignore_bom_true(encoding: &'static str, bytes: &'static str) {
 }
 
 // ignoreBOM: false — same as default, BOM is stripped
-#[test_case("utf-8", "0xEF, 0xBB, 0xBF, 72, 105")]
-#[test_case("utf-16le", "0xFF, 0xFE, 72, 0, 105, 0")]
-#[test_case("utf-16be", "0xFE, 0xFF, 0, 72, 0, 105")]
-fn decoder_bom_ignore_bom_false(encoding: &'static str, bytes: &'static str) {
+#[test_case("utf-8", &[0xEF, 0xBB, 0xBF, 72, 105])]
+#[test_case("utf-16le", &[0xFF, 0xFE, 72, 0, 105, 0])]
+#[test_case("utf-16be", &[0xFE, 0xFF, 0, 72, 0, 105])]
+fn decoder_bom_ignore_bom_false(encoding: &'static str, bytes: &'static [u8]) {
     let context = &mut Context::default();
     text::register(None, context).unwrap();
+
+    let input = JsUint8Array::from_iter(bytes.iter().copied(), context).unwrap();
+    context
+        .register_global_property(js_str!("input"), input, Attribute::default())
+        .unwrap();
 
     run_test_actions_with(
         [
             TestAction::run(format!(
                 r#"
                 const d = new TextDecoder({encoding:?}, {{ ignoreBOM: false }});
-                decoded = d.decode(Uint8Array.from([{bytes}]));
+                decoded = d.decode(input);
             "#
             )),
             TestAction::inspect_context(|context| {
