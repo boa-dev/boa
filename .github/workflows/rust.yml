@@ -140,7 +140,7 @@ jobs:
         run: cargo miri setup
 
       - name: Run miri tests
-        run: cargo miri test --workspace miri
+        run: cargo miri test --workspace --lib --tests miri
 
   msrv:
     name: MSRV
