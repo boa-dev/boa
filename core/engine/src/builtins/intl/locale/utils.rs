@@ -92,15 +92,15 @@ pub(crate) fn locale_from_value(tag: &JsValue, context: &mut Context) -> JsResul
         .collect();
 
     for k in keys {
-        if let Some(v) = tag.extensions.unicode.keywords.get_mut(&k) {
-            if v.to_string() == "yes" {
-                match k.as_str() {
-                    "kb" | "kc" | "kh" | "kk" | "kn" => {
-                        *v = value!("true");
-                    }
-                    _ => {}
+        match k.as_str() {
+            "kb" | "kc" | "kh" | "kk" | "kn" => {
+                if let Some(v) = tag.extensions.unicode.keywords.get_mut(&k)
+                    && *v == value!("yes")
+                {
+                    *v = value!("true");
                 }
             }
+            _ => {}
         }
     }
     Ok(tag)
