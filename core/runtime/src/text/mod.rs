@@ -116,13 +116,21 @@ impl TextDecoder {
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/API/TextDecoder/decode
     pub fn decode(&self, buffer: JsValue, context: &mut Context) -> JsResult<JsString> {
         // `buffer` can be an `ArrayBuffer`, a `TypedArray` or a `DataView`.
-        let bytes = if let Ok(array_buffer) = JsArrayBuffer::try_from_js(&buffer, context) {
+        let buffer = if let Ok(array_buffer) = JsArrayBuffer::try_from_js(&buffer, context) {
             JsUint8Array::from_array_buffer(array_buffer, context)?
+                .iter(context)
+                .collect::<Vec<u8>>()
         } else if let Ok(typed_array) = JsTypedArray::try_from_js(&buffer, context) {
-            let Some(buffer) = typed_array.buffer(context)?.as_object() else {
+            let byte_offset = typed_array.byte_offset(context)?;
+            let byte_length = typed_array.byte_length(context)?;
+            let Some(buf) = typed_array.buffer(context)?.as_object() else {
                 return Err(js_error!(TypeError: "Invalid buffer backing TypedArray."));
             };
-            JsUint8Array::from_array_buffer(JsArrayBuffer::from_object(buffer)?, context)?
+            JsUint8Array::from_array_buffer(JsArrayBuffer::from_object(buf)?, context)?
+                .iter(context)
+                .skip(byte_offset)
+                .take(byte_length)
+                .collect::<Vec<u8>>()
         } else {
             return Err(
                 js_error!(TypeError: "Argument 1 must be an ArrayBuffer, TypedArray or DataView."),
@@ -130,7 +138,6 @@ impl TextDecoder {
         };
 
         let strip_bom = !self.ignore_bom;
-        let buffer = bytes.iter(context).collect::<Vec<u8>>();
         Ok(match self.encoding {
             Encoding::Utf8 => encodings::utf8::decode(&buffer, strip_bom),
             Encoding::Utf16Le => encodings::utf16le::decode(&buffer, strip_bom),

@@ -276,3 +276,33 @@ fn decoder_ignore_bom_getter() {
         context,
     );
 }
+
+#[test]
+fn decoder_respects_typed_array_view() {
+    let context = &mut Context::default();
+    text::register(None, context).unwrap();
+
+    run_test_actions_with(
+        [
+            TestAction::run(indoc! {r#"
+                const d = new TextDecoder();
+                const buf = Uint8Array.of(0x42, 0x42);
+                decoded_full = d.decode(buf);
+                decoded_sub = d.decode(buf.subarray(1));
+            "#}),
+            TestAction::inspect_context(|context| {
+                let full = context
+                    .global_object()
+                    .get(js_str!("decoded_full"), context)
+                    .unwrap();
+                let sub = context
+                    .global_object()
+                    .get(js_str!("decoded_sub"), context)
+                    .unwrap();
+                assert_eq!(full.as_string(), Some(js_string!("BB")));
+                assert_eq!(sub.as_string(), Some(js_string!("B")));
+            }),
+        ],
+        context,
+    );
+}
