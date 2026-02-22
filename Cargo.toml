@@ -140,6 +140,7 @@ dynify = "0.1.2"
 futures-channel = "0.3.32"
 aligned-vec = "0.6.4"
 temp-env = "0.3.6"
+simdutf = "0.7.0"
 
 # ICU4X
 
