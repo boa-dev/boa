@@ -7,7 +7,7 @@ use crate::{
 /// `CreateMappedArgumentsObject` implements the Opcode Operation for `Opcode::CreateMappedArgumentsObject`
 ///
 /// Operation:
-///  - TODO: doc
+///  - Create a mapped arguments object and store it in a register.
 #[derive(Debug, Clone, Copy)]
 pub(crate) struct CreateMappedArgumentsObject;
 
@@ -48,7 +48,7 @@ impl Operation for CreateMappedArgumentsObject {
 /// `CreateUnmappedArgumentsObject` implements the Opcode Operation for `Opcode::CreateUnmappedArgumentsObject`
 ///
 /// Operation:
-///  - TODO: doc
+///  - Create an unmapped arguments object and store it in a register.
 #[derive(Debug, Clone, Copy)]
 pub(crate) struct CreateUnmappedArgumentsObject;
 
