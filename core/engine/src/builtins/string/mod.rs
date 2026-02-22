@@ -232,6 +232,16 @@ impl String {
     /// which can differ in JavaScript engines. In Boa it is `2^32 - 1`
     pub(crate) const MAX_STRING_LENGTH: usize = u32::MAX as usize;
 
+    /// Checks if `len` exceeds `MAX_STRING_LENGTH` and returns a `RangeError` if so.
+    pub(crate) fn check_string_max_length(len: usize) -> JsResult<()> {
+        if len > Self::MAX_STRING_LENGTH {
+            return Err(JsNativeError::range()
+                .with_message("result string exceeds maximum string length")
+                .into());
+        }
+        Ok(())
+    }
+
     /// Abstract function `StringCreate( value, prototype )`.
     ///
     /// Call this function if you want to create a `String` exotic object.
@@ -1076,12 +1086,10 @@ impl String {
         };
 
         // 13. Return the string-concatenation of preserved, replacement, and the substring of string from position + searchLength.
-        Ok(js_string!(
-            &preserved,
-            &replacement,
-            &string.get_expect(position + search_length..)
-        )
-        .into())
+        let suffix = string.get_expect(position + search_length..);
+        let total_len = preserved.len() + replacement.len() + suffix.len();
+        Self::check_string_max_length(total_len)?;
+        Ok(js_string!(&preserved, &replacement, &suffix).into())
     }
 
     /// `22.1.3.18 String.prototype.replaceAll ( searchValue, replaceValue )`
@@ -1178,6 +1186,16 @@ impl String {
             position = string.index_of(search_string.as_str(), p + advance_by);
         }
 
+        // Early length check: if just the replacement copies would exceed max string length,
+        // fail before allocating large buffers.
+        if let Err(ref replace_str) = replace {
+            let total_replacement_len = match_positions
+                .len()
+                .checked_mul(replace_str.len())
+                .unwrap_or(usize::MAX);
+            Self::check_string_max_length(total_replacement_len)?;
+        }
+
         // 12. Let endOfLastMatch be 0.
         let mut end_of_last_match = 0;
 
@@ -1222,6 +1240,12 @@ impl String {
             };
 
             // d. Set result to the string-concatenation of result, preserved, and replacement.
+            let new_len = result
+                .len()
+                .checked_add(preserved.len())
+                .and_then(|l| l.checked_add(replacement.len()))
+                .unwrap_or(usize::MAX);
+            Self::check_string_max_length(new_len)?;
             result.extend(preserved.iter());
             result.extend(replacement.iter());
 
@@ -1232,7 +1256,13 @@ impl String {
         // 15. If endOfLastMatch < the length of string, then
         if end_of_last_match < string.len() {
             // a. Set result to the string-concatenation of result and the substring of string from endOfLastMatch.
-            result.extend(string.get_expect(end_of_last_match..).iter());
+            let suffix = string.get_expect(end_of_last_match..);
+            let new_len = result
+                .len()
+                .checked_add(suffix.len())
+                .unwrap_or(usize::MAX);
+            Self::check_string_max_length(new_len)?;
+            result.extend(suffix.iter());
         }
 
         // 16. Return result.

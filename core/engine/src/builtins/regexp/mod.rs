@@ -1665,6 +1665,16 @@ impl RegExp {
         // 16. If nextSourcePosition ≥ lengthS, return accumulatedResult.
         // 17. Return the string-concatenation of accumulatedResult and the substring of S from nextSourcePosition.
 
+        // Early length check: if just the replacement copies would exceed max string length,
+        // fail before allocating large buffers.
+        if let CallableOrString::ReplaceValue(ref rv) = replace_value {
+            let total_replacement_len = results
+                .len()
+                .checked_mul(rv.len())
+                .unwrap_or(usize::MAX);
+            string::String::check_string_max_length(total_replacement_len)?;
+        }
+
         // 13. Let accumulatedResult be the empty String.
         let mut accumulated_result = vec![];
 
@@ -1772,7 +1782,14 @@ impl RegExp {
                 //    In such cases, the corresponding substitution is ignored.
 
                 // ii. Set accumulatedResult to the string-concatenation of accumulatedResult, the substring of S from nextSourcePosition to position, and replacement.
-                accumulated_result.extend(s.get_expect(next_source_position..position).iter());
+                let substr = s.get_expect(next_source_position..position);
+                let new_len = accumulated_result
+                    .len()
+                    .checked_add(substr.len())
+                    .and_then(|l| l.checked_add(replacement.len()))
+                    .unwrap_or(usize::MAX);
+                string::String::check_string_max_length(new_len)?;
+                accumulated_result.extend(substr.iter());
                 accumulated_result.extend(replacement.iter());
 
                 // iii. Set nextSourcePosition to position + matchLength.
@@ -1786,9 +1803,15 @@ impl RegExp {
         }
 
         // 17. Return the string-concatenation of accumulatedResult and the substring of S from nextSourcePosition.
+        let suffix = s.get_expect(next_source_position..);
+        let new_len = accumulated_result
+            .len()
+            .checked_add(suffix.len())
+            .unwrap_or(usize::MAX);
+        string::String::check_string_max_length(new_len)?;
         Ok(js_string!(
             &JsString::from(&accumulated_result[..]),
-            &s.get_expect(next_source_position..)
+            &suffix
         )
         .into())
     }

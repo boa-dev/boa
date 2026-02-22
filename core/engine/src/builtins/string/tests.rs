@@ -916,3 +916,39 @@ fn from_code_point() {
         ),
     ]);
 }
+
+#[test]
+fn replace_all_max_length() {
+    // 200 matches * 2^25 (33,554,432) chars per replacement = 6,710,886,400 > u32::MAX.
+    // The upfront check catches this before any large allocation.
+    run_test_actions([TestAction::assert_native_error(
+        "'a'.repeat(200).replaceAll('a', 'a'.repeat(2**25))",
+        JsNativeErrorKind::Range,
+        "result string exceeds maximum string length",
+    )]);
+}
+
+#[test]
+fn replace_regexp_max_length() {
+    // Same logic via the RegExp @@replace path.
+    run_test_actions([TestAction::assert_native_error(
+        "'a'.repeat(200).replace(/a/g, 'a'.repeat(2**25))",
+        JsNativeErrorKind::Range,
+        "result string exceeds maximum string length",
+    )]);
+}
+
+#[test]
+fn replace_normal_works() {
+    run_test_actions([
+        TestAction::assert_eq(
+            "'hello world'.replace('world', 'rust')",
+            js_string!("hello rust"),
+        ),
+        TestAction::assert_eq("'aaa'.replaceAll('a', 'bb')", js_string!("bbbbbb")),
+        TestAction::assert_eq(
+            "'hello world'.replace(/world/, 'rust')",
+            js_string!("hello rust"),
+        ),
+    ]);
+}
