@@ -76,24 +76,31 @@ impl TextDecoder {
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/API/TextDecoder/decode
     pub fn decode(&self, buffer: JsValue, context: &mut Context) -> JsResult<JsString> {
         // `buffer` can be an `ArrayBuffer`, a `TypedArray` or a `DataView`.
-        let bytes = if let Ok(array_buffer) = JsArrayBuffer::try_from_js(&buffer, context) {
-            JsUint8Array::from_array_buffer(array_buffer, context)?
+        let array_buffer = if let Ok(array_buffer) = JsArrayBuffer::try_from_js(&buffer, context) {
+            array_buffer
         } else if let Ok(typed_array) = JsTypedArray::try_from_js(&buffer, context) {
-            let Some(buffer) = typed_array.buffer(context)?.as_object() else {
+            let Some(obj) = typed_array.buffer(context)?.as_object() else {
                 return Err(js_error!(TypeError: "Invalid buffer backing TypedArray."));
             };
-            JsUint8Array::from_array_buffer(JsArrayBuffer::from_object(buffer)?, context)?
+
+            JsArrayBuffer::from_object(obj)?
         } else {
-            return Err(
-                js_error!(TypeError: "Argument 1 must be an ArrayBuffer, TypedArray or DataView."),
-            );
+            return Err(js_error!(
+                TypeError: "Argument 1 must be an ArrayBuffer, TypedArray or DataView."
+            ));
         };
 
-        let buffer = bytes.iter(context).collect::<Vec<u8>>();
+        let Some(data) = array_buffer.data() else {
+            return Err(js_error!(TypeError: "Detached ArrayBuffer"));
+        };
+
         Ok(match self {
-            Self::Utf8 => encodings::utf8::decode(&buffer),
-            Self::Utf16Le => encodings::utf16le::decode(&buffer),
-            Self::Utf16Be => encodings::utf16be::decode(buffer),
+            Self::Utf8 => encodings::utf8::decode(&data),
+            Self::Utf16Le => encodings::utf16le::decode(&data),
+            Self::Utf16Be => {
+                let owned = data.to_vec();
+                encodings::utf16be::decode(owned)
+            }
         })
     }
 }
