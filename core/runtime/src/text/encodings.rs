@@ -12,7 +12,10 @@ pub(crate) mod utf8 {
             .collect()
     }
 
-    pub(crate) fn decode(input: &[u8]) -> JsString {
+    pub(crate) fn decode(mut input: &[u8], strip_bom: bool) -> JsString {
+        if strip_bom {
+            input = input.strip_prefix(&[0xEF, 0xBB, 0xBF]).unwrap_or(input);
+        }
         let string = String::from_utf8_lossy(input);
         JsString::from(string.as_ref())
     }
@@ -29,7 +32,11 @@ pub(crate) mod utf16le {
         }
     }
 
-    pub(crate) fn decode(mut input: &[u8]) -> JsString {
+    pub(crate) fn decode(mut input: &[u8], strip_bom: bool) -> JsString {
+        if strip_bom {
+            input = input.strip_prefix(&[0xFF, 0xFE]).unwrap_or(input);
+        }
+
         // After this point, input is of even length.
         let dangling = if input.len().is_multiple_of(2) {
             false
@@ -59,7 +66,11 @@ pub(crate) mod utf16be {
         }
     }
 
-    pub(crate) fn decode(mut input: Vec<u8>) -> JsString {
+    pub(crate) fn decode(mut input: Vec<u8>, strip_bom: bool) -> JsString {
+        if strip_bom && input.starts_with(&[0xFE, 0xFF]) {
+            input.drain(..2);
+        }
+
         let mut input = input.as_mut_slice();
         // After this point, input is of even length.
         let dangling = if input.len().is_multiple_of(2) {
