@@ -424,7 +424,7 @@ where
         let tok = cursor.peek(0, interner).or_abrupt()?;
 
         match tok.kind().clone() {
-            TokenKind::Keyword((Keyword::Function | Keyword::Class | Keyword::Const, _)) => {
+            TokenKind::Keyword((Keyword::Function | Keyword::Class | Keyword::Const | Keyword::Using, _)) => {
                 Declaration::new(self.allow_yield, self.allow_await)
                     .parse(cursor, interner)
                     .map(ast::StatementListItem::from)
@@ -433,6 +433,20 @@ where
                 if allowed_token_after_let(cursor.peek(1, interner)?) =>
             {
                 Declaration::new(self.allow_yield, self.allow_await)
+                    .parse(cursor, interner)
+                    .map(ast::StatementListItem::from)
+            }
+            TokenKind::Keyword((Keyword::Await, false)) => {
+                // Check if this is `await using`
+                if let Some(next_tok) = cursor.peek(1, interner)? {
+                    if matches!(next_tok.kind(), TokenKind::Keyword((Keyword::Using, false))) {
+                        return Declaration::new(self.allow_yield, self.allow_await)
+                            .parse(cursor, interner)
+                            .map(ast::StatementListItem::from);
+                    }
+                }
+                // Otherwise, parse as a statement (await expression)
+                Statement::new(self.allow_yield, self.allow_await, self.allow_return)
                     .parse(cursor, interner)
                     .map(ast::StatementListItem::from)
             }

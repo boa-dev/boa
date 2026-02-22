@@ -1725,6 +1725,92 @@ impl<'ctx> ByteCompiler<'ctx> {
                     }
                 }
             }
+            LexicalDeclaration::Using(decls) => {
+                // For each using declaration, we need to:
+                // 1. Evaluate the initializer
+                // 2. Add the resource to the disposal stack
+                // 3. Bind the variable
+                for variable in decls.as_ref() {
+                    match variable.binding() {
+                        Binding::Identifier(ident) => {
+                            let ident = ident.to_js_string(self.interner());
+                            let value = self.register_allocator.alloc();
+                            
+                            if let Some(init) = variable.init() {
+                                self.compile_expr(init, &value);
+                            } else {
+                                self.bytecode.emit_push_undefined(value.variable());
+                            }
+                            
+                            // TODO(@abhinavs1920): Add resource to disposal stack
+                            // For now, we just bind the variable like a let declaration
+                            // Full implementation will add: AddDisposableResource opcode
+                            
+                            self.emit_binding(BindingOpcode::InitLexical, ident, &value);
+                            self.register_allocator.dealloc(value);
+                        }
+                        Binding::Pattern(pattern) => {
+                            let value = self.register_allocator.alloc();
+                            
+                            if let Some(init) = variable.init() {
+                                self.compile_expr(init, &value);
+                            } else {
+                                self.bytecode.emit_push_undefined(value.variable());
+                            }
+                            
+                            // TODO: Same as above
+                            
+                            self.compile_declaration_pattern(
+                                pattern,
+                                BindingOpcode::InitLexical,
+                                &value,
+                            );
+                            self.register_allocator.dealloc(value);
+                        }
+                    }
+                }
+            }
+            LexicalDeclaration::AwaitUsing(decls) => {
+
+                for variable in decls.as_ref() {
+                    match variable.binding() {
+                        Binding::Identifier(ident) => {
+                            let ident = ident.to_js_string(self.interner());
+                            let value = self.register_allocator.alloc();
+                            
+                            if let Some(init) = variable.init() {
+                                self.compile_expr(init, &value);
+                            } else {
+                                self.bytecode.emit_push_undefined(value.variable());
+                            }
+                            
+                            // TODO: Add resource to async disposal stack
+                            // For now, we just bind the variable like a let declaration
+                            // Full implementation will add: AddAsyncDisposableResource opcode
+                            
+                            self.emit_binding(BindingOpcode::InitLexical, ident, &value);
+                            self.register_allocator.dealloc(value);
+                        }
+                        Binding::Pattern(pattern) => {
+                            let value = self.register_allocator.alloc();
+                            
+                            if let Some(init) = variable.init() {
+                                self.compile_expr(init, &value);
+                            } else {
+                                self.bytecode.emit_push_undefined(value.variable());
+                            }
+                            
+                            // TODO: SAME
+                            self.compile_declaration_pattern(
+                                pattern,
+                                BindingOpcode::InitLexical,
+                                &value,
+                            );
+                            self.register_allocator.dealloc(value);
+                        }
+                    }
+                }
+            }
         }
     }
 

@@ -102,6 +102,8 @@ impl StaticJsStrings {
         (SYMBOL_TO_PRIMITIVE, "Symbol.toPrimitive"),
         (SYMBOL_TO_STRING_TAG, "Symbol.toStringTag"),
         (SYMBOL_UNSCOPABLES, "Symbol.unscopables"),
+        (SYMBOL_DISPOSE, "Symbol.dispose"),
+        (SYMBOL_ASYNC_DISPOSE, "Symbol.asyncDispose"),
         (FN_SYMBOL_ASYNC_ITERATOR, "[Symbol.asyncIterator]"),
         (FN_SYMBOL_HAS_INSTANCE, "[Symbol.hasInstance]"),
         (FN_SYMBOL_IS_CONCAT_SPREADABLE, "[Symbol.isConcatSpreadable]"),
@@ -115,6 +117,8 @@ impl StaticJsStrings {
         (FN_SYMBOL_TO_PRIMITIVE, "[Symbol.toPrimitive]"),
         (FN_SYMBOL_TO_STRING_TAG, "[Symbol.toStringTag]"),
         (FN_SYMBOL_UNSCOPABLES, "[Symbol.unscopables]"),
+        (FN_SYMBOL_DISPOSE, "[Symbol.dispose]"),
+        (FN_SYMBOL_ASYNC_DISPOSE, "[Symbol.asyncDispose]"),
         // Builtins
         (ARRAY, "Array"),
         (ARRAY_BUFFER, "ArrayBuffer"),
@@ -255,6 +259,10 @@ const RAW_STATICS: &[StaticString] = &[
     StaticString::new(JsStr::latin1("[Symbol.toStringTag]".as_bytes())),
     StaticString::new(JsStr::latin1("Symbol.unscopables".as_bytes())),
     StaticString::new(JsStr::latin1("[Symbol.unscopables]".as_bytes())),
+    StaticString::new(JsStr::latin1("Symbol.dispose".as_bytes())),
+    StaticString::new(JsStr::latin1("[Symbol.dispose]".as_bytes())),
+    StaticString::new(JsStr::latin1("Symbol.asyncDispose".as_bytes())),
+    StaticString::new(JsStr::latin1("[Symbol.asyncDispose]".as_bytes())),
     StaticString::new(JsStr::latin1("get [Symbol.species]".as_bytes())),
     StaticString::new(JsStr::latin1("get [Symbol.toStringTag]".as_bytes())),
     // Well known builtins
