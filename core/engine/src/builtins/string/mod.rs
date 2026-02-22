@@ -1470,6 +1470,7 @@ impl String {
         // 2. If regexp is neither undefined nor null, then
         let regexp = args.get_or_undefined(0);
         if !regexp.is_null_or_undefined() {
+            if regexp.is_object() {
             // a. Let matcher be ? GetMethod(regexp, @@match).
             let matcher = regexp.get_method(JsSymbol::r#match(), context)?;
             // b. If matcher is not undefined, then
@@ -1478,7 +1479,7 @@ impl String {
                 return matcher.call(regexp, std::slice::from_ref(o), context);
             }
         }
-
+    }
         // 3. Let S be ? ToString(O).
         let s = o.to_string(context)?;
 
@@ -2055,6 +2056,7 @@ impl String {
         // 2. If regexp is neither undefined nor null, then
         let regexp = args.get_or_undefined(0);
         if !regexp.is_null_or_undefined() {
+            if regexp.is_object() {
             // a. Let isRegExp be ? IsRegExp(regexp).
             // b. If isRegExp is true, then
             if let Some(regexp) = RegExp::is_reg_exp(regexp, context)? {
@@ -2080,6 +2082,7 @@ impl String {
                 return matcher.call(regexp, std::slice::from_ref(o), context);
             }
         }
+    }
 
         // 3. Let S be ? ToString(O).
         let s = o.to_string(context)?;
@@ -2197,6 +2200,7 @@ impl String {
         // 2. If regexp is neither undefined nor null, then
         let regexp = args.get_or_undefined(0);
         if !regexp.is_null_or_undefined() {
+            if regexp.is_object() {
             // a. Let searcher be ? GetMethod(regexp, @@search).
             let searcher = regexp.get_method(JsSymbol::search(), context)?;
             // b. If searcher is not undefined, then
@@ -2205,6 +2209,7 @@ impl String {
                 return searcher.call(regexp, std::slice::from_ref(o), context);
             }
         }
+    }
 
         // 3. Let string be ? ToString(O).
         let string = o.to_string(context)?;
