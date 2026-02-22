@@ -13,76 +13,42 @@ mod tests;
 
 const PIC_CAPACITY: usize = 4;
 
+#[derive(Clone, Debug, Trace, Finalize)]
+struct PicEntry {
+    shape: WeakShape,
+
+    #[unsafe_ignore_trace]
+    slot: Slot,
+}
+
 /// An inline cache entry for a property access.
 #[derive(Clone, Debug, Trace, Finalize)]
 pub(crate) struct InlineCache {
     /// The property that is accessed.
     pub(crate) name: JsString,
 
-    /// A pointer is kept to the shape to avoid the shape from being deallocated.
-    pub(crate) shape: GcRefCell<WeakShape>,
-
-    /// The [`Slot`] of the property.
-    #[unsafe_ignore_trace]
-    pub(crate) slot: Cell<Slot>,
-
-    /// Additional PIC entries beyond the primary `shape`/`slot` entry.
-    pub(crate) secondary_shapes: GcRefCell<[WeakShape; PIC_CAPACITY - 1]>,
-
-    /// [`Slot`] values for additional PIC entries.
-    #[unsafe_ignore_trace]
-    pub(crate) secondary_slots: [Cell<Slot>; PIC_CAPACITY - 1],
-
-    /// Number of active entries in `secondary_shapes` / `secondary_slots`.
-    #[unsafe_ignore_trace]
-    pub(crate) secondary_len: Cell<u8>,
+    /// Cached `(shape, slot)` entries for this access site.
+    ///
+    /// NOTE: This should never exceed `PIC_CAPACITY`.
+    entries: GcRefCell<Vec<PicEntry>>,
 
     /// A site is megamorphic when we observe more distinct shapes than the PIC capacity.
     #[unsafe_ignore_trace]
-    pub(crate) megamorphic: Cell<bool>,
+    megamorphic: Cell<bool>,
 }
 
 impl InlineCache {
     pub(crate) fn new(name: JsString) -> Self {
         Self {
             name,
-            shape: GcRefCell::new(WeakShape::None),
-            slot: Cell::new(Slot::new()),
-            secondary_shapes: GcRefCell::new(std::array::from_fn(|_| WeakShape::None)),
-            secondary_slots: std::array::from_fn(|_| Cell::new(Slot::new())),
-            secondary_len: Cell::new(0),
+            entries: GcRefCell::new(Vec::with_capacity(PIC_CAPACITY)),
             megamorphic: Cell::new(false),
         }
     }
 
-    fn remove_secondary_entry(
-        &self,
-        index: usize,
-        secondary_len: usize,
-        secondary_shapes: &mut [WeakShape; PIC_CAPACITY - 1],
-    ) {
-        for i in index..(secondary_len - 1) {
-            secondary_shapes[i] = secondary_shapes[i + 1].clone();
-            self.secondary_slots[i].set(self.secondary_slots[i + 1].get());
-        }
-
-        let last = secondary_len - 1;
-        secondary_shapes[last] = WeakShape::None;
-        self.secondary_slots[last].set(Slot::new());
-    }
-
-    fn transition_to_megamorphic(
-        &self,
-        secondary_shapes: &mut [WeakShape; PIC_CAPACITY - 1],
-    ) {
+    fn transition_to_megamorphic(&self, entries: &mut Vec<PicEntry>) {
         self.megamorphic.set(true);
-        *self.shape.borrow_mut() = WeakShape::None;
-        self.slot.set(Slot::new());
-        for i in 0..(PIC_CAPACITY - 1) {
-            secondary_shapes[i] = WeakShape::None;
-            self.secondary_slots[i].set(Slot::new());
-        }
-        self.secondary_len.set(0);
+        entries.clear();
     }
 
     pub(crate) fn set(&self, shape: &Shape, slot: Slot) {
@@ -91,55 +57,27 @@ impl InlineCache {
         }
 
         let target_addr = shape.to_addr_usize();
+        let mut entries = self.entries.borrow_mut();
 
+        entries.retain(|entry| entry.shape.to_addr_usize() != 0);
+
+        if let Some(entry) = entries
+            .iter_mut()
+            .find(|entry| entry.shape.to_addr_usize() == target_addr)
         {
-            let mut primary = self.shape.borrow_mut();
-            let primary_addr = primary.to_addr_usize();
-            if primary_addr == target_addr {
-                self.slot.set(slot);
-                return;
-            }
-
-            if primary_addr == 0 {
-                *primary = shape.into();
-                self.slot.set(slot);
-                return;
-            }
-        }
-
-        let mut secondary_shapes = self.secondary_shapes.borrow_mut();
-        let mut secondary_len = usize::from(self.secondary_len.get());
-
-        let mut i = 0;
-        while i < secondary_len {
-            let secondary_addr = secondary_shapes[i].to_addr_usize();
-            if secondary_addr == 0 {
-                self.remove_secondary_entry(i, secondary_len, &mut secondary_shapes);
-                secondary_len -= 1;
-                self.secondary_len.set(secondary_len as u8);
-                continue;
-            }
-
-            if secondary_addr == target_addr {
-                self.secondary_slots[i].set(slot);
-                return;
-            }
-
-            i += 1;
-        }
-
-        if secondary_len < (PIC_CAPACITY - 1) {
-            secondary_shapes[secondary_len] = shape.into();
-            self.secondary_slots[secondary_len].set(slot);
-            self.secondary_len.set((secondary_len + 1) as u8);
+            entry.slot = slot;
             return;
         }
 
-        self.transition_to_megamorphic(&mut secondary_shapes);
-    }
+        if entries.len() < PIC_CAPACITY {
+            entries.push(PicEntry {
+                shape: shape.into(),
+                slot,
+            });
+            return;
+        }
 
-    pub(crate) fn slot(&self) -> Slot {
-        self.slot.get()
+        self.transition_to_megamorphic(&mut entries);
     }
 
     /// Returns the cached `(shape, slot)` if this PIC contains a matching shape.
@@ -149,45 +87,17 @@ impl InlineCache {
         }
 
         let target_addr = shape.to_addr_usize();
+        let mut entries = self.entries.borrow_mut();
 
+        entries.retain(|entry| entry.shape.to_addr_usize() != 0);
+
+        if let Some(entry) = entries
+            .iter()
+            .find(|entry| entry.shape.to_addr_usize() == target_addr)
         {
-            let mut primary = self.shape.borrow_mut();
-            let primary_addr = primary.to_addr_usize();
-            if primary_addr == target_addr {
-                if let Some(shape) = primary.upgrade() {
-                    return Some((shape, self.slot()));
-                }
-                *primary = WeakShape::None;
-            } else if primary_addr == 0 {
-                *primary = WeakShape::None;
+            if let Some(shape) = entry.shape.upgrade() {
+                return Some((shape, entry.slot));
             }
-        }
-
-        let mut secondary_shapes = self.secondary_shapes.borrow_mut();
-        let mut secondary_len = usize::from(self.secondary_len.get());
-
-        let mut i = 0;
-        while i < secondary_len {
-            let secondary_addr = secondary_shapes[i].to_addr_usize();
-            if secondary_addr == 0 {
-                self.remove_secondary_entry(i, secondary_len, &mut secondary_shapes);
-                secondary_len -= 1;
-                self.secondary_len.set(secondary_len as u8);
-                continue;
-            }
-
-            if secondary_addr == target_addr {
-                if let Some(shape) = secondary_shapes[i].upgrade() {
-                    return Some((shape, self.secondary_slots[i].get()));
-                }
-
-                self.remove_secondary_entry(i, secondary_len, &mut secondary_shapes);
-                secondary_len -= 1;
-                self.secondary_len.set(secondary_len as u8);
-                continue;
-            }
-
-            i += 1;
         }
 
         None
@@ -200,25 +110,15 @@ impl InlineCache {
 
     #[cfg(test)]
     pub(crate) fn entry_count(&self) -> usize {
-        usize::from(self.shape.borrow().to_addr_usize() != 0) + usize::from(self.secondary_len.get())
+        self.entries.borrow().len()
     }
 
     #[cfg(test)]
     pub(crate) fn contains_shape(&self, shape: &Shape) -> bool {
         let target_addr = shape.to_addr_usize();
-
-        if self.shape.borrow().to_addr_usize() == target_addr {
-            return true;
-        }
-
-        let secondary_len = usize::from(self.secondary_len.get());
-        let secondary_shapes = self.secondary_shapes.borrow();
-        for i in 0..secondary_len {
-            if secondary_shapes[i].to_addr_usize() == target_addr {
-                return true;
-            }
-        }
-
-        false
+        self.entries
+            .borrow()
+            .iter()
+            .any(|entry| entry.shape.to_addr_usize() == target_addr)
     }
 }

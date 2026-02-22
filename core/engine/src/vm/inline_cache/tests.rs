@@ -8,7 +8,7 @@ use crate::{
     object::{
         ObjectInitializer,
         internal_methods::InternalMethodPropertyContext,
-        shape::{WeakShape, slot::SlotAttributes},
+        shape::slot::SlotAttributes,
     },
     property::{Attribute, PropertyDescriptor, PropertyKey},
     vm::CodeBlock,
@@ -331,7 +331,6 @@ fn set_property_by_name_set_inline_cache_on_property_load() -> JsResult<()> {
     let (function, code) = get_codeblock(&function).unwrap();
 
     assert_eq!(code.ic.len(), 1);
-    assert_eq!(code.ic[0].shape.borrow().clone(), WeakShape::None);
     assert_eq!(code.ic[0].entry_count(), 0);
     assert!(!code.ic[0].is_megamorphic());
 
@@ -342,8 +341,8 @@ fn set_property_by_name_set_inline_cache_on_property_load() -> JsResult<()> {
 
     function.call(&JsValue::undefined(), &[o.clone().into()], context)?;
 
-    assert_eq!(code.ic[0].shape.borrow().clone(), WeakShape::from(&o_shape));
     assert_eq!(code.ic[0].entry_count(), 1);
+    assert!(code.ic[0].contains_shape(&o_shape));
     assert!(!code.ic[0].is_megamorphic());
 
     Ok(())
@@ -356,7 +355,6 @@ fn get_property_by_name_set_inline_cache_on_property_load() -> JsResult<()> {
     let (function, code) = get_codeblock(&function).unwrap();
 
     assert_eq!(code.ic.len(), 1);
-    assert_eq!(code.ic[0].shape.borrow().clone(), WeakShape::None);
     assert_eq!(code.ic[0].entry_count(), 0);
     assert!(!code.ic[0].is_megamorphic());
 
@@ -367,8 +365,8 @@ fn get_property_by_name_set_inline_cache_on_property_load() -> JsResult<()> {
 
     function.call(&JsValue::undefined(), &[o.clone().into()], context)?;
 
-    assert_eq!(code.ic[0].shape.borrow().clone(), WeakShape::from(&o_shape));
     assert_eq!(code.ic[0].entry_count(), 1);
+    assert!(code.ic[0].contains_shape(&o_shape));
     assert!(!code.ic[0].is_megamorphic());
 
     Ok(())
