@@ -1230,6 +1230,30 @@ where
     let _ = visitor.visit(node.into());
 }
 
+/// Like [`optimize_scope_indices`] but for a [`FunctionExpression`] compiled
+/// by the `Function` constructor with `force_function_scope = true`.
+///
+/// The `Function` constructor always pushes a function scope at runtime, so
+/// the optimizer must account for that even when the function scope would
+/// otherwise be elided.
+pub(crate) fn optimize_scope_indices_function_constructor(
+    node: &mut FunctionExpression,
+    scope: &Scope,
+) {
+    let mut visitor = ScopeIndexVisitor {
+        index: scope.scope_index(),
+    };
+    let _ = visitor.visit_function_like(
+        &mut node.body,
+        &mut node.parameters,
+        &mut node.scopes,
+        &mut node.name_scope,
+        false,
+        // Always force the function scope for the Function constructor.
+        true,
+    );
+}
+
 struct ScopeIndexVisitor {
     index: u32,
 }
