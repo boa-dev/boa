@@ -70,12 +70,13 @@ impl TextDecoder {
     /// The [`TextDecoder.decode()`][mdn] method returns a string containing text decoded from the
     /// buffer passed as a parameter.
     ///
+    /// `buffer` can be an `ArrayBuffer`, a `TypedArray` or a `DataView`.
+    ///
     /// # Errors
     /// Any error that arises during decoding the specific encoding.
     ///
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/API/TextDecoder/decode
     pub fn decode(&self, buffer: JsValue, context: &mut Context) -> JsResult<JsString> {
-        // `buffer` can be an `ArrayBuffer`, a `TypedArray` or a `DataView`.
         let array_buffer = if let Ok(array_buffer) = JsArrayBuffer::try_from_js(&buffer, context) {
             array_buffer
         } else if let Ok(typed_array) = JsTypedArray::try_from_js(&buffer, context) {
