@@ -79,7 +79,7 @@ jobs:
 
           if npm view @boa-dev/boa_wasm@$VERSION version > dev/null 2>&1; then
             echo "Version $VERSION already published. Skipping"
-            echo "SKIP_PUBLISH=true" >> $GUTHUB_ENV
+            echo "SKIP_PUBLISH=true" >> $GITHUB_ENV
           fi
 
       - name: Publish to npm
