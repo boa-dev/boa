@@ -15,7 +15,8 @@
 pub(crate) mod tests;
 
 use boa_engine::JsVariant;
-use boa_engine::property::{Attribute, PropertyKey};
+use boa_engine::builtins::object::OrdinaryObject as BuiltinObject;
+use boa_engine::property::Attribute;
 use boa_engine::{
     Context, JsArgs, JsData, JsError, JsResult, JsString, JsSymbol, js_str, js_string,
     native_function::NativeFunction,
@@ -443,7 +444,7 @@ impl Console {
             0,
         )
         .function(
-            console_method(Self::dir, state, logger.clone()),
+            console_method(Self::dir, state.clone(), logger.clone()),
             js_string!("dirxml"),
             0,
         )
@@ -657,6 +658,7 @@ impl Console {
     ///
     /// [spec]: https://console.spec.whatwg.org/#table
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/API/console/table_static
+    #[allow(clippy::too_many_lines)]
     fn table(
         _: &JsValue,
         args: &[JsValue],
@@ -674,33 +676,45 @@ impl Console {
             return Self::log(&JsValue::undefined(), args, console, logger, context);
         };
 
-        let keys = obj.own_property_keys(context)?;
-        if keys.is_empty() {
+        let keys_val =
+            BuiltinObject::keys(&JsValue::undefined(), std::slice::from_ref(&tabular_data), context)?;
+        let keys_obj = keys_val.as_object().expect("Object.keys returns an array");
+        let len = keys_obj
+            .get(js_string!("length"), context)?
+            .to_length(context)?;
+
+        if len == 0 {
             return Self::log(&JsValue::undefined(), args, console, logger, context);
         }
 
         let mut col_names = vec!["(index)".to_string()];
-        let mut rows = Vec::new();
+        let mut rows: Vec<FxHashMap<String, String>> = Vec::new();
 
-        for key in keys {
-            let row_index = key.to_string();
-            let mut row_data = FxHashMap::default();
-            row_data.insert("(index)".to_string(), row_index.clone());
+        for i in 0..len {
+            let key_val = keys_obj.get(i, context)?;
+            let index_str = key_val.to_string(context)?.to_std_string_escaped();
+            let mut row_data: FxHashMap<String, String> = FxHashMap::default();
+            row_data.insert("(index)".to_string(), index_str);
 
-            let val = obj.get(key, context)?;
+            let val = obj.get(key_val.to_property_key(context)?, context)?;
             if let Some(val_obj) = val.as_object() {
-                let inner_keys = val_obj.own_property_keys(context)?;
-                for ik in inner_keys {
-                    if let Ok(Some(desc)) = val_obj.get_own_property(&ik, context) {
-                        if desc.enumerable().unwrap_or(false) {
-                            let ik_str = ik.to_string();
-                            if !col_names.contains(&ik_str) {
-                                col_names.push(ik_str.clone());
-                            }
-                            let cell_val = val_obj.get(ik, context)?;
-                            row_data.insert(ik_str, cell_val.display().to_string());
-                        }
+                let inner_keys_val =
+                    BuiltinObject::keys(&JsValue::undefined(), std::slice::from_ref(&val), context)?;
+                let inner_keys_obj = inner_keys_val
+                    .as_object()
+                    .expect("Object.keys returns an array");
+                let inner_len = inner_keys_obj
+                    .get(js_string!("length"), context)?
+                    .to_length(context)?;
+
+                for j in 0..inner_len {
+                    let ik_val = inner_keys_obj.get(j, context)?;
+                    let ik_str = ik_val.to_string(context)?.to_std_string_escaped();
+                    if !col_names.contains(&ik_str) {
+                        col_names.push(ik_str.clone());
                     }
+                    let cell_val = val_obj.get(ik_val.to_property_key(context)?, context)?;
+                    row_data.insert(ik_str, cell_val.display().to_string());
                 }
             } else {
                 let v_key = "Value".to_string();
@@ -712,22 +726,24 @@ impl Console {
             rows.push(row_data);
         }
 
-        if let Some(props) = args.get(1)
-            && props.is_object()
-        {
-            if let Some(props_obj) = props.as_object() {
-                let mut filtered_cols = vec!["(index)".to_string()];
-                let p_keys = props_obj.own_property_keys(context)?;
-                for pk in p_keys {
-                    if let Ok(Some(desc)) = props_obj.get_own_property(&pk, context) {
-                        if desc.enumerable().unwrap_or(false) {
-                            let pv = props_obj.get(pk, context)?;
-                            filtered_cols.push(pv.to_string(context)?.to_std_string_escaped());
-                        }
-                    }
-                }
-                col_names = filtered_cols;
+        if let Some(props_obj) = args.get(1).and_then(JsValue::as_object) {
+            let mut filtered_cols = vec!["(index)".to_string()];
+            let props_val: JsValue = props_obj.clone().into();
+            let p_keys_val =
+                BuiltinObject::keys(&JsValue::undefined(), std::slice::from_ref(&props_val), context)?;
+            let p_keys_obj = p_keys_val
+                .as_object()
+                .expect("Object.keys returns an array");
+            let p_len = p_keys_obj
+                .get(js_string!("length"), context)?
+                .to_length(context)?;
+
+            for i in 0..p_len {
+                let pk = p_keys_obj.get(i, context)?;
+                let pv = props_obj.get(pk.to_property_key(context)?, context)?;
+                filtered_cols.push(pv.to_string(context)?.to_std_string_escaped());
             }
+            col_names = filtered_cols;
         }
 
         let mut widths = vec![0; col_names.len()];
@@ -743,12 +759,13 @@ impl Console {
         }
 
         let mut output = String::new();
-        for (i, name) in col_names.iter().enumerate() {
-            let _ = write!(output, "┌─{:─^width$}─", "", width = widths[i]);
+        output.push('┌');
+        for (i, _) in col_names.iter().enumerate() {
+            let _ = write!(output, "─{:─^width$}─", "", width = widths[i]);
             if i == col_names.len() - 1 {
                 output.push_str("┐\n");
             } else {
-                output.push_str("┬");
+                output.push('┬');
             }
         }
 
@@ -757,12 +774,13 @@ impl Console {
         }
         output.push_str("│\n");
 
+        output.push('├');
         for (i, _) in col_names.iter().enumerate() {
-            let _ = write!(output, "├─{:─^width$}─", "", width = widths[i]);
+            let _ = write!(output, "─{:─^width$}─", "", width = widths[i]);
             if i == col_names.len() - 1 {
                 output.push_str("┤\n");
             } else {
-                output.push_str("┼");
+                output.push('┼');
             }
         }
 
@@ -774,12 +792,13 @@ impl Console {
             output.push_str("│\n");
         }
 
+        output.push('└');
         for (i, _) in col_names.iter().enumerate() {
-            let _ = write!(output, "└─{:─^width$}─", "", width = widths[i]);
+            let _ = write!(output, "─{:─^width$}─", "", width = widths[i]);
             if i == col_names.len() - 1 {
-                output.push_str("┘");
+                output.push('┘');
             } else {
-                output.push_str("┴");
+                output.push('┴');
             }
         }
 
