@@ -64,7 +64,7 @@ struct GcConfig {
 impl Default for GcConfig {
     fn default() -> Self {
         Self {
-            // Start at 1MB, the nursary size for V8 is ~1-8MB and SM can be up to 16MB
+            // Start at 1MB, the nursery size for V8 is ~1-8MB and SM can be up to 16MB
             threshold: 1_048_576,
             used_space_percentage: 70,
         }
@@ -192,10 +192,10 @@ impl Allocator {
             // Post collection check
             // If the allocated bytes are still above the threshold, increase the threshold.
             if gc.runtime.bytes_allocated
-                > gc.config.threshold / 100 * gc.config.used_space_percentage
+                > gc.config.threshold * gc.config.used_space_percentage / 100
             {
                 gc.config.threshold =
-                    gc.runtime.bytes_allocated / gc.config.used_space_percentage * 100;
+                    gc.runtime.bytes_allocated * 100 / gc.config.used_space_percentage;
             }
         }
     }
