@@ -42,6 +42,12 @@ mod tests;
 pub struct RegExp {
     /// Regex matcher.
     matcher: Regex,
+
+    /// Non-optimized matcher used by the PikeVM executor on ASCII inputs.
+    ///
+    /// The PikeVM backend in `regress` does not support optimized bytecode.
+    pikevm_matcher: Regex,
+
     flags: RegExpFlags,
     original_source: JsString,
     original_flags: JsString,
@@ -372,6 +378,19 @@ impl RegExp {
             })?
         };
 
+        // NOTE: PikeVM does not support optimized regex bytecode.
+        // Keep a second matcher for ASCII fast paths that is always compiled with `no_opt`.
+        let pikevm_matcher = {
+            let mut pikevm_flags = Flags::from(flags);
+            pikevm_flags.no_opt = true;
+            Regex::from_unicode(p.code_points().map(CodePoint::as_u32), pikevm_flags).map_err(
+                |error| {
+                    JsNativeError::syntax()
+                        .with_message(format!("failed to create pikevm matcher: {}", error.text))
+                },
+            )?
+        };
+
         // 15. Assert: parseResult is a Pattern Parse Node.
         // 16. Set obj.[[OriginalSource]] to P.
         // 17. Set obj.[[OriginalFlags]] to F.
@@ -383,6 +402,7 @@ impl RegExp {
         // 21. Set obj.[[RegExpMatcher]] to CompilePattern of parseResult with argument rer.
         Ok(RegExp {
             matcher,
+            pikevm_matcher,
             flags,
             original_source: p,
             original_flags: f,
@@ -1146,12 +1166,42 @@ impl RegExp {
         // 13.b. Let inputIndex be the index into input of the character that was obtained from element lastIndex of S.
         // 13.c. Let r be matcher(input, inputIndex).
         let r: Option<regress::Match> = match (full_unicode, input.as_str().variant()) {
+            // Use PikeVM for ASCII inputs to avoid pathological backtracking behavior.
+            (true | false, JsStrVariant::Latin1(latin1)) if latin1.is_ascii() => {
+                if let Ok(input) = std::str::from_utf8(latin1) {
+                    regress::backends::find::<regress::backends::PikeVMExecutor>(
+                        &rx.pikevm_matcher,
+                        input,
+                        last_index as usize,
+                    )
+                    .next()
+                } else {
+                    // `is_ascii()` guarantees valid UTF-8.
+                    unreachable!("ASCII input should be valid UTF-8");
+                }
+            }
             (true | false, JsStrVariant::Latin1(_)) => {
                 // TODO: Currently regress does not support latin1 encoding.
                 let input = input.to_vec();
 
                 // NOTE: We can use the faster ucs2 variant since there will never be two byte unicode.
                 matcher.find_from_ucs2(&input, last_index as usize).next()
+            }
+            (true | false, JsStrVariant::Utf16(input))
+                if input.iter().all(|code_unit| *code_unit <= 0x7F) =>
+            {
+                let input = input.iter().map(|code_unit| *code_unit as u8).collect::<Vec<_>>();
+                if let Ok(input) = std::str::from_utf8(&input) {
+                    regress::backends::find::<regress::backends::PikeVMExecutor>(
+                        &rx.pikevm_matcher,
+                        input,
+                        last_index as usize,
+                    )
+                    .next()
+                } else {
+                    // ASCII-only UTF-16 code units are always valid UTF-8 after conversion.
+                    unreachable!("ASCII input should be valid UTF-8");
+                }
             }
             (true, JsStrVariant::Utf16(input)) => {
                 matcher.find_from_utf16(input, last_index as usize).next()

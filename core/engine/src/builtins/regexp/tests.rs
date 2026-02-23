@@ -128,6 +128,14 @@ fn last_index() {
 }
 
 #[test]
+fn redos_regression_ascii_nested_quantifier() {
+    run_test_actions([
+        TestAction::run(r"var re = new RegExp('(a+)+$');"),
+        TestAction::assert("re.test('a'.repeat(25) + '!') === false"),
+    ]);
+}
+
+#[test]
 fn exec() {
     run_test_actions([
         TestAction::run_harness(),
