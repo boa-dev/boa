@@ -1432,7 +1432,14 @@ impl<'ast> VisitorMut<'ast> for ScopeIndexVisitor {
             self.visit_expression_mut(super_ref)?;
         }
         if let Some(constructor) = &mut node.constructor {
-            self.visit_function_expression_mut(constructor)?;
+            self.visit_function_like(
+                &mut constructor.body,
+                &mut constructor.parameters,
+                &mut constructor.scopes,
+                &mut constructor.name_scope,
+                false,
+                true,
+            )?;
         }
         for element in &mut *node.elements {
             self.visit_class_element_mut(element)?;
@@ -1479,17 +1486,14 @@ impl<'ast> VisitorMut<'ast> for ScopeIndexVisitor {
                 self.index = index;
                 ControlFlow::Continue(())
             }
-            ClassElement::StaticBlock(node) => {
-                let contains_direct_eval = contains(node.statements(), ContainsSymbol::DirectEval);
-                self.visit_function_like(
-                    &mut node.body,
-                    &mut FormalParameterList::default(),
-                    &mut node.scopes,
-                    &mut None,
-                    false,
-                    contains_direct_eval,
-                )
-            }
+            ClassElement::StaticBlock(node) => self.visit_function_like(
+                &mut node.body,
+                &mut FormalParameterList::default(),
+                &mut node.scopes,
+                &mut None,
+                false,
+                true,
+            ),
         }
     }
 
