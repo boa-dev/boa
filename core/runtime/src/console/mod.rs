@@ -15,7 +15,7 @@
 pub(crate) mod tests;
 
 use boa_engine::JsVariant;
-use boa_engine::property::Attribute;
+use boa_engine::property::{Attribute, PropertyKey};
 use boa_engine::{
     Context, JsArgs, JsData, JsError, JsResult, JsString, JsSymbol, js_str, js_string,
     native_function::NativeFunction,
@@ -83,6 +83,14 @@ pub trait Logger: Trace {
     /// # Errors
     /// Returning an error will throw an exception in JavaScript.
     fn error(&self, msg: String, state: &ConsoleState, context: &mut Context) -> JsResult<()>;
+
+    /// Log a table (`console.table`). By default, passes the message to `log`.
+    ///
+    /// # Errors
+    /// Returning an error will throw an exception in JavaScript.
+    fn table(&self, msg: String, state: &ConsoleState, context: &mut Context) -> JsResult<()> {
+        self.log(msg, state, context)
+    }
 }
 
 /// The default implementation for logging from the console.
@@ -439,6 +447,11 @@ impl Console {
             js_string!("dirxml"),
             0,
         )
+        .function(
+            console_method(Self::table, state.clone(), logger),
+            js_string!("table"),
+            0,
+        )
         .build()
     }
 
@@ -631,6 +644,147 @@ impl Console {
         context: &mut Context,
     ) -> JsResult<JsValue> {
         logger.warn(formatter(args, context)?, &console.state, context)?;
+        Ok(JsValue::undefined())
+    }
+
+    /// `console.table(tabularData, properties)`
+    ///
+    /// Prints a table with the data from the first argument.
+    ///
+    /// More information:
+    ///  - [MDN documentation][mdn]
+    ///  - [WHATWG `console` specification][spec]
+    ///
+    /// [spec]: https://console.spec.whatwg.org/#table
+    /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/API/console/table_static
+    fn table(
+        _: &JsValue,
+        args: &[JsValue],
+        console: &Self,
+        logger: &impl Logger,
+        context: &mut Context,
+    ) -> JsResult<JsValue> {
+        let tabular_data = args.get_or_undefined(0);
+
+        if !tabular_data.is_object() {
+            return Self::log(&JsValue::undefined(), args, console, logger, context);
+        }
+
+        let Some(obj) = tabular_data.as_object() else {
+            return Self::log(&JsValue::undefined(), args, console, logger, context);
+        };
+
+        let keys = obj.own_property_keys(context)?;
+        if keys.is_empty() {
+            return Self::log(&JsValue::undefined(), args, console, logger, context);
+        }
+
+        let mut col_names = vec!["(index)".to_string()];
+        let mut rows = Vec::new();
+
+        for key in keys {
+            let row_index = key.to_string();
+            let mut row_data = FxHashMap::default();
+            row_data.insert("(index)".to_string(), row_index.clone());
+
+            let val = obj.get(key, context)?;
+            if let Some(val_obj) = val.as_object() {
+                let inner_keys = val_obj.own_property_keys(context)?;
+                for ik in inner_keys {
+                    if let Ok(Some(desc)) = val_obj.get_own_property(&ik, context) {
+                        if desc.enumerable().unwrap_or(false) {
+                            let ik_str = ik.to_string();
+                            if !col_names.contains(&ik_str) {
+                                col_names.push(ik_str.clone());
+                            }
+                            let cell_val = val_obj.get(ik, context)?;
+                            row_data.insert(ik_str, cell_val.display().to_string());
+                        }
+                    }
+                }
+            } else {
+                let v_key = "Value".to_string();
+                if !col_names.contains(&v_key) {
+                    col_names.push(v_key.clone());
+                }
+                row_data.insert(v_key, val.display().to_string());
+            }
+            rows.push(row_data);
+        }
+
+        if let Some(props) = args.get(1)
+            && props.is_object()
+        {
+            if let Some(props_obj) = props.as_object() {
+                let mut filtered_cols = vec!["(index)".to_string()];
+                let p_keys = props_obj.own_property_keys(context)?;
+                for pk in p_keys {
+                    if let Ok(Some(desc)) = props_obj.get_own_property(&pk, context) {
+                        if desc.enumerable().unwrap_or(false) {
+                            let pv = props_obj.get(pk, context)?;
+                            filtered_cols.push(pv.to_string(context)?.to_std_string_escaped());
+                        }
+                    }
+                }
+                col_names = filtered_cols;
+            }
+        }
+
+        let mut widths = vec![0; col_names.len()];
+        for (i, name) in col_names.iter().enumerate() {
+            widths[i] = name.len();
+        }
+        for row in &rows {
+            for (i, name) in col_names.iter().enumerate() {
+                if let Some(val) = row.get(name) {
+                    widths[i] = widths[i].max(val.len());
+                }
+            }
+        }
+
+        let mut output = String::new();
+        for (i, name) in col_names.iter().enumerate() {
+            let _ = write!(output, "┌─{:─^width$}─", "", width = widths[i]);
+            if i == col_names.len() - 1 {
+                output.push_str("┐\n");
+            } else {
+                output.push_str("┬");
+            }
+        }
+
+        for (i, name) in col_names.iter().enumerate() {
+            let _ = write!(output, "│ {:<width$} ", name, width = widths[i]);
+        }
+        output.push_str("│\n");
+
+        for (i, _) in col_names.iter().enumerate() {
+            let _ = write!(output, "├─{:─^width$}─", "", width = widths[i]);
+            if i == col_names.len() - 1 {
+                output.push_str("┤\n");
+            } else {
+                output.push_str("┼");
+            }
+        }
+
+        for row in rows {
+            for (i, name) in col_names.iter().enumerate() {
+                let cell_val = row.get(name).cloned().unwrap_or_default();
+                let _ = write!(output, "│ {:<width$} ", cell_val, width = widths[i]);
+            }
+            output.push_str("│\n");
+        }
+
+        for (i, _) in col_names.iter().enumerate() {
+            let _ = write!(output, "└─{:─^width$}─", "", width = widths[i]);
+            if i == col_names.len() - 1 {
+                output.push_str("┘");
+            } else {
+                output.push_str("┴");
+            }
+        }
+
+        logger.table(output, &console.state, context)?;
+
         Ok(JsValue::undefined())
     }
 
