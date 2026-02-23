@@ -214,6 +214,8 @@ pub fn register<F: Fetcher>(
     }
     js_module::boa_register::<F>(realm.clone(), context)?;
 
+    // TODO(#4688): Replace this manual `[Symbol.iterator]` wiring once `#[boa(class)]`
+    // supports symbol-named methods.
     let headers_proto = match realm {
         Some(realm) => realm.get_class::<JsHeaders>(),
         None => context.get_global_class::<JsHeaders>(),
