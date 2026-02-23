@@ -13,8 +13,8 @@ use crate::fetch::response::JsResponse;
 use boa_engine::class::Class;
 use boa_engine::realm::Realm;
 use boa_engine::{
-    Context, Finalize, JsData, JsError, JsObject, JsResult, JsString, JsValue, NativeObject, Trace,
-    boa_module, js_error,
+    Context, Finalize, JsData, JsError, JsNativeError, JsObject, JsResult, JsString, JsSymbol,
+    JsValue, NativeObject, Trace, boa_module, js_error, js_string, property::PropertyDescriptor,
 };
 use either::Either;
 use http::{HeaderName, HeaderValue, Request as HttpRequest, Request};
@@ -192,6 +192,31 @@ pub fn register<F: Fetcher>(
         context.insert_data(FetcherRc(Rc::new(fetcher)));
     }
     js_module::boa_register::<F>(realm, context)?;
+    let headers = context
+        .global_object()
+        .get(js_string!("Headers"), context)?;
+    let headers = headers
+        .as_object()
+        .ok_or_else(|| JsNativeError::typ().with_message("Headers constructor is not an object"))?;
+    let prototype = headers.get(js_string!("prototype"), context)?;
+    let prototype = prototype
+        .as_object()
+        .ok_or_else(|| JsNativeError::typ().with_message("Headers prototype is not an object"))?;
+    let entries = prototype.get(js_string!("entries"), context)?;
+    if entries.is_undefined() {
+        return Err(JsNativeError::typ()
+            .with_message("Headers.prototype.entries is not defined")
+            .into());
+    }
+    prototype.define_property_or_throw(
+        JsSymbol::iterator(),
+        PropertyDescriptor::builder()
+            .value(entries)
+            .writable(true)
+            .enumerable(false)
+            .configurable(true),
+        context,
+    )?;
 
     Ok(())
 }

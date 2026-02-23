@@ -4,10 +4,11 @@
 #![allow(clippy::needless_pass_by_value)]
 
 use boa_engine::interop::JsClass;
-use boa_engine::object::builtins::{JsArray, TypedJsFunction};
+use boa_engine::object::builtins::{JsArray, JsFunction, TypedJsFunction};
 use boa_engine::value::{Convert, TryFromJs};
 use boa_engine::{
-    Context, Finalize, JsData, JsObject, JsResult, JsString, JsValue, Trace, boa_class, js_error,
+    Context, Finalize, JsData, JsNativeError, JsObject, JsResult, JsString, JsValue, Trace,
+    boa_class, js_error, js_string,
 };
 use http::header::HeaderMap as HttpHeaderMap;
 use http::{HeaderName, HeaderValue};
@@ -154,8 +155,9 @@ impl JsHeaders {
 
     /// Returns an iterator allowing to go through all key/value pairs contained in this object.
     // TODO: This should return a JsIterator, but not such thing exists yet.
-    pub fn entries(&self, context: &mut Context) -> JsValue {
-        JsArray::from_iter(
+    #[allow(clippy::missing_errors_doc)]
+    pub fn entries(&self, context: &mut Context) -> JsResult<JsValue> {
+        let pairs = JsArray::from_iter(
             self.headers
                 .borrow()
                 .iter()
@@ -166,8 +168,8 @@ impl JsHeaders {
                 })
                 .collect::<Vec<_>>(),
             context,
-        )
-        .into()
+        );
+        array_values_iterator(pairs, context)
     }
 
     /// Executes a provided function once for each key/value pair in the Headers object.
@@ -244,12 +246,16 @@ impl JsHeaders {
     /// Returns an iterator allowing you to go through all keys of the key/value pairs
     /// contained in this object.
     #[allow(clippy::unused_self)]
-    fn keys(&self) -> Vec<JsString> {
-        self.headers
-            .borrow()
-            .keys()
-            .map(|k| JsString::from(k.as_str()))
-            .collect()
+    fn keys(&self, context: &mut Context) -> JsResult<JsValue> {
+        let keys = JsArray::from_iter(
+            self.headers
+                .borrow()
+                .keys()
+                .map(|k| JsString::from(k.as_str()).into())
+                .collect::<Vec<_>>(),
+            context,
+        );
+        array_values_iterator(keys, context)
     }
 
     /// Sets a new value for an existing header inside a Headers object, or adds the
@@ -261,11 +267,32 @@ impl JsHeaders {
         Ok(())
     }
 
-    fn values(&self) -> Vec<JsString> {
-        self.headers
-            .borrow()
-            .values()
-            .map(|v| JsString::from(v.to_str().unwrap_or("")))
-            .collect()
+    fn values(&self, context: &mut Context) -> JsResult<JsValue> {
+        let values = JsArray::from_iter(
+            self.headers
+                .borrow()
+                .values()
+                .map(|v| JsString::from(v.to_str().unwrap_or("")).into())
+                .collect::<Vec<_>>(),
+            context,
+        );
+        array_values_iterator(values, context)
     }
+}
+
+fn array_values_iterator(array: JsArray, context: &mut Context) -> JsResult<JsValue> {
+    let array_value: JsValue = array.into();
+    let array_object = array_value
+        .as_object()
+        .ok_or_else(|| JsNativeError::typ().with_message("array must be an object"))?;
+    let values = array_object.get(js_string!("values"), context)?;
+    let Some(values) = values
+        .as_object()
+        .and_then(|object| JsFunction::from_object(object.clone()))
+    else {
+        return Err(JsNativeError::typ()
+            .with_message("Array.prototype.values is not callable")
+            .into());
+    };
+    values.call(&array_value, &[], context)
 }

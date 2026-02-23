@@ -155,3 +155,38 @@ fn response_getter() {
         }),
     ]);
 }
+
+#[test]
+fn headers_iterators() {
+    run_test_actions([
+        TestAction::harness(),
+        TestAction::inspect_context(|ctx| register(&[], ctx)),
+        TestAction::run(
+            r#"
+                const headers = new Headers();
+                headers.append("x-a", "1");
+                headers.append("x-b", "2");
+
+                const keys = [...headers.keys()];
+                assertEq(keys.length, 2);
+                assert(keys.includes("x-a"));
+                assert(keys.includes("x-b"));
+
+                const values = [...headers.values()];
+                assertEq(values.length, 2);
+                assert(values.includes("1"));
+                assert(values.includes("2"));
+
+                const entries = [...headers.entries()].map((pair) => JSON.stringify(pair));
+                assertEq(entries.length, 2);
+                assert(entries.includes(JSON.stringify(["x-a", "1"])));
+                assert(entries.includes(JSON.stringify(["x-b", "2"])));
+
+                const iterated = [...headers].map((pair) => JSON.stringify(pair));
+                assertEq(iterated.length, 2);
+                assert(iterated.includes(JSON.stringify(["x-a", "1"])));
+                assert(iterated.includes(JSON.stringify(["x-b", "2"])));
+            "#,
+        ),
+    ]);
+}
