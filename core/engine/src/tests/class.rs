@@ -91,6 +91,20 @@ fn class_in_constructor() {
     ]);
 }
 
+// https://github.com/boa-dev/boa/issues/4555
+#[test]
+fn nested_class_in_class_expression_constructor() {
+    run_test_actions([TestAction::run(
+        "new (class { constructor() { class D {} } })();",
+    )]);
+}
+
+// https://github.com/boa-dev/boa/issues/4555
+#[test]
+fn nested_class_in_static_block() {
+    run_test_actions([TestAction::run("(class { static { class D {} } });")]);
+}
+
 #[test]
 fn property_initializer_reference_escaped_variable() {
     run_test_actions([

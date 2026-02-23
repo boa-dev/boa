@@ -550,16 +550,25 @@ impl Keyword {
     }
 }
 
-// TODO: Should use a proper Error
 impl TryFrom<Keyword> for BinaryOp {
-    type Error = String;
+    type Error = KeywordToBinaryOpError;
 
     fn try_from(value: Keyword) -> Result<Self, Self::Error> {
-        value
-            .as_binary_op()
-            .ok_or_else(|| format!("No binary operation for {value}"))
+        value.as_binary_op().ok_or(KeywordToBinaryOpError)
     }
 }
+
+/// Error returned when a [`Keyword`] cannot be converted into a [`BinaryOp`].
+#[derive(Debug, Clone, Copy)]
+pub struct KeywordToBinaryOpError;
+
+impl fmt::Display for KeywordToBinaryOpError {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        write!(f, "keyword is not a binary operator")
+    }
+}
+
+impl error::Error for KeywordToBinaryOpError {}
 
 /// The error type which is returned from parsing a [`str`] into a [`Keyword`].
 #[derive(Debug, Clone, Copy)]
