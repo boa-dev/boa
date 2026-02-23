@@ -340,22 +340,22 @@ impl RegExp {
         // 14. If parseResult is a non-empty List of SyntaxError objects, throw a SyntaxError exception.
 
         // If u or v flag is set, fullUnicode is true — compile as full codepoints.
-        let full_unicode = flags.contains(RegExpFlags::UNICODE)
-            || flags.contains(RegExpFlags::UNICODE_SETS);
+        let full_unicode =
+            flags.contains(RegExpFlags::UNICODE) || flags.contains(RegExpFlags::UNICODE_SETS);
 
         // In non-Unicode mode, check if pattern contains named groups (?<...).
         // Named groups with astral Unicode identifiers (e.g. (?<𝑓𝑜𝑥>)) require
         // full codepoints to work correctly with regress group name handling.
-        let has_named_groups = p
-            .code_points()
-            .collect::<Vec<_>>()
-            .windows(3)
-            .any(|w| {
-                matches!(
-                    (w[0], w[1], w[2]),
-                    (CodePoint::Unicode('('), CodePoint::Unicode('?'), CodePoint::Unicode('<'))
+        let has_named_groups = p.code_points().collect::<Vec<_>>().windows(3).any(|w| {
+            matches!(
+                (w[0], w[1], w[2]),
+                (
+                    CodePoint::Unicode('('),
+                    CodePoint::Unicode('?'),
+                    CodePoint::Unicode('<')
                 )
-            });
+            )
+        });
 
         let matcher = if full_unicode || has_named_groups {
             // Unicode mode (u/v flag) OR pattern has named groups:
@@ -365,7 +365,7 @@ impl RegExp {
                     JsNativeError::syntax()
                         .with_message(format!("failed to create matcher: {}", error.text))
                 })?
-            } else {
+        } else {
             // Non-Unicode mode with no named groups:
             // compile as raw UTF-16 code units so that surrogate pairs
             // (e.g. 𠮷 = [0xD842, 0xDFB7]) are matched correctly by find_from_ucs2.
@@ -380,11 +380,10 @@ impl RegExp {
                     CodePoint::UnpairedSurrogate(s) => vec![u32::from(s)],
                 }
             });
-            Regex::from_unicode(utf16_units, Flags::from(flags))
-                .map_err(|error| {
-                    JsNativeError::syntax()
-                        .with_message(format!("failed to create matcher: {}", error.text))
-                })?
+            Regex::from_unicode(utf16_units, Flags::from(flags)).map_err(|error| {
+                JsNativeError::syntax()
+                    .with_message(format!("failed to create matcher: {}", error.text))
+            })?
         };
 
         // 15. Assert: parseResult is a Pattern Parse Node.
@@ -394,7 +393,7 @@ impl RegExp {
         // 19. Let rer be the RegExp Record { [[IgnoreCase]]: i, [[Multiline]]: m,
         //     [[DotAll]]: s, [[Unicode]]: u, [[UnicodeSets]]: v,
         //     [[CapturingGroupsCount]]: capturingGroupsCount }.
-            // 20. Set obj.[[RegExpRecord]] to rer.
+        // 20. Set obj.[[RegExpRecord]] to rer.
         // 21. Set obj.[[RegExpMatcher]] to CompilePattern of parseResult with argument rer.
         Ok(RegExp {
             matcher,
