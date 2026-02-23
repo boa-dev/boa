@@ -2,7 +2,7 @@
 #![allow(unused_crate_dependencies)]
 
 use boa_engine::{
-    Context, Finalize, JsData, JsObject, JsString, Source, Trace, boa_class, js_string,
+    Context, Finalize, JsData, JsObject, JsString, JsValue, Source, Trace, boa_class, js_string,
 };
 
 #[derive(Clone, Trace, Finalize, JsData)]
@@ -72,6 +72,41 @@ impl Animal {
     }
 }
 
+#[derive(Clone, Default, Trace, Finalize, JsData)]
+struct Pair {
+    value: i32,
+}
+
+#[boa_class]
+impl Pair {
+    #[boa(constructor)]
+    fn new(value: i32) -> Self {
+        Self { value }
+    }
+
+    #[boa(symbol = "toPrimitive")]
+    fn to_primitive(&self) -> i32 {
+        self.value
+    }
+
+    #[boa(symbol = "iterator")]
+    fn iterator(&self, context: &mut Context) -> JsValue {
+        use boa_engine::object::builtins::JsArray;
+        let arr = JsArray::from_iter(
+            [JsValue::from(self.value), JsValue::from(self.value * 10)],
+            context,
+        );
+        let iter_fn = arr
+            .get(boa_engine::JsSymbol::iterator(), context)
+            .expect("array should have @@iterator");
+        iter_fn
+            .as_callable()
+            .expect("@@iterator should be callable")
+            .call(&arr.into(), &[], context)
+            .expect("@@iterator call should succeed")
+    }
+}
+
 const ASSERT_DECL: &str = r"
     function assertEq(lhs, rhs, message) {
       if (lhs !== rhs) {
@@ -111,6 +146,44 @@ fn boa_class() {
             assertEq(Animal.prototype.method.length, 11, "Method.length");
             assertEq(Animal.prototype.speak.length, 0, "speak.length");
             assertEq(Animal.prototype.setAge.length, 1, "setAge.length");
+     "#,
+        ))
+        .expect("Could not evaluate script");
+}
+
+#[test]
+fn boa_class_symbol_methods() {
+    let mut context = Context::default();
+
+    context.register_global_class::<Pair>().unwrap();
+
+    context
+        .eval(Source::from_bytes(ASSERT_DECL))
+        .expect("Unreachable.");
+
+    context
+        .eval(Source::from_bytes(
+            r#"
+            let p = new Pair(7);
+
+            // Symbol.toPrimitive should be defined on the prototype.
+            assertEq(typeof p[Symbol.toPrimitive], "function", "@@toPrimitive is a function");
+            assertEq(+p, 7, "toPrimitive numeric coercion");
+            assertEq(p + 3, 10, "toPrimitive addition");
+
+            // Symbol.iterator should be defined on the prototype.
+            assertEq(typeof p[Symbol.iterator], "function", "@@iterator is a function");
+
+            // Spread should work via [Symbol.iterator].
+            let spread = [...p];
+            assertEq(spread.length, 2, "spread length");
+            assertEq(spread[0], 7, "spread[0]");
+            assertEq(spread[1], 70, "spread[1]");
+
+            // for-of should also work.
+            let sum = 0;
+            for (let v of p) { sum += v; }
+            assertEq(sum, 77, "for-of sum");
      "#,
         ))
         .expect("Could not evaluate script");
