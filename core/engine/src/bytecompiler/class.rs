@@ -138,7 +138,9 @@ impl ByteCompiler<'_> {
             // We push an empty, unused function scope since the compiler expects a function scope.
             compiler.code_block_flags |= CodeBlockFlags::HAS_FUNCTION_SCOPE;
             let _ = compiler.push_scope(&Scope::new(compiler.lexical_scope.clone(), true));
-            compiler.bytecode.emit_super_call_derived();
+            compiler.emit_with_accumulator_stashed(|compiler| {
+                compiler.bytecode.emit_super_call_derived();
+            });
             compiler.pop_into_register(&value);
             compiler.bytecode.emit_bind_this_value(value.variable());
         } else {
@@ -646,7 +648,9 @@ impl ByteCompiler<'_> {
                     self.push_from_register(&class_register);
                     self.push_from_register(&function);
                     self.register_allocator.dealloc(function);
-                    self.bytecode.emit_call(0u32.into());
+                    self.emit_with_accumulator_stashed(|compiler| {
+                        compiler.bytecode.emit_call(0u32.into());
+                    });
                     self.bytecode.emit_pop();
                 }
                 StaticElement::StaticField {
@@ -662,7 +666,9 @@ impl ByteCompiler<'_> {
                     self.push_from_register(&class_register);
                     self.push_from_register(&function);
                     self.register_allocator.dealloc(function);
-                    self.bytecode.emit_call(0u32.into());
+                    self.emit_with_accumulator_stashed(|compiler| {
+                        compiler.bytecode.emit_call(0u32.into());
+                    });
                     let value = self.register_allocator.alloc();
                     self.pop_into_register(&value);
                     match name_index {

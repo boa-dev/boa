@@ -344,8 +344,11 @@ impl ByteCompiler<'_> {
                     self.register_allocator.dealloc(value);
                 }
 
-                self.bytecode
-                    .emit_call((template.exprs().len() as u32 + 1).into());
+                self.emit_with_accumulator_stashed(|compiler| {
+                    compiler
+                        .bytecode
+                        .emit_call((template.exprs().len() as u32 + 1).into());
+                });
                 self.pop_into_register(dst);
             }
             Expression::ClassExpression(class) => {
@@ -396,12 +399,15 @@ impl ByteCompiler<'_> {
                     }
                 }
 
-                if contains_spread {
-                    self.bytecode.emit_super_call_spread();
-                } else {
-                    self.bytecode
-                        .emit_super_call((super_call.arguments().len() as u32).into());
-                }
+                self.emit_with_accumulator_stashed(|compiler| {
+                    if contains_spread {
+                        compiler.bytecode.emit_super_call_spread();
+                    } else {
+                        compiler
+                            .bytecode
+                            .emit_super_call((super_call.arguments().len() as u32).into());
+                    }
+                });
                 self.pop_into_register(dst);
                 self.bytecode.emit_bind_this_value(dst.variable());
             }

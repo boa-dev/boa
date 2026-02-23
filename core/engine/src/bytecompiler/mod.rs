@@ -617,6 +617,28 @@ impl<'ctx> ByteCompiler<'ctx> {
         }
     }
 
+    /// Executes a closure that emits a call opcode, while persisting the accumulator.
+    /// This fixes an issue where function calls that don't return a value
+    /// incorrectly inherit the caller's accumulator value.
+    pub(crate) fn emit_with_accumulator_stashed<F>(&mut self, f: F)
+    where
+        F: FnOnce(&mut Self),
+    {
+        let acc_backup = self.register_allocator.alloc();
+        self.bytecode
+            .emit_set_register_from_accumulator(acc_backup.variable());
+
+        let undefined = self.register_allocator.alloc();
+        self.bytecode.emit_push_undefined(undefined.variable());
+        self.bytecode.emit_set_accumulator(undefined.variable());
+        self.register_allocator.dealloc(undefined);
+
+        f(self);
+
+        self.bytecode.emit_set_accumulator(acc_backup.variable());
+        self.register_allocator.dealloc(acc_backup);
+    }
+
     pub(crate) fn source_text(&self) -> SourceText {
         self.spanned_source_text.source_text()
     }
@@ -1605,8 +1627,6 @@ impl<'ctx> ByteCompiler<'ctx> {
 
                     self.register_allocator.dealloc(value);
                     self.register_allocator.dealloc(array);
-
-                    self.bytecode.emit_call_spread();
                 } else {
                     for arg in args {
                         let value = self.register_allocator.alloc();
@@ -1614,8 +1634,15 @@ impl<'ctx> ByteCompiler<'ctx> {
                         self.push_from_register(&value);
                         self.register_allocator.dealloc(value);
                     }
-                    self.bytecode.emit_call((args.len() as u32).into());
                 }
+
+                self.emit_with_accumulator_stashed(|compiler| {
+                    if contains_spread {
+                        compiler.bytecode.emit_call_spread();
+                    } else {
+                        compiler.bytecode.emit_call((args.len() as u32).into());
+                    }
+                });
 
                 self.pop_into_register(value);
                 self.bytecode.emit_push_undefined(this.variable());
@@ -2078,7 +2105,7 @@ impl<'ctx> ByteCompiler<'ctx> {
             }
         }
 
-        match kind {
+        compiler.emit_with_accumulator_stashed(|compiler| match kind {
             CallKind::CallEval => {
                 let scope_index = compiler.constants.len() as u32;
                 let lexical_scope = compiler.lexical_scope.clone();
@@ -2101,7 +2128,7 @@ impl<'ctx> ByteCompiler<'ctx> {
             CallKind::New => compiler
                 .bytecode
                 .emit_new((call.args().len() as u32).into()),
-        }
+        });
         compiler.pop_into_register(dst);
     }
 
