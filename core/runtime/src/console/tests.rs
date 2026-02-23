@@ -375,3 +375,40 @@ fn trace_with_stack_trace() {
         "# }
     );
 }
+
+#[test]
+fn console_table() {
+    let mut context = Context::default();
+    let logger = RecordingLogger::default();
+    Console::register_with_logger(logger.clone(), &mut context).unwrap();
+
+    run_test_actions_with(
+        [
+            TestAction::run(TEST_HARNESS),
+            TestAction::run(indoc! {r#"
+            console.table([{a: 1, b: 2}, {a: 3, b: 4}]);
+            console.table([{a: 1, b: 2}, {a: 3, b: 4}], ["a"]);
+        "#}),
+        ],
+        &mut context,
+    );
+
+    let logs = logger.log.borrow().clone();
+    assert_eq!(
+        logs,
+        indoc! { r#"
+            ┌─────────┬───┬───┐
+            │ (index) │ a │ b │
+            ├─────────┼───┼───┤
+            │ 0       │ 1 │ 2 │
+            │ 1       │ 3 │ 4 │
+            └─────────┴───┴───┘
+            ┌─────────┬───┐
+            │ (index) │ a │
+            ├─────────┼───┤
+            │ 0       │ 1 │
+            │ 1       │ 3 │
+            └─────────┴───┘
+        "# }
+    );
+}
