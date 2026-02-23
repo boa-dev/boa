@@ -221,7 +221,6 @@ fn formatter(data: &[JsValue], context: &mut Context) -> JsResult<String> {
                             arg_index += 1;
                         }
                         '%' => formatted.push('%'),
-                        /* TODO: %c is not implemented */
                         c => {
                             formatted.push('%');
                             formatted.push(c);
