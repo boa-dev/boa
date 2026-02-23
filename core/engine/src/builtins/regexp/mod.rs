@@ -338,12 +338,30 @@ impl RegExp {
 
         // 13. Let parseResult be ParsePattern(patternText, u, v).
         // 14. If parseResult is a non-empty List of SyntaxError objects, throw a SyntaxError exception.
-        let matcher =
+        let is_unicode = flags.contains(RegExpFlags::UNICODE) || flags.contains(RegExpFlags::UNICODE_SETS);
+        let matcher = if is_unicode {
+            // In Unicode mode: we treat the pattern as a sequence of code points.
             Regex::from_unicode(p.code_points().map(CodePoint::as_u32), Flags::from(flags))
                 .map_err(|error| {
                     JsNativeError::syntax()
                         .with_message(format!("failed to create matcher: {}", error.text))
-                })?;
+                })?
+        } else {
+            // Non-Unicode mode: we must treat the pattern as a sequence of 16-bit code units.
+            // This ensures surrogate pairs are matched as individual units, not merged.
+            let utf16_units = p.code_points().flat_map(|cp| match cp {
+                CodePoint::Unicode(c) => {
+                    let mut buf = [0u16; 2];
+                    c.encode_utf16(&mut buf).iter().map(|&u| u32::from(u)).collect::<Vec<_>>()
+                }
+                CodePoint::UnpairedSurrogate(s) => vec![u32::from(s)],
+            });
+
+            Regex::from_unicode(utf16_units, Flags::from(flags)).map_err(|error| {
+                JsNativeError::syntax()
+                    .with_message(format!("failed to create matcher: {}", error.text))
+            })?
+        };
 
         // 15. Assert: parseResult is a Pattern Parse Node.
         // 16. Set obj.[[OriginalSource]] to P.
