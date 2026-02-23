@@ -66,8 +66,9 @@ impl RequestInit {
         request: Option<HttpRequest<Vec<u8>>>,
     ) -> JsResult<HttpRequest<Vec<u8>>> {
         let mut builder = HttpRequest::builder();
+        let mut request_body = None;
         if let Some(r) = request {
-            let (parts, _body) = r.into_parts();
+            let (parts, body) = r.into_parts();
             builder = builder
                 .method(parts.method)
                 .uri(parts.uri)
@@ -76,6 +77,7 @@ impl RequestInit {
             for (key, value) in &parts.headers {
                 builder = builder.header(key, value);
             }
+            request_body = Some(body);
         }
 
         if let Some(ref headers) = self.headers.take() {
@@ -95,7 +97,6 @@ impl RequestInit {
             )?.as_str());
         }
 
-        let mut request_body = None;
         if let Some(body) = &self.body {
             // TODO: add more support types.
             if let Some(body) = body.as_string() {
