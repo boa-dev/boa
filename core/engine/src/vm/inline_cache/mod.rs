@@ -94,10 +94,9 @@ impl InlineCache {
         if let Some(entry) = entries
             .iter()
             .find(|entry| entry.shape.to_addr_usize() == target_addr)
+            && let Some(shape) = entry.shape.upgrade()
         {
-            if let Some(shape) = entry.shape.upgrade() {
-                return Some((shape, entry.slot));
-            }
+            return Some((shape, entry.slot));
         }
 
         None

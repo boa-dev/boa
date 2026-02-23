@@ -235,7 +235,6 @@ impl From<SharedShape> for Shape {
 pub(crate) enum WeakShape {
     Unique(WeakUniqueShape),
     Shared(WeakSharedShape),
-    None,
 }
 
 impl WeakShape {
@@ -248,7 +247,6 @@ impl WeakShape {
         match self {
             WeakShape::Shared(shape) => shape.to_addr_usize(),
             WeakShape::Unique(shape) => shape.to_addr_usize(),
-            WeakShape::None => 0,
         }
     }
 
@@ -261,7 +259,6 @@ impl WeakShape {
         match self {
             WeakShape::Shared(shape) => Some(shape.upgrade()?.into()),
             WeakShape::Unique(shape) => Some(shape.upgrade()?.into()),
-            WeakShape::None => None,
         }
     }
 }

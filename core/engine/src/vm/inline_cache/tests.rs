@@ -6,8 +6,7 @@ use crate::{
     builtins::{OrdinaryObject, function::OrdinaryFunction},
     js_string,
     object::{
-        ObjectInitializer,
-        internal_methods::InternalMethodPropertyContext,
+        ObjectInitializer, internal_methods::InternalMethodPropertyContext,
         shape::slot::SlotAttributes,
     },
     property::{Attribute, PropertyDescriptor, PropertyKey},
