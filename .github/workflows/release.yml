@@ -75,7 +75,7 @@ jobs:
 
       - name: Check if the npm version already exists
         run: |
-          VERSION=$(node -p "require('./ffi/wasm/pkg/package.json').version")
+          VERSION=$(jq -r '.version' ./ffi/wasm/pkg/package.json)
 
           if npm view @boa-dev/boa_wasm@$VERSION version > dev/null 2>&1; then
             echo "Version $VERSION already published. Skipping"
