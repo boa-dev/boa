@@ -1,6 +1,6 @@
 use crate::utils::{
     RenameScheme, SpannedResult, error, take_error_from_attrs, take_length_from_attrs,
-    take_name_value_attr, take_path_attr,
+    take_name_value_attr, take_name_value_string, take_path_attr,
 };
 use proc_macro::TokenStream;
 use proc_macro2::{Span as Span2, TokenStream as TokenStream2};
@@ -16,14 +16,79 @@ use syn::{
     Lit, Meta, MetaNameValue, PatType, Receiver, ReturnType, Signature, Token, Type, TypeParam,
 };
 
+/// The name of a method or accessor, which can be either a string property key or a
+/// well-known symbol (e.g. `Symbol.iterator`).
+#[derive(Debug, Clone, PartialEq, Eq, PartialOrd, Ord)]
+pub(crate) enum MethodName {
+    String(String),
+    Symbol(String),
+}
+
+impl MethodName {
+    /// The valid well-known symbol names accepted by `#[boa(symbol)]`.
+    const WELL_KNOWN_SYMBOLS: &[&str] = &[
+        "asyncIterator",
+        "hasInstance",
+        "isConcatSpreadable",
+        "iterator",
+        "match",
+        "matchAll",
+        "replace",
+        "search",
+        "species",
+        "split",
+        "toPrimitive",
+        "toStringTag",
+        "unscopables",
+    ];
+
+    fn to_key_tokens(&self) -> TokenStream2 {
+        match self {
+            Self::String(s) => quote! { boa_engine::js_string!( #s ) },
+            Self::Symbol(sym) => to_symbol_tokens(sym),
+        }
+    }
+}
+
+/// Maps a camelCase well-known symbol name to the corresponding `JsSymbol` accessor ident.
+fn to_symbol_accessor(sym: &str) -> Ident {
+    let snake = match sym {
+        "asyncIterator" => "async_iterator",
+        "hasInstance" => "has_instance",
+        "isConcatSpreadable" => "is_concat_spreadable",
+        "iterator" => "iterator",
+        "matchAll" => "match_all",
+        "replace" => "replace",
+        "search" => "search",
+        "species" => "species",
+        "split" => "split",
+        "toPrimitive" => "to_primitive",
+        "toStringTag" => "to_string_tag",
+        "unscopables" => "unscopables",
+        other => unreachable!("unknown well-known symbol: {other}"),
+    };
+    Ident::new(snake, Span2::call_site())
+}
+
+/// `match` is a Rust keyword, so we special-case it with `Ident::new_raw`.
+fn to_symbol_tokens(sym: &str) -> TokenStream2 {
+    if sym == "match" {
+        let ident = Ident::new_raw("match", Span2::call_site());
+        quote! { boa_engine::JsSymbol:: #ident () }
+    } else {
+        let ident = to_symbol_accessor(sym);
+        quote! { boa_engine::JsSymbol:: #ident () }
+    }
+}
+
 /// A function representation. Takes a function from the AST and remember its name, length and
 /// how its body should be in the output AST.
 /// There are three types of functions: Constructors, Methods and Accessors (setter/getter).
 ///
 /// This is not an enum for simplicity. The body is dependent on how this was created.
 pub(crate) struct Function {
-    /// The name of the function. Can be overridden with `#[boa(rename = "...")]`.
-    name: String,
+    /// The name of the function. Can be a string key or a well-known symbol.
+    name: MethodName,
 
     /// The length of the function in JavaScript. Can be overridden with `#[boa(length = ...)]`.
     length: usize,
@@ -43,6 +108,15 @@ impl std::fmt::Debug for Function {
             .field("is_static", &self.is_static)
             .field("body", &self.body.to_string())
             .finish()
+    }
+}
+
+impl Display for MethodName {
+    fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
+        match self {
+            Self::String(s) => f.write_str(s),
+            Self::Symbol(s) => write!(f, "[Symbol.{s}]"),
+        }
     }
 }
 
@@ -117,7 +191,7 @@ impl Function {
     }
 
     pub(crate) fn from_sig(
-        name: String,
+        name: MethodName,
         has_explicit_method: bool,
         has_explicit_static: bool,
         attrs: &mut Vec<Attribute>,
@@ -204,9 +278,8 @@ impl Function {
         })
     }
 
-    /// Create a `Function` from its name,
     fn method(
-        name: String,
+        name: MethodName,
         has_explicit_method: bool,
         has_explicit_static: bool,
         fn_: &mut ImplItemFn,
@@ -230,11 +303,11 @@ impl Function {
         )
     }
 
-    fn getter(name: String, fn_: &mut ImplItemFn, class_ty: &Type) -> SpannedResult<Self> {
+    fn getter(name: MethodName, fn_: &mut ImplItemFn, class_ty: &Type) -> SpannedResult<Self> {
         Self::method(name, false, true, fn_, Some(class_ty))
     }
 
-    fn setter(name: String, fn_: &mut ImplItemFn, class_ty: &Type) -> SpannedResult<Self> {
+    fn setter(name: MethodName, fn_: &mut ImplItemFn, class_ty: &Type) -> SpannedResult<Self> {
         Self::method(name, false, true, fn_, Some(class_ty))
     }
 
@@ -291,7 +364,7 @@ impl Function {
 
         Ok(Self {
             length,
-            name: String::new(),
+            name: MethodName::String(String::new()),
             body: quote! {
                 let rest = args;
                 #(#args_decl)*
@@ -317,12 +390,12 @@ struct Accessor {
 impl Accessor {
     fn set_getter(
         &mut self,
-        name: String,
+        name: MethodName,
         fn_: &mut ImplItemFn,
         class_ty: &Type,
     ) -> SpannedResult<()> {
         if self.getter.is_some() {
-            error(fn_, "Getter for property {name:?} already declared.")
+            error(fn_, format!("Getter for property {name} already declared."))
         } else {
             let getter = Function::getter(name, fn_, class_ty)?;
             self.getter = Some(getter);
@@ -332,14 +405,14 @@ impl Accessor {
 
     fn set_setter(
         &mut self,
-        name: String,
+        name: MethodName,
         fn_: &mut ImplItemFn,
         class_ty: &Type,
     ) -> SpannedResult<()> {
         if self.setter.is_some() {
             error(
                 fn_,
-                format!("Setter for property {name:?} already declared."),
+                format!("Setter for property {name} already declared."),
             )
         } else {
             let setter = Function::setter(name, fn_, class_ty)?;
@@ -356,6 +429,7 @@ impl Accessor {
         else {
             return quote! {};
         };
+        let key_tokens = name.to_key_tokens();
         let getter = if let Some(getter) = self.getter.as_ref() {
             let body = getter.body.clone();
             quote! {
@@ -384,7 +458,7 @@ impl Accessor {
                 let g = #getter;
                 let s = #setter;
                 builder.accessor(
-                    boa_engine::js_string!( #name ),
+                    #key_tokens,
                     g,
                     s,
                     boa_engine::property::Attribute::CONFIGURABLE
@@ -414,7 +488,7 @@ struct ClassVisitor {
     methods: Vec<Function>,
 
     // All accessors (getters and/or setters) with their names.
-    accessors: BTreeMap<String, Accessor>,
+    accessors: BTreeMap<MethodName, Accessor>,
 
     // All errors we found along the way.
     errors: Option<syn::Error>,
@@ -433,11 +507,25 @@ impl ClassVisitor {
         }
     }
 
-    fn name_of(&self, fn_: &mut ImplItemFn) -> SpannedResult<String> {
+    fn name_of(&self, fn_: &mut ImplItemFn) -> SpannedResult<MethodName> {
+        if let Some(sym) = take_name_value_string(&mut fn_.attrs, "symbol")? {
+            if !MethodName::WELL_KNOWN_SYMBOLS.contains(&sym.as_str()) {
+                return error(
+                    &fn_.sig.ident,
+                    format!(
+                        "Unknown well-known symbol \"{sym}\". \
+                         Accepted values: {}",
+                        MethodName::WELL_KNOWN_SYMBOLS.join(", "),
+                    ),
+                );
+            }
+            return Ok(MethodName::Symbol(sym));
+        }
+
         take_name_value_attr(&mut fn_.attrs, "rename").map_or_else(
-            || Ok(self.renaming.rename(fn_.sig.ident.to_string())),
+            || Ok(MethodName::String(self.renaming.rename(fn_.sig.ident.to_string()))),
             |nv| match &nv {
-                Lit::Str(s) => Ok(s.value()),
+                Lit::Str(s) => Ok(MethodName::String(s.value())),
                 _ => error(&nv, "Invalid attribute value literal"),
             },
         )
@@ -514,13 +602,13 @@ impl ClassVisitor {
         let accessors = self.accessors.values().map(Accessor::body);
 
         let builder_methods = self.methods.iter().map(|m| {
-            let name_str = m.name.as_str();
+            let key_tokens = m.name.to_key_tokens();
             let length = m.length;
             let body = &m.body;
 
             quote! {
                 builder.method(
-                    boa_engine::js_string!( #name_str ),
+                    #key_tokens,
                     #length,
                     boa_engine::NativeFunction::from_fn_ptr(
                         #body
@@ -530,13 +618,13 @@ impl ClassVisitor {
         });
 
         let builder_statics = self.statics.iter().map(|m| {
-            let name_str = m.name.as_str();
+            let key_tokens = m.name.to_key_tokens();
             let length = m.length;
             let body = &m.body;
 
             quote! {
                 builder.static_method(
-                    boa_engine::js_string!( #name_str ),
+                    #key_tokens,
                     #length,
                     boa_engine::NativeFunction::from_fn_ptr(
                         #body
