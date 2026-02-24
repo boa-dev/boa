@@ -97,7 +97,7 @@ comfy-table = "7.2.2"
 serde_repr = "0.1.20"
 bus = "2.4.1"
 wasm-bindgen = { version = "0.2.97", default-features = false }
-getrandom = { version = "0.3.4", default-features = false }
+getrandom = { version = "0.4.1", default-features = false }
 console_error_panic_hook = "0.1.7"
 wasm-bindgen-test = "0.3.58"
 smol = "2.0.2"
@@ -110,7 +110,7 @@ proc-macro2 = "1.0"
 synstructure = "0.13"
 measureme = "12.0.3"
 paste = "1.0"
-rand = "0.9.2"
+rand = "0.10.0"
 num-integer = "0.1.46"
 ryu-js = "1.0.2"
 tap = "1.0.1"
