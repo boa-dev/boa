@@ -60,7 +60,8 @@ impl GetNameGlobal {
             let ic = &context.vm.frame().code_block().ic[usize::from(ic_index)];
 
             let object_borrowed = object.borrow();
-            if let Some((_shape, slot, prototype_hops)) = ic.match_or_reset(object_borrowed.shape()) {
+            if let Some((_shape, slot, prototype_hops)) = ic.match_or_reset(object_borrowed.shape())
+            {
                 let mut result = if slot.attributes.contains(SlotAttributes::PROTOTYPE) {
                     // Walk up the prototype chain exactly `prototype_hops` times.
                     let mut proto = object_borrowed
@@ -68,7 +69,11 @@ impl GetNameGlobal {
                         .clone()
                         .expect("prototype should exist");
                     for _ in 1..prototype_hops {
-                        let next = proto.borrow().prototype().clone().expect("prototype chain broken");
+                        let next = proto
+                            .borrow()
+                            .prototype()
+                            .clone()
+                            .expect("prototype chain broken");
                         proto = next;
                     }
                     let proto_borrowed = proto.borrow();

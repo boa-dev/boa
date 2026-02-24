@@ -35,7 +35,11 @@ fn set_by_name(
                     .clone()
                     .expect("prototype should exist");
                 for _ in 1..prototype_hops {
-                    let next = proto.borrow().prototype().clone().expect("prototype chain broken");
+                    let next = proto
+                        .borrow()
+                        .prototype()
+                        .clone()
+                        .expect("prototype chain broken");
                     proto = next;
                 }
                 let proto_borrowed = proto.borrow();
@@ -60,7 +64,11 @@ fn set_by_name(
                 .expect("prototype should exist");
             drop(object_borrowed);
             for _ in 1..prototype_hops {
-                let next = proto.borrow().prototype().clone().expect("prototype chain broken");
+                let next = proto
+                    .borrow()
+                    .prototype()
+                    .clone()
+                    .expect("prototype chain broken");
                 proto = next;
             }
             let mut proto_borrowed = proto.borrow_mut();

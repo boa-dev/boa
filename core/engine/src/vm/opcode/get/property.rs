@@ -47,7 +47,11 @@ fn get_by_name<const LENGTH: bool>(
                 .clone()
                 .expect("prototype should exist");
             for _ in 1..prototype_hops {
-                let next = proto.borrow().prototype().clone().expect("prototype chain broken");
+                let next = proto
+                    .borrow()
+                    .prototype()
+                    .clone()
+                    .expect("prototype chain broken");
                 proto = next;
             }
             let proto_borrowed = proto.borrow();
