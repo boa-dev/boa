@@ -11,7 +11,7 @@ use crate::{
     Context, JsArgs, JsNativeError, JsResult, JsString, JsValue,
     builtins::{
         BuiltInBuilder, BuiltInConstructor, BuiltInObject, IntrinsicObject,
-        map::add_entries_from_iterable,
+        map::add_entries_from_iterable, symbol,
     },
     context::intrinsics::{Intrinsics, StandardConstructor, StandardConstructors},
     js_string,
@@ -24,6 +24,19 @@ use crate::{
 use boa_gc::{Finalize, Trace};
 
 type NativeWeakMap = boa_gc::WeakMap<ErasedVTableObject, JsValue>;
+
+/// Abstract operation `CanBeHeldWeakly ( v )`
+///
+/// Returns `true` if `v` may be used as a `WeakMap`/`WeakSet` key or `WeakRef` target.
+/// Objects are always eligible. Symbols are eligible unless they are registered
+/// (created via `Symbol.for()`).
+///
+/// See: <https://tc39.es/proposal-symbols-as-weakmap-keys/#sec-canbeheldweakly>
+#[inline]
+fn can_be_held_weakly(value: &JsValue) -> bool {
+    value.is_object()
+        || (value.is_symbol() && symbol::is_unique_symbol(&value.as_symbol().unwrap()))
+}
 
 #[derive(Debug, Trace, Finalize)]
 pub(crate) struct WeakMap;
