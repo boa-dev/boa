@@ -83,7 +83,14 @@ fn assert_native_frame(entry: &ShadowEntry) {
 #[test]
 fn backtrace_preserved_through_promise_rejection() {
     let mut context = Context::default();
-    let entries = get_backtrace_from_rejection(&mut context, b"let x = undefined;\nx()", "test.js");
+    let entries = get_backtrace_from_rejection(
+        &mut context,
+        indoc! {br#"
+            let x = undefined;
+            x()
+        "#},
+        "test.js",
+    );
 
     let path = Path::new("test.js");
 
@@ -100,15 +107,16 @@ fn nested_backtrace_preserved_through_promise_rejection() {
     let mut context = Context::default();
     let entries = get_backtrace_from_rejection(
         &mut context,
-        br"function foo() {
-    function baz() {
-        import.meta.non_existent()
-    }
-    baz()
-}
+        indoc! {br#"
+            function foo() {
+                function baz() {
+                    import.meta.non_existent()
+                }
+                baz()
+            }
 
-foo()
-",
+            foo()
+        "#},
         "test.js",
     );
 
@@ -129,7 +137,12 @@ fn explicit_throw_backtrace_preserved_through_promise_rejection() {
     let mut context = Context::default();
     let entries = get_backtrace_from_rejection(
         &mut context,
-        b"function foo() {\n    throw new Error(\"test\")\n}\nfoo()",
+        indoc! {br#"
+            function foo() {
+                throw new Error("test")
+            }
+            foo()
+        "#},
         "test.js",
     );
 
@@ -147,7 +160,11 @@ fn explicit_throw_backtrace_preserved_through_promise_rejection() {
 #[test]
 fn eval_error_has_backtrace() {
     let mut context = Context::default();
-    let code = b"const a = 0;\niWillCauseAnError\nconst b = a + 1;";
+    let code = indoc! {br#"
+        const a = 0;
+        iWillCauseAnError
+        const b = a + 1;
+    "#};
     let source = Source::from_reader(code.as_slice(), Some(Path::new("test.js")));
     match context.eval(source) {
         Ok(_) => panic!("Should have thrown a ReferenceError"),
