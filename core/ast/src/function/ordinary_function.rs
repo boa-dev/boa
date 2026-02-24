@@ -5,7 +5,9 @@ use crate::{
     join_nodes,
     operations::{ContainsSymbol, contains},
     scope::{FunctionScopes, Scope},
-    scope_analyzer::{analyze_binding_escapes, collect_bindings, optimize_scope_indices_function_constructor},
+    scope_analyzer::{
+        analyze_binding_escapes, collect_bindings, optimize_scope_indices_function_constructor,
+    },
     visitor::{VisitWith, Visitor, VisitorMut},
 };
 use boa_interner::{Interner, ToIndentedString};
