@@ -28,6 +28,8 @@ pub(crate) mod string;
 pub(crate) struct InternalMethodPropertyContext<'ctx> {
     context: &'ctx mut Context,
     slot: Slot,
+    /// Number of prototype hops taken to find the property.
+    prototype_hops: u8,
 }
 
 impl<'ctx> InternalMethodPropertyContext<'ctx> {
@@ -36,6 +38,7 @@ impl<'ctx> InternalMethodPropertyContext<'ctx> {
         Self {
             context,
             slot: Slot::new(),
+            prototype_hops: 0,
         }
     }
 
@@ -43,6 +46,12 @@ impl<'ctx> InternalMethodPropertyContext<'ctx> {
     #[inline]
     pub(crate) fn slot(&mut self) -> &mut Slot {
         &mut self.slot
+    }
+
+    /// Returns how many prototype hops were taken to find the property.
+    #[inline]
+    pub(crate) fn prototype_hops(&self) -> u8 {
+        self.prototype_hops
     }
 }
 
@@ -687,7 +696,7 @@ pub(crate) fn ordinary_has_property(
         // 4. Let parent be ? O.[[GetPrototypeOf]]().
         let parent = obj.__get_prototype_of__(context)?;
 
-        context.slot().set_not_cacheable_if_already_prototype();
+        context.prototype_hops += 1;
         context.slot().attributes |= SlotAttributes::PROTOTYPE;
 
         parent
@@ -717,7 +726,7 @@ pub(crate) fn ordinary_get(
         None => {
             // a. Let parent be ? O.[[GetPrototypeOf]]().
             if let Some(parent) = obj.__get_prototype_of__(context)? {
-                context.slot().set_not_cacheable_if_already_prototype();
+                context.prototype_hops += 1;
                 context.slot().attributes |= SlotAttributes::PROTOTYPE;
 
                 // c. Return ? parent.[[Get]](P, Receiver).
@@ -770,7 +779,7 @@ pub(crate) fn ordinary_try_get(
         None => {
             // a. Let parent be ? O.[[GetPrototypeOf]]().
             if let Some(parent) = obj.__get_prototype_of__(context)? {
-                context.slot().set_not_cacheable_if_already_prototype();
+                context.prototype_hops += 1;
                 context.slot().attributes |= SlotAttributes::PROTOTYPE;
 
                 // c. Return ? parent.[[Get]](P, Receiver).

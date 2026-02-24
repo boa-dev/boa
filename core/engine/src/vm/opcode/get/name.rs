@@ -60,11 +60,19 @@ impl GetNameGlobal {
             let ic = &context.vm.frame().code_block().ic[usize::from(ic_index)];
 
             let object_borrowed = object.borrow();
-            if let Some((shape, slot)) = ic.match_or_reset(object_borrowed.shape()) {
+            if let Some((_shape, slot, prototype_hops)) = ic.match_or_reset(object_borrowed.shape()) {
                 let mut result = if slot.attributes.contains(SlotAttributes::PROTOTYPE) {
-                    let prototype = shape.prototype().expect("prototype should have value");
-                    let prototype = prototype.borrow();
-                    prototype.properties().storage[slot.index as usize].clone()
+                    // Walk up the prototype chain exactly `prototype_hops` times.
+                    let mut proto = object_borrowed
+                        .prototype()
+                        .clone()
+                        .expect("prototype should exist");
+                    for _ in 1..prototype_hops {
+                        let next = proto.borrow().prototype().clone().expect("prototype chain broken");
+                        proto = next;
+                    }
+                    let proto_borrowed = proto.borrow();
+                    proto_borrowed.properties().storage[slot.index as usize].clone()
                 } else {
                     object_borrowed.properties().storage[slot.index as usize].clone()
                 };
@@ -96,10 +104,11 @@ impl GetNameGlobal {
             // Cache the property.
             let slot = *context.slot();
             if slot.is_cacheable() {
+                let hops = context.prototype_hops();
                 let ic = &context.vm.frame().code_block.ic[usize::from(ic_index)];
                 let object_borrowed = object.borrow();
                 let shape = object_borrowed.shape();
-                ic.set(shape, slot);
+                ic.set(shape, slot, hops);
             }
 
             context.vm.set_register(dst.into(), result);

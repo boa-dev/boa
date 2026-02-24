@@ -105,6 +105,65 @@ fn get_internal_method() {
 }
 
 #[test]
+fn get_internal_method_in_transitive_prototype() {
+    // Tests that properties found 2 hops up the prototype chain are cacheable
+    // (fix for transitive prototype inline caching).
+    let context = &mut Context::default();
+
+    // grandparent object with the property
+    let grandparent = context
+        .intrinsics()
+        .templates()
+        .ordinary_object()
+        .create(OrdinaryObject, Vec::default());
+
+    let property: PropertyKey = js_string!("transitive_prop").into();
+    let value = 42;
+    grandparent
+        .set(property.clone(), value, true, context)
+        .expect("should not fail");
+
+    // parent object whose prototype is grandparent
+    let parent = context
+        .intrinsics()
+        .templates()
+        .ordinary_object()
+        .create(OrdinaryObject, Vec::default());
+    parent.set_prototype(Some(grandparent.clone()));
+
+    // child object whose prototype is parent
+    let child = context
+        .intrinsics()
+        .templates()
+        .ordinary_object()
+        .create(OrdinaryObject, Vec::default());
+    child.set_prototype(Some(parent));
+
+    let ctx = &mut InternalMethodPropertyContext::new(context);
+    let result = child
+        .__get__(&property, child.clone().into(), ctx)
+        .expect("should not fail");
+
+    assert_eq!(result, JsValue::from(value));
+
+    assert!(
+        ctx.slot().in_prototype(),
+        "Property is in the prototype chain, PROTOTYPE bit must be set"
+    );
+
+    assert!(
+        ctx.slot().is_cacheable(),
+        "Transitive prototype property must now be cacheable"
+    );
+
+    assert_eq!(
+        ctx.prototype_hops(),
+        2,
+        "Property is 2 hops away; prototype_hops must be 2"
+    );
+}
+
+#[test]
 fn get_internal_method_in_prototype() {
     let context = &mut Context::default();
 
