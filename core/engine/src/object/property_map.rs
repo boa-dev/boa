@@ -17,7 +17,7 @@ use thin_vec::ThinVec;
 
 /// Wrapper around `indexmap::IndexMap` for usage in `PropertyMap`.
 #[derive(Debug, Finalize)]
-#[allow(unused)] // TODO: OrderedHashmap is unused, candidate from removal?
+#[allow(unused)] // TODO: OrderedHashmap is unused, candidate for removal?
 struct OrderedHashMap<K: Trace>(IndexMap<K, PropertyDescriptor, BuildHasherDefault<FxHasher>>);
 
 impl<K: Trace> Default for OrderedHashMap<K> {
@@ -50,7 +50,7 @@ unsafe impl<K: Trace> Trace for OrderedHashMap<K> {
 /// ## Sparse Storage
 ///
 /// This storage is used as a backup if the element keys are not continuous or the property descriptors
-/// are not data descriptors with with a value field, writable field set to `true`, configurable field set to `true`, enumerable field set to `true`.
+/// are not data descriptors with a value field, writable field set to `true`, configurable field set to `true`, enumerable field set to `true`.
 ///
 /// This method uses more space, since we also have to store the property descriptors, not just the value.
 /// It is also slower because we need to do a hash lookup.
@@ -203,7 +203,7 @@ impl IndexedProperties {
                         return false;
                     }
 
-                    // If it the key points in at a already taken index, set it.
+                    // If the key points at an already taken index, set it.
                     vec[key as usize] = val;
                     return true;
                 }
@@ -220,7 +220,7 @@ impl IndexedProperties {
                         return false;
                     }
 
-                    // If it the key points in at a already taken index, set it.
+                    // If the key points at an already taken index, set it.
                     vec[key as usize] = num;
                     *self = Self::DenseF64(vec);
                     return true;
@@ -241,7 +241,7 @@ impl IndexedProperties {
                     return false;
                 }
 
-                // If it the key points in at a already taken index, set it.
+                // If the key points at an already taken index, set it.
                 vec[key as usize] = value.clone();
                 *self = Self::DenseElement(vec);
                 true
@@ -258,7 +258,7 @@ impl IndexedProperties {
                         return false;
                     }
 
-                    // If it the key points in at a already taken index, swap and return it.
+                    // If the key points at an already taken index, swap and return it.
                     vec[key as usize] = num;
                     return true;
                 }
@@ -278,7 +278,7 @@ impl IndexedProperties {
                     return false;
                 }
 
-                // If it the key points in at a already taken index, set it.
+                // If the key points at an already taken index, set it.
                 vec[key as usize] = value.clone();
                 *self = Self::DenseElement(vec);
                 true
@@ -294,7 +294,7 @@ impl IndexedProperties {
                     return false;
                 }
 
-                // If it the key points in at a already taken index, set it.
+                // If the key points at an already taken index, set it.
                 vec[key as usize] = value.clone();
                 true
             }
@@ -449,7 +449,7 @@ impl PropertyMap {
         }
     }
 
-    /// Construct a [`PropertyMap`] from with the given prototype with an unique [`Shape`].
+    /// Construct a [`PropertyMap`] with the given prototype with a unique [`Shape`].
     #[must_use]
     #[inline]
     pub fn from_prototype_unique_shape(prototype: JsPrototype) -> Self {
@@ -460,7 +460,7 @@ impl PropertyMap {
         }
     }
 
-    /// Construct a [`PropertyMap`] from with the given prototype with a shared shape [`Shape`].
+    /// Construct a [`PropertyMap`] with the given prototype with a shared shape [`Shape`].
     #[must_use]
     #[inline]
     pub fn from_prototype_with_shared_shape(

@@ -1003,8 +1003,8 @@ impl String {
         let search_value = args.get_or_undefined(0);
         let replace_value = args.get_or_undefined(1);
 
-        // 2. If searchValue is neither undefined nor null, then
-        if !search_value.is_null_or_undefined() {
+        // 2. If searchValue is an Object, then
+        if search_value.is_object() {
             // a. Let replacer be ? GetMethod(searchValue, @@replace).
             let replacer = search_value.get_method(JsSymbol::replace(), context)?;
 
@@ -1111,8 +1111,8 @@ impl String {
         let search_value = args.get_or_undefined(0);
         let replace_value = args.get_or_undefined(1);
 
-        // 2. If searchValue is neither undefined nor null, then
-        if !search_value.is_null_or_undefined() {
+        // 2. If searchValue is an Object, then
+        if search_value.is_object() {
             // a. Let isRegExp be ? IsRegExp(searchValue).
             // b. If isRegExp is true, then
             if let Some(obj) = RegExp::is_reg_exp(search_value, context)? {
@@ -1467,9 +1467,9 @@ impl String {
         // 1. Let O be ? RequireObjectCoercible(this value).
         let o = this.require_object_coercible()?;
 
-        // 2. If regexp is neither undefined nor null, then
+        // 2. If regexp is an Object, then
         let regexp = args.get_or_undefined(0);
-        if !regexp.is_null_or_undefined() {
+        if regexp.is_object() {
             // a. Let matcher be ? GetMethod(regexp, @@match).
             let matcher = regexp.get_method(JsSymbol::r#match(), context)?;
             // b. If matcher is not undefined, then
@@ -1913,8 +1913,8 @@ impl String {
         let separator = args.get_or_undefined(0);
         let limit = args.get_or_undefined(1);
 
-        // 2. If separator is neither undefined nor null, then
-        if !separator.is_null_or_undefined() {
+        // 2. If separator is an Object, then
+        if separator.is_object() {
             // a. Let splitter be ? GetMethod(separator, @@split).
             let splitter = separator.get_method(JsSymbol::split(), context)?;
             // b. If splitter is not undefined, then
@@ -2050,9 +2050,9 @@ impl String {
         // 1. Let O be ? RequireObjectCoercible(this value).
         let o = this.require_object_coercible()?;
 
-        // 2. If regexp is neither undefined nor null, then
+        // 2. If regexp is an Object, then
         let regexp = args.get_or_undefined(0);
-        if !regexp.is_null_or_undefined() {
+        if regexp.is_object() {
             // a. Let isRegExp be ? IsRegExp(regexp).
             // b. If isRegExp is true, then
             if let Some(regexp) = RegExp::is_reg_exp(regexp, context)? {
@@ -2192,9 +2192,9 @@ impl String {
         // 1. Let O be ? RequireObjectCoercible(this value).
         let o = this.require_object_coercible()?;
 
-        // 2. If regexp is neither undefined nor null, then
+        // 2. If regexp is an Object, then
         let regexp = args.get_or_undefined(0);
-        if !regexp.is_null_or_undefined() {
+        if regexp.is_object() {
             // a. Let searcher be ? GetMethod(regexp, @@search).
             let searcher = regexp.get_method(JsSymbol::search(), context)?;
             // b. If searcher is not undefined, then
