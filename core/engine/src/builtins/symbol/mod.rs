@@ -88,6 +88,38 @@ impl GlobalSymbolRegistry {
     }
 }
 
+/// Returns `true` if the symbol was created via `Symbol.for()` and is therefore
+/// in the global symbol registry.
+pub(crate) fn is_registered_symbol(sym: &JsSymbol) -> bool {
+    GLOBAL_SYMBOL_REGISTRY.get_key(sym).is_some()
+}
+
+/// Returns `true` if the symbol is one of the well-known symbols defined in the ECMAScript
+/// specification.
+pub(crate) fn is_well_known_symbol(sym: &JsSymbol) -> bool {
+    let s = sym.clone();
+    s == JsSymbol::async_iterator()
+        || s == JsSymbol::has_instance()
+        || s == JsSymbol::is_concat_spreadable()
+        || s == JsSymbol::iterator()
+        || s == JsSymbol::r#match()
+        || s == JsSymbol::match_all()
+        || s == JsSymbol::replace()
+        || s == JsSymbol::search()
+        || s == JsSymbol::species()
+        || s == JsSymbol::split()
+        || s == JsSymbol::to_primitive()
+        || s == JsSymbol::to_string_tag()
+        || s == JsSymbol::unscopables()
+}
+
+/// Returns `true` if the symbol is a unique symbol, meaning it was created via `Symbol()` and is
+/// not in the global symbol registry or a well-known symbol.
+#[inline]
+pub(crate) fn is_unique_symbol(sym: &JsSymbol) -> bool {
+    !is_registered_symbol(sym) && !is_well_known_symbol(sym)
+}
+
 /// The internal representation of a `Symbol` object.
 #[derive(Debug, Clone, Copy)]
 pub struct Symbol;
