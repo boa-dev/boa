@@ -16,13 +16,12 @@ fn strip_native_info(s: &str) -> String {
     while let Some(start) = rest.find("(native") {
         result.push_str(&rest[..start]);
         // Skip past the closing ')'
-        rest = match rest[start..].find(')') {
-            Some(end) => &rest[start + end + 1..],
-            None => {
-                result.push_str(&rest[start..]);
-                return result;
-            }
-        };
+        if let Some(end) = rest[start..].find(')') {
+            rest = &rest[start + end + 1..];
+        } else {
+            result.push_str(&rest[start..]);
+            return result;
+        }
     }
     result.push_str(rest);
     // Trim trailing whitespace left behind on each line
@@ -108,7 +107,7 @@ foo()
 }
 
 /// Sanity check: `context.eval()` errors include a backtrace (relates to
-/// https://github.com/boa-dev/boa/discussions/4475).
+/// <https://github.com/boa-dev/boa/discussions/4475>).
 #[test]
 fn test_eval_error_has_backtrace() {
     let mut context = Context::default();
