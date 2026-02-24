@@ -343,21 +343,7 @@ impl RegExp {
         let full_unicode =
             flags.contains(RegExpFlags::UNICODE) || flags.contains(RegExpFlags::UNICODE_SETS);
 
-        // In non-Unicode mode, check if pattern contains named groups (?<...).
-        // Named groups with astral Unicode identifiers (e.g. (?<𝑓𝑜𝑥>)) require
-        // full codepoints to work correctly with regress group name handling.
-        let has_named_groups = p.code_points().collect::<Vec<_>>().windows(3).any(|w| {
-            matches!(
-                (w[0], w[1], w[2]),
-                (
-                    CodePoint::Unicode('('),
-                    CodePoint::Unicode('?'),
-                    CodePoint::Unicode('<')
-                )
-            )
-        });
-
-        let matcher = if full_unicode || has_named_groups {
+        let matcher = if full_unicode {
             // Unicode mode (u/v flag) OR pattern has named groups:
             // compile as full Unicode codepoints.
             Regex::from_unicode(p.code_points().map(CodePoint::as_u32), Flags::from(flags))
