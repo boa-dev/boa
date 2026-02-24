@@ -83,7 +83,7 @@ impl Default for IteratorPrototypes {
             string: JsObject::with_null_proto(),
             regexp_string: JsObject::with_null_proto(),
             map: JsObject::with_null_proto(),
-            #[cfg(feature = "intl")]]
+            #[cfg(feature = "intl")]
             segment: JsObject::with_null_proto(),
         }
     }
