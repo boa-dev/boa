@@ -7,7 +7,7 @@ use boa_engine::module::Module;
 use boa_engine::{Context, JsError, Source};
 
 /// Test that errors caught by internal handlers (e.g. async module evaluation)
-/// preserve their backtrace through promise rejection (JsError → JsValue → JsError).
+/// preserve their backtrace through promise rejection (`JsError` → `JsValue` → `JsError`).
 #[test]
 fn test_call_error_preserves_backtrace() {
     let mut context = Context::default();
@@ -34,9 +34,9 @@ x()",
             // round-trip through promise rejection.
             assert_eq!(
                 error_str,
-                r#"TypeError: not a callable function
+                r"TypeError: not a callable function
     at <main> (test.js:2:2)
-    at  (native)"#
+    at  (native)"
             );
         }
         PromiseState::Fulfilled(_) => panic!("Module should have thrown an error"),
@@ -51,7 +51,7 @@ fn test_nested_call_error_preserves_backtrace() {
     let mut context = Context::default();
 
     let source = Source::from_bytes(
-        r#"function foo() {
+        r"function foo() {
     function baz() {
         import.meta.non_existent()
     }
@@ -59,7 +59,7 @@ fn test_nested_call_error_preserves_backtrace() {
 }
 
 foo()
-"#
+"
         .as_bytes(),
     )
     .with_path(Path::new("test.js"));
@@ -74,11 +74,11 @@ foo()
             let error_str = js_error.to_string();
             assert_eq!(
                 error_str,
-                r#"TypeError: not a callable function
+                r"TypeError: not a callable function
     at baz (test.js:3:33)
     at foo (test.js:5:8)
     at <main> (test.js:8:4)
-    at  (native)"#
+    at  (native)"
             );
         }
         PromiseState::Fulfilled(_) => panic!("Module should have thrown an error"),
