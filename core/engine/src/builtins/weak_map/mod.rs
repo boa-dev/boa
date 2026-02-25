@@ -7,6 +7,8 @@
 //! [spec]: https://tc39.es/ecma262/#sec-weakmap-objects
 //! [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/WeakMap
 
+use std::{collections::HashMap, fmt, sync::Weak};
+
 use crate::{
     Context, JsArgs, JsNativeError, JsResult, JsString, JsValue,
     builtins::{
@@ -15,27 +17,108 @@ use crate::{
     },
     context::intrinsics::{Intrinsics, StandardConstructor, StandardConstructors},
     js_string,
-    object::{ErasedVTableObject, JsObject, internal_methods::get_prototype_from_constructor},
+    object::{
+        ErasedVTableObject, JsData, JsObject, internal_methods::get_prototype_from_constructor,
+    },
     property::Attribute,
     realm::Realm,
     string::StaticJsStrings,
-    symbol::JsSymbol,
+    symbol::{JsSymbol, RawJsSymbol},
 };
-use boa_gc::{Finalize, Trace};
+use boa_gc::{Finalize, Gc, Trace, custom_trace};
 
-type NativeWeakMap = boa_gc::WeakMap<ErasedVTableObject, JsValue>;
+/// A map that holds both GC-object keys (via `boa_gc::WeakMap`) and unique-symbol keys
+/// (via `Arc`-weak references).  Symbol entries are keyed by the symbol's unique hash and
+/// hold a `Weak<RawJsSymbol>` so the entry is automatically invalidated once the last
+/// strong `Arc` for that symbol is dropped.
+pub(crate) struct NativeWeakMap {
+    objects: boa_gc::WeakMap<ErasedVTableObject, JsValue>,
+    /// Maps symbol hash → (weak ref to symbol, stored value).
+    symbols: HashMap<u64, (Weak<RawJsSymbol>, JsValue)>,
+}
 
-/// Abstract operation `CanBeHeldWeakly ( v )`
-///
-/// Returns `true` if `v` may be used as a `WeakMap`/`WeakSet` key or `WeakRef` target.
-/// Objects are always eligible. Symbols are eligible unless they are registered
-/// (created via `Symbol.for()`).
-///
-/// See: <https://tc39.es/proposal-symbols-as-weakmap-keys/#sec-canbeheldweakly>
-#[inline]
-fn can_be_held_weakly(value: &JsValue) -> bool {
-    value.is_object()
-        || (value.is_symbol() && symbol::is_unique_symbol(&value.as_symbol().unwrap()))
+impl fmt::Debug for NativeWeakMap {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        f.debug_struct("NativeWeakMap")
+            .field("symbols_len", &self.symbols.len())
+            .finish_non_exhaustive()
+    }
+}
+
+impl Finalize for NativeWeakMap {}
+
+// SAFETY: We only mark `objects` (a proper GC weak-map) and the `JsValue` slots inside
+// `symbols` whose symbol key is still alive.  Dead entries are intentionally left unmarked
+// so the GC can collect the values they hold.  The `Weak<RawJsSymbol>` keys are Arc-based
+// and contain no GC pointers.
+unsafe impl Trace for NativeWeakMap {
+    custom_trace!(this, mark, {
+        mark(&this.objects);
+        for (weak, value) in this.symbols.values() {
+            if weak.upgrade().is_some() {
+                mark(value);
+            }
+        }
+    });
+}
+
+impl JsData for NativeWeakMap {}
+
+impl NativeWeakMap {
+    fn new() -> Self {
+        Self {
+            objects: boa_gc::WeakMap::new(),
+            symbols: HashMap::new(),
+        }
+    }
+
+    // ── Object-keyed helpers ──────────────────────────────────────────────
+
+    fn remove_object(&mut self, key: &Gc<ErasedVTableObject>) -> Option<JsValue> {
+        self.objects.remove(key)
+    }
+
+    fn get_object(&self, key: &Gc<ErasedVTableObject>) -> Option<JsValue> {
+        self.objects.get(key)
+    }
+
+    fn contains_key_object(&self, key: &Gc<ErasedVTableObject>) -> bool {
+        self.objects.contains_key(key)
+    }
+
+    fn insert_object(&mut self, key: &Gc<ErasedVTableObject>, value: JsValue) {
+        self.objects.insert(key, value);
+    }
+
+    // ── Symbol-keyed helpers ──────────────────────────────────────────────
+
+    /// Remove a symbol entry and return its value (regardless of liveness).
+    fn remove_symbol(&mut self, sym: &JsSymbol) -> bool {
+        self.symbols.remove(&sym.hash()).is_some()
+    }
+
+    /// Look up the value for a symbol key; returns `None` if absent or dead.
+    fn get_symbol(&self, sym: &JsSymbol) -> Option<JsValue> {
+        let (weak, value) = self.symbols.get(&sym.hash())?;
+        weak.upgrade().map(|_| value.clone())
+    }
+
+    /// Returns `true` if the symbol key is present **and** still alive.
+    fn contains_key_symbol(&self, sym: &JsSymbol) -> bool {
+        self.symbols
+            .get(&sym.hash())
+            .map(|(w, _)| w.upgrade().is_some())
+            .unwrap_or(false)
+    }
+
+    /// Insert or update a symbol entry, then prune any dead entries.
+    fn insert_symbol(&mut self, sym: &JsSymbol, value: JsValue) {
+        if let Some(weak) = sym.as_weak() {
+            self.symbols.insert(sym.hash(), (weak, value));
+            // Prune entries whose symbol has been dropped to prevent unbounded growth.
+            self.symbols.retain(|_, (w, _)| w.upgrade().is_some());
+        }
+    }
 }
 
 #[derive(Debug, Trace, Finalize)]
