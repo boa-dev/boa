@@ -43,9 +43,9 @@ pub struct RegExp {
     /// Regex matcher.
     matcher: Regex,
 
-    /// Non-optimized matcher used by the PikeVM executor on ASCII inputs.
+    /// Non-optimized matcher used by the `PikeVM` executor on ASCII inputs.
     ///
-    /// The PikeVM backend in `regress` does not support optimized bytecode.
+    /// The `PikeVM` backend in `regress` does not support optimized bytecode.
     pikevm_matcher: Regex,
 
     flags: RegExpFlags,
@@ -1169,7 +1169,7 @@ impl RegExp {
             // Use PikeVM for ASCII inputs to avoid pathological backtracking behavior.
             (true | false, JsStrVariant::Latin1(latin1)) if latin1.is_ascii() => {
                 if let Ok(input) = std::str::from_utf8(latin1) {
-                    regress::backends::find::<regress::backends::PikeVMExecutor>(
+                    regress::backends::find::<regress::backends::PikeVMExecutor<'_, '_>>(
                         &rx.pikevm_matcher,
                         input,
                         last_index as usize,
@@ -1190,9 +1190,12 @@ impl RegExp {
             (true | false, JsStrVariant::Utf16(input))
                 if input.iter().all(|code_unit| *code_unit <= 0x7F) =>
             {
-                let input = input.iter().map(|code_unit| *code_unit as u8).collect::<Vec<_>>();
+                let input = input
+                    .iter()
+                    .map(|code_unit| *code_unit as u8)
+                    .collect::<Vec<_>>();
                 if let Ok(input) = std::str::from_utf8(&input) {
-                    regress::backends::find::<regress::backends::PikeVMExecutor>(
+                    regress::backends::find::<regress::backends::PikeVMExecutor<'_, '_>>(
                         &rx.pikevm_matcher,
                         input,
                         last_index as usize,
