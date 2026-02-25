@@ -47,3 +47,15 @@ fn request_constructor() {
         }),
     ]);
 }
+
+#[test]
+fn request_clone_preserves_body() {
+    let original = http::request::Request::builder()
+        .method("POST")
+        .uri("http://example.com")
+        .body(b"payload".to_vec())
+        .unwrap();
+    let original = JsRequest::from(original);
+    let cloned = JsRequest::create_from_js(Either::Right(original), None).unwrap();
+    assert_eq!(cloned.inner().body().as_slice(), b"payload");
+}

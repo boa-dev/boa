@@ -66,8 +66,9 @@ impl RequestInit {
         request: Option<HttpRequest<Vec<u8>>>,
     ) -> JsResult<HttpRequest<Vec<u8>>> {
         let mut builder = HttpRequest::builder();
+        let mut original_body = None;
         if let Some(r) = request {
-            let (parts, _body) = r.into_parts();
+            let (parts, body) = r.into_parts();
             builder = builder
                 .method(parts.method)
                 .uri(parts.uri)
@@ -75,6 +76,10 @@ impl RequestInit {
 
             for (key, value) in &parts.headers {
                 builder = builder.header(key, value);
+            }
+
+            if !body.is_empty() {
+                original_body = Some(body);
             }
         }
 
@@ -111,7 +116,7 @@ impl RequestInit {
         }
 
         builder
-            .body(request_body.unwrap_or_default())
+            .body(request_body.or(original_body).unwrap_or_default())
             .map_err(|_| js_error!(Error: "Cannot construct request"))
     }
 }
