@@ -300,6 +300,15 @@ impl JsSymbol {
         }
     }
 
+    /// Returns `true` if this symbol is a well-known symbol.
+    #[inline]
+    #[must_use]
+    pub(crate) fn is_well_known(&self) -> bool {
+        // All well-known (and other reserved engine) symbols are assigned hashes in the
+        // range `[0, RESERVED_SYMBOL_HASHES)`. User-created symbols start after that range.
+        self.hash() < RESERVED_SYMBOL_HASHES
+    }
+
     well_known_symbols! {
         /// Gets the static `JsSymbol` for `"Symbol.asyncIterator"`.
         (async_iterator, WellKnown::AsyncIterator),

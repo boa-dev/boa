@@ -94,7 +94,9 @@ impl NativeWeakMap {
 
     /// Remove a symbol entry and return its value (regardless of liveness).
     fn remove_symbol(&mut self, sym: &JsSymbol) -> bool {
-        self.symbols.remove(&sym.hash()).is_some()
+        let removed = self.symbols.remove(&sym.hash()).is_some();
+        self.symbols.retain(|_, (w, _)| w.upgrade().is_some());
+        removed
     }
 
     /// Look up the value for a symbol key; returns `None` if absent or dead.
@@ -128,10 +130,6 @@ pub(crate) struct WeakMap;
 mod tests;
 
 impl IntrinsicObject for WeakMap {
-    fn get(intrinsics: &Intrinsics) -> JsObject {
-        Self::STANDARD_CONSTRUCTOR(intrinsics.constructors()).constructor()
-    }
-
     fn init(realm: &Realm) {
         BuiltInBuilder::from_standard_constructor::<Self>(realm)
             .property(
@@ -151,6 +149,10 @@ impl IntrinsicObject for WeakMap {
             )
             .build();
     }
+
+    fn get(intrinsics: &Intrinsics) -> JsObject {
+        Self::STANDARD_CONSTRUCTOR(intrinsics.constructors()).constructor()
+    }
 }
 
 impl BuiltInObject for WeakMap {
@@ -160,10 +162,10 @@ impl BuiltInObject for WeakMap {
 }
 
 impl BuiltInConstructor for WeakMap {
-    /// The amount of arguments the `WeakMap` constructor takes.
-    const CONSTRUCTOR_ARGUMENTS: usize = 0;
     const PROTOTYPE_STORAGE_SLOTS: usize = 7;
     const CONSTRUCTOR_STORAGE_SLOTS: usize = 0;
+    /// The amount of arguments the `WeakMap` constructor takes.
+    const CONSTRUCTOR_ARGUMENTS: usize = 0;
 
     const STANDARD_CONSTRUCTOR: fn(&StandardConstructors) -> &StandardConstructor =
         StandardConstructors::weak_map;
