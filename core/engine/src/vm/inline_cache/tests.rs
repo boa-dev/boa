@@ -332,6 +332,7 @@ fn set_property_by_name_set_inline_cache_on_property_load() -> JsResult<()> {
     assert_eq!(code.ic.len(), 1);
     assert_eq!(code.ic[0].entry_count(), 0);
     assert!(!code.ic[0].is_megamorphic());
+    assert_eq!(code.ic[0].first_shape_addr(), 0);
 
     let o = ObjectInitializer::new(context)
         .property(js_string!("test"), 0, Attribute::all())
@@ -343,6 +344,7 @@ fn set_property_by_name_set_inline_cache_on_property_load() -> JsResult<()> {
     assert_eq!(code.ic[0].entry_count(), 1);
     assert!(code.ic[0].contains_shape(&o_shape));
     assert!(!code.ic[0].is_megamorphic());
+    assert_eq!(code.ic[0].first_shape_addr(), o_shape.to_addr_usize());
 
     Ok(())
 }
@@ -356,6 +358,7 @@ fn get_property_by_name_set_inline_cache_on_property_load() -> JsResult<()> {
     assert_eq!(code.ic.len(), 1);
     assert_eq!(code.ic[0].entry_count(), 0);
     assert!(!code.ic[0].is_megamorphic());
+    assert_eq!(code.ic[0].first_shape_addr(), 0);
 
     let o = ObjectInitializer::new(context)
         .property(js_string!("test"), 0, Attribute::all())
@@ -367,6 +370,7 @@ fn get_property_by_name_set_inline_cache_on_property_load() -> JsResult<()> {
     assert_eq!(code.ic[0].entry_count(), 1);
     assert!(code.ic[0].contains_shape(&o_shape));
     assert!(!code.ic[0].is_megamorphic());
+    assert_eq!(code.ic[0].first_shape_addr(), o_shape.to_addr_usize());
 
     Ok(())
 }
@@ -446,11 +450,13 @@ fn property_by_name_pic_transitions_to_megamorphic() -> JsResult<()> {
 
     assert_eq!(code.ic[0].entry_count(), 4);
     assert!(!code.ic[0].is_megamorphic());
+    assert_ne!(code.ic[0].first_shape_addr(), 0);
 
     function.call(&JsValue::undefined(), &[o5.into()], context)?;
 
     assert!(code.ic[0].is_megamorphic());
     assert_eq!(code.ic[0].entry_count(), 0);
+    assert_eq!(code.ic[0].first_shape_addr(), 0);
 
     Ok(())
 }

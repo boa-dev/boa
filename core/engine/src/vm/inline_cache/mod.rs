@@ -21,6 +21,74 @@ struct PicEntry {
     slot: Slot,
 }
 
+#[derive(Clone, Debug, Trace, Finalize)]
+struct PicEntries {
+    entries: [Option<PicEntry>; PIC_CAPACITY],
+
+    #[unsafe_ignore_trace]
+    len: u8,
+}
+
+impl PicEntries {
+    fn new() -> Self {
+        Self {
+            entries: std::array::from_fn(|_| None),
+            len: 0,
+        }
+    }
+
+    fn len(&self) -> usize {
+        self.len as usize
+    }
+
+    fn clear(&mut self) {
+        for i in 0..self.len() {
+            self.entries[i] = None;
+        }
+        self.len = 0;
+    }
+
+    fn retain_live(&mut self) {
+        let old_len = self.len();
+        let mut write = 0;
+
+        for read in 0..old_len {
+            let Some(entry) = self.entries[read].take() else {
+                continue;
+            };
+            if entry.shape.to_addr_usize() != 0 {
+                self.entries[write] = Some(entry);
+                write += 1;
+            }
+        }
+
+        for i in write..old_len {
+            self.entries[i] = None;
+        }
+        self.len = write as u8;
+    }
+
+    fn find_index_by_shape_addr(&self, target_addr: usize) -> Option<usize> {
+        (0..self.len()).find(|&index| {
+            self.entries[index]
+                .as_ref()
+                .is_some_and(|entry| entry.shape.to_addr_usize() == target_addr)
+        })
+    }
+
+    fn push(&mut self, entry: PicEntry) {
+        debug_assert!(self.len() < PIC_CAPACITY);
+        self.entries[self.len()] = Some(entry);
+        self.len += 1;
+    }
+
+    fn first_shape_addr(&self) -> usize {
+        (0..self.len())
+            .find_map(|index| self.entries[index].as_ref().map(|entry| entry.shape.to_addr_usize()))
+            .unwrap_or_default()
+    }
+}
+
 /// An inline cache entry for a property access.
 #[derive(Clone, Debug, Trace, Finalize)]
 pub(crate) struct InlineCache {
@@ -30,7 +98,7 @@ pub(crate) struct InlineCache {
     /// Cached `(shape, slot)` entries for this access site.
     ///
     /// NOTE: This should never exceed `PIC_CAPACITY`.
-    entries: GcRefCell<Vec<PicEntry>>,
+    entries: GcRefCell<PicEntries>,
 
     /// A site is megamorphic when we observe more distinct shapes than the PIC capacity.
     #[unsafe_ignore_trace]
@@ -41,12 +109,12 @@ impl InlineCache {
     pub(crate) fn new(name: JsString) -> Self {
         Self {
             name,
-            entries: GcRefCell::new(Vec::with_capacity(PIC_CAPACITY)),
+            entries: GcRefCell::new(PicEntries::new()),
             megamorphic: Cell::new(false),
         }
     }
 
-    fn transition_to_megamorphic(&self, entries: &mut Vec<PicEntry>) {
+    fn transition_to_megamorphic(&self, entries: &mut PicEntries) {
         self.megamorphic.set(true);
         entries.clear();
     }
@@ -59,11 +127,10 @@ impl InlineCache {
         let target_addr = shape.to_addr_usize();
         let mut entries = self.entries.borrow_mut();
 
-        entries.retain(|entry| entry.shape.to_addr_usize() != 0);
+        entries.retain_live();
 
-        if let Some(entry) = entries
-            .iter_mut()
-            .find(|entry| entry.shape.to_addr_usize() == target_addr)
+        if let Some(index) = entries.find_index_by_shape_addr(target_addr)
+            && let Some(entry) = entries.entries[index].as_mut()
         {
             entry.slot = slot;
             return;
@@ -89,11 +156,10 @@ impl InlineCache {
         let target_addr = shape.to_addr_usize();
         let mut entries = self.entries.borrow_mut();
 
-        entries.retain(|entry| entry.shape.to_addr_usize() != 0);
+        entries.retain_live();
 
-        if let Some(entry) = entries
-            .iter()
-            .find(|entry| entry.shape.to_addr_usize() == target_addr)
+        if let Some(index) = entries.find_index_by_shape_addr(target_addr)
+            && let Some(entry) = entries.entries[index].as_ref()
             && let Some(shape) = entry.shape.upgrade()
         {
             return Some((shape, entry.slot));
@@ -111,11 +177,8 @@ impl InlineCache {
         }
 
         let mut entries = self.entries.borrow_mut();
-        entries.retain(|entry| entry.shape.to_addr_usize() != 0);
-        entries
-            .first()
-            .map(|entry| entry.shape.to_addr_usize())
-            .unwrap_or_default()
+        entries.retain_live();
+        entries.first_shape_addr()
     }
 
     #[cfg(test)]
@@ -125,15 +188,16 @@ impl InlineCache {
 
     #[cfg(test)]
     pub(crate) fn entry_count(&self) -> usize {
-        self.entries.borrow().len()
+        let mut entries = self.entries.borrow_mut();
+        entries.retain_live();
+        entries.len()
     }
 
     #[cfg(test)]
     pub(crate) fn contains_shape(&self, shape: &Shape) -> bool {
+        let mut entries = self.entries.borrow_mut();
+        entries.retain_live();
         let target_addr = shape.to_addr_usize();
-        self.entries
-            .borrow()
-            .iter()
-            .any(|entry| entry.shape.to_addr_usize() == target_addr)
+        entries.find_index_by_shape_addr(target_addr).is_some()
     }
 }
