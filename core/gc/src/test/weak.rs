@@ -1,7 +1,7 @@
 mod miri {
     use std::{cell::Cell, rc::Rc};
 
-    use super::run_test;
+    use super::super::run_test;
     use crate::{
         Ephemeron, Finalize, Gc, GcBox, GcRefCell, Trace, WeakGc, force_collect,
         internals::EphemeronBox, test::Harness,
@@ -333,5 +333,4 @@ mod miri {
             Harness::assert_exact_bytes_allocated(root_size);
         });
     }
-
 }

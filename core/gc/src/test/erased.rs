@@ -3,7 +3,7 @@ mod miri {
 
     use boa_macros::{Finalize, Trace};
 
-    use super::run_test;
+    use super::super::run_test;
     use crate::{Gc, GcBox, GcErased, force_collect, test::Harness};
 
     #[test]
@@ -109,5 +109,4 @@ mod miri {
             assert_eq!(*Gc::downcast::<Derived>(base).unwrap(), *derived);
         });
     }
-
 }

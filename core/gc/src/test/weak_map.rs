@@ -1,5 +1,5 @@
 mod miri {
-    use super::run_test;
+    use super::super::run_test;
     use crate::{Gc, WeakMap, force_collect, has_weak_maps};
 
     #[test]
@@ -137,5 +137,4 @@ mod miri {
             assert!(map.contains_key(&key_copy));
         });
     }
-
 }

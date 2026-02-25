@@ -1,5 +1,5 @@
 mod miri {
-    use super::run_test;
+    use super::super::run_test;
     use crate::{Gc, GcRefCell};
 
     #[test]
@@ -13,5 +13,4 @@ mod miri {
             }
         });
     }
-
 }

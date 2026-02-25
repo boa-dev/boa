@@ -1,7 +1,7 @@
 mod miri {
     use boa_macros::{Finalize, Trace};
 
-    use super::{Harness, run_test};
+    use super::super::{Harness, run_test};
     use crate::{Gc, GcBox, GcRefCell, force_collect};
 
     #[test]
@@ -63,5 +63,4 @@ mod miri {
             Harness::assert_empty_gc();
         });
     }
-
 }
