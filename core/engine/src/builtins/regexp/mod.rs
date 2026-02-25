@@ -1222,11 +1222,9 @@ impl RegExp {
         a.create_data_property_or_throw(0, matched_substr, context)
             .expect("this CreateDataPropertyOrThrow call must not fail");
 
-        let mut named_groups = match_value
+        let named_groups = match_value
             .named_groups()
             .collect::<Vec<(&str, Option<Range>)>>();
-        // Strict mode requires groups to be created in a sorted order
-        named_groups.sort_by(|(name_x, _), (name_y, _)| name_x.cmp(name_y));
 
         // Combines:
         // 26. Let groupNames be a new empty List.
