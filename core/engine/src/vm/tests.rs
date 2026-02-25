@@ -513,3 +513,23 @@ fn recursion_in_async_gen_throws_uncatchable_error() {
         ),
     ]);
 }
+
+#[test]
+fn recursion_in_setter_throws_uncatchable_error() {
+    run_test_actions([
+        TestAction::inspect_context(|context| {
+            context.runtime_limits_mut().set_recursion_limit(2048);
+        }),
+        TestAction::assert_runtime_limit_error(
+            indoc! {r#"
+                const obj = {
+                  set x(value) {
+                    this.x = value;
+                  },
+                };
+                obj.x = 1;
+            "#},
+            RuntimeLimitError::Recursion,
+        ),
+    ]);
+}
