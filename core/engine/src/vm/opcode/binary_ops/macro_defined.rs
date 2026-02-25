@@ -13,7 +13,7 @@ macro_rules! implement_bin_ops {
         pub(crate) struct $name;
 
         impl $name {
-            #[inline(always)]
+            #[inline]
             pub(crate) fn operation(
                 (dst, lhs, rhs): (VaryingOperand, VaryingOperand, VaryingOperand),
                 context: &mut Context,

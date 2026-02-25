@@ -678,7 +678,7 @@ impl JsValue {
 
     /// Converts the value to a number if possible, using fast bit operations. This is
     /// used for the fast operations to allow mixed i32/f64 values.
-    #[inline(always)]
+    #[inline]
     fn as_number_cheap(&self) -> Option<f64> {
         if let Some(i) = self.0.as_integer32() {
             Some(f64::from(i))
@@ -688,7 +688,7 @@ impl JsValue {
     }
 
     /// Fast path for the binary `+` operator (numeric only).
-    #[inline(always)]
+    #[inline]
     #[allow(clippy::float_cmp)]
     pub(crate) fn add_fast(&self, other: &Self) -> Option<Self> {
         if let (Some(x), Some(y)) = (self.0.as_integer32(), other.0.as_integer32()) {
@@ -703,7 +703,7 @@ impl JsValue {
     }
 
     /// Fast path for the binary `-` operator.
-    #[inline(always)]
+    #[inline]
     pub(crate) fn sub_fast(&self, other: &Self) -> Option<Self> {
         if let (Some(x), Some(y)) = (self.0.as_integer32(), other.0.as_integer32()) {
             return Some(
@@ -717,7 +717,7 @@ impl JsValue {
     }
 
     /// Fast path for the binary `*` operator.
-    #[inline(always)]
+    #[inline]
     pub(crate) fn mul_fast(&self, other: &Self) -> Option<Self> {
         if let (Some(x), Some(y)) = (self.0.as_integer32(), other.0.as_integer32()) {
             return Some(
@@ -732,7 +732,7 @@ impl JsValue {
     }
 
     /// Fast path for the binary `/` operator.
-    #[inline(always)]
+    #[inline]
     #[allow(clippy::float_cmp)]
     pub(crate) fn div_fast(&self, other: &Self) -> Option<Self> {
         if let (Some(x), Some(y)) = (self.0.as_integer32(), other.0.as_integer32()) {
@@ -748,7 +748,7 @@ impl JsValue {
     }
 
     /// Fast path for the binary `%` operator.
-    #[inline(always)]
+    #[inline]
     pub(crate) fn rem_fast(&self, other: &Self) -> Option<Self> {
         if let (Some(x), Some(y)) = (self.0.as_integer32(), other.0.as_integer32()) {
             if y == 0 {
@@ -765,7 +765,7 @@ impl JsValue {
     }
 
     /// Fast path for the binary `**` operator.
-    #[inline(always)]
+    #[inline]
     #[allow(clippy::float_cmp)]
     pub(crate) fn pow_fast(&self, other: &Self) -> Option<Self> {
         if let (Some(x), Some(y)) = (self.0.as_integer32(), other.0.as_integer32()) {
@@ -786,7 +786,7 @@ impl JsValue {
     }
 
     /// Fast path for the binary `&` operator (i32 only).
-    #[inline(always)]
+    #[inline]
     pub(crate) fn bitand_fast(&self, other: &Self) -> Option<Self> {
         let x = self.0.as_integer32()?;
         let y = other.0.as_integer32()?;
@@ -794,7 +794,7 @@ impl JsValue {
     }
 
     /// Fast path for the binary `|` operator (i32 only).
-    #[inline(always)]
+    #[inline]
     pub(crate) fn bitor_fast(&self, other: &Self) -> Option<Self> {
         let x = self.0.as_integer32()?;
         let y = other.0.as_integer32()?;
@@ -802,7 +802,7 @@ impl JsValue {
     }
 
     /// Fast path for the binary `^` operator (i32 only).
-    #[inline(always)]
+    #[inline]
     pub(crate) fn bitxor_fast(&self, other: &Self) -> Option<Self> {
         let x = self.0.as_integer32()?;
         let y = other.0.as_integer32()?;
@@ -810,7 +810,7 @@ impl JsValue {
     }
 
     /// Fast path for the binary `<<` operator (i32 only).
-    #[inline(always)]
+    #[inline]
     pub(crate) fn shl_fast(&self, other: &Self) -> Option<Self> {
         let x = self.0.as_integer32()?;
         let y = other.0.as_integer32()?;
@@ -818,7 +818,7 @@ impl JsValue {
     }
 
     /// Fast path for the binary `>>` operator (i32 only).
-    #[inline(always)]
+    #[inline]
     pub(crate) fn shr_fast(&self, other: &Self) -> Option<Self> {
         let x = self.0.as_integer32()?;
         let y = other.0.as_integer32()?;
@@ -826,7 +826,7 @@ impl JsValue {
     }
 
     /// Fast path for the binary `>>>` operator (i32 only).
-    #[inline(always)]
+    #[inline]
     pub(crate) fn ushr_fast(&self, other: &Self) -> Option<Self> {
         let x = self.0.as_integer32()?;
         let y = other.0.as_integer32()?;
@@ -834,7 +834,7 @@ impl JsValue {
     }
 
     /// Fast path for the `<` operator.
-    #[inline(always)]
+    #[inline]
     pub(crate) fn lt_fast(&self, other: &Self) -> Option<Self> {
         if let (Some(x), Some(y)) = (self.0.as_integer32(), other.0.as_integer32()) {
             return Some(Self::new(x < y));
@@ -845,7 +845,7 @@ impl JsValue {
     }
 
     /// Fast path for the `<=` operator.
-    #[inline(always)]
+    #[inline]
     pub(crate) fn le_fast(&self, other: &Self) -> Option<Self> {
         if let (Some(x), Some(y)) = (self.0.as_integer32(), other.0.as_integer32()) {
             return Some(Self::new(x <= y));
@@ -856,7 +856,7 @@ impl JsValue {
     }
 
     /// Fast path for the `>` operator.
-    #[inline(always)]
+    #[inline]
     pub(crate) fn gt_fast(&self, other: &Self) -> Option<Self> {
         if let (Some(x), Some(y)) = (self.0.as_integer32(), other.0.as_integer32()) {
             return Some(Self::new(x > y));
@@ -867,7 +867,7 @@ impl JsValue {
     }
 
     /// Fast path for the `>=` operator.
-    #[inline(always)]
+    #[inline]
     pub(crate) fn ge_fast(&self, other: &Self) -> Option<Self> {
         if let (Some(x), Some(y)) = (self.0.as_integer32(), other.0.as_integer32()) {
             return Some(Self::new(x >= y));
@@ -878,7 +878,7 @@ impl JsValue {
     }
 
     /// Fast path for the `==` operator (numeric only).
-    #[inline(always)]
+    #[inline]
     #[allow(clippy::float_cmp)]
     pub(crate) fn equals_fast(&self, other: &Self) -> Option<Self> {
         if let (Some(x), Some(y)) = (self.0.as_integer32(), other.0.as_integer32()) {

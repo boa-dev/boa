@@ -429,7 +429,7 @@ impl Vm {
     }
 
     #[track_caller]
-    #[inline(always)]
+    #[inline]
     pub(crate) fn set_register(&mut self, index: usize, value: JsValue) {
         let actual = self.frame.rp as usize + index;
         debug_assert!(
@@ -446,7 +446,7 @@ impl Vm {
     }
 
     #[track_caller]
-    #[inline(always)]
+    #[inline]
     pub(crate) fn get_register(&self, index: usize) -> &JsValue {
         let actual = self.frame.rp as usize + index;
         debug_assert!(
