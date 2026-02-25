@@ -5,7 +5,10 @@ use boa_macros::{Finalize, Trace};
 
 use crate::{
     JsString,
-    object::{JsObject, shape::{Shape, WeakShape, slot::Slot}},
+    object::{
+        JsObject,
+        shape::{Shape, WeakShape, slot::Slot},
+    },
 };
 
 #[cfg(test)]

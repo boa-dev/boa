@@ -60,12 +60,13 @@ impl GetNameGlobal {
             let ic = &context.vm.frame().code_block().ic[usize::from(ic_index)];
 
             let object_borrowed = object.borrow();
-            if let Some((_shape, slot, cached_prototype)) = ic.match_or_reset(object_borrowed.shape())
+            if let Some((_shape, slot, cached_prototype)) =
+                ic.match_or_reset(object_borrowed.shape())
             {
                 let mut result = if slot.attributes.contains(SlotAttributes::PROTOTYPE) {
                     // Jump directly to the cached prototype — no chain traversal.
-                    let proto = cached_prototype
-                        .expect("cached prototype should exist for PROTOTYPE slot");
+                    let proto =
+                        cached_prototype.expect("cached prototype should exist for PROTOTYPE slot");
                     let proto_borrowed = proto.borrow();
                     proto_borrowed.properties().storage[slot.index as usize].clone()
                 } else {

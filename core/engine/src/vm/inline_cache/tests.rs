@@ -161,7 +161,9 @@ fn get_internal_method_in_transitive_prototype() {
         "Property is in the prototype chain, owning_prototype must be set"
     );
 
-    let owning = ctx.owning_prototype().expect("owning prototype should be set");
+    let owning = ctx
+        .owning_prototype()
+        .expect("owning prototype should be set");
     assert_eq!(
         owning.borrow().properties().storage[ctx.slot().index as usize],
         JsValue::from(value),
