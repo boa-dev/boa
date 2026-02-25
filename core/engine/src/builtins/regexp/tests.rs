@@ -260,7 +260,5 @@ fn regexp_no_panic_on_empty_class_quantifier() {
     // Regression test for https://github.com/boa-dev/boa/issues/2718
     // `/[]*1/u.exec()` previously caused a panic in the regress crate.
     // It should return null without panicking.
-    run_test_actions([
-        TestAction::assert_eq("/[]*1/u.exec()", JsValue::null()),
-    ]);
+    run_test_actions([TestAction::assert_eq("/[]*1/u.exec()", JsValue::null())]);
 }
