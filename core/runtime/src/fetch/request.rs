@@ -56,6 +56,21 @@ pub struct RequestInit {
 }
 
 impl RequestInit {
+    /// Create a new `RequestInit` from Rust types, for use in tests.
+    #[cfg(test)]
+    #[must_use]
+    pub fn new(
+        body: Option<String>,
+        headers: Option<VecOrMap<JsString, Convert<JsString>>>,
+        method: Option<String>,
+    ) -> Self {
+        Self {
+            body: body.map(|b| JsValue::from(JsString::from(b.as_str()))),
+            headers,
+            method: method.map(|m| Convert(JsString::from(m.as_str()))),
+        }
+    }
+
     /// Create an [`http::request::Builder`] object and return both the
     /// body specified by JavaScript and the builder.
     ///
@@ -66,8 +81,9 @@ impl RequestInit {
         request: Option<HttpRequest<Vec<u8>>>,
     ) -> JsResult<HttpRequest<Vec<u8>>> {
         let mut builder = HttpRequest::builder();
+        let mut original_body = None;
         if let Some(r) = request {
-            let (parts, _body) = r.into_parts();
+            let (parts, body) = r.into_parts();
             builder = builder
                 .method(parts.method)
                 .uri(parts.uri)
@@ -76,6 +92,8 @@ impl RequestInit {
             for (key, value) in &parts.headers {
                 builder = builder.header(key, value);
             }
+
+            original_body = Some(body);
         }
 
         if let Some(ref headers) = self.headers.take() {
@@ -110,8 +128,11 @@ impl RequestInit {
             }
         }
 
+        // If no body was provided in the options, preserve the original request's body.
+        let body = request_body.or(original_body).unwrap_or_default();
+
         builder
-            .body(request_body.unwrap_or_default())
+            .body(body)
             .map_err(|_| js_error!(Error: "Cannot construct request"))
     }
 }
