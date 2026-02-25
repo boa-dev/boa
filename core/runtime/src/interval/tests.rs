@@ -31,16 +31,13 @@ fn two_zero_delay_timeouts_both_fire() {
 
                 let order = ctx.global_object().get(js_str!("order"), ctx).unwrap();
                 let order = order.as_object().unwrap();
-                let len = order
-                    .get(js_str!("length"), ctx)
-                    .unwrap()
-                    .as_number()
-                    .unwrap() as usize;
-                assert_eq!(len, 2, "both callbacks must fire");
-                let first = order.get(0usize, ctx).unwrap().as_number().unwrap() as u32;
-                let second = order.get(1usize, ctx).unwrap().as_number().unwrap() as u32;
-                assert_eq!(first, 1);
-                assert_eq!(second, 2);
+                assert_eq!(
+                    order.get(js_str!("length"), ctx).unwrap().as_i32(),
+                    Some(2),
+                    "both callbacks must fire"
+                );
+                assert_eq!(order.get(0usize, ctx).unwrap().as_i32(), Some(1));
+                assert_eq!(order.get(1usize, ctx).unwrap().as_i32(), Some(2));
             }),
         ],
         context,
