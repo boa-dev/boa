@@ -888,6 +888,18 @@ impl JsValue {
         let y = other.as_number_cheap()?;
         Some(Self::new(x == y))
     }
+
+    /// Fast path for the `!=` operator (numeric only).
+    #[inline]
+    #[allow(clippy::float_cmp)]
+    pub(crate) fn not_equals_fast(&self, other: &Self) -> Option<Self> {
+        if let (Some(x), Some(y)) = (self.0.as_integer32(), other.0.as_integer32()) {
+            return Some(Self::new(x != y));
+        }
+        let x = self.as_number_cheap()?;
+        let y = other.as_number_cheap()?;
+        Some(Self::new(x != y))
+    }
 }
 
 /// The result of the [Abstract Relational Comparison][arc].
