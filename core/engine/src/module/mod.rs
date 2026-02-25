@@ -214,7 +214,7 @@ impl ModuleKind {
 /// Return value of the [`Module::resolve_export`] operation.
 ///
 /// Indicates how to access a specific export in a module.
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, Trace, Finalize)]
 pub(crate) struct ResolvedBinding {
     module: Module,
     binding_name: BindingName,
@@ -224,7 +224,7 @@ pub(crate) struct ResolvedBinding {
 ///
 /// Note that a resolved binding can resolve to a single binding inside a module (`export var a = 1"`)
 /// or to a whole module namespace (`export * as ns from "mod.js"`).
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, Trace, Finalize)]
 pub(crate) enum BindingName {
     /// A local binding.
     Name(JsString),
@@ -241,6 +241,11 @@ impl ResolvedBinding {
     /// Gets the binding associated with the resolved export.
     pub(crate) fn binding_name(&self) -> BindingName {
         self.binding_name.clone()
+    }
+
+    /// Gets a reference to the binding associated with the resolved export.
+    pub(crate) const fn binding_name_ref(&self) -> &BindingName {
+        &self.binding_name
     }
 }
 

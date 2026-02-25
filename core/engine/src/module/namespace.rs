@@ -1,7 +1,7 @@
-use std::{collections::HashSet, hash::BuildHasherDefault};
+use std::hash::BuildHasherDefault;
 
 use indexmap::IndexSet;
-use rustc_hash::FxHasher;
+use rustc_hash::{FxHashMap, FxHasher};
 
 use boa_gc::{Finalize, Trace};
 
@@ -16,7 +16,7 @@ use crate::property::{PropertyDescriptor, PropertyKey};
 use crate::{Context, JsResult, JsString, JsValue, js_string, object::JsObject};
 use crate::{JsNativeError, Module};
 
-use super::BindingName;
+use super::{BindingName, ResolvedBinding};
 
 /// Module namespace exotic object.
 ///
@@ -26,6 +26,9 @@ pub struct ModuleNamespace {
     module: Module,
     #[unsafe_ignore_trace]
     exports: IndexSet<JsString, BuildHasherDefault<FxHasher>>,
+    /// Cached binding resolutions for each export name.
+    /// Populated once during namespace creation; bindings are immutable after linking.
+    resolved_bindings: FxHashMap<JsString, ResolvedBinding>,
 }
 
 impl JsData for ModuleNamespace {
@@ -62,6 +65,20 @@ impl ModuleNamespace {
         let mut exports = names.into_iter().collect::<IndexSet<_, _>>();
         exports.sort();
 
+        // Pre-resolve all export bindings and cache them.
+        // After linking, ResolveExport results are stable (per spec),
+        // so we can safely cache them to avoid repeated graph traversals.
+        let mut resolved_bindings = FxHashMap::default();
+        for name in &exports {
+            if let Ok(binding) = module.resolve_export(
+                name.clone(),
+                &mut rustc_hash::FxHashSet::default(),
+                context.interner(),
+            ) {
+                resolved_bindings.insert(name.clone(), binding);
+            }
+        }
+
         // 2. Let internalSlotsList be the internal slots listed in Table 32.
         // 3. Let M be MakeBasicObject(internalSlotsList).
         // 4. Set M's essential internal methods to the definitions specified in 10.4.6.
@@ -73,11 +90,14 @@ impl ModuleNamespace {
         // Ignored because this is done by `Module::namespace`
 
         // 10. Return M.
-        context
-            .intrinsics()
-            .templates()
-            .namespace()
-            .create(Self { module, exports }, vec![js_string!("Module").into()])
+        context.intrinsics().templates().namespace().create(
+            Self {
+                module,
+                exports,
+                resolved_bindings,
+            },
+            vec![js_string!("Module").into()],
+        )
     }
 
     /// Gets the export names of the Module Namespace object.
@@ -88,6 +108,11 @@ impl ModuleNamespace {
     /// Gest the module associated with this Module Namespace object.
     pub(crate) const fn module(&self) -> &Module {
         &self.module
+    }
+
+    /// Gets a cached resolved binding for the given export name.
+    pub(crate) fn get_resolved_binding(&self, name: &JsString) -> Option<&ResolvedBinding> {
+        self.resolved_bindings.get(name)
     }
 }
 
@@ -278,24 +303,16 @@ fn module_namespace_exotic_try_get(
         return Ok(None);
     };
 
-    // 4. Let m be O.[[Module]].
-    let m = obj.module();
-
-    // 5. Let binding be m.ResolveExport(P).
-    let binding = m
-        .resolve_export(
-            export_name.clone(),
-            &mut HashSet::default(),
-            context.interner(),
-        )
-        .expect("6. Assert: binding is a ResolvedBinding Record.");
+    // 5. Let binding be the cached ResolveExport result.
+    let binding = obj
+        .get_resolved_binding(&export_name)
+        .expect("binding must be cached after namespace creation");
 
     // 7. Let targetModule be binding.[[Module]].
     // 8. Assert: targetModule is not undefined.
     let target_module = binding.module();
 
-    // TODO: cache binding resolution instead of doing the whole process on every access.
-    if let BindingName::Name(name) = binding.binding_name() {
+    if let BindingName::Name(name) = binding.binding_name_ref() {
         // 10. Let targetEnv be targetModule.[[Environment]].
         let Some(env) = target_module.environment() else {
             // 11. If targetEnv is empty, throw a ReferenceError exception.
@@ -312,7 +329,7 @@ fn module_namespace_exotic_try_get(
             .as_module()
             .expect("must be module environment")
             .compile()
-            .get_binding(&name)
+            .get_binding(name)
             .expect("checked before that the name was reachable");
 
         // 12. Return ? targetEnv.GetBindingValue(binding.[[BindingName]], true).
@@ -358,24 +375,16 @@ fn module_namespace_exotic_get(
         return Ok(JsValue::undefined());
     };
 
-    // 4. Let m be O.[[Module]].
-    let m = obj.module();
-
-    // 5. Let binding be m.ResolveExport(P).
-    let binding = m
-        .resolve_export(
-            export_name.clone(),
-            &mut HashSet::default(),
-            context.interner(),
-        )
-        .expect("6. Assert: binding is a ResolvedBinding Record.");
+    // 5. Let binding be the cached ResolveExport result.
+    let binding = obj
+        .get_resolved_binding(&export_name)
+        .expect("binding must be cached after namespace creation");
 
     // 7. Let targetModule be binding.[[Module]].
     // 8. Assert: targetModule is not undefined.
     let target_module = binding.module();
 
-    // TODO: cache binding resolution instead of doing the whole process on every access.
-    if let BindingName::Name(name) = binding.binding_name() {
+    if let BindingName::Name(name) = binding.binding_name_ref() {
         // 10. Let targetEnv be targetModule.[[Environment]].
         let Some(env) = target_module.environment() else {
             // 11. If targetEnv is empty, throw a ReferenceError exception.
@@ -392,7 +401,7 @@ fn module_namespace_exotic_get(
             .as_module()
             .expect("must be module environment")
             .compile()
-            .get_binding(&name)
+            .get_binding(name)
             .expect("checked before that the name was reachable");
 
         // 12. Return ? targetEnv.GetBindingValue(binding.[[BindingName]], true).
