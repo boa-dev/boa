@@ -170,12 +170,6 @@ impl JsHeaders {
         .into()
     }
 
-    /// `Headers.prototype[Symbol.iterator]()` — delegates to `entries()`.
-    #[boa(symbol = "iterator")]
-    pub fn iterator(&self, context: &mut Context) -> JsValue {
-        self.entries(context)
-    }
-
     /// Executes a provided function once for each key/value pair in the Headers object.
     ///
     /// # Errors
