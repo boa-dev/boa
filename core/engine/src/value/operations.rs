@@ -665,6 +665,229 @@ impl JsValue {
             AbstractRelation::True | AbstractRelation::Undefined => Ok(false),
         }
     }
+
+    // ==== Numeric Fast Paths ====
+    //
+    // These methods provide optimized paths for binary operations at the opcode
+    // handler level. They use `self.0.as_integer32()` and `self.as_number_cheap()`
+    // (pure bit operations) instead of `variant()`, which avoids cloning pointer
+    // types (Object, String, Symbol, BigInt) for non-numeric values.
+    //
+    // Returns `Some(result)` if both operands are numeric, `None` otherwise
+    // (caller should fall back to the full method with type coercion).
+
+    /// Converts the value to a number if possible, using fast bit operations. This is
+    /// used for the fast operations to allow mixed i32/f64 values.
+    #[inline]
+    fn as_number_cheap(&self) -> Option<f64> {
+        if let Some(i) = self.0.as_integer32() {
+            Some(f64::from(i))
+        } else {
+            self.0.as_float64()
+        }
+    }
+
+    /// Fast path for the binary `+` operator (numeric only).
+    #[inline]
+    #[allow(clippy::float_cmp)]
+    pub(crate) fn add_fast(&self, other: &Self) -> Option<Self> {
+        if let (Some(x), Some(y)) = (self.0.as_integer32(), other.0.as_integer32()) {
+            return Some(
+                x.checked_add(y)
+                    .map_or_else(|| Self::new(f64::from(x) + f64::from(y)), Self::new),
+            );
+        }
+        let x = self.as_number_cheap()?;
+        let y = other.as_number_cheap()?;
+        Some(Self::new(x + y))
+    }
+
+    /// Fast path for the binary `-` operator.
+    #[inline]
+    pub(crate) fn sub_fast(&self, other: &Self) -> Option<Self> {
+        if let (Some(x), Some(y)) = (self.0.as_integer32(), other.0.as_integer32()) {
+            return Some(
+                x.checked_sub(y)
+                    .map_or_else(|| Self::new(f64::from(x) - f64::from(y)), Self::new),
+            );
+        }
+        let x = self.as_number_cheap()?;
+        let y = other.as_number_cheap()?;
+        Some(Self::new(x - y))
+    }
+
+    /// Fast path for the binary `*` operator.
+    #[inline]
+    pub(crate) fn mul_fast(&self, other: &Self) -> Option<Self> {
+        if let (Some(x), Some(y)) = (self.0.as_integer32(), other.0.as_integer32()) {
+            return Some(
+                x.checked_mul(y)
+                    .filter(|v| *v != 0 || i32::min(x, y) >= 0)
+                    .map_or_else(|| Self::new(f64::from(x) * f64::from(y)), Self::new),
+            );
+        }
+        let x = self.as_number_cheap()?;
+        let y = other.as_number_cheap()?;
+        Some(Self::new(x * y))
+    }
+
+    /// Fast path for the binary `/` operator.
+    #[inline]
+    #[allow(clippy::float_cmp)]
+    pub(crate) fn div_fast(&self, other: &Self) -> Option<Self> {
+        if let (Some(x), Some(y)) = (self.0.as_integer32(), other.0.as_integer32()) {
+            return Some(
+                x.checked_div(y)
+                    .filter(|div| y * div == x)
+                    .map_or_else(|| Self::new(f64::from(x) / f64::from(y)), Self::new),
+            );
+        }
+        let x = self.as_number_cheap()?;
+        let y = other.as_number_cheap()?;
+        Some(Self::new(x / y))
+    }
+
+    /// Fast path for the binary `%` operator.
+    #[inline]
+    pub(crate) fn rem_fast(&self, other: &Self) -> Option<Self> {
+        if let (Some(x), Some(y)) = (self.0.as_integer32(), other.0.as_integer32()) {
+            if y == 0 {
+                return Some(Self::nan());
+            }
+            return Some(match x % y {
+                rem if rem == 0 && x < 0 => Self::new(-0.0),
+                rem => Self::new(rem),
+            });
+        }
+        let x = self.as_number_cheap()?;
+        let y = other.as_number_cheap()?;
+        Some(Self::new((x % y).copysign(x)))
+    }
+
+    /// Fast path for the binary `**` operator.
+    #[inline]
+    #[allow(clippy::float_cmp)]
+    pub(crate) fn pow_fast(&self, other: &Self) -> Option<Self> {
+        if let (Some(x), Some(y)) = (self.0.as_integer32(), other.0.as_integer32()) {
+            return Some(
+                u32::try_from(y)
+                    .ok()
+                    .and_then(|y| x.checked_pow(y))
+                    .map_or_else(|| Self::new(f64::from(x).powi(y)), Self::new),
+            );
+        }
+        let x = self.as_number_cheap()?;
+        let y = other.as_number_cheap()?;
+        if x.abs() == 1.0 && y.is_infinite() {
+            Some(Self::nan())
+        } else {
+            Some(Self::new(x.powf(y)))
+        }
+    }
+
+    /// Fast path for the binary `&` operator (i32 only).
+    #[inline]
+    pub(crate) fn bitand_fast(&self, other: &Self) -> Option<Self> {
+        let x = self.0.as_integer32()?;
+        let y = other.0.as_integer32()?;
+        Some(Self::new(x & y))
+    }
+
+    /// Fast path for the binary `|` operator (i32 only).
+    #[inline]
+    pub(crate) fn bitor_fast(&self, other: &Self) -> Option<Self> {
+        let x = self.0.as_integer32()?;
+        let y = other.0.as_integer32()?;
+        Some(Self::new(x | y))
+    }
+
+    /// Fast path for the binary `^` operator (i32 only).
+    #[inline]
+    pub(crate) fn bitxor_fast(&self, other: &Self) -> Option<Self> {
+        let x = self.0.as_integer32()?;
+        let y = other.0.as_integer32()?;
+        Some(Self::new(x ^ y))
+    }
+
+    /// Fast path for the binary `<<` operator (i32 only).
+    #[inline]
+    pub(crate) fn shl_fast(&self, other: &Self) -> Option<Self> {
+        let x = self.0.as_integer32()?;
+        let y = other.0.as_integer32()?;
+        Some(Self::new(x.wrapping_shl(y as u32)))
+    }
+
+    /// Fast path for the binary `>>` operator (i32 only).
+    #[inline]
+    pub(crate) fn shr_fast(&self, other: &Self) -> Option<Self> {
+        let x = self.0.as_integer32()?;
+        let y = other.0.as_integer32()?;
+        Some(Self::new(x.wrapping_shr(y as u32)))
+    }
+
+    /// Fast path for the binary `>>>` operator (i32 only).
+    #[inline]
+    pub(crate) fn ushr_fast(&self, other: &Self) -> Option<Self> {
+        let x = self.0.as_integer32()?;
+        let y = other.0.as_integer32()?;
+        Some(Self::new((x as u32).wrapping_shr(y as u32)))
+    }
+
+    /// Fast path for the `<` operator.
+    #[inline]
+    pub(crate) fn lt_fast(&self, other: &Self) -> Option<Self> {
+        if let (Some(x), Some(y)) = (self.0.as_integer32(), other.0.as_integer32()) {
+            return Some(Self::new(x < y));
+        }
+        let x = self.as_number_cheap()?;
+        let y = other.as_number_cheap()?;
+        Some(Self::new(x < y))
+    }
+
+    /// Fast path for the `<=` operator.
+    #[inline]
+    pub(crate) fn le_fast(&self, other: &Self) -> Option<Self> {
+        if let (Some(x), Some(y)) = (self.0.as_integer32(), other.0.as_integer32()) {
+            return Some(Self::new(x <= y));
+        }
+        let x = self.as_number_cheap()?;
+        let y = other.as_number_cheap()?;
+        Some(Self::new(x <= y))
+    }
+
+    /// Fast path for the `>` operator.
+    #[inline]
+    pub(crate) fn gt_fast(&self, other: &Self) -> Option<Self> {
+        if let (Some(x), Some(y)) = (self.0.as_integer32(), other.0.as_integer32()) {
+            return Some(Self::new(x > y));
+        }
+        let x = self.as_number_cheap()?;
+        let y = other.as_number_cheap()?;
+        Some(Self::new(x > y))
+    }
+
+    /// Fast path for the `>=` operator.
+    #[inline]
+    pub(crate) fn ge_fast(&self, other: &Self) -> Option<Self> {
+        if let (Some(x), Some(y)) = (self.0.as_integer32(), other.0.as_integer32()) {
+            return Some(Self::new(x >= y));
+        }
+        let x = self.as_number_cheap()?;
+        let y = other.as_number_cheap()?;
+        Some(Self::new(x >= y))
+    }
+
+    /// Fast path for the `==` operator (numeric only).
+    #[inline]
+    #[allow(clippy::float_cmp)]
+    pub(crate) fn equals_fast(&self, other: &Self) -> Option<Self> {
+        if let (Some(x), Some(y)) = (self.0.as_integer32(), other.0.as_integer32()) {
+            return Some(Self::new(x == y));
+        }
+        let x = self.as_number_cheap()?;
+        let y = other.as_number_cheap()?;
+        Some(Self::new(x == y))
+    }
 }
 
 /// The result of the [Abstract Relational Comparison][arc].
