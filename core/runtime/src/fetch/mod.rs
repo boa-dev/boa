@@ -12,6 +12,7 @@ use crate::fetch::request::{JsRequest, RequestInit};
 use crate::fetch::response::JsResponse;
 use boa_engine::class::Class;
 use boa_engine::object::FunctionObjectBuilder;
+use boa_engine::object::builtins::JsArray;
 use boa_engine::property::PropertyDescriptor;
 use boa_engine::realm::Realm;
 use boa_engine::{
@@ -188,13 +189,13 @@ fn headers_iterator(this: &JsValue, _: &[JsValue], context: &mut Context) -> JsR
         })?;
 
     let entries = headers.entries(context);
-    let entries_obj = entries.to_object(context)?;
-    let method = entries_obj
-        .get(JsSymbol::iterator(), context)?
+    let entries_array = JsArray::from_object(entries.to_object(context)?)?;
+    let values = entries_array
+        .get(js_string!("values"), context)?
         .as_object()
-        .ok_or_else(|| js_error!(TypeError: "entries result is not iterable"))?;
+        .ok_or_else(|| js_error!(TypeError: "Array.prototype.values is not callable"))?;
 
-    method.call(&entries, &[], context)
+    values.call(&entries, &[], context)
 }
 
 /// Register the `fetch` function in the realm, as well as ALL supporting classes.
