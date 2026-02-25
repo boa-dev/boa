@@ -2,6 +2,7 @@
 
 use crate::{JsData, JsResult, JsString, builtins::Number, error::JsNativeError};
 use boa_gc::{Finalize, Trace};
+use num_bigint::Sign;
 use num_integer::Integer;
 use num_traits::{FromPrimitive, One, ToPrimitive, Zero, pow::Pow};
 use std::{
@@ -219,9 +220,29 @@ impl JsBigInt {
         match y.inner.to_i32() {
             Some(n) if n > 0 => Ok(Self::new(x.inner.as_ref().clone().shr(n as usize))),
             Some(n) => Ok(Self::new(x.inner.as_ref().clone().shl(n.unsigned_abs()))),
-            None => Err(JsNativeError::range()
-                .with_message("Maximum BigInt size exceeded")
-                .into()),
+            // y doesn't fit in i32.
+            //
+            // Best-effort safeguard: while the spec doesn't explicitly mandate a
+            // result for implementation-limited shift amounts, the mathematical
+            // definition of BigInt right shift (`floor(x / 2^y)`) from
+            // <https://tc39.es/ecma262/#sec-numeric-types-bigint-signedRightShift>
+            // implies that for very large positive y the result converges to
+            // 0n (x >= 0) or -1n (x < 0). V8 and SpiderMonkey agree.
+            None => {
+                if y.inner.sign() == Sign::Minus {
+                    // x >> (large negative) is equivalent to x << (large positive), which overflows.
+                    Err(JsNativeError::range()
+                        .with_message("Maximum BigInt size exceeded")
+                        .into())
+                } else {
+                    // x >> (large positive): all bits are shifted out.
+                    if x.inner.sign() == Sign::Minus {
+                        Ok(Self::new(RawBigInt::from(-1)))
+                    } else {
+                        Ok(Self::zero())
+                    }
+                }
+            }
         }
     }
 
@@ -231,9 +252,25 @@ impl JsBigInt {
         match y.inner.to_i32() {
             Some(n) if n > 0 => Ok(Self::new(x.inner.as_ref().clone().shl(n as usize))),
             Some(n) => Ok(Self::new(x.inner.as_ref().clone().shr(n.unsigned_abs()))),
-            None => Err(JsNativeError::range()
-                .with_message("Maximum BigInt size exceeded")
-                .into()),
+            // y doesn't fit in i32.
+            //
+            // Best-effort safeguard: symmetric to shift_right above.
+            // See <https://tc39.es/ecma262/#sec-numeric-types-bigint-leftShift>.
+            None => {
+                if y.inner.sign() == Sign::Minus {
+                    // x << (large negative) is equivalent to x >> (large positive): all bits shifted out.
+                    if x.inner.sign() == Sign::Minus {
+                        Ok(Self::new(RawBigInt::from(-1)))
+                    } else {
+                        Ok(Self::zero())
+                    }
+                } else {
+                    // x << (large positive) overflows.
+                    Err(JsNativeError::range()
+                        .with_message("Maximum BigInt size exceeded")
+                        .into())
+                }
+            }
         }
     }
 
