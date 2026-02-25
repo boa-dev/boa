@@ -916,3 +916,40 @@ fn from_code_point() {
         ),
     ]);
 }
+
+#[cfg(test)]
+mod tests {
+    use crate::{TestAction, run_test_actions};
+
+    // ... existing tests ...
+
+    #[test]
+    fn string_concat_memory_exhaustion_regression_4409() {
+        // Regression test for issue #4409: String concatenation should throw
+        // RangeError instead of causing OOM/panic
+        run_test_actions([
+            TestAction::run(
+                r#"
+                var s = '\u1234--synchronized-----';
+                var hitError = false;
+                
+                for (var i = 0; i < 17; i++) {
+                    try {
+                        s += s;
+                        s += s;
+                    } catch (e) {
+                        if (e instanceof RangeError) {
+                            hitError = true;
+                            break;
+                        }
+                    }
+                }
+                
+                // Should have thrown RangeError before OOM
+                hitError;
+                "#,
+            ),
+            TestAction::assert("hitError === true"),
+        ]);
+    }
+}

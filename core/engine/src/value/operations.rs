@@ -1,11 +1,11 @@
 use crate::{
-    Context, JsBigInt, JsResult, JsValue, JsVariant,
+    Context, JsBigInt, JsError, JsResult, JsValue, JsVariant,
     builtins::{
         Number,
         number::{f64_to_int32, f64_to_uint32},
     },
     error::JsNativeError,
-    js_string,
+    string::JsString,
     value::{JsSymbol, Numeric, PreferredType},
 };
 
@@ -13,8 +13,7 @@ impl JsValue {
     /// Perform the binary `+` operator on the value and return the result.
     pub fn add(&self, other: &Self, context: &mut Context) -> JsResult<Self> {
         Ok(match (self.variant(), other.variant()) {
-            // Fast path:
-            // Numeric add
+            // Fast path: Numeric add
             (JsVariant::Integer32(x), JsVariant::Integer32(y)) => x
                 .checked_add(y)
                 .map_or_else(|| Self::new(f64::from(x) + f64::from(y)), Self::new),
@@ -23,17 +22,45 @@ impl JsValue {
             (JsVariant::Float64(x), JsVariant::Integer32(y)) => Self::new(x + f64::from(y)),
             (JsVariant::BigInt(x), JsVariant::BigInt(y)) => Self::new(JsBigInt::add(&x, &y)),
 
-            // String concat
-            (JsVariant::String(x), JsVariant::String(y)) => Self::from(js_string!(&x, &y)),
+            // String concat - USE FALLIBLE API
+            (JsVariant::String(x), JsVariant::String(y)) => {
+                let result = JsString::try_concat(x.as_str(), y.as_str()).map_err(|e| {
+                    JsError::from(
+                        JsNativeError::range().with_message(format!("Invalid string length: {e}")),
+                    )
+                })?;
+                Self::from(result)
+            }
 
             // Slow path:
             (_, _) => {
                 let x = self.to_primitive(context, PreferredType::Default)?;
                 let y = other.to_primitive(context, PreferredType::Default)?;
                 match (x.variant(), y.variant()) {
-                    (JsVariant::String(x), _) => Self::from(js_string!(&x, &y.to_string(context)?)),
-                    (_, JsVariant::String(y)) => Self::from(js_string!(&x.to_string(context)?, &y)),
+                    (JsVariant::String(x), _) => {
+                        let y_str = y.to_string(context)?;
+                        let result =
+                            JsString::try_concat(x.as_str(), y_str.as_str()).map_err(|e| {
+                                JsError::from(
+                                    JsNativeError::range()
+                                        .with_message(format!("Invalid string length: {e}")),
+                                )
+                            })?;
+                        Self::from(result)
+                    }
+                    (_, JsVariant::String(y)) => {
+                        let x_str = x.to_string(context)?;
+                        let result =
+                            JsString::try_concat(x_str.as_str(), y.as_str()).map_err(|e| {
+                                JsError::from(
+                                    JsNativeError::range()
+                                        .with_message(format!("Invalid string length: {e}")),
+                                )
+                            })?;
+                        Self::from(result)
+                    }
                     (_, _) => {
+                        // Numeric addition - KEEP ORIGINAL LOGIC
                         match (x.to_numeric(context)?, y.to_numeric(context)?) {
                             (Numeric::Number(x), Numeric::Number(y)) => Self::new(x + y),
                             (Numeric::BigInt(ref x), Numeric::BigInt(ref y)) => {

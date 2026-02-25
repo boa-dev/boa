@@ -19,6 +19,7 @@ pub(crate) trait InternalStringType: StringType {
     const KIND: JsStringKind;
 
     /// Create the base layout for the sequence string header.
+    #[allow(dead_code)] // Used via trait dispatch in try_allocate
     fn base_layout() -> Layout;
 
     /// Construct a [`JsStr`] from a slice of characters.

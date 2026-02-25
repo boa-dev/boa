@@ -10,7 +10,7 @@
 //! [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String
 
 use crate::{
-    Context, JsArgs, JsResult, JsString, JsValue,
+    Context, JsArgs, JsError, JsResult, JsString, JsValue,
     builtins::{Array, BuiltInObject, Number, RegExp},
     context::intrinsics::{Intrinsics, StandardConstructor, StandardConstructors},
     error::JsNativeError,
@@ -659,8 +659,13 @@ impl String {
         // 4. For each element next of args, do
         for arg in args {
             // a. Let nextString be ? ToString(next).
+            let next_string = arg.to_string(context)?;
             // b. Set R to the string-concatenation of R and nextString.
-            string = js_string!(&string, &arg.to_string(context)?);
+            string = JsString::try_concat(string.as_str(), next_string.as_str()).map_err(|e| {
+                JsError::from(
+                    JsNativeError::range().with_message(format!("Invalid string length: {e}")),
+                )
+            })?;
         }
 
         // 5. Return R.

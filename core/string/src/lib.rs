@@ -52,6 +52,47 @@ fn alloc_overflow() -> ! {
     panic!("detected overflow during string allocation")
 }
 
+/// Maximum string length in UTF-16 code units.
+pub const MAX_STRING_LENGTH: usize = u32::MAX as usize;
+
+/// NEW: Graceful error instead of panic (V8 approach)
+#[cold]
+#[inline(never)]
+fn string_too_long_error(requested: usize, max: usize) -> StringAllocationError {
+    StringAllocationError::TooLong { requested, max }
+}
+
+/// Error type for string allocation failures
+#[derive(Debug, Clone, Copy)]
+pub enum StringAllocationError {
+    /// String length exceeds maximum allowed size
+    TooLong {
+        /// The requested string length in code units
+        requested: usize,
+        /// The maximum allowed string length
+        max: usize,
+    },
+    /// Integer overflow occurred during length calculation
+    Overflow,
+    /// Memory allocation failed
+    OutOfMemory,
+}
+
+impl std::fmt::Display for StringAllocationError {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        match self {
+            Self::TooLong { requested, max } => write!(
+                f,
+                "Invalid string length: requested {requested} code units, maximum is {max}"
+            ),
+            Self::Overflow => write!(f, "String length calculation overflow"),
+            Self::OutOfMemory => write!(f, "Out of memory during string allocation"),
+        }
+    }
+}
+
+impl std::error::Error for StringAllocationError {}
+
 /// Helper function to check if a `char` is trimmable.
 pub(crate) const fn is_trimmable_whitespace(c: char) -> bool {
     // The rust implementation of `trim` does not regard the same characters whitespace as
@@ -628,56 +669,99 @@ impl JsString {
     }
 
     /// Creates a new [`JsString`] from the concatenation of `x` and `y`.
-    #[inline]
     #[must_use]
     pub fn concat(x: JsStr<'_>, y: JsStr<'_>) -> Self {
         Self::concat_array(&[x, y])
     }
 
-    /// Creates a new [`JsString`] from the concatenation of every element of
-    /// `strings`.
+    /// Creates a new [`JsString`] from the concatenation of every element of `strings`.
     #[inline]
     #[must_use]
     pub fn concat_array(strings: &[JsStr<'_>]) -> Self {
+        match Self::try_concat_array(strings) {
+            Ok(result) => result,
+            Err(_) => alloc_overflow(), // Keep existing panic behavior for now
+        }
+    }
+
+    /// Fallible concatenation of two strings - returns Result for proper error handling
+    ///
+    /// # Errors
+    ///
+    /// Returns [`StringAllocationError`] if:
+    /// - The total length exceeds [`MAX_STRING_LENGTH`]
+    /// - Integer overflow occurs during length calculation
+    /// - Memory allocation fails
+    #[inline]
+    pub fn try_concat(x: JsStr<'_>, y: JsStr<'_>) -> Result<Self, StringAllocationError> {
+        Self::try_concat_array(&[x, y])
+    }
+
+    /// Fallible concatenation of array - returns Result for proper error handling
+    ///
+    /// # Errors
+    ///
+    /// Returns [`StringAllocationError`] if:
+    /// - The total length exceeds [`MAX_STRING_LENGTH`]
+    /// - Integer overflow occurs during length calculation
+    /// - Memory allocation fails
+    #[inline]
+    pub fn try_concat_array(strings: &[JsStr<'_>]) -> Result<Self, StringAllocationError> {
+        Self::concat_array_impl(strings)
+    }
+
+    /// Concatenates multiple string slices with fallible allocation.
+    fn concat_array_impl(strings: &[JsStr<'_>]) -> Result<Self, StringAllocationError> {
+        // Calculate total length with overflow check
         let mut latin1_encoding = true;
         let mut full_count = 0usize;
+
         for string in strings {
-            let Some(sum) = full_count.checked_add(string.len()) else {
-                alloc_overflow()
-            };
+            // Check for arithmetic overflow
+            full_count = full_count
+                .checked_add(string.len())
+                .ok_or(StringAllocationError::Overflow)?;
+
             if !string.is_latin1() {
                 latin1_encoding = false;
             }
-            full_count = sum;
         }
 
+        // Validate against maximum string length BEFORE attempting allocation
+        if full_count > MAX_STRING_LENGTH {
+            return Err(string_too_long_error(full_count, MAX_STRING_LENGTH));
+        }
+
+        // Allocate memory with proper error mapping
         let (ptr, data_offset) = if latin1_encoding {
-            let p = SequenceString::<Latin1>::allocate(full_count);
+            let p = SequenceString::<Latin1>::try_allocate(full_count).map_err(|layout_opt| {
+                match layout_opt {
+                    None => StringAllocationError::Overflow, // Layout overflow
+                    Some(_) => StringAllocationError::OutOfMemory, // Allocation failed
+                }
+            })?;
             (p.cast::<u8>(), size_of::<SequenceString<Latin1>>())
         } else {
-            let p = SequenceString::<Utf16>::allocate(full_count);
+            let p = SequenceString::<Utf16>::try_allocate(full_count).map_err(|layout_opt| {
+                match layout_opt {
+                    None => StringAllocationError::Overflow,
+                    Some(_) => StringAllocationError::OutOfMemory,
+                }
+            })?;
             (p.cast::<u8>(), size_of::<SequenceString<Utf16>>())
         };
 
+        // Copy string data (KEEP ORIGINAL UNSAFE LOGIC)
         let string = {
-            // SAFETY: `allocate_*_seq` guarantees that `ptr` is a valid pointer to a sequence string.
+            // SAFETY: `try_allocate` guarantees `ptr` is valid
             let mut data = unsafe {
                 let seq_ptr = ptr.as_ptr();
                 seq_ptr.add(data_offset)
             };
+
             for &string in strings {
-                // SAFETY:
-                // The sum of all `count` for each `string` equals `full_count`, and since we're
-                // iteratively writing each of them to `data`, `copy_non_overlapping` always stays
-                // in-bounds for `count` reads of each string and `full_count` writes to `data`.
-                //
-                // Each `string` must be properly aligned to be a valid slice, and `data` must be
-                // properly aligned by `allocate_seq`.
-                //
-                // `allocate_seq` must return a valid pointer to newly allocated memory, meaning
-                // `ptr` and all `string`s should never overlap.
+                // SAFETY: See original safety comments
                 unsafe {
-                    // NOTE: The alignment is checked when we allocate the array.
                     #[allow(clippy::cast_ptr_alignment)]
                     match (latin1_encoding, string.variant()) {
                         (true, JsStrVariant::Latin1(s)) => {
@@ -707,7 +791,8 @@ impl JsString {
             Self { ptr: ptr.cast() }
         };
 
-        StaticJsStrings::get_string(&string.as_str()).unwrap_or(string)
+        // Check static string cache
+        Ok(StaticJsStrings::get_string(&string.as_str()).unwrap_or(string))
     }
 
     /// Creates a new [`JsString`] from `data`, without checking if the string is in the interner.

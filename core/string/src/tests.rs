@@ -553,3 +553,58 @@ fn trim() {
     let base_str = JsString::from(" \u{000B} Hello World \t ");
     assert_eq!(base_str.trim(), JsString::from("Hello World"));
 }
+
+#[test]
+fn test_string_length_limit() {
+    use crate::{JsString, MAX_STRING_LENGTH, StringAllocationError};
+
+    // Start with a medium-sized string
+    let mut s = JsString::from("x".repeat(1000));
+
+    // Double until we approach the limit
+    while s.len() < MAX_STRING_LENGTH / 4 {
+        match JsString::try_concat(s.as_str(), s.as_str()) {
+            Ok(result) => s = result,
+            Err(_) => break,
+        }
+    }
+
+    // Continue doubling - should eventually hit the limit
+    let mut hit_limit = false;
+    for _ in 0..10 {
+        match JsString::try_concat(s.as_str(), s.as_str()) {
+            Ok(result) => s = result,
+            Err(StringAllocationError::TooLong { requested, max }) => {
+                assert!(requested > max);
+                assert_eq!(max, MAX_STRING_LENGTH);
+                hit_limit = true;
+                break;
+            }
+            Err(e) => panic!("Wrong error type: {e}"),
+        }
+    }
+
+    assert!(hit_limit, "Should have hit MAX_STRING_LENGTH");
+}
+
+#[test]
+fn test_memory_exhaustion_protection() {
+    use crate::JsString;
+
+    // Reproduce the issue from #4409
+    let mut s = JsString::from("\u{1234}--synchronized-----");
+    let mut hit_error = false;
+
+    // Keep doubling until we hit the limit
+    for _ in 0..30 {
+        match JsString::try_concat(s.as_str(), s.as_str()) {
+            Ok(result) => s = result,
+            Err(_) => {
+                hit_error = true;
+                break;
+            }
+        }
+    }
+
+    assert!(hit_error, "Should have hit allocation limit");
+}
