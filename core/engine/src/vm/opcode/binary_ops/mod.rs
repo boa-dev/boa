@@ -7,34 +7,6 @@ pub(crate) mod macro_defined;
 pub(crate) use logical::*;
 pub(crate) use macro_defined::*;
 
-/// `NotEq` implements the Opcode Operation for `Opcode::NotEq`
-///
-/// Operation:
-///  - Binary `!=` operation
-#[derive(Debug, Clone, Copy)]
-pub(crate) struct NotEq;
-
-impl NotEq {
-    #[allow(clippy::needless_pass_by_value)]
-    #[inline(always)]
-    pub(super) fn operation(
-        (dst, lhs, rhs): (VaryingOperand, VaryingOperand, VaryingOperand),
-        context: &mut Context,
-    ) -> JsResult<()> {
-        let lhs = context.vm.get_register(lhs.into()).clone();
-        let rhs = context.vm.get_register(rhs.into()).clone();
-        let value = !lhs.equals(&rhs, context)?;
-        context.vm.set_register(dst.into(), value.into());
-        Ok(())
-    }
-}
-
-impl Operation for NotEq {
-    const NAME: &'static str = "NotEq";
-    const INSTRUCTION: &'static str = "INST - NotEq";
-    const COST: u8 = 2;
-}
-
 /// `StrictEq` implements the Opcode Operation for `Opcode::StrictEq`
 ///
 /// Operation:
