@@ -410,10 +410,7 @@ impl Accessor {
         class_ty: &Type,
     ) -> SpannedResult<()> {
         if self.setter.is_some() {
-            error(
-                fn_,
-                format!("Setter for property {name} already declared."),
-            )
+            error(fn_, format!("Setter for property {name} already declared."))
         } else {
             let setter = Function::setter(name, fn_, class_ty)?;
             self.setter = Some(setter);
@@ -523,7 +520,11 @@ impl ClassVisitor {
         }
 
         take_name_value_attr(&mut fn_.attrs, "rename").map_or_else(
-            || Ok(MethodName::String(self.renaming.rename(fn_.sig.ident.to_string()))),
+            || {
+                Ok(MethodName::String(
+                    self.renaming.rename(fn_.sig.ident.to_string()),
+                ))
+            },
             |nv| match &nv {
                 Lit::Str(s) => Ok(MethodName::String(s.value())),
                 _ => error(&nv, "Invalid attribute value literal"),
