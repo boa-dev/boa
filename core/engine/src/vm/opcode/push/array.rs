@@ -44,12 +44,32 @@ impl PushValueToArray {
         context: &mut Context,
     ) {
         let value = context.vm.get_register(value.into()).clone();
-        let array = context.vm.get_register(array.into()).clone();
-        let o = array.as_object().expect("should be an object");
+        let o = context
+            .vm
+            .get_register(array.into())
+            .as_object()
+            .expect("should be an object");
+
+        // Fast path: push directly to dense indexed storage.
+        {
+            let mut o_mut = o.borrow_mut();
+            let len = o_mut.properties().storage[0].as_i32();
+            if let Some(len) = len
+                && o_mut
+                    .properties_mut()
+                    .indexed_properties
+                    .push_dense(&value)
+                {
+                    o_mut.properties_mut().storage[0] = JsValue::new(len + 1);
+                    return;
+                }
+        }
+
+        // Slow path: fall through to the generic property machinery.
         let len = o
             .length_of_array_like(context)
             .expect("should have 'length' property");
-        o.create_data_property_or_throw(len, value.clone(), context)
+        o.create_data_property_or_throw(len, value, context)
             .expect("should be able to create new data property");
     }
 }
