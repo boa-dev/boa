@@ -397,29 +397,27 @@ impl IndexedProperties {
             Self::DenseI32(vec) => {
                 if let Some(i) = value.as_i32() {
                     vec.push(i);
-                    return true;
-                }
-                if let Some(n) = value.as_number() {
+                } else if let Some(n) = value.as_number() {
                     let mut new_vec: ThinVec<f64> = vec.iter().copied().map(f64::from).collect();
                     new_vec.push(n);
                     *self = Self::DenseF64(new_vec);
-                    return true;
+                } else {
+                    let mut new_vec: ThinVec<JsValue> =
+                        vec.iter().copied().map(JsValue::from).collect();
+                    new_vec.push(value.clone());
+                    *self = Self::DenseElement(new_vec);
                 }
-                let mut new_vec: ThinVec<JsValue> =
-                    vec.iter().copied().map(JsValue::from).collect();
-                new_vec.push(value.clone());
-                *self = Self::DenseElement(new_vec);
                 true
             }
             Self::DenseF64(vec) => {
                 if let Some(n) = value.as_number() {
                     vec.push(n);
-                    return true;
+                } else {
+                    let mut new_vec: ThinVec<JsValue> =
+                        vec.iter().copied().map(JsValue::from).collect();
+                    new_vec.push(value.clone());
+                    *self = Self::DenseElement(new_vec);
                 }
-                let mut new_vec: ThinVec<JsValue> =
-                    vec.iter().copied().map(JsValue::from).collect();
-                new_vec.push(value.clone());
-                *self = Self::DenseElement(new_vec);
                 true
             }
             Self::DenseElement(vec) => {
@@ -427,6 +425,39 @@ impl IndexedProperties {
                 true
             }
             Self::SparseElement(_) | Self::SparseProperty(_) => false,
+        }
+    }
+
+    /// Transform this array into a sparse array if it isn't so already.
+    pub(crate) fn transform_to_sparse(&mut self) {
+        match &*self {
+            Self::DenseI32(v) => {
+                *self = Self::SparseElement(Box::new(
+                    v.into_iter()
+                        .copied()
+                        .enumerate()
+                        .map(|(i, v)| (i as u32, JsValue::from(v)))
+                        .collect(),
+                ));
+            }
+            Self::DenseF64(v) => {
+                *self = Self::SparseElement(Box::new(
+                    v.into_iter()
+                        .copied()
+                        .enumerate()
+                        .map(|(i, v)| (i as u32, JsValue::from(v)))
+                        .collect(),
+                ));
+            }
+            Self::DenseElement(v) => {
+                *self = Self::SparseElement(Box::new(
+                    v.into_iter()
+                        .enumerate()
+                        .map(|(i, v)| (i as u32, v.clone()))
+                        .collect(),
+                ));
+            }
+            _ => {}
         }
     }
 
