@@ -1,6 +1,122 @@
 use crate::{JsNativeErrorKind, TestAction, run_test_actions};
 use boa_macros::js_str;
 
+// ── Symbol-as-key tests ───────────────────────────────────────────────────────
+
+#[test]
+fn symbol_key_get_missing_returns_undefined() {
+    run_test_actions([
+        TestAction::run("const sym = Symbol('missing'); const wm = new WeakMap();"),
+        TestAction::assert("wm.get(sym) === undefined"),
+    ]);
+}
+
+#[test]
+fn symbol_key_get_or_insert_computed_race() {
+    run_test_actions([
+        TestAction::run(
+            r#"
+            const wm = new WeakMap()
+            const sym = Symbol('race');
+            const v = wm.getOrInsertComputed(sym, function() {
+                wm.set(sym, 'other');
+                return 'computed';
+            });
+        "#,
+        ),
+        // computed value wins over the one set inside the callback
+        TestAction::assert_eq("v", js_str!("computed")),
+        TestAction::assert_eq("wm.get(sym)", js_str!("computed")),
+    ]);
+}
+
+#[test]
+fn symbol_key_set_get_has() {
+    run_test_actions([
+        TestAction::run("const sym = Symbol('test'); const wm = new WeakMap(); wm.set(sym, 42);"),
+        TestAction::assert("wm.has(sym)"),
+        TestAction::assert_eq("wm.get(sym)", 42),
+    ]);
+}
+
+#[test]
+fn symbol_key_delete() {
+    run_test_actions([
+        TestAction::run("const sym = Symbol(); const wm = new WeakMap([[sym, 'hi']]);"),
+        TestAction::assert("wm.has(sym)"),
+        TestAction::assert("wm.delete(sym)"),
+        TestAction::assert("!wm.has(sym)"),
+    ]);
+}
+
+#[test]
+fn registered_symbol_rejected_by_set() {
+    run_test_actions([TestAction::assert_native_error(
+        "new WeakMap().set(Symbol.for('reg'), 1)",
+        JsNativeErrorKind::Type,
+        "WeakMap.set: expected target argument of type `object` or unique `symbol`, got target of type `symbol`",
+    )]);
+}
+
+#[test]
+fn registered_symbol_returns_false_from_has() {
+    run_test_actions([TestAction::assert_eq(
+        "new WeakMap().has(Symbol.for('reg'))",
+        false,
+    )]);
+}
+
+#[test]
+fn well_known_symbol_rejected_by_set() {
+    run_test_actions([TestAction::assert_native_error(
+        "new WeakMap().set(Symbol.iterator, 1)",
+        JsNativeErrorKind::Type,
+        "WeakMap.set: expected target argument of type `object` or unique `symbol`, got target of type `symbol`",
+    )]);
+}
+
+#[test]
+fn symbol_key_get_or_insert() {
+    run_test_actions([
+        TestAction::run("const sym = Symbol('x'); const wm = new WeakMap();"),
+        TestAction::assert_eq("wm.getOrInsert(sym, 99)", 99),
+        TestAction::assert("wm.has(sym)"),
+        TestAction::assert_eq("wm.getOrInsert(sym, 0)", 99), // returns existing
+    ]);
+}
+
+#[test]
+fn symbol_key_get_or_insert_computed() {
+    run_test_actions([
+        TestAction::run("const sym = Symbol(); const wm = new WeakMap(); let called = 0;"),
+        TestAction::assert_eq(
+            "wm.getOrInsertComputed(sym, () => { called++; return 'v'; })",
+            js_str!("v"),
+        ),
+        TestAction::assert_eq("called", 1),
+        // Second call should NOT invoke callback
+        TestAction::assert_eq(
+            "wm.getOrInsertComputed(sym, () => { called++; return 'other'; })",
+            js_str!("v"),
+        ),
+        TestAction::assert_eq("called", 1),
+    ]);
+}
+
+#[test]
+fn symbol_and_object_keys_coexist() {
+    run_test_actions([
+        TestAction::run(
+            "const sym = Symbol(); const obj = {}; const wm = new WeakMap();
+             wm.set(sym, 'sym-val'); wm.set(obj, 'obj-val');",
+        ),
+        TestAction::assert_eq("wm.get(sym)", js_str!("sym-val")),
+        TestAction::assert_eq("wm.get(obj)", js_str!("obj-val")),
+        TestAction::assert("wm.has(sym)"),
+        TestAction::assert("wm.has(obj)"),
+    ]);
+}
+
 #[test]
 fn get_or_insert_inserts_on_miss() {
     run_test_actions([
@@ -34,7 +150,7 @@ fn get_or_insert_requires_object_key() {
     run_test_actions([TestAction::assert_native_error(
         "new WeakMap().getOrInsert('x', 1)",
         JsNativeErrorKind::Type,
-        "WeakMap.getOrInsert: expected target argument of type `object`, got target of type `string`",
+        "WeakMap.getOrInsert: expected target argument of type `object` or unique `symbol`, got target of type `string`",
     )]);
 }
 
@@ -43,7 +159,7 @@ fn get_or_insert_computed_requires_object_key() {
     run_test_actions([TestAction::assert_native_error(
         "new WeakMap().getOrInsertComputed('x', () => 1)",
         JsNativeErrorKind::Type,
-        "WeakMap.getOrInsertComputed: expected target argument of type `object`, got target of type `string`",
+        "WeakMap.getOrInsertComputed: expected target argument of type `object` or unique `symbol`, got target of type `string`",
     )]);
 }
 

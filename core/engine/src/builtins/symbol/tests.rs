@@ -3,7 +3,7 @@ use boa_macros::js_str;
 use boa_parser::Source;
 use indoc::indoc;
 
-use super::{is_registered_symbol, is_unique_symbol, is_well_known_symbol};
+use super::{is_registered_symbol, is_unique_symbol};
 use crate::symbol::JsSymbol;
 
 #[test]
@@ -100,7 +100,7 @@ fn test_is_well_known_symbol() {
 
     for (i, sym) in well_known_symbols.iter().enumerate() {
         assert!(
-            is_well_known_symbol(sym),
+            sym.is_well_known(),
             "Well-known symbol at index {} should be recognized",
             i
         );
@@ -109,7 +109,7 @@ fn test_is_well_known_symbol() {
     // Regular symbol should NOT be well-known
     let regular_sym = JsSymbol::new(Some(js_str!("test").into())).unwrap();
     assert!(
-        !is_well_known_symbol(&regular_sym),
+        !regular_sym.is_well_known(),
         "Regular symbol should not be well-known"
     );
 
@@ -122,7 +122,7 @@ fn test_is_well_known_symbol() {
         .unwrap();
     let registered_sym = result.as_symbol().unwrap();
     assert!(
-        !is_well_known_symbol(&registered_sym),
+        !registered_sym.is_well_known(),
         "Registered symbol should not be well-known"
     );
 }
