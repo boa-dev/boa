@@ -708,9 +708,17 @@ impl JobExecutor for SimpleJobExecutor {
             {
                 let now = context.borrow().clock().now();
                 let mut timeouts_borrow = self.timeout_jobs.borrow_mut();
+                // split_off(&now) keeps keys >= now; pull out the exact-now entry
+                // separately so a job whose deadline == now is also executed.
                 let mut jobs_to_keep = timeouts_borrow.split_off(&now);
+                let exact_now = jobs_to_keep.remove(&now);
                 jobs_to_keep.retain(|_, job| !job.is_cancelled());
-                let jobs_to_run = mem::replace(&mut *timeouts_borrow, jobs_to_keep);
+                let mut jobs_to_run = mem::replace(&mut *timeouts_borrow, jobs_to_keep);
+                if let Some(job) = exact_now {
+                    if !job.is_cancelled() {
+                        jobs_to_run.insert(now, job);
+                    }
+                }
                 drop(timeouts_borrow);
 
                 for job in jobs_to_run.into_values() {
