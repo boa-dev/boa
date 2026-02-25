@@ -95,21 +95,33 @@ impl<T: InternalStringType> SequenceString<T> {
         debug_assert_eq!(offset, T::DATA_OFFSET);
         debug_assert_eq!(layout.align(), align_of::<Self>());
 
-        // SAFETY: Layout size is non-zero (contains vtable, refcount, marker)
+        // SAFETY:
+        // The layout size of `SequenceString` is never zero, since it has to store
+        // the length of the string and the reference count.        #[allow(clippy::cast_ptr_alignment)]
         #[allow(clippy::cast_ptr_alignment)]
         let inner = unsafe { alloc(layout).cast::<Self>() };
 
-        // Check allocation success
+        // We need to verify that the pointer returned by `alloc` is not null, otherwise
+        // we should abort, since an allocation error is pretty unrecoverable for us
+        // right now.
         let inner = NonNull::new(inner).ok_or(Some(layout))?;
 
-        // SAFETY: `NonNull` verified the pointer is valid
+        // SAFETY
+        //`NonNull` verified for us that the pointer returned by `alloc` is valid,
+        // meaning we can write to its pointed memory.
         unsafe {
             inner.as_ptr().write(Self::new(len));
         }
 
         debug_assert!({
             let inner = inner.as_ptr();
-            // SAFETY: `inner` is a valid pointer from `NonNull`
+            // SAFETY
+            // - `inner` must be a valid pointer, since it comes from a `NonNull`,
+            // meaning we can safely dereference it to `SequenceString`.
+            // - `offset` should point us to the beginning of the array,
+            // and since we requested a `SequenceString` layout with a trailing
+            // `[T::Byte; str_len]`, the memory of the array must be in the `usize`
+            // range for the allocation to succeed.
             unsafe {
                 ptr::eq(
                     inner.cast::<u8>().add(offset).cast(),
