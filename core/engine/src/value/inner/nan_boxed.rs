@@ -728,7 +728,7 @@ impl NanBoxedValue {
 
     /// Converts the value to a boolean without cloning pointer types.
     ///
-    /// Objects and Symbols are always truthy. For String and BigInt,
+    /// Objects and Symbols are always truthy. For `String` and `BigInt`,
     /// the pointer is temporarily reconstructed via [`ManuallyDrop`] to
     /// call `is_empty()` / `is_zero()` without touching the refcount.
     #[must_use]
