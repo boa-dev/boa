@@ -190,12 +190,7 @@ fn headers_iterator(this: &JsValue, _: &[JsValue], context: &mut Context) -> JsR
 
     let entries = headers.entries(context);
     let entries_array = JsArray::from_object(entries.to_object(context)?)?;
-    let values = entries_array
-        .get(js_string!("values"), context)?
-        .as_object()
-        .ok_or_else(|| js_error!(TypeError: "Array.prototype.values is not callable"))?;
-
-    values.call(&entries, &[], context)
+    entries_array.values(context)
 }
 
 /// Register the `fetch` function in the realm, as well as ALL supporting classes.
