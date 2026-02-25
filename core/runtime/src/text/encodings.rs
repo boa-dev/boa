@@ -8,7 +8,7 @@ fn decode_utf16_units(
         std::char::decode_utf16(code_units.into_iter().inspect(|code_unit| {
             last_code_unit = Some(*code_unit);
         }))
-            .map(|result| result.unwrap_or('\u{FFFD}')),
+        .map(|result| result.unwrap_or('\u{FFFD}')),
     );
     let trailing_high_surrogate =
         last_code_unit.is_some_and(|code_unit| (0xD800..=0xDBFF).contains(&code_unit));
