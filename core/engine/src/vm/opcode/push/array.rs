@@ -92,6 +92,7 @@ impl PushElisionToArray {
         let len = o
             .length_of_array_like(context)
             .expect("arrays should always have a 'length' property");
+        o.set(StaticJsStrings::LENGTH, len + 1, true, context)?;
         o.borrow_mut()
             .properties_mut()
             .indexed_properties
