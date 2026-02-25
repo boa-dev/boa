@@ -586,6 +586,9 @@ impl Vm {
     }
 
     pub(crate) fn push_frame(&mut self, mut frame: CallFrame) {
+        // Each function call starts with an implicit `undefined` return value.
+        self.return_value = JsValue::undefined();
+
         // NOTE: We need to check if we already pushed the registers,
         //       since generator-like functions push the same call
         //       frame with pre-built stack and registers (fp and rp already set).
