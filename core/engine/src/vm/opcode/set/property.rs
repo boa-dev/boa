@@ -24,24 +24,15 @@ fn set_by_name(
     let ic = &context.vm.frame().code_block().ic[usize::from(index)];
 
     let object_borrowed = object.borrow();
-    if let Some((_shape, slot, prototype_hops)) = ic.match_or_reset(object_borrowed.shape()) {
+    if let Some((_shape, slot, cached_prototype)) = ic.match_or_reset(object_borrowed.shape()) {
         let slot_index = slot.index as usize;
 
         if slot.attributes.is_accessor_descriptor() {
             let result = if slot.attributes.contains(SlotAttributes::PROTOTYPE) {
-                // Walk up the prototype chain exactly `prototype_hops` times.
-                let mut proto = object_borrowed
-                    .prototype()
-                    .clone()
-                    .expect("prototype should exist");
-                for _ in 1..prototype_hops {
-                    let next = proto
-                        .borrow()
-                        .prototype()
-                        .clone()
-                        .expect("prototype chain broken");
-                    proto = next;
-                }
+                // Jump directly to the cached prototype.
+                let proto = cached_prototype
+                    .as_ref()
+                    .expect("cached prototype should exist for PROTOTYPE slot");
                 let proto_borrowed = proto.borrow();
                 proto_borrowed.properties().storage[slot_index + 1].clone()
             } else {
@@ -57,20 +48,9 @@ fn set_by_name(
                 )?;
             }
         } else if slot.attributes.contains(SlotAttributes::PROTOTYPE) {
-            // Walk up the prototype chain exactly `prototype_hops` times.
-            let mut proto = object_borrowed
-                .prototype()
-                .clone()
-                .expect("prototype should exist");
+            // Jump directly to the cached prototype.
+            let proto = cached_prototype.expect("cached prototype should exist for PROTOTYPE slot");
             drop(object_borrowed);
-            for _ in 1..prototype_hops {
-                let next = proto
-                    .borrow()
-                    .prototype()
-                    .clone()
-                    .expect("prototype chain broken");
-                proto = next;
-            }
             let mut proto_borrowed = proto.borrow_mut();
             proto_borrowed.properties_mut().storage[slot_index] = value.clone();
         } else {
@@ -95,11 +75,11 @@ fn set_by_name(
     // Cache the property.
     let slot = *context.slot();
     if succeeded && slot.is_cacheable() {
-        let hops = context.prototype_hops();
+        let proto = context.owning_prototype();
         let ic = &context.vm.frame().code_block.ic[usize::from(index)];
         let object_borrowed = object.borrow();
         let shape = object_borrowed.shape();
-        ic.set(shape, slot, hops);
+        ic.set(shape, slot, proto);
     }
 
     Ok(())

@@ -156,10 +156,16 @@ fn get_internal_method_in_transitive_prototype() {
         "Transitive prototype property must now be cacheable"
     );
 
+    assert!(
+        ctx.owning_prototype().is_some(),
+        "Property is in the prototype chain, owning_prototype must be set"
+    );
+
+    let owning = ctx.owning_prototype().expect("owning prototype should be set");
     assert_eq!(
-        ctx.prototype_hops(),
-        2,
-        "Property is 2 hops away; prototype_hops must be 2"
+        owning.borrow().properties().storage[ctx.slot().index as usize],
+        JsValue::from(value),
+        "owning_prototype should be the grandparent holding the property"
     );
 }
 

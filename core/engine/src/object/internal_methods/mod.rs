@@ -28,8 +28,7 @@ pub(crate) mod string;
 pub(crate) struct InternalMethodPropertyContext<'ctx> {
     context: &'ctx mut Context,
     slot: Slot,
-    /// Number of prototype hops taken to find the property.
-    prototype_hops: u8,
+    owning_prototype: Option<JsObject>,
 }
 
 impl<'ctx> InternalMethodPropertyContext<'ctx> {
@@ -38,7 +37,7 @@ impl<'ctx> InternalMethodPropertyContext<'ctx> {
         Self {
             context,
             slot: Slot::new(),
-            prototype_hops: 0,
+            owning_prototype: None,
         }
     }
 
@@ -48,10 +47,11 @@ impl<'ctx> InternalMethodPropertyContext<'ctx> {
         &mut self.slot
     }
 
-    /// Returns how many prototype hops were taken to find the property.
+    /// Returns the prototype object that owns the property, if the property
+    /// was found on the prototype chain. `None` means it is on the object itself.
     #[inline]
-    pub(crate) fn prototype_hops(&self) -> u8 {
-        self.prototype_hops
+    pub(crate) fn owning_prototype(&self) -> Option<JsObject> {
+        self.owning_prototype.clone()
     }
 }
 
@@ -696,14 +696,18 @@ pub(crate) fn ordinary_has_property(
         // 4. Let parent be ? O.[[GetPrototypeOf]]().
         let parent = obj.__get_prototype_of__(context)?;
 
-        context.prototype_hops += 1;
         context.slot().attributes |= SlotAttributes::PROTOTYPE;
 
         parent
             // 5. If parent is not null, then
             // a. Return ? parent.[[HasProperty]](P).
             // 6. Return false.
-            .map_or(Ok(false), |obj| obj.__has_property__(key, context))
+            .map_or(Ok(false), |parent_obj| {
+                if context.owning_prototype.is_none() {
+                    context.owning_prototype = Some(parent_obj.clone());
+                }
+                parent_obj.__has_property__(key, context)
+            })
     }
 }
 
@@ -726,8 +730,8 @@ pub(crate) fn ordinary_get(
         None => {
             // a. Let parent be ? O.[[GetPrototypeOf]]().
             if let Some(parent) = obj.__get_prototype_of__(context)? {
-                context.prototype_hops += 1;
                 context.slot().attributes |= SlotAttributes::PROTOTYPE;
+                context.owning_prototype = Some(parent.clone());
 
                 // c. Return ? parent.[[Get]](P, Receiver).
                 parent.__get__(key, receiver, context)
@@ -779,8 +783,8 @@ pub(crate) fn ordinary_try_get(
         None => {
             // a. Let parent be ? O.[[GetPrototypeOf]]().
             if let Some(parent) = obj.__get_prototype_of__(context)? {
-                context.prototype_hops += 1;
                 context.slot().attributes |= SlotAttributes::PROTOTYPE;
+                context.owning_prototype = Some(parent.clone());
 
                 // c. Return ? parent.[[Get]](P, Receiver).
                 parent.__try_get__(key, receiver, context)

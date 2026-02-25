@@ -5,7 +5,7 @@ use boa_macros::{Finalize, Trace};
 
 use crate::{
     JsString,
-    object::shape::{Shape, WeakShape, slot::Slot},
+    object::{JsObject, shape::{Shape, WeakShape, slot::Slot}},
 };
 
 #[cfg(test)]
@@ -24,12 +24,10 @@ pub(crate) struct InlineCache {
     #[unsafe_ignore_trace]
     pub(crate) slot: Cell<Slot>,
 
-    /// Number of prototype chain hops to reach the object that owns the property.
-    ///
-    /// `0` means the property is on the object itself. `1` means it is on the
-    /// direct prototype, `2` on the prototype's prototype, and so on.
-    #[unsafe_ignore_trace]
-    pub(crate) prototype_hops: Cell<u8>,
+    /// The prototype object that directly owns the property, if the property is
+    /// inherited (i.e. `slot.attributes` contains `PROTOTYPE`).
+    /// `None` means the property is on the object itself.
+    pub(crate) prototype: GcRefCell<Option<JsObject>>,
 }
 
 impl InlineCache {
@@ -38,34 +36,35 @@ impl InlineCache {
             name,
             shape: GcRefCell::new(WeakShape::None),
             slot: Cell::new(Slot::new()),
-            prototype_hops: Cell::new(0),
+            prototype: GcRefCell::new(None),
         }
     }
 
-    pub(crate) fn set(&self, shape: &Shape, slot: Slot, prototype_hops: u8) {
+    pub(crate) fn set(&self, shape: &Shape, slot: Slot, prototype: Option<JsObject>) {
         *self.shape.borrow_mut() = shape.into();
         self.slot.set(slot);
-        self.prototype_hops.set(prototype_hops);
+        *self.prototype.borrow_mut() = prototype;
     }
 
     pub(crate) fn slot(&self) -> Slot {
         self.slot.get()
     }
 
-    pub(crate) fn prototype_hops(&self) -> u8 {
-        self.prototype_hops.get()
+    /// Returns the cached prototype, if the property lives on a prototype.
+    pub(crate) fn prototype(&self) -> Option<JsObject> {
+        self.prototype.borrow().clone()
     }
 
     /// Returns true, if the [`InlineCache`]'s shape matches with the given shape.
     ///
     /// Otherwise we reset the internal weak reference to [`WeakShape::None`],
     /// so it can be deallocated by the GC.
-    pub(crate) fn match_or_reset(&self, shape: &Shape) -> Option<(Shape, Slot, u8)> {
+    pub(crate) fn match_or_reset(&self, shape: &Shape) -> Option<(Shape, Slot, Option<JsObject>)> {
         let mut old = self.shape.borrow_mut();
 
         let old_upgraded = old.upgrade();
         if old_upgraded.as_ref().map_or(0, Shape::to_addr_usize) == shape.to_addr_usize() {
-            return old_upgraded.map(|shape| (shape, self.slot(), self.prototype_hops()));
+            return old_upgraded.map(|shape| (shape, self.slot(), self.prototype()));
         }
 
         *old = WeakShape::None;
