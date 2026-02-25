@@ -53,7 +53,10 @@ impl ForInIterator {
     ///  - [ECMA reference][spec]
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-createforiniterator
-    pub(crate) fn create_for_in_iterator(object: JsValue, context: &Context) -> (JsObject, JsValue) {
+    pub(crate) fn create_for_in_iterator(
+        object: JsValue,
+        context: &Context,
+    ) -> (JsObject, JsValue) {
         let iterator = JsObject::from_proto_and_data_with_shared_shape(
             context.root_shape(),
             context
@@ -65,13 +68,11 @@ impl ForInIterator {
         )
         .upcast();
 
-        let next_method = FunctionObjectBuilder::new(
-            context.realm(),
-            NativeFunction::from_fn_ptr(Self::next),
-        )
-        .name(js_string!("next"))
-        .length(0)
-        .build();
+        let next_method =
+            FunctionObjectBuilder::new(context.realm(), NativeFunction::from_fn_ptr(Self::next))
+                .name(js_string!("next"))
+                .length(0)
+                .build();
 
         (iterator, next_method.into())
     }
