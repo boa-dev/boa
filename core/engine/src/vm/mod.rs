@@ -457,6 +457,9 @@ impl Vm {
         let current_stack_length = self.stack.stack.len();
         frame.set_register_pointer(current_stack_length as u32);
 
+        // Each function call starts with an implicit `undefined` return value.
+        self.return_value = JsValue::undefined();
+
         // NOTE: We need to check if we already pushed the registers,
         //       since generator-like functions push the same call
         //       frame with pre-built stack.
