@@ -10,6 +10,8 @@ impl ByteCompiler<'_> {
 
                 if let Some(access) = Access::from_expression(unary.target()) {
                     compiler.access_delete(access, dst);
+                } else if let Expression::Optional(opt) = unary.target() {
+                    compiler.compile_optional_delete(opt, dst);
                 } else {
                     compiler.compile_expr(unary.target(), dst);
                     compiler.bytecode.emit_push_true(dst.variable());
