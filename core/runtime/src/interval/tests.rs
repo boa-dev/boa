@@ -14,6 +14,37 @@ fn create_context(clock: Rc<impl Clock + 'static>) -> Context {
 }
 
 #[test]
+fn two_zero_delay_timeouts_both_fire() {
+    let clock = Rc::new(FixedClock::default());
+    let context = &mut create_context(clock.clone());
+
+    run_test_actions_with(
+        [
+            TestAction::run(indoc! {r#"
+                order = [];
+                setTimeout(() => order.push(1), 0);
+                setTimeout(() => order.push(2), 0);
+            "#}),
+            TestAction::inspect_context(move |ctx| {
+                clock.forward(1);
+                ctx.run_jobs().unwrap();
+
+                let order = ctx.global_object().get(js_str!("order"), ctx).unwrap();
+                let order = order.as_object().unwrap();
+                assert_eq!(
+                    order.get(js_str!("length"), ctx).unwrap().as_i32(),
+                    Some(2),
+                    "both callbacks must fire"
+                );
+                assert_eq!(order.get(0usize, ctx).unwrap().as_i32(), Some(1));
+                assert_eq!(order.get(1usize, ctx).unwrap().as_i32(), Some(2));
+            }),
+        ],
+        context,
+    );
+}
+
+#[test]
 fn set_timeout_basic() {
     let clock = Rc::new(FixedClock::default());
     let context = &mut create_context(clock.clone());
