@@ -400,8 +400,7 @@ impl IndexedProperties {
                     return true;
                 }
                 if let Some(n) = value.as_number() {
-                    let mut new_vec: ThinVec<f64> =
-                        vec.iter().copied().map(f64::from).collect();
+                    let mut new_vec: ThinVec<f64> = vec.iter().copied().map(f64::from).collect();
                     new_vec.push(n);
                     *self = Self::DenseF64(new_vec);
                     return true;
