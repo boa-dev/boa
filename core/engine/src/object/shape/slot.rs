@@ -106,7 +106,7 @@ impl Slot {
     }
 
     pub(crate) fn set_not_cacheable_if_already_prototype(&mut self) {
-        // NOTE(HalidOdat): This is a bit hack to avoid conditional branches.
+        // NOTE(HalidOdat): This is a bit of a hack to avoid conditional branches.
         //
         // Equivalent to:
         // if slot.attributes.contains(SlotAttributes::PROTOTYPE) {

@@ -429,16 +429,35 @@ impl Vm {
     }
 
     #[track_caller]
+    #[inline]
     pub(crate) fn set_register(&mut self, index: usize, value: JsValue) {
-        self.stack.stack[self.frame.rp as usize + index] = value;
+        let actual = self.frame.rp as usize + index;
+        debug_assert!(
+            actual < self.stack.stack.len(),
+            "register index out of bounds: index {actual}, len {}",
+            self.stack.stack.len()
+        );
+        // SAFETY: Register indices are determined by the bytecode compiler and are
+        // guaranteed to be within the stack bounds for well-formed bytecode. The
+        // debug_assert above catches any compiler bugs during development.
+        unsafe {
+            *self.stack.stack.get_unchecked_mut(actual) = value;
+        }
     }
 
     #[track_caller]
+    #[inline]
     pub(crate) fn get_register(&self, index: usize) -> &JsValue {
-        self.stack
-            .stack
-            .get(self.frame.rp as usize + index)
-            .expect("registers must be initialized")
+        let actual = self.frame.rp as usize + index;
+        debug_assert!(
+            actual < self.stack.stack.len(),
+            "register index out of bounds: index {actual}, len {}",
+            self.stack.stack.len()
+        );
+        // SAFETY: Register indices are determined by the bytecode compiler and are
+        // guaranteed to be within the stack bounds for well-formed bytecode. The
+        // debug_assert above catches any compiler bugs during development.
+        unsafe { self.stack.stack.get_unchecked(actual) }
     }
 
     /// Retrieves the VM frame.
@@ -670,17 +689,20 @@ impl Context {
     }
 
     fn handle_error(&mut self, mut err: JsError) -> ControlFlow<CompletionRecord> {
+        // Capture the backtrace early, before any exception handler check,
+        // so that errors caught by internal handlers (e.g. async module
+        // evaluation) still carry source position information.
+        if err.backtrace.is_none() {
+            err.backtrace = Some(
+                self.vm
+                    .shadow_stack
+                    .take(self.vm.runtime_limits.backtrace_limit(), self.vm.frame.pc),
+            );
+        }
+
         // If we hit the execution step limit, bubble up the error to the
         // (Rust) caller instead of trying to handle as an exception.
         if !err.is_catchable() {
-            if err.backtrace.is_none() {
-                err.backtrace = Some(
-                    self.vm
-                        .shadow_stack
-                        .take(self.vm.runtime_limits.backtrace_limit(), self.vm.frame.pc),
-                );
-            }
-
             let mut frame = None;
             let mut env_fp = self.vm.frame.environments.len();
             loop {
