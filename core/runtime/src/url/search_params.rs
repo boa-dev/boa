@@ -52,9 +52,7 @@ impl UrlSearchParams {
 #[boa(rename_all = "camelCase")]
 impl UrlSearchParams {
     /// Create a new `URLSearchParams` object.
-    ///
-    /// # Errors
-    /// None — construction always succeeds.
+    #[must_use]
     #[boa(constructor)]
     pub fn new(init: Option<Convert<String>>) -> Self {
         let query = init.map_or(String::new(), |c| c.0.clone());
@@ -88,7 +86,7 @@ impl UrlSearchParams {
     }
 
     /// Returns all values associated with the given name.
-    fn get_all(&self, name: Convert<String>, context: &mut Context) -> JsResult<JsValue> {
+    fn get_all(&self, name: Convert<String>, context: &mut Context) -> JsValue {
         let name = &name.0;
         let values: Vec<JsValue> = self
             .pairs
@@ -97,7 +95,7 @@ impl UrlSearchParams {
             .map(|(_, v)| JsValue::from(JsString::from(v.as_str())))
             .collect();
         let arr = boa_engine::object::builtins::JsArray::from_iter(values, context);
-        Ok(arr.into())
+        arr.into()
     }
 
     /// Returns whether a pair with the given name (and optionally value) exists.
@@ -120,7 +118,7 @@ impl UrlSearchParams {
                     return false;
                 }
                 found = true;
-                *v = value_str.clone();
+                v.clone_from(&value_str);
             }
             true
         });
@@ -169,7 +167,7 @@ impl UrlSearchParams {
     }
 
     /// Returns an array of [name, value] arrays (entries iterator substitute).
-    fn entries(&self, context: &mut Context) -> JsResult<JsValue> {
+    fn entries(&self, context: &mut Context) -> JsValue {
         let entries: Vec<JsValue> = self
             .pairs
             .iter()
@@ -185,29 +183,29 @@ impl UrlSearchParams {
             })
             .collect();
         let arr = boa_engine::object::builtins::JsArray::from_iter(entries, context);
-        Ok(arr.into())
+        arr.into()
     }
 
     /// Returns an array of all parameter names.
-    fn keys(&self, context: &mut Context) -> JsResult<JsValue> {
+    fn keys(&self, context: &mut Context) -> JsValue {
         let keys: Vec<JsValue> = self
             .pairs
             .iter()
             .map(|(n, _)| JsValue::from(JsString::from(n.as_str())))
             .collect();
         let arr = boa_engine::object::builtins::JsArray::from_iter(keys, context);
-        Ok(arr.into())
+        arr.into()
     }
 
     /// Returns an array of all parameter values.
-    fn values(&self, context: &mut Context) -> JsResult<JsValue> {
+    fn values(&self, context: &mut Context) -> JsValue {
         let values: Vec<JsValue> = self
             .pairs
             .iter()
             .map(|(_, v)| JsValue::from(JsString::from(v.as_str())))
             .collect();
         let arr = boa_engine::object::builtins::JsArray::from_iter(values, context);
-        Ok(arr.into())
+        arr.into()
     }
 }
 
