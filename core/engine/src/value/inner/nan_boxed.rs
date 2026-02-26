@@ -108,7 +108,7 @@
 
 use crate::{
     JsBigInt, JsObject, JsSymbol, JsVariant, bigint::RawBigInt, object::ErasedVTableObject,
-    symbol::RawJsSymbol,
+    symbol::RawJsSymbol, value::Type,
 };
 use boa_gc::{Finalize, GcBox, Trace, custom_trace};
 use boa_string::JsString;
@@ -514,6 +514,13 @@ impl NanBoxedValue {
         self.value() == bits::VALUE_NULL
     }
 
+    /// Returns true if a value is null or undefined.
+    #[must_use]
+    #[inline(always)]
+    pub(crate) fn is_null_or_undefined(&self) -> bool {
+        self.value() & bits::MASK_KIND == bits::MASK_OTHER
+    }
+
     /// Returns true if a value is a boolean.
     #[must_use]
     #[inline(always)]
@@ -568,6 +575,27 @@ impl NanBoxedValue {
     #[inline(always)]
     pub(crate) fn is_string(&self) -> bool {
         bits::is_string(self.value())
+    }
+
+    /// Returns the [`Type`] of this value using only the tag bits,
+    /// without extracting or cloning the inner value.
+    #[must_use]
+    #[inline(always)]
+    pub(crate) fn get_type(&self) -> Type {
+        match self.value() & bits::MASK_KIND {
+            bits::MASK_OBJECT => Type::Object,
+            bits::MASK_STRING => Type::String,
+            bits::MASK_SYMBOL => Type::Symbol,
+            bits::MASK_BIGINT => Type::BigInt,
+            bits::MASK_BOOLEAN => Type::Boolean,
+            bits::MASK_OTHER => match self.value() {
+                bits::VALUE_NULL => Type::Null,
+                _ => Type::Undefined,
+            },
+            // Same arm as below.
+            // bits::MASK_INT32 => Type::Number,
+            _ => Type::Number, // Float64
+        }
     }
 
     /// Returns the value as a f64 if it is a float.
@@ -716,6 +744,37 @@ impl NanBoxedValue {
             ManuallyDrop::new(JsString::from_raw(NonNull::new_unchecked(
                 self.ptr.with_addr(addr).cast(),
             )))
+        }
+    }
+
+    /// Converts the value to a boolean without cloning pointer types.
+    ///
+    /// Objects and Symbols are always truthy. For `String` and `BigInt`,
+    /// the pointer is temporarily reconstructed via [`ManuallyDrop`] to
+    /// call `is_empty()` / `is_zero()` without touching the refcount.
+    #[must_use]
+    #[inline(always)]
+    pub(crate) fn to_boolean(&self) -> bool {
+        match self.value() & bits::MASK_KIND {
+            // Objects and Symbols are always truthy.
+            bits::MASK_OBJECT | bits::MASK_SYMBOL => true,
+            // Null and Undefined are always falsy.
+            bits::MASK_OTHER => false,
+            bits::MASK_INT32 => bits::untag_i32(self.value()) != 0,
+            bits::MASK_BOOLEAN => bits::untag_bool(self.value()),
+            bits::MASK_STRING => {
+                // SAFETY: tag confirmed this is a String.
+                unsafe { !self.as_string_unchecked().is_empty() }
+            }
+            bits::MASK_BIGINT => {
+                // SAFETY: tag confirmed this is a BigInt.
+                unsafe { !self.as_bigint_unchecked().is_zero() }
+            }
+            // Float64: falsy if 0.0, -0.0, or NaN.
+            _ => {
+                let f = f64::from_bits(self.value());
+                f != 0.0 && !f.is_nan()
+            }
         }
     }
 
