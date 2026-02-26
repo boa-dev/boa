@@ -660,11 +660,11 @@ impl String {
         for arg in args {
             // a. Let nextString be ? ToString(next).
             let next_string = arg.to_string(context)?;
+
             // b. Set R to the string-concatenation of R and nextString.
             string = JsString::try_concat(string.as_str(), next_string.as_str()).map_err(|e| {
-                JsError::from(
-                    JsNativeError::range().with_message(format!("Invalid string length: {e}")),
-                )
+                // Important: don't double-prefix "Invalid string length"
+                JsError::from(JsNativeError::range().with_message(e.to_string()))
             })?;
         }
 
@@ -1009,7 +1009,7 @@ impl String {
         let replace_value = args.get_or_undefined(1);
 
         // 2. If searchValue is neither undefined nor null, then
-        if !search_value.is_null_or_undefined() {
+        if search_value.is_object() {
             // a. Let replacer be ? GetMethod(searchValue, @@replace).
             let replacer = search_value.get_method(JsSymbol::replace(), context)?;
 
@@ -1117,7 +1117,7 @@ impl String {
         let replace_value = args.get_or_undefined(1);
 
         // 2. If searchValue is neither undefined nor null, then
-        if !search_value.is_null_or_undefined() {
+        if search_value.is_object() {
             // a. Let isRegExp be ? IsRegExp(searchValue).
             // b. If isRegExp is true, then
             if let Some(obj) = RegExp::is_reg_exp(search_value, context)? {
@@ -1474,7 +1474,7 @@ impl String {
 
         // 2. If regexp is neither undefined nor null, then
         let regexp = args.get_or_undefined(0);
-        if !regexp.is_null_or_undefined() {
+        if regexp.is_object() {
             // a. Let matcher be ? GetMethod(regexp, @@match).
             let matcher = regexp.get_method(JsSymbol::r#match(), context)?;
             // b. If matcher is not undefined, then
@@ -1919,7 +1919,7 @@ impl String {
         let limit = args.get_or_undefined(1);
 
         // 2. If separator is neither undefined nor null, then
-        if !separator.is_null_or_undefined() {
+        if separator.is_object() {
             // a. Let splitter be ? GetMethod(separator, @@split).
             let splitter = separator.get_method(JsSymbol::split(), context)?;
             // b. If splitter is not undefined, then
@@ -2057,7 +2057,7 @@ impl String {
 
         // 2. If regexp is neither undefined nor null, then
         let regexp = args.get_or_undefined(0);
-        if !regexp.is_null_or_undefined() {
+        if regexp.is_object() {
             // a. Let isRegExp be ? IsRegExp(regexp).
             // b. If isRegExp is true, then
             if let Some(regexp) = RegExp::is_reg_exp(regexp, context)? {
@@ -2199,7 +2199,7 @@ impl String {
 
         // 2. If regexp is neither undefined nor null, then
         let regexp = args.get_or_undefined(0);
-        if !regexp.is_null_or_undefined() {
+        if regexp.is_object() {
             // a. Let searcher be ? GetMethod(regexp, @@search).
             let searcher = regexp.get_method(JsSymbol::search(), context)?;
             // b. If searcher is not undefined, then
