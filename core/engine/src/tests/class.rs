@@ -132,6 +132,23 @@ fn property_initializer_reference_escaped_variable() {
     ]);
 }
 
+#[test]
+fn private_field_initializer_reference_non_escaped_variable() {
+    run_test_actions([
+        TestAction::run(indoc! {r#"
+            function outer() {
+                let x = 1;
+                class C {
+                    #p = x;
+                    m() { return this.#p; }
+                }
+                return new C().m();
+            }
+        "#}),
+        TestAction::assert_eq("outer()", 1),
+    ]);
+}
+
 // https://github.com/boa-dev/boa/issues/4605
 #[test]
 fn class_boolean_literal_method_names() {
