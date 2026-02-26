@@ -358,12 +358,12 @@ impl JsValue {
     /// # Examples
     ///
     /// ```
-    /// use boa_engine::{Context, JsValue, Source};
+    /// use boa_engine::{Context, JsValue, NativeFunction};
     ///
-    /// let mut context = Context::default();
-    /// // Evaluate a function expression to get a callable value.
-    /// let func = context.eval(Source::from_bytes(b"(function() {})")).unwrap();
-    /// assert!(func.is_callable());
+    /// let context = &mut Context::default();
+    /// let native_fn = NativeFunction::from_copy_closure(|_, _, _| Ok(JsValue::undefined()));
+    /// let js_value = JsValue::from(native_fn.to_js_function(context.realm()));
+    /// assert!(js_value.is_callable());
     ///
     /// let number = JsValue::new(42);
     /// assert!(!number.is_callable());
@@ -379,11 +379,12 @@ impl JsValue {
     /// # Examples
     ///
     /// ```
-    /// use boa_engine::{Context, JsValue, Source};
+    /// use boa_engine::{Context, JsValue, NativeFunction};
     ///
-    /// let mut context = Context::default();
-    /// let func = context.eval(Source::from_bytes(b"(function() {})")).unwrap();
-    /// assert!(func.as_callable().is_some());
+    /// let context = &mut Context::default();
+    /// let native_fn = NativeFunction::from_copy_closure(|_, _, _| Ok(JsValue::undefined()));
+    /// let js_value = JsValue::from(native_fn.to_js_function(context.realm()));
+    /// assert!(js_value.as_callable().is_some());
     ///
     /// let number = JsValue::new(42);
     /// assert!(number.as_callable().is_none());
@@ -400,11 +401,12 @@ impl JsValue {
     /// # Examples
     ///
     /// ```
-    /// use boa_engine::{Context, JsValue, Source};
+    /// use boa_engine::{Context, JsValue, NativeFunction};
     ///
-    /// let mut context = Context::default();
-    /// let func = context.eval(Source::from_bytes(b"(function() {})")).unwrap();
-    /// assert!(func.as_function().is_some());
+    /// let context = &mut Context::default();
+    /// let native_fn = NativeFunction::from_copy_closure(|_, _, _| Ok(JsValue::undefined()));
+    /// let js_value = JsValue::from(native_fn.to_js_function(context.realm()));
+    /// assert!(js_value.as_function().is_some());
     ///
     /// let number = JsValue::new(42);
     /// assert!(number.as_function().is_none());
@@ -464,11 +466,12 @@ impl JsValue {
     /// # Examples
     ///
     /// ```
-    /// use boa_engine::{Context, JsValue, Source};
+    /// use boa_engine::{Context, JsValue, object::builtins::JsPromise};
     ///
-    /// let mut context = Context::default();
-    /// let promise = context.eval(Source::from_bytes(b"new Promise((r) => r())")).unwrap();
-    /// assert!(promise.is_promise());
+    /// let context = &mut Context::default();
+    /// let (promise, _) = JsPromise::new_pending(context);
+    /// let js_value = JsValue::from(promise);
+    /// assert!(js_value.is_promise());
     ///
     /// let number = JsValue::new(42);
     /// assert!(!number.is_promise());
@@ -492,11 +495,12 @@ impl JsValue {
     /// # Examples
     ///
     /// ```
-    /// use boa_engine::{Context, JsValue, Source};
+    /// use boa_engine::{Context, JsValue, object::builtins::JsPromise};
     ///
-    /// let mut context = Context::default();
-    /// let promise = context.eval(Source::from_bytes(b"new Promise((r) => r())")).unwrap();
-    /// assert!(promise.as_promise().is_some());
+    /// let context = &mut Context::default();
+    /// let (promise, _) = JsPromise::new_pending(context);
+    /// let js_value = JsValue::from(promise);
+    /// assert!(js_value.as_promise().is_some());
     ///
     /// let number = JsValue::new(42);
     /// assert!(number.as_promise().is_none());
@@ -512,13 +516,14 @@ impl JsValue {
     /// # Examples
     ///
     /// ```
-    /// use boa_engine::{Context, JsValue, Source};
+    /// use boa_engine::{Context, JsValue, js_string, object::builtins::JsRegExp};
     ///
-    /// let mut context = Context::default();
-    /// let regex = context.eval(Source::from_bytes(b"/abc/g")).unwrap();
-    /// assert!(regex.is_regexp());
+    /// let context = &mut Context::default();
+    /// let regexp = JsRegExp::new(js_string!("abc"), js_string!("g"), context).unwrap();
+    /// let js_value = JsValue::from(regexp);
+    /// assert!(js_value.is_regexp());
     ///
-    /// let string = JsValue::new(boa_engine::js_string!("abc"));
+    /// let string = JsValue::new(js_string!("abc"));
     /// assert!(!string.is_regexp());
     /// ```
     #[inline]
@@ -532,11 +537,12 @@ impl JsValue {
     /// # Examples
     ///
     /// ```
-    /// use boa_engine::{Context, JsValue, Source};
+    /// use boa_engine::{Context, JsValue, js_string, object::builtins::JsRegExp};
     ///
-    /// let mut context = Context::default();
-    /// let regex = context.eval(Source::from_bytes(b"/abc/g")).unwrap();
-    /// assert!(regex.as_regexp().is_some());
+    /// let context = &mut Context::default();
+    /// let regexp = JsRegExp::new(js_string!("abc"), js_string!("g"), context).unwrap();
+    /// let js_value = JsValue::from(regexp);
+    /// assert!(js_value.as_regexp().is_some());
     ///
     /// let number = JsValue::new(42);
     /// assert!(number.as_regexp().is_none());
