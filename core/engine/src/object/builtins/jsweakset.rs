@@ -20,9 +20,12 @@ pub struct JsWeakSet {
 }
 
 impl JsWeakSet {
-    /// Create a new empty `WeakSet`.
+    /// Creates a new empty `WeakSet`.
     ///
-    /// Same as JavaScript's `new WeakSet()`.
+    /// More information:
+    ///  - [MDN documentation][mdn]
+    ///
+    /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/WeakSet/WeakSet
     #[inline]
     pub fn new(context: &mut Context) -> Self {
         Self {
@@ -38,7 +41,10 @@ impl JsWeakSet {
     /// Adds the given object to the `WeakSet`.
     /// Returns the `JsWeakSet` itself.
     ///
-    /// Same as JavaScript's `weakset.add(value)`.
+    /// More information:
+    ///  - [MDN documentation][mdn]
+    ///
+    /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/WeakSet/add
     #[inline]
     pub fn add(&self, value: &JsObject, context: &mut Context) -> JsResult<Self> {
         WeakSet::add(&self.inner.clone().into(), &[value.clone().into()], context)?;
@@ -48,7 +54,10 @@ impl JsWeakSet {
     /// Removes the given object from the `WeakSet`.
     /// Returns `true` if the element existed, `false` otherwise.
     ///
-    /// Same as JavaScript's `weakset.delete(value)`.
+    /// More information:
+    ///  - [MDN documentation][mdn]
+    ///
+    /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/WeakSet/delete
     #[inline]
     pub fn delete(&self, value: &JsObject, context: &mut Context) -> JsResult<bool> {
         WeakSet::delete(&self.inner.clone().into(), &[value.clone().into()], context)
@@ -57,14 +66,18 @@ impl JsWeakSet {
 
     /// Returns `true` if the given object exists in the `WeakSet`.
     ///
-    /// Same as JavaScript's `weakset.has(value)`.
+    /// More information:
+    ///  - [MDN documentation][mdn]
+    ///
+    /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/WeakSet/has
     #[inline]
     pub fn has(&self, value: &JsObject, context: &mut Context) -> JsResult<bool> {
         WeakSet::has(&self.inner.clone().into(), &[value.clone().into()], context)
             .map(|v| v.as_boolean().unwrap_or(false))
     }
 
-    /// Creates a `JsWeakSet` from a `JsObject`, or returns the original object as `Err`.
+    /// Creates a `JsWeakSet` from a `JsObject`, or returns the original object as `Err`
+    /// if it is not a `WeakSet`.
     #[inline]
     pub fn from_object(object: JsObject) -> Result<Self, JsObject> {
         if object.downcast_ref::<NativeWeakSet>().is_some() {
