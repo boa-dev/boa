@@ -620,6 +620,15 @@ dependencies = [
 ]
 
 [[package]]
+name = "boa_sourcemap"
+version = "1.0.0-dev"
+dependencies = [
+ "serde_json",
+ "thiserror 2.0.18",
+ "url",
+]
+
+[[package]]
 name = "boa_string"
 version = "1.0.0-dev"
 dependencies = [
