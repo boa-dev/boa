@@ -1996,6 +1996,11 @@ fn async_module_execution_fulfilled(module: &Module, context: &mut Context) -> J
     // 9. Perform GatherAvailableAncestors(module, execList).
     module_src.gather_available_ancestors(&mut ancestors);
 
+    // The async parent list has served its purpose now that the module is `Evaluated`.
+    // Holding it any longer permanently retains the Gc graphs of all parent modules
+    // (via strong Gc<ModuleRepr> references) for the lifetime of the cached dependency.
+    module_src.async_parent_modules.borrow_mut().clear();
+
     // 11. Assert: All elements of sortedExecList have their [[AsyncEvaluation]] field set to true, [[PendingAsyncDependencies]] field set to 0, and [[EvaluationError]] field set to empty.
     let mut ancestors = ancestors.into_iter().collect::<Vec<_>>();
 
@@ -2125,6 +2130,8 @@ fn async_module_execution_rejected(
         // a. Perform AsyncModuleExecutionRejected(m, error).
         async_module_execution_rejected(m, error.clone(), context)?;
     }
+    // Release retained parent module Gc references now that the module is `Evaluated`.
+    module_src.async_parent_modules.borrow_mut().clear();
 
     let status = module_src.status.borrow();
     // 8. If module.[[TopLevelCapability]] is not empty, then
