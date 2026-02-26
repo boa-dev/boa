@@ -331,6 +331,52 @@ impl JsArray {
         Self::from_object(object)
     }
 
+    /// Calls `Array.prototype.splice()`.
+    ///
+    /// Removes and/or inserts elements from the array, returning the removed elements.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// # use boa_engine::{Context, JsValue};
+    /// # use boa_engine::object::builtins::JsArray;
+    /// let context = &mut Context::default();
+    /// let array = JsArray::from_iter([1, 2, 3].map(JsValue::from), context);
+    ///
+    /// // Insert elements at index 1 without removing
+    /// let removed = array.splice(
+    ///     1,
+    ///     Some(0),
+    ///     &[JsValue::from(10), JsValue::from(20)],
+    ///     context,
+    /// ).unwrap();
+    ///
+    /// assert_eq!(array.length(context).unwrap(), 5);
+    /// assert_eq!(removed.length(context).unwrap(), 0);
+    /// ```
+    #[inline]
+    pub fn splice(
+        &self,
+        start: u32,
+        delete_count: Option<u32>,
+        items: &[JsValue],
+        context: &mut Context,
+    ) -> JsResult<Self> {
+        let start = JsValue::from(start);
+        let delete_count = delete_count.map(JsValue::from);
+        let object = Array::splice_internal(
+            &self.inner.clone().into(),
+            Some(&start),
+            delete_count.as_ref(),
+            items,
+            context,
+        )?
+        .as_object()
+        .expect("Array.prototype.splice should always return object");
+
+        Self::from_object(object)
+    }
+
     /// Calls `Array.prototype.reduce()`.
     #[inline]
     pub fn reduce(
@@ -438,5 +484,68 @@ impl TryFromJs for JsArray {
                 .with_message("value is not an Array object")
                 .into())
         }
+    }
+}
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn splice_remove() {
+        let context = &mut Context::default();
+        let array = JsArray::from_iter([1, 2, 3].map(JsValue::from), context);
+
+        let removed = array.splice(1, Some(1), &[], context).unwrap();
+
+        assert_eq!(array.length(context).unwrap(), 2);
+        assert_eq!(removed.length(context).unwrap(), 1);
+    }
+
+    #[test]
+    fn splice_insert() {
+        let context = &mut Context::default();
+        let array = JsArray::from_iter([1, 2, 3].map(JsValue::from), context);
+
+        let removed = array
+            .splice(1, Some(0), &[JsValue::from(10), JsValue::from(20)], context)
+            .unwrap();
+
+        assert_eq!(array.length(context).unwrap(), 5);
+        assert_eq!(removed.length(context).unwrap(), 0);
+    }
+
+    #[test]
+    fn splice_replace() {
+        let context = &mut Context::default();
+        let array = JsArray::from_iter([1, 2, 3].map(JsValue::from), context);
+
+        let removed = array
+            .splice(1, Some(1), &[JsValue::from(99)], context)
+            .unwrap();
+
+        assert_eq!(array.length(context).unwrap(), 3);
+        assert_eq!(removed.length(context).unwrap(), 1);
+    }
+
+    #[test]
+    fn splice_from_start() {
+        let context = &mut Context::default();
+        let array = JsArray::from_iter([1, 2, 3].map(JsValue::from), context);
+
+        let removed = array.splice(0, Some(1), &[], context).unwrap();
+
+        assert_eq!(array.length(context).unwrap(), 2);
+        assert_eq!(removed.length(context).unwrap(), 1);
+    }
+
+    #[test]
+    fn splice_empty_array() {
+        let context = &mut Context::default();
+        let array = JsArray::new(context);
+
+        let removed = array.splice(0, Some(0), &[], context).unwrap();
+
+        assert_eq!(array.length(context).unwrap(), 0);
+        assert_eq!(removed.length(context).unwrap(), 0);
     }
 }
