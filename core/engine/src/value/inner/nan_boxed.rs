@@ -514,6 +514,13 @@ impl NanBoxedValue {
         self.value() == bits::VALUE_NULL
     }
 
+    /// Returns true if a value is null or undefined.
+    #[must_use]
+    #[inline(always)]
+    pub(crate) fn is_null_or_undefined(&self) -> bool {
+        self.value() & bits::MASK_KIND == bits::MASK_OTHER
+    }
+
     /// Returns true if a value is a boolean.
     #[must_use]
     #[inline(always)]
@@ -737,6 +744,37 @@ impl NanBoxedValue {
             ManuallyDrop::new(JsString::from_raw(NonNull::new_unchecked(
                 self.ptr.with_addr(addr).cast(),
             )))
+        }
+    }
+
+    /// Converts the value to a boolean without cloning pointer types.
+    ///
+    /// Objects and Symbols are always truthy. For `String` and `BigInt`,
+    /// the pointer is temporarily reconstructed via [`ManuallyDrop`] to
+    /// call `is_empty()` / `is_zero()` without touching the refcount.
+    #[must_use]
+    #[inline(always)]
+    pub(crate) fn to_boolean(&self) -> bool {
+        match self.value() & bits::MASK_KIND {
+            // Objects and Symbols are always truthy.
+            bits::MASK_OBJECT | bits::MASK_SYMBOL => true,
+            // Null and Undefined are always falsy.
+            bits::MASK_OTHER => false,
+            bits::MASK_INT32 => bits::untag_i32(self.value()) != 0,
+            bits::MASK_BOOLEAN => bits::untag_bool(self.value()),
+            bits::MASK_STRING => {
+                // SAFETY: tag confirmed this is a String.
+                unsafe { !self.as_string_unchecked().is_empty() }
+            }
+            bits::MASK_BIGINT => {
+                // SAFETY: tag confirmed this is a BigInt.
+                unsafe { !self.as_bigint_unchecked().is_zero() }
+            }
+            // Float64: falsy if 0.0, -0.0, or NaN.
+            _ => {
+                let f = f64::from_bits(self.value());
+                f != 0.0 && !f.is_nan()
+            }
         }
     }
 

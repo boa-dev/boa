@@ -322,7 +322,7 @@ impl JsValue {
     #[inline]
     #[must_use]
     pub fn is_null_or_undefined(&self) -> bool {
-        self.is_undefined() || self.is_null()
+        self.0.is_null_or_undefined()
     }
 
     /// Returns the number if the value is a finite integral Number value, otherwise `None`.
@@ -423,16 +423,9 @@ impl JsValue {
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-toboolean
     #[must_use]
+    #[inline]
     pub fn to_boolean(&self) -> bool {
-        match self.variant() {
-            JsVariant::Symbol(_) | JsVariant::Object(_) => true,
-            JsVariant::String(s) if !s.is_empty() => true,
-            JsVariant::Float64(n) if n != 0.0 && !n.is_nan() => true,
-            JsVariant::Integer32(n) if n != 0 => true,
-            JsVariant::BigInt(n) if !n.is_zero() => true,
-            JsVariant::Boolean(v) => v,
-            _ => false,
-        }
+        self.0.to_boolean()
     }
 
     /// The abstract operation `ToPrimitive` takes an input argument and an optional argument
