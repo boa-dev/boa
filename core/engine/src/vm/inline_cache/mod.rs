@@ -28,7 +28,7 @@ pub(crate) struct PicEntries(pub(crate) ArrayVec<PicEntry, PIC_CAPACITY>);
 
 unsafe impl BoaTrace for PicEntries {
     custom_trace!(this, mark, {
-        for entry in this.0.iter() {
+        for entry in &this.0 {
             mark(entry);
         }
     });
@@ -74,7 +74,9 @@ impl InlineCache {
         // If the shape already exists, update its slot.
         // This handles cases where property transitions preserve the shape but change the slot.
         for entry in &mut entries.0.iter_mut() {
-            if let Some(upgraded) = entry.shape.upgrade() && upgraded.to_addr_usize() == shape_addr {
+            if let Some(upgraded) = entry.shape.upgrade()
+                && upgraded.to_addr_usize() == shape_addr
+            {
                 entry.slot = slot;
                 return;
             }

@@ -8,7 +8,7 @@ use crate::{
     object::{
         ObjectInitializer,
         internal_methods::InternalMethodPropertyContext,
-        shape::{WeakShape, slot::SlotAttributes},
+        shape::slot::SlotAttributes,
     },
     property::{Attribute, PropertyDescriptor, PropertyKey},
     vm::CodeBlock,
