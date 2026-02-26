@@ -1531,11 +1531,7 @@ impl<'ctx> ByteCompiler<'ctx> {
     /// Follows the same short-circuit logic as `compile_optional_preserve_this`, but
     /// emits delete opcodes for the final link in the chain instead of get opcodes.
     /// When the chain short-circuits (base is null/undefined), returns `true` per spec.
-    pub(crate) fn compile_optional_delete(
-        &mut self,
-        optional: &Optional,
-        dst: &Register,
-    ) {
+    pub(crate) fn compile_optional_delete(&mut self, optional: &Optional, dst: &Register) {
         let value = self.register_allocator.alloc();
         let this = self.register_allocator.alloc();
 

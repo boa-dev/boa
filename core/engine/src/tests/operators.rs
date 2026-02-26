@@ -269,6 +269,61 @@ fn unary_delete() {
 }
 
 #[test]
+fn delete_optional_chaining() {
+    run_test_actions([
+        // Basic: delete o?.prop actually removes the property.
+        TestAction::assert(indoc! {r#"
+            var o = { a: 1 };
+            delete o?.a === true && o.a === undefined && !("a" in o)
+        "#}),
+        // Chain: delete o?.a.b removes nested property, keeps sibling.
+        TestAction::assert(indoc! {r#"
+            var o = { a: { b: 1, c: 2 } };
+            delete o?.a.b === true && o.a.b === undefined && o.a.c === 2
+        "#}),
+        // Multiple optional: delete o?.a?.b
+        TestAction::assert(indoc! {r#"
+            var o = { a: { b: 1 } };
+            delete o?.a?.b === true && o.a.b === undefined
+        "#}),
+        // Null base short-circuits to true without error.
+        TestAction::assert("delete null?.a === true"),
+        // Undefined base short-circuits to true without error.
+        TestAction::assert("delete undefined?.a === true"),
+        // Null in the middle with ?. short-circuits to true.
+        TestAction::assert(indoc! {r#"
+            var o = { a: null };
+            delete o?.a?.b === true
+        "#}),
+        // Computed property: delete o?.["key"]
+        TestAction::assert(indoc! {r#"
+            var o = { x: 1 };
+            delete o?.["x"] === true && !("x" in o)
+        "#}),
+        // Computed property in chain: delete o?.a["b"]
+        TestAction::assert(indoc! {r#"
+            var o = { a: { b: 1 } };
+            delete o?.a["b"] === true && o.a.b === undefined
+        "#}),
+        // Non-existent property returns true.
+        TestAction::assert(indoc! {r#"
+            var o = { a: 1 };
+            delete o?.nonExistent === true && o.a === 1
+        "#}),
+        // Delete from function return value.
+        TestAction::assert(indoc! {r#"
+            function f() { return { x: 1 }; }
+            delete f()?.x === true
+        "#}),
+        // Deeply nested optional chain.
+        TestAction::assert(indoc! {r#"
+            var o = { a: { b: { c: { d: 1 } } } };
+            delete o?.a?.b?.c?.d === true && o.a.b.c.d === undefined
+        "#}),
+    ]);
+}
+
+#[test]
 fn comma_operator() {
     run_test_actions([
         TestAction::assert_eq(
