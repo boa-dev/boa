@@ -43,6 +43,14 @@ static GLOBAL_SYMBOL_REGISTRY: LazyLock<GlobalSymbolRegistry> =
 
 type FxDashMap<K, V> = DashMap<K, V, BuildHasherDefault<FxHasher>>;
 
+impl JsSymbol {
+    /// Returns `true` if the symbol was created via `Symbol.for()` and is therefore
+    /// in the global symbol registry.
+    pub(crate) fn is_registered(&self) -> bool {
+        GLOBAL_SYMBOL_REGISTRY.get_key(self).is_some()
+    }
+}
+
 // We previously used `JsString` instead of `Box<[u16]>` for this, but since the glocal symbol
 // registry needed to be global, we had to either make `JsString` thread-safe or directly store
 // its info into the registry. `JsSymbol` is already a pretty niche feature of JS, and we expect only
@@ -87,20 +95,6 @@ impl GlobalSymbolRegistry {
         None
     }
 }
-
-/// Returns `true` if the symbol was created via `Symbol.for()` and is therefore
-/// in the global symbol registry.
-pub(crate) fn is_registered_symbol(sym: &JsSymbol) -> bool {
-    GLOBAL_SYMBOL_REGISTRY.get_key(sym).is_some()
-}
-
-/// Returns `true` if the symbol is a unique symbol, meaning it was created via `Symbol()` and is
-/// not in the global symbol registry or a well-known symbol.
-#[inline]
-pub(crate) fn is_unique_symbol(sym: &JsSymbol) -> bool {
-    !is_registered_symbol(sym) && !sym.is_well_known()
-}
-
 /// The internal representation of a `Symbol` object.
 #[derive(Debug, Clone, Copy)]
 pub struct Symbol;
