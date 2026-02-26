@@ -332,4 +332,6 @@ jobs:
 
       - name: Check Semver
         uses: obi1kenobi/cargo-semver-checks-action@v2
-
+        with:
+          # New workspace crate, not published on crates.io yet.
+          exclude: boa_sourcemap
