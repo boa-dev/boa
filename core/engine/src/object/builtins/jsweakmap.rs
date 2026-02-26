@@ -7,7 +7,7 @@ use crate::{
     Context, JsResult, JsValue,
     builtins::weak_map::WeakMap,
     error::JsNativeError,
-    object::{ErasedVTableObject, JsFunction, JsObject},
+    object::{ErasedVTableObject, JsObject},
     value::TryFromJs,
 };
 
@@ -20,9 +20,12 @@ pub struct JsWeakMap {
 }
 
 impl JsWeakMap {
-    /// Create a new empty `WeakMap`.
+    /// Creates a new empty `WeakMap`.
     ///
-    /// Same as JavaScript's `new WeakMap()`.
+    /// More information:
+    ///  - [MDN documentation][mdn]
+    ///
+    /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/WeakMap/WeakMap
     #[inline]
     pub fn new(context: &mut Context) -> Self {
         Self {
@@ -35,50 +38,65 @@ impl JsWeakMap {
         }
     }
 
-    /// Removes the element associated with the key.
-    /// Returns `true` if the element existed, `false` otherwise.
+    /// Returns the value associated with the specified key in the `WeakMap`,
+    /// or `undefined` if the key is not present.
     ///
-    /// Same as JavaScript's `weakmap.delete(key)`.
-    #[inline]
-    pub fn delete(&self, key: &JsObject, context: &mut Context) -> JsResult<bool> {
-        WeakMap::delete(&self.inner.clone().into(), &[key.clone().into()], context)
-            .map(|v| v.as_boolean().unwrap_or(false))
-    }
-
-    /// Returns the value associated with the key, or `undefined` if not present.
+    /// More information:
+    ///  - [MDN documentation][mdn]
     ///
-    /// Same as JavaScript's `weakmap.get(key)`.
+    /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/WeakMap/get
     #[inline]
     pub fn get(&self, key: &JsObject, context: &mut Context) -> JsResult<JsValue> {
         WeakMap::get(&self.inner.clone().into(), &[key.clone().into()], context)
     }
 
-    /// Returns `true` if the key exists in the `WeakMap`.
+    /// Inserts a key-value pair into the `WeakMap`.
     ///
-    /// Same as JavaScript's `weakmap.has(key)`.
+    /// More information:
+    ///  - [MDN documentation][mdn]
+    ///
+    /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/WeakMap/set
+    #[inline]
+    pub fn set(&self, key: &JsObject, value: JsValue, context: &mut Context) -> JsResult<JsValue> {
+        WeakMap::set(
+            &self.inner.clone().into(),
+            &[key.clone().into(), value],
+            context,
+        )
+    }
+
+    /// Returns `true` if the specified key exists in the `WeakMap`.
+    ///
+    /// More information:
+    ///  - [MDN documentation][mdn]
+    ///
+    /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/WeakMap/has
     #[inline]
     pub fn has(&self, key: &JsObject, context: &mut Context) -> JsResult<bool> {
         WeakMap::has(&self.inner.clone().into(), &[key.clone().into()], context)
             .map(|v| v.as_boolean().unwrap_or(false))
     }
 
-    /// Sets the value for the given key.
-    /// Returns the `JsWeakMap` itself.
+    /// Removes the element associated with the specified key.
+    /// Returns `true` if the element existed, `false` otherwise.
     ///
-    /// Same as JavaScript's `weakmap.set(key, value)`.
+    /// More information:
+    ///  - [MDN documentation][mdn]
+    ///
+    /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/WeakMap/delete
     #[inline]
-    pub fn set(&self, key: &JsObject, value: JsValue, context: &mut Context) -> JsResult<Self> {
-        WeakMap::set(
-            &self.inner.clone().into(),
-            &[key.clone().into(), value],
-            context,
-        )?;
-        Ok(self.clone())
+    pub fn delete(&self, key: &JsObject, context: &mut Context) -> JsResult<bool> {
+        WeakMap::delete(&self.inner.clone().into(), &[key.clone().into()], context)
+            .map(|v| v.as_boolean().unwrap_or(false))
     }
 
-    /// Returns the existing value if the key exists; otherwise inserts `default` and returns it.
+    /// Returns the value associated with the key if it exists; otherwise inserts
+    /// the provided default value and returns it.
     ///
-    /// Same as JavaScript's `weakmap.getOrInsert(key, value)`.
+    /// More information:
+    ///  - [MDN documentation][mdn]
+    ///
+    /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/WeakMap/getOrInsert
     #[inline]
     pub fn get_or_insert(
         &self,
@@ -93,25 +111,29 @@ impl JsWeakMap {
         )
     }
 
-    /// Returns the existing value if the key exists; otherwise calls `callback(key)`,
-    /// inserts the result, and returns it.
+    /// Returns the value associated with the key if it exists; otherwise calls
+    /// the provided callback with the key, inserts the result, and returns it.
     ///
-    /// Same as JavaScript's `weakmap.getOrInsertComputed(key, callback)`.
+    /// More information:
+    ///  - [MDN documentation][mdn]
+    ///
+    /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/WeakMap/getOrInsertComputed
     #[inline]
     pub fn get_or_insert_computed(
         &self,
         key: &JsObject,
-        callback: JsFunction,
+        callback: JsValue,
         context: &mut Context,
     ) -> JsResult<JsValue> {
         WeakMap::get_or_insert_computed(
             &self.inner.clone().into(),
-            &[key.clone().into(), callback.into()],
+            &[key.clone().into(), callback],
             context,
         )
     }
 
-    /// Creates a `JsWeakMap` from a `JsObject`, or returns the original object as `Err`.
+    /// Creates a `JsWeakMap` from a `JsObject`, or returns the original object as `Err`
+    /// if it is not a `WeakMap`.
     #[inline]
     pub fn from_object(object: JsObject) -> Result<Self, JsObject> {
         if object.downcast_ref::<NativeWeakMap>().is_some() {
