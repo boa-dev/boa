@@ -1,6 +1,6 @@
 use crate::{
-    JsNativeErrorKind, JsValue, TestAction, js_string, native_function::NativeFunctionObject,
-    run_test_actions,
+    JsNativeErrorKind, JsString, JsValue, TestAction, js_string,
+    native_function::NativeFunctionObject, property::Attribute, run_test_actions,
 };
 use boa_macros::js_str;
 use indoc::indoc;
@@ -132,6 +132,25 @@ fn redos_regression_ascii_nested_quantifier() {
     run_test_actions([
         TestAction::run(r"var re = new RegExp('(a+)+$');"),
         TestAction::assert("re.test('a'.repeat(25) + '!') === false"),
+    ]);
+}
+
+#[test]
+fn redos_regression_ascii_nested_quantifier_utf16_input() {
+    run_test_actions([
+        TestAction::inspect_context(|context| {
+            let mut utf16_input = vec![u16::from(b'a'); 25];
+            utf16_input.push(u16::from(b'!'));
+            context
+                .register_global_property(
+                    js_string!("ascii_utf16_input"),
+                    JsString::from(utf16_input.as_slice()),
+                    Attribute::all(),
+                )
+                .unwrap();
+        }),
+        TestAction::run(r"var re = new RegExp('(a+)+$');"),
+        TestAction::assert("re.test(ascii_utf16_input) === false"),
     ]);
 }
 
