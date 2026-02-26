@@ -1,4 +1,4 @@
-use thin_vec::ThinVec;
+use thin_vec::{ThinVec, thin_vec};
 
 use super::{VaryingOperand, VaryingOperandVariant};
 
@@ -850,5 +850,379 @@ impl Argument for (u32, u32, ThinVec<u32>) {
         }
 
         ((first, second, rest), pos + 10 + total_len * 4)
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn test_read_u8() {
+        let bytes = [1, 2, 3];
+        let (val, next) = read::<u8>(&bytes, 0);
+        assert_eq!(val, 1);
+        assert_eq!(next, 1);
+    }
+
+    #[test]
+    #[should_panic(expected = "buffer too small to read type T")]
+    fn test_read_out_of_bounds() {
+        let bytes = [1, 2];
+        read::<u32>(&bytes, 0);
+    }
+
+    #[test]
+    fn test_argument_unit() {
+        let mut bytes = Vec::new();
+        ().encode(&mut bytes);
+        assert!(bytes.is_empty());
+        let (val, next) = <()>::decode(&bytes, 0);
+        assert_eq!(val, ());
+        assert_eq!(next, 0);
+    }
+
+    #[test]
+    fn test_argument_varying_operand() {
+        let test_cases = vec![10u32, 500u32, 100_000u32];
+        for val in test_cases {
+            let arg = VaryingOperand::new(val);
+            let mut bytes = Vec::new();
+            arg.encode(&mut bytes);
+            let (decoded, next) = VaryingOperand::decode(&bytes, 0);
+            assert_eq!(u32::from(decoded), val);
+            assert_eq!(next, bytes.len());
+        }
+    }
+
+    #[test]
+    fn test_argument_varying_operand_i8() {
+        let test_cases = vec![(10u32, -5i8), (500u32, 120i8), (100_000u32, -100i8)];
+        for (v1, v2) in test_cases {
+            let arg = (VaryingOperand::new(v1), v2);
+            let mut bytes = Vec::new();
+            arg.encode(&mut bytes);
+            let (decoded, next) = <(VaryingOperand, i8)>::decode(&bytes, 0);
+            assert_eq!(u32::from(decoded.0), v1);
+            assert_eq!(decoded.1, v2);
+            assert_eq!(next, bytes.len());
+        }
+    }
+
+    #[test]
+    fn test_argument_varying_operand_i16() {
+        let test_cases = vec![
+            (10u32, -500i16),
+            (500u32, 30000i16),
+            (100_000u32, -20000i16),
+        ];
+        for (v1, v2) in test_cases {
+            let arg = (VaryingOperand::new(v1), v2);
+            let mut bytes = Vec::new();
+            arg.encode(&mut bytes);
+            let (decoded, next) = <(VaryingOperand, i16)>::decode(&bytes, 0);
+            assert_eq!(u32::from(decoded.0), v1);
+            assert_eq!(decoded.1, v2);
+            assert_eq!(next, bytes.len());
+        }
+    }
+
+    #[test]
+    fn test_argument_varying_operand_i32() {
+        let v1 = 100_000u32;
+        let v2 = -1_000_000i32;
+        let arg = (VaryingOperand::new(v1), v2);
+        let mut bytes = Vec::new();
+        arg.encode(&mut bytes);
+        let (decoded, next) = <(VaryingOperand, i32)>::decode(&bytes, 0);
+        assert_eq!(u32::from(decoded.0), v1);
+        assert_eq!(decoded.1, v2);
+        assert_eq!(next, bytes.len());
+    }
+
+    #[test]
+    fn test_argument_varying_operand_f32() {
+        let v1 = 100_000u32;
+        let v2 = 3.14f32;
+        let arg = (VaryingOperand::new(v1), v2);
+        let mut bytes = Vec::new();
+        arg.encode(&mut bytes);
+        let (decoded, next) = <(VaryingOperand, f32)>::decode(&bytes, 0);
+        assert_eq!(u32::from(decoded.0), v1);
+        assert_eq!(decoded.1, v2);
+        assert_eq!(next, bytes.len());
+    }
+
+    #[test]
+    fn test_argument_varying_operand_f64() {
+        let v1 = 100_000u32;
+        let v2 = 2.71828f64;
+        let arg = (VaryingOperand::new(v1), v2);
+        let mut bytes = Vec::new();
+        arg.encode(&mut bytes);
+        let (decoded, next) = <(VaryingOperand, f64)>::decode(&bytes, 0);
+        assert_eq!(u32::from(decoded.0), v1);
+        assert_eq!(decoded.1, v2);
+        assert_eq!(next, bytes.len());
+    }
+
+    #[test]
+    fn test_argument_varying_operand_tuple2() {
+        let test_cases = vec![
+            (10u32, 20u32),
+            (500u32, 10u32),
+            (10u32, 500u32),
+            (500u32, 600u32),
+            (100_000u32, 10u32),
+        ];
+        for (v1, v2) in test_cases {
+            let arg = (VaryingOperand::new(v1), VaryingOperand::new(v2));
+            let mut bytes = Vec::new();
+            arg.encode(&mut bytes);
+            let (decoded, next) = <(VaryingOperand, VaryingOperand)>::decode(&bytes, 0);
+            assert_eq!(u32::from(decoded.0), v1);
+            assert_eq!(u32::from(decoded.1), v2);
+            assert_eq!(next, bytes.len());
+        }
+    }
+
+    #[test]
+    fn test_argument_varying_operand_tuple3() {
+        let test_cases = vec![
+            (10u32, 20u32, 30u32),
+            (500u32, 10u32, 15u32),
+            (100_000u32, 10u32, 500u32),
+        ];
+        for (v1, v2, v3) in test_cases {
+            let arg = (
+                VaryingOperand::new(v1),
+                VaryingOperand::new(v2),
+                VaryingOperand::new(v3),
+            );
+            let mut bytes = Vec::new();
+            arg.encode(&mut bytes);
+            let (decoded, next) =
+                <(VaryingOperand, VaryingOperand, VaryingOperand)>::decode(&bytes, 0);
+            assert_eq!(u32::from(decoded.0), v1);
+            assert_eq!(u32::from(decoded.1), v2);
+            assert_eq!(u32::from(decoded.2), v3);
+            assert_eq!(next, bytes.len());
+        }
+    }
+
+    #[test]
+    fn test_argument_varying_operand_tuple4() {
+        let test_cases = vec![
+            (10u32, 20u32, 30u32, 40u32),
+            (500u32, 10u32, 15u32, 20u32),
+            (100_000u32, 10u32, 500u32, 1000u32),
+        ];
+        for (v1, v2, v3, v4) in test_cases {
+            let arg = (
+                VaryingOperand::new(v1),
+                VaryingOperand::new(v2),
+                VaryingOperand::new(v3),
+                VaryingOperand::new(v4),
+            );
+            let mut bytes = Vec::new();
+            arg.encode(&mut bytes);
+            let (decoded, next) =
+                <(VaryingOperand, VaryingOperand, VaryingOperand, VaryingOperand)>::decode(
+                    &bytes, 0,
+                );
+            assert_eq!(u32::from(decoded.0), v1);
+            assert_eq!(u32::from(decoded.1), v2);
+            assert_eq!(u32::from(decoded.2), v3);
+            assert_eq!(u32::from(decoded.3), v4);
+            assert_eq!(next, bytes.len());
+        }
+    }
+
+    #[test]
+    fn test_argument_u32() {
+        let val = 0x12345678u32;
+        let mut bytes = Vec::new();
+        val.encode(&mut bytes);
+        let (decoded, next) = <u32>::decode(&bytes, 0);
+        assert_eq!(decoded, val);
+        assert_eq!(next, 4);
+    }
+
+    #[test]
+    fn test_argument_u32_varying() {
+        let v1 = 0x12345678u32;
+        let v2 = 500u32;
+        let arg = (v1, VaryingOperand::new(v2));
+        let mut bytes = Vec::new();
+        arg.encode(&mut bytes);
+        let (decoded, next) = <(u32, VaryingOperand)>::decode(&bytes, 0);
+        assert_eq!(decoded.0, v1);
+        assert_eq!(u32::from(decoded.1), v2);
+        assert_eq!(next, 8);
+    }
+
+    #[test]
+    fn test_argument_thinvec_varying() {
+        let v1 = VaryingOperand::new(100u32);
+        let rest = thin_vec![VaryingOperand::new(200u32), VaryingOperand::new(300u32)];
+        let arg = (v1, rest.clone());
+        let mut bytes = Vec::new();
+        arg.encode(&mut bytes);
+        let (decoded, next) = <(VaryingOperand, ThinVec<VaryingOperand>)>::decode(&bytes, 0);
+        assert_eq!(u32::from(decoded.0), 100);
+        assert_eq!(decoded.1.len(), 2);
+        assert_eq!(u32::from(decoded.1[0]), 200);
+        assert_eq!(u32::from(decoded.1[1]), 300);
+        assert_eq!(next, bytes.len());
+    }
+
+    #[test]
+    fn test_argument_complex_u32_u64_varying() {
+        let v1 = 0x11223344u32;
+        let v2 = 0x5566778899AABBCCu64;
+        let v3 = VaryingOperand::new(0xDEADBEEFu32);
+        let arg = (v1, v2, v3);
+        let mut bytes = Vec::new();
+        arg.encode(&mut bytes);
+        let (decoded, next) = <(u32, u64, VaryingOperand)>::decode(&bytes, 0);
+        assert_eq!(decoded.0, v1);
+        assert_eq!(decoded.1, v2);
+        assert_eq!(u32::from(decoded.2), 0xDEADBEEF);
+        assert_eq!(next, 16);
+    }
+
+    #[test]
+    fn test_argument_thinvec_u32() {
+        let v1 = 0x12345678u32;
+        let rest = thin_vec![0x11111111u32, 0x22222222u32];
+        let arg = (v1, rest.clone());
+        let mut bytes = Vec::new();
+        arg.encode(&mut bytes);
+        let (decoded, next) = <(u32, ThinVec<u32>)>::decode(&bytes, 0);
+        assert_eq!(decoded.0, v1);
+        assert_eq!(decoded.1, rest);
+        assert_eq!(next, bytes.len());
+    }
+
+    #[test]
+    fn test_argument_u32_varying_varying() {
+        let v1 = 100u32;
+        let v2 = VaryingOperand::new(200u32);
+        let v3 = VaryingOperand::new(300u32);
+        let arg = (v1, v2, v3);
+        let mut bytes = Vec::new();
+        arg.encode(&mut bytes);
+        let (decoded, next) = <(u32, VaryingOperand, VaryingOperand)>::decode(&bytes, 0);
+        assert_eq!(decoded.0, v1);
+        assert_eq!(u32::from(decoded.1), 200);
+        assert_eq!(u32::from(decoded.2), 300);
+        assert_eq!(next, bytes.len());
+    }
+
+    #[test]
+    fn test_argument_varying_varying_thinvec_varying() {
+        let v1 = VaryingOperand::new(100u32);
+        let v2 = VaryingOperand::new(200u32);
+        let v3 = thin_vec![VaryingOperand::new(300u32), VaryingOperand::new(400u32)];
+        let arg = (v1, v2, v3.clone());
+        let mut bytes = Vec::new();
+        arg.encode(&mut bytes);
+        let (decoded, next) =
+            <(VaryingOperand, VaryingOperand, ThinVec<VaryingOperand>)>::decode(&bytes, 0);
+        assert_eq!(u32::from(decoded.0), 100);
+        assert_eq!(u32::from(decoded.1), 200);
+        assert_eq!(decoded.2.len(), 2);
+        assert_eq!(u32::from(decoded.2[0]), 300);
+        assert_eq!(u32::from(decoded.2[1]), 400);
+        assert_eq!(next, bytes.len());
+    }
+
+    #[test]
+    fn test_argument_u32_u32_varying_varying_varying() {
+        let v1 = 1u32;
+        let v2 = 2u32;
+        let v3 = VaryingOperand::new(3u32);
+        let v4 = VaryingOperand::new(4u32);
+        let v5 = VaryingOperand::new(5u32);
+        let arg = (v1, v2, v3, v4, v5);
+        let mut bytes = Vec::new();
+        arg.encode(&mut bytes);
+        let (decoded, next) = <(
+            u32,
+            u32,
+            VaryingOperand,
+            VaryingOperand,
+            VaryingOperand,
+        )>::decode(&bytes, 0);
+        assert_eq!(decoded.0, v1);
+        assert_eq!(decoded.1, v2);
+        assert_eq!(u32::from(decoded.2), 3);
+        assert_eq!(u32::from(decoded.3), 4);
+        assert_eq!(u32::from(decoded.4), 5);
+        assert_eq!(next, bytes.len());
+    }
+
+    #[test]
+    fn test_argument_u64_varying_thinvec_u32() {
+        let v1 = 0x1122334455667788u64;
+        let v2 = VaryingOperand::new(100u32);
+        let v3 = thin_vec![1u32, 2u32, 3u32];
+        let arg = (v1, v2, v3.clone());
+        let mut bytes = Vec::new();
+        arg.encode(&mut bytes);
+        let (decoded, next) = <(u64, VaryingOperand, ThinVec<u32>)>::decode(&bytes, 0);
+        assert_eq!(decoded.0, v1);
+        assert_eq!(u32::from(decoded.1), 100);
+        assert_eq!(decoded.2, v3);
+        assert_eq!(next, bytes.len());
+    }
+
+    #[test]
+    fn test_argument_varying_thinvec_u32() {
+        let v1 = VaryingOperand::new(100u32);
+        let v2 = thin_vec![1u32, 2u32, 3u32];
+        let arg = (v1, v2.clone());
+        let mut bytes = Vec::new();
+        arg.encode(&mut bytes);
+        let (decoded, next) = <(VaryingOperand, ThinVec<u32>)>::decode(&bytes, 0);
+        assert_eq!(u32::from(decoded.0), 100);
+        assert_eq!(decoded.1, v2);
+        assert_eq!(next, bytes.len());
+    }
+
+    #[test]
+    fn test_argument_u32_u32_thinvec_u32() {
+        let v1 = 100u32;
+        let v2 = 200u32;
+        let v3 = thin_vec![1u32, 2u32, 3u32];
+        let arg = (v1, v2, v3.clone());
+        let mut bytes = Vec::new();
+        arg.encode(&mut bytes);
+        let (decoded, next) = <(u32, u32, ThinVec<u32>)>::decode(&bytes, 0);
+        assert_eq!(decoded.0, v1);
+        assert_eq!(decoded.1, v2);
+        assert_eq!(decoded.2, v3);
+        assert_eq!(next, bytes.len());
+    }
+
+    #[test]
+    #[should_panic]
+    fn test_varying_operand_decode_out_of_bounds() {
+        let bytes = [1]; // Format::U16, but no data
+        VaryingOperand::decode(&bytes, 0);
+    }
+
+    #[test]
+    #[should_panic]
+    fn test_complex_tuple_decode_out_of_bounds() {
+        let bytes = [0, 1, 2]; // Format::U8, VaryingOperand::U8(1), but missing i8
+        <(VaryingOperand, i8)>::decode(&bytes, 0);
+    }
+
+    #[test]
+    #[should_panic]
+    fn test_thinvec_decode_out_of_bounds() {
+        let bytes = [2, 0, 1, 0, 0, 0]; // len=2, first=1, but missing rest
+        <(VaryingOperand, ThinVec<VaryingOperand>)>::decode(&bytes, 0);
     }
 }
