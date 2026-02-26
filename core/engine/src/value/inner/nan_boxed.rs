@@ -108,7 +108,7 @@
 
 use crate::{
     JsBigInt, JsObject, JsSymbol, JsVariant, bigint::RawBigInt, object::ErasedVTableObject,
-    symbol::RawJsSymbol,
+    symbol::RawJsSymbol, value::Type,
 };
 use boa_gc::{Finalize, GcBox, Trace, custom_trace};
 use boa_string::JsString;
@@ -568,6 +568,27 @@ impl NanBoxedValue {
     #[inline(always)]
     pub(crate) fn is_string(&self) -> bool {
         bits::is_string(self.value())
+    }
+
+    /// Returns the [`Type`] of this value using only the tag bits,
+    /// without extracting or cloning the inner value.
+    #[must_use]
+    #[inline(always)]
+    pub(crate) fn get_type(&self) -> Type {
+        match self.value() & bits::MASK_KIND {
+            bits::MASK_OBJECT => Type::Object,
+            bits::MASK_STRING => Type::String,
+            bits::MASK_SYMBOL => Type::Symbol,
+            bits::MASK_BIGINT => Type::BigInt,
+            bits::MASK_BOOLEAN => Type::Boolean,
+            bits::MASK_OTHER => match self.value() {
+                bits::VALUE_NULL => Type::Null,
+                _ => Type::Undefined,
+            },
+            // Same arm as below.
+            // bits::MASK_INT32 => Type::Number,
+            _ => Type::Number, // Float64
+        }
     }
 
     /// Returns the value as a f64 if it is a float.
