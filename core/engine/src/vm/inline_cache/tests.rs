@@ -331,7 +331,7 @@ fn set_property_by_name_set_inline_cache_on_property_load() -> JsResult<()> {
     let (function, code) = get_codeblock(&function).unwrap();
 
     assert_eq!(code.ic.len(), 1);
-    assert_eq!(code.ic[0].shape.borrow().clone(), WeakShape::None);
+    assert_eq!(code.ic[0].entries.borrow().0.len(), 0);
 
     let o = ObjectInitializer::new(context)
         .property(js_string!("test"), 0, Attribute::all())
@@ -340,7 +340,15 @@ fn set_property_by_name_set_inline_cache_on_property_load() -> JsResult<()> {
 
     function.call(&JsValue::undefined(), &[o.clone().into()], context)?;
 
-    assert_eq!(code.ic[0].shape.borrow().clone(), WeakShape::from(&o_shape));
+    assert_eq!(code.ic[0].entries.borrow().0.len(), 1);
+    assert_eq!(
+        code.ic[0].entries.borrow().0[0]
+            .shape
+            .upgrade()
+            .unwrap()
+            .to_addr_usize(),
+        o_shape.to_addr_usize()
+    );
 
     Ok(())
 }
@@ -352,7 +360,7 @@ fn get_property_by_name_set_inline_cache_on_property_load() -> JsResult<()> {
     let (function, code) = get_codeblock(&function).unwrap();
 
     assert_eq!(code.ic.len(), 1);
-    assert_eq!(code.ic[0].shape.borrow().clone(), WeakShape::None);
+    assert_eq!(code.ic[0].entries.borrow().0.len(), 0);
 
     let o = ObjectInitializer::new(context)
         .property(js_string!("test"), 0, Attribute::all())
@@ -361,7 +369,100 @@ fn get_property_by_name_set_inline_cache_on_property_load() -> JsResult<()> {
 
     function.call(&JsValue::undefined(), &[o.clone().into()], context)?;
 
-    assert_eq!(code.ic[0].shape.borrow().clone(), WeakShape::from(&o_shape));
+    assert_eq!(code.ic[0].entries.borrow().0.len(), 1);
+    assert_eq!(
+        code.ic[0].entries.borrow().0[0]
+            .shape
+            .upgrade()
+            .unwrap()
+            .to_addr_usize(),
+        o_shape.to_addr_usize()
+    );
+
+    Ok(())
+}
+
+#[test]
+fn test_polymorphic_inline_cache() -> JsResult<()> {
+    let context = &mut Context::default();
+    let function = context.eval(Source::from_bytes("(function (o) { return o.test; })"))?;
+    let (function, code) = get_codeblock(&function).unwrap();
+
+    assert_eq!(code.ic.len(), 1);
+    assert_eq!(code.ic[0].entries.borrow().0.len(), 0);
+    assert!(!code.ic[0].megamorphic.get());
+
+    let shapes = vec![
+        ObjectInitializer::new(context)
+            .property(js_string!("test"), 1, Attribute::all())
+            .build(),
+        ObjectInitializer::new(context)
+            .property(js_string!("a"), 2, Attribute::all())
+            .property(js_string!("test"), 3, Attribute::all())
+            .build(),
+        ObjectInitializer::new(context)
+            .property(js_string!("b"), 4, Attribute::all())
+            .property(js_string!("test"), 5, Attribute::all())
+            .build(),
+        ObjectInitializer::new(context)
+            .property(js_string!("c"), 6, Attribute::all())
+            .property(js_string!("test"), 7, Attribute::all())
+            .build(),
+    ];
+
+    for o in &shapes {
+        function.call(&JsValue::undefined(), &[o.clone().into()], context)?;
+    }
+
+    assert_eq!(code.ic[0].entries.borrow().0.len(), 4);
+    assert!(!code.ic[0].megamorphic.get());
+
+    Ok(())
+}
+
+#[test]
+fn test_megamorphic_inline_cache() -> JsResult<()> {
+    let context = &mut Context::default();
+    let function = context.eval(Source::from_bytes("(function (o) { return o.test; })"))?;
+    let (function, code) = get_codeblock(&function).unwrap();
+
+    let shapes = vec![
+        ObjectInitializer::new(context)
+            .property(js_string!("test"), 1, Attribute::all())
+            .build(),
+        ObjectInitializer::new(context)
+            .property(js_string!("a"), 1, Attribute::all())
+            .property(js_string!("test"), 1, Attribute::all())
+            .build(),
+        ObjectInitializer::new(context)
+            .property(js_string!("b"), 1, Attribute::all())
+            .property(js_string!("test"), 1, Attribute::all())
+            .build(),
+        ObjectInitializer::new(context)
+            .property(js_string!("c"), 1, Attribute::all())
+            .property(js_string!("test"), 1, Attribute::all())
+            .build(),
+        ObjectInitializer::new(context)
+            .property(js_string!("d"), 1, Attribute::all())
+            .property(js_string!("test"), 1, Attribute::all())
+            .build(),
+    ];
+
+    for o in &shapes {
+        function.call(&JsValue::undefined(), &[o.clone().into()], context)?;
+    }
+
+    assert_eq!(code.ic[0].entries.borrow().0.len(), 0);
+    assert!(code.ic[0].megamorphic.get());
+
+    // Regression check: repeated miss should remain empty
+    let o6 = ObjectInitializer::new(context)
+        .property(js_string!("e"), 1, Attribute::all())
+        .property(js_string!("test"), 1, Attribute::all())
+        .build();
+    function.call(&JsValue::undefined(), &[o6.clone().into()], context)?;
+    assert_eq!(code.ic[0].entries.borrow().0.len(), 0);
+    assert!(code.ic[0].megamorphic.get());
 
     Ok(())
 }
