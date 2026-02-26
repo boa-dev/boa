@@ -266,13 +266,21 @@ impl JsObject {
     /// # Examples
     ///
     /// ```
-    /// # use boa_engine::JsObject;
+    /// # use boa_engine::{JsObject, JsData, Trace, Finalize};
     /// # use boa_engine::builtins::object::OrdinaryObject;
+    /// #[derive(Debug, Trace, Finalize, JsData)]
+    /// struct CustomStruct;
+    ///
     /// let obj = JsObject::from_proto_and_data(None, OrdinaryObject);
     ///
     /// // Downcast consumes the object on success.
     /// let typed = obj.downcast::<OrdinaryObject>();
     /// assert!(typed.is_ok());
+    ///
+    /// // Downcast fails for a wrong type, returning the original object.
+    /// let obj = JsObject::from_proto_and_data(None, OrdinaryObject);
+    /// let result = obj.downcast::<CustomStruct>();
+    /// assert!(result.is_err());
     /// ```
     pub fn downcast<T: NativeObject>(self) -> Result<JsObject<T>, Self> {
         if self.is::<T>() {
@@ -311,12 +319,18 @@ impl JsObject {
     /// # Examples
     ///
     /// ```
-    /// # use boa_engine::JsObject;
+    /// # use boa_engine::{JsObject, JsData, Trace, Finalize};
     /// # use boa_engine::builtins::object::OrdinaryObject;
+    /// #[derive(Debug, Trace, Finalize, JsData)]
+    /// struct CustomStruct;
+    ///
     /// let obj = JsObject::from_proto_and_data(None, OrdinaryObject);
     ///
     /// // Downcast ref succeeds for the correct type.
     /// assert!(obj.downcast_ref::<OrdinaryObject>().is_some());
+    ///
+    /// // Returns `None` for a wrong type.
+    /// assert!(obj.downcast_ref::<CustomStruct>().is_none());
     /// ```
     #[must_use]
     #[track_caller]
@@ -342,12 +356,18 @@ impl JsObject {
     /// # Examples
     ///
     /// ```
-    /// # use boa_engine::JsObject;
+    /// # use boa_engine::{JsObject, JsData, Trace, Finalize};
     /// # use boa_engine::builtins::object::OrdinaryObject;
+    /// #[derive(Debug, Trace, Finalize, JsData)]
+    /// struct CustomStruct;
+    ///
     /// let obj = JsObject::from_proto_and_data(None, OrdinaryObject);
     ///
     /// // Downcast mut succeeds for the correct type.
     /// assert!(obj.downcast_mut::<OrdinaryObject>().is_some());
+    ///
+    /// // Returns `None` for a wrong type.
+    /// assert!(obj.downcast_mut::<CustomStruct>().is_none());
     /// ```
     #[must_use]
     #[track_caller]
@@ -372,11 +392,15 @@ impl JsObject {
     /// # Examples
     ///
     /// ```
-    /// # use boa_engine::JsObject;
+    /// # use boa_engine::{JsObject, JsData, Trace, Finalize};
     /// # use boa_engine::builtins::object::OrdinaryObject;
+    /// #[derive(Debug, Trace, Finalize, JsData)]
+    /// struct CustomStruct;
+    ///
     /// let obj = JsObject::from_proto_and_data(None, OrdinaryObject);
     ///
     /// assert!(obj.is::<OrdinaryObject>());
+    /// assert!(!obj.is::<CustomStruct>());
     /// ```
     #[inline]
     #[must_use]
