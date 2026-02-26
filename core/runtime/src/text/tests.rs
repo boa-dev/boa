@@ -125,36 +125,63 @@ fn decoder_js_invalid() {
     );
 }
 
+fn utf16le_bytes(code_units: &[u16]) -> Vec<u8> {
+    code_units
+        .iter()
+        .flat_map(|unit| [*unit as u8, (unit >> 8) as u8])
+        .collect()
+}
+
+fn utf16be_bytes(code_units: &[u16]) -> Vec<u8> {
+    code_units
+        .iter()
+        .flat_map(|unit| [(unit >> 8) as u8, *unit as u8])
+        .collect()
+}
+
+fn bytes_literal(bytes: &[u8]) -> String {
+    bytes
+        .iter()
+        .map(u8::to_string)
+        .collect::<Vec<_>>()
+        .join(", ")
+}
+
 #[test]
 fn decoder_utf16le_replaces_unpaired_surrogates() {
     let context = &mut Context::default();
     text::register(None, context).unwrap();
 
-    run_test_actions_with(
-        [
-            TestAction::harness(),
-            TestAction::run(indoc! {r#"
-                const invalid16 = [
-                    { invalid: [0x61, 0x62, 0xd8_00, 0x77, 0x78], replaced: [0x61, 0x62, 0xff_fd, 0x77, 0x78] },
-                    { invalid: [0xd8_00], replaced: [0xff_fd] },
-                    { invalid: [0xd8_00, 0xd8_00], replaced: [0xff_fd, 0xff_fd] },
-                    { invalid: [0x61, 0x62, 0xdf_ff, 0x77, 0x78], replaced: [0x61, 0x62, 0xff_fd, 0x77, 0x78] },
-                    { invalid: [0xdf_ff, 0xd8_00], replaced: [0xff_fd, 0xff_fd] },
-                ];
+    let invalid16_cases: &[(&[u16], &str)] = &[
+        (&[0x61, 0x62, 0xd800, 0x77, 0x78], "ab\u{FFFD}wx"),
+        (&[0xd800], "\u{FFFD}"),
+        (&[0xd800, 0xd800], "\u{FFFD}\u{FFFD}"),
+        (&[0x61, 0x62, 0xdfff, 0x77, 0x78], "ab\u{FFFD}wx"),
+        (&[0xdfff, 0xd800], "\u{FFFD}\u{FFFD}"),
+    ];
 
-                const d = new TextDecoder("utf-16le");
-                for (const { invalid, replaced } of invalid16) {
-                    const input = new Uint8Array(invalid.length * 2);
-                    for (let i = 0; i < invalid.length; i++) {
-                        input[2 * i] = invalid[i] & 0xff;
-                        input[2 * i + 1] = invalid[i] >> 8;
-                    }
-                    assertEq(d.decode(input), String.fromCharCode(...replaced));
-                }
-            "#}),
-        ],
-        context,
-    );
+    for (invalid, replaced) in invalid16_cases {
+        let input = utf16le_bytes(invalid);
+
+        run_test_actions_with(
+            [
+                TestAction::run(format!(
+                    r#"
+                    decoded = new TextDecoder("utf-16le").decode(Uint8Array.from([{input}]));
+                "#,
+                    input = bytes_literal(&input),
+                )),
+                TestAction::inspect_context(|context| {
+                    let decoded = context
+                        .global_object()
+                        .get(js_str!("decoded"), context)
+                        .unwrap();
+                    assert_eq!(decoded.as_string(), Some(JsString::from(*replaced)));
+                }),
+            ],
+            context,
+        );
+    }
 }
 
 #[test]
@@ -162,31 +189,36 @@ fn decoder_utf16be_replaces_unpaired_surrogates() {
     let context = &mut Context::default();
     text::register(None, context).unwrap();
 
-    run_test_actions_with(
-        [
-            TestAction::harness(),
-            TestAction::run(indoc! {r#"
-                const invalid16 = [
-                    { invalid: [0x61, 0x62, 0xd8_00, 0x77, 0x78], replaced: [0x61, 0x62, 0xff_fd, 0x77, 0x78] },
-                    { invalid: [0xd8_00], replaced: [0xff_fd] },
-                    { invalid: [0xd8_00, 0xd8_00], replaced: [0xff_fd, 0xff_fd] },
-                    { invalid: [0x61, 0x62, 0xdf_ff, 0x77, 0x78], replaced: [0x61, 0x62, 0xff_fd, 0x77, 0x78] },
-                    { invalid: [0xdf_ff, 0xd8_00], replaced: [0xff_fd, 0xff_fd] },
-                ];
+    let invalid16_cases: &[(&[u16], &str)] = &[
+        (&[0x61, 0x62, 0xd800, 0x77, 0x78], "ab\u{FFFD}wx"),
+        (&[0xd800], "\u{FFFD}"),
+        (&[0xd800, 0xd800], "\u{FFFD}\u{FFFD}"),
+        (&[0x61, 0x62, 0xdfff, 0x77, 0x78], "ab\u{FFFD}wx"),
+        (&[0xdfff, 0xd800], "\u{FFFD}\u{FFFD}"),
+    ];
 
-                const d = new TextDecoder("utf-16be");
-                for (const { invalid, replaced } of invalid16) {
-                    const input = new Uint8Array(invalid.length * 2);
-                    for (let i = 0; i < invalid.length; i++) {
-                        input[2 * i] = invalid[i] >> 8;
-                        input[2 * i + 1] = invalid[i] & 0xff;
-                    }
-                    assertEq(d.decode(input), String.fromCharCode(...replaced));
-                }
-            "#}),
-        ],
-        context,
-    );
+    for (invalid, replaced) in invalid16_cases {
+        let input = utf16be_bytes(invalid);
+
+        run_test_actions_with(
+            [
+                TestAction::run(format!(
+                    r#"
+                    decoded = new TextDecoder("utf-16be").decode(Uint8Array.from([{input}]));
+                "#,
+                    input = bytes_literal(&input),
+                )),
+                TestAction::inspect_context(|context| {
+                    let decoded = context
+                        .global_object()
+                        .get(js_str!("decoded"), context)
+                        .unwrap();
+                    assert_eq!(decoded.as_string(), Some(JsString::from(*replaced)));
+                }),
+            ],
+            context,
+        );
+    }
 }
 
 #[test]
