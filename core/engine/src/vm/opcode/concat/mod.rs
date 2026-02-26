@@ -23,12 +23,7 @@ impl ConcatToString {
         // Use fallible concat
         let s =
             JsString::try_concat_array(&strings.iter().map(JsString::as_str).collect::<Vec<_>>())
-                .map_err(|e| {
-                JsError::from(
-                    // ← ADD JsError::from
-                    JsNativeError::range().with_message(format!("Invalid string length: {e}")),
-                )
-            })?;
+                .map_err(|e| JsError::from(JsNativeError::range().with_message(e.to_string())))?;
         context.vm.set_register(string.into(), s.into());
         Ok(())
     }

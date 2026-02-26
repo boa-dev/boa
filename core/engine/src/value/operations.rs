@@ -25,9 +25,7 @@ impl JsValue {
             // String concat - USE FALLIBLE API
             (JsVariant::String(x), JsVariant::String(y)) => {
                 let result = JsString::try_concat(x.as_str(), y.as_str()).map_err(|e| {
-                    JsError::from(
-                        JsNativeError::range().with_message(format!("Invalid string length: {e}")),
-                    )
+                    JsError::from(JsNativeError::range().with_message(e.to_string()))
                 })?;
                 Self::from(result)
             }
@@ -41,10 +39,7 @@ impl JsValue {
                         let y_str = y.to_string(context)?;
                         let result =
                             JsString::try_concat(x.as_str(), y_str.as_str()).map_err(|e| {
-                                JsError::from(
-                                    JsNativeError::range()
-                                        .with_message(format!("Invalid string length: {e}")),
-                                )
+                                JsError::from(JsNativeError::range().with_message(e.to_string()))
                             })?;
                         Self::from(result)
                     }
@@ -52,10 +47,7 @@ impl JsValue {
                         let x_str = x.to_string(context)?;
                         let result =
                             JsString::try_concat(x_str.as_str(), y.as_str()).map_err(|e| {
-                                JsError::from(
-                                    JsNativeError::range()
-                                        .with_message(format!("Invalid string length: {e}")),
-                                )
+                                JsError::from(JsNativeError::range().with_message(e.to_string()))
                             })?;
                         Self::from(result)
                     }
