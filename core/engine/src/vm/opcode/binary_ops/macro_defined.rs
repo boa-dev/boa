@@ -64,6 +64,7 @@ implement_bin_ops!(
     ushr_fast
 );
 implement_bin_ops!(Eq, equals, "Binary `==` operator.", equals_fast);
+implement_bin_ops!(NotEq, not_equals, "Binary `!=` operator.", not_equals_fast);
 implement_bin_ops!(GreaterThan, gt, "Binary `>` operator.", gt_fast);
 implement_bin_ops!(GreaterThanOrEq, ge, "Binary `>=` operator.", ge_fast);
 implement_bin_ops!(LessThan, lt, "Binary `<` operator.", lt_fast);
