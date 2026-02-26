@@ -146,7 +146,12 @@ impl UrlSearchParams {
     }
 
     /// Calls a callback for each name-value pair.
-    fn for_each(&self, callback: JsValue, this_arg: JsValue, context: &mut Context) -> JsResult<()> {
+    fn for_each(
+        &self,
+        callback: JsValue,
+        this_arg: JsValue,
+        context: &mut Context,
+    ) -> JsResult<()> {
         let callback = callback
             .as_callable()
             .ok_or_else(|| js_error!(TypeError: "callback is not a function"))?;
