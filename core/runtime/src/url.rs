@@ -11,8 +11,11 @@
 //! [mdn]: https://developer.mozilla.org/en-US/docs/Web/API/URL
 #![allow(clippy::needless_pass_by_value)]
 
+mod search_params;
 #[cfg(test)]
 mod tests;
+
+pub use search_params::UrlSearchParams;
 
 use boa_engine::class::Class;
 use boa_engine::realm::Realm;
@@ -28,13 +31,14 @@ use std::fmt::Display;
 pub struct Url(#[unsafe_ignore_trace] url::Url);
 
 impl Url {
-    /// Register the `URL` class into the realm. Pass `None` for the realm to
-    /// register globally.
+    /// Register the `URL` and `URLSearchParams` classes into the realm.
+    /// Pass `None` for the realm to register globally.
     ///
     /// # Errors
     /// This will error if the context or realm cannot register the class.
     pub fn register(realm: Option<Realm>, context: &mut Context) -> JsResult<()> {
-        js_module::boa_register(realm, context)
+        js_module::boa_register(realm.clone(), context)?;
+        UrlSearchParams::register(realm, context)
     }
 }
 
@@ -189,8 +193,10 @@ impl Url {
     }
 
     #[boa(getter)]
-    fn search_params() -> JsResult<()> {
-        Err(js_error!(Error: "URL.searchParams is not implemented"))
+    fn search_params(&self, context: &mut Context) -> JsResult<JsValue> {
+        let query = self.0.query().unwrap_or("");
+        let params = UrlSearchParams::from_query(query);
+        UrlSearchParams::from_data(params, context).map(JsValue::from)
     }
 
     #[boa(getter)]
