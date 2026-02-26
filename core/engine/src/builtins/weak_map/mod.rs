@@ -13,7 +13,7 @@ use crate::{
     Context, JsArgs, JsNativeError, JsResult, JsString, JsValue,
     builtins::{
         BuiltInBuilder, BuiltInConstructor, BuiltInObject, IntrinsicObject,
-        map::add_entries_from_iterable, symbol,
+        map::add_entries_from_iterable,
     },
     context::intrinsics::{Intrinsics, StandardConstructor, StandardConstructors},
     js_string,
@@ -27,38 +27,47 @@ use crate::{
 };
 use boa_gc::{Finalize, Gc, Trace, custom_trace};
 
-/// A map that holds both GC-object keys (via `boa_gc::WeakMap`) and unique-symbol keys
-/// (via `Arc`-weak references).  Symbol entries are keyed by the symbol's unique hash and
-/// hold a `Weak<RawJsSymbol>` so the entry is automatically invalidated once the last
-/// strong `Arc` for that symbol is dropped.
+/// A map that holds GC-object keys (via `boa_gc::WeakMap`), unique-symbol keys
+/// (via `Arc`-weak references), and well-known symbol keys (via a plain `HashMap`).
+///
+/// Unique symbol entries hold a `Weak<RawJsSymbol>` so the entry is automatically
+/// invalidated once the last strong `Arc` for that symbol is dropped.
+/// Well-known symbol entries are permanent (the symbols are never GC'd) and are
+/// stored directly without a weak reference.
 pub(crate) struct NativeWeakMap {
     objects: boa_gc::WeakMap<ErasedVTableObject, JsValue>,
-    /// Maps symbol hash → (weak ref to symbol, stored value).
+    /// Maps symbol hash → (weak ref to symbol, stored value) for unique symbols.
     symbols: HashMap<u64, (Weak<RawJsSymbol>, JsValue)>,
+    /// Maps symbol hash → value for well-known symbols (e.g. `Symbol.iterator`).
+    well_known: HashMap<u64, JsValue>,
 }
 
 impl fmt::Debug for NativeWeakMap {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         f.debug_struct("NativeWeakMap")
             .field("symbols_len", &self.symbols.len())
+            .field("well_known_len", &self.well_known.len())
             .finish_non_exhaustive()
     }
 }
 
 impl Finalize for NativeWeakMap {}
 
-// SAFETY: We only mark `objects` (a proper GC weak-map) and the `JsValue` slots inside
-// `symbols` whose symbol key is still alive.  Dead entries are intentionally left unmarked
-// so the GC can collect the values they hold.  The `Weak<RawJsSymbol>` keys are Arc-based
-// and contain no GC pointers.
+// SAFETY: We mark `objects` (a proper GC weak-map), the `JsValue` slots inside
+// `symbols` whose symbol key is still alive, and all `JsValue` slots inside
+// `well_known` (those symbols are permanently alive).  Dead unique-symbol entries
+// are intentionally left unmarked so the GC can collect the values they hold.
+// The `Weak<RawJsSymbol>` keys are Arc-based and contain no GC pointers.
 unsafe impl Trace for NativeWeakMap {
     custom_trace!(this, mark, {
         mark(&this.objects);
-        for (weak, value) in this.symbols.values() {
+
+        this.symbols.values().for_each(|(weak, value)| {
             if weak.upgrade().is_some() {
                 mark(value);
             }
-        }
+        });
+        this.well_known.values().for_each(|value| mark(value));
     });
 }
 
@@ -69,6 +78,7 @@ impl NativeWeakMap {
         Self {
             objects: boa_gc::WeakMap::new(),
             symbols: HashMap::new(),
+            well_known: HashMap::new(),
         }
     }
 
@@ -94,32 +104,46 @@ impl NativeWeakMap {
 
     /// Remove a symbol entry and return its value (regardless of liveness).
     fn remove_symbol(&mut self, sym: &JsSymbol) -> bool {
-        let removed = self.symbols.remove(&sym.hash()).is_some();
+        let removed = if sym.is_well_known() {
+            self.well_known.remove(&sym.hash()).is_some()
+        } else {
+            self.symbols.remove(&sym.hash()).is_some()
+        };
         self.symbols.retain(|_, (w, _)| w.upgrade().is_some());
         removed
     }
 
     /// Look up the value for a symbol key; returns `None` if absent or dead.
     fn get_symbol(&self, sym: &JsSymbol) -> Option<JsValue> {
-        let (weak, value) = self.symbols.get(&sym.hash())?;
-        weak.upgrade().map(|_| value.clone())
+        if sym.is_well_known() {
+            self.well_known.get(&sym.hash()).cloned()
+        } else {
+            let (weak, value) = self.symbols.get(&sym.hash())?;
+            weak.upgrade().map(|_| value.clone())
+        }
     }
 
     /// Returns `true` if the symbol key is present **and** still alive.
     fn contains_key_symbol(&self, sym: &JsSymbol) -> bool {
-        self.symbols
-            .get(&sym.hash())
-            .map(|(w, _)| w.upgrade().is_some())
-            .unwrap_or(false)
+        if sym.is_well_known() {
+            self.well_known.contains_key(&sym.hash())
+        } else {
+            self.symbols
+                .get(&sym.hash())
+                .map(|(w, _)| w.upgrade().is_some())
+                .unwrap_or(false)
+        }
     }
 
-    /// Insert or update a symbol entry, then prune any dead entries.
+    /// Insert or update a symbol entry, then prune any dead unique-symbol entries.
     fn insert_symbol(&mut self, sym: &JsSymbol, value: JsValue) {
-        if let Some(weak) = sym.as_weak() {
+        if sym.is_well_known() {
+            self.well_known.insert(sym.hash(), value);
+        } else if let Some(weak) = sym.as_weak() {
             self.symbols.insert(sym.hash(), (weak, value));
-            // Prune entries whose symbol has been dropped to prevent unbounded growth.
-            self.symbols.retain(|_, (w, _)| w.upgrade().is_some());
         }
+        // Prune entries whose symbol has been dropped to prevent unbounded growth.
+        self.symbols.retain(|_, (w, _)| w.upgrade().is_some());
     }
 }
 
@@ -378,9 +402,9 @@ impl WeakMap {
         if !can_be_held_weakly(key) {
             return Err(JsNativeError::typ()
                 .with_message(format!(
-                    "WeakMap.set: expected target argument of type `object` or unique `symbol`, \
-                     got target of type `{}`",
-                    key.type_of()
+                    "WeakMap.set: expected target argument of type `object` or non-registered \
+                     `symbol`, got target of type `{}`",
+                    describe_key_type(key)
                 ))
                 .into());
         }
@@ -433,9 +457,9 @@ impl WeakMap {
         if !can_be_held_weakly(key_val) {
             return Err(JsNativeError::typ()
                 .with_message(format!(
-                    "WeakMap.getOrInsert: expected target argument of type `object` or unique \
-                     `symbol`, got target of type `{}`",
-                    key_val.type_of()
+                    "WeakMap.getOrInsert: expected target argument of type `object` or \
+                     non-registered `symbol`, got target of type `{}`",
+                    describe_key_type(key_val)
                 ))
                 .into());
         }
@@ -496,8 +520,8 @@ impl WeakMap {
             return Err(JsNativeError::typ()
                 .with_message(format!(
                     "WeakMap.getOrInsertComputed: expected target argument of type `object` or \
-                     unique `symbol`, got target of type `{}`",
-                    key_value.type_of()
+                     non-registered `symbol`, got target of type `{}`",
+                    describe_key_type(&key_value)
                 ))
                 .into());
         }
@@ -553,12 +577,28 @@ impl WeakMap {
 /// Abstract operation `CanBeHeldWeakly ( v )`
 ///
 /// Returns `true` if `v` may be used as a `WeakMap`/`WeakSet` key or `WeakRef` target.
-/// Objects are always eligible. Symbols are eligible unless they are registered
-/// (created via `Symbol.for()`).
+/// Objects are always eligible.  All symbols are eligible **except** those created via
+/// `Symbol.for()` (registered symbols), because registered symbols are unlimited in
+/// number and can never be GC'd, which would cause unbounded memory growth.
+/// Well-known symbols (e.g. `Symbol.iterator`) are finite in number and therefore
+/// allowed, even though they are also never GC'd.
 ///
-/// See: <https://tc39.es/proposal-symbols-as-weakmap-keys/#sec-canbeheldweakly>
+/// See: <https://tc39.es/ecma262/multipage/executable-code-and-execution-contexts.html#sec-canbeheldweakly>
 #[inline]
 fn can_be_held_weakly(value: &JsValue) -> bool {
-    value.is_object()
-        || (value.is_symbol() && symbol::is_unique_symbol(&value.as_symbol().unwrap()))
+    value.is_object() || value.as_symbol().map_or(false, |sym| !sym.is_registered())
+}
+
+/// Returns a human-readable type description for use in `WeakMap`/`WeakSet` error messages.
+///
+/// Distinguishes registered symbols (`Symbol.for(...)`) from the generic `"symbol"` type
+/// so that error messages are more actionable.
+fn describe_key_type(value: &JsValue) -> String {
+    if let Some(sym) = value.as_symbol() {
+        if sym.is_registered() {
+            return "registered symbol".to_string();
+        }
+        return "symbol".to_string();
+    }
+    format!("{}", value.type_of())
 }

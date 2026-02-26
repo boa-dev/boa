@@ -54,7 +54,7 @@ fn registered_symbol_rejected_by_set() {
     run_test_actions([TestAction::assert_native_error(
         "new WeakMap().set(Symbol.for('reg'), 1)",
         JsNativeErrorKind::Type,
-        "WeakMap.set: expected target argument of type `object` or unique `symbol`, got target of type `symbol`",
+        "WeakMap.set: expected target argument of type `object` or non-registered `symbol`, got target of type `symbol`",
     )]);
 }
 
@@ -67,12 +67,14 @@ fn registered_symbol_returns_false_from_has() {
 }
 
 #[test]
-fn well_known_symbol_rejected_by_set() {
-    run_test_actions([TestAction::assert_native_error(
-        "new WeakMap().set(Symbol.iterator, 1)",
-        JsNativeErrorKind::Type,
-        "WeakMap.set: expected target argument of type `object` or unique `symbol`, got target of type `symbol`",
-    )]);
+fn well_known_symbol_allowed_as_key() {
+    run_test_actions([
+        TestAction::run("const wm = new WeakMap(); wm.set(Symbol.iterator, 42);"),
+        TestAction::assert("wm.has(Symbol.iterator)"),
+        TestAction::assert_eq("wm.get(Symbol.iterator)", 42),
+        TestAction::assert("wm.delete(Symbol.iterator)"),
+        TestAction::assert("!wm.has(Symbol.iterator)"),
+    ]);
 }
 
 #[test]
@@ -150,7 +152,7 @@ fn get_or_insert_requires_object_key() {
     run_test_actions([TestAction::assert_native_error(
         "new WeakMap().getOrInsert('x', 1)",
         JsNativeErrorKind::Type,
-        "WeakMap.getOrInsert: expected target argument of type `object` or unique `symbol`, got target of type `string`",
+        "WeakMap.getOrInsert: expected target argument of type `object` or non-registered `symbol`, got target of type `string`",
     )]);
 }
 
@@ -159,7 +161,7 @@ fn get_or_insert_computed_requires_object_key() {
     run_test_actions([TestAction::assert_native_error(
         "new WeakMap().getOrInsertComputed('x', () => 1)",
         JsNativeErrorKind::Type,
-        "WeakMap.getOrInsertComputed: expected target argument of type `object` or unique `symbol`, got target of type `string`",
+        "WeakMap.getOrInsertComputed: expected target argument of type `object` or non-registered `symbol`, got target of type `string`",
     )]);
 }
 

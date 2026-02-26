@@ -3,7 +3,6 @@ use boa_macros::js_str;
 use boa_parser::Source;
 use indoc::indoc;
 
-use super::{is_registered_symbol, is_unique_symbol};
 use crate::symbol::JsSymbol;
 
 #[test]
@@ -52,7 +51,7 @@ fn test_is_registered_symbol() {
         .unwrap();
     let registered_sym = result.as_symbol().unwrap();
     assert!(
-        is_registered_symbol(&registered_sym),
+        registered_sym.is_registered(),
         "Symbol created via Symbol.for() should be registered"
     );
 
@@ -67,14 +66,14 @@ fn test_is_registered_symbol() {
         .unwrap();
     let unique_sym = result.as_symbol().unwrap();
     assert!(
-        !is_registered_symbol(&unique_sym),
+        !unique_sym.is_registered(),
         "Symbol created via Symbol() should not be registered"
     );
 
     // Well-known symbols should NOT be registered
     let well_known_sym = JsSymbol::iterator();
     assert!(
-        !is_registered_symbol(&well_known_sym),
+        !well_known_sym.is_registered(),
         "Well-known symbols should not be registered"
     );
 }
@@ -125,59 +124,4 @@ fn test_is_well_known_symbol() {
         !registered_sym.is_well_known(),
         "Registered symbol should not be well-known"
     );
-}
-
-#[test]
-fn test_is_unique_symbol() {
-    // Symbol created via Symbol() should be unique
-    let unique_sym = JsSymbol::new(Some(js_str!("test").into())).unwrap();
-    assert!(
-        is_unique_symbol(&unique_sym),
-        "Symbol created via Symbol() should be unique"
-    );
-
-    // Symbol created via Symbol() without description should be unique
-    let unique_sym_no_desc = JsSymbol::new(None).unwrap();
-    assert!(
-        is_unique_symbol(&unique_sym_no_desc),
-        "Symbol created via Symbol() without description should be unique"
-    );
-
-    // Registered symbol should NOT be unique
-    let mut context = Context::default();
-    let result = context
-        .eval(Source::from_bytes(
-            indoc! {r#"Symbol.for('test')"#}.as_bytes(),
-        ))
-        .unwrap();
-    let registered_sym = result.as_symbol().unwrap();
-    assert!(
-        !is_unique_symbol(&registered_sym),
-        "Registered symbol should not be unique"
-    );
-
-    // Well-known symbols should NOT be unique
-    let well_known_symbols = [
-        JsSymbol::async_iterator(),
-        JsSymbol::has_instance(),
-        JsSymbol::is_concat_spreadable(),
-        JsSymbol::iterator(),
-        JsSymbol::r#match(),
-        JsSymbol::match_all(),
-        JsSymbol::replace(),
-        JsSymbol::search(),
-        JsSymbol::species(),
-        JsSymbol::split(),
-        JsSymbol::to_primitive(),
-        JsSymbol::to_string_tag(),
-        JsSymbol::unscopables(),
-    ];
-
-    for (i, sym) in well_known_symbols.iter().enumerate() {
-        assert!(
-            !is_unique_symbol(sym),
-            "Well-known symbol at index {} should not be unique",
-            i
-        );
-    }
 }
