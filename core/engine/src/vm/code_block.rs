@@ -634,7 +634,7 @@ impl CodeBlock {
                 let ic = &self.ic[u32::from(*ic_index) as usize];
                 format!(
                     "dst:{dst}, value:{value}, shape:0x{:x}]",
-                    ic.shape.borrow().to_addr_usize(),
+                    ic.first_shape_addr(),
                 )
             }
             Instruction::GetPropertyByName {
@@ -646,7 +646,7 @@ impl CodeBlock {
                 format!(
                     "dst:{dst}, value:{value}, ic:[name:{}, shape:0x{:x}]",
                     ic.name.to_std_string_escaped(),
-                    ic.shape.borrow().to_addr_usize(),
+                    ic.first_shape_addr(),
                 )
             }
             Instruction::GetPropertyByNameWithThis {
@@ -659,7 +659,7 @@ impl CodeBlock {
                 format!(
                     "dst:{dst}, receiver:{receiver}, value:{value}, ic:[name:{}, shape:0x{:x}]",
                     ic.name.to_std_string_escaped(),
-                    ic.shape.borrow().to_addr_usize(),
+                    ic.first_shape_addr(),
                 )
             }
             Instruction::SetPropertyByName {
@@ -670,7 +670,7 @@ impl CodeBlock {
                 let ic = &self.ic[u32::from(*ic_index) as usize];
                 format!(
                     "object:{object}, value:{value}, ic:shape:0x{:x}",
-                    ic.shape.borrow().to_addr_usize(),
+                    ic.first_shape_addr(),
                 )
             }
             Instruction::SetPropertyByNameWithThis {
@@ -682,7 +682,7 @@ impl CodeBlock {
                 let ic = &self.ic[u32::from(*ic_index) as usize];
                 format!(
                     "object:{object}, receiver:{receiver}, value:{value}, ic:shape:0x{:x}",
-                    ic.shape.borrow().to_addr_usize(),
+                    ic.first_shape_addr(),
                 )
             }
             Instruction::GetPropertyByValue {
