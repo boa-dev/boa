@@ -14,6 +14,7 @@ use url::Url;
 
 const INVALID_B64: u8 = u8::MAX;
 const B64_LUT: [u8; 128] = build_base64_lookup();
+const SOURCE_MAPPING_URL_PREFIX: &str = "sourceMappingURL=";
 
 const fn build_base64_lookup() -> [u8; 128] {
     let mut lut = [INVALID_B64; 128];
@@ -194,6 +195,10 @@ impl DecodedSourceMap {
 }
 
 /// Parses and decodes a source map document.
+///
+/// # Errors
+///
+/// Returns [`SourceMapError`] if decoding fails.
 pub fn parse_source_map(input: &str, base_url: &Url) -> Result<DecodedSourceMap, SourceMapError> {
     let value: Value = serde_json::from_str(input)?;
     parse_source_map_value(&value, base_url)
@@ -228,18 +233,16 @@ pub fn match_source_map_url(comment: &str) -> Option<&str> {
         index += ch.len_utf8();
     }
 
-    const PREFIX: &str = "sourceMappingURL=";
-    if !comment[index..].starts_with(PREFIX) {
+    if !comment[index..].starts_with(SOURCE_MAPPING_URL_PREFIX) {
         return None;
     }
-    index += PREFIX.len();
+    index += SOURCE_MAPPING_URL_PREFIX.len();
 
     let mut end = comment.len();
     while end > index {
-        let ch = comment[..end]
-            .chars()
-            .next_back()
-            .expect("end is always on a character boundary");
+        let Some(ch) = comment[..end].chars().next_back() else {
+            break;
+        };
         if !ch.is_whitespace() {
             break;
         }
@@ -262,10 +265,9 @@ pub fn javascript_extract_source_map_url(source: &str) -> Option<String> {
     for line in lines.into_iter().rev() {
         let mut position = 0;
         while position < line.len() {
-            let first = line[position..]
-                .chars()
-                .next()
-                .expect("position is always in-bounds");
+            let Some(first) = line[position..].chars().next() else {
+                break;
+            };
 
             if first == '/' {
                 let second_start = position + first.len_utf8();
@@ -409,9 +411,8 @@ fn decode_index_source_map(
             .and_then(Value::as_object)
             .ok_or(SourceMapError::InvalidSectionMap)?;
 
-        let mut decoded_section = match parse_source_map_object(map_field, base_url) {
-            Ok(section_map) => section_map,
-            Err(_) => continue, // optional error
+        let Ok(mut decoded_section) = parse_source_map_object(map_field, base_url) else {
+            continue; // optional error
         };
 
         let mut source_remap = Vec::with_capacity(decoded_section.sources.len());
@@ -704,7 +705,10 @@ fn apply_segment(
 
     let generated = Position {
         line: state.generated_line,
-        column: state.generated_column as u32,
+        column: match u32::try_from(state.generated_column) {
+            Ok(value) => value,
+            Err(_) => return,
+        },
     };
 
     if segment.count == 1 {
@@ -736,8 +740,14 @@ fn apply_segment(
         if source_index < sources_len {
             Some(OriginalPosition {
                 source_index,
-                line: state.original_line as u32,
-                column: state.original_column as u32,
+                line: match u32::try_from(state.original_line) {
+                    Ok(value) => value,
+                    Err(_) => return,
+                },
+                column: match u32::try_from(state.original_column) {
+                    Ok(value) => value,
+                    Err(_) => return,
+                },
             })
         } else {
             None
@@ -781,7 +791,7 @@ fn push_mapping(
     mappings.push(mapping);
 }
 
-fn sort_mappings_if_needed(mappings: &mut Vec<Mapping>) {
+fn sort_mappings_if_needed(mappings: &mut [Mapping]) {
     if mappings
         .windows(2)
         .any(|window| window[0].generated > window[1].generated)
@@ -798,9 +808,9 @@ fn decode_vlq_from_bytes(bytes: &[u8], index: &mut usize) -> Option<i32> {
         let byte = *bytes.get(*index)?;
         *index += 1;
 
-        let decoded = decode_base64(byte)? as u64;
-        let continuation = (decoded & 0b100000) != 0;
-        let payload = decoded & 0b011111;
+        let decoded = u64::from(decode_base64(byte)?);
+        let continuation = (decoded & 0b10_0000) != 0;
+        let payload = decoded & 0b01_1111;
 
         unsigned = unsigned.checked_add(payload.checked_shl(shift)?)?;
         if unsigned >= (1u64 << 32) {
@@ -844,7 +854,7 @@ fn decode_vlq_signed(unsigned: u64) -> Option<i32> {
         return None;
     }
 
-    let value = value as i32;
+    let value = i32::try_from(value).ok()?;
     if negative { Some(-value) } else { Some(value) }
 }
 
