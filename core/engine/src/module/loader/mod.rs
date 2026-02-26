@@ -64,9 +64,9 @@ pub fn resolve_module_specifier(
 
     // On Windows, also replace `/` with `\`. JavaScript imports use `/` as path separator.
     #[cfg(target_family = "windows")]
-    let specifier = specifier.cow_replace('/', "\\");
+    let specifier = specifier.cow_replace('/', "\\").into_owned();
 
-    let short_path = Path::new(specifier.as_ref());
+    let short_path = Path::new(&specifier);
 
     // In ECMAScript, a path is considered relative if it starts with
     // `./` or `../`. In Rust it's any path that start with `/`.
@@ -81,7 +81,7 @@ pub fn resolve_module_specifier(
             ));
         }
     } else {
-        base_path.join(specifier.as_ref())
+        base_path.join(&specifier)
     };
 
     if long_path.is_relative() && base.is_some() {
