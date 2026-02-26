@@ -44,7 +44,7 @@ use std::{
     collections::VecDeque,
     eprintln,
     fs::OpenOptions,
-    io,
+    io::{self, IsTerminal, Read},
     path::{Path, PathBuf},
     println,
     rc::Rc,
@@ -453,6 +453,18 @@ fn main() -> Result<()> {
         return Ok(());
     } else if let Some(ref expr) = args.expression {
         evaluate_expr(expr, &args, &mut context, &printer)?;
+        return Ok(());
+    } else if !io::stdin().is_terminal() {
+        let mut input = String::new();
+        io::stdin()
+            .read_to_string(&mut input)
+            .wrap_err("could not read from stdin")?;
+        if !input.is_empty() {
+            evaluate_expr(&input, &args, &mut context, &printer)?;
+        }
+        context
+            .run_jobs()
+            .map_err(|err| err.into_erased(&mut context))?;
         return Ok(());
     }
 
