@@ -151,6 +151,14 @@ impl JsValue {
         })
     }
 
+    /// Abstract non-equality comparison.
+    ///
+    /// This method is executed when doing abstract equality comparisons with the `!=` operator.
+    /// It uses [`Self::equals`] to perform the comparison and negates the result.
+    pub fn not_equals(&self, other: &Self, context: &mut Context) -> JsResult<bool> {
+        Ok(!self.equals(other, context)?)
+    }
+
     /// The internal comparison abstract operation SameValue(x, y),
     /// where x and y are ECMAScript language values, produces true or false.
     ///

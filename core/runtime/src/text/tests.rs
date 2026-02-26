@@ -155,3 +155,163 @@ fn roundtrip(encoding: &'static str) {
         context,
     );
 }
+
+// Default behavior: BOM is stripped
+#[test_case("utf-8", &[0xEF, 0xBB, 0xBF, 72, 105])]
+#[test_case("utf-16le", &[0xFF, 0xFE, 72, 0, 105, 0])]
+#[test_case("utf-16be", &[0xFE, 0xFF, 0, 72, 0, 105])]
+fn decoder_bom_default_stripped(encoding: &'static str, bytes: &'static [u8]) {
+    let context = &mut Context::default();
+    text::register(None, context).unwrap();
+
+    let input = JsUint8Array::from_iter(bytes.iter().copied(), context).unwrap();
+    context
+        .register_global_property(js_str!("input"), input, Attribute::default())
+        .unwrap();
+
+    run_test_actions_with(
+        [
+            TestAction::run(format!(
+                r#"
+                const d = new TextDecoder({encoding:?});
+                decoded = d.decode(input);
+            "#
+            )),
+            TestAction::inspect_context(|context| {
+                let decoded = context
+                    .global_object()
+                    .get(js_str!("decoded"), context)
+                    .unwrap();
+                assert_eq!(decoded.as_string(), Some(js_string!("Hi")));
+            }),
+        ],
+        context,
+    );
+}
+
+// ignoreBOM: true — BOM is kept in the output
+#[test_case("utf-8", &[0xEF, 0xBB, 0xBF, 72, 105])]
+#[test_case("utf-16le", &[0xFF, 0xFE, 72, 0, 105, 0])]
+#[test_case("utf-16be", &[0xFE, 0xFF, 0, 72, 0, 105])]
+fn decoder_bom_ignore_bom_true(encoding: &'static str, bytes: &'static [u8]) {
+    let context = &mut Context::default();
+    text::register(None, context).unwrap();
+
+    let input = JsUint8Array::from_iter(bytes.iter().copied(), context).unwrap();
+    context
+        .register_global_property(js_str!("input"), input, Attribute::default())
+        .unwrap();
+
+    run_test_actions_with(
+        [
+            TestAction::run(format!(
+                r#"
+                const d = new TextDecoder({encoding:?}, {{ ignoreBOM: true }});
+                decoded = d.decode(input);
+            "#
+            )),
+            TestAction::inspect_context(|context| {
+                let decoded = context
+                    .global_object()
+                    .get(js_str!("decoded"), context)
+                    .unwrap();
+                assert_eq!(decoded.as_string(), Some(js_string!("\u{FEFF}Hi")));
+            }),
+        ],
+        context,
+    );
+}
+
+// ignoreBOM: false — same as default, BOM is stripped
+#[test_case("utf-8", &[0xEF, 0xBB, 0xBF, 72, 105])]
+#[test_case("utf-16le", &[0xFF, 0xFE, 72, 0, 105, 0])]
+#[test_case("utf-16be", &[0xFE, 0xFF, 0, 72, 0, 105])]
+fn decoder_bom_ignore_bom_false(encoding: &'static str, bytes: &'static [u8]) {
+    let context = &mut Context::default();
+    text::register(None, context).unwrap();
+
+    let input = JsUint8Array::from_iter(bytes.iter().copied(), context).unwrap();
+    context
+        .register_global_property(js_str!("input"), input, Attribute::default())
+        .unwrap();
+
+    run_test_actions_with(
+        [
+            TestAction::run(format!(
+                r#"
+                const d = new TextDecoder({encoding:?}, {{ ignoreBOM: false }});
+                decoded = d.decode(input);
+            "#
+            )),
+            TestAction::inspect_context(|context| {
+                let decoded = context
+                    .global_object()
+                    .get(js_str!("decoded"), context)
+                    .unwrap();
+                assert_eq!(decoded.as_string(), Some(js_string!("Hi")));
+            }),
+        ],
+        context,
+    );
+}
+
+#[test]
+fn decoder_ignore_bom_getter() {
+    let context = &mut Context::default();
+    text::register(None, context).unwrap();
+
+    run_test_actions_with(
+        [
+            TestAction::run(indoc! {r#"
+                const d1 = new TextDecoder();
+                const d2 = new TextDecoder("utf-8", { ignoreBOM: true });
+                const d3 = new TextDecoder("utf-8", { ignoreBOM: false });
+                ignoreBOM1 = d1.ignoreBOM;
+                ignoreBOM2 = d2.ignoreBOM;
+                ignoreBOM3 = d3.ignoreBOM;
+            "#}),
+            TestAction::inspect_context(|context| {
+                let v1 = context
+                    .global_object()
+                    .get(js_str!("ignoreBOM1"), context)
+                    .unwrap();
+                let v2 = context
+                    .global_object()
+                    .get(js_str!("ignoreBOM2"), context)
+                    .unwrap();
+                let v3 = context
+                    .global_object()
+                    .get(js_str!("ignoreBOM3"), context)
+                    .unwrap();
+                assert_eq!(v1.as_boolean(), Some(false));
+                assert_eq!(v2.as_boolean(), Some(true));
+                assert_eq!(v3.as_boolean(), Some(false));
+            }),
+        ],
+        context,
+    );
+}
+
+#[test]
+fn decoder_handle_data_view() {
+    let context = &mut Context::default();
+    text::register(None, context).unwrap();
+
+    run_test_actions_with(
+        [
+            TestAction::run(indoc! {r#"
+                var decoded = new TextDecoder().decode(
+                    new DataView(new TextEncoder().encode("hello").buffer)
+                );
+            "#}),
+            TestAction::inspect_context(|context| {
+                let decoded = context
+                    .global_object()
+                    .get(js_str!("decoded"), context)
+                    .unwrap();
+                assert_eq!(decoded.as_string(), Some(js_string!("hello")));
+            }),
+        ],
+        context,
+    );
+}
