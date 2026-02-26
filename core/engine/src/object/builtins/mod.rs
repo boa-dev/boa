@@ -17,6 +17,7 @@ mod jsset;
 mod jsset_iterator;
 mod jssharedarraybuffer;
 mod jstypedarray;
+mod jsweakmap;
 
 pub use jsarray::*;
 pub use jsarraybuffer::*;
@@ -33,3 +34,4 @@ pub use jsset::*;
 pub use jsset_iterator::*;
 pub use jssharedarraybuffer::*;
 pub use jstypedarray::*;
+pub use jsweakmap::JsWeakMap;
