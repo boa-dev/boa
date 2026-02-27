@@ -498,7 +498,7 @@ fn long_object_chain_gc_trace_stack_overflow() {
 fn recursion_in_async_gen_throws_uncatchable_error() {
     run_test_actions([
         TestAction::inspect_context(|context| {
-            context.runtime_limits_mut().set_recursion_limit(2048);
+            context.runtime_limits_mut().set_recursion_limit(128);
         }),
         TestAction::assert_runtime_limit_error(
             indoc! {r#"
@@ -518,7 +518,7 @@ fn recursion_in_async_gen_throws_uncatchable_error() {
 fn recursion_in_setter_throws_uncatchable_error() {
     run_test_actions([
         TestAction::inspect_context(|context| {
-            context.runtime_limits_mut().set_recursion_limit(2048);
+            context.runtime_limits_mut().set_recursion_limit(128);
         }),
         TestAction::assert_runtime_limit_error(
             indoc! {r#"
