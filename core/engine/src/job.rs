@@ -717,19 +717,19 @@ impl JobExecutor for SimpleJobExecutor {
             // past-due. Recurring jobs (e.g. from `setInterval`) have already been dispatched
             // and re-enqueued into the future above, so they must not prevent the event loop
             // from terminating when all other work is done.
-         let has_pending_timeout_jobs = 'result: {
-    let now = context.borrow().clock().now();
+            let has_pending_timeout_jobs = 'result: {
+                let now = context.borrow().clock().now();
 
-    for (timeout, jobs) in self.timeout_jobs.borrow().iter() {
-        for job in jobs {
-            if !job.is_recurring() && &now > timeout {
-                break 'result true;
-            }
-        }
-    }
+                for (timeout, jobs) in self.timeout_jobs.borrow().iter() {
+                    for job in jobs {
+                        if !job.is_recurring() && &now > timeout {
+                            break 'result true;
+                        }
+                    }
+                }
 
-    false
-};
+                false
+            };
 
             if self.promise_jobs.borrow().is_empty()
                 && self.async_jobs.borrow().is_empty()
