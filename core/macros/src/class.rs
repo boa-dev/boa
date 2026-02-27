@@ -25,60 +25,36 @@ pub(crate) enum MethodName {
 }
 
 impl MethodName {
-    /// The valid well-known symbol names accepted by `#[boa(symbol)]`.
-    const WELL_KNOWN_SYMBOLS: &[&str] = &[
-        "asyncIterator",
-        "hasInstance",
-        "isConcatSpreadable",
-        "iterator",
-        "match",
-        "matchAll",
-        "replace",
-        "search",
-        "species",
-        "split",
-        "toPrimitive",
-        "toStringTag",
-        "unscopables",
-    ];
-
     fn to_key_tokens(&self) -> TokenStream2 {
         match self {
             Self::String(s) => quote! { boa_engine::js_string!( #s ) },
-            Self::Symbol(sym) => to_symbol_tokens(sym),
+            Self::Symbol(sym) => {
+                let snake = camel_to_snake_case(sym);
+                let ident = Ident::new_raw(&snake, Span2::call_site());
+                quote! { boa_engine::JsSymbol:: #ident () }
+            }
         }
     }
 }
 
-/// Maps a camelCase well-known symbol name to the corresponding `JsSymbol` accessor ident.
-fn to_symbol_accessor(sym: &str) -> Ident {
-    let snake = match sym {
-        "asyncIterator" => "async_iterator",
-        "hasInstance" => "has_instance",
-        "isConcatSpreadable" => "is_concat_spreadable",
-        "iterator" => "iterator",
-        "matchAll" => "match_all",
-        "replace" => "replace",
-        "search" => "search",
-        "species" => "species",
-        "split" => "split",
-        "toPrimitive" => "to_primitive",
-        "toStringTag" => "to_string_tag",
-        "unscopables" => "unscopables",
-        other => unreachable!("unknown well-known symbol: {other}"),
-    };
-    Ident::new(snake, Span2::call_site())
-}
-
-/// `match` is a Rust keyword, so we special-case it with `Ident::new_raw`.
-fn to_symbol_tokens(sym: &str) -> TokenStream2 {
-    if sym == "match" {
-        let ident = Ident::new_raw("match", Span2::call_site());
-        quote! { boa_engine::JsSymbol:: #ident () }
-    } else {
-        let ident = to_symbol_accessor(sym);
-        quote! { boa_engine::JsSymbol:: #ident () }
+/// Converts a `camelCase` string to `snake_case`.
+///
+/// The symbol name is forwarded to `JsSymbol::<snake_name>()` without
+/// validation; if the accessor does not exist the Rust compiler will report
+/// the error.
+fn camel_to_snake_case(s: &str) -> String {
+    let mut result = String::with_capacity(s.len() + 4);
+    for (i, ch) in s.chars().enumerate() {
+        if ch.is_ascii_uppercase() {
+            if i > 0 {
+                result.push('_');
+            }
+            result.push(ch.to_ascii_lowercase());
+        } else {
+            result.push(ch);
+        }
     }
+    result
 }
 
 /// A function representation. Takes a function from the AST and remember its name, length and
@@ -506,16 +482,6 @@ impl ClassVisitor {
 
     fn name_of(&self, fn_: &mut ImplItemFn) -> SpannedResult<MethodName> {
         if let Some(sym) = take_name_value_string(&mut fn_.attrs, "symbol")? {
-            if !MethodName::WELL_KNOWN_SYMBOLS.contains(&sym.as_str()) {
-                return error(
-                    &fn_.sig.ident,
-                    format!(
-                        "Unknown well-known symbol \"{sym}\". \
-                         Accepted values: {}",
-                        MethodName::WELL_KNOWN_SYMBOLS.join(", "),
-                    ),
-                );
-            }
             return Ok(MethodName::Symbol(sym));
         }
 
