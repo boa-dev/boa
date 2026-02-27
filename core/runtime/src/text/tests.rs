@@ -128,14 +128,14 @@ fn decoder_js_invalid() {
 fn utf16le_bytes(code_units: &[u16]) -> Vec<u8> {
     code_units
         .iter()
-        .flat_map(|unit| [*unit as u8, (unit >> 8) as u8])
+        .flat_map(|unit| unit.to_le_bytes())
         .collect()
 }
 
 fn utf16be_bytes(code_units: &[u16]) -> Vec<u8> {
     code_units
         .iter()
-        .flat_map(|unit| [(unit >> 8) as u8, *unit as u8])
+        .flat_map(|unit| unit.to_be_bytes())
         .collect()
 }
 
