@@ -1,3 +1,4 @@
+use crate::vm::opcode::*;
 use boa_ast::{
     declaration::Binding,
     operations::bound_names,
@@ -43,7 +44,7 @@ impl ByteCompiler<'_> {
                     } else {
                         outer_scope = Some(self.lexical_scope.clone());
                         let scope_index = self.push_scope(decl.scope());
-                        self.bytecode.emit_push_scope(scope_index.into());
+                        PushScope::emit(self, scope_index.into());
                         Some(scope_index)
                     };
 
@@ -78,8 +79,8 @@ impl ByteCompiler<'_> {
             }
 
             if let Some(index) = scope_index {
-                self.bytecode.emit_pop_environment();
-                self.bytecode.emit_push_scope((*index).into());
+                PopEnvironment::emit(self);
+                PushScope::emit(self, (*index).into());
             }
 
             for (index, value) in values {
@@ -107,8 +108,8 @@ impl ByteCompiler<'_> {
             }
 
             if let Some(index) = scope_index {
-                self.bytecode.emit_pop_environment();
-                self.bytecode.emit_push_scope((*index).into());
+                PopEnvironment::emit(self);
+                PushScope::emit(self, (*index).into());
             }
 
             for (index, value) in values {
@@ -117,7 +118,7 @@ impl ByteCompiler<'_> {
             }
         }
 
-        self.bytecode.emit_increment_loop_iteration();
+        IncrementLoopIteration::emit(self);
 
         if let Some(final_expr) = for_loop.final_expr() {
             let value = self.register_allocator.alloc();
@@ -131,14 +132,14 @@ impl ByteCompiler<'_> {
         if let Some(condition) = for_loop.condition() {
             self.compile_expr(condition, &value);
         } else {
-            self.bytecode.emit_push_true(value.variable());
+            PushTrue::emit(self, value.variable());
         }
         let exit = self.jump_if_false(&value);
         self.register_allocator.dealloc(value);
 
         self.compile_stmt(for_loop.body(), use_expr, true);
 
-        self.bytecode.emit_jump(start_address);
+        Jump::emit(self, start_address);
 
         self.patch_jump(exit);
         self.pop_loop_control_info();
@@ -173,20 +174,20 @@ impl ByteCompiler<'_> {
 
         let early_exit = self.jump_if_null_or_undefined(&value);
 
-        self.bytecode.emit_create_for_in_iterator(value.variable());
+        CreateForInIterator::emit(self, value.variable());
 
         self.register_allocator.dealloc(value);
 
         let start_address = self.next_opcode_location();
         self.push_loop_control_info_for_of_in_loop(label, start_address, use_expr);
-        self.bytecode.emit_increment_loop_iteration();
+        IncrementLoopIteration::emit(self);
 
-        self.bytecode.emit_iterator_next();
+        IteratorNext::emit(self);
 
         let value = self.register_allocator.alloc();
-        self.bytecode.emit_iterator_done(value.variable());
+        IteratorDone::emit(self, value.variable());
         let exit = self.jump_if_true(&value);
-        self.bytecode.emit_iterator_value(value.variable());
+        IteratorValue::emit(self, value.variable());
 
         let outer_scope = self.push_declarative_scope(for_in_loop.scope());
 
@@ -227,7 +228,7 @@ impl ByteCompiler<'_> {
         self.compile_stmt(for_in_loop.body(), use_expr, true);
         self.pop_declarative_scope(outer_scope);
 
-        self.bytecode.emit_jump(start_address);
+        Jump::emit(self, start_address);
 
         self.patch_jump(exit);
         self.pop_loop_control_info();
@@ -237,7 +238,7 @@ impl ByteCompiler<'_> {
         let skip_early_exit = self.jump();
         self.patch_jump(early_exit);
         let value = self.register_allocator.alloc();
-        self.bytecode.emit_push_undefined(value.variable());
+        PushUndefined::emit(self, value.variable());
         self.register_allocator.dealloc(value);
         self.patch_jump(skip_early_exit);
     }
@@ -254,9 +255,9 @@ impl ByteCompiler<'_> {
         self.pop_declarative_scope(outer_scope);
 
         if for_of_loop.r#await() {
-            self.bytecode.emit_get_async_iterator(object.variable());
+            GetAsyncIterator::emit(self, object.variable());
         } else {
-            self.bytecode.emit_get_iterator(object.variable());
+            GetIterator::emit(self, object.variable());
         }
 
         self.register_allocator.dealloc(object);
@@ -267,29 +268,27 @@ impl ByteCompiler<'_> {
         } else {
             self.push_loop_control_info_for_of_in_loop(label, start_address, use_expr);
         }
-        self.bytecode.emit_increment_loop_iteration();
+        IncrementLoopIteration::emit(self);
 
-        self.bytecode.emit_iterator_next();
+        IteratorNext::emit(self);
         if for_of_loop.r#await() {
             let value = self.register_allocator.alloc();
-            self.bytecode.emit_iterator_result(value.variable());
-            self.bytecode.emit_await(value.variable());
+            IteratorResult::emit(self, value.variable());
+            Await::emit(self, value.variable());
             let resume_kind = self.register_allocator.alloc();
             self.pop_into_register(&resume_kind);
             self.pop_into_register(&value);
 
-            self.bytecode
-                .emit_iterator_finish_async_next(resume_kind.variable(), value.variable());
-            self.bytecode
-                .emit_generator_next(resume_kind.variable(), value.variable());
+            IteratorFinishAsyncNext::emit(self, resume_kind.variable(), value.variable());
+            GeneratorNext::emit(self, resume_kind.variable(), value.variable());
             self.register_allocator.dealloc(value);
             self.register_allocator.dealloc(resume_kind);
         }
 
         let value = self.register_allocator.alloc();
-        self.bytecode.emit_iterator_done(value.variable());
+        IteratorDone::emit(self, value.variable());
         let exit = self.jump_if_true(&value);
-        self.bytecode.emit_iterator_value(value.variable());
+        IteratorValue::emit(self, value.variable());
 
         let outer_scope = self.push_declarative_scope(for_of_loop.scope());
         let handler_index = self.push_handler();
@@ -304,7 +303,7 @@ impl ByteCompiler<'_> {
                     }
                     Err(BindingLocatorError::MutateImmutable) => {
                         let index = self.get_or_insert_string(ident);
-                        self.bytecode.emit_throw_mutate_immutable(index.into());
+                        ThrowMutateImmutable::emit(self, index.into());
                     }
                     Err(BindingLocatorError::Silent) => {}
                 }
@@ -349,20 +348,20 @@ impl ByteCompiler<'_> {
             self.patch_handler(handler_index);
 
             let error = self.register_allocator.alloc();
-            self.bytecode.emit_exception(error.variable());
+            Exception::emit(self, error.variable());
 
             // NOTE: Capture throw of the iterator close and ignore it.
             let handler_index = self.push_handler();
             self.iterator_close(for_of_loop.r#await());
             self.patch_handler(handler_index);
 
-            self.bytecode.emit_throw(error.variable());
+            Throw::emit(self, error.variable());
             self.register_allocator.dealloc(error);
             self.patch_jump(exit);
         }
 
         self.pop_declarative_scope(outer_scope);
-        self.bytecode.emit_jump(start_address);
+        Jump::emit(self, start_address);
 
         self.patch_jump(exit);
         self.pop_loop_control_info();
@@ -377,7 +376,7 @@ impl ByteCompiler<'_> {
         use_expr: bool,
     ) {
         let start_address = self.next_opcode_location();
-        self.bytecode.emit_increment_loop_iteration();
+        IncrementLoopIteration::emit(self);
         self.push_loop_control_info(label, start_address, use_expr);
 
         let value = self.register_allocator.alloc();
@@ -387,7 +386,7 @@ impl ByteCompiler<'_> {
 
         self.compile_stmt(while_loop.body(), use_expr, true);
 
-        self.bytecode.emit_jump(start_address);
+        Jump::emit(self, start_address);
 
         self.patch_jump(exit);
         self.pop_loop_control_info();
@@ -406,7 +405,7 @@ impl ByteCompiler<'_> {
         self.push_loop_control_info(label, start_address, use_expr);
 
         let condition_label_address = self.next_opcode_location();
-        self.bytecode.emit_increment_loop_iteration();
+        IncrementLoopIteration::emit(self);
 
         let value = self.register_allocator.alloc();
         self.compile_expr(do_while_loop.cond(), &value);
@@ -417,7 +416,7 @@ impl ByteCompiler<'_> {
 
         self.compile_stmt(do_while_loop.body(), use_expr, true);
 
-        self.bytecode.emit_jump(condition_label_address);
+        Jump::emit(self, condition_label_address);
         self.patch_jump(exit);
 
         self.pop_loop_control_info();

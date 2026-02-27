@@ -9,6 +9,7 @@
 //! [try spec]: https://tc39.es/ecma262/#sec-try-statement
 //! [labelled spec]: https://tc39.es/ecma262/#sec-labelled-statements
 
+use crate::vm::opcode::*;
 use super::Register;
 use crate::{
     bytecompiler::{ByteCompiler, Label},
@@ -105,7 +106,7 @@ impl JumpRecord {
                 }
                 JumpRecordAction::PopEnvironments { count } => {
                     for _ in 0..count {
-                        compiler.bytecode.emit_pop_environment();
+                        PopEnvironment::emit(&mut *compiler);
                     }
                 }
                 JumpRecordAction::HandleFinally {
@@ -115,7 +116,7 @@ impl JumpRecord {
                 } => {
                     // Note: +1 because 0 is reserved for default entry in jump table (for fallthrough).
                     let index = value as i32 + 1;
-                    compiler.bytecode.emit_push_false(finally_throw_flag.into());
+                    PushFalse::emit(&mut *compiler, finally_throw_flag.into());
                     compiler.emit_push_integer_with_index(index, finally_throw_index.into());
                 }
                 JumpRecordAction::CloseIterator { r#async } => {
@@ -134,7 +135,7 @@ impl JumpRecord {
                 if return_value_on_stack {
                     let value = compiler.register_allocator.alloc();
                     compiler.pop_into_register(&value);
-                    compiler.bytecode.emit_set_accumulator(value.variable());
+                    SetAccumulator::emit(&mut *compiler, value.variable());
                     compiler.register_allocator.dealloc(value);
                 }
 
@@ -143,22 +144,22 @@ impl JumpRecord {
                     //  - 27.6.3.2 AsyncGeneratorStart ( generator, generatorBody ): https://tc39.es/ecma262/#sec-asyncgeneratorstart
                     //
                     // Note: If we are returning we have to close the async generator function.
-                    (true, true) => compiler.bytecode.emit_async_generator_close(),
+                    (true, true) => AsyncGeneratorClose::emit(&mut *compiler),
 
                     // Taken from:
                     //  - 27.7.5.2 AsyncBlockStart ( promiseCapability, asyncBody, asyncContext ): <https://tc39.es/ecma262/#sec-asyncblockstart>
                     //
                     // Note: If there is promise capability resolve or reject it based on pending exception.
-                    (true, false) => compiler.bytecode.emit_complete_promise_capability(),
+                    (true, false) => CompletePromiseCapability::emit(&mut *compiler),
                     (false, false) => {
                         // TODO: We can omit checking for return, when constructing for functions,
                         // that cannot be constructed, like arrow functions.
-                        compiler.bytecode.emit_check_return();
+                        CheckReturn::emit(&mut *compiler);
                     }
                     (false, true) => {}
                 }
 
-                compiler.bytecode.emit_return();
+                Return::emit(&mut *compiler);
             }
         }
     }
@@ -557,11 +558,9 @@ impl ByteCompiler<'_> {
 
         // NOTE: +4 to jump past the index operand.
         let jump_table_index = self.next_opcode_location() + size_of::<u32>() as u32;
-        self.bytecode.emit_jump_table(
-            finally_throw_index,
+        JumpTable::emit(self, finally_throw_index,
             Self::DUMMY_ADDRESS,
-            thin_vec![Self::DUMMY_ADDRESS; info.jumps.len()],
-        );
+            thin_vec![Self::DUMMY_ADDRESS; info.jumps.len()],);
 
         let mut patch_jumps = Vec::with_capacity(info.jumps.len());
         // Handle breaks/continue/returns in a finally block

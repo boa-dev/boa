@@ -1,3 +1,4 @@
+use crate::vm::opcode::*;
 use std::{
     cell::{Cell, RefCell},
     collections::HashSet,
@@ -1670,7 +1671,7 @@ impl SourceTextModule {
                             .expect("binding must exist");
                         let index = compiler.insert_binding(binding);
                         let value = compiler.register_allocator.alloc();
-                        compiler.bytecode.emit_push_undefined(value.variable());
+                        PushUndefined::emit(&mut compiler, value.variable());
                         compiler.emit_binding_access(
                             BindingAccessOpcode::DefInitVar,
                             &index,

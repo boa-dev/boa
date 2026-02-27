@@ -1,3 +1,4 @@
+use crate::vm::opcode::*;
 use crate::bytecompiler::{Access, BindingAccessOpcode, ByteCompiler, Register, ToJsString};
 use boa_ast::Expression;
 use boa_ast::expression::operator::{Unary, unary::UnaryOp};
@@ -12,24 +13,24 @@ impl ByteCompiler<'_> {
                     compiler.access_delete(access, dst);
                 } else {
                     compiler.compile_expr(unary.target(), dst);
-                    compiler.bytecode.emit_push_true(dst.variable());
+                    PushTrue::emit(&mut *compiler, dst.variable());
                 }
             }
             UnaryOp::Minus => {
                 self.compile_expr(unary.target(), dst);
-                self.bytecode.emit_neg(dst.variable());
+                Neg::emit(self, dst.variable());
             }
             UnaryOp::Plus => {
                 self.compile_expr(unary.target(), dst);
-                self.bytecode.emit_pos(dst.variable());
+                Pos::emit(self, dst.variable());
             }
             UnaryOp::Not => {
                 self.compile_expr(unary.target(), dst);
-                self.bytecode.emit_logical_not(dst.variable());
+                LogicalNot::emit(self, dst.variable());
             }
             UnaryOp::Tilde => {
                 self.compile_expr(unary.target(), dst);
-                self.bytecode.emit_bit_not(dst.variable());
+                BitNot::emit(self, dst.variable());
             }
             UnaryOp::TypeOf => {
                 match unary.target().flatten() {
@@ -45,11 +46,11 @@ impl ByteCompiler<'_> {
                     }
                     expr => self.compile_expr(expr, dst),
                 }
-                self.bytecode.emit_type_of(dst.variable());
+                TypeOf::emit(self, dst.variable());
             }
             UnaryOp::Void => {
                 self.compile_expr(unary.target(), dst);
-                self.bytecode.emit_push_undefined(dst.variable());
+                PushUndefined::emit(self, dst.variable());
             }
         }
     }

@@ -1,3 +1,4 @@
+use crate::vm::opcode::*;
 use super::{ByteCompiler, Literal, ToJsString};
 use crate::vm::opcode::BindingOpcode;
 use boa_ast::{ModuleItem, ModuleItemList, declaration::ExportDeclaration};
@@ -55,11 +56,9 @@ impl ByteCompiler<'_> {
                                 .into_common(false);
                             let key = self.register_allocator.alloc();
                             self.emit_push_literal(Literal::String(default), &key);
-                            self.bytecode.emit_set_function_name(
-                                function.variable(),
+                            SetFunctionName::emit(self, function.variable(),
                                 key.variable(),
-                                0u32.into(),
-                            );
+                                0u32.into(),);
                             self.register_allocator.dealloc(key);
                         }
 

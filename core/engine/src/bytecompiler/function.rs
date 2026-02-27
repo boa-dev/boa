@@ -1,3 +1,4 @@
+use crate::vm::opcode::*;
 use crate::{
     JsString, SpannedSourceText,
     builtins::function::ThisMode,
@@ -188,7 +189,7 @@ impl FunctionCompiler {
             // Note: If the promise capability is already set, then we do nothing.
             // This is a deviation from the spec, but it allows to set the promise capability by
             // ExecuteAsyncModule ( module ): <https://tc39.es/ecma262/#sec-execute-async-module>
-            compiler.bytecode.emit_create_promise_capability();
+            CreatePromiseCapability::emit(&mut compiler);
 
             // 2. Let declResult be Completion(FunctionDeclarationInstantiation(functionObject, argumentsList)).
             //

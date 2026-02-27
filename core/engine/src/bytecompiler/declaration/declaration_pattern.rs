@@ -1,3 +1,4 @@
+use crate::vm::opcode::*;
 use crate::{
     bytecompiler::{Access, ByteCompiler, Literal, Register, ToJsString},
     vm::opcode::BindingOpcode,
@@ -17,8 +18,7 @@ impl ByteCompiler<'_> {
     ) {
         match pattern {
             Pattern::Object(pattern) => {
-                self.bytecode
-                    .emit_value_not_null_or_undefined(object.variable());
+                ValueNotNullOrUndefined::emit(self, object.variable());
 
                 let mut excluded_keys_registers = Vec::new();
                 let rest_exits = pattern.has_rest();
@@ -56,20 +56,16 @@ impl ByteCompiler<'_> {
                                     let key = self.register_allocator.alloc();
                                     self.compile_expr(node, &key);
                                     if rest_exits {
-                                        self.bytecode.emit_get_property_by_value_push(
-                                            dst.variable(),
+                                        GetPropertyByValuePush::emit(self, dst.variable(),
                                             key.variable(),
                                             object.variable(),
-                                            object.variable(),
-                                        );
+                                            object.variable(),);
                                         excluded_keys_registers.push(key);
                                     } else {
-                                        self.bytecode.emit_get_property_by_value(
-                                            dst.variable(),
+                                        GetPropertyByValue::emit(self, dst.variable(),
                                             key.variable(),
                                             object.variable(),
-                                            object.variable(),
-                                        );
+                                            object.variable(),);
                                         self.register_allocator.dealloc(key);
                                     }
                                 }
@@ -87,17 +83,15 @@ impl ByteCompiler<'_> {
                         //  BindingRestProperty : ... BindingIdentifier
                         RestProperty { ident } => {
                             let value = self.register_allocator.alloc();
-                            self.bytecode.emit_push_empty_object(value.variable());
+                            PushEmptyObject::emit(self, value.variable());
                             let mut excluded_keys =
                                 ThinVec::with_capacity(excluded_keys_registers.len());
                             for r in &excluded_keys_registers {
                                 excluded_keys.push(r.variable());
                             }
-                            self.bytecode.emit_copy_data_properties(
-                                value.variable(),
+                            CopyDataProperties::emit(self, value.variable(),
                                 object.variable(),
-                                excluded_keys,
-                            );
+                                excluded_keys,);
                             while let Some(r) = excluded_keys_registers.pop() {
                                 self.register_allocator.dealloc(r);
                             }
@@ -106,17 +100,15 @@ impl ByteCompiler<'_> {
                         }
                         AssignmentRestPropertyAccess { access } => {
                             let value = self.register_allocator.alloc();
-                            self.bytecode.emit_push_empty_object(value.variable());
+                            PushEmptyObject::emit(self, value.variable());
                             let mut excluded_keys =
                                 ThinVec::with_capacity(excluded_keys_registers.len());
                             for r in &excluded_keys_registers {
                                 excluded_keys.push(r.variable());
                             }
-                            self.bytecode.emit_copy_data_properties(
-                                value.variable(),
+                            CopyDataProperties::emit(self, value.variable(),
                                 object.variable(),
-                                excluded_keys,
-                            );
+                                excluded_keys,);
                             while let Some(r) = excluded_keys_registers.pop() {
                                 self.register_allocator.dealloc(r);
                             }
@@ -144,8 +136,7 @@ impl ByteCompiler<'_> {
                                 }
                                 PropertyName::Computed(node) => {
                                     self.compile_expr(node, &key);
-                                    self.bytecode
-                                        .emit_to_property_key(key.variable(), key.variable());
+                                    ToPropertyKey::emit(self, key.variable(), key.variable());
                                 }
                             }
 
@@ -165,20 +156,16 @@ impl ByteCompiler<'_> {
                                         }
                                         PropertyName::Computed(_) => {
                                             if rest_exits {
-                                                compiler.bytecode.emit_get_property_by_value_push(
-                                                    dst.variable(),
+                                                GetPropertyByValuePush::emit(&mut *compiler, dst.variable(),
                                                     key.variable(),
                                                     object.variable(),
-                                                    object.variable(),
-                                                );
+                                                    object.variable(),);
                                                 excluded_keys_registers.push(key);
                                             } else {
-                                                compiler.bytecode.emit_get_property_by_value(
-                                                    dst.variable(),
+                                                GetPropertyByValue::emit(&mut *compiler, dst.variable(),
                                                     key.variable(),
                                                     object.variable(),
-                                                    object.variable(),
-                                                );
+                                                    object.variable(),);
                                                 compiler.register_allocator.dealloc(key);
                                             }
                                         }
@@ -209,12 +196,10 @@ impl ByteCompiler<'_> {
                                 PropertyName::Computed(node) => {
                                     let key = self.register_allocator.alloc();
                                     self.compile_expr(node, &key);
-                                    self.bytecode.emit_get_property_by_value(
-                                        dst.variable(),
+                                    GetPropertyByValue::emit(self, dst.variable(),
                                         key.variable(),
                                         object.variable(),
-                                        object.variable(),
-                                    );
+                                        object.variable(),);
                                     self.register_allocator.dealloc(key);
                                 }
                             }
@@ -235,9 +220,8 @@ impl ByteCompiler<'_> {
                 }
             }
             Pattern::Array(pattern) => {
-                self.bytecode
-                    .emit_value_not_null_or_undefined(object.variable());
-                self.bytecode.emit_get_iterator(object.variable());
+                ValueNotNullOrUndefined::emit(self, object.variable());
+                GetIterator::emit(self, object.variable());
 
                 let handler_index = self.push_handler();
                 for element in pattern.bindings() {
@@ -249,8 +233,7 @@ impl ByteCompiler<'_> {
 
                 let has_exception = self.register_allocator.alloc();
                 let exception = self.register_allocator.alloc();
-                self.bytecode
-                    .emit_maybe_exception(has_exception.variable(), exception.variable());
+                MaybeException::emit(self, has_exception.variable(), exception.variable());
 
                 let iterator_close_handler = self.push_handler();
                 self.iterator_close(false);
@@ -259,11 +242,11 @@ impl ByteCompiler<'_> {
                 let jump = self.jump_if_false(&has_exception);
                 self.register_allocator.dealloc(has_exception);
 
-                self.bytecode.emit_throw(exception.variable());
+                Throw::emit(self, exception.variable());
                 self.register_allocator.dealloc(exception);
 
                 self.patch_jump(jump);
-                self.bytecode.emit_re_throw();
+                ReThrow::emit(self);
 
                 self.patch_jump(no_exception_thrown);
 
@@ -281,21 +264,21 @@ impl ByteCompiler<'_> {
         match element {
             // ArrayBindingPattern : [ Elision ]
             Elision => {
-                self.bytecode.emit_iterator_next();
+                IteratorNext::emit(self);
             }
             // SingleNameBinding : BindingIdentifier Initializer[opt]
             SingleName {
                 ident,
                 default_init,
             } => {
-                self.bytecode.emit_iterator_next();
+                IteratorNext::emit(self);
                 let value = self.register_allocator.alloc();
-                self.bytecode.emit_iterator_done(value.variable());
+                IteratorDone::emit(self, value.variable());
                 let done = self.jump_if_true(&value);
-                self.bytecode.emit_iterator_value(value.variable());
+                IteratorValue::emit(self, value.variable());
                 let skip_push = self.jump();
                 self.patch_jump(done);
-                self.bytecode.emit_push_undefined(value.variable());
+                PushUndefined::emit(self, value.variable());
                 self.patch_jump(skip_push);
 
                 if let Some(init) = default_init {
@@ -313,13 +296,13 @@ impl ByteCompiler<'_> {
             } => {
                 let value = self.register_allocator.alloc();
                 self.access_set(Access::Property { access }, |compiler| {
-                    compiler.bytecode.emit_iterator_next();
-                    compiler.bytecode.emit_iterator_done(value.variable());
+                    IteratorNext::emit(&mut *compiler);
+                    IteratorDone::emit(&mut *compiler, value.variable());
                     let done = compiler.jump_if_true(&value);
-                    compiler.bytecode.emit_iterator_value(value.variable());
+                    IteratorValue::emit(&mut *compiler, value.variable());
                     let skip_push = compiler.jump();
                     compiler.patch_jump(done);
-                    compiler.bytecode.emit_push_undefined(value.variable());
+                    PushUndefined::emit(&mut *compiler, value.variable());
                     compiler.patch_jump(skip_push);
 
                     if let Some(init) = default_init {
@@ -337,14 +320,14 @@ impl ByteCompiler<'_> {
                 pattern,
                 default_init,
             } => {
-                self.bytecode.emit_iterator_next();
+                IteratorNext::emit(self);
                 let value = self.register_allocator.alloc();
-                self.bytecode.emit_iterator_done(value.variable());
+                IteratorDone::emit(self, value.variable());
                 let done = self.jump_if_true(&value);
-                self.bytecode.emit_iterator_value(value.variable());
+                IteratorValue::emit(self, value.variable());
                 let skip_push = self.jump();
                 self.patch_jump(done);
-                self.bytecode.emit_push_undefined(value.variable());
+                PushUndefined::emit(self, value.variable());
                 self.patch_jump(skip_push);
 
                 if let Some(init) = default_init {
@@ -358,14 +341,14 @@ impl ByteCompiler<'_> {
             // BindingRestElement : ... BindingIdentifier
             SingleNameRest { ident } => {
                 let value = self.register_allocator.alloc();
-                self.bytecode.emit_iterator_to_array(value.variable());
+                IteratorToArray::emit(self, value.variable());
                 self.emit_binding(def, ident.to_js_string(self.interner()), &value);
                 self.register_allocator.dealloc(value);
             }
             PropertyAccessRest { access } => {
                 let value = self.register_allocator.alloc();
                 self.access_set(Access::Property { access }, |compiler| {
-                    compiler.bytecode.emit_iterator_to_array(value.variable());
+                    IteratorToArray::emit(&mut *compiler, value.variable());
                     &value
                 });
                 self.register_allocator.dealloc(value);
@@ -373,7 +356,7 @@ impl ByteCompiler<'_> {
             // BindingRestElement : ... BindingPattern
             PatternRest { pattern } => {
                 let value = self.register_allocator.alloc();
-                self.bytecode.emit_iterator_to_array(value.variable());
+                IteratorToArray::emit(self, value.variable());
                 self.compile_declaration_pattern(pattern, def, &value);
                 self.register_allocator.dealloc(value);
             }
