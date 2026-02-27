@@ -2767,7 +2767,7 @@ impl BuiltinTypedArray {
         )?;
 
         // 10. Return O.
-        Ok(TypedArray::new(
+        TypedArray::new(
             // 6. Set O.[[ViewedArrayBuffer]] to data.
             BufferObject::Buffer(data),
             T::ERASED,
@@ -2777,7 +2777,7 @@ impl BuiltinTypedArray {
             Some(byte_length),
             // 9. Set O.[[ArrayLength]] to length.
             Some(length),
-        ))
+        )
     }
 
     /// <https://tc39.es/ecma262/#sec-initializetypedarrayfromlist>
@@ -2998,7 +2998,7 @@ impl BuiltinTypedArray {
                 0,
                 Some(byte_length),
                 Some(element_length),
-            ),
+            )?,
         )
         .upcast();
 
@@ -3112,7 +3112,7 @@ impl BuiltinTypedArray {
         Ok(JsObject::from_proto_and_data_with_shared_shape(
             context.root_shape(),
             proto,
-            TypedArray::new(buffer, T::ERASED, offset, byte_length, array_length),
+            TypedArray::new(buffer, T::ERASED, offset, byte_length, array_length)?,
         )
         .upcast())
     }

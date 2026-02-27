@@ -55,20 +55,70 @@ impl JsData for TypedArray {
 }
 
 impl TypedArray {
-    pub(crate) const fn new(
+    pub(crate) fn new(
         viewed_array_buffer: BufferObject,
         kind: TypedArrayKind,
         byte_offset: u64,
         byte_length: Option<u64>,
         array_length: Option<u64>,
-    ) -> Self {
-        Self {
+    ) -> JsResult<Self> {
+        Self::validate_platform_limits(kind, byte_offset, byte_length, array_length)?;
+
+        Ok(Self {
             viewed_array_buffer,
             kind,
             byte_offset,
             byte_length,
             array_length,
+        })
+    }
+
+    fn validate_platform_limits(
+        kind: TypedArrayKind,
+        byte_offset: u64,
+        byte_length: Option<u64>,
+        array_length: Option<u64>,
+    ) -> JsResult<()> {
+        let ensure_usize = |value, name| {
+            usize::try_from(value).map_err(|_| {
+                JsNativeError::range()
+                    .with_message(format!("typed array {name} exceeds platform limits"))
+            })
+        };
+
+        ensure_usize(byte_offset, "byte offset")?;
+
+        if let Some(byte_length) = byte_length {
+            ensure_usize(byte_length, "byte length")?;
+
+            let byte_end = byte_offset.checked_add(byte_length).ok_or_else(|| {
+                JsNativeError::range()
+                    .with_message("typed array byte range exceeds platform limits")
+            })?;
+            ensure_usize(byte_end, "byte range")?;
         }
+
+        if let Some(array_length) = array_length {
+            ensure_usize(array_length, "array length")?;
+
+            let byte_end = array_length
+                .checked_mul(kind.element_size())
+                .and_then(|byte_length| byte_offset.checked_add(byte_length))
+                .ok_or_else(|| {
+                    JsNativeError::range()
+                        .with_message("typed array byte range exceeds platform limits")
+                })?;
+            ensure_usize(byte_end, "byte range")?;
+        }
+
+        debug_assert!(
+            byte_length.is_none() || array_length.is_none() || {
+                array_length.and_then(|array_length| array_length.checked_mul(kind.element_size()))
+                    == byte_length
+            }
+        );
+
+        Ok(())
     }
 
     /// Returns `true` if the typed array has an automatic array length.
