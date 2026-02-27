@@ -5,13 +5,11 @@ use boa_gc::{Finalize, Trace};
 
 use crate::{
     Context, JsResult, JsValue,
-    builtins::weak_set::WeakSet,
+    builtins::weak_set::{NativeWeakSet, WeakSet},
     error::JsNativeError,
-    object::{ErasedVTableObject, JsObject},
+    object::JsObject,
     value::TryFromJs,
 };
-
-type NativeWeakSet = boa_gc::WeakMap<ErasedVTableObject, ()>;
 
 /// `JsWeakSet` provides a wrapper for Boa's implementation of the ECMAScript `WeakSet` object.
 #[derive(Debug, Clone, Trace, Finalize)]
