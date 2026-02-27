@@ -719,11 +719,15 @@ impl JobExecutor for SimpleJobExecutor {
             // from terminating when all other work is done.
             let no_timeout_jobs_to_run = {
                 let now = context.borrow().clock().now();
-                !self
-                    .timeout_jobs
-                    .borrow()
-                    .iter()
-                    .any(|(t, jobs)| &now > t && jobs.iter().any(|job| !job.is_recurring()))
+
+                let has_due_non_recurring_timeout =
+                    self.timeout_jobs.borrow().iter().any(|(t, jobs)| {
+                        let is_due = &now > t;
+                        let has_non_recurring = jobs.iter().any(|job| !job.is_recurring());
+                        is_due && has_non_recurring
+                    });
+
+                !has_due_non_recurring_timeout
             };
 
             if self.promise_jobs.borrow().is_empty()
