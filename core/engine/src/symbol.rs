@@ -35,7 +35,7 @@ use std::{
     hash::{Hash, Hasher},
     mem::ManuallyDrop,
     ptr::NonNull,
-    sync::{Arc, atomic::Ordering},
+    sync::{Arc, Weak, atomic::Ordering},
 };
 
 use portable_atomic::AtomicU64;
@@ -277,6 +277,36 @@ impl JsSymbol {
         Self {
             repr: Tagged::from_non_null(ptr),
         }
+    }
+
+    /// Returns a `Weak` reference to the underlying `Arc<RawJsSymbol>`.
+    ///
+    /// Returns `None` for well-known symbols, which are stored as tag values and
+    /// are not backed by an `Arc`.
+    #[must_use]
+    pub(crate) fn as_weak(&self) -> Option<Weak<RawJsSymbol>> {
+        if let UnwrappedTagged::Ptr(ptr) = self.repr.unwrap() {
+            // SAFETY: `ptr` comes from `Arc::into_raw`, so it is a valid
+            // pointer for as long as we immediately forget the reconstructed
+            // `Arc` without decrementing the strong count.
+            unsafe {
+                let arc = Arc::from_raw(ptr.as_ptr().cast_const());
+                let weak = Arc::downgrade(&arc);
+                std::mem::forget(arc);
+                Some(weak)
+            }
+        } else {
+            None
+        }
+    }
+
+    /// Returns `true` if this symbol is a well-known symbol.
+    #[inline]
+    #[must_use]
+    pub(crate) fn is_well_known(&self) -> bool {
+        // All well-known (and other reserved engine) symbols are assigned hashes in the
+        // range `[0, RESERVED_SYMBOL_HASHES)`. User-created symbols start after that range.
+        self.hash() < RESERVED_SYMBOL_HASHES
     }
 
     well_known_symbols! {
