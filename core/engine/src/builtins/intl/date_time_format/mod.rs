@@ -376,7 +376,7 @@ impl DateTimeFormat {
                 let seconds = offset.to_seconds();
                 let hours = seconds / 3600;
                 let minutes = (seconds.abs() % 3600) / 60;
-                format!("{:+03}:{:02}", hours, minutes)
+                format!("{hours:+03}:{minutes:02}")
             }
             FormatTimeZone::Identifier((tz, _id)) => tz.to_string(),
         };
@@ -604,17 +604,17 @@ fn create_date_time_format(
     // Tracked at: unicode-org/icu4x#5868
     if intl_options.preferences.calendar_algorithm.is_none() {
         intl_options.preferences.calendar_algorithm =
-            CalendarAlgorithm::try_from(&Value::try_from_str("gregory").unwrap()).ok();
+            CalendarAlgorithm::try_from(&Value::try_from_str("gregory").expect("'gregory' is a valid BCP 47 value")).ok();
     }
 
     if intl_options.preferences.numbering_system.is_none() {
         intl_options.preferences.numbering_system =
-            NumberingSystem::try_from(Value::try_from_str("latn").unwrap()).ok();
+            NumberingSystem::try_from(Value::try_from_str("latn").expect("'latn' is a valid BCP 47 value")).ok();
     }
 
     if intl_options.preferences.hour_cycle.is_none() {
         intl_options.preferences.hour_cycle =
-            IcuHourCycle::try_from(&Value::try_from_str("h12").unwrap()).ok();
+            IcuHourCycle::try_from(&Value::try_from_str("h12").expect("'h12' is a valid BCP 47 value")).ok();
     }
     // 5. Set options to optionsResolution.[[Options]].
     // 6. Let r be optionsResolution.[[ResolvedLocale]].
