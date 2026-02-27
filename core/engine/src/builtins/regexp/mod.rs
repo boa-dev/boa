@@ -328,7 +328,7 @@ impl RegExp {
             flags.to_string(context)?
         };
 
-        // 5. If F contains any code unit other than "g", "i", "m", "s", "u", or "y"
+        // 5. If F contains any code unit other than "g", "i", "m", "s", "u", "v", or "y"
         //    or if it contains the same code unit more than once, throw a SyntaxError exception.
         // TODO: Should directly parse the JsString instead of converting to String
         let flags = match RegExpFlags::from_str(&f.to_std_string_escaped()) {
@@ -338,18 +338,47 @@ impl RegExp {
 
         // 13. Let parseResult be ParsePattern(patternText, u, v).
         // 14. If parseResult is a non-empty List of SyntaxError objects, throw a SyntaxError exception.
-        let matcher =
+
+        // If u or v flag is set, fullUnicode is true — compile as full codepoints.
+        let full_unicode =
+            flags.contains(RegExpFlags::UNICODE) || flags.contains(RegExpFlags::UNICODE_SETS);
+
+        let matcher = if full_unicode {
+            // Unicode mode (u/v flag) OR pattern has named groups:
+            // compile as full Unicode codepoints.
             Regex::from_unicode(p.code_points().map(CodePoint::as_u32), Flags::from(flags))
                 .map_err(|error| {
                     JsNativeError::syntax()
                         .with_message(format!("failed to create matcher: {}", error.text))
-                })?;
+                })?
+        } else {
+            // Non-Unicode mode with no named groups:
+            // compile as raw UTF-16 code units so that surrogate pairs
+            // (e.g. 𠮷 = [0xD842, 0xDFB7]) are matched correctly by find_from_ucs2.
+            let utf16_units = p.code_points().flat_map(|cp| {
+                let mut buf = [0u16; 2];
+                match cp {
+                    CodePoint::Unicode(c) => c
+                        .encode_utf16(&mut buf)
+                        .iter()
+                        .map(|&u| u32::from(u))
+                        .collect::<Vec<_>>(),
+                    CodePoint::UnpairedSurrogate(s) => vec![u32::from(s)],
+                }
+            });
+            Regex::from_unicode(utf16_units, Flags::from(flags)).map_err(|error| {
+                JsNativeError::syntax()
+                    .with_message(format!("failed to create matcher: {}", error.text))
+            })?
+        };
 
         // 15. Assert: parseResult is a Pattern Parse Node.
         // 16. Set obj.[[OriginalSource]] to P.
         // 17. Set obj.[[OriginalFlags]] to F.
         // 18. Let capturingGroupsCount be CountLeftCapturingParensWithin(parseResult).
-        // 19. Let rer be the RegExp Record { [[IgnoreCase]]: i, [[Multiline]]: m, [[DotAll]]: s, [[Unicode]]: u, [[UnicodeSets]]: v, [[CapturingGroupsCount]]: capturingGroupsCount }.
+        // 19. Let rer be the RegExp Record { [[IgnoreCase]]: i, [[Multiline]]: m,
+        //     [[DotAll]]: s, [[Unicode]]: u, [[UnicodeSets]]: v,
+        //     [[CapturingGroupsCount]]: capturingGroupsCount }.
         // 20. Set obj.[[RegExpRecord]] to rer.
         // 21. Set obj.[[RegExpMatcher]] to CompilePattern of parseResult with argument rer.
         Ok(RegExp {
@@ -1222,11 +1251,9 @@ impl RegExp {
         a.create_data_property_or_throw(0, matched_substr, context)
             .expect("this CreateDataPropertyOrThrow call must not fail");
 
-        let mut named_groups = match_value
+        let named_groups = match_value
             .named_groups()
             .collect::<Vec<(&str, Option<Range>)>>();
-        // Strict mode requires groups to be created in a sorted order
-        named_groups.sort_by(|(name_x, _), (name_y, _)| name_x.cmp(name_y));
 
         // Combines:
         // 26. Let groupNames be a new empty List.
@@ -1529,7 +1556,7 @@ impl RegExp {
 
         // 11. If flags contains "u", let fullUnicode be true.
         // 12. Else, let fullUnicode be false.
-        let unicode = flags.contains(b'u');
+        let unicode = flags.contains(b'u') || flags.contains(b'v');
 
         // 13. Return ! CreateRegExpStringIterator(matcher, S, global, fullUnicode).
         Ok(RegExpStringIterator::create_regexp_string_iterator(

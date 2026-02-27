@@ -1472,7 +1472,7 @@ impl String {
         // 1. Let O be ? RequireObjectCoercible(this value).
         let o = this.require_object_coercible()?;
 
-        // 2. If regexp is neither undefined nor null, then
+        // 2. If regexp is an Object, then
         let regexp = args.get_or_undefined(0);
         if regexp.is_object() {
             // a. Let matcher be ? GetMethod(regexp, @@match).
@@ -2055,7 +2055,7 @@ impl String {
         // 1. Let O be ? RequireObjectCoercible(this value).
         let o = this.require_object_coercible()?;
 
-        // 2. If regexp is neither undefined nor null, then
+        // 2. If regexp is an Object, then
         let regexp = args.get_or_undefined(0);
         if regexp.is_object() {
             // a. Let isRegExp be ? IsRegExp(regexp).
@@ -2197,7 +2197,7 @@ impl String {
         // 1. Let O be ? RequireObjectCoercible(this value).
         let o = this.require_object_coercible()?;
 
-        // 2. If regexp is neither undefined nor null, then
+        // 2. If regexp is an Object, then
         let regexp = args.get_or_undefined(0);
         if regexp.is_object() {
             // a. Let searcher be ? GetMethod(regexp, @@search).
