@@ -100,6 +100,8 @@ pub struct Vm {
 
     #[cfg(feature = "trace")]
     pub(crate) trace: bool,
+    #[cfg(feature = "trace")]
+    pub(crate) anon_function_counter: u32,
 }
 
 /// The stack holds the [`JsValue`]s for the calling convention and registers.
@@ -336,6 +338,8 @@ impl Vm {
             shadow_stack: ShadowStack::default(),
             #[cfg(feature = "trace")]
             trace: false,
+            #[cfg(feature = "trace")]
+            anon_function_counter: 0,
         }
     }
 
@@ -598,8 +602,12 @@ impl Context {
             " VM Start ".to_string()
         } else {
             format!(
-                " Call Frame -- {} ",
-                frame.code_block().name().to_std_string_escaped()
+                " Call Frame '{}' {}",
+                frame.code_block().name().to_std_string_escaped(),
+                match frame.code_block().anon_debug_id.get() {
+                    Some(id) => format!("[anon#{}] ", id),
+                    None => "".to_string(),
+                }
             )
         };
 

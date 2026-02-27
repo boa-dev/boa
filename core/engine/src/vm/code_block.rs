@@ -913,7 +913,17 @@ impl Display for CodeBlock {
         writeln!(
             f,
             "{:-^80}",
-            format!("Compiled Output: '{}'", name.to_std_string_escaped()),
+            format!(
+                " Compiled Output: {} ",
+                if name.is_empty() {
+                    match self.anon_debug_id.get() {
+                        Some(id) => format!("[anon#{}]", id),
+                        None => "".to_string(),
+                    }
+                } else {
+                    format!("'{}'", name.to_std_string_escaped())
+                }
+            ),
         )?;
         writeln!(
             f,
