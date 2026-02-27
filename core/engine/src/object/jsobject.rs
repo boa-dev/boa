@@ -308,6 +308,24 @@ impl JsObject {
     #[inline]
     #[must_use]
     #[track_caller]
+    /// Checks if it's an `Array` object.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// # use boa_engine::{Context, JsObject, Source};
+    /// let context = &mut Context::default();
+    ///
+    /// let array = context.eval(Source::from_bytes("[]")).unwrap();
+    /// let array_obj = array.as_object().unwrap();
+    /// assert!(array_obj.is_array());
+    ///
+    /// let plain = JsObject::with_null_proto();
+    /// assert!(!plain.is_array());
+    /// ```
+    #[inline]
+    #[must_use]
+    #[track_caller]
     pub fn is_array(&self) -> bool {
         std::ptr::eq(self.vtable(), &raw const ARRAY_EXOTIC_INTERNAL_METHODS)
     }
@@ -383,6 +401,18 @@ impl JsObject {
     }
 
     /// Checks that all own property keys and values are equal (recursively).
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// # use boa_engine::{Context, JsObject, Source};
+    /// let context = &mut Context::default();
+    /// let a = context.eval(Source::from_bytes("({x: 1})")).unwrap();
+    /// let b = context.eval(Source::from_bytes("({x: 1})")).unwrap();
+    /// let a_obj = a.as_object().unwrap();
+    /// let b_obj = b.as_object().unwrap();
+    /// assert!(JsObject::deep_strict_equals(&a_obj, &b_obj, context).unwrap());
+    /// ```
     #[inline]
     pub fn deep_strict_equals(lhs: &Self, rhs: &Self, context: &mut Context) -> JsResult<bool> {
         Self::deep_strict_equals_inner(lhs, rhs, &mut HashSet::new(), context)
@@ -755,6 +785,17 @@ impl<T: NativeObject> JsObject<T> {
     }
 
     /// Checks if the garbage collected memory is the same.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// # use boa_engine::JsObject;
+    /// let obj = JsObject::with_null_proto();
+    /// let obj2 = obj.clone();
+    /// assert!(JsObject::equals(&obj, &obj2));
+    /// let other = JsObject::with_null_proto();
+    /// assert!(!JsObject::equals(&obj, &other));
+    /// ```
     #[must_use]
     #[inline]
     pub fn equals(lhs: &Self, rhs: &Self) -> bool {
@@ -822,6 +863,17 @@ impl<T: NativeObject> JsObject<T> {
     /// - [ECMAScript reference][spec]
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-iscallable
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// # use boa_engine::{Context, Source};
+    /// let context = &mut Context::default();
+    /// let func = context.eval(Source::from_bytes("(function(){})")).unwrap();
+    /// assert!(func.as_object().unwrap().is_callable());
+    /// let plain = boa_engine::JsObject::with_null_proto();
+    /// assert!(!plain.is_callable());
+    /// ```
     #[inline]
     #[must_use]
     pub fn is_callable(&self) -> bool {
@@ -837,6 +889,17 @@ impl<T: NativeObject> JsObject<T> {
     /// - [ECMAScript reference][spec]
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-isconstructor
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// # use boa_engine::{Context, Source};
+    /// let context = &mut Context::default();
+    /// let ctor = context.eval(Source::from_bytes("(function C(){})")).unwrap();
+    /// assert!(ctor.as_object().unwrap().is_constructor());
+    /// let arrow = context.eval(Source::from_bytes("(() => {})")).unwrap();
+    /// assert!(!arrow.as_object().unwrap().is_constructor());
+    /// ```
     #[inline]
     #[must_use]
     pub fn is_constructor(&self) -> bool {
