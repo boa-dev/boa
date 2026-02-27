@@ -305,10 +305,6 @@ impl JsObject {
     }
 
     /// Checks if it's an `Array` object.
-    #[inline]
-    #[must_use]
-    #[track_caller]
-    /// Checks if it's an `Array` object.
     ///
     /// # Examples
     ///
