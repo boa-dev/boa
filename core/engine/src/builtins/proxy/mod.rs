@@ -115,11 +115,7 @@ impl BuiltInConstructor for Proxy {
     ///  - [ECMAScript reference][spec]
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-proxy-target-handler
-    fn constructor(
-        new_target: &JsValue,
-        args: &[JsValue],
-        context: &mut Context,
-    ) -> JsResult<JsValue> {
+    fn constructor(new_target: &JsValue, args: &[JsValue], context: &Context) -> JsResult<JsValue> {
         // 1. If NewTarget is undefined, throw a TypeError exception.
         if new_target.is_undefined() {
             return Err(JsNativeError::typ()
@@ -159,7 +155,7 @@ impl Proxy {
     pub(crate) fn create(
         target: &JsValue,
         handler: &JsValue,
-        context: &mut Context,
+        context: &Context,
     ) -> JsResult<JsObject> {
         // 1. If Type(target) is not Object, throw a TypeError exception.
         let target = target.as_object().ok_or_else(|| {
@@ -190,7 +186,7 @@ impl Proxy {
         Ok(p)
     }
 
-    pub(crate) fn revoker(proxy: JsObject, context: &mut Context) -> JsFunction {
+    pub(crate) fn revoker(proxy: JsObject, context: &Context) -> JsFunction {
         // 3. Let revoker be ! CreateBuiltinFunction(revokerClosure, 0, "", « [[RevocableProxy]] »).
         // 4. Set revoker.[[RevocableProxy]] to p.
 
@@ -223,7 +219,7 @@ impl Proxy {
     ///  - [ECMAScript reference][spec]
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-proxy.revocable
-    fn revocable(_: &JsValue, args: &[JsValue], context: &mut Context) -> JsResult<JsValue> {
+    fn revocable(_: &JsValue, args: &[JsValue], context: &Context) -> JsResult<JsValue> {
         // 1. Let p be ? ProxyCreate(target, handler).
         let p = Self::create(args.get_or_undefined(0), args.get_or_undefined(1), context)?;
 
@@ -256,7 +252,7 @@ impl Proxy {
 /// [spec]: https://tc39.es/ecma262/#sec-proxy-object-internal-methods-and-internal-slots-getprototypeof
 pub(crate) fn proxy_exotic_get_prototype_of(
     obj: &JsObject,
-    context: &mut Context,
+    context: &Context,
 ) -> JsResult<JsPrototype> {
     // 1. Let handler be O.[[ProxyHandler]].
     // 2. If handler is null, throw a TypeError exception.
@@ -317,7 +313,7 @@ pub(crate) fn proxy_exotic_get_prototype_of(
 pub(crate) fn proxy_exotic_set_prototype_of(
     obj: &JsObject,
     val: JsPrototype,
-    context: &mut Context,
+    context: &Context,
 ) -> JsResult<bool> {
     // 1. Let handler be O.[[ProxyHandler]].
     // 2. If handler is null, throw a TypeError exception.
@@ -377,7 +373,7 @@ pub(crate) fn proxy_exotic_set_prototype_of(
 ///  - [ECMAScript reference][spec]
 ///
 /// [spec]: https://tc39.es/ecma262/#sec-proxy-object-internal-methods-and-internal-slots-isextensible
-pub(crate) fn proxy_exotic_is_extensible(obj: &JsObject, context: &mut Context) -> JsResult<bool> {
+pub(crate) fn proxy_exotic_is_extensible(obj: &JsObject, context: &Context) -> JsResult<bool> {
     // 1. Let handler be O.[[ProxyHandler]].
     // 2. If handler is null, throw a TypeError exception.
     // 3. Assert: Type(handler) is Object.
@@ -419,10 +415,7 @@ pub(crate) fn proxy_exotic_is_extensible(obj: &JsObject, context: &mut Context) 
 ///  - [ECMAScript reference][spec]
 ///
 /// [spec]: https://tc39.es/ecma262/#sec-proxy-object-internal-methods-and-internal-slots-preventextensions
-pub(crate) fn proxy_exotic_prevent_extensions(
-    obj: &JsObject,
-    context: &mut Context,
-) -> JsResult<bool> {
+pub(crate) fn proxy_exotic_prevent_extensions(obj: &JsObject, context: &Context) -> JsResult<bool> {
     // 1. Let handler be O.[[ProxyHandler]].
     // 2. If handler is null, throw a TypeError exception.
     // 3. Assert: Type(handler) is Object.
@@ -1012,7 +1005,7 @@ pub(crate) fn proxy_exotic_delete(
 /// [spec]: https://tc39.es/ecma262/#sec-proxy-object-internal-methods-and-internal-slots-ownpropertykeys
 pub(crate) fn proxy_exotic_own_property_keys(
     obj: &JsObject,
-    context: &mut Context,
+    context: &Context,
 ) -> JsResult<Vec<PropertyKey>> {
     // 1. Let handler be O.[[ProxyHandler]].
     // 2. If handler is null, throw a TypeError exception.
@@ -1165,7 +1158,7 @@ fn proxy_exotic_call(
     };
 
     let args = context
-        .vm
+        .vm_mut()
         .stack
         .calling_convention_pop_arguments(argument_count);
 
@@ -1173,15 +1166,15 @@ fn proxy_exotic_call(
     let arg_array = array::Array::create_array_from_list(args, context);
 
     // 8. Return ? Call(trap, handler, « target, thisArgument, argArray »).
-    let _func = context.vm.stack.pop();
-    let this = context.vm.stack.pop();
+    let _func = context.vm_mut().stack.pop();
+    let this = context.vm_mut().stack.pop();
 
-    context.vm.stack.push(handler); // This
-    context.vm.stack.push(trap.clone()); // Function
+    context.vm_mut().stack.push(handler); // This
+    context.vm_mut().stack.push(trap.clone()); // Function
 
-    context.vm.stack.push(target);
-    context.vm.stack.push(this);
-    context.vm.stack.push(arg_array);
+    context.vm_mut().stack.push(target);
+    context.vm_mut().stack.push(this);
+    context.vm_mut().stack.push(arg_array);
     Ok(trap.__call__(3))
 }
 
@@ -1215,13 +1208,13 @@ fn proxy_exotic_construct(
         return Ok(target.__construct__(argument_count));
     };
 
-    let new_target = context.vm.stack.pop();
+    let new_target = context.vm_mut().stack.pop();
     let args = context
-        .vm
+        .vm_mut()
         .stack
         .calling_convention_pop_arguments(argument_count);
-    let _func = context.vm.stack.pop();
-    let _this = context.vm.stack.pop();
+    let _func = context.vm_mut().stack.pop();
+    let _this = context.vm_mut().stack.pop();
 
     // 8. Let argArray be ! CreateArrayFromList(argumentsList).
     let arg_array = array::Array::create_array_from_list(args, context);
@@ -1239,6 +1232,6 @@ fn proxy_exotic_construct(
     })?;
 
     // 11. Return newObj.
-    context.vm.stack.push(new_obj);
+    context.vm_mut().stack.push(new_obj);
     Ok(CallValue::Complete)
 }

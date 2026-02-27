@@ -209,7 +209,7 @@ impl IntrinsicObject for AsyncIterator {
 /// `CreateIterResultObject( value, done )`
 ///
 /// Generates an object supporting the `IteratorResult` interface.
-pub fn create_iter_result_object(value: JsValue, done: bool, context: &mut Context) -> JsValue {
+pub fn create_iter_result_object(value: JsValue, done: bool, context: &Context) -> JsValue {
     // 1. Assert: Type(done) is Boolean.
     // 2. Let obj be ! OrdinaryObjectCreate(%Object.prototype%).
     // 3. Perform ! CreateDataPropertyOrThrow(obj, "value", value).
@@ -244,7 +244,7 @@ impl JsValue {
     pub fn get_iterator_from_method(
         &self,
         method: &JsObject,
-        context: &mut Context,
+        context: &Context,
     ) -> JsResult<IteratorRecord> {
         // 1. Let iterator be ? Call(method, obj).
         let iterator = method.call(self, &[], context)?;
@@ -265,11 +265,7 @@ impl JsValue {
     ///  - [ECMA reference][spec]
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-getiterator
-    pub fn get_iterator(
-        &self,
-        hint: IteratorHint,
-        context: &mut Context,
-    ) -> JsResult<IteratorRecord> {
+    pub fn get_iterator(&self, hint: IteratorHint, context: &Context) -> JsResult<IteratorRecord> {
         let method = match hint {
             // 1. If kind is async, then
             IteratorHint::Async => {
@@ -349,7 +345,7 @@ impl IteratorResult {
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-iteratorcomplete
     #[inline]
-    pub fn complete(&self, context: &mut Context) -> JsResult<bool> {
+    pub fn complete(&self, context: &Context) -> JsResult<bool> {
         // 1. Return ToBoolean(? Get(iterResult, "done")).
         Ok(self.object.get(js_string!("done"), context)?.to_boolean())
     }
@@ -365,7 +361,7 @@ impl IteratorResult {
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-iteratorvalue
     #[inline]
-    pub fn value(&self, context: &mut Context) -> JsResult<JsValue> {
+    pub fn value(&self, context: &Context) -> JsResult<JsValue> {
         // 1. Return ? Get(iterResult, "value").
         self.object.get(js_string!("value"), context)
     }
@@ -445,7 +441,7 @@ impl IteratorRecord {
     }
 
     /// Gets the current value of the `IteratorRecord`.
-    pub(crate) fn value(&mut self, context: &mut Context) -> JsResult<JsValue> {
+    pub(crate) fn value(&mut self, context: &Context) -> JsResult<JsValue> {
         self.set_done_on_err(|iter| iter.last_result.value(context))
     }
 
@@ -455,7 +451,7 @@ impl IteratorRecord {
     }
 
     /// Updates the current result value of this iterator record.
-    pub(crate) fn update_result(&mut self, result: JsValue, context: &mut Context) -> JsResult<()> {
+    pub(crate) fn update_result(&mut self, result: JsValue, context: &Context) -> JsResult<()> {
         self.set_done_on_err(|iter| {
             // 3. If Type(result) is not Object, throw a TypeError exception.
             // 4. Return result.
@@ -489,7 +485,7 @@ impl IteratorRecord {
     pub(crate) fn next(
         &mut self,
         value: Option<&JsValue>,
-        context: &mut Context,
+        context: &Context,
     ) -> JsResult<IteratorResult> {
         // 1. If value is not present, then
         //     a. Let result be Completion(Call(iteratorRecord.[[NextMethod]], iteratorRecord.[[Iterator]])).
@@ -526,7 +522,7 @@ impl IteratorRecord {
     ///  - [ECMA reference][spec]
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-iteratorstep
-    pub(crate) fn step(&mut self, context: &mut Context) -> JsResult<bool> {
+    pub(crate) fn step(&mut self, context: &Context) -> JsResult<bool> {
         self.set_done_on_err(|iter| {
             // 1. Let result be ? IteratorNext(iteratorRecord).
             let result = iter.next(None, context)?;
@@ -557,7 +553,7 @@ impl IteratorRecord {
     ///  - [ECMA reference][spec]
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-iteratorstepvalue
-    pub(crate) fn step_value(&mut self, context: &mut Context) -> JsResult<Option<JsValue>> {
+    pub(crate) fn step_value(&mut self, context: &Context) -> JsResult<Option<JsValue>> {
         // 1. Let result be ? IteratorStep(iteratorRecord).
         if self.step(context)? {
             // 2. If result is done, then
@@ -586,7 +582,7 @@ impl IteratorRecord {
     pub(crate) fn close(
         &self,
         completion: JsResult<JsValue>,
-        context: &mut Context,
+        context: &Context,
     ) -> JsResult<JsValue> {
         // 1. Assert: Type(iteratorRecord.[[Iterator]]) is Object.
 
@@ -642,7 +638,7 @@ impl IteratorRecord {
     ///  - [ECMA reference][spec]
     ///
     ///  [spec]: https://tc39.es/ecma262/#sec-iteratortolist
-    pub(crate) fn into_list(mut self, context: &mut Context) -> JsResult<Vec<JsValue>> {
+    pub(crate) fn into_list(mut self, context: &Context) -> JsResult<Vec<JsValue>> {
         // 1. Let values be a new empty List.
         let mut values = Vec::new();
 

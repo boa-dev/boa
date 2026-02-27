@@ -11,11 +11,11 @@
 //! use boa_runtime::console::DefaultLogger;
 //!
 //! // Create the context.
-//! let mut context = Context::default();
+//! let context = Context::default();
 //!
 //! // Register the Console object to the context. The DefaultLogger simply
 //! // write errors to STDERR and all other logs to STDOUT.
-//! Console::register_with_logger(DefaultLogger, &mut context)
+//! Console::register_with_logger(DefaultLogger, &context)
 //!     .expect("the console object shouldn't exist yet");
 //!
 //! // JavaScript source for parsing.
@@ -26,7 +26,7 @@
 //!     Ok(res) => {
 //!         println!(
 //!             "{}",
-//!             res.to_string(&mut context).unwrap().to_std_string_escaped()
+//!             res.to_string(&context).unwrap().to_std_string_escaped()
 //!         );
 //!     }
 //!     Err(e) => {
@@ -43,7 +43,7 @@
 //! use boa_engine::{js_string, property::Attribute, Context, Source};
 //!
 //! // Create the context.
-//! let mut context = Context::default();
+//! let context = Context::default();
 //!
 //! // Register all objects in the context. To conditionally register extensions,
 //! // call `register()` directly on the extension.
@@ -59,7 +59,7 @@
 //!         ),
 //!     ),
 //!     None,
-//!     &mut context,
+//!     &context,
 //! );
 //!
 //! // JavaScript source for parsing.
@@ -76,11 +76,11 @@
 //!         res
 //!             .as_promise()
 //!             .expect("Should be a promise")
-//!             .await_blocking(&mut context)
+//!             .await_blocking(&context)
 //!             .expect("Should resolve()");
 //!         println!(
 //!             "{}",
-//!             res.to_string(&mut context).unwrap().to_std_string_escaped()
+//!             res.to_string(&context).unwrap().to_std_string_escaped()
 //!         );
 //!     }
 //!     Err(e) => {
@@ -139,7 +139,7 @@ pub use extensions::RuntimeExtension;
 pub fn register(
     extensions: impl RuntimeExtension,
     realm: Option<boa_engine::realm::Realm>,
-    ctx: &mut boa_engine::Context,
+    ctx: &boa_engine::Context,
 ) -> boa_engine::JsResult<()> {
     (
         TimeoutExtension,
@@ -165,7 +165,7 @@ pub fn register(
 pub fn register_extensions(
     extensions: impl RuntimeExtension,
     realm: Option<boa_engine::realm::Realm>,
-    ctx: &mut boa_engine::Context,
+    ctx: &boa_engine::Context,
 ) -> boa_engine::JsResult<()> {
     extensions.register(realm, ctx)?;
 
@@ -197,10 +197,10 @@ pub(crate) mod test {
         },
         RunJobs,
         InspectContext {
-            op: Box<dyn FnOnce(&mut Context)>,
+            op: Box<dyn FnOnce(&Context)>,
         },
         InspectContextAsync {
-            op: Box<dyn for<'a> FnOnce(&'a mut Context) -> Pin<Box<dyn Future<Output = ()> + 'a>>>,
+            op: Box<dyn for<'a> FnOnce(&'a Context) -> Pin<Box<dyn Future<Output = ()> + 'a>>>,
         },
         Assert {
             source: Cow<'static, str>,
@@ -211,7 +211,7 @@ pub(crate) mod test {
         },
         AssertWithOp {
             source: Cow<'static, str>,
-            op: fn(JsValue, &mut Context) -> bool,
+            op: fn(JsValue, &Context) -> bool,
         },
         AssertOpaqueError {
             source: Cow<'static, str>,
@@ -223,7 +223,7 @@ pub(crate) mod test {
             message: &'static str,
         },
         AssertContext {
-            op: fn(&mut Context) -> bool,
+            op: fn(&Context) -> bool,
         },
     }
 
@@ -243,12 +243,12 @@ pub(crate) mod test {
         /// Executes `op` with the currently active context.
         ///
         /// Useful to make custom assertions that must be done from Rust code.
-        pub(crate) fn inspect_context(op: impl FnOnce(&mut Context) + 'static) -> Self {
+        pub(crate) fn inspect_context(op: impl FnOnce(&Context) + 'static) -> Self {
             Self(Inner::InspectContext { op: Box::new(op) })
         }
 
         /// Executes `op` with the currently active context in an async environment.
-        pub(crate) fn inspect_context_async(op: impl AsyncFnOnce(&mut Context) + 'static) -> Self {
+        pub(crate) fn inspect_context_async(op: impl AsyncFnOnce(&Context) + 'static) -> Self {
             Self(Inner::InspectContextAsync {
                 op: Box::new(move |ctx| Box::pin(op(ctx))),
             })
@@ -258,7 +258,7 @@ pub(crate) mod test {
     /// Executes a list of test actions on a new, default context.
     #[track_caller]
     pub(crate) fn run_test_actions(actions: impl IntoIterator<Item = TestAction>) {
-        let context = &mut Context::default();
+        let context = &Context::default();
         register(ConsoleExtension::default(), None, context)
             .expect("failed to register WebAPI objects");
         run_test_actions_with(actions, context);
@@ -269,15 +269,15 @@ pub(crate) mod test {
     #[allow(clippy::too_many_lines, clippy::missing_panics_doc)]
     pub(crate) fn run_test_actions_with(
         actions: impl IntoIterator<Item = TestAction>,
-        context: &mut Context,
+        context: &Context,
     ) {
         #[track_caller]
-        fn forward_val(context: &mut Context, source: &str) -> JsResult<JsValue> {
+        fn forward_val(context: &Context, source: &str) -> JsResult<JsValue> {
             context.eval(Source::from_bytes(source))
         }
 
         #[track_caller]
-        fn forward_file(context: &mut Context, path: impl AsRef<Path>) -> JsResult<JsValue> {
+        fn forward_file(context: &Context, path: impl AsRef<Path>) -> JsResult<JsValue> {
             let p = path.as_ref();
             context.eval(Source::from_filepath(p).map_err(JsError::from_rust)?)
         }

@@ -567,7 +567,7 @@ pub(crate) fn typed_array_exotic_delete(
 #[allow(clippy::unnecessary_wraps)]
 pub(crate) fn typed_array_exotic_own_property_keys(
     obj: &JsObject,
-    _context: &mut Context,
+    _context: &Context,
 ) -> JsResult<Vec<PropertyKey>> {
     let inner = obj
         .downcast_ref::<TypedArray>()

@@ -15,7 +15,7 @@ use super::TryFromJs;
 macro_rules! impl_try_from_js_for_tuples {
     ($($name:ident),*) => {
         impl<$($name: TryFromJs),*> TryFromJs for ($($name,)*) {
-            fn try_from_js(value: &JsValue, context: &mut Context) -> JsResult<Self> {
+            fn try_from_js(value: &JsValue, context: &Context) -> JsResult<Self> {
                 let vec: Vec<JsValue> = value.try_js_into(context)?;
                 let mut iter = vec.into_iter();
 

@@ -14,10 +14,10 @@ pub(crate) struct TemplateLookup;
 
 impl TemplateLookup {
     #[inline(always)]
-    pub(super) fn operation((jump, site, dst): (u32, u64, VaryingOperand), context: &mut Context) {
+    pub(super) fn operation((jump, site, dst): (u32, u64, VaryingOperand), context: &Context) {
         if let Some(template) = context.realm().lookup_template(site) {
-            context.vm.set_register(dst.into(), template.into());
-            context.vm.frame_mut().pc = jump;
+            context.vm_mut().set_register(dst.into(), template.into());
+            context.vm_mut().frame_mut().pc = jump;
         }
     }
 }
@@ -39,7 +39,7 @@ impl TemplateCreate {
     #[inline(always)]
     pub(super) fn operation(
         (site, dst, values): (u64, VaryingOperand, ThinVec<u32>),
-        context: &mut Context,
+        context: &Context,
     ) {
         let count = values.len() / 2;
         let template =
@@ -51,12 +51,12 @@ impl TemplateCreate {
         let mut cooked = true;
         for value in values {
             if cooked {
-                let cooked_value = context.vm.get_register(value as usize);
+                let cooked_value = context.vm_mut().get_register(value as usize).clone();
                 template
                     .define_property_or_throw(
                         index,
                         PropertyDescriptor::builder()
-                            .value(cooked_value.clone())
+                            .value(cooked_value)
                             .writable(false)
                             .enumerable(true)
                             .configurable(false),
@@ -64,12 +64,12 @@ impl TemplateCreate {
                     )
                     .expect("should not fail on new array");
             } else {
-                let raw_value = context.vm.get_register(value as usize);
+                let raw_value = context.vm_mut().get_register(value as usize).clone();
                 raw_obj
                     .define_property_or_throw(
                         index,
                         PropertyDescriptor::builder()
-                            .value(raw_value.clone())
+                            .value(raw_value)
                             .writable(false)
                             .enumerable(true)
                             .configurable(false),
@@ -102,7 +102,7 @@ impl TemplateCreate {
 
         context.realm().push_template(site, template.clone());
 
-        context.vm.set_register(dst.into(), template.into());
+        context.vm_mut().set_register(dst.into(), template.into());
     }
 }
 

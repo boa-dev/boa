@@ -28,7 +28,7 @@ fn try_fields_into_js_object(
     store: &JsValueStore,
     fields: &Vec<(StringStore, JsValueStore)>,
     seen: &mut ReverseSeenMap,
-    context: &mut Context,
+    context: &Context,
 ) -> JsResult<JsValue> {
     let dolly = JsObject::with_object_proto(context.intrinsics());
     seen.insert(store, dolly.clone());
@@ -45,7 +45,7 @@ fn try_items_into_js_array(
     store: &JsValueStore,
     items: &[Option<JsValueStore>],
     seen: &mut ReverseSeenMap,
-    context: &mut Context,
+    context: &Context,
 ) -> JsResult<JsValue> {
     let dolly = JsArray::new(context);
     seen.insert(store, dolly.clone().into());
@@ -65,7 +65,7 @@ fn try_into_js_array_buffer(
     store: &JsValueStore,
     data: &[u8],
     seen: &mut ReverseSeenMap,
-    context: &mut Context,
+    context: &Context,
 ) -> JsResult<JsValue> {
     let buffer = JsArrayBuffer::from_byte_block(AlignedVec::from_slice(0, data), context)?;
     let obj = JsObject::from(buffer);
@@ -77,7 +77,7 @@ fn try_into_js_shared_array_buffer(
     store: &JsValueStore,
     inner: &SharedArrayBuffer,
     seen: &mut ReverseSeenMap,
-    context: &mut Context,
+    context: &Context,
 ) -> JsValue {
     let buffer = JsSharedArrayBuffer::from_buffer(inner.clone(), context);
     let obj = JsObject::from(buffer);
@@ -90,7 +90,7 @@ fn try_into_js_typed_array(
     kind: TypedArrayKind,
     buffer: &JsValueStore,
     seen: &mut ReverseSeenMap,
-    context: &mut Context,
+    context: &Context,
 ) -> JsResult<JsValue> {
     let buffer = try_value_into_js(buffer, seen, context)?;
     let Some(buffer) = buffer.as_object() else {
@@ -108,7 +108,7 @@ fn try_into_js_map(
     store: &JsValueStore,
     key_values: &[(JsValueStore, JsValueStore)],
     seen: &mut ReverseSeenMap,
-    context: &mut Context,
+    context: &Context,
 ) -> JsResult<JsValue> {
     let map = JsMap::new(context);
     seen.insert(store, map.clone().into());
@@ -125,7 +125,7 @@ fn try_into_js_set(
     store: &JsValueStore,
     values: &[JsValueStore],
     seen: &mut ReverseSeenMap,
-    context: &mut Context,
+    context: &Context,
 ) -> JsResult<JsValue> {
     let set = JsSet::new(context);
     seen.insert(store, set.clone().into());
@@ -141,7 +141,7 @@ fn try_into_js_date(
     store: &JsValueStore,
     ms_since_epoch: f64,
     seen: &mut ReverseSeenMap,
-    context: &mut Context,
+    context: &Context,
 ) -> JsResult<JsValue> {
     let date = JsDate::new(context);
     date.set_time(ms_since_epoch, context)?;
@@ -155,7 +155,7 @@ fn try_into_regexp(
     source: &str,
     flags: &str,
     seen: &mut ReverseSeenMap,
-    context: &mut Context,
+    context: &Context,
 ) -> JsResult<JsValue> {
     let re = JsRegExp::new(JsString::from(source), JsString::from(flags), context)?;
     seen.insert(store, re.clone().into());
@@ -168,7 +168,7 @@ fn try_into_data_view(
     byte_length: u64,
     byte_offset: u64,
     seen: &mut ReverseSeenMap,
-    context: &mut Context,
+    context: &Context,
 ) -> JsResult<JsValue> {
     let buffer = try_value_into_js(buffer, seen, context)?;
     let data_view = JsDataView::from_js_array_buffer(
@@ -185,7 +185,7 @@ fn try_into_data_view(
 pub(super) fn try_value_into_js(
     store: &JsValueStore,
     seen: &mut ReverseSeenMap,
-    context: &mut Context,
+    context: &Context,
 ) -> JsResult<JsValue> {
     if let Some(v) = seen.get(store) {
         return Ok(JsValue::from(v));

@@ -99,7 +99,7 @@ impl ArrayIterator {
     ///  - [ECMA reference][spec]
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-%arrayiteratorprototype%.next
-    pub(crate) fn next(this: &JsValue, _: &[JsValue], context: &mut Context) -> JsResult<JsValue> {
+    pub(crate) fn next(this: &JsValue, _: &[JsValue], context: &Context) -> JsResult<JsValue> {
         let object = this.as_object();
         let mut array_iterator = object
             .as_ref()

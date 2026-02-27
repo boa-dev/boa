@@ -337,11 +337,7 @@ impl BuiltInConstructor for PlainDateTime {
     const STANDARD_CONSTRUCTOR: fn(&StandardConstructors) -> &StandardConstructor =
         StandardConstructors::plain_date_time;
 
-    fn constructor(
-        new_target: &JsValue,
-        args: &[JsValue],
-        context: &mut Context,
-    ) -> JsResult<JsValue> {
+    fn constructor(new_target: &JsValue, args: &[JsValue], context: &Context) -> JsResult<JsValue> {
         // 1. If NewTarget is undefined, then
         if new_target.is_undefined() {
             // a. Throw a TypeError exception.
@@ -487,7 +483,7 @@ impl PlainDateTime {
     /// [spec]: https://tc39.es/proposal-temporal/#sec-get-temporal.plaindatetime.prototype.calendarid
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Temporal/PlainDateTime/calendarId
     /// [temporal_rs-docs]: https://docs.rs/temporal_rs/latest/temporal_rs/struct.PlainDateTime.html#method.calendar
-    fn get_calendar_id(this: &JsValue, _: &[JsValue], _: &mut Context) -> JsResult<JsValue> {
+    fn get_calendar_id(this: &JsValue, _: &[JsValue], _: &Context) -> JsResult<JsValue> {
         let object = this.as_object();
         let dt = object
             .as_ref()
@@ -510,7 +506,7 @@ impl PlainDateTime {
     /// [spec]: https://tc39.es/proposal-temporal/#sec-get-temporal.plaindatetime.prototype.era
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Temporal/PlainDateTime/era
     /// [temporal_rs-docs]: https://docs.rs/temporal_rs/latest/temporal_rs/struct.PlainDateTime.html#method.era
-    fn get_era(this: &JsValue, _: &[JsValue], _: &mut Context) -> JsResult<JsValue> {
+    fn get_era(this: &JsValue, _: &[JsValue], _: &Context) -> JsResult<JsValue> {
         let object = this.as_object();
         let dt = object
             .as_ref()
@@ -537,7 +533,7 @@ impl PlainDateTime {
     /// [spec]: https://tc39.es/proposal-temporal/#sec-get-temporal.plaindatetime.prototype.erayear
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Temporal/PlainDateTime/eraYear
     /// [temporal_rs-docs]: https://docs.rs/temporal_rs/latest/temporal_rs/struct.PlainDateTime.html#method.era_year
-    fn get_era_year(this: &JsValue, _: &[JsValue], _: &mut Context) -> JsResult<JsValue> {
+    fn get_era_year(this: &JsValue, _: &[JsValue], _: &Context) -> JsResult<JsValue> {
         let object = this.as_object();
         let dt = object
             .as_ref()
@@ -560,7 +556,7 @@ impl PlainDateTime {
     /// [spec]: https://tc39.es/proposal-temporal/#sec-get-temporal.plaindatetime.prototype.year
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Temporal/PlainDateTime/year
     /// [temporal_rs-docs]: https://docs.rs/temporal_rs/latest/temporal_rs/struct.PlainDateTime.html#method.year
-    fn get_year(this: &JsValue, _: &[JsValue], _: &mut Context) -> JsResult<JsValue> {
+    fn get_year(this: &JsValue, _: &[JsValue], _: &Context) -> JsResult<JsValue> {
         let object = this.as_object();
         let dt = object
             .as_ref()
@@ -583,7 +579,7 @@ impl PlainDateTime {
     /// [spec]: https://tc39.es/proposal-temporal/#sec-get-temporal.plaindatetime.prototype.month
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Temporal/PlainDateTime/month
     /// [temporal_rs-docs]: https://docs.rs/temporal_rs/latest/temporal_rs/struct.PlainDateTime.html
-    fn get_month(this: &JsValue, _: &[JsValue], _: &mut Context) -> JsResult<JsValue> {
+    fn get_month(this: &JsValue, _: &[JsValue], _: &Context) -> JsResult<JsValue> {
         let object = this.as_object();
         let dt = object
             .as_ref()
@@ -606,7 +602,7 @@ impl PlainDateTime {
     /// [spec]: https://tc39.es/proposal-temporal/#sec-get-temporal.plaindatetime.prototype.monthcode
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Temporal/PlainDateTime/monthCode
     /// [temporal_rs-docs]: https://docs.rs/temporal_rs/latest/temporal_rs/struct.PlainDateTime.html#method.month_code
-    fn get_month_code(this: &JsValue, _: &[JsValue], _: &mut Context) -> JsResult<JsValue> {
+    fn get_month_code(this: &JsValue, _: &[JsValue], _: &Context) -> JsResult<JsValue> {
         let object = this.as_object();
         let dt = object
             .as_ref()
@@ -629,7 +625,7 @@ impl PlainDateTime {
     /// [spec]: https://tc39.es/proposal-temporal/#sec-get-temporal.plaindatetime.prototype.day
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Temporal/PlainDateTime/day
     /// [temporal_rs-docs]: https://docs.rs/temporal_rs/latest/temporal_rs/struct.PlainDateTime.html#method.day
-    fn get_day(this: &JsValue, _: &[JsValue], _: &mut Context) -> JsResult<JsValue> {
+    fn get_day(this: &JsValue, _: &[JsValue], _: &Context) -> JsResult<JsValue> {
         let object = this.as_object();
         let dt = object
             .as_ref()
@@ -652,7 +648,7 @@ impl PlainDateTime {
     /// [spec]: https://tc39.es/proposal-temporal/#sec-get-temporal.plaindatetime.prototype.hour
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Temporal/PlainDateTime/hour
     /// [temporal_rs-docs]: https://docs.rs/temporal_rs/latest/temporal_rs/struct.PlainDateTime.html#method.hour
-    fn get_hour(this: &JsValue, _: &[JsValue], _: &mut Context) -> JsResult<JsValue> {
+    fn get_hour(this: &JsValue, _: &[JsValue], _: &Context) -> JsResult<JsValue> {
         // 1. Let dateTime be the this value.
         // 2. Perform ? RequireInternalSlot(dateTime, [[InitializedTemporalDateTime]]).
         let object = this.as_object();
@@ -678,7 +674,7 @@ impl PlainDateTime {
     /// [spec]: https://tc39.es/proposal-temporal/#sec-get-temporal.plaindatetime.prototype.minute
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Temporal/PlainDateTime/minute
     /// [temporal_rs-docs]: https://docs.rs/temporal_rs/latest/temporal_rs/struct.PlainDateTime.html#method.minute
-    fn get_minute(this: &JsValue, _: &[JsValue], _: &mut Context) -> JsResult<JsValue> {
+    fn get_minute(this: &JsValue, _: &[JsValue], _: &Context) -> JsResult<JsValue> {
         // 1. Let dateTime be the this value.
         // 2. Perform ? RequireInternalSlot(dateTime, [[InitializedTemporalDateTime]]).
         let object = this.as_object();
@@ -704,7 +700,7 @@ impl PlainDateTime {
     /// [spec]: https://tc39.es/proposal-temporal/#sec-get-temporal.plaindatetime.prototype.second
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Temporal/PlainDateTime/second
     /// [temporal_rs-docs]: https://docs.rs/temporal_rs/latest/temporal_rs/struct.PlainDateTime.html#method.second
-    fn get_second(this: &JsValue, _: &[JsValue], _: &mut Context) -> JsResult<JsValue> {
+    fn get_second(this: &JsValue, _: &[JsValue], _: &Context) -> JsResult<JsValue> {
         // 1. Let dateTime be the this value.
         // 2. Perform ? RequireInternalSlot(dateTime, [[InitializedTemporalDateTime]]).
         let object = this.as_object();
@@ -730,7 +726,7 @@ impl PlainDateTime {
     /// [spec]: https://tc39.es/proposal-temporal/#sec-get-temporal.plaindatetime.prototype.millisecond
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Temporal/PlainDateTime/millisecond
     /// [temporal_rs-docs]: https://docs.rs/temporal_rs/latest/temporal_rs/struct.PlainDateTime.html#method.millisecond
-    fn get_millisecond(this: &JsValue, _: &[JsValue], _: &mut Context) -> JsResult<JsValue> {
+    fn get_millisecond(this: &JsValue, _: &[JsValue], _: &Context) -> JsResult<JsValue> {
         // 1. Let dateTime be the this value.
         // 2. Perform ? RequireInternalSlot(dateTime, [[InitializedTemporalDateTime]]).
         let object = this.as_object();
@@ -756,7 +752,7 @@ impl PlainDateTime {
     /// [spec]: https://tc39.es/proposal-temporal/#sec-get-temporal.plaindatetime.prototype.microsecond
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Temporal/PlainDateTime/microsecond
     /// [temporal_rs-docs]: https://docs.rs/temporal_rs/latest/temporal_rs/struct.PlainDateTime.html#method.microsecond
-    fn get_microsecond(this: &JsValue, _: &[JsValue], _: &mut Context) -> JsResult<JsValue> {
+    fn get_microsecond(this: &JsValue, _: &[JsValue], _: &Context) -> JsResult<JsValue> {
         // 1. Let dateTime be the this value.
         // 2. Perform ? RequireInternalSlot(dateTime, [[InitializedTemporalDateTime]]).
         let object = this.as_object();
@@ -782,7 +778,7 @@ impl PlainDateTime {
     /// [spec]: https://tc39.es/proposal-temporal/#sec-get-temporal.plaindatetime.prototype.nanosecond
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Temporal/PlainDateTime/nanosecond
     /// [temporal_rs-docs]: https://docs.rs/temporal_rs/latest/temporal_rs/struct.PlainDateTime.html#method.nanosecond
-    fn get_nanosecond(this: &JsValue, _: &[JsValue], _: &mut Context) -> JsResult<JsValue> {
+    fn get_nanosecond(this: &JsValue, _: &[JsValue], _: &Context) -> JsResult<JsValue> {
         // 1. Let dateTime be the this value.
         // 2. Perform ? RequireInternalSlot(dateTime, [[InitializedTemporalDateTime]]).
         let object = this.as_object();
@@ -808,7 +804,7 @@ impl PlainDateTime {
     /// [spec]: https://tc39.es/proposal-temporal/#sec-get-temporal.plaindatetime.prototype.dayofweek
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Temporal/PlainDateTime/dayOfWeek
     /// [temporal_rs-docs]: https://docs.rs/temporal_rs/latest/temporal_rs/struct.PlainDateTime.html#method.day_of_week
-    fn get_day_of_week(this: &JsValue, _: &[JsValue], _: &mut Context) -> JsResult<JsValue> {
+    fn get_day_of_week(this: &JsValue, _: &[JsValue], _: &Context) -> JsResult<JsValue> {
         let object = this.as_object();
         let dt = object
             .as_ref()
@@ -831,7 +827,7 @@ impl PlainDateTime {
     /// [spec]: https://tc39.es/proposal-temporal/#sec-get-temporal.plaindatetime.prototype.dayofyear
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Temporal/PlainDateTime/dayOfYear
     /// [temporal_rs-docs]: https://docs.rs/temporal_rs/latest/temporal_rs/struct.PlainDateTime.html#method.day_of_year
-    fn get_day_of_year(this: &JsValue, _: &[JsValue], _: &mut Context) -> JsResult<JsValue> {
+    fn get_day_of_year(this: &JsValue, _: &[JsValue], _: &Context) -> JsResult<JsValue> {
         let object = this.as_object();
         let dt = object
             .as_ref()
@@ -854,7 +850,7 @@ impl PlainDateTime {
     /// [spec]: https://tc39.es/proposal-temporal/#sec-get-temporal.plaindatetime.prototype.weekofyear
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Temporal/PlainDateTime/weekOfYear
     /// [temporal_rs-docs]: https://docs.rs/temporal_rs/latest/temporal_rs/struct.PlainDateTime.html#method.week_of_year
-    fn get_week_of_year(this: &JsValue, _: &[JsValue], _: &mut Context) -> JsResult<JsValue> {
+    fn get_week_of_year(this: &JsValue, _: &[JsValue], _: &Context) -> JsResult<JsValue> {
         let object = this.as_object();
         let dt = object
             .as_ref()
@@ -877,7 +873,7 @@ impl PlainDateTime {
     /// [spec]: https://tc39.es/proposal-temporal/#sec-get-temporal.plaindatetime.prototype.yearofweek
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Temporal/PlainDateTime/yearOfWeek
     /// [temporal_rs-docs]: https://docs.rs/temporal_rs/latest/temporal_rs/struct.PlainDateTime.html#method.year_of_week
-    fn get_year_of_week(this: &JsValue, _: &[JsValue], _: &mut Context) -> JsResult<JsValue> {
+    fn get_year_of_week(this: &JsValue, _: &[JsValue], _: &Context) -> JsResult<JsValue> {
         let object = this.as_object();
         let dt = object
             .as_ref()
@@ -900,7 +896,7 @@ impl PlainDateTime {
     /// [spec]: https://tc39.es/proposal-temporal/#sec-get-temporal.plaindatetime.prototype.daysinweek
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Temporal/PlainDateTime/daysInWeek
     /// [temporal_rs-docs]: https://docs.rs/temporal_rs/latest/temporal_rs/struct.PlainDateTime.html#method.days_in_week
-    fn get_days_in_week(this: &JsValue, _: &[JsValue], _: &mut Context) -> JsResult<JsValue> {
+    fn get_days_in_week(this: &JsValue, _: &[JsValue], _: &Context) -> JsResult<JsValue> {
         let object = this.as_object();
         let dt = object
             .as_ref()
@@ -923,7 +919,7 @@ impl PlainDateTime {
     /// [spec]: https://tc39.es/proposal-temporal/#sec-get-temporal.plaindatetime.prototype.daysinmonth
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Temporal/PlainDateTime/daysInMonth
     /// [temporal_rs-docs]: https://docs.rs/temporal_rs/latest/temporal_rs/struct.PlainDateTime.html#method.days_in_month
-    fn get_days_in_month(this: &JsValue, _: &[JsValue], _: &mut Context) -> JsResult<JsValue> {
+    fn get_days_in_month(this: &JsValue, _: &[JsValue], _: &Context) -> JsResult<JsValue> {
         let object = this.as_object();
         let dt = object
             .as_ref()
@@ -946,7 +942,7 @@ impl PlainDateTime {
     /// [spec]: https://tc39.es/proposal-temporal/#sec-get-temporal.plaindatetime.prototype.daysinyear
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Temporal/PlainDateTime/daysInYear
     /// [temporal_rs-docs]: https://docs.rs/temporal_rs/latest/temporal_rs/struct.PlainDateTime.html#method.days_in_year
-    fn get_days_in_year(this: &JsValue, _: &[JsValue], _: &mut Context) -> JsResult<JsValue> {
+    fn get_days_in_year(this: &JsValue, _: &[JsValue], _: &Context) -> JsResult<JsValue> {
         let object = this.as_object();
         let dt = object
             .as_ref()
@@ -969,7 +965,7 @@ impl PlainDateTime {
     /// [spec]: https://tc39.es/proposal-temporal/#sec-get-temporal.plaindatetime.prototype.monthsinyear
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Temporal/PlainDateTime/monthsInYear
     /// [temporal_rs-docs]: https://docs.rs/temporal_rs/latest/temporal_rs/struct.PlainDateTime.html#method.months_in_year
-    fn get_months_in_year(this: &JsValue, _: &[JsValue], _: &mut Context) -> JsResult<JsValue> {
+    fn get_months_in_year(this: &JsValue, _: &[JsValue], _: &Context) -> JsResult<JsValue> {
         let object = this.as_object();
         let dt = object
             .as_ref()
@@ -992,7 +988,7 @@ impl PlainDateTime {
     /// [spec]: https://tc39.es/proposal-temporal/#sec-get-temporal.plaindatetime.prototype.inleapyear
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Temporal/PlainDateTime/inLeapYear
     /// [temporal_rs-docs]: https://docs.rs/temporal_rs/latest/temporal_rs/struct.PlainDateTime.html#method.in_leap_year
-    fn get_in_leap_year(this: &JsValue, _: &[JsValue], _: &mut Context) -> JsResult<JsValue> {
+    fn get_in_leap_year(this: &JsValue, _: &[JsValue], _: &Context) -> JsResult<JsValue> {
         let object = this.as_object();
         let dt = object
             .as_ref()
@@ -1017,7 +1013,7 @@ impl PlainDateTime {
     ///
     /// [spec]: https://tc39.es/proposal-temporal/#sec-temporal.plaindatetime.from
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Temporal/PlainDateTime/from
-    fn from(_: &JsValue, args: &[JsValue], context: &mut Context) -> JsResult<JsValue> {
+    fn from(_: &JsValue, args: &[JsValue], context: &Context) -> JsResult<JsValue> {
         let item = args.get_or_undefined(0);
         // 1. Set options to ? GetOptionsObject(options).
         let options = args.get(1);
@@ -1051,7 +1047,7 @@ impl PlainDateTime {
     /// [spec]: https://tc39.es/proposal-temporal/#sec-temporal.plaindatetime.compare
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Temporal/PlainDateTime/compare
     /// [temporal_rs-docs]: https://docs.rs/temporal_rs/latest/temporal_rs/struct.PlainDateTime.html#method.compare_iso
-    fn compare(_: &JsValue, args: &[JsValue], context: &mut Context) -> JsResult<JsValue> {
+    fn compare(_: &JsValue, args: &[JsValue], context: &Context) -> JsResult<JsValue> {
         // 1. Set one to ? ToTemporalDateTime(one).
         let one = to_temporal_datetime(args.get_or_undefined(0), None, context)?;
         // 2. Set two to ? ToTemporalDateTime(two).
@@ -1080,7 +1076,7 @@ impl PlainDateTime {
     /// [spec]: https://tc39.es/proposal-temporal/#sec-temporal.plaindatetime.prototype.with
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Temporal/PlainDateTime/with
     /// [temporal_rs-docs]: https://docs.rs/temporal_rs/latest/temporal_rs/struct.PlainDateTime.html#method.with
-    fn with(this: &JsValue, args: &[JsValue], context: &mut Context) -> JsResult<JsValue> {
+    fn with(this: &JsValue, args: &[JsValue], context: &Context) -> JsResult<JsValue> {
         // 1. Let plainDateTime be the this value.
         // 2. Perform ? RequireInternalSlot(plainDateTime, [[InitializedTemporalDateTime]]).
         let object = this.as_object();
@@ -1131,11 +1127,7 @@ impl PlainDateTime {
     /// [spec]: https://tc39.es/proposal-temporal/#sec-temporal.plaindatetime.prototype.withplaintime
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Temporal/PlainDateTime/withPlainTime
     /// [temporal_rs-docs]: https://docs.rs/temporal_rs/latest/temporal_rs/struct.PlainDateTime.html#method.with_plain_time
-    fn with_plain_time(
-        this: &JsValue,
-        args: &[JsValue],
-        context: &mut Context,
-    ) -> JsResult<JsValue> {
+    fn with_plain_time(this: &JsValue, args: &[JsValue], context: &Context) -> JsResult<JsValue> {
         let object = this.as_object();
         let dt = object
             .as_ref()
@@ -1163,7 +1155,7 @@ impl PlainDateTime {
     /// [spec]: https://tc39.es/proposal-temporal/#sec-temporal.plaindatetime.prototype.withCalendar
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Temporal/PlainDateTime/withCalendar
     /// [temporal_rs-docs]: https://docs.rs/temporal_rs/latest/temporal_rs/struct.PlainDateTime.html#method.with_calendar
-    fn with_calendar(this: &JsValue, args: &[JsValue], context: &mut Context) -> JsResult<JsValue> {
+    fn with_calendar(this: &JsValue, args: &[JsValue], context: &Context) -> JsResult<JsValue> {
         let object = this.as_object();
         let dt = object
             .as_ref()
@@ -1188,7 +1180,7 @@ impl PlainDateTime {
     /// [spec]: https://tc39.es/proposal-temporal/#sec-temporal.plaindatetime.prototype.add
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Temporal/PlainDateTime/add
     /// [temporal_rs-docs]: https://docs.rs/temporal_rs/latest/temporal_rs/struct.PlainDateTime.html#method.add
-    fn add(this: &JsValue, args: &[JsValue], context: &mut Context) -> JsResult<JsValue> {
+    fn add(this: &JsValue, args: &[JsValue], context: &Context) -> JsResult<JsValue> {
         // 1. Let temporalDate be the this value.
         // 2. Perform ? RequireInternalSlot(temporalDate, [[InitializedTemporalDate]]).
         let object = this.as_object();
@@ -1222,7 +1214,7 @@ impl PlainDateTime {
     /// [spec]: https://tc39.es/proposal-temporal/#sec-temporal.plaindatetime.prototype.subtract
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Temporal/PlainDateTime/subtract
     /// [temporal_rs-docs]: https://docs.rs/temporal_rs/latest/temporal_rs/struct.PlainDateTime.html#method.subtract
-    fn subtract(this: &JsValue, args: &[JsValue], context: &mut Context) -> JsResult<JsValue> {
+    fn subtract(this: &JsValue, args: &[JsValue], context: &Context) -> JsResult<JsValue> {
         // 1. Let temporalDate be the this value.
         // 2. Perform ? RequireInternalSlot(temporalDate, [[InitializedTemporalDate]]).
         let object = this.as_object();
@@ -1258,7 +1250,7 @@ impl PlainDateTime {
     /// [spec]: https://tc39.es/proposal-temporal/#sec-temporal.plaindatetime.prototype.until
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Temporal/PlainDateTime/until
     /// [temporal_rs-docs]: https://docs.rs/temporal_rs/latest/temporal_rs/struct.PlainDateTime.html#method.until
-    fn until(this: &JsValue, args: &[JsValue], context: &mut Context) -> JsResult<JsValue> {
+    fn until(this: &JsValue, args: &[JsValue], context: &Context) -> JsResult<JsValue> {
         let object = this.as_object();
         let dt = object
             .as_ref()
@@ -1286,7 +1278,7 @@ impl PlainDateTime {
     /// [spec]: https://tc39.es/proposal-temporal/#sec-temporal.plaindatetime.prototype.since
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Temporal/PlainDateTime/since
     /// [temporal_rs-docs]: https://docs.rs/temporal_rs/latest/temporal_rs/struct.PlainDateTime.html#method.since
-    fn since(this: &JsValue, args: &[JsValue], context: &mut Context) -> JsResult<JsValue> {
+    fn since(this: &JsValue, args: &[JsValue], context: &Context) -> JsResult<JsValue> {
         let object = this.as_object();
         let dt = object
             .as_ref()
@@ -1314,7 +1306,7 @@ impl PlainDateTime {
     /// [spec]: https://tc39.es/proposal-temporal/#sec-temporal.plaindatetime.prototype.round
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Temporal/PlainDateTime/round
     /// [temporal_rs-docs]: https://docs.rs/temporal_rs/latest/temporal_rs/struct.PlainDateTime.html#method.round
-    fn round(this: &JsValue, args: &[JsValue], context: &mut Context) -> JsResult<JsValue> {
+    fn round(this: &JsValue, args: &[JsValue], context: &Context) -> JsResult<JsValue> {
         let object = this.as_object();
         let dt = object
             .as_ref()
@@ -1383,7 +1375,7 @@ impl PlainDateTime {
     /// [spec]: https://tc39.es/proposal-temporal/#sec-temporal.plaindatetime.prototype.equals
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Temporal/PlainDateTime/equals
     /// [temporal_rs-docs]: https://docs.rs/temporal_rs/latest/temporal_rs/struct.PlainDateTime.html#impl-Eq-for-PlainDateTime
-    fn equals(this: &JsValue, args: &[JsValue], context: &mut Context) -> JsResult<JsValue> {
+    fn equals(this: &JsValue, args: &[JsValue], context: &Context) -> JsResult<JsValue> {
         // 1. Let dateTime be the this value.
         // 2. Perform ? RequireInternalSlot(dateTime, [[InitializedTemporalDateTime]]).
         let object = this.as_object();
@@ -1419,7 +1411,7 @@ impl PlainDateTime {
     /// [spec]: https://tc39.es/proposal-temporal/#sec-temporal.plaindatetime.prototype.with
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Temporal/PlainDateTime/with
     /// [temporal_rs-docs]: https://docs.rs/temporal_rs/latest/temporal_rs/struct.PlainDateTime.html#method.to_ixdtf_string
-    fn to_string(this: &JsValue, args: &[JsValue], context: &mut Context) -> JsResult<JsValue> {
+    fn to_string(this: &JsValue, args: &[JsValue], context: &Context) -> JsResult<JsValue> {
         let object = this.as_object();
         let dt = object
             .as_ref()
@@ -1458,7 +1450,7 @@ impl PlainDateTime {
     ///
     /// [spec]: https://tc39.es/proposal-temporal/#sec-temporal.plaindatetime.prototype.with
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Temporal/PlainDateTime/with
-    fn to_locale_string(this: &JsValue, _args: &[JsValue], _: &mut Context) -> JsResult<JsValue> {
+    fn to_locale_string(this: &JsValue, _args: &[JsValue], _: &Context) -> JsResult<JsValue> {
         // TODO: Update for ECMA-402 compliance
         let object = this.as_object();
         let dt = object
@@ -1483,7 +1475,7 @@ impl PlainDateTime {
     ///
     /// [spec]: https://tc39.es/proposal-temporal/#sec-temporal.plaindatetime.prototype.with
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Temporal/PlainDateTime/with
-    fn to_json(this: &JsValue, _: &[JsValue], _: &mut Context) -> JsResult<JsValue> {
+    fn to_json(this: &JsValue, _: &[JsValue], _: &Context) -> JsResult<JsValue> {
         let object = this.as_object();
         let dt = object
             .as_ref()
@@ -1507,7 +1499,7 @@ impl PlainDateTime {
     ///
     /// [spec]: https://tc39.es/proposal-temporal/#sec-temporal.plaindatetime.prototype.with
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Temporal/PlainDateTime/with
-    pub(crate) fn value_of(_this: &JsValue, _: &[JsValue], _: &mut Context) -> JsResult<JsValue> {
+    pub(crate) fn value_of(_this: &JsValue, _: &[JsValue], _: &Context) -> JsResult<JsValue> {
         Err(JsNativeError::typ()
             .with_message("`valueOf` not supported by Temporal built-ins. See 'compare', 'equals', or `toString`")
             .into())
@@ -1527,7 +1519,7 @@ impl PlainDateTime {
     fn to_zoned_date_time(
         this: &JsValue,
         args: &[JsValue],
-        context: &mut Context,
+        context: &Context,
     ) -> JsResult<JsValue> {
         // 1. Let dateTime be the this value.
         // 2. Perform ? RequireInternalSlot(dateTime, [[InitializedTemporalDateTime]]).
@@ -1569,7 +1561,7 @@ impl PlainDateTime {
     /// [spec]: https://tc39.es/proposal-temporal/#sec-temporal.plaindatetime.prototype.toplaindate
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Temporal/PlainDateTime/toPlainDate
     /// [temporal_rs-docs]: https://docs.rs/temporal_rs/latest/temporal_rs/struct.PlainDateTime.html#method.to_plain_date
-    fn to_plain_date(this: &JsValue, _: &[JsValue], context: &mut Context) -> JsResult<JsValue> {
+    fn to_plain_date(this: &JsValue, _: &[JsValue], context: &Context) -> JsResult<JsValue> {
         let object = this.as_object();
         let dt = object
             .as_ref()
@@ -1593,7 +1585,7 @@ impl PlainDateTime {
     /// [spec]: https://tc39.es/proposal-temporal/#sec-temporal.plaindatetime.prototype.toplaintime
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Temporal/PlainDateTime/toPlainTime
     /// [temporal_rs-docs]: https://docs.rs/temporal_rs/latest/temporal_rs/struct.PlainDateTime.html#method.to_plain_time
-    fn to_plain_time(this: &JsValue, _: &[JsValue], context: &mut Context) -> JsResult<JsValue> {
+    fn to_plain_time(this: &JsValue, _: &[JsValue], context: &Context) -> JsResult<JsValue> {
         let object = this.as_object();
         let dt = object
             .as_ref()
@@ -1612,7 +1604,7 @@ impl PlainDateTime {
 pub(crate) fn create_temporal_datetime(
     inner: InnerDateTime,
     new_target: Option<&JsValue>,
-    context: &mut Context,
+    context: &Context,
 ) -> JsResult<JsObject> {
     // NOTE(nekevss): The below validations should be upheld with the creation of `InnerDateTime`.
     // 1. If IsValidISODate(isoYear, isoMonth, isoDay) is false, throw a RangeError exception.
@@ -1659,7 +1651,7 @@ pub(crate) fn create_temporal_datetime(
 pub(crate) fn to_temporal_datetime(
     value: &JsValue,
     options: Option<JsValue>,
-    context: &mut Context,
+    context: &Context,
 ) -> JsResult<InnerDateTime> {
     // 1. If options is not present, set options to undefined.
     // 2. Let resolvedOptions be ? SnapshotOwnProperties(! GetOptionsObject(options), null).
@@ -1724,10 +1716,7 @@ pub(crate) fn to_temporal_datetime(
     Ok(date)
 }
 
-fn to_partial_datetime(
-    partial_object: &JsObject,
-    context: &mut Context,
-) -> JsResult<PartialDateTime> {
+fn to_partial_datetime(partial_object: &JsObject, context: &Context) -> JsResult<PartialDateTime> {
     let calendar = get_temporal_calendar_slot_value_with_default(partial_object, context)?;
     let fields = to_date_time_fields(partial_object, &calendar, context)?;
     Ok(PartialDateTime { fields, calendar })
@@ -1736,7 +1725,7 @@ fn to_partial_datetime(
 fn to_date_time_fields(
     partial_object: &JsObject,
     calendar: &Calendar,
-    context: &mut Context,
+    context: &Context,
 ) -> JsResult<DateTimeFields> {
     let day = partial_object
         .get(js_string!("day"), context)?

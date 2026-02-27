@@ -66,11 +66,7 @@ impl BuiltInConstructor for AsyncGeneratorFunction {
     ///  - [ECMAScript reference][spec]
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-asyncgeneratorfunction
-    fn constructor(
-        new_target: &JsValue,
-        args: &[JsValue],
-        context: &mut Context,
-    ) -> JsResult<JsValue> {
+    fn constructor(new_target: &JsValue, args: &[JsValue], context: &Context) -> JsResult<JsValue> {
         let active_function = context.active_function_object().unwrap_or_else(|| {
             context
                 .intrinsics()

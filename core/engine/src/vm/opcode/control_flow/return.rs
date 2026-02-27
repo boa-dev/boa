@@ -17,7 +17,7 @@ pub(crate) struct Return;
 
 impl Return {
     #[inline(always)]
-    pub(crate) fn operation((): (), context: &mut Context) -> ControlFlow<CompletionRecord> {
+    pub(crate) fn operation((): (), context: &Context) -> ControlFlow<CompletionRecord> {
         context.handle_return()
     }
 }
@@ -37,20 +37,20 @@ pub(crate) struct CheckReturn;
 
 impl CheckReturn {
     #[inline(always)]
-    pub(crate) fn operation((): (), context: &mut Context) -> ControlFlow<CompletionRecord> {
-        let frame = context.vm.frame();
-        if !frame.construct() {
+    pub(crate) fn operation((): (), context: &Context) -> ControlFlow<CompletionRecord> {
+        let vm = context.vm_mut();
+        if !vm.frame().construct() {
             return ControlFlow::Continue(());
         }
-        let this = &context.vm.stack.get_this(frame);
-        let result = context.vm.take_return_value();
+        let this = vm.stack.get_this(&vm.frame);
+        let result = vm.take_return_value();
 
         let result = if result.is_object() {
             result
         } else if !this.is_undefined() {
             this.clone()
         } else if !result.is_undefined() {
-            context.vm.pending_exception = Some(
+            context.vm_mut().pending_exception = Some(
                 // Avoid setting the realm here, since it needs to be set by the parent
                 // execution context.
                 JsNativeError::typ()
@@ -59,15 +59,15 @@ impl CheckReturn {
             );
             return context.handle_throw();
         } else {
-            let frame = context.vm.frame();
-            if frame.has_this_value_cached() {
-                this.clone()
+            let vm = context.vm_mut();
+            if vm.frame().has_this_value_cached() {
+                this
             } else {
-                match context.vm.frame.environments.get_this_binding() {
+                match context.vm_mut().frame.environments.get_this_binding() {
                     Err(err) => {
                         // Avoid setting the realm here, since it needs to be set by the parent
                         // execution context.
-                        context.vm.pending_exception = Some(err);
+                        context.vm_mut().pending_exception = Some(err);
                         return context.handle_throw();
                     }
                     Ok(Some(this)) => this,
@@ -76,7 +76,7 @@ impl CheckReturn {
             }
         };
 
-        context.vm.set_return_value(result);
+        context.vm_mut().set_return_value(result);
         ControlFlow::Continue(())
     }
 }
@@ -96,9 +96,10 @@ pub(crate) struct SetAccumulator;
 
 impl SetAccumulator {
     #[inline(always)]
-    pub(crate) fn operation(register: VaryingOperand, context: &mut Context) {
-        let value = context.vm.get_register(register.into());
-        context.vm.set_return_value(value.clone());
+    pub(crate) fn operation(register: VaryingOperand, context: &Context) {
+        let vm = context.vm_mut();
+        let value = vm.get_register(register.into()).clone();
+        vm.set_return_value(value);
     }
 }
 
@@ -117,9 +118,10 @@ pub(crate) struct Move;
 
 impl Move {
     #[inline(always)]
-    pub(crate) fn operation((dst, src): (VaryingOperand, VaryingOperand), context: &mut Context) {
-        let value = context.vm.get_register(src.into());
-        context.vm.set_register(dst.into(), value.clone());
+    pub(crate) fn operation((dst, src): (VaryingOperand, VaryingOperand), context: &Context) {
+        let vm = context.vm_mut();
+        let value = vm.get_register(src.into()).clone();
+        vm.set_register(dst.into(), value);
     }
 }
 
@@ -138,9 +140,9 @@ pub(crate) struct PopIntoRegister;
 
 impl PopIntoRegister {
     #[inline(always)]
-    pub(crate) fn operation(dst: VaryingOperand, context: &mut Context) {
-        let value = context.vm.stack.pop().clone();
-        context.vm.set_register(dst.into(), value);
+    pub(crate) fn operation(dst: VaryingOperand, context: &Context) {
+        let value = context.vm_mut().stack.pop().clone();
+        context.vm_mut().set_register(dst.into(), value);
     }
 }
 
@@ -159,9 +161,10 @@ pub(crate) struct PushFromRegister;
 
 impl PushFromRegister {
     #[inline(always)]
-    pub(crate) fn operation(dst: VaryingOperand, context: &mut Context) {
-        let value = context.vm.get_register(dst.into());
-        context.vm.stack.push(value.clone());
+    pub(crate) fn operation(dst: VaryingOperand, context: &Context) {
+        let vm = context.vm_mut();
+        let value = vm.get_register(dst.into()).clone();
+        vm.stack.push(value);
     }
 }
 
@@ -180,10 +183,10 @@ pub(crate) struct SetRegisterFromAccumulator;
 
 impl SetRegisterFromAccumulator {
     #[inline(always)]
-    pub(crate) fn operation(register: VaryingOperand, context: &mut Context) {
-        context
-            .vm
-            .set_register(register.into(), context.vm.get_return_value());
+    pub(crate) fn operation(register: VaryingOperand, context: &Context) {
+        let vm = context.vm_mut();
+        let return_value = vm.get_return_value();
+        vm.set_register(register.into(), return_value);
     }
 }
 

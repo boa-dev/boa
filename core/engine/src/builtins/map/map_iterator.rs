@@ -87,7 +87,7 @@ impl MapIterator {
     pub(crate) fn create_map_iterator(
         map: JsObject<OrderedMap<JsValue>>,
         kind: PropertyNameKind,
-        context: &mut Context,
+        context: &Context,
     ) -> JsValue {
         let iter = Self {
             iterated_map: Some(MapIteratorLock::new(map)),
@@ -110,7 +110,7 @@ impl MapIterator {
     ///  - [ECMA reference][spec]
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-%mapiteratorprototype%.next
-    pub(crate) fn next(this: &JsValue, _: &[JsValue], context: &mut Context) -> JsResult<JsValue> {
+    pub(crate) fn next(this: &JsValue, _: &[JsValue], context: &Context) -> JsResult<JsValue> {
         let object = this.as_object();
         let mut map_iterator = object
             .as_ref()

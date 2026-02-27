@@ -23,13 +23,13 @@ impl PushClassPrivateMethod {
             VaryingOperand,
             VaryingOperand,
         ),
-        context: &mut Context,
+        context: &Context,
     ) {
-        let object = context.vm.get_register(object.into()).clone();
-        let prototype = context.vm.get_register(prototype.into()).clone();
-        let value = context.vm.get_register(value.into()).clone();
+        let object = context.vm_mut().get_register(object.into()).clone();
+        let prototype = context.vm_mut().get_register(prototype.into()).clone();
+        let value = context.vm_mut().get_register(value.into()).clone();
         let name = context
-            .vm
+            .vm_mut()
             .frame()
             .code_block()
             .constant_string(index.into());
@@ -86,12 +86,12 @@ impl PushClassPrivateGetter {
     #[inline(always)]
     pub(crate) fn operation(
         (object, value, index): (VaryingOperand, VaryingOperand, VaryingOperand),
-        context: &mut Context,
+        context: &Context,
     ) {
-        let object = context.vm.get_register(object.into());
-        let value = context.vm.get_register(value.into());
-        let name = context
-            .vm
+        let vm = context.vm_mut();
+        let object = vm.get_register(object.into()).clone();
+        let value = vm.get_register(value.into()).clone();
+        let name = vm
             .frame()
             .code_block()
             .constant_string(index.into());
@@ -105,7 +105,7 @@ impl PushClassPrivateGetter {
             .push_private_method(
                 object.private_name(name),
                 PrivateElement::Accessor {
-                    getter: Some(value.clone()),
+                    getter: Some(value),
                     setter: None,
                 },
             );
@@ -129,12 +129,12 @@ impl PushClassPrivateSetter {
     #[inline(always)]
     pub(crate) fn operation(
         (object, value, index): (VaryingOperand, VaryingOperand, VaryingOperand),
-        context: &mut Context,
+        context: &Context,
     ) {
-        let object = context.vm.get_register(object.into());
-        let value = context.vm.get_register(value.into());
-        let name = context
-            .vm
+        let vm = context.vm_mut();
+        let object = vm.get_register(object.into()).clone();
+        let value = vm.get_register(value.into()).clone();
+        let name = vm
             .frame()
             .code_block()
             .constant_string(index.into());
@@ -149,7 +149,7 @@ impl PushClassPrivateSetter {
                 object.private_name(name),
                 PrivateElement::Accessor {
                     getter: None,
-                    setter: Some(value.clone()),
+                    setter: Some(value),
                 },
             );
     }

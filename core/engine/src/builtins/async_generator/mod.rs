@@ -113,11 +113,7 @@ impl AsyncGenerator {
     ///  - [ECMAScript reference][spec]
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-asyncgenerator-prototype-next
-    pub(crate) fn next(
-        this: &JsValue,
-        args: &[JsValue],
-        context: &mut Context,
-    ) -> JsResult<JsValue> {
+    pub(crate) fn next(this: &JsValue, args: &[JsValue], context: &Context) -> JsResult<JsValue> {
         // 1. Let generator be the this value.
         let generator = this;
 
@@ -188,7 +184,7 @@ impl AsyncGenerator {
     pub(crate) fn r#return(
         this: &JsValue,
         args: &[JsValue],
-        context: &mut Context,
+        context: &Context,
     ) -> JsResult<JsValue> {
         // 1. Let generator be the this value.
         let generator = this;
@@ -251,11 +247,7 @@ impl AsyncGenerator {
     ///  - [ECMAScript reference][spec]
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-asyncgenerator-prototype-throw
-    pub(crate) fn throw(
-        this: &JsValue,
-        args: &[JsValue],
-        context: &mut Context,
-    ) -> JsResult<JsValue> {
+    pub(crate) fn throw(this: &JsValue, args: &[JsValue], context: &Context) -> JsResult<JsValue> {
         // 1. Let generator be the this value.
         let generator = this;
 
@@ -370,7 +362,7 @@ impl AsyncGenerator {
         completion: JsResult<JsValue>,
         done: bool,
         realm: Option<Realm>,
-        context: &mut Context,
+        context: &Context,
     ) -> JsResult<()> {
         // 1. Assert: generator.[[AsyncGeneratorQueue]] is not empty.
         // 2. Let next be the first element of generator.[[AsyncGeneratorQueue]].
@@ -442,7 +434,7 @@ impl AsyncGenerator {
     pub(crate) fn resume(
         generator: &JsObject<AsyncGenerator>,
         completion: CompletionRecord,
-        context: &mut Context,
+        context: &Context,
     ) -> JsResult<()> {
         // 1. Assert: generator.[[AsyncGeneratorState]] is either suspended-start or suspended-yield.
         assert!(matches!(
@@ -497,7 +489,7 @@ impl AsyncGenerator {
     pub(crate) fn await_return(
         generator: &JsObject<AsyncGenerator>,
         value: JsValue,
-        context: &mut Context,
+        context: &Context,
     ) -> JsResult<()> {
         // 1. Assert: generator.[[AsyncGeneratorState]] is draining-queue.
         assert_eq!(
@@ -622,7 +614,7 @@ impl AsyncGenerator {
     /// [spec]: https://tc39.es/ecma262/#sec-asyncgeneratordrainqueue
     pub(crate) fn drain_queue(
         generator: &JsObject<AsyncGenerator>,
-        context: &mut Context,
+        context: &Context,
     ) -> JsResult<()> {
         // 1. Assert: generator.[[AsyncGeneratorState]] is draining-queue.
         assert_eq!(

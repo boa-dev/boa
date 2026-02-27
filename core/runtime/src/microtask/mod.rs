@@ -17,7 +17,7 @@ pub mod js_module {
     /// the browser's event loop.
     ///
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/API/Window/queueMicrotask
-    pub fn queue_microtask(callback: JsFunction, context: &mut Context) {
+    pub fn queue_microtask(callback: JsFunction, context: &Context) {
         context.enqueue_job(Job::from(PromiseJob::new(move |context| {
             callback.call(&JsValue::undefined(), &[], context)
         })));
@@ -28,6 +28,6 @@ pub mod js_module {
 ///
 /// # Errors
 /// Returns an error if the microtask extension cannot be registered.
-pub fn register(realm: Option<Realm>, context: &mut Context) -> JsResult<()> {
+pub fn register(realm: Option<Realm>, context: &Context) -> JsResult<()> {
     js_module::boa_register(realm, context)
 }

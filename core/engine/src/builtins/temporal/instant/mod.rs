@@ -132,11 +132,7 @@ impl BuiltInConstructor for Instant {
     const STANDARD_CONSTRUCTOR: fn(&StandardConstructors) -> &StandardConstructor =
         StandardConstructors::instant;
 
-    fn constructor(
-        new_target: &JsValue,
-        args: &[JsValue],
-        context: &mut Context,
-    ) -> JsResult<JsValue> {
+    fn constructor(new_target: &JsValue, args: &[JsValue], context: &Context) -> JsResult<JsValue> {
         // 1. If NewTarget is undefined, then
         if new_target.is_undefined() {
             // a. Throw a TypeError exception.
@@ -168,7 +164,7 @@ impl Instant {
     ///
     /// [spec]: https://tc39.es/proposal-temporal/#sec-temporal.instant.from
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Temporal/Instant/from
-    pub(crate) fn from(_: &JsValue, args: &[JsValue], context: &mut Context) -> JsResult<JsValue> {
+    pub(crate) fn from(_: &JsValue, args: &[JsValue], context: &Context) -> JsResult<JsValue> {
         // 1. If item is an Object and item has an [[InitializedTemporalInstant]] internal slot, then
         // a. Return ! CreateTemporalInstant(item.[[Nanoseconds]]).
         // 2. Return ? ToTemporalInstant(item).
@@ -193,7 +189,7 @@ impl Instant {
     pub(crate) fn from_epoch_milliseconds(
         _: &JsValue,
         args: &[JsValue],
-        context: &mut Context,
+        context: &Context,
     ) -> JsResult<JsValue> {
         // 1. Set epochMilliseconds to ? ToNumber(epochMilliseconds).
         let epoch_millis_f64 = args.get_or_undefined(0).to_number(context)?;
@@ -226,7 +222,7 @@ impl Instant {
     pub(crate) fn from_epoch_nanoseconds(
         _: &JsValue,
         args: &[JsValue],
-        context: &mut Context,
+        context: &Context,
     ) -> JsResult<JsValue> {
         // 1. Set epochNanoseconds to ? ToBigInt(epochNanoseconds).
         let epoch_nanos = args.get_or_undefined(0).to_bigint(context)?;
@@ -251,11 +247,7 @@ impl Instant {
     /// [spec]: https://tc39.es/proposal-temporal/#sec-temporal.instant.compare
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Temporal/Instant/compare
     /// [temporal_rs-docs]: https://docs.rs/temporal_rs/latest/temporal_rs/struct.Instant.html#impl-PartialOrd-for-Instant
-    pub(crate) fn compare(
-        _: &JsValue,
-        args: &[JsValue],
-        context: &mut Context,
-    ) -> JsResult<JsValue> {
+    pub(crate) fn compare(_: &JsValue, args: &[JsValue], context: &Context) -> JsResult<JsValue> {
         // 1. Set one to ? ToTemporalInstant(one).
         let one = to_temporal_instant(args.get_or_undefined(0), context)?;
         // 2. Set two to ? ToTemporalInstant(two).
@@ -282,7 +274,7 @@ impl Instant {
     pub(crate) fn get_epoch_milliseconds(
         this: &JsValue,
         _: &[JsValue],
-        _: &mut Context,
+        _: &Context,
     ) -> JsResult<JsValue> {
         // 1. Let instant be the this value.
         // 2. Perform ? RequireInternalSlot(instant, [[InitializedTemporalInstant]]).
@@ -313,7 +305,7 @@ impl Instant {
     pub(crate) fn get_epoch_nanoseconds(
         this: &JsValue,
         _: &[JsValue],
-        _: &mut Context,
+        _: &Context,
     ) -> JsResult<JsValue> {
         // 1. Let instant be the this value.
         // 2. Perform ? RequireInternalSlot(instant, [[InitializedTemporalInstant]]).
@@ -344,11 +336,7 @@ impl Instant {
     /// [spec]: https://tc39.es/proposal-temporal/#sec-temporal.instant.add
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Temporal/Instant/add
     /// [temporal_rs-docs]: https://docs.rs/temporal_rs/latest/temporal_rs/struct.Instant.html#method.add
-    pub(crate) fn add(
-        this: &JsValue,
-        args: &[JsValue],
-        context: &mut Context,
-    ) -> JsResult<JsValue> {
+    pub(crate) fn add(this: &JsValue, args: &[JsValue], context: &Context) -> JsResult<JsValue> {
         // 1. Let instant be the this value.
         // 2. Perform ? RequireInternalSlot(instant, [[InitializedTemporalInstant]]).
         let object = this.as_object();
@@ -380,7 +368,7 @@ impl Instant {
     pub(crate) fn subtract(
         this: &JsValue,
         args: &[JsValue],
-        context: &mut Context,
+        context: &Context,
     ) -> JsResult<JsValue> {
         // 1. Let instant be the this value.
         // 2. Perform ? RequireInternalSlot(instant, [[InitializedTemporalInstant]]).
@@ -410,11 +398,7 @@ impl Instant {
     /// [spec]: https://tc39.es/proposal-temporal/#sec-temporal.instant.until
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Temporal/Instant/until
     /// [temporal_rs-docs]: https://docs.rs/temporal_rs/latest/temporal_rs/struct.Instant.html#method.until
-    pub(crate) fn until(
-        this: &JsValue,
-        args: &[JsValue],
-        context: &mut Context,
-    ) -> JsResult<JsValue> {
+    pub(crate) fn until(this: &JsValue, args: &[JsValue], context: &Context) -> JsResult<JsValue> {
         // 1. Let instant be the this value.
         // 2. Perform ? RequireInternalSlot(instant, [[InitializedTemporalInstant]]).
         let object = this.as_object();
@@ -446,11 +430,7 @@ impl Instant {
     /// [spec]: https://tc39.es/proposal-temporal/#sec-temporal.instant.since
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Temporal/Instant/since
     /// [temporal_rs-docs]: https://docs.rs/temporal_rs/latest/temporal_rs/struct.Instant.html#method.since
-    pub(crate) fn since(
-        this: &JsValue,
-        args: &[JsValue],
-        context: &mut Context,
-    ) -> JsResult<JsValue> {
+    pub(crate) fn since(this: &JsValue, args: &[JsValue], context: &Context) -> JsResult<JsValue> {
         // 1. Let instant be the this value.
         // 2. Perform ? RequireInternalSlot(instant, [[InitializedTemporalInstant]]).
         let object = this.as_object();
@@ -480,11 +460,7 @@ impl Instant {
     /// [spec]: https://tc39.es/proposal-temporal/#sec-temporal.instant.round
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Temporal/Instant/round
     /// [temporal_rs-docs]: https://docs.rs/temporal_rs/latest/temporal_rs/struct.Instant.html#method.round
-    pub(crate) fn round(
-        this: &JsValue,
-        args: &[JsValue],
-        context: &mut Context,
-    ) -> JsResult<JsValue> {
+    pub(crate) fn round(this: &JsValue, args: &[JsValue], context: &Context) -> JsResult<JsValue> {
         // 1. Let instant be the this value.
         // 2. Perform ? RequireInternalSlot(instant, [[InitializedTemporalInstant]]).
         let object = this.as_object();
@@ -580,11 +556,7 @@ impl Instant {
     /// [spec]: https://tc39.es/proposal-temporal/#sec-temporal.instant.equals
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Temporal/Instant/equals
     /// [temporal_rs-docs]: https://docs.rs/temporal_rs/latest/temporal_rs/struct.Instant.html#impl-PartialEq-for-Instant
-    pub(crate) fn equals(
-        this: &JsValue,
-        args: &[JsValue],
-        context: &mut Context,
-    ) -> JsResult<JsValue> {
+    pub(crate) fn equals(this: &JsValue, args: &[JsValue], context: &Context) -> JsResult<JsValue> {
         // 1. Let instant be the this value.
         // 2. Perform ? RequireInternalSlot(instant, [[InitializedTemporalInstant]]).
         // 4. If instant.[[Nanoseconds]] ≠ other.[[Nanoseconds]], return false.
@@ -618,7 +590,7 @@ impl Instant {
     /// [spec]: https://tc39.es/proposal-temporal/#sec-temporal.instant.tostring
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Temporal/Instant/toString
     /// [temporal_rs-docs]: https://docs.rs/temporal_rs/latest/temporal_rs/struct.Instant.html#method.to_ixdtf_string
-    fn to_string(this: &JsValue, args: &[JsValue], context: &mut Context) -> JsResult<JsValue> {
+    fn to_string(this: &JsValue, args: &[JsValue], context: &Context) -> JsResult<JsValue> {
         let object = this.as_object();
         let instant = object
             .as_ref()
@@ -664,7 +636,7 @@ impl Instant {
     ///
     /// [spec]: https://tc39.es/proposal-temporal/#sec-temporal.instant.tolocalestring
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Temporal/Instant/toLocaleString
-    fn to_locale_string(this: &JsValue, _: &[JsValue], context: &mut Context) -> JsResult<JsValue> {
+    fn to_locale_string(this: &JsValue, _: &[JsValue], context: &Context) -> JsResult<JsValue> {
         // TODO: Update for ECMA-402 compliance
         let object = this.as_object();
         let instant = object
@@ -692,7 +664,7 @@ impl Instant {
     ///
     /// [spec]: https://tc39.es/proposal-temporal/#sec-temporal.instant.tojson
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Temporal/Instant/toJSON
-    fn to_json(this: &JsValue, _: &[JsValue], context: &mut Context) -> JsResult<JsValue> {
+    fn to_json(this: &JsValue, _: &[JsValue], context: &Context) -> JsResult<JsValue> {
         let object = this.as_object();
         let instant = object
             .as_ref()
@@ -719,7 +691,7 @@ impl Instant {
     ///
     /// [spec]: https://tc39.es/proposal-temporal/#sec-temporal.instant.valueof
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Temporal/Instant/valueOf
-    fn value_of(_this: &JsValue, _: &[JsValue], _: &mut Context) -> JsResult<JsValue> {
+    fn value_of(_this: &JsValue, _: &[JsValue], _: &Context) -> JsResult<JsValue> {
         Err(JsNativeError::typ()
             .with_message("`valueOf` not supported by Temporal built-ins. See 'compare', 'equals', or `toString`")
             .into())
@@ -739,7 +711,7 @@ impl Instant {
     pub(crate) fn to_zoned_date_time_iso(
         this: &JsValue,
         args: &[JsValue],
-        context: &mut Context,
+        context: &Context,
     ) -> JsResult<JsValue> {
         // 1. Let instant be the this value.
         // 2. Perform ? RequireInternalSlot(instant, [[InitializedTemporalInstant]]).
@@ -770,7 +742,7 @@ impl Instant {
 pub(crate) fn create_temporal_instant(
     instant: InnerInstant,
     new_target: Option<JsValue>,
-    context: &mut Context,
+    context: &Context,
 ) -> JsResult<JsValue> {
     // 1. Assert: ! IsValidEpochNanoseconds(epochNanoseconds) is true.
     // 2. If newTarget is not present, set newTarget to %Temporal.Instant%.
@@ -796,7 +768,7 @@ pub(crate) fn create_temporal_instant(
 
 /// 8.5.3 `ToTemporalInstant ( item )`
 #[inline]
-fn to_temporal_instant(item: &JsValue, context: &mut Context) -> JsResult<InnerInstant> {
+fn to_temporal_instant(item: &JsValue, context: &Context) -> JsResult<InnerInstant> {
     // 1.If item is an Object, then
     let item = if let Some(obj) = item.as_object() {
         // a. If item has an [[InitializedTemporalInstant]] internal slot, then

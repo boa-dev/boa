@@ -13,13 +13,13 @@ pub(crate) struct PushEmptyObject;
 
 impl PushEmptyObject {
     #[inline(always)]
-    pub(crate) fn operation(dst: VaryingOperand, context: &mut Context) {
+    pub(crate) fn operation(dst: VaryingOperand, context: &Context) {
         let o = context
             .intrinsics()
             .templates()
             .ordinary_object()
             .create(OrdinaryObject, Vec::default());
-        context.vm.set_register(dst.into(), o.into());
+        context.vm_mut().set_register(dst.into(), o.into());
     }
 }
 

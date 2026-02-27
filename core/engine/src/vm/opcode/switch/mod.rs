@@ -13,12 +13,12 @@ impl Case {
     #[inline(always)]
     pub(super) fn operation(
         (address, value, condition): (u32, VaryingOperand, VaryingOperand),
-        context: &mut Context,
+        context: &Context,
     ) {
-        let value = context.vm.get_register(value.into());
-        let condition = context.vm.get_register(condition.into());
-        if value.strict_equals(condition) {
-            context.vm.frame_mut().pc = address;
+        let vm = context.vm_mut();
+        let equals = vm.get_register(value.into()).strict_equals(vm.get_register(condition.into()));
+        if equals {
+            vm.frame_mut().pc = address;
         }
     }
 }

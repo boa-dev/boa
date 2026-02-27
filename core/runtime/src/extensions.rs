@@ -14,7 +14,7 @@ pub trait RuntimeExtension: Debug {
     /// # Errors
     /// This should error if the extension was not able to register classes, modules or
     /// functions in the context.
-    fn register(self, realm: Option<Realm>, context: &mut Context) -> JsResult<()>;
+    fn register(self, realm: Option<Realm>, context: &Context) -> JsResult<()>;
 }
 
 /// Register the Timeout/Interval functions.
@@ -22,7 +22,7 @@ pub trait RuntimeExtension: Debug {
 pub struct TimeoutExtension;
 
 impl RuntimeExtension for TimeoutExtension {
-    fn register(self, _realm: Option<Realm>, context: &mut Context) -> JsResult<()> {
+    fn register(self, _realm: Option<Realm>, context: &Context) -> JsResult<()> {
         crate::interval::register(context)
     }
 }
@@ -32,7 +32,7 @@ impl RuntimeExtension for TimeoutExtension {
 pub struct MicrotaskExtension;
 
 impl RuntimeExtension for MicrotaskExtension {
-    fn register(self, realm: Option<Realm>, context: &mut Context) -> JsResult<()> {
+    fn register(self, realm: Option<Realm>, context: &Context) -> JsResult<()> {
         crate::microtask::register(realm, context)
     }
 }
@@ -42,7 +42,7 @@ impl RuntimeExtension for MicrotaskExtension {
 pub struct EncodingExtension;
 
 impl RuntimeExtension for EncodingExtension {
-    fn register(self, realm: Option<Realm>, context: &mut Context) -> JsResult<()> {
+    fn register(self, realm: Option<Realm>, context: &Context) -> JsResult<()> {
         crate::text::register(realm, context)?;
         Ok(())
     }
@@ -53,7 +53,7 @@ impl RuntimeExtension for EncodingExtension {
 pub struct StructuredCloneExtension;
 
 impl RuntimeExtension for StructuredCloneExtension {
-    fn register(self, realm: Option<Realm>, context: &mut Context) -> JsResult<()> {
+    fn register(self, realm: Option<Realm>, context: &Context) -> JsResult<()> {
         crate::clone::register(realm, context)
     }
 }
@@ -65,7 +65,7 @@ pub struct UrlExtension;
 
 #[cfg(feature = "url")]
 impl RuntimeExtension for UrlExtension {
-    fn register(self, realm: Option<Realm>, context: &mut Context) -> JsResult<()> {
+    fn register(self, realm: Option<Realm>, context: &Context) -> JsResult<()> {
         crate::url::Url::register(realm, context)
     }
 }
@@ -82,7 +82,7 @@ impl Default for ConsoleExtension<DefaultLogger> {
 }
 
 impl<L: Logger + Debug + 'static> RuntimeExtension for ConsoleExtension<L> {
-    fn register(self, _realm: Option<Realm>, context: &mut Context) -> JsResult<()> {
+    fn register(self, _realm: Option<Realm>, context: &Context) -> JsResult<()> {
         crate::console::Console::register_with_logger(self.0, context)
     }
 }
@@ -94,7 +94,7 @@ pub struct ProcessExtension;
 
 #[cfg(feature = "process")]
 impl RuntimeExtension for ProcessExtension {
-    fn register(self, _realm: Option<Realm>, context: &mut Context) -> JsResult<()> {
+    fn register(self, _realm: Option<Realm>, context: &Context) -> JsResult<()> {
         crate::process::Process::register(context)
     }
 }
@@ -106,7 +106,7 @@ pub struct FetchExtension<F: crate::fetch::Fetcher>(pub F);
 
 #[cfg(feature = "fetch")]
 impl<F: crate::fetch::Fetcher + Debug + 'static> RuntimeExtension for FetchExtension<F> {
-    fn register(self, realm: Option<Realm>, context: &mut Context) -> JsResult<()> {
+    fn register(self, realm: Option<Realm>, context: &Context) -> JsResult<()> {
         crate::fetch::register(self.0, realm, context)
     }
 }
@@ -119,7 +119,7 @@ pub struct PostMessageExtension<S: crate::message::MessageSender>(pub S);
 impl<S: crate::message::MessageSender + Debug + 'static> RuntimeExtension
     for PostMessageExtension<S>
 {
-    fn register(self, realm: Option<Realm>, context: &mut Context) -> JsResult<()> {
+    fn register(self, realm: Option<Realm>, context: &Context) -> JsResult<()> {
         crate::message::register(self.0, realm, context)
     }
 }
@@ -127,7 +127,7 @@ impl<S: crate::message::MessageSender + Debug + 'static> RuntimeExtension
 macro_rules! decl_runtime_ext_tuple {
     ($first_name: ident : $first_type: ident) => {
         impl<$first_type: RuntimeExtension> RuntimeExtension for ($first_type,) {
-            fn register(self, realm: Option<Realm>, context: &mut Context) -> JsResult<()> {
+            fn register(self, realm: Option<Realm>, context: &Context) -> JsResult<()> {
                 RuntimeExtension::register(self.0, realm.clone(), context)?;
                 Ok(())
             }
@@ -135,7 +135,7 @@ macro_rules! decl_runtime_ext_tuple {
     };
     ($first_name: ident : $first_type: ident, $($name: ident : $type: ident),*) => {
         impl<$first_type: RuntimeExtension, $($type: RuntimeExtension),*> RuntimeExtension for ($first_type, $($type),*) {
-            fn register(self, realm: Option<Realm>, context: &mut Context) -> JsResult<()> {
+            fn register(self, realm: Option<Realm>, context: &Context) -> JsResult<()> {
                 let ($first_name, $($name),*) = self;
                 RuntimeExtension::register($first_name, realm.clone(), context)?;
                 $( RuntimeExtension::register($name, realm.clone(), context)?; )*

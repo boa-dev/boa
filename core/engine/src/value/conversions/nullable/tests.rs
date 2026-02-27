@@ -4,7 +4,7 @@ use boa_engine::{Context, JsResult, JsValue};
 
 #[test]
 fn not_null() {
-    let context = &mut Context::default();
+    let context = &Context::default();
     let v: Nullable<i32> = JsValue::new(42)
         .try_js_into(context)
         .expect("Failed to convert value from js");
@@ -18,7 +18,7 @@ fn not_null() {
 
 #[test]
 fn null() {
-    let context = &mut Context::default();
+    let context = &Context::default();
     let v: Nullable<i32> = JsValue::null()
         .try_js_into(context)
         .expect("Failed to convert value from js");
@@ -32,7 +32,7 @@ fn null() {
 
 #[test]
 fn invalid() {
-    let context = &mut Context::default();
+    let context = &Context::default();
     let v: JsResult<Nullable<i32>> = JsValue::undefined().try_js_into(context);
 
     assert!(v.is_err());

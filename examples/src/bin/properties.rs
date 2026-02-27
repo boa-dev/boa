@@ -6,14 +6,14 @@ use boa_engine::{
 
 fn main() -> Result<(), JsError> {
     // We create a new `Context` to create a new Javascript executor.
-    let mut context = Context::default();
+    let context = Context::default();
 
     let value = context.eval(Source::from_bytes("({ x: 10, '1': 20 })"))?;
     let object = value
         .as_object()
         .ok_or_else(|| JsNativeError::typ().with_message("Expected object"))?;
 
-    let keys = object.own_property_keys(&mut context)?;
+    let keys = object.own_property_keys(&context)?;
 
     assert_eq!(
         keys,
@@ -22,7 +22,7 @@ fn main() -> Result<(), JsError> {
 
     let mut values = Vec::new();
     for key in keys {
-        values.push(object.get(key, &mut context)?);
+        values.push(object.get(key, &context)?);
     }
 
     assert_eq!(values, &[JsValue::from(20), JsValue::from(10)]);

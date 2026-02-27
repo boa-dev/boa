@@ -7,7 +7,7 @@ use boa_engine::{Context, Source, property::Attribute};
 use boa_runtime::Console;
 
 /// Adds the custom runtime to the context.
-fn add_runtime(context: &mut Context) {
+fn add_runtime(context: &Context) {
     // We first add the `console` object, to be able to call `console.log()`.
     let console = Console::init(context);
     context
@@ -21,9 +21,9 @@ fn main() -> Result<(), Box<dyn Error>> {
     let source = Source::from_filepath(Path::new(js_file_path))?;
 
     // Instantiate the execution context
-    let mut context = Context::default();
+    let context = Context::default();
     // Add the runtime intrinsics
-    add_runtime(&mut context);
+    add_runtime(&context);
     // Parse the source code and print the result
     println!("{}", context.eval(source)?.display());
 

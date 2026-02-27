@@ -267,7 +267,7 @@ impl Module {
     pub fn parse<R: ReadChar>(
         src: Source<'_, R>,
         realm: Option<Realm>,
-        context: &mut Context,
+        context: &Context,
     ) -> JsResult<Self> {
         let path = src.path().map(Path::to_path_buf);
         let realm = realm.unwrap_or_else(|| context.realm().clone());
@@ -303,7 +303,7 @@ impl Module {
         evaluation_steps: SyntheticModuleInitializer,
         path: Option<PathBuf>,
         realm: Option<Realm>,
-        context: &mut Context,
+        context: &Context,
     ) -> Self {
         let names = export_names.iter().cloned().collect();
         let realm = realm.unwrap_or_else(|| context.realm().clone());
@@ -322,7 +322,7 @@ impl Module {
 
     /// Create a [`Module`] from a `JsValue`, exporting that value as the default export.
     /// This will clone the module everytime it is initialized.
-    pub fn from_value_as_default(value: JsValue, context: &mut Context) -> Self {
+    pub fn from_value_as_default(value: JsValue, context: &Context) -> Self {
         Module::synthetic(
             &[js_string!("default")],
             SyntheticModuleInitializer::from_copy_closure_with_captures(
@@ -350,7 +350,7 @@ impl Module {
     ///
     /// # Errors
     /// This will return an error if the JSON string is invalid or cannot be converted.
-    pub fn parse_json(json: JsString, context: &mut Context) -> JsResult<Self> {
+    pub fn parse_json(json: JsString, context: &Context) -> JsResult<Self> {
         let value = builtins::Json::parse(&JsValue::undefined(), &[json.into()], context)?;
         Ok(Self::from_value_as_default(value, context))
     }
@@ -392,7 +392,7 @@ impl Module {
     /// [spec]: https://tc39.es/ecma262/#table-abstract-methods-of-module-records
     #[allow(clippy::missing_panics_doc)]
     #[inline]
-    pub fn load(&self, context: &mut Context) -> JsPromise {
+    pub fn load(&self, context: &Context) -> JsPromise {
         match self.kind() {
             ModuleKind::SourceText(_) => {
                 // Concrete method [`LoadRequestedModules ( [ hostDefined ] )`][spec].
@@ -435,7 +435,7 @@ impl Module {
     /// Abstract operation [`InnerModuleLoading`][spec].
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-InnerModuleLoading
-    fn inner_load(&self, state: &Rc<GraphLoadingState>, context: &mut Context) {
+    fn inner_load(&self, state: &Rc<GraphLoadingState>, context: &Context) {
         // 1. Assert: state.[[IsLoading]] is true.
         assert!(state.loading.get());
 
@@ -529,7 +529,7 @@ impl Module {
     /// [spec]: https://tc39.es/ecma262/#table-abstract-methods-of-module-records
     #[allow(clippy::missing_panics_doc)]
     #[inline]
-    pub fn link(&self, context: &mut Context) -> JsResult<()> {
+    pub fn link(&self, context: &Context) -> JsResult<()> {
         match self.kind() {
             ModuleKind::SourceText(src) => src.link(self, context),
             ModuleKind::Synthetic(synth) => {
@@ -546,7 +546,7 @@ impl Module {
         &self,
         stack: &mut Vec<Module>,
         index: usize,
-        context: &mut Context,
+        context: &Context,
     ) -> JsResult<usize> {
         match self.kind() {
             ModuleKind::SourceText(src) => src.inner_link(self, stack, index, context),
@@ -573,7 +573,7 @@ impl Module {
     ///
     /// [spec]: https://tc39.es/ecma262/#table-abstract-methods-of-module-records
     #[inline]
-    pub fn evaluate(&self, context: &mut Context) -> JsResult<JsPromise> {
+    pub fn evaluate(&self, context: &Context) -> JsResult<JsPromise> {
         match self.kind() {
             ModuleKind::SourceText(src) => src.evaluate(self, context),
             ModuleKind::Synthetic(synth) => synth.evaluate(self, context),
@@ -587,7 +587,7 @@ impl Module {
         &self,
         stack: &mut Vec<Module>,
         index: usize,
-        context: &mut Context,
+        context: &Context,
     ) -> JsResult<usize> {
         match self.kind() {
             ModuleKind::SourceText(src) => src.inner_evaluate(self, stack, index, None, context),
@@ -620,7 +620,7 @@ impl Module {
     /// # use boa_engine::builtins::promise::PromiseState;
     /// # use boa_engine::module::{ModuleLoader, SimpleModuleLoader};
     /// let loader = Rc::new(SimpleModuleLoader::new(Path::new(".")).unwrap());
-    /// let mut context = &mut Context::builder()
+    /// let mut context = &Context::builder()
     ///     .module_loader(loader.clone())
     ///     .build()
     ///     .unwrap();
@@ -642,7 +642,7 @@ impl Module {
     /// ```
     #[allow(dropping_copy_types)]
     #[inline]
-    pub fn load_link_evaluate(&self, context: &mut Context) -> JsPromise {
+    pub fn load_link_evaluate(&self, context: &Context) -> JsPromise {
         self.load(context)
             .then(
                 Some(
@@ -677,7 +677,7 @@ impl Module {
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-getmodulenamespace
     /// [ns]: https://tc39.es/ecma262/#sec-module-namespace-exotic-objects
-    pub fn namespace(&self, context: &mut Context) -> JsObject {
+    pub fn namespace(&self, context: &Context) -> JsObject {
         // 1. Assert: If module is a Cyclic Module Record, then module.[[Status]] is not new or unlinked.
         // 2. Let namespace be module.[[Namespace]].
         // 3. If namespace is empty, then
@@ -715,7 +715,7 @@ impl Module {
 
     /// Get an exported value from the module.
     #[inline]
-    pub fn get_value<K>(&self, name: K, context: &mut Context) -> JsResult<JsValue>
+    pub fn get_value<K>(&self, name: K, context: &Context) -> JsResult<JsValue>
     where
         K: Into<PropertyKey>,
     {
@@ -729,7 +729,7 @@ impl Module {
     pub fn get_typed_fn<A, R>(
         &self,
         name: JsString,
-        context: &mut Context,
+        context: &Context,
     ) -> JsResult<TypedJsFunction<A, R>>
     where
         A: crate::object::TryIntoJsArguments,
@@ -768,11 +768,11 @@ impl Hash for Module {
 /// A trait to convert a type into a JS module.
 pub trait IntoJsModule {
     /// Converts the type into a JS module.
-    fn into_js_module(self, context: &mut Context) -> Module;
+    fn into_js_module(self, context: &Context) -> Module;
 }
 
 impl<T: IntoIterator<Item = (JsString, NativeFunction)> + Clone> IntoJsModule for T {
-    fn into_js_module(self, context: &mut Context) -> Module {
+    fn into_js_module(self, context: &Context) -> Module {
         let (names, fns): (Vec<_>, Vec<_>) = self.into_iter().unzip();
         let exports = names.clone();
 
@@ -808,7 +808,7 @@ fn into_js_module() {
     type ResultType = Gc<GcRefCell<JsValue>>;
 
     let loader = Rc::new(MapModuleLoader::default());
-    let mut context = Context::builder()
+    let context = Context::builder()
         .module_loader(loader.clone())
         .build()
         .unwrap();
@@ -831,7 +831,7 @@ fn into_js_module() {
                         *counter.borrow()
                     }
                 }
-                .into_js_function_unsafe(&mut context),
+                .into_js_function_unsafe(&context),
             ),
             (
                 js_string!("bar"),
@@ -842,7 +842,7 @@ fn into_js_module() {
                             *counter.borrow_mut() += i;
                         }
                     },
-                    &mut context,
+                    &context,
                 ),
             ),
             (
@@ -850,14 +850,14 @@ fn into_js_module() {
                 UnsafeIntoJsFunction::into_js_function_unsafe(
                     {
                         let counter = dad_count.clone();
-                        move |args: JsRest<'_>, context: &mut Context| {
+                        move |args: JsRest<'_>, context: &Context| {
                             *counter.borrow_mut() += args
                                 .into_iter()
                                 .map(|i| i.try_js_into::<i32>(context).unwrap())
                                 .sum::<i32>();
                         }
                     },
-                    &mut context,
+                    &context,
                 ),
             ),
             (
@@ -865,11 +865,11 @@ fn into_js_module() {
                 (move |value: JsValue, ContextData(result): ContextData<ResultType>| {
                     *result.borrow_mut() = value;
                 })
-                .into_js_function_copied(&mut context),
+                .into_js_function_copied(&context),
             ),
         ]
     }
-    .into_js_module(&mut context);
+    .into_js_module(&context);
 
     loader.insert("test", module);
 
@@ -888,9 +888,9 @@ fn into_js_module() {
             test.send(result);
         ",
     );
-    let root_module = Module::parse(source, None, &mut context).unwrap();
+    let root_module = Module::parse(source, None, &context).unwrap();
 
-    let promise_result = root_module.load_link_evaluate(&mut context);
+    let promise_result = root_module.load_link_evaluate(&context);
     context.run_jobs().unwrap();
 
     // Checking if the final promise didn't return an error.
@@ -905,7 +905,7 @@ fn into_js_module() {
     assert_eq!(*foo_count.borrow(), 2);
     assert_eq!(*bar_count.borrow(), 15);
     assert_eq!(*dad_count.borrow(), 24);
-    assert_eq!(result.try_js_into(&mut context), Ok(1u32));
+    assert_eq!(result.try_js_into(&context), Ok(1u32));
 }
 
 #[test]
@@ -916,7 +916,7 @@ fn can_throw_exception() {
     use std::rc::Rc;
 
     let loader = Rc::new(MapModuleLoader::default());
-    let mut context = Context::builder()
+    let context = Context::builder()
         .module_loader(loader.clone())
         .build()
         .unwrap();
@@ -925,10 +925,10 @@ fn can_throw_exception() {
         js_string!("doTheThrow"),
         IntoJsFunctionCopied::into_js_function_copied(
             |message: JsValue| -> JsResult<()> { Err(JsError::from_opaque(message)) },
-            &mut context,
+            &context,
         ),
     )]
-    .into_js_module(&mut context);
+    .into_js_module(&context);
 
     loader.insert("test", module);
 
@@ -942,9 +942,9 @@ fn can_throw_exception() {
             }
         ",
     );
-    let root_module = Module::parse(source, None, &mut context).unwrap();
+    let root_module = Module::parse(source, None, &context).unwrap();
 
-    let promise_result = root_module.load_link_evaluate(&mut context);
+    let promise_result = root_module.load_link_evaluate(&context);
     context.run_jobs().unwrap();
 
     // Checking if the final promise didn't return an error.

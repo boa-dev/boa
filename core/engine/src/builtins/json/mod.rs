@@ -80,7 +80,7 @@ impl Json {
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-json.parse
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/JSON/parse
-    pub(crate) fn parse(_: &JsValue, args: &[JsValue], context: &mut Context) -> JsResult<JsValue> {
+    pub(crate) fn parse(_: &JsValue, args: &[JsValue], context: &Context) -> JsResult<JsValue> {
         // 1. Let jsonString be ? ToString(text).
         let json_string = args
             .first()
@@ -115,7 +115,7 @@ impl Json {
         // But if it's incorrect, just call `parser.parse_script_with_source` here
         let script = parser.parse_script(&Scope::new_global(), context.interner_mut())?;
         let code_block = {
-            let in_with = context.vm.frame.environments.has_object_environment();
+            let in_with = context.vm_mut().frame.environments.has_object_environment();
             // If the source is needed then call `parser.parse_script_with_source` and pass `source_text` here.
             let spanned_source_text = SpannedSourceText::new_empty();
             let mut compiler = ByteCompiler::new(
@@ -138,12 +138,12 @@ impl Json {
 
         let realm = context.realm().clone();
 
-        let env_fp = context.vm.frame.environments.len() as u32;
-        context.vm.push_frame_with_stack(
+        let env_fp = context.vm_mut().frame.environments.len() as u32;
+        context.vm_mut().push_frame_with_stack(
             CallFrame::new(
                 code_block,
                 None,
-                context.vm.frame.environments.clone(),
+                context.vm_mut().frame.environments.clone(),
                 realm,
             )
             .with_env_fp(env_fp)
@@ -154,7 +154,7 @@ impl Json {
 
         context.realm().resize_global_env();
         let record = context.run();
-        context.vm.pop_frame();
+        context.vm_mut().pop_frame();
 
         let unfiltered = record.consume()?;
 
@@ -187,7 +187,7 @@ impl Json {
         holder: &JsObject,
         name: JsString,
         reviver: &JsObject,
-        context: &mut Context,
+        context: &Context,
     ) -> JsResult<JsValue> {
         // 1. Let val be ? Get(holder, name).
         let val = holder.get(name.clone(), context)?;
@@ -275,11 +275,7 @@ impl Json {
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-json.stringify
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/JSON/stringify
-    pub(crate) fn stringify(
-        _: &JsValue,
-        args: &[JsValue],
-        context: &mut Context,
-    ) -> JsResult<JsValue> {
+    pub(crate) fn stringify(_: &JsValue, args: &[JsValue], context: &Context) -> JsResult<JsValue> {
         // 1. Let stack be a new empty List.
         let stack = Vec::new();
 
@@ -428,7 +424,7 @@ impl Json {
         state: &mut StateRecord,
         key: JsString,
         holder: &JsObject,
-        context: &mut Context,
+        context: &Context,
     ) -> JsResult<Option<JsString>> {
         // 1. Let value be ? Get(holder, key).
         let mut value = holder.get(key.clone(), context)?;
@@ -597,7 +593,7 @@ impl Json {
     fn serialize_json_object(
         state: &mut StateRecord,
         value: &JsObject,
-        context: &mut Context,
+        context: &Context,
     ) -> JsResult<JsString> {
         // 1. If state.[[Stack]] contains value, throw a TypeError exception because the structure is cyclical.
         if state.stack.contains(value) {
@@ -730,7 +726,7 @@ impl Json {
     fn serialize_json_array(
         state: &mut StateRecord,
         value: &JsObject,
-        context: &mut Context,
+        context: &Context,
     ) -> JsResult<JsString> {
         // 1. If state.[[Stack]] contains value, throw a TypeError exception because the structure is cyclical.
         if state.stack.contains(value) {

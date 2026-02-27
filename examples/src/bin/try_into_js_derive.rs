@@ -54,8 +54,8 @@ fn main() -> JsResult<()> {
     }
     "#;
 
-    let mut context = Context::default();
-    let context = &mut context;
+    let context = Context::default();
+    let context = &context;
 
     context.eval(Source::from_bytes(js_code))?;
 
@@ -118,6 +118,6 @@ fn main() -> JsResult<()> {
     Ok(())
 }
 
-fn readable_into_js(value: &i8, _context: &mut Context) -> JsResult<JsValue> {
+fn readable_into_js(value: &i8, _context: &Context) -> JsResult<JsValue> {
     Ok(JsValue::new(*value != 0))
 }

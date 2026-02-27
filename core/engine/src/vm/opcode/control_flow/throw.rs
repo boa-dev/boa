@@ -19,15 +19,15 @@ impl Throw {
     #[inline(always)]
     pub(crate) fn operation(
         value: VaryingOperand,
-        context: &mut Context,
+        context: &Context,
     ) -> ControlFlow<CompletionRecord> {
-        let value = context.vm.get_register(value.into());
-        let error = JsError::from_opaque(value.clone());
-        context.vm.pending_exception = Some(error);
+        let value = context.vm_mut().get_register(value.into()).clone();
+        let error = JsError::from_opaque(value);
+        context.vm_mut().pending_exception = Some(error);
 
         // Note: -1 because we increment after fetching the opcode.
-        let pc = context.vm.frame().pc - 1;
-        if context.vm.handle_exception_at(pc) {
+        let pc = context.vm_mut().frame().pc - 1;
+        if context.vm_mut().handle_exception_at(pc) {
             return ControlFlow::Continue(());
         }
 
@@ -50,10 +50,10 @@ pub(crate) struct ReThrow;
 
 impl ReThrow {
     #[inline(always)]
-    pub(crate) fn operation((): (), context: &mut Context) -> ControlFlow<CompletionRecord> {
+    pub(crate) fn operation((): (), context: &Context) -> ControlFlow<CompletionRecord> {
         // Note: -1 because we increment after fetching the opcode.
-        let pc = context.vm.frame().pc.saturating_sub(1);
-        if context.vm.handle_exception_at(pc) {
+        let pc = context.vm_mut().frame().pc.saturating_sub(1);
+        if context.vm_mut().handle_exception_at(pc) {
             return ControlFlow::Continue(());
         }
 
@@ -62,7 +62,7 @@ impl ReThrow {
         //
         // Note: If we reached this stage then we there is no handler to handle this,
         //       so return (only for generators).
-        if context.vm.pending_exception.is_none() {
+        if context.vm_mut().pending_exception.is_none() {
             return context.handle_return();
         }
 
@@ -87,14 +87,14 @@ impl Exception {
     #[inline(always)]
     pub(crate) fn operation(
         dst: VaryingOperand,
-        context: &mut Context,
+        context: &Context,
     ) -> ControlFlow<CompletionRecord> {
-        if let Some(error) = context.vm.pending_exception.take() {
+        if let Some(error) = context.vm_mut().pending_exception.take() {
             let error = match error.into_opaque(context) {
                 Ok(e) => e,
                 Err(e) => return context.handle_error(e),
             };
-            context.vm.set_register(dst.into(), error);
+            context.vm_mut().set_register(dst.into(), error);
             return ControlFlow::Continue(());
         }
 
@@ -124,14 +124,14 @@ impl MaybeException {
     #[inline(always)]
     pub(crate) fn operation(
         (has_exception, exception): (VaryingOperand, VaryingOperand),
-        context: &mut Context,
+        context: &Context,
     ) -> JsResult<()> {
-        if let Some(error) = context.vm.pending_exception.take() {
+        if let Some(error) = context.vm_mut().pending_exception.take() {
             let error = error.into_opaque(context)?;
-            context.vm.set_register(exception.into(), error);
-            context.vm.set_register(has_exception.into(), true.into());
+            context.vm_mut().set_register(exception.into(), error);
+            context.vm_mut().set_register(has_exception.into(), true.into());
         } else {
-            context.vm.set_register(has_exception.into(), false.into());
+            context.vm_mut().set_register(has_exception.into(), false.into());
         }
         Ok(())
     }
@@ -152,9 +152,9 @@ pub(crate) struct ThrowNewTypeError;
 
 impl ThrowNewTypeError {
     #[inline(always)]
-    pub(crate) fn operation(index: VaryingOperand, context: &mut Context) -> JsError {
+    pub(crate) fn operation(index: VaryingOperand, context: &Context) -> JsError {
         let msg = context
-            .vm
+            .vm_mut()
             .frame()
             .code_block()
             .constant_string(index.into());
@@ -180,9 +180,9 @@ pub(crate) struct ThrowNewSyntaxError;
 
 impl ThrowNewSyntaxError {
     #[inline(always)]
-    pub(crate) fn operation(index: VaryingOperand, context: &mut Context) -> JsError {
+    pub(crate) fn operation(index: VaryingOperand, context: &Context) -> JsError {
         let msg = context
-            .vm
+            .vm_mut()
             .frame()
             .code_block()
             .constant_string(index.into());
@@ -208,9 +208,9 @@ pub(crate) struct ThrowNewReferenceError;
 
 impl ThrowNewReferenceError {
     #[inline(always)]
-    pub(crate) fn operation(index: VaryingOperand, context: &mut Context) -> JsError {
+    pub(crate) fn operation(index: VaryingOperand, context: &Context) -> JsError {
         let msg = context
-            .vm
+            .vm_mut()
             .frame()
             .code_block()
             .constant_string(index.into());

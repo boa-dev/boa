@@ -6,7 +6,7 @@ use indoc::indoc;
 
 #[test]
 fn queue_microtask() {
-    let context = &mut Context::default();
+    let context = &Context::default();
     crate::microtask::register(None, context).unwrap();
     let logger = RecordingLogger::default();
     crate::extensions::ConsoleExtension(logger.clone())

@@ -50,7 +50,7 @@ impl BoundFunction {
         target_function: JsObject,
         this: JsValue,
         args: Vec<JsValue>,
-        context: &mut Context,
+        context: &Context,
     ) -> JsResult<JsObject> {
         // 1. Let proto be ? targetFunction.[[GetPrototypeOf]]().
         let proto = target_function.__get_prototype_of__(context)?;
@@ -115,14 +115,14 @@ fn bound_function_exotic_call(
     // 1. Let target be F.[[BoundTargetFunction]].
     let target = bound_function.target_function();
     context
-        .vm
+        .vm_mut()
         .stack
         .calling_convention_set_function(argument_count, target.clone().into());
 
     // 2. Let boundThis be F.[[BoundThis]].
     let bound_this = bound_function.this();
     context
-        .vm
+        .vm_mut()
         .stack
         .calling_convention_set_this(argument_count, bound_this.clone());
 
@@ -131,7 +131,7 @@ fn bound_function_exotic_call(
 
     // 4. Let args be the list-concatenation of boundArgs and argumentsList.
     context
-        .vm
+        .vm_mut()
         .stack
         .calling_convention_insert_arguments(argument_count, bound_args);
 
@@ -151,7 +151,7 @@ fn bound_function_exotic_construct(
     argument_count: usize,
     context: &mut InternalMethodCallContext<'_>,
 ) -> JsResult<CallValue> {
-    let new_target = context.vm.stack.pop();
+    let new_target = context.vm_mut().stack.pop();
 
     debug_assert!(new_target.is_object(), "new.target should be an object");
 
@@ -169,7 +169,7 @@ fn bound_function_exotic_construct(
 
     // 4. Let args be the list-concatenation of boundArgs and argumentsList.
     context
-        .vm
+        .vm_mut()
         .stack
         .calling_convention_insert_arguments(argument_count, bound_args);
 
@@ -182,6 +182,6 @@ fn bound_function_exotic_construct(
     };
 
     // 6. Return ? Construct(target, args, newTarget).
-    context.vm.stack.push(new_target);
+    context.vm_mut().stack.push(new_target);
     Ok(target.__construct__(bound_args.len() + argument_count))
 }

@@ -22,7 +22,7 @@ use std::ops::Deref;
 /// # };
 /// # fn main() -> JsResult<()> {
 /// // Initialize the `Context`
-/// let context = &mut Context::default();
+/// let context = &Context::default();
 ///
 /// // Create a new RegExp with pattern and flags
 /// let regexp = JsRegExp::new(js_string!("foo"), js_string!("gi"), context)?;
@@ -49,14 +49,14 @@ impl JsRegExp {
     /// # };
     /// # fn main() -> JsResult<()> {
     /// // Initialize the `Context`
-    /// let context = &mut Context::default();
+    /// let context = &Context::default();
     ///
     /// // Create a new RegExp with pattern and flags
     /// let regexp = JsRegExp::new(js_string!("foo"), js_string!("gi"), context)?;
     /// # Ok(())
     /// # }
     /// ```
-    pub fn new<S>(pattern: S, flags: S, context: &mut Context) -> JsResult<Self>
+    pub fn new<S>(pattern: S, flags: S, context: &Context) -> JsResult<Self>
     where
         S: Into<JsValue>,
     {
@@ -82,49 +82,49 @@ impl JsRegExp {
 
     /// Returns a boolean value for whether the `d` flag is present in `JsRegExp` flags
     #[inline]
-    pub fn has_indices(&self, context: &mut Context) -> JsResult<bool> {
+    pub fn has_indices(&self, context: &Context) -> JsResult<bool> {
         RegExp::get_has_indices(&self.inner.clone().into(), &[], context)
             .map(|v| v.as_boolean().expect("value must be a bool"))
     }
 
     /// Returns a boolean value for whether the `g` flag is present in `JsRegExp` flags
     #[inline]
-    pub fn global(&self, context: &mut Context) -> JsResult<bool> {
+    pub fn global(&self, context: &Context) -> JsResult<bool> {
         RegExp::get_global(&self.inner.clone().into(), &[], context)
             .map(|v| v.as_boolean().expect("value must be a bool"))
     }
 
     /// Returns a boolean value for whether the `i` flag is present in `JsRegExp` flags
     #[inline]
-    pub fn ignore_case(&self, context: &mut Context) -> JsResult<bool> {
+    pub fn ignore_case(&self, context: &Context) -> JsResult<bool> {
         RegExp::get_ignore_case(&self.inner.clone().into(), &[], context)
             .map(|v| v.as_boolean().expect("value must be a bool"))
     }
 
     /// Returns a boolean value for whether the `m` flag is present in `JsRegExp` flags
     #[inline]
-    pub fn multiline(&self, context: &mut Context) -> JsResult<bool> {
+    pub fn multiline(&self, context: &Context) -> JsResult<bool> {
         RegExp::get_multiline(&self.inner.clone().into(), &[], context)
             .map(|v| v.as_boolean().expect("value must be a bool"))
     }
 
     /// Returns a boolean value for whether the `s` flag is present in `JsRegExp` flags
     #[inline]
-    pub fn dot_all(&self, context: &mut Context) -> JsResult<bool> {
+    pub fn dot_all(&self, context: &Context) -> JsResult<bool> {
         RegExp::get_dot_all(&self.inner.clone().into(), &[], context)
             .map(|v| v.as_boolean().expect("value must be a bool"))
     }
 
     /// Returns a boolean value for whether the `u` flag is present in `JsRegExp` flags
     #[inline]
-    pub fn unicode(&self, context: &mut Context) -> JsResult<bool> {
+    pub fn unicode(&self, context: &Context) -> JsResult<bool> {
         RegExp::get_unicode(&self.inner.clone().into(), &[], context)
             .map(|v| v.as_boolean().expect("value must be a bool"))
     }
 
     /// Returns a boolean value for whether the `y` flag is present in `JsRegExp` flags
     #[inline]
-    pub fn sticky(&self, context: &mut Context) -> JsResult<bool> {
+    pub fn sticky(&self, context: &Context) -> JsResult<bool> {
         RegExp::get_sticky(&self.inner.clone().into(), &[], context)
             .map(|v| v.as_boolean().expect("value must be a bool"))
     }
@@ -136,7 +136,7 @@ impl JsRegExp {
     /// #  Context, JsValue, JsResult, js_string
     /// # };
     /// # fn main() -> JsResult<()> {
-    /// # let context = &mut Context::default();
+    /// # let context = &Context::default();
     /// let regexp = JsRegExp::new(js_string!("foo"), js_string!("gi"), context)?;
     ///
     /// let flags = regexp.flags(context)?;
@@ -145,7 +145,7 @@ impl JsRegExp {
     /// # }
     /// ```
     #[inline]
-    pub fn flags(&self, context: &mut Context) -> JsResult<String> {
+    pub fn flags(&self, context: &Context) -> JsResult<String> {
         RegExp::get_flags(&self.inner.clone().into(), &[], context).map(|v| {
             v.as_string()
                 .expect("value must be string")
@@ -161,7 +161,7 @@ impl JsRegExp {
     /// #  Context, JsValue, JsResult, js_string
     /// # };
     /// # fn main() -> JsResult<()> {
-    /// # let context = &mut Context::default();
+    /// # let context = &Context::default();
     /// let regexp = JsRegExp::new(js_string!("foo"), js_string!("gi"), context)?;
     ///
     /// let src = regexp.source(context)?;
@@ -170,7 +170,7 @@ impl JsRegExp {
     /// # }
     /// ```
     #[inline]
-    pub fn source(&self, context: &mut Context) -> JsResult<String> {
+    pub fn source(&self, context: &Context) -> JsResult<String> {
         RegExp::get_source(&self.inner.clone().into(), &[], context).map(|v| {
             v.as_string()
                 .expect("value must be string")
@@ -186,7 +186,7 @@ impl JsRegExp {
     /// #  Context, JsValue, JsResult, js_string
     /// # };
     /// # fn main() -> JsResult<()> {
-    /// # let context = &mut Context::default();
+    /// # let context = &Context::default();
     /// let regexp = JsRegExp::new(js_string!("foo"), js_string!("gi"), context)?;
     ///
     /// let test_result = regexp.test(js_string!("football"), context)?;
@@ -194,7 +194,7 @@ impl JsRegExp {
     /// # Ok(())
     /// # }
     /// ```
-    pub fn test<S>(&self, search_string: S, context: &mut Context) -> JsResult<bool>
+    pub fn test<S>(&self, search_string: S, context: &Context) -> JsResult<bool>
     where
         S: Into<JsValue>,
     {
@@ -205,7 +205,7 @@ impl JsRegExp {
     /// Executes a search for a match in a specified string
     ///
     /// Returns a `JsArray` containing matched value and updates the `lastIndex` property, or `None`
-    pub fn exec<S>(&self, search_string: S, context: &mut Context) -> JsResult<Option<JsArray>>
+    pub fn exec<S>(&self, search_string: S, context: &Context) -> JsResult<Option<JsArray>>
     where
         S: Into<JsValue>,
     {
@@ -228,7 +228,7 @@ impl JsRegExp {
     /// #  Context, JsValue, JsResult, js_string
     /// # };
     /// # fn main() -> JsResult<()> {
-    /// # let context = &mut Context::default();
+    /// # let context = &Context::default();
     /// let regexp = JsRegExp::new(js_string!("foo"), js_string!("gi"), context)?;
     ///
     /// let to_string = regexp.to_string(context)?;
@@ -237,7 +237,7 @@ impl JsRegExp {
     /// # }
     /// ```
     #[inline]
-    pub fn to_string(&self, context: &mut Context) -> JsResult<String> {
+    pub fn to_string(&self, context: &Context) -> JsResult<String> {
         RegExp::to_string(&self.inner.clone().into(), &[], context).map(|v| {
             v.as_string()
                 .expect("value must be a string")
@@ -271,7 +271,7 @@ impl Deref for JsRegExp {
 }
 
 impl TryFromJs for JsRegExp {
-    fn try_from_js(value: &JsValue, _context: &mut Context) -> JsResult<Self> {
+    fn try_from_js(value: &JsValue, _context: &Context) -> JsResult<Self> {
         if let Some(o) = value.as_object() {
             Self::from_object(o.clone())
         } else {

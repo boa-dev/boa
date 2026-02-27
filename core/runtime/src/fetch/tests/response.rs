@@ -3,7 +3,7 @@ use crate::test::{TestAction, run_test_actions};
 use boa_engine::{Context, js_str};
 use http::{Response, Uri};
 
-fn register(responses: &[(&'static str, Response<Vec<u8>>)], ctx: &mut Context) {
+fn register(responses: &[(&'static str, Response<Vec<u8>>)], ctx: &Context) {
     let mut fetcher = TestFetcher::default();
 
     for (url, resp) in responses {

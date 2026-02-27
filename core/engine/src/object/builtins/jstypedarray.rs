@@ -51,7 +51,7 @@ impl JsTypedArray {
     ///
     /// Same as `array.length` in JavaScript.
     #[inline]
-    pub fn length(&self, context: &mut Context) -> JsResult<usize> {
+    pub fn length(&self, context: &Context) -> JsResult<usize> {
         Ok(
             BuiltinTypedArray::length(&self.inner.clone().into(), &[], context)?
                 .as_number()
@@ -62,12 +62,12 @@ impl JsTypedArray {
 
     /// Check if the array is empty, i.e. the `length` is zero.
     #[inline]
-    pub fn is_empty(&self, context: &mut Context) -> JsResult<bool> {
+    pub fn is_empty(&self, context: &Context) -> JsResult<bool> {
         Ok(self.length(context)? == 0)
     }
 
     /// Calls `TypedArray.prototype.at()`.
-    pub fn at<T>(&self, index: T, context: &mut Context) -> JsResult<JsValue>
+    pub fn at<T>(&self, index: T, context: &Context) -> JsResult<JsValue>
     where
         T: Into<i64>,
     {
@@ -84,7 +84,7 @@ impl JsTypedArray {
     /// # use boa_engine::{js_string, JsResult, object::{builtins::{JsUint8Array, JsArrayBuffer}}, property::{PropertyKey}, JsValue, Context};
     /// # fn main() -> JsResult<()> {
     ///
-    /// let context = &mut Context::default();
+    /// let context = &Context::default();
     /// let array_buffer8 = JsArrayBuffer::new(8, context)?;
     /// let array = JsUint8Array::from_array_buffer(array_buffer8, context)?;
     /// assert_eq!(
@@ -95,13 +95,13 @@ impl JsTypedArray {
     /// # }
     /// ```
     #[inline]
-    pub fn buffer(&self, context: &mut Context) -> JsResult<JsValue> {
+    pub fn buffer(&self, context: &Context) -> JsResult<JsValue> {
         BuiltinTypedArray::buffer(&self.inner.clone().into(), &[], context)
     }
 
     /// Returns `TypedArray.prototype.byteLength`.
     #[inline]
-    pub fn byte_length(&self, context: &mut Context) -> JsResult<usize> {
+    pub fn byte_length(&self, context: &Context) -> JsResult<usize> {
         Ok(
             BuiltinTypedArray::byte_length(&self.inner.clone().into(), &[], context)?
                 .as_number()
@@ -112,7 +112,7 @@ impl JsTypedArray {
 
     /// Returns `TypedArray.prototype.byteOffset`.
     #[inline]
-    pub fn byte_offset(&self, context: &mut Context) -> JsResult<usize> {
+    pub fn byte_offset(&self, context: &Context) -> JsResult<usize> {
         Ok(
             BuiltinTypedArray::byte_offset(&self.inner.clone().into(), &[], context)?
                 .as_number()
@@ -132,7 +132,7 @@ impl JsTypedArray {
     /// # use boa_engine::{JsResult, object::{builtins::JsUint8Array}, JsNativeError, Context};
     /// # fn main() -> JsResult<()> {
     ///
-    /// let context = &mut Context::default();
+    /// let context = &Context::default();
     /// let array = JsUint8Array::from_iter(vec![1, 2, 3, 4, 5], context)?;
     /// assert_eq!(
     ///     Err(JsNativeError::typ()
@@ -145,7 +145,7 @@ impl JsTypedArray {
     /// # }
     /// ```
     #[inline]
-    pub fn constructor(&self, context: &mut Context) -> JsResult<JsValue> {
+    pub fn constructor(&self, context: &Context) -> JsResult<JsValue> {
         BuiltinTypedArray::constructor(&self.inner.clone().into(), &[], context)
     }
 
@@ -160,7 +160,7 @@ impl JsTypedArray {
     /// # use boa_engine::{JsResult, JsValue, object::{builtins::{JsUint8Array}}, Context};
     /// # fn main() -> JsResult<()> {
     ///
-    /// let context = &mut Context::default();
+    /// let context = &Context::default();
     /// let array = JsUint8Array::from_iter(vec![1u8, 2u8, 3u8, 4u8, 5u8, 6u8, 7u8, 8u8], context)?;
     /// array.copy_within(3, 1, Some(3), context)?;
     /// assert_eq!(array.get(0, context)?, JsValue::new(1.0));
@@ -181,7 +181,7 @@ impl JsTypedArray {
         target: T,
         start: u64,
         end: Option<u64>,
-        context: &mut Context,
+        context: &Context,
     ) -> JsResult<Self>
     where
         T: Into<JsValue>,
@@ -205,7 +205,7 @@ impl JsTypedArray {
         value: T,
         start: Option<usize>,
         end: Option<usize>,
-        context: &mut Context,
+        context: &Context,
     ) -> JsResult<Self>
     where
         T: Into<JsValue>,
@@ -227,7 +227,7 @@ impl JsTypedArray {
         &self,
         predicate: JsFunction,
         this_arg: Option<JsValue>,
-        context: &mut Context,
+        context: &Context,
     ) -> JsResult<bool> {
         let result = BuiltinTypedArray::every(
             &self.inner.clone().into(),
@@ -246,7 +246,7 @@ impl JsTypedArray {
         &self,
         callback: JsFunction,
         this_arg: Option<JsValue>,
-        context: &mut Context,
+        context: &Context,
     ) -> JsResult<bool> {
         let result = BuiltinTypedArray::some(
             &self.inner.clone().into(),
@@ -261,7 +261,7 @@ impl JsTypedArray {
 
     /// Calls `TypedArray.prototype.sort()`.
     #[inline]
-    pub fn sort(&self, compare_fn: Option<JsFunction>, context: &mut Context) -> JsResult<Self> {
+    pub fn sort(&self, compare_fn: Option<JsFunction>, context: &Context) -> JsResult<Self> {
         BuiltinTypedArray::sort(
             &self.inner.clone().into(),
             &[compare_fn.into_or_undefined()],
@@ -283,7 +283,7 @@ impl JsTypedArray {
     /// # use boa_engine::{JsResult, object::{builtins::JsUint8Array}, JsValue, Context};
     /// # fn main() -> JsResult<()> {
     ///
-    /// let context = &mut Context::default();
+    /// let context = &Context::default();
     /// let array = JsUint8Array::from_iter(vec![1u8, 2u8, 3u8, 4u8, 5u8, 6u8, 7u8, 8u8], context)?;
     /// let subarray2_6 = array.subarray(2, 6, context)?;
     /// assert_eq!(subarray2_6.length(context)?, 4);
@@ -300,7 +300,7 @@ impl JsTypedArray {
     /// # }
     /// ```
     #[inline]
-    pub fn subarray(&self, begin: i64, end: i64, context: &mut Context) -> JsResult<Self> {
+    pub fn subarray(&self, begin: i64, end: i64, context: &Context) -> JsResult<Self> {
         let subarray = BuiltinTypedArray::subarray(
             &self.inner.clone().into(),
             &[begin.into(), end.into()],
@@ -320,7 +320,7 @@ impl JsTypedArray {
         &self,
         reserved1: Option<JsValue>,
         reserved2: Option<JsValue>,
-        context: &mut Context,
+        context: &Context,
     ) -> JsResult<JsValue> {
         BuiltinTypedArray::to_locale_string(
             &self.inner.clone().into(),
@@ -335,7 +335,7 @@ impl JsTypedArray {
         &self,
         callback: JsFunction,
         this_arg: Option<JsValue>,
-        context: &mut Context,
+        context: &Context,
     ) -> JsResult<Self> {
         let object = BuiltinTypedArray::filter(
             &self.inner.clone().into(),
@@ -356,7 +356,7 @@ impl JsTypedArray {
         &self,
         callback: JsFunction,
         this_arg: Option<JsValue>,
-        context: &mut Context,
+        context: &Context,
     ) -> JsResult<Self> {
         let object = BuiltinTypedArray::map(
             &self.inner.clone().into(),
@@ -377,7 +377,7 @@ impl JsTypedArray {
         &self,
         callback: JsFunction,
         initial_value: Option<JsValue>,
-        context: &mut Context,
+        context: &Context,
     ) -> JsResult<JsValue> {
         BuiltinTypedArray::reduce(
             &self.inner.clone().into(),
@@ -392,7 +392,7 @@ impl JsTypedArray {
         &self,
         callback: JsFunction,
         initial_value: Option<JsValue>,
-        context: &mut Context,
+        context: &Context,
     ) -> JsResult<JsValue> {
         BuiltinTypedArray::reduceright(
             &self.inner.clone().into(),
@@ -403,7 +403,7 @@ impl JsTypedArray {
 
     /// Calls `TypedArray.prototype.reverse()`.
     #[inline]
-    pub fn reverse(&self, context: &mut Context) -> JsResult<Self> {
+    pub fn reverse(&self, context: &Context) -> JsResult<Self> {
         BuiltinTypedArray::reverse(&self.inner.clone().into(), &[], context)?;
         Ok(self.clone())
     }
@@ -419,7 +419,7 @@ impl JsTypedArray {
     /// # use boa_engine::{JsResult, object::{builtins::{JsUint8Array, JsArray, JsArrayBuffer}}, JsValue, Context};
     /// # fn main() -> JsResult<()> {
     ///
-    /// let context = &mut Context::default();
+    /// let context = &Context::default();
     /// let array_buffer8 = JsArrayBuffer::new(8, context)?;
     /// let initialized8_array = JsUint8Array::from_array_buffer(array_buffer8, context)?;
     /// initialized8_array.set_values(
@@ -445,7 +445,7 @@ impl JsTypedArray {
         &self,
         source: JsValue,
         offset: Option<u64>,
-        context: &mut Context,
+        context: &Context,
     ) -> JsResult<JsValue> {
         BuiltinTypedArray::set(
             &self.inner.clone().into(),
@@ -460,7 +460,7 @@ impl JsTypedArray {
         &self,
         start: Option<usize>,
         end: Option<usize>,
-        context: &mut Context,
+        context: &Context,
     ) -> JsResult<Self> {
         let object = BuiltinTypedArray::slice(
             &self.inner.clone().into(),
@@ -481,7 +481,7 @@ impl JsTypedArray {
         &self,
         predicate: JsFunction,
         this_arg: Option<JsValue>,
-        context: &mut Context,
+        context: &Context,
     ) -> JsResult<JsValue> {
         BuiltinTypedArray::find(
             &self.inner.clone().into(),
@@ -501,7 +501,7 @@ impl JsTypedArray {
     /// ```
     /// # use boa_engine::{JsResult, object::{builtins::JsUint8Array, FunctionObjectBuilder}, NativeFunction, JsValue, Context};
     /// # fn main() -> JsResult<()> {
-    /// let context = &mut Context::default();
+    /// let context = &Context::default();
     /// let data: Vec<u8> = (0..=255).collect();
     /// let array = JsUint8Array::from_iter(data, context)?;
     ///
@@ -531,7 +531,7 @@ impl JsTypedArray {
         &self,
         predicate: JsFunction,
         this_arg: Option<JsValue>,
-        context: &mut Context,
+        context: &Context,
     ) -> JsResult<Option<u64>> {
         let index = BuiltinTypedArray::find_index(
             &self.inner.clone().into(),
@@ -559,7 +559,7 @@ impl JsTypedArray {
     /// ```
     /// # use boa_engine::{JsResult, object::{builtins::JsUint8Array, FunctionObjectBuilder}, NativeFunction, JsValue, Context};
     /// # fn main() -> JsResult<()> {
-    /// let context = &mut Context::default();
+    /// let context = &Context::default();
     /// let data: Vec<u8> = (0..=255).collect();
     /// let array = JsUint8Array::from_iter(data, context)?;
     ///
@@ -589,7 +589,7 @@ impl JsTypedArray {
         &self,
         predicate: JsFunction,
         this_arg: Option<JsValue>,
-        context: &mut Context,
+        context: &Context,
     ) -> JsResult<JsValue> {
         BuiltinTypedArray::find_last(
             &self.inner.clone().into(),
@@ -609,7 +609,7 @@ impl JsTypedArray {
     /// ```
     /// # use boa_engine::{JsResult, object::{builtins::JsUint8Array, FunctionObjectBuilder}, NativeFunction, JsValue, Context};
     /// # fn main() -> JsResult<()> {
-    /// let context = &mut Context::default();
+    /// let context = &Context::default();
     /// let data: Vec<u8> = (0..=255).collect();
     /// let array = JsUint8Array::from_iter(data, context)?;
     ///
@@ -639,7 +639,7 @@ impl JsTypedArray {
         &self,
         predicate: JsFunction,
         this_arg: Option<JsValue>,
-        context: &mut Context,
+        context: &Context,
     ) -> JsResult<Option<u64>> {
         let index = BuiltinTypedArray::find_last_index(
             &self.inner.clone().into(),
@@ -666,7 +666,7 @@ impl JsTypedArray {
     /// # use boa_gc::{Gc, GcRefCell};
     /// # use boa_engine::{JsResult, object::{builtins::JsUint8Array, FunctionObjectBuilder}, NativeFunction, JsValue, Context};
     /// # fn main() -> JsResult<()> {
-    /// let context = &mut Context::default();
+    /// let context = &Context::default();
     /// let array = JsUint8Array::from_iter(vec![1, 2, 3, 4, 5], context)?;
     /// let num_to_modify = Gc::new(GcRefCell::new(0u8));
     ///
@@ -700,7 +700,7 @@ impl JsTypedArray {
         &self,
         callback: JsFunction,
         this_arg: Option<JsValue>,
-        context: &mut Context,
+        context: &Context,
     ) -> JsResult<JsValue> {
         BuiltinTypedArray::for_each(
             &self.inner.clone().into(),
@@ -720,7 +720,7 @@ impl JsTypedArray {
     /// # use boa_engine::{JsResult, object::{builtins::JsUint8Array}, JsValue, Context};
     /// # fn main() -> JsResult<()> {
     ///
-    /// let context = &mut Context::default();
+    /// let context = &Context::default();
     /// let data: Vec<u8> = (0..=255).collect();
     /// let array = JsUint8Array::from_iter(data, context)?;
     ///
@@ -739,7 +739,7 @@ impl JsTypedArray {
         &self,
         search_element: T,
         from_index: Option<u64>,
-        context: &mut Context,
+        context: &Context,
     ) -> JsResult<bool>
     where
         T: Into<JsValue>,
@@ -760,7 +760,7 @@ impl JsTypedArray {
         &self,
         search_element: T,
         from_index: Option<usize>,
-        context: &mut Context,
+        context: &Context,
     ) -> JsResult<Option<usize>>
     where
         T: Into<JsValue>,
@@ -786,7 +786,7 @@ impl JsTypedArray {
         &self,
         search_element: T,
         from_index: Option<usize>,
-        context: &mut Context,
+        context: &Context,
     ) -> JsResult<Option<usize>>
     where
         T: Into<JsValue>,
@@ -809,7 +809,7 @@ impl JsTypedArray {
 
     /// Calls `TypedArray.prototype.join()`.
     #[inline]
-    pub fn join(&self, separator: Option<JsString>, context: &mut Context) -> JsResult<JsString> {
+    pub fn join(&self, separator: Option<JsString>, context: &Context) -> JsResult<JsString> {
         BuiltinTypedArray::join(
             &self.inner.clone().into(),
             &[separator.into_or_undefined()],
@@ -823,7 +823,7 @@ impl JsTypedArray {
 
     /// Calls `TypedArray.prototype.toReversed ( )`.
     #[inline]
-    pub fn to_reversed(&self, context: &mut Context) -> JsResult<Self> {
+    pub fn to_reversed(&self, context: &Context) -> JsResult<Self> {
         let array = BuiltinTypedArray::to_reversed(&self.inner.clone().into(), &[], context)?;
 
         Ok(Self {
@@ -835,11 +835,7 @@ impl JsTypedArray {
 
     /// Calls `TypedArray.prototype.toSorted ( comparefn )`.
     #[inline]
-    pub fn to_sorted(
-        &self,
-        compare_fn: Option<JsFunction>,
-        context: &mut Context,
-    ) -> JsResult<Self> {
+    pub fn to_sorted(&self, compare_fn: Option<JsFunction>, context: &Context) -> JsResult<Self> {
         let array = BuiltinTypedArray::to_sorted(
             &self.inner.clone().into(),
             &[compare_fn.into_or_undefined()],
@@ -855,7 +851,7 @@ impl JsTypedArray {
 
     /// Calls `TypedArray.prototype.with ( index, value )`.
     #[inline]
-    pub fn with(&self, index: u64, value: JsValue, context: &mut Context) -> JsResult<Self> {
+    pub fn with(&self, index: u64, value: JsValue, context: &Context) -> JsResult<Self> {
         let array =
             BuiltinTypedArray::with(&self.inner.clone().into(), &[index.into(), value], context)?;
 
@@ -877,7 +873,7 @@ impl JsTypedArray {
     /// # use boa_engine::{JsResult, js_string, object::{builtins::{JsUint8Array}}, Context};
     /// # fn main() -> JsResult<()> {
     ///
-    /// let context = &mut Context::default();
+    /// let context = &Context::default();
     /// let array = JsUint8Array::from_iter(vec![1u8, 2u8, 3u8, 4u8, 5u8, 6u8, 7u8, 8u8], context)?;
     /// let tag = array.to_string_tag(context)?.to_string(context)?;
     /// assert_eq!(tag, js_string!("Uint8Array"));
@@ -886,7 +882,7 @@ impl JsTypedArray {
     /// # }
     /// ```
     #[inline]
-    pub fn to_string_tag(&self, context: &mut Context) -> JsResult<JsValue> {
+    pub fn to_string_tag(&self, context: &Context) -> JsResult<JsValue> {
         BuiltinTypedArray::to_string_tag(&self.inner.clone().into(), &[], context)
     }
 }
@@ -915,7 +911,7 @@ impl Deref for JsTypedArray {
 }
 
 impl TryFromJs for JsTypedArray {
-    fn try_from_js(value: &JsValue, _context: &mut Context) -> JsResult<Self> {
+    fn try_from_js(value: &JsValue, _context: &Context) -> JsResult<Self> {
         if let Some(o) = value.as_object() {
             Self::from_object(o.clone())
         } else {
@@ -973,7 +969,7 @@ macro_rules! JsTypedArrayType {
             /// Create the typed array from a [`JsArrayBuffer`].
             pub fn from_array_buffer(
                 array_buffer: JsArrayBuffer,
-                context: &mut Context,
+                context: &Context,
             ) -> JsResult<Self> {
                 let new_target = context
                     .intrinsics()
@@ -1000,7 +996,7 @@ macro_rules! JsTypedArrayType {
             /// Create the typed array from a [`JsSharedArrayBuffer`].
             pub fn from_shared_array_buffer(
                 buffer: JsSharedArrayBuffer,
-                context: &mut Context,
+                context: &Context,
             ) -> JsResult<Self> {
                 let new_target = context
                     .intrinsics()
@@ -1025,7 +1021,7 @@ macro_rules! JsTypedArrayType {
             }
 
             /// Create the typed array from an iterator.
-            pub fn from_iter<I>(elements: I, context: &mut Context) -> JsResult<Self>
+            pub fn from_iter<I>(elements: I, context: &Context) -> JsResult<Self>
             where
                 I: IntoIterator<Item = $element>,
             {
@@ -1059,7 +1055,7 @@ macro_rules! JsTypedArrayType {
             }
 
             /// Create an iterator over the typed array's elements.
-            pub fn iter<'a>(&'a self, context: &'a mut Context) -> impl Iterator<Item = $element> + 'a {
+            pub fn iter<'a>(&'a self, context: &'a Context) -> impl Iterator<Item = $element> + 'a {
                 let length = self.length(context).unwrap_or(0);
                 let mut index = 0;
                 std::iter::from_fn(move || {
@@ -1100,7 +1096,7 @@ macro_rules! JsTypedArrayType {
         }
 
         impl TryFromJs for $name {
-            fn try_from_js(value: &JsValue, _context: &mut Context) -> JsResult<Self> {
+            fn try_from_js(value: &JsValue, _context: &Context) -> JsResult<Self> {
                 if let Some(o) = value.as_object() {
                     Self::from_object(o.clone())
                 } else {
@@ -1220,7 +1216,7 @@ JsTypedArrayType!(
 pub fn js_typed_array_from_kind(
     kind: TypedArrayKind,
     inner: JsArrayBuffer,
-    context: &mut Context,
+    context: &Context,
 ) -> JsResult<JsValue> {
     match kind {
         TypedArrayKind::Int8 => JsInt8Array::from_array_buffer(inner, context).map(Into::into),
@@ -1253,7 +1249,7 @@ pub fn js_typed_array_from_kind(
 
 #[test]
 fn typed_iterators_uint8() {
-    let context = &mut Context::default();
+    let context = &Context::default();
     let vec = vec![1u8, 2, 3, 4, 5, 6, 7, 8];
 
     let array = JsUint8Array::from_iter(vec.clone(), context).unwrap();
@@ -1263,7 +1259,7 @@ fn typed_iterators_uint8() {
 
 #[test]
 fn typed_iterators_uint32() {
-    let context = &mut Context::default();
+    let context = &Context::default();
     let vec = vec![1u32, 2, 0xFFFF, 4, 0xFF12_3456, 6, 7, 8];
 
     let array = JsUint32Array::from_iter(vec.clone(), context).unwrap();
@@ -1273,7 +1269,7 @@ fn typed_iterators_uint32() {
 
 #[test]
 fn typed_iterators_f32() {
-    let context = &mut Context::default();
+    let context = &Context::default();
     let vec = vec![0.1f32, 0.2, 0.3, 0.4, 1.1, 9.99999];
 
     let array = JsFloat32Array::from_iter(vec.clone(), context).unwrap();

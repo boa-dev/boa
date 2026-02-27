@@ -13,7 +13,7 @@ use boa_gc::{Finalize, GcRefCell, Trace};
 
 fn main() -> Result<(), JsError> {
     // We create a new `Context` to create a new Javascript executor.
-    let mut context = Context::default();
+    let context = Context::default();
 
     // We make some operations in Rust that return a `Copy` value that we want to pass to a Javascript
     // function.
@@ -57,7 +57,7 @@ fn main() -> Result<(), JsError> {
             .writable(false)
             .enumerable(false)
             .configurable(false),
-        &mut context,
+        &context,
     )?;
 
     // Now, we execute some operations that return a `Clone` type
@@ -175,8 +175,8 @@ fn main() -> Result<(), JsError> {
         .ok_or_else(|| JsNativeError::typ().with_message("not an array!"))?;
     let array = JsArray::from_object(object)?;
 
-    assert_eq!(array.get(0, &mut context)?, JsValue::from(0i32));
-    assert_eq!(array.get(1, &mut context)?, JsValue::undefined());
+    assert_eq!(array.get(0, &context)?, JsValue::from(0i32));
+    assert_eq!(array.get(1, &context)?, JsValue::undefined());
 
     // First call should return the array `[0, 1]`.
     let result = context.eval(Source::from_bytes("enumerate()"))?;
@@ -185,9 +185,9 @@ fn main() -> Result<(), JsError> {
         .ok_or_else(|| JsNativeError::typ().with_message("not an array!"))?;
     let array = JsArray::from_object(object)?;
 
-    assert_eq!(array.get(0, &mut context)?, JsValue::from(0i32));
-    assert_eq!(array.get(1, &mut context)?, JsValue::from(1i32));
-    assert_eq!(array.get(2, &mut context)?, JsValue::undefined());
+    assert_eq!(array.get(0, &context)?, JsValue::from(0i32));
+    assert_eq!(array.get(1, &context)?, JsValue::from(1i32));
+    assert_eq!(array.get(2, &context)?, JsValue::undefined());
 
     // We have moved non-traceable variables into a closure and executed that closure inside Javascript!
     Ok(())

@@ -13,7 +13,7 @@ use boa_gc::{Gc, GcRefCell};
 
 fn main() -> JsResult<()> {
     // We create a new `Context` to create a new Javascript executor.
-    let context = &mut Context::default();
+    let context = &Context::default();
 
     let data: Vec<u8> = (0..=255).collect();
 

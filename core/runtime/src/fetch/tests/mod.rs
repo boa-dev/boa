@@ -39,7 +39,7 @@ impl crate::fetch::Fetcher for TestFetcher {
     async fn fetch(
         self: Rc<Self>,
         request: JsRequest,
-        _context: &RefCell<&mut Context>,
+        _context: &RefCell<&Context>,
     ) -> JsResult<JsResponse> {
         let request = request.into_inner();
         self.requests_received.borrow_mut().push(request.clone());

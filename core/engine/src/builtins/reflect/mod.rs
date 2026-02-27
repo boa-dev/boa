@@ -80,7 +80,7 @@ impl Reflect {
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-reflect.apply
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Reflect/apply
-    pub(crate) fn apply(_: &JsValue, args: &[JsValue], context: &mut Context) -> JsResult<JsValue> {
+    pub(crate) fn apply(_: &JsValue, args: &[JsValue], context: &Context) -> JsResult<JsValue> {
         let target = args
             .first()
             .and_then(JsValue::as_object)
@@ -105,11 +105,7 @@ impl Reflect {
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-reflect.construct
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Reflect/construct
-    pub(crate) fn construct(
-        _: &JsValue,
-        args: &[JsValue],
-        context: &mut Context,
-    ) -> JsResult<JsValue> {
+    pub(crate) fn construct(_: &JsValue, args: &[JsValue], context: &Context) -> JsResult<JsValue> {
         // 1. If IsConstructor(target) is false, throw a TypeError exception.
         let target = args
             .get_or_undefined(0)
@@ -148,7 +144,7 @@ impl Reflect {
     pub(crate) fn define_property(
         _: &JsValue,
         args: &[JsValue],
-        context: &mut Context,
+        context: &Context,
     ) -> JsResult<JsValue> {
         let target = args
             .first()
@@ -183,7 +179,7 @@ impl Reflect {
     pub(crate) fn delete_property(
         _: &JsValue,
         args: &[JsValue],
-        context: &mut Context,
+        context: &Context,
     ) -> JsResult<JsValue> {
         let target = args
             .first()
@@ -204,7 +200,7 @@ impl Reflect {
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-reflect.get
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Reflect/get
-    pub(crate) fn get(_: &JsValue, args: &[JsValue], context: &mut Context) -> JsResult<JsValue> {
+    pub(crate) fn get(_: &JsValue, args: &[JsValue], context: &Context) -> JsResult<JsValue> {
         // 1. If Type(target) is not Object, throw a TypeError exception.
         let target = args
             .first()
@@ -238,7 +234,7 @@ impl Reflect {
     pub(crate) fn get_own_property_descriptor(
         _: &JsValue,
         args: &[JsValue],
-        context: &mut Context,
+        context: &Context,
     ) -> JsResult<JsValue> {
         if args.get_or_undefined(0).is_object() {
             // This function is the same as Object.prototype.getOwnPropertyDescriptor, that why
@@ -266,7 +262,7 @@ impl Reflect {
     pub(crate) fn get_prototype_of(
         _: &JsValue,
         args: &[JsValue],
-        context: &mut Context,
+        context: &Context,
     ) -> JsResult<JsValue> {
         let target = args
             .first()
@@ -285,7 +281,7 @@ impl Reflect {
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-reflect.has
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Reflect/has
-    pub(crate) fn has(_: &JsValue, args: &[JsValue], context: &mut Context) -> JsResult<JsValue> {
+    pub(crate) fn has(_: &JsValue, args: &[JsValue], context: &Context) -> JsResult<JsValue> {
         let target = args
             .first()
             .and_then(JsValue::as_object)
@@ -311,7 +307,7 @@ impl Reflect {
     pub(crate) fn is_extensible(
         _: &JsValue,
         args: &[JsValue],
-        context: &mut Context,
+        context: &Context,
     ) -> JsResult<JsValue> {
         let target = args
             .first()
@@ -330,11 +326,7 @@ impl Reflect {
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-reflect.ownkeys
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Reflect/ownKeys
-    pub(crate) fn own_keys(
-        _: &JsValue,
-        args: &[JsValue],
-        context: &mut Context,
-    ) -> JsResult<JsValue> {
+    pub(crate) fn own_keys(_: &JsValue, args: &[JsValue], context: &Context) -> JsResult<JsValue> {
         let target = args
             .first()
             .and_then(JsValue::as_object)
@@ -360,7 +352,7 @@ impl Reflect {
     pub(crate) fn prevent_extensions(
         _: &JsValue,
         args: &[JsValue],
-        context: &mut Context,
+        context: &Context,
     ) -> JsResult<JsValue> {
         let target = args
             .first()
@@ -380,7 +372,7 @@ impl Reflect {
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-reflect.set
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Reflect/set
-    pub(crate) fn set(_: &JsValue, args: &[JsValue], context: &mut Context) -> JsResult<JsValue> {
+    pub(crate) fn set(_: &JsValue, args: &[JsValue], context: &Context) -> JsResult<JsValue> {
         let target = args
             .first()
             .and_then(JsValue::as_object)
@@ -413,7 +405,7 @@ impl Reflect {
     pub(crate) fn set_prototype_of(
         _: &JsValue,
         args: &[JsValue],
-        context: &mut Context,
+        context: &Context,
     ) -> JsResult<JsValue> {
         let target = args
             .first()

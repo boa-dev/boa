@@ -33,7 +33,7 @@ impl Url {
     ///
     /// # Errors
     /// This will error if the context or realm cannot register the class.
-    pub fn register(realm: Option<Realm>, context: &mut Context) -> JsResult<()> {
+    pub fn register(realm: Option<Realm>, context: &Context) -> JsResult<()> {
         js_module::boa_register(realm, context)
     }
 }
@@ -227,7 +227,7 @@ impl Url {
     fn parse(
         url: Convert<String>,
         base: Option<Convert<String>>,
-        context: &mut Context,
+        context: &Context,
     ) -> JsResult<JsValue> {
         Url::new(url, base).map_or(Ok(JsValue::null()), |u| {
             Url::from_data(u, context).map(JsValue::from)

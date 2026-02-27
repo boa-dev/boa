@@ -2,7 +2,7 @@ use boa_engine::{Context, JsValue, Source};
 
 fn main() {
     // Create the JavaScript context.
-    let mut context = Context::default();
+    let context = Context::default();
 
     // -----------------------------------------
     //  Loop Iteration Limit

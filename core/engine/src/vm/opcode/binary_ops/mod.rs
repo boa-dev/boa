@@ -18,12 +18,15 @@ impl StrictEq {
     #[inline(always)]
     pub(super) fn operation(
         (dst, lhs, rhs): (VaryingOperand, VaryingOperand, VaryingOperand),
-        context: &mut Context,
+        context: &Context,
     ) {
-        let lhs = context.vm.get_register(lhs.into());
-        let rhs = context.vm.get_register(rhs.into());
-        let value = lhs.strict_equals(rhs);
-        context.vm.set_register(dst.into(), value.into());
+        let value = {
+            let vm = context.vm_mut();
+            let lhs = vm.get_register(lhs.into());
+            let rhs = vm.get_register(rhs.into());
+            lhs.strict_equals(rhs)
+        };
+        context.vm_mut().set_register(dst.into(), value.into());
     }
 }
 
@@ -44,12 +47,15 @@ impl StrictNotEq {
     #[inline(always)]
     pub(super) fn operation(
         (dst, lhs, rhs): (VaryingOperand, VaryingOperand, VaryingOperand),
-        context: &mut Context,
+        context: &Context,
     ) {
-        let lhs = context.vm.get_register(lhs.into());
-        let rhs = context.vm.get_register(rhs.into());
-        let value = !lhs.strict_equals(rhs);
-        context.vm.set_register(dst.into(), value.into());
+        let value = {
+            let vm = context.vm_mut();
+            let lhs = vm.get_register(lhs.into());
+            let rhs = vm.get_register(rhs.into());
+            !lhs.strict_equals(rhs)
+        };
+        context.vm_mut().set_register(dst.into(), value.into());
     }
 }
 
@@ -70,9 +76,9 @@ impl In {
     #[inline(always)]
     pub(super) fn operation(
         (dst, lhs, rhs): (VaryingOperand, VaryingOperand, VaryingOperand),
-        context: &mut Context,
+        context: &Context,
     ) -> JsResult<()> {
-        let rhs = context.vm.get_register(rhs.into()).clone();
+        let rhs = context.vm_mut().get_register(rhs.into()).clone();
         let Some(rhs) = rhs.as_object() else {
             return Err(JsNativeError::typ()
                 .with_message(format!(
@@ -81,10 +87,10 @@ impl In {
                 ))
                 .into());
         };
-        let lhs = context.vm.get_register(lhs.into()).clone();
+        let lhs = context.vm_mut().get_register(lhs.into()).clone();
         let key = lhs.to_property_key(context)?;
         let value = rhs.has_property(key, context)?;
-        context.vm.set_register(dst.into(), value.into());
+        context.vm_mut().set_register(dst.into(), value.into());
         Ok(())
     }
 }
@@ -106,14 +112,14 @@ impl InPrivate {
     #[inline(always)]
     pub(super) fn operation(
         (dst, index, rhs): (VaryingOperand, VaryingOperand, VaryingOperand),
-        context: &mut Context,
+        context: &Context,
     ) -> JsResult<()> {
         let name = context
-            .vm
+            .vm_mut()
             .frame()
             .code_block()
             .constant_string(index.into());
-        let rhs = context.vm.get_register(rhs.into());
+        let rhs = context.vm_mut().get_register(rhs.into()).clone();
 
         let Some(rhs) = rhs.as_object() else {
             return Err(JsNativeError::typ()
@@ -125,7 +131,7 @@ impl InPrivate {
         };
 
         let name = context
-            .vm
+            .vm_mut()
             .frame
             .environments
             .resolve_private_identifier(name)
@@ -133,7 +139,7 @@ impl InPrivate {
 
         let value = rhs.private_element_find(&name, true, true).is_some();
 
-        context.vm.set_register(dst.into(), value.into());
+        context.vm_mut().set_register(dst.into(), value.into());
         Ok(())
     }
 }

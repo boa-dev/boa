@@ -12,11 +12,10 @@ pub(crate) struct LogicalNot;
 
 impl LogicalNot {
     #[inline(always)]
-    pub(crate) fn operation(value: VaryingOperand, context: &mut Context) {
-        context.vm.set_register(
-            value.into(),
-            (!context.vm.get_register(value.into()).to_boolean()).into(),
-        );
+    pub(crate) fn operation(value: VaryingOperand, context: &Context) {
+        let vm = context.vm_mut();
+        let result = (!vm.get_register(value.into()).to_boolean()).into();
+        vm.set_register(value.into(), result);
     }
 }
 

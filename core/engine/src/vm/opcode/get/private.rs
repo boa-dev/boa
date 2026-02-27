@@ -14,24 +14,24 @@ impl GetPrivateField {
     #[inline(always)]
     pub(crate) fn operation(
         (dst, object, index): (VaryingOperand, VaryingOperand, VaryingOperand),
-        context: &mut Context,
+        context: &Context,
     ) -> JsResult<()> {
         let name = context
-            .vm
+            .vm_mut()
             .frame()
             .code_block()
             .constant_string(index.into());
-        let object = context.vm.get_register(object.into()).clone();
+        let object = context.vm_mut().get_register(object.into()).clone();
         let object = object.to_object(context)?;
         let name = context
-            .vm
+            .vm_mut()
             .frame
             .environments
             .resolve_private_identifier(name)
             .expect("private name must be in environment");
 
         let result = object.private_get(&name, context)?;
-        context.vm.set_register(dst.into(), result);
+        context.vm_mut().set_register(dst.into(), result);
         Ok(())
     }
 }

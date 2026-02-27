@@ -13,7 +13,7 @@ use url::Url;
 struct E2eFetcher;
 
 impl E2eFetcher {
-    fn headers(request: &JsRequest, _context: &mut Context) -> JsResult<JsResponse> {
+    fn headers(request: &JsRequest, _context: &Context) -> JsResult<JsResponse> {
         let url = Url::parse(&request.uri().to_string()).map_err(JsError::from_rust)?;
         let request_query: BTreeMap<String, String> = url
             .query_pairs()
@@ -46,21 +46,21 @@ impl crate::fetch::Fetcher for E2eFetcher {
     async fn fetch(
         self: Rc<Self>,
         request: JsRequest,
-        context: &RefCell<&mut Context>,
+        context: &RefCell<&Context>,
     ) -> JsResult<JsResponse> {
         match request.uri().path() {
-            "/headers" => Self::headers(&request, &mut context.borrow_mut()),
+            "/headers" => Self::headers(&request, &context.borrow_mut()),
             _ => Err(js_error!("Invalid request.")),
         }
     }
 }
 
-fn register(ctx: &mut Context) {
+fn register(ctx: &Context) {
     let fetcher = E2eFetcher;
     crate::fetch::register(fetcher, None, ctx).expect("failed to register fetch");
 }
 
-fn await_response(ctx: &mut Context) {
+fn await_response(ctx: &Context) {
     let response = ctx.global_object().get(js_str!("response"), ctx).unwrap();
     response.as_promise().unwrap().await_blocking(ctx).unwrap();
 }

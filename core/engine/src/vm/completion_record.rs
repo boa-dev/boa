@@ -51,26 +51,26 @@ impl CompletionRecord {
 }
 
 pub(crate) trait IntoCompletionRecord {
-    fn into_completion_record(self, context: &mut Context) -> ControlFlow<CompletionRecord>;
+    fn into_completion_record(self, context: &Context) -> ControlFlow<CompletionRecord>;
 }
 
 impl IntoCompletionRecord for () {
     #[inline(always)]
-    fn into_completion_record(self, _: &mut Context) -> ControlFlow<CompletionRecord> {
+    fn into_completion_record(self, _: &Context) -> ControlFlow<CompletionRecord> {
         ControlFlow::Continue(())
     }
 }
 
 impl IntoCompletionRecord for JsError {
     #[inline(always)]
-    fn into_completion_record(self, context: &mut Context) -> ControlFlow<CompletionRecord> {
+    fn into_completion_record(self, context: &Context) -> ControlFlow<CompletionRecord> {
         context.handle_error(self)
     }
 }
 
 impl IntoCompletionRecord for JsResult<()> {
     #[inline(always)]
-    fn into_completion_record(self, context: &mut Context) -> ControlFlow<CompletionRecord> {
+    fn into_completion_record(self, context: &Context) -> ControlFlow<CompletionRecord> {
         match self {
             Ok(()) => ControlFlow::Continue(()),
             Err(err) => context.handle_error(err),
@@ -80,7 +80,7 @@ impl IntoCompletionRecord for JsResult<()> {
 
 impl IntoCompletionRecord for ControlFlow<CompletionRecord> {
     #[inline(always)]
-    fn into_completion_record(self, _: &mut Context) -> ControlFlow<CompletionRecord> {
+    fn into_completion_record(self, _: &Context) -> ControlFlow<CompletionRecord> {
         self
     }
 }

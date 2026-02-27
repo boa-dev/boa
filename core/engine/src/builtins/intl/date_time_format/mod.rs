@@ -133,11 +133,7 @@ impl BuiltInConstructor for DateTimeFormat {
     ///
     /// [spec]: https://tc39.es/ecma402/#datetimeformat-objects
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Intl/DateTimeFormat
-    fn constructor(
-        new_target: &JsValue,
-        args: &[JsValue],
-        context: &mut Context,
-    ) -> JsResult<JsValue> {
+    fn constructor(new_target: &JsValue, args: &[JsValue], context: &Context) -> JsResult<JsValue> {
         // NOTE (nekevss): separate calls to `CreateDateTimeFormat` to avoid clone.
         // 1. If NewTarget is undefined, let newTarget be the active function object, else let newTarget be NewTarget.
         let new_target = if new_target.is_undefined() {
@@ -177,7 +173,7 @@ impl BuiltInConstructor for DateTimeFormat {
 }
 
 impl DateTimeFormat {
-    fn get_format(this: &JsValue, _: &[JsValue], context: &mut Context) -> JsResult<JsValue> {
+    fn get_format(this: &JsValue, _: &[JsValue], context: &Context) -> JsResult<JsValue> {
         // 1. Let dtf be the this value.
         let object = this.as_object().ok_or_else(|| {
             JsNativeError::typ()
@@ -376,7 +372,7 @@ fn create_date_time_format(
     options: &JsValue,
     date_time_format_type: FormatType,
     defaults: FormatDefaults,
-    context: &mut Context,
+    context: &Context,
 ) -> JsResult<JsObject> {
     // 1. Let dateTimeFormat be ? OrdinaryCreateFromConstructor(newTarget, "%Intl.DateTimeFormat.prototype%",
     // « [[InitializedDateTimeFormat]], [[Locale]], [[Calendar]], [[NumberingSystem]], [[TimeZone]],

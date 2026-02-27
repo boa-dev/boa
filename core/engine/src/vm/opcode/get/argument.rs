@@ -12,14 +12,14 @@ pub(crate) struct GetArgument;
 
 impl GetArgument {
     #[inline(always)]
-    pub(crate) fn operation((index, dst): (VaryingOperand, VaryingOperand), context: &mut Context) {
-        let value = context
-            .vm
+    pub(crate) fn operation((index, dst): (VaryingOperand, VaryingOperand), context: &Context) {
+        let vm = context.vm_mut();
+        let value = vm
             .stack
-            .get_argument(context.vm.frame(), index.into())
+            .get_argument(&vm.frame, index.into())
             .cloned()
             .unwrap_or_default();
-        context.vm.set_register(dst.into(), value);
+        vm.set_register(dst.into(), value);
     }
 }
 

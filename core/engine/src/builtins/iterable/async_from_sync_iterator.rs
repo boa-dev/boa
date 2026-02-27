@@ -58,7 +58,7 @@ impl AsyncFromSyncIterator {
     /// [spec]: https://tc39.es/ecma262/#sec-createasyncfromsynciterator
     pub(crate) fn create(
         sync_iterator_record: IteratorRecord,
-        context: &mut Context,
+        context: &Context,
     ) -> IteratorRecord {
         // 1. Let asyncIterator be OrdinaryObjectCreate(%AsyncFromSyncIteratorPrototype%, « [[SyncIteratorRecord]] »).
         // 2. Set asyncIterator.[[SyncIteratorRecord]] to syncIteratorRecord.
@@ -91,7 +91,7 @@ impl AsyncFromSyncIterator {
     ///  - [ECMA reference][spec]
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-%asyncfromsynciteratorprototype%.next
-    fn next(this: &JsValue, args: &[JsValue], context: &mut Context) -> JsResult<JsValue> {
+    fn next(this: &JsValue, args: &[JsValue], context: &Context) -> JsResult<JsValue> {
         // 1. Let O be the this value.
         // 2. Assert: O is an Object that has a [[SyncIteratorRecord]] internal slot.
         // 4. Let syncIteratorRecord be O.[[SyncIteratorRecord]].
@@ -135,7 +135,7 @@ impl AsyncFromSyncIterator {
     ///  - [ECMA reference][spec]
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-%asyncfromsynciteratorprototype%.return
-    fn r#return(this: &JsValue, args: &[JsValue], context: &mut Context) -> JsResult<JsValue> {
+    fn r#return(this: &JsValue, args: &[JsValue], context: &Context) -> JsResult<JsValue> {
         // 1. Let O be the this value.
         // 2. Assert: O is an Object that has a [[SyncIteratorRecord]] internal slot.
         // 4. Let syncIteratorRecord be O.[[SyncIteratorRecord]].
@@ -217,7 +217,7 @@ impl AsyncFromSyncIterator {
     ///  - [ECMA reference][spec]
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-%asyncfromsynciteratorprototype%.throw
-    fn throw(this: &JsValue, args: &[JsValue], context: &mut Context) -> JsResult<JsValue> {
+    fn throw(this: &JsValue, args: &[JsValue], context: &Context) -> JsResult<JsValue> {
         // 1. Let O be the this value.
         // 2. Assert: O is an Object that has a [[SyncIteratorRecord]] internal slot.
         // 4. Let syncIteratorRecord be O.[[SyncIteratorRecord]].
@@ -316,7 +316,7 @@ impl AsyncFromSyncIterator {
         promise_capability: &PromiseCapability,
         sync_iterator_record: IteratorRecord,
         close_on_rejection: bool,
-        context: &mut Context,
+        context: &Context,
     ) -> JsResult<JsValue> {
         // 1. NOTE: Because promiseCapability is derived from the intrinsic %Promise%,
         // the calls to promiseCapability.[[Reject]] entailed by the

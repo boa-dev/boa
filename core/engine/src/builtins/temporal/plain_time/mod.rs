@@ -152,11 +152,7 @@ impl BuiltInConstructor for PlainTime {
     const STANDARD_CONSTRUCTOR: fn(&StandardConstructors) -> &StandardConstructor =
         StandardConstructors::plain_time;
 
-    fn constructor(
-        new_target: &JsValue,
-        args: &[JsValue],
-        context: &mut Context,
-    ) -> JsResult<JsValue> {
+    fn constructor(new_target: &JsValue, args: &[JsValue], context: &Context) -> JsResult<JsValue> {
         // 1. If NewTarget is undefined, then
         if new_target.is_undefined() {
             // a. Throw a TypeError exception.
@@ -263,7 +259,7 @@ impl PlainTime {
     /// [spec]: https://tc39.es/proposal-temporal/#sec-get-temporal.plaintime.prototype.hour
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Temporal/PlainTime/hour
     /// [temporal_rs-docs]: https://docs.rs/temporal_rs/latest/temporal_rs/struct.PlainTime.html#method.hour
-    fn get_hour(this: &JsValue, _: &[JsValue], _: &mut Context) -> JsResult<JsValue> {
+    fn get_hour(this: &JsValue, _: &[JsValue], _: &Context) -> JsResult<JsValue> {
         // 1. Let temporalTime be the this value.
         // 2. Perform ? RequireInternalSlot(temporalTime, [[InitializedTemporalTime]]).
         let object = this.as_object();
@@ -289,7 +285,7 @@ impl PlainTime {
     /// [spec]: https://tc39.es/proposal-temporal/#sec-get-temporal.plaintime.prototype.minute
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Temporal/PlainTime/minute
     /// [temporal_rs-docs]: https://docs.rs/temporal_rs/latest/temporal_rs/struct.PlainTime.html#method.minute
-    fn get_minute(this: &JsValue, _: &[JsValue], _: &mut Context) -> JsResult<JsValue> {
+    fn get_minute(this: &JsValue, _: &[JsValue], _: &Context) -> JsResult<JsValue> {
         // 1. Let temporalTime be the this value.
         // 2. Perform ? RequireInternalSlot(temporalTime, [[InitializedTemporalTime]]).
         let object = this.as_object();
@@ -315,7 +311,7 @@ impl PlainTime {
     /// [spec]: https://tc39.es/proposal-temporal/#sec-get-temporal.plaintime.prototype.second
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Temporal/PlainTime/second
     /// [temporal_rs-docs]: https://docs.rs/temporal_rs/latest/temporal_rs/struct.PlainTime.html#method.second
-    fn get_second(this: &JsValue, _: &[JsValue], _: &mut Context) -> JsResult<JsValue> {
+    fn get_second(this: &JsValue, _: &[JsValue], _: &Context) -> JsResult<JsValue> {
         // 1. Let temporalTime be the this value.
         // 2. Perform ? RequireInternalSlot(temporalTime, [[InitializedTemporalTime]]).
         let object = this.as_object();
@@ -341,7 +337,7 @@ impl PlainTime {
     /// [spec]: https://tc39.es/proposal-temporal/#sec-get-temporal.plaintime.prototype.millisecond
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Temporal/PlainTime/millisecond
     /// [temporal_rs-docs]: https://docs.rs/temporal_rs/latest/temporal_rs/struct.PlainTime.html#method.millisecond
-    fn get_millisecond(this: &JsValue, _: &[JsValue], _: &mut Context) -> JsResult<JsValue> {
+    fn get_millisecond(this: &JsValue, _: &[JsValue], _: &Context) -> JsResult<JsValue> {
         // 1. Let temporalTime be the this value.
         // 2. Perform ? RequireInternalSlot(temporalTime, [[InitializedTemporalTime]]).
         let object = this.as_object();
@@ -367,7 +363,7 @@ impl PlainTime {
     /// [spec]: https://tc39.es/proposal-temporal/#sec-get-temporal.plaintime.prototype.microsecond
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Temporal/PlainTime/microsecond
     /// [temporal_rs-docs]: https://docs.rs/temporal_rs/latest/temporal_rs/struct.PlainTime.html#method.microsecond
-    fn get_microsecond(this: &JsValue, _: &[JsValue], _: &mut Context) -> JsResult<JsValue> {
+    fn get_microsecond(this: &JsValue, _: &[JsValue], _: &Context) -> JsResult<JsValue> {
         // 1. Let temporalTime be the this value.
         // 2. Perform ? RequireInternalSlot(temporalTime, [[InitializedTemporalTime]]).
         let object = this.as_object();
@@ -393,7 +389,7 @@ impl PlainTime {
     /// [spec]: https://tc39.es/proposal-temporal/#sec-get-temporal.plaintime.prototype.nanosecond
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Temporal/PlainTime/nanosecond
     /// [temporal_rs-docs]: https://docs.rs/temporal_rs/latest/temporal_rs/struct.PlainTime.html#method.nanosecond
-    fn get_nanosecond(this: &JsValue, _: &[JsValue], _: &mut Context) -> JsResult<JsValue> {
+    fn get_nanosecond(this: &JsValue, _: &[JsValue], _: &Context) -> JsResult<JsValue> {
         // 1. Let temporalTime be the this value.
         // 2. Perform ? RequireInternalSlot(temporalTime, [[InitializedTemporalTime]]).
         let object = this.as_object();
@@ -421,7 +417,7 @@ impl PlainTime {
     ///
     /// [spec]: https://tc39.es/proposal-temporal/#sec-temporal.plaintime.from
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Temporal/PlainTime/from
-    fn from(_: &JsValue, args: &[JsValue], context: &mut Context) -> JsResult<JsValue> {
+    fn from(_: &JsValue, args: &[JsValue], context: &Context) -> JsResult<JsValue> {
         // 1. Return ? ToTemporalTime(item, options).
         let plain_time = to_temporal_time(args.get_or_undefined(0), args.get(1), context)?;
         create_temporal_time(plain_time, None, context).map(Into::into)
@@ -438,7 +434,7 @@ impl PlainTime {
     /// [spec]: https://tc39.es/proposal-temporal/#sec-temporal.plaintime.compare
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Temporal/PlainTime/compare
     /// [temporal_rs-docs]: https://docs.rs/temporal_rs/latest/temporal_rs/struct.PlainTime.html#impl-Ord-for-PlainTime
-    fn compare(_: &JsValue, args: &[JsValue], context: &mut Context) -> JsResult<JsValue> {
+    fn compare(_: &JsValue, args: &[JsValue], context: &Context) -> JsResult<JsValue> {
         // 1. Set one to ? ToTemporalTime(one).
         let one = to_temporal_time(args.get_or_undefined(0), None, context)?;
         // 2. Set two to ? ToTemporalTime(two).
@@ -465,7 +461,7 @@ impl PlainTime {
     /// [spec]: https://tc39.es/proposal-temporal/#sec-temporal.plaintime.prototype.add
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Temporal/PlainTime/add
     /// [temporal_rs-docs]: https://docs.rs/temporal_rs/latest/temporal_rs/struct.PlainTime.html#method.add
-    fn add(this: &JsValue, args: &[JsValue], context: &mut Context) -> JsResult<JsValue> {
+    fn add(this: &JsValue, args: &[JsValue], context: &Context) -> JsResult<JsValue> {
         // 1. Let temporalTime be the this value.
         // 2. Perform ? RequireInternalSlot(temporalTime, [[InitializedTemporalTime]]).
         let object = this.as_object();
@@ -494,7 +490,7 @@ impl PlainTime {
     /// [spec]: https://tc39.es/proposal-temporal/#sec-temporal.plaintime.prototype.subtract
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Temporal/PlainTime/subtract
     /// [temporal_rs-docs]: https://docs.rs/temporal_rs/latest/temporal_rs/struct.PlainTime.html#method.subtract
-    fn subtract(this: &JsValue, args: &[JsValue], context: &mut Context) -> JsResult<JsValue> {
+    fn subtract(this: &JsValue, args: &[JsValue], context: &Context) -> JsResult<JsValue> {
         // 1. Let temporalTime be the this value.
         // 2. Perform ? RequireInternalSlot(temporalTime, [[InitializedTemporalTime]]).
         let object = this.as_object();
@@ -523,7 +519,7 @@ impl PlainTime {
     /// [spec]: https://tc39.es/proposal-temporal/#sec-temporal.plaintime.prototype.with
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Temporal/PlainTime/with
     /// [temporal_rs-docs]: https://docs.rs/temporal_rs/latest/temporal_rs/struct.PlainTime.html#method.with
-    fn with(this: &JsValue, args: &[JsValue], context: &mut Context) -> JsResult<JsValue> {
+    fn with(this: &JsValue, args: &[JsValue], context: &Context) -> JsResult<JsValue> {
         // 1.Let temporalTime be the this value.
         // 2. Perform ? RequireInternalSlot(temporalTime, [[InitializedTemporalTime]]).
         let object = this.as_object();
@@ -571,7 +567,7 @@ impl PlainTime {
     /// [spec]: https://tc39.es/proposal-temporal/#sec-temporal.plaintime.prototype.until
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Temporal/PlainTime/until
     /// [temporal_rs-docs]: https://docs.rs/temporal_rs/latest/temporal_rs/struct.PlainTime.html#method.until
-    fn until(this: &JsValue, args: &[JsValue], context: &mut Context) -> JsResult<JsValue> {
+    fn until(this: &JsValue, args: &[JsValue], context: &Context) -> JsResult<JsValue> {
         let object = this.as_object();
         let time = object
             .as_ref()
@@ -601,7 +597,7 @@ impl PlainTime {
     /// [spec]: https://tc39.es/proposal-temporal/#sec-temporal.plaintime.prototype.since
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Temporal/PlainTime/since
     /// [temporal_rs-docs]: https://docs.rs/temporal_rs/latest/temporal_rs/struct.PlainTime.html#method.since
-    fn since(this: &JsValue, args: &[JsValue], context: &mut Context) -> JsResult<JsValue> {
+    fn since(this: &JsValue, args: &[JsValue], context: &Context) -> JsResult<JsValue> {
         let object = this.as_object();
         let time = object
             .as_ref()
@@ -631,7 +627,7 @@ impl PlainTime {
     /// [spec]: https://tc39.es/proposal-temporal/#sec-temporal.plaintime.prototype.round
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Temporal/PlainTime/round
     /// [temporal_rs-docs]: https://docs.rs/temporal_rs/latest/temporal_rs/struct.PlainTime.html#method.round
-    fn round(this: &JsValue, args: &[JsValue], context: &mut Context) -> JsResult<JsValue> {
+    fn round(this: &JsValue, args: &[JsValue], context: &Context) -> JsResult<JsValue> {
         // 1. Let temporalTime be the this value.
         // 2. Perform ? RequireInternalSlot(temporalTime, [[InitializedTemporalTime]]).
         let object = this.as_object();
@@ -710,7 +706,7 @@ impl PlainTime {
     /// [spec]: https://tc39.es/proposal-temporal/#sec-temporal.plaintime.prototype.equals
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Temporal/PlainTime/equals
     /// [temporal_rs-docs]: https://docs.rs/temporal_rs/latest/temporal_rs/struct.PlainTime.html#impl-Eq-for-PlainTime
-    fn equals(this: &JsValue, args: &[JsValue], context: &mut Context) -> JsResult<JsValue> {
+    fn equals(this: &JsValue, args: &[JsValue], context: &Context) -> JsResult<JsValue> {
         // 1. Let temporalTime be the this value.
         // 2. Perform ? RequireInternalSlot(temporalTime, [[InitializedTemporalTime]]).
         let object = this.as_object();
@@ -744,7 +740,7 @@ impl PlainTime {
     /// [spec]: https://tc39.es/proposal-temporal/#sec-temporal.plaintime.prototype.tostring
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Temporal/PlainTime/toString
     /// [temporal_rs-docs]: https://docs.rs/temporal_rs/latest/temporal_rs/struct.PlainTime.html#method.to_ixdtf_string
-    fn to_string(this: &JsValue, args: &[JsValue], context: &mut Context) -> JsResult<JsValue> {
+    fn to_string(this: &JsValue, args: &[JsValue], context: &Context) -> JsResult<JsValue> {
         let object = this.as_object();
         let time = object
             .as_ref()
@@ -780,7 +776,7 @@ impl PlainTime {
     ///
     /// [spec]: https://tc39.es/proposal-temporal/#sec-temporal.plaintime.prototype.tolocalestring
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Temporal/PlainTime/toLocaleString
-    fn to_locale_string(this: &JsValue, _: &[JsValue], _: &mut Context) -> JsResult<JsValue> {
+    fn to_locale_string(this: &JsValue, _: &[JsValue], _: &Context) -> JsResult<JsValue> {
         // TODO: Update for ECMA-402 compliance
         let object = this.as_object();
         let time = object
@@ -805,7 +801,7 @@ impl PlainTime {
     ///
     /// [spec]: https://tc39.es/proposal-temporal/#sec-temporal.plaintime.prototype.tojson
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Temporal/PlainTime/toJSON
-    fn to_json(this: &JsValue, _: &[JsValue], _: &mut Context) -> JsResult<JsValue> {
+    fn to_json(this: &JsValue, _: &[JsValue], _: &Context) -> JsResult<JsValue> {
         let object = this.as_object();
         let time = object
             .as_ref()
@@ -829,7 +825,7 @@ impl PlainTime {
     ///
     /// [spec]: https://tc39.es/proposal-temporal/#sec-temporal.plaintime.prototype.valueof
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Temporal/PlainTime/valueOf
-    fn value_of(_this: &JsValue, _: &[JsValue], _: &mut Context) -> JsResult<JsValue> {
+    fn value_of(_this: &JsValue, _: &[JsValue], _: &Context) -> JsResult<JsValue> {
         // 1. Throw a TypeError exception.
         Err(JsNativeError::typ()
             .with_message("`valueOf` not supported by Temporal built-ins. See 'compare', 'equals', or `toString`")
@@ -842,7 +838,7 @@ impl PlainTime {
 pub(crate) fn create_temporal_time(
     inner: PlainTimeInner,
     new_target: Option<&JsValue>,
-    context: &mut Context,
+    context: &Context,
 ) -> JsResult<JsObject> {
     // Note: IsValidTime is enforced by Time.
     // 1. If IsValidTime(hour, minute, second, millisecond, microsecond, nanosecond) is false, throw a RangeError exception.
@@ -880,7 +876,7 @@ pub(crate) fn create_temporal_time(
 pub(crate) fn to_temporal_time(
     value: &JsValue,
     options: Option<&JsValue>,
-    context: &mut Context,
+    context: &Context,
 ) -> JsResult<PlainTimeInner> {
     // 1.If overflow is not present, set overflow to "constrain".
     let binding = JsValue::undefined();
@@ -1007,7 +1003,7 @@ impl JsPartialTime {
 
 pub(crate) fn to_js_partial_time_record(
     partial_object: &JsObject,
-    context: &mut Context,
+    context: &Context,
 ) -> JsResult<JsPartialTime> {
     let hour = partial_object
         .get(js_string!("hour"), context)?

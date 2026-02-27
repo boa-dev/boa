@@ -10,9 +10,9 @@ pub(crate) struct IncrementLoopIteration;
 
 impl IncrementLoopIteration {
     #[inline(always)]
-    pub(crate) fn operation((): (), context: &mut Context) -> JsResult<()> {
-        let max = context.vm.runtime_limits.loop_iteration_limit();
-        let frame = context.vm.frame_mut();
+    pub(crate) fn operation((): (), context: &Context) -> JsResult<()> {
+        let max = context.vm_mut().runtime_limits.loop_iteration_limit();
+        let frame = context.vm_mut().frame_mut();
         let previous_iteration_count = frame.loop_iteration_count;
 
         if previous_iteration_count > max {

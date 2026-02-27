@@ -59,7 +59,7 @@ impl Eval {
     ///  - [ECMAScript reference][spec]
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-eval-x
-    fn eval(_: &JsValue, args: &[JsValue], context: &mut Context) -> JsResult<JsValue> {
+    fn eval(_: &JsValue, args: &[JsValue], context: &Context) -> JsResult<JsValue> {
         // 1. Return ? PerformEval(x, false, false).
         Self::perform_eval(args.get_or_undefined(0), false, None, false, context)
     }
@@ -75,7 +75,7 @@ impl Eval {
         direct: bool,
         lexical_scope: Option<Scope>,
         mut strict: bool,
-        context: &mut Context,
+        context: &Context,
     ) -> JsResult<JsValue> {
         bitflags::bitflags! {
             /// Flags used to throw early errors on invalid `eval` calls.
@@ -138,7 +138,7 @@ impl Eval {
         // 9. Let inClassFieldInitializer be false.
         // a. Let thisEnvRec be GetThisEnvironment().
         let flags = match context
-            .vm
+            .vm_mut()
             .frame
             .environments
             .get_this_environment()
@@ -211,11 +211,11 @@ impl Eval {
 
             // Poison the last parent function environment, because it may contain new declarations after/during eval.
             if !strict {
-                context.vm.frame.environments.poison_until_last_function();
+                context.vm_mut().frame.environments.poison_until_last_function();
             }
 
             // Set the compile time environment to the current running environment and save the number of current environments.
-            let environments_len = context.vm.frame.environments.len();
+            let environments_len = context.vm_mut().frame.environments.len();
 
             // Pop any added runtime environments that were not removed during the eval execution.
             EnvStackAction::Truncate(environments_len)
@@ -223,22 +223,22 @@ impl Eval {
             // If the call to eval is indirect, the code is executed in the global environment.
 
             // Pop all environments before the eval execution.
-            let environments = context.vm.frame.environments.pop_to_global();
+            let environments = context.vm_mut().frame.environments.pop_to_global();
 
             // Restore all environments to the state from before the eval execution.
             EnvStackAction::Restore(environments)
         };
 
-        let context = &mut context.guard(move |ctx| match action {
-            EnvStackAction::Truncate(len) => ctx.vm.frame.environments.truncate(len),
+        let context = &context.guard(move |ctx| match action {
+            EnvStackAction::Truncate(len) => ctx.vm_mut().frame.environments.truncate(len),
             EnvStackAction::Restore(envs) => {
-                ctx.vm.frame.environments.truncate(0);
-                ctx.vm.frame.environments.extend(envs);
+                ctx.vm_mut().frame.environments.truncate(0);
+                ctx.vm_mut().frame.environments.extend(envs);
             }
         });
 
         let (var_environment, mut variable_scope) =
-            if let Some(e) = context.vm.frame.environments.outer_function_environment() {
+            if let Some(e) = context.vm_mut().frame.environments.outer_function_environment() {
                 (e.0, e.1)
             } else {
                 (
@@ -265,7 +265,7 @@ impl Eval {
             context,
         )?;
 
-        let in_with = context.vm.frame.environments.has_object_environment();
+        let in_with = context.vm_mut().frame.environments.has_object_environment();
 
         let source_text = SourceText::new(source);
         let spanned_source_text = SpannedSourceText::new_source_only(source_text);
@@ -327,10 +327,10 @@ impl Eval {
             var_environment.extend_from_compile();
         }
 
-        let env_fp = context.vm.frame.environments.len() as u32;
-        let environments = context.vm.frame.environments.clone();
+        let env_fp = context.vm_mut().frame.environments.len() as u32;
+        let environments = context.vm_mut().frame.environments.clone();
         let realm = context.realm().clone();
-        context.vm.push_frame_with_stack(
+        context.vm_mut().push_frame_with_stack(
             CallFrame::new(code_block, None, environments, realm)
                 .with_env_fp(env_fp)
                 .with_flags(CallFrameFlags::EXIT_EARLY),
@@ -341,7 +341,7 @@ impl Eval {
         context.realm().resize_global_env();
 
         let record = context.run();
-        context.vm.pop_frame();
+        context.vm_mut().pop_frame();
 
         record.consume()
     }

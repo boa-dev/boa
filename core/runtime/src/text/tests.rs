@@ -8,7 +8,7 @@ use test_case::test_case;
 
 #[test]
 fn encoder_js() {
-    let context = &mut Context::default();
+    let context = &Context::default();
     text::register(None, context).unwrap();
 
     run_test_actions_with(
@@ -38,7 +38,7 @@ fn encoder_js_unpaired() {
     use crate::test::{TestAction, run_test_actions_with};
     use indoc::indoc;
 
-    let context = &mut Context::default();
+    let context = &Context::default();
     text::register(None, context).unwrap();
 
     let unpaired_surrogates: [u16; 3] = [0xDC58, 0xD83C, 0x0015];
@@ -71,7 +71,7 @@ fn encoder_js_unpaired() {
 
 #[test]
 fn decoder_js() {
-    let context = &mut Context::default();
+    let context = &Context::default();
     text::register(None, context).unwrap();
 
     run_test_actions_with(
@@ -99,7 +99,7 @@ fn decoder_js_invalid() {
     use crate::test::{TestAction, run_test_actions_with};
     use indoc::indoc;
 
-    let context = &mut Context::default();
+    let context = &Context::default();
     text::register(None, context).unwrap();
 
     run_test_actions_with(
@@ -130,7 +130,7 @@ fn decoder_js_invalid() {
 #[test_case("utf-16le")]
 #[test_case("utf-16be")]
 fn roundtrip(encoding: &'static str) {
-    let context = &mut Context::default();
+    let context = &Context::default();
     text::register(None, context).unwrap();
 
     run_test_actions_with(
@@ -161,7 +161,7 @@ fn roundtrip(encoding: &'static str) {
 #[test_case("utf-16le", &[0xFF, 0xFE, 72, 0, 105, 0])]
 #[test_case("utf-16be", &[0xFE, 0xFF, 0, 72, 0, 105])]
 fn decoder_bom_default_stripped(encoding: &'static str, bytes: &'static [u8]) {
-    let context = &mut Context::default();
+    let context = &Context::default();
     text::register(None, context).unwrap();
 
     let input = JsUint8Array::from_iter(bytes.iter().copied(), context).unwrap();
@@ -194,7 +194,7 @@ fn decoder_bom_default_stripped(encoding: &'static str, bytes: &'static [u8]) {
 #[test_case("utf-16le", &[0xFF, 0xFE, 72, 0, 105, 0])]
 #[test_case("utf-16be", &[0xFE, 0xFF, 0, 72, 0, 105])]
 fn decoder_bom_ignore_bom_true(encoding: &'static str, bytes: &'static [u8]) {
-    let context = &mut Context::default();
+    let context = &Context::default();
     text::register(None, context).unwrap();
 
     let input = JsUint8Array::from_iter(bytes.iter().copied(), context).unwrap();
@@ -227,7 +227,7 @@ fn decoder_bom_ignore_bom_true(encoding: &'static str, bytes: &'static [u8]) {
 #[test_case("utf-16le", &[0xFF, 0xFE, 72, 0, 105, 0])]
 #[test_case("utf-16be", &[0xFE, 0xFF, 0, 72, 0, 105])]
 fn decoder_bom_ignore_bom_false(encoding: &'static str, bytes: &'static [u8]) {
-    let context = &mut Context::default();
+    let context = &Context::default();
     text::register(None, context).unwrap();
 
     let input = JsUint8Array::from_iter(bytes.iter().copied(), context).unwrap();
@@ -257,7 +257,7 @@ fn decoder_bom_ignore_bom_false(encoding: &'static str, bytes: &'static [u8]) {
 
 #[test]
 fn decoder_ignore_bom_getter() {
-    let context = &mut Context::default();
+    let context = &Context::default();
     text::register(None, context).unwrap();
 
     run_test_actions_with(
@@ -294,7 +294,7 @@ fn decoder_ignore_bom_getter() {
 
 #[test]
 fn decoder_handle_data_view() {
-    let context = &mut Context::default();
+    let context = &Context::default();
     text::register(None, context).unwrap();
 
     run_test_actions_with(

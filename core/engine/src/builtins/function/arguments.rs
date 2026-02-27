@@ -30,7 +30,7 @@ impl UnmappedArguments {
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-createunmappedargumentsobject
     #[allow(clippy::new_ret_no_self)]
-    pub(crate) fn new(arguments_list: &[JsValue], context: &mut Context) -> JsObject {
+    pub(crate) fn new(arguments_list: &[JsValue], context: &Context) -> JsObject {
         // 1. Let len be the number of elements in argumentsList.
         let len = arguments_list.len();
 

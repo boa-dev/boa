@@ -487,7 +487,7 @@ pub(super) unsafe fn wait_async<E: Element + PartialEq>(
     check: E,
     timeout: Option<Duration>,
     functions: ResolvingFunctions,
-    context: &mut Context,
+    context: &Context,
 ) -> JsResult<AtomicsWaitResult> {
     // 11. Let block be buffer.[[ArrayBufferData]].
     // 12. Let offset be typedArray.[[ByteOffset]].
@@ -600,7 +600,7 @@ pub(super) unsafe fn wait_async<E: Element + PartialEq>(
                     .call(
                         &JsValue::undefined(),
                         &[result.to_js_string().into()],
-                        &mut context.borrow_mut(),
+                        &context.borrow(),
                     )
                     .expect("default resolving functions cannot error");
             } else {

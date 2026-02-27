@@ -43,7 +43,7 @@ pub mod embedded;
 ///         Some(Path::new("/base")),
 ///         &js_string!("../a.js"),
 ///         Some(Path::new("/base/hello/ref.js")),
-///         &mut Context::default()
+///         &Context::default()
 ///     ),
 ///     Ok("/base/a.js".into())
 /// );
@@ -53,7 +53,7 @@ pub fn resolve_module_specifier(
     base: Option<&Path>,
     specifier: &JsString,
     referrer: Option<&Path>,
-    _context: &mut Context,
+    _context: &Context,
 ) -> JsResult<PathBuf> {
     let base_path = base.map_or_else(|| PathBuf::from(""), PathBuf::from);
     let referrer_dir = referrer.and_then(|p| p.parent());
@@ -180,7 +180,7 @@ pub trait ModuleLoader: Any {
         self: Rc<Self>,
         referrer: Referrer,
         request: ModuleRequest,
-        context: &RefCell<&mut Context>,
+        context: &RefCell<&Context>,
     ) -> JsResult<Module>;
 
     /// Host hooks [`HostGetImportMetaProperties ( moduleRecord )`][meta] and
@@ -199,7 +199,7 @@ pub trait ModuleLoader: Any {
         self: Rc<Self>,
         _import_meta: &JsObject,
         _module: &Module,
-        _context: &mut Context,
+        _context: &Context,
     ) {
     }
 }
@@ -211,19 +211,14 @@ pub(crate) trait DynModuleLoader: Any {
         self: Rc<Self>,
         referrer: Referrer,
         request: ModuleRequest,
-        context: &'a RefCell<&'b mut Context>,
-    ) -> Fn!(Rc<Self>, Referrer, ModuleRequest, &'a RefCell<&'b mut Context> => dyn 'fut + Future<Output = JsResult<Module>>)
+        context: &'a RefCell<&'b Context>,
+    ) -> Fn!(Rc<Self>, Referrer, ModuleRequest, &'a RefCell<&'b Context> => dyn 'fut + Future<Output = JsResult<Module>>)
     where
         'a: 'fut,
         'b: 'fut;
 
     /// See [`ModuleLoader::init_import_meta`].
-    fn init_import_meta(
-        self: Rc<Self>,
-        import_meta: &JsObject,
-        module: &Module,
-        context: &mut Context,
-    );
+    fn init_import_meta(self: Rc<Self>, import_meta: &JsObject, module: &Module, context: &Context);
 }
 
 impl<T: ModuleLoader> DynModuleLoader for T {
@@ -231,8 +226,8 @@ impl<T: ModuleLoader> DynModuleLoader for T {
         self: Rc<Self>,
         referrer: Referrer,
         request: ModuleRequest,
-        context: &'a RefCell<&'b mut Context>,
-    ) -> Fn!(Rc<Self>, Referrer, ModuleRequest, &'a RefCell<&'b mut Context> => dyn 'fut + Future<Output = JsResult<Module>>)
+        context: &'a RefCell<&'b Context>,
+    ) -> Fn!(Rc<Self>, Referrer, ModuleRequest, &'a RefCell<&'b Context> => dyn 'fut + Future<Output = JsResult<Module>>)
     where
         'a: 'fut,
         'b: 'fut,
@@ -244,7 +239,7 @@ impl<T: ModuleLoader> DynModuleLoader for T {
         self: Rc<Self>,
         import_meta: &JsObject,
         module: &Module,
-        context: &mut Context,
+        context: &Context,
     ) {
         T::init_import_meta(self, import_meta, module, context);
     }
@@ -261,7 +256,7 @@ impl ModuleLoader for IdleModuleLoader {
         self: Rc<Self>,
         _referrer: Referrer,
         _request: ModuleRequest,
-        _context: &RefCell<&mut Context>,
+        _context: &RefCell<&Context>,
     ) -> JsResult<Module> {
         Err(JsNativeError::typ()
             .with_message("module resolution is disabled for this context")
@@ -319,14 +314,14 @@ impl ModuleLoader for MapModuleLoader {
         self: Rc<Self>,
         referrer: Referrer,
         request: ModuleRequest,
-        context: &RefCell<&mut Context>,
+        context: &RefCell<&Context>,
     ) -> impl Future<Output = JsResult<Module>> {
         let result = (|| {
             let path = resolve_module_specifier(
                 None,
                 request.specifier(),
                 referrer.path(),
-                &mut context.borrow_mut(),
+                &context.borrow(),
             )?;
             if let Some(module) = self.inner.borrow().get(&path) {
                 Ok(module.clone())
@@ -415,7 +410,7 @@ impl ModuleLoader for SimpleModuleLoader {
         self: Rc<Self>,
         referrer: Referrer,
         request: ModuleRequest,
-        context: &RefCell<&mut Context>,
+        context: &RefCell<&Context>,
     ) -> impl Future<Output = JsResult<Module>> {
         let result = (|| {
             let short_path = request.specifier().to_std_string_escaped();
@@ -423,7 +418,7 @@ impl ModuleLoader for SimpleModuleLoader {
                 Some(&self.root),
                 request.specifier(),
                 referrer.path(),
-                &mut context.borrow_mut(),
+                &context.borrow(),
             )?;
 
             if let Some(module) = self.get_with_attributes(&path, request.attributes()) {
@@ -465,15 +460,11 @@ impl ModuleLoader for SimpleModuleLoader {
                                 ))
                         })?;
                         let json_string = js_string!(json_content.as_str());
-                        Module::parse_json(json_string, &mut context.borrow_mut()).map_err(
-                            |err| {
-                                JsNativeError::syntax()
-                                    .with_message(format!(
-                                        "could not parse JSON module `{short_path}`"
-                                    ))
-                                    .with_cause(err)
-                            },
-                        )?
+                        Module::parse_json(json_string, &context.borrow()).map_err(|err| {
+                            JsNativeError::syntax()
+                                .with_message(format!("could not parse JSON module `{short_path}`"))
+                                .with_cause(err)
+                        })?
                     }
                     other => {
                         // Unknown module type
@@ -491,7 +482,7 @@ impl ModuleLoader for SimpleModuleLoader {
                         .with_message(format!("could not open file `{short_path}`"))
                         .with_cause(JsError::from_opaque(js_string!(err.to_string()).into()))
                 })?;
-                Module::parse(source, None, &mut context.borrow_mut()).map_err(|err| {
+                Module::parse(source, None, &context.borrow()).map_err(|err| {
                     JsNativeError::syntax()
                         .with_message(format!("could not parse module `{short_path}`"))
                         .with_cause(err)
@@ -537,7 +528,7 @@ mod tests {
     fn resolve_test(ref_path: Option<&str>, spec: &str, expected: Result<&str, ()>) {
         let base = PathBuf::from("/base");
 
-        let mut context = Context::default();
+        let context = Context::default();
         let spec = js_string!(spec);
         let ref_path = ref_path.map(PathBuf::from);
 
@@ -545,7 +536,7 @@ mod tests {
             Some(&base),
             &spec,
             ref_path.as_deref(),
-            &mut context,
+            &context,
         );
         assert_eq!(actual.map_err(|_| ()), expected.map(PathBuf::from));
     }
@@ -570,7 +561,7 @@ mod tests {
     #[test_case(Some("/base/ref.js"),       "other/../../m.js", Err(()))]
     #[test_case(None,                       "../n.js",          Err(()))]
     fn resolve_test_no_base(ref_path: Option<&str>, spec: &str, expected: Result<&str, ()>) {
-        let mut context = Context::default();
+        let context = Context::default();
         let spec = js_string!(spec);
         let ref_path = ref_path.map(PathBuf::from);
 
@@ -578,7 +569,7 @@ mod tests {
             None,
             &spec,
             ref_path.as_deref(),
-            &mut context,
+            &context,
         );
         assert_eq!(actual.map_err(|_| ()), expected.map(PathBuf::from));
     }
@@ -604,7 +595,7 @@ mod tests {
     fn resolve_test(ref_path: Option<&str>, spec: &str, expected: Result<&str, ()>) {
         let base = PathBuf::from("a:\\base");
 
-        let mut context = Context::default();
+        let context = Context::default();
         let spec = js_string!(spec);
         let ref_path = ref_path.map(PathBuf::from);
 
@@ -612,7 +603,7 @@ mod tests {
             Some(&base),
             &spec,
             ref_path.as_deref(),
-            &mut context,
+            &context,
         );
         assert_eq!(actual.map_err(|_| ()), expected.map(PathBuf::from));
     }

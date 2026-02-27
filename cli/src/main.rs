@@ -218,7 +218,7 @@ enum FlowgraphDirection {
 ///
 /// Returns a error of type String with a error message,
 /// if the source has a syntax or parsing error.
-fn dump<R: ReadChar>(src: Source<'_, R>, args: &Opt, context: &mut Context) -> Result<()> {
+fn dump<R: ReadChar>(src: Source<'_, R>, args: &Opt, context: &Context) -> Result<()> {
     if let Some(arg) = args.dump_ast {
         let arg = arg.unwrap_or_default();
         let mut parser = boa_parser::Parser::new(src);
@@ -262,7 +262,7 @@ fn dump<R: ReadChar>(src: Source<'_, R>, args: &Opt, context: &mut Context) -> R
 }
 
 fn generate_flowgraph<R: ReadChar>(
-    context: &mut Context,
+    context: &Context,
     src: Source<'_, R>,
     format: FlowgraphFormat,
     direction: Option<FlowgraphDirection>,
@@ -303,7 +303,7 @@ fn uncaught_job_error(error: &JsError) -> String {
 fn evaluate_expr(
     line: &str,
     args: &Opt,
-    context: &mut Context,
+    context: &Context,
     printer: &SharedExternalPrinterLogger,
 ) -> Result<()> {
     if args.has_dump_flag() {
@@ -331,7 +331,7 @@ fn evaluate_expr(
 fn evaluate_file(
     file: &Path,
     args: &Opt,
-    context: &mut Context,
+    context: &Context,
     loader: &SimpleModuleLoader,
     printer: &SharedExternalPrinterLogger,
 ) -> Result<()> {
@@ -391,7 +391,7 @@ fn evaluate_file(
 
 fn evaluate_files(
     args: &Opt,
-    context: &mut Context,
+    context: &Context,
     loader: &SimpleModuleLoader,
     printer: &SharedExternalPrinterLogger,
 ) -> Result<()> {
@@ -418,7 +418,7 @@ fn main() -> Result<()> {
 
     let executor = Rc::new(Executor::new(printer.clone()));
     let loader = Rc::new(SimpleModuleLoader::new(&args.root).map_err(|e| eyre!(e.to_string()))?);
-    let mut context = ContextBuilder::new()
+    let context = ContextBuilder::new()
         .job_executor(executor)
         .module_loader(loader.clone())
         .build()
@@ -428,13 +428,13 @@ fn main() -> Result<()> {
     context.strict(args.strict);
 
     // Add `console`.
-    add_runtime(printer.clone(), &mut context);
+    add_runtime(printer.clone(), &context);
 
     // Trace Output
     context.set_trace(args.trace);
 
     if args.debug_object {
-        init_boa_debug_object(&mut context);
+        init_boa_debug_object(&context);
     }
 
     // Configure optimizer options
@@ -444,15 +444,15 @@ fn main() -> Result<()> {
     context.set_optimizer_options(optimizer_options);
 
     if !args.files.is_empty() {
-        evaluate_files(&args, &mut context, &loader, &printer)?;
+        evaluate_files(&args, &context, &loader, &printer)?;
 
         if let Some(ref expr) = args.expression {
-            evaluate_expr(expr, &args, &mut context, &printer)?;
+            evaluate_expr(expr, &args, &context, &printer)?;
         }
 
         return Ok(());
     } else if let Some(ref expr) = args.expression {
-        evaluate_expr(expr, &args, &mut context, &printer)?;
+        evaluate_expr(expr, &args, &context, &printer)?;
         return Ok(());
     }
 
@@ -461,7 +461,7 @@ fn main() -> Result<()> {
     loop {
         match receiver.try_recv() {
             Ok(line) => {
-                evaluate_expr(&line, &args, &mut context, &printer)?;
+                evaluate_expr(&line, &args, &context, &printer)?;
             }
             Err(TryRecvError::Empty) => {}
             Err(TryRecvError::Disconnected) => break,
@@ -555,7 +555,7 @@ fn start_readline_thread(
 }
 
 /// Adds the CLI runtime to the context with default options.
-fn add_runtime(printer: SharedExternalPrinterLogger, context: &mut Context) {
+fn add_runtime(printer: SharedExternalPrinterLogger, context: &Context) {
     boa_runtime::register(
         (
             boa_runtime::extensions::ConsoleExtension(printer),
@@ -591,7 +591,7 @@ impl Executor {
         }
     }
 
-    fn is_empty(&self, context: &mut Context) -> bool {
+    fn is_empty(&self, context: &Context) -> bool {
         let now = context.clock().now();
 
         self.promise_jobs.borrow().is_empty()
@@ -601,7 +601,7 @@ impl Executor {
             && self.generic_jobs.borrow().is_empty()
     }
 
-    fn drain_timeout_jobs(&self, context: &mut Context) {
+    fn drain_timeout_jobs(&self, context: &Context) {
         let now = context.clock().now();
 
         let mut timeouts_borrow = self.timeout_jobs.borrow_mut();
@@ -622,7 +622,7 @@ impl Executor {
         }
     }
 
-    fn drain_generic_jobs(&self, context: &mut Context) {
+    fn drain_generic_jobs(&self, context: &Context) {
         let job = self.generic_jobs.borrow_mut().pop_front();
         if let Some(generic) = job
             && let Err(err) = generic.call(context)
@@ -633,7 +633,7 @@ impl Executor {
 }
 
 impl JobExecutor for Executor {
-    fn enqueue_job(self: Rc<Self>, job: Job, context: &mut Context) {
+    fn enqueue_job(self: Rc<Self>, job: Job, context: &Context) {
         match job {
             Job::PromiseJob(job) => self.promise_jobs.borrow_mut().push_back(job),
             Job::AsyncJob(job) => self.async_jobs.borrow_mut().push_back(job),
@@ -650,11 +650,11 @@ impl JobExecutor for Executor {
         }
     }
 
-    fn run_jobs(self: Rc<Self>, context: &mut Context) -> JsResult<()> {
+    fn run_jobs(self: Rc<Self>, context: &Context) -> JsResult<()> {
         future::block_on(self.run_jobs_async(&RefCell::new(context)))
     }
 
-    async fn run_jobs_async(self: Rc<Self>, context: &RefCell<&mut Context>) -> JsResult<()> {
+    async fn run_jobs_async(self: Rc<Self>, context: &RefCell<&Context>) -> JsResult<()> {
         let mut group = FutureGroup::new();
 
         loop {
@@ -662,7 +662,7 @@ impl JobExecutor for Executor {
                 group.insert(job.call(context));
             }
 
-            if self.is_empty(&mut context.borrow_mut()) && group.is_empty() {
+            if self.is_empty(&context.borrow()) && group.is_empty() {
                 return Ok(());
             }
 
@@ -671,7 +671,7 @@ impl JobExecutor for Executor {
             }
 
             {
-                let context = &mut context.borrow_mut();
+                let context = &context.borrow();
                 self.drain_timeout_jobs(context);
                 self.drain_generic_jobs(context);
 

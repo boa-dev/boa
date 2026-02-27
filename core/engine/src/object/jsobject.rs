@@ -318,14 +318,14 @@ impl JsObject {
         lhs: &Self,
         rhs: &Self,
         encounters: &mut HashSet<usize>,
-        context: &mut Context,
+        context: &Context,
     ) -> JsResult<bool> {
         // Loop through all the keys and if one is not equal, return false.
         fn key_loop(
             lhs: &JsObject,
             rhs: &JsObject,
             encounters: &mut HashSet<usize>,
-            context: &mut Context,
+            context: &Context,
         ) -> JsResult<bool> {
             let l_keys = lhs.own_property_keys(context)?;
             let r_keys = rhs.own_property_keys(context)?;
@@ -384,7 +384,7 @@ impl JsObject {
 
     /// Checks that all own property keys and values are equal (recursively).
     #[inline]
-    pub fn deep_strict_equals(lhs: &Self, rhs: &Self, context: &mut Context) -> JsResult<bool> {
+    pub fn deep_strict_equals(lhs: &Self, rhs: &Self, context: &Context) -> JsResult<bool> {
         Self::deep_strict_equals_inner(lhs, rhs, &mut HashSet::new(), context)
     }
 
@@ -394,7 +394,7 @@ impl JsObject {
     /// <https://tc39.es/ecma262/#sec-toprimitive>
     pub fn to_primitive(
         &self,
-        context: &mut Context,
+        context: &Context,
         preferred_type: PreferredType,
     ) -> JsResult<JsValue> {
         // a. Let exoticToPrim be ? GetMethod(input, @@toPrimitive).
@@ -454,7 +454,7 @@ impl JsObject {
     /// [spec]: https://tc39.es/ecma262/#sec-ordinarytoprimitive
     pub(crate) fn ordinary_to_primitive(
         &self,
-        context: &mut Context,
+        context: &Context,
         hint: PreferredType,
     ) -> JsResult<JsValue> {
         // 1. Assert: Type(O) is Object.
@@ -515,7 +515,7 @@ impl JsObject {
     /// - [ECMAScript reference][spec]
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-topropertydescriptor
-    pub fn to_property_descriptor(&self, context: &mut Context) -> JsResult<PropertyDescriptor> {
+    pub fn to_property_descriptor(&self, context: &Context) -> JsResult<PropertyDescriptor> {
         // 1 is implemented on the method `to_property_descriptor` of value
 
         // 2. Let desc be a new Property Descriptor that initially has no fields.
@@ -614,7 +614,7 @@ Cannot both specify accessors and a value or writable attribute",
         &self,
         source: &JsValue,
         excluded_keys: Vec<K>,
-        context: &mut Context,
+        context: &Context,
     ) -> JsResult<()>
     where
         K: Into<PropertyKey>,

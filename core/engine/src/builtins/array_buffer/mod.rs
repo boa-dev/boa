@@ -426,11 +426,7 @@ impl BuiltInConstructor for ArrayBuffer {
     ///  - [ECMAScript reference][spec]
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-arraybuffer-length
-    fn constructor(
-        new_target: &JsValue,
-        args: &[JsValue],
-        context: &mut Context,
-    ) -> JsResult<JsValue> {
+    fn constructor(new_target: &JsValue, args: &[JsValue], context: &Context) -> JsResult<JsValue> {
         // 1. If NewTarget is undefined, throw a TypeError exception.
         if new_target.is_undefined() {
             return Err(JsNativeError::typ()
@@ -459,7 +455,7 @@ impl ArrayBuffer {
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-arraybuffer.isview
     #[allow(clippy::unnecessary_wraps)]
-    fn is_view(_: &JsValue, args: &[JsValue], _context: &mut Context) -> JsResult<JsValue> {
+    fn is_view(_: &JsValue, args: &[JsValue], _context: &Context) -> JsResult<JsValue> {
         // 1. If Type(arg) is not Object, return false.
         // 2. If arg has a [[ViewedArrayBuffer]] internal slot, return true.
         // 3. Return false.
@@ -477,7 +473,7 @@ impl ArrayBuffer {
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-get-arraybuffer-@@species
     #[allow(clippy::unnecessary_wraps)]
-    fn get_species(this: &JsValue, _: &[JsValue], _: &mut Context) -> JsResult<JsValue> {
+    fn get_species(this: &JsValue, _: &[JsValue], _: &Context) -> JsResult<JsValue> {
         // 1. Return the this value.
         Ok(this.clone())
     }
@@ -491,7 +487,7 @@ impl ArrayBuffer {
     pub(crate) fn get_byte_length(
         this: &JsValue,
         _args: &[JsValue],
-        _: &mut Context,
+        _: &Context,
     ) -> JsResult<JsValue> {
         // 1. Let O be the this value.
         // 2. Perform ? RequireInternalSlot(O, [[ArrayBufferData]]).
@@ -517,7 +513,7 @@ impl ArrayBuffer {
     pub(crate) fn get_max_byte_length(
         this: &JsValue,
         _args: &[JsValue],
-        _context: &mut Context,
+        _context: &Context,
     ) -> JsResult<JsValue> {
         // 1. Let O be the this value.
         // 2. Perform ? RequireInternalSlot(O, [[ArrayBufferData]]).
@@ -551,7 +547,7 @@ impl ArrayBuffer {
     pub(crate) fn get_resizable(
         this: &JsValue,
         _args: &[JsValue],
-        _context: &mut Context,
+        _context: &Context,
     ) -> JsResult<JsValue> {
         // 1. Let O be the this value.
         // 2. Perform ? RequireInternalSlot(O, [[ArrayBufferData]]).
@@ -573,11 +569,7 @@ impl ArrayBuffer {
     ///
     /// [spec]: https://tc39.es/proposal-arraybuffer-transfer/#sec-get-arraybuffer.prototype.detached
     #[cfg(feature = "experimental")]
-    fn get_detached(
-        this: &JsValue,
-        _args: &[JsValue],
-        _context: &mut Context,
-    ) -> JsResult<JsValue> {
+    fn get_detached(this: &JsValue, _args: &[JsValue], _context: &Context) -> JsResult<JsValue> {
         // 1. Let O be the this value.
         // 2. Perform ? RequireInternalSlot(O, [[ArrayBufferData]]).
         // 3. If IsSharedArrayBuffer(O) is true, throw a TypeError exception.
@@ -600,7 +592,7 @@ impl ArrayBuffer {
     pub(crate) fn js_resize(
         this: &JsValue,
         args: &[JsValue],
-        context: &mut Context,
+        context: &Context,
     ) -> JsResult<JsValue> {
         // 1. Let O be the this value.
         // 2. Perform ? RequireInternalSlot(O, [[ArrayBufferMaxByteLength]]).
@@ -645,7 +637,7 @@ impl ArrayBuffer {
     ///  - [ECMAScript reference][spec]
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-arraybuffer.prototype.slice
-    fn slice(this: &JsValue, args: &[JsValue], context: &mut Context) -> JsResult<JsValue> {
+    fn slice(this: &JsValue, args: &[JsValue], context: &Context) -> JsResult<JsValue> {
         // 1. Let O be the this value.
         // 2. Perform ? RequireInternalSlot(O, [[ArrayBufferData]]).
         // 3. If IsSharedArrayBuffer(O) is true, throw a TypeError exception.
@@ -754,7 +746,7 @@ impl ArrayBuffer {
     fn transfer<const TO_FIXED_LENGTH: bool>(
         this: &JsValue,
         args: &[JsValue],
-        context: &mut Context,
+        context: &Context,
     ) -> JsResult<JsValue> {
         // 1. Let O be the this value.
         // 2. Return ? ArrayBufferCopyAndDetach(O, newLength, preserve-resizability).
@@ -869,7 +861,7 @@ impl ArrayBuffer {
         constructor: &JsValue,
         byte_len: u64,
         max_byte_len: Option<u64>,
-        context: &mut Context,
+        context: &Context,
     ) -> JsResult<JsObject<ArrayBuffer>> {
         // 1. Let slots be « [[ArrayBufferData]], [[ArrayBufferByteLength]], [[ArrayBufferDetachKey]] ».
         // 2. If maxByteLength is present and maxByteLength is not empty, let allocatingResizableBuffer be true; otherwise let allocatingResizableBuffer be false.
@@ -920,7 +912,7 @@ impl ArrayBuffer {
 /// Abstract operation [`GetArrayBufferMaxByteLengthOption ( options )`][spec]
 ///
 /// [spec]: https://tc39.es/ecma262/#sec-getarraybuffermaxbytelengthoption
-fn get_max_byte_len(options: &JsValue, context: &mut Context) -> JsResult<Option<u64>> {
+fn get_max_byte_len(options: &JsValue, context: &Context) -> JsResult<Option<u64>> {
     // 1. If options is not an Object, return empty.
     let Some(options) = options.as_object() else {
         return Ok(None);
@@ -947,7 +939,7 @@ fn get_max_byte_len(options: &JsValue, context: &mut Context) -> JsResult<Option
 pub(crate) fn create_byte_data_block(
     size: u64,
     max_buffer_size: Option<u64>,
-    context: &mut Context,
+    context: &Context,
 ) -> JsResult<AlignedVec<u8>> {
     let alloc_size = max_buffer_size.unwrap_or(size);
 

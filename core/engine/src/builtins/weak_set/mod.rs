@@ -69,11 +69,7 @@ impl BuiltInConstructor for WeakSet {
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-weakset-iterable
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/WeakSet/WeakSet
-    fn constructor(
-        new_target: &JsValue,
-        args: &[JsValue],
-        context: &mut Context,
-    ) -> JsResult<JsValue> {
+    fn constructor(new_target: &JsValue, args: &[JsValue], context: &Context) -> JsResult<JsValue> {
         // 1. If NewTarget is undefined, throw a TypeError exception.
         if new_target.is_undefined() {
             return Err(JsNativeError::typ()
@@ -135,11 +131,7 @@ impl WeakSet {
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-weakset.prototype.add
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/WeakSet/add
-    pub(crate) fn add(
-        this: &JsValue,
-        args: &[JsValue],
-        _context: &mut Context,
-    ) -> JsResult<JsValue> {
+    pub(crate) fn add(this: &JsValue, args: &[JsValue], _context: &Context) -> JsResult<JsValue> {
         // 1. Let S be the this value.
         // 2. Perform ? RequireInternalSlot(S, [[WeakSetData]]).
         let object = this.as_object();
@@ -188,7 +180,7 @@ impl WeakSet {
     pub(crate) fn delete(
         this: &JsValue,
         args: &[JsValue],
-        _context: &mut Context,
+        _context: &Context,
     ) -> JsResult<JsValue> {
         // 1. Let S be the this value.
         // 2. Perform ? RequireInternalSlot(S, [[WeakSetData]]).
@@ -225,11 +217,7 @@ impl WeakSet {
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-weakset.prototype.has
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/WeakSet/has
-    pub(crate) fn has(
-        this: &JsValue,
-        args: &[JsValue],
-        _context: &mut Context,
-    ) -> JsResult<JsValue> {
+    pub(crate) fn has(this: &JsValue, args: &[JsValue], _context: &Context) -> JsResult<JsValue> {
         // 1. Let S be the this value.
         // 2. Perform ? RequireInternalSlot(S, [[WeakSetData]]).
         let object = this.as_object();

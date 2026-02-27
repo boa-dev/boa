@@ -84,7 +84,7 @@ pub(crate) fn string_exotic_define_own_property(
 #[allow(clippy::unnecessary_wraps)]
 pub(crate) fn string_exotic_own_property_keys(
     obj: &JsObject,
-    _context: &mut Context,
+    _context: &Context,
 ) -> JsResult<Vec<PropertyKey>> {
     // 2. Let str be O.[[StringData]].
     // 3. Assert: Type(str) is String.

@@ -13,8 +13,8 @@ pub(crate) struct Jump;
 
 impl Jump {
     #[inline(always)]
-    pub(crate) fn operation(address: u32, context: &mut Context) {
-        context.vm.frame_mut().pc = address;
+    pub(crate) fn operation(address: u32, context: &Context) {
+        context.vm_mut().frame_mut().pc = address;
     }
 }
 
@@ -33,10 +33,10 @@ pub(crate) struct JumpIfTrue;
 
 impl JumpIfTrue {
     #[inline(always)]
-    pub(crate) fn operation((address, value): (u32, VaryingOperand), context: &mut Context) {
-        let value = context.vm.get_register(value.into());
-        if value.to_boolean() {
-            context.vm.frame_mut().pc = address;
+    pub(crate) fn operation((address, value): (u32, VaryingOperand), context: &Context) {
+        let vm = context.vm_mut();
+        if vm.get_register(value.into()).to_boolean() {
+            vm.frame_mut().pc = address;
         }
     }
 }
@@ -56,10 +56,10 @@ pub(crate) struct JumpIfFalse;
 
 impl JumpIfFalse {
     #[inline(always)]
-    pub(crate) fn operation((address, value): (u32, VaryingOperand), context: &mut Context) {
-        let value = context.vm.get_register(value.into());
-        if !value.to_boolean() {
-            context.vm.frame_mut().pc = address;
+    pub(crate) fn operation((address, value): (u32, VaryingOperand), context: &Context) {
+        let vm = context.vm_mut();
+        if !vm.get_register(value.into()).to_boolean() {
+            vm.frame_mut().pc = address;
         }
     }
 }
@@ -79,10 +79,10 @@ pub(crate) struct JumpIfNotUndefined;
 
 impl JumpIfNotUndefined {
     #[inline(always)]
-    pub(crate) fn operation((address, value): (u32, VaryingOperand), context: &mut Context) {
-        let value = context.vm.get_register(value.into());
-        if !value.is_undefined() {
-            context.vm.frame_mut().pc = address;
+    pub(crate) fn operation((address, value): (u32, VaryingOperand), context: &Context) {
+        let vm = context.vm_mut();
+        if !vm.get_register(value.into()).is_undefined() {
+            vm.frame_mut().pc = address;
         }
     }
 }
@@ -102,10 +102,10 @@ pub(crate) struct JumpIfNullOrUndefined;
 
 impl JumpIfNullOrUndefined {
     #[inline(always)]
-    pub(crate) fn operation((address, value): (u32, VaryingOperand), context: &mut Context) {
-        let value = context.vm.get_register(value.into());
-        if value.is_null_or_undefined() {
-            context.vm.frame_mut().pc = address;
+    pub(crate) fn operation((address, value): (u32, VaryingOperand), context: &Context) {
+        let vm = context.vm_mut();
+        if vm.get_register(value.into()).is_null_or_undefined() {
+            vm.frame_mut().pc = address;
         }
     }
 }
@@ -127,9 +127,10 @@ impl JumpTable {
     #[inline(always)]
     pub(crate) fn operation(
         (index, default, addresses): (u32, u32, ThinVec<u32>),
-        context: &mut Context,
+        context: &Context,
     ) {
-        let value = context.vm.get_register(index as usize);
+        let vm = context.vm_mut();
+        let value = vm.get_register(index as usize);
         if let Some(value) = value.as_i32() {
             let value = value as usize;
             let mut target = None;
@@ -139,7 +140,7 @@ impl JumpTable {
                 }
             }
 
-            context.vm.frame_mut().pc = target.unwrap_or(default);
+            vm.frame_mut().pc = target.unwrap_or(default);
 
             return;
         }

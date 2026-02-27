@@ -65,7 +65,7 @@ impl ResponseType {
 }
 
 impl TryFromJs for ResponseType {
-    fn try_from_js(value: &JsValue, context: &mut Context) -> JsResult<Self> {
+    fn try_from_js(value: &JsValue, context: &Context) -> JsResult<Self> {
         let value_str = value.to_string(context)?;
         if value_str == js_str!("basic") {
             Ok(ResponseType::Basic)
@@ -84,7 +84,7 @@ impl TryFromJs for ResponseType {
 }
 
 impl TryIntoJs for ResponseType {
-    fn try_into_js(&self, _: &mut Context) -> JsResult<JsValue> {
+    fn try_into_js(&self, _: &Context) -> JsResult<JsValue> {
         Ok(self.to_string().into())
     }
 }
@@ -201,18 +201,17 @@ impl JsResponse {
         self.url.clone()
     }
 
-    fn bytes(&self, context: &mut Context) -> JsPromise {
+    fn bytes(&self, context: &Context) -> JsPromise {
         let body = self.body.clone();
         JsPromise::from_async_fn(
             async move |context| {
-                JsUint8Array::from_iter(body.iter().copied(), &mut context.borrow_mut())
-                    .map(Into::into)
+                JsUint8Array::from_iter(body.iter().copied(), &context.borrow()).map(Into::into)
             },
             context,
         )
     }
 
-    fn text(&self, context: &mut Context) -> JsPromise {
+    fn text(&self, context: &Context) -> JsPromise {
         let body = self.body.clone();
         JsPromise::from_async_fn(
             async move |_| {
@@ -223,7 +222,7 @@ impl JsResponse {
         )
     }
 
-    fn json(&self, context: &mut Context) -> JsPromise {
+    fn json(&self, context: &Context) -> JsPromise {
         let body = self.body.clone();
         JsPromise::from_async_fn(
             async move |context| {
@@ -231,7 +230,7 @@ impl JsResponse {
                 let json = serde_json::from_str::<serde_json::Value>(&json_string)
                     .map_err(|e| JsNativeError::syntax().with_message(e.to_string()))?;
 
-                JsValue::from_json(&json, &mut context.borrow_mut())
+                JsValue::from_json(&json, &context.borrow())
             },
             context,
         )

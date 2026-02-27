@@ -53,7 +53,7 @@ use thiserror::Error;
 /// ```
 /// # use boa_engine::{js_str, Context, JsValue};
 /// use boa_engine::js_error;
-/// let context = &mut Context::default();
+/// let context = &Context::default();
 ///
 /// let error = js_error!("error!");
 /// assert!(error.as_opaque().is_some());
@@ -416,7 +416,7 @@ impl JsError {
     /// # use boa_engine::{Context, JsError, JsNativeError};
     /// # use boa_engine::builtins::error::Error;
     /// # use boa_engine::error::{EngineError, RuntimeLimitError};
-    /// let context = &mut Context::default();
+    /// let context = &Context::default();
     /// let error: JsError =
     ///     JsNativeError::eval().with_message("invalid script").into();
     /// let error_val = error.into_opaque(context).unwrap();
@@ -428,7 +428,7 @@ impl JsError {
     ///
     /// assert!(error.into_opaque(context).is_err());
     /// ```
-    pub fn into_opaque(self, context: &mut Context) -> JsResult<JsValue> {
+    pub fn into_opaque(self, context: &Context) -> JsResult<JsValue> {
         match self.inner {
             Repr::Native(e) => {
                 let obj = e.into_opaque(context);
@@ -484,7 +484,7 @@ impl JsError {
     ///
     /// ```rust
     /// # use boa_engine::{Context, JsError, JsNativeError, JsNativeErrorKind};
-    /// let context = &mut Context::default();
+    /// let context = &Context::default();
     ///
     /// // create a new, opaque Error object
     /// let error: JsError = JsNativeError::typ().with_message("type error!").into();
@@ -496,7 +496,7 @@ impl JsError {
     /// assert!(matches!(error.kind, JsNativeErrorKind::Type));
     /// assert_eq!(error.message(), "type error!");
     /// ```
-    pub fn try_native(&self, context: &mut Context) -> Result<JsNativeError, TryNativeError> {
+    pub fn try_native(&self, context: &Context) -> Result<JsNativeError, TryNativeError> {
         match &self.inner {
             Repr::Engine(e) => Err(TryNativeError::EngineError { source: *e }),
             Repr::Native(e) => Ok(e.as_ref().clone()),
@@ -509,7 +509,7 @@ impl JsError {
                     .ok_or_else(|| TryNativeError::NotAnErrorObject(val.clone()))?
                     .clone();
 
-                let try_get_property = |key: JsString, name, context: &mut Context| {
+                let try_get_property = |key: JsString, name, context: &Context| {
                     obj.try_get(key, context)
                         .map_err(|e| TryNativeError::InaccessibleProperty {
                             property: name,
@@ -665,7 +665,7 @@ impl JsError {
     /// ```rust
     /// # use boa_engine::{js_string, Context, JsError, JsNativeError, JsSymbol, JsValue};
     /// # use std::error::Error;
-    /// let context = &mut Context::default();
+    /// let context = &Context::default();
     /// let cause = JsError::from_opaque(JsSymbol::new(Some(js_string!("error!"))).unwrap().into());
     ///
     /// let native_error: JsError = JsNativeError::typ()
@@ -684,7 +684,7 @@ impl JsError {
     ///     "Symbol(error!)"
     /// );
     /// ```
-    pub fn into_erased(self, context: &mut Context) -> JsErasedError {
+    pub fn into_erased(self, context: &Context) -> JsErasedError {
         let native = match self.try_native(context) {
             Ok(native) => native,
             Err(TryNativeError::EngineError { source }) => {
@@ -1284,7 +1284,7 @@ impl JsNativeError {
     /// ```rust
     /// # use boa_engine::{Context, JsError, JsNativeError, js_string};
     /// # use boa_engine::builtins::error::Error;
-    /// let context = &mut Context::default();
+    /// let context = &Context::default();
     ///
     /// let error = JsNativeError::error().with_message("error!");
     /// let error_obj = error.into_opaque(context);
@@ -1296,7 +1296,7 @@ impl JsNativeError {
     /// )
     /// ```
     #[inline]
-    pub fn into_opaque(self, context: &mut Context) -> JsObject {
+    pub fn into_opaque(self, context: &Context) -> JsObject {
         let Self {
             kind,
             message,

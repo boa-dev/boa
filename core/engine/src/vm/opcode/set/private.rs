@@ -16,18 +16,18 @@ impl SetPrivateField {
     #[inline(always)]
     pub(crate) fn operation(
         (value, object, index): (VaryingOperand, VaryingOperand, VaryingOperand),
-        context: &mut Context,
+        context: &Context,
     ) -> JsResult<()> {
         let name = context
-            .vm
+            .vm_mut()
             .frame()
             .code_block()
             .constant_string(index.into());
-        let value = context.vm.get_register(value.into()).clone();
-        let object = context.vm.get_register(object.into()).clone();
+        let value = context.vm_mut().get_register(value.into()).clone();
+        let object = context.vm_mut().get_register(object.into()).clone();
         let base_obj = object.to_object(context)?;
         let name = context
-            .vm
+            .vm_mut()
             .frame
             .environments
             .resolve_private_identifier(name)
@@ -55,12 +55,12 @@ impl DefinePrivateField {
     #[inline(always)]
     pub(crate) fn operation(
         (object, value, index): (VaryingOperand, VaryingOperand, VaryingOperand),
-        context: &mut Context,
+        context: &Context,
     ) {
-        let object = context.vm.get_register(object.into());
-        let value = context.vm.get_register(value.into());
-        let name = context
-            .vm
+        let vm = context.vm_mut();
+        let object = vm.get_register(object.into()).clone();
+        let value = vm.get_register(value.into()).clone();
+        let name = vm
             .frame()
             .code_block()
             .constant_string(index.into());
@@ -71,7 +71,7 @@ impl DefinePrivateField {
 
         object.borrow_mut().append_private_element(
             object.private_name(name),
-            PrivateElement::Field(value.clone()),
+            PrivateElement::Field(value),
         );
     }
 }
@@ -93,12 +93,12 @@ impl SetPrivateMethod {
     #[inline(always)]
     pub(crate) fn operation(
         (object, value, index): (VaryingOperand, VaryingOperand, VaryingOperand),
-        context: &mut Context,
+        context: &Context,
     ) {
-        let object = context.vm.get_register(object.into()).clone();
-        let value = context.vm.get_register(value.into()).clone();
+        let object = context.vm_mut().get_register(object.into()).clone();
+        let value = context.vm_mut().get_register(value.into()).clone();
         let name = context
-            .vm
+            .vm_mut()
             .frame()
             .code_block()
             .constant_string(index.into());
@@ -143,12 +143,12 @@ impl SetPrivateSetter {
     #[inline(always)]
     pub(crate) fn operation(
         (object, value, index): (VaryingOperand, VaryingOperand, VaryingOperand),
-        context: &mut Context,
+        context: &Context,
     ) {
-        let object = context.vm.get_register(object.into());
-        let value = context.vm.get_register(value.into());
-        let name = context
-            .vm
+        let vm = context.vm_mut();
+        let object = vm.get_register(object.into()).clone();
+        let value = vm.get_register(value.into()).clone();
+        let name = vm
             .frame()
             .code_block()
             .constant_string(index.into());
@@ -162,7 +162,7 @@ impl SetPrivateSetter {
             object.private_name(name),
             PrivateElement::Accessor {
                 getter: None,
-                setter: Some(value.clone()),
+                setter: Some(value),
             },
         );
     }
@@ -185,12 +185,12 @@ impl SetPrivateGetter {
     #[inline(always)]
     pub(crate) fn operation(
         (object, value, index): (VaryingOperand, VaryingOperand, VaryingOperand),
-        context: &mut Context,
+        context: &Context,
     ) {
-        let object = context.vm.get_register(object.into());
-        let value = context.vm.get_register(value.into());
-        let name = context
-            .vm
+        let vm = context.vm_mut();
+        let object = vm.get_register(object.into()).clone();
+        let value = vm.get_register(value.into()).clone();
+        let name = vm
             .frame()
             .code_block()
             .constant_string(index.into());
@@ -203,7 +203,7 @@ impl SetPrivateGetter {
         object.borrow_mut().append_private_element(
             object.private_name(name),
             PrivateElement::Accessor {
-                getter: Some(value.clone()),
+                getter: Some(value),
                 setter: None,
             },
         );

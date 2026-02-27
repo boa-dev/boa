@@ -54,7 +54,7 @@ impl ModuleNamespace {
     /// Abstract operation [`ModuleNamespaceCreate ( module, exports )`][spec].
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-modulenamespacecreate
-    pub(crate) fn create(module: Module, names: Vec<JsString>, context: &mut Context) -> JsObject {
+    pub(crate) fn create(module: Module, names: Vec<JsString>, context: &Context) -> JsObject {
         // 1. Assert: module.[[Namespace]] is empty.
         // ignored since this is ensured by `Module::namespace`.
 
@@ -95,10 +95,7 @@ impl ModuleNamespace {
 ///
 /// [spec]: https://tc39.es/ecma262/#sec-module-namespace-exotic-objects-getprototypeof
 #[allow(clippy::unnecessary_wraps)]
-fn module_namespace_exotic_get_prototype_of(
-    _: &JsObject,
-    _: &mut Context,
-) -> JsResult<JsPrototype> {
+fn module_namespace_exotic_get_prototype_of(_: &JsObject, _: &Context) -> JsResult<JsPrototype> {
     // 1. Return null.
     Ok(None)
 }
@@ -110,7 +107,7 @@ fn module_namespace_exotic_get_prototype_of(
 fn module_namespace_exotic_set_prototype_of(
     obj: &JsObject,
     val: JsPrototype,
-    context: &mut Context,
+    context: &Context,
 ) -> JsResult<bool> {
     // 1. Return ! SetImmutablePrototype(O, V).
     Ok(
@@ -123,7 +120,7 @@ fn module_namespace_exotic_set_prototype_of(
 ///
 /// [spec]: https://tc39.es/ecma262/#sec-module-namespace-exotic-objects-isextensible
 #[allow(clippy::unnecessary_wraps)]
-fn module_namespace_exotic_is_extensible(_: &JsObject, _: &mut Context) -> JsResult<bool> {
+fn module_namespace_exotic_is_extensible(_: &JsObject, _: &Context) -> JsResult<bool> {
     // 1. Return false.
     Ok(false)
 }
@@ -132,7 +129,7 @@ fn module_namespace_exotic_is_extensible(_: &JsObject, _: &mut Context) -> JsRes
 ///
 /// [spec]: https://tc39.es/ecma262/#sec-module-namespace-exotic-objects-preventextensions
 #[allow(clippy::unnecessary_wraps)]
-fn module_namespace_exotic_prevent_extensions(_: &JsObject, _: &mut Context) -> JsResult<bool> {
+fn module_namespace_exotic_prevent_extensions(_: &JsObject, _: &Context) -> JsResult<bool> {
     Ok(true)
 }
 
@@ -458,7 +455,7 @@ fn module_namespace_exotic_delete(
 /// [spec]: https://tc39.es/ecma262/#sec-module-namespace-exotic-objects-ownpropertykeys
 fn module_namespace_exotic_own_property_keys(
     obj: &JsObject,
-    context: &mut Context,
+    context: &Context,
 ) -> JsResult<Vec<PropertyKey>> {
     // 2. Let symbolKeys be OrdinaryOwnPropertyKeys(O).
     let symbol_keys = ordinary_own_property_keys(obj, context)?;

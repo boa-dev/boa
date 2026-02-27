@@ -54,7 +54,7 @@ mod tests;
 /// ```
 /// # use boa_engine::{Context, JsValue};
 /// # use boa_engine::value::Nullable;
-/// # let context = &mut Context::default();
+/// # let context = &Context::default();
 /// let maybe_10: Nullable<u8> = JsValue::new(10).try_js_into(context).unwrap();
 /// assert_eq!(maybe_10, Nullable::NonNull(10u8));
 ///
@@ -65,7 +65,7 @@ mod tests;
 /// ```
 /// # use boa_engine::{Context, JsResult, JsValue};
 /// # use boa_engine::value::Nullable;
-/// # let context = &mut Context::default();
+/// # let context = &Context::default();
 /// let mut v: JsResult<Nullable<Option<u8>>> =
 ///     JsValue::undefined().try_js_into(context);
 /// assert_eq!(v, Ok(Nullable::NonNull(None)));
@@ -228,7 +228,7 @@ impl<T> IntoIterator for Nullable<T> {
 }
 
 impl<T: TryFromJs> TryFromJs for Nullable<T> {
-    fn try_from_js(value: &JsValue, context: &mut Context) -> JsResult<Self> {
+    fn try_from_js(value: &JsValue, context: &Context) -> JsResult<Self> {
         if value.is_null() {
             Ok(Nullable::Null)
         } else {
@@ -238,7 +238,7 @@ impl<T: TryFromJs> TryFromJs for Nullable<T> {
 }
 
 impl<T: TryIntoJs> TryIntoJs for Nullable<T> {
-    fn try_into_js(&self, context: &mut Context) -> JsResult<JsValue> {
+    fn try_into_js(&self, context: &Context) -> JsResult<JsValue> {
         match self {
             Nullable::Null => Ok(JsValue::null()),
             Nullable::NonNull(t) => t.try_into_js(context),

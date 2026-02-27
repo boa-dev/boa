@@ -26,7 +26,7 @@
 //!     Ok(res) => {
 //!         println!(
 //!             "{}",
-//!             res.to_string(&mut context).unwrap().to_std_string_escaped()
+//!             res.to_string(&context).unwrap().to_std_string_escaped()
 //!         );
 //!     }
 //!     Err(e) => {
@@ -160,7 +160,7 @@ pub trait TryIntoJsResult {
     /// # Errors
     /// Any parsing errors that may occur during the conversion, or any
     /// error that happened during the call to a function.
-    fn try_into_js_result(self, context: &mut Context) -> JsResult<JsValue>;
+    fn try_into_js_result(self, context: &Context) -> JsResult<JsValue>;
 }
 
 mod try_into_js_result_impls;
@@ -201,7 +201,7 @@ enum Inner {
         source: Cow<'static, str>,
     },
     InspectContext {
-        op: fn(&mut Context),
+        op: fn(&Context),
     },
     Assert {
         source: Cow<'static, str>,
@@ -212,7 +212,7 @@ enum Inner {
     },
     AssertWithOp {
         source: Cow<'static, str>,
-        op: fn(JsValue, &mut Context) -> bool,
+        op: fn(JsValue, &Context) -> bool,
     },
     AssertOpaqueError {
         source: Cow<'static, str>,
@@ -224,7 +224,7 @@ enum Inner {
         message: &'static str,
     },
     AssertContext {
-        op: fn(&mut Context) -> bool,
+        op: fn(&Context) -> bool,
     },
     AssertEngineError {
         source: Cow<'static, str>,
@@ -249,7 +249,7 @@ impl TestAction {
     /// Executes `op` with the currently active context.
     ///
     /// Useful to make custom assertions that must be done from Rust code.
-    fn inspect_context(op: fn(&mut Context)) -> Self {
+    fn inspect_context(op: fn(&Context)) -> Self {
         Self(Inner::InspectContext { op })
     }
 
@@ -273,7 +273,7 @@ impl TestAction {
     /// Useful to check properties of the obtained value that cannot be checked from JS code.
     fn assert_with_op(
         source: impl Into<Cow<'static, str>>,
-        op: fn(JsValue, &mut Context) -> bool,
+        op: fn(JsValue, &Context) -> bool,
     ) -> Self {
         Self(Inner::AssertWithOp {
             source: source.into(),
@@ -317,7 +317,7 @@ impl TestAction {
     }
 
     /// Asserts that calling `op` with the currently executing context returns `true`.
-    fn assert_context(op: fn(&mut Context) -> bool) -> Self {
+    fn assert_context(op: fn(&Context) -> bool) -> Self {
         Self(Inner::AssertContext { op })
     }
 }
@@ -339,15 +339,15 @@ fn run_test_actions(actions: impl IntoIterator<Item = TestAction>) {
             .clock(Rc::new(FixedClock::from_millis(65535)))
             .module_loader(Rc::new(IdleModuleLoader));
     }
-    run_test_actions_with(actions, &mut context.build().unwrap());
+    run_test_actions_with(actions, &context.build().unwrap());
 }
 
 /// Executes a list of test actions on the provided context.
 #[cfg(test)]
 #[track_caller]
-fn run_test_actions_with(actions: impl IntoIterator<Item = TestAction>, context: &mut Context) {
+fn run_test_actions_with(actions: impl IntoIterator<Item = TestAction>, context: &Context) {
     #[track_caller]
-    fn forward_val(context: &mut Context, source: &str) -> JsResult<JsValue> {
+    fn forward_val(context: &Context, source: &str) -> JsResult<JsValue> {
         context.eval(Source::from_bytes(source))
     }
 

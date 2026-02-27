@@ -170,7 +170,7 @@ impl Error {
     pub(crate) fn with_caller_position(tag: ErrorKind, context: &Context) -> Self {
         Self {
             tag,
-            position: IgnoreEq(context.vm.shadow_stack.caller_position()),
+            position: IgnoreEq(context.vm_mut().shadow_stack.caller_position()),
             backtrace: IgnoreEq(None),
         }
     }
@@ -210,11 +210,7 @@ impl BuiltInConstructor for Error {
     /// `Error( message [ , options ] )`
     ///
     /// Creates a new error object.
-    fn constructor(
-        new_target: &JsValue,
-        args: &[JsValue],
-        context: &mut Context,
-    ) -> JsResult<JsValue> {
+    fn constructor(new_target: &JsValue, args: &[JsValue], context: &Context) -> JsResult<JsValue> {
         // 1. If NewTarget is undefined, let newTarget be the active function object; else let newTarget be NewTarget.
         let new_target = &if new_target.is_undefined() {
             context
@@ -257,7 +253,7 @@ impl Error {
     pub(crate) fn install_error_cause(
         o: &JsObject,
         options: &JsValue,
-        context: &mut Context,
+        context: &Context,
     ) -> JsResult<()> {
         // 1. If Type(options) is Object and ? HasProperty(options, "cause") is true, then
         // 1.a. Let cause be ? Get(options, "cause").
@@ -283,11 +279,7 @@ impl Error {
     /// [spec]: https://tc39.es/ecma262/#sec-error.prototype.tostring
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Error/toString
     #[allow(clippy::wrong_self_convention)]
-    pub(crate) fn to_string(
-        this: &JsValue,
-        _: &[JsValue],
-        context: &mut Context,
-    ) -> JsResult<JsValue> {
+    pub(crate) fn to_string(this: &JsValue, _: &[JsValue], context: &Context) -> JsResult<JsValue> {
         // 1. Let O be the this value.
         // 2. If Type(O) is not Object, throw a TypeError exception.
         let o = this
@@ -336,7 +328,7 @@ impl Error {
     /// [spec]: https://tc39.es/proposal-is-error/#sec-error.iserror
     #[cfg(feature = "experimental")]
     #[allow(clippy::unnecessary_wraps)]
-    fn is_error(_: &JsValue, args: &[JsValue], _: &mut Context) -> JsResult<JsValue> {
+    fn is_error(_: &JsValue, args: &[JsValue], _: &Context) -> JsResult<JsValue> {
         // 1. Return IsError(arg).
 
         // https://tc39.es/proposal-is-error/#sec-iserror

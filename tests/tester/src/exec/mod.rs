@@ -274,7 +274,7 @@ impl Test {
 
         let result = std::panic::catch_unwind(|| match self.expected_outcome {
             Outcome::Positive => {
-                let (ref mut context, async_result, mut handles) =
+                let (ref context, async_result, mut handles) =
                     match self.create_context(harness, optimizer_options, console) {
                         Ok(r) => r,
                         Err(e) => return (false, e),
@@ -360,7 +360,7 @@ impl Test {
                     self.path.display()
                 );
 
-                let context = &mut Context::default();
+                let context = &Context::default();
 
                 if self.is_module() {
                     match Module::parse(source, None, context) {
@@ -379,7 +379,7 @@ impl Test {
                 phase: Phase::Resolution,
                 error_type,
             } => {
-                let context = &mut match self.create_context(harness, optimizer_options, console) {
+                let context = &match self.create_context(harness, optimizer_options, console) {
                     Ok(r) => r,
                     Err(e) => return (false, e),
                 }
@@ -531,7 +531,7 @@ impl Test {
             SimpleModuleLoader::new(self.path.parent().expect("test should have a parent dir"))
                 .expect("test path should be canonicalizable"),
         );
-        let mut context = Context::builder()
+        let context = Context::builder()
             .module_loader(loader.clone())
             .can_block(!self.flags.contains(TestFlags::CAN_BLOCK_IS_FALSE))
             .build()
@@ -540,13 +540,13 @@ impl Test {
         context.set_optimizer_options(optimizer_options);
 
         // Register the print() function.
-        register_print_fn(&mut context, async_result.clone());
+        register_print_fn(&context, async_result.clone());
 
         // add the $262 object.
-        let _js262 = js262::register_js262(handles.clone(), console, &mut context);
+        let _js262 = js262::register_js262(handles.clone(), console, &context);
 
         if console {
-            let console = boa_runtime::Console::init(&mut context);
+            let console = boa_runtime::Console::init(&context);
             context
                 .register_global_property(boa_runtime::Console::NAME, console, Attribute::all())
                 .expect("the console builtin shouldn't exist");
@@ -595,7 +595,7 @@ impl Test {
 }
 
 /// Returns `true` if `error` is a `target_type` error.
-fn is_error_type(error: &JsError, target_type: ErrorType, context: &mut Context) -> bool {
+fn is_error_type(error: &JsError, target_type: ErrorType, context: &Context) -> bool {
     if let Ok(error) = error.try_native(context) {
         match &error.kind {
             JsNativeErrorKind::Syntax if target_type == ErrorType::SyntaxError => {}
@@ -621,7 +621,7 @@ fn is_error_type(error: &JsError, target_type: ErrorType, context: &mut Context)
 }
 
 /// Registers the print function in the context.
-fn register_print_fn(context: &mut Context, async_result: AsyncResult) {
+fn register_print_fn(context: &Context, async_result: AsyncResult) {
     // We use `FunctionBuilder` to define a closure with additional captures.
     let js_function = FunctionObjectBuilder::new(
         context.realm(),
@@ -666,7 +666,7 @@ fn register_print_fn(context: &mut Context, async_result: AsyncResult) {
 fn parse_module_and_register(
     source: Source<'_, impl ReadChar>,
     path: &Path,
-    context: &mut Context,
+    context: &Context,
 ) -> JsResult<Module> {
     let module = Module::parse(source, None, context)?;
 

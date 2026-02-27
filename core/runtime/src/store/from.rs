@@ -39,7 +39,7 @@ fn try_from_js_object(
     value: &JsObject,
     transfer: &HashSet<JsObject>,
     seen: &mut SeenMap,
-    context: &mut Context,
+    context: &Context,
 ) -> JsResult<JsValueStore> {
     // Have we seen this object? If so, return its clone.
     if let Some(o2) = seen.get(value) {
@@ -63,10 +63,7 @@ fn try_from_js_object(
 ///
 /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/API/Web_Workers_API/Transferable_objects
 /// [to]: https://developer.mozilla.org/en-US/docs/Web/API/Web_Workers_API/Transferable_objects#supported_objects
-fn try_from_js_object_transfer(
-    object: &JsObject,
-    _context: &mut Context,
-) -> JsResult<JsValueStore> {
+fn try_from_js_object_transfer(object: &JsObject, _context: &Context) -> JsResult<JsValueStore> {
     if let Some(mut buffer) = object.downcast_mut::<ArrayBuffer>() {
         let data = buffer.detach(&JsValue::undefined())?;
         let data = data.ok_or_else(unsupported_type)?;
@@ -81,7 +78,7 @@ fn try_from_array_clone(
     array: &JsArray,
     transfer: &HashSet<JsObject>,
     seen: &mut SeenMap,
-    context: &mut Context,
+    context: &Context,
 ) -> JsResult<JsValueStore> {
     // Create an empty clone, we will replace its inner values after we gather them.
     // To stop the recursion, we need to add the right value to the seen map prior,
@@ -141,7 +138,7 @@ fn clone_typed_array(
     buffer: &JsTypedArray,
     transfer: &HashSet<JsObject>,
     seen: &mut SeenMap,
-    context: &mut Context,
+    context: &Context,
 ) -> JsResult<JsValueStore> {
     let kind = buffer.kind().ok_or_else(unsupported_type)?;
     let buffer = buffer.buffer(context)?;
@@ -155,7 +152,7 @@ fn clone_date(
     original: &JsObject,
     date: &JsDate,
     seen: &mut SeenMap,
-    context: &mut Context,
+    context: &Context,
 ) -> JsResult<JsValueStore> {
     let ms_since_epoch = date
         .get_time(context)?
@@ -171,7 +168,7 @@ fn clone_regexp(
     original: &JsObject,
     regexp: &JsRegExp,
     seen: &mut SeenMap,
-    context: &mut Context,
+    context: &Context,
 ) -> JsResult<JsValueStore> {
     let source = regexp.source(context)?;
     let flags = regexp.flags(context)?;
@@ -186,7 +183,7 @@ fn try_from_map(
     map: &JsMap,
     transfer: &HashSet<JsObject>,
     seen: &mut SeenMap,
-    context: &mut Context,
+    context: &Context,
 ) -> JsResult<JsValueStore> {
     let mut new_map = Vec::new();
     let mut store = JsValueStore::new(ValueStoreInner::Empty);
@@ -213,7 +210,7 @@ fn try_from_set(
     set: &JsSet,
     transfer: &HashSet<JsObject>,
     seen: &mut SeenMap,
-    context: &mut Context,
+    context: &Context,
 ) -> JsResult<JsValueStore> {
     let mut new_set = Vec::new();
     let mut store = JsValueStore::new(ValueStoreInner::Empty);
@@ -238,7 +235,7 @@ fn try_from_js_object_clone(
     object: &JsObject,
     transfer: &HashSet<JsObject>,
     seen: &mut SeenMap,
-    context: &mut Context,
+    context: &Context,
 ) -> JsResult<JsValueStore> {
     // If this is a special type of object, apply some special rules to it.
     // Described in
@@ -299,7 +296,7 @@ pub(super) fn try_from_js_value(
     value: &JsValue,
     transfer: &HashSet<JsObject>,
     seen: &mut SeenMap,
-    context: &mut Context,
+    context: &Context,
 ) -> JsResult<JsValueStore> {
     match value.variant() {
         JsVariant::Null => Ok(JsValueStore::new(ValueStoreInner::Null)),

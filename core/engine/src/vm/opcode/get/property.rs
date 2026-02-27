@@ -9,21 +9,21 @@ use crate::{
 
 fn get_by_name<const LENGTH: bool>(
     (dst, object, receiver, index): (VaryingOperand, &JsValue, &JsValue, VaryingOperand),
-    context: &mut Context,
+    context: &Context,
 ) -> JsResult<()> {
     if LENGTH {
         if let Some(object) = object.as_object()
             && object.is_array()
         {
             let value = object.borrow().properties().storage[0].clone();
-            context.vm.set_register(dst.into(), value);
+            context.vm_mut().set_register(dst.into(), value);
             return Ok(());
         } else if let Some(string) = object.as_string() {
             // NOTE: Since we’re using the prototype returned directly by `base_class()`,
             //       we need to handle string primitives separately due to the
             //       string exotic internal methods.
             context
-                .vm
+                .vm_mut()
                 .set_register(dst.into(), (string.len() as u32).into());
             return Ok(());
         }
@@ -37,7 +37,7 @@ fn get_by_name<const LENGTH: bool>(
     //    `to_object()` would produce, such as `Number.prototype`, `String.prototype`, etc.
     let object = object.base_class(context)?;
 
-    let ic = &context.vm.frame().code_block().ic[usize::from(index)];
+    let ic = &context.vm_mut().frame().code_block().ic[usize::from(index)];
     let object_borrowed = object.borrow();
     if let Some((shape, slot)) = ic.match_or_reset(object_borrowed.shape()) {
         let mut result = if slot.attributes.contains(SlotAttributes::PROTOTYPE) {
@@ -56,7 +56,7 @@ fn get_by_name<const LENGTH: bool>(
                     .expect("should contain getter")
                     .call(receiver, &[], context)?;
         }
-        context.vm.set_register(dst.into(), result);
+        context.vm_mut().set_register(dst.into(), result);
         return Ok(());
     }
 
@@ -70,13 +70,13 @@ fn get_by_name<const LENGTH: bool>(
     // Cache the property.
     let slot = *context.slot();
     if slot.is_cacheable() {
-        let ic = &context.vm.frame().code_block.ic[usize::from(index)];
+        let ic = &context.vm_mut().frame().code_block.ic[usize::from(index)];
         let object_borrowed = object.borrow();
         let shape = object_borrowed.shape();
         ic.set(shape, slot);
     }
 
-    context.vm.set_register(dst.into(), result);
+    context.vm_mut().set_register(dst.into(), result);
     Ok(())
 }
 
@@ -87,10 +87,10 @@ fn get_by_value<const PUSH_KEY: bool>(
         VaryingOperand,
         VaryingOperand,
     ),
-    context: &mut Context,
+    context: &Context,
 ) -> JsResult<()> {
-    let key_value = context.vm.get_register(key.into()).clone();
-    let base = context.vm.get_register(object.into()).clone();
+    let key_value = context.vm_mut().get_register(key.into()).clone();
+    let base = context.vm_mut().get_register(object.into()).clone();
     let object = base.base_class(context)?;
     let key_value = key_value.to_property_key(context)?;
 
@@ -106,10 +106,10 @@ fn get_by_value<const PUSH_KEY: bool>(
                 if let Some(element) = object_borrowed.properties().get_dense_property(index.get())
                 {
                     if PUSH_KEY {
-                        context.vm.set_register(key.into(), key_value.into());
+                        context.vm_mut().set_register(key.into(), key_value.into());
                     }
 
-                    context.vm.set_register(dst.into(), element);
+                    context.vm_mut().set_register(dst.into(), element);
                     return Ok(());
                 }
             } else if let Some(string) = base.as_string() {
@@ -120,9 +120,9 @@ fn get_by_value<const PUSH_KEY: bool>(
                     });
 
                 if PUSH_KEY {
-                    context.vm.set_register(key.into(), key_value.into());
+                    context.vm_mut().set_register(key.into(), key_value.into());
                 }
-                context.vm.set_register(dst.into(), value);
+                context.vm_mut().set_register(dst.into(), value);
                 return Ok(());
             }
         }
@@ -131,28 +131,28 @@ fn get_by_value<const PUSH_KEY: bool>(
                 let value = string.len().into();
 
                 if PUSH_KEY {
-                    context.vm.set_register(key.into(), key_value.into());
+                    context.vm_mut().set_register(key.into(), key_value.into());
                 }
-                context.vm.set_register(dst.into(), value);
+                context.vm_mut().set_register(dst.into(), value);
                 return Ok(());
             }
         }
         _ => {}
     }
 
-    let receiver = context.vm.get_register(receiver.into());
+    let receiver = context.vm_mut().get_register(receiver.into()).clone();
 
     // Slow path:
     let result = object.__get__(
         &key_value,
-        receiver.clone(),
+        receiver,
         &mut InternalMethodPropertyContext::new(context),
     )?;
 
     if PUSH_KEY {
-        context.vm.set_register(key.into(), key_value.into());
+        context.vm_mut().set_register(key.into(), key_value.into());
     }
-    context.vm.set_register(dst.into(), result);
+    context.vm_mut().set_register(dst.into(), result);
     Ok(())
 }
 
@@ -163,9 +163,9 @@ impl GetLengthProperty {
     #[inline(always)]
     pub(crate) fn operation(
         (dst, object, index): (VaryingOperand, VaryingOperand, VaryingOperand),
-        context: &mut Context,
+        context: &Context,
     ) -> JsResult<()> {
-        let object = context.vm.get_register(object.into()).clone();
+        let object = context.vm_mut().get_register(object.into()).clone();
         get_by_name::<true>((dst, &object, &object, index), context)
     }
 }
@@ -187,9 +187,9 @@ impl GetPropertyByName {
     #[inline(always)]
     pub(crate) fn operation(
         (dst, object, index): (VaryingOperand, VaryingOperand, VaryingOperand),
-        context: &mut Context,
+        context: &Context,
     ) -> JsResult<()> {
-        let object = context.vm.get_register(object.into()).clone();
+        let object = context.vm_mut().get_register(object.into()).clone();
         get_by_name::<false>((dst, &object, &object, index), context)
     }
 }
@@ -216,10 +216,10 @@ impl GetPropertyByNameWithThis {
             VaryingOperand,
             VaryingOperand,
         ),
-        context: &mut Context,
+        context: &Context,
     ) -> JsResult<()> {
-        let receiver = context.vm.get_register(receiver.into()).clone();
-        let object = context.vm.get_register(value.into()).clone();
+        let receiver = context.vm_mut().get_register(receiver.into()).clone();
+        let object = context.vm_mut().get_register(value.into()).clone();
         get_by_name::<false>((dst, &object, &receiver, index), context)
     }
 }
@@ -246,7 +246,7 @@ impl GetPropertyByValue {
             VaryingOperand,
             VaryingOperand,
         ),
-        context: &mut Context,
+        context: &Context,
     ) -> JsResult<()> {
         get_by_value::<false>(args, context)
     }
@@ -274,7 +274,7 @@ impl GetPropertyByValuePush {
             VaryingOperand,
             VaryingOperand,
         ),
-        context: &mut Context,
+        context: &Context,
     ) -> JsResult<()> {
         get_by_value::<true>(args, context)
     }

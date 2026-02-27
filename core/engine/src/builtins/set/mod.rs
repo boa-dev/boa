@@ -54,7 +54,7 @@ struct SetRecord {
 /// - [ECMAScript specification][spec]
 ///
 /// [spec]: https://tc39.es/ecma262/#sec-getsetrecord
-fn get_set_record(obj: &JsValue, context: &mut Context) -> JsResult<SetRecord> {
+fn get_set_record(obj: &JsValue, context: &Context) -> JsResult<SetRecord> {
     // 1. If obj is not an Object, throw a TypeError exception.
     let obj = obj.as_object().ok_or_else(|| {
         JsNativeError::typ().with_message("Set operation called with non-object argument")
@@ -204,11 +204,7 @@ impl BuiltInConstructor for Set {
     /// [`Set ( [ iterable ] )`][spec]
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-set-iterable
-    fn constructor(
-        new_target: &JsValue,
-        args: &[JsValue],
-        context: &mut Context,
-    ) -> JsResult<JsValue> {
+    fn constructor(new_target: &JsValue, args: &[JsValue], context: &Context) -> JsResult<JsValue> {
         // 1. If NewTarget is undefined, throw a TypeError exception.
         if new_target.is_undefined() {
             return Err(JsNativeError::typ()
@@ -271,7 +267,7 @@ impl Set {
     /// [spec]: https://tc39.es/ecma262/#sec-get-set-@@species
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Set/@@species
     #[allow(clippy::unnecessary_wraps)]
-    fn get_species(this: &JsValue, _: &[JsValue], _: &mut Context) -> JsResult<JsValue> {
+    fn get_species(this: &JsValue, _: &[JsValue], _: &Context) -> JsResult<JsValue> {
         // 1. Return the this value.
         Ok(this.clone())
     }
@@ -286,7 +282,7 @@ impl Set {
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-set.prototype.add
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Set/add
-    pub(crate) fn add(this: &JsValue, args: &[JsValue], _: &mut Context) -> JsResult<JsValue> {
+    pub(crate) fn add(this: &JsValue, args: &[JsValue], _: &Context) -> JsResult<JsValue> {
         // 1. Let S be the this value.
         // 2. Perform ? RequireInternalSlot(S, [[SetData]]).
         let set = this
@@ -319,7 +315,7 @@ impl Set {
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-set.prototype.clear
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Set/clear
-    pub(crate) fn clear(this: &JsValue, _: &[JsValue], _: &mut Context) -> JsResult<JsValue> {
+    pub(crate) fn clear(this: &JsValue, _: &[JsValue], _: &Context) -> JsResult<JsValue> {
         // 1. Let S be the this value.
         // 2. Perform ? RequireInternalSlot(S, [[SetData]]).
         // 3. For each element e of S.[[SetData]], do
@@ -350,7 +346,7 @@ impl Set {
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-set.prototype.delete
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Set/delete
-    pub(crate) fn delete(this: &JsValue, args: &[JsValue], _: &mut Context) -> JsResult<JsValue> {
+    pub(crate) fn delete(this: &JsValue, args: &[JsValue], _: &Context) -> JsResult<JsValue> {
         // 1. Let S be the this value.
         // 2. Perform ? RequireInternalSlot(S, [[SetData]]).
         let this = this
@@ -382,11 +378,7 @@ impl Set {
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-set.prototype.entries
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Set/entries
-    pub(crate) fn entries(
-        this: &JsValue,
-        _: &[JsValue],
-        context: &mut Context,
-    ) -> JsResult<JsValue> {
+    pub(crate) fn entries(this: &JsValue, _: &[JsValue], context: &Context) -> JsResult<JsValue> {
         let this = this
             .as_object()
             .and_then(|o| o.downcast::<OrderedSet>().ok())
@@ -416,7 +408,7 @@ impl Set {
     pub(crate) fn for_each(
         this: &JsValue,
         args: &[JsValue],
-        context: &mut Context,
+        context: &Context,
     ) -> JsResult<JsValue> {
         // 1. Let S be the this value.
         // 2. Perform ? RequireInternalSlot(S, [[SetData]]).
@@ -526,7 +518,7 @@ impl Set {
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-map.prototype.has
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Map/has
-    pub(crate) fn has(this: &JsValue, args: &[JsValue], _: &mut Context) -> JsResult<JsValue> {
+    pub(crate) fn has(this: &JsValue, args: &[JsValue], _: &Context) -> JsResult<JsValue> {
         // 1. Let M be the this value.
         // 2. Perform ? RequireInternalSlot(S, [[SetData]]).
         let this = this
@@ -558,11 +550,7 @@ impl Set {
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-set.prototype.values
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Set/values
-    pub(crate) fn values(
-        this: &JsValue,
-        _: &[JsValue],
-        context: &mut Context,
-    ) -> JsResult<JsValue> {
+    pub(crate) fn values(this: &JsValue, _: &[JsValue], context: &Context) -> JsResult<JsValue> {
         let this = this
             .as_object()
             .and_then(|o| o.downcast::<OrderedSet>().ok())
@@ -590,7 +578,7 @@ impl Set {
     pub(crate) fn is_disjoint_from(
         this: &JsValue,
         args: &[JsValue],
-        context: &mut Context,
+        context: &Context,
     ) -> JsResult<JsValue> {
         // 1. Let O be the this value.
         // 2. Perform ? RequireInternalSlot(O, [[SetData]]).
@@ -674,7 +662,7 @@ impl Set {
     pub(crate) fn is_subset_of(
         this: &JsValue,
         args: &[JsValue],
-        context: &mut Context,
+        context: &Context,
     ) -> JsResult<JsValue> {
         // 1. Let O be the this value.
         // 2. Perform ? RequireInternalSlot(O, [[SetData]]).
@@ -740,7 +728,7 @@ impl Set {
     pub(crate) fn is_superset_of(
         this: &JsValue,
         args: &[JsValue],
-        context: &mut Context,
+        context: &Context,
     ) -> JsResult<JsValue> {
         // 1. Let O be the this value.
         // 2. Perform ? RequireInternalSlot(O, [[SetData]]).
@@ -795,7 +783,7 @@ impl Set {
     pub(crate) fn symmetric_difference(
         this: &JsValue,
         args: &[JsValue],
-        context: &mut Context,
+        context: &Context,
     ) -> JsResult<JsValue> {
         // 1. Let O be the this value.
         // 2. Perform ? RequireInternalSlot(O, [[SetData]]).
@@ -859,11 +847,7 @@ impl Set {
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-set.prototype.union
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Set/union
-    pub(crate) fn union(
-        this: &JsValue,
-        args: &[JsValue],
-        context: &mut Context,
-    ) -> JsResult<JsValue> {
+    pub(crate) fn union(this: &JsValue, args: &[JsValue], context: &Context) -> JsResult<JsValue> {
         // 1. Let O be the this value.
         // 2. Perform ? RequireInternalSlot(O, [[SetData]]).
 
@@ -920,7 +904,7 @@ impl Set {
     pub(crate) fn intersection(
         this: &JsValue,
         args: &[JsValue],
-        context: &mut Context,
+        context: &Context,
     ) -> JsResult<JsValue> {
         // 1. Let S be the this value.
         // 2. Perform ? RequireInternalSlot(O, [[SetData]]).
@@ -1017,7 +1001,7 @@ impl Set {
     pub(crate) fn difference(
         this: &JsValue,
         args: &[JsValue],
-        context: &mut Context,
+        context: &Context,
     ) -> JsResult<JsValue> {
         // 1. Let O be the this value.
         // 2. Perform ? RequireInternalSlot(O, [[SetData]]).
@@ -1100,7 +1084,7 @@ impl Set {
         .into())
     }
 
-    fn size_getter(this: &JsValue, _: &[JsValue], _: &mut Context) -> JsResult<JsValue> {
+    fn size_getter(this: &JsValue, _: &[JsValue], _: &Context) -> JsResult<JsValue> {
         Ok(this
             .as_object()
             .and_then(|o| o.downcast_ref::<OrderedSet>().map(|o| o.len()))

@@ -44,7 +44,7 @@ impl std::fmt::Display for TestStatus {
 }
 
 impl TryFromJs for TestStatus {
-    fn try_from_js(value: &JsValue, context: &mut Context) -> JsResult<Self> {
+    fn try_from_js(value: &JsValue, context: &Context) -> JsResult<Self> {
         match value.to_u32(context) {
             Ok(0) => Ok(Self::Pass),
             Ok(1) => Ok(Self::Fail),
@@ -185,7 +185,7 @@ fn create_context(wpt_path: &Path) -> (Context, logger::RecordingLogger, fetcher
             boa_runtime::extensions::FetchExtension(fetcher.clone()),
         ),
         None,
-        &mut context,
+        &Context,
     )
     .expect("Failed to register boa_runtime");
 
@@ -198,8 +198,7 @@ fn create_context(wpt_path: &Path) -> (Context, logger::RecordingLogger, fetcher
     // Define location to be an empty URL.
     let location =
         Url::new("about:blank".to_string().into(), None).expect("Could not parse the location URL");
-    let location =
-        Url::from_data(location, &mut context).expect("Could not create the location URL");
+    let location = Url::from_data(location, &Context).expect("Could not create the location URL");
     context
         .register_global_property(js_str!("location"), location, Attribute::all())
         .unwrap();
@@ -219,7 +218,7 @@ fn create_context(wpt_path: &Path) -> (Context, logger::RecordingLogger, fetcher
 fn result_callback__(
     ContextData(logger): ContextData<logger::RecordingLogger>,
     test: Test,
-    context: &mut Context,
+    context: &Context,
 ) -> JsResult<()> {
     // Check the logs if the test succeeded.
     assert_eq!(
@@ -306,7 +305,7 @@ fn execute_test_file(path: &Path) {
     context.insert_data(test_done.clone());
 
     let function = result_callback__
-        .into_js_function_copied(&mut context)
+        .into_js_function_copied(&Context)
         .to_js_function(context.realm());
     context
         .register_global_property(js_str!("result_callback__"), function, Attribute::all())
@@ -318,7 +317,7 @@ fn execute_test_file(path: &Path) {
         .expect("Could not eval add_result_callback");
 
     let function = complete_callback__
-        .into_js_function_copied(&mut context)
+        .into_js_function_copied(&Context)
         .to_js_function(context.realm());
     context
         .register_global_property(js_str!("complete_callback__"), function, Attribute::all())

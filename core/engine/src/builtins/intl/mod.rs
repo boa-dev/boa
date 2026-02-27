@@ -208,7 +208,7 @@ impl Intl {
     pub(crate) fn get_canonical_locales(
         _: &JsValue,
         args: &[JsValue],
-        context: &mut Context,
+        context: &Context,
     ) -> JsResult<JsValue> {
         let locales = args.get_or_undefined(0);
 

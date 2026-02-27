@@ -27,7 +27,7 @@ impl JsMapIterator {
     }
 
     /// Advances the `JsMapIterator` and gets the next result in the `JsMap`
-    pub fn next(&self, context: &mut Context) -> JsResult<JsValue> {
+    pub fn next(&self, context: &Context) -> JsResult<JsValue> {
         MapIterator::next(&self.inner.clone().into(), &[], context)
     }
 }
@@ -56,7 +56,7 @@ impl Deref for JsMapIterator {
 }
 
 impl TryFromJs for JsMapIterator {
-    fn try_from_js(value: &JsValue, _context: &mut Context) -> JsResult<Self> {
+    fn try_from_js(value: &JsValue, _context: &Context) -> JsResult<Self> {
         if let Some(o) = value.as_object() {
             Self::from_object(o.clone())
         } else {

@@ -23,7 +23,7 @@ use crate::{Context, JsData, JsResult, JsString, JsValue};
 /// # let mut context = Context::default();
 /// let value = JsValue::from(js_string!("42"));
 /// let Convert(converted): Convert<i32> =
-///     Convert::try_from_js(&value, &mut context).unwrap();
+///     Convert::try_from_js(&value, &context).unwrap();
 ///
 /// assert_eq!(converted, 42);
 /// ```
@@ -34,11 +34,11 @@ use crate::{Context, JsData, JsResult, JsString, JsValue};
 /// # use boa_engine::value::{Convert, TryFromJs};
 /// # let mut context = Context::default();
 /// let Convert(conv0): Convert<bool> =
-///     Convert::try_from_js(&JsValue::new(0), &mut context).unwrap();
+///     Convert::try_from_js(&JsValue::new(0), &context).unwrap();
 /// let Convert(conv5): Convert<bool> =
-///     Convert::try_from_js(&JsValue::new(5), &mut context).unwrap();
+///     Convert::try_from_js(&JsValue::new(5), &context).unwrap();
 /// let Convert(conv_nan): Convert<bool> =
-///     Convert::try_from_js(&JsValue::new(f64::NAN), &mut context).unwrap();
+///     Convert::try_from_js(&JsValue::new(f64::NAN), &context).unwrap();
 ///
 /// assert_eq!(conv0, false);
 /// assert_eq!(conv5, true);
@@ -63,7 +63,7 @@ macro_rules! decl_convert_to_int {
     ($($ty:ty),*) => {
         $(
             impl TryFromJs for Convert<$ty> {
-                fn try_from_js(value: &JsValue, context: &mut Context) -> JsResult<Self> {
+                fn try_from_js(value: &JsValue, context: &Context) -> JsResult<Self> {
                     value.to_numeric_number(context).and_then(|num| {
                         if num.is_finite() {
                             if num >= f64::from(<$ty>::MAX) {
@@ -106,7 +106,7 @@ macro_rules! decl_convert_to_float {
     ($($ty:ty),*) => {
         $(
             impl TryFromJs for Convert<$ty> {
-                fn try_from_js(value: &JsValue, context: &mut Context) -> JsResult<Self> {
+                fn try_from_js(value: &JsValue, context: &Context) -> JsResult<Self> {
                     value.to_numeric_number(context).and_then(|num| Ok(Convert(<$ty>::try_from(num).map_err(|_| {
                         JsNativeError::typ()
                             .with_message("cannot convert value to float")
@@ -120,7 +120,7 @@ macro_rules! decl_convert_to_float {
 decl_convert_to_float!(f64);
 
 impl TryFromJs for Convert<String> {
-    fn try_from_js(value: &JsValue, context: &mut Context) -> JsResult<Self> {
+    fn try_from_js(value: &JsValue, context: &Context) -> JsResult<Self> {
         value
             .to_string(context)
             .and_then(|s| s.to_std_string().map_err(|_| JsNativeError::typ().into()))
@@ -129,13 +129,13 @@ impl TryFromJs for Convert<String> {
 }
 
 impl TryFromJs for Convert<JsString> {
-    fn try_from_js(value: &JsValue, context: &mut Context) -> JsResult<Self> {
+    fn try_from_js(value: &JsValue, context: &Context) -> JsResult<Self> {
         value.to_string(context).map(Convert)
     }
 }
 
 impl TryFromJs for Convert<bool> {
-    fn try_from_js(value: &JsValue, _context: &mut Context) -> JsResult<Self> {
+    fn try_from_js(value: &JsValue, _context: &Context) -> JsResult<Self> {
         Ok(Self(value.to_boolean()))
     }
 }

@@ -82,11 +82,7 @@ impl BuiltInConstructor for PluralRules {
     const STANDARD_CONSTRUCTOR: fn(&StandardConstructors) -> &StandardConstructor =
         StandardConstructors::plural_rules;
 
-    fn constructor(
-        new_target: &JsValue,
-        args: &[JsValue],
-        context: &mut Context,
-    ) -> JsResult<JsValue> {
+    fn constructor(new_target: &JsValue, args: &[JsValue], context: &Context) -> JsResult<JsValue> {
         // 1. If NewTarget is undefined, throw a TypeError exception.
         if new_target.is_undefined() {
             return Err(JsNativeError::typ()
@@ -175,7 +171,7 @@ impl PluralRules {
     ///
     /// [spec]: https://tc39.es/ecma402/#sec-intl.pluralrules.prototype.select
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Intl/PluralRules/select
-    fn select(this: &JsValue, args: &[JsValue], context: &mut Context) -> JsResult<JsValue> {
+    fn select(this: &JsValue, args: &[JsValue], context: &Context) -> JsResult<JsValue> {
         // 1. Let pr be the this value.
         // 2. Perform ? RequireInternalSlot(pr, [[InitializedPluralRules]]).
         let object = this.as_object();
@@ -202,7 +198,7 @@ impl PluralRules {
     ///
     /// [spec]: https://tc39.es/ecma402/#sec-intl.pluralrules.prototype.selectrange
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Intl/PluralRules/selectRange
-    fn select_range(this: &JsValue, args: &[JsValue], context: &mut Context) -> JsResult<JsValue> {
+    fn select_range(this: &JsValue, args: &[JsValue], context: &Context) -> JsResult<JsValue> {
         // 1. Let pr be the this value.
         // 2. Perform ? RequireInternalSlot(pr, [[InitializedPluralRules]]).
         let object = this.as_object();
@@ -270,11 +266,7 @@ impl PluralRules {
     ///
     /// [spec]: https://tc39.es/ecma402/#sec-intl.pluralrules.supportedlocalesof
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Intl/PluralRules/supportedLocalesOf
-    fn supported_locales_of(
-        _: &JsValue,
-        args: &[JsValue],
-        context: &mut Context,
-    ) -> JsResult<JsValue> {
+    fn supported_locales_of(_: &JsValue, args: &[JsValue], context: &Context) -> JsResult<JsValue> {
         let locales = args.get_or_undefined(0);
         let options = args.get_or_undefined(1);
 
@@ -296,7 +288,7 @@ impl PluralRules {
     ///
     /// [spec]: https://tc39.es/ecma402/#sec-intl.pluralrules.prototype.resolvedoptions
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Intl/PluralRules/resolvedOptions
-    fn resolved_options(this: &JsValue, _: &[JsValue], context: &mut Context) -> JsResult<JsValue> {
+    fn resolved_options(this: &JsValue, _: &[JsValue], context: &Context) -> JsResult<JsValue> {
         // 1. Let pr be the this value.
         // 2. Perform ? RequireInternalSlot(pr, [[InitializedPluralRules]]).
         let object = this.as_object();

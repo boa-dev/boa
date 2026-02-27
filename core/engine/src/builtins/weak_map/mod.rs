@@ -80,11 +80,7 @@ impl BuiltInConstructor for WeakMap {
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-weakmap-iterable
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/WeakMap/WeakMap
-    fn constructor(
-        new_target: &JsValue,
-        args: &[JsValue],
-        context: &mut Context,
-    ) -> JsResult<JsValue> {
+    fn constructor(new_target: &JsValue, args: &[JsValue], context: &Context) -> JsResult<JsValue> {
         // 1. If NewTarget is undefined, throw a TypeError exception.
         if new_target.is_undefined() {
             return Err(JsNativeError::typ()
@@ -133,7 +129,7 @@ impl WeakMap {
     pub(crate) fn delete(
         this: &JsValue,
         args: &[JsValue],
-        _context: &mut Context,
+        _context: &Context,
     ) -> JsResult<JsValue> {
         // 1. Let M be the this value.
         // 2. Perform ? RequireInternalSlot(M, [[WeakMapData]]).
@@ -168,11 +164,7 @@ impl WeakMap {
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-weakmap.prototype.get
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/WeakMap/get
-    pub(crate) fn get(
-        this: &JsValue,
-        args: &[JsValue],
-        _context: &mut Context,
-    ) -> JsResult<JsValue> {
+    pub(crate) fn get(this: &JsValue, args: &[JsValue], _context: &Context) -> JsResult<JsValue> {
         // 1. Let M be the this value.
         // 2. Perform ? RequireInternalSlot(M, [[WeakMapData]]).
         let object = this.as_object();
@@ -203,11 +195,7 @@ impl WeakMap {
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-weakmap.prototype.has
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/WeakMap/has
-    pub(crate) fn has(
-        this: &JsValue,
-        args: &[JsValue],
-        _context: &mut Context,
-    ) -> JsResult<JsValue> {
+    pub(crate) fn has(this: &JsValue, args: &[JsValue], _context: &Context) -> JsResult<JsValue> {
         // 1. Let M be the this value.
         // 2. Perform ? RequireInternalSlot(M, [[WeakMapData]]).
         let object = this.as_object();
@@ -238,11 +226,7 @@ impl WeakMap {
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-weakmap.prototype.set
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/WeakMap/set
-    pub(crate) fn set(
-        this: &JsValue,
-        args: &[JsValue],
-        _context: &mut Context,
-    ) -> JsResult<JsValue> {
+    pub(crate) fn set(this: &JsValue, args: &[JsValue], _context: &Context) -> JsResult<JsValue> {
         // 1. Let M be the this value.
         // 2. Perform ? RequireInternalSlot(M, [[WeakMapData]]).
         let object = this.as_object();
@@ -290,7 +274,7 @@ impl WeakMap {
     pub(crate) fn get_or_insert(
         this: &JsValue,
         args: &[JsValue],
-        _context: &mut Context,
+        _context: &Context,
     ) -> JsResult<JsValue> {
         // 1. Let M be the this value.
         // 2. Perform ? RequireInternalSlot(M, [[WeakMapData]]).
@@ -344,7 +328,7 @@ impl WeakMap {
     pub(crate) fn get_or_insert_computed(
         this: &JsValue,
         args: &[JsValue],
-        context: &mut Context,
+        context: &Context,
     ) -> JsResult<JsValue> {
         // 1. Let M be the this value.
         // 2. Perform ? RequireInternalSlot(M, [[WeakMapData]]).

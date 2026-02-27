@@ -19,9 +19,9 @@ impl SetClassPrototype {
     #[inline(always)]
     pub(crate) fn operation(
         (dst, prototype, class): (VaryingOperand, VaryingOperand, VaryingOperand),
-        context: &mut Context,
+        context: &Context,
     ) {
-        let prototype = context.vm.get_register(prototype.into());
+        let prototype = context.vm_mut().get_register(prototype.into()).clone();
         let prototype = match prototype.variant() {
             JsVariant::Object(proto) => Some(proto.clone()),
             JsVariant::Null => None,
@@ -36,7 +36,7 @@ impl SetClassPrototype {
             OrdinaryObject,
         )
         .upcast();
-        let class = context.vm.get_register(class.into()).clone();
+        let class = context.vm_mut().get_register(class.into()).clone();
 
         {
             let class_object = class.as_object().expect("class must be object");
@@ -70,7 +70,7 @@ impl SetClassPrototype {
             )
             .expect("cannot fail per spec");
 
-        context.vm.set_register(dst.into(), proto.into());
+        context.vm_mut().set_register(dst.into(), proto.into());
     }
 }
 

@@ -178,11 +178,7 @@ impl BuiltInConstructor for Locale {
     ///
     /// [spec]: https://tc39.es/ecma402/#sec-Intl.Locale
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Intl/Locale
-    fn constructor(
-        new_target: &JsValue,
-        args: &[JsValue],
-        context: &mut Context,
-    ) -> JsResult<JsValue> {
+    fn constructor(new_target: &JsValue, args: &[JsValue], context: &Context) -> JsResult<JsValue> {
         // 1. If NewTarget is undefined, throw a TypeError exception.
         if new_target.is_undefined() {
             return Err(JsNativeError::typ()
@@ -341,11 +337,7 @@ impl Locale {
     ///
     /// [spec]: https://tc39.es/ecma402/#sec-Intl.Locale.prototype.maximize
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Intl/Locale/maximize
-    pub(crate) fn maximize(
-        this: &JsValue,
-        _: &[JsValue],
-        context: &mut Context,
-    ) -> JsResult<JsValue> {
+    pub(crate) fn maximize(this: &JsValue, _: &[JsValue], context: &Context) -> JsResult<JsValue> {
         // 1. Let loc be the this value.
         // 2. Perform ? RequireInternalSlot(loc, [[InitializedLocale]]).
         let object = this.as_object();
@@ -379,11 +371,7 @@ impl Locale {
     ///
     /// [spec]: https://tc39.es/ecma402/#sec-Intl.Locale.prototype.minimize
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Intl/Locale/minimize
-    pub(crate) fn minimize(
-        this: &JsValue,
-        _: &[JsValue],
-        context: &mut Context,
-    ) -> JsResult<JsValue> {
+    pub(crate) fn minimize(this: &JsValue, _: &[JsValue], context: &Context) -> JsResult<JsValue> {
         // 1. Let loc be the this value.
         // 2. Perform ? RequireInternalSlot(loc, [[InitializedLocale]]).
         let object = this.as_object();
@@ -418,7 +406,7 @@ impl Locale {
     ///
     /// [mdn]: https://tc39.es/ecma402/#sec-Intl.Locale.prototype.toString
     /// [spec]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Intl/Locale/toString
-    pub(crate) fn to_string(this: &JsValue, _: &[JsValue], _: &mut Context) -> JsResult<JsValue> {
+    pub(crate) fn to_string(this: &JsValue, _: &[JsValue], _: &Context) -> JsResult<JsValue> {
         // 1. Let loc be the this value.
         // 2. Perform ? RequireInternalSlot(loc, [[InitializedLocale]]).
         let object = this.as_object();
@@ -442,7 +430,7 @@ impl Locale {
     ///
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Intl/Locale/baseName
     /// [spec]: https://tc39.es/ecma402/#sec-Intl.Locale.prototype.baseName
-    pub(crate) fn base_name(this: &JsValue, _: &[JsValue], _: &mut Context) -> JsResult<JsValue> {
+    pub(crate) fn base_name(this: &JsValue, _: &[JsValue], _: &Context) -> JsResult<JsValue> {
         // 1. Let loc be the this value.
         // 2. Perform ? RequireInternalSlot(loc, [[InitializedLocale]]).
         let object = this.as_object();
@@ -467,7 +455,7 @@ impl Locale {
     ///
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Intl/Locale/calendar
     /// [spec]: https://tc39.es/ecma402/#sec-Intl.Locale.prototype.calendar
-    pub(crate) fn calendar(this: &JsValue, _: &[JsValue], _: &mut Context) -> JsResult<JsValue> {
+    pub(crate) fn calendar(this: &JsValue, _: &[JsValue], _: &Context) -> JsResult<JsValue> {
         // 1. Let loc be the this value.
         // 2. Perform ? RequireInternalSlot(loc, [[InitializedLocale]]).
         let object = this.as_object();
@@ -497,7 +485,7 @@ impl Locale {
     ///
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Intl/Locale/calendar
     /// [spec]: https://tc39.es/ecma402/#sec-Intl.Locale.prototype.calendar
-    pub(crate) fn case_first(this: &JsValue, _: &[JsValue], _: &mut Context) -> JsResult<JsValue> {
+    pub(crate) fn case_first(this: &JsValue, _: &[JsValue], _: &Context) -> JsResult<JsValue> {
         // 1. Let loc be the this value.
         // 2. Perform ? RequireInternalSlot(loc, [[InitializedLocale]]).
         let object = this.as_object();
@@ -527,7 +515,7 @@ impl Locale {
     ///
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Intl/Locale/collation
     /// [spec]: https://tc39.es/ecma402/#sec-Intl.Locale.prototype.collation
-    pub(crate) fn collation(this: &JsValue, _: &[JsValue], _: &mut Context) -> JsResult<JsValue> {
+    pub(crate) fn collation(this: &JsValue, _: &[JsValue], _: &Context) -> JsResult<JsValue> {
         // 1. Let loc be the this value.
         // 2. Perform ? RequireInternalSlot(loc, [[InitializedLocale]]).
         let object = this.as_object();
@@ -557,7 +545,7 @@ impl Locale {
     ///
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Intl/Locale/hourCycle
     /// [spec]: https://tc39.es/ecma402/#sec-Intl.Locale.prototype.hourCycle
-    pub(crate) fn hour_cycle(this: &JsValue, _: &[JsValue], _: &mut Context) -> JsResult<JsValue> {
+    pub(crate) fn hour_cycle(this: &JsValue, _: &[JsValue], _: &Context) -> JsResult<JsValue> {
         // 1. Let loc be the this value.
         // 2. Perform ? RequireInternalSlot(loc, [[InitializedLocale]]).
         let object = this.as_object();
@@ -587,7 +575,7 @@ impl Locale {
     ///
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Intl/Locale/numeric
     /// [spec]: https://tc39.es/ecma402/#sec-Intl.Locale.prototype.numeric
-    pub(crate) fn numeric(this: &JsValue, _: &[JsValue], _: &mut Context) -> JsResult<JsValue> {
+    pub(crate) fn numeric(this: &JsValue, _: &[JsValue], _: &Context) -> JsResult<JsValue> {
         // 1. Let loc be the this value.
         // 2. Perform ? RequireInternalSlot(loc, [[InitializedLocale]]).
         let object = this.as_object();
@@ -621,7 +609,7 @@ impl Locale {
     pub(crate) fn numbering_system(
         this: &JsValue,
         _: &[JsValue],
-        _: &mut Context,
+        _: &Context,
     ) -> JsResult<JsValue> {
         // 1. Let loc be the this value.
         // 2. Perform ? RequireInternalSlot(loc, [[InitializedLocale]]).
@@ -652,7 +640,7 @@ impl Locale {
     ///
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Intl/Locale/language
     /// [spec]: https://tc39.es/ecma402/#sec-Intl.Locale.prototype.language
-    pub(crate) fn language(this: &JsValue, _: &[JsValue], _: &mut Context) -> JsResult<JsValue> {
+    pub(crate) fn language(this: &JsValue, _: &[JsValue], _: &Context) -> JsResult<JsValue> {
         // 1. Let loc be the this value.
         // 2. Perform ? RequireInternalSlot(loc, [[InitializedLocale]]).
         let object = this.as_object();
@@ -678,7 +666,7 @@ impl Locale {
     ///
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Intl/Locale/script
     /// [spec]: https://tc39.es/ecma402/#sec-Intl.Locale.prototype.script
-    pub(crate) fn script(this: &JsValue, _: &[JsValue], _: &mut Context) -> JsResult<JsValue> {
+    pub(crate) fn script(this: &JsValue, _: &[JsValue], _: &Context) -> JsResult<JsValue> {
         // 1. Let loc be the this value.
         // 2. Perform ? RequireInternalSlot(loc, [[InitializedLocale]]).
         let object = this.as_object();
@@ -709,7 +697,7 @@ impl Locale {
     ///
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Intl/Locale/region
     /// [spec]: https://tc39.es/ecma402/#sec-Intl.Locale.prototype.region
-    pub(crate) fn region(this: &JsValue, _: &[JsValue], _: &mut Context) -> JsResult<JsValue> {
+    pub(crate) fn region(this: &JsValue, _: &[JsValue], _: &Context) -> JsResult<JsValue> {
         // 1. Let loc be the this value.
         // 2. Perform ? RequireInternalSlot(loc, [[InitializedLocale]]).
         let object = this.as_object();
@@ -740,7 +728,7 @@ impl Locale {
     ///
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Intl/Locale/variants
     /// [spec]: https://tc39.es/ecma402/#sec-Intl.Locale.prototype.variants
-    pub(crate) fn variants(this: &JsValue, _: &[JsValue], _: &mut Context) -> JsResult<JsValue> {
+    pub(crate) fn variants(this: &JsValue, _: &[JsValue], _: &Context) -> JsResult<JsValue> {
         // 1. Let loc be the this value.
         // 2. Perform ? RequireInternalSlot(loc, [[InitializedLocale]]).
         let loc = this.as_object();

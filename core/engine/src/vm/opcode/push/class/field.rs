@@ -21,11 +21,11 @@ impl PushClassField {
             VaryingOperand,
             VaryingOperand,
         ),
-        context: &mut Context,
+        context: &Context,
     ) -> JsResult<()> {
-        let class = context.vm.get_register(class.into()).clone();
-        let name = context.vm.get_register(name.into()).clone();
-        let function = context.vm.get_register(function.into()).clone();
+        let class = context.vm_mut().get_register(class.into()).clone();
+        let name = context.vm_mut().get_register(name.into()).clone();
+        let function = context.vm_mut().get_register(function.into()).clone();
         let is_anonymous_function = u32::from(is_anonymous_function) != 0;
 
         let name = name.to_property_key(context)?;
@@ -72,12 +72,12 @@ impl PushClassFieldPrivate {
     #[inline(always)]
     pub(crate) fn operation(
         (class, function, index): (VaryingOperand, VaryingOperand, VaryingOperand),
-        context: &mut Context,
+        context: &Context,
     ) {
-        let class = context.vm.get_register(class.into());
-        let function = context.vm.get_register(function.into());
-        let name = context
-            .vm
+        let vm = context.vm_mut();
+        let class = vm.get_register(class.into()).clone();
+        let function = vm.get_register(function.into()).clone();
+        let name = vm
             .frame()
             .code_block()
             .constant_string(index.into());

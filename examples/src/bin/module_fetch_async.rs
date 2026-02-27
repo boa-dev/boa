@@ -23,7 +23,7 @@ impl ModuleLoader for HttpModuleLoader {
         self: Rc<Self>,
         _referrer: boa_engine::module::Referrer,
         request: ModuleRequest,
-        context: &RefCell<&mut Context>,
+        context: &RefCell<&Context>,
     ) -> JsResult<Module> {
         let url = request.specifier().to_std_string_escaped();
 
@@ -48,7 +48,7 @@ impl ModuleLoader for HttpModuleLoader {
         // Could also add a path if needed.
         let source = Source::from_bytes(&response);
 
-        Module::parse(source, None, &mut context.borrow_mut())
+        Module::parse(source, None, &context.borrow())
     }
 }
 
@@ -75,7 +75,7 @@ fn main() -> JsResult<()> {
         export default result;
     "#;
 
-    let context = &mut Context::builder()
+    let context = &Context::builder()
         .job_executor(Rc::new(Queue::new()))
         // NEW: sets the context module loader to our custom loader
         .module_loader(Rc::new(HttpModuleLoader))
@@ -149,7 +149,7 @@ impl Queue {
         }
     }
 
-    fn drain_jobs(&self, context: &mut Context) {
+    fn drain_jobs(&self, context: &Context) {
         let jobs = std::mem::take(&mut *self.promise_jobs.borrow_mut());
         for job in jobs {
             if let Err(e) = job.call(context) {
@@ -160,7 +160,7 @@ impl Queue {
 }
 
 impl JobExecutor for Queue {
-    fn enqueue_job(self: Rc<Self>, job: Job, _context: &mut Context) {
+    fn enqueue_job(self: Rc<Self>, job: Job, _context: &Context) {
         match job {
             Job::PromiseJob(job) => self.promise_jobs.borrow_mut().push_back(job),
             Job::AsyncJob(job) => self.async_jobs.borrow_mut().push_back(job),
@@ -169,12 +169,12 @@ impl JobExecutor for Queue {
     }
 
     // While the sync flavor of `run_jobs` will block the current thread until all the jobs have finished...
-    fn run_jobs(self: Rc<Self>, context: &mut Context) -> JsResult<()> {
+    fn run_jobs(self: Rc<Self>, context: &Context) -> JsResult<()> {
         smol::block_on(smol::LocalExecutor::new().run(self.run_jobs_async(&RefCell::new(context))))
     }
 
     // ...the async flavor won't, which allows concurrent execution with external async tasks.
-    async fn run_jobs_async(self: Rc<Self>, context: &RefCell<&mut Context>) -> JsResult<()> {
+    async fn run_jobs_async(self: Rc<Self>, context: &RefCell<&Context>) -> JsResult<()> {
         let mut group = FutureGroup::new();
         loop {
             for job in std::mem::take(&mut *self.async_jobs.borrow_mut()) {
@@ -194,7 +194,7 @@ impl JobExecutor for Queue {
             };
 
             // Only one macrotask can be executed before the next drain of the microtask queue.
-            self.drain_jobs(&mut context.borrow_mut());
+            self.drain_jobs(&context.borrow());
             future::yield_now().await
         }
     }

@@ -33,7 +33,7 @@ use crate::{
 };
 
 impl OptionType for SignedRoundingMode {
-    fn from_value(value: JsValue, context: &mut Context) -> JsResult<Self> {
+    fn from_value(value: JsValue, context: &Context) -> JsResult<Self> {
         match value.to_string(context)?.to_std_string_escaped().as_str() {
             "expand" => Ok(Self::Unsigned(UnsignedRoundingMode::Expand)),
             "trunc" => Ok(Self::Unsigned(UnsignedRoundingMode::Trunc)),
@@ -52,7 +52,7 @@ impl OptionType for SignedRoundingMode {
 }
 
 impl OptionType for NumberingSystem {
-    fn from_value(value: JsValue, context: &mut Context) -> JsResult<Self> {
+    fn from_value(value: JsValue, context: &Context) -> JsResult<Self> {
         let s = value.to_string(context)?.to_std_string_escaped();
         Value::try_from_str(&s)
             .ok()
@@ -442,7 +442,7 @@ impl UnitFormatOptions {
     /// Abstract operation [`SetNumberFormatUnitOptions ( intlObj, options )`][spec].
     ///
     /// [spec]: https://tc39.es/ecma402/#sec-setnumberformatunitoptions
-    pub(crate) fn from_options(options: &JsObject, context: &mut Context) -> JsResult<Self> {
+    pub(crate) fn from_options(options: &JsObject, context: &Context) -> JsResult<Self> {
         // 1. Let style be ? GetOption(options, "style", string, « "decimal", "percent", "currency", "unit" », "decimal").
         // 2. Set intlObj.[[Style]] to style.
         let style: Style = get_option(options, js_string!("style"), context)?.unwrap_or_default();
@@ -541,7 +541,7 @@ impl DigitFormatOptions {
         min_float_digits_default: u8,
         mut max_float_digits_default: u8,
         notation: NotationKind,
-        context: &mut Context,
+        context: &Context,
     ) -> JsResult<Self> {
         // 1. Let mnid be ? GetNumberOption(options, "minimumIntegerDigits,", 1, 21, 1).
         let minimum_integer_digits =
@@ -1201,7 +1201,7 @@ impl std::str::FromStr for TrailingZeroDisplay {
 impl ParsableOptionType for TrailingZeroDisplay {}
 
 impl OptionType for SignDisplay {
-    fn from_value(value: JsValue, context: &mut Context) -> JsResult<Self> {
+    fn from_value(value: JsValue, context: &Context) -> JsResult<Self> {
         match value.to_string(context)?.to_std_string_escaped().as_str() {
             "auto" => Ok(Self::Auto),
             "never" => Ok(Self::Never),

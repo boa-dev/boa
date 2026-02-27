@@ -42,7 +42,7 @@ pub(crate) fn default_locale(canonicalizer: &LocaleCanonicalizer) -> Locale {
 }
 
 /// Gets the `Locale` struct from a `JsValue`.
-pub(crate) fn locale_from_value(tag: &JsValue, context: &mut Context) -> JsResult<Locale> {
+pub(crate) fn locale_from_value(tag: &JsValue, context: &Context) -> JsResult<Locale> {
     // ii. If Type(kValue) is not String or Object, throw a TypeError exception.
     if !(tag.is_object() || tag.is_string()) {
         return Err(JsNativeError::typ()
@@ -123,7 +123,7 @@ pub(crate) fn locale_from_value(tag: &JsValue, context: &mut Context) -> JsResul
 /// [canon]: https://unicode.org/reports/tr35/#LocaleId_Canonicalization
 pub(crate) fn canonicalize_locale_list(
     locales: &JsValue,
-    context: &mut Context,
+    context: &Context,
 ) -> JsResult<Vec<Locale>> {
     // 1. If locales is undefined, then
     if locales.is_undefined() {
@@ -453,7 +453,7 @@ where
 pub(in crate::builtins::intl) fn filter_locales<S: Service>(
     requested_locales: Vec<Locale>,
     options: &JsValue,
-    context: &mut Context,
+    context: &Context,
 ) -> JsResult<JsObject>
 where
     IntlProvider: DryDataProvider<S::LangMarker>,

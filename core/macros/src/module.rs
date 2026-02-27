@@ -256,7 +256,7 @@ fn module_impl_impl(_args: ModuleArguments, mut mod_: ItemMod) -> SpannedResult<
 
             pub(super) fn boa_register #generics (
                 realm: Option<boa_engine::realm::Realm>,
-                context: &mut boa_engine::Context,
+                context: &boa_engine::Context,
             ) -> boa_engine::JsResult<()> {
                 #global_fn
                 Ok(())
@@ -264,7 +264,7 @@ fn module_impl_impl(_args: ModuleArguments, mut mod_: ItemMod) -> SpannedResult<
 
             pub(super) fn boa_module #generics (
                 realm: Option<boa_engine::realm::Realm>,
-                context: &mut boa_engine::Context,
+                context: &boa_engine::Context,
             ) -> boa_engine::Module {
                 boa_engine::Module::synthetic(
                     &[ #module_exports ],

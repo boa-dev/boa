@@ -18,7 +18,7 @@ fn gcd_callback() {
         PathBuf::from(std::env::var("CARGO_MANIFEST_DIR").unwrap()).join("tests/assets");
 
     // Create the engine.
-    let context = &mut Context::default();
+    let context = &Context::default();
     let result = Gc::new(AtomicUsize::new(0));
     context.insert_data(result.clone());
 

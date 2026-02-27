@@ -162,7 +162,7 @@ impl IntrinsicObject for Temporal {
 
 pub(crate) fn get_relative_to_option(
     options: &JsObject,
-    context: &mut Context,
+    context: &Context,
 ) -> JsResult<Option<RelativeTo>> {
     // Let value be ? Get(options, "relativeTo").
     let value = options.get(js_string!("relativeTo"), context)?;
@@ -245,7 +245,7 @@ pub(crate) fn get_relative_to_option(
 // 13.26 IsPartialTemporalObject ( object )
 pub(crate) fn is_partial_temporal_object(
     value: &JsValue,
-    context: &mut Context,
+    context: &Context,
 ) -> JsResult<Option<JsObject>> {
     // 1. If value is not an Object, return false.
     let Some(obj) = value.as_object() else {
@@ -283,7 +283,7 @@ pub(crate) fn is_partial_temporal_object(
 }
 
 impl JsValue {
-    pub(crate) fn to_finitef64(&self, context: &mut Context) -> JsResult<FiniteF64> {
+    pub(crate) fn to_finitef64(&self, context: &Context) -> JsResult<FiniteF64> {
         let number = self.to_number(context)?;
         let result = FiniteF64::try_from(number)?;
         Ok(result)

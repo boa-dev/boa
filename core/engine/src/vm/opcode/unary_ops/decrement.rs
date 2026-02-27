@@ -15,9 +15,9 @@ impl Dec {
     #[inline(always)]
     pub(crate) fn operation(
         (dst, src): (VaryingOperand, VaryingOperand),
-        context: &mut Context,
+        context: &Context,
     ) -> JsResult<()> {
-        let value = context.vm.get_register(src.into()).clone();
+        let value = context.vm_mut().get_register(src.into()).clone();
 
         let (numeric, value) = match value.variant() {
             JsVariant::Integer32(number) if number > i32::MIN => {
@@ -31,8 +31,8 @@ impl Dec {
                 ),
             },
         };
-        context.vm.set_register(src.into(), numeric);
-        context.vm.set_register(dst.into(), value);
+        context.vm_mut().set_register(src.into(), numeric);
+        context.vm_mut().set_register(dst.into(), value);
         Ok(())
     }
 }

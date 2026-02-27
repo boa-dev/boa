@@ -39,7 +39,7 @@ fn bench_scripts(c: &mut Criterion) {
             group.measurement_time(Duration::from_secs(5));
         }
 
-        let context = &mut Context::default();
+        let context = &Context::default();
 
         // Disable optimizations
         context.set_optimizer_options(OptimizerOptions::empty());

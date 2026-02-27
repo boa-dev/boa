@@ -25,10 +25,10 @@ impl CallEval {
     #[inline(always)]
     pub(super) fn operation(
         (argument_count, scope_index): (VaryingOperand, VaryingOperand),
-        context: &mut Context,
+        context: &Context,
     ) -> JsResult<()> {
         let func = context
-            .vm
+            .vm_mut()
             .stack
             .calling_convention_get_function(argument_count.into());
 
@@ -48,11 +48,11 @@ impl CallEval {
         let eval = context.intrinsics().objects().eval();
         if JsObject::equals(&object, &eval) {
             let arguments = context
-                .vm
+                .vm_mut()
                 .stack
                 .calling_convention_pop_arguments(argument_count.into());
-            let _func = context.vm.stack.pop();
-            let _this = context.vm.stack.pop();
+            let _func = context.vm_mut().stack.pop();
+            let _this = context.vm_mut().stack.pop();
             if let Some(x) = arguments.first() {
                 // i. Let argList be ? ArgumentListEvaluation of arguments.
                 // ii. If argList has no elements, return undefined.
@@ -60,9 +60,9 @@ impl CallEval {
                 // iv. If the source text matched by this CallExpression is strict mode code,
                 //     let strictCaller be true. Otherwise let strictCaller be false.
                 // v. Return ? PerformEval(evalArg, strictCaller, true).
-                let strict = context.vm.frame().code_block.strict();
+                let strict = context.vm_mut().frame().code_block.strict();
                 let scope = context
-                    .vm
+                    .vm_mut()
                     .frame()
                     .code_block()
                     .constant_scope(scope_index.into());
@@ -73,10 +73,10 @@ impl CallEval {
                     strict,
                     context,
                 )?;
-                context.vm.stack.push(result);
+                context.vm_mut().stack.push(result);
             } else {
                 // NOTE: This is a deviation from the spec, to optimize the case when we dont pass anything to `eval`.
-                context.vm.stack.push(JsValue::undefined());
+                context.vm_mut().stack.push(JsValue::undefined());
             }
 
             return Ok(());
@@ -102,9 +102,9 @@ pub(crate) struct CallEvalSpread;
 
 impl CallEvalSpread {
     #[inline(always)]
-    pub(super) fn operation(index: VaryingOperand, context: &mut Context) -> JsResult<()> {
+    pub(super) fn operation(index: VaryingOperand, context: &Context) -> JsResult<()> {
         // Get the arguments that are stored as an array object on the stack.
-        let arguments_array = context.vm.stack.pop();
+        let arguments_array = context.vm_mut().stack.pop();
         let arguments_array_object = arguments_array
             .as_object()
             .expect("arguments array in call spread function must be an object");
@@ -114,7 +114,7 @@ impl CallEvalSpread {
             .to_dense_indexed_properties()
             .expect("arguments array in call spread function must be dense");
 
-        let func = context.vm.stack.calling_convention_get_function(0);
+        let func = context.vm_mut().stack.calling_convention_get_function(0);
 
         let Some(object) = func.as_object() else {
             return Err(JsNativeError::typ()
@@ -130,8 +130,8 @@ impl CallEvalSpread {
         //     a. If SameValue(func, %eval%) is true, then
         let eval = context.intrinsics().objects().eval();
         if JsObject::equals(&object, &eval) {
-            let _func = context.vm.stack.pop();
-            let _this = context.vm.stack.pop();
+            let _func = context.vm_mut().stack.pop();
+            let _this = context.vm_mut().stack.pop();
             if let Some(x) = arguments.first() {
                 // i. Let argList be ? ArgumentListEvaluation of arguments.
                 // ii. If argList has no elements, return undefined.
@@ -139,8 +139,8 @@ impl CallEvalSpread {
                 // iv. If the source text matched by this CallExpression is strict mode code,
                 //     let strictCaller be true. Otherwise let strictCaller be false.
                 // v. Return ? PerformEval(evalArg, strictCaller, true).
-                let strict = context.vm.frame().code_block.strict();
-                let scope = context.vm.frame().code_block().constant_scope(index.into());
+                let strict = context.vm_mut().frame().code_block.strict();
+                let scope = context.vm_mut().frame().code_block().constant_scope(index.into());
                 let result = crate::builtins::eval::Eval::perform_eval(
                     x,
                     true,
@@ -148,10 +148,10 @@ impl CallEvalSpread {
                     strict,
                     context,
                 )?;
-                context.vm.stack.push(result);
+                context.vm_mut().stack.push(result);
             } else {
                 // NOTE: This is a deviation from the spec, to optimize the case when we dont pass anything to `eval`.
-                context.vm.stack.push(JsValue::undefined());
+                context.vm_mut().stack.push(JsValue::undefined());
             }
 
             return Ok(());
@@ -159,7 +159,7 @@ impl CallEvalSpread {
 
         let argument_count = arguments.len();
         context
-            .vm
+            .vm_mut()
             .stack
             .calling_convention_push_arguments(&arguments);
 
@@ -183,9 +183,9 @@ pub(crate) struct Call;
 
 impl Call {
     #[inline(always)]
-    pub(super) fn operation(argument_count: VaryingOperand, context: &mut Context) -> JsResult<()> {
+    pub(super) fn operation(argument_count: VaryingOperand, context: &Context) -> JsResult<()> {
         let func = context
-            .vm
+            .vm_mut()
             .stack
             .calling_convention_get_function(argument_count.into());
 
@@ -218,9 +218,9 @@ pub(crate) struct CallSpread;
 
 impl CallSpread {
     #[inline(always)]
-    pub(super) fn operation((): (), context: &mut Context) -> JsResult<()> {
+    pub(super) fn operation((): (), context: &Context) -> JsResult<()> {
         // Get the arguments that are stored as an array object on the stack.
-        let arguments_array = context.vm.stack.pop();
+        let arguments_array = context.vm_mut().stack.pop();
         let arguments_array_object = arguments_array
             .as_object()
             .expect("arguments array in call spread function must be an object");
@@ -232,12 +232,12 @@ impl CallSpread {
 
         let argument_count = arguments.len();
         context
-            .vm
+            .vm_mut()
             .stack
             .calling_convention_push_arguments(&arguments);
 
         let func = context
-            .vm
+            .vm_mut()
             .stack
             .calling_convention_get_function(argument_count);
 
@@ -262,7 +262,7 @@ impl Operation for CallSpread {
 fn parse_import_attributes(
     specifier: JsString,
     options: &JsValue,
-    context: &mut Context,
+    context: &Context,
 ) -> JsResult<ModuleRequest> {
     // Taken from `EvaluateImportCall`
     //
@@ -345,7 +345,7 @@ async fn load_dyn_import(
     referrer: Referrer,
     request: ModuleRequest,
     cap: PromiseCapability,
-    context: &RefCell<&mut Context>,
+    context: &RefCell<&Context>,
 ) -> JsResult<()> {
     let loader = context.borrow().module_loader();
     let fut = loader.load_imported_module(referrer.clone(), request.clone(), context);
@@ -363,9 +363,9 @@ async fn load_dyn_import(
         // 1. If moduleCompletion is an abrupt completion, then
         Err(err) => {
             // a. Perform ! Call(promiseCapability.[[Reject]], undefined, « moduleCompletion.[[Value]] »).
-            let err = err.into_opaque(&mut context.borrow_mut())?;
+            let err = err.into_opaque(&context.borrow())?;
             cap.reject()
-                .call(&JsValue::undefined(), &[err], &mut context.borrow_mut())
+                .call(&JsValue::undefined(), &[err], &context.borrow())
                 .expect("default `reject` function cannot throw");
 
             // b. Return unused.
@@ -413,7 +413,7 @@ async fn load_dyn_import(
 
     // 2. Let module be moduleCompletion.[[Value]].
     // 3. Let loadPromise be module.LoadRequestedModules().
-    let load = module.load(&mut context.borrow_mut());
+    let load = module.load(&context.borrow());
 
     // 4. Let rejectedClosure be a new Abstract Closure with parameters (reason) that captures promiseCapability and performs the following steps when called:
     // 5. Let onRejected be CreateBuiltinFunction(rejectedClosure, 1, "", « »).
@@ -500,7 +500,7 @@ async fn load_dyn_import(
         Some(link_evaluate),
         Some(on_rejected),
         None,
-        &mut context.borrow_mut(),
+        &context.borrow(),
     );
 
     // 9. Return unused.
@@ -518,7 +518,7 @@ impl ImportCall {
     #[inline(always)]
     pub(super) fn operation(
         (specifier_op, options_op): (VaryingOperand, VaryingOperand),
-        context: &mut Context,
+        context: &Context,
     ) -> JsResult<()> {
         // Import Calls
         // Runtime Semantics: Evaluation
@@ -532,10 +532,10 @@ impl ImportCall {
 
         // 3. Let argRef be ? Evaluation of AssignmentExpression.
         // 4. Let specifier be ? GetValue(argRef).
-        let specifier = context.vm.get_register(specifier_op.into()).clone();
+        let specifier = context.vm_mut().get_register(specifier_op.into()).clone();
 
         // Get options if provided
-        let options = context.vm.get_register(options_op.into()).clone();
+        let options = context.vm_mut().get_register(options_op.into()).clone();
 
         // 5. Let promiseCapability be ! NewPromiseCapability(%Promise%).
         let cap = PromiseCapability::new(
@@ -552,7 +552,7 @@ impl ImportCall {
             Err(err) => {
                 let err = err.into_opaque(context)?;
                 cap.reject().call(&JsValue::undefined(), &[err], context)?;
-                context.vm.set_register(specifier_op.into(), promise.into());
+                context.vm_mut().set_register(specifier_op.into(), promise.into());
                 return Ok(());
             }
         };
@@ -562,7 +562,7 @@ impl ImportCall {
             Err(err) => {
                 let err = err.into_opaque(context)?;
                 cap.reject().call(&JsValue::undefined(), &[err], context)?;
-                context.vm.set_register(specifier_op.into(), promise.into());
+                context.vm_mut().set_register(specifier_op.into(), promise.into());
                 return Ok(());
             }
         };
@@ -578,7 +578,7 @@ impl ImportCall {
         context.enqueue_job(job.into());
 
         // 9. Return promiseCapability.[[Promise]].
-        context.vm.set_register(specifier_op.into(), promise.into());
+        context.vm_mut().set_register(specifier_op.into(), promise.into());
 
         Ok(())
     }

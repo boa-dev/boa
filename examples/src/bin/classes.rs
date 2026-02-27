@@ -31,7 +31,7 @@ struct Person {
 // or any function that matches the required signature.
 impl Person {
     /// Says hello if `this` is a `Person`
-    fn say_hello(this: &JsValue, _: &[JsValue], _: &mut Context) -> JsResult<JsValue> {
+    fn say_hello(this: &JsValue, _: &[JsValue], _: &Context) -> JsResult<JsValue> {
         // We check if this is an object.
         if let Some(object) = this.as_object() {
             // If it is we downcast the type to type `Person`.
@@ -64,11 +64,7 @@ impl Class for Person {
     const LENGTH: usize = 2;
 
     // This is what is internally called when we construct a `Person` with the expression `new Person()`.
-    fn data_constructor(
-        _this: &JsValue,
-        args: &[JsValue],
-        context: &mut Context,
-    ) -> JsResult<Self> {
+    fn data_constructor(_this: &JsValue, args: &[JsValue], context: &Context) -> JsResult<Self> {
         // We get the first argument. If it is unavailable we default to `undefined`,
         // and then we call `to_string()`.
         //
@@ -135,7 +131,7 @@ impl Class for Person {
 }
 
 /// Adds the custom runtime to the context.
-fn add_runtime(context: &mut Context) {
+fn add_runtime(context: &Context) {
     // We first add the `console` object, to be able to call `console.log()`.
     let console = Console::init(context);
     context
@@ -150,10 +146,10 @@ fn add_runtime(context: &mut Context) {
 
 fn main() {
     // First we need to create a Javascript context.
-    let mut context = Context::default();
+    let context = Context::default();
 
     // Then, we add our custom runtime.
-    add_runtime(&mut context);
+    add_runtime(&context);
 
     // Having done all of that, we can execute Javascript code with `eval`,
     // and access the `Person` class defined in Rust!

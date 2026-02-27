@@ -47,7 +47,7 @@ fn basic_op() {
 
 #[test]
 fn position() {
-    let context = &mut Context::default();
+    let context = &Context::default();
     context
         .register_global_callable(
             js_string!("check_stack"),
@@ -455,7 +455,7 @@ fn super_construction_with_parameter_expression() {
 
 #[test]
 fn cross_context_function_call() {
-    let context1 = &mut Context::default();
+    let context1 = &Context::default();
     let result = context1.eval(Source::from_bytes(indoc! {r"
         var global = 100;
 
@@ -468,7 +468,7 @@ fn cross_context_function_call() {
     let result = result.unwrap();
     assert!(result.is_callable());
 
-    let context2 = &mut Context::default();
+    let context2 = &Context::default();
 
     context2
         .register_global_property(js_string!("func"), result, Attribute::all())

@@ -121,11 +121,7 @@ impl BuiltInConstructor for Collator {
     ///
     /// [spec]: https://tc39.es/ecma402/#sec-intl.collator
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Intl/Collator
-    fn constructor(
-        new_target: &JsValue,
-        args: &[JsValue],
-        context: &mut Context,
-    ) -> JsResult<JsValue> {
+    fn constructor(new_target: &JsValue, args: &[JsValue], context: &Context) -> JsResult<JsValue> {
         // 1. If NewTarget is undefined, let newTarget be the active function object, else let newTarget be NewTarget.
         let new_target = &if new_target.is_undefined() {
             context
@@ -307,11 +303,7 @@ impl Collator {
     ///
     /// [spec]: https://tc39.es/ecma402/#sec-intl.collator.supportedlocalesof
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Intl/Collator/supportedLocalesOf
-    fn supported_locales_of(
-        _: &JsValue,
-        args: &[JsValue],
-        context: &mut Context,
-    ) -> JsResult<JsValue> {
+    fn supported_locales_of(_: &JsValue, args: &[JsValue], context: &Context) -> JsResult<JsValue> {
         let locales = args.get_or_undefined(0);
         let options = args.get_or_undefined(1);
 
@@ -332,7 +324,7 @@ impl Collator {
     ///
     /// [spec]: https://tc39.es/ecma402/#sec-intl.collator.prototype.compare
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Intl/Collator/compare
-    fn compare(this: &JsValue, _: &[JsValue], context: &mut Context) -> JsResult<JsValue> {
+    fn compare(this: &JsValue, _: &[JsValue], context: &Context) -> JsResult<JsValue> {
         // 1. Let collator be the this value.
         // 2. Perform ? RequireInternalSlot(collator, [[InitializedCollator]]).
         let this = this.as_object().ok_or_else(|| {
@@ -410,7 +402,7 @@ impl Collator {
     ///
     /// [spec]: https://tc39.es/ecma402/#sec-intl.collator.prototype.resolvedoptions
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Intl/Collator/resolvedOptions
-    fn resolved_options(this: &JsValue, _: &[JsValue], context: &mut Context) -> JsResult<JsValue> {
+    fn resolved_options(this: &JsValue, _: &[JsValue], context: &Context) -> JsResult<JsValue> {
         // 1. Let collator be the this value.
         // 2. Perform ? RequireInternalSlot(collator, [[InitializedCollator]]).
         let object = this.as_object();

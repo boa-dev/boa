@@ -9,7 +9,7 @@ pub(crate) struct Reserved;
 
 impl Reserved {
     #[inline(always)]
-    pub(crate) fn operation((): (), _: &mut Context) {
+    pub(crate) fn operation((): (), _: &Context) {
         unreachable!("Reserved opcodes are unreachable!")
     }
 }

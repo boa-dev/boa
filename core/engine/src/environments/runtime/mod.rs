@@ -1,6 +1,6 @@
 use crate::{
     Context, JsResult, JsString, JsSymbol, JsValue,
-    object::{JsObject, PrivateName},
+    object::{JsObject, PrivateName, internal_methods::InternalMethodPropertyContext},
 };
 use boa_ast::scope::{BindingLocator, BindingLocatorScope, Scope};
 use boa_gc::{Finalize, Gc, Trace};
@@ -370,8 +370,8 @@ impl Context {
     /// Only use if the binding origin is unknown or comes from a `var` declaration. Lexical bindings
     /// are completely removed of runtime checks because the specification guarantees that runtime
     /// semantics cannot add or remove lexical bindings.
-    pub(crate) fn find_runtime_binding(&mut self, locator: &mut BindingLocator) -> JsResult<()> {
-        if let Some(env) = self.vm.frame.environments.current_declarative_ref()
+    pub(crate) fn find_runtime_binding(&self, locator: &mut BindingLocator) -> JsResult<()> {
+        if let Some(env) = self.vm_mut().frame.environments.current_declarative_ref()
             && !env.with()
             && !env.poisoned()
         {
@@ -382,7 +382,7 @@ impl Context {
             BindingLocatorScope::GlobalObject | BindingLocatorScope::GlobalDeclarative => (true, 0),
             BindingLocatorScope::Stack(index) => (false, index),
         };
-        let max_index = self.vm.frame.environments.stack.len() as u32;
+        let max_index = self.vm_mut().frame.environments.stack.len() as u32;
 
         for index in (min_index..max_index).rev() {
             match self.environment_expect(index) {
@@ -428,10 +428,10 @@ impl Context {
 
     /// Finds the object environment that contains the binding and returns the `this` value of the object environment.
     pub(crate) fn this_from_object_environment_binding(
-        &mut self,
+        &self,
         locator: &BindingLocator,
     ) -> JsResult<Option<JsObject>> {
-        if let Some(env) = self.vm.frame.environments.current_declarative_ref()
+        if let Some(env) = self.vm_mut().frame.environments.current_declarative_ref()
             && !env.with()
         {
             return Ok(None);
@@ -441,7 +441,7 @@ impl Context {
             BindingLocatorScope::GlobalObject | BindingLocatorScope::GlobalDeclarative => 0,
             BindingLocatorScope::Stack(index) => index,
         };
-        let max_index = self.vm.frame.environments.stack.len() as u32;
+        let max_index = self.vm_mut().frame.environments.stack.len() as u32;
 
         for index in (min_index..max_index).rev() {
             match self.environment_expect(index) {
@@ -479,7 +479,7 @@ impl Context {
     /// # Panics
     ///
     /// Panics if the environment or binding index are out of range.
-    pub(crate) fn is_initialized_binding(&mut self, locator: &BindingLocator) -> JsResult<bool> {
+    pub(crate) fn is_initialized_binding(&self, locator: &BindingLocator) -> JsResult<bool> {
         match locator.scope() {
             BindingLocatorScope::GlobalObject => {
                 let key = locator.name().clone();
@@ -487,7 +487,7 @@ impl Context {
                 obj.has_property(key, self)
             }
             BindingLocatorScope::GlobalDeclarative => {
-                let env = self.vm.frame.environments.global();
+                let env = self.vm_mut().frame.environments.global();
                 Ok(env.get(locator.binding_index()).is_some())
             }
             BindingLocatorScope::Stack(index) => match self.environment_expect(index) {
@@ -507,7 +507,7 @@ impl Context {
     ///
     /// Panics if the environment or binding index are out of range.
     #[track_caller]
-    pub(crate) fn get_binding(&mut self, locator: &BindingLocator) -> JsResult<Option<JsValue>> {
+    pub(crate) fn get_binding(&self, locator: &BindingLocator) -> JsResult<Option<JsValue>> {
         match locator.scope() {
             BindingLocatorScope::GlobalObject => {
                 let key = locator.name().clone();
@@ -515,7 +515,7 @@ impl Context {
                 obj.try_get(key, self)
             }
             BindingLocatorScope::GlobalDeclarative => {
-                let env = self.vm.frame.environments.global();
+                let env = self.vm_mut().frame.environments.global();
                 Ok(env.get(locator.binding_index()))
             }
             BindingLocatorScope::Stack(index) => match self.environment_expect(index) {
@@ -536,7 +536,7 @@ impl Context {
     /// Panics if the environment or binding index are out of range.
     #[track_caller]
     pub(crate) fn set_binding(
-        &mut self,
+        &self,
         locator: &BindingLocator,
         value: JsValue,
         strict: bool,
@@ -548,7 +548,7 @@ impl Context {
                 obj.set(key, value, strict, self)?;
             }
             BindingLocatorScope::GlobalDeclarative => {
-                let env = self.vm.frame.environments.global();
+                let env = self.vm_mut().frame.environments.global();
                 env.set(locator.binding_index(), value);
             }
             BindingLocatorScope::Stack(index) => match self.environment_expect(index) {
@@ -572,12 +572,12 @@ impl Context {
     /// # Panics
     ///
     /// Panics if the environment or binding index are out of range.
-    pub(crate) fn delete_binding(&mut self, locator: &BindingLocator) -> JsResult<bool> {
+    pub(crate) fn delete_binding(&self, locator: &BindingLocator) -> JsResult<bool> {
         match locator.scope() {
             BindingLocatorScope::GlobalObject => {
                 let key = locator.name().clone();
                 let obj = self.global_object();
-                obj.__delete__(&key.into(), &mut self.into())
+                obj.__delete__(&key.into(), &mut InternalMethodPropertyContext::new(&*self))
             }
             BindingLocatorScope::GlobalDeclarative => Ok(false),
             BindingLocatorScope::Stack(index) => match self.environment_expect(index) {
@@ -585,7 +585,7 @@ impl Context {
                 Environment::Object(obj) => {
                     let key = locator.name().clone();
                     let obj = obj.clone();
-                    obj.__delete__(&key.into(), &mut self.into())
+                    obj.__delete__(&key.into(), &mut InternalMethodPropertyContext::new(&*self))
                 }
             },
         }
@@ -597,7 +597,7 @@ impl Context {
     ///
     /// Panics if the `index` is out of range.
     pub(crate) fn environment_expect(&self, index: u32) -> &Environment {
-        self.vm
+        self.vm_mut()
             .frame
             .environments
             .stack

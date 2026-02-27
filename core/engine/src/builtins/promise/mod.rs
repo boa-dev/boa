@@ -221,7 +221,7 @@ impl PromiseCapability {
     ///  - [ECMAScript reference][spec]
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-newpromisecapability
-    pub(crate) fn new(c: &JsObject, context: &mut Context) -> JsResult<Self> {
+    pub(crate) fn new(c: &JsObject, context: &Context) -> JsResult<Self> {
         #[derive(Debug, Clone, Trace, Finalize)]
         struct RejectResolve {
             reject: JsValue,
@@ -387,11 +387,7 @@ impl BuiltInConstructor for Promise {
     ///  - [ECMAScript reference][spec]
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-promise-executor
-    fn constructor(
-        new_target: &JsValue,
-        args: &[JsValue],
-        context: &mut Context,
-    ) -> JsResult<JsValue> {
+    fn constructor(new_target: &JsValue, args: &[JsValue], context: &Context) -> JsResult<JsValue> {
         // 1. If NewTarget is undefined, throw a TypeError exception.
         if new_target.is_undefined() {
             return Err(JsNativeError::typ()
@@ -468,11 +464,7 @@ impl Promise {
     /// completes normally and rejected if it throws.
     ///
     /// [spec]: https://tc39.es/proposal-promise-try/#sec-promise.try
-    pub(crate) fn r#try(
-        this: &JsValue,
-        args: &[JsValue],
-        context: &mut Context,
-    ) -> JsResult<JsValue> {
+    pub(crate) fn r#try(this: &JsValue, args: &[JsValue], context: &Context) -> JsResult<JsValue> {
         let callback = args.get_or_undefined(0);
         let callback_args = args.get(1..).unwrap_or(&[]);
 
@@ -524,7 +516,7 @@ impl Promise {
     pub(crate) fn with_resolvers(
         this: &JsValue,
         _args: &[JsValue],
-        context: &mut Context,
+        context: &Context,
     ) -> JsResult<JsValue> {
         // 1. Let C be the this value.
 
@@ -560,11 +552,7 @@ impl Promise {
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-promise.all
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Promise/all
-    pub(crate) fn all(
-        this: &JsValue,
-        args: &[JsValue],
-        context: &mut Context,
-    ) -> JsResult<JsValue> {
+    pub(crate) fn all(this: &JsValue, args: &[JsValue], context: &Context) -> JsResult<JsValue> {
         // 1. Let C be the this value.
         let c = this.as_object().ok_or_else(|| {
             JsNativeError::typ().with_message("Promise.all() called on a non-object")
@@ -627,7 +615,7 @@ impl Promise {
         constructor: &JsObject,
         result_capability: &PromiseCapability,
         promise_resolve: &JsObject,
-        context: &mut Context,
+        context: &Context,
     ) -> JsResult<JsObject> {
         #[derive(Debug, Trace, Finalize)]
         struct ResolveElementCaptures {
@@ -778,7 +766,7 @@ impl Promise {
     pub(crate) fn all_settled(
         this: &JsValue,
         args: &[JsValue],
-        context: &mut Context,
+        context: &Context,
     ) -> JsResult<JsValue> {
         // 1. Let C be the this value.
         let c = this.as_object().ok_or_else(|| {
@@ -842,7 +830,7 @@ impl Promise {
         constructor: &JsObject,
         result_capability: &PromiseCapability,
         promise_resolve: &JsObject,
-        context: &mut Context,
+        context: &Context,
     ) -> JsResult<JsObject> {
         #[derive(Debug, Trace, Finalize)]
         struct ResolveRejectElementCaptures {
@@ -1098,11 +1086,7 @@ impl Promise {
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-promise.any
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Promise/any
-    pub(crate) fn any(
-        this: &JsValue,
-        args: &[JsValue],
-        context: &mut Context,
-    ) -> JsResult<JsValue> {
+    pub(crate) fn any(this: &JsValue, args: &[JsValue], context: &Context) -> JsResult<JsValue> {
         // 1. Let C be the this value.
         let c = this.as_object().ok_or_else(|| {
             JsNativeError::typ().with_message("Promise.any() called on a non-object")
@@ -1165,7 +1149,7 @@ impl Promise {
         constructor: &JsObject,
         result_capability: &PromiseCapability,
         promise_resolve: &JsObject,
-        context: &mut Context,
+        context: &Context,
     ) -> JsResult<JsObject> {
         #[derive(Debug, Trace, Finalize)]
         struct RejectElementCaptures {
@@ -1328,11 +1312,7 @@ impl Promise {
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-promise.race
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Promise/race
-    pub(crate) fn race(
-        this: &JsValue,
-        args: &[JsValue],
-        context: &mut Context,
-    ) -> JsResult<JsValue> {
+    pub(crate) fn race(this: &JsValue, args: &[JsValue], context: &Context) -> JsResult<JsValue> {
         let iterable = args.get_or_undefined(0);
 
         // 1. Let C be the this value.
@@ -1400,7 +1380,7 @@ impl Promise {
         constructor: &JsObject,
         result_capability: &PromiseCapability,
         promise_resolve: &JsObject,
-        context: &mut Context,
+        context: &Context,
     ) -> JsResult<JsObject> {
         let constructor = constructor.clone().into();
 
@@ -1433,11 +1413,7 @@ impl Promise {
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-promise.reject
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Promise/reject
-    pub(crate) fn reject(
-        this: &JsValue,
-        args: &[JsValue],
-        context: &mut Context,
-    ) -> JsResult<JsValue> {
+    pub(crate) fn reject(this: &JsValue, args: &[JsValue], context: &Context) -> JsResult<JsValue> {
         let r = args.get_or_undefined(0).clone();
 
         // 1. Let C be the this value.
@@ -1452,7 +1428,7 @@ impl Promise {
     pub(crate) fn promise_reject(
         c: &JsObject,
         e: JsError,
-        context: &mut Context,
+        context: &Context,
     ) -> JsResult<JsObject> {
         let e = e.into_opaque(context)?;
 
@@ -1480,7 +1456,7 @@ impl Promise {
     pub(crate) fn resolve(
         this: &JsValue,
         args: &[JsValue],
-        context: &mut Context,
+        context: &Context,
     ) -> JsResult<JsValue> {
         let x = args.get_or_undefined(0);
 
@@ -1507,7 +1483,7 @@ impl Promise {
     pub(crate) fn promise_resolve(
         c: &JsObject,
         x: JsValue,
-        context: &mut Context,
+        context: &Context,
     ) -> JsResult<JsObject> {
         // 1. If IsPromise(x) is true, then
         if let Some(x) = x.as_promise_object() {
@@ -1547,7 +1523,7 @@ impl Promise {
     /// [spec]: https://tc39.es/ecma262/#sec-get-promise-@@species
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Promise/@@species
     #[allow(clippy::unnecessary_wraps)]
-    fn get_species(this: &JsValue, _: &[JsValue], _: &mut Context) -> JsResult<JsValue> {
+    fn get_species(this: &JsValue, _: &[JsValue], _: &Context) -> JsResult<JsValue> {
         // 1. Return the this value.
         Ok(this.clone())
     }
@@ -1560,11 +1536,7 @@ impl Promise {
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-promise.prototype.catch
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Promise/catch
-    pub(crate) fn catch(
-        this: &JsValue,
-        args: &[JsValue],
-        context: &mut Context,
-    ) -> JsResult<JsValue> {
+    pub(crate) fn catch(this: &JsValue, args: &[JsValue], context: &Context) -> JsResult<JsValue> {
         let on_rejected = args.get_or_undefined(0);
 
         // 1. Let promise be the this value.
@@ -1588,7 +1560,7 @@ impl Promise {
     pub(crate) fn finally(
         this: &JsValue,
         args: &[JsValue],
-        context: &mut Context,
+        context: &Context,
     ) -> JsResult<JsValue> {
         // 1. Let promise be the this value.
         let promise = this;
@@ -1628,7 +1600,7 @@ impl Promise {
     pub(crate) fn then_catch_finally_closures(
         c: JsObject,
         on_finally: JsFunction,
-        context: &mut Context,
+        context: &Context,
     ) -> (JsFunction, JsFunction) {
         /// Capture object for the `thenFinallyClosure` abstract closure.
         #[derive(Debug, Trace, Finalize)]
@@ -1747,11 +1719,7 @@ impl Promise {
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-promise.prototype.then
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Promise/then
-    pub(crate) fn then(
-        this: &JsValue,
-        args: &[JsValue],
-        context: &mut Context,
-    ) -> JsResult<JsValue> {
+    pub(crate) fn then(this: &JsValue, args: &[JsValue], context: &Context) -> JsResult<JsValue> {
         // 1. Let promise be the this value.
         let promise = this;
 
@@ -1779,7 +1747,7 @@ impl Promise {
         promise: &JsObject<Promise>,
         on_fulfilled: Option<JsFunction>,
         on_rejected: Option<JsFunction>,
-        context: &mut Context,
+        context: &Context,
     ) -> JsResult<JsObject> {
         // 3. Let C be ? SpeciesConstructor(promise, %Promise%).
         let c = promise
@@ -1814,7 +1782,7 @@ impl Promise {
         on_fulfilled: Option<JsFunction>,
         on_rejected: Option<JsFunction>,
         result_capability: Option<PromiseCapability>,
-        context: &mut Context,
+        context: &Context,
     ) {
         // 1. Assert: IsPromise(promise) is true.
 
@@ -1927,7 +1895,7 @@ impl Promise {
     /// [spec]: https://tc39.es/ecma262/#sec-getpromiseresolve
     pub(crate) fn get_promise_resolve(
         promise_constructor: &JsObject,
-        context: &mut Context,
+        context: &Context,
     ) -> JsResult<JsObject> {
         // 1. Let promiseResolve be ? Get(promiseConstructor, "resolve").
         let promise_resolve = promise_constructor.get(js_string!("resolve"), context)?;
@@ -1948,7 +1916,7 @@ impl Promise {
     /// [spec]: https://tc39.es/ecma262/#sec-createresolvingfunctions
     pub(crate) fn create_resolving_functions(
         promise: &JsObject<Promise>,
-        context: &mut Context,
+        context: &Context,
     ) -> ResolvingFunctions {
         /// `TriggerPromiseReactions ( reactions, argument )`
         ///
@@ -1966,7 +1934,7 @@ impl Promise {
         fn trigger_promise_reactions(
             reactions: Vec<ReactionRecord>,
             argument: &JsValue,
-            context: &mut Context,
+            context: &Context,
         ) {
             // 1. For each element reaction of reactions, do
             for reaction in reactions {
@@ -1992,7 +1960,7 @@ impl Promise {
         /// # Panics
         ///
         /// Panics if `Promise` is not pending.
-        fn fulfill_promise(promise: &JsObject<Promise>, value: JsValue, context: &mut Context) {
+        fn fulfill_promise(promise: &JsObject<Promise>, value: JsValue, context: &Context) {
             let mut promise = promise.borrow_mut();
             let promise = promise.data_mut();
 
@@ -2034,7 +2002,7 @@ impl Promise {
         /// # Panics
         ///
         /// Panics if `Promise` is not pending.
-        fn reject_promise(promise: &JsObject<Promise>, reason: JsValue, context: &mut Context) {
+        fn reject_promise(promise: &JsObject<Promise>, reason: JsValue, context: &Context) {
             let handled = {
                 let mut promise = promise.borrow_mut();
                 let promise = promise.data_mut();
@@ -2223,7 +2191,7 @@ impl Promise {
 fn new_promise_reaction_job(
     mut reaction: ReactionRecord,
     argument: JsValue,
-    context: &mut Context,
+    context: &Context,
 ) -> PromiseJob {
     // Inverting order since `job` captures `reaction` by value.
 
@@ -2241,7 +2209,7 @@ fn new_promise_reaction_job(
         .unwrap_or_else(|| context.realm().clone());
 
     // 1. Let job be a new Job Abstract Closure with no parameters that captures reaction and argument and performs the following steps when called:
-    let job = move |context: &mut Context| {
+    let job = move |context: &Context| {
         //   a. Let promiseCapability be reaction.[[Capability]].
         let promise_capability = reaction.promise_capability.take();
         //   b. Let type be reaction.[[Type]].
@@ -2321,7 +2289,7 @@ fn new_promise_resolve_thenable_job(
     promise_to_resolve: JsObject<Promise>,
     thenable: JsValue,
     then: JobCallback,
-    context: &mut Context,
+    context: &Context,
 ) -> PromiseJob {
     // Inverting order since `job` captures variables by value.
 
@@ -2335,7 +2303,7 @@ fn new_promise_resolve_thenable_job(
         .unwrap_or_else(|_| context.realm().clone());
 
     // 1. Let job be a new Job Abstract Closure with no parameters that captures promiseToResolve, thenable, and then and performs the following steps when called:
-    let job = move |context: &mut Context| {
+    let job = move |context: &Context| {
         //    a. Let resolvingFunctions be CreateResolvingFunctions(promiseToResolve).
         let resolving_functions = Promise::create_resolving_functions(&promise_to_resolve, context);
 

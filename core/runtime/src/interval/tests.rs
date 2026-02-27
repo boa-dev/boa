@@ -8,8 +8,8 @@ use std::cell::RefCell;
 use std::rc::Rc;
 
 fn create_context(clock: Rc<impl Clock + 'static>) -> Context {
-    let mut context = ContextBuilder::default().clock(clock).build().unwrap();
-    interval::register(&mut context).unwrap();
+    let context = ContextBuilder::default().clock(clock).build().unwrap();
+    interval::register(&context).unwrap();
     context
 }
 

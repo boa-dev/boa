@@ -1,7 +1,5 @@
 //! The ECMAScript context.
 
-use std::{cell::Cell, path::Path, rc::Rc};
-
 use boa_ast::StatementList;
 use boa_interner::Interner;
 use boa_parser::source::ReadChar;
@@ -9,6 +7,8 @@ pub use hooks::{DefaultHooks, HostHooks};
 #[cfg(feature = "intl")]
 pub use icu::IcuError;
 use intrinsics::Intrinsics;
+use std::{cell::Cell, cell::RefCell, path::Path, rc::Rc};
+use std::cell::UnsafeCell;
 #[cfg(any(feature = "temporal", feature = "intl"))]
 use temporal_rs::provider::TimeZoneProvider;
 #[cfg(any(feature = "temporal", feature = "intl"))]
@@ -79,7 +79,7 @@ thread_local! {
 /// context.eval(Source::from_bytes(script)).unwrap();
 ///
 /// // Create an object that can be used in eval calls.
-/// let arg = ObjectInitializer::new(&mut context)
+/// let arg = ObjectInitializer::new(&context)
 ///     .property(js_string!("x"), 12, Attribute::READONLY)
 ///     .build();
 /// context
@@ -92,18 +92,18 @@ thread_local! {
 /// ```
 pub struct Context {
     /// String interner in the context.
-    interner: Interner,
+    interner: UnsafeCell<Interner>,
 
     /// Execute in strict mode,
-    strict: bool,
+    strict: Cell<bool>,
 
     /// Number of instructions remaining before a forced exit
     #[cfg(feature = "fuzz")]
     pub(crate) instructions_remaining: usize,
 
-    pub(crate) vm: Vm,
+    vm: UnsafeCell<Vm>,
 
-    pub(crate) kept_alive: Vec<JsObject>,
+    pub(crate) kept_alive: RefCell<Vec<JsObject>>,
 
     can_block: bool,
 
@@ -122,13 +122,13 @@ pub struct Context {
 
     module_loader: Rc<dyn DynModuleLoader>,
 
-    optimizer_options: OptimizerOptions,
+    optimizer_options: Cell<OptimizerOptions>,
     root_shape: RootShape,
 
     /// Unique identifier for each parser instance used during the context lifetime.
-    parser_identifier: u32,
+    parser_identifier: Cell<u32>,
 
-    data: HostDefined,
+    data: UnsafeCell<HostDefined>,
 }
 
 impl std::fmt::Debug for Context {
@@ -136,9 +136,9 @@ impl std::fmt::Debug for Context {
         let mut debug = f.debug_struct("Context");
 
         debug
-            .field("realm", &self.vm.frame.realm)
+            .field("realm", &self.vm().frame.realm)
             .field("interner", &self.interner)
-            .field("vm", &self.vm)
+            .field("vm", self.vm())
             .field("strict", &self.strict)
             .field("job_executor", &"JobExecutor")
             .field("hooks", &"HostHooks")
@@ -173,6 +173,36 @@ impl Default for Context {
     }
 }
 
+// ==== Vm accessors ====
+impl Context {
+    /// Returns a shared reference to the VM.
+    ///
+    /// # Safety
+    ///
+    /// This uses `UnsafeCell` internally. It is sound because `Context` is `!Sync`
+    /// and `!Send` (contains `Rc`), so it can only be accessed from a single thread.
+    /// Callers must ensure no mutable reference from `vm_mut()` is active.
+    #[inline]
+    pub(crate) fn vm(&self) -> &Vm {
+        // SAFETY: Context is !Sync/!Send, single-threaded access only.
+        unsafe { &*self.vm.get() }
+    }
+
+    /// Returns a mutable reference to the VM.
+    ///
+    /// # Safety
+    ///
+    /// This uses `UnsafeCell` internally. It is sound because `Context` is `!Sync`
+    /// and `!Send` (contains `Rc`), so it can only be accessed from a single thread.
+    /// Callers must ensure no other reference from `vm()` or `vm_mut()` is active.
+    #[inline]
+    #[allow(clippy::mut_from_ref)]
+    pub(crate) fn vm_mut(&self) -> &mut Vm {
+        // SAFETY: Context is !Sync/!Send, single-threaded access only.
+        unsafe { &mut *self.vm.get() }
+    }
+}
+
 // ==== Public API ====
 impl Context {
     /// Create a new [`ContextBuilder`] to specify the [`Interner`] and/or
@@ -200,13 +230,13 @@ impl Context {
     /// Note that this won't run any scheduled promise jobs; you need to call [`Context::run_jobs`]
     /// on the context or [`JobExecutor::run_jobs`] on the provided queue to run them.
     #[allow(clippy::unit_arg, dropping_copy_types)]
-    pub fn eval<R: ReadChar>(&mut self, src: Source<'_, R>) -> JsResult<JsValue> {
+    pub fn eval<R: ReadChar>(&self, src: Source<'_, R>) -> JsResult<JsValue> {
         Script::parse(src, None, self)?.evaluate(self)
     }
 
     /// Applies optimizations to the [`StatementList`] inplace.
     pub fn optimize_statement_list(
-        &mut self,
+        &self,
         statement_list: &mut StatementList,
     ) -> OptimizerStatistics {
         let mut optimizer = Optimizer::new(self);
@@ -235,7 +265,7 @@ impl Context {
     ///     )
     ///     .expect("property shouldn't exist");
     ///
-    /// let object = ObjectInitializer::new(&mut context)
+    /// let object = ObjectInitializer::new(&context)
     ///     .property(js_string!("x"), 0, Attribute::all())
     ///     .property(js_string!("y"), 1, Attribute::all())
     ///     .build();
@@ -248,7 +278,7 @@ impl Context {
     ///     .expect("property shouldn't exist");
     /// ```
     pub fn register_global_property<K, V>(
-        &mut self,
+        &self,
         key: K,
         value: V,
         attribute: Attribute,
@@ -282,7 +312,7 @@ impl Context {
     /// If you wish to only create the function object without binding it to the global object, you
     /// can use the [`FunctionObjectBuilder`] API.
     pub fn register_global_callable(
-        &mut self,
+        &self,
         name: JsString,
         length: usize,
         body: NativeFunction,
@@ -315,7 +345,7 @@ impl Context {
     /// The difference to [`Context::register_global_callable`] is, that the function will not be
     /// `constructable`. Usage of the function as a constructor will produce a `TypeError`.
     pub fn register_global_builtin_callable(
-        &mut self,
+        &self,
         name: JsString,
         length: usize,
         body: NativeFunction,
@@ -353,7 +383,7 @@ impl Context {
     ///
     /// context.register_global_class::<MyClass>()?;
     /// ```
-    pub fn register_global_class<C: Class>(&mut self) -> JsResult<()> {
+    pub fn register_global_class<C: Class>(&self) -> JsResult<()> {
         if self.realm().has_class::<C>() {
             return Err(JsNativeError::typ()
                 .with_message("cannot register a class twice")
@@ -422,28 +452,30 @@ impl Context {
     /// Gets the string interner.
     #[inline]
     #[must_use]
-    pub const fn interner(&self) -> &Interner {
-        &self.interner
+    pub fn interner(&self) -> &Interner {
+        // SAFETY: This is safe because `Context` is `!Sync` and `!Send`.
+        unsafe { &*self.interner.get() }
     }
 
     /// Gets a mutable reference to the string interner.
     #[inline]
-    pub fn interner_mut(&mut self) -> &mut Interner {
-        &mut self.interner
+    pub fn interner_mut(&self) -> &mut Interner {
+        // SAFETY: This is safe because `Context` is `!Sync` and `!Send`.
+        unsafe { &mut *self.interner.get() }
     }
 
     /// Returns the global object.
     #[inline]
     #[must_use]
     pub fn global_object(&self) -> JsObject {
-        self.vm.frame.realm.global_object().clone()
+        self.vm().frame.realm.global_object().clone()
     }
 
     /// Returns the currently active intrinsic constructors and objects.
     #[inline]
     #[must_use]
     pub fn intrinsics(&self) -> &Intrinsics {
-        self.vm.frame.realm.intrinsics()
+        self.vm().frame.realm.intrinsics()
     }
 
     /// Returns the amount of remaining instructions to be executed
@@ -457,44 +489,44 @@ impl Context {
     /// Returns the currently active realm.
     #[inline]
     #[must_use]
-    pub const fn realm(&self) -> &Realm {
-        &self.vm.frame.realm
+    pub fn realm(&self) -> &Realm {
+        &self.vm().frame.realm
     }
 
     /// Set the value of trace on the context
     #[cfg(feature = "trace")]
     #[inline]
-    pub fn set_trace(&mut self, trace: bool) {
-        self.vm.trace = trace;
+    pub fn set_trace(&self, trace: bool) {
+        self.vm_mut().trace = trace;
     }
 
     /// Get optimizer options.
     #[inline]
     #[must_use]
-    pub const fn optimizer_options(&self) -> OptimizerOptions {
-        self.optimizer_options
+    pub fn optimizer_options(&self) -> OptimizerOptions {
+        self.optimizer_options.get()
     }
     /// Enable or disable optimizations
     #[inline]
-    pub fn set_optimizer_options(&mut self, optimizer_options: OptimizerOptions) {
-        self.optimizer_options = optimizer_options;
+    pub fn set_optimizer_options(&self, optimizer_options: OptimizerOptions) {
+        self.optimizer_options.set(optimizer_options);
     }
 
     /// Changes the strictness mode of the context.
     #[inline]
-    pub fn strict(&mut self, strict: bool) {
-        self.strict = strict;
+    pub fn strict(&self, strict: bool) {
+        self.strict.set(strict);
     }
 
     /// Enqueues a [`Job`] on the [`JobExecutor`].
     #[inline]
-    pub fn enqueue_job(&mut self, job: Job) {
+    pub fn enqueue_job(&self, job: Job) {
         self.job_executor().enqueue_job(job, self);
     }
 
     /// Runs all the jobs with the provided job executor.
     #[inline]
-    pub fn run_jobs(&mut self) -> JsResult<()> {
+    pub fn run_jobs(&self) -> JsResult<()> {
         self.job_executor().run_jobs(self)
     }
 
@@ -507,8 +539,8 @@ impl Context {
     /// [add]: https://tc39.es/ecma262/multipage/executable-code-and-execution-contexts.html#sec-addtokeptobjects
     /// [weak]: https://tc39.es/ecma262/multipage/managing-memory.html#sec-weak-ref-objects
     #[inline]
-    pub fn clear_kept_objects(&mut self) {
-        self.kept_alive.clear();
+    pub fn clear_kept_objects(&self) {
+        self.kept_alive.borrow_mut().clear();
     }
 
     /// Retrieves the current stack trace of the context.
@@ -517,11 +549,11 @@ impl Context {
     #[inline]
     pub fn stack_trace(&self) -> impl Iterator<Item = &CallFrame> {
         // Create a list containing the previous frames plus the current frame.
-        let frames: Vec<_> = self
-            .vm
+        let vm = self.vm();
+        let frames: Vec<_> = vm
             .frames
             .iter()
-            .chain(std::iter::once(&self.vm.frame))
+            .chain(std::iter::once(&vm.frame))
             .collect();
 
         // The first frame is always a dummy frame (see `Vm` implementation for more details),
@@ -531,16 +563,16 @@ impl Context {
 
     /// Replaces the currently active realm with `realm`, and returns the old realm.
     #[inline]
-    pub fn enter_realm(&mut self, realm: Realm) -> Realm {
-        self.vm
-            .frame
+    pub fn enter_realm(&self, realm: Realm) -> Realm {
+        let vm = self.vm_mut();
+        vm.frame
             .environments
             .replace_global(realm.environment().clone());
-        std::mem::replace(&mut self.vm.frame.realm, realm)
+        std::mem::replace(&mut vm.frame.realm, realm)
     }
 
     /// Create a new Realm with the default global bindings.
-    pub fn create_realm(&mut self) -> JsResult<Realm> {
+    pub fn create_realm(&self) -> JsResult<Realm> {
         let realm = Realm::create(self.host_hooks.as_ref(), &self.root_shape)?;
 
         let old_realm = self.enter_realm(realm);
@@ -589,20 +621,20 @@ impl Context {
     /// Get the [`RuntimeLimits`].
     #[inline]
     #[must_use]
-    pub const fn runtime_limits(&self) -> RuntimeLimits {
-        self.vm.runtime_limits
+    pub fn runtime_limits(&self) -> RuntimeLimits {
+        self.vm().runtime_limits
     }
 
     /// Set the [`RuntimeLimits`].
     #[inline]
-    pub fn set_runtime_limits(&mut self, runtime_limits: RuntimeLimits) {
-        self.vm.runtime_limits = runtime_limits;
+    pub fn set_runtime_limits(&self, runtime_limits: RuntimeLimits) {
+        self.vm_mut().runtime_limits = runtime_limits;
     }
 
     /// Get a mutable reference to the [`RuntimeLimits`].
     #[inline]
-    pub fn runtime_limits_mut(&mut self) -> &mut RuntimeLimits {
-        &mut self.vm.runtime_limits
+    pub fn runtime_limits_mut(&self) -> &mut RuntimeLimits {
+        &mut self.vm_mut().runtime_limits
     }
 
     /// Returns `true` if this context can be suspended by an `Atomics.wait` call.
@@ -614,28 +646,32 @@ impl Context {
 
     /// Insert a type into the context-specific [`HostDefined`] field.
     #[inline]
-    pub fn insert_data<T: NativeObject>(&mut self, value: T) -> Option<Box<T>> {
-        self.data.insert(value)
+    pub fn insert_data<T: NativeObject>(&self, value: T) -> Option<Box<T>> {
+        // SAFETY: This is safe because `Context` is `!Sync` and `!Send`.
+        unsafe { &mut *self.data.get() }.insert(value)
     }
 
     /// Check if the context-specific [`HostDefined`] has type T.
     #[inline]
     #[must_use]
     pub fn has_data<T: NativeObject>(&self) -> bool {
-        self.data.has::<T>()
+        // SAFETY: This is safe because `Context` is `!Sync` and `!Send`.
+        unsafe { &*self.data.get() }.has::<T>()
     }
 
     /// Remove type T from the context-specific [`HostDefined`], if it exists.
     #[inline]
-    pub fn remove_data<T: NativeObject>(&mut self) -> Option<Box<T>> {
-        self.data.remove::<T>()
+    pub fn remove_data<T: NativeObject>(&self) -> Option<Box<T>> {
+        // SAFETY: This is safe because `Context` is `!Sync` and `!Send`.
+        unsafe { &mut *self.data.get() }.remove::<T>()
     }
 
     /// Get type T from the context-specific [`HostDefined`], if it exists.
     #[inline]
     #[must_use]
     pub fn get_data<T: NativeObject>(&self) -> Option<&T> {
-        self.data.get::<T>()
+        // SAFETY: This is safe because `Context` is `!Sync` and `!Send`.
+        unsafe { &*self.data.get() }.get::<T>()
     }
 }
 
@@ -653,14 +689,14 @@ impl Context {
     }
 
     /// Swaps the currently active realm with `realm`.
-    pub(crate) fn swap_realm(&mut self, realm: &mut Realm) {
-        std::mem::swap(&mut self.vm.frame.realm, realm);
+    pub(crate) fn swap_realm(&self, realm: &mut Realm) {
+        std::mem::swap(&mut self.vm_mut().frame.realm, realm);
     }
 
     /// Increment and get the parser identifier.
-    pub(crate) fn next_parser_identifier(&mut self) -> u32 {
-        self.parser_identifier += 1;
-        self.parser_identifier
+    pub(crate) fn next_parser_identifier(&self) -> u32 {
+        self.parser_identifier.update(|x| x + 1);
+        self.parser_identifier.get()
     }
 
     /// `CanDeclareGlobalFunction ( N )`
@@ -669,7 +705,7 @@ impl Context {
     ///  - [ECMAScript reference][spec]
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-candeclareglobalfunction
-    pub(crate) fn can_declare_global_function(&mut self, name: &JsString) -> JsResult<bool> {
+    pub(crate) fn can_declare_global_function(&self, name: &JsString) -> JsResult<bool> {
         // 1. Let ObjRec be envRec.[[ObjectRecord]].
         // 2. Let globalObject be ObjRec.[[BindingObject]].
         let global_object = self.realm().global_object().clone();
@@ -706,7 +742,7 @@ impl Context {
     ///  - [ECMAScript reference][spec]
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-candeclareglobalvar
-    pub(crate) fn can_declare_global_var(&mut self, name: &JsString) -> JsResult<bool> {
+    pub(crate) fn can_declare_global_var(&self, name: &JsString) -> JsResult<bool> {
         // 1. Let ObjRec be envRec.[[ObjectRecord]].
         // 2. Let globalObject be ObjRec.[[BindingObject]].
         let global_object = self.realm().global_object().clone();
@@ -730,7 +766,7 @@ impl Context {
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-createglobalvarbinding
     pub(crate) fn create_global_var_binding(
-        &mut self,
+        &self,
         name: JsString,
         configurable: bool,
     ) -> JsResult<()> {
@@ -773,7 +809,7 @@ impl Context {
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-createglobalfunctionbinding
     pub(crate) fn create_global_function_binding(
-        &mut self,
+        &self,
         name: JsString,
         function: JsObject,
         configurable: bool,
@@ -824,7 +860,7 @@ impl Context {
     ///  - [ECMAScript reference][spec]
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-hasrestrictedglobalproperty
-    pub(crate) fn has_restricted_global_property(&mut self, name: &JsString) -> JsResult<bool> {
+    pub(crate) fn has_restricted_global_property(&self, name: &JsString) -> JsResult<bool> {
         // 1. Let ObjRec be envRec.[[ObjectRecord]].
         // 2. Let globalObject be ObjRec.[[BindingObject]].
         let global_object = self.realm().global_object().clone();
@@ -848,8 +884,8 @@ impl Context {
     }
 
     /// Returns `true` if this context is in strict mode.
-    pub(crate) const fn is_strict(&self) -> bool {
-        self.strict
+    pub(crate) fn is_strict(&self) -> bool {
+        self.strict.get()
     }
 
     /// `9.4.1 GetActiveScriptOrModule ( )`
@@ -862,12 +898,12 @@ impl Context {
         // 1. If the execution context stack is empty, return null.
         // 2. Let ec be the topmost execution context on the execution context stack whose ScriptOrModule component is not null.
         // 3. If no such execution context exists, return null. Otherwise, return ec's ScriptOrModule.
-        if let Some(active_runnable) = &self.vm.frame.active_runnable {
+        let vm = self.vm();
+        if let Some(active_runnable) = &vm.frame.active_runnable {
             return Some(active_runnable.clone());
         }
 
-        self.vm
-            .frames
+        vm.frames
             .iter()
             .rev()
             .find_map(|frame| frame.active_runnable.clone())
@@ -880,19 +916,20 @@ impl Context {
     ///
     /// [spec]: https://tc39.es/ecma262/#active-function-object
     pub(crate) fn active_function_object(&self) -> Option<JsObject> {
-        if self.vm.native_active_function.is_some() {
-            return self.vm.native_active_function.clone();
+        let vm = self.vm();
+        if vm.native_active_function.is_some() {
+            return vm.native_active_function.clone();
         }
 
-        self.vm.stack.get_function(self.vm.frame())
+        vm.stack.get_function(vm.frame())
     }
 }
 
 impl Context {
     /// Creates a `ContextCleanupGuard` that executes some cleanup after being dropped.
-    pub(crate) fn guard<F>(&mut self, cleanup: F) -> ContextCleanupGuard<'_, F>
+    pub(crate) fn guard<F>(&self, cleanup: F) -> ContextCleanupGuard<'_, F>
     where
-        F: FnOnce(&mut Context) + 'static,
+        F: FnOnce(&Context) + 'static,
     {
         ContextCleanupGuard::new(self, cleanup)
     }
@@ -1134,10 +1171,10 @@ impl ContextBuilder {
             .job_executor
             .unwrap_or_else(|| Rc::new(SimpleJobExecutor::new()));
 
-        let mut context = Context {
-            interner: self.interner.unwrap_or_default(),
-            vm,
-            strict: false,
+        let context = Context {
+            interner: UnsafeCell::new(self.interner.unwrap_or_default()),
+            vm: UnsafeCell::new(vm),
+            strict: Cell::new(false),
             #[cfg(feature = "temporal")]
             timezone_provider: if let Some(provider) = self.timezone_provider {
                 provider
@@ -1161,19 +1198,19 @@ impl ContextBuilder {
             },
             #[cfg(feature = "fuzz")]
             instructions_remaining: self.instructions_remaining,
-            kept_alive: Vec::new(),
+            kept_alive: RefCell::new(Vec::new()),
             host_hooks,
             clock,
             job_executor,
             module_loader,
-            optimizer_options: OptimizerOptions::OPTIMIZE_ALL,
+            optimizer_options: Cell::new(OptimizerOptions::OPTIMIZE_ALL),
             root_shape,
-            parser_identifier: 0,
+            parser_identifier: Cell::new(0),
             can_block: self.can_block,
-            data: HostDefined::default(),
+            data: UnsafeCell::new(HostDefined::default()),
         };
 
-        builtins::set_default_global_bindings(&mut context)?;
+        builtins::set_default_global_bindings(&context)?;
 
         Ok(context)
     }
@@ -1183,18 +1220,18 @@ impl ContextBuilder {
 #[derive(Debug)]
 pub(crate) struct ContextCleanupGuard<'a, F>
 where
-    F: FnOnce(&mut Context) + 'static,
+    F: FnOnce(&Context) + 'static,
 {
-    context: &'a mut Context,
+    context: &'a Context,
     cleanup: Option<F>,
 }
 
 impl<'a, F> ContextCleanupGuard<'a, F>
 where
-    F: FnOnce(&mut Context) + 'static,
+    F: FnOnce(&Context) + 'static,
 {
     /// Creates a new `ContextCleanupGuard` from the current context and its cleanup operation.
-    pub(crate) fn new(context: &'a mut Context, cleanup: F) -> Self {
+    pub(crate) fn new(context: &'a Context, cleanup: F) -> Self {
         Self {
             context,
             cleanup: Some(cleanup),
@@ -1204,7 +1241,7 @@ where
 
 impl<F> std::ops::Deref for ContextCleanupGuard<'_, F>
 where
-    F: FnOnce(&mut Context) + 'static,
+    F: FnOnce(&Context) + 'static,
 {
     type Target = Context;
 
@@ -1213,18 +1250,9 @@ where
     }
 }
 
-impl<F> std::ops::DerefMut for ContextCleanupGuard<'_, F>
-where
-    F: FnOnce(&mut Context) + 'static,
-{
-    fn deref_mut(&mut self) -> &mut Self::Target {
-        self.context
-    }
-}
-
 impl<F> Drop for ContextCleanupGuard<'_, F>
 where
-    F: FnOnce(&mut Context) + 'static,
+    F: FnOnce(&Context) + 'static,
 {
     fn drop(&mut self) {
         if let Some(cleanup) = self.cleanup.take() {

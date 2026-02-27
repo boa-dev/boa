@@ -16,15 +16,16 @@ macro_rules! implement_bin_ops {
             #[inline]
             pub(crate) fn operation(
                 (dst, lhs, rhs): (VaryingOperand, VaryingOperand, VaryingOperand),
-                context: &mut Context,
+                context: &Context,
             ) -> JsResult<()> {
-                let lhs = context.vm.get_register(lhs.into());
-                let rhs = context.vm.get_register(rhs.into());
+                let vm = context.vm_mut();
+                let lhs = vm.get_register(lhs.into());
+                let rhs = vm.get_register(rhs.into());
 
                 $(
                 // Fast path: try numeric operation without cloning.
                 if let Some(value) = JsValue::$fast_fn(lhs, rhs) {
-                    context.vm.set_register(dst.into(), value.into());
+                    vm.set_register(dst.into(), value.into());
                     return Ok(());
                 }
                 )?
@@ -33,7 +34,7 @@ macro_rules! implement_bin_ops {
                 let lhs = lhs.clone();
                 let rhs = rhs.clone();
                 let value = lhs.$op(&rhs, context)?;
-                context.vm.set_register(dst.into(), value.into());
+                context.vm_mut().set_register(dst.into(), value.into());
                 Ok(())
             }
         }

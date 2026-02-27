@@ -43,24 +43,24 @@ impl Debug for SharedExternalPrinterLogger {
 
 impl Logger for SharedExternalPrinterLogger {
     #[inline]
-    fn log(&self, msg: String, state: &ConsoleState, _context: &mut Context) -> JsResult<()> {
+    fn log(&self, msg: String, state: &ConsoleState, _context: &Context) -> JsResult<()> {
         let indent = state.indent();
         self.print(format!("{msg:>indent$}\n"));
         Ok(())
     }
 
     #[inline]
-    fn info(&self, msg: String, state: &ConsoleState, context: &mut Context) -> JsResult<()> {
+    fn info(&self, msg: String, state: &ConsoleState, context: &Context) -> JsResult<()> {
         self.log(msg, state, context)
     }
 
     #[inline]
-    fn warn(&self, msg: String, state: &ConsoleState, context: &mut Context) -> JsResult<()> {
+    fn warn(&self, msg: String, state: &ConsoleState, context: &Context) -> JsResult<()> {
         self.log(msg, state, context)
     }
 
     #[inline]
-    fn error(&self, msg: String, state: &ConsoleState, _context: &mut Context) -> JsResult<()> {
+    fn error(&self, msg: String, state: &ConsoleState, _context: &Context) -> JsResult<()> {
         let indent = state.indent();
         self.print(format!("{msg:>indent$}\n"));
         Ok(())

@@ -16,12 +16,12 @@ impl DefineOwnPropertyByName {
     #[inline(always)]
     pub(crate) fn operation(
         (object, value, index): (VaryingOperand, VaryingOperand, VaryingOperand),
-        context: &mut Context,
+        context: &Context,
     ) -> JsResult<()> {
-        let object = context.vm.get_register(object.into()).clone();
-        let value = context.vm.get_register(value.into()).clone();
+        let object = context.vm_mut().get_register(object.into()).clone();
+        let value = context.vm_mut().get_register(value.into()).clone();
         let name = context
-            .vm
+            .vm_mut()
             .frame()
             .code_block()
             .constant_string(index.into());
@@ -57,11 +57,11 @@ impl DefineOwnPropertyByValue {
     #[inline(always)]
     pub(crate) fn operation(
         (value, key, object): (VaryingOperand, VaryingOperand, VaryingOperand),
-        context: &mut Context,
+        context: &Context,
     ) -> JsResult<()> {
-        let value = context.vm.get_register(value.into()).clone();
-        let key = context.vm.get_register(key.into()).clone();
-        let object = context.vm.get_register(object.into()).clone();
+        let value = context.vm_mut().get_register(value.into()).clone();
+        let key = context.vm_mut().get_register(key.into()).clone();
+        let object = context.vm_mut().get_register(object.into()).clone();
         let object = object.to_object(context)?;
         let key = key.to_property_key(context)?;
         let success = object.__define_own_property__(

@@ -15,14 +15,14 @@ pub(crate) struct GetFunction;
 
 impl GetFunction {
     #[inline(always)]
-    pub(crate) fn operation((dst, index): (VaryingOperand, VaryingOperand), context: &mut Context) {
+    pub(crate) fn operation((dst, index): (VaryingOperand, VaryingOperand), context: &Context) {
         let code = context
-            .vm
+            .vm_mut()
             .frame()
             .code_block()
             .constant_function(index.into());
         let function = create_function_object_fast(code, context);
-        context.vm.set_register(dst.into(), function.into());
+        context.vm_mut().set_register(dst.into(), function.into());
     }
 }
 

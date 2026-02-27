@@ -16,22 +16,28 @@ pub(crate) struct This;
 
 impl This {
     #[inline(always)]
-    pub(super) fn operation(dst: VaryingOperand, context: &mut Context) -> JsResult<()> {
-        if context.vm.frame().has_this_value_cached() {
-            let this = context.vm.stack.get_this(context.vm.frame());
-            context.vm.set_register(dst.into(), this);
+    pub(super) fn operation(dst: VaryingOperand, context: &Context) -> JsResult<()> {
+        if context.vm_mut().frame.has_this_value_cached() {
+            let this = {
+                let vm = context.vm_mut();
+                vm.stack.get_this(&vm.frame)
+            };
+            context.vm_mut().set_register(dst.into(), this);
             return Ok(());
         }
 
         let this = context
-            .vm
+            .vm_mut()
             .frame
             .environments
             .get_this_binding()?
             .unwrap_or(context.realm().global_this().clone().into());
-        context.vm.frame_mut().flags |= CallFrameFlags::THIS_VALUE_CACHED;
-        context.vm.stack.set_this(&context.vm.frame, this.clone());
-        context.vm.set_register(dst.into(), this);
+        {
+            let vm = context.vm_mut();
+            vm.frame_mut().flags |= CallFrameFlags::THIS_VALUE_CACHED;
+            vm.stack.set_this(&vm.frame, this.clone());
+        }
+        context.vm_mut().set_register(dst.into(), this);
         Ok(())
     }
 }
@@ -53,13 +59,13 @@ impl ThisForObjectEnvironmentName {
     #[inline(always)]
     pub(super) fn operation(
         (dst, index): (VaryingOperand, VaryingOperand),
-        context: &mut Context,
+        context: &Context,
     ) -> JsResult<()> {
-        let binding_locator = context.vm.frame().code_block.bindings[usize::from(index)].clone();
+        let binding_locator = context.vm_mut().frame().code_block.bindings[usize::from(index)].clone();
         let this = context
             .this_from_object_environment_binding(&binding_locator)?
             .map_or(JsValue::undefined(), Into::into);
-        context.vm.set_register(dst.into(), this);
+        context.vm_mut().set_register(dst.into(), this);
         Ok(())
     }
 }
@@ -79,10 +85,10 @@ pub(crate) struct Super;
 
 impl Super {
     #[inline(always)]
-    pub(super) fn operation(dst: VaryingOperand, context: &mut Context) -> JsResult<()> {
+    pub(super) fn operation(dst: VaryingOperand, context: &Context) -> JsResult<()> {
         let home_object = {
             let env = context
-                .vm
+                .vm_mut()
                 .frame
                 .environments
                 .get_this_environment()
@@ -107,7 +113,7 @@ impl Super {
             .flatten()
             .map_or_else(JsValue::null, JsValue::from);
 
-        context.vm.set_register(dst.into(), value);
+        context.vm_mut().set_register(dst.into(), value);
         Ok(())
     }
 }
@@ -127,9 +133,9 @@ pub(crate) struct SuperCallPrepare;
 
 impl SuperCallPrepare {
     #[inline(always)]
-    pub(super) fn operation(dst: VaryingOperand, context: &mut Context) {
+    pub(super) fn operation(dst: VaryingOperand, context: &Context) {
         let this_env = context
-            .vm
+            .vm_mut()
             .frame
             .environments
             .get_this_environment()
@@ -139,7 +145,7 @@ impl SuperCallPrepare {
         let super_constructor = active_function
             .__get_prototype_of__(&mut InternalMethodPropertyContext::new(context))
             .expect("function object must have prototype");
-        context.vm.set_register(
+        context.vm_mut().set_register(
             dst.into(),
             super_constructor.map_or_else(JsValue::null, JsValue::from),
         );
@@ -161,9 +167,9 @@ pub(crate) struct SuperCall;
 
 impl SuperCall {
     #[inline(always)]
-    pub(super) fn operation(argument_count: VaryingOperand, context: &mut Context) -> JsResult<()> {
+    pub(super) fn operation(argument_count: VaryingOperand, context: &Context) -> JsResult<()> {
         let super_constructor = context
-            .vm
+            .vm_mut()
             .stack
             .calling_convention_get_function(argument_count.into())
             .clone();
@@ -175,7 +181,7 @@ impl SuperCall {
         };
 
         let this_env = context
-            .vm
+            .vm_mut()
             .frame
             .environments
             .get_this_environment()
@@ -188,7 +194,7 @@ impl SuperCall {
             .expect("must have new.target")
             .clone();
 
-        context.vm.stack.push(new_target);
+        context.vm_mut().stack.push(new_target);
 
         super_constructor
             .__construct__(argument_count.into())
@@ -212,9 +218,9 @@ pub(crate) struct SuperCallSpread;
 
 impl SuperCallSpread {
     #[inline(always)]
-    pub(super) fn operation((): (), context: &mut Context) -> JsResult<()> {
+    pub(super) fn operation((): (), context: &Context) -> JsResult<()> {
         // Get the arguments that are stored as an array object on the stack.
-        let arguments_array = context.vm.stack.pop();
+        let arguments_array = context.vm_mut().stack.pop();
         let arguments_array_object = arguments_array
             .as_object()
             .expect("arguments array in call spread function must be an object");
@@ -224,7 +230,7 @@ impl SuperCallSpread {
             .to_dense_indexed_properties()
             .expect("arguments array in call spread function must be dense");
 
-        let super_constructor = context.vm.stack.pop();
+        let super_constructor = context.vm_mut().stack.pop();
 
         let Some(super_constructor) = super_constructor.as_constructor() else {
             return Err(JsNativeError::typ()
@@ -232,15 +238,15 @@ impl SuperCallSpread {
                 .into());
         };
 
-        context.vm.stack.push(super_constructor.clone());
+        context.vm_mut().stack.push(super_constructor.clone());
 
         context
-            .vm
+            .vm_mut()
             .stack
             .calling_convention_push_arguments(&arguments);
 
         let this_env = context
-            .vm
+            .vm_mut()
             .frame
             .environments
             .get_this_environment()
@@ -253,7 +259,7 @@ impl SuperCallSpread {
             .expect("must have new.target")
             .clone();
 
-        context.vm.stack.push(new_target);
+        context.vm_mut().stack.push(new_target);
 
         super_constructor
             .__construct__(arguments.len())
@@ -277,9 +283,9 @@ pub(crate) struct SuperCallDerived;
 
 impl SuperCallDerived {
     #[inline(always)]
-    pub(super) fn operation((): (), context: &mut Context) -> JsResult<()> {
+    pub(super) fn operation((): (), context: &Context) -> JsResult<()> {
         let this_env = context
-            .vm
+            .vm_mut()
             .frame
             .environments
             .get_this_environment()
@@ -302,15 +308,15 @@ impl SuperCallDerived {
                 .into());
         }
 
-        context.vm.stack.push(JsValue::undefined());
-        context.vm.stack.push(super_constructor.clone());
-        for argument in Vec::from(context.vm.stack.get_arguments(context.vm.frame())) {
-            context.vm.stack.push(argument.clone());
+        context.vm_mut().stack.push(JsValue::undefined());
+        context.vm_mut().stack.push(super_constructor.clone());
+        for argument in { let vm = context.vm_mut(); vm.stack.get_arguments(&vm.frame).to_vec() } {
+            context.vm_mut().stack.push(argument.clone());
         }
-        context.vm.stack.push(new_target);
+        context.vm_mut().stack.push(new_target);
 
         super_constructor
-            .__construct__(context.vm.frame().argument_count as usize)
+            .__construct__(context.vm_mut().frame().argument_count as usize)
             .resolve(context)?;
         Ok(())
     }
@@ -331,21 +337,20 @@ pub(crate) struct BindThisValue;
 
 impl BindThisValue {
     #[inline(always)]
-    pub(super) fn operation(value: VaryingOperand, context: &mut Context) -> JsResult<()> {
+    pub(super) fn operation(value: VaryingOperand, context: &Context) -> JsResult<()> {
         // Taken from `SuperCall : super Arguments` steps 7-12.
         //
         // <https://tc39.es/ecma262/#sec-super-keyword-runtime-semantics-evaluation>
 
         let result = context
-            .vm
+            .vm_mut()
             .get_register(value.into())
             .as_object()
-            .expect("construct result should be an object")
-            .clone();
+            .expect("construct result should be an object");
 
         // 7. Let thisER be GetThisEnvironment().
         let this_env = context
-            .vm
+            .vm_mut()
             .frame
             .environments
             .get_this_environment()
@@ -363,7 +368,7 @@ impl BindThisValue {
         result.initialize_instance_elements(&active_function, context)?;
 
         // 12. Return result.
-        context.vm.set_register(value.into(), result.into());
+        context.vm_mut().set_register(value.into(), result.into());
         Ok(())
     }
 }

@@ -216,7 +216,7 @@ impl Realm {
         key: K,
         value: V,
         attribute: Attribute,
-        context: &mut Context,
+        context: &Context,
     ) -> JsResult<()>
     where
         K: Into<PropertyKey>,

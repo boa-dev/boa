@@ -15,7 +15,7 @@ impl Fetcher for ErrorFetcher {
     async fn fetch(
         self: Rc<Self>,
         _request: JsRequest,
-        _context: &RefCell<&mut Context>,
+        _context: &RefCell<&Context>,
     ) -> JsResult<JsResponse> {
         Err(js_error!(ReferenceError: "ErrorFetcher used in fetch API."))
     }
@@ -34,7 +34,7 @@ impl Fetcher for BlockingReqwestFetcher {
     async fn fetch(
         self: Rc<Self>,
         request: JsRequest,
-        _context: &RefCell<&mut Context>,
+        _context: &RefCell<&Context>,
     ) -> JsResult<JsResponse> {
         use boa_engine::{JsError, JsString};
 

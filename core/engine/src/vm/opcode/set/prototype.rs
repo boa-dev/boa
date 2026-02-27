@@ -13,15 +13,13 @@ pub(crate) struct SetPrototype;
 
 impl SetPrototype {
     #[inline(always)]
-    pub(crate) fn operation(
-        (object, value): (VaryingOperand, VaryingOperand),
-        context: &mut Context,
-    ) {
-        let object = context.vm.get_register(object.into()).clone();
-        let value = context.vm.get_register(value.into());
+    pub(crate) fn operation((object, value): (VaryingOperand, VaryingOperand), context: &Context) {
+        let vm = context.vm_mut();
+        let object = vm.get_register(object.into()).clone();
+        let value = vm.get_register(value.into()).clone();
 
         let prototype = if let Some(prototype) = value.as_object() {
-            Some(prototype.clone())
+            Some(prototype)
         } else if value.is_null() {
             None
         } else {

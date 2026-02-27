@@ -1605,7 +1605,7 @@ mod js_value_macro {
         }
 
         impl TryIntoJs for Test {
-            fn try_into_js(&self, context: &mut Context) -> JsResult<JsValue> {
+            fn try_into_js(&self, context: &Context) -> JsResult<JsValue> {
                 Ok(js_value!({
                     "fOne": self.field_1.clone(),
                     "field2": self.field_2
@@ -1617,7 +1617,7 @@ mod js_value_macro {
             field_1: js_string!("Hello"),
             field_2: 42,
         };
-        let context = &mut Context::default();
+        let context = &Context::default();
         let o = t
             .try_into_js(context)
             .expect("Failed to convert value to js.");

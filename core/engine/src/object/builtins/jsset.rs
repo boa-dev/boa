@@ -26,7 +26,7 @@ impl JsSet {
     /// Doesn't matches JavaScript `new Set()` as it doesn't takes an iterator
     /// similar to Rust initialization.
     #[inline]
-    pub fn new(context: &mut Context) -> Self {
+    pub fn new(context: &Context) -> Self {
         Self {
             inner: JsObject::from_proto_and_data_with_shared_shape(
                 context.root_shape(),
@@ -49,7 +49,7 @@ impl JsSet {
     /// Returns the Set object with added value.
     ///
     /// Same as JavaScript's `set.add(value)`.
-    pub fn add<T>(&self, value: T, context: &mut Context) -> JsResult<JsValue>
+    pub fn add<T>(&self, value: T, context: &Context) -> JsResult<JsValue>
     where
         T: Into<JsValue>,
     {
@@ -61,7 +61,7 @@ impl JsSet {
     ///
     /// Same as JavaScript's `set.add(["one", "two", "three"])`
     #[inline]
-    pub fn add_items(&self, items: &[JsValue], context: &mut Context) -> JsResult<JsValue> {
+    pub fn add_items(&self, items: &[JsValue], context: &Context) -> JsResult<JsValue> {
         Set::add(&self.inner.clone().into(), items, context)
     }
 
@@ -106,7 +106,7 @@ impl JsSet {
     ///
     /// Same as JavaScript's `set.values()`.
     #[inline]
-    pub fn values(&self, context: &mut Context) -> JsResult<JsSetIterator> {
+    pub fn values(&self, context: &Context) -> JsResult<JsSetIterator> {
         let iterator_object = Set::values(&self.inner.clone().into(), &[JsValue::null()], context)?
             .get_iterator(IteratorHint::Sync, context)?;
 
@@ -119,7 +119,7 @@ impl JsSet {
     ///
     /// Same as JavaScript's `set.keys()`.
     #[inline]
-    pub fn keys(&self, context: &mut Context) -> JsResult<JsSetIterator> {
+    pub fn keys(&self, context: &Context) -> JsResult<JsSetIterator> {
         let iterator_object = Set::values(&self.inner.clone().into(), &[JsValue::null()], context)?
             .get_iterator(IteratorHint::Sync, context)?;
 
@@ -136,7 +136,7 @@ impl JsSet {
         &self,
         callback: JsFunction,
         this_arg: JsValue,
-        context: &mut Context,
+        context: &Context,
     ) -> JsResult<JsValue> {
         Set::for_each(
             &self.inner.clone().into(),
@@ -162,7 +162,7 @@ impl JsSet {
     }
 
     /// Utility: Creates a `JsSet` from a `<IntoIterator<Item = JsValue>` convertible object.
-    pub fn from_iter<I>(elements: I, context: &mut Context) -> Self
+    pub fn from_iter<I>(elements: I, context: &Context) -> Self
     where
         I: IntoIterator<Item = JsValue>,
     {
@@ -216,7 +216,7 @@ impl Deref for JsSet {
 }
 
 impl TryFromJs for JsSet {
-    fn try_from_js(value: &JsValue, _context: &mut Context) -> JsResult<Self> {
+    fn try_from_js(value: &JsValue, _context: &Context) -> JsResult<Self> {
         if let Some(o) = value.as_object()
             && let Ok(set) = Self::from_object(o.clone())
         {

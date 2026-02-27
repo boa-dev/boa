@@ -4,7 +4,7 @@ use boa_engine::{Context, JsError, JsValue, js_string, object::builtins::JsSet};
 
 fn main() -> Result<(), JsError> {
     // New `Context` for a new Javascript executor.
-    let context = &mut Context::default();
+    let context = &Context::default();
 
     // Create an empty set.
     let set = JsSet::new(context);

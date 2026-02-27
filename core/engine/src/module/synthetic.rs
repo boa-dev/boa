@@ -15,13 +15,13 @@ use crate::{
 };
 
 trait TraceableCallback: Trace {
-    fn call(&self, module: &SyntheticModule, context: &mut Context) -> JsResult<()>;
+    fn call(&self, module: &SyntheticModule, context: &Context) -> JsResult<()>;
 }
 
 #[derive(Trace, Finalize)]
 struct Callback<F, T>
 where
-    F: Fn(&SyntheticModule, &T, &mut Context) -> JsResult<()>,
+    F: Fn(&SyntheticModule, &T, &Context) -> JsResult<()>,
     T: Trace,
 {
     // SAFETY: `SyntheticModuleInitializer`'s safe API ensures only `Copy` closures are stored; its unsafe API,
@@ -34,10 +34,10 @@ where
 
 impl<F, T> TraceableCallback for Callback<F, T>
 where
-    F: Fn(&SyntheticModule, &T, &mut Context) -> JsResult<()>,
+    F: Fn(&SyntheticModule, &T, &Context) -> JsResult<()>,
     T: Trace,
 {
-    fn call(&self, module: &SyntheticModule, context: &mut Context) -> JsResult<()> {
+    fn call(&self, module: &SyntheticModule, context: &Context) -> JsResult<()> {
         (self.f)(module, &self.captures, context)
     }
 }
@@ -67,7 +67,7 @@ impl SyntheticModuleInitializer {
     /// Creates a `SyntheticModuleInitializer` from a [`Copy`] closure.
     pub fn from_copy_closure<F>(closure: F) -> Self
     where
-        F: Fn(&SyntheticModule, &mut Context) -> JsResult<()> + Copy + 'static,
+        F: Fn(&SyntheticModule, &Context) -> JsResult<()> + Copy + 'static,
     {
         // SAFETY: The `Copy` bound ensures there are no traceable types inside the closure.
         unsafe { Self::from_closure(closure) }
@@ -76,7 +76,7 @@ impl SyntheticModuleInitializer {
     /// Creates a `SyntheticModuleInitializer` from a [`Copy`] closure and a list of traceable captures.
     pub fn from_copy_closure_with_captures<F, T>(closure: F, captures: T) -> Self
     where
-        F: Fn(&SyntheticModule, &T, &mut Context) -> JsResult<()> + Copy + 'static,
+        F: Fn(&SyntheticModule, &T, &Context) -> JsResult<()> + Copy + 'static,
         T: Trace + 'static,
     {
         // SAFETY: The `Copy` bound ensures there are no traceable types inside the closure.
@@ -93,7 +93,7 @@ impl SyntheticModuleInitializer {
     /// on why that is the case.
     pub unsafe fn from_closure<F>(closure: F) -> Self
     where
-        F: Fn(&SyntheticModule, &mut Context) -> JsResult<()> + 'static,
+        F: Fn(&SyntheticModule, &Context) -> JsResult<()> + 'static,
     {
         // SAFETY: The caller must ensure the invariants of the closure hold.
         unsafe {
@@ -114,7 +114,7 @@ impl SyntheticModuleInitializer {
     /// on why that is the case.
     pub unsafe fn from_closure_with_captures<F, T>(closure: F, captures: T) -> Self
     where
-        F: Fn(&SyntheticModule, &T, &mut Context) -> JsResult<()> + 'static,
+        F: Fn(&SyntheticModule, &T, &Context) -> JsResult<()> + 'static,
         T: Trace + 'static,
     {
         // Hopefully, this unsafe operation will be replaced by the `CoerceUnsized` API in the
@@ -135,7 +135,7 @@ impl SyntheticModuleInitializer {
 
     /// Calls this `SyntheticModuleInitializer`, forwarding the arguments to the corresponding function.
     #[inline]
-    pub(crate) fn call(&self, module: &SyntheticModule, context: &mut Context) -> JsResult<()> {
+    pub(crate) fn call(&self, module: &SyntheticModule, context: &Context) -> JsResult<()> {
         self.inner.call(module, context)
     }
 }
@@ -224,7 +224,7 @@ impl SyntheticModule {
 
     /// Sets or changes the exported value for `C::NAME` in the synthetic module
     /// to the Class's constructor.
-    pub fn export_class<C: Class>(&self, context: &mut Context) -> JsResult<()> {
+    pub fn export_class<C: Class>(&self, context: &Context) -> JsResult<()> {
         self.export_named_class::<C>(&JsString::from(C::NAME), context)
     }
 
@@ -233,7 +233,7 @@ impl SyntheticModule {
     pub fn export_named_class<C: Class>(
         &self,
         export_name: &JsString,
-        context: &mut Context,
+        context: &Context,
     ) -> JsResult<()> {
         let mut class_builder = ClassBuilder::new::<C>(context);
         C::init(&mut class_builder)?;
@@ -256,7 +256,7 @@ impl SyntheticModule {
     /// Concrete method [`LoadRequestedModules ( )`][spec].
     ///
     /// [spec]: https://tc39.es/proposal-json-modules/#sec-smr-LoadRequestedModules
-    pub(super) fn load(context: &mut Context) -> JsPromise {
+    pub(super) fn load(context: &Context) -> JsPromise {
         // 1. Return ! PromiseResolve(%Promise%, undefined).
         JsPromise::resolve(JsValue::undefined(), context)
     }
@@ -293,7 +293,7 @@ impl SyntheticModule {
     /// Concrete method [`Link ( )`][spec].
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-moduledeclarationlinking
-    pub(super) fn link(&self, module_self: &Module, context: &mut Context) {
+    pub(super) fn link(&self, module_self: &Module, context: &Context) {
         if !matches!(&*self.state.borrow(), ModuleStatus::Unlinked) {
             // Already linked and/or evaluated.
             return;
@@ -367,11 +367,7 @@ impl SyntheticModule {
     /// Concrete method [`Evaluate ( )`][spec].
     ///
     /// [spec]: https://tc39.es/proposal-json-modules/#sec-smr-Evaluate
-    pub(super) fn evaluate(
-        &self,
-        module_self: &Module,
-        context: &mut Context,
-    ) -> JsResult<JsPromise> {
+    pub(super) fn evaluate(&self, module_self: &Module, context: &Context) -> JsResult<JsPromise> {
         let (environments, codeblock) = match &*self.state.borrow() {
             ModuleStatus::Unlinked => {
                 let (promise, ResolvingFunctions { reject, .. }) = JsPromise::new_pending(context);
@@ -411,7 +407,7 @@ impl SyntheticModule {
         // 7. Suspend the currently running execution context.
         // 8. Push moduleContext on to the execution context stack; moduleContext is now the running execution context.
         context
-            .vm
+            .vm_mut()
             .push_frame_with_stack(callframe, JsValue::undefined(), JsValue::null());
 
         // 9. Let steps be module.[[EvaluationSteps]].
@@ -420,8 +416,8 @@ impl SyntheticModule {
 
         // 11. Suspend moduleContext and remove it from the execution context stack.
         // 12. Resume the context that is now on the top of the execution context stack as the running execution context.
-        let frame = context.vm.pop_frame().expect("there should be a frame");
-        context.vm.stack.truncate_to_frame(&frame);
+        let frame = context.vm_mut().pop_frame().expect("there should be a frame");
+        context.vm_mut().stack.truncate_to_frame(&frame);
 
         // 13. Let pc be ! NewPromiseCapability(%Promise%).
         let (promise, ResolvingFunctions { resolve, reject }) = JsPromise::new_pending(context);

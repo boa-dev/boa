@@ -12,7 +12,7 @@ where
     K: TryFromJs + Ord,
     V: TryFromJs,
 {
-    fn try_from_js(value: &JsValue, context: &mut Context) -> JsResult<Self> {
+    fn try_from_js(value: &JsValue, context: &Context) -> JsResult<Self> {
         let Some(object) = value.as_object() else {
             return Err(JsNativeError::typ()
                 .with_message("cannot convert value to a BTreeMap")
@@ -55,7 +55,7 @@ where
     V: TryFromJs,
     S: std::hash::BuildHasher + Default,
 {
-    fn try_from_js(value: &JsValue, context: &mut Context) -> JsResult<Self> {
+    fn try_from_js(value: &JsValue, context: &Context) -> JsResult<Self> {
         let Some(object) = value.as_object() else {
             return Err(JsNativeError::typ()
                 .with_message("cannot convert value to a BTreeMap")

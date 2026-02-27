@@ -33,7 +33,7 @@ pub mod js_module {
     pub fn structured_clone(
         value: JsValue,
         options: Option<StructuredCloneOptions>,
-        context: &mut Context,
+        context: &Context,
     ) -> JsResult<JsValue> {
         let v = JsValueStore::try_from_js(
             &value,
@@ -48,6 +48,6 @@ pub mod js_module {
 ///
 /// # Errors
 /// Return an error if the function is already registered.
-pub fn register(realm: Option<Realm>, context: &mut Context) -> JsResult<()> {
+pub fn register(realm: Option<Realm>, context: &Context) -> JsResult<()> {
     js_module::boa_register(realm, context)
 }

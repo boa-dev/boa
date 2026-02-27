@@ -15,9 +15,9 @@ pub(crate) struct NewTarget;
 
 impl NewTarget {
     #[inline(always)]
-    pub(super) fn operation(dst: VaryingOperand, context: &mut Context) {
+    pub(super) fn operation(dst: VaryingOperand, context: &Context) {
         let new_target = if let Some(new_target) = context
-            .vm
+            .vm_mut()
             .frame
             .environments
             .get_this_environment()
@@ -28,7 +28,7 @@ impl NewTarget {
         } else {
             JsValue::undefined()
         };
-        context.vm.set_register(dst.into(), new_target);
+        context.vm_mut().set_register(dst.into(), new_target);
     }
 }
 
@@ -47,7 +47,7 @@ pub(crate) struct ImportMeta;
 
 impl ImportMeta {
     #[inline(always)]
-    pub(super) fn operation(dst: VaryingOperand, context: &mut Context) {
+    pub(super) fn operation(dst: VaryingOperand, context: &Context) {
         // Meta Properties
         //
         // ImportMeta : import . meta
@@ -90,7 +90,7 @@ impl ImportMeta {
 
         //     b. Return importMeta.
         //     f. Return importMeta.
-        context.vm.set_register(dst.into(), import_meta.into());
+        context.vm_mut().set_register(dst.into(), import_meta.into());
     }
 }
 

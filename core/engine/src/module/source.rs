@@ -434,7 +434,7 @@ impl SourceTextModule {
         &self,
         module_self: &Module,
         state: &Rc<GraphLoadingState>,
-        context: &mut Context,
+        context: &Context,
     ) {
         /// Loads the module of an import.
         ///
@@ -450,7 +450,7 @@ impl SourceTextModule {
             request: super::ModuleRequest,
             src: Module,
             state: Rc<GraphLoadingState>,
-            context: &RefCell<&mut Context>,
+            context: &RefCell<&Context>,
         ) -> JsResult<()> {
             let loader = context.borrow().module_loader();
             let fut = loader.load_imported_module(
@@ -498,20 +498,20 @@ impl SourceTextModule {
             match completion {
                 Ok(m) => {
                     // a. Perform InnerModuleLoading(state, moduleCompletion.[[Value]]).
-                    m.inner_load(&state, &mut context.borrow_mut());
+                    m.inner_load(&state, &context.borrow());
                 }
                 // 3. Else,
                 Err(err) => {
                     // a. Set state.[[IsLoading]] to false.
                     state.loading.set(false);
 
-                    let err = err.into_opaque(&mut context.borrow_mut())?;
+                    let err = err.into_opaque(&context.borrow())?;
 
                     // b. Perform ! Call(state.[[PromiseCapability]].[[Reject]], undefined, « moduleCompletion.[[Value]] »).
                     state
                         .capability
                         .reject()
-                        .call(&JsValue::undefined(), &[err], &mut context.borrow_mut())
+                        .call(&JsValue::undefined(), &[err], &context.borrow())
                         .expect("cannot fail for the default reject function");
                 }
             }
@@ -762,7 +762,7 @@ impl SourceTextModule {
     /// Concrete method [`Link ( )`][spec].
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-moduledeclarationlinking
-    pub(super) fn link(&self, module_self: &Module, context: &mut Context) -> JsResult<()> {
+    pub(super) fn link(&self, module_self: &Module, context: &Context) -> JsResult<()> {
         // 1. Assert: module.[[Status]] is one of unlinked, linked, evaluating-async, or evaluated.
         debug_assert!(matches!(
             &*self.status.borrow(),
@@ -813,7 +813,7 @@ impl SourceTextModule {
         module_self: &Module,
         stack: &mut Vec<Module>,
         mut index: usize,
-        context: &mut Context,
+        context: &Context,
     ) -> JsResult<usize> {
         // 2. If module.[[Status]] is one of linking, linked, evaluating-async, or evaluated, then
         if matches!(
@@ -969,11 +969,7 @@ impl SourceTextModule {
     /// Concrete method [`Evaluate ( )`][spec].
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-moduleevaluation
-    pub(super) fn evaluate(
-        &self,
-        module_self: &Module,
-        context: &mut Context,
-    ) -> JsResult<JsPromise> {
+    pub(super) fn evaluate(&self, module_self: &Module, context: &Context) -> JsResult<JsPromise> {
         // 1. Assert: This call to Evaluate is not happening at the same time as another call to Evaluate within the surrounding agent.
         let (module, promise) = {
             match &*self.status.borrow() {
@@ -1113,7 +1109,7 @@ impl SourceTextModule {
         stack: &mut Vec<Module>,
         mut index: usize,
         capability: Option<PromiseCapability>,
-        context: &mut Context,
+        context: &Context,
     ) -> JsResult<usize> {
         /// Gets the next evaluation index of an async module.
         ///
@@ -1377,7 +1373,7 @@ impl SourceTextModule {
     /// Abstract operation [`ExecuteAsyncModule ( module )`][spec].
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-execute-async-module
-    fn execute_async(&self, module_self: &Module, context: &mut Context) {
+    fn execute_async(&self, module_self: &Module, context: &Context) {
         // 1. Assert: module.[[Status]] is either evaluating or evaluating-async.
         debug_assert!(matches!(
             &*self.status.borrow(),
@@ -1513,7 +1509,7 @@ impl SourceTextModule {
     /// Abstract operation [`InitializeEnvironment ( )`][spec].
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-source-text-module-record-initialize-environment
-    fn initialize_environment(&self, module_self: &Module, context: &mut Context) -> JsResult<()> {
+    fn initialize_environment(&self, module_self: &Module, context: &Context) -> JsResult<()> {
         #[derive(Debug)]
         enum ImportBinding {
             Namespace {
@@ -1766,7 +1762,7 @@ impl SourceTextModule {
             realm.clone(),
         );
         context
-            .vm
+            .vm_mut()
             .push_frame_with_stack(call_frame, JsValue::undefined(), JsValue::null());
 
         // 17. Push moduleContext onto the execution context stack; moduleContext is now the running execution context.
@@ -1777,7 +1773,7 @@ impl SourceTextModule {
                 ImportBinding::Namespace { locator, module } => {
                     // i. Let namespace be GetModuleNamespace(importedModule).
                     let namespace = module.namespace(context);
-                    context.vm.frame.environments.put_lexical_value(
+                    context.vm_mut().frame.environments.put_lexical_value(
                         locator.scope(),
                         locator.binding_index(),
                         namespace.into(),
@@ -1788,7 +1784,7 @@ impl SourceTextModule {
                     export_locator,
                 } => match export_locator.binding_name() {
                     BindingName::Name(name) => context
-                        .vm
+                        .vm_mut()
                         .frame
                         .environments
                         .current_declarative_ref()
@@ -1799,7 +1795,7 @@ impl SourceTextModule {
                         .set_indirect(locator.binding_index(), export_locator.module, name),
                     BindingName::Namespace => {
                         let namespace = export_locator.module.namespace(context);
-                        context.vm.frame.environments.put_lexical_value(
+                        context.vm_mut().frame.environments.put_lexical_value(
                             locator.scope(),
                             locator.binding_index(),
                             namespace.into(),
@@ -1815,7 +1811,7 @@ impl SourceTextModule {
 
             let function = create_function_object_fast(code, context);
 
-            context.vm.frame.environments.put_lexical_value(
+            context.vm_mut().frame.environments.put_lexical_value(
                 locator.scope(),
                 locator.binding_index(),
                 function.into(),
@@ -1824,7 +1820,7 @@ impl SourceTextModule {
 
         // 25. Remove moduleContext from the execution context stack.
         let frame = context
-            .vm
+            .vm_mut()
             .pop_frame()
             .expect("There should be a call frame");
 
@@ -1861,7 +1857,7 @@ impl SourceTextModule {
         &self,
         module_self: &Module,
         capability: Option<&PromiseCapability>,
-        context: &mut Context,
+        context: &Context,
     ) -> JsResult<()> {
         // 1. Let moduleContext be a new ECMAScript code execution context.
         let SourceTextContext {
@@ -1892,13 +1888,13 @@ impl SourceTextModule {
 
         // 8. Suspend the running execution context.
         context
-            .vm
+            .vm_mut()
             .push_frame_with_stack(callframe, JsValue::undefined(), JsValue::null());
 
         context
-            .vm
+            .vm_mut()
             .stack
-            .set_promise_capability(&context.vm.frame, capability);
+            .set_promise_capability(&context.vm_mut().frame, capability);
 
         // 9. If module.[[HasTLA]] is false, then
         //    a. Assert: capability is not present.
@@ -1911,7 +1907,7 @@ impl SourceTextModule {
         //    b. Perform AsyncBlockStart(capability, module.[[ECMAScriptCode]], moduleContext).
         let result = context.run();
 
-        context.vm.pop_frame();
+        context.vm_mut().pop_frame();
 
         //     f. If result is an abrupt completion, then
         if let CompletionRecord::Throw(err) = result {
@@ -1944,7 +1940,7 @@ impl SourceTextModule {
 ///
 /// [spec]: https://tc39.es/ecma262/#sec-async-module-execution-fulfilled
 #[allow(clippy::mutable_key_type)]
-fn async_module_execution_fulfilled(module: &Module, context: &mut Context) -> JsResult<()> {
+fn async_module_execution_fulfilled(module: &Module, context: &Context) -> JsResult<()> {
     let ModuleKind::SourceText(module_src) = module.kind() else {
         unreachable!("async executed module must be a source text module");
     };
@@ -2085,7 +2081,7 @@ fn async_module_execution_fulfilled(module: &Module, context: &mut Context) -> J
 fn async_module_execution_rejected(
     module: &Module,
     error: JsError,
-    context: &mut Context,
+    context: &Context,
 ) -> JsResult<()> {
     let ModuleKind::SourceText(module_src) = module.kind() else {
         unreachable!("async executed module must be a source text module");

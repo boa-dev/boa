@@ -75,7 +75,7 @@ pub struct PostMessageOptions {
 }
 
 /// Get a `MessageSender` instance from the context.
-fn get_sender<T: MessageSender>(context: &mut Context) -> JsResult<Rc<T>> {
+fn get_sender<T: MessageSender>(context: &Context) -> JsResult<Rc<T>> {
     // Try fetching from the context first, then the current realm. Else fail.
     if let Some(sender) = context
         .get_data::<MessageSenderRc<T>>()
@@ -117,7 +117,7 @@ pub mod js_module {
         message: JsValue,
         target_origin_or_options: Option<JsValue>,
         transfer: Option<Vec<JsValue>>,
-        context: &mut Context,
+        context: &Context,
     ) -> JsResult<()> {
         // Build the options based on arguments.
         let (target_origin, transfer) = if let Some(target_origin_or_options) =
@@ -151,7 +151,7 @@ pub use js_module::post_message;
 pub fn register<S: MessageSender>(
     sender: S,
     realm: Option<Realm>,
-    context: &mut Context,
+    context: &Context,
 ) -> JsResult<()> {
     if let Some(ref realm) = realm {
         realm

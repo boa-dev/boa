@@ -86,7 +86,7 @@ impl RegExpStringIterator {
         string: JsString,
         global: bool,
         unicode: bool,
-        context: &mut Context,
+        context: &Context,
     ) -> JsValue {
         // TODO: Implement this with closures and generators.
         //       For now all values of the closure are stored in RegExpStringIterator and the actual closure execution is in `.next()`.
@@ -119,7 +119,7 @@ impl RegExpStringIterator {
     ///  - [ECMAScript reference][spec]
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-%regexpstringiteratorprototype%.next
-    pub(crate) fn next(this: &JsValue, _: &[JsValue], context: &mut Context) -> JsResult<JsValue> {
+    pub(crate) fn next(this: &JsValue, _: &[JsValue], context: &Context) -> JsResult<JsValue> {
         let object = this.as_object();
         let mut iterator = object
             .as_ref()

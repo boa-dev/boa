@@ -23,7 +23,7 @@ fn main() -> Result<(), Box<dyn Error>> {
     let loader = Rc::new(SimpleModuleLoader::new("./scripts/modules")?);
 
     // Just need to cast to a `ModuleLoader` before passing it to the builder.
-    let context = &mut Context::builder().module_loader(loader.clone()).build()?;
+    let context = &Context::builder().module_loader(loader.clone()).build()?;
     let source = Source::from_reader(MODULE_SRC.as_bytes(), Some(Path::new("./main.mjs")));
 
     // Can also pass a `Some(realm)` if you need to execute the module in another realm.

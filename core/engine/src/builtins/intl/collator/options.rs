@@ -97,7 +97,7 @@ impl FromStr for Usage {
 impl ParsableOptionType for Usage {}
 
 impl OptionType for CollationCaseFirst {
-    fn from_value(value: JsValue, context: &mut Context) -> JsResult<Self> {
+    fn from_value(value: JsValue, context: &Context) -> JsResult<Self> {
         match value.to_string(context)?.to_std_string_escaped().as_str() {
             "upper" => Ok(Self::Upper),
             "lower" => Ok(Self::Lower),

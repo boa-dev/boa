@@ -16,7 +16,7 @@ where
     R: TryFromJs,
 {
     #[inline]
-    fn try_from_js(value: &JsValue, context: &mut Context) -> JsResult<Self> {
+    fn try_from_js(value: &JsValue, context: &Context) -> JsResult<Self> {
         L::try_from_js(value, context)
             .map(Self::Left)
             .or_else(|_| R::try_from_js(value, context).map(Self::Right))
@@ -26,19 +26,19 @@ where
 #[test]
 fn either() {
     let v = JsValue::new(123);
-    let mut context = Context::default();
+    let context = Context::default();
 
     assert_eq!(
-        Either::<i32, i32>::try_from_js(&v, &mut context),
+        Either::<i32, i32>::try_from_js(&v, &context),
         Ok(Either::Left(123))
     );
     assert_eq!(
-        Either::<i32, String>::try_from_js(&v, &mut context),
+        Either::<i32, String>::try_from_js(&v, &context),
         Ok(Either::Left(123))
     );
     assert_eq!(
-        Either::<String, i32>::try_from_js(&v, &mut context),
+        Either::<String, i32>::try_from_js(&v, &context),
         Ok(Either::Right(123))
     );
-    assert!(Either::<String, String>::try_from_js(&v, &mut context).is_err());
+    assert!(Either::<String, String>::try_from_js(&v, &context).is_err());
 }

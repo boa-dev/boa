@@ -18,7 +18,7 @@ pub struct JsArray {
 impl JsArray {
     /// Create a new empty array.
     #[inline]
-    pub fn new(context: &mut Context) -> Self {
+    pub fn new(context: &Context) -> Self {
         let inner = Array::array_create(0, None, context)
             .expect("creating an empty array with the default prototype must not fail");
 
@@ -26,7 +26,7 @@ impl JsArray {
     }
 
     /// Create an array from a `IntoIterator<Item = JsValue>` convertible object.
-    pub fn from_iter<I>(elements: I, context: &mut Context) -> Self
+    pub fn from_iter<I>(elements: I, context: &Context) -> Self
     where
         I: IntoIterator<Item = JsValue>,
     {
@@ -53,18 +53,18 @@ impl JsArray {
     ///
     /// Same as `array.length` in JavaScript.
     #[inline]
-    pub fn length(&self, context: &mut Context) -> JsResult<u64> {
+    pub fn length(&self, context: &Context) -> JsResult<u64> {
         self.inner.length_of_array_like(context)
     }
 
     /// Check if the array is empty, i.e. the `length` is zero.
     #[inline]
-    pub fn is_empty(&self, context: &mut Context) -> JsResult<bool> {
+    pub fn is_empty(&self, context: &Context) -> JsResult<bool> {
         self.inner.length_of_array_like(context).map(|len| len == 0)
     }
 
     /// Push an element to the array.
-    pub fn push<T>(&self, value: T, context: &mut Context) -> JsResult<JsValue>
+    pub fn push<T>(&self, value: T, context: &Context) -> JsResult<JsValue>
     where
         T: Into<JsValue>,
     {
@@ -73,18 +73,18 @@ impl JsArray {
 
     /// Pushes a slice of elements to the array.
     #[inline]
-    pub fn push_items(&self, items: &[JsValue], context: &mut Context) -> JsResult<JsValue> {
+    pub fn push_items(&self, items: &[JsValue], context: &Context) -> JsResult<JsValue> {
         Array::push(&self.inner.clone().into(), items, context)
     }
 
     /// Pops an element from the array.
     #[inline]
-    pub fn pop(&self, context: &mut Context) -> JsResult<JsValue> {
+    pub fn pop(&self, context: &Context) -> JsResult<JsValue> {
         Array::pop(&self.inner.clone().into(), &[], context)
     }
 
     /// Calls `Array.prototype.at()`.
-    pub fn at<T>(&self, index: T, context: &mut Context) -> JsResult<JsValue>
+    pub fn at<T>(&self, index: T, context: &Context) -> JsResult<JsValue>
     where
         T: Into<i64>,
     {
@@ -93,26 +93,26 @@ impl JsArray {
 
     /// Calls `Array.prototype.shift()`.
     #[inline]
-    pub fn shift(&self, context: &mut Context) -> JsResult<JsValue> {
+    pub fn shift(&self, context: &Context) -> JsResult<JsValue> {
         Array::shift(&self.inner.clone().into(), &[], context)
     }
 
     /// Calls `Array.prototype.unshift()`.
     #[inline]
-    pub fn unshift(&self, items: &[JsValue], context: &mut Context) -> JsResult<JsValue> {
+    pub fn unshift(&self, items: &[JsValue], context: &Context) -> JsResult<JsValue> {
         Array::unshift(&self.inner.clone().into(), items, context)
     }
 
     /// Calls `Array.prototype.reverse()`.
     #[inline]
-    pub fn reverse(&self, context: &mut Context) -> JsResult<Self> {
+    pub fn reverse(&self, context: &Context) -> JsResult<Self> {
         Array::reverse(&self.inner.clone().into(), &[], context)?;
         Ok(self.clone())
     }
 
     /// Calls `Array.prototype.concat()`.
     #[inline]
-    pub fn concat(&self, items: &[JsValue], context: &mut Context) -> JsResult<Self> {
+    pub fn concat(&self, items: &[JsValue], context: &Context) -> JsResult<Self> {
         let object = Array::concat(&self.inner.clone().into(), items, context)?
             .as_object()
             .expect("Array.prototype.filter should always return object");
@@ -122,7 +122,7 @@ impl JsArray {
 
     /// Calls `Array.prototype.join()`.
     #[inline]
-    pub fn join(&self, separator: Option<JsString>, context: &mut Context) -> JsResult<JsString> {
+    pub fn join(&self, separator: Option<JsString>, context: &Context) -> JsResult<JsString> {
         Array::join(
             &self.inner.clone().into(),
             &[separator.into_or_undefined()],
@@ -140,7 +140,7 @@ impl JsArray {
         value: T,
         start: Option<u32>,
         end: Option<u32>,
-        context: &mut Context,
+        context: &Context,
     ) -> JsResult<Self>
     where
         T: Into<JsValue>,
@@ -162,7 +162,7 @@ impl JsArray {
         &self,
         search_element: T,
         from_index: Option<u32>,
-        context: &mut Context,
+        context: &Context,
     ) -> JsResult<Option<u32>>
     where
         T: Into<JsValue>,
@@ -188,7 +188,7 @@ impl JsArray {
         &self,
         search_element: T,
         from_index: Option<u32>,
-        context: &mut Context,
+        context: &Context,
     ) -> JsResult<Option<u32>>
     where
         T: Into<JsValue>,
@@ -215,7 +215,7 @@ impl JsArray {
         &self,
         predicate: JsFunction,
         this_arg: Option<JsValue>,
-        context: &mut Context,
+        context: &Context,
     ) -> JsResult<JsValue> {
         Array::find(
             &self.inner.clone().into(),
@@ -230,7 +230,7 @@ impl JsArray {
         &self,
         callback: JsFunction,
         this_arg: Option<JsValue>,
-        context: &mut Context,
+        context: &Context,
     ) -> JsResult<Self> {
         let object = Array::filter(
             &self.inner.clone().into(),
@@ -249,7 +249,7 @@ impl JsArray {
         &self,
         callback: JsFunction,
         this_arg: Option<JsValue>,
-        context: &mut Context,
+        context: &Context,
     ) -> JsResult<Self> {
         let object = Array::map(
             &self.inner.clone().into(),
@@ -268,7 +268,7 @@ impl JsArray {
         &self,
         callback: JsFunction,
         this_arg: Option<JsValue>,
-        context: &mut Context,
+        context: &Context,
     ) -> JsResult<bool> {
         let result = Array::every(
             &self.inner.clone().into(),
@@ -287,7 +287,7 @@ impl JsArray {
         &self,
         callback: JsFunction,
         this_arg: Option<JsValue>,
-        context: &mut Context,
+        context: &Context,
     ) -> JsResult<bool> {
         let result = Array::some(
             &self.inner.clone().into(),
@@ -302,7 +302,7 @@ impl JsArray {
 
     /// Calls `Array.prototype.sort()`.
     #[inline]
-    pub fn sort(&self, compare_fn: Option<JsFunction>, context: &mut Context) -> JsResult<Self> {
+    pub fn sort(&self, compare_fn: Option<JsFunction>, context: &Context) -> JsResult<Self> {
         Array::sort(
             &self.inner.clone().into(),
             &[compare_fn.into_or_undefined()],
@@ -314,12 +314,7 @@ impl JsArray {
 
     /// Calls `Array.prototype.slice()`.
     #[inline]
-    pub fn slice(
-        &self,
-        start: Option<u32>,
-        end: Option<u32>,
-        context: &mut Context,
-    ) -> JsResult<Self> {
+    pub fn slice(&self, start: Option<u32>, end: Option<u32>, context: &Context) -> JsResult<Self> {
         let object = Array::slice(
             &self.inner.clone().into(),
             &[start.into_or_undefined(), end.into_or_undefined()],
@@ -340,7 +335,7 @@ impl JsArray {
     /// ```
     /// # use boa_engine::{Context, JsValue};
     /// # use boa_engine::object::builtins::JsArray;
-    /// let context = &mut Context::default();
+    /// let context = &Context::default();
     /// let array = JsArray::from_iter([1, 2, 3].map(JsValue::from), context);
     ///
     /// // Insert elements at index 1 without removing
@@ -360,7 +355,7 @@ impl JsArray {
         start: u32,
         delete_count: Option<u32>,
         items: &[JsValue],
-        context: &mut Context,
+        context: &Context,
     ) -> JsResult<Self> {
         let start = JsValue::from(start);
         let delete_count = delete_count.map(JsValue::from);
@@ -383,7 +378,7 @@ impl JsArray {
         &self,
         callback: JsFunction,
         initial_value: Option<JsValue>,
-        context: &mut Context,
+        context: &Context,
     ) -> JsResult<JsValue> {
         Array::reduce(
             &self.inner.clone().into(),
@@ -398,7 +393,7 @@ impl JsArray {
         &self,
         callback: JsFunction,
         initial_value: Option<JsValue>,
-        context: &mut Context,
+        context: &Context,
     ) -> JsResult<JsValue> {
         Array::reduce_right(
             &self.inner.clone().into(),
@@ -409,7 +404,7 @@ impl JsArray {
 
     /// Calls `Array.prototype.toReversed`.
     #[inline]
-    pub fn to_reversed(&self, context: &mut Context) -> JsResult<Self> {
+    pub fn to_reversed(&self, context: &Context) -> JsResult<Self> {
         let array = Array::to_reversed(&self.inner.clone().into(), &[], context)?;
 
         Ok(Self {
@@ -421,11 +416,7 @@ impl JsArray {
 
     /// Calls `Array.prototype.toSorted`.
     #[inline]
-    pub fn to_sorted(
-        &self,
-        compare_fn: Option<JsFunction>,
-        context: &mut Context,
-    ) -> JsResult<Self> {
+    pub fn to_sorted(&self, compare_fn: Option<JsFunction>, context: &Context) -> JsResult<Self> {
         let array = Array::to_sorted(
             &self.inner.clone().into(),
             &[compare_fn.into_or_undefined()],
@@ -441,7 +432,7 @@ impl JsArray {
 
     /// Calls `Array.prototype.with`.
     #[inline]
-    pub fn with(&self, index: u64, value: JsValue, context: &mut Context) -> JsResult<Self> {
+    pub fn with(&self, index: u64, value: JsValue, context: &Context) -> JsResult<Self> {
         let array = Array::with(&self.inner.clone().into(), &[index.into(), value], context)?;
 
         Ok(Self {
@@ -476,7 +467,7 @@ impl Deref for JsArray {
 }
 
 impl TryFromJs for JsArray {
-    fn try_from_js(value: &JsValue, _context: &mut Context) -> JsResult<Self> {
+    fn try_from_js(value: &JsValue, _context: &Context) -> JsResult<Self> {
         if let Some(o) = value.as_object() {
             Self::from_object(o.clone())
         } else {
@@ -492,7 +483,7 @@ mod tests {
 
     #[test]
     fn splice_remove() {
-        let context = &mut Context::default();
+        let context = &Context::default();
         let array = JsArray::from_iter([1, 2, 3].map(JsValue::from), context);
 
         let removed = array.splice(1, Some(1), &[], context).unwrap();
@@ -503,7 +494,7 @@ mod tests {
 
     #[test]
     fn splice_insert() {
-        let context = &mut Context::default();
+        let context = &Context::default();
         let array = JsArray::from_iter([1, 2, 3].map(JsValue::from), context);
 
         let removed = array
@@ -516,7 +507,7 @@ mod tests {
 
     #[test]
     fn splice_replace() {
-        let context = &mut Context::default();
+        let context = &Context::default();
         let array = JsArray::from_iter([1, 2, 3].map(JsValue::from), context);
 
         let removed = array
@@ -529,7 +520,7 @@ mod tests {
 
     #[test]
     fn splice_from_start() {
-        let context = &mut Context::default();
+        let context = &Context::default();
         let array = JsArray::from_iter([1, 2, 3].map(JsValue::from), context);
 
         let removed = array.splice(0, Some(1), &[], context).unwrap();
@@ -540,7 +531,7 @@ mod tests {
 
     #[test]
     fn splice_empty_array() {
-        let context = &mut Context::default();
+        let context = &Context::default();
         let array = JsArray::new(context);
 
         let removed = array.splice(0, Some(0), &[], context).unwrap();

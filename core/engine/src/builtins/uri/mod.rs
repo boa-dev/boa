@@ -170,11 +170,7 @@ impl BuiltInObject for EncodeUriComponent {
 ///
 /// [spec]: https://tc39.es/ecma262/#sec-decodeuri-encodeduri
 /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/decodeURI
-pub(crate) fn decode_uri(
-    _: &JsValue,
-    args: &[JsValue],
-    context: &mut Context,
-) -> JsResult<JsValue> {
+pub(crate) fn decode_uri(_: &JsValue, args: &[JsValue], context: &Context) -> JsResult<JsValue> {
     let encoded_uri = args.get_or_undefined(0);
 
     // 1. Let uriString be ? ToString(encodedURI).
@@ -201,7 +197,7 @@ pub(crate) fn decode_uri(
 pub(crate) fn decode_uri_component(
     _: &JsValue,
     args: &[JsValue],
-    context: &mut Context,
+    context: &Context,
 ) -> JsResult<JsValue> {
     let encoded_uri_component = args.get_or_undefined(0);
 
@@ -230,11 +226,7 @@ pub(crate) fn decode_uri_component(
 ///
 /// [spec]: https://tc39.es/ecma262/#sec-encodeuri-uri
 /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/encodeURI
-pub(crate) fn encode_uri(
-    _: &JsValue,
-    args: &[JsValue],
-    context: &mut Context,
-) -> JsResult<JsValue> {
+pub(crate) fn encode_uri(_: &JsValue, args: &[JsValue], context: &Context) -> JsResult<JsValue> {
     let uri = args.get_or_undefined(0);
 
     // 1. Let uriString be ? ToString(uri).
@@ -262,7 +254,7 @@ pub(crate) fn encode_uri(
 pub(crate) fn encode_uri_component(
     _: &JsValue,
     args: &[JsValue],
-    context: &mut Context,
+    context: &Context,
 ) -> JsResult<JsValue> {
     let uri_component = args.get_or_undefined(0);
 

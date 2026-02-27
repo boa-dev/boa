@@ -9,8 +9,8 @@ pub(crate) struct Pop;
 
 impl Pop {
     #[inline(always)]
-    pub(super) fn operation((): (), context: &mut Context) {
-        let _val = context.vm.stack.pop();
+    pub(super) fn operation((): (), context: &Context) {
+        let _val = context.vm_mut().stack.pop();
     }
 }
 
@@ -29,8 +29,8 @@ pub(crate) struct PopEnvironment;
 
 impl PopEnvironment {
     #[inline(always)]
-    pub(super) fn operation((): (), context: &mut Context) {
-        context.vm.frame.environments.pop();
+    pub(super) fn operation((): (), context: &Context) {
+        context.vm_mut().frame.environments.pop();
     }
 }
 

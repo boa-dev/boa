@@ -83,7 +83,7 @@ impl Script {
     pub fn parse<R: ReadChar>(
         src: Source<'_, R>,
         realm: Option<Realm>,
-        context: &mut Context,
+        context: &Context,
     ) -> JsResult<Self> {
         let path = src.path().map(Path::to_path_buf);
         let mut parser = Parser::new(src);
@@ -115,7 +115,7 @@ impl Script {
     /// Compiles the codeblock of this script.
     ///
     /// This is a no-op if this has been called previously.
-    pub fn codeblock(&self, context: &mut Context) -> JsResult<Gc<CodeBlock>> {
+    pub fn codeblock(&self, context: &Context) -> JsResult<Gc<CodeBlock>> {
         let mut codeblock = self.inner.codeblock.borrow_mut();
 
         if let Some(codeblock) = &*codeblock {
@@ -168,11 +168,11 @@ impl Script {
     /// on the context or [`JobExecutor::run_jobs`] on the provided queue to run them.
     ///
     /// [`JobExecutor::run_jobs`]: crate::job::JobExecutor::run_jobs
-    pub fn evaluate(&self, context: &mut Context) -> JsResult<JsValue> {
+    pub fn evaluate(&self, context: &Context) -> JsResult<JsValue> {
         self.prepare_run(context)?;
         let record = context.run();
 
-        context.vm.pop_frame();
+        context.vm_mut().pop_frame();
         record.consume()
     }
 
@@ -183,7 +183,7 @@ impl Script {
     /// execution is suspended. See [`Script::evaluate_async_with_budget`] if you want to also
     /// customize this parameter.
     #[allow(clippy::future_not_send)]
-    pub async fn evaluate_async(&self, context: &mut Context) -> JsResult<JsValue> {
+    pub async fn evaluate_async(&self, context: &Context) -> JsResult<JsValue> {
         self.evaluate_async_with_budget(context, 256).await
     }
 
@@ -197,22 +197,22 @@ impl Script {
     #[allow(clippy::future_not_send)]
     pub async fn evaluate_async_with_budget(
         &self,
-        context: &mut Context,
+        context: &Context,
         budget: u32,
     ) -> JsResult<JsValue> {
         self.prepare_run(context)?;
 
         let record = context.run_async_with_budget(budget).await;
 
-        context.vm.pop_frame();
+        context.vm_mut().pop_frame();
         record.consume()
     }
 
-    fn prepare_run(&self, context: &mut Context) -> JsResult<()> {
+    fn prepare_run(&self, context: &Context) -> JsResult<()> {
         let codeblock = self.codeblock(context)?;
 
         let global_env = EnvironmentStack::new(self.inner.realm.environment().clone());
-        context.vm.push_frame_with_stack(
+        context.vm_mut().push_frame_with_stack(
             CallFrame::new(
                 codeblock,
                 Some(ActiveRunnable::Script(self.clone())),

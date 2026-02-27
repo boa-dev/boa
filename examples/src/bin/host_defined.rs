@@ -35,7 +35,7 @@ struct HostDefinedMetrics {
 
 fn main() -> Result<(), JsError> {
     // We create a new `Context` to create a new Javascript executor..
-    let mut context = Context::default();
+    let context = Context::default();
 
     // Get the realm from the context.
     let realm = context.realm().clone();
