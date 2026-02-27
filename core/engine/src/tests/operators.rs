@@ -211,6 +211,21 @@ fn typeofs() {
 }
 
 #[test]
+fn typeof_tdz_throws() {
+    run_test_actions([TestAction::assert_native_error(
+        indoc! {r#"
+            function f() {
+                typeof x;
+                let x = 1;
+            }
+            f();
+        "#},
+        JsNativeErrorKind::Reference,
+        "access of uninitialized binding",
+    )]);
+}
+
+#[test]
 fn unary_post() {
     run_test_actions([
         TestAction::assert_eq("{ let a = 5; a++; a }", 6),
