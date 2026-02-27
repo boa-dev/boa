@@ -331,6 +331,12 @@ impl JsArray {
         Self::from_object(object)
     }
 
+    /// Calls `Array.prototype.values()`.
+    #[inline]
+    pub fn values(&self, context: &mut Context) -> JsResult<JsValue> {
+        Array::values(&self.inner.clone().into(), &[], context)
+    }
+
     /// Calls `Array.prototype.splice()`.
     ///
     /// Removes and/or inserts elements from the array, returning the removed elements.

@@ -47,3 +47,108 @@ fn request_constructor() {
         }),
     ]);
 }
+
+#[test]
+fn request_clone_preserves_body_without_override() {
+    run_test_actions([
+        TestAction::inspect_context(|ctx| {
+            let fetcher = TestFetcher::default();
+            crate::fetch::register(fetcher, None, ctx).expect("failed to register fetch");
+        }),
+        TestAction::run(
+            r#"
+                const original = new Request("http://unit.test", {
+                    method: "POST",
+                    body: "payload",
+                });
+                globalThis.cloned = new Request(original, {
+                    headers: { "x-test": "1" },
+                });
+            "#,
+        ),
+        TestAction::inspect_context(|ctx| {
+            let request = ctx.global_object().get(js_str!("cloned"), ctx).unwrap();
+            let request_obj = request.as_object().unwrap();
+            let request = request_obj.downcast_ref::<JsRequest>().unwrap();
+            assert_eq!(request.inner().body().as_slice(), b"payload");
+        }),
+    ]);
+}
+
+#[test]
+fn request_clone_empty_body_preserved() {
+    run_test_actions([
+        TestAction::inspect_context(|ctx| {
+            let fetcher = TestFetcher::default();
+            crate::fetch::register(fetcher, None, ctx).expect("failed to register fetch");
+        }),
+        TestAction::run(
+            r#"
+                const original = new Request("http://unit.test", {
+                    method: "POST",
+                    body: "",
+                });
+                globalThis.cloned = new Request(original, {
+                    headers: { "x-test": "1" },
+                });
+            "#,
+        ),
+        TestAction::inspect_context(|ctx| {
+            let request = ctx.global_object().get(js_str!("cloned"), ctx).unwrap();
+            let request_obj = request.as_object().unwrap();
+            let request = request_obj.downcast_ref::<JsRequest>().unwrap();
+            assert_eq!(request.inner().body().as_slice(), b"");
+        }),
+    ]);
+}
+
+#[test]
+fn request_clone_body_override() {
+    run_test_actions([
+        TestAction::inspect_context(|ctx| {
+            let fetcher = TestFetcher::default();
+            crate::fetch::register(fetcher, None, ctx).expect("failed to register fetch");
+        }),
+        TestAction::run(
+            r#"
+                const original = new Request("http://unit.test", {
+                    method: "POST",
+                    body: "payload",
+                });
+                globalThis.cloned = new Request(original, {
+                    body: "override",
+                });
+            "#,
+        ),
+        TestAction::inspect_context(|ctx| {
+            let request = ctx.global_object().get(js_str!("cloned"), ctx).unwrap();
+            let request_obj = request.as_object().unwrap();
+            let request = request_obj.downcast_ref::<JsRequest>().unwrap();
+            assert_eq!(request.inner().body().as_slice(), b"override");
+        }),
+    ]);
+}
+
+#[test]
+fn request_clone_no_body_preserved() {
+    run_test_actions([
+        TestAction::inspect_context(|ctx| {
+            let fetcher = TestFetcher::default();
+            crate::fetch::register(fetcher, None, ctx).expect("failed to register fetch");
+        }),
+        TestAction::run(
+            r#"
+                const original = new Request("http://unit.test");
+                globalThis.cloned = new Request(original, {
+                    headers: { "x-test": "1" },
+                });
+            "#,
+        ),
+        TestAction::inspect_context(|ctx| {
+            let request = ctx.global_object().get(js_str!("cloned"), ctx).unwrap();
+            let request_obj = request.as_object().unwrap();
+            let request = request_obj.downcast_ref::<JsRequest>().unwrap();
+            assert_eq!(request.inner().body().as_slice(), b"");
+        }),
+    ]);
+}
