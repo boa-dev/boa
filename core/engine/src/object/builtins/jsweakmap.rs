@@ -5,13 +5,11 @@ use boa_gc::{Finalize, Trace};
 
 use crate::{
     Context, JsResult, JsValue,
-    builtins::weak_map::WeakMap,
+    builtins::weak_map::{NativeWeakMap, WeakMap},
     error::JsNativeError,
-    object::{ErasedVTableObject, JsObject},
+    object::JsObject,
     value::TryFromJs,
 };
-
-type NativeWeakMap = boa_gc::WeakMap<ErasedVTableObject, JsValue>;
 
 /// `JsWeakMap` provides a wrapper for Boa's implementation of the ECMAScript `WeakMap` object.
 #[derive(Debug, Clone, Trace, Finalize)]
