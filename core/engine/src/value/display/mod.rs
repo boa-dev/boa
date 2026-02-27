@@ -1,8 +1,17 @@
+mod arguments;
+
 use super::{Display, HashSet, JsValue, JsVariant, fmt};
 use crate::{
     JsError, JsObject, JsString,
     builtins::{
-        Array, Promise, error::Error, map::ordered_map::OrderedMap, promise::PromiseState,
+        Array, Promise,
+        error::Error,
+        function::{
+            OrdinaryFunction,
+            arguments::{MappedArguments, UnmappedArguments},
+        },
+        map::ordered_map::OrderedMap,
+        promise::PromiseState,
         set::ordered_set::OrderedSet,
     },
     js_string,
@@ -186,6 +195,8 @@ pub(crate) fn log_value_to(
                 f.write_str(" }")
             } else if v.is::<Array>() {
                 log_array_to(f, &v, print_internals, print_children)
+            } else if v.is::<UnmappedArguments>() || v.is::<MappedArguments>() {
+                arguments::log_arguments_to(f, &v, print_internals, print_children)
             } else if let Some(map) = v.downcast_ref::<OrderedMap<JsValue>>() {
                 let size = map.len();
                 if size == 0 {
@@ -290,16 +301,16 @@ pub(crate) fn log_value_to(
                     .get_property(&PropertyKey::from(js_string!("name")))
                     .and_then(|d| Some(d.value()?.as_string()?.to_std_string_escaped()));
                 match name {
-                    Some(name) => write!(f, "[class {name}]"),
-                    None => f.write_str("[class (anonymous)]"),
+                    Some(name) if !name.is_empty() => write!(f, "[class {name}]"),
+                    _ => f.write_str("[class (anonymous)]"),
                 }
             } else if v.is_callable() {
                 let name = v
                     .get_property(&PropertyKey::from(js_string!("name")))
                     .and_then(|d| Some(d.value()?.as_string()?.to_std_string_escaped()));
                 match name {
-                    Some(name) => write!(f, "[Function: {name}]"),
-                    None => f.write_str("[Function (anonymous)]"),
+                    Some(name) if !name.is_empty() => write!(f, "[Function: {name}]"),
+                    _ => f.write_str("[Function (anonymous)]"),
                 }
             } else {
                 Display::fmt(&x.display_obj(print_internals), f)
@@ -391,6 +402,233 @@ fn get_constructor_name_of(obj: &JsObject) -> Option<JsString> {
         .as_string()?;
 
     Some(name)
+}
+
+/// Maximum nesting depth before objects/arrays are collapsed
+const COMPACT_DEPTH_LIMIT: u32 = 2;
+
+/// Formats a [`JsValue`] inline and compactly, collapsing deeply-nested objects.
+pub(super) fn log_value_compact(
+    f: &mut fmt::Formatter<'_>,
+    x: &JsValue,
+    depth: u32,
+    print_internals: bool,
+    encounters: &mut HashSet<usize>,
+) -> fmt::Result {
+    match x.variant() {
+        JsVariant::Object(v) => {
+            if let Some(s) = v.downcast_ref::<JsString>() {
+                write!(f, "String {{ {:?} }}", s.to_std_string_escaped())
+            } else if let Some(b) = v.downcast_ref::<bool>() {
+                write!(f, "Boolean {{ {b} }}")
+            } else if let Some(r) = v.downcast_ref::<f64>() {
+                f.write_str("Number { ")?;
+                format_rational(*r, f)?;
+                f.write_str(" }")
+            } else if v.is::<Array>() {
+                if depth >= COMPACT_DEPTH_LIMIT {
+                    f.write_str("[Array]")
+                } else {
+                    log_array_compact(f, &v, depth, print_internals, encounters)
+                }
+            } else if v.is::<UnmappedArguments>() || v.is::<MappedArguments>() {
+                f.write_str("[Arguments]")
+            } else if let Some(map) = v.downcast_ref::<OrderedMap<JsValue>>() {
+                let size = map.len();
+                if size == 0 {
+                    return f.write_str("Map(0)");
+                }
+                if depth >= COMPACT_DEPTH_LIMIT {
+                    write!(f, "Map({size})")
+                } else {
+                    f.write_str("Map { ")?;
+                    let mut first = true;
+                    for (key, value) in map.iter() {
+                        if first {
+                            first = false;
+                        } else {
+                            f.write_str(", ")?;
+                        }
+                        log_value_compact(f, key, depth + 1, print_internals, encounters)?;
+                        f.write_str(" => ")?;
+                        log_value_compact(f, value, depth + 1, print_internals, encounters)?;
+                    }
+                    f.write_str(" }")
+                }
+            } else if let Some(set) = v.downcast_ref::<OrderedSet>() {
+                let size = set.len();
+                if size == 0 {
+                    return f.write_str("Set(0)");
+                }
+                if depth >= COMPACT_DEPTH_LIMIT {
+                    write!(f, "Set({size})")
+                } else {
+                    f.write_str("Set { ")?;
+                    let mut first = true;
+                    for value in set.iter() {
+                        if first {
+                            first = false;
+                        } else {
+                            f.write_str(", ")?;
+                        }
+                        log_value_compact(f, value, depth + 1, print_internals, encounters)?;
+                    }
+                    f.write_str(" }")
+                }
+            } else if v.is::<Error>() {
+                log_value_to(f, x, print_internals, true)
+            } else if let Some(promise) = v.downcast_ref::<Promise>() {
+                f.write_str("Promise { ")?;
+                match promise.state() {
+                    PromiseState::Pending => f.write_str("<pending>")?,
+                    PromiseState::Fulfilled(val) => {
+                        log_value_compact(f, &val, depth + 1, print_internals, encounters)?;
+                    }
+                    PromiseState::Rejected(reason) => {
+                        write!(f, "<rejected> {}", JsError::from_opaque(reason.clone()))?;
+                    }
+                }
+                f.write_str(" }")
+            } else if v.is_callable() {
+                let name = v
+                    .get_property(&PropertyKey::from(js_string!("name")))
+                    .and_then(|d| Some(d.value()?.as_string()?.to_std_string_escaped()));
+                let is_class = v
+                    .downcast_ref::<OrdinaryFunction>()
+                    .is_some_and(|f| f.code.is_class_constructor());
+
+                let rendered = if is_class {
+                    match name {
+                        Some(name) if !name.is_empty() => format!("[class {name}]"),
+                        _ => "[class (anonymous)]".to_owned(),
+                    }
+                } else {
+                    match name {
+                        Some(name) if !name.is_empty() => format!("[Function: {name}]"),
+                        _ => "[Function (anonymous)]".to_owned(),
+                    }
+                };
+                f.write_str(&rendered)
+            } else {
+                // Plain object
+                if depth >= COMPACT_DEPTH_LIMIT {
+                    f.write_str("[Object]")
+                } else {
+                    log_plain_object_compact(f, &v, depth, print_internals, encounters)
+                }
+            }
+        }
+        JsVariant::Null => write!(f, "null"),
+        JsVariant::Undefined => write!(f, "undefined"),
+        JsVariant::Boolean(v) => write!(f, "{v}"),
+        JsVariant::Symbol(symbol) => {
+            write!(f, "{}", symbol.descriptive_string().to_std_string_escaped())
+        }
+        JsVariant::String(v) => write!(f, "{:?}", v.to_std_string_escaped()),
+        JsVariant::Float64(v) => format_rational(v, f),
+        JsVariant::Integer32(v) => write!(f, "{v}"),
+        JsVariant::BigInt(num) => write!(f, "{num}n"),
+    }
+}
+
+fn log_array_compact(
+    f: &mut fmt::Formatter<'_>,
+    x: &JsObject,
+    depth: u32,
+    print_internals: bool,
+    encounters: &mut HashSet<usize>,
+) -> fmt::Result {
+    let len = x
+        .borrow()
+        .properties()
+        .get(&js_string!("length").into())
+        .expect("array object must have 'length' property")
+        // FIXME: handle accessor descriptors
+        .expect_value()
+        .as_number()
+        .map(|n| n as i32)
+        .unwrap_or_default();
+
+    if len == 0 {
+        return f.write_str("[]");
+    }
+
+    f.write_str("[ ")?;
+    let mut first = true;
+    for i in 0..len {
+        if first {
+            first = false;
+        } else {
+            f.write_str(", ")?;
+        }
+        if let Some(value) = x
+            .borrow()
+            .properties()
+            .get(&i.into())
+            .and_then(|x| x.value().cloned())
+        {
+            log_value_compact(f, &value, depth + 1, print_internals, encounters)?;
+        } else {
+            f.write_str("<empty>")?;
+        }
+    }
+    f.write_str(" ]")
+}
+
+fn log_plain_object_compact(
+    f: &mut fmt::Formatter<'_>,
+    obj: &JsObject,
+    depth: u32,
+    print_internals: bool,
+    encounters: &mut HashSet<usize>,
+) -> fmt::Result {
+    let addr = std::ptr::from_ref(obj.as_ref()).addr();
+    if encounters.contains(&addr) {
+        return f.write_str("[Circular *]");
+    }
+    encounters.insert(addr);
+
+    let mut keys: Vec<_> = obj
+        .borrow()
+        .properties()
+        .index_property_keys()
+        .map(PropertyKey::from)
+        .collect();
+    keys.extend(obj.borrow().properties().shape.keys());
+
+    if keys.is_empty() {
+        encounters.remove(&addr);
+        return f.write_str("{}");
+    }
+
+    f.write_str("{ ")?;
+    let mut first = true;
+    for key in &keys {
+        if first {
+            first = false;
+        } else {
+            f.write_str(", ")?;
+        }
+        write!(f, "{key}: ")?;
+
+        let val = obj.borrow().properties().get(key).expect("key must exist");
+        if val.is_data_descriptor() {
+            let v = val.expect_value();
+            log_value_compact(f, v, depth + 1, print_internals, encounters)?;
+        } else {
+            let display = match (val.set().is_some(), val.get().is_some()) {
+                (true, true) => "[Getter/Setter]",
+                (true, false) => "[Setter]",
+                (false, true) => "[Getter]",
+                _ => "[No Getter/Setter]",
+            };
+            f.write_str(display)?;
+        }
+    }
+    f.write_str(" }")?;
+
+    encounters.remove(&addr);
+    Ok(())
 }
 
 impl JsValue {
