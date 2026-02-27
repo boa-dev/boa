@@ -341,10 +341,10 @@ impl GeneratorDelegateResume {
             .expect("iterator stack should have at least an iterator");
 
         if resume_kind == GeneratorResumeKind::Throw {
-            return Err(JsError::from_opaque(result.clone()));
+            return Err(JsError::from_opaque(result));
         }
 
-        iterator.update_result(result.clone(), context)?;
+        iterator.update_result(result, context)?;
 
         if iterator.done() {
             let result = iterator.value(context)?;

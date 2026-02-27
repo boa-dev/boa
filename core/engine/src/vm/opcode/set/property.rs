@@ -49,11 +49,11 @@ fn set_by_name(
             let prototype = shape.prototype().expect("prototype should have value");
             let mut prototype = prototype.borrow_mut();
 
-            prototype.properties_mut().storage[slot_index] = value.clone();
+            prototype.properties_mut().storage[slot_index] = value;
         } else {
             drop(object_borrowed);
             let mut object_borrowed = object.borrow_mut();
-            object_borrowed.properties_mut().storage[slot_index] = value.clone();
+            object_borrowed.properties_mut().storage[slot_index] = value;
         }
         return Ok(());
     }
@@ -62,7 +62,7 @@ fn set_by_name(
     let name: PropertyKey = ic.name.clone().into();
 
     let context = &mut InternalMethodPropertyContext::new(context);
-    let succeeded = object.__set__(name.clone(), value.clone(), receiver.clone(), context)?;
+    let succeeded = object.__set__(name.clone(), value, receiver.clone(), context)?;
     if !succeeded && context.vm_mut().frame().code_block.strict() {
         return Err(JsNativeError::typ()
             .with_message(format!("cannot set non-writable property: {name}"))
@@ -185,8 +185,8 @@ impl SetPropertyByValue {
         // Slow path:
         let succeeded = object.__set__(
             key.clone(),
-            value.clone(),
-            receiver.clone(),
+            value,
+            receiver,
             &mut context.into(),
         )?;
         if !succeeded && context.vm_mut().frame().code_block.strict() {
@@ -236,7 +236,7 @@ impl SetPropertyGetterByName {
         object.__define_own_property__(
             &name,
             PropertyDescriptor::builder()
-                .maybe_get(Some(value.clone()))
+                .maybe_get(Some(value))
                 .maybe_set(set)
                 .enumerable(true)
                 .configurable(true)
@@ -280,7 +280,7 @@ impl SetPropertyGetterByValue {
         object.__define_own_property__(
             &name,
             PropertyDescriptor::builder()
-                .maybe_get(Some(value.clone()))
+                .maybe_get(Some(value))
                 .maybe_set(set)
                 .enumerable(true)
                 .configurable(true)
@@ -329,7 +329,7 @@ impl SetPropertySetterByName {
         object.__define_own_property__(
             &name,
             PropertyDescriptor::builder()
-                .maybe_set(Some(value.clone()))
+                .maybe_set(Some(value))
                 .maybe_get(get)
                 .enumerable(true)
                 .configurable(true)
@@ -374,7 +374,7 @@ impl SetPropertySetterByValue {
         object.__define_own_property__(
             &name,
             PropertyDescriptor::builder()
-                .maybe_set(Some(value.clone()))
+                .maybe_set(Some(value))
                 .maybe_get(get)
                 .enumerable(true)
                 .configurable(true)

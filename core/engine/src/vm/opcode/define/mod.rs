@@ -55,7 +55,7 @@ impl DefInitVar {
             (value, strict, binding_locator)
         };
         context.find_runtime_binding(&mut binding_locator)?;
-        context.set_binding(&binding_locator, value.clone(), strict)?;
+        context.set_binding(&binding_locator, value, strict)?;
 
         Ok(())
     }

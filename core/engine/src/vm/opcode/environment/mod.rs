@@ -311,7 +311,7 @@ impl SuperCallDerived {
         context.vm_mut().stack.push(JsValue::undefined());
         context.vm_mut().stack.push(super_constructor.clone());
         for argument in { let vm = context.vm_mut(); vm.stack.get_arguments(&vm.frame).to_vec() } {
-            context.vm_mut().stack.push(argument.clone());
+            context.vm_mut().stack.push(argument);
         }
         context.vm_mut().stack.push(new_target);
 

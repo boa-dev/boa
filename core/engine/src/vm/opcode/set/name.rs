@@ -59,7 +59,7 @@ impl SetName {
 
         verify_initialized(&binding_locator, context)?;
 
-        context.set_binding(&binding_locator, value.clone(), strict)?;
+        context.set_binding(&binding_locator, value, strict)?;
 
         Ok(())
     }
@@ -94,7 +94,7 @@ impl SetNameByLocator {
 
         verify_initialized(&binding_locator, context)?;
 
-        context.set_binding(&binding_locator, value.clone(), strict)?;
+        context.set_binding(&binding_locator, value, strict)?;
 
         Ok(())
     }

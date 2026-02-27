@@ -141,7 +141,7 @@ pub(crate) struct PopIntoRegister;
 impl PopIntoRegister {
     #[inline(always)]
     pub(crate) fn operation(dst: VaryingOperand, context: &Context) {
-        let value = context.vm_mut().stack.pop().clone();
+        let value = context.vm_mut().stack.pop();
         context.vm_mut().set_register(dst.into(), value);
     }
 }
