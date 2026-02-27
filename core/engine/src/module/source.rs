@@ -729,10 +729,7 @@ impl SourceTextModule {
                 if resolution.module != star_resolution.module {
                     return Err(ResolveExportError::Ambiguous);
                 }
-                match (
-                    &resolution.binding_name,
-                    &star_resolution.binding_name,
-                ) {
+                match (&resolution.binding_name, &star_resolution.binding_name) {
                     // 3. If resolution.[[BindingName]] is not starResolution.[[BindingName]] and either
                     //    resolution.[[BindingName]] or starResolution.[[BindingName]] is namespace,
                     //    return ambiguous.
@@ -1795,7 +1792,11 @@ impl SourceTextModule {
                         .kind()
                         .as_module()
                         .expect("last environment should be the module env")
-                        .set_indirect(locator.binding_index(), export_locator.module().clone(), name.clone()),
+                        .set_indirect(
+                            locator.binding_index(),
+                            export_locator.module().clone(),
+                            name.clone(),
+                        ),
                     BindingName::Namespace => {
                         let namespace = export_locator.module().namespace(context);
                         context.vm.frame.environments.put_lexical_value(
