@@ -306,6 +306,8 @@ impl Interner {
     #[inline]
     #[must_use]
     pub fn len(&self) -> usize {
+        // `utf16_interner.len()` == `utf8_interner.len()`,
+        // so we can use any of them.
         COMMON_STRINGS_UTF8.len() + self.utf16_interner.len()
     }
 
@@ -391,6 +393,13 @@ impl Interner {
                 JStrRef::Utf16(s) => (String::from_utf16(s).ok().map(Cow::Owned), Cow::Borrowed(s)),
             };
 
+            // We need a way to check for the strings that can be interned by `utf16_interner` but
+            // not by `utf8_interner` (since there are some UTF-16 strings with surrogates that are
+            // not representable in UTF-8), so we use the sentinel value `""` as a marker indicating
+            // that the `Sym` corresponding to that string is only available in `utf16_interner`.
+            //
+            // We don't need to worry about matches with `""` inside `get`, because
+            // `COMMON_STRINGS_UTF8` filters all the empty strings before interning.
             let index = if let Some(utf8) = utf8 {
                 self.utf8_interner.intern(utf8.as_bytes())
             } else {
@@ -435,6 +444,9 @@ impl Interner {
     /// assert_eq!(sym1, sym2);
     /// ```
     pub fn get_or_intern_static(&mut self, utf8: &'static str, utf16: &'static [u16]) -> Sym {
+        // Uses the utf8 because it's quicker to check inside `COMMON_STRINGS_UTF8`
+        // (which is a perfect hash set) than to check inside `COMMON_STRINGS_UTF16`
+        // (which is a lazy static hash set).
         self.get(utf8).unwrap_or_else(|| {
             let index = self.utf8_interner.intern(utf8.as_bytes());
             let utf16_index = self.utf16_interner.intern(utf16);
