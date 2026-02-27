@@ -799,6 +799,11 @@ impl JsString {
     fn from_slice_skip_interning(string: JsStr<'_>) -> Self {
         let count = string.len();
 
+        // Validate against maximum string length BEFORE attempting allocation
+        if count > MAX_STRING_LENGTH {
+            alloc_overflow();
+        }
+
         // SAFETY:
         // - We read `count = data.len()` elements from `data`, which is within the bounds of the slice.
         // - `allocate_*_seq` must allocate at least `count` elements, which allows us to safely

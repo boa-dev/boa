@@ -86,6 +86,10 @@ impl<T: InternalStringType> SequenceString<T> {
     /// Returns `Err(Some(layout))` if:
     /// - Memory allocation fails
     pub(crate) fn try_allocate(len: usize) -> Result<NonNull<Self>, Option<Layout>> {
+        // Validate length BEFORE attempting Layout calculation
+        if len > crate::MAX_STRING_LENGTH {
+            return Err(None); // Signal overflow error
+        }
         // Calculate layout using the original method
         let (layout, offset) = Layout::array::<T::Byte>(len)
             .and_then(|arr| Layout::new::<Self>().extend(arr))
