@@ -238,11 +238,6 @@ impl ResolvedBinding {
         &self.module
     }
 
-    /// Gets the binding associated with the resolved export.
-    pub(crate) fn binding_name(&self) -> BindingName {
-        self.binding_name.clone()
-    }
-
     /// Gets a reference to the binding associated with the resolved export.
     pub(crate) const fn binding_name_ref(&self) -> &BindingName {
         &self.binding_name

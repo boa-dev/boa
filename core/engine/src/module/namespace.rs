@@ -105,11 +105,6 @@ impl ModuleNamespace {
         &self.exports
     }
 
-    /// Gest the module associated with this Module Namespace object.
-    pub(crate) const fn module(&self) -> &Module {
-        &self.module
-    }
-
     /// Gets a cached resolved binding for the given export name.
     pub(crate) fn get_resolved_binding(&self, name: &JsString) -> Option<&ResolvedBinding> {
         self.resolved_bindings.get(name)

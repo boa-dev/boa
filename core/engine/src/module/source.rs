@@ -730,8 +730,8 @@ impl SourceTextModule {
                     return Err(ResolveExportError::Ambiguous);
                 }
                 match (
-                    resolution.binding_name,
-                    star_resolution.binding_name.clone(),
+                    &resolution.binding_name,
+                    &star_resolution.binding_name,
                 ) {
                     // 3. If resolution.[[BindingName]] is not starResolution.[[BindingName]] and either
                     //    resolution.[[BindingName]] or starResolution.[[BindingName]] is namespace,
@@ -1631,7 +1631,7 @@ impl SourceTextModule {
                         // deferred to initialization below
                         imports.push(ImportBinding::Namespace {
                             locator,
-                            module: resolution.module,
+                            module: resolution.module.clone(),
                         });
                     }
                 } else {
@@ -1785,7 +1785,7 @@ impl SourceTextModule {
                 ImportBinding::Single {
                     locator,
                     export_locator,
-                } => match export_locator.binding_name() {
+                } => match export_locator.binding_name_ref() {
                     BindingName::Name(name) => context
                         .vm
                         .frame
@@ -1795,9 +1795,9 @@ impl SourceTextModule {
                         .kind()
                         .as_module()
                         .expect("last environment should be the module env")
-                        .set_indirect(locator.binding_index(), export_locator.module, name),
+                        .set_indirect(locator.binding_index(), export_locator.module().clone(), name.clone()),
                     BindingName::Namespace => {
-                        let namespace = export_locator.module.namespace(context);
+                        let namespace = export_locator.module().namespace(context);
                         context.vm.frame.environments.put_lexical_value(
                             locator.scope(),
                             locator.binding_index(),
