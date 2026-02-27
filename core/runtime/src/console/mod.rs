@@ -434,8 +434,13 @@ impl Console {
             0,
         )
         .function(
-            console_method(Self::dir, state, logger.clone()),
+            console_method(Self::dir, state.clone(), logger.clone()),
             js_string!("dirxml"),
+            0,
+        )
+        .function(
+            console_method(Self::table, state, logger.clone()),
+            js_string!("table"),
             0,
         )
         .build()
@@ -889,6 +894,190 @@ impl Console {
     ) -> JsResult<JsValue> {
         console.state.groups.pop();
 
+        Ok(JsValue::undefined())
+    }
+
+    /// `console.table(tabularData, properties)`
+    ///
+    /// Prints `tabularData` formatted as a table, with an optional column filter.
+    /// Falls back to `console.log` if `tabularData` is not an object.
+    ///
+    /// More information:
+    ///  - [MDN documentation][mdn]
+    ///  - [WHATWG `console` specification][spec]
+    ///
+    /// [spec]: https://console.spec.whatwg.org/#table
+    /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/API/console/table
+    fn table(
+        _: &JsValue,
+        args: &[JsValue],
+        console: &Self,
+        logger: &impl Logger,
+        context: &mut Context,
+    ) -> JsResult<JsValue> {
+        fn cell_str(val: &JsValue) -> String {
+            match val.variant() {
+                JsVariant::String(s) => s.to_std_string_escaped(),
+                JsVariant::Null => "null".to_string(),
+                JsVariant::Undefined => "undefined".to_string(),
+                _ => val.display().to_string(),
+            }
+        }
+
+        fn sep(left: &str, fill: &str, mid: &str, right: &str, widths: &[usize]) -> String {
+            let mut s = String::from(left);
+            let mut first = true;
+            for &w in widths {
+                if !first {
+                    s.push_str(mid);
+                }
+                first = false;
+                s.push_str(&fill.repeat(w + 2));
+            }
+            s.push_str(right);
+            s
+        }
+
+        let tabular_data = args.get_or_undefined(0);
+
+        let Some(obj) = tabular_data.as_object() else {
+            logger.log(formatter(args, context)?, &console.state, context)?;
+            return Ok(JsValue::undefined());
+        };
+
+        // Parse optional column filter from second argument
+        let col_filter: Option<Vec<String>> =
+            if let Some(props_obj) = args.get(1).and_then(JsValue::as_object) {
+                let len = props_obj
+                    .get(js_string!("length"), context)?
+                    .to_length(context)? as usize;
+                let mut filter = Vec::with_capacity(len);
+                for i in 0..len {
+                    let val = props_obj.get(i, context)?;
+                    filter.push(val.to_string(context)?.to_std_string_escaped());
+                }
+                Some(filter)
+            } else {
+                None
+            };
+
+        // rows: (index_str, Vec<(col_name, cell_value)>)
+        let mut rows: Vec<(String, Vec<(String, String)>)> = Vec::new();
+        let mut columns: Vec<String> = Vec::new();
+
+        // Use Object.keys() to get only enumerable own string-keyed properties.
+        let obj_ctor = context.intrinsics().constructors().object().constructor();
+        let keys_fn = obj_ctor.get(js_string!("keys"), context)?;
+        let Some(keys_fn) = keys_fn.as_callable() else {
+            return Ok(JsValue::undefined());
+        };
+
+        let call_object_keys = |target: &JsObject, ctx: &mut Context| -> JsResult<Vec<String>> {
+            let arr = keys_fn.call(
+                &JsValue::undefined(),
+                &[JsValue::from(target.clone())],
+                ctx,
+            )?;
+            let Some(arr_obj) = arr.as_object() else {
+                return Ok(vec![]);
+            };
+            let len = arr_obj
+                .get(js_string!("length"), ctx)?
+                .to_u32(ctx)? as usize;
+            let mut out = Vec::with_capacity(len);
+            for i in 0..len {
+                let v = arr_obj.get(i, ctx)?;
+                out.push(v.to_string(ctx)?.to_std_string_escaped());
+            }
+            Ok(out)
+        };
+
+        for index_str in call_object_keys(&obj, context)? {
+            let row_val = obj.get(JsString::from(index_str.as_str()), context)?;
+            let mut cells: Vec<(String, String)> = Vec::new();
+
+            if let Some(row_obj) = row_val.as_object() {
+                for col in call_object_keys(&row_obj.clone(), context)? {
+                    if col_filter.as_ref().is_some_and(|f| !f.contains(&col)) {
+                        continue;
+                    }
+                    let cell_val = row_obj.get(JsString::from(col.as_str()), context)?;
+                    if !columns.contains(&col) {
+                        columns.push(col.clone());
+                    }
+                    cells.push((col, cell_str(&cell_val)));
+                }
+            } else {
+                let col = "Values".to_string();
+                if col_filter.as_ref().map_or(true, |f| f.contains(&col)) {
+                    if !columns.contains(&col) {
+                        columns.push(col.clone());
+                    }
+                    cells.push((col, cell_str(&row_val)));
+                }
+            }
+
+            rows.push((index_str, cells));
+        }
+
+        // Compute column widths: index col + one per data column
+        let index_header = "(index)";
+        let index_width = rows
+            .iter()
+            .map(|(idx, _)| idx.len())
+            .fold(index_header.len(), usize::max);
+
+        let col_widths: Vec<usize> = columns
+            .iter()
+            .enumerate()
+            .map(|(i, name)| {
+                rows.iter()
+                    .filter_map(|(_, cells)| cells.get(i).map(|(_, v)| v.len()))
+                    .fold(name.len(), usize::max)
+            })
+            .collect();
+
+        // all widths including the index column
+        let mut all_widths = vec![index_width];
+        all_widths.extend_from_slice(&col_widths);
+
+        let mut out = String::new();
+
+        // top border
+        out.push_str(&sep("┌", "─", "┬", "┐", &all_widths));
+        out.push('\n');
+
+        // header row
+        out.push('│');
+        out.push_str(&format!(" {index_header:^index_width$} "));
+        for (i, col) in columns.iter().enumerate() {
+            out.push_str(&format!("│ {:^width$} ", col, width = col_widths[i]));
+        }
+        out.push_str("│\n");
+
+        // header separator
+        out.push_str(&sep("├", "─", "┼", "┤", &all_widths));
+        out.push('\n');
+
+        // data rows
+        for (idx, cells) in &rows {
+            out.push('│');
+            out.push_str(&format!(" {idx:^index_width$} "));
+            for (i, col) in columns.iter().enumerate() {
+                let val = cells
+                    .iter()
+                    .find(|(c, _)| c == col)
+                    .map(|(_, v)| v.as_str())
+                    .unwrap_or("");
+                out.push_str(&format!("│ {:^width$} ", val, width = col_widths[i]));
+            }
+            out.push_str("│\n");
+        }
+
+        // bottom border
+        out.push_str(&sep("└", "─", "┴", "┘", &all_widths));
+
+        logger.log(out, &console.state, context)?;
         Ok(JsValue::undefined())
     }
 

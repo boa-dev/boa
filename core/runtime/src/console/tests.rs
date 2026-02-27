@@ -339,6 +339,83 @@ fn console_namespace_object_class_string() {
 }
 
 #[test]
+fn console_table_array_of_primitives() {
+    let mut context = Context::default();
+    let logger = RecordingLogger::default();
+    Console::register_with_logger(logger.clone(), &mut context).unwrap();
+
+    run_test_actions_with(
+        [TestAction::run(indoc! {r#"
+            console.table(["foo", "bar", "baz"]);
+        "#})],
+        &mut context,
+    );
+
+    let logs = logger.log.borrow().clone();
+    assert!(logs.contains("(index)"), "missing (index) header");
+    assert!(logs.contains("Values"), "missing Values header");
+    assert!(logs.contains("foo"), "missing foo");
+    assert!(logs.contains("bar"), "missing bar");
+    assert!(logs.contains("0"), "missing index 0");
+}
+
+#[test]
+fn console_table_array_of_objects() {
+    let mut context = Context::default();
+    let logger = RecordingLogger::default();
+    Console::register_with_logger(logger.clone(), &mut context).unwrap();
+
+    run_test_actions_with(
+        [TestAction::run(indoc! {r#"
+            console.table([{ a: 1, b: "foo" }, { a: 2, b: "bar" }]);
+        "#})],
+        &mut context,
+    );
+
+    let logs = logger.log.borrow().clone();
+    assert!(logs.contains("(index)"), "missing (index) header");
+    assert!(logs.contains("a"), "missing column a");
+    assert!(logs.contains("b"), "missing column b");
+    assert!(logs.contains("foo"), "missing foo");
+    assert!(logs.contains("1"), "missing value 1");
+}
+
+#[test]
+fn console_table_with_properties_filter() {
+    let mut context = Context::default();
+    let logger = RecordingLogger::default();
+    Console::register_with_logger(logger.clone(), &mut context).unwrap();
+
+    run_test_actions_with(
+        [TestAction::run(indoc! {r#"
+            console.table([{ a: 1, b: "foo" }, { a: 2, b: "bar" }], ["a"]);
+        "#})],
+        &mut context,
+    );
+
+    let logs = logger.log.borrow().clone();
+    assert!(logs.contains("a"), "missing column a");
+    assert!(!logs.contains("foo"), "column b should be filtered out");
+}
+
+#[test]
+fn console_table_non_object_fallback() {
+    let mut context = Context::default();
+    let logger = RecordingLogger::default();
+    Console::register_with_logger(logger.clone(), &mut context).unwrap();
+
+    run_test_actions_with(
+        [TestAction::run(indoc! {r#"
+            console.table("just a string");
+        "#})],
+        &mut context,
+    );
+
+    let logs = logger.log.borrow().clone();
+    assert!(logs.contains("just a string"), "should fall back to log");
+}
+
+#[test]
 fn trace_with_stack_trace() {
     let mut context = Context::default();
     let logger = RecordingLogger::default();
