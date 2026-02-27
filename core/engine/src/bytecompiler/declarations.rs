@@ -1,5 +1,9 @@
-use crate::vm::opcode::*;
 use super::{BindingAccessOpcode, ToJsString};
+use crate::vm::opcode::{
+    CanDeclareGlobalFunction, CanDeclareGlobalVar, CreateGlobalFunctionBinding,
+    CreateGlobalVarBinding, CreateMappedArgumentsObject, CreateUnmappedArgumentsObject, Generator,
+    GetArgument, HasRestrictedGlobalProperty, Pop, PushUndefined, RestParameterInit,
+};
 use crate::{
     Context, JsNativeError, JsResult, SpannedSourceText,
     bytecompiler::{ByteCompiler, FunctionCompiler, FunctionSpec, NodeKind},
@@ -555,9 +559,12 @@ impl ByteCompiler<'_> {
 
             // c. Perform ? env.CreateGlobalFunctionBinding(fn, fo, false).
             let name_index = self.get_or_insert_name(name.sym());
-            CreateGlobalFunctionBinding::emit(self, dst.variable(),
+            CreateGlobalFunctionBinding::emit(
+                self,
+                dst.variable(),
                 false.into(),
-                name_index.into(),);
+                name_index.into(),
+            );
             self.register_allocator.dealloc(dst);
         }
 
@@ -837,9 +844,12 @@ impl ByteCompiler<'_> {
 
                 // i. Perform ? varEnv.CreateGlobalFunctionBinding(fn, fo, true).
                 let name_index = self.get_or_insert_name(name.sym());
-                CreateGlobalFunctionBinding::emit(self, dst.variable(),
+                CreateGlobalFunctionBinding::emit(
+                    self,
+                    dst.variable(),
                     true.into(),
-                    name_index.into(),);
+                    name_index.into(),
+                );
                 self.register_allocator.dealloc(dst);
             }
             // d. Else,

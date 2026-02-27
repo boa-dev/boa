@@ -1,5 +1,16 @@
-use crate::vm::opcode::*;
 use super::{BindingAccessOpcode, ByteCompiler, Literal, Register, ToJsString};
+use crate::vm::opcode::{
+    BindThisValue, Call, DefineClassGetterByName, DefineClassGetterByValue,
+    DefineClassMethodByName, DefineClassMethodByValue, DefineClassSetterByName,
+    DefineClassSetterByValue, DefineClassStaticGetterByName, DefineClassStaticGetterByValue,
+    DefineClassStaticMethodByName, DefineClassStaticMethodByValue, DefineClassStaticSetterByName,
+    DefineClassStaticSetterByValue, DefineOwnPropertyByName, DefineOwnPropertyByValue,
+    DefinePrivateField, Move, Pop, PopPrivateEnvironment, PushClassField, PushClassFieldPrivate,
+    PushClassPrivateGetter, PushClassPrivateMethod, PushClassPrivateSetter, PushClassPrototype,
+    PushPrivateEnvironment, PushUndefined, SetAccumulator, SetClassPrototype, SetFunctionName,
+    SetHomeObject, SetPrivateGetter, SetPrivateMethod, SetPrivateSetter, SuperCallDerived,
+    ToPropertyKey,
+};
 use crate::{
     js_string,
     vm::{CodeBlock, CodeBlockFlags, opcode::BindingOpcode},
@@ -167,18 +178,24 @@ impl ByteCompiler<'_> {
 
         if let Some(node) = class.super_ref {
             self.compile_expr(node, &prototype_register);
-            PushClassPrototype::emit(self, prototype_register.variable(),
+            PushClassPrototype::emit(
+                self,
+                prototype_register.variable(),
                 class_register.variable(),
-                prototype_register.variable(),);
+                prototype_register.variable(),
+            );
         } else {
             PushUndefined::emit(self, prototype_register.variable());
         }
 
         let proto_register = self.register_allocator.alloc();
 
-        SetClassPrototype::emit(self, proto_register.variable(),
+        SetClassPrototype::emit(
+            self,
+            proto_register.variable(),
             prototype_register.variable(),
-            class_register.variable(),);
+            class_register.variable(),
+        );
         self.register_allocator.dealloc(prototype_register);
 
         let mut name_indices = ThinVec::new();
@@ -227,34 +244,52 @@ impl ByteCompiler<'_> {
 
                         match (m.is_static(), m.kind()) {
                             (true, MethodDefinitionKind::Get) => {
-                                DefineClassStaticGetterByName::emit(self, method.variable(),
+                                DefineClassStaticGetterByName::emit(
+                                    self,
+                                    method.variable(),
                                     object_register.variable(),
-                                    index.into(),);
+                                    index.into(),
+                                );
                             }
                             (true, MethodDefinitionKind::Set) => {
-                                DefineClassStaticSetterByName::emit(self, method.variable(),
+                                DefineClassStaticSetterByName::emit(
+                                    self,
+                                    method.variable(),
                                     object_register.variable(),
-                                    index.into(),);
+                                    index.into(),
+                                );
                             }
                             (true, _) => {
-                                DefineClassStaticMethodByName::emit(self, method.variable(),
+                                DefineClassStaticMethodByName::emit(
+                                    self,
+                                    method.variable(),
                                     object_register.variable(),
-                                    index.into(),);
+                                    index.into(),
+                                );
                             }
                             (false, MethodDefinitionKind::Get) => {
-                                DefineClassGetterByName::emit(self, method.variable(),
+                                DefineClassGetterByName::emit(
+                                    self,
+                                    method.variable(),
                                     object_register.variable(),
-                                    index.into(),);
+                                    index.into(),
+                                );
                             }
                             (false, MethodDefinitionKind::Set) => {
-                                DefineClassSetterByName::emit(self, method.variable(),
+                                DefineClassSetterByName::emit(
+                                    self,
+                                    method.variable(),
                                     object_register.variable(),
-                                    index.into(),);
+                                    index.into(),
+                                );
                             }
                             (false, _) => {
-                                DefineClassMethodByName::emit(self, method.variable(),
+                                DefineClassMethodByName::emit(
+                                    self,
+                                    method.variable(),
                                     object_register.variable(),
-                                    index.into(),);
+                                    index.into(),
+                                );
                             }
                         }
 
@@ -273,34 +308,52 @@ impl ByteCompiler<'_> {
 
                         match (m.is_static(), m.kind()) {
                             (true, MethodDefinitionKind::Get) => {
-                                DefineClassStaticGetterByValue::emit(self, method.variable(),
+                                DefineClassStaticGetterByValue::emit(
+                                    self,
+                                    method.variable(),
                                     key.variable(),
-                                    object_register.variable(),);
+                                    object_register.variable(),
+                                );
                             }
                             (true, MethodDefinitionKind::Set) => {
-                                DefineClassStaticSetterByValue::emit(self, method.variable(),
+                                DefineClassStaticSetterByValue::emit(
+                                    self,
+                                    method.variable(),
                                     key.variable(),
-                                    object_register.variable(),);
+                                    object_register.variable(),
+                                );
                             }
                             (true, _) => {
-                                DefineClassStaticMethodByValue::emit(self, method.variable(),
+                                DefineClassStaticMethodByValue::emit(
+                                    self,
+                                    method.variable(),
                                     key.variable(),
-                                    object_register.variable(),);
+                                    object_register.variable(),
+                                );
                             }
                             (false, MethodDefinitionKind::Get) => {
-                                DefineClassGetterByValue::emit(self, method.variable(),
+                                DefineClassGetterByValue::emit(
+                                    self,
+                                    method.variable(),
                                     key.variable(),
-                                    object_register.variable(),);
+                                    object_register.variable(),
+                                );
                             }
                             (false, MethodDefinitionKind::Set) => {
-                                DefineClassSetterByValue::emit(self, method.variable(),
+                                DefineClassSetterByValue::emit(
+                                    self,
+                                    method.variable(),
                                     key.variable(),
-                                    object_register.variable(),);
+                                    object_register.variable(),
+                                );
                             }
                             (false, _) => {
-                                DefineClassMethodByValue::emit(self, method.variable(),
+                                DefineClassMethodByValue::emit(
+                                    self,
+                                    method.variable(),
                                     key.variable(),
-                                    object_register.variable(),);
+                                    object_register.variable(),
+                                );
                             }
                         }
 
@@ -312,35 +365,53 @@ impl ByteCompiler<'_> {
                         let method = self.method(m.into());
                         match (m.is_static(), m.kind()) {
                             (true, MethodDefinitionKind::Get) => {
-                                SetPrivateGetter::emit(self, class_register.variable(),
+                                SetPrivateGetter::emit(
+                                    self,
+                                    class_register.variable(),
                                     method.variable(),
-                                    index.into(),);
+                                    index.into(),
+                                );
                             }
                             (true, MethodDefinitionKind::Set) => {
-                                SetPrivateSetter::emit(self, class_register.variable(),
+                                SetPrivateSetter::emit(
+                                    self,
+                                    class_register.variable(),
                                     method.variable(),
-                                    index.into(),);
+                                    index.into(),
+                                );
                             }
                             (true, _) => {
-                                SetPrivateMethod::emit(self, class_register.variable(),
+                                SetPrivateMethod::emit(
+                                    self,
+                                    class_register.variable(),
                                     method.variable(),
-                                    index.into(),);
+                                    index.into(),
+                                );
                             }
                             (false, MethodDefinitionKind::Get) => {
-                                PushClassPrivateGetter::emit(self, class_register.variable(),
+                                PushClassPrivateGetter::emit(
+                                    self,
+                                    class_register.variable(),
                                     method.variable(),
-                                    index.into(),);
+                                    index.into(),
+                                );
                             }
                             (false, MethodDefinitionKind::Set) => {
-                                PushClassPrivateSetter::emit(self, class_register.variable(),
+                                PushClassPrivateSetter::emit(
+                                    self,
+                                    class_register.variable(),
                                     method.variable(),
-                                    index.into(),);
+                                    index.into(),
+                                );
                             }
                             (false, _) => {
-                                PushClassPrivateMethod::emit(self, class_register.variable(),
+                                PushClassPrivateMethod::emit(
+                                    self,
+                                    class_register.variable(),
                                     proto_register.variable(),
                                     method.variable(),
-                                    index.into(),);
+                                    index.into(),
+                                );
                             }
                         }
                         self.register_allocator.dealloc(method);
@@ -399,10 +470,13 @@ impl ByteCompiler<'_> {
 
                     let dst = self.register_allocator.alloc();
                     self.emit_get_function(&dst, index);
-                    PushClassField::emit(self, class_register.variable(),
+                    PushClassField::emit(
+                        self,
+                        class_register.variable(),
                         name.variable(),
                         dst.variable(),
-                        is_anonymous_function.into(),);
+                        is_anonymous_function.into(),
+                    );
                     self.register_allocator.dealloc(name);
                     self.register_allocator.dealloc(dst);
                 }
@@ -438,9 +512,12 @@ impl ByteCompiler<'_> {
                     let index = self.push_function_to_constants(code);
                     let dst = self.register_allocator.alloc();
                     self.emit_get_function(&dst, index);
-                    PushClassFieldPrivate::emit(self, class_register.variable(),
+                    PushClassFieldPrivate::emit(
+                        self,
+                        class_register.variable(),
                         dst.variable(),
-                        name_index.into(),);
+                        name_index.into(),
+                    );
                     self.register_allocator.dealloc(dst);
                 }
                 ClassElement::StaticFieldDefinition(field) => {
@@ -603,25 +680,37 @@ impl ByteCompiler<'_> {
                     self.pop_into_register(&value);
                     match name_index {
                         StaticFieldName::PrivateName(name) => {
-                            DefinePrivateField::emit(self, class_register.variable(),
+                            DefinePrivateField::emit(
+                                self,
+                                class_register.variable(),
                                 value.variable(),
-                                name.into(),);
+                                name.into(),
+                            );
                         }
                         StaticFieldName::Index(name) => {
-                            DefineOwnPropertyByName::emit(self, class_register.variable(),
+                            DefineOwnPropertyByName::emit(
+                                self,
+                                class_register.variable(),
                                 value.variable(),
-                                name.into(),);
+                                name.into(),
+                            );
                         }
                         StaticFieldName::Register(key) => {
                             if is_anonymous_function {
                                 ToPropertyKey::emit(self, key.variable(), key.variable());
-                                SetFunctionName::emit(self, value.variable(),
+                                SetFunctionName::emit(
+                                    self,
+                                    value.variable(),
                                     key.variable(),
-                                    0u32.into(),);
+                                    0u32.into(),
+                                );
                             }
-                            DefineOwnPropertyByValue::emit(self, value.variable(),
+                            DefineOwnPropertyByValue::emit(
+                                self,
+                                value.variable(),
                                 key.variable(),
-                                class_register.variable(),);
+                                class_register.variable(),
+                            );
                             self.register_allocator.dealloc(key);
                         }
                     }

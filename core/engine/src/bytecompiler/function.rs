@@ -1,4 +1,4 @@
-use crate::vm::opcode::*;
+use crate::vm::opcode::CreatePromiseCapability;
 use crate::{
     JsString, SpannedSourceText,
     builtins::function::ThisMode,

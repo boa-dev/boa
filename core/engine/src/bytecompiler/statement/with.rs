@@ -1,5 +1,5 @@
-use crate::vm::opcode::*;
 use crate::bytecompiler::ByteCompiler;
+use crate::vm::opcode::{PopEnvironment, PushObjectEnvironment};
 use boa_ast::statement::With;
 
 impl ByteCompiler<'_> {

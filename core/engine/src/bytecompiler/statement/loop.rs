@@ -1,4 +1,9 @@
-use crate::vm::opcode::*;
+use crate::vm::opcode::{
+    Await, CreateForInIterator, Exception, GeneratorNext, GetAsyncIterator, GetIterator,
+    IncrementLoopIteration, IteratorDone, IteratorFinishAsyncNext, IteratorNext, IteratorResult,
+    IteratorValue, Jump, PopEnvironment, PushScope, PushTrue, PushUndefined, Throw,
+    ThrowMutateImmutable,
+};
 use boa_ast::{
     declaration::Binding,
     operations::bound_names,

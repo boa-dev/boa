@@ -1,6 +1,6 @@
-use crate::vm::opcode::*;
 use super::jump_control::{JumpRecord, JumpRecordAction, JumpRecordKind};
 use crate::bytecompiler::ByteCompiler;
+use crate::vm::opcode::{Await, GeneratorNext, PushUndefined, SetAccumulator, Throw};
 use boa_ast::Statement;
 
 mod block;
@@ -63,7 +63,7 @@ impl ByteCompiler<'_> {
 
                 let error = compiler.register_allocator.alloc();
                 compiler.compile_expr(throw.target(), &error);
-                Throw::emit(&mut *compiler, error.variable());
+                Throw::emit(&mut compiler, error.variable());
                 compiler.register_allocator.dealloc(error);
             }
             Statement::Switch(switch) => {

@@ -9,8 +9,11 @@
 //! [try spec]: https://tc39.es/ecma262/#sec-try-statement
 //! [labelled spec]: https://tc39.es/ecma262/#sec-labelled-statements
 
-use crate::vm::opcode::*;
 use super::Register;
+use crate::vm::opcode::{
+    AsyncGeneratorClose, CheckReturn, CompletePromiseCapability, JumpTable, PopEnvironment,
+    PushFalse, Return, SetAccumulator,
+};
 use crate::{
     bytecompiler::{ByteCompiler, Label},
     vm::Handler,
@@ -558,9 +561,12 @@ impl ByteCompiler<'_> {
 
         // NOTE: +4 to jump past the index operand.
         let jump_table_index = self.next_opcode_location() + size_of::<u32>() as u32;
-        JumpTable::emit(self, finally_throw_index,
+        JumpTable::emit(
+            self,
+            finally_throw_index,
             Self::DUMMY_ADDRESS,
-            thin_vec![Self::DUMMY_ADDRESS; info.jumps.len()],);
+            thin_vec![Self::DUMMY_ADDRESS; info.jumps.len()],
+        );
 
         let mut patch_jumps = Vec::with_capacity(info.jumps.len());
         // Handle breaks/continue/returns in a finally block

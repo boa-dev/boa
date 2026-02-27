@@ -9,7 +9,7 @@
 //! [spec]: https://tc39.es/ecma262/#sec-eval-x
 //! [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/eval
 
-use crate::vm::opcode::*;
+use crate::vm::opcode::PushScope;
 use crate::{
     Context, JsArgs, JsResult, JsString, JsValue, SpannedSourceText,
     builtins::{BuiltInObject, function::OrdinaryFunction},

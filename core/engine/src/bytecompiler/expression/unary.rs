@@ -1,5 +1,5 @@
-use crate::vm::opcode::*;
 use crate::bytecompiler::{Access, BindingAccessOpcode, ByteCompiler, Register, ToJsString};
+use crate::vm::opcode::{BitNot, LogicalNot, Neg, Pos, PushTrue, PushUndefined, TypeOf};
 use boa_ast::Expression;
 use boa_ast::expression::operator::{Unary, unary::UnaryOp};
 
@@ -13,7 +13,7 @@ impl ByteCompiler<'_> {
                     compiler.access_delete(access, dst);
                 } else {
                     compiler.compile_expr(unary.target(), dst);
-                    PushTrue::emit(&mut *compiler, dst.variable());
+                    PushTrue::emit(&mut compiler, dst.variable());
                 }
             }
             UnaryOp::Minus => {

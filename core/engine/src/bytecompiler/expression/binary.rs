@@ -1,5 +1,9 @@
 use crate::bytecompiler::{ByteCompiler, Label, Register};
-use crate::vm::opcode::*;
+use crate::vm::opcode::{
+    Add, BitAnd, BitOr, BitXor, Coalesce, Div, Eq, GreaterThan, GreaterThanOrEq, In, InPrivate,
+    InstanceOf, LessThan, LessThanOrEq, LogicalAnd, LogicalOr, Mod, Mul, NotEq, Pow, ShiftLeft,
+    ShiftRight, StrictEq, StrictNotEq, Sub, UnsignedShiftRight,
+};
 use boa_ast::{
     Expression,
     expression::operator::{

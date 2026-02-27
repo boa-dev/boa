@@ -1,6 +1,6 @@
-use crate::vm::opcode::*;
 use super::ByteCompiler;
 use crate::vm::Constant;
+use crate::vm::opcode::{PopEnvironment, PushScope};
 use boa_ast::scope::Scope;
 
 impl ByteCompiler<'_> {

@@ -1,6 +1,6 @@
-use crate::vm::opcode::*;
 use super::{ByteCompiler, Literal, ToJsString};
 use crate::vm::opcode::BindingOpcode;
+use crate::vm::opcode::SetFunctionName;
 use boa_ast::{ModuleItem, ModuleItemList, declaration::ExportDeclaration};
 use boa_interner::Sym;
 
@@ -56,9 +56,12 @@ impl ByteCompiler<'_> {
                                 .into_common(false);
                             let key = self.register_allocator.alloc();
                             self.emit_push_literal(Literal::String(default), &key);
-                            SetFunctionName::emit(self, function.variable(),
+                            SetFunctionName::emit(
+                                self,
+                                function.variable(),
                                 key.variable(),
-                                0u32.into(),);
+                                0u32.into(),
+                            );
                             self.register_allocator.dealloc(key);
                         }
 

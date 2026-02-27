@@ -1,4 +1,7 @@
-use crate::vm::opcode::*;
+use crate::vm::opcode::{
+    Exception, PushFalse, PushTrue, PushUndefined, PushZero, ReThrow, SetAccumulator,
+    SetRegisterFromAccumulator, Throw,
+};
 use crate::{
     bytecompiler::{ByteCompiler, Register, ToJsString, jump_control::JumpControlInfoFlags},
     vm::opcode::BindingOpcode,

@@ -1,5 +1,8 @@
-use crate::vm::opcode::*;
 use super::{ByteCompiler, Literal, Register};
+use crate::vm::opcode::{
+    AsyncGeneratorYield, Await, CreateIteratorResult, GeneratorNext, GeneratorYield, IsObject,
+    IteratorReturn, IteratorStackEmpty, Jump, ThrowNewTypeError,
+};
 use crate::{js_string, vm::GeneratorResumeKind};
 
 impl ByteCompiler<'_> {

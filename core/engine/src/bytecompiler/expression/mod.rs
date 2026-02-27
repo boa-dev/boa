@@ -7,7 +7,14 @@ mod update;
 use std::ops::Deref;
 
 use super::{Access, Callable, NodeKind, Register, ToJsString};
-use crate::vm::opcode::*;
+use crate::vm::opcode::{
+    Await, BindThisValue, Call, ConcatToString, GeneratorDelegateNext, GeneratorDelegateResume,
+    GeneratorNext, GeneratorYield, GetAsyncIterator, GetIterator, GetPrivateField,
+    GetPropertyByValue, ImportCall, ImportMeta, IteratorResult, IteratorValue, Jump, NewTarget,
+    Pop, PushElisionToArray, PushFalse, PushIteratorToArray, PushNewArray, PushNull, PushRegexp,
+    PushTrue, PushUndefined, PushValueToArray, SuperCall, SuperCallPrepare, SuperCallSpread,
+    TemplateCreate,
+};
 use crate::{
     bytecompiler::{ByteCompiler, Literal},
     vm::GeneratorResumeKind,
@@ -86,9 +93,12 @@ impl ByteCompiler<'_> {
             Expression::RegExpLiteral(regexp) => {
                 let pattern_index = self.get_or_insert_name(regexp.pattern());
                 let flags_index = self.get_or_insert_name(regexp.flags());
-                PushRegexp::emit(self, dst.variable(),
+                PushRegexp::emit(
+                    self,
+                    dst.variable(),
                     pattern_index.into(),
-                    flags_index.into(),);
+                    flags_index.into(),
+                );
             }
             Expression::Unary(unary) => self.compile_unary(unary, dst),
             Expression::Update(update) => self.compile_update(update, dst),
@@ -175,11 +185,14 @@ impl ByteCompiler<'_> {
                     let start_address = self.next_opcode_location();
 
                     let generator_delegate_next_label = self.next_opcode_location();
-                    GeneratorDelegateNext::emit(self, Self::DUMMY_ADDRESS,
+                    GeneratorDelegateNext::emit(
+                        self,
+                        Self::DUMMY_ADDRESS,
                         Self::DUMMY_ADDRESS,
                         dst.variable(),
                         resume_kind.variable(),
-                        is_return.variable(),);
+                        is_return.variable(),
+                    );
 
                     if self.is_async() {
                         Await::emit(self, dst.variable());
@@ -190,11 +203,14 @@ impl ByteCompiler<'_> {
                     }
 
                     let generator_delegate_resume_label = self.next_opcode_location();
-                    GeneratorDelegateResume::emit(self, Self::DUMMY_ADDRESS,
+                    GeneratorDelegateResume::emit(
+                        self,
+                        Self::DUMMY_ADDRESS,
                         Self::DUMMY_ADDRESS,
                         dst.variable(),
                         resume_kind.variable(),
-                        is_return.variable(),);
+                        is_return.variable(),
+                    );
 
                     if self.is_async() {
                         IteratorValue::emit(self, dst.variable());
@@ -261,10 +277,13 @@ impl ByteCompiler<'_> {
                             PropertyAccessField::Expr(field) => {
                                 let key = self.register_allocator.alloc();
                                 self.compile_expr(field, &key);
-                                GetPropertyByValue::emit(self, function.variable(),
+                                GetPropertyByValue::emit(
+                                    self,
+                                    function.variable(),
                                     key.variable(),
                                     this.variable(),
-                                    this.variable(),);
+                                    this.variable(),
+                                );
                                 self.register_allocator.dealloc(key);
                             }
                         }
@@ -272,9 +291,12 @@ impl ByteCompiler<'_> {
                     Expression::PropertyAccess(PropertyAccess::Private(access)) => {
                         let index = self.get_or_insert_private_name(access.field());
                         self.compile_expr(access.target(), &this);
-                        GetPrivateField::emit(self, function.variable(),
+                        GetPrivateField::emit(
+                            self,
+                            function.variable(),
                             this.variable(),
-                            index.into(),);
+                            index.into(),
+                        );
                     }
                     expr => {
                         PushUndefined::emit(self, this.variable());

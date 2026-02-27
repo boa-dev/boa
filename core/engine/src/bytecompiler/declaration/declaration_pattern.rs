@@ -1,4 +1,8 @@
-use crate::vm::opcode::*;
+use crate::vm::opcode::{
+    CopyDataProperties, GetIterator, GetPropertyByValue, GetPropertyByValuePush, IteratorDone,
+    IteratorNext, IteratorToArray, IteratorValue, MaybeException, PushEmptyObject, PushUndefined,
+    ReThrow, Throw, ToPropertyKey, ValueNotNullOrUndefined,
+};
 use crate::{
     bytecompiler::{Access, ByteCompiler, Literal, Register, ToJsString},
     vm::opcode::BindingOpcode,
@@ -56,16 +60,22 @@ impl ByteCompiler<'_> {
                                     let key = self.register_allocator.alloc();
                                     self.compile_expr(node, &key);
                                     if rest_exits {
-                                        GetPropertyByValuePush::emit(self, dst.variable(),
+                                        GetPropertyByValuePush::emit(
+                                            self,
+                                            dst.variable(),
                                             key.variable(),
                                             object.variable(),
-                                            object.variable(),);
+                                            object.variable(),
+                                        );
                                         excluded_keys_registers.push(key);
                                     } else {
-                                        GetPropertyByValue::emit(self, dst.variable(),
+                                        GetPropertyByValue::emit(
+                                            self,
+                                            dst.variable(),
                                             key.variable(),
                                             object.variable(),
-                                            object.variable(),);
+                                            object.variable(),
+                                        );
                                         self.register_allocator.dealloc(key);
                                     }
                                 }
@@ -89,9 +99,12 @@ impl ByteCompiler<'_> {
                             for r in &excluded_keys_registers {
                                 excluded_keys.push(r.variable());
                             }
-                            CopyDataProperties::emit(self, value.variable(),
+                            CopyDataProperties::emit(
+                                self,
+                                value.variable(),
                                 object.variable(),
-                                excluded_keys,);
+                                excluded_keys,
+                            );
                             while let Some(r) = excluded_keys_registers.pop() {
                                 self.register_allocator.dealloc(r);
                             }
@@ -106,9 +119,12 @@ impl ByteCompiler<'_> {
                             for r in &excluded_keys_registers {
                                 excluded_keys.push(r.variable());
                             }
-                            CopyDataProperties::emit(self, value.variable(),
+                            CopyDataProperties::emit(
+                                self,
+                                value.variable(),
                                 object.variable(),
-                                excluded_keys,);
+                                excluded_keys,
+                            );
                             while let Some(r) = excluded_keys_registers.pop() {
                                 self.register_allocator.dealloc(r);
                             }
@@ -156,16 +172,22 @@ impl ByteCompiler<'_> {
                                         }
                                         PropertyName::Computed(_) => {
                                             if rest_exits {
-                                                GetPropertyByValuePush::emit(&mut *compiler, dst.variable(),
+                                                GetPropertyByValuePush::emit(
+                                                    &mut *compiler,
+                                                    dst.variable(),
                                                     key.variable(),
                                                     object.variable(),
-                                                    object.variable(),);
+                                                    object.variable(),
+                                                );
                                                 excluded_keys_registers.push(key);
                                             } else {
-                                                GetPropertyByValue::emit(&mut *compiler, dst.variable(),
+                                                GetPropertyByValue::emit(
+                                                    &mut *compiler,
+                                                    dst.variable(),
                                                     key.variable(),
                                                     object.variable(),
-                                                    object.variable(),);
+                                                    object.variable(),
+                                                );
                                                 compiler.register_allocator.dealloc(key);
                                             }
                                         }
@@ -196,10 +218,13 @@ impl ByteCompiler<'_> {
                                 PropertyName::Computed(node) => {
                                     let key = self.register_allocator.alloc();
                                     self.compile_expr(node, &key);
-                                    GetPropertyByValue::emit(self, dst.variable(),
+                                    GetPropertyByValue::emit(
+                                        self,
+                                        dst.variable(),
                                         key.variable(),
                                         object.variable(),
-                                        object.variable(),);
+                                        object.variable(),
+                                    );
                                     self.register_allocator.dealloc(key);
                                 }
                             }

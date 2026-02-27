@@ -1,4 +1,4 @@
-use crate::vm::opcode::*;
+use crate::vm::opcode::PushUndefined;
 use std::{
     cell::{Cell, RefCell},
     collections::HashSet,
