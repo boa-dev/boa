@@ -66,7 +66,7 @@ impl RequestInit {
         request: Option<HttpRequest<Vec<u8>>>,
     ) -> JsResult<HttpRequest<Vec<u8>>> {
         let mut builder = HttpRequest::builder();
-        let mut request_body = None;
+        let mut request_body = Vec::new();
         if let Some(r) = request {
             let (parts, body) = r.into_parts();
             builder = builder
@@ -77,7 +77,7 @@ impl RequestInit {
             for (key, value) in &parts.headers {
                 builder = builder.header(key, value);
             }
-            request_body = Some(body);
+            request_body = body;
         }
 
         if let Some(ref headers) = self.headers.take() {
@@ -103,7 +103,7 @@ impl RequestInit {
                 let body = body.to_std_string().map_err(
                     |_| js_error!(TypeError: "Request constructor: body is not a valid string"),
                 )?;
-                request_body = Some(body.into_bytes());
+                request_body = body.into_bytes();
             } else {
                 return Err(
                     js_error!(TypeError: "Request constructor: body is not a supported type"),
@@ -112,7 +112,7 @@ impl RequestInit {
         }
 
         builder
-            .body(request_body.unwrap_or_default())
+            .body(request_body)
             .map_err(|_| js_error!(Error: "Cannot construct request"))
     }
 }
