@@ -112,7 +112,7 @@ fn log_array_to(
         .get(&js_string!("length").into())
         .expect("array object must have 'length' property")
         .value()
-        .and_then(|v| v.as_number())
+        .and_then(JsValue::as_number)
         .map(|n| n as i32)
         .unwrap_or_default();
 
