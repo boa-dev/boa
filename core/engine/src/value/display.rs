@@ -111,9 +111,8 @@ fn log_array_to(
         .properties()
         .get(&js_string!("length").into())
         .expect("array object must have 'length' property")
-        // FIXME: handle accessor descriptors
-        .expect_value()
-        .as_number()
+        .value()
+        .and_then(|v| v.as_number())
         .map(|n| n as i32)
         .unwrap_or_default();
 
@@ -134,14 +133,22 @@ fn log_array_to(
             // Introduce recursive call to stringify any objects
             // which are part of the Array
 
-            // FIXME: handle accessor descriptors
-            if let Some(value) = x
-                .borrow()
-                .properties()
-                .get(&i.into())
-                .and_then(|x| x.value().cloned())
-            {
-                log_value_to(f, &value, print_internals, false)?;
+            if let Some(desc) = x.borrow().properties().get(&i.into()) {
+                if desc.is_data_descriptor() {
+                    if let Some(value) = desc.value() {
+                        log_value_to(f, value, print_internals, false)?;
+                    } else {
+                        f.write_str("undefined")?;
+                    }
+                } else {
+                    let display = match (desc.get().is_some(), desc.set().is_some()) {
+                        (true, true) => "[Getter/Setter]",
+                        (true, false) => "[Getter]",
+                        (false, true) => "[Setter]",
+                        _ => "<empty>",
+                    };
+                    f.write_str(display)?;
+                }
             } else {
                 f.write_str("<empty>")?;
             }
