@@ -150,6 +150,10 @@ pub struct CodeBlock {
 
     /// Bytecode to source code mapping.
     pub(crate) source_info: SourceInfo,
+
+    #[cfg(feature = "trace")]
+    // Used for identifying anonymous functions in compiled output and call frames.
+    pub(crate) anon_debug_id: Cell<Option<u32>>,
 }
 
 /// ---- `CodeBlock` public API ----
@@ -176,6 +180,8 @@ impl CodeBlock {
                 name,
                 SpannedSourceText::new_empty(),
             ),
+            #[cfg(feature = "trace")]
+            anon_debug_id: Cell::new(None),
         }
     }
 
@@ -948,7 +954,17 @@ impl Display for CodeBlock {
         writeln!(
             f,
             "{:-^70}",
-            format!("Compiled Output: '{}'", name.to_std_string_escaped()),
+            format!(
+                " Compiled Output: {} ",
+                if name.is_empty() {
+                    match self.anon_debug_id.get() {
+                        Some(id) => format!("[anon#{}]", id),
+                        None => "".to_string(),
+                    }
+                } else {
+                    format!("'{}'", name.to_std_string_escaped())
+                }
+            ),
         )?;
         writeln!(
             f,

@@ -2145,6 +2145,8 @@ impl<'ctx> ByteCompiler<'ctx> {
                 self.function_name,
                 self.spanned_source_text,
             ),
+            #[cfg(feature = "trace")]
+            anon_debug_id: Cell::new(None),
         }
     }
 
