@@ -1453,12 +1453,13 @@ impl SourceTextModule {
     #[allow(clippy::mutable_key_type)]
     fn gather_available_ancestors(&self, exec_list: &mut FxHashSet<Module>) {
         // 1. For each Cyclic Module Record m of module.[[AsyncParentModules]], do
-        for m in &*self.async_parent_modules.borrow() {
+        let parents = std::mem::take(&mut *self.async_parent_modules.borrow_mut());
+        for m in parents {
             let ModuleKind::SourceText(m_src) = m.kind() else {
                 continue;
             };
 
-            if exec_list.contains(m) {
+            if exec_list.contains(&m) {
                 continue;
             }
 
@@ -2122,9 +2123,9 @@ fn async_module_execution_rejected(
         });
 
     // 7. For each Cyclic Module Record m of module.[[AsyncParentModules]], do
-    for m in &*module_src.async_parent_modules.borrow() {
+    for m in std::mem::take(&mut *module_src.async_parent_modules.borrow_mut()) {
         // a. Perform AsyncModuleExecutionRejected(m, error).
-        async_module_execution_rejected(m, error.clone(), context)?;
+        async_module_execution_rejected(&m, error.clone(), context)?;
     }
 
     let status = module_src.status.borrow();
