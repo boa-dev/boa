@@ -247,34 +247,33 @@ impl Counters {
             counters,
         })
     }
-
-    fn into_vec(self) -> Option<Vec<(&'static str, Duration)>> {
-        self.counters
-    }
 }
 
-fn print_timing(
-    counters: Counters,
-    first: &'static str,
-    second: &'static str,
-    first_label: &'static str,
-    second_label: &'static str,
-    total_label: &'static str,
-) {
-    if let Some(counters) = counters.into_vec() {
-        let mut first_elapsed = None;
-        let mut second_elapsed = None;
-        for (name, elapsed) in counters {
-            if name == first {
-                first_elapsed = Some(elapsed);
-            } else if name == second {
-                second_elapsed = Some(elapsed);
-            }
+impl Drop for Counters {
+    fn drop(&mut self) {
+        let Some(counters) = self.counters.take() else {
+            return;
+        };
+        if counters.is_empty() {
+            return;
         }
-        if let (Some(first_elapsed), Some(second_elapsed)) = (first_elapsed, second_elapsed) {
-            eprintln!("{first_label}{first_elapsed:.2?}");
-            eprintln!("{second_label}{second_elapsed:.2?}");
-            eprintln!("{total_label}{:.2?}", first_elapsed + second_elapsed);
+
+        let max_width = counters
+            .iter()
+            .map(|(name, _)| name.len())
+            .max()
+            .unwrap_or(0)
+            .max("Total".len())
+            + 1; // +1 for the colon
+
+        let mut total = Duration::ZERO;
+        eprintln!();
+        for (name, elapsed) in &counters {
+            eprintln!("{:<width$} {elapsed:.2?}", format!("{name}:"), width = max_width);
+            total += *elapsed;
+        }
+        if counters.len() > 1 {
+            eprintln!("{:<width$} {total:.2?}", "Total:", width = max_width);
         }
     }
 }
@@ -327,15 +326,8 @@ fn dump<R: ReadChar>(src: Source<'_, R>, args: &Opt, context: &mut Context) -> R
                     DumpFormat::Debug => format!("{script:#?}"),
                 }
             };
+        drop(counters);
         println!("{dump}");
-        print_timing(
-            counters,
-            "Parsing",
-            "AST generation",
-            "\nParsing:        ",
-            "AST generation: ",
-            "Total:          ",
-        );
     }
 
     Ok(())
@@ -422,15 +414,6 @@ fn evaluate_expr(
             }
             Err(ref v) => printer.print(uncaught_error(v)),
         }
-
-        print_timing(
-            counters,
-            "Parsing",
-            "Execution",
-            "\nParsing:   ",
-            "Execution: ",
-            "Total:     ",
-        );
     }
 
     Ok(())
@@ -483,15 +466,6 @@ fn evaluate_file(
         }?;
         let result = promise.state();
 
-        print_timing(
-            counters,
-            "Parsing",
-            "Execution",
-            "\nParsing:   ",
-            "Execution: ",
-            "Total:     ",
-        );
-
         return match result {
             PromiseState::Pending => Err(eyre!("module didn't execute")),
             PromiseState::Fulfilled(_) => Ok(()),
@@ -524,15 +498,6 @@ fn evaluate_file(
         }
         Err(v) => printer.print(uncaught_error(&v)),
     }
-
-    print_timing(
-        counters,
-        "Parsing",
-        "Execution",
-        "\nParsing:   ",
-        "Execution: ",
-        "Total:     ",
-    );
 
     Ok(())
 }
