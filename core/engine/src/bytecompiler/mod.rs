@@ -1,4 +1,12 @@
-//! This module contains the bytecode compiler.
+//! Boa's bytecode compiler.
+//!
+//! The bytecompiler is responsible for lowering ECMAScript AST nodes into
+//! executable bytecode for the virtual machine.
+//!
+//! It walks the parsed AST and emits instructions using the bytecode emitter,
+//! producing code blocks that are later executed by the VM.
+//!
+//! This module provides the necessary functionality to compile JavaScript code into bytecode.
 
 mod class;
 mod declaration;
