@@ -1,9 +1,10 @@
 //! A Rust API wrapper for Boa's `GeneratorFunction` Builtin ECMAScript Object
 use crate::{
-    Context, JsNativeError, JsResult, JsValue, builtins::function::OrdinaryFunction,
-    object::JsObject, value::TryFromJs,
+    Context, JsNativeError, JsResult, JsValue,
+    builtins::function::OrdinaryFunction,
+    object::{JsObject, builtins::JsGenerator},
+    value::TryFromJs,
 };
-
 use boa_gc::{Finalize, Trace};
 use std::ops::Deref;
 
@@ -34,7 +35,7 @@ impl JsGeneratorFunction {
         }
     }
 
-    /// Calls the generator function and returns a new generator object.
+    /// Calls the generator function and returns a new `JsGenerator` object.
     ///
     /// More information:
     ///  - [MDN documentation][mdn]
@@ -45,8 +46,15 @@ impl JsGeneratorFunction {
         this: &JsValue,
         args: &[JsValue],
         context: &mut Context,
-    ) -> JsResult<JsValue> {
-        self.inner.call(this, args, context)
+    ) -> JsResult<JsGenerator> {
+        let value = self.inner.call(this, args, context)?;
+        let obj = value
+            .as_object()
+            .ok_or_else(|| {
+                JsNativeError::typ().with_message("generator function did not return an object")
+            })?
+            .clone();
+        JsGenerator::from_object(obj)
     }
 }
 
@@ -66,7 +74,6 @@ impl From<JsGeneratorFunction> for JsValue {
 
 impl Deref for JsGeneratorFunction {
     type Target = JsObject;
-
     #[inline]
     fn deref(&self) -> &Self::Target {
         &self.inner
