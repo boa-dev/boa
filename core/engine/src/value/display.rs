@@ -152,7 +152,7 @@ fn log_array_to(
                         f.write_str(display)?;
                     }
                     DescriptorKind::Generic => {
-                        f.write_str("undefined")?;
+                        unreachable!("found generic descriptor in array")
                     }
                 }
             } else {
