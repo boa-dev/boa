@@ -1,6 +1,7 @@
 //! Example demonstrating the `JsAsyncGenerator` API wrapper.
 use boa_engine::{
-    Context, JsValue, Source, builtins::promise::PromiseState, object::builtins::JsAsyncGenerator,
+    Context, JsString, JsValue, Source, builtins::promise::PromiseState,
+    object::builtins::JsAsyncGenerator,
 };
 
 fn main() {
@@ -15,17 +16,25 @@ fn main() {
     let obj = result.as_object().unwrap().clone();
     let async_gen = JsAsyncGenerator::from_object(obj).unwrap();
 
-    // next() returns a Promise
+    // next() returns a Promise; run_jobs() is required to resolve it
     let promise = async_gen.next(JsValue::undefined(), &mut context).unwrap();
     drop(context.run_jobs());
     if let PromiseState::Fulfilled(val) = promise.state() {
-        println!("next resolved with: {}", val.display());
+        let result_obj = val.as_object().unwrap();
+        let value = result_obj
+            .get(JsString::from("value"), &mut context)
+            .unwrap();
+        assert_eq!(value, JsValue::from(1));
     }
 
-    // return() resolves the generator early
+    // return() resolves the generator early with the given value
     let promise = async_gen.r#return(JsValue::from(42), &mut context).unwrap();
     drop(context.run_jobs());
     if let PromiseState::Fulfilled(val) = promise.state() {
-        println!("return resolved with: {}", val.display());
+        let result_obj = val.as_object().unwrap();
+        let value = result_obj
+            .get(JsString::from("value"), &mut context)
+            .unwrap();
+        assert_eq!(value, JsValue::from(42));
     }
 }
