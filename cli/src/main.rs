@@ -13,7 +13,6 @@ mod logger;
 
 use crate::logger::SharedExternalPrinterLogger;
 use boa_engine::context::time::JsInstant;
-use boa_engine::error::JsErasedError;
 use boa_engine::job::{GenericJob, TimeoutJob};
 use boa_engine::{
     Context, JsError, JsResult, Source,
@@ -39,7 +38,8 @@ use rustyline::{EditMode, Editor, config::Config, error::ReadlineError};
 use std::collections::BTreeMap;
 use std::mem;
 use std::sync::mpsc::{Sender, TryRecvError};
-use std::time::{Duration, Instant};
+use std::time::Duration;
+use std::time::Instant;
 use std::{
     cell::RefCell,
     collections::VecDeque,
@@ -219,15 +219,68 @@ enum FlowgraphDirection {
     RightToLeft,
 }
 
-fn print_timing(parse_time: Duration, exec_time: Duration) {
-    let total = parse_time + exec_time;
-    let to_ms = |duration: Duration| duration.as_secs_f64() * 1000.0;
-    eprintln!(
-        "Parsing: {:.2}ms Execution: {:.2}ms Total: {:.2}ms",
-        to_ms(parse_time),
-        to_ms(exec_time),
-        to_ms(total)
-    );
+struct Timer<'a> {
+    name: &'static str,
+    start: Instant,
+    counters: &'a mut Vec<(&'static str, Duration)>,
+}
+
+impl Drop for Timer<'_> {
+    fn drop(&mut self) {
+        self.counters.push((self.name, self.start.elapsed()));
+    }
+}
+
+struct Counters {
+    counters: Option<Vec<(&'static str, Duration)>>,
+}
+
+impl Counters {
+    fn new(enabled: bool) -> Self {
+        Self {
+            counters: enabled.then_some(Vec::new()),
+        }
+    }
+
+    fn new_timer(&mut self, name: &'static str) -> Option<Timer<'_>> {
+        self.counters.as_mut().map(|counters| Timer {
+            name,
+            start: Instant::now(),
+            counters,
+        })
+    }
+}
+
+fn print_timing(
+    counters: Counters,
+    first: &'static str,
+    second: &'static str,
+    first_label: &'static str,
+    second_label: &'static str,
+    total_label: &'static str,
+) {
+    if let Some(counters) = counters.counters {
+        let mut first_elapsed = Duration::ZERO;
+        let mut second_elapsed = Duration::ZERO;
+        let mut first_found = false;
+        let mut second_found = false;
+
+        for (name, elapsed) in counters {
+            if name == first {
+                first_elapsed += elapsed;
+                first_found = true;
+            } else if name == second {
+                second_elapsed += elapsed;
+                second_found = true;
+            }
+        }
+
+        if first_found && second_found {
+            eprintln!("{first_label}{first_elapsed:.2?}");
+            eprintln!("{second_label}{second_elapsed:.2?}");
+            eprintln!("{total_label}{:.2?}", first_elapsed + second_elapsed);
+        }
+    }
 }
 
 /// Dumps the AST to stdout with format controlled by the given arguments.
@@ -236,14 +289,19 @@ fn print_timing(parse_time: Duration, exec_time: Duration) {
 /// if the source has a syntax or parsing error.
 fn dump<R: ReadChar>(src: Source<'_, R>, args: &Opt, context: &mut Context) -> Result<()> {
     if let Some(arg) = args.dump_ast {
+        let mut counters = Counters::new(args.time);
         let arg = arg.unwrap_or_default();
         let mut parser = boa_parser::Parser::new(src);
         let dump =
             if args.module {
                 let scope = context.realm().scope().clone();
-                let module = parser
-                    .parse_module(&scope, context.interner_mut())
-                    .map_err(|e| eyre!("Uncaught SyntaxError: {e}"))?;
+                let module = {
+                    let _timer = counters.new_timer("Parsing");
+                    parser
+                        .parse_module(&scope, context.interner_mut())
+                        .map_err(|e| eyre!("Uncaught SyntaxError: {e}"))?
+                };
+                let _timer = counters.new_timer("AST generation");
                 match arg {
                     DumpFormat::Json => serde_json::to_string(&module)
                         .expect("could not convert AST to a JSON string"),
@@ -253,14 +311,18 @@ fn dump<R: ReadChar>(src: Source<'_, R>, args: &Opt, context: &mut Context) -> R
                 }
             } else {
                 let scope = context.realm().scope().clone();
-                let mut script = parser
-                    .parse_script(&scope, context.interner_mut())
-                    .map_err(|e| eyre!("Uncaught SyntaxError: {e}"))?;
+                let mut script = {
+                    let _timer = counters.new_timer("Parsing");
+                    parser
+                        .parse_script(&scope, context.interner_mut())
+                        .map_err(|e| eyre!("Uncaught SyntaxError: {e}"))?
+                };
 
                 if args.optimize {
                     context.optimize_statement_list(script.statements_mut());
                 }
 
+                let _timer = counters.new_timer("AST generation");
                 match arg {
                     DumpFormat::Json => serde_json::to_string(&script)
                         .expect("could not convert AST to a JSON string"),
@@ -270,6 +332,14 @@ fn dump<R: ReadChar>(src: Source<'_, R>, args: &Opt, context: &mut Context) -> R
                 }
             };
         println!("{dump}");
+        print_timing(
+            counters,
+            "Parsing",
+            "AST generation",
+            "\nParsing:        ",
+            "AST generation: ",
+            "Total:          ",
+        );
     }
 
     Ok(())
@@ -332,23 +402,42 @@ fn evaluate_expr(
             Ok(v) => println!("{v}"),
             Err(v) => eprintln!("{v:?}"),
         }
-    } else if args.time {
-        let parse_start = Instant::now();
-        let script = Script::parse(Source::from_bytes(line), None, context)
-            .map_err(|e| e.into_erased(context))?;
-        let parse_time = parse_start.elapsed();
-        let exec_start = Instant::now();
-        match script.evaluate(context) {
-            Ok(v) => printer.print(format!("{}\n", v.display())),
-            Err(ref v) => printer.print(uncaught_error(v)),
-        }
-        let exec_time = exec_start.elapsed();
-        print_timing(parse_time, exec_time);
     } else {
-        match context.eval(Source::from_bytes(line)) {
-            Ok(v) => printer.print(format!("{}\n", v.display())),
+        let mut counters = Counters::new(args.time);
+        let script = {
+            let _timer = counters.new_timer("Parsing");
+            Script::parse(Source::from_bytes(line), None, context)
+        };
+
+        match script {
+            Ok(script) => {
+                let result = {
+                    let _timer = counters.new_timer("Execution");
+                    script.evaluate(context)
+                };
+                match result {
+                    Ok(v) => printer.print(format!("{}\n", v.display())),
+                    Err(ref v) => printer.print(uncaught_error(v)),
+                }
+
+                if let Err(err) = {
+                    let _timer = counters.new_timer("Execution");
+                    context.run_jobs()
+                } {
+                    printer.print(uncaught_job_error(&err));
+                }
+            }
             Err(ref v) => printer.print(uncaught_error(v)),
         }
+
+        print_timing(
+            counters,
+            "Parsing",
+            "Execution",
+            "\nParsing:   ",
+            "Execution: ",
+            "Total:     ",
+        );
     }
 
     Ok(())
@@ -378,37 +467,13 @@ fn evaluate_file(
         return Ok(());
     }
 
+    let mut counters = Counters::new(args.time);
     if args.module {
-        if args.time {
-            let parse_start = Instant::now();
-            let module = Module::parse(Source::from_filepath(file)?, None, context)
-                .map_err(|e| e.into_erased(context))?;
-            let parse_time = parse_start.elapsed();
-
-            loader.insert(
-                file.canonicalize()
-                    .wrap_err("could not canonicalize input file path")?,
-                module.clone(),
-            );
-
-            let exec_start = Instant::now();
-            let promise = module.load_link_evaluate(context);
-            context.run_jobs().map_err(|err| err.into_erased(context))?;
-            let result = promise.state();
-            let exec_time = exec_start.elapsed();
-            print_timing(parse_time, exec_time);
-
-            return match result {
-                PromiseState::Pending => Err(eyre!("module didn't execute")),
-                PromiseState::Fulfilled(_) => Ok(()),
-                PromiseState::Rejected(err) => {
-                    return Err(JsError::from_opaque(err).into_erased(context).into());
-                }
-            };
-        }
-
-        let module = Module::parse(Source::from_filepath(file)?, None, context)
-            .map_err(|e| e.into_erased(context))?;
+        let module = {
+            let _timer = counters.new_timer("Parsing");
+            Module::parse(Source::from_filepath(file)?, None, context)
+        };
+        let module = module.map_err(|e| e.into_erased(context))?;
 
         loader.insert(
             file.canonicalize()
@@ -416,53 +481,71 @@ fn evaluate_file(
             module.clone(),
         );
 
-        let promise = module.load_link_evaluate(context);
-        context.run_jobs().map_err(|err| err.into_erased(context))?;
-        let result = promise.state();
+        let result = {
+            let _timer = counters.new_timer("Execution");
+            let promise = module.load_link_evaluate(context);
+            context.run_jobs().map_err(|err| err.into_erased(context))?;
+            promise.state()
+        };
+
+        print_timing(
+            counters,
+            "Parsing",
+            "Execution",
+            "\nParsing:   ",
+            "Execution: ",
+            "Total:     ",
+        );
 
         return match result {
             PromiseState::Pending => Err(eyre!("module didn't execute")),
             PromiseState::Fulfilled(_) => Ok(()),
             PromiseState::Rejected(err) => {
-                return Err(JsError::from_opaque(err).into_erased(context).into());
+                Err(JsError::from_opaque(err).into_erased(context).into())
             }
         };
     }
 
-    if args.time {
-        let parse_start = Instant::now();
-        let script = Script::parse(Source::from_filepath(file)?, None, context)
-            .map_err(|e| e.into_erased(context))?;
-        let parse_time = parse_start.elapsed();
-        let exec_start = Instant::now();
-        match script.evaluate(context) {
-            Ok(v) => {
-                if !v.is_undefined() {
-                    println!("{}", v.display());
+    let script = {
+        let _timer = counters.new_timer("Parsing");
+        Script::parse(Source::from_filepath(file)?, None, context)
+    };
+
+    let result = match script {
+        Ok(script) => {
+            let result = {
+                let _timer = counters.new_timer("Execution");
+                script.evaluate(context)
+            };
+            match result {
+                Ok(v) => {
+                    if !v.is_undefined() {
+                        println!("{}", v.display());
+                    }
                 }
+                Err(v) => printer.print(uncaught_error(&v)),
             }
-            Err(v) => printer.print(uncaught_error(&v)),
+            let _timer = counters.new_timer("Execution");
+            context
+                .run_jobs()
+                .map_err(|err| err.into_erased(context).into())
         }
-        let result = context
-            .run_jobs()
-            .map_err(|err| err.into_erased(context).into());
-        let exec_time = exec_start.elapsed();
-        print_timing(parse_time, exec_time);
-        return result;
-    }
-
-    match context.eval(Source::from_filepath(file)?) {
-        Ok(v) => {
-            if !v.is_undefined() {
-                println!("{}", v.display());
-            }
+        Err(v) => {
+            printer.print(uncaught_error(&v));
+            Ok(())
         }
-        Err(v) => printer.print(uncaught_error(&v)),
-    }
+    };
 
-    context
-        .run_jobs()
-        .map_err(|err| err.into_erased(context).into())
+    print_timing(
+        counters,
+        "Parsing",
+        "Execution",
+        "\nParsing:   ",
+        "Execution: ",
+        "Total:     ",
+    );
+
+    result
 }
 
 fn evaluate_files(
