@@ -269,7 +269,11 @@ impl Drop for Counters {
         let mut total = Duration::ZERO;
         eprintln!();
         for (name, elapsed) in &counters {
-            eprintln!("{:<width$} {elapsed:.2?}", format!("{name}:"), width = max_width);
+            eprintln!(
+                "{:<width$} {elapsed:.2?}",
+                format!("{name}:"),
+                width = max_width
+            );
             total += *elapsed;
         }
         if counters.len() > 1 {
