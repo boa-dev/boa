@@ -1,9 +1,9 @@
 //! A Rust API wrapper for Boa's `AsyncGenerator` Builtin ECMAScript Object
+use super::JsPromise;
 use crate::{
     Context, JsNativeError, JsResult, JsValue, builtins::async_generator::AsyncGenerator,
     object::JsObject, value::TryFromJs,
 };
-
 use boa_gc::{Finalize, Trace};
 use std::ops::Deref;
 
@@ -37,11 +37,18 @@ impl JsAsyncGenerator {
     ///  - [MDN documentation][mdn]
     ///
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/AsyncGenerator/next
-    pub fn next<T>(&self, value: T, context: &mut Context) -> JsResult<JsValue>
+    pub fn next<T>(&self, value: T, context: &mut Context) -> JsResult<JsPromise>
     where
         T: Into<JsValue>,
     {
-        AsyncGenerator::next(&self.inner.clone().into(), &[value.into()], context)
+        let value = AsyncGenerator::next(&self.inner.clone().into(), &[value.into()], context)?;
+        let obj = value
+            .as_object()
+            .ok_or_else(|| {
+                JsNativeError::typ().with_message("async generator did not return a Promise")
+            })?
+            .clone();
+        JsPromise::from_object(obj)
     }
 
     /// Calls `AsyncGenerator.prototype.return()`.
@@ -50,11 +57,18 @@ impl JsAsyncGenerator {
     ///  - [MDN documentation][mdn]
     ///
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/AsyncGenerator/return
-    pub fn r#return<T>(&self, value: T, context: &mut Context) -> JsResult<JsValue>
+    pub fn r#return<T>(&self, value: T, context: &mut Context) -> JsResult<JsPromise>
     where
         T: Into<JsValue>,
     {
-        AsyncGenerator::r#return(&self.inner.clone().into(), &[value.into()], context)
+        let value = AsyncGenerator::r#return(&self.inner.clone().into(), &[value.into()], context)?;
+        let obj = value
+            .as_object()
+            .ok_or_else(|| {
+                JsNativeError::typ().with_message("async generator did not return a Promise")
+            })?
+            .clone();
+        JsPromise::from_object(obj)
     }
 
     /// Calls `AsyncGenerator.prototype.throw()`.
@@ -63,11 +77,18 @@ impl JsAsyncGenerator {
     ///  - [MDN documentation][mdn]
     ///
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/AsyncGenerator/throw
-    pub fn throw<T>(&self, value: T, context: &mut Context) -> JsResult<JsValue>
+    pub fn throw<T>(&self, value: T, context: &mut Context) -> JsResult<JsPromise>
     where
         T: Into<JsValue>,
     {
-        AsyncGenerator::throw(&self.inner.clone().into(), &[value.into()], context)
+        let value = AsyncGenerator::throw(&self.inner.clone().into(), &[value.into()], context)?;
+        let obj = value
+            .as_object()
+            .ok_or_else(|| {
+                JsNativeError::typ().with_message("async generator did not return a Promise")
+            })?
+            .clone();
+        JsPromise::from_object(obj)
     }
 }
 
