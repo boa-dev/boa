@@ -2,7 +2,7 @@ use crate::interval;
 use crate::test::{TestAction, run_test_actions_with};
 use boa_engine::context::time::FixedClock;
 use boa_engine::context::{Clock, ContextBuilder};
-use boa_engine::{Context, js_str};
+use boa_engine::{Context, Source, js_str};
 use indoc::indoc;
 use std::cell::RefCell;
 use std::rc::Rc;
@@ -11,6 +11,37 @@ fn create_context(clock: Rc<impl Clock + 'static>) -> Context {
     let mut context = ContextBuilder::default().clock(clock).build().unwrap();
     interval::register(&mut context).unwrap();
     context
+}
+
+#[test]
+fn two_zero_delay_timeouts_both_fire() {
+    let clock = Rc::new(FixedClock::default());
+    let context = &mut create_context(clock.clone());
+
+    run_test_actions_with(
+        [
+            TestAction::run(indoc! {r#"
+                order = [];
+                setTimeout(() => order.push(1), 0);
+                setTimeout(() => order.push(2), 0);
+            "#}),
+            TestAction::inspect_context(move |ctx| {
+                clock.forward(1);
+                ctx.run_jobs().unwrap();
+
+                let order = ctx.global_object().get(js_str!("order"), ctx).unwrap();
+                let order = order.as_object().unwrap();
+                assert_eq!(
+                    order.get(js_str!("length"), ctx).unwrap().as_i32(),
+                    Some(2),
+                    "both callbacks must fire"
+                );
+                assert_eq!(order.get(0usize, ctx).unwrap().as_i32(), Some(1));
+                assert_eq!(order.get(1usize, ctx).unwrap().as_i32(), Some(2));
+            }),
+        ],
+        context,
+    );
 }
 
 #[test]
@@ -217,4 +248,45 @@ fn set_interval_delay() {
         ],
         context,
     );
+}
+
+/// Regression test: a zero-delay `setInterval` with `StdClock` (real wall clock) must not
+/// cause `run_jobs()` to spin forever.
+///
+/// The infinite loop required two conditions:
+/// 1. The recurring job is re-enqueued at `now + 0ms = now`.
+/// 2. `StdClock` advances by at least 1 ns between re-enqueue and the next termination check,
+///    making the recurring job appear past-due, keeping `no_timeout_jobs_to_run = false`
+///    forever.
+///
+/// The 5 ms sleep ensures the *initial* (non-recurring) job's timestamp is strictly in the
+/// past so that `split_off` dispatches it on the first loop iteration and the recurring
+/// re-schedule is what the termination check sees.
+#[test]
+fn set_interval_zero_delay_terminates_with_advancing_clock() {
+    // ContextBuilder::default() uses StdClock (real wall clock, nanosecond resolution).
+    let mut context = ContextBuilder::default().build().unwrap();
+    interval::register(&mut context).unwrap();
+
+    context
+        .eval(Source::from_bytes(
+            // `var` (not `let`) so `count` is a property of the global object
+            // and readable via `context.global_object().get(...)` after the run.
+            "var count = 0; setInterval(() => { count++; }, 0);",
+        ))
+        .unwrap();
+
+    // Guarantee the initial job's scheduled instant is strictly in the past so the
+    // split_off boundary does not hold it back.
+    std::thread::sleep(std::time::Duration::from_millis(5));
+
+    // With the bug present this call never returned (100% CPU spin).
+    context.run_jobs().unwrap();
+
+    // The interval must have fired at least once.
+    let count = context
+        .global_object()
+        .get(js_str!("count"), &mut context)
+        .unwrap();
+    assert!(count.as_i32().unwrap_or(0) >= 1);
 }

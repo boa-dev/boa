@@ -68,7 +68,6 @@ tests = [
     # Should throw an OOM error instead of filling the whole RAM.
     "test/staging/sm/String/replace-math.js",
     # Panics
-    "test/staging/sm/expressions/optional-chain-first-expression.js",
     "test/staging/sm/regress/regress-554955-2.js",
     "test/staging/sm/class/fields-static-class-name-binding-eval.js",
     "test/staging/sm/regress/regress-554955-1.js",
@@ -91,4 +90,6 @@ tests = [
     "test/intl402/Locale/prototype/calendar/canonicalize.js",
     "test/intl402/Locale/constructor-non-iana-canon.js",
     "test/intl402/Locale/constructor-options-canonicalized.js",
+    # TODO: Remove this once regress fixes the named groups parsing issue.
+    "test/built-ins/RegExp/named-groups/non-unicode-property-names-valid.js",
 ]
