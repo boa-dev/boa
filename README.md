@@ -174,6 +174,12 @@ Options:
 
 See [Milestones](https://github.com/boa-dev/boa/milestones).
 
+### GC API Model Investigation
+
+Tracking and direction for GC API model work is documented in
+[docs/gc_api_models.md](./docs/gc_api_models.md), with ongoing experimental
+work in [`boa-dev/oscars`](https://github.com/boa-dev/oscars).
+
 ## 📊 Benchmarks
 
 The current benchmarks are taken from v8's benchmark that you can find [here][boa-benchmarks]. You can also view the results of nightly benchmark runs comparing Boa with other JavaScript engines [here](https://boajs.dev/benchmarks).
