@@ -633,8 +633,8 @@ impl CodeBlock {
             } => {
                 let ic = &self.ic[u32::from(*ic_index) as usize];
                 format!(
-                    "dst:{dst}, value:{value}, shape:0x{:x}]",
-                    ic.first_shape_addr(),
+                    "dst:{dst}, value:{value}, ic:[shapes:{}]",
+                    ic.shapes_display(),
                 )
             }
             Instruction::GetPropertyByName {
@@ -644,9 +644,9 @@ impl CodeBlock {
             } => {
                 let ic = &self.ic[u32::from(*ic_index) as usize];
                 format!(
-                    "dst:{dst}, value:{value}, ic:[name:{}, shape:0x{:x}]",
+                    "dst:{dst}, value:{value}, ic:[name:{}, shapes:{}]",
                     ic.name.to_std_string_escaped(),
-                    ic.first_shape_addr(),
+                    ic.shapes_display(),
                 )
             }
             Instruction::GetPropertyByNameWithThis {
@@ -657,9 +657,9 @@ impl CodeBlock {
             } => {
                 let ic = &self.ic[u32::from(*ic_index) as usize];
                 format!(
-                    "dst:{dst}, receiver:{receiver}, value:{value}, ic:[name:{}, shape:0x{:x}]",
+                    "dst:{dst}, receiver:{receiver}, value:{value}, ic:[name:{}, shapes:{}]",
                     ic.name.to_std_string_escaped(),
-                    ic.first_shape_addr(),
+                    ic.shapes_display(),
                 )
             }
             Instruction::SetPropertyByName {
@@ -669,8 +669,8 @@ impl CodeBlock {
             } => {
                 let ic = &self.ic[u32::from(*ic_index) as usize];
                 format!(
-                    "object:{object}, value:{value}, ic:shape:0x{:x}",
-                    ic.first_shape_addr(),
+                    "object:{object}, value:{value}, ic:[shapes:{}]",
+                    ic.shapes_display(),
                 )
             }
             Instruction::SetPropertyByNameWithThis {
@@ -681,8 +681,8 @@ impl CodeBlock {
             } => {
                 let ic = &self.ic[u32::from(*ic_index) as usize];
                 format!(
-                    "object:{object}, receiver:{receiver}, value:{value}, ic:shape:0x{:x}",
-                    ic.first_shape_addr(),
+                    "object:{object}, receiver:{receiver}, value:{value}, ic:[shapes:{}]",
+                    ic.shapes_display(),
                 )
             }
             Instruction::GetPropertyByValue {
