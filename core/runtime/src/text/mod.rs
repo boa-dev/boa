@@ -161,8 +161,8 @@ impl TextDecoder {
         };
 
         Ok(match self.encoding {
-            Encoding::Utf8 => encodings::utf8::decode(&data, strip_bom),
-            Encoding::Utf16Le => encodings::utf16le::decode(&data, strip_bom),
+            Encoding::Utf8 => encodings::utf8::decode(data, strip_bom),
+            Encoding::Utf16Le => encodings::utf16le::decode(data, strip_bom),
             Encoding::Utf16Be => {
                 let owned = data.to_vec();
                 encodings::utf16be::decode(owned, strip_bom)
