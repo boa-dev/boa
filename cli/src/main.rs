@@ -458,13 +458,11 @@ fn main() -> Result<()> {
         let mut input = String::new();
         io::stdin()
             .read_to_string(&mut input)
-            .wrap_err("could not read from stdin")?;
-        if !input.is_empty() {
-            evaluate_expr(&input, &args, &mut context, &printer)?;
+            .wrap_err("failed to read stdin")?;
+        if input.is_empty() {
+            return Ok(());
         }
-        context
-            .run_jobs()
-            .map_err(|err| err.into_erased(&mut context))?;
+        evaluate_expr(&input, &args, &mut context, &printer)?;
         return Ok(());
     }
 
