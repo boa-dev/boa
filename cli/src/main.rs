@@ -13,6 +13,7 @@ mod logger;
 
 use crate::logger::SharedExternalPrinterLogger;
 use boa_engine::context::time::JsInstant;
+use boa_engine::error::JsErasedError;
 use boa_engine::job::{GenericJob, TimeoutJob};
 use boa_engine::{
     Context, JsError, JsResult, Source,
@@ -38,16 +39,13 @@ use rustyline::{EditMode, Editor, config::Config, error::ReadlineError};
 use std::collections::BTreeMap;
 use std::mem;
 use std::sync::mpsc::{Sender, TryRecvError};
-use std::time::Duration;
-use std::time::Instant;
+use std::time::{Duration, Instant};
 use std::{
     cell::RefCell,
     collections::VecDeque,
-    eprintln,
     fs::OpenOptions,
     io,
     path::{Path, PathBuf},
-    println,
     rc::Rc,
     thread,
 };
@@ -118,7 +116,7 @@ struct Opt {
     dump_ast: Option<Option<DumpFormat>>,
 
     /// Dump the AST to stdout with the given format.
-    #[arg(long, conflicts_with = "graph")]
+    #[arg(long, short, conflicts_with = "graph")]
     trace: bool,
 
     /// Use vi mode in the REPL
@@ -126,7 +124,7 @@ struct Opt {
     vi_mode: bool,
 
     /// Report parsing and execution timings.
-    #[arg(long, short = 't')]
+    #[arg(long)]
     time: bool,
 
     #[arg(long, short = 'O', group = "optimizer")]
@@ -249,6 +247,10 @@ impl Counters {
             counters,
         })
     }
+
+    fn into_vec(self) -> Option<Vec<(&'static str, Duration)>> {
+        self.counters
+    }
 }
 
 fn print_timing(
@@ -259,23 +261,17 @@ fn print_timing(
     second_label: &'static str,
     total_label: &'static str,
 ) {
-    if let Some(counters) = counters.counters {
-        let mut first_elapsed = Duration::ZERO;
-        let mut second_elapsed = Duration::ZERO;
-        let mut first_found = false;
-        let mut second_found = false;
-
+    if let Some(counters) = counters.into_vec() {
+        let mut first_elapsed = None;
+        let mut second_elapsed = None;
         for (name, elapsed) in counters {
             if name == first {
-                first_elapsed += elapsed;
-                first_found = true;
+                first_elapsed = Some(elapsed);
             } else if name == second {
-                second_elapsed += elapsed;
-                second_found = true;
+                second_elapsed = Some(elapsed);
             }
         }
-
-        if first_found && second_found {
+        if let (Some(first_elapsed), Some(second_elapsed)) = (first_elapsed, second_elapsed) {
             eprintln!("{first_label}{first_elapsed:.2?}");
             eprintln!("{second_label}{second_elapsed:.2?}");
             eprintln!("{total_label}{:.2?}", first_elapsed + second_elapsed);
@@ -391,7 +387,7 @@ fn evaluate_expr(
     printer: &SharedExternalPrinterLogger,
 ) -> Result<()> {
     if args.has_dump_flag() {
-        dump(Source::from_bytes(&line), args, context)?;
+        dump(Source::from_bytes(line), args, context)?;
     } else if let Some(flowgraph) = args.flowgraph {
         match generate_flowgraph(
             context,
@@ -413,18 +409,15 @@ fn evaluate_expr(
             Ok(script) => {
                 let result = {
                     let _timer = counters.new_timer("Execution");
-                    script.evaluate(context)
+                    let result = script.evaluate(context);
+                    if let Err(err) = context.run_jobs() {
+                        printer.print(uncaught_job_error(&err));
+                    }
+                    result
                 };
                 match result {
                     Ok(v) => printer.print(format!("{}\n", v.display())),
                     Err(ref v) => printer.print(uncaught_error(v)),
-                }
-
-                if let Err(err) = {
-                    let _timer = counters.new_timer("Execution");
-                    context.run_jobs()
-                } {
-                    printer.print(uncaught_job_error(&err));
                 }
             }
             Err(ref v) => printer.print(uncaught_error(v)),
@@ -467,11 +460,12 @@ fn evaluate_file(
         return Ok(());
     }
 
-    let mut counters = Counters::new(args.time);
     if args.module {
+        let source = Source::from_filepath(file)?;
+        let mut counters = Counters::new(args.time);
         let module = {
             let _timer = counters.new_timer("Parsing");
-            Module::parse(Source::from_filepath(file)?, None, context)
+            Module::parse(source, None, context)
         };
         let module = module.map_err(|e| e.into_erased(context))?;
 
@@ -481,12 +475,13 @@ fn evaluate_file(
             module.clone(),
         );
 
-        let result = {
+        let promise = {
             let _timer = counters.new_timer("Execution");
             let promise = module.load_link_evaluate(context);
             context.run_jobs().map_err(|err| err.into_erased(context))?;
-            promise.state()
-        };
+            Ok::<_, JsErasedError>(promise)
+        }?;
+        let result = promise.state();
 
         print_timing(
             counters,
@@ -506,35 +501,29 @@ fn evaluate_file(
         };
     }
 
+    let source = Source::from_filepath(file)?;
+    let mut counters = Counters::new(args.time);
     let script = {
         let _timer = counters.new_timer("Parsing");
-        Script::parse(Source::from_filepath(file)?, None, context)
+        Script::parse(source, None, context)
+    };
+    let script = script.map_err(|e| e.into_erased(context))?;
+
+    let result = {
+        let _timer = counters.new_timer("Execution");
+        let result = script.evaluate(context);
+        context.run_jobs().map_err(|err| err.into_erased(context))?;
+        result
     };
 
-    let result = match script {
-        Ok(script) => {
-            let result = {
-                let _timer = counters.new_timer("Execution");
-                script.evaluate(context)
-            };
-            match result {
-                Ok(v) => {
-                    if !v.is_undefined() {
-                        println!("{}", v.display());
-                    }
-                }
-                Err(v) => printer.print(uncaught_error(&v)),
+    match result {
+        Ok(v) => {
+            if !v.is_undefined() {
+                println!("{}", v.display());
             }
-            let _timer = counters.new_timer("Execution");
-            context
-                .run_jobs()
-                .map_err(|err| err.into_erased(context).into())
         }
-        Err(v) => {
-            printer.print(uncaught_error(&v));
-            Ok(())
-        }
-    };
+        Err(v) => printer.print(uncaught_error(&v)),
+    }
 
     print_timing(
         counters,
@@ -545,7 +534,7 @@ fn evaluate_file(
         "Total:     ",
     );
 
-    result
+    Ok(())
 }
 
 fn evaluate_files(
