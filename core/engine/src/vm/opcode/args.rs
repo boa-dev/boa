@@ -1,4 +1,4 @@
-use thin_vec::{ThinVec, thin_vec};
+use thin_vec::ThinVec;
 
 use super::{VaryingOperand, VaryingOperandVariant};
 
@@ -156,8 +156,8 @@ impl Argument for VaryingOperand {
     }
 
     fn decode(bytes: &[u8], pos: usize) -> (Self, usize) {
-        let format = Format::from(bytes[pos]);
-        let pos = pos + 1;
+        let (format_byte, pos) = read::<u8>(bytes, pos);
+        let format = Format::from(format_byte);
 
         match format {
             Format::U8 => {
@@ -198,8 +198,8 @@ impl Argument for (VaryingOperand, i8) {
     }
 
     fn decode(bytes: &[u8], pos: usize) -> (Self, usize) {
-        let format = Format::from(bytes[pos]);
-        let pos = pos + 1;
+        let (format_byte, pos) = read::<u8>(bytes, pos);
+        let format = Format::from(format_byte);
 
         match format {
             Format::U8 => {
@@ -252,8 +252,8 @@ impl Argument for (VaryingOperand, i16) {
     }
 
     fn decode(bytes: &[u8], pos: usize) -> (Self, usize) {
-        let format = Format::from(bytes[pos]);
-        let pos = pos + 1;
+        let (format_byte, pos) = read::<u8>(bytes, pos);
+        let format = Format::from(format_byte);
 
         match format {
             Format::U8 => {
@@ -363,8 +363,8 @@ impl Argument for (VaryingOperand, VaryingOperand) {
     }
 
     fn decode(bytes: &[u8], pos: usize) -> (Self, usize) {
-        let format = Format::from(bytes[pos]);
-        let pos = pos + 1;
+        let (format_byte, pos) = read::<u8>(bytes, pos);
+        let format = Format::from(format_byte);
 
         match format {
             Format::U8 => {
@@ -426,8 +426,8 @@ impl Argument for (VaryingOperand, VaryingOperand, VaryingOperand) {
     }
 
     fn decode(bytes: &[u8], pos: usize) -> (Self, usize) {
-        let format = Format::from(bytes[pos]);
-        let pos = pos + 1;
+        let (format_byte, pos) = read::<u8>(bytes, pos);
+        let format = Format::from(format_byte);
 
         match format {
             Format::U8 => {
@@ -518,8 +518,8 @@ impl Argument
     }
 
     fn decode(bytes: &[u8], pos: usize) -> (Self, usize) {
-        let format = Format::from(bytes[pos]);
-        let pos = pos + 1;
+        let (format_byte, pos) = read::<u8>(bytes, pos);
+        let format = Format::from(format_byte);
 
         match format {
             Format::U8 => {
@@ -856,6 +856,7 @@ impl Argument for (u32, u32, ThinVec<u32>) {
 #[cfg(test)]
 mod tests {
     use super::*;
+    use thin_vec::thin_vec;
 
     #[test]
     fn test_read_u8() {
@@ -1026,10 +1027,12 @@ mod tests {
             );
             let mut bytes = Vec::new();
             arg.encode(&mut bytes);
-            let (decoded, next) =
-                <(VaryingOperand, VaryingOperand, VaryingOperand, VaryingOperand)>::decode(
-                    &bytes, 0,
-                );
+            let (decoded, next) = <(
+                VaryingOperand,
+                VaryingOperand,
+                VaryingOperand,
+                VaryingOperand,
+            )>::decode(&bytes, 0);
             assert_eq!(u32::from(decoded.0), v1);
             assert_eq!(u32::from(decoded.1), v2);
             assert_eq!(u32::from(decoded.2), v3);
@@ -1147,13 +1150,8 @@ mod tests {
         let arg = (v1, v2, v3, v4, v5);
         let mut bytes = Vec::new();
         arg.encode(&mut bytes);
-        let (decoded, next) = <(
-            u32,
-            u32,
-            VaryingOperand,
-            VaryingOperand,
-            VaryingOperand,
-        )>::decode(&bytes, 0);
+        let (decoded, next) =
+            <(u32, u32, VaryingOperand, VaryingOperand, VaryingOperand)>::decode(&bytes, 0);
         assert_eq!(decoded.0, v1);
         assert_eq!(decoded.1, v2);
         assert_eq!(u32::from(decoded.2), 3);
@@ -1215,7 +1213,7 @@ mod tests {
     #[test]
     #[should_panic]
     fn test_complex_tuple_decode_out_of_bounds() {
-        let bytes = [0, 1, 2]; // Format::U8, VaryingOperand::U8(1), but missing i8
+        let bytes = [0, 1]; // Format::U8, VaryingOperand::U8(1), but missing i8
         <(VaryingOperand, i8)>::decode(&bytes, 0);
     }
 
