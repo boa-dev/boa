@@ -117,13 +117,18 @@ impl TextDecoder {
     ///
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/API/TextDecoder/decode
     pub fn decode(&self, buffer: JsValue, context: &mut Context) -> JsResult<JsString> {
+        let mut range = None;
         let array_buffer = if let Ok(array_buffer) = JsArrayBuffer::try_from_js(&buffer, context) {
             array_buffer
         } else if let Ok(typed_array) = JsTypedArray::try_from_js(&buffer, context) {
-            // WIP: consider the offset and length of the TypedArray.
             let Some(obj) = typed_array.buffer(context)?.as_object() else {
                 return Err(js_error!(TypeError: "Invalid buffer backing TypedArray."));
             };
+
+            let offset = typed_array.byte_offset(context)?;
+            let length = typed_array.byte_length(context)?;
+
+            range = Some(offset..offset + length);
 
             JsArrayBuffer::from_object(obj)?
         } else if let Ok(data_view) = JsDataView::try_from_js(&buffer, context) {
@@ -140,8 +145,19 @@ impl TextDecoder {
 
         let strip_bom = !self.ignore_bom;
 
-        let Some(data) = array_buffer.data() else {
+        let Some(full_data) = array_buffer.data() else {
             return Err(js_error!(TypeError: "cannot decode a detached ArrayBuffer"));
+        };
+
+        let data: &[u8] = if let Some(range) = range {
+            full_data.get(range).ok_or_else(
+                // We do not say invalid range here, as both subarray(10, 5) and subarray("a", "b")
+                // are valid JS, it would just an empty array. If this error occurs, it most likely means something else
+                // is wrong
+                || js_error!(RangeError: "The range for the underlying ArrayBuffer can not be accessed."),
+            )?
+        } else {
+            &full_data
         };
 
         Ok(match self.encoding {
