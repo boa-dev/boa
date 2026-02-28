@@ -1,5 +1,7 @@
 //! Example demonstrating the `JsAsyncGenerator` API wrapper.
-use boa_engine::{Context, JsValue, Source, object::builtins::JsAsyncGenerator};
+use boa_engine::{
+    Context, JsValue, Source, builtins::promise::PromiseState, object::builtins::JsAsyncGenerator,
+};
 
 fn main() {
     let mut context = Context::default();
@@ -15,11 +17,15 @@ fn main() {
 
     // next() returns a Promise
     let promise = async_gen.next(JsValue::undefined(), &mut context).unwrap();
-    println!("next promise state: {:?}", promise.state());
+    drop(context.run_jobs());
+    if let PromiseState::Fulfilled(val) = promise.state() {
+        println!("next resolved with: {}", val.display());
+    }
 
     // return() resolves the generator early
-    let promise = async_gen
-        .r#return(JsValue::undefined(), &mut context)
-        .unwrap();
-    println!("return promise state: {:?}", promise.state());
+    let promise = async_gen.r#return(JsValue::from(42), &mut context).unwrap();
+    drop(context.run_jobs());
+    if let PromiseState::Fulfilled(val) = promise.state() {
+        println!("return resolved with: {}", val.display());
+    }
 }
