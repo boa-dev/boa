@@ -37,11 +37,12 @@ impl ByteCompiler<'_> {
                         let identifier = identifier.to_js_string(self.interner());
                         let binding = self.lexical_scope.get_identifier_reference(identifier);
                         let index = self.get_binding(&binding);
-                        self.emit_binding_access(
-                            BindingAccessOpcode::GetNameOrUndefined,
-                            &index,
-                            dst,
-                        );
+                        let opcode = if binding.is_lexical() {
+                            BindingAccessOpcode::GetName
+                        } else {
+                            BindingAccessOpcode::GetNameOrUndefined
+                        };
+                        self.emit_binding_access(opcode, &index, dst);
                     }
                     expr => self.compile_expr(expr, dst),
                 }

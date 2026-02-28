@@ -2,7 +2,7 @@
 //!
 //! See <https://developer.mozilla.org/en-US/docs/Web/API/Encoding_API> for more information.
 
-use boa_engine::object::builtins::{JsArrayBuffer, JsTypedArray, JsUint8Array};
+use boa_engine::object::builtins::{JsArrayBuffer, JsDataView, JsTypedArray, JsUint8Array};
 use boa_engine::realm::Realm;
 use boa_engine::value::TryFromJs;
 use boa_engine::{
@@ -122,6 +122,12 @@ impl TextDecoder {
         } else if let Ok(typed_array) = JsTypedArray::try_from_js(&buffer, context) {
             let Some(obj) = typed_array.buffer(context)?.as_object() else {
                 return Err(js_error!(TypeError: "Invalid buffer backing TypedArray."));
+            };
+
+            JsArrayBuffer::from_object(obj)?
+        } else if let Ok(data_view) = JsDataView::try_from_js(&buffer, context) {
+            let Some(obj) = data_view.buffer(context)?.as_object() else {
+                return Err(js_error!(TypeError: "Invalid buffer backing DataView."));
             };
 
             JsArrayBuffer::from_object(obj)?

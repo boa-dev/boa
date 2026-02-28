@@ -631,7 +631,7 @@ impl JobExecutor for IdleJobExecutor {
 pub struct SimpleJobExecutor {
     promise_jobs: RefCell<VecDeque<PromiseJob>>,
     async_jobs: RefCell<VecDeque<NativeAsyncJob>>,
-    timeout_jobs: RefCell<BTreeMap<JsInstant, TimeoutJob>>,
+    timeout_jobs: RefCell<BTreeMap<JsInstant, Vec<TimeoutJob>>>,
     generic_jobs: RefCell<VecDeque<GenericJob>>,
 }
 
@@ -665,7 +665,11 @@ impl JobExecutor for SimpleJobExecutor {
             Job::AsyncJob(a) => self.async_jobs.borrow_mut().push_back(a),
             Job::TimeoutJob(t) => {
                 let now = context.clock().now();
-                self.timeout_jobs.borrow_mut().insert(now + t.timeout(), t);
+                self.timeout_jobs
+                    .borrow_mut()
+                    .entry(now + t.timeout())
+                    .or_default()
+                    .push(t);
             }
             Job::GenericJob(g) => self.generic_jobs.borrow_mut().push_back(g),
         }
@@ -685,16 +689,52 @@ impl JobExecutor for SimpleJobExecutor {
                 group.insert(job.call(context));
             }
 
-            // There are no timeout jobs to run IF there are no jobs to execute right now.
-            let no_timeout_jobs_to_run = {
+            // Dispatch all past-due timeout jobs before the termination check.
+            // This must come first so that recurring jobs (e.g. from `setInterval`) are
+            // executed and re-enqueued into the future before we decide whether to exit.
+            {
                 let now = context.borrow().clock().now();
-                !self.timeout_jobs.borrow().iter().any(|(t, _)| &now >= t)
+                let mut timeouts_borrow = self.timeout_jobs.borrow_mut();
+                let mut jobs_to_keep = timeouts_borrow.split_off(&now);
+                jobs_to_keep.retain(|_, jobs| {
+                    jobs.retain(|job| !job.is_cancelled());
+                    !jobs.is_empty()
+                });
+                let jobs_to_run = mem::replace(&mut *timeouts_borrow, jobs_to_keep);
+                drop(timeouts_borrow);
+
+                for jobs in jobs_to_run.into_values() {
+                    for job in jobs {
+                        if let Err(err) = job.call(&mut context.borrow_mut()) {
+                            self.clear();
+                            return Err(err);
+                        }
+                    }
+                }
+            }
+
+            // There are no timeout jobs to run IF there are no non-recurring jobs that are
+            // past-due. Recurring jobs (e.g. from `setInterval`) have already been dispatched
+            // and re-enqueued into the future above, so they must not prevent the event loop
+            // from terminating when all other work is done.
+            let has_pending_timeout_jobs = 'result: {
+                let now = context.borrow().clock().now();
+
+                for (timeout, jobs) in self.timeout_jobs.borrow().iter() {
+                    for job in jobs {
+                        if !job.is_recurring() && &now > timeout {
+                            break 'result true;
+                        }
+                    }
+                }
+
+                false
             };
 
             if self.promise_jobs.borrow().is_empty()
                 && self.async_jobs.borrow().is_empty()
                 && self.generic_jobs.borrow().is_empty()
-                && no_timeout_jobs_to_run
+                && !has_pending_timeout_jobs
                 && group.is_empty()
             {
                 break;
@@ -703,22 +743,6 @@ impl JobExecutor for SimpleJobExecutor {
             if let Some(Err(err)) = future::poll_once(group.next()).await.flatten() {
                 self.clear();
                 return Err(err);
-            }
-
-            {
-                let now = context.borrow().clock().now();
-                let mut timeouts_borrow = self.timeout_jobs.borrow_mut();
-                let mut jobs_to_keep = timeouts_borrow.split_off(&now);
-                jobs_to_keep.retain(|_, job| !job.is_cancelled());
-                let jobs_to_run = mem::replace(&mut *timeouts_borrow, jobs_to_keep);
-                drop(timeouts_borrow);
-
-                for job in jobs_to_run.into_values() {
-                    if let Err(err) = job.call(&mut context.borrow_mut()) {
-                        self.clear();
-                        return Err(err);
-                    }
-                }
             }
 
             let jobs = mem::take(&mut *self.promise_jobs.borrow_mut());

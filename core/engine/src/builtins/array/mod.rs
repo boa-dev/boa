@@ -2268,14 +2268,24 @@ impl Array {
         args: &[JsValue],
         context: &mut Context,
     ) -> JsResult<JsValue> {
+        let start = args.first();
+        let delete_count = args.get(1);
+        let items = args.get(2..).unwrap_or_default();
+
+        Self::splice_internal(this, start, delete_count, items, context)
+    }
+
+    pub(crate) fn splice_internal(
+        this: &JsValue,
+        start: Option<&JsValue>,
+        delete_count: Option<&JsValue>,
+        items: &[JsValue],
+        context: &mut Context,
+    ) -> JsResult<JsValue> {
         // 1. Let O be ? ToObject(this value).
         let o = this.to_object(context)?;
         // 2. Let len be ? LengthOfArrayLike(O).
         let len = o.length_of_array_like(context)?;
-
-        let start = args.first();
-        let delete_count = args.get(1);
-        let items = args.get(2..).unwrap_or_default();
 
         // 3. Let relativeStart be ? ToIntegerOrInfinity(start).
         // 4. If relativeStart = -∞, let actualStart be 0.

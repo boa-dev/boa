@@ -211,6 +211,45 @@ fn typeofs() {
 }
 
 #[test]
+fn typeof_edge_cases() {
+    run_test_actions([
+        TestAction::assert_eq("typeof notDeclared", js_str!("undefined")),
+        TestAction::assert_eq(
+            indoc! {r#"
+                function f() {
+                    return typeof x;
+                    var x = 1;
+                }
+                f();
+            "#},
+            js_str!("undefined"),
+        ),
+        TestAction::assert_native_error(
+            indoc! {r#"
+                function f() {
+                    return typeof x;
+                    let x = 1;
+                }
+                f();
+            "#},
+            JsNativeErrorKind::Reference,
+            "access of uninitialized binding",
+        ),
+        TestAction::assert_native_error(
+            indoc! {r#"
+                function f() {
+                    return typeof x;
+                    const x = 1;
+                }
+                f();
+            "#},
+            JsNativeErrorKind::Reference,
+            "access of uninitialized binding",
+        ),
+    ]);
+}
+
+#[test]
 fn unary_post() {
     run_test_actions([
         TestAction::assert_eq("{ let a = 5; a++; a }", 6),

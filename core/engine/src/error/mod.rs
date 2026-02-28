@@ -1,5 +1,8 @@
 //! Error-related types and conversions.
 
+#[cfg(test)]
+mod tests;
+
 use crate::{
     Context, JsResult, JsString, JsValue,
     builtins::{
@@ -386,10 +389,16 @@ impl JsError {
     /// assert!(error.as_opaque().is_some());
     /// ```
     #[must_use]
-    pub const fn from_opaque(value: JsValue) -> Self {
+    pub fn from_opaque(value: JsValue) -> Self {
+        // Recover the backtrace from the Error object if present,
+        // so it survives the JsError → JsValue → JsError round-trip.
+        let backtrace = value.as_object().and_then(|obj| {
+            let error = obj.downcast_ref::<Error>()?;
+            error.backtrace.0.clone()
+        });
         Self {
             inner: Repr::Opaque(value),
-            backtrace: None,
+            backtrace,
         }
     }
 
@@ -421,8 +430,30 @@ impl JsError {
     /// ```
     pub fn into_opaque(self, context: &mut Context) -> JsResult<JsValue> {
         match self.inner {
-            Repr::Native(e) => Ok(e.into_opaque(context).into()),
-            Repr::Opaque(v) => Ok(v.clone()),
+            Repr::Native(e) => {
+                let obj = e.into_opaque(context);
+                // Store the backtrace in the Error object so it survives the
+                // JsError → JsValue → JsError round-trip through promise
+                // rejection.
+                if let Some(backtrace) = self.backtrace
+                    && let Some(mut error) = obj.downcast_mut::<Error>()
+                {
+                    error.backtrace = IgnoreEq(Some(backtrace));
+                }
+                Ok(obj.into())
+            }
+            Repr::Opaque(v) => {
+                // Store the backtrace in the Error object for opaque errors
+                // too (e.g. explicit `throw new Error(...)`).
+                if let Some(backtrace) = self.backtrace
+                    && let Some(obj) = v.as_object()
+                    && let Some(mut error) = obj.downcast_mut::<Error>()
+                    && error.backtrace.0.is_none()
+                {
+                    error.backtrace = IgnoreEq(Some(backtrace));
+                }
+                Ok(v.clone())
+            }
             Repr::Engine(_) => Err(self),
         }
     }

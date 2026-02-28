@@ -291,3 +291,27 @@ fn decoder_ignore_bom_getter() {
         context,
     );
 }
+
+#[test]
+fn decoder_handle_data_view() {
+    let context = &mut Context::default();
+    text::register(None, context).unwrap();
+
+    run_test_actions_with(
+        [
+            TestAction::run(indoc! {r#"
+                var decoded = new TextDecoder().decode(
+                    new DataView(new TextEncoder().encode("hello").buffer)
+                );
+            "#}),
+            TestAction::inspect_context(|context| {
+                let decoded = context
+                    .global_object()
+                    .get(js_str!("decoded"), context)
+                    .unwrap();
+                assert_eq!(decoded.as_string(), Some(js_string!("hello")));
+            }),
+        ],
+        context,
+    );
+}

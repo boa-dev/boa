@@ -678,27 +678,53 @@ fn date_proto_set_utc_full_year() {
 
 #[test]
 fn date_proto_set_utc_hours() {
+    // The local-time constructor `new Date(2020, 6, 8, 9, 16, 15, 779)` converts
+    // local time to UTC internally. The resulting UTC components depend on the
+    // host timezone offset, so we compute them dynamically.
+    let base = from_local(2020, 7, 8, 9, 16, 15, 779).to_offset(time::UtcOffset::UTC);
+    let base_y = base.year();
+    let base_m = base.month() as u8;
+    let base_d = base.day();
+    let base_min = base.minute();
+    let base_sec = base.second();
+    let base_ms = base.millisecond();
+
     run_test_actions([
+        // setUTCHours(11): only the UTC hour changes; date/min/sec/ms stay.
         TestAction::assert_eq(
             "new Date(2020, 6, 8, 9, 16, 15, 779).setUTCHours(11)",
-            timestamp_from_utc(2020, 7, 8, 11, 16, 15, 779),
+            timestamp_from_utc(base_y, base_m, base_d, 11, base_min, base_sec, base_ms),
         ),
+        // setUTCHours(h, m): hour and minutes are overridden; sec/ms stay.
         TestAction::assert_eq(
             "new Date(2020, 6, 8, 9, 16, 15, 779).setUTCHours(11, 35)",
-            timestamp_from_utc(2020, 7, 8, 11, 35, 15, 779),
+            timestamp_from_utc(base_y, base_m, base_d, 11, 35, base_sec, base_ms),
         ),
+        // setUTCHours(h, m, s): hour, minutes, seconds overridden; ms stays.
         TestAction::assert_eq(
             "new Date(2020, 6, 8, 9, 16, 15, 779).setUTCHours(11, 35, 23)",
-            timestamp_from_utc(2020, 7, 8, 11, 35, 23, 779),
+            timestamp_from_utc(base_y, base_m, base_d, 11, 35, 23, base_ms),
         ),
+        // setUTCHours(h, m, s, ms): all time components overridden.
         TestAction::assert_eq(
             "new Date(2020, 6, 8, 9, 16, 15, 779).setUTCHours(11, 35, 23, 537)",
-            timestamp_from_utc(2020, 7, 8, 11, 35, 23, 537),
+            timestamp_from_utc(base_y, base_m, base_d, 11, 35, 23, 537),
         ),
-        // Out-of-bounds
+        // Out-of-bounds: all time components specified, overflow wraps across days.
+        // The base timestamp is Day(t) from the local-time date's internal UTC value.
         TestAction::assert_eq(
             "new Date(2020, 6, 8, 9, 16, 15, 779).setUTCHours(10000, 20000, 30000, 40123)",
-            timestamp_from_utc(2021, 9, 11, 21, 40, 40, 123),
+            {
+                // setUTCHours computes MakeDate(Day(t), MakeTime(h, m, s, ms)).
+                // Day(t) is the UTC day count of the base date, so we reconstruct
+                // by starting from the base UTC midnight and adding the overflow.
+                let base_day_ms = timestamp_from_utc(base_y, base_m, base_d, 0, 0, 0, 0);
+                let total_ms = i64::from(10000) * 3_600_000
+                    + i64::from(20000) * 60_000
+                    + i64::from(30000) * 1_000
+                    + 40123;
+                base_day_ms + total_ms
+            },
         ),
         TestAction::assert_eq(
             "new Date(2020, 6, 8, 9, 16, 15, 779).setUTCHours(1/0)",
