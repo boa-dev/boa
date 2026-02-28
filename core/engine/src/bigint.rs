@@ -228,21 +228,15 @@ impl JsBigInt {
             // <https://tc39.es/ecma262/#sec-numeric-types-bigint-signedRightShift>
             // implies that for very large positive y the result converges to
             // 0n (x >= 0) or -1n (x < 0). V8 and SpiderMonkey agree.
-            None => {
-                if y.inner.sign() == Sign::Minus {
-                    // x >> (large negative) is equivalent to x << (large positive), which overflows.
-                    Err(JsNativeError::range()
-                        .with_message("Maximum BigInt size exceeded")
-                        .into())
-                } else {
-                    // x >> (large positive): all bits are shifted out.
-                    if x.inner.sign() == Sign::Minus {
-                        Ok(Self::new(RawBigInt::from(-1)))
-                    } else {
-                        Ok(Self::zero())
-                    }
-                }
-            }
+            None => match (x.inner.sign(), y.inner.sign()) {
+                // x >> (large positive): all bits are shifted out.
+                (Sign::Minus, Sign::Plus) => Ok(Self::new(RawBigInt::from(-1))),
+                (_, Sign::Plus) => Ok(Self::zero()),
+                // x >> (large negative) is equivalent to x << (large positive), which overflows.
+                (_, _) => Err(JsNativeError::range()
+                    .with_message("Maximum BigInt size exceeded")
+                    .into()),
+            },
         }
     }
 
@@ -256,21 +250,15 @@ impl JsBigInt {
             //
             // Best-effort safeguard: symmetric to shift_right above.
             // See <https://tc39.es/ecma262/#sec-numeric-types-bigint-leftShift>.
-            None => {
-                if y.inner.sign() == Sign::Minus {
-                    // x << (large negative) is equivalent to x >> (large positive): all bits shifted out.
-                    if x.inner.sign() == Sign::Minus {
-                        Ok(Self::new(RawBigInt::from(-1)))
-                    } else {
-                        Ok(Self::zero())
-                    }
-                } else {
-                    // x << (large positive) overflows.
-                    Err(JsNativeError::range()
-                        .with_message("Maximum BigInt size exceeded")
-                        .into())
-                }
-            }
+            None => match (x.inner.sign(), y.inner.sign()) {
+                // x << (large negative) is equivalent to x >> (large positive): all bits shifted out.
+                (Sign::Minus, Sign::Minus) => Ok(Self::new(RawBigInt::from(-1))),
+                (_, Sign::Minus) => Ok(Self::zero()),
+                // x << (large positive) overflows.
+                (_, _) => Err(JsNativeError::range()
+                    .with_message("Maximum BigInt size exceeded")
+                    .into()),
+            },
         }
     }
 
