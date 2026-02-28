@@ -120,6 +120,7 @@ impl TextDecoder {
         let array_buffer = if let Ok(array_buffer) = JsArrayBuffer::try_from_js(&buffer, context) {
             array_buffer
         } else if let Ok(typed_array) = JsTypedArray::try_from_js(&buffer, context) {
+            // WIP: consider the offset and length of the TypedArray.
             let Some(obj) = typed_array.buffer(context)?.as_object() else {
                 return Err(js_error!(TypeError: "Invalid buffer backing TypedArray."));
             };
