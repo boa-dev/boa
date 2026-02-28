@@ -576,11 +576,11 @@ fn main() -> Result<()> {
         io::stdin()
             .read_to_string(&mut input)
             .wrap_err("failed to read stdin")?;
-        if input.is_empty() {
-            return Ok(());
-        }
-        evaluate_expr(&input, &args, &mut context, &printer)?;
-        return Ok(());
+        return if input.is_empty() {
+            Ok(())
+        } else {
+            evaluate_expr(&input, &args, &mut context, &printer)
+        };
     }
 
     let handle = start_readline_thread(sender, printer.clone(), args.vi_mode);
