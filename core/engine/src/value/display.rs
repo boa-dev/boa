@@ -6,7 +6,7 @@ use crate::{
         set::ordered_set::OrderedSet,
     },
     js_string,
-    property::{PropertyDescriptor, PropertyKey},
+    property::{DescriptorKind, PropertyDescriptor, PropertyKey},
 };
 use std::borrow::Cow;
 use std::fmt::Write;
@@ -134,20 +134,26 @@ fn log_array_to(
             // which are part of the Array
 
             if let Some(desc) = x.borrow().properties().get(&i.into()) {
-                if desc.is_data_descriptor() {
-                    if let Some(value) = desc.value() {
-                        log_value_to(f, value, print_internals, false)?;
-                    } else {
+                match desc.kind() {
+                    DescriptorKind::Data { value, .. } => {
+                        if let Some(value) = value {
+                            log_value_to(f, value, print_internals, false)?;
+                        } else {
+                            f.write_str("undefined")?;
+                        }
+                    }
+                    DescriptorKind::Accessor { get, set } => {
+                        let display = match (get.is_some(), set.is_some()) {
+                            (true, true) => "[Getter/Setter]",
+                            (true, false) => "[Getter]",
+                            (false, true) => "[Setter]",
+                            _ => "<empty>",
+                        };
+                        f.write_str(display)?;
+                    }
+                    DescriptorKind::Generic => {
                         f.write_str("undefined")?;
                     }
-                } else {
-                    let display = match (desc.get().is_some(), desc.set().is_some()) {
-                        (true, true) => "[Getter/Setter]",
-                        (true, false) => "[Getter]",
-                        (false, true) => "[Setter]",
-                        _ => "<empty>",
-                    };
-                    f.write_str(display)?;
                 }
             } else {
                 f.write_str("<empty>")?;
