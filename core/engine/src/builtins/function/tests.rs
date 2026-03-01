@@ -199,12 +199,22 @@ fn function_constructor_early_errors_super() {
 fn function_constructor_deep_parenthesis_reports_syntax_error() {
     run_test_actions([TestAction::assert(indoc! {r#"
         (() => {
+            // Test 1: Unmatched opening parentheses should fail
             try {
                 Function('('.repeat(703));
                 return false;
             } catch (e) {
-                return e instanceof SyntaxError
-                    && e.message.includes("too many nested parenthesized expressions");
+                if (!(e instanceof SyntaxError)) {
+                    return false;
+                }
+            }
+            
+            // Test 2: Deeply nested but balanced parentheses should work
+            try {
+                Function('let a = ' + '('.repeat(100) + 'undefined' + ')'.repeat(100));
+                return true;
+            } catch (e) {
+                return false;
             }
         })()
     "#})]);

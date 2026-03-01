@@ -160,12 +160,15 @@ where
                 }
             }
             TokenKind::Punctuator(Punctuator::OpenParen) => {
+                let span_start = cursor.peek(0, interner).or_abrupt()?.span().start();
+                cursor.open_paren(span_start)?;
                 let expr = CoverParenthesizedExpressionAndArrowParameterList::new(
                     self.allow_yield,
                     self.allow_await,
                 )
-                .parse(cursor, interner)?;
-                Ok(expr)
+                .parse(cursor, interner);
+                cursor.close_paren()?;
+                expr.map(Into::into)
             }
             TokenKind::Punctuator(Punctuator::OpenBracket) => {
                 ArrayLiteral::new(self.allow_yield, self.allow_await)

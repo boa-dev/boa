@@ -38,8 +38,10 @@ pub(super) struct Cursor<R> {
     /// Tracks the number of tagged templates that are currently being parsed.
     tagged_templates_count: u32,
 
-    /// Tracks the level of nested parenthesized expressions.
-    parenthesized_expression_nesting: u16,
+    /// Tracks the depth of currently open parentheses in primary expressions.
+    /// This is incremented when we consume a `(` token and decremented when we consume `)`.
+    /// This allows us to detect unbalanced/excessive parentheses while still accepting balanced code.
+    open_paren_depth: u16,
 }
 
 impl<R> Cursor<R>
@@ -47,9 +49,9 @@ where
     R: ReadChar,
 {
     #[cfg(debug_assertions)]
-    pub(super) const MAX_PARENTHESIZED_EXPRESSION_NESTING: u16 = 6;
+    pub(super) const MAX_OPEN_PAREN_DEPTH: u16 = 256;
     #[cfg(not(debug_assertions))]
-    pub(super) const MAX_PARENTHESIZED_EXPRESSION_NESTING: u16 = 512;
+    pub(super) const MAX_OPEN_PAREN_DEPTH: u16 = 4096;
 
     /// Creates a new cursor with the given reader.
     pub(super) fn new(reader: R) -> Self {
@@ -59,28 +61,33 @@ where
             json_parse: false,
             identifier: 0,
             tagged_templates_count: 0,
-            parenthesized_expression_nesting: 0,
+            open_paren_depth: 0,
         }
     }
 
-    /// Increases parenthesized expression nesting level.
-    pub(super) fn enter_parenthesized_expression(&mut self, position: Position) -> ParseResult<()> {
-        if self.parenthesized_expression_nesting >= Self::MAX_PARENTHESIZED_EXPRESSION_NESTING {
+    /// Increments open parenthesis depth when encountering '('.
+    pub(super) fn open_paren(&mut self, position: Position) -> ParseResult<()> {
+        if self.open_paren_depth >= Self::MAX_OPEN_PAREN_DEPTH {
             return Err(Error::general(
                 "too many nested parenthesized expressions",
                 position,
             ));
         }
 
-        self.parenthesized_expression_nesting += 1;
+        self.open_paren_depth += 1;
         Ok(())
     }
 
-    /// Decreases parenthesized expression nesting level.
-    pub(super) fn exit_parenthesized_expression(&mut self) {
-        debug_assert!(self.parenthesized_expression_nesting > 0);
-        self.parenthesized_expression_nesting =
-            self.parenthesized_expression_nesting.saturating_sub(1);
+    /// Decrements open parenthesis depth when encountering ')'.
+    pub(super) fn close_paren(&mut self) -> ParseResult<()> {
+        if self.open_paren_depth == 0 {
+            // This will be caught by the parser as a mismatched paren
+            self.open_paren_depth = 0;
+            return Ok(());
+        }
+
+        self.open_paren_depth = self.open_paren_depth.saturating_sub(1);
+        Ok(())
     }
 
     /// Sets the goal symbol of the cursor to `Module`.
