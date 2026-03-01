@@ -105,6 +105,73 @@ fn get_internal_method() {
 }
 
 #[test]
+fn get_internal_method_in_transitive_prototype() {
+    // Tests that properties found 2 hops up the prototype chain are cacheable
+    // (fix for transitive prototype inline caching).
+    let context = &mut Context::default();
+
+    // grandparent object with the property
+    let grandparent = context
+        .intrinsics()
+        .templates()
+        .ordinary_object()
+        .create(OrdinaryObject, Vec::default());
+
+    let property: PropertyKey = js_string!("transitive_prop").into();
+    let value = 42;
+    grandparent
+        .set(property.clone(), value, true, context)
+        .expect("should not fail");
+
+    // parent object whose prototype is grandparent
+    let parent = context
+        .intrinsics()
+        .templates()
+        .ordinary_object()
+        .create(OrdinaryObject, Vec::default());
+    parent.set_prototype(Some(grandparent.clone()));
+
+    // child object whose prototype is parent
+    let child = context
+        .intrinsics()
+        .templates()
+        .ordinary_object()
+        .create(OrdinaryObject, Vec::default());
+    child.set_prototype(Some(parent));
+
+    let ctx = &mut InternalMethodPropertyContext::new(context);
+    let result = child
+        .__get__(&property, child.clone().into(), ctx)
+        .expect("should not fail");
+
+    assert_eq!(result, JsValue::from(value));
+
+    assert!(
+        ctx.slot().in_prototype(),
+        "Property is in the prototype chain, PROTOTYPE bit must be set"
+    );
+
+    assert!(
+        ctx.slot().is_cacheable(),
+        "Transitive prototype property must now be cacheable"
+    );
+
+    assert!(
+        ctx.owning_prototype().is_some(),
+        "Property is in the prototype chain, owning_prototype must be set"
+    );
+
+    let owning = ctx
+        .owning_prototype()
+        .expect("owning prototype should be set");
+    assert_eq!(
+        owning.borrow().properties().storage[ctx.slot().index as usize],
+        JsValue::from(value),
+        "owning_prototype should be the grandparent holding the property"
+    );
+}
+
+#[test]
 fn get_internal_method_in_prototype() {
     let context = &mut Context::default();
 
@@ -331,7 +398,7 @@ fn set_property_by_name_set_inline_cache_on_property_load() -> JsResult<()> {
     let (function, code) = get_codeblock(&function).unwrap();
 
     assert_eq!(code.ic.len(), 1);
-    assert_eq!(code.ic[0].shape.borrow().clone(), WeakShape::None);
+    assert_eq!(code.ic[0].first_shape_addr(), 0);
 
     let o = ObjectInitializer::new(context)
         .property(js_string!("test"), 0, Attribute::all())
@@ -340,7 +407,7 @@ fn set_property_by_name_set_inline_cache_on_property_load() -> JsResult<()> {
 
     function.call(&JsValue::undefined(), &[o.clone().into()], context)?;
 
-    assert_eq!(code.ic[0].shape.borrow().clone(), WeakShape::from(&o_shape));
+    assert_eq!(code.ic[0].first_shape_addr(), o_shape.to_addr_usize());
 
     Ok(())
 }
@@ -352,7 +419,7 @@ fn get_property_by_name_set_inline_cache_on_property_load() -> JsResult<()> {
     let (function, code) = get_codeblock(&function).unwrap();
 
     assert_eq!(code.ic.len(), 1);
-    assert_eq!(code.ic[0].shape.borrow().clone(), WeakShape::None);
+    assert_eq!(code.ic[0].first_shape_addr(), 0);
 
     let o = ObjectInitializer::new(context)
         .property(js_string!("test"), 0, Attribute::all())
@@ -361,7 +428,7 @@ fn get_property_by_name_set_inline_cache_on_property_load() -> JsResult<()> {
 
     function.call(&JsValue::undefined(), &[o.clone().into()], context)?;
 
-    assert_eq!(code.ic[0].shape.borrow().clone(), WeakShape::from(&o_shape));
+    assert_eq!(code.ic[0].first_shape_addr(), o_shape.to_addr_usize());
 
     Ok(())
 }

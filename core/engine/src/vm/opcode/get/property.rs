@@ -39,11 +39,12 @@ fn get_by_name<const LENGTH: bool>(
 
     let ic = &context.vm.frame().code_block().ic[usize::from(index)];
     let object_borrowed = object.borrow();
-    if let Some((shape, slot)) = ic.match_or_reset(object_borrowed.shape()) {
+    if let Some((_shape, slot, cached_prototype)) = ic.match_or_reset(object_borrowed.shape()) {
         let mut result = if slot.attributes.contains(SlotAttributes::PROTOTYPE) {
-            let prototype = shape.prototype().expect("prototype should have value");
-            let prototype = prototype.borrow();
-            prototype.properties().storage[slot.index as usize].clone()
+            // Jump directly to the cached prototype object — no chain traversal needed.
+            let proto = cached_prototype.expect("cached prototype should exist for PROTOTYPE slot");
+            let proto_borrowed = proto.borrow();
+            proto_borrowed.properties().storage[slot.index as usize].clone()
         } else {
             object_borrowed.properties().storage[slot.index as usize].clone()
         };
@@ -70,10 +71,11 @@ fn get_by_name<const LENGTH: bool>(
     // Cache the property.
     let slot = *context.slot();
     if slot.is_cacheable() {
+        let proto = context.owning_prototype();
         let ic = &context.vm.frame().code_block.ic[usize::from(index)];
         let object_borrowed = object.borrow();
         let shape = object_borrowed.shape();
-        ic.set(shape, slot);
+        ic.set(shape, slot, proto);
     }
 
     context.vm.set_register(dst.into(), result);
