@@ -49,9 +49,9 @@ where
     R: ReadChar,
 {
     #[cfg(debug_assertions)]
-    pub(super) const MAX_OPEN_PAREN_DEPTH: u16 = 256;
+    pub(super) const MAX_OPEN_PAREN_DEPTH: u16 = 2048;
     #[cfg(not(debug_assertions))]
-    pub(super) const MAX_OPEN_PAREN_DEPTH: u16 = 4096;
+    pub(super) const MAX_OPEN_PAREN_DEPTH: u16 = 8192;
 
     /// Creates a new cursor with the given reader.
     pub(super) fn new(reader: R) -> Self {
@@ -88,6 +88,12 @@ where
 
         self.open_paren_depth = self.open_paren_depth.saturating_sub(1);
         Ok(())
+    }
+
+    /// Returns the current open parenthesis depth.
+    #[allow(dead_code)]
+    pub(super) const fn open_paren_depth(&self) -> u16 {
+        self.open_paren_depth
     }
 
     /// Sets the goal symbol of the cursor to `Module`.

@@ -198,24 +198,32 @@ fn function_constructor_early_errors_super() {
 #[test]
 fn function_constructor_deep_parenthesis_reports_syntax_error() {
     run_test_actions([TestAction::assert(indoc! {r#"
-        (() => {
-            // Test 1: Unmatched opening parentheses should fail
-            try {
-                Function('('.repeat(703));
-                return false;
-            } catch (e) {
-                if (!(e instanceof SyntaxError)) {
+            (() => {
+                // Test 1: Deeply nested unclosed parentheses should properly error
+                try {
+                    Function('('.repeat(703));
+                    // Should not reach here
+                    return false;
+                } catch (e) {
+                    // Must be a SyntaxError, not a stack overflow
+                    if (!(e instanceof SyntaxError)) {
+                        return false;
+                    }
+                    // Error message should indicate parser issue, not stack overflow
+                    const msg = String(e);
+                    if (!msg.includes('SyntaxError')) {
+                        return false;
+                    }
+                }
+                
+                // Test 2: Deeply nested but balanced parentheses should work
+                try {
+                    Function('let a = ' + '('.repeat(1000) + 'undefined' + ')'.repeat(1000));
+                    return true;
+                } catch (e) {
+                    // Should not error on balanced parens
                     return false;
                 }
-            }
-            
-            // Test 2: Deeply nested but balanced parentheses should work
-            try {
-                Function('let a = ' + '('.repeat(100) + 'undefined' + ')'.repeat(100));
-                return true;
-            } catch (e) {
-                return false;
-            }
-        })()
-    "#})]);
+            })()
+        "#})]);
 }

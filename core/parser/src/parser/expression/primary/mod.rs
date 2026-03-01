@@ -87,6 +87,55 @@ impl PrimaryExpression {
     }
 }
 
+fn parse_deep_parenthesized_expression<R>(
+    cursor: &mut Cursor<R>,
+    interner: &mut Interner,
+    allow_yield: AllowYield,
+    allow_await: AllowAwait,
+    first_paren_start: boa_ast::Position,
+) -> ParseResult<FormalParameterListOrExpression>
+where
+    R: ReadChar,
+{
+    // First `(` has already been consumed and registered by the caller
+    cursor.set_goal(InputElement::RegExp);
+    cursor.advance(interner);
+
+    let mut additional_open_parens = 0u16;
+    while let Some(token) = cursor.peek(0, interner)? {
+        if token.kind() != &TokenKind::Punctuator(Punctuator::OpenParen) {
+            break;
+        }
+
+        cursor.advance(interner);
+        additional_open_parens += 1;
+    }
+
+    let expression = Expression::new(true, allow_yield, allow_await).parse(cursor, interner)?;
+
+    let mut span_end = first_paren_start;
+    for _ in 0..=additional_open_parens {
+        span_end = cursor
+            .expect(
+                Punctuator::CloseParen,
+                "parenthesis expression or arrow function",
+                interner,
+            )?
+            .span()
+            .end();
+    }
+
+    for _ in 0..additional_open_parens {
+        cursor.close_paren()?;
+    }
+
+    Ok(ast::Expression::Parenthesized(Parenthesized::new(
+        expression,
+        Span::new(first_paren_start, span_end),
+    ))
+    .into())
+}
+
 impl<R> TokenParser<R> for PrimaryExpression
 where
     R: ReadChar,
@@ -161,14 +210,33 @@ where
             }
             TokenKind::Punctuator(Punctuator::OpenParen) => {
                 let span_start = cursor.peek(0, interner).or_abrupt()?.span().start();
+
                 cursor.open_paren(span_start)?;
-                let expr = CoverParenthesizedExpressionAndArrowParameterList::new(
-                    self.allow_yield,
-                    self.allow_await,
-                )
-                .parse(cursor, interner);
+                let current_depth = cursor.open_paren_depth();
+
+                // Use iterative fast path if we're already at a depth where recursion becomes unsafe.
+                // This prevents stack overflow before it happens.
+                let expr = if current_depth >= 4 {
+                    // For deep nesting (depth >= 4), use iterative fast path
+                    parse_deep_parenthesized_expression(
+                        cursor,
+                        interner,
+                        self.allow_yield,
+                        self.allow_await,
+                        span_start,
+                    )
+                } else {
+                    // For normal depth, use standard recursive cover parser
+                    CoverParenthesizedExpressionAndArrowParameterList::new(
+                        self.allow_yield,
+                        self.allow_await,
+                    )
+                    .parse(cursor, interner)
+                    .map(Into::into)
+                };
+
                 cursor.close_paren()?;
-                expr.map(Into::into)
+                expr
             }
             TokenKind::Punctuator(Punctuator::OpenBracket) => {
                 ArrayLiteral::new(self.allow_yield, self.allow_await)
