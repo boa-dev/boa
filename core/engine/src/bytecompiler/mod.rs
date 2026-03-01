@@ -1526,6 +1526,114 @@ impl<'ctx> ByteCompiler<'ctx> {
         self.patch_jump(skip_undef);
     }
 
+    /// Compile a `delete` expression on an optional chain.
+    ///
+    /// Follows the same short-circuit logic as `compile_optional_preserve_this`, but
+    /// emits delete opcodes for the final link in the chain instead of get opcodes.
+    /// When the chain short-circuits (base is null/undefined), returns `true` per spec.
+    pub(crate) fn compile_optional_delete(&mut self, optional: &Optional, dst: &Register) {
+        let value = self.register_allocator.alloc();
+        let this = self.register_allocator.alloc();
+
+        let mut jumps = Vec::with_capacity(optional.chain().len());
+
+        // Compile the target expression (base of the chain).
+        match optional.target().flatten() {
+            Expression::PropertyAccess(access) => {
+                self.compile_access_preserve_this(access, &this, &value);
+            }
+            Expression::Optional(opt) => {
+                self.compile_optional_preserve_this(opt, &this, &value);
+            }
+            expr => {
+                self.bytecode.emit_push_undefined(this.variable());
+                self.compile_expr(expr, &value);
+            }
+        }
+
+        jumps.push(self.jump_if_null_or_undefined(&value));
+
+        let chain = optional.chain();
+        let chain_len = chain.len();
+
+        let (first, rest) = chain
+            .split_first()
+            .expect("chain must have at least one element");
+        assert!(first.shorted());
+
+        if chain_len == 1 {
+            // The only item is also the last — emit delete.
+            self.compile_optional_delete_final(first.kind(), &this, &value, dst);
+        } else {
+            // Not the last — emit a regular get.
+            self.compile_optional_item_kind(first.kind(), &this, &value);
+
+            for (i, item) in rest.iter().enumerate() {
+                if item.shorted() {
+                    jumps.push(self.jump_if_null_or_undefined(&value));
+                }
+                if i == rest.len() - 1 {
+                    // Last item — emit delete.
+                    self.compile_optional_delete_final(item.kind(), &this, &value, dst);
+                } else {
+                    self.compile_optional_item_kind(item.kind(), &this, &value);
+                }
+            }
+        }
+
+        let skip_true = self.jump();
+
+        // Short-circuit path: delete on null/undefined base returns true per spec.
+        for label in jumps {
+            self.patch_jump(label);
+        }
+        self.bytecode.emit_push_true(dst.variable());
+
+        self.patch_jump(skip_true);
+
+        self.register_allocator.dealloc(this);
+        self.register_allocator.dealloc(value);
+    }
+
+    /// Emit delete opcodes for the final operation in an optional chain.
+    fn compile_optional_delete_final(
+        &mut self,
+        kind: &OptionalOperationKind,
+        this: &Register,
+        value: &Register,
+        dst: &Register,
+    ) {
+        match kind {
+            OptionalOperationKind::SimplePropertyAccess { field } => {
+                self.bytecode.emit_move(this.variable(), value.variable());
+                match field {
+                    PropertyAccessField::Const(name) => {
+                        let index = self.get_or_insert_name(name.sym());
+                        self.bytecode.emit_move(dst.variable(), value.variable());
+                        self.bytecode
+                            .emit_delete_property_by_name(dst.variable(), index.into());
+                    }
+                    PropertyAccessField::Expr(expr) => {
+                        self.bytecode.emit_move(dst.variable(), value.variable());
+                        let key = self.register_allocator.alloc();
+                        self.compile_expr(expr, &key);
+                        self.bytecode
+                            .emit_delete_property_by_value(dst.variable(), key.variable());
+                        self.register_allocator.dealloc(key);
+                    }
+                }
+            }
+            OptionalOperationKind::PrivatePropertyAccess { .. } => {
+                unreachable!("deleting private properties should always throw early errors.")
+            }
+            OptionalOperationKind::Call { .. } => {
+                // `delete obj?.method()` — evaluate the call, then return true.
+                self.compile_optional_item_kind(kind, this, value);
+                self.bytecode.emit_push_true(dst.variable());
+            }
+        }
+    }
+
     /// Compile a single operation in an optional chain.
     ///
     /// On successful compilation, the state of the stack on execution will become `...rest, this, value`,
