@@ -189,9 +189,11 @@ impl JsResponse {
             JsNativeError::range().with_message(format!("Invalid status code - {status_code}"))
         })?;
 
-        let body_bytes = if let Some(body) = body && !body.is_null_or_undefined(){
+        let body_bytes = if let Some(body) = body
+            && !body.is_null_or_undefined()
+        {
             body.to_string(context)?.to_std_string_lossy().into_bytes()
-        }else{
+        } else {
             Vec::new()
         };
 
