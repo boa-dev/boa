@@ -1540,9 +1540,9 @@ impl Date {
         // 6. Return a String representation of tv in the Date Time String Format on the UTC time scale,
         //    including all format elements and the UTC offset representation "Z".
         let year = year_from_time(tv);
-        let year = if year.is_positive() && year >= 10000 {
+        let year = if year >= 10000 {
             js_string!(js_str!("+"), pad_six(year.unsigned_abs(), &mut [0; 6]))
-        } else if year.is_positive() {
+        } else if year >= 0 {
             pad_four(year.unsigned_abs(), &mut [0; 4]).into()
         } else {
             js_string!(js_str!("-"), pad_six(year.unsigned_abs(), &mut [0; 6]))

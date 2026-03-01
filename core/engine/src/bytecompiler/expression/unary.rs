@@ -11,6 +11,8 @@ impl ByteCompiler<'_> {
 
                 if let Some(access) = Access::from_expression(unary.target()) {
                     compiler.access_delete(access, dst);
+                } else if let Expression::Optional(opt) = unary.target() {
+                    compiler.compile_optional_delete(opt, dst);
                 } else {
                     compiler.compile_expr(unary.target(), dst);
                     PushTrue::emit(&mut compiler, dst.variable());
@@ -38,11 +40,12 @@ impl ByteCompiler<'_> {
                         let identifier = identifier.to_js_string(self.interner());
                         let binding = self.lexical_scope.get_identifier_reference(identifier);
                         let index = self.get_binding(&binding);
-                        self.emit_binding_access(
-                            BindingAccessOpcode::GetNameOrUndefined,
-                            &index,
-                            dst,
-                        );
+                        let opcode = if binding.is_lexical() {
+                            BindingAccessOpcode::GetName
+                        } else {
+                            BindingAccessOpcode::GetNameOrUndefined
+                        };
+                        self.emit_binding_access(opcode, &index, dst);
                     }
                     expr => self.compile_expr(expr, dst),
                 }

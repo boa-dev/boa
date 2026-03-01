@@ -137,12 +137,13 @@ fn operations() {
             "Maximum BigInt size exceeded",
         ),
         TestAction::assert_eq("8n >> 2n", JsBigInt::from(2)),
-        // TODO: this should return 0n instead of throwing
-        TestAction::assert_native_error(
-            "1000n >> 1000000000000000n",
-            JsNativeErrorKind::Range,
-            "Maximum BigInt size exceeded",
-        ),
+        TestAction::assert_eq("1000n >> 1000000000000000n", JsBigInt::zero()),
+        TestAction::assert_eq("(-1000n) >> 1000000000000000n", JsBigInt::from(-1)),
+        TestAction::assert_eq("0n >> 1000000000000000n", JsBigInt::zero()),
+        // shift_left with large negative amount (equivalent to large right-shift)
+        TestAction::assert_eq("1000n << (-1000000000000000n)", JsBigInt::zero()),
+        TestAction::assert_eq("(-1000n) << (-1000000000000000n)", JsBigInt::from(-1)),
+        TestAction::assert_eq("0n << (-1000000000000000n)", JsBigInt::zero()),
     ]);
 }
 
