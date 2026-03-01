@@ -1,6 +1,13 @@
 mod arguments;
+mod array;
+mod object;
+mod primitives;
+mod typed_array;
+mod value;
 
-use super::{Display, HashSet, JsValue, JsVariant, fmt};
+use hashbrown::HashSet;
+
+use super::{Display, JsValue, JsVariant, fmt};
 use crate::{
     JsError, JsObject, JsString,
     builtins::{
@@ -19,6 +26,7 @@ use crate::{
     },
     js_string,
     property::{DescriptorKind, PropertyDescriptor, PropertyKey},
+    value::display::primitives::format_rational,
 };
 use std::borrow::Cow;
 use std::fmt::Write;
@@ -722,37 +730,8 @@ fn log_plain_object_compact(
     Ok(())
 }
 
-impl JsValue {
-    /// A helper function for specifically printing object values
-    #[must_use]
-    pub fn display_obj(&self, print_internals: bool) -> String {
-        struct DisplayObj<'a>(&'a JsValue, bool);
-        impl Display for DisplayObj<'_> {
-            fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-                log_object_to_internal(f, self.0, &mut HashSet::new(), 4, self.1)
-            }
-        }
-
-        DisplayObj(self, print_internals).to_string()
-    }
-}
-
 impl Display for ValueDisplay<'_> {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        log_value_to(f, self.value, self.internals, true)
-    }
-}
-
-/// This is different from the ECMAScript compliant number to string, in the printing of `-0`.
-///
-/// This function prints `-0` as `-0` instead of positive `0` as the specification says.
-/// This is done to make it easier for the user of the REPL to identify what is a `-0` vs `0`,
-/// since the REPL is not bound to the ECMAScript specification, we can do this.
-fn format_rational(v: f64, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-    if v.is_sign_negative() && v == 0.0 {
-        f.write_str("-0")
-    } else {
-        let mut buffer = ryu_js::Buffer::new();
-        f.write_str(buffer.format(v))
+        value::log_value_to(f, self.value, self.internals, true)
     }
 }
