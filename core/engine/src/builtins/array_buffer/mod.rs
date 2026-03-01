@@ -736,8 +736,6 @@ impl ArrayBuffer {
             };
 
             // 26. Perform CopyDataBlockBytes(toBuf, 0, fromBuf, first, newLen).
-            let first = first;
-            let new_len = new_len;
             to_buf[..new_len].copy_from_slice(&from_buf[first..first + new_len]);
         }
 
@@ -953,18 +951,13 @@ pub(crate) fn create_byte_data_block(
 
     assert!(size <= alloc_size);
 
+    // 1. Let db be a new Data Block value consisting of size bytes. If it is impossible to
+    //    create such a Data Block, throw a RangeError exception.
     if alloc_size > context.host_hooks().max_buffer_size(context) {
         return Err(JsNativeError::range()
             .with_message("cannot allocate a buffer that exceeds the maximum buffer size")
             .into());
     }
-
-    // 1. Let db be a new Data Block value consisting of size bytes. If it is impossible to
-    //    create such a Data Block, throw a RangeError exception.
-    let alloc_size = alloc_size.try_into().map_err(|e| {
-        JsNativeError::range().with_message(format!("couldn't allocate the data block: {e}"))
-    })?;
-
     let mut data_block = AlignedVec::<u8>::new(64);
     data_block.try_reserve_exact(alloc_size).map_err(|e| {
         let message = match e {

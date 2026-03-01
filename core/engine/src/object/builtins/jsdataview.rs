@@ -110,7 +110,7 @@ impl JsDataView {
 
         // 11. If IsDetachedBuffer(buffer) is true, throw a TypeError exception.
         // 12. Set bufferByteLength to ArrayBufferByteLength(buffer, seq-cst).
-        let Some(buf_byte_len) = buffer.borrow().data().bytes().map(|s| s.len()) else {
+        let Some(buf_byte_len) = buffer.borrow().data().bytes().map(<[u8]>::len) else {
             return Err(JsNativeError::typ()
                 .with_message("ArrayBuffer is detached")
                 .into());

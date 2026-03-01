@@ -703,8 +703,6 @@ fn validate_atomic_access(
         .and_then(|v| v.checked_add(offset))
         .ok_or_else(|| JsNativeError::range().with_message("typed array byte offset overflow"))?;
 
-    let offset = usize::try_from(offset)
-        .map_err(|_| JsNativeError::range().with_message("typed array byte offset overflow"))?;
     Ok(AtomicAccess {
         byte_offset: offset,
         kind,

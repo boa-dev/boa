@@ -80,9 +80,6 @@ impl TypedArray {
     ///
     /// [spec]: https://tc39.es/ecma262/sec-istypedarrayoutofbounds
     pub(crate) fn is_out_of_bounds(&self, buf_byte_len: usize) -> bool {
-        // Checks when allocating the buffer ensure the length fits inside an `u64`.
-        let buf_byte_len = buf_byte_len;
-
         // 1. Let O be taRecord.[[Object]].
         // 2. Let bufferByteLength be taRecord.[[CachedBufferByteLength]].
         // 3. Assert: IsDetachedBuffer(O.[[ViewedArrayBuffer]]) is true if and only if bufferByteLength is detached.

@@ -1298,15 +1298,13 @@ impl BuiltinTypedArray {
                     // a. Let k be len + n.
                     IntegerOrInfinity::Integer(i) if i >= 0 => usize::try_from(i)
                         .ok()
-                        .map(|i| i.min(len.saturating_sub(1)))
-                        .unwrap_or(len.saturating_sub(1)),
+                        .map_or(len.saturating_sub(1), |i| i.min(len.saturating_sub(1))),
 
                     // 8. Else,
                     // a. Let k be len + n.
                     IntegerOrInfinity::Integer(i) => isize::try_from(i)
                         .ok()
-                        .map(|i| len.saturating_add_signed(i))
-                        .unwrap_or(0),
+                        .map_or(0, |i| len.saturating_add_signed(i)),
                 }
             }
         };
@@ -1869,8 +1867,6 @@ impl BuiltinTypedArray {
 
         // 24. If srcType is the same as targetType, then
         if src_type == target_type {
-            let src_byte_index = src_byte_index;
-            let target_byte_index = target_byte_index;
             let byte_count = target_element_size * src_length;
 
             // a. NOTE: If srcType and targetType are the same, the transfer must be performed in a manner that preserves the bit-level encoding of the source data.
@@ -2948,7 +2944,6 @@ impl BuiltinTypedArray {
                         .into());
                 }
 
-                let src_element_size = src_element_size;
                 let target_element_size = element_size;
 
                 // c. Let srcByteIndex be srcByteOffset.
