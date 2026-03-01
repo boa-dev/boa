@@ -140,7 +140,10 @@ impl InlineCache {
         for entry in &entries[..count] {
             let cached_addr = entry.shape.to_addr_usize();
             if cached_addr == shape_addr {
-                return entry.shape.upgrade().map(|s| (s, entry.slot, entry.prototype.clone()));
+                return entry
+                    .shape
+                    .upgrade()
+                    .map(|s| (s, entry.slot, entry.prototype.clone()));
             }
         }
 
