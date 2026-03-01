@@ -328,7 +328,7 @@ impl Array {
         context: &mut Context,
     ) -> JsResult<JsObject> {
         // 1. If length > 2^32 - 1, throw a RangeError exception.
-        if length > (2u64.pow(32) - 1) as usize {
+        if length as u64 > 2u64.pow(32) - 1 {
             return Err(JsNativeError::range()
                 .with_message("array exceeded max size")
                 .into());
@@ -2258,7 +2258,7 @@ impl Array {
             let max = len - actual_start;
             match dc {
                 IntegerOrInfinity::Integer(i) => usize::try_from(i)
-                    .unwrap_or(usize::MAX)
+                    .unwrap_or_default()
                     .clamp(0, len - actual_start),
                 IntegerOrInfinity::PositiveInfinity => max,
                 IntegerOrInfinity::NegativeInfinity => 0,
