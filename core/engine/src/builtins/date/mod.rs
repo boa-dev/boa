@@ -52,6 +52,34 @@ impl Date {
     pub(crate) fn utc_now(context: &mut Context) -> Self {
         Self(context.clock().now().millis_since_epoch() as f64)
     }
+
+    /// Formats this date as an ISO 8601 string for display purposes.
+    ///
+    /// Returns `None` if the date value is not finite (i.e. `Invalid Date`).
+    pub(crate) fn to_iso_display(&self) -> Option<String> {
+        let tv = self.0;
+        if !tv.is_finite() {
+            return None;
+        }
+        let year = year_from_time(tv);
+        let year_str = if year.is_positive() && year >= 10000 {
+            format!("+{:06}", year)
+        } else if year >= 0 {
+            format!("{:04}", year)
+        } else {
+            format!("-{:06}", year.unsigned_abs())
+        };
+        Some(format!(
+            "{}-{:02}-{:02}T{:02}:{:02}:{:02}.{:03}Z",
+            year_str,
+            month_from_time(tv) + 1,
+            date_from_time(tv),
+            hour_from_time(tv),
+            min_from_time(tv),
+            sec_from_time(tv),
+            ms_from_time(tv),
+        ))
+    }
 }
 
 impl IntrinsicObject for Date {

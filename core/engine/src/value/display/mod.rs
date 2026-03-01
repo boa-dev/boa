@@ -5,6 +5,7 @@ use crate::{
     JsError, JsObject, JsString,
     builtins::{
         Array, Promise,
+        date::Date,
         error::Error,
         function::{
             OrdinaryFunction,
@@ -12,13 +13,16 @@ use crate::{
         },
         map::ordered_map::OrderedMap,
         promise::PromiseState,
+        regexp::RegExp,
         set::ordered_set::OrderedSet,
+        typed_array::TypedArray,
     },
     js_string,
     property::{DescriptorKind, PropertyDescriptor, PropertyKey},
 };
 use std::borrow::Cow;
 use std::fmt::Write;
+use std::sync::atomic::Ordering;
 
 /// This object is used for displaying a `Value`.
 #[derive(Debug, Clone, Copy)]
@@ -174,6 +178,67 @@ fn log_array_to(
     }
 }
 
+/// Formats a TypedArray object for display, e.g. `Uint8Array(3) [ 1, 2, 3 ]`.
+///
+/// If `show_elements` is `false`, only the type name and length are printed (e.g. `Uint8Array(3)`).
+fn log_typed_array(
+    f: &mut fmt::Formatter<'_>,
+    obj: &JsObject,
+    show_elements: bool,
+    print_internals: bool,
+) -> fmt::Result {
+    let inner = obj
+        .downcast_ref::<TypedArray>()
+        .expect("must be a TypedArray object");
+    let kind = inner.kind();
+    let type_name = kind.js_name().to_std_string_lossy();
+
+    let viewed_buf = inner.viewed_array_buffer();
+    let buf_ref = viewed_buf.as_buffer();
+    let Some(buf_bytes) = buf_ref.bytes(Ordering::Relaxed) else {
+        return write!(f, "{type_name}(0) []");
+    };
+
+    let buf_len = buf_bytes.len();
+
+    if inner.is_out_of_bounds(buf_len) {
+        return write!(f, "{type_name}(0) []");
+    }
+
+    let length = inner.array_length(buf_len);
+
+    if !show_elements {
+        return write!(f, "{type_name}({length})");
+    }
+
+    if length == 0 {
+        return write!(f, "{type_name}(0) []");
+    }
+
+    write!(f, "{type_name}({length}) [ ")?;
+
+    let offset = inner.byte_offset() as usize;
+    let elem_size = kind.element_size() as usize;
+
+    for i in 0..length as usize {
+        if i > 0 {
+            f.write_str(", ")?;
+        }
+        let byte_index = offset + i * elem_size;
+        // SAFETY: `array_length` verified all indices are within bounds.
+        // TypedArray invariants guarantee the buffer is correctly aligned at `byte_offset`.
+        let element = unsafe {
+            buf_bytes
+                .subslice(byte_index..)
+                .get_value(kind, Ordering::Relaxed)
+        };
+        let value: JsValue = element.into();
+        log_value_to(f, &value, print_internals, false)?;
+    }
+
+    f.write_str(" ]")
+}
+
 pub(crate) fn log_value_to(
     f: &mut fmt::Formatter<'_>,
     x: &JsValue,
@@ -304,6 +369,8 @@ pub(crate) fn log_value_to(
                     Some(name) if !name.is_empty() => write!(f, "[class {name}]"),
                     _ => f.write_str("[class (anonymous)]"),
                 }
+            } else if v.is::<TypedArray>() {
+                log_typed_array(f, &v, print_children, print_internals)
             } else if v.is_callable() {
                 let name = v
                     .get_property(&PropertyKey::from(js_string!("name")))
@@ -351,6 +418,11 @@ fn log_object_to_internal(
 
         if v.is::<Array>() {
             return log_array_to(f, &v, print_internals, false);
+        }
+
+        if v.is::<TypedArray>() {
+            encounters.remove(&addr);
+            return log_typed_array(f, &v, true, print_internals);
         }
 
         let constructor_name = get_constructor_name_of(&v);
@@ -475,6 +547,18 @@ pub(super) fn log_value_compact(
                     }
                     f.write_str(" }")
                 }
+            } else if let Some(date) = v.downcast_ref::<Date>() {
+                match date.to_iso_display() {
+                    Some(iso) => f.write_str(&iso),
+                    None => f.write_str("Invalid Date"),
+                }
+            } else if let Some(regexp) = v.downcast_ref::<RegExp>() {
+                write!(
+                    f,
+                    "/{}/{}",
+                    regexp.original_source().to_std_string_escaped(),
+                    regexp.original_flags().to_std_string_escaped()
+                )
             } else if v.is::<Error>() {
                 log_value_to(f, x, print_internals, true)
             } else if let Some(promise) = v.downcast_ref::<Promise>() {
@@ -489,6 +573,8 @@ pub(super) fn log_value_compact(
                     }
                 }
                 f.write_str(" }")
+            } else if v.is::<TypedArray>() {
+                log_typed_array(f, &v, depth < COMPACT_DEPTH_LIMIT, print_internals)
             } else if v.is_callable() {
                 let name = v
                     .get_property(&PropertyKey::from(js_string!("name")))
