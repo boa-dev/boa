@@ -170,18 +170,18 @@ impl JsDataView {
         DataView::get_buffer(&self.inner.clone().upcast().into(), &[], context)
     }
 
-    /// Returns the `byte_length` property of [`JsDataView`] as a u64 integer
+    /// Returns the `byte_length` property of [`JsDataView`] as a usize integer
     #[inline]
-    pub fn byte_length(&self, context: &mut Context) -> JsResult<u64> {
+    pub fn byte_length(&self, context: &mut Context) -> JsResult<usize> {
         DataView::get_byte_length(&self.inner.clone().upcast().into(), &[], context)
-            .map(|v| v.as_number().expect("value should be a number") as u64)
+            .map(|v| v.as_number().expect("value should be a number") as usize)
     }
 
-    /// Returns the `byte_offset` field property of [`JsDataView`] as a u64 integer
+    /// Returns the `byte_offset` field property of [`JsDataView`] as a usize integer
     #[inline]
-    pub fn byte_offset(&self, context: &mut Context) -> JsResult<u64> {
+    pub fn byte_offset(&self, context: &mut Context) -> JsResult<usize> {
         DataView::get_byte_offset(&self.inner.clone().upcast().into(), &[], context)
-            .map(|v| v.as_number().expect("byte_offset value must be a number") as u64)
+            .map(|v| v.as_number().expect("byte_offset value must be a number") as usize)
     }
 
     /// Returns a signed 64-bit integer at the specified offset from the start of the [`JsDataView`]

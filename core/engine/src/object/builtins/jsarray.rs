@@ -447,7 +447,7 @@ impl JsArray {
 
     /// Calls `Array.prototype.with`.
     #[inline]
-    pub fn with(&self, index: u64, value: JsValue, context: &mut Context) -> JsResult<Self> {
+    pub fn with(&self, index: usize, value: JsValue, context: &mut Context) -> JsResult<Self> {
         let array = Array::with(&self.inner.clone().into(), &[index.into(), value], context)?;
 
         Ok(Self {
