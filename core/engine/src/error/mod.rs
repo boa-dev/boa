@@ -1005,7 +1005,7 @@ impl JsNativeError {
     ///
     /// assert!(matches!(
     ///     error.kind(),
-    ///     JsNativeErrorKind::Aggregate(ref errors) if errors.len() == 2
+    ///     JsNativeErrorKind::Aggregate(errors) if errors.len() == 2
     /// ));
     /// ```
     #[must_use]
