@@ -44,7 +44,7 @@ use std::{
     cell::RefCell,
     collections::VecDeque,
     fs::OpenOptions,
-    io,
+    io::{self, IsTerminal, Read},
     path::{Path, PathBuf},
     rc::Rc,
     thread,
@@ -571,6 +571,16 @@ fn main() -> Result<()> {
     } else if let Some(ref expr) = args.expression {
         evaluate_expr(expr, &args, &mut context, &printer)?;
         return Ok(());
+    } else if !io::stdin().is_terminal() {
+        let mut input = String::new();
+        io::stdin()
+            .read_to_string(&mut input)
+            .wrap_err("failed to read stdin")?;
+        return if input.is_empty() {
+            Ok(())
+        } else {
+            evaluate_expr(&input, &args, &mut context, &printer)
+        };
     }
 
     let handle = start_readline_thread(sender, printer.clone(), args.vi_mode);
