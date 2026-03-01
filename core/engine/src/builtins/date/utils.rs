@@ -759,8 +759,7 @@ pub(super) fn parse_date(date: &JsString, hooks: &dyn HostHooks) -> Option<i64> 
             if !s.is_ascii() {
                 return None;
             }
-            // SAFETY: Since all characters are ASCII we can safely convert this into str.
-            Cow::Borrowed(unsafe { str::from_utf8_unchecked(s) })
+            Cow::Borrowed(str::from_utf8(s).expect("s is ASCII, which is always valid UTF-8"))
         }
         JsStrVariant::Utf16(s) => {
             let date = String::from_utf16(s).ok()?;
