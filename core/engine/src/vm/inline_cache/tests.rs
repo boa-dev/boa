@@ -398,7 +398,7 @@ fn set_property_by_name_set_inline_cache_on_property_load() -> JsResult<()> {
     let (function, code) = get_codeblock(&function).unwrap();
 
     assert_eq!(code.ic.len(), 1);
-    assert_eq!(code.ic[0].shape.borrow().clone(), WeakShape::None);
+    assert_eq!(code.ic[0].first_shape_addr(), 0);
 
     let o = ObjectInitializer::new(context)
         .property(js_string!("test"), 0, Attribute::all())
@@ -407,7 +407,7 @@ fn set_property_by_name_set_inline_cache_on_property_load() -> JsResult<()> {
 
     function.call(&JsValue::undefined(), &[o.clone().into()], context)?;
 
-    assert_eq!(code.ic[0].shape.borrow().clone(), WeakShape::from(&o_shape));
+    assert_eq!(code.ic[0].first_shape_addr(), o_shape.to_addr_usize());
 
     Ok(())
 }
@@ -419,7 +419,7 @@ fn get_property_by_name_set_inline_cache_on_property_load() -> JsResult<()> {
     let (function, code) = get_codeblock(&function).unwrap();
 
     assert_eq!(code.ic.len(), 1);
-    assert_eq!(code.ic[0].shape.borrow().clone(), WeakShape::None);
+    assert_eq!(code.ic[0].first_shape_addr(), 0);
 
     let o = ObjectInitializer::new(context)
         .property(js_string!("test"), 0, Attribute::all())
@@ -428,7 +428,7 @@ fn get_property_by_name_set_inline_cache_on_property_load() -> JsResult<()> {
 
     function.call(&JsValue::undefined(), &[o.clone().into()], context)?;
 
-    assert_eq!(code.ic[0].shape.borrow().clone(), WeakShape::from(&o_shape));
+    assert_eq!(code.ic[0].first_shape_addr(), o_shape.to_addr_usize());
 
     Ok(())
 }
