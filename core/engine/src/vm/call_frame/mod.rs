@@ -44,13 +44,14 @@ pub struct CallFrameLocation {
 pub struct CallFrame {
     pub(crate) code_block: Gc<CodeBlock>,
     pub(crate) pc: u32,
-    /// The register pointer, points to the first register in the stack.
-    // TODO: Check if storing the frame pointer instead of argument count and computing the
-    //       argument count based on the pointers would be better for accessing the arguments
-    //       and the elements before the register pointer.
+    /// The register pointer, points to the boundary between prologue+args and the operand stack.
     pub(crate) rp: u32,
     pub(crate) argument_count: u32,
     pub(crate) env_fp: u32,
+
+    /// Index into the shared `Vm::registers` Vec where this frame's registers begin.
+    #[unsafe_ignore_trace]
+    pub(crate) register_start: u32,
 
     // Iterators and their `[[Done]]` flags that must be closed when an abrupt completion is thrown.
     pub(crate) iterators: ThinVec<IteratorRecord>,
@@ -122,6 +123,7 @@ impl CallFrame {
             rp: 0,
             env_fp: 0,
             argument_count: 0,
+            register_start: 0,
             iterators: ThinVec::new(),
             binding_stack: Vec::new(),
             code_block,
@@ -159,26 +161,6 @@ impl CallFrame {
     /// Returns the index of the function in the stack.
     pub(crate) fn function_index(&self) -> usize {
         self.rp as usize - self.argument_count as usize - Self::FUNCTION_POSITION
-    }
-
-    /// Returns the index of the promise capability promise register in the stack.
-    pub(crate) fn promise_capability_promise_register_index(&self) -> usize {
-        self.rp as usize + Self::PROMISE_CAPABILITY_PROMISE_REGISTER_INDEX
-    }
-
-    /// Returns the index of the promise capability resolve register in the stack.
-    pub(crate) fn promise_capability_resolve_register_index(&self) -> usize {
-        self.rp as usize + Self::PROMISE_CAPABILITY_RESOLVE_REGISTER_INDEX
-    }
-
-    /// Returns the index of the promise capability reject register in the stack.
-    pub(crate) fn promise_capability_reject_register_index(&self) -> usize {
-        self.rp as usize + Self::PROMISE_CAPABILITY_REJECT_REGISTER_INDEX
-    }
-
-    /// Returns the index of the async generator object register in the stack.
-    pub(crate) fn async_generator_object_register_index(&self) -> usize {
-        self.rp as usize + Self::ASYNC_GENERATOR_OBJECT_REGISTER_INDEX
     }
 
     /// Returns the range of the arguments in the stack.

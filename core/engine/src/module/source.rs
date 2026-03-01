@@ -1823,6 +1823,10 @@ impl SourceTextModule {
             .vm_mut()
             .pop_frame()
             .expect("There should be a call frame");
+        context
+            .vm_mut()
+            .registers
+            .truncate(frame.register_start as usize);
 
         let env = frame
             .environments
@@ -1893,8 +1897,7 @@ impl SourceTextModule {
 
         context
             .vm_mut()
-            .stack
-            .set_promise_capability(&context.vm_mut().frame, capability);
+            .set_promise_capability(capability);
 
         // 9. If module.[[HasTLA]] is false, then
         //    a. Assert: capability is not present.
@@ -1907,7 +1910,10 @@ impl SourceTextModule {
         //    b. Perform AsyncBlockStart(capability, module.[[ECMAScriptCode]], moduleContext).
         let result = context.run();
 
-        context.vm_mut().pop_frame();
+        let frame = context.vm_mut().pop_frame();
+        if let Some(frame) = frame {
+            context.vm_mut().registers.truncate(frame.register_start as usize);
+        }
 
         //     f. If result is an abrupt completion, then
         if let CompletionRecord::Throw(err) = result {

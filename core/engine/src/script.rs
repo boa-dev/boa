@@ -172,7 +172,10 @@ impl Script {
         self.prepare_run(context)?;
         let record = context.run();
 
-        context.vm_mut().pop_frame();
+        let frame = context.vm_mut().pop_frame();
+        if let Some(frame) = frame {
+            context.vm_mut().registers.truncate(frame.register_start as usize);
+        }
         record.consume()
     }
 
@@ -204,7 +207,10 @@ impl Script {
 
         let record = context.run_async_with_budget(budget).await;
 
-        context.vm_mut().pop_frame();
+        let frame = context.vm_mut().pop_frame();
+        if let Some(frame) = frame {
+            context.vm_mut().registers.truncate(frame.register_start as usize);
+        }
         record.consume()
     }
 

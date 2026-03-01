@@ -21,7 +21,7 @@ use crate::{
     string::StaticJsStrings,
     symbol::JsSymbol,
     value::JsValue,
-    vm::{CallFrame, CallFrameFlags, CompletionRecord, GeneratorResumeKind, Stack},
+    vm::{CallFrame, CallFrameFlags, CompletionRecord, GeneratorResumeKind},
 };
 use boa_gc::{Finalize, Trace, custom_trace};
 
@@ -58,7 +58,8 @@ unsafe impl Trace for GeneratorState {
 /// context/vm before the generator execution starts/resumes and after it has ended/yielded.
 #[derive(Debug, Trace, Finalize)]
 pub(crate) struct GeneratorContext {
-    pub(crate) stack: Stack,
+    pub(crate) stack: crate::vm::Stack,
+    pub(crate) registers: Vec<JsValue>,
     pub(crate) call_frame: Option<CallFrame>,
 }
 
@@ -68,21 +69,29 @@ impl GeneratorContext {
         let mut frame = context.vm_mut().frame().clone();
         frame.environments = context.vm_mut().frame.environments.clone();
         frame.realm = context.realm().clone();
-        let mut stack = context.vm_mut().stack.split_off_frame(&frame);
+        let stack = context.vm_mut().stack.split_off_frame(&frame);
+
+        // Split off registers belonging to this frame from the shared register Vec.
+        let register_start = frame.register_start as usize;
+        let mut registers = context.vm_mut().registers.split_off(register_start);
 
         frame.rp = CallFrame::FUNCTION_PROLOGUE + frame.argument_count;
+        // Set register_start to 0 — relative to the saved registers Vec.
+        frame.register_start = 0;
 
-        // NOTE: Since we get a pre-built call frame with stack, and we reuse them.
-        //       So we don't need to push the registers in subsequent calls.
+        // NOTE: Since we get a pre-built call frame with registers, and we reuse them.
+        //       So we don't need to allocate registers in subsequent calls.
         frame.flags |= CallFrameFlags::REGISTERS_ALREADY_PUSHED;
 
         if let Some(async_generator) = async_generator {
-            stack.set_async_generator_object(&frame, async_generator);
+            registers[CallFrame::ASYNC_GENERATOR_OBJECT_REGISTER_INDEX] =
+                async_generator.into();
         }
 
         Self {
             call_frame: Some(frame),
             stack,
+            registers,
         }
     }
 
@@ -94,8 +103,17 @@ impl GeneratorContext {
         context: &Context,
     ) -> CompletionRecord {
         std::mem::swap(&mut context.vm_mut().stack, &mut self.stack);
-        let frame = self.call_frame.take().expect("should have a call frame");
+
+        // Append saved registers to the Vm register Vec and record where they start.
+        let register_start = context.vm_mut().registers.len() as u32;
+        context
+            .vm_mut()
+            .registers
+            .append(&mut self.registers);
+
+        let mut frame = self.call_frame.take().expect("should have a call frame");
         let rp = frame.rp;
+        frame.register_start = register_start;
         context.vm_mut().push_frame(frame);
 
         let frame = context.vm_mut().frame_mut();
@@ -109,18 +127,31 @@ impl GeneratorContext {
 
         let result = context.run();
 
+        // Split off the generator's registers back into our saved Vec.
+        self.registers = context
+            .vm_mut()
+            .registers
+            .split_off(register_start as usize);
+
         std::mem::swap(&mut context.vm_mut().stack, &mut self.stack);
         self.call_frame = context.vm_mut().pop_frame();
         assert!(self.call_frame.is_some());
+        // Reset register_start to 0 for next resume.
+        if let Some(frame) = &mut self.call_frame {
+            frame.register_start = 0;
+        }
         result
     }
 
     /// Returns the async generator object, if the function that this [`GeneratorContext`] is from an async generator, [`None`] otherwise.
     pub(crate) fn async_generator_object(&self) -> Option<JsObject> {
-        if let Some(frame) = &self.call_frame {
-            return self.stack.async_generator_object(frame);
+        let frame = self.call_frame.as_ref()?;
+        if !frame.code_block().is_async_generator() {
+            return None;
         }
-        None
+        self.registers
+            .get(CallFrame::ASYNC_GENERATOR_OBJECT_REGISTER_INDEX)
+            .and_then(|v| v.as_object())
     }
 }
 

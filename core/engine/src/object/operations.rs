@@ -412,7 +412,8 @@ impl JsObject {
 
         let result = context.run().consume();
 
-        context.vm_mut().pop_frame().expect("frame must exist");
+        let frame = context.vm_mut().pop_frame().expect("frame must exist");
+        context.vm_mut().registers.truncate(frame.register_start as usize);
 
         result
     }
@@ -466,7 +467,8 @@ impl JsObject {
 
         let result = context.run().consume();
 
-        context.vm_mut().pop_frame().expect("frame must exist");
+        let frame = context.vm_mut().pop_frame().expect("frame must exist");
+        context.vm_mut().registers.truncate(frame.register_start as usize);
 
         Ok(result?.as_object().expect("should be an object").clone())
     }

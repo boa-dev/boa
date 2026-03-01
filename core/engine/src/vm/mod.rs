@@ -74,6 +74,14 @@ pub struct Vm {
     pub(crate) frames: Vec<CallFrame>,
 
     pub(crate) stack: Stack,
+
+    /// Shared register storage for all call frames.
+    ///
+    /// Each [`CallFrame`] stores a `register_start` index into this Vec.
+    /// Keeping registers separate from the operand stack ensures that
+    /// register references are not invalidated when the operand stack grows.
+    pub(crate) registers: Vec<JsValue>,
+
     pub(crate) return_value: JsValue,
 
     /// When an error is thrown, the pending exception is set.
@@ -99,16 +107,15 @@ pub struct Vm {
 
 /// The stack holds the [`JsValue`]s that the VM is operating on.
 ///
-/// The stack is persistent across frames.
-/// It's addressing is relative to the frame pointer.
+/// The stack is persistent across frames. Its addressing is relative to the frame pointer.
+/// Registers are stored separately in [`Vm::registers`].
 ///
 /// The stack stores the following elements:
 /// - The function prologue
 ///   - The `this` value of the function
 ///   - The function object itself
 /// - The arguments of the function
-/// - The local function registers
-/// - Some manually pushed values like the return value of a function.
+/// - Operand values pushed during execution
 ///
 /// This is the stack layout:
 ///
@@ -116,39 +123,12 @@ pub struct Vm {
 ///                      Setup by the caller
 ///   ┌─────────────────────────────────────────────────────────┐ ┌───── register pointer
 ///   ▼                                                         ▼ ▼
-/// | -(2 + N): this | -(1 + N): func | -N: arg1 | ... | -1: argN | 0: reg1 | ... | K: reglK |
-///   ▲                              ▲   ▲                      ▲   ▲                        ▲
-///   └──────────────────────────────┘   └──────────────────────┘   └────────────────────────┘
-///         function prologue                    arguments              Setup by the callee
+/// | -(2 + N): this | -(1 + N): func | -N: arg1 | ... | -1: argN | <operand pushes> ...
+///   ▲                              ▲   ▲                      ▲
+///   └──────────────────────────────┘   └──────────────────────┘
+///         function prologue                    arguments
 ///   ▲
 ///   └─ Frame pointer
-/// ```
-///
-/// ### Example
-///
-/// The following function calls, generate the following stack:
-///
-/// ```JavaScript
-/// function x(a) {
-/// }
-/// function y(b, c) {
-///     return x(b + c)
-/// }
-///
-/// y(1, 2)
-/// ```
-///
-/// ```text
-///     caller prologue    caller arguments   callee prologue   callee arguments
-///   ┌─────────────────┐   ┌─────────┐   ┌─────────────────┐  ┌──────┐
-///   ▼                 ▼   ▼         ▼   │                 ▼  ▼      ▼
-/// | 0: undefined | 1: y | 2: 1 | 3: 2 | 4: undefined | 5: x | 6:  3 |
-/// ▲                                   ▲                             ▲
-/// │       caller register pointer ────┤                             │
-/// │                                   │                 callee register pointer
-/// │                             callee frame pointer
-/// │
-/// └─────  caller frame pointer
 /// ```
 #[derive(Clone, Debug, Trace, Finalize)]
 pub(crate) struct Stack {
@@ -215,82 +195,6 @@ impl Stack {
         let rest_count = argument_count - param_count + 1;
 
         Some(self.stack.drain((rp - rest_count)..rp).collect())
-    }
-
-    /// Set the promise capability for the given frame.
-    #[track_caller]
-    pub(crate) fn set_promise_capability(
-        &mut self,
-        frame: &CallFrame,
-        promise_capability: Option<&PromiseCapability>,
-    ) {
-        debug_assert!(
-            frame.code_block().is_async(),
-            "Only async functions have a promise capability"
-        );
-
-        self.stack[frame.promise_capability_promise_register_index()] = promise_capability
-            .map(PromiseCapability::promise)
-            .cloned()
-            .map_or_else(JsValue::undefined, Into::into);
-        self.stack[frame.promise_capability_resolve_register_index()] = promise_capability
-            .map(PromiseCapability::resolve)
-            .cloned()
-            .map_or_else(JsValue::undefined, Into::into);
-        self.stack[frame.promise_capability_reject_register_index()] = promise_capability
-            .map(PromiseCapability::reject)
-            .cloned()
-            .map_or_else(JsValue::undefined, Into::into);
-    }
-
-    /// Get the promise capability for the given frame.
-    #[track_caller]
-    pub(crate) fn get_promise_capability(&self, frame: &CallFrame) -> Option<PromiseCapability> {
-        if !frame.code_block().is_async() {
-            return None;
-        }
-
-        let promise = self
-            .stack
-            .get(frame.promise_capability_promise_register_index())
-            .expect("stack must have a promise capability")
-            .as_object()?;
-        let resolve = self
-            .stack
-            .get(frame.promise_capability_resolve_register_index())
-            .expect("stack must have a resolve function")
-            .as_object()
-            .and_then(JsFunction::from_object)?;
-        let reject = self
-            .stack
-            .get(frame.promise_capability_reject_register_index())
-            .expect("stack must have a reject function")
-            .as_object()
-            .and_then(JsFunction::from_object)?;
-
-        Some(PromiseCapability {
-            promise,
-            functions: ResolvingFunctions { resolve, reject },
-        })
-    }
-
-    /// Set the async generator object for the given frame.
-    #[track_caller]
-    pub(crate) fn set_async_generator_object(&mut self, frame: &CallFrame, object: JsObject) {
-        self.stack[frame.async_generator_object_register_index()] = object.into();
-    }
-
-    /// Get the async generator object for the given frame.
-    #[track_caller]
-    pub(crate) fn async_generator_object(&self, frame: &CallFrame) -> Option<JsObject> {
-        if !frame.code_block().is_async_generator() {
-            return None;
-        }
-
-        self.stack
-            .get(frame.async_generator_object_register_index())
-            .expect("stack must have an async generator object")
-            .as_object()
     }
 
     /// Push a value on the stack.
@@ -418,6 +322,7 @@ impl Vm {
                 realm,
             ),
             stack: Stack::new(1024),
+            registers: Vec::with_capacity(256),
             return_value: JsValue::undefined(),
             pending_exception: None,
             runtime_limits: RuntimeLimits::default(),
@@ -431,33 +336,33 @@ impl Vm {
     #[track_caller]
     #[inline]
     pub(crate) fn set_register(&mut self, index: usize, value: JsValue) {
-        let actual = self.frame.rp as usize + index;
+        let actual = self.frame.register_start as usize + index;
         debug_assert!(
-            actual < self.stack.stack.len(),
+            actual < self.registers.len(),
             "register index out of bounds: index {actual}, len {}",
-            self.stack.stack.len()
+            self.registers.len()
         );
         // SAFETY: Register indices are determined by the bytecode compiler and are
-        // guaranteed to be within the stack bounds for well-formed bytecode. The
+        // guaranteed to be within the register bounds for well-formed bytecode. The
         // debug_assert above catches any compiler bugs during development.
         unsafe {
-            *self.stack.stack.get_unchecked_mut(actual) = value;
+            *self.registers.get_unchecked_mut(actual) = value;
         }
     }
 
     #[track_caller]
     #[inline]
     pub(crate) fn get_register(&self, index: usize) -> &JsValue {
-        let actual = self.frame.rp as usize + index;
+        let actual = self.frame.register_start as usize + index;
         debug_assert!(
-            actual < self.stack.stack.len(),
+            actual < self.registers.len(),
             "register index out of bounds: index {actual}, len {}",
-            self.stack.stack.len()
+            self.registers.len()
         );
         // SAFETY: Register indices are determined by the bytecode compiler and are
-        // guaranteed to be within the stack bounds for well-formed bytecode. The
+        // guaranteed to be within the register bounds for well-formed bytecode. The
         // debug_assert above catches any compiler bugs during development.
-        unsafe { self.stack.stack.get_unchecked(actual) }
+        unsafe { self.registers.get_unchecked(actual) }
     }
 
     /// Retrieves the VM frame.
@@ -476,12 +381,12 @@ impl Vm {
         let current_stack_length = self.stack.stack.len();
         frame.set_register_pointer(current_stack_length as u32);
 
-        // NOTE: We need to check if we already pushed the registers,
-        //       since generator-like functions push the same call
-        //       frame with pre-built stack.
+        // Allocate registers on the shared register Vec.
+        // Generator-like functions reuse the same call frame with pre-built registers.
         if !frame.registers_already_pushed() {
-            self.stack.stack.resize_with(
-                current_stack_length + frame.code_block.register_count as usize,
+            frame.register_start = self.registers.len() as u32;
+            self.registers.resize_with(
+                self.registers.len() + frame.code_block.register_count as usize,
                 JsValue::undefined,
             );
         }
@@ -555,6 +460,81 @@ impl Vm {
 
     pub(crate) fn take_return_value(&mut self) -> JsValue {
         std::mem::take(&mut self.return_value)
+    }
+
+    /// Set the promise capability for the current frame.
+    #[track_caller]
+    pub(crate) fn set_promise_capability(
+        &mut self,
+        promise_capability: Option<&PromiseCapability>,
+    ) {
+        debug_assert!(
+            self.frame.code_block().is_async(),
+            "Only async functions have a promise capability"
+        );
+
+        let base = self.frame.register_start as usize;
+        self.registers[base + CallFrame::PROMISE_CAPABILITY_PROMISE_REGISTER_INDEX] =
+            promise_capability
+                .map(PromiseCapability::promise)
+                .cloned()
+                .map_or_else(JsValue::undefined, Into::into);
+        self.registers[base + CallFrame::PROMISE_CAPABILITY_RESOLVE_REGISTER_INDEX] =
+            promise_capability
+                .map(PromiseCapability::resolve)
+                .cloned()
+                .map_or_else(JsValue::undefined, Into::into);
+        self.registers[base + CallFrame::PROMISE_CAPABILITY_REJECT_REGISTER_INDEX] =
+            promise_capability
+                .map(PromiseCapability::reject)
+                .cloned()
+                .map_or_else(JsValue::undefined, Into::into);
+    }
+
+    /// Get the promise capability for the current frame.
+    #[track_caller]
+    pub(crate) fn get_promise_capability(&self) -> Option<PromiseCapability> {
+        if !self.frame.code_block().is_async() {
+            return None;
+        }
+
+        let base = self.frame.register_start as usize;
+        let promise = self
+            .registers
+            .get(base + CallFrame::PROMISE_CAPABILITY_PROMISE_REGISTER_INDEX)
+            .expect("registers must have a promise capability")
+            .as_object()?;
+        let resolve = self
+            .registers
+            .get(base + CallFrame::PROMISE_CAPABILITY_RESOLVE_REGISTER_INDEX)
+            .expect("registers must have a resolve function")
+            .as_object()
+            .and_then(JsFunction::from_object)?;
+        let reject = self
+            .registers
+            .get(base + CallFrame::PROMISE_CAPABILITY_REJECT_REGISTER_INDEX)
+            .expect("registers must have a reject function")
+            .as_object()
+            .and_then(JsFunction::from_object)?;
+
+        Some(PromiseCapability {
+            promise,
+            functions: ResolvingFunctions { resolve, reject },
+        })
+    }
+
+    /// Get the async generator object for the current frame.
+    #[track_caller]
+    pub(crate) fn async_generator_object(&self) -> Option<JsObject> {
+        if !self.frame.code_block().is_async_generator() {
+            return None;
+        }
+
+        let base = self.frame.register_start as usize;
+        self.registers
+            .get(base + CallFrame::ASYNC_GENERATOR_OBJECT_REGISTER_INDEX)
+            .expect("registers must have an async generator object")
+            .as_object()
     }
 }
 
@@ -711,6 +691,9 @@ impl Context {
                 let Some(f) = self.vm_mut().pop_frame() else {
                     break;
                 };
+                self.vm_mut()
+                    .registers
+                    .truncate(f.register_start as usize);
                 frame = Some(f);
             }
             self.vm_mut().frame.environments.truncate(env_fp);
@@ -747,7 +730,10 @@ impl Context {
         }
 
         self.vm_mut().stack.push(result);
-        self.vm_mut().pop_frame().expect("frame must exist");
+        let popped = self.vm_mut().pop_frame().expect("frame must exist");
+        self.vm_mut()
+            .registers
+            .truncate(popped.register_start as usize);
         ControlFlow::Continue(())
     }
 
@@ -758,7 +744,10 @@ impl Context {
         }
 
         self.vm_mut().stack.push(result);
-        self.vm_mut().pop_frame().expect("frame must exist");
+        let popped = self.vm_mut().pop_frame().expect("frame must exist");
+        self.vm_mut()
+            .registers
+            .truncate(popped.register_start as usize);
         ControlFlow::Continue(())
     }
 
@@ -788,6 +777,9 @@ impl Context {
         }
 
         let mut frame = self.vm_mut().pop_frame().expect("frame must exist");
+        self.vm_mut()
+            .registers
+            .truncate(frame.register_start as usize);
 
         loop {
             env_fp = self.vm_mut().frame.env_fp;
@@ -810,6 +802,9 @@ impl Context {
             let Some(f) = self.vm_mut().pop_frame() else {
                 break;
             };
+            self.vm_mut()
+                .registers
+                .truncate(f.register_start as usize);
             frame = f;
         }
         self.vm_mut().frame.environments.truncate(env_fp as usize);

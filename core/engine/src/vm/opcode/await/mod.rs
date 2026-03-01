@@ -40,10 +40,9 @@ impl Await {
             Err(err) => return context.handle_error(err),
         };
 
-        let return_value = {
-            let vm = context.vm_mut();
-            vm.stack.get_promise_capability(&vm.frame)
-        }
+        let return_value = context
+            .vm_mut()
+            .get_promise_capability()
             .as_ref()
             .map(PromiseCapability::promise)
             .cloned()
@@ -162,10 +161,7 @@ pub(crate) struct CreatePromiseCapability;
 impl CreatePromiseCapability {
     #[inline(always)]
     pub(super) fn operation((): (), context: &Context) {
-        if {
-            let vm = context.vm_mut();
-            vm.stack.get_promise_capability(&vm.frame).is_some()
-        } {
+        if context.vm_mut().get_promise_capability().is_some() {
             return;
         }
 
@@ -175,10 +171,9 @@ impl CreatePromiseCapability {
         )
         .expect("cannot fail per spec");
 
-        {
-            let vm = context.vm_mut();
-            vm.stack.set_promise_capability(&vm.frame, Some(&promise_capability));
-        }
+        context
+            .vm_mut()
+            .set_promise_capability(Some(&promise_capability));
     }
 }
 
@@ -200,7 +195,7 @@ impl CompletePromiseCapability {
     pub(super) fn operation((): (), context: &Context) -> ControlFlow<CompletionRecord> {
         // If the current executing function is an async function we have to resolve/reject it's promise at the end.
         // The relevant spec section is 3. in [AsyncBlockStart](https://tc39.es/ecma262/#sec-asyncblockstart).
-        let Some(promise_capability) = ({ let vm = context.vm_mut(); vm.stack.get_promise_capability(&vm.frame) })
+        let Some(promise_capability) = context.vm_mut().get_promise_capability()
         else {
             return if context.vm_mut().pending_exception.is_some() {
                 context.handle_throw()
