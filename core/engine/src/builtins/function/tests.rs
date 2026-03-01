@@ -219,9 +219,17 @@ fn function_constructor_deep_parenthesis_reports_syntax_error() {
                 // Test 2: Deeply nested but balanced parentheses should work
                 try {
                     Function('let a = ' + '('.repeat(1000) + 'undefined' + ')'.repeat(1000));
-                    return true;
                 } catch (e) {
                     // Should not error on balanced parens
+                    return false;
+                }
+                
+                // Test 3: Arrow function inside deeply nested parens (V8-compatible)
+                try {
+                    Function('let a = ' + '('.repeat(501) + '() => {}' + ')'.repeat(501));
+                    return true;
+                } catch (e) {
+                    // Should not error — arrow functions inside deep parens must work
                     return false;
                 }
             })()
