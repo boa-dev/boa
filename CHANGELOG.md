@@ -1544,6 +1544,7 @@ Internal Improvements:
 - [INTERNAL #1337](https://github.com/boa-dev/boa/pull/1337): Fix github actions (@neeldug)
 
 ## [0.12.0 (2021-06-07) - `Set`, accessors,
+
 `@@toStringTag` and no more panics](https://github.com/boa-dev/boa/compare/v0.11.0...v0.12.0)
 
 Feature Enhancements:
