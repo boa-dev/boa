@@ -165,6 +165,12 @@ impl JsResponse {
         Self::error()
     }
 
+    /// Creates a new `Response` object.
+    ///
+    /// More information:
+    ///  - [WHATWG Fetch spec][spec]
+    ///
+    /// [spec]: https://fetch.spec.whatwg.org/#dom-response
     #[boa(constructor)]
     fn constructor(
         body: Option<JsValue>,
@@ -183,18 +189,9 @@ impl JsResponse {
             JsNativeError::range().with_message(format!("Invalid status code - {status_code}"))
         })?;
 
-        let body_bytes = if let Some(body_val) = body {
-            if let Some(s) = body_val.as_string() {
-                s.to_std_string_lossy().into_bytes()
-            } else if !body_val.is_null() && !body_val.is_undefined() {
-                body_val
-                    .to_string(context)?
-                    .to_std_string_lossy()
-                    .into_bytes()
-            } else {
-                Vec::new()
-            }
-        } else {
+        let body_bytes = if let Some(body) = body && !body.is_null_or_undefined(){
+            body.to_string(context)?.to_std_string_lossy().into_bytes()
+        }else{
             Vec::new()
         };
 
