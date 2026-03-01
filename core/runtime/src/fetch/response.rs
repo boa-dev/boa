@@ -148,7 +148,7 @@ impl JsResponse {
 }
 
 /// Options used in the construction of a `Response` object.
-#[derive(Debug, Clone, TryFromJs, TryIntoJs, Trace, Finalize, JsData)]
+#[derive(Debug, Default, Clone, TryFromJs, TryIntoJs, Trace, Finalize, JsData)]
 #[boa(rename_all = "camelCase")]
 pub struct JsResponseOptions {
     status: Option<u16>,
@@ -173,25 +173,19 @@ impl JsResponse {
     /// [spec]: https://fetch.spec.whatwg.org/#dom-response
     #[boa(constructor)]
     fn constructor(
-        body: Option<JsValue>,
+        body: JsValue,
         options: Option<JsResponseOptions>,
         context: &mut Context,
     ) -> JsResult<Self> {
-        let (status_code, headers) = match options {
-            Some(ref opts) => (
-                opts.status.unwrap_or(200),
-                opts.headers.clone().unwrap_or_default(),
-            ),
-            None => (200, JsHeaders::default()),
-        };
+        let JsResponseOptions { status, ref headers, .. } = options.unwrap_or_default();
+        let status_code = status.unwrap_or(200);
+        let headers = headers.clone().unwrap_or_default();
 
         let status = StatusCode::from_u16(status_code).map_err(|_| {
             JsNativeError::range().with_message(format!("Invalid status code - {status_code}"))
         })?;
 
-        let body_bytes = if let Some(body) = body
-            && !body.is_null_or_undefined()
-        {
+        let body_bytes = if !body.is_null_or_undefined() {
             body.to_string(context)?.to_std_string_lossy().into_bytes()
         } else {
             Vec::new()
