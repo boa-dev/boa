@@ -4,6 +4,7 @@
 
 mod jsarray;
 mod jsarraybuffer;
+mod jsasyncgenerator;
 mod jsdataview;
 mod jsdate;
 mod jsfunction;
@@ -23,6 +24,7 @@ mod jsweakset;
 
 pub use jsarray::*;
 pub use jsarraybuffer::*;
+pub use jsasyncgenerator::JsAsyncGenerator;
 pub use jsdataview::*;
 pub use jsdate::*;
 pub use jsfunction::*;
