@@ -466,19 +466,19 @@ impl TypedArrayKind {
     }
 
     /// Gets the size of the type of element of this `TypedArrayKind`.
-    pub(crate) const fn element_size(self) -> u64 {
+    pub(crate) const fn element_size(self) -> usize {
         match self {
             TypedArrayKind::Int8 | TypedArrayKind::Uint8 | TypedArrayKind::Uint8Clamped => {
-                size_of::<u8>() as u64
+                size_of::<u8>()
             }
-            TypedArrayKind::Int16 | TypedArrayKind::Uint16 => size_of::<u16>() as u64,
+            TypedArrayKind::Int16 | TypedArrayKind::Uint16 => size_of::<u16>(),
             #[cfg(feature = "float16")]
-            TypedArrayKind::Float16 => size_of::<u16>() as u64,
+            TypedArrayKind::Float16 => size_of::<u16>(),
             TypedArrayKind::Int32 | TypedArrayKind::Uint32 | TypedArrayKind::Float32 => {
-                size_of::<u32>() as u64
+                size_of::<u32>()
             }
             TypedArrayKind::BigInt64 | TypedArrayKind::BigUint64 | TypedArrayKind::Float64 => {
-                size_of::<u64>() as u64
+                size_of::<u64>()
             }
         }
     }

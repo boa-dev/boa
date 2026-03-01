@@ -205,7 +205,7 @@ pub struct ArrayBuffer {
     data: Option<AlignedVec<u8>>,
 
     /// The `[[ArrayBufferMaxByteLength]]` internal slot.
-    max_byte_len: Option<u64>,
+    max_byte_len: Option<usize>,
 
     /// The `[[ArrayBufferDetachKey]]` internal slot.
     detach_key: JsValue,
@@ -237,7 +237,7 @@ impl ArrayBuffer {
     }
 
     /// Sets the maximum byte length of the buffer, returning the previous value if present.
-    pub(crate) fn set_max_byte_length(&mut self, max_byte_len: u64) -> Option<u64> {
+    pub(crate) fn set_max_byte_length(&mut self, max_byte_len: usize) -> Option<usize> {
         self.max_byte_len.replace(max_byte_len)
     }
 
@@ -268,7 +268,7 @@ impl ArrayBuffer {
     }
 
     /// Resizes the buffer to the new size, clamped to the maximum byte length if present.
-    pub fn resize(&mut self, new_byte_length: u64) -> JsResult<()> {
+    pub fn resize(&mut self, new_byte_length: usize) -> JsResult<()> {
         let Some(max_byte_len) = self.max_byte_len else {
             return Err(JsNativeError::typ()
                 .with_message("ArrayBuffer.resize: cannot resize a fixed-length buffer")
@@ -289,7 +289,7 @@ impl ArrayBuffer {
                 .into());
         }
 
-        buf.resize(new_byte_length as usize, 0);
+        buf.resize(new_byte_length, 0);
         Ok(())
     }
 
@@ -542,7 +542,7 @@ impl ArrayBuffer {
         // 6. Else,
         //     a. Let length be O.[[ArrayBufferMaxByteLength]].
         // 7. Return 𝔽(length).
-        Ok(buf.max_byte_len.unwrap_or(data.len() as u64).into())
+        Ok(buf.max_byte_len.unwrap_or(data.len()).into())
     }
 
     /// [`get ArrayBuffer.prototype.resizable`][spec].
@@ -666,7 +666,7 @@ impl ArrayBuffer {
                     .into());
             }
             // 5. Let len be O.[[ArrayBufferByteLength]].
-            buf.data().len() as u64
+            buf.data().len()
         };
 
         // 6. Let relativeStart be ? ToIntegerOrInfinity(start).
@@ -719,7 +719,7 @@ impl ArrayBuffer {
             };
 
             // 21. If new.[[ArrayBufferByteLength]] < newLen, throw a TypeError exception.
-            if (to_buf.len() as u64) < new_len {
+            if to_buf.len() < new_len {
                 return Err(JsNativeError::typ()
                     .with_message("new ArrayBuffer length too small")
                     .into());
@@ -736,8 +736,8 @@ impl ArrayBuffer {
             };
 
             // 26. Perform CopyDataBlockBytes(toBuf, 0, fromBuf, first, newLen).
-            let first = first as usize;
-            let new_len = new_len as usize;
+            let first = first;
+            let new_len = new_len;
             to_buf[..new_len].copy_from_slice(&from_buf[first..first + new_len]);
         }
 
@@ -780,7 +780,7 @@ impl ArrayBuffer {
         // 3. If newLength is undefined, then
         let new_len = if new_length.is_undefined() {
             // a. Let newByteLength be arrayBuffer.[[ArrayBufferByteLength]].
-            buf.borrow().data().len() as u64
+            buf.borrow().data().len()
         } else {
             // 4. Else,
             //     a. Let newByteLength be ? ToIndex(newLength).
@@ -833,9 +833,9 @@ impl ArrayBuffer {
                     .into());
             }
             // Should only truncate without reallocating.
-            bytes.resize(new_len as usize, 0);
+            bytes.resize(new_len, 0);
         } else {
-            bytes.resize(new_len as usize, 0);
+            bytes.resize(new_len, 0);
 
             // Realloc the vec to fit onto the new exact length.
             bytes.shrink_to_fit();
@@ -867,8 +867,8 @@ impl ArrayBuffer {
     /// [spec]: https://tc39.es/ecma262/#sec-allocatearraybuffer
     pub(crate) fn allocate(
         constructor: &JsValue,
-        byte_len: u64,
-        max_byte_len: Option<u64>,
+        byte_len: usize,
+        max_byte_len: Option<usize>,
         context: &mut Context,
     ) -> JsResult<JsObject<ArrayBuffer>> {
         // 1. Let slots be « [[ArrayBufferData]], [[ArrayBufferByteLength]], [[ArrayBufferDetachKey]] ».
@@ -920,7 +920,7 @@ impl ArrayBuffer {
 /// Abstract operation [`GetArrayBufferMaxByteLengthOption ( options )`][spec]
 ///
 /// [spec]: https://tc39.es/ecma262/#sec-getarraybuffermaxbytelengthoption
-fn get_max_byte_len(options: &JsValue, context: &mut Context) -> JsResult<Option<u64>> {
+fn get_max_byte_len(options: &JsValue, context: &mut Context) -> JsResult<Option<usize>> {
     // 1. If options is not an Object, return empty.
     let Some(options) = options.as_object() else {
         return Ok(None);
@@ -945,8 +945,8 @@ fn get_max_byte_len(options: &JsValue, context: &mut Context) -> JsResult<Option
 ///
 /// [spec]: https://tc39.es/ecma262/#sec-createbytedatablock
 pub(crate) fn create_byte_data_block(
-    size: u64,
-    max_buffer_size: Option<u64>,
+    size: usize,
+    max_buffer_size: Option<usize>,
     context: &mut Context,
 ) -> JsResult<AlignedVec<u8>> {
     let alloc_size = max_buffer_size.unwrap_or(size);
@@ -977,9 +977,6 @@ pub(crate) fn create_byte_data_block(
         };
         JsNativeError::range().with_message(message)
     })?;
-
-    // since size <= alloc_size, then `size` must also fit inside a `usize`.
-    let size = size as usize;
 
     // 2. Set all of the bytes of db to 0.
     data_block.resize(size, 0);

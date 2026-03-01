@@ -66,7 +66,7 @@ impl JsArrayBuffer {
                 .array_buffer()
                 .constructor()
                 .into(),
-            byte_length as u64,
+            byte_length,
             None,
             context,
         )?;
@@ -135,7 +135,7 @@ impl JsArrayBuffer {
     /// Set a maximum length for the underlying array buffer.
     #[inline]
     #[must_use]
-    pub fn with_max_byte_length(self, max_byte_len: u64) -> Self {
+    pub fn with_max_byte_length(self, max_byte_len: usize) -> Self {
         self.inner
             .borrow_mut()
             .data_mut()
