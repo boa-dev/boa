@@ -1,7 +1,6 @@
 use crate::{
     Context, JsResult, JsValue,
     builtins::{iterable::IteratorRecord, object::for_in_iterator::ForInIterator},
-    js_string,
     vm::opcode::{Operation, VaryingOperand},
 };
 
@@ -17,10 +16,8 @@ impl CreateForInIterator {
     pub(crate) fn operation(value: VaryingOperand, context: &Context) -> JsResult<()> {
         let object = context.vm_mut().get_register(value.into()).clone();
         let object = object.to_object(context)?;
-        let iterator = ForInIterator::create_for_in_iterator(JsValue::new(object), context);
-        let next_method = iterator
-            .get(js_string!("next"), context)
-            .expect("ForInIterator must have a `next` method");
+        let (iterator, next_method) =
+            ForInIterator::create_for_in_iterator(JsValue::new(object), context);
 
         context
             .vm_mut()

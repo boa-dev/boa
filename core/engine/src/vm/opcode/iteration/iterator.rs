@@ -104,7 +104,9 @@ impl IteratorResult {
             .last_result()
             .object()
             .clone();
-        context.vm_mut().set_register(value.into(), last_result.into());
+        context
+            .vm_mut()
+            .set_register(value.into(), last_result.into());
     }
 }
 

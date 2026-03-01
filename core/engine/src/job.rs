@@ -689,26 +689,9 @@ impl JobExecutor for SimpleJobExecutor {
                 group.insert(job.call(context));
             }
 
-            // There are no timeout jobs to run IF there are no jobs to execute right now.
-            let no_timeout_jobs_to_run = {
-                let now = context.borrow().clock().now();
-                !self.timeout_jobs.borrow().iter().any(|(t, _)| &now > t)
-            };
-
-            if self.promise_jobs.borrow().is_empty()
-                && self.async_jobs.borrow().is_empty()
-                && self.generic_jobs.borrow().is_empty()
-                && no_timeout_jobs_to_run
-                && group.is_empty()
-            {
-                break;
-            }
-
-            if let Some(Err(err)) = future::poll_once(group.next()).await.flatten() {
-                self.clear();
-                return Err(err);
-            }
-
+            // Dispatch all past-due timeout jobs before the termination check.
+            // This must come first so that recurring jobs (e.g. from `setInterval`) are
+            // executed and re-enqueued into the future before we decide whether to exit.
             {
                 let now = context.borrow().clock().now();
                 let mut timeouts_borrow = self.timeout_jobs.borrow_mut();
@@ -728,6 +711,38 @@ impl JobExecutor for SimpleJobExecutor {
                         }
                     }
                 }
+            }
+
+            // There are no timeout jobs to run IF there are no non-recurring jobs that are
+            // past-due. Recurring jobs (e.g. from `setInterval`) have already been dispatched
+            // and re-enqueued into the future above, so they must not prevent the event loop
+            // from terminating when all other work is done.
+            let has_pending_timeout_jobs = 'result: {
+                let now = context.borrow().clock().now();
+
+                for (timeout, jobs) in self.timeout_jobs.borrow().iter() {
+                    for job in jobs {
+                        if !job.is_recurring() && &now > timeout {
+                            break 'result true;
+                        }
+                    }
+                }
+
+                false
+            };
+
+            if self.promise_jobs.borrow().is_empty()
+                && self.async_jobs.borrow().is_empty()
+                && self.generic_jobs.borrow().is_empty()
+                && !has_pending_timeout_jobs
+                && group.is_empty()
+            {
+                break;
+            }
+
+            if let Some(Err(err)) = future::poll_once(group.next()).await.flatten() {
+                self.clear();
+                return Err(err);
             }
 
             let jobs = mem::take(&mut *self.promise_jobs.borrow_mut());

@@ -61,7 +61,8 @@ impl ThisForObjectEnvironmentName {
         (dst, index): (VaryingOperand, VaryingOperand),
         context: &Context,
     ) -> JsResult<()> {
-        let binding_locator = context.vm_mut().frame().code_block.bindings[usize::from(index)].clone();
+        let binding_locator =
+            context.vm_mut().frame().code_block.bindings[usize::from(index)].clone();
         let this = context
             .this_from_object_environment_binding(&binding_locator)?
             .map_or(JsValue::undefined(), Into::into);
@@ -108,7 +109,7 @@ impl Super {
         };
 
         let value = home_object
-            .map(|o| o.__get_prototype_of__(&mut InternalMethodPropertyContext::new(context)))
+            .map(|o| o.__get_prototype_of__(&InternalMethodPropertyContext::new(context)))
             .transpose()?
             .flatten()
             .map_or_else(JsValue::null, JsValue::from);
@@ -143,7 +144,7 @@ impl SuperCallPrepare {
             .expect("super call must be in function environment");
         let active_function = this_env.slots().function_object().clone();
         let super_constructor = active_function
-            .__get_prototype_of__(&mut InternalMethodPropertyContext::new(context))
+            .__get_prototype_of__(&InternalMethodPropertyContext::new(context))
             .expect("function object must have prototype");
         context.vm_mut().set_register(
             dst.into(),
@@ -298,7 +299,7 @@ impl SuperCallDerived {
             .clone();
         let active_function = this_env.slots().function_object().clone();
         let super_constructor = active_function
-            .__get_prototype_of__(&mut InternalMethodPropertyContext::new(context))
+            .__get_prototype_of__(&InternalMethodPropertyContext::new(context))
             .expect("function object must have prototype")
             .expect("function object must have prototype");
 
@@ -310,7 +311,10 @@ impl SuperCallDerived {
 
         context.vm_mut().stack.push(JsValue::undefined());
         context.vm_mut().stack.push(super_constructor.clone());
-        for argument in { let vm = context.vm_mut(); vm.stack.get_arguments(&vm.frame).to_vec() } {
+        for argument in {
+            let vm = context.vm_mut();
+            vm.stack.get_arguments(&vm.frame).to_vec()
+        } {
             context.vm_mut().stack.push(argument);
         }
         context.vm_mut().stack.push(new_target);

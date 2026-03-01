@@ -16,7 +16,9 @@ impl Case {
         context: &Context,
     ) {
         let vm = context.vm_mut();
-        let equals = vm.get_register(value.into()).strict_equals(vm.get_register(condition.into()));
+        let equals = vm
+            .get_register(value.into())
+            .strict_equals(vm.get_register(condition.into()));
         if equals {
             vm.frame_mut().pc = address;
         }

@@ -28,7 +28,7 @@ impl SetPrototype {
 
         let object = object.as_object().expect("object is not an object");
         object
-            .__set_prototype_of__(prototype, &mut InternalMethodPropertyContext::new(context))
+            .__set_prototype_of__(prototype, &InternalMethodPropertyContext::new(context))
             .expect("cannot fail per spec");
     }
 }

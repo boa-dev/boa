@@ -269,7 +269,7 @@ impl Reflect {
             .and_then(JsValue::as_object)
             .ok_or_else(|| JsNativeError::typ().with_message("target must be an object"))?;
         Ok(target
-            .__get_prototype_of__(&mut InternalMethodPropertyContext::new(context))?
+            .__get_prototype_of__(&InternalMethodPropertyContext::new(context))?
             .map_or(JsValue::null(), JsValue::new))
     }
 
@@ -314,7 +314,7 @@ impl Reflect {
             .and_then(JsValue::as_object)
             .ok_or_else(|| JsNativeError::typ().with_message("target must be an object"))?;
         Ok(target
-            .__is_extensible__(&mut InternalMethodPropertyContext::new(context))?
+            .__is_extensible__(&InternalMethodPropertyContext::new(context))?
             .into())
     }
 
@@ -333,7 +333,7 @@ impl Reflect {
             .ok_or_else(|| JsNativeError::typ().with_message("target must be an object"))?;
 
         let keys: Vec<JsValue> = target
-            .__own_property_keys__(&mut InternalMethodPropertyContext::new(context))?
+            .__own_property_keys__(&InternalMethodPropertyContext::new(context))?
             .into_iter()
             .map(Into::into)
             .collect();
@@ -360,7 +360,7 @@ impl Reflect {
             .ok_or_else(|| JsNativeError::typ().with_message("target must be an object"))?;
 
         Ok(target
-            .__prevent_extensions__(&mut InternalMethodPropertyContext::new(context))?
+            .__prevent_extensions__(&InternalMethodPropertyContext::new(context))?
             .into())
     }
 
@@ -421,7 +421,7 @@ impl Reflect {
             }
         };
         Ok(target
-            .__set_prototype_of__(proto, &mut InternalMethodPropertyContext::new(context))?
+            .__set_prototype_of__(proto, &InternalMethodPropertyContext::new(context))?
             .into())
     }
 }

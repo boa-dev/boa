@@ -600,6 +600,7 @@ impl<'ctx> ObjectInitializer<'ctx> {
 
     /// Gets the context used to create the object.
     #[inline]
+    #[must_use] 
     pub fn context(&self) -> &Context {
         self.context
     }
@@ -859,6 +860,7 @@ impl<'ctx> ConstructorBuilder<'ctx> {
 
     /// Return the current context.
     #[inline]
+    #[must_use] 
     pub fn context(&self) -> &Context {
         self.context
     }

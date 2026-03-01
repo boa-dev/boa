@@ -59,7 +59,7 @@ impl AsyncGeneratorYield {
             let vm = context.vm_mut();
             vm.stack.async_generator_object(&vm.frame)
         }
-            .expect("`AsyncGeneratorYield` must only be called inside async generators");
+        .expect("`AsyncGeneratorYield` must only be called inside async generators");
         let async_generator_object = async_generator_object
             .downcast::<AsyncGenerator>()
             .expect("must be async generator object");

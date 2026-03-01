@@ -129,9 +129,13 @@ impl MaybeException {
         if let Some(error) = context.vm_mut().pending_exception.take() {
             let error = error.into_opaque(context)?;
             context.vm_mut().set_register(exception.into(), error);
-            context.vm_mut().set_register(has_exception.into(), true.into());
+            context
+                .vm_mut()
+                .set_register(has_exception.into(), true.into());
         } else {
-            context.vm_mut().set_register(has_exception.into(), false.into());
+            context
+                .vm_mut()
+                .set_register(has_exception.into(), false.into());
         }
         Ok(())
     }

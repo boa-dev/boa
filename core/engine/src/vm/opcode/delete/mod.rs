@@ -18,7 +18,10 @@ impl DeletePropertyByName {
         (object_register, index): (VaryingOperand, VaryingOperand),
         context: &Context,
     ) -> JsResult<()> {
-        let object = context.vm_mut().get_register(object_register.into()).clone();
+        let object = context
+            .vm_mut()
+            .get_register(object_register.into())
+            .clone();
         let object = object.to_object(context)?;
         let code_block = context.vm_mut().frame().code_block();
         let key = code_block.constant_string(index.into()).into();
@@ -56,7 +59,10 @@ impl DeletePropertyByValue {
         (object_register, key): (VaryingOperand, VaryingOperand),
         context: &Context,
     ) -> JsResult<()> {
-        let object = context.vm_mut().get_register(object_register.into()).clone();
+        let object = context
+            .vm_mut()
+            .get_register(object_register.into())
+            .clone();
         let key = context.vm_mut().get_register(key.into()).clone();
         let object = object.to_object(context)?;
         let property_key = key.to_property_key(context)?;

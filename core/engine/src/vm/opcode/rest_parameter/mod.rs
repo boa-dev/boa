@@ -11,7 +11,10 @@ pub(crate) struct RestParameterInit;
 impl RestParameterInit {
     #[inline(always)]
     pub(super) fn operation(dst: VaryingOperand, context: &Context) {
-        let array = if let Some(rest) = { let vm = context.vm_mut(); vm.stack.pop_rest_arguments(&vm.frame) } {
+        let array = if let Some(rest) = {
+            let vm = context.vm_mut();
+            vm.stack.pop_rest_arguments(&vm.frame)
+        } {
             let rest_count = rest.len() as u32;
             let array = Array::create_array_from_list(rest, context);
             context.vm_mut().frame_mut().rp -= rest_count;

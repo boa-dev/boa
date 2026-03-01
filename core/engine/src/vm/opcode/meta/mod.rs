@@ -90,7 +90,9 @@ impl ImportMeta {
 
         //     b. Return importMeta.
         //     f. Return importMeta.
-        context.vm_mut().set_register(dst.into(), import_meta.into());
+        context
+            .vm_mut()
+            .set_register(dst.into(), import_meta.into());
     }
 }
 

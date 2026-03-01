@@ -115,14 +115,9 @@ impl CreateGlobalFunctionBinding {
         let configurable = u32::from(configurable) != 0;
         let vm = context.vm_mut();
         let value = vm.get_register(function.into()).clone();
-        let name = vm
-            .frame()
-            .code_block()
-            .constant_string(index.into());
+        let name = vm.frame().code_block().constant_string(index.into());
 
-        let function = value
-            .as_object()
-            .expect("value must be an function");
+        let function = value.as_object().expect("value must be an function");
         context.create_global_function_binding(name, function, configurable)?;
 
         Ok(())

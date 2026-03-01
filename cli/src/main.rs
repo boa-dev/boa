@@ -13,6 +13,7 @@ mod logger;
 
 use crate::logger::SharedExternalPrinterLogger;
 use boa_engine::context::time::JsInstant;
+use boa_engine::error::JsErasedError;
 use boa_engine::job::{GenericJob, TimeoutJob};
 use boa_engine::{
     Context, JsError, JsResult, Source,
@@ -38,15 +39,13 @@ use rustyline::{EditMode, Editor, config::Config, error::ReadlineError};
 use std::collections::BTreeMap;
 use std::mem;
 use std::sync::mpsc::{Sender, TryRecvError};
-use std::time::Duration;
+use std::time::{Duration, Instant};
 use std::{
     cell::RefCell,
     collections::VecDeque,
-    eprintln,
     fs::OpenOptions,
-    io,
+    io::{self, IsTerminal, Read},
     path::{Path, PathBuf},
-    println,
     rc::Rc,
     thread,
 };
@@ -123,6 +122,10 @@ struct Opt {
     /// Use vi mode in the REPL
     #[arg(long = "vi")]
     vi_mode: bool,
+
+    /// Report parsing and execution timings.
+    #[arg(long)]
+    time: bool,
 
     #[arg(long, short = 'O', group = "optimizer")]
     optimize: bool,
@@ -214,21 +217,90 @@ enum FlowgraphDirection {
     RightToLeft,
 }
 
+struct Timer<'a> {
+    name: &'static str,
+    start: Instant,
+    counters: &'a mut Vec<(&'static str, Duration)>,
+}
+
+impl Drop for Timer<'_> {
+    fn drop(&mut self) {
+        self.counters.push((self.name, self.start.elapsed()));
+    }
+}
+
+struct Counters {
+    counters: Option<Vec<(&'static str, Duration)>>,
+}
+
+impl Counters {
+    fn new(enabled: bool) -> Self {
+        Self {
+            counters: enabled.then_some(Vec::new()),
+        }
+    }
+
+    fn new_timer(&mut self, name: &'static str) -> Option<Timer<'_>> {
+        self.counters.as_mut().map(|counters| Timer {
+            name,
+            start: Instant::now(),
+            counters,
+        })
+    }
+}
+
+impl Drop for Counters {
+    fn drop(&mut self) {
+        let Some(counters) = self.counters.take() else {
+            return;
+        };
+        if counters.is_empty() {
+            return;
+        }
+
+        let max_width = counters
+            .iter()
+            .map(|(name, _)| name.len())
+            .max()
+            .unwrap_or(0)
+            .max("Total".len())
+            + 1; // +1 for the colon
+
+        let mut total = Duration::ZERO;
+        eprintln!();
+        for (name, elapsed) in &counters {
+            eprintln!(
+                "{:<width$} {elapsed:.2?}",
+                format!("{name}:"),
+                width = max_width
+            );
+            total += *elapsed;
+        }
+        if counters.len() > 1 {
+            eprintln!("{:<width$} {total:.2?}", "Total:", width = max_width);
+        }
+    }
+}
+
 /// Dumps the AST to stdout with format controlled by the given arguments.
 ///
 /// Returns a error of type String with a error message,
 /// if the source has a syntax or parsing error.
 fn dump<R: ReadChar>(src: Source<'_, R>, args: &Opt, context: &Context) -> Result<()> {
     if let Some(arg) = args.dump_ast {
+        let mut counters = Counters::new(args.time);
         let arg = arg.unwrap_or_default();
         let mut parser = boa_parser::Parser::new(src);
         let dump =
             if args.module {
                 let scope = context.realm().scope().clone();
-                let module = parser
-                    .parse_module(&scope, context.interner_mut())
-                    .map_err(|e| eyre!("Uncaught SyntaxError: {e}"))?;
-
+                let module = {
+                    let _timer = counters.new_timer("Parsing");
+                    parser
+                        .parse_module(&scope, context.interner_mut())
+                        .map_err(|e| eyre!("Uncaught SyntaxError: {e}"))?
+                };
+                let _timer = counters.new_timer("AST generation");
                 match arg {
                     DumpFormat::Json => serde_json::to_string(&module)
                         .expect("could not convert AST to a JSON string"),
@@ -238,14 +310,18 @@ fn dump<R: ReadChar>(src: Source<'_, R>, args: &Opt, context: &Context) -> Resul
                 }
             } else {
                 let scope = context.realm().scope().clone();
-                let mut script = parser
-                    .parse_script(&scope, context.interner_mut())
-                    .map_err(|e| eyre!("Uncaught SyntaxError: {e}"))?;
+                let mut script = {
+                    let _timer = counters.new_timer("Parsing");
+                    parser
+                        .parse_script(&scope, context.interner_mut())
+                        .map_err(|e| eyre!("Uncaught SyntaxError: {e}"))?
+                };
 
                 if args.optimize {
                     context.optimize_statement_list(script.statements_mut());
                 }
 
+                let _timer = counters.new_timer("AST generation");
                 match arg {
                     DumpFormat::Json => serde_json::to_string(&script)
                         .expect("could not convert AST to a JSON string"),
@@ -254,7 +330,7 @@ fn dump<R: ReadChar>(src: Source<'_, R>, args: &Opt, context: &Context) -> Resul
                     DumpFormat::Debug => format!("{script:#?}"),
                 }
             };
-
+        drop(counters);
         println!("{dump}");
     }
 
@@ -307,7 +383,7 @@ fn evaluate_expr(
     printer: &SharedExternalPrinterLogger,
 ) -> Result<()> {
     if args.has_dump_flag() {
-        dump(Source::from_bytes(&line), args, context)?;
+        dump(Source::from_bytes(line), args, context)?;
     } else if let Some(flowgraph) = args.flowgraph {
         match generate_flowgraph(
             context,
@@ -319,8 +395,27 @@ fn evaluate_expr(
             Err(v) => eprintln!("{v:?}"),
         }
     } else {
-        match context.eval(Source::from_bytes(line)) {
-            Ok(v) => printer.print(format!("{}\n", v.display())),
+        let mut counters = Counters::new(args.time);
+        let script = {
+            let _timer = counters.new_timer("Parsing");
+            Script::parse(Source::from_bytes(line), None, context)
+        };
+
+        match script {
+            Ok(script) => {
+                let result = {
+                    let _timer = counters.new_timer("Execution");
+                    let result = script.evaluate(context);
+                    if let Err(err) = context.run_jobs() {
+                        printer.print(uncaught_job_error(&err));
+                    }
+                    result
+                };
+                match result {
+                    Ok(v) => printer.print(format!("{}\n", v.display())),
+                    Err(ref v) => printer.print(uncaught_error(v)),
+                }
+            }
             Err(ref v) => printer.print(uncaught_error(v)),
         }
     }
@@ -353,8 +448,13 @@ fn evaluate_file(
     }
 
     if args.module {
-        let module = Module::parse(Source::from_filepath(file)?, None, context)
-            .map_err(|e| e.into_erased(context))?;
+        let source = Source::from_filepath(file)?;
+        let mut counters = Counters::new(args.time);
+        let module = {
+            let _timer = counters.new_timer("Parsing");
+            Module::parse(source, None, context)
+        };
+        let module = module.map_err(|e| e.into_erased(context))?;
 
         loader.insert(
             file.canonicalize()
@@ -362,20 +462,39 @@ fn evaluate_file(
             module.clone(),
         );
 
-        let promise = module.load_link_evaluate(context);
-        context.run_jobs().map_err(|err| err.into_erased(context))?;
+        let promise = {
+            let _timer = counters.new_timer("Execution");
+            let promise = module.load_link_evaluate(context);
+            context.run_jobs().map_err(|err| err.into_erased(context))?;
+            Ok::<_, JsErasedError>(promise)
+        }?;
         let result = promise.state();
 
         return match result {
             PromiseState::Pending => Err(eyre!("module didn't execute")),
             PromiseState::Fulfilled(_) => Ok(()),
             PromiseState::Rejected(err) => {
-                return Err(JsError::from_opaque(err).into_erased(context).into());
+                Err(JsError::from_opaque(err).into_erased(context).into())
             }
         };
     }
 
-    match context.eval(Source::from_filepath(file)?) {
+    let source = Source::from_filepath(file)?;
+    let mut counters = Counters::new(args.time);
+    let script = {
+        let _timer = counters.new_timer("Parsing");
+        Script::parse(source, None, context)
+    };
+    let script = script.map_err(|e| e.into_erased(context))?;
+
+    let result = {
+        let _timer = counters.new_timer("Execution");
+        let result = script.evaluate(context);
+        context.run_jobs().map_err(|err| err.into_erased(context))?;
+        result
+    };
+
+    match result {
         Ok(v) => {
             if !v.is_undefined() {
                 println!("{}", v.display());
@@ -384,9 +503,7 @@ fn evaluate_file(
         Err(v) => printer.print(uncaught_error(&v)),
     }
 
-    context
-        .run_jobs()
-        .map_err(|err| err.into_erased(context).into())
+    Ok(())
 }
 
 fn evaluate_files(
@@ -454,6 +571,16 @@ fn main() -> Result<()> {
     } else if let Some(ref expr) = args.expression {
         evaluate_expr(expr, &args, &context, &printer)?;
         return Ok(());
+    } else if !io::stdin().is_terminal() {
+        let mut input = String::new();
+        io::stdin()
+            .read_to_string(&mut input)
+            .wrap_err("failed to read stdin")?;
+        return if input.is_empty() {
+            Ok(())
+        } else {
+            evaluate_expr(&input, &args, &context, &printer)
+        };
     }
 
     let handle = start_readline_thread(sender, printer.clone(), args.vi_mode);

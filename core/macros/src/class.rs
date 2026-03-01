@@ -85,10 +85,7 @@ impl Function {
 
         // Find out if it's a boa context.
         let is_context = match ty {
-            Type::Reference(syn::TypeReference {
-                elem,
-                ..
-            }) => match elem.as_ref() {
+            Type::Reference(syn::TypeReference { elem, .. }) => match elem.as_ref() {
                 Type::Path(syn::TypePath { qself: _, path }) => {
                     if let Some(maybe_ctx) = path.segments.last() {
                         maybe_ctx.ident == "Context"

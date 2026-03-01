@@ -34,7 +34,10 @@ impl Generator {
     ) -> ControlFlow<CompletionRecord> {
         let r#async = u32::from(r#async) != 0;
 
-        let active_function = { let vm = context.vm_mut(); vm.stack.get_function(&vm.frame) };
+        let active_function = {
+            let vm = context.vm_mut();
+            vm.stack.get_function(&vm.frame)
+        };
         let this_function_object =
             active_function.expect("active function should be set to the generator");
 
@@ -105,9 +108,9 @@ impl AsyncGeneratorClose {
             let vm = context.vm_mut();
             vm.stack.async_generator_object(&vm.frame)
         }
-            .expect("There should be a object")
-            .downcast::<AsyncGenerator>()
-            .expect("must be async generator");
+        .expect("There should be a object")
+        .downcast::<AsyncGenerator>()
+        .expect("must be async generator");
 
         let mut r#gen = generator.borrow_mut();
 
@@ -198,9 +201,7 @@ impl JumpIfNotResumeKind {
         context: &Context,
     ) {
         let vm = context.vm_mut();
-        let resume_kind = vm
-            .get_register(value.into())
-            .to_generator_resume_kind();
+        let resume_kind = vm.get_register(value.into()).to_generator_resume_kind();
         if resume_kind as u8 != u32::from(expected) as u8 {
             vm.frame_mut().pc = exit;
         }
@@ -254,7 +255,9 @@ impl GeneratorDelegateNext {
                     std::slice::from_ref(&received),
                     context,
                 )?;
-                context.vm_mut().set_register(is_return.into(), false.into());
+                context
+                    .vm_mut()
+                    .set_register(is_return.into(), false.into());
                 context.vm_mut().set_register(value.into(), result);
             }
             GeneratorResumeKind::Throw => {
@@ -267,7 +270,9 @@ impl GeneratorDelegateNext {
                         std::slice::from_ref(&received),
                         context,
                     )?;
-                    context.vm_mut().set_register(is_return.into(), false.into());
+                    context
+                        .vm_mut()
+                        .set_register(is_return.into(), false.into());
                     context.vm_mut().set_register(value.into(), result);
                 } else {
                     context.vm_mut().frame_mut().pc = throw_method_undefined;

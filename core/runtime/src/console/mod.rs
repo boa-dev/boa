@@ -182,10 +182,10 @@ fn formatter(data: &[JsValue], context: &Context) -> JsResult<String> {
                             let _ = write!(formatted, "{arg:.6}");
                             arg_index += 1;
                         }
-                        /* object, FIXME: how to render this properly? */
+                        /* object: use internals mode for richer inspection */
                         'o' | 'O' => {
                             let arg = data.get_or_undefined(arg_index);
-                            formatted.push_str(&arg.display().to_string());
+                            formatted.push_str(&arg.display().internals(true).to_string());
                             arg_index += 1;
                         }
                         /* string */

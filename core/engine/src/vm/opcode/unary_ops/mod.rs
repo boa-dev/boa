@@ -75,7 +75,9 @@ impl Neg {
             .clone()
             .to_numeric(context)?
         {
-            Numeric::Number(number) => context.vm_mut().set_register(value.into(), number.neg().into()),
+            Numeric::Number(number) => context
+                .vm_mut()
+                .set_register(value.into(), number.neg().into()),
             Numeric::BigInt(bigint) => context
                 .vm_mut()
                 .set_register(value.into(), JsBigInt::neg(&bigint).into()),

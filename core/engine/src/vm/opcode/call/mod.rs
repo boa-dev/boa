@@ -140,7 +140,11 @@ impl CallEvalSpread {
                 //     let strictCaller be true. Otherwise let strictCaller be false.
                 // v. Return ? PerformEval(evalArg, strictCaller, true).
                 let strict = context.vm_mut().frame().code_block.strict();
-                let scope = context.vm_mut().frame().code_block().constant_scope(index.into());
+                let scope = context
+                    .vm_mut()
+                    .frame()
+                    .code_block()
+                    .constant_scope(index.into());
                 let result = crate::builtins::eval::Eval::perform_eval(
                     x,
                     true,
@@ -552,7 +556,9 @@ impl ImportCall {
             Err(err) => {
                 let err = err.into_opaque(context)?;
                 cap.reject().call(&JsValue::undefined(), &[err], context)?;
-                context.vm_mut().set_register(specifier_op.into(), promise.into());
+                context
+                    .vm_mut()
+                    .set_register(specifier_op.into(), promise.into());
                 return Ok(());
             }
         };
@@ -562,7 +568,9 @@ impl ImportCall {
             Err(err) => {
                 let err = err.into_opaque(context)?;
                 cap.reject().call(&JsValue::undefined(), &[err], context)?;
-                context.vm_mut().set_register(specifier_op.into(), promise.into());
+                context
+                    .vm_mut()
+                    .set_register(specifier_op.into(), promise.into());
                 return Ok(());
             }
         };
@@ -578,7 +586,9 @@ impl ImportCall {
         context.enqueue_job(job.into());
 
         // 9. Return promiseCapability.[[Promise]].
-        context.vm_mut().set_register(specifier_op.into(), promise.into());
+        context
+            .vm_mut()
+            .set_register(specifier_op.into(), promise.into());
 
         Ok(())
     }

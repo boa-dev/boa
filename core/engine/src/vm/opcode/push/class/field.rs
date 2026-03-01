@@ -77,10 +77,7 @@ impl PushClassFieldPrivate {
         let vm = context.vm_mut();
         let class = vm.get_register(class.into()).clone();
         let function = vm.get_register(function.into()).clone();
-        let name = vm
-            .frame()
-            .code_block()
-            .constant_string(index.into());
+        let name = vm.frame().code_block().constant_string(index.into());
 
         let function = function
             .as_object()

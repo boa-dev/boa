@@ -861,10 +861,12 @@ impl Promise {
             let next_promise =
                 promise_resolve.call(&constructor.clone().into(), &[next], context)?;
 
+            // h. Let alreadyCalled be the Record { [[Value]]: false }.
+            let already_called = Rc::new(Cell::new(false));
+
             // e. Let stepsFulfilled be the algorithm steps defined in Promise.allSettled Resolve Element Functions.
             // f. Let lengthFulfilled be the number of non-optional parameters of the function definition in Promise.allSettled Resolve Element Functions.
             // g. Let onFulfilled be CreateBuiltinFunction(stepsFulfilled, lengthFulfilled, "", « [[AlreadyCalled]], [[Index]], [[Values]], [[Capability]], [[RemainingElements]] »).
-            // h. Let alreadyCalled be the Record { [[Value]]: false }.
             // i. Set onFulfilled.[[AlreadyCalled]] to alreadyCalled.
             // j. Set onFulfilled.[[Index]] to index.
             // k. Set onFulfilled.[[Values]] to values.
@@ -939,7 +941,7 @@ impl Promise {
                         Ok(JsValue::undefined())
                     },
                     ResolveRejectElementCaptures {
-                        already_called: Rc::new(Cell::new(false)),
+                        already_called: already_called.clone(),
                         index,
                         values: values.clone(),
                         capability: result_capability.functions.resolve.clone(),
@@ -1029,7 +1031,7 @@ impl Promise {
                         Ok(JsValue::undefined())
                     },
                     ResolveRejectElementCaptures {
-                        already_called: Rc::new(Cell::new(false)),
+                        already_called,
                         index,
                         values: values.clone(),
                         capability: result_capability.functions.resolve.clone(),

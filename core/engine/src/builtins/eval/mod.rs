@@ -211,7 +211,11 @@ impl Eval {
 
             // Poison the last parent function environment, because it may contain new declarations after/during eval.
             if !strict {
-                context.vm_mut().frame.environments.poison_until_last_function();
+                context
+                    .vm_mut()
+                    .frame
+                    .environments
+                    .poison_until_last_function();
             }
 
             // Set the compile time environment to the current running environment and save the number of current environments.
@@ -237,15 +241,19 @@ impl Eval {
             }
         });
 
-        let (var_environment, mut variable_scope) =
-            if let Some(e) = context.vm_mut().frame.environments.outer_function_environment() {
-                (e.0, e.1)
-            } else {
-                (
-                    context.realm().environment().clone(),
-                    context.realm().scope().clone(),
-                )
-            };
+        let (var_environment, mut variable_scope) = if let Some(e) = context
+            .vm_mut()
+            .frame
+            .environments
+            .outer_function_environment()
+        {
+            (e.0, e.1)
+        } else {
+            (
+                context.realm().environment().clone(),
+                context.realm().scope().clone(),
+            )
+        };
 
         let lexical_scope = lexical_scope.unwrap_or(context.realm().scope().clone());
         let lexical_scope = Scope::new(lexical_scope, strict);

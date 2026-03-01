@@ -577,7 +577,7 @@ impl Context {
             BindingLocatorScope::GlobalObject => {
                 let key = locator.name().clone();
                 let obj = self.global_object();
-                obj.__delete__(&key.into(), &mut InternalMethodPropertyContext::new(&*self))
+                obj.__delete__(&key.into(), &mut InternalMethodPropertyContext::new(self))
             }
             BindingLocatorScope::GlobalDeclarative => Ok(false),
             BindingLocatorScope::Stack(index) => match self.environment_expect(index) {
@@ -585,7 +585,7 @@ impl Context {
                 Environment::Object(obj) => {
                     let key = locator.name().clone();
                     let obj = obj.clone();
-                    obj.__delete__(&key.into(), &mut InternalMethodPropertyContext::new(&*self))
+                    obj.__delete__(&key.into(), &mut InternalMethodPropertyContext::new(self))
                 }
             },
         }

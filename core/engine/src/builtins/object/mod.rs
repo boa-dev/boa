@@ -208,7 +208,7 @@ impl OrdinaryObject {
         let obj = this.to_object(context)?;
 
         // 2. Return ? O.[[GetPrototypeOf]]().
-        let proto = obj.__get_prototype_of__(&mut InternalMethodPropertyContext::new(context))?;
+        let proto = obj.__get_prototype_of__(&InternalMethodPropertyContext::new(context))?;
 
         Ok(proto.map_or(JsValue::null(), JsValue::new))
     }
@@ -246,7 +246,7 @@ impl OrdinaryObject {
 
         // 4. Let status be ? O.[[SetPrototypeOf]](proto).
         let status =
-            object.__set_prototype_of__(proto, &mut InternalMethodPropertyContext::new(context))?;
+            object.__set_prototype_of__(proto, &InternalMethodPropertyContext::new(context))?;
 
         // 5. If status is false, throw a TypeError exception.
         if !status {
@@ -383,7 +383,7 @@ impl OrdinaryObject {
                     Ok(JsValue::undefined())
                 };
             }
-            match obj.__get_prototype_of__(&mut InternalMethodPropertyContext::new(context))? {
+            match obj.__get_prototype_of__(&InternalMethodPropertyContext::new(context))? {
                 // c. Set O to ? O.[[GetPrototypeOf]]().
                 Some(o) => obj = o,
                 // d. If O is null, return undefined.
@@ -429,7 +429,7 @@ impl OrdinaryObject {
                     Ok(JsValue::undefined())
                 };
             }
-            match obj.__get_prototype_of__(&mut InternalMethodPropertyContext::new(context))? {
+            match obj.__get_prototype_of__(&InternalMethodPropertyContext::new(context))? {
                 // c. Set O to ? O.[[GetPrototypeOf]]().
                 Some(o) => obj = o,
                 // d. If O is null, return undefined.
@@ -529,7 +529,7 @@ impl OrdinaryObject {
 
         // 2. Let ownKeys be ? obj.[[OwnPropertyKeys]]().
         let own_keys =
-            obj.__own_property_keys__(&mut InternalMethodPropertyContext::new(context))?;
+            obj.__own_property_keys__(&InternalMethodPropertyContext::new(context))?;
 
         // 3. Let descriptors be OrdinaryObjectCreate(%Object.prototype%).
         let descriptors = JsObject::with_object_proto(context.intrinsics());
@@ -648,7 +648,7 @@ impl OrdinaryObject {
 
         // 2. Return ? obj.[[GetPrototypeOf]]().
         Ok(obj
-            .__get_prototype_of__(&mut InternalMethodPropertyContext::new(context))?
+            .__get_prototype_of__(&InternalMethodPropertyContext::new(context))?
             .map_or(JsValue::null(), JsValue::new))
     }
 
@@ -696,7 +696,7 @@ impl OrdinaryObject {
 
         // 4. Let status be ? O.[[SetPrototypeOf]](proto).
         let status =
-            obj.__set_prototype_of__(proto, &mut InternalMethodPropertyContext::new(context))?;
+            obj.__set_prototype_of__(proto, &InternalMethodPropertyContext::new(context))?;
 
         // 5. If status is false, throw a TypeError exception.
         if !status {
@@ -975,7 +975,7 @@ impl OrdinaryObject {
                     .expect("this ToObject call must not fail");
                 // 3.a.ii. Let keys be ? from.[[OwnPropertyKeys]]().
                 let keys =
-                    from.__own_property_keys__(&mut InternalMethodPropertyContext::new(context))?;
+                    from.__own_property_keys__(&InternalMethodPropertyContext::new(context))?;
                 // 3.a.iii. For each element nextKey of keys, do
                 for key in keys {
                     // 3.a.iii.1. Let desc be ? from.[[GetOwnProperty]](nextKey).
@@ -1195,7 +1195,7 @@ impl OrdinaryObject {
         if let Some(o) = o.as_object() {
             // 2. Let status be ? O.[[PreventExtensions]]().
             let status =
-                o.__prevent_extensions__(&mut InternalMethodPropertyContext::new(context))?;
+                o.__prevent_extensions__(&InternalMethodPropertyContext::new(context))?;
             // 3. If status is false, throw a TypeError exception.
             if !status {
                 return Err(JsNativeError::typ()
@@ -1437,7 +1437,7 @@ fn object_define_properties(object: &JsObject, props: &JsValue, context: &Contex
     let props = &props.to_object(context)?;
 
     // 3. Let keys be ? props.[[OwnPropertyKeys]]().
-    let keys = props.__own_property_keys__(&mut InternalMethodPropertyContext::new(context))?;
+    let keys = props.__own_property_keys__(&InternalMethodPropertyContext::new(context))?;
 
     // 4. Let descriptors be a new empty List.
     let mut descriptors: Vec<(PropertyKey, PropertyDescriptor)> = Vec::new();
@@ -1496,7 +1496,7 @@ fn get_own_property_keys(
     let obj = o.to_object(context)?;
 
     // 2. Let keys be ? obj.[[OwnPropertyKeys]]().
-    let keys = obj.__own_property_keys__(&mut InternalMethodPropertyContext::new(context))?;
+    let keys = obj.__own_property_keys__(&InternalMethodPropertyContext::new(context))?;
 
     // 3. Let nameList be a new empty List.
     // 4. For each element nextKey of keys, do

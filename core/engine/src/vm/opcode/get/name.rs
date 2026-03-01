@@ -60,7 +60,7 @@ impl GetNameGlobal {
             let ic = &context.vm_mut().frame().code_block().ic[usize::from(ic_index)];
 
             let object_borrowed = object.borrow();
-            if let Some((shape, slot)) = ic.match_or_reset(object_borrowed.shape()) {
+            if let Some((shape, slot)) = ic.get(object_borrowed.shape()) {
                 let mut result = if slot.attributes.contains(SlotAttributes::PROTOTYPE) {
                     let prototype = shape.prototype().expect("prototype should have value");
                     let prototype = prototype.borrow();
@@ -136,7 +136,11 @@ impl GetLocator {
             context.vm_mut().frame().code_block.bindings[usize::from(index)].clone();
         context.find_runtime_binding(&mut binding_locator)?;
 
-        context.vm_mut().frame_mut().binding_stack.push(binding_locator);
+        context
+            .vm_mut()
+            .frame_mut()
+            .binding_stack
+            .push(binding_locator);
 
         Ok(())
     }
@@ -170,7 +174,11 @@ impl GetNameAndLocator {
             JsNativeError::reference().with_message(format!("{name} is not defined"))
         })?;
 
-        context.vm_mut().frame_mut().binding_stack.push(binding_locator);
+        context
+            .vm_mut()
+            .frame_mut()
+            .binding_stack
+            .push(binding_locator);
         context.vm_mut().set_register(value.into(), result);
         Ok(())
     }

@@ -91,10 +91,7 @@ impl PushClassPrivateGetter {
         let vm = context.vm_mut();
         let object = vm.get_register(object.into()).clone();
         let value = vm.get_register(value.into()).clone();
-        let name = vm
-            .frame()
-            .code_block()
-            .constant_string(index.into());
+        let name = vm.frame().code_block().constant_string(index.into());
 
         let value = value.as_callable().expect("getter must be callable");
         let object = object.as_object().expect("class must be function object");
@@ -134,10 +131,7 @@ impl PushClassPrivateSetter {
         let vm = context.vm_mut();
         let object = vm.get_register(object.into()).clone();
         let value = vm.get_register(value.into()).clone();
-        let name = vm
-            .frame()
-            .code_block()
-            .constant_string(index.into());
+        let name = vm.frame().code_block().constant_string(index.into());
 
         let value = value.as_callable().expect("getter must be callable");
         let object = object.as_object().expect("class must be function object");

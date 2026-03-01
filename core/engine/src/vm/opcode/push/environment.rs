@@ -17,7 +17,11 @@ pub(crate) struct PushScope;
 impl PushScope {
     #[inline(always)]
     pub(crate) fn operation(index: VaryingOperand, context: &Context) {
-        let scope = context.vm_mut().frame().code_block().constant_scope(index.into());
+        let scope = context
+            .vm_mut()
+            .frame()
+            .code_block()
+            .constant_scope(index.into());
         context
             .vm_mut()
             .frame
@@ -87,7 +91,11 @@ impl PushPrivateEnvironment {
             .downcast_mut::<OrdinaryFunction>()
             .expect("class object must be function")
             .push_private_environment(environment.clone());
-        context.vm_mut().frame.environments.push_private(environment);
+        context
+            .vm_mut()
+            .frame
+            .environments
+            .push_private(environment);
     }
 }
 

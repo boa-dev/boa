@@ -116,7 +116,7 @@ impl JobExecutor for Queue {
             }
 
             if group.is_empty()
-                && self.async_jobs.borrow().is_empty()
+                && self.promise_jobs.borrow().is_empty()
                 && self.timeout_jobs.borrow().is_empty()
                 && self.generic_jobs.borrow().is_empty()
             {

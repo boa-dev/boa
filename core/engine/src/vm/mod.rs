@@ -91,6 +91,13 @@ pub struct Vm {
     /// because we don't push a frame for them.
     pub(crate) native_active_function: Option<JsObject>,
 
+    /// Number of nested host calls that re-enter the VM via `Context::run()`.
+    ///
+    /// This is incremented by high-level host entry points such as
+    /// [`JsObject::call`](crate::object::JsObject::call) and
+    /// [`JsObject::construct`](crate::object::JsObject::construct).
+    pub(crate) host_call_depth: usize,
+
     pub(crate) shadow_stack: ShadowStack,
 
     #[cfg(feature = "trace")]
@@ -422,6 +429,7 @@ impl Vm {
             pending_exception: None,
             runtime_limits: RuntimeLimits::default(),
             native_active_function: None,
+            host_call_depth: 0,
             shadow_stack: ShadowStack::default(),
             #[cfg(feature = "trace")]
             trace: false,
@@ -594,11 +602,7 @@ impl Context {
         );
     }
 
-    fn trace_execute_instruction<F>(
-        &self,
-        f: F,
-        opcode: Opcode,
-    ) -> ControlFlow<CompletionRecord>
+    fn trace_execute_instruction<F>(&self, f: F, opcode: Opcode) -> ControlFlow<CompletionRecord>
     where
         F: FnOnce(&Context, Opcode) -> ControlFlow<CompletionRecord>,
     {
@@ -675,7 +679,10 @@ impl Context {
         }
 
         #[cfg(feature = "trace")]
-        if { let vm = self.vm_mut(); vm.trace || vm.frame.code_block.traceable() } {
+        let res = {
+            let vm = self.vm_mut();
+            vm.trace || vm.frame.code_block.traceable()
+        }; if res {
             self.trace_execute_instruction(f, opcode)
         } else {
             self.execute_instruction(f, opcode)
@@ -692,7 +699,8 @@ impl Context {
         if err.backtrace.is_none() {
             err.backtrace = Some({
                 let vm = self.vm_mut();
-                vm.shadow_stack.take(vm.runtime_limits.backtrace_limit(), vm.frame.pc)
+                vm.shadow_stack
+                    .take(vm.runtime_limits.backtrace_limit(), vm.frame.pc)
             });
         }
 
@@ -765,13 +773,13 @@ impl Context {
     fn handle_throw(&self) -> ControlFlow<CompletionRecord> {
         {
             let vm = self.vm_mut();
-            if let Some(err) = &mut vm.pending_exception {
-                if err.backtrace.is_none() {
+            if let Some(err) = &mut vm.pending_exception
+                && err.backtrace.is_none() {
                     err.backtrace = Some(
-                        vm.shadow_stack.take(vm.runtime_limits.backtrace_limit(), vm.frame.pc),
+                        vm.shadow_stack
+                            .take(vm.runtime_limits.backtrace_limit(), vm.frame.pc),
                     );
                 }
-            }
         }
 
         let mut env_fp = self.vm_mut().frame.env_fp;
@@ -830,7 +838,11 @@ impl Context {
 
         while let Some(&byte) = {
             let vm = self.vm();
-            vm.frame.code_block.bytecode.bytecode.get(vm.frame.pc as usize)
+            vm.frame
+                .code_block
+                .bytecode
+                .bytecode
+                .get(vm.frame.pc as usize)
         } {
             let opcode = Opcode::decode(byte);
 
@@ -861,7 +873,11 @@ impl Context {
 
         while let Some(&byte) = {
             let vm = self.vm();
-            vm.frame.code_block.bytecode.bytecode.get(vm.frame.pc as usize)
+            vm.frame
+                .code_block
+                .bytecode
+                .bytecode
+                .get(vm.frame.pc as usize)
         } {
             let opcode = Opcode::decode(byte);
 
@@ -877,11 +893,21 @@ impl Context {
     /// Checks if we haven't exceeded the defined runtime limits.
     pub(crate) fn check_runtime_limits(&self) -> JsResult<()> {
         // Must throw if the number of recursive calls exceeds the defined limit.
-        if { let vm = self.vm(); vm.runtime_limits.recursion_limit() <= vm.frames.len() } {
+        //
+        // `host_call_depth` accounts for nested host calls that re-enter the VM by invoking
+        // `Context::run()` recursively (for example, accessor calls).
+        let recursion_depth = {
+            let vm = self.vm();
+            vm.frames.len().saturating_add(vm.host_call_depth)
+        };
+        if self.vm().runtime_limits.recursion_limit() <= recursion_depth {
             return Err(RuntimeLimitError::Recursion.into());
         }
         // Must throw if the stack size exceeds the defined maximum length.
-        if { let vm = self.vm(); vm.runtime_limits.stack_size_limit() <= vm.stack.stack.len() } {
+        let res = {
+            let vm = self.vm();
+            vm.runtime_limits.stack_size_limit() <= vm.stack.stack.len()
+        }; if res {
             return Err(RuntimeLimitError::StackSize.into());
         }
 

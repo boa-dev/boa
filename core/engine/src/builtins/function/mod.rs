@@ -1018,7 +1018,10 @@ pub(crate) fn function_call(
     }
 
     context.vm_mut().push_frame(frame);
-    let this = { let vm = context.vm_mut(); vm.stack.get_this(&vm.frame) };
+    let this = {
+        let vm = context.vm_mut();
+        vm.stack.get_this(&vm.frame)
+    };
 
     let context = context.context();
 
@@ -1031,7 +1034,10 @@ pub(crate) fn function_call(
     } else if this.is_null_or_undefined() {
         context.vm_mut().frame_mut().flags |= CallFrameFlags::THIS_VALUE_CACHED;
         let this: JsValue = context.realm().global_this().clone().into();
-        { let vm = context.vm_mut(); vm.stack.set_this(&vm.frame, this.clone()); }
+        {
+            let vm = context.vm_mut();
+            vm.stack.set_this(&vm.frame, this.clone());
+        }
         ThisBindingStatus::Initialized(this)
     } else {
         let this: JsValue = this
@@ -1039,7 +1045,10 @@ pub(crate) fn function_call(
             .expect("conversion cannot fail")
             .into();
         context.vm_mut().frame_mut().flags |= CallFrameFlags::THIS_VALUE_CACHED;
-        { let vm = context.vm_mut(); vm.stack.set_this(&vm.frame, this.clone()); }
+        {
+            let vm = context.vm_mut();
+            vm.stack.set_this(&vm.frame, this.clone());
+        }
         ThisBindingStatus::Initialized(this)
     };
 

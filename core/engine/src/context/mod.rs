@@ -7,8 +7,8 @@ pub use hooks::{DefaultHooks, HostHooks};
 #[cfg(feature = "intl")]
 pub use icu::IcuError;
 use intrinsics::Intrinsics;
-use std::{cell::Cell, cell::RefCell, path::Path, rc::Rc};
 use std::cell::UnsafeCell;
+use std::{cell::Cell, cell::RefCell, path::Path, rc::Rc};
 #[cfg(any(feature = "temporal", feature = "intl"))]
 use temporal_rs::provider::TimeZoneProvider;
 #[cfg(any(feature = "temporal", feature = "intl"))]
@@ -459,6 +459,7 @@ impl Context {
 
     /// Gets a mutable reference to the string interner.
     #[inline]
+    #[allow(clippy::mut_from_ref)]
     pub fn interner_mut(&self) -> &mut Interner {
         // SAFETY: This is safe because `Context` is `!Sync` and `!Send`.
         unsafe { &mut *self.interner.get() }
@@ -550,11 +551,7 @@ impl Context {
     pub fn stack_trace(&self) -> impl Iterator<Item = &CallFrame> {
         // Create a list containing the previous frames plus the current frame.
         let vm = self.vm();
-        let frames: Vec<_> = vm
-            .frames
-            .iter()
-            .chain(std::iter::once(&vm.frame))
-            .collect();
+        let frames: Vec<_> = vm.frames.iter().chain(std::iter::once(&vm.frame)).collect();
 
         // The first frame is always a dummy frame (see `Vm` implementation for more details),
         // so skip the dummy frame and return the reversed list so that the most recent frames are first.
@@ -633,6 +630,7 @@ impl Context {
 
     /// Get a mutable reference to the [`RuntimeLimits`].
     #[inline]
+    #[allow(clippy::mut_from_ref)]
     pub fn runtime_limits_mut(&self) -> &mut RuntimeLimits {
         &mut self.vm_mut().runtime_limits
     }

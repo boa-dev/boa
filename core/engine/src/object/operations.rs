@@ -396,7 +396,10 @@ impl JsObject {
         context.vm_mut().stack.push(this.clone()); // this
         context.vm_mut().stack.push(self.clone()); // func
         let argument_count = args.len();
-        context.vm_mut().stack.calling_convention_push_arguments(args);
+        context
+            .vm_mut()
+            .stack
+            .calling_convention_push_arguments(args);
 
         // 3. Return ? F.[[Call]](V, argumentsList).
         let frame_index = context.vm_mut().frames.len();
@@ -410,7 +413,9 @@ impl JsObject {
             context.vm_mut().frames[frame_index + 1].set_exit_early(true);
         }
 
+        context.vm_mut().host_call_depth += 1;
         let result = context.run().consume();
+        context.vm_mut().host_call_depth = context.vm_mut().host_call_depth.saturating_sub(1);
 
         context.vm_mut().pop_frame().expect("frame must exist");
 
@@ -443,7 +448,10 @@ impl JsObject {
         context.vm_mut().stack.push(JsValue::undefined());
         context.vm_mut().stack.push(self.clone()); // func
         let argument_count = args.len();
-        context.vm_mut().stack.calling_convention_push_arguments(args);
+        context
+            .vm_mut()
+            .stack
+            .calling_convention_push_arguments(args);
         context.vm_mut().stack.push(new_target.clone());
 
         // 2. If argumentsList is not present, set argumentsList to a new empty List.
@@ -464,7 +472,9 @@ impl JsObject {
             context.vm_mut().frames[frame_index + 1].set_exit_early(true);
         }
 
+        context.vm_mut().host_call_depth += 1;
         let result = context.run().consume();
+        context.vm_mut().host_call_depth = context.vm_mut().host_call_depth.saturating_sub(1);
 
         context.vm_mut().pop_frame().expect("frame must exist");
 
@@ -483,14 +493,14 @@ impl JsObject {
 
         // 3. Let status be ? O.[[PreventExtensions]]().
         let status =
-            self.__prevent_extensions__(&mut InternalMethodPropertyContext::new(context))?;
+            self.__prevent_extensions__(&InternalMethodPropertyContext::new(context))?;
         // 4. If status is false, return false.
         if !status {
             return Ok(false);
         }
 
         // 5. Let keys be ? O.[[OwnPropertyKeys]]().
-        let keys = self.__own_property_keys__(&mut InternalMethodPropertyContext::new(context))?;
+        let keys = self.__own_property_keys__(&InternalMethodPropertyContext::new(context))?;
 
         match level {
             // 6. If level is sealed, then
@@ -560,7 +570,7 @@ impl JsObject {
 
         // 5. NOTE: If the object is extensible, none of its properties are examined.
         // 6. Let keys be ? O.[[OwnPropertyKeys]]().
-        let keys = self.__own_property_keys__(&mut InternalMethodPropertyContext::new(context))?;
+        let keys = self.__own_property_keys__(&InternalMethodPropertyContext::new(context))?;
 
         // 7. For each element k of keys, do
         for k in keys {
@@ -677,7 +687,7 @@ impl JsObject {
         // 1. Assert: Type(O) is Object.
         // 2. Let ownKeys be ? O.[[OwnPropertyKeys]]().
         let own_keys =
-            self.__own_property_keys__(&mut InternalMethodPropertyContext::new(context))?;
+            self.__own_property_keys__(&InternalMethodPropertyContext::new(context))?;
         // 3. Let properties be a new empty List.
         let mut properties = vec![];
 
@@ -1383,7 +1393,7 @@ impl JsValue {
         loop {
             // a. Set O to ? O.[[GetPrototypeOf]]().
             object = match object
-                .__get_prototype_of__(&mut InternalMethodPropertyContext::new(context))?
+                .__get_prototype_of__(&InternalMethodPropertyContext::new(context))?
             {
                 Some(obj) => obj,
                 // b. If O is null, return false.

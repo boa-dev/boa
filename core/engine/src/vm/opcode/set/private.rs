@@ -60,19 +60,15 @@ impl DefinePrivateField {
         let vm = context.vm_mut();
         let object = vm.get_register(object.into()).clone();
         let value = vm.get_register(value.into()).clone();
-        let name = vm
-            .frame()
-            .code_block()
-            .constant_string(index.into());
+        let name = vm.frame().code_block().constant_string(index.into());
 
         let object = object
             .as_object()
             .expect("class prototype must be an object");
 
-        object.borrow_mut().append_private_element(
-            object.private_name(name),
-            PrivateElement::Field(value),
-        );
+        object
+            .borrow_mut()
+            .append_private_element(object.private_name(name), PrivateElement::Field(value));
     }
 }
 
@@ -148,10 +144,7 @@ impl SetPrivateSetter {
         let vm = context.vm_mut();
         let object = vm.get_register(object.into()).clone();
         let value = vm.get_register(value.into()).clone();
-        let name = vm
-            .frame()
-            .code_block()
-            .constant_string(index.into());
+        let name = vm.frame().code_block().constant_string(index.into());
 
         let value = value.as_callable().expect("setter must be callable");
         let object = object
@@ -190,10 +183,7 @@ impl SetPrivateGetter {
         let vm = context.vm_mut();
         let object = vm.get_register(object.into()).clone();
         let value = vm.get_register(value.into()).clone();
-        let name = vm
-            .frame()
-            .code_block()
-            .constant_string(index.into());
+        let name = vm.frame().code_block().constant_string(index.into());
 
         let value = value.as_callable().expect("getter must be callable");
         let object = object

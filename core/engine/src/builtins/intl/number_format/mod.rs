@@ -174,7 +174,10 @@ impl BuiltInConstructor for NumberFormat {
         // ChainNumberFormat ( numberFormat, newTarget, this )
         // <https://tc39.es/ecma402/#sec-chainnumberformat>
 
-        let this = { let vm = context.vm_mut(); vm.stack.get_this(&vm.frame) };
+        let this = {
+            let vm = context.vm_mut();
+            vm.stack.get_this(&vm.frame)
+        };
         let Some(this_obj) = this.as_object() else {
             return Ok(number_format.into());
         };
