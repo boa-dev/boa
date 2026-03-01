@@ -82,6 +82,20 @@ pub struct Vm {
     /// register references are not invalidated when the operand stack grows.
     pub(crate) registers: Vec<JsValue>,
 
+    /// Cached raw pointer to the current frame's register base.
+    ///
+    /// Equal to `self.registers.as_mut_ptr().add(self.frame.register_start)`.
+    /// Updated on every `push_frame` / `pop_frame` to avoid recomputing
+    /// on each `get_register` / `set_register` call.
+    ///
+    /// # Safety
+    ///
+    /// This pointer is valid as long as `self.registers` is not reallocated.
+    /// Since registers only grow during `push_frame` (never during opcode
+    /// execution), and the pointer is refreshed after every resize, this
+    /// invariant holds.
+    register_base: *mut JsValue,
+
     pub(crate) return_value: JsValue,
 
     /// When an error is thrown, the pending exception is set.
@@ -313,6 +327,8 @@ unsafe impl Trace for ActiveRunnable {
 impl Vm {
     /// Creates a new virtual machine.
     pub(crate) fn new(realm: Realm) -> Self {
+        let mut registers = Vec::with_capacity(256);
+        let register_base = registers.as_mut_ptr();
         Self {
             frames: Vec::with_capacity(16),
             frame: CallFrame::new(
@@ -322,7 +338,8 @@ impl Vm {
                 realm,
             ),
             stack: Stack::new(1024),
-            registers: Vec::with_capacity(256),
+            registers,
+            register_base,
             return_value: JsValue::undefined(),
             pending_exception: None,
             runtime_limits: RuntimeLimits::default(),
@@ -336,33 +353,50 @@ impl Vm {
     #[track_caller]
     #[inline]
     pub(crate) fn set_register(&mut self, index: usize, value: JsValue) {
-        let actual = self.frame.register_start as usize + index;
         debug_assert!(
-            actual < self.registers.len(),
-            "register index out of bounds: index {actual}, len {}",
+            self.frame.register_start as usize + index < self.registers.len(),
+            "register index out of bounds: index {}, len {}",
+            self.frame.register_start as usize + index,
             self.registers.len()
         );
-        // SAFETY: Register indices are determined by the bytecode compiler and are
-        // guaranteed to be within the register bounds for well-formed bytecode. The
-        // debug_assert above catches any compiler bugs during development.
+        // SAFETY: `register_base` points to the current frame's register slice
+        // within `self.registers`. It is updated on every push_frame/pop_frame.
+        // Register indices are determined by the bytecode compiler and are
+        // guaranteed to be within bounds for well-formed bytecode.
         unsafe {
-            *self.registers.get_unchecked_mut(actual) = value;
+            *self.register_base.add(index) = value;
         }
     }
 
     #[track_caller]
     #[inline]
     pub(crate) fn get_register(&self, index: usize) -> &JsValue {
-        let actual = self.frame.register_start as usize + index;
         debug_assert!(
-            actual < self.registers.len(),
-            "register index out of bounds: index {actual}, len {}",
+            self.frame.register_start as usize + index < self.registers.len(),
+            "register index out of bounds: index {}, len {}",
+            self.frame.register_start as usize + index,
             self.registers.len()
         );
-        // SAFETY: Register indices are determined by the bytecode compiler and are
-        // guaranteed to be within the register bounds for well-formed bytecode. The
-        // debug_assert above catches any compiler bugs during development.
-        unsafe { self.registers.get_unchecked(actual) }
+        // SAFETY: `register_base` points to the current frame's register slice
+        // within `self.registers`. It is updated on every push_frame/pop_frame.
+        // Register indices are determined by the bytecode compiler and are
+        // guaranteed to be within bounds for well-formed bytecode.
+        unsafe { &*self.register_base.add(index) }
+    }
+
+    /// Refreshes `register_base` to point at the current frame's registers.
+    ///
+    /// Must be called after any operation that may change `self.frame.register_start`
+    /// or reallocate `self.registers` (i.e. `push_frame`, `pop_frame`).
+    #[inline]
+    fn refresh_register_base(&mut self) {
+        // SAFETY: `register_start` is always a valid index within `self.registers`
+        // (or equal to its length for the dummy frame with no registers).
+        self.register_base = unsafe {
+            self.registers
+                .as_mut_ptr()
+                .add(self.frame.register_start as usize)
+        };
     }
 
     /// Retrieves the VM frame.
@@ -404,6 +438,7 @@ impl Vm {
 
         std::mem::swap(&mut self.frame, &mut frame);
         self.frames.push(frame);
+        self.refresh_register_base();
     }
 
     pub(crate) fn push_frame_with_stack(
@@ -423,6 +458,7 @@ impl Vm {
             self.shadow_stack.pop();
 
             std::mem::swap(&mut self.frame, &mut frame);
+            self.refresh_register_base();
             Some(frame)
         } else {
             None
