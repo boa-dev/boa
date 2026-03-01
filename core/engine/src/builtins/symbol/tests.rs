@@ -47,6 +47,39 @@ fn symbol_for_and_key_for() {
         // Symbol.keyFor returns undefined for a non-registered symbol
         TestAction::assert_eq("Symbol.keyFor(Symbol('local'))", JsValue::undefined()),
     ]);
+
+    // Test that globally registered symbols are preserved across threads
+    use crate::Context;
+    use std::thread;
+
+    let handle = thread::spawn(|| {
+        let mut context = Context::default();
+        let result = context.eval(crate::Source::from_bytes(
+            r#"Symbol.for("cross_thread")"#,
+        ));
+        result
+            .unwrap()
+            .as_symbol()
+            .expect("should be a symbol")
+            .clone()
+    });
+
+    let sym_from_thread = handle.join().expect("thread panicked");
+
+    let mut context = Context::default();
+    let result = context.eval(crate::Source::from_bytes(
+        r#"Symbol.for("cross_thread")"#,
+    ));
+    let sym_from_main = result
+        .unwrap()
+        .as_symbol()
+        .expect("should be a symbol")
+        .clone();
+
+    assert_eq!(
+        sym_from_thread, sym_from_main,
+        "Symbol.for should return the same symbol across different threads"
+    );
 }
 
 #[test]
