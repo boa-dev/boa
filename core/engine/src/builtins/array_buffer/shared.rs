@@ -235,7 +235,7 @@ impl SharedArrayBuffer {
             })?;
 
         // 4. Let length be ArrayBufferByteLength(O, seq-cst).
-        let len = buf.bytes(Ordering::SeqCst).len() as u64;
+        let len = buf.bytes(Ordering::SeqCst).len();
 
         // 5. Return 𝔽(length).
         Ok(len.into())
