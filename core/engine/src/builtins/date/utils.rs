@@ -910,6 +910,11 @@ impl<'a> DateParser<'a> {
             return None;
         }
 
+        // Hour 24 is only valid as 24:00:00.000
+        if self.hour == 24 && (self.minute != 0 || self.second != 0 || self.millisecond != 0) {
+            return None;
+        }
+
         let date = make_date(
             make_day(self.year.into(), (self.month - 1).into(), self.day.into()),
             make_time(
@@ -928,6 +933,11 @@ impl<'a> DateParser<'a> {
 
     fn finish_local(&mut self) -> Option<i64> {
         if self.input.peek().is_some() {
+            return None;
+        }
+
+        // Hour 24 is only valid as 24:00:00.000
+        if self.hour == 24 && (self.minute != 0 || self.second != 0 || self.millisecond != 0) {
             return None;
         }
 
