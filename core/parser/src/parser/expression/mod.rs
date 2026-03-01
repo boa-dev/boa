@@ -146,44 +146,65 @@ where
     type Output = ast::Expression;
 
     fn parse(self, cursor: &mut Cursor<R>, interner: &mut Interner) -> ParseResult<Self::Output> {
-        let mut lhs = AssignmentExpression::new(self.allow_in, self.allow_yield, self.allow_await)
-            .parse(cursor, interner)?;
-        while let Some(tok) = cursor.peek(0, interner)? {
-            match *tok.kind() {
-                TokenKind::Punctuator(Punctuator::Comma) => {
-                    if cursor.peek(1, interner).or_abrupt()?.kind()
-                        == &TokenKind::Punctuator(Punctuator::CloseParen)
-                    {
-                        return Ok(lhs);
-                    }
+        let (is_parenthesized_start, first_token_start) = {
+            let first_token = cursor.peek(0, interner).or_abrupt()?;
+            (
+                first_token.kind() == &TokenKind::Punctuator(Punctuator::OpenParen),
+                first_token.span().start(),
+            )
+        };
 
-                    if cursor.peek(1, interner).or_abrupt()?.kind()
-                        == &TokenKind::Punctuator(Punctuator::Spread)
-                    {
-                        return Ok(lhs);
-                    }
-
-                    cursor.advance(interner);
-
-                    lhs = Binary::new(
-                        Punctuator::Comma
-                            .as_binary_op()
-                            .expect("Could not get binary operation."),
-                        lhs,
-                        AssignmentExpression::new(
-                            self.allow_in,
-                            self.allow_yield,
-                            self.allow_await,
-                        )
-                        .parse(cursor, interner)?,
-                    )
-                    .into();
-                }
-                _ => break,
-            }
+        if is_parenthesized_start {
+            cursor.enter_parenthesized_expression(first_token_start)?;
         }
 
-        Ok(lhs)
+        let result = (|| -> ParseResult<Self::Output> {
+            let mut lhs =
+                AssignmentExpression::new(self.allow_in, self.allow_yield, self.allow_await)
+                    .parse(cursor, interner)?;
+            while let Some(tok) = cursor.peek(0, interner)? {
+                match *tok.kind() {
+                    TokenKind::Punctuator(Punctuator::Comma) => {
+                        if cursor.peek(1, interner).or_abrupt()?.kind()
+                            == &TokenKind::Punctuator(Punctuator::CloseParen)
+                        {
+                            return Ok(lhs);
+                        }
+
+                        if cursor.peek(1, interner).or_abrupt()?.kind()
+                            == &TokenKind::Punctuator(Punctuator::Spread)
+                        {
+                            return Ok(lhs);
+                        }
+
+                        cursor.advance(interner);
+
+                        lhs = Binary::new(
+                            Punctuator::Comma
+                                .as_binary_op()
+                                .expect("Could not get binary operation."),
+                            lhs,
+                            AssignmentExpression::new(
+                                self.allow_in,
+                                self.allow_yield,
+                                self.allow_await,
+                            )
+                            .parse(cursor, interner)?,
+                        )
+                        .into();
+                    }
+                    _ => break,
+                }
+            }
+
+            Ok(lhs)
+        })();
+
+        if is_parenthesized_start {
+            cursor.exit_parenthesized_expression();
+        }
+
+        result
     }
 }
 
