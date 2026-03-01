@@ -91,6 +91,13 @@ pub struct Vm {
     /// because we don't push a frame for them.
     pub(crate) native_active_function: Option<JsObject>,
 
+    /// Number of nested host calls that re-enter the VM via `Context::run()`.
+    ///
+    /// This is incremented by high-level host entry points such as
+    /// [`JsObject::call`](crate::object::JsObject::call) and
+    /// [`JsObject::construct`](crate::object::JsObject::construct).
+    pub(crate) host_call_depth: usize,
+
     pub(crate) shadow_stack: ShadowStack,
 
     #[cfg(feature = "trace")]
@@ -422,6 +429,7 @@ impl Vm {
             pending_exception: None,
             runtime_limits: RuntimeLimits::default(),
             native_active_function: None,
+            host_call_depth: 0,
             shadow_stack: ShadowStack::default(),
             #[cfg(feature = "trace")]
             trace: false,
@@ -429,16 +437,35 @@ impl Vm {
     }
 
     #[track_caller]
+    #[inline]
     pub(crate) fn set_register(&mut self, index: usize, value: JsValue) {
-        self.stack.stack[self.frame.rp as usize + index] = value;
+        let actual = self.frame.rp as usize + index;
+        debug_assert!(
+            actual < self.stack.stack.len(),
+            "register index out of bounds: index {actual}, len {}",
+            self.stack.stack.len()
+        );
+        // SAFETY: Register indices are determined by the bytecode compiler and are
+        // guaranteed to be within the stack bounds for well-formed bytecode. The
+        // debug_assert above catches any compiler bugs during development.
+        unsafe {
+            *self.stack.stack.get_unchecked_mut(actual) = value;
+        }
     }
 
     #[track_caller]
+    #[inline]
     pub(crate) fn get_register(&self, index: usize) -> &JsValue {
-        self.stack
-            .stack
-            .get(self.frame.rp as usize + index)
-            .expect("registers must be initialized")
+        let actual = self.frame.rp as usize + index;
+        debug_assert!(
+            actual < self.stack.stack.len(),
+            "register index out of bounds: index {actual}, len {}",
+            self.stack.stack.len()
+        );
+        // SAFETY: Register indices are determined by the bytecode compiler and are
+        // guaranteed to be within the stack bounds for well-formed bytecode. The
+        // debug_assert above catches any compiler bugs during development.
+        unsafe { self.stack.stack.get_unchecked(actual) }
     }
 
     /// Retrieves the VM frame.
@@ -667,17 +694,20 @@ impl Context {
     }
 
     fn handle_error(&mut self, mut err: JsError) -> ControlFlow<CompletionRecord> {
+        // Capture the backtrace early, before any exception handler check,
+        // so that errors caught by internal handlers (e.g. async module
+        // evaluation) still carry source position information.
+        if err.backtrace.is_none() {
+            err.backtrace = Some(
+                self.vm
+                    .shadow_stack
+                    .take(self.vm.runtime_limits.backtrace_limit(), self.vm.frame.pc),
+            );
+        }
+
         // If we hit the execution step limit, bubble up the error to the
         // (Rust) caller instead of trying to handle as an exception.
         if !err.is_catchable() {
-            if err.backtrace.is_none() {
-                err.backtrace = Some(
-                    self.vm
-                        .shadow_stack
-                        .take(self.vm.runtime_limits.backtrace_limit(), self.vm.frame.pc),
-                );
-            }
-
             let mut frame = None;
             let mut env_fp = self.vm.frame.environments.len();
             loop {
@@ -859,7 +889,11 @@ impl Context {
     /// Checks if we haven't exceeded the defined runtime limits.
     pub(crate) fn check_runtime_limits(&self) -> JsResult<()> {
         // Must throw if the number of recursive calls exceeds the defined limit.
-        if self.vm.runtime_limits.recursion_limit() <= self.vm.frames.len() {
+        //
+        // `host_call_depth` accounts for nested host calls that re-enter the VM by invoking
+        // `Context::run()` recursively (for example, accessor calls).
+        let recursion_depth = self.vm.frames.len().saturating_add(self.vm.host_call_depth);
+        if self.vm.runtime_limits.recursion_limit() <= recursion_depth {
             return Err(RuntimeLimitError::Recursion.into());
         }
         // Must throw if the stack size exceeds the defined maximum length.

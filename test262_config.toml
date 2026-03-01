@@ -68,7 +68,6 @@ tests = [
     # Should throw an OOM error instead of filling the whole RAM.
     "test/staging/sm/String/replace-math.js",
     # Panics
-    "test/staging/sm/expressions/optional-chain-first-expression.js",
     "test/staging/sm/regress/regress-554955-2.js",
     "test/staging/sm/class/fields-static-class-name-binding-eval.js",
     "test/staging/sm/regress/regress-554955-1.js",
@@ -81,4 +80,16 @@ tests = [
     "test/intl402/Intl/getCanonicalLocales/unicode-ext-canonicalize-calendar.js",
     "test/intl402/Intl/getCanonicalLocales/unicode-ext-canonicalize-timezone.js",
     "test/intl402/Intl/getCanonicalLocales/transformed-ext-canonical.js",
+    # h24 hour cycle not supported by ICU4X.
+    # TODO: Remove when https://github.com/unicode-org/icu4x/issues/6597 is fixed.
+    "test/intl402/Locale/getters.js",
+    "test/intl402/Locale/constructor-getter-order.js",
+    "test/intl402/Locale/constructor-options-hourcycle-valid.js",
+    # Extension canonicalization not yet supported by ICU4X.
+    # TODO: Remove when https://github.com/unicode-org/icu4x/issues/3483 is fixed.
+    "test/intl402/Locale/prototype/calendar/canonicalize.js",
+    "test/intl402/Locale/constructor-non-iana-canon.js",
+    "test/intl402/Locale/constructor-options-canonicalized.js",
+    # TODO: Remove this once regress fixes the named groups parsing issue.
+    "test/built-ins/RegExp/named-groups/non-unicode-property-names-valid.js",
 ]

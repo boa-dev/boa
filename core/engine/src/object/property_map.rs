@@ -386,6 +386,81 @@ impl IndexedProperties {
         }
     }
 
+    /// Pushes a value to the end of the dense indexed properties.
+    ///
+    /// Returns `true` if the push succeeded (storage is dense), `false` if
+    /// the storage is sparse and the caller should fall back to the slow path.
+    ///
+    /// Handles type transitions: `DenseI32` → `DenseF64` → `DenseElement`.
+    pub(crate) fn push_dense(&mut self, value: &JsValue) -> bool {
+        match self {
+            Self::DenseI32(vec) => {
+                if let Some(i) = value.as_i32() {
+                    vec.push(i);
+                } else if let Some(n) = value.as_number() {
+                    let mut new_vec: ThinVec<f64> = vec.iter().copied().map(f64::from).collect();
+                    new_vec.push(n);
+                    *self = Self::DenseF64(new_vec);
+                } else {
+                    let mut new_vec: ThinVec<JsValue> =
+                        vec.iter().copied().map(JsValue::from).collect();
+                    new_vec.push(value.clone());
+                    *self = Self::DenseElement(new_vec);
+                }
+                true
+            }
+            Self::DenseF64(vec) => {
+                if let Some(n) = value.as_number() {
+                    vec.push(n);
+                } else {
+                    let mut new_vec: ThinVec<JsValue> =
+                        vec.iter().copied().map(JsValue::from).collect();
+                    new_vec.push(value.clone());
+                    *self = Self::DenseElement(new_vec);
+                }
+                true
+            }
+            Self::DenseElement(vec) => {
+                vec.push(value.clone());
+                true
+            }
+            Self::SparseElement(_) | Self::SparseProperty(_) => false,
+        }
+    }
+
+    /// Transform this array into a sparse array if it isn't so already.
+    pub(crate) fn transform_to_sparse(&mut self) {
+        match &*self {
+            Self::DenseI32(v) => {
+                *self = Self::SparseElement(Box::new(
+                    v.into_iter()
+                        .copied()
+                        .enumerate()
+                        .map(|(i, v)| (i as u32, JsValue::from(v)))
+                        .collect(),
+                ));
+            }
+            Self::DenseF64(v) => {
+                *self = Self::SparseElement(Box::new(
+                    v.into_iter()
+                        .copied()
+                        .enumerate()
+                        .map(|(i, v)| (i as u32, JsValue::from(v)))
+                        .collect(),
+                ));
+            }
+            Self::DenseElement(v) => {
+                *self = Self::SparseElement(Box::new(
+                    v.into_iter()
+                        .enumerate()
+                        .map(|(i, v)| (i as u32, v.clone()))
+                        .collect(),
+                ));
+            }
+            _ => {}
+        }
+    }
+
     fn iter(&self) -> IndexProperties<'_> {
         match self {
             Self::DenseI32(vec) => IndexProperties::DenseI32(vec.iter().enumerate()),
