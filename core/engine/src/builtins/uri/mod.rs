@@ -587,6 +587,6 @@ mod tests {
         let s = js_string!("%E7%9A%8");
         let err = decode(&s, |_| false).expect_err("should error on incomplete escape");
         let native = err.as_native().expect("error should be native");
-        assert!(matches!(native.kind, JsNativeErrorKind::Uri));
+        assert!(matches!(native.kind(), JsNativeErrorKind::Uri));
     }
 }

@@ -391,7 +391,7 @@ pub(crate) mod test {
                         ),
                     };
 
-                    assert_eq!(&native.kind, &kind, "{}", fmt_test(&source, i));
+                    assert_eq!(native.kind(), &kind, "{}", fmt_test(&source, i));
                     assert_eq!(native.message(), message, "{}", fmt_test(&source, i));
                     i += 1;
                 }

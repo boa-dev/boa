@@ -41,10 +41,24 @@ pub(crate) enum PassAction<T> {
 #[derive(Debug, Default, Clone, Copy)]
 pub struct OptimizerStatistics {
     /// How many times was the optimization run in total.
-    pub constant_folding_run_count: usize,
+    constant_folding_run_count: usize,
 
     /// How many passes did the optimization run in total.
-    pub constant_folding_pass_count: usize,
+    constant_folding_pass_count: usize,
+}
+
+impl OptimizerStatistics {
+    /// Returns how many times constant folding ran.
+    #[must_use]
+    pub const fn constant_folding_run_count(&self) -> usize {
+        self.constant_folding_run_count
+    }
+
+    /// Returns how many constant folding passes were executed.
+    #[must_use]
+    pub const fn constant_folding_pass_count(&self) -> usize {
+        self.constant_folding_pass_count
+    }
 }
 
 impl fmt::Display for OptimizerStatistics {

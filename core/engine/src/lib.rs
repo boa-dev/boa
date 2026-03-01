@@ -466,7 +466,7 @@ fn run_test_actions_with(actions: impl IntoIterator<Item = TestAction>, context:
                     ),
                 };
 
-                assert_eq!(&native.kind, &kind, "{}", fmt_test(&source, i));
+                assert_eq!(native.kind(), &kind, "{}", fmt_test(&source, i));
                 assert_eq!(native.message(), message, "{}", fmt_test(&source, i));
                 i += 1;
             }

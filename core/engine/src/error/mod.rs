@@ -204,7 +204,7 @@ macro_rules! js_error {
 ///
 /// assert!(native_error.as_native().is_some());
 ///
-/// let kind = &native_error.as_native().unwrap().kind;
+/// let kind = native_error.as_native().unwrap().kind();
 /// assert!(matches!(kind, JsNativeErrorKind::Type));
 /// ```
 #[derive(Debug, Clone, Trace, Finalize)]
@@ -493,7 +493,7 @@ impl JsError {
     /// // then, try to recover the original
     /// let error = JsError::from_opaque(error_val).try_native(context).unwrap();
     ///
-    /// assert!(matches!(error.kind, JsNativeErrorKind::Type));
+    /// assert!(matches!(error.kind(), JsNativeErrorKind::Type));
     /// assert_eq!(error.message(), "type error!");
     /// ```
     pub fn try_native(&self, context: &mut Context) -> Result<JsNativeError, TryNativeError> {
@@ -887,7 +887,7 @@ impl<T> From<T> for IgnoreEq<T> {
 /// # use boa_engine::{JsNativeError, JsNativeErrorKind};
 /// let native_error = JsNativeError::uri().with_message("cannot decode uri");
 ///
-/// match native_error.kind {
+/// match native_error.kind() {
 ///     JsNativeErrorKind::Uri => { /* handle URI error*/ }
 ///     _ => unreachable!(),
 /// }
@@ -897,7 +897,7 @@ impl<T> From<T> for IgnoreEq<T> {
 #[derive(Clone, Finalize, Error, PartialEq, Eq)]
 pub struct JsNativeError {
     /// The kind of native error (e.g. `TypeError`, `SyntaxError`, etc.)
-    pub kind: JsNativeErrorKind,
+    kind: JsNativeErrorKind,
     message: Cow<'static, str>,
     #[source]
     cause: Option<Box<JsError>>,
@@ -959,6 +959,13 @@ impl JsNativeError {
     /// Default `UriError` kind `JsNativeError`.
     pub const URI: Self = Self::uri();
 
+    /// Gets the kind of this error.
+    #[must_use]
+    #[inline]
+    pub const fn kind(&self) -> &JsNativeErrorKind {
+        &self.kind
+    }
+
     /// Creates a new `JsNativeError` from its `kind`, `message` and (optionally) its `cause`.
     #[cfg_attr(feature = "native-backtrace", track_caller)]
     const fn new(
@@ -997,7 +1004,7 @@ impl JsNativeError {
     /// let error = JsNativeError::aggregate(inner_errors);
     ///
     /// assert!(matches!(
-    ///     error.kind,
+    ///     error.kind(),
     ///     JsNativeErrorKind::Aggregate(ref errors) if errors.len() == 2
     /// ));
     /// ```
@@ -1027,7 +1034,7 @@ impl JsNativeError {
     /// # use boa_engine::{JsNativeError, JsNativeErrorKind};
     /// let error = JsNativeError::error();
     ///
-    /// assert!(matches!(error.kind, JsNativeErrorKind::Error));
+    /// assert!(matches!(error.kind(), JsNativeErrorKind::Error));
     /// ```
     #[must_use]
     #[inline]
@@ -1051,7 +1058,7 @@ impl JsNativeError {
     /// # use boa_engine::{JsNativeError, JsNativeErrorKind};
     /// let error = JsNativeError::eval();
     ///
-    /// assert!(matches!(error.kind, JsNativeErrorKind::Eval));
+    /// assert!(matches!(error.kind(), JsNativeErrorKind::Eval));
     /// ```
     #[must_use]
     #[inline]
@@ -1075,7 +1082,7 @@ impl JsNativeError {
     /// # use boa_engine::{JsNativeError, JsNativeErrorKind};
     /// let error = JsNativeError::range();
     ///
-    /// assert!(matches!(error.kind, JsNativeErrorKind::Range));
+    /// assert!(matches!(error.kind(), JsNativeErrorKind::Range));
     /// ```
     #[must_use]
     #[inline]
@@ -1099,7 +1106,7 @@ impl JsNativeError {
     /// # use boa_engine::{JsNativeError, JsNativeErrorKind};
     /// let error = JsNativeError::reference();
     ///
-    /// assert!(matches!(error.kind, JsNativeErrorKind::Reference));
+    /// assert!(matches!(error.kind(), JsNativeErrorKind::Reference));
     /// ```
     #[must_use]
     #[inline]
@@ -1123,7 +1130,7 @@ impl JsNativeError {
     /// # use boa_engine::{JsNativeError, JsNativeErrorKind};
     /// let error = JsNativeError::syntax();
     ///
-    /// assert!(matches!(error.kind, JsNativeErrorKind::Syntax));
+    /// assert!(matches!(error.kind(), JsNativeErrorKind::Syntax));
     /// ```
     #[must_use]
     #[inline]
@@ -1147,7 +1154,7 @@ impl JsNativeError {
     /// # use boa_engine::{JsNativeError, JsNativeErrorKind};
     /// let error = JsNativeError::typ();
     ///
-    /// assert!(matches!(error.kind, JsNativeErrorKind::Type));
+    /// assert!(matches!(error.kind(), JsNativeErrorKind::Type));
     /// ```
     #[must_use]
     #[inline]
@@ -1171,7 +1178,7 @@ impl JsNativeError {
     /// # use boa_engine::{JsNativeError, JsNativeErrorKind};
     /// let error = JsNativeError::uri();
     ///
-    /// assert!(matches!(error.kind, JsNativeErrorKind::Uri));
+    /// assert!(matches!(error.kind(), JsNativeErrorKind::Uri));
     /// ```
     #[must_use]
     #[inline]
@@ -1603,7 +1610,7 @@ impl JsErasedError {
 #[derive(Debug, Clone, Trace, Finalize, Error, PartialEq, Eq)]
 pub struct JsErasedNativeError {
     /// The kind of native error (e.g. `TypeError`, `SyntaxError`, etc.)
-    pub kind: JsErasedNativeErrorKind,
+    kind: JsErasedNativeErrorKind,
     message: Cow<'static, str>,
     #[source]
     cause: Option<Box<JsErasedError>>,
@@ -1619,6 +1626,15 @@ impl fmt::Display for JsErasedNativeError {
         }
 
         Ok(())
+    }
+}
+
+impl JsErasedNativeError {
+    /// Gets the kind of this error.
+    #[must_use]
+    #[inline]
+    pub const fn kind(&self) -> &JsErasedNativeErrorKind {
+        &self.kind
     }
 }
 
