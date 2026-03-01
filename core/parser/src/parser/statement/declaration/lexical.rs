@@ -101,18 +101,6 @@ where
             )
             .parse(cursor, interner)?,
             TokenKind::Keyword((Keyword::Using, false)) => {
-                // Check if this is `await using`
-                if cursor
-                    .peek(0, interner)?
-                    .filter(|t| matches!(t.kind(), TokenKind::Keyword((Keyword::Await, false))))
-                    .is_some()
-                {
-                    return Err(Error::general(
-                        "Invalid syntax: 'using await' is not valid, use 'await using' instead",
-                        tok.span().start(),
-                    ));
-                }
-                
                 BindingList::new(
                     self.allow_in,
                     self.allow_yield,
@@ -123,6 +111,15 @@ where
                 .parse(cursor, interner)?
             }
             TokenKind::Keyword((Keyword::Await, false)) => {
+                // Per spec: https://arai-a.github.io/ecma262-compare/snapshot.html?pr=3000#prod-LexicalDeclaration
+                // `await using` is only valid when [+Await] is true
+                if !self.allow_await.0 {
+                    return Err(Error::general(
+                        "Unexpected token 'await'",
+                        tok.span().start(),
+                    ));
+                }
+                
                 // Check if this is `await using`
                 let next_tok = cursor.peek(0, interner).or_abrupt()?;
                 if matches!(next_tok.kind(), TokenKind::Keyword((Keyword::Using, false))) {
