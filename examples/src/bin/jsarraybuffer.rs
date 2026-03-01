@@ -42,7 +42,7 @@ fn main() -> JsResult<()> {
 
     // We can create a Dataview from a JsArrayBuffer
     let dataview =
-        JsDataView::from_js_array_buffer(array_buffer.clone(), None, Some(100_u64), context)?;
+        JsDataView::from_js_array_buffer(array_buffer.clone(), None, Some(100_usize), context)?;
 
     let dataview_length = dataview.byte_length(context)?;
 
