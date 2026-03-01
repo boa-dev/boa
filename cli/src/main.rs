@@ -597,7 +597,7 @@ impl Executor {
         self.promise_jobs.borrow().is_empty()
             && self.async_jobs.borrow().is_empty()
             // The timeout jobs queue is empty IF there are no jobs to execute right now.
-            && !self.timeout_jobs.borrow().iter().any(|(t, _)| &now > t)
+            && !self.timeout_jobs.borrow().iter().any(|(t, _)| &now >= t)
             && self.generic_jobs.borrow().is_empty()
     }
 
@@ -606,11 +606,21 @@ impl Executor {
 
         let mut timeouts_borrow = self.timeout_jobs.borrow_mut();
         let mut jobs_to_keep = timeouts_borrow.split_off(&now);
+        let mut jobs_at_now = jobs_to_keep.remove(&now);
         jobs_to_keep.retain(|_, jobs| {
             jobs.retain(|job| !job.is_cancelled());
             !jobs.is_empty()
         });
-        let jobs_to_run = mem::replace(&mut *timeouts_borrow, jobs_to_keep);
+        if let Some(jobs) = jobs_at_now.as_mut() {
+            jobs.retain(|job| !job.is_cancelled());
+            if jobs.is_empty() {
+                jobs_at_now = None;
+            }
+        }
+        let mut jobs_to_run = mem::replace(&mut *timeouts_borrow, jobs_to_keep);
+        if let Some(jobs) = jobs_at_now {
+            jobs_to_run.insert(now, jobs);
+        }
         drop(timeouts_borrow);
 
         for jobs in jobs_to_run.into_values() {
