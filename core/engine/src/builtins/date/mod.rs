@@ -56,16 +56,16 @@ impl Date {
     /// Formats this date as an ISO 8601 string for display purposes.
     ///
     /// Returns `None` if the date value is not finite (i.e. `Invalid Date`).
-    pub(crate) fn to_iso_display(&self) -> Option<String> {
+    pub(crate) fn to_iso_display(self) -> Option<String> {
         let tv = self.0;
         if !tv.is_finite() {
             return None;
         }
         let year = year_from_time(tv);
         let year_str = if year.is_positive() && year >= 10000 {
-            format!("+{:06}", year)
+            format!("+{year:06}")
         } else if year >= 0 {
-            format!("{:04}", year)
+            format!("{year:04}")
         } else {
             format!("-{:06}", year.unsigned_abs())
         };
