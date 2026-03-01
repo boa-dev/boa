@@ -593,7 +593,14 @@ impl ServicePreferences for DateTimeFormatterPreferences {
         });
 
         // Handle LDML unicode key "ca", Calendar algorithm
-        // TODO: determine the correct way to verify the calendar algorithm data.
+        self.calendar_algorithm = self.calendar_algorithm.take().filter(|ca| {
+            use icu_calendar::{AnyCalendar, AnyCalendarKind};
+
+            let Ok(kind) = AnyCalendarKind::try_from(*ca) else {
+                return false;
+            };
+            AnyCalendar::try_new_with_buffer_provider(provider.erased_provider(), kind).is_ok()
+        });
 
         // NOTE (nekevss): issue: this will not support `H24` as ICU4X does
         // not currently support it.
