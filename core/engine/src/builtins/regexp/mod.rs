@@ -47,6 +47,18 @@ pub struct RegExp {
     original_flags: JsString,
 }
 
+impl RegExp {
+    /// Returns the original source string of the regex (e.g. `"regex-test"`).
+    pub(crate) fn original_source(&self) -> &JsString {
+        &self.original_source
+    }
+
+    /// Returns the original flags string of the regex (e.g. `"gi"`).
+    pub(crate) fn original_flags(&self) -> &JsString {
+        &self.original_flags
+    }
+}
+
 impl IntrinsicObject for RegExp {
     fn init(realm: &Realm) {
         let get_species = BuiltInBuilder::callable(realm, Self::get_species)
