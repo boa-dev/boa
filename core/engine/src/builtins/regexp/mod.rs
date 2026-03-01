@@ -1208,8 +1208,8 @@ impl RegExp {
         // 17. Let n be the number of elements in r's captures List.
         let n = match_value.captures.len();
         // 18. Assert: n = R.[[RegExpRecord]].[[CapturingGroupsCount]].
-        // 19. Assert: n < 232 - 1.
-        debug_assert!(n < (1usize << 32) - 1);
+        // 19. Assert: n < 2^32 - 1.
+        debug_assert!(n < u32::MAX as usize);
 
         // 20. Let A be ! ArrayCreate(n + 1).
         // 21. Assert: The mathematical value of A's "length" property is n + 1.
