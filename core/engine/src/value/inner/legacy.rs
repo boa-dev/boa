@@ -2,7 +2,7 @@
 //! interface as the `NanBoxedValue` type, but using an enum instead of
 //! a 64-bits float.
 
-use crate::{JsBigInt, JsObject, JsSymbol};
+use crate::{JsBigInt, JsObject, JsSymbol, value::Type};
 use boa_engine::JsVariant;
 use boa_gc::{Finalize, Trace, custom_trace};
 use boa_string::JsString;
@@ -116,6 +116,13 @@ impl EnumBasedValue {
         matches!(self, Self::Null)
     }
 
+    /// Returns true if a value is null or undefined.
+    #[must_use]
+    #[inline]
+    pub(crate) const fn is_null_or_undefined(&self) -> bool {
+        matches!(self, Self::Null | Self::Undefined)
+    }
+
     /// Returns true if a value is a boolean.
     #[must_use]
     #[inline]
@@ -170,6 +177,22 @@ impl EnumBasedValue {
     #[inline]
     pub(crate) const fn is_string(&self) -> bool {
         matches!(self, Self::String(_))
+    }
+
+    /// Returns the [`Type`] of this value without cloning the inner value.
+    #[must_use]
+    #[inline]
+    pub(crate) const fn get_type(&self) -> Type {
+        match self {
+            Self::Float64(_) | Self::Integer32(_) => Type::Number,
+            Self::String(_) => Type::String,
+            Self::Boolean(_) => Type::Boolean,
+            Self::Symbol(_) => Type::Symbol,
+            Self::Null => Type::Null,
+            Self::Undefined => Type::Undefined,
+            Self::BigInt(_) => Type::BigInt,
+            Self::Object(_) => Type::Object,
+        }
     }
 
     /// Returns the value as an f64 if it is a float.
@@ -239,6 +262,21 @@ impl EnumBasedValue {
         match self {
             Self::String(value) => Some(value.clone()),
             _ => None,
+        }
+    }
+
+    /// Converts the value to a boolean without cloning pointer types.
+    #[must_use]
+    #[inline]
+    pub(crate) fn to_boolean(&self) -> bool {
+        match self {
+            Self::Object(_) | Self::Symbol(_) => true,
+            Self::Null | Self::Undefined => false,
+            Self::Integer32(n) => *n != 0,
+            Self::Boolean(v) => *v,
+            Self::String(s) => !s.is_empty(),
+            Self::BigInt(n) => !n.is_zero(),
+            Self::Float64(n) => *n != 0.0 && !n.is_nan(),
         }
     }
 

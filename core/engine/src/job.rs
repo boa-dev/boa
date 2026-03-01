@@ -631,7 +631,7 @@ impl JobExecutor for IdleJobExecutor {
 pub struct SimpleJobExecutor {
     promise_jobs: RefCell<VecDeque<PromiseJob>>,
     async_jobs: RefCell<VecDeque<NativeAsyncJob>>,
-    timeout_jobs: RefCell<BTreeMap<JsInstant, TimeoutJob>>,
+    timeout_jobs: RefCell<BTreeMap<JsInstant, Vec<TimeoutJob>>>,
     generic_jobs: RefCell<VecDeque<GenericJob>>,
 }
 
@@ -665,7 +665,11 @@ impl JobExecutor for SimpleJobExecutor {
             Job::AsyncJob(a) => self.async_jobs.borrow_mut().push_back(a),
             Job::TimeoutJob(t) => {
                 let now = context.clock().now();
-                self.timeout_jobs.borrow_mut().insert(now + t.timeout(), t);
+                self.timeout_jobs
+                    .borrow_mut()
+                    .entry(now + t.timeout())
+                    .or_default()
+                    .push(t);
             }
             Job::GenericJob(g) => self.generic_jobs.borrow_mut().push_back(g),
         }
@@ -688,7 +692,7 @@ impl JobExecutor for SimpleJobExecutor {
             // There are no timeout jobs to run IF there are no jobs to execute right now.
             let no_timeout_jobs_to_run = {
                 let now = context.borrow().clock().now();
-                !self.timeout_jobs.borrow().iter().any(|(t, _)| &now >= t)
+                !self.timeout_jobs.borrow().iter().any(|(t, _)| &now > t)
             };
 
             if self.promise_jobs.borrow().is_empty()
@@ -709,14 +713,19 @@ impl JobExecutor for SimpleJobExecutor {
                 let now = context.borrow().clock().now();
                 let mut timeouts_borrow = self.timeout_jobs.borrow_mut();
                 let mut jobs_to_keep = timeouts_borrow.split_off(&now);
-                jobs_to_keep.retain(|_, job| !job.is_cancelled());
+                jobs_to_keep.retain(|_, jobs| {
+                    jobs.retain(|job| !job.is_cancelled());
+                    !jobs.is_empty()
+                });
                 let jobs_to_run = mem::replace(&mut *timeouts_borrow, jobs_to_keep);
                 drop(timeouts_borrow);
 
-                for job in jobs_to_run.into_values() {
-                    if let Err(err) = job.call(&mut context.borrow_mut()) {
-                        self.clear();
-                        return Err(err);
+                for jobs in jobs_to_run.into_values() {
+                    for job in jobs {
+                        if let Err(err) = job.call(&mut context.borrow_mut()) {
+                            self.clear();
+                            return Err(err);
+                        }
                     }
                 }
             }

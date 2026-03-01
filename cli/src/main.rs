@@ -574,7 +574,7 @@ fn add_runtime(printer: SharedExternalPrinterLogger, context: &mut Context) {
 struct Executor {
     promise_jobs: RefCell<VecDeque<PromiseJob>>,
     async_jobs: RefCell<VecDeque<NativeAsyncJob>>,
-    timeout_jobs: RefCell<BTreeMap<JsInstant, TimeoutJob>>,
+    timeout_jobs: RefCell<BTreeMap<JsInstant, Vec<TimeoutJob>>>,
     generic_jobs: RefCell<VecDeque<GenericJob>>,
 
     printer: SharedExternalPrinterLogger,
@@ -597,7 +597,7 @@ impl Executor {
         self.promise_jobs.borrow().is_empty()
             && self.async_jobs.borrow().is_empty()
             // The timeout jobs queue is empty IF there are no jobs to execute right now.
-            && !self.timeout_jobs.borrow().iter().any(|(t, _)| &now >= t)
+            && !self.timeout_jobs.borrow().iter().any(|(t, _)| &now > t)
             && self.generic_jobs.borrow().is_empty()
     }
 
@@ -606,13 +606,18 @@ impl Executor {
 
         let mut timeouts_borrow = self.timeout_jobs.borrow_mut();
         let mut jobs_to_keep = timeouts_borrow.split_off(&now);
-        jobs_to_keep.retain(|_, job| !job.is_cancelled());
+        jobs_to_keep.retain(|_, jobs| {
+            jobs.retain(|job| !job.is_cancelled());
+            !jobs.is_empty()
+        });
         let jobs_to_run = mem::replace(&mut *timeouts_borrow, jobs_to_keep);
         drop(timeouts_borrow);
 
-        for job in jobs_to_run.into_values() {
-            if let Err(e) = job.call(context) {
-                self.printer.print(uncaught_job_error(&e));
+        for jobs in jobs_to_run.into_values() {
+            for job in jobs {
+                if let Err(e) = job.call(context) {
+                    self.printer.print(uncaught_job_error(&e));
+                }
             }
         }
     }
@@ -636,7 +641,9 @@ impl JobExecutor for Executor {
                 let now = context.clock().now();
                 self.timeout_jobs
                     .borrow_mut()
-                    .insert(now + job.timeout(), job);
+                    .entry(now + job.timeout())
+                    .or_default()
+                    .push(job);
             }
             Job::GenericJob(job) => self.generic_jobs.borrow_mut().push_back(job),
             job => self.printer.print(format!("unsupported job type {job:?}")),
