@@ -219,9 +219,28 @@ impl JsBigInt {
         match y.inner.to_i32() {
             Some(n) if n > 0 => Ok(Self::new(x.inner.as_ref().clone().shr(n as usize))),
             Some(n) => Ok(Self::new(x.inner.as_ref().clone().shl(n.unsigned_abs()))),
-            None => Err(JsNativeError::range()
-                .with_message("Maximum BigInt size exceeded")
-                .into()),
+            None => {
+                if x.is_zero() {
+                    return Ok(Self::zero());
+                }
+                // y doesn't fit in i32.
+                // If y > 0, right-shifting by a huge positive amount:
+                //   - non-negative x → 0n
+                //   - negative x → -1n (arithmetic right shift floors toward -∞)
+                // If y < 0, it's equivalent to left-shifting by |y|, which would
+                // produce a number too large to represent.
+                if y.inner.sign() == num_bigint::Sign::Plus {
+                    if x.inner.sign() == num_bigint::Sign::Minus {
+                        Ok(Self::new(RawBigInt::from(-1)))
+                    } else {
+                        Ok(Self::zero())
+                    }
+                } else {
+                    Err(JsNativeError::range()
+                        .with_message("Maximum BigInt size exceeded")
+                        .into())
+                }
+            }
         }
     }
 
@@ -231,9 +250,28 @@ impl JsBigInt {
         match y.inner.to_i32() {
             Some(n) if n > 0 => Ok(Self::new(x.inner.as_ref().clone().shl(n as usize))),
             Some(n) => Ok(Self::new(x.inner.as_ref().clone().shr(n.unsigned_abs()))),
-            None => Err(JsNativeError::range()
-                .with_message("Maximum BigInt size exceeded")
-                .into()),
+            None => {
+                if x.is_zero() {
+                    return Ok(Self::zero());
+                }
+                // y doesn't fit in i32.
+                // If y > 0, left-shifting by a huge positive amount would produce
+                // a number too large to represent.
+                // If y < 0, it's equivalent to right-shifting by |y|:
+                //   - non-negative x → 0n
+                //   - negative x → -1n (arithmetic right shift floors toward -∞)
+                if y.inner.sign() == num_bigint::Sign::Minus {
+                    if x.inner.sign() == num_bigint::Sign::Minus {
+                        Ok(Self::new(RawBigInt::from(-1)))
+                    } else {
+                        Ok(Self::zero())
+                    }
+                } else {
+                    Err(JsNativeError::range()
+                        .with_message("Maximum BigInt size exceeded")
+                        .into())
+                }
+            }
         }
     }
 
