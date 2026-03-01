@@ -670,25 +670,26 @@ impl Context {
         #[cfg(feature = "fuzz")]
         {
             use crate::error::EngineError;
-            if self.instructions_remaining == 0 {
+            if self.instructions_remaining.get() == 0 {
                 return ControlFlow::Break(CompletionRecord::Throw(
                     EngineError::NoInstructionsRemain.into(),
                 ));
             }
-            self.instructions_remaining -= 1;
+            self.instructions_remaining
+                .set(self.instructions_remaining.get() - 1);
         }
 
         #[cfg(feature = "trace")]
-        let res = {
-            let vm = self.vm_mut();
-            vm.trace || vm.frame.code_block.traceable()
-        }; if res {
-            self.trace_execute_instruction(f, opcode)
-        } else {
-            self.execute_instruction(f, opcode)
+        {
+            let res = {
+                let vm = self.vm_mut();
+                vm.trace || vm.frame.code_block.traceable()
+            };
+            if res {
+                return self.trace_execute_instruction(f, opcode);
+            }
         }
 
-        #[cfg(not(feature = "trace"))]
         self.execute_instruction(f, opcode)
     }
 
@@ -774,12 +775,13 @@ impl Context {
         {
             let vm = self.vm_mut();
             if let Some(err) = &mut vm.pending_exception
-                && err.backtrace.is_none() {
-                    err.backtrace = Some(
-                        vm.shadow_stack
-                            .take(vm.runtime_limits.backtrace_limit(), vm.frame.pc),
-                    );
-                }
+                && err.backtrace.is_none()
+            {
+                err.backtrace = Some(
+                    vm.shadow_stack
+                        .take(vm.runtime_limits.backtrace_limit(), vm.frame.pc),
+                );
+            }
         }
 
         let mut env_fp = self.vm_mut().frame.env_fp;
@@ -907,7 +909,8 @@ impl Context {
         let res = {
             let vm = self.vm();
             vm.runtime_limits.stack_size_limit() <= vm.stack.stack.len()
-        }; if res {
+        };
+        if res {
             return Err(RuntimeLimitError::StackSize.into());
         }
 

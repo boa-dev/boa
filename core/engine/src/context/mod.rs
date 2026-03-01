@@ -99,7 +99,7 @@ pub struct Context {
 
     /// Number of instructions remaining before a forced exit
     #[cfg(feature = "fuzz")]
-    pub(crate) instructions_remaining: usize,
+    pub(crate) instructions_remaining: Cell<usize>,
 
     vm: UnsafeCell<Vm>,
 
@@ -484,7 +484,7 @@ impl Context {
     #[inline]
     #[must_use]
     pub fn instructions_remaining(&self) -> usize {
-        self.instructions_remaining
+        self.instructions_remaining.get()
     }
 
     /// Returns the currently active realm.
@@ -1195,7 +1195,7 @@ impl ContextBuilder {
                 }
             },
             #[cfg(feature = "fuzz")]
-            instructions_remaining: self.instructions_remaining,
+            instructions_remaining: Cell::new(self.instructions_remaining),
             kept_alive: RefCell::new(Vec::new()),
             host_hooks,
             clock,

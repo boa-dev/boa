@@ -26,8 +26,8 @@ const self = globalThis;
 
 #[test]
 fn process_object_registration() {
-    let mut context = Context::default();
-    crate::process::Process::register(&Context).unwrap();
+    let context = Context::default();
+    crate::process::Process::register(&context).unwrap();
 
     run_test_actions_with(
         [
@@ -37,14 +37,14 @@ fn process_object_registration() {
                 assert_equals(typeof process, "object");
             "#}),
         ],
-        &Context,
+        &context,
     );
 }
 
 #[test]
 fn process_property_descriptors() {
-    let mut context = Context::default();
-    crate::process::Process::register(&Context).unwrap();
+    let context = Context::default();
+    crate::process::Process::register(&context).unwrap();
 
     run_test_actions_with(
         [
@@ -57,14 +57,14 @@ fn process_property_descriptors() {
                 assert_equals(propDesc.value, process, "must have the right value");
             "#}),
         ],
-        &Context,
+        &context,
     );
 }
 
 #[test]
 fn process_cwd_method() {
-    let mut context = Context::default();
-    crate::process::Process::register(&Context).unwrap();
+    let context = Context::default();
+    crate::process::Process::register(&context).unwrap();
 
     run_test_actions_with(
         [
@@ -83,7 +83,7 @@ fn process_cwd_method() {
                 assert_equals(cwdDesc.configurable, true, "cwd must be configurable");
             "#}),
         ],
-        &Context,
+        &context,
     );
 }
 
@@ -96,8 +96,8 @@ fn process_env_contains_variables() {
             ("ANOTHER_VAR", Some("another_value")),
         ],
         || {
-            let mut context = Context::default();
-            crate::process::Process::register(&Context).unwrap();
+            let context = Context::default();
+            crate::process::Process::register(&context).unwrap();
 
             run_test_actions_with(
                 [
@@ -109,7 +109,7 @@ fn process_env_contains_variables() {
                     assert_equals(process.env.ANOTHER_VAR, "another_value");
                 "#}),
                 ],
-                &Context,
+                &context,
             );
         },
     );
@@ -119,8 +119,8 @@ fn process_env_contains_variables() {
 #[ignore = "Unsafe under parallel test execution as it tempers with env."]
 fn process_env_properties_writable() {
     temp_env::with_var("TEST_VAR", Some("original"), || {
-        let mut context = Context::default();
-        crate::process::Process::register(&Context).unwrap();
+        let context = Context::default();
+        crate::process::Process::register(&context).unwrap();
 
         run_test_actions_with(
             [
@@ -135,15 +135,15 @@ fn process_env_properties_writable() {
                     assert_equals(process.env.NEW_VAR, "new_value");
                 "#}),
             ],
-            &Context,
+            &context,
         );
     });
 }
 
 #[test]
 fn process_env_object_properties() {
-    let mut context = Context::default();
-    crate::process::Process::register(&Context).unwrap();
+    let context = Context::default();
+    crate::process::Process::register(&context).unwrap();
 
     run_test_actions_with(
         [
@@ -156,7 +156,7 @@ fn process_env_object_properties() {
                 assert_equals(typeof envDesc.value, "object", "env must be an object");
             "#}),
         ],
-        &Context,
+        &context,
     );
 }
 
@@ -169,8 +169,8 @@ fn process_env_iteration() {
             ("ITER_TEST_2", Some("value2")),
         ],
         || {
-            let mut context = Context::default();
-            crate::process::Process::register(&Context).unwrap();
+            let context = Context::default();
+            crate::process::Process::register(&context).unwrap();
 
             run_test_actions_with(
                 [
@@ -191,7 +191,7 @@ fn process_env_iteration() {
                     assert_true(found2, "ITER_TEST_2 should be found");
                 "#}),
                 ],
-                &Context,
+                &context,
             );
         },
     );
