@@ -2,7 +2,7 @@ use crate::{JsObject, JsValue, js_string};
 use std::collections::HashSet;
 use std::fmt::{self, Write};
 
-/// Formats an Arguments exotic object for display.
+/// Formats an Arguments object for display.
 ///
 /// Always uses multiline output:
 /// ```text
@@ -46,7 +46,10 @@ pub(super) fn log_arguments_to(
         let val_str = match val {
             Some(v) => format!(
                 "{}",
-                CompactValue { value: &v, print_internals }
+                CompactValue {
+                    value: &v,
+                    print_internals
+                }
             ),
             None => "<empty>".to_string(),
         };
@@ -67,6 +70,6 @@ struct CompactValue<'a> {
 
 impl fmt::Display for CompactValue<'_> {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        super::log_value_compact(f, self.value, 0, self.print_internals, &mut HashSet::new())
+        super::value::log_value_compact(f, self.value, 0, self.print_internals, &mut HashSet::new())
     }
 }

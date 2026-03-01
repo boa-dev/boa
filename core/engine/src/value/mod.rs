@@ -6,7 +6,6 @@ use num_bigint::BigInt;
 use num_integer::Integer;
 use num_traits::{ToPrimitive, Zero};
 use std::{
-    collections::HashSet,
     fmt::{self, Display},
     ops::Sub,
     sync::LazyLock,
