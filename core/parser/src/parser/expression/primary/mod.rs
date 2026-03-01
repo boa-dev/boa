@@ -87,34 +87,48 @@ impl PrimaryExpression {
     }
 }
 
+/// Iteratively parses deeply nested parenthesized expressions to avoid stack overflow.
+///
+/// When multiple consecutive `(` tokens are detected, this function consumes them all in a
+/// loop (not recursively), parses the single inner expression, then expects the matching `)`
+/// tokens. This allows any depth of balanced parentheses to be parsed safely.
+///
+/// Unbalanced parentheses (e.g. unclosed `(`) fail naturally when the inner expression
+/// parser or the closing `)` expectation hits an unexpected token or end-of-input.
 fn parse_deep_parenthesized_expression<R>(
     cursor: &mut Cursor<R>,
     interner: &mut Interner,
     allow_yield: AllowYield,
     allow_await: AllowAwait,
-    first_paren_start: boa_ast::Position,
 ) -> ParseResult<FormalParameterListOrExpression>
 where
     R: ReadChar,
 {
-    // First `(` has already been consumed and registered by the caller
     cursor.set_goal(InputElement::RegExp);
-    cursor.advance(interner);
 
-    let mut additional_open_parens = 0u16;
+    // Consume ALL consecutive `(` tokens iteratively, counting them.
+    // This replaces what would otherwise be deep recursion through the expression chain.
+    let mut open_count: usize = 0;
+    let mut span_start = None;
     while let Some(token) = cursor.peek(0, interner)? {
         if token.kind() != &TokenKind::Punctuator(Punctuator::OpenParen) {
             break;
         }
-
+        if span_start.is_none() {
+            span_start = Some(token.span().start());
+        }
         cursor.advance(interner);
-        additional_open_parens += 1;
+        open_count += 1;
     }
 
+    let first_paren_start = span_start.expect("called with at least one open paren");
+
+    // Parse the single inner expression (not parenthesized at this level)
     let expression = Expression::new(true, allow_yield, allow_await).parse(cursor, interner)?;
 
+    // Consume all matching `)` tokens
     let mut span_end = first_paren_start;
-    for _ in 0..=additional_open_parens {
+    for _ in 0..open_count {
         span_end = cursor
             .expect(
                 Punctuator::CloseParen,
@@ -123,10 +137,6 @@ where
             )?
             .span()
             .end();
-    }
-
-    for _ in 0..additional_open_parens {
-        cursor.close_paren()?;
     }
 
     Ok(ast::Expression::Parenthesized(Parenthesized::new(
@@ -209,34 +219,29 @@ where
                 }
             }
             TokenKind::Punctuator(Punctuator::OpenParen) => {
-                let span_start = cursor.peek(0, interner).or_abrupt()?.span().start();
+                // If the very next token after `(` is also `(`, we have consecutive nested
+                // parens. Use the iterative fast path to avoid recursive stack overflow.
+                // peek(0) = current `(`, peek(1) = what follows it.
+                let next_is_also_paren = cursor.peek(1, interner)?.map(Token::kind)
+                    == Some(&TokenKind::Punctuator(Punctuator::OpenParen));
 
-                cursor.open_paren(span_start)?;
-                let current_depth = cursor.open_paren_depth();
-
-                // Use iterative fast path if we're already at a depth where recursion becomes unsafe.
-                // This prevents stack overflow before it happens.
-                let expr = if current_depth >= 4 {
-                    // For deep nesting (depth >= 4), use iterative fast path
+                if next_is_also_paren {
                     parse_deep_parenthesized_expression(
                         cursor,
                         interner,
                         self.allow_yield,
                         self.allow_await,
-                        span_start,
                     )
                 } else {
-                    // For normal depth, use standard recursive cover parser
+                    // Single or non-consecutive `(`: use standard recursive cover parser
+                    // which handles arrow functions, spread, etc.
                     CoverParenthesizedExpressionAndArrowParameterList::new(
                         self.allow_yield,
                         self.allow_await,
                     )
                     .parse(cursor, interner)
                     .map(Into::into)
-                };
-
-                cursor.close_paren()?;
-                expr
+                }
             }
             TokenKind::Punctuator(Punctuator::OpenBracket) => {
                 ArrayLiteral::new(self.allow_yield, self.allow_await)

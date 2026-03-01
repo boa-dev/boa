@@ -7,7 +7,7 @@ use crate::{
     parser::{OrAbrupt, ParseResult},
     source::ReadChar,
 };
-use boa_ast::{LinearPosition, Position, PositionGroup, Punctuator, Spanned};
+use boa_ast::{LinearPosition, PositionGroup, Punctuator, Spanned};
 use boa_interner::Interner;
 use buffered_lexer::BufferedLexer;
 
@@ -37,22 +37,12 @@ pub(super) struct Cursor<R> {
 
     /// Tracks the number of tagged templates that are currently being parsed.
     tagged_templates_count: u32,
-
-    /// Tracks the depth of currently open parentheses in primary expressions.
-    /// This is incremented when we consume a `(` token and decremented when we consume `)`.
-    /// This allows us to detect unbalanced/excessive parentheses while still accepting balanced code.
-    open_paren_depth: u16,
 }
 
 impl<R> Cursor<R>
 where
     R: ReadChar,
 {
-    #[cfg(debug_assertions)]
-    pub(super) const MAX_OPEN_PAREN_DEPTH: u16 = 2048;
-    #[cfg(not(debug_assertions))]
-    pub(super) const MAX_OPEN_PAREN_DEPTH: u16 = 8192;
-
     /// Creates a new cursor with the given reader.
     pub(super) fn new(reader: R) -> Self {
         Self {
@@ -61,39 +51,7 @@ where
             json_parse: false,
             identifier: 0,
             tagged_templates_count: 0,
-            open_paren_depth: 0,
         }
-    }
-
-    /// Increments open parenthesis depth when encountering '('.
-    pub(super) fn open_paren(&mut self, position: Position) -> ParseResult<()> {
-        if self.open_paren_depth >= Self::MAX_OPEN_PAREN_DEPTH {
-            return Err(Error::general(
-                "too many nested parenthesized expressions",
-                position,
-            ));
-        }
-
-        self.open_paren_depth += 1;
-        Ok(())
-    }
-
-    /// Decrements open parenthesis depth when encountering ')'.
-    pub(super) fn close_paren(&mut self) -> ParseResult<()> {
-        if self.open_paren_depth == 0 {
-            // This will be caught by the parser as a mismatched paren
-            self.open_paren_depth = 0;
-            return Ok(());
-        }
-
-        self.open_paren_depth = self.open_paren_depth.saturating_sub(1);
-        Ok(())
-    }
-
-    /// Returns the current open parenthesis depth.
-    #[allow(dead_code)]
-    pub(super) const fn open_paren_depth(&self) -> u16 {
-        self.open_paren_depth
     }
 
     /// Sets the goal symbol of the cursor to `Module`.
