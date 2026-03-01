@@ -200,6 +200,6 @@ fn function_constructor_deep_parenthesis_reports_syntax_error() {
     run_test_actions([TestAction::assert_native_error(
         "Function('('.repeat(703))",
         JsNativeErrorKind::Syntax,
-        "too many nested parenthesized expressions",
+        "failed to parse function body: too many nested parenthesized expressions",
     )]);
 }
