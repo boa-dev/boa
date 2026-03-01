@@ -1,10 +1,11 @@
+use crate::value::display::value;
 use crate::{JsObject, JsValue, js_string};
 use std::collections::HashSet;
 use std::fmt::{self, Write};
 
 /// Formats an Arguments object for display.
 ///
-/// Always uses multiline output:
+/// Always uses multiline output: (unless `print_children` is false or length is 0)
 /// ```text
 /// [Arguments] {
 ///   0: "first",
@@ -43,18 +44,22 @@ pub(super) fn log_arguments_to(
             .get(&i.into())
             .and_then(|d| d.value().cloned());
 
-        let val_str = match val {
-            Some(v) => format!(
-                "{}",
-                CompactValue {
-                    value: &v,
-                    print_internals
-                }
-            ),
-            None => "<empty>".to_string(),
-        };
+        match val {
+            Some(v) => {
+                write!(
+                    f,
+                    "  {i}: {}",
+                    CompactValue {
+                        value: &v,
+                        print_internals
+                    }
+                )?;
+            }
+            None => {
+                write!(f, "  {i}: <empty>")?;
+            }
+        }
 
-        write!(f, "  {i}: {val_str}")?;
         if i + 1 < len {
             f.write_char(',')?;
         }
@@ -70,6 +75,6 @@ struct CompactValue<'a> {
 
 impl fmt::Display for CompactValue<'_> {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        super::value::log_value_compact(f, self.value, 0, self.print_internals, &mut HashSet::new())
+        value::log_value_compact(f, self.value, 0, self.print_internals, &mut HashSet::new())
     }
 }

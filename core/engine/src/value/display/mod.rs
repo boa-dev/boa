@@ -1,7 +1,9 @@
 mod arguments;
 mod array;
+mod map;
 mod object;
 mod primitives;
+mod set;
 mod typed_array;
 mod value;
 

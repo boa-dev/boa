@@ -14,13 +14,15 @@ use crate::{
         promise::PromiseState,
         set::ordered_set::OrderedSet,
         typed_array::TypedArray,
+        weak_map::NativeWeakMap,
+        weak_set::NativeWeakSet,
     },
     js_string,
     property::{PropertyDescriptor, PropertyKey},
 };
 
 /// Maximum nesting depth before objects/arrays are collapsed
-const COMPACT_DEPTH_LIMIT: u32 = 2;
+pub(super) const COMPACT_DEPTH_LIMIT: u32 = 2;
 
 pub(crate) fn log_value_to(
     f: &mut fmt::Formatter<'_>,
@@ -45,51 +47,14 @@ pub(crate) fn log_value_to(
                 super::array::log_array_to(f, &v, print_internals, print_children)
             } else if v.is::<UnmappedArguments>() || v.is::<MappedArguments>() {
                 super::arguments::log_arguments_to(f, &v, print_internals, print_children)
-            } else if let Some(map) = v.downcast_ref::<OrderedMap<JsValue>>() {
-                let size = map.len();
-                if size == 0 {
-                    return f.write_str("Map(0)");
-                }
-
-                if print_children {
-                    f.write_str("Map { ")?;
-                    let mut first = true;
-                    for (key, value) in map.iter() {
-                        if first {
-                            first = false;
-                        } else {
-                            f.write_str(", ")?;
-                        }
-                        log_value_to(f, key, print_internals, false)?;
-                        f.write_str(" → ")?;
-                        log_value_to(f, value, print_internals, false)?;
-                    }
-                    f.write_str(" }")
-                } else {
-                    write!(f, "Map({size})")
-                }
-            } else if let Some(set) = v.downcast_ref::<OrderedSet>() {
-                let size = set.len();
-
-                if size == 0 {
-                    return f.write_str("Set(0)");
-                }
-
-                if print_children {
-                    f.write_str("Set { ")?;
-                    let mut first = true;
-                    for value in set.iter() {
-                        if first {
-                            first = false;
-                        } else {
-                            f.write_str(", ")?;
-                        }
-                        log_value_to(f, value, print_internals, false)?;
-                    }
-                    f.write_str(" }")
-                } else {
-                    write!(f, "Set({size})")
-                }
+            } else if v.downcast_ref::<OrderedMap<JsValue>>().is_some() {
+                super::map::log_map_to(f, &v, print_internals, print_children)
+            } else if v.downcast_ref::<OrderedSet>().is_some() {
+                super::set::log_set_to(f, &v, print_internals, print_children)
+            } else if v.downcast_ref::<NativeWeakMap>().is_some() {
+                f.write_str("WeakMap { <items unknown> }")
+            } else if v.downcast_ref::<NativeWeakSet>().is_some() {
+                f.write_str("WeakSet { <items unknown> }")
             } else if v.is::<Error>() {
                 let name: std::borrow::Cow<'static, str> = v
                     .get_property(&js_string!("name").into())
@@ -143,24 +108,38 @@ pub(crate) fn log_value_to(
                     }
                 }
                 f.write_str(" }")
-            } else if v.is_constructor() {
-                // FIXME: ArrayBuffer is not [class ArrayBuffer] but we cannot distinguish it.
-                let name = v
-                    .get_property(&PropertyKey::from(js_string!("name")))
-                    .and_then(|d| Some(d.value()?.as_string()?.to_std_string_escaped()));
-                match name {
-                    Some(name) if !name.is_empty() => write!(f, "[class {name}]"),
-                    _ => f.write_str("[class (anonymous)]"),
-                }
             } else if v.is::<TypedArray>() {
                 super::typed_array::log_typed_array(f, &v, print_children, print_internals)
+            } else if let Some(date) = v.downcast_ref::<crate::builtins::date::Date>() {
+                match date.to_iso_display() {
+                    Some(iso) => f.write_str(&iso),
+                    None => f.write_str("Invalid Date"),
+                }
+            } else if let Some(regexp) = v.downcast_ref::<crate::builtins::regexp::RegExp>() {
+                write!(
+                    f,
+                    "/{}/{}",
+                    regexp.original_source().to_std_string_escaped(),
+                    regexp.original_flags().to_std_string_escaped()
+                )
             } else if v.is_callable() {
                 let name = v
                     .get_property(&PropertyKey::from(js_string!("name")))
                     .and_then(|d| Some(d.value()?.as_string()?.to_std_string_escaped()));
-                match name {
-                    Some(name) if !name.is_empty() => write!(f, "[Function: {name}]"),
-                    _ => f.write_str("[Function (anonymous)]"),
+                let is_class = v
+                    .downcast_ref::<OrdinaryFunction>()
+                    .is_some_and(|f| f.code.is_class_constructor());
+
+                if is_class {
+                    match name {
+                        Some(name) if !name.is_empty() => write!(f, "[class {name}]"),
+                        _ => f.write_str("[class (anonymous)]"),
+                    }
+                } else {
+                    match name {
+                        Some(name) if !name.is_empty() => write!(f, "[Function: {name}]"),
+                        _ => f.write_str("[Function (anonymous)]"),
+                    }
                 }
             } else {
                 Display::fmt(&x.display_obj(print_internals), f)
@@ -180,6 +159,7 @@ pub(crate) fn log_value_to(
 }
 
 /// Formats a [`JsValue`] inline and compactly, collapsing deeply-nested objects.
+/// This method is used for printing arguments of a function to the console.
 pub(super) fn log_value_compact(
     f: &mut fmt::Formatter<'_>,
     x: &JsValue,
@@ -194,7 +174,7 @@ pub(super) fn log_value_compact(
                 || v.downcast_ref::<bool>().is_some()
                 || v.downcast_ref::<f64>().is_some()
             {
-                return log_value_to(f, x, print_internals, false);
+                log_value_to(f, x, print_internals, false)
             } else if v.is::<Array>() {
                 if depth >= COMPACT_DEPTH_LIMIT {
                     f.write_str("[Array]")
@@ -203,60 +183,19 @@ pub(super) fn log_value_compact(
                 }
             } else if v.is::<UnmappedArguments>() || v.is::<MappedArguments>() {
                 f.write_str("[Arguments]")
-            } else if let Some(map) = v.downcast_ref::<OrderedMap<JsValue>>() {
-                let size = map.len();
-                if size == 0 {
-                    return f.write_str("Map(0)");
-                }
-                if depth >= COMPACT_DEPTH_LIMIT {
-                    write!(f, "Map({size})")
-                } else {
-                    f.write_str("Map { ")?;
-                    let mut first = true;
-                    for (key, value) in map.iter() {
-                        if first {
-                            first = false;
-                        } else {
-                            f.write_str(", ")?;
-                        }
-                        log_value_compact(f, key, depth + 1, print_internals, encounters)?;
-                        f.write_str(" => ")?;
-                        log_value_compact(f, value, depth + 1, print_internals, encounters)?;
-                    }
-                    f.write_str(" }")
-                }
-            } else if let Some(set) = v.downcast_ref::<OrderedSet>() {
-                let size = set.len();
-                if size == 0 {
-                    return f.write_str("Set(0)");
-                }
-                if depth >= COMPACT_DEPTH_LIMIT {
-                    write!(f, "Set({size})")
-                } else {
-                    f.write_str("Set { ")?;
-                    let mut first = true;
-                    for value in set.iter() {
-                        if first {
-                            first = false;
-                        } else {
-                            f.write_str(", ")?;
-                        }
-                        log_value_compact(f, value, depth + 1, print_internals, encounters)?;
-                    }
-                    f.write_str(" }")
-                }
-            } else if let Some(date) = v.downcast_ref::<crate::builtins::date::Date>() {
-                match date.to_iso_display() {
-                    Some(iso) => f.write_str(&iso),
-                    None => f.write_str("Invalid Date"),
-                }
-            } else if let Some(regexp) = v.downcast_ref::<crate::builtins::regexp::RegExp>() {
-                write!(
-                    f,
-                    "/{}/{}",
-                    regexp.original_source().to_std_string_escaped(),
-                    regexp.original_flags().to_std_string_escaped()
-                )
+            } else if v.downcast_ref::<OrderedMap<JsValue>>().is_some() {
+                super::map::log_map_compact(f, &v, depth, print_internals, encounters)
+            } else if v.downcast_ref::<OrderedSet>().is_some() {
+                super::set::log_set_compact(f, &v, depth, print_internals, encounters)
+            } else if v.downcast_ref::<NativeWeakMap>().is_some() {
+                f.write_str("WeakMap { <items unknown> }")
+            } else if v.downcast_ref::<NativeWeakSet>().is_some() {
+                f.write_str("WeakSet { <items unknown> }")
+            } else if v.downcast_ref::<crate::builtins::date::Date>().is_some()
+                || v.downcast_ref::<crate::builtins::regexp::RegExp>()
+                    .is_some()
+            {
+                log_value_to(f, x, print_internals, false)
             } else if v.is::<Error>() {
                 log_value_to(f, x, print_internals, true)
             } else if let Some(promise) = v.downcast_ref::<Promise>() {
@@ -279,25 +218,7 @@ pub(super) fn log_value_compact(
                     print_internals,
                 )
             } else if v.is_callable() {
-                let name = v
-                    .get_property(&PropertyKey::from(js_string!("name")))
-                    .and_then(|d| Some(d.value()?.as_string()?.to_std_string_escaped()));
-                let is_class = v
-                    .downcast_ref::<OrdinaryFunction>()
-                    .is_some_and(|f| f.code.is_class_constructor());
-
-                let rendered = if is_class {
-                    match name {
-                        Some(name) if !name.is_empty() => format!("[class {name}]"),
-                        _ => "[class (anonymous)]".to_owned(),
-                    }
-                } else {
-                    match name {
-                        Some(name) if !name.is_empty() => format!("[Function: {name}]"),
-                        _ => "[Function (anonymous)]".to_owned(),
-                    }
-                };
-                f.write_str(&rendered)
+                log_value_to(f, x, print_internals, false)
             } else {
                 // Plain object
                 if depth >= COMPACT_DEPTH_LIMIT {

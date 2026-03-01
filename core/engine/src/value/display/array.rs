@@ -77,9 +77,8 @@ pub(super) fn log_array_compact(
         .properties()
         .get(&js_string!("length").into())
         .expect("array object must have 'length' property")
-        // FIXME: handle accessor descriptors
-        .expect_value()
-        .as_number()
+        .value()
+        .and_then(JsValue::as_number)
         .map(|n| n as i32)
         .unwrap_or_default();
 

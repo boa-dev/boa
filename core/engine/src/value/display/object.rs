@@ -2,9 +2,8 @@ use std::collections::HashSet;
 use std::fmt::{self, Display, Write};
 
 use crate::{
-    JsObject, JsString, JsValue,
-    js_string,
-    property::PropertyKey,
+    JsObject, JsString, JsValue, js_string,
+    property::{DescriptorKind, PropertyKey},
 };
 
 fn print_obj_value_internals(
@@ -98,6 +97,7 @@ pub(super) fn log_object_to_internal(
         encounters.insert(addr);
 
         if v.is::<crate::builtins::Array>() {
+            encounters.remove(&addr);
             return super::array::log_array_to(f, &v, print_internals, false);
         }
 
@@ -193,18 +193,34 @@ pub(super) fn log_plain_object_compact(
         }
         write!(f, "{key}: ")?;
 
-        let val = obj.borrow().properties().get(key).expect("key must exist");
-        if val.is_data_descriptor() {
-            let v = val.expect_value();
-            super::value::log_value_compact(f, v, depth + 1, print_internals, encounters)?;
-        } else {
-            let display = match (val.set().is_some(), val.get().is_some()) {
-                (true, true) => "[Getter/Setter]",
-                (true, false) => "[Setter]",
-                (false, true) => "[Getter]",
-                _ => "[No Getter/Setter]",
-            };
-            f.write_str(display)?;
+        if let Some(val) = obj.borrow().properties().get(key) {
+            match val.kind() {
+                DescriptorKind::Data { value, .. } => {
+                    if let Some(value) = value {
+                        super::value::log_value_compact(
+                            f,
+                            value,
+                            depth + 1,
+                            print_internals,
+                            encounters,
+                        )?;
+                    } else {
+                        f.write_str("undefined")?;
+                    }
+                }
+                DescriptorKind::Accessor { get, set } => {
+                    let display = match (get.is_some(), set.is_some()) {
+                        (true, true) => "[Getter/Setter]",
+                        (true, false) => "[Getter]",
+                        (false, true) => "[Setter]",
+                        _ => "[No Getter/Setter]",
+                    };
+                    f.write_str(display)?;
+                }
+                DescriptorKind::Generic => {
+                    f.write_str("undefined")?;
+                }
+            }
         }
     }
     f.write_str(" }")?;

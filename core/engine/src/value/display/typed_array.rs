@@ -21,13 +21,17 @@ pub(super) fn log_typed_array(
     let viewed_buf = inner.viewed_array_buffer();
     let buf_ref = viewed_buf.as_buffer();
     let Some(buf_bytes) = buf_ref.bytes(Ordering::Relaxed) else {
-        return write!(f, "{type_name}(0) []");
+        if show_elements {
+            return write!(f, "{type_name}(0) []");
+        }
+        return write!(f, "{type_name}(0)");
     };
-
     let buf_len = buf_bytes.len();
-
     if inner.is_out_of_bounds(buf_len) {
-        return write!(f, "{type_name}(0) []");
+        if show_elements {
+            return write!(f, "{type_name}(0) []");
+        }
+        return write!(f, "{type_name}(0)");
     }
 
     let length = inner.array_length(buf_len);
