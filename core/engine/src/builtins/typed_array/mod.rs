@@ -37,6 +37,14 @@ pub(crate) use element::Float16;
 pub(crate) use element::{Atomic, ClampedU8, Element};
 pub use object::TypedArray;
 
+pub(crate) fn byte_index_to_usize(v: u64) -> JsResult<usize> {
+    usize::try_from(v).map_err(|_| {
+        JsNativeError::range()
+            .with_message("byte index exceeds addressable range")
+            .into()
+    })
+}
+
 pub(crate) trait TypedArrayMarker {
     type Element: Element;
     const ERASED: TypedArrayKind;
