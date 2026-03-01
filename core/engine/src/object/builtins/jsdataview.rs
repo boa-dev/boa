@@ -53,8 +53,8 @@ impl JsDataView {
     /// Create a new `JsDataView` object from an existing `JsArrayBuffer`.
     pub fn from_js_array_buffer(
         buffer: JsArrayBuffer,
-        offset: Option<u64>,
-        byte_len: Option<u64>,
+        offset: Option<usize>,
+        byte_len: Option<usize>,
         context: &mut Context,
     ) -> JsResult<Self> {
         let offset = offset.unwrap_or_default();
@@ -71,7 +71,7 @@ impl JsDataView {
             };
 
             // 5. Let bufferByteLength be ArrayBufferByteLength(buffer, seq-cst).
-            let buf_len = slice.len() as u64;
+            let buf_len = slice.len();
 
             // 6. If offset > bufferByteLength, throw a RangeError exception.
             if offset > buf_len {
@@ -110,7 +110,7 @@ impl JsDataView {
 
         // 11. If IsDetachedBuffer(buffer) is true, throw a TypeError exception.
         // 12. Set bufferByteLength to ArrayBufferByteLength(buffer, seq-cst).
-        let Some(buf_byte_len) = buffer.borrow().data().bytes().map(|s| s.len() as u64) else {
+        let Some(buf_byte_len) = buffer.borrow().data().bytes().map(|s| s.len()) else {
             return Err(JsNativeError::typ()
                 .with_message("ArrayBuffer is detached")
                 .into());

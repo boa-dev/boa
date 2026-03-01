@@ -283,7 +283,7 @@ pub enum TryNativeError {
     #[error("could not get element `{index}` of property `errors`")]
     InvalidErrorsIndex {
         /// The index of the error that could not be accessed.
-        index: u64,
+        index: usize,
 
         /// The source error.
         source: JsError,

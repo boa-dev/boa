@@ -53,7 +53,7 @@ impl JsArray {
     ///
     /// Same as `array.length` in JavaScript.
     #[inline]
-    pub fn length(&self, context: &mut Context) -> JsResult<u64> {
+    pub fn length(&self, context: &mut Context) -> JsResult<usize> {
         self.inner.length_of_array_like(context)
     }
 

@@ -179,7 +179,7 @@ impl SliceRef<'_> {
                 .array_buffer()
                 .constructor()
                 .into(),
-            self.len() as u64,
+            self.len(),
             None,
             context,
         )?;

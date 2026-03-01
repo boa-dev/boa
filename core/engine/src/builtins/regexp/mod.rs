@@ -1094,7 +1094,7 @@ impl RegExp {
         let this = this.upcast();
 
         // 1. Let length be the length of S.
-        let length = input.len() as u64;
+        let length = input.len();
 
         // 2. Let lastIndex be ℝ(? ToLength(? Get(R, "lastIndex"))).
         let mut last_index = this
@@ -1151,14 +1151,10 @@ impl RegExp {
                 let input = input.to_vec();
 
                 // NOTE: We can use the faster ucs2 variant since there will never be two byte unicode.
-                matcher.find_from_ucs2(&input, last_index as usize).next()
+                matcher.find_from_ucs2(&input, last_index).next()
             }
-            (true, JsStrVariant::Utf16(input)) => {
-                matcher.find_from_utf16(input, last_index as usize).next()
-            }
-            (false, JsStrVariant::Utf16(input)) => {
-                matcher.find_from_ucs2(input, last_index as usize).next()
-            }
+            (true, JsStrVariant::Utf16(input)) => matcher.find_from_utf16(input, last_index).next(),
+            (false, JsStrVariant::Utf16(input)) => matcher.find_from_ucs2(input, last_index).next(),
         };
 
         let Some(match_value) = r else {
@@ -1186,7 +1182,7 @@ impl RegExp {
         // SKIP: ii. Set matchSucceeded to true.
 
         // NOTE: regress currently doesn't support the sticky flag so we have to emulate it.
-        if sticky && match_value.start() != last_index as usize {
+        if sticky && match_value.start() != last_index {
             // 1. Perform ? Set(R, "lastIndex", +0𝔽, true).
             this.set(js_string!("lastIndex"), 0, true, context)?;
 
@@ -1196,7 +1192,7 @@ impl RegExp {
 
         // 13.d.ii. Set lastIndex to AdvanceStringIndex(S, lastIndex, fullUnicode).
         // NOTE: Calculation of last_index is done in regress.
-        last_index = match_value.start() as u64;
+        last_index = match_value.start();
 
         // 14. Let e be r's endIndex value.
         // 15. If fullUnicode is true, set e to GetStringIndex(S, e).
@@ -1210,10 +1206,10 @@ impl RegExp {
         }
 
         // 17. Let n be the number of elements in r's captures List.
-        let n = match_value.captures.len() as u64;
+        let n = match_value.captures.len();
         // 18. Assert: n = R.[[RegExpRecord]].[[CapturingGroupsCount]].
         // 19. Assert: n < 232 - 1.
-        debug_assert!(n < (1u64 << 32) - 1);
+        debug_assert!(n < (1usize << 32) - 1);
 
         // 20. Let A be ! ArrayCreate(n + 1).
         // 21. Assert: The mathematical value of A's "length" property is n + 1.
@@ -1245,7 +1241,7 @@ impl RegExp {
             .expect("this CreateDataPropertyOrThrow call must not fail");
 
         // 28. Let matchedSubstr be GetMatchString(S, match).
-        let matched_substr = input.get_expect((last_index as usize)..(e));
+        let matched_substr = input.get_expect((last_index)..(e));
 
         // 29. Perform ! CreateDataPropertyOrThrow(A, "0", matchedSubstr).
         a.create_data_property_or_throw(0, matched_substr, context)
@@ -1328,7 +1324,7 @@ impl RegExp {
         // 27. For each integer i such that i ≥ 1 and i ≤ n, in ascending order, do
         for i in 1..=n {
             // a. Let captureI be ith element of r's captures List.
-            let capture = match_value.group(i as usize);
+            let capture = match_value.group(i);
 
             // b. If captureI is undefined, let capturedValue be undefined.
             // c. Else if fullUnicode is true, then
@@ -1944,7 +1940,7 @@ impl RegExp {
         }
 
         // 15. Let size be the length of S.
-        let size = arg_str.len() as u64;
+        let size = arg_str.len();
 
         // 16. If size is 0, then
         if size == 0 {
@@ -1994,7 +1990,7 @@ impl RegExp {
                     q = advance_string_index(&arg_str, q, unicode);
                 } else {
                     // 1. Let T be the substring of S from p to q.
-                    let arg_str_substring = arg_str.get_expect(p as usize..q as usize);
+                    let arg_str_substring = arg_str.get_expect(p..q);
 
                     // 2. Perform ! CreateDataPropertyOrThrow(A, ! ToString(𝔽(lengthA)), T).
                     a.create_data_property_or_throw(length_a, arg_str_substring, context)
@@ -2045,7 +2041,7 @@ impl RegExp {
         }
 
         // 20. Let T be the substring of S from p to size.
-        let arg_str_substring = arg_str.get_expect(p as usize..size as usize);
+        let arg_str_substring = arg_str.get_expect(p..size);
 
         // 21. Perform ! CreateDataPropertyOrThrow(A, ! ToString(𝔽(lengthA)), T).
         a.create_data_property_or_throw(length_a, arg_str_substring, context)
@@ -2117,7 +2113,7 @@ impl RegExp {
 ///  - [ECMAScript reference][spec]
 ///
 /// [spec]: https://tc39.es/ecma262/#sec-advancestringindex
-fn advance_string_index(s: &JsString, index: u64, unicode: bool) -> u64 {
+fn advance_string_index(s: &JsString, index: usize, unicode: bool) -> usize {
     // Regress only works with utf8, so this function differs from the spec.
 
     // 1. Assert: index ≤ 2^53 - 1.
@@ -2128,7 +2124,7 @@ fn advance_string_index(s: &JsString, index: u64, unicode: bool) -> u64 {
     }
 
     // 3. Let length be the number of code units in S.
-    let length = s.len() as u64;
+    let length = s.len();
 
     // 4. If index + 1 ≥ length, return index + 1.
     if index + 1 > length {
@@ -2136,7 +2132,7 @@ fn advance_string_index(s: &JsString, index: u64, unicode: bool) -> u64 {
     }
 
     // 5. Let cp be ! CodePointAt(S, index).
-    let code_point = s.code_point_at(index as usize);
+    let code_point = s.code_point_at(index);
 
-    index + code_point.code_unit_count() as u64
+    index + code_point.code_unit_count()
 }

@@ -8,7 +8,7 @@ fn create_byte_data_block() {
         assert!(super::create_byte_data_block(100, None, context).is_ok());
 
         // Rainy day
-        assert!(super::create_byte_data_block(u64::MAX, None, context).is_err());
+        assert!(super::create_byte_data_block(usize::MAX, None, context).is_err());
     })]);
 }
 
@@ -19,7 +19,7 @@ fn create_shared_byte_data_block() {
         assert!(super::shared::create_shared_byte_data_block(100, context).is_ok());
 
         // Rainy day
-        assert!(super::shared::create_shared_byte_data_block(u64::MAX, context).is_err());
+        assert!(super::shared::create_shared_byte_data_block(usize::MAX, context).is_err());
     })]);
 }
 
@@ -36,7 +36,7 @@ fn resize() {
         assert_eq!(arr.data_mut().resize(50), Ok(()));
 
         // Rainy day
-        assert!(arr.data_mut().resize(u64::MAX).is_err());
+        assert!(arr.data_mut().resize(usize::MAX).is_err());
     })]);
 }
 

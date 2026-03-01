@@ -698,7 +698,13 @@ fn validate_atomic_access(
     }
 
     // 8. Return (accessIndex × elementSize) + offset.
-    let offset = ((access_index * kind.element_size()) + offset) as usize;
+    let offset = access_index
+        .checked_mul(kind.element_size())
+        .and_then(|v| v.checked_add(offset))
+        .ok_or_else(|| JsNativeError::range().with_message("typed array byte offset overflow"))?;
+
+    let offset = usize::try_from(offset)
+        .map_err(|_| JsNativeError::range().with_message("typed array byte offset overflow"))?;
     Ok(AtomicAccess {
         byte_offset: offset,
         kind,

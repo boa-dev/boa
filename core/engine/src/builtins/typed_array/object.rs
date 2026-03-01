@@ -31,9 +31,9 @@ use super::{TypedArrayKind, is_valid_integer_index};
 pub struct TypedArray {
     viewed_array_buffer: BufferObject,
     kind: TypedArrayKind,
-    byte_offset: u64,
-    byte_length: Option<u64>,
-    array_length: Option<u64>,
+    byte_offset: usize,
+    byte_length: Option<usize>,
+    array_length: Option<usize>,
 }
 
 impl JsData for TypedArray {
@@ -58,9 +58,9 @@ impl TypedArray {
     pub(crate) const fn new(
         viewed_array_buffer: BufferObject,
         kind: TypedArrayKind,
-        byte_offset: u64,
-        byte_length: Option<u64>,
-        array_length: Option<u64>,
+        byte_offset: usize,
+        byte_length: Option<usize>,
+        array_length: Option<usize>,
     ) -> Self {
         Self {
             viewed_array_buffer,
@@ -81,7 +81,7 @@ impl TypedArray {
     /// [spec]: https://tc39.es/ecma262/sec-istypedarrayoutofbounds
     pub(crate) fn is_out_of_bounds(&self, buf_byte_len: usize) -> bool {
         // Checks when allocating the buffer ensure the length fits inside an `u64`.
-        let buf_byte_len = buf_byte_len as u64;
+        let buf_byte_len = buf_byte_len;
 
         // 1. Let O be taRecord.[[Object]].
         // 2. Let bufferByteLength be taRecord.[[CachedBufferByteLength]].
@@ -111,7 +111,7 @@ impl TypedArray {
 
     /// Get the `TypedArray` object's byte offset.
     #[must_use]
-    pub const fn byte_offset(&self) -> u64 {
+    pub const fn byte_offset(&self) -> usize {
         self.byte_offset
     }
 
@@ -133,7 +133,7 @@ impl TypedArray {
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-typedarraybytelength
     #[must_use]
-    pub fn byte_length(&self, buf_byte_len: usize) -> u64 {
+    pub fn byte_length(&self, buf_byte_len: usize) -> usize {
         // 1. If IsTypedArrayOutOfBounds(taRecord) is true, return 0.
         if self.is_out_of_bounds(buf_byte_len) {
             return 0;
@@ -167,10 +167,9 @@ impl TypedArray {
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-typedarraylength
     #[must_use]
-    pub fn array_length(&self, buf_byte_len: usize) -> u64 {
+    pub fn array_length(&self, buf_byte_len: usize) -> usize {
         // 1. Assert: IsTypedArrayOutOfBounds(taRecord) is false.
         debug_assert!(!self.is_out_of_bounds(buf_byte_len));
-        let buf_byte_len = buf_byte_len as u64;
 
         // 2. Let O be taRecord.[[Object]].
 
@@ -228,7 +227,7 @@ impl TypedArray {
     ///
     /// Note: if this is only used for bounds checking, it is recommended to use
     /// the `Ordering::Relaxed` ordering to get the buffer slice.
-    pub(crate) fn validate_index(&self, index: f64, buf_len: usize) -> Option<u64> {
+    pub(crate) fn validate_index(&self, index: f64, buf_len: usize) -> Option<usize> {
         // 2. If IsIntegralNumber(index) is false, return false.
         if index.is_nan() || index.is_infinite() || index.fract() != 0.0 {
             return None;
@@ -253,7 +252,7 @@ impl TypedArray {
         }
 
         // 9. Return true.
-        Some(index as u64)
+        Some(index as usize)
     }
 }
 
@@ -628,7 +627,7 @@ fn typed_array_get_element(obj: &JsObject, index: f64) -> Option<JsValue> {
     let size = inner.kind.element_size();
 
     // 4. Let byteIndexInBuffer be (ℝ(index) × elementSize) + offset.
-    let byte_index = ((index * size) + offset) as usize;
+    let byte_index = (index * size) + offset;
 
     // 5. Let elementType be TypedArrayElementType(O).
     let elem_type = inner.kind();
@@ -687,7 +686,7 @@ pub(crate) fn typed_array_set_element(
     let size = elem_type.element_size();
 
     //     c. Let byteIndexInBuffer be (ℝ(index) × elementSize) + offset.
-    let byte_index = ((index * size) + offset) as usize;
+    let byte_index = (index * size) + offset;
 
     //     e. Perform SetValueInBuffer(O.[[ViewedArrayBuffer]], byteIndexInBuffer, elementType, numValue, true, unordered).
     // SAFETY: The TypedArray object guarantees that the buffer is aligned.
