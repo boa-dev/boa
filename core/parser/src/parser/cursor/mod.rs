@@ -64,10 +64,7 @@ where
     }
 
     /// Increases parenthesized expression nesting level.
-    pub(super) fn enter_parenthesized_expression(
-        &mut self,
-        position: Position,
-    ) -> ParseResult<()> {
+    pub(super) fn enter_parenthesized_expression(&mut self, position: Position) -> ParseResult<()> {
         if self.parenthesized_expression_nesting >= Self::MAX_PARENTHESIZED_EXPRESSION_NESTING {
             return Err(Error::general(
                 "too many nested parenthesized expressions",
@@ -82,7 +79,8 @@ where
     /// Decreases parenthesized expression nesting level.
     pub(super) fn exit_parenthesized_expression(&mut self) {
         debug_assert!(self.parenthesized_expression_nesting > 0);
-        self.parenthesized_expression_nesting = self.parenthesized_expression_nesting.saturating_sub(1);
+        self.parenthesized_expression_nesting =
+            self.parenthesized_expression_nesting.saturating_sub(1);
     }
 
     /// Sets the goal symbol of the cursor to `Module`.
