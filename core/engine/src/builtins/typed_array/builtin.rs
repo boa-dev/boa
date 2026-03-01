@@ -1280,11 +1280,11 @@ impl BuiltinTypedArray {
 
         // 5. If fromIndex is present, let n be ? ToIntegerOrInfinity(fromIndex); else let n be len - 1.
         let k: usize = match args.get(1) {
-            None => len.saturating_sub(1),
-
+            None => len,
             Some(n) => {
                 let n = n.to_integer_or_infinity(context)?;
 
+                // TODO: Safe cast
                 match n {
                     // 6. If n is -∞, return -1𝔽.
                     IntegerOrInfinity::NegativeInfinity => {
@@ -1292,19 +1292,12 @@ impl BuiltinTypedArray {
                     }
                     // 7. If n ≥ 0, then
                     // a. Let k be min(n, len - 1).
-                    IntegerOrInfinity::PositiveInfinity => len.saturating_sub(1),
+                    IntegerOrInfinity::Integer(i) if i >= 0 => min(i as usize + 1, len),
+                    IntegerOrInfinity::PositiveInfinity => len,
 
                     // 8. Else,
                     // a. Let k be len + n.
-                    IntegerOrInfinity::Integer(i) if i >= 0 => usize::try_from(i)
-                        .ok()
-                        .map_or(len.saturating_sub(1), |i| i.min(len.saturating_sub(1))),
-
-                    // 8. Else,
-                    // a. Let k be len + n.
-                    IntegerOrInfinity::Integer(i) => isize::try_from(i)
-                        .ok()
-                        .map_or(0, |i| len.saturating_add_signed(i)),
+                    IntegerOrInfinity::Integer(i) => len.saturating_add_signed(i as isize + 1),
                 }
             }
         };
