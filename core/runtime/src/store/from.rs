@@ -8,7 +8,7 @@ use boa_engine::object::builtins::{
     JsTypedArray,
 };
 use boa_engine::property::PropertyKey;
-use boa_engine::{Context, JsError, JsObject, JsResult, JsString, JsValue, JsVariant, js_error};
+use boa_engine::{Context, JsObject, JsResult, JsString, JsValue, JsVariant, js_error};
 use std::collections::{HashMap, HashSet};
 
 /// A Map of seen objects when walking through the value. We use the address
@@ -90,7 +90,6 @@ fn try_from_array_clone(
     seen.insert(&JsObject::from(array.clone()), dolly.clone());
 
     let length = array.length(context)?;
-    let length = usize::try_from(length).map_err(JsError::from_rust)?;
     let mut inner = Vec::with_capacity(length);
     for i in 0..length {
         let v = array

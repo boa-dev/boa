@@ -345,7 +345,6 @@ impl SharedArrayBuffer {
                 )
                 .into());
         }
-        let new_byte_len = new_byte_len;
 
         // If we used let-else above to avoid the expect, we would carry a borrow through the `to_index`
         // call, which could mutably borrow. Another alternative would be to clone the whole
@@ -457,9 +456,6 @@ impl SharedArrayBuffer {
                     .into());
             }
 
-            let first = first;
-            let new_len = new_len;
-
             // 20. Let fromBuf be O.[[ArrayBufferData]].
             let from_buf = &buf.bytes_with_len(len)[first..];
 
@@ -563,6 +559,8 @@ pub(crate) fn create_shared_byte_data_block(
     size: usize,
     context: &mut Context,
 ) -> JsResult<AlignedBox<[AtomicU8]>> {
+    // 1. Let db be a new Shared Data Block value consisting of size bytes. If it is impossible to
+    //    create such a Shared Data Block, throw a RangeError exception.
     if size > context.host_hooks().max_buffer_size(context) {
         return Err(JsNativeError::range()
             .with_message(
@@ -570,12 +568,6 @@ pub(crate) fn create_shared_byte_data_block(
             )
             .into());
     }
-
-    // 1. Let db be a new Shared Data Block value consisting of size bytes. If it is impossible to
-    //    create such a Shared Data Block, throw a RangeError exception.
-    let size = size.try_into().map_err(|e| {
-        JsNativeError::range().with_message(format!("couldn't allocate the data block: {e}"))
-    })?;
 
     if size == 0 {
         // Must ensure we don't allocate a zero-sized buffer.
