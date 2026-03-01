@@ -52,26 +52,15 @@ impl InlineCache {
         }
 
         let mut entries = self.entries.borrow_mut();
-        let shape_addr = shape.to_addr_usize();
-
-        // If the shape already exists, update its slot.
-        // This handles cases where property transitions preserve the shape but change the slot.
-        for entry in entries.iter_mut() {
-            if let Some(upgraded) = entry.shape.upgrade()
-                && upgraded.to_addr_usize() == shape_addr
-            {
-                entry.slot = slot;
-                return;
-            }
-        }
 
         // Add a new entry if there's space.
-        if entries.len() < PIC_CAPACITY {
-            entries.push(PicEntry {
+        if entries
+            .try_push(PicEntry {
                 shape: shape.into(),
                 slot,
-            });
-        } else {
+            })
+            .is_err()
+        {
             // Polymorphic cache is full, transition to megamorphic.
             self.megamorphic.set(true);
             entries.clear();
