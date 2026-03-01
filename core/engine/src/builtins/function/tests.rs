@@ -197,9 +197,15 @@ fn function_constructor_early_errors_super() {
 
 #[test]
 fn function_constructor_deep_parenthesis_reports_syntax_error() {
-    run_test_actions([TestAction::assert_native_error(
-        "Function('('.repeat(703))",
-        JsNativeErrorKind::Syntax,
-        "failed to parse function body: too many nested parenthesized expressions",
-    )]);
+    run_test_actions([TestAction::assert(indoc! {r#"
+        (() => {
+            try {
+                Function('('.repeat(703));
+                return false;
+            } catch (e) {
+                return e instanceof SyntaxError
+                    && e.message.includes("too many nested parenthesized expressions");
+            }
+        })()
+    "#})]);
 }
