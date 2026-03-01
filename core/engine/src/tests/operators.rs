@@ -211,6 +211,45 @@ fn typeofs() {
 }
 
 #[test]
+fn typeof_edge_cases() {
+    run_test_actions([
+        TestAction::assert_eq("typeof notDeclared", js_str!("undefined")),
+        TestAction::assert_eq(
+            indoc! {r#"
+                function f() {
+                    return typeof x;
+                    var x = 1;
+                }
+                f();
+            "#},
+            js_str!("undefined"),
+        ),
+        TestAction::assert_native_error(
+            indoc! {r#"
+                function f() {
+                    return typeof x;
+                    let x = 1;
+                }
+                f();
+            "#},
+            JsNativeErrorKind::Reference,
+            "access of uninitialized binding",
+        ),
+        TestAction::assert_native_error(
+            indoc! {r#"
+                function f() {
+                    return typeof x;
+                    const x = 1;
+                }
+                f();
+            "#},
+            JsNativeErrorKind::Reference,
+            "access of uninitialized binding",
+        ),
+    ]);
+}
+
+#[test]
 fn unary_post() {
     run_test_actions([
         TestAction::assert_eq("{ let a = 5; a++; a }", 6),
@@ -265,6 +304,69 @@ fn unary_delete() {
         TestAction::assert("delete []"),
         TestAction::assert("delete function(){}"),
         TestAction::assert("delete delete delete 1"),
+    ]);
+}
+
+#[test]
+fn delete_optional_chaining() {
+    run_test_actions([
+        // Basic: delete o?.prop actually removes the property descriptor.
+        TestAction::assert(indoc! {r#"
+            var o = { a: 1 };
+            delete o?.a === true
+                && Object.getOwnPropertyDescriptor(o, "a") === undefined
+        "#}),
+        // Chain: delete o?.a.b removes nested property descriptor, keeps sibling.
+        TestAction::assert(indoc! {r#"
+            var o = { a: { b: 1, c: 2 } };
+            delete o?.a.b === true
+                && Object.getOwnPropertyDescriptor(o.a, "b") === undefined
+                && o.a.c === 2
+        "#}),
+        // Multiple optional: delete o?.a?.b
+        TestAction::assert(indoc! {r#"
+            var o = { a: { b: 1 } };
+            delete o?.a?.b === true
+                && Object.getOwnPropertyDescriptor(o.a, "b") === undefined
+        "#}),
+        // Null base short-circuits to true without error.
+        TestAction::assert("delete null?.a === true"),
+        // Undefined base short-circuits to true without error.
+        TestAction::assert("delete undefined?.a === true"),
+        // Null in the middle with ?. short-circuits to true.
+        TestAction::assert(indoc! {r#"
+            var o = { a: null };
+            delete o?.a?.b === true
+        "#}),
+        // Computed property: delete o?.["key"]
+        TestAction::assert(indoc! {r#"
+            var o = { x: 1 };
+            delete o?.["x"] === true
+                && Object.getOwnPropertyDescriptor(o, "x") === undefined
+        "#}),
+        // Computed property in chain: delete o?.a["b"]
+        TestAction::assert(indoc! {r#"
+            var o = { a: { b: 1 } };
+            delete o?.a["b"] === true
+                && Object.getOwnPropertyDescriptor(o.a, "b") === undefined
+        "#}),
+        // Non-existent property returns true.
+        TestAction::assert(indoc! {r#"
+            var o = { a: 1 };
+            delete o?.nonExistent === true
+                && Object.getOwnPropertyDescriptor(o, "a") !== undefined
+        "#}),
+        // Delete from function return value.
+        TestAction::assert(indoc! {r#"
+            function f() { return { x: 1 }; }
+            delete f()?.x === true
+        "#}),
+        // Deeply nested optional chain.
+        TestAction::assert(indoc! {r#"
+            var o = { a: { b: { c: { d: 1 } } } };
+            delete o?.a?.b?.c?.d === true
+                && Object.getOwnPropertyDescriptor(o.a.b.c, "d") === undefined
+        "#}),
     ]);
 }
 
