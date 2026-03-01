@@ -149,3 +149,19 @@ impl<'ast> VisitorMut<'ast> for Optimizer<'_> {
         ControlFlow::Continue(())
     }
 }
+
+#[cfg(test)]
+mod tests {
+    use super::OptimizerStatistics;
+
+    #[test]
+    fn optimizer_statistics_accessors_match_internal_counters() {
+        let statistics = OptimizerStatistics {
+            constant_folding_run_count: 3,
+            constant_folding_pass_count: 7,
+        };
+
+        assert_eq!(statistics.constant_folding_run_count(), 3);
+        assert_eq!(statistics.constant_folding_pass_count(), 7);
+    }
+}

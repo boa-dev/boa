@@ -1,7 +1,8 @@
 use std::path::Path;
 
+use super::JsErasedNativeErrorKind;
 use crate::{
-    Context, JsError, Source,
+    Context, JsError, JsNativeError, JsNativeErrorKind, Source,
     builtins::promise::PromiseState,
     module::Module,
     vm::{shadow_stack::ShadowEntry, source_info::SourcePath},
@@ -175,4 +176,20 @@ fn eval_error_has_backtrace() {
             );
         }
     }
+}
+
+#[test]
+fn native_error_kind_accessor_returns_expected_variant() {
+    let error = JsNativeError::typ();
+    assert!(matches!(error.kind(), JsNativeErrorKind::Type));
+}
+
+#[test]
+fn erased_native_error_kind_accessor_returns_expected_variant() {
+    let mut context = Context::default();
+    let erased = JsError::from_native(JsNativeError::range()).into_erased(&mut context);
+    let native = erased
+        .as_native()
+        .expect("native errors must stay native in erased representation");
+    assert!(matches!(native.kind(), JsErasedNativeErrorKind::Range));
 }
