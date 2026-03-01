@@ -235,10 +235,18 @@ impl From<SharedShape> for Shape {
 pub(crate) enum WeakShape {
     Unique(WeakUniqueShape),
     Shared(WeakSharedShape),
-    // None,
 }
 
 impl WeakShape {
+    /// Return location in memory of the [`Shape`].
+    ///
+    /// Returns `0` if the shape has been freed.
+    #[inline]
+    #[must_use]
+    pub(crate) fn to_addr_usize(&self) -> usize {
+        self.upgrade().as_ref().map_or(0, Shape::to_addr_usize)
+    }
+
     /// Return location in memory of the [`Shape`].
     ///
     /// Returns `0` if the shape has been freed.
@@ -248,7 +256,6 @@ impl WeakShape {
         match self {
             WeakShape::Shared(shape) => Some(shape.upgrade()?.into()),
             WeakShape::Unique(shape) => Some(shape.upgrade()?.into()),
-            // WeakShape::None => None,
         }
     }
 }

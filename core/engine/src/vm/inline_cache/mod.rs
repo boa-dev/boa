@@ -1,5 +1,6 @@
 use arrayvec::ArrayVec;
-use std::cell::Cell;
+use itertools::Itertools;
+use std::{cell::Cell, fmt};
 
 use boa_gc::GcRefCell;
 use boa_macros::{Finalize, Trace};
@@ -16,7 +17,7 @@ pub(crate) const PIC_CAPACITY: usize = 4;
 
 /// A cached shape-to-slot mapping for a polymorphic inline cache.
 #[derive(Clone, Debug, Trace, Finalize)]
-pub(crate) struct PicEntry {
+pub(crate) struct CacheEntry {
     /// A weak reference is kept to the shape to avoid the shape preventing deallocation.
     pub(crate) shape: WeakShape,
     #[unsafe_ignore_trace]
@@ -30,11 +31,26 @@ pub(crate) struct InlineCache {
     pub(crate) name: JsString,
 
     /// Multiple cached shape-to-slot entries.
-    pub(crate) entries: GcRefCell<ArrayVec<PicEntry, PIC_CAPACITY>>,
+    pub(crate) entries: GcRefCell<ArrayVec<CacheEntry, PIC_CAPACITY>>,
 
     /// Whether this access site has seen too many shapes and should no longer be cached.
     #[unsafe_ignore_trace]
     pub(crate) megamorphic: Cell<bool>,
+}
+
+impl fmt::Display for InlineCache {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        write!(f, "[ prop: {}, entries: ", self.name.display_escaped())?;
+
+        if self.megamorphic.get() {
+            return write!(f, "{{ megamorphic }} ]");
+        }
+
+        let entries = self.entries.borrow();
+        let entries = entries.iter().map(|e| e.shape.to_addr_usize()).format(", ");
+
+        write!(f, "{{ {entries:#x} }} ]")
+    }
 }
 
 impl InlineCache {
@@ -55,7 +71,7 @@ impl InlineCache {
 
         // Add a new entry if there's space.
         if entries
-            .try_push(PicEntry {
+            .try_push(CacheEntry {
                 shape: shape.into(),
                 slot,
             })
@@ -94,23 +110,5 @@ impl InlineCache {
         }
 
         result
-    }
-
-    /// Returns a formatted string displaying all cached shape addresses.
-    pub(crate) fn shapes_display(&self) -> String {
-        if self.megamorphic.get() {
-            return "megamorphic".into();
-        }
-        let entries = self.entries.borrow();
-        let addrs: Vec<String> = entries
-            .iter()
-            .filter_map(|e| e.shape.upgrade())
-            .map(|s| format!("0x{:x}", s.to_addr_usize()))
-            .collect();
-        if addrs.is_empty() {
-            "empty".into()
-        } else {
-            addrs.join(", ")
-        }
     }
 }
