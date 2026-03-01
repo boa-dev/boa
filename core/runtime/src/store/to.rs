@@ -165,8 +165,8 @@ fn try_into_regexp(
 fn try_into_data_view(
     store: &JsValueStore,
     buffer: &JsValueStore,
-    byte_length: u64,
-    byte_offset: u64,
+    byte_length: usize,
+    byte_offset: usize,
     seen: &mut ReverseSeenMap,
     context: &mut Context,
 ) -> JsResult<JsValue> {
