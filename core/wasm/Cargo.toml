@@ -1,0 +1,18 @@
+[package]
+name = "boa_wasm_parser"
+description = "WebAssembly binary format parser for the Boa JavaScript engine."
+keywords = ["javascript", "wasm", "webassembly", "parser"]
+categories = ["parser-implementations", "wasm"]
+publish = false
+version.workspace = true
+edition.workspace = true
+authors.workspace = true
+license.workspace = true
+repository.workspace = true
+rust-version.workspace = true
+
+[lints]
+workspace = true
+
+[package.metadata.docs.rs]
+all-features = true

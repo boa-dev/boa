@@ -45,6 +45,7 @@ boa_macros = { version = "~1.0.0-dev", path = "core/macros" }
 boa_parser = { version = "~1.0.0-dev", path = "core/parser" }
 boa_runtime = { version = "~1.0.0-dev", path = "core/runtime" }
 boa_string = { version = "~1.0.0-dev", path = "core/string" }
+boa_wasm_parser = { version = "~1.0.0-dev", path = "core/wasm" }
 
 # Utility Repo Crates
 tag_ptr = { version = "~0.1.0", path = "utils/tag_ptr" }

@@ -666,6 +666,10 @@ dependencies = [
 ]
 
 [[package]]
+name = "boa_wasm_parser"
+version = "1.0.0-dev"
+
+[[package]]
 name = "bumpalo"
 version = "3.20.2"
 source = "registry+https://github.com/rust-lang/crates.io-index"
