@@ -165,7 +165,8 @@ impl CreatePromiseCapability {
         let res = {
             let vm = context.vm_mut();
             vm.stack.get_promise_capability(&vm.frame).is_some()
-        }; if res {
+        };
+        if res {
             return;
         }
 

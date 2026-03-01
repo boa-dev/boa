@@ -29,7 +29,7 @@ macro_rules! full_benchmarks {
             $(
                 {
                     static CODE: &str = include_str!(concat!("bench_scripts/", stringify!($name), ".js"));
-                    let mut context = Context::default();
+                    let context = Context::default();
 
                     // Disable optimizations
                     context.set_optimizer_options(OptimizerOptions::empty());
@@ -39,7 +39,7 @@ macro_rules! full_benchmarks {
                             Script::parse(
                                 black_box(Source::from_bytes(CODE)),
                                 None,
-                                &Context,
+                                &context,
                             ).unwrap()
                         })
                     });

@@ -94,8 +94,8 @@ impl ForInIterator {
         let mut object = iterator.object.to_object(context)?;
         loop {
             if !iterator.object_was_visited {
-                let keys = object
-                    .__own_property_keys__(&InternalMethodPropertyContext::new(context))?;
+                let keys =
+                    object.__own_property_keys__(&InternalMethodPropertyContext::new(context))?;
                 for k in keys {
                     match k {
                         PropertyKey::String(ref k) => {

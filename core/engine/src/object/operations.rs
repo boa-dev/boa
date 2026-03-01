@@ -492,8 +492,7 @@ impl JsObject {
         // 2. Assert: level is either sealed or frozen.
 
         // 3. Let status be ? O.[[PreventExtensions]]().
-        let status =
-            self.__prevent_extensions__(&InternalMethodPropertyContext::new(context))?;
+        let status = self.__prevent_extensions__(&InternalMethodPropertyContext::new(context))?;
         // 4. If status is false, return false.
         if !status {
             return Ok(false);
@@ -686,8 +685,7 @@ impl JsObject {
     ) -> JsResult<Vec<JsValue>> {
         // 1. Assert: Type(O) is Object.
         // 2. Let ownKeys be ? O.[[OwnPropertyKeys]]().
-        let own_keys =
-            self.__own_property_keys__(&InternalMethodPropertyContext::new(context))?;
+        let own_keys = self.__own_property_keys__(&InternalMethodPropertyContext::new(context))?;
         // 3. Let properties be a new empty List.
         let mut properties = vec![];
 
@@ -1392,13 +1390,12 @@ impl JsValue {
         // 6. Repeat,
         loop {
             // a. Set O to ? O.[[GetPrototypeOf]]().
-            object = match object
-                .__get_prototype_of__(&InternalMethodPropertyContext::new(context))?
-            {
-                Some(obj) => obj,
-                // b. If O is null, return false.
-                None => return Ok(false),
-            };
+            object =
+                match object.__get_prototype_of__(&InternalMethodPropertyContext::new(context))? {
+                    Some(obj) => obj,
+                    // b. If O is null, return false.
+                    None => return Ok(false),
+                };
 
             // c. If SameValue(P, O) is true, return true.
             if JsObject::equals(&object, &prototype) {

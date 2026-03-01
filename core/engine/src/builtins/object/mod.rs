@@ -528,8 +528,7 @@ impl OrdinaryObject {
         let obj = args.get_or_undefined(0).to_object(context)?;
 
         // 2. Let ownKeys be ? obj.[[OwnPropertyKeys]]().
-        let own_keys =
-            obj.__own_property_keys__(&InternalMethodPropertyContext::new(context))?;
+        let own_keys = obj.__own_property_keys__(&InternalMethodPropertyContext::new(context))?;
 
         // 3. Let descriptors be OrdinaryObjectCreate(%Object.prototype%).
         let descriptors = JsObject::with_object_proto(context.intrinsics());
@@ -1194,8 +1193,7 @@ impl OrdinaryObject {
 
         if let Some(o) = o.as_object() {
             // 2. Let status be ? O.[[PreventExtensions]]().
-            let status =
-                o.__prevent_extensions__(&InternalMethodPropertyContext::new(context))?;
+            let status = o.__prevent_extensions__(&InternalMethodPropertyContext::new(context))?;
             // 3. If status is false, throw a TypeError exception.
             if !status {
                 return Err(JsNativeError::typ()
