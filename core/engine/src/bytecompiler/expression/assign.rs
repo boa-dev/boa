@@ -1,3 +1,8 @@
+use crate::vm::opcode::{
+    Add, BitAnd, BitOr, BitXor, Coalesce, Div, GetPrivateField, GetPropertyByValuePush, LogicalAnd,
+    LogicalOr, Mod, Mul, Pow, SetPrivateField, SetPropertyByValue, ShiftLeft, ShiftRight, Sub,
+    Super, This, ThrowMutateImmutable, UnsignedShiftRight,
+};
 use crate::{
     bytecompiler::{Access, BindingAccessOpcode, ByteCompiler, Label, Register, ToJsString},
     vm::opcode::BindingOpcode,
@@ -45,15 +50,15 @@ impl ByteCompiler<'_> {
                 if short_circuit {
                     let next = compiler.next_opcode_location();
                     match op {
-                        AssignOp::BoolAnd => compiler
-                            .bytecode
-                            .emit_logical_and(Self::DUMMY_ADDRESS, dst.variable()),
-                        AssignOp::BoolOr => compiler
-                            .bytecode
-                            .emit_logical_or(Self::DUMMY_ADDRESS, dst.variable()),
-                        AssignOp::Coalesce => compiler
-                            .bytecode
-                            .emit_coalesce(Self::DUMMY_ADDRESS, dst.variable()),
+                        AssignOp::BoolAnd => {
+                            LogicalAnd::emit(&mut *compiler, Self::DUMMY_ADDRESS, dst.variable());
+                        }
+                        AssignOp::BoolOr => {
+                            LogicalOr::emit(&mut *compiler, Self::DUMMY_ADDRESS, dst.variable());
+                        }
+                        AssignOp::Coalesce => {
+                            Coalesce::emit(&mut *compiler, Self::DUMMY_ADDRESS, dst.variable());
+                        }
                         _ => unreachable!(),
                     }
                     compiler.compile_expr(expr, dst);
@@ -62,62 +67,74 @@ impl ByteCompiler<'_> {
                     let rhs = compiler.register_allocator.alloc();
                     compiler.compile_expr(expr, &rhs);
                     match op {
-                        AssignOp::Add => compiler.bytecode.emit_add(
+                        AssignOp::Add => Add::emit(
+                            &mut *compiler,
                             dst.variable(),
                             dst.variable(),
                             rhs.variable(),
                         ),
-                        AssignOp::Sub => compiler.bytecode.emit_sub(
+                        AssignOp::Sub => Sub::emit(
+                            &mut *compiler,
                             dst.variable(),
                             dst.variable(),
                             rhs.variable(),
                         ),
-                        AssignOp::Mul => compiler.bytecode.emit_mul(
+                        AssignOp::Mul => Mul::emit(
+                            &mut *compiler,
                             dst.variable(),
                             dst.variable(),
                             rhs.variable(),
                         ),
-                        AssignOp::Div => compiler.bytecode.emit_div(
+                        AssignOp::Div => Div::emit(
+                            &mut *compiler,
                             dst.variable(),
                             dst.variable(),
                             rhs.variable(),
                         ),
-                        AssignOp::Mod => compiler.bytecode.emit_mod(
+                        AssignOp::Mod => Mod::emit(
+                            &mut *compiler,
                             dst.variable(),
                             dst.variable(),
                             rhs.variable(),
                         ),
-                        AssignOp::Exp => compiler.bytecode.emit_pow(
+                        AssignOp::Exp => Pow::emit(
+                            &mut *compiler,
                             dst.variable(),
                             dst.variable(),
                             rhs.variable(),
                         ),
-                        AssignOp::And => compiler.bytecode.emit_bit_and(
+                        AssignOp::And => BitAnd::emit(
+                            &mut *compiler,
                             dst.variable(),
                             dst.variable(),
                             rhs.variable(),
                         ),
-                        AssignOp::Or => compiler.bytecode.emit_bit_or(
+                        AssignOp::Or => BitOr::emit(
+                            &mut *compiler,
                             dst.variable(),
                             dst.variable(),
                             rhs.variable(),
                         ),
-                        AssignOp::Xor => compiler.bytecode.emit_bit_xor(
+                        AssignOp::Xor => BitXor::emit(
+                            &mut *compiler,
                             dst.variable(),
                             dst.variable(),
                             rhs.variable(),
                         ),
-                        AssignOp::Shl => compiler.bytecode.emit_shift_left(
+                        AssignOp::Shl => ShiftLeft::emit(
+                            &mut *compiler,
                             dst.variable(),
                             dst.variable(),
                             rhs.variable(),
                         ),
-                        AssignOp::Shr => compiler.bytecode.emit_shift_right(
+                        AssignOp::Shr => ShiftRight::emit(
+                            &mut *compiler,
                             dst.variable(),
                             dst.variable(),
                             rhs.variable(),
                         ),
-                        AssignOp::Ushr => compiler.bytecode.emit_unsigned_shift_right(
+                        AssignOp::Ushr => UnsignedShiftRight::emit(
+                            &mut *compiler,
                             dst.variable(),
                             dst.variable(),
                             rhs.variable(),
@@ -165,7 +182,7 @@ impl ByteCompiler<'_> {
                             }
                             Err(BindingLocatorError::MutateImmutable) => {
                                 let index = compiler.get_or_insert_string(name);
-                                compiler.bytecode.emit_throw_mutate_immutable(index.into());
+                                ThrowMutateImmutable::emit(&mut compiler, index.into());
                             }
                             Err(BindingLocatorError::Silent) => {}
                         }
@@ -198,7 +215,8 @@ impl ByteCompiler<'_> {
                             let key = compiler.register_allocator.alloc();
                             compiler.compile_expr(expr, &key);
 
-                            compiler.bytecode.emit_get_property_by_value_push(
+                            GetPropertyByValuePush::emit(
+                                &mut compiler,
                                 dst.variable(),
                                 key.variable(),
                                 object.variable(),
@@ -207,7 +225,8 @@ impl ByteCompiler<'_> {
 
                             early_exit = emit(&mut compiler, dst, assign.rhs(), assign.op());
 
-                            compiler.bytecode.emit_set_property_by_value(
+                            SetPropertyByValue::emit(
+                                &mut compiler,
                                 dst.variable(),
                                 key.variable(),
                                 object.variable(),
@@ -224,7 +243,8 @@ impl ByteCompiler<'_> {
                         let object = compiler.register_allocator.alloc();
                         compiler.compile_expr(access.target(), &object);
 
-                        compiler.bytecode.emit_get_private_field(
+                        GetPrivateField::emit(
+                            &mut compiler,
                             dst.variable(),
                             object.variable(),
                             index.into(),
@@ -232,7 +252,8 @@ impl ByteCompiler<'_> {
 
                         early_exit = emit(&mut compiler, dst, assign.rhs(), assign.op());
 
-                        compiler.bytecode.emit_set_private_field(
+                        SetPrivateField::emit(
+                            &mut compiler,
                             dst.variable(),
                             object.variable(),
                             index.into(),
@@ -244,8 +265,8 @@ impl ByteCompiler<'_> {
                         PropertyAccessField::Const(name) => {
                             let object = compiler.register_allocator.alloc();
                             let receiver = compiler.register_allocator.alloc();
-                            compiler.bytecode.emit_super(object.variable());
-                            compiler.bytecode.emit_this(receiver.variable());
+                            Super::emit(&mut compiler, object.variable());
+                            This::emit(&mut compiler, receiver.variable());
 
                             compiler.emit_get_property_by_name(
                                 dst,
@@ -269,13 +290,14 @@ impl ByteCompiler<'_> {
                         PropertyAccessField::Expr(expr) => {
                             let object = compiler.register_allocator.alloc();
                             let receiver = compiler.register_allocator.alloc();
-                            compiler.bytecode.emit_super(object.variable());
-                            compiler.bytecode.emit_this(receiver.variable());
+                            Super::emit(&mut compiler, object.variable());
+                            This::emit(&mut compiler, receiver.variable());
 
                             let key = compiler.register_allocator.alloc();
                             compiler.compile_expr(expr, &key);
 
-                            compiler.bytecode.emit_get_property_by_value_push(
+                            GetPropertyByValuePush::emit(
+                                &mut compiler,
                                 dst.variable(),
                                 key.variable(),
                                 receiver.variable(),
@@ -284,7 +306,8 @@ impl ByteCompiler<'_> {
 
                             early_exit = emit(&mut compiler, dst, assign.rhs(), assign.op());
 
-                            compiler.bytecode.emit_set_property_by_value(
+                            SetPropertyByValue::emit(
+                                &mut compiler,
                                 dst.variable(),
                                 key.variable(),
                                 receiver.variable(),

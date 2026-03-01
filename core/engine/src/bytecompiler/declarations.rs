@@ -1,4 +1,9 @@
 use super::{BindingAccessOpcode, ToJsString};
+use crate::vm::opcode::{
+    CanDeclareGlobalFunction, CanDeclareGlobalVar, CreateGlobalFunctionBinding,
+    CreateGlobalVarBinding, CreateMappedArgumentsObject, CreateUnmappedArgumentsObject, Generator,
+    GetArgument, HasRestrictedGlobalProperty, Pop, PushUndefined, RestParameterInit,
+};
 use crate::{
     Context, JsNativeError, JsResult, SpannedSourceText,
     bytecompiler::{ByteCompiler, FunctionCompiler, FunctionSpec, NodeKind},
@@ -390,8 +395,7 @@ impl ByteCompiler<'_> {
             // c. Let hasRestrictedGlobal be ? env.HasRestrictedGlobalProperty(name).
             let value = self.register_allocator.alloc();
             let index = self.get_or_insert_string(name);
-            self.bytecode
-                .emit_has_restricted_global_property(value.variable(), index.into());
+            HasRestrictedGlobalProperty::emit(self, value.variable(), index.into());
 
             // d. If hasRestrictedGlobal is true, throw a SyntaxError exception.
             let exit = self.jump_if_false(&value);
@@ -430,8 +434,7 @@ impl ByteCompiler<'_> {
                 // 1. Let fnDefinable be ? env.CanDeclareGlobalFunction(fn).
                 let value = self.register_allocator.alloc();
                 let index = self.get_or_insert_name(name.sym());
-                self.bytecode
-                    .emit_can_declare_global_function(value.variable(), index.into());
+                CanDeclareGlobalFunction::emit(self, value.variable(), index.into());
 
                 // 2. If fnDefinable is false, throw a TypeError exception.
                 let exit = self.jump_if_true(&value);
@@ -466,8 +469,7 @@ impl ByteCompiler<'_> {
                     // a. Let vnDefinable be ? env.CanDeclareGlobalVar(vn).
                     let value = self.register_allocator.alloc();
                     let index = self.get_or_insert_name(name);
-                    self.bytecode
-                        .emit_can_declare_global_var(value.variable(), index.into());
+                    CanDeclareGlobalVar::emit(self, value.variable(), index.into());
 
                     // b. If vnDefinable is false, throw a TypeError exception.
                     let exit = self.jump_if_true(&value);
@@ -557,7 +559,8 @@ impl ByteCompiler<'_> {
 
             // c. Perform ? env.CreateGlobalFunctionBinding(fn, fo, false).
             let name_index = self.get_or_insert_name(name.sym());
-            self.bytecode.emit_create_global_function_binding(
+            CreateGlobalFunctionBinding::emit(
+                self,
                 dst.variable(),
                 false.into(),
                 name_index.into(),
@@ -569,8 +572,7 @@ impl ByteCompiler<'_> {
         for var in declared_var_names {
             // a. Perform ? env.CreateGlobalVarBinding(vn, false).
             let index = self.get_or_insert_name(var);
-            self.bytecode
-                .emit_create_global_var_binding(false.into(), index.into());
+            CreateGlobalVarBinding::emit(self, false.into(), index.into());
         }
 
         // 18. Return unused.
@@ -682,8 +684,7 @@ impl ByteCompiler<'_> {
                     // a. Let fnDefinable be ? varEnv.CanDeclareGlobalFunction(fn).
                     let value = self.register_allocator.alloc();
                     let index = self.get_or_insert_name(name.sym());
-                    self.bytecode
-                        .emit_can_declare_global_function(value.variable(), index.into());
+                    CanDeclareGlobalFunction::emit(self, value.variable(), index.into());
 
                     // b. If fnDefinable is false, throw a TypeError exception.
                     let exit = self.jump_if_true(&value);
@@ -716,7 +717,7 @@ impl ByteCompiler<'_> {
                     // ii. Perform ! varEnv.InitializeBinding(F, undefined).
                     let index = self.insert_binding(binding);
                     let value = self.register_allocator.alloc();
-                    self.bytecode.emit_push_undefined(value.variable());
+                    PushUndefined::emit(self, value.variable());
                     self.emit_binding_access(BindingAccessOpcode::DefInitVar, &index, &value);
                     self.register_allocator.dealloc(value);
                 }
@@ -742,8 +743,7 @@ impl ByteCompiler<'_> {
                         // i. Let vnDefinable be ? varEnv.CanDeclareGlobalVar(vn).
                         let value = self.register_allocator.alloc();
                         let index = self.get_or_insert_name(name);
-                        self.bytecode
-                            .emit_can_declare_global_var(value.variable(), index.into());
+                        CanDeclareGlobalVar::emit(self, value.variable(), index.into());
 
                         // ii. If vnDefinable is false, throw a TypeError exception.
                         let exit = self.jump_if_true(&value);
@@ -844,7 +844,8 @@ impl ByteCompiler<'_> {
 
                 // i. Perform ? varEnv.CreateGlobalFunctionBinding(fn, fo, true).
                 let name_index = self.get_or_insert_name(name.sym());
-                self.bytecode.emit_create_global_function_binding(
+                CreateGlobalFunctionBinding::emit(
+                    self,
                     dst.variable(),
                     true.into(),
                     name_index.into(),
@@ -888,8 +889,7 @@ impl ByteCompiler<'_> {
                 let index = self.get_or_insert_name(name);
 
                 // i. Perform ? varEnv.CreateGlobalVarBinding(vn, true).
-                self.bytecode
-                    .emit_create_global_var_binding(true.into(), index.into());
+                CreateGlobalVarBinding::emit(self, true.into(), index.into());
             }
         }
         // 18.b
@@ -901,7 +901,7 @@ impl ByteCompiler<'_> {
             // 3. Perform ! varEnv.InitializeBinding(vn, undefined).
             let index = self.insert_binding(binding);
             let value = self.register_allocator.alloc();
-            self.bytecode.emit_push_undefined(value.variable());
+            PushUndefined::emit(self, value.variable());
             self.emit_binding_access(BindingAccessOpcode::DefInitVar, &index, &value);
             self.register_allocator.dealloc(value);
         }
@@ -1029,8 +1029,7 @@ impl ByteCompiler<'_> {
             let value = self.register_allocator.alloc();
             if strict || !formals.is_simple() {
                 // i. Let ao be CreateUnmappedArgumentsObject(argumentsList).
-                self.bytecode
-                    .emit_create_unmapped_arguments_object(value.variable());
+                CreateUnmappedArgumentsObject::emit(self, value.variable());
             }
             // b. Else,
             else {
@@ -1038,8 +1037,7 @@ impl ByteCompiler<'_> {
                 //          that don't have a rest parameter, any parameter
                 //          default value initializers, or any destructured parameters.
                 // ii. Let ao be CreateMappedArgumentsObject(func, formals, argumentsList, env).
-                self.bytecode
-                    .emit_create_mapped_arguments_object(value.variable());
+                CreateMappedArgumentsObject::emit(self, value.variable());
                 self.emitted_mapped_arguments_object_opcode = true;
             }
 
@@ -1070,10 +1068,9 @@ impl ByteCompiler<'_> {
         for (i, parameter) in formals.as_ref().iter().enumerate() {
             let value = self.register_allocator.alloc();
             if parameter.is_rest_param() {
-                self.bytecode.emit_rest_parameter_init(value.variable());
+                RestParameterInit::emit(self, value.variable());
             } else {
-                self.bytecode
-                    .emit_get_argument((i as u32).into(), value.variable());
+                GetArgument::emit(self, (i as u32).into(), value.variable());
             }
 
             match parameter.variable().binding() {
@@ -1099,8 +1096,8 @@ impl ByteCompiler<'_> {
         }
 
         if generator {
-            self.bytecode.emit_generator(self.is_async().into());
-            self.bytecode.emit_pop();
+            Generator::emit(self, self.is_async().into());
+            Pop::emit(self);
         }
 
         // 27. If hasParameterExpressions is false, then
@@ -1138,7 +1135,7 @@ impl ByteCompiler<'_> {
                         // 3. If parameterBindings does not contain n, or if functionNames contains n, then
                         if !parameter_bindings.contains(&n) || function_names.contains(&n) {
                             // a. Let initialValue be undefined.
-                            self.bytecode.emit_push_undefined(value.variable());
+                            PushUndefined::emit(self, value.variable());
                         }
                         // 4. Else,
                         else {
@@ -1154,7 +1151,7 @@ impl ByteCompiler<'_> {
                         let index = self.insert_binding(binding);
 
                         // TODO: What?
-                        self.bytecode.emit_push_undefined(value.variable());
+                        PushUndefined::emit(self, value.variable());
                         self.emit_binding_access(BindingAccessOpcode::DefInitVar, &index, &value);
                         self.register_allocator.dealloc(value);
 
@@ -1183,7 +1180,7 @@ impl ByteCompiler<'_> {
                         let binding = scope.get_binding_reference(&n).expect("binding must exist");
                         let index = self.insert_binding(binding);
                         let value = self.register_allocator.alloc();
-                        self.bytecode.emit_push_undefined(value.variable());
+                        PushUndefined::emit(self, value.variable());
                         self.emit_binding_access(BindingAccessOpcode::DefInitVar, &index, &value);
                         self.register_allocator.dealloc(value);
                     }
@@ -1219,7 +1216,7 @@ impl ByteCompiler<'_> {
                             .expect("binding must exist");
                         let index = self.insert_binding(binding);
                         let value = self.register_allocator.alloc();
-                        self.bytecode.emit_push_undefined(value.variable());
+                        PushUndefined::emit(self, value.variable());
                         self.emit_binding_access(BindingAccessOpcode::DefInitVar, &index, &value);
                         self.register_allocator.dealloc(value);
 
