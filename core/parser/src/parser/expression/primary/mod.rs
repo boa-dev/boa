@@ -89,12 +89,14 @@ impl PrimaryExpression {
 
 /// Iteratively parses deeply nested parenthesized expressions to avoid stack overflow.
 ///
-/// When multiple consecutive `(` tokens are detected, this function consumes them all in a
-/// loop (not recursively), parses the single inner expression, then expects the matching `)`
-/// tokens. This allows any depth of balanced parentheses to be parsed safely.
+/// Called when we are already `FAST_PATH_PAREN_DEPTH` levels deep in parenthesized
+/// expression recursion AND the very next lookahead token is also `(`. At that point
+/// every following `(` in the consecutive run must itself be a pure nested wrapper
+/// (no operator between them), so we can consume the entire run in a loop, parse the
+/// single inner expression once, and then close all the matching `)` tokens in a loop.
 ///
-/// Unbalanced parentheses (e.g. unclosed `(`) fail naturally when the inner expression
-/// parser or the closing `)` expectation hits an unexpected token or end-of-input.
+/// Unbalanced input (e.g. unclosed `(`) surfaces naturally as a "missing `)`" error
+/// from the `expect` call — no special error handling is needed.
 fn parse_deep_parenthesized_expression<R>(
     cursor: &mut Cursor<R>,
     interner: &mut Interner,
@@ -106,8 +108,7 @@ where
 {
     cursor.set_goal(InputElement::RegExp);
 
-    // Consume ALL consecutive `(` tokens iteratively, counting them.
-    // This replaces what would otherwise be deep recursion through the expression chain.
+    // Consume ALL consecutive `(` tokens iteratively.
     let mut open_count: usize = 0;
     let mut span_start = None;
     while let Some(token) = cursor.peek(0, interner)? {
@@ -123,10 +124,10 @@ where
 
     let first_paren_start = span_start.expect("called with at least one open paren");
 
-    // Parse the single inner expression (not parenthesized at this level)
+    // Parse the inner expression (the recursion depth resets here).
     let expression = Expression::new(true, allow_yield, allow_await).parse(cursor, interner)?;
 
-    // Consume all matching `)` tokens
+    // Consume matching `)` tokens.
     let mut span_end = first_paren_start;
     for _ in 0..open_count {
         span_end = cursor
@@ -219,13 +220,20 @@ where
                 }
             }
             TokenKind::Punctuator(Punctuator::OpenParen) => {
-                // If the very next token after `(` is also `(`, we have consecutive nested
-                // parens. Use the iterative fast path to avoid recursive stack overflow.
-                // peek(0) = current `(`, peek(1) = what follows it.
+                // Track how many parenthesized expression levels deep we are.
+                // This counter is used purely as a strategy selector: below the
+                // threshold we use the normal recursive cover parser (which correctly
+                // handles arrow functions, spread, etc.); at or above the threshold
+                // we switch to an iterative fast path if the immediately following
+                // token is *also* `(` — which guarantees we are in a purely-nested
+                // chain and not inside an arrow-function parameter list.
+                let depth = cursor.enter_parenthesized();
+
                 let next_is_also_paren = cursor.peek(1, interner)?.map(Token::kind)
                     == Some(&TokenKind::Punctuator(Punctuator::OpenParen));
 
-                if next_is_also_paren {
+                let expr = if depth >= Cursor::<R>::FAST_PATH_PAREN_DEPTH && next_is_also_paren {
+                    // Deep purely-nested chain: handle iteratively to avoid stack overflow.
                     parse_deep_parenthesized_expression(
                         cursor,
                         interner,
@@ -233,15 +241,17 @@ where
                         self.allow_await,
                     )
                 } else {
-                    // Single or non-consecutive `(`: use standard recursive cover parser
-                    // which handles arrow functions, spread, etc.
+                    // Normal depth or complex inner expression: use the standard recursive
+                    // cover parser which handles arrow functions, spread, trailing commas, etc.
                     CoverParenthesizedExpressionAndArrowParameterList::new(
                         self.allow_yield,
                         self.allow_await,
                     )
                     .parse(cursor, interner)
-                    .map(Into::into)
-                }
+                };
+
+                cursor.exit_parenthesized();
+                expr
             }
             TokenKind::Punctuator(Punctuator::OpenBracket) => {
                 ArrayLiteral::new(self.allow_yield, self.allow_await)

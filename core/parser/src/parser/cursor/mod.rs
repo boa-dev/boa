@@ -37,12 +37,23 @@ pub(super) struct Cursor<R> {
 
     /// Tracks the number of tagged templates that are currently being parsed.
     tagged_templates_count: u32,
+
+    /// How many parenthesized-expression levels the parser has recursed into.
+    /// No hard ceiling — used only to decide when to switch to the iterative fast path.
+    parenthesized_depth: u32,
 }
 
 impl<R> Cursor<R>
 where
     R: ReadChar,
 {
+    /// Switch to the iterative fast path at this many paren levels of recursion.
+    /// Kept low in debug builds (small stacks) and generous in release.
+    #[cfg(debug_assertions)]
+    pub(super) const FAST_PATH_PAREN_DEPTH: u32 = 4;
+    #[cfg(not(debug_assertions))]
+    pub(super) const FAST_PATH_PAREN_DEPTH: u32 = 500;
+
     /// Creates a new cursor with the given reader.
     pub(super) fn new(reader: R) -> Self {
         Self {
@@ -51,7 +62,21 @@ where
             json_parse: false,
             identifier: 0,
             tagged_templates_count: 0,
+            parenthesized_depth: 0,
         }
+    }
+
+    /// Records entering one parenthesized-expression level.
+    /// Returns the depth **before** entering (0 = outermost).
+    pub(super) fn enter_parenthesized(&mut self) -> u32 {
+        let depth = self.parenthesized_depth;
+        self.parenthesized_depth += 1;
+        depth
+    }
+
+    /// Records leaving one parenthesized-expression level.
+    pub(super) fn exit_parenthesized(&mut self) {
+        self.parenthesized_depth = self.parenthesized_depth.saturating_sub(1);
     }
 
     /// Sets the goal symbol of the cursor to `Module`.
