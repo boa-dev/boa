@@ -1218,6 +1218,10 @@ impl JsNativeError {
     ///
     /// assert!(error.cause().unwrap().as_native().is_some());
     /// ```
+    ///
+    /// # Panics
+    ///
+    /// Panics if `cause` is an uncatchable error (i.e. an engine error).
     #[must_use]
     #[inline]
     pub fn with_cause<V>(mut self, cause: V) -> Self
@@ -1295,6 +1299,13 @@ impl JsNativeError {
     ///     js_string!("error!").into()
     /// )
     /// ```
+    ///
+    /// # Panics
+    ///
+    /// Panics if the error's `cause` or any of the errors in an [`AggregateError`][JsNativeErrorKind::Aggregate]
+    /// is an engine error, as engine errors cannot be converted to opaque JS values.
+    /// Also panics if defining the `errors` property on an `AggregateError` object fails,
+    /// which cannot happen on a newly created object.
     #[inline]
     pub fn into_opaque(self, context: &mut Context) -> JsObject {
         let Self {
