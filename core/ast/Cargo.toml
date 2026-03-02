@@ -25,6 +25,7 @@ num-bigint.workspace = true
 serde = { workspace = true, features = ["derive"], optional = true }
 arbitrary = { workspace = true, features = ["derive"], optional = true }
 indexmap.workspace = true
+strum.workspace = true
 
 [lints]
 workspace = true
