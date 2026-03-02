@@ -2,6 +2,7 @@
 #![allow(clippy::unnecessary_wraps)]
 
 use boa_engine::{Context, JsObject, js_string, object::ObjectInitializer, property::Attribute};
+use color_eyre::Result;
 
 mod function;
 mod gc;
@@ -67,7 +68,7 @@ fn create_boa_object(context: &mut Context) -> JsObject {
 }
 
 #[allow(clippy::redundant_pub_crate)]
-pub(crate) fn init_boa_debug_object(context: &mut Context) {
+pub(crate) fn init_boa_debug_object(context: &mut Context) -> Result<()> {
     let boa_object = create_boa_object(context);
     context
         .register_global_property(
@@ -75,5 +76,6 @@ pub(crate) fn init_boa_debug_object(context: &mut Context) {
             boa_object,
             Attribute::WRITABLE | Attribute::NON_ENUMERABLE | Attribute::CONFIGURABLE,
         )
-        .expect("cannot fail with the default object");
+        .map_err(|e| color_eyre::eyre::eyre!("failed to register debug object: {e}"))?;
+    Ok(())
 }

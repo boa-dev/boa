@@ -21,12 +21,12 @@ impl SharedExternalPrinterLogger {
     pub(crate) fn set<T: ExternalPrinter + Send + 'static>(&self, inner: T) {
         self.inner
             .lock()
-            .expect("printer lock failed")
+            .unwrap_or_else(|e| e.into_inner())
             .replace(Box::new(inner));
     }
 
     pub(crate) fn print(&self, message: String) {
-        if let Some(l) = &mut *self.inner.lock().expect("printer lock failed") {
+        if let Some(l) = &mut *self.inner.lock().unwrap_or_else(|e| e.into_inner()) {
             // Ignore errors, there's nothing we can do at this point.
             drop(l.print(message));
         } else {

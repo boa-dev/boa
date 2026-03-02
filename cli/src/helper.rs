@@ -140,12 +140,13 @@ static KEYWORDS: Set<&'static str> = phf_set! {
 };
 
 struct LineHighlighter {
-    regex: Regex,
+    regex: Option<Regex>,
 }
 
 impl LineHighlighter {
     fn new() -> Self {
-        // Precompiles the regex to avoid creating it again after every highlight
+        // Precompiles the regex to avoid creating it again after every highlight.
+        // If compilation fails (e.g. unsupported Unicode on some platforms), we fall back to no highlighting.
         let regex = Regex::new(
             r#"(?x)
             (?P<identifier>\b[$_\p{ID_Start}][$_\p{ID_Continue}\u{200C}\u{200D}]*\b) |
@@ -154,7 +155,7 @@ impl LineHighlighter {
             (?P<template_literal>`([^`\\]|\\.)*`) |
             (?P<op>[+\-/*%~^!&|=<>;:]) |
             (?P<number>0[bB][01](_?[01])*n?|0[oO][0-7](_?[0-7])*n?|0[xX][0-9a-fA-F](_?[0-9a-fA-F])*n?|(([0-9](_?[0-9])*\.([0-9](_?[0-9])*)?)|(([0-9](_?[0-9])*)?\.[0-9](_?[0-9])*)|([0-9](_?[0-9])*))([eE][+-]?[0-9](_?[0-9])*)?n?)"#,
-        ).expect("could not compile regular expression");
+        ).ok();
 
         Self { regex }
     }
@@ -200,12 +201,15 @@ impl Highlighter for LineHighlighter {
                 };
 
                 if let Some(colored) = colored {
-                    write!(dst, "{colored}").expect("could not append data to dst");
+                    let _ = write!(dst, "{colored}");
                 } else {
                     dst.push_str(&caps[0]);
                 }
             }
         }
-        self.regex.replace_all(line, Colorizer)
+        match &self.regex {
+            Some(regex) => regex.replace_all(line, Colorizer),
+            None => Borrowed(line),
+        }
     }
 }
