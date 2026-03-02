@@ -60,10 +60,11 @@ impl JsRegExp {
     where
         S: Into<JsValue>,
     {
-        let regexp = RegExp::initialize(None, &pattern.into(), &flags.into(), context)?
-            .as_object()
-            .expect("RegExp::initialize must return a RegExp object")
-            .clone();
+        let value = RegExp::initialize(None, &pattern.into(), &flags.into(), context)?;
+        let regexp = value.as_object().ok_or_else(|| {
+            JsNativeError::error()
+                .with_message("RegExp.initialize did not return an object")
+        })?.clone();
 
         Ok(Self { inner: regexp })
     }
@@ -83,50 +84,71 @@ impl JsRegExp {
     /// Returns a boolean value for whether the `d` flag is present in `JsRegExp` flags
     #[inline]
     pub fn has_indices(&self, context: &mut Context) -> JsResult<bool> {
-        RegExp::get_has_indices(&self.inner.clone().into(), &[], context)
-            .map(|v| v.as_boolean().expect("value must be a bool"))
+        let value = RegExp::get_has_indices(&self.inner.clone().into(), &[], context)?;
+        value.as_boolean().ok_or_else(|| {
+            JsNativeError::typ()
+                .with_message("RegExp.prototype.hasIndices getter must return a boolean")
+        }).map_err(Into::into)
     }
 
     /// Returns a boolean value for whether the `g` flag is present in `JsRegExp` flags
     #[inline]
     pub fn global(&self, context: &mut Context) -> JsResult<bool> {
-        RegExp::get_global(&self.inner.clone().into(), &[], context)
-            .map(|v| v.as_boolean().expect("value must be a bool"))
+        let value = RegExp::get_global(&self.inner.clone().into(), &[], context)?;
+        value.as_boolean().ok_or_else(|| {
+            JsNativeError::typ()
+                .with_message("RegExp.prototype.global getter must return a boolean")
+        }).map_err(Into::into)
     }
 
     /// Returns a boolean value for whether the `i` flag is present in `JsRegExp` flags
     #[inline]
     pub fn ignore_case(&self, context: &mut Context) -> JsResult<bool> {
-        RegExp::get_ignore_case(&self.inner.clone().into(), &[], context)
-            .map(|v| v.as_boolean().expect("value must be a bool"))
+        let value = RegExp::get_ignore_case(&self.inner.clone().into(), &[], context)?;
+        value.as_boolean().ok_or_else(|| {
+            JsNativeError::typ()
+                .with_message("RegExp.prototype.ignoreCase getter must return a boolean")
+        }).map_err(Into::into)
     }
 
     /// Returns a boolean value for whether the `m` flag is present in `JsRegExp` flags
     #[inline]
     pub fn multiline(&self, context: &mut Context) -> JsResult<bool> {
-        RegExp::get_multiline(&self.inner.clone().into(), &[], context)
-            .map(|v| v.as_boolean().expect("value must be a bool"))
+        let value = RegExp::get_multiline(&self.inner.clone().into(), &[], context)?;
+        value.as_boolean().ok_or_else(|| {
+            JsNativeError::typ()
+                .with_message("RegExp.prototype.multiline getter must return a boolean")
+        }).map_err(Into::into)
     }
 
     /// Returns a boolean value for whether the `s` flag is present in `JsRegExp` flags
     #[inline]
     pub fn dot_all(&self, context: &mut Context) -> JsResult<bool> {
-        RegExp::get_dot_all(&self.inner.clone().into(), &[], context)
-            .map(|v| v.as_boolean().expect("value must be a bool"))
+        let value = RegExp::get_dot_all(&self.inner.clone().into(), &[], context)?;
+        value.as_boolean().ok_or_else(|| {
+            JsNativeError::typ()
+                .with_message("RegExp.prototype.dotAll getter must return a boolean")
+        }).map_err(Into::into)
     }
 
     /// Returns a boolean value for whether the `u` flag is present in `JsRegExp` flags
     #[inline]
     pub fn unicode(&self, context: &mut Context) -> JsResult<bool> {
-        RegExp::get_unicode(&self.inner.clone().into(), &[], context)
-            .map(|v| v.as_boolean().expect("value must be a bool"))
+        let value = RegExp::get_unicode(&self.inner.clone().into(), &[], context)?;
+        value.as_boolean().ok_or_else(|| {
+            JsNativeError::typ()
+                .with_message("RegExp.prototype.unicode getter must return a boolean")
+        }).map_err(Into::into)
     }
 
     /// Returns a boolean value for whether the `y` flag is present in `JsRegExp` flags
     #[inline]
     pub fn sticky(&self, context: &mut Context) -> JsResult<bool> {
-        RegExp::get_sticky(&self.inner.clone().into(), &[], context)
-            .map(|v| v.as_boolean().expect("value must be a bool"))
+        let value = RegExp::get_sticky(&self.inner.clone().into(), &[], context)?;
+        value.as_boolean().ok_or_else(|| {
+            JsNativeError::typ()
+                .with_message("RegExp.prototype.sticky getter must return a boolean")
+        }).map_err(Into::into)
     }
 
     /// Returns the flags of `JsRegExp` as a string
@@ -146,11 +168,16 @@ impl JsRegExp {
     /// ```
     #[inline]
     pub fn flags(&self, context: &mut Context) -> JsResult<String> {
-        RegExp::get_flags(&self.inner.clone().into(), &[], context).map(|v| {
-            v.as_string()
-                .expect("value must be string")
-                .to_std_string()
-                .expect("flags must be a valid string")
+        let value = RegExp::get_flags(&self.inner.clone().into(), &[], context)?;
+        let s = value.as_string().ok_or_else(|| {
+            JsNativeError::typ()
+                .with_message("RegExp.prototype.flags getter must return a string")
+        })?;
+
+        s.to_std_string().map_err(|e| {
+            JsNativeError::error()
+                .with_message(format!("invalid string value for RegExp.prototype.flags: {e}"))
+                .into()
         })
     }
 
@@ -171,11 +198,16 @@ impl JsRegExp {
     /// ```
     #[inline]
     pub fn source(&self, context: &mut Context) -> JsResult<String> {
-        RegExp::get_source(&self.inner.clone().into(), &[], context).map(|v| {
-            v.as_string()
-                .expect("value must be string")
-                .to_std_string()
-                .expect("source must be a valid string")
+        let value = RegExp::get_source(&self.inner.clone().into(), &[], context)?;
+        let s = value.as_string().ok_or_else(|| {
+            JsNativeError::typ()
+                .with_message("RegExp.prototype.source getter must return a string")
+        })?;
+
+        s.to_std_string().map_err(|e| {
+            JsNativeError::error()
+                .with_message(format!("invalid string value for RegExp.prototype.source: {e}"))
+                .into()
         })
     }
 
@@ -198,8 +230,13 @@ impl JsRegExp {
     where
         S: Into<JsValue>,
     {
-        RegExp::test(&self.inner.clone().into(), &[search_string.into()], context)
-            .map(|v| v.as_boolean().expect("value must be a bool"))
+        let value =
+            RegExp::test(&self.inner.clone().into(), &[search_string.into()], context)?;
+
+        value.as_boolean().ok_or_else(|| {
+            JsNativeError::typ()
+                .with_message("RegExp.prototype.test must return a boolean")
+        }).map_err(Into::into)
     }
 
     /// Executes a search for a match in a specified string
@@ -209,16 +246,20 @@ impl JsRegExp {
     where
         S: Into<JsValue>,
     {
-        RegExp::exec(&self.inner.clone().into(), &[search_string.into()], context).map(|v| {
-            if v.is_null() {
-                None
-            } else {
-                Some(
-                    JsArray::from_object(v.to_object(context).expect("v must be an array"))
-                        .expect("from_object must not fail if v is an array object"),
-                )
-            }
-        })
+        let value =
+            RegExp::exec(&self.inner.clone().into(), &[search_string.into()], context)?;
+
+        if value.is_null() {
+            return Ok(None);
+        }
+
+        let obj = value.as_object().ok_or_else(|| {
+            JsNativeError::typ()
+                .with_message("RegExp.prototype.exec must return an array object or null")
+        })?.clone();
+
+        let array = JsArray::from_object(obj)?;
+        Ok(Some(array))
     }
 
     /// Return a string representing the regular expression.
@@ -238,11 +279,18 @@ impl JsRegExp {
     /// ```
     #[inline]
     pub fn to_string(&self, context: &mut Context) -> JsResult<String> {
-        RegExp::to_string(&self.inner.clone().into(), &[], context).map(|v| {
-            v.as_string()
-                .expect("value must be a string")
-                .to_std_string()
-                .expect("to_string value must be a valid string")
+        let value = RegExp::to_string(&self.inner.clone().into(), &[], context)?;
+        let s = value.as_string().ok_or_else(|| {
+            JsNativeError::typ()
+                .with_message("RegExp.prototype.toString must return a string")
+        })?;
+
+        s.to_std_string().map_err(|e| {
+            JsNativeError::error()
+                .with_message(format!(
+                    "invalid string value produced by RegExp.prototype.toString: {e}"
+                ))
+                .into()
         })
     }
 }
