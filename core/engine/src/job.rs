@@ -696,11 +696,21 @@ impl JobExecutor for SimpleJobExecutor {
                 let now = context.borrow().clock().now();
                 let mut timeouts_borrow = self.timeout_jobs.borrow_mut();
                 let mut jobs_to_keep = timeouts_borrow.split_off(&now);
+                let mut jobs_at_now = jobs_to_keep.remove(&now);
                 jobs_to_keep.retain(|_, jobs| {
                     jobs.retain(|job| !job.is_cancelled());
                     !jobs.is_empty()
                 });
-                let jobs_to_run = mem::replace(&mut *timeouts_borrow, jobs_to_keep);
+                if let Some(jobs) = jobs_at_now.as_mut() {
+                    jobs.retain(|job| !job.is_cancelled());
+                    if jobs.is_empty() {
+                        jobs_at_now = None;
+                    }
+                }
+                let mut jobs_to_run = mem::replace(&mut *timeouts_borrow, jobs_to_keep);
+                if let Some(jobs) = jobs_at_now {
+                    jobs_to_run.insert(now, jobs);
+                }
                 drop(timeouts_borrow);
 
                 for jobs in jobs_to_run.into_values() {
@@ -722,7 +732,7 @@ impl JobExecutor for SimpleJobExecutor {
 
                 for (timeout, jobs) in self.timeout_jobs.borrow().iter() {
                     for job in jobs {
-                        if !job.is_recurring() && &now > timeout {
+                        if !job.is_recurring() && &now >= timeout {
                             break 'result true;
                         }
                     }

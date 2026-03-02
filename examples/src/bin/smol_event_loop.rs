@@ -57,8 +57,12 @@ impl Queue {
 
         let mut timeouts_borrow = self.timeout_jobs.borrow_mut();
         let mut jobs_to_keep = timeouts_borrow.split_off(&now);
+        let job_at_now = jobs_to_keep.remove(&now);
         jobs_to_keep.retain(|_, job| !job.is_cancelled());
-        let jobs_to_run = std::mem::replace(timeouts_borrow.deref_mut(), jobs_to_keep);
+        let mut jobs_to_run = std::mem::replace(timeouts_borrow.deref_mut(), jobs_to_keep);
+        if let Some(job) = job_at_now.filter(|j| !j.is_cancelled()) {
+            jobs_to_run.insert(now, job);
+        }
         drop(timeouts_borrow);
 
         for job in jobs_to_run.into_values() {
