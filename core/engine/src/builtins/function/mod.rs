@@ -1014,7 +1014,11 @@ pub(crate) fn function_call(
     {
         let native_source_info = context.native_source_info();
         // SAFETY: Single-field mutation via raw pointer. Context is !Send/!Sync.
-        unsafe { (*context.vm_ptr()).shadow_stack.patch_last_native(native_source_info) };
+        unsafe {
+            (*context.vm_ptr())
+                .shadow_stack
+                .patch_last_native(native_source_info);
+        };
     }
 
     context.push_frame(frame);
@@ -1032,7 +1036,11 @@ pub(crate) fn function_call(
         context.vm_set_frame_flags(CallFrameFlags::THIS_VALUE_CACHED);
         let this: JsValue = context.realm().global_this().clone().into();
         // SAFETY: Multi-field read+write via raw pointer. Context is !Send/!Sync.
-        unsafe { (*context.vm_ptr()).stack.set_this(&(*context.vm_ptr()).frame, this.clone()) };
+        unsafe {
+            (*context.vm_ptr())
+                .stack
+                .set_this(&(*context.vm_ptr()).frame, this.clone());
+        };
         ThisBindingStatus::Initialized(this)
     } else {
         let this: JsValue = this
@@ -1041,7 +1049,11 @@ pub(crate) fn function_call(
             .into();
         context.vm_set_frame_flags(CallFrameFlags::THIS_VALUE_CACHED);
         // SAFETY: Multi-field read+write via raw pointer. Context is !Send/!Sync.
-        unsafe { (*context.vm_ptr()).stack.set_this(&(*context.vm_ptr()).frame, this.clone()) };
+        unsafe {
+            (*context.vm_ptr())
+                .stack
+                .set_this(&(*context.vm_ptr()).frame, this.clone());
+        };
         ThisBindingStatus::Initialized(this)
     };
 
@@ -1142,7 +1154,11 @@ fn function_construct(
     {
         let native_source_info = context.native_source_info();
         // SAFETY: Single-field mutation via raw pointer. Context is !Send/!Sync.
-        unsafe { (*context.vm_ptr()).shadow_stack.patch_last_native(native_source_info) };
+        unsafe {
+            (*context.vm_ptr())
+                .shadow_stack
+                .patch_last_native(native_source_info);
+        };
     }
 
     context.push_frame(frame);

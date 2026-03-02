@@ -48,8 +48,7 @@ impl CallEval {
         //     a. If SameValue(func, %eval%) is true, then
         let eval = context.intrinsics().objects().eval();
         if JsObject::equals(&object, &eval) {
-            let arguments =
-                context.vm_calling_convention_pop_arguments(argument_count.into());
+            let arguments = context.vm_calling_convention_pop_arguments(argument_count.into());
             let _func = context.stack_pop();
             let _this = context.stack_pop();
             if let Some(x) = arguments.first() {

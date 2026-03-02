@@ -370,19 +370,14 @@ impl Context {
 
     /// Pops an iterator from the frame's iterator stack.
     #[inline]
-    pub(crate) fn vm_pop_iterator(
-        &self,
-    ) -> Option<builtins::iterable::IteratorRecord> {
+    pub(crate) fn vm_pop_iterator(&self) -> Option<builtins::iterable::IteratorRecord> {
         // SAFETY: Field mutation via raw pointer. Context is !Send/!Sync.
         unsafe { (*self.vm_ptr()).frame.iterators.pop() }
     }
 
     /// Pushes an iterator onto the frame's iterator stack.
     #[inline]
-    pub(crate) fn vm_push_iterator(
-        &self,
-        record: builtins::iterable::IteratorRecord,
-    ) {
+    pub(crate) fn vm_push_iterator(&self, record: builtins::iterable::IteratorRecord) {
         // SAFETY: Field mutation via raw pointer. Context is !Send/!Sync.
         unsafe { (*self.vm_ptr()).frame.iterators.push(record) }
     }
@@ -391,19 +386,14 @@ impl Context {
 
     /// Pushes a binding locator onto the frame's binding stack.
     #[inline]
-    pub(crate) fn vm_push_binding_locator(
-        &self,
-        locator: boa_ast::scope::BindingLocator,
-    ) {
+    pub(crate) fn vm_push_binding_locator(&self, locator: boa_ast::scope::BindingLocator) {
         // SAFETY: Field mutation via raw pointer. Context is !Send/!Sync.
         unsafe { (*self.vm_ptr()).frame.binding_stack.push(locator) }
     }
 
     /// Pops a binding locator from the frame's binding stack.
     #[inline]
-    pub(crate) fn vm_pop_binding_locator(
-        &self,
-    ) -> Option<boa_ast::scope::BindingLocator> {
+    pub(crate) fn vm_pop_binding_locator(&self) -> Option<boa_ast::scope::BindingLocator> {
         // SAFETY: Field mutation via raw pointer. Context is !Send/!Sync.
         unsafe { (*self.vm_ptr()).frame.binding_stack.pop() }
     }
@@ -423,7 +413,11 @@ impl Context {
     #[inline]
     pub(crate) fn vm_calling_convention_push_arguments(&self, arguments: &[JsValue]) {
         // SAFETY: Field mutation via raw pointer. Context is !Send/!Sync.
-        unsafe { (*self.vm_ptr()).stack.calling_convention_push_arguments(arguments) }
+        unsafe {
+            (*self.vm_ptr())
+                .stack
+                .calling_convention_push_arguments(arguments);
+        }
     }
 
     /// Pops arguments from the stack in calling convention order.
@@ -446,7 +440,9 @@ impl Context {
     #[inline]
     pub(crate) fn vm_pop_shadow_stack(&self) {
         // SAFETY: Field mutation via raw pointer. Context is !Send/!Sync.
-        unsafe { (*self.vm_ptr()).shadow_stack.pop(); }
+        unsafe {
+            (*self.vm_ptr()).shadow_stack.pop();
+        }
     }
 
     // ---- Native active function ----

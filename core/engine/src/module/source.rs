@@ -1826,9 +1826,7 @@ impl SourceTextModule {
         }
 
         // 25. Remove moduleContext from the execution context stack.
-        let frame = context
-            .pop_frame()
-            .expect("There should be a call frame");
+        let frame = context.pop_frame().expect("There should be a call frame");
 
         let env = frame
             .environments

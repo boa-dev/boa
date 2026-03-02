@@ -85,7 +85,12 @@ impl PushPrivateEnvironment {
             .downcast_mut::<OrdinaryFunction>()
             .expect("class object must be function")
             .push_private_environment(environment.clone());
-        unsafe { (*context.vm_ptr()).frame.environments.push_private(environment) };
+        unsafe {
+            (*context.vm_ptr())
+                .frame
+                .environments
+                .push_private(environment);
+        };
     }
 }
 

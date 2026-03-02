@@ -192,7 +192,9 @@ impl JumpIfNotResumeKind {
         (exit, expected, value): (u32, VaryingOperand, VaryingOperand),
         context: &Context,
     ) {
-        let resume_kind = context.get_register(value.into()).to_generator_resume_kind();
+        let resume_kind = context
+            .get_register(value.into())
+            .to_generator_resume_kind();
         if resume_kind as u8 != u32::from(expected) as u8 {
             context.set_pc(exit);
         }

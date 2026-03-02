@@ -226,8 +226,7 @@ impl Eval {
 
             // Pop all environments before the eval execution.
             // SAFETY: Single-field mutation via raw pointer. Context is !Send/!Sync.
-            let environments =
-                unsafe { (*context.vm_ptr()).frame.environments.pop_to_global() };
+            let environments = unsafe { (*context.vm_ptr()).frame.environments.pop_to_global() };
 
             // Restore all environments to the state from before the eval execution.
             EnvStackAction::Restore(environments)

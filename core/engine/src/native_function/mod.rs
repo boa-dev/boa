@@ -344,7 +344,11 @@ pub(crate) fn native_function_call(
     let pc = context.with_vm(|vm| vm.frame.pc);
     let native_source_info = context.native_source_info();
     // SAFETY: Single-field mutation via raw pointer. Context is !Send/!Sync.
-    unsafe { (*context.vm_ptr()).shadow_stack.push_native(pc, name, native_source_info) };
+    unsafe {
+        (*context.vm_ptr())
+            .shadow_stack
+            .push_native(pc, name, native_source_info);
+    };
 
     let mut realm = realm.unwrap_or_else(|| context.realm().clone());
 
@@ -397,7 +401,11 @@ fn native_function_construct(
     let pc = context.with_vm(|vm| vm.frame.pc);
     let native_source_info = context.native_source_info();
     // SAFETY: Single-field mutation via raw pointer. Context is !Send/!Sync.
-    unsafe { (*context.vm_ptr()).shadow_stack.push_native(pc, name, native_source_info) };
+    unsafe {
+        (*context.vm_ptr())
+            .shadow_stack
+            .push_native(pc, name, native_source_info);
+    };
 
     let mut realm = realm.unwrap_or_else(|| context.realm().clone());
 
