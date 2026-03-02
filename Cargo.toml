@@ -125,7 +125,7 @@ intrusive-collections = "0.10.0"
 cfg-if = "1.0.4"
 either = "1.15.0"
 sys-locale = "0.3.2"
-timezone_provider = { version = "0.1.2" }
+timezone_provider = { version = "0.2.0" }
 temporal_rs = { version = "0.1.2", default-features = false, features = ["float64_representable_durations"] }
 web-time = "1.1.0"
 criterion = "0.8.1"
