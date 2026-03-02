@@ -248,7 +248,7 @@ fn from_async_iterator(
                     iterator_record,
                 } => {
                     // Inverted conditional makes for a simpler code.
-                    if (k as f64) < Number::MAX_SAFE_INTEGER {
+                    if (k as u64) < Number::MAX_SAFE_INTEGER as u64 {
                         // 2. Let Pk be ! ToString(𝔽(k)).
                         // 3. Let nextResult be ? Call(iteratorRecord.[[NextMethod]], iteratorRecord.[[Iterator]]).
                         let next_result = iterator_record.next_method().call(
