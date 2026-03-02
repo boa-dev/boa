@@ -916,10 +916,7 @@ impl Display for CodeBlock {
             format!(
                 " Compiled Output: {} ",
                 if name.is_empty() {
-                    match self.anon_debug_id.get() {
-                        Some(id) => format!("[anon#{}]", id),
-                        None => "".to_string(),
-                    }
+                    format!("[anon#{}]", self.debug_id)
                 } else {
                     format!("'{}'", name.to_std_string_escaped())
                 }

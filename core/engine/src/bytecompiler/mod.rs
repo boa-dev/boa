@@ -78,6 +78,11 @@ pub(crate) use function::FunctionCompiler;
 pub(crate) use jump_control::JumpControlInfo;
 pub(crate) use register::*;
 
+#[cfg(feature = "trace")]
+thread_local! {
+    static CODEBLOCK_ID_COUNTER: Cell<u64> = const { Cell::new(0) };
+}
+
 pub(crate) trait ToJsString {
     fn to_js_string(&self, interner: &Interner) -> JsString;
 }
@@ -2514,6 +2519,13 @@ impl<'ctx> ByteCompiler<'ctx> {
         let register_count = self.register_allocator.finish();
 
         let source_map_entries = self.source_map_builder.build(final_bytecode_len.as_u32());
+
+        #[cfg(feature = "trace")]
+        let debug_id = CODEBLOCK_ID_COUNTER.with(|c| {
+            let id = c.get();
+            c.set(id + 1);
+            id
+        });
 
         CodeBlock {
             length: self.length,
