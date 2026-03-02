@@ -689,7 +689,7 @@ impl SourceTextModule {
                     //    2. Return importedModule.ResolveExport(e.[[ImportName]], resolveSet).
                     ReExportImportName::Name(name) => {
                         let name = name.to_js_string(interner);
-                        imported_module.resolve_export(name, resolve_set, interner)
+                        imported_module.resolve_export(&name, resolve_set, interner)
                     }
                 };
             }
@@ -712,7 +712,7 @@ impl SourceTextModule {
             let imported_module = self.loaded_modules.borrow()[e].clone();
             // b. Let resolution be importedModule.ResolveExport(exportName, resolveSet).
             let resolution =
-                match imported_module.resolve_export(export_name.clone(), resolve_set, interner) {
+                match imported_module.resolve_export(export_name, resolve_set, interner) {
                     // d. If resolution is not null, then
                     Ok(resolution) => resolution,
                     // c. If resolution is ambiguous, return ambiguous.
@@ -1528,7 +1528,7 @@ impl SourceTextModule {
                 // a. Let resolution be module.ResolveExport(e.[[ExportName]]).
                 module_self
                     .resolve_export(
-                        e.export_name().to_js_string(context.interner()),
+                        &e.export_name().to_js_string(context.interner()),
                         &mut HashSet::default(),
                         context.interner(),
                     )
@@ -1596,7 +1596,7 @@ impl SourceTextModule {
                     // c. Else,
                     //    i. Let resolution be importedModule.ResolveExport(in.[[ImportName]]).
                     let resolution = imported_module
-                        .resolve_export(name.clone(), &mut HashSet::default(), compiler.interner())
+                        .resolve_export(&name, &mut HashSet::default(), compiler.interner())
                         // ii. If resolution is either null or ambiguous, throw a SyntaxError exception.
                         .map_err(|err| match err {
                             ResolveExportError::NotFound => JsNativeError::syntax().with_message(
@@ -1782,7 +1782,7 @@ impl SourceTextModule {
                 ImportBinding::Single {
                     locator,
                     export_locator,
-                } => match export_locator.binding_name_ref() {
+                } => match export_locator.binding_name {
                     BindingName::Name(name) => context
                         .vm
                         .frame
@@ -1794,11 +1794,11 @@ impl SourceTextModule {
                         .expect("last environment should be the module env")
                         .set_indirect(
                             locator.binding_index(),
-                            export_locator.module().clone(),
-                            name.clone(),
+                            export_locator.module,
+                            name,
                         ),
                     BindingName::Namespace => {
-                        let namespace = export_locator.module().namespace(context);
+                        let namespace = export_locator.module.namespace(context);
                         context.vm.frame.environments.put_lexical_value(
                             locator.scope(),
                             locator.binding_index(),

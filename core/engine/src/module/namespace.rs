@@ -28,6 +28,13 @@ pub struct ModuleNamespace {
     exports: IndexSet<JsString, BuildHasherDefault<FxHasher>>,
     /// Cached binding resolutions for each export name.
     /// Populated once during namespace creation; bindings are immutable after linking.
+    ///
+    /// SAFETY: Every `Module` inside a `ResolvedBinding` is a transitive dependency
+    /// of the parent `module` field (which IS traced). Those modules are reachable
+    /// through `SourceTextModule::loaded_modules` / `SyntheticModule`, so tracing
+    /// them again here would be redundant. Skipping the trace avoids walking the
+    /// entire hashmap on every GC cycle.
+    #[unsafe_ignore_trace]
     resolved_bindings: FxHashMap<JsString, ResolvedBinding>,
 }
 
@@ -71,7 +78,7 @@ impl ModuleNamespace {
         let mut resolved_bindings = FxHashMap::default();
         for name in &exports {
             if let Ok(binding) = module.resolve_export(
-                name.clone(),
+                name,
                 &mut rustc_hash::FxHashSet::default(),
                 context.interner(),
             ) {
@@ -103,6 +110,11 @@ impl ModuleNamespace {
     /// Gets the export names of the Module Namespace object.
     pub(crate) const fn exports(&self) -> &IndexSet<JsString, BuildHasherDefault<FxHasher>> {
         &self.exports
+    }
+
+    /// Gets the module associated with this namespace.
+    pub(crate) const fn module(&self) -> &Module {
+        &self.module
     }
 
     /// Gets a cached resolved binding for the given export name.
@@ -298,11 +310,24 @@ fn module_namespace_exotic_try_get(
         return Ok(None);
     };
 
-    // 5. Let binding be the cached ResolveExport result.
-    let binding = obj
-        .get_resolved_binding(&export_name)
-        .expect("binding must be cached after namespace creation");
+    // 4. Let m be O.[[Module]].
+    let module = obj.module().clone();
 
+    // 5. Let binding be m.ResolveExport(P).
+    // Use the pre-resolved cache when available; fall back to a fresh
+    // ResolveExport call on cache miss for robustness.
+    let binding = match obj.get_resolved_binding(&export_name) {
+        Some(b) => b.clone(),
+        None => module
+            .resolve_export(
+                &export_name,
+                &mut rustc_hash::FxHashSet::default(),
+                context.interner(),
+            )
+            .expect("export name must be resolvable"),
+    };
+
+    // 6. Assert: binding is a ResolvedBinding Record.
     // 7. Let targetModule be binding.[[Module]].
     // 8. Assert: targetModule is not undefined.
     let target_module = binding.module();
@@ -370,11 +395,24 @@ fn module_namespace_exotic_get(
         return Ok(JsValue::undefined());
     };
 
-    // 5. Let binding be the cached ResolveExport result.
-    let binding = obj
-        .get_resolved_binding(&export_name)
-        .expect("binding must be cached after namespace creation");
+    // 4. Let m be O.[[Module]].
+    let module = obj.module().clone();
 
+    // 5. Let binding be m.ResolveExport(P).
+    // Use the pre-resolved cache when available; fall back to a fresh
+    // ResolveExport call on cache miss for robustness.
+    let binding = match obj.get_resolved_binding(&export_name) {
+        Some(b) => b.clone(),
+        None => module
+            .resolve_export(
+                &export_name,
+                &mut rustc_hash::FxHashSet::default(),
+                context.interner(),
+            )
+            .expect("export name must be resolvable"),
+    };
+
+    // 6. Assert: binding is a ResolvedBinding Record.
     // 7. Let targetModule be binding.[[Module]].
     // 8. Assert: targetModule is not undefined.
     let target_module = binding.module();
