@@ -92,4 +92,7 @@ tests = [
     "test/intl402/Locale/constructor-options-canonicalized.js",
     # TODO: Remove this once regress fixes the named groups parsing issue.
     "test/built-ins/RegExp/named-groups/non-unicode-property-names-valid.js",
+    # TODO: Remove when https://github.com/boa-dev/boa/issues/4791 is fixed.
+    "test/built-ins/RegExp/unicodeSets/generated/rgi-emoji-16.0.js",
+    "test/built-ins/RegExp/unicodeSets/generated/rgi-emoji-17.0.js"
 ]
