@@ -37,6 +37,24 @@ pub use cell::{GcRef, GcRefCell, GcRefMut};
 pub use internals::GcBox;
 pub use pointers::{Ephemeron, Gc, GcErased, WeakGc, WeakMap};
 
+/// Sets the [`GcConfig`] for the current thread's garbage collector.
+///
+/// This should be called early in the program, before any GC allocations are made,
+/// to ensure the configuration takes effect.
+///
+/// # Examples
+///
+/// ```
+/// use boa_gc::{GcConfig, set_gc_config};
+///
+/// set_gc_config(GcConfig::default().with_threshold(2 * 1024 * 1024));
+/// ```
+pub fn set_gc_config(config: GcConfig) {
+    BOA_GC.with(|current| {
+        current.borrow_mut().config = config;
+    });
+}
+
 type GcErasedPointer = NonNull<GcBox<NonTraceable>>;
 type EphemeronPointer = NonNull<dyn ErasedEphemeronBox>;
 type ErasedWeakMapBoxPointer = NonNull<dyn ErasedWeakMapBox>;
@@ -50,24 +68,80 @@ thread_local!(static BOA_GC: RefCell<BoaGc> = RefCell::new( BoaGc {
     weak_maps: Vec::default(),
 }));
 
+/// Configuration for the garbage collector.
+///
+/// This struct allows tuning the GC's behavior, such as the byte threshold
+/// that triggers a collection and the used-space percentage target.
+///
+/// # Examples
+///
+/// ```
+/// use boa_gc::GcConfig;
+///
+/// // Use a 2 MB threshold and 80% used-space target.
+/// let config = GcConfig::default()
+///     .with_threshold(2 * 1024 * 1024)
+///     .with_used_space_percentage(80);
+/// ```
 #[derive(Debug, Clone, Copy)]
-struct GcConfig {
-    /// The threshold at which the garbage collector will trigger a collection.
+pub struct GcConfig {
+    /// The threshold (in bytes) at which the garbage collector will trigger a collection.
     threshold: usize,
     /// The percentage of used space at which the garbage collector will trigger a collection.
     used_space_percentage: usize,
 }
 
-// Setting the defaults to an arbitrary value currently.
-//
-// TODO: Add a configure later
 impl Default for GcConfig {
     fn default() -> Self {
         Self {
-            // Start at 1MB, the nursary size for V8 is ~1-8MB and SM can be up to 16MB
+            // Start at 1 MB — the nursery size for V8 is ~1-8 MB and SM can be up to 16 MB.
             threshold: 1_048_576,
             used_space_percentage: 70,
         }
+    }
+}
+
+impl GcConfig {
+    /// Sets the byte threshold at which the GC will trigger a collection.
+    ///
+    /// # Panics
+    ///
+    /// Panics if `threshold` is `0`.
+    #[must_use]
+    pub const fn with_threshold(mut self, threshold: usize) -> Self {
+        assert!(threshold > 0, "GC threshold must be greater than 0");
+        self.threshold = threshold;
+        self
+    }
+
+    /// Sets the used-space percentage at which the GC will grow its threshold
+    /// after a collection.
+    ///
+    /// The value must be in the range `1..=100`.
+    ///
+    /// # Panics
+    ///
+    /// Panics if `percentage` is `0` or greater than `100`.
+    #[must_use]
+    pub const fn with_used_space_percentage(mut self, percentage: usize) -> Self {
+        assert!(
+            percentage > 0 && percentage <= 100,
+            "used_space_percentage must be between 1 and 100"
+        );
+        self.used_space_percentage = percentage;
+        self
+    }
+
+    /// Returns the current byte threshold.
+    #[must_use]
+    pub const fn threshold(&self) -> usize {
+        self.threshold
+    }
+
+    /// Returns the current used-space percentage.
+    #[must_use]
+    pub const fn used_space_percentage(&self) -> usize {
+        self.used_space_percentage
     }
 }
 
