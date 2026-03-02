@@ -102,7 +102,7 @@ pub struct Context {
     #[cfg(feature = "fuzz")]
     pub(crate) instructions_remaining: Cell<usize>,
 
-    vm: UnsafeCell<Vm>,
+    vm: RefCell<Vm>,
 
     pub(crate) kept_alive: RefCell<Vec<JsObject>>,
 
@@ -182,22 +182,26 @@ impl Context {
     ///
     /// The `&Vm` reference is scoped to the closure and cannot escape,
     /// preventing aliasing with mutable VM references.
+    ///
+    /// # Panics
+    ///
+    /// Panics if the VM is currently mutably borrowed (via [`with_vm_mut`]).
     #[inline]
     pub(crate) fn with_vm<R>(&self, f: impl FnOnce(&Vm) -> R) -> R {
-        // SAFETY: Context is !Sync/!Send, single-threaded access only.
-        // The reference cannot escape the closure scope.
-        f(unsafe { &*self.vm.get() })
+        f(&self.vm.borrow())
     }
 
     /// Executes a closure with a mutable reference to the VM.
     ///
     /// The `&mut Vm` reference is scoped to the closure and cannot escape,
     /// preventing aliasing with other VM references.
+    ///
+    /// # Panics
+    ///
+    /// Panics if the VM is currently borrowed (via [`with_vm`] or [`with_vm_mut`]).
     #[inline]
     pub(crate) fn with_vm_mut<R>(&self, f: impl FnOnce(&mut Vm) -> R) -> R {
-        // SAFETY: Context is !Sync/!Send, single-threaded access only.
-        // The reference cannot escape the closure scope.
-        f(unsafe { &mut *self.vm.get() })
+        f(&mut self.vm.borrow_mut())
     }
 }
 
@@ -589,9 +593,9 @@ impl Context {
     #[inline]
     #[must_use]
     pub fn intrinsics(&self) -> &Intrinsics {
-        // SAFETY: Context is !Sync/!Send, single-threaded access only.
-        // The returned reference borrows `self`, which owns the Vm, so it's valid.
-        unsafe { &*self.vm.get() }.frame.realm.intrinsics()
+        // SAFETY: Creates only a shared reference to a sub-field of the VM.
+        // Mutable borrow violations are caught at runtime by RefCell in with_vm_mut.
+        unsafe { &*self.vm.as_ptr() }.frame.realm.intrinsics()
     }
 
     /// Returns the amount of remaining instructions to be executed
@@ -606,9 +610,9 @@ impl Context {
     #[inline]
     #[must_use]
     pub fn realm(&self) -> &Realm {
-        // SAFETY: Context is !Sync/!Send, single-threaded access only.
-        // The returned reference borrows `self`, which owns the Vm, so it's valid.
-        &unsafe { &*self.vm.get() }.frame.realm
+        // SAFETY: Creates only a shared reference to a sub-field of the VM.
+        // Mutable borrow violations are caught at runtime by RefCell in with_vm_mut.
+        &unsafe { &*self.vm.as_ptr() }.frame.realm
     }
 
     /// Set the value of trace on the context
@@ -666,9 +670,9 @@ impl Context {
     /// The stack trace is returned ordered with the most recent frames first.
     #[inline]
     pub fn stack_trace(&self) -> impl Iterator<Item = &CallFrame> {
-        // SAFETY: Context is !Sync/!Send, single-threaded access only.
-        // The returned references borrow `self`, which owns the Vm, so they're valid.
-        let vm = unsafe { &*self.vm.get() };
+        // SAFETY: Creates only a shared reference to sub-fields of the VM.
+        // Mutable borrow violations are caught at runtime by RefCell in with_vm_mut.
+        let vm = unsafe { &*self.vm.as_ptr() };
         let frames: Vec<_> = vm.frames.iter().chain(std::iter::once(&vm.frame)).collect();
 
         // The first frame is always a dummy frame (see `Vm` implementation for more details),
@@ -1285,7 +1289,7 @@ impl ContextBuilder {
 
         let context = Context {
             interner: UnsafeCell::new(self.interner.unwrap_or_default()),
-            vm: UnsafeCell::new(vm),
+            vm: RefCell::new(vm),
             strict: Cell::new(false),
             #[cfg(feature = "temporal")]
             timezone_provider: if let Some(provider) = self.timezone_provider {
