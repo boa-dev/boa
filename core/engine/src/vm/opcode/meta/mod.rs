@@ -22,8 +22,7 @@ impl NewTarget {
                 .get_this_environment()
                 .as_function()
                 .and_then(|env| env.slots().new_target().cloned())
-        })
-        {
+        }) {
             new_target.into()
         } else {
             JsValue::undefined()

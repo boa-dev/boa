@@ -16,8 +16,7 @@ pub(crate) struct ThrowMutateImmutable;
 impl ThrowMutateImmutable {
     #[inline(always)]
     pub(crate) fn operation(index: VaryingOperand, context: &Context) -> JsError {
-        let name = context
-            .with_vm(|vm| vm.frame().code_block().constant_string(index.into()));
+        let name = context.with_vm(|vm| vm.frame().code_block().constant_string(index.into()));
 
         JsNativeError::typ()
             .with_message(format!(
@@ -50,7 +49,10 @@ impl SetName {
         let value = context.get_register(value.into()).clone();
         let (mut binding_locator, strict) = context.with_vm(|vm| {
             let code_block = vm.frame().code_block();
-            (code_block.bindings[usize::from(index)].clone(), code_block.strict())
+            (
+                code_block.bindings[usize::from(index)].clone(),
+                code_block.strict(),
+            )
         });
 
         context.find_runtime_binding(&mut binding_locator)?;

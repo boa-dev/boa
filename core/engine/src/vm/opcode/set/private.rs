@@ -18,8 +18,7 @@ impl SetPrivateField {
         (value, object, index): (VaryingOperand, VaryingOperand, VaryingOperand),
         context: &Context,
     ) -> JsResult<()> {
-        let name = context
-            .with_vm(|vm| vm.frame().code_block().constant_string(index.into()));
+        let name = context.with_vm(|vm| vm.frame().code_block().constant_string(index.into()));
         let value = context.get_register(value.into()).clone();
         let object = context.get_register(object.into()).clone();
         let base_obj = object.to_object(context)?;
@@ -86,8 +85,7 @@ impl SetPrivateMethod {
     ) {
         let object = context.get_register(object.into()).clone();
         let value = context.get_register(value.into()).clone();
-        let name = context
-            .with_vm(|vm| vm.frame().code_block().constant_string(index.into()));
+        let name = context.with_vm(|vm| vm.frame().code_block().constant_string(index.into()));
 
         let value = value.as_callable().expect("method must be callable");
         let object = object

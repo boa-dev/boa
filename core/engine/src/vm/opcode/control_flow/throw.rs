@@ -153,8 +153,7 @@ pub(crate) struct ThrowNewTypeError;
 impl ThrowNewTypeError {
     #[inline(always)]
     pub(crate) fn operation(index: VaryingOperand, context: &Context) -> JsError {
-        let msg = context
-            .with_vm(|vm| vm.frame().code_block().constant_string(index.into()));
+        let msg = context.with_vm(|vm| vm.frame().code_block().constant_string(index.into()));
         let msg = msg
             .to_std_string()
             .expect("throw message must be an ASCII string");
@@ -178,8 +177,7 @@ pub(crate) struct ThrowNewSyntaxError;
 impl ThrowNewSyntaxError {
     #[inline(always)]
     pub(crate) fn operation(index: VaryingOperand, context: &Context) -> JsError {
-        let msg = context
-            .with_vm(|vm| vm.frame().code_block().constant_string(index.into()));
+        let msg = context.with_vm(|vm| vm.frame().code_block().constant_string(index.into()));
         let msg = msg
             .to_std_string()
             .expect("throw message must be an ASCII string");
@@ -203,8 +201,7 @@ pub(crate) struct ThrowNewReferenceError;
 impl ThrowNewReferenceError {
     #[inline(always)]
     pub(crate) fn operation(index: VaryingOperand, context: &Context) -> JsError {
-        let msg = context
-            .with_vm(|vm| vm.frame().code_block().constant_string(index.into()));
+        let msg = context.with_vm(|vm| vm.frame().code_block().constant_string(index.into()));
         let msg = msg
             .to_std_string()
             .expect("throw message must be an ASCII string");

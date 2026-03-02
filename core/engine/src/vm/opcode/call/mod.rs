@@ -27,8 +27,11 @@ impl CallEval {
         (argument_count, scope_index): (VaryingOperand, VaryingOperand),
         context: &Context,
     ) -> JsResult<()> {
-        let func = context
-            .with_vm(|vm| vm.stack.calling_convention_get_function(argument_count.into()).clone());
+        let func = context.with_vm(|vm| {
+            vm.stack
+                .calling_convention_get_function(argument_count.into())
+                .clone()
+        });
 
         let Some(object) = func.as_object() else {
             return Err(JsNativeError::typ()
@@ -45,8 +48,10 @@ impl CallEval {
         //     a. If SameValue(func, %eval%) is true, then
         let eval = context.intrinsics().objects().eval();
         if JsObject::equals(&object, &eval) {
-            let arguments = context
-                .with_vm_mut(|vm| vm.stack.calling_convention_pop_arguments(argument_count.into()));
+            let arguments = context.with_vm_mut(|vm| {
+                vm.stack
+                    .calling_convention_pop_arguments(argument_count.into())
+            });
             let _func = context.stack_pop();
             let _this = context.stack_pop();
             if let Some(x) = arguments.first() {
@@ -154,8 +159,7 @@ impl CallEvalSpread {
         }
 
         let argument_count = arguments.len();
-        context
-            .with_vm_mut(|vm| vm.stack.calling_convention_push_arguments(&arguments));
+        context.with_vm_mut(|vm| vm.stack.calling_convention_push_arguments(&arguments));
 
         object.__call__(argument_count).resolve(context)?;
         Ok(())
@@ -178,8 +182,11 @@ pub(crate) struct Call;
 impl Call {
     #[inline(always)]
     pub(super) fn operation(argument_count: VaryingOperand, context: &Context) -> JsResult<()> {
-        let func = context
-            .with_vm(|vm| vm.stack.calling_convention_get_function(argument_count.into()).clone());
+        let func = context.with_vm(|vm| {
+            vm.stack
+                .calling_convention_get_function(argument_count.into())
+                .clone()
+        });
 
         let Some(object) = func.as_object() else {
             return Err(Self::handle_not_callable());
@@ -223,11 +230,13 @@ impl CallSpread {
             .expect("arguments array in call spread function must be dense");
 
         let argument_count = arguments.len();
-        context
-            .with_vm_mut(|vm| vm.stack.calling_convention_push_arguments(&arguments));
+        context.with_vm_mut(|vm| vm.stack.calling_convention_push_arguments(&arguments));
 
-        let func = context
-            .with_vm(|vm| vm.stack.calling_convention_get_function(argument_count).clone());
+        let func = context.with_vm(|vm| {
+            vm.stack
+                .calling_convention_get_function(argument_count)
+                .clone()
+        });
 
         let Some(object) = func.as_object() else {
             return Err(JsNativeError::typ()
@@ -540,8 +549,7 @@ impl ImportCall {
             Err(err) => {
                 let err = err.into_opaque(context)?;
                 cap.reject().call(&JsValue::undefined(), &[err], context)?;
-                context
-                    .set_register(specifier_op.into(), promise.into());
+                context.set_register(specifier_op.into(), promise.into());
                 return Ok(());
             }
         };
@@ -551,8 +559,7 @@ impl ImportCall {
             Err(err) => {
                 let err = err.into_opaque(context)?;
                 cap.reject().call(&JsValue::undefined(), &[err], context)?;
-                context
-                    .set_register(specifier_op.into(), promise.into());
+                context.set_register(specifier_op.into(), promise.into());
                 return Ok(());
             }
         };
@@ -568,8 +575,7 @@ impl ImportCall {
         context.enqueue_job(job.into());
 
         // 9. Return promiseCapability.[[Promise]].
-        context
-            .set_register(specifier_op.into(), promise.into());
+        context.set_register(specifier_op.into(), promise.into());
 
         Ok(())
     }

@@ -320,7 +320,9 @@ fn loop_runtime_limit() {
             JsValue::undefined(),
         ),
         TestAction::inspect_context(|context| {
-            { let mut limits = context.runtime_limits(); limits.set_loop_iteration_limit(10); context.set_runtime_limits(limits); }
+            let mut limits = context.runtime_limits();
+            limits.set_loop_iteration_limit(10);
+            context.set_runtime_limits(limits);
         }),
         TestAction::assert_runtime_limit_error(
             indoc! {r#"
@@ -358,7 +360,9 @@ fn recursion_runtime_limit() {
         TestAction::assert_eq("factorial(8)", JsValue::new(40_320)),
         TestAction::assert_eq("factorial(11)", JsValue::new(39_916_800)),
         TestAction::inspect_context(|context| {
-            { let mut limits = context.runtime_limits(); limits.set_recursion_limit(10); context.set_runtime_limits(limits); }
+            let mut limits = context.runtime_limits();
+            limits.set_recursion_limit(10);
+            context.set_runtime_limits(limits);
         }),
         TestAction::assert_runtime_limit_error("factorial(11)", RuntimeLimitError::Recursion),
         TestAction::assert_eq("factorial(8)", JsValue::new(40_320)),
@@ -498,7 +502,9 @@ fn long_object_chain_gc_trace_stack_overflow() {
 fn recursion_in_async_gen_throws_uncatchable_error() {
     run_test_actions([
         TestAction::inspect_context(|context| {
-            { let mut limits = context.runtime_limits(); limits.set_recursion_limit(128); context.set_runtime_limits(limits); }
+            let mut limits = context.runtime_limits();
+            limits.set_recursion_limit(128);
+            context.set_runtime_limits(limits);
         }),
         TestAction::assert_runtime_limit_error(
             indoc! {r#"
@@ -518,7 +524,9 @@ fn recursion_in_async_gen_throws_uncatchable_error() {
 fn recursion_in_setter_throws_uncatchable_error() {
     run_test_actions([
         TestAction::inspect_context(|context| {
-            { let mut limits = context.runtime_limits(); limits.set_recursion_limit(128); context.set_runtime_limits(limits); }
+            let mut limits = context.runtime_limits();
+            limits.set_recursion_limit(128);
+            context.set_runtime_limits(limits);
         }),
         TestAction::assert_runtime_limit_error(
             indoc! {r#"

@@ -11,8 +11,11 @@ pub(crate) struct New;
 impl New {
     #[inline(always)]
     pub(super) fn operation(argument_count: VaryingOperand, context: &Context) -> JsResult<()> {
-        let func = context
-            .with_vm(|vm| vm.stack.calling_convention_get_function(argument_count.into()).clone());
+        let func = context.with_vm(|vm| {
+            vm.stack
+                .calling_convention_get_function(argument_count.into())
+                .clone()
+        });
 
         let cons = func
             .as_object()
@@ -62,8 +65,7 @@ impl NewSpread {
 
         let argument_count = arguments.len();
         context.stack_push(func);
-        context
-            .with_vm_mut(|vm| vm.stack.calling_convention_push_arguments(&arguments));
+        context.with_vm_mut(|vm| vm.stack.calling_convention_push_arguments(&arguments));
         context.stack_push(cons.clone()); // Push new.target
 
         cons.__construct__(argument_count).resolve(context)?;

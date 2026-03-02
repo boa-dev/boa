@@ -139,17 +139,15 @@ impl Json {
         let realm = context.realm().clone();
 
         let (env_fp, environments) = context.with_vm(|vm| {
-            (vm.frame.environments.len() as u32, vm.frame.environments.clone())
+            (
+                vm.frame.environments.len() as u32,
+                vm.frame.environments.clone(),
+            )
         });
         context.push_frame_with_stack(
-            CallFrame::new(
-                code_block,
-                None,
-                environments,
-                realm,
-            )
-            .with_env_fp(env_fp)
-            .with_flags(CallFrameFlags::EXIT_EARLY),
+            CallFrame::new(code_block, None, environments, realm)
+                .with_env_fp(env_fp)
+                .with_flags(CallFrameFlags::EXIT_EARLY),
             JsValue::undefined(),
             JsValue::null(),
         );

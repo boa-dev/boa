@@ -138,12 +138,7 @@ impl Eval {
         // 9. Let inClassFieldInitializer be false.
         // a. Let thisEnvRec be GetThisEnvironment().
         let flags = context.with_vm(|vm| {
-            match vm
-                .frame
-                .environments
-                .get_this_environment()
-                .as_function()
-            {
+            match vm.frame.environments.get_this_environment().as_function() {
                 // 10. If direct is true, then
                 //     b. If thisEnvRec is a Function Environment Record, then
                 Some(function_env) if direct => {
@@ -244,8 +239,8 @@ impl Eval {
             }
         });
 
-        let (var_environment, mut variable_scope) = if let Some(e) = context
-            .with_vm(|vm| vm.frame.environments.outer_function_environment())
+        let (var_environment, mut variable_scope) = if let Some(e) =
+            context.with_vm(|vm| vm.frame.environments.outer_function_environment())
         {
             (e.0, e.1)
         } else {
@@ -336,7 +331,10 @@ impl Eval {
         }
 
         let (env_fp, environments) = context.with_vm(|vm| {
-            (vm.frame.environments.len() as u32, vm.frame.environments.clone())
+            (
+                vm.frame.environments.len() as u32,
+                vm.frame.environments.clone(),
+            )
         });
         let realm = context.realm().clone();
         context.push_frame_with_stack(

@@ -20,8 +20,7 @@ impl DefineOwnPropertyByName {
     ) -> JsResult<()> {
         let object = context.get_register(object.into()).clone();
         let value = context.get_register(value.into()).clone();
-        let name = context
-            .with_vm(|vm| vm.frame().code_block().constant_string(index.into()));
+        let name = context.with_vm(|vm| vm.frame().code_block().constant_string(index.into()));
         let object = object.to_object(context)?;
         object.__define_own_property__(
             &name.into(),

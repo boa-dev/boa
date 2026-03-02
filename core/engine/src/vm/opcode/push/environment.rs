@@ -19,7 +19,9 @@ impl PushScope {
     pub(crate) fn operation(index: VaryingOperand, context: &Context) {
         context.with_vm_mut(|vm| {
             let scope = vm.frame().code_block().constant_scope(index.into());
-            vm.frame.environments.push_lexical(scope.num_bindings_non_local());
+            vm.frame
+                .environments
+                .push_lexical(scope.num_bindings_non_local());
         });
     }
 }
@@ -70,8 +72,8 @@ impl PushPrivateEnvironment {
         let class = class.as_object().expect("should be a object");
         let mut names = Vec::with_capacity(name_indices.len());
         for index in name_indices {
-            let name = context
-                .with_vm(|vm| vm.frame().code_block().constant_string(index as usize));
+            let name =
+                context.with_vm(|vm| vm.frame().code_block().constant_string(index as usize));
             names.push(name);
         }
 
@@ -82,8 +84,7 @@ impl PushPrivateEnvironment {
             .downcast_mut::<OrdinaryFunction>()
             .expect("class object must be function")
             .push_private_environment(environment.clone());
-        context
-            .with_vm_mut(|vm| vm.frame.environments.push_private(environment));
+        context.with_vm_mut(|vm| vm.frame.environments.push_private(environment));
     }
 }
 

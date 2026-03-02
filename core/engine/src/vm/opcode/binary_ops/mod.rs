@@ -112,8 +112,7 @@ impl InPrivate {
         (dst, index, rhs): (VaryingOperand, VaryingOperand, VaryingOperand),
         context: &Context,
     ) -> JsResult<()> {
-        let name = context
-            .with_vm(|vm| vm.frame().code_block().constant_string(index.into()));
+        let name = context.with_vm(|vm| vm.frame().code_block().constant_string(index.into()));
         let rhs = context.get_register(rhs.into()).clone();
 
         let Some(rhs) = rhs.as_object() else {

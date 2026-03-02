@@ -82,13 +82,18 @@ impl Super {
     pub(super) fn operation(dst: VaryingOperand, context: &Context) -> JsResult<()> {
         let home_object = {
             let (this_binding, function_object) = context.with_vm(|vm| {
-                let env = vm.frame.environments.get_this_environment()
+                let env = vm
+                    .frame
+                    .environments
+                    .get_this_environment()
                     .as_function()
                     .expect("super access must be in a function environment");
-                (env.get_this_binding(), env.slots().function_object().clone())
+                (
+                    env.get_this_binding(),
+                    env.slots().function_object().clone(),
+                )
             });
-            let this = this_binding?
-                .expect("`get_this_environment` ensures this returns `Some`");
+            let this = this_binding?.expect("`get_this_environment` ensures this returns `Some`");
 
             function_object
                 .downcast_ref::<OrdinaryFunction>()
@@ -126,7 +131,9 @@ impl SuperCallPrepare {
     #[inline(always)]
     pub(super) fn operation(dst: VaryingOperand, context: &Context) {
         let active_function = context.with_vm(|vm| {
-            vm.frame.environments.get_this_environment()
+            vm.frame
+                .environments
+                .get_this_environment()
                 .as_function()
                 .expect("super call must be in function environment")
                 .slots()
@@ -159,8 +166,11 @@ pub(crate) struct SuperCall;
 impl SuperCall {
     #[inline(always)]
     pub(super) fn operation(argument_count: VaryingOperand, context: &Context) -> JsResult<()> {
-        let super_constructor = context
-            .with_vm(|vm| vm.stack.calling_convention_get_function(argument_count.into()).clone());
+        let super_constructor = context.with_vm(|vm| {
+            vm.stack
+                .calling_convention_get_function(argument_count.into())
+                .clone()
+        });
 
         let Some(super_constructor) = super_constructor.as_constructor() else {
             return Err(JsNativeError::typ()
@@ -169,7 +179,9 @@ impl SuperCall {
         };
 
         let new_target = context.with_vm(|vm| {
-            vm.frame.environments.get_this_environment()
+            vm.frame
+                .environments
+                .get_this_environment()
                 .as_function()
                 .expect("super call must be in function environment")
                 .slots()
@@ -224,11 +236,12 @@ impl SuperCallSpread {
 
         context.stack_push(super_constructor.clone());
 
-        context
-            .with_vm_mut(|vm| vm.stack.calling_convention_push_arguments(&arguments));
+        context.with_vm_mut(|vm| vm.stack.calling_convention_push_arguments(&arguments));
 
         let new_target = context.with_vm(|vm| {
-            vm.frame.environments.get_this_environment()
+            vm.frame
+                .environments
+                .get_this_environment()
                 .as_function()
                 .expect("super call must be in function environment")
                 .slots()
@@ -263,7 +276,10 @@ impl SuperCallDerived {
     #[inline(always)]
     pub(super) fn operation((): (), context: &Context) -> JsResult<()> {
         let (new_target, active_function) = context.with_vm(|vm| {
-            let this_env = vm.frame.environments.get_this_environment()
+            let this_env = vm
+                .frame
+                .environments
+                .get_this_environment()
                 .as_function()
                 .expect("super call must be in function environment");
             let new_target = this_env
@@ -326,7 +342,10 @@ impl BindThisValue {
 
         // 7. Let thisER be GetThisEnvironment().
         let (bind_result, active_function) = context.with_vm(|vm| {
-            let this_env = vm.frame.environments.get_this_environment()
+            let this_env = vm
+                .frame
+                .environments
+                .get_this_environment()
                 .as_function()
                 .expect("super call must be in function environment");
 

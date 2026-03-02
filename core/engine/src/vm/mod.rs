@@ -637,9 +637,7 @@ impl Context {
         let result = self.execute_instruction(f, opcode);
         let duration = instant.elapsed();
 
-        let stack = self.with_vm(|vm| {
-            vm.stack.display_trace(&vm.frame, vm.frames.len() - 1)
-        });
+        let stack = self.with_vm(|vm| vm.stack.display_trace(&vm.frame, vm.frames.len() - 1));
 
         println!(
             "{:<TIME_COLUMN_WIDTH$} {:<OPCODE_COLUMN_WIDTH$} {operands:<OPERAND_COLUMN_WIDTH$} {stack}",
@@ -790,9 +788,8 @@ impl Context {
         let mut frame = self.pop_frame().expect("frame must exist");
 
         loop {
-            let (new_env_fp, pc, exit_early) = self.with_vm(|vm| {
-                (vm.frame.env_fp, vm.frame.pc, vm.frame.exit_early())
-            });
+            let (new_env_fp, pc, exit_early) =
+                self.with_vm(|vm| (vm.frame.env_fp, vm.frame.pc, vm.frame.exit_early()));
             env_fp = new_env_fp;
 
             if self.with_vm_mut(|vm| vm.handle_exception_at(pc)) {
@@ -888,9 +885,7 @@ impl Context {
         //
         // `host_call_depth` accounts for nested host calls that re-enter the VM by invoking
         // `Context::run()` recursively (for example, accessor calls).
-        let recursion_depth = self.with_vm(|vm| {
-            vm.frames.len().saturating_add(vm.host_call_depth)
-        });
+        let recursion_depth = self.with_vm(|vm| vm.frames.len().saturating_add(vm.host_call_depth));
         if self.with_vm(|vm| vm.runtime_limits.recursion_limit()) <= recursion_depth {
             return Err(RuntimeLimitError::Recursion.into());
         }

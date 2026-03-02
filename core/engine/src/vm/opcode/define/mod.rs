@@ -19,15 +19,12 @@ impl DefVar {
     pub(super) fn operation(index: VaryingOperand, context: &Context) {
         // TODO: spec specifies to return `empty` on empty vars, but we're trying to initialize.
         context.with_vm_mut(|vm| {
-            let binding_locator =
-                vm.frame().code_block.bindings[usize::from(index)].clone();
-            vm.frame
-                .environments
-                .put_value_if_uninitialized(
-                    binding_locator.scope(),
-                    binding_locator.binding_index(),
-                    JsValue::undefined(),
-                );
+            let binding_locator = vm.frame().code_block.bindings[usize::from(index)].clone();
+            vm.frame.environments.put_value_if_uninitialized(
+                binding_locator.scope(),
+                binding_locator.binding_index(),
+                JsValue::undefined(),
+            );
         });
     }
 }

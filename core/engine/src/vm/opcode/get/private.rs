@@ -16,8 +16,7 @@ impl GetPrivateField {
         (dst, object, index): (VaryingOperand, VaryingOperand, VaryingOperand),
         context: &Context,
     ) -> JsResult<()> {
-        let name = context
-            .with_vm(|vm| vm.frame().code_block().constant_string(index.into()));
+        let name = context.with_vm(|vm| vm.frame().code_block().constant_string(index.into()));
         let object = context.get_register(object.into());
         let object = object.to_object(context)?;
         let name = context

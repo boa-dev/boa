@@ -9,7 +9,11 @@ fn main() {
     // -----------------------------------------
 
     // Set the context's runtime limit on loops to 10 iterations.
-    { let mut limits = context.runtime_limits(); limits.set_loop_iteration_limit(10); context.set_runtime_limits(limits); }
+    {
+        let mut limits = context.runtime_limits();
+        limits.set_loop_iteration_limit(10);
+        context.set_runtime_limits(limits);
+    }
 
     // The code below iterates 5 times, so no error is thrown.
     let result = context.eval(Source::from_bytes(
@@ -72,7 +76,11 @@ fn main() {
     assert_eq!(result, Ok(JsValue::new(39_916_800)));
 
     // Setting runtime limit for recursion to 10.
-    { let mut limits = context.runtime_limits(); limits.set_recursion_limit(10); context.set_runtime_limits(limits); }
+    {
+        let mut limits = context.runtime_limits();
+        limits.set_recursion_limit(10);
+        context.set_runtime_limits(limits);
+    }
 
     // Run without exceeding recursion limit and assert that it works.
     let result = context.eval(Source::from_bytes("factorial(8)"));

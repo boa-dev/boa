@@ -154,13 +154,15 @@ impl GeneratorNext {
         (resume_kind, value): (VaryingOperand, VaryingOperand),
         context: &Context,
     ) -> ControlFlow<CompletionRecord> {
-        let resume_kind = context
-            .with_vm(|vm| vm.get_register(resume_kind.into()).to_generator_resume_kind());
+        let resume_kind = context.with_vm(|vm| {
+            vm.get_register(resume_kind.into())
+                .to_generator_resume_kind()
+        });
         match resume_kind {
             GeneratorResumeKind::Normal => ControlFlow::Continue(()),
-            GeneratorResumeKind::Throw => context.handle_error(JsError::from_opaque(
-                context.get_register(value.into()),
-            )),
+            GeneratorResumeKind::Throw => {
+                context.handle_error(JsError::from_opaque(context.get_register(value.into())))
+            }
             GeneratorResumeKind::Return => {
                 assert!(!context.has_pending_exception());
                 let value = context.get_register(value.into());
@@ -224,8 +226,10 @@ impl GeneratorDelegateNext {
         ),
         context: &Context,
     ) -> JsResult<()> {
-        let resume_kind = context
-            .with_vm(|vm| vm.get_register(resume_kind.into()).to_generator_resume_kind());
+        let resume_kind = context.with_vm(|vm| {
+            vm.get_register(resume_kind.into())
+                .to_generator_resume_kind()
+        });
         let received = context.get_register(value.into());
 
         // Preemptively popping removes the iterator from the iterator stack if any operation
@@ -313,11 +317,12 @@ impl GeneratorDelegateResume {
         ),
         context: &Context,
     ) -> JsResult<()> {
-        let resume_kind = context
-            .with_vm(|vm| vm.get_register(resume_kind.into()).to_generator_resume_kind());
+        let resume_kind = context.with_vm(|vm| {
+            vm.get_register(resume_kind.into())
+                .to_generator_resume_kind()
+        });
         let result = context.get_register(value.into());
-        let is_return = context
-            .with_vm(|vm| vm.get_register(is_return.into()).to_boolean());
+        let is_return = context.with_vm(|vm| vm.get_register(is_return.into()).to_boolean());
 
         let mut iterator = context
             .with_vm_mut(|vm| vm.frame_mut().iterators.pop())

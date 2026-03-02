@@ -11,7 +11,11 @@ fn get_loop(_: &JsValue, _: &[JsValue], context: &Context) -> JsResult<JsValue> 
 
 fn set_loop(_: &JsValue, args: &[JsValue], context: &Context) -> JsResult<JsValue> {
     let value = args.get_or_undefined(0).to_length(context)?;
-    { let mut limits = context.runtime_limits(); limits.set_loop_iteration_limit(value); context.set_runtime_limits(limits); }
+    {
+        let mut limits = context.runtime_limits();
+        limits.set_loop_iteration_limit(value);
+        context.set_runtime_limits(limits);
+    }
     Ok(JsValue::undefined())
 }
 
@@ -27,7 +31,11 @@ fn set_stack(_: &JsValue, args: &[JsValue], context: &Context) -> JsResult<JsVal
             .with_message(format!("Argument {value} greater than usize::MAX"))
             .into());
     };
-    { let mut limits = context.runtime_limits(); limits.set_stack_size_limit(value); context.set_runtime_limits(limits); }
+    {
+        let mut limits = context.runtime_limits();
+        limits.set_stack_size_limit(value);
+        context.set_runtime_limits(limits);
+    }
     Ok(JsValue::undefined())
 }
 
@@ -43,7 +51,11 @@ fn set_recursion(_: &JsValue, args: &[JsValue], context: &Context) -> JsResult<J
             .with_message(format!("Argument {value} greater than usize::MAX"))
             .into());
     };
-    { let mut limits = context.runtime_limits(); limits.set_recursion_limit(value); context.set_runtime_limits(limits); }
+    {
+        let mut limits = context.runtime_limits();
+        limits.set_recursion_limit(value);
+        context.set_runtime_limits(limits);
+    }
     Ok(JsValue::undefined())
 }
 
@@ -59,7 +71,11 @@ fn set_backtrace(_: &JsValue, args: &[JsValue], context: &Context) -> JsResult<J
             .with_message(format!("Argument {value} greater than usize::MAX"))
             .into());
     };
-    { let mut limits = context.runtime_limits(); limits.set_backtrace_limit(value); context.set_runtime_limits(limits); }
+    {
+        let mut limits = context.runtime_limits();
+        limits.set_backtrace_limit(value);
+        context.set_runtime_limits(limits);
+    }
     Ok(JsValue::undefined())
 }
 

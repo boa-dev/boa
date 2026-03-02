@@ -1157,9 +1157,7 @@ fn proxy_exotic_call(
         return Ok(target.__call__(argument_count));
     };
 
-    let args = context.with_vm_mut(|vm| {
-        vm.stack.calling_convention_pop_arguments(argument_count)
-    });
+    let args = context.with_vm_mut(|vm| vm.stack.calling_convention_pop_arguments(argument_count));
 
     // 7. Let argArray be ! CreateArrayFromList(argumentsList).
     let arg_array = array::Array::create_array_from_list(args, context);
@@ -1208,9 +1206,7 @@ fn proxy_exotic_construct(
     };
 
     let new_target = context.stack_pop();
-    let args = context.with_vm_mut(|vm| {
-        vm.stack.calling_convention_pop_arguments(argument_count)
-    });
+    let args = context.with_vm_mut(|vm| vm.stack.calling_convention_pop_arguments(argument_count));
     let _func = context.stack_pop();
     let _this = context.stack_pop();
 

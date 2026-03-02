@@ -322,9 +322,7 @@ pub(crate) fn native_function_call(
     argument_count: usize,
     context: &mut InternalMethodCallContext<'_>,
 ) -> JsResult<CallValue> {
-    let args = context.with_vm_mut(|vm| {
-        vm.stack.calling_convention_pop_arguments(argument_count)
-    });
+    let args = context.with_vm_mut(|vm| vm.stack.calling_convention_pop_arguments(argument_count));
     let _func = context.stack_pop();
     let this = context.stack_pop();
 
@@ -409,9 +407,7 @@ fn native_function_construct(
     context.with_vm_mut(|vm| vm.native_active_function = Some(this_function_object));
 
     let new_target = context.stack_pop();
-    let args = context.with_vm_mut(|vm| {
-        vm.stack.calling_convention_pop_arguments(argument_count)
-    });
+    let args = context.with_vm_mut(|vm| vm.stack.calling_convention_pop_arguments(argument_count));
     let _func = context.stack_pop();
     let _this = context.stack_pop();
 

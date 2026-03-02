@@ -54,8 +54,10 @@ impl IteratorFinishAsyncNext {
             .with_vm_mut(|vm| vm.frame_mut().iterators.pop())
             .expect("iterator on the call frame must exist");
 
-        let resume_kind = context
-            .with_vm(|vm| vm.get_register(resume_kind.into()).to_generator_resume_kind());
+        let resume_kind = context.with_vm(|vm| {
+            vm.get_register(resume_kind.into())
+                .to_generator_resume_kind()
+        });
 
         if matches!(resume_kind, GeneratorResumeKind::Throw) {
             // If after awaiting the `next` call the iterator returned an error, it can be considered
@@ -87,12 +89,15 @@ pub(crate) struct IteratorResult;
 impl IteratorResult {
     #[inline(always)]
     pub(crate) fn operation(value: VaryingOperand, context: &Context) {
-        let last_result = context
-            .with_vm(|vm| vm.frame().iterators.last()
+        let last_result = context.with_vm(|vm| {
+            vm.frame()
+                .iterators
+                .last()
                 .expect("iterator on the call frame must exist")
                 .last_result()
                 .object()
-                .clone());
+                .clone()
+        });
         context.set_register(value.into(), last_result.into());
     }
 }
@@ -142,10 +147,13 @@ pub(crate) struct IteratorDone;
 impl IteratorDone {
     #[inline(always)]
     pub(crate) fn operation(done: VaryingOperand, context: &Context) {
-        let value = context
-            .with_vm(|vm| vm.frame().iterators.last()
+        let value = context.with_vm(|vm| {
+            vm.frame()
+                .iterators
+                .last()
                 .expect("iterator on the call frame must exist")
-                .done());
+                .done()
+        });
         context.set_register(done.into(), value.into());
     }
 }

@@ -18,7 +18,8 @@ use crate::job::Job;
 use crate::module::DynModuleLoader;
 use crate::vm::RuntimeLimits;
 use crate::{
-    HostDefined, JsError, JsNativeError, JsResult, JsString, JsValue, NativeObject, Source, builtins,
+    HostDefined, JsError, JsNativeError, JsResult, JsString, JsValue, NativeObject, Source,
+    builtins,
     class::{Class, ClassBuilder},
     job::{JobExecutor, SimpleJobExecutor},
     js_string,
@@ -244,12 +245,7 @@ impl Context {
 
     /// Pushes a new call frame with `this` and `function` on the stack.
     #[inline]
-    pub(crate) fn push_frame_with_stack(
-        &self,
-        frame: CallFrame,
-        this: JsValue,
-        function: JsValue,
-    ) {
+    pub(crate) fn push_frame_with_stack(&self, frame: CallFrame, this: JsValue, function: JsValue) {
         self.with_vm_mut(|vm| vm.push_frame_with_stack(frame, this, function));
     }
 
@@ -318,7 +314,6 @@ impl Context {
     pub(crate) fn decrement_host_call_depth(&self) {
         self.with_vm_mut(|vm| vm.host_call_depth = vm.host_call_depth.saturating_sub(1));
     }
-
 }
 
 // ==== Public API ====
