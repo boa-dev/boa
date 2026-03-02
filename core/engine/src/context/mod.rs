@@ -198,7 +198,7 @@ impl Context {
     ///
     /// # Panics
     ///
-    /// Panics if the VM is currently borrowed (via [`with_vm`] or [`with_vm_mut`]).
+    /// Panics if the VM is currently borrowed (via [`Self::with_vm`] or [`Self::with_vm_mut`]).
     #[inline]
     pub(crate) fn with_vm_mut<R>(&self, f: impl FnOnce(&mut Vm) -> R) -> R {
         f(&mut self.vm.borrow_mut())
