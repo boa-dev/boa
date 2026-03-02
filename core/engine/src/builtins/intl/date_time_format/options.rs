@@ -593,14 +593,10 @@ impl ServicePreferences for DateTimeFormatterPreferences {
         });
 
         // Handle LDML unicode key "ca", Calendar algorithm
-        self.calendar_algorithm = self.calendar_algorithm.take().filter(|ca| {
-            use icu_calendar::{AnyCalendar, AnyCalendarKind};
-
-            let Ok(kind) = AnyCalendarKind::try_from(*ca) else {
-                return false;
-            };
-            AnyCalendar::try_new_with_buffer_provider(provider.erased_provider(), kind).is_ok()
-        });
+        self.calendar_algorithm = self
+            .calendar_algorithm
+            .take()
+            .filter(|ca| has_calendar_data_for_locale(ca, id, provider));
 
         // NOTE (nekevss): issue: this will not support `H24` as ICU4X does
         // not currently support it.
@@ -612,4 +608,85 @@ impl ServicePreferences for DateTimeFormatterPreferences {
     }
 
     impl_service_preferences!(numbering_system, calendar_algorithm, hour_cycle);
+}
+
+fn has_calendar_data_for_locale(
+    calendar: &CalendarAlgorithm,
+    id: &LanguageIdentifier,
+    provider: &IntlProvider,
+) -> bool {
+    use icu_calendar::AnyCalendarKind;
+    use icu_datetime::provider::neo::{
+        DatetimeNamesYearBuddhistV1, DatetimeNamesYearChineseV1, DatetimeNamesYearCopticV1,
+        DatetimeNamesYearDangiV1, DatetimeNamesYearEthiopianV1, DatetimeNamesYearGregorianV1,
+        DatetimeNamesYearHebrewV1, DatetimeNamesYearHijriV1, DatetimeNamesYearIndianV1,
+        DatetimeNamesYearJapaneseV1, DatetimeNamesYearJapanextV1, DatetimeNamesYearPersianV1,
+        DatetimeNamesYearRocV1, marker_attrs,
+    };
+    use icu_provider::{
+        DataMarker,
+        prelude::{
+            DataIdentifierBorrowed, DataRequest, DataRequestMetadata,
+            icu_locale_core::preferences::LocalePreferences,
+        },
+    };
+
+    // [Hijri(Option<HijriCalendarAlgorithm>)]
+    // ("islamic" => Hijri(HijriCalendarAlgorithm) {
+    //      ("umalqura" => Umalqura),
+    //      ("tbla" => Tbla),
+    //      ("civil" => Civil),
+    //      ("rgsa" => Rgsa)
+    // }),
+    if let CalendarAlgorithm::Hijri(None) = calendar {
+        return true;
+    }
+
+    let Ok(kind) = AnyCalendarKind::try_from(*calendar) else {
+        return false;
+    };
+
+    macro_rules! check {
+        ($marker:ty) => {{
+            let info = <$marker>::INFO;
+            let locale = info.make_locale(LocalePreferences::from(id));
+            let req = DataRequest {
+                id: DataIdentifierBorrowed::for_marker_attributes_and_locale(
+                    marker_attrs::ABBR,
+                    &locale,
+                ),
+                metadata: {
+                    let mut md = DataRequestMetadata::default();
+                    md.silent = true;
+                    md
+                },
+            };
+            provider
+                .erased_provider()
+                .dry_load_data(info, req)
+                .map_or(false, |md| md.locale.map_or(true, |l| !l.is_unknown()))
+        }};
+    }
+
+    match kind {
+        AnyCalendarKind::Buddhist => check!(DatetimeNamesYearBuddhistV1),
+        AnyCalendarKind::Chinese => check!(DatetimeNamesYearChineseV1),
+        AnyCalendarKind::Coptic => check!(DatetimeNamesYearCopticV1),
+        AnyCalendarKind::Dangi => check!(DatetimeNamesYearDangiV1),
+        AnyCalendarKind::Ethiopian | AnyCalendarKind::EthiopianAmeteAlem => {
+            check!(DatetimeNamesYearEthiopianV1)
+        }
+        AnyCalendarKind::Gregorian => check!(DatetimeNamesYearGregorianV1),
+        AnyCalendarKind::Hebrew => check!(DatetimeNamesYearHebrewV1),
+        AnyCalendarKind::Indian => check!(DatetimeNamesYearIndianV1),
+        AnyCalendarKind::HijriTabularTypeIIFriday
+        | AnyCalendarKind::HijriTabularTypeIIThursday
+        | AnyCalendarKind::HijriUmmAlQura
+        | AnyCalendarKind::HijriSimulatedMecca => check!(DatetimeNamesYearHijriV1),
+        AnyCalendarKind::Japanese => check!(DatetimeNamesYearJapaneseV1),
+        AnyCalendarKind::JapaneseExtended => check!(DatetimeNamesYearJapanextV1),
+        AnyCalendarKind::Persian => check!(DatetimeNamesYearPersianV1),
+        AnyCalendarKind::Roc => check!(DatetimeNamesYearRocV1),
+        _ => false,
+    }
 }
