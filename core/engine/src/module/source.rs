@@ -1761,9 +1761,7 @@ impl SourceTextModule {
             envs,
             realm.clone(),
         );
-        context.with_vm_mut(|vm| {
-            vm.push_frame_with_stack(call_frame, JsValue::undefined(), JsValue::null());
-        });
+        context.push_frame_with_stack(call_frame, JsValue::undefined(), JsValue::null());
 
         // 17. Push moduleContext onto the execution context stack; moduleContext is now the running execution context.
 
@@ -1773,13 +1771,14 @@ impl SourceTextModule {
                 ImportBinding::Namespace { locator, module } => {
                     // i. Let namespace be GetModuleNamespace(importedModule).
                     let namespace = module.namespace(context);
-                    context.with_vm_mut(|vm| {
-                        vm.frame.environments.put_lexical_value(
+                    // SAFETY: Frame field mutation via raw pointer. Context is !Send/!Sync.
+                    unsafe {
+                        (*context.vm_ptr()).frame.environments.put_lexical_value(
                             locator.scope(),
                             locator.binding_index(),
                             namespace.into(),
                         );
-                    });
+                    }
                 }
                 ImportBinding::Single {
                     locator,
@@ -1797,13 +1796,14 @@ impl SourceTextModule {
                     }),
                     BindingName::Namespace => {
                         let namespace = export_locator.module.namespace(context);
-                        context.with_vm_mut(|vm| {
-                            vm.frame.environments.put_lexical_value(
+                        // SAFETY: Frame field mutation via raw pointer. Context is !Send/!Sync.
+                        unsafe {
+                            (*context.vm_ptr()).frame.environments.put_lexical_value(
                                 locator.scope(),
                                 locator.binding_index(),
                                 namespace.into(),
                             );
-                        });
+                        }
                     }
                 },
             }
@@ -1815,18 +1815,19 @@ impl SourceTextModule {
 
             let function = create_function_object_fast(code, context);
 
-            context.with_vm_mut(|vm| {
-                vm.frame.environments.put_lexical_value(
+            // SAFETY: Frame field mutation via raw pointer. Context is !Send/!Sync.
+            unsafe {
+                (*context.vm_ptr()).frame.environments.put_lexical_value(
                     locator.scope(),
                     locator.binding_index(),
                     function.into(),
                 );
-            });
+            }
         }
 
         // 25. Remove moduleContext from the execution context stack.
         let frame = context
-            .with_vm_mut(crate::vm::Vm::pop_frame)
+            .pop_frame()
             .expect("There should be a call frame");
 
         let env = frame
@@ -1892,10 +1893,12 @@ impl SourceTextModule {
         .with_flags(CallFrameFlags::EXIT_EARLY);
 
         // 8. Suspend the running execution context.
-        context.with_vm_mut(|vm| {
+        // SAFETY: Multi-field mutation via raw pointer. Context is !Send/!Sync.
+        unsafe {
+            let vm = &mut *context.vm_ptr();
             vm.push_frame_with_stack(callframe, JsValue::undefined(), JsValue::null());
             vm.stack.set_promise_capability(&vm.frame, capability);
-        });
+        }
 
         // 9. If module.[[HasTLA]] is false, then
         //    a. Assert: capability is not present.

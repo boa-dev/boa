@@ -42,11 +42,12 @@ impl CheckReturn {
             return ControlFlow::Continue(());
         }
 
-        let (this, result) = context.with_vm_mut(|vm| {
+        let (this, result) = unsafe {
+            let vm = &mut *context.vm_ptr();
             let this = vm.stack.get_this(&vm.frame);
             let result = vm.take_return_value();
             (this, result)
-        });
+        };
 
         let result = if result.is_object() {
             result
@@ -118,10 +119,11 @@ pub(crate) struct Move;
 impl Move {
     #[inline(always)]
     pub(crate) fn operation((dst, src): (VaryingOperand, VaryingOperand), context: &Context) {
-        context.with_vm_mut(|vm| {
+        unsafe {
+            let vm = &mut *context.vm_ptr();
             let value = vm.get_register(src.into()).clone();
             vm.set_register(dst.into(), value);
-        });
+        };
     }
 }
 

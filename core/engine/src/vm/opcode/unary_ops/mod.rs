@@ -20,10 +20,12 @@ pub(crate) struct TypeOf;
 impl TypeOf {
     #[inline(always)]
     pub(super) fn operation(value: VaryingOperand, context: &Context) {
-        context.with_vm_mut(|vm| {
+        // SAFETY: No other references to the VM exist during this block.
+        unsafe {
+            let vm = &mut *context.vm_ptr();
             let type_of = vm.get_register(value.into()).js_type_of();
             vm.set_register(value.into(), type_of.into());
-        });
+        }
     }
 }
 

@@ -48,10 +48,8 @@ impl CallEval {
         //     a. If SameValue(func, %eval%) is true, then
         let eval = context.intrinsics().objects().eval();
         if JsObject::equals(&object, &eval) {
-            let arguments = context.with_vm_mut(|vm| {
-                vm.stack
-                    .calling_convention_pop_arguments(argument_count.into())
-            });
+            let arguments =
+                context.vm_calling_convention_pop_arguments(argument_count.into());
             let _func = context.stack_pop();
             let _this = context.stack_pop();
             if let Some(x) = arguments.first() {
@@ -159,7 +157,7 @@ impl CallEvalSpread {
         }
 
         let argument_count = arguments.len();
-        context.with_vm_mut(|vm| vm.stack.calling_convention_push_arguments(&arguments));
+        context.vm_calling_convention_push_arguments(&arguments);
 
         object.__call__(argument_count).resolve(context)?;
         Ok(())
@@ -230,7 +228,7 @@ impl CallSpread {
             .expect("arguments array in call spread function must be dense");
 
         let argument_count = arguments.len();
-        context.with_vm_mut(|vm| vm.stack.calling_convention_push_arguments(&arguments));
+        context.vm_calling_convention_push_arguments(&arguments);
 
         let func = context.with_vm(|vm| {
             vm.stack

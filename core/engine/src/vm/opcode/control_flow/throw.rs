@@ -27,7 +27,7 @@ impl Throw {
 
         // Note: -1 because we increment after fetching the opcode.
         let pc = context.with_vm(|vm| vm.frame().pc - 1);
-        if context.with_vm_mut(|vm| vm.handle_exception_at(pc)) {
+        if context.vm_handle_exception_at(pc) {
             return ControlFlow::Continue(());
         }
 
@@ -53,7 +53,7 @@ impl ReThrow {
     pub(crate) fn operation((): (), context: &Context) -> ControlFlow<CompletionRecord> {
         // Note: -1 because we increment after fetching the opcode.
         let pc = context.with_vm(|vm| vm.frame().pc.saturating_sub(1));
-        if context.with_vm_mut(|vm| vm.handle_exception_at(pc)) {
+        if context.vm_handle_exception_at(pc) {
             return ControlFlow::Continue(());
         }
 

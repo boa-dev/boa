@@ -171,10 +171,12 @@ impl CreatePromiseCapability {
         )
         .expect("cannot fail per spec");
 
-        context.with_vm_mut(|vm| {
+        // SAFETY: No other references to the VM exist during this block.
+        unsafe {
+            let vm = &mut *context.vm_ptr();
             vm.stack
                 .set_promise_capability(&vm.frame, Some(&promise_capability));
-        });
+        }
     }
 }
 

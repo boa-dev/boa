@@ -207,9 +207,13 @@ impl Eval {
 
             // Poison the last parent function environment, because it may contain new declarations after/during eval.
             if !strict {
-                context.with_vm_mut(|vm| {
-                    vm.frame.environments.poison_until_last_function();
-                });
+                // SAFETY: Single-field mutation via raw pointer. Context is !Send/!Sync.
+                unsafe {
+                    (*context.vm_ptr())
+                        .frame
+                        .environments
+                        .poison_until_last_function();
+                }
             }
 
             // Set the compile time environment to the current running environment and save the number of current environments.
@@ -221,7 +225,9 @@ impl Eval {
             // If the call to eval is indirect, the code is executed in the global environment.
 
             // Pop all environments before the eval execution.
-            let environments = context.with_vm_mut(|vm| vm.frame.environments.pop_to_global());
+            // SAFETY: Single-field mutation via raw pointer. Context is !Send/!Sync.
+            let environments =
+                unsafe { (*context.vm_ptr()).frame.environments.pop_to_global() };
 
             // Restore all environments to the state from before the eval execution.
             EnvStackAction::Restore(environments)
@@ -229,13 +235,16 @@ impl Eval {
 
         let context = &context.guard(move |ctx| match action {
             EnvStackAction::Truncate(len) => {
-                ctx.with_vm_mut(|vm| vm.frame.environments.truncate(len));
+                // SAFETY: Single-field mutation via raw pointer. Context is !Send/!Sync.
+                unsafe { (*ctx.vm_ptr()).frame.environments.truncate(len) };
             }
             EnvStackAction::Restore(envs) => {
-                ctx.with_vm_mut(|vm| {
+                // SAFETY: Single-field mutation via raw pointer. Context is !Send/!Sync.
+                unsafe {
+                    let vm = &mut *ctx.vm_ptr();
                     vm.frame.environments.truncate(0);
                     vm.frame.environments.extend(envs);
-                });
+                }
             }
         });
 

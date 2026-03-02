@@ -20,15 +20,18 @@ macro_rules! implement_bin_ops {
             ) -> JsResult<()> {
                 $(
                 // Fast path: try numeric operation without cloning.
-                let fast_result = context.with_vm_mut(|vm| {
+                // SAFETY: No other references to the VM exist during this block.
+                let fast_result = unsafe {
+                    let vm = &mut *context.vm_ptr();
                     let lhs = vm.get_register(lhs.into());
                     let rhs = vm.get_register(rhs.into());
                     if let Some(value) = JsValue::$fast_fn(lhs, rhs) {
                         vm.set_register(dst.into(), value.into());
-                        return Some(());
+                        Some(())
+                    } else {
+                        None
                     }
-                    None
-                });
+                };
                 if fast_result.is_some() {
                     return Ok(());
                 }

@@ -114,26 +114,32 @@ fn bound_function_exotic_call(
 
     // 1. Let target be F.[[BoundTargetFunction]].
     let target = bound_function.target_function();
-    context.with_vm_mut(|vm| {
-        vm.stack
+    // SAFETY: Single-field mutation via raw pointer. Context is !Send/!Sync.
+    unsafe {
+        (*context.vm_ptr())
+            .stack
             .calling_convention_set_function(argument_count, target.clone().into());
-    });
+    }
 
     // 2. Let boundThis be F.[[BoundThis]].
     let bound_this = bound_function.this();
-    context.with_vm_mut(|vm| {
-        vm.stack
+    // SAFETY: Single-field mutation via raw pointer. Context is !Send/!Sync.
+    unsafe {
+        (*context.vm_ptr())
+            .stack
             .calling_convention_set_this(argument_count, bound_this.clone());
-    });
+    }
 
     // 3. Let boundArgs be F.[[BoundArguments]].
     let bound_args = bound_function.args();
 
     // 4. Let args be the list-concatenation of boundArgs and argumentsList.
-    context.with_vm_mut(|vm| {
-        vm.stack
+    // SAFETY: Single-field mutation via raw pointer. Context is !Send/!Sync.
+    unsafe {
+        (*context.vm_ptr())
+            .stack
             .calling_convention_insert_arguments(argument_count, bound_args);
-    });
+    }
 
     // 5. Return ? Call(target, boundThis, args).
     Ok(target.__call__(bound_args.len() + argument_count))
@@ -168,10 +174,12 @@ fn bound_function_exotic_construct(
     let bound_args = bound_function.args();
 
     // 4. Let args be the list-concatenation of boundArgs and argumentsList.
-    context.with_vm_mut(|vm| {
-        vm.stack
+    // SAFETY: Single-field mutation via raw pointer. Context is !Send/!Sync.
+    unsafe {
+        (*context.vm_ptr())
+            .stack
             .calling_convention_insert_arguments(argument_count, bound_args);
-    });
+    }
 
     // 5. If SameValue(F, newTarget) is true, set newTarget to target.
     let function_object: JsValue = function_object.clone().into();

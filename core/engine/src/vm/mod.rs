@@ -715,16 +715,18 @@ impl Context {
                 };
                 frame = Some(f);
             }
-            self.with_vm_mut(|vm| vm.frame.environments.truncate(env_fp));
+            // SAFETY: Single-field mutations via raw pointer. Context is !Send/!Sync.
+            unsafe { (*self.vm_ptr()).frame.environments.truncate(env_fp) };
             if let Some(frame) = frame {
-                self.with_vm_mut(|vm| vm.stack.truncate_to_frame(&frame));
+                // SAFETY: Single-field mutation via raw pointer. Context is !Send/!Sync.
+                unsafe { (*self.vm_ptr()).stack.truncate_to_frame(&frame) };
             }
             return ControlFlow::Break(CompletionRecord::Throw(err));
         }
 
         // Note: -1 because we increment after fetching the opcode.
         let pc = self.with_vm(|vm| vm.frame().pc.saturating_sub(1));
-        if self.with_vm_mut(|vm| vm.handle_exception_at(pc)) {
+        if self.vm_handle_exception_at(pc) {
             self.set_pending_exception(err);
             return ControlFlow::Continue(());
         }
@@ -738,7 +740,11 @@ impl Context {
 
     fn handle_return(&self) -> ControlFlow<CompletionRecord> {
         let exit_early = self.with_vm(|vm| vm.frame().exit_early());
-        self.with_vm_mut(|vm| vm.stack.truncate_to_frame(&vm.frame));
+        // SAFETY: Field mutations via raw pointer. Context is !Send/!Sync.
+        unsafe {
+            let vm = &mut *self.vm_ptr();
+            vm.stack.truncate_to_frame(&vm.frame);
+        }
 
         let result = self.take_return_value();
         if exit_early {
@@ -762,7 +768,9 @@ impl Context {
     }
 
     fn handle_throw(&self) -> ControlFlow<CompletionRecord> {
-        self.with_vm_mut(|vm| {
+        // SAFETY: Field mutations via raw pointer. Context is !Send/!Sync.
+        unsafe {
+            let vm = &mut *self.vm_ptr();
             if let Some(err) = &mut vm.pending_exception
                 && err.backtrace.is_none()
             {
@@ -771,14 +779,16 @@ impl Context {
                         .take(vm.runtime_limits.backtrace_limit(), vm.frame.pc),
                 );
             }
-        });
+        }
 
         let mut env_fp = self.with_vm(|vm| vm.frame.env_fp);
         if self.with_vm(|vm| vm.frame.exit_early()) {
-            self.with_vm_mut(|vm| {
+            // SAFETY: Field mutations via raw pointer. Context is !Send/!Sync.
+            unsafe {
+                let vm = &mut *self.vm_ptr();
                 vm.frame.environments.truncate(env_fp as usize);
                 vm.stack.truncate_to_frame(&vm.frame);
-            });
+            }
             return ControlFlow::Break(CompletionRecord::Throw(
                 self.take_pending_exception()
                     .expect("Err must exist for a CompletionType::Throw"),
@@ -792,7 +802,7 @@ impl Context {
                 self.with_vm(|vm| (vm.frame.env_fp, vm.frame.pc, vm.frame.exit_early()));
             env_fp = new_env_fp;
 
-            if self.with_vm_mut(|vm| vm.handle_exception_at(pc)) {
+            if self.vm_handle_exception_at(pc) {
                 return ControlFlow::Continue(());
             }
 
@@ -808,10 +818,12 @@ impl Context {
             };
             frame = f;
         }
-        self.with_vm_mut(|vm| {
+        // SAFETY: Field mutations via raw pointer. Context is !Send/!Sync.
+        unsafe {
+            let vm = &mut *self.vm_ptr();
             vm.frame.environments.truncate(env_fp as usize);
             vm.stack.truncate_to_frame(&frame);
-        });
+        }
         ControlFlow::Continue(())
     }
 

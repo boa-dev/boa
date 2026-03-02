@@ -115,7 +115,7 @@ impl PushIteratorToArray {
     pub(crate) fn operation(array: VaryingOperand, context: &Context) -> JsResult<()> {
         let array = context.get_register(array.into()).clone();
         let mut iterator = context
-            .with_vm_mut(|vm| vm.frame_mut().iterators.pop())
+            .vm_pop_iterator()
             .expect("iterator stack should have at least an iterator");
         while let Some(next) = iterator.step_value(context)? {
             Array::push(&array, &[next], context)?;

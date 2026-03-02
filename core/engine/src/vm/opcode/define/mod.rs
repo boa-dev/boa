@@ -18,14 +18,16 @@ impl DefVar {
     #[inline(always)]
     pub(super) fn operation(index: VaryingOperand, context: &Context) {
         // TODO: spec specifies to return `empty` on empty vars, but we're trying to initialize.
-        context.with_vm_mut(|vm| {
+        // SAFETY: No other references to the VM exist during this block.
+        unsafe {
+            let vm = &mut *context.vm_ptr();
             let binding_locator = vm.frame().code_block.bindings[usize::from(index)].clone();
             vm.frame.environments.put_value_if_uninitialized(
                 binding_locator.scope(),
                 binding_locator.binding_index(),
                 JsValue::undefined(),
             );
-        });
+        }
     }
 }
 
@@ -77,7 +79,9 @@ pub(crate) struct PutLexicalValue;
 impl PutLexicalValue {
     #[inline(always)]
     pub(super) fn operation((value, index): (VaryingOperand, VaryingOperand), context: &Context) {
-        context.with_vm_mut(|vm| {
+        // SAFETY: No other references to the VM exist during this block.
+        unsafe {
+            let vm = &mut *context.vm_ptr();
             let value = vm.get_register(value.into()).clone();
             let binding_locator = vm.frame().code_block.bindings[usize::from(index)].clone();
             vm.frame.environments.put_lexical_value(
@@ -85,7 +89,7 @@ impl PutLexicalValue {
                 binding_locator.binding_index(),
                 value,
             );
-        });
+        }
     }
 }
 

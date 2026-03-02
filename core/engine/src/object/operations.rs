@@ -396,9 +396,7 @@ impl JsObject {
         context.stack_push(this.clone()); // this
         context.stack_push(self.clone()); // func
         let argument_count = args.len();
-        context.with_vm_mut(|vm| {
-            vm.stack.calling_convention_push_arguments(args);
-        });
+        context.vm_calling_convention_push_arguments(args);
 
         // 3. Return ? F.[[Call]](V, argumentsList).
         let frame_index = context.frames_len();
@@ -406,13 +404,15 @@ impl JsObject {
             return Ok(context.stack_pop());
         }
 
-        context.with_vm_mut(|vm| {
+        // SAFETY: Field mutation via raw pointer. Context is !Send/!Sync.
+        unsafe {
+            let vm = &mut *context.vm_ptr();
             if frame_index + 1 == vm.frames.len() {
                 vm.frame.set_exit_early(true);
             } else {
                 vm.frames[frame_index + 1].set_exit_early(true);
             }
-        });
+        }
 
         context.increment_host_call_depth();
         let result = context.run().consume();
@@ -449,9 +449,7 @@ impl JsObject {
         context.stack_push(JsValue::undefined());
         context.stack_push(self.clone()); // func
         let argument_count = args.len();
-        context.with_vm_mut(|vm| {
-            vm.stack.calling_convention_push_arguments(args);
-        });
+        context.vm_calling_convention_push_arguments(args);
         context.stack_push(new_target.clone());
 
         // 2. If argumentsList is not present, set argumentsList to a new empty List.
@@ -466,13 +464,15 @@ impl JsObject {
                 .clone());
         }
 
-        context.with_vm_mut(|vm| {
+        // SAFETY: Field mutation via raw pointer. Context is !Send/!Sync.
+        unsafe {
+            let vm = &mut *context.vm_ptr();
             if frame_index + 1 == vm.frames.len() {
                 vm.frame.set_exit_early(true);
             } else {
                 vm.frames[frame_index + 1].set_exit_early(true);
             }
-        });
+        }
 
         context.increment_host_call_depth();
         let result = context.run().consume();

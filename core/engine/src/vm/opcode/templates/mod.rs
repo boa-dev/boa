@@ -17,7 +17,7 @@ impl TemplateLookup {
     pub(super) fn operation((jump, site, dst): (u32, u64, VaryingOperand), context: &Context) {
         if let Some(template) = context.realm().lookup_template(site) {
             context.set_register(dst.into(), template.into());
-            context.with_vm_mut(|vm| vm.frame_mut().pc = jump);
+            context.set_pc(jump);
         }
     }
 }

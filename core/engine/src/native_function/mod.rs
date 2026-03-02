@@ -322,7 +322,7 @@ pub(crate) fn native_function_call(
     argument_count: usize,
     context: &mut InternalMethodCallContext<'_>,
 ) -> JsResult<CallValue> {
-    let args = context.with_vm_mut(|vm| vm.stack.calling_convention_pop_arguments(argument_count));
+    let args = context.vm_calling_convention_pop_arguments(argument_count);
     let _func = context.stack_pop();
     let this = context.stack_pop();
 
@@ -343,14 +343,13 @@ pub(crate) fn native_function_call(
 
     let pc = context.with_vm(|vm| vm.frame.pc);
     let native_source_info = context.native_source_info();
-    context.with_vm_mut(|vm| {
-        vm.shadow_stack.push_native(pc, name, native_source_info);
-    });
+    // SAFETY: Single-field mutation via raw pointer. Context is !Send/!Sync.
+    unsafe { (*context.vm_ptr()).shadow_stack.push_native(pc, name, native_source_info) };
 
     let mut realm = realm.unwrap_or_else(|| context.realm().clone());
 
     context.swap_realm(&mut realm);
-    context.with_vm_mut(|vm| vm.native_active_function = Some(this_function_object));
+    context.vm_set_native_active_function(Some(this_function_object));
 
     let result = if constructor.is_some() {
         function.call(&JsValue::undefined(), &args, context)
@@ -359,10 +358,10 @@ pub(crate) fn native_function_call(
     }
     .map_err(|err| err.inject_realm(context.realm().clone()));
 
-    context.with_vm_mut(|vm| vm.native_active_function = None);
+    context.vm_set_native_active_function(None);
     context.swap_realm(&mut realm);
 
-    context.with_vm_mut(|vm| vm.shadow_stack.pop());
+    context.vm_pop_shadow_stack();
 
     context.stack_push(result?);
 
@@ -397,17 +396,16 @@ fn native_function_construct(
 
     let pc = context.with_vm(|vm| vm.frame.pc);
     let native_source_info = context.native_source_info();
-    context.with_vm_mut(|vm| {
-        vm.shadow_stack.push_native(pc, name, native_source_info);
-    });
+    // SAFETY: Single-field mutation via raw pointer. Context is !Send/!Sync.
+    unsafe { (*context.vm_ptr()).shadow_stack.push_native(pc, name, native_source_info) };
 
     let mut realm = realm.unwrap_or_else(|| context.realm().clone());
 
     context.swap_realm(&mut realm);
-    context.with_vm_mut(|vm| vm.native_active_function = Some(this_function_object));
+    context.vm_set_native_active_function(Some(this_function_object));
 
     let new_target = context.stack_pop();
-    let args = context.with_vm_mut(|vm| vm.stack.calling_convention_pop_arguments(argument_count));
+    let args = context.vm_calling_convention_pop_arguments(argument_count);
     let _func = context.stack_pop();
     let _this = context.stack_pop();
 
@@ -437,10 +435,10 @@ fn native_function_construct(
             }
         });
 
-    context.with_vm_mut(|vm| vm.native_active_function = None);
+    context.vm_set_native_active_function(None);
     context.swap_realm(&mut realm);
 
-    context.with_vm_mut(|vm| vm.shadow_stack.pop());
+    context.vm_pop_shadow_stack();
 
     context.stack_push(result?);
 

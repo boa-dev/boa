@@ -15,14 +15,14 @@ impl Case {
         (address, value, condition): (u32, VaryingOperand, VaryingOperand),
         context: &Context,
     ) {
-        context.with_vm_mut(|vm| {
-            let equals = vm
-                .get_register(value.into())
-                .strict_equals(vm.get_register(condition.into()));
-            if equals {
-                vm.frame_mut().pc = address;
-            }
-        });
+        let equals = {
+            let vm = unsafe { &*context.vm_ptr() };
+            vm.get_register(value.into())
+                .strict_equals(vm.get_register(condition.into()))
+        };
+        if equals {
+            context.set_pc(address);
+        }
     }
 }
 

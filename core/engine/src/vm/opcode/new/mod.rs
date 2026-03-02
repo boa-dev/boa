@@ -65,7 +65,7 @@ impl NewSpread {
 
         let argument_count = arguments.len();
         context.stack_push(func);
-        context.with_vm_mut(|vm| vm.stack.calling_convention_push_arguments(&arguments));
+        context.vm_calling_convention_push_arguments(&arguments);
         context.stack_push(cons.clone()); // Push new.target
 
         cons.__construct__(argument_count).resolve(context)?;

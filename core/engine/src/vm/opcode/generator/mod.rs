@@ -192,12 +192,10 @@ impl JumpIfNotResumeKind {
         (exit, expected, value): (u32, VaryingOperand, VaryingOperand),
         context: &Context,
     ) {
-        context.with_vm_mut(|vm| {
-            let resume_kind = vm.get_register(value.into()).to_generator_resume_kind();
-            if resume_kind as u8 != u32::from(expected) as u8 {
-                vm.frame_mut().pc = exit;
-            }
-        });
+        let resume_kind = context.get_register(value.into()).to_generator_resume_kind();
+        if resume_kind as u8 != u32::from(expected) as u8 {
+            context.set_pc(exit);
+        }
     }
 }
 
@@ -235,7 +233,7 @@ impl GeneratorDelegateNext {
         // Preemptively popping removes the iterator from the iterator stack if any operation
         // throws, which avoids calling cleanup operations on the poisoned iterator.
         let iterator_record = context
-            .with_vm_mut(|vm| vm.frame_mut().iterators.pop())
+            .vm_pop_iterator()
             .expect("iterator stack should have at least an iterator");
 
         match resume_kind {
@@ -261,7 +259,7 @@ impl GeneratorDelegateNext {
                     context.set_register(is_return.into(), false.into());
                     context.set_register(value.into(), result);
                 } else {
-                    context.with_vm_mut(|vm| vm.frame_mut().pc = throw_method_undefined);
+                    context.set_pc(throw_method_undefined);
                 }
             }
             GeneratorResumeKind::Return => {
@@ -277,7 +275,7 @@ impl GeneratorDelegateNext {
                     context.set_register(is_return.into(), true.into());
                     context.set_register(value.into(), result);
                 } else {
-                    context.with_vm_mut(|vm| vm.frame_mut().pc = return_method_undefined);
+                    context.set_pc(return_method_undefined);
 
                     // The current iterator didn't have a cleanup `return` method, so we can
                     // skip pushing it to the iterator stack for cleanup.
@@ -286,7 +284,7 @@ impl GeneratorDelegateNext {
             }
         }
 
-        context.with_vm_mut(|vm| vm.frame_mut().iterators.push(iterator_record));
+        context.vm_push_iterator(iterator_record);
 
         Ok(())
     }
@@ -325,7 +323,7 @@ impl GeneratorDelegateResume {
         let is_return = context.with_vm(|vm| vm.get_register(is_return.into()).to_boolean());
 
         let mut iterator = context
-            .with_vm_mut(|vm| vm.frame_mut().iterators.pop())
+            .vm_pop_iterator()
             .expect("iterator stack should have at least an iterator");
 
         if resume_kind == GeneratorResumeKind::Throw {
@@ -337,11 +335,11 @@ impl GeneratorDelegateResume {
         if iterator.done() {
             let result = iterator.value(context)?;
             context.set_register(value.into(), result);
-            context.with_vm_mut(|vm| vm.frame_mut().pc = if is_return { return_gen } else { exit });
+            context.set_pc(if is_return { return_gen } else { exit });
             return Ok(());
         }
 
-        context.with_vm_mut(|vm| vm.frame_mut().iterators.push(iterator));
+        context.vm_push_iterator(iterator);
 
         Ok(())
     }

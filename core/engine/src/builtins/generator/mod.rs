@@ -65,13 +65,15 @@ pub(crate) struct GeneratorContext {
 impl GeneratorContext {
     /// Creates a new `GeneratorContext` from the current `Context` state.
     pub(crate) fn from_current(context: &Context, async_generator: Option<JsObject>) -> Self {
-        let (mut frame, mut stack) = context.with_vm_mut(|vm| {
+        // SAFETY: Multi-field read+write via raw pointer. Context is !Send/!Sync.
+        let (mut frame, mut stack) = unsafe {
+            let vm = &mut *context.vm_ptr();
             let mut frame = vm.frame().clone();
             frame.environments = vm.frame.environments.clone();
             frame.realm = context.realm().clone();
             let stack = vm.stack.split_off_frame(&frame);
             (frame, stack)
-        });
+        };
 
         frame.rp = CallFrame::FUNCTION_PROLOGUE + frame.argument_count;
 
@@ -96,16 +98,18 @@ impl GeneratorContext {
         resume_kind: GeneratorResumeKind,
         context: &Context,
     ) -> CompletionRecord {
-        context.with_vm_mut(|vm| std::mem::swap(&mut vm.stack, &mut self.stack));
+        // SAFETY: Single-field mutation via raw pointer. Context is !Send/!Sync.
+        unsafe { std::mem::swap(&mut (*context.vm_ptr()).stack, &mut self.stack) };
         let frame = self.call_frame.take().expect("should have a call frame");
         let rp = frame.rp;
         context.push_frame(frame);
 
-        context.with_vm_mut(|vm| {
-            let frame = vm.frame_mut();
+        // SAFETY: Single-field mutation via raw pointer. Context is !Send/!Sync.
+        unsafe {
+            let frame = (*context.vm_ptr()).frame_mut();
             frame.rp = rp;
             frame.set_exit_early(true);
-        });
+        }
 
         if let Some(value) = value {
             context.stack_push(value);
@@ -114,7 +118,8 @@ impl GeneratorContext {
 
         let result = context.run();
 
-        context.with_vm_mut(|vm| std::mem::swap(&mut vm.stack, &mut self.stack));
+        // SAFETY: Single-field mutation via raw pointer. Context is !Send/!Sync.
+        unsafe { std::mem::swap(&mut (*context.vm_ptr()).stack, &mut self.stack) };
         self.call_frame = context.pop_frame();
         assert!(self.call_frame.is_some());
         result

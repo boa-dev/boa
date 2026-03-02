@@ -379,7 +379,7 @@ macro_rules! generate_opcodes {
                         let bytes = &vm.frame.code_block.bytecode.bytecode;
                         <($($($FieldType),*)?)>::decode(bytes, pc + 1)
                     });
-                    context.with_vm_mut(|vm| vm.frame_mut().pc = next_pc as u32);
+                    context.set_pc(next_pc as u32);
                     let result = $Variant::operation(args, context);
                     IntoCompletionRecord::into_completion_record(result, context)
                 }
@@ -396,7 +396,7 @@ macro_rules! generate_opcodes {
                         let bytes = &vm.frame.code_block.bytecode.bytecode;
                         <($($($FieldType),*)?)>::decode(bytes, pc + 1)
                     });
-                    context.with_vm_mut(|vm| vm.frame_mut().pc = next_pc as u32);
+                    context.set_pc(next_pc as u32);
                     let result = $Variant::operation(args, context);
                     IntoCompletionRecord::into_completion_record(result, context)
                 }

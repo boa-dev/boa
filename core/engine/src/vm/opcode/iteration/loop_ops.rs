@@ -11,7 +11,9 @@ pub(crate) struct IncrementLoopIteration;
 impl IncrementLoopIteration {
     #[inline(always)]
     pub(crate) fn operation((): (), context: &Context) -> JsResult<()> {
-        context.with_vm_mut(|vm| -> JsResult<()> {
+        // SAFETY: No other references to the VM exist during this block.
+        unsafe {
+            let vm = &mut *context.vm_ptr();
             let max = vm.runtime_limits.loop_iteration_limit();
             let frame = vm.frame_mut();
             let previous_iteration_count = frame.loop_iteration_count;
@@ -21,8 +23,7 @@ impl IncrementLoopIteration {
             }
 
             frame.loop_iteration_count = previous_iteration_count.wrapping_add(1);
-            Ok(())
-        })?;
+        }
         Ok(())
     }
 }

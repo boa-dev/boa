@@ -42,10 +42,12 @@ pub(crate) struct IsObject;
 impl IsObject {
     #[inline(always)]
     pub(super) fn operation(value: VaryingOperand, context: &Context) {
-        context.with_vm_mut(|vm| {
+        // SAFETY: No other references to the VM exist during this block.
+        unsafe {
+            let vm = &mut *context.vm_ptr();
             let is_object = vm.get_register(value.into()).is_object();
             vm.set_register(value.into(), is_object.into());
-        });
+        }
     }
 }
 

@@ -26,10 +26,12 @@ impl This {
         let this = context
             .with_vm(|vm| vm.frame.environments.get_this_binding())?
             .unwrap_or(context.realm().global_this().clone().into());
-        context.with_vm_mut(|vm| {
+        // SAFETY: No other references to the VM exist during this block.
+        unsafe {
+            let vm = &mut *context.vm_ptr();
             vm.frame_mut().flags |= CallFrameFlags::THIS_VALUE_CACHED;
             vm.stack.set_this(&vm.frame, this.clone());
-        });
+        }
         context.set_register(dst.into(), this);
         Ok(())
     }
@@ -236,7 +238,7 @@ impl SuperCallSpread {
 
         context.stack_push(super_constructor.clone());
 
-        context.with_vm_mut(|vm| vm.stack.calling_convention_push_arguments(&arguments));
+        context.vm_calling_convention_push_arguments(&arguments);
 
         let new_target = context.with_vm(|vm| {
             vm.frame

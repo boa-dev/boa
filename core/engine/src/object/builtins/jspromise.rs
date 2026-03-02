@@ -1207,7 +1207,8 @@ impl JsPromise {
         // Clone the stack since we split it.
         let stack = context.with_vm(|vm| vm.stack.clone());
         let gen_ctx = GeneratorContext::from_current(context, None);
-        context.with_vm_mut(|vm| vm.stack = stack);
+        // SAFETY: Single-field mutation via raw pointer. Context is !Send/!Sync.
+        unsafe { (*context.vm_ptr()).stack = stack };
 
         // 3. Let fulfilledClosure be a new Abstract Closure with parameters (value) that captures asyncContext and performs the following steps when called:
         // 4. Let onFulfilled be CreateBuiltinFunction(fulfilledClosure, 1, "", « »).
@@ -1225,11 +1226,16 @@ impl JsPromise {
                     // NOTE: We need to get the object before resuming, since it could clear the stack.
                     let async_generator = r#gen.async_generator_object();
 
-                    context.with_vm_mut(|vm| std::mem::swap(&mut vm.stack, &mut r#gen.stack));
+                    // SAFETY: Multi-field mutation via raw pointer. Context is !Send/!Sync.
+                    unsafe {
+                        let vm = &mut *context.vm_ptr();
+                        std::mem::swap(&mut vm.stack, &mut r#gen.stack);
+                    }
                     let frame = r#gen.call_frame.take().expect("should have a call frame");
                     let rp = frame.rp;
                     context.push_frame(frame);
-                    context.with_vm_mut(|vm| vm.frame_mut().set_register_pointer(rp));
+                    // SAFETY: Single-field mutation via raw pointer. Context is !Send/!Sync.
+                    unsafe { (*context.vm_ptr()).frame_mut().set_register_pointer(rp) };
 
                     if let crate::native_function::CoroutineState::Yielded(value) =
                         continuation.call(Ok(args.get_or_undefined(0).clone()), context)?
@@ -1238,7 +1244,11 @@ impl JsPromise {
                             .await_native(continuation.clone(), context);
                     }
 
-                    context.with_vm_mut(|vm| std::mem::swap(&mut vm.stack, &mut r#gen.stack));
+                    // SAFETY: Multi-field mutation via raw pointer. Context is !Send/!Sync.
+                    unsafe {
+                        let vm = &mut *context.vm_ptr();
+                        std::mem::swap(&mut vm.stack, &mut r#gen.stack);
+                    }
                     r#gen.call_frame = context.pop_frame();
                     assert!(r#gen.call_frame.is_some());
 
@@ -1262,7 +1272,8 @@ impl JsPromise {
 
         let stack = context.with_vm(|vm| vm.stack.clone());
         let gen_ctx = GeneratorContext::from_current(context, None);
-        context.with_vm_mut(|vm| vm.stack = stack);
+        // SAFETY: Single-field mutation via raw pointer. Context is !Send/!Sync.
+        unsafe { (*context.vm_ptr()).stack = stack };
 
         // 5. Let rejectedClosure be a new Abstract Closure with parameters (reason) that captures asyncContext and performs the following steps when called:
         // 6. Let onRejected be CreateBuiltinFunction(rejectedClosure, 1, "", « »).
@@ -1282,11 +1293,16 @@ impl JsPromise {
                     // NOTE: We need to get the object before resuming, since it could clear the stack.
                     let async_generator = r#gen.async_generator_object();
 
-                    context.with_vm_mut(|vm| std::mem::swap(&mut vm.stack, &mut r#gen.stack));
+                    // SAFETY: Multi-field mutation via raw pointer. Context is !Send/!Sync.
+                    unsafe {
+                        let vm = &mut *context.vm_ptr();
+                        std::mem::swap(&mut vm.stack, &mut r#gen.stack);
+                    }
                     let frame = r#gen.call_frame.take().expect("should have a call frame");
                     let rp = frame.rp;
                     context.push_frame(frame);
-                    context.with_vm_mut(|vm| vm.frame_mut().set_register_pointer(rp));
+                    // SAFETY: Single-field mutation via raw pointer. Context is !Send/!Sync.
+                    unsafe { (*context.vm_ptr()).frame_mut().set_register_pointer(rp) };
 
                     if let crate::native_function::CoroutineState::Yielded(value) = continuation
                         .call(
@@ -1298,7 +1314,11 @@ impl JsPromise {
                             .await_native(continuation.clone(), context);
                     }
 
-                    context.with_vm_mut(|vm| std::mem::swap(&mut vm.stack, &mut r#gen.stack));
+                    // SAFETY: Multi-field mutation via raw pointer. Context is !Send/!Sync.
+                    unsafe {
+                        let vm = &mut *context.vm_ptr();
+                        std::mem::swap(&mut vm.stack, &mut r#gen.stack);
+                    }
                     r#gen.call_frame = context.pop_frame();
                     assert!(r#gen.call_frame.is_some());
 

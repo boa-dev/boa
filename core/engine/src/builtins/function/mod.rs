@@ -668,9 +668,11 @@ impl BuiltInFunctionObject {
                 context.interner_mut(),
             );
 
-        let environments = context.with_vm_mut(|vm| vm.frame.environments.pop_to_global());
+        // SAFETY: Single-field mutation via raw pointer. Context is !Send/!Sync.
+        let environments = unsafe { (*context.vm_ptr()).frame.environments.pop_to_global() };
         let function_object = crate::vm::create_function_object(code, prototype, context);
-        context.with_vm_mut(|vm| vm.frame.environments.extend(environments));
+        // SAFETY: Single-field mutation via raw pointer. Context is !Send/!Sync.
+        unsafe { (*context.vm_ptr()).frame.environments.extend(environments) };
 
         Ok(function_object)
     }
@@ -1011,9 +1013,8 @@ pub(crate) fn function_call(
     #[cfg(feature = "native-backtrace")]
     {
         let native_source_info = context.native_source_info();
-        context.with_vm_mut(|vm| {
-            vm.shadow_stack.patch_last_native(native_source_info);
-        });
+        // SAFETY: Single-field mutation via raw pointer. Context is !Send/!Sync.
+        unsafe { (*context.vm_ptr()).shadow_stack.patch_last_native(native_source_info) };
     }
 
     context.push_frame(frame);
@@ -1025,48 +1026,49 @@ pub(crate) fn function_call(
     let this = if lexical_this_mode {
         ThisBindingStatus::Lexical
     } else if code.strict() {
-        context.with_vm_mut(|vm| vm.frame_mut().flags |= CallFrameFlags::THIS_VALUE_CACHED);
+        context.vm_set_frame_flags(CallFrameFlags::THIS_VALUE_CACHED);
         ThisBindingStatus::Initialized(this)
     } else if this.is_null_or_undefined() {
-        context.with_vm_mut(|vm| vm.frame_mut().flags |= CallFrameFlags::THIS_VALUE_CACHED);
+        context.vm_set_frame_flags(CallFrameFlags::THIS_VALUE_CACHED);
         let this: JsValue = context.realm().global_this().clone().into();
-        context.with_vm_mut(|vm| {
-            vm.stack.set_this(&vm.frame, this.clone());
-        });
+        // SAFETY: Multi-field read+write via raw pointer. Context is !Send/!Sync.
+        unsafe { (*context.vm_ptr()).stack.set_this(&(*context.vm_ptr()).frame, this.clone()) };
         ThisBindingStatus::Initialized(this)
     } else {
         let this: JsValue = this
             .to_object(context)
             .expect("conversion cannot fail")
             .into();
-        context.with_vm_mut(|vm| {
-            vm.frame_mut().flags |= CallFrameFlags::THIS_VALUE_CACHED;
-            vm.stack.set_this(&vm.frame, this.clone());
-        });
+        context.vm_set_frame_flags(CallFrameFlags::THIS_VALUE_CACHED);
+        // SAFETY: Multi-field read+write via raw pointer. Context is !Send/!Sync.
+        unsafe { (*context.vm_ptr()).stack.set_this(&(*context.vm_ptr()).frame, this.clone()) };
         ThisBindingStatus::Initialized(this)
     };
 
     let mut last_env = 0;
 
     if code.has_binding_identifier() {
-        context.with_vm_mut(|vm| {
+        // SAFETY: Single-field mutation via raw pointer. Context is !Send/!Sync.
+        unsafe {
+            let vm = &mut *context.vm_ptr();
             let index = vm.frame.environments.push_lexical(1);
             vm.frame.environments.put_lexical_value(
                 BindingLocatorScope::Stack(index),
                 0,
                 function_object.clone().into(),
             );
-        });
+        }
         last_env += 1;
     }
 
     if code.has_function_scope() {
-        context.with_vm_mut(|vm| {
-            vm.frame.environments.push_function(
+        // SAFETY: Single-field mutation via raw pointer. Context is !Send/!Sync.
+        unsafe {
+            (*context.vm_ptr()).frame.environments.push_function(
                 code.constant_scope(last_env),
                 FunctionSlots::new(this, function_object.clone(), None),
             );
-        });
+        }
     }
 
     Ok(CallValue::Ready)
@@ -1139,9 +1141,8 @@ fn function_construct(
     #[cfg(feature = "native-backtrace")]
     {
         let native_source_info = context.native_source_info();
-        context.with_vm_mut(|vm| {
-            vm.shadow_stack.patch_last_native(native_source_info);
-        });
+        // SAFETY: Single-field mutation via raw pointer. Context is !Send/!Sync.
+        unsafe { (*context.vm_ptr()).shadow_stack.patch_last_native(native_source_info) };
     }
 
     context.push_frame(frame);
@@ -1149,20 +1150,23 @@ fn function_construct(
     let mut last_env = 0;
 
     if code.has_binding_identifier() {
-        context.with_vm_mut(|vm| {
+        // SAFETY: Single-field mutation via raw pointer. Context is !Send/!Sync.
+        unsafe {
+            let vm = &mut *context.vm_ptr();
             let index = vm.frame.environments.push_lexical(1);
             vm.frame.environments.put_lexical_value(
                 BindingLocatorScope::Stack(index),
                 0,
                 this_function_object.clone().into(),
             );
-        });
+        }
         last_env += 1;
     }
 
     if code.has_function_scope() {
-        context.with_vm_mut(|vm| {
-            vm.frame.environments.push_function(
+        // SAFETY: Single-field mutation via raw pointer. Context is !Send/!Sync.
+        unsafe {
+            (*context.vm_ptr()).frame.environments.push_function(
                 code.constant_scope(last_env),
                 FunctionSlots::new(
                     this.clone().map_or(ThisBindingStatus::Uninitialized, |o| {
@@ -1177,14 +1181,16 @@ fn function_construct(
                     ),
                 ),
             );
-        });
+        }
     }
 
     let context = context.context();
-    context.with_vm_mut(|vm| {
+    // SAFETY: Multi-field read+write via raw pointer. Context is !Send/!Sync.
+    unsafe {
+        let vm = &mut *context.vm_ptr();
         let this_val = this.map(JsValue::new).unwrap_or_default();
         vm.stack.set_this(&vm.frame, this_val);
-    });
+    }
 
     Ok(CallValue::Ready)
 }

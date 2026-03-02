@@ -177,6 +177,19 @@ impl Default for Context {
 }
 
 // ==== Vm accessors ====
+//
+// All mutable access to the VM goes through `*mut Vm` raw pointers (via `vm_ptr()`).
+// We never create `&mut Vm` references, which avoids asserting exclusive access to
+// the entire `Vm` struct under Rust's aliasing rules.
+//
+// Read access uses `&Vm` references (via `with_vm()`). Since no `&mut Vm` is ever
+// created, `&Vm` references are always valid.
+//
+// Safety invariants:
+// 1. Context is !Send and !Sync (single-threaded access only)
+// 2. No `&mut Vm` is ever created from the UnsafeCell
+// 3. All mutation goes through `*mut Vm` to individual fields
+// 4. `&Vm` references are valid because invariant #2 holds
 impl Context {
     /// Executes a closure with a shared reference to the VM.
     ///
@@ -189,30 +202,37 @@ impl Context {
         f(unsafe { &*self.vm.get() })
     }
 
-    /// Executes a closure with a mutable reference to the VM.
+    /// Returns a raw mutable pointer to the VM.
     ///
-    /// The `&mut Vm` reference is scoped to the closure and cannot escape,
-    /// preventing aliasing with other VM references.
+    /// This returns `*mut Vm` rather than `&mut Vm` to avoid asserting exclusive
+    /// access to the entire `Vm` struct under Rust's aliasing rules.
+    ///
+    /// # Safety Rationale
+    ///
+    /// Using `*mut Vm` is sound because:
+    /// - `*mut Vm` carries no aliasing information (unlike `&mut Vm`)
+    /// - Multiple `*mut Vm` can coexist without UB
+    /// - Field access via `(*ptr).field` only touches that specific field
+    /// - Context is `!Send` and `!Sync`, ensuring single-threaded access
     #[inline]
-    pub(crate) fn with_vm_mut<R>(&self, f: impl FnOnce(&mut Vm) -> R) -> R {
-        // SAFETY: Context is !Sync/!Send, single-threaded access only.
-        // The reference cannot escape the closure scope.
-        f(unsafe { &mut *self.vm.get() })
+    pub(crate) fn vm_ptr(&self) -> *mut Vm {
+        self.vm.get()
     }
 }
 
 // ==== VM convenience methods ====
 //
 // These provide direct access to common VM operations without exposing `&mut Vm`.
-// Each method internally uses `with_vm` or `with_vm_mut` to ensure the VM reference
-// is scoped and cannot alias.
+// Each method internally uses `with_vm` for reads or `vm_ptr()` for mutations,
+// keeping `unsafe` centralized here rather than spread across opcode files.
 impl Context {
     // ---- Register access ----
 
     /// Sets a VM register value.
     #[inline]
     pub(crate) fn set_register(&self, index: usize, value: JsValue) {
-        self.with_vm_mut(|vm| vm.set_register(index, value));
+        // SAFETY: Single-field mutation via raw pointer. Context is !Send/!Sync.
+        unsafe { (*self.vm_ptr()).set_register(index, value) }
     }
 
     /// Gets a VM register value (cloned).
@@ -226,13 +246,15 @@ impl Context {
     /// Pushes a value onto the VM stack.
     #[inline]
     pub(crate) fn stack_push<T: Into<JsValue>>(&self, value: T) {
-        self.with_vm_mut(|vm| vm.stack.push(value));
+        // SAFETY: Single-field mutation via raw pointer. Context is !Send/!Sync.
+        unsafe { (*self.vm_ptr()).stack.push(value) }
     }
 
     /// Pops a value from the VM stack.
     #[inline]
     pub(crate) fn stack_pop(&self) -> JsValue {
-        self.with_vm_mut(|vm| vm.stack.pop())
+        // SAFETY: Single-field mutation via raw pointer. Context is !Send/!Sync.
+        unsafe { (*self.vm_ptr()).stack.pop() }
     }
 
     // ---- Frame management ----
@@ -240,19 +262,22 @@ impl Context {
     /// Pushes a new call frame onto the VM.
     #[inline]
     pub(crate) fn push_frame(&self, frame: CallFrame) {
-        self.with_vm_mut(|vm| vm.push_frame(frame));
+        // SAFETY: Single-field mutation via raw pointer. Context is !Send/!Sync.
+        unsafe { (*self.vm_ptr()).push_frame(frame) }
     }
 
     /// Pushes a new call frame with `this` and `function` on the stack.
     #[inline]
     pub(crate) fn push_frame_with_stack(&self, frame: CallFrame, this: JsValue, function: JsValue) {
-        self.with_vm_mut(|vm| vm.push_frame_with_stack(frame, this, function));
+        // SAFETY: Single-field mutation via raw pointer. Context is !Send/!Sync.
+        unsafe { (*self.vm_ptr()).push_frame_with_stack(frame, this, function) }
     }
 
     /// Pops the current call frame from the VM.
     #[inline]
     pub(crate) fn pop_frame(&self) -> Option<CallFrame> {
-        self.with_vm_mut(Vm::pop_frame)
+        // SAFETY: Single-field mutation via raw pointer. Context is !Send/!Sync.
+        unsafe { (*self.vm_ptr()).pop_frame() }
     }
 
     /// Returns the number of frames on the frame stack (not including the current frame).
@@ -272,13 +297,15 @@ impl Context {
     /// Sets the return value.
     #[inline]
     pub(crate) fn set_return_value(&self, value: JsValue) {
-        self.with_vm_mut(|vm| vm.set_return_value(value));
+        // SAFETY: Single-field mutation via raw pointer. Context is !Send/!Sync.
+        unsafe { (*self.vm_ptr()).set_return_value(value) }
     }
 
     /// Takes the return value, replacing it with `undefined`.
     #[inline]
     pub(crate) fn take_return_value(&self) -> JsValue {
-        self.with_vm_mut(Vm::take_return_value)
+        // SAFETY: Single-field mutation via raw pointer. Context is !Send/!Sync.
+        unsafe { (*self.vm_ptr()).take_return_value() }
     }
 
     // ---- Exception handling ----
@@ -286,13 +313,15 @@ impl Context {
     /// Sets a pending exception on the VM.
     #[inline]
     pub(crate) fn set_pending_exception(&self, err: JsError) {
-        self.with_vm_mut(|vm| vm.pending_exception = Some(err));
+        // SAFETY: Single-field mutation via raw pointer. Context is !Send/!Sync.
+        unsafe { (*self.vm_ptr()).pending_exception = Some(err) }
     }
 
     /// Takes the pending exception, if any.
     #[inline]
     pub(crate) fn take_pending_exception(&self) -> Option<JsError> {
-        self.with_vm_mut(|vm| vm.pending_exception.take())
+        // SAFETY: Single-field mutation via raw pointer. Context is !Send/!Sync.
+        unsafe { (*self.vm_ptr()).pending_exception.take() }
     }
 
     /// Returns `true` if an exception is pending.
@@ -306,13 +335,136 @@ impl Context {
     /// Increments the host call depth counter.
     #[inline]
     pub(crate) fn increment_host_call_depth(&self) {
-        self.with_vm_mut(|vm| vm.host_call_depth += 1);
+        // SAFETY: Single-field mutation via raw pointer. Context is !Send/!Sync.
+        unsafe { (*self.vm_ptr()).host_call_depth += 1 }
     }
 
     /// Decrements the host call depth counter (saturating).
     #[inline]
     pub(crate) fn decrement_host_call_depth(&self) {
-        self.with_vm_mut(|vm| vm.host_call_depth = vm.host_call_depth.saturating_sub(1));
+        // SAFETY: Single-field mutation via raw pointer. Context is !Send/!Sync.
+        let vm = self.vm_ptr();
+        unsafe { (*vm).host_call_depth = (*vm).host_call_depth.saturating_sub(1) }
+    }
+
+    // ---- Program counter ----
+
+    /// Sets the frame program counter.
+    #[inline]
+    pub(crate) fn set_pc(&self, pc: u32) {
+        // SAFETY: Single-field mutation via raw pointer. Context is !Send/!Sync.
+        unsafe { (*self.vm_ptr()).frame.pc = pc }
+    }
+
+    // ---- Exception handling (VM-level) ----
+
+    /// Handles an exception thrown at position `pc`.
+    /// Returns `true` if the exception was handled by a handler.
+    #[inline]
+    pub(crate) fn vm_handle_exception_at(&self, pc: u32) -> bool {
+        // SAFETY: Field mutation via raw pointer. Context is !Send/!Sync.
+        unsafe { (*self.vm_ptr()).handle_exception_at(pc) }
+    }
+
+    // ---- Iterator stack ----
+
+    /// Pops an iterator from the frame's iterator stack.
+    #[inline]
+    pub(crate) fn vm_pop_iterator(
+        &self,
+    ) -> Option<builtins::iterable::IteratorRecord> {
+        // SAFETY: Field mutation via raw pointer. Context is !Send/!Sync.
+        unsafe { (*self.vm_ptr()).frame.iterators.pop() }
+    }
+
+    /// Pushes an iterator onto the frame's iterator stack.
+    #[inline]
+    pub(crate) fn vm_push_iterator(
+        &self,
+        record: builtins::iterable::IteratorRecord,
+    ) {
+        // SAFETY: Field mutation via raw pointer. Context is !Send/!Sync.
+        unsafe { (*self.vm_ptr()).frame.iterators.push(record) }
+    }
+
+    // ---- Binding stack ----
+
+    /// Pushes a binding locator onto the frame's binding stack.
+    #[inline]
+    pub(crate) fn vm_push_binding_locator(
+        &self,
+        locator: boa_ast::scope::BindingLocator,
+    ) {
+        // SAFETY: Field mutation via raw pointer. Context is !Send/!Sync.
+        unsafe { (*self.vm_ptr()).frame.binding_stack.push(locator) }
+    }
+
+    /// Pops a binding locator from the frame's binding stack.
+    #[inline]
+    pub(crate) fn vm_pop_binding_locator(
+        &self,
+    ) -> Option<boa_ast::scope::BindingLocator> {
+        // SAFETY: Field mutation via raw pointer. Context is !Send/!Sync.
+        unsafe { (*self.vm_ptr()).frame.binding_stack.pop() }
+    }
+
+    // ---- Environment operations ----
+
+    /// Pops the top environment from the frame's environment stack.
+    #[inline]
+    pub(crate) fn vm_pop_environment(&self) {
+        // SAFETY: Field mutation via raw pointer. Context is !Send/!Sync.
+        unsafe { (*self.vm_ptr()).frame.environments.pop() }
+    }
+
+    // ---- Stack operations (calling convention) ----
+
+    /// Pushes arguments onto the stack in calling convention order.
+    #[inline]
+    pub(crate) fn vm_calling_convention_push_arguments(&self, arguments: &[JsValue]) {
+        // SAFETY: Field mutation via raw pointer. Context is !Send/!Sync.
+        unsafe { (*self.vm_ptr()).stack.calling_convention_push_arguments(arguments) }
+    }
+
+    /// Pops arguments from the stack in calling convention order.
+    #[inline]
+    pub(crate) fn vm_calling_convention_pop_arguments(
+        &self,
+        argument_count: usize,
+    ) -> Vec<JsValue> {
+        // SAFETY: Field mutation via raw pointer. Context is !Send/!Sync.
+        unsafe {
+            (*self.vm_ptr())
+                .stack
+                .calling_convention_pop_arguments(argument_count)
+        }
+    }
+
+    // ---- Shadow stack ----
+
+    /// Pops from the shadow stack.
+    #[inline]
+    pub(crate) fn vm_pop_shadow_stack(&self) {
+        // SAFETY: Field mutation via raw pointer. Context is !Send/!Sync.
+        unsafe { (*self.vm_ptr()).shadow_stack.pop(); }
+    }
+
+    // ---- Native active function ----
+
+    /// Sets the native active function.
+    #[inline]
+    pub(crate) fn vm_set_native_active_function(&self, func: Option<JsObject>) {
+        // SAFETY: Single-field mutation via raw pointer. Context is !Send/!Sync.
+        unsafe { (*self.vm_ptr()).native_active_function = func }
+    }
+
+    // ---- Frame flags ----
+
+    /// Adds flags to the current frame.
+    #[inline]
+    pub(crate) fn vm_set_frame_flags(&self, flags: crate::vm::CallFrameFlags) {
+        // SAFETY: Field mutation via raw pointer. Context is !Send/!Sync.
+        unsafe { (*self.vm_ptr()).frame.flags |= flags }
     }
 }
 
@@ -615,7 +767,8 @@ impl Context {
     #[cfg(feature = "trace")]
     #[inline]
     pub fn set_trace(&self, trace: bool) {
-        self.with_vm_mut(|vm| vm.trace = trace);
+        // SAFETY: Single-field mutation via raw pointer. Context is !Send/!Sync.
+        unsafe { (*self.vm_ptr()).trace = trace }
     }
 
     /// Get optimizer options.
@@ -679,12 +832,15 @@ impl Context {
     /// Replaces the currently active realm with `realm`, and returns the old realm.
     #[inline]
     pub fn enter_realm(&self, realm: Realm) -> Realm {
-        self.with_vm_mut(|vm| {
-            vm.frame
+        // SAFETY: Field mutation via raw pointer. Context is !Send/!Sync.
+        unsafe {
+            let vm = self.vm_ptr();
+            (*vm)
+                .frame
                 .environments
                 .replace_global(realm.environment().clone());
-            std::mem::replace(&mut vm.frame.realm, realm)
-        })
+            std::mem::replace(&mut (*vm).frame.realm, realm)
+        }
     }
 
     /// Create a new Realm with the default global bindings.
@@ -744,7 +900,8 @@ impl Context {
     /// Set the [`RuntimeLimits`].
     #[inline]
     pub fn set_runtime_limits(&self, runtime_limits: RuntimeLimits) {
-        self.with_vm_mut(|vm| vm.runtime_limits = runtime_limits);
+        // SAFETY: Single-field mutation via raw pointer. Context is !Send/!Sync.
+        unsafe { (*self.vm_ptr()).runtime_limits = runtime_limits }
     }
 
     /// Returns `true` if this context can be suspended by an `Atomics.wait` call.
@@ -800,7 +957,8 @@ impl Context {
 
     /// Swaps the currently active realm with `realm`.
     pub(crate) fn swap_realm(&self, realm: &mut Realm) {
-        self.with_vm_mut(|vm| std::mem::swap(&mut vm.frame.realm, realm));
+        // SAFETY: Field mutation via raw pointer. Context is !Send/!Sync.
+        unsafe { std::mem::swap(&mut (*self.vm_ptr()).frame.realm, realm) }
     }
 
     /// Increment and get the parser identifier.

@@ -11,14 +11,16 @@ pub(crate) struct RestParameterInit;
 impl RestParameterInit {
     #[inline(always)]
     pub(super) fn operation(dst: VaryingOperand, context: &Context) {
+        // SAFETY: No other references to the VM exist during these blocks.
         let array =
-            if let Some(rest) = context.with_vm_mut(|vm| vm.stack.pop_rest_arguments(&vm.frame)) {
+            if let Some(rest) = unsafe { let vm = &mut *context.vm_ptr(); vm.stack.pop_rest_arguments(&vm.frame) } {
                 let rest_count = rest.len() as u32;
                 let array = Array::create_array_from_list(rest, context);
-                context.with_vm_mut(|vm| {
+                unsafe {
+                    let vm = &mut *context.vm_ptr();
                     vm.frame_mut().rp -= rest_count;
                     vm.frame_mut().argument_count -= rest_count;
-                });
+                }
                 array
             } else {
                 Array::array_create(0, None, context).expect("could not create an empty array")

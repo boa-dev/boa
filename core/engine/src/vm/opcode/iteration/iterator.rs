@@ -19,12 +19,12 @@ impl IteratorNext {
     #[inline(always)]
     pub(crate) fn operation((): (), context: &Context) -> JsResult<()> {
         let mut iterator = context
-            .with_vm_mut(|vm| vm.frame_mut().iterators.pop())
+            .vm_pop_iterator()
             .expect("iterator stack should have at least an iterator");
 
         iterator.step(context)?;
 
-        context.with_vm_mut(|vm| vm.frame_mut().iterators.push(iterator));
+        context.vm_push_iterator(iterator);
 
         Ok(())
     }
@@ -51,7 +51,7 @@ impl IteratorFinishAsyncNext {
         context: &Context,
     ) -> JsResult<()> {
         let mut iterator = context
-            .with_vm_mut(|vm| vm.frame_mut().iterators.pop())
+            .vm_pop_iterator()
             .expect("iterator on the call frame must exist");
 
         let resume_kind = context.with_vm(|vm| {
@@ -68,7 +68,7 @@ impl IteratorFinishAsyncNext {
 
         let value = context.get_register(value.into()).clone();
         iterator.update_result(value, context)?;
-        context.with_vm_mut(|vm| vm.frame_mut().iterators.push(iterator));
+        context.vm_push_iterator(iterator);
         Ok(())
     }
 }
@@ -119,13 +119,13 @@ impl IteratorValue {
     #[inline(always)]
     pub(crate) fn operation(value: VaryingOperand, context: &Context) -> JsResult<()> {
         let mut iterator = context
-            .with_vm_mut(|vm| vm.frame_mut().iterators.pop())
+            .vm_pop_iterator()
             .expect("iterator on the call frame must exist");
 
         let iter_value = iterator.value(context)?;
         context.set_register(value.into(), iter_value);
 
-        context.with_vm_mut(|vm| vm.frame_mut().iterators.push(iterator));
+        context.vm_push_iterator(iterator);
 
         Ok(())
     }
@@ -177,7 +177,7 @@ impl IteratorReturn {
         (value, called): (VaryingOperand, VaryingOperand),
         context: &Context,
     ) -> JsResult<()> {
-        let Some(record) = context.with_vm_mut(|vm| vm.frame_mut().iterators.pop()) else {
+        let Some(record) = context.vm_pop_iterator() else {
             context.set_register(called.into(), false.into());
             return Ok(());
         };
@@ -225,7 +225,7 @@ impl IteratorToArray {
     #[inline(always)]
     pub(crate) fn operation(array: VaryingOperand, context: &Context) -> JsResult<()> {
         let mut iterator = context
-            .with_vm_mut(|vm| vm.frame_mut().iterators.pop())
+            .vm_pop_iterator()
             .expect("iterator on the call frame must exist");
 
         let mut values = Vec::new();
@@ -234,7 +234,7 @@ impl IteratorToArray {
             let done = match iterator.step(context) {
                 Ok(done) => done,
                 Err(err) => {
-                    context.with_vm_mut(|vm| vm.frame_mut().iterators.push(iterator));
+                    context.vm_push_iterator(iterator);
                     return Err(err);
                 }
             };
@@ -246,13 +246,13 @@ impl IteratorToArray {
             match iterator.value(context) {
                 Ok(value) => values.push(value),
                 Err(err) => {
-                    context.with_vm_mut(|vm| vm.frame_mut().iterators.push(iterator));
+                    context.vm_push_iterator(iterator);
                     return Err(err);
                 }
             }
         }
 
-        context.with_vm_mut(|vm| vm.frame_mut().iterators.push(iterator));
+        context.vm_push_iterator(iterator);
         let result = Array::create_array_from_list(values, context);
         context.set_register(array.into(), result.into());
         Ok(())

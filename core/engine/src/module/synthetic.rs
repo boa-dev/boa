@@ -406,9 +406,7 @@ impl SyntheticModule {
         // 2. Set the Function of moduleContext to null.
         // 7. Suspend the currently running execution context.
         // 8. Push moduleContext on to the execution context stack; moduleContext is now the running execution context.
-        context.with_vm_mut(|vm| {
-            vm.push_frame_with_stack(callframe, JsValue::undefined(), JsValue::null());
-        });
+        context.push_frame_with_stack(callframe, JsValue::undefined(), JsValue::null());
 
         // 9. Let steps be module.[[EvaluationSteps]].
         // 10. Let result be Completion(steps(module)).
@@ -416,10 +414,12 @@ impl SyntheticModule {
 
         // 11. Suspend moduleContext and remove it from the execution context stack.
         // 12. Resume the context that is now on the top of the execution context stack as the running execution context.
-        context.with_vm_mut(|vm| {
+        // SAFETY: Multi-field mutation via raw pointer. Context is !Send/!Sync.
+        unsafe {
+            let vm = &mut *context.vm_ptr();
             let frame = vm.pop_frame().expect("there should be a frame");
             vm.stack.truncate_to_frame(&frame);
-        });
+        }
 
         // 13. Let pc be ! NewPromiseCapability(%Promise%).
         let (promise, ResolvingFunctions { resolve, reject }) = JsPromise::new_pending(context);

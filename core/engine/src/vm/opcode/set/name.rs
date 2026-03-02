@@ -81,15 +81,10 @@ pub(crate) struct SetNameByLocator;
 impl SetNameByLocator {
     #[inline(always)]
     pub(crate) fn operation(value: VaryingOperand, context: &Context) -> JsResult<()> {
-        let (strict, binding_locator) = context.with_vm_mut(|vm| {
-            let frame = vm.frame_mut();
-            let strict = frame.code_block.strict();
-            let binding_locator = frame
-                .binding_stack
-                .pop()
-                .expect("locator should have been popped before");
-            (strict, binding_locator)
-        });
+        let strict = context.with_vm(|vm| vm.frame().code_block.strict());
+        let binding_locator = context
+            .vm_pop_binding_locator()
+            .expect("locator should have been popped before");
         let value = context.get_register(value.into()).clone();
 
         verify_initialized(&binding_locator, context)?;
