@@ -481,7 +481,7 @@ dependencies = [
  "thin-vec",
  "thiserror 2.0.18",
  "time",
- "timezone_provider",
+ "timezone_provider 0.2.0",
  "tinystr",
  "web-time",
  "writeable",
@@ -4254,7 +4254,7 @@ dependencies = [
  "icu_locale",
  "ixdtf",
  "num-traits",
- "timezone_provider",
+ "timezone_provider 0.1.2",
  "tinystr",
  "writeable",
 ]
@@ -4412,6 +4412,17 @@ name = "timezone_provider"
 version = "0.1.2"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "df9ba0000e9e73862f3e7ca1ff159e2ddf915c9d8bb11e38a7874760f445d993"
+dependencies = [
+ "tinystr",
+ "zerotrie",
+ "zerovec",
+]
+
+[[package]]
+name = "timezone_provider"
+version = "0.2.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "838a6ce9f08d07a637682a7dda441b97dc34e4aaf0dbfd9ca3d7eaf6fe1e8495"
 dependencies = [
  "combine",
  "jiff-tzdb",
