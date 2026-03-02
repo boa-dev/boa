@@ -259,8 +259,8 @@ fn check_punctuator_at_the_end() {
     // skipping those that the lexer cannot handle at the end of `var a = b <punct>`:
     //   - `Assign`: already consumed by `=` in `var a = b`
     //   - `AssignDiv`: `/=` is treated as an unclosed regular expression
-    let last_expected = Punctuator::iter()
-        .filter(|p| !matches!(p, Punctuator::Assign | Punctuator::AssignDiv));
+    let last_expected =
+        Punctuator::iter().filter(|p| !matches!(p, Punctuator::Assign | Punctuator::AssignDiv));
 
     for last in last_expected {
         let s = format!("var a = b {}", last.as_str());
