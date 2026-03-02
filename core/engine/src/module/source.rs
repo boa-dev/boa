@@ -1792,11 +1792,7 @@ impl SourceTextModule {
                         .kind()
                         .as_module()
                         .expect("last environment should be the module env")
-                        .set_indirect(
-                            locator.binding_index(),
-                            export_locator.module,
-                            name,
-                        ),
+                        .set_indirect(locator.binding_index(), export_locator.module, name),
                     BindingName::Namespace => {
                         let namespace = export_locator.module.namespace(context);
                         context.vm.frame.environments.put_lexical_value(

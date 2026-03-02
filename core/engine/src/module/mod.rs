@@ -697,13 +697,9 @@ impl Module {
                     .filter_map(|name| {
                         // i. Let resolution be module.ResolveExport(name).
                         // ii. If resolution is a ResolvedBinding Record, append name to unambiguousNames.
-                        self.resolve_export(
-                            &name,
-                            &mut HashSet::default(),
-                            context.interner(),
-                        )
-                        .ok()
-                        .map(|_| name)
+                        self.resolve_export(&name, &mut HashSet::default(), context.interner())
+                            .ok()
+                            .map(|_| name)
                     })
                     .collect();
 
