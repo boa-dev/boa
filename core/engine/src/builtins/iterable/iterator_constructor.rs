@@ -53,6 +53,10 @@ impl IntrinsicObject for IteratorConstructor {
             .name(js_string!("set [Symbol.toStringTag]"))
             .build();
 
+        // Per the spec, `Iterator.prototype.constructor` must be a configurable,
+        // non-enumerable get/set accessor (web-compat requirement).  We use the
+        // builder's `constructor_accessor` support so the property is part of the
+        // shared-shape allocation rather than a post-build override.
         BuiltInBuilder::from_standard_constructor::<Self>(realm)
             .inherits(Some(
                 realm
@@ -83,21 +87,9 @@ impl IntrinsicObject for IteratorConstructor {
                 Some(set_to_string_tag),
                 Attribute::CONFIGURABLE,
             )
+            // Accessor: Iterator.prototype.constructor (web-compat, 2 slots)
+            .constructor_accessor(get_constructor, set_constructor)
             .build();
-
-        // Iterator.prototype.constructor is an accessor per the spec (web-compat requirement).
-        // We cannot add it via the builder (build() auto-inserts `constructor` as a data
-        // property), so we override it directly on the prototype after build().
-        let prototype = realm.intrinsics().constructors().iterator().prototype();
-        prototype.insert(
-            js_string!("constructor"),
-            crate::property::PropertyDescriptor::builder()
-                .get(get_constructor)
-                .set(set_constructor)
-                .enumerable(false)
-                .configurable(true)
-                .build(),
-        );
     }
 
     fn get(intrinsics: &Intrinsics) -> JsObject {
@@ -110,7 +102,7 @@ impl BuiltInObject for IteratorConstructor {
 }
 
 impl BuiltInConstructor for IteratorConstructor {
-    const PROTOTYPE_STORAGE_SLOTS: usize = 13; // 11 methods + @@toStringTag accessor (get + set = 2 slots)
+    const PROTOTYPE_STORAGE_SLOTS: usize = 14; // 11 methods + @@toStringTag accessor (2 slots) + constructor accessor (2 slots)
     const CONSTRUCTOR_STORAGE_SLOTS: usize = 1; // Iterator.from
     const CONSTRUCTOR_ARGUMENTS: usize = 0;
     const STANDARD_CONSTRUCTOR: fn(&StandardConstructors) -> &StandardConstructor =
