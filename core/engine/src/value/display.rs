@@ -6,7 +6,7 @@ use crate::{
         set::ordered_set::OrderedSet,
     },
     js_string,
-    property::{PropertyDescriptor, PropertyKey},
+    property::{DescriptorKind, PropertyDescriptor, PropertyKey},
 };
 use std::borrow::Cow;
 use std::fmt::Write;
@@ -111,9 +111,8 @@ fn log_array_to(
         .properties()
         .get(&js_string!("length").into())
         .expect("array object must have 'length' property")
-        // FIXME: handle accessor descriptors
-        .expect_value()
-        .as_number()
+        .value()
+        .and_then(JsValue::as_number)
         .map(|n| n as i32)
         .unwrap_or_default();
 
@@ -134,14 +133,28 @@ fn log_array_to(
             // Introduce recursive call to stringify any objects
             // which are part of the Array
 
-            // FIXME: handle accessor descriptors
-            if let Some(value) = x
-                .borrow()
-                .properties()
-                .get(&i.into())
-                .and_then(|x| x.value().cloned())
-            {
-                log_value_to(f, &value, print_internals, false)?;
+            if let Some(desc) = x.borrow().properties().get(&i.into()) {
+                match desc.kind() {
+                    DescriptorKind::Data { value, .. } => {
+                        if let Some(value) = value {
+                            log_value_to(f, value, print_internals, false)?;
+                        } else {
+                            f.write_str("undefined")?;
+                        }
+                    }
+                    DescriptorKind::Accessor { get, set } => {
+                        let display = match (get.is_some(), set.is_some()) {
+                            (true, true) => "[Getter/Setter]",
+                            (true, false) => "[Getter]",
+                            (false, true) => "[Setter]",
+                            _ => "<empty>",
+                        };
+                        f.write_str(display)?;
+                    }
+                    DescriptorKind::Generic => {
+                        unreachable!("found generic descriptor in array")
+                    }
+                }
             } else {
                 f.write_str("<empty>")?;
             }

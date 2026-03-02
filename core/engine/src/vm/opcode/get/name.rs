@@ -60,7 +60,7 @@ impl GetNameGlobal {
             let ic = &context.vm.frame().code_block().ic[usize::from(ic_index)];
 
             let object_borrowed = object.borrow();
-            if let Some((shape, slot)) = ic.match_or_reset(object_borrowed.shape()) {
+            if let Some((shape, slot)) = ic.get(object_borrowed.shape()) {
                 let mut result = if slot.attributes.contains(SlotAttributes::PROTOTYPE) {
                     let prototype = shape.prototype().expect("prototype should have value");
                     let prototype = prototype.borrow();
