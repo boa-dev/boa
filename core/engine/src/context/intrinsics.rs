@@ -170,6 +170,7 @@ pub struct StandardConstructors {
     weak_ref: StandardConstructor,
     weak_map: StandardConstructor,
     weak_set: StandardConstructor,
+    iterator: StandardConstructor,
     #[cfg(feature = "intl")]
     collator: StandardConstructor,
     #[cfg(feature = "intl")]
@@ -264,6 +265,7 @@ impl Default for StandardConstructors {
             weak_ref: StandardConstructor::default(),
             weak_map: StandardConstructor::default(),
             weak_set: StandardConstructor::default(),
+            iterator: StandardConstructor::default(),
             #[cfg(feature = "intl")]
             collator: StandardConstructor::default(),
             #[cfg(feature = "intl")]
@@ -840,6 +842,18 @@ impl StandardConstructors {
     #[must_use]
     pub const fn weak_set(&self) -> &StandardConstructor {
         &self.weak_set
+    }
+
+    /// Returns the `Iterator` constructor.
+    ///
+    /// More information:
+    ///  - [ECMAScript reference][spec]
+    ///
+    /// [spec]: https://tc39.es/proposal-iterator-helpers/#sec-iterator-constructor
+    #[inline]
+    #[must_use]
+    pub const fn iterator(&self) -> &StandardConstructor {
+        &self.iterator
     }
 
     /// Returns the `Intl.Collator` constructor.
