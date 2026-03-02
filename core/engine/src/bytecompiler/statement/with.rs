@@ -1,4 +1,5 @@
 use crate::bytecompiler::ByteCompiler;
+use crate::vm::opcode::{PopEnvironment, PushObjectEnvironment};
 use boa_ast::statement::With;
 
 impl ByteCompiler<'_> {
@@ -9,8 +10,7 @@ impl ByteCompiler<'_> {
 
         let outer_scope = self.lexical_scope.clone();
         let _ = self.push_scope(with.scope());
-        self.bytecode
-            .emit_push_object_environment(object.variable());
+        PushObjectEnvironment::emit(self, object.variable());
         self.register_allocator.dealloc(object);
 
         let in_with = self.in_with;
@@ -20,6 +20,6 @@ impl ByteCompiler<'_> {
 
         self.pop_scope();
         self.lexical_scope = outer_scope;
-        self.bytecode.emit_pop_environment();
+        PopEnvironment::emit(self);
     }
 }

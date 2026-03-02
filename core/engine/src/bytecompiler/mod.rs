@@ -24,7 +24,21 @@ use crate::{
     js_string,
     vm::{
         CallFrame, CodeBlock, CodeBlockFlags, Constant, GeneratorResumeKind, Handler, InlineCache,
-        opcode::{BindingOpcode, ByteCodeEmitter, VaryingOperand},
+        opcode::{
+            self as op, BindingOpcode, ByteCodeEmitter, CallEval, CallEvalSpread, CallSpread, Case,
+            DefInitVar, DefVar, DeleteName, DeletePropertyByName, DeletePropertyByValue,
+            DeleteSuperThrow, GetFunction, GetIterator, GetLengthProperty, GetLocator, GetName,
+            GetNameAndLocator, GetNameGlobal, GetNameOrUndefined, GetPrivateField,
+            GetPropertyByName, GetPropertyByNameWithThis, GetPropertyByValue, Jump, JumpIfFalse,
+            JumpIfNotResumeKind, JumpIfNotUndefined, JumpIfNullOrUndefined, JumpIfTrue, Move,
+            NewSpread, PopIntoRegister, PushDouble, PushFalse, PushFloat, PushFromRegister,
+            PushInt8, PushInt16, PushInt32, PushIteratorToArray, PushLiteral, PushNan,
+            PushNegativeInfinity, PushNewArray, PushOne, PushPositiveInfinity, PushTrue,
+            PushUndefined, PushValueToArray, PushZero, PutLexicalValue, SetName, SetNameByLocator,
+            SetPrivateField, SetPropertyByName, SetPropertyByNameWithThis, SetPropertyByValue,
+            Super, TemplateLookup, This, ThisForObjectEnvironmentName, ThrowMutateImmutable,
+            ThrowNewReferenceError, ThrowNewSyntaxError, ThrowNewTypeError, VaryingOperand,
+        },
         source_info::{SourceInfo, SourceMap, SourceMapBuilder, SourcePath},
     },
 };
@@ -763,7 +777,7 @@ impl<'ctx> ByteCompiler<'ctx> {
                 }
                 Err(BindingLocatorError::MutateImmutable) => {
                     let index = self.get_or_insert_string(name);
-                    self.bytecode.emit_throw_mutate_immutable(index.into());
+                    ThrowMutateImmutable::emit(self, index.into());
                 }
                 Err(BindingLocatorError::Silent) => {}
             },
@@ -779,7 +793,7 @@ impl<'ctx> ByteCompiler<'ctx> {
                 }
                 Err(BindingLocatorError::MutateImmutable) => {
                     let index = self.get_or_insert_string(name);
-                    self.bytecode.emit_throw_mutate_immutable(index.into());
+                    ThrowMutateImmutable::emit(self, index.into());
                 }
                 Err(BindingLocatorError::Silent) => {}
             },
@@ -812,16 +826,15 @@ impl<'ctx> ByteCompiler<'ctx> {
     }
 
     pub(crate) fn emit_get_function(&mut self, dst: &Register, index: u32) {
-        self.bytecode
-            .emit_get_function(dst.variable(), index.into());
+        GetFunction::emit(self, dst.variable(), index.into());
     }
 
     fn pop_into_register(&mut self, dst: &Register) {
-        self.bytecode.emit_pop_into_register(dst.variable());
+        PopIntoRegister::emit(self, dst.variable());
     }
 
     pub(crate) fn push_from_register(&mut self, src: &Register) {
-        self.bytecode.emit_push_from_register(src.variable());
+        PushFromRegister::emit(self, src.variable());
     }
 
     pub(crate) fn emit_binding_access(
@@ -833,88 +846,83 @@ impl<'ctx> ByteCompiler<'ctx> {
         match binding {
             BindingKind::Global(index) => match opcode {
                 BindingAccessOpcode::SetNameByLocator => {
-                    self.bytecode.emit_set_name_by_locator(value.variable());
+                    SetNameByLocator::emit(self, value.variable());
                 }
                 BindingAccessOpcode::GetName => {
                     let ic_index = self.ic.len() as u32;
                     let name = self.bindings[*index as usize].name().clone();
                     self.ic.push(InlineCache::new(name));
-                    self.bytecode.emit_get_name_global(
-                        value.variable(),
-                        (*index).into(),
-                        ic_index.into(),
-                    );
+                    GetNameGlobal::emit(self, value.variable(), (*index).into(), ic_index.into());
                 }
-                BindingAccessOpcode::GetLocator => self.bytecode.emit_get_locator((*index).into()),
-                BindingAccessOpcode::DefVar => self.bytecode.emit_def_var((*index).into()),
-                BindingAccessOpcode::PutLexicalValue => self
-                    .bytecode
-                    .emit_put_lexical_value(value.variable(), (*index).into()),
-                BindingAccessOpcode::DefInitVar => self
-                    .bytecode
-                    .emit_def_init_var(value.variable(), (*index).into()),
-                BindingAccessOpcode::SetName => self
-                    .bytecode
-                    .emit_set_name(value.variable(), (*index).into()),
-                BindingAccessOpcode::GetNameAndLocator => self
-                    .bytecode
-                    .emit_get_name_and_locator(value.variable(), (*index).into()),
-                BindingAccessOpcode::GetNameOrUndefined => self
-                    .bytecode
-                    .emit_get_name_or_undefined(value.variable(), (*index).into()),
-                BindingAccessOpcode::DeleteName => self
-                    .bytecode
-                    .emit_delete_name(value.variable(), (*index).into()),
+                BindingAccessOpcode::GetLocator => GetLocator::emit(self, (*index).into()),
+                BindingAccessOpcode::DefVar => DefVar::emit(self, (*index).into()),
+                BindingAccessOpcode::PutLexicalValue => {
+                    PutLexicalValue::emit(self, value.variable(), (*index).into());
+                }
+                BindingAccessOpcode::DefInitVar => {
+                    DefInitVar::emit(self, value.variable(), (*index).into());
+                }
+                BindingAccessOpcode::SetName => {
+                    SetName::emit(self, value.variable(), (*index).into());
+                }
+                BindingAccessOpcode::GetNameAndLocator => {
+                    GetNameAndLocator::emit(self, value.variable(), (*index).into());
+                }
+                BindingAccessOpcode::GetNameOrUndefined => {
+                    GetNameOrUndefined::emit(self, value.variable(), (*index).into());
+                }
+                BindingAccessOpcode::DeleteName => {
+                    DeleteName::emit(self, value.variable(), (*index).into());
+                }
             },
             BindingKind::Stack(index) => match opcode {
                 BindingAccessOpcode::SetNameByLocator => {
-                    self.bytecode.emit_set_name_by_locator(value.variable());
+                    SetNameByLocator::emit(self, value.variable());
                 }
-                BindingAccessOpcode::GetLocator => self.bytecode.emit_get_locator((*index).into()),
-                BindingAccessOpcode::DefVar => self.bytecode.emit_def_var((*index).into()),
-                BindingAccessOpcode::PutLexicalValue => self
-                    .bytecode
-                    .emit_put_lexical_value(value.variable(), (*index).into()),
-                BindingAccessOpcode::DefInitVar => self
-                    .bytecode
-                    .emit_def_init_var(value.variable(), (*index).into()),
-                BindingAccessOpcode::SetName => self
-                    .bytecode
-                    .emit_set_name(value.variable(), (*index).into()),
-                BindingAccessOpcode::GetName => self
-                    .bytecode
-                    .emit_get_name(value.variable(), (*index).into()),
-                BindingAccessOpcode::GetNameAndLocator => self
-                    .bytecode
-                    .emit_get_name_and_locator(value.variable(), (*index).into()),
-                BindingAccessOpcode::GetNameOrUndefined => self
-                    .bytecode
-                    .emit_get_name_or_undefined(value.variable(), (*index).into()),
-                BindingAccessOpcode::DeleteName => self
-                    .bytecode
-                    .emit_delete_name(value.variable(), (*index).into()),
+                BindingAccessOpcode::GetLocator => GetLocator::emit(self, (*index).into()),
+                BindingAccessOpcode::DefVar => DefVar::emit(self, (*index).into()),
+                BindingAccessOpcode::PutLexicalValue => {
+                    PutLexicalValue::emit(self, value.variable(), (*index).into());
+                }
+                BindingAccessOpcode::DefInitVar => {
+                    DefInitVar::emit(self, value.variable(), (*index).into());
+                }
+                BindingAccessOpcode::SetName => {
+                    SetName::emit(self, value.variable(), (*index).into());
+                }
+                BindingAccessOpcode::GetName => {
+                    GetName::emit(self, value.variable(), (*index).into());
+                }
+                BindingAccessOpcode::GetNameAndLocator => {
+                    GetNameAndLocator::emit(self, value.variable(), (*index).into());
+                }
+                BindingAccessOpcode::GetNameOrUndefined => {
+                    GetNameOrUndefined::emit(self, value.variable(), (*index).into());
+                }
+                BindingAccessOpcode::DeleteName => {
+                    DeleteName::emit(self, value.variable(), (*index).into());
+                }
             },
             BindingKind::Local(None) => {
                 let error_msg = self.get_or_insert_literal(Literal::String(js_string!(
                     "access of uninitialized binding"
                 )));
-                self.bytecode
-                    .emit_throw_new_reference_error(error_msg.into());
+                ThrowNewReferenceError::emit(self, error_msg.into());
             }
             BindingKind::Local(Some(index)) => match opcode {
                 BindingAccessOpcode::GetName
                 | BindingAccessOpcode::GetNameOrUndefined
                 | BindingAccessOpcode::GetNameAndLocator => {
-                    self.bytecode.emit_move(value.variable(), (*index).into());
+                    Move::emit(self, value.variable(), (*index).into());
                 }
                 BindingAccessOpcode::GetLocator | BindingAccessOpcode::DefVar => {}
                 BindingAccessOpcode::SetName
                 | BindingAccessOpcode::DefInitVar
                 | BindingAccessOpcode::PutLexicalValue
                 | BindingAccessOpcode::SetNameByLocator => {
-                    self.bytecode.emit_move((*index).into(), value.variable());
+                    Move::emit(self, (*index).into(), value.variable());
                 }
-                BindingAccessOpcode::DeleteName => self.bytecode.emit_push_false(value.variable()),
+                BindingAccessOpcode::DeleteName => PushFalse::emit(self, value.variable()),
             },
         }
     }
@@ -935,24 +943,17 @@ impl<'ctx> ByteCompiler<'ctx> {
         self.ic.push(InlineCache::new(name.clone()));
 
         if let Some(receiver) = receiver {
-            self.bytecode.emit_get_property_by_name_with_this(
+            GetPropertyByNameWithThis::emit(
+                self,
                 dst.variable(),
                 receiver.variable(),
                 value.variable(),
                 ic_index.into(),
             );
         } else if name == &StaticJsStrings::LENGTH {
-            self.bytecode.emit_get_length_property(
-                dst.variable(),
-                value.variable(),
-                ic_index.into(),
-            );
+            GetLengthProperty::emit(self, dst.variable(), value.variable(), ic_index.into());
         } else {
-            self.bytecode.emit_get_property_by_name(
-                dst.variable(),
-                value.variable(),
-                ic_index.into(),
-            );
+            GetPropertyByName::emit(self, dst.variable(), value.variable(), ic_index.into());
         }
     }
 
@@ -972,28 +973,25 @@ impl<'ctx> ByteCompiler<'ctx> {
         self.ic.push(InlineCache::new(name.clone()));
 
         if let Some(receiver) = receiver {
-            self.bytecode.emit_set_property_by_name_with_this(
+            SetPropertyByNameWithThis::emit(
+                self,
                 value.variable(),
                 receiver.variable(),
                 object.variable(),
                 ic_index.into(),
             );
         } else {
-            self.bytecode.emit_set_property_by_name(
-                value.variable(),
-                object.variable(),
-                ic_index.into(),
-            );
+            SetPropertyByName::emit(self, value.variable(), object.variable(), ic_index.into());
         }
     }
 
     fn emit_type_error(&mut self, message: &str) {
         let error_msg = self.get_or_insert_literal(Literal::String(js_string!(message)));
-        self.bytecode.emit_throw_new_type_error(error_msg.into());
+        ThrowNewTypeError::emit(self, error_msg.into());
     }
     fn emit_syntax_error(&mut self, message: &str) {
         let error_msg = self.get_or_insert_literal(Literal::String(js_string!(message)));
-        self.bytecode.emit_throw_new_syntax_error(error_msg.into());
+        ThrowNewSyntaxError::emit(self, error_msg.into());
     }
 
     fn emit_push_integer(&mut self, value: i32, dst: &Register) {
@@ -1002,32 +1000,31 @@ impl<'ctx> ByteCompiler<'ctx> {
 
     fn emit_push_integer_with_index(&mut self, value: i32, dst: VaryingOperand) {
         match value {
-            0 => self.bytecode.emit_push_zero(dst),
-            1 => self.bytecode.emit_push_one(dst),
-            x if i32::from(x as i8) == x => self.bytecode.emit_push_int8(dst, x as i8),
+            0 => PushZero::emit(self, dst),
+            1 => PushOne::emit(self, dst),
+            x if i32::from(x as i8) == x => PushInt8::emit(self, dst, x as i8),
             x if i32::from(x as i16) == x => {
-                self.bytecode.emit_push_int16(dst, x as i16);
+                PushInt16::emit(self, dst, x as i16);
             }
-            x => self.bytecode.emit_push_int32(dst, x),
+            x => PushInt32::emit(self, dst, x),
         }
     }
 
     fn emit_push_literal(&mut self, literal: Literal, dst: &Register) {
         let index = self.get_or_insert_literal(literal);
-        self.bytecode
-            .emit_push_literal(dst.variable(), index.into());
+        PushLiteral::emit(self, dst.variable(), index.into());
     }
 
     fn emit_push_rational(&mut self, value: f64, dst: &Register) {
         if value.is_nan() {
-            return self.bytecode.emit_push_nan(dst.variable());
+            return PushNan::emit(self, dst.variable());
         }
 
         if value.is_infinite() {
             if value.is_sign_positive() {
-                return self.bytecode.emit_push_positive_infinity(dst.variable());
+                return PushPositiveInfinity::emit(self, dst.variable());
             }
-            return self.bytecode.emit_push_negative_infinity(dst.variable());
+            return PushNegativeInfinity::emit(self, dst.variable());
         }
 
         // Check if the f64 value can fit in an i32.
@@ -1038,58 +1035,57 @@ impl<'ctx> ByteCompiler<'ctx> {
 
             #[allow(clippy::float_cmp)]
             if f64::from(f32_value) == value {
-                self.bytecode.emit_push_float(dst.variable(), f32_value);
+                PushFloat::emit(self, dst.variable(), f32_value);
             } else {
-                self.bytecode.emit_push_double(dst.variable(), value);
+                PushDouble::emit(self, dst.variable(), value);
             }
         }
     }
 
     fn jump(&mut self) -> Label {
         let index = self.next_opcode_location();
-        self.bytecode.emit_jump(Self::DUMMY_ADDRESS);
+        Jump::emit(self, Self::DUMMY_ADDRESS);
         Label { index }
     }
 
     pub(crate) fn jump_if_true(&mut self, value: &Register) -> Label {
         let index = self.next_opcode_location();
-        self.bytecode
-            .emit_jump_if_true(Self::DUMMY_ADDRESS, value.variable());
+        JumpIfTrue::emit(self, Self::DUMMY_ADDRESS, value.variable());
         Label { index }
     }
 
     pub(crate) fn jump_if_false(&mut self, value: &Register) -> Label {
         let index = self.next_opcode_location();
-        self.bytecode
-            .emit_jump_if_false(Self::DUMMY_ADDRESS, value.variable());
+        JumpIfFalse::emit(self, Self::DUMMY_ADDRESS, value.variable());
         Label { index }
     }
 
     pub(crate) fn jump_if_null_or_undefined(&mut self, value: &Register) -> Label {
         let index = self.next_opcode_location();
-        self.bytecode
-            .emit_jump_if_null_or_undefined(Self::DUMMY_ADDRESS, value.variable());
+        JumpIfNullOrUndefined::emit(self, Self::DUMMY_ADDRESS, value.variable());
         Label { index }
     }
 
     pub(crate) fn emit_jump_if_not_undefined(&mut self, value: &Register) -> Label {
         let index = self.next_opcode_location();
-        self.bytecode
-            .emit_jump_if_not_undefined(Self::DUMMY_ADDRESS, value.variable());
+        JumpIfNotUndefined::emit(self, Self::DUMMY_ADDRESS, value.variable());
         Label { index }
     }
 
     pub(crate) fn case(&mut self, value: &Register, condition: &Register) -> Label {
         let index = self.next_opcode_location();
-        self.bytecode
-            .emit_case(Self::DUMMY_ADDRESS, value.variable(), condition.variable());
+        Case::emit(
+            self,
+            Self::DUMMY_ADDRESS,
+            value.variable(),
+            condition.variable(),
+        );
         Label { index }
     }
 
     pub(crate) fn template_lookup(&mut self, dst: &Register, site: u64) -> Label {
         let index = self.next_opcode_location();
-        self.bytecode
-            .emit_template_lookup(Self::DUMMY_ADDRESS, site, dst.variable());
+        TemplateLookup::emit(self, Self::DUMMY_ADDRESS, site, dst.variable());
         Label { index }
     }
 
@@ -1103,7 +1099,8 @@ impl<'ctx> ByteCompiler<'ctx> {
         value: &Register,
     ) -> Label {
         let index = self.next_opcode_location();
-        self.bytecode.emit_jump_if_not_resume_kind(
+        JumpIfNotResumeKind::emit(
+            self,
             Self::DUMMY_ADDRESS,
             (resume_kind as u8).into(),
             value.variable(),
@@ -1147,7 +1144,8 @@ impl<'ctx> ByteCompiler<'ctx> {
                         PropertyAccessField::Expr(expr) => {
                             let key = compiler.register_allocator.alloc();
                             compiler.compile_expr(expr, &key);
-                            compiler.bytecode.emit_get_property_by_value(
+                            GetPropertyByValue::emit(
+                                &mut compiler,
                                 dst.variable(),
                                 key.variable(),
                                 object.variable(),
@@ -1164,7 +1162,8 @@ impl<'ctx> ByteCompiler<'ctx> {
                     let index = compiler.get_or_insert_private_name(access.field());
                     let object = compiler.register_allocator.alloc();
                     compiler.compile_expr(access.target(), &object);
-                    compiler.bytecode.emit_get_private_field(
+                    GetPrivateField::emit(
+                        &mut compiler,
                         dst.variable(),
                         object.variable(),
                         index.into(),
@@ -1176,8 +1175,8 @@ impl<'ctx> ByteCompiler<'ctx> {
 
                     let value = compiler.register_allocator.alloc();
                     let receiver = compiler.register_allocator.alloc();
-                    compiler.bytecode.emit_super(value.variable());
-                    compiler.bytecode.emit_this(receiver.variable());
+                    Super::emit(&mut compiler, value.variable());
+                    This::emit(&mut compiler, receiver.variable());
                     match access.field() {
                         PropertyAccessField::Const(ident) => {
                             compiler.emit_get_property_by_name(
@@ -1190,7 +1189,8 @@ impl<'ctx> ByteCompiler<'ctx> {
                         PropertyAccessField::Expr(expr) => {
                             let key = compiler.register_allocator.alloc();
                             compiler.compile_expr(expr, &key);
-                            compiler.bytecode.emit_get_property_by_value(
+                            GetPropertyByValue::emit(
+                                &mut compiler,
                                 dst.variable(),
                                 key.variable(),
                                 receiver.variable(),
@@ -1204,7 +1204,7 @@ impl<'ctx> ByteCompiler<'ctx> {
                 }
             },
             Access::This => {
-                self.bytecode.emit_this(dst.variable());
+                This::emit(self, dst.variable());
             }
         }
     }
@@ -1236,7 +1236,7 @@ impl<'ctx> ByteCompiler<'ctx> {
                         }
                         Err(BindingLocatorError::MutateImmutable) => {
                             let index = self.get_or_insert_string(name);
-                            self.bytecode.emit_throw_mutate_immutable(index.into());
+                            ThrowMutateImmutable::emit(self, index.into());
                         }
                         Err(BindingLocatorError::Silent) => {}
                     }
@@ -1262,7 +1262,8 @@ impl<'ctx> ByteCompiler<'ctx> {
 
                         let value = expr_fn(self);
 
-                        self.bytecode.emit_set_property_by_value(
+                        SetPropertyByValue::emit(
+                            self,
                             value.variable(),
                             key.variable(),
                             object.variable(),
@@ -1281,21 +1282,17 @@ impl<'ctx> ByteCompiler<'ctx> {
 
                     let value = expr_fn(self);
 
-                    self.bytecode.emit_set_private_field(
-                        value.variable(),
-                        object.variable(),
-                        index.into(),
-                    );
+                    SetPrivateField::emit(self, value.variable(), object.variable(), index.into());
 
                     self.register_allocator.dealloc(object);
                 }
                 PropertyAccess::Super(access) => match access.field() {
                     PropertyAccessField::Const(name) => {
                         let object = self.register_allocator.alloc();
-                        self.bytecode.emit_super(object.variable());
+                        Super::emit(self, object.variable());
 
                         let receiver = self.register_allocator.alloc();
-                        self.bytecode.emit_this(receiver.variable());
+                        This::emit(self, receiver.variable());
 
                         let value = expr_fn(self);
 
@@ -1306,17 +1303,18 @@ impl<'ctx> ByteCompiler<'ctx> {
                     }
                     PropertyAccessField::Expr(expr) => {
                         let object = self.register_allocator.alloc();
-                        self.bytecode.emit_super(object.variable());
+                        Super::emit(self, object.variable());
 
                         let receiver = self.register_allocator.alloc();
-                        self.bytecode.emit_this(receiver.variable());
+                        This::emit(self, receiver.variable());
 
                         let key = self.register_allocator.alloc();
                         self.compile_expr(expr, &key);
 
                         let value = expr_fn(self);
 
-                        self.bytecode.emit_set_property_by_value(
+                        SetPropertyByValue::emit(
+                            self,
                             value.variable(),
                             key.variable(),
                             receiver.variable(),
@@ -1340,19 +1338,17 @@ impl<'ctx> ByteCompiler<'ctx> {
                     PropertyAccessField::Const(name) => {
                         let index = self.get_or_insert_name(name.sym());
                         self.compile_expr(access.target(), dst);
-                        self.bytecode
-                            .emit_delete_property_by_name(dst.variable(), index.into());
+                        DeletePropertyByName::emit(self, dst.variable(), index.into());
                     }
                     PropertyAccessField::Expr(expr) => {
                         self.compile_expr(access.target(), dst);
                         let key = self.register_allocator.alloc();
                         self.compile_expr(expr, &key);
-                        self.bytecode
-                            .emit_delete_property_by_value(dst.variable(), key.variable());
+                        DeletePropertyByValue::emit(self, dst.variable(), key.variable());
                         self.register_allocator.dealloc(key);
                     }
                 },
-                PropertyAccess::Super(_) => self.bytecode.emit_delete_super_throw(),
+                PropertyAccess::Super(_) => DeleteSuperThrow::emit(self),
                 PropertyAccess::Private(_) => {
                     unreachable!("deleting private properties should always throw early errors.")
                 }
@@ -1363,7 +1359,7 @@ impl<'ctx> ByteCompiler<'ctx> {
                 let index = self.get_binding(&binding);
                 self.emit_binding_access(BindingAccessOpcode::DeleteName, &index, dst);
             }
-            Access::This => self.bytecode.emit_push_true(dst.variable()),
+            Access::This => PushTrue::emit(self, dst.variable()),
         }
     }
 
@@ -1426,7 +1422,8 @@ impl<'ctx> ByteCompiler<'ctx> {
                     PropertyAccessField::Expr(field) => {
                         let key = self.register_allocator.alloc();
                         self.compile_expr(field, &key);
-                        self.bytecode.emit_get_property_by_value(
+                        GetPropertyByValue::emit(
+                            self,
                             dst.variable(),
                             key.variable(),
                             this.variable(),
@@ -1440,13 +1437,12 @@ impl<'ctx> ByteCompiler<'ctx> {
                 self.compile_expr(access.target(), this);
 
                 let index = self.get_or_insert_private_name(access.field());
-                self.bytecode
-                    .emit_get_private_field(dst.variable(), this.variable(), index.into());
+                GetPrivateField::emit(self, dst.variable(), this.variable(), index.into());
             }
             PropertyAccess::Super(access) => {
                 let object = self.register_allocator.alloc();
-                self.bytecode.emit_this(this.variable());
-                self.bytecode.emit_super(object.variable());
+                This::emit(self, this.variable());
+                Super::emit(self, object.variable());
 
                 match access.field() {
                     PropertyAccessField::Const(ident) => {
@@ -1455,7 +1451,8 @@ impl<'ctx> ByteCompiler<'ctx> {
                     PropertyAccessField::Expr(expr) => {
                         let key = self.register_allocator.alloc();
                         self.compile_expr(expr, &key);
-                        self.bytecode.emit_get_property_by_value(
+                        GetPropertyByValue::emit(
+                            self,
                             dst.variable(),
                             key.variable(),
                             this.variable(),
@@ -1494,7 +1491,7 @@ impl<'ctx> ByteCompiler<'ctx> {
             }
             Expression::Optional(opt) => self.compile_optional_preserve_this(opt, this, value),
             expr => {
-                self.bytecode.emit_push_undefined(this.variable());
+                PushUndefined::emit(self, this.variable());
                 self.compile_expr(expr, value);
             }
         }
@@ -1520,7 +1517,7 @@ impl<'ctx> ByteCompiler<'ctx> {
 
         for label in jumps {
             self.patch_jump(label);
-            self.bytecode.emit_push_undefined(value.variable());
+            PushUndefined::emit(self, value.variable());
         }
 
         self.patch_jump(skip_undef);
@@ -1658,7 +1655,7 @@ impl<'ctx> ByteCompiler<'ctx> {
     ) {
         match kind {
             OptionalOperationKind::SimplePropertyAccess { field } => {
-                self.bytecode.emit_move(this.variable(), value.variable());
+                Move::emit(self, this.variable(), value.variable());
                 match field {
                     PropertyAccessField::Const(name) => {
                         self.emit_get_property_by_name(value, None, value, name.sym());
@@ -1666,7 +1663,8 @@ impl<'ctx> ByteCompiler<'ctx> {
                     PropertyAccessField::Expr(expr) => {
                         let key = self.register_allocator.alloc();
                         self.compile_expr(expr, &key);
-                        self.bytecode.emit_get_property_by_value(
+                        GetPropertyByValue::emit(
+                            self,
                             value.variable(),
                             key.variable(),
                             value.variable(),
@@ -1677,13 +1675,9 @@ impl<'ctx> ByteCompiler<'ctx> {
                 }
             }
             OptionalOperationKind::PrivatePropertyAccess { field } => {
-                self.bytecode.emit_move(this.variable(), value.variable());
+                Move::emit(self, this.variable(), value.variable());
                 let index = self.get_or_insert_private_name(*field);
-                self.bytecode.emit_get_private_field(
-                    value.variable(),
-                    value.variable(),
-                    index.into(),
-                );
+                GetPrivateField::emit(self, value.variable(), value.variable(), index.into());
             }
             OptionalOperationKind::Call { args } => {
                 self.push_from_register(this);
@@ -1696,16 +1690,15 @@ impl<'ctx> ByteCompiler<'ctx> {
                     let array = self.register_allocator.alloc();
                     let value = self.register_allocator.alloc();
 
-                    self.bytecode.emit_push_new_array(array.variable());
+                    PushNewArray::emit(self, array.variable());
 
                     for arg in args {
                         self.compile_expr(arg, &value);
                         if let Expression::Spread(_) = arg {
-                            self.bytecode.emit_get_iterator(value.variable());
-                            self.bytecode.emit_push_iterator_to_array(array.variable());
+                            GetIterator::emit(self, value.variable());
+                            PushIteratorToArray::emit(self, array.variable());
                         } else {
-                            self.bytecode
-                                .emit_push_value_to_array(value.variable(), array.variable());
+                            PushValueToArray::emit(self, value.variable(), array.variable());
                         }
                     }
 
@@ -1714,7 +1707,7 @@ impl<'ctx> ByteCompiler<'ctx> {
                     self.register_allocator.dealloc(value);
                     self.register_allocator.dealloc(array);
 
-                    self.bytecode.emit_call_spread();
+                    CallSpread::emit(self);
                 } else {
                     for arg in args {
                         let value = self.register_allocator.alloc();
@@ -1722,11 +1715,11 @@ impl<'ctx> ByteCompiler<'ctx> {
                         self.push_from_register(&value);
                         self.register_allocator.dealloc(value);
                     }
-                    self.bytecode.emit_call((args.len() as u32).into());
+                    op::Call::emit(self, (args.len() as u32).into());
                 }
 
                 self.pop_into_register(value);
-                self.bytecode.emit_push_undefined(this.variable());
+                PushUndefined::emit(self, this.variable());
             }
         }
     }
@@ -1760,7 +1753,7 @@ impl<'ctx> ByteCompiler<'ctx> {
                     if let Some(init) = variable.init() {
                         self.compile_expr(init, &value);
                     } else {
-                        self.bytecode.emit_push_undefined(value.variable());
+                        PushUndefined::emit(self, value.variable());
                     }
                     self.compile_declaration_pattern(pattern, BindingOpcode::InitVar, &value);
                     self.register_allocator.dealloc(value);
@@ -1781,7 +1774,7 @@ impl<'ctx> ByteCompiler<'ctx> {
                             if let Some(init) = variable.init() {
                                 self.compile_expr(init, &value);
                             } else {
-                                self.bytecode.emit_push_undefined(value.variable());
+                                PushUndefined::emit(self, value.variable());
                             }
                             self.emit_binding(BindingOpcode::InitLexical, ident, &value);
                             self.register_allocator.dealloc(value);
@@ -1791,7 +1784,7 @@ impl<'ctx> ByteCompiler<'ctx> {
                             if let Some(init) = variable.init() {
                                 self.compile_expr(init, &value);
                             } else {
-                                self.bytecode.emit_push_undefined(value.variable());
+                                PushUndefined::emit(self, value.variable());
                             }
                             self.compile_declaration_pattern(
                                 pattern,
@@ -1821,7 +1814,7 @@ impl<'ctx> ByteCompiler<'ctx> {
                             if let Some(init) = variable.init() {
                                 self.compile_expr(init, &value);
                             } else {
-                                self.bytecode.emit_push_undefined(value.variable());
+                                PushUndefined::emit(self, value.variable());
                             }
                             self.compile_declaration_pattern(
                                 pattern,
@@ -1867,7 +1860,7 @@ impl<'ctx> ByteCompiler<'ctx> {
                         }
                         Err(BindingLocatorError::MutateImmutable) => {
                             let index = self.get_or_insert_string(name);
-                            self.bytecode.emit_throw_mutate_immutable(index.into());
+                            ThrowMutateImmutable::emit(self, index.into());
                         }
                         Err(BindingLocatorError::Silent) => {}
                     }
@@ -2112,19 +2105,18 @@ impl<'ctx> ByteCompiler<'ctx> {
                             }
                         };
                         let value = self.register_allocator.alloc();
-                        self.bytecode
-                            .emit_this_for_object_environment_name(value.variable(), index.into());
+                        ThisForObjectEnvironmentName::emit(self, value.variable(), index.into());
                         self.push_from_register(&value);
                         self.register_allocator.dealloc(value);
                     } else {
                         let value = self.register_allocator.alloc();
-                        self.bytecode.emit_push_undefined(value.variable());
+                        PushUndefined::emit(self, value.variable());
                         self.push_from_register(&value);
                         self.register_allocator.dealloc(value);
                     }
                 } else {
                     let value = self.register_allocator.alloc();
-                    self.bytecode.emit_push_undefined(value.variable());
+                    PushUndefined::emit(self, value.variable());
                     self.push_from_register(&value);
                     self.register_allocator.dealloc(value);
                 }
@@ -2138,7 +2130,7 @@ impl<'ctx> ByteCompiler<'ctx> {
                 let this = self.register_allocator.alloc();
                 let value = self.register_allocator.alloc();
                 self.compile_expr(expr, &value);
-                self.bytecode.emit_push_undefined(this.variable());
+                PushUndefined::emit(self, this.variable());
                 self.push_from_register(&this);
                 self.push_from_register(&value);
                 self.register_allocator.dealloc(this);
@@ -2157,19 +2149,15 @@ impl<'ctx> ByteCompiler<'ctx> {
             let array = compiler.register_allocator.alloc();
             let value = compiler.register_allocator.alloc();
 
-            compiler.bytecode.emit_push_new_array(array.variable());
+            PushNewArray::emit(&mut compiler, array.variable());
 
             for arg in call.args() {
                 compiler.compile_expr(arg, &value);
                 if let Expression::Spread(_) = arg {
-                    compiler.bytecode.emit_get_iterator(value.variable());
-                    compiler
-                        .bytecode
-                        .emit_push_iterator_to_array(array.variable());
+                    GetIterator::emit(&mut compiler, value.variable());
+                    PushIteratorToArray::emit(&mut compiler, array.variable());
                 } else {
-                    compiler
-                        .bytecode
-                        .emit_push_value_to_array(value.variable(), array.variable());
+                    PushValueToArray::emit(&mut compiler, value.variable(), array.variable());
                 }
             }
 
@@ -2192,23 +2180,21 @@ impl<'ctx> ByteCompiler<'ctx> {
                 let lexical_scope = compiler.lexical_scope.clone();
                 compiler.constants.push(Constant::Scope(lexical_scope));
                 if contains_spread {
-                    compiler.bytecode.emit_call_eval_spread(scope_index.into());
+                    CallEvalSpread::emit(&mut compiler, scope_index.into());
                 } else {
-                    compiler
-                        .bytecode
-                        .emit_call_eval((call.args().len() as u32).into(), scope_index.into());
+                    CallEval::emit(
+                        &mut compiler,
+                        (call.args().len() as u32).into(),
+                        scope_index.into(),
+                    );
                 }
             }
-            CallKind::Call if contains_spread => compiler.bytecode.emit_call_spread(),
+            CallKind::Call if contains_spread => CallSpread::emit(&mut compiler),
             CallKind::Call => {
-                compiler
-                    .bytecode
-                    .emit_call((call.args().len() as u32).into());
+                op::Call::emit(&mut compiler, (call.args().len() as u32).into());
             }
-            CallKind::New if contains_spread => compiler.bytecode.emit_new_spread(),
-            CallKind::New => compiler
-                .bytecode
-                .emit_new((call.args().len() as u32).into()),
+            CallKind::New if contains_spread => NewSpread::emit(&mut compiler),
+            CallKind::New => op::New::emit(&mut compiler, (call.args().len() as u32).into()),
         }
         compiler.pop_into_register(dst);
     }

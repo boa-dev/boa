@@ -335,20 +335,23 @@ macro_rules! generate_opcodes {
             }
         }
 
-        impl ByteCodeEmitter {
-            $(
-                paste::paste! {
-                    #[allow(unused)]
-                    pub(crate) fn [<emit_ $Variant:snake>](&mut self $( $(, $FieldName: $FieldType)* )? ) {
-                        encode_instruction(
-                            Opcode::$Variant,
-                            ($($($FieldName),*)?),
-                            &mut self.bytecode,
-                        );
-                    }
-                }
-            )*
+        $(
+        impl $Variant {
+            #[allow(unused)]
+            pub(crate) fn emit(
+                compiler: &mut crate::bytecompiler::ByteCompiler<'_>
+                $( $(, $FieldName: $FieldType)* )?
+            ) {
+                            encode_instruction(
+                    Opcode::$Variant,
+                    ($($($FieldName),*)?),
+                    &mut compiler.bytecode.bytecode,
+                );
+            }
         }
+        )*
+
+        // Old emit_ methods removed; use Variant::emit(compiler, ...) instead.
 
         type OpcodeHandler = fn(&mut Context, usize) -> ControlFlow<CompletionRecord>;
 

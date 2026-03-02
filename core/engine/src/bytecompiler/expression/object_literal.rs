@@ -1,4 +1,9 @@
 use crate::bytecompiler::{Access, ByteCompiler, FunctionSpec, MethodKind, Register};
+use crate::vm::opcode::{
+    CopyDataProperties, DefineOwnPropertyByName, DefineOwnPropertyByValue, PushEmptyObject,
+    SetFunctionName, SetHomeObject, SetPropertyGetterByName, SetPropertyGetterByValue,
+    SetPropertySetterByName, SetPropertySetterByValue, SetPrototype, ToPropertyKey,
+};
 use boa_ast::{
     Expression,
     expression::literal::{ObjectLiteral, PropertyDefinition},
@@ -9,7 +14,7 @@ use thin_vec::ThinVec;
 
 impl ByteCompiler<'_> {
     pub(crate) fn compile_object_literal(&mut self, literal: &ObjectLiteral, dst: &Register) {
-        self.bytecode.emit_push_empty_object(dst.variable());
+        PushEmptyObject::emit(self, dst.variable());
 
         for property in literal.properties() {
             match property {
@@ -17,7 +22,8 @@ impl ByteCompiler<'_> {
                     let value = self.register_allocator.alloc();
                     self.access_get(Access::Variable { name: *ident }, &value);
                     let index = self.get_or_insert_name(ident.sym());
-                    self.bytecode.emit_define_own_property_by_name(
+                    DefineOwnPropertyByName::emit(
+                        self,
                         dst.variable(),
                         value.variable(),
                         index.into(),
@@ -29,11 +35,11 @@ impl ByteCompiler<'_> {
                         let value = self.register_allocator.alloc();
                         self.compile_expr(expr, &value);
                         if *name == Sym::__PROTO__ && !self.json_parse {
-                            self.bytecode
-                                .emit_set_prototype(dst.variable(), value.variable());
+                            SetPrototype::emit(self, dst.variable(), value.variable());
                         } else {
                             let index = self.get_or_insert_name(name.sym());
-                            self.bytecode.emit_define_own_property_by_name(
+                            DefineOwnPropertyByName::emit(
+                                self,
                                 dst.variable(),
                                 value.variable(),
                                 index.into(),
@@ -44,18 +50,19 @@ impl ByteCompiler<'_> {
                     PropertyName::Computed(name_node) => {
                         let key = self.register_allocator.alloc();
                         self.compile_expr(name_node, &key);
-                        self.bytecode
-                            .emit_to_property_key(key.variable(), key.variable());
+                        ToPropertyKey::emit(self, key.variable(), key.variable());
                         let function = self.register_allocator.alloc();
                         self.compile_expr(expr, &function);
                         if expr.is_anonymous_function_definition() {
-                            self.bytecode.emit_set_function_name(
+                            SetFunctionName::emit(
+                                self,
                                 function.variable(),
                                 key.variable(),
                                 0u32.into(),
                             );
                         }
-                        self.bytecode.emit_define_own_property_by_value(
+                        DefineOwnPropertyByValue::emit(
+                            self,
                             function.variable(),
                             key.variable(),
                             dst.variable(),
@@ -73,22 +80,24 @@ impl ByteCompiler<'_> {
                     match m.name() {
                         PropertyName::Literal(name) => {
                             let method = self.object_method(m.into(), kind);
-                            self.bytecode
-                                .emit_set_home_object(method.variable(), dst.variable());
+                            SetHomeObject::emit(self, method.variable(), dst.variable());
                             let index = self.get_or_insert_name(name.sym());
                             match kind {
-                                MethodKind::Get => self.bytecode.emit_set_property_getter_by_name(
+                                MethodKind::Get => SetPropertyGetterByName::emit(
+                                    self,
                                     dst.variable(),
                                     method.variable(),
                                     index.into(),
                                 ),
-                                MethodKind::Set => self.bytecode.emit_set_property_setter_by_name(
+                                MethodKind::Set => SetPropertySetterByName::emit(
+                                    self,
                                     dst.variable(),
                                     method.variable(),
                                     index.into(),
                                 ),
                                 MethodKind::Ordinary => {
-                                    self.bytecode.emit_define_own_property_by_name(
+                                    DefineOwnPropertyByName::emit(
+                                        self,
                                         dst.variable(),
                                         method.variable(),
                                         index.into(),
@@ -110,7 +119,8 @@ impl ByteCompiler<'_> {
                 PropertyDefinition::SpreadObject(expr) => {
                     let source = self.register_allocator.alloc();
                     self.compile_expr(expr, &source);
-                    self.bytecode.emit_copy_data_properties(
+                    CopyDataProperties::emit(
+                        self,
                         dst.variable(),
                         source.variable(),
                         ThinVec::new(),
@@ -134,8 +144,7 @@ impl ByteCompiler<'_> {
         let key = self.register_allocator.alloc();
         self.compile_expr(expr, &key);
 
-        self.bytecode
-            .emit_to_property_key(key.variable(), key.variable());
+        ToPropertyKey::emit(self, key.variable(), key.variable());
 
         let method = self.object_method(function, kind);
         let value: u32 = match kind {
@@ -144,23 +153,24 @@ impl ByteCompiler<'_> {
             MethodKind::Ordinary => 0,
         };
 
-        self.bytecode
-            .emit_set_function_name(method.variable(), key.variable(), value.into());
-        self.bytecode
-            .emit_set_home_object(method.variable(), object.variable());
+        SetFunctionName::emit(self, method.variable(), key.variable(), value.into());
+        SetHomeObject::emit(self, method.variable(), object.variable());
 
         match kind {
-            MethodKind::Get => self.bytecode.emit_set_property_getter_by_value(
+            MethodKind::Get => SetPropertyGetterByValue::emit(
+                self,
                 method.variable(),
                 key.variable(),
                 object.variable(),
             ),
-            MethodKind::Set => self.bytecode.emit_set_property_setter_by_value(
+            MethodKind::Set => SetPropertySetterByValue::emit(
+                self,
                 method.variable(),
                 key.variable(),
                 object.variable(),
             ),
-            MethodKind::Ordinary => self.bytecode.emit_define_own_property_by_value(
+            MethodKind::Ordinary => DefineOwnPropertyByValue::emit(
+                self,
                 method.variable(),
                 key.variable(),
                 object.variable(),

@@ -1,4 +1,8 @@
 use crate::bytecompiler::{Access, BindingAccessOpcode, ByteCompiler, Register, ToJsString};
+use crate::vm::opcode::{
+    Dec, GetPrivateField, GetPropertyByValue, GetPropertyByValuePush, Inc, Move, SetPrivateField,
+    SetPropertyByValue, Super, This, ThrowMutateImmutable,
+};
 use boa_ast::{
     expression::{
         access::{PropertyAccess, PropertyAccessField},
@@ -40,9 +44,9 @@ impl ByteCompiler<'_> {
 
                 let value = compiler.register_allocator.alloc();
                 if increment {
-                    compiler.bytecode.emit_inc(value.variable(), dst.variable());
+                    Inc::emit(&mut compiler, value.variable(), dst.variable());
                 } else {
-                    compiler.bytecode.emit_dec(value.variable(), dst.variable());
+                    Dec::emit(&mut compiler, value.variable(), dst.variable());
                 }
 
                 if is_lexical {
@@ -57,7 +61,7 @@ impl ByteCompiler<'_> {
                         }
                         Err(BindingLocatorError::MutateImmutable) => {
                             let index = compiler.get_or_insert_string(name);
-                            compiler.bytecode.emit_throw_mutate_immutable(index.into());
+                            ThrowMutateImmutable::emit(&mut compiler, index.into());
                         }
                         Err(BindingLocatorError::Silent) => {}
                     }
@@ -69,9 +73,7 @@ impl ByteCompiler<'_> {
                     );
                 }
                 if !post {
-                    compiler
-                        .bytecode
-                        .emit_move(dst.variable(), value.variable());
+                    Move::emit(&mut compiler, dst.variable(), value.variable());
                 }
 
                 compiler.register_allocator.dealloc(value);
@@ -86,17 +88,15 @@ impl ByteCompiler<'_> {
                             compiler.emit_get_property_by_name(dst, None, &object, ident.sym());
                             let value = compiler.register_allocator.alloc();
                             if increment {
-                                compiler.bytecode.emit_inc(value.variable(), dst.variable());
+                                Inc::emit(&mut compiler, value.variable(), dst.variable());
                             } else {
-                                compiler.bytecode.emit_dec(value.variable(), dst.variable());
+                                Dec::emit(&mut compiler, value.variable(), dst.variable());
                             }
 
                             compiler.emit_set_property_by_name(&value, None, &object, ident.sym());
 
                             if !post {
-                                compiler
-                                    .bytecode
-                                    .emit_move(dst.variable(), value.variable());
+                                Move::emit(&mut compiler, dst.variable(), value.variable());
                             }
 
                             compiler.register_allocator.dealloc(object);
@@ -106,7 +106,8 @@ impl ByteCompiler<'_> {
                             let key = compiler.register_allocator.alloc();
                             compiler.compile_expr(expr, &key);
 
-                            compiler.bytecode.emit_get_property_by_value_push(
+                            GetPropertyByValuePush::emit(
+                                &mut compiler,
                                 dst.variable(),
                                 key.variable(),
                                 object.variable(),
@@ -115,12 +116,13 @@ impl ByteCompiler<'_> {
 
                             let value = compiler.register_allocator.alloc();
                             if increment {
-                                compiler.bytecode.emit_inc(value.variable(), dst.variable());
+                                Inc::emit(&mut compiler, value.variable(), dst.variable());
                             } else {
-                                compiler.bytecode.emit_dec(value.variable(), dst.variable());
+                                Dec::emit(&mut compiler, value.variable(), dst.variable());
                             }
 
-                            compiler.bytecode.emit_set_property_by_value(
+                            SetPropertyByValue::emit(
+                                &mut compiler,
                                 value.variable(),
                                 key.variable(),
                                 object.variable(),
@@ -128,9 +130,7 @@ impl ByteCompiler<'_> {
                             );
 
                             if !post {
-                                compiler
-                                    .bytecode
-                                    .emit_move(dst.variable(), value.variable());
+                                Move::emit(&mut compiler, dst.variable(), value.variable());
                             }
 
                             compiler.register_allocator.dealloc(key);
@@ -145,7 +145,8 @@ impl ByteCompiler<'_> {
                     let object = compiler.register_allocator.alloc();
                     compiler.compile_expr(access.target(), &object);
 
-                    compiler.bytecode.emit_get_private_field(
+                    GetPrivateField::emit(
+                        &mut compiler,
                         dst.variable(),
                         object.variable(),
                         index.into(),
@@ -153,20 +154,19 @@ impl ByteCompiler<'_> {
 
                     let value = compiler.register_allocator.alloc();
                     if increment {
-                        compiler.bytecode.emit_inc(value.variable(), dst.variable());
+                        Inc::emit(&mut compiler, value.variable(), dst.variable());
                     } else {
-                        compiler.bytecode.emit_dec(value.variable(), dst.variable());
+                        Dec::emit(&mut compiler, value.variable(), dst.variable());
                     }
-                    compiler.bytecode.emit_set_private_field(
+                    SetPrivateField::emit(
+                        &mut compiler,
                         value.variable(),
                         object.variable(),
                         index.into(),
                     );
 
                     if !post {
-                        compiler
-                            .bytecode
-                            .emit_move(dst.variable(), value.variable());
+                        Move::emit(&mut compiler, dst.variable(), value.variable());
                     }
 
                     compiler.register_allocator.dealloc(value);
@@ -176,8 +176,8 @@ impl ByteCompiler<'_> {
                     PropertyAccessField::Const(ident) => {
                         let object = compiler.register_allocator.alloc();
                         let receiver = compiler.register_allocator.alloc();
-                        compiler.bytecode.emit_super(object.variable());
-                        compiler.bytecode.emit_this(receiver.variable());
+                        Super::emit(&mut compiler, object.variable());
+                        This::emit(&mut compiler, receiver.variable());
 
                         compiler.emit_get_property_by_name(
                             dst,
@@ -188,9 +188,9 @@ impl ByteCompiler<'_> {
 
                         let value = compiler.register_allocator.alloc();
                         if increment {
-                            compiler.bytecode.emit_inc(value.variable(), dst.variable());
+                            Inc::emit(&mut compiler, value.variable(), dst.variable());
                         } else {
-                            compiler.bytecode.emit_dec(value.variable(), dst.variable());
+                            Dec::emit(&mut compiler, value.variable(), dst.variable());
                         }
 
                         compiler.emit_set_property_by_name(
@@ -200,9 +200,7 @@ impl ByteCompiler<'_> {
                             ident.sym(),
                         );
                         if !post {
-                            compiler
-                                .bytecode
-                                .emit_move(dst.variable(), value.variable());
+                            Move::emit(&mut compiler, dst.variable(), value.variable());
                         }
 
                         compiler.register_allocator.dealloc(receiver);
@@ -212,24 +210,26 @@ impl ByteCompiler<'_> {
                     PropertyAccessField::Expr(expr) => {
                         let object = compiler.register_allocator.alloc();
                         let receiver = compiler.register_allocator.alloc();
-                        compiler.bytecode.emit_super(object.variable());
-                        compiler.bytecode.emit_this(receiver.variable());
+                        Super::emit(&mut compiler, object.variable());
+                        This::emit(&mut compiler, receiver.variable());
 
                         let key = compiler.register_allocator.alloc();
                         compiler.compile_expr(expr, &key);
 
-                        compiler.bytecode.emit_get_property_by_value(
+                        GetPropertyByValue::emit(
+                            &mut compiler,
                             dst.variable(),
                             key.variable(),
                             receiver.variable(),
                             object.variable(),
                         );
                         if increment {
-                            compiler.bytecode.emit_inc(dst.variable(), dst.variable());
+                            Inc::emit(&mut compiler, dst.variable(), dst.variable());
                         } else {
-                            compiler.bytecode.emit_dec(dst.variable(), dst.variable());
+                            Dec::emit(&mut compiler, dst.variable(), dst.variable());
                         }
-                        compiler.bytecode.emit_set_property_by_value(
+                        SetPropertyByValue::emit(
+                            &mut compiler,
                             dst.variable(),
                             key.variable(),
                             receiver.variable(),

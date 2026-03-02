@@ -1,5 +1,6 @@
 use super::ByteCompiler;
 use crate::vm::Constant;
+use crate::vm::opcode::{PopEnvironment, PushScope};
 use boa_ast::scope::Scope;
 
 impl ByteCompiler<'_> {
@@ -30,7 +31,7 @@ impl ByteCompiler<'_> {
             self.current_open_environments_count += 1;
             let index = self.constants.len() as u32;
             self.constants.push(Constant::Scope(scope.clone()));
-            self.bytecode.emit_push_scope(index.into());
+            PushScope::emit(self, index.into());
         }
         std::mem::swap(&mut self.lexical_scope, &mut scope);
         Some(scope)
@@ -42,7 +43,7 @@ impl ByteCompiler<'_> {
             std::mem::swap(&mut self.lexical_scope, &mut scope);
             if !scope.all_bindings_local() {
                 self.current_open_environments_count -= 1;
-                self.bytecode.emit_pop_environment();
+                PopEnvironment::emit(self);
             }
         }
     }
