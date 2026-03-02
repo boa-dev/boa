@@ -216,8 +216,8 @@ impl ModuleKind {
 /// Indicates how to access a specific export in a module.
 #[derive(Debug, Clone)]
 pub(crate) struct ResolvedBinding {
-    pub(crate) module: Module,
-    pub(crate) binding_name: BindingName,
+    module: Module,
+    binding_name: BindingName,
 }
 
 /// The local name of the resolved binding within its containing module.
@@ -236,6 +236,11 @@ impl ResolvedBinding {
     /// Gets the module from which the export resolved.
     pub(crate) const fn module(&self) -> &Module {
         &self.module
+    }
+
+    /// Consumes `self` and returns the module from which the export resolved.
+    pub(crate) fn into_module(self) -> Module {
+        self.module
     }
 
     /// Gets a reference to the binding associated with the resolved export.
@@ -697,13 +702,9 @@ impl Module {
                     .filter_map(|name| {
                         // i. Let resolution be module.ResolveExport(name).
                         // ii. If resolution is a ResolvedBinding Record, append name to unambiguousNames.
-                        self.resolve_export(
-                            &name,
-                            &mut HashSet::default(),
-                            context.interner(),
-                        )
-                        .ok()
-                        .map(|_| name)
+                        self.resolve_export(&name, &mut HashSet::default(), context.interner())
+                            .ok()
+                            .map(|_| name)
                     })
                     .collect();
 

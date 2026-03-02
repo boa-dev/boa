@@ -311,23 +311,27 @@ fn module_namespace_exotic_try_get(
     };
 
     // 4. Let m be O.[[Module]].
-    let module = obj.module().clone();
+    let module = obj.module();
 
     // 5. Let binding be m.ResolveExport(P).
+    // 6. Assert: binding is a ResolvedBinding Record.
     // Use the pre-resolved cache when available; fall back to a fresh
     // ResolveExport call on cache miss for robustness.
+    let fallback;
     let binding = match obj.get_resolved_binding(&export_name) {
-        Some(b) => b.clone(),
-        None => module
-            .resolve_export(
-                &export_name,
-                &mut rustc_hash::FxHashSet::default(),
-                context.interner(),
-            )
-            .expect("export name must be resolvable"),
+        Some(b) => b,
+        None => {
+            fallback = module
+                .resolve_export(
+                    &export_name,
+                    &mut rustc_hash::FxHashSet::default(),
+                    context.interner(),
+                )
+                .expect("6. Assert: binding is a ResolvedBinding Record.");
+            &fallback
+        }
     };
 
-    // 6. Assert: binding is a ResolvedBinding Record.
     // 7. Let targetModule be binding.[[Module]].
     // 8. Assert: targetModule is not undefined.
     let target_module = binding.module();
@@ -396,23 +400,27 @@ fn module_namespace_exotic_get(
     };
 
     // 4. Let m be O.[[Module]].
-    let module = obj.module().clone();
+    let module = obj.module();
 
     // 5. Let binding be m.ResolveExport(P).
+    // 6. Assert: binding is a ResolvedBinding Record.
     // Use the pre-resolved cache when available; fall back to a fresh
     // ResolveExport call on cache miss for robustness.
+    let fallback;
     let binding = match obj.get_resolved_binding(&export_name) {
-        Some(b) => b.clone(),
-        None => module
-            .resolve_export(
-                &export_name,
-                &mut rustc_hash::FxHashSet::default(),
-                context.interner(),
-            )
-            .expect("export name must be resolvable"),
+        Some(b) => b,
+        None => {
+            fallback = module
+                .resolve_export(
+                    &export_name,
+                    &mut rustc_hash::FxHashSet::default(),
+                    context.interner(),
+                )
+                .expect("6. Assert: binding is a ResolvedBinding Record.");
+            &fallback
+        }
     };
 
-    // 6. Assert: binding is a ResolvedBinding Record.
     // 7. Let targetModule be binding.[[Module]].
     // 8. Assert: targetModule is not undefined.
     let target_module = binding.module();

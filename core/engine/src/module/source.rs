@@ -726,10 +726,13 @@ impl SourceTextModule {
                 //    1. Assert: There is more than one * import that includes the requested name.
                 //    2. If resolution.[[Module]] and starResolution.[[Module]] are not the same Module Record,
                 //       return ambiguous.
-                if resolution.module != star_resolution.module {
+                if resolution.module() != star_resolution.module() {
                     return Err(ResolveExportError::Ambiguous);
                 }
-                match (&resolution.binding_name, &star_resolution.binding_name) {
+                match (
+                    resolution.binding_name_ref(),
+                    star_resolution.binding_name_ref(),
+                ) {
                     // 3. If resolution.[[BindingName]] is not starResolution.[[BindingName]] and either
                     //    resolution.[[BindingName]] or starResolution.[[BindingName]] is namespace,
                     //    return ambiguous.
@@ -1615,7 +1618,7 @@ impl SourceTextModule {
                     let local_name = entry.local_name().to_js_string(compiler.interner());
                     let locator = env.get_binding(&local_name).expect("binding must exist");
 
-                    if let BindingName::Name(_) = resolution.binding_name {
+                    if let BindingName::Name(_) = resolution.binding_name_ref() {
                         // 1. Perform env.CreateImportBinding(in.[[LocalName]], resolution.[[Module]],
                         //    resolution.[[BindingName]]).
                         //    deferred to initialization below
@@ -1628,7 +1631,7 @@ impl SourceTextModule {
                         // deferred to initialization below
                         imports.push(ImportBinding::Namespace {
                             locator,
-                            module: resolution.module.clone(),
+                            module: resolution.into_module(),
                         });
                     }
                 } else {
@@ -1782,7 +1785,7 @@ impl SourceTextModule {
                 ImportBinding::Single {
                     locator,
                     export_locator,
-                } => match export_locator.binding_name {
+                } => match export_locator.binding_name_ref() {
                     BindingName::Name(name) => context
                         .vm
                         .frame
@@ -1794,11 +1797,11 @@ impl SourceTextModule {
                         .expect("last environment should be the module env")
                         .set_indirect(
                             locator.binding_index(),
-                            export_locator.module,
-                            name,
+                            export_locator.module().clone(),
+                            name.clone(),
                         ),
                     BindingName::Namespace => {
-                        let namespace = export_locator.module.namespace(context);
+                        let namespace = export_locator.module().namespace(context);
                         context.vm.frame.environments.put_lexical_value(
                             locator.scope(),
                             locator.binding_index(),
