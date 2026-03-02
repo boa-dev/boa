@@ -48,11 +48,12 @@ where
     R: ReadChar,
 {
     /// Switch to the iterative fast path at this many paren levels of recursion.
-    /// Kept low in debug builds (small stacks) and generous in release.
+    /// Kept low so the recursive descent parser never overflows the stack,
+    /// even for adversarial inputs like `'('.repeat(N) + '() => {}' + ')'.repeat(N)`.
     #[cfg(debug_assertions)]
     pub(super) const FAST_PATH_PAREN_DEPTH: u32 = 4;
     #[cfg(not(debug_assertions))]
-    pub(super) const FAST_PATH_PAREN_DEPTH: u32 = 500;
+    pub(super) const FAST_PATH_PAREN_DEPTH: u32 = 20;
 
     /// Creates a new cursor with the given reader.
     pub(super) fn new(reader: R) -> Self {

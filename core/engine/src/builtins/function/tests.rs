@@ -227,9 +227,24 @@ fn function_constructor_deep_parenthesis_reports_syntax_error() {
                 // Test 3: Arrow function inside deeply nested parens (V8-compatible)
                 try {
                     Function('let a = ' + '('.repeat(501) + '() => {}' + ')'.repeat(501));
-                    return true;
                 } catch (e) {
                     // Should not error — arrow functions inside deep parens must work
+                    return false;
+                }
+
+                // Test 4: Arrow function at exactly 499 nesting levels (just below
+                // the old threshold — must also work after lowering the fast-path depth)
+                try {
+                    Function('let a = ' + '('.repeat(499) + '() => {}' + ')'.repeat(499));
+                } catch (e) {
+                    return false;
+                }
+
+                // Test 5: Moderate nesting (25 levels) with arrow function
+                try {
+                    Function('let a = ' + '('.repeat(25) + '() => {}' + ')'.repeat(25));
+                    return true;
+                } catch (e) {
                     return false;
                 }
             })()
