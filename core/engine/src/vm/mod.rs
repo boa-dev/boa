@@ -102,6 +102,8 @@ pub struct Vm {
 
     #[cfg(feature = "trace")]
     pub(crate) trace: bool,
+    #[cfg(feature = "trace")]
+    pub(crate) anon_function_counter: u32,
 }
 
 /// The stack holds the [`JsValue`]s that the VM is operating on.
@@ -433,6 +435,8 @@ impl Vm {
             shadow_stack: ShadowStack::default(),
             #[cfg(feature = "trace")]
             trace: false,
+            #[cfg(feature = "trace")]
+            anon_function_counter: 0,
         }
     }
 
@@ -505,6 +509,16 @@ impl Vm {
         self.shadow_stack
             .push_bytecode(self.frame.pc, frame.code_block().source_info.clone());
 
+        #[cfg(feature = "trace")]
+        if frame.code_block.name().is_empty() {
+            if frame.code_block.anon_debug_id.get().is_none() {
+                frame
+                    .code_block
+                    .anon_debug_id
+                    .set(Some(self.anon_function_counter));
+                self.anon_function_counter += 1;
+            }
+        }
         std::mem::swap(&mut self.frame, &mut frame);
         self.frames.push(frame);
     }
@@ -581,8 +595,12 @@ impl Context {
             " VM Start ".to_string()
         } else {
             format!(
-                " Call Frame -- {} ",
-                frame.code_block().name().to_std_string_escaped()
+                " Call Frame '{}' {}",
+                frame.code_block().name().to_std_string_escaped(),
+                match frame.code_block().anon_debug_id.get() {
+                    Some(id) => format!("[anon#{}] ", id),
+                    None => "".to_string(),
+                }
             )
         };
 
