@@ -17,21 +17,15 @@ impl GetPrivateField {
         context: &Context,
     ) -> JsResult<()> {
         let name = context
-            .vm_mut()
-            .frame()
-            .code_block()
-            .constant_string(index.into());
-        let object = context.vm_mut().get_register(object.into()).clone();
+            .with_vm(|vm| vm.frame().code_block().constant_string(index.into()));
+        let object = context.get_register(object.into());
         let object = object.to_object(context)?;
         let name = context
-            .vm_mut()
-            .frame
-            .environments
-            .resolve_private_identifier(name)
+            .with_vm(|vm| vm.frame.environments.resolve_private_identifier(name))
             .expect("private name must be in environment");
 
         let result = object.private_get(&name, context)?;
-        context.vm_mut().set_register(dst.into(), result);
+        context.set_register(dst.into(), result);
         Ok(())
     }
 }

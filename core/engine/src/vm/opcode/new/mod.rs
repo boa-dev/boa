@@ -12,16 +12,14 @@ impl New {
     #[inline(always)]
     pub(super) fn operation(argument_count: VaryingOperand, context: &Context) -> JsResult<()> {
         let func = context
-            .vm_mut()
-            .stack
-            .calling_convention_get_function(argument_count.into());
+            .with_vm(|vm| vm.stack.calling_convention_get_function(argument_count.into()).clone());
 
         let cons = func
             .as_object()
             .ok_or_else(|| JsNativeError::typ().with_message("not a constructor"))?
             .clone();
 
-        context.vm_mut().stack.push(cons.clone()); // Push new.target
+        context.stack_push(cons.clone()); // Push new.target
 
         cons.__construct__(argument_count.into()).resolve(context)?;
         Ok(())
@@ -45,7 +43,7 @@ impl NewSpread {
     #[inline(always)]
     pub(super) fn operation((): (), context: &Context) -> JsResult<()> {
         // Get the arguments that are stored as an array object on the stack.
-        let arguments_array = context.vm_mut().stack.pop();
+        let arguments_array = context.stack_pop();
         let arguments_array_object = arguments_array
             .as_object()
             .expect("arguments array in call spread function must be an object");
@@ -55,7 +53,7 @@ impl NewSpread {
             .to_dense_indexed_properties()
             .expect("arguments array in call spread function must be dense");
 
-        let func = context.vm_mut().stack.pop();
+        let func = context.stack_pop();
 
         let cons = func
             .as_object()
@@ -63,12 +61,10 @@ impl NewSpread {
             .clone();
 
         let argument_count = arguments.len();
-        context.vm_mut().stack.push(func);
+        context.stack_push(func);
         context
-            .vm_mut()
-            .stack
-            .calling_convention_push_arguments(&arguments);
-        context.vm_mut().stack.push(cons.clone()); // Push new.target
+            .with_vm_mut(|vm| vm.stack.calling_convention_push_arguments(&arguments));
+        context.stack_push(cons.clone()); // Push new.target
 
         cons.__construct__(argument_count).resolve(context)?;
         Ok(())

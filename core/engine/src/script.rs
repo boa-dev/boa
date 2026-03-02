@@ -172,7 +172,7 @@ impl Script {
         self.prepare_run(context)?;
         let record = context.run();
 
-        context.vm_mut().pop_frame();
+        context.pop_frame();
         record.consume()
     }
 
@@ -204,7 +204,7 @@ impl Script {
 
         let record = context.run_async_with_budget(budget).await;
 
-        context.vm_mut().pop_frame();
+        context.pop_frame();
         record.consume()
     }
 
@@ -212,7 +212,7 @@ impl Script {
         let codeblock = self.codeblock(context)?;
 
         let global_env = EnvironmentStack::new(self.inner.realm.environment().clone());
-        context.vm_mut().push_frame_with_stack(
+        context.push_frame_with_stack(
             CallFrame::new(
                 codeblock,
                 Some(ActiveRunnable::Script(self.clone())),

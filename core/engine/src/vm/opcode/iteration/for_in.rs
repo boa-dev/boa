@@ -14,16 +14,13 @@ pub(crate) struct CreateForInIterator;
 impl CreateForInIterator {
     #[inline(always)]
     pub(crate) fn operation(value: VaryingOperand, context: &Context) -> JsResult<()> {
-        let object = context.vm_mut().get_register(value.into()).clone();
+        let object = context.get_register(value.into()).clone();
         let object = object.to_object(context)?;
         let (iterator, next_method) =
             ForInIterator::create_for_in_iterator(JsValue::new(object), context);
 
         context
-            .vm_mut()
-            .frame_mut()
-            .iterators
-            .push(IteratorRecord::new(iterator, next_method));
+            .with_vm_mut(|vm| vm.frame_mut().iterators.push(IteratorRecord::new(iterator, next_method)));
 
         Ok(())
     }

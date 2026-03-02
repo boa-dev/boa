@@ -18,7 +18,7 @@ use crate::job::Job;
 use crate::module::DynModuleLoader;
 use crate::vm::RuntimeLimits;
 use crate::{
-    HostDefined, JsNativeError, JsResult, JsString, JsValue, NativeObject, Source, builtins,
+    HostDefined, JsError, JsNativeError, JsResult, JsString, JsValue, NativeObject, Source, builtins,
     class::{Class, ClassBuilder},
     job::{JobExecutor, SimpleJobExecutor},
     js_string,
@@ -135,16 +135,18 @@ impl std::fmt::Debug for Context {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         let mut debug = f.debug_struct("Context");
 
-        debug
-            .field("realm", &self.vm().frame.realm)
-            .field("interner", &self.interner)
-            .field("vm", self.vm())
-            .field("strict", &self.strict)
-            .field("job_executor", &"JobExecutor")
-            .field("hooks", &"HostHooks")
-            .field("clock", &"Clock")
-            .field("module_loader", &"ModuleLoader")
-            .field("optimizer_options", &self.optimizer_options);
+        self.with_vm(|vm| {
+            debug
+                .field("realm", &vm.frame.realm)
+                .field("interner", &self.interner)
+                .field("vm", vm)
+                .field("strict", &self.strict)
+                .field("job_executor", &"JobExecutor")
+                .field("hooks", &"HostHooks")
+                .field("clock", &"Clock")
+                .field("module_loader", &"ModuleLoader")
+                .field("optimizer_options", &self.optimizer_options);
+        });
 
         #[cfg(feature = "intl")]
         debug.field("intl_provider", &self.intl_provider);
@@ -175,32 +177,148 @@ impl Default for Context {
 
 // ==== Vm accessors ====
 impl Context {
-    /// Returns a shared reference to the VM.
+    /// Executes a closure with a shared reference to the VM.
     ///
-    /// # Safety
-    ///
-    /// This uses `UnsafeCell` internally. It is sound because `Context` is `!Sync`
-    /// and `!Send` (contains `Rc`), so it can only be accessed from a single thread.
-    /// Callers must ensure no mutable reference from `vm_mut()` is active.
+    /// The `&Vm` reference is scoped to the closure and cannot escape,
+    /// preventing aliasing with mutable VM references.
     #[inline]
-    pub(crate) fn vm(&self) -> &Vm {
+    pub(crate) fn with_vm<R>(&self, f: impl FnOnce(&Vm) -> R) -> R {
         // SAFETY: Context is !Sync/!Send, single-threaded access only.
-        unsafe { &*self.vm.get() }
+        // The reference cannot escape the closure scope.
+        f(unsafe { &*self.vm.get() })
     }
 
-    /// Returns a mutable reference to the VM.
+    /// Executes a closure with a mutable reference to the VM.
     ///
-    /// # Safety
-    ///
-    /// This uses `UnsafeCell` internally. It is sound because `Context` is `!Sync`
-    /// and `!Send` (contains `Rc`), so it can only be accessed from a single thread.
-    /// Callers must ensure no other reference from `vm()` or `vm_mut()` is active.
+    /// The `&mut Vm` reference is scoped to the closure and cannot escape,
+    /// preventing aliasing with other VM references.
     #[inline]
-    #[allow(clippy::mut_from_ref)]
-    pub(crate) fn vm_mut(&self) -> &mut Vm {
+    pub(crate) fn with_vm_mut<R>(&self, f: impl FnOnce(&mut Vm) -> R) -> R {
         // SAFETY: Context is !Sync/!Send, single-threaded access only.
-        unsafe { &mut *self.vm.get() }
+        // The reference cannot escape the closure scope.
+        f(unsafe { &mut *self.vm.get() })
     }
+}
+
+// ==== VM convenience methods ====
+//
+// These provide direct access to common VM operations without exposing `&mut Vm`.
+// Each method internally uses `with_vm` or `with_vm_mut` to ensure the VM reference
+// is scoped and cannot alias.
+impl Context {
+    // ---- Register access ----
+
+    /// Sets a VM register value.
+    #[inline]
+    pub(crate) fn set_register(&self, index: usize, value: JsValue) {
+        self.with_vm_mut(|vm| vm.set_register(index, value));
+    }
+
+    /// Gets a VM register value (cloned).
+    #[inline]
+    pub(crate) fn get_register(&self, index: usize) -> JsValue {
+        self.with_vm(|vm| vm.get_register(index).clone())
+    }
+
+    // ---- Stack operations ----
+
+    /// Pushes a value onto the VM stack.
+    #[inline]
+    pub(crate) fn stack_push<T: Into<JsValue>>(&self, value: T) {
+        self.with_vm_mut(|vm| vm.stack.push(value));
+    }
+
+    /// Pops a value from the VM stack.
+    #[inline]
+    pub(crate) fn stack_pop(&self) -> JsValue {
+        self.with_vm_mut(|vm| vm.stack.pop())
+    }
+
+    // ---- Frame management ----
+
+    /// Pushes a new call frame onto the VM.
+    #[inline]
+    pub(crate) fn push_frame(&self, frame: CallFrame) {
+        self.with_vm_mut(|vm| vm.push_frame(frame));
+    }
+
+    /// Pushes a new call frame with `this` and `function` on the stack.
+    #[inline]
+    pub(crate) fn push_frame_with_stack(
+        &self,
+        frame: CallFrame,
+        this: JsValue,
+        function: JsValue,
+    ) {
+        self.with_vm_mut(|vm| vm.push_frame_with_stack(frame, this, function));
+    }
+
+    /// Pops the current call frame from the VM.
+    #[inline]
+    pub(crate) fn pop_frame(&self) -> Option<CallFrame> {
+        self.with_vm_mut(Vm::pop_frame)
+    }
+
+    /// Returns the number of frames on the frame stack (not including the current frame).
+    #[inline]
+    pub(crate) fn frames_len(&self) -> usize {
+        self.with_vm(|vm| vm.frames.len())
+    }
+
+    // ---- Return value ----
+
+    /// Gets the current return value (cloned).
+    #[inline]
+    pub(crate) fn get_return_value(&self) -> JsValue {
+        self.with_vm(Vm::get_return_value)
+    }
+
+    /// Sets the return value.
+    #[inline]
+    pub(crate) fn set_return_value(&self, value: JsValue) {
+        self.with_vm_mut(|vm| vm.set_return_value(value));
+    }
+
+    /// Takes the return value, replacing it with `undefined`.
+    #[inline]
+    pub(crate) fn take_return_value(&self) -> JsValue {
+        self.with_vm_mut(Vm::take_return_value)
+    }
+
+    // ---- Exception handling ----
+
+    /// Sets a pending exception on the VM.
+    #[inline]
+    pub(crate) fn set_pending_exception(&self, err: JsError) {
+        self.with_vm_mut(|vm| vm.pending_exception = Some(err));
+    }
+
+    /// Takes the pending exception, if any.
+    #[inline]
+    pub(crate) fn take_pending_exception(&self) -> Option<JsError> {
+        self.with_vm_mut(|vm| vm.pending_exception.take())
+    }
+
+    /// Returns `true` if an exception is pending.
+    #[inline]
+    pub(crate) fn has_pending_exception(&self) -> bool {
+        self.with_vm(|vm| vm.pending_exception.is_some())
+    }
+
+    // ---- Host call depth ----
+
+    /// Increments the host call depth counter.
+    #[inline]
+    pub(crate) fn increment_host_call_depth(&self) {
+        self.with_vm_mut(|vm| vm.host_call_depth += 1);
+    }
+
+    /// Decrements the host call depth counter (saturating).
+    #[inline]
+    pub(crate) fn decrement_host_call_depth(&self) {
+        self.with_vm_mut(|vm| vm.host_call_depth = vm.host_call_depth.saturating_sub(1));
+    }
+
 }
 
 // ==== Public API ====
@@ -469,14 +587,16 @@ impl Context {
     #[inline]
     #[must_use]
     pub fn global_object(&self) -> JsObject {
-        self.vm().frame.realm.global_object().clone()
+        self.with_vm(|vm| vm.frame.realm.global_object().clone())
     }
 
     /// Returns the currently active intrinsic constructors and objects.
     #[inline]
     #[must_use]
     pub fn intrinsics(&self) -> &Intrinsics {
-        self.vm().frame.realm.intrinsics()
+        // SAFETY: Context is !Sync/!Send, single-threaded access only.
+        // The returned reference borrows `self`, which owns the Vm, so it's valid.
+        unsafe { &*self.vm.get() }.frame.realm.intrinsics()
     }
 
     /// Returns the amount of remaining instructions to be executed
@@ -491,14 +611,16 @@ impl Context {
     #[inline]
     #[must_use]
     pub fn realm(&self) -> &Realm {
-        &self.vm().frame.realm
+        // SAFETY: Context is !Sync/!Send, single-threaded access only.
+        // The returned reference borrows `self`, which owns the Vm, so it's valid.
+        &unsafe { &*self.vm.get() }.frame.realm
     }
 
     /// Set the value of trace on the context
     #[cfg(feature = "trace")]
     #[inline]
     pub fn set_trace(&self, trace: bool) {
-        self.vm_mut().trace = trace;
+        self.with_vm_mut(|vm| vm.trace = trace);
     }
 
     /// Get optimizer options.
@@ -549,8 +671,9 @@ impl Context {
     /// The stack trace is returned ordered with the most recent frames first.
     #[inline]
     pub fn stack_trace(&self) -> impl Iterator<Item = &CallFrame> {
-        // Create a list containing the previous frames plus the current frame.
-        let vm = self.vm();
+        // SAFETY: Context is !Sync/!Send, single-threaded access only.
+        // The returned references borrow `self`, which owns the Vm, so they're valid.
+        let vm = unsafe { &*self.vm.get() };
         let frames: Vec<_> = vm.frames.iter().chain(std::iter::once(&vm.frame)).collect();
 
         // The first frame is always a dummy frame (see `Vm` implementation for more details),
@@ -561,11 +684,12 @@ impl Context {
     /// Replaces the currently active realm with `realm`, and returns the old realm.
     #[inline]
     pub fn enter_realm(&self, realm: Realm) -> Realm {
-        let vm = self.vm_mut();
-        vm.frame
-            .environments
-            .replace_global(realm.environment().clone());
-        std::mem::replace(&mut vm.frame.realm, realm)
+        self.with_vm_mut(|vm| {
+            vm.frame
+                .environments
+                .replace_global(realm.environment().clone());
+            std::mem::replace(&mut vm.frame.realm, realm)
+        })
     }
 
     /// Create a new Realm with the default global bindings.
@@ -619,20 +743,13 @@ impl Context {
     #[inline]
     #[must_use]
     pub fn runtime_limits(&self) -> RuntimeLimits {
-        self.vm().runtime_limits
+        self.with_vm(|vm| vm.runtime_limits)
     }
 
     /// Set the [`RuntimeLimits`].
     #[inline]
     pub fn set_runtime_limits(&self, runtime_limits: RuntimeLimits) {
-        self.vm_mut().runtime_limits = runtime_limits;
-    }
-
-    /// Get a mutable reference to the [`RuntimeLimits`].
-    #[inline]
-    #[allow(clippy::mut_from_ref)]
-    pub fn runtime_limits_mut(&self) -> &mut RuntimeLimits {
-        &mut self.vm_mut().runtime_limits
+        self.with_vm_mut(|vm| vm.runtime_limits = runtime_limits);
     }
 
     /// Returns `true` if this context can be suspended by an `Atomics.wait` call.
@@ -688,7 +805,7 @@ impl Context {
 
     /// Swaps the currently active realm with `realm`.
     pub(crate) fn swap_realm(&self, realm: &mut Realm) {
-        std::mem::swap(&mut self.vm_mut().frame.realm, realm);
+        self.with_vm_mut(|vm| std::mem::swap(&mut vm.frame.realm, realm));
     }
 
     /// Increment and get the parser identifier.
@@ -896,15 +1013,16 @@ impl Context {
         // 1. If the execution context stack is empty, return null.
         // 2. Let ec be the topmost execution context on the execution context stack whose ScriptOrModule component is not null.
         // 3. If no such execution context exists, return null. Otherwise, return ec's ScriptOrModule.
-        let vm = self.vm();
-        if let Some(active_runnable) = &vm.frame.active_runnable {
-            return Some(active_runnable.clone());
-        }
+        self.with_vm(|vm| {
+            if let Some(active_runnable) = &vm.frame.active_runnable {
+                return Some(active_runnable.clone());
+            }
 
-        vm.frames
-            .iter()
-            .rev()
-            .find_map(|frame| frame.active_runnable.clone())
+            vm.frames
+                .iter()
+                .rev()
+                .find_map(|frame| frame.active_runnable.clone())
+        })
     }
 
     /// Get `active function object`
@@ -914,12 +1032,13 @@ impl Context {
     ///
     /// [spec]: https://tc39.es/ecma262/#active-function-object
     pub(crate) fn active_function_object(&self) -> Option<JsObject> {
-        let vm = self.vm();
-        if vm.native_active_function.is_some() {
-            return vm.native_active_function.clone();
-        }
+        self.with_vm(|vm| {
+            if vm.native_active_function.is_some() {
+                return vm.native_active_function.clone();
+            }
 
-        vm.stack.get_function(vm.frame())
+            vm.stack.get_function(vm.frame())
+        })
     }
 }
 

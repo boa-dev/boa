@@ -20,13 +20,13 @@ impl GetName {
         context: &Context,
     ) -> JsResult<()> {
         let mut binding_locator =
-            context.vm_mut().frame().code_block.bindings[usize::from(index)].clone();
+            context.with_vm(|vm| vm.frame().code_block.bindings[usize::from(index)].clone());
         context.find_runtime_binding(&mut binding_locator)?;
         let result = context.get_binding(&binding_locator)?.ok_or_else(|| {
             let name = binding_locator.name().to_std_string_escaped();
             JsNativeError::reference().with_message(format!("{name} is not defined"))
         })?;
-        context.vm_mut().set_register(value.into(), result);
+        context.set_register(value.into(), result);
         Ok(())
     }
 }
@@ -51,13 +51,14 @@ impl GetNameGlobal {
         context: &Context,
     ) -> JsResult<()> {
         let mut binding_locator =
-            context.vm_mut().frame().code_block.bindings[usize::from(index)].clone();
+            context.with_vm(|vm| vm.frame().code_block.bindings[usize::from(index)].clone());
         context.find_runtime_binding(&mut binding_locator)?;
 
         if binding_locator.is_global() {
             let object = context.global_object();
 
-            let ic = &context.vm_mut().frame().code_block().ic[usize::from(ic_index)];
+            let code_block = context.with_vm(|vm| vm.frame().code_block().clone());
+            let ic = &code_block.ic[usize::from(ic_index)];
 
             let object_borrowed = object.borrow();
             if let Some((shape, slot)) = ic.get(object_borrowed.shape()) {
@@ -77,7 +78,7 @@ impl GetNameGlobal {
                         context,
                     )?;
                 }
-                context.vm_mut().set_register(dst.into(), result);
+                context.set_register(dst.into(), result);
                 return Ok(());
             }
 
@@ -96,13 +97,14 @@ impl GetNameGlobal {
             // Cache the property.
             let slot = *context.slot();
             if slot.is_cacheable() {
-                let ic = &context.vm_mut().frame().code_block.ic[usize::from(ic_index)];
+                let code_block = context.with_vm(|vm| vm.frame().code_block().clone());
+                let ic = &code_block.ic[usize::from(ic_index)];
                 let object_borrowed = object.borrow();
                 let shape = object_borrowed.shape();
                 ic.set(shape, slot);
             }
 
-            context.vm_mut().set_register(dst.into(), result);
+            context.set_register(dst.into(), result);
             return Ok(());
         }
 
@@ -111,7 +113,7 @@ impl GetNameGlobal {
             JsNativeError::reference().with_message(format!("{name} is not defined"))
         })?;
 
-        context.vm_mut().set_register(dst.into(), result);
+        context.set_register(dst.into(), result);
         Ok(())
     }
 }
@@ -133,14 +135,10 @@ impl GetLocator {
     #[inline(always)]
     pub(crate) fn operation(index: VaryingOperand, context: &Context) -> JsResult<()> {
         let mut binding_locator =
-            context.vm_mut().frame().code_block.bindings[usize::from(index)].clone();
+            context.with_vm(|vm| vm.frame().code_block.bindings[usize::from(index)].clone());
         context.find_runtime_binding(&mut binding_locator)?;
 
-        context
-            .vm_mut()
-            .frame_mut()
-            .binding_stack
-            .push(binding_locator);
+        context.with_vm_mut(|vm| vm.frame_mut().binding_stack.push(binding_locator));
 
         Ok(())
     }
@@ -167,19 +165,15 @@ impl GetNameAndLocator {
         context: &Context,
     ) -> JsResult<()> {
         let mut binding_locator =
-            context.vm_mut().frame().code_block.bindings[usize::from(index)].clone();
+            context.with_vm(|vm| vm.frame().code_block.bindings[usize::from(index)].clone());
         context.find_runtime_binding(&mut binding_locator)?;
         let result = context.get_binding(&binding_locator)?.ok_or_else(|| {
             let name = binding_locator.name().to_std_string_escaped();
             JsNativeError::reference().with_message(format!("{name} is not defined"))
         })?;
 
-        context
-            .vm_mut()
-            .frame_mut()
-            .binding_stack
-            .push(binding_locator);
-        context.vm_mut().set_register(value.into(), result);
+        context.with_vm_mut(|vm| vm.frame_mut().binding_stack.push(binding_locator));
+        context.set_register(value.into(), result);
         Ok(())
     }
 }
@@ -204,7 +198,7 @@ impl GetNameOrUndefined {
         context: &Context,
     ) -> JsResult<()> {
         let mut binding_locator =
-            context.vm_mut().frame().code_block.bindings[usize::from(index)].clone();
+            context.with_vm(|vm| vm.frame().code_block.bindings[usize::from(index)].clone());
 
         let is_global = binding_locator.is_global();
 
@@ -221,7 +215,7 @@ impl GetNameOrUndefined {
                 .into());
         };
 
-        context.vm_mut().set_register(value.into(), result);
+        context.set_register(value.into(), result);
         Ok(())
     }
 }

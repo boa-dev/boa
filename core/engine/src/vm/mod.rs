@@ -576,46 +576,46 @@ impl Context {
     const NUMBER_OF_COLUMNS: usize = 4;
 
     pub(crate) fn trace_call_frame(&self) {
-        let frame = self.vm_mut().frame();
-        let msg = if self.vm_mut().frames.is_empty() {
-            " VM Start ".to_string()
-        } else {
-            format!(
-                " Call Frame -- {} ",
-                frame.code_block().name().to_std_string_escaped()
-            )
-        };
+        self.with_vm(|vm| {
+            let frame = vm.frame();
+            let msg = if vm.frames.is_empty() {
+                " VM Start ".to_string()
+            } else {
+                format!(
+                    " Call Frame -- {} ",
+                    frame.code_block().name().to_std_string_escaped()
+                )
+            };
 
-        println!("{}", frame.code_block);
-        println!(
-            "{msg:-^width$}",
-            width = Self::COLUMN_WIDTH * Self::NUMBER_OF_COLUMNS - 10
-        );
-        println!(
-            "{:<TIME_COLUMN_WIDTH$} {:<OPCODE_COLUMN_WIDTH$} {:<OPERAND_COLUMN_WIDTH$} Stack\n",
-            "Time",
-            "Opcode",
-            "Operands",
-            TIME_COLUMN_WIDTH = Self::TIME_COLUMN_WIDTH,
-            OPCODE_COLUMN_WIDTH = Self::OPCODE_COLUMN_WIDTH,
-            OPERAND_COLUMN_WIDTH = Self::OPERAND_COLUMN_WIDTH,
-        );
+            println!("{}", frame.code_block);
+            println!(
+                "{msg:-^width$}",
+                width = Self::COLUMN_WIDTH * Self::NUMBER_OF_COLUMNS - 10
+            );
+            println!(
+                "{:<TIME_COLUMN_WIDTH$} {:<OPCODE_COLUMN_WIDTH$} {:<OPERAND_COLUMN_WIDTH$} Stack\n",
+                "Time",
+                "Opcode",
+                "Operands",
+                TIME_COLUMN_WIDTH = Self::TIME_COLUMN_WIDTH,
+                OPCODE_COLUMN_WIDTH = Self::OPCODE_COLUMN_WIDTH,
+                OPERAND_COLUMN_WIDTH = Self::OPERAND_COLUMN_WIDTH,
+            );
+        });
     }
 
     fn trace_execute_instruction<F>(&self, f: F, opcode: Opcode) -> ControlFlow<CompletionRecord>
     where
         F: FnOnce(&Context, Opcode) -> ControlFlow<CompletionRecord>,
     {
-        let frame = self.vm_mut().frame();
-        let (instruction, _) = frame
-            .code_block
-            .bytecode
-            .next_instruction(frame.pc as usize);
-        let operands = self
-            .vm_mut()
-            .frame()
-            .code_block()
-            .instruction_operands(&instruction);
+        let operands = self.with_vm(|vm| {
+            let frame = vm.frame();
+            let (instruction, _) = frame
+                .code_block
+                .bytecode
+                .next_instruction(frame.pc as usize);
+            frame.code_block().instruction_operands(&instruction)
+        });
 
         match opcode {
             Opcode::Call
@@ -637,10 +637,9 @@ impl Context {
         let result = self.execute_instruction(f, opcode);
         let duration = instant.elapsed();
 
-        let stack = {
-            let vm = self.vm_mut();
+        let stack = self.with_vm(|vm| {
             vm.stack.display_trace(&vm.frame, vm.frames.len() - 1)
-        };
+        });
 
         println!(
             "{:<TIME_COLUMN_WIDTH$} {:<OPCODE_COLUMN_WIDTH$} {operands:<OPERAND_COLUMN_WIDTH$} {stack}",
@@ -681,10 +680,7 @@ impl Context {
 
         #[cfg(feature = "trace")]
         {
-            let res = {
-                let vm = self.vm_mut();
-                vm.trace || vm.frame.code_block.traceable()
-            };
+            let res = self.with_vm(|vm| vm.trace || vm.frame.code_block.traceable());
             if res {
                 return self.trace_execute_instruction(f, opcode);
             }
@@ -698,82 +694,77 @@ impl Context {
         // so that errors caught by internal handlers (e.g. async module
         // evaluation) still carry source position information.
         if err.backtrace.is_none() {
-            err.backtrace = Some({
-                let vm = self.vm_mut();
+            err.backtrace = Some(self.with_vm(|vm| {
                 vm.shadow_stack
                     .take(vm.runtime_limits.backtrace_limit(), vm.frame.pc)
-            });
+            }));
         }
 
         // If we hit the execution step limit, bubble up the error to the
         // (Rust) caller instead of trying to handle as an exception.
         if !err.is_catchable() {
             let mut frame = None;
-            let mut env_fp = self.vm_mut().frame.environments.len();
+            let mut env_fp = self.with_vm(|vm| vm.frame.environments.len());
             loop {
-                if self.vm_mut().frame.exit_early() {
+                if self.with_vm(|vm| vm.frame.exit_early()) {
                     break;
                 }
 
-                env_fp = self.vm_mut().frame.env_fp as usize;
+                env_fp = self.with_vm(|vm| vm.frame.env_fp as usize);
 
-                let Some(f) = self.vm_mut().pop_frame() else {
+                let Some(f) = self.pop_frame() else {
                     break;
                 };
                 frame = Some(f);
             }
-            self.vm_mut().frame.environments.truncate(env_fp);
+            self.with_vm_mut(|vm| vm.frame.environments.truncate(env_fp));
             if let Some(frame) = frame {
-                self.vm_mut().stack.truncate_to_frame(&frame);
+                self.with_vm_mut(|vm| vm.stack.truncate_to_frame(&frame));
             }
             return ControlFlow::Break(CompletionRecord::Throw(err));
         }
 
         // Note: -1 because we increment after fetching the opcode.
-        let pc = self.vm_mut().frame().pc.saturating_sub(1);
-        if self.vm_mut().handle_exception_at(pc) {
-            self.vm_mut().pending_exception = Some(err);
+        let pc = self.with_vm(|vm| vm.frame().pc.saturating_sub(1));
+        if self.with_vm_mut(|vm| vm.handle_exception_at(pc)) {
+            self.set_pending_exception(err);
             return ControlFlow::Continue(());
         }
 
         // Inject realm before crossing the function boundary
         let err = err.inject_realm(self.realm().clone());
 
-        self.vm_mut().pending_exception = Some(err);
+        self.set_pending_exception(err);
         self.handle_throw()
     }
 
     fn handle_return(&self) -> ControlFlow<CompletionRecord> {
-        let exit_early = self.vm_mut().frame().exit_early();
-        {
-            let vm = self.vm_mut();
-            vm.stack.truncate_to_frame(&vm.frame);
-        }
+        let exit_early = self.with_vm(|vm| vm.frame().exit_early());
+        self.with_vm_mut(|vm| vm.stack.truncate_to_frame(&vm.frame));
 
-        let result = self.vm_mut().take_return_value();
+        let result = self.take_return_value();
         if exit_early {
             return ControlFlow::Break(CompletionRecord::Normal(result));
         }
 
-        self.vm_mut().stack.push(result);
-        self.vm_mut().pop_frame().expect("frame must exist");
+        self.stack_push(result);
+        self.pop_frame().expect("frame must exist");
         ControlFlow::Continue(())
     }
 
     fn handle_yield(&self) -> ControlFlow<CompletionRecord> {
-        let result = self.vm_mut().take_return_value();
-        if self.vm_mut().frame().exit_early() {
+        let result = self.take_return_value();
+        if self.with_vm(|vm| vm.frame().exit_early()) {
             return ControlFlow::Break(CompletionRecord::Return(result));
         }
 
-        self.vm_mut().stack.push(result);
-        self.vm_mut().pop_frame().expect("frame must exist");
+        self.stack_push(result);
+        self.pop_frame().expect("frame must exist");
         ControlFlow::Continue(())
     }
 
     fn handle_throw(&self) -> ControlFlow<CompletionRecord> {
-        {
-            let vm = self.vm_mut();
+        self.with_vm_mut(|vm| {
             if let Some(err) = &mut vm.pending_exception
                 && err.backtrace.is_none()
             {
@@ -782,48 +773,48 @@ impl Context {
                         .take(vm.runtime_limits.backtrace_limit(), vm.frame.pc),
                 );
             }
-        }
+        });
 
-        let mut env_fp = self.vm_mut().frame.env_fp;
-        if self.vm_mut().frame.exit_early() {
-            let vm = self.vm_mut();
-            vm.frame.environments.truncate(env_fp as usize);
-            vm.stack.truncate_to_frame(&vm.frame);
+        let mut env_fp = self.with_vm(|vm| vm.frame.env_fp);
+        if self.with_vm(|vm| vm.frame.exit_early()) {
+            self.with_vm_mut(|vm| {
+                vm.frame.environments.truncate(env_fp as usize);
+                vm.stack.truncate_to_frame(&vm.frame);
+            });
             return ControlFlow::Break(CompletionRecord::Throw(
-                self.vm_mut()
-                    .pending_exception
-                    .take()
+                self.take_pending_exception()
                     .expect("Err must exist for a CompletionType::Throw"),
             ));
         }
 
-        let mut frame = self.vm_mut().pop_frame().expect("frame must exist");
+        let mut frame = self.pop_frame().expect("frame must exist");
 
         loop {
-            env_fp = self.vm_mut().frame.env_fp;
-            let pc = self.vm_mut().frame.pc;
-            let exit_early = self.vm_mut().frame.exit_early();
+            let (new_env_fp, pc, exit_early) = self.with_vm(|vm| {
+                (vm.frame.env_fp, vm.frame.pc, vm.frame.exit_early())
+            });
+            env_fp = new_env_fp;
 
-            if self.vm_mut().handle_exception_at(pc) {
+            if self.with_vm_mut(|vm| vm.handle_exception_at(pc)) {
                 return ControlFlow::Continue(());
             }
 
             if exit_early {
                 return ControlFlow::Break(CompletionRecord::Throw(
-                    self.vm_mut()
-                        .pending_exception
-                        .take()
+                    self.take_pending_exception()
                         .expect("Err must exist for a CompletionType::Throw"),
                 ));
             }
 
-            let Some(f) = self.vm_mut().pop_frame() else {
+            let Some(f) = self.pop_frame() else {
                 break;
             };
             frame = f;
         }
-        self.vm_mut().frame.environments.truncate(env_fp as usize);
-        self.vm_mut().stack.truncate_to_frame(&frame);
+        self.with_vm_mut(|vm| {
+            vm.frame.environments.truncate(env_fp as usize);
+            vm.stack.truncate_to_frame(&frame);
+        });
         ControlFlow::Continue(())
     }
 
@@ -832,20 +823,20 @@ impl Context {
     #[allow(clippy::future_not_send)]
     pub(crate) async fn run_async_with_budget(&self, budget: u32) -> CompletionRecord {
         #[cfg(feature = "trace")]
-        if self.vm_mut().trace {
+        if self.with_vm(|vm| vm.trace) {
             self.trace_call_frame();
         }
 
         let mut runtime_budget: u32 = budget;
 
-        while let Some(&byte) = {
-            let vm = self.vm();
+        while let Some(byte) = self.with_vm(|vm| {
             vm.frame
                 .code_block
                 .bytecode
                 .bytecode
                 .get(vm.frame.pc as usize)
-        } {
+                .copied()
+        }) {
             let opcode = Opcode::decode(byte);
 
             match self.execute_one(
@@ -869,18 +860,18 @@ impl Context {
 
     pub(crate) fn run(&self) -> CompletionRecord {
         #[cfg(feature = "trace")]
-        if self.vm_mut().trace {
+        if self.with_vm(|vm| vm.trace) {
             self.trace_call_frame();
         }
 
-        while let Some(&byte) = {
-            let vm = self.vm();
+        while let Some(byte) = self.with_vm(|vm| {
             vm.frame
                 .code_block
                 .bytecode
                 .bytecode
                 .get(vm.frame.pc as usize)
-        } {
+                .copied()
+        }) {
             let opcode = Opcode::decode(byte);
 
             match self.execute_one(Self::execute_bytecode_instruction, opcode) {
@@ -888,7 +879,6 @@ impl Context {
                 ControlFlow::Break(value) => return value,
             }
         }
-
         CompletionRecord::Throw(JsError::from_native(JsNativeError::error()))
     }
 
@@ -898,19 +888,14 @@ impl Context {
         //
         // `host_call_depth` accounts for nested host calls that re-enter the VM by invoking
         // `Context::run()` recursively (for example, accessor calls).
-        let recursion_depth = {
-            let vm = self.vm();
+        let recursion_depth = self.with_vm(|vm| {
             vm.frames.len().saturating_add(vm.host_call_depth)
-        };
-        if self.vm().runtime_limits.recursion_limit() <= recursion_depth {
+        });
+        if self.with_vm(|vm| vm.runtime_limits.recursion_limit()) <= recursion_depth {
             return Err(RuntimeLimitError::Recursion.into());
         }
         // Must throw if the stack size exceeds the defined maximum length.
-        let res = {
-            let vm = self.vm();
-            vm.runtime_limits.stack_size_limit() <= vm.stack.stack.len()
-        };
-        if res {
+        if self.with_vm(|vm| vm.runtime_limits.stack_size_limit() <= vm.stack.stack.len()) {
             return Err(RuntimeLimitError::StackSize.into());
         }
 

@@ -34,10 +34,7 @@ impl Generator {
     ) -> ControlFlow<CompletionRecord> {
         let r#async = u32::from(r#async) != 0;
 
-        let active_function = {
-            let vm = context.vm_mut();
-            vm.stack.get_function(&vm.frame)
-        };
+        let active_function = context.with_vm(|vm| vm.stack.get_function(&vm.frame));
         let this_function_object =
             active_function.expect("active function should be set to the generator");
 
@@ -82,7 +79,7 @@ impl Generator {
             generator.upcast()
         };
 
-        context.vm_mut().set_return_value(generator.into());
+        context.set_return_value(generator.into());
         context.handle_yield()
     }
 }
@@ -104,13 +101,11 @@ impl AsyncGeneratorClose {
     #[inline(always)]
     pub(super) fn operation((): (), context: &Context) -> JsResult<()> {
         // Step 3.e-g in [AsyncGeneratorStart](https://tc39.es/ecma262/#sec-asyncgeneratorstart)
-        let generator = {
-            let vm = context.vm_mut();
-            vm.stack.async_generator_object(&vm.frame)
-        }
-        .expect("There should be a object")
-        .downcast::<AsyncGenerator>()
-        .expect("must be async generator");
+        let generator = context
+            .with_vm(|vm| vm.stack.async_generator_object(&vm.frame))
+            .expect("There should be a object")
+            .downcast::<AsyncGenerator>()
+            .expect("must be async generator");
 
         let mut r#gen = generator.borrow_mut();
 
@@ -122,12 +117,10 @@ impl AsyncGeneratorClose {
 
         // h. If result is a normal completion, set result to NormalCompletion(undefined).
         // i. If result is a return completion, set result to NormalCompletion(result.[[Value]]).
-        let return_value = context.vm_mut().take_return_value();
+        let return_value = context.take_return_value();
 
         let result = context
-            .vm_mut()
-            .pending_exception
-            .take()
+            .take_pending_exception()
             .map_or(Ok(return_value), Err);
 
         drop(r#gen);
@@ -161,20 +154,17 @@ impl GeneratorNext {
         (resume_kind, value): (VaryingOperand, VaryingOperand),
         context: &Context,
     ) -> ControlFlow<CompletionRecord> {
-        let vm = context.vm_mut();
-        let resume_kind = vm
-            .get_register(resume_kind.into())
-            .to_generator_resume_kind();
+        let resume_kind = context
+            .with_vm(|vm| vm.get_register(resume_kind.into()).to_generator_resume_kind());
         match resume_kind {
             GeneratorResumeKind::Normal => ControlFlow::Continue(()),
             GeneratorResumeKind::Throw => context.handle_error(JsError::from_opaque(
-                context.vm_mut().get_register(value.into()).clone(),
+                context.get_register(value.into()),
             )),
             GeneratorResumeKind::Return => {
-                assert!(context.vm_mut().pending_exception.is_none());
-                let vm = context.vm_mut();
-                let value = vm.get_register(value.into()).clone();
-                vm.set_return_value(value);
+                assert!(!context.has_pending_exception());
+                let value = context.get_register(value.into());
+                context.set_return_value(value);
                 ReThrow::operation((), context)
             }
         }
@@ -200,11 +190,12 @@ impl JumpIfNotResumeKind {
         (exit, expected, value): (u32, VaryingOperand, VaryingOperand),
         context: &Context,
     ) {
-        let vm = context.vm_mut();
-        let resume_kind = vm.get_register(value.into()).to_generator_resume_kind();
-        if resume_kind as u8 != u32::from(expected) as u8 {
-            vm.frame_mut().pc = exit;
-        }
+        context.with_vm_mut(|vm| {
+            let resume_kind = vm.get_register(value.into()).to_generator_resume_kind();
+            if resume_kind as u8 != u32::from(expected) as u8 {
+                vm.frame_mut().pc = exit;
+            }
+        });
     }
 }
 
@@ -234,18 +225,13 @@ impl GeneratorDelegateNext {
         context: &Context,
     ) -> JsResult<()> {
         let resume_kind = context
-            .vm_mut()
-            .get_register(resume_kind.into())
-            .to_generator_resume_kind();
-        let received = context.vm_mut().get_register(value.into()).clone();
+            .with_vm(|vm| vm.get_register(resume_kind.into()).to_generator_resume_kind());
+        let received = context.get_register(value.into());
 
         // Preemptively popping removes the iterator from the iterator stack if any operation
         // throws, which avoids calling cleanup operations on the poisoned iterator.
         let iterator_record = context
-            .vm_mut()
-            .frame_mut()
-            .iterators
-            .pop()
+            .with_vm_mut(|vm| vm.frame_mut().iterators.pop())
             .expect("iterator stack should have at least an iterator");
 
         match resume_kind {
@@ -255,10 +241,8 @@ impl GeneratorDelegateNext {
                     std::slice::from_ref(&received),
                     context,
                 )?;
-                context
-                    .vm_mut()
-                    .set_register(is_return.into(), false.into());
-                context.vm_mut().set_register(value.into(), result);
+                context.set_register(is_return.into(), false.into());
+                context.set_register(value.into(), result);
             }
             GeneratorResumeKind::Throw => {
                 let throw = iterator_record
@@ -270,12 +254,10 @@ impl GeneratorDelegateNext {
                         std::slice::from_ref(&received),
                         context,
                     )?;
-                    context
-                        .vm_mut()
-                        .set_register(is_return.into(), false.into());
-                    context.vm_mut().set_register(value.into(), result);
+                    context.set_register(is_return.into(), false.into());
+                    context.set_register(value.into(), result);
                 } else {
-                    context.vm_mut().frame_mut().pc = throw_method_undefined;
+                    context.with_vm_mut(|vm| vm.frame_mut().pc = throw_method_undefined);
                 }
             }
             GeneratorResumeKind::Return => {
@@ -288,10 +270,10 @@ impl GeneratorDelegateNext {
                         std::slice::from_ref(&received),
                         context,
                     )?;
-                    context.vm_mut().set_register(is_return.into(), true.into());
-                    context.vm_mut().set_register(value.into(), result);
+                    context.set_register(is_return.into(), true.into());
+                    context.set_register(value.into(), result);
                 } else {
-                    context.vm_mut().frame_mut().pc = return_method_undefined;
+                    context.with_vm_mut(|vm| vm.frame_mut().pc = return_method_undefined);
 
                     // The current iterator didn't have a cleanup `return` method, so we can
                     // skip pushing it to the iterator stack for cleanup.
@@ -300,7 +282,7 @@ impl GeneratorDelegateNext {
             }
         }
 
-        context.vm_mut().frame_mut().iterators.push(iterator_record);
+        context.with_vm_mut(|vm| vm.frame_mut().iterators.push(iterator_record));
 
         Ok(())
     }
@@ -332,17 +314,13 @@ impl GeneratorDelegateResume {
         context: &Context,
     ) -> JsResult<()> {
         let resume_kind = context
-            .vm_mut()
-            .get_register(resume_kind.into())
-            .to_generator_resume_kind();
-        let result = context.vm_mut().get_register(value.into()).clone();
-        let is_return = context.vm_mut().get_register(is_return.into()).to_boolean();
+            .with_vm(|vm| vm.get_register(resume_kind.into()).to_generator_resume_kind());
+        let result = context.get_register(value.into());
+        let is_return = context
+            .with_vm(|vm| vm.get_register(is_return.into()).to_boolean());
 
         let mut iterator = context
-            .vm_mut()
-            .frame_mut()
-            .iterators
-            .pop()
+            .with_vm_mut(|vm| vm.frame_mut().iterators.pop())
             .expect("iterator stack should have at least an iterator");
 
         if resume_kind == GeneratorResumeKind::Throw {
@@ -353,12 +331,12 @@ impl GeneratorDelegateResume {
 
         if iterator.done() {
             let result = iterator.value(context)?;
-            context.vm_mut().set_register(value.into(), result);
-            context.vm_mut().frame_mut().pc = if is_return { return_gen } else { exit };
+            context.set_register(value.into(), result);
+            context.with_vm_mut(|vm| vm.frame_mut().pc = if is_return { return_gen } else { exit });
             return Ok(());
         }
 
-        context.vm_mut().frame_mut().iterators.push(iterator);
+        context.with_vm_mut(|vm| vm.frame_mut().iterators.push(iterator));
 
         Ok(())
     }

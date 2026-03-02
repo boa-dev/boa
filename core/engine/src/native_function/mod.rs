@@ -322,12 +322,11 @@ pub(crate) fn native_function_call(
     argument_count: usize,
     context: &mut InternalMethodCallContext<'_>,
 ) -> JsResult<CallValue> {
-    let args = context
-        .vm_mut()
-        .stack
-        .calling_convention_pop_arguments(argument_count);
-    let _func = context.vm_mut().stack.pop();
-    let this = context.vm_mut().stack.pop();
+    let args = context.with_vm_mut(|vm| {
+        vm.stack.calling_convention_pop_arguments(argument_count)
+    });
+    let _func = context.stack_pop();
+    let this = context.stack_pop();
 
     // We technically don't need this since native functions don't push any new frames to the
     // vm, but we'll eventually have to combine the native stack with the vm stack.
@@ -344,17 +343,16 @@ pub(crate) fn native_function_call(
         .expect("the object should be a native function object")
         .clone();
 
-    let pc = context.vm_mut().frame.pc;
+    let pc = context.with_vm(|vm| vm.frame.pc);
     let native_source_info = context.native_source_info();
-    context
-        .vm_mut()
-        .shadow_stack
-        .push_native(pc, name, native_source_info);
+    context.with_vm_mut(|vm| {
+        vm.shadow_stack.push_native(pc, name, native_source_info);
+    });
 
     let mut realm = realm.unwrap_or_else(|| context.realm().clone());
 
     context.swap_realm(&mut realm);
-    context.vm_mut().native_active_function = Some(this_function_object);
+    context.with_vm_mut(|vm| vm.native_active_function = Some(this_function_object));
 
     let result = if constructor.is_some() {
         function.call(&JsValue::undefined(), &args, context)
@@ -363,12 +361,12 @@ pub(crate) fn native_function_call(
     }
     .map_err(|err| err.inject_realm(context.realm().clone()));
 
-    context.vm_mut().native_active_function = None;
+    context.with_vm_mut(|vm| vm.native_active_function = None);
     context.swap_realm(&mut realm);
 
-    context.vm_mut().shadow_stack.pop();
+    context.with_vm_mut(|vm| vm.shadow_stack.pop());
 
-    context.vm_mut().stack.push(result?);
+    context.stack_push(result?);
 
     Ok(CallValue::Complete)
 }
@@ -399,25 +397,23 @@ fn native_function_construct(
         .expect("the object should be a native function object")
         .clone();
 
-    let pc = context.vm_mut().frame.pc;
+    let pc = context.with_vm(|vm| vm.frame.pc);
     let native_source_info = context.native_source_info();
-    context
-        .vm_mut()
-        .shadow_stack
-        .push_native(pc, name, native_source_info);
+    context.with_vm_mut(|vm| {
+        vm.shadow_stack.push_native(pc, name, native_source_info);
+    });
 
     let mut realm = realm.unwrap_or_else(|| context.realm().clone());
 
     context.swap_realm(&mut realm);
-    context.vm_mut().native_active_function = Some(this_function_object);
+    context.with_vm_mut(|vm| vm.native_active_function = Some(this_function_object));
 
-    let new_target = context.vm_mut().stack.pop();
-    let args = context
-        .vm_mut()
-        .stack
-        .calling_convention_pop_arguments(argument_count);
-    let _func = context.vm_mut().stack.pop();
-    let _this = context.vm_mut().stack.pop();
+    let new_target = context.stack_pop();
+    let args = context.with_vm_mut(|vm| {
+        vm.stack.calling_convention_pop_arguments(argument_count)
+    });
+    let _func = context.stack_pop();
+    let _this = context.stack_pop();
 
     let result = function
         .call(&new_target, &args, context)
@@ -445,12 +441,12 @@ fn native_function_construct(
             }
         });
 
-    context.vm_mut().native_active_function = None;
+    context.with_vm_mut(|vm| vm.native_active_function = None);
     context.swap_realm(&mut realm);
 
-    context.vm_mut().shadow_stack.pop();
+    context.with_vm_mut(|vm| vm.shadow_stack.pop());
 
-    context.vm_mut().stack.push(result?);
+    context.stack_push(result?);
 
     Ok(CallValue::Complete)
 }

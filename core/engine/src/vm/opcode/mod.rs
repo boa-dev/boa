@@ -375,9 +375,11 @@ macro_rules! generate_opcodes {
                 #[inline(always)]
                 #[allow(unused_parens)]
                 fn [<handle_ $Variant:snake>](context: &Context, pc: usize) -> ControlFlow<CompletionRecord> {
-                    let bytes = &context.vm_mut().frame.code_block.bytecode.bytecode;
-                    let (args, next_pc) = <($($($FieldType),*)?)>::decode(bytes, pc + 1);
-                    context.vm_mut().frame_mut().pc = next_pc as u32;
+                    let (args, next_pc) = context.with_vm(|vm| {
+                        let bytes = &vm.frame.code_block.bytecode.bytecode;
+                        <($($($FieldType),*)?)>::decode(bytes, pc + 1)
+                    });
+                    context.with_vm_mut(|vm| vm.frame_mut().pc = next_pc as u32);
                     let result = $Variant::operation(args, context);
                     IntoCompletionRecord::into_completion_record(result, context)
                 }
@@ -390,9 +392,11 @@ macro_rules! generate_opcodes {
                 #[allow(unused_parens)]
                 fn [<handle_ $Variant:snake _budget>](context: &Context, pc: usize, budget: &mut u32) -> ControlFlow<CompletionRecord> {
                     *budget = budget.saturating_sub(u32::from($Variant::COST));
-                    let bytes = &context.vm_mut().frame.code_block.bytecode.bytecode;
-                    let (args, next_pc) = <($($($FieldType),*)?)>::decode(bytes, pc + 1);
-                    context.vm_mut().frame_mut().pc = next_pc as u32;
+                    let (args, next_pc) = context.with_vm(|vm| {
+                        let bytes = &vm.frame.code_block.bytecode.bytecode;
+                        <($($($FieldType),*)?)>::decode(bytes, pc + 1)
+                    });
+                    context.with_vm_mut(|vm| vm.frame_mut().pc = next_pc as u32);
                     let result = $Variant::operation(args, context);
                     IntoCompletionRecord::into_completion_record(result, context)
                 }
@@ -458,8 +462,7 @@ impl Context {
         &self,
         opcode: Opcode,
     ) -> ControlFlow<CompletionRecord> {
-        let frame = self.vm_mut().frame_mut();
-        let pc = frame.pc as usize;
+        let pc = self.with_vm(|vm| vm.frame().pc as usize);
 
         OPCODE_HANDLERS[opcode as usize](self, pc)
     }
@@ -469,8 +472,7 @@ impl Context {
         budget: &mut u32,
         opcode: Opcode,
     ) -> ControlFlow<CompletionRecord> {
-        let frame = self.vm_mut().frame_mut();
-        let pc = frame.pc as usize;
+        let pc = self.with_vm(|vm| vm.frame().pc as usize);
 
         OPCODE_HANDLERS_BUDGET[opcode as usize](self, pc, budget)
     }

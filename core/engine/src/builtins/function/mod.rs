@@ -649,7 +649,7 @@ impl BuiltInFunctionObject {
             return Err(js_error!(SyntaxError: "failed to analyze function scope: {}", reason));
         }
 
-        let in_with = context.vm_mut().frame.environments.has_object_environment();
+        let in_with = context.with_vm(|vm| vm.frame.environments.has_object_environment());
         let spanned_source_text = SpannedSourceText::new_empty();
 
         let code = FunctionCompiler::new(spanned_source_text)
@@ -668,9 +668,9 @@ impl BuiltInFunctionObject {
                 context.interner_mut(),
             );
 
-        let environments = context.vm_mut().frame.environments.pop_to_global();
+        let environments = context.with_vm_mut(|vm| vm.frame.environments.pop_to_global());
         let function_object = crate::vm::create_function_object(code, prototype, context);
-        context.vm_mut().frame.environments.extend(environments);
+        context.with_vm_mut(|vm| vm.frame.environments.extend(environments));
 
         Ok(function_object)
     }
@@ -1011,17 +1011,13 @@ pub(crate) fn function_call(
     #[cfg(feature = "native-backtrace")]
     {
         let native_source_info = context.native_source_info();
-        context
-            .vm_mut()
-            .shadow_stack
-            .patch_last_native(native_source_info);
+        context.with_vm_mut(|vm| {
+            vm.shadow_stack.patch_last_native(native_source_info);
+        });
     }
 
-    context.vm_mut().push_frame(frame);
-    let this = {
-        let vm = context.vm_mut();
-        vm.stack.get_this(&vm.frame)
-    };
+    context.push_frame(frame);
+    let this = context.with_vm(|vm| vm.stack.get_this(&vm.frame));
 
     let context = context.context();
 
@@ -1029,46 +1025,48 @@ pub(crate) fn function_call(
     let this = if lexical_this_mode {
         ThisBindingStatus::Lexical
     } else if code.strict() {
-        context.vm_mut().frame_mut().flags |= CallFrameFlags::THIS_VALUE_CACHED;
+        context.with_vm_mut(|vm| vm.frame_mut().flags |= CallFrameFlags::THIS_VALUE_CACHED);
         ThisBindingStatus::Initialized(this)
     } else if this.is_null_or_undefined() {
-        context.vm_mut().frame_mut().flags |= CallFrameFlags::THIS_VALUE_CACHED;
+        context.with_vm_mut(|vm| vm.frame_mut().flags |= CallFrameFlags::THIS_VALUE_CACHED);
         let this: JsValue = context.realm().global_this().clone().into();
-        {
-            let vm = context.vm_mut();
+        context.with_vm_mut(|vm| {
             vm.stack.set_this(&vm.frame, this.clone());
-        }
+        });
         ThisBindingStatus::Initialized(this)
     } else {
         let this: JsValue = this
             .to_object(context)
             .expect("conversion cannot fail")
             .into();
-        context.vm_mut().frame_mut().flags |= CallFrameFlags::THIS_VALUE_CACHED;
-        {
-            let vm = context.vm_mut();
+        context.with_vm_mut(|vm| {
+            vm.frame_mut().flags |= CallFrameFlags::THIS_VALUE_CACHED;
             vm.stack.set_this(&vm.frame, this.clone());
-        }
+        });
         ThisBindingStatus::Initialized(this)
     };
 
     let mut last_env = 0;
 
     if code.has_binding_identifier() {
-        let index = context.vm_mut().frame.environments.push_lexical(1);
-        context.vm_mut().frame.environments.put_lexical_value(
-            BindingLocatorScope::Stack(index),
-            0,
-            function_object.clone().into(),
-        );
+        context.with_vm_mut(|vm| {
+            let index = vm.frame.environments.push_lexical(1);
+            vm.frame.environments.put_lexical_value(
+                BindingLocatorScope::Stack(index),
+                0,
+                function_object.clone().into(),
+            );
+        });
         last_env += 1;
     }
 
     if code.has_function_scope() {
-        context.vm_mut().frame.environments.push_function(
-            code.constant_scope(last_env),
-            FunctionSlots::new(this, function_object.clone(), None),
-        );
+        context.with_vm_mut(|vm| {
+            vm.frame.environments.push_function(
+                code.constant_scope(last_env),
+                FunctionSlots::new(this, function_object.clone(), None),
+            );
+        });
     }
 
     Ok(CallValue::Ready)
@@ -1104,7 +1102,7 @@ fn function_construct(
 
     let env_fp = environments.len() as u32;
 
-    let new_target = context.vm_mut().stack.pop();
+    let new_target = context.stack_pop();
 
     let this = if code.is_derived_constructor() {
         None
@@ -1141,49 +1139,52 @@ fn function_construct(
     #[cfg(feature = "native-backtrace")]
     {
         let native_source_info = context.native_source_info();
-        context
-            .vm_mut()
-            .shadow_stack
-            .patch_last_native(native_source_info);
+        context.with_vm_mut(|vm| {
+            vm.shadow_stack.patch_last_native(native_source_info);
+        });
     }
 
-    context.vm_mut().push_frame(frame);
+    context.push_frame(frame);
 
     let mut last_env = 0;
 
     if code.has_binding_identifier() {
-        let index = context.vm_mut().frame.environments.push_lexical(1);
-        context.vm_mut().frame.environments.put_lexical_value(
-            BindingLocatorScope::Stack(index),
-            0,
-            this_function_object.clone().into(),
-        );
+        context.with_vm_mut(|vm| {
+            let index = vm.frame.environments.push_lexical(1);
+            vm.frame.environments.put_lexical_value(
+                BindingLocatorScope::Stack(index),
+                0,
+                this_function_object.clone().into(),
+            );
+        });
         last_env += 1;
     }
 
     if code.has_function_scope() {
-        context.vm_mut().frame.environments.push_function(
-            code.constant_scope(last_env),
-            FunctionSlots::new(
-                this.clone().map_or(ThisBindingStatus::Uninitialized, |o| {
-                    ThisBindingStatus::Initialized(o.into())
-                }),
-                this_function_object.clone(),
-                Some(
-                    new_target
-                        .as_object()
-                        .expect("new.target should be an object")
-                        .clone(),
+        context.with_vm_mut(|vm| {
+            vm.frame.environments.push_function(
+                code.constant_scope(last_env),
+                FunctionSlots::new(
+                    this.clone().map_or(ThisBindingStatus::Uninitialized, |o| {
+                        ThisBindingStatus::Initialized(o.into())
+                    }),
+                    this_function_object.clone(),
+                    Some(
+                        new_target
+                            .as_object()
+                            .expect("new.target should be an object")
+                            .clone(),
+                    ),
                 ),
-            ),
-        );
+            );
+        });
     }
 
     let context = context.context();
-    context.vm_mut().stack.set_this(
-        &context.vm_mut().frame,
-        this.map(JsValue::new).unwrap_or_default(),
-    );
+    context.with_vm_mut(|vm| {
+        let this_val = this.map(JsValue::new).unwrap_or_default();
+        vm.stack.set_this(&vm.frame, this_val);
+    });
 
     Ok(CallValue::Ready)
 }

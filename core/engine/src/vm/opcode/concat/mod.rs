@@ -18,11 +18,11 @@ impl ConcatToString {
     ) -> JsResult<()> {
         let mut strings = Vec::with_capacity(values.len());
         for value in values {
-            let val = context.vm_mut().get_register(value.into()).clone();
+            let val = context.get_register(value.into()).clone();
             strings.push(val.to_string(context)?);
         }
         let s = JsString::concat_array(&strings.iter().map(JsString::as_str).collect::<Vec<_>>());
-        context.vm_mut().set_register(string.into(), s.into());
+        context.set_register(string.into(), s.into());
         Ok(())
     }
 }

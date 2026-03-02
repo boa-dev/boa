@@ -21,14 +21,11 @@ impl DefineClassStaticSetterByName {
         (function, class, index): (VaryingOperand, VaryingOperand, VaryingOperand),
         context: &Context,
     ) -> JsResult<()> {
-        let function = context.vm_mut().get_register(function.into()).clone();
-        let class = context.vm_mut().get_register(class.into()).clone();
+        let function = context.get_register(function.into()).clone();
+        let class = context.get_register(class.into()).clone();
         let class = class.as_object().expect("class must be object");
         let key = context
-            .vm_mut()
-            .frame()
-            .code_block()
-            .constant_string(index.into())
+            .with_vm(|vm| vm.frame().code_block().constant_string(index.into()))
             .into();
         {
             let function_object = function
@@ -79,14 +76,11 @@ impl DefineClassSetterByName {
         (function, class_proto, index): (VaryingOperand, VaryingOperand, VaryingOperand),
         context: &Context,
     ) -> JsResult<()> {
-        let function = context.vm_mut().get_register(function.into()).clone();
-        let class_proto = context.vm_mut().get_register(class_proto.into()).clone();
+        let function = context.get_register(function.into()).clone();
+        let class_proto = context.get_register(class_proto.into()).clone();
         let class_proto = class_proto.as_object().expect("class must be object");
         let key = context
-            .vm_mut()
-            .frame()
-            .code_block()
-            .constant_string(index.into())
+            .with_vm(|vm| vm.frame().code_block().constant_string(index.into()))
             .into();
         {
             let function_object = function
@@ -138,9 +132,9 @@ impl DefineClassStaticSetterByValue {
         (function, key, class): (VaryingOperand, VaryingOperand, VaryingOperand),
         context: &Context,
     ) -> JsResult<()> {
-        let function = context.vm_mut().get_register(function.into()).clone();
-        let key = context.vm_mut().get_register(key.into()).clone();
-        let class = context.vm_mut().get_register(class.into()).clone();
+        let function = context.get_register(function.into()).clone();
+        let key = context.get_register(key.into()).clone();
+        let class = context.get_register(class.into()).clone();
         let class = class.as_object().expect("class must be object");
         let key = key
             .to_property_key(context)
@@ -195,9 +189,9 @@ impl DefineClassSetterByValue {
         (function, key, class_proto): (VaryingOperand, VaryingOperand, VaryingOperand),
         context: &Context,
     ) -> JsResult<()> {
-        let function = context.vm_mut().get_register(function.into()).clone();
-        let key = context.vm_mut().get_register(key.into()).clone();
-        let class_proto = context.vm_mut().get_register(class_proto.into()).clone();
+        let function = context.get_register(function.into()).clone();
+        let key = context.get_register(key.into()).clone();
+        let class_proto = context.get_register(class_proto.into()).clone();
         let class_proto = class_proto.as_object().expect("class must be object");
         let key = key
             .to_property_key(context)

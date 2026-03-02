@@ -21,13 +21,13 @@ impl Throw {
         value: VaryingOperand,
         context: &Context,
     ) -> ControlFlow<CompletionRecord> {
-        let value = context.vm_mut().get_register(value.into()).clone();
+        let value = context.get_register(value.into()).clone();
         let error = JsError::from_opaque(value);
-        context.vm_mut().pending_exception = Some(error);
+        context.set_pending_exception(error);
 
         // Note: -1 because we increment after fetching the opcode.
-        let pc = context.vm_mut().frame().pc - 1;
-        if context.vm_mut().handle_exception_at(pc) {
+        let pc = context.with_vm(|vm| vm.frame().pc - 1);
+        if context.with_vm_mut(|vm| vm.handle_exception_at(pc)) {
             return ControlFlow::Continue(());
         }
 
@@ -52,8 +52,8 @@ impl ReThrow {
     #[inline(always)]
     pub(crate) fn operation((): (), context: &Context) -> ControlFlow<CompletionRecord> {
         // Note: -1 because we increment after fetching the opcode.
-        let pc = context.vm_mut().frame().pc.saturating_sub(1);
-        if context.vm_mut().handle_exception_at(pc) {
+        let pc = context.with_vm(|vm| vm.frame().pc.saturating_sub(1));
+        if context.with_vm_mut(|vm| vm.handle_exception_at(pc)) {
             return ControlFlow::Continue(());
         }
 
@@ -62,7 +62,7 @@ impl ReThrow {
         //
         // Note: If we reached this stage then we there is no handler to handle this,
         //       so return (only for generators).
-        if context.vm_mut().pending_exception.is_none() {
+        if !context.has_pending_exception() {
             return context.handle_return();
         }
 
@@ -89,12 +89,12 @@ impl Exception {
         dst: VaryingOperand,
         context: &Context,
     ) -> ControlFlow<CompletionRecord> {
-        if let Some(error) = context.vm_mut().pending_exception.take() {
+        if let Some(error) = context.take_pending_exception() {
             let error = match error.into_opaque(context) {
                 Ok(e) => e,
                 Err(e) => return context.handle_error(e),
             };
-            context.vm_mut().set_register(dst.into(), error);
+            context.set_register(dst.into(), error);
             return ControlFlow::Continue(());
         }
 
@@ -126,16 +126,12 @@ impl MaybeException {
         (has_exception, exception): (VaryingOperand, VaryingOperand),
         context: &Context,
     ) -> JsResult<()> {
-        if let Some(error) = context.vm_mut().pending_exception.take() {
+        if let Some(error) = context.take_pending_exception() {
             let error = error.into_opaque(context)?;
-            context.vm_mut().set_register(exception.into(), error);
-            context
-                .vm_mut()
-                .set_register(has_exception.into(), true.into());
+            context.set_register(exception.into(), error);
+            context.set_register(has_exception.into(), true.into());
         } else {
-            context
-                .vm_mut()
-                .set_register(has_exception.into(), false.into());
+            context.set_register(has_exception.into(), false.into());
         }
         Ok(())
     }
@@ -158,10 +154,7 @@ impl ThrowNewTypeError {
     #[inline(always)]
     pub(crate) fn operation(index: VaryingOperand, context: &Context) -> JsError {
         let msg = context
-            .vm_mut()
-            .frame()
-            .code_block()
-            .constant_string(index.into());
+            .with_vm(|vm| vm.frame().code_block().constant_string(index.into()));
         let msg = msg
             .to_std_string()
             .expect("throw message must be an ASCII string");
@@ -186,10 +179,7 @@ impl ThrowNewSyntaxError {
     #[inline(always)]
     pub(crate) fn operation(index: VaryingOperand, context: &Context) -> JsError {
         let msg = context
-            .vm_mut()
-            .frame()
-            .code_block()
-            .constant_string(index.into());
+            .with_vm(|vm| vm.frame().code_block().constant_string(index.into()));
         let msg = msg
             .to_std_string()
             .expect("throw message must be an ASCII string");
@@ -214,10 +204,7 @@ impl ThrowNewReferenceError {
     #[inline(always)]
     pub(crate) fn operation(index: VaryingOperand, context: &Context) -> JsError {
         let msg = context
-            .vm_mut()
-            .frame()
-            .code_block()
-            .constant_string(index.into());
+            .with_vm(|vm| vm.frame().code_block().constant_string(index.into()));
         let msg = msg
             .to_std_string()
             .expect("throw message must be an ASCII string");

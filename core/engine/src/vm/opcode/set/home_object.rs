@@ -14,9 +14,8 @@ pub(crate) struct SetHomeObject;
 impl SetHomeObject {
     #[inline(always)]
     pub(crate) fn operation((function, home): (VaryingOperand, VaryingOperand), context: &Context) {
-        let vm = context.vm_mut();
-        let function = vm.get_register(function.into()).clone();
-        let home = vm.get_register(home.into()).clone();
+        let function = context.get_register(function.into());
+        let home = context.get_register(home.into());
 
         function
             .as_object()

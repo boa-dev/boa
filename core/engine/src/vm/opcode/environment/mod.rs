@@ -17,27 +17,20 @@ pub(crate) struct This;
 impl This {
     #[inline(always)]
     pub(super) fn operation(dst: VaryingOperand, context: &Context) -> JsResult<()> {
-        if context.vm_mut().frame.has_this_value_cached() {
-            let this = {
-                let vm = context.vm_mut();
-                vm.stack.get_this(&vm.frame)
-            };
-            context.vm_mut().set_register(dst.into(), this);
+        if context.with_vm(|vm| vm.frame.has_this_value_cached()) {
+            let this = context.with_vm(|vm| vm.stack.get_this(&vm.frame));
+            context.set_register(dst.into(), this);
             return Ok(());
         }
 
         let this = context
-            .vm_mut()
-            .frame
-            .environments
-            .get_this_binding()?
+            .with_vm(|vm| vm.frame.environments.get_this_binding())?
             .unwrap_or(context.realm().global_this().clone().into());
-        {
-            let vm = context.vm_mut();
+        context.with_vm_mut(|vm| {
             vm.frame_mut().flags |= CallFrameFlags::THIS_VALUE_CACHED;
             vm.stack.set_this(&vm.frame, this.clone());
-        }
-        context.vm_mut().set_register(dst.into(), this);
+        });
+        context.set_register(dst.into(), this);
         Ok(())
     }
 }
@@ -62,11 +55,11 @@ impl ThisForObjectEnvironmentName {
         context: &Context,
     ) -> JsResult<()> {
         let binding_locator =
-            context.vm_mut().frame().code_block.bindings[usize::from(index)].clone();
+            context.with_vm(|vm| vm.frame().code_block.bindings[usize::from(index)].clone());
         let this = context
             .this_from_object_environment_binding(&binding_locator)?
             .map_or(JsValue::undefined(), Into::into);
-        context.vm_mut().set_register(dst.into(), this);
+        context.set_register(dst.into(), this);
         Ok(())
     }
 }
@@ -88,19 +81,16 @@ impl Super {
     #[inline(always)]
     pub(super) fn operation(dst: VaryingOperand, context: &Context) -> JsResult<()> {
         let home_object = {
-            let env = context
-                .vm_mut()
-                .frame
-                .environments
-                .get_this_environment()
-                .as_function()
-                .expect("super access must be in a function environment");
-            let this = env
-                .get_this_binding()?
+            let (this_binding, function_object) = context.with_vm(|vm| {
+                let env = vm.frame.environments.get_this_environment()
+                    .as_function()
+                    .expect("super access must be in a function environment");
+                (env.get_this_binding(), env.slots().function_object().clone())
+            });
+            let this = this_binding?
                 .expect("`get_this_environment` ensures this returns `Some`");
 
-            env.slots()
-                .function_object()
+            function_object
                 .downcast_ref::<OrdinaryFunction>()
                 .expect("must be function object")
                 .get_home_object()
@@ -114,7 +104,7 @@ impl Super {
             .flatten()
             .map_or_else(JsValue::null, JsValue::from);
 
-        context.vm_mut().set_register(dst.into(), value);
+        context.set_register(dst.into(), value);
         Ok(())
     }
 }
@@ -135,18 +125,18 @@ pub(crate) struct SuperCallPrepare;
 impl SuperCallPrepare {
     #[inline(always)]
     pub(super) fn operation(dst: VaryingOperand, context: &Context) {
-        let this_env = context
-            .vm_mut()
-            .frame
-            .environments
-            .get_this_environment()
-            .as_function()
-            .expect("super call must be in function environment");
-        let active_function = this_env.slots().function_object().clone();
+        let active_function = context.with_vm(|vm| {
+            vm.frame.environments.get_this_environment()
+                .as_function()
+                .expect("super call must be in function environment")
+                .slots()
+                .function_object()
+                .clone()
+        });
         let super_constructor = active_function
             .__get_prototype_of__(&InternalMethodPropertyContext::new(context))
             .expect("function object must have prototype");
-        context.vm_mut().set_register(
+        context.set_register(
             dst.into(),
             super_constructor.map_or_else(JsValue::null, JsValue::from),
         );
@@ -170,10 +160,7 @@ impl SuperCall {
     #[inline(always)]
     pub(super) fn operation(argument_count: VaryingOperand, context: &Context) -> JsResult<()> {
         let super_constructor = context
-            .vm_mut()
-            .stack
-            .calling_convention_get_function(argument_count.into())
-            .clone();
+            .with_vm(|vm| vm.stack.calling_convention_get_function(argument_count.into()).clone());
 
         let Some(super_constructor) = super_constructor.as_constructor() else {
             return Err(JsNativeError::typ()
@@ -181,21 +168,17 @@ impl SuperCall {
                 .into());
         };
 
-        let this_env = context
-            .vm_mut()
-            .frame
-            .environments
-            .get_this_environment()
-            .as_function()
-            .expect("super call must be in function environment");
+        let new_target = context.with_vm(|vm| {
+            vm.frame.environments.get_this_environment()
+                .as_function()
+                .expect("super call must be in function environment")
+                .slots()
+                .new_target()
+                .expect("must have new.target")
+                .clone()
+        });
 
-        let new_target = this_env
-            .slots()
-            .new_target()
-            .expect("must have new.target")
-            .clone();
-
-        context.vm_mut().stack.push(new_target);
+        context.stack_push(new_target);
 
         super_constructor
             .__construct__(argument_count.into())
@@ -221,7 +204,7 @@ impl SuperCallSpread {
     #[inline(always)]
     pub(super) fn operation((): (), context: &Context) -> JsResult<()> {
         // Get the arguments that are stored as an array object on the stack.
-        let arguments_array = context.vm_mut().stack.pop();
+        let arguments_array = context.stack_pop();
         let arguments_array_object = arguments_array
             .as_object()
             .expect("arguments array in call spread function must be an object");
@@ -231,7 +214,7 @@ impl SuperCallSpread {
             .to_dense_indexed_properties()
             .expect("arguments array in call spread function must be dense");
 
-        let super_constructor = context.vm_mut().stack.pop();
+        let super_constructor = context.stack_pop();
 
         let Some(super_constructor) = super_constructor.as_constructor() else {
             return Err(JsNativeError::typ()
@@ -239,28 +222,22 @@ impl SuperCallSpread {
                 .into());
         };
 
-        context.vm_mut().stack.push(super_constructor.clone());
+        context.stack_push(super_constructor.clone());
 
         context
-            .vm_mut()
-            .stack
-            .calling_convention_push_arguments(&arguments);
+            .with_vm_mut(|vm| vm.stack.calling_convention_push_arguments(&arguments));
 
-        let this_env = context
-            .vm_mut()
-            .frame
-            .environments
-            .get_this_environment()
-            .as_function()
-            .expect("super call must be in function environment");
+        let new_target = context.with_vm(|vm| {
+            vm.frame.environments.get_this_environment()
+                .as_function()
+                .expect("super call must be in function environment")
+                .slots()
+                .new_target()
+                .expect("must have new.target")
+                .clone()
+        });
 
-        let new_target = this_env
-            .slots()
-            .new_target()
-            .expect("must have new.target")
-            .clone();
-
-        context.vm_mut().stack.push(new_target);
+        context.stack_push(new_target);
 
         super_constructor
             .__construct__(arguments.len())
@@ -285,19 +262,18 @@ pub(crate) struct SuperCallDerived;
 impl SuperCallDerived {
     #[inline(always)]
     pub(super) fn operation((): (), context: &Context) -> JsResult<()> {
-        let this_env = context
-            .vm_mut()
-            .frame
-            .environments
-            .get_this_environment()
-            .as_function()
-            .expect("super call must be in function environment");
-        let new_target = this_env
-            .slots()
-            .new_target()
-            .expect("must have new target")
-            .clone();
-        let active_function = this_env.slots().function_object().clone();
+        let (new_target, active_function) = context.with_vm(|vm| {
+            let this_env = vm.frame.environments.get_this_environment()
+                .as_function()
+                .expect("super call must be in function environment");
+            let new_target = this_env
+                .slots()
+                .new_target()
+                .expect("must have new target")
+                .clone();
+            let active_function = this_env.slots().function_object().clone();
+            (new_target, active_function)
+        });
         let super_constructor = active_function
             .__get_prototype_of__(&InternalMethodPropertyContext::new(context))
             .expect("function object must have prototype")
@@ -309,18 +285,15 @@ impl SuperCallDerived {
                 .into());
         }
 
-        context.vm_mut().stack.push(JsValue::undefined());
-        context.vm_mut().stack.push(super_constructor.clone());
-        for argument in {
-            let vm = context.vm_mut();
-            vm.stack.get_arguments(&vm.frame).to_vec()
-        } {
-            context.vm_mut().stack.push(argument);
+        context.stack_push(JsValue::undefined());
+        context.stack_push(super_constructor.clone());
+        for argument in context.with_vm(|vm| vm.stack.get_arguments(&vm.frame).to_vec()) {
+            context.stack_push(argument);
         }
-        context.vm_mut().stack.push(new_target);
+        context.stack_push(new_target);
 
         super_constructor
-            .__construct__(context.vm_mut().frame().argument_count as usize)
+            .__construct__(context.with_vm(|vm| vm.frame().argument_count as usize))
             .resolve(context)?;
         Ok(())
     }
@@ -347,32 +320,31 @@ impl BindThisValue {
         // <https://tc39.es/ecma262/#sec-super-keyword-runtime-semantics-evaluation>
 
         let result = context
-            .vm_mut()
             .get_register(value.into())
             .as_object()
             .expect("construct result should be an object");
 
         // 7. Let thisER be GetThisEnvironment().
-        let this_env = context
-            .vm_mut()
-            .frame
-            .environments
-            .get_this_environment()
-            .as_function()
-            .expect("super call must be in function environment");
+        let (bind_result, active_function) = context.with_vm(|vm| {
+            let this_env = vm.frame.environments.get_this_environment()
+                .as_function()
+                .expect("super call must be in function environment");
 
-        // 8. Perform ? thisER.BindThisValue(result).
-        this_env.bind_this_value(result.clone())?;
+            // 8. Perform ? thisER.BindThisValue(result).
+            let bind_result = this_env.bind_this_value(result.clone());
 
-        // 9. Let F be thisER.[[FunctionObject]].
-        // SKIP: 10. Assert: F is an ECMAScript function object.
-        let active_function = this_env.slots().function_object().clone();
+            // 9. Let F be thisER.[[FunctionObject]].
+            // SKIP: 10. Assert: F is an ECMAScript function object.
+            let active_function = this_env.slots().function_object().clone();
+            (bind_result, active_function)
+        });
+        bind_result?;
 
         // 11. Perform ? InitializeInstanceElements(result, F).
         result.initialize_instance_elements(&active_function, context)?;
 
         // 12. Return result.
-        context.vm_mut().set_register(value.into(), result.into());
+        context.set_register(value.into(), result.into());
         Ok(())
     }
 }

@@ -20,13 +20,12 @@ impl StrictEq {
         (dst, lhs, rhs): (VaryingOperand, VaryingOperand, VaryingOperand),
         context: &Context,
     ) {
-        let value = {
-            let vm = context.vm_mut();
+        let value = context.with_vm(|vm| {
             let lhs = vm.get_register(lhs.into());
             let rhs = vm.get_register(rhs.into());
             lhs.strict_equals(rhs)
-        };
-        context.vm_mut().set_register(dst.into(), value.into());
+        });
+        context.set_register(dst.into(), value.into());
     }
 }
 
@@ -49,13 +48,12 @@ impl StrictNotEq {
         (dst, lhs, rhs): (VaryingOperand, VaryingOperand, VaryingOperand),
         context: &Context,
     ) {
-        let value = {
-            let vm = context.vm_mut();
+        let value = context.with_vm(|vm| {
             let lhs = vm.get_register(lhs.into());
             let rhs = vm.get_register(rhs.into());
             !lhs.strict_equals(rhs)
-        };
-        context.vm_mut().set_register(dst.into(), value.into());
+        });
+        context.set_register(dst.into(), value.into());
     }
 }
 
@@ -78,7 +76,7 @@ impl In {
         (dst, lhs, rhs): (VaryingOperand, VaryingOperand, VaryingOperand),
         context: &Context,
     ) -> JsResult<()> {
-        let rhs = context.vm_mut().get_register(rhs.into()).clone();
+        let rhs = context.get_register(rhs.into()).clone();
         let Some(rhs) = rhs.as_object() else {
             return Err(JsNativeError::typ()
                 .with_message(format!(
@@ -87,10 +85,10 @@ impl In {
                 ))
                 .into());
         };
-        let lhs = context.vm_mut().get_register(lhs.into()).clone();
+        let lhs = context.get_register(lhs.into()).clone();
         let key = lhs.to_property_key(context)?;
         let value = rhs.has_property(key, context)?;
-        context.vm_mut().set_register(dst.into(), value.into());
+        context.set_register(dst.into(), value.into());
         Ok(())
     }
 }
@@ -115,11 +113,8 @@ impl InPrivate {
         context: &Context,
     ) -> JsResult<()> {
         let name = context
-            .vm_mut()
-            .frame()
-            .code_block()
-            .constant_string(index.into());
-        let rhs = context.vm_mut().get_register(rhs.into()).clone();
+            .with_vm(|vm| vm.frame().code_block().constant_string(index.into()));
+        let rhs = context.get_register(rhs.into()).clone();
 
         let Some(rhs) = rhs.as_object() else {
             return Err(JsNativeError::typ()
@@ -131,15 +126,12 @@ impl InPrivate {
         };
 
         let name = context
-            .vm_mut()
-            .frame
-            .environments
-            .resolve_private_identifier(name)
+            .with_vm(|vm| vm.frame.environments.resolve_private_identifier(name))
             .expect("private name must be in environment");
 
         let value = rhs.private_element_find(&name, true, true).is_some();
 
-        context.vm_mut().set_register(dst.into(), value.into());
+        context.set_register(dst.into(), value.into());
         Ok(())
     }
 }

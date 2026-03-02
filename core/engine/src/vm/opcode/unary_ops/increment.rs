@@ -17,7 +17,7 @@ impl Inc {
         (dst, src): (VaryingOperand, VaryingOperand),
         context: &Context,
     ) -> JsResult<()> {
-        let value = context.vm_mut().get_register(src.into()).clone();
+        let value = context.get_register(src.into()).clone();
 
         let (numeric, value) = match value.variant() {
             JsVariant::Integer32(number) if number < i32::MAX => {
@@ -31,8 +31,8 @@ impl Inc {
                 ),
             },
         };
-        context.vm_mut().set_register(src.into(), numeric);
-        context.vm_mut().set_register(dst.into(), value);
+        context.set_register(src.into(), numeric);
+        context.set_register(dst.into(), value);
         Ok(())
     }
 }

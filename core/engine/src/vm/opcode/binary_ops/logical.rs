@@ -13,10 +13,11 @@ pub(crate) struct LogicalAnd;
 impl LogicalAnd {
     #[inline(always)]
     pub(crate) fn operation((exit, lhs): (u32, VaryingOperand), context: &Context) {
-        let vm = context.vm_mut();
-        if !vm.get_register(lhs.into()).to_boolean() {
-            vm.frame_mut().pc = exit;
-        }
+        context.with_vm_mut(|vm| {
+            if !vm.get_register(lhs.into()).to_boolean() {
+                vm.frame_mut().pc = exit;
+            }
+        });
     }
 }
 
@@ -36,10 +37,11 @@ pub(crate) struct LogicalOr;
 impl LogicalOr {
     #[inline(always)]
     pub(crate) fn operation((exit, lhs): (u32, VaryingOperand), context: &Context) {
-        let vm = context.vm_mut();
-        if vm.get_register(lhs.into()).to_boolean() {
-            vm.frame_mut().pc = exit;
-        }
+        context.with_vm_mut(|vm| {
+            if vm.get_register(lhs.into()).to_boolean() {
+                vm.frame_mut().pc = exit;
+            }
+        });
     }
 }
 
@@ -59,10 +61,11 @@ pub(crate) struct Coalesce;
 impl Coalesce {
     #[inline(always)]
     pub(crate) fn operation((exit, lhs): (u32, VaryingOperand), context: &Context) {
-        let vm = context.vm_mut();
-        if !vm.get_register(lhs.into()).is_null_or_undefined() {
-            vm.frame_mut().pc = exit;
-        }
+        context.with_vm_mut(|vm| {
+            if !vm.get_register(lhs.into()).is_null_or_undefined() {
+                vm.frame_mut().pc = exit;
+            }
+        });
     }
 }
 

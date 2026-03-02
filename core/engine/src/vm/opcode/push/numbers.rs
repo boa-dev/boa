@@ -15,7 +15,7 @@ macro_rules! implement_push_numbers_with_conversion {
         impl $name {
             #[inline(always)]
             pub(crate) fn operation((dst, value): (VaryingOperand, $num_type),  context: &Context) {
-                context.vm_mut().set_register(dst.into(), i32::from(value).into());
+                context.set_register(dst.into(), i32::from(value).into());
             }
         }
 
@@ -39,7 +39,7 @@ macro_rules! implement_push_numbers_no_conversion {
         impl $name {
             #[inline(always)]
             pub(crate) fn operation((dst, value): (VaryingOperand, $num_type),  context: &Context) {
-                context.vm_mut().set_register(dst.into(), value.into());
+                context.set_register(dst.into(), value.into());
             }
         }
 

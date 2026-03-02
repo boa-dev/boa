@@ -29,7 +29,7 @@ macro_rules! implement_push_generics {
         impl $name {
             #[inline(always)]
             pub(super) fn operation(dst: VaryingOperand,  context: &Context) {
-                context.vm_mut().set_register(dst.into(), $push_value.into());
+                context.set_register(dst.into(), $push_value.into());
             }
         }
 

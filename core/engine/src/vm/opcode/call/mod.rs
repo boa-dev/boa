@@ -28,9 +28,7 @@ impl CallEval {
         context: &Context,
     ) -> JsResult<()> {
         let func = context
-            .vm_mut()
-            .stack
-            .calling_convention_get_function(argument_count.into());
+            .with_vm(|vm| vm.stack.calling_convention_get_function(argument_count.into()).clone());
 
         let Some(object) = func.as_object() else {
             return Err(JsNativeError::typ()
@@ -48,11 +46,9 @@ impl CallEval {
         let eval = context.intrinsics().objects().eval();
         if JsObject::equals(&object, &eval) {
             let arguments = context
-                .vm_mut()
-                .stack
-                .calling_convention_pop_arguments(argument_count.into());
-            let _func = context.vm_mut().stack.pop();
-            let _this = context.vm_mut().stack.pop();
+                .with_vm_mut(|vm| vm.stack.calling_convention_pop_arguments(argument_count.into()));
+            let _func = context.stack_pop();
+            let _this = context.stack_pop();
             if let Some(x) = arguments.first() {
                 // i. Let argList be ? ArgumentListEvaluation of arguments.
                 // ii. If argList has no elements, return undefined.
@@ -60,12 +56,10 @@ impl CallEval {
                 // iv. If the source text matched by this CallExpression is strict mode code,
                 //     let strictCaller be true. Otherwise let strictCaller be false.
                 // v. Return ? PerformEval(evalArg, strictCaller, true).
-                let strict = context.vm_mut().frame().code_block.strict();
-                let scope = context
-                    .vm_mut()
-                    .frame()
-                    .code_block()
-                    .constant_scope(scope_index.into());
+                let (strict, scope) = context.with_vm(|vm| {
+                    let cb = vm.frame().code_block();
+                    (cb.strict(), cb.constant_scope(scope_index.into()))
+                });
                 let result = crate::builtins::eval::Eval::perform_eval(
                     x,
                     true,
@@ -73,10 +67,10 @@ impl CallEval {
                     strict,
                     context,
                 )?;
-                context.vm_mut().stack.push(result);
+                context.stack_push(result);
             } else {
                 // NOTE: This is a deviation from the spec, to optimize the case when we dont pass anything to `eval`.
-                context.vm_mut().stack.push(JsValue::undefined());
+                context.stack_push(JsValue::undefined());
             }
 
             return Ok(());
@@ -104,7 +98,7 @@ impl CallEvalSpread {
     #[inline(always)]
     pub(super) fn operation(index: VaryingOperand, context: &Context) -> JsResult<()> {
         // Get the arguments that are stored as an array object on the stack.
-        let arguments_array = context.vm_mut().stack.pop();
+        let arguments_array = context.stack_pop();
         let arguments_array_object = arguments_array
             .as_object()
             .expect("arguments array in call spread function must be an object");
@@ -114,7 +108,7 @@ impl CallEvalSpread {
             .to_dense_indexed_properties()
             .expect("arguments array in call spread function must be dense");
 
-        let func = context.vm_mut().stack.calling_convention_get_function(0);
+        let func = context.with_vm(|vm| vm.stack.calling_convention_get_function(0).clone());
 
         let Some(object) = func.as_object() else {
             return Err(JsNativeError::typ()
@@ -130,8 +124,8 @@ impl CallEvalSpread {
         //     a. If SameValue(func, %eval%) is true, then
         let eval = context.intrinsics().objects().eval();
         if JsObject::equals(&object, &eval) {
-            let _func = context.vm_mut().stack.pop();
-            let _this = context.vm_mut().stack.pop();
+            let _func = context.stack_pop();
+            let _this = context.stack_pop();
             if let Some(x) = arguments.first() {
                 // i. Let argList be ? ArgumentListEvaluation of arguments.
                 // ii. If argList has no elements, return undefined.
@@ -139,12 +133,10 @@ impl CallEvalSpread {
                 // iv. If the source text matched by this CallExpression is strict mode code,
                 //     let strictCaller be true. Otherwise let strictCaller be false.
                 // v. Return ? PerformEval(evalArg, strictCaller, true).
-                let strict = context.vm_mut().frame().code_block.strict();
-                let scope = context
-                    .vm_mut()
-                    .frame()
-                    .code_block()
-                    .constant_scope(index.into());
+                let (strict, scope) = context.with_vm(|vm| {
+                    let cb = vm.frame().code_block();
+                    (cb.strict(), cb.constant_scope(index.into()))
+                });
                 let result = crate::builtins::eval::Eval::perform_eval(
                     x,
                     true,
@@ -152,10 +144,10 @@ impl CallEvalSpread {
                     strict,
                     context,
                 )?;
-                context.vm_mut().stack.push(result);
+                context.stack_push(result);
             } else {
                 // NOTE: This is a deviation from the spec, to optimize the case when we dont pass anything to `eval`.
-                context.vm_mut().stack.push(JsValue::undefined());
+                context.stack_push(JsValue::undefined());
             }
 
             return Ok(());
@@ -163,9 +155,7 @@ impl CallEvalSpread {
 
         let argument_count = arguments.len();
         context
-            .vm_mut()
-            .stack
-            .calling_convention_push_arguments(&arguments);
+            .with_vm_mut(|vm| vm.stack.calling_convention_push_arguments(&arguments));
 
         object.__call__(argument_count).resolve(context)?;
         Ok(())
@@ -189,9 +179,7 @@ impl Call {
     #[inline(always)]
     pub(super) fn operation(argument_count: VaryingOperand, context: &Context) -> JsResult<()> {
         let func = context
-            .vm_mut()
-            .stack
-            .calling_convention_get_function(argument_count.into());
+            .with_vm(|vm| vm.stack.calling_convention_get_function(argument_count.into()).clone());
 
         let Some(object) = func.as_object() else {
             return Err(Self::handle_not_callable());
@@ -224,7 +212,7 @@ impl CallSpread {
     #[inline(always)]
     pub(super) fn operation((): (), context: &Context) -> JsResult<()> {
         // Get the arguments that are stored as an array object on the stack.
-        let arguments_array = context.vm_mut().stack.pop();
+        let arguments_array = context.stack_pop();
         let arguments_array_object = arguments_array
             .as_object()
             .expect("arguments array in call spread function must be an object");
@@ -236,14 +224,10 @@ impl CallSpread {
 
         let argument_count = arguments.len();
         context
-            .vm_mut()
-            .stack
-            .calling_convention_push_arguments(&arguments);
+            .with_vm_mut(|vm| vm.stack.calling_convention_push_arguments(&arguments));
 
         let func = context
-            .vm_mut()
-            .stack
-            .calling_convention_get_function(argument_count);
+            .with_vm(|vm| vm.stack.calling_convention_get_function(argument_count).clone());
 
         let Some(object) = func.as_object() else {
             return Err(JsNativeError::typ()
@@ -536,10 +520,10 @@ impl ImportCall {
 
         // 3. Let argRef be ? Evaluation of AssignmentExpression.
         // 4. Let specifier be ? GetValue(argRef).
-        let specifier = context.vm_mut().get_register(specifier_op.into()).clone();
+        let specifier = context.get_register(specifier_op.into()).clone();
 
         // Get options if provided
-        let options = context.vm_mut().get_register(options_op.into()).clone();
+        let options = context.get_register(options_op.into()).clone();
 
         // 5. Let promiseCapability be ! NewPromiseCapability(%Promise%).
         let cap = PromiseCapability::new(
@@ -557,7 +541,6 @@ impl ImportCall {
                 let err = err.into_opaque(context)?;
                 cap.reject().call(&JsValue::undefined(), &[err], context)?;
                 context
-                    .vm_mut()
                     .set_register(specifier_op.into(), promise.into());
                 return Ok(());
             }
@@ -569,7 +552,6 @@ impl ImportCall {
                 let err = err.into_opaque(context)?;
                 cap.reject().call(&JsValue::undefined(), &[err], context)?;
                 context
-                    .vm_mut()
                     .set_register(specifier_op.into(), promise.into());
                 return Ok(());
             }
@@ -587,7 +569,6 @@ impl ImportCall {
 
         // 9. Return promiseCapability.[[Promise]].
         context
-            .vm_mut()
             .set_register(specifier_op.into(), promise.into());
 
         Ok(())

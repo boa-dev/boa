@@ -18,23 +18,27 @@ macro_rules! implement_bin_ops {
                 (dst, lhs, rhs): (VaryingOperand, VaryingOperand, VaryingOperand),
                 context: &Context,
             ) -> JsResult<()> {
-                let vm = context.vm_mut();
-                let lhs = vm.get_register(lhs.into());
-                let rhs = vm.get_register(rhs.into());
-
                 $(
                 // Fast path: try numeric operation without cloning.
-                if let Some(value) = JsValue::$fast_fn(lhs, rhs) {
-                    vm.set_register(dst.into(), value.into());
+                let fast_result = context.with_vm_mut(|vm| {
+                    let lhs = vm.get_register(lhs.into());
+                    let rhs = vm.get_register(rhs.into());
+                    if let Some(value) = JsValue::$fast_fn(lhs, rhs) {
+                        vm.set_register(dst.into(), value.into());
+                        return Some(());
+                    }
+                    None
+                });
+                if fast_result.is_some() {
                     return Ok(());
                 }
                 )?
 
                 // Slow path: clone and use full method with type coercion.
-                let lhs = lhs.clone();
-                let rhs = rhs.clone();
+                let lhs = context.get_register(lhs.into());
+                let rhs = context.get_register(rhs.into());
                 let value = lhs.$op(&rhs, context)?;
-                context.vm_mut().set_register(dst.into(), value.into());
+                context.set_register(dst.into(), value.into());
                 Ok(())
             }
         }

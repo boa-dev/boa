@@ -17,16 +17,10 @@ pub(crate) struct PushScope;
 impl PushScope {
     #[inline(always)]
     pub(crate) fn operation(index: VaryingOperand, context: &Context) {
-        let scope = context
-            .vm_mut()
-            .frame()
-            .code_block()
-            .constant_scope(index.into());
-        context
-            .vm_mut()
-            .frame
-            .environments
-            .push_lexical(scope.num_bindings_non_local());
+        context.with_vm_mut(|vm| {
+            let scope = vm.frame().code_block().constant_scope(index.into());
+            vm.frame.environments.push_lexical(scope.num_bindings_non_local());
+        });
     }
 }
 
@@ -46,9 +40,9 @@ pub(crate) struct PushObjectEnvironment;
 impl PushObjectEnvironment {
     #[inline(always)]
     pub(crate) fn operation(value: VaryingOperand, context: &Context) -> JsResult<()> {
-        let object = context.vm_mut().get_register(value.into()).clone();
+        let object = context.get_register(value.into()).clone();
         let object = object.to_object(context)?;
-        context.vm_mut().frame.environments.push_object(object);
+        context.with_vm_mut(|vm| vm.frame.environments.push_object(object));
         Ok(())
     }
 }
@@ -72,15 +66,12 @@ impl PushPrivateEnvironment {
         (class, name_indices): (VaryingOperand, ThinVec<u32>),
         context: &Context,
     ) {
-        let class = context.vm_mut().get_register(class.into()).clone();
+        let class = context.get_register(class.into()).clone();
         let class = class.as_object().expect("should be a object");
         let mut names = Vec::with_capacity(name_indices.len());
         for index in name_indices {
             let name = context
-                .vm_mut()
-                .frame()
-                .code_block()
-                .constant_string(index as usize);
+                .with_vm(|vm| vm.frame().code_block().constant_string(index as usize));
             names.push(name);
         }
 
@@ -92,10 +83,7 @@ impl PushPrivateEnvironment {
             .expect("class object must be function")
             .push_private_environment(environment.clone());
         context
-            .vm_mut()
-            .frame
-            .environments
-            .push_private(environment);
+            .with_vm_mut(|vm| vm.frame.environments.push_private(environment));
     }
 }
 
@@ -115,7 +103,7 @@ pub(crate) struct PopPrivateEnvironment;
 impl PopPrivateEnvironment {
     #[inline(always)]
     pub(crate) fn operation((): (), context: &Context) {
-        context.vm_mut().frame.environments.pop_private();
+        context.with_vm_mut(|vm| vm.frame.environments.pop_private());
     }
 }
 

@@ -19,18 +19,12 @@ impl SetPrivateField {
         context: &Context,
     ) -> JsResult<()> {
         let name = context
-            .vm_mut()
-            .frame()
-            .code_block()
-            .constant_string(index.into());
-        let value = context.vm_mut().get_register(value.into()).clone();
-        let object = context.vm_mut().get_register(object.into()).clone();
+            .with_vm(|vm| vm.frame().code_block().constant_string(index.into()));
+        let value = context.get_register(value.into()).clone();
+        let object = context.get_register(object.into()).clone();
         let base_obj = object.to_object(context)?;
         let name = context
-            .vm_mut()
-            .frame
-            .environments
-            .resolve_private_identifier(name)
+            .with_vm(|vm| vm.frame.environments.resolve_private_identifier(name))
             .expect("private name must be in environment");
 
         base_obj.private_set(&name, value.clone(), context)?;
@@ -57,10 +51,9 @@ impl DefinePrivateField {
         (object, value, index): (VaryingOperand, VaryingOperand, VaryingOperand),
         context: &Context,
     ) {
-        let vm = context.vm_mut();
-        let object = vm.get_register(object.into()).clone();
-        let value = vm.get_register(value.into()).clone();
-        let name = vm.frame().code_block().constant_string(index.into());
+        let object = context.get_register(object.into());
+        let value = context.get_register(value.into());
+        let name = context.with_vm(|vm| vm.frame().code_block().constant_string(index.into()));
 
         let object = object
             .as_object()
@@ -91,13 +84,10 @@ impl SetPrivateMethod {
         (object, value, index): (VaryingOperand, VaryingOperand, VaryingOperand),
         context: &Context,
     ) {
-        let object = context.vm_mut().get_register(object.into()).clone();
-        let value = context.vm_mut().get_register(value.into()).clone();
+        let object = context.get_register(object.into()).clone();
+        let value = context.get_register(value.into()).clone();
         let name = context
-            .vm_mut()
-            .frame()
-            .code_block()
-            .constant_string(index.into());
+            .with_vm(|vm| vm.frame().code_block().constant_string(index.into()));
 
         let value = value.as_callable().expect("method must be callable");
         let object = object
@@ -141,10 +131,9 @@ impl SetPrivateSetter {
         (object, value, index): (VaryingOperand, VaryingOperand, VaryingOperand),
         context: &Context,
     ) {
-        let vm = context.vm_mut();
-        let object = vm.get_register(object.into()).clone();
-        let value = vm.get_register(value.into()).clone();
-        let name = vm.frame().code_block().constant_string(index.into());
+        let object = context.get_register(object.into());
+        let value = context.get_register(value.into());
+        let name = context.with_vm(|vm| vm.frame().code_block().constant_string(index.into()));
 
         let value = value.as_callable().expect("setter must be callable");
         let object = object
@@ -180,10 +169,9 @@ impl SetPrivateGetter {
         (object, value, index): (VaryingOperand, VaryingOperand, VaryingOperand),
         context: &Context,
     ) {
-        let vm = context.vm_mut();
-        let object = vm.get_register(object.into()).clone();
-        let value = vm.get_register(value.into()).clone();
-        let name = vm.frame().code_block().constant_string(index.into());
+        let object = context.get_register(object.into());
+        let value = context.get_register(value.into());
+        let name = context.with_vm(|vm| vm.frame().code_block().constant_string(index.into()));
 
         let value = value.as_callable().expect("getter must be callable");
         let object = object

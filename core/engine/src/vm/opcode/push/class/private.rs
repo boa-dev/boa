@@ -25,14 +25,11 @@ impl PushClassPrivateMethod {
         ),
         context: &Context,
     ) {
-        let object = context.vm_mut().get_register(object.into()).clone();
-        let prototype = context.vm_mut().get_register(prototype.into()).clone();
-        let value = context.vm_mut().get_register(value.into()).clone();
+        let object = context.get_register(object.into()).clone();
+        let prototype = context.get_register(prototype.into()).clone();
+        let value = context.get_register(value.into()).clone();
         let name = context
-            .vm_mut()
-            .frame()
-            .code_block()
-            .constant_string(index.into());
+            .with_vm(|vm| vm.frame().code_block().constant_string(index.into()));
 
         let value = value.as_callable().expect("method must be callable");
         let prototype = prototype
@@ -88,10 +85,9 @@ impl PushClassPrivateGetter {
         (object, value, index): (VaryingOperand, VaryingOperand, VaryingOperand),
         context: &Context,
     ) {
-        let vm = context.vm_mut();
-        let object = vm.get_register(object.into()).clone();
-        let value = vm.get_register(value.into()).clone();
-        let name = vm.frame().code_block().constant_string(index.into());
+        let object = context.get_register(object.into());
+        let value = context.get_register(value.into());
+        let name = context.with_vm(|vm| vm.frame().code_block().constant_string(index.into()));
 
         let value = value.as_callable().expect("getter must be callable");
         let object = object.as_object().expect("class must be function object");
@@ -128,10 +124,9 @@ impl PushClassPrivateSetter {
         (object, value, index): (VaryingOperand, VaryingOperand, VaryingOperand),
         context: &Context,
     ) {
-        let vm = context.vm_mut();
-        let object = vm.get_register(object.into()).clone();
-        let value = vm.get_register(value.into()).clone();
-        let name = vm.frame().code_block().constant_string(index.into());
+        let object = context.get_register(object.into());
+        let value = context.get_register(value.into());
+        let name = context.with_vm(|vm| vm.frame().code_block().constant_string(index.into()));
 
         let value = value.as_callable().expect("getter must be callable");
         let object = object.as_object().expect("class must be function object");

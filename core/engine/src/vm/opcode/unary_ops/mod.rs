@@ -20,9 +20,10 @@ pub(crate) struct TypeOf;
 impl TypeOf {
     #[inline(always)]
     pub(super) fn operation(value: VaryingOperand, context: &Context) {
-        let vm = context.vm_mut();
-        let type_of = vm.get_register(value.into()).js_type_of();
-        vm.set_register(value.into(), type_of.into());
+        context.with_vm_mut(|vm| {
+            let type_of = vm.get_register(value.into()).js_type_of();
+            vm.set_register(value.into(), type_of.into());
+        });
     }
 }
 
@@ -43,12 +44,10 @@ impl Pos {
     #[inline(always)]
     pub(super) fn operation(value: VaryingOperand, context: &Context) -> JsResult<()> {
         let v = context
-            .vm_mut()
             .get_register(value.into())
-            .clone()
             .to_number(context)?
             .into();
-        context.vm_mut().set_register(value.into(), v);
+        context.set_register(value.into(), v);
         Ok(())
     }
 }
@@ -70,16 +69,12 @@ impl Neg {
     #[inline(always)]
     pub(super) fn operation(value: VaryingOperand, context: &Context) -> JsResult<()> {
         match context
-            .vm_mut()
             .get_register(value.into())
-            .clone()
             .to_numeric(context)?
         {
             Numeric::Number(number) => context
-                .vm_mut()
                 .set_register(value.into(), number.neg().into()),
             Numeric::BigInt(bigint) => context
-                .vm_mut()
                 .set_register(value.into(), JsBigInt::neg(&bigint).into()),
         }
         Ok(())
@@ -103,16 +98,12 @@ impl BitNot {
     #[inline(always)]
     pub(super) fn operation(value: VaryingOperand, context: &Context) -> JsResult<()> {
         match context
-            .vm_mut()
             .get_register(value.into())
-            .clone()
             .to_numeric(context)?
         {
             Numeric::Number(number) => context
-                .vm_mut()
                 .set_register(value.into(), Number::not(number).into()),
             Numeric::BigInt(bigint) => context
-                .vm_mut()
                 .set_register(value.into(), JsBigInt::not(&bigint).into()),
         }
         Ok(())

@@ -1,6 +1,6 @@
 use super::{BindingAccessOpcode, ToJsString};
 use crate::{
-    Context, JsNativeError, JsResult, SpannedSourceText,
+    Context, JsNativeError, JsResult, JsString, SpannedSourceText,
     bytecompiler::{ByteCompiler, FunctionCompiler, FunctionSpec, NodeKind},
     vm::opcode::BindingOpcode,
 };
@@ -212,11 +212,15 @@ pub(crate) fn eval_declaration_instantiation_context(
     //         i. If privateIdentifiers does not contain binding.[[Description]],
     //            append binding.[[Description]] to privateIdentifiers.
     //     b. Set pointer to pointer.[[OuterPrivateEnvironment]].
-    let private_identifiers = context
-        .vm_mut()
-        .frame
-        .environments
-        .private_name_descriptions();
+    let private_identifiers: Vec<JsString> = context
+        .with_vm(|vm| {
+            vm.frame
+                .environments
+                .private_name_descriptions()
+                .into_iter()
+                .cloned()
+                .collect()
+        });
     let private_identifiers = private_identifiers
         .into_iter()
         .map(|ident| {

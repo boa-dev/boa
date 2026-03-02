@@ -16,8 +16,8 @@ impl TemplateLookup {
     #[inline(always)]
     pub(super) fn operation((jump, site, dst): (u32, u64, VaryingOperand), context: &Context) {
         if let Some(template) = context.realm().lookup_template(site) {
-            context.vm_mut().set_register(dst.into(), template.into());
-            context.vm_mut().frame_mut().pc = jump;
+            context.set_register(dst.into(), template.into());
+            context.with_vm_mut(|vm| vm.frame_mut().pc = jump);
         }
     }
 }
@@ -51,7 +51,7 @@ impl TemplateCreate {
         let mut cooked = true;
         for value in values {
             if cooked {
-                let cooked_value = context.vm_mut().get_register(value as usize).clone();
+                let cooked_value = context.get_register(value as usize).clone();
                 template
                     .define_property_or_throw(
                         index,
@@ -64,7 +64,7 @@ impl TemplateCreate {
                     )
                     .expect("should not fail on new array");
             } else {
-                let raw_value = context.vm_mut().get_register(value as usize).clone();
+                let raw_value = context.get_register(value as usize).clone();
                 raw_obj
                     .define_property_or_throw(
                         index,
@@ -102,7 +102,7 @@ impl TemplateCreate {
 
         context.realm().push_template(site, template.clone());
 
-        context.vm_mut().set_register(dst.into(), template.into());
+        context.set_register(dst.into(), template.into());
     }
 }
 

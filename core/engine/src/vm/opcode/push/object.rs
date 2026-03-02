@@ -19,7 +19,7 @@ impl PushEmptyObject {
             .templates()
             .ordinary_object()
             .create(OrdinaryObject, Vec::default());
-        context.vm_mut().set_register(dst.into(), o.into());
+        context.set_register(dst.into(), o.into());
     }
 }
 

@@ -1157,24 +1157,23 @@ fn proxy_exotic_call(
         return Ok(target.__call__(argument_count));
     };
 
-    let args = context
-        .vm_mut()
-        .stack
-        .calling_convention_pop_arguments(argument_count);
+    let args = context.with_vm_mut(|vm| {
+        vm.stack.calling_convention_pop_arguments(argument_count)
+    });
 
     // 7. Let argArray be ! CreateArrayFromList(argumentsList).
     let arg_array = array::Array::create_array_from_list(args, context);
 
     // 8. Return ? Call(trap, handler, « target, thisArgument, argArray »).
-    let _func = context.vm_mut().stack.pop();
-    let this = context.vm_mut().stack.pop();
+    let _func = context.stack_pop();
+    let this = context.stack_pop();
 
-    context.vm_mut().stack.push(handler); // This
-    context.vm_mut().stack.push(trap.clone()); // Function
+    context.stack_push(handler); // This
+    context.stack_push(trap.clone()); // Function
 
-    context.vm_mut().stack.push(target);
-    context.vm_mut().stack.push(this);
-    context.vm_mut().stack.push(arg_array);
+    context.stack_push(target);
+    context.stack_push(this);
+    context.stack_push(arg_array);
     Ok(trap.__call__(3))
 }
 
@@ -1208,13 +1207,12 @@ fn proxy_exotic_construct(
         return Ok(target.__construct__(argument_count));
     };
 
-    let new_target = context.vm_mut().stack.pop();
-    let args = context
-        .vm_mut()
-        .stack
-        .calling_convention_pop_arguments(argument_count);
-    let _func = context.vm_mut().stack.pop();
-    let _this = context.vm_mut().stack.pop();
+    let new_target = context.stack_pop();
+    let args = context.with_vm_mut(|vm| {
+        vm.stack.calling_convention_pop_arguments(argument_count)
+    });
+    let _func = context.stack_pop();
+    let _this = context.stack_pop();
 
     // 8. Let argArray be ! CreateArrayFromList(argumentsList).
     let arg_array = array::Array::create_array_from_list(args, context);
@@ -1232,6 +1230,6 @@ fn proxy_exotic_construct(
     })?;
 
     // 11. Return newObj.
-    context.vm_mut().stack.push(new_obj);
+    context.stack_push(new_obj);
     Ok(CallValue::Complete)
 }

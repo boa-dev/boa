@@ -65,10 +65,13 @@ pub(crate) struct GeneratorContext {
 impl GeneratorContext {
     /// Creates a new `GeneratorContext` from the current `Context` state.
     pub(crate) fn from_current(context: &Context, async_generator: Option<JsObject>) -> Self {
-        let mut frame = context.vm_mut().frame().clone();
-        frame.environments = context.vm_mut().frame.environments.clone();
-        frame.realm = context.realm().clone();
-        let mut stack = context.vm_mut().stack.split_off_frame(&frame);
+        let (mut frame, mut stack) = context.with_vm_mut(|vm| {
+            let mut frame = vm.frame().clone();
+            frame.environments = vm.frame.environments.clone();
+            frame.realm = context.realm().clone();
+            let stack = vm.stack.split_off_frame(&frame);
+            (frame, stack)
+        });
 
         frame.rp = CallFrame::FUNCTION_PROLOGUE + frame.argument_count;
 
@@ -93,24 +96,26 @@ impl GeneratorContext {
         resume_kind: GeneratorResumeKind,
         context: &Context,
     ) -> CompletionRecord {
-        std::mem::swap(&mut context.vm_mut().stack, &mut self.stack);
+        context.with_vm_mut(|vm| std::mem::swap(&mut vm.stack, &mut self.stack));
         let frame = self.call_frame.take().expect("should have a call frame");
         let rp = frame.rp;
-        context.vm_mut().push_frame(frame);
+        context.push_frame(frame);
 
-        let frame = context.vm_mut().frame_mut();
-        frame.rp = rp;
-        frame.set_exit_early(true);
+        context.with_vm_mut(|vm| {
+            let frame = vm.frame_mut();
+            frame.rp = rp;
+            frame.set_exit_early(true);
+        });
 
         if let Some(value) = value {
-            context.vm_mut().stack.push(value);
+            context.stack_push(value);
         }
-        context.vm_mut().stack.push(resume_kind);
+        context.stack_push(resume_kind);
 
         let result = context.run();
 
-        std::mem::swap(&mut context.vm_mut().stack, &mut self.stack);
-        self.call_frame = context.vm_mut().pop_frame();
+        context.with_vm_mut(|vm| std::mem::swap(&mut vm.stack, &mut self.stack));
+        self.call_frame = context.pop_frame();
         assert!(self.call_frame.is_some());
         result
     }

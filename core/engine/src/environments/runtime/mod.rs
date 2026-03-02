@@ -371,10 +371,17 @@ impl Context {
     /// are completely removed of runtime checks because the specification guarantees that runtime
     /// semantics cannot add or remove lexical bindings.
     pub(crate) fn find_runtime_binding(&self, locator: &mut BindingLocator) -> JsResult<()> {
-        if let Some(env) = self.vm_mut().frame.environments.current_declarative_ref()
-            && !env.with()
-            && !env.poisoned()
-        {
+        let early_return = self.with_vm(|vm| {
+            if let Some(env) = vm.frame.environments.current_declarative_ref()
+                && !env.with()
+                && !env.poisoned()
+            {
+                true
+            } else {
+                false
+            }
+        });
+        if early_return {
             return Ok(());
         }
 
@@ -382,10 +389,10 @@ impl Context {
             BindingLocatorScope::GlobalObject | BindingLocatorScope::GlobalDeclarative => (true, 0),
             BindingLocatorScope::Stack(index) => (false, index),
         };
-        let max_index = self.vm_mut().frame.environments.stack.len() as u32;
+        let max_index = self.with_vm(|vm| vm.frame.environments.stack.len() as u32);
 
         for index in (min_index..max_index).rev() {
-            match self.environment_expect(index) {
+            match &self.environment_expect(index) {
                 Environment::Declarative(env) => {
                     if env.poisoned() {
                         if let Some(env) = env.kind().as_function()
@@ -431,9 +438,16 @@ impl Context {
         &self,
         locator: &BindingLocator,
     ) -> JsResult<Option<JsObject>> {
-        if let Some(env) = self.vm_mut().frame.environments.current_declarative_ref()
-            && !env.with()
-        {
+        let early_return = self.with_vm(|vm| {
+            if let Some(env) = vm.frame.environments.current_declarative_ref()
+                && !env.with()
+            {
+                true
+            } else {
+                false
+            }
+        });
+        if early_return {
             return Ok(None);
         }
 
@@ -441,10 +455,10 @@ impl Context {
             BindingLocatorScope::GlobalObject | BindingLocatorScope::GlobalDeclarative => 0,
             BindingLocatorScope::Stack(index) => index,
         };
-        let max_index = self.vm_mut().frame.environments.stack.len() as u32;
+        let max_index = self.with_vm(|vm| vm.frame.environments.stack.len() as u32);
 
         for index in (min_index..max_index).rev() {
-            match self.environment_expect(index) {
+            match &self.environment_expect(index) {
                 Environment::Declarative(env) => {
                     if env.poisoned() {
                         if let Some(env) = env.kind().as_function()
@@ -487,10 +501,10 @@ impl Context {
                 obj.has_property(key, self)
             }
             BindingLocatorScope::GlobalDeclarative => {
-                let env = self.vm_mut().frame.environments.global();
+                let env = self.with_vm(|vm| vm.frame.environments.global().clone());
                 Ok(env.get(locator.binding_index()).is_some())
             }
-            BindingLocatorScope::Stack(index) => match self.environment_expect(index) {
+            BindingLocatorScope::Stack(index) => match &self.environment_expect(index) {
                 Environment::Declarative(env) => Ok(env.get(locator.binding_index()).is_some()),
                 Environment::Object(obj) => {
                     let key = locator.name().clone();
@@ -515,10 +529,10 @@ impl Context {
                 obj.try_get(key, self)
             }
             BindingLocatorScope::GlobalDeclarative => {
-                let env = self.vm_mut().frame.environments.global();
+                let env = self.with_vm(|vm| vm.frame.environments.global().clone());
                 Ok(env.get(locator.binding_index()))
             }
-            BindingLocatorScope::Stack(index) => match self.environment_expect(index) {
+            BindingLocatorScope::Stack(index) => match &self.environment_expect(index) {
                 Environment::Declarative(env) => Ok(env.get(locator.binding_index())),
                 Environment::Object(obj) => {
                     let key = locator.name().clone();
@@ -548,10 +562,10 @@ impl Context {
                 obj.set(key, value, strict, self)?;
             }
             BindingLocatorScope::GlobalDeclarative => {
-                let env = self.vm_mut().frame.environments.global();
+                let env = self.with_vm(|vm| vm.frame.environments.global().clone());
                 env.set(locator.binding_index(), value);
             }
-            BindingLocatorScope::Stack(index) => match self.environment_expect(index) {
+            BindingLocatorScope::Stack(index) => match &self.environment_expect(index) {
                 Environment::Declarative(decl) => {
                     decl.set(locator.binding_index(), value);
                 }
@@ -580,7 +594,7 @@ impl Context {
                 obj.__delete__(&key.into(), &mut InternalMethodPropertyContext::new(self))
             }
             BindingLocatorScope::GlobalDeclarative => Ok(false),
-            BindingLocatorScope::Stack(index) => match self.environment_expect(index) {
+            BindingLocatorScope::Stack(index) => match &self.environment_expect(index) {
                 Environment::Declarative(_) => Ok(false),
                 Environment::Object(obj) => {
                     let key = locator.name().clone();
@@ -596,12 +610,14 @@ impl Context {
     /// # Panics
     ///
     /// Panics if the `index` is out of range.
-    pub(crate) fn environment_expect(&self, index: u32) -> &Environment {
-        self.vm_mut()
-            .frame
-            .environments
-            .stack
-            .get(index as usize)
-            .expect("environment index must be in range")
+    pub(crate) fn environment_expect(&self, index: u32) -> Environment {
+        self.with_vm(|vm| {
+            vm.frame
+                .environments
+                .stack
+                .get(index as usize)
+                .expect("environment index must be in range")
+                .clone()
+        })
     }
 }

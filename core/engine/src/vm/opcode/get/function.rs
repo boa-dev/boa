@@ -17,12 +17,9 @@ impl GetFunction {
     #[inline(always)]
     pub(crate) fn operation((dst, index): (VaryingOperand, VaryingOperand), context: &Context) {
         let code = context
-            .vm_mut()
-            .frame()
-            .code_block()
-            .constant_function(index.into());
+            .with_vm(|vm| vm.frame().code_block().constant_function(index.into()));
         let function = create_function_object_fast(code, context);
-        context.vm_mut().set_register(dst.into(), function.into());
+        context.set_register(dst.into(), function.into());
     }
 }
 

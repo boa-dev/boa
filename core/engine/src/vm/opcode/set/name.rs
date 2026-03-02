@@ -17,10 +17,7 @@ impl ThrowMutateImmutable {
     #[inline(always)]
     pub(crate) fn operation(index: VaryingOperand, context: &Context) -> JsError {
         let name = context
-            .vm_mut()
-            .frame()
-            .code_block()
-            .constant_string(index.into());
+            .with_vm(|vm| vm.frame().code_block().constant_string(index.into()));
 
         JsNativeError::typ()
             .with_message(format!(
@@ -50,10 +47,11 @@ impl SetName {
         (value, index): (VaryingOperand, VaryingOperand),
         context: &Context,
     ) -> JsResult<()> {
-        let value = context.vm_mut().get_register(value.into()).clone();
-        let code_block = context.vm_mut().frame().code_block();
-        let mut binding_locator = code_block.bindings[usize::from(index)].clone();
-        let strict = code_block.strict();
+        let value = context.get_register(value.into()).clone();
+        let (mut binding_locator, strict) = context.with_vm(|vm| {
+            let code_block = vm.frame().code_block();
+            (code_block.bindings[usize::from(index)].clone(), code_block.strict())
+        });
 
         context.find_runtime_binding(&mut binding_locator)?;
 
@@ -81,16 +79,16 @@ pub(crate) struct SetNameByLocator;
 impl SetNameByLocator {
     #[inline(always)]
     pub(crate) fn operation(value: VaryingOperand, context: &Context) -> JsResult<()> {
-        let (strict, binding_locator) = {
-            let frame = context.vm_mut().frame_mut();
+        let (strict, binding_locator) = context.with_vm_mut(|vm| {
+            let frame = vm.frame_mut();
             let strict = frame.code_block.strict();
             let binding_locator = frame
                 .binding_stack
                 .pop()
                 .expect("locator should have been popped before");
             (strict, binding_locator)
-        };
-        let value = context.vm_mut().get_register(value.into()).clone();
+        });
+        let value = context.get_register(value.into()).clone();
 
         verify_initialized(&binding_locator, context)?;
 
@@ -110,7 +108,7 @@ impl Operation for SetNameByLocator {
 fn verify_initialized(locator: &BindingLocator, context: &Context) -> JsResult<()> {
     if !context.is_initialized_binding(locator)? {
         let key = locator.name();
-        let strict = context.vm_mut().frame().code_block.strict();
+        let strict = context.with_vm(|vm| vm.frame().code_block.strict());
 
         let message = match locator.scope() {
             BindingLocatorScope::GlobalObject if strict => Some(format!(
@@ -122,7 +120,7 @@ fn verify_initialized(locator: &BindingLocator, context: &Context) -> JsResult<(
                 "cannot assign to uninitialized binding `{}`",
                 key.to_std_string_escaped()
             )),
-            BindingLocatorScope::Stack(index) => match context.environment_expect(index) {
+            BindingLocatorScope::Stack(index) => match &context.environment_expect(index) {
                 Environment::Declarative(_) => Some(format!(
                     "cannot assign to uninitialized binding `{}`",
                     key.to_std_string_escaped()
