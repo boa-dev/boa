@@ -596,7 +596,7 @@ impl ServicePreferences for DateTimeFormatterPreferences {
         self.calendar_algorithm = self
             .calendar_algorithm
             .take()
-            .filter(|ca| has_calendar_data_for_locale(ca, id, provider));
+            .filter(|ca| has_calendar_data_for_locale(*ca, id, provider));
 
         // NOTE (nekevss): issue: this will not support `H24` as ICU4X does
         // not currently support it.
@@ -611,7 +611,7 @@ impl ServicePreferences for DateTimeFormatterPreferences {
 }
 
 fn has_calendar_data_for_locale(
-    calendar: &CalendarAlgorithm,
+    calendar: CalendarAlgorithm,
     id: &LanguageIdentifier,
     provider: &IntlProvider,
 ) -> bool {
@@ -631,18 +631,11 @@ fn has_calendar_data_for_locale(
         },
     };
 
-    // [Hijri(Option<HijriCalendarAlgorithm>)]
-    // ("islamic" => Hijri(HijriCalendarAlgorithm) {
-    //      ("umalqura" => Umalqura),
-    //      ("tbla" => Tbla),
-    //      ("civil" => Civil),
-    //      ("rgsa" => Rgsa)
-    // }),
     if let CalendarAlgorithm::Hijri(None) = calendar {
         return true;
     }
 
-    let Ok(kind) = AnyCalendarKind::try_from(*calendar) else {
+    let Ok(kind) = AnyCalendarKind::try_from(calendar) else {
         return false;
     };
 
