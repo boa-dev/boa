@@ -468,4 +468,156 @@ mod tests {
             ),
         ]);
     }
+
+    #[test]
+    fn new_with_description() {
+        let sym = JsSymbol::new(Some(crate::js_string!("foo"))).unwrap();
+        assert_eq!(
+            sym.description().as_ref().map(|s| s.to_std_string_escaped()),
+            Some(String::from("foo"))
+        );
+    }
+
+    #[test]
+    fn new_without_description() {
+        let sym = JsSymbol::new(None).unwrap();
+        assert!(sym.description().is_none());
+    }
+
+    #[test]
+    fn fn_name_with_description() {
+        let sym = JsSymbol::new(Some(crate::js_string!("hello"))).unwrap();
+        assert_eq!(sym.fn_name().to_std_string_escaped(), "[hello]");
+    }
+
+    #[test]
+    fn fn_name_without_description() {
+        let sym = JsSymbol::new(None).unwrap();
+        assert_eq!(sym.fn_name().to_std_string_escaped(), "");
+    }
+
+    #[test]
+    fn fn_name_well_known() {
+        let sym = JsSymbol::iterator();
+        assert_eq!(sym.fn_name().to_std_string_escaped(), "[Symbol.iterator]");
+    }
+
+    #[test]
+    fn descriptive_string_with_description() {
+        let sym = JsSymbol::new(Some(crate::js_string!("foo"))).unwrap();
+        assert_eq!(sym.descriptive_string().to_std_string_escaped(), "Symbol(foo)");
+    }
+
+    #[test]
+    fn descriptive_string_without_description() {
+        let sym = JsSymbol::new(None).unwrap();
+        assert_eq!(sym.descriptive_string().to_std_string_escaped(), "Symbol()");
+    }
+
+    #[test]
+    fn well_known_symbols_description() {
+        let cases = [
+            (JsSymbol::async_iterator(), "Symbol.asyncIterator"),
+            (JsSymbol::has_instance(), "Symbol.hasInstance"),
+            (JsSymbol::is_concat_spreadable(), "Symbol.isConcatSpreadable"),
+            (JsSymbol::iterator(), "Symbol.iterator"),
+            (JsSymbol::r#match(), "Symbol.match"),
+            (JsSymbol::match_all(), "Symbol.matchAll"),
+            (JsSymbol::replace(), "Symbol.replace"),
+            (JsSymbol::search(), "Symbol.search"),
+            (JsSymbol::species(), "Symbol.species"),
+            (JsSymbol::split(), "Symbol.split"),
+            (JsSymbol::to_primitive(), "Symbol.toPrimitive"),
+            (JsSymbol::to_string_tag(), "Symbol.toStringTag"),
+            (JsSymbol::unscopables(), "Symbol.unscopables"),
+        ];
+        for (sym, expected_desc) in &cases {
+            assert_eq!(
+                sym.description()
+                    .as_ref()
+                    .map(|s| s.to_std_string_escaped()),
+                Some(String::from(*expected_desc)),
+                "Well-known symbol description mismatch for {expected_desc}"
+            );
+        }
+    }
+
+    #[test]
+    fn well_known_symbols_are_equal() {
+        assert_eq!(JsSymbol::iterator(), JsSymbol::iterator());
+        assert_eq!(JsSymbol::async_iterator(), JsSymbol::async_iterator());
+    }
+
+    #[test]
+    fn well_known_symbols_different_from_user() {
+        let user_sym = JsSymbol::new(Some(crate::js_string!("Symbol.iterator"))).unwrap();
+        assert_ne!(user_sym, JsSymbol::iterator());
+    }
+
+    #[test]
+    fn clone_preserves_identity() {
+        let sym = JsSymbol::new(Some(crate::js_string!("cloned"))).unwrap();
+        let cloned = sym.clone();
+        assert_eq!(sym, cloned);
+        assert_eq!(sym.hash(), cloned.hash());
+        assert_eq!(
+            sym.description().map(|s| s.to_std_string_escaped()),
+            cloned.description().map(|s| s.to_std_string_escaped())
+        );
+    }
+
+    #[test]
+    fn clone_well_known_preserves_identity() {
+        let sym = JsSymbol::iterator();
+        let cloned = sym.clone();
+        assert_eq!(sym, cloned);
+    }
+
+    #[test]
+    fn display_formatting() {
+        let sym_with_desc = JsSymbol::new(Some(crate::js_string!("test"))).unwrap();
+        assert_eq!(format!("{sym_with_desc}"), "Symbol(test)");
+
+        let sym_without_desc = JsSymbol::new(None).unwrap();
+        assert_eq!(format!("{sym_without_desc}"), "Symbol()");
+    }
+
+    #[test]
+    fn debug_formatting() {
+        let sym = JsSymbol::new(Some(crate::js_string!("dbg"))).unwrap();
+        let debug_str = format!("{sym:?}");
+        assert!(debug_str.contains("JsSymbol"));
+        assert!(debug_str.contains("hash"));
+        assert!(debug_str.contains("description"));
+    }
+
+    #[test]
+    fn ordering() {
+        let sym_a = JsSymbol::new(None).unwrap();
+        let sym_b = JsSymbol::new(None).unwrap();
+        // sym_a was created first, so it should have a smaller hash
+        assert!(sym_a < sym_b);
+        assert!(sym_b > sym_a);
+        assert_eq!(sym_a.cmp(&sym_a), std::cmp::Ordering::Equal);
+    }
+
+    #[test]
+    fn hash_consistency() {
+        use std::hash::{Hash, Hasher};
+        use std::collections::hash_map::DefaultHasher;
+
+        let sym = JsSymbol::new(Some(crate::js_string!("hashme"))).unwrap();
+        let cloned = sym.clone();
+
+        let mut hasher1 = DefaultHasher::new();
+        Hash::hash(&sym, &mut hasher1);
+        let hash1 = hasher1.finish();
+
+        let mut hasher2 = DefaultHasher::new();
+        Hash::hash(&cloned, &mut hasher2);
+        let hash2 = hasher2.finish();
+
+        assert_eq!(hash1, hash2, "Hash trait should produce consistent results for equal symbols");
+    }
 }
+
