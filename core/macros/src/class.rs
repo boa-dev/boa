@@ -580,6 +580,15 @@ impl ClassVisitor {
                     Ok(())
                 }
             }
+
+            impl boa_engine::value::TryIntoJs for #class_ty
+            where
+                Self: Clone,
+            {
+                fn try_into_js(&self, context: &mut boa_engine::Context) -> boa_engine::JsResult<boa_engine::JsValue> {
+                    <Self as boa_engine::class::Class>::from_data(self.clone(), context).map(Into::into)
+                }
+            }
         }
     }
 }
