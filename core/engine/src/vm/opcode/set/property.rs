@@ -73,7 +73,8 @@ fn set_by_name(
     // Cache the property.
     let slot = *context.slot();
     if succeeded && slot.is_cacheable() {
-        let ic = &unsafe { (*context.vm_const_ptr()).frame.code_block.clone() }.ic[usize::from(index)];
+        let ic =
+            &unsafe { (*context.vm_const_ptr()).frame.code_block.clone() }.ic[usize::from(index)];
         let object_borrowed = object.borrow();
         let shape = object_borrowed.shape();
         ic.set(shape, slot);
@@ -216,8 +217,13 @@ impl SetPropertyGetterByName {
     ) -> JsResult<()> {
         let object = context.get_register(object.into()).clone();
         let value = context.get_register(value.into()).clone();
-        let name = unsafe { (*context.vm_const_ptr()).frame.code_block.constant_string(index.into()) }
-            .into();
+        let name = unsafe {
+            (*context.vm_const_ptr())
+                .frame
+                .code_block
+                .constant_string(index.into())
+        }
+        .into();
 
         let object = object.to_object(context)?;
         let set = object
@@ -304,8 +310,13 @@ impl SetPropertySetterByName {
     ) -> JsResult<()> {
         let object = context.get_register(object.into()).clone();
         let value = context.get_register(value.into()).clone();
-        let name = unsafe { (*context.vm_const_ptr()).frame.code_block.constant_string(index.into()) }
-            .into();
+        let name = unsafe {
+            (*context.vm_const_ptr())
+                .frame
+                .code_block
+                .constant_string(index.into())
+        }
+        .into();
 
         let object = object.to_object(context)?;
 

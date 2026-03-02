@@ -687,7 +687,9 @@ impl Context {
         #[cfg(feature = "trace")]
         {
             // SAFETY: Read-only access via raw pointer. Context is !Send/!Sync.
-            let res = unsafe { (*self.vm_const_ptr()).trace || (*self.vm_const_ptr()).frame.code_block.traceable() };
+            let res = unsafe {
+                (*self.vm_const_ptr()).trace || (*self.vm_const_ptr()).frame.code_block.traceable()
+            };
             if res {
                 return self.trace_execute_instruction(f, opcode);
             }

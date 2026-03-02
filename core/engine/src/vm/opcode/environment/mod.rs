@@ -26,8 +26,13 @@ impl This {
             return Ok(());
         }
 
-        let this = unsafe { (*context.vm_const_ptr()).frame.environments.get_this_binding() }?
-            .unwrap_or(context.realm().global_this().clone().into());
+        let this = unsafe {
+            (*context.vm_const_ptr())
+                .frame
+                .environments
+                .get_this_binding()
+        }?
+        .unwrap_or(context.realm().global_this().clone().into());
         // SAFETY: No other references to the VM exist during this block.
         unsafe {
             let vm = &mut *context.vm_ptr();
@@ -58,8 +63,10 @@ impl ThisForObjectEnvironmentName {
         (dst, index): (VaryingOperand, VaryingOperand),
         context: &Context,
     ) -> JsResult<()> {
-        let binding_locator =
-            unsafe { let vm = &*context.vm_const_ptr(); vm.frame.code_block.bindings[usize::from(index)].clone() };
+        let binding_locator = unsafe {
+            let vm = &*context.vm_const_ptr();
+            vm.frame.code_block.bindings[usize::from(index)].clone()
+        };
         let this = context
             .this_from_object_environment_binding(&binding_locator)?
             .map_or(JsValue::undefined(), Into::into);

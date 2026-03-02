@@ -34,7 +34,11 @@ pub(crate) struct JumpIfTrue;
 impl JumpIfTrue {
     #[inline(always)]
     pub(crate) fn operation((address, value): (u32, VaryingOperand), context: &Context) {
-        if unsafe { (*context.vm_const_ptr()).get_register(value.into()).to_boolean() } {
+        if unsafe {
+            (*context.vm_const_ptr())
+                .get_register(value.into())
+                .to_boolean()
+        } {
             context.set_pc(address);
         }
     }
@@ -56,7 +60,11 @@ pub(crate) struct JumpIfFalse;
 impl JumpIfFalse {
     #[inline(always)]
     pub(crate) fn operation((address, value): (u32, VaryingOperand), context: &Context) {
-        if !unsafe { (*context.vm_const_ptr()).get_register(value.into()).to_boolean() } {
+        if !unsafe {
+            (*context.vm_const_ptr())
+                .get_register(value.into())
+                .to_boolean()
+        } {
             context.set_pc(address);
         }
     }
@@ -78,7 +86,11 @@ pub(crate) struct JumpIfNotUndefined;
 impl JumpIfNotUndefined {
     #[inline(always)]
     pub(crate) fn operation((address, value): (u32, VaryingOperand), context: &Context) {
-        if !unsafe { (*context.vm_const_ptr()).get_register(value.into()).is_undefined() } {
+        if !unsafe {
+            (*context.vm_const_ptr())
+                .get_register(value.into())
+                .is_undefined()
+        } {
             context.set_pc(address);
         }
     }
@@ -100,7 +112,11 @@ pub(crate) struct JumpIfNullOrUndefined;
 impl JumpIfNullOrUndefined {
     #[inline(always)]
     pub(crate) fn operation((address, value): (u32, VaryingOperand), context: &Context) {
-        if unsafe { (*context.vm_const_ptr()).get_register(value.into()).is_null_or_undefined() } {
+        if unsafe {
+            (*context.vm_const_ptr())
+                .get_register(value.into())
+                .is_null_or_undefined()
+        } {
             context.set_pc(address);
         }
     }

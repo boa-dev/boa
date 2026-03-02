@@ -44,11 +44,11 @@ impl Await {
             let vm = &*context.vm_const_ptr();
             vm.stack.get_promise_capability(&vm.frame)
         }
-            .as_ref()
-            .map(PromiseCapability::promise)
-            .cloned()
-            .map(JsValue::from)
-            .unwrap_or_default();
+        .as_ref()
+        .map(PromiseCapability::promise)
+        .cloned()
+        .map(JsValue::from)
+        .unwrap_or_default();
 
         let r#gen = GeneratorContext::from_current(context, None);
 
@@ -203,9 +203,10 @@ impl CompletePromiseCapability {
     pub(super) fn operation((): (), context: &Context) -> ControlFlow<CompletionRecord> {
         // If the current executing function is an async function we have to resolve/reject it's promise at the end.
         // The relevant spec section is 3. in [AsyncBlockStart](https://tc39.es/ecma262/#sec-asyncblockstart).
-        let Some(promise_capability) =
-            (unsafe { let vm = &*context.vm_const_ptr(); vm.stack.get_promise_capability(&vm.frame) })
-        else {
+        let Some(promise_capability) = (unsafe {
+            let vm = &*context.vm_const_ptr();
+            vm.stack.get_promise_capability(&vm.frame)
+        }) else {
             return if context.has_pending_exception() {
                 context.handle_throw()
             } else {

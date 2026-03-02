@@ -19,8 +19,10 @@ impl GetName {
         (value, index): (VaryingOperand, VaryingOperand),
         context: &Context,
     ) -> JsResult<()> {
-        let mut binding_locator =
-            unsafe { let vm = &*context.vm_const_ptr(); vm.frame.code_block.bindings[usize::from(index)].clone() };
+        let mut binding_locator = unsafe {
+            let vm = &*context.vm_const_ptr();
+            vm.frame.code_block.bindings[usize::from(index)].clone()
+        };
         context.find_runtime_binding(&mut binding_locator)?;
         let result = context.get_binding(&binding_locator)?.ok_or_else(|| {
             let name = binding_locator.name().to_std_string_escaped();
@@ -50,8 +52,10 @@ impl GetNameGlobal {
         (dst, index, ic_index): (VaryingOperand, VaryingOperand, VaryingOperand),
         context: &Context,
     ) -> JsResult<()> {
-        let mut binding_locator =
-            unsafe { let vm = &*context.vm_const_ptr(); vm.frame.code_block.bindings[usize::from(index)].clone() };
+        let mut binding_locator = unsafe {
+            let vm = &*context.vm_const_ptr();
+            vm.frame.code_block.bindings[usize::from(index)].clone()
+        };
         context.find_runtime_binding(&mut binding_locator)?;
 
         if binding_locator.is_global() {
@@ -134,8 +138,10 @@ pub(crate) struct GetLocator;
 impl GetLocator {
     #[inline(always)]
     pub(crate) fn operation(index: VaryingOperand, context: &Context) -> JsResult<()> {
-        let mut binding_locator =
-            unsafe { let vm = &*context.vm_const_ptr(); vm.frame.code_block.bindings[usize::from(index)].clone() };
+        let mut binding_locator = unsafe {
+            let vm = &*context.vm_const_ptr();
+            vm.frame.code_block.bindings[usize::from(index)].clone()
+        };
         context.find_runtime_binding(&mut binding_locator)?;
 
         context.vm_push_binding_locator(binding_locator);
@@ -164,8 +170,10 @@ impl GetNameAndLocator {
         (value, index): (VaryingOperand, VaryingOperand),
         context: &Context,
     ) -> JsResult<()> {
-        let mut binding_locator =
-            unsafe { let vm = &*context.vm_const_ptr(); vm.frame.code_block.bindings[usize::from(index)].clone() };
+        let mut binding_locator = unsafe {
+            let vm = &*context.vm_const_ptr();
+            vm.frame.code_block.bindings[usize::from(index)].clone()
+        };
         context.find_runtime_binding(&mut binding_locator)?;
         let result = context.get_binding(&binding_locator)?.ok_or_else(|| {
             let name = binding_locator.name().to_std_string_escaped();
@@ -197,8 +205,10 @@ impl GetNameOrUndefined {
         (value, index): (VaryingOperand, VaryingOperand),
         context: &Context,
     ) -> JsResult<()> {
-        let mut binding_locator =
-            unsafe { let vm = &*context.vm_const_ptr(); vm.frame.code_block.bindings[usize::from(index)].clone() };
+        let mut binding_locator = unsafe {
+            let vm = &*context.vm_const_ptr();
+            vm.frame.code_block.bindings[usize::from(index)].clone()
+        };
 
         let is_global = binding_locator.is_global();
 

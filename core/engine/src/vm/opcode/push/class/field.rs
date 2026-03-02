@@ -76,7 +76,12 @@ impl PushClassFieldPrivate {
     ) {
         let class = context.get_register(class.into());
         let function = context.get_register(function.into());
-        let name = unsafe { (*context.vm_const_ptr()).frame.code_block.constant_string(index.into()) };
+        let name = unsafe {
+            (*context.vm_const_ptr())
+                .frame
+                .code_block
+                .constant_string(index.into())
+        };
 
         let function = function
             .as_object()

@@ -65,7 +65,12 @@ impl CheckReturn {
         } else if unsafe { (*context.vm_const_ptr()).frame.has_this_value_cached() } {
             this
         } else {
-            match unsafe { (*context.vm_const_ptr()).frame.environments.get_this_binding() } {
+            match unsafe {
+                (*context.vm_const_ptr())
+                    .frame
+                    .environments
+                    .get_this_binding()
+            } {
                 Err(err) => {
                     // Avoid setting the realm here, since it needs to be set by the parent
                     // execution context.

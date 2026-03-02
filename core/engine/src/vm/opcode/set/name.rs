@@ -16,7 +16,12 @@ pub(crate) struct ThrowMutateImmutable;
 impl ThrowMutateImmutable {
     #[inline(always)]
     pub(crate) fn operation(index: VaryingOperand, context: &Context) -> JsError {
-        let name = unsafe { (*context.vm_const_ptr()).frame.code_block.constant_string(index.into()) };
+        let name = unsafe {
+            (*context.vm_const_ptr())
+                .frame
+                .code_block
+                .constant_string(index.into())
+        };
 
         JsNativeError::typ()
             .with_message(format!(

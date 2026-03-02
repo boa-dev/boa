@@ -114,7 +114,12 @@ impl InPrivate {
         (dst, index, rhs): (VaryingOperand, VaryingOperand, VaryingOperand),
         context: &Context,
     ) -> JsResult<()> {
-        let name = unsafe { (*context.vm_const_ptr()).frame.code_block.constant_string(index.into()) };
+        let name = unsafe {
+            (*context.vm_const_ptr())
+                .frame
+                .code_block
+                .constant_string(index.into())
+        };
         let rhs = context.get_register(rhs.into()).clone();
 
         let Some(rhs) = rhs.as_object() else {
@@ -127,9 +132,12 @@ impl InPrivate {
         };
 
         let name = unsafe {
-            (*context.vm_const_ptr()).frame.environments.resolve_private_identifier(name)
+            (*context.vm_const_ptr())
+                .frame
+                .environments
+                .resolve_private_identifier(name)
         }
-            .expect("private name must be in environment");
+        .expect("private name must be in environment");
 
         let value = rhs.private_element_find(&name, true, true).is_some();
 

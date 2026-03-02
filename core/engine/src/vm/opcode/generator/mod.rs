@@ -108,9 +108,9 @@ impl AsyncGeneratorClose {
             let vm = &*context.vm_const_ptr();
             vm.stack.async_generator_object(&vm.frame)
         }
-            .expect("There should be a object")
-            .downcast::<AsyncGenerator>()
-            .expect("must be async generator");
+        .expect("There should be a object")
+        .downcast::<AsyncGenerator>()
+        .expect("must be async generator");
 
         let mut r#gen = generator.borrow_mut();
 
@@ -330,7 +330,11 @@ impl GeneratorDelegateResume {
                 .to_generator_resume_kind()
         };
         let result = context.get_register(value.into());
-        let is_return = unsafe { (*context.vm_const_ptr()).get_register(is_return.into()).to_boolean() };
+        let is_return = unsafe {
+            (*context.vm_const_ptr())
+                .get_register(is_return.into())
+                .to_boolean()
+        };
 
         let mut iterator = context
             .vm_pop_iterator()

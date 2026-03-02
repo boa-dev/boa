@@ -16,7 +16,12 @@ impl HasRestrictedGlobalProperty {
         (dst, index): (VaryingOperand, VaryingOperand),
         context: &Context,
     ) -> JsResult<()> {
-        let name = &unsafe { (*context.vm_const_ptr()).frame.code_block.constant_string(index.into()) };
+        let name = &unsafe {
+            (*context.vm_const_ptr())
+                .frame
+                .code_block
+                .constant_string(index.into())
+        };
         let value = context.has_restricted_global_property(name)?;
         context.set_register(dst.into(), value.into());
         Ok(())
@@ -44,7 +49,12 @@ impl CanDeclareGlobalFunction {
         (dst, index): (VaryingOperand, VaryingOperand),
         context: &Context,
     ) -> JsResult<()> {
-        let name = &unsafe { (*context.vm_const_ptr()).frame.code_block.constant_string(index.into()) };
+        let name = &unsafe {
+            (*context.vm_const_ptr())
+                .frame
+                .code_block
+                .constant_string(index.into())
+        };
         let value = context.can_declare_global_function(name)?;
         context.set_register(dst.into(), value.into());
         Ok(())
@@ -72,7 +82,12 @@ impl CanDeclareGlobalVar {
         (dst, index): (VaryingOperand, VaryingOperand),
         context: &Context,
     ) -> JsResult<()> {
-        let name = &unsafe { (*context.vm_const_ptr()).frame.code_block.constant_string(index.into()) };
+        let name = &unsafe {
+            (*context.vm_const_ptr())
+                .frame
+                .code_block
+                .constant_string(index.into())
+        };
         let value = context.can_declare_global_var(name)?;
         context.set_register(dst.into(), value.into());
         Ok(())
@@ -102,7 +117,12 @@ impl CreateGlobalFunctionBinding {
     ) -> JsResult<()> {
         let configurable = u32::from(configurable) != 0;
         let value = context.get_register(function.into());
-        let name = unsafe { (*context.vm_const_ptr()).frame.code_block.constant_string(index.into()) };
+        let name = unsafe {
+            (*context.vm_const_ptr())
+                .frame
+                .code_block
+                .constant_string(index.into())
+        };
 
         let function = value.as_object().expect("value must be an function");
         context.create_global_function_binding(name, function, configurable)?;
@@ -133,7 +153,12 @@ impl CreateGlobalVarBinding {
         context: &Context,
     ) -> JsResult<()> {
         let configurable = u32::from(configurable) != 0;
-        let name = unsafe { (*context.vm_const_ptr()).frame.code_block.constant_string(index.into()) };
+        let name = unsafe {
+            (*context.vm_const_ptr())
+                .frame
+                .code_block
+                .constant_string(index.into())
+        };
         context.create_global_var_binding(name, configurable)?;
 
         Ok(())

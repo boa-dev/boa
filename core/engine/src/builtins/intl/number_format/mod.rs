@@ -175,7 +175,10 @@ impl BuiltInConstructor for NumberFormat {
         // <https://tc39.es/ecma402/#sec-chainnumberformat>
 
         // SAFETY: Read-only access via raw pointer. Context is !Send/!Sync.
-        let this = unsafe { let vm = &*context.vm_const_ptr(); vm.stack.get_this(&vm.frame) };
+        let this = unsafe {
+            let vm = &*context.vm_const_ptr();
+            vm.stack.get_this(&vm.frame)
+        };
         let Some(this_obj) = this.as_object() else {
             return Ok(number_format.into());
         };

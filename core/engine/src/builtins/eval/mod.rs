@@ -251,9 +251,12 @@ impl Eval {
         });
 
         // SAFETY: Read-only access via raw pointer. Context is !Send/!Sync.
-        let (var_environment, mut variable_scope) = if let Some(e) =
-            unsafe { (*context.vm_const_ptr()).frame.environments.outer_function_environment() }
-        {
+        let (var_environment, mut variable_scope) = if let Some(e) = unsafe {
+            (*context.vm_const_ptr())
+                .frame
+                .environments
+                .outer_function_environment()
+        } {
             (e.0, e.1)
         } else {
             (
@@ -281,7 +284,12 @@ impl Eval {
         )?;
 
         // SAFETY: Read-only access via raw pointer. Context is !Send/!Sync.
-        let in_with = unsafe { (*context.vm_const_ptr()).frame.environments.has_object_environment() };
+        let in_with = unsafe {
+            (*context.vm_const_ptr())
+                .frame
+                .environments
+                .has_object_environment()
+        };
 
         let source_text = SourceText::new(source);
         let spanned_source_text = SpannedSourceText::new_source_only(source_text);

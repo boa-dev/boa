@@ -94,8 +94,10 @@ impl DeleteName {
         (value, index): (VaryingOperand, VaryingOperand),
         context: &Context,
     ) -> JsResult<()> {
-        let mut binding_locator =
-            unsafe { let vm = &*context.vm_const_ptr(); vm.frame.code_block.bindings[usize::from(index)].clone() };
+        let mut binding_locator = unsafe {
+            let vm = &*context.vm_const_ptr();
+            vm.frame.code_block.bindings[usize::from(index)].clone()
+        };
         context.find_runtime_binding(&mut binding_locator)?;
         let deleted = context.delete_binding(&binding_locator)?;
         context.set_register(value.into(), deleted.into());

@@ -116,7 +116,12 @@ impl Json {
         let script = parser.parse_script(&Scope::new_global(), context.interner_mut())?;
         let code_block = {
             // SAFETY: Read-only access via raw pointer. Context is !Send/!Sync.
-            let in_with = unsafe { (*context.vm_const_ptr()).frame.environments.has_object_environment() };
+            let in_with = unsafe {
+                (*context.vm_const_ptr())
+                    .frame
+                    .environments
+                    .has_object_environment()
+            };
             // If the source is needed then call `parser.parse_script_with_source` and pass `source_text` here.
             let spanned_source_text = SpannedSourceText::new_empty();
             let mut compiler = ByteCompiler::new(
