@@ -512,6 +512,7 @@ dependencies = [
 name = "boa_gc"
 version = "1.0.0-dev"
 dependencies = [
+ "arrayvec",
  "boa_macros",
  "boa_string",
  "either",
