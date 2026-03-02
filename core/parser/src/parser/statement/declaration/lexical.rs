@@ -1,6 +1,6 @@
 //! Lexical declaration parsing.
 //!
-//! This parses `let` and `const` declarations.
+//! This parses `let`, `const`, `using`, and `await using` declarations.
 //!
 //! More information:
 //!  - [ECMAScript specification][spec]
@@ -22,6 +22,15 @@ use ast::operations::bound_names;
 use boa_ast::{self as ast, Keyword, Punctuator, Spanned, declaration::Variable};
 use boa_interner::{Interner, Sym};
 use rustc_hash::FxHashSet;
+
+/// The type of lexical declaration being parsed.
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+enum DeclarationType {
+    Let,
+    Const,
+    Using,
+    AwaitUsing,
+}
 
 /// Parses a lexical declaration.
 ///
@@ -69,7 +78,7 @@ where
         let tok = cursor.next(interner).or_abrupt()?;
 
         let lexical_declaration = match tok.kind() {
-            TokenKind::Keyword((Keyword::Const | Keyword::Let, true)) => {
+            TokenKind::Keyword((Keyword::Const | Keyword::Let | Keyword::Using, true)) => {
                 return Err(Error::general(
                     "Keyword must not contain escaped characters",
                     tok.span().start(),
@@ -79,7 +88,7 @@ where
                 self.allow_in,
                 self.allow_yield,
                 self.allow_await,
-                true,
+                DeclarationType::Const,
                 self.loop_init,
             )
             .parse(cursor, interner)?,
@@ -87,10 +96,49 @@ where
                 self.allow_in,
                 self.allow_yield,
                 self.allow_await,
-                false,
+                DeclarationType::Let,
                 self.loop_init,
             )
             .parse(cursor, interner)?,
+            TokenKind::Keyword((Keyword::Using, false)) => {
+                BindingList::new(
+                    self.allow_in,
+                    self.allow_yield,
+                    self.allow_await,
+                    DeclarationType::Using,
+                    self.loop_init,
+                )
+                .parse(cursor, interner)?
+            }
+            TokenKind::Keyword((Keyword::Await, false)) => {
+                // Per spec: https://arai-a.github.io/ecma262-compare/snapshot.html?pr=3000#prod-LexicalDeclaration
+                // `await using` is only valid when [+Await] is true
+                if !self.allow_await.0 {
+                    return Err(Error::general(
+                        "Unexpected token 'await'",
+                        tok.span().start(),
+                    ));
+                }
+                
+                // Check if this is `await using`
+                let next_tok = cursor.peek(0, interner).or_abrupt()?;
+                if matches!(next_tok.kind(), TokenKind::Keyword((Keyword::Using, false))) {
+                    cursor.advance(interner); // consume 'using'
+                    BindingList::new(
+                        self.allow_in,
+                        self.allow_yield,
+                        self.allow_await,
+                        DeclarationType::AwaitUsing,
+                        self.loop_init,
+                    )
+                    .parse(cursor, interner)?
+                } else {
+                    return Err(Error::general(
+                        "Unexpected token 'await'",
+                        tok.span().start(),
+                    ));
+                }
+            }
             _ => unreachable!("unknown token found: {:?}", tok),
         };
 
@@ -138,7 +186,7 @@ pub(crate) fn allowed_token_after_let(token: Option<&Token>) -> bool {
 
 /// Parses a binding list.
 ///
-/// It will return an error if a `const` declaration is being parsed and there is no
+/// It will return an error if a `const` or `using` declaration is being parsed and there is no
 /// initializer.
 ///
 /// More information:
@@ -150,7 +198,7 @@ struct BindingList {
     allow_in: AllowIn,
     allow_yield: AllowYield,
     allow_await: AllowAwait,
-    is_const: bool,
+    declaration_type: DeclarationType,
     loop_init: bool,
 }
 
@@ -160,7 +208,7 @@ impl BindingList {
         allow_in: I,
         allow_yield: Y,
         allow_await: A,
-        is_const: bool,
+        declaration_type: DeclarationType,
         loop_init: bool,
     ) -> Self
     where
@@ -172,7 +220,7 @@ impl BindingList {
             allow_in: allow_in.into(),
             allow_yield: allow_yield.into(),
             allow_await: allow_await.into(),
-            is_const,
+            declaration_type,
             loop_init,
         }
     }
@@ -186,22 +234,31 @@ where
 
     fn parse(self, cursor: &mut Cursor<R>, interner: &mut Interner) -> ParseResult<Self::Output> {
         // Create vectors to store the variable declarations
-        // Const and Let signatures are slightly different, Const needs definitions, Lets don't
         let mut decls = Vec::new();
+        let requires_initializer = matches!(
+            self.declaration_type,
+            DeclarationType::Const | DeclarationType::Using | DeclarationType::AwaitUsing
+        );
 
         loop {
             let decl = LexicalBinding::new(self.allow_in, self.allow_yield, self.allow_await)
                 .parse(cursor, interner)?;
 
-            if self.is_const {
+            if requires_initializer {
                 let init_is_some = decl.init().is_some();
 
                 if init_is_some || self.loop_init {
                     decls.push(decl);
                 } else {
                     let next = cursor.next(interner).or_abrupt()?;
+                    let decl_name = match self.declaration_type {
+                        DeclarationType::Const => "const",
+                        DeclarationType::Using => "using",
+                        DeclarationType::AwaitUsing => "await using",
+                        _ => unreachable!(),
+                    };
                     return Err(Error::general(
-                        "Expected initializer for const declaration",
+                        format!("Expected initializer for {} declaration", decl_name),
                         next.span().start(),
                     ));
                 }
@@ -249,11 +306,12 @@ where
             .try_into()
             .expect("`LexicalBinding` must return at least one variable");
 
-        if self.is_const {
-            Ok(ast::declaration::LexicalDeclaration::Const(decls))
-        } else {
-            Ok(ast::declaration::LexicalDeclaration::Let(decls))
-        }
+        Ok(match self.declaration_type {
+            DeclarationType::Const => ast::declaration::LexicalDeclaration::Const(decls),
+            DeclarationType::Let => ast::declaration::LexicalDeclaration::Let(decls),
+            DeclarationType::Using => ast::declaration::LexicalDeclaration::Using(decls),
+            DeclarationType::AwaitUsing => ast::declaration::LexicalDeclaration::AwaitUsing(decls),
+        })
     }
 }
 
