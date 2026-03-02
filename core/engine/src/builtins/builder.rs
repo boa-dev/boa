@@ -421,7 +421,7 @@ impl BuiltInConstructorWithPrototype<'_> {
         // Install the `constructor` property on the prototype — either as a writable
         // data property (the common case) or as a get/set accessor (needed by
         // `Iterator.prototype.constructor` for web-compat, see `constructor_accessor`).
-        let own_proto_slots = if let Some((get, set)) = self.constructor_accessor.take() {
+        if let Some((get, set)) = self.constructor_accessor.take() {
             // Accessor path: two storage slots (getter + setter).  The `CONSTRUCTOR` key
             // must NOT already be present (no duplicate insertion).
             let mut attributes = SlotAttributes::CONFIGURABLE;
@@ -437,37 +437,44 @@ impl BuiltInConstructorWithPrototype<'_> {
                 .insert(CONSTRUCTOR.into(), attributes);
             self.prototype_storage
                 .extend([JsValue::new(get), JsValue::new(set)]);
-            Self::OWN_PROTOTYPE_STORAGE_SLOTS_ACCESSOR
+            #[cfg(debug_assertions)]
+            assert!(
+                self.prototype_storage.len()
+                    <= self.prototype_storage_slots_expected
+                        + Self::OWN_PROTOTYPE_STORAGE_SLOTS_ACCESSOR,
+                "expected to allocate at most {} prototype storage slots, got {}. \
+                constant {}::PROTOTYPE_STORAGE_SLOTS may need to be adjusted",
+                self.prototype_storage_slots_expected,
+                self.prototype_storage.len() - Self::OWN_PROTOTYPE_STORAGE_SLOTS_ACCESSOR,
+                self.name.display_escaped(),
+            );
         } else {
             // Data property path (the default).
             let attributes = self.attributes;
             let object = self.constructor.clone();
             self = self.property(CONSTRUCTOR, object, attributes);
-            Self::OWN_PROTOTYPE_STORAGE_SLOTS
-        };
-
-        #[cfg(debug_assertions)]
-        {
+            #[cfg(debug_assertions)]
             assert!(
                 self.prototype_storage.len()
-                    <= self.prototype_storage_slots_expected + own_proto_slots,
+                    <= self.prototype_storage_slots_expected + Self::OWN_PROTOTYPE_STORAGE_SLOTS,
                 "expected to allocate at most {} prototype storage slots, got {}. \
                 constant {}::PROTOTYPE_STORAGE_SLOTS may need to be adjusted",
                 self.prototype_storage_slots_expected,
-                self.prototype_storage.len() - own_proto_slots,
-                self.name.display_escaped(),
-            );
-            assert!(
-                self.constructor_storage.len()
-                    <= self.constructor_storage_slots_expected
-                        + Self::OWN_CONSTRUCTOR_STORAGE_SLOTS,
-                "expected to allocate at most {} constructor storage slots, got {}. \
-                constant {}::CONSTRUCTOR_STORAGE_SLOTS may need to be adjusted",
-                self.constructor_storage_slots_expected,
-                self.constructor_storage.len() - Self::OWN_CONSTRUCTOR_STORAGE_SLOTS,
+                self.prototype_storage.len() - Self::OWN_PROTOTYPE_STORAGE_SLOTS,
                 self.name.display_escaped(),
             );
         }
+
+        #[cfg(debug_assertions)]
+        assert!(
+            self.constructor_storage.len()
+                <= self.constructor_storage_slots_expected + Self::OWN_CONSTRUCTOR_STORAGE_SLOTS,
+            "expected to allocate at most {} constructor storage slots, got {}. \
+            constant {}::CONSTRUCTOR_STORAGE_SLOTS may need to be adjusted",
+            self.constructor_storage_slots_expected,
+            self.constructor_storage.len() - Self::OWN_CONSTRUCTOR_STORAGE_SLOTS,
+            self.name.display_escaped(),
+        );
 
         {
             let mut prototype = self.prototype.borrow_mut();

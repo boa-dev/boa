@@ -250,7 +250,6 @@ impl Realm {
         IteratorConstructor::init(self);
         WrapForValidIterator::init(self);
         IteratorHelper::init(self);
-        ForInIterator::init(self);
         Math::init(self);
         Json::init(self);
         Array::init(self);

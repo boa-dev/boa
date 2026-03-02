@@ -8,7 +8,7 @@
 //! More information:
 //!  - [ECMAScript reference][spec]
 //!
-//! [spec]: https://tc39.es/proposal-iterator-helpers/#sec-iterator-helper-objects
+//! [spec]: https://tc39.es/ecma262/#sec-iterator-helper-objects
 
 use crate::{
     Context, JsData, JsResult, JsValue,
@@ -63,7 +63,7 @@ pub(crate) enum IteratorHelperState {
 /// More information:
 ///  - [ECMAScript reference][spec]
 ///
-/// [spec]: https://tc39.es/proposal-iterator-helpers/#sec-iterator-helper-objects
+/// [spec]: https://tc39.es/ecma262/#sec-iterator-helper-objects
 #[derive(Debug, Finalize, Trace, JsData)]
 pub(crate) struct IteratorHelper {
     /// `[[UnderlyingIterator]]` — the iterator record for the source iterator.
@@ -79,13 +79,7 @@ pub(crate) struct IteratorHelper {
 impl IntrinsicObject for IteratorHelper {
     fn init(realm: &Realm) {
         BuiltInBuilder::with_intrinsic::<Self>(realm)
-            .prototype(
-                realm
-                    .intrinsics()
-                    .constructors()
-                    .iterator()
-                    .prototype(),
-            )
+            .prototype(realm.intrinsics().constructors().iterator().prototype())
             .static_method(Self::next, js_string!("next"), 0)
             .static_method(Self::r#return, js_string!("return"), 0)
             .static_property(
@@ -107,7 +101,7 @@ impl IteratorHelper {
     /// More information:
     ///  - [ECMAScript reference][spec]
     ///
-    /// [spec]: https://tc39.es/proposal-iterator-helpers/#sec-%iteratorhelperprototype%.next
+    /// [spec]: https://tc39.es/ecma262/#sec-%25iteratorhelperprototype%25.next
     pub(crate) fn next(
         this: &JsValue,
         _args: &[JsValue],
@@ -144,6 +138,8 @@ impl IteratorHelper {
         drop(helper);
 
         // Execute the closure based on the operation type.
+        // Returns Ok((result_object, done)) so we can update state without re-reading
+        // the "done" field via a property getter (which could trigger arbitrary JS).
         let result = Self::execute_next(&object, context);
 
         // Post-execution: update state based on result.
@@ -152,19 +148,9 @@ impl IteratorHelper {
             .expect("object type already verified");
 
         match &result {
-            Ok(val) => {
-                // Check if the result is {done: true} — if so, mark as completed.
-                if let Some(obj) = val.as_object() {
-                    let done = obj.get(js_string!("done"), context);
-                    if let Ok(done_val) = done {
-                        if done_val.to_boolean() {
-                            helper.state = IteratorHelperState::Completed;
-                        } else {
-                            helper.state = IteratorHelperState::SuspendedYield;
-                        }
-                    } else {
-                        helper.state = IteratorHelperState::SuspendedYield;
-                    }
+            Ok((_, done)) => {
+                if *done {
+                    helper.state = IteratorHelperState::Completed;
                 } else {
                     helper.state = IteratorHelperState::SuspendedYield;
                 }
@@ -174,11 +160,14 @@ impl IteratorHelper {
             }
         }
 
-        result
+        result.map(|(val, _)| val)
     }
 
     /// Execute one step of the iterator helper closure.
-    fn execute_next(object: &JsObject, context: &mut Context) -> JsResult<JsValue> {
+    /// Returns `Ok((result_object, done))` where `done` is `true` when the iteration
+    /// is complete. Using a dedicated flag avoids re-reading the `done` property via
+    /// a property getter, which would trigger arbitrary user code.
+    fn execute_next(object: &JsObject, context: &mut Context) -> JsResult<(JsValue, bool)> {
         // Map arm: extract + clone what we need from op, then separately borrow underlying_iterator
         {
             let mut helper = object
@@ -197,10 +186,9 @@ impl IteratorHelper {
                 let value = iterated.step_value(context)?;
                 match value {
                     None => {
-                        return Ok(create_iter_result_object(
-                            JsValue::undefined(),
+                        return Ok((
+                            create_iter_result_object(JsValue::undefined(), true, context),
                             true,
-                            context,
                         ));
                     }
                     Some(value) => {
@@ -210,7 +198,9 @@ impl IteratorHelper {
                             context,
                         );
                         return match mapped_result {
-                            Ok(mapped) => Ok(create_iter_result_object(mapped, false, context)),
+                            Ok(mapped) => {
+                                Ok((create_iter_result_object(mapped, false, context), false))
+                            }
                             Err(err) => {
                                 drop(iterated.close(Err(err.clone()), context));
                                 Err(err)
@@ -253,10 +243,9 @@ impl IteratorHelper {
                     let value = iterated.step_value(context)?;
                     match value {
                         None => {
-                            return Ok(create_iter_result_object(
-                                JsValue::undefined(),
+                            return Ok((
+                                create_iter_result_object(JsValue::undefined(), true, context),
                                 true,
-                                context,
                             ));
                         }
                         Some(value) => {
@@ -268,8 +257,9 @@ impl IteratorHelper {
                             match selected_result {
                                 Ok(selected) => {
                                     if selected.to_boolean() {
-                                        return Ok(create_iter_result_object(
-                                            value, false, context,
+                                        return Ok((
+                                            create_iter_result_object(value, false, context),
+                                            false,
                                         ));
                                     }
                                 }
@@ -300,10 +290,9 @@ impl IteratorHelper {
                         .close(Ok(JsValue::undefined()), context);
                     drop(helper);
                     close_result?;
-                    return Ok(create_iter_result_object(
-                        JsValue::undefined(),
+                    return Ok((
+                        create_iter_result_object(JsValue::undefined(), true, context),
                         true,
-                        context,
                     ));
                 }
                 *remaining -= 1;
@@ -314,12 +303,14 @@ impl IteratorHelper {
                     .expect("object type already verified");
                 let value = helper.underlying_iterator.step_value(context)?;
                 return match value {
-                    None => Ok(create_iter_result_object(
-                        JsValue::undefined(),
+                    None => Ok((
+                        create_iter_result_object(JsValue::undefined(), true, context),
                         true,
-                        context,
                     )),
-                    Some(v) => Ok(create_iter_result_object(v, false, context)),
+                    Some(v) => Ok((
+                        create_iter_result_object(v, false, context),
+                        false,
+                    )),
                 };
             }
         }
@@ -349,10 +340,9 @@ impl IteratorHelper {
                             .expect("object type already verified");
                         let value = helper.underlying_iterator.step_value(context)?;
                         if value.is_none() {
-                            return Ok(create_iter_result_object(
-                                JsValue::undefined(),
+                            return Ok((
+                                create_iter_result_object(JsValue::undefined(), true, context),
                                 true,
-                                context,
                             ));
                         }
                     }
@@ -363,12 +353,14 @@ impl IteratorHelper {
                     .expect("object type already verified");
                 let value = helper.underlying_iterator.step_value(context)?;
                 return match value {
-                    None => Ok(create_iter_result_object(
-                        JsValue::undefined(),
+                    None => Ok((
+                        create_iter_result_object(JsValue::undefined(), true, context),
                         true,
-                        context,
                     )),
-                    Some(v) => Ok(create_iter_result_object(v, false, context)),
+                    Some(v) => Ok((
+                        create_iter_result_object(v, false, context),
+                        false,
+                    )),
                 };
             }
         }
@@ -398,7 +390,7 @@ impl IteratorHelper {
                     let inner = inner_iterator.as_mut().expect("checked above");
                     let inner_value = inner.step_value(context)?;
                     if let Some(val) = inner_value {
-                        return Ok(create_iter_result_object(val, false, context));
+                        return Ok((create_iter_result_object(val, false, context), false));
                     }
                     // Inner exhausted — clear it.
                     drop(helper);
@@ -435,10 +427,9 @@ impl IteratorHelper {
 
                 match value {
                     None => {
-                        return Ok(create_iter_result_object(
-                            JsValue::undefined(),
+                        return Ok((
+                            create_iter_result_object(JsValue::undefined(), true, context),
                             true,
-                            context,
                         ));
                     }
                     Some(value) => {
@@ -492,7 +483,7 @@ impl IteratorHelper {
     /// More information:
     ///  - [ECMAScript reference][spec]
     ///
-    /// [spec]: https://tc39.es/proposal-iterator-helpers/#sec-%iteratorhelperprototype%.return
+    /// [spec]: https://tc39.es/ecma262/#sec-%25iteratorhelperprototype%25.return
     pub(crate) fn r#return(
         this: &JsValue,
         _args: &[JsValue],

@@ -6,7 +6,7 @@
 //! More information:
 //!  - [ECMAScript reference][spec]
 //!
-//! [spec]: https://tc39.es/proposal-iterator-helpers/#sec-wrapforvaliditeratorprototype-object
+//! [spec]: https://tc39.es/ecma262/#sec-wrapforvaliditeratorprototype-object
 
 use crate::{
     Context, JsData, JsResult, JsValue,
@@ -26,7 +26,7 @@ use super::IteratorRecord;
 /// More information:
 ///  - [ECMAScript reference][spec]
 ///
-/// [spec]: https://tc39.es/proposal-iterator-helpers/#sec-wrapforvaliditeratorprototype-object
+/// [spec]: https://tc39.es/ecma262/#sec-wrapforvaliditeratorprototype-object
 #[derive(Debug, Finalize, Trace, JsData)]
 pub(crate) struct WrapForValidIterator {
     /// `[[Iterated]]` — the iterator record this wrapper delegates to.
@@ -56,7 +56,7 @@ impl WrapForValidIterator {
     /// More information:
     ///  - [ECMAScript reference][spec]
     ///
-    /// [spec]: https://tc39.es/proposal-iterator-helpers/#sec-%wrapforvaliditeratorprototype%.next
+    /// [spec]: https://tc39.es/ecma262/#sec-%25wrapforvaliditeratorprototype%25.next
     pub(crate) fn next(
         this: &JsValue,
         _args: &[JsValue],
@@ -87,7 +87,7 @@ impl WrapForValidIterator {
     /// More information:
     ///  - [ECMAScript reference][spec]
     ///
-    /// [spec]: https://tc39.es/proposal-iterator-helpers/#sec-%wrapforvaliditeratorprototype%.return
+    /// [spec]: https://tc39.es/ecma262/#sec-%25wrapforvaliditeratorprototype%25.return
     pub(crate) fn r#return(
         this: &JsValue,
         _args: &[JsValue],
