@@ -1,6 +1,6 @@
 use thin_vec::ThinVec;
 
-use super::{VaryingOperand, VaryingOperandVariant};
+use super::{Builtin, VaryingOperand, VaryingOperandVariant};
 
 /// A trait for types that can be read from a byte slice.
 ///
@@ -545,6 +545,43 @@ impl Argument for u32 {
 
     fn decode(bytes: &[u8], pos: usize) -> (Self, usize) {
         read::<u32>(bytes, pos)
+    }
+}
+
+impl Argument for (Builtin, VaryingOperand) {
+    fn encode(self, bytes: &mut Vec<u8>) {
+        write_u8(bytes, self.0.into());
+        match self.1.variant() {
+            VaryingOperandVariant::U8(value) => {
+                write_format(bytes, Format::U8);
+                write_u8(bytes, value);
+            }
+            VaryingOperandVariant::U16(value) => {
+                write_format(bytes, Format::U16);
+                write_u16(bytes, value);
+            }
+            VaryingOperandVariant::U32(value) => {
+                write_format(bytes, Format::U32);
+                write_u32(bytes, value);
+            }
+        }
+    }
+
+    fn decode(bytes: &[u8], pos: usize) -> (Self, usize) {
+        let (arg1, pos) = read::<u8>(bytes, pos);
+        let (format, pos) = read::<u8>(bytes, pos);
+        let (arg2, pos) = match Format::from(format) {
+            Format::U8 => {
+                let (value, pos) = read::<u8>(bytes, pos);
+                (u32::from(value), pos)
+            }
+            Format::U16 => {
+                let (value, pos) = read::<u16>(bytes, pos);
+                (u32::from(value), pos)
+            }
+            Format::U32 => read::<u32>(bytes, pos),
+        };
+        ((arg1.into(), VaryingOperand::new(arg2)), pos)
     }
 }
 

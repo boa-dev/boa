@@ -11,7 +11,7 @@ use crate::{
     job::NativeAsyncJob,
     module::{ImportAttribute, ModuleKind, ModuleRequest, Referrer},
     object::FunctionObjectBuilder,
-    vm::opcode::Operation,
+    vm::opcode::{Builtin, Operation},
 };
 
 /// `CallEval` implements the Opcode Operation for `Opcode::CallEval`
@@ -210,6 +210,321 @@ impl Call {
 impl Operation for Call {
     const NAME: &'static str = "Call";
     const INSTRUCTION: &'static str = "INST - Call";
+    const COST: u8 = 3;
+}
+
+/// `CallBuiltin` implements the Opcode Operation for `Opcode::CallBuiltin`
+///
+/// Operation:
+///  - Call a builtin function.
+#[derive(Debug, Clone, Copy)]
+pub(crate) struct CallBuiltin;
+
+impl CallBuiltin {
+    #[inline(always)]
+    pub(super) fn operation(
+        (builtin_id, argument_count): (Builtin, VaryingOperand),
+        context: &mut Context,
+    ) -> JsResult<()> {
+        let argument_count: usize = argument_count.into();
+
+        let func = context
+            .vm
+            .stack
+            .calling_convention_get_function(argument_count);
+
+        let Some(object) = func.as_object() else {
+            return Err(Self::handle_not_callable());
+        };
+
+        match builtin_id {
+            Builtin::MathAbs => {
+                let math_abs = context.intrinsics().objects().math().abs();
+                if JsObject::equals(&object, math_abs) {
+                    let arg = context.vm.stack.take_argument(argument_count, 0);
+
+                    let result = crate::builtins::math::Math::abs(
+                        &JsValue::undefined(),
+                        std::slice::from_ref(&arg),
+                        context,
+                    )?;
+
+                    context
+                        .vm
+                        .stack
+                        .calling_convention_clean_and_push(argument_count, result);
+                    return Ok(());
+                }
+            }
+            Builtin::MathFloor => {
+                let math_floor = context.intrinsics().objects().math().floor();
+                if JsObject::equals(&object, math_floor) {
+                    let arg = context.vm.stack.take_argument(argument_count, 0);
+
+                    let result = crate::builtins::math::Math::floor(
+                        &JsValue::undefined(),
+                        std::slice::from_ref(&arg),
+                        context,
+                    )?;
+
+                    context
+                        .vm
+                        .stack
+                        .calling_convention_clean_and_push(argument_count, result);
+                    return Ok(());
+                }
+            }
+            Builtin::MathCeil => {
+                let math_ceil = context.intrinsics().objects().math().ceil();
+                if JsObject::equals(&object, math_ceil) {
+                    let arg = context.vm.stack.take_argument(argument_count, 0);
+
+                    let result = crate::builtins::math::Math::ceil(
+                        &JsValue::undefined(),
+                        std::slice::from_ref(&arg),
+                        context,
+                    )?;
+
+                    context
+                        .vm
+                        .stack
+                        .calling_convention_clean_and_push(argument_count, result);
+                    return Ok(());
+                }
+            }
+            Builtin::MathRound => {
+                let math_round = context.intrinsics().objects().math().round();
+                if JsObject::equals(&object, math_round) {
+                    let arg = context.vm.stack.take_argument(argument_count, 0);
+
+                    let result = crate::builtins::math::Math::round(
+                        &JsValue::undefined(),
+                        std::slice::from_ref(&arg),
+                        context,
+                    )?;
+
+                    context
+                        .vm
+                        .stack
+                        .calling_convention_clean_and_push(argument_count, result);
+                    return Ok(());
+                }
+            }
+            Builtin::MathSqrt => {
+                let math_sqrt = context.intrinsics().objects().math().sqrt();
+                if JsObject::equals(&object, math_sqrt) {
+                    let arg = context.vm.stack.take_argument(argument_count, 0);
+
+                    let result = crate::builtins::math::Math::sqrt(
+                        &JsValue::undefined(),
+                        std::slice::from_ref(&arg),
+                        context,
+                    )?;
+
+                    context
+                        .vm
+                        .stack
+                        .calling_convention_clean_and_push(argument_count, result);
+                    return Ok(());
+                }
+            }
+            Builtin::MathPow => {
+                let math_pow = context.intrinsics().objects().math().pow();
+                if JsObject::equals(&object, math_pow) {
+                    let arg1 = context.vm.stack.take_argument(argument_count, 0);
+                    let arg2 = context.vm.stack.take_argument(argument_count, 1);
+
+                    let result = crate::builtins::math::Math::pow(
+                        &JsValue::undefined(),
+                        &[arg1, arg2],
+                        context,
+                    )?;
+
+                    context
+                        .vm
+                        .stack
+                        .calling_convention_clean_and_push(argument_count, result);
+                    return Ok(());
+                }
+            }
+            Builtin::MathRandom => {
+                let math_random = context.intrinsics().objects().math().random();
+                if JsObject::equals(&object, math_random) {
+                    let result =
+                        crate::builtins::math::Math::random(&JsValue::undefined(), &[], context)?;
+
+                    context
+                        .vm
+                        .stack
+                        .calling_convention_clean_and_push(argument_count, result);
+                    return Ok(());
+                }
+            }
+            Builtin::MathLog => {
+                let math_log = context.intrinsics().objects().math().log();
+                if JsObject::equals(&object, math_log) {
+                    let arg = context.vm.stack.take_argument(argument_count, 0);
+
+                    let result = crate::builtins::math::Math::log(
+                        &JsValue::undefined(),
+                        std::slice::from_ref(&arg),
+                        context,
+                    )?;
+
+                    context
+                        .vm
+                        .stack
+                        .calling_convention_clean_and_push(argument_count, result);
+                    return Ok(());
+                }
+            }
+            Builtin::MathExp => {
+                let math_exp = context.intrinsics().objects().math().exp();
+                if JsObject::equals(&object, math_exp) {
+                    let arg = context.vm.stack.take_argument(argument_count, 0);
+
+                    let result = crate::builtins::math::Math::exp(
+                        &JsValue::undefined(),
+                        std::slice::from_ref(&arg),
+                        context,
+                    )?;
+
+                    context
+                        .vm
+                        .stack
+                        .calling_convention_clean_and_push(argument_count, result);
+                    return Ok(());
+                }
+            }
+            Builtin::MathLog2 => {
+                let math_log2 = context.intrinsics().objects().math().log2();
+                if JsObject::equals(&object, math_log2) {
+                    let arg = context.vm.stack.take_argument(argument_count, 0);
+
+                    let result = crate::builtins::math::Math::log2(
+                        &JsValue::undefined(),
+                        std::slice::from_ref(&arg),
+                        context,
+                    )?;
+
+                    context
+                        .vm
+                        .stack
+                        .calling_convention_clean_and_push(argument_count, result);
+                    return Ok(());
+                }
+            }
+            Builtin::MathLog10 => {
+                let math_log10 = context.intrinsics().objects().math().log10();
+                if JsObject::equals(&object, math_log10) {
+                    let arg = context.vm.stack.take_argument(argument_count, 0);
+
+                    let result = crate::builtins::math::Math::log10(
+                        &JsValue::undefined(),
+                        std::slice::from_ref(&arg),
+                        context,
+                    )?;
+
+                    context
+                        .vm
+                        .stack
+                        .calling_convention_clean_and_push(argument_count, result);
+                    return Ok(());
+                }
+            }
+            Builtin::MathMax => {
+                let math_max = context.intrinsics().objects().math().max();
+                if JsObject::equals(&object, math_max) {
+                    let args = context
+                        .vm
+                        .stack
+                        .calling_convention_pop_arguments(argument_count);
+
+                    let result =
+                        crate::builtins::math::Math::max(&JsValue::undefined(), &args, context)?;
+
+                    context
+                        .vm
+                        .stack
+                        .calling_convention_clean_and_push(0, result);
+                    // NOTE: arguments already popped above; passing 0 ensures only `this` and `func` are removed.
+                    return Ok(());
+                }
+            }
+            Builtin::MathMin => {
+                let math_min = context.intrinsics().objects().math().min();
+                if JsObject::equals(&object, math_min) {
+                    let args = context
+                        .vm
+                        .stack
+                        .calling_convention_pop_arguments(argument_count);
+
+                    let result =
+                        crate::builtins::math::Math::min(&JsValue::undefined(), &args, context)?;
+
+                    context
+                        .vm
+                        .stack
+                        .calling_convention_clean_and_push(0, result);
+                    // NOTE: arguments already popped above; passing 0 ensures only `this` and `func` are removed.
+                    return Ok(());
+                }
+            }
+            Builtin::MathSin => {
+                let math_sin = context.intrinsics().objects().math().sin();
+                if JsObject::equals(&object, math_sin) {
+                    let arg = context.vm.stack.take_argument(argument_count, 0);
+
+                    let result = crate::builtins::math::Math::sin(
+                        &JsValue::undefined(),
+                        std::slice::from_ref(&arg),
+                        context,
+                    )?;
+
+                    context
+                        .vm
+                        .stack
+                        .calling_convention_clean_and_push(argument_count, result);
+                    return Ok(());
+                }
+            }
+            Builtin::MathCos => {
+                let math_cos = context.intrinsics().objects().math().cos();
+                if JsObject::equals(&object, math_cos) {
+                    let arg = context.vm.stack.take_argument(argument_count, 0);
+
+                    let result = crate::builtins::math::Math::cos(
+                        &JsValue::undefined(),
+                        std::slice::from_ref(&arg),
+                        context,
+                    )?;
+
+                    context
+                        .vm
+                        .stack
+                        .calling_convention_clean_and_push(argument_count, result);
+                    return Ok(());
+                }
+            }
+        }
+
+        object.__call__(argument_count).resolve(context)?;
+
+        Ok(())
+    }
+
+    #[cold]
+    #[inline(never)]
+    fn handle_not_callable() -> JsError {
+        JsNativeError::typ()
+            .with_message("not a callable function")
+            .into()
+    }
+}
+
+impl Operation for CallBuiltin {
+    const NAME: &'static str = "CallBuiltin";
+    const INSTRUCTION: &'static str = "INST - CallBuiltin";
     const COST: u8 = 3;
 }
 

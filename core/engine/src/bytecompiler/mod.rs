@@ -24,7 +24,7 @@ use crate::{
     js_string,
     vm::{
         CallFrame, CodeBlock, CodeBlockFlags, Constant, GeneratorResumeKind, Handler, InlineCache,
-        opcode::{BindingOpcode, ByteCodeEmitter, VaryingOperand},
+        opcode::{BindingOpcode, Builtin, ByteCodeEmitter, VaryingOperand},
         source_info::{SourceInfo, SourceMap, SourceMapBuilder, SourcePath},
     },
 };
@@ -2068,7 +2068,51 @@ impl<'ctx> ByteCompiler<'ctx> {
         enum CallKind {
             CallEval,
             Call,
+            CallBuiltin(Builtin),
             New,
+        }
+
+        // Try to detect if a property access is a known builtin function.
+        fn try_detect_builtin(
+            compiler: &ByteCompiler<'_>,
+            access: &PropertyAccess,
+        ) -> Option<Builtin> {
+            let PropertyAccess::Simple(simple) = access else {
+                return None;
+            };
+
+            let Expression::Identifier(target_ident) = simple.target() else {
+                return None;
+            };
+
+            let target_name = compiler.resolve_identifier_expect(*target_ident);
+            if target_name != js_string!("Math") {
+                return None;
+            }
+
+            let PropertyAccessField::Const(field_ident) = simple.field() else {
+                return None;
+            };
+
+            let field_name = compiler.resolve_identifier_expect(*field_ident);
+            match field_name {
+                _ if field_name == js_string!("abs") => Some(Builtin::MathAbs),
+                _ if field_name == js_string!("floor") => Some(Builtin::MathFloor),
+                _ if field_name == js_string!("ceil") => Some(Builtin::MathCeil),
+                _ if field_name == js_string!("round") => Some(Builtin::MathRound),
+                _ if field_name == js_string!("sqrt") => Some(Builtin::MathSqrt),
+                _ if field_name == js_string!("pow") => Some(Builtin::MathPow),
+                _ if field_name == js_string!("random") => Some(Builtin::MathRandom),
+                _ if field_name == js_string!("log") => Some(Builtin::MathLog),
+                _ if field_name == js_string!("exp") => Some(Builtin::MathExp),
+                _ if field_name == js_string!("log2") => Some(Builtin::MathLog2),
+                _ if field_name == js_string!("log10") => Some(Builtin::MathLog10),
+                _ if field_name == js_string!("max") => Some(Builtin::MathMax),
+                _ if field_name == js_string!("min") => Some(Builtin::MathMin),
+                _ if field_name == js_string!("sin") => Some(Builtin::MathSin),
+                _ if field_name == js_string!("cos") => Some(Builtin::MathCos),
+                _ => None,
+            }
         }
 
         let (call, mut kind) = match callable {
@@ -2078,6 +2122,11 @@ impl<'ctx> ByteCompiler<'ctx> {
 
         match call.function().flatten() {
             Expression::PropertyAccess(access) if kind == CallKind::Call => {
+                // Check if this is a known builtin like Math.abs
+                if let Some(builtin) = try_detect_builtin(self, access) {
+                    kind = CallKind::CallBuiltin(builtin);
+                }
+
                 let this = self.register_allocator.alloc();
                 let dst = self.register_allocator.alloc();
                 self.compile_access_preserve_this(access, &this, &dst);
@@ -2198,6 +2247,15 @@ impl<'ctx> ByteCompiler<'ctx> {
                         .bytecode
                         .emit_call_eval((call.args().len() as u32).into(), scope_index.into());
                 }
+            }
+            CallKind::CallBuiltin(builtin) if !contains_spread => {
+                compiler
+                    .bytecode
+                    .emit_call_builtin(builtin, (call.args().len() as u32).into());
+            }
+            CallKind::CallBuiltin(_) => {
+                // If contains spread, fall back to normal call
+                compiler.bytecode.emit_call_spread();
             }
             CallKind::Call if contains_spread => compiler.bytecode.emit_call_spread(),
             CallKind::Call => {

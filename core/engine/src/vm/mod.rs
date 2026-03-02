@@ -334,6 +334,44 @@ impl Stack {
         self.stack.extend_from_slice(values);
     }
 
+    /// Take an argument value by index using [`std::mem::take`]`.
+    /// This is useful for avoiding clones when extracting arguments.
+    ///
+    /// # Arguments
+    ///
+    /// * `argument_count` - The total number of arguments
+    /// * `index` - The index of the argument to take (0-based)
+    #[track_caller]
+    pub(crate) fn take_argument(&mut self, argument_count: usize, index: usize) -> JsValue {
+        if index >= argument_count {
+            return JsValue::undefined();
+        }
+        let stack_index = self.stack.len() - argument_count + index;
+        std::mem::take(&mut self.stack[stack_index])
+    }
+
+    /// Clean up the stack after a call and push the result value.
+    /// This truncates the stack to remove the function, `this`, and all arguments,
+    /// then pushes the result value.
+    ///
+    /// # Arguments
+    ///
+    /// * `argument_count` - The number of arguments that were passed
+    /// * `value` - The result value to push
+    #[track_caller]
+    pub(crate) fn calling_convention_clean_and_push(
+        &mut self,
+        argument_count: usize,
+        value: JsValue,
+    ) {
+        // Stack layout: [..., this, func, arg1, ..., argN]
+        // We need to remove: this (1) + func (1) + arguments (argument_count)
+        let remove_count = 2 + argument_count;
+        let new_len = self.stack.len() - remove_count;
+        self.stack.truncate(new_len);
+        self.stack.push(value);
+    }
+
     /// Get the function object at the top of the stack according to the calling convention.
     #[track_caller]
     pub(crate) fn calling_convention_get_function(&self, argument_count: usize) -> &JsValue {
