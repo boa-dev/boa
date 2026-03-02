@@ -339,6 +339,82 @@ fn console_namespace_object_class_string() {
 }
 
 #[test]
+fn console_log_arguments() {
+    let mut context = Context::default();
+    let logger = RecordingLogger::default();
+    Console::register_with_logger(logger.clone(), &mut context).unwrap();
+
+    run_test_actions_with(
+        [TestAction::run(indoc! {r#"
+            function test() {
+                console.log(arguments);
+            }
+            test("a", 42);
+        "#})],
+        &mut context,
+    );
+
+    let logs = logger.log.borrow().clone();
+    assert_eq!(
+        logs,
+        indoc! { r#"
+            [Arguments] {
+              0: "a",
+              1: 42
+            }
+        "# }
+    );
+}
+
+#[test]
+fn console_log_regexp() {
+    let mut context = Context::default();
+    let logger = RecordingLogger::default();
+    Console::register_with_logger(logger.clone(), &mut context).unwrap();
+
+    run_test_actions_with(
+        [TestAction::run(indoc! {r#"
+            console.log(/foo/gi);
+            console.log(/^hello$/m);
+        "#})],
+        &mut context,
+    );
+
+    let logs = logger.log.borrow().clone();
+    assert_eq!(
+        logs,
+        indoc! { r#"
+            /foo/gi
+            /^hello$/m
+        "# }
+    );
+}
+
+#[test]
+fn console_log_date() {
+    let mut context = Context::default();
+    let logger = RecordingLogger::default();
+    Console::register_with_logger(logger.clone(), &mut context).unwrap();
+
+    run_test_actions_with(
+        [TestAction::run(indoc! {r#"
+            console.log(new Date("Invalid"));
+            console.log(new Date(0));
+        "#})],
+        &mut context,
+    );
+
+    let logs = logger.log.borrow().clone();
+    assert_eq!(
+        logs,
+        indoc! { r#"
+            Invalid Date
+            1970-01-01T00:00:00.000Z
+        "# }
+    );
+}
+
+#[test]
 fn trace_with_stack_trace() {
     let mut context = Context::default();
     let logger = RecordingLogger::default();
