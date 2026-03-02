@@ -21,7 +21,7 @@ fn set_by_name(
 
     let object = value_object.to_object(context)?;
 
-    let code_block = context.with_vm(|vm| vm.frame().code_block().clone());
+    let code_block = unsafe { (*context.vm_const_ptr()).frame.code_block.clone() };
     let ic = &code_block.ic[usize::from(index)];
 
     let object_borrowed = object.borrow();
@@ -64,7 +64,7 @@ fn set_by_name(
 
     let context = &mut InternalMethodPropertyContext::new(context);
     let succeeded = object.__set__(name.clone(), value, receiver.clone(), context)?;
-    if !succeeded && context.with_vm(|vm| vm.frame().code_block.strict()) {
+    if !succeeded && unsafe { (*context.vm_const_ptr()).frame.code_block.strict() } {
         return Err(JsNativeError::typ()
             .with_message(format!("cannot set non-writable property: {name}"))
             .into());
@@ -73,7 +73,7 @@ fn set_by_name(
     // Cache the property.
     let slot = *context.slot();
     if succeeded && slot.is_cacheable() {
-        let ic = &context.with_vm(|vm| vm.frame().code_block.clone()).ic[usize::from(index)];
+        let ic = &unsafe { (*context.vm_const_ptr()).frame.code_block.clone() }.ic[usize::from(index)];
         let object_borrowed = object.borrow();
         let shape = object_borrowed.shape();
         ic.set(shape, slot);
@@ -185,7 +185,7 @@ impl SetPropertyByValue {
 
         // Slow path:
         let succeeded = object.__set__(key.clone(), value, receiver, &mut context.into())?;
-        if !succeeded && context.with_vm(|vm| vm.frame().code_block.strict()) {
+        if !succeeded && unsafe { (*context.vm_const_ptr()).frame.code_block.strict() } {
             return Err(JsNativeError::typ()
                 .with_message(format!("cannot set non-writable property: {key}"))
                 .into());
@@ -216,8 +216,7 @@ impl SetPropertyGetterByName {
     ) -> JsResult<()> {
         let object = context.get_register(object.into()).clone();
         let value = context.get_register(value.into()).clone();
-        let name = context
-            .with_vm(|vm| vm.frame().code_block().constant_string(index.into()))
+        let name = unsafe { (*context.vm_const_ptr()).frame.code_block.constant_string(index.into()) }
             .into();
 
         let object = object.to_object(context)?;
@@ -305,8 +304,7 @@ impl SetPropertySetterByName {
     ) -> JsResult<()> {
         let object = context.get_register(object.into()).clone();
         let value = context.get_register(value.into()).clone();
-        let name = context
-            .with_vm(|vm| vm.frame().code_block().constant_string(index.into()))
+        let name = unsafe { (*context.vm_const_ptr()).frame.code_block.constant_string(index.into()) }
             .into();
 
         let object = object.to_object(context)?;

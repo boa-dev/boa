@@ -341,7 +341,8 @@ pub(crate) fn native_function_call(
         .expect("the object should be a native function object")
         .clone();
 
-    let pc = context.with_vm(|vm| vm.frame.pc);
+    // SAFETY: Read-only access via raw pointer. Context is !Send/!Sync.
+    let pc = unsafe { (*context.vm_const_ptr()).frame.pc };
     let native_source_info = context.native_source_info();
     // SAFETY: Single-field mutation via raw pointer. Context is !Send/!Sync.
     unsafe {
@@ -398,7 +399,8 @@ fn native_function_construct(
         .expect("the object should be a native function object")
         .clone();
 
-    let pc = context.with_vm(|vm| vm.frame.pc);
+    // SAFETY: Read-only access via raw pointer. Context is !Send/!Sync.
+    let pc = unsafe { (*context.vm_const_ptr()).frame.pc };
     let native_source_info = context.native_source_info();
     // SAFETY: Single-field mutation via raw pointer. Context is !Send/!Sync.
     unsafe {

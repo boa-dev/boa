@@ -18,12 +18,13 @@ impl SetPrivateField {
         (value, object, index): (VaryingOperand, VaryingOperand, VaryingOperand),
         context: &Context,
     ) -> JsResult<()> {
-        let name = context.with_vm(|vm| vm.frame().code_block().constant_string(index.into()));
+        let name = unsafe { (*context.vm_const_ptr()).frame.code_block.constant_string(index.into()) };
         let value = context.get_register(value.into()).clone();
         let object = context.get_register(object.into()).clone();
         let base_obj = object.to_object(context)?;
-        let name = context
-            .with_vm(|vm| vm.frame.environments.resolve_private_identifier(name))
+        let name = unsafe {
+            (*context.vm_const_ptr()).frame.environments.resolve_private_identifier(name)
+        }
             .expect("private name must be in environment");
 
         base_obj.private_set(&name, value.clone(), context)?;
@@ -52,7 +53,7 @@ impl DefinePrivateField {
     ) {
         let object = context.get_register(object.into());
         let value = context.get_register(value.into());
-        let name = context.with_vm(|vm| vm.frame().code_block().constant_string(index.into()));
+        let name = unsafe { (*context.vm_const_ptr()).frame.code_block.constant_string(index.into()) };
 
         let object = object
             .as_object()
@@ -85,7 +86,7 @@ impl SetPrivateMethod {
     ) {
         let object = context.get_register(object.into()).clone();
         let value = context.get_register(value.into()).clone();
-        let name = context.with_vm(|vm| vm.frame().code_block().constant_string(index.into()));
+        let name = unsafe { (*context.vm_const_ptr()).frame.code_block.constant_string(index.into()) };
 
         let value = value.as_callable().expect("method must be callable");
         let object = object
@@ -131,7 +132,7 @@ impl SetPrivateSetter {
     ) {
         let object = context.get_register(object.into());
         let value = context.get_register(value.into());
-        let name = context.with_vm(|vm| vm.frame().code_block().constant_string(index.into()));
+        let name = unsafe { (*context.vm_const_ptr()).frame.code_block.constant_string(index.into()) };
 
         let value = value.as_callable().expect("setter must be callable");
         let object = object
@@ -169,7 +170,7 @@ impl SetPrivateGetter {
     ) {
         let object = context.get_register(object.into());
         let value = context.get_register(value.into());
-        let name = context.with_vm(|vm| vm.frame().code_block().constant_string(index.into()));
+        let name = unsafe { (*context.vm_const_ptr()).frame.code_block.constant_string(index.into()) };
 
         let value = value.as_callable().expect("getter must be callable");
         let object = object

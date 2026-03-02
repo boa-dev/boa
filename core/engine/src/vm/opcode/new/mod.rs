@@ -11,11 +11,12 @@ pub(crate) struct New;
 impl New {
     #[inline(always)]
     pub(super) fn operation(argument_count: VaryingOperand, context: &Context) -> JsResult<()> {
-        let func = context.with_vm(|vm| {
-            vm.stack
+        let func = unsafe {
+            (*context.vm_const_ptr())
+                .stack
                 .calling_convention_get_function(argument_count.into())
                 .clone()
-        });
+        };
 
         let cons = func
             .as_object()

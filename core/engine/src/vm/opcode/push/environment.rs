@@ -74,7 +74,7 @@ impl PushPrivateEnvironment {
         let mut names = Vec::with_capacity(name_indices.len());
         for index in name_indices {
             let name =
-                context.with_vm(|vm| vm.frame().code_block().constant_string(index as usize));
+                unsafe { (*context.vm_const_ptr()).frame.code_block.constant_string(index as usize) };
             names.push(name);
         }
 

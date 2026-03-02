@@ -34,7 +34,10 @@ impl Generator {
     ) -> ControlFlow<CompletionRecord> {
         let r#async = u32::from(r#async) != 0;
 
-        let active_function = context.with_vm(|vm| vm.stack.get_function(&vm.frame));
+        let active_function = unsafe {
+            let vm = &*context.vm_const_ptr();
+            vm.stack.get_function(&vm.frame)
+        };
         let this_function_object =
             active_function.expect("active function should be set to the generator");
 
@@ -101,8 +104,10 @@ impl AsyncGeneratorClose {
     #[inline(always)]
     pub(super) fn operation((): (), context: &Context) -> JsResult<()> {
         // Step 3.e-g in [AsyncGeneratorStart](https://tc39.es/ecma262/#sec-asyncgeneratorstart)
-        let generator = context
-            .with_vm(|vm| vm.stack.async_generator_object(&vm.frame))
+        let generator = unsafe {
+            let vm = &*context.vm_const_ptr();
+            vm.stack.async_generator_object(&vm.frame)
+        }
             .expect("There should be a object")
             .downcast::<AsyncGenerator>()
             .expect("must be async generator");
@@ -154,10 +159,11 @@ impl GeneratorNext {
         (resume_kind, value): (VaryingOperand, VaryingOperand),
         context: &Context,
     ) -> ControlFlow<CompletionRecord> {
-        let resume_kind = context.with_vm(|vm| {
-            vm.get_register(resume_kind.into())
+        let resume_kind = unsafe {
+            (*context.vm_const_ptr())
+                .get_register(resume_kind.into())
                 .to_generator_resume_kind()
-        });
+        };
         match resume_kind {
             GeneratorResumeKind::Normal => ControlFlow::Continue(()),
             GeneratorResumeKind::Throw => {
@@ -226,10 +232,11 @@ impl GeneratorDelegateNext {
         ),
         context: &Context,
     ) -> JsResult<()> {
-        let resume_kind = context.with_vm(|vm| {
-            vm.get_register(resume_kind.into())
+        let resume_kind = unsafe {
+            (*context.vm_const_ptr())
+                .get_register(resume_kind.into())
                 .to_generator_resume_kind()
-        });
+        };
         let received = context.get_register(value.into());
 
         // Preemptively popping removes the iterator from the iterator stack if any operation
@@ -317,12 +324,13 @@ impl GeneratorDelegateResume {
         ),
         context: &Context,
     ) -> JsResult<()> {
-        let resume_kind = context.with_vm(|vm| {
-            vm.get_register(resume_kind.into())
+        let resume_kind = unsafe {
+            (*context.vm_const_ptr())
+                .get_register(resume_kind.into())
                 .to_generator_resume_kind()
-        });
+        };
         let result = context.get_register(value.into());
-        let is_return = context.with_vm(|vm| vm.get_register(is_return.into()).to_boolean());
+        let is_return = unsafe { (*context.vm_const_ptr()).get_register(is_return.into()).to_boolean() };
 
         let mut iterator = context
             .vm_pop_iterator()

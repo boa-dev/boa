@@ -14,12 +14,13 @@ pub(crate) struct CreateMappedArgumentsObject;
 impl CreateMappedArgumentsObject {
     #[inline(always)]
     pub(super) fn operation(value: VaryingOperand, context: &Context) {
-        let (function_object, code, args, env) = context.with_vm(|vm| {
+        let (function_object, code, args, env) = unsafe {
+            let vm = &*context.vm_const_ptr();
             let function_object = vm
                 .stack
                 .get_function(&vm.frame)
                 .expect("there should be a function object");
-            let code = vm.frame.code_block().clone();
+            let code = vm.frame.code_block.clone();
             let args = vm.stack.get_arguments(&vm.frame).to_vec();
             let env = vm
                 .frame
@@ -28,7 +29,7 @@ impl CreateMappedArgumentsObject {
                 .expect("must be declarative")
                 .clone();
             (function_object, code, args, env)
-        });
+        };
         let arguments = MappedArguments::new(
             &function_object,
             &code.mapped_arguments_binding_indices,
@@ -56,7 +57,10 @@ pub(crate) struct CreateUnmappedArgumentsObject;
 impl CreateUnmappedArgumentsObject {
     #[inline(always)]
     pub(super) fn operation(dst: VaryingOperand, context: &Context) {
-        let args = context.with_vm(|vm| vm.stack.get_arguments(&vm.frame).to_vec());
+        let args = unsafe {
+            let vm = &*context.vm_const_ptr();
+            vm.stack.get_arguments(&vm.frame).to_vec()
+        };
         let arguments = UnmappedArguments::new(&args, context);
         context.set_register(dst.into(), arguments.into());
     }

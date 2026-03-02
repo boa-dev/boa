@@ -17,14 +17,16 @@ pub(crate) struct This;
 impl This {
     #[inline(always)]
     pub(super) fn operation(dst: VaryingOperand, context: &Context) -> JsResult<()> {
-        if context.with_vm(|vm| vm.frame.has_this_value_cached()) {
-            let this = context.with_vm(|vm| vm.stack.get_this(&vm.frame));
+        if unsafe { (*context.vm_const_ptr()).frame.has_this_value_cached() } {
+            let this = unsafe {
+                let vm = &*context.vm_const_ptr();
+                vm.stack.get_this(&vm.frame)
+            };
             context.set_register(dst.into(), this);
             return Ok(());
         }
 
-        let this = context
-            .with_vm(|vm| vm.frame.environments.get_this_binding())?
+        let this = unsafe { (*context.vm_const_ptr()).frame.environments.get_this_binding() }?
             .unwrap_or(context.realm().global_this().clone().into());
         // SAFETY: No other references to the VM exist during this block.
         unsafe {
@@ -57,7 +59,7 @@ impl ThisForObjectEnvironmentName {
         context: &Context,
     ) -> JsResult<()> {
         let binding_locator =
-            context.with_vm(|vm| vm.frame().code_block.bindings[usize::from(index)].clone());
+            unsafe { let vm = &*context.vm_const_ptr(); vm.frame.code_block.bindings[usize::from(index)].clone() };
         let this = context
             .this_from_object_environment_binding(&binding_locator)?
             .map_or(JsValue::undefined(), Into::into);
@@ -83,7 +85,8 @@ impl Super {
     #[inline(always)]
     pub(super) fn operation(dst: VaryingOperand, context: &Context) -> JsResult<()> {
         let home_object = {
-            let (this_binding, function_object) = context.with_vm(|vm| {
+            let (this_binding, function_object) = unsafe {
+                let vm = &*context.vm_const_ptr();
                 let env = vm
                     .frame
                     .environments
@@ -94,7 +97,7 @@ impl Super {
                     env.get_this_binding(),
                     env.slots().function_object().clone(),
                 )
-            });
+            };
             let this = this_binding?.expect("`get_this_environment` ensures this returns `Some`");
 
             function_object
@@ -132,7 +135,8 @@ pub(crate) struct SuperCallPrepare;
 impl SuperCallPrepare {
     #[inline(always)]
     pub(super) fn operation(dst: VaryingOperand, context: &Context) {
-        let active_function = context.with_vm(|vm| {
+        let active_function = unsafe {
+            let vm = &*context.vm_const_ptr();
             vm.frame
                 .environments
                 .get_this_environment()
@@ -141,7 +145,7 @@ impl SuperCallPrepare {
                 .slots()
                 .function_object()
                 .clone()
-        });
+        };
         let super_constructor = active_function
             .__get_prototype_of__(&InternalMethodPropertyContext::new(context))
             .expect("function object must have prototype");
@@ -168,11 +172,12 @@ pub(crate) struct SuperCall;
 impl SuperCall {
     #[inline(always)]
     pub(super) fn operation(argument_count: VaryingOperand, context: &Context) -> JsResult<()> {
-        let super_constructor = context.with_vm(|vm| {
-            vm.stack
+        let super_constructor = unsafe {
+            (*context.vm_const_ptr())
+                .stack
                 .calling_convention_get_function(argument_count.into())
                 .clone()
-        });
+        };
 
         let Some(super_constructor) = super_constructor.as_constructor() else {
             return Err(JsNativeError::typ()
@@ -180,7 +185,8 @@ impl SuperCall {
                 .into());
         };
 
-        let new_target = context.with_vm(|vm| {
+        let new_target = unsafe {
+            let vm = &*context.vm_const_ptr();
             vm.frame
                 .environments
                 .get_this_environment()
@@ -190,7 +196,7 @@ impl SuperCall {
                 .new_target()
                 .expect("must have new.target")
                 .clone()
-        });
+        };
 
         context.stack_push(new_target);
 
@@ -240,7 +246,8 @@ impl SuperCallSpread {
 
         context.vm_calling_convention_push_arguments(&arguments);
 
-        let new_target = context.with_vm(|vm| {
+        let new_target = unsafe {
+            let vm = &*context.vm_const_ptr();
             vm.frame
                 .environments
                 .get_this_environment()
@@ -250,7 +257,7 @@ impl SuperCallSpread {
                 .new_target()
                 .expect("must have new.target")
                 .clone()
-        });
+        };
 
         context.stack_push(new_target);
 
@@ -277,7 +284,8 @@ pub(crate) struct SuperCallDerived;
 impl SuperCallDerived {
     #[inline(always)]
     pub(super) fn operation((): (), context: &Context) -> JsResult<()> {
-        let (new_target, active_function) = context.with_vm(|vm| {
+        let (new_target, active_function) = unsafe {
+            let vm = &*context.vm_const_ptr();
             let this_env = vm
                 .frame
                 .environments
@@ -291,7 +299,7 @@ impl SuperCallDerived {
                 .clone();
             let active_function = this_env.slots().function_object().clone();
             (new_target, active_function)
-        });
+        };
         let super_constructor = active_function
             .__get_prototype_of__(&InternalMethodPropertyContext::new(context))
             .expect("function object must have prototype")
@@ -305,13 +313,16 @@ impl SuperCallDerived {
 
         context.stack_push(JsValue::undefined());
         context.stack_push(super_constructor.clone());
-        for argument in context.with_vm(|vm| vm.stack.get_arguments(&vm.frame).to_vec()) {
+        for argument in unsafe {
+            let vm = &*context.vm_const_ptr();
+            vm.stack.get_arguments(&vm.frame).to_vec()
+        } {
             context.stack_push(argument);
         }
         context.stack_push(new_target);
 
         super_constructor
-            .__construct__(context.with_vm(|vm| vm.frame().argument_count as usize))
+            .__construct__(unsafe { (*context.vm_const_ptr()).frame.argument_count as usize })
             .resolve(context)?;
         Ok(())
     }
@@ -343,7 +354,8 @@ impl BindThisValue {
             .expect("construct result should be an object");
 
         // 7. Let thisER be GetThisEnvironment().
-        let (bind_result, active_function) = context.with_vm(|vm| {
+        let (bind_result, active_function) = unsafe {
+            let vm = &*context.vm_const_ptr();
             let this_env = vm
                 .frame
                 .environments
@@ -358,7 +370,7 @@ impl BindThisValue {
             // SKIP: 10. Assert: F is an ECMAScript function object.
             let active_function = this_env.slots().function_object().clone();
             (bind_result, active_function)
-        });
+        };
         bind_result?;
 
         // 11. Perform ? InitializeInstanceElements(result, F).

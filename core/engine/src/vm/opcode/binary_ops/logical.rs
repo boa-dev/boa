@@ -13,7 +13,7 @@ pub(crate) struct LogicalAnd;
 impl LogicalAnd {
     #[inline(always)]
     pub(crate) fn operation((exit, lhs): (u32, VaryingOperand), context: &Context) {
-        if !context.with_vm(|vm| vm.get_register(lhs.into()).to_boolean()) {
+        if !unsafe { (*context.vm_const_ptr()).get_register(lhs.into()).to_boolean() } {
             context.set_pc(exit);
         }
     }
@@ -35,7 +35,7 @@ pub(crate) struct LogicalOr;
 impl LogicalOr {
     #[inline(always)]
     pub(crate) fn operation((exit, lhs): (u32, VaryingOperand), context: &Context) {
-        if context.with_vm(|vm| vm.get_register(lhs.into()).to_boolean()) {
+        if unsafe { (*context.vm_const_ptr()).get_register(lhs.into()).to_boolean() } {
             context.set_pc(exit);
         }
     }
@@ -57,7 +57,7 @@ pub(crate) struct Coalesce;
 impl Coalesce {
     #[inline(always)]
     pub(crate) fn operation((exit, lhs): (u32, VaryingOperand), context: &Context) {
-        if !context.with_vm(|vm| vm.get_register(lhs.into()).is_null_or_undefined()) {
+        if !unsafe { (*context.vm_const_ptr()).get_register(lhs.into()).is_null_or_undefined() } {
             context.set_pc(exit);
         }
     }

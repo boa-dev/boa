@@ -1784,16 +1784,20 @@ impl SourceTextModule {
                     locator,
                     export_locator,
                 } => match export_locator.binding_name() {
-                    BindingName::Name(name) => context.with_vm(|vm| {
-                        vm.frame
-                            .environments
-                            .current_declarative_ref()
-                            .expect("must be declarative")
-                            .kind()
-                            .as_module()
-                            .expect("last environment should be the module env")
-                            .set_indirect(locator.binding_index(), export_locator.module, name);
-                    }),
+                    BindingName::Name(name) => {
+                        // SAFETY: Read-only access via raw pointer. Context is !Send/!Sync.
+                        unsafe {
+                            let vm = &*context.vm_const_ptr();
+                            vm.frame
+                                .environments
+                                .current_declarative_ref()
+                                .expect("must be declarative")
+                                .kind()
+                                .as_module()
+                                .expect("last environment should be the module env")
+                                .set_indirect(locator.binding_index(), export_locator.module, name);
+                        }
+                    }
                     BindingName::Namespace => {
                         let namespace = export_locator.module.namespace(context);
                         // SAFETY: Frame field mutation via raw pointer. Context is !Send/!Sync.

@@ -170,7 +170,8 @@ impl Error {
     pub(crate) fn with_caller_position(tag: ErrorKind, context: &Context) -> Self {
         Self {
             tag,
-            position: IgnoreEq(context.with_vm(|vm| vm.shadow_stack.caller_position())),
+            // SAFETY: Read-only access via raw pointer. Context is !Send/!Sync.
+            position: IgnoreEq(unsafe { (*context.vm_const_ptr()).shadow_stack.caller_position() }),
             backtrace: IgnoreEq(None),
         }
     }

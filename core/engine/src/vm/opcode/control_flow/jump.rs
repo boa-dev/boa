@@ -34,7 +34,7 @@ pub(crate) struct JumpIfTrue;
 impl JumpIfTrue {
     #[inline(always)]
     pub(crate) fn operation((address, value): (u32, VaryingOperand), context: &Context) {
-        if context.with_vm(|vm| vm.get_register(value.into()).to_boolean()) {
+        if unsafe { (*context.vm_const_ptr()).get_register(value.into()).to_boolean() } {
             context.set_pc(address);
         }
     }
@@ -56,7 +56,7 @@ pub(crate) struct JumpIfFalse;
 impl JumpIfFalse {
     #[inline(always)]
     pub(crate) fn operation((address, value): (u32, VaryingOperand), context: &Context) {
-        if !context.with_vm(|vm| vm.get_register(value.into()).to_boolean()) {
+        if !unsafe { (*context.vm_const_ptr()).get_register(value.into()).to_boolean() } {
             context.set_pc(address);
         }
     }
@@ -78,7 +78,7 @@ pub(crate) struct JumpIfNotUndefined;
 impl JumpIfNotUndefined {
     #[inline(always)]
     pub(crate) fn operation((address, value): (u32, VaryingOperand), context: &Context) {
-        if !context.with_vm(|vm| vm.get_register(value.into()).is_undefined()) {
+        if !unsafe { (*context.vm_const_ptr()).get_register(value.into()).is_undefined() } {
             context.set_pc(address);
         }
     }
@@ -100,7 +100,7 @@ pub(crate) struct JumpIfNullOrUndefined;
 impl JumpIfNullOrUndefined {
     #[inline(always)]
     pub(crate) fn operation((address, value): (u32, VaryingOperand), context: &Context) {
-        if context.with_vm(|vm| vm.get_register(value.into()).is_null_or_undefined()) {
+        if unsafe { (*context.vm_const_ptr()).get_register(value.into()).is_null_or_undefined() } {
             context.set_pc(address);
         }
     }
@@ -125,7 +125,8 @@ impl JumpTable {
         (index, default, addresses): (u32, u32, ThinVec<u32>),
         context: &Context,
     ) {
-        let target = context.with_vm(|vm| {
+        let target = unsafe {
+            let vm = &*context.vm_const_ptr();
             let value = vm.get_register(index as usize);
             if let Some(value) = value.as_i32() {
                 let value = value as usize;
@@ -135,11 +136,11 @@ impl JumpTable {
                         target = Some(*address);
                     }
                 }
-                return target.unwrap_or(default);
+                target.unwrap_or(default)
+            } else {
+                unreachable!("expected positive integer, got {value:?}")
             }
-
-            unreachable!("expected positive integer, got {value:?}")
-        });
+        };
         context.set_pc(target);
     }
 }

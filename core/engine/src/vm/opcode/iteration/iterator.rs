@@ -54,10 +54,11 @@ impl IteratorFinishAsyncNext {
             .vm_pop_iterator()
             .expect("iterator on the call frame must exist");
 
-        let resume_kind = context.with_vm(|vm| {
-            vm.get_register(resume_kind.into())
+        let resume_kind = unsafe {
+            (*context.vm_const_ptr())
+                .get_register(resume_kind.into())
                 .to_generator_resume_kind()
-        });
+        };
 
         if matches!(resume_kind, GeneratorResumeKind::Throw) {
             // If after awaiting the `next` call the iterator returned an error, it can be considered
@@ -89,15 +90,16 @@ pub(crate) struct IteratorResult;
 impl IteratorResult {
     #[inline(always)]
     pub(crate) fn operation(value: VaryingOperand, context: &Context) {
-        let last_result = context.with_vm(|vm| {
-            vm.frame()
+        let last_result = unsafe {
+            (*context.vm_const_ptr())
+                .frame
                 .iterators
                 .last()
                 .expect("iterator on the call frame must exist")
                 .last_result()
                 .object()
                 .clone()
-        });
+        };
         context.set_register(value.into(), last_result.into());
     }
 }
@@ -147,13 +149,14 @@ pub(crate) struct IteratorDone;
 impl IteratorDone {
     #[inline(always)]
     pub(crate) fn operation(done: VaryingOperand, context: &Context) {
-        let value = context.with_vm(|vm| {
-            vm.frame()
+        let value = unsafe {
+            (*context.vm_const_ptr())
+                .frame
                 .iterators
                 .last()
                 .expect("iterator on the call frame must exist")
                 .done()
-        });
+        };
         context.set_register(done.into(), value.into());
     }
 }
@@ -275,7 +278,7 @@ pub(crate) struct IteratorStackEmpty;
 impl IteratorStackEmpty {
     #[inline(always)]
     pub(crate) fn operation(empty: VaryingOperand, context: &Context) {
-        let is_empty = context.with_vm(|vm| vm.frame().iterators.is_empty());
+        let is_empty = unsafe { (*context.vm_const_ptr()).frame.iterators.is_empty() };
         context.set_register(empty.into(), is_empty.into());
     }
 }

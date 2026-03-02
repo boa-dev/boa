@@ -16,13 +16,14 @@ pub(crate) struct NewTarget;
 impl NewTarget {
     #[inline(always)]
     pub(super) fn operation(dst: VaryingOperand, context: &Context) {
-        let new_target = if let Some(new_target) = context.with_vm(|vm| {
+        let new_target = if let Some(new_target) = unsafe {
+            let vm = &*context.vm_const_ptr();
             vm.frame
                 .environments
                 .get_this_environment()
                 .as_function()
                 .and_then(|env| env.slots().new_target().cloned())
-        }) {
+        } {
             new_target.into()
         } else {
             JsValue::undefined()

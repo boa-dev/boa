@@ -16,11 +16,12 @@ impl GetPrivateField {
         (dst, object, index): (VaryingOperand, VaryingOperand, VaryingOperand),
         context: &Context,
     ) -> JsResult<()> {
-        let name = context.with_vm(|vm| vm.frame().code_block().constant_string(index.into()));
+        let name = unsafe { (*context.vm_const_ptr()).frame.code_block.constant_string(index.into()) };
         let object = context.get_register(object.into());
         let object = object.to_object(context)?;
-        let name = context
-            .with_vm(|vm| vm.frame.environments.resolve_private_identifier(name))
+        let name = unsafe {
+            (*context.vm_const_ptr()).frame.environments.resolve_private_identifier(name)
+        }
             .expect("private name must be in environment");
 
         let result = object.private_get(&name, context)?;

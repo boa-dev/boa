@@ -20,10 +20,11 @@ impl DeletePropertyByName {
     ) -> JsResult<()> {
         let object = context.get_register(object_register.into());
         let object = object.to_object(context)?;
-        let (key, strict) = context.with_vm(|vm| {
-            let cb = vm.frame().code_block();
+        let (key, strict) = unsafe {
+            let vm = &*context.vm_const_ptr();
+            let cb = &vm.frame.code_block;
             (cb.constant_string(index.into()).into(), cb.strict())
-        });
+        };
 
         let result = object.__delete__(&key, &mut InternalMethodPropertyContext::new(context))?;
         if !result && strict {
@@ -64,7 +65,7 @@ impl DeletePropertyByValue {
             &property_key,
             &mut InternalMethodPropertyContext::new(context),
         )?;
-        if !result && context.with_vm(|vm| vm.frame().code_block().strict()) {
+        if !result && unsafe { (*context.vm_const_ptr()).frame.code_block.strict() } {
             return Err(JsNativeError::typ()
                 .with_message("Cannot delete property")
                 .into());
@@ -94,7 +95,7 @@ impl DeleteName {
         context: &Context,
     ) -> JsResult<()> {
         let mut binding_locator =
-            context.with_vm(|vm| vm.frame().code_block.bindings[usize::from(index)].clone());
+            unsafe { let vm = &*context.vm_const_ptr(); vm.frame.code_block.bindings[usize::from(index)].clone() };
         context.find_runtime_binding(&mut binding_locator)?;
         let deleted = context.delete_binding(&binding_locator)?;
         context.set_register(value.into(), deleted.into());

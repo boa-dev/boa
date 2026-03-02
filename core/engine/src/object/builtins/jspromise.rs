@@ -1205,7 +1205,8 @@ impl JsPromise {
         use std::cell::Cell;
 
         // Clone the stack since we split it.
-        let stack = context.with_vm(|vm| vm.stack.clone());
+        // SAFETY: Read-only access via raw pointer. Context is !Send/!Sync.
+        let stack = unsafe { (*context.vm_const_ptr()).stack.clone() };
         let gen_ctx = GeneratorContext::from_current(context, None);
         // SAFETY: Single-field mutation via raw pointer. Context is !Send/!Sync.
         unsafe { (*context.vm_ptr()).stack = stack };
@@ -1270,7 +1271,8 @@ impl JsPromise {
         .length(1)
         .build();
 
-        let stack = context.with_vm(|vm| vm.stack.clone());
+        // SAFETY: Read-only access via raw pointer. Context is !Send/!Sync.
+        let stack = unsafe { (*context.vm_const_ptr()).stack.clone() };
         let gen_ctx = GeneratorContext::from_current(context, None);
         // SAFETY: Single-field mutation via raw pointer. Context is !Send/!Sync.
         unsafe { (*context.vm_ptr()).stack = stack };

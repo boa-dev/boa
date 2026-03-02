@@ -20,11 +20,12 @@ impl StrictEq {
         (dst, lhs, rhs): (VaryingOperand, VaryingOperand, VaryingOperand),
         context: &Context,
     ) {
-        let value = context.with_vm(|vm| {
+        let value = unsafe {
+            let vm = &*context.vm_const_ptr();
             let lhs = vm.get_register(lhs.into());
             let rhs = vm.get_register(rhs.into());
             lhs.strict_equals(rhs)
-        });
+        };
         context.set_register(dst.into(), value.into());
     }
 }
@@ -48,11 +49,12 @@ impl StrictNotEq {
         (dst, lhs, rhs): (VaryingOperand, VaryingOperand, VaryingOperand),
         context: &Context,
     ) {
-        let value = context.with_vm(|vm| {
+        let value = unsafe {
+            let vm = &*context.vm_const_ptr();
             let lhs = vm.get_register(lhs.into());
             let rhs = vm.get_register(rhs.into());
             !lhs.strict_equals(rhs)
-        });
+        };
         context.set_register(dst.into(), value.into());
     }
 }
@@ -112,7 +114,7 @@ impl InPrivate {
         (dst, index, rhs): (VaryingOperand, VaryingOperand, VaryingOperand),
         context: &Context,
     ) -> JsResult<()> {
-        let name = context.with_vm(|vm| vm.frame().code_block().constant_string(index.into()));
+        let name = unsafe { (*context.vm_const_ptr()).frame.code_block.constant_string(index.into()) };
         let rhs = context.get_register(rhs.into()).clone();
 
         let Some(rhs) = rhs.as_object() else {
@@ -124,8 +126,9 @@ impl InPrivate {
                 .into());
         };
 
-        let name = context
-            .with_vm(|vm| vm.frame.environments.resolve_private_identifier(name))
+        let name = unsafe {
+            (*context.vm_const_ptr()).frame.environments.resolve_private_identifier(name)
+        }
             .expect("private name must be in environment");
 
         let value = rhs.private_element_find(&name, true, true).is_some();

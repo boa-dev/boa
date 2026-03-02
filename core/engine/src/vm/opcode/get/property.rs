@@ -35,7 +35,7 @@ fn get_by_name<const LENGTH: bool>(
     //    `to_object()` would produce, such as `Number.prototype`, `String.prototype`, etc.
     let object = object.base_class(context)?;
 
-    let code_block = context.with_vm(|vm| vm.frame().code_block().clone());
+    let code_block = unsafe { (*context.vm_const_ptr()).frame.code_block.clone() };
     let ic = &code_block.ic[usize::from(index)];
     let object_borrowed = object.borrow();
     if let Some((shape, slot)) = ic.get(object_borrowed.shape()) {
@@ -69,7 +69,7 @@ fn get_by_name<const LENGTH: bool>(
     // Cache the property.
     let slot = *context.slot();
     if slot.is_cacheable() {
-        let code_block = context.with_vm(|vm| vm.frame().code_block().clone());
+        let code_block = unsafe { (*context.vm_const_ptr()).frame.code_block.clone() };
         let ic = &code_block.ic[usize::from(index)];
         let object_borrowed = object.borrow();
         let shape = object_borrowed.shape();

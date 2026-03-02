@@ -26,7 +26,7 @@ impl Throw {
         context.set_pending_exception(error);
 
         // Note: -1 because we increment after fetching the opcode.
-        let pc = context.with_vm(|vm| vm.frame().pc - 1);
+        let pc = unsafe { (*context.vm_const_ptr()).frame.pc - 1 };
         if context.vm_handle_exception_at(pc) {
             return ControlFlow::Continue(());
         }
@@ -52,7 +52,7 @@ impl ReThrow {
     #[inline(always)]
     pub(crate) fn operation((): (), context: &Context) -> ControlFlow<CompletionRecord> {
         // Note: -1 because we increment after fetching the opcode.
-        let pc = context.with_vm(|vm| vm.frame().pc.saturating_sub(1));
+        let pc = unsafe { (*context.vm_const_ptr()).frame.pc.saturating_sub(1) };
         if context.vm_handle_exception_at(pc) {
             return ControlFlow::Continue(());
         }
@@ -153,7 +153,7 @@ pub(crate) struct ThrowNewTypeError;
 impl ThrowNewTypeError {
     #[inline(always)]
     pub(crate) fn operation(index: VaryingOperand, context: &Context) -> JsError {
-        let msg = context.with_vm(|vm| vm.frame().code_block().constant_string(index.into()));
+        let msg = unsafe { (*context.vm_const_ptr()).frame.code_block.constant_string(index.into()) };
         let msg = msg
             .to_std_string()
             .expect("throw message must be an ASCII string");
@@ -177,7 +177,7 @@ pub(crate) struct ThrowNewSyntaxError;
 impl ThrowNewSyntaxError {
     #[inline(always)]
     pub(crate) fn operation(index: VaryingOperand, context: &Context) -> JsError {
-        let msg = context.with_vm(|vm| vm.frame().code_block().constant_string(index.into()));
+        let msg = unsafe { (*context.vm_const_ptr()).frame.code_block.constant_string(index.into()) };
         let msg = msg
             .to_std_string()
             .expect("throw message must be an ASCII string");
@@ -201,7 +201,7 @@ pub(crate) struct ThrowNewReferenceError;
 impl ThrowNewReferenceError {
     #[inline(always)]
     pub(crate) fn operation(index: VaryingOperand, context: &Context) -> JsError {
-        let msg = context.with_vm(|vm| vm.frame().code_block().constant_string(index.into()));
+        let msg = unsafe { (*context.vm_const_ptr()).frame.code_block.constant_string(index.into()) };
         let msg = msg
             .to_std_string()
             .expect("throw message must be an ASCII string");

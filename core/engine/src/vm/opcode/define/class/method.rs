@@ -22,8 +22,7 @@ impl DefineClassStaticMethodByName {
         let function = context.get_register(function.into()).clone();
         let class = context.get_register(class.into()).clone();
         let class = class.as_object().expect("class must be object");
-        let key = context
-            .with_vm(|vm| vm.frame().code_block().constant_string(index.into()))
+        let key = unsafe { (*context.vm_const_ptr()).frame.code_block.constant_string(index.into()) }
             .into();
         {
             let function_object = function
@@ -72,8 +71,7 @@ impl DefineClassMethodByName {
         let function = context.get_register(function.into()).clone();
         let class_proto = context.get_register(class_proto.into()).clone();
         let class_proto = class_proto.as_object().expect("class must be object");
-        let key = context
-            .with_vm(|vm| vm.frame().code_block().constant_string(index.into()))
+        let key = unsafe { (*context.vm_const_ptr()).frame.code_block.constant_string(index.into()) }
             .into();
         {
             let function_object = function

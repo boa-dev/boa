@@ -1084,7 +1084,8 @@ pub(crate) fn create_function_object(
     let is_generator = code.is_generator();
     let function = OrdinaryFunction::new(
         code,
-        context.with_vm(|vm| vm.frame.environments.clone()),
+        // SAFETY: Read-only access via raw pointer. Context is !Send/!Sync.
+        unsafe { (*context.vm_const_ptr()).frame.environments.clone() },
         script_or_module,
         context.realm().clone(),
     );
@@ -1153,7 +1154,8 @@ pub(crate) fn create_function_object_fast(code: Gc<CodeBlock>, context: &Context
     let has_prototype_property = code.has_prototype_property();
     let function = OrdinaryFunction::new(
         code,
-        context.with_vm(|vm| vm.frame.environments.clone()),
+        // SAFETY: Read-only access via raw pointer. Context is !Send/!Sync.
+        unsafe { (*context.vm_const_ptr()).frame.environments.clone() },
         script_or_module,
         context.realm().clone(),
     );

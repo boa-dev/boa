@@ -115,7 +115,8 @@ impl Json {
         // But if it's incorrect, just call `parser.parse_script_with_source` here
         let script = parser.parse_script(&Scope::new_global(), context.interner_mut())?;
         let code_block = {
-            let in_with = context.with_vm(|vm| vm.frame.environments.has_object_environment());
+            // SAFETY: Read-only access via raw pointer. Context is !Send/!Sync.
+            let in_with = unsafe { (*context.vm_const_ptr()).frame.environments.has_object_environment() };
             // If the source is needed then call `parser.parse_script_with_source` and pass `source_text` here.
             let spanned_source_text = SpannedSourceText::new_empty();
             let mut compiler = ByteCompiler::new(
@@ -138,12 +139,14 @@ impl Json {
 
         let realm = context.realm().clone();
 
-        let (env_fp, environments) = context.with_vm(|vm| {
+        // SAFETY: Read-only access via raw pointer. Context is !Send/!Sync.
+        let (env_fp, environments) = unsafe {
+            let vm = &*context.vm_const_ptr();
             (
                 vm.frame.environments.len() as u32,
                 vm.frame.environments.clone(),
             )
-        });
+        };
         context.push_frame_with_stack(
             CallFrame::new(code_block, None, environments, realm)
                 .with_env_fp(env_fp)

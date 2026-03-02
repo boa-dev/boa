@@ -50,12 +50,13 @@ impl DefInitVar {
         (value, index): (VaryingOperand, VaryingOperand),
         context: &Context,
     ) -> JsResult<()> {
-        let (value, strict, mut binding_locator) = context.with_vm(|vm| {
+        let (value, strict, mut binding_locator) = unsafe {
+            let vm = &*context.vm_const_ptr();
             let value = vm.get_register(value.into()).clone();
-            let strict = vm.frame().code_block.strict();
-            let binding_locator = vm.frame().code_block.bindings[usize::from(index)].clone();
+            let strict = vm.frame.code_block.strict();
+            let binding_locator = vm.frame.code_block.bindings[usize::from(index)].clone();
             (value, strict, binding_locator)
-        });
+        };
         context.find_runtime_binding(&mut binding_locator)?;
         context.set_binding(&binding_locator, value, strict)?;
 

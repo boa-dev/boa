@@ -54,8 +54,10 @@ impl AsyncGeneratorYield {
         // 2. Assert: genContext is the execution context of a generator.
         // 3. Let generator be the value of the Generator component of genContext.
         // 4. Assert: GetGeneratorKind() is async.
-        let async_generator_object = context
-            .with_vm(|vm| vm.stack.async_generator_object(&vm.frame))
+        let async_generator_object = unsafe {
+            let vm = &*context.vm_const_ptr();
+            vm.stack.async_generator_object(&vm.frame)
+        }
             .expect("`AsyncGeneratorYield` must only be called inside async generators");
         let async_generator_object = async_generator_object
             .downcast::<AsyncGenerator>()

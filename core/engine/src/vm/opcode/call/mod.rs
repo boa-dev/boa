@@ -27,11 +27,12 @@ impl CallEval {
         (argument_count, scope_index): (VaryingOperand, VaryingOperand),
         context: &Context,
     ) -> JsResult<()> {
-        let func = context.with_vm(|vm| {
-            vm.stack
+        let func = unsafe {
+            (*context.vm_const_ptr())
+                .stack
                 .calling_convention_get_function(argument_count.into())
                 .clone()
-        });
+        };
 
         let Some(object) = func.as_object() else {
             return Err(JsNativeError::typ()
@@ -58,10 +59,11 @@ impl CallEval {
                 // iv. If the source text matched by this CallExpression is strict mode code,
                 //     let strictCaller be true. Otherwise let strictCaller be false.
                 // v. Return ? PerformEval(evalArg, strictCaller, true).
-                let (strict, scope) = context.with_vm(|vm| {
-                    let cb = vm.frame().code_block();
+                let (strict, scope) = unsafe {
+                    let vm = &*context.vm_const_ptr();
+                    let cb = &vm.frame.code_block;
                     (cb.strict(), cb.constant_scope(scope_index.into()))
-                });
+                };
                 let result = crate::builtins::eval::Eval::perform_eval(
                     x,
                     true,
@@ -110,7 +112,12 @@ impl CallEvalSpread {
             .to_dense_indexed_properties()
             .expect("arguments array in call spread function must be dense");
 
-        let func = context.with_vm(|vm| vm.stack.calling_convention_get_function(0).clone());
+        let func = unsafe {
+            (*context.vm_const_ptr())
+                .stack
+                .calling_convention_get_function(0)
+                .clone()
+        };
 
         let Some(object) = func.as_object() else {
             return Err(JsNativeError::typ()
@@ -135,10 +142,11 @@ impl CallEvalSpread {
                 // iv. If the source text matched by this CallExpression is strict mode code,
                 //     let strictCaller be true. Otherwise let strictCaller be false.
                 // v. Return ? PerformEval(evalArg, strictCaller, true).
-                let (strict, scope) = context.with_vm(|vm| {
-                    let cb = vm.frame().code_block();
+                let (strict, scope) = unsafe {
+                    let vm = &*context.vm_const_ptr();
+                    let cb = &vm.frame.code_block;
                     (cb.strict(), cb.constant_scope(index.into()))
-                });
+                };
                 let result = crate::builtins::eval::Eval::perform_eval(
                     x,
                     true,
@@ -179,11 +187,12 @@ pub(crate) struct Call;
 impl Call {
     #[inline(always)]
     pub(super) fn operation(argument_count: VaryingOperand, context: &Context) -> JsResult<()> {
-        let func = context.with_vm(|vm| {
-            vm.stack
+        let func = unsafe {
+            (*context.vm_const_ptr())
+                .stack
                 .calling_convention_get_function(argument_count.into())
                 .clone()
-        });
+        };
 
         let Some(object) = func.as_object() else {
             return Err(Self::handle_not_callable());
@@ -229,11 +238,12 @@ impl CallSpread {
         let argument_count = arguments.len();
         context.vm_calling_convention_push_arguments(&arguments);
 
-        let func = context.with_vm(|vm| {
-            vm.stack
+        let func = unsafe {
+            (*context.vm_const_ptr())
+                .stack
                 .calling_convention_get_function(argument_count)
                 .clone()
-        });
+        };
 
         let Some(object) = func.as_object() else {
             return Err(JsNativeError::typ()

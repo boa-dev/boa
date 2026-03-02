@@ -371,7 +371,9 @@ impl Context {
     /// are completely removed of runtime checks because the specification guarantees that runtime
     /// semantics cannot add or remove lexical bindings.
     pub(crate) fn find_runtime_binding(&self, locator: &mut BindingLocator) -> JsResult<()> {
-        let early_return = self.with_vm(|vm| {
+        // SAFETY: Read-only access via raw pointer. Context is !Send/!Sync.
+        let early_return = unsafe {
+            let vm = &*self.vm_const_ptr();
             if let Some(env) = vm.frame.environments.current_declarative_ref()
                 && !env.with()
                 && !env.poisoned()
@@ -380,7 +382,7 @@ impl Context {
             } else {
                 false
             }
-        });
+        };
         if early_return {
             return Ok(());
         }
@@ -389,7 +391,8 @@ impl Context {
             BindingLocatorScope::GlobalObject | BindingLocatorScope::GlobalDeclarative => (true, 0),
             BindingLocatorScope::Stack(index) => (false, index),
         };
-        let max_index = self.with_vm(|vm| vm.frame.environments.stack.len() as u32);
+        // SAFETY: Read-only access via raw pointer. Context is !Send/!Sync.
+        let max_index = unsafe { (*self.vm_const_ptr()).frame.environments.stack.len() as u32 };
 
         for index in (min_index..max_index).rev() {
             match &self.environment_expect(index) {
@@ -438,7 +441,9 @@ impl Context {
         &self,
         locator: &BindingLocator,
     ) -> JsResult<Option<JsObject>> {
-        let early_return = self.with_vm(|vm| {
+        // SAFETY: Read-only access via raw pointer. Context is !Send/!Sync.
+        let early_return = unsafe {
+            let vm = &*self.vm_const_ptr();
             if let Some(env) = vm.frame.environments.current_declarative_ref()
                 && !env.with()
             {
@@ -446,7 +451,7 @@ impl Context {
             } else {
                 false
             }
-        });
+        };
         if early_return {
             return Ok(None);
         }
@@ -455,7 +460,8 @@ impl Context {
             BindingLocatorScope::GlobalObject | BindingLocatorScope::GlobalDeclarative => 0,
             BindingLocatorScope::Stack(index) => index,
         };
-        let max_index = self.with_vm(|vm| vm.frame.environments.stack.len() as u32);
+        // SAFETY: Read-only access via raw pointer. Context is !Send/!Sync.
+        let max_index = unsafe { (*self.vm_const_ptr()).frame.environments.stack.len() as u32 };
 
         for index in (min_index..max_index).rev() {
             match &self.environment_expect(index) {
@@ -501,7 +507,8 @@ impl Context {
                 obj.has_property(key, self)
             }
             BindingLocatorScope::GlobalDeclarative => {
-                let env = self.with_vm(|vm| vm.frame.environments.global().clone());
+                // SAFETY: Read-only access via raw pointer. Context is !Send/!Sync.
+                let env = unsafe { (*self.vm_const_ptr()).frame.environments.global().clone() };
                 Ok(env.get(locator.binding_index()).is_some())
             }
             BindingLocatorScope::Stack(index) => match &self.environment_expect(index) {
@@ -529,7 +536,8 @@ impl Context {
                 obj.try_get(key, self)
             }
             BindingLocatorScope::GlobalDeclarative => {
-                let env = self.with_vm(|vm| vm.frame.environments.global().clone());
+                // SAFETY: Read-only access via raw pointer. Context is !Send/!Sync.
+                let env = unsafe { (*self.vm_const_ptr()).frame.environments.global().clone() };
                 Ok(env.get(locator.binding_index()))
             }
             BindingLocatorScope::Stack(index) => match &self.environment_expect(index) {
@@ -562,7 +570,8 @@ impl Context {
                 obj.set(key, value, strict, self)?;
             }
             BindingLocatorScope::GlobalDeclarative => {
-                let env = self.with_vm(|vm| vm.frame.environments.global().clone());
+                // SAFETY: Read-only access via raw pointer. Context is !Send/!Sync.
+                let env = unsafe { (*self.vm_const_ptr()).frame.environments.global().clone() };
                 env.set(locator.binding_index(), value);
             }
             BindingLocatorScope::Stack(index) => match &self.environment_expect(index) {
@@ -611,13 +620,15 @@ impl Context {
     ///
     /// Panics if the `index` is out of range.
     pub(crate) fn environment_expect(&self, index: u32) -> Environment {
-        self.with_vm(|vm| {
+        // SAFETY: Read-only access via raw pointer. Context is !Send/!Sync.
+        unsafe {
+            let vm = &*self.vm_const_ptr();
             vm.frame
                 .environments
                 .stack
                 .get(index as usize)
                 .expect("environment index must be in range")
                 .clone()
-        })
+        }
     }
 }

@@ -137,7 +137,9 @@ impl Eval {
         // 8. Let inDerivedConstructor be false.
         // 9. Let inClassFieldInitializer be false.
         // a. Let thisEnvRec be GetThisEnvironment().
-        let flags = context.with_vm(|vm| {
+        // SAFETY: Read-only access via raw pointer. Context is !Send/!Sync.
+        let flags = unsafe {
+            let vm = &*context.vm_const_ptr();
             match vm.frame.environments.get_this_environment().as_function() {
                 // 10. If direct is true, then
                 //     b. If thisEnvRec is a Function Environment Record, then
@@ -172,7 +174,7 @@ impl Eval {
                 }
                 _ => Flags::default(),
             }
-        });
+        };
 
         if !flags.contains(Flags::IN_FUNCTION) && contains(&body, ContainsSymbol::NewTarget) {
             return Err(JsNativeError::syntax()
@@ -217,7 +219,8 @@ impl Eval {
             }
 
             // Set the compile time environment to the current running environment and save the number of current environments.
-            let environments_len = context.with_vm(|vm| vm.frame.environments.len());
+            // SAFETY: Read-only access via raw pointer. Context is !Send/!Sync.
+            let environments_len = unsafe { (*context.vm_const_ptr()).frame.environments.len() };
 
             // Pop any added runtime environments that were not removed during the eval execution.
             EnvStackAction::Truncate(environments_len)
@@ -247,8 +250,9 @@ impl Eval {
             }
         });
 
+        // SAFETY: Read-only access via raw pointer. Context is !Send/!Sync.
         let (var_environment, mut variable_scope) = if let Some(e) =
-            context.with_vm(|vm| vm.frame.environments.outer_function_environment())
+            unsafe { (*context.vm_const_ptr()).frame.environments.outer_function_environment() }
         {
             (e.0, e.1)
         } else {
@@ -276,7 +280,8 @@ impl Eval {
             context,
         )?;
 
-        let in_with = context.with_vm(|vm| vm.frame.environments.has_object_environment());
+        // SAFETY: Read-only access via raw pointer. Context is !Send/!Sync.
+        let in_with = unsafe { (*context.vm_const_ptr()).frame.environments.has_object_environment() };
 
         let source_text = SourceText::new(source);
         let spanned_source_text = SpannedSourceText::new_source_only(source_text);
@@ -338,12 +343,14 @@ impl Eval {
             var_environment.extend_from_compile();
         }
 
-        let (env_fp, environments) = context.with_vm(|vm| {
+        // SAFETY: Read-only access via raw pointer. Context is !Send/!Sync.
+        let (env_fp, environments) = unsafe {
+            let vm = &*context.vm_const_ptr();
             (
                 vm.frame.environments.len() as u32,
                 vm.frame.environments.clone(),
             )
-        });
+        };
         let realm = context.realm().clone();
         context.push_frame_with_stack(
             CallFrame::new(code_block, None, environments, realm)

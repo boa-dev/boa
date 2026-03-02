@@ -40,8 +40,10 @@ impl Await {
             Err(err) => return context.handle_error(err),
         };
 
-        let return_value = context
-            .with_vm(|vm| vm.stack.get_promise_capability(&vm.frame))
+        let return_value = unsafe {
+            let vm = &*context.vm_const_ptr();
+            vm.stack.get_promise_capability(&vm.frame)
+        }
             .as_ref()
             .map(PromiseCapability::promise)
             .cloned()
@@ -160,7 +162,10 @@ pub(crate) struct CreatePromiseCapability;
 impl CreatePromiseCapability {
     #[inline(always)]
     pub(super) fn operation((): (), context: &Context) {
-        let res = context.with_vm(|vm| vm.stack.get_promise_capability(&vm.frame).is_some());
+        let res = unsafe {
+            let vm = &*context.vm_const_ptr();
+            vm.stack.get_promise_capability(&vm.frame).is_some()
+        };
         if res {
             return;
         }
@@ -199,7 +204,7 @@ impl CompletePromiseCapability {
         // If the current executing function is an async function we have to resolve/reject it's promise at the end.
         // The relevant spec section is 3. in [AsyncBlockStart](https://tc39.es/ecma262/#sec-asyncblockstart).
         let Some(promise_capability) =
-            context.with_vm(|vm| vm.stack.get_promise_capability(&vm.frame))
+            (unsafe { let vm = &*context.vm_const_ptr(); vm.stack.get_promise_capability(&vm.frame) })
         else {
             return if context.has_pending_exception() {
                 context.handle_throw()

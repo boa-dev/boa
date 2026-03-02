@@ -38,7 +38,7 @@ pub(crate) struct CheckReturn;
 impl CheckReturn {
     #[inline(always)]
     pub(crate) fn operation((): (), context: &Context) -> ControlFlow<CompletionRecord> {
-        if !context.with_vm(|vm| vm.frame().construct()) {
+        if !unsafe { (*context.vm_const_ptr()).frame.construct() } {
             return ControlFlow::Continue(());
         }
 
@@ -62,10 +62,10 @@ impl CheckReturn {
                     .into(),
             );
             return context.handle_throw();
-        } else if context.with_vm(|vm| vm.frame().has_this_value_cached()) {
+        } else if unsafe { (*context.vm_const_ptr()).frame.has_this_value_cached() } {
             this
         } else {
-            match context.with_vm(|vm| vm.frame.environments.get_this_binding()) {
+            match unsafe { (*context.vm_const_ptr()).frame.environments.get_this_binding() } {
                 Err(err) => {
                     // Avoid setting the realm here, since it needs to be set by the parent
                     // execution context.

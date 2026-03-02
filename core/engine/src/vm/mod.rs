@@ -576,8 +576,10 @@ impl Context {
     const NUMBER_OF_COLUMNS: usize = 4;
 
     pub(crate) fn trace_call_frame(&self) {
-        self.with_vm(|vm| {
-            let frame = vm.frame();
+        // SAFETY: Read-only access via raw pointer. Context is !Send/!Sync.
+        unsafe {
+            let vm = &*self.vm_const_ptr();
+            let frame = &vm.frame;
             let msg = if vm.frames.is_empty() {
                 " VM Start ".to_string()
             } else {
@@ -601,21 +603,23 @@ impl Context {
                 OPCODE_COLUMN_WIDTH = Self::OPCODE_COLUMN_WIDTH,
                 OPERAND_COLUMN_WIDTH = Self::OPERAND_COLUMN_WIDTH,
             );
-        });
+        }
     }
 
     fn trace_execute_instruction<F>(&self, f: F, opcode: Opcode) -> ControlFlow<CompletionRecord>
     where
         F: FnOnce(&Context, Opcode) -> ControlFlow<CompletionRecord>,
     {
-        let operands = self.with_vm(|vm| {
-            let frame = vm.frame();
+        // SAFETY: Read-only access via raw pointer. Context is !Send/!Sync.
+        let operands = unsafe {
+            let vm = &*self.vm_const_ptr();
+            let frame = &vm.frame;
             let (instruction, _) = frame
                 .code_block
                 .bytecode
                 .next_instruction(frame.pc as usize);
             frame.code_block().instruction_operands(&instruction)
-        });
+        };
 
         match opcode {
             Opcode::Call
@@ -637,7 +641,11 @@ impl Context {
         let result = self.execute_instruction(f, opcode);
         let duration = instant.elapsed();
 
-        let stack = self.with_vm(|vm| vm.stack.display_trace(&vm.frame, vm.frames.len() - 1));
+        // SAFETY: Read-only access via raw pointer. Context is !Send/!Sync.
+        let stack = unsafe {
+            let vm = &*self.vm_const_ptr();
+            vm.stack.display_trace(&vm.frame, vm.frames.len() - 1)
+        };
 
         println!(
             "{:<TIME_COLUMN_WIDTH$} {:<OPCODE_COLUMN_WIDTH$} {operands:<OPERAND_COLUMN_WIDTH$} {stack}",
@@ -678,7 +686,8 @@ impl Context {
 
         #[cfg(feature = "trace")]
         {
-            let res = self.with_vm(|vm| vm.trace || vm.frame.code_block.traceable());
+            // SAFETY: Read-only access via raw pointer. Context is !Send/!Sync.
+            let res = unsafe { (*self.vm_const_ptr()).trace || (*self.vm_const_ptr()).frame.code_block.traceable() };
             if res {
                 return self.trace_execute_instruction(f, opcode);
             }
@@ -692,23 +701,28 @@ impl Context {
         // so that errors caught by internal handlers (e.g. async module
         // evaluation) still carry source position information.
         if err.backtrace.is_none() {
-            err.backtrace = Some(self.with_vm(|vm| {
+            // SAFETY: Read-only access via raw pointer. Context is !Send/!Sync.
+            err.backtrace = Some(unsafe {
+                let vm = &*self.vm_const_ptr();
                 vm.shadow_stack
                     .take(vm.runtime_limits.backtrace_limit(), vm.frame.pc)
-            }));
+            });
         }
 
         // If we hit the execution step limit, bubble up the error to the
         // (Rust) caller instead of trying to handle as an exception.
         if !err.is_catchable() {
             let mut frame = None;
-            let mut env_fp = self.with_vm(|vm| vm.frame.environments.len());
+            // SAFETY: Read-only access via raw pointer. Context is !Send/!Sync.
+            let mut env_fp = unsafe { (*self.vm_const_ptr()).frame.environments.len() };
             loop {
-                if self.with_vm(|vm| vm.frame.exit_early()) {
+                // SAFETY: Read-only access via raw pointer. Context is !Send/!Sync.
+                if unsafe { (*self.vm_const_ptr()).frame.exit_early() } {
                     break;
                 }
 
-                env_fp = self.with_vm(|vm| vm.frame.env_fp as usize);
+                // SAFETY: Read-only access via raw pointer. Context is !Send/!Sync.
+                env_fp = unsafe { (*self.vm_const_ptr()).frame.env_fp as usize };
 
                 let Some(f) = self.pop_frame() else {
                     break;
@@ -725,7 +739,8 @@ impl Context {
         }
 
         // Note: -1 because we increment after fetching the opcode.
-        let pc = self.with_vm(|vm| vm.frame().pc.saturating_sub(1));
+        // SAFETY: Read-only access via raw pointer. Context is !Send/!Sync.
+        let pc = unsafe { (*self.vm_const_ptr()).frame.pc.saturating_sub(1) };
         if self.vm_handle_exception_at(pc) {
             self.set_pending_exception(err);
             return ControlFlow::Continue(());
@@ -739,7 +754,8 @@ impl Context {
     }
 
     fn handle_return(&self) -> ControlFlow<CompletionRecord> {
-        let exit_early = self.with_vm(|vm| vm.frame().exit_early());
+        // SAFETY: Read-only access via raw pointer. Context is !Send/!Sync.
+        let exit_early = unsafe { (*self.vm_const_ptr()).frame.exit_early() };
         // SAFETY: Field mutations via raw pointer. Context is !Send/!Sync.
         unsafe {
             let vm = &mut *self.vm_ptr();
@@ -758,7 +774,8 @@ impl Context {
 
     fn handle_yield(&self) -> ControlFlow<CompletionRecord> {
         let result = self.take_return_value();
-        if self.with_vm(|vm| vm.frame().exit_early()) {
+        // SAFETY: Read-only access via raw pointer. Context is !Send/!Sync.
+        if unsafe { (*self.vm_const_ptr()).frame.exit_early() } {
             return ControlFlow::Break(CompletionRecord::Return(result));
         }
 
@@ -781,8 +798,10 @@ impl Context {
             }
         }
 
-        let mut env_fp = self.with_vm(|vm| vm.frame.env_fp);
-        if self.with_vm(|vm| vm.frame.exit_early()) {
+        // SAFETY: Read-only access via raw pointer. Context is !Send/!Sync.
+        let mut env_fp = unsafe { (*self.vm_const_ptr()).frame.env_fp };
+        // SAFETY: Read-only access via raw pointer. Context is !Send/!Sync.
+        if unsafe { (*self.vm_const_ptr()).frame.exit_early() } {
             // SAFETY: Field mutations via raw pointer. Context is !Send/!Sync.
             unsafe {
                 let vm = &mut *self.vm_ptr();
@@ -798,8 +817,11 @@ impl Context {
         let mut frame = self.pop_frame().expect("frame must exist");
 
         loop {
-            let (new_env_fp, pc, exit_early) =
-                self.with_vm(|vm| (vm.frame.env_fp, vm.frame.pc, vm.frame.exit_early()));
+            // SAFETY: Read-only access via raw pointer. Context is !Send/!Sync.
+            let (new_env_fp, pc, exit_early) = unsafe {
+                let vm = &*self.vm_const_ptr();
+                (vm.frame.env_fp, vm.frame.pc, vm.frame.exit_early())
+            };
             env_fp = new_env_fp;
 
             if self.vm_handle_exception_at(pc) {
@@ -832,20 +854,23 @@ impl Context {
     #[allow(clippy::future_not_send)]
     pub(crate) async fn run_async_with_budget(&self, budget: u32) -> CompletionRecord {
         #[cfg(feature = "trace")]
-        if self.with_vm(|vm| vm.trace) {
+        // SAFETY: Read-only access via raw pointer. Context is !Send/!Sync.
+        if unsafe { (*self.vm_const_ptr()).trace } {
             self.trace_call_frame();
         }
 
         let mut runtime_budget: u32 = budget;
 
-        while let Some(byte) = self.with_vm(|vm| {
+        // SAFETY: Read-only access via raw pointer. Context is !Send/!Sync.
+        while let Some(byte) = unsafe {
+            let vm = &*self.vm_const_ptr();
             vm.frame
                 .code_block
                 .bytecode
                 .bytecode
                 .get(vm.frame.pc as usize)
                 .copied()
-        }) {
+        } {
             let opcode = Opcode::decode(byte);
 
             match self.execute_one(
@@ -869,18 +894,21 @@ impl Context {
 
     pub(crate) fn run(&self) -> CompletionRecord {
         #[cfg(feature = "trace")]
-        if self.with_vm(|vm| vm.trace) {
+        // SAFETY: Read-only access via raw pointer. Context is !Send/!Sync.
+        if unsafe { (*self.vm_const_ptr()).trace } {
             self.trace_call_frame();
         }
 
-        while let Some(byte) = self.with_vm(|vm| {
+        // SAFETY: Read-only access via raw pointer. Context is !Send/!Sync.
+        while let Some(byte) = unsafe {
+            let vm = &*self.vm_const_ptr();
             vm.frame
                 .code_block
                 .bytecode
                 .bytecode
                 .get(vm.frame.pc as usize)
                 .copied()
-        }) {
+        } {
             let opcode = Opcode::decode(byte);
 
             match self.execute_one(Self::execute_bytecode_instruction, opcode) {
@@ -897,12 +925,21 @@ impl Context {
         //
         // `host_call_depth` accounts for nested host calls that re-enter the VM by invoking
         // `Context::run()` recursively (for example, accessor calls).
-        let recursion_depth = self.with_vm(|vm| vm.frames.len().saturating_add(vm.host_call_depth));
-        if self.with_vm(|vm| vm.runtime_limits.recursion_limit()) <= recursion_depth {
+        // SAFETY: Read-only access via raw pointer. Context is !Send/!Sync.
+        let recursion_depth = unsafe {
+            let vm = &*self.vm_const_ptr();
+            vm.frames.len().saturating_add(vm.host_call_depth)
+        };
+        // SAFETY: Read-only access via raw pointer. Context is !Send/!Sync.
+        if unsafe { (*self.vm_const_ptr()).runtime_limits.recursion_limit() } <= recursion_depth {
             return Err(RuntimeLimitError::Recursion.into());
         }
         // Must throw if the stack size exceeds the defined maximum length.
-        if self.with_vm(|vm| vm.runtime_limits.stack_size_limit() <= vm.stack.stack.len()) {
+        // SAFETY: Read-only access via raw pointer. Context is !Send/!Sync.
+        if unsafe {
+            let vm = &*self.vm_const_ptr();
+            vm.runtime_limits.stack_size_limit() <= vm.stack.stack.len()
+        } {
             return Err(RuntimeLimitError::StackSize.into());
         }
 
