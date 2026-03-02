@@ -24,7 +24,7 @@ jobs:
     name: Coverage
     runs-on: ubuntu-latest
     timeout-minutes: 60
-    if: ${{ github.ref == 'refs/heads/main' || github.base_ref == 'main' }}
+    if: ${{ github.ref == 'refs/heads/main' || github.event_name = 'pull_request' }}
     steps:
       - name: Set environment
         # Setting `RUSTFLAGS` overrides any flags set on .cargo/config.toml, so we need to
