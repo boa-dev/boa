@@ -6,11 +6,13 @@
 //! More information:
 //!  - [ECMAScript reference][spec]
 //!
-//! [spec]: https://tc39.es/proposal-iterator-helpers/#sec-iterator-constructor
+//! [spec]: https://tc39.es/ecma262/#sec-iterator-constructor
 
 use crate::{
     Context, JsArgs, JsData, JsResult, JsString, JsValue,
-    builtins::{BuiltInBuilder, BuiltInConstructor, BuiltInObject, IntrinsicObject},
+    builtins::{
+        BuiltInBuilder, BuiltInConstructor, BuiltInObject, IntrinsicObject, object::OrdinaryObject,
+    },
     context::intrinsics::{Intrinsics, StandardConstructor, StandardConstructors},
     error::JsNativeError,
     js_string,
@@ -32,17 +34,17 @@ use super::{
 /// More information:
 ///  - [ECMAScript reference][spec]
 ///
-/// [spec]: https://tc39.es/proposal-iterator-helpers/#sec-iterator-constructor
+/// [spec]: https://tc39.es/ecma262/#sec-iterator-constructor
 #[derive(Debug, Clone, Trace, Finalize, JsData)]
 pub(crate) struct IteratorConstructor;
 
 impl IntrinsicObject for IteratorConstructor {
     fn init(realm: &Realm) {
         let get_constructor = BuiltInBuilder::callable(realm, Self::get_constructor)
-            .name(js_string!("get [Symbol.toStringTag]"))
+            .name(js_string!("get constructor"))
             .build();
         let set_constructor = BuiltInBuilder::callable(realm, Self::set_constructor)
-            .name(js_string!("set [Symbol.toStringTag]"))
+            .name(js_string!("set constructor"))
             .build();
         let get_to_string_tag = BuiltInBuilder::callable(realm, Self::get_to_string_tag)
             .name(js_string!("get [Symbol.toStringTag]"))
@@ -119,27 +121,26 @@ impl BuiltInConstructor for IteratorConstructor {
     /// More information:
     ///  - [ECMAScript reference][spec]
     ///
-    /// [spec]: https://tc39.es/proposal-iterator-helpers/#sec-iterator
+    /// [spec]: https://tc39.es/ecma262/#sec-iterator
     fn constructor(
         new_target: &JsValue,
         _args: &[JsValue],
         context: &mut Context,
     ) -> JsResult<JsValue> {
         // 1. If NewTarget is undefined or the active function object, throw a TypeError exception.
-        if new_target.is_undefined() {
+        if new_target.is_undefined()
+            || new_target
+                == &context
+                    .active_function_object()
+                    .unwrap_or_else(|| context.intrinsics().constructors().iterator().constructor())
+                    .into()
+        {
             return Err(JsNativeError::typ()
-                .with_message("Iterator constructor requires 'new'")
-                .into());
-        }
-
-        // Check if NewTarget is the active function object (i.e., direct `new Iterator()`)
-        let new_target_obj = new_target
-            .as_object()
-            .ok_or_else(|| JsNativeError::typ().with_message("NewTarget must be an object"))?;
-        let iterator_constructor = context.intrinsics().constructors().iterator().constructor();
-        if JsObject::equals(&new_target_obj, &iterator_constructor) {
-            return Err(JsNativeError::typ()
-                .with_message("Abstract class Iterator not directly constructable")
+                .with_message(if new_target.is_undefined() {
+                    "Iterator constructor requires 'new'"
+                } else {
+                    "Abstract class Iterator not directly constructable"
+                })
                 .into());
         }
 
@@ -150,7 +151,14 @@ impl BuiltInConstructor for IteratorConstructor {
             context,
         )?;
 
-        Ok(JsObject::from_proto_and_data(Some(prototype), IteratorConstructor).into())
+        // Create an ordinary object (Iterator instances have no internal data slots).
+        Ok(JsObject::from_proto_and_data_with_shared_shape(
+            context.root_shape(),
+            prototype,
+            OrdinaryObject,
+        )
+        .upcast()
+        .into())
     }
 }
 
@@ -162,7 +170,7 @@ impl IteratorConstructor {
     /// More information:
     ///  - [ECMAScript reference][spec]
     ///
-    /// [spec]: https://tc39.es/proposal-iterator-helpers/#sec-iterator.from
+    /// [spec]: https://tc39.es/ecma262/#sec-iterator.from
     fn from(_this: &JsValue, args: &[JsValue], context: &mut Context) -> JsResult<JsValue> {
         let o = args.get_or_undefined(0);
 
@@ -205,7 +213,10 @@ impl IteratorConstructor {
 
     /// `get Iterator.prototype.constructor`
     ///
-    /// Implements `SetterThatIgnoresPrototypeProperties` semantics.
+    /// More information:
+    ///  - [ECMAScript reference][spec]
+    ///
+    /// [spec]: https://tc39.es/ecma262/#sec-iterator.prototype.constructor
     fn get_constructor(
         _this: &JsValue,
         _args: &[JsValue],
@@ -222,6 +233,11 @@ impl IteratorConstructor {
     /// `set Iterator.prototype.constructor`
     ///
     /// `SetterThatIgnoresPrototypeProperties(this, %Iterator.prototype%, "constructor", v)`
+    ///
+    /// More information:
+    ///  - [ECMAScript reference][spec]
+    ///
+    /// [spec]: https://tc39.es/ecma262/#sec-iterator.prototype.constructor
     fn set_constructor(
         this: &JsValue,
         args: &[JsValue],
@@ -237,6 +253,11 @@ impl IteratorConstructor {
     }
 
     /// `get Iterator.prototype[@@toStringTag]`
+    ///
+    /// More information:
+    ///  - [ECMAScript reference][spec]
+    ///
+    /// [spec]: https://tc39.es/ecma262/#sec-iterator.prototype-%40%40tostringtag
     fn get_to_string_tag(
         _this: &JsValue,
         _args: &[JsValue],
@@ -248,6 +269,11 @@ impl IteratorConstructor {
     /// `set Iterator.prototype[@@toStringTag]`
     ///
     /// `SetterThatIgnoresPrototypeProperties(this, %Iterator.prototype%, @@toStringTag, v)`
+    ///
+    /// More information:
+    ///  - [ECMAScript reference][spec]
+    ///
+    /// [spec]: https://tc39.es/ecma262/#sec-iterator.prototype-%40%40tostringtag
     fn set_to_string_tag(
         this: &JsValue,
         args: &[JsValue],
@@ -267,7 +293,7 @@ impl IteratorConstructor {
     /// More information:
     ///  - [ECMAScript reference][spec]
     ///
-    /// [spec]: https://tc39.es/proposal-iterator-helpers/#sec-SetterThatIgnoresPrototypeProperties
+    /// [spec]: https://tc39.es/ecma262/#sec-SetterThatIgnoresPrototypeProperties
     fn setter_that_ignores_prototype_properties<K: Into<crate::property::PropertyKey>>(
         this: &JsValue,
         home: &JsObject,
@@ -318,7 +344,7 @@ impl IteratorConstructor {
     /// More information:
     ///  - [ECMAScript reference][spec]
     ///
-    /// [spec]: https://tc39.es/proposal-iterator-helpers/#sec-iteratorprototype.map
+    /// [spec]: https://tc39.es/ecma262/#sec-iterator.prototype.map
     fn map(this: &JsValue, args: &[JsValue], context: &mut Context) -> JsResult<JsValue> {
         // 1. Let O be the this value.
         // 2. If O is not an Object, throw a TypeError exception.
@@ -353,20 +379,25 @@ impl IteratorConstructor {
     /// More information:
     ///  - [ECMAScript reference][spec]
     ///
-    /// [spec]: https://tc39.es/proposal-iterator-helpers/#sec-iteratorprototype.filter
+    /// [spec]: https://tc39.es/ecma262/#sec-iterator.prototype.filter
     fn filter(this: &JsValue, args: &[JsValue], context: &mut Context) -> JsResult<JsValue> {
+        // 1. Let O be the this value.
+        // 2. If O is not an Object, throw a TypeError exception.
         let o = this.as_object().ok_or_else(|| {
             JsNativeError::typ().with_message("Iterator.prototype.filter called on non-object")
         })?;
 
+        // 3. If IsCallable(predicate) is false, throw a TypeError exception.
         let predicate = args.get_or_undefined(0);
         let predicate_obj = predicate.as_callable().ok_or_else(|| {
             JsNativeError::typ()
                 .with_message("Iterator.prototype.filter: predicate is not callable")
         })?;
 
+        // 4. Let iterated be ? GetIteratorDirect(O).
         let iterated = super::get_iterator_direct(&o, context)?;
 
+        // 5-13. Create IteratorHelper with filter operation.
         let helper = IteratorHelper::create(
             iterated,
             IteratorHelperOp::Filter {
@@ -384,7 +415,7 @@ impl IteratorConstructor {
     /// More information:
     ///  - [ECMAScript reference][spec]
     ///
-    /// [spec]: https://tc39.es/proposal-iterator-helpers/#sec-iteratorprototype.take
+    /// [spec]: https://tc39.es/ecma262/#sec-iterator.prototype.take
     fn take(this: &JsValue, args: &[JsValue], context: &mut Context) -> JsResult<JsValue> {
         let o = this.as_object().ok_or_else(|| {
             JsNativeError::typ().with_message("Iterator.prototype.take called on non-object")
@@ -439,7 +470,7 @@ impl IteratorConstructor {
     /// More information:
     ///  - [ECMAScript reference][spec]
     ///
-    /// [spec]: https://tc39.es/proposal-iterator-helpers/#sec-iteratorprototype.drop
+    /// [spec]: https://tc39.es/ecma262/#sec-iterator.prototype.drop
     fn drop(this: &JsValue, args: &[JsValue], context: &mut Context) -> JsResult<JsValue> {
         let o = this.as_object().ok_or_else(|| {
             JsNativeError::typ().with_message("Iterator.prototype.drop called on non-object")
@@ -491,7 +522,7 @@ impl IteratorConstructor {
     /// More information:
     ///  - [ECMAScript reference][spec]
     ///
-    /// [spec]: https://tc39.es/proposal-iterator-helpers/#sec-iteratorprototype.flatmap
+    /// [spec]: https://tc39.es/ecma262/#sec-iterator.prototype.flatmap
     fn flat_map(this: &JsValue, args: &[JsValue], context: &mut Context) -> JsResult<JsValue> {
         let o = this.as_object().ok_or_else(|| {
             JsNativeError::typ().with_message("Iterator.prototype.flatMap called on non-object")
@@ -524,7 +555,7 @@ impl IteratorConstructor {
     /// More information:
     ///  - [ECMAScript reference][spec]
     ///
-    /// [spec]: https://tc39.es/proposal-iterator-helpers/#sec-iteratorprototype.reduce
+    /// [spec]: https://tc39.es/ecma262/#sec-iterator.prototype.reduce
     fn reduce(this: &JsValue, args: &[JsValue], context: &mut Context) -> JsResult<JsValue> {
         let o = this.as_object().ok_or_else(|| {
             JsNativeError::typ().with_message("Iterator.prototype.reduce called on non-object")
@@ -596,7 +627,7 @@ impl IteratorConstructor {
     /// More information:
     ///  - [ECMAScript reference][spec]
     ///
-    /// [spec]: https://tc39.es/proposal-iterator-helpers/#sec-iteratorprototype.toarray
+    /// [spec]: https://tc39.es/ecma262/#sec-iterator.prototype.toarray
     fn to_array(this: &JsValue, _args: &[JsValue], context: &mut Context) -> JsResult<JsValue> {
         let o = this.as_object().ok_or_else(|| {
             JsNativeError::typ().with_message("Iterator.prototype.toArray called on non-object")
@@ -617,7 +648,7 @@ impl IteratorConstructor {
     /// More information:
     ///  - [ECMAScript reference][spec]
     ///
-    /// [spec]: https://tc39.es/proposal-iterator-helpers/#sec-iteratorprototype.foreach
+    /// [spec]: https://tc39.es/ecma262/#sec-iterator.prototype.foreach
     fn for_each(this: &JsValue, args: &[JsValue], context: &mut Context) -> JsResult<JsValue> {
         let o = this.as_object().ok_or_else(|| {
             JsNativeError::typ().with_message("Iterator.prototype.forEach called on non-object")
@@ -659,7 +690,7 @@ impl IteratorConstructor {
     /// More information:
     ///  - [ECMAScript reference][spec]
     ///
-    /// [spec]: https://tc39.es/proposal-iterator-helpers/#sec-iteratorprototype.some
+    /// [spec]: https://tc39.es/ecma262/#sec-iterator.prototype.some
     fn some(this: &JsValue, args: &[JsValue], context: &mut Context) -> JsResult<JsValue> {
         let o = this.as_object().ok_or_else(|| {
             JsNativeError::typ().with_message("Iterator.prototype.some called on non-object")
@@ -708,7 +739,7 @@ impl IteratorConstructor {
     /// More information:
     ///  - [ECMAScript reference][spec]
     ///
-    /// [spec]: https://tc39.es/proposal-iterator-helpers/#sec-iteratorprototype.every
+    /// [spec]: https://tc39.es/ecma262/#sec-iterator.prototype.every
     fn every(this: &JsValue, args: &[JsValue], context: &mut Context) -> JsResult<JsValue> {
         let o = this.as_object().ok_or_else(|| {
             JsNativeError::typ().with_message("Iterator.prototype.every called on non-object")
@@ -757,7 +788,7 @@ impl IteratorConstructor {
     /// More information:
     ///  - [ECMAScript reference][spec]
     ///
-    /// [spec]: https://tc39.es/proposal-iterator-helpers/#sec-iteratorprototype.find
+    /// [spec]: https://tc39.es/ecma262/#sec-iterator.prototype.find
     fn find(this: &JsValue, args: &[JsValue], context: &mut Context) -> JsResult<JsValue> {
         let o = this.as_object().ok_or_else(|| {
             JsNativeError::typ().with_message("Iterator.prototype.find called on non-object")
