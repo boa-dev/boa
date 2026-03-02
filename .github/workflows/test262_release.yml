@@ -1,9 +1,16 @@
-name: Update Test262 Results on Release
+name: Update Test262 Results
 
 on:
   release:
     types:
       - published
+  push:
+    branches:
+      - main
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
 
 jobs:
   update_test262_results:
@@ -48,13 +55,15 @@ jobs:
           cargo run --release --bin boa_tester -- run -v -o ../data/test262
 
       # Commit and push results back to the `data` repo
-      - name: Commit and push results
+      - name: Commit results
         run: |
           cd data
           git config user.name "GitHub Actions"
           git config user.email "actions@github.com"
           git add test262
-          git commit -m "Update Test262 results for release ${{ github.ref_name }}"
-          git push
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          git commit -m "Update Test262 results ( ${{ github.ref_name }} )"
+      - name: Push changes
+        uses: ad-m/github-push-action@master
+        with:
+            github_token: ${{ secrets.GITHUB_TOKEN }}
+            directory: data
