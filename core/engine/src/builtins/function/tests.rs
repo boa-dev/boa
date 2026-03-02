@@ -194,3 +194,59 @@ fn function_constructor_early_errors_super() {
         ),
     ]);
 }
+
+#[test]
+fn function_constructor_deep_parenthesis_reports_syntax_error() {
+    run_test_actions([TestAction::assert(indoc! {r#"
+            (() => {
+                // Test 1: Deeply nested unclosed parentheses should properly error
+                try {
+                    Function('('.repeat(703));
+                    // Should not reach here
+                    return false;
+                } catch (e) {
+                    // Must be a SyntaxError, not a stack overflow
+                    if (!(e instanceof SyntaxError)) {
+                        return false;
+                    }
+                    // Error message should indicate parser issue, not stack overflow
+                    const msg = String(e);
+                    if (!msg.includes('SyntaxError')) {
+                        return false;
+                    }
+                }
+                
+                // Test 2: Deeply nested but balanced parentheses should work
+                try {
+                    Function('let a = ' + '('.repeat(1000) + 'undefined' + ')'.repeat(1000));
+                } catch (e) {
+                    // Should not error on balanced parens
+                    return false;
+                }
+                
+                // Test 3: Arrow function inside deeply nested parens (V8-compatible)
+                try {
+                    Function('let a = ' + '('.repeat(501) + '() => {}' + ')'.repeat(501));
+                } catch (e) {
+                    // Should not error — arrow functions inside deep parens must work
+                    return false;
+                }
+
+                // Test 4: Arrow function at exactly 499 nesting levels (just below
+                // the old threshold — must also work after lowering the fast-path depth)
+                try {
+                    Function('let a = ' + '('.repeat(499) + '() => {}' + ')'.repeat(499));
+                } catch (e) {
+                    return false;
+                }
+
+                // Test 5: Moderate nesting (25 levels) with arrow function
+                try {
+                    Function('let a = ' + '('.repeat(25) + '() => {}' + ')'.repeat(25));
+                    return true;
+                } catch (e) {
+                    return false;
+                }
+            })()
+        "#})]);
+}
