@@ -809,6 +809,8 @@ impl JobExecutor for Executor {
                     }
                 }
             }
+            context.borrow_mut().clear_kept_objects();
+            future::yield_now().await;
         }
     }
 }
