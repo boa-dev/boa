@@ -73,11 +73,16 @@ impl JsRegExp {
     #[inline]
     pub fn from_object(object: JsObject) -> JsResult<Self> {
         if object.is::<RegExp>() {
-            Ok(Self { inner: object })
-        } else {
-            Err(JsNativeError::typ()
+            return Ok(Self { inner: object });
+        }
+
+        // Fall back to the spec-compliant IsRegExp check, which supports subclasses and objects
+        // with the appropriate internal RegExp slots / @@match behavior.
+        match RegExp::is_reg_exp(&object.clone().into(), &mut Context::default())? {
+            Some(_) => Ok(Self { inner: object }),
+            None => Err(JsNativeError::typ()
                 .with_message("object is not a RegExp")
-                .into())
+                .into()),
         }
     }
 

@@ -529,7 +529,13 @@ impl JsValue {
     #[inline]
     #[must_use]
     pub fn is_regexp(&self) -> bool {
-        self.as_object().is_some_and(|obj| obj.is::<RegExp>())
+        // Use the spec-compliant IsRegExp (22.2.7.1) helper, which checks @@match and internal
+        // slots instead of relying on the exact Rust type.
+        // If the check throws, we conservatively treat it as "not a RegExp".
+        let mut context = Context::default();
+        RegExp::is_reg_exp(self, &mut context)
+            .map(|opt| opt.is_some())
+            .unwrap_or(false)
     }
 
     /// Returns the value as a regular expression if the value is a regexp, otherwise `None`.
@@ -550,9 +556,20 @@ impl JsValue {
     #[inline]
     #[must_use]
     pub fn as_regexp(&self) -> Option<JsRegExp> {
-        self.as_object()
-            .filter(|obj| obj.is::<RegExp>())
-            .and_then(|o| JsRegExp::from_object(o).ok())
+        // First try the cheap path for canonical RegExp instances.
+        if let Some(obj) = self.as_object() {
+            if obj.is::<RegExp>() {
+                return JsRegExp::from_object(obj).ok();
+            }
+        }
+
+        // Fall back to the spec-compliant IsRegExp check, which supports subclasses and objects
+        // with appropriate internal slots / @@match behavior.
+        let mut context = Context::default();
+        match RegExp::is_reg_exp(self, &mut context) {
+            Ok(Some(obj)) => JsRegExp::from_object(obj).ok(),
+            _ => None,
+        }
     }
 
     /// Returns true if the value is a symbol.
