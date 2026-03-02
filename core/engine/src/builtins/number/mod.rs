@@ -925,10 +925,43 @@ fn f64_to_exponential(n: f64) -> JsString {
 // because in cases like (0.999).toExponential(0) the result will be 1e0.
 // Instead we get the index of 'e', and if the next character is not '-' we insert the plus sign
 fn f64_to_exponential_with_precision(n: f64, prec: usize) -> JsString {
-    let mut res = format!("{n:.prec$e}");
-    let idx = res.find('e').expect("'e' not found in exponential string");
-    if res.as_bytes()[idx + 1] != b'-' {
-        res.insert(idx + 1, '+');
+    if !n.is_finite() {
+        return js_string!(n.to_string());
     }
-    js_string!(res)
+
+    if n == 0.0 {
+        let frac = if prec > 0 {
+            format!(".{}", "0".repeat(prec))
+        } else {
+            String::new()
+        };
+        let sign = if n.is_sign_negative() { "-" } else { "" };
+        return js_string!(format!("{sign}0{frac}e+0"));
+    }
+
+    let sign = if n.is_sign_negative() { "-" } else { "" };
+    let abs_n = n.abs();
+
+    let mut e = abs_n.log10().floor() as i32;
+    let mut m = abs_n / 10_f64.powi(e);
+
+    if m >= 10.0 {
+        m /= 10.0;
+        e += 1;
+    } else if m < 1.0 {
+        m *= 10.0;
+        e -= 1;
+    }
+
+    let factor = 10_f64.powi(prec as i32);
+    let rounded = (m * factor + 0.5).floor();
+
+    let mut rounded_m = rounded / factor;
+    if rounded_m >= 10.0 {
+        rounded_m = 1.0;
+        e += 1;
+    }
+
+    let sign_e = if e >= 0 { "+" } else { "-" };
+    js_string!(format!("{sign}{:.*}e{sign_e}{}", prec, rounded_m, e.abs()))
 }
