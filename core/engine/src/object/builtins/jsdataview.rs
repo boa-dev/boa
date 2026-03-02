@@ -53,8 +53,8 @@ impl JsDataView {
     /// Create a new `JsDataView` object from an existing `JsArrayBuffer`.
     pub fn from_js_array_buffer(
         buffer: JsArrayBuffer,
-        offset: Option<u64>,
-        byte_len: Option<u64>,
+        offset: Option<usize>,
+        byte_len: Option<usize>,
         context: &mut Context,
     ) -> JsResult<Self> {
         let offset = offset.unwrap_or_default();
@@ -71,7 +71,7 @@ impl JsDataView {
             };
 
             // 5. Let bufferByteLength be ArrayBufferByteLength(buffer, seq-cst).
-            let buf_len = slice.len() as u64;
+            let buf_len = slice.len();
 
             // 6. If offset > bufferByteLength, throw a RangeError exception.
             if offset > buf_len {
@@ -110,7 +110,7 @@ impl JsDataView {
 
         // 11. If IsDetachedBuffer(buffer) is true, throw a TypeError exception.
         // 12. Set bufferByteLength to ArrayBufferByteLength(buffer, seq-cst).
-        let Some(buf_byte_len) = buffer.borrow().data().bytes().map(|s| s.len() as u64) else {
+        let Some(buf_byte_len) = buffer.borrow().data().bytes().map(<[u8]>::len) else {
             return Err(JsNativeError::typ()
                 .with_message("ArrayBuffer is detached")
                 .into());
@@ -170,18 +170,18 @@ impl JsDataView {
         DataView::get_buffer(&self.inner.clone().upcast().into(), &[], context)
     }
 
-    /// Returns the `byte_length` property of [`JsDataView`] as a u64 integer
+    /// Returns the `byte_length` property of [`JsDataView`] as a usize integer
     #[inline]
-    pub fn byte_length(&self, context: &mut Context) -> JsResult<u64> {
+    pub fn byte_length(&self, context: &mut Context) -> JsResult<usize> {
         DataView::get_byte_length(&self.inner.clone().upcast().into(), &[], context)
-            .map(|v| v.as_number().expect("value should be a number") as u64)
+            .map(|v| v.as_number().expect("value should be a number") as usize)
     }
 
-    /// Returns the `byte_offset` field property of [`JsDataView`] as a u64 integer
+    /// Returns the `byte_offset` field property of [`JsDataView`] as a usize integer
     #[inline]
-    pub fn byte_offset(&self, context: &mut Context) -> JsResult<u64> {
+    pub fn byte_offset(&self, context: &mut Context) -> JsResult<usize> {
         DataView::get_byte_offset(&self.inner.clone().upcast().into(), &[], context)
-            .map(|v| v.as_number().expect("byte_offset value must be a number") as u64)
+            .map(|v| v.as_number().expect("byte_offset value must be a number") as usize)
     }
 
     /// Returns a signed 64-bit integer at the specified offset from the start of the [`JsDataView`]

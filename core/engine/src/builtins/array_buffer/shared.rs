@@ -235,7 +235,7 @@ impl SharedArrayBuffer {
             })?;
 
         // 4. Let length be ArrayBufferByteLength(O, seq-cst).
-        let len = buf.bytes(Ordering::SeqCst).len() as u64;
+        let len = buf.bytes(Ordering::SeqCst).len();
 
         // 5. Return 𝔽(length).
         Ok(len.into())
@@ -338,14 +338,13 @@ impl SharedArrayBuffer {
         // d. If newByteLength < currentByteLength or newByteLength > O.[[ArrayBufferMaxByteLength]], throw a RangeError exception.
         // Extracting this condition outside the CAS since throwing early doesn't affect the correct
         // behaviour of the loop.
-        if new_byte_len > buf.data.buffer.len() as u64 {
+        if new_byte_len > buf.data.buffer.len() {
             return Err(JsNativeError::range()
                 .with_message(
                     "SharedArrayBuffer.grow: new length cannot be bigger than `maxByteLength`",
                 )
                 .into());
         }
-        let new_byte_len = new_byte_len as usize;
 
         // If we used let-else above to avoid the expect, we would carry a borrow through the `to_index`
         // call, which could mutably borrow. Another alternative would be to clone the whole
@@ -413,13 +412,13 @@ impl SharedArrayBuffer {
         // 6. If relativeStart = -∞, let first be 0.
         // 7. Else if relativeStart < 0, let first be max(len + relativeStart, 0).
         // 8. Else, let first be min(relativeStart, len).
-        let first = Array::get_relative_start(context, args.get_or_undefined(0), len as u64)?;
+        let first = Array::get_relative_start(context, args.get_or_undefined(0), len)?;
 
         // 9. If end is undefined, let relativeEnd be len; else let relativeEnd be ? ToIntegerOrInfinity(end).
         // 10. If relativeEnd = -∞, let final be 0.
         // 11. Else if relativeEnd < 0, let final be max(len + relativeEnd, 0).
         // 12. Else, let final be min(relativeEnd, len).
-        let final_ = Array::get_relative_end(context, args.get_or_undefined(1), len as u64)?;
+        let final_ = Array::get_relative_end(context, args.get_or_undefined(1), len)?;
 
         // 13. Let newLen be max(final - first, 0).
         let new_len = final_.saturating_sub(first);
@@ -451,14 +450,11 @@ impl SharedArrayBuffer {
             }
 
             // 19. If ArrayBufferByteLength(new, seq-cst) < newLen, throw a TypeError exception.
-            if (new.len(Ordering::SeqCst) as u64) < new_len {
+            if new.len(Ordering::SeqCst) < new_len {
                 return Err(JsNativeError::typ()
                     .with_message("invalid size of constructed SharedArrayBuffer")
                     .into());
             }
-
-            let first = first as usize;
-            let new_len = new_len as usize;
 
             // 20. Let fromBuf be O.[[ArrayBufferData]].
             let from_buf = &buf.bytes_with_len(len)[first..];
@@ -489,8 +485,8 @@ impl SharedArrayBuffer {
     /// [spec]: https://tc39.es/ecma262/#sec-allocatesharedarraybuffer
     pub(crate) fn allocate(
         constructor: &JsValue,
-        byte_len: u64,
-        max_byte_len: Option<u64>,
+        byte_len: usize,
+        max_byte_len: Option<usize>,
         context: &mut Context,
     ) -> JsResult<JsObject<SharedArrayBuffer>> {
         // 1. Let slots be « [[ArrayBufferData]] ».
@@ -532,7 +528,7 @@ impl SharedArrayBuffer {
         // c. Perform SetValueInBuffer(byteLengthBlock, 0, biguint64, ℤ(byteLength), true, seq-cst).
         // d. Set obj.[[ArrayBufferByteLengthData]] to byteLengthBlock.
         // e. Set obj.[[ArrayBufferMaxByteLength]] to maxByteLength.
-        let current_len = max_byte_len.map(|_| AtomicUsize::new(byte_len as usize));
+        let current_len = max_byte_len.map(|_| AtomicUsize::new(byte_len));
 
         // 10. Else,
         //     a. Set obj.[[ArrayBufferByteLength]] to byteLength.
@@ -560,9 +556,11 @@ impl SharedArrayBuffer {
 ///
 /// [spec]: https://tc39.es/ecma262/#sec-createsharedbytedatablock
 pub(crate) fn create_shared_byte_data_block(
-    size: u64,
+    size: usize,
     context: &mut Context,
 ) -> JsResult<AlignedBox<[AtomicU8]>> {
+    // 1. Let db be a new Shared Data Block value consisting of size bytes. If it is impossible to
+    //    create such a Shared Data Block, throw a RangeError exception.
     if size > context.host_hooks().max_buffer_size(context) {
         return Err(JsNativeError::range()
             .with_message(
@@ -570,12 +568,6 @@ pub(crate) fn create_shared_byte_data_block(
             )
             .into());
     }
-
-    // 1. Let db be a new Shared Data Block value consisting of size bytes. If it is impossible to
-    //    create such a Shared Data Block, throw a RangeError exception.
-    let size = size.try_into().map_err(|e| {
-        JsNativeError::range().with_message(format!("couldn't allocate the data block: {e}"))
-    })?;
 
     if size == 0 {
         // Must ensure we don't allocate a zero-sized buffer.

@@ -1338,7 +1338,7 @@ impl JsValue {
     /// Converts a value to a non-negative integer if it is a valid integer index value.
     ///
     /// See: <https://tc39.es/ecma262/#sec-toindex>
-    pub fn to_index(&self, context: &mut Context) -> JsResult<u64> {
+    pub fn to_index(&self, context: &mut Context) -> JsResult<usize> {
         // 1. If value is undefined, then
         if self.is_undefined() {
             // a. Return 0.
@@ -1363,19 +1363,23 @@ impl JsValue {
         debug_assert!(0 <= clamped && clamped <= Number::MAX_SAFE_INTEGER as i64);
 
         // e. Return integer.
-        Ok(clamped as u64)
+        Ok(usize::try_from(clamped)
+            .map_err(|_| JsNativeError::range().with_message("Index invalid on platform"))?)
+        // Ok(clamped as usize)
     }
 
     /// Converts argument to an integer suitable for use as the length of an array-like object.
     ///
     /// See: <https://tc39.es/ecma262/#sec-tolength>
-    pub fn to_length(&self, context: &mut Context) -> JsResult<u64> {
+    pub fn to_length(&self, context: &mut Context) -> JsResult<usize> {
         // 1. Let len be ? ToInteger(argument).
         // 2. If len ≤ +0, return +0.
         // 3. Return min(len, 2^53 - 1).
-        Ok(self
+        let integer = self
             .to_integer_or_infinity(context)?
-            .clamp_finite(0, Number::MAX_SAFE_INTEGER as i64) as u64)
+            .clamp_finite(0, Number::MAX_SAFE_INTEGER as i64);
+        Ok(usize::try_from(integer)
+            .map_err(|_| JsNativeError::range().with_message("Length invalid on platform"))?)
     }
 
     /// Abstract operation `ToIntegerOrInfinity ( argument )`

@@ -120,8 +120,8 @@ enum ValueStoreInner {
     #[expect(unused)]
     DataView {
         buffer: JsValueStore,
-        byte_length: u64,
-        byte_offset: u64,
+        byte_length: usize,
+        byte_offset: usize,
     },
 
     /// Typed Array, including its kind and data.

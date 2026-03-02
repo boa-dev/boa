@@ -613,7 +613,7 @@ impl JsObject {
     /// Returns the value of the "length" property of an array-like object.
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-lengthofarraylike
-    pub(crate) fn length_of_array_like(&self, context: &mut Context) -> JsResult<u64> {
+    pub(crate) fn length_of_array_like(&self, context: &mut Context) -> JsResult<usize> {
         // 1. Assert: Type(obj) is Object.
 
         // NOTE: This is an optimization, most of the cases that `LengthOfArrayLike` will be called
@@ -624,7 +624,7 @@ impl JsObject {
             //       since arrays are limited to [0, 2^32 - 1] range.
             return borrowed_object.properties().storage[0]
                 .to_u32(context)
-                .map(u64::from);
+                .map(|len| len as usize);
         }
 
         // 2. Return ℝ(? ToLength(? Get(obj, "length"))).
@@ -1304,7 +1304,7 @@ impl JsValue {
         let len = obj.length_of_array_like(context)?;
 
         // 4. Let list be a new empty List.
-        let mut list = Vec::with_capacity(len as usize);
+        let mut list = Vec::with_capacity(len);
 
         // 5. Let index be 0.
         // 6. Repeat, while index < len,
