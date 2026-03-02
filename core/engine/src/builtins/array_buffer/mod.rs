@@ -83,6 +83,13 @@ where
             Self::SharedBuffer(buf) => buf.is_fixed_len(),
         }
     }
+
+    pub(crate) fn is_detached(&self) -> bool {
+        match self {
+            Self::Buffer(buf) => buf.is_detached(),
+            Self::SharedBuffer(_) => false,
+        }
+    }
 }
 
 #[derive(Debug)]
