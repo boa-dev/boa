@@ -216,8 +216,8 @@ impl ModuleKind {
 /// Indicates how to access a specific export in a module.
 #[derive(Debug, Clone)]
 pub(crate) struct ResolvedBinding {
-    module: Module,
-    binding_name: BindingName,
+    pub(crate) module: Module,
+    pub(crate) binding_name: BindingName,
 }
 
 /// The local name of the resolved binding within its containing module.
@@ -238,9 +238,9 @@ impl ResolvedBinding {
         &self.module
     }
 
-    /// Gets the binding associated with the resolved export.
-    pub(crate) fn binding_name(&self) -> BindingName {
-        self.binding_name.clone()
+    /// Gets a reference to the binding associated with the resolved export.
+    pub(crate) const fn binding_name_ref(&self) -> &BindingName {
+        &self.binding_name
     }
 }
 
@@ -505,13 +505,13 @@ impl Module {
     #[allow(clippy::mutable_key_type)]
     pub(crate) fn resolve_export(
         &self,
-        export_name: JsString,
+        export_name: &JsString,
         resolve_set: &mut FxHashSet<(Self, JsString)>,
         interner: &Interner,
     ) -> Result<ResolvedBinding, ResolveExportError> {
         match self.kind() {
             ModuleKind::SourceText(src) => {
-                src.resolve_export(self, &export_name, resolve_set, interner)
+                src.resolve_export(self, export_name, resolve_set, interner)
             }
             ModuleKind::Synthetic(synth) => synth.resolve_export(self, export_name),
         }
@@ -697,13 +697,9 @@ impl Module {
                     .filter_map(|name| {
                         // i. Let resolution be module.ResolveExport(name).
                         // ii. If resolution is a ResolvedBinding Record, append name to unambiguousNames.
-                        self.resolve_export(
-                            name.clone(),
-                            &mut HashSet::default(),
-                            context.interner(),
-                        )
-                        .ok()
-                        .map(|_| name)
+                        self.resolve_export(&name, &mut HashSet::default(), context.interner())
+                            .ok()
+                            .map(|_| name)
                     })
                     .collect();
 
