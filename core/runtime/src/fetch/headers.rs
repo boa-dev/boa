@@ -49,7 +49,7 @@ pub struct JsHeaders {
 }
 
 impl TryFromJs for JsHeaders {
-    fn try_from_js(value: &JsValue, context: &mut Context) -> JsResult<Self> {
+    fn try_from_js(value: &JsValue, context: &Context) -> JsResult<Self> {
         let o = value.to_object(context)?;
 
         let mut this = JsHeaders::default();
@@ -79,7 +79,7 @@ impl JsHeaders {
 #[boa(rename_all = "camelCase")]
 impl JsHeaders {
     #[boa(constructor)]
-    fn constructor(init: JsValue, context: &mut Context) -> JsResult<Self> {
+    fn constructor(init: JsValue, context: &Context) -> JsResult<Self> {
         let headers = JsHeaders::default();
         if init.is_undefined() {
             return Ok(headers);
@@ -154,7 +154,7 @@ impl JsHeaders {
 
     /// Returns an iterator allowing to go through all key/value pairs contained in this object.
     // TODO: This should return a JsIterator, but not such thing exists yet.
-    pub fn entries(&self, context: &mut Context) -> JsValue {
+    pub fn entries(&self, context: &Context) -> JsValue {
         JsArray::from_iter(
             self.headers
                 .borrow()
@@ -180,7 +180,7 @@ impl JsHeaders {
         this: JsClass<Self>,
         callback: ForEachCallback,
         this_arg: Option<JsValue>,
-        context: &mut Context,
+        context: &Context,
     ) -> JsResult<()> {
         let object = this.inner().upcast();
         let this_arg = this_arg.unwrap_or_default();
@@ -198,7 +198,7 @@ impl JsHeaders {
     ///
     /// # Errors
     /// If the key is not valid ASCII, an error is returned.
-    pub fn get(&self, key: JsValue, context: &mut Context) -> JsResult<JsValue> {
+    pub fn get(&self, key: JsValue, context: &Context) -> JsResult<JsValue> {
         let key: Convert<String> = Convert::try_from_js(&key, context)?;
         let name = to_header_name(key.as_ref())?;
         let value = self

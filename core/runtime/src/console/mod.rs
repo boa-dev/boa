@@ -36,7 +36,7 @@ pub trait Logger: Trace {
     ///
     /// # Errors
     /// Returning an error will throw an exception in JavaScript.
-    fn trace(&self, msg: String, state: &ConsoleState, context: &mut Context) -> JsResult<()> {
+    fn trace(&self, msg: String, state: &ConsoleState, context: &Context) -> JsResult<()> {
         self.log(msg, state, context)?;
 
         let stack_trace_dump = context
@@ -56,7 +56,7 @@ pub trait Logger: Trace {
     ///
     /// # Errors
     /// Returning an error will throw an exception in JavaScript.
-    fn debug(&self, msg: String, state: &ConsoleState, context: &mut Context) -> JsResult<()> {
+    fn debug(&self, msg: String, state: &ConsoleState, context: &Context) -> JsResult<()> {
         self.log(msg, state, context)
     }
 
@@ -64,25 +64,25 @@ pub trait Logger: Trace {
     ///
     /// # Errors
     /// Returning an error will throw an exception in JavaScript.
-    fn log(&self, msg: String, state: &ConsoleState, context: &mut Context) -> JsResult<()>;
+    fn log(&self, msg: String, state: &ConsoleState, context: &Context) -> JsResult<()>;
 
     /// Log an info message (`console.info`).
     ///
     /// # Errors
     /// Returning an error will throw an exception in JavaScript.
-    fn info(&self, msg: String, state: &ConsoleState, context: &mut Context) -> JsResult<()>;
+    fn info(&self, msg: String, state: &ConsoleState, context: &Context) -> JsResult<()>;
 
     /// Log a warning message (`console.warn`).
     ///
     /// # Errors
     /// Returning an error will throw an exception in JavaScript.
-    fn warn(&self, msg: String, state: &ConsoleState, context: &mut Context) -> JsResult<()>;
+    fn warn(&self, msg: String, state: &ConsoleState, context: &Context) -> JsResult<()>;
 
     /// Log an error message (`console.error`).
     ///
     /// # Errors
     /// Returning an error will throw an exception in JavaScript.
-    fn error(&self, msg: String, state: &ConsoleState, context: &mut Context) -> JsResult<()>;
+    fn error(&self, msg: String, state: &ConsoleState, context: &Context) -> JsResult<()>;
 }
 
 /// The default implementation for logging from the console.
@@ -95,23 +95,23 @@ pub struct DefaultLogger;
 
 impl Logger for DefaultLogger {
     #[inline]
-    fn log(&self, msg: String, state: &ConsoleState, _context: &mut Context) -> JsResult<()> {
+    fn log(&self, msg: String, state: &ConsoleState, _context: &Context) -> JsResult<()> {
         let indent = state.indent();
         writeln!(std::io::stdout(), "{msg:>indent$}").map_err(JsError::from_rust)
     }
 
     #[inline]
-    fn info(&self, msg: String, state: &ConsoleState, context: &mut Context) -> JsResult<()> {
+    fn info(&self, msg: String, state: &ConsoleState, context: &Context) -> JsResult<()> {
         self.log(msg, state, context)
     }
 
     #[inline]
-    fn warn(&self, msg: String, state: &ConsoleState, context: &mut Context) -> JsResult<()> {
+    fn warn(&self, msg: String, state: &ConsoleState, context: &Context) -> JsResult<()> {
         self.log(msg, state, context)
     }
 
     #[inline]
-    fn error(&self, msg: String, state: &ConsoleState, _context: &mut Context) -> JsResult<()> {
+    fn error(&self, msg: String, state: &ConsoleState, _context: &Context) -> JsResult<()> {
         let indent = state.indent();
         writeln!(std::io::stderr(), "{msg:>indent$}").map_err(JsError::from_rust)
     }
@@ -123,29 +123,29 @@ pub struct NullLogger;
 
 impl Logger for NullLogger {
     #[inline]
-    fn log(&self, _: String, _: &ConsoleState, _: &mut Context) -> JsResult<()> {
+    fn log(&self, _: String, _: &ConsoleState, _: &Context) -> JsResult<()> {
         Ok(())
     }
 
     #[inline]
-    fn info(&self, _: String, _: &ConsoleState, _: &mut Context) -> JsResult<()> {
+    fn info(&self, _: String, _: &ConsoleState, _: &Context) -> JsResult<()> {
         Ok(())
     }
 
     #[inline]
-    fn warn(&self, _: String, _: &ConsoleState, _: &mut Context) -> JsResult<()> {
+    fn warn(&self, _: String, _: &ConsoleState, _: &Context) -> JsResult<()> {
         Ok(())
     }
 
     #[inline]
-    fn error(&self, _: String, _: &ConsoleState, _: &mut Context) -> JsResult<()> {
+    fn error(&self, _: String, _: &ConsoleState, _: &Context) -> JsResult<()> {
         Ok(())
     }
 }
 
 /// This represents the `console` formatter.
-fn formatter(data: &[JsValue], context: &mut Context) -> JsResult<String> {
-    fn to_string(value: &JsValue, _context: &mut Context) -> String {
+fn formatter(data: &[JsValue], context: &Context) -> JsResult<String> {
+    fn to_string(value: &JsValue, _context: &Context) -> String {
         match value.variant() {
             JsVariant::String(s) => s.to_std_string_escaped(),
             _ => value.display().to_string(),
@@ -290,7 +290,7 @@ impl Console {
     ///
     /// # Errors
     /// This function will return an error if the property cannot be defined on the global object.
-    pub fn register_with_logger<L>(logger: L, context: &mut Context) -> JsResult<()>
+    pub fn register_with_logger<L>(logger: L, context: &Context) -> JsResult<()>
     where
         L: Logger + 'static,
     {
@@ -306,12 +306,12 @@ impl Console {
 
     /// Initializes the `console` with a special logger.
     #[allow(clippy::too_many_lines)]
-    pub fn init_with_logger<L>(logger: L, context: &mut Context) -> JsObject
+    pub fn init_with_logger<L>(logger: L, context: &Context) -> JsObject
     where
         L: Logger + 'static,
     {
         fn console_method<L: Logger + 'static>(
-            f: fn(&JsValue, &[JsValue], &Console, &L, &mut Context) -> JsResult<JsValue>,
+            f: fn(&JsValue, &[JsValue], &Console, &L, &Context) -> JsResult<JsValue>,
             state: Rc<RefCell<Console>>,
             logger: Rc<L>,
         ) -> NativeFunction {
@@ -323,7 +323,7 @@ impl Console {
             }
         }
         fn console_method_mut<L: Logger + 'static>(
-            f: fn(&JsValue, &[JsValue], &mut Console, &L, &mut Context) -> JsResult<JsValue>,
+            f: fn(&JsValue, &[JsValue], &mut Console, &L, &Context) -> JsResult<JsValue>,
             state: Rc<RefCell<Console>>,
             logger: Rc<L>,
         ) -> NativeFunction {
@@ -442,7 +442,7 @@ impl Console {
     }
 
     /// Initializes the `console` built-in object.
-    pub fn init(context: &mut Context) -> JsObject {
+    pub fn init(context: &Context) -> JsObject {
         Self::init_with_logger(DefaultLogger, context)
     }
 
@@ -462,7 +462,7 @@ impl Console {
         args: &[JsValue],
         console: &Self,
         logger: &impl Logger,
-        context: &mut Context,
+        context: &Context,
     ) -> JsResult<JsValue> {
         let assertion = args.first().is_some_and(JsValue::to_boolean);
 
@@ -501,7 +501,7 @@ impl Console {
         _: &[JsValue],
         console: &mut Self,
         _: &impl Logger,
-        _: &mut Context,
+        _: &Context,
     ) -> JsResult<JsValue> {
         console.state.groups.clear();
         Ok(JsValue::undefined())
@@ -522,7 +522,7 @@ impl Console {
         args: &[JsValue],
         console: &Self,
         logger: &impl Logger,
-        context: &mut Context,
+        context: &Context,
     ) -> JsResult<JsValue> {
         logger.debug(formatter(args, context)?, &console.state, context)?;
         Ok(JsValue::undefined())
@@ -543,7 +543,7 @@ impl Console {
         args: &[JsValue],
         console: &Self,
         logger: &impl Logger,
-        context: &mut Context,
+        context: &Context,
     ) -> JsResult<JsValue> {
         logger.error(formatter(args, context)?, &console.state, context)?;
         Ok(JsValue::undefined())
@@ -564,7 +564,7 @@ impl Console {
         args: &[JsValue],
         console: &Self,
         logger: &impl Logger,
-        context: &mut Context,
+        context: &Context,
     ) -> JsResult<JsValue> {
         logger.info(formatter(args, context)?, &console.state, context)?;
         Ok(JsValue::undefined())
@@ -585,7 +585,7 @@ impl Console {
         args: &[JsValue],
         console: &Self,
         logger: &impl Logger,
-        context: &mut Context,
+        context: &Context,
     ) -> JsResult<JsValue> {
         logger.log(formatter(args, context)?, &console.state, context)?;
         Ok(JsValue::undefined())
@@ -606,7 +606,7 @@ impl Console {
         args: &[JsValue],
         console: &Self,
         logger: &impl Logger,
-        context: &mut Context,
+        context: &Context,
     ) -> JsResult<JsValue> {
         Logger::trace(logger, formatter(args, context)?, &console.state, context)?;
         Ok(JsValue::undefined())
@@ -627,7 +627,7 @@ impl Console {
         args: &[JsValue],
         console: &Self,
         logger: &impl Logger,
-        context: &mut Context,
+        context: &Context,
     ) -> JsResult<JsValue> {
         logger.warn(formatter(args, context)?, &console.state, context)?;
         Ok(JsValue::undefined())
@@ -648,7 +648,7 @@ impl Console {
         args: &[JsValue],
         console: &mut Self,
         logger: &impl Logger,
-        context: &mut Context,
+        context: &Context,
     ) -> JsResult<JsValue> {
         let label = match args.first() {
             Some(value) => value.to_string(context)?,
@@ -678,7 +678,7 @@ impl Console {
         args: &[JsValue],
         console: &mut Self,
         logger: &impl Logger,
-        context: &mut Context,
+        context: &Context,
     ) -> JsResult<JsValue> {
         let label = match args.first() {
             Some(value) => value.to_string(context)?,
@@ -719,7 +719,7 @@ impl Console {
         args: &[JsValue],
         console: &mut Self,
         logger: &impl Logger,
-        context: &mut Context,
+        context: &Context,
     ) -> JsResult<JsValue> {
         let label = match args.first() {
             Some(value) => value.to_string(context)?,
@@ -755,7 +755,7 @@ impl Console {
         args: &[JsValue],
         console: &Self,
         logger: &impl Logger,
-        context: &mut Context,
+        context: &Context,
     ) -> JsResult<JsValue> {
         let label = match args.first() {
             Some(value) => value.to_string(context)?,
@@ -795,7 +795,7 @@ impl Console {
         args: &[JsValue],
         console: &mut Self,
         logger: &impl Logger,
-        context: &mut Context,
+        context: &Context,
     ) -> JsResult<JsValue> {
         let label = match args.first() {
             Some(value) => value.to_string(context)?,
@@ -839,7 +839,7 @@ impl Console {
         args: &[JsValue],
         console: &mut Self,
         logger: &impl Logger,
-        context: &mut Context,
+        context: &Context,
     ) -> JsResult<JsValue> {
         let group_label = formatter(args, context)?;
 
@@ -864,7 +864,7 @@ impl Console {
         args: &[JsValue],
         console: &mut Self,
         logger: &impl Logger,
-        context: &mut Context,
+        context: &Context,
     ) -> JsResult<JsValue> {
         Console::group(&JsValue::undefined(), args, console, logger, context)
     }
@@ -885,7 +885,7 @@ impl Console {
         _: &[JsValue],
         console: &mut Self,
         _: &impl Logger,
-        _: &mut Context,
+        _: &Context,
     ) -> JsResult<JsValue> {
         console.state.groups.pop();
 
@@ -908,7 +908,7 @@ impl Console {
         args: &[JsValue],
         console: &Self,
         logger: &impl Logger,
-        context: &mut Context,
+        context: &Context,
     ) -> JsResult<JsValue> {
         logger.info(
             args.get_or_undefined(0).display_obj(true),

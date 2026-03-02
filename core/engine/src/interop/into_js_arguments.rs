@@ -15,7 +15,7 @@ pub trait TryFromJsArgument<'a>: Sized {
     fn try_from_js_argument(
         this: &'a JsValue,
         rest: &'a [JsValue],
-        context: &mut Context,
+        context: &Context,
     ) -> JsResult<(Self, &'a [JsValue])>;
 }
 
@@ -23,7 +23,7 @@ impl<'a, T: TryFromJs> TryFromJsArgument<'a> for T {
     fn try_from_js_argument(
         _: &'a JsValue,
         rest: &'a [JsValue],
-        context: &mut Context,
+        context: &Context,
     ) -> JsResult<(Self, &'a [JsValue])> {
         match rest.split_first() {
             Some((first, rest)) => Ok((first.try_js_into(context)?, rest)),
@@ -41,7 +41,7 @@ impl<'a> TryFromJsArgument<'a> for Ignore {
     fn try_from_js_argument(
         _this: &'a JsValue,
         rest: &'a [JsValue],
-        _: &mut Context,
+        _: &Context,
     ) -> JsResult<(Self, &'a [JsValue])> {
         Ok((Ignore, &rest[1..]))
     }
@@ -57,18 +57,18 @@ impl<'a> TryFromJsArgument<'a> for Ignore {
 /// # use boa_engine::{Context, JsValue, IntoJsFunctionCopied};
 /// # use boa_engine::interop::JsRest;
 /// # let mut context = Context::default();
-/// let sums = (|args: JsRest, context: &mut Context| -> i32 {
+/// let sums = (|args: JsRest, context: &Context| -> i32 {
 ///     args.iter()
 ///         .map(|i| i.try_js_into::<i32>(context).unwrap())
 ///         .sum::<i32>()
 /// })
-/// .into_js_function_copied(&mut context);
+/// .into_js_function_copied(&context);
 ///
 /// let result = sums
 ///     .call(
 ///         &JsValue::undefined(),
 ///         &[JsValue::from(1), JsValue::from(2), JsValue::from(3)],
-///         &mut context,
+///         &context,
 ///     )
 ///     .unwrap();
 /// assert_eq!(result, JsValue::new(6));
@@ -132,10 +132,10 @@ impl<'a> IntoIterator for JsRest<'a> {
 /// # use boa_engine::{Context, JsValue, IntoJsFunctionCopied};
 /// # use boa_engine::interop::JsAll;
 /// # let mut context = Context::default();
-/// let sums = (|args: JsAll<i32>, context: &mut Context| -> i32 {
+/// let sums = (|args: JsAll<i32>, context: &Context| -> i32 {
 ///     args.iter().sum()
 /// })
-/// .into_js_function_copied(&mut context);
+/// .into_js_function_copied(&context);
 ///
 /// let result = sums
 ///     .call(
@@ -147,7 +147,7 @@ impl<'a> IntoIterator for JsRest<'a> {
 ///             JsValue::from(true),
 ///             JsValue::from(4),
 ///         ],
-///         &mut context,
+///         &context,
 ///     )
 ///     .unwrap();
 /// assert_eq!(result, JsValue::new(6));
@@ -189,7 +189,7 @@ impl<'a, T: TryFromJs> TryFromJsArgument<'a> for JsAll<T> {
     fn try_from_js_argument(
         _this: &'a JsValue,
         mut rest: &'a [JsValue],
-        context: &mut Context,
+        context: &Context,
     ) -> JsResult<(Self, &'a [JsValue])> {
         let mut values = Vec::new();
 
@@ -216,7 +216,7 @@ impl<'a, T: TryFromJs> TryFromJsArgument<'a> for JsThis<T> {
     fn try_from_js_argument(
         this: &'a JsValue,
         rest: &'a [JsValue],
-        context: &mut Context,
+        context: &Context,
     ) -> JsResult<(Self, &'a [JsValue])> {
         Ok((JsThis(this.try_js_into(context)?), rest))
     }
@@ -287,7 +287,7 @@ impl<'a, T: NativeObject + 'static> TryFromJsArgument<'a> for JsClass<T> {
     fn try_from_js_argument(
         this: &'a JsValue,
         rest: &'a [JsValue],
-        _context: &mut Context,
+        _context: &Context,
     ) -> JsResult<(Self, &'a [JsValue])> {
         let inner = this
             .as_object()
@@ -319,10 +319,10 @@ impl<'a, T: NativeObject + 'static> TryFromJsArgument<'a> for JsClass<T> {
 /// let mut context = Context::default();
 /// context.insert_data(CustomHostDefinedStruct { counter: 123 });
 /// let f = (|ContextData(host): ContextData<CustomHostDefinedStruct>| host.counter + 1)
-///     .into_js_function_copied(&mut context);
+///     .into_js_function_copied(&context);
 ///
 /// assert_eq!(
-///     f.call(&JsValue::undefined(), &[], &mut context),
+///     f.call(&JsValue::undefined(), &[], &context),
 ///     Ok(JsValue::new(124))
 /// );
 /// ```
@@ -333,7 +333,7 @@ impl<'a, T: NativeObject + Clone> TryFromJsArgument<'a> for ContextData<T> {
     fn try_from_js_argument(
         _this: &'a JsValue,
         rest: &'a [JsValue],
-        context: &mut Context,
+        context: &Context,
     ) -> JsResult<(Self, &'a [JsValue])> {
         match context.get_data::<T>() {
             Some(value) => Ok((ContextData(value.clone()), rest)),

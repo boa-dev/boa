@@ -48,7 +48,7 @@ impl Debug for RecordingLogger {
 }
 
 impl Logger for RecordingLogger {
-    fn log(&self, msg: String, state: &ConsoleState, ctx: &mut Context) -> JsResult<()> {
+    fn log(&self, msg: String, state: &ConsoleState, ctx: &Context) -> JsResult<()> {
         self.inner
             .borrow_mut()
             .log
@@ -57,7 +57,7 @@ impl Logger for RecordingLogger {
         Ok(())
     }
 
-    fn info(&self, msg: String, state: &ConsoleState, ctx: &mut Context) -> JsResult<()> {
+    fn info(&self, msg: String, state: &ConsoleState, ctx: &Context) -> JsResult<()> {
         self.inner
             .borrow_mut()
             .log
@@ -66,7 +66,7 @@ impl Logger for RecordingLogger {
         Ok(())
     }
 
-    fn warn(&self, msg: String, state: &ConsoleState, ctx: &mut Context) -> JsResult<()> {
+    fn warn(&self, msg: String, state: &ConsoleState, ctx: &Context) -> JsResult<()> {
         self.inner
             .borrow_mut()
             .log
@@ -75,7 +75,7 @@ impl Logger for RecordingLogger {
         Ok(())
     }
 
-    fn error(&self, msg: String, state: &ConsoleState, ctx: &mut Context) -> JsResult<()> {
+    fn error(&self, msg: String, state: &ConsoleState, ctx: &Context) -> JsResult<()> {
         self.inner
             .borrow_mut()
             .error

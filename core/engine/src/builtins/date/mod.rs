@@ -49,7 +49,7 @@ impl Date {
     }
 
     /// Creates a new `Date` from the current UTC time of the host.
-    pub(crate) fn utc_now(context: &mut Context) -> Self {
+    pub(crate) fn utc_now(context: &Context) -> Self {
         Self(context.clock().now().millis_since_epoch() as f64)
     }
 }
@@ -202,11 +202,7 @@ impl BuiltInConstructor for Date {
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-date-constructor
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Date/Date
-    fn constructor(
-        new_target: &JsValue,
-        args: &[JsValue],
-        context: &mut Context,
-    ) -> JsResult<JsValue> {
+    fn constructor(new_target: &JsValue, args: &[JsValue], context: &Context) -> JsResult<JsValue> {
         // 1. If NewTarget is undefined, then
         if new_target.is_undefined() {
             // a. Let now be the time value (UTC) identifying the current time.
@@ -327,7 +323,7 @@ impl Date {
     /// [spec]: https://tc39.es/ecma262/#sec-date.now
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Date/now
     #[allow(clippy::unnecessary_wraps)]
-    pub(crate) fn now(_: &JsValue, _: &[JsValue], context: &mut Context) -> JsResult<JsValue> {
+    pub(crate) fn now(_: &JsValue, _: &[JsValue], context: &Context) -> JsResult<JsValue> {
         Ok(JsValue::new(context.clock().now().millis_since_epoch()))
     }
 
@@ -343,7 +339,7 @@ impl Date {
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-date.parse
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Date/parse
-    pub(crate) fn parse(_: &JsValue, args: &[JsValue], context: &mut Context) -> JsResult<JsValue> {
+    pub(crate) fn parse(_: &JsValue, args: &[JsValue], context: &Context) -> JsResult<JsValue> {
         let date = args.get_or_undefined(0).to_string(context)?;
         Ok(parse_date(&date, context.host_hooks().as_ref())
             .map_or(JsValue::from(f64::NAN), JsValue::from))
@@ -359,7 +355,7 @@ impl Date {
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-date.utc
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Date/UTC
-    pub(crate) fn utc(_: &JsValue, args: &[JsValue], context: &mut Context) -> JsResult<JsValue> {
+    pub(crate) fn utc(_: &JsValue, args: &[JsValue], context: &Context) -> JsResult<JsValue> {
         // 1. Let y be ? ToNumber(year).
         let y = args.get_or_undefined(0).to_number(context)?;
 
@@ -413,7 +409,7 @@ impl Date {
     pub(crate) fn get_date<const LOCAL: bool>(
         this: &JsValue,
         _args: &[JsValue],
-        context: &mut Context,
+        context: &Context,
     ) -> JsResult<JsValue> {
         // 1. Let dateObject be the this value.
         // 2. Perform ? RequireInternalSlot(dateObject, [[DateValue]]).
@@ -452,7 +448,7 @@ impl Date {
     pub(crate) fn get_day<const LOCAL: bool>(
         this: &JsValue,
         _args: &[JsValue],
-        context: &mut Context,
+        context: &Context,
     ) -> JsResult<JsValue> {
         // 1. Let dateObject be the this value.
         // 2. Perform ? RequireInternalSlot(dateObject, [[DateValue]]).
@@ -494,7 +490,7 @@ impl Date {
     pub(crate) fn get_year(
         this: &JsValue,
         _args: &[JsValue],
-        context: &mut Context,
+        context: &Context,
     ) -> JsResult<JsValue> {
         // 1. Let dateObject be the this value.
         // 2. Perform ? RequireInternalSlot(dateObject, [[DateValue]]).
@@ -526,7 +522,7 @@ impl Date {
     pub(crate) fn get_full_year<const LOCAL: bool>(
         this: &JsValue,
         _args: &[JsValue],
-        context: &mut Context,
+        context: &Context,
     ) -> JsResult<JsValue> {
         // 1. Let dateObject be the this value.
         // 2. Perform ? RequireInternalSlot(dateObject, [[DateValue]]).
@@ -564,7 +560,7 @@ impl Date {
     pub(crate) fn get_hours<const LOCAL: bool>(
         this: &JsValue,
         _args: &[JsValue],
-        context: &mut Context,
+        context: &Context,
     ) -> JsResult<JsValue> {
         // 1. Let dateObject be the this value.
         // 2. Perform ? RequireInternalSlot(dateObject, [[DateValue]]).
@@ -602,7 +598,7 @@ impl Date {
     pub(crate) fn get_milliseconds<const LOCAL: bool>(
         this: &JsValue,
         _args: &[JsValue],
-        context: &mut Context,
+        context: &Context,
     ) -> JsResult<JsValue> {
         // 1. Let dateObject be the this value.
         // 2. Perform ? RequireInternalSlot(dateObject, [[DateValue]]).
@@ -640,7 +636,7 @@ impl Date {
     pub(crate) fn get_minutes<const LOCAL: bool>(
         this: &JsValue,
         _args: &[JsValue],
-        context: &mut Context,
+        context: &Context,
     ) -> JsResult<JsValue> {
         // 1. Let dateObject be the this value.
         // 2. Perform ? RequireInternalSlot(dateObject, [[DateValue]]).
@@ -679,7 +675,7 @@ impl Date {
     pub(crate) fn get_month<const LOCAL: bool>(
         this: &JsValue,
         _args: &[JsValue],
-        context: &mut Context,
+        context: &Context,
     ) -> JsResult<JsValue> {
         // 1. Let dateObject be the this value.
         // 2. Perform ? RequireInternalSlot(dateObject, [[DateValue]]).
@@ -717,7 +713,7 @@ impl Date {
     pub(crate) fn get_seconds<const LOCAL: bool>(
         this: &JsValue,
         _args: &[JsValue],
-        context: &mut Context,
+        context: &Context,
     ) -> JsResult<JsValue> {
         // 1. Let dateObject be the this value.
         // 2. Perform ? RequireInternalSlot(dateObject, [[DateValue]]).
@@ -758,7 +754,7 @@ impl Date {
     pub(crate) fn get_time(
         this: &JsValue,
         _args: &[JsValue],
-        _context: &mut Context,
+        _context: &Context,
     ) -> JsResult<JsValue> {
         // 1. Let dateObject be the this value.
         // 2. Perform ? RequireInternalSlot(dateObject, [[DateValue]]).
@@ -785,7 +781,7 @@ impl Date {
     pub(crate) fn get_timezone_offset(
         this: &JsValue,
         _: &[JsValue],
-        context: &mut Context,
+        context: &Context,
     ) -> JsResult<JsValue> {
         // 1. Let dateObject be the this value.
         // 2. Perform ? RequireInternalSlot(dateObject, [[DateValue]]).
@@ -818,7 +814,7 @@ impl Date {
     pub(crate) fn set_date<const LOCAL: bool>(
         this: &JsValue,
         args: &[JsValue],
-        context: &mut Context,
+        context: &Context,
     ) -> JsResult<JsValue> {
         // 1. Let dateObject be the this value.
         // 2. Perform ? RequireInternalSlot(dateObject, [[DateValue]]).
@@ -888,7 +884,7 @@ impl Date {
     pub(crate) fn set_full_year<const LOCAL: bool>(
         this: &JsValue,
         args: &[JsValue],
-        context: &mut Context,
+        context: &Context,
     ) -> JsResult<JsValue> {
         // 1. Let dateObject be the this value.
         // 2. Perform ? RequireInternalSlot(dateObject, [[DateValue]]).
@@ -973,7 +969,7 @@ impl Date {
     pub(crate) fn set_hours<const LOCAL: bool>(
         this: &JsValue,
         args: &[JsValue],
-        context: &mut Context,
+        context: &Context,
     ) -> JsResult<JsValue> {
         // 1. Let dateObject be the this value.
         // 2. Perform ? RequireInternalSlot(dateObject, [[DateValue]]).
@@ -1057,7 +1053,7 @@ impl Date {
     pub(crate) fn set_milliseconds<const LOCAL: bool>(
         this: &JsValue,
         args: &[JsValue],
-        context: &mut Context,
+        context: &Context,
     ) -> JsResult<JsValue> {
         // 1. Let dateObject be the this value.
         // 2. Perform ? RequireInternalSlot(dateObject, [[DateValue]]).
@@ -1131,7 +1127,7 @@ impl Date {
     pub(crate) fn set_minutes<const LOCAL: bool>(
         this: &JsValue,
         args: &[JsValue],
-        context: &mut Context,
+        context: &Context,
     ) -> JsResult<JsValue> {
         // 1. Let dateObject be the this value.
         // 2. Perform ? RequireInternalSlot(dateObject, [[DateValue]]).
@@ -1210,7 +1206,7 @@ impl Date {
     pub(crate) fn set_month<const LOCAL: bool>(
         this: &JsValue,
         args: &[JsValue],
-        context: &mut Context,
+        context: &Context,
     ) -> JsResult<JsValue> {
         // 1. Let dateObject be the this value.
         // 2. Perform ? RequireInternalSlot(dateObject, [[DateValue]]).
@@ -1285,7 +1281,7 @@ impl Date {
     pub(crate) fn set_seconds<const LOCAL: bool>(
         this: &JsValue,
         args: &[JsValue],
-        context: &mut Context,
+        context: &Context,
     ) -> JsResult<JsValue> {
         // 1. Let dateObject be the this value.
         // 2. Perform ? RequireInternalSlot(dateObject, [[DateValue]]).
@@ -1367,7 +1363,7 @@ impl Date {
     pub(crate) fn set_year(
         this: &JsValue,
         args: &[JsValue],
-        context: &mut Context,
+        context: &Context,
     ) -> JsResult<JsValue> {
         // 1. Let dateObject be the this value.
         // 2. Perform ? RequireInternalSlot(dateObject, [[DateValue]]).
@@ -1434,7 +1430,7 @@ impl Date {
     pub(crate) fn set_time(
         this: &JsValue,
         args: &[JsValue],
-        context: &mut Context,
+        context: &Context,
     ) -> JsResult<JsValue> {
         // 1. Let dateObject be the this value.
         // 2. Perform ? RequireInternalSlot(dateObject, [[DateValue]]).
@@ -1481,7 +1477,7 @@ impl Date {
     pub(crate) fn to_date_string(
         this: &JsValue,
         _: &[JsValue],
-        context: &mut Context,
+        context: &Context,
     ) -> JsResult<JsValue> {
         // 1. Let dateObject be the this value.
         // 2. Perform ? RequireInternalSlot(dateObject, [[DateValue]]).
@@ -1515,11 +1511,7 @@ impl Date {
     /// [iso8601]: http://en.wikipedia.org/wiki/ISO_8601
     /// [spec]: https://tc39.es/ecma262/#sec-date.prototype.toisostring
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Date/toISOString
-    pub(crate) fn to_iso_string(
-        this: &JsValue,
-        _: &[JsValue],
-        _: &mut Context,
-    ) -> JsResult<JsValue> {
+    pub(crate) fn to_iso_string(this: &JsValue, _: &[JsValue], _: &Context) -> JsResult<JsValue> {
         // 1. Let dateObject be the this value.
         // 2. Perform ? RequireInternalSlot(dateObject, [[DateValue]]).
         // 3. Let tv be dateObject.[[DateValue]].
@@ -1587,11 +1579,7 @@ impl Date {
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-date.prototype.tojson
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Date/toJSON
-    pub(crate) fn to_json(
-        this: &JsValue,
-        _: &[JsValue],
-        context: &mut Context,
-    ) -> JsResult<JsValue> {
+    pub(crate) fn to_json(this: &JsValue, _: &[JsValue], context: &Context) -> JsResult<JsValue> {
         // 1. Let O be ? ToObject(this value).
         let o = this.to_object(context)?;
 
@@ -1621,7 +1609,7 @@ impl Date {
     pub(crate) fn to_locale_date_string(
         _this: &JsValue,
         _args: &[JsValue],
-        _context: &mut Context,
+        _context: &Context,
     ) -> JsResult<JsValue> {
         Err(JsError::from_opaque(JsValue::new(js_string!(
             "Function Unimplemented"
@@ -1640,7 +1628,7 @@ impl Date {
     pub(crate) fn to_locale_string(
         _this: &JsValue,
         _: &[JsValue],
-        _context: &mut Context,
+        _context: &Context,
     ) -> JsResult<JsValue> {
         Err(JsError::from_opaque(JsValue::new(js_string!(
             "Function Unimplemented]"
@@ -1660,7 +1648,7 @@ impl Date {
     pub(crate) fn to_locale_time_string(
         _this: &JsValue,
         _args: &[JsValue],
-        _context: &mut Context,
+        _context: &Context,
     ) -> JsResult<JsValue> {
         Err(JsError::from_opaque(JsValue::new(js_string!(
             "Function Unimplemented]"
@@ -1676,11 +1664,7 @@ impl Date {
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-date.prototype.tostring
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Date/toString
-    pub(crate) fn to_string(
-        this: &JsValue,
-        _: &[JsValue],
-        context: &mut Context,
-    ) -> JsResult<JsValue> {
+    pub(crate) fn to_string(this: &JsValue, _: &[JsValue], context: &Context) -> JsResult<JsValue> {
         // 1. Let dateObject be the this value.
         // 2. Perform ? RequireInternalSlot(dateObject, [[DateValue]]).
         // 3. Let tv be dateObject.[[DateValue]].
@@ -1710,7 +1694,7 @@ impl Date {
     pub(crate) fn to_time_string(
         this: &JsValue,
         _: &[JsValue],
-        context: &mut Context,
+        context: &Context,
     ) -> JsResult<JsValue> {
         // 1. Let dateObject be the this value.
         // 2. Perform ? RequireInternalSlot(dateObject, [[DateValue]]).
@@ -1748,7 +1732,7 @@ impl Date {
     pub(crate) fn to_utc_string(
         this: &JsValue,
         _args: &[JsValue],
-        _context: &mut Context,
+        _context: &Context,
     ) -> JsResult<JsValue> {
         // 1. Let dateObject be the this value.
         // 2. Perform ? RequireInternalSlot(dateObject, [[DateValue]]).
@@ -1852,7 +1836,7 @@ impl Date {
     pub(crate) fn value_of(
         this: &JsValue,
         _args: &[JsValue],
-        _context: &mut Context,
+        _context: &Context,
     ) -> JsResult<JsValue> {
         // 1. Let dateObject be the this value.
         // 2. Perform ? RequireInternalSlot(dateObject, [[DateValue]]).
@@ -1877,7 +1861,7 @@ impl Date {
     pub(crate) fn to_primitive(
         this: &JsValue,
         args: &[JsValue],
-        context: &mut Context,
+        context: &Context,
     ) -> JsResult<JsValue> {
         // 1. Let O be the this value.
         // 2. If Type(O) is not Object, throw a TypeError exception.
@@ -1920,7 +1904,7 @@ impl Date {
     pub(crate) fn to_temporal_instant(
         this: &JsValue,
         _: &[JsValue],
-        context: &mut Context,
+        context: &Context,
     ) -> JsResult<JsValue> {
         use crate::{builtins::temporal::create_temporal_instant, js_error};
         use num_traits::FromPrimitive;

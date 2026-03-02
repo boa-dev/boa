@@ -31,7 +31,7 @@ pub(crate) fn get_temporal_unit(
     key: JsString,
     unit_group: TemporalUnitGroup,
     extra_values: Option<Vec<Unit>>,
-    context: &mut Context,
+    context: &Context,
 ) -> JsResult<Option<Unit>> {
     let extra = extra_values.unwrap_or_default();
     let mut unit_values = unit_group.group();
@@ -53,7 +53,7 @@ pub(crate) fn get_temporal_unit(
 #[inline]
 pub(crate) fn get_difference_settings(
     options: &JsObject,
-    context: &mut Context,
+    context: &Context,
 ) -> JsResult<DifferenceSettings> {
     let mut settings = DifferenceSettings::default();
     settings.largest_unit = get_option::<Unit>(options, js_string!("largestUnit"), context)?;
@@ -65,7 +65,7 @@ pub(crate) fn get_difference_settings(
     Ok(settings)
 }
 
-pub(crate) fn get_digits_option(options: &JsObject, context: &mut Context) -> JsResult<Precision> {
+pub(crate) fn get_digits_option(options: &JsObject, context: &Context) -> JsResult<Precision> {
     // 1. Let digitsValue be ? Get(options, "fractionalSecondDigits").
     let digits_value = options.get(js_string!("fractionalSecondDigits"), context)?;
     // 2. If digitsValue is undefined, return auto.
@@ -156,7 +156,7 @@ impl ParsableOptionType for DisplayTimeZone {}
 impl ParsableOptionType for TransitionDirection {}
 
 impl OptionType for RoundingIncrement {
-    fn from_value(value: JsValue, context: &mut Context) -> JsResult<Self> {
+    fn from_value(value: JsValue, context: &Context) -> JsResult<Self> {
         let value = value.to_number(context)?;
 
         Ok(RoundingIncrement::try_from(value)?)

@@ -64,11 +64,14 @@ pub(crate) struct GeneratorContext {
 
 impl GeneratorContext {
     /// Creates a new `GeneratorContext` from the current `Context` state.
-    pub(crate) fn from_current(context: &mut Context, async_generator: Option<JsObject>) -> Self {
-        let mut frame = context.vm.frame().clone();
-        frame.environments = context.vm.frame.environments.clone();
-        frame.realm = context.realm().clone();
-        let mut stack = context.vm.stack.split_off_frame(&frame);
+    pub(crate) fn from_current(context: &Context, async_generator: Option<JsObject>) -> Self {
+        let (mut frame, mut stack) = context.with_vm_mut(|vm| {
+            let mut frame = vm.frame().clone();
+            frame.environments = vm.frame.environments.clone();
+            frame.realm = context.realm().clone();
+            let stack = vm.stack.split_off_frame(&frame);
+            (frame, stack)
+        });
 
         frame.rp = CallFrame::FUNCTION_PROLOGUE + frame.argument_count;
 
@@ -91,26 +94,28 @@ impl GeneratorContext {
         &mut self,
         value: Option<JsValue>,
         resume_kind: GeneratorResumeKind,
-        context: &mut Context,
+        context: &Context,
     ) -> CompletionRecord {
-        std::mem::swap(&mut context.vm.stack, &mut self.stack);
+        context.with_vm_mut(|vm| std::mem::swap(&mut vm.stack, &mut self.stack));
         let frame = self.call_frame.take().expect("should have a call frame");
         let rp = frame.rp;
-        context.vm.push_frame(frame);
+        context.push_frame(frame);
 
-        let frame = context.vm.frame_mut();
-        frame.rp = rp;
-        frame.set_exit_early(true);
+        context.with_vm_mut(|vm| {
+            let frame = vm.frame_mut();
+            frame.rp = rp;
+            frame.set_exit_early(true);
+        });
 
         if let Some(value) = value {
-            context.vm.stack.push(value);
+            context.stack_push(value);
         }
-        context.vm.stack.push(resume_kind);
+        context.stack_push(resume_kind);
 
         let result = context.run();
 
-        std::mem::swap(&mut context.vm.stack, &mut self.stack);
-        self.call_frame = context.vm.pop_frame();
+        context.with_vm_mut(|vm| std::mem::swap(&mut vm.stack, &mut self.stack));
+        self.call_frame = context.pop_frame();
         assert!(self.call_frame.is_some());
         result
     }
@@ -180,11 +185,7 @@ impl Generator {
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-generator.prototype.next
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Generator/next
-    pub(crate) fn next(
-        this: &JsValue,
-        args: &[JsValue],
-        context: &mut Context,
-    ) -> JsResult<JsValue> {
+    pub(crate) fn next(this: &JsValue, args: &[JsValue], context: &Context) -> JsResult<JsValue> {
         // 1. Return ? GeneratorResume(this value, value, empty).
         Self::generator_resume(this, args.get_or_undefined(0).clone(), context)
     }
@@ -202,7 +203,7 @@ impl Generator {
     pub(crate) fn r#return(
         this: &JsValue,
         args: &[JsValue],
-        context: &mut Context,
+        context: &Context,
     ) -> JsResult<JsValue> {
         // 1. Let g be the this value.
         // 2. Let C be Completion { [[Type]]: return, [[Value]]: value, [[Target]]: empty }.
@@ -221,11 +222,7 @@ impl Generator {
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-generator.prototype.throw
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Generator/throw
-    pub(crate) fn throw(
-        this: &JsValue,
-        args: &[JsValue],
-        context: &mut Context,
-    ) -> JsResult<JsValue> {
+    pub(crate) fn throw(this: &JsValue, args: &[JsValue], context: &Context) -> JsResult<JsValue> {
         // 1. Let g be the this value.
         // 2. Let C be ThrowCompletion(exception).
         // 3. Return ? GeneratorResumeAbrupt(g, C, empty).
@@ -245,7 +242,7 @@ impl Generator {
     pub(crate) fn generator_resume(
         r#gen: &JsValue,
         value: JsValue,
-        context: &mut Context,
+        context: &Context,
     ) -> JsResult<JsValue> {
         // 1. Let state be ? GeneratorValidate(generator, generatorBrand).
         let Some(generator_obj) = r#gen.as_object() else {
@@ -325,7 +322,7 @@ impl Generator {
     pub(crate) fn generator_resume_abrupt(
         r#gen: &JsValue,
         abrupt_completion: JsResult<JsValue>,
-        context: &mut Context,
+        context: &Context,
     ) -> JsResult<JsValue> {
         // 1. Let state be ? GeneratorValidate(generator, generatorBrand).
         let Some(generator_obj) = r#gen.as_object() else {

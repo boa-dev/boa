@@ -85,7 +85,7 @@ impl ForInIterator {
     ///  - [ECMA reference][spec]
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-%foriniteratorprototype%.next
-    pub(crate) fn next(this: &JsValue, _: &[JsValue], context: &mut Context) -> JsResult<JsValue> {
+    pub(crate) fn next(this: &JsValue, _: &[JsValue], context: &Context) -> JsResult<JsValue> {
         let object = this.as_object();
         let mut iterator = object
             .as_ref()
@@ -94,8 +94,8 @@ impl ForInIterator {
         let mut object = iterator.object.to_object(context)?;
         loop {
             if !iterator.object_was_visited {
-                let keys = object
-                    .__own_property_keys__(&mut InternalMethodPropertyContext::new(context))?;
+                let keys =
+                    object.__own_property_keys__(&InternalMethodPropertyContext::new(context))?;
                 for k in keys {
                     match k {
                         PropertyKey::String(ref k) => {

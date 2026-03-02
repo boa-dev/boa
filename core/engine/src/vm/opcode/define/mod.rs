@@ -16,15 +16,16 @@ pub(crate) struct DefVar;
 
 impl DefVar {
     #[inline(always)]
-    pub(super) fn operation(index: VaryingOperand, context: &mut Context) {
+    pub(super) fn operation(index: VaryingOperand, context: &Context) {
         // TODO: spec specifies to return `empty` on empty vars, but we're trying to initialize.
-        let binding_locator = context.vm.frame().code_block.bindings[usize::from(index)].clone();
-
-        context.vm.frame.environments.put_value_if_uninitialized(
-            binding_locator.scope(),
-            binding_locator.binding_index(),
-            JsValue::undefined(),
-        );
+        context.with_vm_mut(|vm| {
+            let binding_locator = vm.frame().code_block.bindings[usize::from(index)].clone();
+            vm.frame.environments.put_value_if_uninitialized(
+                binding_locator.scope(),
+                binding_locator.binding_index(),
+                JsValue::undefined(),
+            );
+        });
     }
 }
 
@@ -45,14 +46,16 @@ impl DefInitVar {
     #[inline(always)]
     pub(super) fn operation(
         (value, index): (VaryingOperand, VaryingOperand),
-        context: &mut Context,
+        context: &Context,
     ) -> JsResult<()> {
-        let value = context.vm.get_register(value.into()).clone();
-        let frame = context.vm.frame();
-        let strict = frame.code_block.strict();
-        let mut binding_locator = frame.code_block.bindings[usize::from(index)].clone();
+        let (value, strict, mut binding_locator) = context.with_vm(|vm| {
+            let value = vm.get_register(value.into()).clone();
+            let strict = vm.frame().code_block.strict();
+            let binding_locator = vm.frame().code_block.bindings[usize::from(index)].clone();
+            (value, strict, binding_locator)
+        });
         context.find_runtime_binding(&mut binding_locator)?;
-        context.set_binding(&binding_locator, value.clone(), strict)?;
+        context.set_binding(&binding_locator, value, strict)?;
 
         Ok(())
     }
@@ -73,17 +76,16 @@ pub(crate) struct PutLexicalValue;
 
 impl PutLexicalValue {
     #[inline(always)]
-    pub(super) fn operation(
-        (value, index): (VaryingOperand, VaryingOperand),
-        context: &mut Context,
-    ) {
-        let value = context.vm.get_register(value.into());
-        let binding_locator = context.vm.frame().code_block.bindings[usize::from(index)].clone();
-        context.vm.frame.environments.put_lexical_value(
-            binding_locator.scope(),
-            binding_locator.binding_index(),
-            value.clone(),
-        );
+    pub(super) fn operation((value, index): (VaryingOperand, VaryingOperand), context: &Context) {
+        context.with_vm_mut(|vm| {
+            let value = vm.get_register(value.into()).clone();
+            let binding_locator = vm.frame().code_block.bindings[usize::from(index)].clone();
+            vm.frame.environments.put_lexical_value(
+                binding_locator.scope(),
+                binding_locator.binding_index(),
+                value,
+            );
+        });
     }
 }
 

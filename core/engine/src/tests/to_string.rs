@@ -453,7 +453,7 @@ fn assert_helper<T>(code: &str, expected: T)
 where
     T: TryFromJs + Debug + Eq,
 {
-    let context = &mut Context::default();
+    let context = &Context::default();
     let js = context.eval(Source::from_bytes(code)).unwrap();
     let res = T::try_from_js(&js, context).unwrap();
     assert_eq!(expected, res);

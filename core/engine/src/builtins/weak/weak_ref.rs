@@ -60,11 +60,7 @@ impl BuiltInConstructor for WeakRef {
     /// Constructor [`WeakRef ( target )`][cons]
     ///
     /// [cons]: https://tc39.es/ecma262/#sec-weak-ref-target
-    fn constructor(
-        new_target: &JsValue,
-        args: &[JsValue],
-        context: &mut Context,
-    ) -> JsResult<JsValue> {
+    fn constructor(new_target: &JsValue, args: &[JsValue], context: &Context) -> JsResult<JsValue> {
         // If NewTarget is undefined, throw a TypeError exception.
         if new_target.is_undefined() {
             return Err(JsNativeError::typ()
@@ -91,7 +87,7 @@ impl BuiltInConstructor for WeakRef {
         );
 
         // 4. Perform AddToKeptObjects(target).
-        context.kept_alive.push(target.clone());
+        context.kept_alive.borrow_mut().push(target.clone());
 
         // 6. Return weakRef.
         Ok(weak_ref.into())
@@ -105,7 +101,7 @@ impl WeakRef {
     /// proper [`JsObject`], or returns `undefined` otherwise.
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-weak-ref.prototype.deref
-    pub(crate) fn deref(this: &JsValue, _: &[JsValue], context: &mut Context) -> JsResult<JsValue> {
+    pub(crate) fn deref(this: &JsValue, _: &[JsValue], context: &Context) -> JsResult<JsValue> {
         // 1. Let weakRef be the this value.
         // 2. Perform ? RequireInternalSlot(weakRef, [[WeakRefTarget]]).
         let object = this.as_object();
@@ -128,7 +124,7 @@ impl WeakRef {
             let object = JsObject::from(object);
 
             // a. Perform AddToKeptObjects(target).
-            context.kept_alive.push(object.clone());
+            context.kept_alive.borrow_mut().push(object.clone());
 
             // b. Return target.
             Ok(object.into())

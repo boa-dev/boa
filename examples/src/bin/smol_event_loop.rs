@@ -52,7 +52,7 @@ impl Queue {
         }
     }
 
-    fn drain_timeout_jobs(&self, context: &mut Context) {
+    fn drain_timeout_jobs(&self, context: &Context) {
         let now = context.clock().now();
 
         let mut timeouts_borrow = self.timeout_jobs.borrow_mut();
@@ -68,7 +68,7 @@ impl Queue {
         }
     }
 
-    fn drain_jobs(&self, context: &mut Context) {
+    fn drain_jobs(&self, context: &Context) {
         // Run the timeout jobs first.
         self.drain_timeout_jobs(context);
 
@@ -89,7 +89,7 @@ impl Queue {
 }
 
 impl JobExecutor for Queue {
-    fn enqueue_job(self: Rc<Self>, job: Job, context: &mut Context) {
+    fn enqueue_job(self: Rc<Self>, job: Job, context: &Context) {
         match job {
             Job::PromiseJob(job) => self.promise_jobs.borrow_mut().push_back(job),
             Job::AsyncJob(job) => self.async_jobs.borrow_mut().push_back(job),
@@ -103,12 +103,12 @@ impl JobExecutor for Queue {
     }
 
     // While the sync flavor of `run_jobs` will block the current thread until all the jobs have finished...
-    fn run_jobs(self: Rc<Self>, context: &mut Context) -> JsResult<()> {
+    fn run_jobs(self: Rc<Self>, context: &Context) -> JsResult<()> {
         smol::block_on(smol::LocalExecutor::new().run(self.run_jobs_async(&RefCell::new(context))))
     }
 
     // ...the async flavor won't, which allows concurrent execution with external async tasks.
-    async fn run_jobs_async(self: Rc<Self>, context: &RefCell<&mut Context>) -> JsResult<()> {
+    async fn run_jobs_async(self: Rc<Self>, context: &RefCell<&Context>) -> JsResult<()> {
         let mut group = FutureGroup::new();
         loop {
             for job in std::mem::take(&mut *self.async_jobs.borrow_mut()) {
@@ -131,7 +131,7 @@ impl JobExecutor for Queue {
             }
 
             // Only one macrotask can be executed before the next drain of the microtask queue.
-            self.drain_jobs(&mut context.borrow_mut());
+            self.drain_jobs(&context.borrow());
             future::yield_now().await;
         }
     }
@@ -141,9 +141,9 @@ impl JobExecutor for Queue {
 fn delay(
     _this: &JsValue,
     args: &[JsValue],
-    context: &RefCell<&mut Context>,
+    context: &RefCell<&Context>,
 ) -> impl Future<Output = JsResult<JsValue>> {
-    let millis = args.get_or_undefined(0).to_u32(&mut context.borrow_mut());
+    let millis = args.get_or_undefined(0).to_u32(&context.borrow());
 
     async move {
         let millis = millis?;
@@ -157,7 +157,7 @@ fn delay(
 
 // Example interval function, but using a `NativeAsyncJob` instead of an async
 // function to schedule the async job.
-fn interval(this: &JsValue, args: &[JsValue], context: &mut Context) -> JsResult<JsValue> {
+fn interval(this: &JsValue, args: &[JsValue], context: &Context) -> JsResult<JsValue> {
     let Some(function) = args.get_or_undefined(0).as_callable() else {
         return Err(JsNativeError::typ()
             .with_message("arg must be a callable")
@@ -170,11 +170,11 @@ fn interval(this: &JsValue, args: &[JsValue], context: &mut Context) -> JsResult
 
     context.enqueue_job(
         NativeAsyncJob::with_realm(
-            async move |context: &RefCell<&mut Context>| {
+            async move |context: &RefCell<&Context>| {
                 let mut timer = smol::Timer::interval(Duration::from_millis(u64::from(delay)));
                 for _ in 0..10 {
                     timer.next().await;
-                    if let Err(err) = function.call(&this, &args, &mut context.borrow_mut()) {
+                    if let Err(err) = function.call(&this, &args, &context.borrow()) {
                         eprintln!("Uncaught {err}");
                     }
                 }
@@ -189,7 +189,7 @@ fn interval(this: &JsValue, args: &[JsValue], context: &mut Context) -> JsResult
 }
 
 /// Adds the custom runtime to the context.
-fn add_runtime(context: &mut Context) {
+fn add_runtime(context: &Context) {
     // First add the `console` object, to be able to call `console.log()`.
     let console = Console::init(context);
     context
@@ -248,7 +248,7 @@ fn internally_async_event_loop() -> JsResult<()> {
 
     // Initialize the queue and the context
     let queue = Queue::new();
-    let context = &mut ContextBuilder::new()
+    let context = &ContextBuilder::new()
         .job_executor(Rc::new(queue))
         .build()
         .unwrap();
@@ -278,7 +278,7 @@ fn externally_async_event_loop() -> JsResult<()> {
     smol::block_on(executor.run(async {
         // Initialize the queue and the context
         let queue = Rc::new(Queue::new());
-        let context = &mut ContextBuilder::new()
+        let context = &ContextBuilder::new()
             .job_executor(queue.clone())
             .build()
             .unwrap();

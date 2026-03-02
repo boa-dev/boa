@@ -15,20 +15,19 @@ pub(crate) struct NewTarget;
 
 impl NewTarget {
     #[inline(always)]
-    pub(super) fn operation(dst: VaryingOperand, context: &mut Context) {
-        let new_target = if let Some(new_target) = context
-            .vm
-            .frame
-            .environments
-            .get_this_environment()
-            .as_function()
-            .and_then(|env| env.slots().new_target().cloned())
-        {
+    pub(super) fn operation(dst: VaryingOperand, context: &Context) {
+        let new_target = if let Some(new_target) = context.with_vm(|vm| {
+            vm.frame
+                .environments
+                .get_this_environment()
+                .as_function()
+                .and_then(|env| env.slots().new_target().cloned())
+        }) {
             new_target.into()
         } else {
             JsValue::undefined()
         };
-        context.vm.set_register(dst.into(), new_target);
+        context.set_register(dst.into(), new_target);
     }
 }
 
@@ -47,7 +46,7 @@ pub(crate) struct ImportMeta;
 
 impl ImportMeta {
     #[inline(always)]
-    pub(super) fn operation(dst: VaryingOperand, context: &mut Context) {
+    pub(super) fn operation(dst: VaryingOperand, context: &Context) {
         // Meta Properties
         //
         // ImportMeta : import . meta
@@ -90,7 +89,7 @@ impl ImportMeta {
 
         //     b. Return importMeta.
         //     f. Return importMeta.
-        context.vm.set_register(dst.into(), import_meta.into());
+        context.set_register(dst.into(), import_meta.into());
     }
 }
 

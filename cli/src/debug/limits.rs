@@ -4,66 +4,82 @@ use boa_engine::{
     property::Attribute,
 };
 
-fn get_loop(_: &JsValue, _: &[JsValue], context: &mut Context) -> JsResult<JsValue> {
+fn get_loop(_: &JsValue, _: &[JsValue], context: &Context) -> JsResult<JsValue> {
     let max = context.runtime_limits().loop_iteration_limit();
     Ok(JsValue::from(max))
 }
 
-fn set_loop(_: &JsValue, args: &[JsValue], context: &mut Context) -> JsResult<JsValue> {
+fn set_loop(_: &JsValue, args: &[JsValue], context: &Context) -> JsResult<JsValue> {
     let value = args.get_or_undefined(0).to_length(context)?;
-    context.runtime_limits_mut().set_loop_iteration_limit(value);
+    {
+        let mut limits = context.runtime_limits();
+        limits.set_loop_iteration_limit(value);
+        context.set_runtime_limits(limits);
+    }
     Ok(JsValue::undefined())
 }
 
-fn get_stack(_: &JsValue, _: &[JsValue], context: &mut Context) -> JsResult<JsValue> {
+fn get_stack(_: &JsValue, _: &[JsValue], context: &Context) -> JsResult<JsValue> {
     let max = context.runtime_limits().stack_size_limit();
     Ok(JsValue::from(max))
 }
 
-fn set_stack(_: &JsValue, args: &[JsValue], context: &mut Context) -> JsResult<JsValue> {
+fn set_stack(_: &JsValue, args: &[JsValue], context: &Context) -> JsResult<JsValue> {
     let value = args.get_or_undefined(0).to_length(context)?;
     let Ok(value) = value.try_into() else {
         return Err(JsNativeError::range()
             .with_message(format!("Argument {value} greater than usize::MAX"))
             .into());
     };
-    context.runtime_limits_mut().set_stack_size_limit(value);
+    {
+        let mut limits = context.runtime_limits();
+        limits.set_stack_size_limit(value);
+        context.set_runtime_limits(limits);
+    }
     Ok(JsValue::undefined())
 }
 
-fn get_recursion(_: &JsValue, _: &[JsValue], context: &mut Context) -> JsResult<JsValue> {
+fn get_recursion(_: &JsValue, _: &[JsValue], context: &Context) -> JsResult<JsValue> {
     let max = context.runtime_limits().recursion_limit();
     Ok(JsValue::from(max))
 }
 
-fn set_recursion(_: &JsValue, args: &[JsValue], context: &mut Context) -> JsResult<JsValue> {
+fn set_recursion(_: &JsValue, args: &[JsValue], context: &Context) -> JsResult<JsValue> {
     let value = args.get_or_undefined(0).to_length(context)?;
     let Ok(value) = value.try_into() else {
         return Err(JsNativeError::range()
             .with_message(format!("Argument {value} greater than usize::MAX"))
             .into());
     };
-    context.runtime_limits_mut().set_recursion_limit(value);
+    {
+        let mut limits = context.runtime_limits();
+        limits.set_recursion_limit(value);
+        context.set_runtime_limits(limits);
+    }
     Ok(JsValue::undefined())
 }
 
-fn get_backtrace(_: &JsValue, _: &[JsValue], context: &mut Context) -> JsResult<JsValue> {
+fn get_backtrace(_: &JsValue, _: &[JsValue], context: &Context) -> JsResult<JsValue> {
     let max = context.runtime_limits().backtrace_limit();
     Ok(JsValue::from(max))
 }
 
-fn set_backtrace(_: &JsValue, args: &[JsValue], context: &mut Context) -> JsResult<JsValue> {
+fn set_backtrace(_: &JsValue, args: &[JsValue], context: &Context) -> JsResult<JsValue> {
     let value = args.get_or_undefined(0).to_length(context)?;
     let Ok(value) = value.try_into() else {
         return Err(JsNativeError::range()
             .with_message(format!("Argument {value} greater than usize::MAX"))
             .into());
     };
-    context.runtime_limits_mut().set_backtrace_limit(value);
+    {
+        let mut limits = context.runtime_limits();
+        limits.set_backtrace_limit(value);
+        context.set_runtime_limits(limits);
+    }
     Ok(JsValue::undefined())
 }
 
-pub(super) fn create_object(context: &mut Context) -> JsObject {
+pub(super) fn create_object(context: &Context) -> JsObject {
     let get_loop =
         FunctionObjectBuilder::new(context.realm(), NativeFunction::from_fn_ptr(get_loop))
             .name(js_string!("get loop"))

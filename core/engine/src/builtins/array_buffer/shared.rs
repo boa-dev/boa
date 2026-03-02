@@ -173,11 +173,7 @@ impl BuiltInConstructor for SharedArrayBuffer {
     ///  - [ECMAScript reference][spec]
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-sharedarraybuffer-constructor
-    fn constructor(
-        new_target: &JsValue,
-        args: &[JsValue],
-        context: &mut Context,
-    ) -> JsResult<JsValue> {
+    fn constructor(new_target: &JsValue, args: &[JsValue], context: &Context) -> JsResult<JsValue> {
         // 1. If NewTarget is undefined, throw a TypeError exception.
         if new_target.is_undefined() {
             return Err(JsNativeError::typ()
@@ -206,7 +202,7 @@ impl SharedArrayBuffer {
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-sharedarraybuffer-@@species
     #[allow(clippy::unnecessary_wraps)]
-    fn get_species(this: &JsValue, _: &[JsValue], _: &mut Context) -> JsResult<JsValue> {
+    fn get_species(this: &JsValue, _: &[JsValue], _: &Context) -> JsResult<JsValue> {
         // 1. Return the this value.
         Ok(this.clone())
     }
@@ -220,7 +216,7 @@ impl SharedArrayBuffer {
     pub(crate) fn get_byte_length(
         this: &JsValue,
         _args: &[JsValue],
-        _: &mut Context,
+        _: &Context,
     ) -> JsResult<JsValue> {
         // 1. Let O be the this value.
         // 2. Perform ? RequireInternalSlot(O, [[ArrayBufferData]]).
@@ -247,7 +243,7 @@ impl SharedArrayBuffer {
     pub(crate) fn get_growable(
         this: &JsValue,
         _args: &[JsValue],
-        _context: &mut Context,
+        _context: &Context,
     ) -> JsResult<JsValue> {
         // 1. Let O be the this value.
         // 2. Perform ? RequireInternalSlot(O, [[ArrayBufferData]]).
@@ -271,7 +267,7 @@ impl SharedArrayBuffer {
     pub(crate) fn get_max_byte_length(
         this: &JsValue,
         _args: &[JsValue],
-        _context: &mut Context,
+        _context: &Context,
     ) -> JsResult<JsValue> {
         // 1. Let O be the this value.
         // 2. Perform ? RequireInternalSlot(O, [[ArrayBufferData]]).
@@ -296,11 +292,7 @@ impl SharedArrayBuffer {
     /// [`SharedArrayBuffer.prototype.grow ( newLength )`][spec].
     ///
     /// [spec]: https://tc39.es/ecma262/sec-sharedarraybuffer.prototype.grow
-    pub(crate) fn grow(
-        this: &JsValue,
-        args: &[JsValue],
-        context: &mut Context,
-    ) -> JsResult<JsValue> {
+    pub(crate) fn grow(this: &JsValue, args: &[JsValue], context: &Context) -> JsResult<JsValue> {
         // 1. Let O be the this value.
         // 3. If IsSharedArrayBuffer(O) is false, throw a TypeError exception.
         let Some(buf) = this
@@ -394,7 +386,7 @@ impl SharedArrayBuffer {
     ///  - [ECMAScript reference][spec]
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-sharedarraybuffer.prototype.slice
-    fn slice(this: &JsValue, args: &[JsValue], context: &mut Context) -> JsResult<JsValue> {
+    fn slice(this: &JsValue, args: &[JsValue], context: &Context) -> JsResult<JsValue> {
         // 1. Let O be the this value.
         // 2. Perform ? RequireInternalSlot(O, [[ArrayBufferData]]).
         // 3. If IsSharedArrayBuffer(O) is false, throw a TypeError exception.
@@ -491,7 +483,7 @@ impl SharedArrayBuffer {
         constructor: &JsValue,
         byte_len: u64,
         max_byte_len: Option<u64>,
-        context: &mut Context,
+        context: &Context,
     ) -> JsResult<JsObject<SharedArrayBuffer>> {
         // 1. Let slots be « [[ArrayBufferData]] ».
         // 2. If maxByteLength is present and maxByteLength is not empty, let allocatingGrowableBuffer
@@ -561,7 +553,7 @@ impl SharedArrayBuffer {
 /// [spec]: https://tc39.es/ecma262/#sec-createsharedbytedatablock
 pub(crate) fn create_shared_byte_data_block(
     size: u64,
-    context: &mut Context,
+    context: &Context,
 ) -> JsResult<AlignedBox<[AtomicU8]>> {
     if size > context.host_hooks().max_buffer_size(context) {
         return Err(JsNativeError::range()

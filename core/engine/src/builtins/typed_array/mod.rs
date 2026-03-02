@@ -104,11 +104,7 @@ impl<T: TypedArrayMarker> BuiltInConstructor for T {
     ///  - [ECMAScript reference][spec]
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-typedarray
-    fn constructor(
-        new_target: &JsValue,
-        args: &[JsValue],
-        context: &mut Context,
-    ) -> JsResult<JsValue> {
+    fn constructor(new_target: &JsValue, args: &[JsValue], context: &Context) -> JsResult<JsValue> {
         // 1. If NewTarget is undefined, throw a TypeError exception.
         if new_target.is_undefined() {
             return Err(JsNativeError::typ()
@@ -505,7 +501,7 @@ impl TypedArrayKind {
     pub(crate) fn get_element(
         self,
         value: &JsValue,
-        context: &mut Context,
+        context: &Context,
     ) -> JsResult<TypedArrayElement> {
         match self {
             TypedArrayKind::Int8 => value.to_int8(context).map(TypedArrayElement::Int8),

@@ -1,6 +1,6 @@
 use super::{BindingAccessOpcode, ToJsString};
 use crate::{
-    Context, JsNativeError, JsResult, SpannedSourceText,
+    Context, JsNativeError, JsResult, JsString, SpannedSourceText,
     bytecompiler::{ByteCompiler, FunctionCompiler, FunctionSpec, NodeKind},
     vm::opcode::BindingOpcode,
 };
@@ -38,7 +38,7 @@ pub(crate) fn global_declaration_instantiation_context(
     _annex_b_function_names: &mut Vec<Sym>,
     _script: &Script,
     _env: &Scope,
-    _context: &mut Context,
+    _context: &Context,
 ) -> JsResult<()> {
     Ok(())
 }
@@ -57,7 +57,7 @@ pub(crate) fn global_declaration_instantiation_context(
     annex_b_function_names: &mut Vec<Sym>,
     script: &Script,
     env: &Scope,
-    context: &mut Context,
+    context: &Context,
 ) -> JsResult<()> {
     // SKIP: 1. Let lexNames be the LexicallyDeclaredNames of script.
     // SKIP: 2. Let varNames be the VarDeclaredNames of script.
@@ -201,7 +201,7 @@ pub(crate) fn eval_declaration_instantiation_context(
     #[allow(unused)] strict: bool,
     #[allow(unused)] var_env: &Scope,
     #[allow(unused)] lex_env: &Scope,
-    context: &mut Context,
+    context: &Context,
 ) -> JsResult<()> {
     // SKIP: 3. If strict is false, then
 
@@ -212,7 +212,14 @@ pub(crate) fn eval_declaration_instantiation_context(
     //         i. If privateIdentifiers does not contain binding.[[Description]],
     //            append binding.[[Description]] to privateIdentifiers.
     //     b. Set pointer to pointer.[[OuterPrivateEnvironment]].
-    let private_identifiers = context.vm.frame.environments.private_name_descriptions();
+    let private_identifiers: Vec<JsString> = context.with_vm(|vm| {
+        vm.frame
+            .environments
+            .private_name_descriptions()
+            .into_iter()
+            .cloned()
+            .collect()
+    });
     let private_identifiers = private_identifiers
         .into_iter()
         .map(|ident| {

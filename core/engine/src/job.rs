@@ -57,7 +57,7 @@ use std::{cell::RefCell, collections::VecDeque, fmt::Debug, future::Future, pin:
 /// [`Atomics.waitAsync`]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Atomics/waitAsync
 pub struct NativeJob {
     #[allow(clippy::type_complexity)]
-    f: Box<dyn FnOnce(&mut Context) -> JsResult<JsValue>>,
+    f: Box<dyn FnOnce(&Context) -> JsResult<JsValue>>,
     realm: Option<Realm>,
 }
 
@@ -71,7 +71,7 @@ impl NativeJob {
     /// Creates a new `NativeJob` from a closure.
     pub fn new<F>(f: F) -> Self
     where
-        F: FnOnce(&mut Context) -> JsResult<JsValue> + 'static,
+        F: FnOnce(&Context) -> JsResult<JsValue> + 'static,
     {
         Self {
             f: Box::new(f),
@@ -82,7 +82,7 @@ impl NativeJob {
     /// Creates a new `NativeJob` from a closure and an execution realm.
     pub fn with_realm<F>(f: F, realm: Realm) -> Self
     where
-        F: FnOnce(&mut Context) -> JsResult<JsValue> + 'static,
+        F: FnOnce(&Context) -> JsResult<JsValue> + 'static,
     {
         Self {
             f: Box::new(f),
@@ -102,7 +102,7 @@ impl NativeJob {
     ///
     /// If the native job has an execution realm defined, this sets the running execution
     /// context to the realm's before calling the inner closure, and resets it after execution.
-    pub fn call(self, context: &mut Context) -> JsResult<JsValue> {
+    pub fn call(self, context: &Context) -> JsResult<JsValue> {
         // If realm is not null, each time job is invoked the implementation must perform
         // implementation-defined steps such that execution is prepared to evaluate ECMAScript
         // code at the time of job's invocation.
@@ -192,7 +192,7 @@ impl TimeoutJob {
     #[must_use]
     pub fn from_duration<F>(f: F, timeout: impl Into<JsDuration>) -> Self
     where
-        F: FnOnce(&mut Context) -> JsResult<JsValue> + 'static,
+        F: FnOnce(&Context) -> JsResult<JsValue> + 'static,
     {
         Self::new(NativeJob::new(f), timeout.into().as_millis())
     }
@@ -201,7 +201,7 @@ impl TimeoutJob {
     #[must_use]
     pub fn with_realm<F>(f: F, realm: Realm, timeout: time::Duration) -> Self
     where
-        F: FnOnce(&mut Context) -> JsResult<JsValue> + 'static,
+        F: FnOnce(&Context) -> JsResult<JsValue> + 'static,
     {
         Self::new(NativeJob::with_realm(f, realm), timeout.as_millis() as u64)
     }
@@ -212,7 +212,7 @@ impl TimeoutJob {
     ///
     /// If the native job has an execution realm defined, this sets the running execution
     /// context to the realm's before calling the inner closure, and resets it after execution.
-    pub fn call(self, context: &mut Context) -> JsResult<JsValue> {
+    pub fn call(self, context: &Context) -> JsResult<JsValue> {
         self.job.call(context)
     }
 
@@ -261,7 +261,7 @@ impl GenericJob {
     /// Creates a new `GenericJob` from a closure and an execution realm.
     pub fn new<F>(f: F, realm: Realm) -> Self
     where
-        F: FnOnce(&mut Context) -> JsResult<JsValue> + 'static,
+        F: FnOnce(&Context) -> JsResult<JsValue> + 'static,
     {
         Self(NativeJob::with_realm(f, realm))
     }
@@ -277,7 +277,7 @@ impl GenericJob {
 
     /// Calls the `GenericJob` with the specified [`Context`], setting the execution
     /// context to the job's realm before calling the inner closure, and resets it after execution.
-    pub fn call(self, context: &mut Context) -> JsResult<JsValue> {
+    pub fn call(self, context: &Context) -> JsResult<JsValue> {
         self.0.call(context)
     }
 }
@@ -291,7 +291,7 @@ pub type BoxedFuture<'a> = Pin<Box<dyn Future<Output = JsResult<JsValue>> + 'a>>
 /// created by ECMAScript code in an easier way.
 #[allow(clippy::type_complexity)]
 pub struct NativeAsyncJob {
-    f: Box<dyn for<'a> FnOnce(&'a RefCell<&mut Context>) -> BoxedFuture<'a>>,
+    f: Box<dyn for<'a> FnOnce(&'a RefCell<&Context>) -> BoxedFuture<'a>>,
     realm: Option<Realm>,
 }
 
@@ -307,7 +307,7 @@ impl NativeAsyncJob {
     /// Creates a new `NativeAsyncJob` from an async closure.
     pub fn new<F>(f: F) -> Self
     where
-        F: AsyncFnOnce(&RefCell<&mut Context>) -> JsResult<JsValue> + 'static,
+        F: AsyncFnOnce(&RefCell<&Context>) -> JsResult<JsValue> + 'static,
     {
         Self {
             f: Box::new(move |ctx| Box::pin(async move { f(ctx).await })),
@@ -318,7 +318,7 @@ impl NativeAsyncJob {
     /// Creates a new `NativeAsyncJob` from an async closure and an execution realm.
     pub fn with_realm<F>(f: F, realm: Realm) -> Self
     where
-        F: AsyncFnOnce(&RefCell<&mut Context>) -> JsResult<JsValue> + 'static,
+        F: AsyncFnOnce(&RefCell<&Context>) -> JsResult<JsValue> + 'static,
     {
         Self {
             f: Box::new(move |ctx| Box::pin(async move { f(ctx).await })),
@@ -340,7 +340,7 @@ impl NativeAsyncJob {
     /// context to the realm's before calling the inner closure, and resets it after execution.
     pub fn call<'a, 'b>(
         self,
-        context: &'a RefCell<&'b mut Context>,
+        context: &'a RefCell<&'b Context>,
         // We can make our users assume `Unpin` because `self.f` is already boxed, so we shouldn't
         // need pin at all.
     ) -> impl Future<Output = JsResult<JsValue>> + Unpin + use<'a, 'b> {
@@ -350,7 +350,7 @@ impl NativeAsyncJob {
         let realm = self.realm;
 
         let mut future = if let Some(realm) = &realm {
-            let old_realm = context.borrow_mut().enter_realm(realm.clone());
+            let old_realm = context.borrow().enter_realm(realm.clone());
 
             // Let scriptOrModule be GetActiveScriptOrModule() at the time HostEnqueuePromiseJob is
             // invoked. If realm is not null, each time job is invoked the implementation must
@@ -358,7 +358,7 @@ impl NativeAsyncJob {
             // module at the time of job's invocation.
             let result = (self.f)(context);
 
-            context.borrow_mut().enter_realm(old_realm);
+            context.borrow().enter_realm(old_realm);
             result
         } else {
             (self.f)(context)
@@ -368,11 +368,11 @@ impl NativeAsyncJob {
             // We need to do the same dance again since the inner code could assume we're still
             // on the same realm.
             if let Some(realm) = &realm {
-                let old_realm = context.borrow_mut().enter_realm(realm.clone());
+                let old_realm = context.borrow().enter_realm(realm.clone());
 
                 let poll_result = future.as_mut().poll(cx);
 
-                context.borrow_mut().enter_realm(old_realm);
+                context.borrow().enter_realm(old_realm);
                 poll_result
             } else {
                 future.as_mut().poll(cx)
@@ -414,7 +414,7 @@ impl PromiseJob {
     /// Creates a new `PromiseJob` from a closure.
     pub fn new<F>(f: F) -> Self
     where
-        F: FnOnce(&mut Context) -> JsResult<JsValue> + 'static,
+        F: FnOnce(&Context) -> JsResult<JsValue> + 'static,
     {
         Self(NativeJob::new(f))
     }
@@ -422,7 +422,7 @@ impl PromiseJob {
     /// Creates a new `PromiseJob` from a closure and an execution realm.
     pub fn with_realm<F>(f: F, realm: Realm) -> Self
     where
-        F: FnOnce(&mut Context) -> JsResult<JsValue> + 'static,
+        F: FnOnce(&Context) -> JsResult<JsValue> + 'static,
     {
         Self(NativeJob::with_realm(f, realm))
     }
@@ -439,7 +439,7 @@ impl PromiseJob {
     ///
     /// If the job has an execution realm defined, this sets the running execution
     /// context to the realm's before calling the inner closure, and resets it after execution.
-    pub fn call(self, context: &mut Context) -> JsResult<JsValue> {
+    pub fn call(self, context: &Context) -> JsResult<JsValue> {
         self.0.call(context)
     }
 }
@@ -570,10 +570,10 @@ pub trait JobExecutor: Any {
     /// See the [spec] for more information on the requirements that each operation must follow.
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-jobs
-    fn enqueue_job(self: Rc<Self>, job: Job, context: &mut Context);
+    fn enqueue_job(self: Rc<Self>, job: Job, context: &Context);
 
     /// Runs all jobs in the executor.
-    fn run_jobs(self: Rc<Self>, context: &mut Context) -> JsResult<()>;
+    fn run_jobs(self: Rc<Self>, context: &Context) -> JsResult<()>;
 
     /// Asynchronously runs all jobs in the executor.
     ///
@@ -584,11 +584,11 @@ pub trait JobExecutor: Any {
         clippy::unused_async,
         reason = "this must be overridden by proper async runtimes"
     )]
-    async fn run_jobs_async(self: Rc<Self>, context: &RefCell<&mut Context>) -> JsResult<()>
+    async fn run_jobs_async(self: Rc<Self>, context: &RefCell<&Context>) -> JsResult<()>
     where
         Self: Sized,
     {
-        self.run_jobs(&mut context.borrow_mut())
+        self.run_jobs(&context.borrow())
     }
 }
 
@@ -613,9 +613,9 @@ pub trait JobExecutor: Any {
 pub struct IdleJobExecutor;
 
 impl JobExecutor for IdleJobExecutor {
-    fn enqueue_job(self: Rc<Self>, _: Job, _: &mut Context) {}
+    fn enqueue_job(self: Rc<Self>, _: Job, _: &Context) {}
 
-    fn run_jobs(self: Rc<Self>, _: &mut Context) -> JsResult<()> {
+    fn run_jobs(self: Rc<Self>, _: &Context) -> JsResult<()> {
         Ok(())
     }
 }
@@ -659,7 +659,7 @@ impl SimpleJobExecutor {
 }
 
 impl JobExecutor for SimpleJobExecutor {
-    fn enqueue_job(self: Rc<Self>, job: Job, context: &mut Context) {
+    fn enqueue_job(self: Rc<Self>, job: Job, context: &Context) {
         match job {
             Job::PromiseJob(p) => self.promise_jobs.borrow_mut().push_back(p),
             Job::AsyncJob(a) => self.async_jobs.borrow_mut().push_back(a),
@@ -675,11 +675,11 @@ impl JobExecutor for SimpleJobExecutor {
         }
     }
 
-    fn run_jobs(self: Rc<Self>, context: &mut Context) -> JsResult<()> {
+    fn run_jobs(self: Rc<Self>, context: &Context) -> JsResult<()> {
         future::block_on(self.run_jobs_async(&RefCell::new(context)))
     }
 
-    async fn run_jobs_async(self: Rc<Self>, context: &RefCell<&mut Context>) -> JsResult<()>
+    async fn run_jobs_async(self: Rc<Self>, context: &RefCell<&Context>) -> JsResult<()>
     where
         Self: Sized,
     {
@@ -705,7 +705,7 @@ impl JobExecutor for SimpleJobExecutor {
 
                 for jobs in jobs_to_run.into_values() {
                     for job in jobs {
-                        if let Err(err) = job.call(&mut context.borrow_mut()) {
+                        if let Err(err) = job.call(&context.borrow()) {
                             self.clear();
                             return Err(err);
                         }
@@ -747,7 +747,7 @@ impl JobExecutor for SimpleJobExecutor {
 
             let jobs = mem::take(&mut *self.promise_jobs.borrow_mut());
             for job in jobs {
-                if let Err(err) = job.call(&mut context.borrow_mut()) {
+                if let Err(err) = job.call(&context.borrow()) {
                     self.clear();
                     return Err(err);
                 }
@@ -755,12 +755,12 @@ impl JobExecutor for SimpleJobExecutor {
 
             let jobs = mem::take(&mut *self.generic_jobs.borrow_mut());
             for job in jobs {
-                if let Err(err) = job.call(&mut context.borrow_mut()) {
+                if let Err(err) = job.call(&context.borrow()) {
                     self.clear();
                     return Err(err);
                 }
             }
-            context.borrow_mut().clear_kept_objects();
+            context.borrow().clear_kept_objects();
             future::yield_now().await;
         }
 

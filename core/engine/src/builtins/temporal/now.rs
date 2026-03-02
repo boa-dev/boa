@@ -80,7 +80,7 @@ impl Now {
     ///
     /// [spec]: https://tc39.es/proposal-temporal/#sec-temporal.now.timezone
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Temporal/Now/timeZoneId
-    fn time_zone_id(_: &JsValue, _: &[JsValue], context: &mut Context) -> JsResult<JsValue> {
+    fn time_zone_id(_: &JsValue, _: &[JsValue], context: &Context) -> JsResult<JsValue> {
         // TODO: this should be optimized once system time zone is in context
         // 1. Return ! SystemTimeZone().
         let context: &Context = context;
@@ -98,7 +98,7 @@ impl Now {
     ///
     /// [spec]: https://tc39.es/proposal-temporal/#sec-temporal.now.instant
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Temporal/Now/instant
-    fn instant(_: &JsValue, _: &[JsValue], context: &mut Context) -> JsResult<JsValue> {
+    fn instant(_: &JsValue, _: &[JsValue], context: &Context) -> JsResult<JsValue> {
         let now: InnerNow<&Context> = InnerNow::new(context);
         let instant = now.instant()?;
         create_temporal_instant(instant, None, context)
@@ -116,11 +116,7 @@ impl Now {
     ///
     /// [spec]: https://tc39.es/proposal-temporal/#sec-temporal.now.plaindatetimeiso
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Temporal/Now/plainDateTimeISO
-    fn plain_date_time_iso(
-        _: &JsValue,
-        args: &[JsValue],
-        context: &mut Context,
-    ) -> JsResult<JsValue> {
+    fn plain_date_time_iso(_: &JsValue, args: &[JsValue], context: &Context) -> JsResult<JsValue> {
         let time_zone = args
             .get_or_undefined(0)
             .map(|v| to_temporal_timezone_identifier(v, context))
@@ -145,11 +141,7 @@ impl Now {
     ///
     /// [spec]: https://tc39.es/proposal-temporal/#sec-temporal.now.zoneddatetimeiso
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Temporal/Now/zonedDateTimeISO
-    fn zoned_date_time_iso(
-        _: &JsValue,
-        args: &[JsValue],
-        context: &mut Context,
-    ) -> JsResult<JsValue> {
+    fn zoned_date_time_iso(_: &JsValue, args: &[JsValue], context: &Context) -> JsResult<JsValue> {
         let time_zone = args
             .get_or_undefined(0)
             .map(|v| to_temporal_timezone_identifier(v, context))
@@ -172,7 +164,7 @@ impl Now {
     ///
     /// [spec]: https://tc39.es/proposal-temporal/#sec-temporal.now.plaindateiso
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Temporal/Now/plainDateISO
-    fn plain_date_iso(_: &JsValue, args: &[JsValue], context: &mut Context) -> JsResult<JsValue> {
+    fn plain_date_iso(_: &JsValue, args: &[JsValue], context: &Context) -> JsResult<JsValue> {
         let time_zone = args
             .get_or_undefined(0)
             .map(|v| to_temporal_timezone_identifier(v, context))
@@ -196,7 +188,7 @@ impl Now {
     ///
     /// [spec]: https://tc39.es/proposal-temporal/#sec-temporal.now.plaintimeiso
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Temporal/Now/plainTimeISO
-    fn plain_time_iso(_: &JsValue, args: &[JsValue], context: &mut Context) -> JsResult<JsValue> {
+    fn plain_time_iso(_: &JsValue, args: &[JsValue], context: &Context) -> JsResult<JsValue> {
         let time_zone = args
             .get_or_undefined(0)
             .map(|v| to_temporal_timezone_identifier(v, context))

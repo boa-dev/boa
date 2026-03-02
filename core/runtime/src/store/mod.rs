@@ -150,7 +150,7 @@ enum ValueStoreInner {
 pub struct JsValueStore(Arc<ValueStoreInner>);
 
 impl TryIntoJs for JsValueStore {
-    fn try_into_js(&self, context: &mut Context) -> JsResult<JsValue> {
+    fn try_into_js(&self, context: &Context) -> JsResult<JsValue> {
         let mut seen = to::ReverseSeenMap::default();
         to::try_value_into_js(self, &mut seen, context)
     }
@@ -200,7 +200,7 @@ impl JsValueStore {
     /// Any errors related to transferring or cloning a value's inner data.
     pub fn try_from_js(
         value: &JsValue,
-        context: &mut Context,
+        context: &Context,
         transfer: Vec<JsValue>,
     ) -> JsResult<Self> {
         let mut seen = from::SeenMap::default();

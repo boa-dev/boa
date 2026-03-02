@@ -26,10 +26,10 @@ fn main() {
     "#;
     let js = Source::from_bytes(js_str);
 
-    let mut context = Context::default();
+    let context = Context::default();
     let res = context.eval(js).unwrap();
 
-    let str = TestStruct::try_from_js(&res, &mut context)
+    let str = TestStruct::try_from_js(&res, &context)
         .map_err(|e| e.to_string())
         .unwrap();
 
@@ -37,7 +37,7 @@ fn main() {
 }
 
 /// Converts the value lossly
-fn lossy_conversion(value: &JsValue, _context: &mut Context) -> JsResult<i16> {
+fn lossy_conversion(value: &JsValue, _context: &Context) -> JsResult<i16> {
     match value.variant() {
         JsVariant::Float64(r) => Ok(r.round() as i16),
         JsVariant::Integer32(i) => Ok(i as i16),

@@ -14,13 +14,13 @@ pub(crate) struct PushNewArray;
 
 impl PushNewArray {
     #[inline(always)]
-    pub(crate) fn operation(array: VaryingOperand, context: &mut Context) {
+    pub(crate) fn operation(array: VaryingOperand, context: &Context) {
         let value = context
             .intrinsics()
             .templates()
             .array()
             .create(Array, Vec::from([JsValue::new(0)]));
-        context.vm.set_register(array.into(), value.into());
+        context.set_register(array.into(), value.into());
     }
 }
 
@@ -39,13 +39,9 @@ pub(crate) struct PushValueToArray;
 
 impl PushValueToArray {
     #[inline(always)]
-    pub(crate) fn operation(
-        (value, array): (VaryingOperand, VaryingOperand),
-        context: &mut Context,
-    ) {
-        let value = context.vm.get_register(value.into()).clone();
+    pub(crate) fn operation((value, array): (VaryingOperand, VaryingOperand), context: &Context) {
+        let value = context.get_register(value.into()).clone();
         let o = context
-            .vm
             .get_register(array.into())
             .as_object()
             .expect("should be an object");
@@ -86,8 +82,8 @@ pub(crate) struct PushElisionToArray;
 
 impl PushElisionToArray {
     #[inline(always)]
-    pub(crate) fn operation(array: VaryingOperand, context: &mut Context) -> JsResult<()> {
-        let array = context.vm.get_register(array.into()).clone();
+    pub(crate) fn operation(array: VaryingOperand, context: &Context) -> JsResult<()> {
+        let array = context.get_register(array.into()).clone();
         let o = array.as_object().expect("should always be an object");
         let len = o
             .length_of_array_like(context)
@@ -116,13 +112,10 @@ pub(crate) struct PushIteratorToArray;
 
 impl PushIteratorToArray {
     #[inline(always)]
-    pub(crate) fn operation(array: VaryingOperand, context: &mut Context) -> JsResult<()> {
-        let array = context.vm.get_register(array.into()).clone();
+    pub(crate) fn operation(array: VaryingOperand, context: &Context) -> JsResult<()> {
+        let array = context.get_register(array.into()).clone();
         let mut iterator = context
-            .vm
-            .frame_mut()
-            .iterators
-            .pop()
+            .with_vm_mut(|vm| vm.frame_mut().iterators.pop())
             .expect("iterator stack should have at least an iterator");
         while let Some(next) = iterator.step_value(context)? {
             Array::push(&array, &[next], context)?;

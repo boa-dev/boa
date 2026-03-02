@@ -190,11 +190,7 @@ impl BuiltInConstructor for DataView {
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-dataview-buffer-byteoffset-bytelength
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/DataView/DataView
-    fn constructor(
-        new_target: &JsValue,
-        args: &[JsValue],
-        context: &mut Context,
-    ) -> JsResult<JsValue> {
+    fn constructor(new_target: &JsValue, args: &[JsValue], context: &Context) -> JsResult<JsValue> {
         // 1. If NewTarget is undefined, throw a TypeError exception.
         if new_target.is_undefined() {
             return Err(JsNativeError::typ()
@@ -324,11 +320,7 @@ impl DataView {
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-get-dataview.prototype.buffer
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/DataView/buffer
-    pub(crate) fn get_buffer(
-        this: &JsValue,
-        _args: &[JsValue],
-        _: &mut Context,
-    ) -> JsResult<JsValue> {
+    pub(crate) fn get_buffer(this: &JsValue, _args: &[JsValue], _: &Context) -> JsResult<JsValue> {
         // 1. Let O be the this value.
         // 2. Perform ? RequireInternalSlot(O, [[DataView]]).
         let object = this.as_object();
@@ -356,7 +348,7 @@ impl DataView {
     pub(crate) fn get_byte_length(
         this: &JsValue,
         _args: &[JsValue],
-        _: &mut Context,
+        _: &Context,
     ) -> JsResult<JsValue> {
         // 1. Let O be the this value.
         // 2. Perform ? RequireInternalSlot(O, [[DataView]]).
@@ -400,7 +392,7 @@ impl DataView {
     pub(crate) fn get_byte_offset(
         this: &JsValue,
         _args: &[JsValue],
-        _: &mut Context,
+        _: &Context,
     ) -> JsResult<JsValue> {
         // 1. Let O be the this value.
         // 2. Perform ? RequireInternalSlot(O, [[DataView]]).
@@ -444,7 +436,7 @@ impl DataView {
         view: &JsValue,
         request_index: &JsValue,
         is_little_endian: &JsValue,
-        context: &mut Context,
+        context: &Context,
     ) -> JsResult<JsValue> {
         // 1. Perform ? RequireInternalSlot(view, [[DataView]]).
         // 2. Assert: view has a [[ViewedArrayBuffer]] internal slot.
@@ -531,7 +523,7 @@ impl DataView {
     pub(crate) fn get_big_int64(
         this: &JsValue,
         args: &[JsValue],
-        context: &mut Context,
+        context: &Context,
     ) -> JsResult<JsValue> {
         let byte_offset = args.get_or_undefined(0);
         let is_little_endian = args.get_or_undefined(1);
@@ -554,7 +546,7 @@ impl DataView {
     pub(crate) fn get_big_uint64(
         this: &JsValue,
         args: &[JsValue],
-        context: &mut Context,
+        context: &Context,
     ) -> JsResult<JsValue> {
         let byte_offset = args.get_or_undefined(0);
         let is_little_endian = args.get_or_undefined(1);
@@ -578,7 +570,7 @@ impl DataView {
     pub(crate) fn get_float16(
         this: &JsValue,
         args: &[JsValue],
-        context: &mut Context,
+        context: &Context,
     ) -> JsResult<JsValue> {
         let byte_offset = args.get_or_undefined(0);
         let is_little_endian = args.get_or_undefined(1);
@@ -601,7 +593,7 @@ impl DataView {
     pub(crate) fn get_float32(
         this: &JsValue,
         args: &[JsValue],
-        context: &mut Context,
+        context: &Context,
     ) -> JsResult<JsValue> {
         let byte_offset = args.get_or_undefined(0);
         let is_little_endian = args.get_or_undefined(1);
@@ -624,7 +616,7 @@ impl DataView {
     pub(crate) fn get_float64(
         this: &JsValue,
         args: &[JsValue],
-        context: &mut Context,
+        context: &Context,
     ) -> JsResult<JsValue> {
         let byte_offset = args.get_or_undefined(0);
         let is_little_endian = args.get_or_undefined(1);
@@ -647,7 +639,7 @@ impl DataView {
     pub(crate) fn get_int8(
         this: &JsValue,
         args: &[JsValue],
-        context: &mut Context,
+        context: &Context,
     ) -> JsResult<JsValue> {
         let byte_offset = args.get_or_undefined(0);
         let is_little_endian = args.get_or_undefined(1);
@@ -670,7 +662,7 @@ impl DataView {
     pub(crate) fn get_int16(
         this: &JsValue,
         args: &[JsValue],
-        context: &mut Context,
+        context: &Context,
     ) -> JsResult<JsValue> {
         let byte_offset = args.get_or_undefined(0);
         let is_little_endian = args.get_or_undefined(1);
@@ -693,7 +685,7 @@ impl DataView {
     pub(crate) fn get_int32(
         this: &JsValue,
         args: &[JsValue],
-        context: &mut Context,
+        context: &Context,
     ) -> JsResult<JsValue> {
         let byte_offset = args.get_or_undefined(0);
         let is_little_endian = args.get_or_undefined(1);
@@ -716,7 +708,7 @@ impl DataView {
     pub(crate) fn get_uint8(
         this: &JsValue,
         args: &[JsValue],
-        context: &mut Context,
+        context: &Context,
     ) -> JsResult<JsValue> {
         let byte_offset = args.get_or_undefined(0);
         let is_little_endian = args.get_or_undefined(1);
@@ -739,7 +731,7 @@ impl DataView {
     pub(crate) fn get_uint16(
         this: &JsValue,
         args: &[JsValue],
-        context: &mut Context,
+        context: &Context,
     ) -> JsResult<JsValue> {
         let byte_offset = args.get_or_undefined(0);
         let is_little_endian = args.get_or_undefined(1);
@@ -762,7 +754,7 @@ impl DataView {
     pub(crate) fn get_uint32(
         this: &JsValue,
         args: &[JsValue],
-        context: &mut Context,
+        context: &Context,
     ) -> JsResult<JsValue> {
         let byte_offset = args.get_or_undefined(0);
         let is_little_endian = args.get_or_undefined(1);
@@ -786,7 +778,7 @@ impl DataView {
         request_index: &JsValue,
         is_little_endian: &JsValue,
         value: &JsValue,
-        context: &mut Context,
+        context: &Context,
     ) -> JsResult<JsValue> {
         // 1. Perform ? RequireInternalSlot(view, [[DataView]]).
         // 2. Assert: view has a [[ViewedArrayBuffer]] internal slot.
@@ -877,7 +869,7 @@ impl DataView {
     pub(crate) fn set_big_int64(
         this: &JsValue,
         args: &[JsValue],
-        context: &mut Context,
+        context: &Context,
     ) -> JsResult<JsValue> {
         let byte_offset = args.get_or_undefined(0);
         let value = args.get_or_undefined(1);
@@ -901,7 +893,7 @@ impl DataView {
     pub(crate) fn set_big_uint64(
         this: &JsValue,
         args: &[JsValue],
-        context: &mut Context,
+        context: &Context,
     ) -> JsResult<JsValue> {
         let byte_offset = args.get_or_undefined(0);
         let value = args.get_or_undefined(1);
@@ -926,7 +918,7 @@ impl DataView {
     pub(crate) fn set_float16(
         this: &JsValue,
         args: &[JsValue],
-        context: &mut Context,
+        context: &Context,
     ) -> JsResult<JsValue> {
         let byte_offset = args.get_or_undefined(0);
         let value = args.get_or_undefined(1);
@@ -956,7 +948,7 @@ impl DataView {
     pub(crate) fn set_float32(
         this: &JsValue,
         args: &[JsValue],
-        context: &mut Context,
+        context: &Context,
     ) -> JsResult<JsValue> {
         let byte_offset = args.get_or_undefined(0);
         let value = args.get_or_undefined(1);
@@ -980,7 +972,7 @@ impl DataView {
     pub(crate) fn set_float64(
         this: &JsValue,
         args: &[JsValue],
-        context: &mut Context,
+        context: &Context,
     ) -> JsResult<JsValue> {
         let byte_offset = args.get_or_undefined(0);
         let value = args.get_or_undefined(1);
@@ -1004,7 +996,7 @@ impl DataView {
     pub(crate) fn set_int8(
         this: &JsValue,
         args: &[JsValue],
-        context: &mut Context,
+        context: &Context,
     ) -> JsResult<JsValue> {
         let byte_offset = args.get_or_undefined(0);
         let value = args.get_or_undefined(1);
@@ -1028,7 +1020,7 @@ impl DataView {
     pub(crate) fn set_int16(
         this: &JsValue,
         args: &[JsValue],
-        context: &mut Context,
+        context: &Context,
     ) -> JsResult<JsValue> {
         let byte_offset = args.get_or_undefined(0);
         let value = args.get_or_undefined(1);
@@ -1052,7 +1044,7 @@ impl DataView {
     pub(crate) fn set_int32(
         this: &JsValue,
         args: &[JsValue],
-        context: &mut Context,
+        context: &Context,
     ) -> JsResult<JsValue> {
         let byte_offset = args.get_or_undefined(0);
         let value = args.get_or_undefined(1);
@@ -1076,7 +1068,7 @@ impl DataView {
     pub(crate) fn set_uint8(
         this: &JsValue,
         args: &[JsValue],
-        context: &mut Context,
+        context: &Context,
     ) -> JsResult<JsValue> {
         let byte_offset = args.get_or_undefined(0);
         let value = args.get_or_undefined(1);
@@ -1100,7 +1092,7 @@ impl DataView {
     pub(crate) fn set_uint16(
         this: &JsValue,
         args: &[JsValue],
-        context: &mut Context,
+        context: &Context,
     ) -> JsResult<JsValue> {
         let byte_offset = args.get_or_undefined(0);
         let value = args.get_or_undefined(1);
@@ -1124,7 +1116,7 @@ impl DataView {
     pub(crate) fn set_uint32(
         this: &JsValue,
         args: &[JsValue],
-        context: &mut Context,
+        context: &Context,
     ) -> JsResult<JsValue> {
         let byte_offset = args.get_or_undefined(0);
         let value = args.get_or_undefined(1);

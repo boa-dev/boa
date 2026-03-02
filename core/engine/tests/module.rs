@@ -15,17 +15,17 @@ fn test_json_module_from_str() {
             self: Rc<Self>,
             _referrer: Referrer,
             request: boa_engine::module::ModuleRequest,
-            context: &RefCell<&mut Context>,
+            context: &RefCell<&Context>,
         ) -> JsResult<Module> {
             assert_eq!(request.specifier().to_std_string_escaped(), "basic");
             let src = self.0.clone();
 
-            Ok(Module::parse_json(src, &mut context.borrow_mut()).unwrap())
+            Ok(Module::parse_json(src, &context.borrow_mut()).unwrap())
         }
     }
 
     let json_string = js_string!(r#"{"key":"value","other":123}"#);
-    let mut context = Context::builder()
+    let context = Context::builder()
         .module_loader(Rc::new(TestModuleLoader(json_string.clone())))
         .build()
         .unwrap();
@@ -37,8 +37,8 @@ fn test_json_module_from_str() {
     ",
     );
 
-    let module = Module::parse(source, None, &mut context).unwrap();
-    let promise = module.load_link_evaluate(&mut context);
+    let module = Module::parse(source, None, &context).unwrap();
+    let promise = module.load_link_evaluate(&context);
     context.run_jobs().unwrap();
 
     match promise.state() {
@@ -47,17 +47,17 @@ fn test_json_module_from_str() {
             assert!(v.is_undefined());
         }
         PromiseState::Rejected(e) => {
-            panic!("Unexpected error: {:?}", e.to_string(&mut context).unwrap());
+            panic!("Unexpected error: {:?}", e.to_string(&context).unwrap());
         }
     }
 
     let json = module
-        .namespace(&mut context)
-        .get(js_string!("json"), &mut context)
+        .namespace(&context)
+        .get(js_string!("json"), &context)
         .unwrap();
 
     assert_eq!(
-        JsString::from(json.to_json(&mut context).unwrap().unwrap().to_string()),
+        JsString::from(json.to_json(&context).unwrap().unwrap().to_string()),
         json_string
     );
 }
@@ -70,7 +70,7 @@ fn test_json_module_dynamic_import() {
             self: Rc<Self>,
             _referrer: Referrer,
             request: boa_engine::module::ModuleRequest,
-            context: &RefCell<&mut Context>,
+            context: &RefCell<&Context>,
         ) -> JsResult<Module> {
             assert_eq!(request.specifier().to_std_string_escaped(), "basic");
 
@@ -81,12 +81,12 @@ fn test_json_module_dynamic_import() {
             assert_eq!(type_attr.to_std_string_escaped(), "json");
 
             let src = self.0.clone();
-            Ok(Module::parse_json(src, &mut context.borrow_mut()).unwrap())
+            Ok(Module::parse_json(src, &context.borrow_mut()).unwrap())
         }
     }
 
     let json_content = js_string!(r#"{"key":"value","other":123}"#);
-    let mut context = Context::builder()
+    let context = Context::builder()
         .module_loader(Rc::new(TestModuleLoader(json_content.clone())))
         .build()
         .unwrap();
@@ -97,8 +97,8 @@ fn test_json_module_dynamic_import() {
     ",
     );
 
-    let module = Module::parse(source, None, &mut context).unwrap();
-    let promise = module.load_link_evaluate(&mut context);
+    let module = Module::parse(source, None, &context).unwrap();
+    let promise = module.load_link_evaluate(&context);
     context.run_jobs().unwrap();
 
     match promise.state() {
@@ -108,8 +108,8 @@ fn test_json_module_dynamic_import() {
 
     // Get the exported promise 'p'
     let p = module
-        .namespace(&mut context)
-        .get(js_string!("p"), &mut context)
+        .namespace(&context)
+        .get(js_string!("p"), &context)
         .unwrap();
 
     let p_obj = p.as_promise().unwrap();
@@ -120,13 +120,13 @@ fn test_json_module_dynamic_import() {
             let default_export = module_ns
                 .as_object()
                 .unwrap()
-                .get(js_string!("default"), &mut context)
+                .get(js_string!("default"), &context)
                 .unwrap();
 
             assert_eq!(
                 JsString::from(
                     default_export
-                        .to_json(&mut context)
+                        .to_json(&context)
                         .unwrap()
                         .unwrap()
                         .to_string()
@@ -137,7 +137,7 @@ fn test_json_module_dynamic_import() {
         PromiseState::Rejected(e) => {
             panic!(
                 "Dynamic import failed: {:?}",
-                e.to_string(&mut context).unwrap()
+                e.to_string(&context).unwrap()
             );
         }
         PromiseState::Pending => panic!("Dynamic import is still pending"),
@@ -152,7 +152,7 @@ fn test_json_module_static_import_with_attributes() {
             self: Rc<Self>,
             _referrer: Referrer,
             request: boa_engine::module::ModuleRequest,
-            context: &RefCell<&mut Context>,
+            context: &RefCell<&Context>,
         ) -> JsResult<Module> {
             assert_eq!(request.specifier().to_std_string_escaped(), "basic");
 
@@ -162,12 +162,12 @@ fn test_json_module_static_import_with_attributes() {
             assert_eq!(type_attr.to_std_string_escaped(), "json");
 
             let src = self.0.clone();
-            Ok(Module::parse_json(src, &mut context.borrow_mut()).unwrap())
+            Ok(Module::parse_json(src, &context.borrow_mut()).unwrap())
         }
     }
 
     let json_string = js_string!(r#"{"static":"import"}"#);
-    let mut context = Context::builder()
+    let context = Context::builder()
         .module_loader(Rc::new(TestModuleLoader(json_string.clone())))
         .build()
         .unwrap();
@@ -179,8 +179,8 @@ fn test_json_module_static_import_with_attributes() {
     ",
     );
 
-    let module = Module::parse(source, None, &mut context).unwrap();
-    let promise = module.load_link_evaluate(&mut context);
+    let module = Module::parse(source, None, &context).unwrap();
+    let promise = module.load_link_evaluate(&context);
     context.run_jobs().unwrap();
 
     assert_eq!(
@@ -189,12 +189,12 @@ fn test_json_module_static_import_with_attributes() {
     );
 
     let value = module
-        .namespace(&mut context)
-        .get(js_string!("value"), &mut context)
+        .namespace(&context)
+        .get(js_string!("value"), &context)
         .unwrap();
 
     assert_eq!(
-        JsString::from(value.to_json(&mut context).unwrap().unwrap().to_string()),
+        JsString::from(value.to_json(&context).unwrap().unwrap().to_string()),
         json_string
     );
 }
@@ -207,7 +207,7 @@ fn test_json_module_reexport_with_attributes() {
             self: Rc<Self>,
             _referrer: Referrer,
             request: boa_engine::module::ModuleRequest,
-            context: &RefCell<&mut Context>,
+            context: &RefCell<&Context>,
         ) -> JsResult<Module> {
             assert_eq!(request.specifier().to_std_string_escaped(), "basic");
 
@@ -217,12 +217,12 @@ fn test_json_module_reexport_with_attributes() {
             assert_eq!(type_attr.to_std_string_escaped(), "json");
 
             let src = self.0.clone();
-            Ok(Module::parse_json(src, &mut context.borrow_mut()).unwrap())
+            Ok(Module::parse_json(src, &context.borrow_mut()).unwrap())
         }
     }
 
     let json_string = js_string!(r#"{"re":"export"}"#);
-    let mut context = Context::builder()
+    let context = Context::builder()
         .module_loader(Rc::new(TestModuleLoader(json_string.clone())))
         .build()
         .unwrap();
@@ -233,8 +233,8 @@ fn test_json_module_reexport_with_attributes() {
     ",
     );
 
-    let module = Module::parse(source, None, &mut context).unwrap();
-    let promise = module.load_link_evaluate(&mut context);
+    let module = Module::parse(source, None, &context).unwrap();
+    let promise = module.load_link_evaluate(&context);
     context.run_jobs().unwrap();
 
     assert_eq!(
@@ -243,12 +243,12 @@ fn test_json_module_reexport_with_attributes() {
     );
 
     let json = module
-        .namespace(&mut context)
-        .get(js_string!("json"), &mut context)
+        .namespace(&context)
+        .get(js_string!("json"), &context)
         .unwrap();
 
     assert_eq!(
-        JsString::from(json.to_json(&mut context).unwrap().unwrap().to_string()),
+        JsString::from(json.to_json(&context).unwrap().unwrap().to_string()),
         json_string
     );
 }
@@ -261,13 +261,13 @@ fn test_dynamic_import_invalid_options() {
             self: Rc<Self>,
             _referrer: Referrer,
             _request: boa_engine::module::ModuleRequest,
-            _context: &RefCell<&mut Context>,
+            _context: &RefCell<&Context>,
         ) -> JsResult<Module> {
             panic!("Module loading should not be triggered for invalid options");
         }
     }
 
-    let mut context = Context::builder()
+    let context = Context::builder()
         .module_loader(Rc::new(TestModuleLoader))
         .build()
         .unwrap();
@@ -278,8 +278,8 @@ fn test_dynamic_import_invalid_options() {
     ",
     );
 
-    let module = Module::parse(source, None, &mut context).unwrap();
-    let promise = module.load_link_evaluate(&mut context);
+    let module = Module::parse(source, None, &context).unwrap();
+    let promise = module.load_link_evaluate(&context);
     context.run_jobs().unwrap();
 
     match promise.state() {
@@ -289,8 +289,8 @@ fn test_dynamic_import_invalid_options() {
 
     // Get the exported promise 'p'
     let p = module
-        .namespace(&mut context)
-        .get(js_string!("p"), &mut context)
+        .namespace(&context)
+        .get(js_string!("p"), &context)
         .unwrap();
 
     let p_obj = p.as_promise().unwrap();
@@ -299,7 +299,7 @@ fn test_dynamic_import_invalid_options() {
     match p_obj.state() {
         PromiseState::Rejected(e) => {
             let error = e.as_object().unwrap();
-            let name = error.get(js_string!("name"), &mut context).unwrap();
+            let name = error.get(js_string!("name"), &context).unwrap();
             assert_eq!(name.as_string().unwrap(), js_string!("TypeError"));
         }
         state => panic!("Dynamic import should be rejected with TypeError, got {state:?}"),
@@ -314,13 +314,13 @@ fn test_dynamic_import_non_string_attribute_value() {
             self: Rc<Self>,
             _referrer: Referrer,
             _request: boa_engine::module::ModuleRequest,
-            _context: &RefCell<&mut Context>,
+            _context: &RefCell<&Context>,
         ) -> JsResult<Module> {
             panic!("Module loading should not be triggered for invalid attribute values");
         }
     }
 
-    let mut context = Context::builder()
+    let context = Context::builder()
         .module_loader(Rc::new(TestModuleLoader))
         .build()
         .unwrap();
@@ -331,8 +331,8 @@ fn test_dynamic_import_non_string_attribute_value() {
     ",
     );
 
-    let module = Module::parse(source, None, &mut context).unwrap();
-    let promise = module.load_link_evaluate(&mut context);
+    let module = Module::parse(source, None, &context).unwrap();
+    let promise = module.load_link_evaluate(&context);
     context.run_jobs().unwrap();
 
     match promise.state() {
@@ -341,8 +341,8 @@ fn test_dynamic_import_non_string_attribute_value() {
     }
 
     let p = module
-        .namespace(&mut context)
-        .get(js_string!("p"), &mut context)
+        .namespace(&context)
+        .get(js_string!("p"), &context)
         .unwrap();
 
     let p_obj = p.as_promise().unwrap();
@@ -351,9 +351,9 @@ fn test_dynamic_import_non_string_attribute_value() {
     match p_obj.state() {
         PromiseState::Rejected(e) => {
             let error = e.as_object().unwrap();
-            let name = error.get(js_string!("name"), &mut context).unwrap();
+            let name = error.get(js_string!("name"), &context).unwrap();
             assert_eq!(name.as_string().unwrap(), js_string!("TypeError"));
-            let message = error.get(js_string!("message"), &mut context).unwrap();
+            let message = error.get(js_string!("message"), &context).unwrap();
             assert_eq!(
                 message.as_string().unwrap(),
                 js_string!("import attribute value must be a string")
@@ -371,7 +371,7 @@ fn test_dynamic_import_symbol_key() {
             self: Rc<Self>,
             _referrer: Referrer,
             request: boa_engine::module::ModuleRequest,
-            context: &RefCell<&mut Context>,
+            context: &RefCell<&Context>,
         ) -> JsResult<Module> {
             assert_eq!(request.specifier().to_std_string_escaped(), "basic");
 
@@ -379,12 +379,12 @@ fn test_dynamic_import_symbol_key() {
             assert!(request.get_attribute("type").is_none());
 
             let src = self.0.clone();
-            Ok(Module::parse_json(src, &mut context.borrow_mut()).unwrap())
+            Ok(Module::parse_json(src, &context.borrow_mut()).unwrap())
         }
     }
 
     let json_content = js_string!(r#"{"ignore":"symbol"}"#);
-    let mut context = Context::builder()
+    let context = Context::builder()
         .module_loader(Rc::new(TestModuleLoader(json_content.clone())))
         .build()
         .unwrap();
@@ -396,8 +396,8 @@ fn test_dynamic_import_symbol_key() {
     ",
     );
 
-    let module = Module::parse(source, None, &mut context).unwrap();
-    let promise = module.load_link_evaluate(&mut context);
+    let module = Module::parse(source, None, &context).unwrap();
+    let promise = module.load_link_evaluate(&context);
     context.run_jobs().unwrap();
 
     match promise.state() {
@@ -406,8 +406,8 @@ fn test_dynamic_import_symbol_key() {
     }
 
     let p = module
-        .namespace(&mut context)
-        .get(js_string!("p"), &mut context)
+        .namespace(&context)
+        .get(js_string!("p"), &context)
         .unwrap();
 
     let p_obj = p.as_promise().unwrap();
@@ -418,13 +418,13 @@ fn test_dynamic_import_symbol_key() {
             let default_export = module_ns
                 .as_object()
                 .unwrap()
-                .get(js_string!("default"), &mut context)
+                .get(js_string!("default"), &context)
                 .unwrap();
 
             assert_eq!(
                 JsString::from(
                     default_export
-                        .to_json(&mut context)
+                        .to_json(&context)
                         .unwrap()
                         .unwrap()
                         .to_string()
@@ -435,7 +435,7 @@ fn test_dynamic_import_symbol_key() {
         PromiseState::Rejected(e) => {
             panic!(
                 "Dynamic import failed: {:?}",
-                e.to_string(&mut context).unwrap()
+                e.to_string(&context).unwrap()
             );
         }
         PromiseState::Pending => panic!("Dynamic import is still pending"),

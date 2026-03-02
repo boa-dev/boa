@@ -45,7 +45,7 @@ impl Animal {
     // as a method.
     #[boa(method)]
     #[boa(length = 11)]
-    fn method(context: &mut Context) -> JsObject {
+    fn method(context: &Context) -> JsObject {
         let obj = JsObject::with_null_proto();
         obj.set(js_string!("key"), 43, false, context).unwrap();
         obj
@@ -82,7 +82,7 @@ const ASSERT_DECL: &str = r"
 
 #[test]
 fn boa_class() {
-    let mut context = Context::default();
+    let context = Context::default();
 
     context.register_global_class::<Animal>().unwrap();
 

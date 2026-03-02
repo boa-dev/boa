@@ -44,7 +44,7 @@ pub trait Fetcher: NativeObject {
     ///
     /// # Errors
     /// This function should return an error if the URL cannot be handled by the [`Fetcher`].
-    fn resolve_uri(&self, uri: String, _context: &mut Context) -> JsResult<String> {
+    fn resolve_uri(&self, uri: String, _context: &Context) -> JsResult<String> {
         Ok(uri)
     }
 
@@ -57,7 +57,7 @@ pub trait Fetcher: NativeObject {
     async fn fetch(
         self: Rc<Self>,
         request: JsRequest,
-        context: &RefCell<&mut Context>,
+        context: &RefCell<&Context>,
     ) -> JsResult<JsResponse>;
 }
 
@@ -74,7 +74,7 @@ impl<T: Fetcher> Clone for FetcherRc<T> {
 }
 
 /// Get a Fetcher instance from the context.
-fn get_fetcher<T: Fetcher>(context: &mut Context) -> JsResult<Rc<T>> {
+fn get_fetcher<T: Fetcher>(context: &Context) -> JsResult<Rc<T>> {
     // Try fetching from the context first, then the current realm. Else fail.
     let Some(fetcher) = context.get_data::<FetcherRc<T>>().cloned().or_else(|| {
         context
@@ -95,9 +95,9 @@ fn get_fetcher<T: Fetcher>(context: &mut Context) -> JsResult<Rc<T>> {
 async fn fetch_inner<T: Fetcher>(
     resource: Either<JsString, JsObject>,
     options: Option<RequestInit>,
-    context: &RefCell<&mut Context>,
+    context: &RefCell<&Context>,
 ) -> JsResult<JsValue> {
-    let fetcher = get_fetcher::<T>(&mut context.borrow_mut())?;
+    let fetcher = get_fetcher::<T>(&context.borrow())?;
 
     // The resource parsing is complicated, so we parse it in Rust here (instead of relying on
     // `TryFromJs` and friends).
@@ -105,7 +105,7 @@ async fn fetch_inner<T: Fetcher>(
         Either::Left(url) => {
             let url = url.to_std_string().map_err(JsError::from_rust)?;
             let url = fetcher
-                .resolve_uri(url, &mut context.borrow_mut())
+                .resolve_uri(url, &context.borrow())
                 .map_err(JsError::from_rust)?;
 
             let r = HttpRequest::get(url).body(Vec::new());
@@ -141,7 +141,7 @@ async fn fetch_inner<T: Fetcher>(
     }
 
     let response = fetcher.fetch(JsRequest::from(request), context).await?;
-    let result = Class::from_data(response, &mut context.borrow_mut())?;
+    let result = Class::from_data(response, &context.borrow())?;
     Ok(result.into())
 }
 
@@ -167,7 +167,7 @@ pub mod js_module {
     pub fn fetch<T: Fetcher>(
         resource: Either<JsString, JsObject>,
         options: Option<RequestInit>,
-        context: &mut Context,
+        context: &Context,
     ) -> JsPromise {
         JsPromise::from_async_fn(
             async move |context| fetch_inner::<T>(resource, options, context).await,
@@ -179,7 +179,7 @@ pub mod js_module {
 #[doc(inline)]
 pub use js_module::fetch;
 
-fn headers_iterator(this: &JsValue, _: &[JsValue], context: &mut Context) -> JsResult<JsValue> {
+fn headers_iterator(this: &JsValue, _: &[JsValue], context: &Context) -> JsResult<JsValue> {
     let this_object = this.as_object();
     let headers = this_object
         .as_ref()
@@ -198,11 +198,7 @@ fn headers_iterator(this: &JsValue, _: &[JsValue], context: &mut Context) -> JsR
 ///
 /// # Errors
 /// If any of the classes fail to register, an error is returned.
-pub fn register<F: Fetcher>(
-    fetcher: F,
-    realm: Option<Realm>,
-    context: &mut Context,
-) -> JsResult<()> {
+pub fn register<F: Fetcher>(fetcher: F, realm: Option<Realm>, context: &Context) -> JsResult<()> {
     if let Some(ref realm) = realm {
         realm.host_defined_mut().insert(FetcherRc(Rc::new(fetcher)));
     } else {

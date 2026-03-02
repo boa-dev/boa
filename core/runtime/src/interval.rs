@@ -25,7 +25,7 @@ struct IntervalInnerState {
 impl IntervalInnerState {
     /// Get the interval handler map from the context, or add it to the context if not
     /// present.
-    fn from_context(context: &mut Context) -> Gc<GcRefCell<Self>> {
+    fn from_context(context: &Context) -> Gc<GcRefCell<Self>> {
         if !context.has_data::<Gc<GcRefCell<IntervalInnerState>>>() {
             context.insert_data(Gc::new(GcRefCell::new(Self::default())));
         }
@@ -66,7 +66,7 @@ fn handle(
     function_ref: JsFunction,
     args: Vec<JsValue>,
     reschedule: Option<u64>,
-    context: &mut Context,
+    context: &Context,
 ) -> JsResult<JsValue> {
     // Check if it's still valid.
     if !handler_map.borrow().is_interval_valid(id) {
@@ -106,7 +106,7 @@ pub fn set_timeout(
     function_ref: Option<JsFunction>,
     delay_in_msec: Option<JsValue>,
     rest: JsRest<'_>,
-    context: &mut Context,
+    context: &Context,
 ) -> JsResult<u32> {
     let Some(function_ref) = function_ref else {
         return Ok(0);
@@ -147,7 +147,7 @@ pub fn set_interval(
     function_ref: Option<JsFunction>,
     delay_in_msec: Option<JsValue>,
     rest: JsRest<'_>,
-    context: &mut Context,
+    context: &Context,
 ) -> JsResult<u32> {
     let Some(function_ref) = function_ref else {
         return Ok(0);
@@ -183,7 +183,7 @@ pub fn set_interval(
 ///
 /// Please note that this is the same exact method as `clearInterval`, as both can be
 /// used interchangeably.
-pub fn clear_timeout(id: Nullable<Option<u32>>, context: &mut Context) {
+pub fn clear_timeout(id: Nullable<Option<u32>>, context: &Context) {
     let Some(id) = id.flatten() else {
         return;
     };
@@ -195,7 +195,7 @@ pub fn clear_timeout(id: Nullable<Option<u32>>, context: &mut Context) {
 ///
 /// # Errors
 /// Any error returned by the context when registering the global functions.
-pub fn register(context: &mut Context) -> JsResult<()> {
+pub fn register(context: &Context) -> JsResult<()> {
     register_functions(context)
 }
 
@@ -204,7 +204,7 @@ pub fn register(context: &mut Context) -> JsResult<()> {
 ///
 /// # Errors
 /// Any error returned by the context when registering the global functions.
-pub fn register_functions(context: &mut Context) -> JsResult<()> {
+pub fn register_functions(context: &Context) -> JsResult<()> {
     let set_timeout_ = set_timeout.into_js_function_copied(context);
     context.register_global_callable(js_string!("setTimeout"), 1, set_timeout_)?;
 

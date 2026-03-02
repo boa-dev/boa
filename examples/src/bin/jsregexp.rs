@@ -1,7 +1,7 @@
 use boa_engine::{Context, JsResult, js_string, object::builtins::JsRegExp};
 
 fn main() -> JsResult<()> {
-    let context = &mut Context::default();
+    let context = &Context::default();
 
     let regexp = JsRegExp::new(js_string!("foo"), js_string!("gi"), context)?;
 

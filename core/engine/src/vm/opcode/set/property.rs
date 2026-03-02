@@ -15,13 +15,14 @@ fn set_by_name(
     value_object: &JsValue,
     receiver: &JsValue,
     index: VaryingOperand,
-    context: &mut Context,
+    context: &Context,
 ) -> JsResult<()> {
-    let value = context.vm.get_register(value.into()).clone();
+    let value = context.get_register(value.into()).clone();
 
     let object = value_object.to_object(context)?;
 
-    let ic = &context.vm.frame().code_block().ic[usize::from(index)];
+    let code_block = context.with_vm(|vm| vm.frame().code_block().clone());
+    let ic = &code_block.ic[usize::from(index)];
 
     let object_borrowed = object.borrow();
     if let Some((shape, slot)) = ic.get(object_borrowed.shape()) {
@@ -49,11 +50,11 @@ fn set_by_name(
             let prototype = shape.prototype().expect("prototype should have value");
             let mut prototype = prototype.borrow_mut();
 
-            prototype.properties_mut().storage[slot_index] = value.clone();
+            prototype.properties_mut().storage[slot_index] = value;
         } else {
             drop(object_borrowed);
             let mut object_borrowed = object.borrow_mut();
-            object_borrowed.properties_mut().storage[slot_index] = value.clone();
+            object_borrowed.properties_mut().storage[slot_index] = value;
         }
         return Ok(());
     }
@@ -62,8 +63,8 @@ fn set_by_name(
     let name: PropertyKey = ic.name.clone().into();
 
     let context = &mut InternalMethodPropertyContext::new(context);
-    let succeeded = object.__set__(name.clone(), value.clone(), receiver.clone(), context)?;
-    if !succeeded && context.vm.frame().code_block.strict() {
+    let succeeded = object.__set__(name.clone(), value, receiver.clone(), context)?;
+    if !succeeded && context.with_vm(|vm| vm.frame().code_block.strict()) {
         return Err(JsNativeError::typ()
             .with_message(format!("cannot set non-writable property: {name}"))
             .into());
@@ -72,7 +73,7 @@ fn set_by_name(
     // Cache the property.
     let slot = *context.slot();
     if succeeded && slot.is_cacheable() {
-        let ic = &context.vm.frame().code_block.ic[usize::from(index)];
+        let ic = &context.with_vm(|vm| vm.frame().code_block.clone()).ic[usize::from(index)];
         let object_borrowed = object.borrow();
         let shape = object_borrowed.shape();
         ic.set(shape, slot);
@@ -92,9 +93,9 @@ impl SetPropertyByName {
     #[inline(always)]
     pub(crate) fn operation(
         (value, object, index): (VaryingOperand, VaryingOperand, VaryingOperand),
-        context: &mut Context,
+        context: &Context,
     ) -> JsResult<()> {
-        let object = context.vm.get_register(object.into()).clone();
+        let object = context.get_register(object.into()).clone();
         set_by_name(value, &object, &object, index, context)
     }
 }
@@ -121,10 +122,10 @@ impl SetPropertyByNameWithThis {
             VaryingOperand,
             VaryingOperand,
         ),
-        context: &mut Context,
+        context: &Context,
     ) -> JsResult<()> {
-        let value_object = context.vm.get_register(object.into()).clone();
-        let receiver = context.vm.get_register(receiver.into()).clone();
+        let value_object = context.get_register(object.into()).clone();
+        let receiver = context.get_register(receiver.into()).clone();
         set_by_name(value, &value_object, &receiver, index, context)
     }
 }
@@ -151,12 +152,12 @@ impl SetPropertyByValue {
             VaryingOperand,
             VaryingOperand,
         ),
-        context: &mut Context,
+        context: &Context,
     ) -> JsResult<()> {
-        let value = context.vm.get_register(value.into()).clone();
-        let key = context.vm.get_register(key.into()).clone();
-        let receiver = context.vm.get_register(receiver.into()).clone();
-        let object = context.vm.get_register(object.into()).clone();
+        let value = context.get_register(value.into()).clone();
+        let key = context.get_register(key.into()).clone();
+        let receiver = context.get_register(receiver.into()).clone();
+        let object = context.get_register(object.into()).clone();
         let object = object.to_object(context)?;
 
         let key = key.to_property_key(context)?;
@@ -183,13 +184,8 @@ impl SetPropertyByValue {
         }
 
         // Slow path:
-        let succeeded = object.__set__(
-            key.clone(),
-            value.clone(),
-            receiver.clone(),
-            &mut context.into(),
-        )?;
-        if !succeeded && context.vm.frame().code_block.strict() {
+        let succeeded = object.__set__(key.clone(), value, receiver, &mut context.into())?;
+        if !succeeded && context.with_vm(|vm| vm.frame().code_block.strict()) {
             return Err(JsNativeError::typ()
                 .with_message(format!("cannot set non-writable property: {key}"))
                 .into());
@@ -216,15 +212,12 @@ impl SetPropertyGetterByName {
     #[inline(always)]
     pub(crate) fn operation(
         (object, value, index): (VaryingOperand, VaryingOperand, VaryingOperand),
-        context: &mut Context,
+        context: &Context,
     ) -> JsResult<()> {
-        let object = context.vm.get_register(object.into()).clone();
-        let value = context.vm.get_register(value.into()).clone();
+        let object = context.get_register(object.into()).clone();
+        let value = context.get_register(value.into()).clone();
         let name = context
-            .vm
-            .frame()
-            .code_block()
-            .constant_string(index.into())
+            .with_vm(|vm| vm.frame().code_block().constant_string(index.into()))
             .into();
 
         let object = object.to_object(context)?;
@@ -236,7 +229,7 @@ impl SetPropertyGetterByName {
         object.__define_own_property__(
             &name,
             PropertyDescriptor::builder()
-                .maybe_get(Some(value.clone()))
+                .maybe_get(Some(value))
                 .maybe_set(set)
                 .enumerable(true)
                 .configurable(true)
@@ -264,11 +257,11 @@ impl SetPropertyGetterByValue {
     #[inline(always)]
     pub(crate) fn operation(
         (value, key, object): (VaryingOperand, VaryingOperand, VaryingOperand),
-        context: &mut Context,
+        context: &Context,
     ) -> JsResult<()> {
-        let value = context.vm.get_register(value.into()).clone();
-        let key = context.vm.get_register(key.into()).clone();
-        let object = context.vm.get_register(object.into()).clone();
+        let value = context.get_register(value.into()).clone();
+        let key = context.get_register(key.into()).clone();
+        let object = context.get_register(object.into()).clone();
         let object = object.to_object(context)?;
         let name = key.to_property_key(context)?;
 
@@ -280,7 +273,7 @@ impl SetPropertyGetterByValue {
         object.__define_own_property__(
             &name,
             PropertyDescriptor::builder()
-                .maybe_get(Some(value.clone()))
+                .maybe_get(Some(value))
                 .maybe_set(set)
                 .enumerable(true)
                 .configurable(true)
@@ -308,15 +301,12 @@ impl SetPropertySetterByName {
     #[inline(always)]
     pub(crate) fn operation(
         (object, value, index): (VaryingOperand, VaryingOperand, VaryingOperand),
-        context: &mut Context,
+        context: &Context,
     ) -> JsResult<()> {
-        let object = context.vm.get_register(object.into()).clone();
-        let value = context.vm.get_register(value.into()).clone();
+        let object = context.get_register(object.into()).clone();
+        let value = context.get_register(value.into()).clone();
         let name = context
-            .vm
-            .frame()
-            .code_block()
-            .constant_string(index.into())
+            .with_vm(|vm| vm.frame().code_block().constant_string(index.into()))
             .into();
 
         let object = object.to_object(context)?;
@@ -329,7 +319,7 @@ impl SetPropertySetterByName {
         object.__define_own_property__(
             &name,
             PropertyDescriptor::builder()
-                .maybe_set(Some(value.clone()))
+                .maybe_set(Some(value))
                 .maybe_get(get)
                 .enumerable(true)
                 .configurable(true)
@@ -357,11 +347,11 @@ impl SetPropertySetterByValue {
     #[inline(always)]
     pub(crate) fn operation(
         (value, key, object): (VaryingOperand, VaryingOperand, VaryingOperand),
-        context: &mut Context,
+        context: &Context,
     ) -> JsResult<()> {
-        let value = context.vm.get_register(value.into()).clone();
-        let key = context.vm.get_register(key.into()).clone();
-        let object = context.vm.get_register(object.into()).clone();
+        let value = context.get_register(value.into()).clone();
+        let key = context.get_register(key.into()).clone();
+        let object = context.get_register(object.into()).clone();
 
         let object = object.to_object(context)?;
         let name = key.to_property_key(context)?;
@@ -374,7 +364,7 @@ impl SetPropertySetterByValue {
         object.__define_own_property__(
             &name,
             PropertyDescriptor::builder()
-                .maybe_set(Some(value.clone()))
+                .maybe_set(Some(value))
                 .maybe_get(get)
                 .enumerable(true)
                 .configurable(true)
@@ -402,10 +392,10 @@ impl SetFunctionName {
     #[inline(always)]
     pub(crate) fn operation(
         (function, name, prefix): (VaryingOperand, VaryingOperand, VaryingOperand),
-        context: &mut Context,
+        context: &Context,
     ) {
-        let function = context.vm.get_register(function.into()).clone();
-        let name = context.vm.get_register(name.into()).clone();
+        let function = context.get_register(function.into()).clone();
+        let name = context.get_register(name.into()).clone();
         let name = match name.variant() {
             JsVariant::String(name) => PropertyKey::from(name.clone()),
             JsVariant::Symbol(name) => PropertyKey::from(name.clone()),

@@ -471,7 +471,7 @@ impl<'realm> FunctionObjectBuilder<'realm> {
 /// #     js_string,
 /// # };
 /// let mut context = Context::default();
-/// let object = ObjectInitializer::new(&mut context)
+/// let object = ObjectInitializer::new(&context)
 ///     .property(js_string!("hello"), js_string!("world"), Attribute::all())
 ///     .property(1, 1, Attribute::all())
 ///     .function(
@@ -492,20 +492,20 @@ impl<'realm> FunctionObjectBuilder<'realm> {
 /// ```
 #[derive(Debug)]
 pub struct ObjectInitializer<'ctx> {
-    context: &'ctx mut Context,
+    context: &'ctx Context,
     object: JsObject,
 }
 
 impl<'ctx> ObjectInitializer<'ctx> {
     /// Create a new `ObjectBuilder`.
     #[inline]
-    pub fn new(context: &'ctx mut Context) -> Self {
+    pub fn new(context: &'ctx Context) -> Self {
         let object = JsObject::with_object_proto(context.intrinsics());
         Self { context, object }
     }
 
     /// Create a new `ObjectBuilder` with custom [`NativeObject`] data.
-    pub fn with_native_data<T: NativeObject>(data: T, context: &'ctx mut Context) -> Self {
+    pub fn with_native_data<T: NativeObject>(data: T, context: &'ctx Context) -> Self {
         let object = JsObject::from_proto_and_data_with_shared_shape(
             context.root_shape(),
             context.intrinsics().constructors().object().prototype(),
@@ -519,7 +519,7 @@ impl<'ctx> ObjectInitializer<'ctx> {
     pub fn with_native_data_and_proto<T: NativeObject>(
         data: T,
         proto: JsObject,
-        context: &'ctx mut Context,
+        context: &'ctx Context,
     ) -> Self {
         let object =
             JsObject::from_proto_and_data_with_shared_shape(context.root_shape(), proto, data)
@@ -600,7 +600,8 @@ impl<'ctx> ObjectInitializer<'ctx> {
 
     /// Gets the context used to create the object.
     #[inline]
-    pub fn context(&mut self) -> &mut Context {
+    #[must_use]
+    pub fn context(&self) -> &Context {
         self.context
     }
 }
@@ -608,7 +609,7 @@ impl<'ctx> ObjectInitializer<'ctx> {
 /// Builder for creating constructors objects, like `Array`.
 #[derive(Debug)]
 pub struct ConstructorBuilder<'ctx> {
-    context: &'ctx mut Context,
+    context: &'ctx Context,
     function: NativeFunction,
     constructor_object: Object<OrdinaryObject>,
     has_prototype_property: bool,
@@ -624,7 +625,7 @@ pub struct ConstructorBuilder<'ctx> {
 impl<'ctx> ConstructorBuilder<'ctx> {
     /// Create a new `ConstructorBuilder`.
     #[inline]
-    pub fn new(context: &'ctx mut Context, function: NativeFunction) -> ConstructorBuilder<'ctx> {
+    pub fn new(context: &'ctx Context, function: NativeFunction) -> ConstructorBuilder<'ctx> {
         Self {
             context,
             function,
@@ -859,7 +860,8 @@ impl<'ctx> ConstructorBuilder<'ctx> {
 
     /// Return the current context.
     #[inline]
-    pub fn context(&mut self) -> &mut Context {
+    #[must_use]
+    pub fn context(&self) -> &Context {
         self.context
     }
 

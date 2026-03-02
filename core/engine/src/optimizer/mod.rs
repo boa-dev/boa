@@ -68,12 +68,12 @@ impl fmt::Display for OptimizerStatistics {
 #[derive(Debug)]
 pub(crate) struct Optimizer<'context> {
     statistics: OptimizerStatistics,
-    context: &'context mut Context,
+    context: &'context Context,
 }
 
 impl<'context> Optimizer<'context> {
     /// Create a optimizer.
-    pub(crate) fn new(context: &'context mut Context) -> Self {
+    pub(crate) fn new(context: &'context Context) -> Self {
         Self {
             statistics: OptimizerStatistics::default(),
             context,

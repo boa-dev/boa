@@ -37,7 +37,7 @@ impl EmbeddedModuleEntry {
         Self::Source(compress_type, path, source)
     }
 
-    fn cache(&mut self, context: &mut Context) -> JsResult<&Module> {
+    fn cache(&mut self, context: &Context) -> JsResult<&Module> {
         if let Self::Source(compress, path, source) = self {
             let mut bytes: &[u8] = match compress {
                 CompressType::None => source,
@@ -142,14 +142,14 @@ impl ModuleLoader for EmbeddedModuleLoader {
         self: Rc<Self>,
         referrer: Referrer,
         request: boa_engine::module::ModuleRequest,
-        context: &RefCell<&mut Context>,
+        context: &RefCell<&Context>,
     ) -> impl Future<Output = JsResult<Module>> {
         let result = (|| {
             let specifier_path = boa_engine::module::resolve_module_specifier(
                 None,
                 request.specifier(),
                 referrer.path(),
-                &mut context.borrow_mut(),
+                &context.borrow_mut(),
             )
             .map_err(|e| {
                 JsNativeError::typ()
@@ -171,7 +171,7 @@ impl ModuleLoader for EmbeddedModuleLoader {
                 })?;
 
             let mut embedded = module.borrow_mut();
-            embedded.cache(&mut context.borrow_mut()).cloned()
+            embedded.cache(&context.borrow_mut()).cloned()
         })();
 
         async { result }

@@ -34,7 +34,7 @@ impl Segments {
     /// [`CreateSegmentsObject ( segmenter, string )`][spec]
     ///
     /// [spec]: https://tc39.es/ecma402/#sec-createsegmentsobject
-    pub(crate) fn create(segmenter: JsObject, string: JsString, context: &mut Context) -> JsObject {
+    pub(crate) fn create(segmenter: JsObject, string: JsString, context: &Context) -> JsObject {
         // 1. Let internalSlotsList be « [[SegmentsSegmenter]], [[SegmentsString]] ».
         // 2. Let segments be OrdinaryObjectCreate(%SegmentsPrototype%, internalSlotsList).
         // 3. Set segments.[[SegmentsSegmenter]] to segmenter.
@@ -51,7 +51,7 @@ impl Segments {
     /// [`%SegmentsPrototype%.containing ( index )`][spec]
     ///
     /// [spec]: https://tc39.es/ecma402/#sec-%segmentsprototype%.containing
-    fn containing(this: &JsValue, args: &[JsValue], context: &mut Context) -> JsResult<JsValue> {
+    fn containing(this: &JsValue, args: &[JsValue], context: &Context) -> JsResult<JsValue> {
         // 1. Let segments be the this value.
         // 2. Perform ? RequireInternalSlot(segments, [[SegmentsSegmenter]]).
         let object = this.as_object();
@@ -106,7 +106,7 @@ impl Segments {
     /// [`%SegmentsPrototype% [ @@iterator ] ( )`][spec]
     ///
     /// [spec]: https://tc39.es/ecma402/#sec-%segmentsprototype%-@@iterator
-    fn iterator(this: &JsValue, _: &[JsValue], context: &mut Context) -> JsResult<JsValue> {
+    fn iterator(this: &JsValue, _: &[JsValue], context: &Context) -> JsResult<JsValue> {
         // 1. Let segments be the this value.
         // 2. Perform ? RequireInternalSlot(segments, [[SegmentsSegmenter]]).
         let object = this.as_object();

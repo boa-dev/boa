@@ -96,8 +96,8 @@ fn formatter_float_format_works() {
 
 #[test]
 fn console_log_cyclic() {
-    let mut context = Context::default();
-    let console = Console::init_with_logger(NullLogger, &mut context);
+    let context = Context::default();
+    let console = Console::init_with_logger(NullLogger, &context);
     context
         .register_global_property(Console::NAME, console, Attribute::all())
         .unwrap();
@@ -108,7 +108,7 @@ fn console_log_cyclic() {
                 a[1] = a;
                 console.log(a);
             "#})],
-        &mut context,
+        &context,
     );
     // Should not stack overflow
 }
@@ -120,21 +120,21 @@ pub(crate) struct RecordingLogger {
 }
 
 impl Logger for RecordingLogger {
-    fn log(&self, msg: String, state: &ConsoleState, _: &mut Context) -> JsResult<()> {
+    fn log(&self, msg: String, state: &ConsoleState, _: &Context) -> JsResult<()> {
         use std::fmt::Write;
         let indent = state.indent();
         writeln!(self.log.borrow_mut(), "{msg:>indent$}").map_err(JsError::from_rust)
     }
 
-    fn info(&self, msg: String, state: &ConsoleState, context: &mut Context) -> JsResult<()> {
+    fn info(&self, msg: String, state: &ConsoleState, context: &Context) -> JsResult<()> {
         self.log(msg, state, context)
     }
 
-    fn warn(&self, msg: String, state: &ConsoleState, context: &mut Context) -> JsResult<()> {
+    fn warn(&self, msg: String, state: &ConsoleState, context: &Context) -> JsResult<()> {
         self.log(msg, state, context)
     }
 
-    fn error(&self, msg: String, state: &ConsoleState, context: &mut Context) -> JsResult<()> {
+    fn error(&self, msg: String, state: &ConsoleState, context: &Context) -> JsResult<()> {
         self.log(msg, state, context)
     }
 }
@@ -178,9 +178,9 @@ const self = globalThis;
 /// The WPT test `console/console-log-symbol.any.js`.
 #[test]
 fn wpt_log_symbol_any() {
-    let mut context = Context::default();
+    let context = Context::default();
     let logger = RecordingLogger::default();
-    Console::register_with_logger(logger.clone(), &mut context).unwrap();
+    Console::register_with_logger(logger.clone(), &context).unwrap();
 
     run_test_actions_with(
         [
@@ -192,7 +192,7 @@ fn wpt_log_symbol_any() {
             console.log(Symbol.isConcatSpreadable);
         "#}),
         ],
-        &mut context,
+        &context,
     );
 
     let logs = logger.log.borrow().clone();
@@ -210,9 +210,9 @@ fn wpt_log_symbol_any() {
 /// The WPT test `console/console-is-a-namespace.any.js`.
 #[test]
 fn wpt_console_is_a_namespace() {
-    let mut context = Context::default();
+    let context = Context::default();
     let logger = RecordingLogger::default();
-    Console::register_with_logger(logger.clone(), &mut context).unwrap();
+    Console::register_with_logger(logger.clone(), &context).unwrap();
 
     run_test_actions_with(
         [
@@ -238,16 +238,16 @@ fn wpt_console_is_a_namespace() {
                 assert_equals(prototype2, Object.prototype, "The [[Prototype]]'s [[Prototype]] must be %ObjectPrototype%");
             "#}),
         ],
-        &mut context,
+        &context,
     );
 }
 
 /// The WPT test `console/console-label-conversion.any.js`.
 #[test]
 fn wpt_console_label_conversion() {
-    let mut context = Context::default();
+    let context = Context::default();
     let logger = RecordingLogger::default();
-    Console::register_with_logger(logger.clone(), &mut context).unwrap();
+    Console::register_with_logger(logger.clone(), &context).unwrap();
 
     run_test_actions_with(
         [
@@ -282,16 +282,16 @@ fn wpt_console_label_conversion() {
                 }
             "#}),
         ],
-        &mut context,
+        &context,
     );
 }
 
 /// The WPT test `console/console-namespace-object-class-string.any.js`.
 #[test]
 fn console_namespace_object_class_string() {
-    let mut context = Context::default();
+    let context = Context::default();
     let logger = RecordingLogger::default();
-    Console::register_with_logger(logger.clone(), &mut context).unwrap();
+    Console::register_with_logger(logger.clone(), &context).unwrap();
 
     run_test_actions_with(
         [
@@ -334,15 +334,15 @@ fn console_namespace_object_class_string() {
                 assert_equals(Object.prototype.toString.call(console), "[object Object]");
             "#}),
         ],
-        &mut context,
+        &context,
     );
 }
 
 #[test]
 fn trace_with_stack_trace() {
-    let mut context = Context::default();
+    let context = Context::default();
     let logger = RecordingLogger::default();
-    Console::register_with_logger(logger.clone(), &mut context).unwrap();
+    Console::register_with_logger(logger.clone(), &context).unwrap();
 
     run_test_actions_with(
         [
@@ -359,7 +359,7 @@ fn trace_with_stack_trace() {
             }
         "#}),
         ],
-        &mut context,
+        &context,
     );
 
     let logs = logger.log.borrow().clone();

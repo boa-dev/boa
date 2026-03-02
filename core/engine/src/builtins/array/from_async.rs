@@ -25,7 +25,7 @@ impl Array {
     pub(crate) fn from_async(
         this: &JsValue,
         args: &[JsValue],
-        context: &mut Context,
+        context: &Context,
     ) -> JsResult<JsValue> {
         // 1. Let C be the this value.
         // 2. Let promiseCapability be ! NewPromiseCapability(%Promise%).
@@ -232,7 +232,7 @@ enum AsyncIteratorStateMachine {
 fn from_async_iterator(
     mut result: JsResult<JsValue>,
     (global_state, state_machine): &(GlobalState, Cell<Option<AsyncIteratorStateMachine>>),
-    context: &mut Context,
+    context: &Context,
 ) -> JsResult<CoroutineState> {
     let result = (|| {
         let Some(mut sm) = state_machine.take() else {
@@ -489,7 +489,7 @@ enum ArrayLikeStateMachine {
 fn from_array_like(
     mut result: JsResult<JsValue>,
     (global_state, state_machine): &(GlobalState, Cell<Option<ArrayLikeStateMachine>>),
-    context: &mut Context,
+    context: &Context,
 ) -> JsResult<CoroutineState> {
     let result: JsResult<_> = (|| {
         let Some(mut sm) = state_machine.take() else {

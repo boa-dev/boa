@@ -12,7 +12,7 @@ use temporal_rs::Calendar;
 #[allow(unused)]
 pub(crate) fn get_temporal_calendar_slot_value_with_default(
     item: &JsObject,
-    context: &mut Context,
+    context: &Context,
 ) -> JsResult<Calendar> {
     // 1. If item has an [[InitializedTemporalDate]], [[InitializedTemporalDateTime]], [[InitializedTemporalMonthDay]],
     // [[InitializedTemporalYearMonth]], or [[InitializedTemporalZonedDateTime]] internal slot, then

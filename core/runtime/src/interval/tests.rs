@@ -8,15 +8,15 @@ use std::cell::RefCell;
 use std::rc::Rc;
 
 fn create_context(clock: Rc<impl Clock + 'static>) -> Context {
-    let mut context = ContextBuilder::default().clock(clock).build().unwrap();
-    interval::register(&mut context).unwrap();
+    let context = ContextBuilder::default().clock(clock).build().unwrap();
+    interval::register(&context).unwrap();
     context
 }
 
 #[test]
 fn two_zero_delay_timeouts_both_fire() {
     let clock = Rc::new(FixedClock::default());
-    let context = &mut create_context(clock.clone());
+    let context = &create_context(clock.clone());
 
     run_test_actions_with(
         [
@@ -47,7 +47,7 @@ fn two_zero_delay_timeouts_both_fire() {
 #[test]
 fn set_timeout_basic() {
     let clock = Rc::new(FixedClock::default());
-    let context = &mut create_context(clock.clone());
+    let context = &create_context(clock.clone());
 
     run_test_actions_with(
         [
@@ -73,7 +73,7 @@ fn set_timeout_basic() {
 #[test]
 fn set_timeout_cancel() {
     let clock = Rc::new(FixedClock::default());
-    let context = &mut create_context(clock.clone());
+    let context = &create_context(clock.clone());
     let clock1 = clock.clone();
     let clock2 = clock.clone();
 
@@ -97,7 +97,7 @@ fn set_timeout_cancel() {
 
                 let global_object = ctx.borrow().global_object();
                 let called = global_object
-                    .get(js_str!("called"), &mut ctx.borrow_mut())
+                    .get(js_str!("called"), &ctx.borrow_mut())
                     .unwrap();
                 assert_eq!(called.as_boolean(), Some(false));
                 ctx.borrow_mut().run_jobs().unwrap();
@@ -118,7 +118,7 @@ fn set_timeout_cancel() {
 #[test]
 fn set_timeout_delay() {
     let clock = Rc::new(FixedClock::default());
-    let context = &mut create_context(clock.clone());
+    let context = &create_context(clock.clone());
 
     run_test_actions_with(
         [
@@ -135,7 +135,7 @@ fn set_timeout_delay() {
                 // As long as the clock isn't updated, `called` will always be false.
                 for _ in 0..5 {
                     let called = global_object
-                        .get(js_str!("called"), &mut ctx.borrow_mut())
+                        .get(js_str!("called"), &ctx.borrow_mut())
                         .unwrap();
                     assert_eq!(called.as_boolean(), Some(false));
                     ctx.borrow_mut().run_jobs().unwrap();
@@ -145,14 +145,14 @@ fn set_timeout_delay() {
                 clock.forward(50);
                 ctx.borrow_mut().run_jobs().unwrap();
                 let called = global_object
-                    .get(js_str!("called"), &mut ctx.borrow_mut())
+                    .get(js_str!("called"), &ctx.borrow_mut())
                     .unwrap();
                 assert_eq!(called.as_boolean(), Some(false));
 
                 clock.forward(51);
                 ctx.borrow_mut().run_jobs().unwrap();
                 let called = global_object
-                    .get(js_str!("called"), &mut ctx.borrow_mut())
+                    .get(js_str!("called"), &ctx.borrow_mut())
                     .unwrap();
                 assert_eq!(called.as_boolean(), Some(true));
             }),
@@ -164,7 +164,7 @@ fn set_timeout_delay() {
 #[test]
 fn set_interval_delay() {
     let clock = Rc::new(FixedClock::default());
-    let context = &mut create_context(clock.clone());
+    let context = &create_context(clock.clone());
     let clock1 = clock.clone(); // For the first test.
     let clock2 = clock.clone(); // For the first test.
 
@@ -184,7 +184,7 @@ fn set_interval_delay() {
                 // As long as the clock isn't updated, `called` will always be false.
                 for _ in 0..5 {
                     let called = global_object
-                        .get(js_str!("called"), &mut ctx.borrow_mut())
+                        .get(js_str!("called"), &ctx.borrow_mut())
                         .unwrap();
                     assert_eq!(called.as_i32(), Some(0));
                     ctx.borrow_mut().run_jobs().unwrap();
@@ -194,7 +194,7 @@ fn set_interval_delay() {
                 clock.forward(50);
                 ctx.borrow_mut().run_jobs().unwrap();
                 let called = global_object
-                    .get(js_str!("called"), &mut ctx.borrow_mut())
+                    .get(js_str!("called"), &ctx.borrow_mut())
                     .unwrap();
                 assert_eq!(called.as_i32(), Some(0));
 
@@ -202,7 +202,7 @@ fn set_interval_delay() {
                 clock.forward(51);
                 ctx.borrow_mut().run_jobs().unwrap();
                 let called = global_object
-                    .get(js_str!("called"), &mut ctx.borrow_mut())
+                    .get(js_str!("called"), &ctx.borrow_mut())
                     .unwrap();
                 assert_eq!(called.as_i32(), Some(1));
 
@@ -210,7 +210,7 @@ fn set_interval_delay() {
                 clock.forward(50);
                 ctx.borrow_mut().run_jobs().unwrap();
                 let called = global_object
-                    .get(js_str!("called"), &mut ctx.borrow_mut())
+                    .get(js_str!("called"), &ctx.borrow_mut())
                     .unwrap();
                 assert_eq!(called.as_i32(), Some(1));
 
@@ -218,7 +218,7 @@ fn set_interval_delay() {
                 clock.forward(51);
                 ctx.borrow_mut().run_jobs().unwrap();
                 let called = global_object
-                    .get(js_str!("called"), &mut ctx.borrow_mut())
+                    .get(js_str!("called"), &ctx.borrow_mut())
                     .unwrap();
                 assert_eq!(called.as_i32(), Some(2));
 
@@ -226,7 +226,7 @@ fn set_interval_delay() {
                 clock.forward(500);
                 ctx.borrow_mut().run_jobs().unwrap();
                 let called = global_object
-                    .get(js_str!("called"), &mut ctx.borrow_mut())
+                    .get(js_str!("called"), &ctx.borrow_mut())
                     .unwrap();
                 assert_eq!(called.as_i32(), Some(3));
             }),
@@ -265,8 +265,8 @@ fn set_interval_delay() {
 #[test]
 fn set_interval_zero_delay_terminates_with_advancing_clock() {
     // ContextBuilder::default() uses StdClock (real wall clock, nanosecond resolution).
-    let mut context = ContextBuilder::default().build().unwrap();
-    interval::register(&mut context).unwrap();
+    let context = ContextBuilder::default().build().unwrap();
+    interval::register(&context).unwrap();
 
     context
         .eval(Source::from_bytes(
@@ -286,7 +286,7 @@ fn set_interval_zero_delay_terminates_with_advancing_clock() {
     // The interval must have fired at least once.
     let count = context
         .global_object()
-        .get(js_str!("count"), &mut context)
+        .get(js_str!("count"), &context)
         .unwrap();
     assert!(count.as_i32().unwrap_or(0) >= 1);
 }

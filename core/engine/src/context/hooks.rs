@@ -35,7 +35,7 @@ use time::{OffsetDateTime, UtcOffset};
 ///         _parameters: &[JsString],
 ///         _body: &JsString,
 ///         _direct: bool,
-///         _context: &mut Context,
+///         _context: &Context,
 ///     ) -> JsResult<()> {
 ///         Err(JsNativeError::typ()
 ///             .with_message("eval calls not available")
@@ -43,7 +43,7 @@ use time::{OffsetDateTime, UtcOffset};
 ///     }
 /// }
 ///
-/// let context = &mut ContextBuilder::new()
+/// let context = &ContextBuilder::new()
 ///     .host_hooks(Rc::new(Hooks))
 ///     .build()
 ///     .unwrap();
@@ -65,7 +65,7 @@ pub trait HostHooks {
     /// - It must return a `JobCallback` Record whose `[[Callback]]` field is `callback`.
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-hostmakejobcallback
-    fn make_job_callback(&self, callback: JsFunction, _context: &mut Context) -> JobCallback {
+    fn make_job_callback(&self, callback: JsFunction, _context: &Context) -> JobCallback {
         // The default implementation of HostMakeJobCallback performs the following steps when called:
 
         // 1. Return the JobCallback Record { [[Callback]]: callback, [[HostDefined]]: empty }.
@@ -85,7 +85,7 @@ pub trait HostHooks {
         job: JobCallback,
         this: &JsValue,
         args: &[JsValue],
-        context: &mut Context,
+        context: &Context,
     ) -> JsResult<JsValue> {
         // The default implementation of HostCallJobCallback performs the following steps when called:
 
@@ -107,7 +107,7 @@ pub trait HostHooks {
         &self,
         _promise: &JsObject<Promise>,
         _operation: OperationType,
-        _context: &mut Context,
+        _context: &Context,
     ) {
         // The default implementation of HostPromiseRejectionTracker is to return unused.
     }
@@ -126,7 +126,7 @@ pub trait HostHooks {
         _parameters: &[JsString],
         _body: &JsString,
         _direct: bool,
-        _context: &mut Context,
+        _context: &Context,
     ) -> JsResult<()> {
         // The default implementation of HostEnsureCanCompileStrings is to return NormalCompletion(unused).
         Ok(())
@@ -140,7 +140,7 @@ pub trait HostHooks {
     ///   specific `func` as its argument, it must return the same result.
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-hosthassourcetextavailable
-    fn has_source_text_available(&self, _function: &JsFunction, _context: &mut Context) -> bool {
+    fn has_source_text_available(&self, _function: &JsFunction, _context: &Context) -> bool {
         // The default implementation of HostHasSourceTextAvailable is to return true.
         true
     }
@@ -156,11 +156,7 @@ pub trait HostHooks {
     /// - This abstract operation should only be overridden by ECMAScript hosts that are web browsers.
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-hostensurecanaddprivateelement
-    fn ensure_can_add_private_element(
-        &self,
-        _o: &JsObject,
-        _context: &mut Context,
-    ) -> JsResult<()> {
+    fn ensure_can_add_private_element(&self, _o: &JsObject, _context: &Context) -> JsResult<()> {
         Ok(())
     }
 
@@ -220,7 +216,7 @@ pub trait HostHooks {
     ///
     ///
     /// [specification]: https://tc39.es/ecma262/#sec-resizable-arraybuffer-guidelines
-    fn max_buffer_size(&self, _context: &mut Context) -> u64 {
+    fn max_buffer_size(&self, _context: &Context) -> u64 {
         1_610_612_736 // 1.5 GiB
     }
 }

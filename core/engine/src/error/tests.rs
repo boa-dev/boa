@@ -9,11 +9,7 @@ use crate::{
 use indoc::indoc;
 
 /// Helper to extract backtrace entries from a rejected module promise.
-fn get_backtrace_from_rejection(
-    context: &mut Context,
-    js_code: &[u8],
-    path: &str,
-) -> Vec<ShadowEntry> {
+fn get_backtrace_from_rejection(context: &Context, js_code: &[u8], path: &str) -> Vec<ShadowEntry> {
     let source = Source::from_bytes(js_code).with_path(Path::new(path));
     let module = Module::parse(source, None, context).unwrap();
     let promise = module.load_link_evaluate(context);
@@ -80,9 +76,9 @@ fn assert_native_frame(entry: &ShadowEntry) {
 /// preserve their backtrace through promise rejection (`JsError` -> `JsValue` -> `JsError`).
 #[test]
 fn backtrace_preserved_through_promise_rejection() {
-    let mut context = Context::default();
+    let context = Context::default();
     let entries = get_backtrace_from_rejection(
-        &mut context,
+        &context,
         indoc! {br#"
             let x = undefined;
             x()
@@ -102,9 +98,9 @@ fn backtrace_preserved_through_promise_rejection() {
 /// promise rejection round-trip.
 #[test]
 fn nested_backtrace_preserved_through_promise_rejection() {
-    let mut context = Context::default();
+    let context = Context::default();
     let entries = get_backtrace_from_rejection(
-        &mut context,
+        &context,
         indoc! {br#"
             function foo() {
                 function baz() {
@@ -132,9 +128,9 @@ fn nested_backtrace_preserved_through_promise_rejection() {
 /// the backtrace through the promise rejection round-trip.
 #[test]
 fn explicit_throw_backtrace_preserved_through_promise_rejection() {
-    let mut context = Context::default();
+    let context = Context::default();
     let entries = get_backtrace_from_rejection(
-        &mut context,
+        &context,
         indoc! {br#"
             function foo() {
                 throw new Error("test")
@@ -157,7 +153,7 @@ fn explicit_throw_backtrace_preserved_through_promise_rejection() {
 /// <https://github.com/boa-dev/boa/discussions/4475>).
 #[test]
 fn eval_error_has_backtrace() {
-    let mut context = Context::default();
+    let context = Context::default();
     let code = indoc! {br#"
         const a = 0;
         iWillCauseAnError

@@ -75,12 +75,12 @@ const ASSERT_DECL: &str = r"
 #[test]
 fn boa_module() {
     let module_loader = Rc::new(MapModuleLoader::new());
-    let mut context = Context::builder()
+    let context = Context::builder()
         .module_loader(module_loader.clone())
         .build()
         .expect("Could not create context.");
 
-    module_loader.insert("/hello.js", hello::boa_module(None, &mut context));
+    module_loader.insert("/hello.js", hello::boa_module(None, &context));
 
     context
         .eval(Source::from_bytes(ASSERT_DECL))
@@ -102,13 +102,11 @@ fn boa_module() {
             "#,
         ),
         None,
-        &mut context,
+        &context,
     )
     .expect("Could not load module");
 
-    let result = module
-        .load_link_evaluate(&mut context)
-        .await_blocking(&mut context);
+    let result = module.load_link_evaluate(&context).await_blocking(&context);
 
     if let Err(e) = result {
         panic!("error: {e:?}\n{e}");

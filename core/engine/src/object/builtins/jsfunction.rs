@@ -15,13 +15,13 @@ pub trait TryIntoJsArguments {
     /// Convert a tuple of Rust values into a vector of `JsValue`.
     /// This is automatically implemented for tuples that implement
     /// `TryIntoJsResult`.
-    fn into_js_args(self, cx: &mut Context) -> JsResult<Vec<JsValue>>;
+    fn into_js_args(self, cx: &Context) -> JsResult<Vec<JsValue>>;
 }
 
 macro_rules! impl_try_into_js_args {
     ($($n: ident: $t: ident),*) => {
         impl<$($t),*> TryIntoJsArguments for ($($t,)*) where $($t: TryIntoJsResult),* {
-            fn into_js_args(self, cx: &mut Context) -> JsResult<Vec<JsValue>> {
+            fn into_js_args(self, cx: &Context) -> JsResult<Vec<JsValue>> {
                 let ($($n,)*) = self;
                 Ok(vec![$($n.try_into_js_result(cx)?),*])
             }
@@ -65,14 +65,14 @@ impl<A: TryIntoJsArguments, R: TryFromJs> TypedJsFunction<A, R> {
     /// Call the function with the given arguments.
     #[inline]
     #[cfg_attr(feature = "native-backtrace", track_caller)]
-    pub fn call(&self, context: &mut Context, args: A) -> JsResult<R> {
+    pub fn call(&self, context: &Context, args: A) -> JsResult<R> {
         self.call_with_this(&JsValue::undefined(), context, args)
     }
 
     /// Call the function with the given argument and `this`.
     #[inline]
     #[cfg_attr(feature = "native-backtrace", track_caller)]
-    pub fn call_with_this(&self, this: &JsValue, context: &mut Context, args: A) -> JsResult<R> {
+    pub fn call_with_this(&self, this: &JsValue, context: &Context, args: A) -> JsResult<R> {
         let arguments = args.into_js_args(context)?;
         let result = self.inner.call(this, &arguments, context)?;
         R::try_from_js(&result, context)
@@ -80,7 +80,7 @@ impl<A: TryIntoJsArguments, R: TryFromJs> TypedJsFunction<A, R> {
 }
 
 impl<A: TryIntoJsArguments, R: TryFromJs> TryFromJs for TypedJsFunction<A, R> {
-    fn try_from_js(value: &JsValue, _context: &mut Context) -> JsResult<Self> {
+    fn try_from_js(value: &JsValue, _context: &Context) -> JsResult<Self> {
         if let Some(o) = value.as_object() {
             JsFunction::from_object(o.clone())
                 .ok_or_else(|| {
@@ -188,7 +188,7 @@ impl Deref for JsFunction {
 }
 
 impl TryFromJs for JsFunction {
-    fn try_from_js(value: &JsValue, _context: &mut Context) -> JsResult<Self> {
+    fn try_from_js(value: &JsValue, _context: &Context) -> JsResult<Self> {
         if let Some(o) = value.as_object() {
             Self::from_object(o.clone()).ok_or_else(|| {
                 JsNativeError::typ()

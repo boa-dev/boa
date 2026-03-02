@@ -109,7 +109,7 @@ impl Deref for JsWeakSet {
 }
 
 impl TryFromJs for JsWeakSet {
-    fn try_from_js(value: &JsValue, _context: &mut Context) -> JsResult<Self> {
+    fn try_from_js(value: &JsValue, _context: &Context) -> JsResult<Self> {
         if let Some(o) = value.as_object()
             && let Ok(weak_set) = Self::from_object(o.clone())
         {

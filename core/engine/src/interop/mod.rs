@@ -19,12 +19,12 @@ pub(crate) mod private {
 /// # use boa_engine::{UnsafeIntoJsFunction, Context, JsValue, NativeFunction};
 /// # let mut context = Context::default();
 /// let f = |a: i32, b: i32| a + b;
-/// let f = unsafe { f.into_js_function_unsafe(&mut context) };
+/// let f = unsafe { f.into_js_function_unsafe(&context) };
 /// let result = f
 ///     .call(
 ///         &JsValue::undefined(),
 ///         &[JsValue::from(1), JsValue::from(2)],
-///         &mut context,
+///         &context,
 ///     )
 ///     .unwrap();
 /// assert_eq!(result, JsValue::new(3));
@@ -45,10 +45,10 @@ pub(crate) mod private {
 ///     let x = x.clone();
 ///     move |a: i32| *x.borrow_mut() += a
 /// };
-/// let f = unsafe { f.into_js_function_unsafe(&mut context) };
-/// f.call(&JsValue::undefined(), &[JsValue::from(1)], &mut context)
+/// let f = unsafe { f.into_js_function_unsafe(&context) };
+/// f.call(&JsValue::undefined(), &[JsValue::from(1)], &context)
 ///     .unwrap();
-/// f.call(&JsValue::undefined(), &[JsValue::from(4)], &mut context)
+/// f.call(&JsValue::undefined(), &[JsValue::from(4)], &context)
 ///     .unwrap();
 /// assert_eq!(*x.borrow(), 5);
 /// ```
@@ -58,7 +58,7 @@ pub trait UnsafeIntoJsFunction<Args, Ret>: private::IntoJsFunctionSealed<Args, R
     /// # Safety
     /// This function is unsafe to ensure the callee knows the risks of using this trait.
     /// The implementing type must not contain any garbage collected objects.
-    unsafe fn into_js_function_unsafe(self, context: &mut Context) -> NativeFunction;
+    unsafe fn into_js_function_unsafe(self, context: &Context) -> NativeFunction;
 }
 
 /// The safe equivalent of the [`UnsafeIntoJsFunction`] trait.
@@ -70,19 +70,19 @@ pub trait UnsafeIntoJsFunction<Args, Ret>: private::IntoJsFunctionSealed<Args, R
 /// # use boa_engine::{IntoJsFunctionCopied, Context, JsValue, NativeFunction};
 /// # let mut context = Context::default();
 /// let f = |a: i32, b: i32| a + b;
-/// let f = f.into_js_function_copied(&mut context);
+/// let f = f.into_js_function_copied(&context);
 /// let result = f
 ///     .call(
 ///         &JsValue::undefined(),
 ///         &[JsValue::from(1), JsValue::from(2)],
-///         &mut context,
+///         &context,
 ///     )
 ///     .unwrap();
 /// assert_eq!(result, JsValue::new(3));
 /// ```
 pub trait IntoJsFunctionCopied<Args, Ret>: private::IntoJsFunctionSealed<Args, Ret> + Copy {
     /// Converts the type into a JS function.
-    fn into_js_function_copied(self, context: &mut Context) -> NativeFunction;
+    fn into_js_function_copied(self, context: &Context) -> NativeFunction;
 }
 
 mod into_js_arguments;

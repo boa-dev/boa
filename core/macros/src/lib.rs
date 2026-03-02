@@ -100,10 +100,10 @@ pub fn boa_class(attr: TokenStream, item: TokenStream) -> TokenStream {
 /// This macro exports two functions out of the existing module (and those
 /// functions must not exist in the declared module):
 ///
-/// ## `boa_module(realm: Option<Realm>, context: &mut Context) -> JsResult<Module>`
+/// ## `boa_module(realm: Option<Realm>, context: &Context) -> JsResult<Module>`
 /// Create a JavaScript module from the rust module's content.
 ///
-/// ## `boa_register(realm: Option<Realm>, context: &mut Context) -> JsResult<()>`
+/// ## `boa_register(realm: Option<Realm>, context: &Context) -> JsResult<()>`
 /// Register the constants, classes and functions from the module in the global
 /// scope of the Realm (if specified) or the context (if no realm).
 #[proc_macro_attribute]
@@ -486,7 +486,7 @@ pub fn derive_try_from_js(input: TokenStream) -> TokenStream {
     // Build the output, possibly using quasi-quotation
     let expanded = quote! {
         impl ::boa_engine::value::TryFromJs for #type_name {
-            fn try_from_js(value: &boa_engine::JsValue, context: &mut boa_engine::Context)
+            fn try_from_js(value: &boa_engine::JsValue, context: &boa_engine::Context)
                 -> boa_engine::JsResult<Self> {
                 let o = value.as_object().ok_or_else(|| ::boa_engine::JsError::from(
                     ::boa_engine::JsNativeError::typ()
@@ -618,7 +618,7 @@ pub fn derive_try_into_js(input: TokenStream) -> TokenStream {
     // Build the output, possibly using quasi-quotation
     let expanded = quote! {
         impl ::boa_engine::value::TryIntoJs for #type_name {
-            fn try_into_js(&self, context: &mut boa_engine::Context) -> boa_engine::JsResult<boa_engine::JsValue> {
+            fn try_into_js(&self, context: &boa_engine::Context) -> boa_engine::JsResult<boa_engine::JsValue> {
                 let obj = boa_engine::JsObject::default(context.intrinsics());
                 #props
                 boa_engine::JsResult::Ok(obj.into())

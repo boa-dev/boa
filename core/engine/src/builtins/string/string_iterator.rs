@@ -56,7 +56,7 @@ impl IntrinsicObject for StringIterator {
 
 impl StringIterator {
     /// Create a new `StringIterator`.
-    pub(crate) fn create_string_iterator(string: JsString, context: &mut Context) -> JsObject {
+    pub(crate) fn create_string_iterator(string: JsString, context: &Context) -> JsObject {
         JsObject::from_proto_and_data_with_shared_shape(
             context.root_shape(),
             context
@@ -73,7 +73,7 @@ impl StringIterator {
     }
 
     /// `StringIterator.prototype.next( )`
-    pub(crate) fn next(this: &JsValue, _: &[JsValue], context: &mut Context) -> JsResult<JsValue> {
+    pub(crate) fn next(this: &JsValue, _: &[JsValue], context: &Context) -> JsResult<JsValue> {
         let object = this.as_object();
         let mut string_iterator = object
             .as_ref()

@@ -1,7 +1,7 @@
 use super::TestFetcher;
 use crate::test::{TestAction, run_test_actions};
 
-fn register(ctx: &mut boa_engine::Context) {
+fn register(ctx: &boa_engine::Context) {
     crate::fetch::register(TestFetcher::default(), None, ctx).expect("failed to register fetch");
 }
 

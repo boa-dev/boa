@@ -350,7 +350,7 @@ macro_rules! generate_opcodes {
             )*
         }
 
-        type OpcodeHandler = fn(&mut Context, usize) -> ControlFlow<CompletionRecord>;
+        type OpcodeHandler = fn(&Context, usize) -> ControlFlow<CompletionRecord>;
 
         const OPCODE_HANDLERS: [OpcodeHandler; 256] = {
             [
@@ -360,7 +360,7 @@ macro_rules! generate_opcodes {
             ]
         };
 
-        type OpcodeHandlerBudget = fn(&mut Context, usize, &mut u32) -> ControlFlow<CompletionRecord>;
+        type OpcodeHandlerBudget = fn(&Context, usize, &mut u32) -> ControlFlow<CompletionRecord>;
 
         const OPCODE_HANDLERS_BUDGET: [OpcodeHandlerBudget; 256] = {
             [
@@ -374,10 +374,12 @@ macro_rules! generate_opcodes {
             paste::paste! {
                 #[inline(always)]
                 #[allow(unused_parens)]
-                fn [<handle_ $Variant:snake>](context: &mut Context, pc: usize) -> ControlFlow<CompletionRecord> {
-                    let bytes = &context.vm.frame.code_block.bytecode.bytecode;
-                    let (args, next_pc) = <($($($FieldType),*)?)>::decode(bytes, pc + 1);
-                    context.vm.frame_mut().pc = next_pc as u32;
+                fn [<handle_ $Variant:snake>](context: &Context, pc: usize) -> ControlFlow<CompletionRecord> {
+                    let (args, next_pc) = context.with_vm(|vm| {
+                        let bytes = &vm.frame.code_block.bytecode.bytecode;
+                        <($($($FieldType),*)?)>::decode(bytes, pc + 1)
+                    });
+                    context.with_vm_mut(|vm| vm.frame_mut().pc = next_pc as u32);
                     let result = $Variant::operation(args, context);
                     IntoCompletionRecord::into_completion_record(result, context)
                 }
@@ -388,11 +390,13 @@ macro_rules! generate_opcodes {
             paste::paste! {
                 #[inline(always)]
                 #[allow(unused_parens)]
-                fn [<handle_ $Variant:snake _budget>](context: &mut Context, pc: usize, budget: &mut u32) -> ControlFlow<CompletionRecord> {
+                fn [<handle_ $Variant:snake _budget>](context: &Context, pc: usize, budget: &mut u32) -> ControlFlow<CompletionRecord> {
                     *budget = budget.saturating_sub(u32::from($Variant::COST));
-                    let bytes = &context.vm.frame.code_block.bytecode.bytecode;
-                    let (args, next_pc) = <($($($FieldType),*)?)>::decode(bytes, pc + 1);
-                    context.vm.frame_mut().pc = next_pc as u32;
+                    let (args, next_pc) = context.with_vm(|vm| {
+                        let bytes = &vm.frame.code_block.bytecode.bytecode;
+                        <($($($FieldType),*)?)>::decode(bytes, pc + 1)
+                    });
+                    context.with_vm_mut(|vm| vm.frame_mut().pc = next_pc as u32);
                     let result = $Variant::operation(args, context);
                     IntoCompletionRecord::into_completion_record(result, context)
                 }
@@ -406,7 +410,7 @@ macro_rules! generate_opcodes {
                     #[allow(unused_parens)]
                     #[allow(unused_variables)]
                     #[inline(always)]
-                    fn operation(args: (), context: &mut Context) {
+                    fn operation(args: (), context: &Context) {
                         $mapping::operation(args, context)
                     }
                 }
@@ -455,22 +459,20 @@ macro_rules! generate_opcodes {
 
 impl Context {
     pub(crate) fn execute_bytecode_instruction(
-        &mut self,
+        &self,
         opcode: Opcode,
     ) -> ControlFlow<CompletionRecord> {
-        let frame = self.vm.frame_mut();
-        let pc = frame.pc as usize;
+        let pc = self.with_vm(|vm| vm.frame().pc as usize);
 
         OPCODE_HANDLERS[opcode as usize](self, pc)
     }
 
     pub(crate) fn execute_bytecode_instruction_with_budget(
-        &mut self,
+        &self,
         budget: &mut u32,
         opcode: Opcode,
     ) -> ControlFlow<CompletionRecord> {
-        let frame = self.vm.frame_mut();
-        let pc = frame.pc as usize;
+        let pc = self.with_vm(|vm| vm.frame().pc as usize);
 
         OPCODE_HANDLERS_BUDGET[opcode as usize](self, pc, budget)
     }

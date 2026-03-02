@@ -87,7 +87,7 @@ pub(super) fn get_number_option<T>(
     property: JsString,
     minimum: T,
     maximum: T,
-    context: &mut Context,
+    context: &Context,
 ) -> JsResult<Option<T>>
 where
     T: Into<f64> + FromPrimitive,
@@ -110,7 +110,7 @@ pub(super) fn default_number_option<T>(
     value: &JsValue,
     minimum: T,
     maximum: T,
-    context: &mut Context,
+    context: &Context,
 ) -> JsResult<Option<T>>
 where
     T: Into<f64> + FromPrimitive,
@@ -145,10 +145,7 @@ where
 /// [spec]: https://tc39.es/ecma402/#sec-coerceoptionstoobject
 /// [`get_option`]: crate::builtins::options::get_option
 /// [`get_options_object`]: crate::builtins::options::get_options_object
-pub(super) fn coerce_options_to_object(
-    options: &JsValue,
-    context: &mut Context,
-) -> JsResult<JsObject> {
+pub(super) fn coerce_options_to_object(options: &JsValue, context: &Context) -> JsResult<JsObject> {
     // If options is undefined, then
     if options.is_undefined() {
         // a. Return OrdinaryObjectCreate(null).

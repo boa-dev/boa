@@ -10,7 +10,7 @@ use boa_engine::module::embedded::EmbeddedModuleLoader;
 use boa_engine::{Context, JsString, JsValue, Module, Source, js_string};
 
 fn load_module_and_test(module_loader: &Rc<EmbeddedModuleLoader>) {
-    let mut context = Context::builder()
+    let context = Context::builder()
         .module_loader(module_loader.clone())
         .build()
         .unwrap();
@@ -25,10 +25,10 @@ fn load_module_and_test(module_loader: &Rc<EmbeddedModuleLoader>) {
     let module = Module::parse(
         Source::from_bytes(b"export { bar } from '/file1.js';"),
         None,
-        &mut context,
+        &context,
     )
     .expect("failed to parse module");
-    let promise = module.load_link_evaluate(&mut context);
+    let promise = module.load_link_evaluate(&context);
     context.run_jobs().unwrap();
 
     match promise.state() {
@@ -40,12 +40,12 @@ fn load_module_and_test(module_loader: &Rc<EmbeddedModuleLoader>) {
             );
 
             let bar = module
-                .namespace(&mut context)
-                .get(js_string!("bar"), &mut context)
+                .namespace(&context)
+                .get(js_string!("bar"), &context)
                 .unwrap()
                 .as_callable()
                 .unwrap();
-            let value = bar.call(&JsValue::undefined(), &[], &mut context).unwrap();
+            let value = bar.call(&JsValue::undefined(), &[], &context).unwrap();
             assert_eq!(
                 value.as_number(),
                 Some(6.),
@@ -53,10 +53,9 @@ fn load_module_and_test(module_loader: &Rc<EmbeddedModuleLoader>) {
                 value.display()
             );
         }
-        PromiseState::Rejected(err) => panic!(
-            "promise was not fulfilled: {:?}",
-            err.to_string(&mut context)
-        ),
+        PromiseState::Rejected(err) => {
+            panic!("promise was not fulfilled: {:?}", err.to_string(&context))
+        }
         PromiseState::Pending => panic!("Promise was not settled"),
     }
 }

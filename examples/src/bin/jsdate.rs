@@ -15,7 +15,7 @@ impl HostHooks for CustomTimezone {
 }
 
 fn main() -> JsResult<()> {
-    let context = &mut Context::builder()
+    let context = &Context::builder()
         .host_hooks(Rc::new(CustomTimezone))
         .build()
         .unwrap();

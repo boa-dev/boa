@@ -45,7 +45,7 @@ impl JsArrayBuffer {
     /// # };
     /// # fn main() -> JsResult<()> {
     /// # // Initialize context
-    /// # let context = &mut Context::default();
+    /// # let context = &Context::default();
     /// // Creates a blank array buffer of n bytes
     /// let array_buffer = JsArrayBuffer::new(4, context)?;
     ///
@@ -58,7 +58,7 @@ impl JsArrayBuffer {
     /// # }
     /// ```
     #[inline]
-    pub fn new(byte_length: usize, context: &mut Context) -> JsResult<Self> {
+    pub fn new(byte_length: usize, context: &Context) -> JsResult<Self> {
         let inner = ArrayBuffer::allocate(
             &context
                 .intrinsics()
@@ -87,7 +87,7 @@ impl JsArrayBuffer {
     /// # };
     /// # fn main() -> JsResult<()> {
     /// # // Initialize context
-    /// # let context = &mut Context::default();
+    /// # let context = &Context::default();
     ///
     /// // Create a buffer from a chunk of data
     /// let data_block = AlignedVec::from_iter(0, 0..5);
@@ -100,7 +100,7 @@ impl JsArrayBuffer {
     /// # Ok(())
     /// # }
     /// ```
-    pub fn from_byte_block(byte_block: AlignedVec<u8>, context: &mut Context) -> JsResult<Self> {
+    pub fn from_byte_block(byte_block: AlignedVec<u8>, context: &Context) -> JsResult<Self> {
         let constructor = context
             .intrinsics()
             .constructors()
@@ -167,7 +167,7 @@ impl JsArrayBuffer {
     /// # };
     /// # fn main() -> JsResult<()> {
     /// # // Initialize context
-    /// # let context = &mut Context::default();
+    /// # let context = &Context::default();
     /// // Create a buffer from a chunk of data
     /// let data_block = AlignedVec::from_iter(0, 0..5);
     /// let array_buffer = JsArrayBuffer::from_byte_block(data_block, context)?;
@@ -199,7 +199,7 @@ impl JsArrayBuffer {
     /// # };
     /// # fn main() -> JsResult<()> {
     /// # // Initialize context
-    /// # let context = &mut Context::default();
+    /// # let context = &Context::default();
     /// // Create a buffer from a chunk of data
     /// let data_block = AlignedVec::from_iter(0, 0..5);
     /// let array_buffer = JsArrayBuffer::from_byte_block(data_block, context)?;
@@ -239,7 +239,7 @@ impl JsArrayBuffer {
     /// # };
     /// # fn main() -> JsResult<()> {
     /// # // Initialize context
-    /// # let context = &mut Context::default();
+    /// # let context = &Context::default();
     /// // Create a buffer from a chunk of data
     /// let data_block = AlignedVec::from_iter(0, 0..5);
     /// let array_buffer = JsArrayBuffer::from_byte_block(data_block, context)?;
@@ -268,7 +268,7 @@ impl JsArrayBuffer {
     /// # };
     /// # fn main() -> JsResult<()> {
     /// # // Initialize context
-    /// # let context = &mut Context::default();
+    /// # let context = &Context::default();
     /// // Create a buffer from a chunk of data
     /// let data_block = AlignedVec::from_iter(0, 0..5);
     /// let array_buffer = JsArrayBuffer::from_byte_block(data_block, context)?;
@@ -315,7 +315,7 @@ impl Deref for JsArrayBuffer {
 }
 
 impl TryFromJs for JsArrayBuffer {
-    fn try_from_js(value: &JsValue, _context: &mut Context) -> JsResult<Self> {
+    fn try_from_js(value: &JsValue, _context: &Context) -> JsResult<Self> {
         if let Some(o) = value.as_object() {
             Self::from_object(o.clone())
         } else {

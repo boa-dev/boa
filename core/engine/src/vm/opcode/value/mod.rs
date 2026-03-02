@@ -10,8 +10,8 @@ pub(crate) struct ValueNotNullOrUndefined;
 
 impl ValueNotNullOrUndefined {
     #[inline(always)]
-    pub(super) fn operation(value: VaryingOperand, context: &mut Context) -> JsResult<()> {
-        let value = context.vm.get_register(value.into());
+    pub(super) fn operation(value: VaryingOperand, context: &Context) -> JsResult<()> {
+        let value = context.get_register(value.into());
         if value.is_null() {
             return Err(JsNativeError::typ()
                 .with_message("Cannot destructure 'null' value")
@@ -41,9 +41,11 @@ pub(crate) struct IsObject;
 
 impl IsObject {
     #[inline(always)]
-    pub(super) fn operation(value: VaryingOperand, context: &mut Context) {
-        let is_object = context.vm.get_register(value.into()).is_object();
-        context.vm.set_register(value.into(), is_object.into());
+    pub(super) fn operation(value: VaryingOperand, context: &Context) {
+        context.with_vm_mut(|vm| {
+            let is_object = vm.get_register(value.into()).is_object();
+            vm.set_register(value.into(), is_object.into());
+        });
     }
 }
 

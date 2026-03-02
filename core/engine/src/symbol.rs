@@ -411,21 +411,21 @@ mod tests {
 
     #[test]
     fn hidden_in_enumeration() {
-        let mut context = Context::default();
+        let context = Context::default();
         let symbol1 = JsSymbol::new(None).unwrap();
         let symbol2 = JsSymbol::new(None).unwrap();
         let test_obj = JsObject::from_proto_and_data(None, ());
         test_obj
-            .set(symbol1, js_str!("Can't see me"), false, &mut context)
+            .set(symbol1, js_str!("Can't see me"), false, &context)
             .unwrap();
         test_obj
-            .set(js_str!("visible"), true, false, &mut context)
+            .set(js_str!("visible"), true, false, &context)
             .unwrap();
         test_obj
-            .set(symbol2, js_str!("Still can't see me"), false, &mut context)
+            .set(symbol2, js_str!("Still can't see me"), false, &context)
             .unwrap();
         let values = test_obj
-            .enumerable_own_property_names(crate::property::PropertyNameKind::Value, &mut context)
+            .enumerable_own_property_names(crate::property::PropertyNameKind::Value, &context)
             .expect("Test data should be enumerable");
         assert!(
             values.len() == 1,
@@ -436,16 +436,16 @@ mod tests {
 
     #[test]
     fn hidden_in_stringify() {
-        let mut context = Context::default();
+        let context = Context::default();
         let symbol = JsSymbol::new(None).unwrap();
         let test_obj = JsObject::with_object_proto(context.intrinsics());
         test_obj
-            .set(symbol, js_str!("This won't show up"), false, &mut context)
+            .set(symbol, js_str!("This won't show up"), false, &context)
             .unwrap();
         let json = test_obj
-            .try_into_js(&mut context)
+            .try_into_js(&context)
             .expect("try_into_js() failed");
-        let json_str = Json::stringify(&JsValue::from(0), &[json], &mut context)
+        let json_str = Json::stringify(&JsValue::from(0), &[json], &context)
             .expect("Json::stringify() failed")
             .as_string()
             .expect("Json::stringify() did not return string");

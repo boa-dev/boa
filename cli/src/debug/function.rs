@@ -48,7 +48,7 @@ fn flowgraph_parse_direction_option(value: &JsValue) -> JsResult<Direction> {
 }
 
 /// Get functions instruction flowgraph
-fn flowgraph(_this: &JsValue, args: &[JsValue], context: &mut Context) -> JsResult<JsValue> {
+fn flowgraph(_this: &JsValue, args: &[JsValue], context: &Context) -> JsResult<JsValue> {
     let Some(value) = args.first() else {
         return Err(JsNativeError::typ()
             .with_message("expected function argument")
@@ -86,7 +86,7 @@ fn flowgraph(_this: &JsValue, args: &[JsValue], context: &mut Context) -> JsResu
     Ok(JsValue::new(js_string!(result)))
 }
 
-fn bytecode(_: &JsValue, args: &[JsValue], _: &mut Context) -> JsResult<JsValue> {
+fn bytecode(_: &JsValue, args: &[JsValue], _: &Context) -> JsResult<JsValue> {
     let Some(value) = args.first() else {
         return Err(JsNativeError::typ()
             .with_message("expected function argument")
@@ -122,7 +122,7 @@ fn set_trace_flag_in_function_object(object: &JsObject, value: bool) -> JsResult
 }
 
 /// Trace function.
-fn trace(_: &JsValue, args: &[JsValue], context: &mut Context) -> JsResult<JsValue> {
+fn trace(_: &JsValue, args: &[JsValue], context: &Context) -> JsResult<JsValue> {
     let value = args.get_or_undefined(0);
     let this = args.get_or_undefined(1);
 
@@ -141,7 +141,7 @@ fn trace(_: &JsValue, args: &[JsValue], context: &mut Context) -> JsResult<JsVal
     result
 }
 
-fn traceable(_: &JsValue, args: &[JsValue], _: &mut Context) -> JsResult<JsValue> {
+fn traceable(_: &JsValue, args: &[JsValue], _: &Context) -> JsResult<JsValue> {
     let value = args.get_or_undefined(0);
     let traceable = args.get_or_undefined(1).to_boolean();
 
@@ -156,7 +156,7 @@ fn traceable(_: &JsValue, args: &[JsValue], _: &mut Context) -> JsResult<JsValue
     Ok(value.clone())
 }
 
-pub(super) fn create_object(context: &mut Context) -> JsObject {
+pub(super) fn create_object(context: &Context) -> JsObject {
     ObjectInitializer::new(context)
         .function(
             NativeFunction::from_fn_ptr(flowgraph),

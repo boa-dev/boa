@@ -116,7 +116,7 @@ impl TextDecoder {
     /// Any error that arises during decoding the specific encoding.
     ///
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/API/TextDecoder/decode
-    pub fn decode(&self, buffer: JsValue, context: &mut Context) -> JsResult<JsString> {
+    pub fn decode(&self, buffer: JsValue, context: &Context) -> JsResult<JsString> {
         let mut range = None;
         let array_buffer = if let Ok(array_buffer) = JsArrayBuffer::try_from_js(&buffer, context) {
             array_buffer
@@ -231,7 +231,7 @@ impl TextEncoder {
     /// the string itself.
     ///
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/API/TextEncoder/encode
-    pub fn encode(&self, text: Option<JsString>, context: &mut Context) -> JsResult<JsUint8Array> {
+    pub fn encode(&self, text: Option<JsString>, context: &Context) -> JsResult<JsUint8Array> {
         let Some(text) = text else {
             return JsUint8Array::from_iter([], context);
         };
@@ -256,6 +256,6 @@ pub mod js_module {
 ///
 /// # Errors
 /// This will error if the context or realm cannot register the class.
-pub fn register(realm: Option<Realm>, context: &mut Context) -> JsResult<()> {
+pub fn register(realm: Option<Realm>, context: &Context) -> JsResult<()> {
     js_module::boa_register(realm, context)
 }

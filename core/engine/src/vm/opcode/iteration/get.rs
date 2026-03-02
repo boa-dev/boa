@@ -13,10 +13,10 @@ pub(crate) struct GetIterator;
 
 impl GetIterator {
     #[inline(always)]
-    pub(crate) fn operation(value: VaryingOperand, context: &mut Context) -> JsResult<()> {
-        let value = context.vm.get_register(value.into()).clone();
+    pub(crate) fn operation(value: VaryingOperand, context: &Context) -> JsResult<()> {
+        let value = context.get_register(value.into()).clone();
         let iterator = value.get_iterator(IteratorHint::Sync, context)?;
-        context.vm.frame_mut().iterators.push(iterator);
+        context.with_vm_mut(|vm| vm.frame_mut().iterators.push(iterator));
         Ok(())
     }
 }
@@ -36,10 +36,10 @@ pub(crate) struct GetAsyncIterator;
 
 impl GetAsyncIterator {
     #[inline(always)]
-    pub(crate) fn operation(value: VaryingOperand, context: &mut Context) -> JsResult<()> {
-        let value = context.vm.get_register(value.into()).clone();
+    pub(crate) fn operation(value: VaryingOperand, context: &Context) -> JsResult<()> {
+        let value = context.get_register(value.into()).clone();
         let iterator = value.get_iterator(IteratorHint::Async, context)?;
-        context.vm.frame_mut().iterators.push(iterator);
+        context.with_vm_mut(|vm| vm.frame_mut().iterators.push(iterator));
         Ok(())
     }
 }

@@ -153,7 +153,7 @@ impl<'a, 'b> JSInternedStrRef<'a, 'b> {
 
     /// Same as [`join`][`JSInternedStrRef::join`], but where you can pass an additional context.
     ///
-    /// Useful when you have a `&mut Context` context that cannot be borrowed by both closures at
+    /// Useful when you have a `&Context` context that cannot be borrowed by both closures at
     /// the same time.
     ///
     /// # Examples

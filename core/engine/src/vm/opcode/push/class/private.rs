@@ -23,16 +23,12 @@ impl PushClassPrivateMethod {
             VaryingOperand,
             VaryingOperand,
         ),
-        context: &mut Context,
+        context: &Context,
     ) {
-        let object = context.vm.get_register(object.into()).clone();
-        let prototype = context.vm.get_register(prototype.into()).clone();
-        let value = context.vm.get_register(value.into()).clone();
-        let name = context
-            .vm
-            .frame()
-            .code_block()
-            .constant_string(index.into());
+        let object = context.get_register(object.into()).clone();
+        let prototype = context.get_register(prototype.into()).clone();
+        let value = context.get_register(value.into()).clone();
+        let name = context.with_vm(|vm| vm.frame().code_block().constant_string(index.into()));
 
         let value = value.as_callable().expect("method must be callable");
         let prototype = prototype
@@ -86,15 +82,11 @@ impl PushClassPrivateGetter {
     #[inline(always)]
     pub(crate) fn operation(
         (object, value, index): (VaryingOperand, VaryingOperand, VaryingOperand),
-        context: &mut Context,
+        context: &Context,
     ) {
-        let object = context.vm.get_register(object.into());
-        let value = context.vm.get_register(value.into());
-        let name = context
-            .vm
-            .frame()
-            .code_block()
-            .constant_string(index.into());
+        let object = context.get_register(object.into());
+        let value = context.get_register(value.into());
+        let name = context.with_vm(|vm| vm.frame().code_block().constant_string(index.into()));
 
         let value = value.as_callable().expect("getter must be callable");
         let object = object.as_object().expect("class must be function object");
@@ -105,7 +97,7 @@ impl PushClassPrivateGetter {
             .push_private_method(
                 object.private_name(name),
                 PrivateElement::Accessor {
-                    getter: Some(value.clone()),
+                    getter: Some(value),
                     setter: None,
                 },
             );
@@ -129,15 +121,11 @@ impl PushClassPrivateSetter {
     #[inline(always)]
     pub(crate) fn operation(
         (object, value, index): (VaryingOperand, VaryingOperand, VaryingOperand),
-        context: &mut Context,
+        context: &Context,
     ) {
-        let object = context.vm.get_register(object.into());
-        let value = context.vm.get_register(value.into());
-        let name = context
-            .vm
-            .frame()
-            .code_block()
-            .constant_string(index.into());
+        let object = context.get_register(object.into());
+        let value = context.get_register(value.into());
+        let name = context.with_vm(|vm| vm.frame().code_block().constant_string(index.into()));
 
         let value = value.as_callable().expect("getter must be callable");
         let object = object.as_object().expect("class must be function object");
@@ -149,7 +137,7 @@ impl PushClassPrivateSetter {
                 object.private_name(name),
                 PrivateElement::Accessor {
                     getter: None,
-                    setter: Some(value.clone()),
+                    setter: Some(value),
                 },
             );
     }

@@ -19,11 +19,11 @@ pub(crate) struct TypeOf;
 
 impl TypeOf {
     #[inline(always)]
-    pub(super) fn operation(value: VaryingOperand, context: &mut Context) {
-        context.vm.set_register(
-            value.into(),
-            context.vm.get_register(value.into()).js_type_of().into(),
-        );
+    pub(super) fn operation(value: VaryingOperand, context: &Context) {
+        context.with_vm_mut(|vm| {
+            let type_of = vm.get_register(value.into()).js_type_of();
+            vm.set_register(value.into(), type_of.into());
+        });
     }
 }
 
@@ -42,14 +42,12 @@ pub(crate) struct Pos;
 
 impl Pos {
     #[inline(always)]
-    pub(super) fn operation(value: VaryingOperand, context: &mut Context) -> JsResult<()> {
+    pub(super) fn operation(value: VaryingOperand, context: &Context) -> JsResult<()> {
         let v = context
-            .vm
             .get_register(value.into())
-            .clone()
             .to_number(context)?
             .into();
-        context.vm.set_register(value.into(), v);
+        context.set_register(value.into(), v);
         Ok(())
     }
 }
@@ -69,17 +67,12 @@ pub(crate) struct Neg;
 
 impl Neg {
     #[inline(always)]
-    pub(super) fn operation(value: VaryingOperand, context: &mut Context) -> JsResult<()> {
-        match context
-            .vm
-            .get_register(value.into())
-            .clone()
-            .to_numeric(context)?
-        {
-            Numeric::Number(number) => context.vm.set_register(value.into(), number.neg().into()),
-            Numeric::BigInt(bigint) => context
-                .vm
-                .set_register(value.into(), JsBigInt::neg(&bigint).into()),
+    pub(super) fn operation(value: VaryingOperand, context: &Context) -> JsResult<()> {
+        match context.get_register(value.into()).to_numeric(context)? {
+            Numeric::Number(number) => context.set_register(value.into(), number.neg().into()),
+            Numeric::BigInt(bigint) => {
+                context.set_register(value.into(), JsBigInt::neg(&bigint).into());
+            }
         }
         Ok(())
     }
@@ -100,19 +93,14 @@ pub(crate) struct BitNot;
 
 impl BitNot {
     #[inline(always)]
-    pub(super) fn operation(value: VaryingOperand, context: &mut Context) -> JsResult<()> {
-        match context
-            .vm
-            .get_register(value.into())
-            .clone()
-            .to_numeric(context)?
-        {
-            Numeric::Number(number) => context
-                .vm
-                .set_register(value.into(), Number::not(number).into()),
-            Numeric::BigInt(bigint) => context
-                .vm
-                .set_register(value.into(), JsBigInt::not(&bigint).into()),
+    pub(super) fn operation(value: VaryingOperand, context: &Context) -> JsResult<()> {
+        match context.get_register(value.into()).to_numeric(context)? {
+            Numeric::Number(number) => {
+                context.set_register(value.into(), Number::not(number).into());
+            }
+            Numeric::BigInt(bigint) => {
+                context.set_register(value.into(), JsBigInt::not(&bigint).into());
+            }
         }
         Ok(())
     }

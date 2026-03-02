@@ -85,11 +85,7 @@ impl Function {
 
         // Find out if it's a boa context.
         let is_context = match ty {
-            Type::Reference(syn::TypeReference {
-                elem,
-                mutability: Some(_),
-                ..
-            }) => match elem.as_ref() {
+            Type::Reference(syn::TypeReference { elem, .. }) => match elem.as_ref() {
                 Type::Path(syn::TypePath { qself: _, path }) => {
                     if let Some(maybe_ctx) = path.segments.last() {
                         maybe_ctx.ident == "Context"
@@ -125,7 +121,7 @@ impl Function {
         class_ty: Option<&Type>,
     ) -> SpannedResult<Self> {
         // The amount of arguments that aren't really arguments in JavaScript,
-        // e.g. `self`, `&mut Context`, etc.
+        // e.g. `self`, `&Context`, etc.
         let mut not_param_count = 0;
         let (args_decl, args_call): (Vec<TokenStream2>, Vec<TokenStream2>) = sig
             .inputs
@@ -191,7 +187,7 @@ impl Function {
             body: quote! {
                 |   this: &boa_engine::JsValue,
                     args: &[boa_engine::JsValue],
-                    context: &mut boa_engine::Context
+                    context: &boa_engine::Context
                 | -> boa_engine::JsResult<boa_engine::JsValue> {
                     let rest = args;
                     #(#args_decl)*
@@ -562,7 +558,7 @@ impl ClassVisitor {
                 fn data_constructor(
                     this: &boa_engine::JsValue,
                     args: &[boa_engine::JsValue],
-                    context: &mut boa_engine::Context
+                    context: &boa_engine::Context
                 ) -> boa_engine::JsResult<Self> {
                     #constructor_body
                 }

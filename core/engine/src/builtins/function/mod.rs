@@ -371,11 +371,7 @@ impl BuiltInConstructor for BuiltInFunctionObject {
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-function-p1-p2-pn-body
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Function/Function
-    fn constructor(
-        new_target: &JsValue,
-        args: &[JsValue],
-        context: &mut Context,
-    ) -> JsResult<JsValue> {
+    fn constructor(new_target: &JsValue, args: &[JsValue], context: &Context) -> JsResult<JsValue> {
         let active_function = context
             .active_function_object()
             .unwrap_or_else(|| context.intrinsics().constructors().function().constructor());
@@ -397,7 +393,7 @@ impl BuiltInFunctionObject {
         args: &[JsValue],
         r#async: bool,
         generator: bool,
-        context: &mut Context,
+        context: &Context,
     ) -> JsResult<JsObject> {
         // 1. If newTarget is undefined, set newTarget to constructor.
         let new_target = if new_target.is_undefined() {
@@ -653,7 +649,7 @@ impl BuiltInFunctionObject {
             return Err(js_error!(SyntaxError: "failed to analyze function scope: {}", reason));
         }
 
-        let in_with = context.vm.frame.environments.has_object_environment();
+        let in_with = context.with_vm(|vm| vm.frame.environments.has_object_environment());
         let spanned_source_text = SpannedSourceText::new_empty();
 
         let code = FunctionCompiler::new(spanned_source_text)
@@ -672,9 +668,9 @@ impl BuiltInFunctionObject {
                 context.interner_mut(),
             );
 
-        let environments = context.vm.frame.environments.pop_to_global();
+        let environments = context.with_vm_mut(|vm| vm.frame.environments.pop_to_global());
         let function_object = crate::vm::create_function_object(code, prototype, context);
-        context.vm.frame.environments.extend(environments);
+        context.with_vm_mut(|vm| vm.frame.environments.extend(environments));
 
         Ok(function_object)
     }
@@ -690,7 +686,7 @@ impl BuiltInFunctionObject {
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-function.prototype.apply
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Function/apply
-    fn apply(this: &JsValue, args: &[JsValue], context: &mut Context) -> JsResult<JsValue> {
+    fn apply(this: &JsValue, args: &[JsValue], context: &Context) -> JsResult<JsValue> {
         // 1. Let func be the this value.
         // 2. If IsCallable(func) is false, throw a TypeError exception.
         let func = this.as_callable().ok_or_else(|| {
@@ -730,7 +726,7 @@ impl BuiltInFunctionObject {
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-function.prototype.bind
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_objects/Function/bind
-    fn bind(this: &JsValue, args: &[JsValue], context: &mut Context) -> JsResult<JsValue> {
+    fn bind(this: &JsValue, args: &[JsValue], context: &Context) -> JsResult<JsValue> {
         // 1. Let Target be the this value.
         // 2. If IsCallable(Target) is false, throw a TypeError exception.
         let target = this.as_callable().ok_or_else(|| {
@@ -810,7 +806,7 @@ impl BuiltInFunctionObject {
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-function.prototype.call
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Function/call
-    fn call(this: &JsValue, args: &[JsValue], context: &mut Context) -> JsResult<JsValue> {
+    fn call(this: &JsValue, args: &[JsValue], context: &Context) -> JsResult<JsValue> {
         // 1. Let func be the this value.
         // 2. If IsCallable(func) is false, throw a TypeError exception.
         let func = this.as_callable().ok_or_else(|| {
@@ -834,7 +830,7 @@ impl BuiltInFunctionObject {
     /// [spec]: https://tc39.es/ecma262/#sec-function.prototype.tostring
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Function/toString
     #[allow(clippy::wrong_self_convention)]
-    fn to_string(this: &JsValue, _: &[JsValue], context: &mut Context) -> JsResult<JsValue> {
+    fn to_string(this: &JsValue, _: &[JsValue], context: &Context) -> JsResult<JsValue> {
         // 1. Let func be the this value.
         let func = this;
 
@@ -858,7 +854,7 @@ impl BuiltInFunctionObject {
             let name = {
                 // Is there a case here where if there is no name field on a value
                 // name should default to None? Do all functions have names set?
-                let value = object.get(js_string!("name"), &mut *context)?;
+                let value = object.get(js_string!("name"), context)?;
                 if value.is_null_or_undefined() {
                     js_string!()
                 } else {
@@ -895,14 +891,14 @@ impl BuiltInFunctionObject {
     ///  - [ECMAScript reference][spec]
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-function.prototype-@@hasinstance
-    fn has_instance(this: &JsValue, args: &[JsValue], context: &mut Context) -> JsResult<JsValue> {
+    fn has_instance(this: &JsValue, args: &[JsValue], context: &Context) -> JsResult<JsValue> {
         // 1. Let F be the this value.
         // 2. Return ? OrdinaryHasInstance(F, V).
         Ok(JsValue::ordinary_has_instance(this, args.get_or_undefined(0), context)?.into())
     }
 
     #[allow(clippy::unnecessary_wraps)]
-    fn prototype(_: &JsValue, _: &[JsValue], _: &mut Context) -> JsResult<JsValue> {
+    fn prototype(_: &JsValue, _: &[JsValue], _: &Context) -> JsResult<JsValue> {
         Ok(JsValue::undefined())
     }
 }
@@ -917,7 +913,7 @@ pub(crate) fn set_function_name(
     function: &JsObject,
     name: &PropertyKey,
     prefix: Option<JsStr<'_>>,
-    context: &mut Context,
+    context: &Context,
 ) {
     // 1. Assert: F is an extensible object that does not have a "name" own property.
     // 2. If Type(name) is Symbol, then
@@ -1015,14 +1011,13 @@ pub(crate) fn function_call(
     #[cfg(feature = "native-backtrace")]
     {
         let native_source_info = context.native_source_info();
-        context
-            .vm
-            .shadow_stack
-            .patch_last_native(native_source_info);
+        context.with_vm_mut(|vm| {
+            vm.shadow_stack.patch_last_native(native_source_info);
+        });
     }
 
-    context.vm.push_frame(frame);
-    let this = context.vm.stack.get_this(context.vm.frame());
+    context.push_frame(frame);
+    let this = context.with_vm(|vm| vm.stack.get_this(&vm.frame));
 
     let context = context.context();
 
@@ -1030,40 +1025,48 @@ pub(crate) fn function_call(
     let this = if lexical_this_mode {
         ThisBindingStatus::Lexical
     } else if code.strict() {
-        context.vm.frame_mut().flags |= CallFrameFlags::THIS_VALUE_CACHED;
+        context.with_vm_mut(|vm| vm.frame_mut().flags |= CallFrameFlags::THIS_VALUE_CACHED);
         ThisBindingStatus::Initialized(this)
     } else if this.is_null_or_undefined() {
-        context.vm.frame_mut().flags |= CallFrameFlags::THIS_VALUE_CACHED;
+        context.with_vm_mut(|vm| vm.frame_mut().flags |= CallFrameFlags::THIS_VALUE_CACHED);
         let this: JsValue = context.realm().global_this().clone().into();
-        context.vm.stack.set_this(&context.vm.frame, this.clone());
+        context.with_vm_mut(|vm| {
+            vm.stack.set_this(&vm.frame, this.clone());
+        });
         ThisBindingStatus::Initialized(this)
     } else {
         let this: JsValue = this
             .to_object(context)
             .expect("conversion cannot fail")
             .into();
-        context.vm.frame_mut().flags |= CallFrameFlags::THIS_VALUE_CACHED;
-        context.vm.stack.set_this(&context.vm.frame, this.clone());
+        context.with_vm_mut(|vm| {
+            vm.frame_mut().flags |= CallFrameFlags::THIS_VALUE_CACHED;
+            vm.stack.set_this(&vm.frame, this.clone());
+        });
         ThisBindingStatus::Initialized(this)
     };
 
     let mut last_env = 0;
 
     if code.has_binding_identifier() {
-        let index = context.vm.frame.environments.push_lexical(1);
-        context.vm.frame.environments.put_lexical_value(
-            BindingLocatorScope::Stack(index),
-            0,
-            function_object.clone().into(),
-        );
+        context.with_vm_mut(|vm| {
+            let index = vm.frame.environments.push_lexical(1);
+            vm.frame.environments.put_lexical_value(
+                BindingLocatorScope::Stack(index),
+                0,
+                function_object.clone().into(),
+            );
+        });
         last_env += 1;
     }
 
     if code.has_function_scope() {
-        context.vm.frame.environments.push_function(
-            code.constant_scope(last_env),
-            FunctionSlots::new(this, function_object.clone(), None),
-        );
+        context.with_vm_mut(|vm| {
+            vm.frame.environments.push_function(
+                code.constant_scope(last_env),
+                FunctionSlots::new(this, function_object.clone(), None),
+            );
+        });
     }
 
     Ok(CallValue::Ready)
@@ -1099,7 +1102,7 @@ fn function_construct(
 
     let env_fp = environments.len() as u32;
 
-    let new_target = context.vm.stack.pop();
+    let new_target = context.stack_pop();
 
     let this = if code.is_derived_constructor() {
         None
@@ -1136,49 +1139,52 @@ fn function_construct(
     #[cfg(feature = "native-backtrace")]
     {
         let native_source_info = context.native_source_info();
-        context
-            .vm
-            .shadow_stack
-            .patch_last_native(native_source_info);
+        context.with_vm_mut(|vm| {
+            vm.shadow_stack.patch_last_native(native_source_info);
+        });
     }
 
-    context.vm.push_frame(frame);
+    context.push_frame(frame);
 
     let mut last_env = 0;
 
     if code.has_binding_identifier() {
-        let index = context.vm.frame.environments.push_lexical(1);
-        context.vm.frame.environments.put_lexical_value(
-            BindingLocatorScope::Stack(index),
-            0,
-            this_function_object.clone().into(),
-        );
+        context.with_vm_mut(|vm| {
+            let index = vm.frame.environments.push_lexical(1);
+            vm.frame.environments.put_lexical_value(
+                BindingLocatorScope::Stack(index),
+                0,
+                this_function_object.clone().into(),
+            );
+        });
         last_env += 1;
     }
 
     if code.has_function_scope() {
-        context.vm.frame.environments.push_function(
-            code.constant_scope(last_env),
-            FunctionSlots::new(
-                this.clone().map_or(ThisBindingStatus::Uninitialized, |o| {
-                    ThisBindingStatus::Initialized(o.into())
-                }),
-                this_function_object.clone(),
-                Some(
-                    new_target
-                        .as_object()
-                        .expect("new.target should be an object")
-                        .clone(),
+        context.with_vm_mut(|vm| {
+            vm.frame.environments.push_function(
+                code.constant_scope(last_env),
+                FunctionSlots::new(
+                    this.clone().map_or(ThisBindingStatus::Uninitialized, |o| {
+                        ThisBindingStatus::Initialized(o.into())
+                    }),
+                    this_function_object.clone(),
+                    Some(
+                        new_target
+                            .as_object()
+                            .expect("new.target should be an object")
+                            .clone(),
+                    ),
                 ),
-            ),
-        );
+            );
+        });
     }
 
     let context = context.context();
-    context.vm.stack.set_this(
-        &context.vm.frame,
-        this.map(JsValue::new).unwrap_or_default(),
-    );
+    context.with_vm_mut(|vm| {
+        let this_val = this.map(JsValue::new).unwrap_or_default();
+        vm.stack.set_this(&vm.frame, this_val);
+    });
 
     Ok(CallValue::Ready)
 }

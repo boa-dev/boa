@@ -33,7 +33,7 @@ use std::{future::Future, pin::Pin, task};
 /// # };
 /// # use std::error::Error;
 /// # fn main() -> Result<(), Box<dyn Error>> {
-/// let context = &mut Context::default();
+/// let context = &Context::default();
 ///
 /// context.register_global_property(
 ///     js_string!("finally"),
@@ -136,7 +136,7 @@ impl JsPromise {
     /// #    Context, JsValue, js_string
     /// # };
     /// # fn main() -> Result<(), Box<dyn Error>> {
-    /// let context = &mut Context::default();
+    /// let context = &Context::default();
     ///
     /// let promise = JsPromise::new(
     ///     |resolvers, context| {
@@ -162,9 +162,9 @@ impl JsPromise {
     /// ```
     ///
     /// [`Promise()`]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Promise/Promise
-    pub fn new<F>(executor: F, context: &mut Context) -> JsResult<Self>
+    pub fn new<F>(executor: F, context: &Context) -> JsResult<Self>
     where
-        F: FnOnce(&ResolvingFunctions, &mut Context) -> JsResult<JsValue>,
+        F: FnOnce(&ResolvingFunctions, &Context) -> JsResult<JsValue>,
     {
         let promise = JsObject::from_proto_and_data_with_shared_shape(
             context.root_shape(),
@@ -200,7 +200,7 @@ impl JsPromise {
     /// #    Context, JsValue
     /// # };
     /// # fn main() -> Result<(), Box<dyn Error>> {
-    /// let context = &mut Context::default();
+    /// let context = &Context::default();
     ///
     /// let (promise, resolvers) = JsPromise::new_pending(context);
     ///
@@ -216,7 +216,7 @@ impl JsPromise {
     /// # }
     /// ```
     #[inline]
-    pub fn new_pending(context: &mut Context) -> (Self, ResolvingFunctions) {
+    pub fn new_pending(context: &Context) -> (Self, ResolvingFunctions) {
         let promise = JsObject::from_proto_and_data_with_shared_shape(
             context.root_shape(),
             context.intrinsics().constructors().promise().prototype(),
@@ -240,7 +240,7 @@ impl JsPromise {
     /// #    Context, JsObject, JsValue, Source
     /// # };
     /// # fn main() -> Result<(), Box<dyn Error>> {
-    /// let context = &mut Context::default();
+    /// let context = &Context::default();
     ///
     /// let promise = context.eval(Source::from_bytes(
     ///     "new Promise((resolve, reject) => resolve())",
@@ -284,10 +284,10 @@ impl JsPromise {
     /// #    builtins::promise::PromiseState,
     /// #    Context, JsResult, JsValue
     /// # };
-    /// async fn f(_: &RefCell<&mut Context>) -> JsResult<JsValue> {
+    /// async fn f(_: &RefCell<&Context>) -> JsResult<JsValue> {
     ///     Ok(JsValue::null())
     /// }
-    /// let context = &mut Context::default();
+    /// let context = &Context::default();
     ///
     /// let promise = JsPromise::from_async_fn(f, context);
     ///
@@ -297,9 +297,9 @@ impl JsPromise {
     /// ```
     ///
     /// [async_fn]: crate::native_function::NativeFunction::from_async_fn
-    pub fn from_async_fn<F>(f: F, context: &mut Context) -> Self
+    pub fn from_async_fn<F>(f: F, context: &Context) -> Self
     where
-        F: AsyncFnOnce(&RefCell<&mut Context>) -> JsResult<JsValue> + 'static,
+        F: AsyncFnOnce(&RefCell<&Context>) -> JsResult<JsValue> + 'static,
     {
         let (promise, resolvers) = Self::new_pending(context);
 
@@ -307,7 +307,7 @@ impl JsPromise {
             NativeAsyncJob::new(async move |context| {
                 let result = f(context).await;
 
-                let context = &mut context.borrow_mut();
+                let context = &context.borrow();
                 match result {
                     Ok(v) => resolvers.resolve.call(&JsValue::undefined(), &[v], context),
                     Err(e) => {
@@ -335,7 +335,7 @@ impl JsPromise {
     /// #    builtins::promise::PromiseState,
     /// #    Context, JsResult, JsString, js_string, js_error
     /// # };
-    /// let context = &mut Context::default();
+    /// let context = &Context::default();
     ///
     /// fn do_thing(success: bool) -> JsResult<JsString> {
     ///     success
@@ -357,7 +357,7 @@ impl JsPromise {
     /// ```
     pub fn from_result<V: Into<JsValue>, E: Into<JsError>>(
         value: Result<V, E>,
-        context: &mut Context,
+        context: &Context,
     ) -> Self {
         match value {
             Ok(v) => Self::resolve(v, context),
@@ -382,7 +382,7 @@ impl JsPromise {
     /// #    builtins::promise::PromiseState,
     /// #    Context, js_string
     /// # };
-    /// let context = &mut Context::default();
+    /// let context = &Context::default();
     ///
     /// let promise = JsPromise::resolve(js_string!("resolved!"), context);
     ///
@@ -394,7 +394,7 @@ impl JsPromise {
     ///
     /// [`Promise.resolve()`]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Promise/resolve
     /// [thenables]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Promise#thenables
-    pub fn resolve<V: Into<JsValue>>(value: V, context: &mut Context) -> Self {
+    pub fn resolve<V: Into<JsValue>>(value: V, context: &Context) -> Self {
         Promise::promise_resolve(
             &context.intrinsics().constructors().promise().constructor(),
             value.into(),
@@ -420,7 +420,7 @@ impl JsPromise {
     /// #    builtins::promise::PromiseState,
     /// #    Context, js_string, JsError
     /// # };
-    /// let context = &mut Context::default();
+    /// let context = &Context::default();
     ///
     /// let promise = JsPromise::reject(
     ///     JsError::from_opaque(js_string!("oops!").into()),
@@ -435,7 +435,7 @@ impl JsPromise {
     ///
     /// [`Promise.reject`]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Promise/reject
     /// [thenable]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Promise#thenables
-    pub fn reject<E: Into<JsError>>(error: E, context: &mut Context) -> Self {
+    pub fn reject<E: Into<JsError>>(error: E, context: &Context) -> Self {
         let error = error.into();
         assert!(
             error.is_catchable(),
@@ -462,7 +462,7 @@ impl JsPromise {
     /// #    builtins::promise::PromiseState,
     /// #    Context
     /// # };
-    /// let context = &mut Context::default();
+    /// let context = &Context::default();
     ///
     /// let promise = JsPromise::new_pending(context).0;
     ///
@@ -508,7 +508,7 @@ impl JsPromise {
     /// #     object::{builtins::JsPromise, FunctionObjectBuilder},
     /// #     Context, JsArgs, JsError, JsValue, NativeFunction,
     /// # };
-    /// let context = &mut Context::default();
+    /// let context = &Context::default();
     ///
     /// let promise = JsPromise::new(
     ///     |resolvers, context| {
@@ -550,7 +550,7 @@ impl JsPromise {
         &self,
         on_fulfilled: Option<JsFunction>,
         on_rejected: Option<JsFunction>,
-        context: &mut Context,
+        context: &Context,
     ) -> Self {
         Promise::inner_then(self, on_fulfilled, on_rejected, context)
             .and_then(Self::from_object)
@@ -574,7 +574,7 @@ impl JsPromise {
     /// #     object::{builtins::JsPromise, FunctionObjectBuilder},
     /// #     Context, JsArgs, JsNativeError, JsValue, NativeFunction,
     /// # };
-    /// let context = &mut Context::default();
+    /// let context = &Context::default();
     ///
     /// let promise = JsPromise::new(
     ///     |resolvers, context| {
@@ -612,7 +612,7 @@ impl JsPromise {
     /// [then]: JsPromise::then
     #[inline]
     #[allow(clippy::return_self_not_must_use)] // Could just be used to add a handler on an existing promise
-    pub fn catch(&self, on_rejected: JsFunction, context: &mut Context) -> Self {
+    pub fn catch(&self, on_rejected: JsFunction, context: &Context) -> Self {
         self.then(None, Some(on_rejected), context)
     }
 
@@ -637,7 +637,7 @@ impl JsPromise {
     /// #     Context, JsNativeError, JsValue, NativeFunction, js_string
     /// # };
     /// # fn main() -> Result<(), Box<dyn Error>> {
-    /// let context = &mut Context::default();
+    /// let context = &Context::default();
     ///
     /// context.register_global_property(
     ///     js_string!("finally"),
@@ -690,7 +690,7 @@ impl JsPromise {
     /// [then]: JsPromise::then
     #[inline]
     #[allow(clippy::return_self_not_must_use)] // Could just be used to add a handler on an existing promise
-    pub fn finally(&self, on_finally: JsFunction, context: &mut Context) -> Self {
+    pub fn finally(&self, on_finally: JsFunction, context: &Context) -> Self {
         let (then, catch) = Promise::then_catch_finally_closures(
             context.intrinsics().constructors().promise().constructor(),
             on_finally,
@@ -716,7 +716,7 @@ impl JsPromise {
     /// #     Context, JsNativeError, JsValue,
     /// # };
     /// # fn main() -> Result<(), Box<dyn Error>> {
-    /// let context = &mut Context::default();
+    /// let context = &Context::default();
     ///
     /// let promise1 = JsPromise::all(
     ///     [
@@ -757,7 +757,7 @@ impl JsPromise {
     /// ```
     ///
     /// [`Promise.all`]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Promise/all
-    pub fn all<I>(promises: I, context: &mut Context) -> Self
+    pub fn all<I>(promises: I, context: &Context) -> Self
     where
         I: IntoIterator<Item = Self>,
     {
@@ -796,7 +796,7 @@ impl JsPromise {
     /// #     Context, JsNativeError, JsValue,
     /// # };
     /// # fn main() -> Result<(), Box<dyn Error>> {
-    /// let context = &mut Context::default();
+    /// let context = &Context::default();
     ///
     /// let promise = JsPromise::all_settled(
     ///     [
@@ -846,7 +846,7 @@ impl JsPromise {
     /// ```
     ///
     /// [`Promise.allSettled`]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Promise/allSettled
-    pub fn all_settled<I>(promises: I, context: &mut Context) -> Self
+    pub fn all_settled<I>(promises: I, context: &Context) -> Self
     where
         I: IntoIterator<Item = Self>,
     {
@@ -888,7 +888,7 @@ impl JsPromise {
     /// #     object::builtins::JsPromise,
     /// #     Context, JsNativeError,
     /// # };
-    /// let context = &mut Context::default();
+    /// let context = &Context::default();
     ///
     /// let promise = JsPromise::any(
     ///     [
@@ -909,7 +909,7 @@ impl JsPromise {
     /// ```
     ///
     /// [`Promise.any`]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Promise/any
-    pub fn any<I>(promises: I, context: &mut Context) -> Self
+    pub fn any<I>(promises: I, context: &Context) -> Self
     where
         I: IntoIterator<Item = Self>,
     {
@@ -951,7 +951,7 @@ impl JsPromise {
     /// #     Context, JsValue,
     /// # };
     /// # fn main() -> Result<(), Box<dyn Error>> {
-    /// let context = &mut Context::default();
+    /// let context = &Context::default();
     ///
     /// let (a, resolvers_a) = JsPromise::new_pending(context);
     /// let (b, resolvers_b) = JsPromise::new_pending(context);
@@ -983,7 +983,7 @@ impl JsPromise {
     /// ```
     ///
     /// [`Promise.race`]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Promise/race
-    pub fn race<I>(promises: I, context: &mut Context) -> Self
+    pub fn race<I>(promises: I, context: &Context) -> Self
     where
         I: IntoIterator<Item = Self>,
     {
@@ -1023,7 +1023,7 @@ impl JsPromise {
     /// # };
     /// # use futures_lite::future;
     /// # fn main() -> Result<(), Box<dyn Error>> {
-    /// let context = &mut Context::default();
+    /// let context = &Context::default();
     ///
     /// let (promise, resolvers) = JsPromise::new_pending(context);
     /// let promise_future = promise.into_js_future(context);
@@ -1046,7 +1046,7 @@ impl JsPromise {
     /// # Ok(())
     /// # }
     /// ```
-    pub fn into_js_future(self, context: &mut Context) -> JsFuture {
+    pub fn into_js_future(self, context: &Context) -> JsFuture {
         // Mostly based from:
         // https://docs.rs/wasm-bindgen-futures/0.4.37/src/wasm_bindgen_futures/lib.rs.html#109-168
 
@@ -1127,7 +1127,7 @@ impl JsPromise {
     /// ```
     /// # use boa_engine::{Context, JsArgs, JsValue, NativeFunction};
     /// # use boa_engine::object::builtins::{JsFunction, JsPromise};
-    /// let context = &mut Context::default();
+    /// let context = &Context::default();
     ///
     /// let p1 = JsPromise::new(
     ///     |fns, context| {
@@ -1157,7 +1157,7 @@ impl JsPromise {
     /// # use boa_engine::{Context, JsValue, NativeFunction};
     /// # use boa_engine::object::builtins::JsPromise;
     ///
-    /// let context = &mut Context::default();
+    /// let context = &Context::default();
     /// let p1 = JsPromise::new(
     ///     |fns, context| fns.resolve.call(&JsValue::undefined(), &[], context),
     ///     context,
@@ -1179,7 +1179,7 @@ impl JsPromise {
     /// // Uncommenting the following line would panic.
     /// // context.run_jobs();
     /// ```
-    pub fn await_blocking(&self, context: &mut Context) -> Result<JsValue, JsError> {
+    pub fn await_blocking(&self, context: &Context) -> Result<JsValue, JsError> {
         loop {
             match self.state() {
                 PromiseState::Pending => {
@@ -1195,7 +1195,7 @@ impl JsPromise {
     pub(crate) fn await_native(
         &self,
         continuation: crate::native_function::NativeCoroutine,
-        context: &mut Context,
+        context: &Context,
     ) {
         use crate::{
             builtins::{async_generator::AsyncGenerator, generator::GeneratorContext},
@@ -1205,9 +1205,9 @@ impl JsPromise {
         use std::cell::Cell;
 
         // Clone the stack since we split it.
-        let stack = context.vm.stack.clone();
+        let stack = context.with_vm(|vm| vm.stack.clone());
         let gen_ctx = GeneratorContext::from_current(context, None);
-        context.vm.stack = stack;
+        context.with_vm_mut(|vm| vm.stack = stack);
 
         // 3. Let fulfilledClosure be a new Abstract Closure with parameters (value) that captures asyncContext and performs the following steps when called:
         // 4. Let onFulfilled be CreateBuiltinFunction(fulfilledClosure, 1, "", « »).
@@ -1225,11 +1225,11 @@ impl JsPromise {
                     // NOTE: We need to get the object before resuming, since it could clear the stack.
                     let async_generator = r#gen.async_generator_object();
 
-                    std::mem::swap(&mut context.vm.stack, &mut r#gen.stack);
+                    context.with_vm_mut(|vm| std::mem::swap(&mut vm.stack, &mut r#gen.stack));
                     let frame = r#gen.call_frame.take().expect("should have a call frame");
                     let rp = frame.rp;
-                    context.vm.push_frame(frame);
-                    context.vm.frame_mut().set_register_pointer(rp);
+                    context.push_frame(frame);
+                    context.with_vm_mut(|vm| vm.frame_mut().set_register_pointer(rp));
 
                     if let crate::native_function::CoroutineState::Yielded(value) =
                         continuation.call(Ok(args.get_or_undefined(0).clone()), context)?
@@ -1238,8 +1238,8 @@ impl JsPromise {
                             .await_native(continuation.clone(), context);
                     }
 
-                    std::mem::swap(&mut context.vm.stack, &mut r#gen.stack);
-                    r#gen.call_frame = context.vm.pop_frame();
+                    context.with_vm_mut(|vm| std::mem::swap(&mut vm.stack, &mut r#gen.stack));
+                    r#gen.call_frame = context.pop_frame();
                     assert!(r#gen.call_frame.is_some());
 
                     if let Some(async_generator) = async_generator {
@@ -1260,9 +1260,9 @@ impl JsPromise {
         .length(1)
         .build();
 
-        let stack = context.vm.stack.clone();
+        let stack = context.with_vm(|vm| vm.stack.clone());
         let gen_ctx = GeneratorContext::from_current(context, None);
-        context.vm.stack = stack;
+        context.with_vm_mut(|vm| vm.stack = stack);
 
         // 5. Let rejectedClosure be a new Abstract Closure with parameters (reason) that captures asyncContext and performs the following steps when called:
         // 6. Let onRejected be CreateBuiltinFunction(rejectedClosure, 1, "", « »).
@@ -1282,11 +1282,11 @@ impl JsPromise {
                     // NOTE: We need to get the object before resuming, since it could clear the stack.
                     let async_generator = r#gen.async_generator_object();
 
-                    std::mem::swap(&mut context.vm.stack, &mut r#gen.stack);
+                    context.with_vm_mut(|vm| std::mem::swap(&mut vm.stack, &mut r#gen.stack));
                     let frame = r#gen.call_frame.take().expect("should have a call frame");
                     let rp = frame.rp;
-                    context.vm.push_frame(frame);
-                    context.vm.frame_mut().set_register_pointer(rp);
+                    context.push_frame(frame);
+                    context.with_vm_mut(|vm| vm.frame_mut().set_register_pointer(rp));
 
                     if let crate::native_function::CoroutineState::Yielded(value) = continuation
                         .call(
@@ -1298,8 +1298,8 @@ impl JsPromise {
                             .await_native(continuation.clone(), context);
                     }
 
-                    std::mem::swap(&mut context.vm.stack, &mut r#gen.stack);
-                    r#gen.call_frame = context.vm.pop_frame();
+                    context.with_vm_mut(|vm| std::mem::swap(&mut vm.stack, &mut r#gen.stack));
+                    r#gen.call_frame = context.pop_frame();
                     assert!(r#gen.call_frame.is_some());
 
                     if let Some(async_generator) = async_generator {
@@ -1359,7 +1359,7 @@ impl std::ops::Deref for JsPromise {
 }
 
 impl TryFromJs for JsPromise {
-    fn try_from_js(value: &JsValue, _context: &mut Context) -> JsResult<Self> {
+    fn try_from_js(value: &JsValue, _context: &Context) -> JsResult<Self> {
         if let Some(o) = value.as_object() {
             Self::from_object(o.clone())
         } else {
@@ -1371,7 +1371,7 @@ impl TryFromJs for JsPromise {
 }
 
 impl TryIntoJs for JsPromise {
-    fn try_into_js(&self, _: &mut Context) -> JsResult<JsValue> {
+    fn try_into_js(&self, _: &Context) -> JsResult<JsValue> {
         Ok(self.clone().into())
     }
 }

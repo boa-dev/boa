@@ -10,7 +10,7 @@ use boa_engine::{
 
 fn main() -> JsResult<()> {
     // We create a new `Context` to create a new Javascript executor.
-    let context = &mut Context::default();
+    let context = &Context::default();
 
     // This create an array buffer of byte length 4
     let array_buffer = JsArrayBuffer::new(4, context)?;

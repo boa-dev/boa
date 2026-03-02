@@ -69,11 +69,7 @@ impl Drop for WorkerHandles {
 }
 
 /// Creates the object $262 in the context.
-pub(super) fn register_js262(
-    handles: WorkerHandles,
-    console: bool,
-    context: &mut Context,
-) -> JsObject {
+pub(super) fn register_js262(handles: WorkerHandles, console: bool, context: &Context) -> JsObject {
     let global_obj = context.global_object();
 
     let agent = agent_obj(handles, console, context);
@@ -123,7 +119,7 @@ pub(super) fn register_js262(
 /// Creates a new ECMAScript Realm, defines this API on the new realm's global object, and
 /// returns the `$262` property of the new realm's global object.
 #[allow(clippy::unnecessary_wraps)]
-fn create_realm(_: &JsValue, _: &[JsValue], context: &mut Context) -> JsResult<JsValue> {
+fn create_realm(_: &JsValue, _: &[JsValue], context: &Context) -> JsResult<JsValue> {
     let mut realm = context.create_realm()?;
 
     realm = context.enter_realm(realm);
@@ -136,7 +132,7 @@ fn create_realm(_: &JsValue, _: &[JsValue], context: &mut Context) -> JsResult<J
 /// The `$262.detachArrayBuffer()` function.
 ///
 /// Implements the `DetachArrayBuffer` abstract operation.
-fn detach_array_buffer(_: &JsValue, args: &[JsValue], _: &mut Context) -> JsResult<JsValue> {
+fn detach_array_buffer(_: &JsValue, args: &[JsValue], _: &Context) -> JsResult<JsValue> {
     fn type_err() -> JsNativeError {
         JsNativeError::typ().with_message("The provided object was not an ArrayBuffer")
     }
@@ -163,7 +159,7 @@ fn detach_array_buffer(_: &JsValue, args: &[JsValue], _: &mut Context) -> JsResu
 /// The `$262.evalScript()` function.
 ///
 /// Accepts a string value as its first argument and executes it as an ECMAScript script.
-fn eval_script(_this: &JsValue, args: &[JsValue], context: &mut Context) -> JsResult<JsValue> {
+fn eval_script(_this: &JsValue, args: &[JsValue], context: &Context) -> JsResult<JsValue> {
     args.first().and_then(JsValue::as_string).map_or_else(
         || Ok(JsValue::undefined()),
         |source_text| context.eval(Source::from_bytes(&source_text.to_std_string_escaped())),
@@ -176,13 +172,13 @@ fn eval_script(_this: &JsValue, args: &[JsValue], context: &mut Context) -> JsRe
 /// Must throw an exception if no capability exists. This is necessary for testing the
 /// semantics of any feature that relies on garbage collection, e.g. the `WeakRef` API.
 #[allow(clippy::unnecessary_wraps)]
-fn gc(_this: &JsValue, _: &[JsValue], _context: &mut Context) -> JsResult<JsValue> {
+fn gc(_this: &JsValue, _: &[JsValue], _context: &Context) -> JsResult<JsValue> {
     boa_gc::force_collect();
     Ok(JsValue::undefined())
 }
 
 /// The `$262.agent.sleep()` function.
-fn sleep(_: &JsValue, args: &[JsValue], context: &mut Context) -> JsResult<JsValue> {
+fn sleep(_: &JsValue, args: &[JsValue], context: &Context) -> JsResult<JsValue> {
     let ms = args.get_or_undefined(0).to_number(context)? / 1000.0;
     std::thread::sleep(Duration::from_secs_f64(ms));
     Ok(JsValue::undefined())
@@ -190,7 +186,7 @@ fn sleep(_: &JsValue, args: &[JsValue], context: &mut Context) -> JsResult<JsVal
 
 /// The `$262.agent.monotonicNow()` function.
 #[allow(clippy::unnecessary_wraps)]
-fn monotonic_now(_: &JsValue, _: &[JsValue], _: &mut Context) -> JsResult<JsValue> {
+fn monotonic_now(_: &JsValue, _: &[JsValue], _: &Context) -> JsResult<JsValue> {
     let clock = START
         .get()
         .ok_or_else(|| JsNativeError::typ().with_message("could not get the monotonic clock"))?;
@@ -198,7 +194,7 @@ fn monotonic_now(_: &JsValue, _: &[JsValue], _: &mut Context) -> JsResult<JsValu
 }
 
 /// Initializes the `$262.agent` object in the main agent.
-fn agent_obj(handles: WorkerHandles, console: bool, context: &mut Context) -> JsObject {
+fn agent_obj(handles: WorkerHandles, console: bool, context: &Context) -> JsObject {
     // TODO: improve initialization of this by using a `[[HostDefined]]` field on `Context`.
     let bus = Rc::new(RefCell::new(bus::Bus::new(1)));
 
@@ -217,7 +213,7 @@ fn agent_obj(handles: WorkerHandles, console: bool, context: &mut Context) -> Js
             let tx = reports_tx.clone();
 
             handles.0.borrow_mut().push(std::thread::spawn(move || {
-                let context = &mut Context::builder()
+                let context = &Context::builder()
                     .can_block(true)
                     .build()
                     .map_err(|e| e.to_string())?;
@@ -293,7 +289,7 @@ fn agent_obj(handles: WorkerHandles, console: bool, context: &mut Context) -> Js
 fn register_js262_worker(
     rx: BusReader<SharedArrayBuffer>,
     tx: Sender<Vec<u16>>,
-    context: &mut Context,
+    context: &Context,
 ) {
     let rx = RefCell::new(rx);
     let receive_broadcast = unsafe {

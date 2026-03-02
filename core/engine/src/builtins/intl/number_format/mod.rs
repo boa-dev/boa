@@ -131,11 +131,7 @@ impl BuiltInConstructor for NumberFormat {
     /// [`Intl.NumberFormat ( [ locales [ , options ] ] )`][spec].
     ///
     /// [spec]: https://tc39.es/ecma402/#sec-intl.numberformat
-    fn constructor(
-        new_target: &JsValue,
-        args: &[JsValue],
-        context: &mut Context,
-    ) -> JsResult<JsValue> {
+    fn constructor(new_target: &JsValue, args: &[JsValue], context: &Context) -> JsResult<JsValue> {
         let locales = args.get_or_undefined(0);
         let options = args.get_or_undefined(1);
 
@@ -178,7 +174,7 @@ impl BuiltInConstructor for NumberFormat {
         // ChainNumberFormat ( numberFormat, newTarget, this )
         // <https://tc39.es/ecma402/#sec-chainnumberformat>
 
-        let this = context.vm.stack.get_this(context.vm.frame());
+        let this = context.with_vm(|vm| vm.stack.get_this(&vm.frame));
         let Some(this_obj) = this.as_object() else {
             return Ok(number_format.into());
         };
@@ -222,11 +218,7 @@ impl BuiltInConstructor for NumberFormat {
 
 impl NumberFormat {
     /// Creates a new instance of `NumberFormat`.
-    pub(crate) fn new(
-        locales: &JsValue,
-        options: &JsValue,
-        context: &mut Context,
-    ) -> JsResult<Self> {
+    pub(crate) fn new(locales: &JsValue, options: &JsValue, context: &Context) -> JsResult<Self> {
         // 3. Perform ? InitializeNumberFormat(numberFormat, locales, options).
 
         // `InitializeNumberFormat ( numberFormat, locales, options )`
@@ -461,11 +453,7 @@ impl NumberFormat {
     ///
     /// [spec]: https://tc39.es/ecma402/#sec-intl.numberformat.supportedlocalesof
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Intl/NumberFormat/supportedLocalesOf
-    fn supported_locales_of(
-        _: &JsValue,
-        args: &[JsValue],
-        context: &mut Context,
-    ) -> JsResult<JsValue> {
+    fn supported_locales_of(_: &JsValue, args: &[JsValue], context: &Context) -> JsResult<JsValue> {
         let locales = args.get_or_undefined(0);
         let options = args.get_or_undefined(1);
 
@@ -480,7 +468,7 @@ impl NumberFormat {
     /// [`get Intl.NumberFormat.prototype.format`][spec].
     ///
     /// [spec]: https://tc39.es/ecma402/#sec-intl.numberformat.prototype.format
-    fn get_format(this: &JsValue, _: &[JsValue], context: &mut Context) -> JsResult<JsValue> {
+    fn get_format(this: &JsValue, _: &[JsValue], context: &Context) -> JsResult<JsValue> {
         // 1. Let nf be the this value.
         // 2. If the implementation supports the normative optional constructor mode of 4.3 Note 1, then
         //     a. Set nf to ? UnwrapNumberFormat(nf).
@@ -538,7 +526,7 @@ impl NumberFormat {
     ///
     /// [spec]: https://tc39.es/ecma402/#sec-intl.numberformat.prototype.resolvedoptions
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Intl/NumberFormat/resolvedOptions
-    fn resolved_options(this: &JsValue, _: &[JsValue], context: &mut Context) -> JsResult<JsValue> {
+    fn resolved_options(this: &JsValue, _: &[JsValue], context: &Context) -> JsResult<JsValue> {
         // This function provides access to the locale and options computed during initialization of the object.
 
         // 1. Let nf be the this value.
@@ -716,7 +704,7 @@ impl NumberFormat {
 /// call to `RequireInternalSlot`.
 ///
 /// [spec]: https://tc39.es/ecma402/#sec-unwrapnumberformat
-fn unwrap_number_format(nf: &JsValue, context: &mut Context) -> JsResult<JsObject<NumberFormat>> {
+fn unwrap_number_format(nf: &JsValue, context: &Context) -> JsResult<JsObject<NumberFormat>> {
     // 1. If Type(nf) is not Object, throw a TypeError exception.
     let nf_o = nf.as_object().ok_or_else(|| {
         JsNativeError::typ().with_message("value was not an `Intl.NumberFormat` object")
@@ -761,7 +749,7 @@ fn unwrap_number_format(nf: &JsValue, context: &mut Context) -> JsResult<JsObjec
 /// Abstract operation [`ToIntlMathematicalValue ( value )`][spec].
 ///
 /// [spec]: https://tc39.es/ecma402/#sec-tointlmathematicalvalue
-fn to_intl_mathematical_value(value: &JsValue, context: &mut Context) -> JsResult<Decimal> {
+fn to_intl_mathematical_value(value: &JsValue, context: &Context) -> JsResult<Decimal> {
     // 1. Let primValue be ? ToPrimitive(value, number).
     let prim_value = value.to_primitive(context, PreferredType::Number)?;
 

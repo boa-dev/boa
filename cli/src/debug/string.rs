@@ -3,7 +3,7 @@ use boa_engine::{
     object::ObjectInitializer, property::Attribute, string::JsStrVariant,
 };
 
-fn storage(_: &JsValue, args: &[JsValue], _: &mut Context) -> JsResult<JsValue> {
+fn storage(_: &JsValue, args: &[JsValue], _: &Context) -> JsResult<JsValue> {
     let Some(value) = args.first() else {
         return Err(JsNativeError::typ()
             .with_message("expected string argument")
@@ -20,7 +20,7 @@ fn storage(_: &JsValue, args: &[JsValue], _: &mut Context) -> JsResult<JsValue> 
     Ok(js_string!(storage).into())
 }
 
-fn encoding(_: &JsValue, args: &[JsValue], _: &mut Context) -> JsResult<JsValue> {
+fn encoding(_: &JsValue, args: &[JsValue], _: &Context) -> JsResult<JsValue> {
     let Some(value) = args.first() else {
         return Err(JsNativeError::typ()
             .with_message("expected string argument")
@@ -41,7 +41,7 @@ fn encoding(_: &JsValue, args: &[JsValue], _: &mut Context) -> JsResult<JsValue>
     Ok(js_string!(encoding).into())
 }
 
-fn summary(_: &JsValue, args: &[JsValue], context: &mut Context) -> JsResult<JsValue> {
+fn summary(_: &JsValue, args: &[JsValue], context: &Context) -> JsResult<JsValue> {
     let Some(value) = args.first() else {
         return Err(JsNativeError::typ()
             .with_message("expected string argument")
@@ -72,7 +72,7 @@ fn summary(_: &JsValue, args: &[JsValue], context: &mut Context) -> JsResult<JsV
     Ok(summary.into())
 }
 
-pub(super) fn create_string(context: &mut Context) -> JsObject {
+pub(super) fn create_string(context: &Context) -> JsObject {
     ObjectInitializer::new(context)
         .function(
             NativeFunction::from_fn_ptr(storage),

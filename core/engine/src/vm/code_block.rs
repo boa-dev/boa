@@ -1073,7 +1073,7 @@ impl Display for CodeBlock {
 pub(crate) fn create_function_object(
     code: Gc<CodeBlock>,
     prototype: JsObject,
-    context: &mut Context,
+    context: &Context,
 ) -> JsObject {
     let name: JsValue = code.name().clone().into();
     let length: JsValue = code.length.into();
@@ -1084,7 +1084,7 @@ pub(crate) fn create_function_object(
     let is_generator = code.is_generator();
     let function = OrdinaryFunction::new(
         code,
-        context.vm.frame.environments.clone(),
+        context.with_vm(|vm| vm.frame.environments.clone()),
         script_or_module,
         context.realm().clone(),
     );
@@ -1142,7 +1142,7 @@ pub(crate) fn create_function_object(
 /// This is preferred over [`create_function_object`] if prototype is [`None`],
 /// because it constructs the function from a pre-initialized object template,
 /// with all the properties and prototype set.
-pub(crate) fn create_function_object_fast(code: Gc<CodeBlock>, context: &mut Context) -> JsObject {
+pub(crate) fn create_function_object_fast(code: Gc<CodeBlock>, context: &Context) -> JsObject {
     let name: JsValue = code.name().clone().into();
     let length: JsValue = code.length.into();
 
@@ -1153,7 +1153,7 @@ pub(crate) fn create_function_object_fast(code: Gc<CodeBlock>, context: &mut Con
     let has_prototype_property = code.has_prototype_property();
     let function = OrdinaryFunction::new(
         code,
-        context.vm.frame.environments.clone(),
+        context.with_vm(|vm| vm.frame.environments.clone()),
         script_or_module,
         context.realm().clone(),
     );

@@ -13,19 +13,16 @@ pub(crate) struct SetHomeObject;
 
 impl SetHomeObject {
     #[inline(always)]
-    pub(crate) fn operation(
-        (function, home): (VaryingOperand, VaryingOperand),
-        context: &mut Context,
-    ) {
-        let function = context.vm.get_register(function.into());
-        let home = context.vm.get_register(home.into());
+    pub(crate) fn operation((function, home): (VaryingOperand, VaryingOperand), context: &Context) {
+        let function = context.get_register(function.into());
+        let home = context.get_register(home.into());
 
         function
             .as_object()
             .expect("must be object")
             .downcast_mut::<OrdinaryFunction>()
             .expect("must be function object")
-            .set_home_object(home.as_object().expect("must be object").clone());
+            .set_home_object(home.as_object().expect("must be object"));
     }
 }
 

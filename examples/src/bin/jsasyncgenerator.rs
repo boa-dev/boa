@@ -21,9 +21,7 @@ fn main() {
     drop(context.run_jobs());
     if let PromiseState::Fulfilled(val) = promise.state() {
         let result_obj = val.as_object().unwrap();
-        let value = result_obj
-            .get(JsString::from("value"), &mut context)
-            .unwrap();
+        let value = result_obj.get(JsString::from("value"), &context).unwrap();
         assert_eq!(value, JsValue::from(1));
     }
 
@@ -32,9 +30,7 @@ fn main() {
     drop(context.run_jobs());
     if let PromiseState::Fulfilled(val) = promise.state() {
         let result_obj = val.as_object().unwrap();
-        let value = result_obj
-            .get(JsString::from("value"), &mut context)
-            .unwrap();
+        let value = result_obj.get(JsString::from("value"), &context).unwrap();
         assert_eq!(value, JsValue::from(42));
     }
 }

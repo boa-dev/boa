@@ -16,7 +16,7 @@ fn gcd() {
         PathBuf::from(std::env::var("CARGO_MANIFEST_DIR").unwrap()).join("tests/assets");
 
     // Create the engine.
-    let context = &mut Context::default();
+    let context = &Context::default();
 
     // Load the JavaScript code.
     let gcd_path = assets_dir.join("gcd.js");

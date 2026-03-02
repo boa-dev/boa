@@ -19,7 +19,7 @@ async fn simulate_api_call(success: bool, delay_ms: u64) -> JsResult<JsValue> {
 
 #[tokio::main]
 async fn main() -> Result<(), Box<dyn std::error::Error>> {
-    let context = &mut Context::default();
+    let context = &Context::default();
 
     println!("1. Basic Promise Creation and Handling");
     // Create a promise that resolves after a delay

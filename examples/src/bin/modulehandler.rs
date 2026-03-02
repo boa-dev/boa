@@ -9,7 +9,7 @@ use boa_runtime::Console;
 use std::{error::Error, fs::read_to_string};
 
 /// Adds the custom runtime to the context.
-fn add_runtime(context: &mut Context) {
+fn add_runtime(context: &Context) {
     // We first add the `console` object, to be able to call `console.log()`.
     let console = Console::init(context);
     context
@@ -22,17 +22,17 @@ fn main() -> Result<(), Box<dyn Error>> {
     let buffer = read_to_string(js_file_path)?;
 
     // Creating the execution context
-    let mut ctx = Context::default();
+    let ctx = Context::default();
 
     // Adding the runtime intrinsics to the context
-    add_runtime(&mut ctx);
+    add_runtime(&ctx);
 
     // Adding custom implementation that mimics 'require'
     ctx.register_global_callable("require".into(), 0, NativeFunction::from_fn_ptr(require))?;
 
     // Adding custom object that mimics 'module.exports'
     let moduleobj = JsObject::default(ctx.intrinsics());
-    moduleobj.set(js_string!("exports"), js_string!(" "), false, &mut ctx)?;
+    moduleobj.set(js_string!("exports"), js_string!(" "), false, &ctx)?;
 
     ctx.register_global_property(
         js_string!("module"),
@@ -48,7 +48,7 @@ fn main() -> Result<(), Box<dyn Error>> {
 }
 
 // Custom implementation that mimics the 'require' module loader
-fn require(_: &JsValue, args: &[JsValue], ctx: &mut Context) -> JsResult<JsValue> {
+fn require(_: &JsValue, args: &[JsValue], ctx: &Context) -> JsResult<JsValue> {
     let arg = args.get_or_undefined(0);
 
     // BUG: Dev branch seems to be passing string arguments along with quotes

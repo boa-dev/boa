@@ -59,7 +59,7 @@ impl Eval {
     ///  - [ECMAScript reference][spec]
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-eval-x
-    fn eval(_: &JsValue, args: &[JsValue], context: &mut Context) -> JsResult<JsValue> {
+    fn eval(_: &JsValue, args: &[JsValue], context: &Context) -> JsResult<JsValue> {
         // 1. Return ? PerformEval(x, false, false).
         Self::perform_eval(args.get_or_undefined(0), false, None, false, context)
     }
@@ -75,7 +75,7 @@ impl Eval {
         direct: bool,
         lexical_scope: Option<Scope>,
         mut strict: bool,
-        context: &mut Context,
+        context: &Context,
     ) -> JsResult<JsValue> {
         bitflags::bitflags! {
             /// Flags used to throw early errors on invalid `eval` calls.
@@ -137,46 +137,42 @@ impl Eval {
         // 8. Let inDerivedConstructor be false.
         // 9. Let inClassFieldInitializer be false.
         // a. Let thisEnvRec be GetThisEnvironment().
-        let flags = match context
-            .vm
-            .frame
-            .environments
-            .get_this_environment()
-            .as_function()
-        {
-            // 10. If direct is true, then
-            //     b. If thisEnvRec is a Function Environment Record, then
-            Some(function_env) if direct => {
-                // i. Let F be thisEnvRec.[[FunctionObject]].
-                let function_object = function_env
-                    .slots()
-                    .function_object()
-                    .downcast_ref::<OrdinaryFunction>()
-                    .expect("must be function object");
+        let flags = context.with_vm(|vm| {
+            match vm.frame.environments.get_this_environment().as_function() {
+                // 10. If direct is true, then
+                //     b. If thisEnvRec is a Function Environment Record, then
+                Some(function_env) if direct => {
+                    // i. Let F be thisEnvRec.[[FunctionObject]].
+                    let function_object = function_env
+                        .slots()
+                        .function_object()
+                        .downcast_ref::<OrdinaryFunction>()
+                        .expect("must be function object");
 
-                // ii. Set inFunction to true.
-                let mut flags = Flags::IN_FUNCTION;
+                    // ii. Set inFunction to true.
+                    let mut flags = Flags::IN_FUNCTION;
 
-                // iii. Set inMethod to thisEnvRec.HasSuperBinding().
-                if function_env.has_super_binding() {
-                    flags |= Flags::IN_METHOD;
+                    // iii. Set inMethod to thisEnvRec.HasSuperBinding().
+                    if function_env.has_super_binding() {
+                        flags |= Flags::IN_METHOD;
+                    }
+
+                    // iv. If F.[[ConstructorKind]] is derived, set inDerivedConstructor to true.
+                    if function_object.is_derived_constructor() {
+                        flags |= Flags::IN_DERIVED_CONSTRUCTOR;
+                    }
+
+                    // v. Let classFieldInitializerName be F.[[ClassFieldInitializerName]].
+                    // vi. If classFieldInitializerName is not empty, set inClassFieldInitializer to true.
+                    if function_object.in_class_field_initializer() {
+                        flags |= Flags::IN_CLASS_FIELD_INITIALIZER;
+                    }
+
+                    flags
                 }
-
-                // iv. If F.[[ConstructorKind]] is derived, set inDerivedConstructor to true.
-                if function_object.is_derived_constructor() {
-                    flags |= Flags::IN_DERIVED_CONSTRUCTOR;
-                }
-
-                // v. Let classFieldInitializerName be F.[[ClassFieldInitializerName]].
-                // vi. If classFieldInitializerName is not empty, set inClassFieldInitializer to true.
-                if function_object.in_class_field_initializer() {
-                    flags |= Flags::IN_CLASS_FIELD_INITIALIZER;
-                }
-
-                flags
+                _ => Flags::default(),
             }
-            _ => Flags::default(),
-        };
+        });
 
         if !flags.contains(Flags::IN_FUNCTION) && contains(&body, ContainsSymbol::NewTarget) {
             return Err(JsNativeError::syntax()
@@ -211,11 +207,13 @@ impl Eval {
 
             // Poison the last parent function environment, because it may contain new declarations after/during eval.
             if !strict {
-                context.vm.frame.environments.poison_until_last_function();
+                context.with_vm_mut(|vm| {
+                    vm.frame.environments.poison_until_last_function();
+                });
             }
 
             // Set the compile time environment to the current running environment and save the number of current environments.
-            let environments_len = context.vm.frame.environments.len();
+            let environments_len = context.with_vm(|vm| vm.frame.environments.len());
 
             // Pop any added runtime environments that were not removed during the eval execution.
             EnvStackAction::Truncate(environments_len)
@@ -223,29 +221,34 @@ impl Eval {
             // If the call to eval is indirect, the code is executed in the global environment.
 
             // Pop all environments before the eval execution.
-            let environments = context.vm.frame.environments.pop_to_global();
+            let environments = context.with_vm_mut(|vm| vm.frame.environments.pop_to_global());
 
             // Restore all environments to the state from before the eval execution.
             EnvStackAction::Restore(environments)
         };
 
-        let context = &mut context.guard(move |ctx| match action {
-            EnvStackAction::Truncate(len) => ctx.vm.frame.environments.truncate(len),
+        let context = &context.guard(move |ctx| match action {
+            EnvStackAction::Truncate(len) => {
+                ctx.with_vm_mut(|vm| vm.frame.environments.truncate(len));
+            }
             EnvStackAction::Restore(envs) => {
-                ctx.vm.frame.environments.truncate(0);
-                ctx.vm.frame.environments.extend(envs);
+                ctx.with_vm_mut(|vm| {
+                    vm.frame.environments.truncate(0);
+                    vm.frame.environments.extend(envs);
+                });
             }
         });
 
-        let (var_environment, mut variable_scope) =
-            if let Some(e) = context.vm.frame.environments.outer_function_environment() {
-                (e.0, e.1)
-            } else {
-                (
-                    context.realm().environment().clone(),
-                    context.realm().scope().clone(),
-                )
-            };
+        let (var_environment, mut variable_scope) = if let Some(e) =
+            context.with_vm(|vm| vm.frame.environments.outer_function_environment())
+        {
+            (e.0, e.1)
+        } else {
+            (
+                context.realm().environment().clone(),
+                context.realm().scope().clone(),
+            )
+        };
 
         let lexical_scope = lexical_scope.unwrap_or(context.realm().scope().clone());
         let lexical_scope = Scope::new(lexical_scope, strict);
@@ -265,7 +268,7 @@ impl Eval {
             context,
         )?;
 
-        let in_with = context.vm.frame.environments.has_object_environment();
+        let in_with = context.with_vm(|vm| vm.frame.environments.has_object_environment());
 
         let source_text = SourceText::new(source);
         let spanned_source_text = SpannedSourceText::new_source_only(source_text);
@@ -327,10 +330,14 @@ impl Eval {
             var_environment.extend_from_compile();
         }
 
-        let env_fp = context.vm.frame.environments.len() as u32;
-        let environments = context.vm.frame.environments.clone();
+        let (env_fp, environments) = context.with_vm(|vm| {
+            (
+                vm.frame.environments.len() as u32,
+                vm.frame.environments.clone(),
+            )
+        });
         let realm = context.realm().clone();
-        context.vm.push_frame_with_stack(
+        context.push_frame_with_stack(
             CallFrame::new(code_block, None, environments, realm)
                 .with_env_fp(env_fp)
                 .with_flags(CallFrameFlags::EXIT_EARLY),
@@ -341,7 +348,7 @@ impl Eval {
         context.realm().resize_global_env();
 
         let record = context.run();
-        context.vm.pop_frame();
+        context.pop_frame();
 
         record.consume()
     }

@@ -39,7 +39,7 @@ impl OnMessageQueueSender {
     /// Create a `MessageQueueSender` that sends messages to a message queue
     /// array in the destination context. This type is send/sync and can be
     /// registered in any and many separate `Context` for `postMessage`.
-    pub fn create(destination: &mut Context) -> Self {
+    pub fn create(destination: &Context) -> Self {
         let (sender, mut receiver) = futures::channel::mpsc::unbounded::<JsValueStore>();
 
         destination.enqueue_job(

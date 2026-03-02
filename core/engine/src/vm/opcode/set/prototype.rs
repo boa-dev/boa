@@ -13,15 +13,12 @@ pub(crate) struct SetPrototype;
 
 impl SetPrototype {
     #[inline(always)]
-    pub(crate) fn operation(
-        (object, value): (VaryingOperand, VaryingOperand),
-        context: &mut Context,
-    ) {
-        let object = context.vm.get_register(object.into()).clone();
-        let value = context.vm.get_register(value.into());
+    pub(crate) fn operation((object, value): (VaryingOperand, VaryingOperand), context: &Context) {
+        let object = context.get_register(object.into());
+        let value = context.get_register(value.into());
 
         let prototype = if let Some(prototype) = value.as_object() {
-            Some(prototype.clone())
+            Some(prototype)
         } else if value.is_null() {
             None
         } else {
@@ -30,7 +27,7 @@ impl SetPrototype {
 
         let object = object.as_object().expect("object is not an object");
         object
-            .__set_prototype_of__(prototype, &mut InternalMethodPropertyContext::new(context))
+            .__set_prototype_of__(prototype, &InternalMethodPropertyContext::new(context))
             .expect("cannot fail per spec");
     }
 }

@@ -24,7 +24,7 @@ use boa_string::JsStrVariant;
 ///
 /// [spec]: https://tc39.es/ecma262/#sec-isfinite-number
 /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/isFinite
-fn is_finite(_: &JsValue, args: &[JsValue], context: &mut Context) -> JsResult<JsValue> {
+fn is_finite(_: &JsValue, args: &[JsValue], context: &Context) -> JsResult<JsValue> {
     if let Some(value) = args.first() {
         let number = value.to_number(context)?;
         Ok(number.is_finite().into())
@@ -66,7 +66,7 @@ impl BuiltInObject for IsFinite {
 ///
 /// [spec]: https://tc39.es/ecma262/#sec-isnan-number
 /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/isNaN
-pub(crate) fn is_nan(_: &JsValue, args: &[JsValue], context: &mut Context) -> JsResult<JsValue> {
+pub(crate) fn is_nan(_: &JsValue, args: &[JsValue], context: &Context) -> JsResult<JsValue> {
     if let Some(value) = args.first() {
         let number = value.to_number(context)?;
         Ok(number.is_nan().into())
@@ -153,7 +153,7 @@ fn from_js_str_radix(src: JsStr<'_>, radix: u8) -> Option<f64> {
 ///
 /// [spec]: https://tc39.es/ecma262/#sec-parseint-string-radix
 /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/parseInt
-pub(crate) fn parse_int(_: &JsValue, args: &[JsValue], context: &mut Context) -> JsResult<JsValue> {
+pub(crate) fn parse_int(_: &JsValue, args: &[JsValue], context: &Context) -> JsResult<JsValue> {
     let (Some(string), radix) = (args.first(), args.get_or_undefined(1)) else {
         // Not enough arguments to parseInt.
         return Ok(JsValue::nan());
@@ -298,11 +298,7 @@ impl BuiltInObject for ParseInt {
 ///
 /// [spec]: https://tc39.es/ecma262/#sec-parsefloat-string
 /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/parseFloat
-pub(crate) fn parse_float(
-    _: &JsValue,
-    args: &[JsValue],
-    context: &mut Context,
-) -> JsResult<JsValue> {
+pub(crate) fn parse_float(_: &JsValue, args: &[JsValue], context: &Context) -> JsResult<JsValue> {
     let Some(string) = args.first() else {
         return Ok(JsValue::nan());
     };

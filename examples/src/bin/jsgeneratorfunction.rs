@@ -19,9 +19,9 @@ fn main() {
         .unwrap();
 
     // Iterate the generator
-    let result = generator.next(JsValue::undefined(), &mut context).unwrap();
+    let result = generator.next(JsValue::undefined(), &context).unwrap();
     println!("next: {}", result.display());
 
-    let result = generator.next(JsValue::undefined(), &mut context).unwrap();
+    let result = generator.next(JsValue::undefined(), &context).unwrap();
     println!("next: {}", result.display());
 }

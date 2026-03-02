@@ -14,15 +14,15 @@ impl ConcatToString {
     pub(super) fn operation(
         (string, values): (VaryingOperand, ThinVec<VaryingOperand>),
 
-        context: &mut Context,
+        context: &Context,
     ) -> JsResult<()> {
         let mut strings = Vec::with_capacity(values.len());
         for value in values {
-            let val = context.vm.get_register(value.into()).clone();
+            let val = context.get_register(value.into()).clone();
             strings.push(val.to_string(context)?);
         }
         let s = JsString::concat_array(&strings.iter().map(JsString::as_str).collect::<Vec<_>>());
-        context.vm.set_register(string.into(), s.into());
+        context.set_register(string.into(), s.into());
         Ok(())
     }
 }

@@ -32,12 +32,12 @@ impl JsValue {
     ///
     /// let json: serde_json::Value = serde_json::from_str(data).unwrap();
     ///
-    /// let mut context = Context::default();
-    /// let value = JsValue::from_json(&json, &mut context).unwrap();
+    /// let context = Context::default();
+    /// let value = JsValue::from_json(&json, &context).unwrap();
     /// #
-    /// # assert_eq!(Some(json), value.to_json(&mut context).unwrap());
+    /// # assert_eq!(Some(json), value.to_json(&context).unwrap());
     /// ```
-    pub fn from_json(json: &Value, context: &mut Context) -> JsResult<Self> {
+    pub fn from_json(json: &Value, context: &Context) -> JsResult<Self> {
         /// Biggest possible integer, as i64.
         const MAX_INT: i64 = i32::MAX as i64;
 
@@ -105,21 +105,21 @@ impl JsValue {
     ///
     /// let json: serde_json::Value = serde_json::from_str(data).unwrap();
     ///
-    /// let mut context = Context::default();
-    /// let value = JsValue::from_json(&json, &mut context).unwrap();
+    /// let context = Context::default();
+    /// let value = JsValue::from_json(&json, &context).unwrap();
     ///
-    /// let back_to_json = value.to_json(&mut context).unwrap();
+    /// let back_to_json = value.to_json(&context).unwrap();
     /// #
     /// # assert_eq!(Some(json), back_to_json);
     /// ```
-    pub fn to_json(&self, context: &mut Context) -> JsResult<Option<Value>> {
+    pub fn to_json(&self, context: &Context) -> JsResult<Option<Value>> {
         let mut seen_objects = HashSet::new();
         self.to_json_inner(context, &mut seen_objects)
     }
 
     fn to_json_inner(
         &self,
-        context: &mut Context,
+        context: &Context,
         seen_objects: &mut HashSet<JsObject>,
     ) -> JsResult<Option<Value>> {
         match self.variant() {
@@ -139,7 +139,7 @@ impl JsValue {
                         .into());
                 }
                 seen_objects.insert(obj.clone());
-                let mut value_by_prop_key = |property_key, context: &mut Context| {
+                let mut value_by_prop_key = |property_key, context: &Context| {
                     obj.borrow()
                         .properties()
                         .get(&property_key)
@@ -304,14 +304,14 @@ mod tests {
 
     #[test]
     fn to_json_cyclic() {
-        let mut context = Context::default();
+        let context = Context::default();
         let obj = JsObject::with_null_proto();
-        obj.create_data_property(js_string!("a"), obj.clone(), &mut context)
+        obj.create_data_property(js_string!("a"), obj.clone(), &context)
             .expect("should create data property");
 
         assert!(
             JsValue::from(obj)
-                .to_json(&mut context)
+                .to_json(&context)
                 .unwrap_err()
                 .to_string()
                 .starts_with("TypeError: cyclic object value"),
@@ -320,14 +320,14 @@ mod tests {
 
     #[test]
     fn to_json_undefined() {
-        let mut context = Context::default();
+        let context = Context::default();
         let undefined_value = JsValue::undefined();
-        assert!(undefined_value.to_json(&mut context).unwrap().is_none());
+        assert!(undefined_value.to_json(&context).unwrap().is_none());
     }
 
     #[test]
     fn to_json_undefined_in_structure() {
-        let mut context = Context::default();
+        let context = Context::default();
         let object_with_undefined = {
             // Defining the following structure:
             // {
@@ -338,26 +338,26 @@ mod tests {
 
             let inner = JsObject::with_null_proto();
             inner
-                .create_data_property(js_string!("inner_a"), JsValue::undefined(), &mut context)
+                .create_data_property(js_string!("inner_a"), JsValue::undefined(), &context)
                 .expect("should add property");
 
-            let array = JsArray::new(&mut context);
-            array.push(2, &mut context).expect("should push");
+            let array = JsArray::new(&context);
+            array.push(2, &context).expect("should push");
             array
-                .push(JsValue::undefined(), &mut context)
+                .push(JsValue::undefined(), &context)
                 .expect("should push");
-            array.push(3, &mut context).expect("should push");
-            array.push(inner, &mut context).expect("should push");
+            array.push(3, &context).expect("should push");
+            array.push(inner, &context).expect("should push");
 
             let outer = JsObject::with_null_proto();
             outer
-                .create_data_property(js_string!("outer_a"), JsValue::new(1), &mut context)
+                .create_data_property(js_string!("outer_a"), JsValue::new(1), &context)
                 .expect("should add property");
             outer
-                .create_data_property(js_string!("outer_b"), JsValue::undefined(), &mut context)
+                .create_data_property(js_string!("outer_b"), JsValue::undefined(), &context)
                 .expect("should add property");
             outer
-                .create_data_property(js_string!("outer_c"), array, &mut context)
+                .create_data_property(js_string!("outer_c"), array, &context)
                 .expect("should add property");
 
             JsValue::from(outer)
@@ -368,7 +368,7 @@ mod tests {
                 "outer_a": 1,
                 "outer_c": [2, null, 3, { }]
             })),
-            object_with_undefined.to_json(&mut context).unwrap()
+            object_with_undefined.to_json(&context).unwrap()
         );
     }
 }

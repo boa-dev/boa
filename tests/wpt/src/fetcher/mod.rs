@@ -40,7 +40,7 @@ impl WptFetcher {
 }
 
 impl Fetcher for WptFetcher {
-    fn resolve_uri(&self, uri: String, _context: &mut Context) -> JsResult<String> {
+    fn resolve_uri(&self, uri: String, _context: &Context) -> JsResult<String> {
         // If it's already a valid URL, return it.
         if let Ok(u) = Url::parse(&uri) {
             return Ok(u.to_string());
@@ -75,7 +75,7 @@ impl Fetcher for WptFetcher {
     async fn fetch(
         self: Rc<Self>,
         request: JsRequest,
-        context: &RefCell<&mut Context>,
+        context: &RefCell<&Context>,
     ) -> JsResult<JsResponse> {
         eprintln!("request: {request:?}");
         let response = self.inner.clone().fetch(request, context).await;

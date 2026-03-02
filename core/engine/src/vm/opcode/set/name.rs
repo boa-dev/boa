@@ -15,12 +15,8 @@ pub(crate) struct ThrowMutateImmutable;
 
 impl ThrowMutateImmutable {
     #[inline(always)]
-    pub(crate) fn operation(index: VaryingOperand, context: &mut Context) -> JsError {
-        let name = context
-            .vm
-            .frame()
-            .code_block()
-            .constant_string(index.into());
+    pub(crate) fn operation(index: VaryingOperand, context: &Context) -> JsError {
+        let name = context.with_vm(|vm| vm.frame().code_block().constant_string(index.into()));
 
         JsNativeError::typ()
             .with_message(format!(
@@ -48,18 +44,22 @@ impl SetName {
     #[inline(always)]
     pub(crate) fn operation(
         (value, index): (VaryingOperand, VaryingOperand),
-        context: &mut Context,
+        context: &Context,
     ) -> JsResult<()> {
-        let value = context.vm.get_register(value.into()).clone();
-        let code_block = context.vm.frame().code_block();
-        let mut binding_locator = code_block.bindings[usize::from(index)].clone();
-        let strict = code_block.strict();
+        let value = context.get_register(value.into()).clone();
+        let (mut binding_locator, strict) = context.with_vm(|vm| {
+            let code_block = vm.frame().code_block();
+            (
+                code_block.bindings[usize::from(index)].clone(),
+                code_block.strict(),
+            )
+        });
 
         context.find_runtime_binding(&mut binding_locator)?;
 
         verify_initialized(&binding_locator, context)?;
 
-        context.set_binding(&binding_locator, value.clone(), strict)?;
+        context.set_binding(&binding_locator, value, strict)?;
 
         Ok(())
     }
@@ -80,18 +80,21 @@ pub(crate) struct SetNameByLocator;
 
 impl SetNameByLocator {
     #[inline(always)]
-    pub(crate) fn operation(value: VaryingOperand, context: &mut Context) -> JsResult<()> {
-        let frame = context.vm.frame_mut();
-        let strict = frame.code_block.strict();
-        let binding_locator = frame
-            .binding_stack
-            .pop()
-            .expect("locator should have been popped before");
-        let value = context.vm.get_register(value.into()).clone();
+    pub(crate) fn operation(value: VaryingOperand, context: &Context) -> JsResult<()> {
+        let (strict, binding_locator) = context.with_vm_mut(|vm| {
+            let frame = vm.frame_mut();
+            let strict = frame.code_block.strict();
+            let binding_locator = frame
+                .binding_stack
+                .pop()
+                .expect("locator should have been popped before");
+            (strict, binding_locator)
+        });
+        let value = context.get_register(value.into()).clone();
 
         verify_initialized(&binding_locator, context)?;
 
-        context.set_binding(&binding_locator, value.clone(), strict)?;
+        context.set_binding(&binding_locator, value, strict)?;
 
         Ok(())
     }
@@ -104,10 +107,10 @@ impl Operation for SetNameByLocator {
 }
 
 /// Checks that the binding pointed by `locator` exists and is initialized.
-fn verify_initialized(locator: &BindingLocator, context: &mut Context) -> JsResult<()> {
+fn verify_initialized(locator: &BindingLocator, context: &Context) -> JsResult<()> {
     if !context.is_initialized_binding(locator)? {
         let key = locator.name();
-        let strict = context.vm.frame().code_block.strict();
+        let strict = context.with_vm(|vm| vm.frame().code_block.strict());
 
         let message = match locator.scope() {
             BindingLocatorScope::GlobalObject if strict => Some(format!(
@@ -119,7 +122,7 @@ fn verify_initialized(locator: &BindingLocator, context: &mut Context) -> JsResu
                 "cannot assign to uninitialized binding `{}`",
                 key.to_std_string_escaped()
             )),
-            BindingLocatorScope::Stack(index) => match context.environment_expect(index) {
+            BindingLocatorScope::Stack(index) => match &context.environment_expect(index) {
                 Environment::Declarative(_) => Some(format!(
                     "cannot assign to uninitialized binding `{}`",
                     key.to_std_string_escaped()

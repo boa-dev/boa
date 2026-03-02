@@ -28,7 +28,7 @@ fn main() -> Result<(), Box<dyn Error>> {
     let loader = Rc::new(SimpleModuleLoader::new("./scripts/modules")?);
 
     // Just need to cast to a `ModuleLoader` before passing it to the builder.
-    let context = &mut Context::builder().module_loader(loader.clone()).build()?;
+    let context = &Context::builder().module_loader(loader.clone()).build()?;
 
     // Now, create the synthetic module and insert it into the loader.
     let operations = create_operations_module(context);
@@ -100,7 +100,7 @@ fn main() -> Result<(), Box<dyn Error>> {
 }
 
 // Creates the synthetic equivalent to the `./modules/operations.mjs` file.
-fn create_operations_module(context: &mut Context) -> Module {
+fn create_operations_module(context: &Context) -> Module {
     // We first create the function objects that will be exported by the module. More
     // on that below.
     let sum = FunctionObjectBuilder::new(

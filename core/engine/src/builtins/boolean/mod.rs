@@ -57,11 +57,7 @@ impl BuiltInConstructor for Boolean {
     /// `[[Construct]]` Create a new boolean object
     ///
     /// `[[Call]]` Creates a new boolean primitive
-    fn constructor(
-        new_target: &JsValue,
-        args: &[JsValue],
-        context: &mut Context,
-    ) -> JsResult<JsValue> {
+    fn constructor(new_target: &JsValue, args: &[JsValue], context: &Context) -> JsResult<JsValue> {
         // Get the argument, if any
         let data = args.first().is_some_and(JsValue::to_boolean);
         if new_target.is_undefined() {
@@ -107,7 +103,7 @@ impl Boolean {
     /// [spec]: https://tc39.es/ecma262/#sec-boolean-object
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Boolean/toString
     #[allow(clippy::wrong_self_convention)]
-    pub(crate) fn to_string(this: &JsValue, _: &[JsValue], _: &mut Context) -> JsResult<JsValue> {
+    pub(crate) fn to_string(this: &JsValue, _: &[JsValue], _: &Context) -> JsResult<JsValue> {
         let boolean = Self::this_boolean_value(this)?;
         Ok(JsValue::new(if boolean {
             js_string!("true")
@@ -124,7 +120,7 @@ impl Boolean {
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-boolean.prototype.valueof
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Boolean/valueOf
-    pub(crate) fn value_of(this: &JsValue, _: &[JsValue], _: &mut Context) -> JsResult<JsValue> {
+    pub(crate) fn value_of(this: &JsValue, _: &[JsValue], _: &Context) -> JsResult<JsValue> {
         Ok(JsValue::new(Self::this_boolean_value(this)?))
     }
 }

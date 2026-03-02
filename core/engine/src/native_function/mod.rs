@@ -40,16 +40,16 @@ pub(crate) use continuation::{CoroutineState, NativeCoroutine};
 /// - The second argument represents the list of all arguments passed to the function.
 ///
 /// - The last argument is the engine [`Context`].
-pub type NativeFunctionPointer = fn(&JsValue, &[JsValue], &mut Context) -> JsResult<JsValue>;
+pub type NativeFunctionPointer = fn(&JsValue, &[JsValue], &Context) -> JsResult<JsValue>;
 
 trait TraceableClosure: Trace {
-    fn call(&self, this: &JsValue, args: &[JsValue], context: &mut Context) -> JsResult<JsValue>;
+    fn call(&self, this: &JsValue, args: &[JsValue], context: &Context) -> JsResult<JsValue>;
 }
 
 #[derive(Trace, Finalize)]
 struct Closure<F, T>
 where
-    F: Fn(&JsValue, &[JsValue], &T, &mut Context) -> JsResult<JsValue>,
+    F: Fn(&JsValue, &[JsValue], &T, &Context) -> JsResult<JsValue>,
     T: Trace,
 {
     // SAFETY: `NativeFunction`'s safe API ensures only `Copy` closures are stored; its unsafe API,
@@ -62,10 +62,10 @@ where
 
 impl<F, T> TraceableClosure for Closure<F, T>
 where
-    F: Fn(&JsValue, &[JsValue], &T, &mut Context) -> JsResult<JsValue>,
+    F: Fn(&JsValue, &[JsValue], &T, &Context) -> JsResult<JsValue>,
     T: Trace,
 {
-    fn call(&self, this: &JsValue, args: &[JsValue], context: &mut Context) -> JsResult<JsValue> {
+    fn call(&self, this: &JsValue, args: &[JsValue], context: &Context) -> JsResult<JsValue> {
         (self.f)(this, args, &self.captures, context)
     }
 }
@@ -186,18 +186,18 @@ impl NativeFunction {
     /// async fn test(
     ///     _this: &JsValue,
     ///     args: &[JsValue],
-    ///     context: &RefCell<&mut Context>,
+    ///     context: &RefCell<&Context>,
     /// ) -> JsResult<JsValue> {
     ///     let arg = args.get_or_undefined(0).clone();
     ///     std::future::ready(()).await;
-    ///     let value = arg.to_u32(&mut context.borrow_mut())?;
+    ///     let value = arg.to_u32(&context.borrow())?;
     ///     Ok(JsValue::from(value * 2))
     /// }
     /// NativeFunction::from_async_fn(test);
     /// ```
     pub fn from_async_fn<F>(f: F) -> Self
     where
-        F: AsyncFn(&JsValue, &[JsValue], &RefCell<&mut Context>) -> JsResult<JsValue> + 'static,
+        F: AsyncFn(&JsValue, &[JsValue], &RefCell<&Context>) -> JsResult<JsValue> + 'static,
         F: Copy,
     {
         Self::from_copy_closure(move |this, args, context| {
@@ -209,7 +209,7 @@ impl NativeFunction {
                 NativeAsyncJob::new(async move |context| {
                     let result = f(&this, &args, context).await;
 
-                    let context = &mut context.borrow_mut();
+                    let context = &context.borrow();
                     match result {
                         Ok(v) => resolvers.resolve.call(&JsValue::undefined(), &[v], context),
                         Err(e) => {
@@ -228,7 +228,7 @@ impl NativeFunction {
     /// Creates a `NativeFunction` from a `Copy` closure.
     pub fn from_copy_closure<F>(closure: F) -> Self
     where
-        F: Fn(&JsValue, &[JsValue], &mut Context) -> JsResult<JsValue> + Copy + 'static,
+        F: Fn(&JsValue, &[JsValue], &Context) -> JsResult<JsValue> + Copy + 'static,
     {
         // SAFETY: The `Copy` bound ensures there are no traceable types inside the closure.
         unsafe { Self::from_closure(closure) }
@@ -237,7 +237,7 @@ impl NativeFunction {
     /// Creates a `NativeFunction` from a `Copy` closure and a list of traceable captures.
     pub fn from_copy_closure_with_captures<F, T>(closure: F, captures: T) -> Self
     where
-        F: Fn(&JsValue, &[JsValue], &T, &mut Context) -> JsResult<JsValue> + Copy + 'static,
+        F: Fn(&JsValue, &[JsValue], &T, &Context) -> JsResult<JsValue> + Copy + 'static,
         T: Trace + 'static,
     {
         // SAFETY: The `Copy` bound ensures there are no traceable types inside the closure.
@@ -254,7 +254,7 @@ impl NativeFunction {
     /// on why that is the case.
     pub unsafe fn from_closure<F>(closure: F) -> Self
     where
-        F: Fn(&JsValue, &[JsValue], &mut Context) -> JsResult<JsValue> + 'static,
+        F: Fn(&JsValue, &[JsValue], &Context) -> JsResult<JsValue> + 'static,
     {
         // SAFETY: The caller must ensure the invariants of the closure hold.
         unsafe {
@@ -275,7 +275,7 @@ impl NativeFunction {
     /// on why that is the case.
     pub unsafe fn from_closure_with_captures<F, T>(closure: F, captures: T) -> Self
     where
-        F: Fn(&JsValue, &[JsValue], &T, &mut Context) -> JsResult<JsValue> + 'static,
+        F: Fn(&JsValue, &[JsValue], &T, &Context) -> JsResult<JsValue> + 'static,
         T: Trace + 'static,
     {
         // Hopefully, this unsafe operation will be replaced by the `CoerceUnsized` API in the
@@ -295,12 +295,7 @@ impl NativeFunction {
 
     /// Calls this `NativeFunction`, forwarding the arguments to the corresponding function.
     #[inline]
-    pub fn call(
-        &self,
-        this: &JsValue,
-        args: &[JsValue],
-        context: &mut Context,
-    ) -> JsResult<JsValue> {
+    pub fn call(&self, this: &JsValue, args: &[JsValue], context: &Context) -> JsResult<JsValue> {
         match self.inner {
             Inner::PointerFn(f) => f(this, args, context),
             Inner::Closure(ref c) => c.call(this, args, context),
@@ -327,12 +322,9 @@ pub(crate) fn native_function_call(
     argument_count: usize,
     context: &mut InternalMethodCallContext<'_>,
 ) -> JsResult<CallValue> {
-    let args = context
-        .vm
-        .stack
-        .calling_convention_pop_arguments(argument_count);
-    let _func = context.vm.stack.pop();
-    let this = context.vm.stack.pop();
+    let args = context.with_vm_mut(|vm| vm.stack.calling_convention_pop_arguments(argument_count));
+    let _func = context.stack_pop();
+    let this = context.stack_pop();
 
     // We technically don't need this since native functions don't push any new frames to the
     // vm, but we'll eventually have to combine the native stack with the vm stack.
@@ -349,17 +341,16 @@ pub(crate) fn native_function_call(
         .expect("the object should be a native function object")
         .clone();
 
-    let pc = context.vm.frame.pc;
+    let pc = context.with_vm(|vm| vm.frame.pc);
     let native_source_info = context.native_source_info();
-    context
-        .vm
-        .shadow_stack
-        .push_native(pc, name, native_source_info);
+    context.with_vm_mut(|vm| {
+        vm.shadow_stack.push_native(pc, name, native_source_info);
+    });
 
     let mut realm = realm.unwrap_or_else(|| context.realm().clone());
 
     context.swap_realm(&mut realm);
-    context.vm.native_active_function = Some(this_function_object);
+    context.with_vm_mut(|vm| vm.native_active_function = Some(this_function_object));
 
     let result = if constructor.is_some() {
         function.call(&JsValue::undefined(), &args, context)
@@ -368,12 +359,12 @@ pub(crate) fn native_function_call(
     }
     .map_err(|err| err.inject_realm(context.realm().clone()));
 
-    context.vm.native_active_function = None;
+    context.with_vm_mut(|vm| vm.native_active_function = None);
     context.swap_realm(&mut realm);
 
-    context.vm.shadow_stack.pop();
+    context.with_vm_mut(|vm| vm.shadow_stack.pop());
 
-    context.vm.stack.push(result?);
+    context.stack_push(result?);
 
     Ok(CallValue::Complete)
 }
@@ -404,25 +395,21 @@ fn native_function_construct(
         .expect("the object should be a native function object")
         .clone();
 
-    let pc = context.vm.frame.pc;
+    let pc = context.with_vm(|vm| vm.frame.pc);
     let native_source_info = context.native_source_info();
-    context
-        .vm
-        .shadow_stack
-        .push_native(pc, name, native_source_info);
+    context.with_vm_mut(|vm| {
+        vm.shadow_stack.push_native(pc, name, native_source_info);
+    });
 
     let mut realm = realm.unwrap_or_else(|| context.realm().clone());
 
     context.swap_realm(&mut realm);
-    context.vm.native_active_function = Some(this_function_object);
+    context.with_vm_mut(|vm| vm.native_active_function = Some(this_function_object));
 
-    let new_target = context.vm.stack.pop();
-    let args = context
-        .vm
-        .stack
-        .calling_convention_pop_arguments(argument_count);
-    let _func = context.vm.stack.pop();
-    let _this = context.vm.stack.pop();
+    let new_target = context.stack_pop();
+    let args = context.with_vm_mut(|vm| vm.stack.calling_convention_pop_arguments(argument_count));
+    let _func = context.stack_pop();
+    let _this = context.stack_pop();
 
     let result = function
         .call(&new_target, &args, context)
@@ -450,12 +437,12 @@ fn native_function_construct(
             }
         });
 
-    context.vm.native_active_function = None;
+    context.with_vm_mut(|vm| vm.native_active_function = None);
     context.swap_realm(&mut realm);
 
-    context.vm.shadow_stack.pop();
+    context.with_vm_mut(|vm| vm.shadow_stack.pop());
 
-    context.vm.stack.push(result?);
+    context.stack_push(result?);
 
     Ok(CallValue::Complete)
 }

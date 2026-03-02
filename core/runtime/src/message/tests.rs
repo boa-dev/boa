@@ -13,7 +13,7 @@ use std::time::Duration;
 /// Create a basic context and allow postMessage from the same context.
 #[test]
 fn basic() {
-    let context = &mut Context::default();
+    let context = &Context::default();
 
     let sender = OnMessageQueueSender::create(context);
     message::register(sender, None, context).unwrap();
@@ -58,7 +58,7 @@ fn shared_multi_thread() {
     let (sender, receiver) = std::sync::mpsc::channel::<OnMessageQueueSender>();
 
     let destination_handle = thread::spawn(move || {
-        let context = &mut Context::default();
+        let context = &Context::default();
 
         // It's important to declare the `onMessageQueue` function before we might
         // receive any messages, as those will be lost.
@@ -97,7 +97,7 @@ fn shared_multi_thread() {
     });
 
     let source_handle = thread::spawn(move || {
-        let context = &mut Context::default();
+        let context = &Context::default();
         let message_sender = receiver.recv().unwrap();
         message::register(message_sender, None, context).unwrap();
 
@@ -121,7 +121,7 @@ fn shared_array_buffer() {
     let (sender, receiver) = std::sync::mpsc::channel::<OnMessageQueueSender>();
 
     let destination_handle = thread::spawn(move || {
-        let context = &mut Context::default();
+        let context = &Context::default();
 
         // It's important to declare the `onMessageQueue` function before we might
         // receive any messages, as those will be lost.
@@ -174,7 +174,7 @@ fn shared_array_buffer() {
     });
 
     let source_handle = thread::spawn(move || {
-        let context = &mut Context::default();
+        let context = &Context::default();
 
         let message_sender = receiver.recv().unwrap();
         message::register(message_sender, None, context).unwrap();

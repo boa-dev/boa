@@ -7,7 +7,7 @@ use std::path::PathBuf;
 
 #[rstest]
 fn clone(#[files("tests/clone/**/*.js")] path: PathBuf) {
-    let context = &mut Context::default();
+    let context = &Context::default();
     boa_runtime::clone::register(None, context).expect("Could not register runtime");
     boa_runtime::extensions::ConsoleExtension::default()
         .register(None, context)

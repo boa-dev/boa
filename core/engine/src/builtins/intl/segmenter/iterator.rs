@@ -79,7 +79,7 @@ impl SegmentIterator {
     /// [`CreateSegmentIterator ( segmenter, string )`][spec]
     ///
     /// [spec]: https://tc39.es/ecma402/#sec-createsegmentiterator
-    pub(crate) fn create(segmenter: JsObject, string: JsString, context: &mut Context) -> JsObject {
+    pub(crate) fn create(segmenter: JsObject, string: JsString, context: &Context) -> JsObject {
         // 1. Let internalSlotsList be « [[IteratingSegmenter]], [[IteratedString]], [[IteratedStringNextSegmentCodeUnitIndex]] ».
         // 2. Let iterator be OrdinaryObjectCreate(%SegmentIteratorPrototype%, internalSlotsList).
         // 3. Set iterator.[[IteratingSegmenter]] to segmenter.
@@ -104,7 +104,7 @@ impl SegmentIterator {
     /// [`%SegmentIteratorPrototype%.next ( )`][spec]
     ///
     /// [spec]: https://tc39.es/ecma402/#sec-%segmentiteratorprototype%.next
-    fn next(this: &JsValue, _: &[JsValue], context: &mut Context) -> JsResult<JsValue> {
+    fn next(this: &JsValue, _: &[JsValue], context: &Context) -> JsResult<JsValue> {
         // 1. Let iterator be the this value.
         // 2. Perform ? RequireInternalSlot(iterator, [[IteratingSegmenter]]).
         let object = this.as_object();

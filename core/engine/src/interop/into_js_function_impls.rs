@@ -24,7 +24,7 @@ macro_rules! impl_into_js_function {
         where
             $($t: for<'a> TryFromJsArgument<'a> + 'static,)*
             R: TryIntoJsResult,
-            T: FnMut($($t,)* &mut Context) -> R + 'static
+            T: FnMut($($t,)* &Context) -> R + 'static
         {}
 
         impl<$($t,)* R, T> IntoJsFunctionSealed<($($t,)* JsRest<'_>,), R> for T
@@ -38,7 +38,7 @@ macro_rules! impl_into_js_function {
         where
             $($t: for<'a> TryFromJsArgument<'a> + 'static,)*
             R: TryIntoJsResult,
-            T: FnMut($($t,)* JsRest<'_>, &mut Context) -> R + 'static
+            T: FnMut($($t,)* JsRest<'_>, &Context) -> R + 'static
         {}
 
         impl<$($t,)* R, T> UnsafeIntoJsFunction<($($t,)*), R> for T
@@ -48,7 +48,7 @@ macro_rules! impl_into_js_function {
             T: FnMut($($t,)*) -> R + 'static,
         {
             #[allow(unused_variables)]
-            unsafe fn into_js_function_unsafe(self, _context: &mut Context) -> NativeFunction {
+            unsafe fn into_js_function_unsafe(self, _context: &Context) -> NativeFunction {
                 let s = RefCell::new(self);
                 unsafe {
                     NativeFunction::from_closure(move |this, args, ctx| {
@@ -74,7 +74,7 @@ macro_rules! impl_into_js_function {
             T: FnMut($($t,)* JsRest<'_>) -> R + 'static,
         {
             #[allow(unused_variables)]
-            unsafe fn into_js_function_unsafe(self, _context: &mut Context) -> NativeFunction {
+            unsafe fn into_js_function_unsafe(self, _context: &Context) -> NativeFunction {
                 let s = RefCell::new(self);
                 unsafe {
                     NativeFunction::from_closure(move |this, args, ctx| {
@@ -97,10 +97,10 @@ macro_rules! impl_into_js_function {
         where
             $($t: for<'a> TryFromJsArgument<'a> + 'static,)*
             R: TryIntoJsResult,
-            T: FnMut($($t,)* &mut Context) -> R + 'static,
+            T: FnMut($($t,)* &Context) -> R + 'static,
         {
             #[allow(unused_variables)]
-            unsafe fn into_js_function_unsafe(self, _context: &mut Context) -> NativeFunction {
+            unsafe fn into_js_function_unsafe(self, _context: &Context) -> NativeFunction {
                 let s = RefCell::new(self);
                 unsafe {
                     NativeFunction::from_closure(move |this, args, ctx| {
@@ -119,10 +119,10 @@ macro_rules! impl_into_js_function {
         where
             $($t: for<'a> TryFromJsArgument<'a> + 'static,)*
             R: TryIntoJsResult,
-            T: FnMut($($t,)* JsRest<'_>, &mut Context) -> R + 'static,
+            T: FnMut($($t,)* JsRest<'_>, &Context) -> R + 'static,
         {
             #[allow(unused_variables)]
-            unsafe fn into_js_function_unsafe(self, _context: &mut Context) -> NativeFunction {
+            unsafe fn into_js_function_unsafe(self, _context: &Context) -> NativeFunction {
                 let s = RefCell::new(self);
                 unsafe {
                     NativeFunction::from_closure(move |this, args, ctx| {
@@ -145,7 +145,7 @@ macro_rules! impl_into_js_function {
             T: Fn($($t,)*) -> R + 'static + Copy,
         {
             #[allow(unused_variables)]
-            fn into_js_function_copied(self, _context: &mut Context) -> NativeFunction {
+            fn into_js_function_copied(self, _context: &Context) -> NativeFunction {
                 let s = self;
                 NativeFunction::from_copy_closure(move |this, args, ctx| {
                     let rest = args;
@@ -165,7 +165,7 @@ macro_rules! impl_into_js_function {
             T: Fn($($t,)* JsRest<'_>) -> R + 'static + Copy,
         {
             #[allow(unused_variables)]
-            fn into_js_function_copied(self, _context: &mut Context) -> NativeFunction {
+            fn into_js_function_copied(self, _context: &Context) -> NativeFunction {
                 let s = self;
                 NativeFunction::from_copy_closure(move |this, args, ctx| {
                     let rest = args;
@@ -182,10 +182,10 @@ macro_rules! impl_into_js_function {
         where
             $($t: for<'a> TryFromJsArgument<'a> + 'static,)*
             R: TryIntoJsResult,
-            T: Fn($($t,)* &mut Context) -> R + 'static + Copy,
+            T: Fn($($t,)* &Context) -> R + 'static + Copy,
         {
             #[allow(unused_variables)]
-            fn into_js_function_copied(self, _context: &mut Context) -> NativeFunction {
+            fn into_js_function_copied(self, _context: &Context) -> NativeFunction {
                 let s = self;
                 NativeFunction::from_copy_closure(move |this, args, ctx| {
                     let rest = args;
@@ -202,10 +202,10 @@ macro_rules! impl_into_js_function {
         where
             $($t: for<'a> TryFromJsArgument<'a> + 'static,)*
             R: TryIntoJsResult,
-            T: Fn($($t,)* JsRest<'_>, &mut Context) -> R + 'static + Copy,
+            T: Fn($($t,)* JsRest<'_>, &Context) -> R + 'static + Copy,
         {
             #[allow(unused_variables)]
-            fn into_js_function_copied(self, _context: &mut Context) -> NativeFunction {
+            fn into_js_function_copied(self, _context: &Context) -> NativeFunction {
                 let s = self;
                 NativeFunction::from_copy_closure(move |this, args, ctx| {
                     let rest = args;

@@ -17,17 +17,14 @@ pub(crate) struct IteratorNext;
 
 impl IteratorNext {
     #[inline(always)]
-    pub(crate) fn operation((): (), context: &mut Context) -> JsResult<()> {
+    pub(crate) fn operation((): (), context: &Context) -> JsResult<()> {
         let mut iterator = context
-            .vm
-            .frame_mut()
-            .iterators
-            .pop()
+            .with_vm_mut(|vm| vm.frame_mut().iterators.pop())
             .expect("iterator stack should have at least an iterator");
 
         iterator.step(context)?;
 
-        context.vm.frame_mut().iterators.push(iterator);
+        context.with_vm_mut(|vm| vm.frame_mut().iterators.push(iterator));
 
         Ok(())
     }
@@ -51,19 +48,16 @@ impl IteratorFinishAsyncNext {
     #[inline(always)]
     pub(crate) fn operation(
         (resume_kind, value): (VaryingOperand, VaryingOperand),
-        context: &mut Context,
+        context: &Context,
     ) -> JsResult<()> {
         let mut iterator = context
-            .vm
-            .frame_mut()
-            .iterators
-            .pop()
+            .with_vm_mut(|vm| vm.frame_mut().iterators.pop())
             .expect("iterator on the call frame must exist");
 
-        let resume_kind = context
-            .vm
-            .get_register(resume_kind.into())
-            .to_generator_resume_kind();
+        let resume_kind = context.with_vm(|vm| {
+            vm.get_register(resume_kind.into())
+                .to_generator_resume_kind()
+        });
 
         if matches!(resume_kind, GeneratorResumeKind::Throw) {
             // If after awaiting the `next` call the iterator returned an error, it can be considered
@@ -72,9 +66,9 @@ impl IteratorFinishAsyncNext {
             return Ok(());
         }
 
-        let value = context.vm.get_register(value.into());
-        iterator.update_result(value.clone(), context)?;
-        context.vm.frame_mut().iterators.push(iterator);
+        let value = context.get_register(value.into()).clone();
+        iterator.update_result(value, context)?;
+        context.with_vm_mut(|vm| vm.frame_mut().iterators.push(iterator));
         Ok(())
     }
 }
@@ -94,17 +88,17 @@ pub(crate) struct IteratorResult;
 
 impl IteratorResult {
     #[inline(always)]
-    pub(crate) fn operation(value: VaryingOperand, context: &mut Context) {
-        let last_result = context
-            .vm
-            .frame()
-            .iterators
-            .last()
-            .expect("iterator on the call frame must exist")
-            .last_result()
-            .object()
-            .clone();
-        context.vm.set_register(value.into(), last_result.into());
+    pub(crate) fn operation(value: VaryingOperand, context: &Context) {
+        let last_result = context.with_vm(|vm| {
+            vm.frame()
+                .iterators
+                .last()
+                .expect("iterator on the call frame must exist")
+                .last_result()
+                .object()
+                .clone()
+        });
+        context.set_register(value.into(), last_result.into());
     }
 }
 
@@ -123,18 +117,15 @@ pub(crate) struct IteratorValue;
 
 impl IteratorValue {
     #[inline(always)]
-    pub(crate) fn operation(value: VaryingOperand, context: &mut Context) -> JsResult<()> {
+    pub(crate) fn operation(value: VaryingOperand, context: &Context) -> JsResult<()> {
         let mut iterator = context
-            .vm
-            .frame_mut()
-            .iterators
-            .pop()
+            .with_vm_mut(|vm| vm.frame_mut().iterators.pop())
             .expect("iterator on the call frame must exist");
 
         let iter_value = iterator.value(context)?;
-        context.vm.set_register(value.into(), iter_value);
+        context.set_register(value.into(), iter_value);
 
-        context.vm.frame_mut().iterators.push(iterator);
+        context.with_vm_mut(|vm| vm.frame_mut().iterators.push(iterator));
 
         Ok(())
     }
@@ -155,15 +146,15 @@ pub(crate) struct IteratorDone;
 
 impl IteratorDone {
     #[inline(always)]
-    pub(crate) fn operation(done: VaryingOperand, context: &mut Context) {
-        let value = context
-            .vm
-            .frame()
-            .iterators
-            .last()
-            .expect("iterator on the call frame must exist")
-            .done();
-        context.vm.set_register(done.into(), value.into());
+    pub(crate) fn operation(done: VaryingOperand, context: &Context) {
+        let value = context.with_vm(|vm| {
+            vm.frame()
+                .iterators
+                .last()
+                .expect("iterator on the call frame must exist")
+                .done()
+        });
+        context.set_register(done.into(), value.into());
     }
 }
 
@@ -184,15 +175,15 @@ impl IteratorReturn {
     #[inline(always)]
     pub(crate) fn operation(
         (value, called): (VaryingOperand, VaryingOperand),
-        context: &mut Context,
+        context: &Context,
     ) -> JsResult<()> {
-        let Some(record) = context.vm.frame_mut().iterators.pop() else {
-            context.vm.set_register(called.into(), false.into());
+        let Some(record) = context.with_vm_mut(|vm| vm.frame_mut().iterators.pop()) else {
+            context.set_register(called.into(), false.into());
             return Ok(());
         };
 
         if record.done() {
-            context.vm.set_register(called.into(), false.into());
+            context.set_register(called.into(), false.into());
             return Ok(());
         }
 
@@ -200,18 +191,18 @@ impl IteratorReturn {
             .iterator()
             .get_method(js_string!("return"), context)?
         else {
-            context.vm.set_register(called.into(), false.into());
+            context.set_register(called.into(), false.into());
             return Ok(());
         };
 
-        let old_return_value = context.vm.get_return_value();
+        let old_return_value = context.get_return_value();
 
         let return_value = ret.call(&record.iterator().clone().into(), &[], context)?;
 
-        context.vm.set_return_value(old_return_value);
+        context.set_return_value(old_return_value);
 
-        context.vm.set_register(value.into(), return_value);
-        context.vm.set_register(called.into(), true.into());
+        context.set_register(value.into(), return_value);
+        context.set_register(called.into(), true.into());
 
         Ok(())
     }
@@ -232,12 +223,9 @@ pub(crate) struct IteratorToArray;
 
 impl IteratorToArray {
     #[inline(always)]
-    pub(crate) fn operation(array: VaryingOperand, context: &mut Context) -> JsResult<()> {
+    pub(crate) fn operation(array: VaryingOperand, context: &Context) -> JsResult<()> {
         let mut iterator = context
-            .vm
-            .frame_mut()
-            .iterators
-            .pop()
+            .with_vm_mut(|vm| vm.frame_mut().iterators.pop())
             .expect("iterator on the call frame must exist");
 
         let mut values = Vec::new();
@@ -246,7 +234,7 @@ impl IteratorToArray {
             let done = match iterator.step(context) {
                 Ok(done) => done,
                 Err(err) => {
-                    context.vm.frame_mut().iterators.push(iterator);
+                    context.with_vm_mut(|vm| vm.frame_mut().iterators.push(iterator));
                     return Err(err);
                 }
             };
@@ -258,15 +246,15 @@ impl IteratorToArray {
             match iterator.value(context) {
                 Ok(value) => values.push(value),
                 Err(err) => {
-                    context.vm.frame_mut().iterators.push(iterator);
+                    context.with_vm_mut(|vm| vm.frame_mut().iterators.push(iterator));
                     return Err(err);
                 }
             }
         }
 
-        context.vm.frame_mut().iterators.push(iterator);
+        context.with_vm_mut(|vm| vm.frame_mut().iterators.push(iterator));
         let result = Array::create_array_from_list(values, context);
-        context.vm.set_register(array.into(), result.into());
+        context.set_register(array.into(), result.into());
         Ok(())
     }
 }
@@ -286,9 +274,9 @@ pub(crate) struct IteratorStackEmpty;
 
 impl IteratorStackEmpty {
     #[inline(always)]
-    pub(crate) fn operation(empty: VaryingOperand, context: &mut Context) {
-        let is_empty = context.vm.frame().iterators.is_empty();
-        context.vm.set_register(empty.into(), is_empty.into());
+    pub(crate) fn operation(empty: VaryingOperand, context: &Context) {
+        let is_empty = context.with_vm(|vm| vm.frame().iterators.is_empty());
+        context.set_register(empty.into(), is_empty.into());
     }
 }
 
@@ -307,14 +295,11 @@ pub(crate) struct CreateIteratorResult;
 
 impl CreateIteratorResult {
     #[inline(always)]
-    pub(crate) fn operation(
-        (value, done): (VaryingOperand, VaryingOperand),
-        context: &mut Context,
-    ) {
+    pub(crate) fn operation((value, done): (VaryingOperand, VaryingOperand), context: &Context) {
         let done = u32::from(done) != 0;
-        let val = context.vm.get_register(value.into());
-        let result = create_iter_result_object(val.clone(), done, context);
-        context.vm.set_register(value.into(), result);
+        let val = context.get_register(value.into()).clone();
+        let result = create_iter_result_object(val, done, context);
+        context.set_register(value.into(), result);
     }
 }
 

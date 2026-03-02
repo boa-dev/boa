@@ -24,14 +24,14 @@ impl Await {
     #[inline(always)]
     pub(super) fn operation(
         value: VaryingOperand,
-        context: &mut Context,
+        context: &Context,
     ) -> ControlFlow<CompletionRecord> {
-        let value = context.vm.get_register(value.into());
+        let value = context.get_register(value.into()).clone();
 
         // 2. Let promise be ? PromiseResolve(%Promise%, value).
         let promise = match Promise::promise_resolve(
             &context.intrinsics().constructors().promise().constructor(),
-            value.clone(),
+            value,
             context,
         ) {
             Ok(promise) => promise
@@ -41,9 +41,7 @@ impl Await {
         };
 
         let return_value = context
-            .vm
-            .stack
-            .get_promise_capability(&context.vm.frame)
+            .with_vm(|vm| vm.stack.get_promise_capability(&vm.frame))
             .as_ref()
             .map(PromiseCapability::promise)
             .cloned()
@@ -141,7 +139,7 @@ impl Await {
             context,
         );
 
-        context.vm.set_return_value(return_value);
+        context.set_return_value(return_value);
         context.handle_yield()
     }
 }
@@ -161,13 +159,9 @@ pub(crate) struct CreatePromiseCapability;
 
 impl CreatePromiseCapability {
     #[inline(always)]
-    pub(super) fn operation((): (), context: &mut Context) {
-        if context
-            .vm
-            .stack
-            .get_promise_capability(&context.vm.frame)
-            .is_some()
-        {
+    pub(super) fn operation((): (), context: &Context) {
+        let res = context.with_vm(|vm| vm.stack.get_promise_capability(&vm.frame).is_some());
+        if res {
             return;
         }
 
@@ -177,10 +171,10 @@ impl CreatePromiseCapability {
         )
         .expect("cannot fail per spec");
 
-        context
-            .vm
-            .stack
-            .set_promise_capability(&context.vm.frame, Some(&promise_capability));
+        context.with_vm_mut(|vm| {
+            vm.stack
+                .set_promise_capability(&vm.frame, Some(&promise_capability));
+        });
     }
 }
 
@@ -199,19 +193,20 @@ pub(crate) struct CompletePromiseCapability;
 
 impl CompletePromiseCapability {
     #[inline(always)]
-    pub(super) fn operation((): (), context: &mut Context) -> ControlFlow<CompletionRecord> {
+    pub(super) fn operation((): (), context: &Context) -> ControlFlow<CompletionRecord> {
         // If the current executing function is an async function we have to resolve/reject it's promise at the end.
         // The relevant spec section is 3. in [AsyncBlockStart](https://tc39.es/ecma262/#sec-asyncblockstart).
-        let Some(promise_capability) = context.vm.stack.get_promise_capability(&context.vm.frame)
+        let Some(promise_capability) =
+            context.with_vm(|vm| vm.stack.get_promise_capability(&vm.frame))
         else {
-            return if context.vm.pending_exception.is_some() {
+            return if context.has_pending_exception() {
                 context.handle_throw()
             } else {
                 ControlFlow::Continue(())
             };
         };
 
-        if let Some(error) = context.vm.pending_exception.take() {
+        if let Some(error) = context.take_pending_exception() {
             let value = match error.into_opaque(context) {
                 Ok(value) => value,
                 Err(err) => return context.handle_error(err),
@@ -221,16 +216,14 @@ impl CompletePromiseCapability {
                 .call(&JsValue::undefined(), &[value], context)
                 .expect("cannot fail per spec");
         } else {
-            let return_value = context.vm.get_return_value();
+            let return_value = context.get_return_value();
             promise_capability
                 .resolve()
                 .call(&JsValue::undefined(), &[return_value], context)
                 .expect("cannot fail per spec");
         }
 
-        context
-            .vm
-            .set_return_value(promise_capability.promise().clone().into());
+        context.set_return_value(promise_capability.promise().clone().into());
 
         ControlFlow::Continue(())
     }

@@ -11,13 +11,13 @@ mod tuples;
 /// This trait adds a fallible and efficient conversions from a [`JsValue`] to Rust types.
 pub trait TryFromJs: Sized {
     /// This function tries to convert a JavaScript value into `Self`.
-    fn try_from_js(value: &JsValue, context: &mut Context) -> JsResult<Self>;
+    fn try_from_js(value: &JsValue, context: &Context) -> JsResult<Self>;
 }
 
 impl JsValue {
     /// This function is the inverse of [`TryFromJs`]. It tries to convert a [`JsValue`] to a given
     /// Rust type.
-    pub fn try_js_into<T>(&self, context: &mut Context) -> JsResult<T>
+    pub fn try_js_into<T>(&self, context: &Context) -> JsResult<T>
     where
         T: TryFromJs,
     {
@@ -26,7 +26,7 @@ impl JsValue {
 }
 
 impl TryFromJs for bool {
-    fn try_from_js(value: &JsValue, _context: &mut Context) -> JsResult<Self> {
+    fn try_from_js(value: &JsValue, _context: &Context) -> JsResult<Self> {
         if let Some(b) = value.as_boolean() {
             Ok(b)
         } else {
@@ -38,13 +38,13 @@ impl TryFromJs for bool {
 }
 
 impl TryFromJs for () {
-    fn try_from_js(_value: &JsValue, _context: &mut Context) -> JsResult<Self> {
+    fn try_from_js(_value: &JsValue, _context: &Context) -> JsResult<Self> {
         Ok(())
     }
 }
 
 impl TryFromJs for String {
-    fn try_from_js(value: &JsValue, _context: &mut Context) -> JsResult<Self> {
+    fn try_from_js(value: &JsValue, _context: &Context) -> JsResult<Self> {
         if let Some(s) = value.as_string() {
             s.to_std_string().map_err(|e| {
                 JsNativeError::typ()
@@ -60,7 +60,7 @@ impl TryFromJs for String {
 }
 
 impl TryFromJs for JsString {
-    fn try_from_js(value: &JsValue, _context: &mut Context) -> JsResult<Self> {
+    fn try_from_js(value: &JsValue, _context: &Context) -> JsResult<Self> {
         if let Some(s) = value.as_string() {
             Ok(s.clone())
         } else {
@@ -75,7 +75,7 @@ impl<T> TryFromJs for Option<T>
 where
     T: TryFromJs,
 {
-    fn try_from_js(value: &JsValue, context: &mut Context) -> JsResult<Self> {
+    fn try_from_js(value: &JsValue, context: &Context) -> JsResult<Self> {
         if value.is_undefined() {
             Ok(None)
         } else {
@@ -88,7 +88,7 @@ impl<T> TryFromJs for Vec<T>
 where
     T: TryFromJs,
 {
-    fn try_from_js(value: &JsValue, context: &mut Context) -> JsResult<Self> {
+    fn try_from_js(value: &JsValue, context: &Context) -> JsResult<Self> {
         let Some(object) = &value.as_object() else {
             return Err(JsNativeError::typ()
                 .with_message("cannot convert value to a Vec")
@@ -121,7 +121,7 @@ where
 }
 
 impl TryFromJs for JsObject {
-    fn try_from_js(value: &JsValue, _context: &mut Context) -> JsResult<Self> {
+    fn try_from_js(value: &JsValue, _context: &Context) -> JsResult<Self> {
         if let Some(o) = value.as_object() {
             Ok(o.clone())
         } else {
@@ -133,7 +133,7 @@ impl TryFromJs for JsObject {
 }
 
 impl TryFromJs for JsBigInt {
-    fn try_from_js(value: &JsValue, _context: &mut Context) -> JsResult<Self> {
+    fn try_from_js(value: &JsValue, _context: &Context) -> JsResult<Self> {
         if let Some(b) = value.as_bigint() {
             Ok(b.clone())
         } else {
@@ -145,7 +145,7 @@ impl TryFromJs for JsBigInt {
 }
 
 impl TryFromJs for BigInt {
-    fn try_from_js(value: &JsValue, _context: &mut Context) -> JsResult<Self> {
+    fn try_from_js(value: &JsValue, _context: &Context) -> JsResult<Self> {
         if let Some(b) = value.as_bigint() {
             Ok(b.as_inner().clone())
         } else {
@@ -157,13 +157,13 @@ impl TryFromJs for BigInt {
 }
 
 impl TryFromJs for JsValue {
-    fn try_from_js(value: &JsValue, _context: &mut Context) -> JsResult<Self> {
+    fn try_from_js(value: &JsValue, _context: &Context) -> JsResult<Self> {
         Ok(value.clone())
     }
 }
 
 impl TryFromJs for f64 {
-    fn try_from_js(value: &JsValue, _context: &mut Context) -> JsResult<Self> {
+    fn try_from_js(value: &JsValue, _context: &Context) -> JsResult<Self> {
         if let Some(i) = value.0.as_integer32() {
             Ok(f64::from(i))
         } else if let Some(f) = value.0.as_float64() {
@@ -191,7 +191,7 @@ macro_rules! impl_try_from_js_integer {
     ( $( $type: ty ),* ) => {
         $(
             impl TryFromJs for $type {
-                fn try_from_js(value: &JsValue, _context: &mut Context) -> JsResult<Self> {
+                fn try_from_js(value: &JsValue, _context: &Context) -> JsResult<Self> {
                     if let Some(i) = value.as_i32() {
                         i.try_into().map_err(|e| {
                             JsNativeError::typ()
@@ -222,7 +222,7 @@ impl_try_from_js_integer!(i8, u8, i16, u16, i32, u32, i64, u64, usize, i128, u12
 
 #[test]
 fn integer_floating_js_value_to_integer() {
-    let context = &mut Context::default();
+    let context = &Context::default();
 
     assert_eq!(i8::try_from_js(&JsValue::from(4.0), context), Ok(4));
     assert_eq!(u8::try_from_js(&JsValue::from(4.0), context), Ok(4));
@@ -410,12 +410,12 @@ fn js_map_into_rust_map() -> JsResult<()> {
     use std::collections::{BTreeMap, HashMap};
 
     let js_code = "new Map([['a', 1], ['b', 3], ['aboba', 42024]])";
-    let mut context = Context::default();
+    let context = Context::default();
 
     let js_value = context.eval(Source::from_bytes(js_code))?;
 
-    let hash_map = HashMap::<String, i32>::try_from_js(&js_value, &mut context)?;
-    let btree_map = BTreeMap::<String, i32>::try_from_js(&js_value, &mut context)?;
+    let hash_map = HashMap::<String, i32>::try_from_js(&js_value, &context)?;
+    let btree_map = BTreeMap::<String, i32>::try_from_js(&js_value, &context)?;
 
     let expect = [("a".into(), 1), ("aboba".into(), 42024), ("b".into(), 3)];
 

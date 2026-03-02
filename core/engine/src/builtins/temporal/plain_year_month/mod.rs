@@ -197,11 +197,7 @@ impl BuiltInConstructor for PlainYearMonth {
     const STANDARD_CONSTRUCTOR: fn(&StandardConstructors) -> &StandardConstructor =
         StandardConstructors::plain_year_month;
 
-    fn constructor(
-        new_target: &JsValue,
-        args: &[JsValue],
-        context: &mut Context,
-    ) -> JsResult<JsValue> {
+    fn constructor(new_target: &JsValue, args: &[JsValue], context: &Context) -> JsResult<JsValue> {
         // 1. If NewTarget is undefined, then
         if new_target.is_undefined() {
             // a. Throw a TypeError exception.
@@ -266,7 +262,7 @@ impl PlainYearMonth {
     ///
     /// [spec]: https://tc39.es/proposal-temporal/#sec-temporal.plainyearmonth.from
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Temporal/PlainYearMonth/from
-    fn from(_: &JsValue, args: &[JsValue], context: &mut Context) -> JsResult<JsValue> {
+    fn from(_: &JsValue, args: &[JsValue], context: &Context) -> JsResult<JsValue> {
         // 1. Return ? ToTemporalYearMonth(item, options).
         let item = args.get_or_undefined(0);
         let options = args.get_or_undefined(1);
@@ -285,7 +281,7 @@ impl PlainYearMonth {
     /// [spec]: https://tc39.es/proposal-temporal/#sec-temporal.plainyearmonth.compare
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Temporal/PlainYearMonth/compare
     /// [temporal_rs-docs]: https://docs.rs/temporal_rs/latest/temporal_rs/struct.PlainYearMonth.html#method.compare_iso
-    fn compare(_: &JsValue, args: &[JsValue], context: &mut Context) -> JsResult<JsValue> {
+    fn compare(_: &JsValue, args: &[JsValue], context: &Context) -> JsResult<JsValue> {
         let one = to_temporal_year_month(args.get_or_undefined(0), None, context)?;
         let two = to_temporal_year_month(args.get_or_undefined(1), None, context)?;
         Ok((one.compare_iso(&two) as i8).into())
@@ -326,7 +322,7 @@ impl PlainYearMonth {
     /// [spec]: https://tc39.es/proposal-temporal/#sec-get-temporal.plainyearmonth.calendarid
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Temporal/PlainYearMonth/calendarId
     /// [temporal_rs-docs]: https://docs.rs/temporal_rs/latest/temporal_rs/struct.PlainYearMonth.html#method.calendar
-    fn get_calendar_id(this: &JsValue, _: &[JsValue], _: &mut Context) -> JsResult<JsValue> {
+    fn get_calendar_id(this: &JsValue, _: &[JsValue], _: &Context) -> JsResult<JsValue> {
         let obj = this
             .as_object()
             .ok_or_else(|| JsNativeError::typ().with_message("this must be an object."))?;
@@ -352,7 +348,7 @@ impl PlainYearMonth {
     /// [spec]: https://tc39.es/proposal-temporal/#sec-get-temporal.plainyearmonth.era
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Temporal/PlainYearMonth/era
     /// [temporal_rs-docs]: https://docs.rs/temporal_rs/latest/temporal_rs/struct.PlainYearMonth.html#method.era
-    fn get_era(this: &JsValue, _: &[JsValue], _: &mut Context) -> JsResult<JsValue> {
+    fn get_era(this: &JsValue, _: &[JsValue], _: &Context) -> JsResult<JsValue> {
         let object = this.as_object();
         let year_month = object
             .as_ref()
@@ -379,7 +375,7 @@ impl PlainYearMonth {
     /// [spec]: https://tc39.es/proposal-temporal/#sec-get-temporal.plainyearmonth.erayear
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Temporal/PlainYearMonth/eraYear
     /// [temporal_rs-docs]: https://docs.rs/temporal_rs/latest/temporal_rs/struct.PlainYearMonth.html#method.era_year
-    fn get_era_year(this: &JsValue, _: &[JsValue], _: &mut Context) -> JsResult<JsValue> {
+    fn get_era_year(this: &JsValue, _: &[JsValue], _: &Context) -> JsResult<JsValue> {
         let object = this.as_object();
         let year_month = object
             .as_ref()
@@ -401,7 +397,7 @@ impl PlainYearMonth {
     /// [spec]: https://tc39.es/proposal-temporal/#sec-get-temporal.plainyearmonth.year
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Temporal/PlainYearMonth/year
     /// [temporal_rs-docs]: https://docs.rs/temporal_rs/latest/temporal_rs/struct.PlainYearMonth.html#method.year
-    fn get_year(this: &JsValue, _: &[JsValue], _: &mut Context) -> JsResult<JsValue> {
+    fn get_year(this: &JsValue, _: &[JsValue], _: &Context) -> JsResult<JsValue> {
         Self::get_internal_field(this, &DateTimeValues::Year)
     }
 
@@ -416,7 +412,7 @@ impl PlainYearMonth {
     /// [spec]: https://tc39.es/proposal-temporal/#sec-get-temporal.plainyearmonth.month
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Temporal/PlainYearMonth/month
     /// [temporal_rs-docs]: https://docs.rs/temporal_rs/latest/temporal_rs/struct.PlainYearMonth.html#method.month
-    fn get_month(this: &JsValue, _: &[JsValue], _: &mut Context) -> JsResult<JsValue> {
+    fn get_month(this: &JsValue, _: &[JsValue], _: &Context) -> JsResult<JsValue> {
         Self::get_internal_field(this, &DateTimeValues::Month)
     }
 
@@ -431,7 +427,7 @@ impl PlainYearMonth {
     /// [spec]: https://tc39.es/proposal-temporal/#sec-get-temporal.plainyearmonth.monthcode
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Temporal/PlainYearMonth/monthCode
     /// [temporal_rs-docs]: https://docs.rs/temporal_rs/latest/temporal_rs/struct.PlainYearMonth.html#method.month_code
-    fn get_month_code(this: &JsValue, _: &[JsValue], _: &mut Context) -> JsResult<JsValue> {
+    fn get_month_code(this: &JsValue, _: &[JsValue], _: &Context) -> JsResult<JsValue> {
         Self::get_internal_field(this, &DateTimeValues::MonthCode)
     }
 
@@ -446,7 +442,7 @@ impl PlainYearMonth {
     /// [spec]: https://tc39.es/proposal-temporal/#sec-get-temporal.plainyearmonth.daysinyear
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Temporal/PlainYearMonth/daysInYear
     /// [temporal_rs-docs]: https://docs.rs/temporal_rs/latest/temporal_rs/struct.PlainYearMonth.html#method.days_in_year
-    fn get_days_in_year(this: &JsValue, _: &[JsValue], _: &mut Context) -> JsResult<JsValue> {
+    fn get_days_in_year(this: &JsValue, _: &[JsValue], _: &Context) -> JsResult<JsValue> {
         let object = this.as_object();
         let year_month = object
             .as_ref()
@@ -469,7 +465,7 @@ impl PlainYearMonth {
     /// [spec]: https://tc39.es/proposal-temporal/#sec-get-temporal.plainyearmonth.daysinmonth
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Temporal/PlainYearMonth/daysInMonth
     /// [temporal_rs-docs]: https://docs.rs/temporal_rs/latest/temporal_rs/struct.PlainYearMonth.html#method.days_in_month
-    fn get_days_in_month(this: &JsValue, _: &[JsValue], _: &mut Context) -> JsResult<JsValue> {
+    fn get_days_in_month(this: &JsValue, _: &[JsValue], _: &Context) -> JsResult<JsValue> {
         let object = this.as_object();
         let year_month = object
             .as_ref()
@@ -492,7 +488,7 @@ impl PlainYearMonth {
     /// [spec]: https://tc39.es/proposal-temporal/#sec-get-temporal.plainyearmonth.monthsinyear
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Temporal/PlainYearMonth/monthsInYear
     /// [temporal_rs-docs]: https://docs.rs/temporal_rs/latest/temporal_rs/struct.PlainYearMonth.html#method.months_in_year
-    fn get_months_in_year(this: &JsValue, _: &[JsValue], _: &mut Context) -> JsResult<JsValue> {
+    fn get_months_in_year(this: &JsValue, _: &[JsValue], _: &Context) -> JsResult<JsValue> {
         let object = this.as_object();
         let year_month = object
             .as_ref()
@@ -515,7 +511,7 @@ impl PlainYearMonth {
     /// [spec]: https://tc39.es/proposal-temporal/#sec-get-temporal.plainyearmonth.inleapyear
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Temporal/PlainYearMonth/inLeapYear
     /// [temporal_rs-docs]: https://docs.rs/temporal_rs/latest/temporal_rs/struct.PlainYearMonth.html#method.in_leap_year
-    fn get_in_leap_year(this: &JsValue, _: &[JsValue], _: &mut Context) -> JsResult<JsValue> {
+    fn get_in_leap_year(this: &JsValue, _: &[JsValue], _: &Context) -> JsResult<JsValue> {
         let object = this.as_object();
         let year_month = object
             .as_ref()
@@ -542,7 +538,7 @@ impl PlainYearMonth {
     /// [spec]: https://tc39.es/proposal-temporal/#sec-temporal.plainyearmonth.with
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Temporal/PlainYearMonth/with
     /// [temporal_rs-docs]: https://docs.rs/temporal_rs/latest/temporal_rs/struct.PlainYearMonth.html#method.with
-    fn with(this: &JsValue, args: &[JsValue], context: &mut Context) -> JsResult<JsValue> {
+    fn with(this: &JsValue, args: &[JsValue], context: &Context) -> JsResult<JsValue> {
         // 1. Let yearMonth be the this value.
         // 2. Perform ? RequireInternalSlot(yearMonth, [[InitializedTemporalYearMonth]]).
         let object = this.as_object();
@@ -592,7 +588,7 @@ impl PlainYearMonth {
     /// [spec]: https://tc39.es/proposal-temporal/#sec-temporal.plainyearmonth.add
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Temporal/PlainYearMonth/add
     /// [temporal_rs-docs]: https://docs.rs/temporal_rs/latest/temporal_rs/struct.PlainYearMonth.html#method.add
-    fn add(this: &JsValue, args: &[JsValue], context: &mut Context) -> JsResult<JsValue> {
+    fn add(this: &JsValue, args: &[JsValue], context: &Context) -> JsResult<JsValue> {
         let duration_like = args.get_or_undefined(0);
         let options = get_options_object(args.get_or_undefined(1))?;
 
@@ -610,7 +606,7 @@ impl PlainYearMonth {
     /// [spec]: https://tc39.es/proposal-temporal/#sec-temporal.plainyearmonth.subtract
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Temporal/PlainYearMonth/subtract
     /// [temporal_rs-docs]: https://docs.rs/temporal_rs/latest/temporal_rs/struct.PlainYearMonth.html#method.subtract
-    fn subtract(this: &JsValue, args: &[JsValue], context: &mut Context) -> JsResult<JsValue> {
+    fn subtract(this: &JsValue, args: &[JsValue], context: &Context) -> JsResult<JsValue> {
         let duration_like = args.get_or_undefined(0);
         let options = get_options_object(args.get_or_undefined(1))?;
 
@@ -628,7 +624,7 @@ impl PlainYearMonth {
     /// [spec]: https://tc39.es/proposal-temporal/#sec-temporal.plainyearmonth.until
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Temporal/PlainYearMonth/until
     /// [temporal_rs-docs]: https://docs.rs/temporal_rs/latest/temporal_rs/struct.PlainYearMonth.html#method.until
-    fn until(this: &JsValue, args: &[JsValue], context: &mut Context) -> JsResult<JsValue> {
+    fn until(this: &JsValue, args: &[JsValue], context: &Context) -> JsResult<JsValue> {
         let object = this.as_object();
         let year_month = object
             .as_ref()
@@ -663,7 +659,7 @@ impl PlainYearMonth {
     /// [spec]: https://tc39.es/proposal-temporal/#sec-temporal.plainyearmonth.since
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Temporal/PlainYearMonth/since
     /// [temporal_rs-docs]: https://docs.rs/temporal_rs/latest/temporal_rs/struct.PlainYearMonth.html#method.since
-    fn since(this: &JsValue, args: &[JsValue], context: &mut Context) -> JsResult<JsValue> {
+    fn since(this: &JsValue, args: &[JsValue], context: &Context) -> JsResult<JsValue> {
         let object = this.as_object();
         let year_month = object
             .as_ref()
@@ -698,7 +694,7 @@ impl PlainYearMonth {
     /// [spec]: https://tc39.es/proposal-temporal/#sec-temporal.plainyearmonth.equals
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Temporal/PlainYearMonth/equals
     /// [temporal_rs-docs]: https://docs.rs/temporal_rs/latest/temporal_rs/struct.PlainYearMonth.html#impl-PartialEq-for-PlainYearMonth
-    fn equals(this: &JsValue, args: &[JsValue], context: &mut Context) -> JsResult<JsValue> {
+    fn equals(this: &JsValue, args: &[JsValue], context: &Context) -> JsResult<JsValue> {
         let object = this.as_object();
         let year_month = object
             .as_ref()
@@ -723,7 +719,7 @@ impl PlainYearMonth {
     /// [spec]: https://tc39.es/proposal-temporal/#sec-temporal.plainyearmonth.tostring
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Temporal/PlainYearMonth/toString
     /// [temporal_rs-docs]: https://docs.rs/temporal_rs/latest/temporal_rs/struct.PlainYearMonth.html#method.to_ixdtf_string
-    fn to_string(this: &JsValue, args: &[JsValue], context: &mut Context) -> JsResult<JsValue> {
+    fn to_string(this: &JsValue, args: &[JsValue], context: &Context) -> JsResult<JsValue> {
         // 1. Let YearMonth be the this value.
         // 2. Perform ? RequireInternalSlot(yearMonth, [[InitializedTemporalYearMonth]]).
         let object = this.as_object();
@@ -758,7 +754,7 @@ impl PlainYearMonth {
     pub(crate) fn to_locale_string(
         this: &JsValue,
         _: &[JsValue],
-        _: &mut Context,
+        _: &Context,
     ) -> JsResult<JsValue> {
         // TODO: Update for ECMA-402 compliance
         let object = this.as_object();
@@ -781,7 +777,7 @@ impl PlainYearMonth {
     ///
     /// [spec]: https://tc39.es/proposal-temporal/#sec-temporal.plainyearmonth.tojson
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Temporal/PlainYearMonth/toJSON
-    pub(crate) fn to_json(this: &JsValue, _: &[JsValue], _: &mut Context) -> JsResult<JsValue> {
+    pub(crate) fn to_json(this: &JsValue, _: &[JsValue], _: &Context) -> JsResult<JsValue> {
         let object = this.as_object();
         let year_month = object
             .as_ref()
@@ -802,7 +798,7 @@ impl PlainYearMonth {
     ///
     /// [spec]: https://tc39.es/proposal-temporal/#sec-temporal.plainyearmonth.valueof
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Temporal/PlainYearMonth/valueOf
-    pub(crate) fn value_of(_this: &JsValue, _: &[JsValue], _: &mut Context) -> JsResult<JsValue> {
+    pub(crate) fn value_of(_this: &JsValue, _: &[JsValue], _: &Context) -> JsResult<JsValue> {
         Err(JsNativeError::typ()
             .with_message("`valueOf` not supported by Temporal built-ins. See 'compare', 'equals', or `toString`")
             .into())
@@ -819,7 +815,7 @@ impl PlainYearMonth {
     /// [spec]: https://tc39.es/proposal-temporal/#sec-temporal.plainyearmonth.toplaindate
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Temporal/PlainYearMonth/toPlainDate
     /// [temporal_rs-docs]: https://docs.rs/temporal_rs/latest/temporal_rs/struct.PlainYearMonth.html#method.to_plain_date
-    fn to_plain_date(this: &JsValue, args: &[JsValue], context: &mut Context) -> JsResult<JsValue> {
+    fn to_plain_date(this: &JsValue, args: &[JsValue], context: &Context) -> JsResult<JsValue> {
         // 1. Let yearMonth be the this value.
         // 2. Perform ? RequireInternalSlot(yearMonth, [[InitializedTemporalYearMonth]]).
         let object = this.as_object();
@@ -866,7 +862,7 @@ impl PlainYearMonth {
 fn to_temporal_year_month(
     value: &JsValue,
     options: Option<JsValue>,
-    context: &mut Context,
+    context: &Context,
 ) -> JsResult<InnerYearMonth> {
     // If options is not present, set options to undefined.
     let options = options.unwrap_or_default();
@@ -926,7 +922,7 @@ fn to_temporal_year_month(
 pub(crate) fn create_temporal_year_month(
     ym: InnerYearMonth,
     new_target: Option<&JsValue>,
-    context: &mut Context,
+    context: &Context,
 ) -> JsResult<JsValue> {
     // 1. If IsValidISODate(isoYear, isoMonth, referenceISODay) is false, throw a RangeError exception.
     // 2. If ! ISOYearMonthWithinLimits(isoYear, isoMonth) is false, throw a RangeError exception.
@@ -968,7 +964,7 @@ fn add_or_subtract_duration(
     this: &JsValue,
     duration_like: &JsValue,
     options: &JsObject,
-    context: &mut Context,
+    context: &Context,
 ) -> JsResult<JsValue> {
     let duration: Duration = if duration_like.is_object() {
         to_temporal_duration(duration_like, context)?
@@ -1003,7 +999,7 @@ fn add_or_subtract_duration(
 
 fn to_partial_year_month(
     partial_object: &JsObject,
-    context: &mut Context,
+    context: &Context,
 ) -> JsResult<PartialYearMonth> {
     // a. Let calendar be ? ToTemporalCalendar(item).
     let calendar = get_temporal_calendar_slot_value_with_default(partial_object, context)?;
@@ -1017,7 +1013,7 @@ fn to_partial_year_month(
 pub(crate) fn to_year_month_calendar_fields(
     partial_object: &JsObject,
     calendar: &Calendar,
-    context: &mut Context,
+    context: &Context,
 ) -> JsResult<YearMonthCalendarFields> {
     // TODO: `temporal_rs` needs a `has_era` method
     let has_no_era = calendar.kind() == AnyCalendarKind::Iso

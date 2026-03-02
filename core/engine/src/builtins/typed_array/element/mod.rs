@@ -221,7 +221,7 @@ pub(crate) trait Element:
     type Atomic: Atomic;
 
     /// Converts a `JsValue` into the native element `Self`.
-    fn from_js_value(value: &JsValue, context: &mut Context) -> JsResult<Self>;
+    fn from_js_value(value: &JsValue, context: &Context) -> JsResult<Self>;
 
     /// Converts from the plain type of an atomic to `Self`.
     fn from_plain(bytes: <Self::Atomic as Atomic>::Plain) -> Self;
@@ -282,7 +282,7 @@ macro_rules! element {
         impl Element for $element {
             type Atomic = $atomic;
 
-            fn from_js_value(value: &JsValue, context: &mut Context) -> JsResult<Self> {
+            fn from_js_value(value: &JsValue, context: &Context) -> JsResult<Self> {
                 $from_js(value, context)
             }
 

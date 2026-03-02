@@ -33,7 +33,7 @@
 //!     // This is what is called when we do `new Animal()` to construct the inner data of the class.
 //!     // `_new_target` is the target of the `new` invocation, in this case the `Animal` constructor
 //!     // object.
-//!     fn data_constructor(_new_target: &JsValue, args: &[JsValue], context: &mut Context) -> JsResult<Self> {
+//!     fn data_constructor(_new_target: &JsValue, args: &[JsValue], context: &Context) -> JsResult<Self> {
 //!         // This is equivalent to `String(arg)`.
 //!         let kind = args.get_or_undefined(0).to_string(context)?;
 //!
@@ -51,7 +51,7 @@
 //!     fn object_constructor(
 //!         instance: &JsObject<Self>,
 //!         args: &[JsValue],
-//!         context: &mut Context,
+//!         context: &Context,
 //!     ) -> JsResult<()> {
 //!         let age = args.get_or_undefined(1).to_number(context)?;
 //!
@@ -131,7 +131,7 @@ pub trait Class: NativeObject + Sized {
     fn data_constructor(
         new_target: &JsValue,
         args: &[JsValue],
-        context: &mut Context,
+        context: &Context,
     ) -> JsResult<Self>;
 
     /// Initializes the properties of the constructed object for an instance of this class.
@@ -142,7 +142,7 @@ pub trait Class: NativeObject + Sized {
     fn object_constructor(
         instance: &JsObject<Self>,
         args: &[JsValue],
-        context: &mut Context,
+        context: &Context,
     ) -> JsResult<()> {
         Ok(())
     }
@@ -160,11 +160,7 @@ pub trait Class: NativeObject + Sized {
     /// Overriding this method could be useful for certain usages, but incorrectly implementing this
     /// could lead to weird errors like missing inherited methods or incorrect internal data.
     /// </div>
-    fn construct(
-        new_target: &JsValue,
-        args: &[JsValue],
-        context: &mut Context,
-    ) -> JsResult<JsObject> {
+    fn construct(new_target: &JsValue, args: &[JsValue], context: &Context) -> JsResult<JsObject> {
         if new_target.is_undefined() {
             return Err(JsNativeError::typ()
                 .with_message(format!(
@@ -217,7 +213,7 @@ pub trait Class: NativeObject + Sized {
     /// Overriding this method could be useful for certain usages, but incorrectly implementing this
     /// could lead to weird errors like missing inherited methods or incorrect internal data.
     /// </div>
-    fn from_data(data: Self, context: &mut Context) -> JsResult<JsObject> {
+    fn from_data(data: Self, context: &Context) -> JsResult<JsObject> {
         let prototype = context
             .get_global_class::<Self>()
             .ok_or_else(|| {
@@ -245,7 +241,7 @@ pub struct ClassBuilder<'ctx> {
 
 impl<'ctx> ClassBuilder<'ctx> {
     /// Create a new `ClassBuilder` from a [`Class`] type.
-    pub fn new<T>(context: &'ctx mut Context) -> Self
+    pub fn new<T>(context: &'ctx Context) -> Self
     where
         T: Class,
     {
@@ -375,7 +371,7 @@ impl<'ctx> ClassBuilder<'ctx> {
 
     /// Return the current context.
     #[inline]
-    pub fn context(&mut self) -> &mut Context {
+    pub fn context(&mut self) -> &Context {
         self.builder.context()
     }
 }

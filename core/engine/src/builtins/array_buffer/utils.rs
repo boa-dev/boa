@@ -167,7 +167,7 @@ impl SliceRef<'_> {
     /// [`CloneArrayBuffer ( srcBuffer, srcByteOffset, srcLength )`][spec]
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-clonearraybuffer
-    pub(crate) fn clone(&self, context: &mut Context) -> JsResult<JsObject<ArrayBuffer>> {
+    pub(crate) fn clone(&self, context: &Context) -> JsResult<JsObject<ArrayBuffer>> {
         // 1. Assert: IsDetachedBuffer(srcBuffer) is false.
 
         // 2. Let targetBuffer be ? AllocateArrayBuffer(%ArrayBuffer%, srcLength).

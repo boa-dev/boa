@@ -13,7 +13,7 @@ struct Deserialize {
 
 #[test]
 fn optional_missing_try_from_js() {
-    let mut context = boa_engine::Context::default();
+    let context = boa_engine::Context::default();
     let value = context
         .eval(Source::from_bytes(
             r#"
@@ -25,14 +25,14 @@ fn optional_missing_try_from_js() {
         ))
         .unwrap();
 
-    let deserialized: Deserialize = Deserialize::try_from_js(&value, &mut context).unwrap();
+    let deserialized: Deserialize = Deserialize::try_from_js(&value, &context).unwrap();
     assert_eq!(deserialized.required, "foo");
     assert_eq!(deserialized.optional, None);
 }
 
 #[test]
 fn optional_try_from_js() {
-    let mut context = boa_engine::Context::default();
+    let context = boa_engine::Context::default();
     let value = context
         .eval(Source::from_bytes(
             r#"
@@ -45,14 +45,14 @@ fn optional_try_from_js() {
         ))
         .unwrap();
 
-    let deserialized: Deserialize = Deserialize::try_from_js(&value, &mut context).unwrap();
+    let deserialized: Deserialize = Deserialize::try_from_js(&value, &context).unwrap();
     assert_eq!(deserialized.required, "foo");
     assert_eq!(deserialized.optional, Some("bar".to_string()));
 }
 
 #[test]
 fn required_missing_try_from_js() {
-    let mut context = boa_engine::Context::default();
+    let context = boa_engine::Context::default();
     let value = context
         .eval(Source::from_bytes(
             r"
@@ -62,8 +62,5 @@ fn required_missing_try_from_js() {
         ))
         .unwrap();
 
-    assert!(
-        Deserialize::try_from_js(&value, &mut context).is_err(),
-        "foo"
-    );
+    assert!(Deserialize::try_from_js(&value, &context).is_err(), "foo");
 }

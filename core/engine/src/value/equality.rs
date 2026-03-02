@@ -8,7 +8,7 @@ impl JsValue {
         &self,
         other: &Self,
         encounters: &mut HashSet<usize>,
-        context: &mut Context,
+        context: &Context,
     ) -> JsResult<bool> {
         match (self.as_object(), other.as_object()) {
             (None, None) => Ok(self.strict_equals(other)),
@@ -21,7 +21,7 @@ impl JsValue {
     ///
     /// If the value is an object/array, also compare the key-values.
     /// It uses `strict_equals()` for non-object values.
-    pub fn deep_strict_equals(&self, other: &Self, context: &mut Context) -> JsResult<bool> {
+    pub fn deep_strict_equals(&self, other: &Self, context: &Context) -> JsResult<bool> {
         self.deep_strict_equals_inner(other, &mut HashSet::new(), context)
     }
 
@@ -61,7 +61,7 @@ impl JsValue {
     /// This method is executed when doing abstract equality comparisons with the `==` operator.
     ///  For more information, check <https://tc39.es/ecma262/#sec-abstract-equality-comparison>
     #[allow(clippy::float_cmp)]
-    pub fn equals(&self, other: &Self, context: &mut Context) -> JsResult<bool> {
+    pub fn equals(&self, other: &Self, context: &Context) -> JsResult<bool> {
         // 1. If Type(x) is the same as Type(y), then
         //     a. Return the result of performing Strict Equality Comparison x === y.
         if self.get_type() == other.get_type() {
@@ -155,7 +155,7 @@ impl JsValue {
     ///
     /// This method is executed when doing abstract equality comparisons with the `!=` operator.
     /// It uses [`Self::equals`] to perform the comparison and negates the result.
-    pub fn not_equals(&self, other: &Self, context: &mut Context) -> JsResult<bool> {
+    pub fn not_equals(&self, other: &Self, context: &Context) -> JsResult<bool> {
         Ok(!self.equals(other, context)?)
     }
 

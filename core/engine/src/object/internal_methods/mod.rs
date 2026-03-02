@@ -5,7 +5,7 @@
 //!
 //! [spec]: https://tc39.es/ecma262/#sec-ordinary-object-internal-methods-and-internal-slots
 
-use std::ops::{Deref, DerefMut};
+use std::ops::Deref;
 
 use super::{
     JsPrototype, PROTOTYPE,
@@ -26,13 +26,13 @@ pub(crate) mod string;
 /// A lightweight wrapper around [`Context`] used in [`InternalObjectMethods`].
 #[derive(Debug)]
 pub(crate) struct InternalMethodPropertyContext<'ctx> {
-    context: &'ctx mut Context,
+    context: &'ctx Context,
     slot: Slot,
 }
 
 impl<'ctx> InternalMethodPropertyContext<'ctx> {
     /// Create a new [`InternalMethodPropertyContext`].
-    pub(crate) fn new(context: &'ctx mut Context) -> Self {
+    pub(crate) fn new(context: &'ctx Context) -> Self {
         Self {
             context,
             slot: Slot::new(),
@@ -55,16 +55,9 @@ impl Deref for InternalMethodPropertyContext<'_> {
     }
 }
 
-impl DerefMut for InternalMethodPropertyContext<'_> {
+impl<'context> From<&'context Context> for InternalMethodPropertyContext<'context> {
     #[inline]
-    fn deref_mut(&mut self) -> &mut Self::Target {
-        self.context
-    }
-}
-
-impl<'context> From<&'context mut Context> for InternalMethodPropertyContext<'context> {
-    #[inline]
-    fn from(context: &'context mut Context) -> Self {
+    fn from(context: &'context Context) -> Self {
         Self::new(context)
     }
 }
@@ -72,7 +65,7 @@ impl<'context> From<&'context mut Context> for InternalMethodPropertyContext<'co
 /// A lightweight wrapper around [`Context`] used in internal call methods.
 #[derive(Debug)]
 pub(crate) struct InternalMethodCallContext<'ctx> {
-    context: &'ctx mut Context,
+    context: &'ctx Context,
     native_source_info: NativeSourceInfo,
 }
 
@@ -80,7 +73,7 @@ impl<'ctx> InternalMethodCallContext<'ctx> {
     /// Create a new [`InternalMethodCallContext`].
     #[inline]
     #[cfg_attr(feature = "native-backtrace", track_caller)]
-    pub(crate) fn new(context: &'ctx mut Context) -> Self {
+    pub(crate) fn new(context: &'ctx Context) -> Self {
         Self {
             context,
             native_source_info: NativeSourceInfo::caller(),
@@ -90,7 +83,7 @@ impl<'ctx> InternalMethodCallContext<'ctx> {
     /// Create a new [`InternalMethodCallContext`].
     #[inline]
     pub(crate) fn with_native_source_info(
-        context: &'ctx mut Context,
+        context: &'ctx Context,
         native_source_info: NativeSourceInfo,
     ) -> Self {
         Self {
@@ -100,7 +93,7 @@ impl<'ctx> InternalMethodCallContext<'ctx> {
     }
 
     #[inline]
-    pub(crate) fn context(&mut self) -> &mut Context {
+    pub(crate) fn context(&mut self) -> &Context {
         self.context
     }
 
@@ -119,16 +112,9 @@ impl Deref for InternalMethodCallContext<'_> {
     }
 }
 
-impl DerefMut for InternalMethodCallContext<'_> {
+impl<'context> From<&'context Context> for InternalMethodCallContext<'context> {
     #[inline]
-    fn deref_mut(&mut self) -> &mut Self::Target {
-        self.context
-    }
-}
-
-impl<'context> From<&'context mut Context> for InternalMethodCallContext<'context> {
-    #[inline]
-    fn from(context: &'context mut Context) -> Self {
+    fn from(context: &'context Context) -> Self {
         Self::new(context)
     }
 }
@@ -143,7 +129,7 @@ impl JsObject {
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-ordinary-object-internal-methods-and-internal-slots-getprototypeof
     #[track_caller]
-    pub(crate) fn __get_prototype_of__(&self, context: &mut Context) -> JsResult<JsPrototype> {
+    pub(crate) fn __get_prototype_of__(&self, context: &Context) -> JsResult<JsPrototype> {
         (self.vtable().__get_prototype_of__)(self, context)
     }
 
@@ -158,7 +144,7 @@ impl JsObject {
     pub(crate) fn __set_prototype_of__(
         &self,
         val: JsPrototype,
-        context: &mut Context,
+        context: &Context,
     ) -> JsResult<bool> {
         (self.vtable().__set_prototype_of__)(self, val, context)
     }
@@ -171,7 +157,7 @@ impl JsObject {
     ///  - [ECMAScript reference][spec]
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-ordinary-object-internal-methods-and-internal-slots-isextensible
-    pub(crate) fn __is_extensible__(&self, context: &mut Context) -> JsResult<bool> {
+    pub(crate) fn __is_extensible__(&self, context: &Context) -> JsResult<bool> {
         (self.vtable().__is_extensible__)(self, context)
     }
 
@@ -183,7 +169,7 @@ impl JsObject {
     ///  - [ECMAScript reference][spec]
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-ordinary-object-internal-methods-and-internal-slots-preventextensions
-    pub(crate) fn __prevent_extensions__(&self, context: &mut Context) -> JsResult<bool> {
+    pub(crate) fn __prevent_extensions__(&self, context: &Context) -> JsResult<bool> {
         (self.vtable().__prevent_extensions__)(self, context)
     }
 
@@ -315,10 +301,7 @@ impl JsObject {
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-ordinary-object-internal-methods-and-internal-slots-ownpropertykeys
     #[track_caller]
-    pub(crate) fn __own_property_keys__(
-        &self,
-        context: &mut Context,
-    ) -> JsResult<Vec<PropertyKey>> {
+    pub(crate) fn __own_property_keys__(&self, context: &Context) -> JsResult<Vec<PropertyKey>> {
         (self.vtable().__own_property_keys__)(self, context)
     }
 
@@ -401,10 +384,10 @@ pub(crate) const ORDINARY_INTERNAL_METHODS: InternalObjectMethods = InternalObje
 #[derive(Debug, Clone, Copy)]
 #[allow(clippy::type_complexity, clippy::struct_field_names)]
 pub struct InternalObjectMethods {
-    pub(crate) __get_prototype_of__: fn(&JsObject, &mut Context) -> JsResult<JsPrototype>,
-    pub(crate) __set_prototype_of__: fn(&JsObject, JsPrototype, &mut Context) -> JsResult<bool>,
-    pub(crate) __is_extensible__: fn(&JsObject, &mut Context) -> JsResult<bool>,
-    pub(crate) __prevent_extensions__: fn(&JsObject, &mut Context) -> JsResult<bool>,
+    pub(crate) __get_prototype_of__: fn(&JsObject, &Context) -> JsResult<JsPrototype>,
+    pub(crate) __set_prototype_of__: fn(&JsObject, JsPrototype, &Context) -> JsResult<bool>,
+    pub(crate) __is_extensible__: fn(&JsObject, &Context) -> JsResult<bool>,
+    pub(crate) __prevent_extensions__: fn(&JsObject, &Context) -> JsResult<bool>,
     pub(crate) __get_own_property__: fn(
         &JsObject,
         &PropertyKey,
@@ -440,7 +423,7 @@ pub struct InternalObjectMethods {
     pub(crate) __delete__:
         fn(&JsObject, &PropertyKey, &mut InternalMethodPropertyContext<'_>) -> JsResult<bool>,
     pub(crate) __own_property_keys__:
-        fn(&JsObject, context: &mut Context) -> JsResult<Vec<PropertyKey>>,
+        fn(&JsObject, context: &Context) -> JsResult<Vec<PropertyKey>>,
     pub(crate) __call__: fn(
         &JsObject,
         argument_count: usize,
@@ -482,7 +465,7 @@ pub(crate) enum CallValue {
 impl CallValue {
     /// Resolves the [`CallValue`], and return if the value is complete.
     #[cfg_attr(feature = "native-backtrace", track_caller)]
-    pub(crate) fn resolve(mut self, context: &mut Context) -> JsResult<bool> {
+    pub(crate) fn resolve(mut self, context: &Context) -> JsResult<bool> {
         while let Self::Pending {
             func,
             object,
@@ -517,7 +500,7 @@ impl CallValue {
 #[allow(clippy::unnecessary_wraps)]
 pub(crate) fn ordinary_get_prototype_of(
     obj: &JsObject,
-    _context: &mut Context,
+    _context: &Context,
 ) -> JsResult<JsPrototype> {
     // 1. Return O.[[Prototype]].
     Ok(obj.prototype().clone())
@@ -533,7 +516,7 @@ pub(crate) fn ordinary_get_prototype_of(
 pub(crate) fn ordinary_set_prototype_of(
     obj: &JsObject,
     val: JsPrototype,
-    _: &mut Context,
+    _: &Context,
 ) -> JsResult<bool> {
     // 1. Assert: Either Type(V) is Object or Type(V) is Null.
     // 2. Let current be O.[[Prototype]].
@@ -587,7 +570,7 @@ pub(crate) fn ordinary_set_prototype_of(
 ///
 /// [spec]: https://tc39.es/ecma262/#sec-ordinaryisextensible
 #[allow(clippy::unnecessary_wraps)]
-pub(crate) fn ordinary_is_extensible(obj: &JsObject, _context: &mut Context) -> JsResult<bool> {
+pub(crate) fn ordinary_is_extensible(obj: &JsObject, _context: &Context) -> JsResult<bool> {
     // 1. Return O.[[Extensible]].
     Ok(obj.borrow().extensible)
 }
@@ -599,10 +582,7 @@ pub(crate) fn ordinary_is_extensible(obj: &JsObject, _context: &mut Context) -> 
 ///
 /// [spec]: https://tc39.es/ecma262/#sec-ordinarypreventextensions
 #[allow(clippy::unnecessary_wraps)]
-pub(crate) fn ordinary_prevent_extensions(
-    obj: &JsObject,
-    _context: &mut Context,
-) -> JsResult<bool> {
+pub(crate) fn ordinary_prevent_extensions(obj: &JsObject, _context: &Context) -> JsResult<bool> {
     // 1. Set O.[[Extensible]] to false.
     obj.borrow_mut().extensible = false;
 
@@ -967,7 +947,7 @@ pub(crate) fn ordinary_delete(
 #[allow(clippy::unnecessary_wraps)]
 pub(crate) fn ordinary_own_property_keys(
     obj: &JsObject,
-    _context: &mut Context,
+    _context: &Context,
 ) -> JsResult<Vec<PropertyKey>> {
     // 1. Let keys be a new empty List.
     let mut keys = Vec::new();
@@ -1172,7 +1152,7 @@ pub(crate) fn validate_and_apply_property_descriptor(
 pub(crate) fn get_prototype_from_constructor<F>(
     constructor: &JsValue,
     default: F,
-    context: &mut Context,
+    context: &Context,
 ) -> JsResult<JsObject>
 where
     F: FnOnce(&StandardConstructors) -> &StandardConstructor,

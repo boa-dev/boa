@@ -17,17 +17,17 @@ fn try_from_js_derive() {
         c: i32,
     }
 
-    fn check_tfj_called(value: &JsValue, context: &mut Context) -> JsResult<i32> {
+    fn check_tfj_called(value: &JsValue, context: &Context) -> JsResult<i32> {
         let v = value.to_i32(context)?;
         Ok(v / 2)
     }
 
-    let mut context = Context::default();
+    let context = Context::default();
     let obj = context
         .eval(Source::from_bytes(br#"({ a: "hello", bBB: 42, c: 120 })"#))
         .unwrap();
 
-    let result = TryFromJsTest::try_from_js(&obj, &mut context).unwrap();
+    let result = TryFromJsTest::try_from_js(&obj, &context).unwrap();
     assert_eq!(
         result,
         TryFromJsTest {

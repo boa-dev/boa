@@ -16,13 +16,14 @@ impl DeletePropertyByName {
     #[inline(always)]
     pub(super) fn operation(
         (object_register, index): (VaryingOperand, VaryingOperand),
-        context: &mut Context,
+        context: &Context,
     ) -> JsResult<()> {
-        let object = context.vm.get_register(object_register.into()).clone();
+        let object = context.get_register(object_register.into());
         let object = object.to_object(context)?;
-        let code_block = context.vm.frame().code_block();
-        let key = code_block.constant_string(index.into()).into();
-        let strict = code_block.strict();
+        let (key, strict) = context.with_vm(|vm| {
+            let cb = vm.frame().code_block();
+            (cb.constant_string(index.into()).into(), cb.strict())
+        });
 
         let result = object.__delete__(&key, &mut InternalMethodPropertyContext::new(context))?;
         if !result && strict {
@@ -30,9 +31,7 @@ impl DeletePropertyByName {
                 .with_message("Cannot delete property")
                 .into());
         }
-        context
-            .vm
-            .set_register(object_register.into(), result.into());
+        context.set_register(object_register.into(), result.into());
         Ok(())
     }
 }
@@ -54,10 +53,10 @@ impl DeletePropertyByValue {
     #[inline(always)]
     pub(super) fn operation(
         (object_register, key): (VaryingOperand, VaryingOperand),
-        context: &mut Context,
+        context: &Context,
     ) -> JsResult<()> {
-        let object = context.vm.get_register(object_register.into()).clone();
-        let key = context.vm.get_register(key.into()).clone();
+        let object = context.get_register(object_register.into());
+        let key = context.get_register(key.into());
         let object = object.to_object(context)?;
         let property_key = key.to_property_key(context)?;
 
@@ -65,14 +64,12 @@ impl DeletePropertyByValue {
             &property_key,
             &mut InternalMethodPropertyContext::new(context),
         )?;
-        if !result && context.vm.frame().code_block().strict() {
+        if !result && context.with_vm(|vm| vm.frame().code_block().strict()) {
             return Err(JsNativeError::typ()
                 .with_message("Cannot delete property")
                 .into());
         }
-        context
-            .vm
-            .set_register(object_register.into(), result.into());
+        context.set_register(object_register.into(), result.into());
         Ok(())
     }
 }
@@ -94,13 +91,13 @@ impl DeleteName {
     #[inline(always)]
     pub(super) fn operation(
         (value, index): (VaryingOperand, VaryingOperand),
-        context: &mut Context,
+        context: &Context,
     ) -> JsResult<()> {
         let mut binding_locator =
-            context.vm.frame().code_block.bindings[usize::from(index)].clone();
+            context.with_vm(|vm| vm.frame().code_block.bindings[usize::from(index)].clone());
         context.find_runtime_binding(&mut binding_locator)?;
         let deleted = context.delete_binding(&binding_locator)?;
-        context.vm.set_register(value.into(), deleted.into());
+        context.set_register(value.into(), deleted.into());
         Ok(())
     }
 }
@@ -120,7 +117,7 @@ pub(crate) struct DeleteSuperThrow;
 
 impl DeleteSuperThrow {
     #[inline(always)]
-    pub(super) fn operation((): (), _: &mut Context) -> JsError {
+    pub(super) fn operation((): (), _: &Context) -> JsError {
         JsNativeError::reference()
             .with_message("cannot delete a property of `super`")
             .into()
