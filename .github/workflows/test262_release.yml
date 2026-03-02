@@ -45,7 +45,7 @@ jobs:
         uses: actions/checkout@v6
         with:
           repository: boa-dev/data
-          token: ${{ secrets.GITHUB_TOKEN }}
+          token: ${{ secrets.DATA_PAT }}
           path: data
 
       # Run the Test262 test suite
@@ -65,5 +65,8 @@ jobs:
       - name: Push changes
         uses: ad-m/github-push-action@master
         with:
-            github_token: ${{ secrets.GITHUB_TOKEN }}
+            # cannot use secrets.GITHUB_TOKEN since it only gives you
+            # write permissions to the current repository.
+            github_token: ${{ secrets.DATA_PAT }}
+            repository: boa-dev/data
             directory: data
