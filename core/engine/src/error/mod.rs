@@ -323,8 +323,7 @@ pub enum RuntimeLimitError {
 }
 
 /// Engine error that cannot be caught from within ECMAScript code.
-#[derive(Debug, Copy, Clone, Eq, PartialEq, Ord, PartialOrd, Error, Trace, Finalize)]
-#[boa_gc(empty_trace)]
+#[derive(Debug, Clone, Eq, PartialEq, Ord, PartialOrd, Error, Finalize)]
 pub enum EngineError {
     /// Error thrown when no instructions remain. Only used in a fuzzing context.
     #[cfg(feature = "fuzz")]
@@ -334,6 +333,23 @@ pub enum EngineError {
     /// Error thrown when a runtime limit is exceeded.
     #[error("RuntimeLimitError: {0}")]
     RuntimeLimit(#[from] RuntimeLimitError),
+
+    /// Error thrown when an internal panic condition is encountered.
+    ///
+    /// This error is used to convert panics into recoverable errors that bubble
+    /// up to the host application without crashing the process. It cannot be
+    /// caught from within ECMAScript code.
+    #[error("PanicError: {message}")]
+    Panic {
+        /// The original panic message providing context about what went wrong.
+        message: String,
+    },
+}
+
+// SAFETY: `EngineError` only contains a `String` which has no garbage collected
+// references, so this empty trace implementation is safe.
+unsafe impl Trace for EngineError {
+    boa_gc::empty_trace!();
 }
 
 impl JsError {
@@ -498,7 +514,7 @@ impl JsError {
     /// ```
     pub fn try_native(&self, context: &mut Context) -> Result<JsNativeError, TryNativeError> {
         match &self.inner {
-            Repr::Engine(e) => Err(TryNativeError::EngineError { source: *e }),
+            Repr::Engine(e) => Err(TryNativeError::EngineError { source: e.clone() }),
             Repr::Native(e) => Ok(e.as_ref().clone()),
             Repr::Opaque(val) => {
                 let obj = val
@@ -644,7 +660,7 @@ impl JsError {
         }
     }
 
-    /// Gets the inner [`JsNativeError`] if the error is an engine
+    /// Gets the inner [`EngineError`] if the error is an engine
     /// error, or `None` otherwise.
     #[must_use]
     pub const fn as_engine(&self) -> Option<&EngineError> {
@@ -1218,6 +1234,10 @@ impl JsNativeError {
     ///
     /// assert!(error.cause().unwrap().as_native().is_some());
     /// ```
+    ///
+    /// # Panics
+    ///
+    /// Panics if `cause` is an uncatchable error (i.e. an engine error).
     #[must_use]
     #[inline]
     pub fn with_cause<V>(mut self, cause: V) -> Self
