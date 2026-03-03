@@ -497,6 +497,11 @@ pub struct ByteCompiler<'ctx> {
     literals_map: FxHashMap<Literal, u32>,
     names_map: FxHashMap<Sym, u32>,
     bindings_map: FxHashMap<BindingLocator, u32>,
+
+    /// Cache of non-local `const` binding values in persistent registers.
+    /// Avoids repeated `GetName` environment lookups for immutable bindings.
+    const_binding_cache: FxHashMap<BindingLocator, u32>,
+
     jump_info: Vec<JumpControlInfo>,
 
     /// Used to handle exception throws that escape the async function types.
@@ -606,6 +611,7 @@ impl<'ctx> ByteCompiler<'ctx> {
             literals_map: FxHashMap::default(),
             names_map: FxHashMap::default(),
             bindings_map: FxHashMap::default(),
+            const_binding_cache: FxHashMap::default(),
             jump_info: Vec::new(),
             async_handler: None,
             json_parse,
@@ -1176,6 +1182,10 @@ impl<'ctx> ByteCompiler<'ctx> {
                 let name = self.resolve_identifier_expect(name);
                 let binding = self.lexical_scope.get_identifier_reference(name);
                 let index = self.get_binding(&binding);
+                if let Some(&cached_reg) = self.const_binding_cache.get(&binding.locator()) {
+                    self.bytecode.emit_move(dst.variable(), cached_reg.into());
+                    return;
+                }
                 self.emit_binding_access(BindingAccessOpcode::GetName, &index, dst);
             }
             Access::Property { access } => match access {
@@ -1461,6 +1471,9 @@ impl<'ctx> ByteCompiler<'ctx> {
             let index = self.get_binding(&binding);
             if let BindingKind::Local(Some(local_reg)) = &index {
                 return (VaryingOperand::from(*local_reg), None);
+            }
+            if let Some(&cached_reg) = self.const_binding_cache.get(&binding.locator()) {
+                return (VaryingOperand::from(cached_reg), None);
             }
         }
         let reg = self.register_allocator.alloc();
@@ -1883,7 +1896,25 @@ impl<'ctx> ByteCompiler<'ctx> {
                                 .expect("const declaration must have initializer");
                             let value = self.register_allocator.alloc();
                             self.compile_expr(init, &value);
-                            self.emit_binding(BindingOpcode::InitLexical, ident, &value);
+                            self.emit_binding(
+                                BindingOpcode::InitLexical,
+                                ident.clone(),
+                                &value,
+                            );
+                            // Cache non-local const bindings in a persistent register
+                            // so subsequent reads avoid GetName environment lookups.
+                            let binding =
+                                self.lexical_scope.get_identifier_reference(ident);
+                            if !binding.local() {
+                                let cache_reg =
+                                    self.register_allocator.alloc_persistent();
+                                self.bytecode.emit_move(
+                                    cache_reg.variable(),
+                                    value.variable(),
+                                );
+                                self.const_binding_cache
+                                    .insert(binding.locator(), cache_reg.index());
+                            }
                             self.register_allocator.dealloc(value);
                         }
                         Binding::Pattern(pattern) => {
