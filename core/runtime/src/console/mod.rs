@@ -434,8 +434,13 @@ impl Console {
             0,
         )
         .function(
-            console_method(Self::dir, state, logger.clone()),
+            console_method(Self::dir, state.clone(), logger.clone()),
             js_string!("dirxml"),
+            0,
+        )
+        .function(
+            console_method(Self::table, state, logger.clone()),
+            js_string!("table"),
             0,
         )
         .build()
@@ -915,6 +920,18 @@ impl Console {
             &console.state,
             context,
         )?;
+        Ok(JsValue::undefined())
+    }
+    fn table(
+        // ← Change "log" to "table"
+        _: &JsValue,
+        args: &[JsValue],
+        console: &Self,
+        logger: &impl Logger,
+        context: &mut Context,
+    ) -> JsResult<JsValue> {
+        // For now, fall back to log (you'll add table formatting later)
+        logger.log(formatter(args, context)?, &console.state, context)?;
         Ok(JsValue::undefined())
     }
 }
