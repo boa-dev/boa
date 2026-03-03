@@ -797,3 +797,120 @@ fn add_runtime(printer: SharedExternalPrinterLogger, context: &mut Context) {
     )
     .expect("should not fail while registering the runtime");
 }
+
+
+#[allow(clippy::struct_field_names)]
+struct Executor {
+    promise_jobs: RefCell<VecDeque<PromiseJob>>,
+    async_jobs: RefCell<VecDeque<NativeAsyncJob>>,
+    timeout_jobs: RefCell<BTreeMap<JsInstant, TimeoutJob>>,
+    generic_jobs: RefCell<VecDeque<GenericJob>>,
+
+    printer: SharedExternalPrinterLogger,
+}
+
+impl Executor {
+    fn new(printer: SharedExternalPrinterLogger) -> Self {
+        Self {
+            promise_jobs: RefCell::default(),
+            async_jobs: RefCell::default(),
+            timeout_jobs: RefCell::default(),
+            generic_jobs: RefCell::default(),
+            printer,
+        }
+    }
+
+    fn is_empty(&self, context: &mut Context) -> bool {
+        let now = context.clock().now();
+
+        self.promise_jobs.borrow().is_empty()
+            && self.async_jobs.borrow().is_empty()
+            // The timeout jobs queue is empty IF there are no jobs to execute right now.
+            && !self.timeout_jobs.borrow().iter().any(|(t, _)| &now >= t)
+            && self.generic_jobs.borrow().is_empty()
+    }
+
+    fn drain_timeout_jobs(&self, context: &mut Context) {
+        let now = context.clock().now();
+
+        let mut timeouts_borrow = self.timeout_jobs.borrow_mut();
+        let mut jobs_to_keep = timeouts_borrow.split_off(&now);
+        jobs_to_keep.retain(|_, job| !job.is_cancelled());
+        let jobs_to_run = mem::replace(&mut *timeouts_borrow, jobs_to_keep);
+        drop(timeouts_borrow);
+
+        for job in jobs_to_run.into_values() {
+            if let Err(e) = job.call(context) {
+                self.printer.print(uncaught_job_error(&e));
+            }
+        }
+    }
+
+    fn drain_generic_jobs(&self, context: &mut Context) {
+        let job = self.generic_jobs.borrow_mut().pop_front();
+        if let Some(generic) = job
+            && let Err(err) = generic.call(context)
+        {
+            self.printer.print(uncaught_job_error(&err));
+        }
+    }
+}
+
+impl JobExecutor for Executor {
+    fn enqueue_job(self: Rc<Self>, job: Job, context: &mut Context) {
+        match job {
+            Job::PromiseJob(job) => self.promise_jobs.borrow_mut().push_back(job),
+            Job::AsyncJob(job) => self.async_jobs.borrow_mut().push_back(job),
+            Job::TimeoutJob(job) => {
+                let now = context.clock().now();
+                self.timeout_jobs
+                    .borrow_mut()
+                    .insert(now + job.timeout(), job);
+            }
+            Job::GenericJob(job) => self.generic_jobs.borrow_mut().push_back(job),
+            job => self.printer.print(format!("unsupported job type {job:?}")),
+        }
+    }
+
+    fn run_jobs(self: Rc<Self>, context: &mut Context) -> JsResult<()> {
+        future::block_on(self.run_jobs_async(&RefCell::new(context)))
+    }
+
+    async fn run_jobs_async(self: Rc<Self>, context: &RefCell<&mut Context>) -> JsResult<()> {
+        let mut group = FutureGroup::new();
+
+        loop {
+            for job in mem::take(&mut *self.async_jobs.borrow_mut()) {
+                group.insert(job.call(context));
+            }
+
+            if self.is_empty(&mut context.borrow_mut()) && group.is_empty() {
+                return Ok(());
+            }
+
+            // If no synchronous work is ready, block until a NativeAsyncJob future resolves
+            // rather than busy-spinning with poll_once at 100% CPU.
+            if self.is_empty(&mut context.borrow_mut()) && !group.is_empty() {
+                if let Some(Err(e)) = group.next().await {
+                    self.printer.print(uncaught_job_error(&e));
+                }
+            } else if let Some(Err(e)) = future::poll_once(group.next()).await.flatten() {
+                self.printer.print(uncaught_job_error(&e));
+            }
+
+            {
+                let context = &mut context.borrow_mut();
+                self.drain_timeout_jobs(context);
+                self.drain_generic_jobs(context);
+
+                let jobs = mem::take(&mut *self.promise_jobs.borrow_mut());
+                for job in jobs {
+                    if let Err(e) = job.call(context) {
+                        self.printer.print(uncaught_job_error(&e));
+                    }
+                }
+            }
+        }
+    }
+}
+

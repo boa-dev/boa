@@ -742,7 +742,19 @@ impl JobExecutor for SimpleJobExecutor {
                 break;
             }
 
-            if let Some(Err(err)) = future::poll_once(group.next()).await.flatten() {
+            // If no synchronous work is ready, block until a NativeAsyncJob future resolves
+            // rather than busy-spinning with poll_once + yield_now at 100% CPU.
+            let no_sync_work = self.promise_jobs.borrow().is_empty()
+                && self.async_jobs.borrow().is_empty()
+                && self.generic_jobs.borrow().is_empty()
+                && no_timeout_jobs_to_run;
+
+            if no_sync_work && !group.is_empty() {
+                if let Some(Err(err)) = group.next().await {
+                    self.clear();
+                    return Err(err);
+                }
+            } else if let Some(Err(err)) = future::poll_once(group.next()).await.flatten() {
                 self.clear();
                 return Err(err);
             }
@@ -763,7 +775,6 @@ impl JobExecutor for SimpleJobExecutor {
                 }
             }
             context.borrow_mut().clear_kept_objects();
-            future::yield_now().await;
         }
 
         Ok(())
