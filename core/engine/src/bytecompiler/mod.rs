@@ -1064,7 +1064,7 @@ impl<'ctx> ByteCompiler<'ctx> {
         true_case: impl FnOnce(&mut ByteCompiler<'_>),
         false_case: impl FnOnce(&mut ByteCompiler<'_>),
     ) {
-        let jump_false = self.jump_if_false(&bool);
+        let jump_false = self.jump_if_false(bool);
 
         // if true, jump to end to avoid running the code for the `else`
         true_case(self);
@@ -1078,7 +1078,7 @@ impl<'ctx> ByteCompiler<'ctx> {
 
     /// Generates the `if-else` pattern.
     ///
-    /// This will also deallocate the `bool` register`.
+    /// This will also deallocate the `bool` register.
     pub(crate) fn if_else_with_dealloc(
         &mut self,
         bool: Register,

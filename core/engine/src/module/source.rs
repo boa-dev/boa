@@ -1,5 +1,4 @@
 use std::{
-    borrow::Cow,
     cell::{Cell, RefCell},
     collections::HashSet,
     hash::BuildHasherDefault,
@@ -1567,14 +1566,9 @@ impl SourceTextModule {
         let env = self.code.source.scope().clone();
 
         let spanned_source_text = SpannedSourceText::new_source_only(self.code.source_text.clone());
-        let name = if let Some(path) = &self.code.path {
-            path.to_string_lossy()
-        } else {
-            Cow::Borrowed("<main>")
-        };
 
         let mut compiler = ByteCompiler::new(
-            js_string!(name),
+            js_string!("<main>"),
             true,
             false,
             self.code.source.scope().clone(),
