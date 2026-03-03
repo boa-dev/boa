@@ -120,8 +120,19 @@ where
                     ));
                 }
                 
+                // Per spec: https://arai-a.github.io/ecma262-compare/snapshot.html?pr=3000#prod-AwaitUsingDeclarationHead
+                // There must be [no LineTerminator here] between `await` and `using`
+                let next_tok = cursor.peek_no_skip_line_term(0, interner).or_abrupt()?;
+                
+                // Check if next token is a line terminator
+                if next_tok.kind() == &TokenKind::LineTerminator {
+                    return Err(Error::general(
+                        "Unexpected token 'await'",
+                        tok.span().start(),
+                    ));
+                }
+                
                 // Check if this is `await using`
-                let next_tok = cursor.peek(0, interner).or_abrupt()?;
                 if matches!(next_tok.kind(), TokenKind::Keyword((Keyword::Using, false))) {
                     cursor.advance(interner); // consume 'using'
                     BindingList::new(
@@ -241,7 +252,7 @@ where
         );
 
         loop {
-            let decl = LexicalBinding::new(self.allow_in, self.allow_yield, self.allow_await)
+            let decl = LexicalBinding::new(self.allow_in, self.allow_yield, self.allow_await, self.declaration_type)
                 .parse(cursor, interner)?;
 
             if requires_initializer {
@@ -325,11 +336,12 @@ struct LexicalBinding {
     allow_in: AllowIn,
     allow_yield: AllowYield,
     allow_await: AllowAwait,
+    declaration_type: DeclarationType,
 }
 
 impl LexicalBinding {
     /// Creates a new `BindingList` parser.
-    fn new<I, Y, A>(allow_in: I, allow_yield: Y, allow_await: A) -> Self
+    fn new<I, Y, A>(allow_in: I, allow_yield: Y, allow_await: A, declaration_type: DeclarationType) -> Self
     where
         I: Into<AllowIn>,
         Y: Into<AllowYield>,
@@ -339,6 +351,7 @@ impl LexicalBinding {
             allow_in: allow_in.into(),
             allow_yield: allow_yield.into(),
             allow_await: allow_await.into(),
+            declaration_type,
         }
     }
 }
@@ -355,6 +368,16 @@ where
 
         match peek_token.kind() {
             TokenKind::Punctuator(Punctuator::OpenBlock) => {
+                // Per spec: https://tc39.es/proposal-explicit-resource-management/
+                // The grammar uses ~Pattern parameter which means destructuring is NOT allowed
+                // for `using` and `await using` declarations
+                if matches!(self.declaration_type, DeclarationType::Using | DeclarationType::AwaitUsing) {
+                    return Err(Error::general(
+                        "destructuring patterns are not allowed in using declarations",
+                        position,
+                    ));
+                }
+                
                 let bindings = ObjectBindingPattern::new(self.allow_yield, self.allow_await)
                     .parse(cursor, interner)?;
 
@@ -383,6 +406,16 @@ where
                 Ok(Variable::from_pattern(declaration, init))
             }
             TokenKind::Punctuator(Punctuator::OpenBracket) => {
+                // Per spec: https://tc39.es/proposal-explicit-resource-management/
+                // The grammar uses ~Pattern parameter which means destructuring is NOT allowed
+                // for `using` and `await using` declarations
+                if matches!(self.declaration_type, DeclarationType::Using | DeclarationType::AwaitUsing) {
+                    return Err(Error::general(
+                        "destructuring patterns are not allowed in using declarations",
+                        position,
+                    ));
+                }
+                
                 let bindings = ArrayBindingPattern::new(self.allow_yield, self.allow_await)
                     .parse(cursor, interner)?;
 

@@ -438,12 +438,14 @@ where
             }
             TokenKind::Keyword((Keyword::Await, false)) => {
                 // Check if this is `await using`
-                if let Some(next_tok) = cursor.peek(1, interner)? {
-                    if matches!(next_tok.kind(), TokenKind::Keyword((Keyword::Using, false))) {
-                        return Declaration::new(self.allow_yield, self.allow_await)
-                            .parse(cursor, interner)
-                            .map(ast::StatementListItem::from);
-                    }
+                // Per spec, there must be [no LineTerminator here] between `await` and `using`
+                if let Some(next_tok) = cursor.peek_no_skip_line_term(1, interner)?
+                    && next_tok.kind() != &TokenKind::LineTerminator
+                    && matches!(next_tok.kind(), TokenKind::Keyword((Keyword::Using, false)))
+                {
+                    return Declaration::new(self.allow_yield, self.allow_await)
+                        .parse(cursor, interner)
+                        .map(ast::StatementListItem::from);
                 }
                 // Otherwise, parse as a statement (await expression)
                 Statement::new(self.allow_yield, self.allow_await, self.allow_return)

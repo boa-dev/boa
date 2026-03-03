@@ -82,12 +82,14 @@ where
             }
             TokenKind::Keyword((Keyword::Await, false)) => {
                 // Check if this is `await using`
-                if let Some(next_tok) = cursor.peek(1, interner)? {
-                    if matches!(next_tok.kind(), TokenKind::Keyword((Keyword::Using, false))) {
-                        return LexicalDeclaration::new(true, self.allow_yield, self.allow_await, false)
-                            .parse(cursor, interner)
-                            .map(Into::into);
-                    }
+                // Per spec, there must be [no LineTerminator here] between `await` and `using`
+                if let Some(next_tok) = cursor.peek_no_skip_line_term(1, interner)?
+                    && next_tok.kind() != &TokenKind::LineTerminator
+                    && matches!(next_tok.kind(), TokenKind::Keyword((Keyword::Using, false)))
+                {
+                    return LexicalDeclaration::new(true, self.allow_yield, self.allow_await, false)
+                        .parse(cursor, interner)
+                        .map(Into::into);
                 }
                 Err(Error::expected(
                     [
