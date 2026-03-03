@@ -927,15 +927,14 @@ impl Display for CodeBlock {
         let name = self.name();
         writeln!(
             f,
-            "{:-^70}",
+            "{:-^80}",
             format!("Compiled Output: '{}'", name.to_std_string_escaped()),
         )?;
         writeln!(
             f,
-            "Location  Count    Handler    Opcode                     Operands"
+            "Location     Handler      Opcode                            Operands"
         )?;
         let mut iterator = InstructionIterator::new(&self.bytecode);
-        let mut count = 0;
         while let Some((instruction_start_pc, opcode, instruction)) = iterator.next() {
             let opcode = opcode.as_str();
             let operands = self.instruction_operands(&instruction);
@@ -949,15 +948,14 @@ impl Display for CodeBlock {
                 } else {
                     ' '
                 };
-                format!("{border_char}{i:2}: {:04}", handler.handler())
+                format!("{border_char}{i:2}: {:06x}", handler.handler())
             } else {
-                "   none  ".to_string()
+                "           ".to_string()
             };
             writeln!(
                 f,
-                "{instruction_start_pc:06}    {count:04}   {handler}    {opcode:<27}{operands}",
+                "  {instruction_start_pc:>06x}    {handler}     {opcode:<32}  {operands}",
             )?;
-            count += 1;
         }
         writeln!(
             f,
