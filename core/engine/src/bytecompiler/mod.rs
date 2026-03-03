@@ -1896,22 +1896,14 @@ impl<'ctx> ByteCompiler<'ctx> {
                                 .expect("const declaration must have initializer");
                             let value = self.register_allocator.alloc();
                             self.compile_expr(init, &value);
-                            self.emit_binding(
-                                BindingOpcode::InitLexical,
-                                ident.clone(),
-                                &value,
-                            );
+                            self.emit_binding(BindingOpcode::InitLexical, ident.clone(), &value);
                             // Cache non-local const bindings in a persistent register
                             // so subsequent reads avoid GetName environment lookups.
-                            let binding =
-                                self.lexical_scope.get_identifier_reference(ident);
+                            let binding = self.lexical_scope.get_identifier_reference(ident);
                             if !binding.local() {
-                                let cache_reg =
-                                    self.register_allocator.alloc_persistent();
-                                self.bytecode.emit_move(
-                                    cache_reg.variable(),
-                                    value.variable(),
-                                );
+                                let cache_reg = self.register_allocator.alloc_persistent();
+                                self.bytecode
+                                    .emit_move(cache_reg.variable(), value.variable());
                                 self.const_binding_cache
                                     .insert(binding.locator(), cache_reg.index());
                             }
