@@ -553,6 +553,11 @@ impl<'ctx> ByteCompiler<'ctx> {
         code_block_flags |= CodeBlockFlags::HAS_PROTOTYPE_PROPERTY;
 
         let mut register_allocator = RegisterAllocator::default();
+        let undefined_register = register_allocator.alloc_persistent();
+        debug_assert_eq!(
+            undefined_register.index(),
+            CallFrame::undefined_register().index()
+        );
         if is_async {
             let promise_register = register_allocator.alloc_persistent();
             let resolve_register = register_allocator.alloc_persistent();
@@ -560,22 +565,22 @@ impl<'ctx> ByteCompiler<'ctx> {
 
             debug_assert_eq!(
                 promise_register.index(),
-                CallFrame::PROMISE_CAPABILITY_PROMISE_REGISTER_INDEX as u32
+                CallFrame::promise_capability_promise_register().index()
             );
             debug_assert_eq!(
                 resolve_register.index(),
-                CallFrame::PROMISE_CAPABILITY_RESOLVE_REGISTER_INDEX as u32
+                CallFrame::promise_capability_resolve_register().index()
             );
             debug_assert_eq!(
                 reject_register.index(),
-                CallFrame::PROMISE_CAPABILITY_REJECT_REGISTER_INDEX as u32
+                CallFrame::promise_capability_reject_register().index()
             );
 
             if is_generator {
                 let async_function_object_register = register_allocator.alloc_persistent();
                 debug_assert_eq!(
                     async_function_object_register.index(),
-                    CallFrame::ASYNC_GENERATOR_OBJECT_REGISTER_INDEX as u32
+                    CallFrame::async_generator_object_register().index()
                 );
             }
         }
@@ -2157,16 +2162,10 @@ impl<'ctx> ByteCompiler<'ctx> {
                         self.push_from_register(&value);
                         self.register_allocator.dealloc(value);
                     } else {
-                        let value = self.register_allocator.alloc();
-                        self.bytecode.emit_push_undefined(value.variable());
-                        self.push_from_register(&value);
-                        self.register_allocator.dealloc(value);
+                        self.push_from_register(&CallFrame::undefined_register());
                     }
                 } else {
-                    let value = self.register_allocator.alloc();
-                    self.bytecode.emit_push_undefined(value.variable());
-                    self.push_from_register(&value);
-                    self.register_allocator.dealloc(value);
+                    self.push_from_register(&CallFrame::undefined_register());
                 }
 
                 let value = self.register_allocator.alloc();
@@ -2175,13 +2174,10 @@ impl<'ctx> ByteCompiler<'ctx> {
                 self.register_allocator.dealloc(value);
             }
             expr => {
-                let this = self.register_allocator.alloc();
                 let value = self.register_allocator.alloc();
                 self.compile_expr(expr, &value);
-                self.bytecode.emit_push_undefined(this.variable());
-                self.push_from_register(&this);
+                self.push_from_register(&CallFrame::undefined_register());
                 self.push_from_register(&value);
-                self.register_allocator.dealloc(this);
                 self.register_allocator.dealloc(value);
             }
         }
