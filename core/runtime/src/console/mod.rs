@@ -922,16 +922,18 @@ impl Console {
         )?;
         Ok(JsValue::undefined())
     }
-    fn table(
-        // ← Change "log" to "table"
+    fn table( 
+
         _: &JsValue,
         args: &[JsValue],
         console: &Self,
         logger: &impl Logger,
         context: &mut Context,
+        
     ) -> JsResult<JsValue> {
-        // For now, fall back to log (you'll add table formatting later)
+
         logger.log(formatter(args, context)?, &console.state, context)?;
         Ok(JsValue::undefined())
+
     }
 }
