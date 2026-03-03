@@ -1127,12 +1127,11 @@ impl<'ctx> ByteCompiler<'ctx> {
     /// emits a single fused comparison+branch opcode instead of separate
     /// `LessThan` + `JumpIfFalse` instructions.
     pub(crate) fn compile_condition_and_branch(&mut self, condition: &Expression) -> Label {
-        if let Expression::Binary(binary) = condition {
-            if let BinaryOp::Relational(op) = binary.op() {
-                if let Some(label) = self.try_fused_comparison_branch(op, binary) {
-                    return label;
-                }
-            }
+        if let Expression::Binary(binary) = condition
+            && let BinaryOp::Relational(op) = binary.op()
+            && let Some(label) = self.try_fused_comparison_branch(op, binary)
+        {
+            return label;
         }
         // Fallback: compile expr + jump_if_false
         let value = self.register_allocator.alloc();
@@ -1142,11 +1141,7 @@ impl<'ctx> ByteCompiler<'ctx> {
         label
     }
 
-    fn try_fused_comparison_branch(
-        &mut self,
-        op: RelationalOp,
-        binary: &Binary,
-    ) -> Option<Label> {
+    fn try_fused_comparison_branch(&mut self, op: RelationalOp, binary: &Binary) -> Option<Label> {
         use crate::vm::opcode::ByteCodeEmitter;
 
         let emit_fn: fn(&mut ByteCodeEmitter, u32, VaryingOperand, VaryingOperand) = match op {
