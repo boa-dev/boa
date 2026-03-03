@@ -424,7 +424,6 @@ impl CodeBlock {
                 | Instruction::AsyncGeneratorYield { .. }
                 | Instruction::AsyncGeneratorClose
                 | Instruction::CreatePromiseCapability
-                | Instruction::CompletePromiseCapability
                 | Instruction::GeneratorNext { .. }
                 | Instruction::PushClassField { .. }
                 | Instruction::SuperCallDerived
@@ -515,7 +514,8 @@ impl CodeBlock {
                 | Instruction::Reserved57
                 | Instruction::Reserved58
                 | Instruction::Reserved59
-                | Instruction::Reserved60 => unreachable!("Reserved opcodes are unreachable"),
+                | Instruction::Reserved60
+                | Instruction::Reserved61 => unreachable!("Reserved opcodes are unreachable"),
             }
         }
 

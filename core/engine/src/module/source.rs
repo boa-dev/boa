@@ -1442,7 +1442,7 @@ impl SourceTextModule {
 
         // 9. Perform ! module.ExecuteModule(capability).
         // 10. Return unused.
-        self.execute(module_self, Some(&capability), context)
+        self.execute(module_self, Some(capability), context)
             .expect("async modules cannot directly throw");
     }
 
@@ -1566,13 +1566,14 @@ impl SourceTextModule {
         let env = self.code.source.scope().clone();
 
         let spanned_source_text = SpannedSourceText::new_source_only(self.code.source_text.clone());
+
         let mut compiler = ByteCompiler::new(
             js_string!("<main>"),
             true,
             false,
             self.code.source.scope().clone(),
             self.code.source.scope().clone(),
-            true,
+            self.code.has_tla,
             false,
             context.interner_mut(),
             false,
@@ -1580,7 +1581,7 @@ impl SourceTextModule {
             self.code.path.clone().into(),
         );
 
-        compiler.async_handler = Some(compiler.push_handler());
+        compiler.async_handler = self.code.has_tla.then(|| compiler.push_handler());
 
         let mut imports = Vec::new();
 
@@ -1860,7 +1861,7 @@ impl SourceTextModule {
     fn execute(
         &self,
         module_self: &Module,
-        capability: Option<&PromiseCapability>,
+        capability: Option<PromiseCapability>,
         context: &mut Context,
     ) -> JsResult<()> {
         // 1. Let moduleContext be a new ECMAScript code execution context.
@@ -1895,10 +1896,12 @@ impl SourceTextModule {
             .vm
             .push_frame_with_stack(callframe, JsValue::undefined(), JsValue::null());
 
-        context
-            .vm
-            .stack
-            .set_promise_capability(&context.vm.frame, capability);
+        if let Some(capability) = capability {
+            context
+                .vm
+                .stack
+                .set_promise_capability(&context.vm.frame, capability)?;
+        }
 
         // 9. If module.[[HasTLA]] is false, then
         //    a. Assert: capability is not present.
