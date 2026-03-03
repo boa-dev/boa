@@ -1835,7 +1835,7 @@ impl<'ast, 'arena: 'ast> Visitor<'ast, 'arena> for LexicallyScopedDeclarationsVi
         TopLevelLexicallyScopedDeclarationsVisitor(self.0).visit_statement_list(node.statements())
     }
 
-    fn visit_function_body(&mut self, node: &'ast FunctionBody) -> ControlFlow<Self::BreakTy> {
+    fn visit_function_body(&mut self, node: &'ast FunctionBody<'arena>) -> ControlFlow<Self::BreakTy> {
         // 1. Return TopLevelVarScopedDeclarations of StatementList.
         TopLevelLexicallyScopedDeclarationsVisitor(self.0)
             .visit_statement_list(node.statement_list())
@@ -2073,7 +2073,7 @@ impl<'ast, 'arena: 'ast> Visitor<'ast, 'arena> for VarScopedDeclarationsVisitor<
         TopLevelVarScopedDeclarationsVisitor(self.0).visit_statement_list(node.statements())
     }
 
-    fn visit_function_body(&mut self, node: &'ast FunctionBody) -> ControlFlow<Self::BreakTy> {
+    fn visit_function_body(&mut self, node: &'ast FunctionBody<'arena>) -> ControlFlow<Self::BreakTy> {
         // 1. Return TopLevelVarScopedDeclarations of StatementList.
         TopLevelVarScopedDeclarationsVisitor(self.0).visit_statement_list(node.statement_list())
     }

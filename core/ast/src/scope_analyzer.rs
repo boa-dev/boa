@@ -1171,7 +1171,7 @@ impl<'arena> BindingCollectorVisitor<'_> {
     #[allow(clippy::too_many_arguments)]
     fn visit_function_like(
         &mut self,
-        body: &mut FunctionBody,
+        body: &mut FunctionBody<'arena>,
         parameters: &mut FormalParameterList<'arena>,
         scopes: &mut FunctionScopes,
         name: Option<Identifier>,
@@ -1544,7 +1544,7 @@ impl<'ast, 'arena: 'ast> VisitorMut<'ast, 'arena> for ScopeIndexVisitor {
         )
     }
 
-    fn visit_block_mut(&mut self, node: &'ast mut Block) -> ControlFlow<Self::BreakTy> {
+    fn visit_block_mut(&mut self, node: &'ast mut Block<'arena>) -> ControlFlow<Self::BreakTy> {
         let index = self.index;
         if let Some(scope) = &node.scope {
             if !scope.all_bindings_local() {
@@ -1583,7 +1583,7 @@ impl<'ast, 'arena: 'ast> VisitorMut<'ast, 'arena> for ScopeIndexVisitor {
         ControlFlow::Continue(())
     }
 
-    fn visit_catch_mut(&mut self, node: &'ast mut Catch) -> ControlFlow<Self::BreakTy> {
+    fn visit_catch_mut(&mut self, node: &'ast mut Catch<'arena>) -> ControlFlow<Self::BreakTy> {
         let index = self.index;
         if !node.scope.all_bindings_local() {
             self.index += 1;
@@ -1673,7 +1673,7 @@ impl<'ast, 'arena: 'ast> VisitorMut<'ast, 'arena> for ScopeIndexVisitor {
 impl<'arena> ScopeIndexVisitor {
     fn visit_function_like(
         &mut self,
-        body: &mut FunctionBody,
+        body: &mut FunctionBody<'arena>,
         parameters: &mut FormalParameterList<'arena>,
         scopes: &mut FunctionScopes,
         name_scope: &mut Option<Scope>,
@@ -1835,7 +1835,7 @@ where
         // i. If IsConstantDeclaration of d is true, then
         if let LexicallyScopedDeclaration::LexicalDeclaration(LexicalDeclaration::Const(d)) = d {
             // a. For each element dn of the BoundNames of d, do
-            for dn in bound_names::<'_, VariableList<'arena>>(d) {
+            for dn in bound_names::<'_, 'arena, VariableList<'arena>>(d) {
                 // 1. Perform ! env.CreateImmutableBinding(dn, true).
                 let dn = dn.to_js_string(interner);
                 scope.create_immutable_binding(dn, true);
@@ -1875,7 +1875,7 @@ where
 ///
 /// [spec]: https://tc39.es/ecma262/#sec-functiondeclarationinstantiation
 fn function_declaration_instantiation<'arena>(
-    body: &FunctionBody,
+    body: &FunctionBody<'arena>,
     formals: &FormalParameterList<'arena>,
     arrow: bool,
     strict: bool,

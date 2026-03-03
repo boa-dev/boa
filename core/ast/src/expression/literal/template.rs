@@ -94,7 +94,7 @@ impl ToInternedString for TemplateLiteral<'_> {
     }
 }
 
-impl<'arena> VisitWith<'arena> for TemplateLiteral<'_> {
+impl<'arena> VisitWith<'arena> for TemplateLiteral<'arena> {
     fn visit_with<'a, V>(&'a self, visitor: &mut V) -> ControlFlow<V::BreakTy>
     where
         V: Visitor<'a, 'arena>,

@@ -41,7 +41,7 @@ impl<'arena> AsyncFunctionDeclaration<'arena> {
     pub fn new(
         name: Identifier,
         parameters: FormalParameterList<'arena>,
-        body: FunctionBody,
+        body: FunctionBody<'arena>,
         linear_span: LinearSpan,
     ) -> Self {
         let contains_direct_eval = contains(&parameters, ContainsSymbol::DirectEval)

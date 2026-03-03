@@ -95,12 +95,14 @@ impl<'arena> VisitWith<'arena> for StatementListItem<'arena> {
 ///  - [ECMAScript reference][spec]
 ///
 /// [spec]: https://tc39.es/ecma262/#prod-StatementList
+use std::marker::PhantomData;
 #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
 #[derive(Clone, Debug, Default)]
 pub struct StatementList<'arena> {
     pub(crate) statements: Box<[StatementListItem<'arena>]>,
     linear_pos_end: LinearPosition,
     strict: bool,
+    _marker: PhantomData<&'arena ()>, // remove this, this is temporary just to use the 'arena before doing any allocation in the AST arena
 }
 
 impl<'arena> PartialEq for StatementList<'arena> {
@@ -120,6 +122,7 @@ impl<'arena> StatementList<'arena> {
             statements: statements.into(),
             linear_pos_end,
             strict,
+            _marker: PhantomData,
         }
     }
 
@@ -152,6 +155,7 @@ impl<'arena> From<(Box<[StatementListItem<'arena>]>, LinearPosition)> for Statem
             statements: value.0,
             linear_pos_end: value.1,
             strict: false,
+            _marker: PhantomData,
         }
     }
 }
@@ -163,6 +167,7 @@ impl<'arena> From<(Vec<StatementListItem<'arena>>, LinearPosition)> for Statemen
             statements: value.0.into(),
             linear_pos_end: value.1,
             strict: false,
+            _marker: PhantomData,
         }
     }
 }
