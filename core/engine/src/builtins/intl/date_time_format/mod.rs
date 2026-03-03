@@ -326,7 +326,7 @@ impl DateTimeFormat {
         // 1. Let availableLocales be %DateTimeFormat%.[[AvailableLocales]].
         // 2. Let requestedLocales be ? CanonicalizeLocaleList(locales).
         let requested_locales = canonicalize_locale_list(locales, context)?;
-        
+
         // 3. Return ? FilterLocales(availableLocales, requestedLocales, options).
         filter_locales::<Self>(requested_locales, options, context).map(JsValue::from)
     }
