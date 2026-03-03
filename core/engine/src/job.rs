@@ -744,11 +744,7 @@ impl JobExecutor for SimpleJobExecutor {
             // Check if there are no timeout jobs ready to run
             let now = context.borrow().clock().now();
 
-            let no_timeout_jobs_to_run = 
-                !self.timeout_jobs
-                    .borrow()
-                    .iter()
-                    .any(|(t, _)| now >= *t);
+            let no_timeout_jobs_to_run = !self.timeout_jobs.borrow().iter().any(|(t, _)| now >= *t);
 
             // If no synchronous work is ready, block until a NativeAsyncJob future resolves
             // rather than busy-spinning with poll_once + yield_now at 100% CPU.
