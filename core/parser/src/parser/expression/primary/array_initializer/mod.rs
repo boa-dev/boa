@@ -34,12 +34,13 @@ use boa_interner::Interner;
 /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Array
 /// [spec]: https://tc39.es/ecma262/#prod-ArrayLiteral
 #[derive(Debug, Clone, Copy)]
-pub(super) struct ArrayLiteral {
+pub(super) struct ArrayLiteral<'arena> {
     allow_yield: AllowYield,
     allow_await: AllowAwait,
+    _marker: std::marker::PhantomData<&'arena ()>,
 }
 
-impl ArrayLiteral {
+impl<'arena> ArrayLiteral<'arena> {
     /// Creates a new `ArrayLiteral` parser.
     pub(super) fn new<Y, A>(allow_yield: Y, allow_await: A) -> Self
     where
@@ -49,15 +50,16 @@ impl ArrayLiteral {
         Self {
             allow_yield: allow_yield.into(),
             allow_await: allow_await.into(),
+            _marker: std::marker::PhantomData,
         }
     }
 }
 
-impl<R> TokenParser<R> for ArrayLiteral
+impl<'arena, R> TokenParser<'arena, R> for ArrayLiteral<'arena>
 where
     R: ReadChar,
 {
-    type Output = literal::ArrayLiteral;
+    type Output = literal::ArrayLiteral<'arena>;
 
     fn parse(self, cursor: &mut Cursor<R>, interner: &mut Interner) -> ParseResult<Self::Output> {
         let open_bracket_token = cursor.expect(

@@ -1,16 +1,16 @@
 use crate::{Error, error::ParseResult};
 use boa_ast::{self as ast, Position, function::FormalParameterList};
 
-pub(crate) enum FormalParameterListOrExpression {
+pub(crate) enum FormalParameterListOrExpression<'arena> {
     FormalParameterList {
-        fpl: FormalParameterList,
+        fpl: FormalParameterList<'arena>,
         span_start: Position,
     },
-    Expression(ast::Expression),
+    Expression(ast::Expression<'arena>),
 }
 
-impl FormalParameterListOrExpression {
-    pub(crate) fn expect_expression(self) -> ast::Expression {
+impl<'arena> FormalParameterListOrExpression<'arena> {
+    pub(crate) fn expect_expression(self) -> ast::Expression<'arena> {
         match self {
             FormalParameterListOrExpression::Expression(expr) => expr,
             FormalParameterListOrExpression::FormalParameterList { .. } => {
@@ -19,7 +19,7 @@ impl FormalParameterListOrExpression {
         }
     }
 
-    pub(crate) fn try_into_expression(self) -> ParseResult<ast::Expression> {
+    pub(crate) fn try_into_expression(self) -> ParseResult<ast::Expression<'arena>> {
         match self {
             FormalParameterListOrExpression::Expression(expr) => Ok(expr),
             FormalParameterListOrExpression::FormalParameterList { span_start, .. } => {
@@ -32,9 +32,9 @@ impl FormalParameterListOrExpression {
     }
 }
 
-impl<T> From<T> for FormalParameterListOrExpression
+impl<'arena, T> From<T> for FormalParameterListOrExpression<'arena>
 where
-    T: Into<ast::Expression>,
+    T: Into<ast::Expression<'arena>>,
 {
     fn from(value: T) -> Self {
         Self::Expression(value.into())

@@ -38,9 +38,20 @@ use boa_interner::{Interner, Sym};
 ///
 /// [spec]: https://tc39.es/ecma262/#prod-ImportDeclaration
 #[derive(Debug, Clone, Copy)]
-pub(in crate::parser) struct ImportDeclaration;
+pub(in crate::parser) struct ImportDeclaration<'arena> {
+    _marker: std::marker::PhantomData<&'arena ()>,
+}
 
-impl ImportDeclaration {
+impl<'arena> ImportDeclaration<'arena> {
+    /// Creates a new `ImportDeclaration` parser.
+    pub(in crate::parser) fn new() -> Self {
+        Self {
+            _marker: std::marker::PhantomData,
+        }
+    }
+}
+
+impl<'arena> ImportDeclaration<'arena> {
     /// Tests if the next node is an `ImportDeclaration`.
     pub(in crate::parser) fn test<R: ReadChar>(
         cursor: &mut Cursor<R>,
@@ -71,7 +82,7 @@ impl ImportDeclaration {
     }
 }
 
-impl<R> TokenParser<R> for ImportDeclaration
+impl<'arena, R> TokenParser<'arena, R> for ImportDeclaration<'arena>
 where
     R: ReadChar,
 {
@@ -100,16 +111,16 @@ where
                 ));
             }
             TokenKind::Punctuator(Punctuator::OpenBlock) => {
-                let list = NamedImports.parse(cursor, interner)?;
+                let list = NamedImports::new().parse(cursor, interner)?;
                 ImportClause::ImportList(None, list)
             }
             TokenKind::Punctuator(Punctuator::Mul) => {
-                let alias = NameSpaceImport.parse(cursor, interner)?;
+                let alias = NameSpaceImport::new().parse(cursor, interner)?;
                 ImportClause::Namespace(None, alias)
             }
             TokenKind::IdentifierName(_)
             | TokenKind::Keyword((Keyword::Await | Keyword::Yield, _)) => {
-                let imported_binding = ImportedBinding.parse(cursor, interner)?;
+                let imported_binding = ImportedBinding::new().parse(cursor, interner)?;
 
                 let tok = cursor.peek(0, interner).or_abrupt()?;
 
@@ -120,11 +131,11 @@ where
 
                         match tok.kind() {
                             TokenKind::Punctuator(Punctuator::OpenBlock) => {
-                                let list = NamedImports.parse(cursor, interner)?;
+                                let list = NamedImports::new().parse(cursor, interner)?;
                                 ImportClause::ImportList(Some(imported_binding), list)
                             }
                             TokenKind::Punctuator(Punctuator::Mul) => {
-                                let alias = NameSpaceImport.parse(cursor, interner)?;
+                                let alias = NameSpaceImport::new().parse(cursor, interner)?;
                                 ImportClause::Namespace(Some(imported_binding), alias)
                             }
                             _ => {
@@ -174,9 +185,20 @@ where
 ///
 /// [spec]: https://tc39.es/ecma262/#prod-ImportedBinding
 #[derive(Debug, Clone, Copy)]
-struct ImportedBinding;
+struct ImportedBinding<'arena> {
+    _marker: std::marker::PhantomData<&'arena ()>,
+}
 
-impl<R> TokenParser<R> for ImportedBinding
+impl<'arena> ImportedBinding<'arena> {
+    /// Creates a new `ImportedBinding` parser.
+    fn new() -> Self {
+        Self {
+            _marker: std::marker::PhantomData,
+        }
+    }
+}
+
+impl<'arena, R> TokenParser<'arena, R> for ImportedBinding<'arena>
 where
     R: ReadChar,
 {
@@ -195,9 +217,20 @@ where
 ///
 /// [spec]: https://tc39.es/ecma262/#prod-NamedImports
 #[derive(Debug, Clone, Copy)]
-struct NamedImports;
+struct NamedImports<'arena> {
+    _marker: std::marker::PhantomData<&'arena ()>,
+}
 
-impl<R> TokenParser<R> for NamedImports
+impl<'arena> NamedImports<'arena> {
+    /// Creates a new `NamedImports` parser.
+    fn new() -> Self {
+        Self {
+            _marker: std::marker::PhantomData,
+        }
+    }
+}
+
+impl<'arena, R> TokenParser<'arena, R> for NamedImports<'arena>
 where
     R: ReadChar,
 {
@@ -233,7 +266,7 @@ where
                 TokenKind::StringLiteral(_)
                 | TokenKind::IdentifierName(_)
                 | TokenKind::Keyword(_) => {
-                    list.push(ImportSpecifier.parse(cursor, interner)?);
+                    list.push(ImportSpecifier::new().parse(cursor, interner)?);
                 }
                 _ => {
                     return Err(Error::expected(
@@ -260,12 +293,13 @@ where
 ///
 /// [spec]: https://tc39.es/ecma262/#prod-ImportClause
 #[derive(Debug, Clone)]
-enum ImportClause {
+enum ImportClause<'arena> {
     Namespace(Option<Identifier>, Identifier),
     ImportList(Option<Identifier>, Box<[AstImportSpecifier]>),
+    _marker(std::marker::PhantomData<&'arena ()>),
 }
 
-impl ImportClause {
+impl<'arena> ImportClause<'arena> {
     #[inline]
     fn with_specifier_and_attributes(
         self,
@@ -296,6 +330,7 @@ impl ImportClause {
                     )
                 }
             }
+            Self::_marker(_) => unreachable!("PhantomData should not be matched"),
         }
     }
 }
@@ -307,9 +342,20 @@ impl ImportClause {
 ///
 /// [spec]: https://tc39.es/ecma262/#prod-ImportSpecifier
 #[derive(Debug, Clone, Copy)]
-struct ImportSpecifier;
+struct ImportSpecifier<'arena> {
+    _marker: std::marker::PhantomData<&'arena ()>,
+}
 
-impl<R> TokenParser<R> for ImportSpecifier
+impl<'arena> ImportSpecifier<'arena> {
+    /// Creates a new `ImportSpecifier` parser.
+    fn new() -> Self {
+        Self {
+            _marker: std::marker::PhantomData,
+        }
+    }
+}
+
+impl<'arena, R> TokenParser<'arena, R> for ImportSpecifier<'arena>
 where
     R: ReadChar,
 {
@@ -336,7 +382,7 @@ where
                     interner,
                 )?;
 
-                let binding = ImportedBinding.parse(cursor, interner)?;
+                let binding = ImportedBinding::new().parse(cursor, interner)?;
 
                 Ok(AstImportSpecifier::new(binding, name))
             }
@@ -351,7 +397,7 @@ where
                     interner,
                 )?;
 
-                let binding = ImportedBinding.parse(cursor, interner)?;
+                let binding = ImportedBinding::new().parse(cursor, interner)?;
 
                 Ok(AstImportSpecifier::new(binding, export_name))
             }
@@ -367,11 +413,11 @@ where
                     // `as`
                     cursor.advance(interner);
 
-                    let binding = ImportedBinding.parse(cursor, interner)?;
+                    let binding = ImportedBinding::new().parse(cursor, interner)?;
                     return Ok(AstImportSpecifier::new(binding, name));
                 }
 
-                let name = ImportedBinding.parse(cursor, interner)?;
+                let name = ImportedBinding::new().parse(cursor, interner)?;
 
                 Ok(AstImportSpecifier::new(name, name.sym()))
             }
@@ -392,9 +438,20 @@ where
 ///
 /// [spec]: https://tc39.es/ecma262/#prod-NameSpaceImport
 #[derive(Debug, Clone, Copy)]
-struct NameSpaceImport;
+struct NameSpaceImport<'arena> {
+    _marker: std::marker::PhantomData<&'arena ()>,
+}
 
-impl<R> TokenParser<R> for NameSpaceImport
+impl<'arena> NameSpaceImport<'arena> {
+    /// Creates a new `NameSpaceImport` parser.
+    fn new() -> Self {
+        Self {
+            _marker: std::marker::PhantomData,
+        }
+    }
+}
+
+impl<'arena, R> TokenParser<'arena, R> for NameSpaceImport<'arena>
 where
     R: ReadChar,
 {
@@ -408,6 +465,6 @@ where
             interner,
         )?;
 
-        ImportedBinding.parse(cursor, interner)
+        ImportedBinding::new().parse(cursor, interner)
     }
 }

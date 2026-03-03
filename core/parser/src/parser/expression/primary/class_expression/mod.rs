@@ -16,12 +16,13 @@ use boa_interner::Interner;
 ///
 /// [spec]: https://tc39.es/ecma262/#prod-ClassExpression
 #[derive(Debug, Clone, Copy)]
-pub(super) struct ClassExpression {
+pub(super) struct ClassExpression<'arena> {
     allow_yield: AllowYield,
     allow_await: AllowAwait,
+    _marker: std::marker::PhantomData<&'arena ()>,
 }
 
-impl ClassExpression {
+impl<'arena> ClassExpression<'arena> {
     /// Creates a new `ClassExpression` parser.
     pub(in crate::parser) fn new<Y, A>(allow_yield: Y, allow_await: A) -> Self
     where
@@ -31,15 +32,16 @@ impl ClassExpression {
         Self {
             allow_yield: allow_yield.into(),
             allow_await: allow_await.into(),
+            _marker: std::marker::PhantomData,
         }
     }
 }
 
-impl<R> TokenParser<R> for ClassExpression
+impl<'arena, R> TokenParser<'arena, R> for ClassExpression<'arena>
 where
     R: ReadChar,
 {
-    type Output = ClassExpressionNode;
+    type Output = ClassExpressionNode<'arena>;
 
     fn parse(self, cursor: &mut Cursor<R>, interner: &mut Interner) -> ParseResult<Self::Output> {
         let class_span_start = cursor

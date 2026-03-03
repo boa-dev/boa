@@ -20,13 +20,14 @@ use boa_interner::Interner;
 /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Statements/with
 /// [spec]: https://tc39.es/ecma262/#prod-WithStatement
 #[derive(Debug, Clone, Copy)]
-pub(in crate::parser::statement) struct WithStatement {
+pub(in crate::parser::statement) struct WithStatement<'arena> {
     allow_yield: AllowYield,
     allow_await: AllowAwait,
     allow_return: AllowReturn,
+    _marker: std::marker::PhantomData<&'arena ()>,
 }
 
-impl WithStatement {
+impl<'arena> WithStatement<'arena> {
     /// Creates a new `WithStatement` parser.
     pub(in crate::parser::statement) fn new<Y, A, R>(
         allow_yield: Y,
@@ -42,15 +43,16 @@ impl WithStatement {
             allow_yield: allow_yield.into(),
             allow_await: allow_await.into(),
             allow_return: allow_return.into(),
+            _marker: std::marker::PhantomData,
         }
     }
 }
 
-impl<R> TokenParser<R> for WithStatement
+impl<'arena, R> TokenParser<'arena, R> for WithStatement<'arena>
 where
     R: ReadChar,
 {
-    type Output = With;
+    type Output = With<'arena>;
 
     fn parse(self, cursor: &mut Cursor<R>, interner: &mut Interner) -> ParseResult<Self::Output> {
         let position = cursor

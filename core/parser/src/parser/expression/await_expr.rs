@@ -25,11 +25,12 @@ use boa_interner::Interner;
 /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Operators/await
 /// [spec]: https://tc39.es/ecma262/#prod-AwaitExpression
 #[derive(Debug, Clone, Copy)]
-pub(in crate::parser) struct AwaitExpression {
+pub(in crate::parser) struct AwaitExpression<'arena> {
     allow_yield: AllowYield,
+    _marker: std::marker::PhantomData<&'arena ()>,
 }
 
-impl AwaitExpression {
+impl<'arena> AwaitExpression<'arena> {
     /// Creates a new `AwaitExpression` parser.
     pub(in crate::parser) fn new<Y>(allow_yield: Y) -> Self
     where
@@ -37,15 +38,16 @@ impl AwaitExpression {
     {
         Self {
             allow_yield: allow_yield.into(),
+            _marker: std::marker::PhantomData,
         }
     }
 }
 
-impl<R> TokenParser<R> for AwaitExpression
+impl<'arena, R> TokenParser<'arena, R> for AwaitExpression<'arena>
 where
     R: ReadChar,
 {
-    type Output = Await;
+    type Output = Await<'arena>;
 
     fn parse(self, cursor: &mut Cursor<R>, interner: &mut Interner) -> ParseResult<Self::Output> {
         let await_span_start = cursor

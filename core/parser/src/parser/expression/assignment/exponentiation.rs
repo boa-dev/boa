@@ -32,12 +32,13 @@ use boa_interner::Interner;
 /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Operators/Arithmetic_Operators#Exponentiation
 /// [spec]: https://tc39.es/ecma262/#prod-ExponentiationExpression
 #[derive(Debug, Clone, Copy)]
-pub(in crate::parser::expression) struct ExponentiationExpression {
+pub(in crate::parser::expression) struct ExponentiationExpression<'arena> {
     allow_yield: AllowYield,
     allow_await: AllowAwait,
+    _marker: std::marker::PhantomData<&'arena ()>,
 }
 
-impl ExponentiationExpression {
+impl<'arena> ExponentiationExpression<'arena> {
     /// Creates a new `ExponentiationExpression` parser.
     pub(in crate::parser::expression) fn new<Y, A>(allow_yield: Y, allow_await: A) -> Self
     where
@@ -47,15 +48,16 @@ impl ExponentiationExpression {
         Self {
             allow_yield: allow_yield.into(),
             allow_await: allow_await.into(),
+            _marker: std::marker::PhantomData,
         }
     }
 }
 
-impl<R> TokenParser<R> for ExponentiationExpression
+impl<'arena, R> TokenParser<'arena, R> for ExponentiationExpression<'arena>
 where
     R: ReadChar,
 {
-    type Output = FormalParameterListOrExpression;
+    type Output = FormalParameterListOrExpression<'arena>;
 
     fn parse(self, cursor: &mut Cursor<R>, interner: &mut Interner) -> ParseResult<Self::Output> {
         let next = cursor.peek(0, interner).or_abrupt()?;

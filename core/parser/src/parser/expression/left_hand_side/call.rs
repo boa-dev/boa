@@ -34,18 +34,18 @@ use boa_interner::{Interner, Sym};
 ///
 /// [spec]: https://tc39.es/ecma262/#prod-CallExpression
 #[derive(Debug)]
-pub(super) struct CallExpression {
+pub(super) struct CallExpression<'arena> {
     allow_yield: AllowYield,
     allow_await: AllowAwait,
-    first_member_expr: ast::Expression,
+    first_member_expr: ast::Expression<'arena>,
 }
 
-impl CallExpression {
+impl<'arena> CallExpression<'arena> {
     /// Creates a new `CallExpression` parser.
     pub(super) fn new<Y, A>(
         allow_yield: Y,
         allow_await: A,
-        first_member_expr: ast::Expression,
+        first_member_expr: ast::Expression<'arena>,
     ) -> Self
     where
         Y: Into<AllowYield>,
@@ -59,11 +59,11 @@ impl CallExpression {
     }
 }
 
-impl<R> TokenParser<R> for CallExpression
+impl<'arena, R> TokenParser<'arena, R> for CallExpression<'arena>
 where
     R: ReadChar,
 {
-    type Output = ast::Expression;
+    type Output = ast::Expression<'arena>;
 
     fn parse(self, cursor: &mut Cursor<R>, interner: &mut Interner) -> ParseResult<Self::Output> {
         let token = cursor.peek(0, interner).or_abrupt()?;
@@ -89,15 +89,15 @@ where
 
 /// Parses the tail parts of a call expression (property access, successive call, array access).
 #[derive(Debug)]
-pub(super) struct CallExpressionTail {
+pub(super) struct CallExpressionTail<'arena> {
     allow_yield: AllowYield,
     allow_await: AllowAwait,
-    call: ast::Expression,
+    call: ast::Expression<'arena>,
 }
 
-impl CallExpressionTail {
+impl<'arena> CallExpressionTail<'arena> {
     /// Creates a new `CallExpressionTail` parser.
-    pub(super) fn new<Y, A>(allow_yield: Y, allow_await: A, call: ast::Expression) -> Self
+    pub(super) fn new<Y, A>(allow_yield: Y, allow_await: A, call: ast::Expression<'arena>) -> Self
     where
         Y: Into<AllowYield>,
         A: Into<AllowAwait>,
@@ -110,11 +110,11 @@ impl CallExpressionTail {
     }
 }
 
-impl<R> TokenParser<R> for CallExpressionTail
+impl<'arena, R> TokenParser<'arena, R> for CallExpressionTail<'arena>
 where
     R: ReadChar,
 {
-    type Output = ast::Expression;
+    type Output = ast::Expression<'arena>;
 
     fn parse(self, cursor: &mut Cursor<R>, interner: &mut Interner) -> ParseResult<Self::Output> {
         let mut lhs = self.call;

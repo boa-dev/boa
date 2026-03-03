@@ -40,12 +40,13 @@ use boa_interner::Interner;
 /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Functions/Arrow_functions
 /// [spec]: https://tc39.es/ecma262/#prod-AsyncArrowFunction
 #[derive(Debug, Clone, Copy)]
-pub(in crate::parser) struct AsyncArrowFunction {
+pub(in crate::parser) struct AsyncArrowFunction<'arena> {
     allow_in: AllowIn,
     allow_yield: AllowYield,
+    _marker: std::marker::PhantomData<&'arena ()>,
 }
 
-impl AsyncArrowFunction {
+impl<'arena> AsyncArrowFunction<'arena> {
     /// Creates a new `AsyncArrowFunction` parser.
     pub(in crate::parser) fn new<I, Y>(allow_in: I, allow_yield: Y) -> Self
     where
@@ -55,15 +56,16 @@ impl AsyncArrowFunction {
         Self {
             allow_in: allow_in.into(),
             allow_yield: allow_yield.into(),
+            _marker: std::marker::PhantomData,
         }
     }
 }
 
-impl<R> TokenParser<R> for AsyncArrowFunction
+impl<'arena, R> TokenParser<'arena, R> for AsyncArrowFunction<'arena>
 where
     R: ReadChar,
 {
-    type Output = ast::function::AsyncArrowFunction;
+    type Output = ast::function::AsyncArrowFunction<'arena>;
 
     fn parse(self, cursor: &mut Cursor<R>, interner: &mut Interner) -> ParseResult<Self::Output> {
         let async_token =
@@ -160,11 +162,12 @@ where
 
 /// <https://tc39.es/ecma262/#prod-AsyncConciseBody>
 #[derive(Debug, Clone, Copy)]
-pub(in crate::parser) struct AsyncConciseBody {
+pub(in crate::parser) struct AsyncConciseBody<'arena> {
     allow_in: AllowIn,
+    _marker: std::marker::PhantomData<&'arena ()>,
 }
 
-impl AsyncConciseBody {
+impl<'arena> AsyncConciseBody<'arena> {
     /// Creates a new `AsyncConciseBody` parser.
     pub(in crate::parser) fn new<I>(allow_in: I) -> Self
     where
@@ -172,15 +175,16 @@ impl AsyncConciseBody {
     {
         Self {
             allow_in: allow_in.into(),
+            _marker: std::marker::PhantomData,
         }
     }
 }
 
-impl<R> TokenParser<R> for AsyncConciseBody
+impl<'arena, R> TokenParser<'arena, R> for AsyncConciseBody<'arena>
 where
     R: ReadChar,
 {
-    type Output = ast::function::FunctionBody;
+    type Output = ast::function::FunctionBody<'arena>;
 
     fn parse(self, cursor: &mut Cursor<R>, interner: &mut Interner) -> ParseResult<Self::Output> {
         let body = if let TokenKind::Punctuator(Punctuator::OpenBlock) =

@@ -17,20 +17,20 @@ use boa_interner::Interner;
 ///
 /// [spec]: https://tc39.es/ecma262/#prod-TemplateLiteral
 #[derive(Debug, Clone)]
-pub(super) struct TaggedTemplateLiteral {
+pub(super) struct TaggedTemplateLiteral<'arena> {
     allow_yield: AllowYield,
     allow_await: AllowAwait,
     start: PositionGroup,
-    tag: ast::Expression,
+    tag: ast::Expression<'arena>,
 }
 
-impl TaggedTemplateLiteral {
+impl<'arena> TaggedTemplateLiteral<'arena> {
     /// Creates a new `TaggedTemplateLiteral` parser.
     pub(super) fn new<Y, A>(
         allow_yield: Y,
         allow_await: A,
         start: PositionGroup,
-        tag: ast::Expression,
+        tag: ast::Expression<'arena>,
     ) -> Self
     where
         Y: Into<AllowYield>,
@@ -45,11 +45,11 @@ impl TaggedTemplateLiteral {
     }
 }
 
-impl<R> TokenParser<R> for TaggedTemplateLiteral
+impl<'arena, R> TokenParser<'arena, R> for TaggedTemplateLiteral<'arena>
 where
     R: ReadChar,
 {
-    type Output = TaggedTemplate;
+    type Output = TaggedTemplate<'arena>;
 
     fn parse(self, cursor: &mut Cursor<R>, interner: &mut Interner) -> ParseResult<Self::Output> {
         let mut raws = Vec::new();

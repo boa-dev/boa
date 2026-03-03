@@ -37,20 +37,24 @@ use boa_interner::{Interner, Sym};
 /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Operators/function
 /// [spec]: https://tc39.es/ecma262/#prod-FunctionExpression
 #[derive(Debug, Clone, Copy)]
-pub(super) struct FunctionExpression {}
+pub(super) struct FunctionExpression<'arena> {
+    _marker: std::marker::PhantomData<&'arena ()>,
+}
 
-impl FunctionExpression {
+impl<'arena> FunctionExpression<'arena> {
     /// Creates a new `FunctionExpression` parser.
     pub(in crate::parser) fn new() -> Self {
-        Self {}
+        Self {
+            _marker: std::marker::PhantomData,
+        }
     }
 }
 
-impl<R> TokenParser<R> for FunctionExpression
+impl<'arena, R> TokenParser<'arena, R> for FunctionExpression<'arena>
 where
     R: ReadChar,
 {
-    type Output = FunctionExpressionNode;
+    type Output = FunctionExpressionNode<'arena>;
 
     fn parse(self, cursor: &mut Cursor<R>, interner: &mut Interner) -> ParseResult<Self::Output> {
         let token = cursor.expect((Keyword::Function, false), "generator expression", interner)?;

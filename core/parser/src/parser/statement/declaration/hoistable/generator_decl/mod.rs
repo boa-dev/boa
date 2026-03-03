@@ -20,13 +20,14 @@ use boa_interner::Interner;
 /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Statements/function*
 /// [spec]: https://tc39.es/ecma262/#prod-GeneratorDeclaration
 #[derive(Debug, Clone, Copy)]
-pub(in crate::parser) struct GeneratorDeclaration {
+pub(in crate::parser) struct GeneratorDeclaration<'arena> {
     allow_yield: AllowYield,
     allow_await: AllowAwait,
     is_default: AllowDefault,
+    _marker: std::marker::PhantomData<&'arena ()>,
 }
 
-impl GeneratorDeclaration {
+impl<'arena> GeneratorDeclaration<'arena> {
     /// Creates a new `GeneratorDeclaration` parser.
     pub(in crate::parser) fn new<Y, A, D>(allow_yield: Y, allow_await: A, is_default: D) -> Self
     where
@@ -38,11 +39,12 @@ impl GeneratorDeclaration {
             allow_yield: allow_yield.into(),
             allow_await: allow_await.into(),
             is_default: is_default.into(),
+            _marker: std::marker::PhantomData,
         }
     }
 }
 
-impl CallableDeclaration for GeneratorDeclaration {
+impl<'arena> CallableDeclaration for GeneratorDeclaration<'arena> {
     fn error_context(&self) -> &'static str {
         "generator declaration"
     }
@@ -72,11 +74,11 @@ impl CallableDeclaration for GeneratorDeclaration {
     }
 }
 
-impl<R> TokenParser<R> for GeneratorDeclaration
+impl<'arena, R> TokenParser<'arena, R> for GeneratorDeclaration<'arena>
 where
     R: ReadChar,
 {
-    type Output = GeneratorDeclarationNode;
+    type Output = GeneratorDeclarationNode<'arena>;
 
     fn parse(self, cursor: &mut Cursor<R>, interner: &mut Interner) -> ParseResult<Self::Output> {
         let func_token = cursor.expect(

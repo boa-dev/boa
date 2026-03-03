@@ -41,12 +41,13 @@ use boa_interner::{Interner, Sym};
 /// [mdn]: https://developer.mozilla.org/en-US/docs/Glossary/Parameter
 /// [spec]: https://tc39.es/ecma262/#prod-FormalParameters
 #[derive(Debug, Clone, Copy)]
-pub(in crate::parser) struct FormalParameters {
+pub(in crate::parser) struct FormalParameters<'arena> {
     allow_yield: AllowYield,
     allow_await: AllowAwait,
+    _marker: std::marker::PhantomData<&'arena ()>,
 }
 
-impl FormalParameters {
+impl<'arena> FormalParameters<'arena> {
     /// Creates a new `FormalParameters` parser.
     pub(in crate::parser) fn new<Y, A>(allow_yield: Y, allow_await: A) -> Self
     where
@@ -56,15 +57,16 @@ impl FormalParameters {
         Self {
             allow_yield: allow_yield.into(),
             allow_await: allow_await.into(),
+            _marker: std::marker::PhantomData,
         }
     }
 }
 
-impl<R> TokenParser<R> for FormalParameters
+impl<'arena, R> TokenParser<'arena, R> for FormalParameters<'arena>
 where
     R: ReadChar,
 {
-    type Output = FormalParameterList;
+    type Output = FormalParameterList<'arena>;
 
     fn parse(self, cursor: &mut Cursor<R>, interner: &mut Interner) -> ParseResult<Self::Output> {
         cursor.set_goal(InputElement::RegExp);
@@ -151,12 +153,13 @@ where
 ///
 /// [spec]: https://tc39.es/ecma262/#prod-UniqueFormalParameters
 #[derive(Debug, Clone, Copy)]
-pub(in crate::parser) struct UniqueFormalParameters {
+pub(in crate::parser) struct UniqueFormalParameters<'arena> {
     allow_yield: AllowYield,
     allow_await: AllowAwait,
+    _marker: std::marker::PhantomData<&'arena ()>,
 }
 
-impl UniqueFormalParameters {
+impl<'arena> UniqueFormalParameters<'arena> {
     /// Creates a new `UniqueFormalParameters` parser.
     pub(in crate::parser) fn new<Y, A>(allow_yield: Y, allow_await: A) -> Self
     where
@@ -166,15 +169,16 @@ impl UniqueFormalParameters {
         Self {
             allow_yield: allow_yield.into(),
             allow_await: allow_await.into(),
+            _marker: std::marker::PhantomData,
         }
     }
 }
 
-impl<R> TokenParser<R> for UniqueFormalParameters
+impl<'arena, R> TokenParser<'arena, R> for UniqueFormalParameters<'arena>
 where
     R: ReadChar,
 {
-    type Output = FormalParameterList;
+    type Output = FormalParameterList<'arena>;
 
     fn parse(self, cursor: &mut Cursor<R>, interner: &mut Interner) -> ParseResult<Self::Output> {
         let params_start_position = cursor
@@ -212,7 +216,7 @@ where
 ///
 /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Functions/rest_parameters
 /// [spec]: https://tc39.es/ecma262/#prod-FunctionRestParameter
-type FunctionRestParameter = BindingRestElement;
+type FunctionRestParameter<'arena> = BindingRestElement<'arena>;
 
 /// Rest parameter parsing.
 ///
@@ -223,12 +227,13 @@ type FunctionRestParameter = BindingRestElement;
 /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Functions/rest_parameters
 /// [spec]: https://tc39.es/ecma262/#prod-BindingRestElement
 #[derive(Debug, Clone, Copy)]
-struct BindingRestElement {
+struct BindingRestElement<'arena> {
     allow_yield: AllowYield,
     allow_await: AllowAwait,
+    _marker: std::marker::PhantomData<&'arena ()>,
 }
 
-impl BindingRestElement {
+impl<'arena> BindingRestElement<'arena> {
     /// Creates a new `BindingRestElement` parser.
     fn new<Y, A>(allow_yield: Y, allow_await: A) -> Self
     where
@@ -238,15 +243,16 @@ impl BindingRestElement {
         Self {
             allow_yield: allow_yield.into(),
             allow_await: allow_await.into(),
+            _marker: std::marker::PhantomData,
         }
     }
 }
 
-impl<R> TokenParser<R> for BindingRestElement
+impl<'arena, R> TokenParser<'arena, R> for BindingRestElement<'arena>
 where
     R: ReadChar,
 {
-    type Output = ast::function::FormalParameter;
+    type Output = ast::function::FormalParameter<'arena>;
 
     fn parse(self, cursor: &mut Cursor<R>, interner: &mut Interner) -> ParseResult<Self::Output> {
         cursor.expect(Punctuator::Spread, "rest parameter", interner)?;
@@ -320,12 +326,13 @@ where
 /// [mdn]: https://developer.mozilla.org/en-US/docs/Glossary/Parameter
 /// [spec]: https://tc39.es/ecma262/#prod-FormalParameter
 #[derive(Debug, Clone, Copy)]
-pub(in crate::parser) struct FormalParameter {
+pub(in crate::parser) struct FormalParameter<'arena> {
     allow_yield: AllowYield,
     allow_await: AllowAwait,
+    _marker: std::marker::PhantomData<&'arena ()>,
 }
 
-impl FormalParameter {
+impl<'arena> FormalParameter<'arena> {
     /// Creates a new `FormalParameter` parser.
     pub(in crate::parser) fn new<Y, A>(allow_yield: Y, allow_await: A) -> Self
     where
@@ -335,15 +342,16 @@ impl FormalParameter {
         Self {
             allow_yield: allow_yield.into(),
             allow_await: allow_await.into(),
+            _marker: std::marker::PhantomData,
         }
     }
 }
 
-impl<R> TokenParser<R> for FormalParameter
+impl<'arena, R> TokenParser<'arena, R> for FormalParameter<'arena>
 where
     R: ReadChar,
 {
-    type Output = ast::function::FormalParameter;
+    type Output = ast::function::FormalParameter<'arena>;
 
     fn parse(self, cursor: &mut Cursor<R>, interner: &mut Interner) -> ParseResult<Self::Output> {
         if let Some(t) = cursor.peek(0, interner)? {
@@ -417,7 +425,7 @@ where
 ///  - [ECMAScript specification][spec]
 ///
 /// [spec]: https://tc39.es/ecma262/#prod-FunctionBody
-pub(in crate::parser) type FunctionBody = FunctionStatementList;
+pub(in crate::parser) type FunctionBody<'arena> = FunctionStatementList<'arena>;
 
 /// The possible `TokenKind` which indicate the end of a function statement.
 pub(in crate::parser) const FUNCTION_BREAK_TOKENS: [TokenKind; 1] =
@@ -430,14 +438,15 @@ pub(in crate::parser) const FUNCTION_BREAK_TOKENS: [TokenKind; 1] =
 ///
 /// [spec]: https://tc39.es/ecma262/#prod-FunctionStatementList
 #[derive(Debug, Clone, Copy)]
-pub(in crate::parser) struct FunctionStatementList {
+pub(in crate::parser) struct FunctionStatementList<'arena> {
     allow_yield: AllowYield,
     allow_await: AllowAwait,
     context: &'static str,
     parse_full_input: bool,
+    _marker: std::marker::PhantomData<&'arena ()>,
 }
 
-impl FunctionStatementList {
+impl<'arena> FunctionStatementList<'arena> {
     /// Creates a new `FunctionStatementList` parser.
     pub(in crate::parser) fn new<Y, A>(
         allow_yield: Y,
@@ -453,6 +462,7 @@ impl FunctionStatementList {
             allow_await: allow_await.into(),
             context,
             parse_full_input: false,
+            _marker: std::marker::PhantomData,
         }
     }
 
@@ -462,11 +472,11 @@ impl FunctionStatementList {
     }
 }
 
-impl<R> TokenParser<R> for FunctionStatementList
+impl<'arena, R> TokenParser<'arena, R> for FunctionStatementList<'arena>
 where
     R: ReadChar,
 {
-    type Output = AstFunctionBody;
+    type Output = AstFunctionBody<'arena>;
 
     fn parse(self, cursor: &mut Cursor<R>, interner: &mut Interner) -> ParseResult<Self::Output> {
         let start = if self.parse_full_input {

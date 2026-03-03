@@ -28,20 +28,24 @@ use boa_interner::{Interner, Sym};
 /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Operators/async_function
 /// [spec]: https://tc39.es/ecma262/#prod-AsyncFunctionExpression
 #[derive(Debug, Clone, Copy)]
-pub(super) struct AsyncFunctionExpression {}
+pub(super) struct AsyncFunctionExpression<'arena> {
+    _marker: std::marker::PhantomData<&'arena ()>,
+}
 
-impl AsyncFunctionExpression {
+impl<'arena> AsyncFunctionExpression<'arena> {
     /// Creates a new `AsyncFunctionExpression` parser.
     pub(super) fn new() -> Self {
-        Self {}
+        Self {
+            _marker: std::marker::PhantomData,
+        }
     }
 }
 
-impl<R> TokenParser<R> for AsyncFunctionExpression
+impl<'arena, R> TokenParser<'arena, R> for AsyncFunctionExpression<'arena>
 where
     R: ReadChar,
 {
-    type Output = AsyncFunctionExpressionNode;
+    type Output = AsyncFunctionExpressionNode<'arena>;
 
     fn parse(self, cursor: &mut Cursor<R>, interner: &mut Interner) -> ParseResult<Self::Output> {
         let token = cursor.expect(

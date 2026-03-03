@@ -20,13 +20,14 @@ use boa_interner::Interner;
 /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Statements/async_function
 /// [spec]: https://tc39.es/ecma262/#prod-AsyncFunctionDeclaration
 #[derive(Debug, Clone, Copy)]
-pub(in crate::parser) struct AsyncFunctionDeclaration {
+pub(in crate::parser) struct AsyncFunctionDeclaration<'arena> {
     allow_yield: AllowYield,
     allow_await: AllowAwait,
     is_default: AllowDefault,
+    _marker: std::marker::PhantomData<&'arena ()>,
 }
 
-impl AsyncFunctionDeclaration {
+impl<'arena> AsyncFunctionDeclaration<'arena> {
     /// Creates a new `AsyncFunctionDeclaration` parser.
     pub(in crate::parser) fn new<Y, A, D>(allow_yield: Y, allow_await: A, is_default: D) -> Self
     where
@@ -38,11 +39,12 @@ impl AsyncFunctionDeclaration {
             allow_yield: allow_yield.into(),
             allow_await: allow_await.into(),
             is_default: is_default.into(),
+            _marker: std::marker::PhantomData,
         }
     }
 }
 
-impl CallableDeclaration for AsyncFunctionDeclaration {
+impl<'arena> CallableDeclaration for AsyncFunctionDeclaration<'arena> {
     fn error_context(&self) -> &'static str {
         "async function declaration"
     }
@@ -72,11 +74,11 @@ impl CallableDeclaration for AsyncFunctionDeclaration {
     }
 }
 
-impl<R> TokenParser<R> for AsyncFunctionDeclaration
+impl<'arena, R> TokenParser<'arena, R> for AsyncFunctionDeclaration<'arena>
 where
     R: ReadChar,
 {
-    type Output = AsyncFunctionDeclarationNode;
+    type Output = AsyncFunctionDeclarationNode<'arena>;
 
     fn parse(self, cursor: &mut Cursor<R>, interner: &mut Interner) -> ParseResult<Self::Output> {
         let async_token = cursor.expect(

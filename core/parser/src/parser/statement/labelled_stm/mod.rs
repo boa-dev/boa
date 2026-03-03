@@ -21,13 +21,14 @@ use boa_interner::Interner;
 /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Statements/label
 /// [spec]: https://tc39.es/ecma262/#sec-labelled-statements
 #[derive(Debug, Clone, Copy)]
-pub(super) struct LabelledStatement {
+pub(super) struct LabelledStatement<'arena> {
     allow_yield: AllowYield,
     allow_await: AllowAwait,
     allow_return: AllowReturn,
+    _marker: std::marker::PhantomData<&'arena ()>,
 }
 
-impl LabelledStatement {
+impl<'arena> LabelledStatement<'arena> {
     pub(super) fn new<Y, A, R>(allow_yield: Y, allow_await: A, allow_return: R) -> Self
     where
         Y: Into<AllowYield>,
@@ -38,15 +39,16 @@ impl LabelledStatement {
             allow_yield: allow_yield.into(),
             allow_await: allow_await.into(),
             allow_return: allow_return.into(),
+            _marker: std::marker::PhantomData,
         }
     }
 }
 
-impl<R> TokenParser<R> for LabelledStatement
+impl<'arena, R> TokenParser<'arena, R> for LabelledStatement<'arena>
 where
     R: ReadChar,
 {
-    type Output = ast::statement::Labelled;
+    type Output = ast::statement::Labelled<'arena>;
 
     fn parse(self, cursor: &mut Cursor<R>, interner: &mut Interner) -> ParseResult<Self::Output> {
         let label = LabelIdentifier::new(self.allow_yield, self.allow_await)

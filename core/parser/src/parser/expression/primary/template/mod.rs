@@ -28,14 +28,15 @@ use boa_interner::{Interner, Sym};
 /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Template_literals
 /// [spec]: https://tc39.es/ecma262/#prod-TemplateLiteral
 #[derive(Debug, Clone)]
-pub(super) struct TemplateLiteral {
+pub(super) struct TemplateLiteral<'arena> {
     allow_yield: AllowYield,
     allow_await: AllowAwait,
     start: PositionGroup,
     first: Sym,
+    _marker: std::marker::PhantomData<&'arena ()>,
 }
 
-impl TemplateLiteral {
+impl<'arena> TemplateLiteral<'arena> {
     /// Creates a new `TemplateLiteral` parser.
     pub(super) fn new<Y, A>(
         allow_yield: Y,
@@ -52,15 +53,16 @@ impl TemplateLiteral {
             allow_await: allow_await.into(),
             start,
             first,
+            _marker: std::marker::PhantomData,
         }
     }
 }
 
-impl<R> TokenParser<R> for TemplateLiteral
+impl<'arena, R> TokenParser<'arena, R> for TemplateLiteral<'arena>
 where
     R: ReadChar,
 {
-    type Output = literal::TemplateLiteral;
+    type Output = literal::TemplateLiteral<'arena>;
 
     fn parse(self, cursor: &mut Cursor<R>, interner: &mut Interner) -> ParseResult<Self::Output> {
         let mut elements = vec![

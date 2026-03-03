@@ -31,12 +31,13 @@ use boa_interner::Interner;
 /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Statements/break
 /// [spec]: https://tc39.es/ecma262/#prod-BreakStatement
 #[derive(Debug, Clone, Copy)]
-pub(super) struct BreakStatement {
+pub(super) struct BreakStatement<'arena> {
     allow_yield: AllowYield,
     allow_await: AllowAwait,
+    _marker: std::marker::PhantomData<&'arena ()>,
 }
 
-impl BreakStatement {
+impl<'arena> BreakStatement<'arena> {
     /// Creates a new `BreakStatement` parser.
     pub(super) fn new<Y, A>(allow_yield: Y, allow_await: A) -> Self
     where
@@ -46,11 +47,12 @@ impl BreakStatement {
         Self {
             allow_yield: allow_yield.into(),
             allow_await: allow_await.into(),
+            _marker: std::marker::PhantomData,
         }
     }
 }
 
-impl<R> TokenParser<R> for BreakStatement
+impl<'arena, R> TokenParser<'arena, R> for BreakStatement<'arena>
 where
     R: ReadChar,
 {

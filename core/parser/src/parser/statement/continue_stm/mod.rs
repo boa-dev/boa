@@ -31,12 +31,13 @@ use boa_interner::Interner;
 /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Statements/continue
 /// [spec]: https://tc39.es/ecma262/#prod-ContinueStatement
 #[derive(Debug, Clone, Copy)]
-pub(super) struct ContinueStatement {
+pub(super) struct ContinueStatement<'arena> {
     allow_yield: AllowYield,
     allow_await: AllowAwait,
+    _marker: std::marker::PhantomData<&'arena ()>,
 }
 
-impl ContinueStatement {
+impl<'arena> ContinueStatement<'arena> {
     /// Creates a new `ContinueStatement` parser.
     pub(super) fn new<Y, A>(allow_yield: Y, allow_await: A) -> Self
     where
@@ -46,11 +47,12 @@ impl ContinueStatement {
         Self {
             allow_yield: allow_yield.into(),
             allow_await: allow_await.into(),
+            _marker: std::marker::PhantomData,
         }
     }
 }
 
-impl<R> TokenParser<R> for ContinueStatement
+impl<'arena, R> TokenParser<'arena, R> for ContinueStatement<'arena>
 where
     R: ReadChar,
 {

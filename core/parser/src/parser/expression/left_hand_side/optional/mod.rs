@@ -28,18 +28,18 @@ use boa_interner::{Interner, Sym};
 /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Operators/Optional_chaining
 /// [spec]: https://tc39.es/ecma262/multipage/ecmascript-language-expressions.html#prod-OptionalExpression
 #[derive(Debug, Clone)]
-pub(in crate::parser) struct OptionalExpression {
+pub(in crate::parser) struct OptionalExpression<'arena> {
     allow_yield: AllowYield,
     allow_await: AllowAwait,
-    target: ast::Expression,
+    target: ast::Expression<'arena>,
 }
 
-impl OptionalExpression {
+impl<'arena> OptionalExpression<'arena> {
     /// Creates a new `OptionalExpression` parser.
     pub(in crate::parser) fn new<Y, A>(
         allow_yield: Y,
         allow_await: A,
-        target: ast::Expression,
+        target: ast::Expression<'arena>,
     ) -> Self
     where
         Y: Into<AllowYield>,
@@ -53,17 +53,17 @@ impl OptionalExpression {
     }
 }
 
-impl<R> TokenParser<R> for OptionalExpression
+impl<'arena, R> TokenParser<'arena, R> for OptionalExpression<'arena>
 where
     R: ReadChar,
 {
-    type Output = Optional;
+    type Output = Optional<'arena>;
 
     fn parse(self, cursor: &mut Cursor<R>, interner: &mut Interner) -> ParseResult<Self::Output> {
-        fn parse_const_access(
+        fn parse_const_access<'arena>(
             token: &Token,
             interner: &Interner,
-        ) -> ParseResult<(OptionalOperationKind, Span)> {
+        ) -> ParseResult<(OptionalOperationKind<'arena>, Span)> {
             let item = match token.kind() {
                 TokenKind::IdentifierName((name, _)) => {
                     OptionalOperationKind::SimplePropertyAccess {

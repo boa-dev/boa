@@ -27,13 +27,14 @@ use boa_interner::Interner;
 /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Statements/try...catch
 /// [spec]: https://tc39.es/ecma262/#sec-try-statement
 #[derive(Debug, Clone, Copy)]
-pub(super) struct TryStatement {
+pub(super) struct TryStatement<'arena> {
     allow_yield: AllowYield,
     allow_await: AllowAwait,
     allow_return: AllowReturn,
+    _marker: std::marker::PhantomData<&'arena ()>,
 }
 
-impl TryStatement {
+impl<'arena> TryStatement<'arena> {
     /// Creates a new `TryStatement` parser.
     pub(super) fn new<Y, A, R>(allow_yield: Y, allow_await: A, allow_return: R) -> Self
     where
@@ -45,15 +46,16 @@ impl TryStatement {
             allow_yield: allow_yield.into(),
             allow_await: allow_await.into(),
             allow_return: allow_return.into(),
+            _marker: std::marker::PhantomData,
         }
     }
 }
 
-impl<R> TokenParser<R> for TryStatement
+impl<'arena, R> TokenParser<'arena, R> for TryStatement<'arena>
 where
     R: ReadChar,
 {
-    type Output = Try;
+    type Output = Try<'arena>;
 
     fn parse(self, cursor: &mut Cursor<R>, interner: &mut Interner) -> ParseResult<Self::Output> {
         // TRY

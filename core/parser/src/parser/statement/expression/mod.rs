@@ -16,12 +16,13 @@ use boa_interner::Interner;
 ///
 /// [spec]: https://tc39.es/ecma262/#prod-ExpressionStatement
 #[derive(Debug, Clone, Copy)]
-pub(in crate::parser::statement) struct ExpressionStatement {
+pub(in crate::parser::statement) struct ExpressionStatement<'arena> {
     allow_yield: AllowYield,
     allow_await: AllowAwait,
+    _marker: std::marker::PhantomData<&'arena ()>,
 }
 
-impl ExpressionStatement {
+impl<'arena> ExpressionStatement<'arena> {
     /// Creates a new `ExpressionStatement` parser.
     pub(in crate::parser::statement) fn new<Y, A>(allow_yield: Y, allow_await: A) -> Self
     where
@@ -31,15 +32,16 @@ impl ExpressionStatement {
         Self {
             allow_yield: allow_yield.into(),
             allow_await: allow_await.into(),
+            _marker: std::marker::PhantomData,
         }
     }
 }
 
-impl<R> TokenParser<R> for ExpressionStatement
+impl<'arena, R> TokenParser<'arena, R> for ExpressionStatement<'arena>
 where
     R: ReadChar,
 {
-    type Output = Statement;
+    type Output = Statement<'arena>;
 
     fn parse(self, cursor: &mut Cursor<R>, interner: &mut Interner) -> ParseResult<Self::Output> {
         let next_token = cursor.peek(0, interner).or_abrupt()?;

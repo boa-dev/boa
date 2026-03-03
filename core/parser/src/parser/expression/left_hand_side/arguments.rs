@@ -28,12 +28,13 @@ use boa_interner::Interner;
 /// [mdn]: https://developer.mozilla.org/en-US/docs/Glossary/Argument
 /// [spec]: https://tc39.es/ecma262/#prod-Arguments
 #[derive(Debug, Clone, Copy)]
-pub(in crate::parser::expression) struct Arguments {
+pub(in crate::parser::expression) struct Arguments<'arena> {
     allow_yield: AllowYield,
     allow_await: AllowAwait,
+    _marker: std::marker::PhantomData<&'arena ()>,
 }
 
-impl Arguments {
+impl<'arena> Arguments<'arena> {
     /// Creates a new `Arguments` parser.
     pub(in crate::parser::expression) fn new<Y, A>(allow_yield: Y, allow_await: A) -> Self
     where
@@ -43,15 +44,16 @@ impl Arguments {
         Self {
             allow_yield: allow_yield.into(),
             allow_await: allow_await.into(),
+            _marker: std::marker::PhantomData,
         }
     }
 }
 
-impl<R> TokenParser<R> for Arguments
+impl<'arena, R> TokenParser<'arena, R> for Arguments<'arena>
 where
     R: ReadChar,
 {
-    type Output = (Box<[Expression]>, Span);
+    type Output = (Box<[Expression<'arena>]>, Span);
 
     fn parse(self, cursor: &mut Cursor<R>, interner: &mut Interner) -> ParseResult<Self::Output> {
         let start = cursor

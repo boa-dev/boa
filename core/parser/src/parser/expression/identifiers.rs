@@ -22,12 +22,13 @@ use boa_interner::{Interner, Sym};
 ///
 /// [spec]: https://tc39.es/ecma262/#prod-IdentifierReference
 #[derive(Debug, Clone, Copy)]
-pub(in crate::parser) struct IdentifierReference {
+pub(in crate::parser) struct IdentifierReference<'arena> {
     allow_yield: AllowYield,
     allow_await: AllowAwait,
+    _marker: std::marker::PhantomData<&'arena ()>,
 }
 
-impl IdentifierReference {
+impl<'arena> IdentifierReference<'arena> {
     /// Creates a new `IdentifierReference` parser.
     #[inline]
     pub(in crate::parser) fn new<Y, A>(allow_yield: Y, allow_await: A) -> Self
@@ -38,11 +39,12 @@ impl IdentifierReference {
         Self {
             allow_yield: allow_yield.into(),
             allow_await: allow_await.into(),
+            _marker: std::marker::PhantomData,
         }
     }
 }
 
-impl<R> TokenParser<R> for IdentifierReference
+impl<'arena, R> TokenParser<'arena, R> for IdentifierReference<'arena>
 where
     R: ReadChar,
 {
@@ -74,12 +76,13 @@ where
 ///
 /// [spec]: https://tc39.es/ecma262/#prod-BindingIdentifier
 #[derive(Debug, Clone, Copy)]
-pub(in crate::parser) struct BindingIdentifier {
+pub(in crate::parser) struct BindingIdentifier<'arena> {
     allow_yield: AllowYield,
     allow_await: AllowAwait,
+    _marker: std::marker::PhantomData<&'arena ()>,
 }
 
-impl BindingIdentifier {
+impl<'arena> BindingIdentifier<'arena> {
     /// Creates a new `BindingIdentifier` parser.
     #[inline]
     pub(in crate::parser) fn new<Y, A>(allow_yield: Y, allow_await: A) -> Self
@@ -90,11 +93,12 @@ impl BindingIdentifier {
         Self {
             allow_yield: allow_yield.into(),
             allow_await: allow_await.into(),
+            _marker: std::marker::PhantomData,
         }
     }
 }
 
-impl<R> TokenParser<R> for BindingIdentifier
+impl<'arena, R> TokenParser<'arena, R> for BindingIdentifier<'arena>
 where
     R: ReadChar,
 {
@@ -136,7 +140,7 @@ where
 ///  - [ECMAScript specification][spec]
 ///
 /// [spec]: https://tc39.es/ecma262/#prod-LabelIdentifier
-pub(in crate::parser) type LabelIdentifier = IdentifierReference;
+pub(in crate::parser) type LabelIdentifier<'arena> = IdentifierReference<'arena>;
 
 /// Identifier parsing.
 ///
@@ -147,7 +151,7 @@ pub(in crate::parser) type LabelIdentifier = IdentifierReference;
 #[derive(Debug, Clone, Copy)]
 pub(in crate::parser) struct Identifier;
 
-impl<R> TokenParser<R> for Identifier
+impl<'arena, R> TokenParser<'arena, R> for Identifier
 where
     R: ReadChar,
 {

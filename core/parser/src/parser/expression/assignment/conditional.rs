@@ -29,13 +29,14 @@ use boa_interner::Interner;
 /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Operators/Conditional_Operator
 /// [spec]: https://tc39.es/ecma262/#prod-ConditionalExpression
 #[derive(Debug, Clone, Copy)]
-pub(in crate::parser::expression) struct ConditionalExpression {
+pub(in crate::parser::expression) struct ConditionalExpression<'arena> {
     allow_in: AllowIn,
     allow_yield: AllowYield,
     allow_await: AllowAwait,
+    _marker: std::marker::PhantomData<&'arena ()>,
 }
 
-impl ConditionalExpression {
+impl<'arena> ConditionalExpression<'arena> {
     /// Creates a new `ConditionalExpression` parser.
     pub(in crate::parser::expression) fn new<I, Y, A>(
         allow_in: I,
@@ -51,15 +52,16 @@ impl ConditionalExpression {
             allow_in: allow_in.into(),
             allow_yield: allow_yield.into(),
             allow_await: allow_await.into(),
+            _marker: std::marker::PhantomData,
         }
     }
 }
 
-impl<R> TokenParser<R> for ConditionalExpression
+impl<'arena, R> TokenParser<'arena, R> for ConditionalExpression<'arena>
 where
     R: ReadChar,
 {
-    type Output = FormalParameterListOrExpression;
+    type Output = FormalParameterListOrExpression<'arena>;
 
     fn parse(self, cursor: &mut Cursor<R>, interner: &mut Interner) -> ParseResult<Self::Output> {
         let lhs = ShortCircuitExpression::new(self.allow_in, self.allow_yield, self.allow_await)

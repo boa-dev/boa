@@ -31,13 +31,14 @@ const CASE_BREAK_TOKENS: [TokenKind; 3] = [
 /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Statements/switch
 /// [spec]: https://tc39.es/ecma262/#prod-SwitchStatement
 #[derive(Debug, Clone, Copy)]
-pub(super) struct SwitchStatement {
+pub(super) struct SwitchStatement<'arena> {
     allow_yield: AllowYield,
     allow_await: AllowAwait,
     allow_return: AllowReturn,
+    _marker: std::marker::PhantomData<&'arena ()>,
 }
 
-impl SwitchStatement {
+impl<'arena> SwitchStatement<'arena> {
     /// Creates a new `SwitchStatement` parser.
     pub(super) fn new<Y, A, R>(allow_yield: Y, allow_await: A, allow_return: R) -> Self
     where
@@ -49,15 +50,16 @@ impl SwitchStatement {
             allow_yield: allow_yield.into(),
             allow_await: allow_await.into(),
             allow_return: allow_return.into(),
+            _marker: std::marker::PhantomData,
         }
     }
 }
 
-impl<R> TokenParser<R> for SwitchStatement
+impl<'arena, R> TokenParser<'arena, R> for SwitchStatement<'arena>
 where
     R: ReadChar,
 {
-    type Output = Switch;
+    type Output = Switch<'arena>;
 
     fn parse(self, cursor: &mut Cursor<R>, interner: &mut Interner) -> ParseResult<Self::Output> {
         cursor.expect((Keyword::Switch, false), "switch statement", interner)?;
@@ -115,13 +117,14 @@ where
 ///
 /// [spec]: https://tc39.es/ecma262/#prod-CaseBlock
 #[derive(Debug, Clone, Copy)]
-struct CaseBlock {
+struct CaseBlock<'arena> {
     allow_yield: AllowYield,
     allow_await: AllowAwait,
     allow_return: AllowReturn,
+    _marker: std::marker::PhantomData<&'arena ()>,
 }
 
-impl CaseBlock {
+impl<'arena> CaseBlock<'arena> {
     /// Creates a new `CaseBlock` parser.
     fn new<Y, A, R>(allow_yield: Y, allow_await: A, allow_return: R) -> Self
     where
@@ -133,15 +136,16 @@ impl CaseBlock {
             allow_yield: allow_yield.into(),
             allow_await: allow_await.into(),
             allow_return: allow_return.into(),
+            _marker: std::marker::PhantomData,
         }
     }
 }
 
-impl<R> TokenParser<R> for CaseBlock
+impl<'arena, R> TokenParser<'arena, R> for CaseBlock<'arena>
 where
     R: ReadChar,
 {
-    type Output = Box<[statement::Case]>;
+    type Output = Box<[statement::Case<'arena>]>;
 
     fn parse(self, cursor: &mut Cursor<R>, interner: &mut Interner) -> ParseResult<Self::Output> {
         cursor.expect(Punctuator::OpenBlock, "switch case block", interner)?;

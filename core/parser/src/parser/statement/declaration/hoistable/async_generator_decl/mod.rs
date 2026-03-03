@@ -25,13 +25,14 @@ use boa_interner::Interner;
 ///
 /// [spec]: https://tc39.es/ecma262/#prod-AsyncGeneratorDeclaration
 #[derive(Debug, Clone, Copy)]
-pub(in crate::parser) struct AsyncGeneratorDeclaration {
+pub(in crate::parser) struct AsyncGeneratorDeclaration<'arena> {
     allow_yield: AllowYield,
     allow_await: AllowAwait,
     is_default: AllowDefault,
+    _marker: std::marker::PhantomData<&'arena ()>,
 }
 
-impl AsyncGeneratorDeclaration {
+impl<'arena> AsyncGeneratorDeclaration<'arena> {
     /// Creates a new `AsyncGeneratorDeclaration` parser.
     pub(in crate::parser) fn new<Y, A, D>(allow_yield: Y, allow_await: A, is_default: D) -> Self
     where
@@ -43,11 +44,12 @@ impl AsyncGeneratorDeclaration {
             allow_yield: allow_yield.into(),
             allow_await: allow_await.into(),
             is_default: is_default.into(),
+            _marker: std::marker::PhantomData,
         }
     }
 }
 
-impl CallableDeclaration for AsyncGeneratorDeclaration {
+impl<'arena> CallableDeclaration for AsyncGeneratorDeclaration<'arena> {
     fn error_context(&self) -> &'static str {
         "async generator declaration"
     }
@@ -87,11 +89,11 @@ impl CallableDeclaration for AsyncGeneratorDeclaration {
     }
 }
 
-impl<R> TokenParser<R> for AsyncGeneratorDeclaration
+impl<'arena, R> TokenParser<'arena, R> for AsyncGeneratorDeclaration<'arena>
 where
     R: ReadChar,
 {
-    type Output = AsyncGeneratorDeclarationNode;
+    type Output = AsyncGeneratorDeclarationNode<'arena>;
 
     fn parse(self, cursor: &mut Cursor<R>, interner: &mut Interner) -> ParseResult<Self::Output> {
         let async_token = cursor.expect(
