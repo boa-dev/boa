@@ -233,13 +233,7 @@ impl ByteCompiler<'_> {
         self.pop_loop_control_info();
 
         self.iterator_close(false);
-
-        let skip_early_exit = self.jump();
         self.patch_jump(early_exit);
-        let value = self.register_allocator.alloc();
-        self.bytecode.emit_push_undefined(value.variable());
-        self.register_allocator.dealloc(value);
-        self.patch_jump(skip_early_exit);
     }
 
     pub(crate) fn compile_for_of_loop(

@@ -50,6 +50,13 @@ impl Register {
     pub(crate) fn variable(&self) -> VaryingOperand {
         self.index.into()
     }
+
+    pub(crate) fn persistent(index: u32) -> Self {
+        Self {
+            index,
+            flags: RegisterFlags::PERSISTENT,
+        }
+    }
 }
 
 impl Drop for Register {
