@@ -322,8 +322,50 @@ pub enum RuntimeLimitError {
     StackSize,
 }
 
+/// Internal panic error.
+#[derive(Debug, Clone, Error, Eq, PartialEq, Trace, Finalize)]
+#[boa_gc(unsafe_no_drop)]
+#[error("{message}")]
+#[must_use]
+pub struct PanicError {
+    /// The original panic message providing context about what went wrong.
+    message: Box<str>,
+    /// The source error of this panic, if applicable.
+    source: Option<Box<JsError>>,
+}
+
+impl PanicError {
+    /// Creates a `PanicError` error from a panic message.
+    pub fn new<S: Into<Box<str>>>(message: S) -> Self {
+        PanicError {
+            message: message.into(),
+            source: None,
+        }
+    }
+
+    /// Sets the source error of this `PanicError`.
+    pub fn with_source<E: Into<JsError>>(mut self, source: E) -> Self {
+        self.source = Some(Box::new(source.into()));
+        self
+    }
+
+    /// Gets the message of this `PanicError`.
+    #[must_use]
+    pub fn message(&self) -> &str {
+        &self.message
+    }
+}
+
+impl From<PanicError> for JsError {
+    fn from(err: PanicError) -> Self {
+        EngineError::from(err).into()
+    }
+}
+
 /// Engine error that cannot be caught from within ECMAScript code.
-#[derive(Debug, Clone, Eq, PartialEq, Ord, PartialOrd, Error, Finalize)]
+#[derive(Debug, Clone, Error, Eq, PartialEq, Trace, Finalize)]
+#[boa_gc(unsafe_no_drop)]
+#[allow(variant_size_differences)]
 pub enum EngineError {
     /// Error thrown when no instructions remain. Only used in a fuzzing context.
     #[cfg(feature = "fuzz")]
@@ -335,17 +377,27 @@ pub enum EngineError {
     RuntimeLimit(#[from] RuntimeLimitError),
 
     /// Error thrown when an internal panic condition is encountered.
-    #[error("EnginePanic: {message}")]
-    Panic {
-        /// The original panic message providing context about what went wrong.
-        message: String,
-    },
+    #[error("EnginePanic: {0}")]
+    Panic(#[from] PanicError),
 }
 
-// SAFETY: `EngineError` only contains a `String` which has no garbage collected
-// references, so this empty trace implementation is safe.
-unsafe impl Trace for EngineError {
-    boa_gc::empty_trace!();
+impl EngineError {
+    /// Converts this error into its thread-safe, erased version.
+    ///
+    /// Even though this operation is lossy, converting into an `ErasedEngineError`
+    /// is useful since it implements `Send` and `Sync`, making it compatible with
+    /// error reporting frameworks such as `anyhow`, `eyre` or `miette`.
+    fn into_erased(self, context: &mut Context) -> ErasedEngineError {
+        match self {
+            #[cfg(feature = "fuzz")]
+            EngineError::NoInstructionsRemain => ErasedEngineError::NoInstructionsRemain,
+            EngineError::RuntimeLimit(err) => ErasedEngineError::RuntimeLimit(err),
+            EngineError::Panic(err) => ErasedEngineError::Panic(ErasedPanicError {
+                message: err.message,
+                source: err.source.map(|err| Box::new(err.into_erased(context))),
+            }),
+        }
+    }
 }
 
 impl JsError {
@@ -701,7 +753,7 @@ impl JsError {
             Ok(native) => native,
             Err(TryNativeError::EngineError { source }) => {
                 return JsErasedError {
-                    inner: ErasedRepr::Engine(source),
+                    inner: ErasedRepr::Engine(source.into_erased(context)),
                 };
             }
             Err(_) => {
@@ -1542,6 +1594,57 @@ impl fmt::Display for JsNativeErrorKind {
     }
 }
 
+/// Erased version of [`PanicError`].
+///
+/// This is mainly useful to convert a `PanicError` into an `ErasedPanicError` that also
+/// implements `Send + Sync`, which makes it compatible with error reporting tools
+/// such as `anyhow`, `eyre` or `miette`.
+///
+/// Generally, the conversion from `PanicError` to `ErasedPanicError` is unidirectional,
+/// since any `JsError` that is a [`JsValue`] is converted to its string representation
+/// instead. This will lose information if that value was an object, a symbol or a big int.
+#[derive(Debug, Clone, Error, Eq, PartialEq, Trace, Finalize)]
+#[error("{message}")]
+#[must_use]
+pub struct ErasedPanicError {
+    message: Box<str>,
+    source: Option<Box<JsErasedError>>,
+}
+
+impl ErasedPanicError {
+    /// Gets the message of this `ErasedPanicError`.
+    #[must_use]
+    pub fn message(&self) -> &str {
+        &self.message
+    }
+}
+
+/// Erased version of [`EngineError`].
+///
+/// This is mainly useful to convert an `EngineError` into an `ErasedEngineError` that also
+/// implements `Send + Sync`, which makes it compatible with error reporting tools
+/// such as `anyhow`, `eyre` or `miette`.
+///
+/// Generally, the conversion from `EngineError` to `ErasedEngineError` is unidirectional,
+/// since any `JsError` that is a [`JsValue`] is converted to its string representation
+/// instead. This will lose information if that value was an object, a symbol or a big int.
+#[derive(Debug, Clone, Error, Eq, PartialEq, Trace, Finalize)]
+#[allow(variant_size_differences)]
+pub enum ErasedEngineError {
+    /// Error thrown when no instructions remain. Only used in a fuzzing context.
+    #[cfg(feature = "fuzz")]
+    #[error("NoInstructionsRemainError: instruction budget was exhausted")]
+    NoInstructionsRemain,
+
+    /// Error thrown when a runtime limit is exceeded.
+    #[error("RuntimeLimitError: {0}")]
+    RuntimeLimit(#[from] RuntimeLimitError),
+
+    /// Error thrown when an internal panic condition is encountered.
+    #[error("EnginePanic: {0}")]
+    Panic(#[from] ErasedPanicError),
+}
+
 /// Erased version of [`JsError`].
 ///
 /// This is mainly useful to convert a `JsError` into an `Error` that also
@@ -1560,7 +1663,7 @@ pub struct JsErasedError {
 enum ErasedRepr {
     Native(JsErasedNativeError),
     Opaque(Cow<'static, str>),
-    Engine(EngineError),
+    Engine(ErasedEngineError),
 }
 
 impl fmt::Display for JsErasedError {
@@ -1604,10 +1707,10 @@ impl JsErasedError {
         }
     }
 
-    /// Gets the inner [`EngineError`] if the error is an engine
+    /// Gets the inner [`ErasedEngineError`] if the error is an engine
     /// error, or `None` otherwise.
     #[must_use]
-    pub const fn as_engine(&self) -> Option<&EngineError> {
+    pub const fn as_engine(&self) -> Option<&ErasedEngineError> {
         match &self.inner {
             ErasedRepr::Engine(e) => Some(e),
             ErasedRepr::Opaque(_) | ErasedRepr::Native(_) => None,
