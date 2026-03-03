@@ -335,11 +335,7 @@ pub enum EngineError {
     RuntimeLimit(#[from] RuntimeLimitError),
 
     /// Error thrown when an internal panic condition is encountered.
-    ///
-    /// This error is used to convert panics into recoverable errors that bubble
-    /// up to the host application without crashing the process. It cannot be
-    /// caught from within ECMAScript code.
-    #[error("PanicError: {message}")]
+    #[error("EnginePanic: {message}")]
     Panic {
         /// The original panic message providing context about what went wrong.
         message: String,
