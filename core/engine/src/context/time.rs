@@ -4,14 +4,18 @@
 ///
 /// This type is guaranteed to be monotonic, i.e. if two instants
 /// are compared, the later one will always be greater than the
-/// earlier one. It is also always guaranteed to be greater than
-/// or equal to the Unix epoch.
+/// earlier one.
+///
+/// This mirrors the behavior of [`std::time::Instant`] and represents
+/// a measurement of elapsed time relative to an arbitrary starting point.
+/// It is NOT tied to wall-clock time or the Unix epoch, and system clock
+/// adjustments will not affect it.
 ///
 /// This should not be used to keep dates or times, but only to
-/// measure the current time in the engine.
+/// measure monotonic time progression in the engine.
 #[derive(Debug, Clone, Copy, Hash, PartialEq, Eq, PartialOrd, Ord)]
 pub struct JsInstant {
-    /// The duration of time since the Unix epoch.
+    /// The duration of time since an arbitrary starting point.
     inner: std::time::Duration,
 }
 
@@ -29,13 +33,21 @@ impl JsInstant {
         Self { inner }
     }
 
-    /// Returns the number of milliseconds since the Unix epoch.
+    /// Returns the number of milliseconds since the clock's starting point.
+    ///
+    /// Note: This is NOT a Unix timestamp. It represents elapsed time
+    /// since an arbitrary starting point and is only meaningful for
+    /// measuring durations and comparing instants.
     #[must_use]
     pub fn millis_since_epoch(&self) -> u64 {
         self.inner.as_millis() as u64
     }
 
-    /// Returns the number of nanoseconds since the Unix epoch.
+    /// Returns the number of nanoseconds since the clock's starting point.
+    ///
+    /// Note: This is NOT a Unix timestamp. It represents elapsed time
+    /// since an arbitrary starting point and is only meaningful for
+    /// measuring durations and comparing instants.
     #[must_use]
     pub fn nanos_since_epoch(&self) -> u128 {
         self.inner.as_nanos()
@@ -131,22 +143,61 @@ impl std::ops::Sub for JsInstant {
 
 /// Implement a clock that can be used to measure time.
 pub trait Clock {
-    /// Returns the current time.
+    /// Returns the current monotonic time.
+    ///
+    /// This is guaranteed to be monotonic and should be used for measuring
+    /// durations and scheduling timeouts.
     fn now(&self) -> JsInstant;
+
+    /// Returns the current wall-clock time in milliseconds since the Unix epoch.
+    ///
+    /// This is NOT monotonic and can go backward if the system clock is adjusted.
+    /// It should only be used for `Date` objects and other wall-clock time needs.
+    fn system_time_millis(&self) -> i64;
 }
 
-/// A clock that uses the standard system clock.
-#[derive(Debug, Clone, Copy, Default)]
-pub struct StdClock;
+/// A clock that uses the standard monotonic clock.
+///
+/// This clock is based on [`std::time::Instant`] and is guaranteed to be
+/// monotonic. Time measurements are relative to an arbitrary starting point
+/// (the first call to `now()`) and are not affected by system clock adjustments.
+///
+/// This ensures that time never goes backward, which is critical for
+/// maintaining the invariants of [`JsInstant`].
+#[derive(Debug, Clone, Copy)]
+pub struct StdClock {
+    /// The base instant from which all measurements are relative.
+    base: std::time::Instant,
+}
+
+impl Default for StdClock {
+    fn default() -> Self {
+        Self::new()
+    }
+}
+
+impl StdClock {
+    /// Creates a new `StdClock` with the current instant as the base.
+    #[must_use]
+    pub fn new() -> Self {
+        Self {
+            base: std::time::Instant::now(),
+        }
+    }
+}
 
 impl Clock for StdClock {
     fn now(&self) -> JsInstant {
+        let elapsed = self.base.elapsed();
+        JsInstant::new_unchecked(elapsed)
+    }
+
+    fn system_time_millis(&self) -> i64 {
         let now = std::time::SystemTime::now();
         let duration = now
             .duration_since(std::time::UNIX_EPOCH)
             .expect("System clock is before Unix epoch");
-
-        JsInstant::new_unchecked(duration)
+        duration.as_millis() as i64
     }
 }
 
@@ -178,28 +229,36 @@ impl Clock for FixedClock {
             ((millis % 1000) * 1_000_000) as u32,
         ))
     }
+
+    fn system_time_millis(&self) -> i64 {
+        *self.0.borrow() as i64
+    }
 }
 
 #[test]
 fn basic() {
-    let now = StdClock.now();
-    assert!(now.millis_since_epoch() > 0);
-    assert!(now.nanos_since_epoch() > 0);
+    let clock = StdClock::new();
+    let now = clock.now();
+    // Since we're using a relative clock, values are always >= 0 by type
+    let _millis = now.millis_since_epoch();
+    let _nanos = now.nanos_since_epoch();
 
     let duration = JsDuration::from_millis(1000);
     let later = now + duration;
     assert!(later > now);
 
-    let earlier = now - duration;
-    assert!(earlier < now);
+    // Only subtract if we have enough time elapsed
+    let duration_small = JsDuration::from_millis(100);
+    let later_small = now + duration_small;
+    let earlier = later_small - duration_small;
+    assert_eq!(earlier, now);
 
-    let diff = later - earlier;
-    assert_eq!(diff.as_millis(), 2000);
+    let diff = later - now;
+    assert_eq!(diff.as_millis(), 1000);
 
     let fixed = FixedClock::from_millis(0);
     let now2 = fixed.now();
     assert_eq!(now2.millis_since_epoch(), 0);
-    assert!(now2 < now);
 
     fixed.forward(1000);
     let now3 = fixed.now();
@@ -211,4 +270,39 @@ fn basic() {
     let now4 = fixed.now();
     assert_eq!(now4.millis_since_epoch(), u64::MAX);
     assert!(now4 > now3);
+}
+
+#[test]
+fn monotonic_behavior() {
+    let clock = StdClock::new();
+    
+    // Verify that time always moves forward
+    let t1 = clock.now();
+    std::thread::sleep(std::time::Duration::from_millis(1));
+    let t2 = clock.now();
+    std::thread::sleep(std::time::Duration::from_millis(1));
+    let t3 = clock.now();
+    
+    // Time must always increase
+    assert!(t2 > t1, "Time must move forward");
+    assert!(t3 > t2, "Time must continue moving forward");
+    assert!(t3 > t1, "Time must be transitive");
+    
+    // Verify that elapsed time is reasonable
+    let elapsed = t3 - t1;
+    assert!(elapsed.as_millis() >= 2, "At least 2ms should have elapsed");
+}
+
+#[test]
+fn clock_independence() {
+    // Each clock instance has its own base instant
+    let clock1 = StdClock::new();
+    std::thread::sleep(std::time::Duration::from_millis(10));
+    let clock2 = StdClock::new();
+    
+    let t1 = clock1.now();
+    let t2 = clock2.now();
+    
+    // clock1 started earlier, so it should show more elapsed time
+    assert!(t1.millis_since_epoch() >= t2.millis_since_epoch());
 }
