@@ -948,7 +948,7 @@ impl Display for CodeBlock {
                 } else {
                     ' '
                 };
-                format!("{border_char}{i:2}: {:06}", handler.handler())
+                format!("{border_char}{i:2}: {:06x}", handler.handler())
             } else {
                 "           ".to_string()
             };
