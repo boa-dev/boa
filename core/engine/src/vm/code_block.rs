@@ -849,7 +849,6 @@ impl CodeBlock {
             | Instruction::Return
             | Instruction::AsyncGeneratorClose
             | Instruction::CreatePromiseCapability
-            | Instruction::CompletePromiseCapability
             | Instruction::PopEnvironment
             | Instruction::IncrementLoopIteration
             | Instruction::IteratorNext
@@ -917,7 +916,8 @@ impl CodeBlock {
             | Instruction::Reserved57
             | Instruction::Reserved58
             | Instruction::Reserved59
-            | Instruction::Reserved60 => unreachable!("Reserved opcodes are unreachable"),
+            | Instruction::Reserved60
+            | Instruction::Reserved61 => unreachable!("Reserved opcodes are unreachable"),
         }
     }
 }

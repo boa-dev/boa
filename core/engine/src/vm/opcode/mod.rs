@@ -1947,11 +1947,6 @@ generate_opcodes! {
     /// Create a promise capacity for an async function, if not already set.
     CreatePromiseCapability,
 
-    /// Resolves or rejects the promise capability of an async function.
-    ///
-    /// If the pending exception is set, reject and rethrow the exception, otherwise resolve.
-    CompletePromiseCapability,
-
     /// Jumps to the specified address if the resume kind is not equal.
     ///
     /// - Operands:
@@ -2238,4 +2233,6 @@ generate_opcodes! {
     Reserved59 => Reserved,
     /// Reserved [`Opcode`].
     Reserved60 => Reserved,
+    /// Reserved [`Opcode`]
+    Reserved61 => Reserved,
 }
