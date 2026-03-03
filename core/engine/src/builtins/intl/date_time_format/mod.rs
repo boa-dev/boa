@@ -18,7 +18,7 @@ use crate::{
         intl::{
             Service,
             date_time_format::options::{DateStyle, FormatMatcher, FormatOptions, TimeStyle},
-            locale::{canonicalize_locale_list, resolve_locale},
+            locale::{canonicalize_locale_list, filter_locales, resolve_locale},
             options::{IntlOptions, coerce_options_to_object},
         },
         options::get_option,
@@ -100,6 +100,11 @@ impl IntrinsicObject for DateTimeFormat {
             .build();
 
         BuiltInBuilder::from_standard_constructor::<Self>(realm)
+            .static_method(
+                Self::supported_locales_of,
+                js_string!("supportedLocalesOf"),
+                1,
+            )
             .accessor(
                 js_string!("format"),
                 Some(get_format),
@@ -121,7 +126,7 @@ impl BuiltInObject for DateTimeFormat {
 impl BuiltInConstructor for DateTimeFormat {
     const CONSTRUCTOR_ARGUMENTS: usize = 0;
     const PROTOTYPE_STORAGE_SLOTS: usize = 2;
-    const CONSTRUCTOR_STORAGE_SLOTS: usize = 0;
+    const CONSTRUCTOR_STORAGE_SLOTS: usize = 1;
 
     const STANDARD_CONSTRUCTOR: fn(&StandardConstructors) -> &StandardConstructor =
         StandardConstructors::date_time_format;
@@ -297,6 +302,33 @@ impl DateTimeFormat {
             dtf.data_mut().bound_format = Some(bound_format.clone());
             Ok(bound_format.into())
         }
+    }
+
+    /// [`Intl.DateTimeFormat.supportedLocalesOf ( locales [ , options ] )`][spec]
+    ///
+    /// Returns an array containing those of the provided locales that are
+    /// supported in date and time formatting without having to fall back to
+    /// the runtime's default locale.
+    ///
+    /// More information:
+    ///  - [MDN documentation][mdn]
+    ///
+    /// [spec]: https://tc39.es/ecma402/#sec-intl.datetimeformat.supportedlocalesof
+    /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Intl/DateTimeFormat/supportedLocalesOf
+    fn supported_locales_of(
+        _: &JsValue,
+        args: &[JsValue],
+        context: &mut Context,
+    ) -> JsResult<JsValue> {
+        let locales = args.get_or_undefined(0);
+        let options = args.get_or_undefined(1);
+
+        // 1. Let availableLocales be %DateTimeFormat%.[[AvailableLocales]].
+        // 2. Let requestedLocales be ? CanonicalizeLocaleList(locales).
+        let requested_locales = canonicalize_locale_list(locales, context)?;
+        
+        // 3. Return ? FilterLocales(availableLocales, requestedLocales, options).
+        filter_locales::<Self>(requested_locales, options, context).map(JsValue::from)
     }
 }
 
