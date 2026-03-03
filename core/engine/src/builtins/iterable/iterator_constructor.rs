@@ -209,6 +209,7 @@ impl IteratorConstructor {
     ///  - [ECMAScript reference][spec]
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-iterator.prototype.constructor
+    #[allow(clippy::unnecessary_wraps)]
     fn get_constructor(
         _this: &JsValue,
         _args: &[JsValue],
@@ -250,6 +251,7 @@ impl IteratorConstructor {
     ///  - [ECMAScript reference][spec]
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-iterator.prototype-%40%40tostringtag
+    #[allow(clippy::unnecessary_wraps)]
     fn get_to_string_tag(
         _this: &JsValue,
         _args: &[JsValue],
@@ -409,26 +411,27 @@ impl IteratorConstructor {
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-iterator.prototype.take
     fn take(this: &JsValue, args: &[JsValue], context: &mut Context) -> JsResult<JsValue> {
+        // 1. Let O be the this value.
+        // 2. If O is not an Object, throw a TypeError exception.
         let o = this.as_object().ok_or_else(|| {
             JsNativeError::typ().with_message("Iterator.prototype.take called on non-object")
         })?;
 
+        // 3. Let numLimit be ? ToNumber(limit).
         let limit = args.get_or_undefined(0);
-
-        // Let numLimit be ? ToNumber(limit).
         let num_limit = limit.to_number(context)?;
 
-        // If numLimit is NaN, throw a RangeError exception.
+        // 4. If numLimit is NaN, throw a RangeError exception.
         if num_limit.is_nan() {
             return Err(JsNativeError::range()
                 .with_message("Iterator.prototype.take: limit is NaN")
                 .into());
         }
 
-        // Let integerLimit be ! ToIntegerOrInfinity(numLimit).
+        // 5. Let integerLimit be ! ToIntegerOrInfinity(numLimit).
         let integer_limit = limit.to_integer_or_infinity(context)?;
 
-        // If integerLimit < 0, throw a RangeError exception.
+        // 6. If integerLimit < 0, throw a RangeError exception.
         let integer_limit = match integer_limit {
             crate::value::IntegerOrInfinity::Integer(n) if n < 0 => {
                 return Err(JsNativeError::range()
@@ -444,8 +447,10 @@ impl IteratorConstructor {
             }
         };
 
+        // 7. Let iterated be ? GetIteratorDirect(O).
         let iterated = super::get_iterator_direct(&o, context)?;
 
+        // 8-10. Return CreateIteratorHelper with a take closure.
         let helper = IteratorHelper::create(
             iterated,
             IteratorHelperOp::Take {
@@ -464,22 +469,27 @@ impl IteratorConstructor {
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-iterator.prototype.drop
     fn drop(this: &JsValue, args: &[JsValue], context: &mut Context) -> JsResult<JsValue> {
+        // 1. Let O be the this value.
+        // 2. If O is not an Object, throw a TypeError exception.
         let o = this.as_object().ok_or_else(|| {
             JsNativeError::typ().with_message("Iterator.prototype.drop called on non-object")
         })?;
 
+        // 3. Let numLimit be ? ToNumber(limit).
         let limit = args.get_or_undefined(0);
-
         let num_limit = limit.to_number(context)?;
 
+        // 4. If numLimit is NaN, throw a RangeError exception.
         if num_limit.is_nan() {
             return Err(JsNativeError::range()
                 .with_message("Iterator.prototype.drop: limit is NaN")
                 .into());
         }
 
+        // 5. Let integerLimit be ! ToIntegerOrInfinity(numLimit).
         let integer_limit = limit.to_integer_or_infinity(context)?;
 
+        // 6. If integerLimit < 0, throw a RangeError exception.
         let integer_limit = match integer_limit {
             crate::value::IntegerOrInfinity::Integer(n) if n < 0 => {
                 return Err(JsNativeError::range()
@@ -495,8 +505,10 @@ impl IteratorConstructor {
             }
         };
 
+        // 7. Let iterated be ? GetIteratorDirect(O).
         let iterated = super::get_iterator_direct(&o, context)?;
 
+        // 8-10. Return CreateIteratorHelper with a drop closure.
         let helper = IteratorHelper::create(
             iterated,
             IteratorHelperOp::Drop {
@@ -553,12 +565,9 @@ impl IteratorConstructor {
             JsNativeError::typ().with_message("Iterator.prototype.reduce called on non-object")
         })?;
 
-        let reducer = args.get_or_undefined(0);
-        if !reducer.is_callable() {
-            return Err(JsNativeError::typ()
-                .with_message("Iterator.prototype.reduce: reducer is not callable")
-                .into());
-        }
+        let reducer = args.get_or_undefined(0).as_callable().ok_or_else(|| {
+            JsNativeError::typ().with_message("Iterator.prototype.reduce: reducer is not callable")
+        })?;
 
         let mut iterated = super::get_iterator_direct(&o, context)?;
 
@@ -593,7 +602,7 @@ impl IteratorConstructor {
             match value {
                 None => return Ok(accumulator),
                 Some(value) => {
-                    let result = reducer.as_callable().unwrap().call(
+                    let result = reducer.call(
                         &JsValue::undefined(),
                         &[accumulator, value, JsValue::new(counter)],
                         context,
@@ -646,12 +655,10 @@ impl IteratorConstructor {
             JsNativeError::typ().with_message("Iterator.prototype.forEach called on non-object")
         })?;
 
-        let func = args.get_or_undefined(0);
-        if !func.is_callable() {
-            return Err(JsNativeError::typ()
+        let func = args.get_or_undefined(0).as_callable().ok_or_else(|| {
+            JsNativeError::typ()
                 .with_message("Iterator.prototype.forEach: argument is not callable")
-                .into());
-        }
+        })?;
 
         let mut iterated = super::get_iterator_direct(&o, context)?;
         let mut counter = 0u64;
@@ -661,7 +668,7 @@ impl IteratorConstructor {
             match value {
                 None => return Ok(JsValue::undefined()),
                 Some(value) => {
-                    let result = func.as_callable().unwrap().call(
+                    let result = func.call(
                         &JsValue::undefined(),
                         &[value, JsValue::new(counter)],
                         context,
@@ -688,12 +695,9 @@ impl IteratorConstructor {
             JsNativeError::typ().with_message("Iterator.prototype.some called on non-object")
         })?;
 
-        let predicate = args.get_or_undefined(0);
-        if !predicate.is_callable() {
-            return Err(JsNativeError::typ()
-                .with_message("Iterator.prototype.some: predicate is not callable")
-                .into());
-        }
+        let predicate = args.get_or_undefined(0).as_callable().ok_or_else(|| {
+            JsNativeError::typ().with_message("Iterator.prototype.some: predicate is not callable")
+        })?;
 
         let mut iterated = super::get_iterator_direct(&o, context)?;
         let mut counter = 0u64;
@@ -703,7 +707,7 @@ impl IteratorConstructor {
             match value {
                 None => return Ok(JsValue::new(false)),
                 Some(value) => {
-                    let result = predicate.as_callable().unwrap().call(
+                    let result = predicate.call(
                         &JsValue::undefined(),
                         &[value, JsValue::new(counter)],
                         context,
@@ -737,12 +741,9 @@ impl IteratorConstructor {
             JsNativeError::typ().with_message("Iterator.prototype.every called on non-object")
         })?;
 
-        let predicate = args.get_or_undefined(0);
-        if !predicate.is_callable() {
-            return Err(JsNativeError::typ()
-                .with_message("Iterator.prototype.every: predicate is not callable")
-                .into());
-        }
+        let predicate = args.get_or_undefined(0).as_callable().ok_or_else(|| {
+            JsNativeError::typ().with_message("Iterator.prototype.every: predicate is not callable")
+        })?;
 
         let mut iterated = super::get_iterator_direct(&o, context)?;
         let mut counter = 0u64;
@@ -752,7 +753,7 @@ impl IteratorConstructor {
             match value {
                 None => return Ok(JsValue::new(true)),
                 Some(value) => {
-                    let result = predicate.as_callable().unwrap().call(
+                    let result = predicate.call(
                         &JsValue::undefined(),
                         &[value, JsValue::new(counter)],
                         context,
@@ -786,12 +787,9 @@ impl IteratorConstructor {
             JsNativeError::typ().with_message("Iterator.prototype.find called on non-object")
         })?;
 
-        let predicate = args.get_or_undefined(0);
-        if !predicate.is_callable() {
-            return Err(JsNativeError::typ()
-                .with_message("Iterator.prototype.find: predicate is not callable")
-                .into());
-        }
+        let predicate = args.get_or_undefined(0).as_callable().ok_or_else(|| {
+            JsNativeError::typ().with_message("Iterator.prototype.find: predicate is not callable")
+        })?;
 
         let mut iterated = super::get_iterator_direct(&o, context)?;
         let mut counter = 0u64;
@@ -801,7 +799,7 @@ impl IteratorConstructor {
             match value {
                 None => return Ok(JsValue::undefined()),
                 Some(value) => {
-                    let result = predicate.as_callable().unwrap().call(
+                    let result = predicate.call(
                         &JsValue::undefined(),
                         &[value.clone(), JsValue::new(counter)],
                         context,

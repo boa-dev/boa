@@ -192,14 +192,14 @@ impl IteratorHelper {
                         ));
                     }
                     Some(value) => {
-                        let mapped_result = mapper.call(
+                        let mapper_result = mapper.call(
                             &JsValue::undefined(),
                             &[value, JsValue::new(count)],
                             context,
                         );
-                        return match mapped_result {
-                            Ok(mapped) => {
-                                Ok((create_iter_result_object(mapped, false, context), false))
+                        return match mapper_result {
+                            Ok(result_value) => {
+                                Ok((create_iter_result_object(result_value, false, context), false))
                             }
                             Err(err) => {
                                 drop(iterated.close(Err(err.clone()), context));
@@ -433,13 +433,13 @@ impl IteratorHelper {
                         ));
                     }
                     Some(value) => {
-                        let mapped_result = mapper.call(
+                        let mapper_result = mapper.call(
                             &JsValue::undefined(),
                             &[value, JsValue::new(count)],
                             context,
                         );
 
-                        let mapped = match mapped_result {
+                        let inner_value = match mapper_result {
                             Ok(m) => m,
                             Err(err) => {
                                 drop(iterated.close(Err(err.clone()), context));
@@ -450,7 +450,7 @@ impl IteratorHelper {
 
                         // Get inner iterator
                         let inner_record =
-                            match super::get_iterator_flattenable(&mapped, false, context) {
+                            match super::get_iterator_flattenable(&inner_value, false, context) {
                                 Ok(record) => record,
                                 Err(err) => {
                                     let helper = object

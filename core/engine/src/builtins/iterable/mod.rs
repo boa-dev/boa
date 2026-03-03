@@ -686,7 +686,7 @@ impl IteratorRecord {
 /// More information:
 ///  - [ECMAScript reference][spec]
 ///
-/// [spec]: https://tc39.es/proposal-iterator-helpers/#sec-getiteratordirect
+/// [spec]: https://tc39.es/ecma262/#sec-getiteratordirect
 pub(crate) fn get_iterator_direct(
     obj: &JsObject,
     context: &mut Context,
@@ -707,7 +707,7 @@ pub(crate) fn get_iterator_direct(
 /// More information:
 ///  - [ECMAScript reference][spec]
 ///
-/// [spec]: https://tc39.es/proposal-iterator-helpers/#sec-getiteratorflattenable
+/// [spec]: https://tc39.es/ecma262/#sec-getiteratorflattenable
 pub(crate) fn get_iterator_flattenable(
     obj: &JsValue,
     iterate_strings: bool,
