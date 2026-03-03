@@ -36,18 +36,20 @@ impl ByteCompiler<'_> {
                 // Pre-increment (++i):
                 //   Before: Move(dst, local); Inc(tmp, dst); Move(local, tmp); Move(dst, tmp) → 4 ops
                 //   After:  Inc(dst, local); Move(local, dst) → 2 ops
-                if !post && is_lexical
-                    && let BindingKind::Local(Some(local_reg)) = &index {
-                        let local_op = (*local_reg).into();
-                        if increment {
-                            compiler.bytecode.emit_inc(dst.variable(), local_op);
-                        } else {
-                            compiler.bytecode.emit_dec(dst.variable(), local_op);
-                        }
-                        // Write the new value back to the local register.
-                        compiler.bytecode.emit_move(local_op, dst.variable());
-                        return;
+                if !post
+                    && is_lexical
+                    && let BindingKind::Local(Some(local_reg)) = &index
+                {
+                    let local_op = (*local_reg).into();
+                    if increment {
+                        compiler.bytecode.emit_inc(dst.variable(), local_op);
+                    } else {
+                        compiler.bytecode.emit_dec(dst.variable(), local_op);
                     }
+                    // Write the new value back to the local register.
+                    compiler.bytecode.emit_move(local_op, dst.variable());
+                    return;
+                }
 
                 if is_lexical {
                     compiler.emit_binding_access(BindingAccessOpcode::GetName, &index, dst);
