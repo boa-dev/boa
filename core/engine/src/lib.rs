@@ -137,6 +137,7 @@ pub mod prelude {
 #[doc(inline)]
 pub use boa_macros::{boa_class, boa_module, embed_module_inner as __embed_module_inner};
 
+use crate::error::PanicError;
 use std::result::Result as StdResult;
 
 // Export things to root level
@@ -182,6 +183,25 @@ impl JsArgs for [JsValue] {
     fn get_or_undefined(&self, index: usize) -> &JsValue {
         const UNDEFINED: &JsValue = &JsValue::undefined();
         self.get(index).unwrap_or(UNDEFINED)
+    }
+}
+
+/// Utility trait to "expect" a `JsResult`, but returning a `PanicError` instead of panicking.
+#[allow(dead_code)]
+pub(crate) trait JsExpect<V> {
+    /// "expects" a `JsResult`, wrapping the error with a `PanicError`.
+    fn js_expect<S: Into<Box<str>>>(self, msg: S) -> StdResult<V, PanicError>;
+}
+
+impl<V> JsExpect<V> for JsResult<V> {
+    fn js_expect<S: Into<Box<str>>>(self, msg: S) -> StdResult<V, PanicError> {
+        self.map_err(|err| PanicError::new(msg).with_source(err))
+    }
+}
+
+impl<V> JsExpect<V> for Option<V> {
+    fn js_expect<S: Into<Box<str>>>(self, msg: S) -> StdResult<V, PanicError> {
+        self.ok_or_else(|| PanicError::new(msg))
     }
 }
 

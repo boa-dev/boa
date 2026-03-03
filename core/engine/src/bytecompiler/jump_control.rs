@@ -347,7 +347,6 @@ impl ByteCompiler<'_> {
         let handler_index = self.handlers.len() as u32;
         let start_address = self.next_opcode_location();
 
-        // FIXME(HalidOdat): figure out value stack fp value.
         let environment_count = self.current_open_environments_count;
         self.handlers.push(Handler {
             start: start_address,
