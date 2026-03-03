@@ -137,8 +137,8 @@ pub mod prelude {
 #[doc(inline)]
 pub use boa_macros::{boa_class, boa_module, embed_module_inner as __embed_module_inner};
 
-use std::result::Result as StdResult;
 use crate::error::PanicError;
+use std::result::Result as StdResult;
 
 // Export things to root level
 #[doc(inline)]
