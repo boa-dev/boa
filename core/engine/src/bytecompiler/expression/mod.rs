@@ -43,12 +43,11 @@ impl ByteCompiler<'_> {
 
     fn compile_conditional(&mut self, op: &Conditional, dst: &Register) {
         self.compile_expr(op.condition(), dst);
-        let jelse = self.jump_if_false(dst);
-        self.compile_expr(op.if_true(), dst);
-        let exit = self.jump();
-        self.patch_jump(jelse);
-        self.compile_expr(op.if_false(), dst);
-        self.patch_jump(exit);
+        self.if_else(
+            dst,
+            |compiler| compiler.compile_expr(op.if_true(), dst),
+            |compiler| compiler.compile_expr(op.if_false(), dst),
+        );
     }
 
     fn compile_template_literal(&mut self, template_literal: &TemplateLiteral, dst: &Register) {

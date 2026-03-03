@@ -291,12 +291,11 @@ impl ByteCompiler<'_> {
                 self.bytecode.emit_iterator_next();
                 let value = self.register_allocator.alloc();
                 self.bytecode.emit_iterator_done(value.variable());
-                let done = self.jump_if_true(&value);
-                self.bytecode.emit_iterator_value(value.variable());
-                let skip_push = self.jump();
-                self.patch_jump(done);
-                self.bytecode.emit_push_undefined(value.variable());
-                self.patch_jump(skip_push);
+                self.if_else(
+                    &value,
+                    |compiler| compiler.bytecode.emit_push_undefined(value.variable()),
+                    |compiler| compiler.bytecode.emit_iterator_value(value.variable()),
+                );
 
                 if let Some(init) = default_init {
                     let skip = self.emit_jump_if_not_undefined(&value);
@@ -315,12 +314,11 @@ impl ByteCompiler<'_> {
                 self.access_set(Access::Property { access }, |compiler| {
                     compiler.bytecode.emit_iterator_next();
                     compiler.bytecode.emit_iterator_done(value.variable());
-                    let done = compiler.jump_if_true(&value);
-                    compiler.bytecode.emit_iterator_value(value.variable());
-                    let skip_push = compiler.jump();
-                    compiler.patch_jump(done);
-                    compiler.bytecode.emit_push_undefined(value.variable());
-                    compiler.patch_jump(skip_push);
+                    compiler.if_else(
+                        &value,
+                        |compiler| compiler.bytecode.emit_push_undefined(value.variable()),
+                        |compiler| compiler.bytecode.emit_iterator_value(value.variable()),
+                    );
 
                     if let Some(init) = default_init {
                         let skip = compiler.emit_jump_if_not_undefined(&value);
@@ -340,12 +338,11 @@ impl ByteCompiler<'_> {
                 self.bytecode.emit_iterator_next();
                 let value = self.register_allocator.alloc();
                 self.bytecode.emit_iterator_done(value.variable());
-                let done = self.jump_if_true(&value);
-                self.bytecode.emit_iterator_value(value.variable());
-                let skip_push = self.jump();
-                self.patch_jump(done);
-                self.bytecode.emit_push_undefined(value.variable());
-                self.patch_jump(skip_push);
+                self.if_else(
+                    &value,
+                    |compiler| compiler.bytecode.emit_push_undefined(value.variable()),
+                    |compiler| compiler.bytecode.emit_iterator_value(value.variable()),
+                );
 
                 if let Some(init) = default_init {
                     let skip = self.emit_jump_if_not_undefined(&value);

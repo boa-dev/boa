@@ -202,13 +202,6 @@ pub(crate) struct ByteCode {
     pub(crate) bytecode: Box<[u8]>,
 }
 
-/// The enum representation of [`VaryingOperand`] values.
-enum VaryingOperandVariant {
-    U8(u8),
-    U16(u16),
-    U32(u32),
-}
-
 #[derive(Debug, Clone, Copy)]
 /// A varying operand is a value that can be either a u8, u16 or u32.
 pub(crate) struct VaryingOperand {
@@ -219,17 +212,6 @@ impl VaryingOperand {
     /// Create a new [`VaryingOperand`] from a u32 value.
     pub(crate) fn new(value: u32) -> Self {
         Self { value }
-    }
-
-    /// Return the variant of the [`VaryingOperand`].
-    fn variant(self) -> VaryingOperandVariant {
-        if let Ok(value) = u8::try_from(self.value) {
-            VaryingOperandVariant::U8(value)
-        } else if let Ok(value) = u16::try_from(self.value) {
-            VaryingOperandVariant::U16(value)
-        } else {
-            VaryingOperandVariant::U32(self.value)
-        }
     }
 }
 
@@ -1965,11 +1947,6 @@ generate_opcodes! {
     /// Create a promise capacity for an async function, if not already set.
     CreatePromiseCapability,
 
-    /// Resolves or rejects the promise capability of an async function.
-    ///
-    /// If the pending exception is set, reject and rethrow the exception, otherwise resolve.
-    CompletePromiseCapability,
-
     /// Jumps to the specified address if the resume kind is not equal.
     ///
     /// - Operands:
@@ -2256,4 +2233,6 @@ generate_opcodes! {
     Reserved59 => Reserved,
     /// Reserved [`Opcode`].
     Reserved60 => Reserved,
+    /// Reserved [`Opcode`]
+    Reserved61 => Reserved,
 }

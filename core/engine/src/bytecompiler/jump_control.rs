@@ -12,7 +12,7 @@
 use super::Register;
 use crate::{
     bytecompiler::{ByteCompiler, Label},
-    vm::Handler,
+    vm::{CallFrame, Handler},
 };
 use bitflags::bitflags;
 use boa_interner::Sym;
@@ -149,7 +149,63 @@ impl JumpRecord {
                     //  - 27.7.5.2 AsyncBlockStart ( promiseCapability, asyncBody, asyncContext ): <https://tc39.es/ecma262/#sec-asyncblockstart>
                     //
                     // Note: If there is promise capability resolve or reject it based on pending exception.
-                    (true, false) => compiler.bytecode.emit_complete_promise_capability(),
+                    (true, false) => {
+                        let has_exception = compiler.register_allocator.alloc();
+                        let exception = compiler.register_allocator.alloc();
+
+                        compiler
+                            .bytecode
+                            .emit_maybe_exception(has_exception.variable(), exception.variable());
+
+                        // Pushes `undefined` to the stack, which acts as the
+                        // `this` value of the call.
+                        {
+                            let value = compiler.register_allocator.alloc();
+                            compiler.bytecode.emit_push_undefined(value.variable());
+                            compiler.push_from_register(&value);
+                            compiler.register_allocator.dealloc(value);
+                        }
+
+                        compiler.if_else_with_dealloc(
+                            has_exception,
+                            |compiler| {
+                                // has_exception == true, so we need to call `reject`
+                                // with the current exception.
+
+                                compiler.bytecode.emit_push_from_register(
+                                    (CallFrame::PROMISE_CAPABILITY_REJECT_REGISTER_INDEX as u32)
+                                        .into(),
+                                );
+                                compiler.push_from_register(&exception);
+                                compiler.register_allocator.dealloc(exception);
+                                compiler.bytecode.emit_call(1u8.into());
+                            },
+                            |compiler| {
+                                // has_exception == false, call `resolve` normally.
+
+                                compiler.bytecode.emit_push_from_register(
+                                    (CallFrame::PROMISE_CAPABILITY_RESOLVE_REGISTER_INDEX as u32)
+                                        .into(),
+                                );
+
+                                {
+                                    let value = compiler.register_allocator.alloc();
+                                    compiler
+                                        .bytecode
+                                        .emit_set_register_from_accumulator(value.variable());
+                                    compiler.push_from_register(&value);
+                                    compiler.register_allocator.dealloc(value);
+                                }
+                                compiler.bytecode.emit_call(1u8.into());
+                            },
+                        );
+
+                        // Finally, set the accumulator value to the promise from the
+                        // promise capability
+                        compiler.bytecode.emit_set_accumulator(
+                            (CallFrame::PROMISE_CAPABILITY_PROMISE_REGISTER_INDEX as u32).into(),
+                        );
+                    }
                     (false, false) => {
                         // TODO: We can omit checking for return, when constructing for functions,
                         // that cannot be constructed, like arrow functions.
