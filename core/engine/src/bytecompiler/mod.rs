@@ -1117,10 +1117,17 @@ impl<'ctx> ByteCompiler<'ctx> {
         Label { index }
     }
 
-    pub(crate) fn emit_jump_if_not_undefined(&mut self, value: &Register) -> Label {
+    pub(crate) fn jump_if_not_undefined(&mut self, value: &Register) -> Label {
         let index = self.next_opcode_location();
         self.bytecode
             .emit_jump_if_not_undefined(Self::DUMMY_ADDRESS, value.variable());
+        Label { index }
+    }
+
+    pub(crate) fn jump_if_neq(&mut self, lhs: &Register, rhs: &Register) -> Label {
+        let index = self.next_opcode_location();
+        self.bytecode
+            .emit_jump_if_neq(Self::DUMMY_ADDRESS, lhs.variable(), rhs.variable());
         Label { index }
     }
 
@@ -1168,6 +1175,34 @@ impl<'ctx> ByteCompiler<'ctx> {
 
     fn resolve_identifier_expect(&self, identifier: Identifier) -> JsString {
         identifier.to_js_string(self.interner())
+    }
+
+    fn super_(&mut self, this: &Register, super_: &Register) {
+        // Reuse super to avoid allocating a register just to get the function object.
+        self.bytecode.emit_this(this.variable());
+        self.bytecode.emit_get_function_object(super_.variable());
+        self.bytecode.emit_get_home_object(super_.variable());
+
+        let r1 = self.register_allocator.alloc();
+        self.bytecode.emit_push_null(r1.variable());
+        // jump to evaluation if `super` is already a valid home object.
+        let skip_move = self.jump_if_neq(&r1, super_);
+        self.bytecode.emit_move(r1.variable(), this.variable());
+        self.bytecode.emit_is_object(r1.variable());
+
+        // If `this` is also not an object, then `super` should be left as `null`.
+        // Jump to the end in this case because `super` is already `null`.
+        let skip_eval = self.jump_if_false(&r1);
+        self.register_allocator.dealloc(r1);
+
+        // `this` is an object, so replace `super` with it and get its
+        // prototype.
+        self.bytecode.emit_move(super_.variable(), this.variable());
+        self.patch_jump(skip_move);
+
+        self.bytecode.emit_get_prototype(super_.variable());
+
+        self.patch_jump(skip_eval);
     }
 
     fn access_get(&mut self, access: Access<'_>, dst: &Register) {
@@ -1221,8 +1256,8 @@ impl<'ctx> ByteCompiler<'ctx> {
 
                     let value = compiler.register_allocator.alloc();
                     let receiver = compiler.register_allocator.alloc();
-                    compiler.bytecode.emit_super(value.variable());
-                    compiler.bytecode.emit_this(receiver.variable());
+                    compiler.super_(&receiver, &value);
+
                     match access.field() {
                         PropertyAccessField::Const(ident) => {
                             compiler.emit_get_property_by_name(
@@ -1337,10 +1372,8 @@ impl<'ctx> ByteCompiler<'ctx> {
                 PropertyAccess::Super(access) => match access.field() {
                     PropertyAccessField::Const(name) => {
                         let object = self.register_allocator.alloc();
-                        self.bytecode.emit_super(object.variable());
-
                         let receiver = self.register_allocator.alloc();
-                        self.bytecode.emit_this(receiver.variable());
+                        self.super_(&receiver, &object);
 
                         let value = expr_fn(self);
 
@@ -1351,10 +1384,8 @@ impl<'ctx> ByteCompiler<'ctx> {
                     }
                     PropertyAccessField::Expr(expr) => {
                         let object = self.register_allocator.alloc();
-                        self.bytecode.emit_super(object.variable());
-
                         let receiver = self.register_allocator.alloc();
-                        self.bytecode.emit_this(receiver.variable());
+                        self.super_(&receiver, &object);
 
                         let key = self.register_allocator.alloc();
                         self.compile_expr(expr, &key);
@@ -1490,8 +1521,7 @@ impl<'ctx> ByteCompiler<'ctx> {
             }
             PropertyAccess::Super(access) => {
                 let object = self.register_allocator.alloc();
-                self.bytecode.emit_this(this.variable());
-                self.bytecode.emit_super(object.variable());
+                self.super_(this, &object);
 
                 match access.field() {
                     PropertyAccessField::Const(ident) => {

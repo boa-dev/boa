@@ -116,6 +116,33 @@ impl Operation for JumpIfNullOrUndefined {
     const COST: u8 = 1;
 }
 
+/// `JumpIfEq` implements the Opcode Operation for `Opcode::JumpIfEq`
+///
+/// Operation:
+///  - Conditional jump to address.
+#[derive(Debug, Clone, Copy)]
+pub(crate) struct JumpIfNeq;
+
+impl JumpIfNeq {
+    #[inline(always)]
+    pub(crate) fn operation(
+        (address, lhs, rhs): (u32, VaryingOperand, VaryingOperand),
+        context: &mut Context,
+    ) {
+        let lhs = context.vm.get_register(lhs.into());
+        let rhs = context.vm.get_register(rhs.into());
+        if lhs != rhs {
+            context.vm.frame_mut().pc = address;
+        }
+    }
+}
+
+impl Operation for JumpIfNeq {
+    const NAME: &'static str = "JumpIfEq";
+    const INSTRUCTION: &'static str = "INST - JumpIfEq";
+    const COST: u8 = 1;
+}
+
 /// `JumpTable` implements the Opcode Operation for `Opcode::JumpTable`
 ///
 /// Operation:

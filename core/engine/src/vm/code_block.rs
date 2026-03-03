@@ -350,8 +350,6 @@ impl CodeBlock {
             | Instruction::PushUndefined { dst }
             | Instruction::Exception { dst }
             | Instruction::This { dst }
-            | Instruction::Super { dst }
-            | Instruction::SuperCallPrepare { dst }
             | Instruction::NewTarget { dst }
             | Instruction::ImportMeta { dst }
             | Instruction::CreateMappedArgumentsObject { dst }
@@ -452,6 +450,9 @@ impl CodeBlock {
             | Instruction::LogicalOr { address, value }
             | Instruction::Coalesce { address, value } => {
                 format!("value:{value}, address:{address}")
+            }
+            Instruction::JumpIfNeq { address, lhs, rhs } => {
+                format!("lhs:{lhs}, rhs:{rhs}, address:{address}")
             }
             Instruction::Case {
                 address,
@@ -721,8 +722,14 @@ impl CodeBlock {
             Instruction::SetHomeObject { function, home } => {
                 format!("function:{function}, home:{home}")
             }
+            Instruction::GetHomeObject { function } => {
+                format!("function:{function}")
+            }
             Instruction::SetPrototype { object, prototype } => {
                 format!("object:{object}, prototype:{prototype}")
+            }
+            Instruction::GetPrototype { object } => {
+                format!("object:{object}")
             }
             Instruction::PushValueToArray { value, array } => {
                 format!("value:{value}, array:{array}")
@@ -842,6 +849,11 @@ impl CodeBlock {
             Instruction::TemplateCreate { site, dst, values } => {
                 format!("site:{site}, dst:{dst}, values:{values:?}")
             }
+            Instruction::GetFunctionObject {
+                function_object,
+            } => {
+                format!("function_object:{function_object}")
+            }
             Instruction::Pop
             | Instruction::DeleteSuperThrow
             | Instruction::ReThrow
@@ -915,9 +927,7 @@ impl CodeBlock {
             | Instruction::Reserved56
             | Instruction::Reserved57
             | Instruction::Reserved58
-            | Instruction::Reserved59
-            | Instruction::Reserved60
-            | Instruction::Reserved61 => unreachable!("Reserved opcodes are unreachable"),
+            | Instruction::Reserved59 => unreachable!("Reserved opcodes are unreachable"),
         }
     }
 }
