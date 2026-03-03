@@ -1058,6 +1058,46 @@ impl<'ctx> ByteCompiler<'ctx> {
         Label { index }
     }
 
+    pub(crate) fn if_else(
+        &mut self,
+        bool: &Register,
+        true_case: impl FnOnce(&mut ByteCompiler<'_>),
+        false_case: impl FnOnce(&mut ByteCompiler<'_>),
+    ) {
+        let jump_false = self.jump_if_false(bool);
+
+        // if true, jump to end to avoid running the code for the `else`
+        true_case(self);
+        let jump_to_end = self.jump();
+
+        // if false, we should be already at the end so no need to do anything.
+        self.patch_jump(jump_false);
+        false_case(self);
+        self.patch_jump(jump_to_end);
+    }
+
+    /// Generates the `if-else` pattern.
+    ///
+    /// This will also deallocate the `bool` register.
+    pub(crate) fn if_else_with_dealloc(
+        &mut self,
+        bool: Register,
+        true_case: impl FnOnce(&mut ByteCompiler<'_>),
+        false_case: impl FnOnce(&mut ByteCompiler<'_>),
+    ) {
+        let jump_false = self.jump_if_false(&bool);
+        self.register_allocator.dealloc(bool);
+
+        // if true, jump to end to avoid running the code for the `else`
+        true_case(self);
+        let jump_to_end = self.jump();
+
+        // if false, we should be already at the end so no need to do anything.
+        self.patch_jump(jump_false);
+        false_case(self);
+        self.patch_jump(jump_to_end);
+    }
+
     pub(crate) fn jump_if_false(&mut self, value: &Register) -> Label {
         let index = self.next_opcode_location();
         self.bytecode
