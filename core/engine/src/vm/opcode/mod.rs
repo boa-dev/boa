@@ -1566,6 +1566,46 @@ generate_opcodes! {
     ///   - Output: value
     JumpIfNullOrUndefined { address: u32, value: VaryingOperand },
 
+    /// Fused `<` comparison + conditional jump.
+    ///
+    /// Jumps to `address` if `!(lhs < rhs)`.
+    ///
+    /// - Operands:
+    ///   - address: `u32`
+    /// - Registers:
+    ///   - Input: lhs, rhs
+    JumpIfNotLessThan { address: u32, lhs: VaryingOperand, rhs: VaryingOperand },
+
+    /// Fused `<=` comparison + conditional jump.
+    ///
+    /// Jumps to `address` if `!(lhs <= rhs)`.
+    ///
+    /// - Operands:
+    ///   - address: `u32`
+    /// - Registers:
+    ///   - Input: lhs, rhs
+    JumpIfNotLessThanOrEqual { address: u32, lhs: VaryingOperand, rhs: VaryingOperand },
+
+    /// Fused `>` comparison + conditional jump.
+    ///
+    /// Jumps to `address` if `!(lhs > rhs)`.
+    ///
+    /// - Operands:
+    ///   - address: `u32`
+    /// - Registers:
+    ///   - Input: lhs, rhs
+    JumpIfNotGreaterThan { address: u32, lhs: VaryingOperand, rhs: VaryingOperand },
+
+    /// Fused `>=` comparison + conditional jump.
+    ///
+    /// Jumps to `address` if `!(lhs >= rhs)`.
+    ///
+    /// - Operands:
+    ///   - address: `u32`
+    /// - Registers:
+    ///   - Input: lhs, rhs
+    JumpIfNotGreaterThanOrEqual { address: u32, lhs: VaryingOperand, rhs: VaryingOperand },
+
     /// Jump table that jumps depending on top value of the stack.
     ///
     /// This is used to handle special cases when we call `continue`, `break` or `return` in a try block,
@@ -2227,12 +2267,4 @@ generate_opcodes! {
     Reserved56 => Reserved,
     /// Reserved [`Opcode`].
     Reserved57 => Reserved,
-    /// Reserved [`Opcode`].
-    Reserved58 => Reserved,
-    /// Reserved [`Opcode`].
-    Reserved59 => Reserved,
-    /// Reserved [`Opcode`].
-    Reserved60 => Reserved,
-    /// Reserved [`Opcode`]
-    Reserved61 => Reserved,
 }

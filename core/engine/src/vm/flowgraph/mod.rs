@@ -123,7 +123,11 @@ impl CodeBlock {
                 Instruction::JumpIfFalse { address, .. }
                 | Instruction::JumpIfTrue { address, .. }
                 | Instruction::JumpIfNotUndefined { address, .. }
-                | Instruction::JumpIfNullOrUndefined { address, .. } => {
+                | Instruction::JumpIfNullOrUndefined { address, .. }
+                | Instruction::JumpIfNotLessThan { address, .. }
+                | Instruction::JumpIfNotLessThanOrEqual { address, .. }
+                | Instruction::JumpIfNotGreaterThan { address, .. }
+                | Instruction::JumpIfNotGreaterThanOrEqual { address, .. } => {
                     graph.add_node(previous_pc, NodeShape::Diamond, label.into(), Color::None);
                     graph.add_edge(
                         previous_pc,
@@ -511,11 +515,7 @@ impl CodeBlock {
                 | Instruction::Reserved54
                 | Instruction::Reserved55
                 | Instruction::Reserved56
-                | Instruction::Reserved57
-                | Instruction::Reserved58
-                | Instruction::Reserved59
-                | Instruction::Reserved60
-                | Instruction::Reserved61 => unreachable!("Reserved opcodes are unreachable"),
+                | Instruction::Reserved57 => unreachable!("Reserved opcodes are unreachable"),
             }
         }
 

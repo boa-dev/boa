@@ -51,6 +51,30 @@ impl ByteCompiler<'_> {
                     return;
                 }
 
+                // Fast path: for local bindings with post-increment/decrement.
+                //
+                // Post-increment (i++):
+                //   Before: Move(dst, local); Inc(tmp, dst); Move(local, tmp) → 3 ops
+                //   After:  Move(dst, local); Inc(local, local) → 2 ops
+                //
+                // Inc(local, local) works because Inc writes new to dst AFTER old to src,
+                // so when dst==src the new value wins.
+                if post
+                    && is_lexical
+                    && let BindingKind::Local(Some(local_reg)) = &index
+                {
+                    let local_op = (*local_reg).into();
+                    // Save old value to dst (post-increment returns old value).
+                    compiler.bytecode.emit_move(dst.variable(), local_op);
+                    // Increment in-place.
+                    if increment {
+                        compiler.bytecode.emit_inc(local_op, local_op);
+                    } else {
+                        compiler.bytecode.emit_dec(local_op, local_op);
+                    }
+                    return;
+                }
+
                 if is_lexical {
                     compiler.emit_binding_access(BindingAccessOpcode::GetName, &index, dst);
                 } else {
