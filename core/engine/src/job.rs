@@ -741,7 +741,9 @@ impl JobExecutor for SimpleJobExecutor {
             if self.is_empty() && group.is_empty() {
                 break;
             }
-
+            // Check if there are no timeout jobs ready to run
+            let no_timeout_jobs_to_run = self.timeout_jobs.borrow().is_empty();
+            
             // If no synchronous work is ready, block until a NativeAsyncJob future resolves
             // rather than busy-spinning with poll_once + yield_now at 100% CPU.
             let no_sync_work = self.promise_jobs.borrow().is_empty()
