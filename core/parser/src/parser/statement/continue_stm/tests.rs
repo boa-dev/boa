@@ -10,7 +10,7 @@ use indoc::indoc;
 
 const PSEUDO_LINEAR_POS: boa_ast::LinearPosition = boa_ast::LinearPosition::new(0);
 
-fn stmt_block_continue_only(continue_stmt: Continue) -> Statement {
+fn stmt_block_continue_only(continue_stmt: Continue) -> Statement<'static> {
     Block::from((
         vec![StatementListItem::Statement(
             Statement::Continue(continue_stmt).into(),

@@ -36,9 +36,9 @@ const EMPTY_LINEAR_SPAN: LinearSpan = LinearSpan::new(PSEUDO_LINEAR_POS, PSEUDO_
 
 /// Checks that the given JavaScript string gives the expected expression.
 #[track_caller]
-pub(super) fn check_script_parser<L>(js: &str, expr: L, interner: &mut Interner)
+pub(super) fn check_script_parser<'a, L>(js: &str, expr: L, interner: &mut Interner)
 where
-    L: Into<Box<[StatementListItem]>>,
+    L: Into<Box<[StatementListItem<'a>]>>,
 {
     let mut script = Script::new(StatementList::from((expr.into(), PSEUDO_LINEAR_POS)));
     let scope = Scope::new_global();
@@ -55,9 +55,9 @@ where
 
 /// Checks that the given JavaScript string gives the expected expression.
 #[track_caller]
-pub(super) fn check_module_parser<L>(js: &str, expr: L, interner: &mut Interner)
+pub(super) fn check_module_parser<'a, L>(js: &str, expr: L, interner: &mut Interner)
 where
-    L: Into<Box<[ModuleItem]>>,
+    L: Into<Box<[ModuleItem<'a>]>>,
 {
     let mut module = Module::new(ModuleItemList::from(expr.into()));
     let scope = Scope::new_global();

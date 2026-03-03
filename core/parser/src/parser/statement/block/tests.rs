@@ -26,9 +26,9 @@ const EMPTY_LINEAR_SPAN: boa_ast::LinearSpan =
 
 /// Helper function to check a block.
 #[track_caller]
-fn check_block<B>(js: &str, block: B, interner: &mut Interner)
+fn check_block<'a, B>(js: &str, block: B, interner: &mut Interner)
 where
-    B: Into<Box<[StatementListItem]>>,
+    B: Into<Box<[StatementListItem<'a>]>>,
 {
     check_script_parser(
         js,
