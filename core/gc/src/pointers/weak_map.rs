@@ -2,7 +2,7 @@
 // but with some adjustments to use `Ephemeron<K,V>` instead of `(K,V)`
 
 use hashbrown::{
-    DefaultHashBuilder, HashTable, TryReserveError,
+    DefaultHashBuilder, HashTable,
     hash_table::{Entry as RawEntry, Iter as RawIter},
 };
 
@@ -113,15 +113,6 @@ where
     pub(crate) fn new() -> Self {
         Self::default()
     }
-
-    /// Creates an empty `RawWeakMap` with the specified capacity.
-    ///
-    /// The map will be able to hold at least `capacity` elements without reallocating.
-    /// If `capacity` is 0, the map will not allocate.
-    #[allow(unused)]
-    pub(crate) fn with_capacity(capacity: usize) -> Self {
-        Self::with_capacity_and_hasher(capacity, DefaultHashBuilder::default())
-    }
 }
 
 impl<K, V, S> RawWeakMap<K, V, S>
@@ -141,33 +132,6 @@ where
         }
     }
 
-    /// Creates an empty `RawWeakMap` with the specified capacity, using `hash_builder`
-    /// to hash the keys.
-    ///
-    /// The map will be able to hold at least `capacity` elements without reallocating.
-    /// If `capacity` is 0, the map will not allocate.
-    pub(crate) fn with_capacity_and_hasher(capacity: usize, hash_builder: S) -> Self {
-        Self {
-            hash_builder,
-            table: HashTable::with_capacity(capacity),
-        }
-    }
-
-    /// Returns a reference to the map's [`BuildHasher`].
-    #[allow(unused)]
-    pub(crate) const fn hasher(&self) -> &S {
-        &self.hash_builder
-    }
-
-    /// Returns the number of elements the map can hold without reallocating.
-    ///
-    /// This number is a lower bound; the map might be able to hold more, but is guaranteed to be
-    /// able to hold at least this many.
-    #[allow(unused)]
-    pub(crate) fn capacity(&self) -> usize {
-        self.table.capacity()
-    }
-
     /// An iterator visiting all entries in arbitrary order.
     /// The iterator element type is <code>[Ephemeron]<K, V></code>.
     pub(crate) fn iter(&self) -> Iter<'_, K, V> {
@@ -175,24 +139,6 @@ where
             inner: self.table.iter(),
             marker: PhantomData,
         }
-    }
-
-    /// Returns the number of elements in the map.
-    ///
-    /// This is an upper bound; the map might contain some expired keys which haven't been
-    /// removed.
-    #[allow(unused)]
-    pub(crate) fn len(&self) -> usize {
-        self.table.len()
-    }
-
-    /// Returns `true` if the map contains no elements.
-    ///
-    /// This might return `false` if the map has expired keys that are still pending to be
-    /// cleaned up.
-    #[allow(unused)]
-    pub(crate) fn is_empty(&self) -> bool {
-        self.len() == 0
     }
 
     /// Retains only the elements specified by the predicate. Keeps the
@@ -210,13 +156,6 @@ where
         // - `item` pointer is not used after the call to `erase`.
         self.table.retain(|item| f(item));
     }
-
-    /// Clears the map, removing all key-value pairs. Keeps the allocated memory
-    /// for reuse.
-    #[allow(unused)]
-    pub(crate) fn clear(&mut self) {
-        self.table.clear();
-    }
 }
 
 impl<K, V, S> RawWeakMap<K, V, S>
@@ -225,56 +164,6 @@ where
     V: Trace + Clone + 'static,
     S: BuildHasher,
 {
-    /// Reserves capacity for at least `additional` more elements to be inserted
-    /// in the `RawWeakMap`. The collection may reserve more space to avoid
-    /// frequent reallocations.
-    ///
-    /// # Panics
-    ///
-    /// Panics if the new capacity exceeds [`isize::MAX`] bytes and [`abort`](std::process::abort)
-    /// the program in case of allocation error. Use [`try_reserve`](RawWeakMap::try_reserve) instead
-    /// if you want to handle memory allocation failure.
-    #[allow(unused)]
-    pub(crate) fn reserve(&mut self, additional: usize) {
-        self.table
-            .reserve(additional, make_hasher(&self.hash_builder));
-    }
-
-    /// Tries to reserve capacity for at least `additional` more elements to be inserted
-    /// in the given `RawWeakMap<K,V>`. The collection may reserve more space to avoid
-    /// frequent reallocations.
-    ///
-    /// # Errors
-    ///
-    /// If the capacity overflows, or the allocator reports a failure, then an error
-    /// is returned.
-    #[allow(unused)]
-    pub(crate) fn try_reserve(&mut self, additional: usize) -> Result<(), TryReserveError> {
-        self.table
-            .try_reserve(additional, make_hasher(&self.hash_builder))
-    }
-
-    /// Shrinks the capacity of the map as much as possible. It will drop
-    /// down as much as possible while maintaining the internal rules
-    /// and possibly leaving some space in accordance with the resize policy.
-    #[allow(unused)]
-    pub(crate) fn shrink_to_fit(&mut self) {
-        self.table
-            .shrink_to(0, make_hasher::<_, V, S>(&self.hash_builder));
-    }
-
-    /// Shrinks the capacity of the map with a lower limit. It will drop
-    /// down no lower than the supplied limit while maintaining the internal rules
-    /// and possibly leaving some space in accordance with the resize policy.
-    ///
-    /// This function does nothing if the current capacity is smaller than the
-    /// supplied minimum capacity.
-    #[allow(unused)]
-    pub(crate) fn shrink_to(&mut self, min_capacity: usize) {
-        self.table
-            .shrink_to(min_capacity, make_hasher::<_, V, S>(&self.hash_builder));
-    }
-
     /// Returns the value corresponding to the supplied key.
     // TODO: make this return a reference instead of cloning.
     pub(crate) fn get(&self, k: &Gc<K>) -> Option<V> {
