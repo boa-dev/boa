@@ -20,25 +20,25 @@ use crate::{
 /// [spec]: https://tc39.es/ecma262/#sec-scripts
 #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
 #[derive(Clone, Debug, Default)]
-pub struct Script {
-    statements: StatementList,
+pub struct Script<'arena> {
+    statements: StatementList<'arena>,
 }
 
-impl Script {
+impl<'arena> Script<'arena> {
     /// Creates a new `ScriptNode`.
     #[must_use]
-    pub const fn new(statements: StatementList) -> Self {
+    pub const fn new(statements: StatementList<'arena>) -> Self {
         Self { statements }
     }
 
     /// Gets the list of statements of this `ScriptNode`.
     #[must_use]
-    pub const fn statements(&self) -> &StatementList {
+    pub const fn statements(&self) -> &StatementList<'arena> {
         &self.statements
     }
 
     /// Gets a mutable reference to the list of statements of this `ScriptNode`.
-    pub fn statements_mut(&mut self) -> &mut StatementList {
+    pub fn statements_mut(&mut self) -> &mut StatementList<'arena> {
         &mut self.statements
     }
 
@@ -103,36 +103,36 @@ impl Script {
     }
 }
 
-impl VisitWith for Script {
+impl<'arena> VisitWith<'arena> for Script<'arena> {
     fn visit_with<'a, V>(&'a self, visitor: &mut V) -> ControlFlow<V::BreakTy>
     where
-        V: Visitor<'a>,
+        V: Visitor<'a, 'arena>,
     {
         self.statements.visit_with(visitor)
     }
 
     fn visit_with_mut<'a, V>(&'a mut self, visitor: &mut V) -> ControlFlow<V::BreakTy>
     where
-        V: VisitorMut<'a>,
+        V: VisitorMut<'a, 'arena>,
     {
         self.statements.visit_with_mut(visitor)
     }
 }
 
-impl ToIndentedString for Script {
+impl<'arena> ToIndentedString for Script<'arena> {
     fn to_indented_string(&self, interner: &Interner, indentation: usize) -> String {
         self.statements.to_indented_string(interner, indentation)
     }
 }
 
-impl PartialEq for Script {
+impl<'arena> PartialEq for Script<'arena> {
     fn eq(&self, other: &Self) -> bool {
         self.statements == other.statements
     }
 }
 
 #[cfg(feature = "arbitrary")]
-impl<'a> arbitrary::Arbitrary<'a> for Script {
+impl<'a, 'arena> arbitrary::Arbitrary<'a> for Script<'arena> {
     fn arbitrary(u: &mut arbitrary::Unstructured<'a>) -> arbitrary::Result<Self> {
         let statements = StatementList::arbitrary(u)?;
         Ok(Self { statements })
@@ -147,17 +147,17 @@ impl<'a> arbitrary::Arbitrary<'a> for Script {
 /// [spec]: https://tc39.es/ecma262/#sec-modules
 #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
 #[derive(Clone, Debug, Default, PartialEq)]
-pub struct Module {
-    pub(crate) items: ModuleItemList,
+pub struct Module<'arena> {
+    pub(crate) items: ModuleItemList<'arena>,
 
     #[cfg_attr(feature = "serde", serde(skip))]
     pub(crate) scope: Scope,
 }
 
-impl Module {
+impl<'arena> Module<'arena> {
     /// Creates a new `ModuleNode`.
     #[must_use]
-    pub fn new(items: ModuleItemList) -> Self {
+    pub fn new(items: ModuleItemList<'arena>) -> Self {
         Self {
             items,
             scope: Scope::default(),
@@ -166,7 +166,7 @@ impl Module {
 
     /// Gets the list of items of this `ModuleNode`.
     #[must_use]
-    pub const fn items(&self) -> &ModuleItemList {
+    pub const fn items(&self) -> &ModuleItemList<'arena> {
         &self.items
     }
 
@@ -194,17 +194,17 @@ impl Module {
     }
 }
 
-impl VisitWith for Module {
+impl<'arena> VisitWith<'arena> for Module<'arena> {
     fn visit_with<'a, V>(&'a self, visitor: &mut V) -> ControlFlow<V::BreakTy>
     where
-        V: Visitor<'a>,
+        V: Visitor<'a, 'arena>,
     {
         self.items.visit_with(visitor)
     }
 
     fn visit_with_mut<'a, V>(&'a mut self, visitor: &mut V) -> ControlFlow<V::BreakTy>
     where
-        V: VisitorMut<'a>,
+        V: VisitorMut<'a, 'arena>,
     {
         self.items.visit_with_mut(visitor)
     }

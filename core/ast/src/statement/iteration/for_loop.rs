@@ -22,20 +22,20 @@ use core::{fmt::Write as _, ops::ControlFlow};
 #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
 #[cfg_attr(feature = "arbitrary", derive(arbitrary::Arbitrary))]
 #[derive(Clone, Debug, PartialEq)]
-pub struct ForLoop {
+pub struct ForLoop<'arena> {
     #[cfg_attr(feature = "serde", serde(flatten))]
-    pub(crate) inner: Box<InnerForLoop>,
+    pub(crate) inner: Box<InnerForLoop<'arena>>,
 }
 
-impl ForLoop {
+impl<'arena> ForLoop<'arena> {
     /// Creates a new for loop AST node.
     #[inline]
     #[must_use]
     pub fn new(
-        init: Option<ForLoopInitializer>,
-        condition: Option<Expression>,
-        final_expr: Option<Expression>,
-        body: Statement,
+        init: Option<ForLoopInitializer<'arena>>,
+        condition: Option<Expression<'arena>>,
+        final_expr: Option<Expression<'arena>>,
+        body: Statement<'arena>,
     ) -> Self {
         Self {
             inner: Box::new(InnerForLoop::new(init, condition, final_expr, body)),
@@ -45,33 +45,33 @@ impl ForLoop {
     /// Gets the initialization node.
     #[inline]
     #[must_use]
-    pub const fn init(&self) -> Option<&ForLoopInitializer> {
+    pub const fn init(&self) -> Option<&ForLoopInitializer<'arena>> {
         self.inner.init()
     }
 
     /// Gets the loop condition node.
     #[inline]
     #[must_use]
-    pub const fn condition(&self) -> Option<&Expression> {
+    pub const fn condition(&self) -> Option<&Expression<'arena>> {
         self.inner.condition()
     }
 
     /// Gets the final expression node.
     #[inline]
     #[must_use]
-    pub const fn final_expr(&self) -> Option<&Expression> {
+    pub const fn final_expr(&self) -> Option<&Expression<'arena>> {
         self.inner.final_expr()
     }
 
     /// Gets the body of the for loop.
     #[inline]
     #[must_use]
-    pub const fn body(&self) -> &Statement {
+    pub const fn body(&self) -> &Statement<'arena> {
         self.inner.body()
     }
 }
 
-impl ToIndentedString for ForLoop {
+impl<'arena> ToIndentedString for ForLoop<'arena> {
     fn to_indented_string(&self, interner: &Interner, indentation: usize) -> String {
         let mut buf = String::from("for (");
         if let Some(init) = self.init() {
@@ -95,17 +95,17 @@ impl ToIndentedString for ForLoop {
     }
 }
 
-impl From<ForLoop> for Statement {
+impl<'arena> From<ForLoop<'arena>> for Statement<'arena> {
     #[inline]
-    fn from(for_loop: ForLoop) -> Self {
+    fn from(for_loop: ForLoop<'arena>) -> Self {
         Self::ForLoop(for_loop)
     }
 }
 
-impl VisitWith for ForLoop {
+impl<'arena> VisitWith<'arena> for ForLoop<'arena> {
     fn visit_with<'a, V>(&'a self, visitor: &mut V) -> ControlFlow<V::BreakTy>
     where
-        V: Visitor<'a>,
+        V: Visitor<'a, 'arena>,
     {
         if let Some(fli) = &self.inner.init {
             visitor.visit_for_loop_initializer(fli)?;
@@ -121,7 +121,7 @@ impl VisitWith for ForLoop {
 
     fn visit_with_mut<'a, V>(&'a mut self, visitor: &mut V) -> ControlFlow<V::BreakTy>
     where
-        V: VisitorMut<'a>,
+        V: VisitorMut<'a, 'arena>,
     {
         if let Some(fli) = &mut self.inner.init {
             visitor.visit_for_loop_initializer_mut(fli)?;
@@ -140,22 +140,22 @@ impl VisitWith for ForLoop {
 #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
 #[cfg_attr(feature = "arbitrary", derive(arbitrary::Arbitrary))]
 #[derive(Clone, Debug, PartialEq)]
-pub(crate) struct InnerForLoop {
-    pub(crate) init: Option<ForLoopInitializer>,
-    pub(crate) condition: Option<Expression>,
-    pub(crate) final_expr: Option<Expression>,
-    pub(crate) body: Statement,
+pub(crate) struct InnerForLoop<'arena> {
+    pub(crate) init: Option<ForLoopInitializer<'arena>>,
+    pub(crate) condition: Option<Expression<'arena>>,
+    pub(crate) final_expr: Option<Expression<'arena>>,
+    pub(crate) body: Statement<'arena>,
     pub(crate) contains_direct_eval: bool,
 }
 
-impl InnerForLoop {
+impl<'arena> InnerForLoop<'arena> {
     /// Creates a new inner for loop.
     #[inline]
     fn new(
-        init: Option<ForLoopInitializer>,
-        condition: Option<Expression>,
-        final_expr: Option<Expression>,
-        body: Statement,
+        init: Option<ForLoopInitializer<'arena>>,
+        condition: Option<Expression<'arena>>,
+        final_expr: Option<Expression<'arena>>,
+        body: Statement<'arena>,
     ) -> Self {
         let mut contains_direct_eval = contains(&body, ContainsSymbol::DirectEval);
         if let Some(init) = &init {
@@ -178,25 +178,25 @@ impl InnerForLoop {
 
     /// Gets the initialization node.
     #[inline]
-    const fn init(&self) -> Option<&ForLoopInitializer> {
+    const fn init(&self) -> Option<&ForLoopInitializer<'arena>> {
         self.init.as_ref()
     }
 
     /// Gets the loop condition node.
     #[inline]
-    const fn condition(&self) -> Option<&Expression> {
+    const fn condition(&self) -> Option<&Expression<'arena>> {
         self.condition.as_ref()
     }
 
     /// Gets the final expression node.
     #[inline]
-    const fn final_expr(&self) -> Option<&Expression> {
+    const fn final_expr(&self) -> Option<&Expression<'arena>> {
         self.final_expr.as_ref()
     }
 
     /// Gets the body of the for loop.
     #[inline]
-    const fn body(&self) -> &Statement {
+    const fn body(&self) -> &Statement<'arena> {
         &self.body
     }
 }
@@ -212,38 +212,38 @@ impl InnerForLoop {
 #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
 #[cfg_attr(feature = "arbitrary", derive(arbitrary::Arbitrary))]
 #[derive(Clone, Debug, PartialEq)]
-pub enum ForLoopInitializer {
+pub enum ForLoopInitializer<'arena> {
     /// An expression initializer.
-    Expression(Expression),
+    Expression(Expression<'arena>),
     /// A var declaration initializer.
-    Var(VarDeclaration),
+    Var(VarDeclaration<'arena>),
     /// A lexical declaration initializer.
-    Lexical(ForLoopInitializerLexical),
+    Lexical(ForLoopInitializerLexical<'arena>),
 }
 
 /// A lexical declaration initializer for a `ForLoop`.
 #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
 #[cfg_attr(feature = "arbitrary", derive(arbitrary::Arbitrary))]
 #[derive(Clone, Debug, PartialEq)]
-pub struct ForLoopInitializerLexical {
-    pub(crate) declaration: LexicalDeclaration,
+pub struct ForLoopInitializerLexical<'arena> {
+    pub(crate) declaration: LexicalDeclaration<'arena>,
 
     #[cfg_attr(feature = "serde", serde(skip))]
     pub(crate) scope: Scope,
 }
 
-impl ForLoopInitializerLexical {
+impl<'arena> ForLoopInitializerLexical<'arena> {
     /// Creates a new lexical declaration initializer.
     #[inline]
     #[must_use]
-    pub fn new(declaration: LexicalDeclaration, scope: Scope) -> Self {
+    pub fn new(declaration: LexicalDeclaration<'arena>, scope: Scope) -> Self {
         Self { declaration, scope }
     }
 
     /// Returns the declaration of the lexical initializer.
     #[inline]
     #[must_use]
-    pub const fn declaration(&self) -> &LexicalDeclaration {
+    pub const fn declaration(&self) -> &LexicalDeclaration<'arena> {
         &self.declaration
     }
 
@@ -255,7 +255,7 @@ impl ForLoopInitializerLexical {
     }
 }
 
-impl ToInternedString for ForLoopInitializer {
+impl<'arena> ToInternedString for ForLoopInitializer<'arena> {
     fn to_interned_string(&self, interner: &Interner) -> String {
         match self {
             Self::Var(var) => var.to_interned_string(interner),
@@ -265,16 +265,16 @@ impl ToInternedString for ForLoopInitializer {
     }
 }
 
-impl From<Expression> for ForLoopInitializer {
+impl<'arena> From<Expression<'arena>> for ForLoopInitializer<'arena> {
     #[inline]
-    fn from(expr: Expression) -> Self {
+    fn from(expr: Expression<'arena>) -> Self {
         Self::Expression(expr)
     }
 }
 
-impl From<LexicalDeclaration> for ForLoopInitializer {
+impl<'arena> From<LexicalDeclaration<'arena>> for ForLoopInitializer<'arena> {
     #[inline]
-    fn from(list: LexicalDeclaration) -> Self {
+    fn from(list: LexicalDeclaration<'arena>) -> Self {
         Self::Lexical(ForLoopInitializerLexical {
             declaration: list,
             scope: Scope::default(),
@@ -282,17 +282,17 @@ impl From<LexicalDeclaration> for ForLoopInitializer {
     }
 }
 
-impl From<VarDeclaration> for ForLoopInitializer {
+impl<'arena> From<VarDeclaration<'arena>> for ForLoopInitializer<'arena> {
     #[inline]
-    fn from(list: VarDeclaration) -> Self {
+    fn from(list: VarDeclaration<'arena>) -> Self {
         Self::Var(list)
     }
 }
 
-impl VisitWith for ForLoopInitializer {
+impl<'arena> VisitWith<'arena> for ForLoopInitializer<'arena> {
     fn visit_with<'a, V>(&'a self, visitor: &mut V) -> ControlFlow<V::BreakTy>
     where
-        V: Visitor<'a>,
+        V: Visitor<'a, 'arena>,
     {
         match self {
             Self::Expression(expr) => visitor.visit_expression(expr),
@@ -303,7 +303,7 @@ impl VisitWith for ForLoopInitializer {
 
     fn visit_with_mut<'a, V>(&'a mut self, visitor: &mut V) -> ControlFlow<V::BreakTy>
     where
-        V: VisitorMut<'a>,
+        V: VisitorMut<'a, 'arena>,
     {
         match self {
             Self::Expression(expr) => visitor.visit_expression_mut(expr),

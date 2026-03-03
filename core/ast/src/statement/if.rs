@@ -27,37 +27,37 @@ use core::{fmt::Write as _, ops::ControlFlow};
 #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
 #[cfg_attr(feature = "arbitrary", derive(arbitrary::Arbitrary))]
 #[derive(Clone, Debug, PartialEq)]
-pub struct If {
-    condition: Expression,
-    body: Box<Statement>,
-    else_node: Option<Box<Statement>>,
+pub struct If<'arena> {
+    condition: Expression<'arena>,
+    body: Box<Statement<'arena>>,
+    else_node: Option<Box<Statement<'arena>>>,
 }
 
-impl If {
+impl<'arena> If<'arena> {
     /// Gets the condition of the if statement.
     #[inline]
     #[must_use]
-    pub const fn cond(&self) -> &Expression {
+    pub const fn cond(&self) -> &Expression<'arena> {
         &self.condition
     }
 
     /// Gets the body to execute if the condition is true.
     #[inline]
     #[must_use]
-    pub const fn body(&self) -> &Statement {
+    pub const fn body(&self) -> &Statement<'arena> {
         &self.body
     }
 
     /// Gets the `else` node, if it has one.
     #[inline]
-    pub fn else_node(&self) -> Option<&Statement> {
+    pub fn else_node(&self) -> Option<&Statement<'arena>> {
         self.else_node.as_ref().map(Box::as_ref)
     }
 
     /// Creates an `If` AST node.
     #[inline]
     #[must_use]
-    pub fn new(condition: Expression, body: Statement, else_node: Option<Statement>) -> Self {
+    pub fn new(condition: Expression<'arena>, body: Statement<'arena>, else_node: Option<Statement<'arena>>) -> Self {
         Self {
             condition,
             body: body.into(),
@@ -66,7 +66,7 @@ impl If {
     }
 }
 
-impl ToIndentedString for If {
+impl<'arena> ToIndentedString for If<'arena> {
     fn to_indented_string(&self, interner: &Interner, indent: usize) -> String {
         let mut buf = format!("if ({}) ", self.cond().to_interned_string(interner));
         match self.else_node() {
@@ -86,16 +86,16 @@ impl ToIndentedString for If {
     }
 }
 
-impl From<If> for Statement {
-    fn from(if_stm: If) -> Self {
+impl<'arena> From<If<'arena>> for Statement<'arena> {
+    fn from(if_stm: If<'arena>) -> Self {
         Self::If(if_stm)
     }
 }
 
-impl VisitWith for If {
+impl<'arena> VisitWith<'arena> for If<'arena> {
     fn visit_with<'a, V>(&'a self, visitor: &mut V) -> ControlFlow<V::BreakTy>
     where
-        V: Visitor<'a>,
+        V: Visitor<'a, 'arena>,
     {
         visitor.visit_expression(&self.condition)?;
         visitor.visit_statement(&self.body)?;
@@ -107,7 +107,7 @@ impl VisitWith for If {
 
     fn visit_with_mut<'a, V>(&'a mut self, visitor: &mut V) -> ControlFlow<V::BreakTy>
     where
-        V: VisitorMut<'a>,
+        V: VisitorMut<'a, 'arena>,
     {
         visitor.visit_expression_mut(&mut self.condition)?;
         visitor.visit_statement_mut(&mut self.body)?;

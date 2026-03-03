@@ -68,11 +68,11 @@ pub mod operator;
 #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
 #[cfg_attr(feature = "arbitrary", derive(arbitrary::Arbitrary))]
 #[derive(Debug, Clone, PartialEq)]
-pub enum Expression {
+pub enum Expression<'arena> {
     /// The ECMAScript `this` keyword refers to the object it belongs to.
     ///
     /// A property of an execution context (global, function or eval) that,
-    /// in non–strict mode, is always a reference to an object and in strict
+    /// in non-strict mode, is always a reference to an object and in strict
     /// mode can be any value.
     ///
     /// More information:
@@ -93,58 +93,58 @@ pub enum Expression {
     RegExpLiteral(RegExpLiteral),
 
     /// See [`ArrayLiteral`].
-    ArrayLiteral(ArrayLiteral),
+    ArrayLiteral(ArrayLiteral<'arena>),
 
     /// See [`ObjectLiteral`].
-    ObjectLiteral(ObjectLiteral),
+    ObjectLiteral(ObjectLiteral<'arena>),
 
     /// See [`Spread`],
-    Spread(Spread),
+    Spread(Spread<'arena>),
 
     /// See [`FunctionExpression`].
-    FunctionExpression(FunctionExpression),
+    FunctionExpression(FunctionExpression<'arena>),
 
     /// See [`ArrowFunction`].
-    ArrowFunction(ArrowFunction),
+    ArrowFunction(ArrowFunction<'arena>),
 
     /// See [`AsyncArrowFunction`].
-    AsyncArrowFunction(AsyncArrowFunction),
+    AsyncArrowFunction(AsyncArrowFunction<'arena>),
 
     /// See [`GeneratorExpression`].
-    GeneratorExpression(GeneratorExpression),
+    GeneratorExpression(GeneratorExpression<'arena>),
 
     /// See [`AsyncFunctionExpression`].
-    AsyncFunctionExpression(AsyncFunctionExpression),
+    AsyncFunctionExpression(AsyncFunctionExpression<'arena>),
 
     /// See [`AsyncGeneratorExpression`].
-    AsyncGeneratorExpression(AsyncGeneratorExpression),
+    AsyncGeneratorExpression(AsyncGeneratorExpression<'arena>),
 
     /// See [`ClassExpression`].
-    ClassExpression(Box<ClassExpression>),
+    ClassExpression(Box<ClassExpression<'arena>>),
 
     /// See [`TemplateLiteral`].
-    TemplateLiteral(TemplateLiteral),
+    TemplateLiteral(TemplateLiteral<'arena>),
 
     /// See [`PropertyAccess`].
-    PropertyAccess(PropertyAccess),
+    PropertyAccess(PropertyAccess<'arena>),
 
     /// See [`New`].
-    New(New),
+    New(New<'arena>),
 
     /// See [`Call`].
-    Call(Call),
+    Call(Call<'arena>),
 
     /// See [`SuperCall`].
-    SuperCall(SuperCall),
+    SuperCall(SuperCall<'arena>),
 
     /// See [`ImportCall`].
-    ImportCall(ImportCall),
+    ImportCall(ImportCall<'arena>),
 
     /// See [`Optional`].
-    Optional(Optional),
+    Optional(Optional<'arena>),
 
     /// See [`TaggedTemplate`].
-    TaggedTemplate(TaggedTemplate),
+    TaggedTemplate(TaggedTemplate<'arena>),
 
     /// The `new.target` pseudo-property expression.
     NewTarget(NewTarget),
@@ -153,34 +153,34 @@ pub enum Expression {
     ImportMeta(ImportMeta),
 
     /// See [`Assign`].
-    Assign(Assign),
+    Assign(Assign<'arena>),
 
     /// See [`Unary`].
-    Unary(Unary),
+    Unary(Unary<'arena>),
 
     /// See [`Unary`].
-    Update(Update),
+    Update(Update<'arena>),
 
     /// See [`Binary`].
-    Binary(Binary),
+    Binary(Binary<'arena>),
 
     /// See [`BinaryInPrivate`].
-    BinaryInPrivate(BinaryInPrivate),
+    BinaryInPrivate(BinaryInPrivate<'arena>),
 
     /// See [`Conditional`].
-    Conditional(Conditional),
+    Conditional(Conditional<'arena>),
 
     /// See [`Await`].
-    Await(Await),
+    Await(Await<'arena>),
 
     /// See [`Yield`].
-    Yield(Yield),
+    Yield(Yield<'arena>),
 
     /// See [`Parenthesized`].
-    Parenthesized(Parenthesized),
+    Parenthesized(Parenthesized<'arena>),
 }
 
-impl Expression {
+impl<'arena> Expression<'arena> {
     /// Implements the display formatting with indentation.
     ///
     /// This will not prefix the value with any indentation. If you want to prefix this with proper
@@ -277,7 +277,7 @@ impl Expression {
     }
 }
 
-impl Spanned for Expression {
+impl<'arena> Spanned for Expression<'arena> {
     #[inline]
     fn span(&self) -> Span {
         match self {
@@ -318,24 +318,24 @@ impl Spanned for Expression {
     }
 }
 
-impl From<Expression> for Statement {
+impl<'arena> From<Expression<'arena>> for Statement<'arena> {
     #[inline]
-    fn from(expr: Expression) -> Self {
+    fn from(expr: Expression<'arena>) -> Self {
         Self::Expression(expr)
     }
 }
 
-impl ToIndentedString for Expression {
+impl<'arena> ToIndentedString for Expression<'arena> {
     #[inline]
     fn to_indented_string(&self, interner: &Interner, indentation: usize) -> String {
         self.to_no_indent_string(interner, indentation)
     }
 }
 
-impl VisitWith for Expression {
+impl<'arena> VisitWith<'arena> for Expression<'arena> {
     fn visit_with<'a, V>(&'a self, visitor: &mut V) -> ControlFlow<V::BreakTy>
     where
-        V: Visitor<'a>,
+        V: Visitor<'a, 'arena>,
     {
         match self {
             Self::This(this) => visitor.visit_this(this),
@@ -376,7 +376,7 @@ impl VisitWith for Expression {
 
     fn visit_with_mut<'a, V>(&'a mut self, visitor: &mut V) -> ControlFlow<V::BreakTy>
     where
-        V: VisitorMut<'a>,
+        V: VisitorMut<'a, 'arena>,
     {
         match self {
             Self::This(this) => visitor.visit_this_mut(this),

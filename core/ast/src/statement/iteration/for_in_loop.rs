@@ -18,10 +18,10 @@ use core::ops::ControlFlow;
 #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
 #[cfg_attr(feature = "arbitrary", derive(arbitrary::Arbitrary))]
 #[derive(Clone, Debug, PartialEq)]
-pub struct ForInLoop {
-    pub(crate) initializer: IterableLoopInitializer,
-    pub(crate) target: Expression,
-    pub(crate) body: Box<Statement>,
+pub struct ForInLoop<'arena> {
+    pub(crate) initializer: IterableLoopInitializer<'arena>,
+    pub(crate) target: Expression<'arena>,
+    pub(crate) body: Box<Statement<'arena>>,
     pub(crate) target_contains_direct_eval: bool,
     pub(crate) contains_direct_eval: bool,
 
@@ -32,11 +32,11 @@ pub struct ForInLoop {
     pub(crate) scope: Option<Scope>,
 }
 
-impl ForInLoop {
+impl<'arena> ForInLoop<'arena> {
     /// Creates a new `ForInLoop`.
     #[inline]
     #[must_use]
-    pub fn new(initializer: IterableLoopInitializer, target: Expression, body: Statement) -> Self {
+    pub fn new(initializer: IterableLoopInitializer<'arena>, target: Expression<'arena>, body: Statement<'arena>) -> Self {
         let target_contains_direct_eval = contains(&target, ContainsSymbol::DirectEval);
         let contains_direct_eval = contains(&initializer, ContainsSymbol::DirectEval)
             || contains(&body, ContainsSymbol::DirectEval);
@@ -54,21 +54,21 @@ impl ForInLoop {
     /// Gets the initializer of the for...in loop.
     #[inline]
     #[must_use]
-    pub const fn initializer(&self) -> &IterableLoopInitializer {
+    pub const fn initializer(&self) -> &IterableLoopInitializer<'arena> {
         &self.initializer
     }
 
     /// Gets the target object of the for...in loop.
     #[inline]
     #[must_use]
-    pub const fn target(&self) -> &Expression {
+    pub const fn target(&self) -> &Expression<'arena> {
         &self.target
     }
 
     /// Gets the body of the for...in loop.
     #[inline]
     #[must_use]
-    pub const fn body(&self) -> &Statement {
+    pub const fn body(&self) -> &Statement<'arena> {
         &self.body
     }
 
@@ -87,7 +87,7 @@ impl ForInLoop {
     }
 }
 
-impl ToIndentedString for ForInLoop {
+impl<'arena> ToIndentedString for ForInLoop<'arena> {
     fn to_indented_string(&self, interner: &Interner, indentation: usize) -> String {
         let mut buf = format!(
             "for ({} in {}) ",
@@ -100,17 +100,17 @@ impl ToIndentedString for ForInLoop {
     }
 }
 
-impl From<ForInLoop> for Statement {
+impl<'arena> From<ForInLoop<'arena>> for Statement<'arena> {
     #[inline]
-    fn from(for_in: ForInLoop) -> Self {
+    fn from(for_in: ForInLoop<'arena>) -> Self {
         Self::ForInLoop(for_in)
     }
 }
 
-impl VisitWith for ForInLoop {
+impl<'arena> VisitWith<'arena> for ForInLoop<'arena> {
     fn visit_with<'a, V>(&'a self, visitor: &mut V) -> ControlFlow<V::BreakTy>
     where
-        V: Visitor<'a>,
+        V: Visitor<'a, 'arena>,
     {
         visitor.visit_iterable_loop_initializer(&self.initializer)?;
         visitor.visit_expression(&self.target)?;
@@ -119,7 +119,7 @@ impl VisitWith for ForInLoop {
 
     fn visit_with_mut<'a, V>(&'a mut self, visitor: &mut V) -> ControlFlow<V::BreakTy>
     where
-        V: VisitorMut<'a>,
+        V: VisitorMut<'a, 'arena>,
     {
         visitor.visit_iterable_loop_initializer_mut(&mut self.initializer)?;
         visitor.visit_expression_mut(&mut self.target)?;

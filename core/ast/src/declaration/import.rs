@@ -38,10 +38,10 @@ pub enum ImportKind {
     },
 }
 
-impl VisitWith for ImportKind {
+impl<'arena> VisitWith<'arena> for ImportKind {
     fn visit_with<'a, V>(&'a self, visitor: &mut V) -> ControlFlow<V::BreakTy>
     where
-        V: Visitor<'a>,
+        V: Visitor<'a, 'arena>,
     {
         match self {
             Self::DefaultOrUnnamed => ControlFlow::Continue(()),
@@ -57,7 +57,7 @@ impl VisitWith for ImportKind {
 
     fn visit_with_mut<'a, V>(&'a mut self, visitor: &mut V) -> ControlFlow<V::BreakTy>
     where
-        V: VisitorMut<'a>,
+        V: VisitorMut<'a, 'arena>,
     {
         match self {
             Self::DefaultOrUnnamed => ControlFlow::Continue(()),
@@ -138,10 +138,10 @@ impl ImportDeclaration {
     }
 }
 
-impl VisitWith for ImportDeclaration {
+impl<'arena> VisitWith<'arena> for ImportDeclaration {
     fn visit_with<'a, V>(&'a self, visitor: &mut V) -> ControlFlow<V::BreakTy>
     where
-        V: Visitor<'a>,
+        V: Visitor<'a, 'arena>,
     {
         if let Some(default) = &self.default {
             visitor.visit_identifier(default)?;
@@ -156,7 +156,7 @@ impl VisitWith for ImportDeclaration {
 
     fn visit_with_mut<'a, V>(&'a mut self, visitor: &mut V) -> ControlFlow<V::BreakTy>
     where
-        V: VisitorMut<'a>,
+        V: VisitorMut<'a, 'arena>,
     {
         if let Some(default) = &mut self.default {
             visitor.visit_identifier_mut(default)?;
@@ -210,10 +210,10 @@ impl ImportSpecifier {
     }
 }
 
-impl VisitWith for ImportSpecifier {
+impl<'arena> VisitWith<'arena> for ImportSpecifier {
     fn visit_with<'a, V>(&'a self, visitor: &mut V) -> ControlFlow<V::BreakTy>
     where
-        V: Visitor<'a>,
+        V: Visitor<'a, 'arena>,
     {
         visitor.visit_identifier(&self.binding)?;
         visitor.visit_sym(&self.export_name)
@@ -221,7 +221,7 @@ impl VisitWith for ImportSpecifier {
 
     fn visit_with_mut<'a, V>(&'a mut self, visitor: &mut V) -> ControlFlow<V::BreakTy>
     where
-        V: VisitorMut<'a>,
+        V: VisitorMut<'a, 'arena>,
     {
         visitor.visit_identifier_mut(&mut self.binding)?;
         visitor.visit_sym_mut(&mut self.export_name)

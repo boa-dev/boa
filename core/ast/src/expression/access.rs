@@ -29,14 +29,14 @@ use super::Identifier;
 #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
 #[cfg_attr(feature = "arbitrary", derive(arbitrary::Arbitrary))]
 #[derive(Clone, Debug, PartialEq)]
-pub enum PropertyAccessField {
+pub enum PropertyAccessField<'arena> {
     /// A constant property field, such as `x.prop`.
     Const(Identifier),
     /// An expression property field, such as `x["val"]`.
-    Expr(Box<Expression>),
+    Expr(Box<Expression<'arena>>),
 }
 
-impl Spanned for PropertyAccessField {
+impl<'arena> Spanned for PropertyAccessField<'arena> {
     #[inline]
     fn span(&self) -> Span {
         match self {
@@ -46,24 +46,24 @@ impl Spanned for PropertyAccessField {
     }
 }
 
-impl From<Identifier> for PropertyAccessField {
+impl<'arena> From<Identifier> for PropertyAccessField<'arena> {
     #[inline]
     fn from(id: Identifier) -> Self {
         Self::Const(id)
     }
 }
 
-impl From<Expression> for PropertyAccessField {
+impl<'arena> From<Expression<'arena>> for PropertyAccessField<'arena> {
     #[inline]
-    fn from(expr: Expression) -> Self {
+    fn from(expr: Expression<'arena>) -> Self {
         Self::Expr(Box::new(expr))
     }
 }
 
-impl VisitWith for PropertyAccessField {
+impl<'arena> VisitWith<'arena> for PropertyAccessField<'arena> {
     fn visit_with<'a, V>(&'a self, visitor: &mut V) -> ControlFlow<V::BreakTy>
     where
-        V: Visitor<'a>,
+        V: Visitor<'a, 'arena>,
     {
         match self {
             Self::Const(sym) => visitor.visit_sym(sym.sym_ref()),
@@ -73,7 +73,7 @@ impl VisitWith for PropertyAccessField {
 
     fn visit_with_mut<'a, V>(&'a mut self, visitor: &mut V) -> ControlFlow<V::BreakTy>
     where
-        V: VisitorMut<'a>,
+        V: VisitorMut<'a, 'arena>,
     {
         match self {
             Self::Const(sym) => visitor.visit_sym_mut(sym.sym_mut()),
@@ -88,16 +88,16 @@ impl VisitWith for PropertyAccessField {
 #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
 #[cfg_attr(feature = "arbitrary", derive(arbitrary::Arbitrary))]
 #[derive(Clone, Debug, PartialEq)]
-pub enum PropertyAccess {
+pub enum PropertyAccess<'arena> {
     /// A simple property access (`x.prop`).
-    Simple(SimplePropertyAccess),
+    Simple(SimplePropertyAccess<'arena>),
     /// A property access of a private property (`x.#priv`).
-    Private(PrivatePropertyAccess),
+    Private(PrivatePropertyAccess<'arena>),
     /// A property access of a `super` reference. (`super["prop"]`).
-    Super(SuperPropertyAccess),
+    Super(SuperPropertyAccess<'arena>),
 }
 
-impl Spanned for PropertyAccess {
+impl<'arena> Spanned for PropertyAccess<'arena> {
     #[inline]
     fn span(&self) -> Span {
         match self {
@@ -108,7 +108,7 @@ impl Spanned for PropertyAccess {
     }
 }
 
-impl ToInternedString for PropertyAccess {
+impl<'arena> ToInternedString for PropertyAccess<'arena> {
     #[inline]
     fn to_interned_string(&self, interner: &Interner) -> String {
         match self {
@@ -119,17 +119,17 @@ impl ToInternedString for PropertyAccess {
     }
 }
 
-impl From<PropertyAccess> for Expression {
+impl<'arena> From<PropertyAccess<'arena>> for Expression<'arena> {
     #[inline]
-    fn from(access: PropertyAccess) -> Self {
+    fn from(access: PropertyAccess<'arena>) -> Self {
         Self::PropertyAccess(access)
     }
 }
 
-impl VisitWith for PropertyAccess {
+impl<'arena> VisitWith<'arena> for PropertyAccess<'arena> {
     fn visit_with<'a, V>(&'a self, visitor: &mut V) -> ControlFlow<V::BreakTy>
     where
-        V: Visitor<'a>,
+        V: Visitor<'a, 'arena>,
     {
         match self {
             Self::Simple(spa) => visitor.visit_simple_property_access(spa),
@@ -140,7 +140,7 @@ impl VisitWith for PropertyAccess {
 
     fn visit_with_mut<'a, V>(&'a mut self, visitor: &mut V) -> ControlFlow<V::BreakTy>
     where
-        V: VisitorMut<'a>,
+        V: VisitorMut<'a, 'arena>,
     {
         match self {
             Self::Simple(spa) => visitor.visit_simple_property_access_mut(spa),
@@ -154,30 +154,30 @@ impl VisitWith for PropertyAccess {
 #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
 #[cfg_attr(feature = "arbitrary", derive(arbitrary::Arbitrary))]
 #[derive(Clone, Debug, PartialEq)]
-pub struct SimplePropertyAccess {
-    target: Box<Expression>,
-    field: PropertyAccessField,
+pub struct SimplePropertyAccess<'arena> {
+    target: Box<Expression<'arena>>,
+    field: PropertyAccessField<'arena>,
 }
 
-impl SimplePropertyAccess {
+impl<'arena> SimplePropertyAccess<'arena> {
     /// Gets the target object of the property access.
     #[inline]
     #[must_use]
-    pub const fn target(&self) -> &Expression {
+    pub const fn target(&self) -> &Expression<'arena> {
         &self.target
     }
 
     /// Gets the accessed field of the target object.
     #[inline]
     #[must_use]
-    pub const fn field(&self) -> &PropertyAccessField {
+    pub const fn field(&self) -> &PropertyAccessField<'arena> {
         &self.field
     }
 
     /// Creates a `PropertyAccess` AST Expression.
-    pub fn new<F>(target: Expression, field: F) -> Self
+    pub fn new<F>(target: Expression<'arena>, field: F) -> Self
     where
-        F: Into<PropertyAccessField>,
+        F: Into<PropertyAccessField<'arena>>,
     {
         Self {
             target: target.into(),
@@ -186,14 +186,14 @@ impl SimplePropertyAccess {
     }
 }
 
-impl Spanned for SimplePropertyAccess {
+impl<'arena> Spanned for SimplePropertyAccess<'arena> {
     #[inline]
     fn span(&self) -> Span {
         Span::new(self.target.span().start(), self.field.span().end())
     }
 }
 
-impl ToInternedString for SimplePropertyAccess {
+impl<'arena> ToInternedString for SimplePropertyAccess<'arena> {
     #[inline]
     fn to_interned_string(&self, interner: &Interner) -> String {
         let target = self.target.to_interned_string(interner);
@@ -208,17 +208,17 @@ impl ToInternedString for SimplePropertyAccess {
     }
 }
 
-impl From<SimplePropertyAccess> for PropertyAccess {
+impl<'arena> From<SimplePropertyAccess<'arena>> for PropertyAccess<'arena> {
     #[inline]
-    fn from(access: SimplePropertyAccess) -> Self {
+    fn from(access: SimplePropertyAccess<'arena>) -> Self {
         Self::Simple(access)
     }
 }
 
-impl VisitWith for SimplePropertyAccess {
+impl<'arena> VisitWith<'arena> for SimplePropertyAccess<'arena> {
     fn visit_with<'a, V>(&'a self, visitor: &mut V) -> ControlFlow<V::BreakTy>
     where
-        V: Visitor<'a>,
+        V: Visitor<'a, 'arena>,
     {
         visitor.visit_expression(&self.target)?;
         visitor.visit_property_access_field(&self.field)
@@ -226,7 +226,7 @@ impl VisitWith for SimplePropertyAccess {
 
     fn visit_with_mut<'a, V>(&'a mut self, visitor: &mut V) -> ControlFlow<V::BreakTy>
     where
-        V: VisitorMut<'a>,
+        V: VisitorMut<'a, 'arena>,
     {
         visitor.visit_expression_mut(&mut self.target)?;
         visitor.visit_property_access_field_mut(&mut self.field)
@@ -246,17 +246,17 @@ impl VisitWith for SimplePropertyAccess {
 #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
 #[cfg_attr(feature = "arbitrary", derive(arbitrary::Arbitrary))]
 #[derive(Clone, Debug, PartialEq)]
-pub struct PrivatePropertyAccess {
-    target: Box<Expression>,
+pub struct PrivatePropertyAccess<'arena> {
+    target: Box<Expression<'arena>>,
     field: PrivateName,
     span: Span,
 }
 
-impl PrivatePropertyAccess {
+impl<'arena> PrivatePropertyAccess<'arena> {
     /// Creates a `GetPrivateField` AST Expression.
     #[inline]
     #[must_use]
-    pub fn new(value: Expression, field: PrivateName, span: Span) -> Self {
+    pub fn new(value: Expression<'arena>, field: PrivateName, span: Span) -> Self {
         Self {
             target: value.into(),
             field,
@@ -267,7 +267,7 @@ impl PrivatePropertyAccess {
     /// Gets the original object from where to get the field from.
     #[inline]
     #[must_use]
-    pub const fn target(&self) -> &Expression {
+    pub const fn target(&self) -> &Expression<'arena> {
         &self.target
     }
 
@@ -279,14 +279,14 @@ impl PrivatePropertyAccess {
     }
 }
 
-impl Spanned for PrivatePropertyAccess {
+impl<'arena> Spanned for PrivatePropertyAccess<'arena> {
     #[inline]
     fn span(&self) -> Span {
         self.span
     }
 }
 
-impl ToInternedString for PrivatePropertyAccess {
+impl<'arena> ToInternedString for PrivatePropertyAccess<'arena> {
     #[inline]
     fn to_interned_string(&self, interner: &Interner) -> String {
         format!(
@@ -297,17 +297,17 @@ impl ToInternedString for PrivatePropertyAccess {
     }
 }
 
-impl From<PrivatePropertyAccess> for PropertyAccess {
+impl<'arena> From<PrivatePropertyAccess<'arena>> for PropertyAccess<'arena> {
     #[inline]
-    fn from(access: PrivatePropertyAccess) -> Self {
+    fn from(access: PrivatePropertyAccess<'arena>) -> Self {
         Self::Private(access)
     }
 }
 
-impl VisitWith for PrivatePropertyAccess {
+impl<'arena> VisitWith<'arena> for PrivatePropertyAccess<'arena> {
     fn visit_with<'a, V>(&'a self, visitor: &mut V) -> ControlFlow<V::BreakTy>
     where
-        V: Visitor<'a>,
+        V: Visitor<'a, 'arena>,
     {
         visitor.visit_expression(&self.target)?;
         visitor.visit_private_name(&self.field)
@@ -315,7 +315,7 @@ impl VisitWith for PrivatePropertyAccess {
 
     fn visit_with_mut<'a, V>(&'a mut self, visitor: &mut V) -> ControlFlow<V::BreakTy>
     where
-        V: VisitorMut<'a>,
+        V: VisitorMut<'a, 'arena>,
     {
         visitor.visit_expression_mut(&mut self.target)?;
         visitor.visit_private_name_mut(&mut self.field)
@@ -332,34 +332,34 @@ impl VisitWith for PrivatePropertyAccess {
 #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
 #[cfg_attr(feature = "arbitrary", derive(arbitrary::Arbitrary))]
 #[derive(Clone, Debug, PartialEq)]
-pub struct SuperPropertyAccess {
-    field: PropertyAccessField,
+pub struct SuperPropertyAccess<'arena> {
+    field: PropertyAccessField<'arena>,
     span: Span,
 }
 
-impl SuperPropertyAccess {
+impl<'arena> SuperPropertyAccess<'arena> {
     /// Creates a new property access field node.
     #[must_use]
-    pub const fn new(field: PropertyAccessField, span: Span) -> Self {
+    pub const fn new(field: PropertyAccessField<'arena>, span: Span) -> Self {
         Self { field, span }
     }
 
     /// Gets the name of the field to retrieve.
     #[inline]
     #[must_use]
-    pub const fn field(&self) -> &PropertyAccessField {
+    pub const fn field(&self) -> &PropertyAccessField<'arena> {
         &self.field
     }
 }
 
-impl Spanned for SuperPropertyAccess {
+impl<'arena> Spanned for SuperPropertyAccess<'arena> {
     #[inline]
     fn span(&self) -> Span {
         self.span
     }
 }
 
-impl ToInternedString for SuperPropertyAccess {
+impl<'arena> ToInternedString for SuperPropertyAccess<'arena> {
     #[inline]
     fn to_interned_string(&self, interner: &Interner) -> String {
         match &self.field {
@@ -373,24 +373,24 @@ impl ToInternedString for SuperPropertyAccess {
     }
 }
 
-impl From<SuperPropertyAccess> for PropertyAccess {
+impl<'arena> From<SuperPropertyAccess<'arena>> for PropertyAccess<'arena> {
     #[inline]
-    fn from(access: SuperPropertyAccess) -> Self {
+    fn from(access: SuperPropertyAccess<'arena>) -> Self {
         Self::Super(access)
     }
 }
 
-impl VisitWith for SuperPropertyAccess {
+impl<'arena> VisitWith<'arena> for SuperPropertyAccess<'arena> {
     fn visit_with<'a, V>(&'a self, visitor: &mut V) -> ControlFlow<V::BreakTy>
     where
-        V: Visitor<'a>,
+        V: Visitor<'a, 'arena>,
     {
         visitor.visit_property_access_field(&self.field)
     }
 
     fn visit_with_mut<'a, V>(&'a mut self, visitor: &mut V) -> ControlFlow<V::BreakTy>
     where
-        V: VisitorMut<'a>,
+        V: VisitorMut<'a, 'arena>,
     {
         visitor.visit_property_access_field_mut(&mut self.field)
     }

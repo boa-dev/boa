@@ -18,14 +18,14 @@ use core::{fmt::Write as _, ops::ControlFlow};
 /// [spec]: https://tc39.es/ecma262/#sec-template-literals
 #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
 #[derive(Clone, Debug, PartialEq)]
-pub struct TemplateLiteral {
-    elements: Box<[TemplateElement]>,
+pub struct TemplateLiteral<'arena> {
+    elements: Box<[TemplateElement<'arena>]>,
     span: Span,
 }
 
 /// Manual implementation, because string and expression in the element list must always appear in order.
 #[cfg(feature = "arbitrary")]
-impl<'a> arbitrary::Arbitrary<'a> for TemplateLiteral {
+impl<'a, 'arena> arbitrary::Arbitrary<'a> for TemplateLiteral<'arena> {
     fn arbitrary(u: &mut arbitrary::Unstructured<'a>) -> arbitrary::Result<Self> {
         let len = u.arbitrary_len::<Box<[TemplateElement]>>()?;
 
@@ -44,36 +44,36 @@ impl<'a> arbitrary::Arbitrary<'a> for TemplateLiteral {
     }
 }
 
-impl From<TemplateLiteral> for Expression {
+impl<'arena> From<TemplateLiteral<'arena>> for Expression<'arena> {
     #[inline]
-    fn from(tem: TemplateLiteral) -> Self {
+    fn from(tem: TemplateLiteral<'arena>) -> Self {
         Self::TemplateLiteral(tem)
     }
 }
 
-impl TemplateLiteral {
+impl<'arena> TemplateLiteral<'arena> {
     /// Creates a new `TemplateLiteral` from a list of [`TemplateElement`]s.
     #[inline]
     #[must_use]
-    pub fn new(elements: Box<[TemplateElement]>, span: Span) -> Self {
+    pub fn new(elements: Box<[TemplateElement<'arena>]>, span: Span) -> Self {
         Self { elements, span }
     }
 
     /// Gets the element list of this `TemplateLiteral`.
     #[must_use]
-    pub const fn elements(&self) -> &[TemplateElement] {
+    pub const fn elements(&self) -> &[TemplateElement<'arena>] {
         &self.elements
     }
 }
 
-impl Spanned for TemplateLiteral {
+impl Spanned for TemplateLiteral<'_> {
     #[inline]
     fn span(&self) -> Span {
         self.span
     }
 }
 
-impl ToInternedString for TemplateLiteral {
+impl ToInternedString for TemplateLiteral<'_> {
     #[inline]
     fn to_interned_string(&self, interner: &Interner) -> String {
         let mut buf = "`".to_owned();
@@ -94,10 +94,10 @@ impl ToInternedString for TemplateLiteral {
     }
 }
 
-impl VisitWith for TemplateLiteral {
+impl<'arena> VisitWith<'arena> for TemplateLiteral<'_> {
     fn visit_with<'a, V>(&'a self, visitor: &mut V) -> ControlFlow<V::BreakTy>
     where
-        V: Visitor<'a>,
+        V: Visitor<'a, 'arena>,
     {
         for element in &*self.elements {
             visitor.visit_template_element(element)?;
@@ -107,7 +107,7 @@ impl VisitWith for TemplateLiteral {
 
     fn visit_with_mut<'a, V>(&'a mut self, visitor: &mut V) -> ControlFlow<V::BreakTy>
     where
-        V: VisitorMut<'a>,
+        V: VisitorMut<'a, 'arena>,
     {
         for element in &mut *self.elements {
             visitor.visit_template_element_mut(element)?;
@@ -125,17 +125,17 @@ impl VisitWith for TemplateLiteral {
 #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
 #[cfg_attr(feature = "arbitrary", derive(arbitrary::Arbitrary))]
 #[derive(Clone, Debug, PartialEq)]
-pub enum TemplateElement {
+pub enum TemplateElement<'arena> {
     /// A simple string.
     String(Sym),
     /// An expression that is evaluated and replaced by its string representation.
-    Expr(Expression),
+    Expr(Expression<'arena>),
 }
 
-impl VisitWith for TemplateElement {
+impl<'arena> VisitWith<'arena> for TemplateElement<'arena> {
     fn visit_with<'a, V>(&'a self, visitor: &mut V) -> ControlFlow<V::BreakTy>
     where
-        V: Visitor<'a>,
+        V: Visitor<'a, 'arena>,
     {
         match self {
             Self::String(sym) => visitor.visit_sym(sym),
@@ -145,7 +145,7 @@ impl VisitWith for TemplateElement {
 
     fn visit_with_mut<'a, V>(&'a mut self, visitor: &mut V) -> ControlFlow<V::BreakTy>
     where
-        V: VisitorMut<'a>,
+        V: VisitorMut<'a, 'arena>,
     {
         match self {
             Self::String(sym) => visitor.visit_sym_mut(sym),

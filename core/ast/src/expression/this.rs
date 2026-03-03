@@ -33,7 +33,7 @@ impl Spanned for This {
     }
 }
 
-impl From<This> for Expression {
+impl<'arena> From<This> for Expression<'arena> {
     #[inline]
     fn from(value: This) -> Self {
         Expression::This(value)
@@ -47,17 +47,17 @@ impl ToInternedString for This {
     }
 }
 
-impl VisitWith for This {
+impl<'arena> VisitWith<'arena> for This {
     fn visit_with<'a, V>(&'a self, _visitor: &mut V) -> ControlFlow<V::BreakTy>
     where
-        V: Visitor<'a>,
+        V: Visitor<'a, 'arena>,
     {
         ControlFlow::Continue(())
     }
 
     fn visit_with_mut<'a, V>(&'a mut self, _visitor: &mut V) -> ControlFlow<V::BreakTy>
     where
-        V: VisitorMut<'a>,
+        V: VisitorMut<'a, 'arena>,
     {
         ControlFlow::Continue(())
     }

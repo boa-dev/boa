@@ -26,43 +26,43 @@ use core::{fmt::Write as _, ops::ControlFlow};
 #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
 #[cfg_attr(feature = "arbitrary", derive(arbitrary::Arbitrary))]
 #[derive(Clone, Debug, PartialEq)]
-pub struct Try {
-    block: Block,
-    handler: ErrorHandler,
+pub struct Try<'arena> {
+    block: Block<'arena>,
+    handler: ErrorHandler<'arena>,
 }
 
 /// The type of error handler in a [`Try`] statement.
 #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
 #[cfg_attr(feature = "arbitrary", derive(arbitrary::Arbitrary))]
 #[derive(Clone, Debug, PartialEq)]
-pub enum ErrorHandler {
+pub enum ErrorHandler<'arena> {
     /// A [`Catch`] error handler.
-    Catch(Catch),
+    Catch(Catch<'arena>),
     /// A [`Finally`] error handler.
-    Finally(Finally),
+    Finally(Finally<'arena>),
     /// A [`Catch`] and [`Finally`] error handler.
-    Full(Catch, Finally),
+    Full(Catch<'arena>, Finally<'arena>),
 }
 
-impl Try {
+impl<'arena> Try<'arena> {
     /// Creates a new `Try` AST node.
     #[inline]
     #[must_use]
-    pub const fn new(block: Block, handler: ErrorHandler) -> Self {
+    pub const fn new(block: Block<'arena>, handler: ErrorHandler<'arena>) -> Self {
         Self { block, handler }
     }
 
     /// Gets the `try` block.
     #[inline]
     #[must_use]
-    pub const fn block(&self) -> &Block {
+    pub const fn block(&self) -> &Block<'arena> {
         &self.block
     }
 
     /// Gets the `catch` block, if any.
     #[inline]
     #[must_use]
-    pub const fn catch(&self) -> Option<&Catch> {
+    pub const fn catch(&self) -> Option<&Catch<'arena>> {
         match &self.handler {
             ErrorHandler::Catch(c) | ErrorHandler::Full(c, _) => Some(c),
             ErrorHandler::Finally(_) => None,
@@ -72,7 +72,7 @@ impl Try {
     /// Gets the `finally` block, if any.
     #[inline]
     #[must_use]
-    pub const fn finally(&self) -> Option<&Finally> {
+    pub const fn finally(&self) -> Option<&Finally<'arena>> {
         match &self.handler {
             ErrorHandler::Finally(f) | ErrorHandler::Full(_, f) => Some(f),
             ErrorHandler::Catch(_) => None,
@@ -80,7 +80,7 @@ impl Try {
     }
 }
 
-impl ToIndentedString for Try {
+impl<'arena> ToIndentedString for Try<'arena> {
     fn to_indented_string(&self, interner: &Interner, indentation: usize) -> String {
         let mut buf = format!(
             "{}try {}",
@@ -99,17 +99,17 @@ impl ToIndentedString for Try {
     }
 }
 
-impl From<Try> for Statement {
+impl<'arena> From<Try<'arena>> for Statement<'arena> {
     #[inline]
-    fn from(try_catch: Try) -> Self {
+    fn from(try_catch: Try<'arena>) -> Self {
         Self::Try(try_catch)
     }
 }
 
-impl VisitWith for Try {
+impl<'arena> VisitWith<'arena> for Try<'arena> {
     fn visit_with<'a, V>(&'a self, visitor: &mut V) -> ControlFlow<V::BreakTy>
     where
-        V: Visitor<'a>,
+        V: Visitor<'a, 'arena>,
     {
         visitor.visit_block(&self.block)?;
         if let Some(catch) = &self.catch() {
@@ -123,7 +123,7 @@ impl VisitWith for Try {
 
     fn visit_with_mut<'a, V>(&'a mut self, visitor: &mut V) -> ControlFlow<V::BreakTy>
     where
-        V: VisitorMut<'a>,
+        V: VisitorMut<'a, 'arena>,
     {
         visitor.visit_block_mut(&mut self.block)?;
         match &mut self.handler {
@@ -142,20 +142,20 @@ impl VisitWith for Try {
 #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
 #[cfg_attr(feature = "arbitrary", derive(arbitrary::Arbitrary))]
 #[derive(Clone, Debug, PartialEq)]
-pub struct Catch {
-    pub(crate) parameter: Option<Binding>,
-    pub(crate) block: Block,
+pub struct Catch<'arena> {
+    pub(crate) parameter: Option<Binding<'arena>>,
+    pub(crate) block: Block<'arena>,
     pub(crate) contains_direct_eval: bool,
 
     #[cfg_attr(feature = "serde", serde(skip))]
     pub(crate) scope: Scope,
 }
 
-impl Catch {
+impl<'arena> Catch<'arena> {
     /// Creates a new catch block.
     #[inline]
     #[must_use]
-    pub fn new(parameter: Option<Binding>, block: Block) -> Self {
+    pub fn new(parameter: Option<Binding<'arena>>, block: Block<'arena>) -> Self {
         let mut contains_direct_eval = contains(&block, ContainsSymbol::DirectEval);
         if let Some(param) = &parameter {
             contains_direct_eval |= contains(param, ContainsSymbol::DirectEval);
@@ -171,14 +171,14 @@ impl Catch {
     /// Gets the parameter of the catch block.
     #[inline]
     #[must_use]
-    pub const fn parameter(&self) -> Option<&Binding> {
+    pub const fn parameter(&self) -> Option<&Binding<'arena>> {
         self.parameter.as_ref()
     }
 
     /// Retrieves the catch execution block.
     #[inline]
     #[must_use]
-    pub const fn block(&self) -> &Block {
+    pub const fn block(&self) -> &Block<'arena> {
         &self.block
     }
 
@@ -190,7 +190,7 @@ impl Catch {
     }
 }
 
-impl ToIndentedString for Catch {
+impl<'arena> ToIndentedString for Catch<'arena> {
     fn to_indented_string(&self, interner: &Interner, indentation: usize) -> String {
         let mut buf = " catch".to_owned();
         if let Some(param) = &self.parameter {
@@ -206,10 +206,10 @@ impl ToIndentedString for Catch {
     }
 }
 
-impl VisitWith for Catch {
+impl<'arena> VisitWith<'arena> for Catch<'arena> {
     fn visit_with<'a, V>(&'a self, visitor: &mut V) -> ControlFlow<V::BreakTy>
     where
-        V: Visitor<'a>,
+        V: Visitor<'a, 'arena>,
     {
         if let Some(binding) = &self.parameter {
             visitor.visit_binding(binding)?;
@@ -219,7 +219,7 @@ impl VisitWith for Catch {
 
     fn visit_with_mut<'a, V>(&'a mut self, visitor: &mut V) -> ControlFlow<V::BreakTy>
     where
-        V: VisitorMut<'a>,
+        V: VisitorMut<'a, 'arena>,
     {
         if let Some(binding) = &mut self.parameter {
             visitor.visit_binding_mut(binding)?;
@@ -232,20 +232,20 @@ impl VisitWith for Catch {
 #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
 #[cfg_attr(feature = "arbitrary", derive(arbitrary::Arbitrary))]
 #[derive(Clone, Debug, PartialEq)]
-pub struct Finally {
-    block: Block,
+pub struct Finally<'arena> {
+    block: Block<'arena>,
 }
 
-impl Finally {
+impl<'arena> Finally<'arena> {
     /// Gets the finally block.
     #[inline]
     #[must_use]
-    pub const fn block(&self) -> &Block {
+    pub const fn block(&self) -> &Block<'arena> {
         &self.block
     }
 }
 
-impl ToIndentedString for Finally {
+impl<'arena> ToIndentedString for Finally<'arena> {
     fn to_indented_string(&self, interner: &Interner, indentation: usize) -> String {
         format!(
             " finally {}",
@@ -254,24 +254,24 @@ impl ToIndentedString for Finally {
     }
 }
 
-impl From<Block> for Finally {
+impl<'arena> From<Block<'arena>> for Finally<'arena> {
     #[inline]
-    fn from(block: Block) -> Self {
+    fn from(block: Block<'arena>) -> Self {
         Self { block }
     }
 }
 
-impl VisitWith for Finally {
+impl<'arena> VisitWith<'arena> for Finally<'arena> {
     fn visit_with<'a, V>(&'a self, visitor: &mut V) -> ControlFlow<V::BreakTy>
     where
-        V: Visitor<'a>,
+        V: Visitor<'a, 'arena>,
     {
         visitor.visit_block(&self.block)
     }
 
     fn visit_with_mut<'a, V>(&'a mut self, visitor: &mut V) -> ControlFlow<V::BreakTy>
     where
-        V: VisitorMut<'a>,
+        V: VisitorMut<'a, 'arena>,
     {
         visitor.visit_block_mut(&mut self.block)
     }

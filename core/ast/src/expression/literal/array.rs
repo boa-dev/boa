@@ -27,17 +27,17 @@ use core::ops::ControlFlow;
 #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
 #[cfg_attr(feature = "arbitrary", derive(arbitrary::Arbitrary))]
 #[derive(Clone, Debug, PartialEq)]
-pub struct ArrayLiteral {
-    arr: Box<[Option<Expression>]>,
+pub struct ArrayLiteral<'arena> {
+    arr: Box<[Option<Expression<'arena>>]>,
     has_trailing_comma_spread: bool,
     span: Span,
 }
 
-impl ArrayLiteral {
+impl<'arena> ArrayLiteral<'arena> {
     /// Creates a new array literal.
     pub fn new<A>(array: A, has_trailing_comma_spread: bool, span: Span) -> Self
     where
-        A: Into<Box<[Option<Expression>]>>,
+        A: Into<Box<[Option<Expression<'arena>>]>>,
     {
         Self {
             arr: array.into(),
@@ -55,7 +55,7 @@ impl ArrayLiteral {
 
     /// Converts this `ArrayLiteral` into an [`ArrayPattern`].
     #[must_use]
-    pub fn to_pattern(&self, strict: bool) -> Option<ArrayPattern> {
+    pub fn to_pattern(&self, strict: bool) -> Option<ArrayPattern<'arena>> {
         if self.has_trailing_comma_spread() {
             return None;
         }
@@ -163,28 +163,28 @@ impl ArrayLiteral {
     }
 }
 
-impl Spanned for ArrayLiteral {
+impl<'arena> Spanned for ArrayLiteral<'arena> {
     #[inline]
     fn span(&self) -> Span {
         self.span
     }
 }
 
-impl AsRef<[Option<Expression>]> for ArrayLiteral {
+impl<'arena> AsRef<[Option<Expression<'arena>>]> for ArrayLiteral<'arena> {
     #[inline]
-    fn as_ref(&self) -> &[Option<Expression>] {
+    fn as_ref(&self) -> &[Option<Expression<'arena>>] {
         &self.arr
     }
 }
 
-impl AsMut<[Option<Expression>]> for ArrayLiteral {
+impl<'arena> AsMut<[Option<Expression<'arena>>]> for ArrayLiteral<'arena> {
     #[inline]
-    fn as_mut(&mut self) -> &mut [Option<Expression>] {
+    fn as_mut(&mut self) -> &mut [Option<Expression<'arena>>] {
         &mut self.arr
     }
 }
 
-impl ToInternedString for ArrayLiteral {
+impl<'arena> ToInternedString for ArrayLiteral<'arena> {
     #[inline]
     fn to_interned_string(&self, interner: &Interner) -> String {
         let mut buf = String::from("[");
@@ -207,17 +207,17 @@ impl ToInternedString for ArrayLiteral {
     }
 }
 
-impl From<ArrayLiteral> for Expression {
+impl<'arena> From<ArrayLiteral<'arena>> for Expression<'arena> {
     #[inline]
-    fn from(arr: ArrayLiteral) -> Self {
+    fn from(arr: ArrayLiteral<'arena>) -> Self {
         Self::ArrayLiteral(arr)
     }
 }
 
-impl VisitWith for ArrayLiteral {
+impl<'arena> VisitWith<'arena> for ArrayLiteral<'arena> {
     fn visit_with<'a, V>(&'a self, visitor: &mut V) -> ControlFlow<V::BreakTy>
     where
-        V: Visitor<'a>,
+        V: Visitor<'a, 'arena>,
     {
         for expr in self.arr.iter().flatten() {
             visitor.visit_expression(expr)?;
@@ -227,7 +227,7 @@ impl VisitWith for ArrayLiteral {
 
     fn visit_with_mut<'a, V>(&'a mut self, visitor: &mut V) -> ControlFlow<V::BreakTy>
     where
-        V: VisitorMut<'a>,
+        V: VisitorMut<'a, 'arena>,
     {
         for expr in self.arr.iter_mut().flatten() {
             visitor.visit_expression_mut(expr)?;

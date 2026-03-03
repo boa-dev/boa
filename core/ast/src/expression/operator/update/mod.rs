@@ -30,17 +30,17 @@ pub use op::*;
 #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
 #[cfg_attr(feature = "arbitrary", derive(arbitrary::Arbitrary))]
 #[derive(Clone, Debug, PartialEq)]
-pub struct Update {
+pub struct Update<'arena> {
     op: UpdateOp,
-    target: Box<UpdateTarget>,
+    target: Box<UpdateTarget<'arena>>,
     span: Span,
 }
 
-impl Update {
+impl<'arena> Update<'arena> {
     /// Creates a new `Update` AST expression.
     #[inline]
     #[must_use]
-    pub fn new(op: UpdateOp, target: UpdateTarget, span: Span) -> Self {
+    pub fn new(op: UpdateOp, target: UpdateTarget<'arena>, span: Span) -> Self {
         Self {
             op,
             target: Box::new(target),
@@ -58,19 +58,19 @@ impl Update {
     /// Gets the target of this update operator.
     #[inline]
     #[must_use]
-    pub fn target(&self) -> &UpdateTarget {
+    pub fn target(&self) -> &UpdateTarget<'arena> {
         self.target.as_ref()
     }
 }
 
-impl Spanned for Update {
+impl<'arena> Spanned for Update<'arena> {
     #[inline]
     fn span(&self) -> Span {
         self.span
     }
 }
 
-impl ToInternedString for Update {
+impl<'arena> ToInternedString for Update<'arena> {
     #[inline]
     fn to_interned_string(&self, interner: &Interner) -> String {
         match self.op {
@@ -84,17 +84,17 @@ impl ToInternedString for Update {
     }
 }
 
-impl From<Update> for Expression {
+impl<'arena> From<Update<'arena>> for Expression<'arena> {
     #[inline]
-    fn from(op: Update) -> Self {
+    fn from(op: Update<'arena>) -> Self {
         Self::Update(op)
     }
 }
 
-impl VisitWith for Update {
+impl<'arena> VisitWith<'arena> for Update<'arena> {
     fn visit_with<'a, V>(&'a self, visitor: &mut V) -> ControlFlow<V::BreakTy>
     where
-        V: Visitor<'a>,
+        V: Visitor<'a, 'arena>,
     {
         match self.target.as_ref() {
             UpdateTarget::Identifier(ident) => visitor.visit_identifier(ident),
@@ -104,7 +104,7 @@ impl VisitWith for Update {
 
     fn visit_with_mut<'a, V>(&'a mut self, visitor: &mut V) -> ControlFlow<V::BreakTy>
     where
-        V: VisitorMut<'a>,
+        V: VisitorMut<'a, 'arena>,
     {
         match &mut *self.target {
             UpdateTarget::Identifier(ident) => visitor.visit_identifier_mut(ident),
@@ -124,15 +124,15 @@ impl VisitWith for Update {
 #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
 #[cfg_attr(feature = "arbitrary", derive(arbitrary::Arbitrary))]
 #[derive(Clone, Debug, PartialEq)]
-pub enum UpdateTarget {
+pub enum UpdateTarget<'arena> {
     /// An [`Identifier`] expression.
     Identifier(Identifier),
 
     /// An [`PropertyAccess`] expression.
-    PropertyAccess(PropertyAccess),
+    PropertyAccess(PropertyAccess<'arena>),
 }
 
-impl ToInternedString for UpdateTarget {
+impl<'arena> ToInternedString for UpdateTarget<'arena> {
     #[inline]
     fn to_interned_string(&self, interner: &Interner) -> String {
         match self {

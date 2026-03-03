@@ -37,22 +37,22 @@ use boa_interner::{Interner, ToInternedString};
 #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
 #[cfg_attr(feature = "arbitrary", derive(arbitrary::Arbitrary))]
 #[derive(Clone, Debug, PartialEq)]
-pub enum IterableLoopInitializer {
+pub enum IterableLoopInitializer<'arena> {
     /// An already declared variable.
     Identifier(Identifier),
     /// A property access.
-    Access(PropertyAccess),
+    Access(PropertyAccess<'arena>),
     /// A new var declaration.
-    Var(Variable),
+    Var(Variable<'arena>),
     /// A new let declaration.
-    Let(Binding),
+    Let(Binding<'arena>),
     /// A new const declaration.
-    Const(Binding),
+    Const(Binding<'arena>),
     /// A pattern with already declared variables.
-    Pattern(Pattern),
+    Pattern(Pattern<'arena>),
 }
 
-impl ToInternedString for IterableLoopInitializer {
+impl<'arena> ToInternedString for IterableLoopInitializer<'arena> {
     fn to_interned_string(&self, interner: &Interner) -> String {
         let (binding, pre) = match self {
             Self::Identifier(ident) => return ident.to_interned_string(interner),
@@ -67,10 +67,10 @@ impl ToInternedString for IterableLoopInitializer {
     }
 }
 
-impl VisitWith for IterableLoopInitializer {
+impl<'arena> VisitWith<'arena> for IterableLoopInitializer<'arena> {
     fn visit_with<'a, V>(&'a self, visitor: &mut V) -> ControlFlow<V::BreakTy>
     where
-        V: Visitor<'a>,
+        V: Visitor<'a, 'arena>,
     {
         match self {
             Self::Identifier(id) => visitor.visit_identifier(id),
@@ -83,7 +83,7 @@ impl VisitWith for IterableLoopInitializer {
 
     fn visit_with_mut<'a, V>(&'a mut self, visitor: &mut V) -> ControlFlow<V::BreakTy>
     where
-        V: VisitorMut<'a>,
+        V: VisitorMut<'a, 'arena>,
     {
         match self {
             Self::Identifier(id) => visitor.visit_identifier_mut(id),

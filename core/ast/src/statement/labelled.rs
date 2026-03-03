@@ -19,15 +19,15 @@ use core::ops::ControlFlow;
 #[cfg_attr(feature = "arbitrary", derive(arbitrary::Arbitrary))]
 #[derive(Clone, Debug, PartialEq)]
 #[allow(clippy::large_enum_variant)]
-pub enum LabelledItem {
+pub enum LabelledItem<'arena> {
     /// A labelled [`FunctionDeclaration`].
-    FunctionDeclaration(FunctionDeclaration),
+    FunctionDeclaration(FunctionDeclaration<'arena>),
 
     /// A labelled [`Statement`].
-    Statement(Statement),
+    Statement(Statement<'arena>),
 }
 
-impl LabelledItem {
+impl<'arena> LabelledItem<'arena> {
     pub(crate) fn to_indented_string(&self, interner: &Interner, indentation: usize) -> String {
         match self {
             Self::FunctionDeclaration(f) => f.to_indented_string(interner, indentation),
@@ -36,28 +36,28 @@ impl LabelledItem {
     }
 }
 
-impl ToInternedString for LabelledItem {
+impl<'arena> ToInternedString for LabelledItem<'arena> {
     fn to_interned_string(&self, interner: &Interner) -> String {
         self.to_indented_string(interner, 0)
     }
 }
 
-impl From<FunctionDeclaration> for LabelledItem {
-    fn from(f: FunctionDeclaration) -> Self {
+impl<'arena> From<FunctionDeclaration<'arena>> for LabelledItem<'arena> {
+    fn from(f: FunctionDeclaration<'arena>) -> Self {
         Self::FunctionDeclaration(f)
     }
 }
 
-impl From<Statement> for LabelledItem {
-    fn from(stmt: Statement) -> Self {
+impl<'arena> From<Statement<'arena>> for LabelledItem<'arena> {
+    fn from(stmt: Statement<'arena>) -> Self {
         Self::Statement(stmt)
     }
 }
 
-impl VisitWith for LabelledItem {
+impl<'arena> VisitWith<'arena> for LabelledItem<'arena> {
     fn visit_with<'a, V>(&'a self, visitor: &mut V) -> ControlFlow<V::BreakTy>
     where
-        V: Visitor<'a>,
+        V: Visitor<'a, 'arena>,
     {
         match self {
             Self::FunctionDeclaration(f) => visitor.visit_function_declaration(f),
@@ -67,7 +67,7 @@ impl VisitWith for LabelledItem {
 
     fn visit_with_mut<'a, V>(&'a mut self, visitor: &mut V) -> ControlFlow<V::BreakTy>
     where
-        V: VisitorMut<'a>,
+        V: VisitorMut<'a, 'arena>,
     {
         match self {
             Self::FunctionDeclaration(f) => visitor.visit_function_declaration_mut(f),
@@ -85,16 +85,16 @@ impl VisitWith for LabelledItem {
 #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
 #[cfg_attr(feature = "arbitrary", derive(arbitrary::Arbitrary))]
 #[derive(Clone, Debug, PartialEq)]
-pub struct Labelled {
-    item: Box<LabelledItem>,
+pub struct Labelled<'arena> {
+    item: Box<LabelledItem<'arena>>,
     label: Sym,
 }
 
-impl Labelled {
+impl<'arena> Labelled<'arena> {
     /// Creates a new `Labelled` statement.
     #[inline]
     #[must_use]
-    pub fn new(item: LabelledItem, label: Sym) -> Self {
+    pub fn new(item: LabelledItem<'arena>, label: Sym) -> Self {
         Self {
             item: Box::new(item),
             label,
@@ -104,7 +104,7 @@ impl Labelled {
     /// Gets the labelled item.
     #[inline]
     #[must_use]
-    pub const fn item(&self) -> &LabelledItem {
+    pub const fn item(&self) -> &LabelledItem<'arena> {
         &self.item
     }
 
@@ -124,22 +124,22 @@ impl Labelled {
     }
 }
 
-impl ToInternedString for Labelled {
+impl<'arena> ToInternedString for Labelled<'arena> {
     fn to_interned_string(&self, interner: &Interner) -> String {
         self.to_indented_string(interner, 0)
     }
 }
 
-impl From<Labelled> for Statement {
-    fn from(labelled: Labelled) -> Self {
+impl<'arena> From<Labelled<'arena>> for Statement<'arena> {
+    fn from(labelled: Labelled<'arena>) -> Self {
         Self::Labelled(labelled)
     }
 }
 
-impl VisitWith for Labelled {
+impl<'arena> VisitWith<'arena> for Labelled<'arena> {
     fn visit_with<'a, V>(&'a self, visitor: &mut V) -> ControlFlow<V::BreakTy>
     where
-        V: Visitor<'a>,
+        V: Visitor<'a, 'arena>,
     {
         visitor.visit_labelled_item(&self.item)?;
         visitor.visit_sym(&self.label)
@@ -147,7 +147,7 @@ impl VisitWith for Labelled {
 
     fn visit_with_mut<'a, V>(&'a mut self, visitor: &mut V) -> ControlFlow<V::BreakTy>
     where
-        V: VisitorMut<'a>,
+        V: VisitorMut<'a, 'arena>,
     {
         visitor.visit_labelled_item_mut(&mut self.item)?;
         visitor.visit_sym_mut(&mut self.label)

@@ -17,16 +17,16 @@ use core::ops::ControlFlow;
 #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
 #[cfg_attr(feature = "arbitrary", derive(arbitrary::Arbitrary))]
 #[derive(Clone, Debug, PartialEq)]
-pub struct Parenthesized {
-    pub(crate) expression: Box<Expression>,
+pub struct Parenthesized<'arena> {
+    pub(crate) expression: Box<Expression<'arena>>,
     span: Span,
 }
 
-impl Parenthesized {
+impl<'arena> Parenthesized<'arena> {
     /// Creates a parenthesized expression.
     #[inline]
     #[must_use]
-    pub fn new(expression: Expression, span: Span) -> Self {
+    pub fn new(expression: Expression<'arena>, span: Span) -> Self {
         Self {
             expression: Box::new(expression),
             span,
@@ -36,42 +36,42 @@ impl Parenthesized {
     /// Gets the expression of this parenthesized expression.
     #[inline]
     #[must_use]
-    pub const fn expression(&self) -> &Expression {
+    pub const fn expression(&self) -> &Expression<'arena> {
         &self.expression
     }
 }
 
-impl Spanned for Parenthesized {
+impl<'arena> Spanned for Parenthesized<'arena> {
     #[inline]
     fn span(&self) -> Span {
         self.span
     }
 }
 
-impl From<Parenthesized> for Expression {
-    fn from(p: Parenthesized) -> Self {
+impl<'arena> From<Parenthesized<'arena>> for Expression<'arena> {
+    fn from(p: Parenthesized<'arena>) -> Self {
         Self::Parenthesized(p)
     }
 }
 
-impl ToInternedString for Parenthesized {
+impl<'arena> ToInternedString for Parenthesized<'arena> {
     #[inline]
     fn to_interned_string(&self, interner: &Interner) -> String {
         format!("({})", self.expression.to_interned_string(interner))
     }
 }
 
-impl VisitWith for Parenthesized {
+impl<'arena> VisitWith<'arena> for Parenthesized<'arena> {
     fn visit_with<'a, V>(&'a self, visitor: &mut V) -> ControlFlow<V::BreakTy>
     where
-        V: Visitor<'a>,
+        V: Visitor<'a, 'arena>,
     {
         visitor.visit_expression(&self.expression)
     }
 
     fn visit_with_mut<'a, V>(&'a mut self, visitor: &mut V) -> ControlFlow<V::BreakTy>
     where
-        V: VisitorMut<'a>,
+        V: VisitorMut<'a, 'arena>,
     {
         visitor.visit_expression_mut(&mut self.expression)
     }

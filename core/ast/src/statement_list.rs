@@ -19,14 +19,14 @@ use std::ops::Deref;
 #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
 #[cfg_attr(feature = "arbitrary", derive(arbitrary::Arbitrary))]
 #[derive(Clone, Debug, PartialEq)]
-pub enum StatementListItem {
+pub enum StatementListItem<'arena> {
     /// See [`Statement`].
-    Statement(Box<Statement>),
+    Statement(Box<Statement<'arena>>),
     /// See [`Declaration`].
-    Declaration(Box<Declaration>),
+    Declaration(Box<Declaration<'arena>>),
 }
 
-impl ToIndentedString for StatementListItem {
+impl<'arena> ToIndentedString for StatementListItem<'arena> {
     /// Creates a string of the value of the node with the given indentation. For example, an
     /// indent level of 2 would produce this:
     ///
@@ -53,24 +53,24 @@ impl ToIndentedString for StatementListItem {
     }
 }
 
-impl From<Statement> for StatementListItem {
+impl<'arena> From<Statement<'arena>> for StatementListItem<'arena> {
     #[inline]
-    fn from(stmt: Statement) -> Self {
+    fn from(stmt: Statement<'arena>) -> Self {
         Self::Statement(Box::new(stmt))
     }
 }
 
-impl From<Declaration> for StatementListItem {
+impl<'arena> From<Declaration<'arena>> for StatementListItem<'arena> {
     #[inline]
-    fn from(decl: Declaration) -> Self {
+    fn from(decl: Declaration<'arena>) -> Self {
         Self::Declaration(Box::new(decl))
     }
 }
 
-impl VisitWith for StatementListItem {
+impl<'arena> VisitWith<'arena> for StatementListItem<'arena> {
     fn visit_with<'a, V>(&'a self, visitor: &mut V) -> ControlFlow<V::BreakTy>
     where
-        V: Visitor<'a>,
+        V: Visitor<'a, 'arena>,
     {
         match self {
             Self::Statement(statement) => visitor.visit_statement(statement),
@@ -80,7 +80,7 @@ impl VisitWith for StatementListItem {
 
     fn visit_with_mut<'a, V>(&'a mut self, visitor: &mut V) -> ControlFlow<V::BreakTy>
     where
-        V: VisitorMut<'a>,
+        V: VisitorMut<'a, 'arena>,
     {
         match self {
             Self::Statement(statement) => visitor.visit_statement_mut(statement),
@@ -97,24 +97,24 @@ impl VisitWith for StatementListItem {
 /// [spec]: https://tc39.es/ecma262/#prod-StatementList
 #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
 #[derive(Clone, Debug, Default)]
-pub struct StatementList {
-    pub(crate) statements: Box<[StatementListItem]>,
+pub struct StatementList<'arena> {
+    pub(crate) statements: Box<[StatementListItem<'arena>]>,
     linear_pos_end: LinearPosition,
     strict: bool,
 }
 
-impl PartialEq for StatementList {
+impl<'arena> PartialEq for StatementList<'arena> {
     fn eq(&self, other: &Self) -> bool {
         self.statements == other.statements && self.strict == other.strict
     }
 }
 
-impl StatementList {
+impl<'arena> StatementList<'arena> {
     /// Creates a new `StatementList` AST node.
     #[must_use]
     pub fn new<S>(statements: S, linear_pos_end: LinearPosition, strict: bool) -> Self
     where
-        S: Into<Box<[StatementListItem]>>,
+        S: Into<Box<[StatementListItem<'arena>]>>,
     {
         Self {
             statements: statements.into(),
@@ -126,7 +126,7 @@ impl StatementList {
     /// Gets the list of statements.
     #[inline]
     #[must_use]
-    pub const fn statements(&self) -> &[StatementListItem] {
+    pub const fn statements(&self) -> &[StatementListItem<'arena>] {
         &self.statements
     }
 
@@ -145,9 +145,9 @@ impl StatementList {
     }
 }
 
-impl From<(Box<[StatementListItem]>, LinearPosition)> for StatementList {
+impl<'arena> From<(Box<[StatementListItem<'arena>]>, LinearPosition)> for StatementList<'arena> {
     #[inline]
-    fn from(value: (Box<[StatementListItem]>, LinearPosition)) -> Self {
+    fn from(value: (Box<[StatementListItem<'arena>]>, LinearPosition)) -> Self {
         Self {
             statements: value.0,
             linear_pos_end: value.1,
@@ -156,9 +156,9 @@ impl From<(Box<[StatementListItem]>, LinearPosition)> for StatementList {
     }
 }
 
-impl From<(Vec<StatementListItem>, LinearPosition)> for StatementList {
+impl<'arena> From<(Vec<StatementListItem<'arena>>, LinearPosition)> for StatementList<'arena> {
     #[inline]
-    fn from(value: (Vec<StatementListItem>, LinearPosition)) -> Self {
+    fn from(value: (Vec<StatementListItem<'arena>>, LinearPosition)) -> Self {
         Self {
             statements: value.0.into(),
             linear_pos_end: value.1,
@@ -167,15 +167,15 @@ impl From<(Vec<StatementListItem>, LinearPosition)> for StatementList {
     }
 }
 
-impl Deref for StatementList {
-    type Target = [StatementListItem];
+impl<'arena> Deref for StatementList<'arena> {
+    type Target = [StatementListItem<'arena>];
 
     fn deref(&self) -> &Self::Target {
         &self.statements
     }
 }
 
-impl ToIndentedString for StatementList {
+impl<'arena> ToIndentedString for StatementList<'arena> {
     fn to_indented_string(&self, interner: &Interner, indentation: usize) -> String {
         let mut buf = String::new();
         // Print statements
@@ -189,10 +189,10 @@ impl ToIndentedString for StatementList {
     }
 }
 
-impl VisitWith for StatementList {
+impl<'arena> VisitWith<'arena> for StatementList<'arena> {
     fn visit_with<'a, V>(&'a self, visitor: &mut V) -> ControlFlow<V::BreakTy>
     where
-        V: Visitor<'a>,
+        V: Visitor<'a, 'arena>,
     {
         for statement in &*self.statements {
             visitor.visit_statement_list_item(statement)?;
@@ -202,7 +202,7 @@ impl VisitWith for StatementList {
 
     fn visit_with_mut<'a, V>(&'a mut self, visitor: &mut V) -> ControlFlow<V::BreakTy>
     where
-        V: VisitorMut<'a>,
+        V: VisitorMut<'a, 'arena>,
     {
         for statement in &mut *self.statements {
             visitor.visit_statement_list_item_mut(statement)?;
@@ -212,7 +212,7 @@ impl VisitWith for StatementList {
 }
 
 #[cfg(feature = "arbitrary")]
-impl<'a> arbitrary::Arbitrary<'a> for StatementList {
+impl<'a, 'arena> arbitrary::Arbitrary<'a> for StatementList<'arena> {
     fn arbitrary(u: &mut arbitrary::Unstructured<'a>) -> arbitrary::Result<Self> {
         Ok(Self {
             statements: u.arbitrary()?,

@@ -78,18 +78,18 @@ impl ToInternedString for RegExpLiteral {
     }
 }
 
-impl From<RegExpLiteral> for Expression {
+impl<'arena> From<RegExpLiteral> for Expression<'arena> {
     #[inline]
     fn from(value: RegExpLiteral) -> Self {
         Self::RegExpLiteral(value)
     }
 }
 
-impl VisitWith for RegExpLiteral {
+impl<'arena> VisitWith<'arena> for RegExpLiteral {
     #[inline]
     fn visit_with<'a, V>(&'a self, visitor: &mut V) -> ControlFlow<V::BreakTy>
     where
-        V: Visitor<'a>,
+        V: Visitor<'a, 'arena>,
     {
         visitor.visit_sym(&self.pattern)?;
         visitor.visit_sym(&self.flags)
@@ -98,7 +98,7 @@ impl VisitWith for RegExpLiteral {
     #[inline]
     fn visit_with_mut<'a, V>(&'a mut self, visitor: &mut V) -> ControlFlow<V::BreakTy>
     where
-        V: VisitorMut<'a>,
+        V: VisitorMut<'a, 'arena>,
     {
         visitor.visit_sym_mut(&mut self.pattern)?;
         visitor.visit_sym_mut(&mut self.flags)

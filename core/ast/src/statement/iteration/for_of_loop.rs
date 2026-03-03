@@ -23,10 +23,10 @@ use core::ops::ControlFlow;
 #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
 #[cfg_attr(feature = "arbitrary", derive(arbitrary::Arbitrary))]
 #[derive(Clone, Debug, PartialEq)]
-pub struct ForOfLoop {
-    pub(crate) init: IterableLoopInitializer,
-    pub(crate) iterable: Expression,
-    pub(crate) body: Box<Statement>,
+pub struct ForOfLoop<'arena> {
+    pub(crate) init: IterableLoopInitializer<'arena>,
+    pub(crate) iterable: Expression<'arena>,
+    pub(crate) body: Box<Statement<'arena>>,
     r#await: bool,
     pub(crate) iterable_contains_direct_eval: bool,
     pub(crate) contains_direct_eval: bool,
@@ -38,14 +38,14 @@ pub struct ForOfLoop {
     pub(crate) scope: Option<Scope>,
 }
 
-impl ForOfLoop {
+impl<'arena> ForOfLoop<'arena> {
     /// Creates a new "for of" loop AST node.
     #[inline]
     #[must_use]
     pub fn new(
-        init: IterableLoopInitializer,
-        iterable: Expression,
-        body: Statement,
+        init: IterableLoopInitializer<'arena>,
+        iterable: Expression<'arena>,
+        body: Statement<'arena>,
         r#await: bool,
     ) -> Self {
         let iterable_contains_direct_eval = contains(&iterable, ContainsSymbol::DirectEval);
@@ -66,21 +66,21 @@ impl ForOfLoop {
     /// Gets the initializer of the for...of loop.
     #[inline]
     #[must_use]
-    pub const fn initializer(&self) -> &IterableLoopInitializer {
+    pub const fn initializer(&self) -> &IterableLoopInitializer<'arena> {
         &self.init
     }
 
     /// Gets the iterable expression of the for...of loop.
     #[inline]
     #[must_use]
-    pub const fn iterable(&self) -> &Expression {
+    pub const fn iterable(&self) -> &Expression<'arena> {
         &self.iterable
     }
 
     /// Gets the body to execute in the for...of loop.
     #[inline]
     #[must_use]
-    pub const fn body(&self) -> &Statement {
+    pub const fn body(&self) -> &Statement<'arena> {
         &self.body
     }
 
@@ -106,7 +106,7 @@ impl ForOfLoop {
     }
 }
 
-impl ToIndentedString for ForOfLoop {
+impl<'arena> ToIndentedString for ForOfLoop<'arena> {
     fn to_indented_string(&self, interner: &Interner, indentation: usize) -> String {
         format!(
             "for ({} of {}) {}",
@@ -117,17 +117,17 @@ impl ToIndentedString for ForOfLoop {
     }
 }
 
-impl From<ForOfLoop> for Statement {
+impl<'arena> From<ForOfLoop<'arena>> for Statement<'arena> {
     #[inline]
-    fn from(for_of: ForOfLoop) -> Self {
+    fn from(for_of: ForOfLoop<'arena>) -> Self {
         Self::ForOfLoop(for_of)
     }
 }
 
-impl VisitWith for ForOfLoop {
+impl<'arena> VisitWith<'arena> for ForOfLoop<'arena> {
     fn visit_with<'a, V>(&'a self, visitor: &mut V) -> ControlFlow<V::BreakTy>
     where
-        V: Visitor<'a>,
+        V: Visitor<'a, 'arena>,
     {
         visitor.visit_iterable_loop_initializer(&self.init)?;
         visitor.visit_expression(&self.iterable)?;
@@ -136,7 +136,7 @@ impl VisitWith for ForOfLoop {
 
     fn visit_with_mut<'a, V>(&'a mut self, visitor: &mut V) -> ControlFlow<V::BreakTy>
     where
-        V: VisitorMut<'a>,
+        V: VisitorMut<'a, 'arena>,
     {
         visitor.visit_iterable_loop_initializer_mut(&mut self.init)?;
         visitor.visit_expression_mut(&mut self.iterable)?;

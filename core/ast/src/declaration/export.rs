@@ -38,10 +38,10 @@ pub enum ReExportKind {
     },
 }
 
-impl VisitWith for ReExportKind {
+impl<'arena> VisitWith<'arena> for ReExportKind {
     fn visit_with<'a, V>(&'a self, visitor: &mut V) -> ControlFlow<V::BreakTy>
     where
-        V: Visitor<'a>,
+        V: Visitor<'a, 'arena>,
     {
         match self {
             Self::Namespaced { name: Some(name) } => visitor.visit_sym(name),
@@ -57,7 +57,7 @@ impl VisitWith for ReExportKind {
 
     fn visit_with_mut<'a, V>(&'a mut self, visitor: &mut V) -> ControlFlow<V::BreakTy>
     where
-        V: VisitorMut<'a>,
+        V: VisitorMut<'a, 'arena>,
     {
         match self {
             Self::Namespaced { name: Some(name) } => visitor.visit_sym_mut(name),
@@ -80,7 +80,7 @@ impl VisitWith for ReExportKind {
 /// [spec]: https://tc39.es/ecma262/#prod-ExportDeclaration
 #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
 #[derive(Clone, Debug, PartialEq)]
-pub enum ExportDeclaration {
+pub enum ExportDeclaration<'arena> {
     /// Re-export.
     ReExport {
         /// The kind of reexport declared.
@@ -93,27 +93,27 @@ pub enum ExportDeclaration {
     /// List of exports.
     List(Box<[ExportSpecifier]>),
     /// Variable statement export.
-    VarStatement(VarDeclaration),
+    VarStatement(VarDeclaration<'arena>),
     /// Declaration export.
-    Declaration(Declaration),
+    Declaration(Declaration<'arena>),
     /// Default function export.
-    DefaultFunctionDeclaration(FunctionDeclaration),
+    DefaultFunctionDeclaration(FunctionDeclaration<'arena>),
     /// Default generator export.
-    DefaultGeneratorDeclaration(GeneratorDeclaration),
+    DefaultGeneratorDeclaration(GeneratorDeclaration<'arena>),
     /// Default async function export.
-    DefaultAsyncFunctionDeclaration(AsyncFunctionDeclaration),
+    DefaultAsyncFunctionDeclaration(AsyncFunctionDeclaration<'arena>),
     /// Default async generator export.
-    DefaultAsyncGeneratorDeclaration(AsyncGeneratorDeclaration),
+    DefaultAsyncGeneratorDeclaration(AsyncGeneratorDeclaration<'arena>),
     /// Default class declaration export.
-    DefaultClassDeclaration(Box<ClassDeclaration>),
+    DefaultClassDeclaration(Box<ClassDeclaration<'arena>>),
     /// Default assignment expression export.
-    DefaultAssignmentExpression(Expression),
+    DefaultAssignmentExpression(Expression<'arena>),
 }
 
-impl VisitWith for ExportDeclaration {
+impl<'arena> VisitWith<'arena> for ExportDeclaration<'arena> {
     fn visit_with<'a, V>(&'a self, visitor: &mut V) -> ControlFlow<V::BreakTy>
     where
-        V: Visitor<'a>,
+        V: Visitor<'a, 'arena>,
     {
         match self {
             Self::ReExport {
@@ -151,7 +151,7 @@ impl VisitWith for ExportDeclaration {
 
     fn visit_with_mut<'a, V>(&'a mut self, visitor: &mut V) -> ControlFlow<V::BreakTy>
     where
-        V: VisitorMut<'a>,
+        V: VisitorMut<'a, 'arena>,
     {
         match self {
             Self::ReExport {
@@ -237,10 +237,10 @@ impl ExportSpecifier {
     }
 }
 
-impl VisitWith for ExportSpecifier {
+impl<'arena> VisitWith<'arena> for ExportSpecifier {
     fn visit_with<'a, V>(&'a self, visitor: &mut V) -> ControlFlow<V::BreakTy>
     where
-        V: Visitor<'a>,
+        V: Visitor<'a, 'arena>,
     {
         visitor.visit_sym(&self.alias)?;
         visitor.visit_sym(&self.private_name)
@@ -248,7 +248,7 @@ impl VisitWith for ExportSpecifier {
 
     fn visit_with_mut<'a, V>(&'a mut self, visitor: &mut V) -> ControlFlow<V::BreakTy>
     where
-        V: VisitorMut<'a>,
+        V: VisitorMut<'a, 'arena>,
     {
         visitor.visit_sym_mut(&mut self.alias)?;
         visitor.visit_sym_mut(&mut self.private_name)

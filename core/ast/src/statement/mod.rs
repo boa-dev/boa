@@ -42,12 +42,12 @@ use super::{declaration::VarDeclaration, expression::Expression};
 #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
 #[cfg_attr(feature = "arbitrary", derive(arbitrary::Arbitrary))]
 #[derive(Clone, Debug, PartialEq)]
-pub enum Statement {
+pub enum Statement<'arena> {
     /// See [`Block`].
-    Block(Block),
+    Block(Block<'arena>),
 
     /// See [`VarDeclaration`]
-    Var(VarDeclaration),
+    Var(VarDeclaration<'arena>),
 
     /// An empty statement.
     ///
@@ -62,28 +62,28 @@ pub enum Statement {
     Empty,
 
     /// See [`Expression`].
-    Expression(Expression),
+    Expression(Expression<'arena>),
 
     /// See [`If`].
-    If(If),
+    If(If<'arena>),
 
     /// See [`DoWhileLoop`].
-    DoWhileLoop(DoWhileLoop),
+    DoWhileLoop(DoWhileLoop<'arena>),
 
     /// See [`WhileLoop`].
-    WhileLoop(WhileLoop),
+    WhileLoop(WhileLoop<'arena>),
 
     /// See [`ForLoop`].
-    ForLoop(ForLoop),
+    ForLoop(ForLoop<'arena>),
 
     /// See [`ForInLoop`].
-    ForInLoop(ForInLoop),
+    ForInLoop(ForInLoop<'arena>),
 
     /// See [`ForOfLoop`].
-    ForOfLoop(ForOfLoop),
+    ForOfLoop(ForOfLoop<'arena>),
 
     /// See[`Switch`].
-    Switch(Switch),
+    Switch(Switch<'arena>),
 
     /// See [`Continue`].
     Continue(Continue),
@@ -92,19 +92,19 @@ pub enum Statement {
     Break(Break),
 
     /// See [`Return`].
-    Return(Return),
+    Return(Return<'arena>),
 
     /// See [`Labelled`].
-    Labelled(Labelled),
+    Labelled(Labelled<'arena>),
 
     /// See [`Throw`].
-    Throw(Throw),
+    Throw(Throw<'arena>),
 
     /// See [`Try`].
-    Try(Try),
+    Try(Try<'arena>),
 
     /// See [`With`].
-    With(With),
+    With(With<'arena>),
 
     /// A `debugger` statement.
     ///
@@ -119,7 +119,7 @@ pub enum Statement {
     Debugger,
 }
 
-impl Statement {
+impl Statement<'_> {
     /// Implements the display formatting with indentation.
     ///
     /// This will not prefix the value with any indentation. If you want to prefix this with proper
@@ -177,7 +177,7 @@ impl Statement {
     }
 }
 
-impl ToIndentedString for Statement {
+impl ToIndentedString for Statement<'_> {
     /// Creates a string of the value of the node with the given indentation. For example, an
     /// indent level of 2 would produce this:
     ///
@@ -200,10 +200,10 @@ impl ToIndentedString for Statement {
     }
 }
 
-impl VisitWith for Statement {
+impl<'arena> VisitWith<'arena> for Statement<'arena> {
     fn visit_with<'a, V>(&'a self, visitor: &mut V) -> ControlFlow<V::BreakTy>
     where
-        V: Visitor<'a>,
+        V: Visitor<'a, 'arena>,
     {
         match self {
             Self::Block(b) => visitor.visit_block(b),
@@ -232,7 +232,7 @@ impl VisitWith for Statement {
 
     fn visit_with_mut<'a, V>(&'a mut self, visitor: &mut V) -> ControlFlow<V::BreakTy>
     where
-        V: VisitorMut<'a>,
+        V: VisitorMut<'a, 'arena>,
     {
         match self {
             Self::Block(b) => visitor.visit_block_mut(b),

@@ -26,31 +26,31 @@ use core::ops::ControlFlow;
 #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
 #[cfg_attr(feature = "arbitrary", derive(arbitrary::Arbitrary))]
 #[derive(Clone, Debug, PartialEq)]
-pub struct Return {
-    target: Option<Expression>,
+pub struct Return<'arena> {
+    target: Option<Expression<'arena>>,
 }
 
-impl Return {
+impl<'arena> Return<'arena> {
     /// Gets the target expression value of this `Return` statement.
     #[must_use]
-    pub const fn target(&self) -> Option<&Expression> {
+    pub const fn target(&self) -> Option<&Expression<'arena>> {
         self.target.as_ref()
     }
 
     /// Creates a `Return` AST node.
     #[must_use]
-    pub const fn new(expression: Option<Expression>) -> Self {
+    pub const fn new(expression: Option<Expression<'arena>>) -> Self {
         Self { target: expression }
     }
 }
 
-impl From<Return> for Statement {
-    fn from(return_smt: Return) -> Self {
+impl<'arena> From<Return<'arena>> for Statement<'arena> {
+    fn from(return_smt: Return<'arena>) -> Self {
         Self::Return(return_smt)
     }
 }
 
-impl ToInternedString for Return {
+impl<'arena> ToInternedString for Return<'arena> {
     fn to_interned_string(&self, interner: &Interner) -> String {
         self.target().map_or_else(
             || "return".to_owned(),
@@ -59,10 +59,10 @@ impl ToInternedString for Return {
     }
 }
 
-impl VisitWith for Return {
+impl<'arena> VisitWith<'arena> for Return<'arena> {
     fn visit_with<'a, V>(&'a self, visitor: &mut V) -> ControlFlow<V::BreakTy>
     where
-        V: Visitor<'a>,
+        V: Visitor<'a, 'arena>,
     {
         if let Some(expr) = &self.target {
             visitor.visit_expression(expr)
@@ -73,7 +73,7 @@ impl VisitWith for Return {
 
     fn visit_with_mut<'a, V>(&'a mut self, visitor: &mut V) -> ControlFlow<V::BreakTy>
     where
-        V: VisitorMut<'a>,
+        V: VisitorMut<'a, 'arena>,
     {
         if let Some(expr) = &mut self.target {
             visitor.visit_expression_mut(expr)

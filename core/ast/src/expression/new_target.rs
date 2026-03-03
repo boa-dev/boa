@@ -33,7 +33,7 @@ impl Spanned for NewTarget {
     }
 }
 
-impl From<NewTarget> for Expression {
+impl<'arena> From<NewTarget> for Expression<'arena> {
     #[inline]
     fn from(value: NewTarget) -> Self {
         Expression::NewTarget(value)
@@ -47,17 +47,17 @@ impl ToInternedString for NewTarget {
     }
 }
 
-impl VisitWith for NewTarget {
+impl<'arena> VisitWith<'arena> for NewTarget {
     fn visit_with<'a, V>(&'a self, _visitor: &mut V) -> ControlFlow<V::BreakTy>
     where
-        V: Visitor<'a>,
+        V: Visitor<'a, 'arena>,
     {
         ControlFlow::Continue(())
     }
 
     fn visit_with_mut<'a, V>(&'a mut self, _visitor: &mut V) -> ControlFlow<V::BreakTy>
     where
-        V: VisitorMut<'a>,
+        V: VisitorMut<'a, 'arena>,
     {
         ControlFlow::Continue(())
     }

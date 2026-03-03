@@ -21,58 +21,58 @@ use boa_interner::{Interner, ToIndentedString, ToInternedString};
 #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
 #[cfg_attr(feature = "arbitrary", derive(arbitrary::Arbitrary))]
 #[derive(Clone, Debug, PartialEq)]
-pub struct Await {
-    target: Box<Expression>,
+pub struct Await<'arena> {
+    target: Box<Expression<'arena>>,
     span: Span,
 }
 
-impl Await {
+impl<'arena> Await<'arena> {
     /// Create a new [`Await`] node.
     #[must_use]
-    pub const fn new(target: Box<Expression>, span: Span) -> Self {
+    pub const fn new(target: Box<Expression<'arena>>, span: Span) -> Self {
         Self { target, span }
     }
 
     /// Return the target expression that should be awaited.
     #[inline]
     #[must_use]
-    pub const fn target(&self) -> &Expression {
+    pub const fn target(&self) -> &Expression<'arena> {
         &self.target
     }
 }
 
-impl Spanned for Await {
+impl<'arena> Spanned for Await<'arena> {
     #[inline]
     fn span(&self) -> Span {
         self.span
     }
 }
 
-impl ToInternedString for Await {
+impl<'arena> ToInternedString for Await<'arena> {
     #[inline]
     fn to_interned_string(&self, interner: &Interner) -> String {
         format!("await {}", self.target.to_indented_string(interner, 0))
     }
 }
 
-impl From<Await> for Expression {
+impl<'arena> From<Await<'arena>> for Expression<'arena> {
     #[inline]
-    fn from(awaitexpr: Await) -> Self {
+    fn from(awaitexpr: Await<'arena>) -> Self {
         Self::Await(awaitexpr)
     }
 }
 
-impl VisitWith for Await {
+impl<'arena> VisitWith<'arena> for Await<'arena> {
     fn visit_with<'a, V>(&'a self, visitor: &mut V) -> ControlFlow<V::BreakTy>
     where
-        V: Visitor<'a>,
+        V: Visitor<'a, 'arena>,
     {
         visitor.visit_expression(&self.target)
     }
 
     fn visit_with_mut<'a, V>(&'a mut self, visitor: &mut V) -> ControlFlow<V::BreakTy>
     where
-        V: VisitorMut<'a>,
+        V: VisitorMut<'a, 'arena>,
     {
         visitor.visit_expression_mut(&mut self.target)
     }

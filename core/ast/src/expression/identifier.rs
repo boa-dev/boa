@@ -108,24 +108,24 @@ impl ToInternedString for Identifier {
     }
 }
 
-impl From<Identifier> for Expression {
+impl<'arena> From<Identifier> for Expression<'arena> {
     #[inline]
     fn from(local: Identifier) -> Self {
         Self::Identifier(local)
     }
 }
 
-impl VisitWith for Identifier {
+impl<'arena> VisitWith<'arena> for Identifier {
     fn visit_with<'a, V>(&'a self, visitor: &mut V) -> ControlFlow<V::BreakTy>
     where
-        V: Visitor<'a>,
+        V: Visitor<'a, 'arena>,
     {
         visitor.visit_sym(&self.ident)
     }
 
     fn visit_with_mut<'a, V>(&'a mut self, visitor: &mut V) -> ControlFlow<V::BreakTy>
     where
-        V: VisitorMut<'a>,
+        V: VisitorMut<'a, 'arena>,
     {
         visitor.visit_sym_mut(&mut self.ident)
     }

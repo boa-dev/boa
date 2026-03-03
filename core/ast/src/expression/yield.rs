@@ -19,17 +19,17 @@ use super::Expression;
 #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
 #[cfg_attr(feature = "arbitrary", derive(arbitrary::Arbitrary))]
 #[derive(Clone, Debug, PartialEq)]
-pub struct Yield {
-    target: Option<Box<Expression>>,
+pub struct Yield<'arena> {
+    target: Option<Box<Expression<'arena>>>,
     delegate: bool,
     span: Span,
 }
 
-impl Yield {
+impl<'arena> Yield<'arena> {
     /// Creates a [`Yield`] AST Expression.
     #[inline]
     #[must_use]
-    pub fn new(expr: Option<Expression>, delegate: bool, span: Span) -> Self {
+    pub fn new(expr: Option<Expression<'arena>>, delegate: bool, span: Span) -> Self {
         Self {
             target: expr.map(Box::new),
             delegate,
@@ -39,7 +39,7 @@ impl Yield {
 
     /// Gets the target expression of this `Yield` statement.
     #[inline]
-    pub fn target(&self) -> Option<&Expression> {
+    pub fn target(&self) -> Option<&Expression<'arena>> {
         self.target.as_ref().map(Box::as_ref)
     }
 
@@ -51,21 +51,21 @@ impl Yield {
     }
 }
 
-impl Spanned for Yield {
+impl<'arena> Spanned for Yield<'arena> {
     #[inline]
     fn span(&self) -> Span {
         self.span
     }
 }
 
-impl From<Yield> for Expression {
+impl<'arena> From<Yield<'arena>> for Expression<'arena> {
     #[inline]
-    fn from(r#yield: Yield) -> Self {
+    fn from(r#yield: Yield<'arena>) -> Self {
         Self::Yield(r#yield)
     }
 }
 
-impl ToInternedString for Yield {
+impl<'arena> ToInternedString for Yield<'arena> {
     #[inline]
     fn to_interned_string(&self, interner: &Interner) -> String {
         let y = if self.delegate { "yield*" } else { "yield" };
@@ -77,10 +77,10 @@ impl ToInternedString for Yield {
     }
 }
 
-impl VisitWith for Yield {
+impl<'arena> VisitWith<'arena> for Yield<'arena> {
     fn visit_with<'a, V>(&'a self, visitor: &mut V) -> ControlFlow<V::BreakTy>
     where
-        V: Visitor<'a>,
+        V: Visitor<'a, 'arena>,
     {
         if let Some(expr) = &self.target {
             visitor.visit_expression(expr)
@@ -91,7 +91,7 @@ impl VisitWith for Yield {
 
     fn visit_with_mut<'a, V>(&'a mut self, visitor: &mut V) -> ControlFlow<V::BreakTy>
     where
-        V: VisitorMut<'a>,
+        V: VisitorMut<'a, 'arena>,
     {
         if let Some(expr) = &mut self.target {
             visitor.visit_expression_mut(expr)

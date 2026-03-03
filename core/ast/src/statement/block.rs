@@ -27,20 +27,20 @@ use core::ops::ControlFlow;
 #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
 #[cfg_attr(feature = "arbitrary", derive(arbitrary::Arbitrary))]
 #[derive(Clone, Debug, PartialEq, Default)]
-pub struct Block {
+pub struct Block<'arena> {
     #[cfg_attr(feature = "serde", serde(flatten))]
-    pub(crate) statements: StatementList,
+    pub(crate) statements: StatementList<'arena>,
     pub(crate) contains_direct_eval: bool,
 
     #[cfg_attr(feature = "serde", serde(skip))]
     pub(crate) scope: Option<Scope>,
 }
 
-impl Block {
+impl<'arena> Block<'arena> {
     /// Gets the list of statements and declarations in this block.
     #[inline]
     #[must_use]
-    pub const fn statement_list(&self) -> &StatementList {
+    pub const fn statement_list(&self) -> &StatementList<'arena> {
         &self.statements
     }
 
@@ -52,9 +52,9 @@ impl Block {
     }
 }
 
-impl<T> From<T> for Block
+impl<'arena, T> From<T> for Block<'arena>
 where
-    T: Into<StatementList>,
+    T: Into<StatementList<'arena>>,
 {
     fn from(list: T) -> Self {
         let statements = list.into();
@@ -67,7 +67,7 @@ where
     }
 }
 
-impl ToIndentedString for Block {
+impl<'arena> ToIndentedString for Block<'arena> {
     fn to_indented_string(&self, interner: &Interner, indentation: usize) -> String {
         format!(
             "{{\n{}{}}}",
@@ -78,24 +78,24 @@ impl ToIndentedString for Block {
     }
 }
 
-impl From<Block> for Statement {
+impl<'arena> From<Block<'arena>> for Statement<'arena> {
     #[inline]
-    fn from(block: Block) -> Self {
+    fn from(block: Block<'arena>) -> Self {
         Self::Block(block)
     }
 }
 
-impl VisitWith for Block {
+impl<'arena> VisitWith<'arena> for Block<'arena> {
     fn visit_with<'a, V>(&'a self, visitor: &mut V) -> ControlFlow<V::BreakTy>
     where
-        V: Visitor<'a>,
+        V: Visitor<'a, 'arena>,
     {
         visitor.visit_statement_list(&self.statements)
     }
 
     fn visit_with_mut<'a, V>(&'a mut self, visitor: &mut V) -> ControlFlow<V::BreakTy>
     where
-        V: VisitorMut<'a>,
+        V: VisitorMut<'a, 'arena>,
     {
         visitor.visit_statement_list_mut(&mut self.statements)
     }

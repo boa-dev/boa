@@ -22,16 +22,16 @@ use core::{fmt::Write as _, ops::ControlFlow};
 #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
 #[cfg_attr(feature = "arbitrary", derive(arbitrary::Arbitrary))]
 #[derive(Clone, Debug, PartialEq)]
-pub struct Case {
-    condition: Option<Expression>,
-    body: StatementList,
+pub struct Case<'arena> {
+    condition: Option<Expression<'arena>>,
+    body: StatementList<'arena>,
 }
 
-impl Case {
+impl<'arena> Case<'arena> {
     /// Creates a regular `Case` AST node.
     #[inline]
     #[must_use]
-    pub const fn new(condition: Expression, body: StatementList) -> Self {
+    pub const fn new(condition: Expression<'arena>, body: StatementList<'arena>) -> Self {
         Self {
             condition: Some(condition),
             body,
@@ -41,7 +41,7 @@ impl Case {
     /// Creates a default `Case` AST node.
     #[inline]
     #[must_use]
-    pub const fn default(body: StatementList) -> Self {
+    pub const fn default(body: StatementList<'arena>) -> Self {
         Self {
             condition: None,
             body,
@@ -54,14 +54,14 @@ impl Case {
     /// otherwise [`None`] is returned if it's the default case.
     #[inline]
     #[must_use]
-    pub const fn condition(&self) -> Option<&Expression> {
+    pub const fn condition(&self) -> Option<&Expression<'arena>> {
         self.condition.as_ref()
     }
 
     /// Gets the statement listin the body of the case.
     #[inline]
     #[must_use]
-    pub const fn body(&self) -> &StatementList {
+    pub const fn body(&self) -> &StatementList<'arena> {
         &self.body
     }
 
@@ -73,10 +73,10 @@ impl Case {
     }
 }
 
-impl VisitWith for Case {
+impl<'arena> VisitWith<'arena> for Case<'arena> {
     fn visit_with<'a, V>(&'a self, visitor: &mut V) -> ControlFlow<V::BreakTy>
     where
-        V: Visitor<'a>,
+        V: Visitor<'a, 'arena>,
     {
         if let Some(condition) = &self.condition {
             visitor.visit_expression(condition)?;
@@ -87,7 +87,7 @@ impl VisitWith for Case {
 
     fn visit_with_mut<'a, V>(&'a mut self, visitor: &mut V) -> ControlFlow<V::BreakTy>
     where
-        V: VisitorMut<'a>,
+        V: VisitorMut<'a, 'arena>,
     {
         if let Some(condition) = &mut self.condition {
             visitor.visit_expression_mut(condition)?;
@@ -115,20 +115,20 @@ impl VisitWith for Case {
 #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
 #[cfg_attr(feature = "arbitrary", derive(arbitrary::Arbitrary))]
 #[derive(Clone, Debug, PartialEq)]
-pub struct Switch {
-    pub(crate) val: Expression,
-    pub(crate) cases: Box<[Case]>,
+pub struct Switch<'arena> {
+    pub(crate) val: Expression<'arena>,
+    pub(crate) cases: Box<[Case<'arena>]>,
     pub(crate) contains_direct_eval: bool,
 
     #[cfg_attr(feature = "serde", serde(skip))]
     pub(crate) scope: Option<Scope>,
 }
 
-impl Switch {
+impl<'arena> Switch<'arena> {
     /// Creates a `Switch` AST node.
     #[inline]
     #[must_use]
-    pub fn new(val: Expression, cases: Box<[Case]>) -> Self {
+    pub fn new(val: Expression<'arena>, cases: Box<[Case<'arena>]>) -> Self {
         let mut contains_direct_eval = false;
         for case in &cases {
             contains_direct_eval |= contains(case, ContainsSymbol::DirectEval);
@@ -144,21 +144,21 @@ impl Switch {
     /// Gets the value to switch.
     #[inline]
     #[must_use]
-    pub const fn val(&self) -> &Expression {
+    pub const fn val(&self) -> &Expression<'arena> {
         &self.val
     }
 
     /// Gets the list of cases for the switch statement.
     #[inline]
     #[must_use]
-    pub const fn cases(&self) -> &[Case] {
+    pub const fn cases(&self) -> &[Case<'arena>] {
         &self.cases
     }
 
     /// Gets the default statement list, if any.
     #[inline]
     #[must_use]
-    pub fn default(&self) -> Option<&StatementList> {
+    pub fn default(&self) -> Option<&StatementList<'arena>> {
         for case in self.cases.as_ref() {
             if case.is_default() {
                 return Some(case.body());
@@ -175,7 +175,7 @@ impl Switch {
     }
 }
 
-impl ToIndentedString for Switch {
+impl<'arena> ToIndentedString for Switch<'arena> {
     fn to_indented_string(&self, interner: &Interner, indentation: usize) -> String {
         let indent = "    ".repeat(indentation);
         let mut buf = format!("switch ({}) {{\n", self.val().to_interned_string(interner));
@@ -202,17 +202,17 @@ impl ToIndentedString for Switch {
     }
 }
 
-impl From<Switch> for Statement {
+impl<'arena> From<Switch<'arena>> for Statement<'arena> {
     #[inline]
-    fn from(switch: Switch) -> Self {
+    fn from(switch: Switch<'arena>) -> Self {
         Self::Switch(switch)
     }
 }
 
-impl VisitWith for Switch {
+impl<'arena> VisitWith<'arena> for Switch<'arena> {
     fn visit_with<'a, V>(&'a self, visitor: &mut V) -> ControlFlow<V::BreakTy>
     where
-        V: Visitor<'a>,
+        V: Visitor<'a, 'arena>,
     {
         visitor.visit_expression(&self.val)?;
         for case in &*self.cases {
@@ -223,7 +223,7 @@ impl VisitWith for Switch {
 
     fn visit_with_mut<'a, V>(&'a mut self, visitor: &mut V) -> ControlFlow<V::BreakTy>
     where
-        V: VisitorMut<'a>,
+        V: VisitorMut<'a, 'arena>,
     {
         visitor.visit_expression_mut(&mut self.val)?;
         for case in &mut *self.cases {

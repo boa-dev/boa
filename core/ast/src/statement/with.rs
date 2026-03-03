@@ -18,18 +18,18 @@ use core::ops::ControlFlow;
 #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
 #[cfg_attr(feature = "arbitrary", derive(arbitrary::Arbitrary))]
 #[derive(Clone, Debug, PartialEq)]
-pub struct With {
-    pub(crate) expression: Expression,
-    pub(crate) statement: Box<Statement>,
+pub struct With<'arena> {
+    pub(crate) expression: Expression<'arena>,
+    pub(crate) statement: Box<Statement<'arena>>,
 
     #[cfg_attr(feature = "serde", serde(skip))]
     pub(crate) scope: Scope,
 }
 
-impl With {
+impl<'arena> With<'arena> {
     /// Creates a `With` AST node.
     #[must_use]
-    pub fn new(expression: Expression, statement: Statement) -> Self {
+    pub fn new(expression: Expression<'arena>, statement: Statement<'arena>) -> Self {
         Self {
             expression,
             statement: Box::new(statement),
@@ -39,13 +39,13 @@ impl With {
 
     /// Gets the expression value of this `With` statement.
     #[must_use]
-    pub const fn expression(&self) -> &Expression {
+    pub const fn expression(&self) -> &Expression<'arena> {
         &self.expression
     }
 
     /// Gets the statement value of this `With` statement.
     #[must_use]
-    pub const fn statement(&self) -> &Statement {
+    pub const fn statement(&self) -> &Statement<'arena> {
         &self.statement
     }
 
@@ -56,13 +56,13 @@ impl With {
     }
 }
 
-impl From<With> for Statement {
-    fn from(with: With) -> Self {
+impl<'arena> From<With<'arena>> for Statement<'arena> {
+    fn from(with: With<'arena>) -> Self {
         Self::With(with)
     }
 }
 
-impl ToIndentedString for With {
+impl<'arena> ToIndentedString for With<'arena> {
     fn to_indented_string(&self, interner: &Interner, indentation: usize) -> String {
         format!(
             "with ({}) {}",
@@ -72,10 +72,10 @@ impl ToIndentedString for With {
     }
 }
 
-impl VisitWith for With {
+impl<'arena> VisitWith<'arena> for With<'arena> {
     fn visit_with<'a, V>(&'a self, visitor: &mut V) -> ControlFlow<V::BreakTy>
     where
-        V: Visitor<'a>,
+        V: Visitor<'a, 'arena>,
     {
         visitor.visit_expression(&self.expression)?;
         visitor.visit_statement(&self.statement)
@@ -83,7 +83,7 @@ impl VisitWith for With {
 
     fn visit_with_mut<'a, V>(&'a mut self, visitor: &mut V) -> ControlFlow<V::BreakTy>
     where
-        V: VisitorMut<'a>,
+        V: VisitorMut<'a, 'arena>,
     {
         visitor.visit_expression_mut(&mut self.expression)?;
         visitor.visit_statement_mut(&mut self.statement)

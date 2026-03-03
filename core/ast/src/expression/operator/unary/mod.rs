@@ -32,17 +32,17 @@ pub use op::*;
 #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
 #[cfg_attr(feature = "arbitrary", derive(arbitrary::Arbitrary))]
 #[derive(Clone, Debug, PartialEq)]
-pub struct Unary {
+pub struct Unary<'arena> {
     op: UnaryOp,
-    target: Box<Expression>,
+    target: Box<Expression<'arena>>,
     span: Span,
 }
 
-impl Unary {
+impl<'arena> Unary<'arena> {
     /// Creates a new `UnaryOp` AST Expression.
     #[inline]
     #[must_use]
-    pub fn new(op: UnaryOp, target: Expression, span: Span) -> Self {
+    pub fn new(op: UnaryOp, target: Expression<'arena>, span: Span) -> Self {
         Self {
             op,
             target: Box::new(target),
@@ -60,50 +60,50 @@ impl Unary {
     /// Gets the target of this unary operator.
     #[inline]
     #[must_use]
-    pub fn target(&self) -> &Expression {
+    pub fn target(&self) -> &Expression<'arena> {
         self.target.as_ref()
     }
 
     /// Gets the target of this unary operator.
     #[inline]
     #[must_use]
-    pub fn target_mut(&mut self) -> &mut Expression {
+    pub fn target_mut(&mut self) -> &mut Expression<'arena> {
         self.target.as_mut()
     }
 }
 
-impl Spanned for Unary {
+impl<'arena> Spanned for Unary<'arena> {
     #[inline]
     fn span(&self) -> Span {
         self.span
     }
 }
 
-impl ToInternedString for Unary {
+impl<'arena> ToInternedString for Unary<'arena> {
     #[inline]
     fn to_interned_string(&self, interner: &Interner) -> String {
         format!("{} {}", self.op, self.target.to_interned_string(interner))
     }
 }
 
-impl From<Unary> for Expression {
+impl<'arena> From<Unary<'arena>> for Expression<'arena> {
     #[inline]
-    fn from(op: Unary) -> Self {
+    fn from(op: Unary<'arena>) -> Self {
         Self::Unary(op)
     }
 }
 
-impl VisitWith for Unary {
+impl<'arena> VisitWith<'arena> for Unary<'arena> {
     fn visit_with<'a, V>(&'a self, visitor: &mut V) -> ControlFlow<V::BreakTy>
     where
-        V: Visitor<'a>,
+        V: Visitor<'a, 'arena>,
     {
         visitor.visit_expression(&self.target)
     }
 
     fn visit_with_mut<'a, V>(&'a mut self, visitor: &mut V) -> ControlFlow<V::BreakTy>
     where
-        V: VisitorMut<'a>,
+        V: VisitorMut<'a, 'arena>,
     {
         visitor.visit_expression_mut(&mut self.target)
     }

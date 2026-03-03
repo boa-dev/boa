@@ -17,7 +17,7 @@ use core::ops::ControlFlow;
 #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
 #[cfg_attr(feature = "arbitrary", derive(arbitrary::Arbitrary))]
 #[derive(Clone, Debug, PartialEq)]
-pub enum PropertyName {
+pub enum PropertyName<'arena> {
     /// A `Literal` property name can be either an identifier, a string or a numeric literal.
     ///
     /// More information:
@@ -32,10 +32,10 @@ pub enum PropertyName {
     ///  - [ECMAScript reference][spec]
     ///
     /// [spec]: https://tc39.es/ecma262/#prod-ComputedPropertyName
-    Computed(Expression),
+    Computed(Expression<'arena>),
 }
 
-impl PropertyName {
+impl<'arena> PropertyName<'arena> {
     /// Returns the literal property name if it exists.
     #[must_use]
     pub const fn literal(&self) -> Option<Identifier> {
@@ -48,7 +48,7 @@ impl PropertyName {
 
     /// Returns the expression if the property name is computed.
     #[must_use]
-    pub const fn computed(&self) -> Option<&Expression> {
+    pub const fn computed(&self) -> Option<&Expression<'arena>> {
         if let Self::Computed(expr) = self {
             Some(expr)
         } else {
@@ -69,7 +69,7 @@ impl PropertyName {
     }
 }
 
-impl ToInternedString for PropertyName {
+impl<'arena> ToInternedString for PropertyName<'arena> {
     fn to_interned_string(&self, interner: &Interner) -> String {
         match self {
             Self::Literal(key) => interner.resolve_expect(key.sym()).to_string(),
@@ -78,22 +78,22 @@ impl ToInternedString for PropertyName {
     }
 }
 
-impl From<Identifier> for PropertyName {
+impl<'arena> From<Identifier> for PropertyName<'arena> {
     fn from(name: Identifier) -> Self {
         Self::Literal(name)
     }
 }
 
-impl From<Expression> for PropertyName {
-    fn from(name: Expression) -> Self {
+impl<'arena> From<Expression<'arena>> for PropertyName<'arena> {
+    fn from(name: Expression<'arena>) -> Self {
         Self::Computed(name)
     }
 }
 
-impl VisitWith for PropertyName {
+impl<'arena> VisitWith<'arena> for PropertyName<'arena> {
     fn visit_with<'a, V>(&'a self, visitor: &mut V) -> ControlFlow<V::BreakTy>
     where
-        V: Visitor<'a>,
+        V: Visitor<'a, 'arena>,
     {
         match self {
             Self::Literal(ident) => visitor.visit_sym(ident.sym_ref()),
@@ -103,7 +103,7 @@ impl VisitWith for PropertyName {
 
     fn visit_with_mut<'a, V>(&'a mut self, visitor: &mut V) -> ControlFlow<V::BreakTy>
     where
-        V: VisitorMut<'a>,
+        V: VisitorMut<'a, 'arena>,
     {
         match self {
             Self::Literal(ident) => visitor.visit_sym_mut(ident.sym_mut()),

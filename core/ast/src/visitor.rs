@@ -52,7 +52,7 @@ use boa_interner::Sym;
 macro_rules! define_visit {
     ($fn_name:ident, $type_name:ident) => {
         #[doc = concat!("Visits a `", stringify!($type_name), "` with this visitor")]
-        fn $fn_name(&mut self, node: &'ast $type_name) -> ControlFlow<Self::BreakTy> {
+        fn $fn_name(&mut self, node: &'ast $type_name<'arena>) -> ControlFlow<Self::BreakTy> {
             node.visit_with(self)
         }
     };
@@ -62,7 +62,7 @@ macro_rules! define_visit {
 macro_rules! define_visit_mut {
     ($fn_name:ident, $type_name:ident) => {
         #[doc = concat!("Visits a `", stringify!($type_name), "` with this visitor, mutably")]
-        fn $fn_name(&mut self, node: &'ast mut $type_name) -> ControlFlow<Self::BreakTy> {
+        fn $fn_name(&mut self, node: &'ast mut $type_name<'arena>) -> ControlFlow<Self::BreakTy> {
             node.visit_with_mut(self)
         }
     };
@@ -79,15 +79,15 @@ macro_rules! node_ref {
         /// A reference to a node visitable by a [`Visitor`].
         #[derive(Debug, Clone, Copy)]
         #[allow(missing_docs)]
-        pub enum NodeRef<'a> {
+        pub enum NodeRef<'a, 'arena> {
             $(
-                $Variant(&'a $Variant)
+                $Variant(&'a $Variant<'arena>)
             ),*
         }
 
         $(
-            impl<'a> From<&'a $Variant> for NodeRef<'a> {
-                fn from(node: &'a $Variant) -> NodeRef<'a> {
+            impl<'a, 'arena> From<&'a $Variant<'arena>> for NodeRef<'a, 'arena> {
+                fn from(node: &'a $Variant<'arena>) -> NodeRef<'a, 'arena> {
                     Self::$Variant(node)
                 }
             }
@@ -96,15 +96,15 @@ macro_rules! node_ref {
         /// A mutable reference to a node visitable by a [`VisitorMut`].
         #[derive(Debug)]
         #[allow(missing_docs)]
-        pub enum NodeRefMut<'a> {
+        pub enum NodeRefMut<'a, 'arena> {
             $(
-                $Variant(&'a mut $Variant)
+                $Variant(&'a mut $Variant<'arena>)
             ),*
         }
 
         $(
-            impl<'a> From<&'a mut $Variant> for NodeRefMut<'a> {
-                fn from(node: &'a mut $Variant) -> NodeRefMut<'a> {
+            impl<'a, 'arena> From<&'a mut $Variant<'arena>> for NodeRefMut<'a, 'arena> {
+                fn from(node: &'a mut $Variant<'arena>) -> NodeRefMut<'a, 'arena> {
                     Self::$Variant(node)
                 }
             }
@@ -222,7 +222,7 @@ node_ref! {
 ///
 /// This implementation is based largely on [chalk](https://github.com/rust-lang/chalk/blob/23d39c90ceb9242fbd4c43e9368e813e7c2179f7/chalk-ir/src/visit.rs)'s
 /// visitor pattern.
-pub trait Visitor<'ast>: Sized {
+pub trait Visitor<'ast, 'arena: 'ast>: Sized {
     /// Type which will be propagated from the visitor if completing early.
     type BreakTy;
 
@@ -333,7 +333,7 @@ pub trait Visitor<'ast>: Sized {
     /// Generic entry point for a node that is visitable by a `Visitor`.
     ///
     /// This is usually used for generic functions that need to visit an unnamed AST node.
-    fn visit<N: Into<NodeRef<'ast>>>(&mut self, node: N) -> ControlFlow<Self::BreakTy> {
+    fn visit<N: Into<NodeRef<'ast, 'arena>>>(&mut self, node: N) -> ControlFlow<Self::BreakTy> {
         let node = node.into();
         match node {
             NodeRef::Script(n) => self.visit_script(n),
@@ -447,7 +447,7 @@ pub trait Visitor<'ast>: Sized {
 ///
 /// This implementation is based largely on [chalk](https://github.com/rust-lang/chalk/blob/23d39c90ceb9242fbd4c43e9368e813e7c2179f7/chalk-ir/src/visit.rs)'s
 /// visitor pattern.
-pub trait VisitorMut<'ast>: Sized {
+pub trait VisitorMut<'ast, 'arena: 'ast>: Sized {
     /// Type which will be propagated from the visitor if completing early.
     type BreakTy;
 
@@ -567,7 +567,7 @@ pub trait VisitorMut<'ast>: Sized {
     /// Generic entry point for a node that is visitable by a `VisitorMut`.
     ///
     /// This is usually used for generic functions that need to visit an unnamed AST node.
-    fn visit<N: Into<NodeRefMut<'ast>>>(&mut self, node: N) -> ControlFlow<Self::BreakTy> {
+    fn visit<N: Into<NodeRefMut<'ast, 'arena>>>(&mut self, node: N) -> ControlFlow<Self::BreakTy> {
         let node = node.into();
         match node {
             NodeRefMut::Script(n) => self.visit_script_mut(n),
@@ -681,31 +681,31 @@ pub trait VisitorMut<'ast>: Sized {
 
 /// Denotes that a type may be visited, providing a method which allows a visitor to traverse its
 /// private fields.
-pub trait VisitWith {
+pub trait VisitWith<'arena> {
     /// Visit this node with the provided visitor.
     fn visit_with<'a, V>(&'a self, visitor: &mut V) -> ControlFlow<V::BreakTy>
     where
-        V: Visitor<'a>;
+        V: Visitor<'a, 'arena>;
 
     /// Visit this node with the provided visitor mutably, allowing the visitor to modify private
     /// fields.
     fn visit_with_mut<'a, V>(&'a mut self, visitor: &mut V) -> ControlFlow<V::BreakTy>
     where
-        V: VisitorMut<'a>;
+        V: VisitorMut<'a, 'arena>;
 }
 
 // implementation for Sym as it is out-of-crate
-impl VisitWith for Sym {
+impl<'arena> VisitWith<'arena> for Sym {
     fn visit_with<'a, V>(&'a self, _visitor: &mut V) -> ControlFlow<V::BreakTy>
     where
-        V: Visitor<'a>,
+        V: Visitor<'a, 'arena>,
     {
         ControlFlow::Continue(())
     }
 
     fn visit_with_mut<'a, V>(&'a mut self, _visitor: &mut V) -> ControlFlow<V::BreakTy>
     where
-        V: VisitorMut<'a>,
+        V: VisitorMut<'a, 'arena>,
     {
         ControlFlow::Continue(())
     }
