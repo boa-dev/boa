@@ -1182,7 +1182,9 @@ impl<'ctx> ByteCompiler<'ctx> {
                 let name = self.resolve_identifier_expect(name);
                 let binding = self.lexical_scope.get_identifier_reference(name);
                 let index = self.get_binding(&binding);
-                if let Some(&cached_reg) = self.const_binding_cache.get(&binding.locator()) {
+                if !self.in_with
+                    && let Some(&cached_reg) = self.const_binding_cache.get(&binding.locator())
+                {
                     self.bytecode.emit_move(dst.variable(), cached_reg.into());
                     return;
                 }
@@ -1472,7 +1474,9 @@ impl<'ctx> ByteCompiler<'ctx> {
             if let BindingKind::Local(Some(local_reg)) = &index {
                 return (VaryingOperand::from(*local_reg), None);
             }
-            if let Some(&cached_reg) = self.const_binding_cache.get(&binding.locator()) {
+            if !self.in_with
+                && let Some(&cached_reg) = self.const_binding_cache.get(&binding.locator())
+            {
                 return (VaryingOperand::from(cached_reg), None);
             }
         }
