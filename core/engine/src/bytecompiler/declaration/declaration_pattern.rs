@@ -76,7 +76,7 @@ impl ByteCompiler<'_> {
                             }
 
                             if let Some(init) = default_init {
-                                let skip = self.emit_jump_if_not_undefined(&dst);
+                                let skip = self.jump_if_not_undefined(&dst);
                                 self.compile_expr(init, &dst);
                                 self.patch_jump(skip);
                             }
@@ -185,7 +185,7 @@ impl ByteCompiler<'_> {
                                     }
 
                                     if let Some(init) = default_init {
-                                        let skip = compiler.emit_jump_if_not_undefined(&dst);
+                                        let skip = compiler.jump_if_not_undefined(&dst);
                                         compiler.compile_expr(init, &dst);
                                         compiler.patch_jump(skip);
                                     }
@@ -220,7 +220,7 @@ impl ByteCompiler<'_> {
                             }
 
                             if let Some(init) = default_init {
-                                let skip = self.emit_jump_if_not_undefined(&dst);
+                                let skip = self.jump_if_not_undefined(&dst);
                                 self.compile_expr(init, &dst);
                                 self.patch_jump(skip);
                             }
@@ -298,7 +298,7 @@ impl ByteCompiler<'_> {
                 );
 
                 if let Some(init) = default_init {
-                    let skip = self.emit_jump_if_not_undefined(&value);
+                    let skip = self.jump_if_not_undefined(&value);
                     self.compile_expr(init, &value);
                     self.patch_jump(skip);
                 }
@@ -321,7 +321,7 @@ impl ByteCompiler<'_> {
                     );
 
                     if let Some(init) = default_init {
-                        let skip = compiler.emit_jump_if_not_undefined(&value);
+                        let skip = compiler.jump_if_not_undefined(&value);
                         compiler.compile_expr(init, &value);
                         compiler.patch_jump(skip);
                     }
@@ -345,7 +345,7 @@ impl ByteCompiler<'_> {
                 );
 
                 if let Some(init) = default_init {
-                    let skip = self.emit_jump_if_not_undefined(&value);
+                    let skip = self.jump_if_not_undefined(&value);
                     self.compile_expr(init, &value);
                     self.patch_jump(skip);
                 }

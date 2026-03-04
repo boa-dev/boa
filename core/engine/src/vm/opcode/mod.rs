@@ -21,6 +21,7 @@ mod copy;
 mod define;
 mod delete;
 mod environment;
+mod function;
 mod generator;
 mod get;
 mod global;
@@ -28,6 +29,7 @@ mod iteration;
 mod meta;
 mod new;
 mod nop;
+mod object;
 mod pop;
 mod push;
 mod rest_parameter;
@@ -60,6 +62,8 @@ pub(crate) use delete::*;
 #[doc(inline)]
 pub(crate) use environment::*;
 #[doc(inline)]
+pub(crate) use function::*;
+#[doc(inline)]
 pub(crate) use generator::*;
 #[doc(inline)]
 pub(crate) use get::*;
@@ -73,6 +77,8 @@ pub(crate) use meta::*;
 pub(crate) use new::*;
 #[doc(inline)]
 pub(crate) use nop::*;
+#[doc(inline)]
+pub(crate) use object::*;
 #[doc(inline)]
 pub(crate) use pop::*;
 #[doc(inline)]
@@ -270,6 +276,7 @@ macro_rules! generate_opcodes {
                     $(#[$fieldinner:ident $($fieldargs:tt)*])*
                     $FieldName:ident : $FieldType:ty
                 ),*
+                $(,)?
             })? $(=> $mapping:ident)?
         ),*
         $(,)?
@@ -649,13 +656,34 @@ generate_opcodes! {
         home: VaryingOperand
     },
 
+    /// Get home object internal slot of an object literal method.
+    ///
+    /// - Registers (inout):
+    ///   - function:
+    ///     - in: `JsObject<OrdinaryFunction>`.
+    ///     - out: `JsObject` or `null` if the home object is not set.
+    GetHomeObject {
+        function: VaryingOperand,
+    },
+
     /// Set the prototype of an object if the value is an object or null.
     ///
-    /// - Registers:
-    ///   - Input: object, prototype
+    /// - Registers (in):
+    ///   - object: `JsObject`.
+    ///   - prototype: `JsObject` or `null`
     SetPrototype {
         object: VaryingOperand,
         prototype: VaryingOperand
+    },
+
+    /// Get the prototype of an object.
+    ///
+    /// - Registers (inout):
+    ///   - object:
+    ///     - in: `JsObject`.
+    ///     - out: `JsObject` or `null`.
+    GetPrototype {
+        object: VaryingOperand,
     },
 
     /// Push an empty array value on the stack.
@@ -1516,8 +1544,8 @@ generate_opcodes! {
     ///
     /// - Operands:
     ///   - address: `u32`
-    /// - Registers:
-    ///   - Output: value
+    /// - Registers (in):
+    ///   - `value`: `JsValue`
     ///
     /// [truthy]: https://developer.mozilla.org/en-US/docs/Glossary/Truthy
     JumpIfTrue { address: u32, value: VaryingOperand },
@@ -1528,8 +1556,8 @@ generate_opcodes! {
     ///
     /// - Operands:
     ///   - address: `u32`
-    /// - Registers:
-    ///   - Output: value
+    /// - Registers (in):
+    ///   - `value`: `JsValue`
     ///
     /// [falsy]: https://developer.mozilla.org/en-US/docs/Glossary/Falsy
     JumpIfFalse { address: u32, value: VaryingOperand },
@@ -1539,9 +1567,9 @@ generate_opcodes! {
     /// If the value popped is not undefined jump to `address`.
     ///
     /// - Operands:
-    ///   - address: `u32`
-    /// - Registers:
-    ///   - Output: value
+    ///   - address: `u32`.
+    /// - Registers (in):
+    ///   - value: `JsValue`
     JumpIfNotUndefined { address: u32, value: VaryingOperand },
 
     /// Conditional jump to address.
@@ -1549,10 +1577,21 @@ generate_opcodes! {
     /// If the value popped is undefined jump to `address`.
     ///
     /// - Operands:
-    ///   - address: `u32`
-    /// - Registers:
-    ///   - Output: value
+    ///   - address: `u32`.
+    /// - Registers (in):
+    ///   - value: `JsValue`.
     JumpIfNullOrUndefined { address: u32, value: VaryingOperand },
+
+    /// Conditional jump to address.
+    ///
+    /// Jump to `address` if two values are not equal.
+    ///
+    /// - Operands:
+    ///   - address: `u32`
+    /// - Registers (in):
+    ///   - lhs: `JsValue`.
+    ///   - rhs: `JsValue`.
+    JumpIfNotEqual { address: u32, lhs: VaryingOperand, rhs: VaryingOperand },
 
     /// Jump table that jumps depending on top value of the stack.
     ///
@@ -1610,6 +1649,12 @@ generate_opcodes! {
     ///   - message: `VaryingOperand`
     ThrowNewReferenceError { message: VaryingOperand },
 
+    /// Gets the function object of the current function environment
+    ///
+    /// - Registers (out):
+    ///   - function_object: `JsObject`.
+    GetFunctionObject { function_object: VaryingOperand },
+
     /// Pushes `this` value
     ///
     /// - Registers:
@@ -1623,18 +1668,6 @@ generate_opcodes! {
     /// - Registers:
     ///   - Output: dst
     ThisForObjectEnvironmentName { dst: VaryingOperand, index: VaryingOperand },
-
-    /// Pushes the current `super` value to the stack.
-    ///
-    /// - Registers:
-    ///   - Output: dst
-    Super { dst: VaryingOperand },
-
-    /// Get the super constructor and the new target of the current environment.
-    ///
-    /// - Registers:
-    ///   - Output: dst
-    SuperCallPrepare { dst: VaryingOperand },
 
     /// Execute the `super()` method.
     ///
@@ -2219,8 +2252,4 @@ generate_opcodes! {
     Reserved58 => Reserved,
     /// Reserved [`Opcode`].
     Reserved59 => Reserved,
-    /// Reserved [`Opcode`].
-    Reserved60 => Reserved,
-    /// Reserved [`Opcode`]
-    Reserved61 => Reserved,
 }
