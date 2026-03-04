@@ -1127,7 +1127,7 @@ impl<'ctx> ByteCompiler<'ctx> {
     pub(crate) fn jump_if_neq(&mut self, lhs: &Register, rhs: &Register) -> Label {
         let index = self.next_opcode_location();
         self.bytecode
-            .emit_jump_if_neq(Self::DUMMY_ADDRESS, lhs.variable(), rhs.variable());
+            .emit_jump_if_not_equal(Self::DUMMY_ADDRESS, lhs.variable(), rhs.variable());
         Label { index }
     }
 
