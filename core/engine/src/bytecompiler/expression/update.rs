@@ -44,7 +44,10 @@ impl ByteCompiler<'_> {
                 //
                 // Skip for const bindings — they must fall through to emit ThrowMutateImmutable.
                 if is_lexical
-                    && compiler.lexical_scope.set_mutable_binding(name.clone()).is_ok()
+                    && compiler
+                        .lexical_scope
+                        .set_mutable_binding(name.clone())
+                        .is_ok()
                     && let BindingKind::Local(Some(local_reg)) = &index
                 {
                     let local_op = (*local_reg).into();
