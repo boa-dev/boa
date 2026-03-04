@@ -1562,9 +1562,17 @@ impl SourceTextModule {
 
         // Take the AST and source text — they are only needed during compilation.
         // Dropping them here frees the parse tree after linking is complete.
-        let source = self.code.source.borrow_mut().take()
+        let source = self
+            .code
+            .source
+            .borrow_mut()
+            .take()
             .expect("module source consumed before initialize_environment");
-        let source_text = self.code.source_text.borrow_mut().take()
+        let source_text = self
+            .code
+            .source_text
+            .borrow_mut()
+            .take()
             .expect("module source_text consumed before initialize_environment");
 
         // 5. Let env be NewModuleEnvironment(realm.[[GlobalEnv]]).
