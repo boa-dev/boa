@@ -19,6 +19,88 @@ fn empty_function_returns_undefined() {
 }
 
 #[test]
+fn implicit_return_does_not_leak_last_evaluated_expression() {
+    run_test_actions([TestAction::assert_eq(
+        indoc! {r#"
+            let seen;
+
+            function g(inner) {
+                seen = inner;
+            }
+
+            function f() {}
+
+            5;
+            let outer = g(f());
+            seen;
+        "#},
+        JsValue::undefined(),
+    )]);
+}
+
+#[test]
+fn implicit_constructor_return_uses_constructed_object() {
+    run_test_actions([TestAction::assert(indoc! {r#"
+        let seen;
+
+        function g(inner) {
+            seen = inner;
+        }
+
+        function f() {}
+
+        ({});
+        let outer = g(new f());
+        Object.getPrototypeOf(seen) === f.prototype;
+    "#})]);
+}
+
+#[test]
+fn implicit_return_does_not_leak_from_previous_eval() {
+    run_test_actions([
+        TestAction::run("function f() {}"),
+        TestAction::run("let seen; function g(inner) { seen = inner; }"),
+        TestAction::run("5;"),
+        TestAction::run("let outer = g(f());"),
+        TestAction::assert_eq("seen", JsValue::undefined()),
+    ]);
+}
+
+#[test]
+fn implicit_return_does_not_leak_completion_value_from_same_eval() {
+    run_test_actions([
+        TestAction::run(indoc! {r#"
+            eval(`
+                function f() {}
+                globalThis.seen = "initial";
+                function g(inner) { globalThis.seen = inner; }
+                5;
+                let outer = g(f());
+            `);
+        "#}),
+        TestAction::assert_eq("globalThis.seen", JsValue::undefined()),
+    ]);
+}
+
+#[test]
+fn implicit_constructor_return_does_not_leak_completion_value_from_same_eval() {
+    run_test_actions([
+        TestAction::run(indoc! {r#"
+            eval(`
+                function f() {}
+                globalThis.prototype_matches = false;
+                function g(inner) {
+                    globalThis.prototype_matches = Object.getPrototypeOf(inner) === f.prototype;
+                }
+                ({});
+                let outer = g(new f());
+            `);
+        "#}),
+        TestAction::assert("globalThis.prototype_matches"),
+    ]);
+}
+
+#[test]
 fn property_accessor_member_expression_dot_notation_on_function() {
     run_test_actions([TestAction::assert_eq(
         indoc! {r#"
