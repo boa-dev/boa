@@ -124,7 +124,7 @@ impl CodeBlock {
                 | Instruction::JumpIfTrue { address, .. }
                 | Instruction::JumpIfNotUndefined { address, .. }
                 | Instruction::JumpIfNullOrUndefined { address, .. }
-                | Instruction::JumpIfNeq { address, .. } => {
+                | Instruction::JumpIfNotEqual { address, .. } => {
                     graph.add_node(previous_pc, NodeShape::Diamond, label.into(), Color::None);
                     graph.add_edge(
                         previous_pc,

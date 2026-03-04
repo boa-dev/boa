@@ -451,7 +451,7 @@ impl CodeBlock {
             | Instruction::Coalesce { address, value } => {
                 format!("value:{value}, address:{address}")
             }
-            Instruction::JumpIfNeq { address, lhs, rhs } => {
+            Instruction::JumpIfNotEqual { address, lhs, rhs } => {
                 format!("lhs:{lhs}, rhs:{rhs}, address:{address}")
             }
             Instruction::Case {

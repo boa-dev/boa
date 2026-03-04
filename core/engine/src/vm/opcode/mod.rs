@@ -1603,7 +1603,7 @@ generate_opcodes! {
     /// - Registers (in):
     ///   - lhs: `JsValue`.
     ///   - rhs: `JsValue`.
-    JumpIfNeq { address: u32, lhs: VaryingOperand, rhs: VaryingOperand },
+    JumpIfNotEqual { address: u32, lhs: VaryingOperand, rhs: VaryingOperand },
 
     /// Jump table that jumps depending on top value of the stack.
     ///

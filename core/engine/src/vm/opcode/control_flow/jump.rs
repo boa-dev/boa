@@ -116,14 +116,14 @@ impl Operation for JumpIfNullOrUndefined {
     const COST: u8 = 1;
 }
 
-/// `JumpIfEq` implements the Opcode Operation for `Opcode::JumpIfEq`
+/// `JumpIfNotEqual` implements the Opcode Operation for `Opcode::JumpIfNotEqual`
 ///
 /// Operation:
 ///  - Conditional jump to address.
 #[derive(Debug, Clone, Copy)]
-pub(crate) struct JumpIfNeq;
+pub(crate) struct JumpIfNotEqual;
 
-impl JumpIfNeq {
+impl JumpIfNotEqual {
     #[inline(always)]
     pub(crate) fn operation(
         (address, lhs, rhs): (u32, VaryingOperand, VaryingOperand),
@@ -137,9 +137,9 @@ impl JumpIfNeq {
     }
 }
 
-impl Operation for JumpIfNeq {
-    const NAME: &'static str = "JumpIfEq";
-    const INSTRUCTION: &'static str = "INST - JumpIfEq";
+impl Operation for JumpIfNotEqual {
+    const NAME: &'static str = "JumpIfNotEqual";
+    const INSTRUCTION: &'static str = "INST - JumpIfNotEqual";
     const COST: u8 = 1;
 }
 
