@@ -113,8 +113,7 @@ impl JumpRecord {
                     finally_throw_flag,
                     finally_throw_index,
                 } => {
-                    // Note: +1 because 0 is reserved for default entry in jump table (for fallthrough).
-                    let index = value as i32 + 1;
+                    let index = value as i32;
                     compiler.bytecode.emit_push_false(finally_throw_flag.into());
                     compiler.emit_push_integer_with_index(index, finally_throw_index.into());
                 }
@@ -607,9 +606,13 @@ impl ByteCompiler<'_> {
         let jump_table_index = self.next_opcode_location() + size_of::<u32>() as u32;
         self.bytecode.emit_jump_table(
             finally_throw_index,
-            Self::DUMMY_ADDRESS,
             thin_vec![Self::DUMMY_ADDRESS; info.jumps.len()],
         );
+
+        // We are assuming any indices outside our jump table will fallback
+        // to executing the next available op. Since we kinda control the jump
+        // table index here, this doesn't matter too much, but we _could_ also
+        // throw a PanicError on the next instruction.
 
         let mut patch_jumps = Vec::with_capacity(info.jumps.len());
         // Handle breaks/continue/returns in a finally block
@@ -620,10 +623,8 @@ impl ByteCompiler<'_> {
             jump_record.perform_actions(Self::DUMMY_ADDRESS, self);
         }
 
-        let default = self.bytecode.next_opcode_location();
-
         self.bytecode
-            .patch_jump_table(jump_table_index, (default, &patch_jumps));
+            .patch_jump_table(jump_table_index, &patch_jumps);
     }
 
     pub(crate) fn jump_info_open_environment_count(&self, index: usize) -> u32 {

@@ -170,28 +170,16 @@ impl ByteCodeEmitter {
     }
 
     /// Patch the jump instruction at the given label with jump table addresses.
-    pub(crate) fn patch_jump_table(&mut self, label: u32, patch: (u32, &[u32])) {
-        let pos = label as usize;
+    pub(crate) fn patch_jump_table(&mut self, label: u32, patch: &[u32]) {
+        let length_offset = label as usize + 1;
 
-        let (total_len, pos) = read::<u16>(&self.bytecode, pos + 1);
-        let arg_count = total_len as usize;
-        assert_eq!(arg_count, patch.1.len());
+        let (length, first_offset) = read::<u32>(&self.bytecode, length_offset);
+        assert_eq!(length as usize, patch.len());
 
-        // Write first patched value (default address)
-        let bytes = patch.0.to_le_bytes();
-        self.bytecode[pos] = bytes[0];
-        self.bytecode[pos + 1] = bytes[1];
-        self.bytecode[pos + 2] = bytes[2];
-        self.bytecode[pos + 3] = bytes[3];
-
-        // Write remaining patched values
-        for (i, value) in patch.1.iter().enumerate() {
-            let offset = pos + 4 + (i) * 4;
-            let bytes = value.to_le_bytes();
-            self.bytecode[offset] = bytes[0];
-            self.bytecode[offset + 1] = bytes[1];
-            self.bytecode[offset + 2] = bytes[2];
-            self.bytecode[offset + 3] = bytes[3];
+        // Write patched address values.
+        for (i, value) in patch.iter().enumerate() {
+            let offset = first_offset + i * size_of::<u32>();
+            self.bytecode[offset..offset + size_of::<u32>()].copy_from_slice(&value.to_le_bytes());
         }
     }
 }
@@ -1571,8 +1559,8 @@ generate_opcodes! {
     /// This is used to handle special cases when we call `continue`, `break` or `return` in a try block,
     /// that has finally block.
     ///
-    /// Operands: index: Register, default: `u32`, count: `u32`, address: `u32` * count
-    JumpTable { index: u32, default: u32, addresses: ThinVec<u32> },
+    /// Operands: index: Register, count: `u32`, address: `u32` * count
+    JumpTable { index: u32, addresses: ThinVec<u32> },
 
     /// Throw exception.
     ///

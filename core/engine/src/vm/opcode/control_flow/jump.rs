@@ -125,26 +125,17 @@ pub(crate) struct JumpTable;
 
 impl JumpTable {
     #[inline(always)]
-    pub(crate) fn operation(
-        (index, default, addresses): (u32, u32, ThinVec<u32>),
-        context: &mut Context,
-    ) {
+    pub(crate) fn operation((index, addresses): (u32, ThinVec<u32>), context: &mut Context) {
         let value = context.vm.get_register(index as usize);
-        if let Some(value) = value.as_i32() {
-            let value = value as usize;
-            let mut target = None;
-            for (i, address) in addresses.iter().enumerate() {
-                if i + 1 == value {
-                    target = Some(*address);
-                }
-            }
-
-            context.vm.frame_mut().pc = target.unwrap_or(default);
-
+        let Some(offset) = value.as_i32().map(|i| i as usize) else {
             return;
-        }
+        };
 
-        unreachable!("expected positive integer, got {value:?}")
+        let Some(pc) = addresses.get(offset).copied() else {
+            return;
+        };
+
+        context.vm.frame_mut().pc = pc;
     }
 }
 
