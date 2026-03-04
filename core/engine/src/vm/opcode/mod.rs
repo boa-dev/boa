@@ -1582,6 +1582,46 @@ generate_opcodes! {
     ///   - value: `JsValue`.
     JumpIfNullOrUndefined { address: u32, value: VaryingOperand },
 
+    /// Fused `<` comparison + conditional jump.
+    ///
+    /// Jumps to `address` if `!(lhs < rhs)`.
+    ///
+    /// - Operands:
+    ///   - address: `u32`
+    /// - Registers:
+    ///   - Input: lhs, rhs
+    JumpIfNotLessThan { address: u32, lhs: VaryingOperand, rhs: VaryingOperand },
+
+    /// Fused `<=` comparison + conditional jump.
+    ///
+    /// Jumps to `address` if `!(lhs <= rhs)`.
+    ///
+    /// - Operands:
+    ///   - address: `u32`
+    /// - Registers:
+    ///   - Input: lhs, rhs
+    JumpIfNotLessThanOrEqual { address: u32, lhs: VaryingOperand, rhs: VaryingOperand },
+
+    /// Fused `>` comparison + conditional jump.
+    ///
+    /// Jumps to `address` if `!(lhs > rhs)`.
+    ///
+    /// - Operands:
+    ///   - address: `u32`
+    /// - Registers:
+    ///   - Input: lhs, rhs
+    JumpIfNotGreaterThan { address: u32, lhs: VaryingOperand, rhs: VaryingOperand },
+
+    /// Fused `>=` comparison + conditional jump.
+    ///
+    /// Jumps to `address` if `!(lhs >= rhs)`.
+    ///
+    /// - Operands:
+    ///   - address: `u32`
+    /// - Registers:
+    ///   - Input: lhs, rhs
+    JumpIfNotGreaterThanOrEqual { address: u32, lhs: VaryingOperand, rhs: VaryingOperand },
+
     /// Conditional jump to address.
     ///
     /// Jump to `address` if two values are not equal.
@@ -2244,12 +2284,4 @@ generate_opcodes! {
     Reserved54 => Reserved,
     /// Reserved [`Opcode`].
     Reserved55 => Reserved,
-    /// Reserved [`Opcode`].
-    Reserved56 => Reserved,
-    /// Reserved [`Opcode`].
-    Reserved57 => Reserved,
-    /// Reserved [`Opcode`].
-    Reserved58 => Reserved,
-    /// Reserved [`Opcode`].
-    Reserved59 => Reserved,
 }

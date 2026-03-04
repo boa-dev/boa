@@ -30,24 +30,45 @@ impl ByteCompiler<'_> {
                 let is_lexical = binding.is_lexical();
                 let index = compiler.get_binding(&binding);
 
-                // Fast path: for local bindings with pre-increment/decrement,
+                // Fast path: for mutable local bindings with (post/pre)-increment/decrement,
                 // use the local register directly to avoid unnecessary Move instructions.
                 //
                 // Pre-increment (++i):
-                //   Before: Move(dst, local); Inc(tmp, dst); Move(local, tmp); Move(dst, tmp) → 4 ops
-                //   After:  Inc(dst, local); Move(local, dst) → 2 ops
-                if !post
-                    && is_lexical
+                //   Inc(dst, local); Move(local, dst) → 2 ops
+                //
+                // Post-increment (i++):
+                //   Move(dst, local); Inc(local, local) → 2 ops
+                //
+                // Inc(local, local) works because Inc writes new to dst AFTER old to src,
+                // so when dst==src the new value wins.
+                //
+                // Skip for const bindings — they must fall through to emit ThrowMutateImmutable.
+                if is_lexical
+                    && compiler
+                        .lexical_scope
+                        .set_mutable_binding(name.clone())
+                        .is_ok()
                     && let BindingKind::Local(Some(local_reg)) = &index
                 {
                     let local_op = (*local_reg).into();
-                    if increment {
-                        compiler.bytecode.emit_inc(dst.variable(), local_op);
+                    if post {
+                        // Save old value to dst (post-increment returns old value).
+                        compiler.bytecode.emit_move(dst.variable(), local_op);
+                        // Increment in-place.
+                        if increment {
+                            compiler.bytecode.emit_inc(local_op, local_op);
+                        } else {
+                            compiler.bytecode.emit_dec(local_op, local_op);
+                        }
                     } else {
-                        compiler.bytecode.emit_dec(dst.variable(), local_op);
+                        if increment {
+                            compiler.bytecode.emit_inc(dst.variable(), local_op);
+                        } else {
+                            compiler.bytecode.emit_dec(dst.variable(), local_op);
+                        }
+                        // Write the new value back to the local register.
+                        compiler.bytecode.emit_move(local_op, dst.variable());
                     }
-                    // Write the new value back to the local register.
-                    compiler.bytecode.emit_move(local_op, dst.variable());
                     return;
                 }
 
