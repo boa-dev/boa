@@ -1450,7 +1450,7 @@ impl<'ctx> ByteCompiler<'ctx> {
     /// directly without emitting a `Move` instruction. For all other expressions,
     /// it allocates a temporary register and compiles into it.
     ///
-    /// The caller must deallocate the returned `Register` (if `Some`) after use.
+    /// The `inner_fn` passed in will be called before the register get deallocated.
     pub(crate) fn compile_expr_operand(
         &mut self,
         expr: &Expression,
