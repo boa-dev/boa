@@ -36,7 +36,12 @@ use boa_ast::{
         Call, Identifier, New, Optional, OptionalOperationKind,
         access::{PropertyAccess, PropertyAccessField},
         literal::ObjectMethodDefinition,
-        operator::{assign::AssignTarget, update::UpdateTarget},
+        operator::{
+            Binary,
+            assign::AssignTarget,
+            binary::{BinaryOp, RelationalOp},
+            update::UpdateTarget,
+        },
     },
     function::{
         ArrowFunction, AsyncArrowFunction, AsyncFunctionDeclaration, AsyncFunctionExpression,
@@ -1114,6 +1119,48 @@ impl<'ctx> ByteCompiler<'ctx> {
         self.bytecode
             .emit_jump_if_false(Self::DUMMY_ADDRESS, value.variable());
         Label { index }
+    }
+
+    /// Compile a condition expression and emit a conditional jump.
+    ///
+    /// When the condition is a relational comparison (`<`, `<=`, `>`, `>=`),
+    /// emits a single fused comparison+branch opcode instead of separate
+    /// `LessThan` + `JumpIfFalse` instructions.
+    pub(crate) fn compile_condition_and_branch(&mut self, condition: &Expression) -> Label {
+        if let Expression::Binary(binary) = condition
+            && let BinaryOp::Relational(op) = binary.op()
+            && let Some(label) = self.try_fused_comparison_branch(op, binary)
+        {
+            return label;
+        }
+        // Fallback: compile expr + jump_if_false
+        let value = self.register_allocator.alloc();
+        self.compile_expr(condition, &value);
+        let label = self.jump_if_false(&value);
+        self.register_allocator.dealloc(value);
+        label
+    }
+
+    fn try_fused_comparison_branch(&mut self, op: RelationalOp, binary: &Binary) -> Option<Label> {
+        use crate::vm::opcode::ByteCodeEmitter;
+
+        let emit_fn: fn(&mut ByteCodeEmitter, u32, VaryingOperand, VaryingOperand) = match op {
+            RelationalOp::LessThan => ByteCodeEmitter::emit_jump_if_not_less_than,
+            RelationalOp::LessThanOrEqual => ByteCodeEmitter::emit_jump_if_not_less_than_or_equal,
+            RelationalOp::GreaterThan => ByteCodeEmitter::emit_jump_if_not_greater_than,
+            RelationalOp::GreaterThanOrEqual => {
+                ByteCodeEmitter::emit_jump_if_not_greater_than_or_equal
+            }
+            _ => return None,
+        };
+        let mut label_index = 0u32;
+        self.compile_expr_operand(binary.lhs(), |compiler, lhs| {
+            compiler.compile_expr_operand(binary.rhs(), |compiler, rhs| {
+                label_index = compiler.next_opcode_location();
+                emit_fn(&mut compiler.bytecode, Self::DUMMY_ADDRESS, lhs, rhs);
+            });
+        });
+        Some(Label { index: label_index })
     }
 
     pub(crate) fn jump_if_null_or_undefined(&mut self, value: &Register) -> Label {

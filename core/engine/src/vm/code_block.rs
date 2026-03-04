@@ -452,7 +452,11 @@ impl CodeBlock {
             | Instruction::Coalesce { address, value } => {
                 format!("value:{value}, address:{address}")
             }
-            Instruction::JumpIfNotEqual { address, lhs, rhs } => {
+            Instruction::JumpIfNotLessThan { address, lhs, rhs }
+            | Instruction::JumpIfNotLessThanOrEqual { address, lhs, rhs }
+            | Instruction::JumpIfNotGreaterThan { address, lhs, rhs }
+            | Instruction::JumpIfNotGreaterThanOrEqual { address, lhs, rhs }
+            | Instruction::JumpIfNotEqual { address, lhs, rhs } => {
                 format!("lhs:{lhs}, rhs:{rhs}, address:{address}")
             }
             Instruction::Case {
@@ -916,11 +920,7 @@ impl CodeBlock {
             | Instruction::Reserved52
             | Instruction::Reserved53
             | Instruction::Reserved54
-            | Instruction::Reserved55
-            | Instruction::Reserved56
-            | Instruction::Reserved57
-            | Instruction::Reserved58
-            | Instruction::Reserved59 => unreachable!("Reserved opcodes are unreachable"),
+            | Instruction::Reserved55 => unreachable!("Reserved opcodes are unreachable"),
         }
     }
 }

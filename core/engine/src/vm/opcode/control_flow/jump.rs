@@ -1,5 +1,5 @@
 use crate::{
-    Context,
+    Context, JsResult,
     vm::opcode::{Operation, VaryingOperand},
 };
 use thin_vec::ThinVec;
@@ -114,6 +114,150 @@ impl Operation for JumpIfNullOrUndefined {
     const NAME: &'static str = "JumpIfNullOrUndefined";
     const INSTRUCTION: &'static str = "INST - JumpIfNullOrUndefined";
     const COST: u8 = 1;
+}
+
+/// `JumpIfNotLessThan` implements the Opcode Operation for `Opcode::JumpIfNotLessThan`
+///
+/// Operation:
+///  - Fused `<` comparison + conditional jump. Jumps if `!(lhs < rhs)`.
+#[derive(Debug, Clone, Copy)]
+pub(crate) struct JumpIfNotLessThan;
+
+impl JumpIfNotLessThan {
+    #[inline(always)]
+    pub(crate) fn operation(
+        (address, lhs, rhs): (u32, VaryingOperand, VaryingOperand),
+        context: &mut Context,
+    ) -> JsResult<()> {
+        let lhs = context.vm.get_register(lhs.into());
+        let rhs = context.vm.get_register(rhs.into());
+        if let Some(result) = lhs.lt_fast(rhs) {
+            if !result.to_boolean() {
+                context.vm.frame_mut().pc = address;
+            }
+            return Ok(());
+        }
+        let lhs = lhs.clone();
+        let rhs = rhs.clone();
+        if !lhs.lt(&rhs, context)? {
+            context.vm.frame_mut().pc = address;
+        }
+        Ok(())
+    }
+}
+
+impl Operation for JumpIfNotLessThan {
+    const NAME: &'static str = "JumpIfNotLessThan";
+    const INSTRUCTION: &'static str = "INST - JumpIfNotLessThan";
+    const COST: u8 = 2;
+}
+
+/// `JumpIfNotLessThanOrEqual` implements the Opcode Operation for `Opcode::JumpIfNotLessThanOrEqual`
+///
+/// Operation:
+///  - Fused `<=` comparison + conditional jump. Jumps if `!(lhs <= rhs)`.
+#[derive(Debug, Clone, Copy)]
+pub(crate) struct JumpIfNotLessThanOrEqual;
+
+impl JumpIfNotLessThanOrEqual {
+    #[inline(always)]
+    pub(crate) fn operation(
+        (address, lhs, rhs): (u32, VaryingOperand, VaryingOperand),
+        context: &mut Context,
+    ) -> JsResult<()> {
+        let lhs = context.vm.get_register(lhs.into());
+        let rhs = context.vm.get_register(rhs.into());
+        if let Some(result) = lhs.le_fast(rhs) {
+            if !result.to_boolean() {
+                context.vm.frame_mut().pc = address;
+            }
+            return Ok(());
+        }
+        let lhs = lhs.clone();
+        let rhs = rhs.clone();
+        if !lhs.le(&rhs, context)? {
+            context.vm.frame_mut().pc = address;
+        }
+        Ok(())
+    }
+}
+
+impl Operation for JumpIfNotLessThanOrEqual {
+    const NAME: &'static str = "JumpIfNotLessThanOrEqual";
+    const INSTRUCTION: &'static str = "INST - JumpIfNotLessThanOrEqual";
+    const COST: u8 = 2;
+}
+
+/// `JumpIfNotGreaterThan` implements the Opcode Operation for `Opcode::JumpIfNotGreaterThan`
+///
+/// Operation:
+///  - Fused `>` comparison + conditional jump. Jumps if `!(lhs > rhs)`.
+#[derive(Debug, Clone, Copy)]
+pub(crate) struct JumpIfNotGreaterThan;
+
+impl JumpIfNotGreaterThan {
+    #[inline(always)]
+    pub(crate) fn operation(
+        (address, lhs, rhs): (u32, VaryingOperand, VaryingOperand),
+        context: &mut Context,
+    ) -> JsResult<()> {
+        let lhs = context.vm.get_register(lhs.into());
+        let rhs = context.vm.get_register(rhs.into());
+        if let Some(result) = lhs.gt_fast(rhs) {
+            if !result.to_boolean() {
+                context.vm.frame_mut().pc = address;
+            }
+            return Ok(());
+        }
+        let lhs = lhs.clone();
+        let rhs = rhs.clone();
+        if !lhs.gt(&rhs, context)? {
+            context.vm.frame_mut().pc = address;
+        }
+        Ok(())
+    }
+}
+
+impl Operation for JumpIfNotGreaterThan {
+    const NAME: &'static str = "JumpIfNotGreaterThan";
+    const INSTRUCTION: &'static str = "INST - JumpIfNotGreaterThan";
+    const COST: u8 = 2;
+}
+
+/// `JumpIfNotGreaterThanOrEqual` implements the Opcode Operation for `Opcode::JumpIfNotGreaterThanOrEqual`
+///
+/// Operation:
+///  - Fused `>=` comparison + conditional jump. Jumps if `!(lhs >= rhs)`.
+#[derive(Debug, Clone, Copy)]
+pub(crate) struct JumpIfNotGreaterThanOrEqual;
+
+impl JumpIfNotGreaterThanOrEqual {
+    #[inline(always)]
+    pub(crate) fn operation(
+        (address, lhs, rhs): (u32, VaryingOperand, VaryingOperand),
+        context: &mut Context,
+    ) -> JsResult<()> {
+        let lhs = context.vm.get_register(lhs.into());
+        let rhs = context.vm.get_register(rhs.into());
+        if let Some(result) = lhs.ge_fast(rhs) {
+            if !result.to_boolean() {
+                context.vm.frame_mut().pc = address;
+            }
+            return Ok(());
+        }
+        let lhs = lhs.clone();
+        let rhs = rhs.clone();
+        if !lhs.ge(&rhs, context)? {
+            context.vm.frame_mut().pc = address;
+        }
+        Ok(())
+    }
+}
+
+impl Operation for JumpIfNotGreaterThanOrEqual {
+    const NAME: &'static str = "JumpIfNotGreaterThanOrEqual";
+    const INSTRUCTION: &'static str = "INST - JumpIfNotGreaterThanOrEqual";
+    const COST: u8 = 2;
 }
 
 /// `JumpIfNotEqual` implements the Opcode Operation for `Opcode::JumpIfNotEqual`
