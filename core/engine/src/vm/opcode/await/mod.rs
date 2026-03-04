@@ -1,6 +1,6 @@
 use super::VaryingOperand;
 use crate::{
-    Context, JsArgs, JsValue,
+    Context, JsArgs, JsExpect, JsResult, JsValue,
     builtins::{
         Promise, async_generator::AsyncGenerator, generator::GeneratorContext,
         promise::PromiseCapability,
@@ -155,89 +155,28 @@ impl Operation for Await {
 /// `CreatePromiseCapability` implements the Opcode Operation for `Opcode::CreatePromiseCapability`
 ///
 /// Operation:
-///  - Create a promise capacity for an async function, if not already set.
+///  - Create a promise capacity for an async function.
 #[derive(Debug, Clone, Copy)]
 pub(crate) struct CreatePromiseCapability;
 
 impl CreatePromiseCapability {
     #[inline(always)]
-    pub(super) fn operation((): (), context: &mut Context) {
-        if context
-            .vm
-            .stack
-            .get_promise_capability(&context.vm.frame)
-            .is_some()
-        {
-            return;
-        }
-
+    pub(super) fn operation((): (), context: &mut Context) -> JsResult<()> {
         let promise_capability = PromiseCapability::new(
             &context.intrinsics().constructors().promise().constructor(),
             context,
         )
-        .expect("cannot fail per spec");
+        .js_expect("cannot fail per spec")?;
 
         context
             .vm
             .stack
-            .set_promise_capability(&context.vm.frame, Some(&promise_capability));
+            .set_promise_capability(&context.vm.frame, promise_capability)
     }
 }
 
 impl Operation for CreatePromiseCapability {
     const NAME: &'static str = "CreatePromiseCapability";
     const INSTRUCTION: &'static str = "INST - CreatePromiseCapability";
-    const COST: u8 = 8;
-}
-
-/// `CompletePromiseCapability` implements the Opcode Operation for `Opcode::CompletePromiseCapability`
-///
-/// Operation:
-///  - Resolves or rejects the promise capability, depending if the pending exception is set.
-#[derive(Debug, Clone, Copy)]
-pub(crate) struct CompletePromiseCapability;
-
-impl CompletePromiseCapability {
-    #[inline(always)]
-    pub(super) fn operation((): (), context: &mut Context) -> ControlFlow<CompletionRecord> {
-        // If the current executing function is an async function we have to resolve/reject it's promise at the end.
-        // The relevant spec section is 3. in [AsyncBlockStart](https://tc39.es/ecma262/#sec-asyncblockstart).
-        let Some(promise_capability) = context.vm.stack.get_promise_capability(&context.vm.frame)
-        else {
-            return if context.vm.pending_exception.is_some() {
-                context.handle_throw()
-            } else {
-                ControlFlow::Continue(())
-            };
-        };
-
-        if let Some(error) = context.vm.pending_exception.take() {
-            let value = match error.into_opaque(context) {
-                Ok(value) => value,
-                Err(err) => return context.handle_error(err),
-            };
-            promise_capability
-                .reject()
-                .call(&JsValue::undefined(), &[value], context)
-                .expect("cannot fail per spec");
-        } else {
-            let return_value = context.vm.get_return_value();
-            promise_capability
-                .resolve()
-                .call(&JsValue::undefined(), &[return_value], context)
-                .expect("cannot fail per spec");
-        }
-
-        context
-            .vm
-            .set_return_value(promise_capability.promise().clone().into());
-
-        ControlFlow::Continue(())
-    }
-}
-
-impl Operation for CompletePromiseCapability {
-    const NAME: &'static str = "CompletePromiseCapability";
-    const INSTRUCTION: &'static str = "INST - CompletePromiseCapability";
     const COST: u8 = 8;
 }

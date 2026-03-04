@@ -184,10 +184,6 @@ impl FunctionCompiler {
         // See: 15.6.2 Runtime Semantics: EvaluateAsyncGeneratorBody: https://tc39.es/ecma262/#sec-runtime-semantics-evaluateasyncgeneratorbody
         if compiler.is_async() && !compiler.is_generator() {
             // 1. Let promiseCapability be ! NewPromiseCapability(%Promise%).
-            //
-            // Note: If the promise capability is already set, then we do nothing.
-            // This is a deviation from the spec, but it allows to set the promise capability by
-            // ExecuteAsyncModule ( module ): <https://tc39.es/ecma262/#sec-execute-async-module>
             compiler.bytecode.emit_create_promise_capability();
 
             // 2. Let declResult be Completion(FunctionDeclarationInstantiation(functionObject, argumentsList)).
