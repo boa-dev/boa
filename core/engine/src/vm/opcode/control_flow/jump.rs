@@ -132,7 +132,7 @@ impl JumpIfNotLessThan {
         let lhs = context.vm.get_register(lhs.into());
         let rhs = context.vm.get_register(rhs.into());
         if let Some(result) = lhs.lt_fast(rhs) {
-            if !result.to_boolean() {
+            if !result {
                 context.vm.frame_mut().pc = u32::from(address);
             }
             return Ok(());
@@ -168,7 +168,7 @@ impl JumpIfNotLessThanOrEqual {
         let lhs = context.vm.get_register(lhs.into());
         let rhs = context.vm.get_register(rhs.into());
         if let Some(result) = lhs.le_fast(rhs) {
-            if !result.to_boolean() {
+            if !result {
                 context.vm.frame_mut().pc = u32::from(address);
             }
             return Ok(());
@@ -204,7 +204,7 @@ impl JumpIfNotGreaterThan {
         let lhs = context.vm.get_register(lhs.into());
         let rhs = context.vm.get_register(rhs.into());
         if let Some(result) = lhs.gt_fast(rhs) {
-            if !result.to_boolean() {
+            if !result {
                 context.vm.frame_mut().pc = u32::from(address);
             }
             return Ok(());
@@ -240,7 +240,7 @@ impl JumpIfNotGreaterThanOrEqual {
         let lhs = context.vm.get_register(lhs.into());
         let rhs = context.vm.get_register(rhs.into());
         if let Some(result) = lhs.ge_fast(rhs) {
-            if !result.to_boolean() {
+            if !result {
                 context.vm.frame_mut().pc = u32::from(address);
             }
             return Ok(());
