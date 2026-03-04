@@ -93,7 +93,11 @@ impl JumpRecord {
     }
 
     /// Performs the [`JumpRecordAction`]s.
-    pub(crate) fn perform_actions(mut self, start_address: Address, compiler: &mut ByteCompiler<'_>) {
+    pub(crate) fn perform_actions(
+        mut self,
+        start_address: Address,
+        compiler: &mut ByteCompiler<'_>,
+    ) {
         while let Some(action) = self.actions.pop() {
             match action {
                 JumpRecordAction::Transfer { index } => {

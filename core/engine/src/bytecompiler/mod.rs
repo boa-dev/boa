@@ -537,7 +537,9 @@ pub(crate) enum BindingKind {
 impl<'ctx> ByteCompiler<'ctx> {
     /// Represents a placeholder address that will be patched later.
     const DUMMY_ADDRESS: Address = Address::new(u32::MAX);
-    const DUMMY_LABEL: Label = Label { index: Address::new(u32::MAX) };
+    const DUMMY_LABEL: Label = Label {
+        index: Address::new(u32::MAX),
+    };
 
     /// Creates a new [`ByteCompiler`].
     #[inline]
@@ -824,7 +826,8 @@ impl<'ctx> ByteCompiler<'ctx> {
 
     pub(crate) fn pop_source_position(&mut self) {
         let start_pc = self.next_opcode_location();
-        self.source_map_builder.pop_source_position(start_pc.as_u32());
+        self.source_map_builder
+            .pop_source_position(start_pc.as_u32());
     }
 
     pub(crate) fn emit_get_function(&mut self, dst: &Register, index: u32) {
