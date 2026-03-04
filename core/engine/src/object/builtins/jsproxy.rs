@@ -393,7 +393,7 @@ impl JsProxyBuilder {
     /// Equivalent to the `Proxy ( target, handler )` constructor, but returns a
     /// [`JsObject`] in case there's a need to manipulate the returned object
     /// inside Rust code.
-        pub fn build(self, context: &mut Context) -> JsResult<JsProxy> {
+    pub fn build(self, context: &mut Context) -> JsResult<JsProxy> {
         let handler = JsObject::with_object_proto(context.intrinsics());
 
         if let Some(apply) = self.apply {
