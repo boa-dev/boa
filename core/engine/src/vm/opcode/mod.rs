@@ -143,14 +143,14 @@ impl ByteCodeEmitter {
     }
 
     /// Get the location of the next opcode in the bytecode.
-    pub(crate) fn next_opcode_location(&self) -> u32 {
-        self.bytecode.len() as u32
+    pub(crate) fn next_opcode_location(&self) -> Address {
+        Address::new(self.bytecode.len() as u32)
     }
 
     /// Patch the jump instruction at the given label with the given address.
-    pub(crate) fn patch_jump(&mut self, label: u32, patch: u32) {
-        let pos = label as usize;
-        let bytes = patch.to_le_bytes();
+    pub(crate) fn patch_jump(&mut self, label: Address, patch: Address) {
+        let pos = u32::from(label) as usize;
+        let bytes = u32::from(patch).to_le_bytes();
         self.bytecode[pos + 1] = bytes[0];
         self.bytecode[pos + 2] = bytes[1];
         self.bytecode[pos + 3] = bytes[2];
@@ -158,17 +158,17 @@ impl ByteCodeEmitter {
     }
 
     /// Patch the jump instruction at the given label with two addresses.
-    pub(crate) fn patch_jump_two_addresses(&mut self, label: u32, patch: (u32, u32)) {
-        let pos = label as usize;
+    pub(crate) fn patch_jump_two_addresses(&mut self, label: Address, patch: (Address, Address)) {
+        let pos = u32::from(label) as usize;
         // Write first patched value
-        let bytes = patch.0.to_le_bytes();
+        let bytes = u32::from(patch.0).to_le_bytes();
         self.bytecode[pos + 1] = bytes[0];
         self.bytecode[pos + 2] = bytes[1];
         self.bytecode[pos + 3] = bytes[2];
         self.bytecode[pos + 4] = bytes[3];
 
         // Write second patched value
-        let bytes = patch.1.to_le_bytes();
+        let bytes = u32::from(patch.1).to_le_bytes();
         self.bytecode[pos + 5] = bytes[0];
         self.bytecode[pos + 6] = bytes[1];
         self.bytecode[pos + 7] = bytes[2];
@@ -176,8 +176,8 @@ impl ByteCodeEmitter {
     }
 
     /// Patch the jump instruction at the given label with jump table addresses.
-    pub(crate) fn patch_jump_table(&mut self, label: u32, patch: &[u32]) {
-        let length_offset = label as usize + 1;
+    pub(crate) fn patch_jump_table(&mut self, label: Address, patch: &[Address]) {
+        let length_offset = u32::from(label) as usize + 1;
 
         let (length, first_offset) = read::<u32>(&self.bytecode, length_offset);
         assert_eq!(length as usize, patch.len());
@@ -185,7 +185,8 @@ impl ByteCodeEmitter {
         // Write patched address values.
         for (i, value) in patch.iter().enumerate() {
             let offset = first_offset + i * size_of::<u32>();
-            self.bytecode[offset..offset + size_of::<u32>()].copy_from_slice(&value.to_le_bytes());
+            self.bytecode[offset..offset + size_of::<u32>()]
+                .copy_from_slice(&u32::from(*value).to_le_bytes());
         }
     }
 }
@@ -194,6 +195,51 @@ impl ByteCodeEmitter {
 /// The bytecode representation of a codeblock.
 pub(crate) struct ByteCode {
     pub(crate) bytecode: Box<[u8]>,
+}
+
+#[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord)]
+/// An address is a bytecode offset, displayed as hexadecimal.
+pub(crate) struct Address {
+    value: u32,
+}
+
+impl Address {
+    /// Create a new [`Address`] from a u32 value.
+    pub(crate) const fn new(value: u32) -> Self {
+        Self { value }
+    }
+
+    /// Returns the inner `u32` value.
+    pub(crate) const fn as_u32(self) -> u32 {
+        self.value
+    }
+}
+
+impl From<Address> for u32 {
+    fn from(addr: Address) -> Self {
+        addr.value
+    }
+}
+
+impl From<u32> for Address {
+    fn from(value: u32) -> Self {
+        Self::new(value)
+    }
+}
+
+impl std::ops::Add<u32> for Address {
+    type Output = Self;
+
+    fn add(self, rhs: u32) -> Self {
+        Self::new(self.value + rhs)
+    }
+}
+
+impl std::fmt::Display for Address {
+    #[inline]
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        write!(f, "{:06x}", self.value)
+    }
 }
 
 #[derive(Debug, Clone, Copy)]
@@ -888,18 +934,18 @@ generate_opcodes! {
     /// - Registers:
     ///   - Input: value
     ///   - Output: value
-    LogicalAnd { address: u32, value: VaryingOperand },
+    LogicalAnd { address: Address, value: VaryingOperand },
 
     /// Binary logical `||` operator.
     ///
     /// This is a short-circuit operator, if the `lhs` value is `true`, then it jumps to `exit` address.
     ///
     /// - Operands:
-    ///   - address: `u32`
+    ///   - address: `Address`
     /// - Registers:
     ///   - Input: value
     ///   - Output: value
-    LogicalOr { address: u32, value: VaryingOperand },
+    LogicalOr { address: Address, value: VaryingOperand },
 
     /// Binary `??` operator.
     ///
@@ -907,11 +953,11 @@ generate_opcodes! {
     /// then it jumps to `exit` address.
     ///
     /// - Operands:
-    ///   - address: `u32`
+    ///   - address: `Address`
     /// - Registers:
     ///   - Input: value
     ///   - Output: value
-    Coalesce { address: u32, value: VaryingOperand },
+    Coalesce { address: Address, value: VaryingOperand },
 
     /// Unary `typeof` operator.
     ///
@@ -1536,51 +1582,51 @@ generate_opcodes! {
     ///
     /// - Operands:
     ///   - address: `u32`
-    Jump { address: u32 },
+    Jump { address: Address },
 
     /// Conditional jump to address.
     ///
     /// If the value popped is [`truthy`][truthy] then jump to `address`.
     ///
     /// - Operands:
-    ///   - address: `u32`
+    ///   - address: `Address`
     /// - Registers (in):
     ///   - `value`: `JsValue`
     ///
     /// [truthy]: https://developer.mozilla.org/en-US/docs/Glossary/Truthy
-    JumpIfTrue { address: u32, value: VaryingOperand },
+    JumpIfTrue { address: Address, value: VaryingOperand },
 
     /// Conditional jump to address.
     ///
     /// If the value popped is [`falsy`][falsy] then jump to `address`.
     ///
     /// - Operands:
-    ///   - address: `u32`
+    ///   - address: `Address`
     /// - Registers (in):
     ///   - `value`: `JsValue`
     ///
     /// [falsy]: https://developer.mozilla.org/en-US/docs/Glossary/Falsy
-    JumpIfFalse { address: u32, value: VaryingOperand },
+    JumpIfFalse { address: Address, value: VaryingOperand },
 
     /// Conditional jump to address.
     ///
     /// If the value popped is not undefined jump to `address`.
     ///
     /// - Operands:
-    ///   - address: `u32`.
+    ///   - address: `Address`.
     /// - Registers (in):
     ///   - value: `JsValue`
-    JumpIfNotUndefined { address: u32, value: VaryingOperand },
+    JumpIfNotUndefined { address: Address, value: VaryingOperand },
 
     /// Conditional jump to address.
     ///
     /// If the value popped is undefined jump to `address`.
     ///
     /// - Operands:
-    ///   - address: `u32`.
+    ///   - address: `Address`.
     /// - Registers (in):
     ///   - value: `JsValue`.
-    JumpIfNullOrUndefined { address: u32, value: VaryingOperand },
+    JumpIfNullOrUndefined { address: Address, value: VaryingOperand },
 
     /// Fused `<` comparison + conditional jump.
     ///
@@ -1590,7 +1636,7 @@ generate_opcodes! {
     ///   - address: `u32`
     /// - Registers:
     ///   - Input: lhs, rhs
-    JumpIfNotLessThan { address: u32, lhs: VaryingOperand, rhs: VaryingOperand },
+    JumpIfNotLessThan { address: Address, lhs: VaryingOperand, rhs: VaryingOperand },
 
     /// Fused `<=` comparison + conditional jump.
     ///
@@ -1600,7 +1646,7 @@ generate_opcodes! {
     ///   - address: `u32`
     /// - Registers:
     ///   - Input: lhs, rhs
-    JumpIfNotLessThanOrEqual { address: u32, lhs: VaryingOperand, rhs: VaryingOperand },
+    JumpIfNotLessThanOrEqual { address: Address, lhs: VaryingOperand, rhs: VaryingOperand },
 
     /// Fused `>` comparison + conditional jump.
     ///
@@ -1610,7 +1656,7 @@ generate_opcodes! {
     ///   - address: `u32`
     /// - Registers:
     ///   - Input: lhs, rhs
-    JumpIfNotGreaterThan { address: u32, lhs: VaryingOperand, rhs: VaryingOperand },
+    JumpIfNotGreaterThan { address: Address, lhs: VaryingOperand, rhs: VaryingOperand },
 
     /// Fused `>=` comparison + conditional jump.
     ///
@@ -1620,26 +1666,26 @@ generate_opcodes! {
     ///   - address: `u32`
     /// - Registers:
     ///   - Input: lhs, rhs
-    JumpIfNotGreaterThanOrEqual { address: u32, lhs: VaryingOperand, rhs: VaryingOperand },
+    JumpIfNotGreaterThanOrEqual { address: Address, lhs: VaryingOperand, rhs: VaryingOperand },
 
     /// Conditional jump to address.
     ///
     /// Jump to `address` if two values are not equal.
     ///
     /// - Operands:
-    ///   - address: `u32`
+    ///   - address: `Address`
     /// - Registers (in):
     ///   - lhs: `JsValue`.
     ///   - rhs: `JsValue`.
-    JumpIfNotEqual { address: u32, lhs: VaryingOperand, rhs: VaryingOperand },
+    JumpIfNotEqual { address: Address, lhs: VaryingOperand, rhs: VaryingOperand },
 
     /// Jump table that jumps depending on top value of the stack.
     ///
     /// This is used to handle special cases when we call `continue`, `break` or `return` in a try block,
     /// that has finally block.
     ///
-    /// Operands: index: Register, count: `u32`, address: `u32` * count
-    JumpTable { index: u32, addresses: ThinVec<u32> },
+    /// Operands: index: Register, count: `u32`, address: `Address` * count
+    JumpTable { index: u32, addresses: ThinVec<Address> },
 
     /// Throw exception.
     ///
@@ -1751,14 +1797,14 @@ generate_opcodes! {
     /// Pop the two values of the stack, strict equal compares the two values,
     /// if true jumps to address, otherwise push the second pop'ed value.
     ///
-    /// Operands: address: `u32`
+    /// Operands: address: `Address`
     ///
     /// Stack: value, cond **=>** cond (if `cond !== value`).
     /// - Operands:
-    ///   - address: `u32`
+    ///   - address: `Address`
     /// - Registers:
     ///   - Input: value, condition
-    Case { address: u32, value: VaryingOperand, condition: VaryingOperand },
+    Case { address: Address, value: VaryingOperand, condition: VaryingOperand },
 
     /// Get function from the pre-compiled inner functions.
     ///
@@ -2015,19 +2061,19 @@ generate_opcodes! {
     ///   - resume_kind: `GeneratorResumeKind`
     /// - Registers:
     ///   - Input: src
-    JumpIfNotResumeKind { address: u32, resume_kind: VaryingOperand, src: VaryingOperand },
+    JumpIfNotResumeKind { address: Address, resume_kind: VaryingOperand, src: VaryingOperand },
 
     /// Delegates the current async generator function to another iterator.
     ///
     /// - Operands:
-    ///   - throw_method_undefined: `u32`,
-    ///   - return_method_undefined: `u32`
+    ///   - throw_method_undefined: `Address`,
+    ///   - return_method_undefined: `Address`
     /// - Registers:
     ///   - Input: value, resume_kind
     ///   - Output: value, is_return
     GeneratorDelegateNext {
-        throw_method_undefined: u32,
-        return_method_undefined: u32,
+        throw_method_undefined: Address,
+        return_method_undefined: Address,
         value: VaryingOperand,
         resume_kind: VaryingOperand,
         is_return: VaryingOperand
@@ -2036,14 +2082,14 @@ generate_opcodes! {
     /// Resume the async generator with yield delegate logic after it awaits a value.
     ///
     /// - Operands:
-    ///   - r#return: `u32`,
-    ///   - exit: `u32`
+    ///   - r#return: `Address`,
+    ///   - exit: `Address`
     /// - Registers:
     ///   - Input: value, resume_kind, is_return
     ///   - Output: value
     GeneratorDelegateResume {
-        r#return: u32,
-        exit: u32,
+        r#return: Address,
+        exit: Address,
         value: VaryingOperand,
         resume_kind: VaryingOperand,
         is_return: VaryingOperand
@@ -2082,7 +2128,7 @@ generate_opcodes! {
     ///   - site: `u64`
     /// - Registers:
     ///   - Output: dst
-    TemplateLookup { address: u32, site: u64, dst: VaryingOperand },
+    TemplateLookup { address: Address, site: u64, dst: VaryingOperand },
 
     /// Create a new tagged template object and cache it.
     ///

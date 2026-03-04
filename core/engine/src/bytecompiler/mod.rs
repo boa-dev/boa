@@ -24,7 +24,7 @@ use crate::{
     js_string,
     vm::{
         CallFrame, CodeBlock, CodeBlockFlags, Constant, GeneratorResumeKind, Handler, InlineCache,
-        opcode::{BindingOpcode, ByteCodeEmitter, VaryingOperand},
+        opcode::{Address, BindingOpcode, ByteCodeEmitter, VaryingOperand},
         source_info::{SourceInfo, SourceMap, SourceMapBuilder, SourcePath},
     },
 };
@@ -366,7 +366,7 @@ enum Literal {
 #[must_use]
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub(crate) struct Label {
-    index: u32,
+    index: Address,
 }
 
 #[derive(Debug, Clone, Copy)]
@@ -536,8 +536,8 @@ pub(crate) enum BindingKind {
 
 impl<'ctx> ByteCompiler<'ctx> {
     /// Represents a placeholder address that will be patched later.
-    const DUMMY_ADDRESS: u32 = u32::MAX;
-    const DUMMY_LABEL: Label = Label { index: u32::MAX };
+    const DUMMY_ADDRESS: Address = Address::new(u32::MAX);
+    const DUMMY_LABEL: Label = Label { index: Address::new(u32::MAX) };
 
     /// Creates a new [`ByteCompiler`].
     #[inline]
@@ -802,7 +802,7 @@ impl<'ctx> ByteCompiler<'ctx> {
         }
     }
 
-    fn next_opcode_location(&mut self) -> u32 {
+    fn next_opcode_location(&mut self) -> Address {
         self.bytecode.next_opcode_location()
     }
 
@@ -819,12 +819,12 @@ impl<'ctx> ByteCompiler<'ctx> {
     {
         let start_pc = self.next_opcode_location();
         self.source_map_builder
-            .push_source_position(start_pc, position.into());
+            .push_source_position(start_pc.as_u32(), position.into());
     }
 
     pub(crate) fn pop_source_position(&mut self) {
         let start_pc = self.next_opcode_location();
-        self.source_map_builder.pop_source_position(start_pc);
+        self.source_map_builder.pop_source_position(start_pc.as_u32());
     }
 
     pub(crate) fn emit_get_function(&mut self, dst: &Register, index: u32) {
@@ -1144,7 +1144,7 @@ impl<'ctx> ByteCompiler<'ctx> {
     fn try_fused_comparison_branch(&mut self, op: RelationalOp, binary: &Binary) -> Option<Label> {
         use crate::vm::opcode::ByteCodeEmitter;
 
-        let emit_fn: fn(&mut ByteCodeEmitter, u32, VaryingOperand, VaryingOperand) = match op {
+        let emit_fn: fn(&mut ByteCodeEmitter, Address, VaryingOperand, VaryingOperand) = match op {
             RelationalOp::LessThan => ByteCodeEmitter::emit_jump_if_not_less_than,
             RelationalOp::LessThanOrEqual => ByteCodeEmitter::emit_jump_if_not_less_than_or_equal,
             RelationalOp::GreaterThan => ByteCodeEmitter::emit_jump_if_not_greater_than,
@@ -1153,7 +1153,7 @@ impl<'ctx> ByteCompiler<'ctx> {
             }
             _ => return None,
         };
-        let mut label_index = 0u32;
+        let mut label_index = Address::new(0);
         self.compile_expr_operand(binary.lhs(), |compiler, lhs| {
             compiler.compile_expr_operand(binary.rhs(), |compiler, rhs| {
                 label_index = compiler.next_opcode_location();
@@ -1217,7 +1217,7 @@ impl<'ctx> ByteCompiler<'ctx> {
     }
 
     #[track_caller]
-    pub(crate) fn patch_jump_with_target(&mut self, label: Label, target: u32) {
+    pub(crate) fn patch_jump_with_target(&mut self, label: Label, target: Address) {
         self.bytecode.patch_jump(label.index, target);
     }
 
@@ -2397,7 +2397,7 @@ impl<'ctx> ByteCompiler<'ctx> {
 
         let register_count = self.register_allocator.finish();
 
-        let source_map_entries = self.source_map_builder.build(final_bytecode_len);
+        let source_map_entries = self.source_map_builder.build(final_bytecode_len.as_u32());
 
         CodeBlock {
             length: self.length,
