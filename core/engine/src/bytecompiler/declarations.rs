@@ -1084,7 +1084,7 @@ impl ByteCompiler<'_> {
                 Binding::Identifier(ident) => {
                     let ident = ident.to_js_string(self.interner());
                     if let Some(init) = parameter.variable().init() {
-                        let skip = self.emit_jump_if_not_undefined(&value);
+                        let skip = self.jump_if_not_undefined(&value);
                         self.compile_expr(init, &value);
                         self.patch_jump(skip);
                     }
@@ -1092,7 +1092,7 @@ impl ByteCompiler<'_> {
                 }
                 Binding::Pattern(pattern) => {
                     if let Some(init) = parameter.variable().init() {
-                        let skip = self.emit_jump_if_not_undefined(&value);
+                        let skip = self.jump_if_not_undefined(&value);
                         self.compile_expr(init, &value);
                         self.patch_jump(skip);
                     }

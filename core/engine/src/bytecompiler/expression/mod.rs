@@ -9,7 +9,7 @@ use std::ops::Deref;
 use super::{Access, Callable, NodeKind, Register, ToJsString};
 use crate::{
     bytecompiler::{ByteCompiler, Literal},
-    vm::GeneratorResumeKind,
+    vm::{CallFrame, GeneratorResumeKind},
 };
 use boa_ast::{
     Expression,
@@ -351,13 +351,13 @@ impl ByteCompiler<'_> {
                 self.compile_class(class.deref().into(), Some(dst));
             }
             Expression::SuperCall(super_call) => {
-                let this = self.register_allocator.alloc();
                 let value = self.register_allocator.alloc();
-                self.bytecode.emit_super_call_prepare(value.variable());
-                self.bytecode.emit_push_undefined(this.variable());
-                self.push_from_register(&this);
+
+                self.bytecode.emit_get_function_object(value.variable());
+                self.bytecode.emit_get_prototype(value.variable());
+
+                self.push_from_register(&CallFrame::undefined_register());
                 self.push_from_register(&value);
-                self.register_allocator.dealloc(this);
                 self.register_allocator.dealloc(value);
 
                 let contains_spread = super_call
