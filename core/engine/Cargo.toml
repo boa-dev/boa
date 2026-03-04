@@ -122,6 +122,7 @@ paste.workspace = true
 thiserror.workspace = true
 dashmap.workspace = true
 num_enum.workspace = true
+smallvec.workspace = true
 thin-vec.workspace = true
 itertools = { workspace = true, default-features = false }
 icu_normalizer = { workspace = true, features = [

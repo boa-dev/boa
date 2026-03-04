@@ -472,6 +472,7 @@ dependencies = [
  "serde",
  "serde_json",
  "small_btree",
+ "smallvec",
  "static_assertions",
  "sys-locale",
  "tag_ptr",

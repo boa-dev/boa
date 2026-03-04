@@ -6,7 +6,7 @@ use boa_ast::{
     pattern::{ArrayPatternElement, ObjectPatternElement, Pattern},
     property::PropertyName,
 };
-use thin_vec::ThinVec;
+use crate::vm::opcode::OpVec;
 
 impl ByteCompiler<'_> {
     pub(crate) fn compile_declaration_pattern_impl(
@@ -89,7 +89,7 @@ impl ByteCompiler<'_> {
                             let value = self.register_allocator.alloc();
                             self.bytecode.emit_push_empty_object(value.variable());
                             let mut excluded_keys =
-                                ThinVec::with_capacity(excluded_keys_registers.len());
+                                OpVec::with_capacity(excluded_keys_registers.len());
                             for r in &excluded_keys_registers {
                                 excluded_keys.push(r.variable());
                             }
@@ -108,7 +108,7 @@ impl ByteCompiler<'_> {
                             let value = self.register_allocator.alloc();
                             self.bytecode.emit_push_empty_object(value.variable());
                             let mut excluded_keys =
-                                ThinVec::with_capacity(excluded_keys_registers.len());
+                                OpVec::with_capacity(excluded_keys_registers.len());
                             for r in &excluded_keys_registers {
                                 excluded_keys.push(r.variable());
                             }

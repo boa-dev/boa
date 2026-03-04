@@ -76,6 +76,7 @@ reqwest = { version = "0.13.2" }
 rustc-hash = { version = "2.1.1", default-features = false }
 serde_json = "1.0.149"
 serde = "1.0.219"
+smallvec = "1.15.0"
 static_assertions = "1.1.0"
 textwrap = "0.16.2"
 thin-vec = "0.2.14"

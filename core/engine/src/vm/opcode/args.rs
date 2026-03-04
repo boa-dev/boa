@@ -1,6 +1,10 @@
-use thin_vec::ThinVec;
+use smallvec::SmallVec;
 
 use super::VaryingOperand;
+
+/// A small-vector type for opcode variable arguments.
+/// Inline capacity of 8 avoids heap allocation for typical operand counts.
+pub(crate) type OpVec<T> = SmallVec<[T; 8]>;
 
 /// A trait for types that can be read from a byte slice.
 ///
@@ -279,7 +283,7 @@ impl Argument for (u32, VaryingOperand, VaryingOperand) {
     }
 }
 
-impl Argument for (VaryingOperand, ThinVec<VaryingOperand>) {
+impl Argument for (VaryingOperand, OpVec<VaryingOperand>) {
     fn encode(self, bytes: &mut Vec<u8>) {
         // Write length of all arguments
         let total_len = self.1.len();
@@ -308,7 +312,7 @@ impl Argument for (VaryingOperand, ThinVec<VaryingOperand>) {
         let first = unsafe { read_unchecked::<u32>(bytes, pos + 2) };
 
         // Read remaining arguments
-        let mut rest = ThinVec::with_capacity(total_len);
+        let mut rest = OpVec::with_capacity(total_len);
         for i in 0..total_len {
             let value = unsafe { read_unchecked::<u32>(bytes, pos + 6 + i * 4) };
             rest.push(value.into());
@@ -318,7 +322,7 @@ impl Argument for (VaryingOperand, ThinVec<VaryingOperand>) {
     }
 }
 
-impl Argument for (VaryingOperand, VaryingOperand, ThinVec<VaryingOperand>) {
+impl Argument for (VaryingOperand, VaryingOperand, OpVec<VaryingOperand>) {
     fn encode(self, bytes: &mut Vec<u8>) {
         // Write length of all arguments
         let total_len = self.2.len();
@@ -348,7 +352,7 @@ impl Argument for (VaryingOperand, VaryingOperand, ThinVec<VaryingOperand>) {
         let (first, second) = unsafe { read_unchecked::<(u32, u32)>(bytes, pos + 2) };
 
         // Read remaining arguments
-        let mut rest = ThinVec::with_capacity(total_len);
+        let mut rest = OpVec::with_capacity(total_len);
         for i in 0..total_len {
             let value = unsafe { read_unchecked::<u32>(bytes, pos + 10 + i * 4) };
             rest.push(value.into());
@@ -395,7 +399,7 @@ impl Argument for (u32, u32, VaryingOperand, VaryingOperand, VaryingOperand) {
     }
 }
 
-impl Argument for (u32, ThinVec<u32>) {
+impl Argument for (u32, OpVec<u32>) {
     fn encode(self, bytes: &mut Vec<u8>) {
         // Write length
         let total_len = self.1.len();
@@ -424,7 +428,7 @@ impl Argument for (u32, ThinVec<u32>) {
         let first = unsafe { read_unchecked::<u32>(bytes, pos + 2) };
 
         // Read remaining arguments
-        let mut rest = ThinVec::with_capacity(total_len);
+        let mut rest = OpVec::with_capacity(total_len);
         for i in 0..total_len {
             let value = unsafe { read_unchecked::<u32>(bytes, pos + 6 + i * 4) };
             rest.push(value);
@@ -434,7 +438,7 @@ impl Argument for (u32, ThinVec<u32>) {
     }
 }
 
-impl Argument for (u64, VaryingOperand, ThinVec<u32>) {
+impl Argument for (u64, VaryingOperand, OpVec<u32>) {
     fn encode(self, bytes: &mut Vec<u8>) {
         // Write length
         let total_len = self.2.len();
@@ -465,7 +469,7 @@ impl Argument for (u64, VaryingOperand, ThinVec<u32>) {
         let second = unsafe { read_unchecked::<u32>(bytes, pos + 10) };
 
         // Read remaining arguments
-        let mut rest = ThinVec::with_capacity(total_len);
+        let mut rest = OpVec::with_capacity(total_len);
         for i in 0..total_len {
             let value = unsafe { read_unchecked::<u32>(bytes, pos + 14 + i * 4) };
             rest.push(value);
@@ -475,7 +479,7 @@ impl Argument for (u64, VaryingOperand, ThinVec<u32>) {
     }
 }
 
-impl Argument for (VaryingOperand, ThinVec<u32>) {
+impl Argument for (VaryingOperand, OpVec<u32>) {
     fn encode(self, bytes: &mut Vec<u8>) {
         // Write length
         let total_len = self.1.len();
@@ -504,7 +508,7 @@ impl Argument for (VaryingOperand, ThinVec<u32>) {
         let first = unsafe { read_unchecked::<u32>(bytes, pos + 2) };
 
         // Read remaining arguments
-        let mut rest = ThinVec::with_capacity(total_len);
+        let mut rest = OpVec::with_capacity(total_len);
         for i in 0..total_len {
             let value = unsafe { read_unchecked::<u32>(bytes, pos + 6 + i * 4) };
             rest.push(value);
@@ -514,7 +518,7 @@ impl Argument for (VaryingOperand, ThinVec<u32>) {
     }
 }
 
-impl Argument for (u32, u32, ThinVec<u32>) {
+impl Argument for (u32, u32, OpVec<u32>) {
     fn encode(self, bytes: &mut Vec<u8>) {
         // Write first argument
         write_u32(bytes, self.0);
@@ -549,7 +553,7 @@ impl Argument for (u32, u32, ThinVec<u32>) {
         let second = unsafe { read_unchecked::<u32>(bytes, pos + 6) };
 
         // Read remaining arguments
-        let mut rest = ThinVec::with_capacity(total_len);
+        let mut rest = OpVec::with_capacity(total_len);
         for i in 0..total_len {
             let value = unsafe { read_unchecked::<u32>(bytes, pos + 10 + i * 4) };
             rest.push(value);

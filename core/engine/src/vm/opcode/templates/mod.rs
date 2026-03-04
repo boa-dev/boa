@@ -3,7 +3,7 @@ use crate::{
     Context, builtins::array::Array, js_string, object::IntegrityLevel,
     property::PropertyDescriptor, vm::opcode::Operation,
 };
-use thin_vec::ThinVec;
+use super::OpVec;
 
 /// `TemplateLookup` implements the Opcode Operation for `Opcode::TemplateLookup`
 ///
@@ -38,7 +38,7 @@ pub(crate) struct TemplateCreate;
 impl TemplateCreate {
     #[inline(always)]
     pub(super) fn operation(
-        (site, dst, values): (u64, VaryingOperand, ThinVec<u32>),
+        (site, dst, values): (u64, VaryingOperand, OpVec<u32>),
         context: &mut Context,
     ) {
         let count = values.len() / 2;
