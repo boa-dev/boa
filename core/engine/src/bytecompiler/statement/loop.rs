@@ -69,7 +69,12 @@ impl ByteCompiler<'_> {
 
         self.push_empty_loop_jump_control(use_expr);
 
-        if let Some((let_binding_indices, scope_index)) = &let_binding_indices {
+        // Per-iteration binding copy: for `for (let i = ...)`, each iteration needs
+        // a fresh binding per the spec (important for closures). When the scope requires
+        // a runtime environment (scope_index is Some), we must pop/push the environment
+        // and copy bindings. When all bindings are local (scope_index is None), the
+        // GetName/PutLexicalValue pair is a no-op (Move to temp, Move back) and can be skipped.
+        if let Some((let_binding_indices, Some(scope_index))) = &let_binding_indices {
             let mut values = Vec::with_capacity(let_binding_indices.len());
             for index in let_binding_indices {
                 let value = self.register_allocator.alloc();
@@ -77,10 +82,8 @@ impl ByteCompiler<'_> {
                 values.push((index, value));
             }
 
-            if let Some(index) = scope_index {
-                self.bytecode.emit_pop_environment();
-                self.bytecode.emit_push_scope((*index).into());
-            }
+            self.bytecode.emit_pop_environment();
+            self.bytecode.emit_push_scope((*scope_index).into());
 
             for (index, value) in values {
                 self.emit_binding_access(BindingAccessOpcode::PutLexicalValue, index, &value);
@@ -98,7 +101,7 @@ impl ByteCompiler<'_> {
             .expect("jump_control must exist as it was just pushed")
             .set_start_address(start_address);
 
-        if let Some((let_binding_indices, scope_index)) = &let_binding_indices {
+        if let Some((let_binding_indices, Some(scope_index))) = &let_binding_indices {
             let mut values = Vec::with_capacity(let_binding_indices.len());
             for index in let_binding_indices {
                 let value = self.register_allocator.alloc();
@@ -106,10 +109,8 @@ impl ByteCompiler<'_> {
                 values.push((index, value));
             }
 
-            if let Some(index) = scope_index {
-                self.bytecode.emit_pop_environment();
-                self.bytecode.emit_push_scope((*index).into());
-            }
+            self.bytecode.emit_pop_environment();
+            self.bytecode.emit_push_scope((*scope_index).into());
 
             for (index, value) in values {
                 self.emit_binding_access(BindingAccessOpcode::PutLexicalValue, index, &value);

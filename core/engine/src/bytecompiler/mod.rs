@@ -1444,6 +1444,34 @@ impl<'ctx> ByteCompiler<'ctx> {
         self.compile_expr_impl(expr, dst);
     }
 
+    /// Compile an expression and return the operand where the result lives.
+    ///
+    /// For local variable references, this returns the local's persistent register
+    /// directly without emitting a `Move` instruction. For all other expressions,
+    /// it allocates a temporary register and compiles into it.
+    ///
+    /// The `inner_fn` passed in will be called before the register get deallocated.
+    pub(crate) fn compile_expr_operand(
+        &mut self,
+        expr: &Expression,
+        inner_fn: impl FnOnce(&mut Self, VaryingOperand),
+    ) {
+        if let Expression::Identifier(name) = expr {
+            let name = self.resolve_identifier_expect(*name);
+            let binding = self.lexical_scope.get_identifier_reference(name);
+            let index = self.get_binding(&binding);
+            if let BindingKind::Local(Some(local_reg)) = &index {
+                inner_fn(self, VaryingOperand::from(*local_reg));
+                return;
+            }
+        }
+        let reg = self.register_allocator.alloc();
+        self.compile_expr(expr, &reg);
+        let op = reg.variable();
+        inner_fn(self, op);
+        self.register_allocator.dealloc(reg);
+    }
+
     /// Compile a property access expression, prepending `this` to the property value in the stack.
     ///
     /// This compiles the access in a way that the state of the stack after executing the property
