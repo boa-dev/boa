@@ -75,7 +75,6 @@ impl ByteCompiler<'_> {
                     return;
                 }
 
-
                 if is_lexical {
                     compiler.emit_binding_access(BindingAccessOpcode::GetName, &index, dst);
                 } else {
