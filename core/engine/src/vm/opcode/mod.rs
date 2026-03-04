@@ -170,23 +170,15 @@ impl ByteCodeEmitter {
     }
 
     /// Patch the jump instruction at the given label with jump table addresses.
-    pub(crate) fn patch_jump_table(&mut self, label: u32, patch: (u32, &[u32])) {
-        // label = opcode_pos + sizeof(u32), skipping past the index operand.
-        // +1 to skip the opcode byte itself.
-        let default_pos = label as usize + 1;
+    pub(crate) fn patch_jump_table(&mut self, label: u32, patch: &[u32]) {
+        let length_offset = label as usize + 1;
 
-        // Skip past default (u32) to read the ThinVec length (u32).
-        let (_, len_pos) = read::<u32>(&self.bytecode, default_pos);
-        let (total_len, first_addr_pos) = read::<u32>(&self.bytecode, len_pos);
-        assert_eq!(total_len as usize, patch.1.len());
-
-        // Write patched default address.
-        self.bytecode[default_pos..default_pos + size_of::<u32>()]
-            .copy_from_slice(&patch.0.to_le_bytes());
+        let (length, first_offset) = read::<u32>(&self.bytecode, length_offset);
+        assert_eq!(length as usize, patch.len());
 
         // Write patched address values.
-        for (i, value) in patch.1.iter().enumerate() {
-            let offset = first_addr_pos + i * size_of::<u32>();
+        for (i, value) in patch.iter().enumerate() {
+            let offset = first_offset + i * size_of::<u32>();
             self.bytecode[offset..offset + size_of::<u32>()].copy_from_slice(&value.to_le_bytes());
         }
     }
@@ -1567,8 +1559,8 @@ generate_opcodes! {
     /// This is used to handle special cases when we call `continue`, `break` or `return` in a try block,
     /// that has finally block.
     ///
-    /// Operands: index: Register, default: `u32`, count: `u32`, address: `u32` * count
-    JumpTable { index: u32, default: u32, addresses: ThinVec<u32> },
+    /// Operands: index: Register, count: `u32`, address: `u32` * count
+    JumpTable { index: u32, addresses: ThinVec<u32> },
 
     /// Throw exception.
     ///

@@ -13,6 +13,7 @@ use crate::{
 use bitflags::bitflags;
 use boa_ast::scope::{BindingLocator, Scope};
 use boa_gc::{Finalize, Gc, Trace, empty_trace};
+use itertools::Itertools;
 use std::{cell::Cell, fmt::Display, fmt::Write as _};
 use thin_vec::ThinVec;
 
@@ -817,17 +818,11 @@ impl CodeBlock {
             Instruction::TemplateLookup { address, site, dst } => {
                 format!("address:{address}, site:{site}, dst:{dst}")
             }
-            Instruction::JumpTable {
-                index,
-                default,
-                addresses,
-            } => {
-                let mut operands =
-                    format!("index:{index} #{}: Default: {default:4}", addresses.len());
-                for (i, address) in addresses.iter().enumerate() {
-                    let _ = write!(operands, ", {i}: {address}");
-                }
-                operands
+            Instruction::JumpTable { index, addresses } => {
+                format!(
+                    "index:{index}, jump_table:[{}]",
+                    addresses.iter().join(", ")
+                )
             }
             Instruction::ConcatToString { dst, values } => {
                 format!("dst:{dst}, values:{values:?}")

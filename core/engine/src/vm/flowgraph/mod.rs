@@ -346,14 +346,14 @@ impl CodeBlock {
                 }
                 Instruction::JumpTable {
                     index: _,
-                    default,
                     addresses,
                 } => {
                     graph.add_node(previous_pc, NodeShape::None, label.into(), Color::None);
+
                     graph.add_edge(
                         previous_pc,
-                        default as usize,
-                        Some("DEFAULT".into()),
+                        pc,
+                        Some("CONTINUE".into()),
                         Color::None,
                         EdgeStyle::Line,
                     );
@@ -362,7 +362,7 @@ impl CodeBlock {
                         graph.add_edge(
                             previous_pc,
                             *address as usize,
-                            Some(format!("Index: {i}").into()),
+                            Some(format!("[{i}]").into()),
                             Color::None,
                             EdgeStyle::Line,
                         );
