@@ -12,7 +12,7 @@ use crate::{
     vm::{
         CompletionRecord,
         call_frame::GeneratorResumeKind,
-        opcode::{Operation, ReThrow},
+        opcode::{Address, Operation, ReThrow},
     },
 };
 use std::{collections::VecDeque, ops::ControlFlow};
@@ -193,7 +193,7 @@ pub(crate) struct JumpIfNotResumeKind;
 impl JumpIfNotResumeKind {
     #[inline(always)]
     pub(super) fn operation(
-        (exit, expected, value): (u32, VaryingOperand, VaryingOperand),
+        (exit, expected, value): (Address, VaryingOperand, VaryingOperand),
         context: &mut Context,
     ) {
         let resume_kind = context
@@ -201,7 +201,7 @@ impl JumpIfNotResumeKind {
             .get_register(value.into())
             .to_generator_resume_kind();
         if resume_kind as u8 != u32::from(expected) as u8 {
-            context.vm.frame_mut().pc = exit;
+            context.vm.frame_mut().pc = u32::from(exit);
         }
     }
 }
@@ -223,8 +223,8 @@ impl GeneratorDelegateNext {
     #[inline(always)]
     pub(super) fn operation(
         (throw_method_undefined, return_method_undefined, value, resume_kind, is_return): (
-            u32,
-            u32,
+            Address,
+            Address,
             VaryingOperand,
             VaryingOperand,
             VaryingOperand,
@@ -269,7 +269,7 @@ impl GeneratorDelegateNext {
                     context.vm.set_register(is_return.into(), false.into());
                     context.vm.set_register(value.into(), result);
                 } else {
-                    context.vm.frame_mut().pc = throw_method_undefined;
+                    context.vm.frame_mut().pc = u32::from(throw_method_undefined);
                 }
             }
             GeneratorResumeKind::Return => {
@@ -285,7 +285,7 @@ impl GeneratorDelegateNext {
                     context.vm.set_register(is_return.into(), true.into());
                     context.vm.set_register(value.into(), result);
                 } else {
-                    context.vm.frame_mut().pc = return_method_undefined;
+                    context.vm.frame_mut().pc = u32::from(return_method_undefined);
 
                     // The current iterator didn't have a cleanup `return` method, so we can
                     // skip pushing it to the iterator stack for cleanup.
@@ -317,8 +317,8 @@ impl GeneratorDelegateResume {
     #[inline(always)]
     pub(super) fn operation(
         (return_gen, exit, value, resume_kind, is_return): (
-            u32,
-            u32,
+            Address,
+            Address,
             VaryingOperand,
             VaryingOperand,
             VaryingOperand,
@@ -348,7 +348,7 @@ impl GeneratorDelegateResume {
         if iterator.done() {
             let result = iterator.value(context)?;
             context.vm.set_register(value.into(), result);
-            context.vm.frame_mut().pc = if is_return { return_gen } else { exit };
+            context.vm.frame_mut().pc = u32::from(if is_return { return_gen } else { exit });
             return Ok(());
         }
 

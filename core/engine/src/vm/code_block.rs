@@ -19,7 +19,7 @@ use thin_vec::ThinVec;
 
 use super::{
     InlineCache,
-    opcode::{ByteCode, Instruction, InstructionIterator},
+    opcode::{Address, ByteCode, Instruction, InstructionIterator},
     source_info::{SourceInfo, SourceMap, SourcePath},
 };
 
@@ -79,20 +79,20 @@ unsafe impl Trace for CodeBlockFlags {
 /// [`Handler`] and remove any environments or stack values that where pushed after the handler.
 #[derive(Debug, Clone, Copy)]
 pub(crate) struct Handler {
-    pub(crate) start: u32,
-    pub(crate) end: u32,
+    pub(crate) start: Address,
+    pub(crate) end: Address,
     pub(crate) environment_count: u32,
 }
 
 impl Handler {
     /// Get the handler address.
-    pub(crate) const fn handler(&self) -> u32 {
+    pub(crate) const fn handler(&self) -> Address {
         self.end
     }
 
     /// Check if the provided `pc` is contained in the handler range.
     pub(crate) const fn contains(&self, pc: u32) -> bool {
-        pc < self.end && pc >= self.start
+        pc < self.end.as_u32() && pc >= self.start.as_u32()
     }
 }
 
@@ -944,14 +944,14 @@ impl Display for CodeBlock {
             let pc = iterator.pc();
             let handler = if let Some((i, handler)) = self.find_handler(instruction_start_pc as u32)
             {
-                let border_char = if instruction_start_pc as u32 == handler.start {
+                let border_char = if instruction_start_pc as u32 == u32::from(handler.start) {
                     '>'
-                } else if pc as u32 == handler.end {
+                } else if pc as u32 == u32::from(handler.end) {
                     '<'
                 } else {
                     ' '
                 };
-                format!("{border_char}{i:2}: {:06x}", handler.handler())
+                format!("{border_char}{i:2}: {}", handler.handler())
             } else {
                 "           ".to_string()
             };

@@ -552,7 +552,7 @@ impl Vm {
         let environment_sp = frame.env_fp + handler.environment_count;
 
         // Go to handler location.
-        frame.pc = catch_address;
+        frame.pc = u32::from(catch_address);
 
         self.frame.environments.truncate(environment_sp as usize);
 

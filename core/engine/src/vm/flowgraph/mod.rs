@@ -114,7 +114,7 @@ impl CodeBlock {
                     graph.add_node(previous_pc, NodeShape::Diamond, label.into(), Color::None);
                     graph.add_edge(
                         previous_pc,
-                        address as usize,
+                        address.as_u32() as usize,
                         None,
                         Color::None,
                         EdgeStyle::Line,
@@ -132,7 +132,7 @@ impl CodeBlock {
                     graph.add_node(previous_pc, NodeShape::Diamond, label.into(), Color::None);
                     graph.add_edge(
                         previous_pc,
-                        address as usize,
+                        address.as_u32() as usize,
                         Some("YES".into()),
                         Color::Green,
                         EdgeStyle::Line,
@@ -156,7 +156,7 @@ impl CodeBlock {
                     graph.add_edge(previous_pc, pc, None, Color::None, EdgeStyle::Line);
                     graph.add_edge(
                         previous_pc,
-                        address as usize,
+                        address.as_u32() as usize,
                         Some("SHORT CIRCUIT".into()),
                         Color::Red,
                         EdgeStyle::Line,
@@ -173,7 +173,7 @@ impl CodeBlock {
                     );
                     graph.add_edge(
                         previous_pc,
-                        address as usize,
+                        address.as_u32() as usize,
                         Some("YES".into()),
                         Color::Green,
                         EdgeStyle::Line,
@@ -193,14 +193,14 @@ impl CodeBlock {
                     graph.add_edge(previous_pc, pc, None, Color::None, EdgeStyle::Line);
                     graph.add_edge(
                         previous_pc,
-                        throw_method_undefined as usize,
+                        throw_method_undefined.as_u32() as usize,
                         Some("`throw` undefined".into()),
                         Color::Red,
                         EdgeStyle::Line,
                     );
                     graph.add_edge(
                         previous_pc,
-                        return_method_undefined as usize,
+                        return_method_undefined.as_u32() as usize,
                         Some("`return` undefined".into()),
                         Color::Blue,
                         EdgeStyle::Line,
@@ -216,14 +216,14 @@ impl CodeBlock {
                     graph.add_edge(previous_pc, pc, None, Color::None, EdgeStyle::Line);
                     graph.add_edge(
                         previous_pc,
-                        r#return as usize,
+                        r#return.as_u32() as usize,
                         Some("return".into()),
                         Color::Yellow,
                         EdgeStyle::Line,
                     );
                     graph.add_edge(
                         previous_pc,
-                        exit as usize,
+                        exit.as_u32() as usize,
                         Some("done".into()),
                         Color::Blue,
                         EdgeStyle::Line,
@@ -242,7 +242,7 @@ impl CodeBlock {
                     graph.add_node(previous_pc, NodeShape::Diamond, label.into(), Color::None);
                     graph.add_edge(
                         previous_pc,
-                        address as usize,
+                        address.as_u32() as usize,
                         Some("EXIT".into()),
                         Color::Red,
                         EdgeStyle::Line,
@@ -324,7 +324,7 @@ impl CodeBlock {
                     if let Some((i, handler)) = self.find_handler(previous_pc as u32) {
                         graph.add_edge(
                             previous_pc,
-                            handler.handler() as usize,
+                            handler.handler().as_u32() as usize,
                             Some(format!("Handler {i:2}: CAUGHT").into()),
                             Color::None,
                             EdgeStyle::Line,
@@ -336,7 +336,7 @@ impl CodeBlock {
                         graph.add_node(previous_pc, NodeShape::Record, label.into(), Color::None);
                         graph.add_edge(
                             previous_pc,
-                            handler.handler() as usize,
+                            handler.handler().as_u32() as usize,
                             Some(format!("Handler {i:2}: CAUGHT").into()),
                             Color::None,
                             EdgeStyle::Line,
@@ -366,7 +366,7 @@ impl CodeBlock {
                     for (i, address) in addresses.iter().enumerate() {
                         graph.add_edge(
                             previous_pc,
-                            *address as usize,
+                            address.as_u32() as usize,
                             Some(format!("[{i}]").into()),
                             Color::None,
                             EdgeStyle::Line,
