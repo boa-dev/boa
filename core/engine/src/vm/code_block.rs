@@ -849,9 +849,7 @@ impl CodeBlock {
             Instruction::TemplateCreate { site, dst, values } => {
                 format!("site:{site}, dst:{dst}, values:{values:?}")
             }
-            Instruction::GetFunctionObject {
-                function_object,
-            } => {
+            Instruction::GetFunctionObject { function_object } => {
                 format!("function_object:{function_object}")
             }
             Instruction::Pop
