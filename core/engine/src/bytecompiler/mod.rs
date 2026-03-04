@@ -1516,13 +1516,15 @@ impl<'ctx> ByteCompiler<'ctx> {
     pub(crate) fn compile_expr_operand(
         &mut self,
         expr: &Expression,
-    ) -> (VaryingOperand, Option<Register>) {
+        inner_fn: impl FnOnce(&mut Self, VaryingOperand),
+    ) {
         if let Expression::Identifier(name) = expr {
             let name = self.resolve_identifier_expect(*name);
             let binding = self.lexical_scope.get_identifier_reference(name);
             let index = self.get_binding(&binding);
             if let BindingKind::Local(Some(local_reg)) = &index {
-                return (VaryingOperand::from(*local_reg), None);
+                inner_fn(self, VaryingOperand::from(*local_reg));
+                return;
             }
             if !self.in_with
                 && let Some(&cached_reg) = self.const_binding_cache.get(&binding.locator())
@@ -1533,7 +1535,8 @@ impl<'ctx> ByteCompiler<'ctx> {
         let reg = self.register_allocator.alloc();
         self.compile_expr(expr, &reg);
         let op = reg.variable();
-        (op, Some(reg))
+        inner_fn(self, op);
+        self.register_allocator.dealloc(reg);
     }
 
     /// Compile a property access expression, prepending `this` to the property value in the stack.
