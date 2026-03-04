@@ -30,7 +30,7 @@ impl ByteCompiler<'_> {
                 let is_lexical = binding.is_lexical();
                 let index = compiler.get_binding(&binding);
 
-                // Fast path: for local bindings with (post/pre)-increment/decrement,
+                // Fast path: for mutable local bindings with (post/pre)-increment/decrement,
                 // use the local register directly to avoid unnecessary Move instructions.
                 //
                 // Pre-increment (++i):
@@ -41,7 +41,12 @@ impl ByteCompiler<'_> {
                 //
                 // Inc(local, local) works because Inc writes new to dst AFTER old to src,
                 // so when dst==src the new value wins.
-                if is_lexical && let BindingKind::Local(Some(local_reg)) = &index {
+                //
+                // Skip for const bindings — they must fall through to emit ThrowMutateImmutable.
+                if is_lexical
+                    && compiler.lexical_scope.set_mutable_binding(name.clone()).is_ok()
+                    && let BindingKind::Local(Some(local_reg)) = &index
+                {
                     let local_op = (*local_reg).into();
                     if post {
                         // Save old value to dst (post-increment returns old value).
