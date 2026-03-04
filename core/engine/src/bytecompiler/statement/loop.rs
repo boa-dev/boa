@@ -128,21 +128,17 @@ impl ByteCompiler<'_> {
 
         self.patch_jump(initial_jump);
 
-        let exit = if let Some(condition) = for_loop.condition() {
-            self.compile_condition_and_branch(condition)
-        } else {
-            let value = self.register_allocator.alloc();
-            self.bytecode.emit_push_true(value.variable());
-            let exit = self.jump_if_false(&value);
-            self.register_allocator.dealloc(value);
-            exit
-        };
+        let exit = for_loop
+            .condition()
+            .map(|condition| self.compile_condition_and_branch(condition));
 
         self.compile_stmt(for_loop.body(), use_expr, true);
 
         self.bytecode.emit_jump(start_address);
 
-        self.patch_jump(exit);
+        if let Some(exit) = exit {
+            self.patch_jump(exit);
+        }
         self.pop_loop_control_info();
 
         if let Some(outer_scope_local) = outer_scope_local {
