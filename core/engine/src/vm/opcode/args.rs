@@ -111,14 +111,14 @@ fn write_f64(bytes: &mut Vec<u8>, value: f64) {
 
 impl<T: Argument> Argument for ThinVec<T> {
     fn encode(self, bytes: &mut Vec<u8>) {
-        write_u16(bytes, self.len() as u16);
+        write_u32(bytes, self.len() as u32);
         for arg in self {
             arg.encode(bytes);
         }
     }
 
     fn decode(bytes: &[u8], pos: usize) -> (Self, usize) {
-        let (len, mut pos) = read::<u16>(bytes, pos);
+        let (len, mut pos) = read::<u32>(bytes, pos);
         let total_len = len as usize;
         let mut result = ThinVec::with_capacity(total_len);
         for _ in 0..total_len {
