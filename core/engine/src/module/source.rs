@@ -1565,13 +1565,11 @@ impl SourceTextModule {
         let source = self
             .code
             .source
-            .borrow_mut()
             .take()
             .expect("module source consumed before initialize_environment");
         let source_text = self
             .code
             .source_text
-            .borrow_mut()
             .take()
             .expect("module source_text consumed before initialize_environment");
 
