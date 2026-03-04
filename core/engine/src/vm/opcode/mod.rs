@@ -171,27 +171,23 @@ impl ByteCodeEmitter {
 
     /// Patch the jump instruction at the given label with jump table addresses.
     pub(crate) fn patch_jump_table(&mut self, label: u32, patch: (u32, &[u32])) {
-        let pos = label as usize;
+        // label = opcode_pos + sizeof(u32), skipping past the index operand.
+        // +1 to skip the opcode byte itself.
+        let default_pos = label as usize + 1;
 
-        let (total_len, pos) = read::<u16>(&self.bytecode, pos + 1);
-        let arg_count = total_len as usize;
-        assert_eq!(arg_count, patch.1.len());
+        // Skip past default (u32) to read the ThinVec length (u32).
+        let (_, len_pos) = read::<u32>(&self.bytecode, default_pos);
+        let (total_len, first_addr_pos) = read::<u32>(&self.bytecode, len_pos);
+        assert_eq!(total_len as usize, patch.1.len());
 
-        // Write first patched value (default address)
-        let bytes = patch.0.to_le_bytes();
-        self.bytecode[pos] = bytes[0];
-        self.bytecode[pos + 1] = bytes[1];
-        self.bytecode[pos + 2] = bytes[2];
-        self.bytecode[pos + 3] = bytes[3];
+        // Write patched default address.
+        self.bytecode[default_pos..default_pos + size_of::<u32>()]
+            .copy_from_slice(&patch.0.to_le_bytes());
 
-        // Write remaining patched values
+        // Write patched address values.
         for (i, value) in patch.1.iter().enumerate() {
-            let offset = pos + 4 + (i) * 4;
-            let bytes = value.to_le_bytes();
-            self.bytecode[offset] = bytes[0];
-            self.bytecode[offset + 1] = bytes[1];
-            self.bytecode[offset + 2] = bytes[2];
-            self.bytecode[offset + 3] = bytes[3];
+            let offset = first_addr_pos + i * size_of::<u32>();
+            self.bytecode[offset..offset + size_of::<u32>()].copy_from_slice(&value.to_le_bytes());
         }
     }
 }
