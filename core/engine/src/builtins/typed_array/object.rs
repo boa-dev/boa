@@ -614,31 +614,24 @@ pub(crate) fn typed_array_exotic_prevent_extensions(
     obj: &JsObject,
     context: &mut Context,
 ) -> JsResult<bool> {
-    {
+    let is_fixed = {
         let inner = obj
             .downcast_ref::<TypedArray>()
             .expect("TypedArray exotic method should only be callable from TypedArray objects");
 
         let buffer = inner.viewed_array_buffer().as_buffer();
 
-        let is_detached = buffer.is_detached();
-        let is_fixed = buffer.is_fixed_len();
+        buffer.is_fixed_len()
+    };
 
-        // 1. Let buffer be O.[[ViewedArrayBuffer]].
-        // 2. If IsDetachedBuffer(buffer) is true, throw a TypeError exception.
-        if is_detached {
-            return Err(JsNativeError::typ()
-                .with_message("Cannot prevent extensions on a TypedArray with a detached buffer")
-                .into());
-        }
-
-        // 3. If IsResizableArrayBuffer(buffer) is true, return false.
-        if !is_fixed {
-            return Ok(false);
-        }
+    // ECMAScript §10.4.5.4
+    // 1. Let buffer be O.[[ViewedArrayBuffer]].
+    // 2. If IsResizableArrayBuffer(buffer) is true, return false.
+    if !is_fixed {
+        return Ok(false);
     }
 
-    // 4. Return ! OrdinaryPreventExtensions(O).
+    // 3. Return ! OrdinaryPreventExtensions(O).
     ordinary_prevent_extensions(obj, context)
 }
 

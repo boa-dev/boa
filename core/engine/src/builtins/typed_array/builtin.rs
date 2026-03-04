@@ -2479,22 +2479,22 @@ impl BuiltinTypedArray {
             JsNativeError::typ().with_message("Value is not a typed array object")
         })?;
 
-        let (len, is_fixed_len) = {
+        let len = {
             let o = array.downcast_ref::<TypedArray>().ok_or_else(|| {
                 JsNativeError::typ().with_message("Value is not a typed array object")
             })?;
             let buf = o.viewed_array_buffer().as_buffer();
-            let Some((buf_len, is_fixed_len)) = buf
+            let Some(buf_len) = buf
                 .bytes(Ordering::SeqCst)
                 .filter(|s| !o.is_out_of_bounds(s.len()))
-                .map(|s| (s.len(), buf.is_fixed_len()))
+                .map(|s| s.len())
             else {
                 return Err(JsNativeError::typ()
                     .with_message("typed array is outside the bounds of its inner buffer")
                     .into());
             };
 
-            (o.array_length(buf_len), is_fixed_len)
+            o.array_length(buf_len)
         };
 
         let separator = {
@@ -2519,9 +2519,7 @@ impl BuiltinTypedArray {
 
             let next_element = array.get(k, context)?;
 
-            // Mirrors the behaviour of `join`, but the compiler
-            // could unswitch the loop using `is_fixed_len`.
-            if is_fixed_len || !next_element.is_undefined() {
+            if !next_element.is_null_or_undefined() {
                 let s = next_element
                     .invoke(
                         js_string!("toLocaleString"),

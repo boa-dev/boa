@@ -18,8 +18,12 @@ use crate::{
     context::intrinsics::{Intrinsics, StandardConstructor, StandardConstructors},
     error::JsNativeError,
     js_string,
-    object::{JsObject, internal_methods::get_prototype_from_constructor},
-    property::Attribute,
+    native_function::NativeFunction,
+    object::{
+        FunctionObjectBuilder, JsObject,
+        internal_methods::get_prototype_from_constructor,
+    },
+    property::{Attribute, PropertyDescriptor},
     realm::Realm,
     string::StaticJsStrings,
     symbol::JsSymbol,
@@ -30,6 +34,7 @@ use boa_gc::{Finalize, Trace};
 mod builtin;
 mod element;
 mod object;
+mod uint8_extras;
 
 pub(crate) use builtin::{BuiltinTypedArray, is_valid_integer_index};
 #[cfg(feature = "float16")]
@@ -80,6 +85,79 @@ impl<T: TypedArrayMarker> IntrinsicObject for T {
                 Attribute::READONLY | Attribute::NON_ENUMERABLE | Attribute::PERMANENT,
             )
             .build();
+
+        // Uint8Array-specific Base64/Hex methods (TC39 Stage 4 proposal)
+        if Self::ERASED == TypedArrayKind::Uint8 {
+            let constructor_obj = Self::STANDARD_CONSTRUCTOR(realm.intrinsics().constructors());
+            let prototype = constructor_obj.prototype();
+            let constructor = constructor_obj.constructor();
+
+            // Helper to create and insert a method on a target object
+            let make_method = |name: JsString, func, length: usize| -> JsValue {
+                FunctionObjectBuilder::new(realm, NativeFunction::from_fn_ptr(func))
+                    .name(name)
+                    .length(length)
+                    .build()
+                    .into()
+            };
+
+            let method_attr = PropertyDescriptor::builder()
+                .writable(true)
+                .enumerable(false)
+                .configurable(true);
+
+            // Prototype methods: toBase64, toHex, setFromBase64, setFromHex
+            prototype.borrow_mut().insert(
+                js_string!("toBase64"),
+                method_attr.clone().value(make_method(
+                    js_string!("toBase64"),
+                    uint8_extras::to_base64,
+                    0,
+                )),
+            );
+            prototype.borrow_mut().insert(
+                js_string!("toHex"),
+                method_attr.clone().value(make_method(
+                    js_string!("toHex"),
+                    uint8_extras::to_hex,
+                    0,
+                )),
+            );
+            prototype.borrow_mut().insert(
+                js_string!("setFromBase64"),
+                method_attr.clone().value(make_method(
+                    js_string!("setFromBase64"),
+                    uint8_extras::set_from_base64,
+                    1,
+                )),
+            );
+            prototype.borrow_mut().insert(
+                js_string!("setFromHex"),
+                method_attr.clone().value(make_method(
+                    js_string!("setFromHex"),
+                    uint8_extras::set_from_hex,
+                    1,
+                )),
+            );
+
+            // Static methods on constructor: fromBase64, fromHex
+            constructor.borrow_mut().insert(
+                js_string!("fromBase64"),
+                method_attr.clone().value(make_method(
+                    js_string!("fromBase64"),
+                    uint8_extras::from_base64_static,
+                    1,
+                )),
+            );
+            constructor.borrow_mut().insert(
+                js_string!("fromHex"),
+                method_attr.value(make_method(
+                    js_string!("fromHex"),
+                    uint8_extras::from_hex_static,
+                    1,
+                )),
+            );
+        }
     }
 }
 
