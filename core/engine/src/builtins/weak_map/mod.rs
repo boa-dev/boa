@@ -142,7 +142,9 @@ impl WeakMap {
             .as_ref()
             .and_then(JsObject::downcast_mut::<NativeWeakMap>)
             .ok_or_else(|| {
-                JsNativeError::typ().with_message("WeakMap.delete: called with non-object value")
+                JsNativeError::typ().with_message(
+                    "WeakMap.prototype.delete: expected 'this' to be a WeakMap object",
+                )
             })?;
 
         // 3. Let entries be M.[[WeakMapData]].
@@ -180,7 +182,8 @@ impl WeakMap {
             .as_ref()
             .and_then(JsObject::downcast_ref::<NativeWeakMap>)
             .ok_or_else(|| {
-                JsNativeError::typ().with_message("WeakMap.get: called with non-object value")
+                JsNativeError::typ()
+                    .with_message("WeakMap.prototype.get: expected 'this' to be a WeakMap object")
             })?;
 
         // 3. Let entries be M.[[WeakMapData]].
@@ -215,7 +218,8 @@ impl WeakMap {
             .as_ref()
             .and_then(JsObject::downcast_ref::<NativeWeakMap>)
             .ok_or_else(|| {
-                JsNativeError::typ().with_message("WeakMap.has: called with non-object value")
+                JsNativeError::typ()
+                    .with_message("WeakMap.prototype.has: expected 'this' to be a WeakMap object")
             })?;
 
         // 3. Let entries be M.[[WeakMapData]].
@@ -250,7 +254,8 @@ impl WeakMap {
             .as_ref()
             .and_then(JsObject::downcast_mut::<NativeWeakMap>)
             .ok_or_else(|| {
-                JsNativeError::typ().with_message("WeakMap.set: called with non-object value")
+                JsNativeError::typ()
+                    .with_message("WeakMap.prototype.set: expected 'this' to be a WeakMap object")
             })?;
 
         // 3. Let entries be M.[[WeakMapData]].
@@ -298,8 +303,9 @@ impl WeakMap {
         let map = object
             .and_then(|obj| obj.clone().downcast::<NativeWeakMap>().ok())
             .ok_or_else(|| {
-                JsNativeError::typ()
-                    .with_message("WeakMap.getOrInsert: called with non-object value")
+                JsNativeError::typ().with_message(
+                    "WeakMap.prototype.getOrInsert: expected 'this' to be a WeakMap object",
+                )
             })?;
 
         // 3. If CanBeHeldWeakly(key) is false, throw a TypeError exception.
@@ -352,8 +358,9 @@ impl WeakMap {
         let map = object
             .and_then(|obj| obj.clone().downcast::<NativeWeakMap>().ok())
             .ok_or_else(|| {
-                JsNativeError::typ()
-                    .with_message("WeakMap.getOrInsertComputed: called with non-object value")
+                JsNativeError::typ().with_message(
+                    "WeakMap.prototype.getOrInsertComputed: expected 'this' to be a WeakMap object",
+                )
             })?;
 
         // 3. If CanBeHeldWeakly(key) is false, throw a TypeError exception.

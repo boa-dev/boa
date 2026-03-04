@@ -147,7 +147,8 @@ impl WeakSet {
             .as_ref()
             .and_then(JsObject::downcast_mut::<NativeWeakSet>)
             .ok_or_else(|| {
-                JsNativeError::typ().with_message("WeakSet.add: called with non-object value")
+                JsNativeError::typ()
+                    .with_message("WeakSet.prototype.add: expected 'this' to be a WeakSet object")
             })?;
 
         // 3. If Type(value) is not Object, throw a TypeError exception.
@@ -197,7 +198,9 @@ impl WeakSet {
             .as_ref()
             .and_then(JsObject::downcast_mut::<NativeWeakSet>)
             .ok_or_else(|| {
-                JsNativeError::typ().with_message("WeakSet.delete: called with non-object value")
+                JsNativeError::typ().with_message(
+                    "WeakSet.prototype.delete: expected 'this' to be a WeakSet object",
+                )
             })?;
 
         // 3. If Type(value) is not Object, return false.
@@ -237,7 +240,8 @@ impl WeakSet {
             .as_ref()
             .and_then(JsObject::downcast_ref::<NativeWeakSet>)
             .ok_or_else(|| {
-                JsNativeError::typ().with_message("WeakSet.has: called with non-object value")
+                JsNativeError::typ()
+                    .with_message("WeakSet.prototype.has: expected 'this' to be a WeakSet object")
             })?;
 
         // 3. Let entries be the List that is S.[[WeakSetData]].

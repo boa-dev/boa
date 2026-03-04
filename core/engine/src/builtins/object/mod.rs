@@ -286,7 +286,9 @@ impl OrdinaryObject {
         // 2. If IsCallable(getter) is false, throw a TypeError exception.
         if !getter.is_callable() {
             return Err(JsNativeError::typ()
-                .with_message("Object.prototype.__defineGetter__: Expecting function")
+                .with_message(
+                    "Object.prototype.__defineGetter__: expected 'getter' to be a Function object",
+                )
                 .into());
         }
 
@@ -329,7 +331,9 @@ impl OrdinaryObject {
         // 2. If IsCallable(setter) is false, throw a TypeError exception.
         if !setter.is_callable() {
             return Err(JsNativeError::typ()
-                .with_message("Object.prototype.__defineSetter__: Expecting function")
+                .with_message(
+                    "Object.prototype.__defineSetter__: expected 'setter' to be a Function object",
+                )
                 .into());
         }
 
@@ -468,8 +472,8 @@ impl OrdinaryObject {
             _ => {
                 return Err(JsNativeError::typ()
                     .with_message(format!(
-                        "Object prototype may only be an Object or null: {}",
-                        prototype.display()
+                        "Object.create: expected 'proto' to be an Object or null, got `{}`",
+                        prototype.type_of()
                     ))
                     .into());
             }
@@ -694,7 +698,7 @@ impl OrdinaryObject {
             val => {
                 return Err(JsNativeError::typ()
                     .with_message(format!(
-                        "expected an object or null, got `{}`",
+                        "Object.setPrototypeOf: expected 'proto' to be an Object or null, got `{}`",
                         val.type_of()
                     ))
                     .into());
@@ -774,7 +778,7 @@ impl OrdinaryObject {
             Ok(object.clone().into())
         } else {
             Err(JsNativeError::typ()
-                .with_message("Object.defineProperty called on non-object")
+                .with_message("Object.defineProperty: expected 'this' to be an Object")
                 .into())
         }
     }
@@ -801,7 +805,7 @@ impl OrdinaryObject {
             Ok(arg.clone())
         } else {
             Err(JsNativeError::typ()
-                .with_message("Expected an object")
+                .with_message("Object.defineProperties: expected 'this' to be an Object")
                 .into())
         }
     }
