@@ -12,17 +12,22 @@ use crate::{
     context::icu::IntlProvider,
     js_error, js_string,
 };
-
+use icu_calendar::cal::{
+    Buddhist, ChineseTraditional, Coptic, Ethiopian, Gregorian, Hebrew, Hijri, Indian, Japanese,
+    KoreanTraditional, Persian, Roc, hijri,
+};
 use icu_datetime::{
     DateTimeFormatterPreferences,
     fieldsets::builder::{DateFields, ZoneStyle},
     options::{Length, SubsecondDigits as IcuSubsecondDigits, TimePrecision},
-    preferences::{CalendarAlgorithm, HourCycle as IcuHourCycle},
+    preferences::{CalendarAlgorithm, HijriCalendarAlgorithm, HourCycle as IcuHourCycle},
+    scaffold::CldrCalendar,
 };
+
 use icu_decimal::provider::DecimalSymbolsV1;
 use icu_locale::extensions::unicode::Value;
 use icu_provider::{
-    DataMarkerAttributes,
+    DataMarker, DataMarkerAttributes, DryDataProvider,
     prelude::icu_locale_core::{
         LanguageIdentifier, extensions::unicode, preferences::LocalePreferences,
     },
@@ -593,10 +598,31 @@ impl ServicePreferences for DateTimeFormatterPreferences {
         });
 
         // Handle LDML unicode key "ca", Calendar algorithm
-        self.calendar_algorithm = self
-            .calendar_algorithm
-            .take()
-            .filter(|ca| has_calendar_data_for_locale(*ca, id, provider));
+        self.calendar_algorithm = self.calendar_algorithm.take().filter(|ca| match ca {
+            CalendarAlgorithm::Buddhist => has_calendar_data_for_locale::<Buddhist>(id, provider),
+            CalendarAlgorithm::Chinese => {
+                has_calendar_data_for_locale::<ChineseTraditional>(id, provider)
+            }
+            CalendarAlgorithm::Coptic => has_calendar_data_for_locale::<Coptic>(id, provider),
+            CalendarAlgorithm::Dangi => {
+                has_calendar_data_for_locale::<KoreanTraditional>(id, provider)
+            }
+            CalendarAlgorithm::Ethiopic => has_calendar_data_for_locale::<Ethiopian>(id, provider),
+            CalendarAlgorithm::Gregory => has_calendar_data_for_locale::<Gregorian>(id, provider),
+            CalendarAlgorithm::Hebrew => has_calendar_data_for_locale::<Hebrew>(id, provider),
+            CalendarAlgorithm::Indian => has_calendar_data_for_locale::<Indian>(id, provider),
+            CalendarAlgorithm::Japanese => has_calendar_data_for_locale::<Japanese>(id, provider),
+            CalendarAlgorithm::Persian => has_calendar_data_for_locale::<Persian>(id, provider),
+            CalendarAlgorithm::Roc => has_calendar_data_for_locale::<Roc>(id, provider),
+            CalendarAlgorithm::Hijri(Some(
+                HijriCalendarAlgorithm::Civil | HijriCalendarAlgorithm::Tbla,
+            )) => has_calendar_data_for_locale::<Hijri<hijri::TabularAlgorithm>>(id, provider),
+            CalendarAlgorithm::Hijri(Some(HijriCalendarAlgorithm::Umalqura)) => {
+                has_calendar_data_for_locale::<Hijri<hijri::UmmAlQura>>(id, provider)
+            }
+            CalendarAlgorithm::Hijri(Some(HijriCalendarAlgorithm::Rgsa) | None) => true,
+            _ => false,
+        });
 
         // NOTE (nekevss): issue: this will not support `H24` as ICU4X does
         // not currently support it.
@@ -610,76 +636,33 @@ impl ServicePreferences for DateTimeFormatterPreferences {
     impl_service_preferences!(numbering_system, calendar_algorithm, hour_cycle);
 }
 
-fn has_calendar_data_for_locale(
-    calendar: CalendarAlgorithm,
+fn has_calendar_data_for_locale<C: CldrCalendar>(
     id: &LanguageIdentifier,
     provider: &IntlProvider,
-) -> bool {
-    use icu_calendar::AnyCalendarKind;
-    use icu_datetime::provider::neo::{
-        DatetimeNamesYearBuddhistV1, DatetimeNamesYearChineseV1, DatetimeNamesYearCopticV1,
-        DatetimeNamesYearDangiV1, DatetimeNamesYearEthiopianV1, DatetimeNamesYearGregorianV1,
-        DatetimeNamesYearHebrewV1, DatetimeNamesYearHijriV1, DatetimeNamesYearIndianV1,
-        DatetimeNamesYearJapaneseV1, DatetimeNamesYearJapanextV1, DatetimeNamesYearPersianV1,
-        DatetimeNamesYearRocV1, marker_attrs,
+) -> bool
+where
+    IntlProvider: DryDataProvider<C::YearNamesV1>,
+{
+    use icu_datetime::provider::neo::marker_attrs;
+    use icu_provider::prelude::{
+        DataIdentifierBorrowed, DataRequest, DataRequestMetadata,
+        icu_locale_core::preferences::LocalePreferences,
     };
-    use icu_provider::{
-        DataMarker,
-        prelude::{
-            DataIdentifierBorrowed, DataRequest, DataRequestMetadata,
-            icu_locale_core::preferences::LocalePreferences,
+
+    let info = <C::YearNamesV1 as DataMarker>::INFO;
+    let locale = info.make_locale(LocalePreferences::from(id));
+    let req = DataRequest {
+        id: DataIdentifierBorrowed::for_marker_attributes_and_locale(marker_attrs::ABBR, &locale),
+        metadata: {
+            let mut md = DataRequestMetadata::default();
+            md.silent = true;
+            md
         },
     };
 
-    if let CalendarAlgorithm::Hijri(None) = calendar {
-        return true;
-    }
-
-    let Ok(kind) = AnyCalendarKind::try_from(calendar) else {
+    let Ok(md) = DryDataProvider::dry_load(provider, req) else {
         return false;
     };
 
-    macro_rules! check {
-        ($marker:ty) => {{
-            let info = <$marker>::INFO;
-            let locale = info.make_locale(LocalePreferences::from(id));
-            let req = DataRequest {
-                id: DataIdentifierBorrowed::for_marker_attributes_and_locale(
-                    marker_attrs::ABBR,
-                    &locale,
-                ),
-                metadata: {
-                    let mut md = DataRequestMetadata::default();
-                    md.silent = true;
-                    md
-                },
-            };
-            provider
-                .erased_provider()
-                .dry_load_data(info, req)
-                .map_or(false, |md| md.locale.map_or(true, |l| !l.is_unknown()))
-        }};
-    }
-
-    match kind {
-        AnyCalendarKind::Buddhist => check!(DatetimeNamesYearBuddhistV1),
-        AnyCalendarKind::Chinese => check!(DatetimeNamesYearChineseV1),
-        AnyCalendarKind::Coptic => check!(DatetimeNamesYearCopticV1),
-        AnyCalendarKind::Dangi => check!(DatetimeNamesYearDangiV1),
-        AnyCalendarKind::Ethiopian | AnyCalendarKind::EthiopianAmeteAlem => {
-            check!(DatetimeNamesYearEthiopianV1)
-        }
-        AnyCalendarKind::Gregorian => check!(DatetimeNamesYearGregorianV1),
-        AnyCalendarKind::Hebrew => check!(DatetimeNamesYearHebrewV1),
-        AnyCalendarKind::Indian => check!(DatetimeNamesYearIndianV1),
-        AnyCalendarKind::HijriTabularTypeIIFriday
-        | AnyCalendarKind::HijriTabularTypeIIThursday
-        | AnyCalendarKind::HijriUmmAlQura
-        | AnyCalendarKind::HijriSimulatedMecca => check!(DatetimeNamesYearHijriV1),
-        AnyCalendarKind::Japanese => check!(DatetimeNamesYearJapaneseV1),
-        AnyCalendarKind::JapaneseExtended => check!(DatetimeNamesYearJapanextV1),
-        AnyCalendarKind::Persian => check!(DatetimeNamesYearPersianV1),
-        AnyCalendarKind::Roc => check!(DatetimeNamesYearRocV1),
-        _ => false,
-    }
+    md.locale.is_none_or(|loc| !loc.is_unknown())
 }
