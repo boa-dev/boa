@@ -10,6 +10,11 @@ use std::ops::ControlFlow;
 /// Boa's VM output Completion and Result.
 ///
 /// [specification]: https://tc39.es/ecma262/#sec-completion-record-specification-type
+// FIXME(#2675): In generator contexts the variant semantics are inverted relative to the
+// ECMAScript spec: `Normal` is emitted by `handle_return` (generator completed) and `Return`
+// is emitted by `handle_yield` (generator yielded/suspended). The spec (§9.4.4, §27.5)
+// defines normal and return completions with their standard meanings. This naming mismatch
+// will be corrected in a follow-up PR.
 #[derive(Debug, Clone, Finalize)]
 pub(crate) enum CompletionRecord {
     Normal(JsValue),

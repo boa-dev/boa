@@ -62,6 +62,12 @@ impl ReThrow {
         //
         // Note: If we reached this stage then we there is no handler to handle this,
         //       so return (only for generators).
+        // FIXME(#2675): When `generator.return()` is called, the VM propagates a
+        // "returnless" exception (pending_exception is None) through the exception
+        // handlers to execute finally blocks. When no handler remains, `handle_return`
+        // is called, emitting `CompletionRecord::Normal`. Per spec §27.5.3.4, the
+        // generator should complete with a return completion, not a normal one.
+        // This will be corrected in a follow-up PR.
         if context.vm.pending_exception.is_none() {
             return context.handle_return();
         }
@@ -103,6 +109,11 @@ impl Exception {
         // This is done to run the finally code.
         //
         // This should be unreachable for regular functions.
+        // FIXME(#2675): This delegates to `ReThrow` which, when no pending exception
+        // exists, calls `handle_return` to emit `CompletionRecord::Normal`. This is
+        // part of the generator.return() propagation path that walks through finally
+        // blocks. The completion type should be a return completion per spec §27.5.3.4.
+        // This will be corrected in a follow-up PR.
         ReThrow::operation((), context)
     }
 }

@@ -314,6 +314,12 @@ impl Generator {
         // 9. Resume the suspended evaluation of genContext using NormalCompletion(value) as the result of the operation that suspended it. Let result be the value returned by the resumed computation.
         // 10. Assert: When we return here, genContext has already been removed from the execution context stack and methodContext is the currently running execution context.
         // 11. Return Completion(result).
+        // FIXME(#2675): Currently `CompletionRecord::Return` means the generator yielded
+        // (via `handle_yield`), and `CompletionRecord::Normal` means the generator completed
+        // (via `handle_return`). ECMAScript spec §27.5.3.3 (GeneratorResume) steps 9-11 define
+        // these with standard completion semantics where a normal completion signals "done" and
+        // a return completion carries the return value. The variant names here are inverted
+        // relative to the spec. This will be corrected in a follow-up PR.
         match record {
             CompletionRecord::Return(value) => {
                 r#gen.state = GeneratorState::SuspendedYield {
@@ -405,6 +411,10 @@ impl Generator {
             JsNativeError::typ().with_message("generator resumed on non generator object")
         })?;
 
+        // FIXME(#2675): Same inverted semantics as in `generator_resume` above.
+        // `CompletionRecord::Return` = yielded, `CompletionRecord::Normal` = completed.
+        // ECMAScript spec §27.5.3.4 (GeneratorResumeAbrupt) steps 10-12 expect standard
+        // completion semantics. This will be corrected in a follow-up PR.
         match record {
             CompletionRecord::Return(value) => {
                 r#gen.state = GeneratorState::SuspendedYield {

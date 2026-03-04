@@ -129,6 +129,11 @@ impl AsyncGeneratorClose {
 
         // h. If result is a normal completion, set result to NormalCompletion(undefined).
         // i. If result is a return completion, set result to NormalCompletion(result.[[Value]]).
+        // FIXME(#2675): Currently collapses both normal and return completions into
+        // `Ok(return_value)`. Per ECMAScript spec §27.6.3.2 (AsyncGeneratorStart) steps h-i,
+        // return completions should be explicitly converted to normal completions here.
+        // The distinction matters for correct CompletionRecord propagation.
+        // This will be corrected in a follow-up PR.
         let return_value = context.vm.take_return_value();
 
         let result = context

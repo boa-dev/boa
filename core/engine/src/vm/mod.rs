@@ -735,6 +735,11 @@ impl Context {
         self.handle_throw()
     }
 
+    // FIXME(#2675): Currently emits `CompletionRecord::Normal` but ECMAScript spec §13.10
+    // (Return Statement) produces a return completion (Completion Record with [[Type]]: return).
+    // In generator context, this signals "generator completed" to `generator_resume` /
+    // `generator_resume_abrupt`, which is correct behavior but uses the wrong variant name.
+    // This will be corrected in a follow-up PR.
     fn handle_return(&mut self) -> ControlFlow<CompletionRecord> {
         let exit_early = self.vm.frame().exit_early();
         self.vm.stack.truncate_to_frame(&self.vm.frame);
@@ -750,6 +755,11 @@ impl Context {
         ControlFlow::Continue(())
     }
 
+    // FIXME(#2675): Currently emits `CompletionRecord::Return` but ECMAScript spec §14.4
+    // (Yield) suspends the generator — it does not produce a return completion. The `Return`
+    // variant is used here as a signal to `generator_resume` that the generator yielded
+    // (not completed). This overloads the `Return` variant with non-spec semantics.
+    // This will be corrected in a follow-up PR.
     fn handle_yield(&mut self) -> ControlFlow<CompletionRecord> {
         let result = self.vm.take_return_value();
         if self.vm.frame().exit_early() {

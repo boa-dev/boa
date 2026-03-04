@@ -24,6 +24,10 @@ impl GeneratorYield {
     ) -> ControlFlow<CompletionRecord> {
         let value = context.vm.get_register(value.into());
         context.vm.set_return_value(value.clone());
+        // FIXME(#2675): `handle_yield` emits `CompletionRecord::Return` to signal a yield
+        // suspension, but ECMAScript spec §14.4 (Yield) suspends the generator without
+        // producing a return completion. The `Return` variant is overloaded with non-spec
+        // semantics here. This will be corrected in a follow-up PR.
         context.handle_yield()
     }
 }
@@ -84,6 +88,12 @@ impl AsyncGeneratorYield {
         //     b. Let toYield be the first element of queue.
         if let Some(next) = r#gen.data().queue.front() {
             // c. Let resumptionValue be Completion(toYield.[[Completion]]).
+            // FIXME(#2675): The `CompletionRecord` variants matched here (Normal, Return,
+            // Throw) are consumed from the async generator queue. `CompletionRecord::Return`
+            // in this context represents a return completion from `generator.return()` per
+            // spec §27.6.3.8 (AsyncGeneratorEnqueue), which is correct. However, since the
+            // `Return` variant is also overloaded for yield suspension elsewhere, the
+            // semantics can be confusing. This will be clarified in a follow-up PR.
             let resume_kind = match next.completion.clone() {
                 CompletionRecord::Normal(val) => {
                     context.vm.stack.push(val);

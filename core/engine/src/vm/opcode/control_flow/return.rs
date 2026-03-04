@@ -18,6 +18,11 @@ pub(crate) struct Return;
 impl Return {
     #[inline(always)]
     pub(crate) fn operation((): (), context: &mut Context) -> ControlFlow<CompletionRecord> {
+        // FIXME(#2675): `handle_return` emits `CompletionRecord::Normal` for return
+        // statements, but ECMAScript spec §13.10 defines return as producing a return
+        // completion (Completion Record with [[Type]]: return). Inside generators, this
+        // signals "completed" to `generator_resume`, which is functionally correct but
+        // uses the wrong variant. This will be corrected in a follow-up PR.
         context.handle_return()
     }
 }
