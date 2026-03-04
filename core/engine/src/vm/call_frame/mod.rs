@@ -4,8 +4,12 @@
 
 use super::ActiveRunnable;
 use crate::{
-    JsValue, builtins::iterable::IteratorRecord, environments::EnvironmentStack, realm::Realm,
-    vm::CodeBlock, vm::SourcePath,
+    JsValue,
+    builtins::iterable::IteratorRecord,
+    bytecompiler::Register,
+    environments::EnvironmentStack,
+    realm::Realm,
+    vm::{CodeBlock, SourcePath},
 };
 use boa_ast::Position;
 use boa_ast::scope::BindingLocator;
@@ -105,10 +109,31 @@ impl CallFrame {
     pub(crate) const FUNCTION_PROLOGUE: u32 = 2;
     const THIS_POSITION: usize = 2;
     const FUNCTION_POSITION: usize = 1;
-    pub(crate) const PROMISE_CAPABILITY_PROMISE_REGISTER_INDEX: usize = 0;
-    pub(crate) const PROMISE_CAPABILITY_RESOLVE_REGISTER_INDEX: usize = 1;
-    pub(crate) const PROMISE_CAPABILITY_REJECT_REGISTER_INDEX: usize = 2;
-    pub(crate) const ASYNC_GENERATOR_OBJECT_REGISTER_INDEX: usize = 3;
+    pub(crate) const UNDEFINED_REGISTER_INDEX: usize = 0;
+    pub(crate) const PROMISE_CAPABILITY_PROMISE_REGISTER_INDEX: usize = 1;
+    pub(crate) const PROMISE_CAPABILITY_RESOLVE_REGISTER_INDEX: usize = 2;
+    pub(crate) const PROMISE_CAPABILITY_REJECT_REGISTER_INDEX: usize = 3;
+    pub(crate) const ASYNC_GENERATOR_OBJECT_REGISTER_INDEX: usize = 4;
+
+    pub(crate) fn undefined_register() -> Register {
+        Register::persistent(Self::UNDEFINED_REGISTER_INDEX as u32)
+    }
+
+    pub(crate) fn promise_capability_promise_register() -> Register {
+        Register::persistent(Self::PROMISE_CAPABILITY_PROMISE_REGISTER_INDEX as u32)
+    }
+
+    pub(crate) fn promise_capability_resolve_register() -> Register {
+        Register::persistent(Self::PROMISE_CAPABILITY_RESOLVE_REGISTER_INDEX as u32)
+    }
+
+    pub(crate) fn promise_capability_reject_register() -> Register {
+        Register::persistent(Self::PROMISE_CAPABILITY_REJECT_REGISTER_INDEX as u32)
+    }
+
+    pub(crate) fn async_generator_object_register() -> Register {
+        Register::persistent(Self::ASYNC_GENERATOR_OBJECT_REGISTER_INDEX as u32)
+    }
 
     /// Creates a new `CallFrame` with the provided `CodeBlock`.
     pub(crate) fn new(

@@ -5,7 +5,7 @@
 //! plus an interpreter to execute those instructions
 
 use crate::{
-    Context, JsError, JsNativeError, JsObject, JsResult, JsString, JsValue, Module,
+    Context, JsError, JsExpect, JsNativeError, JsObject, JsResult, JsString, JsValue, Module,
     builtins::promise::{PromiseCapability, ResolvingFunctions},
     environments::EnvironmentStack,
     error::RuntimeLimitError,
@@ -229,53 +229,59 @@ impl Stack {
     pub(crate) fn set_promise_capability(
         &mut self,
         frame: &CallFrame,
-        promise_capability: Option<&PromiseCapability>,
-    ) {
-        debug_assert!(
-            frame.code_block().is_async(),
-            "Only async functions have a promise capability"
-        );
+        promise_capability: PromiseCapability,
+    ) -> JsResult<()> {
+        #[cfg(debug_assertions)]
+        {
+            if !frame.code_block().is_async() {
+                return Err(crate::error::PanicError::new(
+                    "only async functions and modules with a top-level-await \
+                    can have a promise capability",
+                )
+                .into());
+            }
+        }
 
-        self.stack[frame.promise_capability_promise_register_index()] = promise_capability
-            .map(PromiseCapability::promise)
-            .cloned()
-            .map_or_else(JsValue::undefined, Into::into);
-        self.stack[frame.promise_capability_resolve_register_index()] = promise_capability
-            .map(PromiseCapability::resolve)
-            .cloned()
-            .map_or_else(JsValue::undefined, Into::into);
-        self.stack[frame.promise_capability_reject_register_index()] = promise_capability
-            .map(PromiseCapability::reject)
-            .cloned()
-            .map_or_else(JsValue::undefined, Into::into);
+        self.stack[frame.promise_capability_promise_register_index()] =
+            promise_capability.promise.into();
+        self.stack[frame.promise_capability_resolve_register_index()] =
+            promise_capability.functions.resolve.into();
+        self.stack[frame.promise_capability_reject_register_index()] =
+            promise_capability.functions.reject.into();
+
+        Ok(())
     }
 
     /// Get the promise capability for the given frame.
     #[track_caller]
-    pub(crate) fn get_promise_capability(&self, frame: &CallFrame) -> Option<PromiseCapability> {
+    pub(crate) fn get_promise_capability(&self, frame: &CallFrame) -> JsResult<PromiseCapability> {
+        #[cfg(debug_assertions)]
         if !frame.code_block().is_async() {
-            return None;
+            return Err(crate::error::PanicError::new(
+                "cannot get promise capability from non-async code",
+            )
+            .into());
         }
 
         let promise = self
             .stack
             .get(frame.promise_capability_promise_register_index())
-            .expect("stack must have a promise capability")
-            .as_object()?;
+            .and_then(JsValue::as_object)
+            .js_expect("stack must have a promise capability")?;
         let resolve = self
             .stack
             .get(frame.promise_capability_resolve_register_index())
-            .expect("stack must have a resolve function")
-            .as_object()
-            .and_then(JsFunction::from_object)?;
+            .and_then(JsValue::as_object)
+            .and_then(JsFunction::from_object)
+            .js_expect("stack must have a resolve function")?;
         let reject = self
             .stack
             .get(frame.promise_capability_reject_register_index())
-            .expect("stack must have a reject function")
-            .as_object()
-            .and_then(JsFunction::from_object)?;
+            .and_then(JsValue::as_object)
+            .and_then(JsFunction::from_object)
+            .js_expect("stack must have a reject function")?;
 
-        Some(PromiseCapability {
+        Ok(PromiseCapability {
             promise,
             functions: ResolvingFunctions { resolve, reject },
         })
