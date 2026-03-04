@@ -393,8 +393,7 @@ impl JsProxyBuilder {
     /// Equivalent to the `Proxy ( target, handler )` constructor, but returns a
     /// [`JsObject`] in case there's a need to manipulate the returned object
     /// inside Rust code.
-    #[must_use]
-    pub fn build(self, context: &mut Context) -> JsResult<JsProxy> {
+        pub fn build(self, context: &mut Context) -> JsResult<JsProxy> {
         let handler = JsObject::with_object_proto(context.intrinsics());
 
         if let Some(apply) = self.apply {
@@ -542,7 +541,6 @@ impl JsProxyBuilder {
     /// but returns a [`JsObject`] for the proxy and a [`JsFunction`] for the
     /// revoker in case there's a need to manipulate the returned objects
     /// inside Rust code.
-    #[must_use]
     pub fn build_revocable(self, context: &mut Context) -> JsResult<JsRevocableProxy> {
         let proxy = self.build(context)?;
         let revoker = Proxy::revoker(proxy.inner.clone(), context);
