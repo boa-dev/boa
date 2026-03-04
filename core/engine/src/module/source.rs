@@ -1671,14 +1671,11 @@ impl SourceTextModule {
                             .get_binding_reference(&name)
                             .expect("binding must exist");
                         let index = compiler.insert_binding(binding);
-                        let value = compiler.register_allocator.alloc();
-                        compiler.bytecode.emit_push_undefined(value.variable());
                         compiler.emit_binding_access(
                             BindingAccessOpcode::DefInitVar,
                             &index,
-                            &value,
+                            &CallFrame::undefined_register(),
                         );
-                        compiler.register_allocator.dealloc(value);
 
                         // 3. Append dn to declaredVarNames.
                         declared_var_names.push(name);

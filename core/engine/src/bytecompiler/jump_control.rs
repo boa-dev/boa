@@ -113,8 +113,7 @@ impl JumpRecord {
                     finally_throw_flag,
                     finally_throw_index,
                 } => {
-                    // Note: +1 because 0 is reserved for default entry in jump table (for fallthrough).
-                    let index = value as i32 + 1;
+                    let index = value as i32;
                     compiler.bytecode.emit_push_false(finally_throw_flag.into());
                     compiler.emit_push_integer_with_index(index, finally_throw_index.into());
                 }
@@ -159,12 +158,7 @@ impl JumpRecord {
 
                         // Pushes `undefined` to the stack, which acts as the
                         // `this` value of the call.
-                        {
-                            let value = compiler.register_allocator.alloc();
-                            compiler.bytecode.emit_push_undefined(value.variable());
-                            compiler.push_from_register(&value);
-                            compiler.register_allocator.dealloc(value);
-                        }
+                        compiler.push_from_register(&CallFrame::undefined_register());
 
                         compiler.if_else_with_dealloc(
                             has_exception,
@@ -172,9 +166,8 @@ impl JumpRecord {
                                 // has_exception == true, so we need to call `reject`
                                 // with the current exception.
 
-                                compiler.bytecode.emit_push_from_register(
-                                    (CallFrame::PROMISE_CAPABILITY_REJECT_REGISTER_INDEX as u32)
-                                        .into(),
+                                compiler.push_from_register(
+                                    &CallFrame::promise_capability_reject_register(),
                                 );
                                 compiler.push_from_register(&exception);
                                 compiler.register_allocator.dealloc(exception);
@@ -183,9 +176,8 @@ impl JumpRecord {
                             |compiler| {
                                 // has_exception == false, call `resolve` normally.
 
-                                compiler.bytecode.emit_push_from_register(
-                                    (CallFrame::PROMISE_CAPABILITY_RESOLVE_REGISTER_INDEX as u32)
-                                        .into(),
+                                compiler.push_from_register(
+                                    &CallFrame::promise_capability_resolve_register(),
                                 );
 
                                 {
@@ -614,9 +606,13 @@ impl ByteCompiler<'_> {
         let jump_table_index = self.next_opcode_location() + size_of::<u32>() as u32;
         self.bytecode.emit_jump_table(
             finally_throw_index,
-            Self::DUMMY_ADDRESS,
             thin_vec![Self::DUMMY_ADDRESS; info.jumps.len()],
         );
+
+        // We are assuming any indices outside our jump table will fallback
+        // to executing the next available op. Since we kinda control the jump
+        // table index here, this doesn't matter too much, but we _could_ also
+        // throw a PanicError on the next instruction.
 
         let mut patch_jumps = Vec::with_capacity(info.jumps.len());
         // Handle breaks/continue/returns in a finally block
@@ -627,10 +623,8 @@ impl ByteCompiler<'_> {
             jump_record.perform_actions(Self::DUMMY_ADDRESS, self);
         }
 
-        let default = self.bytecode.next_opcode_location();
-
         self.bytecode
-            .patch_jump_table(jump_table_index, (default, &patch_jumps));
+            .patch_jump_table(jump_table_index, &patch_jumps);
     }
 
     pub(crate) fn jump_info_open_environment_count(&self, index: usize) -> u32 {

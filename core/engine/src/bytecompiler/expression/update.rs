@@ -1,4 +1,6 @@
-use crate::bytecompiler::{Access, BindingAccessOpcode, ByteCompiler, Register, ToJsString};
+use crate::bytecompiler::{
+    Access, BindingAccessOpcode, BindingKind, ByteCompiler, Register, ToJsString,
+};
 use boa_ast::{
     expression::{
         access::{PropertyAccess, PropertyAccessField},
@@ -27,6 +29,27 @@ impl ByteCompiler<'_> {
                     .get_identifier_reference(name.clone());
                 let is_lexical = binding.is_lexical();
                 let index = compiler.get_binding(&binding);
+
+                // Fast path: for local bindings with pre-increment/decrement,
+                // use the local register directly to avoid unnecessary Move instructions.
+                //
+                // Pre-increment (++i):
+                //   Before: Move(dst, local); Inc(tmp, dst); Move(local, tmp); Move(dst, tmp) → 4 ops
+                //   After:  Inc(dst, local); Move(local, dst) → 2 ops
+                if !post
+                    && is_lexical
+                    && let BindingKind::Local(Some(local_reg)) = &index
+                {
+                    let local_op = (*local_reg).into();
+                    if increment {
+                        compiler.bytecode.emit_inc(dst.variable(), local_op);
+                    } else {
+                        compiler.bytecode.emit_dec(dst.variable(), local_op);
+                    }
+                    // Write the new value back to the local register.
+                    compiler.bytecode.emit_move(local_op, dst.variable());
+                    return;
+                }
 
                 if is_lexical {
                     compiler.emit_binding_access(BindingAccessOpcode::GetName, &index, dst);
@@ -176,8 +199,7 @@ impl ByteCompiler<'_> {
                     PropertyAccessField::Const(ident) => {
                         let object = compiler.register_allocator.alloc();
                         let receiver = compiler.register_allocator.alloc();
-                        compiler.bytecode.emit_super(object.variable());
-                        compiler.bytecode.emit_this(receiver.variable());
+                        compiler.super_(&receiver, &object);
 
                         compiler.emit_get_property_by_name(
                             dst,
@@ -212,8 +234,7 @@ impl ByteCompiler<'_> {
                     PropertyAccessField::Expr(expr) => {
                         let object = compiler.register_allocator.alloc();
                         let receiver = compiler.register_allocator.alloc();
-                        compiler.bytecode.emit_super(object.variable());
-                        compiler.bytecode.emit_this(receiver.variable());
+                        compiler.super_(&receiver, &object);
 
                         let key = compiler.register_allocator.alloc();
                         compiler.compile_expr(expr, &key);
