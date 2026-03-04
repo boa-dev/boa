@@ -187,8 +187,7 @@ impl ByteCodeEmitter {
         // Write patched address values.
         for (i, value) in patch.1.iter().enumerate() {
             let offset = first_addr_pos + i * size_of::<u32>();
-            self.bytecode[offset..offset + size_of::<u32>()]
-                .copy_from_slice(&value.to_le_bytes());
+            self.bytecode[offset..offset + size_of::<u32>()].copy_from_slice(&value.to_le_bytes());
         }
     }
 }
