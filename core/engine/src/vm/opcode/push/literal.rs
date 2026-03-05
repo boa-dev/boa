@@ -16,7 +16,10 @@ pub(crate) struct PushLiteral;
 
 impl PushLiteral {
     #[inline(always)]
-    pub(crate) fn operation((dst, index): (RegisterOperand, VaryingOperand), context: &mut Context) {
+    pub(crate) fn operation(
+        (dst, index): (RegisterOperand, VaryingOperand),
+        context: &mut Context,
+    ) {
         let constant = &context.vm.frame().code_block().constants[usize::from(index)];
         let value: JsValue = match constant {
             Constant::BigInt(v) => v.clone().into(),

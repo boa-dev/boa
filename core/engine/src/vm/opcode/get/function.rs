@@ -15,7 +15,10 @@ pub(crate) struct GetFunction;
 
 impl GetFunction {
     #[inline(always)]
-    pub(crate) fn operation((dst, index): (RegisterOperand, VaryingOperand), context: &mut Context) {
+    pub(crate) fn operation(
+        (dst, index): (RegisterOperand, VaryingOperand),
+        context: &mut Context,
+    ) {
         let code = context
             .vm
             .frame()

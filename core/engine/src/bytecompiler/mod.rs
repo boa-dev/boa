@@ -1147,7 +1147,8 @@ impl<'ctx> ByteCompiler<'ctx> {
     fn try_fused_comparison_branch(&mut self, op: RelationalOp, binary: &Binary) -> Option<Label> {
         use crate::vm::opcode::ByteCodeEmitter;
 
-        let emit_fn: fn(&mut ByteCodeEmitter, Address, RegisterOperand, RegisterOperand) = match op {
+        let emit_fn: fn(&mut ByteCodeEmitter, Address, RegisterOperand, RegisterOperand) = match op
+        {
             RelationalOp::LessThan => ByteCodeEmitter::emit_jump_if_not_less_than,
             RelationalOp::LessThanOrEqual => ByteCodeEmitter::emit_jump_if_not_less_than_or_equal,
             RelationalOp::GreaterThan => ByteCodeEmitter::emit_jump_if_not_greater_than,

@@ -12,7 +12,10 @@ pub(crate) struct GetArgument;
 
 impl GetArgument {
     #[inline(always)]
-    pub(crate) fn operation((index, dst): (VaryingOperand, RegisterOperand), context: &mut Context) {
+    pub(crate) fn operation(
+        (index, dst): (VaryingOperand, RegisterOperand),
+        context: &mut Context,
+    ) {
         let value = context
             .vm
             .stack
