@@ -231,11 +231,7 @@ impl ByteCompiler<'_> {
                         self.emit_binding(BindingOpcode::InitVar, ident, &value);
                     }
                     Binding::Pattern(pattern) => {
-                        self.compile_declaration_pattern(
-                            pattern,
-                            BindingOpcode::InitVar,
-                            &value,
-                        );
+                        self.compile_declaration_pattern(pattern, BindingOpcode::InitVar, &value);
                     }
                 },
                 IterableLoopInitializer::Let(declaration)

@@ -1956,8 +1956,7 @@ impl<'ctx> ByteCompiler<'ctx> {
                                 } else {
                                     self.bytecode.emit_push_undefined(reg.variable());
                                 }
-                                self.local_binding_registers
-                                    .insert(binding, reg.index());
+                                self.local_binding_registers.insert(binding, reg.index());
                             } else {
                                 let value = self.register_allocator.alloc();
                                 if let Some(init) = variable.init() {
@@ -2004,8 +2003,7 @@ impl<'ctx> ByteCompiler<'ctx> {
                             if binding.local() {
                                 let reg = self.register_allocator.alloc_persistent();
                                 self.compile_expr(init, &reg);
-                                self.local_binding_registers
-                                    .insert(binding, reg.index());
+                                self.local_binding_registers.insert(binding, reg.index());
                             } else {
                                 let value = self.register_allocator.alloc();
                                 self.compile_expr(init, &value);
@@ -2017,8 +2015,7 @@ impl<'ctx> ByteCompiler<'ctx> {
                                 );
                                 // Cache non-local const bindings in a persistent register
                                 // so subsequent reads avoid GetName environment lookups.
-                                let cache_reg =
-                                    self.register_allocator.alloc_persistent();
+                                let cache_reg = self.register_allocator.alloc_persistent();
                                 self.bytecode
                                     .emit_move(cache_reg.variable(), value.variable());
                                 self.const_binding_cache
