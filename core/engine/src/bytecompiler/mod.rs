@@ -1560,6 +1560,12 @@ impl<'ctx> ByteCompiler<'ctx> {
                 inner_fn(self, RegisterOperand::from(*local_reg));
                 return;
             }
+            if !self.in_with
+                && let Some(&cached_reg) = self.const_binding_cache.get(&binding.locator())
+            {
+                inner_fn(self, cached_reg.into());
+                return;
+            }
         }
         let reg = self.register_allocator.alloc();
         self.compile_expr(expr, &reg);
