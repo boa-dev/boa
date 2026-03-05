@@ -1,4 +1,5 @@
 use boa_ast::{
+    Expression,
     declaration::Binding,
     operations::bound_names,
     scope::BindingLocatorError,
@@ -122,26 +123,27 @@ impl ByteCompiler<'_> {
 
         if let Some(final_expr) = for_loop.final_expr() {
             let value = self.register_allocator.alloc();
-            self.compile_expr(final_expr, &value);
+            if let Expression::Update(update) = final_expr {
+                self.compile_update(update, &value, true);
+            } else {
+                self.compile_expr(final_expr, &value);
+            }
             self.register_allocator.dealloc(value);
         }
 
         self.patch_jump(initial_jump);
 
-        let value = self.register_allocator.alloc();
-        if let Some(condition) = for_loop.condition() {
-            self.compile_expr(condition, &value);
-        } else {
-            self.bytecode.emit_push_true(value.variable());
-        }
-        let exit = self.jump_if_false(&value);
-        self.register_allocator.dealloc(value);
+        let exit = for_loop
+            .condition()
+            .map(|condition| self.compile_condition_and_branch(condition));
 
         self.compile_stmt(for_loop.body(), use_expr, true);
 
         self.bytecode.emit_jump(start_address);
 
-        self.patch_jump(exit);
+        if let Some(exit) = exit {
+            self.patch_jump(exit);
+        }
         self.pop_loop_control_info();
 
         if let Some(outer_scope_local) = outer_scope_local {
@@ -275,8 +277,7 @@ impl ByteCompiler<'_> {
 
             self.bytecode
                 .emit_iterator_finish_async_next(resume_kind.variable(), value.variable());
-            self.bytecode
-                .emit_generator_next(resume_kind.variable(), value.variable());
+            self.generator_next(&value, &resume_kind);
             self.register_allocator.dealloc(value);
             self.register_allocator.dealloc(resume_kind);
         }
@@ -375,10 +376,7 @@ impl ByteCompiler<'_> {
         self.bytecode.emit_increment_loop_iteration();
         self.push_loop_control_info(label, start_address, use_expr);
 
-        let value = self.register_allocator.alloc();
-        self.compile_expr(while_loop.condition(), &value);
-        let exit = self.jump_if_false(&value);
-        self.register_allocator.dealloc(value);
+        let exit = self.compile_condition_and_branch(while_loop.condition());
 
         self.compile_stmt(while_loop.body(), use_expr, true);
 
@@ -403,10 +401,7 @@ impl ByteCompiler<'_> {
         let condition_label_address = self.next_opcode_location();
         self.bytecode.emit_increment_loop_iteration();
 
-        let value = self.register_allocator.alloc();
-        self.compile_expr(do_while_loop.cond(), &value);
-        let exit = self.jump_if_false(&value);
-        self.register_allocator.dealloc(value);
+        let exit = self.compile_condition_and_branch(do_while_loop.cond());
 
         self.patch_jump(initial_label);
 

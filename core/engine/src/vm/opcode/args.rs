@@ -1,6 +1,6 @@
 use thin_vec::ThinVec;
 
-use super::VaryingOperand;
+use super::{Address, RegisterOperand, VaryingOperand};
 
 /// A trait for types that can be read from a byte slice.
 ///
@@ -146,6 +146,30 @@ impl Argument for VaryingOperand {
     fn decode(bytes: &[u8], pos: usize) -> (Self, usize) {
         let (arg1, pos) = read::<u32>(bytes, pos);
         (arg1.into(), pos)
+    }
+}
+
+impl Argument for RegisterOperand {
+    fn encode(self, bytes: &mut Vec<u8>) {
+        write_u32(bytes, self.value);
+    }
+
+    fn decode(bytes: &[u8], pos: usize) -> (Self, usize) {
+        let (arg1, pos) = read::<u32>(bytes, pos);
+        (Self::new(arg1), pos)
+    }
+}
+
+impl Argument for Address {
+    #[inline(always)]
+    fn encode(self, bytes: &mut Vec<u8>) {
+        write_u32(bytes, self.value);
+    }
+
+    #[inline(always)]
+    fn decode(bytes: &[u8], pos: usize) -> (Self, usize) {
+        let (value, pos) = read::<u32>(bytes, pos);
+        (Self::new(value), pos)
     }
 }
 

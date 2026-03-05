@@ -1,4 +1,4 @@
-use super::VaryingOperand;
+use super::{RegisterOperand, VaryingOperand};
 use crate::{
     Context, JsExpect, JsResult, JsValue,
     error::JsNativeError,
@@ -19,7 +19,7 @@ pub(crate) struct GetFunctionObject;
 impl GetFunctionObject {
     #[inline(always)]
     pub(super) fn operation(
-        function_object: VaryingOperand,
+        function_object: RegisterOperand,
         context: &mut Context,
     ) -> JsResult<()> {
         let env = context
@@ -55,7 +55,7 @@ pub(crate) struct This;
 
 impl This {
     #[inline(always)]
-    pub(super) fn operation(dst: VaryingOperand, context: &mut Context) -> JsResult<()> {
+    pub(super) fn operation(dst: RegisterOperand, context: &mut Context) -> JsResult<()> {
         if context.vm.frame().has_this_value_cached() {
             let this = context.vm.stack.get_this(context.vm.frame());
             context.vm.set_register(dst.into(), this);
@@ -91,7 +91,7 @@ pub(crate) struct ThisForObjectEnvironmentName;
 impl ThisForObjectEnvironmentName {
     #[inline(always)]
     pub(super) fn operation(
-        (dst, index): (VaryingOperand, VaryingOperand),
+        (dst, index): (RegisterOperand, VaryingOperand),
         context: &mut Context,
     ) -> JsResult<()> {
         let binding_locator = context.vm.frame().code_block.bindings[usize::from(index)].clone();
@@ -288,7 +288,7 @@ pub(crate) struct BindThisValue;
 
 impl BindThisValue {
     #[inline(always)]
-    pub(super) fn operation(value: VaryingOperand, context: &mut Context) -> JsResult<()> {
+    pub(super) fn operation(value: RegisterOperand, context: &mut Context) -> JsResult<()> {
         // Taken from `SuperCall : super Arguments` steps 7-12.
         //
         // <https://tc39.es/ecma262/#sec-super-keyword-runtime-semantics-evaluation>

@@ -1,6 +1,6 @@
 use crate::{
-    Context,
-    vm::opcode::{Operation, VaryingOperand},
+    Context, JsResult,
+    vm::opcode::{Address, Operation, RegisterOperand},
 };
 use thin_vec::ThinVec;
 
@@ -13,8 +13,8 @@ pub(crate) struct Jump;
 
 impl Jump {
     #[inline(always)]
-    pub(crate) fn operation(address: u32, context: &mut Context) {
-        context.vm.frame_mut().pc = address;
+    pub(crate) fn operation(address: Address, context: &mut Context) {
+        context.vm.frame_mut().pc = u32::from(address);
     }
 }
 
@@ -33,10 +33,10 @@ pub(crate) struct JumpIfTrue;
 
 impl JumpIfTrue {
     #[inline(always)]
-    pub(crate) fn operation((address, value): (u32, VaryingOperand), context: &mut Context) {
+    pub(crate) fn operation((address, value): (Address, RegisterOperand), context: &mut Context) {
         let value = context.vm.get_register(value.into());
         if value.to_boolean() {
-            context.vm.frame_mut().pc = address;
+            context.vm.frame_mut().pc = u32::from(address);
         }
     }
 }
@@ -56,10 +56,10 @@ pub(crate) struct JumpIfFalse;
 
 impl JumpIfFalse {
     #[inline(always)]
-    pub(crate) fn operation((address, value): (u32, VaryingOperand), context: &mut Context) {
+    pub(crate) fn operation((address, value): (Address, RegisterOperand), context: &mut Context) {
         let value = context.vm.get_register(value.into());
         if !value.to_boolean() {
-            context.vm.frame_mut().pc = address;
+            context.vm.frame_mut().pc = u32::from(address);
         }
     }
 }
@@ -79,10 +79,10 @@ pub(crate) struct JumpIfNotUndefined;
 
 impl JumpIfNotUndefined {
     #[inline(always)]
-    pub(crate) fn operation((address, value): (u32, VaryingOperand), context: &mut Context) {
+    pub(crate) fn operation((address, value): (Address, RegisterOperand), context: &mut Context) {
         let value = context.vm.get_register(value.into());
         if !value.is_undefined() {
-            context.vm.frame_mut().pc = address;
+            context.vm.frame_mut().pc = u32::from(address);
         }
     }
 }
@@ -102,10 +102,10 @@ pub(crate) struct JumpIfNullOrUndefined;
 
 impl JumpIfNullOrUndefined {
     #[inline(always)]
-    pub(crate) fn operation((address, value): (u32, VaryingOperand), context: &mut Context) {
+    pub(crate) fn operation((address, value): (Address, RegisterOperand), context: &mut Context) {
         let value = context.vm.get_register(value.into());
         if value.is_null_or_undefined() {
-            context.vm.frame_mut().pc = address;
+            context.vm.frame_mut().pc = u32::from(address);
         }
     }
 }
@@ -114,6 +114,150 @@ impl Operation for JumpIfNullOrUndefined {
     const NAME: &'static str = "JumpIfNullOrUndefined";
     const INSTRUCTION: &'static str = "INST - JumpIfNullOrUndefined";
     const COST: u8 = 1;
+}
+
+/// `JumpIfNotLessThan` implements the Opcode Operation for `Opcode::JumpIfNotLessThan`
+///
+/// Operation:
+///  - Fused `<` comparison + conditional jump. Jumps if `!(lhs < rhs)`.
+#[derive(Debug, Clone, Copy)]
+pub(crate) struct JumpIfNotLessThan;
+
+impl JumpIfNotLessThan {
+    #[inline(always)]
+    pub(crate) fn operation(
+        (address, lhs, rhs): (Address, RegisterOperand, RegisterOperand),
+        context: &mut Context,
+    ) -> JsResult<()> {
+        let lhs = context.vm.get_register(lhs.into());
+        let rhs = context.vm.get_register(rhs.into());
+        if let Some(result) = lhs.lt_fast(rhs) {
+            if !result {
+                context.vm.frame_mut().pc = u32::from(address);
+            }
+            return Ok(());
+        }
+        let lhs = lhs.clone();
+        let rhs = rhs.clone();
+        if !lhs.lt(&rhs, context)? {
+            context.vm.frame_mut().pc = u32::from(address);
+        }
+        Ok(())
+    }
+}
+
+impl Operation for JumpIfNotLessThan {
+    const NAME: &'static str = "JumpIfNotLessThan";
+    const INSTRUCTION: &'static str = "INST - JumpIfNotLessThan";
+    const COST: u8 = 2;
+}
+
+/// `JumpIfNotLessThanOrEqual` implements the Opcode Operation for `Opcode::JumpIfNotLessThanOrEqual`
+///
+/// Operation:
+///  - Fused `<=` comparison + conditional jump. Jumps if `!(lhs <= rhs)`.
+#[derive(Debug, Clone, Copy)]
+pub(crate) struct JumpIfNotLessThanOrEqual;
+
+impl JumpIfNotLessThanOrEqual {
+    #[inline(always)]
+    pub(crate) fn operation(
+        (address, lhs, rhs): (Address, RegisterOperand, RegisterOperand),
+        context: &mut Context,
+    ) -> JsResult<()> {
+        let lhs = context.vm.get_register(lhs.into());
+        let rhs = context.vm.get_register(rhs.into());
+        if let Some(result) = lhs.le_fast(rhs) {
+            if !result {
+                context.vm.frame_mut().pc = u32::from(address);
+            }
+            return Ok(());
+        }
+        let lhs = lhs.clone();
+        let rhs = rhs.clone();
+        if !lhs.le(&rhs, context)? {
+            context.vm.frame_mut().pc = u32::from(address);
+        }
+        Ok(())
+    }
+}
+
+impl Operation for JumpIfNotLessThanOrEqual {
+    const NAME: &'static str = "JumpIfNotLessThanOrEqual";
+    const INSTRUCTION: &'static str = "INST - JumpIfNotLessThanOrEqual";
+    const COST: u8 = 2;
+}
+
+/// `JumpIfNotGreaterThan` implements the Opcode Operation for `Opcode::JumpIfNotGreaterThan`
+///
+/// Operation:
+///  - Fused `>` comparison + conditional jump. Jumps if `!(lhs > rhs)`.
+#[derive(Debug, Clone, Copy)]
+pub(crate) struct JumpIfNotGreaterThan;
+
+impl JumpIfNotGreaterThan {
+    #[inline(always)]
+    pub(crate) fn operation(
+        (address, lhs, rhs): (Address, RegisterOperand, RegisterOperand),
+        context: &mut Context,
+    ) -> JsResult<()> {
+        let lhs = context.vm.get_register(lhs.into());
+        let rhs = context.vm.get_register(rhs.into());
+        if let Some(result) = lhs.gt_fast(rhs) {
+            if !result {
+                context.vm.frame_mut().pc = u32::from(address);
+            }
+            return Ok(());
+        }
+        let lhs = lhs.clone();
+        let rhs = rhs.clone();
+        if !lhs.gt(&rhs, context)? {
+            context.vm.frame_mut().pc = u32::from(address);
+        }
+        Ok(())
+    }
+}
+
+impl Operation for JumpIfNotGreaterThan {
+    const NAME: &'static str = "JumpIfNotGreaterThan";
+    const INSTRUCTION: &'static str = "INST - JumpIfNotGreaterThan";
+    const COST: u8 = 2;
+}
+
+/// `JumpIfNotGreaterThanOrEqual` implements the Opcode Operation for `Opcode::JumpIfNotGreaterThanOrEqual`
+///
+/// Operation:
+///  - Fused `>=` comparison + conditional jump. Jumps if `!(lhs >= rhs)`.
+#[derive(Debug, Clone, Copy)]
+pub(crate) struct JumpIfNotGreaterThanOrEqual;
+
+impl JumpIfNotGreaterThanOrEqual {
+    #[inline(always)]
+    pub(crate) fn operation(
+        (address, lhs, rhs): (Address, RegisterOperand, RegisterOperand),
+        context: &mut Context,
+    ) -> JsResult<()> {
+        let lhs = context.vm.get_register(lhs.into());
+        let rhs = context.vm.get_register(rhs.into());
+        if let Some(result) = lhs.ge_fast(rhs) {
+            if !result {
+                context.vm.frame_mut().pc = u32::from(address);
+            }
+            return Ok(());
+        }
+        let lhs = lhs.clone();
+        let rhs = rhs.clone();
+        if !lhs.ge(&rhs, context)? {
+            context.vm.frame_mut().pc = u32::from(address);
+        }
+        Ok(())
+    }
+}
+
+impl Operation for JumpIfNotGreaterThanOrEqual {
+    const NAME: &'static str = "JumpIfNotGreaterThanOrEqual";
+    const INSTRUCTION: &'static str = "INST - JumpIfNotGreaterThanOrEqual";
+    const COST: u8 = 2;
 }
 
 /// `JumpIfNotEqual` implements the Opcode Operation for `Opcode::JumpIfNotEqual`
@@ -126,13 +270,13 @@ pub(crate) struct JumpIfNotEqual;
 impl JumpIfNotEqual {
     #[inline(always)]
     pub(crate) fn operation(
-        (address, lhs, rhs): (u32, VaryingOperand, VaryingOperand),
+        (address, lhs, rhs): (Address, RegisterOperand, RegisterOperand),
         context: &mut Context,
     ) {
         let lhs = context.vm.get_register(lhs.into());
         let rhs = context.vm.get_register(rhs.into());
         if lhs != rhs {
-            context.vm.frame_mut().pc = address;
+            context.vm.frame_mut().pc = u32::from(address);
         }
     }
 }
@@ -152,7 +296,7 @@ pub(crate) struct JumpTable;
 
 impl JumpTable {
     #[inline(always)]
-    pub(crate) fn operation((index, addresses): (u32, ThinVec<u32>), context: &mut Context) {
+    pub(crate) fn operation((index, addresses): (u32, ThinVec<Address>), context: &mut Context) {
         let value = context.vm.get_register(index as usize);
         let Some(offset) = value.as_i32().map(|i| i as usize) else {
             return;
@@ -162,7 +306,7 @@ impl JumpTable {
             return;
         };
 
-        context.vm.frame_mut().pc = pc;
+        context.vm.frame_mut().pc = u32::from(pc);
     }
 }
 
