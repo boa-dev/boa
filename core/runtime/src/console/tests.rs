@@ -375,3 +375,84 @@ fn trace_with_stack_trace() {
         "# }
     );
 }
+
+#[test]
+fn console_table_basic_object() {
+    let mut context = Context::default();
+    let logger = RecordingLogger::default();
+
+    Console::register_with_logger(logger.clone(), &mut context).unwrap();
+
+    run_test_actions_with(
+        [TestAction::run(indoc! {r#"
+                console.table({ a: 1, b: 2 });
+            "#})],
+        &mut context,
+    );
+
+    let logs = logger.log.borrow().clone();
+
+    assert!(logs.contains("index | value"));
+    assert!(logs.contains("a | 1"));
+    assert!(logs.contains("b | 2"));
+}
+
+#[test]
+fn console_table_non_object() {
+    let mut context = Context::default();
+    let logger = RecordingLogger::default();
+
+    Console::register_with_logger(logger.clone(), &mut context).unwrap();
+
+    run_test_actions_with(
+        [TestAction::run(indoc! {r#"
+                console.table(42);
+            "#})],
+        &mut context,
+    );
+
+    let logs = logger.log.borrow().clone();
+
+    assert!(logs.contains("42"));
+}
+
+#[test]
+fn console_table_array() {
+    let mut context = Context::default();
+    let logger = RecordingLogger::default();
+
+    Console::register_with_logger(logger.clone(), &mut context).unwrap();
+
+    run_test_actions_with(
+        [TestAction::run(indoc! {r#"
+                console.table([1,2,3]);
+            "#})],
+        &mut context,
+    );
+
+    let logs = logger.log.borrow().clone();
+
+    assert!(logs.contains("0"));
+    assert!(logs.contains("1"));
+    assert!(logs.contains("2"));
+}
+
+#[test]
+fn console_table_nested_object_edge_case() {
+    let mut context = Context::default();
+    let logger = RecordingLogger::default();
+
+    Console::register_with_logger(logger.clone(), &mut context).unwrap();
+
+    run_test_actions_with(
+        [TestAction::run(indoc! {r#"
+                console.table({ x: { y: 1 }, z: 2 });
+            "#})],
+        &mut context,
+    );
+
+    let logs = logger.log.borrow().clone();
+
+    assert!(logs.contains("x"));
+    assert!(logs.contains("z"));
+}

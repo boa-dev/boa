@@ -429,6 +429,11 @@ impl Console {
             0,
         )
         .function(
+            console_method(Self::table, state.clone(), logger.clone()),
+            js_string!("table"),
+            0,
+        )
+        .function(
             console_method(Self::dir, state.clone(), logger.clone()),
             js_string!("dir"),
             0,
@@ -915,6 +920,48 @@ impl Console {
             &console.state,
             context,
         )?;
+        Ok(JsValue::undefined())
+    }
+
+    /// `console.table(data)`
+    ///
+    /// Displays tabular data as a table.
+    ///
+    /// More information:
+    ///  - [MDN documentation][mdn]
+    ///
+    /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/API/console/table
+    fn table(
+        _: &JsValue,
+        args: &[JsValue],
+        console: &Self,
+        logger: &impl Logger,
+        context: &mut Context,
+    ) -> JsResult<JsValue> {
+        let data = args.get_or_undefined(0);
+
+        let Some(obj) = data.as_object() else {
+            logger.info(data.display().to_string(), &console.state, context)?;
+            return Ok(JsValue::undefined());
+        };
+
+        let keys = obj.own_property_keys(context)?;
+        let mut output = String::new();
+
+        output.push_str("index | value\n");
+        output.push_str("----------------\n");
+
+        for key in keys {
+            let value = obj.get(key.clone(), context)?;
+
+            let key_str = key.to_string();
+            let val_str = value.display().to_string();
+
+            output.push_str(&format!("{key_str} | {val_str}\n"));
+        }
+
+        logger.info(output, &console.state, context)?;
+
         Ok(JsValue::undefined())
     }
 }
