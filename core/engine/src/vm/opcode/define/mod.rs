@@ -1,4 +1,4 @@
-use super::VaryingOperand;
+use super::{RegisterOperand, VaryingOperand};
 use crate::{Context, JsResult, JsValue, vm::opcode::Operation};
 
 pub(crate) mod class;
@@ -44,7 +44,7 @@ pub(crate) struct DefInitVar;
 impl DefInitVar {
     #[inline(always)]
     pub(super) fn operation(
-        (value, index): (VaryingOperand, VaryingOperand),
+        (value, index): (RegisterOperand, VaryingOperand),
         context: &mut Context,
     ) -> JsResult<()> {
         let value = context.vm.get_register(value.into()).clone();
@@ -74,7 +74,7 @@ pub(crate) struct PutLexicalValue;
 impl PutLexicalValue {
     #[inline(always)]
     pub(super) fn operation(
-        (value, index): (VaryingOperand, VaryingOperand),
+        (value, index): (RegisterOperand, VaryingOperand),
         context: &mut Context,
     ) {
         let value = context.vm.get_register(value.into());

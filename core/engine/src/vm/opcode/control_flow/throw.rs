@@ -4,7 +4,7 @@ use crate::{
     Context, JsError, JsNativeError, JsResult,
     vm::{
         CompletionRecord,
-        opcode::{Operation, VaryingOperand},
+        opcode::{Operation, RegisterOperand, VaryingOperand},
     },
 };
 
@@ -18,7 +18,7 @@ pub(crate) struct Throw;
 impl Throw {
     #[inline(always)]
     pub(crate) fn operation(
-        value: VaryingOperand,
+        value: RegisterOperand,
         context: &mut Context,
     ) -> ControlFlow<CompletionRecord> {
         let value = context.vm.get_register(value.into());
@@ -86,7 +86,7 @@ pub(crate) struct Exception;
 impl Exception {
     #[inline(always)]
     pub(crate) fn operation(
-        dst: VaryingOperand,
+        dst: RegisterOperand,
         context: &mut Context,
     ) -> ControlFlow<CompletionRecord> {
         if let Some(error) = context.vm.pending_exception.take() {
@@ -123,7 +123,7 @@ pub(crate) struct MaybeException;
 impl MaybeException {
     #[inline(always)]
     pub(crate) fn operation(
-        (has_exception, exception): (VaryingOperand, VaryingOperand),
+        (has_exception, exception): (RegisterOperand, RegisterOperand),
         context: &mut Context,
     ) -> JsResult<()> {
         if let Some(error) = context.vm.pending_exception.take() {

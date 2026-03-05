@@ -1,4 +1,4 @@
-use super::VaryingOperand;
+use super::RegisterOperand;
 use crate::{
     Context,
     vm::opcode::{Address, Operation},
@@ -15,7 +15,7 @@ pub(crate) struct Case;
 impl Case {
     #[inline(always)]
     pub(super) fn operation(
-        (address, value, condition): (Address, VaryingOperand, VaryingOperand),
+        (address, value, condition): (Address, RegisterOperand, RegisterOperand),
         context: &mut Context,
     ) {
         let value = context.vm.get_register(value.into());

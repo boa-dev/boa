@@ -757,12 +757,12 @@ impl CodeBlock {
             }
             Instruction::PushClassField {
                 object,
-                name_index,
+                name,
                 value,
                 is_anonymous_function,
             } => {
                 format!(
-                    "object:{object}, value:{value}, name_index:{name_index}, is_anonymous_function:{is_anonymous_function}"
+                    "object:{object}, value:{value}, name:{name}, is_anonymous_function:{is_anonymous_function}"
                 )
             }
             Instruction::MaybeException {

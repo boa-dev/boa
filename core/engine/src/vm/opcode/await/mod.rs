@@ -1,4 +1,4 @@
-use super::VaryingOperand;
+use super::RegisterOperand;
 use crate::{
     Context, JsArgs, JsExpect, JsResult, JsValue,
     builtins::{
@@ -23,7 +23,7 @@ pub(crate) struct Await;
 impl Await {
     #[inline(always)]
     pub(super) fn operation(
-        value: VaryingOperand,
+        value: RegisterOperand,
         context: &mut Context,
     ) -> ControlFlow<CompletionRecord> {
         let value = context.vm.get_register(value.into());

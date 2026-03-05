@@ -1,4 +1,4 @@
-use super::VaryingOperand;
+use super::RegisterOperand;
 use crate::{Context, JsResult, error::JsNativeError, vm::opcode::Operation};
 
 /// `ValueNotNullOrUndefined` implements the Opcode Operation for `Opcode::ValueNotNullOrUndefined`
@@ -10,7 +10,7 @@ pub(crate) struct ValueNotNullOrUndefined;
 
 impl ValueNotNullOrUndefined {
     #[inline(always)]
-    pub(super) fn operation(value: VaryingOperand, context: &mut Context) -> JsResult<()> {
+    pub(super) fn operation(value: RegisterOperand, context: &mut Context) -> JsResult<()> {
         let value = context.vm.get_register(value.into());
         if value.is_null() {
             return Err(JsNativeError::typ()
@@ -41,7 +41,7 @@ pub(crate) struct IsObject;
 
 impl IsObject {
     #[inline(always)]
-    pub(super) fn operation(value: VaryingOperand, context: &mut Context) {
+    pub(super) fn operation(value: RegisterOperand, context: &mut Context) {
         let is_object = context.vm.get_register(value.into()).is_object();
         context.vm.set_register(value.into(), is_object.into());
     }

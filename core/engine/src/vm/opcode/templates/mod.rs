@@ -1,4 +1,4 @@
-use super::VaryingOperand;
+use super::RegisterOperand;
 use crate::{
     Context,
     builtins::array::Array,
@@ -19,7 +19,7 @@ pub(crate) struct TemplateLookup;
 impl TemplateLookup {
     #[inline(always)]
     pub(super) fn operation(
-        (jump, site, dst): (Address, u64, VaryingOperand),
+        (jump, site, dst): (Address, u64, RegisterOperand),
         context: &mut Context,
     ) {
         if let Some(template) = context.realm().lookup_template(site) {
@@ -45,7 +45,7 @@ pub(crate) struct TemplateCreate;
 impl TemplateCreate {
     #[inline(always)]
     pub(super) fn operation(
-        (site, dst, values): (u64, VaryingOperand, ThinVec<u32>),
+        (site, dst, values): (u64, RegisterOperand, ThinVec<u32>),
         context: &mut Context,
     ) {
         let count = values.len() / 2;
