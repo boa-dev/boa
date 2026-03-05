@@ -13,8 +13,12 @@ use crate::read::{MetaData, TestFlag};
 static FEATURE_EDITION: phf::Map<&'static str, SpecEdition> = phf::phf_map! {
     // Proposed language features
 
-    // Intl.Locale Info
-    // https://github.com/tc39/proposal-intl-locale-info
+    // Import bytes proposal
+    // https://github.com/tc39/proposal-import-bytes
+    "import-bytes"  => SpecEdition::ESNext,
+
+    // Await dictionary proposal
+    // https://github.com/tc39/proposal-await-dictionary
     "await-dictionary"  => SpecEdition::ESNext,
 
     // Intl.Locale Info
