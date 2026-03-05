@@ -176,9 +176,11 @@ impl EnvironmentStack {
         let index = self.stack.len() as u32;
 
         self.stack.push(Environment::Declarative(Gc::new(
-            DeclarativeEnvironment::new(DeclarativeEnvironmentKind::Lexical(
-                LexicalEnvironment::new(bindings_count, poisoned, with),
-            )),
+            DeclarativeEnvironment::new(
+                DeclarativeEnvironmentKind::Lexical(LexicalEnvironment::new(bindings_count)),
+                poisoned,
+                with,
+            ),
         )));
 
         index
@@ -206,9 +208,15 @@ impl EnvironmentStack {
         };
 
         self.stack.push(Environment::Declarative(Gc::new(
-            DeclarativeEnvironment::new(DeclarativeEnvironmentKind::Function(
-                FunctionEnvironment::new(num_bindings, poisoned, with, function_slots, scope),
-            )),
+            DeclarativeEnvironment::new(
+                DeclarativeEnvironmentKind::Function(FunctionEnvironment::new(
+                    num_bindings,
+                    function_slots,
+                    scope,
+                )),
+                poisoned,
+                with,
+            ),
         )));
     }
 
@@ -216,9 +224,11 @@ impl EnvironmentStack {
     pub(crate) fn push_module(&mut self, scope: Scope) {
         let num_bindings = scope.num_bindings_non_local();
         self.stack.push(Environment::Declarative(Gc::new(
-            DeclarativeEnvironment::new(DeclarativeEnvironmentKind::Module(
-                ModuleEnvironment::new(num_bindings, scope),
-            )),
+            DeclarativeEnvironment::new(
+                DeclarativeEnvironmentKind::Module(ModuleEnvironment::new(num_bindings, scope)),
+                false,
+                false,
+            ),
         )));
     }
 
