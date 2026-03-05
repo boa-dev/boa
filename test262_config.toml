@@ -7,8 +7,6 @@ flags = []
 features = [
     ### Unimplemented features:
 
-    "import-bytes",
-    "await-dictionary",
     "FinalizationRegistry",
     "IsHTMLDDA",
     "symbols-as-weakmap-keys",
@@ -22,6 +20,12 @@ features = [
     "joint-iteration",
 
     ### Pending proposals
+
+    # https://github.com/tc39/proposal-import-bytes
+    "import-bytes",
+
+    # https://github.com/tc39/proposal-await-dictionary
+    "await-dictionary",
 
     # https://github.com/tc39/proposal-intl-locale-info
     "Intl.Locale-info",
