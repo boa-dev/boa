@@ -277,8 +277,7 @@ impl ByteCompiler<'_> {
 
             self.bytecode
                 .emit_iterator_finish_async_next(resume_kind.variable(), value.variable());
-            self.bytecode
-                .emit_generator_next(resume_kind.variable(), value.variable());
+            self.generator_next(&value, &resume_kind);
             self.register_allocator.dealloc(value);
             self.register_allocator.dealloc(resume_kind);
         }

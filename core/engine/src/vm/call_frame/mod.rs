@@ -274,7 +274,7 @@ impl JsValue {
     ///
     /// # Panics
     ///
-    /// If not a integer type or not in the range `1..=2`.
+    /// If not a integer type or not in the range `0..=2`.
     #[track_caller]
     pub(crate) fn to_generator_resume_kind(&self) -> GeneratorResumeKind {
         if let Some(value) = self.as_i32() {

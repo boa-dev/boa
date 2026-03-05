@@ -157,24 +157,6 @@ impl ByteCodeEmitter {
         self.bytecode[pos + 4] = bytes[3];
     }
 
-    /// Patch the jump instruction at the given label with two addresses.
-    pub(crate) fn patch_jump_two_addresses(&mut self, label: Address, patch: (Address, Address)) {
-        let pos = u32::from(label) as usize;
-        // Write first patched value
-        let bytes = u32::from(patch.0).to_le_bytes();
-        self.bytecode[pos + 1] = bytes[0];
-        self.bytecode[pos + 2] = bytes[1];
-        self.bytecode[pos + 3] = bytes[2];
-        self.bytecode[pos + 4] = bytes[3];
-
-        // Write second patched value
-        let bytes = u32::from(patch.1).to_le_bytes();
-        self.bytecode[pos + 5] = bytes[0];
-        self.bytecode[pos + 6] = bytes[1];
-        self.bytecode[pos + 7] = bytes[2];
-        self.bytecode[pos + 8] = bytes[3];
-    }
-
     /// Patch the jump instruction at the given label with jump table addresses.
     pub(crate) fn patch_jump_table(&mut self, label: Address, patch: &[Address]) {
         let length_offset = u32::from(label) as usize + 1;
@@ -1151,6 +1133,15 @@ generate_opcodes! {
     ///   - Output: dst
     DeleteName { dst: RegisterOperand, binding_index: VaryingOperand },
 
+    /// Gets a method from an object, or `undefined` if the method does not exist.
+    ///
+    /// Operands:
+    ///  - name_index: constant `JsString`.
+    ///
+    /// Registers (inout)
+    ///  - object: `JsObject` as input, `JsObject` or `undefined` as output.
+    GetMethod { object: RegisterOperand, name_index: VaryingOperand },
+
     /// Get the length property by name from an object.
     ///
     /// Like `object.name`
@@ -1916,12 +1907,15 @@ generate_opcodes! {
     /// Close an async generator function.
     AsyncGeneratorClose,
 
-    /// Creates the generator object and yields.
+    /// Creates the Generator object and yields.
     ///
-    /// - Operands:
-    ///   - async: `bool`
     /// - Stack: **=>** resume_kind
-    Generator { r#async: VaryingOperand },
+    Generator,
+
+    /// Creates the AsyncGenerator object and yields.
+    ///
+    /// - Stack: **=>** resume_kind
+    AsyncGenerator,
 
     /// Set return value of a function.
     ///
@@ -1994,10 +1988,27 @@ generate_opcodes! {
     /// - Iterator Stack: **=>** `iterator`
     GetAsyncIterator { src: RegisterOperand },
 
+    /// Pop an iterator from the iterators stack
+    /// - Registers (out)
+    ///   - iterator: `JsObject`.
+    ///   - next: `JsValue`.
+    IteratorPop { iterator: RegisterOperand, next: RegisterOperand },
+
+    /// Pushes an iterator on the iterators stack
+    /// - Registers (in)
+    ///   - iterator: `JsObject`.
+    ///   - next: `JsValue`.
+    IteratorPush { iterator: RegisterOperand, next: RegisterOperand },
+
     /// Calls the `next` method of `iterator`, updating its record with the next value.
     ///
     /// - Iterator Stack: `iterator` **=>** `iterator`
     IteratorNext,
+
+    /// Updates the result of the currently active iterator.
+    /// - Registers (inout)
+    ///  - result: `JsValue` (in), `bool` (out) with the `done` value of the iterator.
+    IteratorUpdateResult { result: RegisterOperand },
 
     /// Returns `true` if the current iterator is done, or `false` otherwise
     ///
@@ -2085,15 +2096,6 @@ generate_opcodes! {
     ///   - Output: resume_kind, received
     GeneratorYield { src: RegisterOperand },
 
-    /// Resumes the current generator function.
-    ///
-    /// If the `resume_kind` is `Throw`, then the value is popped and thrown, otherwise if `Return`
-    /// we pop the value, set it as the return value and throw and empty exception. See [`Opcode::ReThrow`].
-    ///
-    /// - Registers:
-    ///   - Input: resume_kind, value
-    GeneratorNext { resume_kind: RegisterOperand, value: RegisterOperand },
-
     /// Yields from the current async generator execution.
     ///
     /// - Registers:
@@ -2103,47 +2105,6 @@ generate_opcodes! {
 
     /// Create a promise capacity for an async function, if not already set.
     CreatePromiseCapability,
-
-    /// Jumps to the specified address if the resume kind is not equal.
-    ///
-    /// - Operands:
-    ///   - address: `u32`
-    ///   - resume_kind: `GeneratorResumeKind`
-    /// - Registers:
-    ///   - Input: src
-    JumpIfNotResumeKind { address: Address, resume_kind: VaryingOperand, src: RegisterOperand },
-
-    /// Delegates the current async generator function to another iterator.
-    ///
-    /// - Operands:
-    ///   - throw_method_undefined: `Address`,
-    ///   - return_method_undefined: `Address`
-    /// - Registers:
-    ///   - Input: value, resume_kind
-    ///   - Output: value, is_return
-    GeneratorDelegateNext {
-        throw_method_undefined: Address,
-        return_method_undefined: Address,
-        value: RegisterOperand,
-        resume_kind: RegisterOperand,
-        is_return: RegisterOperand
-    },
-
-    /// Resume the async generator with yield delegate logic after it awaits a value.
-    ///
-    /// - Operands:
-    ///   - r#return: `Address`,
-    ///   - exit: `Address`
-    /// - Registers:
-    ///   - Input: value, resume_kind, is_return
-    ///   - Output: value
-    GeneratorDelegateResume {
-        r#return: Address,
-        exit: Address,
-        value: RegisterOperand,
-        resume_kind: RegisterOperand,
-        is_return: RegisterOperand
-    },
 
     /// Stops the current async function and schedules it to resume later.
     ///
@@ -2378,6 +2339,4 @@ generate_opcodes! {
     Reserved53 => Reserved,
     /// Reserved [`Opcode`].
     Reserved54 => Reserved,
-    /// Reserved [`Opcode`].
-    Reserved55 => Reserved,
 }

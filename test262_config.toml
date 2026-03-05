@@ -1,4 +1,4 @@
-commit = "7d0f906f4bef32bad3d6cce30c53978e26d8d10c"
+commit = "72ec758c9b6351b5baa299e0a162c2b7fe497cc6"
 
 [ignored]
 # Not implemented yet:
@@ -20,6 +20,12 @@ features = [
     "joint-iteration",
 
     ### Pending proposals
+
+    # https://github.com/tc39/proposal-import-bytes
+    "import-bytes",
+
+    # https://github.com/tc39/proposal-await-dictionary
+    "await-dictionary",
 
     # https://github.com/tc39/proposal-intl-locale-info
     "Intl.Locale-info",

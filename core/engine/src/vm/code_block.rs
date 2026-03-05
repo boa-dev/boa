@@ -405,9 +405,6 @@ impl CodeBlock {
                     }
                 )
             }
-            Instruction::Generator { r#async } => {
-                format!("async: {async}")
-            }
             Instruction::PushInt8 { value, dst } => {
                 format!("value:{value}, dst:{dst}")
             }
@@ -442,7 +439,7 @@ impl CodeBlock {
             } => {
                 format!("pattern:{pattern_index}, flags:{flags_index}, dst:{dst}")
             }
-            Instruction::Jump { address } => address.to_string(),
+            Instruction::Jump { address } => format!("address:{address}"),
             Instruction::JumpIfTrue { address, value }
             | Instruction::JumpIfFalse { address, value }
             | Instruction::JumpIfNotUndefined { address, value }
@@ -501,28 +498,6 @@ impl CodeBlock {
                 ic_index,
             } => {
                 format!("dst:{dst}, binding_index:{binding_index}, ic_index:{ic_index}")
-            }
-            Instruction::GeneratorDelegateNext {
-                return_method_undefined,
-                throw_method_undefined,
-                value,
-                resume_kind,
-                is_return,
-            } => {
-                format!(
-                    "return_method_undefined:{return_method_undefined}, throw_method_undefined:{throw_method_undefined}, value:{value}, resume_kind:{resume_kind}, is_return:{is_return}"
-                )
-            }
-            Instruction::GeneratorDelegateResume {
-                r#return: rreturn,
-                exit,
-                value,
-                resume_kind,
-                is_return,
-            } => {
-                format!(
-                    "return:{rreturn}, exit:{exit}, value:{value}, resume_kind:{resume_kind}, is_return:{is_return}"
-                )
             }
             Instruction::DefineOwnPropertyByName {
                 object,
@@ -629,7 +604,8 @@ impl CodeBlock {
             Instruction::ThrowMutateImmutable { index } => {
                 format!("index:{index}")
             }
-            Instruction::DeletePropertyByName { object, name_index } => {
+            Instruction::DeletePropertyByName { object, name_index }
+            | Instruction::GetMethod { object, name_index } => {
                 format!("object:{object}, name_index:{name_index}")
             }
             Instruction::GetLengthProperty {
@@ -785,6 +761,13 @@ impl CodeBlock {
             | Instruction::Await { src } => {
                 format!("src:{src}")
             }
+            Instruction::IteratorPush { iterator, next }
+            | Instruction::IteratorPop { iterator, next } => {
+                format!("iterator:{iterator}, next:{next}")
+            }
+            Instruction::IteratorUpdateResult { result } => {
+                format!("result:{result}")
+            }
             Instruction::IteratorDone { dst }
             | Instruction::IteratorValue { dst }
             | Instruction::IteratorResult { dst }
@@ -793,19 +776,11 @@ impl CodeBlock {
             | Instruction::PushEmptyObject { dst } => {
                 format!("dst:{dst}")
             }
-            Instruction::IteratorFinishAsyncNext { resume_kind, value }
-            | Instruction::GeneratorNext { resume_kind, value } => {
+            Instruction::IteratorFinishAsyncNext { resume_kind, value } => {
                 format!("resume_kind:{resume_kind}, value:{value}")
             }
             Instruction::IteratorReturn { value, called } => {
                 format!("value:{value}, called:{called}")
-            }
-            Instruction::JumpIfNotResumeKind {
-                address,
-                resume_kind,
-                src,
-            } => {
-                format!("address:{address}, resume_kind:{resume_kind}, src:{src}")
             }
             Instruction::CreateGlobalFunctionBinding {
                 src,
@@ -831,8 +806,8 @@ impl CodeBlock {
             }
             Instruction::JumpTable { index, addresses } => {
                 format!(
-                    "index:{index}, jump_table:[{}]",
-                    addresses.iter().join(", ")
+                    "index:{index}, jump_table:({})",
+                    addresses.iter().format(", ")
                 )
             }
             Instruction::ConcatToString { dst, values } => {
@@ -865,7 +840,9 @@ impl CodeBlock {
             | Instruction::CallSpread
             | Instruction::NewSpread
             | Instruction::SuperCallSpread
-            | Instruction::PopPrivateEnvironment => String::new(),
+            | Instruction::PopPrivateEnvironment
+            | Instruction::Generator
+            | Instruction::AsyncGenerator => String::new(),
             Instruction::Reserved1
             | Instruction::Reserved2
             | Instruction::Reserved3
@@ -919,8 +896,7 @@ impl CodeBlock {
             | Instruction::Reserved51
             | Instruction::Reserved52
             | Instruction::Reserved53
-            | Instruction::Reserved54
-            | Instruction::Reserved55 => unreachable!("Reserved opcodes are unreachable"),
+            | Instruction::Reserved54 => unreachable!("Reserved opcodes are unreachable"),
         }
     }
 }
