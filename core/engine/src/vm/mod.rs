@@ -12,6 +12,7 @@ use crate::{
     object::JsFunction,
     realm::Realm,
     script::Script,
+    vm::opcode::{OPCODE_HANDLERS, OPCODE_HANDLERS_BUDGET},
 };
 use boa_gc::{Finalize, Gc, Trace, custom_trace};
 use shadow_stack::ShadowStack;
@@ -849,7 +850,10 @@ impl Context {
 
             match self.execute_one(
                 |context, opcode| {
-                    context.execute_bytecode_instruction_with_budget(&mut runtime_budget, opcode)
+                    let frame = context.vm.frame();
+                    let pc = frame.pc as usize;
+
+                    OPCODE_HANDLERS_BUDGET[opcode as usize](context, pc, &mut runtime_budget)
                 },
                 opcode,
             ) {
@@ -882,7 +886,15 @@ impl Context {
         {
             let opcode = Opcode::decode(*byte);
 
-            match self.execute_one(Self::execute_bytecode_instruction, opcode) {
+            match self.execute_one(
+                |context, opcode| {
+                    let frame = context.vm.frame();
+                    let pc = frame.pc as usize;
+
+                    OPCODE_HANDLERS[opcode as usize](context, pc)
+                },
+                opcode,
+            ) {
                 ControlFlow::Continue(()) => {}
                 ControlFlow::Break(value) => return value,
             }
