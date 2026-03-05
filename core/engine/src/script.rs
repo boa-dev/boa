@@ -171,12 +171,10 @@ impl Script {
         // Drop the borrow before taking the AST.
         drop(source_borrow);
 
-        // Drop the AST now that compilation is complete — it is no longer needed.
         // This mirrors the same optimization applied to modules after linking.
         // Without this, every function object created from this script would keep
         // the entire AST alive (via `OrdinaryFunction::script_or_module`) for the
         // lifetime of the function, which in the case of global functions is forever.
-        *self.inner.source.borrow_mut() = None;
 
         Ok(cb)
     }
@@ -224,6 +222,10 @@ impl Script {
         let record = context.run_async_with_budget(budget).await;
 
         context.vm.pop_frame();
+
+        // Drop AST after script execution
+        *self.inner.source.borrow_mut() = None;
+
         record.consume()
     }
 
