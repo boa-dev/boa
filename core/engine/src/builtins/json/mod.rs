@@ -16,17 +16,18 @@
 use std::{borrow::Cow, iter::once};
 
 use boa_ast::scope::Scope;
+use boa_gc::{Finalize, Gc, Trace};
 use boa_macros::utf16;
 use itertools::Itertools;
 
 use crate::{
-    Context, JsArgs, JsBigInt, JsResult, JsString, JsValue, SpannedSourceText,
+    Context, JsArgs, JsBigInt, JsData, JsResult, JsString, JsValue, SpannedSourceText,
     builtins::BuiltInObject,
     bytecompiler::ByteCompiler,
     context::intrinsics::Intrinsics,
     error::JsNativeError,
     js_string,
-    object::{JsObject, internal_methods::InternalMethodPropertyContext},
+    object::{IntegrityLevel, JsObject, internal_methods::InternalMethodPropertyContext},
     property::{Attribute, PropertyNameKind},
     realm::Realm,
     string::{CodePoint, StaticJsStrings},
@@ -34,13 +35,163 @@ use crate::{
     value::IntegerOrInfinity,
     vm::{CallFrame, CallFrameFlags, source_info::SourcePath},
 };
-use boa_gc::Gc;
 use boa_parser::{Parser, Source};
 
 use super::{BuiltInBuilder, IntrinsicObject};
 
 #[cfg(test)]
 mod tests;
+
+/// Marker struct for the `[[IsRawJSON]]` internal slot.
+#[derive(Debug, Trace, Finalize, JsData)]
+pub(crate) struct RawJson;
+
+/// A tree node representing the structure of parsed JSON, preserving source
+/// text spans for primitive values. Used to provide `context.source` to
+/// the reviver function in `JSON.parse`.
+#[derive(Debug)]
+enum JsonNode {
+    /// A primitive value (string, number, boolean, null) with its original source text.
+    Primitive(String),
+    /// An array of child nodes.
+    Array(Vec<JsonNode>),
+    /// An object with key-value pairs.
+    Object(Vec<(String, JsonNode)>),
+}
+
+/// Skip JSON whitespace characters and return the new position.
+fn skip_whitespace(bytes: &[u8], mut pos: usize) -> usize {
+    while pos < bytes.len() && matches!(bytes[pos], b' ' | b'\t' | b'\n' | b'\r') {
+        pos += 1;
+    }
+    pos
+}
+
+/// Build a `JsonNode` tree from a JSON string, tracking source text positions.
+/// The input must be valid JSON (already validated by `serde_json`).
+/// Returns the parsed node and the byte position after the parsed value.
+fn parse_json_node(input: &str, bytes: &[u8], pos: usize) -> (JsonNode, usize) {
+    let pos = skip_whitespace(bytes, pos);
+
+    match bytes[pos] {
+        b'"' => {
+            // Parse string: find matching closing quote, handling escapes
+            let start = pos;
+            let mut i = pos + 1;
+            while i < bytes.len() {
+                if bytes[i] == b'\\' {
+                    i += 2; // skip escaped character
+                } else if bytes[i] == b'"' {
+                    i += 1; // include closing quote
+                    break;
+                } else {
+                    i += 1;
+                }
+            }
+            (JsonNode::Primitive(input[start..i].to_string()), i)
+        }
+        b't' => {
+            // true
+            (JsonNode::Primitive("true".to_string()), pos + 4)
+        }
+        b'f' => {
+            // false
+            (JsonNode::Primitive("false".to_string()), pos + 5)
+        }
+        b'n' => {
+            // null
+            (JsonNode::Primitive("null".to_string()), pos + 4)
+        }
+        b'[' => {
+            // Array
+            let mut children = Vec::new();
+            let mut i = skip_whitespace(bytes, pos + 1);
+            if i < bytes.len() && bytes[i] == b']' {
+                return (JsonNode::Array(children), i + 1);
+            }
+            loop {
+                let (child, next) = parse_json_node(input, bytes, i);
+                children.push(child);
+                i = skip_whitespace(bytes, next);
+                if i < bytes.len() && bytes[i] == b',' {
+                    i = skip_whitespace(bytes, i + 1);
+                } else {
+                    break;
+                }
+            }
+            // skip closing ']'
+            debug_assert!(i < bytes.len() && bytes[i] == b']');
+            (JsonNode::Array(children), i + 1)
+        }
+        b'{' => {
+            // Object
+            let mut entries = Vec::new();
+            let mut i = skip_whitespace(bytes, pos + 1);
+            if i < bytes.len() && bytes[i] == b'}' {
+                return (JsonNode::Object(entries), i + 1);
+            }
+            loop {
+                // Parse key (a JSON string)
+                debug_assert!(i < bytes.len() && bytes[i] == b'"');
+                let key_start = i + 1;
+                let mut ki = i + 1;
+                while ki < bytes.len() {
+                    if bytes[ki] == b'\\' {
+                        ki += 2;
+                    } else if bytes[ki] == b'"' {
+                        break;
+                    } else {
+                        ki += 1;
+                    }
+                }
+                // We need the unescaped key. For simplicity, use the raw key between quotes.
+                // serde_json will have already validated this.
+                let raw_key = &input[key_start..ki];
+                // Simple unescape for common cases
+                let key = if raw_key.contains('\\') {
+                    serde_json::from_str::<String>(&input[i..=ki])
+                        .unwrap_or_else(|_| raw_key.to_string())
+                } else {
+                    raw_key.to_string()
+                };
+                ki += 1; // skip closing quote
+                // Skip colon
+                ki = skip_whitespace(bytes, ki);
+                debug_assert!(ki < bytes.len() && bytes[ki] == b':');
+                ki = skip_whitespace(bytes, ki + 1);
+                // Parse value
+                let (value_node, next) = parse_json_node(input, bytes, ki);
+                entries.push((key, value_node));
+                i = skip_whitespace(bytes, next);
+                if i < bytes.len() && bytes[i] == b',' {
+                    i = skip_whitespace(bytes, i + 1);
+                } else {
+                    break;
+                }
+            }
+            debug_assert!(i < bytes.len() && bytes[i] == b'}');
+            (JsonNode::Object(entries), i + 1)
+        }
+        // Number: -?[0-9]... (including decimals, exponents)
+        _ => {
+            let start = pos;
+            let mut i = pos;
+            while i < bytes.len()
+                && !matches!(bytes[i], b',' | b']' | b'}' | b' ' | b'\t' | b'\n' | b'\r')
+            {
+                i += 1;
+            }
+            (JsonNode::Primitive(input[start..i].to_string()), i)
+        }
+    }
+}
+
+/// Build the source tree from a valid JSON string.
+fn build_source_tree(json_str: &str) -> JsonNode {
+    let bytes = json_str.as_bytes();
+    let (node, _) = parse_json_node(json_str, bytes, 0);
+    node
+}
 
 /// JavaScript `JSON` global object.
 #[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash)]
@@ -54,6 +205,8 @@ impl IntrinsicObject for Json {
         BuiltInBuilder::with_intrinsic::<Self>(realm)
             .static_method(Self::parse, js_string!("parse"), 2)
             .static_method(Self::stringify, js_string!("stringify"), 3)
+            .static_method(Self::raw_json, js_string!("rawJSON"), 1)
+            .static_method(Self::is_raw_json, js_string!("isRawJSON"), 1)
             .static_property(to_string_tag, Self::NAME, attribute)
             .build();
     }
@@ -160,6 +313,9 @@ impl Json {
 
         // 11. If IsCallable(reviver) is true, then
         if let Some(obj) = args.get_or_undefined(1).as_callable() {
+            // Build the source tree for providing context.source to the reviver
+            let source_tree = build_source_tree(&json_string);
+
             // a. Let root be ! OrdinaryObjectCreate(%Object.prototype%).
             let root = JsObject::with_object_proto(context.intrinsics());
 
@@ -169,7 +325,7 @@ impl Json {
                 .expect("CreateDataPropertyOrThrow should never throw here");
 
             // d. Return ? InternalizeJSONProperty(root, rootName, reviver).
-            Self::internalize_json_property(&root, js_string!(), &obj, context)
+            Self::internalize_json_property(&root, js_string!(), &obj, Some(&source_tree), context)
         } else {
             // 12. Else,
             // a. Return unfiltered.
@@ -187,6 +343,7 @@ impl Json {
         holder: &JsObject,
         name: JsString,
         reviver: &JsObject,
+        source_node: Option<&JsonNode>,
         context: &mut Context,
     ) -> JsResult<JsValue> {
         // 1. Let val be ? Get(holder, name).
@@ -201,11 +358,21 @@ impl Json {
                 // ii. Let len be ? LengthOfArrayLike(val).
                 // iii. Repeat, while I < len,
                 let len = obj.length_of_array_like(context)? as i64;
+                let children = match source_node {
+                    Some(JsonNode::Array(children)) => Some(children),
+                    _ => None,
+                };
                 for i in 0..len {
+                    let child_node = children.and_then(|c| c.get(i as usize));
                     // 1. Let prop be ! ToString(𝔽(I)).
                     // 2. Let newElement be ? InternalizeJSONProperty(val, prop, reviver).
-                    let new_element =
-                        Self::internalize_json_property(&obj, i.into(), reviver, context)?;
+                    let new_element = Self::internalize_json_property(
+                        &obj,
+                        i.into(),
+                        reviver,
+                        child_node,
+                        context,
+                    )?;
 
                     // 3. If newElement is undefined, then
                     if new_element.is_undefined() {
@@ -226,6 +393,10 @@ impl Json {
             else {
                 // i. Let keys be ? EnumerableOwnPropertyNames(val, key).
                 let keys = obj.enumerable_own_property_names(PropertyNameKind::Key, context)?;
+                let entries = match source_node {
+                    Some(JsonNode::Object(entries)) => Some(entries),
+                    _ => None,
+                };
 
                 // ii. For each String P of keys, do
                 for p in keys {
@@ -234,9 +405,18 @@ impl Json {
                         .as_string()
                         .expect("EnumerableOwnPropertyNames only returns strings");
 
+                    let p_std = p.to_std_string_escaped();
+                    let child_node =
+                        entries.and_then(|e| e.iter().find(|(k, _)| k == &p_std).map(|(_, v)| v));
+
                     // 1. Let newElement be ? InternalizeJSONProperty(val, P, reviver).
-                    let new_element =
-                        Self::internalize_json_property(&obj, p.clone(), reviver, context)?;
+                    let new_element = Self::internalize_json_property(
+                        &obj,
+                        p.clone(),
+                        reviver,
+                        child_node,
+                        context,
+                    )?;
 
                     // 2. If newElement is undefined, then
                     if new_element.is_undefined() {
@@ -255,8 +435,149 @@ impl Json {
             }
         }
 
-        // 3. Return ? Call(reviver, holder, « name, val »).
-        reviver.call(&holder.clone().into(), &[name.into(), val], context)
+        // Build the context object for the reviver call.
+        // For primitive JSON values: context = { source: "<original text>" }
+        // For objects/arrays or modified values: context = {} (no source property)
+        // Per spec, source is only provided when the value is still the same
+        // primitive that was produced by parsing the original JSON text.
+        let ctx_obj = JsObject::with_object_proto(context.intrinsics());
+        if let Some(JsonNode::Primitive(source_text)) = source_node {
+            // Check if the current value matches what the source text produces.
+            // If the reviver modified the value, it won't match and we skip source.
+            let value_matches = match source_text.as_str() {
+                "null" => val.is_null(),
+                "true" => val.as_boolean() == Some(true),
+                "false" => val.as_boolean() == Some(false),
+                s if s.starts_with('"') => {
+                    // String: compare parsed string value
+                    if let Some(js_str) = val.as_string() {
+                        serde_json::from_str::<String>(s)
+                            .map(|parsed| js_str.to_std_string_escaped() == parsed)
+                            .unwrap_or(false)
+                    } else {
+                        false
+                    }
+                }
+                s => {
+                    // Number: compare parsed number value
+                    // Exact comparison is intentional: we want to detect if the
+                    // value was replaced by the reviver, not approximate equality.
+                    #[allow(clippy::float_cmp)]
+                    if let Some(n) = val.as_number() {
+                        s.parse::<f64>().map(|parsed| n == parsed).unwrap_or(false)
+                    } else {
+                        false
+                    }
+                }
+            };
+            if value_matches {
+                ctx_obj.create_data_property_or_throw(
+                    js_string!("source"),
+                    JsValue::from(js_string!(source_text.as_str())),
+                    context,
+                )?;
+            }
+        }
+
+        // 3. Return ? Call(reviver, holder, « name, val, context »).
+        reviver.call(
+            &holder.clone().into(),
+            &[name.into(), val, ctx_obj.into()],
+            context,
+        )
+    }
+
+    /// `JSON.rawJSON ( text )`
+    ///
+    /// Creates a raw JSON object from the given text.
+    ///
+    /// More information:
+    ///  - [ECMAScript reference][spec]
+    ///
+    /// [spec]: https://tc39.es/ecma262/#sec-json.rawjson
+    pub(crate) fn raw_json(
+        _: &JsValue,
+        args: &[JsValue],
+        context: &mut Context,
+    ) -> JsResult<JsValue> {
+        // 1. Let jsonString be ? ToString(text).
+        let json_string = args.get_or_undefined(0).to_string(context)?;
+
+        // 2. Throw a SyntaxError exception if jsonString is the empty String, or if
+        //    either the first or last code unit of jsonString is any of 0x0009
+        //    (CHARACTER TABULATION), 0x000A (LINE FEED), 0x000D (CARRIAGE RETURN), or
+        //    0x0020 (SPACE).
+        let std_string = json_string
+            .to_std_string()
+            .map_err(|e| JsNativeError::syntax().with_message(e.to_string()))?;
+
+        if std_string.is_empty() {
+            return Err(JsNativeError::syntax()
+                .with_message("JSON.rawJSON text must not be the empty string")
+                .into());
+        }
+
+        let first = std_string.as_bytes()[0];
+        let last = std_string.as_bytes()[std_string.len() - 1];
+        if matches!(first, b'\t' | b'\n' | b'\r' | b' ')
+            || matches!(last, b'\t' | b'\n' | b'\r' | b' ')
+        {
+            return Err(JsNativeError::syntax()
+                .with_message("JSON.rawJSON text must not start or end with whitespace")
+                .into());
+        }
+
+        // 3. Parse StringToCodePoints(jsonString) as a JSON text as specified in ECMA-404.
+        //    Throw a SyntaxError exception if it is not a valid JSON text as defined in that
+        //    specification, or if its outermost value is an object or array.
+        let parsed: serde_json::Value = serde_json::from_str(&std_string)
+            .map_err(|e| JsNativeError::syntax().with_message(e.to_string()))?;
+
+        // Must not be an object or array
+        match parsed {
+            serde_json::Value::Object(_) | serde_json::Value::Array(_) => {
+                return Err(JsNativeError::syntax()
+                    .with_message("JSON.rawJSON text must not be an object or array")
+                    .into());
+            }
+            _ => {}
+        }
+
+        // 3. Let internalSlotsList be « [[IsRawJSON]] ».
+        // 4. Let obj be OrdinaryObjectCreate(null, internalSlotsList).
+        let obj = JsObject::from_proto_and_data(None::<JsObject>, RawJson);
+
+        // 5. Perform ! CreateDataPropertyOrThrow(obj, "rawJSON", jsonString).
+        obj.create_data_property_or_throw(js_string!("rawJSON"), json_string, context)
+            .expect("CreateDataPropertyOrThrow should never throw here");
+
+        // 6. Perform ! SetIntegrityLevel(obj, frozen).
+        obj.set_integrity_level(IntegrityLevel::Frozen, context)
+            .expect("SetIntegrityLevel should never throw here");
+
+        // 7. Return obj.
+        Ok(obj.into())
+    }
+
+    /// `JSON.isRawJSON ( O )`
+    ///
+    /// Checks if the given value is a raw JSON object.
+    ///
+    /// More information:
+    ///  - [ECMAScript reference][spec]
+    ///
+    /// [spec]: https://tc39.es/ecma262/#sec-json.israwjson
+    #[allow(clippy::unnecessary_wraps)]
+    pub(crate) fn is_raw_json(
+        _: &JsValue,
+        args: &[JsValue],
+        _context: &mut Context,
+    ) -> JsResult<JsValue> {
+        // 1. If Type(O) is Object and O has an [[IsRawJSON]] internal slot, return true.
+        // 2. Return false.
+        let value = args.get_or_undefined(0);
+        let result = value.as_object().is_some_and(|obj| obj.is::<RawJson>());
+        Ok(result.into())
     }
 
     /// `JSON.stringify( value[, replacer[, space]] )`
@@ -472,6 +793,12 @@ impl Json {
             else if let Some(bigint) = obj.downcast_ref::<JsBigInt>() {
                 // i. Set value to value.[[BigIntData]].
                 value = bigint.clone().into();
+            }
+            // e. Else if value has a [[IsRawJSON]] internal slot, then
+            else if obj.is::<RawJson>() {
+                // i. Return the value of the "rawJSON" property of value.
+                let raw = obj.get(js_string!("rawJSON"), context)?;
+                return Ok(raw.as_string());
             }
         }
 
