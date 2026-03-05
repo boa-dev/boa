@@ -200,7 +200,7 @@ impl ByteCompiler<'_> {
                     self.generator_delegate_resume(dst, &resume_kind, &is_return);
 
                 if self.is_async() {
-                    self.bytecode.emit_iterator_value(dst.variable());
+                    self.iterator_value(dst, true);
                     self.async_generator_yield(dst, &resume_kind);
                 } else {
                     self.bytecode.emit_iterator_result(dst.variable());
