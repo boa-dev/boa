@@ -15,6 +15,10 @@ static FEATURE_EDITION: phf::Map<&'static str, SpecEdition> = phf::phf_map! {
 
     // Intl.Locale Info
     // https://github.com/tc39/proposal-intl-locale-info
+    "await-dictionary"  => SpecEdition::ESNext,
+
+    // Intl.Locale Info
+    // https://github.com/tc39/proposal-intl-locale-info
     "Intl.Locale-info"  => SpecEdition::ESNext,
 
     // FinalizationRegistry#cleanupSome

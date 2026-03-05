@@ -1,4 +1,4 @@
-commit = "7d0f906f4bef32bad3d6cce30c53978e26d8d10c"
+commit = "72ec758c9b6351b5baa299e0a162c2b7fe497cc6"
 
 [ignored]
 # Not implemented yet:
@@ -7,6 +7,7 @@ flags = []
 features = [
     ### Unimplemented features:
 
+    "await-dictionary",
     "FinalizationRegistry",
     "IsHTMLDDA",
     "symbols-as-weakmap-keys",
