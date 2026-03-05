@@ -318,18 +318,17 @@ fn module_namespace_exotic_try_get(
     // Use the pre-resolved cache when available; fall back to a fresh
     // ResolveExport call on cache miss for robustness.
     let fallback;
-    let binding = match obj.get_resolved_binding(&export_name) {
-        Some(b) => b,
-        None => {
-            fallback = module
-                .resolve_export(
-                    &export_name,
-                    &mut rustc_hash::FxHashSet::default(),
-                    context.interner(),
-                )
-                .expect("6. Assert: binding is a ResolvedBinding Record.");
-            &fallback
-        }
+    let binding = if let Some(b) = obj.get_resolved_binding(&export_name) {
+        b
+    } else {
+        fallback = module
+            .resolve_export(
+                &export_name,
+                &mut rustc_hash::FxHashSet::default(),
+                context.interner(),
+            )
+            .expect("6. Assert: binding is a ResolvedBinding Record.");
+        &fallback
     };
 
     // 7. Let targetModule be binding.[[Module]].
@@ -407,18 +406,17 @@ fn module_namespace_exotic_get(
     // Use the pre-resolved cache when available; fall back to a fresh
     // ResolveExport call on cache miss for robustness.
     let fallback;
-    let binding = match obj.get_resolved_binding(&export_name) {
-        Some(b) => b,
-        None => {
-            fallback = module
-                .resolve_export(
-                    &export_name,
-                    &mut rustc_hash::FxHashSet::default(),
-                    context.interner(),
-                )
-                .expect("6. Assert: binding is a ResolvedBinding Record.");
-            &fallback
-        }
+    let binding = if let Some(b) = obj.get_resolved_binding(&export_name) {
+        b
+    } else {
+        fallback = module
+            .resolve_export(
+                &export_name,
+                &mut rustc_hash::FxHashSet::default(),
+                context.interner(),
+            )
+            .expect("6. Assert: binding is a ResolvedBinding Record.");
+        &fallback
     };
 
     // 7. Let targetModule be binding.[[Module]].
