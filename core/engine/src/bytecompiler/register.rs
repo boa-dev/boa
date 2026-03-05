@@ -1,4 +1,4 @@
-use crate::vm::opcode::VaryingOperand;
+use crate::vm::opcode::RegisterOperand;
 use std::mem::forget;
 
 bitflags::bitflags! {
@@ -46,9 +46,16 @@ impl Register {
         self.index
     }
 
-    /// The index of the [`Register`] as a [`VaryingOperand`].
-    pub(crate) fn variable(&self) -> VaryingOperand {
+    /// The index of the [`Register`] as a [`RegisterOperand`].
+    pub(crate) fn variable(&self) -> RegisterOperand {
         self.index.into()
+    }
+
+    pub(crate) fn persistent(index: u32) -> Self {
+        Self {
+            index,
+            flags: RegisterFlags::PERSISTENT,
+        }
     }
 }
 

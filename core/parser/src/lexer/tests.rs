@@ -9,6 +9,7 @@ use crate::source::ReadChar;
 use boa_ast::{Keyword, Position, Span, Spanned};
 use boa_interner::Sym;
 use boa_macros::utf16;
+use strum::IntoEnumIterator;
 
 fn span(start: (u32, u32), end: (u32, u32)) -> Span {
     Span::new(Position::new(start.0, start.1), Position::new(end.0, end.1))
@@ -254,66 +255,12 @@ fn check_punctuators() {
 
 #[test]
 fn check_punctuator_at_the_end() {
-    //TODO: maybe just use `strum` (`EnumIter`)?
-    //    * it is already in dependencies
-    let last_expected = [
-        Punctuator::Add,
-        Punctuator::And,
-        Punctuator::Arrow,
-        Punctuator::AssignAdd,
-        Punctuator::AssignAnd,
-        Punctuator::AssignBoolAnd,
-        Punctuator::AssignBoolOr,
-        Punctuator::AssignCoalesce,
-        // Punctuator::AssignDiv, : is unclosed regular expr
-        Punctuator::AssignLeftSh,
-        Punctuator::AssignMod,
-        Punctuator::AssignMul,
-        Punctuator::AssignOr,
-        Punctuator::AssignPow,
-        Punctuator::AssignRightSh,
-        Punctuator::AssignSub,
-        Punctuator::AssignURightSh,
-        Punctuator::AssignXor,
-        Punctuator::BoolAnd,
-        Punctuator::BoolOr,
-        Punctuator::Coalesce,
-        Punctuator::CloseBlock,
-        Punctuator::CloseBracket,
-        Punctuator::CloseParen,
-        Punctuator::Colon,
-        Punctuator::Comma,
-        Punctuator::Dec,
-        Punctuator::Div,
-        Punctuator::Dot,
-        Punctuator::Eq,
-        Punctuator::GreaterThan,
-        Punctuator::GreaterThanOrEq,
-        Punctuator::Inc,
-        Punctuator::LeftSh,
-        Punctuator::LessThan,
-        Punctuator::LessThanOrEq,
-        Punctuator::Mod,
-        Punctuator::Mul,
-        Punctuator::Neg,
-        Punctuator::Not,
-        Punctuator::NotEq,
-        Punctuator::OpenBlock,
-        Punctuator::OpenBracket,
-        Punctuator::OpenParen,
-        Punctuator::Optional,
-        Punctuator::Or,
-        Punctuator::Exp,
-        Punctuator::Question,
-        Punctuator::RightSh,
-        Punctuator::Semicolon,
-        Punctuator::Spread,
-        Punctuator::StrictEq,
-        Punctuator::StrictNotEq,
-        Punctuator::Sub,
-        Punctuator::URightSh,
-        Punctuator::Xor,
-    ];
+    // Use strum's `EnumIter` to auto-iterate all `Punctuator` variants,
+    // skipping those that the lexer cannot handle at the end of `var a = b <punct>`:
+    //   - `Assign`: already consumed by `=` in `var a = b`
+    //   - `AssignDiv`: `/=` is treated as an unclosed regular expression
+    let last_expected =
+        Punctuator::iter().filter(|p| !matches!(p, Punctuator::Assign | Punctuator::AssignDiv));
 
     for last in last_expected {
         let s = format!("var a = b {}", last.as_str());

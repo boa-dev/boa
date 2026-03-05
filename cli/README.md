@@ -32,6 +32,14 @@ Or if you'd like to use Boa's REPL, simply type:
     boa
 ```
 
+You can also pipe JavaScript into Boa:
+
+```shell
+    echo 'console.log(1 + 2)' | boa
+    cat script.js | boa
+    boa < script.js
+```
+
 ## CLI Options
 
 ```txt

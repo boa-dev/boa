@@ -157,7 +157,7 @@ impl FunctionEnvironment {
             ThisBindingStatus::Uninitialized => Err(JsNativeError::reference()
                 .with_message(
                     "Must call super constructor in derived \
-                class before accessing 'this' or returning from derived constructor",
+                    class before accessing 'this' or returning from derived constructor",
                 )
                 .into()),
             // 3. Return envRec.[[ThisValue]].

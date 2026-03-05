@@ -99,7 +99,7 @@ bus = "2.4.1"
 wasm-bindgen = { version = "0.2.97", default-features = false }
 getrandom = { version = "0.4.1", default-features = false }
 console_error_panic_hook = "0.1.7"
-wasm-bindgen-test = "0.3.58"
+wasm-bindgen-test = "0.3.64"
 smol = "2.0.2"
 isahc = "1.7.2"
 rustyline = { version = "17.0.2", default-features = false }
@@ -125,8 +125,8 @@ intrusive-collections = "0.10.0"
 cfg-if = "1.0.4"
 either = "1.15.0"
 sys-locale = "0.3.2"
-timezone_provider = { version = "0.1.2" }
-temporal_rs = { version = "0.1.2", default-features = false, features = ["float64_representable_durations"] }
+timezone_provider = { version = "0.2.0" }
+temporal_rs = { version = "0.2.0", default-features = false, features = ["float64_representable_durations"] }
 web-time = "1.1.0"
 criterion = "0.8.1"
 float-cmp = "0.10.0"
@@ -140,6 +140,7 @@ dynify = "0.1.2"
 futures-channel = "0.3.32"
 aligned-vec = "0.6.4"
 temp-env = "0.3.6"
+strum = { version = "0.27", features = ["derive"] }
 
 # ICU4X
 

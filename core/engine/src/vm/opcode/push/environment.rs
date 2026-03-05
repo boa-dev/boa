@@ -2,7 +2,7 @@ use crate::{
     Context, JsResult,
     builtins::function::OrdinaryFunction,
     environments::PrivateEnvironment,
-    vm::opcode::{Operation, VaryingOperand},
+    vm::opcode::{Operation, RegisterOperand, VaryingOperand},
 };
 use boa_gc::Gc;
 use thin_vec::ThinVec;
@@ -41,7 +41,7 @@ pub(crate) struct PushObjectEnvironment;
 
 impl PushObjectEnvironment {
     #[inline(always)]
-    pub(crate) fn operation(value: VaryingOperand, context: &mut Context) -> JsResult<()> {
+    pub(crate) fn operation(value: RegisterOperand, context: &mut Context) -> JsResult<()> {
         let object = context.vm.get_register(value.into()).clone();
         let object = object.to_object(context)?;
         context.vm.frame.environments.push_object(object);
@@ -65,7 +65,7 @@ pub(crate) struct PushPrivateEnvironment;
 impl PushPrivateEnvironment {
     #[inline(always)]
     pub(crate) fn operation(
-        (class, name_indices): (VaryingOperand, ThinVec<u32>),
+        (class, name_indices): (RegisterOperand, ThinVec<u32>),
         context: &mut Context,
     ) {
         let class = context.vm.get_register(class.into());

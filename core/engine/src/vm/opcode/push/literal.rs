@@ -3,7 +3,7 @@ use crate::{
     object::JsRegExp,
     vm::{
         Constant,
-        opcode::{Operation, VaryingOperand},
+        opcode::{Operation, RegisterOperand, VaryingOperand},
     },
 };
 
@@ -16,7 +16,10 @@ pub(crate) struct PushLiteral;
 
 impl PushLiteral {
     #[inline(always)]
-    pub(crate) fn operation((dst, index): (VaryingOperand, VaryingOperand), context: &mut Context) {
+    pub(crate) fn operation(
+        (dst, index): (RegisterOperand, VaryingOperand),
+        context: &mut Context,
+    ) {
         let constant = &context.vm.frame().code_block().constants[usize::from(index)];
         let value: JsValue = match constant {
             Constant::BigInt(v) => v.clone().into(),
@@ -43,7 +46,7 @@ pub(crate) struct PushRegexp;
 impl PushRegexp {
     #[inline(always)]
     pub(crate) fn operation(
-        (dst, pattern_index, flags_index): (VaryingOperand, VaryingOperand, VaryingOperand),
+        (dst, pattern_index, flags_index): (RegisterOperand, VaryingOperand, VaryingOperand),
         context: &mut Context,
     ) -> JsResult<()> {
         let code_block = context.vm.frame().code_block();
