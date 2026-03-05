@@ -369,6 +369,30 @@ impl Vm {
         unsafe { self.stack.stack.get_unchecked(rp + index) }
     }
 
+    /// Takes the value from a register, replacing it with `undefined`.
+    ///
+    /// Use this instead of `get_register().clone()` when the register value is
+    /// consumed and won't be read again, to avoid unnecessary Gc refcount increments.
+    #[track_caller]
+    #[inline]
+    pub(crate) fn take_register(&mut self, index: usize) -> JsValue {
+        let rp = self.frame().rp as usize;
+        debug_assert!(
+            rp + index < self.stack.stack.len(),
+            "register index out of bounds: rp {rp}, index {index}, stack len {}",
+            self.stack.stack.len()
+        );
+        // SAFETY: Register indices are determined by the bytecode compiler and are
+        // guaranteed to be within the register bounds for well-formed bytecode. The
+        // debug_assert above catches any compiler bugs during development.
+        unsafe {
+            std::mem::replace(
+                self.stack.stack.get_unchecked_mut(rp + index),
+                JsValue::undefined(),
+            )
+        }
+    }
+
     /// Set the promise capability for the current frame.
     #[track_caller]
     pub(crate) fn set_promise_capability(
