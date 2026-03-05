@@ -415,7 +415,7 @@ impl JsObject {
         }
 
         if frame_index + 1 == context.vm.frames.len() {
-            context.vm.frame.set_exit_early(true);
+            context.vm.frame_mut().set_exit_early(true);
         } else {
             context.vm.frames[frame_index + 1].set_exit_early(true);
         }
@@ -471,7 +471,7 @@ impl JsObject {
         }
 
         if frame_index + 1 == context.vm.frames.len() {
-            context.vm.frame.set_exit_early(true);
+            context.vm.frame_mut().set_exit_early(true);
         } else {
             context.vm.frames[frame_index + 1].set_exit_early(true);
         }

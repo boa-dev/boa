@@ -63,7 +63,7 @@ impl CheckReturn {
             if frame.has_this_value_cached() {
                 this.clone()
             } else {
-                match context.vm.frame.environments.get_this_binding() {
+                match context.vm.frame().environments.get_this_binding() {
                     Err(err) => {
                         // Avoid setting the realm here, since it needs to be set by the parent
                         // execution context.
