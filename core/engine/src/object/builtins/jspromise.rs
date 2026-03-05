@@ -1204,10 +1204,12 @@ impl JsPromise {
         };
         use std::cell::Cell;
 
-        // Clone the stack since we split it.
+        // Clone the stack and registers since we split them.
         let stack = context.vm.stack.clone();
+        let registers = context.vm.registers.clone();
         let gen_ctx = GeneratorContext::from_current(context, None);
         context.vm.stack = stack;
+        context.vm.registers = registers;
 
         // 3. Let fulfilledClosure be a new Abstract Closure with parameters (value) that captures asyncContext and performs the following steps when called:
         // 4. Let onFulfilled be CreateBuiltinFunction(fulfilledClosure, 1, "", « »).
@@ -1226,10 +1228,13 @@ impl JsPromise {
                     let async_generator = r#gen.async_generator_object();
 
                     std::mem::swap(&mut context.vm.stack, &mut r#gen.stack);
+                    std::mem::swap(&mut context.vm.registers, &mut r#gen.registers);
                     let frame = r#gen.call_frame.take().expect("should have a call frame");
                     let rp = frame.rp;
+                    let fp = frame.fp;
                     context.vm.push_frame(frame);
-                    context.vm.frame_mut().set_register_pointer(rp);
+                    context.vm.frame_mut().rp = rp;
+                    context.vm.frame_mut().fp = fp;
 
                     if let crate::native_function::CoroutineState::Yielded(value) =
                         continuation.call(Ok(args.get_or_undefined(0).clone()), context)?
@@ -1239,6 +1244,7 @@ impl JsPromise {
                     }
 
                     std::mem::swap(&mut context.vm.stack, &mut r#gen.stack);
+                    std::mem::swap(&mut context.vm.registers, &mut r#gen.registers);
                     r#gen.call_frame = context.vm.pop_frame();
                     assert!(r#gen.call_frame.is_some());
 
@@ -1261,8 +1267,10 @@ impl JsPromise {
         .build();
 
         let stack = context.vm.stack.clone();
+        let registers = context.vm.registers.clone();
         let gen_ctx = GeneratorContext::from_current(context, None);
         context.vm.stack = stack;
+        context.vm.registers = registers;
 
         // 5. Let rejectedClosure be a new Abstract Closure with parameters (reason) that captures asyncContext and performs the following steps when called:
         // 6. Let onRejected be CreateBuiltinFunction(rejectedClosure, 1, "", « »).
@@ -1283,10 +1291,13 @@ impl JsPromise {
                     let async_generator = r#gen.async_generator_object();
 
                     std::mem::swap(&mut context.vm.stack, &mut r#gen.stack);
+                    std::mem::swap(&mut context.vm.registers, &mut r#gen.registers);
                     let frame = r#gen.call_frame.take().expect("should have a call frame");
                     let rp = frame.rp;
+                    let fp = frame.fp;
                     context.vm.push_frame(frame);
-                    context.vm.frame_mut().set_register_pointer(rp);
+                    context.vm.frame_mut().rp = rp;
+                    context.vm.frame_mut().fp = fp;
 
                     if let crate::native_function::CoroutineState::Yielded(value) = continuation
                         .call(
@@ -1299,6 +1310,7 @@ impl JsPromise {
                     }
 
                     std::mem::swap(&mut context.vm.stack, &mut r#gen.stack);
+                    std::mem::swap(&mut context.vm.registers, &mut r#gen.registers);
                     r#gen.call_frame = context.vm.pop_frame();
                     assert!(r#gen.call_frame.is_some());
 

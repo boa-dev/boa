@@ -1,7 +1,7 @@
 use crate::{
     Context, JsExpect, JsResult, JsValue,
     object::internal_methods::InternalMethodPropertyContext,
-    vm::opcode::{Operation, VaryingOperand},
+    vm::opcode::{Operation, RegisterOperand},
 };
 
 /// `SetPrototype` implements the Opcode Operation for `Opcode::SetPrototype`
@@ -14,7 +14,7 @@ pub(crate) struct SetPrototype;
 impl SetPrototype {
     #[inline(always)]
     pub(crate) fn operation(
-        (object, value): (VaryingOperand, VaryingOperand),
+        (object, value): (RegisterOperand, RegisterOperand),
         context: &mut Context,
     ) -> JsResult<()> {
         let object = context.vm.get_register(object.into()).clone();
@@ -52,7 +52,7 @@ pub(crate) struct GetPrototype;
 
 impl GetPrototype {
     #[inline(always)]
-    pub(crate) fn operation(object: VaryingOperand, context: &mut Context) -> JsResult<()> {
+    pub(crate) fn operation(object: RegisterOperand, context: &mut Context) -> JsResult<()> {
         let object_val = context
             .vm
             .get_register(object.into())

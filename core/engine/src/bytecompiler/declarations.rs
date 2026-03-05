@@ -1103,7 +1103,11 @@ impl ByteCompiler<'_> {
         }
 
         if generator {
-            self.bytecode.emit_generator(self.is_async().into());
+            if self.is_async() {
+                self.bytecode.emit_async_generator();
+            } else {
+                self.bytecode.emit_generator();
+            }
             self.bytecode.emit_pop();
         }
 

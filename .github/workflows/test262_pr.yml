@@ -63,10 +63,13 @@ jobs:
         run: |
           cd boa
           comment="$(./target/release/boa_tester compare ../data/test262/refs/heads/main/latest.json ../results/test262/refs/heads/main/latest.json -m)"
+          maincommit="$(jq -r '.c' ../results/test262/refs/heads/main/latest.json)"
           echo "comment<<EOF" >> $GITHUB_OUTPUT
           echo "$comment" >> $GITHUB_OUTPUT
           echo "" >> $GITHUB_OUTPUT
+          echo "Tested main commit: [\`${maincommit}\`](${{ github.event.pull_request.base.repo.html_url }}/commit/${maincommit})" >> $GITHUB_OUTPUT
           echo "Tested PR commit: [\`${{ github.event.pull_request.head.sha }}\`](${{ github.event.pull_request.head.repo.html_url }}/commit/${{ github.event.pull_request.head.sha }})" >> $GITHUB_OUTPUT
+          echo "Compare commits: ${{ github.event.pull_request.base.repo.html_url }}/compare/${maincommit}...${{ github.event.pull_request.head.sha }}" >> $GITHUB_OUTPUT
           echo "EOF" >> $GITHUB_OUTPUT
 
       - name: Get the PR number

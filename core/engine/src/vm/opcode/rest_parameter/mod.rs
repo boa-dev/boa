@@ -1,4 +1,4 @@
-use super::VaryingOperand;
+use super::RegisterOperand;
 use crate::{Context, builtins::Array, vm::opcode::Operation};
 
 /// `RestParameterInit` implements the Opcode Operation for `Opcode::RestParameterInit`
@@ -10,11 +10,10 @@ pub(crate) struct RestParameterInit;
 
 impl RestParameterInit {
     #[inline(always)]
-    pub(super) fn operation(dst: VaryingOperand, context: &mut Context) {
+    pub(super) fn operation(dst: RegisterOperand, context: &mut Context) {
         let array = if let Some(rest) = context.vm.stack.pop_rest_arguments(&context.vm.frame) {
             let rest_count = rest.len() as u32;
             let array = Array::create_array_from_list(rest, context);
-            context.vm.frame_mut().rp -= rest_count;
             context.vm.frame_mut().argument_count -= rest_count;
             array
         } else {
