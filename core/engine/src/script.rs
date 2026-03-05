@@ -8,7 +8,10 @@
 //! [spec]: https://tc39.es/ecma262/#sec-scripts
 //! [script]: https://tc39.es/ecma262/#sec-script-records
 
-use std::{cell::RefCell, path::{Path, PathBuf}};
+use std::{
+    cell::RefCell,
+    path::{Path, PathBuf},
+};
 
 use rustc_hash::FxHashMap;
 
