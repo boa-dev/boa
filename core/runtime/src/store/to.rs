@@ -47,7 +47,7 @@ fn try_items_into_js_array(
     seen: &mut ReverseSeenMap,
     context: &mut Context,
 ) -> JsResult<JsValue> {
-    let dolly = JsArray::new(context);
+    let dolly = JsArray::new(context)?;
     seen.insert(store, dolly.clone().into());
 
     for (k, v) in items

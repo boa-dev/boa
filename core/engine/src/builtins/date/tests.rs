@@ -854,6 +854,14 @@ fn date_proto_to_iso_string() {
 }
 
 #[test]
+fn date_proto_to_iso_string_year_zero() {
+    run_test_actions([TestAction::assert_eq(
+        r#"new Date("0000-06-15T00:00:00Z").toISOString()"#,
+        js_str!("0000-06-15T00:00:00.000Z"),
+    )]);
+}
+
+#[test]
 fn date_proto_to_json() {
     run_test_actions([TestAction::assert_eq(
         "new Date(Date.UTC(2020, 6, 8, 9, 16, 15, 779)).toJSON()",
@@ -921,4 +929,17 @@ fn date_json() {
         "JSON.stringify({ date: new Date(Date.UTC(2020, 6, 8, 9, 16, 15, 779)) })",
         js_string!(r#"{"date":"2020-07-08T09:16:15.779Z"}"#),
     )]);
+}
+
+#[test]
+fn date_parse_hour24_validation() {
+    run_test_actions([
+        // 24:00:00.000 is valid (midnight end-of-day)
+        TestAction::assert("!isNaN(Date.parse('2024-01-01T24:00:00Z'))"),
+        TestAction::assert("!isNaN(Date.parse('2024-01-01T24:00:00.000Z'))"),
+        // hour 24 with non-zero minutes/seconds/ms must be NaN
+        TestAction::assert("isNaN(Date.parse('2024-01-01T24:30:00Z'))"),
+        TestAction::assert("isNaN(Date.parse('2024-01-01T24:00:01Z'))"),
+        TestAction::assert("isNaN(Date.parse('2024-01-01T24:00:00.001Z'))"),
+    ]);
 }

@@ -4,8 +4,12 @@
 
 use super::ActiveRunnable;
 use crate::{
-    JsValue, builtins::iterable::IteratorRecord, environments::EnvironmentStack, realm::Realm,
-    vm::CodeBlock, vm::SourcePath,
+    JsValue,
+    builtins::iterable::IteratorRecord,
+    bytecompiler::Register,
+    environments::EnvironmentStack,
+    realm::Realm,
+    vm::{CodeBlock, SourcePath},
 };
 use boa_ast::Position;
 use boa_ast::scope::BindingLocator;
@@ -44,11 +48,11 @@ pub struct CallFrameLocation {
 pub struct CallFrame {
     pub(crate) code_block: Gc<CodeBlock>,
     pub(crate) pc: u32,
-    /// The register pointer, points to the first register in the stack.
-    // TODO: Check if storing the frame pointer instead of argument count and computing the
-    //       argument count based on the pointers would be better for accessing the arguments
-    //       and the elements before the register pointer.
+    /// The register pointer, points to the first register in the register file.
     pub(crate) rp: u32,
+    /// The frame pointer, points to the start of this frame's data in the stack
+    /// (i.e., the `this` value position).
+    pub(crate) fp: u32,
     pub(crate) argument_count: u32,
     pub(crate) env_fp: u32,
 
@@ -103,12 +107,31 @@ impl CallFrame {
 /// ---- `CallFrame` creation methods ----
 impl CallFrame {
     pub(crate) const FUNCTION_PROLOGUE: u32 = 2;
-    const THIS_POSITION: usize = 2;
-    const FUNCTION_POSITION: usize = 1;
-    pub(crate) const PROMISE_CAPABILITY_PROMISE_REGISTER_INDEX: usize = 0;
-    pub(crate) const PROMISE_CAPABILITY_RESOLVE_REGISTER_INDEX: usize = 1;
-    pub(crate) const PROMISE_CAPABILITY_REJECT_REGISTER_INDEX: usize = 2;
-    pub(crate) const ASYNC_GENERATOR_OBJECT_REGISTER_INDEX: usize = 3;
+    pub(crate) const UNDEFINED_REGISTER_INDEX: usize = 0;
+    pub(crate) const PROMISE_CAPABILITY_PROMISE_REGISTER_INDEX: usize = 1;
+    pub(crate) const PROMISE_CAPABILITY_RESOLVE_REGISTER_INDEX: usize = 2;
+    pub(crate) const PROMISE_CAPABILITY_REJECT_REGISTER_INDEX: usize = 3;
+    pub(crate) const ASYNC_GENERATOR_OBJECT_REGISTER_INDEX: usize = 4;
+
+    pub(crate) fn undefined_register() -> Register {
+        Register::persistent(Self::UNDEFINED_REGISTER_INDEX as u32)
+    }
+
+    pub(crate) fn promise_capability_promise_register() -> Register {
+        Register::persistent(Self::PROMISE_CAPABILITY_PROMISE_REGISTER_INDEX as u32)
+    }
+
+    pub(crate) fn promise_capability_resolve_register() -> Register {
+        Register::persistent(Self::PROMISE_CAPABILITY_RESOLVE_REGISTER_INDEX as u32)
+    }
+
+    pub(crate) fn promise_capability_reject_register() -> Register {
+        Register::persistent(Self::PROMISE_CAPABILITY_REJECT_REGISTER_INDEX as u32)
+    }
+
+    pub(crate) fn async_generator_object_register() -> Register {
+        Register::persistent(Self::ASYNC_GENERATOR_OBJECT_REGISTER_INDEX as u32)
+    }
 
     /// Creates a new `CallFrame` with the provided `CodeBlock`.
     pub(crate) fn new(
@@ -120,6 +143,7 @@ impl CallFrame {
         Self {
             pc: 0,
             rp: 0,
+            fp: 0,
             env_fp: 0,
             argument_count: 0,
             iterators: ThinVec::new(),
@@ -153,12 +177,12 @@ impl CallFrame {
 
     /// Returns the index of `this` in the stack.
     pub(crate) fn this_index(&self) -> usize {
-        self.rp as usize - self.argument_count as usize - Self::THIS_POSITION
+        self.fp as usize
     }
 
     /// Returns the index of the function in the stack.
     pub(crate) fn function_index(&self) -> usize {
-        self.rp as usize - self.argument_count as usize - Self::FUNCTION_POSITION
+        self.fp as usize + 1
     }
 
     /// Returns the index of the promise capability promise register in the stack.
@@ -183,12 +207,13 @@ impl CallFrame {
 
     /// Returns the range of the arguments in the stack.
     pub(crate) fn arguments_range(&self) -> std::ops::Range<usize> {
-        (self.rp as usize - self.argument_count as usize)..self.rp as usize
+        let start = self.fp as usize + Self::FUNCTION_PROLOGUE as usize;
+        start..start + self.argument_count as usize
     }
 
     /// Returns the frame pointer of this `CallFrame`.
     pub(crate) fn frame_pointer(&self) -> usize {
-        (self.rp - self.argument_count - Self::FUNCTION_PROLOGUE) as usize
+        self.fp as usize
     }
 
     /// Does this have the [`CallFrameFlags::EXIT_EARLY`] flag.
@@ -214,7 +239,7 @@ impl CallFrame {
 
     /// Does this [`CallFrame`] have a cached `this` value.
     ///
-    /// The cached value is placed in the [`CallFrame::THIS_POSITION`] position.
+    /// The cached value is placed in the `this` position.
     pub(crate) fn has_this_value_cached(&self) -> bool {
         self.flags.contains(CallFrameFlags::THIS_VALUE_CACHED)
     }
@@ -249,7 +274,7 @@ impl JsValue {
     ///
     /// # Panics
     ///
-    /// If not a integer type or not in the range `1..=2`.
+    /// If not a integer type or not in the range `0..=2`.
     #[track_caller]
     pub(crate) fn to_generator_resume_kind(&self) -> GeneratorResumeKind {
         if let Some(value) = self.as_i32() {

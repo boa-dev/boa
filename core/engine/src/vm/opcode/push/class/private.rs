@@ -4,7 +4,7 @@ use crate::{
     js_str, js_string,
     object::{PrivateElement, internal_methods::InternalMethodPropertyContext},
     property::PropertyDescriptor,
-    vm::opcode::{Operation, VaryingOperand},
+    vm::opcode::{Operation, RegisterOperand, VaryingOperand},
 };
 
 /// `PushClassPrivateMethod` implements the Opcode Operation for `Opcode::PushClassPrivateMethod`
@@ -18,9 +18,9 @@ impl PushClassPrivateMethod {
     #[inline(always)]
     pub(crate) fn operation(
         (object, prototype, value, index): (
-            VaryingOperand,
-            VaryingOperand,
-            VaryingOperand,
+            RegisterOperand,
+            RegisterOperand,
+            RegisterOperand,
             VaryingOperand,
         ),
         context: &mut Context,
@@ -85,7 +85,7 @@ pub(crate) struct PushClassPrivateGetter;
 impl PushClassPrivateGetter {
     #[inline(always)]
     pub(crate) fn operation(
-        (object, value, index): (VaryingOperand, VaryingOperand, VaryingOperand),
+        (object, value, index): (RegisterOperand, RegisterOperand, VaryingOperand),
         context: &mut Context,
     ) {
         let object = context.vm.get_register(object.into());
@@ -128,7 +128,7 @@ pub(crate) struct PushClassPrivateSetter;
 impl PushClassPrivateSetter {
     #[inline(always)]
     pub(crate) fn operation(
-        (object, value, index): (VaryingOperand, VaryingOperand, VaryingOperand),
+        (object, value, index): (RegisterOperand, RegisterOperand, VaryingOperand),
         context: &mut Context,
     ) {
         let object = context.vm.get_register(object.into());

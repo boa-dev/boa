@@ -59,6 +59,7 @@ unsafe impl Trace for GeneratorState {
 #[derive(Debug, Trace, Finalize)]
 pub(crate) struct GeneratorContext {
     pub(crate) stack: Stack,
+    pub(crate) registers: Vec<JsValue>,
     pub(crate) call_frame: Option<CallFrame>,
 }
 
@@ -68,22 +69,28 @@ impl GeneratorContext {
         let mut frame = context.vm.frame().clone();
         frame.environments = context.vm.frame.environments.clone();
         frame.realm = context.realm().clone();
-        let mut stack = context.vm.stack.split_off_frame(&frame);
+        let stack = context.vm.stack.split_off_frame(&frame);
+        let registers = context.vm.registers.split_off(frame.rp as usize);
 
-        frame.rp = CallFrame::FUNCTION_PROLOGUE + frame.argument_count;
+        frame.fp = 0;
+        frame.rp = 0;
 
         // NOTE: Since we get a pre-built call frame with stack, and we reuse them.
         //       So we don't need to push the registers in subsequent calls.
         frame.flags |= CallFrameFlags::REGISTERS_ALREADY_PUSHED;
 
-        if let Some(async_generator) = async_generator {
-            stack.set_async_generator_object(&frame, async_generator);
-        }
-
-        Self {
+        let mut ctx = Self {
             call_frame: Some(frame),
             stack,
+            registers,
+        };
+
+        if let Some(async_generator) = async_generator {
+            ctx.registers[CallFrame::ASYNC_GENERATOR_OBJECT_REGISTER_INDEX] =
+                async_generator.into();
         }
+
+        ctx
     }
 
     /// Resumes execution with `GeneratorContext` as the current execution context.
@@ -94,12 +101,15 @@ impl GeneratorContext {
         context: &mut Context,
     ) -> CompletionRecord {
         std::mem::swap(&mut context.vm.stack, &mut self.stack);
+        std::mem::swap(&mut context.vm.registers, &mut self.registers);
         let frame = self.call_frame.take().expect("should have a call frame");
         let rp = frame.rp;
+        let fp = frame.fp;
         context.vm.push_frame(frame);
 
         let frame = context.vm.frame_mut();
         frame.rp = rp;
+        frame.fp = fp;
         frame.set_exit_early(true);
 
         if let Some(value) = value {
@@ -110,6 +120,7 @@ impl GeneratorContext {
         let result = context.run();
 
         std::mem::swap(&mut context.vm.stack, &mut self.stack);
+        std::mem::swap(&mut context.vm.registers, &mut self.registers);
         self.call_frame = context.vm.pop_frame();
         assert!(self.call_frame.is_some());
         result
@@ -117,10 +128,15 @@ impl GeneratorContext {
 
     /// Returns the async generator object, if the function that this [`GeneratorContext`] is from an async generator, [`None`] otherwise.
     pub(crate) fn async_generator_object(&self) -> Option<JsObject> {
-        if let Some(frame) = &self.call_frame {
-            return self.stack.async_generator_object(frame);
+        let frame = self.call_frame.as_ref()?;
+        if !frame.code_block().is_async_generator() {
+            return None;
         }
-        None
+
+        self.registers
+            .get(frame.rp as usize + CallFrame::ASYNC_GENERATOR_OBJECT_REGISTER_INDEX)
+            .expect("registers must have an async generator object")
+            .as_object()
     }
 }
 

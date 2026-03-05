@@ -1,4 +1,4 @@
-use super::{Operation, VaryingOperand};
+use super::{Operation, RegisterOperand, VaryingOperand};
 use crate::{Context, JsResult};
 
 /// `HasRestrictedGlobalProperty` implements the Opcode Operation for `Opcode::HasRestrictedGlobalProperty`
@@ -13,7 +13,7 @@ pub(crate) struct HasRestrictedGlobalProperty;
 impl HasRestrictedGlobalProperty {
     #[inline(always)]
     pub(super) fn operation(
-        (dst, index): (VaryingOperand, VaryingOperand),
+        (dst, index): (RegisterOperand, VaryingOperand),
         context: &mut Context,
     ) -> JsResult<()> {
         let name = &context
@@ -45,7 +45,7 @@ pub(crate) struct CanDeclareGlobalFunction;
 impl CanDeclareGlobalFunction {
     #[inline(always)]
     pub(super) fn operation(
-        (dst, index): (VaryingOperand, VaryingOperand),
+        (dst, index): (RegisterOperand, VaryingOperand),
         context: &mut Context,
     ) -> JsResult<()> {
         let name = &context
@@ -77,7 +77,7 @@ pub(crate) struct CanDeclareGlobalVar;
 impl CanDeclareGlobalVar {
     #[inline(always)]
     pub(super) fn operation(
-        (dst, index): (VaryingOperand, VaryingOperand),
+        (dst, index): (RegisterOperand, VaryingOperand),
         context: &mut Context,
     ) -> JsResult<()> {
         let name = &context
@@ -109,7 +109,7 @@ pub(crate) struct CreateGlobalFunctionBinding;
 impl CreateGlobalFunctionBinding {
     #[inline(always)]
     pub(super) fn operation(
-        (function, configurable, index): (VaryingOperand, VaryingOperand, VaryingOperand),
+        (function, configurable, index): (RegisterOperand, VaryingOperand, VaryingOperand),
         context: &mut Context,
     ) -> JsResult<()> {
         let configurable = u32::from(configurable) != 0;

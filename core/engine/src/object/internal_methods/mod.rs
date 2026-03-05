@@ -483,27 +483,26 @@ impl CallValue {
     /// Resolves the [`CallValue`], and return if the value is complete.
     #[cfg_attr(feature = "native-backtrace", track_caller)]
     pub(crate) fn resolve(mut self, context: &mut Context) -> JsResult<bool> {
-        while let Self::Pending {
-            func,
-            object,
-            argument_count,
-            native_source_info,
-        } = self
-        {
-            self = func(
-                &object,
-                argument_count,
-                &mut InternalMethodCallContext::with_native_source_info(
-                    context,
+        loop {
+            match self {
+                CallValue::Ready => return Ok(false),
+                CallValue::Complete => return Ok(true),
+                CallValue::Pending {
+                    func,
+                    object,
+                    argument_count,
                     native_source_info,
-                ),
-            )?;
-        }
-
-        match self {
-            Self::Ready => Ok(false),
-            Self::Complete => Ok(true),
-            Self::Pending { .. } => unreachable!(),
+                } => {
+                    self = func(
+                        &object,
+                        argument_count,
+                        &mut InternalMethodCallContext::with_native_source_info(
+                            context,
+                            native_source_info,
+                        ),
+                    )?;
+                }
+            }
         }
     }
 }

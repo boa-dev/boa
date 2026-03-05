@@ -4,11 +4,11 @@ use crate::{
     Context, JsResult, JsValue, js_string,
     object::{internal_methods::InternalMethodPropertyContext, shape::slot::SlotAttributes},
     property::PropertyKey,
-    vm::opcode::{Operation, VaryingOperand},
+    vm::opcode::{Operation, RegisterOperand, VaryingOperand},
 };
 
 fn get_by_name<const LENGTH: bool>(
-    (dst, object, receiver, index): (VaryingOperand, &JsValue, &JsValue, VaryingOperand),
+    (dst, object, receiver, index): (RegisterOperand, &JsValue, &JsValue, VaryingOperand),
     context: &mut Context,
 ) -> JsResult<()> {
     if LENGTH {
@@ -39,7 +39,7 @@ fn get_by_name<const LENGTH: bool>(
 
     let ic = &context.vm.frame().code_block().ic[usize::from(index)];
     let object_borrowed = object.borrow();
-    if let Some((shape, slot)) = ic.match_or_reset(object_borrowed.shape()) {
+    if let Some((shape, slot)) = ic.get(object_borrowed.shape()) {
         let mut result = if slot.attributes.contains(SlotAttributes::PROTOTYPE) {
             let prototype = shape.prototype().expect("prototype should have value");
             let prototype = prototype.borrow();
@@ -82,10 +82,10 @@ fn get_by_name<const LENGTH: bool>(
 
 fn get_by_value<const PUSH_KEY: bool>(
     (dst, key, receiver, object): (
-        VaryingOperand,
-        VaryingOperand,
-        VaryingOperand,
-        VaryingOperand,
+        RegisterOperand,
+        RegisterOperand,
+        RegisterOperand,
+        RegisterOperand,
     ),
     context: &mut Context,
 ) -> JsResult<()> {
@@ -162,7 +162,7 @@ pub(crate) struct GetLengthProperty;
 impl GetLengthProperty {
     #[inline(always)]
     pub(crate) fn operation(
-        (dst, object, index): (VaryingOperand, VaryingOperand, VaryingOperand),
+        (dst, object, index): (RegisterOperand, RegisterOperand, VaryingOperand),
         context: &mut Context,
     ) -> JsResult<()> {
         let object = context.vm.get_register(object.into()).clone();
@@ -186,7 +186,7 @@ pub(crate) struct GetPropertyByName;
 impl GetPropertyByName {
     #[inline(always)]
     pub(crate) fn operation(
-        (dst, object, index): (VaryingOperand, VaryingOperand, VaryingOperand),
+        (dst, object, index): (RegisterOperand, RegisterOperand, VaryingOperand),
         context: &mut Context,
     ) -> JsResult<()> {
         let object = context.vm.get_register(object.into()).clone();
@@ -211,9 +211,9 @@ impl GetPropertyByNameWithThis {
     #[inline(always)]
     pub(crate) fn operation(
         (dst, receiver, value, index): (
-            VaryingOperand,
-            VaryingOperand,
-            VaryingOperand,
+            RegisterOperand,
+            RegisterOperand,
+            RegisterOperand,
             VaryingOperand,
         ),
         context: &mut Context,
@@ -241,10 +241,10 @@ impl GetPropertyByValue {
     #[inline(always)]
     pub(crate) fn operation(
         args: (
-            VaryingOperand,
-            VaryingOperand,
-            VaryingOperand,
-            VaryingOperand,
+            RegisterOperand,
+            RegisterOperand,
+            RegisterOperand,
+            RegisterOperand,
         ),
         context: &mut Context,
     ) -> JsResult<()> {
@@ -269,10 +269,10 @@ impl GetPropertyByValuePush {
     #[inline(always)]
     pub(crate) fn operation(
         args: (
-            VaryingOperand,
-            VaryingOperand,
-            VaryingOperand,
-            VaryingOperand,
+            RegisterOperand,
+            RegisterOperand,
+            RegisterOperand,
+            RegisterOperand,
         ),
         context: &mut Context,
     ) -> JsResult<()> {

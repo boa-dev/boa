@@ -163,7 +163,7 @@ where
     T: TryIntoJs,
 {
     fn try_into_js(&self, context: &mut Context) -> JsResult<JsValue> {
-        let arr = crate::object::JsArray::new(context);
+        let arr = crate::object::JsArray::new(context)?;
         for value in self {
             let value = value.try_into_js(context)?;
             arr.push(value, context)?;
@@ -177,7 +177,7 @@ macro_rules! impl_try_into_js_for_tuples {
         impl<$($ts: TryIntoJs,)+> TryIntoJs for ($($ts,)+) {
             fn try_into_js(&self, context: &mut Context) -> JsResult<JsValue> {
                 let ($($names,)+) = self;
-                let arr = crate::object::JsArray::new(context);
+                let arr = crate::object::JsArray::new(context)?;
                 $(arr.push($names.try_into_js(context)?, context)?;)+
                 Ok(arr.into())
             }
