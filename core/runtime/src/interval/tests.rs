@@ -44,6 +44,29 @@ fn two_zero_delay_timeouts_both_fire() {
     );
 }
 
+/// Regression test for <https://github.com/boa-dev/boa/issues/4782>.
+#[test]
+fn set_timeout_zero_fires_without_clock_advance() {
+    let clock = Rc::new(FixedClock::default());
+    let context = &mut create_context(clock);
+
+    run_test_actions_with(
+        [
+            TestAction::run(indoc! {r#"
+                called = false;
+                setTimeout(() => { called = true; }, 0);
+            "#}),
+            TestAction::inspect_context(|ctx| {
+                ctx.run_jobs().unwrap();
+
+                let called = ctx.global_object().get(js_str!("called"), ctx).unwrap();
+                assert_eq!(called.as_boolean(), Some(true));
+            }),
+        ],
+        context,
+    );
+}
+
 #[test]
 fn set_timeout_basic() {
     let clock = Rc::new(FixedClock::default());
