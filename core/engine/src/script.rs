@@ -223,14 +223,16 @@ impl Script {
 
         context.vm.pop_frame();
 
-        record.consume()
+        let result = record.consume();
+
+        // Drop AST after execution
+        *self.inner.source.borrow_mut() = None;
+
+        result
     }
 
     fn prepare_run(&self, context: &mut Context) -> JsResult<()> {
         let codeblock = self.codeblock(context)?;
-
-        // Drop AST after compilation
-        *self.inner.source.borrow_mut() = None;
 
         let global_env = EnvironmentStack::new(self.inner.realm.environment().clone());
         context.vm.push_frame_with_stack(
