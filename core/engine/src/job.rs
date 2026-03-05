@@ -696,6 +696,11 @@ impl JobExecutor for SimpleJobExecutor {
                 let now = context.borrow().clock().now();
                 let mut timeouts_borrow = self.timeout_jobs.borrow_mut();
                 let mut jobs_to_keep = timeouts_borrow.split_off(&now);
+                // `split_off` keeps keys `>= now`. We want exactly `now` to execute in the
+                // current tick, so we move it back into `timeouts_borrow` (which becomes `jobs_to_run`).
+                if let Some(jobs_at_now) = jobs_to_keep.remove(&now) {
+                    timeouts_borrow.insert(now, jobs_at_now);
+                }
                 jobs_to_keep.retain(|_, jobs| {
                     jobs.retain(|job| !job.is_cancelled());
                     !jobs.is_empty()
@@ -705,9 +710,11 @@ impl JobExecutor for SimpleJobExecutor {
 
                 for jobs in jobs_to_run.into_values() {
                     for job in jobs {
-                        if let Err(err) = job.call(&mut context.borrow_mut()) {
-                            self.clear();
-                            return Err(err);
+                        if !job.is_cancelled() {
+                            if let Err(err) = job.call(&mut context.borrow_mut()) {
+                                self.clear();
+                                return Err(err);
+                            }
                         }
                     }
                 }
@@ -767,3 +774,6 @@ impl JobExecutor for SimpleJobExecutor {
         Ok(())
     }
 }
+
+#[cfg(test)]
+mod tests;
