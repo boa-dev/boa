@@ -74,8 +74,7 @@ impl ByteCompiler<'_> {
                         let resume_kind = self.register_allocator.alloc();
                         self.pop_into_register(&resume_kind);
                         self.pop_into_register(&value);
-                        self.bytecode
-                            .emit_generator_next(resume_kind.variable(), value.variable());
+                        self.generator_next(&value, &resume_kind);
                         self.register_allocator.dealloc(resume_kind);
                     }
                 } else {

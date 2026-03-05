@@ -1,12 +1,132 @@
 use crate::{
-    Context, JsResult,
-    builtins::{Array, iterable::create_iter_result_object},
+    Context, JsExpect, JsResult,
+    builtins::{
+        Array,
+        iterable::{IteratorRecord, create_iter_result_object},
+    },
     js_string,
     vm::{
         GeneratorResumeKind,
         opcode::{Operation, RegisterOperand, VaryingOperand},
     },
 };
+
+/// `IteratorPop` implements the Opcode Operation for `Opcode::IteratorPop`
+///
+/// Operation:
+///  - Pops the last iterator on the iterators stack.
+///
+/// Registers (out):
+///  - iterator: `JsObject`.
+///  - next: `JsValue`.
+#[derive(Debug, Clone, Copy)]
+pub(crate) struct IteratorPop;
+
+impl IteratorPop {
+    #[inline(always)]
+    pub(crate) fn operation(
+        (iterator, next): (RegisterOperand, RegisterOperand),
+        context: &mut Context,
+    ) -> JsResult<()> {
+        let iterator_record = context
+            .vm
+            .frame_mut()
+            .iterators
+            .pop()
+            .js_expect("iterator stack should have at least an iterator")?;
+
+        context
+            .vm
+            .set_register(iterator.into(), iterator_record.iterator().clone().into());
+        context
+            .vm
+            .set_register(next.into(), iterator_record.next_method().clone());
+
+        Ok(())
+    }
+}
+
+impl Operation for IteratorPop {
+    const NAME: &'static str = "IteratorPop";
+    const INSTRUCTION: &'static str = "INST - IteratorPop";
+    const COST: u8 = 3;
+}
+
+/// `IteratorPush` implements the Opcode Operation for `Opcode::IteratorPush`
+///
+/// Operation:
+///  - Pushes an iterator on the iterators stack
+///
+/// Registers (in):
+///  - iterator: `JsObject`.
+///  - next: `JsValue`.
+#[derive(Debug, Clone, Copy)]
+pub(crate) struct IteratorPush;
+
+impl IteratorPush {
+    #[inline(always)]
+    pub(crate) fn operation(
+        (iterator, next): (RegisterOperand, RegisterOperand),
+        context: &mut Context,
+    ) -> JsResult<()> {
+        let iterator = context
+            .vm
+            .get_register(iterator.into())
+            .as_object()
+            .js_expect("iterator should be an object")?;
+        let next = context.vm.get_register(next.into()).clone();
+
+        context
+            .vm
+            .frame_mut()
+            .iterators
+            .push(IteratorRecord::new(iterator, next));
+
+        Ok(())
+    }
+}
+
+impl Operation for IteratorPush {
+    const NAME: &'static str = "IteratorPush";
+    const INSTRUCTION: &'static str = "INST - IteratorPush";
+    const COST: u8 = 3;
+}
+
+/// `IteratorUpdateResult` implements the Opcode Operation for `Opcode::IteratorUpdateResult`
+///
+/// Operation:
+///  - Updates the result of the currently active iterator.
+///
+/// Registers (inout):
+///  - result: `JsValue` (in), `bool` (out) with the `done` value of the iterator.
+#[derive(Debug, Clone, Copy)]
+pub(crate) struct IteratorUpdateResult;
+
+impl IteratorUpdateResult {
+    #[inline(always)]
+    pub(crate) fn operation(result: RegisterOperand, context: &mut Context) -> JsResult<()> {
+        let mut iterator = context
+            .vm
+            .frame_mut()
+            .iterators
+            .pop()
+            .js_expect("iterator stack should have at least an iterator")?;
+        let result_v = context.vm.get_register(result.into()).clone();
+        iterator.update_result(result_v, context)?;
+        context
+            .vm
+            .set_register(result.into(), iterator.done().into());
+        context.vm.frame_mut().iterators.push(iterator);
+
+        Ok(())
+    }
+}
+
+impl Operation for IteratorUpdateResult {
+    const NAME: &'static str = "IteratorUpdateResult";
+    const INSTRUCTION: &'static str = "INST - IteratorUpdateResult";
+    const COST: u8 = 2;
+}
 
 /// `IteratorNext` implements the Opcode Operation for `Opcode::IteratorNext`
 ///

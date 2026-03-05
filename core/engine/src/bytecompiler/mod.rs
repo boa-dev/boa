@@ -6,6 +6,7 @@ mod declarations;
 mod env;
 mod expression;
 mod function;
+mod generator;
 mod jump_control;
 mod module;
 mod register;
@@ -1211,12 +1212,13 @@ impl<'ctx> ByteCompiler<'ctx> {
         resume_kind: GeneratorResumeKind,
         value: &Register,
     ) -> Label {
+        let r1 = self.register_allocator.alloc();
+        self.emit_push_integer((resume_kind as u8).into(), &r1);
+
         let index = self.next_opcode_location();
-        self.bytecode.emit_jump_if_not_resume_kind(
-            Self::DUMMY_ADDRESS,
-            (resume_kind as u8).into(),
-            value.variable(),
-        );
+        self.bytecode
+            .emit_jump_if_not_equal(Self::DUMMY_ADDRESS, r1.variable(), value.variable());
+        self.register_allocator.dealloc(r1);
         Label { index }
     }
 
