@@ -4,7 +4,7 @@ use crate::{
     js_string,
     vm::{
         GeneratorResumeKind,
-        opcode::{Operation, VaryingOperand},
+        opcode::{Operation, RegisterOperand, VaryingOperand},
     },
 };
 
@@ -50,7 +50,7 @@ pub(crate) struct IteratorFinishAsyncNext;
 impl IteratorFinishAsyncNext {
     #[inline(always)]
     pub(crate) fn operation(
-        (resume_kind, value): (VaryingOperand, VaryingOperand),
+        (resume_kind, value): (RegisterOperand, RegisterOperand),
         context: &mut Context,
     ) -> JsResult<()> {
         let mut iterator = context
@@ -94,7 +94,7 @@ pub(crate) struct IteratorResult;
 
 impl IteratorResult {
     #[inline(always)]
-    pub(crate) fn operation(value: VaryingOperand, context: &mut Context) {
+    pub(crate) fn operation(value: RegisterOperand, context: &mut Context) {
         let last_result = context
             .vm
             .frame()
@@ -123,7 +123,7 @@ pub(crate) struct IteratorValue;
 
 impl IteratorValue {
     #[inline(always)]
-    pub(crate) fn operation(value: VaryingOperand, context: &mut Context) -> JsResult<()> {
+    pub(crate) fn operation(value: RegisterOperand, context: &mut Context) -> JsResult<()> {
         let mut iterator = context
             .vm
             .frame_mut()
@@ -155,7 +155,7 @@ pub(crate) struct IteratorDone;
 
 impl IteratorDone {
     #[inline(always)]
-    pub(crate) fn operation(done: VaryingOperand, context: &mut Context) {
+    pub(crate) fn operation(done: RegisterOperand, context: &mut Context) {
         let value = context
             .vm
             .frame()
@@ -183,7 +183,7 @@ pub(crate) struct IteratorReturn;
 impl IteratorReturn {
     #[inline(always)]
     pub(crate) fn operation(
-        (value, called): (VaryingOperand, VaryingOperand),
+        (value, called): (RegisterOperand, RegisterOperand),
         context: &mut Context,
     ) -> JsResult<()> {
         let Some(record) = context.vm.frame_mut().iterators.pop() else {
@@ -232,7 +232,7 @@ pub(crate) struct IteratorToArray;
 
 impl IteratorToArray {
     #[inline(always)]
-    pub(crate) fn operation(array: VaryingOperand, context: &mut Context) -> JsResult<()> {
+    pub(crate) fn operation(array: RegisterOperand, context: &mut Context) -> JsResult<()> {
         let mut iterator = context
             .vm
             .frame_mut()
@@ -286,7 +286,7 @@ pub(crate) struct IteratorStackEmpty;
 
 impl IteratorStackEmpty {
     #[inline(always)]
-    pub(crate) fn operation(empty: VaryingOperand, context: &mut Context) {
+    pub(crate) fn operation(empty: RegisterOperand, context: &mut Context) {
         let is_empty = context.vm.frame().iterators.is_empty();
         context.vm.set_register(empty.into(), is_empty.into());
     }
@@ -308,7 +308,7 @@ pub(crate) struct CreateIteratorResult;
 impl CreateIteratorResult {
     #[inline(always)]
     pub(crate) fn operation(
-        (value, done): (VaryingOperand, VaryingOperand),
+        (value, done): (RegisterOperand, VaryingOperand),
         context: &mut Context,
     ) {
         let done = u32::from(done) != 0;

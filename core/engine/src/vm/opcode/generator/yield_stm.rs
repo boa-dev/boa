@@ -5,7 +5,7 @@ use crate::{
     builtins::async_generator::{AsyncGenerator, AsyncGeneratorState},
     vm::{
         CompletionRecord, GeneratorResumeKind,
-        opcode::{Operation, VaryingOperand},
+        opcode::{Operation, RegisterOperand},
     },
 };
 
@@ -19,7 +19,7 @@ pub(crate) struct GeneratorYield;
 impl GeneratorYield {
     #[inline(always)]
     pub(crate) fn operation(
-        value: VaryingOperand,
+        value: RegisterOperand,
         context: &mut Context,
     ) -> ControlFlow<CompletionRecord> {
         let value = context.vm.get_register(value.into());
@@ -44,7 +44,7 @@ pub(crate) struct AsyncGeneratorYield;
 impl AsyncGeneratorYield {
     #[inline(always)]
     pub(crate) fn operation(
-        value: VaryingOperand,
+        value: RegisterOperand,
         context: &mut Context,
     ) -> ControlFlow<CompletionRecord> {
         // AsyncGeneratorYield ( value )

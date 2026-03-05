@@ -1,7 +1,7 @@
 use crate::{
     Context, JsBigInt, JsResult,
     value::{JsValue, JsVariant, Numeric},
-    vm::opcode::{Operation, VaryingOperand},
+    vm::opcode::{Operation, RegisterOperand},
 };
 
 /// `Dec` implements the Opcode Operation for `Opcode::Dec`
@@ -14,7 +14,7 @@ pub(crate) struct Dec;
 impl Dec {
     #[inline(always)]
     pub(crate) fn operation(
-        (dst, src): (VaryingOperand, VaryingOperand),
+        (dst, src): (RegisterOperand, RegisterOperand),
         context: &mut Context,
     ) -> JsResult<()> {
         let value = context.vm.get_register(src.into()).clone();

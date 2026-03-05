@@ -24,7 +24,7 @@ use crate::{
     js_string,
     vm::{
         CallFrame, CodeBlock, CodeBlockFlags, Constant, GeneratorResumeKind, Handler, InlineCache,
-        opcode::{Address, BindingOpcode, ByteCodeEmitter, VaryingOperand},
+        opcode::{Address, BindingOpcode, ByteCodeEmitter, RegisterOperand},
         source_info::{SourceInfo, SourceMap, SourceMapBuilder, SourcePath},
     },
 };
@@ -1019,7 +1019,7 @@ impl<'ctx> ByteCompiler<'ctx> {
         self.emit_push_integer_with_index(value, dst.variable());
     }
 
-    fn emit_push_integer_with_index(&mut self, value: i32, dst: VaryingOperand) {
+    fn emit_push_integer_with_index(&mut self, value: i32, dst: RegisterOperand) {
         match value {
             0 => self.bytecode.emit_push_zero(dst),
             1 => self.bytecode.emit_push_one(dst),
@@ -1147,7 +1147,8 @@ impl<'ctx> ByteCompiler<'ctx> {
     fn try_fused_comparison_branch(&mut self, op: RelationalOp, binary: &Binary) -> Option<Label> {
         use crate::vm::opcode::ByteCodeEmitter;
 
-        let emit_fn: fn(&mut ByteCodeEmitter, Address, VaryingOperand, VaryingOperand) = match op {
+        let emit_fn: fn(&mut ByteCodeEmitter, Address, RegisterOperand, RegisterOperand) = match op
+        {
             RelationalOp::LessThan => ByteCodeEmitter::emit_jump_if_not_less_than,
             RelationalOp::LessThanOrEqual => ByteCodeEmitter::emit_jump_if_not_less_than_or_equal,
             RelationalOp::GreaterThan => ByteCodeEmitter::emit_jump_if_not_greater_than,
@@ -1547,14 +1548,14 @@ impl<'ctx> ByteCompiler<'ctx> {
     pub(crate) fn compile_expr_operand(
         &mut self,
         expr: &Expression,
-        inner_fn: impl FnOnce(&mut Self, VaryingOperand),
+        inner_fn: impl FnOnce(&mut Self, RegisterOperand),
     ) {
         if let Expression::Identifier(name) = expr {
             let name = self.resolve_identifier_expect(*name);
             let binding = self.lexical_scope.get_identifier_reference(name);
             let index = self.get_binding(&binding);
             if let BindingKind::Local(Some(local_reg)) = &index {
-                inner_fn(self, VaryingOperand::from(*local_reg));
+                inner_fn(self, RegisterOperand::from(*local_reg));
                 return;
             }
         }

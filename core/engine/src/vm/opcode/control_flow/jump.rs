@@ -1,6 +1,6 @@
 use crate::{
     Context, JsResult,
-    vm::opcode::{Address, Operation, VaryingOperand},
+    vm::opcode::{Address, Operation, RegisterOperand},
 };
 use thin_vec::ThinVec;
 
@@ -33,7 +33,7 @@ pub(crate) struct JumpIfTrue;
 
 impl JumpIfTrue {
     #[inline(always)]
-    pub(crate) fn operation((address, value): (Address, VaryingOperand), context: &mut Context) {
+    pub(crate) fn operation((address, value): (Address, RegisterOperand), context: &mut Context) {
         let value = context.vm.get_register(value.into());
         if value.to_boolean() {
             context.vm.frame_mut().pc = u32::from(address);
@@ -56,7 +56,7 @@ pub(crate) struct JumpIfFalse;
 
 impl JumpIfFalse {
     #[inline(always)]
-    pub(crate) fn operation((address, value): (Address, VaryingOperand), context: &mut Context) {
+    pub(crate) fn operation((address, value): (Address, RegisterOperand), context: &mut Context) {
         let value = context.vm.get_register(value.into());
         if !value.to_boolean() {
             context.vm.frame_mut().pc = u32::from(address);
@@ -79,7 +79,7 @@ pub(crate) struct JumpIfNotUndefined;
 
 impl JumpIfNotUndefined {
     #[inline(always)]
-    pub(crate) fn operation((address, value): (Address, VaryingOperand), context: &mut Context) {
+    pub(crate) fn operation((address, value): (Address, RegisterOperand), context: &mut Context) {
         let value = context.vm.get_register(value.into());
         if !value.is_undefined() {
             context.vm.frame_mut().pc = u32::from(address);
@@ -102,7 +102,7 @@ pub(crate) struct JumpIfNullOrUndefined;
 
 impl JumpIfNullOrUndefined {
     #[inline(always)]
-    pub(crate) fn operation((address, value): (Address, VaryingOperand), context: &mut Context) {
+    pub(crate) fn operation((address, value): (Address, RegisterOperand), context: &mut Context) {
         let value = context.vm.get_register(value.into());
         if value.is_null_or_undefined() {
             context.vm.frame_mut().pc = u32::from(address);
@@ -126,7 +126,7 @@ pub(crate) struct JumpIfNotLessThan;
 impl JumpIfNotLessThan {
     #[inline(always)]
     pub(crate) fn operation(
-        (address, lhs, rhs): (Address, VaryingOperand, VaryingOperand),
+        (address, lhs, rhs): (Address, RegisterOperand, RegisterOperand),
         context: &mut Context,
     ) -> JsResult<()> {
         let lhs = context.vm.get_register(lhs.into());
@@ -162,7 +162,7 @@ pub(crate) struct JumpIfNotLessThanOrEqual;
 impl JumpIfNotLessThanOrEqual {
     #[inline(always)]
     pub(crate) fn operation(
-        (address, lhs, rhs): (Address, VaryingOperand, VaryingOperand),
+        (address, lhs, rhs): (Address, RegisterOperand, RegisterOperand),
         context: &mut Context,
     ) -> JsResult<()> {
         let lhs = context.vm.get_register(lhs.into());
@@ -198,7 +198,7 @@ pub(crate) struct JumpIfNotGreaterThan;
 impl JumpIfNotGreaterThan {
     #[inline(always)]
     pub(crate) fn operation(
-        (address, lhs, rhs): (Address, VaryingOperand, VaryingOperand),
+        (address, lhs, rhs): (Address, RegisterOperand, RegisterOperand),
         context: &mut Context,
     ) -> JsResult<()> {
         let lhs = context.vm.get_register(lhs.into());
@@ -234,7 +234,7 @@ pub(crate) struct JumpIfNotGreaterThanOrEqual;
 impl JumpIfNotGreaterThanOrEqual {
     #[inline(always)]
     pub(crate) fn operation(
-        (address, lhs, rhs): (Address, VaryingOperand, VaryingOperand),
+        (address, lhs, rhs): (Address, RegisterOperand, RegisterOperand),
         context: &mut Context,
     ) -> JsResult<()> {
         let lhs = context.vm.get_register(lhs.into());
@@ -270,7 +270,7 @@ pub(crate) struct JumpIfNotEqual;
 impl JumpIfNotEqual {
     #[inline(always)]
     pub(crate) fn operation(
-        (address, lhs, rhs): (Address, VaryingOperand, VaryingOperand),
+        (address, lhs, rhs): (Address, RegisterOperand, RegisterOperand),
         context: &mut Context,
     ) {
         let lhs = context.vm.get_register(lhs.into());

@@ -1,6 +1,6 @@
 pub(crate) mod yield_stm;
 
-use super::VaryingOperand;
+use super::{RegisterOperand, VaryingOperand};
 use crate::{
     Context, JsError, JsObject, JsResult,
     builtins::{
@@ -155,7 +155,7 @@ pub(crate) struct GeneratorNext;
 impl GeneratorNext {
     #[inline(always)]
     pub(super) fn operation(
-        (resume_kind, value): (VaryingOperand, VaryingOperand),
+        (resume_kind, value): (RegisterOperand, RegisterOperand),
         context: &mut Context,
     ) -> ControlFlow<CompletionRecord> {
         let resume_kind = context
@@ -193,7 +193,7 @@ pub(crate) struct JumpIfNotResumeKind;
 impl JumpIfNotResumeKind {
     #[inline(always)]
     pub(super) fn operation(
-        (exit, expected, value): (Address, VaryingOperand, VaryingOperand),
+        (exit, expected, value): (Address, VaryingOperand, RegisterOperand),
         context: &mut Context,
     ) {
         let resume_kind = context
@@ -225,9 +225,9 @@ impl GeneratorDelegateNext {
         (throw_method_undefined, return_method_undefined, value, resume_kind, is_return): (
             Address,
             Address,
-            VaryingOperand,
-            VaryingOperand,
-            VaryingOperand,
+            RegisterOperand,
+            RegisterOperand,
+            RegisterOperand,
         ),
         context: &mut Context,
     ) -> JsResult<()> {
@@ -319,9 +319,9 @@ impl GeneratorDelegateResume {
         (return_gen, exit, value, resume_kind, is_return): (
             Address,
             Address,
-            VaryingOperand,
-            VaryingOperand,
-            VaryingOperand,
+            RegisterOperand,
+            RegisterOperand,
+            RegisterOperand,
         ),
         context: &mut Context,
     ) -> JsResult<()> {
