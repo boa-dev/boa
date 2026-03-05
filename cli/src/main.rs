@@ -605,6 +605,8 @@ fn main() -> Result<()> {
 
     let handle = start_readline_thread(sender, printer.clone(), args.vi_mode);
 
+    // TODO: Replace the `__BOA_LOAD_FILE__` string sentinel with a `CliCommand` enum
+    // (e.g. `Exec(String)` / `LoadFile(PathBuf)`) for type-safe cross-thread communication.
     loop {
         match receiver.try_recv() {
             Ok(ref line) if line.starts_with("__BOA_LOAD_FILE__:") => {
@@ -674,7 +676,7 @@ fn readline_thread_main(
     editor.set_helper(Some(helper::RLHelper::new(readline)));
 
     loop {
-        match editor.readline(readline) {
+        match editor.readline(readline).map(|l| l.trim().to_string()) {
             Ok(line) if line == ".exit" => break,
             Err(ReadlineError::Eof) => break,
             Err(ReadlineError::Interrupted) => {
@@ -682,7 +684,7 @@ fn readline_thread_main(
                 continue;
             }
 
-            Ok(line) if line == ".help" => {
+            Ok(ref line) if line == ".help" => {
                 println!("REPL Commands:");
                 println!("  {}       Show this help message", ".help".green());
                 println!("  {}       Exit the REPL", ".exit".green());
@@ -694,7 +696,7 @@ fn readline_thread_main(
                 continue;
             }
 
-            Ok(line) if line == ".clear" => {
+            Ok(ref line) if line == ".clear" => {
                 print!("\x1B[2J\x1B[3J\x1B[1;1H");
                 io::stdout().flush().ok();
                 continue;
@@ -712,9 +714,8 @@ fn readline_thread_main(
             }
 
             Ok(line) => {
-                let line = line.trim_end();
-                editor.add_history_entry(line).map_err(io::Error::other)?;
-                sender.send(line.to_string())?;
+                editor.add_history_entry(&line).map_err(io::Error::other)?;
+                sender.send(line)?;
                 thread::sleep(Duration::from_millis(10));
             }
 
