@@ -211,7 +211,11 @@ impl Eval {
 
             // Poison the last parent function environment, because it may contain new declarations after/during eval.
             if !strict {
-                context.vm.frame_mut().environments.poison_until_last_function();
+                context
+                    .vm
+                    .frame_mut()
+                    .environments
+                    .poison_until_last_function();
             }
 
             // Set the compile time environment to the current running environment and save the number of current environments.

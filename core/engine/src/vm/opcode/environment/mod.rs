@@ -69,7 +69,10 @@ impl This {
             .get_this_binding()?
             .unwrap_or(context.realm().global_this().clone().into());
         context.vm.frame_mut().flags |= CallFrameFlags::THIS_VALUE_CACHED;
-        context.vm.stack.set_this(context.vm.frames.last().unwrap(), this.clone());
+        context.vm.stack.set_this(
+            context.vm.frames.last().expect("frame must exist"),
+            this.clone(),
+        );
         context.vm.set_register(dst.into(), this);
         Ok(())
     }

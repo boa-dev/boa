@@ -385,12 +385,7 @@ impl Vm {
         // SAFETY: Register indices are determined by the bytecode compiler and are
         // guaranteed to be within the register bounds for well-formed bytecode. The
         // debug_assert above catches any compiler bugs during development.
-        unsafe {
-            std::mem::replace(
-                self.stack.stack.get_unchecked_mut(rp + index),
-                JsValue::undefined(),
-            )
-        }
+        unsafe { std::mem::take(self.stack.stack.get_unchecked_mut(rp + index)) }
     }
 
     /// Set the promise capability for the current frame.
@@ -478,7 +473,7 @@ impl Vm {
     /// Retrieves the VM frame.
     ///
     /// NOTE: When you need a `&CallFrame` alongside a mutable borrow of another
-    /// `Vm` field (e.g. `stack`), use `self.vm.frames.last().unwrap()` instead
+    /// `Vm` field (e.g. `stack`), use `self.vm.frames.last().expect("frame must exist")` instead
     /// so that the borrow checker can split the borrows.
     #[track_caller]
     #[inline]
@@ -490,7 +485,7 @@ impl Vm {
     /// Retrieves the VM frame mutably.
     ///
     /// NOTE: When you need a `&mut CallFrame` alongside a mutable borrow of another
-    /// `Vm` field (e.g. `stack`), use `self.vm.frames.last_mut().unwrap()` instead
+    /// `Vm` field (e.g. `stack`), use `self.vm.frames.last_mut().expect("frame must exist")` instead
     /// so that the borrow checker can split the borrows.
     #[track_caller]
     #[inline]
@@ -509,9 +504,10 @@ impl Vm {
 
             let register_count = frame.code_block.register_count as usize;
             frame.rp = self.stack.stack.len() as u32;
-            self.stack
-                .stack
-                .resize(self.stack.stack.len() + register_count, JsValue::undefined());
+            self.stack.stack.resize(
+                self.stack.stack.len() + register_count,
+                JsValue::undefined(),
+            );
         }
 
         // Keep carrying the last active runnable in case the current callframe
@@ -565,7 +561,9 @@ impl Vm {
         // Go to handler location.
         frame.pc = u32::from(catch_address);
 
-        self.frame_mut().environments.truncate(environment_sp as usize);
+        self.frame_mut()
+            .environments
+            .truncate(environment_sp as usize);
 
         true
     }
@@ -762,7 +760,7 @@ impl Context {
 
     fn handle_return(&mut self) -> ControlFlow<CompletionRecord> {
         let exit_early = self.vm.frame().exit_early();
-        let frame = self.vm.frames.last().unwrap();
+        let frame = self.vm.frames.last().expect("frame must exist");
         self.vm.stack.truncate_to_frame(frame);
 
         let result = self.vm.take_return_value();
@@ -793,16 +791,20 @@ impl Context {
             .as_ref()
             .is_some_and(|err| err.backtrace.is_none())
         {
-            let pc = self.vm.frames.last().unwrap().pc;
+            let pc = self.vm.frames.last().expect("frame must exist").pc;
             let limit = self.vm.runtime_limits.backtrace_limit();
             let backtrace = self.vm.shadow_stack.take(limit, pc);
-            self.vm.pending_exception.as_mut().unwrap().backtrace = Some(backtrace);
+            self.vm
+                .pending_exception
+                .as_mut()
+                .expect("pending exception must exist")
+                .backtrace = Some(backtrace);
         }
 
         let mut env_fp = self.vm.frame().env_fp;
         if self.vm.frame().exit_early() {
             self.vm.frame_mut().environments.truncate(env_fp as usize);
-            let frame = self.vm.frames.last().unwrap();
+            let frame = self.vm.frames.last().expect("frame must exist");
             self.vm.stack.truncate_to_frame(frame);
             return ControlFlow::Break(CompletionRecord::Throw(
                 self.vm

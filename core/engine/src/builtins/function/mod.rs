@@ -1035,7 +1035,10 @@ pub(crate) fn function_call(
     } else if this.is_null_or_undefined() {
         context.vm.frame_mut().flags |= CallFrameFlags::THIS_VALUE_CACHED;
         let this: JsValue = context.realm().global_this().clone().into();
-        context.vm.stack.set_this(context.vm.frames.last().unwrap(), this.clone());
+        context.vm.stack.set_this(
+            context.vm.frames.last().expect("frame must exist"),
+            this.clone(),
+        );
         ThisBindingStatus::Initialized(this)
     } else {
         let this: JsValue = this
@@ -1043,7 +1046,10 @@ pub(crate) fn function_call(
             .expect("conversion cannot fail")
             .into();
         context.vm.frame_mut().flags |= CallFrameFlags::THIS_VALUE_CACHED;
-        context.vm.stack.set_this(context.vm.frames.last().unwrap(), this.clone());
+        context.vm.stack.set_this(
+            context.vm.frames.last().expect("frame must exist"),
+            this.clone(),
+        );
         ThisBindingStatus::Initialized(this)
     };
 
@@ -1176,7 +1182,7 @@ fn function_construct(
 
     let context = context.context();
     context.vm.stack.set_this(
-        context.vm.frames.last().unwrap(),
+        context.vm.frames.last().expect("frame must exist"),
         this.map(JsValue::new).unwrap_or_default(),
     );
 
