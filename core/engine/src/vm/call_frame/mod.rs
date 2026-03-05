@@ -239,7 +239,7 @@ impl CallFrame {
 
     /// Does this [`CallFrame`] have a cached `this` value.
     ///
-    /// The cached value is placed in the [`CallFrame::THIS_VALUE_CACHED`] position.
+    /// The cached value is placed in the `this` position.
     pub(crate) fn has_this_value_cached(&self) -> bool {
         self.flags.contains(CallFrameFlags::THIS_VALUE_CACHED)
     }
