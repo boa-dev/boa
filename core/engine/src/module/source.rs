@@ -1906,10 +1906,7 @@ impl SourceTextModule {
             .push_frame_with_stack(callframe, JsValue::undefined(), JsValue::null());
 
         if let Some(capability) = capability {
-            context
-                .vm
-                .stack
-                .set_promise_capability(&context.vm.frame, capability)?;
+            context.vm.set_promise_capability(capability)?;
         }
 
         // 9. If module.[[HasTLA]] is false, then

@@ -42,12 +42,9 @@ impl Await {
 
         let return_value = context
             .vm
-            .stack
-            .get_promise_capability(&context.vm.frame)
-            .as_ref()
-            .map(PromiseCapability::promise)
-            .cloned()
-            .map(JsValue::from)
+            .get_promise_capability()
+            .ok()
+            .map(|cap| JsValue::from(cap.promise))
             .unwrap_or_default();
 
         let r#gen = GeneratorContext::from_current(context, None);
@@ -168,10 +165,7 @@ impl CreatePromiseCapability {
         )
         .js_expect("cannot fail per spec")?;
 
-        context
-            .vm
-            .stack
-            .set_promise_capability(&context.vm.frame, promise_capability)
+        context.vm.set_promise_capability(promise_capability)
     }
 }
 

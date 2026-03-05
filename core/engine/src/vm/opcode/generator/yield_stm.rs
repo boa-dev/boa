@@ -56,8 +56,7 @@ impl AsyncGeneratorYield {
         // 4. Assert: GetGeneratorKind() is async.
         let async_generator_object = context
             .vm
-            .stack
-            .async_generator_object(&context.vm.frame)
+            .async_generator_object()
             .expect("`AsyncGeneratorYield` must only be called inside async generators");
         let async_generator_object = async_generator_object
             .downcast::<AsyncGenerator>()

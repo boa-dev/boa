@@ -14,7 +14,6 @@ impl RestParameterInit {
         let array = if let Some(rest) = context.vm.stack.pop_rest_arguments(&context.vm.frame) {
             let rest_count = rest.len() as u32;
             let array = Array::create_array_from_list(rest, context);
-            context.vm.frame_mut().rp -= rest_count;
             context.vm.frame_mut().argument_count -= rest_count;
             array
         } else {

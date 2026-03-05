@@ -103,8 +103,7 @@ impl AsyncGeneratorClose {
         // Step 3.e-g in [AsyncGeneratorStart](https://tc39.es/ecma262/#sec-asyncgeneratorstart)
         let generator = context
             .vm
-            .stack
-            .async_generator_object(&context.vm.frame)
+            .async_generator_object()
             .expect("There should be a object")
             .downcast::<AsyncGenerator>()
             .expect("must be async generator");
