@@ -91,7 +91,7 @@ impl ByteCompiler<'_> {
                 );
             }
             Expression::Unary(unary) => self.compile_unary(unary, dst),
-            Expression::Update(update) => self.compile_update(update, dst),
+            Expression::Update(update) => self.compile_update(update, dst, false),
             Expression::Binary(binary) => self.compile_binary(binary, dst),
             Expression::BinaryInPrivate(binary) => self.compile_binary_in_private(binary, dst),
             Expression::Assign(assign) => self.compile_assign(assign, dst),
