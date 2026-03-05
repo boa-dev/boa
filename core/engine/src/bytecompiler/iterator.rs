@@ -55,6 +55,9 @@ impl ByteCompiler<'_> {
         self.bytecode.emit_push_new_array(array.variable());
 
         let loop_ = self.next_opcode_location();
+        self.push_loop_control_info(None, loop_, false);
+
+        self.bytecode.emit_increment_loop_iteration();
 
         self.iterator_next(false);
 
@@ -66,6 +69,7 @@ impl ByteCompiler<'_> {
             .emit_push_value_to_array(temp.variable(), array.variable());
 
         self.bytecode.emit_jump(loop_);
+        self.pop_loop_control_info();
 
         self.patch_jump(end);
         self.register_allocator.dealloc(temp);
