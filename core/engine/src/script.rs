@@ -8,7 +8,7 @@
 //! [spec]: https://tc39.es/ecma262/#sec-scripts
 //! [script]: https://tc39.es/ecma262/#sec-script-records
 
-use std::path::{Path, PathBuf};
+use std::{cell::RefCell, path::{Path, PathBuf}};
 
 use rustc_hash::FxHashMap;
 
@@ -37,7 +37,7 @@ impl std::fmt::Debug for Script {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         f.debug_struct("Script")
             .field("realm", &self.inner.realm.addr())
-            .field("code", &self.inner.source)
+            .field("code", &self.inner.source.borrow().as_ref())
             .field("loaded_modules", &self.inner.loaded_modules)
             .finish()
     }
@@ -46,8 +46,9 @@ impl std::fmt::Debug for Script {
 #[derive(Trace, Finalize)]
 struct Inner {
     realm: Realm,
+    // Safety: `boa_ast::Script` contains no GC-managed values.
     #[unsafe_ignore_trace]
-    source: boa_ast::Script,
+    source: RefCell<Option<boa_ast::Script>>,
     source_text: SourceText,
     codeblock: GcRefCell<Option<Gc<CodeBlock>>>,
     loaded_modules: GcRefCell<FxHashMap<JsString, Module>>,
@@ -102,7 +103,7 @@ impl Script {
         Ok(Self {
             inner: Gc::new(Inner {
                 realm: realm.unwrap_or_else(|| context.realm().clone()),
-                source: code,
+                source: RefCell::new(Some(code)),
                 source_text,
                 codeblock: GcRefCell::default(),
                 loaded_modules: GcRefCell::default(),
@@ -124,9 +125,14 @@ impl Script {
 
         let mut annex_b_function_names = Vec::new();
 
+        let source_borrow = self.inner.source.borrow();
+        let source = source_borrow
+            .as_ref()
+            .expect("source is only taken once, after compilation");
+
         global_declaration_instantiation_context(
             &mut annex_b_function_names,
-            &self.inner.source,
+            source,
             self.inner.realm.scope(),
             context,
         )?;
@@ -134,7 +140,7 @@ impl Script {
         let spanned_source_text = SpannedSourceText::new_source_only(self.get_source());
         let mut compiler = ByteCompiler::new(
             js_string!("<main>"),
-            self.inner.source.strict(),
+            source.strict(),
             false,
             self.inner.realm.scope().clone(),
             self.inner.realm.scope().clone(),
@@ -152,12 +158,22 @@ impl Script {
         }
 
         // TODO: move to `Script::evaluate` to make this operation infallible.
-        compiler.global_declaration_instantiation(&self.inner.source);
-        compiler.compile_statement_list(self.inner.source.statements(), true, false);
+        compiler.global_declaration_instantiation(source);
+        compiler.compile_statement_list(source.statements(), true, false);
 
         let cb = Gc::new(compiler.finish());
 
         *codeblock = Some(cb.clone());
+
+        // Drop the borrow before taking the AST.
+        drop(source_borrow);
+
+        // Drop the AST now that compilation is complete — it is no longer needed.
+        // This mirrors the same optimization applied to modules after linking.
+        // Without this, every function object created from this script would keep
+        // the entire AST alive (via `OrdinaryFunction::script_or_module`) for the
+        // lifetime of the function, which in the case of global functions is forever.
+        *self.inner.source.borrow_mut() = None;
 
         Ok(cb)
     }
