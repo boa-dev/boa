@@ -3,7 +3,7 @@ use boa_ast::scope::{BindingLocator, BindingLocatorScope};
 use crate::{
     Context, JsError, JsNativeError, JsResult,
     environments::Environment,
-    vm::opcode::{Operation, VaryingOperand},
+    vm::opcode::{Operation, RegisterOperand, VaryingOperand},
 };
 
 /// `ThrowMutateImmutable` implements the Opcode Operation for `Opcode::ThrowMutateImmutable`
@@ -47,7 +47,7 @@ pub(crate) struct SetName;
 impl SetName {
     #[inline(always)]
     pub(crate) fn operation(
-        (value, index): (VaryingOperand, VaryingOperand),
+        (value, index): (RegisterOperand, VaryingOperand),
         context: &mut Context,
     ) -> JsResult<()> {
         let value = context.vm.get_register(value.into()).clone();
@@ -80,7 +80,7 @@ pub(crate) struct SetNameByLocator;
 
 impl SetNameByLocator {
     #[inline(always)]
-    pub(crate) fn operation(value: VaryingOperand, context: &mut Context) -> JsResult<()> {
+    pub(crate) fn operation(value: RegisterOperand, context: &mut Context) -> JsResult<()> {
         let frame = context.vm.frame_mut();
         let strict = frame.code_block.strict();
         let binding_locator = frame

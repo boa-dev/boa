@@ -1,7 +1,7 @@
 use crate::{
     Context, JsResult,
     builtins::iterable::IteratorHint,
-    vm::opcode::{Operation, VaryingOperand},
+    vm::opcode::{Operation, RegisterOperand},
 };
 
 /// `GetIterator` implements the Opcode Operation for `Opcode::GetIterator`
@@ -13,7 +13,7 @@ pub(crate) struct GetIterator;
 
 impl GetIterator {
     #[inline(always)]
-    pub(crate) fn operation(value: VaryingOperand, context: &mut Context) -> JsResult<()> {
+    pub(crate) fn operation(value: RegisterOperand, context: &mut Context) -> JsResult<()> {
         let value = context.vm.get_register(value.into()).clone();
         let iterator = value.get_iterator(IteratorHint::Sync, context)?;
         context.vm.frame_mut().iterators.push(iterator);
@@ -36,7 +36,7 @@ pub(crate) struct GetAsyncIterator;
 
 impl GetAsyncIterator {
     #[inline(always)]
-    pub(crate) fn operation(value: VaryingOperand, context: &mut Context) -> JsResult<()> {
+    pub(crate) fn operation(value: RegisterOperand, context: &mut Context) -> JsResult<()> {
         let value = context.vm.get_register(value.into()).clone();
         let iterator = value.get_iterator(IteratorHint::Async, context)?;
         context.vm.frame_mut().iterators.push(iterator);

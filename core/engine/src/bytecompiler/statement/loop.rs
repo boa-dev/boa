@@ -1,4 +1,5 @@
 use boa_ast::{
+    Expression,
     declaration::Binding,
     operations::bound_names,
     scope::BindingLocatorError,
@@ -122,7 +123,11 @@ impl ByteCompiler<'_> {
 
         if let Some(final_expr) = for_loop.final_expr() {
             let value = self.register_allocator.alloc();
-            self.compile_expr(final_expr, &value);
+            if let Expression::Update(update) = final_expr {
+                self.compile_update(update, &value, true);
+            } else {
+                self.compile_expr(final_expr, &value);
+            }
             self.register_allocator.dealloc(value);
         }
 
@@ -272,8 +277,7 @@ impl ByteCompiler<'_> {
 
             self.bytecode
                 .emit_iterator_finish_async_next(resume_kind.variable(), value.variable());
-            self.bytecode
-                .emit_generator_next(resume_kind.variable(), value.variable());
+            self.generator_next(&value, &resume_kind);
             self.register_allocator.dealloc(value);
             self.register_allocator.dealloc(resume_kind);
         }

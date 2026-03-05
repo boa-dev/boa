@@ -91,7 +91,7 @@ impl ByteCompiler<'_> {
                 );
             }
             Expression::Unary(unary) => self.compile_unary(unary, dst),
-            Expression::Update(update) => self.compile_update(update, dst),
+            Expression::Update(update) => self.compile_update(update, dst, false),
             Expression::Binary(binary) => self.compile_binary(binary, dst),
             Expression::BinaryInPrivate(binary) => self.compile_binary_in_private(binary, dst),
             Expression::Assign(assign) => self.compile_assign(assign, dst),
@@ -151,8 +151,7 @@ impl ByteCompiler<'_> {
                 let resume_kind = self.register_allocator.alloc();
                 self.pop_into_register(&resume_kind);
                 self.pop_into_register(dst);
-                self.bytecode
-                    .emit_generator_next(resume_kind.variable(), dst.variable());
+                self.generator_next(dst, &resume_kind);
                 self.register_allocator.dealloc(resume_kind);
             }
             Expression::Yield(r#yield) => {
@@ -162,96 +161,73 @@ impl ByteCompiler<'_> {
                     self.bytecode.emit_push_undefined(dst.variable());
                 }
 
-                if r#yield.delegate() {
-                    if self.is_async() {
-                        self.bytecode.emit_get_async_iterator(dst.variable());
-                    } else {
-                        self.bytecode.emit_get_iterator(dst.variable());
-                    }
-
-                    let resume_kind = self.register_allocator.alloc();
-                    let is_return = self.register_allocator.alloc();
-                    self.bytecode.emit_push_undefined(dst.variable());
-                    self.emit_resume_kind(GeneratorResumeKind::Normal, &resume_kind);
-
-                    let start_address = self.next_opcode_location();
-
-                    let generator_delegate_next_label = self.next_opcode_location();
-                    self.bytecode.emit_generator_delegate_next(
-                        Self::DUMMY_ADDRESS,
-                        Self::DUMMY_ADDRESS,
-                        dst.variable(),
-                        resume_kind.variable(),
-                        is_return.variable(),
-                    );
-
-                    if self.is_async() {
-                        self.bytecode.emit_await(dst.variable());
-                        self.pop_into_register(&resume_kind);
-                        self.pop_into_register(dst);
-                    } else {
-                        self.emit_resume_kind(GeneratorResumeKind::Normal, &resume_kind);
-                    }
-
-                    let generator_delegate_resume_label = self.next_opcode_location();
-                    self.bytecode.emit_generator_delegate_resume(
-                        Self::DUMMY_ADDRESS,
-                        Self::DUMMY_ADDRESS,
-                        dst.variable(),
-                        resume_kind.variable(),
-                        is_return.variable(),
-                    );
-
-                    if self.is_async() {
-                        self.bytecode.emit_iterator_value(dst.variable());
-                        self.async_generator_yield(dst, &resume_kind);
-                    } else {
-                        self.bytecode.emit_iterator_result(dst.variable());
-                        self.bytecode.emit_generator_yield(dst.variable());
-                        self.pop_into_register(&resume_kind);
-                        self.pop_into_register(dst);
-                    }
-                    self.bytecode.emit_jump(start_address);
-
-                    self.register_allocator.dealloc(resume_kind);
-                    self.register_allocator.dealloc(is_return);
-
-                    let generator_delegate_resume_return = self.next_opcode_location();
-                    let generator_delegate_next_return = self.next_opcode_location();
-
-                    if self.is_async() {
-                        self.bytecode.emit_await(dst.variable());
-                        self.bytecode.emit_pop();
-                    } else {
-                        self.push_from_register(dst);
-                    }
-                    self.close_active_iterators();
-
-                    self.r#return(true);
-
-                    let generator_delegate_next_throw = self.next_opcode_location();
-
-                    self.iterator_close(self.is_async());
-                    self.emit_type_error("iterator does not have a throw method");
-
-                    let generator_delegate_resume_exit = self.next_opcode_location();
-                    self.bytecode.patch_jump_two_addresses(
-                        generator_delegate_resume_label,
-                        (
-                            generator_delegate_resume_return,
-                            generator_delegate_resume_exit,
-                        ),
-                    );
-                    self.bytecode.patch_jump_two_addresses(
-                        generator_delegate_next_label,
-                        (
-                            generator_delegate_next_throw,
-                            generator_delegate_next_return,
-                        ),
-                    );
-                } else {
+                if !r#yield.delegate() {
                     self.r#yield(dst);
+                    return;
                 }
+
+                // need to delegate to an inner iterator
+
+                if self.is_async() {
+                    self.bytecode.emit_get_async_iterator(dst.variable());
+                } else {
+                    self.bytecode.emit_get_iterator(dst.variable());
+                }
+
+                let resume_kind = self.register_allocator.alloc();
+                let is_return = self.register_allocator.alloc();
+                self.bytecode.emit_push_undefined(dst.variable());
+                self.emit_resume_kind(GeneratorResumeKind::Normal, &resume_kind);
+
+                let start_address = self.next_opcode_location();
+
+                let (return_method_undefined, throw_method_undefined) =
+                    self.generator_delegate_next(dst, &resume_kind, &is_return);
+
+                if self.is_async() {
+                    self.bytecode.emit_await(dst.variable());
+                    self.pop_into_register(&resume_kind);
+                    self.pop_into_register(dst);
+                } else {
+                    self.emit_resume_kind(GeneratorResumeKind::Normal, &resume_kind);
+                }
+
+                let (resume_return, resume_exit) =
+                    self.generator_delegate_resume(dst, &resume_kind, &is_return);
+
+                if self.is_async() {
+                    self.bytecode.emit_iterator_value(dst.variable());
+                    self.async_generator_yield(dst, &resume_kind);
+                } else {
+                    self.bytecode.emit_iterator_result(dst.variable());
+                    self.bytecode.emit_generator_yield(dst.variable());
+                    self.pop_into_register(&resume_kind);
+                    self.pop_into_register(dst);
+                }
+                self.bytecode.emit_jump(start_address);
+
+                self.register_allocator.dealloc(resume_kind);
+                self.register_allocator.dealloc(is_return);
+
+                self.patch_jump(return_method_undefined);
+                self.patch_jump(resume_return);
+
+                if self.is_async() {
+                    self.bytecode.emit_await(dst.variable());
+                    self.bytecode.emit_pop();
+                } else {
+                    self.push_from_register(dst);
+                }
+                self.close_active_iterators();
+
+                self.r#return(true);
+
+                self.patch_jump(throw_method_undefined);
+
+                self.iterator_close(self.is_async());
+                self.emit_type_error("iterator does not have a throw method");
+
+                self.patch_jump(resume_exit);
             }
             Expression::TaggedTemplate(template) => {
                 let this = self.register_allocator.alloc();

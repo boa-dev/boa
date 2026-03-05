@@ -10,7 +10,7 @@ use boa_ast::{
 };
 
 impl ByteCompiler<'_> {
-    pub(crate) fn compile_update(&mut self, update: &Update, dst: &Register) {
+    pub(crate) fn compile_update(&mut self, update: &Update, dst: &Register, discard: bool) {
         let mut compiler = self.position_guard(update);
         let increment = matches!(
             update.op(),
@@ -51,6 +51,17 @@ impl ByteCompiler<'_> {
                     && let BindingKind::Local(Some(local_reg)) = &index
                 {
                     let local_op = (*local_reg).into();
+
+                    if discard {
+                        // Result unused — just increment in-place.
+                        if increment {
+                            compiler.bytecode.emit_inc(local_op, local_op);
+                        } else {
+                            compiler.bytecode.emit_dec(local_op, local_op);
+                        }
+                        return;
+                    }
+
                     if post {
                         // Save old value to dst (post-increment returns old value).
                         compiler.bytecode.emit_move(dst.variable(), local_op);
@@ -112,7 +123,7 @@ impl ByteCompiler<'_> {
                         &value,
                     );
                 }
-                if !post {
+                if !post && !discard {
                     compiler
                         .bytecode
                         .emit_move(dst.variable(), value.variable());
