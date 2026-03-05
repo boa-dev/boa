@@ -689,7 +689,10 @@ fn readline_thread_main(
                 println!("  {}       Show this help message", ".help".green());
                 println!("  {}       Exit the REPL", ".exit".green());
                 println!("  {}      Clear the terminal screen", ".clear".green());
-                println!("  {} Load and evaluate a JavaScript file", ".load <file>".green());
+                println!(
+                    "  {} Load and evaluate a JavaScript file",
+                    ".load <file>".green()
+                );
                 println!();
                 println!("Press {} to abort the current expression.", "Ctrl+C".bold());
                 println!("Press {} to exit the REPL.", "Ctrl+D".bold());
