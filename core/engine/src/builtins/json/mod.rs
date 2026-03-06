@@ -59,138 +59,96 @@ enum JsonNode {
     Object(Vec<(String, JsonNode)>),
 }
 
-/// Skip JSON whitespace characters and return the new position.
-fn skip_whitespace(bytes: &[u8], mut pos: usize) -> usize {
-    while pos < bytes.len() && matches!(bytes[pos], b' ' | b'\t' | b'\n' | b'\r') {
-        pos += 1;
-    }
-    pos
-}
-
-/// Build a `JsonNode` tree from a JSON string, tracking source text positions.
-/// The input must be valid JSON (already validated by `serde_json`).
-/// Returns the parsed node and the byte position after the parsed value.
-fn parse_json_node(input: &str, bytes: &[u8], pos: usize) -> (JsonNode, usize) {
-    let pos = skip_whitespace(bytes, pos);
-
-    match bytes[pos] {
-        b'"' => {
-            // Parse string: find matching closing quote, handling escapes
-            let start = pos;
-            let mut i = pos + 1;
-            while i < bytes.len() {
-                if bytes[i] == b'\\' {
-                    i += 2; // skip escaped character
-                } else if bytes[i] == b'"' {
-                    i += 1; // include closing quote
-                    break;
-                } else {
-                    i += 1;
-                }
-            }
-            (JsonNode::Primitive(input[start..i].to_string()), i)
-        }
-        b't' => {
-            // true
-            (JsonNode::Primitive("true".to_string()), pos + 4)
-        }
-        b'f' => {
-            // false
-            (JsonNode::Primitive("false".to_string()), pos + 5)
-        }
-        b'n' => {
-            // null
-            (JsonNode::Primitive("null".to_string()), pos + 4)
-        }
-        b'[' => {
-            // Array
-            let mut children = Vec::new();
-            let mut i = skip_whitespace(bytes, pos + 1);
-            if i < bytes.len() && bytes[i] == b']' {
-                return (JsonNode::Array(children), i + 1);
-            }
-            loop {
-                let (child, next) = parse_json_node(input, bytes, i);
-                children.push(child);
-                i = skip_whitespace(bytes, next);
-                if i < bytes.len() && bytes[i] == b',' {
-                    i = skip_whitespace(bytes, i + 1);
-                } else {
-                    break;
-                }
-            }
-            // skip closing ']'
-            debug_assert!(i < bytes.len() && bytes[i] == b']');
-            (JsonNode::Array(children), i + 1)
-        }
-        b'{' => {
-            // Object
-            let mut entries = Vec::new();
-            let mut i = skip_whitespace(bytes, pos + 1);
-            if i < bytes.len() && bytes[i] == b'}' {
-                return (JsonNode::Object(entries), i + 1);
-            }
-            loop {
-                // Parse key (a JSON string)
-                debug_assert!(i < bytes.len() && bytes[i] == b'"');
-                let key_start = i + 1;
-                let mut ki = i + 1;
-                while ki < bytes.len() {
-                    if bytes[ki] == b'\\' {
-                        ki += 2;
-                    } else if bytes[ki] == b'"' {
-                        break;
-                    } else {
-                        ki += 1;
+/// Build a `JsonNode` source tree by walking the AST expression tree,
+/// extracting source text from `LinearSpan` information tracked by the parser.
+/// This avoids re-parsing the JSON string a second time.
+fn build_source_node_from_expression(
+    expr: &boa_ast::Expression,
+    source_text: &boa_ast::SourceText,
+    interner: &boa_interner::Interner,
+) -> JsonNode {
+    match expr {
+        boa_ast::Expression::Literal(lit) => {
+            let span = lit.linear_span();
+            if span.is_empty() {
+                // Fallback: reconstruct source text from kind
+                let text = match lit.kind() {
+                    boa_ast::expression::literal::LiteralKind::Null => "null".to_string(),
+                    boa_ast::expression::literal::LiteralKind::Bool(true) => "true".to_string(),
+                    boa_ast::expression::literal::LiteralKind::Bool(false) => "false".to_string(),
+                    boa_ast::expression::literal::LiteralKind::Num(n) => n.to_string(),
+                    boa_ast::expression::literal::LiteralKind::Int(n) => n.to_string(),
+                    boa_ast::expression::literal::LiteralKind::String(sym) => {
+                        format!("\"{}\"", interner.resolve_expect(*sym))
                     }
-                }
-                // We need the unescaped key. For simplicity, use the raw key between quotes.
-                // serde_json will have already validated this.
-                let raw_key = &input[key_start..ki];
-                // Simple unescape for common cases
-                let key = if raw_key.contains('\\') {
-                    serde_json::from_str::<String>(&input[i..=ki])
-                        .unwrap_or_else(|_| raw_key.to_string())
-                } else {
-                    raw_key.to_string()
+                    _ => String::new(),
                 };
-                ki += 1; // skip closing quote
-                // Skip colon
-                ki = skip_whitespace(bytes, ki);
-                debug_assert!(ki < bytes.len() && bytes[ki] == b':');
-                ki = skip_whitespace(bytes, ki + 1);
-                // Parse value
-                let (value_node, next) = parse_json_node(input, bytes, ki);
-                entries.push((key, value_node));
-                i = skip_whitespace(bytes, next);
-                if i < bytes.len() && bytes[i] == b',' {
-                    i = skip_whitespace(bytes, i + 1);
-                } else {
-                    break;
+                JsonNode::Primitive(text)
+            } else {
+                let code_points = source_text.get_code_points_from_span(span);
+                let text = String::from_utf16_lossy(code_points);
+                JsonNode::Primitive(text)
+            }
+        }
+        boa_ast::Expression::ArrayLiteral(arr) => {
+            let children = arr
+                .as_ref()
+                .iter()
+                .map(|elem| {
+                    if let Some(expr) = elem {
+                        build_source_node_from_expression(expr, source_text, interner)
+                    } else {
+                        // Sparse array element (should not happen in JSON)
+                        JsonNode::Primitive("null".to_string())
+                    }
+                })
+                .collect();
+            JsonNode::Array(children)
+        }
+        boa_ast::Expression::ObjectLiteral(obj) => {
+            let entries = obj
+                .properties()
+                .iter()
+                .filter_map(|prop| {
+                    use boa_ast::expression::literal::PropertyDefinition;
+                    match prop {
+                        PropertyDefinition::Property(name, value) => {
+                            let key = if let Some(ident) = name.literal() {
+                                interner.resolve_expect(ident.sym()).to_string()
+                            } else {
+                                // Computed property names should not happen in JSON
+                                String::new()
+                            };
+                            let child =
+                                build_source_node_from_expression(value, source_text, interner);
+                            Some((key, child))
+                        }
+                        _ => None,
+                    }
+                })
+                .collect();
+            JsonNode::Object(entries)
+        }
+        boa_ast::Expression::Unary(unary)
+            if unary.op() == boa_ast::expression::operator::unary::UnaryOp::Minus =>
+        {
+            // Handle negative numbers like -1.5
+            if let boa_ast::Expression::Literal(lit) = unary.target() {
+                let span = lit.linear_span();
+                if !span.is_empty() {
+                    // Get the number text and prepend minus sign
+                    let code_points = source_text.get_code_points_from_span(span);
+                    let num_text = String::from_utf16_lossy(code_points);
+                    return JsonNode::Primitive(format!("-{num_text}"));
                 }
             }
-            debug_assert!(i < bytes.len() && bytes[i] == b'}');
-            (JsonNode::Object(entries), i + 1)
+            JsonNode::Primitive(String::new())
         }
-        // Number: -?[0-9]... (including decimals, exponents)
-        _ => {
-            let start = pos;
-            let mut i = pos;
-            while i < bytes.len()
-                && !matches!(bytes[i], b',' | b']' | b'}' | b' ' | b'\t' | b'\n' | b'\r')
-            {
-                i += 1;
-            }
-            (JsonNode::Primitive(input[start..i].to_string()), i)
+        boa_ast::Expression::Parenthesized(p) => {
+            build_source_node_from_expression(p.expression(), source_text, interner)
         }
+        _ => JsonNode::Primitive(String::new()),
     }
-}
-
-/// Build the source tree from a valid JSON string.
-fn build_source_tree(json_str: &str) -> JsonNode {
-    let bytes = json_str.as_bytes();
-    let (node, _) = parse_json_node(json_str, bytes, 0);
-    node
 }
 
 /// JavaScript `JSON` global object.
@@ -249,28 +207,46 @@ impl Json {
             return Err(JsNativeError::syntax().with_message(e.to_string()).into());
         }
 
+        // Check if a reviver is provided, to determine if we need source text tracking
+        let has_reviver = args.get_or_undefined(1).is_callable();
+
         // 3. Let scriptString be the string-concatenation of "(", jsonString, and ");".
-        // TODO: fix script read for eval
         let script_string = format!("({json_string});");
 
-        // 4. Let script be ParseText(! StringToCodePoints(scriptString), Script).
-        // 5. NOTE: The early error rules defined in 13.2.5.1 have special handling for the above invocation of ParseText.
-        // 6. Assert: script is a Parse Node.
-        // 7. Let completion be the result of evaluating script.
-        // 8. NOTE: The PropertyDefinitionEvaluation semantics defined in 13.2.5.5 have special handling for the above evaluation.
-        // 9. Let unfiltered be completion.[[Value]].
-        // 10. Assert: unfiltered is either a String, Number, Boolean, Null, or an Object that is defined by either an ArrayLiteral or an ObjectLiteral.
+        // 4-10. Parse and evaluate the script
         let source = Source::from_bytes(&script_string);
-
         let mut parser = Parser::new(source);
         parser.set_json_parse();
-        // In json we don't need the source: there no way to pass an object that needs a source text
-        // But if it's incorrect, just call `parser.parse_script_with_source` here
-        let script = parser.parse_script(&Scope::new_global(), context.interner_mut())?;
+
+        // Use parse_script_with_source to get SourceText for span-based source extraction
+        let (script, source_text) =
+            parser.parse_script_with_source(&Scope::new_global(), context.interner_mut())?;
+
+        // Build the source tree from the AST if a reviver is present.
+        // This walks the parsed AST and extracts source text from LinearSpan information,
+        // avoiding the need to re-parse the JSON string separately.
+        let source_tree = if has_reviver {
+            let expr = script
+                .statements()
+                .statements()
+                .first()
+                .and_then(|item| {
+                    if let boa_ast::StatementListItem::Statement(stmt) = item {
+                        if let boa_ast::Statement::Expression(expr) = stmt.as_ref() {
+                            return Some(expr);
+                        }
+                    }
+                    None
+                });
+            expr.map(|e| build_source_node_from_expression(e, &source_text, context.interner()))
+        } else {
+            None
+        };
+
         let code_block = {
             let in_with = context.vm.frame.environments.has_object_environment();
-            // If the source is needed then call `parser.parse_script_with_source` and pass `source_text` here.
-            let spanned_source_text = SpannedSourceText::new_empty();
+            let spanned_source_text =
+                SpannedSourceText::new_source_only(crate::spanned_source_text::SourceText::new(source_text));
             let mut compiler = ByteCompiler::new(
                 js_string!("<json>"),
                 script.strict(),
@@ -282,7 +258,6 @@ impl Json {
                 context.interner_mut(),
                 in_with,
                 spanned_source_text,
-                // TODO: Could give more information from previous shadow stack.
                 SourcePath::Json,
             );
             compiler.compile_statement_list(script.statements(), true, false);
@@ -313,9 +288,6 @@ impl Json {
 
         // 11. If IsCallable(reviver) is true, then
         if let Some(obj) = args.get_or_undefined(1).as_callable() {
-            // Build the source tree for providing context.source to the reviver
-            let source_tree = build_source_tree(&json_string);
-
             // a. Let root be ! OrdinaryObjectCreate(%Object.prototype%).
             let root = JsObject::with_object_proto(context.intrinsics());
 
@@ -325,7 +297,13 @@ impl Json {
                 .expect("CreateDataPropertyOrThrow should never throw here");
 
             // d. Return ? InternalizeJSONProperty(root, rootName, reviver).
-            Self::internalize_json_property(&root, js_string!(), &obj, Some(&source_tree), context)
+            Self::internalize_json_property(
+                &root,
+                js_string!(),
+                &obj,
+                source_tree.as_ref(),
+                context,
+            )
         } else {
             // 12. Else,
             // a. Return unfiltered.
@@ -406,8 +384,9 @@ impl Json {
                         .expect("EnumerableOwnPropertyNames only returns strings");
 
                     let p_std = p.to_std_string_escaped();
-                    let child_node =
-                        entries.and_then(|e| e.iter().find(|(k, _)| k == &p_std).map(|(_, v)| v));
+                    let child_node = entries.and_then(|e| {
+                        e.iter().rfind(|(k, _)| k == &p_std).map(|(_, v)| v)
+                    });
 
                     // 1. Let newElement be ? InternalizeJSONProperty(val, P, reviver).
                     let new_element = Self::internalize_json_property(
