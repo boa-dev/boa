@@ -40,20 +40,22 @@ impl std::fmt::Debug for Script {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         f.debug_struct("Script")
             .field("realm", &self.inner.realm.addr())
-            .field("code", &self.inner.source.borrow().as_ref())
+            .field("phase", &self.inner.phase.borrow())
             .field("loaded_modules", &self.inner.loaded_modules)
             .finish()
     }
 }
-
+#[derive(Debug, Finalize)]
+enum ScriptPhase {
+    Ast(boa_ast::Script),
+    Codeblock(Gc<CodeBlock>),
+}
 #[derive(Trace, Finalize)]
 struct Inner {
     realm: Realm,
-    // Safety: `boa_ast::Script` contains no GC-managed values.
     #[unsafe_ignore_trace]
-    source: RefCell<Option<boa_ast::Script>>,
+    phase: RefCell<ScriptPhase>,
     source_text: SourceText,
-    codeblock: GcRefCell<Option<Gc<CodeBlock>>>,
     loaded_modules: GcRefCell<FxHashMap<JsString, Module>>,
     host_defined: HostDefined,
     path: Option<PathBuf>,
@@ -106,9 +108,8 @@ impl Script {
         Ok(Self {
             inner: Gc::new(Inner {
                 realm: realm.unwrap_or_else(|| context.realm().clone()),
-                source: RefCell::new(Some(code)),
+                phase: RefCell::new(ScriptPhase::Ast(code)),
                 source_text,
-                codeblock: GcRefCell::default(),
                 loaded_modules: GcRefCell::default(),
                 host_defined: HostDefined::default(),
                 path,
@@ -120,18 +121,18 @@ impl Script {
     ///
     /// This is a no-op if this has been called previously.
     pub fn codeblock(&self, context: &mut Context) -> JsResult<Gc<CodeBlock>> {
-        let mut codeblock = self.inner.codeblock.borrow_mut();
+        let mut phase = self.inner.phase.borrow_mut();
 
-        if let Some(codeblock) = &*codeblock {
+        if let ScriptPhase::Codeblock(codeblock) = &*phase {
             return Ok(codeblock.clone());
         }
 
         let mut annex_b_function_names = Vec::new();
 
-        let source_borrow = self.inner.source.borrow();
-        let source = source_borrow
-            .as_ref()
-            .expect("source is only taken once, after compilation");
+        let source = match &*phase {
+            ScriptPhase::Ast(source) => source,
+            ScriptPhase::Codeblock(_) => unreachable!(),
+        };
 
         global_declaration_instantiation_context(
             &mut annex_b_function_names,
@@ -166,15 +167,7 @@ impl Script {
 
         let cb = Gc::new(compiler.finish());
 
-        *codeblock = Some(cb.clone());
-
-        // Drop the borrow before taking the AST.
-        drop(source_borrow);
-
-        // This mirrors the same optimization applied to modules after linking.
-        // Without this, every function object created from this script would keep
-        // the entire AST alive (via `OrdinaryFunction::script_or_module`) for the
-        // lifetime of the function, which in the case of global functions is forever.
+        *phase = ScriptPhase::Codeblock(cb.clone());
 
         Ok(cb)
     }
@@ -224,9 +217,6 @@ impl Script {
         context.vm.pop_frame();
 
         let result = record.consume();
-
-        // Drop AST after execution
-        *self.inner.source.borrow_mut() = None;
 
         result
     }
