@@ -7,7 +7,7 @@
 
 use crate::fetch::headers::JsHeaders;
 use boa_engine::object::builtins::{JsPromise, JsUint8Array};
-use boa_engine::value::{TryFromJs, TryIntoJs};
+use boa_engine::value::{Convert, TryFromJs, TryIntoJs};
 use boa_engine::{
     Context, JsData, JsNativeError, JsResult, JsString, JsValue, boa_class, js_error, js_str,
     js_string,
@@ -147,8 +147,32 @@ impl JsResponse {
     }
 }
 
+/// Parse an optional [`JsResponseOptions`] argument.
+fn parse_response_options(init: &JsValue, context: &mut Context) -> JsResult<JsResponseOptions> {
+    if init.is_undefined() || init.is_null() {
+        Ok(JsResponseOptions::default())
+    } else {
+        JsResponseOptions::try_from_js(init, context)
+    }
+}
+
+/// Build an `http::Response<Vec<u8>>` from the parsed pieces.
+fn build_response(
+    status: u16,
+    headers: &JsHeaders,
+    body: Vec<u8>,
+) -> JsResult<http::Response<Vec<u8>>> {
+    let mut builder = http::Response::builder().status(status);
+    for (k, v) in headers.as_header_map().borrow().iter() {
+        builder = builder.header(k, v);
+    }
+    builder
+        .body(body)
+        .map_err(|e| JsNativeError::error().with_message(e.to_string()).into())
+}
+
 /// Options used in the construction of a `Response` object.
-#[derive(Debug, Clone, TryFromJs, TryIntoJs, Trace, Finalize, JsData)]
+#[derive(Debug, Default, Clone, TryFromJs, TryIntoJs, Trace, Finalize, JsData)]
 #[boa(rename_all = "camelCase")]
 pub struct JsResponseOptions {
     status: Option<u16>,
@@ -165,9 +189,55 @@ impl JsResponse {
         Self::error()
     }
 
+    /// Creates a `Response` with a JSON-serialized body and `Content-Type: application/json`.
+    ///
+    /// See <https://developer.mozilla.org/en-US/docs/Web/API/Response/json_static>.
+    #[boa(static)]
+    #[boa(rename = "json")]
+    fn json_static(data: JsValue, init: JsValue, context: &mut Context) -> JsResult<Self> {
+        let json_val = data.to_json(context)?.ok_or_else(|| {
+            JsNativeError::typ().with_message("value cannot be serialized to JSON")
+        })?;
+        let json_bytes = serde_json::to_vec(&json_val)
+            .map_err(|e| JsNativeError::error().with_message(e.to_string()))?;
+
+        let mut options = parse_response_options(&init, context)?;
+        let status = options.status.unwrap_or(200);
+        let mut headers = std::mem::take(&mut options.headers).unwrap_or_default();
+
+        // Set Content-Type if the caller did not already specify one.
+        if !headers.has(Convert::from("content-type".to_string()))? {
+            headers.append(
+                Convert::from("content-type".to_string()),
+                Convert::from("application/json".to_string()),
+            )?;
+        }
+
+        Ok(Self::basic(
+            js_string!(""),
+            build_response(status, &headers, json_bytes)?,
+        ))
+    }
+
+    /// Creates a `Response` using the constructor.
+    ///
+    /// See <https://developer.mozilla.org/en-US/docs/Web/API/Response/Response>.
     #[boa(constructor)]
-    fn constructor(_body: Option<JsValue>, _options: JsResponseOptions) -> Self {
-        Self::basic(js_string!(""), http::Response::new(Vec::new()))
+    fn constructor(body: Option<JsValue>, init: JsValue, context: &mut Context) -> JsResult<Self> {
+        let body_bytes: Vec<u8> = match body {
+            None => Vec::new(),
+            Some(ref val) if val.is_null() || val.is_undefined() => Vec::new(),
+            Some(val) => val.to_string(context)?.to_std_string_escaped().into_bytes(),
+        };
+
+        let mut options = parse_response_options(&init, context)?;
+        let status = options.status.unwrap_or(200);
+        let headers = std::mem::take(&mut options.headers).unwrap_or_default();
+
+        Ok(Self::basic(
+            js_string!(""),
+            build_response(status, &headers, body_bytes)?,
+        ))
     }
 
     /// Returns the HTTP status code of the response.
