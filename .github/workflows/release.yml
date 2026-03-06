@@ -58,7 +58,9 @@ jobs:
           targets: wasm32-unknown-unknown
 
       - name: Install wasm-pack
-        run: cargo install wasm-pack
+        uses: baptiste0928/cargo-install@v3.4.0
+        with:
+          crate: wasm-pack
 
       - name: Build boa_wasm
         run: wasm-pack build --scope boa-dev ./ffi/wasm
