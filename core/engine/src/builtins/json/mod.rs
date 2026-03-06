@@ -244,7 +244,7 @@ impl Json {
         };
 
         let code_block = {
-            let in_with = context.vm.frame.environments.has_object_environment();
+            let in_with = context.vm.frame().environments.has_object_environment();
             let spanned_source_text =
                 SpannedSourceText::new_source_only(crate::spanned_source_text::SourceText::new(source_text));
             let mut compiler = ByteCompiler::new(
