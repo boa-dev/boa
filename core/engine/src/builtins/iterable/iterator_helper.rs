@@ -198,9 +198,10 @@ impl IteratorHelper {
                             context,
                         );
                         return match mapper_result {
-                            Ok(result_value) => {
-                                Ok((create_iter_result_object(result_value, false, context), false))
-                            }
+                            Ok(result_value) => Ok((
+                                create_iter_result_object(result_value, false, context),
+                                false,
+                            )),
                             Err(err) => {
                                 drop(iterated.close(Err(err.clone()), context));
                                 Err(err)
@@ -307,10 +308,7 @@ impl IteratorHelper {
                         create_iter_result_object(JsValue::undefined(), true, context),
                         true,
                     )),
-                    Some(v) => Ok((
-                        create_iter_result_object(v, false, context),
-                        false,
-                    )),
+                    Some(v) => Ok((create_iter_result_object(v, false, context), false)),
                 };
             }
         }
@@ -357,10 +355,7 @@ impl IteratorHelper {
                         create_iter_result_object(JsValue::undefined(), true, context),
                         true,
                     )),
-                    Some(v) => Ok((
-                        create_iter_result_object(v, false, context),
-                        false,
-                    )),
+                    Some(v) => Ok((create_iter_result_object(v, false, context), false)),
                 };
             }
         }
