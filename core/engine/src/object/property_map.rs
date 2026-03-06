@@ -9,31 +9,10 @@ use super::{
 };
 use crate::value::JsVariant;
 use crate::{JsValue, property::PropertyDescriptorBuilder};
-use boa_gc::{Finalize, Trace, custom_trace};
-use indexmap::IndexMap;
-use rustc_hash::{FxHashMap, FxHasher};
-use std::{collections::hash_map, hash::BuildHasherDefault, iter::FusedIterator};
+use boa_gc::{Finalize, Trace};
+use rustc_hash::FxHashMap;
+use std::{collections::hash_map, iter::FusedIterator};
 use thin_vec::ThinVec;
-
-/// Wrapper around `indexmap::IndexMap` for usage in `PropertyMap`.
-#[derive(Debug, Finalize)]
-#[allow(unused)] // TODO: OrderedHashmap is unused, candidate for removal?
-struct OrderedHashMap<K: Trace>(IndexMap<K, PropertyDescriptor, BuildHasherDefault<FxHasher>>);
-
-impl<K: Trace> Default for OrderedHashMap<K> {
-    fn default() -> Self {
-        Self(IndexMap::with_hasher(BuildHasherDefault::default()))
-    }
-}
-
-unsafe impl<K: Trace> Trace for OrderedHashMap<K> {
-    custom_trace!(this, mark, {
-        for (k, v) in &this.0 {
-            mark(k);
-            mark(v);
-        }
-    });
-}
 
 /// This represents all the indexed properties.
 ///
@@ -383,6 +362,81 @@ impl IndexedProperties {
             Self::DenseElement(vec) => (0..vec.len() as u32).contains(&key),
             Self::SparseElement(map) => map.contains_key(&key),
             Self::SparseProperty(map) => map.contains_key(&key),
+        }
+    }
+
+    /// Pushes a value to the end of the dense indexed properties.
+    ///
+    /// Returns `true` if the push succeeded (storage is dense), `false` if
+    /// the storage is sparse and the caller should fall back to the slow path.
+    ///
+    /// Handles type transitions: `DenseI32` → `DenseF64` → `DenseElement`.
+    pub(crate) fn push_dense(&mut self, value: &JsValue) -> bool {
+        match self {
+            Self::DenseI32(vec) => {
+                if let Some(i) = value.as_i32() {
+                    vec.push(i);
+                } else if let Some(n) = value.as_number() {
+                    let mut new_vec: ThinVec<f64> = vec.iter().copied().map(f64::from).collect();
+                    new_vec.push(n);
+                    *self = Self::DenseF64(new_vec);
+                } else {
+                    let mut new_vec: ThinVec<JsValue> =
+                        vec.iter().copied().map(JsValue::from).collect();
+                    new_vec.push(value.clone());
+                    *self = Self::DenseElement(new_vec);
+                }
+                true
+            }
+            Self::DenseF64(vec) => {
+                if let Some(n) = value.as_number() {
+                    vec.push(n);
+                } else {
+                    let mut new_vec: ThinVec<JsValue> =
+                        vec.iter().copied().map(JsValue::from).collect();
+                    new_vec.push(value.clone());
+                    *self = Self::DenseElement(new_vec);
+                }
+                true
+            }
+            Self::DenseElement(vec) => {
+                vec.push(value.clone());
+                true
+            }
+            Self::SparseElement(_) | Self::SparseProperty(_) => false,
+        }
+    }
+
+    /// Transform this array into a sparse array if it isn't so already.
+    pub(crate) fn transform_to_sparse(&mut self) {
+        match &*self {
+            Self::DenseI32(v) => {
+                *self = Self::SparseElement(Box::new(
+                    v.into_iter()
+                        .copied()
+                        .enumerate()
+                        .map(|(i, v)| (i as u32, JsValue::from(v)))
+                        .collect(),
+                ));
+            }
+            Self::DenseF64(v) => {
+                *self = Self::SparseElement(Box::new(
+                    v.into_iter()
+                        .copied()
+                        .enumerate()
+                        .map(|(i, v)| (i as u32, JsValue::from(v)))
+                        .collect(),
+                ));
+            }
+            Self::DenseElement(v) => {
+                *self = Self::SparseElement(Box::new(
+                    v.into_iter()
+                        .enumerate()
+                        .map(|(i, v)| (i as u32, v.clone()))
+                        .collect(),
+                ));
+            }
+            _ => {}
         }
     }
 

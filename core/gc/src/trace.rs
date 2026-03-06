@@ -365,6 +365,19 @@ unsafe impl<T: Trace> Trace for thin_vec::ThinVec<T> {
     });
 }
 
+#[cfg(feature = "arrayvec")]
+impl<T: Trace, const N: usize> Finalize for arrayvec::ArrayVec<T, N> {}
+
+#[cfg(feature = "arrayvec")]
+// SAFETY: All the inner elements of the `ArrayVec` are correctly marked.
+unsafe impl<T: Trace, const N: usize> Trace for arrayvec::ArrayVec<T, N> {
+    custom_trace!(this, mark, {
+        for e in this {
+            mark(e);
+        }
+    });
+}
+
 impl<T: Trace> Finalize for Option<T> {}
 // SAFETY: The inner value of the `Option` is correctly marked.
 unsafe impl<T: Trace> Trace for Option<T> {

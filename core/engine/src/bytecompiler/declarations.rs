@@ -2,7 +2,7 @@ use super::{BindingAccessOpcode, ToJsString};
 use crate::{
     Context, JsNativeError, JsResult, SpannedSourceText,
     bytecompiler::{ByteCompiler, FunctionCompiler, FunctionSpec, NodeKind},
-    vm::opcode::BindingOpcode,
+    vm::{CallFrame, opcode::BindingOpcode},
 };
 use boa_ast::{
     Script,
@@ -212,7 +212,7 @@ pub(crate) fn eval_declaration_instantiation_context(
     //         i. If privateIdentifiers does not contain binding.[[Description]],
     //            append binding.[[Description]] to privateIdentifiers.
     //     b. Set pointer to pointer.[[OuterPrivateEnvironment]].
-    let private_identifiers = context.vm.frame.environments.private_name_descriptions();
+    let private_identifiers = context.vm.frame().environments.private_name_descriptions();
     let private_identifiers = private_identifiers
         .into_iter()
         .map(|ident| {
@@ -714,11 +714,14 @@ impl ByteCompiler<'_> {
                     // ii. If bindingExists is false, then
                     // i. Perform ! varEnv.CreateMutableBinding(F, true).
                     // ii. Perform ! varEnv.InitializeBinding(F, undefined).
+
+                    use crate::vm::CallFrame;
                     let index = self.insert_binding(binding);
-                    let value = self.register_allocator.alloc();
-                    self.bytecode.emit_push_undefined(value.variable());
-                    self.emit_binding_access(BindingAccessOpcode::DefInitVar, &index, &value);
-                    self.register_allocator.dealloc(value);
+                    self.emit_binding_access(
+                        BindingAccessOpcode::DefInitVar,
+                        &index,
+                        &CallFrame::undefined_register(),
+                    );
                 }
             }
         }
@@ -900,10 +903,11 @@ impl ByteCompiler<'_> {
             // 2. Perform ! varEnv.CreateMutableBinding(vn, true).
             // 3. Perform ! varEnv.InitializeBinding(vn, undefined).
             let index = self.insert_binding(binding);
-            let value = self.register_allocator.alloc();
-            self.bytecode.emit_push_undefined(value.variable());
-            self.emit_binding_access(BindingAccessOpcode::DefInitVar, &index, &value);
-            self.register_allocator.dealloc(value);
+            self.emit_binding_access(
+                BindingAccessOpcode::DefInitVar,
+                &index,
+                &CallFrame::undefined_register(),
+            );
         }
 
         // 19. Return unused.
@@ -1080,7 +1084,7 @@ impl ByteCompiler<'_> {
                 Binding::Identifier(ident) => {
                     let ident = ident.to_js_string(self.interner());
                     if let Some(init) = parameter.variable().init() {
-                        let skip = self.emit_jump_if_not_undefined(&value);
+                        let skip = self.jump_if_not_undefined(&value);
                         self.compile_expr(init, &value);
                         self.patch_jump(skip);
                     }
@@ -1088,7 +1092,7 @@ impl ByteCompiler<'_> {
                 }
                 Binding::Pattern(pattern) => {
                     if let Some(init) = parameter.variable().init() {
-                        let skip = self.emit_jump_if_not_undefined(&value);
+                        let skip = self.jump_if_not_undefined(&value);
                         self.compile_expr(init, &value);
                         self.patch_jump(skip);
                     }
@@ -1099,7 +1103,11 @@ impl ByteCompiler<'_> {
         }
 
         if generator {
-            self.bytecode.emit_generator(self.is_async().into());
+            if self.is_async() {
+                self.bytecode.emit_async_generator();
+            } else {
+                self.bytecode.emit_generator();
+            }
             self.bytecode.emit_pop();
         }
 
@@ -1182,10 +1190,11 @@ impl ByteCompiler<'_> {
                         // 3. Perform ! env.InitializeBinding(n, undefined).
                         let binding = scope.get_binding_reference(&n).expect("binding must exist");
                         let index = self.insert_binding(binding);
-                        let value = self.register_allocator.alloc();
-                        self.bytecode.emit_push_undefined(value.variable());
-                        self.emit_binding_access(BindingAccessOpcode::DefInitVar, &index, &value);
-                        self.register_allocator.dealloc(value);
+                        self.emit_binding_access(
+                            BindingAccessOpcode::DefInitVar,
+                            &index,
+                            &CallFrame::undefined_register(),
+                        );
                     }
                 }
 
@@ -1218,10 +1227,11 @@ impl ByteCompiler<'_> {
                             .get_binding_reference(&f_string)
                             .expect("binding must exist");
                         let index = self.insert_binding(binding);
-                        let value = self.register_allocator.alloc();
-                        self.bytecode.emit_push_undefined(value.variable());
-                        self.emit_binding_access(BindingAccessOpcode::DefInitVar, &index, &value);
-                        self.register_allocator.dealloc(value);
+                        self.emit_binding_access(
+                            BindingAccessOpcode::DefInitVar,
+                            &index,
+                            &CallFrame::undefined_register(),
+                        );
 
                         // c. Append F to instantiatedVarNames.
                         instantiated_var_names.push(f);

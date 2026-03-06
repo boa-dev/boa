@@ -415,12 +415,14 @@ impl JsObject {
         }
 
         if frame_index + 1 == context.vm.frames.len() {
-            context.vm.frame.set_exit_early(true);
+            context.vm.frame_mut().set_exit_early(true);
         } else {
             context.vm.frames[frame_index + 1].set_exit_early(true);
         }
 
+        context.vm.host_call_depth += 1;
         let result = context.run().consume();
+        context.vm.host_call_depth = context.vm.host_call_depth.saturating_sub(1);
 
         context.vm.pop_frame().expect("frame must exist");
 
@@ -469,12 +471,14 @@ impl JsObject {
         }
 
         if frame_index + 1 == context.vm.frames.len() {
-            context.vm.frame.set_exit_early(true);
+            context.vm.frame_mut().set_exit_early(true);
         } else {
             context.vm.frames[frame_index + 1].set_exit_early(true);
         }
 
+        context.vm.host_call_depth += 1;
         let result = context.run().consume();
+        context.vm.host_call_depth = context.vm.host_call_depth.saturating_sub(1);
 
         context.vm.pop_frame().expect("frame must exist");
 

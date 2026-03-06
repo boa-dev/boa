@@ -1,6 +1,6 @@
 //! Rust API wrappers for the `TypedArray` Builtin ECMAScript Objects
 use crate::{
-    Context, JsResult, JsString, JsValue,
+    Context, JsExpect, JsResult, JsString, JsValue,
     builtins::{
         BuiltInConstructor,
         array_buffer::AlignedVec,
@@ -50,13 +50,16 @@ impl JsTypedArray {
     /// Get the length of the array.
     ///
     /// Same as `array.length` in JavaScript.
+    ///
+    /// # Errors
+    ///
+    /// Returns an error if the length value is not a number.
     #[inline]
     pub fn length(&self, context: &mut Context) -> JsResult<usize> {
         Ok(
             BuiltinTypedArray::length(&self.inner.clone().into(), &[], context)?
                 .as_number()
-                .map(|x| x as usize)
-                .expect("length should return a number"),
+                .js_expect("length should return a number")? as usize,
         )
     }
 
@@ -100,24 +103,30 @@ impl JsTypedArray {
     }
 
     /// Returns `TypedArray.prototype.byteLength`.
+    ///
+    /// # Errors
+    ///
+    /// Returns an error if the byteLength value is not a number.
     #[inline]
     pub fn byte_length(&self, context: &mut Context) -> JsResult<usize> {
         Ok(
             BuiltinTypedArray::byte_length(&self.inner.clone().into(), &[], context)?
                 .as_number()
-                .map(|x| x as usize)
-                .expect("byteLength should return a number"),
+                .js_expect("byteLength should return a number")? as usize,
         )
     }
 
     /// Returns `TypedArray.prototype.byteOffset`.
+    ///
+    /// # Errors
+    ///
+    /// Returns an error if the byteOffset value is not a number.
     #[inline]
     pub fn byte_offset(&self, context: &mut Context) -> JsResult<usize> {
         Ok(
             BuiltinTypedArray::byte_offset(&self.inner.clone().into(), &[], context)?
                 .as_number()
-                .map(|x| x as usize)
-                .expect("byteLength should return a number"),
+                .js_expect("byteLength should return a number")? as usize,
         )
     }
 
@@ -195,7 +204,7 @@ impl JsTypedArray {
         Ok(Self {
             inner: object
                 .as_object()
-                .expect("`copyWithin` must always return a `TypedArray` on success"),
+                .js_expect("`copyWithin` must always return a `TypedArray` on success")?,
         })
     }
 
@@ -235,7 +244,7 @@ impl JsTypedArray {
             context,
         )?
         .as_boolean()
-        .expect("TypedArray.prototype.every should always return boolean");
+        .js_expect("TypedArray.prototype.every should always return boolean")?;
 
         Ok(result)
     }
@@ -254,7 +263,7 @@ impl JsTypedArray {
             context,
         )?
         .as_boolean()
-        .expect("TypedArray.prototype.some should always return boolean");
+        .js_expect("TypedArray.prototype.some should always return boolean")?;
 
         Ok(result)
     }
@@ -310,7 +319,7 @@ impl JsTypedArray {
         Ok(Self {
             inner: subarray
                 .as_object()
-                .expect("`subarray` must always return a `TypedArray` on success"),
+                .js_expect("`subarray` must always return a `TypedArray` on success")?,
         })
     }
 
@@ -346,7 +355,7 @@ impl JsTypedArray {
         Ok(Self {
             inner: object
                 .as_object()
-                .expect("`filter` must always return a `TypedArray` on success"),
+                .js_expect("`filter` must always return a `TypedArray` on success")?,
         })
     }
 
@@ -367,7 +376,7 @@ impl JsTypedArray {
         Ok(Self {
             inner: object
                 .as_object()
-                .expect("`map` must always return a `TypedArray` on success"),
+                .js_expect("`map` must always return a `TypedArray` on success")?,
         })
     }
 
@@ -471,7 +480,7 @@ impl JsTypedArray {
         Ok(Self {
             inner: object
                 .as_object()
-                .expect("`slice` must always return a `TypedArray` on success"),
+                .js_expect("`slice` must always return a `TypedArray` on success")?,
         })
     }
 
@@ -539,7 +548,7 @@ impl JsTypedArray {
             context,
         )?
         .as_number()
-        .expect("TypedArray.prototype.findIndex() should always return number");
+        .js_expect("TypedArray.prototype.findIndex() should always return number")?;
 
         if index >= 0.0 {
             Ok(Some(index as u64))
@@ -647,7 +656,7 @@ impl JsTypedArray {
             context,
         )?
         .as_number()
-        .expect("TypedArray.prototype.findLastIndex() should always return number");
+        .js_expect("TypedArray.prototype.findLastIndex() should always return number")?;
 
         if index >= 0.0 {
             Ok(Some(index as u64))
@@ -750,7 +759,7 @@ impl JsTypedArray {
             context,
         )?
         .as_boolean()
-        .expect("TypedArray.prototype.includes should always return boolean");
+        .js_expect("TypedArray.prototype.includes should always return boolean")?;
 
         Ok(result)
     }
@@ -771,7 +780,7 @@ impl JsTypedArray {
             context,
         )?
         .as_number()
-        .expect("TypedArray.prototype.indexOf should always return number");
+        .js_expect("TypedArray.prototype.indexOf should always return number")?;
 
         #[allow(clippy::float_cmp)]
         if index == -1.0 {
@@ -797,7 +806,7 @@ impl JsTypedArray {
             context,
         )?
         .as_number()
-        .expect("TypedArray.prototype.lastIndexOf should always return number");
+        .js_expect("TypedArray.prototype.lastIndexOf should always return number")?;
 
         #[allow(clippy::float_cmp)]
         if index == -1.0 {
@@ -815,9 +824,10 @@ impl JsTypedArray {
             &[separator.into_or_undefined()],
             context,
         )
-        .map(|x| {
+        .and_then(|x| {
             x.as_string()
-                .expect("TypedArray.prototype.join always returns string")
+                .js_expect("TypedArray.prototype.join always returns string")
+                .map_err(Into::into)
         })
     }
 
@@ -829,7 +839,7 @@ impl JsTypedArray {
         Ok(Self {
             inner: array
                 .as_object()
-                .expect("`to_reversed` must always return a `TypedArray` on success"),
+                .js_expect("`to_reversed` must always return a `TypedArray` on success")?,
         })
     }
 
@@ -849,7 +859,7 @@ impl JsTypedArray {
         Ok(Self {
             inner: array
                 .as_object()
-                .expect("`to_sorted` must always return a `TypedArray` on success"),
+                .js_expect("`to_sorted` must always return a `TypedArray` on success")?,
         })
     }
 
@@ -862,7 +872,7 @@ impl JsTypedArray {
         Ok(Self {
             inner: array
                 .as_object()
-                .expect("`with` must always return a `TypedArray` on success"),
+                .js_expect("`with` must always return a `TypedArray` on success")?,
         })
     }
 
@@ -987,7 +997,7 @@ macro_rules! JsTypedArrayType {
                     context,
                 )?
                 .as_object()
-                .expect("object")
+                .js_expect("object")?
                 .clone();
 
                 Ok(Self {
@@ -1014,7 +1024,7 @@ macro_rules! JsTypedArrayType {
                     context,
                 )?
                 .as_object()
-                .expect("object")
+                .js_expect("object")?
                 .clone();
 
                 Ok(Self {
@@ -1048,7 +1058,7 @@ macro_rules! JsTypedArrayType {
                     context,
                 )?
                 .as_object()
-                .expect("object")
+                .js_expect("object")?
                 .clone();
 
                 Ok(Self {

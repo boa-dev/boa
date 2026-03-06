@@ -1,4 +1,4 @@
-use super::VaryingOperand;
+use super::{RegisterOperand, VaryingOperand};
 use crate::{Context, JsResult, JsValue, vm::opcode::Operation};
 
 pub(crate) mod class;
@@ -20,11 +20,15 @@ impl DefVar {
         // TODO: spec specifies to return `empty` on empty vars, but we're trying to initialize.
         let binding_locator = context.vm.frame().code_block.bindings[usize::from(index)].clone();
 
-        context.vm.frame.environments.put_value_if_uninitialized(
-            binding_locator.scope(),
-            binding_locator.binding_index(),
-            JsValue::undefined(),
-        );
+        context
+            .vm
+            .frame_mut()
+            .environments
+            .put_value_if_uninitialized(
+                binding_locator.scope(),
+                binding_locator.binding_index(),
+                JsValue::undefined(),
+            );
     }
 }
 
@@ -44,7 +48,7 @@ pub(crate) struct DefInitVar;
 impl DefInitVar {
     #[inline(always)]
     pub(super) fn operation(
-        (value, index): (VaryingOperand, VaryingOperand),
+        (value, index): (RegisterOperand, VaryingOperand),
         context: &mut Context,
     ) -> JsResult<()> {
         let value = context.vm.get_register(value.into()).clone();
@@ -74,15 +78,15 @@ pub(crate) struct PutLexicalValue;
 impl PutLexicalValue {
     #[inline(always)]
     pub(super) fn operation(
-        (value, index): (VaryingOperand, VaryingOperand),
+        (value, index): (RegisterOperand, VaryingOperand),
         context: &mut Context,
     ) {
-        let value = context.vm.get_register(value.into());
+        let value = context.vm.get_register(value.into()).clone();
         let binding_locator = context.vm.frame().code_block.bindings[usize::from(index)].clone();
-        context.vm.frame.environments.put_lexical_value(
+        context.vm.frame_mut().environments.put_lexical_value(
             binding_locator.scope(),
             binding_locator.binding_index(),
-            value.clone(),
+            value,
         );
     }
 }
