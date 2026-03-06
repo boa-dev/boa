@@ -1,6 +1,6 @@
 //! A Rust API wrapper for Boa's `DataView` Builtin ECMAScript Object
 use crate::{
-    Context, JsNativeError, JsResult, JsValue,
+    Context, JsExpect, JsNativeError, JsResult, JsValue,
     builtins::{DataView, array_buffer::BufferObject},
     object::{JsArrayBuffer, JsObject},
     value::TryFromJs,
@@ -173,15 +173,23 @@ impl JsDataView {
     /// Returns the `byte_length` property of [`JsDataView`] as a u64 integer
     #[inline]
     pub fn byte_length(&self, context: &mut Context) -> JsResult<u64> {
-        DataView::get_byte_length(&self.inner.clone().upcast().into(), &[], context)
-            .map(|v| v.as_number().expect("value should be a number") as u64)
+        DataView::get_byte_length(&self.inner.clone().upcast().into(), &[], context).and_then(|v| {
+            v.as_number()
+                .js_expect("value should be a number")
+                .map(|n| n as u64)
+                .map_err(Into::into)
+        })
     }
 
     /// Returns the `byte_offset` field property of [`JsDataView`] as a u64 integer
     #[inline]
     pub fn byte_offset(&self, context: &mut Context) -> JsResult<u64> {
-        DataView::get_byte_offset(&self.inner.clone().upcast().into(), &[], context)
-            .map(|v| v.as_number().expect("byte_offset value must be a number") as u64)
+        DataView::get_byte_offset(&self.inner.clone().upcast().into(), &[], context).and_then(|v| {
+            v.as_number()
+                .js_expect("byte_offset value must be a number")
+                .map(|n| n as u64)
+                .map_err(Into::into)
+        })
     }
 
     /// Returns a signed 64-bit integer at the specified offset from the start of the [`JsDataView`]
@@ -197,7 +205,12 @@ impl JsDataView {
             &[byte_offset.into(), is_little_endian.into()],
             context,
         )
-        .map(|v| v.as_number().expect("value must be a number") as i64)
+        .and_then(|v| {
+            v.as_number()
+                .js_expect("value must be a number")
+                .map(|n| n as i64)
+                .map_err(Into::into)
+        })
     }
 
     /// Returns an unsigned 64-bit integer at the specified offset from the start of the [`JsDataView`]
@@ -213,7 +226,12 @@ impl JsDataView {
             &[byte_offset.into(), is_little_endian.into()],
             context,
         )
-        .map(|v| v.as_number().expect("value must be a number") as u64)
+        .and_then(|v| {
+            v.as_number()
+                .js_expect("value must be a number")
+                .map(|n| n as u64)
+                .map_err(Into::into)
+        })
     }
 
     /// Returns a signed 32-bit float integer at the specified offset from the start of the [`JsDataView`]
@@ -229,7 +247,12 @@ impl JsDataView {
             &[byte_offset.into(), is_little_endian.into()],
             context,
         )
-        .map(|v| v.as_number().expect("value must be a number") as f32)
+        .and_then(|v| {
+            v.as_number()
+                .js_expect("value must be a number")
+                .map(|n| n as f32)
+                .map_err(Into::into)
+        })
     }
 
     /// Returns a signed 64-bit float integer at the specified offset from the start of the [`JsDataView`]
@@ -245,7 +268,11 @@ impl JsDataView {
             &[byte_offset.into(), is_little_endian.into()],
             context,
         )
-        .map(|v| v.as_number().expect("value must be a number"))
+        .and_then(|v| {
+            v.as_number()
+                .js_expect("value must be a number")
+                .map_err(Into::into)
+        })
     }
 
     /// Returns a signed 8-bit integer at the specified offset from the start of the [`JsDataView`]
@@ -261,7 +288,12 @@ impl JsDataView {
             &[byte_offset.into(), is_little_endian.into()],
             context,
         )
-        .map(|v| v.as_number().expect("value must be a number") as i8)
+        .and_then(|v| {
+            v.as_number()
+                .js_expect("value must be a number")
+                .map(|n| n as i8)
+                .map_err(Into::into)
+        })
     }
 
     /// Returns a signed 16-bit integer at the specified offset from the start of the [`JsDataView`]
@@ -277,7 +309,12 @@ impl JsDataView {
             &[byte_offset.into(), is_little_endian.into()],
             context,
         )
-        .map(|v| v.as_number().expect("value must be a number") as i16)
+        .and_then(|v| {
+            v.as_number()
+                .js_expect("value must be a number")
+                .map(|n| n as i16)
+                .map_err(Into::into)
+        })
     }
 
     /// Returns a signed 32-bit integer at the specified offset from the start of the [`JsDataView`]
@@ -293,7 +330,12 @@ impl JsDataView {
             &[byte_offset.into(), is_little_endian.into()],
             context,
         )
-        .map(|v| v.as_number().expect("value must be a number") as i32)
+        .and_then(|v| {
+            v.as_number()
+                .js_expect("value must be a number")
+                .map(|n| n as i32)
+                .map_err(Into::into)
+        })
     }
 
     /// Returns an unsigned 8-bit integer at the specified offset from the start of the [`JsDataView`]
@@ -309,7 +351,12 @@ impl JsDataView {
             &[byte_offset.into(), is_little_endian.into()],
             context,
         )
-        .map(|v| v.as_number().expect("value must be a number") as u8)
+        .and_then(|v| {
+            v.as_number()
+                .js_expect("value must be a number")
+                .map(|n| n as u8)
+                .map_err(Into::into)
+        })
     }
 
     /// Returns an unsigned 16-bit integer at the specified offset from the start of the [`JsDataView`]
@@ -325,7 +372,12 @@ impl JsDataView {
             &[byte_offset.into(), is_little_endian.into()],
             context,
         )
-        .map(|v| v.as_number().expect("value must be a number") as u16)
+        .and_then(|v| {
+            v.as_number()
+                .js_expect("value must be a number")
+                .map(|n| n as u16)
+                .map_err(Into::into)
+        })
     }
 
     /// Returns an unsigned 32-bit integer at the specified offset from the start of the [`JsDataView`]
@@ -341,7 +393,12 @@ impl JsDataView {
             &[byte_offset.into(), is_little_endian.into()],
             context,
         )
-        .map(|v| v.as_number().expect("value must be a number") as u32)
+        .and_then(|v| {
+            v.as_number()
+                .js_expect("value must be a number")
+                .map(|n| n as u32)
+                .map_err(Into::into)
+        })
     }
 
     /// Sets a signed 64-bit integer at the specified offset from the start of the [`JsDataView`]

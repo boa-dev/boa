@@ -52,7 +52,7 @@ use std::ops::Deref;
 /// let context = &mut Context::default();
 ///
 /// // Create an array of two `[key, value]` pairs
-/// let js_array = JsArray::new(context);
+/// let js_array = JsArray::new(context)?;
 ///
 /// // Create a `[key, value]` pair of JsValues
 /// let vec_one: Vec<JsValue> = vec![
@@ -111,7 +111,7 @@ impl JsMap {
     /// # // Create a default `Context`
     /// # let context = &mut Context::default();
     /// // Create an array of two `[key, value]` pairs
-    /// let js_array = JsArray::new(context);
+    /// let js_array = JsArray::new(context)?;
     ///
     /// // Create a `[key, value]` pair of JsValues and add it to the `JsArray` as a `JsArray`
     /// let vec_one: Vec<JsValue> = vec![js_string!("first-key").into(), js_string!("first-value").into()];
@@ -171,11 +171,14 @@ impl JsMap {
     /// #    object::{JsObject, builtins::{JsArray, JsMap}},
     /// #    Context, JsResult, JsValue,
     /// # };
+    /// # fn main() -> JsResult<()> {
     /// # let context = &mut Context::default();
-    /// let some_object = JsArray::new(context);
+    /// let some_object = JsArray::new(context)?;
     ///
     /// // `some_object` is an Array object, not a map object
     /// assert!(JsMap::from_object(some_object.into()).is_err());
+    /// # Ok(())
+    /// # }
     /// ```
     #[inline]
     pub fn from_object(object: JsObject) -> JsResult<Self> {

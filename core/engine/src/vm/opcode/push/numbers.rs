@@ -1,6 +1,6 @@
 use crate::{
     Context,
-    vm::opcode::{Operation, VaryingOperand},
+    vm::opcode::{Operation, RegisterOperand},
 };
 
 macro_rules! implement_push_numbers_with_conversion {
@@ -14,7 +14,7 @@ macro_rules! implement_push_numbers_with_conversion {
 
         impl $name {
             #[inline(always)]
-            pub(crate) fn operation((dst, value): (VaryingOperand, $num_type),  context: &mut Context) {
+            pub(crate) fn operation((dst, value): (RegisterOperand, $num_type),  context: &mut Context) {
                 context.vm.set_register(dst.into(), i32::from(value).into());
             }
         }
@@ -38,7 +38,7 @@ macro_rules! implement_push_numbers_no_conversion {
 
         impl $name {
             #[inline(always)]
-            pub(crate) fn operation((dst, value): (VaryingOperand, $num_type),  context: &mut Context) {
+            pub(crate) fn operation((dst, value): (RegisterOperand, $num_type),  context: &mut Context) {
                 context.vm.set_register(dst.into(), value.into());
             }
         }
@@ -55,5 +55,5 @@ implement_push_numbers_with_conversion!(PushInt8, i8, "Push `i8` value on the st
 implement_push_numbers_with_conversion!(PushInt16, i16, "Push `i16` value on the stack");
 
 implement_push_numbers_no_conversion!(PushInt32, i32, "Push `i32` value on the stack");
-implement_push_numbers_no_conversion!(PushFloat, f32, "Push `f64` value on the stack");
+implement_push_numbers_no_conversion!(PushFloat, f32, "Push `f32` value on the stack");
 implement_push_numbers_no_conversion!(PushDouble, f64, "Push `f64` value on the stack");

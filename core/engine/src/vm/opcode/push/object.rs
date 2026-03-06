@@ -1,7 +1,7 @@
 use crate::{
     Context,
     builtins::OrdinaryObject,
-    vm::opcode::{Operation, VaryingOperand},
+    vm::opcode::{Operation, RegisterOperand},
 };
 
 /// `PushEmptyObject` implements the Opcode Operation for `Opcode::PushEmptyObject`
@@ -13,7 +13,7 @@ pub(crate) struct PushEmptyObject;
 
 impl PushEmptyObject {
     #[inline(always)]
-    pub(crate) fn operation(dst: VaryingOperand, context: &mut Context) {
+    pub(crate) fn operation(dst: RegisterOperand, context: &mut Context) {
         let o = context
             .intrinsics()
             .templates()

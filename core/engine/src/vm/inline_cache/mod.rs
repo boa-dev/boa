@@ -40,16 +40,16 @@ pub(crate) struct InlineCache {
 
 impl fmt::Display for InlineCache {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        write!(f, "[ prop: {}, entries: ", self.name.display_escaped())?;
+        write!(f, "(name:{} entries:", self.name.display_escaped())?;
 
         if self.megamorphic.get() {
-            return write!(f, "{{ megamorphic }} ]");
+            return write!(f, "(megamorphic))");
         }
 
         let entries = self.entries.borrow();
         let entries = entries.iter().map(|e| e.shape.to_addr_usize()).format(", ");
 
-        write!(f, "{{ {entries:#x} }} ]")
+        write!(f, "({entries:#x}))")
     }
 }
 
