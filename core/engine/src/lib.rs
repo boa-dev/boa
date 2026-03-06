@@ -208,6 +208,9 @@ impl<V> JsExpect<V> for Option<V> {
 #[cfg(test)]
 use std::{borrow::Cow, pin::Pin};
 
+#[cfg(test)]
+type PinBoxFuture<'a> = Pin<Box<dyn Future<Output = ()> + 'a>>;
+
 /// A test action executed in a test function.
 #[cfg(test)]
 struct TestAction(Inner);
@@ -222,7 +225,7 @@ enum Inner {
         op: fn(&mut Context),
     },
     InspectContextAsync {
-        op: Box<dyn for<'a> FnOnce(&'a mut Context) -> Pin<Box<dyn Future<Output = ()> + 'a>>>,
+        op: Box<dyn for<'a> FnOnce(&'a mut Context) -> PinBoxFuture<'a>>,
     },
     Assert {
         source: Cow<'static, str>,
