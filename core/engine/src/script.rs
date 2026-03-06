@@ -121,18 +121,14 @@ impl Script {
     ///
     /// This is a no-op if this has been called previously.
     pub fn codeblock(&self, context: &mut Context) -> JsResult<Gc<CodeBlock>> {
-        let mut phase = self.inner.phase.borrow_mut();
-
-        if let ScriptPhase::Codeblock(codeblock) = &*phase {
-            return Ok(codeblock.clone());
-        }
+        let phase = self.inner.phase.borrow();
+        let source = match &*phase {
+            ScriptPhase::Codeblock(codeblock) => return Ok(codeblock.clone()),
+            ScriptPhase::Ast(source) => source.clone(),
+        };
+        drop(phase);
 
         let mut annex_b_function_names = Vec::new();
-
-        let source = match &*phase {
-            ScriptPhase::Ast(source) => source,
-            ScriptPhase::Codeblock(_) => unreachable!(),
-        };
 
         global_declaration_instantiation_context(
             &mut annex_b_function_names,
