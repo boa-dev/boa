@@ -216,9 +216,7 @@ impl Script {
 
         context.vm.pop_frame();
 
-        let result = record.consume();
-
-        result
+        record.consume()
     }
 
     fn prepare_run(&self, context: &mut Context) -> JsResult<()> {
