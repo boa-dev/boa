@@ -253,7 +253,7 @@ fn wpt_console_label_conversion() {
         [
             TestAction::run(TEST_HARNESS),
             TestAction::run(indoc! {r#"
-                const methods = ['count', 'countReset', 'time', 'timeLog', 'timeEnd'];
+                const methods = ['count', 'countReset', 'time', 'timeLog', 'timeEnd', 'timeStamp'];
             "#}),
             // console.${method}()'s label gets converted to string via label.toString() when label is an object
             TestAction::run(indoc! {r#"

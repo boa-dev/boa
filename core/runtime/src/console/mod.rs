@@ -429,6 +429,11 @@ impl Console {
             0,
         )
         .function(
+            console_method(Self::time_stamp, state.clone(), logger.clone()),
+            js_string!("timeStamp"),
+            0,
+        )
+        .function(
             console_method(Self::dir, state.clone(), logger.clone()),
             js_string!("dir"),
             0,
@@ -821,6 +826,36 @@ impl Console {
             )?;
         }
 
+        Ok(JsValue::undefined())
+    }
+
+    /// `console.timeStamp(label)`
+    ///
+    /// Logs a timestamp with an optional label. Used for performance profiling.
+    ///
+    /// More information:
+    ///  - [MDN documentation][mdn]
+    ///  - [WHATWG `console` specification][spec]
+    ///
+    /// [spec]: https://console.spec.whatwg.org/#timestamp
+    /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/API/console/timeStamp
+    fn time_stamp(
+        _: &JsValue,
+        args: &[JsValue],
+        console: &Self,
+        logger: &impl Logger,
+        context: &mut Context,
+    ) -> JsResult<JsValue> {
+        let time = Self::system_time_in_ms();
+        let msg = match args.first() {
+            Some(label) => format!(
+                "[{}] {} ms",
+                label.to_string(context)?.to_std_string_escaped(),
+                time
+            ),
+            None => format!("{} ms", time),
+        };
+        logger.log(msg, &console.state, context)?;
         Ok(JsValue::undefined())
     }
 
