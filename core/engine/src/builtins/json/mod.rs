@@ -59,95 +59,147 @@ enum JsonNode {
     Object(Vec<(String, JsonNode)>),
 }
 
-/// Build a `JsonNode` source tree by walking the AST expression tree,
+/// Visitor that builds a `JsonNode` source tree by walking the parsed AST,
 /// extracting source text from `LinearSpan` information tracked by the parser.
-/// This avoids re-parsing the JSON string a second time.
-fn build_source_node_from_expression(
-    expr: &boa_ast::Expression,
-    source_text: &boa_ast::SourceText,
-    interner: &boa_interner::Interner,
-) -> JsonNode {
-    match expr {
-        boa_ast::Expression::Literal(lit) => {
-            let span = lit.linear_span();
-            if span.is_empty() {
-                // Fallback: reconstruct source text from kind
-                let text = match lit.kind() {
-                    boa_ast::expression::literal::LiteralKind::Null => "null".to_string(),
-                    boa_ast::expression::literal::LiteralKind::Bool(true) => "true".to_string(),
-                    boa_ast::expression::literal::LiteralKind::Bool(false) => "false".to_string(),
-                    boa_ast::expression::literal::LiteralKind::Num(n) => n.to_string(),
-                    boa_ast::expression::literal::LiteralKind::Int(n) => n.to_string(),
-                    boa_ast::expression::literal::LiteralKind::String(sym) => {
-                        format!("\"{}\"", interner.resolve_expect(*sym))
-                    }
-                    _ => String::new(),
-                };
-                JsonNode::Primitive(text)
+/// Uses a stack to build the tree bottom-up during depth-first traversal.
+struct JsonSourceVisitor<'a> {
+    source_text: &'a boa_ast::SourceText,
+    interner: &'a boa_interner::Interner,
+    /// Stack used to build the tree bottom-up. Leaf nodes (literals) are pushed
+    /// first, then parent nodes (arrays/objects) pop their children and push themselves.
+    stack: Vec<JsonNode>,
+}
+
+impl<'a> JsonSourceVisitor<'a> {
+    /// Creates a new `JsonSourceVisitor`.
+    fn new(source_text: &'a boa_ast::SourceText, interner: &'a boa_interner::Interner) -> Self {
+        Self {
+            source_text,
+            interner,
+            stack: Vec::new(),
+        }
+    }
+
+    /// Consumes the visitor and returns the final `JsonNode` tree.
+    fn finish(mut self) -> Option<JsonNode> {
+        self.stack.pop()
+    }
+}
+
+impl<'ast> boa_ast::visitor::Visitor<'ast> for JsonSourceVisitor<'_> {
+    type BreakTy = std::convert::Infallible;
+
+    fn visit_literal(
+        &mut self,
+        node: &'ast boa_ast::expression::literal::Literal,
+    ) -> std::ops::ControlFlow<Self::BreakTy> {
+        use boa_ast::expression::literal::LiteralKind;
+
+        let span = node.linear_span();
+        let text = if span.is_empty() {
+            // Fallback: reconstruct source text from literal kind
+            match node.kind() {
+                LiteralKind::Null => "null".to_string(),
+                LiteralKind::Bool(true) => "true".to_string(),
+                LiteralKind::Bool(false) => "false".to_string(),
+                LiteralKind::Num(n) => n.to_string(),
+                LiteralKind::Int(n) => n.to_string(),
+                LiteralKind::String(sym) => {
+                    format!("\"{}\"", self.interner.resolve_expect(*sym))
+                }
+                _ => String::new(),
+            }
+        } else {
+            let code_points = self.source_text.get_code_points_from_span(span);
+            String::from_utf16_lossy(code_points)
+        };
+        self.stack.push(JsonNode::Primitive(text));
+        std::ops::ControlFlow::Continue(())
+    }
+
+    fn visit_array_literal(
+        &mut self,
+        node: &'ast boa_ast::expression::literal::ArrayLiteral,
+    ) -> std::ops::ControlFlow<Self::BreakTy> {
+        let count = node.as_ref().len();
+        let base = self.stack.len();
+
+        // Visit each element, which pushes child nodes onto the stack
+        for elem in node.as_ref() {
+            if let Some(expr) = elem {
+                self.visit_expression(expr)?;
             } else {
-                let code_points = source_text.get_code_points_from_span(span);
-                let text = String::from_utf16_lossy(code_points);
-                JsonNode::Primitive(text)
+                // Sparse element (should not happen in JSON)
+                self.stack.push(JsonNode::Primitive("null".to_string()));
             }
         }
-        boa_ast::Expression::ArrayLiteral(arr) => {
-            let children = arr
-                .as_ref()
-                .iter()
-                .map(|elem| {
-                    if let Some(expr) = elem {
-                        build_source_node_from_expression(expr, source_text, interner)
-                    } else {
-                        // Sparse array element (should not happen in JSON)
-                        JsonNode::Primitive("null".to_string())
-                    }
-                })
-                .collect();
-            JsonNode::Array(children)
+
+        // Pop the children that were just pushed and collect into array
+        let children: Vec<JsonNode> = self.stack.drain(base..).collect();
+        debug_assert_eq!(children.len(), count);
+        self.stack.push(JsonNode::Array(children));
+        std::ops::ControlFlow::Continue(())
+    }
+
+    fn visit_object_literal(
+        &mut self,
+        node: &'ast boa_ast::expression::literal::ObjectLiteral,
+    ) -> std::ops::ControlFlow<Self::BreakTy> {
+        use boa_ast::expression::literal::PropertyDefinition;
+
+        let base = self.stack.len();
+        let mut keys: Vec<String> = Vec::new();
+
+        for prop in node.properties() {
+            if let PropertyDefinition::Property(name, value) = prop {
+                let key = if let Some(ident) = name.literal() {
+                    self.interner.resolve_expect(ident.sym()).to_string()
+                } else {
+                    String::new()
+                };
+                keys.push(key);
+                // Visit the value expression, which pushes the child node
+                self.visit_expression(value)?;
+            }
         }
-        boa_ast::Expression::ObjectLiteral(obj) => {
-            let entries = obj
-                .properties()
-                .iter()
-                .filter_map(|prop| {
-                    use boa_ast::expression::literal::PropertyDefinition;
-                    match prop {
-                        PropertyDefinition::Property(name, value) => {
-                            let key = if let Some(ident) = name.literal() {
-                                interner.resolve_expect(ident.sym()).to_string()
-                            } else {
-                                // Computed property names should not happen in JSON
-                                String::new()
-                            };
-                            let child =
-                                build_source_node_from_expression(value, source_text, interner);
-                            Some((key, child))
-                        }
-                        _ => None,
-                    }
-                })
-                .collect();
-            JsonNode::Object(entries)
-        }
-        boa_ast::Expression::Unary(unary)
-            if unary.op() == boa_ast::expression::operator::unary::UnaryOp::Minus =>
-        {
-            // Handle negative numbers like -1.5
-            if let boa_ast::Expression::Literal(lit) = unary.target() {
+
+        // Pop the value nodes and zip with keys
+        let values: Vec<JsonNode> = self.stack.drain(base..).collect();
+        debug_assert_eq!(keys.len(), values.len());
+        let entries: Vec<(String, JsonNode)> = keys.into_iter().zip(values).collect();
+        self.stack.push(JsonNode::Object(entries));
+        std::ops::ControlFlow::Continue(())
+    }
+
+    fn visit_unary(
+        &mut self,
+        node: &'ast boa_ast::expression::operator::Unary,
+    ) -> std::ops::ControlFlow<Self::BreakTy> {
+        use boa_ast::expression::operator::unary::UnaryOp;
+        use boa_ast::visitor::VisitWith;
+
+        if node.op() == UnaryOp::Minus {
+            if let boa_ast::Expression::Literal(lit) = node.target() {
                 let span = lit.linear_span();
                 if !span.is_empty() {
-                    // Get the number text and prepend minus sign
-                    let code_points = source_text.get_code_points_from_span(span);
+                    let code_points = self.source_text.get_code_points_from_span(span);
                     let num_text = String::from_utf16_lossy(code_points);
-                    return JsonNode::Primitive(format!("-{num_text}"));
+                    self.stack.push(JsonNode::Primitive(format!("-{num_text}")));
+                    return std::ops::ControlFlow::Continue(());
                 }
             }
-            JsonNode::Primitive(String::new())
         }
-        boa_ast::Expression::Parenthesized(p) => {
-            build_source_node_from_expression(p.expression(), source_text, interner)
-        }
-        _ => JsonNode::Primitive(String::new()),
+
+        // Default: recurse into children
+        node.visit_with(self)
+    }
+
+    fn visit_parenthesized(
+        &mut self,
+        node: &'ast boa_ast::expression::Parenthesized,
+    ) -> std::ops::ControlFlow<Self::BreakTy> {
+        // Unwrap parentheses and visit inner expression
+        self.visit_expression(node.expression())
     }
 }
 
@@ -226,27 +278,29 @@ impl Json {
         // This walks the parsed AST and extracts source text from LinearSpan information,
         // avoiding the need to re-parse the JSON string separately.
         let source_tree = if has_reviver {
-            let expr = script
-                .statements()
-                .statements()
-                .first()
-                .and_then(|item| {
-                    if let boa_ast::StatementListItem::Statement(stmt) = item {
-                        if let boa_ast::Statement::Expression(expr) = stmt.as_ref() {
-                            return Some(expr);
-                        }
-                    }
-                    None
-                });
-            expr.map(|e| build_source_node_from_expression(e, &source_text, context.interner()))
+            let expr = script.statements().statements().first().and_then(|item| {
+                if let boa_ast::StatementListItem::Statement(stmt) = item
+                    && let boa_ast::Statement::Expression(expr) = stmt.as_ref()
+                {
+                    return Some(expr);
+                }
+                None
+            });
+            expr.and_then(|e| {
+                use boa_ast::visitor::Visitor;
+                let mut visitor = JsonSourceVisitor::new(&source_text, context.interner());
+                let _ = visitor.visit_expression(e);
+                visitor.finish()
+            })
         } else {
             None
         };
 
         let code_block = {
             let in_with = context.vm.frame().environments.has_object_environment();
-            let spanned_source_text =
-                SpannedSourceText::new_source_only(crate::spanned_source_text::SourceText::new(source_text));
+            let spanned_source_text = SpannedSourceText::new_source_only(
+                crate::spanned_source_text::SourceText::new(source_text),
+            );
             let mut compiler = ByteCompiler::new(
                 js_string!("<json>"),
                 script.strict(),
@@ -384,9 +438,8 @@ impl Json {
                         .expect("EnumerableOwnPropertyNames only returns strings");
 
                     let p_std = p.to_std_string_escaped();
-                    let child_node = entries.and_then(|e| {
-                        e.iter().rfind(|(k, _)| k == &p_std).map(|(_, v)| v)
-                    });
+                    let child_node =
+                        entries.and_then(|e| e.iter().rfind(|(k, _)| k == &p_std).map(|(_, v)| v));
 
                     // 1. Let newElement be ? InternalizeJSONProperty(val, P, reviver).
                     let new_element = Self::internalize_json_property(

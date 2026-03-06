@@ -183,7 +183,8 @@ where
                 Ok(node.into())
             }
             TokenKind::NullLiteral(_) => {
-                let node = Literal::with_linear_span(LiteralKind::Null, tok.span(), tok.linear_span());
+                let node =
+                    Literal::with_linear_span(LiteralKind::Null, tok.span(), tok.linear_span());
                 cursor.advance(interner);
                 Ok(node.into())
             }

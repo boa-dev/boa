@@ -59,7 +59,11 @@ impl Literal {
     /// Create a new [`Literal`] with a [`LinearSpan`] for source text tracking.
     #[inline]
     #[must_use]
-    pub fn with_linear_span<T: Into<LiteralKind>>(kind: T, span: Span, linear_span: LinearSpan) -> Self {
+    pub fn with_linear_span<T: Into<LiteralKind>>(
+        kind: T,
+        span: Span,
+        linear_span: LinearSpan,
+    ) -> Self {
         Self {
             kind: kind.into(),
             span,
