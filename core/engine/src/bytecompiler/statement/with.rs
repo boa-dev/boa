@@ -8,9 +8,9 @@ impl ByteCompiler<'_> {
         self.compile_expr(with.expression(), &object);
 
         let outer_scope = self.lexical_scope.clone();
-        let _ = self.push_scope(with.scope());
         self.bytecode
             .emit_push_object_environment(object.variable());
+        let _ = self.push_scope(with.scope());
         self.register_allocator.dealloc(object);
 
         let in_with = self.in_with;

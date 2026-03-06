@@ -417,6 +417,93 @@ fn strict_mode_with() {
 }
 
 #[test]
+fn with_resolves_object_property() {
+    // Before fix: 10
+    run_test_actions([TestAction::assert_eq(
+        indoc! {r#"
+            var x = 10;
+            with ({ x: 42 }) {
+                x
+            }
+        "#},
+        42,
+    )]);
+}
+
+#[test]
+fn with_falls_through_to_outer_for_missing_property() {
+    // Before fix: 99
+    run_test_actions([TestAction::assert_eq(
+        indoc! {r#"
+            var y = 99;
+            with ({ x: 1 }) {
+                y
+            }
+        "#},
+        99,
+    )]);
+}
+
+#[test]
+fn nested_with_correct_resolution_order() {
+    // Before fix: ReferenceError for `a`
+    run_test_actions([TestAction::assert_eq(
+        indoc! {r#"
+            with ({ a: 1 }) {
+                with ({ b: 2 }) {
+                    a + b
+                }
+            }
+        "#},
+        3,
+    )]);
+}
+
+#[test]
+fn with_assignment_updates_object_property() {
+    // Before fix: 1
+    run_test_actions([TestAction::assert_eq(
+        indoc! {r#"
+            var obj = { x: 1 };
+            with (obj) {
+                x = 99;
+            }
+            obj.x
+        "#},
+        99,
+    )]);
+}
+
+#[test]
+fn with_var_declaration_goes_to_outer_scope() {
+    // Before fix: 5
+    run_test_actions([TestAction::assert_eq(
+        indoc! {r#"
+            with ({}) {
+                var z = 5;
+            }
+            z
+        "#},
+        5,
+    )]);
+}
+
+#[test]
+fn with_searches_prototype_chain() {
+    // Before fix: ReferenceError for `x`
+    run_test_actions([TestAction::assert_eq(
+        indoc! {r#"
+            var proto = { x: 7 };
+            var obj = Object.create(proto);
+            with (obj) {
+                x
+            }
+        "#},
+        7,
+    )]);
+}
+
+#[test]
 fn strict_mode_reserved_name() {
     // Checks that usage of a reserved keyword for an identifier name is
     // an error in strict mode code as per https://tc39.es/ecma262/#sec-strict-mode-of-ecmascript.
