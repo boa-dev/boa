@@ -121,50 +121,50 @@ impl Script {
     ///
     /// This is a no-op if this has been called previously.
     pub fn codeblock(&self, context: &mut Context) -> JsResult<Gc<CodeBlock>> {
-        let phase = self.inner.phase.borrow();
-        let source = match &*phase {
-            ScriptPhase::Codeblock(codeblock) => return Ok(codeblock.clone()),
-            ScriptPhase::Ast(source) => source,
+        let cb = {
+            let phase = self.inner.phase.borrow();
+            let source = match &*phase {
+                ScriptPhase::Codeblock(codeblock) => return Ok(codeblock.clone()),
+                ScriptPhase::Ast(source) => source,
+            };
+
+            let mut annex_b_function_names = Vec::new();
+
+            global_declaration_instantiation_context(
+                &mut annex_b_function_names,
+                source,
+                self.inner.realm.scope(),
+                context,
+            )?;
+
+            let spanned_source_text = SpannedSourceText::new_source_only(self.get_source());
+
+            let mut compiler = ByteCompiler::new(
+                js_string!("<main>"),
+                source.strict(),
+                false,
+                self.inner.realm.scope().clone(),
+                self.inner.realm.scope().clone(),
+                false,
+                false,
+                context.interner_mut(),
+                false,
+                spanned_source_text,
+                self.path().map(Path::to_owned).into(),
+            );
+
+            #[cfg(feature = "annex-b")]
+            {
+                compiler.annex_b_function_names = annex_b_function_names;
+            }
+
+            compiler.global_declaration_instantiation(source);
+            compiler.compile_statement_list(source.statements(), true, false);
+
+            Gc::new(compiler.finish())
         };
-        drop(phase);
 
-        let mut annex_b_function_names = Vec::new();
-
-        global_declaration_instantiation_context(
-            &mut annex_b_function_names,
-            source,
-            self.inner.realm.scope(),
-            context,
-        )?;
-
-        let spanned_source_text = SpannedSourceText::new_source_only(self.get_source());
-
-        let mut compiler = ByteCompiler::new(
-            js_string!("<main>"),
-            source.strict(),
-            false,
-            self.inner.realm.scope().clone(),
-            self.inner.realm.scope().clone(),
-            false,
-            false,
-            context.interner_mut(),
-            false,
-            spanned_source_text,
-            self.path().map(Path::to_owned).into(),
-        );
-
-        #[cfg(feature = "annex-b")]
-        {
-            compiler.annex_b_function_names = annex_b_function_names;
-        }
-
-        compiler.global_declaration_instantiation(source);
-        compiler.compile_statement_list(source.statements(), true, false);
-
-        let cb = Gc::new(compiler.finish());
-
-        let mut phase = self.inner.phase.borrow_mut();
-        *phase = ScriptPhase::Codeblock(cb.clone());
+        *self.inner.phase.borrow_mut() = ScriptPhase::Codeblock(cb.clone());
 
         Ok(cb)
     }
