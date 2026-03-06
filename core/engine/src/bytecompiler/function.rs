@@ -113,10 +113,10 @@ impl FunctionCompiler {
 
     /// Compile a function statement list and it's parameters into bytecode.
     #[allow(clippy::too_many_arguments)]
-    pub(crate) fn compile(
+    pub(crate) fn compile<'arena>(
         mut self,
-        parameters: &FormalParameterList,
-        body: &FunctionBody,
+        parameters: &FormalParameterList<'arena>,
+        body: &FunctionBody<'arena>,
         variable_environment: Scope,
         lexical_environment: Scope,
         scopes: &FunctionScopes,

@@ -7,8 +7,8 @@ use boa_ast::{
 use boa_interner::Sym;
 use thin_vec::ThinVec;
 
-impl ByteCompiler<'_> {
-    pub(crate) fn compile_object_literal(&mut self, literal: &ObjectLiteral, dst: &Register) {
+impl<'arena> ByteCompiler<'arena, '_> {
+    pub(crate) fn compile_object_literal(&mut self, literal: &'arena ObjectLiteral<'arena>, dst: &Register) {
         self.bytecode.emit_push_empty_object(dst.variable());
 
         for property in literal.properties() {
@@ -126,8 +126,8 @@ impl ByteCompiler<'_> {
 
     fn compile_object_literal_computed_method(
         &mut self,
-        expr: &Expression,
-        function: FunctionSpec<'_>,
+        expr: &'arena Expression<'arena>,
+        function: FunctionSpec<'arena>,
         kind: MethodKind,
         object: &Register,
     ) {

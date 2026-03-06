@@ -15,10 +15,10 @@ use crate::{
     vm::opcode::BindingOpcode,
 };
 
-impl ByteCompiler<'_> {
+impl<'arena> ByteCompiler<'arena, '_> {
     pub(crate) fn compile_for_loop(
         &mut self,
-        for_loop: &ForLoop,
+        for_loop: &'arena ForLoop<'arena>,
         label: Option<Sym>,
         use_expr: bool,
     ) {
@@ -154,7 +154,7 @@ impl ByteCompiler<'_> {
 
     pub(crate) fn compile_for_in_loop(
         &mut self,
-        for_in_loop: &ForInLoop,
+        for_in_loop: &'arena ForInLoop<'arena>,
         label: Option<Sym>,
         use_expr: bool,
     ) {
@@ -261,7 +261,7 @@ impl ByteCompiler<'_> {
 
     pub(crate) fn compile_for_of_loop(
         &mut self,
-        for_of_loop: &ForOfLoop,
+        for_of_loop: &'arena ForOfLoop<'arena>,
         label: Option<Sym>,
         use_expr: bool,
     ) {
@@ -419,7 +419,7 @@ impl ByteCompiler<'_> {
 
     pub(crate) fn compile_while_loop(
         &mut self,
-        while_loop: &WhileLoop,
+        while_loop: &'arena WhileLoop<'arena>,
         label: Option<Sym>,
         use_expr: bool,
     ) {
@@ -439,7 +439,7 @@ impl ByteCompiler<'_> {
 
     pub(crate) fn compile_do_while_loop(
         &mut self,
-        do_while_loop: &DoWhileLoop,
+        do_while_loop: &'arena DoWhileLoop<'arena>,
         label: Option<Sym>,
         use_expr: bool,
     ) {

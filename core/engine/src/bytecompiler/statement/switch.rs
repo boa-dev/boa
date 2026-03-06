@@ -1,9 +1,9 @@
 use crate::bytecompiler::ByteCompiler;
 use boa_ast::statement::Switch;
 
-impl ByteCompiler<'_> {
+impl<'arena> ByteCompiler<'arena, '_> {
     /// Compile a [`Switch`] `boa_ast` node
-    pub(crate) fn compile_switch(&mut self, switch: &Switch, use_expr: bool) {
+    pub(crate) fn compile_switch(&mut self, switch: &'arena Switch<'arena>, use_expr: bool) {
         let value = self.register_allocator.alloc();
         self.compile_expr(switch.val(), &value);
         let outer_scope = self.push_declarative_scope(switch.scope());

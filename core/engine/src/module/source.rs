@@ -242,7 +242,7 @@ impl std::fmt::Debug for SourceTextModule {
 struct ModuleCode {
     has_tla: bool,
     requested_modules: IndexSet<super::ModuleRequest, BuildHasherDefault<FxHasher>>,
-    source: RefCell<Option<boa_ast::Module>>,
+    source: RefCell<Option<boa_ast::Module<'static>>>,
     source_text: RefCell<Option<SourceText>>,
     path: Option<PathBuf>,
     import_entries: Vec<ImportEntry>,
@@ -256,7 +256,7 @@ struct ModuleRequestsVisitor<'a> {
     requests: IndexSet<super::ModuleRequest, BuildHasherDefault<FxHasher>>,
 }
 
-impl<'ast> boa_ast::visitor::Visitor<'ast> for ModuleRequestsVisitor<'_> {
+impl<'ast, 'arena: 'ast> boa_ast::visitor::Visitor<'ast, 'arena> for ModuleRequestsVisitor<'_> {
     type BreakTy = std::convert::Infallible;
 
     fn visit_import_declaration(
@@ -274,7 +274,7 @@ impl<'ast> boa_ast::visitor::Visitor<'ast> for ModuleRequestsVisitor<'_> {
 
     fn visit_export_declaration(
         &mut self,
-        node: &'ast boa_ast::declaration::ExportDeclaration,
+        node: &'ast boa_ast::declaration::ExportDeclaration<'arena>,
     ) -> std::ops::ControlFlow<Self::BreakTy> {
         if let boa_ast::declaration::ExportDeclaration::ReExport {
             specifier,
@@ -294,20 +294,20 @@ impl<'ast> boa_ast::visitor::Visitor<'ast> for ModuleRequestsVisitor<'_> {
 
     fn visit_statement_list_item(
         &mut self,
-        _: &'ast boa_ast::StatementListItem,
+        _: &'ast boa_ast::StatementListItem<'arena>,
     ) -> std::ops::ControlFlow<Self::BreakTy> {
         std::ops::ControlFlow::Continue(())
     }
 }
 
-impl SourceTextModule {
+impl<'arena> SourceTextModule {
     /// Creates a new `SourceTextModule` from a parsed `ModuleSource`.
     ///
     /// Contains part of the abstract operation [`ParseModule`][parse].
     ///
     /// [parse]: https://tc39.es/ecma262/#sec-parsemodule
     pub(super) fn new(
-        code: boa_ast::Module,
+        code: boa_ast::Module<'arena>,
         interner: &Interner,
         source_text: SourceText,
         path: Option<PathBuf>,

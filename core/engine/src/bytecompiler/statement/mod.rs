@@ -12,9 +12,9 @@ mod switch;
 mod r#try;
 mod with;
 
-impl ByteCompiler<'_> {
+impl<'arena> ByteCompiler<'arena, '_> {
     /// Compiles a [`Statement`] `boa_ast` node.
-    pub fn compile_stmt(&mut self, node: &Statement, use_expr: bool, root_statement: bool) {
+    pub fn compile_stmt(&mut self, node: &'arena Statement<'arena>, use_expr: bool, root_statement: bool) {
         match node {
             Statement::Var(var) => self.compile_var_decl(var),
             Statement::If(node) => self.compile_if(node, use_expr),

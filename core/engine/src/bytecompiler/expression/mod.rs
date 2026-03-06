@@ -23,7 +23,7 @@ use boa_ast::{
 };
 use thin_vec::ThinVec;
 
-impl ByteCompiler<'_> {
+impl<'arena> ByteCompiler<'arena, '_> {
     fn compile_literal(&mut self, lit: &AstLiteral, dst: &Register) {
         match lit.kind() {
             AstLiteralKind::String(v) => {
@@ -41,7 +41,7 @@ impl ByteCompiler<'_> {
         }
     }
 
-    fn compile_conditional(&mut self, op: &Conditional, dst: &Register) {
+    fn compile_conditional(&mut self, op: &'arena Conditional<'arena>, dst: &Register) {
         self.compile_expr(op.condition(), dst);
         self.if_else(
             dst,
@@ -50,7 +50,7 @@ impl ByteCompiler<'_> {
         );
     }
 
-    fn compile_template_literal(&mut self, template_literal: &TemplateLiteral, dst: &Register) {
+    fn compile_template_literal(&mut self, template_literal: &'arena TemplateLiteral<'arena>, dst: &Register) {
         let mut registers = Vec::with_capacity(template_literal.elements().len());
         for element in template_literal.elements() {
             let value = self.register_allocator.alloc();
@@ -78,7 +78,7 @@ impl ByteCompiler<'_> {
         }
     }
 
-    pub(crate) fn compile_expr_impl(&mut self, expr: &Expression, dst: &Register) {
+    pub(crate) fn compile_expr_impl(&mut self, expr: &'arena Expression<'arena>, dst: &Register) {
         match expr {
             Expression::Literal(lit) => self.compile_literal(lit, dst),
             Expression::RegExpLiteral(regexp) => {

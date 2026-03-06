@@ -8,13 +8,13 @@ use boa_ast::{
     statement::{Block, Catch, Finally, Try},
 };
 
-enum TryVariant<'a> {
-    Catch(&'a Catch),
-    Finally((&'a Finally, Register, Register)),
-    CatchFinally((&'a Catch, &'a Finally, Register, Register)),
+enum TryVariant<'arena, 'a> {
+    Catch(&'a Catch<'arena>),
+    Finally((&'a Finally<'arena>, Register, Register)),
+    CatchFinally((&'a Catch<'arena>, &'a Finally<'arena>, Register, Register)),
 }
 
-impl TryVariant<'_> {
+impl TryVariant<'_, '_> {
     fn finally_re_throw_register(&self) -> Option<(&Register, &Register)> {
         match self {
             TryVariant::Catch(_) => None,
@@ -23,9 +23,9 @@ impl TryVariant<'_> {
     }
 }
 
-impl ByteCompiler<'_> {
+impl<'arena> ByteCompiler<'arena, '_> {
     /// Compile try statement.
-    pub(crate) fn compile_try(&mut self, t: &Try, use_expr: bool) {
+    pub(crate) fn compile_try(&mut self, t: &'arena Try<'arena>, use_expr: bool) {
         let variant = match (t.catch(), t.finally()) {
             (Some(catch), Some(finally)) => {
                 let finally_re_throw = self.register_allocator.alloc();
@@ -179,7 +179,7 @@ impl ByteCompiler<'_> {
         }
     }
 
-    pub(crate) fn compile_catch_stmt(&mut self, catch: &Catch, error: &Register, use_expr: bool) {
+    pub(crate) fn compile_catch_stmt(&mut self, catch: &'arena Catch<'arena>, error: &Register, use_expr: bool) {
         let outer_scope = self.push_declarative_scope(Some(catch.scope()));
 
         if let Some(binding) = catch.parameter() {
@@ -199,7 +199,7 @@ impl ByteCompiler<'_> {
         self.pop_declarative_scope(outer_scope);
     }
 
-    pub(crate) fn compile_finally_stmt(&mut self, finally: &Finally) {
+    pub(crate) fn compile_finally_stmt(&mut self, finally: &'arena Finally<'arena>) {
         // TODO: We could probably remove the Get/SetAccumulatorFromStack if we check that there is no break/continues statements.
         let value = self.register_allocator.alloc();
         self.bytecode
@@ -216,7 +216,7 @@ impl ByteCompiler<'_> {
     /// See the [ECMAScript reference][spec] for more information.
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-try-statement-runtime-semantics-evaluation
-    fn compile_catch_finally_block(&mut self, block: &Block, use_expr: bool) {
+    fn compile_catch_finally_block(&mut self, block: &'arena Block<'arena>, use_expr: bool) {
         let mut b = block;
 
         while let Some(statement) = b.statement_list().first() {

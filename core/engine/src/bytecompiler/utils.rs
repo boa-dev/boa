@@ -1,7 +1,7 @@
 use super::{ByteCompiler, Literal, Register};
 use crate::{js_string, vm::GeneratorResumeKind};
 
-impl ByteCompiler<'_> {
+impl<'arena> ByteCompiler<'arena, '_> {
     /// Closes an iterator
     ///
     /// This is equivalent to the [`IteratorClose`][iter] and [`AsyncIteratorClose`][async]

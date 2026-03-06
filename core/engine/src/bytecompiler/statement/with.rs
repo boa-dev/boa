@@ -1,9 +1,9 @@
 use crate::bytecompiler::ByteCompiler;
 use boa_ast::statement::With;
 
-impl ByteCompiler<'_> {
+impl<'arena> ByteCompiler<'arena, '_> {
     /// Compile a [`With`] `boa_ast` node
-    pub(crate) fn compile_with(&mut self, with: &With, use_expr: bool) {
+    pub(crate) fn compile_with(&mut self, with: &'arena With<'arena>, use_expr: bool) {
         let object = self.register_allocator.alloc();
         self.compile_expr(with.expression(), &object);
 

@@ -9,8 +9,8 @@ use boa_ast::{
     scope::BindingLocatorError,
 };
 
-impl ByteCompiler<'_> {
-    pub(crate) fn compile_update(&mut self, update: &Update, dst: &Register, discard: bool) {
+impl<'arena> ByteCompiler<'arena, '_> {
+    pub(crate) fn compile_update(&mut self, update: &'arena Update<'arena>, dst: &Register, discard: bool) {
         let mut compiler = self.position_guard(update);
         let increment = matches!(
             update.op(),

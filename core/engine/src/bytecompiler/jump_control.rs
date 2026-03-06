@@ -96,7 +96,7 @@ impl JumpRecord {
     pub(crate) fn perform_actions(
         mut self,
         start_address: Address,
-        compiler: &mut ByteCompiler<'_>,
+        compiler: &mut ByteCompiler<'_, '_>,
     ) {
         while let Some(action) = self.actions.pop() {
             match action {
@@ -366,7 +366,7 @@ impl JumpControlInfo {
 }
 
 // `JumpControlInfo` related methods that are implemented on `ByteCompiler`.
-impl ByteCompiler<'_> {
+impl<'arena> ByteCompiler<'arena, '_> {
     /// Pushes a generic `JumpControlInfo` onto `ByteCompiler`
     ///
     /// Default `JumpControlInfoKind` is `JumpControlInfoKind::Loop`

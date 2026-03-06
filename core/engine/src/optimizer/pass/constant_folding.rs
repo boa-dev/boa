@@ -52,10 +52,10 @@ fn js_value_to_literal_kind(value: &JsValue, context: &mut Context) -> LiteralKi
 pub(crate) struct ConstantFolding {}
 
 impl ConstantFolding {
-    pub(crate) fn fold_expression(
-        expr: &mut Expression,
+    pub(crate) fn fold_expression<'arena>(
+        expr: &mut Expression<'arena>,
         context: &mut Context,
-    ) -> PassAction<Expression> {
+    ) -> PassAction<Expression<'arena>> {
         match expr {
             Expression::Unary(unary) => Self::constant_fold_unary_expr(unary, context),
             Expression::Binary(binary) => Self::constant_fold_binary_expr(binary, context),
@@ -63,10 +63,10 @@ impl ConstantFolding {
         }
     }
 
-    fn constant_fold_unary_expr(
-        unary: &mut Unary,
+    fn constant_fold_unary_expr<'arena>(
+        unary: &mut Unary<'arena>,
         context: &mut Context,
-    ) -> PassAction<Expression> {
+    ) -> PassAction<Expression<'arena>> {
         let Expression::Literal(literal) = unary.target() else {
             return PassAction::Keep;
         };
@@ -111,10 +111,10 @@ impl ConstantFolding {
         )))
     }
 
-    fn constant_fold_binary_expr(
-        binary: &mut Binary,
+    fn constant_fold_binary_expr<'arena>(
+        binary: &mut Binary<'arena>,
         context: &mut Context,
-    ) -> PassAction<Expression> {
+    ) -> PassAction<Expression<'arena>> {
         let Expression::Literal(lhs) = binary.lhs() else {
             return PassAction::Keep;
         };

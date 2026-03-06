@@ -47,7 +47,7 @@ impl std::fmt::Debug for Script {
 }
 #[derive(Debug, Finalize)]
 enum ScriptPhase {
-    Ast(boa_ast::Script),
+    Ast(boa_ast::Script<'static>),
     Codeblock(Gc<CodeBlock>),
 }
 #[derive(Trace, Finalize)]
