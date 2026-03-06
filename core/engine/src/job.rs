@@ -721,7 +721,9 @@ impl JobExecutor for SimpleJobExecutor {
 
                 for jobs in jobs_to_run.into_values() {
                     for job in jobs {
-                        if let Err(err) = job.call(&mut context.borrow_mut()) {
+                        if !job.is_cancelled()
+                            && let Err(err) = job.call(&mut context.borrow_mut())
+                        {
                             self.clear();
                             return Err(err);
                         }
