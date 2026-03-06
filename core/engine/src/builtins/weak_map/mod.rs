@@ -7,6 +7,8 @@
 //! [spec]: https://tc39.es/ecma262/#sec-weakmap-objects
 //! [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/WeakMap
 
+use std::collections::HashMap;
+
 use crate::{
     Context, JsArgs, JsNativeError, JsResult, JsString, JsValue,
     builtins::{
@@ -22,8 +24,48 @@ use crate::{
     symbol::JsSymbol,
 };
 use boa_gc::{Finalize, Trace};
+use boa_macros::JsData;
 
 pub(crate) type NativeWeakMap = boa_gc::WeakMap<ErasedVTableObject, JsValue>;
+
+#[derive(Trace, Finalize, JsData)]
+pub(crate) struct WeakMapData {
+    pub(crate) objects: NativeWeakMap,
+    // values keyed by the unique hash of a non-registered `JsSymbol`
+    //
+    // SAFETY:
+    // symbol hashes are globally unique and monotonically increasing,
+    // so we store only the hash to avoid rooting it over time
+    //
+    // TODO: this map isn't truly weak, values stay alive until the entire map dies.
+    // real weak tracking needs Gc support for symbols
+    pub(crate) symbols: HashMap<u64, JsValue>,
+}
+
+impl WeakMapData {
+    pub(crate) fn new() -> Self {
+        Self {
+            objects: NativeWeakMap::new(),
+            symbols: HashMap::new(),
+        }
+    }
+}
+
+// Returns `true` if `value` is an Object or a non registered Symbol,
+// per the `CanBeHeldWeakly` spec: https://tc39.es/ecma262/#sec-canbeheldweakly
+#[inline]
+pub(crate) fn can_be_held_weakly(value: &JsValue) -> bool {
+    // 1. If v is an Object, return true
+    if value.is_object() {
+        return true;
+    }
+    // 2. If v is a Symbol and KeyForSymbol(v) is undefined, return true.
+    if let Some(sym) = value.as_symbol() {
+        return !sym.is_registered();
+    }
+    // 3. Return false
+    false
+}
 
 #[derive(Debug, Trace, Finalize)]
 pub(crate) struct WeakMap;
@@ -99,7 +141,7 @@ impl BuiltInConstructor for WeakMap {
         let map = JsObject::from_proto_and_data_with_shared_shape(
             context.root_shape(),
             prototype,
-            NativeWeakMap::new(),
+            WeakMapData::new(),
         )
         .upcast();
 
@@ -138,26 +180,30 @@ impl WeakMap {
         // 1. Let M be the this value.
         // 2. Perform ? RequireInternalSlot(M, [[WeakMapData]]).
         let object = this.as_object();
-        let mut map = object
+        let mut data = object
             .as_ref()
-            .and_then(JsObject::downcast_mut::<NativeWeakMap>)
+            .and_then(JsObject::downcast_mut::<WeakMapData>)
             .ok_or_else(|| {
                 JsNativeError::typ().with_message("WeakMap.delete: called with non-object value")
             })?;
 
-        // 3. Let entries be M.[[WeakMapData]].
-        // 4. If key is not an Object, return false.
-        let Some(key) = args.get_or_undefined(0).as_object() else {
-            return Ok(false.into());
-        };
+        // 3. Let key be the first argument.
+        let key = args.get_or_undefined(0);
 
-        // 5. For each Record { [[Key]], [[Value]] } p of entries, do
-        // a. If p.[[Key]] is not empty and SameValue(p.[[Key]], key) is true, then
-        // i. Set p.[[Key]] to empty.
-        // ii. Set p.[[Value]] to empty.
-        // iii. Return true.
-        // 6. Return false.
-        Ok(map.remove(key.inner()).is_some().into())
+        // 4. If key is an Object, remove from GC weak map
+        if let Some(key_obj) = key.as_object() {
+            return Ok(data.objects.remove(key_obj.inner()).is_some().into());
+        }
+
+        // 5. If key is a non-registered Symbol, remove from symbol map
+        if let Some(sym) = key.as_symbol() {
+            if !sym.is_registered() {
+                return Ok(data.symbols.remove(&sym.hash()).is_some().into());
+            }
+        }
+
+        // 6. Otherwise key cannot be held weakly, return false.
+        Ok(false.into())
     }
 
     /// `WeakMap.prototype.get ( key )`
@@ -176,23 +222,29 @@ impl WeakMap {
         // 1. Let M be the this value.
         // 2. Perform ? RequireInternalSlot(M, [[WeakMapData]]).
         let object = this.as_object();
-        let map = object
+        let data = object
             .as_ref()
-            .and_then(JsObject::downcast_ref::<NativeWeakMap>)
+            .and_then(JsObject::downcast_ref::<WeakMapData>)
             .ok_or_else(|| {
                 JsNativeError::typ().with_message("WeakMap.get: called with non-object value")
             })?;
 
-        // 3. Let entries be M.[[WeakMapData]].
-        // 4. If key is not an Object, return undefined.
-        let Some(key) = args.get_or_undefined(0).as_object() else {
-            return Ok(JsValue::undefined());
-        };
+        let key = args.get_or_undefined(0);
 
-        // 5. For each Record { [[Key]], [[Value]] } p of entries, do
-        // a. If p.[[Key]] is not empty and SameValue(p.[[Key]], key) is true, return p.[[Value]].
-        // 6. Return undefined.
-        Ok(map.get(key.inner()).unwrap_or_default())
+        // 3. If key is an Object, look up in GC weak map.
+        if let Some(key_obj) = key.as_object() {
+            return Ok(data.objects.get(key_obj.inner()).unwrap_or_default());
+        }
+
+        // 4. If key is a non-registered Symbol, look up in symbol map.
+        if let Some(sym) = key.as_symbol() {
+            if !sym.is_registered() {
+                return Ok(data.symbols.get(&sym.hash()).cloned().unwrap_or_default());
+            }
+        }
+
+        // 5. Otherwise return undefined
+        Ok(JsValue::undefined())
     }
 
     /// `WeakMap.prototype.has ( key )`
@@ -211,23 +263,29 @@ impl WeakMap {
         // 1. Let M be the this value.
         // 2. Perform ? RequireInternalSlot(M, [[WeakMapData]]).
         let object = this.as_object();
-        let map = object
+        let data = object
             .as_ref()
-            .and_then(JsObject::downcast_ref::<NativeWeakMap>)
+            .and_then(JsObject::downcast_ref::<WeakMapData>)
             .ok_or_else(|| {
                 JsNativeError::typ().with_message("WeakMap.has: called with non-object value")
             })?;
 
-        // 3. Let entries be M.[[WeakMapData]].
-        // 4. If key is not an Object, return false.
-        let Some(key) = args.get_or_undefined(0).as_object() else {
-            return Ok(false.into());
-        };
+        let key = args.get_or_undefined(0);
 
-        // 5. For each Record { [[Key]], [[Value]] } p of entries, do
-        // a. If p.[[Key]] is not empty and SameValue(p.[[Key]], key) is true, return true.
-        // 6. Return false.
-        Ok(map.contains_key(key.inner()).into())
+        // 3. If key is an Object, check GC weak map.
+        if let Some(key_obj) = key.as_object() {
+            return Ok(data.objects.contains_key(key_obj.inner()).into());
+        }
+
+        // 4. If key is a non-registered Symbol, check symbol map.
+        if let Some(sym) = key.as_symbol() {
+            if !sym.is_registered() {
+                return Ok(data.symbols.contains_key(&sym.hash()).into());
+            }
+        }
+
+        // 5. Otherwise return false
+        Ok(false.into())
     }
 
     /// `WeakMap.prototype.set ( key, value )`
@@ -246,33 +304,34 @@ impl WeakMap {
         // 1. Let M be the this value.
         // 2. Perform ? RequireInternalSlot(M, [[WeakMapData]]).
         let object = this.as_object();
-        let mut map = object
+        let mut data = object
             .as_ref()
-            .and_then(JsObject::downcast_mut::<NativeWeakMap>)
+            .and_then(JsObject::downcast_mut::<WeakMapData>)
             .ok_or_else(|| {
                 JsNativeError::typ().with_message("WeakMap.set: called with non-object value")
             })?;
 
-        // 3. Let entries be M.[[WeakMapData]].
-        // 4. If key is not an Object, throw a TypeError exception.
+        // 3. If CanBeHeldWeakly(key) is false, throw a TypeError exception.
         let key = args.get_or_undefined(0);
-        let Some(key) = key.as_object() else {
+        if !can_be_held_weakly(key) {
             return Err(JsNativeError::typ()
                 .with_message(format!(
-                    "WeakMap.set: expected target argument of type `object`, got target of type `{}`",
+                    "WeakMap.set: invalid key type `{}`, expected an object or non-registered symbol",
                     key.type_of()
-                )).into());
-        };
+                ))
+                .into());
+        }
 
-        // 5. For each Record { [[Key]], [[Value]] } p of entries, do
-        // a. If p.[[Key]] is not empty and SameValue(p.[[Key]], key) is true, then
-        // i. Set p.[[Value]] to value.
-        // ii. Return M.
-        // 6. Let p be the Record { [[Key]]: key, [[Value]]: value }.
-        // 7. Append p to entries.
-        map.insert(key.inner(), args.get_or_undefined(1).clone());
+        let value = args.get_or_undefined(1).clone();
 
-        // 8. Return M.
+        // 4. Dispatch to the appropriate backing store
+        if let Some(key_obj) = key.as_object() {
+            data.objects.insert(key_obj.inner(), value);
+        } else if let Some(sym) = key.as_symbol() {
+            data.symbols.insert(sym.hash(), value);
+        }
+
+        // 5. Return M.
         Ok(this.clone())
     }
 
@@ -295,39 +354,46 @@ impl WeakMap {
         // 1. Let M be the this value.
         // 2. Perform ? RequireInternalSlot(M, [[WeakMapData]]).
         let object = this.as_object();
-        let map = object
-            .and_then(|obj| obj.clone().downcast::<NativeWeakMap>().ok())
+        let mut data = object
+            .as_ref()
+            .and_then(JsObject::downcast_mut::<WeakMapData>)
             .ok_or_else(|| {
                 JsNativeError::typ()
                     .with_message("WeakMap.getOrInsert: called with non-object value")
             })?;
 
         // 3. If CanBeHeldWeakly(key) is false, throw a TypeError exception.
-        // TODO: Implement proper CanBeHeldWeakly once available. For now, only
-        //       objects are accepted as keys; symbols should be allowed in the
-        //       future according to the proposal.
         let key_val = args.get_or_undefined(0);
-        let Some(key) = key_val.as_object() else {
+        if !can_be_held_weakly(key_val) {
             return Err(JsNativeError::typ()
                 .with_message(format!(
-                    "WeakMap.getOrInsert: expected target argument of type `object`, got target of type `{}`",
+                    "WeakMap.getOrInsert: invalid key type `{}`, expected an object or non-registered symbol",
                     key_val.type_of()
                 ))
                 .into());
-        };
-
-        // 4. For each Record { [[Key]], [[Value]] } p of M.[[WeakMapData]]
-        if let Some(existing) = map.borrow().data().get(key.inner()) {
-            // a. If p.[[Key]] is not empty and SameValue(p.[[Key]], key) is true, return p.[[Value]].
-            return Ok(existing);
         }
 
-        // 5-6. Insert the new record with provided value and return it.
-        let value = args.get_or_undefined(1).clone();
-        map.borrow_mut()
-            .data_mut()
-            .insert(key.inner(), value.clone());
-        Ok(value)
+        // 4. For each Record { [[Key]], [[Value]] }, check if key already exists
+        if let Some(key_obj) = key_val.as_object() {
+            if let Some(existing) = data.objects.get(key_obj.inner()) {
+                return Ok(existing);
+            }
+            let value = args.get_or_undefined(1).clone();
+            data.objects.insert(key_obj.inner(), value.clone());
+            return Ok(value);
+        }
+
+        if let Some(sym) = key_val.as_symbol() {
+            let hash = sym.hash();
+            if let Some(existing) = data.symbols.get(&hash).cloned() {
+                return Ok(existing);
+            }
+            let value = args.get_or_undefined(1).clone();
+            data.symbols.insert(hash, value.clone());
+            return Ok(value);
+        }
+
+        unreachable!("can_be_held_weakly ensures key is object or non-registered symbol")
     }
 
     /// `WeakMap.prototype.getOrInsertComputed ( key, callback )`
@@ -349,26 +415,24 @@ impl WeakMap {
         // 1. Let M be the this value.
         // 2. Perform ? RequireInternalSlot(M, [[WeakMapData]]).
         let object = this.as_object();
-        let map = object
-            .and_then(|obj| obj.clone().downcast::<NativeWeakMap>().ok())
+        let data = object
+            .as_ref()
+            .and_then(JsObject::downcast_ref::<WeakMapData>)
             .ok_or_else(|| {
                 JsNativeError::typ()
                     .with_message("WeakMap.getOrInsertComputed: called with non-object value")
             })?;
 
         // 3. If CanBeHeldWeakly(key) is false, throw a TypeError exception.
-        // TODO: Implement proper CanBeHeldWeakly once available. For now, only
-        //       objects are accepted as keys; symbols should be allowed in the
-        //       future according to the proposal.
         let key_value = args.get_or_undefined(0).clone();
-        let Some(key_obj) = key_value.as_object() else {
+        if !can_be_held_weakly(&key_value) {
             return Err(JsNativeError::typ()
                 .with_message(format!(
-                    "WeakMap.getOrInsertComputed: expected target argument of type `object`, got target of type `{}`",
+                    "WeakMap.getOrInsertComputed: invalid key type `{}`, expected an object or non-registered symbol",
                     key_value.type_of()
                 ))
                 .into());
-        };
+        }
 
         // 4. If IsCallable(callback) is false, throw a TypeError exception.
         let Some(callback_fn) = args.get_or_undefined(1).as_callable() else {
@@ -377,24 +441,63 @@ impl WeakMap {
                 .into());
         };
 
-        // 5. For each Record { [[Key]], [[Value]] } p of M.[[WeakMapData]]
-        if let Some(existing) = map.borrow().data().get(key_obj.inner()) {
-            // a. If p.[[Key]] is not empty and SameValue(p.[[Key]], key) is true, return p.[[Value]].
-            return Ok(existing);
+        // 5. Object key path: check if the key already exists otherwise compute it
+        if let Some(key_obj) = key_value.as_object() {
+            if let Some(existing) = data.objects.get(key_obj.inner()) {
+                return Ok(existing);
+            }
+
+            // Release the borrow before calling back into the engine
+            drop(data);
+
+            // 6. Compute new value
+            let value = callback_fn.call(
+                &JsValue::undefined(),
+                std::slice::from_ref(&key_value),
+                context,
+            )?;
+
+            let object2 = this.as_object();
+            let mut data2 = object2
+                .as_ref()
+                .and_then(JsObject::downcast_mut::<WeakMapData>)
+                .ok_or_else(|| {
+                    JsNativeError::typ()
+                        .with_message("WeakMap.getOrInsertComputed: called with non-object value")
+                })?;
+            data2.objects.insert(key_obj.inner(), value.clone());
+            return Ok(value);
         }
 
-        // 6. Let value be ? Call(callback, undefined, « key »).
-        // 7. NOTE: The WeakMap may have been modified during execution of callback.
-        let value = callback_fn.call(
-            &JsValue::undefined(),
-            std::slice::from_ref(&key_value),
-            context,
-        )?;
+        // 5. Symbol key path
+        if let Some(sym) = key_value.as_symbol() {
+            let hash = sym.hash();
+            if let Some(existing) = data.symbols.get(&hash).cloned() {
+                return Ok(existing);
+            }
 
-        // 8-10. Insert or update the entry and return value.
-        map.borrow_mut()
-            .data_mut()
-            .insert(key_obj.inner(), value.clone());
-        Ok(value)
+            // Release the borrow before calling back into the engine
+            drop(data);
+
+            // 6. Compute new value
+            let value = callback_fn.call(
+                &JsValue::undefined(),
+                std::slice::from_ref(&key_value),
+                context,
+            )?;
+
+            let object2 = this.as_object();
+            let mut data2 = object2
+                .as_ref()
+                .and_then(JsObject::downcast_mut::<WeakMapData>)
+                .ok_or_else(|| {
+                    JsNativeError::typ()
+                        .with_message("WeakMap.getOrInsertComputed: called with non-object value")
+                })?;
+            data2.symbols.insert(hash, value.clone());
+            return Ok(value);
+        }
+
+        unreachable!("can_be_held_weakly ensures key is object or non-registered symbol")
     }
 }

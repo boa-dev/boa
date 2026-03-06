@@ -103,7 +103,7 @@ pub struct Context {
 
     pub(crate) vm: Vm,
 
-    pub(crate) kept_alive: Vec<JsObject>,
+    pub(crate) kept_alive: Vec<JsValue>,
 
     can_block: bool,
 

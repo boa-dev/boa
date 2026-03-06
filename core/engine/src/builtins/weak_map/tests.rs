@@ -30,20 +30,20 @@ fn get_or_insert_computed_requires_callable() {
 }
 
 #[test]
-fn get_or_insert_requires_object_key() {
+fn get_or_insert_requires_weakly_holdable_key() {
     run_test_actions([TestAction::assert_native_error(
         "new WeakMap().getOrInsert('x', 1)",
         JsNativeErrorKind::Type,
-        "WeakMap.getOrInsert: expected target argument of type `object`, got target of type `string`",
+        "WeakMap.getOrInsert: invalid key type `string`, expected an object or non-registered symbol",
     )]);
 }
 
 #[test]
-fn get_or_insert_computed_requires_object_key() {
+fn get_or_insert_computed_requires_weakly_holdable_key() {
     run_test_actions([TestAction::assert_native_error(
         "new WeakMap().getOrInsertComputed('x', () => 1)",
         JsNativeErrorKind::Type,
-        "WeakMap.getOrInsertComputed: expected target argument of type `object`, got target of type `string`",
+        "WeakMap.getOrInsertComputed: invalid key type `string`, expected an object or non-registered symbol",
     )]);
 }
 
@@ -112,4 +112,63 @@ fn get_or_insert_computed_this_not_weakmap() {
         JsNativeErrorKind::Type,
         "WeakMap.getOrInsertComputed: called with non-object value",
     )]);
+}
+
+#[test]
+fn weak_map_symbol_key_set_get() {
+    run_test_actions([
+        TestAction::run("const wm = new WeakMap(); const sym = Symbol('s');"),
+        TestAction::run("wm.set(sym, 99);"),
+        TestAction::assert("wm.has(sym)"),
+        TestAction::assert_eq("wm.get(sym)", 99),
+    ]);
+}
+
+#[test]
+fn weak_map_symbol_key_delete() {
+    run_test_actions([
+        TestAction::run("const wm = new WeakMap(); const sym = Symbol();"),
+        TestAction::run("wm.set(sym, 1);"),
+        TestAction::assert("wm.delete(sym)"),
+        TestAction::assert("!wm.has(sym)"),
+    ]);
+}
+
+#[test]
+fn weak_map_registered_symbol_throws() {
+    run_test_actions([TestAction::assert_native_error(
+        "new WeakMap().set(Symbol.for('x'), 1)",
+        JsNativeErrorKind::Type,
+        "WeakMap.set: invalid key type `symbol`, expected an object or non-registered symbol",
+    )]);
+}
+
+#[test]
+fn weak_map_get_or_insert_with_symbol_key() {
+    run_test_actions([
+        TestAction::run("const wm = new WeakMap(); const sym = Symbol('s');"),
+        TestAction::assert_eq("wm.getOrInsert(sym, 42)", 42),
+        TestAction::assert("wm.has(sym)"),
+        TestAction::assert_eq("wm.getOrInsert(sym, 99)", 42), // returns existing
+    ]);
+}
+
+#[test]
+fn weak_map_get_or_insert_computed_with_symbol_key() {
+    run_test_actions([
+        TestAction::run("const wm = new WeakMap(); const sym = Symbol();"),
+        TestAction::assert_eq("wm.getOrInsertComputed(sym, k => 7)", 7),
+        TestAction::assert_eq("wm.get(sym)", 7),
+    ]);
+}
+
+#[test]
+fn weak_map_well_known_symbol_allowed() {
+    // well known symbols are NOT in the global registry,
+    // so CanBeHeldWeakly returns true
+    run_test_actions([
+        TestAction::run("const wm = new WeakMap();"),
+        TestAction::run("wm.set(Symbol.iterator, 'iter');"),
+        TestAction::assert_eq("wm.get(Symbol.iterator)", js_str!("iter")),
+    ]);
 }

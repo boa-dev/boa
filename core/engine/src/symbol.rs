@@ -130,6 +130,7 @@ pub(crate) struct RawJsSymbol {
     hash: u64,
     // must be a `Box`, since this needs to be shareable between many threads.
     description: Option<Box<[u16]>>,
+    is_registered: bool,
 }
 
 /// This represents a JavaScript symbol primitive.
@@ -167,16 +168,39 @@ impl JsSymbol {
     #[inline]
     #[must_use]
     pub fn new(description: Option<JsString>) -> Option<Self> {
+        Self::with_registered(description, false)
+    }
+
+    // creates a new symbol optionally marking it as registered in global symbol registry
+    pub(crate) fn with_registered(
+        description: Option<JsString>,
+        is_registered: bool,
+    ) -> Option<Self> {
         let hash = get_id()?;
         let arc = Arc::new(RawJsSymbol {
             hash,
             description: description.map(|s| s.iter().collect::<Vec<_>>().into_boxed_slice()),
+            is_registered,
         });
 
         Some(Self {
             // SAFETY: Pointers returned by `Arc::into_raw` must be non-null.
             repr: unsafe { Tagged::from_ptr(Arc::into_raw(arc).cast_mut()) },
         })
+    }
+
+    // returns `true` if this symbol is registered in the global symbol registry.
+    #[inline]
+    #[must_use]
+    pub fn is_registered(&self) -> bool {
+        match self.repr.unwrap() {
+            UnwrappedTagged::Ptr(ptr) => {
+                // SAFETY: `ptr` comes from `Arc`, which ensures the validity of the pointer
+                // as long as we correctly call `Arc::from_raw` on `Drop`
+                unsafe { ptr.as_ref().is_registered }
+            }
+            UnwrappedTagged::Tag(_) => false, // well known symbols are never registered
+        }
     }
 
     /// Returns the `Symbol` description.
@@ -323,6 +347,59 @@ impl Clone for JsSymbol {
             }
         }
         Self { repr: self.repr }
+    }
+}
+
+// weak reference to a `JsSymbol`
+//
+// this doesn't keep the underlying symbol allocated if no other strong
+// references exist
+#[derive(Debug, Clone, Trace, Finalize)]
+#[boa_gc(unsafe_empty_trace)]
+pub struct WeakJsSymbol {
+    inner: WeakJsSymbolInner,
+}
+
+#[derive(Debug, Clone, Trace, Finalize)]
+#[boa_gc(unsafe_empty_trace)]
+enum WeakJsSymbolInner {
+    Ptr(std::sync::Weak<RawJsSymbol>),
+    Tag(usize),
+}
+
+impl JsSymbol {
+    #[must_use]
+    pub fn downgrade(&self) -> WeakJsSymbol {
+        let inner = match self.repr.unwrap() {
+            UnwrappedTagged::Ptr(ptr) => {
+                // SAFETY: we temporarily reconstruct the `Arc` to call `downgrade`
+                let arc = unsafe { Arc::from_raw(ptr.as_ptr().cast_const()) };
+                let weak = Arc::downgrade(&arc);
+                std::mem::forget(arc);
+                WeakJsSymbolInner::Ptr(weak)
+            }
+            UnwrappedTagged::Tag(tag) => WeakJsSymbolInner::Tag(tag),
+        };
+        WeakJsSymbol { inner }
+    }
+}
+
+impl WeakJsSymbol {
+    // attempts to upgrade the `WeakJsSymbol` pointer to a `JsSymbol`
+    #[must_use]
+    pub fn upgrade(&self) -> Option<JsSymbol> {
+        match &self.inner {
+            WeakJsSymbolInner::Ptr(weak) => {
+                let arc = weak.upgrade()?;
+                Some(JsSymbol {
+                    // SAFETY: pointers returned by `Arc::into_raw` must be non null
+                    repr: unsafe { Tagged::from_ptr(Arc::into_raw(arc).cast_mut()) },
+                })
+            }
+            WeakJsSymbolInner::Tag(tag) => Some(JsSymbol {
+                repr: Tagged::from_tag(*tag),
+            }),
+        }
     }
 }
 

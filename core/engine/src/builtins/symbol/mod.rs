@@ -68,7 +68,7 @@ impl GlobalSymbolRegistry {
             return Ok(symbol.clone());
         }
 
-        let symbol = JsSymbol::new(Some(key.clone())).ok_or_else(|| {
+        let symbol = JsSymbol::with_registered(Some(key.clone()), true).ok_or_else(|| {
             JsNativeError::range()
                 .with_message("reached the maximum number of symbols that can be created")
         })?;

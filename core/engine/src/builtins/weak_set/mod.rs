@@ -7,9 +7,14 @@
 //! [spec]: https://tc39.es/ecma262/#sec-weakset-objects
 //! [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/WeakSet
 
+use std::collections::HashSet;
+
 use crate::{
     Context, JsArgs, JsNativeError, JsResult, JsString, JsValue,
-    builtins::{BuiltInBuilder, BuiltInConstructor, BuiltInObject, IntrinsicObject},
+    builtins::{
+        BuiltInBuilder, BuiltInConstructor, BuiltInObject, IntrinsicObject,
+        weak_map::can_be_held_weakly,
+    },
     context::intrinsics::{Intrinsics, StandardConstructor, StandardConstructors},
     js_string,
     object::{ErasedVTableObject, JsObject, internal_methods::get_prototype_from_constructor},
@@ -19,10 +24,33 @@ use crate::{
     symbol::JsSymbol,
 };
 use boa_gc::{Finalize, Trace};
+use boa_macros::JsData;
 
 use super::iterable::IteratorHint;
 
+#[cfg(test)]
+mod tests;
+
 pub(crate) type NativeWeakSet = boa_gc::WeakMap<ErasedVTableObject, ()>;
+
+#[derive(Trace, Finalize, JsData)]
+pub(crate) struct WeakSetData {
+    pub(crate) objects: NativeWeakSet,
+    // member set keyed by the unique hash of a non-registered `JsSymbol`
+    //
+    // TODO: this set isn't truly weak, hashes stay alive until the entire set dies
+    // real weak tracking needs GC support for symbols.
+    pub(crate) symbols: HashSet<u64>,
+}
+
+impl WeakSetData {
+    fn new() -> Self {
+        Self {
+            objects: NativeWeakSet::new(),
+            symbols: HashSet::new(),
+        }
+    }
+}
 
 #[derive(Debug, Trace, Finalize)]
 pub(crate) struct WeakSet;
@@ -88,7 +116,7 @@ impl BuiltInConstructor for WeakSet {
         let weak_set = JsObject::from_proto_and_data_with_shared_shape(
             context.root_shape(),
             prototype,
-            NativeWeakSet::new(),
+            WeakSetData::new(),
         )
         .upcast();
 
@@ -143,35 +171,37 @@ impl WeakSet {
         // 1. Let S be the this value.
         // 2. Perform ? RequireInternalSlot(S, [[WeakSetData]]).
         let object = this.as_object();
-        let mut set = object
+        let mut data = object
             .as_ref()
-            .and_then(JsObject::downcast_mut::<NativeWeakSet>)
+            .and_then(JsObject::downcast_mut::<WeakSetData>)
             .ok_or_else(|| {
                 JsNativeError::typ().with_message("WeakSet.add: called with non-object value")
             })?;
 
-        // 3. If Type(value) is not Object, throw a TypeError exception.
+        // 3. If CanBeHeldWeakly(value) is false, throw a TypeError exception.
         let value = args.get_or_undefined(0);
-        let Some(value) = value.as_object() else {
+        if !can_be_held_weakly(value) {
             return Err(JsNativeError::typ()
                 .with_message(format!(
-                    "WeakSet.add: expected target argument of type `object`, got target of type `{}`",
+                    "WeakSet.add: invalid value type `{}`, expected an object or non-registered symbol",
                     value.type_of()
-                )).into());
-        };
-
-        // 4. Let entries be the List that is S.[[WeakSetData]].
-        // 5. For each element e of entries, do
-        if set.contains_key(value.inner()) {
-            // a. If e is not empty and SameValue(e, value) is true, then
-            // i. Return S.
-            return Ok(this.clone());
+                ))
+                .into());
         }
 
-        // 6. Append value as the last element of entries.
-        set.insert(value.inner(), ());
+        // 4. Dispatch to the appropriate backing store.
+        if let Some(val_obj) = value.as_object() {
+            // If already in the set, return S immediately.
+            if data.objects.contains_key(val_obj.inner()) {
+                return Ok(this.clone());
+            }
+            data.objects.insert(val_obj.inner(), ());
+        } else if let Some(sym) = value.as_symbol() {
+            // non-registered symbol path
+            data.symbols.insert(sym.hash());
+        }
 
-        // 7. Return S.
+        // 5. Return S.
         Ok(this.clone())
     }
 
@@ -193,26 +223,29 @@ impl WeakSet {
         // 1. Let S be the this value.
         // 2. Perform ? RequireInternalSlot(S, [[WeakSetData]]).
         let object = this.as_object();
-        let mut set = object
+        let mut data = object
             .as_ref()
-            .and_then(JsObject::downcast_mut::<NativeWeakSet>)
+            .and_then(JsObject::downcast_mut::<WeakSetData>)
             .ok_or_else(|| {
                 JsNativeError::typ().with_message("WeakSet.delete: called with non-object value")
             })?;
 
-        // 3. If Type(value) is not Object, return false.
         let value = args.get_or_undefined(0);
-        let Some(value) = value.as_object() else {
-            return Ok(false.into());
-        };
 
-        // 4. Let entries be the List that is S.[[WeakSetData]].
-        // 5. For each element e of entries, do
-        // a. If e is not empty and SameValue(e, value) is true, then
-        // i. Replace the element of entries whose value is e with an element whose value is empty.
-        // ii. Return true.
-        // 6. Return false.
-        Ok(set.remove(value.inner()).is_some().into())
+        // 3. If value is an Object, remove from GC weak set
+        if let Some(val_obj) = value.as_object() {
+            return Ok(data.objects.remove(val_obj.inner()).is_some().into());
+        }
+
+        // 4. If value is a non-registered Symbol, remove from symbol set.
+        if let Some(sym) = value.as_symbol() {
+            if !sym.is_registered() {
+                return Ok(data.symbols.remove(&sym.hash()).into());
+            }
+        }
+
+        // 5. Otherwise return false
+        Ok(false.into())
     }
 
     /// `WeakSet.prototype.has( value )`
@@ -233,23 +266,28 @@ impl WeakSet {
         // 1. Let S be the this value.
         // 2. Perform ? RequireInternalSlot(S, [[WeakSetData]]).
         let object = this.as_object();
-        let set = object
+        let data = object
             .as_ref()
-            .and_then(JsObject::downcast_ref::<NativeWeakSet>)
+            .and_then(JsObject::downcast_ref::<WeakSetData>)
             .ok_or_else(|| {
                 JsNativeError::typ().with_message("WeakSet.has: called with non-object value")
             })?;
 
-        // 3. Let entries be the List that is S.[[WeakSetData]].
-        // 4. If Type(value) is not Object, return false.
         let value = args.get_or_undefined(0);
-        let Some(value) = value.as_object() else {
-            return Ok(false.into());
-        };
 
-        // 5. For each element e of entries, do
-        // a. If e is not empty and SameValue(e, value) is true, return true.
-        // 6. Return false.
-        Ok(set.contains_key(value.inner()).into())
+        // 3. If value is an Object, check GC weak set.
+        if let Some(val_obj) = value.as_object() {
+            return Ok(data.objects.contains_key(val_obj.inner()).into());
+        }
+
+        // 4. If value is a non-registered Symbol, check symbol set
+        if let Some(sym) = value.as_symbol() {
+            if !sym.is_registered() {
+                return Ok(data.symbols.contains(&sym.hash()).into());
+            }
+        }
+
+        // 5. Otherwise return false
+        Ok(false.into())
     }
 }
