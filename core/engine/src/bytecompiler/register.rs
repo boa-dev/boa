@@ -33,7 +33,7 @@ pub(crate) struct RegisterEntry {
 /// This doesn't apply to persistent registers.
 ///
 /// A [`Register`] is index into the register allocator,
-/// as well as an index into the registers on the stack using the register pointer (`rp`).
+/// as well as an index into the per-frame register file on each [`CallFrame`](crate::vm::CallFrame).
 #[derive(Debug)]
 pub(crate) struct Register {
     index: u32,

@@ -12,6 +12,7 @@ use crate::{
     object::JsFunction,
     realm::Realm,
     script::Script,
+    vm::opcode::{OPCODE_HANDLERS, OPCODE_HANDLERS_BUDGET},
 };
 use boa_gc::{Finalize, Gc, Trace, custom_trace};
 use shadow_stack::ShadowStack;
@@ -61,20 +62,14 @@ mod tests;
 /// Virtual Machine.
 #[derive(Debug)]
 pub struct Vm {
-    /// The current call frame.
+    /// The call frame stack.
     ///
-    /// Whenever a new frame is pushed, it will be swapped into this field.
-    /// Then the old frame will get pushed to the [`Self::frames`] stack.
-    /// Whenever the current frame gets popped, the last frame on the [`Self::frames`] stack will be swapped into this field.
-    ///
-    /// By default this is a dummy frame that gets pushed to [`Self::frames`] when the first real frame is pushed.
-    pub(crate) frame: CallFrame,
-
-    /// The stack for call frames.
+    /// The current frame is always the last element. A dummy frame is always
+    /// present at position 0 so the stack is never empty.
     pub(crate) frames: Vec<CallFrame>,
 
     pub(crate) stack: Stack,
-    pub(crate) registers: Vec<JsValue>,
+
     pub(crate) return_value: JsValue,
 
     /// When an error is thrown, the pending exception is set.
@@ -105,41 +100,23 @@ pub struct Vm {
     pub(crate) trace: bool,
 }
 
-/// The stack holds the [`JsValue`]s for the calling convention.
+/// The stack holds the [`JsValue`]s for the calling convention and registers.
 ///
 /// The stack is persistent across frames.
-/// It's addressing is relative to the frame pointer.
+/// It's addressing is relative to the frame pointer (`fp`) in each [`CallFrame`].
 ///
 /// The stack stores the following elements:
 /// - The function prologue
 ///   - The `this` value of the function
 ///   - The function object itself
 /// - The arguments of the function
+/// - The register file for the frame
 /// - Some manually pushed values like the return value of a function.
 ///
-/// Registers (local variables, temporaries) are stored in a separate `Vec<JsValue>`
-/// on the `Vm` struct, indexed by the `rp` (register pointer) field of `CallFrame`.
-///
-/// This is the stack layout:
-///
 /// ```text
-///                      Setup by the caller
-///   ┌─────────────────────────────────────────────────────────┐
-///   ▼                                                         ▼
-/// | this | func | arg1 | ... | argN |
-///   ▲         ▲   ▲                ▲
-///   └─────────┘   └────────────────┘
-///   prologue          arguments
-///   ▲
-///   └─ Frame pointer (fp)
-/// ```
-///
-/// Register file (separate storage):
-///
-/// ```text
-/// | reg0 | reg1 | ... | regK |
-///   ▲
-///   └─ Register pointer (rp)
+///  Stack: | this | func | arg1 | ... | argN | reg0 | reg1 | ... | regK |
+///           ▲                                  ▲
+///           └─ fp                              └─ rp
 /// ```
 #[derive(Clone, Debug, Trace, Finalize)]
 pub(crate) struct Stack {
@@ -152,6 +129,16 @@ impl Stack {
         Self {
             stack: Vec::with_capacity(capacity),
         }
+    }
+
+    /// Get a register value by index, relative to the given frame's `rp`.
+    pub(crate) fn get_register(&self, frame: &CallFrame, index: usize) -> Option<&JsValue> {
+        self.stack.get(frame.rp as usize + index)
+    }
+
+    /// Set a register value by index, relative to the given frame's `rp`.
+    pub(crate) fn set_register(&mut self, frame: &CallFrame, index: usize, value: JsValue) {
+        self.stack[frame.rp as usize + index] = value;
     }
 
     /// Truncate the stack to the given frame.
@@ -329,16 +316,16 @@ unsafe impl Trace for ActiveRunnable {
 impl Vm {
     /// Creates a new virtual machine.
     pub(crate) fn new(realm: Realm) -> Self {
+        let mut frames = Vec::with_capacity(16);
+        frames.push(CallFrame::new(
+            Gc::new(CodeBlock::new(JsString::default(), 0, true)),
+            None,
+            EnvironmentStack::new(realm.environment().clone()),
+            realm,
+        ));
         Self {
-            frames: Vec::with_capacity(16),
-            frame: CallFrame::new(
-                Gc::new(CodeBlock::new(JsString::default(), 0, true)),
-                None,
-                EnvironmentStack::new(realm.environment().clone()),
-                realm,
-            ),
+            frames,
             stack: Stack::new(1024),
-            registers: Vec::with_capacity(1024),
             return_value: JsValue::undefined(),
             pending_exception: None,
             runtime_limits: RuntimeLimits::default(),
@@ -353,33 +340,52 @@ impl Vm {
     #[track_caller]
     #[inline]
     pub(crate) fn set_register(&mut self, index: usize, value: JsValue) {
-        let actual = self.frame.rp as usize + index;
+        let rp = self.frame().rp as usize;
         debug_assert!(
-            actual < self.registers.len(),
-            "register index out of bounds: index {actual}, len {}",
-            self.registers.len()
+            rp + index < self.stack.stack.len(),
+            "register index out of bounds: rp {rp}, index {index}, stack len {}",
+            self.stack.stack.len()
         );
         // SAFETY: Register indices are determined by the bytecode compiler and are
         // guaranteed to be within the register bounds for well-formed bytecode. The
         // debug_assert above catches any compiler bugs during development.
         unsafe {
-            *self.registers.get_unchecked_mut(actual) = value;
+            *self.stack.stack.get_unchecked_mut(rp + index) = value;
         }
     }
 
     #[track_caller]
     #[inline]
     pub(crate) fn get_register(&self, index: usize) -> &JsValue {
-        let actual = self.frame.rp as usize + index;
+        let rp = self.frame().rp as usize;
         debug_assert!(
-            actual < self.registers.len(),
-            "register index out of bounds: index {actual}, len {}",
-            self.registers.len()
+            rp + index < self.stack.stack.len(),
+            "register index out of bounds: rp {rp}, index {index}, stack len {}",
+            self.stack.stack.len()
         );
         // SAFETY: Register indices are determined by the bytecode compiler and are
         // guaranteed to be within the register bounds for well-formed bytecode. The
         // debug_assert above catches any compiler bugs during development.
-        unsafe { self.registers.get_unchecked(actual) }
+        unsafe { self.stack.stack.get_unchecked(rp + index) }
+    }
+
+    /// Takes the value from a register, replacing it with `undefined`.
+    ///
+    /// Use this instead of `get_register().clone()` when the register value is
+    /// consumed and won't be read again, to avoid unnecessary Gc refcount increments.
+    #[track_caller]
+    #[inline]
+    pub(crate) fn take_register(&mut self, index: usize) -> JsValue {
+        let rp = self.frame().rp as usize;
+        debug_assert!(
+            rp + index < self.stack.stack.len(),
+            "register index out of bounds: rp {rp}, index {index}, stack len {}",
+            self.stack.stack.len()
+        );
+        // SAFETY: Register indices are determined by the bytecode compiler and are
+        // guaranteed to be within the register bounds for well-formed bytecode. The
+        // debug_assert above catches any compiler bugs during development.
+        unsafe { std::mem::take(self.stack.stack.get_unchecked_mut(rp + index)) }
     }
 
     /// Set the promise capability for the current frame.
@@ -390,7 +396,7 @@ impl Vm {
     ) -> JsResult<()> {
         #[cfg(debug_assertions)]
         {
-            if !self.frame.code_block().is_async() {
+            if !self.frame().code_block().is_async() {
                 return Err(crate::error::PanicError::new(
                     "only async functions and modules with a top-level-await \
                     can have a promise capability",
@@ -399,11 +405,12 @@ impl Vm {
             }
         }
 
-        self.registers[self.frame.promise_capability_promise_register_index()] =
+        let rp = self.frame().rp as usize;
+        self.stack.stack[rp + CallFrame::PROMISE_CAPABILITY_PROMISE_REGISTER_INDEX] =
             promise_capability.promise.into();
-        self.registers[self.frame.promise_capability_resolve_register_index()] =
+        self.stack.stack[rp + CallFrame::PROMISE_CAPABILITY_RESOLVE_REGISTER_INDEX] =
             promise_capability.functions.resolve.into();
-        self.registers[self.frame.promise_capability_reject_register_index()] =
+        self.stack.stack[rp + CallFrame::PROMISE_CAPABILITY_REJECT_REGISTER_INDEX] =
             promise_capability.functions.reject.into();
 
         Ok(())
@@ -413,27 +420,31 @@ impl Vm {
     #[track_caller]
     pub(crate) fn get_promise_capability(&self) -> JsResult<PromiseCapability> {
         #[cfg(debug_assertions)]
-        if !self.frame.code_block().is_async() {
+        if !self.frame().code_block().is_async() {
             return Err(crate::error::PanicError::new(
                 "cannot get promise capability from non-async code",
             )
             .into());
         }
 
+        let rp = self.frame().rp as usize;
         let promise = self
-            .registers
-            .get(self.frame.promise_capability_promise_register_index())
+            .stack
+            .stack
+            .get(rp + CallFrame::PROMISE_CAPABILITY_PROMISE_REGISTER_INDEX)
             .and_then(JsValue::as_object)
             .js_expect("registers must have a promise capability")?;
         let resolve = self
-            .registers
-            .get(self.frame.promise_capability_resolve_register_index())
+            .stack
+            .stack
+            .get(rp + CallFrame::PROMISE_CAPABILITY_RESOLVE_REGISTER_INDEX)
             .and_then(JsValue::as_object)
             .and_then(JsFunction::from_object)
             .js_expect("registers must have a resolve function")?;
         let reject = self
-            .registers
-            .get(self.frame.promise_capability_reject_register_index())
+            .stack
+            .stack
+            .get(rp + CallFrame::PROMISE_CAPABILITY_REJECT_REGISTER_INDEX)
             .and_then(JsValue::as_object)
             .and_then(JsFunction::from_object)
             .js_expect("registers must have a reject function")?;
@@ -447,26 +458,40 @@ impl Vm {
     /// Get the async generator object for the current frame.
     #[track_caller]
     pub(crate) fn async_generator_object(&self) -> Option<JsObject> {
-        if !self.frame.code_block().is_async_generator() {
+        if !self.frame().code_block().is_async_generator() {
             return None;
         }
 
-        self.registers
-            .get(self.frame.async_generator_object_register_index())
+        let rp = self.frame().rp as usize;
+        self.stack
+            .stack
+            .get(rp + CallFrame::ASYNC_GENERATOR_OBJECT_REGISTER_INDEX)
             .expect("registers must have an async generator object")
             .as_object()
     }
 
     /// Retrieves the VM frame.
+    ///
+    /// NOTE: When you need a `&CallFrame` alongside a mutable borrow of another
+    /// `Vm` field (e.g. `stack`), use `self.vm.frames.last().expect("frame must exist")` instead
+    /// so that the borrow checker can split the borrows.
     #[track_caller]
+    #[inline]
     pub(crate) fn frame(&self) -> &CallFrame {
-        &self.frame
+        // SAFETY: `frames` always contains at least the dummy frame.
+        unsafe { self.frames.last().unwrap_unchecked() }
     }
 
     /// Retrieves the VM frame mutably.
+    ///
+    /// NOTE: When you need a `&mut CallFrame` alongside a mutable borrow of another
+    /// `Vm` field (e.g. `stack`), use `self.vm.frames.last_mut().expect("frame must exist")` instead
+    /// so that the borrow checker can split the borrows.
     #[track_caller]
+    #[inline]
     pub(crate) fn frame_mut(&mut self) -> &mut CallFrame {
-        &mut self.frame
+        // SAFETY: `frames` always contains at least the dummy frame.
+        unsafe { self.frames.last_mut().unwrap_unchecked() }
     }
 
     pub(crate) fn push_frame(&mut self, mut frame: CallFrame) {
@@ -477,26 +502,25 @@ impl Vm {
             let current_stack_length = self.stack.stack.len() as u32;
             frame.fp = current_stack_length - frame.argument_count - CallFrame::FUNCTION_PROLOGUE;
 
-            let current_reg_length = self.registers.len();
-            frame.set_register_pointer(current_reg_length as u32);
-            self.registers.resize_with(
-                current_reg_length + frame.code_block.register_count as usize,
-                JsValue::undefined,
+            let register_count = frame.code_block.register_count as usize;
+            frame.rp = self.stack.stack.len() as u32;
+            self.stack.stack.resize(
+                self.stack.stack.len() + register_count,
+                JsValue::undefined(),
             );
         }
 
         // Keep carrying the last active runnable in case the current callframe
         // yields.
         if frame.active_runnable.is_none() {
-            frame
-                .active_runnable
-                .clone_from(&self.frame.active_runnable);
+            let current = self.frame();
+            frame.active_runnable.clone_from(&current.active_runnable);
         }
 
+        let current_pc = self.frame().pc;
         self.shadow_stack
-            .push_bytecode(self.frame.pc, frame.code_block().source_info.clone());
+            .push_bytecode(current_pc, frame.code_block().source_info.clone());
 
-        std::mem::swap(&mut self.frame, &mut frame);
         self.frames.push(frame);
     }
 
@@ -513,14 +537,12 @@ impl Vm {
     }
 
     pub(crate) fn pop_frame(&mut self) -> Option<CallFrame> {
-        if let Some(mut frame) = self.frames.pop() {
-            self.shadow_stack.pop();
-
-            std::mem::swap(&mut self.frame, &mut frame);
-            Some(frame)
-        } else {
-            None
+        // Don't pop the dummy frame (index 0).
+        if self.frames.len() <= 1 {
+            return None;
         }
+        self.shadow_stack.pop();
+        self.frames.pop()
     }
 
     /// Handles an exception thrown at position `pc`.
@@ -539,7 +561,9 @@ impl Vm {
         // Go to handler location.
         frame.pc = u32::from(catch_address);
 
-        self.frame.environments.truncate(environment_sp as usize);
+        self.frame_mut()
+            .environments
+            .truncate(environment_sp as usize);
 
         true
     }
@@ -692,7 +716,7 @@ impl Context {
             err.backtrace = Some(
                 self.vm
                     .shadow_stack
-                    .take(self.vm.runtime_limits.backtrace_limit(), self.vm.frame.pc),
+                    .take(self.vm.runtime_limits.backtrace_limit(), self.vm.frame().pc),
             );
         }
 
@@ -700,23 +724,22 @@ impl Context {
         // (Rust) caller instead of trying to handle as an exception.
         if !err.is_catchable() {
             let mut frame = None;
-            let mut env_fp = self.vm.frame.environments.len();
+            let mut env_fp = self.vm.frame().environments.len();
             loop {
-                if self.vm.frame.exit_early() {
+                if self.vm.frame().exit_early() {
                     break;
                 }
 
-                env_fp = self.vm.frame.env_fp as usize;
+                env_fp = self.vm.frame().env_fp as usize;
 
                 let Some(f) = self.vm.pop_frame() else {
                     break;
                 };
                 frame = Some(f);
             }
-            self.vm.frame.environments.truncate(env_fp);
+            self.vm.frame_mut().environments.truncate(env_fp);
             if let Some(frame) = frame {
                 self.vm.stack.truncate_to_frame(&frame);
-                self.vm.registers.truncate(frame.rp as usize);
             }
             return ControlFlow::Break(CompletionRecord::Throw(err));
         }
@@ -737,8 +760,8 @@ impl Context {
 
     fn handle_return(&mut self) -> ControlFlow<CompletionRecord> {
         let exit_early = self.vm.frame().exit_early();
-        self.vm.stack.truncate_to_frame(&self.vm.frame);
-        self.vm.registers.truncate(self.vm.frame.rp as usize);
+        let frame = self.vm.frames.last().expect("frame must exist");
+        self.vm.stack.truncate_to_frame(frame);
 
         let result = self.vm.take_return_value();
         if exit_early {
@@ -762,21 +785,27 @@ impl Context {
     }
 
     fn handle_throw(&mut self) -> ControlFlow<CompletionRecord> {
-        if let Some(err) = &mut self.vm.pending_exception
-            && err.backtrace.is_none()
+        if self
+            .vm
+            .pending_exception
+            .as_ref()
+            .is_some_and(|err| err.backtrace.is_none())
         {
-            err.backtrace = Some(
-                self.vm
-                    .shadow_stack
-                    .take(self.vm.runtime_limits.backtrace_limit(), self.vm.frame.pc),
-            );
+            let pc = self.vm.frames.last().expect("frame must exist").pc;
+            let limit = self.vm.runtime_limits.backtrace_limit();
+            let backtrace = self.vm.shadow_stack.take(limit, pc);
+            self.vm
+                .pending_exception
+                .as_mut()
+                .expect("pending exception must exist")
+                .backtrace = Some(backtrace);
         }
 
         let mut env_fp = self.vm.frame().env_fp;
         if self.vm.frame().exit_early() {
-            self.vm.frame.environments.truncate(env_fp as usize);
-            self.vm.stack.truncate_to_frame(&self.vm.frame);
-            self.vm.registers.truncate(self.vm.frame.rp as usize);
+            self.vm.frame_mut().environments.truncate(env_fp as usize);
+            let frame = self.vm.frames.last().expect("frame must exist");
+            self.vm.stack.truncate_to_frame(frame);
             return ControlFlow::Break(CompletionRecord::Throw(
                 self.vm
                     .pending_exception
@@ -788,9 +817,9 @@ impl Context {
         let mut frame = self.vm.pop_frame().expect("frame must exist");
 
         loop {
-            env_fp = self.vm.frame.env_fp;
-            let pc = self.vm.frame.pc;
-            let exit_early = self.vm.frame.exit_early();
+            env_fp = self.vm.frame().env_fp;
+            let pc = self.vm.frame().pc;
+            let exit_early = self.vm.frame().exit_early();
 
             if self.vm.handle_exception_at(pc) {
                 return ControlFlow::Continue(());
@@ -810,9 +839,8 @@ impl Context {
             };
             frame = f;
         }
-        self.vm.frame.environments.truncate(env_fp as usize);
+        self.vm.frame_mut().environments.truncate(env_fp as usize);
         self.vm.stack.truncate_to_frame(&frame);
-        self.vm.registers.truncate(frame.rp as usize);
         ControlFlow::Continue(())
     }
 
@@ -829,17 +857,20 @@ impl Context {
 
         while let Some(byte) = self
             .vm
-            .frame
+            .frame()
             .code_block
             .bytecode
             .bytecode
-            .get(self.vm.frame.pc as usize)
+            .get(self.vm.frame().pc as usize)
         {
             let opcode = Opcode::decode(*byte);
 
             match self.execute_one(
                 |context, opcode| {
-                    context.execute_bytecode_instruction_with_budget(&mut runtime_budget, opcode)
+                    let frame = context.vm.frame();
+                    let pc = frame.pc as usize;
+
+                    OPCODE_HANDLERS_BUDGET[opcode as usize](context, pc, &mut runtime_budget)
                 },
                 opcode,
             ) {
@@ -864,15 +895,23 @@ impl Context {
 
         while let Some(byte) = self
             .vm
-            .frame
+            .frame()
             .code_block
             .bytecode
             .bytecode
-            .get(self.vm.frame.pc as usize)
+            .get(self.vm.frame().pc as usize)
         {
             let opcode = Opcode::decode(*byte);
 
-            match self.execute_one(Self::execute_bytecode_instruction, opcode) {
+            match self.execute_one(
+                |context, opcode| {
+                    let frame = context.vm.frame();
+                    let pc = frame.pc as usize;
+
+                    OPCODE_HANDLERS[opcode as usize](context, pc)
+                },
+                opcode,
+            ) {
                 ControlFlow::Continue(()) => {}
                 ControlFlow::Break(value) => return value,
             }
@@ -887,14 +926,13 @@ impl Context {
         //
         // `host_call_depth` accounts for nested host calls that re-enter the VM by invoking
         // `Context::run()` recursively (for example, accessor calls).
-        let recursion_depth = self.vm.frames.len().saturating_add(self.vm.host_call_depth);
+        // Subtract 1 to exclude the dummy frame at index 0.
+        let recursion_depth = (self.vm.frames.len() - 1).saturating_add(self.vm.host_call_depth);
         if self.vm.runtime_limits.recursion_limit() <= recursion_depth {
             return Err(RuntimeLimitError::Recursion.into());
         }
         // Must throw if the stack size exceeds the defined maximum length.
-        if self.vm.runtime_limits.stack_size_limit()
-            <= self.vm.stack.stack.len() + self.vm.registers.len()
-        {
+        if self.vm.runtime_limits.stack_size_limit() <= self.vm.stack.stack.len() {
             return Err(RuntimeLimitError::StackSize.into());
         }
 
