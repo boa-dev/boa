@@ -224,29 +224,84 @@ mod tests {
     use super::*;
 
     #[test]
-    fn test_varying_operand_decode() {
+    fn test_read_u8() {
+        let bytes = [1, 2, 3];
+        let (val, next) = read::<u8>(&bytes, 0);
+        assert_eq!(val, 1);
+        assert_eq!(next, 1);
+    }
+
+    #[test]
+    #[should_panic(expected = "buffer too small to read type T")]
+    fn test_read_out_of_bounds() {
+        let bytes = [1, 2];
+        read::<u32>(&bytes, 0);
+    }
+
+    #[test]
+    fn test_argument_unit() {
+        let mut bytes = Vec::new();
+        ().encode(&mut bytes);
+        assert!(bytes.is_empty());
+        let (val, next) = <()>::decode(&bytes, 0);
+        assert_eq!(val, ());
+        assert_eq!(next, 0);
+    }
+
+    #[test]
+    fn test_argument_varying_operand() {
+        let test_cases = vec![10u32, 500u32, 100_000u32];
+        for val in test_cases {
+            let arg = VaryingOperand::new(val);
+            let mut bytes = Vec::new();
+            arg.encode(&mut bytes);
+            let (decoded, next) = VaryingOperand::decode(&bytes, 0);
+            assert_eq!(u32::from(decoded), val);
+            assert_eq!(next, bytes.len());
+        }
+    }
+
+    #[test]
+    fn test_argument_u32() {
         let val = 0x12345678u32;
         let mut bytes = Vec::new();
-        val.encode(&mut bytes); // VaryingOperand encodes as u32
-        
-        // Decode it back
-        let (decoded, next) = <VaryingOperand>::decode(&bytes, 0);
-        assert_eq!(u32::from(decoded), val);
+        val.encode(&mut bytes);
+        let (decoded, next) = <u32>::decode(&bytes, 0);
+        assert_eq!(decoded, val);
         assert_eq!(next, 4);
     }
 
     #[test]
-    fn test_tuple_decode() {
+    fn test_argument_u32_varying() {
         let v1 = 0x12345678u32;
-        let v2 = 500u16;
-        let arg = (v1, v2);
-        
+        let v2 = 500u32;
+        let arg = (v1, VaryingOperand::new(v2));
         let mut bytes = Vec::new();
         arg.encode(&mut bytes);
-        
-        let (decoded, next) = <(u32, u16)>::decode(&bytes, 0);
+        let (decoded, next) = <(u32, VaryingOperand)>::decode(&bytes, 0);
         assert_eq!(decoded.0, v1);
-        assert_eq!(decoded.1, v2);
-        assert_eq!(next, 6);
+        assert_eq!(u32::from(decoded.1), v2);
+        assert_eq!(next, 8);
+    }
+
+    #[test]
+    #[should_panic]
+    fn test_varying_operand_decode_out_of_bounds() {
+        let bytes = [1];
+        VaryingOperand::decode(&bytes, 0);
+    }
+
+    #[test]
+    #[should_panic]
+    fn test_complex_tuple_decode_out_of_bounds() {
+        let bytes = [0, 1, 2];
+        <(VaryingOperand, i8)>::decode(&bytes, 0);
+    }
+
+    #[test]
+    #[should_panic]
+    fn test_thinvec_decode_out_of_bounds() {
+        let bytes = [2, 0, 1, 0, 0, 0];
+        <(VaryingOperand, ThinVec<VaryingOperand>)>::decode(&bytes, 0);
     }
 }

@@ -45,6 +45,10 @@ jobs:
             target
           key: ${{ matrix.os }}-${{ runner.arch }}-cargo-${{ hashFiles('**/Cargo.lock') }}
 
+      - name: Install build dependencies
+        if: matrix.target == 'aarch64-unknown-linux-gnu'
+        run: sudo apt-get update && sudo apt-get install -y build-essential
+
       - name: Build
         run: cargo build --target ${{ matrix.target }} --release --locked --bin boa
 

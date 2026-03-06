@@ -95,6 +95,10 @@ jobs:
             ~/.cargo/registry
           key: ${{ matrix.os }}-${{ runner.arch }}-cargo-${{ hashFiles('**/Cargo.lock') }}
 
+      - name: Install build dependencies
+        if: matrix.os == 'ubuntu-24.04-arm'
+        run: sudo apt-get update && sudo apt-get install -y build-essential
+
       - name: Build tests
         run: cargo test --no-run --profile ci
       # this order is faster according to rust-analyzer
