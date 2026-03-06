@@ -73,6 +73,12 @@ impl JsHeaders {
             headers: Rc::new(RefCell::new(http)),
         }
     }
+
+    /// Returns a shared handle to the inner [`http::HeaderMap`].
+    #[must_use]
+    pub fn as_header_map(&self) -> Rc<RefCell<HttpHeaderMap>> {
+        self.headers.clone()
+    }
 }
 
 #[boa_class(rename = "Headers")]

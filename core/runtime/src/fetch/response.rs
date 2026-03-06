@@ -170,8 +170,10 @@ impl JsResponse {
         Self::basic(js_string!(""), http::Response::new(Vec::new()))
     }
 
+    /// Returns the HTTP status code of the response.
     #[boa(getter)]
-    fn status(&self) -> u16 {
+    #[must_use]
+    pub fn status(&self) -> u16 {
         // 0 is a special case for error responses.
         self.status.map_or(0, |s| s.as_u16())
     }
@@ -191,8 +193,10 @@ impl JsResponse {
         }
     }
 
+    /// Returns the headers associated with the response.
     #[boa(getter)]
-    fn headers(&self) -> JsHeaders {
+    #[must_use]
+    pub fn headers(&self) -> JsHeaders {
         self.headers.clone()
     }
 
