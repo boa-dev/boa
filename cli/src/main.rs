@@ -303,9 +303,9 @@ fn dump<R: ReadChar>(src: Source<'_, R>, args: &Opt, context: &mut Context) -> R
                 let _timer = counters.new_timer("AST generation");
                 match arg {
                     DumpFormat::Json => serde_json::to_string(&module)
-                        .expect("could not convert AST to a JSON string"),
+                        .wrap_err("could not convert AST to a JSON string")?,
                     DumpFormat::JsonPretty => serde_json::to_string_pretty(&module)
-                        .expect("could not convert AST to a pretty JSON string"),
+                        .wrap_err("could not convert AST to a pretty JSON string")?,
                     DumpFormat::Debug => format!("{module:#?}"),
                 }
             } else {
@@ -324,9 +324,9 @@ fn dump<R: ReadChar>(src: Source<'_, R>, args: &Opt, context: &mut Context) -> R
                 let _timer = counters.new_timer("AST generation");
                 match arg {
                     DumpFormat::Json => serde_json::to_string(&script)
-                        .expect("could not convert AST to a JSON string"),
+                        .wrap_err("could not convert AST to a JSON string")?,
                     DumpFormat::JsonPretty => serde_json::to_string_pretty(&script)
-                        .expect("could not convert AST to a pretty JSON string"),
+                        .wrap_err("could not convert AST to a pretty JSON string")?,
                     DumpFormat::Debug => format!("{script:#?}"),
                 }
             };
@@ -431,13 +431,17 @@ fn evaluate_file(
     printer: &SharedExternalPrinterLogger,
 ) -> Result<()> {
     if args.has_dump_flag() {
-        return dump(Source::from_filepath(file)?, args, context);
+        return dump(
+            Source::from_filepath(file).wrap_err_with(|| format!("failed to read file '{}'", file.display()))?,
+            args,
+            context,
+        );
     }
 
     if let Some(flowgraph) = args.flowgraph {
         let flowgraph = generate_flowgraph(
             context,
-            Source::from_filepath(file)?,
+            Source::from_filepath(file).wrap_err_with(|| format!("failed to read file '{}'", file.display()))?,
             flowgraph.unwrap_or(FlowgraphFormat::Graphviz),
             args.flowgraph_direction,
         )?;
@@ -448,7 +452,8 @@ fn evaluate_file(
     }
 
     if args.module {
-        let source = Source::from_filepath(file)?;
+        let source = Source::from_filepath(file)
+            .wrap_err_with(|| format!("failed to read file '{}'", file.display()))?;
         let mut counters = Counters::new(args.time);
         let module = {
             let _timer = counters.new_timer("Parsing");
@@ -479,7 +484,8 @@ fn evaluate_file(
         };
     }
 
-    let source = Source::from_filepath(file)?;
+    let source = Source::from_filepath(file)
+        .wrap_err_with(|| format!("failed to read file '{}'", file.display()))?;
     let mut counters = Counters::new(args.time);
     let script = {
         let _timer = counters.new_timer("Parsing");
@@ -545,13 +551,13 @@ fn main() -> Result<()> {
     context.strict(args.strict);
 
     // Add `console`.
-    add_runtime(printer.clone(), &mut context);
+    add_runtime(printer.clone(), &mut context)?;
 
     // Trace Output
     context.set_trace(args.trace);
 
     if args.debug_object {
-        init_boa_debug_object(&mut context);
+        init_boa_debug_object(&mut context)?;
     }
 
     // Configure optimizer options
@@ -600,7 +606,9 @@ fn main() -> Result<()> {
         thread::sleep(Duration::from_millis(10));
     }
 
-    handle.join().expect("failed to join thread");
+    handle
+        .join()
+        .map_err(|_| eyre!("readline thread panicked"))?;
 
     Ok(())
 }
@@ -682,7 +690,7 @@ fn start_readline_thread(
 }
 
 /// Adds the CLI runtime to the context with default options.
-fn add_runtime(printer: SharedExternalPrinterLogger, context: &mut Context) {
+fn add_runtime(printer: SharedExternalPrinterLogger, context: &mut Context) -> Result<()> {
     boa_runtime::register(
         (
             boa_runtime::extensions::ConsoleExtension(printer),
@@ -694,7 +702,8 @@ fn add_runtime(printer: SharedExternalPrinterLogger, context: &mut Context) {
         None,
         context,
     )
-    .expect("should not fail while registering the runtime");
+    .map_err(|e| eyre!("failed to register runtime: {e}"))?;
+    Ok(())
 }
 
 #[allow(clippy::struct_field_names)]
