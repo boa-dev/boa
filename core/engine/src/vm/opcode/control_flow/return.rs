@@ -63,7 +63,7 @@ impl CheckReturn {
             if frame.has_this_value_cached() {
                 this.clone()
             } else {
-                match context.vm.frame.environments.get_this_binding() {
+                match context.vm.frame().environments.get_this_binding() {
                     Err(err) => {
                         // Avoid setting the realm here, since it needs to be set by the parent
                         // execution context.
@@ -139,7 +139,7 @@ pub(crate) struct PopIntoRegister;
 impl PopIntoRegister {
     #[inline(always)]
     pub(crate) fn operation(dst: RegisterOperand, context: &mut Context) {
-        let value = context.vm.stack.pop().clone();
+        let value = context.vm.stack.pop();
         context.vm.set_register(dst.into(), value);
     }
 }
