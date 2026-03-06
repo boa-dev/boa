@@ -93,26 +93,9 @@ impl<'ast> boa_ast::visitor::Visitor<'ast> for JsonSourceVisitor<'_> {
         &mut self,
         node: &'ast boa_ast::expression::literal::Literal,
     ) -> std::ops::ControlFlow<Self::BreakTy> {
-        use boa_ast::expression::literal::LiteralKind;
-
         let span = node.linear_span();
-        let text = if span.is_empty() {
-            // Fallback: reconstruct source text from literal kind
-            match node.kind() {
-                LiteralKind::Null => "null".to_string(),
-                LiteralKind::Bool(true) => "true".to_string(),
-                LiteralKind::Bool(false) => "false".to_string(),
-                LiteralKind::Num(n) => n.to_string(),
-                LiteralKind::Int(n) => n.to_string(),
-                LiteralKind::String(sym) => {
-                    format!("\"{}\"", self.interner.resolve_expect(*sym))
-                }
-                _ => String::new(),
-            }
-        } else {
-            let code_points = self.source_text.get_code_points_from_span(span);
-            String::from_utf16_lossy(code_points)
-        };
+        let code_points = self.source_text.get_code_points_from_span(span);
+        let text = String::from_utf16_lossy(code_points);
         self.stack.push(JsonNode::Primitive(text));
         std::ops::ControlFlow::Continue(())
     }
@@ -178,16 +161,14 @@ impl<'ast> boa_ast::visitor::Visitor<'ast> for JsonSourceVisitor<'_> {
         use boa_ast::expression::operator::unary::UnaryOp;
         use boa_ast::visitor::VisitWith;
 
-        if node.op() == UnaryOp::Minus {
-            if let boa_ast::Expression::Literal(lit) = node.target() {
-                let span = lit.linear_span();
-                if !span.is_empty() {
-                    let code_points = self.source_text.get_code_points_from_span(span);
-                    let num_text = String::from_utf16_lossy(code_points);
-                    self.stack.push(JsonNode::Primitive(format!("-{num_text}")));
-                    return std::ops::ControlFlow::Continue(());
-                }
-            }
+        if node.op() == UnaryOp::Minus
+            && let boa_ast::Expression::Literal(lit) = node.target()
+        {
+            let span = lit.linear_span();
+            let code_points = self.source_text.get_code_points_from_span(span);
+            let num_text = String::from_utf16_lossy(code_points);
+            self.stack.push(JsonNode::Primitive(format!("-{num_text}")));
+            return std::ops::ControlFlow::Continue(());
         }
 
         // Default: recurse into children
