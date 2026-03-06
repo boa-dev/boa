@@ -153,21 +153,21 @@ impl Script {
             self.path().map(Path::to_owned).into(),
         );
 
-    #[cfg(feature = "annex-b")]
-    {
-        compiler.annex_b_function_names = annex_b_function_names;
+        #[cfg(feature = "annex-b")]
+        {
+            compiler.annex_b_function_names = annex_b_function_names;
+        }
+
+        compiler.global_declaration_instantiation(source);
+        compiler.compile_statement_list(source.statements(), true, false);
+
+        let cb = Gc::new(compiler.finish());
+
+        let mut phase = self.inner.phase.borrow_mut();
+        *phase = ScriptPhase::Codeblock(cb.clone());
+
+        Ok(cb)
     }
-
-    compiler.global_declaration_instantiation(source);
-    compiler.compile_statement_list(source.statements(), true, false);
-
-    let cb = Gc::new(compiler.finish());
-
-    let mut phase = self.inner.phase.borrow_mut();
-    *phase = ScriptPhase::Codeblock(cb.clone());
-
-    Ok(cb)
-}
 
     /// Evaluates this script and returns its result.
     ///
