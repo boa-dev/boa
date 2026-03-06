@@ -124,7 +124,7 @@ impl Script {
         let phase = self.inner.phase.borrow();
         let source = match &*phase {
             ScriptPhase::Codeblock(codeblock) => return Ok(codeblock.clone()),
-            ScriptPhase::Ast(source) => source.clone(),
+            ScriptPhase::Ast(source) => source,
         };
         drop(phase);
 
@@ -132,11 +132,13 @@ impl Script {
 
         global_declaration_instantiation_context(
             &mut annex_b_function_names,
-            &source,
+            source,
             self.inner.realm.scope(),
             context,
         )?;
+
         let spanned_source_text = SpannedSourceText::new_source_only(self.get_source());
+
         let mut compiler = ByteCompiler::new(
             js_string!("<main>"),
             source.strict(),
@@ -151,21 +153,21 @@ impl Script {
             self.path().map(Path::to_owned).into(),
         );
 
-        #[cfg(feature = "annex-b")]
-        {
-            compiler.annex_b_function_names = annex_b_function_names;
-        }
-
-        // TODO: move to `Script::evaluate` to make this operation infallible.
-        compiler.global_declaration_instantiation(&source);
-        compiler.compile_statement_list(source.statements(), true, false);
-
-        let cb = Gc::new(compiler.finish());
-
-        *phase = ScriptPhase::Codeblock(cb.clone());
-
-        Ok(cb)
+    #[cfg(feature = "annex-b")]
+    {
+        compiler.annex_b_function_names = annex_b_function_names;
     }
+
+    compiler.global_declaration_instantiation(source);
+    compiler.compile_statement_list(source.statements(), true, false);
+
+    let cb = Gc::new(compiler.finish());
+
+    let mut phase = self.inner.phase.borrow_mut();
+    *phase = ScriptPhase::Codeblock(cb.clone());
+
+    Ok(cb)
+}
 
     /// Evaluates this script and returns its result.
     ///
