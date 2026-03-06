@@ -132,11 +132,10 @@ impl Script {
 
         global_declaration_instantiation_context(
             &mut annex_b_function_names,
-            source,
+            &source,
             self.inner.realm.scope(),
             context,
         )?;
-
         let spanned_source_text = SpannedSourceText::new_source_only(self.get_source());
         let mut compiler = ByteCompiler::new(
             js_string!("<main>"),
@@ -158,7 +157,7 @@ impl Script {
         }
 
         // TODO: move to `Script::evaluate` to make this operation infallible.
-        compiler.global_declaration_instantiation(source);
+        compiler.global_declaration_instantiation(&source);
         compiler.compile_statement_list(source.statements(), true, false);
 
         let cb = Gc::new(compiler.finish());
