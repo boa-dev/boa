@@ -157,10 +157,13 @@ impl<R> Tokenizer<R> for RegexLiteral {
             })?,
         );
 
+        let mut flags_buf = [0u8; MAXIMUM_REGEX_FLAGS];
+        let flags_str = flags.write_to_buf(&mut flags_buf);
+
         Ok(Token::new_by_position_group(
             TokenKind::regular_expression_literal(
                 interner.get_or_intern(body_utf16.as_slice()),
-                interner.get_or_intern(flags.to_string().as_str()),
+                interner.get_or_intern(flags_str),
             ),
             start_pos,
             cursor.pos_group(),
@@ -267,6 +270,50 @@ impl FromStr for RegExpFlags {
         }
 
         Ok(flags)
+    }
+}
+
+impl RegExpFlags {
+    /// Writes the flags string to a buffer and returns it as `&str`.
+    /// Avoids heap allocation when interning regex flags during lexing.
+    /// The buffer must be at least 8 bytes (maximum number of flags).
+    #[inline]
+    pub fn write_to_buf<'a>(&self, buf: &'a mut [u8; MAXIMUM_REGEX_FLAGS]) -> &'a str {
+        let mut len = 0;
+        if self.contains(Self::HAS_INDICES) {
+            buf[len] = b'd';
+            len += 1;
+        }
+        if self.contains(Self::GLOBAL) {
+            buf[len] = b'g';
+            len += 1;
+        }
+        if self.contains(Self::IGNORE_CASE) {
+            buf[len] = b'i';
+            len += 1;
+        }
+        if self.contains(Self::MULTILINE) {
+            buf[len] = b'm';
+            len += 1;
+        }
+        if self.contains(Self::DOT_ALL) {
+            buf[len] = b's';
+            len += 1;
+        }
+        if self.contains(Self::UNICODE) {
+            buf[len] = b'u';
+            len += 1;
+        }
+        if self.contains(Self::STICKY) {
+            buf[len] = b'y';
+            len += 1;
+        }
+        if self.contains(Self::UNICODE_SETS) {
+            buf[len] = b'v';
+            len += 1;
+        }
+        // SAFETY: We only wrote ASCII bytes (d, g, i, m, s, u, y, v).
+        unsafe { str::from_utf8_unchecked(&buf[..len]) }
     }
 }
 
