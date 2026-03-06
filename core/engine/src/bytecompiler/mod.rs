@@ -1560,6 +1560,12 @@ impl<'ctx> ByteCompiler<'ctx> {
                 inner_fn(self, RegisterOperand::from(*local_reg));
                 return;
             }
+            if !self.in_with
+                && let Some(&cached_reg) = self.const_binding_cache.get(&binding.locator())
+            {
+                inner_fn(self, cached_reg.into());
+                return;
+            }
         }
         let reg = self.register_allocator.alloc();
         self.compile_expr(expr, &reg);
@@ -1945,14 +1951,33 @@ impl<'ctx> ByteCompiler<'ctx> {
                     match variable.binding() {
                         Binding::Identifier(ident) => {
                             let ident = ident.to_js_string(self.interner());
-                            let value = self.register_allocator.alloc();
-                            if let Some(init) = variable.init() {
-                                self.compile_expr(init, &value);
+                            let binding = self.lexical_scope.get_identifier_reference(ident);
+                            if binding.local() {
+                                // Pre-allocate the persistent register but do NOT
+                                // insert into local_binding_registers yet, so that
+                                // TDZ checks still fire during initializer compilation.
+                                let reg = self.register_allocator.alloc_persistent();
+                                if let Some(init) = variable.init() {
+                                    self.compile_expr(init, &reg);
+                                } else {
+                                    self.bytecode.emit_push_undefined(reg.variable());
+                                }
+                                self.local_binding_registers.insert(binding, reg.index());
                             } else {
-                                self.bytecode.emit_push_undefined(value.variable());
+                                let value = self.register_allocator.alloc();
+                                if let Some(init) = variable.init() {
+                                    self.compile_expr(init, &value);
+                                } else {
+                                    self.bytecode.emit_push_undefined(value.variable());
+                                }
+                                let binding_kind = self.insert_binding(binding);
+                                self.emit_binding_access(
+                                    BindingAccessOpcode::PutLexicalValue,
+                                    &binding_kind,
+                                    &value,
+                                );
+                                self.register_allocator.dealloc(value);
                             }
-                            self.emit_binding(BindingOpcode::InitLexical, ident, &value);
-                            self.register_allocator.dealloc(value);
                         }
                         Binding::Pattern(pattern) => {
                             let value = self.register_allocator.alloc();
@@ -1979,20 +2004,30 @@ impl<'ctx> ByteCompiler<'ctx> {
                             let init = variable
                                 .init()
                                 .expect("const declaration must have initializer");
-                            let value = self.register_allocator.alloc();
-                            self.compile_expr(init, &value);
-                            self.emit_binding(BindingOpcode::InitLexical, ident.clone(), &value);
-                            // Cache non-local const bindings in a persistent register
-                            // so subsequent reads avoid GetName environment lookups.
-                            let binding = self.lexical_scope.get_identifier_reference(ident);
-                            if !binding.local() {
+                            let binding =
+                                self.lexical_scope.get_identifier_reference(ident.clone());
+                            if binding.local() {
+                                let reg = self.register_allocator.alloc_persistent();
+                                self.compile_expr(init, &reg);
+                                self.local_binding_registers.insert(binding, reg.index());
+                            } else {
+                                let value = self.register_allocator.alloc();
+                                self.compile_expr(init, &value);
+                                let binding_kind = self.insert_binding(binding.clone());
+                                self.emit_binding_access(
+                                    BindingAccessOpcode::PutLexicalValue,
+                                    &binding_kind,
+                                    &value,
+                                );
+                                // Cache non-local const bindings in a persistent register
+                                // so subsequent reads avoid GetName environment lookups.
                                 let cache_reg = self.register_allocator.alloc_persistent();
                                 self.bytecode
                                     .emit_move(cache_reg.variable(), value.variable());
                                 self.const_binding_cache
                                     .insert(binding.locator(), cache_reg.index());
+                                self.register_allocator.dealloc(value);
                             }
-                            self.register_allocator.dealloc(value);
                         }
                         Binding::Pattern(pattern) => {
                             let value = self.register_allocator.alloc();
