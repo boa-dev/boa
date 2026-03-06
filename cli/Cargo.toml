@@ -12,7 +12,7 @@ repository.workspace = true
 rust-version.workspace = true
 
 [dependencies]
-boa_engine = { workspace = true, features = ["deser", "flowgraph", "trace"] }
+boa_engine = { workspace = true, features = ["deser", "float16", "flowgraph", "temporal", "trace", "xsum"] }
 boa_parser.workspace = true
 boa_gc.workspace = true
 boa_runtime.workspace = true
@@ -27,6 +27,7 @@ color-eyre.workspace = true
 cow-utils.workspace = true
 futures-concurrency.workspace = true
 futures-lite.workspace = true
+async-channel = "2.5.0"
 
 [features]
 default = [
