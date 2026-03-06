@@ -391,6 +391,7 @@ dependencies = [
 name = "boa_cli"
 version = "1.0.0-dev"
 dependencies = [
+ "async-channel 2.5.0",
  "boa_engine",
  "boa_gc",
  "boa_parser",

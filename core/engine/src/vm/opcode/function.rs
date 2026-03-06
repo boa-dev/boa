@@ -94,7 +94,7 @@ impl GetMethod {
         (object, name_index): (RegisterOperand, VaryingOperand),
         context: &mut Context,
     ) -> JsResult<()> {
-        let function_val = context.vm.get_register(object.into()).clone();
+        let function_val = context.vm.take_register(object.into());
         let code_block = context.vm.frame().code_block();
         let key = code_block.constant_string(name_index.into());
 
