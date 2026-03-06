@@ -798,7 +798,6 @@ fn add_runtime(printer: SharedExternalPrinterLogger, context: &mut Context) {
     .expect("should not fail while registering the runtime");
 }
 
-
 #[allow(clippy::struct_field_names)]
 struct Executor {
     promise_jobs: RefCell<VecDeque<PromiseJob>>,
@@ -913,4 +912,3 @@ impl JobExecutor for Executor {
         }
     }
 }
-
