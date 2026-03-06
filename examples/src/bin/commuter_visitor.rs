@@ -16,17 +16,17 @@ use boa_parser::Parser;
 use core::ops::ControlFlow;
 use std::{convert::Infallible, path::Path};
 
-/// Visitor which, when applied to a binary expression, will swap the operands. Use in other
-/// circumstances is undefined.
-#[derive(Default)]
-struct OpExchanger<'ast> {
-    lhs: Option<&'ast mut Expression>,
+struct OpExchanger<'ast, 'arena> {
+    lhs: Option<&'ast mut Expression<'arena>>,
 }
 
-impl<'ast> VisitorMut<'ast> for OpExchanger<'ast> {
+impl<'ast, 'arena> VisitorMut<'ast, 'arena> for OpExchanger<'ast, 'arena> {
     type BreakTy = ();
 
-    fn visit_expression_mut(&mut self, node: &'ast mut Expression) -> ControlFlow<Self::BreakTy> {
+    fn visit_expression_mut(
+        &mut self,
+        node: &'ast mut Expression<'arena>,
+    ) -> ControlFlow<Self::BreakTy> {
         if let Some(lhs) = self.lhs.take() {
             core::mem::swap(lhs, node);
             ControlFlow::Break(())
@@ -40,19 +40,16 @@ impl<'ast> VisitorMut<'ast> for OpExchanger<'ast> {
 
 /// Visitor which walks the AST and swaps the operands of commutable arithmetic binary expressions.
 #[derive(Default)]
-struct CommutorVisitor {}
+struct CommutorVisitor;
 
-impl<'ast> VisitorMut<'ast> for CommutorVisitor {
+impl<'ast, 'arena: 'ast> VisitorMut<'ast, 'arena> for CommutorVisitor {
     type BreakTy = Infallible;
 
-    fn visit_binary_mut(&mut self, node: &'ast mut Binary) -> ControlFlow<Self::BreakTy> {
+    fn visit_binary_mut(&mut self, node: &'ast mut Binary<'arena>) -> ControlFlow<Self::BreakTy> {
         if let BinaryOp::Arithmetic(ArithmeticOp::Add | ArithmeticOp::Mul) = node.op() {
             // set up the exchanger and swap lhs and rhs
-            let mut exchanger = OpExchanger::default();
-            assert!(matches!(
-                exchanger.visit_binary_mut(node),
-                ControlFlow::Break(())
-            ));
+            let mut exchanger = OpExchanger { lhs: None };
+            let _ = exchanger.visit_binary_mut(node);
         }
         // traverse further in; there may nested binary operations
         node.visit_with_mut(self)
@@ -66,12 +63,14 @@ fn main() {
     let scope = ctx.realm().scope().clone();
     let mut script = parser.parse_script(&scope, ctx.interner_mut()).unwrap();
 
-    let mut visitor = CommutorVisitor::default();
+    {
+        let mut visitor = CommutorVisitor;
 
-    assert!(matches!(
-        visitor.visit_statement_list_mut(script.statements_mut()),
-        ControlFlow::Continue(())
-    ));
+        assert!(matches!(
+            visitor.visit_statement_list_mut(script.statements_mut()),
+            ControlFlow::Continue(())
+        ));
+    }
 
     println!("{}", script.to_interned_string(ctx.interner()));
 }
