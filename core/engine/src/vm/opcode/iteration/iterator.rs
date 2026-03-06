@@ -111,7 +111,7 @@ impl IteratorUpdateResult {
             .iterators
             .pop()
             .js_expect("iterator stack should have at least an iterator")?;
-        let result_v = context.vm.get_register(result.into()).clone();
+        let result_v = context.vm.take_register(result.into());
         iterator.update_result(result_v, context)?;
         context
             .vm
@@ -432,8 +432,8 @@ impl CreateIteratorResult {
         context: &mut Context,
     ) {
         let done = u32::from(done) != 0;
-        let val = context.vm.get_register(value.into());
-        let result = create_iter_result_object(val.clone(), done, context);
+        let val = context.vm.take_register(value.into());
+        let result = create_iter_result_object(val, done, context);
         context.vm.set_register(value.into(), result);
     }
 }
