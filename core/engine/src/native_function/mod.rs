@@ -349,7 +349,7 @@ pub(crate) fn native_function_call(
         .expect("the object should be a native function object")
         .clone();
 
-    let pc = context.vm.frame.pc;
+    let pc = context.vm.frame().pc;
     let native_source_info = context.native_source_info();
     context
         .vm
@@ -404,7 +404,7 @@ fn native_function_construct(
         .expect("the object should be a native function object")
         .clone();
 
-    let pc = context.vm.frame.pc;
+    let pc = context.vm.frame().pc;
     let native_source_info = context.native_source_info();
     context
         .vm
