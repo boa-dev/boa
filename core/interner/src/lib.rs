@@ -32,7 +32,7 @@ mod sym;
 #[cfg(test)]
 mod tests;
 
-use alloc::{borrow::Cow, format, string::String};
+use alloc::{borrow::Cow, format, string::String, vec::Vec};
 use raw::RawInterner;
 
 pub use sym::*;
@@ -251,6 +251,8 @@ impl core::fmt::Display for JSInternedStrRef<'_, '_> {
 pub struct Interner {
     utf8_interner: RawInterner<u8>,
     utf16_interner: RawInterner<u16>,
+    /// Latin1-encodability cache for dynamically-interned strings (all code units ≤ 0xFF).
+    latin1_flags: Vec<bool>,
 }
 
 impl Interner {
@@ -288,6 +290,7 @@ impl Interner {
         Self {
             utf8_interner: RawInterner::with_capacity(capacity),
             utf16_interner: RawInterner::with_capacity(capacity),
+            latin1_flags: Vec::with_capacity(capacity),
         }
     }
 
@@ -410,6 +413,8 @@ impl Interner {
 
             assert_eq!(index, utf16_index);
 
+            self.latin1_flags.push(utf16.iter().all(|&c| c <= 0xFF));
+
             index
                 .checked_add(1 + COMMON_STRINGS_UTF8.len())
                 .and_then(Sym::new)
@@ -452,6 +457,8 @@ impl Interner {
             let utf16_index = self.utf16_interner.intern(utf16);
 
             debug_assert_eq!(index, utf16_index);
+
+            self.latin1_flags.push(utf16.iter().all(|&c| c <= 0xFF));
 
             index
                 .checked_add(1 + COMMON_STRINGS_UTF8.len())
@@ -536,6 +543,39 @@ impl Interner {
     #[must_use]
     pub fn resolve_expect(&self, symbol: Sym) -> JSInternedStrRef<'_, '_> {
         self.resolve(symbol).expect("string disappeared")
+    }
+
+    /// Returns `true` if the string identified by `symbol` can be encoded as Latin1
+    /// (i.e. all code units are in the range `0x00..=0xFF`).
+    ///
+    /// This information is computed **once** when the string is first interned, so callers pay no
+    /// O(n) scanning cost beyond the initial intern call.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use boa_interner::Interner;
+    ///
+    /// let mut interner = Interner::new();
+    /// let ascii = interner.get_or_intern("hello");
+    /// assert!(interner.is_latin1(ascii));
+    ///
+    /// let non_latin1: Vec<u16> = vec![0x4e2d, 0x6587]; // "中文"
+    /// let sym = interner.get_or_intern(non_latin1.as_slice());
+    /// assert!(!interner.is_latin1(sym));
+    /// ```
+    #[inline]
+    #[must_use]
+    pub fn is_latin1(&self, symbol: Sym) -> bool {
+        let index = symbol.get() - 1;
+        if index < COMMON_STRINGS_UTF8.len() {
+            return true;
+        }
+        let dynamic_index = index - COMMON_STRINGS_UTF8.len();
+        self.latin1_flags
+            .get(dynamic_index)
+            .copied()
+            .unwrap_or(false)
     }
 
     fn get_common(string: JStrRef<'_>) -> Option<Sym> {
