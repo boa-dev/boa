@@ -7,6 +7,7 @@ mod env;
 mod expression;
 mod function;
 mod generator;
+mod inline;
 mod jump_control;
 mod module;
 mod register;
@@ -2242,7 +2243,25 @@ impl<'ctx> ByteCompiler<'ctx> {
     }
 
     fn call(&mut self, callable: Callable<'_>, dst: &Register) {
+        // Try to inline IIFE arrow functions: ((a, b) => expr)(x, y)
+        if let Callable::Call(call) = callable {
+            match call.function().flatten() {
+                Expression::ArrowFunction(arrow) => {
+                    if self.try_inline_arrow_call(arrow, call.args(), dst) {
+                        return;
+                    }
+                }
+                Expression::FunctionExpression(func) => {
+                    if self.try_inline_function_call(func, call.args(), dst) {
+                        return;
+                    }
+                }
+                _ => {}
+            }
+        }
+
         #[derive(PartialEq)]
+        #[allow(clippy::items_after_statements)]
         enum CallKind {
             CallEval,
             Call,
