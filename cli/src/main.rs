@@ -681,7 +681,6 @@ fn readline_thread_main(
             Err(ReadlineError::Eof) => break,
             Err(ReadlineError::Interrupted) => {
                 println!("(To exit, press Ctrl+D or type .exit)");
-                continue;
             }
 
             Ok(ref line) if line == ".help" => {
@@ -696,13 +695,11 @@ fn readline_thread_main(
                 println!();
                 println!("Press {} to abort the current expression.", "Ctrl+C".bold());
                 println!("Press {} to exit the REPL.", "Ctrl+D".bold());
-                continue;
             }
 
             Ok(ref line) if line == ".clear" => {
                 print!("\x1B[2J\x1B[3J\x1B[1;1H");
                 io::stdout().flush().ok();
-                continue;
             }
 
             Ok(ref line) if line == ".load" || line.starts_with(".load ") => {
@@ -713,7 +710,6 @@ fn readline_thread_main(
                     sender.send(format!("__BOA_LOAD_FILE__:{file}"))?;
                     thread::sleep(Duration::from_millis(10));
                 }
-                continue;
             }
 
             Ok(line) => {

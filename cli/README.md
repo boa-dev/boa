@@ -71,12 +71,12 @@ Options:
 When running the interactive REPL (`boa` with no file arguments), the following
 dot-commands are available:
 
-| Command         | Description                              |
-| --------------- | ---------------------------------------- |
-| `.help`         | Show available REPL commands             |
-| `.exit`         | Exit the REPL                            |
-| `.clear`        | Clear the terminal screen                |
-| `.load <file>`  | Load and evaluate a JavaScript file      |
+| Command        | Description                         |
+| -------------- | ----------------------------------- |
+| `.help`        | Show available REPL commands        |
+| `.exit`        | Exit the REPL                       |
+| `.clear`       | Clear the terminal screen           |
+| `.load <file>` | Load and evaluate a JavaScript file |
 
 You can also press `Ctrl+C` to abort the current expression, or `Ctrl+D` to exit.
 
