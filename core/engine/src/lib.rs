@@ -137,6 +137,7 @@ pub mod prelude {
 #[doc(inline)]
 pub use boa_macros::{boa_class, boa_module, embed_module_inner as __embed_module_inner};
 
+use crate::error::PanicError;
 use std::result::Result as StdResult;
 
 // Export things to root level
@@ -185,16 +186,36 @@ impl JsArgs for [JsValue] {
     }
 }
 
+/// Utility trait to "expect" a `JsResult`, but returning a `PanicError` instead of panicking.
+#[allow(dead_code)]
+pub(crate) trait JsExpect<V> {
+    /// "expects" a `JsResult`, wrapping the error with a `PanicError`.
+    fn js_expect<S: Into<Box<str>>>(self, msg: S) -> StdResult<V, PanicError>;
+}
+
+impl<V> JsExpect<V> for JsResult<V> {
+    fn js_expect<S: Into<Box<str>>>(self, msg: S) -> StdResult<V, PanicError> {
+        self.map_err(|err| PanicError::new(msg).with_source(err))
+    }
+}
+
+impl<V> JsExpect<V> for Option<V> {
+    fn js_expect<S: Into<Box<str>>>(self, msg: S) -> StdResult<V, PanicError> {
+        self.ok_or_else(|| PanicError::new(msg))
+    }
+}
+
 #[cfg(test)]
-use std::borrow::Cow;
+use std::{borrow::Cow, pin::Pin};
+
+#[cfg(test)]
+type PinBoxFuture<'a> = Pin<Box<dyn Future<Output = ()> + 'a>>;
 
 /// A test action executed in a test function.
 #[cfg(test)]
-#[derive(Clone)]
 struct TestAction(Inner);
 
 #[cfg(test)]
-#[derive(Clone)]
 enum Inner {
     RunHarness,
     Run {
@@ -202,6 +223,9 @@ enum Inner {
     },
     InspectContext {
         op: fn(&mut Context),
+    },
+    InspectContextAsync {
+        op: Box<dyn for<'a> FnOnce(&'a mut Context) -> PinBoxFuture<'a>>,
     },
     Assert {
         source: Cow<'static, str>,
@@ -251,6 +275,13 @@ impl TestAction {
     /// Useful to make custom assertions that must be done from Rust code.
     fn inspect_context(op: fn(&mut Context)) -> Self {
         Self(Inner::InspectContext { op })
+    }
+
+    /// Executes `op` with the currently active context in an async environment.
+    pub(crate) fn inspect_context_async(op: impl AsyncFnOnce(&mut Context) + 'static) -> Self {
+        Self(Inner::InspectContextAsync {
+            op: Box::new(move |ctx| Box::pin(op(ctx))),
+        })
     }
 
     /// Asserts that evaluating `source` returns the `true` value.
@@ -394,6 +425,7 @@ fn run_test_actions_with(actions: impl IntoIterator<Item = TestAction>, context:
             Inner::InspectContext { op } => {
                 op(context);
             }
+            Inner::InspectContextAsync { op } => futures_lite::future::block_on(op(context)),
             Inner::Assert { source } => {
                 let val = match forward_val(context, &source) {
                     Err(e) => panic!("{}\nUncaught {e}", fmt_test(&source, i)),

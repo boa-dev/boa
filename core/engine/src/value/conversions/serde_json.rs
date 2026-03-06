@@ -341,7 +341,7 @@ mod tests {
                 .create_data_property(js_string!("inner_a"), JsValue::undefined(), &mut context)
                 .expect("should add property");
 
-            let array = JsArray::new(&mut context);
+            let array = JsArray::new(&mut context).expect("creating array in test must not fail");
             array.push(2, &mut context).expect("should push");
             array
                 .push(JsValue::undefined(), &mut context)

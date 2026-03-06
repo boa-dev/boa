@@ -204,7 +204,7 @@ impl Now {
 
         let now: InnerNow<&Context> = InnerNow::new(context);
 
-        let pt = now.plain_time_with_provider(time_zone, context.timezone_provider())?;
+        let pt = now.plain_time_iso_with_provider(time_zone, context.timezone_provider())?;
         create_temporal_time(pt, None, context).map(Into::into)
     }
 }

@@ -1,4 +1,4 @@
-use super::VaryingOperand;
+use super::{RegisterOperand, VaryingOperand};
 use crate::{Context, JsResult, error::JsNativeError, vm::opcode::Operation};
 
 pub(crate) mod logical;
@@ -17,7 +17,7 @@ pub(crate) struct StrictEq;
 impl StrictEq {
     #[inline(always)]
     pub(super) fn operation(
-        (dst, lhs, rhs): (VaryingOperand, VaryingOperand, VaryingOperand),
+        (dst, lhs, rhs): (RegisterOperand, RegisterOperand, RegisterOperand),
         context: &mut Context,
     ) {
         let lhs = context.vm.get_register(lhs.into());
@@ -43,7 +43,7 @@ pub(crate) struct StrictNotEq;
 impl StrictNotEq {
     #[inline(always)]
     pub(super) fn operation(
-        (dst, lhs, rhs): (VaryingOperand, VaryingOperand, VaryingOperand),
+        (dst, lhs, rhs): (RegisterOperand, RegisterOperand, RegisterOperand),
         context: &mut Context,
     ) {
         let lhs = context.vm.get_register(lhs.into());
@@ -69,7 +69,7 @@ pub(crate) struct In;
 impl In {
     #[inline(always)]
     pub(super) fn operation(
-        (dst, lhs, rhs): (VaryingOperand, VaryingOperand, VaryingOperand),
+        (dst, lhs, rhs): (RegisterOperand, RegisterOperand, RegisterOperand),
         context: &mut Context,
     ) -> JsResult<()> {
         let rhs = context.vm.get_register(rhs.into()).clone();
@@ -105,7 +105,7 @@ pub(crate) struct InPrivate;
 impl InPrivate {
     #[inline(always)]
     pub(super) fn operation(
-        (dst, index, rhs): (VaryingOperand, VaryingOperand, VaryingOperand),
+        (dst, index, rhs): (RegisterOperand, VaryingOperand, RegisterOperand),
         context: &mut Context,
     ) -> JsResult<()> {
         let name = context
@@ -126,7 +126,7 @@ impl InPrivate {
 
         let name = context
             .vm
-            .frame
+            .frame()
             .environments
             .resolve_private_identifier(name)
             .expect("private name must be in environment");
