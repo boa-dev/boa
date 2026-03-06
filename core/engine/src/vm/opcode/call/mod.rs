@@ -3,7 +3,7 @@ use std::{cell::RefCell, mem::MaybeUninit};
 use boa_string::JsString;
 use dynify::Dynify;
 
-use super::VaryingOperand;
+use super::{RegisterOperand, VaryingOperand};
 use crate::{
     Context, JsError, JsObject, JsResult, JsValue, NativeFunction,
     builtins::{Promise, promise::PromiseCapability},
@@ -517,7 +517,7 @@ pub(crate) struct ImportCall;
 impl ImportCall {
     #[inline(always)]
     pub(super) fn operation(
-        (specifier_op, options_op): (VaryingOperand, VaryingOperand),
+        (specifier_op, options_op): (RegisterOperand, RegisterOperand),
         context: &mut Context,
     ) -> JsResult<()> {
         // Import Calls

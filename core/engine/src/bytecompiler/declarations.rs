@@ -212,7 +212,7 @@ pub(crate) fn eval_declaration_instantiation_context(
     //         i. If privateIdentifiers does not contain binding.[[Description]],
     //            append binding.[[Description]] to privateIdentifiers.
     //     b. Set pointer to pointer.[[OuterPrivateEnvironment]].
-    let private_identifiers = context.vm.frame.environments.private_name_descriptions();
+    let private_identifiers = context.vm.frame().environments.private_name_descriptions();
     let private_identifiers = private_identifiers
         .into_iter()
         .map(|ident| {
@@ -1103,7 +1103,11 @@ impl ByteCompiler<'_> {
         }
 
         if generator {
-            self.bytecode.emit_generator(self.is_async().into());
+            if self.is_async() {
+                self.bytecode.emit_async_generator();
+            } else {
+                self.bytecode.emit_generator();
+            }
             self.bytecode.emit_pop();
         }
 

@@ -658,6 +658,7 @@ impl Module {
                 None,
                 context,
             )
+            .expect("`then` cannot fail for a native `JsPromise`")
             .then(
                 Some(
                     NativeFunction::from_copy_closure_with_captures(
@@ -669,6 +670,7 @@ impl Module {
                 None,
                 context,
             )
+            .expect("`then` cannot fail for a native `JsPromise`")
     }
 
     /// Abstract operation [`GetModuleNamespace ( module )`][spec].

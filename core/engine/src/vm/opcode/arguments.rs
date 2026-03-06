@@ -1,4 +1,4 @@
-use super::{Operation, VaryingOperand};
+use super::{Operation, RegisterOperand};
 use crate::{
     Context,
     builtins::function::arguments::{MappedArguments, UnmappedArguments},
@@ -13,7 +13,7 @@ pub(crate) struct CreateMappedArgumentsObject;
 
 impl CreateMappedArgumentsObject {
     #[inline(always)]
-    pub(super) fn operation(value: VaryingOperand, context: &mut Context) {
+    pub(super) fn operation(value: RegisterOperand, context: &mut Context) {
         let frame = context.vm.frame();
         let function_object = context
             .vm
@@ -24,7 +24,7 @@ impl CreateMappedArgumentsObject {
         let args = context.vm.stack.get_arguments(context.vm.frame());
         let env = context
             .vm
-            .frame
+            .frame()
             .environments
             .current_declarative_ref()
             .expect("must be declarative");
@@ -54,7 +54,7 @@ pub(crate) struct CreateUnmappedArgumentsObject;
 
 impl CreateUnmappedArgumentsObject {
     #[inline(always)]
-    pub(super) fn operation(dst: VaryingOperand, context: &mut Context) {
+    pub(super) fn operation(dst: RegisterOperand, context: &mut Context) {
         let args = context.vm.stack.get_arguments(context.vm.frame()).to_vec();
         let arguments = UnmappedArguments::new(&args, context);
         context.vm.set_register(dst.into(), arguments.into());

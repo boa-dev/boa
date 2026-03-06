@@ -1,4 +1,4 @@
-use super::VaryingOperand;
+use super::{RegisterOperand, VaryingOperand};
 use crate::{
     Context, JsExpect, JsResult, JsValue,
     error::JsNativeError,
@@ -19,12 +19,12 @@ pub(crate) struct GetFunctionObject;
 impl GetFunctionObject {
     #[inline(always)]
     pub(super) fn operation(
-        function_object: VaryingOperand,
+        function_object: RegisterOperand,
         context: &mut Context,
     ) -> JsResult<()> {
         let env = context
             .vm
-            .frame
+            .frame()
             .environments
             .get_this_environment()
             .as_function()
@@ -55,7 +55,7 @@ pub(crate) struct This;
 
 impl This {
     #[inline(always)]
-    pub(super) fn operation(dst: VaryingOperand, context: &mut Context) -> JsResult<()> {
+    pub(super) fn operation(dst: RegisterOperand, context: &mut Context) -> JsResult<()> {
         if context.vm.frame().has_this_value_cached() {
             let this = context.vm.stack.get_this(context.vm.frame());
             context.vm.set_register(dst.into(), this);
@@ -64,12 +64,15 @@ impl This {
 
         let this = context
             .vm
-            .frame
+            .frame()
             .environments
             .get_this_binding()?
             .unwrap_or(context.realm().global_this().clone().into());
         context.vm.frame_mut().flags |= CallFrameFlags::THIS_VALUE_CACHED;
-        context.vm.stack.set_this(&context.vm.frame, this.clone());
+        context.vm.stack.set_this(
+            context.vm.frames.last().expect("frame must exist"),
+            this.clone(),
+        );
         context.vm.set_register(dst.into(), this);
         Ok(())
     }
@@ -91,7 +94,7 @@ pub(crate) struct ThisForObjectEnvironmentName;
 impl ThisForObjectEnvironmentName {
     #[inline(always)]
     pub(super) fn operation(
-        (dst, index): (VaryingOperand, VaryingOperand),
+        (dst, index): (RegisterOperand, VaryingOperand),
         context: &mut Context,
     ) -> JsResult<()> {
         let binding_locator = context.vm.frame().code_block.bindings[usize::from(index)].clone();
@@ -133,7 +136,7 @@ impl SuperCall {
 
         let this_env = context
             .vm
-            .frame
+            .frame()
             .environments
             .get_this_environment()
             .as_function()
@@ -198,7 +201,7 @@ impl SuperCallSpread {
 
         let this_env = context
             .vm
-            .frame
+            .frame()
             .environments
             .get_this_environment()
             .as_function()
@@ -237,7 +240,7 @@ impl SuperCallDerived {
     pub(super) fn operation((): (), context: &mut Context) -> JsResult<()> {
         let this_env = context
             .vm
-            .frame
+            .frame()
             .environments
             .get_this_environment()
             .as_function()
@@ -288,7 +291,7 @@ pub(crate) struct BindThisValue;
 
 impl BindThisValue {
     #[inline(always)]
-    pub(super) fn operation(value: VaryingOperand, context: &mut Context) -> JsResult<()> {
+    pub(super) fn operation(value: RegisterOperand, context: &mut Context) -> JsResult<()> {
         // Taken from `SuperCall : super Arguments` steps 7-12.
         //
         // <https://tc39.es/ecma262/#sec-super-keyword-runtime-semantics-evaluation>
@@ -303,7 +306,7 @@ impl BindThisValue {
         // 7. Let thisER be GetThisEnvironment().
         let this_env = context
             .vm
-            .frame
+            .frame()
             .environments
             .get_this_environment()
             .as_function()

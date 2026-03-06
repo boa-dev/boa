@@ -19,7 +19,7 @@ use thin_vec::ThinVec;
 
 use super::{
     InlineCache,
-    opcode::{ByteCode, Instruction, InstructionIterator},
+    opcode::{Address, ByteCode, Instruction, InstructionIterator},
     source_info::{SourceInfo, SourceMap, SourcePath},
 };
 
@@ -79,20 +79,20 @@ unsafe impl Trace for CodeBlockFlags {
 /// [`Handler`] and remove any environments or stack values that where pushed after the handler.
 #[derive(Debug, Clone, Copy)]
 pub(crate) struct Handler {
-    pub(crate) start: u32,
-    pub(crate) end: u32,
+    pub(crate) start: Address,
+    pub(crate) end: Address,
     pub(crate) environment_count: u32,
 }
 
 impl Handler {
     /// Get the handler address.
-    pub(crate) const fn handler(&self) -> u32 {
+    pub(crate) const fn handler(&self) -> Address {
         self.end
     }
 
     /// Check if the provided `pc` is contained in the handler range.
     pub(crate) const fn contains(&self, pc: u32) -> bool {
-        pc < self.end && pc >= self.start
+        pc < self.end.as_u32() && pc >= self.start.as_u32()
     }
 }
 
@@ -405,9 +405,6 @@ impl CodeBlock {
                     }
                 )
             }
-            Instruction::Generator { r#async } => {
-                format!("async: {async}")
-            }
             Instruction::PushInt8 { value, dst } => {
                 format!("value:{value}, dst:{dst}")
             }
@@ -442,7 +439,7 @@ impl CodeBlock {
             } => {
                 format!("pattern:{pattern_index}, flags:{flags_index}, dst:{dst}")
             }
-            Instruction::Jump { address } => address.to_string(),
+            Instruction::Jump { address } => format!("address:{address}"),
             Instruction::JumpIfTrue { address, value }
             | Instruction::JumpIfFalse { address, value }
             | Instruction::JumpIfNotUndefined { address, value }
@@ -452,7 +449,11 @@ impl CodeBlock {
             | Instruction::Coalesce { address, value } => {
                 format!("value:{value}, address:{address}")
             }
-            Instruction::JumpIfNotEqual { address, lhs, rhs } => {
+            Instruction::JumpIfNotLessThan { address, lhs, rhs }
+            | Instruction::JumpIfNotLessThanOrEqual { address, lhs, rhs }
+            | Instruction::JumpIfNotGreaterThan { address, lhs, rhs }
+            | Instruction::JumpIfNotGreaterThanOrEqual { address, lhs, rhs }
+            | Instruction::JumpIfNotEqual { address, lhs, rhs } => {
                 format!("lhs:{lhs}, rhs:{rhs}, address:{address}")
             }
             Instruction::Case {
@@ -497,28 +498,6 @@ impl CodeBlock {
                 ic_index,
             } => {
                 format!("dst:{dst}, binding_index:{binding_index}, ic_index:{ic_index}")
-            }
-            Instruction::GeneratorDelegateNext {
-                return_method_undefined,
-                throw_method_undefined,
-                value,
-                resume_kind,
-                is_return,
-            } => {
-                format!(
-                    "return_method_undefined:{return_method_undefined}, throw_method_undefined:{throw_method_undefined}, value:{value}, resume_kind:{resume_kind}, is_return:{is_return}"
-                )
-            }
-            Instruction::GeneratorDelegateResume {
-                r#return: rreturn,
-                exit,
-                value,
-                resume_kind,
-                is_return,
-            } => {
-                format!(
-                    "return:{rreturn}, exit:{exit}, value:{value}, resume_kind:{resume_kind}, is_return:{is_return}"
-                )
             }
             Instruction::DefineOwnPropertyByName {
                 object,
@@ -625,7 +604,8 @@ impl CodeBlock {
             Instruction::ThrowMutateImmutable { index } => {
                 format!("index:{index}")
             }
-            Instruction::DeletePropertyByName { object, name_index } => {
+            Instruction::DeletePropertyByName { object, name_index }
+            | Instruction::GetMethod { object, name_index } => {
                 format!("object:{object}, name_index:{name_index}")
             }
             Instruction::GetLengthProperty {
@@ -753,12 +733,12 @@ impl CodeBlock {
             }
             Instruction::PushClassField {
                 object,
-                name_index,
+                name,
                 value,
                 is_anonymous_function,
             } => {
                 format!(
-                    "object:{object}, value:{value}, name_index:{name_index}, is_anonymous_function:{is_anonymous_function}"
+                    "object:{object}, value:{value}, name:{name}, is_anonymous_function:{is_anonymous_function}"
                 )
             }
             Instruction::MaybeException {
@@ -781,6 +761,13 @@ impl CodeBlock {
             | Instruction::Await { src } => {
                 format!("src:{src}")
             }
+            Instruction::IteratorPush { iterator, next }
+            | Instruction::IteratorPop { iterator, next } => {
+                format!("iterator:{iterator}, next:{next}")
+            }
+            Instruction::IteratorUpdateResult { result } => {
+                format!("result:{result}")
+            }
             Instruction::IteratorDone { dst }
             | Instruction::IteratorValue { dst }
             | Instruction::IteratorResult { dst }
@@ -789,19 +776,11 @@ impl CodeBlock {
             | Instruction::PushEmptyObject { dst } => {
                 format!("dst:{dst}")
             }
-            Instruction::IteratorFinishAsyncNext { resume_kind, value }
-            | Instruction::GeneratorNext { resume_kind, value } => {
+            Instruction::IteratorFinishAsyncNext { resume_kind, value } => {
                 format!("resume_kind:{resume_kind}, value:{value}")
             }
             Instruction::IteratorReturn { value, called } => {
                 format!("value:{value}, called:{called}")
-            }
-            Instruction::JumpIfNotResumeKind {
-                address,
-                resume_kind,
-                src,
-            } => {
-                format!("address:{address}, resume_kind:{resume_kind}, src:{src}")
             }
             Instruction::CreateGlobalFunctionBinding {
                 src,
@@ -827,8 +806,8 @@ impl CodeBlock {
             }
             Instruction::JumpTable { index, addresses } => {
                 format!(
-                    "index:{index}, jump_table:[{}]",
-                    addresses.iter().join(", ")
+                    "index:{index}, jump_table:({})",
+                    addresses.iter().format(", ")
                 )
             }
             Instruction::ConcatToString { dst, values } => {
@@ -861,7 +840,9 @@ impl CodeBlock {
             | Instruction::CallSpread
             | Instruction::NewSpread
             | Instruction::SuperCallSpread
-            | Instruction::PopPrivateEnvironment => String::new(),
+            | Instruction::PopPrivateEnvironment
+            | Instruction::Generator
+            | Instruction::AsyncGenerator => String::new(),
             Instruction::Reserved1
             | Instruction::Reserved2
             | Instruction::Reserved3
@@ -915,12 +896,7 @@ impl CodeBlock {
             | Instruction::Reserved51
             | Instruction::Reserved52
             | Instruction::Reserved53
-            | Instruction::Reserved54
-            | Instruction::Reserved55
-            | Instruction::Reserved56
-            | Instruction::Reserved57
-            | Instruction::Reserved58
-            | Instruction::Reserved59 => unreachable!("Reserved opcodes are unreachable"),
+            | Instruction::Reserved54 => unreachable!("Reserved opcodes are unreachable"),
         }
     }
 }
@@ -944,14 +920,14 @@ impl Display for CodeBlock {
             let pc = iterator.pc();
             let handler = if let Some((i, handler)) = self.find_handler(instruction_start_pc as u32)
             {
-                let border_char = if instruction_start_pc as u32 == handler.start {
+                let border_char = if instruction_start_pc as u32 == u32::from(handler.start) {
                     '>'
-                } else if pc as u32 == handler.end {
+                } else if pc as u32 == u32::from(handler.end) {
                     '<'
                 } else {
                     ' '
                 };
-                format!("{border_char}{i:2}: {:06x}", handler.handler())
+                format!("{border_char}{i:2}: {}", handler.handler())
             } else {
                 "           ".to_string()
             };
@@ -1085,7 +1061,7 @@ pub(crate) fn create_function_object(
     let is_generator = code.is_generator();
     let function = OrdinaryFunction::new(
         code,
-        context.vm.frame.environments.clone(),
+        context.vm.frame().environments.clone(),
         script_or_module,
         context.realm().clone(),
     );
@@ -1154,7 +1130,7 @@ pub(crate) fn create_function_object_fast(code: Gc<CodeBlock>, context: &mut Con
     let has_prototype_property = code.has_prototype_property();
     let function = OrdinaryFunction::new(
         code,
-        context.vm.frame.environments.clone(),
+        context.vm.frame().environments.clone(),
         script_or_module,
         context.realm().clone(),
     );

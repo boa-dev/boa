@@ -6,6 +6,7 @@ mod declarations;
 mod env;
 mod expression;
 mod function;
+mod generator;
 mod jump_control;
 mod module;
 mod register;
@@ -24,7 +25,7 @@ use crate::{
     js_string,
     vm::{
         CallFrame, CodeBlock, CodeBlockFlags, Constant, GeneratorResumeKind, Handler, InlineCache,
-        opcode::{BindingOpcode, ByteCodeEmitter, VaryingOperand},
+        opcode::{Address, BindingOpcode, ByteCodeEmitter, RegisterOperand},
         source_info::{SourceInfo, SourceMap, SourceMapBuilder, SourcePath},
     },
 };
@@ -36,7 +37,12 @@ use boa_ast::{
         Call, Identifier, New, Optional, OptionalOperationKind,
         access::{PropertyAccess, PropertyAccessField},
         literal::ObjectMethodDefinition,
-        operator::{assign::AssignTarget, update::UpdateTarget},
+        operator::{
+            Binary,
+            assign::AssignTarget,
+            binary::{BinaryOp, RelationalOp},
+            update::UpdateTarget,
+        },
     },
     function::{
         ArrowFunction, AsyncArrowFunction, AsyncFunctionDeclaration, AsyncFunctionExpression,
@@ -361,7 +367,7 @@ enum Literal {
 #[must_use]
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub(crate) struct Label {
-    index: u32,
+    index: Address,
 }
 
 #[derive(Debug, Clone, Copy)]
@@ -531,8 +537,10 @@ pub(crate) enum BindingKind {
 
 impl<'ctx> ByteCompiler<'ctx> {
     /// Represents a placeholder address that will be patched later.
-    const DUMMY_ADDRESS: u32 = u32::MAX;
-    const DUMMY_LABEL: Label = Label { index: u32::MAX };
+    const DUMMY_ADDRESS: Address = Address::new(u32::MAX);
+    const DUMMY_LABEL: Label = Label {
+        index: Address::new(u32::MAX),
+    };
 
     /// Creates a new [`ByteCompiler`].
     #[inline]
@@ -797,7 +805,7 @@ impl<'ctx> ByteCompiler<'ctx> {
         }
     }
 
-    fn next_opcode_location(&mut self) -> u32 {
+    fn next_opcode_location(&mut self) -> Address {
         self.bytecode.next_opcode_location()
     }
 
@@ -814,12 +822,13 @@ impl<'ctx> ByteCompiler<'ctx> {
     {
         let start_pc = self.next_opcode_location();
         self.source_map_builder
-            .push_source_position(start_pc, position.into());
+            .push_source_position(start_pc.as_u32(), position.into());
     }
 
     pub(crate) fn pop_source_position(&mut self) {
         let start_pc = self.next_opcode_location();
-        self.source_map_builder.pop_source_position(start_pc);
+        self.source_map_builder
+            .pop_source_position(start_pc.as_u32());
     }
 
     pub(crate) fn emit_get_function(&mut self, dst: &Register, index: u32) {
@@ -1011,7 +1020,7 @@ impl<'ctx> ByteCompiler<'ctx> {
         self.emit_push_integer_with_index(value, dst.variable());
     }
 
-    fn emit_push_integer_with_index(&mut self, value: i32, dst: VaryingOperand) {
+    fn emit_push_integer_with_index(&mut self, value: i32, dst: RegisterOperand) {
         match value {
             0 => self.bytecode.emit_push_zero(dst),
             1 => self.bytecode.emit_push_one(dst),
@@ -1116,6 +1125,49 @@ impl<'ctx> ByteCompiler<'ctx> {
         Label { index }
     }
 
+    /// Compile a condition expression and emit a conditional jump.
+    ///
+    /// When the condition is a relational comparison (`<`, `<=`, `>`, `>=`),
+    /// emits a single fused comparison+branch opcode instead of separate
+    /// `LessThan` + `JumpIfFalse` instructions.
+    pub(crate) fn compile_condition_and_branch(&mut self, condition: &Expression) -> Label {
+        if let Expression::Binary(binary) = condition
+            && let BinaryOp::Relational(op) = binary.op()
+            && let Some(label) = self.try_fused_comparison_branch(op, binary)
+        {
+            return label;
+        }
+        // Fallback: compile expr + jump_if_false
+        let value = self.register_allocator.alloc();
+        self.compile_expr(condition, &value);
+        let label = self.jump_if_false(&value);
+        self.register_allocator.dealloc(value);
+        label
+    }
+
+    fn try_fused_comparison_branch(&mut self, op: RelationalOp, binary: &Binary) -> Option<Label> {
+        use crate::vm::opcode::ByteCodeEmitter;
+
+        let emit_fn: fn(&mut ByteCodeEmitter, Address, RegisterOperand, RegisterOperand) = match op
+        {
+            RelationalOp::LessThan => ByteCodeEmitter::emit_jump_if_not_less_than,
+            RelationalOp::LessThanOrEqual => ByteCodeEmitter::emit_jump_if_not_less_than_or_equal,
+            RelationalOp::GreaterThan => ByteCodeEmitter::emit_jump_if_not_greater_than,
+            RelationalOp::GreaterThanOrEqual => {
+                ByteCodeEmitter::emit_jump_if_not_greater_than_or_equal
+            }
+            _ => return None,
+        };
+        let mut label_index = Address::new(0);
+        self.compile_expr_operand(binary.lhs(), |compiler, lhs| {
+            compiler.compile_expr_operand(binary.rhs(), |compiler, rhs| {
+                label_index = compiler.next_opcode_location();
+                emit_fn(&mut compiler.bytecode, Self::DUMMY_ADDRESS, lhs, rhs);
+            });
+        });
+        Some(Label { index: label_index })
+    }
+
     pub(crate) fn jump_if_null_or_undefined(&mut self, value: &Register) -> Label {
         let index = self.next_opcode_location();
         self.bytecode
@@ -1160,17 +1212,18 @@ impl<'ctx> ByteCompiler<'ctx> {
         resume_kind: GeneratorResumeKind,
         value: &Register,
     ) -> Label {
+        let r1 = self.register_allocator.alloc();
+        self.emit_push_integer((resume_kind as u8).into(), &r1);
+
         let index = self.next_opcode_location();
-        self.bytecode.emit_jump_if_not_resume_kind(
-            Self::DUMMY_ADDRESS,
-            (resume_kind as u8).into(),
-            value.variable(),
-        );
+        self.bytecode
+            .emit_jump_if_not_equal(Self::DUMMY_ADDRESS, r1.variable(), value.variable());
+        self.register_allocator.dealloc(r1);
         Label { index }
     }
 
     #[track_caller]
-    pub(crate) fn patch_jump_with_target(&mut self, label: Label, target: u32) {
+    pub(crate) fn patch_jump_with_target(&mut self, label: Label, target: Address) {
         self.bytecode.patch_jump(label.index, target);
     }
 
@@ -1497,14 +1550,20 @@ impl<'ctx> ByteCompiler<'ctx> {
     pub(crate) fn compile_expr_operand(
         &mut self,
         expr: &Expression,
-        inner_fn: impl FnOnce(&mut Self, VaryingOperand),
+        inner_fn: impl FnOnce(&mut Self, RegisterOperand),
     ) {
         if let Expression::Identifier(name) = expr {
             let name = self.resolve_identifier_expect(*name);
             let binding = self.lexical_scope.get_identifier_reference(name);
             let index = self.get_binding(&binding);
             if let BindingKind::Local(Some(local_reg)) = &index {
-                inner_fn(self, VaryingOperand::from(*local_reg));
+                inner_fn(self, RegisterOperand::from(*local_reg));
+                return;
+            }
+            if !self.in_with
+                && let Some(&cached_reg) = self.const_binding_cache.get(&binding.locator())
+            {
+                inner_fn(self, cached_reg.into());
                 return;
             }
         }
@@ -1892,14 +1951,33 @@ impl<'ctx> ByteCompiler<'ctx> {
                     match variable.binding() {
                         Binding::Identifier(ident) => {
                             let ident = ident.to_js_string(self.interner());
-                            let value = self.register_allocator.alloc();
-                            if let Some(init) = variable.init() {
-                                self.compile_expr(init, &value);
+                            let binding = self.lexical_scope.get_identifier_reference(ident);
+                            if binding.local() {
+                                // Pre-allocate the persistent register but do NOT
+                                // insert into local_binding_registers yet, so that
+                                // TDZ checks still fire during initializer compilation.
+                                let reg = self.register_allocator.alloc_persistent();
+                                if let Some(init) = variable.init() {
+                                    self.compile_expr(init, &reg);
+                                } else {
+                                    self.bytecode.emit_push_undefined(reg.variable());
+                                }
+                                self.local_binding_registers.insert(binding, reg.index());
                             } else {
-                                self.bytecode.emit_push_undefined(value.variable());
+                                let value = self.register_allocator.alloc();
+                                if let Some(init) = variable.init() {
+                                    self.compile_expr(init, &value);
+                                } else {
+                                    self.bytecode.emit_push_undefined(value.variable());
+                                }
+                                let binding_kind = self.insert_binding(binding);
+                                self.emit_binding_access(
+                                    BindingAccessOpcode::PutLexicalValue,
+                                    &binding_kind,
+                                    &value,
+                                );
+                                self.register_allocator.dealloc(value);
                             }
-                            self.emit_binding(BindingOpcode::InitLexical, ident, &value);
-                            self.register_allocator.dealloc(value);
                         }
                         Binding::Pattern(pattern) => {
                             let value = self.register_allocator.alloc();
@@ -1926,20 +2004,30 @@ impl<'ctx> ByteCompiler<'ctx> {
                             let init = variable
                                 .init()
                                 .expect("const declaration must have initializer");
-                            let value = self.register_allocator.alloc();
-                            self.compile_expr(init, &value);
-                            self.emit_binding(BindingOpcode::InitLexical, ident.clone(), &value);
-                            // Cache non-local const bindings in a persistent register
-                            // so subsequent reads avoid GetName environment lookups.
-                            let binding = self.lexical_scope.get_identifier_reference(ident);
-                            if !binding.local() {
+                            let binding =
+                                self.lexical_scope.get_identifier_reference(ident.clone());
+                            if binding.local() {
+                                let reg = self.register_allocator.alloc_persistent();
+                                self.compile_expr(init, &reg);
+                                self.local_binding_registers.insert(binding, reg.index());
+                            } else {
+                                let value = self.register_allocator.alloc();
+                                self.compile_expr(init, &value);
+                                let binding_kind = self.insert_binding(binding.clone());
+                                self.emit_binding_access(
+                                    BindingAccessOpcode::PutLexicalValue,
+                                    &binding_kind,
+                                    &value,
+                                );
+                                // Cache non-local const bindings in a persistent register
+                                // so subsequent reads avoid GetName environment lookups.
                                 let cache_reg = self.register_allocator.alloc_persistent();
                                 self.bytecode
                                     .emit_move(cache_reg.variable(), value.variable());
                                 self.const_binding_cache
                                     .insert(binding.locator(), cache_reg.index());
+                                self.register_allocator.dealloc(value);
                             }
-                            self.register_allocator.dealloc(value);
                         }
                         Binding::Pattern(pattern) => {
                             let value = self.register_allocator.alloc();
@@ -2350,7 +2438,7 @@ impl<'ctx> ByteCompiler<'ctx> {
 
         let register_count = self.register_allocator.finish();
 
-        let source_map_entries = self.source_map_builder.build(final_bytecode_len);
+        let source_map_entries = self.source_map_builder.build(final_bytecode_len.as_u32());
 
         CodeBlock {
             length: self.length,

@@ -1,7 +1,7 @@
 use crate::{
     Context, JsExpect, JsResult, JsValue,
     builtins::function::OrdinaryFunction,
-    vm::opcode::{Operation, VaryingOperand},
+    vm::opcode::{Operation, RegisterOperand, VaryingOperand},
 };
 
 /// `SetHomeObject` implements the Opcode Operation for `Opcode::SetHomeObject`
@@ -14,7 +14,7 @@ pub(crate) struct SetHomeObject;
 impl SetHomeObject {
     #[inline(always)]
     pub(crate) fn operation(
-        (function, home): (VaryingOperand, VaryingOperand),
+        (function, home): (RegisterOperand, RegisterOperand),
         context: &mut Context,
     ) -> JsResult<()> {
         let function = context.vm.get_register(function.into());
@@ -52,7 +52,7 @@ pub(crate) struct GetHomeObject;
 
 impl GetHomeObject {
     #[inline(always)]
-    pub(crate) fn operation(function: VaryingOperand, context: &mut Context) -> JsResult<()> {
+    pub(crate) fn operation(function: RegisterOperand, context: &mut Context) -> JsResult<()> {
         let function_v = context.vm.get_register(function.into());
 
         let home_object = function_v
@@ -72,4 +72,45 @@ impl Operation for GetHomeObject {
     const NAME: &'static str = "GetHomeObject";
     const INSTRUCTION: &'static str = "INST - GetHomeObject";
     const COST: u8 = 4;
+}
+
+/// `GetMethod` implements the Opcode Operation for `Opcode::GetMethod`
+///
+/// Operation:
+///  - Get a method of an object (undefined if not in the object).
+///
+/// Operands:
+///  - name_index: constant `JsString`
+///
+/// Registers (inout)
+///  - object: `JsObject`, and the operation will set it to the method or
+///    to `undefined` if the object does not have the specified name.
+#[derive(Debug, Clone, Copy)]
+pub(crate) struct GetMethod;
+
+impl GetMethod {
+    #[inline(always)]
+    pub(crate) fn operation(
+        (object, name_index): (RegisterOperand, VaryingOperand),
+        context: &mut Context,
+    ) -> JsResult<()> {
+        let function_val = context.vm.take_register(object.into());
+        let code_block = context.vm.frame().code_block();
+        let key = code_block.constant_string(name_index.into());
+
+        let method = function_val.get_method(key, context)?;
+
+        context.vm.set_register(
+            object.into(),
+            method.map_or_else(JsValue::undefined, JsValue::from),
+        );
+
+        Ok(())
+    }
+}
+
+impl Operation for GetMethod {
+    const NAME: &'static str = "GetMethod";
+    const INSTRUCTION: &'static str = "INST - GetMethod";
+    const COST: u8 = 3;
 }

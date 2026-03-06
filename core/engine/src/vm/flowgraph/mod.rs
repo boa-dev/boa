@@ -70,39 +70,16 @@ impl CodeBlock {
                 | Instruction::SetAccumulator { .. }
                 | Instruction::SetFunctionName { .. }
                 | Instruction::Inc { .. }
-                | Instruction::Dec { .. } => {
-                    graph.add_node(previous_pc, NodeShape::None, label.into(), Color::None);
-                    graph.add_edge(previous_pc, pc, None, Color::None, EdgeStyle::Line);
-                }
-                Instruction::CreateIteratorResult { .. } => {
-                    graph.add_node(previous_pc, NodeShape::None, label.into(), Color::None);
-                    graph.add_edge(previous_pc, pc, None, Color::None, EdgeStyle::Line);
-                }
-                Instruction::Generator { .. } => {
-                    graph.add_node(previous_pc, NodeShape::None, label.into(), Color::None);
-                    graph.add_edge(previous_pc, pc, None, Color::None, EdgeStyle::Line);
-                }
-                Instruction::PushInt8 { .. } => {
-                    graph.add_node(previous_pc, NodeShape::None, label.into(), Color::None);
-                    graph.add_edge(previous_pc, pc, None, Color::None, EdgeStyle::Line);
-                }
-                Instruction::PushInt16 { .. } => {
-                    graph.add_node(previous_pc, NodeShape::None, label.into(), Color::None);
-                    graph.add_edge(previous_pc, pc, None, Color::None, EdgeStyle::Line);
-                }
-                Instruction::PushInt32 { .. } => {
-                    graph.add_node(previous_pc, NodeShape::None, label.into(), Color::None);
-                    graph.add_edge(previous_pc, pc, None, Color::None, EdgeStyle::Line);
-                }
-                Instruction::PushFloat { .. } => {
-                    graph.add_node(previous_pc, NodeShape::None, label.into(), Color::None);
-                    graph.add_edge(previous_pc, pc, None, Color::None, EdgeStyle::Line);
-                }
-                Instruction::PushDouble { .. } => {
-                    graph.add_node(previous_pc, NodeShape::None, label.into(), Color::None);
-                    graph.add_edge(previous_pc, pc, None, Color::None, EdgeStyle::Line);
-                }
-                Instruction::PushLiteral { .. }
+                | Instruction::Dec { .. }
+                | Instruction::CreateIteratorResult { .. }
+                | Instruction::Generator
+                | Instruction::AsyncGenerator
+                | Instruction::PushInt8 { .. }
+                | Instruction::PushInt16 { .. }
+                | Instruction::PushInt32 { .. }
+                | Instruction::PushFloat { .. }
+                | Instruction::PushDouble { .. }
+                | Instruction::PushLiteral { .. }
                 | Instruction::PushRegexp { .. }
                 | Instruction::HasRestrictedGlobalProperty { .. }
                 | Instruction::CanDeclareGlobalFunction { .. }
@@ -114,7 +91,7 @@ impl CodeBlock {
                     graph.add_node(previous_pc, NodeShape::Diamond, label.into(), Color::None);
                     graph.add_edge(
                         previous_pc,
-                        address as usize,
+                        address.as_u32() as usize,
                         None,
                         Color::None,
                         EdgeStyle::Line,
@@ -124,11 +101,15 @@ impl CodeBlock {
                 | Instruction::JumpIfTrue { address, .. }
                 | Instruction::JumpIfNotUndefined { address, .. }
                 | Instruction::JumpIfNullOrUndefined { address, .. }
+                | Instruction::JumpIfNotLessThan { address, .. }
+                | Instruction::JumpIfNotLessThanOrEqual { address, .. }
+                | Instruction::JumpIfNotGreaterThan { address, .. }
+                | Instruction::JumpIfNotGreaterThanOrEqual { address, .. }
                 | Instruction::JumpIfNotEqual { address, .. } => {
                     graph.add_node(previous_pc, NodeShape::Diamond, label.into(), Color::None);
                     graph.add_edge(
                         previous_pc,
-                        address as usize,
+                        address.as_u32() as usize,
                         Some("YES".into()),
                         Color::Green,
                         EdgeStyle::Line,
@@ -152,7 +133,7 @@ impl CodeBlock {
                     graph.add_edge(previous_pc, pc, None, Color::None, EdgeStyle::Line);
                     graph.add_edge(
                         previous_pc,
-                        address as usize,
+                        address.as_u32() as usize,
                         Some("SHORT CIRCUIT".into()),
                         Color::Red,
                         EdgeStyle::Line,
@@ -169,59 +150,9 @@ impl CodeBlock {
                     );
                     graph.add_edge(
                         previous_pc,
-                        address as usize,
+                        address.as_u32() as usize,
                         Some("YES".into()),
                         Color::Green,
-                        EdgeStyle::Line,
-                    );
-                }
-                Instruction::GeneratorDelegateNext {
-                    return_method_undefined,
-                    throw_method_undefined,
-                    ..
-                } => {
-                    graph.add_node(
-                        previous_pc,
-                        NodeShape::Diamond,
-                        opcode_str.into(),
-                        Color::None,
-                    );
-                    graph.add_edge(previous_pc, pc, None, Color::None, EdgeStyle::Line);
-                    graph.add_edge(
-                        previous_pc,
-                        throw_method_undefined as usize,
-                        Some("`throw` undefined".into()),
-                        Color::Red,
-                        EdgeStyle::Line,
-                    );
-                    graph.add_edge(
-                        previous_pc,
-                        return_method_undefined as usize,
-                        Some("`return` undefined".into()),
-                        Color::Blue,
-                        EdgeStyle::Line,
-                    );
-                }
-                Instruction::GeneratorDelegateResume { r#return, exit, .. } => {
-                    graph.add_node(
-                        previous_pc,
-                        NodeShape::Diamond,
-                        opcode_str.into(),
-                        Color::None,
-                    );
-                    graph.add_edge(previous_pc, pc, None, Color::None, EdgeStyle::Line);
-                    graph.add_edge(
-                        previous_pc,
-                        r#return as usize,
-                        Some("return".into()),
-                        Color::Yellow,
-                        EdgeStyle::Line,
-                    );
-                    graph.add_edge(
-                        previous_pc,
-                        exit as usize,
-                        Some("done".into()),
-                        Color::Blue,
                         EdgeStyle::Line,
                     );
                 }
@@ -233,17 +164,6 @@ impl CodeBlock {
                 | Instruction::GetArgument { .. } => {
                     graph.add_node(previous_pc, NodeShape::None, label.into(), Color::None);
                     graph.add_edge(previous_pc, pc, None, Color::None, EdgeStyle::Line);
-                }
-                Instruction::JumpIfNotResumeKind { address, .. } => {
-                    graph.add_node(previous_pc, NodeShape::Diamond, label.into(), Color::None);
-                    graph.add_edge(
-                        previous_pc,
-                        address as usize,
-                        Some("EXIT".into()),
-                        Color::Red,
-                        EdgeStyle::Line,
-                    );
-                    graph.add_edge(previous_pc, pc, None, Color::Green, EdgeStyle::Line);
                 }
                 Instruction::CopyDataProperties { .. } => {
                     graph.add_node(previous_pc, NodeShape::None, label.into(), Color::None);
@@ -320,7 +240,7 @@ impl CodeBlock {
                     if let Some((i, handler)) = self.find_handler(previous_pc as u32) {
                         graph.add_edge(
                             previous_pc,
-                            handler.handler() as usize,
+                            handler.handler().as_u32() as usize,
                             Some(format!("Handler {i:2}: CAUGHT").into()),
                             Color::None,
                             EdgeStyle::Line,
@@ -332,7 +252,7 @@ impl CodeBlock {
                         graph.add_node(previous_pc, NodeShape::Record, label.into(), Color::None);
                         graph.add_edge(
                             previous_pc,
-                            handler.handler() as usize,
+                            handler.handler().as_u32() as usize,
                             Some(format!("Handler {i:2}: CAUGHT").into()),
                             Color::None,
                             EdgeStyle::Line,
@@ -354,7 +274,7 @@ impl CodeBlock {
                     graph.add_edge(
                         previous_pc,
                         pc,
-                        Some("CONTINUE".into()),
+                        Some("DEFAULT".into()),
                         Color::None,
                         EdgeStyle::Line,
                     );
@@ -362,8 +282,8 @@ impl CodeBlock {
                     for (i, address) in addresses.iter().enumerate() {
                         graph.add_edge(
                             previous_pc,
-                            *address as usize,
-                            Some(format!("[{i}]").into()),
+                            address.as_u32() as usize,
+                            Some(format!("{i}").into()),
                             Color::None,
                             EdgeStyle::Line,
                         );
@@ -400,6 +320,7 @@ impl CodeBlock {
                 | Instruction::DefineClassSetterByValue { .. }
                 | Instruction::DeletePropertyByValue { .. }
                 | Instruction::DeleteSuperThrow
+                | Instruction::GetMethod { .. }
                 | Instruction::ToPropertyKey { .. }
                 | Instruction::This { .. }
                 | Instruction::ThisForObjectEnvironmentName { .. }
@@ -409,6 +330,9 @@ impl CodeBlock {
                 | Instruction::GetIterator { .. }
                 | Instruction::GetAsyncIterator { .. }
                 | Instruction::IteratorNext
+                | Instruction::IteratorPop { .. }
+                | Instruction::IteratorPush { .. }
+                | Instruction::IteratorUpdateResult { .. }
                 | Instruction::IteratorFinishAsyncNext { .. }
                 | Instruction::IteratorValue { .. }
                 | Instruction::IteratorResult { .. }
@@ -426,7 +350,6 @@ impl CodeBlock {
                 | Instruction::AsyncGeneratorYield { .. }
                 | Instruction::AsyncGeneratorClose
                 | Instruction::CreatePromiseCapability
-                | Instruction::GeneratorNext { .. }
                 | Instruction::PushClassField { .. }
                 | Instruction::SuperCallDerived
                 | Instruction::Await { .. }
@@ -510,12 +433,7 @@ impl CodeBlock {
                 | Instruction::Reserved51
                 | Instruction::Reserved52
                 | Instruction::Reserved53
-                | Instruction::Reserved54
-                | Instruction::Reserved55
-                | Instruction::Reserved56
-                | Instruction::Reserved57
-                | Instruction::Reserved58
-                | Instruction::Reserved59 => unreachable!("Reserved opcodes are unreachable"),
+                | Instruction::Reserved54 => unreachable!("Reserved opcodes are unreachable"),
             }
         }
 

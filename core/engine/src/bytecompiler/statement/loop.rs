@@ -1,4 +1,5 @@
 use boa_ast::{
+    Expression,
     declaration::Binding,
     operations::bound_names,
     scope::BindingLocatorError,
@@ -122,26 +123,27 @@ impl ByteCompiler<'_> {
 
         if let Some(final_expr) = for_loop.final_expr() {
             let value = self.register_allocator.alloc();
-            self.compile_expr(final_expr, &value);
+            if let Expression::Update(update) = final_expr {
+                self.compile_update(update, &value, true);
+            } else {
+                self.compile_expr(final_expr, &value);
+            }
             self.register_allocator.dealloc(value);
         }
 
         self.patch_jump(initial_jump);
 
-        let value = self.register_allocator.alloc();
-        if let Some(condition) = for_loop.condition() {
-            self.compile_expr(condition, &value);
-        } else {
-            self.bytecode.emit_push_true(value.variable());
-        }
-        let exit = self.jump_if_false(&value);
-        self.register_allocator.dealloc(value);
+        let exit = for_loop
+            .condition()
+            .map(|condition| self.compile_condition_and_branch(condition));
 
         self.compile_stmt(for_loop.body(), use_expr, true);
 
         self.bytecode.emit_jump(start_address);
 
-        self.patch_jump(exit);
+        if let Some(exit) = exit {
+            self.patch_jump(exit);
+        }
         self.pop_loop_control_info();
 
         if let Some(outer_scope_local) = outer_scope_local {
@@ -184,46 +186,66 @@ impl ByteCompiler<'_> {
 
         self.bytecode.emit_iterator_next();
 
-        let value = self.register_allocator.alloc();
-        self.bytecode.emit_iterator_done(value.variable());
-        let exit = self.jump_if_true(&value);
-        self.bytecode.emit_iterator_value(value.variable());
+        let done_reg = self.register_allocator.alloc();
+        self.bytecode.emit_iterator_done(done_reg.variable());
+        let exit = self.jump_if_true(&done_reg);
+        self.register_allocator.dealloc(done_reg);
 
         let outer_scope = self.push_declarative_scope(for_in_loop.scope());
 
-        match for_in_loop.initializer() {
-            IterableLoopInitializer::Identifier(ident) => {
-                let ident = ident.to_js_string(self.interner());
-                self.emit_binding(BindingOpcode::InitVar, ident, &value);
-            }
-            IterableLoopInitializer::Access(access) => {
-                self.access_set(Access::Property { access }, |_| &value);
-            }
-            IterableLoopInitializer::Var(declaration) => match declaration.binding() {
-                Binding::Identifier(ident) => {
+        // For let/const with a local identifier binding, emit iterator_value
+        // directly into the binding's persistent register to avoid a Move.
+        if let IterableLoopInitializer::Let(Binding::Identifier(ident))
+        | IterableLoopInitializer::Const(Binding::Identifier(ident)) = for_in_loop.initializer()
+            && let ident = ident.to_js_string(self.interner())
+            && let binding = self.lexical_scope.get_identifier_reference(ident)
+            && binding.local()
+        {
+            let reg = self.register_allocator.alloc_persistent();
+            self.local_binding_registers.insert(binding, reg.index());
+            self.bytecode.emit_iterator_value(reg.variable());
+        } else {
+            let value = self.register_allocator.alloc();
+            self.bytecode.emit_iterator_value(value.variable());
+
+            match for_in_loop.initializer() {
+                IterableLoopInitializer::Identifier(ident) => {
                     let ident = ident.to_js_string(self.interner());
                     self.emit_binding(BindingOpcode::InitVar, ident, &value);
                 }
-                Binding::Pattern(pattern) => {
-                    self.compile_declaration_pattern(pattern, BindingOpcode::InitVar, &value);
+                IterableLoopInitializer::Access(access) => {
+                    self.access_set(Access::Property { access }, |_| &value);
                 }
-            },
-            IterableLoopInitializer::Let(declaration)
-            | IterableLoopInitializer::Const(declaration) => match declaration {
-                Binding::Identifier(ident) => {
-                    let ident = ident.to_js_string(self.interner());
-                    self.emit_binding(BindingOpcode::InitLexical, ident, &value);
+                IterableLoopInitializer::Var(declaration) => match declaration.binding() {
+                    Binding::Identifier(ident) => {
+                        let ident = ident.to_js_string(self.interner());
+                        self.emit_binding(BindingOpcode::InitVar, ident, &value);
+                    }
+                    Binding::Pattern(pattern) => {
+                        self.compile_declaration_pattern(pattern, BindingOpcode::InitVar, &value);
+                    }
+                },
+                IterableLoopInitializer::Let(declaration)
+                | IterableLoopInitializer::Const(declaration) => match declaration {
+                    Binding::Identifier(ident) => {
+                        let ident = ident.to_js_string(self.interner());
+                        self.emit_binding(BindingOpcode::InitLexical, ident, &value);
+                    }
+                    Binding::Pattern(pattern) => {
+                        self.compile_declaration_pattern(
+                            pattern,
+                            BindingOpcode::InitLexical,
+                            &value,
+                        );
+                    }
+                },
+                IterableLoopInitializer::Pattern(pattern) => {
+                    self.compile_declaration_pattern(pattern, BindingOpcode::SetName, &value);
                 }
-                Binding::Pattern(pattern) => {
-                    self.compile_declaration_pattern(pattern, BindingOpcode::InitLexical, &value);
-                }
-            },
-            IterableLoopInitializer::Pattern(pattern) => {
-                self.compile_declaration_pattern(pattern, BindingOpcode::SetName, &value);
             }
-        }
 
-        self.register_allocator.dealloc(value);
+            self.register_allocator.dealloc(value);
+        }
 
         self.compile_stmt(for_in_loop.body(), use_expr, true);
         self.pop_declarative_scope(outer_scope);
@@ -275,67 +297,97 @@ impl ByteCompiler<'_> {
 
             self.bytecode
                 .emit_iterator_finish_async_next(resume_kind.variable(), value.variable());
-            self.bytecode
-                .emit_generator_next(resume_kind.variable(), value.variable());
+            self.generator_next(&value, &resume_kind);
             self.register_allocator.dealloc(value);
             self.register_allocator.dealloc(resume_kind);
         }
 
-        let value = self.register_allocator.alloc();
-        self.bytecode.emit_iterator_done(value.variable());
-        let exit = self.jump_if_true(&value);
-        self.bytecode.emit_iterator_value(value.variable());
+        let done_reg = self.register_allocator.alloc();
+        self.bytecode.emit_iterator_done(done_reg.variable());
+        let exit = self.jump_if_true(&done_reg);
+        self.register_allocator.dealloc(done_reg);
 
         let outer_scope = self.push_declarative_scope(for_of_loop.scope());
-        let handler_index = self.push_handler();
 
-        match for_of_loop.initializer() {
-            IterableLoopInitializer::Identifier(ident) => {
-                let ident = ident.to_js_string(self.interner());
-                match self.lexical_scope.set_mutable_binding(ident.clone()) {
-                    Ok(binding) => {
-                        let index = self.insert_binding(binding);
-                        self.emit_binding_access(BindingAccessOpcode::DefInitVar, &index, &value);
+        // For let/const with a local identifier binding, emit iterator_value
+        // directly into the binding's persistent register to avoid a Move.
+        let handler_index = if let IterableLoopInitializer::Let(Binding::Identifier(ident))
+        | IterableLoopInitializer::Const(Binding::Identifier(ident)) =
+            for_of_loop.initializer()
+            && let ident = ident.to_js_string(self.interner())
+            && let ident = self.lexical_scope.get_identifier_reference(ident)
+            && ident.local()
+        {
+            let reg = self.register_allocator.alloc_persistent();
+            self.local_binding_registers.insert(ident, reg.index());
+            self.bytecode.emit_iterator_value(reg.variable());
+
+            self.push_handler()
+        } else {
+            let value = self.register_allocator.alloc();
+            self.bytecode.emit_iterator_value(value.variable());
+            let handler_index = self.push_handler();
+            match for_of_loop.initializer() {
+                IterableLoopInitializer::Identifier(ident) => {
+                    let ident = ident.to_js_string(self.interner());
+                    match self.lexical_scope.set_mutable_binding(ident.clone()) {
+                        Ok(binding) => {
+                            let index = self.insert_binding(binding);
+                            self.emit_binding_access(
+                                BindingAccessOpcode::DefInitVar,
+                                &index,
+                                &value,
+                            );
+                        }
+                        Err(BindingLocatorError::MutateImmutable) => {
+                            let index = self.get_or_insert_string(ident);
+                            self.bytecode.emit_throw_mutate_immutable(index.into());
+                        }
+                        Err(BindingLocatorError::Silent) => {}
                     }
-                    Err(BindingLocatorError::MutateImmutable) => {
-                        let index = self.get_or_insert_string(ident);
-                        self.bytecode.emit_throw_mutate_immutable(index.into());
-                    }
-                    Err(BindingLocatorError::Silent) => {}
                 }
-            }
-            IterableLoopInitializer::Access(access) => {
-                self.access_set(Access::Property { access }, |_| &value);
-            }
-            IterableLoopInitializer::Var(declaration) => {
-                // ignore initializers since those aren't allowed on for-of loops.
-                assert!(declaration.init().is_none());
-                match declaration.binding() {
+                IterableLoopInitializer::Access(access) => {
+                    self.access_set(Access::Property { access }, |_| &value);
+                }
+                IterableLoopInitializer::Var(declaration) => {
+                    // ignore initializers since those aren't allowed on for-of loops.
+                    assert!(declaration.init().is_none());
+                    match declaration.binding() {
+                        Binding::Identifier(ident) => {
+                            let ident = ident.to_js_string(self.interner());
+                            self.emit_binding(BindingOpcode::InitVar, ident, &value);
+                        }
+                        Binding::Pattern(pattern) => {
+                            self.compile_declaration_pattern(
+                                pattern,
+                                BindingOpcode::InitVar,
+                                &value,
+                            );
+                        }
+                    }
+                }
+                IterableLoopInitializer::Let(declaration)
+                | IterableLoopInitializer::Const(declaration) => match declaration {
                     Binding::Identifier(ident) => {
                         let ident = ident.to_js_string(self.interner());
-                        self.emit_binding(BindingOpcode::InitVar, ident, &value);
+                        self.emit_binding(BindingOpcode::InitLexical, ident, &value);
                     }
                     Binding::Pattern(pattern) => {
-                        self.compile_declaration_pattern(pattern, BindingOpcode::InitVar, &value);
+                        self.compile_declaration_pattern(
+                            pattern,
+                            BindingOpcode::InitLexical,
+                            &value,
+                        );
                     }
+                },
+                IterableLoopInitializer::Pattern(pattern) => {
+                    self.compile_declaration_pattern(pattern, BindingOpcode::SetName, &value);
                 }
             }
-            IterableLoopInitializer::Let(declaration)
-            | IterableLoopInitializer::Const(declaration) => match declaration {
-                Binding::Identifier(ident) => {
-                    let ident = ident.to_js_string(self.interner());
-                    self.emit_binding(BindingOpcode::InitLexical, ident, &value);
-                }
-                Binding::Pattern(pattern) => {
-                    self.compile_declaration_pattern(pattern, BindingOpcode::InitLexical, &value);
-                }
-            },
-            IterableLoopInitializer::Pattern(pattern) => {
-                self.compile_declaration_pattern(pattern, BindingOpcode::SetName, &value);
-            }
-        }
 
-        self.register_allocator.dealloc(value);
+            self.register_allocator.dealloc(value);
+            handler_index
+        };
 
         self.compile_stmt(for_of_loop.body(), use_expr, true);
 
@@ -375,10 +427,7 @@ impl ByteCompiler<'_> {
         self.bytecode.emit_increment_loop_iteration();
         self.push_loop_control_info(label, start_address, use_expr);
 
-        let value = self.register_allocator.alloc();
-        self.compile_expr(while_loop.condition(), &value);
-        let exit = self.jump_if_false(&value);
-        self.register_allocator.dealloc(value);
+        let exit = self.compile_condition_and_branch(while_loop.condition());
 
         self.compile_stmt(while_loop.body(), use_expr, true);
 
@@ -403,10 +452,7 @@ impl ByteCompiler<'_> {
         let condition_label_address = self.next_opcode_location();
         self.bytecode.emit_increment_loop_iteration();
 
-        let value = self.register_allocator.alloc();
-        self.compile_expr(do_while_loop.cond(), &value);
-        let exit = self.jump_if_false(&value);
-        self.register_allocator.dealloc(value);
+        let exit = self.compile_condition_and_branch(do_while_loop.cond());
 
         self.patch_jump(initial_label);
 

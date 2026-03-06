@@ -1,6 +1,6 @@
 use crate::{
     bytecompiler::{ByteCompiler, Label, Register},
-    vm::opcode::VaryingOperand,
+    vm::opcode::RegisterOperand,
 };
 use boa_ast::{
     Expression,
@@ -58,7 +58,7 @@ impl ByteCompiler<'_> {
         op: ArithmeticOp,
         rhs_expr: &Expression,
         dst: &Register,
-        lhs: VaryingOperand,
+        lhs: RegisterOperand,
     ) {
         self.compile_expr_operand(rhs_expr, |self_, rhs| {
             let bytecode = &mut self_.bytecode;
@@ -78,7 +78,7 @@ impl ByteCompiler<'_> {
         op: BitwiseOp,
         rhs_expr: &Expression,
         dst: &Register,
-        lhs: VaryingOperand,
+        lhs: RegisterOperand,
     ) {
         self.compile_expr_operand(rhs_expr, |self_, rhs| {
             let bytecode = &mut self_.bytecode;
@@ -104,7 +104,7 @@ impl ByteCompiler<'_> {
         op: RelationalOp,
         rhs_expr: &Expression,
         dst: &Register,
-        lhs: VaryingOperand,
+        lhs: RegisterOperand,
     ) {
         self.compile_expr_operand(rhs_expr, |self_, rhs| {
             let bytecode = &mut self_.bytecode;

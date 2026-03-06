@@ -1,7 +1,11 @@
-use super::VaryingOperand;
+use super::RegisterOperand;
 use crate::{
-    Context, builtins::array::Array, js_string, object::IntegrityLevel,
-    property::PropertyDescriptor, vm::opcode::Operation,
+    Context,
+    builtins::array::Array,
+    js_string,
+    object::IntegrityLevel,
+    property::PropertyDescriptor,
+    vm::opcode::{Address, Operation},
 };
 use thin_vec::ThinVec;
 
@@ -14,10 +18,13 @@ pub(crate) struct TemplateLookup;
 
 impl TemplateLookup {
     #[inline(always)]
-    pub(super) fn operation((jump, site, dst): (u32, u64, VaryingOperand), context: &mut Context) {
+    pub(super) fn operation(
+        (jump, site, dst): (Address, u64, RegisterOperand),
+        context: &mut Context,
+    ) {
         if let Some(template) = context.realm().lookup_template(site) {
             context.vm.set_register(dst.into(), template.into());
-            context.vm.frame_mut().pc = jump;
+            context.vm.frame_mut().pc = u32::from(jump);
         }
     }
 }
@@ -38,7 +45,7 @@ pub(crate) struct TemplateCreate;
 impl TemplateCreate {
     #[inline(always)]
     pub(super) fn operation(
-        (site, dst, values): (u64, VaryingOperand, ThinVec<u32>),
+        (site, dst, values): (u64, RegisterOperand, ThinVec<u32>),
         context: &mut Context,
     ) {
         let count = values.len() / 2;
