@@ -178,3 +178,23 @@ fn eval_out_of_scope() {
         TestAction::assert_eq("f()", JsValue::null()),
     ]);
 }
+
+/// Regression test for issue #4531.
+/// `Function` constructor with nested function containing lexical bindings
+/// captured by a closure should not panic with "must be declarative environment".
+#[test]
+fn function_constructor_nested_lexical_binding() {
+    run_test_actions([TestAction::assert_eq(
+        indoc! {r#"
+            var code = "\
+                function f() {\
+                    const a = 42;\
+                    return () => { return a; };\
+                }\
+                return f()();\
+            ";
+            Function(code)();
+        "#},
+        42,
+    )]);
+}

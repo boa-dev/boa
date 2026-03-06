@@ -1,4 +1,5 @@
 use boa_ast::{
+    Expression,
     declaration::Binding,
     operations::bound_names,
     scope::BindingLocatorError,
@@ -69,7 +70,12 @@ impl ByteCompiler<'_> {
 
         self.push_empty_loop_jump_control(use_expr);
 
-        if let Some((let_binding_indices, scope_index)) = &let_binding_indices {
+        // Per-iteration binding copy: for `for (let i = ...)`, each iteration needs
+        // a fresh binding per the spec (important for closures). When the scope requires
+        // a runtime environment (scope_index is Some), we must pop/push the environment
+        // and copy bindings. When all bindings are local (scope_index is None), the
+        // GetName/PutLexicalValue pair is a no-op (Move to temp, Move back) and can be skipped.
+        if let Some((let_binding_indices, Some(scope_index))) = &let_binding_indices {
             let mut values = Vec::with_capacity(let_binding_indices.len());
             for index in let_binding_indices {
                 let value = self.register_allocator.alloc();
@@ -77,10 +83,8 @@ impl ByteCompiler<'_> {
                 values.push((index, value));
             }
 
-            if let Some(index) = scope_index {
-                self.bytecode.emit_pop_environment();
-                self.bytecode.emit_push_scope((*index).into());
-            }
+            self.bytecode.emit_pop_environment();
+            self.bytecode.emit_push_scope((*scope_index).into());
 
             for (index, value) in values {
                 self.emit_binding_access(BindingAccessOpcode::PutLexicalValue, index, &value);
@@ -98,7 +102,7 @@ impl ByteCompiler<'_> {
             .expect("jump_control must exist as it was just pushed")
             .set_start_address(start_address);
 
-        if let Some((let_binding_indices, scope_index)) = &let_binding_indices {
+        if let Some((let_binding_indices, Some(scope_index))) = &let_binding_indices {
             let mut values = Vec::with_capacity(let_binding_indices.len());
             for index in let_binding_indices {
                 let value = self.register_allocator.alloc();
@@ -106,10 +110,8 @@ impl ByteCompiler<'_> {
                 values.push((index, value));
             }
 
-            if let Some(index) = scope_index {
-                self.bytecode.emit_pop_environment();
-                self.bytecode.emit_push_scope((*index).into());
-            }
+            self.bytecode.emit_pop_environment();
+            self.bytecode.emit_push_scope((*scope_index).into());
 
             for (index, value) in values {
                 self.emit_binding_access(BindingAccessOpcode::PutLexicalValue, index, &value);
@@ -121,26 +123,27 @@ impl ByteCompiler<'_> {
 
         if let Some(final_expr) = for_loop.final_expr() {
             let value = self.register_allocator.alloc();
-            self.compile_expr(final_expr, &value);
+            if let Expression::Update(update) = final_expr {
+                self.compile_update(update, &value, true);
+            } else {
+                self.compile_expr(final_expr, &value);
+            }
             self.register_allocator.dealloc(value);
         }
 
         self.patch_jump(initial_jump);
 
-        let value = self.register_allocator.alloc();
-        if let Some(condition) = for_loop.condition() {
-            self.compile_expr(condition, &value);
-        } else {
-            self.bytecode.emit_push_true(value.variable());
-        }
-        let exit = self.jump_if_false(&value);
-        self.register_allocator.dealloc(value);
+        let exit = for_loop
+            .condition()
+            .map(|condition| self.compile_condition_and_branch(condition));
 
         self.compile_stmt(for_loop.body(), use_expr, true);
 
         self.bytecode.emit_jump(start_address);
 
-        self.patch_jump(exit);
+        if let Some(exit) = exit {
+            self.patch_jump(exit);
+        }
         self.pop_loop_control_info();
 
         if let Some(outer_scope_local) = outer_scope_local {
@@ -233,13 +236,7 @@ impl ByteCompiler<'_> {
         self.pop_loop_control_info();
 
         self.iterator_close(false);
-
-        let skip_early_exit = self.jump();
         self.patch_jump(early_exit);
-        let value = self.register_allocator.alloc();
-        self.bytecode.emit_push_undefined(value.variable());
-        self.register_allocator.dealloc(value);
-        self.patch_jump(skip_early_exit);
     }
 
     pub(crate) fn compile_for_of_loop(
@@ -280,8 +277,7 @@ impl ByteCompiler<'_> {
 
             self.bytecode
                 .emit_iterator_finish_async_next(resume_kind.variable(), value.variable());
-            self.bytecode
-                .emit_generator_next(resume_kind.variable(), value.variable());
+            self.generator_next(&value, &resume_kind);
             self.register_allocator.dealloc(value);
             self.register_allocator.dealloc(resume_kind);
         }
@@ -380,10 +376,7 @@ impl ByteCompiler<'_> {
         self.bytecode.emit_increment_loop_iteration();
         self.push_loop_control_info(label, start_address, use_expr);
 
-        let value = self.register_allocator.alloc();
-        self.compile_expr(while_loop.condition(), &value);
-        let exit = self.jump_if_false(&value);
-        self.register_allocator.dealloc(value);
+        let exit = self.compile_condition_and_branch(while_loop.condition());
 
         self.compile_stmt(while_loop.body(), use_expr, true);
 
@@ -408,10 +401,7 @@ impl ByteCompiler<'_> {
         let condition_label_address = self.next_opcode_location();
         self.bytecode.emit_increment_loop_iteration();
 
-        let value = self.register_allocator.alloc();
-        self.compile_expr(do_while_loop.cond(), &value);
-        let exit = self.jump_if_false(&value);
-        self.register_allocator.dealloc(value);
+        let exit = self.compile_condition_and_branch(do_while_loop.cond());
 
         self.patch_jump(initial_label);
 

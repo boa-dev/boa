@@ -11,6 +11,8 @@ use std::rc::Rc;
 #[cfg(test)]
 mod e2e;
 #[cfg(test)]
+mod headers;
+#[cfg(test)]
 mod request;
 #[cfg(test)]
 mod response;

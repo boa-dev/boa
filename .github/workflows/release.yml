@@ -73,7 +73,17 @@ jobs:
       - name: Set-up npm config for publishing
         run: npm config set -- '//registry.npmjs.org/:_authToken' "${{ secrets.NPM_TOKEN }}"
 
+      - name: Check if the npm version already exists
+        run: |
+          VERSION=$(jq -r '.version' ./ffi/wasm/pkg/package.json)
+
+          if npm view @boa-dev/boa_wasm@$VERSION version > dev/null 2>&1; then
+            echo "Version $VERSION already published. Skipping"
+            echo "SKIP_PUBLISH=true" >> $GITHUB_ENV
+          fi
+
       - name: Publish to npm
+        if: env.SKIP_PUBLISH != 'true'
         run: npm publish ./ffi/wasm/pkg --access=public
 
   release-binaries:

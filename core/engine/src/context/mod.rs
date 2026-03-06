@@ -446,6 +446,14 @@ impl Context {
         self.vm.frame.realm.intrinsics()
     }
 
+    /// Returns the amount of remaining instructions to be executed
+    #[cfg(feature = "fuzz")]
+    #[inline]
+    #[must_use]
+    pub fn instructions_remaining(&self) -> usize {
+        self.instructions_remaining
+    }
+
     /// Returns the currently active realm.
     #[inline]
     #[must_use]

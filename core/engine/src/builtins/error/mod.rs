@@ -20,7 +20,7 @@ use crate::{
     property::Attribute,
     realm::Realm,
     string::StaticJsStrings,
-    vm::shadow_stack::ShadowEntry,
+    vm::shadow_stack::{Backtrace, ShadowEntry},
 };
 use boa_gc::{Finalize, Trace};
 use boa_macros::js_str;
@@ -137,6 +137,12 @@ pub struct Error {
     // The position of where the Error was created does not affect equality check.
     #[unsafe_ignore_trace]
     pub(crate) position: IgnoreEq<Option<ShadowEntry>>,
+
+    // The backtrace captured when this error was thrown. Stored here so it
+    // survives the JsError → JsValue → JsError round-trip through promise
+    // rejection. Does not affect equality checks.
+    #[unsafe_ignore_trace]
+    pub(crate) backtrace: IgnoreEq<Option<Backtrace>>,
 }
 
 impl Error {
@@ -147,6 +153,7 @@ impl Error {
         Self {
             tag,
             position: IgnoreEq(None),
+            backtrace: IgnoreEq(None),
         }
     }
 
@@ -155,6 +162,7 @@ impl Error {
         Self {
             tag,
             position: IgnoreEq(entry),
+            backtrace: IgnoreEq(None),
         }
     }
 
@@ -163,6 +171,7 @@ impl Error {
         Self {
             tag,
             position: IgnoreEq(context.vm.shadow_stack.caller_position()),
+            backtrace: IgnoreEq(None),
         }
     }
 }

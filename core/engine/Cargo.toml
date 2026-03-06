@@ -94,7 +94,7 @@ native-backtrace = []
 [dependencies]
 tag_ptr.workspace = true
 boa_interner.workspace = true
-boa_gc = { workspace = true, features = ["thin-vec", "boa_string"] }
+boa_gc = { workspace = true, features = ["thin-vec", "boa_string", "arrayvec"] }
 boa_macros.workspace = true
 boa_ast.workspace = true
 boa_parser.workspace = true
@@ -123,7 +123,7 @@ thiserror.workspace = true
 dashmap.workspace = true
 num_enum.workspace = true
 thin-vec.workspace = true
-itertools = { workspace = true, default-features = false }
+itertools = { workspace = true, default-features = false, features = ["use_alloc"] }
 icu_normalizer = { workspace = true, features = [
     "compiled_data",
     "utf16_iter",
