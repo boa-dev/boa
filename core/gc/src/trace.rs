@@ -11,7 +11,8 @@ use std::{
     },
     path::{Path, PathBuf},
     rc::Rc,
-    sync::atomic,
+    sync::{Mutex, RwLock, atomic},
+    time::{Instant, SystemTime},
 };
 
 use crate::GcErasedPointer;
@@ -199,6 +200,8 @@ simple_empty_finalize_trace![
     Rc<str>,
     Path,
     PathBuf,
+    Instant,
+    SystemTime,
     NonZeroIsize,
     NonZeroUsize,
     NonZeroI8,
@@ -211,6 +214,14 @@ simple_empty_finalize_trace![
     NonZeroU64,
     NonZeroI128,
     NonZeroU128
+];
+
+#[cfg(not(target_family = "wasm"))]
+simple_empty_finalize_trace![
+    std::fs::File,
+    std::fs::FileType,
+    std::net::TcpStream,
+    std::net::UdpSocket
 ];
 
 #[cfg(target_has_atomic = "8")]
@@ -563,6 +574,23 @@ mod boa_string_trace {
     impl Finalize for boa_string::JsString {}
 }
 
+impl<T: Trace> Finalize for Mutex<T> {}
+unsafe impl<T: Trace> Trace for Mutex<T> {
+    custom_trace!(this, mark, {
+        if let Ok(val) = this.lock() {
+            mark(&*val);
+        }
+    });
+}
+
+impl<T: Trace> Finalize for RwLock<T> {}
+unsafe impl<T: Trace> Trace for RwLock<T> {
+    custom_trace!(this, mark, {
+        if let Ok(val) = this.read() {
+            mark(&*val);
+        }
+    });
+}
 #[cfg(feature = "either")]
 mod either_trace {
     use crate::{Finalize, Trace};
