@@ -183,6 +183,7 @@ impl Script {
         let record = context.run();
 
         context.vm.pop_frame();
+
         record.consume()
     }
 
