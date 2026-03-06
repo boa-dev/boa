@@ -176,9 +176,11 @@ impl EnvironmentStack {
         let index = self.stack.len() as u32;
 
         self.stack.push(Environment::Declarative(Gc::new(
-            DeclarativeEnvironment::new(DeclarativeEnvironmentKind::Lexical(
-                LexicalEnvironment::new(bindings_count, poisoned, with),
-            )),
+            DeclarativeEnvironment::new(
+                DeclarativeEnvironmentKind::Lexical(LexicalEnvironment::new(bindings_count)),
+                poisoned,
+                with,
+            ),
         )));
 
         index
@@ -206,9 +208,15 @@ impl EnvironmentStack {
         };
 
         self.stack.push(Environment::Declarative(Gc::new(
-            DeclarativeEnvironment::new(DeclarativeEnvironmentKind::Function(
-                FunctionEnvironment::new(num_bindings, poisoned, with, function_slots, scope),
-            )),
+            DeclarativeEnvironment::new(
+                DeclarativeEnvironmentKind::Function(FunctionEnvironment::new(
+                    num_bindings,
+                    function_slots,
+                    scope,
+                )),
+                poisoned,
+                with,
+            ),
         )));
     }
 
@@ -216,9 +224,11 @@ impl EnvironmentStack {
     pub(crate) fn push_module(&mut self, scope: Scope) {
         let num_bindings = scope.num_bindings_non_local();
         self.stack.push(Environment::Declarative(Gc::new(
-            DeclarativeEnvironment::new(DeclarativeEnvironmentKind::Module(
-                ModuleEnvironment::new(num_bindings, scope),
-            )),
+            DeclarativeEnvironment::new(
+                DeclarativeEnvironmentKind::Module(ModuleEnvironment::new(num_bindings, scope)),
+                false,
+                false,
+            ),
         )));
     }
 
@@ -371,7 +381,7 @@ impl Context {
     /// are completely removed of runtime checks because the specification guarantees that runtime
     /// semantics cannot add or remove lexical bindings.
     pub(crate) fn find_runtime_binding(&mut self, locator: &mut BindingLocator) -> JsResult<()> {
-        if let Some(env) = self.vm.frame.environments.current_declarative_ref()
+        if let Some(env) = self.vm.frame().environments.current_declarative_ref()
             && !env.with()
             && !env.poisoned()
         {
@@ -382,7 +392,7 @@ impl Context {
             BindingLocatorScope::GlobalObject | BindingLocatorScope::GlobalDeclarative => (true, 0),
             BindingLocatorScope::Stack(index) => (false, index),
         };
-        let max_index = self.vm.frame.environments.stack.len() as u32;
+        let max_index = self.vm.frame().environments.stack.len() as u32;
 
         for index in (min_index..max_index).rev() {
             match self.environment_expect(index) {
@@ -431,7 +441,7 @@ impl Context {
         &mut self,
         locator: &BindingLocator,
     ) -> JsResult<Option<JsObject>> {
-        if let Some(env) = self.vm.frame.environments.current_declarative_ref()
+        if let Some(env) = self.vm.frame().environments.current_declarative_ref()
             && !env.with()
         {
             return Ok(None);
@@ -441,7 +451,7 @@ impl Context {
             BindingLocatorScope::GlobalObject | BindingLocatorScope::GlobalDeclarative => 0,
             BindingLocatorScope::Stack(index) => index,
         };
-        let max_index = self.vm.frame.environments.stack.len() as u32;
+        let max_index = self.vm.frame().environments.stack.len() as u32;
 
         for index in (min_index..max_index).rev() {
             match self.environment_expect(index) {
@@ -487,7 +497,7 @@ impl Context {
                 obj.has_property(key, self)
             }
             BindingLocatorScope::GlobalDeclarative => {
-                let env = self.vm.frame.environments.global();
+                let env = self.vm.frame().environments.global();
                 Ok(env.get(locator.binding_index()).is_some())
             }
             BindingLocatorScope::Stack(index) => match self.environment_expect(index) {
@@ -515,7 +525,7 @@ impl Context {
                 obj.try_get(key, self)
             }
             BindingLocatorScope::GlobalDeclarative => {
-                let env = self.vm.frame.environments.global();
+                let env = self.vm.frame().environments.global();
                 Ok(env.get(locator.binding_index()))
             }
             BindingLocatorScope::Stack(index) => match self.environment_expect(index) {
@@ -548,7 +558,7 @@ impl Context {
                 obj.set(key, value, strict, self)?;
             }
             BindingLocatorScope::GlobalDeclarative => {
-                let env = self.vm.frame.environments.global();
+                let env = self.vm.frame().environments.global();
                 env.set(locator.binding_index(), value);
             }
             BindingLocatorScope::Stack(index) => match self.environment_expect(index) {
@@ -598,7 +608,7 @@ impl Context {
     /// Panics if the `index` is out of range.
     pub(crate) fn environment_expect(&self, index: u32) -> &Environment {
         self.vm
-            .frame
+            .frame()
             .environments
             .stack
             .get(index as usize)

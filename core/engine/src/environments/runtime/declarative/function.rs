@@ -3,11 +3,9 @@ use boa_gc::{Finalize, GcRefCell, Trace, custom_trace};
 
 use crate::{JsNativeError, JsObject, JsResult, JsValue, builtins::function::OrdinaryFunction};
 
-use super::PoisonableEnvironment;
-
 #[derive(Debug, Trace, Finalize)]
 pub(crate) struct FunctionEnvironment {
-    inner: PoisonableEnvironment,
+    bindings: GcRefCell<Vec<Option<JsValue>>>,
     slots: Box<FunctionSlots>,
 
     // Safety: Nothing in `Scope` needs tracing.
@@ -17,15 +15,9 @@ pub(crate) struct FunctionEnvironment {
 
 impl FunctionEnvironment {
     /// Creates a new `FunctionEnvironment`.
-    pub(crate) fn new(
-        bindings: u32,
-        poisoned: bool,
-        with: bool,
-        slots: FunctionSlots,
-        scope: Scope,
-    ) -> Self {
+    pub(crate) fn new(bindings_count: u32, slots: FunctionSlots, scope: Scope) -> Self {
         Self {
-            inner: PoisonableEnvironment::new(bindings, poisoned, with),
+            bindings: GcRefCell::new(vec![None; bindings_count as usize]),
             slots: Box::new(slots),
             scope,
         }
@@ -41,11 +33,6 @@ impl FunctionEnvironment {
         &self.scope
     }
 
-    /// Gets the `poisonable_environment` of this function environment.
-    pub(crate) const fn poisonable_environment(&self) -> &PoisonableEnvironment {
-        &self.inner
-    }
-
     /// Gets the binding value from the environment by it's index.
     ///
     /// # Panics
@@ -53,7 +40,7 @@ impl FunctionEnvironment {
     /// Panics if the binding value is out of range or not initialized.
     #[track_caller]
     pub(crate) fn get(&self, index: u32) -> Option<JsValue> {
-        self.inner.get(index)
+        self.bindings.borrow()[index as usize].clone()
     }
 
     /// Sets the binding value from the environment by index.
@@ -63,7 +50,12 @@ impl FunctionEnvironment {
     /// Panics if the binding value is out of range.
     #[track_caller]
     pub(crate) fn set(&self, index: u32, value: JsValue) {
-        self.inner.set(index, value);
+        self.bindings.borrow_mut()[index as usize] = Some(value);
+    }
+
+    /// Gets the bindings of this poisonable environment.
+    pub(crate) const fn bindings(&self) -> &GcRefCell<Vec<Option<JsValue>>> {
+        &self.bindings
     }
 
     /// `BindThisValue`

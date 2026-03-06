@@ -24,7 +24,7 @@ impl GetFunctionObject {
     ) -> JsResult<()> {
         let env = context
             .vm
-            .frame
+            .frame()
             .environments
             .get_this_environment()
             .as_function()
@@ -64,12 +64,15 @@ impl This {
 
         let this = context
             .vm
-            .frame
+            .frame()
             .environments
             .get_this_binding()?
             .unwrap_or(context.realm().global_this().clone().into());
         context.vm.frame_mut().flags |= CallFrameFlags::THIS_VALUE_CACHED;
-        context.vm.stack.set_this(&context.vm.frame, this.clone());
+        context.vm.stack.set_this(
+            context.vm.frames.last().expect("frame must exist"),
+            this.clone(),
+        );
         context.vm.set_register(dst.into(), this);
         Ok(())
     }
@@ -133,7 +136,7 @@ impl SuperCall {
 
         let this_env = context
             .vm
-            .frame
+            .frame()
             .environments
             .get_this_environment()
             .as_function()
@@ -198,7 +201,7 @@ impl SuperCallSpread {
 
         let this_env = context
             .vm
-            .frame
+            .frame()
             .environments
             .get_this_environment()
             .as_function()
@@ -237,7 +240,7 @@ impl SuperCallDerived {
     pub(super) fn operation((): (), context: &mut Context) -> JsResult<()> {
         let this_env = context
             .vm
-            .frame
+            .frame()
             .environments
             .get_this_environment()
             .as_function()
@@ -303,7 +306,7 @@ impl BindThisValue {
         // 7. Let thisER be GetThisEnvironment().
         let this_env = context
             .vm
-            .frame
+            .frame()
             .environments
             .get_this_environment()
             .as_function()
