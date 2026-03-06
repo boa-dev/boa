@@ -667,6 +667,13 @@ impl SimpleJobExecutor {
     pub fn get_cancellation_token(&self) -> Arc<AtomicBool> {
         Arc::clone(&self.stop)
     }
+
+    pub(crate) fn is_empty(&self) -> bool {
+        self.promise_jobs.borrow().is_empty()
+            && self.async_jobs.borrow().is_empty()
+            && self.generic_jobs.borrow().is_empty()
+            && self.timeout_jobs.borrow().is_empty()
+    }
 }
 
 impl JobExecutor for SimpleJobExecutor {
@@ -731,12 +738,7 @@ impl JobExecutor for SimpleJobExecutor {
                 }
             }
 
-            if self.promise_jobs.borrow().is_empty()
-                && self.async_jobs.borrow().is_empty()
-                && self.generic_jobs.borrow().is_empty()
-                && self.timeout_jobs.borrow().is_empty()
-                && group.is_empty()
-            {
+            if self.is_empty() && group.is_empty() {
                 break;
             }
 
