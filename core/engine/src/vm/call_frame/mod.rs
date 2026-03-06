@@ -48,13 +48,14 @@ pub struct CallFrameLocation {
 pub struct CallFrame {
     pub(crate) code_block: Gc<CodeBlock>,
     pub(crate) pc: u32,
-    /// The register pointer, points to the first register in the register file.
-    pub(crate) rp: u32,
     /// The frame pointer, points to the start of this frame's data in the stack
     /// (i.e., the `this` value position).
     pub(crate) fp: u32,
     pub(crate) argument_count: u32,
     pub(crate) env_fp: u32,
+
+    /// The register pointer, points to the start of this frame's registers on the stack.
+    pub(crate) rp: u32,
 
     // Iterators and their `[[Done]]` flags that must be closed when an abrupt completion is thrown.
     pub(crate) iterators: ThinVec<IteratorRecord>,
@@ -142,10 +143,10 @@ impl CallFrame {
     ) -> Self {
         Self {
             pc: 0,
-            rp: 0,
             fp: 0,
             env_fp: 0,
             argument_count: 0,
+            rp: 0,
             iterators: ThinVec::new(),
             binding_stack: Vec::new(),
             code_block,
@@ -185,26 +186,6 @@ impl CallFrame {
         self.fp as usize + 1
     }
 
-    /// Returns the index of the promise capability promise register in the stack.
-    pub(crate) fn promise_capability_promise_register_index(&self) -> usize {
-        self.rp as usize + Self::PROMISE_CAPABILITY_PROMISE_REGISTER_INDEX
-    }
-
-    /// Returns the index of the promise capability resolve register in the stack.
-    pub(crate) fn promise_capability_resolve_register_index(&self) -> usize {
-        self.rp as usize + Self::PROMISE_CAPABILITY_RESOLVE_REGISTER_INDEX
-    }
-
-    /// Returns the index of the promise capability reject register in the stack.
-    pub(crate) fn promise_capability_reject_register_index(&self) -> usize {
-        self.rp as usize + Self::PROMISE_CAPABILITY_REJECT_REGISTER_INDEX
-    }
-
-    /// Returns the index of the async generator object register in the stack.
-    pub(crate) fn async_generator_object_register_index(&self) -> usize {
-        self.rp as usize + Self::ASYNC_GENERATOR_OBJECT_REGISTER_INDEX
-    }
-
     /// Returns the range of the arguments in the stack.
     pub(crate) fn arguments_range(&self) -> std::ops::Range<usize> {
         let start = self.fp as usize + Self::FUNCTION_PROLOGUE as usize;
@@ -242,13 +223,6 @@ impl CallFrame {
     /// The cached value is placed in the `this` position.
     pub(crate) fn has_this_value_cached(&self) -> bool {
         self.flags.contains(CallFrameFlags::THIS_VALUE_CACHED)
-    }
-}
-
-/// ---- `CallFrame` stack methods ----
-impl CallFrame {
-    pub(crate) fn set_register_pointer(&mut self, pointer: u32) {
-        self.rp = pointer;
     }
 }
 
