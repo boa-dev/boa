@@ -195,23 +195,14 @@ impl ByteCompiler<'_> {
 
         // For let/const with a local identifier binding, emit iterator_value
         // directly into the binding's persistent register to avoid a Move.
-        let local_reg = match for_in_loop.initializer() {
-            IterableLoopInitializer::Let(Binding::Identifier(ident))
-            | IterableLoopInitializer::Const(Binding::Identifier(ident)) => {
-                let ident = ident.to_js_string(self.interner());
-                let binding = self.lexical_scope.get_identifier_reference(ident);
-                if binding.local() {
-                    let reg = self.register_allocator.alloc_persistent();
-                    self.local_binding_registers.insert(binding, reg.index());
-                    Some(reg)
-                } else {
-                    None
-                }
-            }
-            _ => None,
-        };
-
-        if let Some(ref reg) = local_reg {
+        if let IterableLoopInitializer::Let(Binding::Identifier(ident))
+        | IterableLoopInitializer::Const(Binding::Identifier(ident)) = for_in_loop.initializer()
+            && let ident = ident.to_js_string(self.interner())
+            && let binding = self.lexical_scope.get_identifier_reference(ident)
+            && binding.local()
+        {
+            let reg = self.register_allocator.alloc_persistent();
+            self.local_binding_registers.insert(binding, reg.index());
             self.bytecode.emit_iterator_value(reg.variable());
         } else {
             let value = self.register_allocator.alloc();
@@ -320,37 +311,22 @@ impl ByteCompiler<'_> {
 
         // For let/const with a local identifier binding, emit iterator_value
         // directly into the binding's persistent register to avoid a Move.
-        let local_reg = match for_of_loop.initializer() {
-            IterableLoopInitializer::Let(Binding::Identifier(ident))
-            | IterableLoopInitializer::Const(Binding::Identifier(ident)) => {
-                let ident = ident.to_js_string(self.interner());
-                let binding = self.lexical_scope.get_identifier_reference(ident);
-                if binding.local() {
-                    let reg = self.register_allocator.alloc_persistent();
-                    self.local_binding_registers.insert(binding, reg.index());
-                    Some(reg)
-                } else {
-                    None
-                }
-            }
-            _ => None,
-        };
-
-        let value = if local_reg.is_none() {
-            Some(self.register_allocator.alloc())
-        } else {
-            None
-        };
-
-        if let Some(ref reg) = local_reg {
+        let handler_index = if let IterableLoopInitializer::Let(Binding::Identifier(ident))
+        | IterableLoopInitializer::Const(Binding::Identifier(ident)) =
+            for_of_loop.initializer()
+            && let ident = ident.to_js_string(self.interner())
+            && let ident = self.lexical_scope.get_identifier_reference(ident)
+            && ident.local()
+        {
+            let reg = self.register_allocator.alloc_persistent();
+            self.local_binding_registers.insert(ident, reg.index());
             self.bytecode.emit_iterator_value(reg.variable());
-        } else if let Some(ref value) = value {
+
+            self.push_handler()
+        } else {
+            let value = self.register_allocator.alloc();
             self.bytecode.emit_iterator_value(value.variable());
-        }
-
-        let handler_index = self.push_handler();
-
-        if let Some(ref value) = value {
+            let handler_index = self.push_handler();
             match for_of_loop.initializer() {
                 IterableLoopInitializer::Identifier(ident) => {
                     let ident = ident.to_js_string(self.interner());
@@ -360,7 +336,7 @@ impl ByteCompiler<'_> {
                             self.emit_binding_access(
                                 BindingAccessOpcode::DefInitVar,
                                 &index,
-                                value,
+                                &value,
                             );
                         }
                         Err(BindingLocatorError::MutateImmutable) => {
@@ -371,7 +347,7 @@ impl ByteCompiler<'_> {
                     }
                 }
                 IterableLoopInitializer::Access(access) => {
-                    self.access_set(Access::Property { access }, |_| value);
+                    self.access_set(Access::Property { access }, |_| &value);
                 }
                 IterableLoopInitializer::Var(declaration) => {
                     // ignore initializers since those aren't allowed on for-of loops.
@@ -379,13 +355,13 @@ impl ByteCompiler<'_> {
                     match declaration.binding() {
                         Binding::Identifier(ident) => {
                             let ident = ident.to_js_string(self.interner());
-                            self.emit_binding(BindingOpcode::InitVar, ident, value);
+                            self.emit_binding(BindingOpcode::InitVar, ident, &value);
                         }
                         Binding::Pattern(pattern) => {
                             self.compile_declaration_pattern(
                                 pattern,
                                 BindingOpcode::InitVar,
-                                value,
+                                &value,
                             );
                         }
                     }
@@ -394,25 +370,24 @@ impl ByteCompiler<'_> {
                 | IterableLoopInitializer::Const(declaration) => match declaration {
                     Binding::Identifier(ident) => {
                         let ident = ident.to_js_string(self.interner());
-                        self.emit_binding(BindingOpcode::InitLexical, ident, value);
+                        self.emit_binding(BindingOpcode::InitLexical, ident, &value);
                     }
                     Binding::Pattern(pattern) => {
                         self.compile_declaration_pattern(
                             pattern,
                             BindingOpcode::InitLexical,
-                            value,
+                            &value,
                         );
                     }
                 },
                 IterableLoopInitializer::Pattern(pattern) => {
-                    self.compile_declaration_pattern(pattern, BindingOpcode::SetName, value);
+                    self.compile_declaration_pattern(pattern, BindingOpcode::SetName, &value);
                 }
             }
-        }
 
-        if let Some(value) = value {
             self.register_allocator.dealloc(value);
-        }
+            handler_index
+        };
 
         self.compile_stmt(for_of_loop.body(), use_expr, true);
 
