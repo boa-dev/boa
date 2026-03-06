@@ -58,3 +58,43 @@ fn promise_any_resolves_first_success() {
         TestAction::assert_eq("val", 2),
     ]);
 }
+
+#[test]
+fn promise_all_settled_resolves_results() {
+    run_test_actions([
+        TestAction::run(indoc! {r#"
+            var values = [];
+            Promise.allSettled([
+                Promise.resolve(1),
+                Promise.reject(2)
+            ]).then(results => {
+                values = [
+                    results[0].status,
+                    results[0].value,
+                    results[1].status,
+                    results[1].reason
+                ];
+            });
+        "#}),
+        TestAction::inspect_context(|ctx| ctx.run_jobs().unwrap()),
+        TestAction::assert_eq("values[0]", crate::js_string!("fulfilled")),
+        TestAction::assert_eq("values[1]", 1),
+        TestAction::assert_eq("values[2]", crate::js_string!("rejected")),
+        TestAction::assert_eq("values[3]", 2),
+    ]);
+}
+
+#[test]
+fn promise_race_resolves_first() {
+    run_test_actions([
+        TestAction::run(indoc! {r#"
+            var val = null;
+            Promise.race([
+                Promise.resolve(10),
+                Promise.resolve(20)
+            ]).then(v => { val = v; });
+        "#}),
+        TestAction::inspect_context(|ctx| ctx.run_jobs().unwrap()),
+        TestAction::assert_eq("val", 10),
+    ]);
+}
