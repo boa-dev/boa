@@ -121,7 +121,7 @@ impl SharedShape {
     fn property_count(&self) -> u32 {
         self.inner.property_count
     }
-    /// Return the index to the property in the the [`PropertyTable`].
+    /// Return the index to the property in the [`PropertyTable`].
     fn property_index(&self) -> u32 {
         self.inner.property_count.saturating_sub(1)
     }
@@ -480,18 +480,6 @@ pub(crate) struct WeakSharedShape {
 }
 
 impl WeakSharedShape {
-    /// Return location in memory of the [`WeakSharedShape`].
-    ///
-    /// Returns `0` if the inner [`SharedShape`] has been freed.
-    #[inline]
-    #[must_use]
-    pub(crate) fn to_addr_usize(&self) -> usize {
-        self.inner.upgrade().map_or(0, |inner| {
-            let ptr: *const _ = inner.as_ref();
-            ptr as usize
-        })
-    }
-
     /// Upgrade returns a [`SharedShape`] pointer for the internal value if the pointer is still live,
     /// or [`None`] if the value was already garbage collected.
     #[inline]

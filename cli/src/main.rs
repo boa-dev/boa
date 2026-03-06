@@ -8,17 +8,20 @@
 #![allow(clippy::print_stdout, clippy::print_stderr)]
 
 mod debug;
+mod executor;
 mod helper;
 mod logger;
 
+use crate::executor::Executor;
 use crate::logger::SharedExternalPrinterLogger;
-use boa_engine::context::time::JsInstant;
-use boa_engine::job::{GenericJob, TimeoutJob};
+use async_channel::Sender;
+use boa_engine::JsValue;
+use boa_engine::error::JsErasedError;
+use boa_engine::job::{JobExecutor, NativeAsyncJob};
 use boa_engine::{
-    Context, JsError, JsResult, Source,
+    Context, JsError, Source,
     builtins::promise::PromiseState,
     context::ContextBuilder,
-    job::{Job, JobExecutor, NativeAsyncJob, PromiseJob},
     module::{Module, SimpleModuleLoader},
     optimizer::OptimizerOptions,
     script::Script,
@@ -32,21 +35,14 @@ use color_eyre::{
 };
 use colored::Colorize;
 use debug::init_boa_debug_object;
-use futures_concurrency::future::FutureGroup;
-use futures_lite::{StreamExt, future};
+use futures_lite::future;
 use rustyline::{EditMode, Editor, config::Config, error::ReadlineError};
-use std::collections::BTreeMap;
-use std::mem;
-use std::sync::mpsc::{Sender, TryRecvError};
-use std::time::Duration;
+use std::cell::RefCell;
+use std::time::{Duration, Instant};
 use std::{
-    cell::RefCell,
-    collections::VecDeque,
-    eprintln,
     fs::OpenOptions,
-    io,
+    io::{self, IsTerminal, Read},
     path::{Path, PathBuf},
-    println,
     rc::Rc,
     thread,
 };
@@ -123,6 +119,10 @@ struct Opt {
     /// Use vi mode in the REPL
     #[arg(long = "vi")]
     vi_mode: bool,
+
+    /// Report parsing and execution timings.
+    #[arg(long)]
+    time: bool,
 
     #[arg(long, short = 'O', group = "optimizer")]
     optimize: bool,
@@ -214,21 +214,90 @@ enum FlowgraphDirection {
     RightToLeft,
 }
 
+struct Timer<'a> {
+    name: &'static str,
+    start: Instant,
+    counters: &'a mut Vec<(&'static str, Duration)>,
+}
+
+impl Drop for Timer<'_> {
+    fn drop(&mut self) {
+        self.counters.push((self.name, self.start.elapsed()));
+    }
+}
+
+struct Counters {
+    counters: Option<Vec<(&'static str, Duration)>>,
+}
+
+impl Counters {
+    fn new(enabled: bool) -> Self {
+        Self {
+            counters: enabled.then_some(Vec::new()),
+        }
+    }
+
+    fn new_timer(&mut self, name: &'static str) -> Option<Timer<'_>> {
+        self.counters.as_mut().map(|counters| Timer {
+            name,
+            start: Instant::now(),
+            counters,
+        })
+    }
+}
+
+impl Drop for Counters {
+    fn drop(&mut self) {
+        let Some(counters) = self.counters.take() else {
+            return;
+        };
+        if counters.is_empty() {
+            return;
+        }
+
+        let max_width = counters
+            .iter()
+            .map(|(name, _)| name.len())
+            .max()
+            .unwrap_or(0)
+            .max("Total".len())
+            + 1; // +1 for the colon
+
+        let mut total = Duration::ZERO;
+        eprintln!();
+        for (name, elapsed) in &counters {
+            eprintln!(
+                "{:<width$} {elapsed:.2?}",
+                format!("{name}:"),
+                width = max_width
+            );
+            total += *elapsed;
+        }
+        if counters.len() > 1 {
+            eprintln!("{:<width$} {total:.2?}", "Total:", width = max_width);
+        }
+    }
+}
+
 /// Dumps the AST to stdout with format controlled by the given arguments.
 ///
 /// Returns a error of type String with a error message,
 /// if the source has a syntax or parsing error.
 fn dump<R: ReadChar>(src: Source<'_, R>, args: &Opt, context: &mut Context) -> Result<()> {
     if let Some(arg) = args.dump_ast {
+        let mut counters = Counters::new(args.time);
         let arg = arg.unwrap_or_default();
         let mut parser = boa_parser::Parser::new(src);
         let dump =
             if args.module {
                 let scope = context.realm().scope().clone();
-                let module = parser
-                    .parse_module(&scope, context.interner_mut())
-                    .map_err(|e| eyre!("Uncaught SyntaxError: {e}"))?;
-
+                let module = {
+                    let _timer = counters.new_timer("Parsing");
+                    parser
+                        .parse_module(&scope, context.interner_mut())
+                        .map_err(|e| eyre!("Uncaught SyntaxError: {e}"))?
+                };
+                let _timer = counters.new_timer("AST generation");
                 match arg {
                     DumpFormat::Json => serde_json::to_string(&module)
                         .expect("could not convert AST to a JSON string"),
@@ -238,14 +307,18 @@ fn dump<R: ReadChar>(src: Source<'_, R>, args: &Opt, context: &mut Context) -> R
                 }
             } else {
                 let scope = context.realm().scope().clone();
-                let mut script = parser
-                    .parse_script(&scope, context.interner_mut())
-                    .map_err(|e| eyre!("Uncaught SyntaxError: {e}"))?;
+                let mut script = {
+                    let _timer = counters.new_timer("Parsing");
+                    parser
+                        .parse_script(&scope, context.interner_mut())
+                        .map_err(|e| eyre!("Uncaught SyntaxError: {e}"))?
+                };
 
                 if args.optimize {
                     context.optimize_statement_list(script.statements_mut());
                 }
 
+                let _timer = counters.new_timer("AST generation");
                 match arg {
                     DumpFormat::Json => serde_json::to_string(&script)
                         .expect("could not convert AST to a JSON string"),
@@ -254,7 +327,7 @@ fn dump<R: ReadChar>(src: Source<'_, R>, args: &Opt, context: &mut Context) -> R
                     DumpFormat::Debug => format!("{script:#?}"),
                 }
             };
-
+        drop(counters);
         println!("{dump}");
     }
 
@@ -307,7 +380,7 @@ fn evaluate_expr(
     printer: &SharedExternalPrinterLogger,
 ) -> Result<()> {
     if args.has_dump_flag() {
-        dump(Source::from_bytes(&line), args, context)?;
+        dump(Source::from_bytes(line), args, context)?;
     } else if let Some(flowgraph) = args.flowgraph {
         match generate_flowgraph(
             context,
@@ -319,8 +392,27 @@ fn evaluate_expr(
             Err(v) => eprintln!("{v:?}"),
         }
     } else {
-        match context.eval(Source::from_bytes(line)) {
-            Ok(v) => printer.print(format!("{}\n", v.display())),
+        let mut counters = Counters::new(args.time);
+        let script = {
+            let _timer = counters.new_timer("Parsing");
+            Script::parse(Source::from_bytes(line), None, context)
+        };
+
+        match script {
+            Ok(script) => {
+                let result = {
+                    let _timer = counters.new_timer("Execution");
+                    let result = script.evaluate(context);
+                    if let Err(err) = context.run_jobs() {
+                        printer.print(uncaught_job_error(&err));
+                    }
+                    result
+                };
+                match result {
+                    Ok(v) => printer.print(format!("{}\n", v.display())),
+                    Err(ref v) => printer.print(uncaught_error(v)),
+                }
+            }
             Err(ref v) => printer.print(uncaught_error(v)),
         }
     }
@@ -353,8 +445,13 @@ fn evaluate_file(
     }
 
     if args.module {
-        let module = Module::parse(Source::from_filepath(file)?, None, context)
-            .map_err(|e| e.into_erased(context))?;
+        let source = Source::from_filepath(file)?;
+        let mut counters = Counters::new(args.time);
+        let module = {
+            let _timer = counters.new_timer("Parsing");
+            Module::parse(source, None, context)
+        };
+        let module = module.map_err(|e| e.into_erased(context))?;
 
         loader.insert(
             file.canonicalize()
@@ -362,20 +459,39 @@ fn evaluate_file(
             module.clone(),
         );
 
-        let promise = module.load_link_evaluate(context);
-        context.run_jobs().map_err(|err| err.into_erased(context))?;
+        let promise = {
+            let _timer = counters.new_timer("Execution");
+            let promise = module.load_link_evaluate(context);
+            context.run_jobs().map_err(|err| err.into_erased(context))?;
+            Ok::<_, JsErasedError>(promise)
+        }?;
         let result = promise.state();
 
         return match result {
             PromiseState::Pending => Err(eyre!("module didn't execute")),
             PromiseState::Fulfilled(_) => Ok(()),
             PromiseState::Rejected(err) => {
-                return Err(JsError::from_opaque(err).into_erased(context).into());
+                Err(JsError::from_opaque(err).into_erased(context).into())
             }
         };
     }
 
-    match context.eval(Source::from_filepath(file)?) {
+    let source = Source::from_filepath(file)?;
+    let mut counters = Counters::new(args.time);
+    let script = {
+        let _timer = counters.new_timer("Parsing");
+        Script::parse(source, None, context)
+    };
+    let script = script.map_err(|e| e.into_erased(context))?;
+
+    let result = {
+        let _timer = counters.new_timer("Execution");
+        let result = script.evaluate(context);
+        context.run_jobs().map_err(|err| err.into_erased(context))?;
+        result
+    };
+
+    match result {
         Ok(v) => {
             if !v.is_undefined() {
                 println!("{}", v.display());
@@ -384,9 +500,7 @@ fn evaluate_file(
         Err(v) => printer.print(uncaught_error(&v)),
     }
 
-    context
-        .run_jobs()
-        .map_err(|err| err.into_erased(context).into())
+    Ok(())
 }
 
 fn evaluate_files(
@@ -413,13 +527,13 @@ fn main() -> Result<()> {
     let args = Opt::parse();
 
     // A channel of expressions to run.
-    let (sender, receiver) = std::sync::mpsc::channel::<String>();
+    let (sender, receiver) = async_channel::unbounded();
     let printer = SharedExternalPrinterLogger::new();
 
     let executor = Rc::new(Executor::new(printer.clone()));
     let loader = Rc::new(SimpleModuleLoader::new(&args.root).map_err(|e| eyre!(e.to_string()))?);
-    let mut context = ContextBuilder::new()
-        .job_executor(executor)
+    let context = &mut ContextBuilder::new()
+        .job_executor(executor.clone())
         .module_loader(loader.clone())
         .build()
         .map_err(|e| eyre!(e.to_string()))?;
@@ -428,13 +542,13 @@ fn main() -> Result<()> {
     context.strict(args.strict);
 
     // Add `console`.
-    add_runtime(printer.clone(), &mut context);
+    add_runtime(printer.clone(), context);
 
     // Trace Output
     context.set_trace(args.trace);
 
     if args.debug_object {
-        init_boa_debug_object(&mut context);
+        init_boa_debug_object(context);
     }
 
     // Configure optimizer options
@@ -444,38 +558,78 @@ fn main() -> Result<()> {
     context.set_optimizer_options(optimizer_options);
 
     if !args.files.is_empty() {
-        evaluate_files(&args, &mut context, &loader, &printer)?;
+        evaluate_files(&args, context, &loader, &printer)?;
 
         if let Some(ref expr) = args.expression {
-            evaluate_expr(expr, &args, &mut context, &printer)?;
+            evaluate_expr(expr, &args, context, &printer)?;
         }
 
         return Ok(());
     } else if let Some(ref expr) = args.expression {
-        evaluate_expr(expr, &args, &mut context, &printer)?;
+        evaluate_expr(expr, &args, context, &printer)?;
         return Ok(());
+    } else if !io::stdin().is_terminal() {
+        let mut input = String::new();
+        io::stdin()
+            .read_to_string(&mut input)
+            .wrap_err("failed to read stdin")?;
+        return if input.is_empty() {
+            Ok(())
+        } else {
+            evaluate_expr(&input, &args, context, &printer)
+        };
     }
 
     let handle = start_readline_thread(sender, printer.clone(), args.vi_mode);
 
-    loop {
-        match receiver.try_recv() {
-            Ok(line) => {
-                evaluate_expr(&line, &args, &mut context, &printer)?;
-            }
-            Err(TryRecvError::Empty) => {}
-            Err(TryRecvError::Disconnected) => break,
-        }
+    let exec = executor.clone();
+    let eval_loop = NativeAsyncJob::new(async move |context| {
+        while let Ok(line) = receiver.recv().await {
+            let printer_clone = printer.clone();
+            // schedule a new evaluation job that can run asynchronously
+            // with the other evaluations.
+            let eval_script = NativeAsyncJob::new(async move |context| {
+                let script =
+                    match Script::parse(Source::from_bytes(&line), None, &mut context.borrow_mut())
+                    {
+                        Ok(script) => script,
+                        Err(err) => {
+                            printer_clone.print(uncaught_error(&err));
+                            return Ok(JsValue::undefined());
+                        }
+                    };
 
-        if let Err(err) = context.run_jobs() {
-            printer.print(uncaught_job_error(&err));
+                // TODO: would be better to avoid blocking until the
+                // script finishes executing, but need to think about how
+                // to change the API of `evaluate_async` to enable that.
+                // (or I guess we could also implement web workers)
+                let value = match script.evaluate(&mut context.borrow_mut()) {
+                    Ok(value) => value,
+                    Err(err) => {
+                        printer_clone.print(uncaught_job_error(&err));
+                        return Ok(JsValue::undefined());
+                    }
+                };
+
+                printer_clone.print(format!("{}\n", value.display()));
+
+                Ok(JsValue::undefined())
+            });
+            context.borrow_mut().enqueue_job(eval_script.into());
         }
-        thread::sleep(Duration::from_millis(10));
-    }
+        // channel was closed, so clear the executor queue to abort all
+        // pending jobs and exit.
+        exec.clear();
+        Ok(JsValue::undefined())
+    });
+    context.enqueue_job(eval_loop.into());
+
+    let result = future::block_on(executor.run_jobs_async(&RefCell::new(context)))
+        .map_err(|e| e.into_erased(context));
 
     handle.join().expect("failed to join thread");
 
-    Ok(())
+    Ok(result?)
 }
 
 fn readline_thread_main(
@@ -519,7 +673,7 @@ fn readline_thread_main(
             Ok(line) => {
                 let line = line.trim_end();
                 editor.add_history_entry(line).map_err(io::Error::other)?;
-                sender.send(line.to_string())?;
+                sender.send_blocking(line.to_string())?;
                 thread::sleep(Duration::from_millis(10));
             }
 
@@ -568,113 +722,4 @@ fn add_runtime(printer: SharedExternalPrinterLogger, context: &mut Context) {
         context,
     )
     .expect("should not fail while registering the runtime");
-}
-
-#[allow(clippy::struct_field_names)]
-struct Executor {
-    promise_jobs: RefCell<VecDeque<PromiseJob>>,
-    async_jobs: RefCell<VecDeque<NativeAsyncJob>>,
-    timeout_jobs: RefCell<BTreeMap<JsInstant, TimeoutJob>>,
-    generic_jobs: RefCell<VecDeque<GenericJob>>,
-
-    printer: SharedExternalPrinterLogger,
-}
-
-impl Executor {
-    fn new(printer: SharedExternalPrinterLogger) -> Self {
-        Self {
-            promise_jobs: RefCell::default(),
-            async_jobs: RefCell::default(),
-            timeout_jobs: RefCell::default(),
-            generic_jobs: RefCell::default(),
-            printer,
-        }
-    }
-
-    fn is_empty(&self, context: &mut Context) -> bool {
-        let now = context.clock().now();
-
-        self.promise_jobs.borrow().is_empty()
-            && self.async_jobs.borrow().is_empty()
-            // The timeout jobs queue is empty IF there are no jobs to execute right now.
-            && !self.timeout_jobs.borrow().iter().any(|(t, _)| &now >= t)
-            && self.generic_jobs.borrow().is_empty()
-    }
-
-    fn drain_timeout_jobs(&self, context: &mut Context) {
-        let now = context.clock().now();
-
-        let mut timeouts_borrow = self.timeout_jobs.borrow_mut();
-        let mut jobs_to_keep = timeouts_borrow.split_off(&now);
-        jobs_to_keep.retain(|_, job| !job.is_cancelled());
-        let jobs_to_run = mem::replace(&mut *timeouts_borrow, jobs_to_keep);
-        drop(timeouts_borrow);
-
-        for job in jobs_to_run.into_values() {
-            if let Err(e) = job.call(context) {
-                self.printer.print(uncaught_job_error(&e));
-            }
-        }
-    }
-
-    fn drain_generic_jobs(&self, context: &mut Context) {
-        let job = self.generic_jobs.borrow_mut().pop_front();
-        if let Some(generic) = job
-            && let Err(err) = generic.call(context)
-        {
-            self.printer.print(uncaught_job_error(&err));
-        }
-    }
-}
-
-impl JobExecutor for Executor {
-    fn enqueue_job(self: Rc<Self>, job: Job, context: &mut Context) {
-        match job {
-            Job::PromiseJob(job) => self.promise_jobs.borrow_mut().push_back(job),
-            Job::AsyncJob(job) => self.async_jobs.borrow_mut().push_back(job),
-            Job::TimeoutJob(job) => {
-                let now = context.clock().now();
-                self.timeout_jobs
-                    .borrow_mut()
-                    .insert(now + job.timeout(), job);
-            }
-            Job::GenericJob(job) => self.generic_jobs.borrow_mut().push_back(job),
-            job => self.printer.print(format!("unsupported job type {job:?}")),
-        }
-    }
-
-    fn run_jobs(self: Rc<Self>, context: &mut Context) -> JsResult<()> {
-        future::block_on(self.run_jobs_async(&RefCell::new(context)))
-    }
-
-    async fn run_jobs_async(self: Rc<Self>, context: &RefCell<&mut Context>) -> JsResult<()> {
-        let mut group = FutureGroup::new();
-
-        loop {
-            for job in mem::take(&mut *self.async_jobs.borrow_mut()) {
-                group.insert(job.call(context));
-            }
-
-            if self.is_empty(&mut context.borrow_mut()) && group.is_empty() {
-                return Ok(());
-            }
-
-            if let Some(Err(e)) = future::poll_once(group.next()).await.flatten() {
-                self.printer.print(uncaught_job_error(&e));
-            }
-
-            {
-                let context = &mut context.borrow_mut();
-                self.drain_timeout_jobs(context);
-                self.drain_generic_jobs(context);
-
-                let jobs = mem::take(&mut *self.promise_jobs.borrow_mut());
-                for job in jobs {
-                    if let Err(e) = job.call(context) {
-                        self.printer.print(uncaught_job_error(&e));
-                    }
-                }
-            }
-        }
-    }
 }

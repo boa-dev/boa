@@ -309,7 +309,6 @@ pub(crate) mod test {
                     if let Err(e) = forward_file(context, &path) {
                         panic!("Uncaught {e} in file {path:?}");
                     }
-                    forward_file(context, &path).expect("failed to run file");
                 }
                 Inner::RunJobs => {
                     if let Err(e) = context.run_jobs() {

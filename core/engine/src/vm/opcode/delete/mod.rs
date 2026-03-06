@@ -3,7 +3,7 @@ use crate::{
     object::internal_methods::InternalMethodPropertyContext, vm::opcode::Operation,
 };
 
-use super::VaryingOperand;
+use super::{RegisterOperand, VaryingOperand};
 
 /// `DeletePropertyByName` implements the Opcode Operation for `Opcode::DeletePropertyByName`
 ///
@@ -15,10 +15,10 @@ pub(crate) struct DeletePropertyByName;
 impl DeletePropertyByName {
     #[inline(always)]
     pub(super) fn operation(
-        (object_register, index): (VaryingOperand, VaryingOperand),
+        (object_register, index): (RegisterOperand, VaryingOperand),
         context: &mut Context,
     ) -> JsResult<()> {
-        let object = context.vm.get_register(object_register.into()).clone();
+        let object = context.vm.take_register(object_register.into());
         let object = object.to_object(context)?;
         let code_block = context.vm.frame().code_block();
         let key = code_block.constant_string(index.into()).into();
@@ -53,7 +53,7 @@ pub(crate) struct DeletePropertyByValue;
 impl DeletePropertyByValue {
     #[inline(always)]
     pub(super) fn operation(
-        (object_register, key): (VaryingOperand, VaryingOperand),
+        (object_register, key): (RegisterOperand, RegisterOperand),
         context: &mut Context,
     ) -> JsResult<()> {
         let object = context.vm.get_register(object_register.into()).clone();
@@ -93,7 +93,7 @@ pub(crate) struct DeleteName;
 impl DeleteName {
     #[inline(always)]
     pub(super) fn operation(
-        (value, index): (VaryingOperand, VaryingOperand),
+        (value, index): (RegisterOperand, VaryingOperand),
         context: &mut Context,
     ) -> JsResult<()> {
         let mut binding_locator =
