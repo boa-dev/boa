@@ -1,4 +1,4 @@
-use super::VaryingOperand;
+use super::RegisterOperand;
 use crate::{Context, JsBigInt, JsResult, builtins::Number, value::Numeric, vm::opcode::Operation};
 use std::ops::Neg as StdNeg;
 
@@ -19,7 +19,7 @@ pub(crate) struct TypeOf;
 
 impl TypeOf {
     #[inline(always)]
-    pub(super) fn operation(value: VaryingOperand, context: &mut Context) {
+    pub(super) fn operation(value: RegisterOperand, context: &mut Context) {
         context.vm.set_register(
             value.into(),
             context.vm.get_register(value.into()).js_type_of().into(),
@@ -42,7 +42,7 @@ pub(crate) struct Pos;
 
 impl Pos {
     #[inline(always)]
-    pub(super) fn operation(value: VaryingOperand, context: &mut Context) -> JsResult<()> {
+    pub(super) fn operation(value: RegisterOperand, context: &mut Context) -> JsResult<()> {
         let v = context
             .vm
             .get_register(value.into())
@@ -69,7 +69,7 @@ pub(crate) struct Neg;
 
 impl Neg {
     #[inline(always)]
-    pub(super) fn operation(value: VaryingOperand, context: &mut Context) -> JsResult<()> {
+    pub(super) fn operation(value: RegisterOperand, context: &mut Context) -> JsResult<()> {
         match context
             .vm
             .get_register(value.into())
@@ -100,7 +100,7 @@ pub(crate) struct BitNot;
 
 impl BitNot {
     #[inline(always)]
-    pub(super) fn operation(value: VaryingOperand, context: &mut Context) -> JsResult<()> {
+    pub(super) fn operation(value: RegisterOperand, context: &mut Context) -> JsResult<()> {
         match context
             .vm
             .get_register(value.into())

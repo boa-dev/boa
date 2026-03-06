@@ -2,7 +2,7 @@ use crate::{
     Context, JsResult, js_str, js_string,
     object::PrivateElement,
     property::PropertyDescriptor,
-    vm::opcode::{Operation, VaryingOperand},
+    vm::opcode::{Operation, RegisterOperand, VaryingOperand},
 };
 
 /// `SetPrivateField` implements the Opcode Operation for `Opcode::SetPrivateField`
@@ -15,7 +15,7 @@ pub(crate) struct SetPrivateField;
 impl SetPrivateField {
     #[inline(always)]
     pub(crate) fn operation(
-        (value, object, index): (VaryingOperand, VaryingOperand, VaryingOperand),
+        (value, object, index): (RegisterOperand, RegisterOperand, VaryingOperand),
         context: &mut Context,
     ) -> JsResult<()> {
         let name = context
@@ -28,7 +28,7 @@ impl SetPrivateField {
         let base_obj = object.to_object(context)?;
         let name = context
             .vm
-            .frame
+            .frame()
             .environments
             .resolve_private_identifier(name)
             .expect("private name must be in environment");
@@ -54,7 +54,7 @@ pub(crate) struct DefinePrivateField;
 impl DefinePrivateField {
     #[inline(always)]
     pub(crate) fn operation(
-        (object, value, index): (VaryingOperand, VaryingOperand, VaryingOperand),
+        (object, value, index): (RegisterOperand, RegisterOperand, VaryingOperand),
         context: &mut Context,
     ) {
         let object = context.vm.get_register(object.into());
@@ -92,7 +92,7 @@ pub(crate) struct SetPrivateMethod;
 impl SetPrivateMethod {
     #[inline(always)]
     pub(crate) fn operation(
-        (object, value, index): (VaryingOperand, VaryingOperand, VaryingOperand),
+        (object, value, index): (RegisterOperand, RegisterOperand, VaryingOperand),
         context: &mut Context,
     ) {
         let object = context.vm.get_register(object.into()).clone();
@@ -142,7 +142,7 @@ pub(crate) struct SetPrivateSetter;
 impl SetPrivateSetter {
     #[inline(always)]
     pub(crate) fn operation(
-        (object, value, index): (VaryingOperand, VaryingOperand, VaryingOperand),
+        (object, value, index): (RegisterOperand, RegisterOperand, VaryingOperand),
         context: &mut Context,
     ) {
         let object = context.vm.get_register(object.into());
@@ -184,7 +184,7 @@ pub(crate) struct SetPrivateGetter;
 impl SetPrivateGetter {
     #[inline(always)]
     pub(crate) fn operation(
-        (object, value, index): (VaryingOperand, VaryingOperand, VaryingOperand),
+        (object, value, index): (RegisterOperand, RegisterOperand, VaryingOperand),
         context: &mut Context,
     ) {
         let object = context.vm.get_register(object.into());

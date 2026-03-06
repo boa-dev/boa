@@ -38,7 +38,14 @@ all-features = true
 
 [features]
 # Default should not add `reqwest` as it is not available on all platforms.
-default = ["fetch", "url"]
+default = [
+    "boa_engine/float16",
+    "boa_engine/temporal",
+    "boa_engine/xsum",
+    "fetch",
+    "url",
+]
+
 all = ["default", "reqwest-blocking"]
 url = ["dep:url"]
 fetch = [

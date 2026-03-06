@@ -1,11 +1,50 @@
-use super::VaryingOperand;
+use super::{RegisterOperand, VaryingOperand};
 use crate::{
-    Context, JsResult, JsValue,
-    builtins::function::OrdinaryFunction,
+    Context, JsExpect, JsResult, JsValue,
     error::JsNativeError,
     object::internal_methods::InternalMethodPropertyContext,
     vm::{CallFrameFlags, opcode::Operation},
 };
+
+/// `GetFunctionObject` implements the Opcode Operation for `Opcode::GetFunctionObject`
+///
+/// Operation:
+///  - Gets the function object of the current Function environment.
+///
+/// Registers (out):
+///  - `function_object`: `JsObject`.
+#[derive(Debug, Clone, Copy)]
+pub(crate) struct GetFunctionObject;
+
+impl GetFunctionObject {
+    #[inline(always)]
+    pub(super) fn operation(
+        function_object: RegisterOperand,
+        context: &mut Context,
+    ) -> JsResult<()> {
+        let env = context
+            .vm
+            .frame()
+            .environments
+            .get_this_environment()
+            .as_function()
+            .js_expect("must be in a function environment")?;
+
+        let function_object_v = env.slots().function_object().clone().into();
+
+        context
+            .vm
+            .set_register(function_object.into(), function_object_v);
+
+        Ok(())
+    }
+}
+
+impl Operation for GetFunctionObject {
+    const NAME: &'static str = "GetFunctionObject";
+    const INSTRUCTION: &'static str = "INST - GetFunctionObject";
+    const COST: u8 = 4;
+}
 
 /// `This` implements the Opcode Operation for `Opcode::This`
 ///
@@ -16,7 +55,7 @@ pub(crate) struct This;
 
 impl This {
     #[inline(always)]
-    pub(super) fn operation(dst: VaryingOperand, context: &mut Context) -> JsResult<()> {
+    pub(super) fn operation(dst: RegisterOperand, context: &mut Context) -> JsResult<()> {
         if context.vm.frame().has_this_value_cached() {
             let this = context.vm.stack.get_this(context.vm.frame());
             context.vm.set_register(dst.into(), this);
@@ -25,12 +64,15 @@ impl This {
 
         let this = context
             .vm
-            .frame
+            .frame()
             .environments
             .get_this_binding()?
             .unwrap_or(context.realm().global_this().clone().into());
         context.vm.frame_mut().flags |= CallFrameFlags::THIS_VALUE_CACHED;
-        context.vm.stack.set_this(&context.vm.frame, this.clone());
+        context.vm.stack.set_this(
+            context.vm.frames.last().expect("frame must exist"),
+            this.clone(),
+        );
         context.vm.set_register(dst.into(), this);
         Ok(())
     }
@@ -52,7 +94,7 @@ pub(crate) struct ThisForObjectEnvironmentName;
 impl ThisForObjectEnvironmentName {
     #[inline(always)]
     pub(super) fn operation(
-        (dst, index): (VaryingOperand, VaryingOperand),
+        (dst, index): (RegisterOperand, VaryingOperand),
         context: &mut Context,
     ) -> JsResult<()> {
         let binding_locator = context.vm.frame().code_block.bindings[usize::from(index)].clone();
@@ -68,88 +110,6 @@ impl Operation for ThisForObjectEnvironmentName {
     const NAME: &'static str = "ThisForObjectEnvironmentName";
     const INSTRUCTION: &'static str = "INST - ThisForObjectEnvironmentName";
     const COST: u8 = 1;
-}
-
-/// `Super` implements the Opcode Operation for `Opcode::Super`
-///
-/// Operation:
-///  - Pushes the current `super` value to the stack.
-#[derive(Debug, Clone, Copy)]
-pub(crate) struct Super;
-
-impl Super {
-    #[inline(always)]
-    pub(super) fn operation(dst: VaryingOperand, context: &mut Context) -> JsResult<()> {
-        let home_object = {
-            let env = context
-                .vm
-                .frame
-                .environments
-                .get_this_environment()
-                .as_function()
-                .expect("super access must be in a function environment");
-            let this = env
-                .get_this_binding()?
-                .expect("`get_this_environment` ensures this returns `Some`");
-
-            env.slots()
-                .function_object()
-                .downcast_ref::<OrdinaryFunction>()
-                .expect("must be function object")
-                .get_home_object()
-                .cloned()
-                .or(this.as_object())
-        };
-
-        let value = home_object
-            .map(|o| o.__get_prototype_of__(&mut InternalMethodPropertyContext::new(context)))
-            .transpose()?
-            .flatten()
-            .map_or_else(JsValue::null, JsValue::from);
-
-        context.vm.set_register(dst.into(), value);
-        Ok(())
-    }
-}
-
-impl Operation for Super {
-    const NAME: &'static str = "Super";
-    const INSTRUCTION: &'static str = "INST - Super";
-    const COST: u8 = 3;
-}
-
-/// `SuperCallPrepare` implements the Opcode Operation for `Opcode::SuperCallPrepare`
-///
-/// Operation:
-///  - Get the super constructor and the new target of the current environment.
-#[derive(Debug, Clone, Copy)]
-pub(crate) struct SuperCallPrepare;
-
-impl SuperCallPrepare {
-    #[inline(always)]
-    pub(super) fn operation(dst: VaryingOperand, context: &mut Context) {
-        let this_env = context
-            .vm
-            .frame
-            .environments
-            .get_this_environment()
-            .as_function()
-            .expect("super call must be in function environment");
-        let active_function = this_env.slots().function_object().clone();
-        let super_constructor = active_function
-            .__get_prototype_of__(&mut InternalMethodPropertyContext::new(context))
-            .expect("function object must have prototype");
-        context.vm.set_register(
-            dst.into(),
-            super_constructor.map_or_else(JsValue::null, JsValue::from),
-        );
-    }
-}
-
-impl Operation for SuperCallPrepare {
-    const NAME: &'static str = "SuperCallPrepare";
-    const INSTRUCTION: &'static str = "INST - SuperCallPrepare";
-    const COST: u8 = 3;
 }
 
 /// `SuperCall` implements the Opcode Operation for `Opcode::SuperCall`
@@ -176,7 +136,7 @@ impl SuperCall {
 
         let this_env = context
             .vm
-            .frame
+            .frame()
             .environments
             .get_this_environment()
             .as_function()
@@ -241,7 +201,7 @@ impl SuperCallSpread {
 
         let this_env = context
             .vm
-            .frame
+            .frame()
             .environments
             .get_this_environment()
             .as_function()
@@ -280,7 +240,7 @@ impl SuperCallDerived {
     pub(super) fn operation((): (), context: &mut Context) -> JsResult<()> {
         let this_env = context
             .vm
-            .frame
+            .frame()
             .environments
             .get_this_environment()
             .as_function()
@@ -331,7 +291,7 @@ pub(crate) struct BindThisValue;
 
 impl BindThisValue {
     #[inline(always)]
-    pub(super) fn operation(value: VaryingOperand, context: &mut Context) -> JsResult<()> {
+    pub(super) fn operation(value: RegisterOperand, context: &mut Context) -> JsResult<()> {
         // Taken from `SuperCall : super Arguments` steps 7-12.
         //
         // <https://tc39.es/ecma262/#sec-super-keyword-runtime-semantics-evaluation>
@@ -346,7 +306,7 @@ impl BindThisValue {
         // 7. Let thisER be GetThisEnvironment().
         let this_env = context
             .vm
-            .frame
+            .frame()
             .environments
             .get_this_environment()
             .as_function()

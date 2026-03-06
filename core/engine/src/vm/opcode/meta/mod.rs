@@ -1,4 +1,4 @@
-use super::VaryingOperand;
+use super::RegisterOperand;
 use crate::{
     Context, JsObject, JsValue,
     module::ModuleKind,
@@ -15,10 +15,10 @@ pub(crate) struct NewTarget;
 
 impl NewTarget {
     #[inline(always)]
-    pub(super) fn operation(dst: VaryingOperand, context: &mut Context) {
+    pub(super) fn operation(dst: RegisterOperand, context: &mut Context) {
         let new_target = if let Some(new_target) = context
             .vm
-            .frame
+            .frame()
             .environments
             .get_this_environment()
             .as_function()
@@ -47,7 +47,7 @@ pub(crate) struct ImportMeta;
 
 impl ImportMeta {
     #[inline(always)]
-    pub(super) fn operation(dst: VaryingOperand, context: &mut Context) {
+    pub(super) fn operation(dst: RegisterOperand, context: &mut Context) {
         // Meta Properties
         //
         // ImportMeta : import . meta

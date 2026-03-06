@@ -1,6 +1,6 @@
 use crate::{
     Context, JsResult,
-    vm::opcode::{Operation, VaryingOperand},
+    vm::opcode::{Operation, RegisterOperand, VaryingOperand},
 };
 
 /// `GetPrivateField` implements the Opcode Operation for `Opcode::GetPrivateField`
@@ -13,7 +13,7 @@ pub(crate) struct GetPrivateField;
 impl GetPrivateField {
     #[inline(always)]
     pub(crate) fn operation(
-        (dst, object, index): (VaryingOperand, VaryingOperand, VaryingOperand),
+        (dst, object, index): (RegisterOperand, RegisterOperand, VaryingOperand),
         context: &mut Context,
     ) -> JsResult<()> {
         let name = context
@@ -25,7 +25,7 @@ impl GetPrivateField {
         let object = object.to_object(context)?;
         let name = context
             .vm
-            .frame
+            .frame()
             .environments
             .resolve_private_identifier(name)
             .expect("private name must be in environment");
