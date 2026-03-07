@@ -576,20 +576,12 @@ mod boa_string_trace {
 
 impl<T: Trace> Finalize for Mutex<T> {}
 unsafe impl<T: Trace> Trace for Mutex<T> {
-    custom_trace!(this, mark, {
-        if let Ok(val) = this.lock() {
-            mark(&*val);
-        }
-    });
+    empty_trace!();
 }
 
 impl<T: Trace> Finalize for RwLock<T> {}
 unsafe impl<T: Trace> Trace for RwLock<T> {
-    custom_trace!(this, mark, {
-        if let Ok(val) = this.read() {
-            mark(&*val);
-        }
-    });
+    empty_trace!();
 }
 #[cfg(feature = "either")]
 mod either_trace {
