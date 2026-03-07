@@ -49,6 +49,7 @@ use std::mem;
 use std::rc::Rc;
 use std::sync::Arc;
 use std::sync::atomic::Ordering;
+use std::task::Poll;
 use std::{cell::RefCell, collections::VecDeque, fmt::Debug, future::Future, pin::Pin};
 
 /// An ECMAScript [Job Abstract Closure].
@@ -774,24 +775,39 @@ impl JobExecutor for SimpleJobExecutor {
                 && self.generic_jobs.borrow().is_empty();
 
             if no_live_work && !self.timeout_jobs.borrow().is_empty() {
-                // Only future-scheduled timeout jobs remain.  Sleep until the
+                // Only future-scheduled timeout jobs remain. Idle until the
                 // earliest one is due instead of busy-spinning.
-                let sleep_dur = {
-                    let now = context.borrow().clock().now();
-                    self.timeout_jobs
-                        .borrow()
-                        .keys()
-                        .next()
-                        .map(|&deadline| time::Duration::from(deadline - now))
-                };
-                if let Some(dur) = sleep_dur {
+                let now = context.borrow().clock().now();
+                let deadline = self
+                    .timeout_jobs
+                    .borrow()
+                    .keys()
+                    .next()
+                    .copied()
+                    .filter(|&d| d > now);
+
+                if let Some(deadline) = deadline {
+                    let dur = time::Duration::from(deadline - now);
                     if !dur.is_zero() {
-                        let (tx, rx) = oneshot::channel::<()>();
+                        let (tx, mut rx) = oneshot::channel::<()>();
                         std::thread::spawn(move || {
                             std::thread::sleep(dur);
                             let _ = tx.send(());
                         });
-                        let _ = rx.await;
+                        // Re-check the clock on every poll so that mock clocks
+                        // (e.g. FixedClock used in tests) can advance past the
+                        // deadline without waiting for real-time sleep to complete.
+                        std::future::poll_fn(|cx| {
+                            let now = context.borrow().clock().now();
+                            if now >= deadline {
+                                return Poll::Ready(());
+                            }
+                            match Pin::new(&mut rx).poll(cx) {
+                                Poll::Ready(_) => Poll::Ready(()),
+                                Poll::Pending => Poll::Pending,
+                            }
+                        })
+                        .await;
                     }
                 }
             } else {
