@@ -426,3 +426,16 @@ fn object_from_entries() {
         TestAction::assert_eq("map[5]", 4),
     ]);
 }
+
+#[test]
+fn object_prototype_proto_accessor_properties() {
+    run_test_actions([
+        TestAction::run(
+            "let desc = Object.getOwnPropertyDescriptor(Object.prototype, '__proto__');",
+        ),
+        TestAction::assert_eq("desc.get.length", 0),
+        TestAction::assert_eq("desc.set.length", 1),
+        TestAction::assert_eq("desc.get.name", js_str!("get __proto__")),
+        TestAction::assert_eq("desc.set.name", js_str!("set __proto__")),
+    ]);
+}

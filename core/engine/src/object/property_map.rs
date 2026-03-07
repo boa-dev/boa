@@ -9,31 +9,10 @@ use super::{
 };
 use crate::value::JsVariant;
 use crate::{JsValue, property::PropertyDescriptorBuilder};
-use boa_gc::{Finalize, Trace, custom_trace};
-use indexmap::IndexMap;
-use rustc_hash::{FxHashMap, FxHasher};
-use std::{collections::hash_map, hash::BuildHasherDefault, iter::FusedIterator};
+use boa_gc::{Finalize, Trace};
+use rustc_hash::FxHashMap;
+use std::{collections::hash_map, iter::FusedIterator};
 use thin_vec::ThinVec;
-
-/// Wrapper around `indexmap::IndexMap` for usage in `PropertyMap`.
-#[derive(Debug, Finalize)]
-#[allow(unused)] // TODO: OrderedHashmap is unused, candidate for removal?
-struct OrderedHashMap<K: Trace>(IndexMap<K, PropertyDescriptor, BuildHasherDefault<FxHasher>>);
-
-impl<K: Trace> Default for OrderedHashMap<K> {
-    fn default() -> Self {
-        Self(IndexMap::with_hasher(BuildHasherDefault::default()))
-    }
-}
-
-unsafe impl<K: Trace> Trace for OrderedHashMap<K> {
-    custom_trace!(this, mark, {
-        for (k, v) in &this.0 {
-            mark(k);
-            mark(v);
-        }
-    });
-}
 
 /// This represents all the indexed properties.
 ///
