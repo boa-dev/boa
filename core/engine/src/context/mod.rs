@@ -12,7 +12,7 @@ use intrinsics::Intrinsics;
 #[cfg(any(feature = "temporal", feature = "intl"))]
 use temporal_rs::provider::TimeZoneProvider;
 #[cfg(any(feature = "temporal", feature = "intl"))]
-use timezone_provider::tzif::CompiledTzdbProvider;
+use timezone_provider::experimental_tzif::ZeroCompiledTzdbProvider;
 
 use crate::job::Job;
 use crate::module::DynModuleLoader;
@@ -1134,7 +1134,7 @@ impl ContextBuilder {
             timezone_provider: if let Some(provider) = self.timezone_provider {
                 provider
             } else {
-                Box::new(CompiledTzdbProvider::default())
+                Box::new(ZeroCompiledTzdbProvider::default())
             },
             #[cfg(feature = "intl")]
             intl_provider: if let Some(icu) = self.icu {
