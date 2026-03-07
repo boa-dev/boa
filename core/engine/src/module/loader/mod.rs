@@ -64,7 +64,7 @@ pub fn resolve_module_specifier(
     #[cfg(target_family = "windows")]
     let specifier = cow_utils::CowUtils::cow_replace(specifier.as_str(), '/', "\\");
 
-    let short_path = Path::new(specifier.as_ref());
+    let short_path = Path::new(&*specifier);
 
     // In ECMAScript, a path is considered relative if it starts with
     // `./` or `../`. In Rust it's any path that start with `/`.
@@ -79,7 +79,7 @@ pub fn resolve_module_specifier(
             ));
         }
     } else {
-        base_path.join(specifier.as_ref())
+        base_path.join(&*specifier)
     };
 
     if long_path.is_relative() && base.is_some() {

@@ -906,7 +906,6 @@ impl Context {
 ///
 /// This builder allows custom initialization of the [`Interner`] within
 /// the context.
-#[derive(Default)]
 pub struct ContextBuilder {
     interner: Option<Interner>,
     host_hooks: Option<Rc<dyn HostHooks>>,
@@ -920,6 +919,25 @@ pub struct ContextBuilder {
     timezone_provider: Option<Box<dyn TimeZoneProvider>>,
     #[cfg(feature = "fuzz")]
     instructions_remaining: usize,
+}
+
+impl Default for ContextBuilder {
+    fn default() -> Self {
+        Self {
+            interner: None,
+            host_hooks: None,
+            clock: None,
+            job_executor: None,
+            module_loader: None,
+            can_block: false,
+            #[cfg(feature = "intl")]
+            icu: None,
+            #[cfg(feature = "temporal")]
+            timezone_provider: None,
+            #[cfg(feature = "fuzz")]
+            instructions_remaining: usize::MAX,
+        }
+    }
 }
 
 impl std::fmt::Debug for ContextBuilder {
