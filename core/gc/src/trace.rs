@@ -11,7 +11,7 @@ use std::{
     },
     path::{Path, PathBuf},
     rc::Rc,
-    sync::{Mutex, RwLock, atomic},
+    sync::atomic,
     time::{Instant, SystemTime},
 };
 
@@ -572,16 +572,6 @@ mod boa_string_trace {
     }
 
     impl Finalize for boa_string::JsString {}
-}
-
-impl<T: Trace> Finalize for Mutex<T> {}
-unsafe impl<T: Trace> Trace for Mutex<T> {
-    empty_trace!();
-}
-
-impl<T: Trace> Finalize for RwLock<T> {}
-unsafe impl<T: Trace> Trace for RwLock<T> {
-    empty_trace!();
 }
 #[cfg(feature = "either")]
 mod either_trace {
