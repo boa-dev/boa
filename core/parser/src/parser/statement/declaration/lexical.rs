@@ -100,16 +100,14 @@ where
                 self.loop_init,
             )
             .parse(cursor, interner)?,
-            TokenKind::Keyword((Keyword::Using, false)) => {
-                BindingList::new(
-                    self.allow_in,
-                    self.allow_yield,
-                    self.allow_await,
-                    DeclarationType::Using,
-                    self.loop_init,
-                )
-                .parse(cursor, interner)?
-            }
+            TokenKind::Keyword((Keyword::Using, false)) => BindingList::new(
+                self.allow_in,
+                self.allow_yield,
+                self.allow_await,
+                DeclarationType::Using,
+                self.loop_init,
+            )
+            .parse(cursor, interner)?,
             TokenKind::Keyword((Keyword::Await, false)) => {
                 // Per spec: https://arai-a.github.io/ecma262-compare/snapshot.html?pr=3000#prod-LexicalDeclaration
                 // `await using` is only valid when [+Await] is true
@@ -119,11 +117,11 @@ where
                         tok.span().start(),
                     ));
                 }
-                
+
                 // Per spec: https://arai-a.github.io/ecma262-compare/snapshot.html?pr=3000#prod-AwaitUsingDeclarationHead
                 // There must be [no LineTerminator here] between `await` and `using`
                 let next_tok = cursor.peek_no_skip_line_term(0, interner).or_abrupt()?;
-                
+
                 // Check if next token is a line terminator
                 if next_tok.kind() == &TokenKind::LineTerminator {
                     return Err(Error::general(
@@ -131,7 +129,7 @@ where
                         tok.span().start(),
                     ));
                 }
-                
+
                 // Check if this is `await using`
                 if matches!(next_tok.kind(), TokenKind::Keyword((Keyword::Using, false))) {
                     cursor.advance(interner); // consume 'using'
@@ -252,8 +250,13 @@ where
         );
 
         loop {
-            let decl = LexicalBinding::new(self.allow_in, self.allow_yield, self.allow_await, self.declaration_type)
-                .parse(cursor, interner)?;
+            let decl = LexicalBinding::new(
+                self.allow_in,
+                self.allow_yield,
+                self.allow_await,
+                self.declaration_type,
+            )
+            .parse(cursor, interner)?;
 
             if requires_initializer {
                 let init_is_some = decl.init().is_some();
@@ -341,7 +344,12 @@ struct LexicalBinding {
 
 impl LexicalBinding {
     /// Creates a new `BindingList` parser.
-    fn new<I, Y, A>(allow_in: I, allow_yield: Y, allow_await: A, declaration_type: DeclarationType) -> Self
+    fn new<I, Y, A>(
+        allow_in: I,
+        allow_yield: Y,
+        allow_await: A,
+        declaration_type: DeclarationType,
+    ) -> Self
     where
         I: Into<AllowIn>,
         Y: Into<AllowYield>,
@@ -371,13 +379,16 @@ where
                 // Per spec: https://tc39.es/proposal-explicit-resource-management/
                 // The grammar uses ~Pattern parameter which means destructuring is NOT allowed
                 // for `using` and `await using` declarations
-                if matches!(self.declaration_type, DeclarationType::Using | DeclarationType::AwaitUsing) {
+                if matches!(
+                    self.declaration_type,
+                    DeclarationType::Using | DeclarationType::AwaitUsing
+                ) {
                     return Err(Error::general(
                         "destructuring patterns are not allowed in using declarations",
                         position,
                     ));
                 }
-                
+
                 let bindings = ObjectBindingPattern::new(self.allow_yield, self.allow_await)
                     .parse(cursor, interner)?;
 
@@ -409,13 +420,16 @@ where
                 // Per spec: https://tc39.es/proposal-explicit-resource-management/
                 // The grammar uses ~Pattern parameter which means destructuring is NOT allowed
                 // for `using` and `await using` declarations
-                if matches!(self.declaration_type, DeclarationType::Using | DeclarationType::AwaitUsing) {
+                if matches!(
+                    self.declaration_type,
+                    DeclarationType::Using | DeclarationType::AwaitUsing
+                ) {
                     return Err(Error::general(
                         "destructuring patterns are not allowed in using declarations",
                         position,
                     ));
                 }
-                
+
                 let bindings = ArrayBindingPattern::new(self.allow_yield, self.allow_await)
                     .parse(cursor, interner)?;
 

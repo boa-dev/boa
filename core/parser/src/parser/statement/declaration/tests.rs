@@ -754,7 +754,11 @@ fn await_using_declaration() {
     let mut parser = Parser::new(source);
     let scope = boa_ast::scope::Scope::new_global();
     let result = parser.parse_script(&scope, interner);
-    assert!(result.is_ok(), "Failed to parse await using in async function: {:?}", result.err());
+    assert!(
+        result.is_ok(),
+        "Failed to parse await using in async function: {:?}",
+        result.err()
+    );
 }
 
 /// Checks that `await using` declaration without initializer fails.
@@ -778,14 +782,18 @@ fn await_using_requires_async_context() {
 fn await_using_no_line_terminator() {
     // Line terminator between await and using should fail
     check_invalid_script("async function f() { await\nusing x = resource; }");
-    
+
     // Without line terminator should succeed
     let interner = &mut Interner::default();
     let source = Source::from_bytes("async function f() { await using x = resource; }");
     let mut parser = Parser::new(source);
     let scope = boa_ast::scope::Scope::new_global();
     let result = parser.parse_script(&scope, interner);
-    assert!(result.is_ok(), "Failed to parse await using without line terminator: {:?}", result.err());
+    assert!(
+        result.is_ok(),
+        "Failed to parse await using without line terminator: {:?}",
+        result.err()
+    );
 }
 
 /// Checks that destructuring patterns are rejected for `using` declarations.
@@ -885,6 +893,9 @@ fn await_using_valid_identifiers() {
     let mut parser = Parser::new(source);
     let scope = boa_ast::scope::Scope::new_global();
     let result = parser.parse_script(&scope, interner);
-    assert!(result.is_ok(), "Failed to parse await using with multiple bindings: {:?}", result.err());
+    assert!(
+        result.is_ok(),
+        "Failed to parse await using with multiple bindings: {:?}",
+        result.err()
+    );
 }
-

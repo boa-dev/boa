@@ -87,9 +87,14 @@ where
                     && next_tok.kind() != &TokenKind::LineTerminator
                     && matches!(next_tok.kind(), TokenKind::Keyword((Keyword::Using, false)))
                 {
-                    return LexicalDeclaration::new(true, self.allow_yield, self.allow_await, false)
-                        .parse(cursor, interner)
-                        .map(Into::into);
+                    return LexicalDeclaration::new(
+                        true,
+                        self.allow_yield,
+                        self.allow_await,
+                        false,
+                    )
+                    .parse(cursor, interner)
+                    .map(Into::into);
                 }
                 Err(Error::expected(
                     [

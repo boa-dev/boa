@@ -424,11 +424,12 @@ where
         let tok = cursor.peek(0, interner).or_abrupt()?;
 
         match tok.kind().clone() {
-            TokenKind::Keyword((Keyword::Function | Keyword::Class | Keyword::Const | Keyword::Using, _)) => {
-                Declaration::new(self.allow_yield, self.allow_await)
-                    .parse(cursor, interner)
-                    .map(ast::StatementListItem::from)
-            }
+            TokenKind::Keyword((
+                Keyword::Function | Keyword::Class | Keyword::Const | Keyword::Using,
+                _,
+            )) => Declaration::new(self.allow_yield, self.allow_await)
+                .parse(cursor, interner)
+                .map(ast::StatementListItem::from),
             TokenKind::Keyword((Keyword::Let, false))
                 if allowed_token_after_let(cursor.peek(1, interner)?) =>
             {
