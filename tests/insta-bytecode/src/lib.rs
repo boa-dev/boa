@@ -1,4 +1,8 @@
-use std::{fs::File, path::PathBuf, process::{Command, Stdio}};
+use std::{
+    fs::File,
+    path::PathBuf,
+    process::{Command, Stdio},
+};
 
 pub const MANIFEST_DIR: &str = env!("CARGO_MANIFEST_DIR");
 
@@ -15,7 +19,7 @@ pub fn collect_file_trace(file_path: PathBuf) -> String {
         .output()
         .unwrap();
     if result.status.success() {
-        return String::from_utf8_lossy(&result.stdout).to_string()
+        String::from_utf8_lossy(&result.stdout).to_string()
     } else {
         let failure_msg = String::from_utf8_lossy(&result.stderr).to_string();
         panic!("boa failed: {}", failure_msg);
@@ -30,7 +34,6 @@ fn basic_loop() {
     ]}, {
         insta::assert_snapshot!(output)
     })
-
 }
 
 #[test]
