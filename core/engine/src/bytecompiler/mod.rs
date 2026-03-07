@@ -536,6 +536,7 @@ pub(crate) enum BindingKind {
 }
 
 /// Where the call result should go.
+#[derive(Copy, Clone)]
 enum CallResultDest<'a> {
     /// Pop result into the given register.
     Register(&'a Register),
