@@ -44,22 +44,22 @@ pub fn collect_file_trace(file_path: PathBuf) -> String {
     }
 }
 
-#[test]
-fn basic_loop() {
-    let output = collect_file_trace(js_directory().join("basicLoop.js"));
-    insta::with_settings!({filters => vec![
-        (r"[0-9]+μs", "[time]")
-    ]}, {
-        insta::assert_snapshot!(output)
-    })
+macro_rules! test_case {
+    ($fn_name:ident, $js_filename:literal) => {
+        #[test]
+        fn $fn_name() {
+            let output = collect_file_trace(js_directory().join("basicLoop.js"));
+            insta::assert_snapshot!(output)
+        }
+    };
 }
 
-#[test]
-fn double_loop_function() {
-    let output = collect_file_trace(js_directory().join("doubleLoopFunction.js"));
-    insta::with_settings!({filters => vec![
-        (r"[0-9]+μs", "[time]")
-    ]}, {
-        insta::assert_snapshot!(output)
-    })
-}
+// Add test cases below
+//
+// Important note:
+//
+// The first arg is the function name / snapshot name
+// The second arg is the js filename
+//
+test_case!(basic_loop, "basicLoop.js");
+test_case!(double_loop_function, "doubleLoopFunction.js");
