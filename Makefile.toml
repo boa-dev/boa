@@ -13,6 +13,10 @@ run_task.name = [
     "ci-lint-no-features"
 ]
 
+[tasks.build-cli]
+command = "cargo"
+args = ["build", "-p", "boa_cli"]
+
 [tasks.format]
 install_crate = "rustfmt"
 command = "cargo"
@@ -30,6 +34,18 @@ args = ["run", "@@remove-empty(RELEASE_ARG)", "--bin", "boa_tester", "--", "run"
 condition = { env_set = [ "BOA_DATA_ROOT" ] }
 command = "cargo"
 args = ["run", "--bin", "boa", "--release", "--", "@@remove-empty(BOA_DATA_ROOT)bench/bench-v8/combined.js"]
+
+[tasks.insta-test]
+install_crate = "cargo-insta"
+command = "cargo"
+args = ["insta", "test", "-p", "insta-bytecode", "--review"]
+dependencies = ["build-cli"]
+
+[tasks.insta-review]
+install_crate = "cargo-insta"
+command = "cargo"
+args = ["insta", "review", "--manifest-path", "./tests/insta-bytecode/Cargo.toml"]
+dependencies = ["build-cli"]
 
 [env.development]
 RELEASE_ARG=""

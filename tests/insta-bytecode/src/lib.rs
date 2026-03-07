@@ -10,10 +10,24 @@ pub fn js_directory() -> PathBuf {
     PathBuf::from(MANIFEST_DIR).join("js")
 }
 
+pub fn target_diretory() -> PathBuf {
+    PathBuf::from(MANIFEST_DIR)
+        .parent()
+        .unwrap()
+        .parent()
+        .unwrap()
+        .join("target")
+}
+
 pub fn collect_file_trace(file_path: PathBuf) -> String {
     let file_path_msg = file_path.to_string_lossy().to_string();
     println!("Testing {}", file_path_msg);
-    let result = Command::new("boa")
+    let boa_exe = target_diretory()
+        .join("debug/boa")
+        .to_string_lossy()
+        .to_string();
+    println!("Using boa: {boa_exe:?}");
+    let result = Command::new(boa_exe)
         .args(["--trace"])
         .stdin(Stdio::from(File::open(file_path).unwrap()))
         .output()
