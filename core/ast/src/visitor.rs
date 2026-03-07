@@ -48,9 +48,15 @@ use crate::{
 };
 use boa_interner::Sym;
 
-/// Creates the default visit function implementation for a particular type
+/// Creates the default visit function implementation for an arena type (has `<'arena>`).
 macro_rules! define_visit {
-    ($fn_name:ident, $type_name:ident) => {
+    ($fn_name:ident, $type_name:ident, arena) => {
+        #[doc = concat!("Visits a `", stringify!($type_name), "` with this visitor")]
+        fn $fn_name(&mut self, node: &'ast $type_name<'arena>) -> ControlFlow<Self::BreakTy> {
+            node.visit_with(self)
+        }
+    };
+    ($fn_name:ident, $type_name:ident, plain) => {
         #[doc = concat!("Visits a `", stringify!($type_name), "` with this visitor")]
         fn $fn_name(&mut self, node: &'ast $type_name) -> ControlFlow<Self::BreakTy> {
             node.visit_with(self)
@@ -58,9 +64,15 @@ macro_rules! define_visit {
     };
 }
 
-/// Creates the default mutable visit function implementation for a particular type
+/// Creates the default mutable visit function implementation for an arena type (has `<'arena>`).
 macro_rules! define_visit_mut {
-    ($fn_name:ident, $type_name:ident) => {
+    ($fn_name:ident, $type_name:ident, arena) => {
+        #[doc = concat!("Visits a `", stringify!($type_name), "` with this visitor, mutably")]
+        fn $fn_name(&mut self, node: &'ast mut $type_name<'arena>) -> ControlFlow<Self::BreakTy> {
+            node.visit_with_mut(self)
+        }
+    };
+    ($fn_name:ident, $type_name:ident, plain) => {
         #[doc = concat!("Visits a `", stringify!($type_name), "` with this visitor, mutably")]
         fn $fn_name(&mut self, node: &'ast mut $type_name) -> ControlFlow<Self::BreakTy> {
             node.visit_with_mut(self)
@@ -68,27 +80,36 @@ macro_rules! define_visit_mut {
     };
 }
 
-/// Generates the `NodeRef` and `NodeMutRef` enums from a list of variants.
+/// Generates the `NodeRef` and `NodeRefMut` enums from arena and plain type lists.
 macro_rules! node_ref {
     (
-        $(
-            $Variant:ident
-        ),*
-        $(,)?
+        @arena { $($ArenaVariant:ident),* $(,)? }
+        @plain { $($PlainVariant:ident),* $(,)? }
     ) => {
         /// A reference to a node visitable by a [`Visitor`].
         #[derive(Debug, Clone, Copy)]
         #[allow(missing_docs)]
-        pub enum NodeRef<'a> {
+        pub enum NodeRef<'ast, 'arena> {
             $(
-                $Variant(&'a $Variant)
+                $ArenaVariant(&'ast $ArenaVariant<'arena>)
+            ),*,
+            $(
+                $PlainVariant(&'ast $PlainVariant)
             ),*
         }
 
         $(
-            impl<'a> From<&'a $Variant> for NodeRef<'a> {
-                fn from(node: &'a $Variant) -> NodeRef<'a> {
-                    Self::$Variant(node)
+            impl<'ast, 'arena> From<&'ast $ArenaVariant<'arena>> for NodeRef<'ast, 'arena> {
+                fn from(node: &'ast $ArenaVariant<'arena>) -> NodeRef<'ast, 'arena> {
+                    Self::$ArenaVariant(node)
+                }
+            }
+        )*
+
+        $(
+            impl<'ast, 'arena> From<&'ast $PlainVariant> for NodeRef<'ast, 'arena> {
+                fn from(node: &'ast $PlainVariant) -> NodeRef<'ast, 'arena> {
+                    Self::$PlainVariant(node)
                 }
             }
         )*
@@ -96,16 +117,27 @@ macro_rules! node_ref {
         /// A mutable reference to a node visitable by a [`VisitorMut`].
         #[derive(Debug)]
         #[allow(missing_docs)]
-        pub enum NodeRefMut<'a> {
+        pub enum NodeRefMut<'ast, 'arena> {
             $(
-                $Variant(&'a mut $Variant)
+                $ArenaVariant(&'ast mut $ArenaVariant<'arena>)
+            ),*,
+            $(
+                $PlainVariant(&'ast mut $PlainVariant)
             ),*
         }
 
         $(
-            impl<'a> From<&'a mut $Variant> for NodeRefMut<'a> {
-                fn from(node: &'a mut $Variant) -> NodeRefMut<'a> {
-                    Self::$Variant(node)
+            impl<'ast, 'arena> From<&'ast mut $ArenaVariant<'arena>> for NodeRefMut<'ast, 'arena> {
+                fn from(node: &'ast mut $ArenaVariant<'arena>) -> NodeRefMut<'ast, 'arena> {
+                    Self::$ArenaVariant(node)
+                }
+            }
+        )*
+
+        $(
+            impl<'ast, 'arena> From<&'ast mut $PlainVariant> for NodeRefMut<'ast, 'arena> {
+                fn from(node: &'ast mut $PlainVariant) -> NodeRefMut<'ast, 'arena> {
+                    Self::$PlainVariant(node)
                 }
             }
         )*
@@ -113,227 +145,214 @@ macro_rules! node_ref {
 }
 
 node_ref! {
-    Script,
-    Module,
-    FunctionBody,
-    StatementList,
-    StatementListItem,
-    Statement,
-    Declaration,
-    FunctionExpression,
-    FunctionDeclaration,
-    GeneratorExpression,
-    GeneratorDeclaration,
-    AsyncFunctionExpression,
-    AsyncFunctionDeclaration,
-    AsyncGeneratorExpression,
-    AsyncGeneratorDeclaration,
-    ClassExpression,
-    ClassDeclaration,
-    LexicalDeclaration,
-    Block,
-    VarDeclaration,
-    Expression,
-    If,
-    DoWhileLoop,
-    WhileLoop,
-    ForLoop,
-    ForInLoop,
-    ForOfLoop,
-    Switch,
-    Continue,
-    Break,
-    Return,
-    Labelled,
-    With,
-    Throw,
-    Try,
-    This,
-    NewTarget,
-    ImportMeta,
-    Identifier,
-    FormalParameterList,
-    ClassElement,
-    PrivateName,
-    VariableList,
-    Variable,
-    Binding,
-    Pattern,
-    Literal,
-    RegExpLiteral,
-    ArrayLiteral,
-    ObjectLiteral,
-    Spread,
-    ArrowFunction,
-    AsyncArrowFunction,
-    TemplateLiteral,
-    PropertyAccess,
-    New,
-    Call,
-    SuperCall,
-    ImportCall,
-    Optional,
-    TaggedTemplate,
-    Assign,
-    Unary,
-    Update,
-    Binary,
-    BinaryInPrivate,
-    Conditional,
-    Await,
-    Yield,
-    Parenthesized,
-    ForLoopInitializer,
-    IterableLoopInitializer,
-    Case,
-    Sym,
-    LabelledItem,
-    Catch,
-    Finally,
-    FormalParameter,
-    PropertyName,
-    ObjectMethodDefinition,
-    ObjectPattern,
-    ArrayPattern,
-    PropertyDefinition,
-    TemplateElement,
-    SimplePropertyAccess,
-    PrivatePropertyAccess,
-    SuperPropertyAccess,
-    OptionalOperation,
-    AssignTarget,
-    ObjectPatternElement,
-    ArrayPatternElement,
-    PropertyAccessField,
-    OptionalOperationKind,
-    ModuleItemList,
-    ModuleItem,
-    ModuleSpecifier,
-    ImportAttribute,
-    ImportKind,
-    ImportDeclaration,
-    ImportSpecifier,
-    ReExportKind,
-    ExportDeclaration,
-    ExportSpecifier,
+    @arena {
+        // Source-level containers
+        Script, Module,
+        FunctionBody, StatementList, StatementListItem,
+
+        // Core enums
+        Statement, Declaration, Expression,
+
+        // Statements
+        Block, If, Switch, Case,
+        DoWhileLoop, WhileLoop, ForLoop, ForInLoop, ForOfLoop,
+        Return, Labelled, LabelledItem, With, Throw, Try, Catch, Finally,
+
+        // Declarations
+        LexicalDeclaration, VarDeclaration, VariableList, Variable,
+
+        // Functions
+        FunctionExpression, FunctionDeclaration,
+        GeneratorExpression, GeneratorDeclaration,
+        AsyncFunctionExpression, AsyncFunctionDeclaration,
+        AsyncGeneratorExpression, AsyncGeneratorDeclaration,
+        ArrowFunction, AsyncArrowFunction,
+        FormalParameterList, FormalParameter,
+
+        // Classes
+        ClassExpression, ClassDeclaration, ClassElement,
+
+        // Expressions
+        Call, New, SuperCall, ImportCall, Optional, TaggedTemplate,
+        Assign, Unary, Update, Binary, BinaryInPrivate, Conditional,
+        Await, Yield, Parenthesized, Spread,
+        ArrayLiteral, ObjectLiteral, TemplateLiteral, TemplateElement,
+
+        // Access & property
+        PropertyAccess, SimplePropertyAccess,
+        PrivatePropertyAccess, SuperPropertyAccess,
+        PropertyAccessField, OptionalOperation, OptionalOperationKind,
+        PropertyName, PropertyDefinition, ObjectMethodDefinition,
+        AssignTarget,
+
+        // Patterns & bindings
+        Binding, Pattern, ObjectPattern, ArrayPattern,
+        ObjectPatternElement, ArrayPatternElement,
+
+        // Loops
+        ForLoopInitializer, IterableLoopInitializer,
+
+        // Modules
+        ModuleItemList, ModuleItem,
+        ExportDeclaration
+    }
+
+    @plain {
+        // Leaf / scalar types — no arena-allocated children
+        Sym, Identifier, Literal, RegExpLiteral,
+        This, NewTarget, ImportMeta,
+        Continue, Break, PrivateName,
+        ModuleSpecifier, ImportAttribute,
+        ImportSpecifier, ExportSpecifier,
+        ReExportKind, ImportDeclaration, ImportKind
+    }
 }
 
 /// Represents an AST visitor.
 ///
 /// This implementation is based largely on [chalk](https://github.com/rust-lang/chalk/blob/23d39c90ceb9242fbd4c43e9368e813e7c2179f7/chalk-ir/src/visit.rs)'s
 /// visitor pattern.
-pub trait Visitor<'ast>: Sized {
+///
+/// # Lifetimes
+///
+/// - `'ast` — borrow lifetime during visitor traversal (short-lived).
+/// - `'arena` — lifetime of the arena allocation (longer-lived, outlives the AST).
+pub trait Visitor<'ast, 'arena: 'ast>: Sized {
     /// Type which will be propagated from the visitor if completing early.
     type BreakTy;
 
-    define_visit!(visit_script, Script);
-    define_visit!(visit_module, Module);
-    define_visit!(visit_function_body, FunctionBody);
-    define_visit!(visit_statement_list, StatementList);
-    define_visit!(visit_statement_list_item, StatementListItem);
-    define_visit!(visit_statement, Statement);
-    define_visit!(visit_declaration, Declaration);
-    define_visit!(visit_function_expression, FunctionExpression);
-    define_visit!(visit_function_declaration, FunctionDeclaration);
-    define_visit!(visit_generator_expression, GeneratorExpression);
-    define_visit!(visit_generator_declaration, GeneratorDeclaration);
-    define_visit!(visit_async_function_expression, AsyncFunctionExpression);
-    define_visit!(visit_async_function_declaration, AsyncFunctionDeclaration);
-    define_visit!(visit_async_generator_expression, AsyncGeneratorExpression);
-    define_visit!(visit_async_generator_declaration, AsyncGeneratorDeclaration);
-    define_visit!(visit_class_expression, ClassExpression);
-    define_visit!(visit_class_declaration, ClassDeclaration);
-    define_visit!(visit_lexical_declaration, LexicalDeclaration);
-    define_visit!(visit_block, Block);
-    define_visit!(visit_var_declaration, VarDeclaration);
-    define_visit!(visit_expression, Expression);
-    define_visit!(visit_if, If);
-    define_visit!(visit_do_while_loop, DoWhileLoop);
-    define_visit!(visit_while_loop, WhileLoop);
-    define_visit!(visit_for_loop, ForLoop);
-    define_visit!(visit_for_in_loop, ForInLoop);
-    define_visit!(visit_for_of_loop, ForOfLoop);
-    define_visit!(visit_switch, Switch);
-    define_visit!(visit_continue, Continue);
-    define_visit!(visit_break, Break);
-    define_visit!(visit_return, Return);
-    define_visit!(visit_labelled, Labelled);
-    define_visit!(visit_throw, Throw);
-    define_visit!(visit_try, Try);
-    define_visit!(visit_with, With);
-    define_visit!(visit_this, This);
-    define_visit!(visit_identifier, Identifier);
-    define_visit!(visit_formal_parameter_list, FormalParameterList);
-    define_visit!(visit_class_element, ClassElement);
-    define_visit!(visit_private_name, PrivateName);
-    define_visit!(visit_variable_list, VariableList);
-    define_visit!(visit_variable, Variable);
-    define_visit!(visit_binding, Binding);
-    define_visit!(visit_pattern, Pattern);
-    define_visit!(visit_literal, Literal);
-    define_visit!(visit_reg_exp_literal, RegExpLiteral);
-    define_visit!(visit_array_literal, ArrayLiteral);
-    define_visit!(visit_object_literal, ObjectLiteral);
-    define_visit!(visit_spread, Spread);
-    define_visit!(visit_arrow_function, ArrowFunction);
-    define_visit!(visit_async_arrow_function, AsyncArrowFunction);
-    define_visit!(visit_template_literal, TemplateLiteral);
-    define_visit!(visit_property_access, PropertyAccess);
-    define_visit!(visit_new, New);
-    define_visit!(visit_call, Call);
-    define_visit!(visit_super_call, SuperCall);
-    define_visit!(visit_import_call, ImportCall);
-    define_visit!(visit_optional, Optional);
-    define_visit!(visit_tagged_template, TaggedTemplate);
-    define_visit!(visit_assign, Assign);
-    define_visit!(visit_unary, Unary);
-    define_visit!(visit_update, Update);
-    define_visit!(visit_binary, Binary);
-    define_visit!(visit_binary_in_private, BinaryInPrivate);
-    define_visit!(visit_conditional, Conditional);
-    define_visit!(visit_await, Await);
-    define_visit!(visit_yield, Yield);
-    define_visit!(visit_parenthesized, Parenthesized);
-    define_visit!(visit_new_target, NewTarget);
-    define_visit!(visit_import_meta, ImportMeta);
-    define_visit!(visit_for_loop_initializer, ForLoopInitializer);
-    define_visit!(visit_iterable_loop_initializer, IterableLoopInitializer);
-    define_visit!(visit_case, Case);
-    define_visit!(visit_sym, Sym);
-    define_visit!(visit_labelled_item, LabelledItem);
-    define_visit!(visit_catch, Catch);
-    define_visit!(visit_finally, Finally);
-    define_visit!(visit_formal_parameter, FormalParameter);
-    define_visit!(visit_property_name, PropertyName);
-    define_visit!(visit_object_method_definition, ObjectMethodDefinition);
-    define_visit!(visit_object_pattern, ObjectPattern);
-    define_visit!(visit_array_pattern, ArrayPattern);
-    define_visit!(visit_property_definition, PropertyDefinition);
-    define_visit!(visit_template_element, TemplateElement);
-    define_visit!(visit_simple_property_access, SimplePropertyAccess);
-    define_visit!(visit_private_property_access, PrivatePropertyAccess);
-    define_visit!(visit_super_property_access, SuperPropertyAccess);
-    define_visit!(visit_optional_operation, OptionalOperation);
-    define_visit!(visit_assign_target, AssignTarget);
-    define_visit!(visit_object_pattern_element, ObjectPatternElement);
-    define_visit!(visit_array_pattern_element, ArrayPatternElement);
-    define_visit!(visit_property_access_field, PropertyAccessField);
-    define_visit!(visit_optional_operation_kind, OptionalOperationKind);
-    define_visit!(visit_module_item_list, ModuleItemList);
-    define_visit!(visit_module_item, ModuleItem);
-    define_visit!(visit_module_specifier, ModuleSpecifier);
-    define_visit!(visit_import_attribute, ImportAttribute);
-    define_visit!(visit_import_kind, ImportKind);
-    define_visit!(visit_import_declaration, ImportDeclaration);
-    define_visit!(visit_import_specifier, ImportSpecifier);
-    define_visit!(visit_re_export_kind, ReExportKind);
-    define_visit!(visit_export_declaration, ExportDeclaration);
-    define_visit!(visit_export_specifier, ExportSpecifier);
+    define_visit!(visit_script, Script, arena);
+    define_visit!(visit_module, Module, arena);
+    define_visit!(visit_function_body, FunctionBody, arena);
+    define_visit!(visit_statement_list, StatementList, arena);
+    define_visit!(visit_statement_list_item, StatementListItem, arena);
+    define_visit!(visit_statement, Statement, arena);
+    define_visit!(visit_declaration, Declaration, arena);
+    define_visit!(visit_function_expression, FunctionExpression, arena);
+    define_visit!(visit_function_declaration, FunctionDeclaration, arena);
+    define_visit!(visit_generator_expression, GeneratorExpression, arena);
+    define_visit!(visit_generator_declaration, GeneratorDeclaration, arena);
+    define_visit!(
+        visit_async_function_expression,
+        AsyncFunctionExpression,
+        arena
+    );
+    define_visit!(
+        visit_async_function_declaration,
+        AsyncFunctionDeclaration,
+        arena
+    );
+    define_visit!(
+        visit_async_generator_expression,
+        AsyncGeneratorExpression,
+        arena
+    );
+    define_visit!(
+        visit_async_generator_declaration,
+        AsyncGeneratorDeclaration,
+        arena
+    );
+    define_visit!(visit_class_expression, ClassExpression, arena);
+    define_visit!(visit_class_declaration, ClassDeclaration, arena);
+    define_visit!(visit_lexical_declaration, LexicalDeclaration, arena);
+    define_visit!(visit_block, Block, arena);
+    define_visit!(visit_var_declaration, VarDeclaration, arena);
+    define_visit!(visit_expression, Expression, arena);
+    define_visit!(visit_if, If, arena);
+    define_visit!(visit_do_while_loop, DoWhileLoop, arena);
+    define_visit!(visit_while_loop, WhileLoop, arena);
+    define_visit!(visit_for_loop, ForLoop, arena);
+    define_visit!(visit_for_in_loop, ForInLoop, arena);
+    define_visit!(visit_for_of_loop, ForOfLoop, arena);
+    define_visit!(visit_switch, Switch, arena);
+    define_visit!(visit_continue, Continue, plain);
+    define_visit!(visit_break, Break, plain);
+    define_visit!(visit_return, Return, arena);
+    define_visit!(visit_labelled, Labelled, arena);
+    define_visit!(visit_throw, Throw, arena);
+    define_visit!(visit_try, Try, arena);
+    define_visit!(visit_with, With, arena);
+    define_visit!(visit_this, This, plain);
+    define_visit!(visit_identifier, Identifier, plain);
+    define_visit!(visit_formal_parameter_list, FormalParameterList, arena);
+    define_visit!(visit_class_element, ClassElement, arena);
+    define_visit!(visit_private_name, PrivateName, plain);
+    define_visit!(visit_variable_list, VariableList, arena);
+    define_visit!(visit_variable, Variable, arena);
+    define_visit!(visit_binding, Binding, arena);
+    define_visit!(visit_pattern, Pattern, arena);
+    define_visit!(visit_literal, Literal, plain);
+    define_visit!(visit_reg_exp_literal, RegExpLiteral, plain);
+    define_visit!(visit_array_literal, ArrayLiteral, arena);
+    define_visit!(visit_object_literal, ObjectLiteral, arena);
+    define_visit!(visit_spread, Spread, arena);
+    define_visit!(visit_arrow_function, ArrowFunction, arena);
+    define_visit!(visit_async_arrow_function, AsyncArrowFunction, arena);
+    define_visit!(visit_template_literal, TemplateLiteral, arena);
+    define_visit!(visit_property_access, PropertyAccess, arena);
+    define_visit!(visit_new, New, arena);
+    define_visit!(visit_call, Call, arena);
+    define_visit!(visit_super_call, SuperCall, arena);
+    define_visit!(visit_import_call, ImportCall, arena);
+    define_visit!(visit_optional, Optional, arena);
+    define_visit!(visit_tagged_template, TaggedTemplate, arena);
+    define_visit!(visit_assign, Assign, arena);
+    define_visit!(visit_unary, Unary, arena);
+    define_visit!(visit_update, Update, arena);
+    define_visit!(visit_binary, Binary, arena);
+    define_visit!(visit_binary_in_private, BinaryInPrivate, arena);
+    define_visit!(visit_conditional, Conditional, arena);
+    define_visit!(visit_await, Await, arena);
+    define_visit!(visit_yield, Yield, arena);
+    define_visit!(visit_parenthesized, Parenthesized, arena);
+    define_visit!(visit_new_target, NewTarget, plain);
+    define_visit!(visit_import_meta, ImportMeta, plain);
+    define_visit!(visit_for_loop_initializer, ForLoopInitializer, arena);
+    define_visit!(
+        visit_iterable_loop_initializer,
+        IterableLoopInitializer,
+        arena
+    );
+    define_visit!(visit_case, Case, arena);
+    define_visit!(visit_sym, Sym, plain);
+    define_visit!(visit_labelled_item, LabelledItem, arena);
+    define_visit!(visit_catch, Catch, arena);
+    define_visit!(visit_finally, Finally, arena);
+    define_visit!(visit_formal_parameter, FormalParameter, arena);
+    define_visit!(visit_property_name, PropertyName, arena);
+    define_visit!(
+        visit_object_method_definition,
+        ObjectMethodDefinition,
+        arena
+    );
+    define_visit!(visit_object_pattern, ObjectPattern, arena);
+    define_visit!(visit_array_pattern, ArrayPattern, arena);
+    define_visit!(visit_property_definition, PropertyDefinition, arena);
+    define_visit!(visit_template_element, TemplateElement, arena);
+    define_visit!(visit_simple_property_access, SimplePropertyAccess, arena);
+    define_visit!(visit_private_property_access, PrivatePropertyAccess, arena);
+    define_visit!(visit_super_property_access, SuperPropertyAccess, arena);
+    define_visit!(visit_optional_operation, OptionalOperation, arena);
+    define_visit!(visit_assign_target, AssignTarget, arena);
+    define_visit!(visit_object_pattern_element, ObjectPatternElement, arena);
+    define_visit!(visit_array_pattern_element, ArrayPatternElement, arena);
+    define_visit!(visit_property_access_field, PropertyAccessField, arena);
+    define_visit!(visit_optional_operation_kind, OptionalOperationKind, arena);
+    define_visit!(visit_module_item_list, ModuleItemList, arena);
+    define_visit!(visit_module_item, ModuleItem, arena);
+    define_visit!(visit_module_specifier, ModuleSpecifier, plain);
+    define_visit!(visit_import_attribute, ImportAttribute, plain);
+    define_visit!(visit_import_kind, ImportKind, plain);
+    define_visit!(visit_import_declaration, ImportDeclaration, plain);
+    define_visit!(visit_import_specifier, ImportSpecifier, plain);
+    define_visit!(visit_re_export_kind, ReExportKind, plain);
+    define_visit!(visit_export_declaration, ExportDeclaration, arena);
+    define_visit!(visit_export_specifier, ExportSpecifier, plain);
 
     /// Generic entry point for a node that is visitable by a `Visitor`.
     ///
     /// This is usually used for generic functions that need to visit an unnamed AST node.
-    fn visit<N: Into<NodeRef<'ast>>>(&mut self, node: N) -> ControlFlow<Self::BreakTy> {
+    fn visit<N: Into<NodeRef<'ast, 'arena>>>(&mut self, node: N) -> ControlFlow<Self::BreakTy> {
         let node = node.into();
         match node {
             NodeRef::Script(n) => self.visit_script(n),
@@ -447,127 +466,163 @@ pub trait Visitor<'ast>: Sized {
 ///
 /// This implementation is based largely on [chalk](https://github.com/rust-lang/chalk/blob/23d39c90ceb9242fbd4c43e9368e813e7c2179f7/chalk-ir/src/visit.rs)'s
 /// visitor pattern.
-pub trait VisitorMut<'ast>: Sized {
+///
+/// # Lifetimes
+///
+/// - `'ast` — borrow lifetime during visitor traversal (short-lived).
+/// - `'arena` — lifetime of the arena allocation (longer-lived, outlives the AST).
+pub trait VisitorMut<'ast, 'arena: 'ast>: Sized {
     /// Type which will be propagated from the visitor if completing early.
     type BreakTy;
 
-    define_visit_mut!(visit_script_mut, Script);
-    define_visit_mut!(visit_module_mut, Module);
-    define_visit_mut!(visit_function_body_mut, FunctionBody);
-    define_visit_mut!(visit_statement_list_mut, StatementList);
-    define_visit_mut!(visit_statement_list_item_mut, StatementListItem);
-    define_visit_mut!(visit_statement_mut, Statement);
-    define_visit_mut!(visit_declaration_mut, Declaration);
-    define_visit_mut!(visit_function_expression_mut, FunctionExpression);
-    define_visit_mut!(visit_function_declaration_mut, FunctionDeclaration);
-    define_visit_mut!(visit_generator_expression_mut, GeneratorExpression);
-    define_visit_mut!(visit_generator_declaration_mut, GeneratorDeclaration);
-    define_visit_mut!(visit_async_function_expression_mut, AsyncFunctionExpression);
+    define_visit_mut!(visit_script_mut, Script, arena);
+    define_visit_mut!(visit_module_mut, Module, arena);
+    define_visit_mut!(visit_function_body_mut, FunctionBody, arena);
+    define_visit_mut!(visit_statement_list_mut, StatementList, arena);
+    define_visit_mut!(visit_statement_list_item_mut, StatementListItem, arena);
+    define_visit_mut!(visit_statement_mut, Statement, arena);
+    define_visit_mut!(visit_declaration_mut, Declaration, arena);
+    define_visit_mut!(visit_function_expression_mut, FunctionExpression, arena);
+    define_visit_mut!(visit_function_declaration_mut, FunctionDeclaration, arena);
+    define_visit_mut!(visit_generator_expression_mut, GeneratorExpression, arena);
+    define_visit_mut!(visit_generator_declaration_mut, GeneratorDeclaration, arena);
+    define_visit_mut!(
+        visit_async_function_expression_mut,
+        AsyncFunctionExpression,
+        arena
+    );
     define_visit_mut!(
         visit_async_function_declaration_mut,
-        AsyncFunctionDeclaration
+        AsyncFunctionDeclaration,
+        arena
     );
     define_visit_mut!(
         visit_async_generator_expression_mut,
-        AsyncGeneratorExpression
+        AsyncGeneratorExpression,
+        arena
     );
     define_visit_mut!(
         visit_async_generator_declaration_mut,
-        AsyncGeneratorDeclaration
+        AsyncGeneratorDeclaration,
+        arena
     );
-    define_visit_mut!(visit_class_expression_mut, ClassExpression);
-    define_visit_mut!(visit_class_declaration_mut, ClassDeclaration);
-    define_visit_mut!(visit_lexical_declaration_mut, LexicalDeclaration);
-    define_visit_mut!(visit_block_mut, Block);
-    define_visit_mut!(visit_var_declaration_mut, VarDeclaration);
-    define_visit_mut!(visit_expression_mut, Expression);
-    define_visit_mut!(visit_if_mut, If);
-    define_visit_mut!(visit_do_while_loop_mut, DoWhileLoop);
-    define_visit_mut!(visit_while_loop_mut, WhileLoop);
-    define_visit_mut!(visit_for_loop_mut, ForLoop);
-    define_visit_mut!(visit_for_in_loop_mut, ForInLoop);
-    define_visit_mut!(visit_for_of_loop_mut, ForOfLoop);
-    define_visit_mut!(visit_switch_mut, Switch);
-    define_visit_mut!(visit_continue_mut, Continue);
-    define_visit_mut!(visit_break_mut, Break);
-    define_visit_mut!(visit_return_mut, Return);
-    define_visit_mut!(visit_labelled_mut, Labelled);
-    define_visit_mut!(visit_throw_mut, Throw);
-    define_visit_mut!(visit_try_mut, Try);
-    define_visit_mut!(visit_with_mut, With);
-    define_visit_mut!(visit_this_mut, This);
-    define_visit_mut!(visit_identifier_mut, Identifier);
-    define_visit_mut!(visit_formal_parameter_list_mut, FormalParameterList);
-    define_visit_mut!(visit_class_element_mut, ClassElement);
-    define_visit_mut!(visit_private_name_mut, PrivateName);
-    define_visit_mut!(visit_variable_list_mut, VariableList);
-    define_visit_mut!(visit_variable_mut, Variable);
-    define_visit_mut!(visit_binding_mut, Binding);
-    define_visit_mut!(visit_pattern_mut, Pattern);
-    define_visit_mut!(visit_literal_mut, Literal);
-    define_visit_mut!(visit_reg_exp_literal_mut, RegExpLiteral);
-    define_visit_mut!(visit_array_literal_mut, ArrayLiteral);
-    define_visit_mut!(visit_object_literal_mut, ObjectLiteral);
-    define_visit_mut!(visit_spread_mut, Spread);
-    define_visit_mut!(visit_arrow_function_mut, ArrowFunction);
-    define_visit_mut!(visit_async_arrow_function_mut, AsyncArrowFunction);
-    define_visit_mut!(visit_template_literal_mut, TemplateLiteral);
-    define_visit_mut!(visit_property_access_mut, PropertyAccess);
-    define_visit_mut!(visit_new_mut, New);
-    define_visit_mut!(visit_call_mut, Call);
-    define_visit_mut!(visit_super_call_mut, SuperCall);
-    define_visit_mut!(visit_import_call_mut, ImportCall);
-    define_visit_mut!(visit_optional_mut, Optional);
-    define_visit_mut!(visit_tagged_template_mut, TaggedTemplate);
-    define_visit_mut!(visit_assign_mut, Assign);
-    define_visit_mut!(visit_unary_mut, Unary);
-    define_visit_mut!(visit_update_mut, Update);
-    define_visit_mut!(visit_binary_mut, Binary);
-    define_visit_mut!(visit_binary_in_private_mut, BinaryInPrivate);
-    define_visit_mut!(visit_conditional_mut, Conditional);
-    define_visit_mut!(visit_await_mut, Await);
-    define_visit_mut!(visit_yield_mut, Yield);
-    define_visit_mut!(visit_parenthesized_mut, Parenthesized);
-    define_visit_mut!(visit_new_target_mut, NewTarget);
-    define_visit_mut!(visit_import_meta_mut, ImportMeta);
-    define_visit_mut!(visit_for_loop_initializer_mut, ForLoopInitializer);
-    define_visit_mut!(visit_iterable_loop_initializer_mut, IterableLoopInitializer);
-    define_visit_mut!(visit_case_mut, Case);
-    define_visit_mut!(visit_sym_mut, Sym);
-    define_visit_mut!(visit_labelled_item_mut, LabelledItem);
-    define_visit_mut!(visit_catch_mut, Catch);
-    define_visit_mut!(visit_finally_mut, Finally);
-    define_visit_mut!(visit_formal_parameter_mut, FormalParameter);
-    define_visit_mut!(visit_property_name_mut, PropertyName);
-    define_visit_mut!(visit_object_method_definition_mut, ObjectMethodDefinition);
-    define_visit_mut!(visit_object_pattern_mut, ObjectPattern);
-    define_visit_mut!(visit_array_pattern_mut, ArrayPattern);
-    define_visit_mut!(visit_property_definition_mut, PropertyDefinition);
-    define_visit_mut!(visit_template_element_mut, TemplateElement);
-    define_visit_mut!(visit_simple_property_access_mut, SimplePropertyAccess);
-    define_visit_mut!(visit_private_property_access_mut, PrivatePropertyAccess);
-    define_visit_mut!(visit_super_property_access_mut, SuperPropertyAccess);
-    define_visit_mut!(visit_optional_operation_mut, OptionalOperation);
-    define_visit_mut!(visit_assign_target_mut, AssignTarget);
-    define_visit_mut!(visit_object_pattern_element_mut, ObjectPatternElement);
-    define_visit_mut!(visit_array_pattern_element_mut, ArrayPatternElement);
-    define_visit_mut!(visit_property_access_field_mut, PropertyAccessField);
-    define_visit_mut!(visit_optional_operation_kind_mut, OptionalOperationKind);
-    define_visit_mut!(visit_module_item_list_mut, ModuleItemList);
-    define_visit_mut!(visit_module_item_mut, ModuleItem);
-    define_visit_mut!(visit_module_specifier_mut, ModuleSpecifier);
-    define_visit_mut!(visit_import_attribute_mut, ImportAttribute);
-    define_visit_mut!(visit_import_kind_mut, ImportKind);
-    define_visit_mut!(visit_import_declaration_mut, ImportDeclaration);
-    define_visit_mut!(visit_import_specifier_mut, ImportSpecifier);
-    define_visit_mut!(visit_re_export_kind_mut, ReExportKind);
-    define_visit_mut!(visit_export_declaration_mut, ExportDeclaration);
-    define_visit_mut!(visit_export_specifier_mut, ExportSpecifier);
+    define_visit_mut!(visit_class_expression_mut, ClassExpression, arena);
+    define_visit_mut!(visit_class_declaration_mut, ClassDeclaration, arena);
+    define_visit_mut!(visit_lexical_declaration_mut, LexicalDeclaration, arena);
+    define_visit_mut!(visit_block_mut, Block, arena);
+    define_visit_mut!(visit_var_declaration_mut, VarDeclaration, arena);
+    define_visit_mut!(visit_expression_mut, Expression, arena);
+    define_visit_mut!(visit_if_mut, If, arena);
+    define_visit_mut!(visit_do_while_loop_mut, DoWhileLoop, arena);
+    define_visit_mut!(visit_while_loop_mut, WhileLoop, arena);
+    define_visit_mut!(visit_for_loop_mut, ForLoop, arena);
+    define_visit_mut!(visit_for_in_loop_mut, ForInLoop, arena);
+    define_visit_mut!(visit_for_of_loop_mut, ForOfLoop, arena);
+    define_visit_mut!(visit_switch_mut, Switch, arena);
+    define_visit_mut!(visit_continue_mut, Continue, plain);
+    define_visit_mut!(visit_break_mut, Break, plain);
+    define_visit_mut!(visit_return_mut, Return, arena);
+    define_visit_mut!(visit_labelled_mut, Labelled, arena);
+    define_visit_mut!(visit_throw_mut, Throw, arena);
+    define_visit_mut!(visit_try_mut, Try, arena);
+    define_visit_mut!(visit_with_mut, With, arena);
+    define_visit_mut!(visit_this_mut, This, plain);
+    define_visit_mut!(visit_identifier_mut, Identifier, plain);
+    define_visit_mut!(visit_formal_parameter_list_mut, FormalParameterList, arena);
+    define_visit_mut!(visit_class_element_mut, ClassElement, arena);
+    define_visit_mut!(visit_private_name_mut, PrivateName, plain);
+    define_visit_mut!(visit_variable_list_mut, VariableList, arena);
+    define_visit_mut!(visit_variable_mut, Variable, arena);
+    define_visit_mut!(visit_binding_mut, Binding, arena);
+    define_visit_mut!(visit_pattern_mut, Pattern, arena);
+    define_visit_mut!(visit_literal_mut, Literal, plain);
+    define_visit_mut!(visit_reg_exp_literal_mut, RegExpLiteral, plain);
+    define_visit_mut!(visit_array_literal_mut, ArrayLiteral, arena);
+    define_visit_mut!(visit_object_literal_mut, ObjectLiteral, arena);
+    define_visit_mut!(visit_spread_mut, Spread, arena);
+    define_visit_mut!(visit_arrow_function_mut, ArrowFunction, arena);
+    define_visit_mut!(visit_async_arrow_function_mut, AsyncArrowFunction, arena);
+    define_visit_mut!(visit_template_literal_mut, TemplateLiteral, arena);
+    define_visit_mut!(visit_property_access_mut, PropertyAccess, arena);
+    define_visit_mut!(visit_new_mut, New, arena);
+    define_visit_mut!(visit_call_mut, Call, arena);
+    define_visit_mut!(visit_super_call_mut, SuperCall, arena);
+    define_visit_mut!(visit_import_call_mut, ImportCall, arena);
+    define_visit_mut!(visit_optional_mut, Optional, arena);
+    define_visit_mut!(visit_tagged_template_mut, TaggedTemplate, arena);
+    define_visit_mut!(visit_assign_mut, Assign, arena);
+    define_visit_mut!(visit_unary_mut, Unary, arena);
+    define_visit_mut!(visit_update_mut, Update, arena);
+    define_visit_mut!(visit_binary_mut, Binary, arena);
+    define_visit_mut!(visit_binary_in_private_mut, BinaryInPrivate, arena);
+    define_visit_mut!(visit_conditional_mut, Conditional, arena);
+    define_visit_mut!(visit_await_mut, Await, arena);
+    define_visit_mut!(visit_yield_mut, Yield, arena);
+    define_visit_mut!(visit_parenthesized_mut, Parenthesized, arena);
+    define_visit_mut!(visit_new_target_mut, NewTarget, plain);
+    define_visit_mut!(visit_import_meta_mut, ImportMeta, plain);
+    define_visit_mut!(visit_for_loop_initializer_mut, ForLoopInitializer, arena);
+    define_visit_mut!(
+        visit_iterable_loop_initializer_mut,
+        IterableLoopInitializer,
+        arena
+    );
+    define_visit_mut!(visit_case_mut, Case, arena);
+    define_visit_mut!(visit_sym_mut, Sym, plain);
+    define_visit_mut!(visit_labelled_item_mut, LabelledItem, arena);
+    define_visit_mut!(visit_catch_mut, Catch, arena);
+    define_visit_mut!(visit_finally_mut, Finally, arena);
+    define_visit_mut!(visit_formal_parameter_mut, FormalParameter, arena);
+    define_visit_mut!(visit_property_name_mut, PropertyName, arena);
+    define_visit_mut!(
+        visit_object_method_definition_mut,
+        ObjectMethodDefinition,
+        arena
+    );
+    define_visit_mut!(visit_object_pattern_mut, ObjectPattern, arena);
+    define_visit_mut!(visit_array_pattern_mut, ArrayPattern, arena);
+    define_visit_mut!(visit_property_definition_mut, PropertyDefinition, arena);
+    define_visit_mut!(visit_template_element_mut, TemplateElement, arena);
+    define_visit_mut!(
+        visit_simple_property_access_mut,
+        SimplePropertyAccess,
+        arena
+    );
+    define_visit_mut!(
+        visit_private_property_access_mut,
+        PrivatePropertyAccess,
+        arena
+    );
+    define_visit_mut!(visit_super_property_access_mut, SuperPropertyAccess, arena);
+    define_visit_mut!(visit_optional_operation_mut, OptionalOperation, arena);
+    define_visit_mut!(visit_assign_target_mut, AssignTarget, arena);
+    define_visit_mut!(
+        visit_object_pattern_element_mut,
+        ObjectPatternElement,
+        arena
+    );
+    define_visit_mut!(visit_array_pattern_element_mut, ArrayPatternElement, arena);
+    define_visit_mut!(visit_property_access_field_mut, PropertyAccessField, arena);
+    define_visit_mut!(
+        visit_optional_operation_kind_mut,
+        OptionalOperationKind,
+        arena
+    );
+    define_visit_mut!(visit_module_item_list_mut, ModuleItemList, arena);
+    define_visit_mut!(visit_module_item_mut, ModuleItem, arena);
+    define_visit_mut!(visit_module_specifier_mut, ModuleSpecifier, plain);
+    define_visit_mut!(visit_import_attribute_mut, ImportAttribute, plain);
+    define_visit_mut!(visit_import_kind_mut, ImportKind, plain);
+    define_visit_mut!(visit_import_declaration_mut, ImportDeclaration, plain);
+    define_visit_mut!(visit_import_specifier_mut, ImportSpecifier, plain);
+    define_visit_mut!(visit_re_export_kind_mut, ReExportKind, plain);
+    define_visit_mut!(visit_export_declaration_mut, ExportDeclaration, arena);
+    define_visit_mut!(visit_export_specifier_mut, ExportSpecifier, plain);
 
     /// Generic entry point for a node that is visitable by a `VisitorMut`.
     ///
     /// This is usually used for generic functions that need to visit an unnamed AST node.
-    fn visit<N: Into<NodeRefMut<'ast>>>(&mut self, node: N) -> ControlFlow<Self::BreakTy> {
+    fn visit<N: Into<NodeRefMut<'ast, 'arena>>>(&mut self, node: N) -> ControlFlow<Self::BreakTy> {
         let node = node.into();
         match node {
             NodeRefMut::Script(n) => self.visit_script_mut(n),
@@ -681,31 +736,31 @@ pub trait VisitorMut<'ast>: Sized {
 
 /// Denotes that a type may be visited, providing a method which allows a visitor to traverse its
 /// private fields.
-pub trait VisitWith {
+pub trait VisitWith<'arena> {
     /// Visit this node with the provided visitor.
-    fn visit_with<'a, V>(&'a self, visitor: &mut V) -> ControlFlow<V::BreakTy>
+    fn visit_with<'ast, V>(&'ast self, visitor: &mut V) -> ControlFlow<V::BreakTy>
     where
-        V: Visitor<'a>;
+        V: Visitor<'ast, 'arena>;
 
     /// Visit this node with the provided visitor mutably, allowing the visitor to modify private
     /// fields.
-    fn visit_with_mut<'a, V>(&'a mut self, visitor: &mut V) -> ControlFlow<V::BreakTy>
+    fn visit_with_mut<'ast, V>(&'ast mut self, visitor: &mut V) -> ControlFlow<V::BreakTy>
     where
-        V: VisitorMut<'a>;
+        V: VisitorMut<'ast, 'arena>;
 }
 
 // implementation for Sym as it is out-of-crate
-impl VisitWith for Sym {
-    fn visit_with<'a, V>(&'a self, _visitor: &mut V) -> ControlFlow<V::BreakTy>
+impl<'arena> VisitWith<'arena> for Sym {
+    fn visit_with<'ast, V>(&'ast self, _visitor: &mut V) -> ControlFlow<V::BreakTy>
     where
-        V: Visitor<'a>,
+        V: Visitor<'ast, 'arena>,
     {
         ControlFlow::Continue(())
     }
 
-    fn visit_with_mut<'a, V>(&'a mut self, _visitor: &mut V) -> ControlFlow<V::BreakTy>
+    fn visit_with_mut<'ast, V>(&'ast mut self, _visitor: &mut V) -> ControlFlow<V::BreakTy>
     where
-        V: VisitorMut<'a>,
+        V: VisitorMut<'ast, 'arena>,
     {
         ControlFlow::Continue(())
     }

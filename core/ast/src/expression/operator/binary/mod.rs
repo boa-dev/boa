@@ -33,17 +33,17 @@ pub use op::*;
 #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
 #[cfg_attr(feature = "arbitrary", derive(arbitrary::Arbitrary))]
 #[derive(Clone, Debug, PartialEq)]
-pub struct Binary {
+pub struct Binary<'arena> {
     op: BinaryOp,
-    lhs: Box<Expression>,
-    rhs: Box<Expression>,
+    lhs: Box<Expression<'arena>>,
+    rhs: Box<Expression<'arena>>,
 }
 
-impl Binary {
+impl<'arena> Binary<'arena> {
     /// Creates a `BinOp` AST Expression.
     #[inline]
     #[must_use]
-    pub fn new(op: BinaryOp, lhs: Expression, rhs: Expression) -> Self {
+    pub fn new(op: BinaryOp, lhs: Expression<'arena>, rhs: Expression<'arena>) -> Self {
         Self {
             op,
             lhs: Box::new(lhs),
@@ -61,40 +61,40 @@ impl Binary {
     /// Gets the left hand side of the binary operation.
     #[inline]
     #[must_use]
-    pub const fn lhs(&self) -> &Expression {
+    pub const fn lhs(&self) -> &Expression<'arena> {
         &self.lhs
     }
 
     /// Gets the right hand side of the binary operation.
     #[inline]
     #[must_use]
-    pub const fn rhs(&self) -> &Expression {
+    pub const fn rhs(&self) -> &Expression<'arena> {
         &self.rhs
     }
 
     /// Gets the left hand side of the binary operation.
     #[inline]
     #[must_use]
-    pub fn lhs_mut(&mut self) -> &mut Expression {
+    pub fn lhs_mut(&mut self) -> &mut Expression<'arena> {
         &mut self.lhs
     }
 
     /// Gets the right hand side of the binary operation.
     #[inline]
     #[must_use]
-    pub fn rhs_mut(&mut self) -> &mut Expression {
+    pub fn rhs_mut(&mut self) -> &mut Expression<'arena> {
         &mut self.rhs
     }
 }
 
-impl Spanned for Binary {
+impl Spanned for Binary<'_> {
     #[inline]
     fn span(&self) -> Span {
         Span::new(self.lhs.span().start(), self.rhs.span().end())
     }
 }
 
-impl ToInternedString for Binary {
+impl ToInternedString for Binary<'_> {
     #[inline]
     fn to_interned_string(&self, interner: &Interner) -> String {
         format!(
@@ -106,17 +106,17 @@ impl ToInternedString for Binary {
     }
 }
 
-impl From<Binary> for Expression {
+impl<'arena> From<Binary<'arena>> for Expression<'arena> {
     #[inline]
-    fn from(op: Binary) -> Self {
+    fn from(op: Binary<'arena>) -> Self {
         Self::Binary(op)
     }
 }
 
-impl VisitWith for Binary {
+impl<'arena> VisitWith<'arena> for Binary<'arena> {
     fn visit_with<'a, V>(&'a self, visitor: &mut V) -> ControlFlow<V::BreakTy>
     where
-        V: Visitor<'a>,
+        V: Visitor<'a, 'arena>,
     {
         visitor.visit_expression(&self.lhs)?;
         visitor.visit_expression(&self.rhs)
@@ -124,7 +124,7 @@ impl VisitWith for Binary {
 
     fn visit_with_mut<'a, V>(&'a mut self, visitor: &mut V) -> ControlFlow<V::BreakTy>
     where
-        V: VisitorMut<'a>,
+        V: VisitorMut<'a, 'arena>,
     {
         visitor.visit_expression_mut(&mut self.lhs)?;
         visitor.visit_expression_mut(&mut self.rhs)
@@ -139,16 +139,16 @@ impl VisitWith for Binary {
 #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
 #[cfg_attr(feature = "arbitrary", derive(arbitrary::Arbitrary))]
 #[derive(Clone, Debug, PartialEq)]
-pub struct BinaryInPrivate {
+pub struct BinaryInPrivate<'arena> {
     lhs: PrivateName,
-    rhs: Box<Expression>,
+    rhs: Box<Expression<'arena>>,
 }
 
-impl BinaryInPrivate {
+impl<'arena> BinaryInPrivate<'arena> {
     /// Creates a `BinaryInPrivate` AST Expression.
     #[inline]
     #[must_use]
-    pub fn new(lhs: PrivateName, rhs: Expression) -> Self {
+    pub fn new(lhs: PrivateName, rhs: Expression<'arena>) -> Self {
         Self {
             lhs,
             rhs: Box::new(rhs),
@@ -165,19 +165,19 @@ impl BinaryInPrivate {
     /// Gets the right hand side of the binary operation.
     #[inline]
     #[must_use]
-    pub const fn rhs(&self) -> &Expression {
+    pub const fn rhs(&self) -> &Expression<'arena> {
         &self.rhs
     }
 }
 
-impl Spanned for BinaryInPrivate {
+impl Spanned for BinaryInPrivate<'_> {
     #[inline]
     fn span(&self) -> Span {
         Span::new(self.lhs.span().start(), self.rhs.span().end())
     }
 }
 
-impl ToInternedString for BinaryInPrivate {
+impl ToInternedString for BinaryInPrivate<'_> {
     #[inline]
     fn to_interned_string(&self, interner: &Interner) -> String {
         format!(
@@ -188,17 +188,17 @@ impl ToInternedString for BinaryInPrivate {
     }
 }
 
-impl From<BinaryInPrivate> for Expression {
+impl<'arena> From<BinaryInPrivate<'arena>> for Expression<'arena> {
     #[inline]
-    fn from(op: BinaryInPrivate) -> Self {
+    fn from(op: BinaryInPrivate<'arena>) -> Self {
         Self::BinaryInPrivate(op)
     }
 }
 
-impl VisitWith for BinaryInPrivate {
+impl<'arena> VisitWith<'arena> for BinaryInPrivate<'arena> {
     fn visit_with<'a, V>(&'a self, visitor: &mut V) -> ControlFlow<V::BreakTy>
     where
-        V: Visitor<'a>,
+        V: Visitor<'a, 'arena>,
     {
         visitor.visit_private_name(&self.lhs)?;
         visitor.visit_expression(&self.rhs)
@@ -206,7 +206,7 @@ impl VisitWith for BinaryInPrivate {
 
     fn visit_with_mut<'a, V>(&'a mut self, visitor: &mut V) -> ControlFlow<V::BreakTy>
     where
-        V: VisitorMut<'a>,
+        V: VisitorMut<'a, 'arena>,
     {
         visitor.visit_private_name_mut(&mut self.lhs)?;
         visitor.visit_expression_mut(&mut self.rhs)

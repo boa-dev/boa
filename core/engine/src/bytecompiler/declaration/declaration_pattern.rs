@@ -8,10 +8,10 @@ use boa_ast::{
 };
 use thin_vec::ThinVec;
 
-impl ByteCompiler<'_> {
+impl<'arena> ByteCompiler<'arena, '_> {
     pub(crate) fn compile_declaration_pattern_impl(
         &mut self,
-        pattern: &Pattern,
+        pattern: &'arena Pattern<'arena>,
         def: BindingOpcode,
         object: &Register,
     ) {
@@ -152,7 +152,7 @@ impl ByteCompiler<'_> {
                             let dst = self.register_allocator.alloc();
                             self.access_set(
                                 Access::Property { access },
-                                |compiler: &mut ByteCompiler<'_>| {
+                                |compiler: &mut ByteCompiler<'arena, '_>| {
                                     match name {
                                         PropertyName::Literal(ident) => {
                                             compiler.emit_get_property_by_name(
@@ -272,7 +272,11 @@ impl ByteCompiler<'_> {
         }
     }
 
-    fn compile_array_pattern_element(&mut self, element: &ArrayPatternElement, def: BindingOpcode) {
+    fn compile_array_pattern_element(
+        &mut self,
+        element: &'arena ArrayPatternElement<'arena>,
+        def: BindingOpcode,
+    ) {
         use ArrayPatternElement::{
             Elision, Pattern, PatternRest, PropertyAccess, PropertyAccessRest, SingleName,
             SingleNameRest,

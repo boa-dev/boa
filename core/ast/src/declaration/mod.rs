@@ -38,27 +38,27 @@ pub use variable::*;
 #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
 #[cfg_attr(feature = "arbitrary", derive(arbitrary::Arbitrary))]
 #[derive(Clone, Debug, PartialEq)]
-pub enum Declaration {
+pub enum Declaration<'arena> {
     /// See [`FunctionDeclaration`]
-    FunctionDeclaration(FunctionDeclaration),
+    FunctionDeclaration(FunctionDeclaration<'arena>),
 
     /// See [`GeneratorDeclaration`]
-    GeneratorDeclaration(GeneratorDeclaration),
+    GeneratorDeclaration(GeneratorDeclaration<'arena>),
 
     /// See [`AsyncFunctionDeclaration`]
-    AsyncFunctionDeclaration(AsyncFunctionDeclaration),
+    AsyncFunctionDeclaration(AsyncFunctionDeclaration<'arena>),
 
     /// See [`AsyncGeneratorDeclaration`]
-    AsyncGeneratorDeclaration(AsyncGeneratorDeclaration),
+    AsyncGeneratorDeclaration(AsyncGeneratorDeclaration<'arena>),
 
     /// See [`ClassDeclaration`]
-    ClassDeclaration(Box<ClassDeclaration>),
+    ClassDeclaration(Box<ClassDeclaration<'arena>>),
 
     /// See [`LexicalDeclaration`]
-    Lexical(LexicalDeclaration),
+    Lexical(LexicalDeclaration<'arena>),
 }
 
-impl ToIndentedString for Declaration {
+impl ToIndentedString for Declaration<'_> {
     fn to_indented_string(&self, interner: &Interner, indentation: usize) -> String {
         match self {
             Self::FunctionDeclaration(f) => f.to_indented_string(interner, indentation),
@@ -75,10 +75,10 @@ impl ToIndentedString for Declaration {
     }
 }
 
-impl VisitWith for Declaration {
+impl<'arena> VisitWith<'arena> for Declaration<'arena> {
     fn visit_with<'a, V>(&'a self, visitor: &mut V) -> ControlFlow<V::BreakTy>
     where
-        V: Visitor<'a>,
+        V: Visitor<'a, 'arena>,
     {
         match self {
             Self::FunctionDeclaration(f) => visitor.visit_function_declaration(f),
@@ -92,7 +92,7 @@ impl VisitWith for Declaration {
 
     fn visit_with_mut<'a, V>(&'a mut self, visitor: &mut V) -> ControlFlow<V::BreakTy>
     where
-        V: VisitorMut<'a>,
+        V: VisitorMut<'a, 'arena>,
     {
         match self {
             Self::FunctionDeclaration(f) => visitor.visit_function_declaration_mut(f),
@@ -141,17 +141,17 @@ impl From<Sym> for ModuleSpecifier {
     }
 }
 
-impl VisitWith for ModuleSpecifier {
+impl<'arena> VisitWith<'arena> for ModuleSpecifier {
     fn visit_with<'a, V>(&'a self, visitor: &mut V) -> ControlFlow<V::BreakTy>
     where
-        V: Visitor<'a>,
+        V: Visitor<'a, 'arena>,
     {
         visitor.visit_sym(&self.module)
     }
 
     fn visit_with_mut<'a, V>(&'a mut self, visitor: &mut V) -> ControlFlow<V::BreakTy>
     where
-        V: VisitorMut<'a>,
+        V: VisitorMut<'a, 'arena>,
     {
         visitor.visit_sym_mut(&mut self.module)
     }
@@ -197,10 +197,10 @@ impl ImportAttribute {
     }
 }
 
-impl VisitWith for ImportAttribute {
+impl<'arena> VisitWith<'arena> for ImportAttribute {
     fn visit_with<'a, V>(&'a self, visitor: &mut V) -> ControlFlow<V::BreakTy>
     where
-        V: Visitor<'a>,
+        V: Visitor<'a, 'arena>,
     {
         visitor.visit_sym(&self.key)?;
         visitor.visit_sym(&self.value)
@@ -208,7 +208,7 @@ impl VisitWith for ImportAttribute {
 
     fn visit_with_mut<'a, V>(&'a mut self, visitor: &mut V) -> ControlFlow<V::BreakTy>
     where
-        V: VisitorMut<'a>,
+        V: VisitorMut<'a, 'arena>,
     {
         visitor.visit_sym_mut(&mut self.key)?;
         visitor.visit_sym_mut(&mut self.value)

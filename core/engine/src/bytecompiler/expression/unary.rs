@@ -2,8 +2,8 @@ use crate::bytecompiler::{Access, BindingAccessOpcode, ByteCompiler, Register, T
 use boa_ast::Expression;
 use boa_ast::expression::operator::{Unary, unary::UnaryOp};
 
-impl ByteCompiler<'_> {
-    pub(crate) fn compile_unary(&mut self, unary: &Unary, dst: &Register) {
+impl<'arena> ByteCompiler<'arena, '_> {
+    pub(crate) fn compile_unary(&mut self, unary: &'arena Unary<'arena>, dst: &Register) {
         match unary.op() {
             UnaryOp::Delete => {
                 let mut compiler = self.position_guard(unary);

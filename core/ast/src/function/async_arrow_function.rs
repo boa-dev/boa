@@ -22,10 +22,10 @@ use core::{fmt::Write as _, ops::ControlFlow};
 #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
 #[cfg_attr(feature = "arbitrary", derive(arbitrary::Arbitrary))]
 #[derive(Clone, Debug, PartialEq)]
-pub struct AsyncArrowFunction {
+pub struct AsyncArrowFunction<'arena> {
     pub(crate) name: Option<Identifier>,
-    pub(crate) parameters: FormalParameterList,
-    pub(crate) body: FunctionBody,
+    pub(crate) parameters: FormalParameterList<'arena>,
+    pub(crate) body: FunctionBody<'arena>,
     pub(crate) contains_direct_eval: bool,
 
     #[cfg_attr(feature = "serde", serde(skip))]
@@ -35,14 +35,14 @@ pub struct AsyncArrowFunction {
     span: Span,
 }
 
-impl AsyncArrowFunction {
+impl<'arena> AsyncArrowFunction<'arena> {
     /// Creates a new `AsyncArrowFunction` AST Expression.
     #[inline]
     #[must_use]
     pub fn new(
         name: Option<Identifier>,
-        parameters: FormalParameterList,
-        body: FunctionBody,
+        parameters: FormalParameterList<'arena>,
+        body: FunctionBody<'arena>,
         linear_span: LinearSpan,
         span: Span,
     ) -> Self {
@@ -75,14 +75,14 @@ impl AsyncArrowFunction {
     /// Gets the list of parameters of the async arrow function.
     #[inline]
     #[must_use]
-    pub const fn parameters(&self) -> &FormalParameterList {
+    pub const fn parameters(&self) -> &FormalParameterList<'arena> {
         &self.parameters
     }
 
     /// Gets the body of the async arrow function.
     #[inline]
     #[must_use]
-    pub const fn body(&self) -> &FunctionBody {
+    pub const fn body(&self) -> &FunctionBody<'arena> {
         &self.body
     }
 
@@ -108,14 +108,14 @@ impl AsyncArrowFunction {
     }
 }
 
-impl Spanned for AsyncArrowFunction {
+impl Spanned for AsyncArrowFunction<'_> {
     #[inline]
     fn span(&self) -> Span {
         self.span
     }
 }
 
-impl ToIndentedString for AsyncArrowFunction {
+impl ToIndentedString for AsyncArrowFunction<'_> {
     fn to_indented_string(&self, interner: &Interner, indentation: usize) -> String {
         let mut buf = format!("async ({}", join_nodes(interner, self.parameters.as_ref()));
         if self.body().statements().is_empty() {
@@ -132,16 +132,16 @@ impl ToIndentedString for AsyncArrowFunction {
     }
 }
 
-impl From<AsyncArrowFunction> for Expression {
-    fn from(decl: AsyncArrowFunction) -> Self {
+impl<'arena> From<AsyncArrowFunction<'arena>> for Expression<'arena> {
+    fn from(decl: AsyncArrowFunction<'arena>) -> Self {
         Self::AsyncArrowFunction(decl)
     }
 }
 
-impl VisitWith for AsyncArrowFunction {
+impl<'arena> VisitWith<'arena> for AsyncArrowFunction<'arena> {
     fn visit_with<'a, V>(&'a self, visitor: &mut V) -> ControlFlow<V::BreakTy>
     where
-        V: Visitor<'a>,
+        V: Visitor<'a, 'arena>,
     {
         if let Some(ident) = &self.name {
             visitor.visit_identifier(ident)?;
@@ -152,7 +152,7 @@ impl VisitWith for AsyncArrowFunction {
 
     fn visit_with_mut<'a, V>(&'a mut self, visitor: &mut V) -> ControlFlow<V::BreakTy>
     where
-        V: VisitorMut<'a>,
+        V: VisitorMut<'a, 'arena>,
     {
         if let Some(ident) = &mut self.name {
             visitor.visit_identifier_mut(ident)?;

@@ -48,13 +48,14 @@ pub(in crate::parser) use self::{
 ///
 /// [spec]: https://tc39.es/ecma262/#prod-FunctionDeclaration
 #[derive(Debug, Clone, Copy)]
-pub(in crate::parser) struct HoistableDeclaration {
+pub(in crate::parser) struct HoistableDeclaration<'arena> {
     allow_yield: AllowYield,
     allow_await: AllowAwait,
     is_default: AllowDefault,
+    _marker: std::marker::PhantomData<&'arena ()>,
 }
 
-impl HoistableDeclaration {
+impl HoistableDeclaration<'_> {
     /// Creates a new `HoistableDeclaration` parser.
     pub(in crate::parser) fn new<Y, A, D>(allow_yield: Y, allow_await: A, is_default: D) -> Self
     where
@@ -66,15 +67,16 @@ impl HoistableDeclaration {
             allow_yield: allow_yield.into(),
             allow_await: allow_await.into(),
             is_default: is_default.into(),
+            _marker: std::marker::PhantomData,
         }
     }
 }
 
-impl<R> TokenParser<R> for HoistableDeclaration
+impl<'arena, R> TokenParser<'arena, R> for HoistableDeclaration<'arena>
 where
     R: ReadChar,
 {
-    type Output = Declaration;
+    type Output = Declaration<'arena>;
 
     fn parse(self, cursor: &mut Cursor<R>, interner: &mut Interner) -> ParseResult<Self::Output> {
         let tok = cursor.peek(0, interner).or_abrupt()?;
@@ -142,11 +144,15 @@ trait CallableDeclaration {
 }
 
 // This is a helper function to not duplicate code in the individual callable declaration parsers.
-fn parse_callable_declaration<R: ReadChar, C: CallableDeclaration>(
+fn parse_callable_declaration<'arena, R: ReadChar, C: CallableDeclaration>(
     c: &C,
     cursor: &mut Cursor<R>,
     interner: &mut Interner,
-) -> ParseResult<(Identifier, FormalParameterList, ast::function::FunctionBody)> {
+) -> ParseResult<(
+    Identifier,
+    FormalParameterList<'arena>,
+    ast::function::FunctionBody<'arena>,
+)> {
     let token = cursor.peek(0, interner).or_abrupt()?;
     let name_span = token.span();
     let name = match token.kind() {

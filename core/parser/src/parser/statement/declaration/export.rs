@@ -37,13 +37,24 @@ use super::{
 ///
 /// [spec]: https://tc39.es/ecma262/#prod-ExportDeclaration
 #[derive(Debug, Clone, Copy)]
-pub(in crate::parser) struct ExportDeclaration;
+pub(in crate::parser) struct ExportDeclaration<'arena> {
+    _marker: std::marker::PhantomData<&'arena ()>,
+}
 
-impl<R> TokenParser<R> for ExportDeclaration
+impl ExportDeclaration<'_> {
+    /// Creates a new `ExportDeclaration` parser.
+    pub(in crate::parser) fn new() -> Self {
+        Self {
+            _marker: std::marker::PhantomData,
+        }
+    }
+}
+
+impl<'arena, R> TokenParser<'arena, R> for ExportDeclaration<'arena>
 where
     R: ReadChar,
 {
-    type Output = AstExportDeclaration;
+    type Output = AstExportDeclaration<'arena>;
 
     fn parse(self, cursor: &mut Cursor<R>, interner: &mut Interner) -> ParseResult<Self::Output> {
         cursor.expect((Keyword::Export, false), "export declaration", interner)?;
@@ -107,7 +118,7 @@ where
                 }
             }
             TokenKind::Punctuator(Punctuator::OpenBlock) => {
-                let names = NamedExports.parse(cursor, interner)?;
+                let names = NamedExports::new().parse(cursor, interner)?;
 
                 let next = cursor.peek(0, interner).or_abrupt()?;
 
@@ -230,9 +241,20 @@ where
 ///
 /// [spec]: https://tc39.es/ecma262/#prod-NamedExports
 #[derive(Debug, Clone, Copy)]
-struct NamedExports;
+struct NamedExports<'arena> {
+    _marker: std::marker::PhantomData<&'arena ()>,
+}
 
-impl<R> TokenParser<R> for NamedExports
+impl NamedExports<'_> {
+    /// Creates a new `NamedExports` parser.
+    fn new() -> Self {
+        Self {
+            _marker: std::marker::PhantomData,
+        }
+    }
+}
+
+impl<'arena, R> TokenParser<'arena, R> for NamedExports<'arena>
 where
     R: ReadChar,
 {
@@ -268,7 +290,7 @@ where
                 TokenKind::StringLiteral(_)
                 | TokenKind::IdentifierName(_)
                 | TokenKind::Keyword(_) => {
-                    list.push(ExportSpecifier.parse(cursor, interner)?);
+                    list.push(ExportSpecifier::new().parse(cursor, interner)?);
                 }
                 _ => {
                     return Err(Error::expected(
@@ -295,9 +317,20 @@ where
 ///
 /// [spec]: https://tc39.es/ecma262/#prod-ModuleExportName
 #[derive(Debug, Clone, Copy)]
-pub(super) struct ModuleExportName;
+pub(super) struct ModuleExportName<'arena> {
+    _marker: std::marker::PhantomData<&'arena ()>,
+}
 
-impl<R> TokenParser<R> for ModuleExportName
+impl ModuleExportName<'_> {
+    /// Creates a new `ModuleExportName` parser.
+    pub(super) fn new() -> Self {
+        Self {
+            _marker: std::marker::PhantomData,
+        }
+    }
+}
+
+impl<'arena, R> TokenParser<'arena, R> for ModuleExportName<'arena>
 where
     R: ReadChar,
 {
@@ -339,22 +372,33 @@ where
 ///
 /// [spec]: https://tc39.es/ecma262/#prod-ExportSpecifier
 #[derive(Debug, Clone, Copy)]
-struct ExportSpecifier;
+struct ExportSpecifier<'arena> {
+    _marker: std::marker::PhantomData<&'arena ()>,
+}
 
-impl<R> TokenParser<R> for ExportSpecifier
+impl ExportSpecifier<'_> {
+    /// Creates a new `ExportSpecifier` parser.
+    fn new() -> Self {
+        Self {
+            _marker: std::marker::PhantomData,
+        }
+    }
+}
+
+impl<'arena, R> TokenParser<'arena, R> for ExportSpecifier<'arena>
 where
     R: ReadChar,
 {
     type Output = boa_ast::declaration::ExportSpecifier;
 
     fn parse(self, cursor: &mut Cursor<R>, interner: &mut Interner) -> ParseResult<Self::Output> {
-        let (inner_name, string_literal) = ModuleExportName.parse(cursor, interner)?;
+        let (inner_name, string_literal) = ModuleExportName::new().parse(cursor, interner)?;
 
         if cursor
             .next_if(TokenKind::identifier(Sym::AS), interner)?
             .is_some()
         {
-            let (export_name, _) = ModuleExportName.parse(cursor, interner)?;
+            let (export_name, _) = ModuleExportName::new().parse(cursor, interner)?;
             Ok(boa_ast::declaration::ExportSpecifier::new(
                 export_name,
                 inner_name,

@@ -23,38 +23,42 @@ use core::ops::ControlFlow;
 #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
 #[cfg_attr(feature = "arbitrary", derive(arbitrary::Arbitrary))]
 #[derive(Clone, Debug, PartialEq)]
-pub struct Conditional {
-    condition: Box<Expression>,
-    if_true: Box<Expression>,
-    if_false: Box<Expression>,
+pub struct Conditional<'arena> {
+    condition: Box<Expression<'arena>>,
+    if_true: Box<Expression<'arena>>,
+    if_false: Box<Expression<'arena>>,
 }
 
-impl Conditional {
+impl<'arena> Conditional<'arena> {
     /// Gets the condition of the `Conditional` expression.
     #[inline]
     #[must_use]
-    pub const fn condition(&self) -> &Expression {
+    pub const fn condition(&self) -> &Expression<'arena> {
         &self.condition
     }
 
     /// Gets the expression returned if `condition` is truthy.
     #[inline]
     #[must_use]
-    pub const fn if_true(&self) -> &Expression {
+    pub const fn if_true(&self) -> &Expression<'arena> {
         &self.if_true
     }
 
     /// Gets the expression returned if `condition` is falsy.
     #[inline]
     #[must_use]
-    pub const fn if_false(&self) -> &Expression {
+    pub const fn if_false(&self) -> &Expression<'arena> {
         &self.if_false
     }
 
     /// Creates a `Conditional` AST Expression.
     #[inline]
     #[must_use]
-    pub fn new(condition: Expression, if_true: Expression, if_false: Expression) -> Self {
+    pub fn new(
+        condition: Expression<'arena>,
+        if_true: Expression<'arena>,
+        if_false: Expression<'arena>,
+    ) -> Self {
         Self {
             condition: Box::new(condition),
             if_true: Box::new(if_true),
@@ -63,14 +67,14 @@ impl Conditional {
     }
 }
 
-impl Spanned for Conditional {
+impl Spanned for Conditional<'_> {
     #[inline]
     fn span(&self) -> Span {
         Span::new(self.condition.span().start(), self.if_false.span().end())
     }
 }
 
-impl ToInternedString for Conditional {
+impl ToInternedString for Conditional<'_> {
     #[inline]
     fn to_interned_string(&self, interner: &Interner) -> String {
         format!(
@@ -82,17 +86,17 @@ impl ToInternedString for Conditional {
     }
 }
 
-impl From<Conditional> for Expression {
+impl<'arena> From<Conditional<'arena>> for Expression<'arena> {
     #[inline]
-    fn from(cond_op: Conditional) -> Self {
+    fn from(cond_op: Conditional<'arena>) -> Self {
         Self::Conditional(cond_op)
     }
 }
 
-impl VisitWith for Conditional {
+impl<'arena> VisitWith<'arena> for Conditional<'arena> {
     fn visit_with<'a, V>(&'a self, visitor: &mut V) -> ControlFlow<V::BreakTy>
     where
-        V: Visitor<'a>,
+        V: Visitor<'a, 'arena>,
     {
         visitor.visit_expression(&self.condition)?;
         visitor.visit_expression(&self.if_true)?;
@@ -101,7 +105,7 @@ impl VisitWith for Conditional {
 
     fn visit_with_mut<'a, V>(&'a mut self, visitor: &mut V) -> ControlFlow<V::BreakTy>
     where
-        V: VisitorMut<'a>,
+        V: VisitorMut<'a, 'arena>,
     {
         visitor.visit_expression_mut(&mut self.condition)?;
         visitor.visit_expression_mut(&mut self.if_true)?;

@@ -16,25 +16,25 @@ use core::{fmt::Write as _, ops::ControlFlow};
 #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
 #[cfg_attr(feature = "arbitrary", derive(arbitrary::Arbitrary))]
 #[derive(Clone, Debug, PartialEq)]
-pub struct TaggedTemplate {
-    tag: Box<Expression>,
+pub struct TaggedTemplate<'arena> {
+    tag: Box<Expression<'arena>>,
     raws: Box<[Sym]>,
     cookeds: Box<[Option<Sym>]>,
-    exprs: Box<[Expression]>,
+    exprs: Box<[Expression<'arena>]>,
     identifier: u64,
     span: Span,
 }
 
-impl TaggedTemplate {
+impl<'arena> TaggedTemplate<'arena> {
     /// Creates a new tagged template with a tag, the list of raw strings, the cooked strings and
     /// the expressions.
     #[inline]
     #[must_use]
     pub fn new(
-        tag: Expression,
+        tag: Expression<'arena>,
         raws: Box<[Sym]>,
         cookeds: Box<[Option<Sym>]>,
-        exprs: Box<[Expression]>,
+        exprs: Box<[Expression<'arena>]>,
         identifier: u64,
         span: Span,
     ) -> Self {
@@ -51,7 +51,7 @@ impl TaggedTemplate {
     /// Gets the tag function of the template.
     #[inline]
     #[must_use]
-    pub const fn tag(&self) -> &Expression {
+    pub const fn tag(&self) -> &Expression<'arena> {
         &self.tag
     }
 
@@ -72,7 +72,7 @@ impl TaggedTemplate {
     /// Gets the interpolated expressions of the template.
     #[inline]
     #[must_use]
-    pub const fn exprs(&self) -> &[Expression] {
+    pub const fn exprs(&self) -> &[Expression<'arena>] {
         &self.exprs
     }
 
@@ -84,14 +84,14 @@ impl TaggedTemplate {
     }
 }
 
-impl Spanned for TaggedTemplate {
+impl Spanned for TaggedTemplate<'_> {
     #[inline]
     fn span(&self) -> Span {
         self.span
     }
 }
 
-impl ToInternedString for TaggedTemplate {
+impl ToInternedString for TaggedTemplate<'_> {
     #[inline]
     fn to_interned_string(&self, interner: &Interner) -> String {
         let mut buf = format!("{}`", self.tag.to_interned_string(interner));
@@ -109,17 +109,17 @@ impl ToInternedString for TaggedTemplate {
     }
 }
 
-impl From<TaggedTemplate> for Expression {
+impl<'arena> From<TaggedTemplate<'arena>> for Expression<'arena> {
     #[inline]
-    fn from(template: TaggedTemplate) -> Self {
+    fn from(template: TaggedTemplate<'arena>) -> Self {
         Self::TaggedTemplate(template)
     }
 }
 
-impl VisitWith for TaggedTemplate {
+impl<'arena> VisitWith<'arena> for TaggedTemplate<'arena> {
     fn visit_with<'a, V>(&'a self, visitor: &mut V) -> ControlFlow<V::BreakTy>
     where
-        V: Visitor<'a>,
+        V: Visitor<'a, 'arena>,
     {
         visitor.visit_expression(&self.tag)?;
         for raw in &*self.raws {
@@ -136,7 +136,7 @@ impl VisitWith for TaggedTemplate {
 
     fn visit_with_mut<'a, V>(&'a mut self, visitor: &mut V) -> ControlFlow<V::BreakTy>
     where
-        V: VisitorMut<'a>,
+        V: VisitorMut<'a, 'arena>,
     {
         visitor.visit_expression_mut(&mut self.tag)?;
         for raw in &mut *self.raws {

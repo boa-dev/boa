@@ -19,12 +19,13 @@ use boa_interner::Interner;
 /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Statements/return
 /// [spec]: https://tc39.es/ecma262/#prod-ReturnStatement
 #[derive(Debug, Clone, Copy)]
-pub(super) struct ReturnStatement {
+pub(super) struct ReturnStatement<'arena> {
     allow_yield: AllowYield,
     allow_await: AllowAwait,
+    _marker: std::marker::PhantomData<&'arena ()>,
 }
 
-impl ReturnStatement {
+impl ReturnStatement<'_> {
     /// Creates a new `ReturnStatement` parser.
     pub(super) fn new<Y, A>(allow_yield: Y, allow_await: A) -> Self
     where
@@ -34,15 +35,16 @@ impl ReturnStatement {
         Self {
             allow_yield: allow_yield.into(),
             allow_await: allow_await.into(),
+            _marker: std::marker::PhantomData,
         }
     }
 }
 
-impl<R> TokenParser<R> for ReturnStatement
+impl<'arena, R> TokenParser<'arena, R> for ReturnStatement<'arena>
 where
     R: ReadChar,
 {
-    type Output = Return;
+    type Output = Return<'arena>;
 
     fn parse(self, cursor: &mut Cursor<R>, interner: &mut Interner) -> ParseResult<Self::Output> {
         cursor.expect((Keyword::Return, false), "return statement", interner)?;

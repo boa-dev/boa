@@ -12,7 +12,7 @@ use std::{error::Error, io::Cursor};
 /// Fuzzer test harness. This function accepts the arbitrary AST and performs the fuzzing operation.
 ///
 /// See [README.md](../README.md) for details on the design of this fuzzer.
-fn do_fuzz(mut data: FuzzData) -> Result<(), Box<dyn Error>> {
+fn do_fuzz(mut data: FuzzData<'_>) -> Result<(), Box<dyn Error>> {
     let original = data.ast.to_interned_string(&data.interner);
 
     let mut parser = Parser::new(Source::from_reader(Cursor::new(&original), None));
@@ -65,7 +65,7 @@ fn do_fuzz(mut data: FuzzData) -> Result<(), Box<dyn Error>> {
 
 // Fuzz harness wrapper to expose it to libfuzzer (and thus cargo-fuzz)
 // See: https://rust-fuzz.github.io/book/cargo-fuzz.html
-fuzz_target!(|data: FuzzData| -> Corpus {
+fuzz_target!(|data: FuzzData<'_>| -> Corpus {
     if do_fuzz(data).is_ok() {
         Corpus::Keep
     } else {

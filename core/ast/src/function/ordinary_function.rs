@@ -24,10 +24,10 @@ use core::{fmt::Write as _, ops::ControlFlow};
 #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
 #[cfg_attr(feature = "arbitrary", derive(arbitrary::Arbitrary))]
 #[derive(Clone, Debug, PartialEq)]
-pub struct FunctionDeclaration {
+pub struct FunctionDeclaration<'arena> {
     name: Identifier,
-    pub(crate) parameters: FormalParameterList,
-    pub(crate) body: FunctionBody,
+    pub(crate) parameters: FormalParameterList<'arena>,
+    pub(crate) body: FunctionBody<'arena>,
     pub(crate) contains_direct_eval: bool,
 
     #[cfg_attr(feature = "serde", serde(skip))]
@@ -35,14 +35,14 @@ pub struct FunctionDeclaration {
     linear_span: LinearSpanIgnoreEq,
 }
 
-impl FunctionDeclaration {
+impl<'arena> FunctionDeclaration<'arena> {
     /// Creates a new function declaration.
     #[inline]
     #[must_use]
     pub fn new(
         name: Identifier,
-        parameters: FormalParameterList,
-        body: FunctionBody,
+        parameters: FormalParameterList<'arena>,
+        body: FunctionBody<'arena>,
         linear_span: LinearSpan,
     ) -> Self {
         let contains_direct_eval = contains(&parameters, ContainsSymbol::DirectEval)
@@ -67,14 +67,14 @@ impl FunctionDeclaration {
     /// Gets the list of parameters of the function declaration.
     #[inline]
     #[must_use]
-    pub const fn parameters(&self) -> &FormalParameterList {
+    pub const fn parameters(&self) -> &FormalParameterList<'arena> {
         &self.parameters
     }
 
     /// Gets the body of the function declaration.
     #[inline]
     #[must_use]
-    pub const fn body(&self) -> &FunctionBody {
+    pub const fn body(&self) -> &FunctionBody<'arena> {
         &self.body
     }
 
@@ -100,7 +100,7 @@ impl FunctionDeclaration {
     }
 }
 
-impl ToIndentedString for FunctionDeclaration {
+impl ToIndentedString for FunctionDeclaration<'_> {
     fn to_indented_string(&self, interner: &Interner, indentation: usize) -> String {
         format!(
             "function {}({}) {}",
@@ -111,10 +111,10 @@ impl ToIndentedString for FunctionDeclaration {
     }
 }
 
-impl VisitWith for FunctionDeclaration {
+impl<'arena> VisitWith<'arena> for FunctionDeclaration<'arena> {
     fn visit_with<'a, V>(&'a self, visitor: &mut V) -> ControlFlow<V::BreakTy>
     where
-        V: Visitor<'a>,
+        V: Visitor<'a, 'arena>,
     {
         visitor.visit_identifier(&self.name)?;
         visitor.visit_formal_parameter_list(&self.parameters)?;
@@ -123,7 +123,7 @@ impl VisitWith for FunctionDeclaration {
 
     fn visit_with_mut<'a, V>(&'a mut self, visitor: &mut V) -> ControlFlow<V::BreakTy>
     where
-        V: VisitorMut<'a>,
+        V: VisitorMut<'a, 'arena>,
     {
         visitor.visit_identifier_mut(&mut self.name)?;
         visitor.visit_formal_parameter_list_mut(&mut self.parameters)?;
@@ -131,9 +131,9 @@ impl VisitWith for FunctionDeclaration {
     }
 }
 
-impl From<FunctionDeclaration> for Declaration {
+impl<'arena> From<FunctionDeclaration<'arena>> for Declaration<'arena> {
     #[inline]
-    fn from(f: FunctionDeclaration) -> Self {
+    fn from(f: FunctionDeclaration<'arena>) -> Self {
         Self::FunctionDeclaration(f)
     }
 }
@@ -149,10 +149,10 @@ impl From<FunctionDeclaration> for Declaration {
 #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
 #[cfg_attr(feature = "arbitrary", derive(arbitrary::Arbitrary))]
 #[derive(Clone, Debug)]
-pub struct FunctionExpression {
+pub struct FunctionExpression<'arena> {
     pub(crate) name: Option<Identifier>,
-    pub(crate) parameters: FormalParameterList,
-    pub(crate) body: FunctionBody,
+    pub(crate) parameters: FormalParameterList<'arena>,
+    pub(crate) body: FunctionBody<'arena>,
     pub(crate) has_binding_identifier: bool,
     pub(crate) contains_direct_eval: bool,
 
@@ -167,7 +167,7 @@ pub struct FunctionExpression {
     linear_span: Option<LinearSpan>,
 }
 
-impl PartialEq for FunctionExpression {
+impl PartialEq for FunctionExpression<'_> {
     fn eq(&self, other: &Self) -> bool {
         // all fields except for `linear_span`
         self.name == other.name
@@ -181,21 +181,21 @@ impl PartialEq for FunctionExpression {
     }
 }
 
-impl Spanned for FunctionExpression {
+impl Spanned for FunctionExpression<'_> {
     #[inline]
     fn span(&self) -> Span {
         self.span
     }
 }
 
-impl FunctionExpression {
+impl<'arena> FunctionExpression<'arena> {
     /// Creates a new function expression.
     #[inline]
     #[must_use]
     pub fn new(
         name: Option<Identifier>,
-        parameters: FormalParameterList,
-        body: FunctionBody,
+        parameters: FormalParameterList<'arena>,
+        body: FunctionBody<'arena>,
         linear_span: Option<LinearSpan>,
         has_binding_identifier: bool,
         span: Span,
@@ -226,14 +226,14 @@ impl FunctionExpression {
     /// Gets the list of parameters of the function expression.
     #[inline]
     #[must_use]
-    pub const fn parameters(&self) -> &FormalParameterList {
+    pub const fn parameters(&self) -> &FormalParameterList<'arena> {
         &self.parameters
     }
 
     /// Gets the body of the function expression.
     #[inline]
     #[must_use]
-    pub const fn body(&self) -> &FunctionBody {
+    pub const fn body(&self) -> &FunctionBody<'arena> {
         &self.body
     }
 
@@ -289,7 +289,7 @@ impl FunctionExpression {
     }
 }
 
-impl ToIndentedString for FunctionExpression {
+impl ToIndentedString for FunctionExpression<'_> {
     fn to_indented_string(&self, interner: &Interner, indentation: usize) -> String {
         let mut buf = "function".to_owned();
         if self.has_binding_identifier
@@ -308,17 +308,17 @@ impl ToIndentedString for FunctionExpression {
     }
 }
 
-impl From<FunctionExpression> for Expression {
+impl<'arena> From<FunctionExpression<'arena>> for Expression<'arena> {
     #[inline]
-    fn from(expr: FunctionExpression) -> Self {
+    fn from(expr: FunctionExpression<'arena>) -> Self {
         Self::FunctionExpression(expr)
     }
 }
 
-impl VisitWith for FunctionExpression {
+impl<'arena> VisitWith<'arena> for FunctionExpression<'arena> {
     fn visit_with<'a, V>(&'a self, visitor: &mut V) -> ControlFlow<V::BreakTy>
     where
-        V: Visitor<'a>,
+        V: Visitor<'a, 'arena>,
     {
         if let Some(ident) = &self.name {
             visitor.visit_identifier(ident)?;
@@ -329,7 +329,7 @@ impl VisitWith for FunctionExpression {
 
     fn visit_with_mut<'a, V>(&'a mut self, visitor: &mut V) -> ControlFlow<V::BreakTy>
     where
-        V: VisitorMut<'a>,
+        V: VisitorMut<'a, 'arena>,
     {
         if let Some(ident) = &mut self.name {
             visitor.visit_identifier_mut(ident)?;

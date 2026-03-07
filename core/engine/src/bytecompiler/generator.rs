@@ -6,7 +6,7 @@ use crate::{
     vm::GeneratorResumeKind,
 };
 
-impl ByteCompiler<'_> {
+impl ByteCompiler<'_, '_> {
     pub(crate) fn generator_next(&mut self, value: &Register, resume_kind: &Register) {
         // NOTE: +4 to jump past the index operand.
         let jump_table_index = self.next_opcode_location() + size_of::<u32>() as u32;

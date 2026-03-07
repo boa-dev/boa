@@ -3,10 +3,10 @@ use crate::vm::opcode::BindingOpcode;
 use boa_ast::{ModuleItem, ModuleItemList, declaration::ExportDeclaration};
 use boa_interner::Sym;
 
-impl ByteCompiler<'_> {
+impl<'arena> ByteCompiler<'arena, '_> {
     /// Compiles a [`ModuleItemList`].
     #[inline]
-    pub fn compile_module_item_list(&mut self, list: &ModuleItemList) {
+    pub fn compile_module_item_list(&mut self, list: &'arena ModuleItemList<'arena>) {
         for node in list.items() {
             self.compile_module_item(node);
         }
@@ -14,7 +14,7 @@ impl ByteCompiler<'_> {
 
     /// Compiles a [`ModuleItem`].
     #[inline]
-    pub fn compile_module_item(&mut self, item: &ModuleItem) {
+    pub fn compile_module_item(&mut self, item: &'arena ModuleItem<'arena>) {
         match item {
             ModuleItem::StatementListItem(stmt) => {
                 self.compile_stmt_list_item(stmt, false, false);

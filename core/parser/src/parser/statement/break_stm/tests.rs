@@ -10,7 +10,7 @@ use indoc::indoc;
 
 const PSEUDO_LINEAR_POS: boa_ast::LinearPosition = boa_ast::LinearPosition::new(0);
 
-fn stmt_block_break_only(break_stmt: Break) -> Statement {
+fn stmt_block_break_only(break_stmt: Break) -> Statement<'static> {
     Block::from((
         vec![StatementListItem::Statement(
             Statement::Break(break_stmt).into(),

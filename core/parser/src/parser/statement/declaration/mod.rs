@@ -38,12 +38,13 @@ use boa_interner::{Interner, Sym};
 ///
 /// [spec]: https://tc39.es/ecma262/#prod-Declaration
 #[derive(Debug, Clone, Copy)]
-pub(super) struct Declaration {
+pub(super) struct Declaration<'arena> {
     allow_yield: AllowYield,
     allow_await: AllowAwait,
+    _marker: std::marker::PhantomData<&'arena ()>,
 }
 
-impl Declaration {
+impl Declaration<'_> {
     /// Creates a new declaration parser.
     #[inline]
     pub(super) fn new<Y, A>(allow_yield: Y, allow_await: A) -> Self
@@ -54,15 +55,16 @@ impl Declaration {
         Self {
             allow_yield: allow_yield.into(),
             allow_await: allow_await.into(),
+            _marker: std::marker::PhantomData,
         }
     }
 }
 
-impl<R> TokenParser<R> for Declaration
+impl<'arena, R> TokenParser<'arena, R> for Declaration<'arena>
 where
     R: ReadChar,
 {
-    type Output = ast::Declaration;
+    type Output = ast::Declaration<'arena>;
 
     fn parse(self, cursor: &mut Cursor<R>, interner: &mut Interner) -> ParseResult<Self::Output> {
         let tok = cursor.peek(0, interner).or_abrupt()?;
@@ -100,19 +102,23 @@ where
 ///
 /// [spec]: https://tc39.es/ecma262/#prod-FromClause
 #[derive(Debug, Clone, Copy)]
-struct FromClause {
+struct FromClause<'arena> {
     context: &'static str,
+    _marker: std::marker::PhantomData<&'arena ()>,
 }
 
-impl FromClause {
+impl FromClause<'_> {
     /// Creates a new `from` clause parser
     #[inline]
     const fn new(context: &'static str) -> Self {
-        Self { context }
+        Self {
+            context,
+            _marker: std::marker::PhantomData,
+        }
     }
 }
 
-impl<R> TokenParser<R> for FromClause
+impl<'arena, R> TokenParser<'arena, R> for FromClause<'arena>
 where
     R: ReadChar,
 {
@@ -143,19 +149,23 @@ where
 ///
 /// [spec]: https://tc39.es/ecma262/#sec-imports
 #[derive(Debug, Clone, Copy)]
-pub(in crate::parser) struct WithClause {
+pub(in crate::parser) struct WithClause<'arena> {
     context: &'static str,
+    _marker: std::marker::PhantomData<&'arena ()>,
 }
 
-impl WithClause {
+impl WithClause<'_> {
     /// Creates a new `with` clause parser.
     #[inline]
     pub(in crate::parser) const fn new(context: &'static str) -> Self {
-        Self { context }
+        Self {
+            context,
+            _marker: std::marker::PhantomData,
+        }
     }
 }
 
-impl<R> TokenParser<R> for WithClause
+impl<'arena, R> TokenParser<'arena, R> for WithClause<'arena>
 where
     R: ReadChar,
 {

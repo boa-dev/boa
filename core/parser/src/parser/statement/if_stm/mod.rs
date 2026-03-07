@@ -28,13 +28,14 @@ use boa_interner::Interner;
 /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Statements/if...else
 /// [spec]: https://tc39.es/ecma262/#prod-IfStatement
 #[derive(Debug, Clone, Copy)]
-pub(super) struct IfStatement {
+pub(super) struct IfStatement<'arena> {
     allow_yield: AllowYield,
     allow_await: AllowAwait,
     allow_return: AllowReturn,
+    _marker: std::marker::PhantomData<&'arena ()>,
 }
 
-impl IfStatement {
+impl IfStatement<'_> {
     /// Creates a new `IfStatement` parser.
     pub(super) fn new<Y, A, R>(allow_yield: Y, allow_await: A, allow_return: R) -> Self
     where
@@ -46,15 +47,16 @@ impl IfStatement {
             allow_yield: allow_yield.into(),
             allow_await: allow_await.into(),
             allow_return: allow_return.into(),
+            _marker: std::marker::PhantomData,
         }
     }
 }
 
-impl<R> TokenParser<R> for IfStatement
+impl<'arena, R> TokenParser<'arena, R> for IfStatement<'arena>
 where
     R: ReadChar,
 {
-    type Output = If;
+    type Output = If<'arena>;
 
     fn parse(self, cursor: &mut Cursor<R>, interner: &mut Interner) -> ParseResult<Self::Output> {
         cursor.expect((Keyword::If, false), "if statement", interner)?;

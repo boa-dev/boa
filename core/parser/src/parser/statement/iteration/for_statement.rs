@@ -44,13 +44,14 @@ use rustc_hash::FxHashSet;
 /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Statements/for
 /// [spec]: https://tc39.es/ecma262/#sec-for-statement
 #[derive(Debug, Clone, Copy)]
-pub(in crate::parser::statement) struct ForStatement {
+pub(in crate::parser::statement) struct ForStatement<'arena> {
     allow_yield: AllowYield,
     allow_await: AllowAwait,
     allow_return: AllowReturn,
+    _marker: std::marker::PhantomData<&'arena ()>,
 }
 
-impl ForStatement {
+impl ForStatement<'_> {
     /// Creates a new `ForStatement` parser.
     pub(in crate::parser::statement) fn new<Y, A, R>(
         allow_yield: Y,
@@ -66,15 +67,16 @@ impl ForStatement {
             allow_yield: allow_yield.into(),
             allow_await: allow_await.into(),
             allow_return: allow_return.into(),
+            _marker: std::marker::PhantomData,
         }
     }
 }
 
-impl<R> TokenParser<R> for ForStatement
+impl<'arena, R> TokenParser<'arena, R> for ForStatement<'arena>
 where
     R: ReadChar,
 {
-    type Output = ast::Statement;
+    type Output = ast::Statement<'arena>;
 
     fn parse(self, cursor: &mut Cursor<R>, interner: &mut Interner) -> ParseResult<Self::Output> {
         cursor.expect((Keyword::For, false), "for statement", interner)?;
@@ -322,11 +324,11 @@ where
 }
 
 fn initializer_to_iterable_loop_initializer(
-    initializer: ForLoopInitializer,
+    initializer: ForLoopInitializer<'_>,
     position: Position,
     strict: bool,
     in_loop: bool,
-) -> ParseResult<IterableLoopInitializer> {
+) -> ParseResult<IterableLoopInitializer<'_>> {
     let loop_type = if in_loop { "for-in" } else { "for-of" };
     match initializer {
         ForLoopInitializer::Expression(mut expr) => {

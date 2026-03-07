@@ -22,17 +22,17 @@ use super::Expression;
 #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
 #[cfg_attr(feature = "arbitrary", derive(arbitrary::Arbitrary))]
 #[derive(Clone, Debug, PartialEq)]
-pub struct Call {
-    function: Box<Expression>,
-    args: Box<[Expression]>,
+pub struct Call<'arena> {
+    function: Box<Expression<'arena>>,
+    args: Box<[Expression<'arena>]>,
     span: Span,
 }
 
-impl Call {
+impl<'arena> Call<'arena> {
     /// Creates a new `Call` AST Expression.
     #[inline]
     #[must_use]
-    pub fn new(function: Expression, args: Box<[Expression]>, span: Span) -> Self {
+    pub fn new(function: Expression<'arena>, args: Box<[Expression<'arena>]>, span: Span) -> Self {
         Self {
             function: Box::new(function),
             args,
@@ -43,26 +43,26 @@ impl Call {
     /// Gets the target function of this call expression.
     #[inline]
     #[must_use]
-    pub const fn function(&self) -> &Expression {
+    pub const fn function(&self) -> &Expression<'arena> {
         &self.function
     }
 
     /// Retrieves the arguments passed to the function.
     #[inline]
     #[must_use]
-    pub const fn args(&self) -> &[Expression] {
+    pub const fn args(&self) -> &[Expression<'arena>] {
         &self.args
     }
 }
 
-impl Spanned for Call {
+impl Spanned for Call<'_> {
     #[inline]
     fn span(&self) -> Span {
         self.span
     }
 }
 
-impl ToInternedString for Call {
+impl ToInternedString for Call<'_> {
     #[inline]
     fn to_interned_string(&self, interner: &Interner) -> String {
         format!(
@@ -73,17 +73,17 @@ impl ToInternedString for Call {
     }
 }
 
-impl From<Call> for Expression {
+impl<'arena> From<Call<'arena>> for Expression<'arena> {
     #[inline]
-    fn from(call: Call) -> Self {
+    fn from(call: Call<'arena>) -> Self {
         Self::Call(call)
     }
 }
 
-impl VisitWith for Call {
+impl<'arena> VisitWith<'arena> for Call<'arena> {
     fn visit_with<'a, V>(&'a self, visitor: &mut V) -> ControlFlow<V::BreakTy>
     where
-        V: Visitor<'a>,
+        V: Visitor<'a, 'arena>,
     {
         visitor.visit_expression(&self.function)?;
         for expr in &*self.args {
@@ -94,7 +94,7 @@ impl VisitWith for Call {
 
     fn visit_with_mut<'a, V>(&'a mut self, visitor: &mut V) -> ControlFlow<V::BreakTy>
     where
-        V: VisitorMut<'a>,
+        V: VisitorMut<'a, 'arena>,
     {
         visitor.visit_expression_mut(&mut self.function)?;
         for expr in &mut *self.args {
@@ -115,16 +115,16 @@ impl VisitWith for Call {
 #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
 #[cfg_attr(feature = "arbitrary", derive(arbitrary::Arbitrary))]
 #[derive(Clone, Debug, PartialEq)]
-pub struct SuperCall {
-    args: Box<[Expression]>,
+pub struct SuperCall<'arena> {
+    args: Box<[Expression<'arena>]>,
     span: Span,
 }
 
-impl SuperCall {
+impl<'arena> SuperCall<'arena> {
     /// Creates a new `SuperCall` AST node.
     pub fn new<A>(args: A, span: Span) -> Self
     where
-        A: Into<Box<[Expression]>>,
+        A: Into<Box<[Expression<'arena>]>>,
     {
         Self {
             args: args.into(),
@@ -134,36 +134,36 @@ impl SuperCall {
 
     /// Retrieves the arguments of the super call.
     #[must_use]
-    pub const fn arguments(&self) -> &[Expression] {
+    pub const fn arguments(&self) -> &[Expression<'arena>] {
         &self.args
     }
 }
 
-impl Spanned for SuperCall {
+impl Spanned for SuperCall<'_> {
     #[inline]
     fn span(&self) -> Span {
         self.span
     }
 }
 
-impl ToInternedString for SuperCall {
+impl ToInternedString for SuperCall<'_> {
     #[inline]
     fn to_interned_string(&self, interner: &Interner) -> String {
         format!("super({})", join_nodes(interner, &self.args))
     }
 }
 
-impl From<SuperCall> for Expression {
+impl<'arena> From<SuperCall<'arena>> for Expression<'arena> {
     #[inline]
-    fn from(call: SuperCall) -> Self {
+    fn from(call: SuperCall<'arena>) -> Self {
         Self::SuperCall(call)
     }
 }
 
-impl VisitWith for SuperCall {
+impl<'arena> VisitWith<'arena> for SuperCall<'arena> {
     fn visit_with<'a, V>(&'a self, visitor: &mut V) -> ControlFlow<V::BreakTy>
     where
-        V: Visitor<'a>,
+        V: Visitor<'a, 'arena>,
     {
         for expr in &*self.args {
             visitor.visit_expression(expr)?;
@@ -173,7 +173,7 @@ impl VisitWith for SuperCall {
 
     fn visit_with_mut<'a, V>(&'a mut self, visitor: &mut V) -> ControlFlow<V::BreakTy>
     where
-        V: VisitorMut<'a>,
+        V: VisitorMut<'a, 'arena>,
     {
         for expr in &mut *self.args {
             visitor.visit_expression_mut(expr)?;
@@ -195,19 +195,19 @@ impl VisitWith for SuperCall {
 #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
 #[cfg_attr(feature = "arbitrary", derive(arbitrary::Arbitrary))]
 #[derive(Clone, Debug, PartialEq)]
-pub struct ImportCall {
-    specifier: Box<Expression>,
-    options: Option<Box<Expression>>,
+pub struct ImportCall<'arena> {
+    specifier: Box<Expression<'arena>>,
+    options: Option<Box<Expression<'arena>>>,
     span: Span,
 }
 
-impl ImportCall {
+impl<'arena> ImportCall<'arena> {
     /// Creates a new `ImportCall` AST node.
     #[inline]
     #[must_use]
-    pub fn new<S>(specifier: S, options: Option<Expression>, span: Span) -> Self
+    pub fn new<S>(specifier: S, options: Option<Expression<'arena>>, span: Span) -> Self
     where
-        S: Into<Expression>,
+        S: Into<Expression<'arena>>,
     {
         Self {
             specifier: Box::new(specifier.into()),
@@ -219,7 +219,7 @@ impl ImportCall {
     /// Retrieves the specifier (first argument) of the import call.
     #[inline]
     #[must_use]
-    pub const fn specifier(&self) -> &Expression {
+    pub const fn specifier(&self) -> &Expression<'arena> {
         &self.specifier
     }
 
@@ -231,7 +231,7 @@ impl ImportCall {
     /// ```
     #[inline]
     #[must_use]
-    pub fn options(&self) -> Option<&Expression> {
+    pub fn options(&self) -> Option<&Expression<'arena>> {
         self.options.as_deref()
     }
 
@@ -241,19 +241,19 @@ impl ImportCall {
     #[inline]
     #[must_use]
     #[deprecated(since = "0.21.0", note = "use `specifier` instead")]
-    pub const fn argument(&self) -> &Expression {
+    pub const fn argument(&self) -> &Expression<'arena> {
         &self.specifier
     }
 }
 
-impl Spanned for ImportCall {
+impl Spanned for ImportCall<'_> {
     #[inline]
     fn span(&self) -> Span {
         self.span
     }
 }
 
-impl ToInternedString for ImportCall {
+impl ToInternedString for ImportCall<'_> {
     #[inline]
     fn to_interned_string(&self, interner: &Interner) -> String {
         if let Some(options) = &self.options {
@@ -268,17 +268,17 @@ impl ToInternedString for ImportCall {
     }
 }
 
-impl From<ImportCall> for Expression {
+impl<'arena> From<ImportCall<'arena>> for Expression<'arena> {
     #[inline]
-    fn from(call: ImportCall) -> Self {
+    fn from(call: ImportCall<'arena>) -> Self {
         Self::ImportCall(call)
     }
 }
 
-impl VisitWith for ImportCall {
+impl<'arena> VisitWith<'arena> for ImportCall<'arena> {
     fn visit_with<'a, V>(&'a self, visitor: &mut V) -> ControlFlow<V::BreakTy>
     where
-        V: Visitor<'a>,
+        V: Visitor<'a, 'arena>,
     {
         visitor.visit_expression(&self.specifier)?;
         if let Some(options) = &self.options {
@@ -289,7 +289,7 @@ impl VisitWith for ImportCall {
 
     fn visit_with_mut<'a, V>(&'a mut self, visitor: &mut V) -> ControlFlow<V::BreakTy>
     where
-        V: VisitorMut<'a>,
+        V: VisitorMut<'a, 'arena>,
     {
         visitor.visit_expression_mut(&mut self.specifier)?;
         if let Some(options) = &mut self.options {

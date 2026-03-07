@@ -87,13 +87,14 @@ pub(in crate::parser) use declaration::ClassTail;
 /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Statements
 /// [spec]: https://tc39.es/ecma262/#prod-Statement
 #[derive(Debug, Clone, Copy)]
-pub(super) struct Statement {
+pub(super) struct Statement<'arena> {
     allow_yield: AllowYield,
     allow_await: AllowAwait,
     allow_return: AllowReturn,
+    _marker: std::marker::PhantomData<&'arena ()>,
 }
 
-impl Statement {
+impl Statement<'_> {
     /// Creates a new `Statement` parser.
     pub(super) fn new<Y, A, R>(allow_yield: Y, allow_await: A, allow_return: R) -> Self
     where
@@ -105,15 +106,16 @@ impl Statement {
             allow_yield: allow_yield.into(),
             allow_await: allow_await.into(),
             allow_return: allow_return.into(),
+            _marker: std::marker::PhantomData,
         }
     }
 }
 
-impl<R> TokenParser<R> for Statement
+impl<'arena, R> TokenParser<'arena, R> for Statement<'arena>
 where
     R: ReadChar,
 {
-    type Output = ast::Statement;
+    type Output = ast::Statement<'arena>;
 
     fn parse(self, cursor: &mut Cursor<R>, interner: &mut Interner) -> ParseResult<Self::Output> {
         // TODO: add BreakableStatement and divide Whiles, fors and so on to another place.
@@ -236,16 +238,17 @@ where
 ///
 /// [spec]: https://tc39.es/ecma262/#prod-StatementList
 #[derive(Debug, Clone, Copy)]
-pub(super) struct StatementList {
+pub(super) struct StatementList<'arena> {
     allow_yield: AllowYield,
     allow_await: AllowAwait,
     allow_return: AllowReturn,
     break_nodes: &'static [TokenKind],
     directive_prologues: bool,
     strict: bool,
+    _marker: std::marker::PhantomData<&'arena ()>,
 }
 
-impl StatementList {
+impl StatementList<'_> {
     /// Creates a new `StatementList` parser.
     pub(super) fn new<Y, A, R>(
         allow_yield: Y,
@@ -267,15 +270,16 @@ impl StatementList {
             break_nodes,
             directive_prologues,
             strict,
+            _marker: std::marker::PhantomData,
         }
     }
 }
 
-impl<R> TokenParser<R> for StatementList
+impl<'arena, R> TokenParser<'arena, R> for StatementList<'arena>
 where
     R: ReadChar,
 {
-    type Output = (ast::StatementList, Option<Position>);
+    type Output = (ast::StatementList<'arena>, Option<Position>);
 
     /// The function parses a `node::StatementList` using the `StatementList`'s
     /// `break_nodes` to know when to terminate.
@@ -392,13 +396,14 @@ where
 /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Statements
 /// [spec]: https://tc39.es/ecma262/#prod-StatementListItem
 #[derive(Debug, Clone, Copy)]
-struct StatementListItem {
+struct StatementListItem<'arena> {
     allow_yield: AllowYield,
     allow_await: AllowAwait,
     allow_return: AllowReturn,
+    _marker: std::marker::PhantomData<&'arena ()>,
 }
 
-impl StatementListItem {
+impl StatementListItem<'_> {
     /// Creates a new `StatementListItem` parser.
     fn new<Y, A, R>(allow_yield: Y, allow_await: A, allow_return: R) -> Self
     where
@@ -410,15 +415,16 @@ impl StatementListItem {
             allow_yield: allow_yield.into(),
             allow_await: allow_await.into(),
             allow_return: allow_return.into(),
+            _marker: std::marker::PhantomData,
         }
     }
 }
 
-impl<R> TokenParser<R> for StatementListItem
+impl<'arena, R> TokenParser<'arena, R> for StatementListItem<'arena>
 where
     R: ReadChar,
 {
-    type Output = ast::StatementListItem;
+    type Output = ast::StatementListItem<'arena>;
 
     fn parse(self, cursor: &mut Cursor<R>, interner: &mut Interner) -> ParseResult<Self::Output> {
         let tok = cursor.peek(0, interner).or_abrupt()?;
@@ -471,12 +477,13 @@ where
 ///
 /// [spec]: https://tc39.es/ecma262/#prod-ObjectBindingPattern
 #[derive(Debug, Clone, Copy)]
-pub(super) struct ObjectBindingPattern {
+pub(super) struct ObjectBindingPattern<'arena> {
     allow_yield: AllowYield,
     allow_await: AllowAwait,
+    _marker: std::marker::PhantomData<&'arena ()>,
 }
 
-impl ObjectBindingPattern {
+impl ObjectBindingPattern<'_> {
     /// Creates a new `ObjectBindingPattern` parser.
     pub(super) fn new<Y, A>(allow_yield: Y, allow_await: A) -> Self
     where
@@ -486,15 +493,16 @@ impl ObjectBindingPattern {
         Self {
             allow_yield: allow_yield.into(),
             allow_await: allow_await.into(),
+            _marker: std::marker::PhantomData,
         }
     }
 }
 
-impl<R> TokenParser<R> for ObjectBindingPattern
+impl<'arena, R> TokenParser<'arena, R> for ObjectBindingPattern<'arena>
 where
     R: ReadChar,
 {
-    type Output = ObjectPattern;
+    type Output = ObjectPattern<'arena>;
 
     fn parse(self, cursor: &mut Cursor<R>, interner: &mut Interner) -> ParseResult<Self::Output> {
         let start = cursor
@@ -719,12 +727,13 @@ where
 ///
 /// [spec]: https://tc39.es/ecma262/#prod-ArrayBindingPattern
 #[derive(Debug, Clone, Copy)]
-pub(super) struct ArrayBindingPattern {
+pub(super) struct ArrayBindingPattern<'arena> {
     allow_yield: AllowYield,
     allow_await: AllowAwait,
+    _marker: std::marker::PhantomData<&'arena ()>,
 }
 
-impl ArrayBindingPattern {
+impl ArrayBindingPattern<'_> {
     /// Creates a new `ArrayBindingPattern` parser.
     pub(super) fn new<Y, A>(allow_yield: Y, allow_await: A) -> Self
     where
@@ -734,15 +743,16 @@ impl ArrayBindingPattern {
         Self {
             allow_yield: allow_yield.into(),
             allow_await: allow_await.into(),
+            _marker: std::marker::PhantomData,
         }
     }
 }
 
-impl<R> TokenParser<R> for ArrayBindingPattern
+impl<'arena, R> TokenParser<'arena, R> for ArrayBindingPattern<'arena>
 where
     R: ReadChar,
 {
-    type Output = ArrayPattern;
+    type Output = ArrayPattern<'arena>;
 
     fn parse(self, cursor: &mut Cursor<R>, interner: &mut Interner) -> ParseResult<Self::Output> {
         let start = cursor
@@ -932,18 +942,30 @@ where
 ///
 /// [spec]: https://tc39.es/ecma262/#prod-ModuleBody
 #[derive(Debug, Clone, Copy)]
-pub(super) struct ModuleItemList;
+pub(super) struct ModuleItemList<'arena> {
+    _marker: std::marker::PhantomData<&'arena ()>,
+}
 
-impl<R> TokenParser<R> for ModuleItemList
+impl ModuleItemList<'_> {
+    /// Creates a new `ModuleItemList` parser.
+    #[inline]
+    pub(super) const fn new() -> Self {
+        Self {
+            _marker: std::marker::PhantomData,
+        }
+    }
+}
+
+impl<'arena, R> TokenParser<'arena, R> for ModuleItemList<'arena>
 where
     R: ReadChar,
 {
-    type Output = boa_ast::ModuleItemList;
+    type Output = boa_ast::ModuleItemList<'arena>;
 
     fn parse(self, cursor: &mut Cursor<R>, interner: &mut Interner) -> ParseResult<Self::Output> {
         let mut list = Vec::new();
         while cursor.peek(0, interner)?.is_some() {
-            let item = ModuleItem.parse(cursor, interner)?;
+            let item = ModuleItem::new().parse(cursor, interner)?;
 
             if let Err(error) = check_labels(&item) {
                 return Err(Error::lex(LexError::Syntax(
@@ -982,25 +1004,38 @@ where
 ///  - [ECMAScript specification][spec]
 ///
 /// [spec]: https://tc39.es/ecma262/#prod-ModuleItem
-struct ModuleItem;
+#[derive(Debug, Clone, Copy)]
+struct ModuleItem<'arena> {
+    _marker: std::marker::PhantomData<&'arena ()>,
+}
 
-impl<R> TokenParser<R> for ModuleItem
+impl ModuleItem<'_> {
+    /// Creates a new `ModuleItem` parser.
+    #[inline]
+    const fn new() -> Self {
+        Self {
+            _marker: std::marker::PhantomData,
+        }
+    }
+}
+
+impl<'arena, R> TokenParser<'arena, R> for ModuleItem<'arena>
 where
     R: ReadChar,
 {
-    type Output = boa_ast::ModuleItem;
+    type Output = boa_ast::ModuleItem<'arena>;
 
     fn parse(self, cursor: &mut Cursor<R>, interner: &mut Interner) -> ParseResult<Self::Output> {
         let tok = cursor.peek(0, interner).or_abrupt()?;
 
         match tok.kind() {
-            TokenKind::Keyword((Keyword::Export, false)) => ExportDeclaration
+            TokenKind::Keyword((Keyword::Export, false)) => ExportDeclaration::new()
                 .parse(cursor, interner)
                 .map(Box::new)
                 .map(Self::Output::ExportDeclaration),
             TokenKind::Keyword((Keyword::Import, false)) => {
                 if ImportDeclaration::test(cursor, interner)? {
-                    ImportDeclaration
+                    ImportDeclaration::new()
                         .parse(cursor, interner)
                         .map(Self::Output::ImportDeclaration)
                 } else {

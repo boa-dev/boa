@@ -144,7 +144,7 @@ impl MappedArguments {
 
 impl MappedArguments {
     pub(crate) fn binding_indices(
-        formals: &FormalParameterList,
+        formals: &FormalParameterList<'_>,
         scope: &Scope,
         interner: &Interner,
     ) -> ThinVec<Option<u32>> {

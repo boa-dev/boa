@@ -32,17 +32,17 @@ use crate::{
 #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
 #[cfg_attr(feature = "arbitrary", derive(arbitrary::Arbitrary))]
 #[derive(Clone, Debug, PartialEq)]
-pub struct Assign {
+pub struct Assign<'arena> {
     op: AssignOp,
-    lhs: Box<AssignTarget>,
-    rhs: Box<Expression>,
+    lhs: Box<AssignTarget<'arena>>,
+    rhs: Box<Expression<'arena>>,
 }
 
-impl Assign {
+impl<'arena> Assign<'arena> {
     /// Creates an `Assign` AST Expression.
     #[inline]
     #[must_use]
-    pub fn new(op: AssignOp, lhs: AssignTarget, rhs: Expression) -> Self {
+    pub fn new(op: AssignOp, lhs: AssignTarget<'arena>, rhs: Expression<'arena>) -> Self {
         Self {
             op,
             lhs: Box::new(lhs),
@@ -60,26 +60,26 @@ impl Assign {
     /// Gets the left hand side of the assignment operation.
     #[inline]
     #[must_use]
-    pub const fn lhs(&self) -> &AssignTarget {
+    pub const fn lhs(&self) -> &AssignTarget<'arena> {
         &self.lhs
     }
 
     /// Gets the right hand side of the assignment operation.
     #[inline]
     #[must_use]
-    pub const fn rhs(&self) -> &Expression {
+    pub const fn rhs(&self) -> &Expression<'arena> {
         &self.rhs
     }
 }
 
-impl Spanned for Assign {
+impl Spanned for Assign<'_> {
     #[inline]
     fn span(&self) -> Span {
         Span::new(self.lhs.span().start(), self.rhs.span().end())
     }
 }
 
-impl ToInternedString for Assign {
+impl ToInternedString for Assign<'_> {
     #[inline]
     fn to_interned_string(&self, interner: &Interner) -> String {
         format!(
@@ -91,17 +91,17 @@ impl ToInternedString for Assign {
     }
 }
 
-impl From<Assign> for Expression {
+impl<'arena> From<Assign<'arena>> for Expression<'arena> {
     #[inline]
-    fn from(op: Assign) -> Self {
+    fn from(op: Assign<'arena>) -> Self {
         Self::Assign(op)
     }
 }
 
-impl VisitWith for Assign {
+impl<'arena> VisitWith<'arena> for Assign<'arena> {
     fn visit_with<'a, V>(&'a self, visitor: &mut V) -> ControlFlow<V::BreakTy>
     where
-        V: Visitor<'a>,
+        V: Visitor<'a, 'arena>,
     {
         visitor.visit_assign_target(&self.lhs)?;
         visitor.visit_expression(&self.rhs)
@@ -109,7 +109,7 @@ impl VisitWith for Assign {
 
     fn visit_with_mut<'a, V>(&'a mut self, visitor: &mut V) -> ControlFlow<V::BreakTy>
     where
-        V: VisitorMut<'a>,
+        V: VisitorMut<'a, 'arena>,
     {
         visitor.visit_assign_target_mut(&mut self.lhs)?;
         visitor.visit_expression_mut(&mut self.rhs)
@@ -123,20 +123,20 @@ impl VisitWith for Assign {
 #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
 #[cfg_attr(feature = "arbitrary", derive(arbitrary::Arbitrary))]
 #[derive(Clone, Debug, PartialEq)]
-pub enum AssignTarget {
+pub enum AssignTarget<'arena> {
     /// A simple identifier, such as `a`.
     Identifier(Identifier),
     /// A property access, such as `a.prop`.
-    Access(PropertyAccess),
+    Access(PropertyAccess<'arena>),
     /// A pattern assignment, such as `{a, b, ...c}`.
-    Pattern(Pattern),
+    Pattern(Pattern<'arena>),
 }
 
-impl AssignTarget {
+impl<'arena> AssignTarget<'arena> {
     /// Converts the left-hand-side Expression of an assignment expression into an [`AssignTarget`].
     /// Returns `None` if the given Expression is an invalid left-hand-side for a assignment expression.
     #[must_use]
-    pub fn from_expression(expression: &Expression, strict: bool) -> Option<Self> {
+    pub fn from_expression(expression: &Expression<'arena>, strict: bool) -> Option<Self> {
         match expression {
             Expression::ObjectLiteral(object) => {
                 let pattern = object.to_pattern(strict)?;
@@ -155,7 +155,7 @@ impl AssignTarget {
     ///
     /// The `AssignmentTargetType` of the expression must be `simple`.
     #[must_use]
-    pub fn from_expression_simple(expression: &Expression, strict: bool) -> Option<Self> {
+    pub fn from_expression_simple(expression: &Expression<'arena>, strict: bool) -> Option<Self> {
         match expression {
             Expression::Identifier(id)
                 if strict && (id.sym() == Sym::EVAL || id.sym() == Sym::ARGUMENTS) =>
@@ -170,7 +170,7 @@ impl AssignTarget {
     }
 }
 
-impl Spanned for AssignTarget {
+impl Spanned for AssignTarget<'_> {
     #[inline]
     fn span(&self) -> Span {
         match self {
@@ -181,7 +181,7 @@ impl Spanned for AssignTarget {
     }
 }
 
-impl ToInternedString for AssignTarget {
+impl ToInternedString for AssignTarget<'_> {
     #[inline]
     fn to_interned_string(&self, interner: &Interner) -> String {
         match self {
@@ -192,17 +192,17 @@ impl ToInternedString for AssignTarget {
     }
 }
 
-impl From<Identifier> for AssignTarget {
+impl From<Identifier> for AssignTarget<'_> {
     #[inline]
     fn from(target: Identifier) -> Self {
         Self::Identifier(target)
     }
 }
 
-impl VisitWith for AssignTarget {
+impl<'arena> VisitWith<'arena> for AssignTarget<'arena> {
     fn visit_with<'a, V>(&'a self, visitor: &mut V) -> ControlFlow<V::BreakTy>
     where
-        V: Visitor<'a>,
+        V: Visitor<'a, 'arena>,
     {
         match self {
             Self::Identifier(id) => visitor.visit_identifier(id),
@@ -213,7 +213,7 @@ impl VisitWith for AssignTarget {
 
     fn visit_with_mut<'a, V>(&'a mut self, visitor: &mut V) -> ControlFlow<V::BreakTy>
     where
-        V: VisitorMut<'a>,
+        V: VisitorMut<'a, 'arena>,
     {
         match self {
             Self::Identifier(id) => visitor.visit_identifier_mut(id),

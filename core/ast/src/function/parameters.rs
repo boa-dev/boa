@@ -14,13 +14,13 @@ use rustc_hash::FxHashSet;
 /// [spec]: https://tc39.es/ecma262/#prod-FormalParameterList
 #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
 #[derive(Clone, Debug, Default, PartialEq)]
-pub struct FormalParameterList {
-    parameters: Box<[FormalParameter]>,
+pub struct FormalParameterList<'arena> {
+    parameters: Box<[FormalParameter<'arena>]>,
     flags: FormalParameterListFlags,
     length: u32,
 }
 
-impl FormalParameterList {
+impl<'arena> FormalParameterList<'arena> {
     /// Creates a new empty formal parameter list.
     #[must_use]
     pub fn new() -> Self {
@@ -33,7 +33,7 @@ impl FormalParameterList {
 
     /// Creates a `FormalParameterList` from a list of [`FormalParameter`]s.
     #[must_use]
-    pub fn from_parameters(parameters: Vec<FormalParameter>) -> Self {
+    pub fn from_parameters(parameters: Vec<FormalParameter<'arena>>) -> Self {
         let mut flags = FormalParameterListFlags::default();
         let mut length = 0;
         let mut names = FxHashSet::default();
@@ -124,28 +124,28 @@ impl FormalParameterList {
     }
 }
 
-impl From<Vec<FormalParameter>> for FormalParameterList {
-    fn from(parameters: Vec<FormalParameter>) -> Self {
+impl<'arena> From<Vec<FormalParameter<'arena>>> for FormalParameterList<'arena> {
+    fn from(parameters: Vec<FormalParameter<'arena>>) -> Self {
         Self::from_parameters(parameters)
     }
 }
 
-impl From<FormalParameter> for FormalParameterList {
-    fn from(parameter: FormalParameter) -> Self {
+impl<'arena> From<FormalParameter<'arena>> for FormalParameterList<'arena> {
+    fn from(parameter: FormalParameter<'arena>) -> Self {
         Self::from_parameters(vec![parameter])
     }
 }
 
-impl AsRef<[FormalParameter]> for FormalParameterList {
-    fn as_ref(&self) -> &[FormalParameter] {
+impl<'arena> AsRef<[FormalParameter<'arena>]> for FormalParameterList<'arena> {
+    fn as_ref(&self) -> &[FormalParameter<'arena>] {
         &self.parameters
     }
 }
 
-impl VisitWith for FormalParameterList {
+impl<'arena> VisitWith<'arena> for FormalParameterList<'arena> {
     fn visit_with<'a, V>(&'a self, visitor: &mut V) -> ControlFlow<V::BreakTy>
     where
-        V: Visitor<'a>,
+        V: Visitor<'a, 'arena>,
     {
         for parameter in &*self.parameters {
             visitor.visit_formal_parameter(parameter)?;
@@ -156,7 +156,7 @@ impl VisitWith for FormalParameterList {
 
     fn visit_with_mut<'a, V>(&'a mut self, visitor: &mut V) -> ControlFlow<V::BreakTy>
     where
-        V: VisitorMut<'a>,
+        V: VisitorMut<'a, 'arena>,
     {
         for parameter in &mut *self.parameters {
             visitor.visit_formal_parameter_mut(parameter)?;
@@ -168,9 +168,12 @@ impl VisitWith for FormalParameterList {
 }
 
 #[cfg(feature = "arbitrary")]
-impl<'a> arbitrary::Arbitrary<'a> for FormalParameterList {
+impl<'a, 'arena> arbitrary::Arbitrary<'a> for FormalParameterList<'arena>
+where
+    'a: 'arena,
+{
     fn arbitrary(u: &mut arbitrary::Unstructured<'a>) -> arbitrary::Result<Self> {
-        let params: Vec<FormalParameter> = u.arbitrary()?;
+        let params: Vec<FormalParameter<'arena>> = u.arbitrary()?;
         Ok(Self::from(params))
     }
 }
@@ -217,16 +220,16 @@ impl Default for FormalParameterListFlags {
 #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
 #[cfg_attr(feature = "arbitrary", derive(arbitrary::Arbitrary))]
 #[derive(Clone, Debug, PartialEq)]
-pub struct FormalParameter {
-    variable: Variable,
+pub struct FormalParameter<'arena> {
+    variable: Variable<'arena>,
     is_rest_param: bool,
 }
 
-impl FormalParameter {
+impl<'arena> FormalParameter<'arena> {
     /// Creates a new formal parameter.
     pub fn new<D>(variable: D, is_rest_param: bool) -> Self
     where
-        D: Into<Variable>,
+        D: Into<Variable<'arena>>,
     {
         Self {
             variable: variable.into(),
@@ -236,13 +239,13 @@ impl FormalParameter {
 
     /// Gets the variable of the formal parameter
     #[must_use]
-    pub const fn variable(&self) -> &Variable {
+    pub const fn variable(&self) -> &Variable<'arena> {
         &self.variable
     }
 
     /// Gets the initialization node of the formal parameter, if any.
     #[must_use]
-    pub const fn init(&self) -> Option<&Expression> {
+    pub const fn init(&self) -> Option<&Expression<'arena>> {
         self.variable.init()
     }
 
@@ -259,7 +262,7 @@ impl FormalParameter {
     }
 }
 
-impl ToInternedString for FormalParameter {
+impl ToInternedString for FormalParameter<'_> {
     fn to_interned_string(&self, interner: &Interner) -> String {
         let mut buf = if self.is_rest_param {
             "...".to_owned()
@@ -271,17 +274,17 @@ impl ToInternedString for FormalParameter {
     }
 }
 
-impl VisitWith for FormalParameter {
+impl<'arena> VisitWith<'arena> for FormalParameter<'arena> {
     fn visit_with<'a, V>(&'a self, visitor: &mut V) -> ControlFlow<V::BreakTy>
     where
-        V: Visitor<'a>,
+        V: Visitor<'a, 'arena>,
     {
         visitor.visit_variable(&self.variable)
     }
 
     fn visit_with_mut<'a, V>(&'a mut self, visitor: &mut V) -> ControlFlow<V::BreakTy>
     where
-        V: VisitorMut<'a>,
+        V: VisitorMut<'a, 'arena>,
     {
         visitor.visit_variable_mut(&mut self.variable)
     }

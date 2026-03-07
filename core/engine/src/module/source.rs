@@ -16,7 +16,7 @@ use boa_ast::{
         ContainsSymbol, LexicallyScopedDeclaration, bound_names, contains,
         lexically_scoped_declarations, var_scoped_declarations,
     },
-    scope::BindingLocator,
+    scope::{BindingLocator, Scope},
 };
 use boa_gc::{Finalize, Gc, GcRefCell, Trace};
 use boa_interner::Interner;
@@ -29,7 +29,7 @@ use crate::{
     Context, JsArgs, JsError, JsNativeError, JsObject, JsResult, JsString, JsValue, NativeFunction,
     SpannedSourceText,
     builtins::{Promise, promise::PromiseCapability},
-    bytecompiler::{BindingAccessOpcode, ByteCompiler, FunctionSpec, ToJsString},
+    bytecompiler::{BindingAccessOpcode, ByteCompiler, ToJsString},
     environments::{DeclarativeEnvironment, EnvironmentStack},
     job::NativeAsyncJob,
     js_string,
@@ -242,9 +242,9 @@ impl std::fmt::Debug for SourceTextModule {
 struct ModuleCode {
     has_tla: bool,
     requested_modules: IndexSet<super::ModuleRequest, BuildHasherDefault<FxHasher>>,
-    source: RefCell<Option<boa_ast::Module>>,
-    source_text: RefCell<Option<SourceText>>,
-    path: Option<PathBuf>,
+    codeblock: Gc<CodeBlock>,
+    functions: Vec<(u32, BindingLocator)>,
+    scope: Scope,
     import_entries: Vec<ImportEntry>,
     local_export_entries: Vec<LocalExportEntry>,
     indirect_export_entries: Vec<IndirectExportEntry>,
@@ -256,7 +256,7 @@ struct ModuleRequestsVisitor<'a> {
     requests: IndexSet<super::ModuleRequest, BuildHasherDefault<FxHasher>>,
 }
 
-impl<'ast> boa_ast::visitor::Visitor<'ast> for ModuleRequestsVisitor<'_> {
+impl<'ast, 'arena: 'ast> boa_ast::visitor::Visitor<'ast, 'arena> for ModuleRequestsVisitor<'_> {
     type BreakTy = std::convert::Infallible;
 
     fn visit_import_declaration(
@@ -274,7 +274,7 @@ impl<'ast> boa_ast::visitor::Visitor<'ast> for ModuleRequestsVisitor<'_> {
 
     fn visit_export_declaration(
         &mut self,
-        node: &'ast boa_ast::declaration::ExportDeclaration,
+        node: &'ast boa_ast::declaration::ExportDeclaration<'arena>,
     ) -> std::ops::ControlFlow<Self::BreakTy> {
         if let boa_ast::declaration::ExportDeclaration::ReExport {
             specifier,
@@ -294,24 +294,26 @@ impl<'ast> boa_ast::visitor::Visitor<'ast> for ModuleRequestsVisitor<'_> {
 
     fn visit_statement_list_item(
         &mut self,
-        _: &'ast boa_ast::StatementListItem,
+        _: &'ast boa_ast::StatementListItem<'arena>,
     ) -> std::ops::ControlFlow<Self::BreakTy> {
         std::ops::ControlFlow::Continue(())
     }
 }
 
-impl SourceTextModule {
+impl<'arena> SourceTextModule {
     /// Creates a new `SourceTextModule` from a parsed `ModuleSource`.
     ///
     /// Contains part of the abstract operation [`ParseModule`][parse].
     ///
     /// [parse]: https://tc39.es/ecma262/#sec-parsemodule
     pub(super) fn new(
-        code: boa_ast::Module,
-        interner: &Interner,
-        source_text: SourceText,
-        path: Option<PathBuf>,
+        code: &boa_ast::Module<'arena>,
+        source_text: &SourceText,
+        path: Option<&PathBuf>,
+        context: &mut Context,
     ) -> Self {
+        let interner = context.interner();
+
         // 3. Let requestedModules be the ModuleRequests of body.
         let requested_modules = {
             use boa_ast::visitor::Visitor;
@@ -320,7 +322,7 @@ impl SourceTextModule {
                 interner,
                 requests: IndexSet::default(),
             };
-            let _ = visitor.visit_module(&code);
+            let _ = visitor.visit_module(code);
             visitor.requests
         };
         // 4. Let importEntries be ImportEntries of body.
@@ -379,11 +381,11 @@ impl SourceTextModule {
                 } => {
                     // i. Assert: ee.[[ExportName]] is null.
                     // ii. Append ee to starExportEntries.
-                    let spec = module_request.to_js_string(interner);
+                    let spec = module_request.to_js_string(context.interner());
                     star_export_entries.push(super::ModuleRequest::from_ast(
                         spec,
                         &attributes,
-                        interner,
+                        context.interner(),
                     ));
                 }
                 // c. Else,
@@ -393,30 +395,107 @@ impl SourceTextModule {
         }
 
         // 11. Let async be body Contains await.
-        let has_tla = contains(&code, ContainsSymbol::AwaitExpression);
+        let has_tla = contains(code, ContainsSymbol::AwaitExpression);
 
-        // 12. Return Source Text Module Record {
-        //     [[Realm]]: realm, [[Environment]]: empty, [[Namespace]]: empty, [[CycleRoot]]: empty,
-        //     [[HasTLA]]: async, [[AsyncEvaluation]]: false, [[TopLevelCapability]]: empty,
-        //     [[AsyncParentModules]]: « », [[PendingAsyncDependencies]]: empty,
-        //     [[Status]]: new, [[EvaluationError]]: empty, [[HostDefined]]: hostDefined,
-        //     [[ECMAScriptCode]]: body, [[Context]]: empty, [[ImportMeta]]: empty,
-        //     [[RequestedModules]]: requestedModules, [[LoadedModules]]: « »,
-        //     [[ImportEntries]]: importEntries, [[LocalExportEntries]]: localExportEntries,
-        //     [[IndirectExportEntries]]: indirectExportEntries,
-        //     [[StarExportEntries]]: starExportEntries,
-        //     [[DFSIndex]]: empty, [[DFSAncestorIndex]]: empty
-        // }.
-        // Most of this can be ignored, since `Status` takes care of the remaining state.
+        let mut compiler = ByteCompiler::new(
+            js_string!("<main>"),
+            true,
+            false,
+            code.scope().clone(),
+            code.scope().clone(),
+            has_tla,
+            false,
+            context.interner_mut(),
+            false,
+            SpannedSourceText::new_source_only(source_text.clone()),
+            path.cloned().into(),
+        );
+
+        compiler.async_handler = has_tla.then(|| compiler.push_handler());
+
+        let lex_declarations = lexically_scoped_declarations(code);
+        let mut functions = Vec::new();
+        for declaration in lex_declarations {
+            let (spec, locator) = match declaration {
+                LexicallyScopedDeclaration::FunctionDeclaration(f) => {
+                    let name = bound_names(f)[0].to_js_string(compiler.interner());
+                    let locator = code.scope().get_binding(&name).expect("binding must exist");
+                    (f.into(), locator)
+                }
+                LexicallyScopedDeclaration::GeneratorDeclaration(g) => {
+                    let name = bound_names(g)[0].to_js_string(compiler.interner());
+                    let locator = code.scope().get_binding(&name).expect("binding must exist");
+                    (g.into(), locator)
+                }
+                LexicallyScopedDeclaration::AsyncFunctionDeclaration(af) => {
+                    let name = bound_names(af)[0].to_js_string(compiler.interner());
+                    let locator = code.scope().get_binding(&name).expect("binding must exist");
+                    (af.into(), locator)
+                }
+                LexicallyScopedDeclaration::AsyncGeneratorDeclaration(ag) => {
+                    let name = bound_names(ag)[0].to_js_string(compiler.interner());
+                    let locator = code.scope().get_binding(&name).expect("binding must exist");
+                    (ag.into(), locator)
+                }
+                LexicallyScopedDeclaration::ClassDeclaration(_)
+                | LexicallyScopedDeclaration::LexicalDeclaration(_)
+                | LexicallyScopedDeclaration::AssignmentExpression(_) => {
+                    continue;
+                }
+            };
+            functions.push((spec, locator));
+        }
+
+        let functions = functions
+            .into_iter()
+            .map(|(spec, locator)| (compiler.function(spec), locator))
+            .collect::<Vec<_>>();
+
+        // 18. Let code be module.[[ECMAScriptCode]].
+        // 19. Let varDeclarations be the VarScopedDeclarations of code.
+        let var_declarations = var_scoped_declarations(code);
+        // 20. Let declaredVarNames be a new empty List.
+        let mut declared_var_names = Vec::new();
+        // 21. For each element d of varDeclarations, do
+        for var in var_declarations {
+            // a. For each element dn of the BoundNames of d, do
+            for name in var.bound_names() {
+                let name = name.to_js_string(compiler.interner());
+
+                // i. If declaredVarNames does not contain dn, then
+                if !declared_var_names.contains(&name) {
+                    // 1. Perform ! env.CreateMutableBinding(dn, false).
+                    // 2. Perform ! env.InitializeBinding(dn, undefined).
+                    let binding = code
+                        .scope()
+                        .get_binding_reference(&name)
+                        .expect("binding must exist");
+                    let index = compiler.insert_binding(binding);
+                    compiler.emit_binding_access(
+                        BindingAccessOpcode::DefInitVar,
+                        &index,
+                        &CallFrame::undefined_register(),
+                    );
+
+                    // 3. Append dn to declaredVarNames.
+                    declared_var_names.push(name);
+                }
+            }
+        }
+
+        compiler.compile_module_item_list(code.items());
+
+        let codeblock = Gc::new(compiler.finish());
+
         Self {
             status: GcRefCell::default(),
             loaded_modules: GcRefCell::default(),
             async_parent_modules: GcRefCell::default(),
             import_meta: GcRefCell::default(),
             code: ModuleCode {
-                source: RefCell::new(Some(code)),
-                source_text: RefCell::new(Some(source_text)),
-                path,
+                codeblock,
+                functions,
+                scope: code.scope().clone(),
                 requested_modules,
                 has_tla,
                 import_entries,
@@ -1560,207 +1639,84 @@ impl SourceTextModule {
         // 4. Assert: realm is not undefined.
         let realm = module_self.realm().clone();
 
-        // Take the AST and source text — they are only needed during compilation.
-        // Dropping them here frees the parse tree after linking is complete.
-        let source = self
-            .code
-            .source
-            .take()
-            .expect("module source consumed before initialize_environment");
-        let source_text = self
-            .code
-            .source_text
-            .take()
-            .expect("module source_text consumed before initialize_environment");
-
         // 5. Let env be NewModuleEnvironment(realm.[[GlobalEnv]]).
         // 6. Set module.[[Environment]] to env.
         let global_env = realm.environment().clone();
-        let env = source.scope().clone();
-
-        let spanned_source_text = SpannedSourceText::new_source_only(source_text);
-        let mut compiler = ByteCompiler::new(
-            js_string!("<main>"),
-            true,
-            false,
-            source.scope().clone(),
-            source.scope().clone(),
-            self.code.has_tla,
-            false,
-            context.interner_mut(),
-            false,
-            spanned_source_text,
-            self.code.path.clone().into(),
-        );
-
-        compiler.async_handler = self.code.has_tla.then(|| compiler.push_handler());
+        let env = self.code.scope.clone();
 
         let mut imports = Vec::new();
 
-        let (codeblock, functions) = {
-            // 7. For each ImportEntry Record in of module.[[ImportEntries]], do
-            for entry in &self.code.import_entries {
-                // a. Let importedModule be GetImportedModule(module, in.[[ModuleRequest]]).
-                let module_request = super::ModuleRequest::from_ast(
-                    entry.module_request().to_js_string(compiler.interner()),
-                    entry.attributes(),
-                    compiler.interner(),
-                );
-                let imported_module = self.loaded_modules.borrow()[&module_request].clone();
+        // 7. For each ImportEntry Record in of module.[[ImportEntries]], do
+        for entry in &self.code.import_entries {
+            // a. Let importedModule be GetImportedModule(module, in.[[ModuleRequest]]).
+            let module_request = super::ModuleRequest::from_ast(
+                entry.module_request().to_js_string(context.interner()),
+                entry.attributes(),
+                context.interner(),
+            );
+            let imported_module = self.loaded_modules.borrow()[&module_request].clone();
 
-                if let ImportName::Name(name) = entry.import_name() {
-                    let name = name.to_js_string(compiler.interner());
-                    // c. Else,
-                    //    i. Let resolution be importedModule.ResolveExport(in.[[ImportName]]).
-                    let resolution = imported_module
-                        .resolve_export(name.clone(), &mut HashSet::default(), compiler.interner())
-                        // ii. If resolution is either null or ambiguous, throw a SyntaxError exception.
-                        .map_err(|err| match err {
-                            ResolveExportError::NotFound => JsNativeError::syntax().with_message(
-                                format!("could not find export `{}`", name.to_std_string_escaped()),
-                            ),
-                            ResolveExportError::Ambiguous => {
-                                JsNativeError::syntax().with_message(format!(
-                                    "could not resolve ambiguous export `{}`",
-                                    name.to_std_string_escaped()
-                                ))
-                            }
-                        })?;
+            if let ImportName::Name(name) = entry.import_name() {
+                let name = name.to_js_string(context.interner());
+                // c. Else,
+                //    i. Let resolution be importedModule.ResolveExport(in.[[ImportName]]).
+                let resolution = imported_module
+                    .resolve_export(name.clone(), &mut HashSet::default(), context.interner())
+                    // ii. If resolution is either null or ambiguous, throw a SyntaxError exception.
+                    .map_err(|err| match err {
+                        ResolveExportError::NotFound => JsNativeError::syntax().with_message(
+                            format!("could not find export `{}`", name.to_std_string_escaped()),
+                        ),
+                        ResolveExportError::Ambiguous => {
+                            JsNativeError::syntax().with_message(format!(
+                                "could not resolve ambiguous export `{}`",
+                                name.to_std_string_escaped()
+                            ))
+                        }
+                    })?;
 
-                    // 2. Perform ! env.CreateImmutableBinding(in.[[LocalName]], true).
-                    // 3. Perform ! env.InitializeBinding(in.[[LocalName]], namespace).
-                    let local_name = entry.local_name().to_js_string(compiler.interner());
-                    let locator = env.get_binding(&local_name).expect("binding must exist");
+                // 2. Perform ! env.CreateImmutableBinding(in.[[LocalName]], true).
+                // 3. Perform ! env.InitializeBinding(in.[[LocalName]], namespace).
+                let local_name = entry.local_name().to_js_string(context.interner());
+                let locator = env.get_binding(&local_name).expect("binding must exist");
 
-                    if let BindingName::Name(_) = resolution.binding_name {
-                        // 1. Perform env.CreateImportBinding(in.[[LocalName]], resolution.[[Module]],
-                        //    resolution.[[BindingName]]).
-                        //    deferred to initialization below
-                        imports.push(ImportBinding::Single {
-                            locator,
-                            export_locator: resolution,
-                        });
-                    } else {
-                        // 1. Let namespace be GetModuleNamespace(resolution.[[Module]]).
-                        // deferred to initialization below
-                        imports.push(ImportBinding::Namespace {
-                            locator,
-                            module: resolution.module,
-                        });
-                    }
+                if let BindingName::Name(_) = resolution.binding_name {
+                    // 1. Perform env.CreateImportBinding(in.[[LocalName]], resolution.[[Module]],
+                    //    resolution.[[BindingName]]).
+                    //    deferred to initialization below
+                    imports.push(ImportBinding::Single {
+                        locator,
+                        export_locator: resolution,
+                    });
                 } else {
-                    // b. If in.[[ImportName]] is namespace-object, then
-                    //    ii. Perform ! env.CreateImmutableBinding(in.[[LocalName]], true).
-                    //    iii. Perform ! env.InitializeBinding(in.[[LocalName]], namespace).
-                    let name = entry.local_name().to_js_string(compiler.interner());
-                    let locator = env.get_binding(&name).expect("binding must exist");
-
-                    //    i. Let namespace be GetModuleNamespace(importedModule).
-                    //       deferred to initialization below
+                    // 1. Let namespace be GetModuleNamespace(resolution.[[Module]]).
+                    // deferred to initialization below
                     imports.push(ImportBinding::Namespace {
                         locator,
-                        module: imported_module.clone(),
+                        module: resolution.module,
                     });
                 }
+            } else {
+                // b. If in.[[ImportName]] is namespace-object, then
+                //    ii. Perform ! env.CreateImmutableBinding(in.[[LocalName]], true).
+                //    iii. Perform ! env.InitializeBinding(in.[[LocalName]], namespace).
+                let name = entry.local_name().to_js_string(context.interner());
+                let locator = env.get_binding(&name).expect("binding must exist");
+
+                //    i. Let namespace be GetModuleNamespace(importedModule).
+                //       deferred to initialization below
+                imports.push(ImportBinding::Namespace {
+                    locator,
+                    module: imported_module.clone(),
+                });
             }
+        }
 
-            // 18. Let code be module.[[ECMAScriptCode]].
-            // 19. Let varDeclarations be the VarScopedDeclarations of code.
-            let var_declarations = var_scoped_declarations(&source);
-            // 20. Let declaredVarNames be a new empty List.
-            let mut declared_var_names = Vec::new();
-            // 21. For each element d of varDeclarations, do
-            for var in var_declarations {
-                // a. For each element dn of the BoundNames of d, do
-                for name in var.bound_names() {
-                    let name = name.to_js_string(compiler.interner());
-
-                    // i. If declaredVarNames does not contain dn, then
-                    if !declared_var_names.contains(&name) {
-                        // 1. Perform ! env.CreateMutableBinding(dn, false).
-                        // 2. Perform ! env.InitializeBinding(dn, undefined).
-                        let binding = env
-                            .get_binding_reference(&name)
-                            .expect("binding must exist");
-                        let index = compiler.insert_binding(binding);
-                        compiler.emit_binding_access(
-                            BindingAccessOpcode::DefInitVar,
-                            &index,
-                            &CallFrame::undefined_register(),
-                        );
-
-                        // 3. Append dn to declaredVarNames.
-                        declared_var_names.push(name);
-                    }
-                }
-            }
-
-            // 22. Let lexDeclarations be the LexicallyScopedDeclarations of code.
-            // 23. Let privateEnv be null.
-            let lex_declarations = lexically_scoped_declarations(&source);
-            let mut functions = Vec::new();
-            // 24. For each element d of lexDeclarations, do
-            for declaration in lex_declarations {
-                // ii. Else,
-                // a. For each element dn of the BoundNames of d, do
-                // 1. Perform ! env.CreateMutableBinding(dn, false).
-                //
-                // iii. If d is either a FunctionDeclaration, a GeneratorDeclaration, an
-                //      AsyncFunctionDeclaration, or an AsyncGeneratorDeclaration, then
-                // 1. Let fo be InstantiateFunctionObject of d with arguments env and privateEnv.
-                // 2. Perform ! env.InitializeBinding(dn, fo).
-                //
-                // deferred to below.
-                let (spec, locator): (FunctionSpec<'_>, _) = match declaration {
-                    LexicallyScopedDeclaration::FunctionDeclaration(f) => {
-                        let name = bound_names(f)[0].to_js_string(compiler.interner());
-                        let locator = env.get_binding(&name).expect("binding must exist");
-
-                        (f.into(), locator)
-                    }
-                    LexicallyScopedDeclaration::GeneratorDeclaration(g) => {
-                        let name = bound_names(g)[0].to_js_string(compiler.interner());
-                        let locator = env.get_binding(&name).expect("binding must exist");
-
-                        (g.into(), locator)
-                    }
-                    LexicallyScopedDeclaration::AsyncFunctionDeclaration(af) => {
-                        let name = bound_names(af)[0].to_js_string(compiler.interner());
-                        let locator = env.get_binding(&name).expect("binding must exist");
-
-                        (af.into(), locator)
-                    }
-                    LexicallyScopedDeclaration::AsyncGeneratorDeclaration(ag) => {
-                        let name = bound_names(ag)[0].to_js_string(compiler.interner());
-                        let locator = env.get_binding(&name).expect("binding must exist");
-
-                        (ag.into(), locator)
-                    }
-                    LexicallyScopedDeclaration::ClassDeclaration(_)
-                    | LexicallyScopedDeclaration::LexicalDeclaration(_)
-                    | LexicallyScopedDeclaration::AssignmentExpression(_) => {
-                        continue;
-                    }
-                };
-
-                functions.push((spec, locator));
-            }
-
-            // Should compile after initializing bindings first to ensure inner calls
-            // are correctly resolved to the outer functions instead of as global bindings.
-            let functions = functions
-                .into_iter()
-                .map(|(spec, locator)| (compiler.function(spec), locator))
-                .collect::<Vec<_>>();
-
-            compiler.compile_module_item_list(source.items());
-
-            (Gc::new(compiler.finish()), functions)
-        };
+        let codeblock = self.code.codeblock.clone();
 
         // 8. Let moduleContext be a new ECMAScript code execution context.
         let mut envs = EnvironmentStack::new(global_env);
-        envs.push_module(source.scope().clone());
+        envs.push_module(self.code.scope.clone());
 
         // 9. Set the Function of moduleContext to null.
         // 10. Assert: module.[[Realm]] is not undefined.
@@ -1820,10 +1776,10 @@ impl SourceTextModule {
         }
 
         // deferred initialization of function exports
-        for (index, locator) in functions {
-            let code = codeblock.constant_function(index as usize);
+        for (index, locator) in &self.code.functions {
+            let code = codeblock.constant_function(*index as usize);
 
-            let function = create_function_object_fast(code, context);
+            let function = create_function_object_fast(code.clone(), context);
 
             context.vm.frame_mut().environments.put_lexical_value(
                 locator.scope(),

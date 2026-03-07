@@ -10,8 +10,8 @@ use boa_ast::{
     },
 };
 
-impl ByteCompiler<'_> {
-    pub(crate) fn compile_binary(&mut self, binary: &Binary, dst: &Register) {
+impl<'arena> ByteCompiler<'arena, '_> {
+    pub(crate) fn compile_binary(&mut self, binary: &'arena Binary<'arena>, dst: &Register) {
         match binary.op() {
             BinaryOp::Arithmetic(op) => {
                 self.compile_expr_operand(binary.lhs(), |self_, lhs| {
@@ -56,7 +56,7 @@ impl ByteCompiler<'_> {
     fn compile_binary_arithmetic(
         &mut self,
         op: ArithmeticOp,
-        rhs_expr: &Expression,
+        rhs_expr: &'arena Expression<'arena>,
         dst: &Register,
         lhs: RegisterOperand,
     ) {
@@ -76,7 +76,7 @@ impl ByteCompiler<'_> {
     fn compile_binary_bitwise(
         &mut self,
         op: BitwiseOp,
-        rhs_expr: &Expression,
+        rhs_expr: &'arena Expression<'arena>,
         dst: &Register,
         lhs: RegisterOperand,
     ) {
@@ -102,7 +102,7 @@ impl ByteCompiler<'_> {
     fn compile_binary_relational(
         &mut self,
         op: RelationalOp,
-        rhs_expr: &Expression,
+        rhs_expr: &'arena Expression<'arena>,
         dst: &Register,
         lhs: RegisterOperand,
     ) {
@@ -139,7 +139,11 @@ impl ByteCompiler<'_> {
         });
     }
 
-    pub(crate) fn compile_binary_in_private(&mut self, binary: &BinaryInPrivate, dst: &Register) {
+    pub(crate) fn compile_binary_in_private(
+        &mut self,
+        binary: &'arena BinaryInPrivate<'arena>,
+        dst: &Register,
+    ) {
         let index = self.get_or_insert_private_name(*binary.lhs());
         self.compile_expr(binary.rhs(), dst);
         self.bytecode

@@ -36,12 +36,13 @@ use boa_interner::Interner;
 /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Guide/Expressions_and_Operators#Unary
 /// [spec]: https://tc39.es/ecma262/#prod-UnaryExpression
 #[derive(Debug, Clone, Copy)]
-pub(in crate::parser) struct UnaryExpression {
+pub(in crate::parser) struct UnaryExpression<'arena> {
     allow_yield: AllowYield,
     allow_await: AllowAwait,
+    _marker: std::marker::PhantomData<&'arena ()>,
 }
 
-impl UnaryExpression {
+impl UnaryExpression<'_> {
     /// Creates a new `UnaryExpression` parser.
     pub(in crate::parser) fn new<Y, A>(allow_yield: Y, allow_await: A) -> Self
     where
@@ -51,15 +52,16 @@ impl UnaryExpression {
         Self {
             allow_yield: allow_yield.into(),
             allow_await: allow_await.into(),
+            _marker: std::marker::PhantomData,
         }
     }
 }
 
-impl<R> TokenParser<R> for UnaryExpression
+impl<'arena, R> TokenParser<'arena, R> for UnaryExpression<'arena>
 where
     R: ReadChar,
 {
-    type Output = FormalParameterListOrExpression;
+    type Output = FormalParameterListOrExpression<'arena>;
 
     fn parse(self, cursor: &mut Cursor<R>, interner: &mut Interner) -> ParseResult<Self::Output> {
         let tok = cursor.peek(0, interner).or_abrupt()?;

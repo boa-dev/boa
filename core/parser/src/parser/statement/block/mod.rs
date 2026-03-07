@@ -36,7 +36,7 @@ const BLOCK_BREAK_TOKENS: [TokenKind; 1] = [TokenKind::Punctuator(Punctuator::Cl
 ///  - [ECMAScript specification][spec]
 ///
 /// [spec]: https://tc39.es/ecma262/#prod-BlockStatement
-pub(super) type BlockStatement = Block;
+pub(super) type BlockStatement<'arena> = Block<'arena>;
 
 /// Variable declaration list parsing.
 ///
@@ -47,13 +47,14 @@ pub(super) type BlockStatement = Block;
 /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Statements/block
 /// [spec]: https://tc39.es/ecma262/#prod-Block
 #[derive(Debug, Clone, Copy)]
-pub(super) struct Block {
+pub(super) struct Block<'arena> {
     allow_yield: AllowYield,
     allow_await: AllowAwait,
     allow_return: AllowReturn,
+    _marker: std::marker::PhantomData<&'arena ()>,
 }
 
-impl Block {
+impl Block<'_> {
     /// Creates a new `Block` parser.
     pub(super) fn new<Y, A, R>(allow_yield: Y, allow_await: A, allow_return: R) -> Self
     where
@@ -65,15 +66,16 @@ impl Block {
             allow_yield: allow_yield.into(),
             allow_await: allow_await.into(),
             allow_return: allow_return.into(),
+            _marker: std::marker::PhantomData,
         }
     }
 }
 
-impl<R> TokenParser<R> for Block
+impl<'arena, R> TokenParser<'arena, R> for Block<'arena>
 where
     R: ReadChar,
 {
-    type Output = statement::Block;
+    type Output = statement::Block<'arena>;
 
     fn parse(self, cursor: &mut Cursor<R>, interner: &mut Interner) -> ParseResult<Self::Output> {
         cursor.expect(Punctuator::OpenBlock, "block", interner)?;
@@ -81,7 +83,10 @@ where
             && tk.kind() == &TokenKind::Punctuator(Punctuator::CloseBlock)
         {
             cursor.advance(interner);
-            return Ok(statement::Block::from((vec![], cursor.linear_pos())));
+            return Ok(statement::Block::from((
+                vec![].into_boxed_slice(),
+                cursor.linear_pos(),
+            )));
         }
         let position = cursor.peek(0, interner).or_abrupt()?.span().start();
         let (statement_list, _end) = StatementList::new(

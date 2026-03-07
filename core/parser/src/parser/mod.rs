@@ -34,13 +34,13 @@ use std::path::Path;
 
 use self::statement::ModuleItemList;
 
-type ScriptParseOutput = (boa_ast::Script, boa_ast::SourceText);
-type ModuleParseOutput = (boa_ast::Module, boa_ast::SourceText);
+type ScriptParseOutput<'arena> = (boa_ast::Script<'arena>, boa_ast::SourceText);
+type ModuleParseOutput<'arena> = (boa_ast::Module<'arena>, boa_ast::SourceText);
 
 /// Trait implemented by parsers.
 ///
 /// This makes it possible to abstract over the underlying implementation of a parser.
-trait TokenParser<R>: Sized
+trait TokenParser<'arena, R>: Sized
 where
     R: ReadChar,
 {
@@ -117,20 +117,23 @@ impl From<bool> for AllowDefault {
 /// [label]: https://tc39.es/ecma262/#sec-labelled-function-declarations
 /// [block]: https://tc39.es/ecma262/#sec-block-duplicates-allowed-static-semantics
 #[derive(Debug)]
-pub struct Parser<'a, R> {
+pub struct Parser<'arena, 'a, R> {
     /// Path to the source being parsed.
     #[allow(unused)] // Good to have for future improvements.
     path: Option<&'a Path>,
     /// Cursor of the parser, pointing to the lexer and used to get tokens for the parser.
     cursor: Cursor<R>,
+    // arena: &'arena bumpalo::Bump,
+    _marker: std::marker::PhantomData<&'arena ()>, // temp field for the 'arena lifetime reference
 }
 
-impl<'a, R: ReadChar> Parser<'a, R> {
+impl<'arena, 'a, R: ReadChar> Parser<'arena, 'a, R> {
     /// Create a new `Parser` with a `Source` as the input to parse.
     pub fn new(source: Source<'a, R>) -> Self {
         Self {
             path: source.path,
             cursor: Cursor::new(source.reader),
+            _marker: std::marker::PhantomData,
         }
     }
 
@@ -146,7 +149,7 @@ impl<'a, R: ReadChar> Parser<'a, R> {
         &mut self,
         scope: &Scope,
         interner: &mut Interner,
-    ) -> ParseResult<boa_ast::Script> {
+    ) -> ParseResult<boa_ast::Script<'arena>> {
         self.parse_script_with_source(scope, interner).map(|x| x.0)
     }
 
@@ -162,7 +165,7 @@ impl<'a, R: ReadChar> Parser<'a, R> {
         &mut self,
         scope: &Scope,
         interner: &mut Interner,
-    ) -> ParseResult<ScriptParseOutput> {
+    ) -> ParseResult<ScriptParseOutput<'arena>> {
         self.cursor.set_goal(InputElement::HashbangOrRegExp);
         let (mut ast, source) = ScriptParser::new(false).parse(&mut self.cursor, interner)?;
         if let Err(reason) = ast.analyze_scope(scope, interner) {
@@ -186,7 +189,7 @@ impl<'a, R: ReadChar> Parser<'a, R> {
         &mut self,
         scope: &Scope,
         interner: &mut Interner,
-    ) -> ParseResult<boa_ast::Module>
+    ) -> ParseResult<boa_ast::Module<'arena>>
     where
         R: ReadChar,
     {
@@ -205,12 +208,12 @@ impl<'a, R: ReadChar> Parser<'a, R> {
         &mut self,
         scope: &Scope,
         interner: &mut Interner,
-    ) -> ParseResult<ModuleParseOutput>
+    ) -> ParseResult<ModuleParseOutput<'arena>>
     where
         R: ReadChar,
     {
         self.cursor.set_goal(InputElement::HashbangOrRegExp);
-        let (mut module, source) = ModuleParser.parse(&mut self.cursor, interner)?;
+        let (mut module, source) = ModuleParser::new().parse(&mut self.cursor, interner)?;
         if let Err(reason) = module.analyze_scope(scope, interner) {
             return Err(Error::general(
                 format!("invalid scope analysis: {reason}"),
@@ -233,7 +236,7 @@ impl<'a, R: ReadChar> Parser<'a, R> {
         &mut self,
         direct: bool,
         interner: &mut Interner,
-    ) -> ParseResult<ScriptParseOutput> {
+    ) -> ParseResult<ScriptParseOutput<'arena>> {
         self.cursor.set_goal(InputElement::HashbangOrRegExp);
         ScriptParser::new(direct).parse(&mut self.cursor, interner)
     }
@@ -250,7 +253,7 @@ impl<'a, R: ReadChar> Parser<'a, R> {
         interner: &mut Interner,
         allow_yield: bool,
         allow_await: bool,
-    ) -> ParseResult<FunctionBody> {
+    ) -> ParseResult<FunctionBody<'arena>> {
         let mut parser = FunctionStatementList::new(allow_yield, allow_await, "function body");
         parser.parse_full_input(true);
         parser.parse(&mut self.cursor, interner)
@@ -268,12 +271,12 @@ impl<'a, R: ReadChar> Parser<'a, R> {
         interner: &mut Interner,
         allow_yield: bool,
         allow_await: bool,
-    ) -> ParseResult<FormalParameterList> {
+    ) -> ParseResult<FormalParameterList<'arena>> {
         FormalParameters::new(allow_yield, allow_await).parse(&mut self.cursor, interner)
     }
 }
 
-impl<R> Parser<'_, R> {
+impl<R> Parser<'_, '_, R> {
     /// Set the parser strict mode to true.
     pub fn set_strict(&mut self)
     where
@@ -306,23 +309,27 @@ impl<R> Parser<'_, R> {
 ///
 /// [spec]: https://tc39.es/ecma262/#prod-Script
 #[derive(Debug, Clone, Copy)]
-pub struct ScriptParser {
+pub struct ScriptParser<'arena> {
     direct_eval: bool,
+    _marker: std::marker::PhantomData<&'arena ()>,
 }
 
-impl ScriptParser {
+impl ScriptParser<'_> {
     /// Create a new `Script` parser.
     #[inline]
     const fn new(direct_eval: bool) -> Self {
-        Self { direct_eval }
+        Self {
+            direct_eval,
+            _marker: std::marker::PhantomData,
+        }
     }
 }
 
-impl<R> TokenParser<R> for ScriptParser
+impl<'arena, R> TokenParser<'arena, R> for ScriptParser<'arena>
 where
     R: ReadChar,
 {
-    type Output = ScriptParseOutput;
+    type Output = ScriptParseOutput<'arena>;
 
     fn parse(self, cursor: &mut Cursor<R>, interner: &mut Interner) -> ParseResult<Self::Output> {
         let stmts =
@@ -362,13 +369,14 @@ where
 ///
 /// [spec]: https://tc39.es/ecma262/#prod-ScriptBody
 #[derive(Debug, Clone, Copy)]
-pub struct ScriptBody {
+pub struct ScriptBody<'arena> {
     directive_prologues: bool,
     strict: bool,
     direct_eval: bool,
+    _marker: std::marker::PhantomData<&'arena ()>,
 }
 
-impl ScriptBody {
+impl ScriptBody<'_> {
     /// Create a new `ScriptBody` parser.
     #[inline]
     const fn new(directive_prologues: bool, strict: bool, direct_eval: bool) -> Self {
@@ -376,15 +384,16 @@ impl ScriptBody {
             directive_prologues,
             strict,
             direct_eval,
+            _marker: std::marker::PhantomData,
         }
     }
 }
 
-impl<R> TokenParser<R> for ScriptBody
+impl<'arena, R> TokenParser<'arena, R> for ScriptBody<'arena>
 where
     R: ReadChar,
 {
-    type Output = StatementList;
+    type Output = StatementList<'arena>;
 
     fn parse(self, cursor: &mut Cursor<R>, interner: &mut Interner) -> ParseResult<Self::Output> {
         let (body, _end) = statement::StatementList::new(
@@ -450,18 +459,30 @@ where
 ///
 /// [spec]: https://tc39.es/ecma262/#prod-Module
 #[derive(Debug, Clone, Copy)]
-struct ModuleParser;
+struct ModuleParser<'arena> {
+    _marker: std::marker::PhantomData<&'arena ()>,
+}
 
-impl<R> TokenParser<R> for ModuleParser
+impl ModuleParser<'_> {
+    /// Create a new `Module` parser.
+    #[inline]
+    const fn new() -> Self {
+        Self {
+            _marker: std::marker::PhantomData,
+        }
+    }
+}
+
+impl<'arena, R> TokenParser<'arena, R> for ModuleParser<'arena>
 where
     R: ReadChar,
 {
-    type Output = ModuleParseOutput;
+    type Output = ModuleParseOutput<'arena>;
 
     fn parse(self, cursor: &mut Cursor<R>, interner: &mut Interner) -> ParseResult<Self::Output> {
         cursor.set_module();
 
-        let module = boa_ast::Module::new(ModuleItemList.parse(cursor, interner)?);
+        let module = boa_ast::Module::new(ModuleItemList::new().parse(cursor, interner)?);
 
         // It is a Syntax Error if the LexicallyDeclaredNames of ModuleItemList contains any duplicate entries.
         let mut bindings = FxHashSet::default();

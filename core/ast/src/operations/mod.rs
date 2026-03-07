@@ -74,9 +74,9 @@ pub enum ContainsSymbol {
 ///
 /// [spec]: https://tc39.es/ecma262/#sec-static-semantics-contains
 #[must_use]
-pub fn contains<N>(node: &N, symbol: ContainsSymbol) -> bool
+pub fn contains<'arena, N>(node: &N, symbol: ContainsSymbol) -> bool
 where
-    N: VisitWith,
+    N: VisitWith<'arena>,
 {
     /// Visitor used by the function to search for a specific symbol in a node.
     #[derive(Debug, Clone, Copy)]
@@ -92,15 +92,15 @@ where
         }
     }
 
-    impl<'ast> Visitor<'ast> for ContainsVisitor {
+    impl<'ast, 'arena: 'ast> Visitor<'ast, 'arena> for ContainsVisitor {
         type BreakTy = ();
 
-        fn visit_with(&mut self, node: &'ast With) -> ControlFlow<Self::BreakTy> {
+        fn visit_with(&mut self, node: &'ast With<'arena>) -> ControlFlow<Self::BreakTy> {
             self.visit_expression(node.expression())?;
             node.statement().visit_with(self)
         }
 
-        fn visit_call(&mut self, node: &'ast Call) -> ControlFlow<Self::BreakTy> {
+        fn visit_call(&mut self, node: &'ast Call<'arena>) -> ControlFlow<Self::BreakTy> {
             if self.0 == ContainsSymbol::DirectEval
                 && let Expression::Identifier(ident) = node.function().flatten()
                 && ident.sym() == Sym::EVAL
@@ -126,7 +126,7 @@ where
 
         fn visit_function_expression(
             &mut self,
-            node: &'ast FunctionExpression,
+            node: &'ast FunctionExpression<'arena>,
         ) -> ControlFlow<Self::BreakTy> {
             self.visit_contains_eval(node.contains_direct_eval)?;
             ControlFlow::Continue(())
@@ -134,7 +134,7 @@ where
 
         fn visit_function_declaration(
             &mut self,
-            node: &'ast FunctionDeclaration,
+            node: &'ast FunctionDeclaration<'arena>,
         ) -> ControlFlow<Self::BreakTy> {
             self.visit_contains_eval(node.contains_direct_eval)?;
             ControlFlow::Continue(())
@@ -142,7 +142,7 @@ where
 
         fn visit_async_function_expression(
             &mut self,
-            node: &'ast AsyncFunctionExpression,
+            node: &'ast AsyncFunctionExpression<'arena>,
         ) -> ControlFlow<Self::BreakTy> {
             self.visit_contains_eval(node.contains_direct_eval)?;
             ControlFlow::Continue(())
@@ -150,7 +150,7 @@ where
 
         fn visit_async_function_declaration(
             &mut self,
-            node: &'ast AsyncFunctionDeclaration,
+            node: &'ast AsyncFunctionDeclaration<'arena>,
         ) -> ControlFlow<Self::BreakTy> {
             self.visit_contains_eval(node.contains_direct_eval)?;
             ControlFlow::Continue(())
@@ -158,7 +158,7 @@ where
 
         fn visit_generator_expression(
             &mut self,
-            node: &'ast GeneratorExpression,
+            node: &'ast GeneratorExpression<'arena>,
         ) -> ControlFlow<Self::BreakTy> {
             self.visit_contains_eval(node.contains_direct_eval)?;
             ControlFlow::Continue(())
@@ -166,7 +166,7 @@ where
 
         fn visit_generator_declaration(
             &mut self,
-            node: &'ast GeneratorDeclaration,
+            node: &'ast GeneratorDeclaration<'arena>,
         ) -> ControlFlow<Self::BreakTy> {
             self.visit_contains_eval(node.contains_direct_eval)?;
             ControlFlow::Continue(())
@@ -174,7 +174,7 @@ where
 
         fn visit_async_generator_expression(
             &mut self,
-            node: &'ast AsyncGeneratorExpression,
+            node: &'ast AsyncGeneratorExpression<'arena>,
         ) -> ControlFlow<Self::BreakTy> {
             self.visit_contains_eval(node.contains_direct_eval)?;
             ControlFlow::Continue(())
@@ -182,7 +182,7 @@ where
 
         fn visit_async_generator_declaration(
             &mut self,
-            node: &'ast AsyncGeneratorDeclaration,
+            node: &'ast AsyncGeneratorDeclaration<'arena>,
         ) -> ControlFlow<Self::BreakTy> {
             self.visit_contains_eval(node.contains_direct_eval)?;
             ControlFlow::Continue(())
@@ -190,7 +190,7 @@ where
 
         fn visit_class_expression(
             &mut self,
-            node: &'ast ClassExpression,
+            node: &'ast ClassExpression<'arena>,
         ) -> ControlFlow<Self::BreakTy> {
             if !node.elements().is_empty() && self.0 == ContainsSymbol::ClassBody {
                 return ControlFlow::Break(());
@@ -205,7 +205,7 @@ where
 
         fn visit_class_declaration(
             &mut self,
-            node: &'ast ClassDeclaration,
+            node: &'ast ClassDeclaration<'arena>,
         ) -> ControlFlow<Self::BreakTy> {
             if !node.elements().is_empty() && self.0 == ContainsSymbol::ClassBody {
                 return ControlFlow::Break(());
@@ -219,7 +219,10 @@ where
         }
 
         // `ComputedPropertyContains`: https://tc39.es/ecma262/#sec-static-semantics-computedpropertycontains
-        fn visit_class_element(&mut self, node: &'ast ClassElement) -> ControlFlow<Self::BreakTy> {
+        fn visit_class_element(
+            &mut self,
+            node: &'ast ClassElement<'arena>,
+        ) -> ControlFlow<Self::BreakTy> {
             match node {
                 ClassElement::MethodDefinition(m) => {
                     if self.0 == ContainsSymbol::DirectEval {
@@ -240,7 +243,7 @@ where
 
         fn visit_property_definition(
             &mut self,
-            node: &'ast PropertyDefinition,
+            node: &'ast PropertyDefinition<'arena>,
         ) -> ControlFlow<Self::BreakTy> {
             if let PropertyDefinition::MethodDefinition(m) = node {
                 if self.0 == ContainsSymbol::DirectEval {
@@ -258,7 +261,7 @@ where
 
         fn visit_arrow_function(
             &mut self,
-            node: &'ast ArrowFunction,
+            node: &'ast ArrowFunction<'arena>,
         ) -> ControlFlow<Self::BreakTy> {
             if ![
                 ContainsSymbol::NewTarget,
@@ -278,7 +281,7 @@ where
 
         fn visit_async_arrow_function(
             &mut self,
-            node: &'ast AsyncArrowFunction,
+            node: &'ast AsyncArrowFunction<'arena>,
         ) -> ControlFlow<Self::BreakTy> {
             if ![
                 ContainsSymbol::NewTarget,
@@ -298,7 +301,7 @@ where
 
         fn visit_super_property_access(
             &mut self,
-            node: &'ast SuperPropertyAccess,
+            node: &'ast SuperPropertyAccess<'arena>,
         ) -> ControlFlow<Self::BreakTy> {
             if [ContainsSymbol::SuperProperty, ContainsSymbol::Super].contains(&self.0) {
                 return ControlFlow::Break(());
@@ -306,14 +309,17 @@ where
             node.visit_with(self)
         }
 
-        fn visit_super_call(&mut self, node: &'ast SuperCall) -> ControlFlow<Self::BreakTy> {
+        fn visit_super_call(
+            &mut self,
+            node: &'ast SuperCall<'arena>,
+        ) -> ControlFlow<Self::BreakTy> {
             if [ContainsSymbol::SuperCall, ContainsSymbol::Super].contains(&self.0) {
                 return ControlFlow::Break(());
             }
             node.visit_with(self)
         }
 
-        fn visit_yield(&mut self, node: &'ast Yield) -> ControlFlow<Self::BreakTy> {
+        fn visit_yield(&mut self, node: &'ast Yield<'arena>) -> ControlFlow<Self::BreakTy> {
             if self.0 == ContainsSymbol::YieldExpression {
                 return ControlFlow::Break(());
             }
@@ -321,7 +327,7 @@ where
             node.visit_with(self)
         }
 
-        fn visit_await(&mut self, node: &'ast Await) -> ControlFlow<Self::BreakTy> {
+        fn visit_await(&mut self, node: &'ast Await<'arena>) -> ControlFlow<Self::BreakTy> {
             if self.0 == ContainsSymbol::AwaitExpression {
                 return ControlFlow::Break(());
             }
@@ -353,15 +359,15 @@ where
 ///
 /// [spec]: https://tc39.es/ecma262/#sec-static-semantics-containsarguments
 #[must_use]
-pub fn contains_arguments<N>(node: &N) -> bool
+pub fn contains_arguments<'arena, N>(node: &N) -> bool
 where
-    N: VisitWith,
+    N: VisitWith<'arena>,
 {
     /// Visitor used by the function to search for an identifier with the name `arguments`.
     #[derive(Debug, Clone, Copy)]
     struct ContainsArgsVisitor;
 
-    impl<'ast> Visitor<'ast> for ContainsArgsVisitor {
+    impl<'ast, 'arena: 'ast> Visitor<'ast, 'arena> for ContainsArgsVisitor {
         type BreakTy = ();
 
         fn visit_identifier(&mut self, node: &'ast Identifier) -> ControlFlow<Self::BreakTy> {
@@ -374,61 +380,64 @@ where
 
         fn visit_function_expression(
             &mut self,
-            _: &'ast FunctionExpression,
+            _: &'ast FunctionExpression<'arena>,
         ) -> ControlFlow<Self::BreakTy> {
             ControlFlow::Continue(())
         }
 
         fn visit_function_declaration(
             &mut self,
-            _: &'ast FunctionDeclaration,
+            _: &'ast FunctionDeclaration<'arena>,
         ) -> ControlFlow<Self::BreakTy> {
             ControlFlow::Continue(())
         }
 
         fn visit_async_function_expression(
             &mut self,
-            _: &'ast AsyncFunctionExpression,
+            _: &'ast AsyncFunctionExpression<'arena>,
         ) -> ControlFlow<Self::BreakTy> {
             ControlFlow::Continue(())
         }
 
         fn visit_async_function_declaration(
             &mut self,
-            _: &'ast AsyncFunctionDeclaration,
+            _: &'ast AsyncFunctionDeclaration<'arena>,
         ) -> ControlFlow<Self::BreakTy> {
             ControlFlow::Continue(())
         }
 
         fn visit_generator_expression(
             &mut self,
-            _: &'ast GeneratorExpression,
+            _: &'ast GeneratorExpression<'arena>,
         ) -> ControlFlow<Self::BreakTy> {
             ControlFlow::Continue(())
         }
 
         fn visit_generator_declaration(
             &mut self,
-            _: &'ast GeneratorDeclaration,
+            _: &'ast GeneratorDeclaration<'arena>,
         ) -> ControlFlow<Self::BreakTy> {
             ControlFlow::Continue(())
         }
 
         fn visit_async_generator_expression(
             &mut self,
-            _: &'ast AsyncGeneratorExpression,
+            _: &'ast AsyncGeneratorExpression<'arena>,
         ) -> ControlFlow<Self::BreakTy> {
             ControlFlow::Continue(())
         }
 
         fn visit_async_generator_declaration(
             &mut self,
-            _: &'ast AsyncGeneratorDeclaration,
+            _: &'ast AsyncGeneratorDeclaration<'arena>,
         ) -> ControlFlow<Self::BreakTy> {
             ControlFlow::Continue(())
         }
 
-        fn visit_class_element(&mut self, node: &'ast ClassElement) -> ControlFlow<Self::BreakTy> {
+        fn visit_class_element(
+            &mut self,
+            node: &'ast ClassElement<'arena>,
+        ) -> ControlFlow<Self::BreakTy> {
             if let ClassElement::MethodDefinition(m) = node
                 && let ClassElementName::PropertyName(name) = m.name()
             {
@@ -440,7 +449,7 @@ where
 
         fn visit_property_definition(
             &mut self,
-            node: &'ast PropertyDefinition,
+            node: &'ast PropertyDefinition<'arena>,
         ) -> ControlFlow<Self::BreakTy> {
             if let PropertyDefinition::MethodDefinition(m) = node {
                 m.name().visit_with(self)
@@ -459,7 +468,7 @@ where
 /// [spec]: https://tc39.es/ecma262/#sec-static-semantics-hasdirectsuper
 #[must_use]
 #[inline]
-pub fn has_direct_super_new(params: &FormalParameterList, body: &FunctionBody) -> bool {
+pub fn has_direct_super_new(params: &FormalParameterList<'_>, body: &FunctionBody<'_>) -> bool {
     contains(params, ContainsSymbol::SuperCall) || contains(body, ContainsSymbol::SuperCall)
 }
 
@@ -490,7 +499,7 @@ impl IdentList for FxHashSet<Sym> {
 #[derive(Debug)]
 pub(crate) struct BoundNamesVisitor<'a, T: IdentList>(pub(crate) &'a mut T);
 
-impl<'ast, T: IdentList> Visitor<'ast> for BoundNamesVisitor<'_, T> {
+impl<'ast, 'arena: 'ast, T: IdentList> Visitor<'ast, 'arena> for BoundNamesVisitor<'_, T> {
     type BreakTy = Infallible;
 
     fn visit_identifier(&mut self, node: &'ast Identifier) -> ControlFlow<Self::BreakTy> {
@@ -498,13 +507,13 @@ impl<'ast, T: IdentList> Visitor<'ast> for BoundNamesVisitor<'_, T> {
         ControlFlow::Continue(())
     }
 
-    fn visit_expression(&mut self, _: &'ast Expression) -> ControlFlow<Self::BreakTy> {
+    fn visit_expression(&mut self, _: &'ast Expression<'arena>) -> ControlFlow<Self::BreakTy> {
         ControlFlow::Continue(())
     }
 
     fn visit_function_expression(
         &mut self,
-        node: &'ast FunctionExpression,
+        node: &'ast FunctionExpression<'arena>,
     ) -> ControlFlow<Self::BreakTy> {
         if let Some(ident) = node.name() {
             self.0.add(ident.sym(), true);
@@ -514,7 +523,7 @@ impl<'ast, T: IdentList> Visitor<'ast> for BoundNamesVisitor<'_, T> {
 
     fn visit_function_declaration(
         &mut self,
-        node: &'ast FunctionDeclaration,
+        node: &'ast FunctionDeclaration<'arena>,
     ) -> ControlFlow<Self::BreakTy> {
         self.0.add(node.name().sym(), true);
         ControlFlow::Continue(())
@@ -522,7 +531,7 @@ impl<'ast, T: IdentList> Visitor<'ast> for BoundNamesVisitor<'_, T> {
 
     fn visit_generator_expression(
         &mut self,
-        node: &'ast GeneratorExpression,
+        node: &'ast GeneratorExpression<'arena>,
     ) -> ControlFlow<Self::BreakTy> {
         if let Some(ident) = node.name() {
             self.0.add(ident.sym(), false);
@@ -532,7 +541,7 @@ impl<'ast, T: IdentList> Visitor<'ast> for BoundNamesVisitor<'_, T> {
 
     fn visit_generator_declaration(
         &mut self,
-        node: &'ast GeneratorDeclaration,
+        node: &'ast GeneratorDeclaration<'arena>,
     ) -> ControlFlow<Self::BreakTy> {
         self.0.add(node.name().sym(), false);
         ControlFlow::Continue(())
@@ -540,7 +549,7 @@ impl<'ast, T: IdentList> Visitor<'ast> for BoundNamesVisitor<'_, T> {
 
     fn visit_async_function_expression(
         &mut self,
-        node: &'ast AsyncFunctionExpression,
+        node: &'ast AsyncFunctionExpression<'arena>,
     ) -> ControlFlow<Self::BreakTy> {
         if let Some(ident) = node.name() {
             self.0.add(ident.sym(), false);
@@ -550,7 +559,7 @@ impl<'ast, T: IdentList> Visitor<'ast> for BoundNamesVisitor<'_, T> {
 
     fn visit_async_function_declaration(
         &mut self,
-        node: &'ast AsyncFunctionDeclaration,
+        node: &'ast AsyncFunctionDeclaration<'arena>,
     ) -> ControlFlow<Self::BreakTy> {
         self.0.add(node.name().sym(), false);
         ControlFlow::Continue(())
@@ -558,7 +567,7 @@ impl<'ast, T: IdentList> Visitor<'ast> for BoundNamesVisitor<'_, T> {
 
     fn visit_async_generator_expression(
         &mut self,
-        node: &'ast AsyncGeneratorExpression,
+        node: &'ast AsyncGeneratorExpression<'arena>,
     ) -> ControlFlow<Self::BreakTy> {
         if let Some(ident) = node.name() {
             self.0.add(ident.sym(), false);
@@ -568,7 +577,7 @@ impl<'ast, T: IdentList> Visitor<'ast> for BoundNamesVisitor<'_, T> {
 
     fn visit_async_generator_declaration(
         &mut self,
-        node: &'ast AsyncGeneratorDeclaration,
+        node: &'ast AsyncGeneratorDeclaration<'arena>,
     ) -> ControlFlow<Self::BreakTy> {
         self.0.add(node.name().sym(), false);
         ControlFlow::Continue(())
@@ -576,7 +585,7 @@ impl<'ast, T: IdentList> Visitor<'ast> for BoundNamesVisitor<'_, T> {
 
     fn visit_class_expression(
         &mut self,
-        node: &'ast ClassExpression,
+        node: &'ast ClassExpression<'arena>,
     ) -> ControlFlow<Self::BreakTy> {
         if let Some(ident) = node.name() {
             self.0.add(ident.sym(), false);
@@ -586,7 +595,7 @@ impl<'ast, T: IdentList> Visitor<'ast> for BoundNamesVisitor<'_, T> {
 
     fn visit_class_declaration(
         &mut self,
-        node: &'ast ClassDeclaration,
+        node: &'ast ClassDeclaration<'arena>,
     ) -> ControlFlow<Self::BreakTy> {
         self.0.add(node.name().sym(), false);
         ControlFlow::Continue(())
@@ -594,7 +603,7 @@ impl<'ast, T: IdentList> Visitor<'ast> for BoundNamesVisitor<'_, T> {
 
     fn visit_export_declaration(
         &mut self,
-        node: &'ast ExportDeclaration,
+        node: &'ast ExportDeclaration<'arena>,
     ) -> ControlFlow<Self::BreakTy> {
         match node {
             ExportDeclaration::VarStatement(var) => self.visit_var_declaration(var)?,
@@ -630,9 +639,9 @@ impl<'ast, T: IdentList> Visitor<'ast> for BoundNamesVisitor<'_, T> {
 ///
 /// [spec]: https://tc39.es/ecma262/#sec-static-semantics-boundnames
 #[must_use]
-pub fn bound_names<'a, N>(node: &'a N) -> Vec<Sym>
+pub fn bound_names<'a, 'arena: 'a, N>(node: &'a N) -> Vec<Sym>
 where
-    &'a N: Into<NodeRef<'a>>,
+    &'a N: Into<NodeRef<'a, 'arena>>,
 {
     let mut names = Vec::new();
     let _ = BoundNamesVisitor(&mut names).visit(node.into());
@@ -644,20 +653,22 @@ where
 #[derive(Debug)]
 struct LexicallyDeclaredNamesVisitor<'a, T: IdentList>(&'a mut T);
 
-impl<'ast, T: IdentList> Visitor<'ast> for LexicallyDeclaredNamesVisitor<'_, T> {
+impl<'ast, 'arena: 'ast, T: IdentList> Visitor<'ast, 'arena>
+    for LexicallyDeclaredNamesVisitor<'_, T>
+{
     type BreakTy = Infallible;
 
-    fn visit_script(&mut self, node: &'ast Script) -> ControlFlow<Self::BreakTy> {
+    fn visit_script(&mut self, node: &'ast Script<'arena>) -> ControlFlow<Self::BreakTy> {
         top_level_lexicals(node.statements(), self.0);
         ControlFlow::Continue(())
     }
 
-    fn visit_function_body(&mut self, node: &'ast FunctionBody) -> ControlFlow<Self::BreakTy> {
+    fn visit_function_body(&mut self, node: &'ast FunctionBody<'_>) -> ControlFlow<Self::BreakTy> {
         top_level_lexicals(node.statement_list(), self.0);
         ControlFlow::Continue(())
     }
 
-    fn visit_module_item(&mut self, node: &'ast ModuleItem) -> ControlFlow<Self::BreakTy> {
+    fn visit_module_item(&mut self, node: &'ast ModuleItem<'arena>) -> ControlFlow<Self::BreakTy> {
         match node {
             // ModuleItem : ImportDeclaration
             ModuleItem::ImportDeclaration(import) => {
@@ -684,22 +695,25 @@ impl<'ast, T: IdentList> Visitor<'ast> for LexicallyDeclaredNamesVisitor<'_, T> 
         }
     }
 
-    fn visit_expression(&mut self, _: &'ast Expression) -> ControlFlow<Self::BreakTy> {
+    fn visit_expression(&mut self, _: &'ast Expression<'arena>) -> ControlFlow<Self::BreakTy> {
         ControlFlow::Continue(())
     }
 
-    fn visit_statement(&mut self, node: &'ast Statement) -> ControlFlow<Self::BreakTy> {
+    fn visit_statement(&mut self, node: &'ast Statement<'arena>) -> ControlFlow<Self::BreakTy> {
         if let Statement::Labelled(labelled) = node {
             return self.visit_labelled(labelled);
         }
         ControlFlow::Continue(())
     }
 
-    fn visit_declaration(&mut self, node: &'ast Declaration) -> ControlFlow<Self::BreakTy> {
+    fn visit_declaration(&mut self, node: &'ast Declaration<'arena>) -> ControlFlow<Self::BreakTy> {
         BoundNamesVisitor(self.0).visit_declaration(node)
     }
 
-    fn visit_labelled_item(&mut self, node: &'ast LabelledItem) -> ControlFlow<Self::BreakTy> {
+    fn visit_labelled_item(
+        &mut self,
+        node: &'ast LabelledItem<'arena>,
+    ) -> ControlFlow<Self::BreakTy> {
         match node {
             LabelledItem::FunctionDeclaration(f) => {
                 BoundNamesVisitor(self.0).visit_function_declaration(f)
@@ -710,72 +724,78 @@ impl<'ast, T: IdentList> Visitor<'ast> for LexicallyDeclaredNamesVisitor<'_, T> 
 
     fn visit_function_expression(
         &mut self,
-        node: &'ast FunctionExpression,
+        node: &'ast FunctionExpression<'arena>,
     ) -> ControlFlow<Self::BreakTy> {
         self.visit_function_body(node.body())
     }
 
     fn visit_function_declaration(
         &mut self,
-        node: &'ast FunctionDeclaration,
+        node: &'ast FunctionDeclaration<'arena>,
     ) -> ControlFlow<Self::BreakTy> {
         self.visit_function_body(node.body())
     }
 
     fn visit_async_function_expression(
         &mut self,
-        node: &'ast AsyncFunctionExpression,
+        node: &'ast AsyncFunctionExpression<'arena>,
     ) -> ControlFlow<Self::BreakTy> {
         self.visit_function_body(node.body())
     }
 
     fn visit_async_function_declaration(
         &mut self,
-        node: &'ast AsyncFunctionDeclaration,
+        node: &'ast AsyncFunctionDeclaration<'arena>,
     ) -> ControlFlow<Self::BreakTy> {
         self.visit_function_body(node.body())
     }
 
     fn visit_generator_expression(
         &mut self,
-        node: &'ast GeneratorExpression,
+        node: &'ast GeneratorExpression<'arena>,
     ) -> ControlFlow<Self::BreakTy> {
         self.visit_function_body(node.body())
     }
 
     fn visit_generator_declaration(
         &mut self,
-        node: &'ast GeneratorDeclaration,
+        node: &'ast GeneratorDeclaration<'arena>,
     ) -> ControlFlow<Self::BreakTy> {
         self.visit_function_body(node.body())
     }
 
     fn visit_async_generator_expression(
         &mut self,
-        node: &'ast AsyncGeneratorExpression,
+        node: &'ast AsyncGeneratorExpression<'arena>,
     ) -> ControlFlow<Self::BreakTy> {
         self.visit_function_body(node.body())
     }
 
     fn visit_async_generator_declaration(
         &mut self,
-        node: &'ast AsyncGeneratorDeclaration,
+        node: &'ast AsyncGeneratorDeclaration<'arena>,
     ) -> ControlFlow<Self::BreakTy> {
         self.visit_function_body(node.body())
     }
 
-    fn visit_arrow_function(&mut self, node: &'ast ArrowFunction) -> ControlFlow<Self::BreakTy> {
+    fn visit_arrow_function(
+        &mut self,
+        node: &'ast ArrowFunction<'arena>,
+    ) -> ControlFlow<Self::BreakTy> {
         self.visit_function_body(node.body())
     }
 
     fn visit_async_arrow_function(
         &mut self,
-        node: &'ast AsyncArrowFunction,
+        node: &'ast AsyncArrowFunction<'arena>,
     ) -> ControlFlow<Self::BreakTy> {
         self.visit_function_body(node.body())
     }
 
-    fn visit_class_element(&mut self, node: &'ast ClassElement) -> ControlFlow<Self::BreakTy> {
+    fn visit_class_element(
+        &mut self,
+        node: &'ast ClassElement<'arena>,
+    ) -> ControlFlow<Self::BreakTy> {
         if let ClassElement::StaticBlock(block) = node {
             self.visit_function_body(&block.body)?;
         }
@@ -791,7 +811,7 @@ impl<'ast, T: IdentList> Visitor<'ast> for LexicallyDeclaredNamesVisitor<'_, T> 
 
     fn visit_export_declaration(
         &mut self,
-        node: &'ast ExportDeclaration,
+        node: &'ast ExportDeclaration<'arena>,
     ) -> ControlFlow<Self::BreakTy> {
         if matches!(node, ExportDeclaration::VarStatement(_)) {
             return ControlFlow::Continue(());
@@ -806,9 +826,9 @@ impl<'ast, T: IdentList> Visitor<'ast> for LexicallyDeclaredNamesVisitor<'_, T> 
 ///
 /// [spec]: https://tc39.es/ecma262/#sec-static-semantics-lexicallydeclarednames
 #[must_use]
-pub fn lexically_declared_names<'a, N>(node: &'a N) -> Vec<Sym>
+pub fn lexically_declared_names<'a, 'arena: 'a, N>(node: &'a N) -> Vec<Sym>
 where
-    &'a N: Into<NodeRef<'a>>,
+    &'a N: Into<NodeRef<'a, 'arena>>,
 {
     let mut names = Vec::new();
     let _ = LexicallyDeclaredNamesVisitor(&mut names).visit(node.into());
@@ -823,9 +843,9 @@ where
 /// [spec]: https://tc39.es/ecma262/#sec-static-semantics-lexicallydeclarednames
 /// [changes]: https://tc39.es/ecma262/#sec-block-duplicates-allowed-static-semantics
 #[must_use]
-pub fn lexically_declared_names_legacy<'a, N>(node: &'a N) -> Vec<(Sym, bool)>
+pub fn lexically_declared_names_legacy<'a, 'arena: 'a, N>(node: &'a N) -> Vec<(Sym, bool)>
 where
-    &'a N: Into<NodeRef<'a>>,
+    &'a N: Into<NodeRef<'a, 'arena>>,
 {
     let mut names = Vec::new();
     let _ = LexicallyDeclaredNamesVisitor(&mut names).visit(node.into());
@@ -836,20 +856,20 @@ where
 #[derive(Debug)]
 struct VarDeclaredNamesVisitor<'a>(&'a mut FxHashSet<Sym>);
 
-impl<'ast> Visitor<'ast> for VarDeclaredNamesVisitor<'_> {
+impl<'ast, 'arena: 'ast> Visitor<'ast, 'arena> for VarDeclaredNamesVisitor<'_> {
     type BreakTy = Infallible;
 
-    fn visit_script(&mut self, node: &'ast Script) -> ControlFlow<Self::BreakTy> {
+    fn visit_script(&mut self, node: &'ast Script<'arena>) -> ControlFlow<Self::BreakTy> {
         top_level_vars(node.statements(), self.0);
         ControlFlow::Continue(())
     }
 
-    fn visit_function_body(&mut self, node: &'ast FunctionBody) -> ControlFlow<Self::BreakTy> {
+    fn visit_function_body(&mut self, node: &'ast FunctionBody<'_>) -> ControlFlow<Self::BreakTy> {
         top_level_vars(node.statement_list(), self.0);
         ControlFlow::Continue(())
     }
 
-    fn visit_module_item(&mut self, node: &'ast ModuleItem) -> ControlFlow<Self::BreakTy> {
+    fn visit_module_item(&mut self, node: &'ast ModuleItem<'arena>) -> ControlFlow<Self::BreakTy> {
         match node {
             // ModuleItem : ImportDeclaration
             ModuleItem::ImportDeclaration(_) => {
@@ -872,7 +892,7 @@ impl<'ast> Visitor<'ast> for VarDeclaredNamesVisitor<'_> {
         }
     }
 
-    fn visit_statement(&mut self, node: &'ast Statement) -> ControlFlow<Self::BreakTy> {
+    fn visit_statement(&mut self, node: &'ast Statement<'arena>) -> ControlFlow<Self::BreakTy> {
         match node {
             Statement::Empty
             | Statement::Debugger
@@ -898,7 +918,7 @@ impl<'ast> Visitor<'ast> for VarDeclaredNamesVisitor<'_> {
 
     fn visit_statement_list_item(
         &mut self,
-        node: &'ast StatementListItem,
+        node: &'ast StatementListItem<'arena>,
     ) -> ControlFlow<Self::BreakTy> {
         match node {
             StatementListItem::Statement(stmt) => self.visit_statement(stmt),
@@ -906,11 +926,11 @@ impl<'ast> Visitor<'ast> for VarDeclaredNamesVisitor<'_> {
         }
     }
 
-    fn visit_variable(&mut self, node: &'ast Variable) -> ControlFlow<Self::BreakTy> {
+    fn visit_variable(&mut self, node: &'ast Variable<'arena>) -> ControlFlow<Self::BreakTy> {
         BoundNamesVisitor(self.0).visit_variable(node)
     }
 
-    fn visit_if(&mut self, node: &'ast crate::statement::If) -> ControlFlow<Self::BreakTy> {
+    fn visit_if(&mut self, node: &'ast crate::statement::If<'arena>) -> ControlFlow<Self::BreakTy> {
         if let Some(node) = node.else_node() {
             self.visit(node)?;
         }
@@ -919,21 +939,21 @@ impl<'ast> Visitor<'ast> for VarDeclaredNamesVisitor<'_> {
 
     fn visit_do_while_loop(
         &mut self,
-        node: &'ast crate::statement::DoWhileLoop,
+        node: &'ast crate::statement::DoWhileLoop<'arena>,
     ) -> ControlFlow<Self::BreakTy> {
         self.visit(node.body())
     }
 
     fn visit_while_loop(
         &mut self,
-        node: &'ast crate::statement::WhileLoop,
+        node: &'ast crate::statement::WhileLoop<'arena>,
     ) -> ControlFlow<Self::BreakTy> {
         self.visit(node.body())
     }
 
     fn visit_for_loop(
         &mut self,
-        node: &'ast crate::statement::ForLoop,
+        node: &'ast crate::statement::ForLoop<'arena>,
     ) -> ControlFlow<Self::BreakTy> {
         if let Some(ForLoopInitializer::Var(node)) = node.init() {
             BoundNamesVisitor(self.0).visit_var_declaration(node)?;
@@ -943,7 +963,7 @@ impl<'ast> Visitor<'ast> for VarDeclaredNamesVisitor<'_> {
 
     fn visit_for_in_loop(
         &mut self,
-        node: &'ast crate::statement::ForInLoop,
+        node: &'ast crate::statement::ForInLoop<'arena>,
     ) -> ControlFlow<Self::BreakTy> {
         if let IterableLoopInitializer::Var(node) = node.initializer() {
             BoundNamesVisitor(self.0).visit_variable(node)?;
@@ -953,7 +973,7 @@ impl<'ast> Visitor<'ast> for VarDeclaredNamesVisitor<'_> {
 
     fn visit_for_of_loop(
         &mut self,
-        node: &'ast crate::statement::ForOfLoop,
+        node: &'ast crate::statement::ForOfLoop<'arena>,
     ) -> ControlFlow<Self::BreakTy> {
         if let IterableLoopInitializer::Var(node) = node.initializer() {
             BoundNamesVisitor(self.0).visit_variable(node)?;
@@ -961,11 +981,14 @@ impl<'ast> Visitor<'ast> for VarDeclaredNamesVisitor<'_> {
         self.visit(node.body())
     }
 
-    fn visit_with(&mut self, node: &'ast With) -> ControlFlow<Self::BreakTy> {
+    fn visit_with(&mut self, node: &'ast With<'arena>) -> ControlFlow<Self::BreakTy> {
         self.visit(node.statement())
     }
 
-    fn visit_switch(&mut self, node: &'ast crate::statement::Switch) -> ControlFlow<Self::BreakTy> {
+    fn visit_switch(
+        &mut self,
+        node: &'ast crate::statement::Switch<'arena>,
+    ) -> ControlFlow<Self::BreakTy> {
         for case in node.cases() {
             self.visit(case)?;
         }
@@ -975,14 +998,20 @@ impl<'ast> Visitor<'ast> for VarDeclaredNamesVisitor<'_> {
         ControlFlow::Continue(())
     }
 
-    fn visit_labelled_item(&mut self, node: &'ast LabelledItem) -> ControlFlow<Self::BreakTy> {
+    fn visit_labelled_item(
+        &mut self,
+        node: &'ast LabelledItem<'arena>,
+    ) -> ControlFlow<Self::BreakTy> {
         match node {
             LabelledItem::FunctionDeclaration(_) => ControlFlow::Continue(()),
             LabelledItem::Statement(stmt) => self.visit(stmt),
         }
     }
 
-    fn visit_try(&mut self, node: &'ast crate::statement::Try) -> ControlFlow<Self::BreakTy> {
+    fn visit_try(
+        &mut self,
+        node: &'ast crate::statement::Try<'arena>,
+    ) -> ControlFlow<Self::BreakTy> {
         if let Some(node) = node.finally() {
             self.visit(node)?;
         }
@@ -994,61 +1023,64 @@ impl<'ast> Visitor<'ast> for VarDeclaredNamesVisitor<'_> {
 
     fn visit_function_expression(
         &mut self,
-        node: &'ast FunctionExpression,
+        node: &'ast FunctionExpression<'arena>,
     ) -> ControlFlow<Self::BreakTy> {
         self.visit_function_body(node.body())
     }
 
     fn visit_function_declaration(
         &mut self,
-        node: &'ast FunctionDeclaration,
+        node: &'ast FunctionDeclaration<'arena>,
     ) -> ControlFlow<Self::BreakTy> {
         self.visit_function_body(node.body())
     }
 
     fn visit_async_function_expression(
         &mut self,
-        node: &'ast AsyncFunctionExpression,
+        node: &'ast AsyncFunctionExpression<'arena>,
     ) -> ControlFlow<Self::BreakTy> {
         self.visit_function_body(node.body())
     }
 
     fn visit_async_function_declaration(
         &mut self,
-        node: &'ast AsyncFunctionDeclaration,
+        node: &'ast AsyncFunctionDeclaration<'arena>,
     ) -> ControlFlow<Self::BreakTy> {
         self.visit_function_body(node.body())
     }
 
     fn visit_generator_expression(
         &mut self,
-        node: &'ast GeneratorExpression,
+        node: &'ast GeneratorExpression<'arena>,
     ) -> ControlFlow<Self::BreakTy> {
         self.visit_function_body(node.body())
     }
 
     fn visit_generator_declaration(
         &mut self,
-        node: &'ast GeneratorDeclaration,
+        node: &'ast GeneratorDeclaration<'arena>,
     ) -> ControlFlow<Self::BreakTy> {
         self.visit_function_body(node.body())
     }
 
     fn visit_async_generator_expression(
         &mut self,
-        node: &'ast AsyncGeneratorExpression,
+        node: &'ast AsyncGeneratorExpression<'arena>,
     ) -> ControlFlow<Self::BreakTy> {
         self.visit_function_body(node.body())
     }
 
     fn visit_async_generator_declaration(
         &mut self,
-        node: &'ast AsyncGeneratorDeclaration,
+        node: &'ast AsyncGeneratorDeclaration<'arena>,
     ) -> ControlFlow<Self::BreakTy> {
         self.visit_function_body(node.body())
     }
 
-    fn visit_class_element(&mut self, node: &'ast ClassElement) -> ControlFlow<Self::BreakTy> {
+    fn visit_class_element(
+        &mut self,
+        node: &'ast ClassElement<'arena>,
+    ) -> ControlFlow<Self::BreakTy> {
         if let ClassElement::StaticBlock(block) = node {
             self.visit_function_body(&block.body)?;
         }
@@ -1064,7 +1096,7 @@ impl<'ast> Visitor<'ast> for VarDeclaredNamesVisitor<'_> {
 
     fn visit_export_declaration(
         &mut self,
-        node: &'ast ExportDeclaration,
+        node: &'ast ExportDeclaration<'arena>,
     ) -> ControlFlow<Self::BreakTy> {
         match node {
             ExportDeclaration::VarStatement(var) => {
@@ -1081,9 +1113,9 @@ impl<'ast> Visitor<'ast> for VarDeclaredNamesVisitor<'_> {
 ///
 /// [spec]: https://tc39.es/ecma262/#sec-static-semantics-vardeclarednames
 #[must_use]
-pub fn var_declared_names<'a, N>(node: &'a N) -> FxHashSet<Sym>
+pub fn var_declared_names<'a, 'arena: 'a, N>(node: &'a N) -> FxHashSet<Sym>
 where
-    &'a N: Into<NodeRef<'a>>,
+    &'a N: Into<NodeRef<'a, 'arena>>,
 {
     let mut names = FxHashSet::default();
     let _ = VarDeclaredNamesVisitor(&mut names).visit(node.into());
@@ -1095,7 +1127,7 @@ where
 /// This is equivalent to the [`TopLevelLexicallyDeclaredNames`][spec] syntax operation in the spec.
 ///
 /// [spec]: https://tc39.es/ecma262/#sec-static-semantics-toplevellexicallydeclarednames
-fn top_level_lexicals<T: IdentList>(stmts: &StatementList, names: &mut T) {
+fn top_level_lexicals<T: IdentList>(stmts: &StatementList<'_>, names: &mut T) {
     for stmt in stmts.statements() {
         if let StatementListItem::Declaration(decl) = stmt {
             match decl.as_ref() {
@@ -1122,7 +1154,7 @@ fn top_level_lexicals<T: IdentList>(stmts: &StatementList, names: &mut T) {
 /// This is equivalent to the [`TopLevelVarDeclaredNames`][spec] syntax operation in the spec.
 ///
 /// [spec]: https://tc39.es/ecma262/#sec-static-semantics-toplevelvardeclarednames
-fn top_level_vars(stmts: &StatementList, names: &mut FxHashSet<Sym>) {
+fn top_level_vars(stmts: &StatementList<'_>, names: &mut FxHashSet<Sym>) {
     for stmt in stmts.statements() {
         match stmt {
             StatementListItem::Declaration(decl) => {
@@ -1171,9 +1203,12 @@ fn top_level_vars(stmts: &StatementList, names: &mut FxHashSet<Sym>) {
 /// [spec]: https://tc39.es/ecma262/#sec-static-semantics-allprivateidentifiersvalid
 #[must_use]
 #[inline]
-pub fn all_private_identifiers_valid<'a, N>(node: &'a N, private_names: Vec<Sym>) -> bool
+pub fn all_private_identifiers_valid<'a, 'arena: 'a, N>(
+    node: &'a N,
+    private_names: Vec<Sym>,
+) -> bool
 where
-    &'a N: Into<NodeRef<'a>>,
+    &'a N: Into<NodeRef<'a, 'arena>>,
 {
     AllPrivateIdentifiersValidVisitor(private_names)
         .visit(node.into())
@@ -1182,12 +1217,12 @@ where
 
 struct AllPrivateIdentifiersValidVisitor(Vec<Sym>);
 
-impl<'ast> Visitor<'ast> for AllPrivateIdentifiersValidVisitor {
+impl<'ast, 'arena: 'ast> Visitor<'ast, 'arena> for AllPrivateIdentifiersValidVisitor {
     type BreakTy = ();
 
     fn visit_class_expression(
         &mut self,
-        node: &'ast ClassExpression,
+        node: &'ast ClassExpression<'arena>,
     ) -> ControlFlow<Self::BreakTy> {
         if let Some(node) = node.super_ref() {
             self.visit(node)?;
@@ -1256,7 +1291,7 @@ impl<'ast> Visitor<'ast> for AllPrivateIdentifiersValidVisitor {
 
     fn visit_class_declaration(
         &mut self,
-        node: &'ast ClassDeclaration,
+        node: &'ast ClassDeclaration<'arena>,
     ) -> ControlFlow<Self::BreakTy> {
         if let Some(node) = node.super_ref() {
             self.visit(node)?;
@@ -1325,7 +1360,7 @@ impl<'ast> Visitor<'ast> for AllPrivateIdentifiersValidVisitor {
 
     fn visit_private_property_access(
         &mut self,
-        node: &'ast PrivatePropertyAccess,
+        node: &'ast PrivatePropertyAccess<'arena>,
     ) -> ControlFlow<Self::BreakTy> {
         if self.0.contains(&node.field().description()) {
             self.visit(node.target())
@@ -1336,7 +1371,7 @@ impl<'ast> Visitor<'ast> for AllPrivateIdentifiersValidVisitor {
 
     fn visit_binary_in_private(
         &mut self,
-        node: &'ast BinaryInPrivate,
+        node: &'ast BinaryInPrivate<'arena>,
     ) -> ControlFlow<Self::BreakTy> {
         if self.0.contains(&node.lhs().description()) {
             self.visit(node.rhs())
@@ -1347,7 +1382,7 @@ impl<'ast> Visitor<'ast> for AllPrivateIdentifiersValidVisitor {
 
     fn visit_optional_operation_kind(
         &mut self,
-        node: &'ast OptionalOperationKind,
+        node: &'ast OptionalOperationKind<'arena>,
     ) -> ControlFlow<Self::BreakTy> {
         match node {
             OptionalOperationKind::SimplePropertyAccess { field } => {
@@ -1431,9 +1466,9 @@ impl CheckLabelsError {
 /// # Errors
 ///
 /// This function returns an error for the first syntax error that is found.
-pub fn check_labels<N>(node: &N) -> Result<(), CheckLabelsError>
+pub fn check_labels<'arena, N>(node: &N) -> Result<(), CheckLabelsError>
 where
-    N: VisitWith,
+    N: VisitWith<'arena>,
 {
     #[derive(Debug, Clone)]
     struct CheckLabelsResolver {
@@ -1444,10 +1479,10 @@ where
         switch: bool,
     }
 
-    impl<'ast> Visitor<'ast> for CheckLabelsResolver {
+    impl<'ast, 'arena: 'ast> Visitor<'ast, 'arena> for CheckLabelsResolver {
         type BreakTy = CheckLabelsError;
 
-        fn visit_statement(&mut self, node: &'ast Statement) -> ControlFlow<Self::BreakTy> {
+        fn visit_statement(&mut self, node: &'ast Statement<'arena>) -> ControlFlow<Self::BreakTy> {
             match node {
                 Statement::Block(node) => self.visit_block(node),
                 Statement::Var(_)
@@ -1473,7 +1508,7 @@ where
 
         fn visit_block(
             &mut self,
-            node: &'ast crate::statement::Block,
+            node: &'ast crate::statement::Block<'arena>,
         ) -> ControlFlow<Self::BreakTy> {
             let continue_labels = self.continue_labels.take();
             self.visit_statement_list(node.statement_list())?;
@@ -1513,7 +1548,7 @@ where
 
         fn visit_do_while_loop(
             &mut self,
-            node: &'ast crate::statement::DoWhileLoop,
+            node: &'ast crate::statement::DoWhileLoop<'arena>,
         ) -> ControlFlow<Self::BreakTy> {
             let continue_labels = self.continue_labels.take();
             let continue_iteration_labels = self.continue_iteration_labels.clone();
@@ -1531,7 +1566,7 @@ where
 
         fn visit_while_loop(
             &mut self,
-            node: &'ast crate::statement::WhileLoop,
+            node: &'ast crate::statement::WhileLoop<'arena>,
         ) -> ControlFlow<Self::BreakTy> {
             let continue_labels = self.continue_labels.take();
             let continue_iteration_labels = self.continue_iteration_labels.clone();
@@ -1549,7 +1584,7 @@ where
 
         fn visit_for_loop(
             &mut self,
-            node: &'ast crate::statement::ForLoop,
+            node: &'ast crate::statement::ForLoop<'arena>,
         ) -> ControlFlow<Self::BreakTy> {
             let continue_labels = self.continue_labels.take();
             let continue_iteration_labels = self.continue_iteration_labels.clone();
@@ -1567,7 +1602,7 @@ where
 
         fn visit_for_in_loop(
             &mut self,
-            node: &'ast crate::statement::ForInLoop,
+            node: &'ast crate::statement::ForInLoop<'arena>,
         ) -> ControlFlow<Self::BreakTy> {
             let continue_labels = self.continue_labels.take();
             let continue_iteration_labels = self.continue_iteration_labels.clone();
@@ -1585,7 +1620,7 @@ where
 
         fn visit_for_of_loop(
             &mut self,
-            node: &'ast crate::statement::ForOfLoop,
+            node: &'ast crate::statement::ForOfLoop<'arena>,
         ) -> ControlFlow<Self::BreakTy> {
             let continue_labels = self.continue_labels.take();
             let continue_iteration_labels = self.continue_iteration_labels.clone();
@@ -1603,7 +1638,7 @@ where
 
         fn visit_statement_list_item(
             &mut self,
-            node: &'ast StatementListItem,
+            node: &'ast StatementListItem<'arena>,
         ) -> ControlFlow<Self::BreakTy> {
             let continue_labels = self.continue_labels.take();
             if let StatementListItem::Statement(stmt) = node {
@@ -1613,7 +1648,10 @@ where
             ControlFlow::Continue(())
         }
 
-        fn visit_if(&mut self, node: &'ast crate::statement::If) -> ControlFlow<Self::BreakTy> {
+        fn visit_if(
+            &mut self,
+            node: &'ast crate::statement::If<'arena>,
+        ) -> ControlFlow<Self::BreakTy> {
             let continue_labels = self.continue_labels.take();
             self.visit_statement(node.body())?;
             if let Some(stmt) = node.else_node() {
@@ -1625,7 +1663,7 @@ where
 
         fn visit_switch(
             &mut self,
-            node: &'ast crate::statement::Switch,
+            node: &'ast crate::statement::Switch<'arena>,
         ) -> ControlFlow<Self::BreakTy> {
             let continue_labels = self.continue_labels.take();
             let switch = self.switch;
@@ -1643,7 +1681,7 @@ where
 
         fn visit_labelled(
             &mut self,
-            node: &'ast crate::statement::Labelled,
+            node: &'ast crate::statement::Labelled<'arena>,
         ) -> ControlFlow<Self::BreakTy> {
             let continue_labels = self.continue_labels.clone();
             if let Some(continue_labels) = &mut self.continue_labels {
@@ -1663,14 +1701,20 @@ where
             ControlFlow::Continue(())
         }
 
-        fn visit_labelled_item(&mut self, node: &'ast LabelledItem) -> ControlFlow<Self::BreakTy> {
+        fn visit_labelled_item(
+            &mut self,
+            node: &'ast LabelledItem<'arena>,
+        ) -> ControlFlow<Self::BreakTy> {
             match node {
                 LabelledItem::Statement(stmt) => self.visit_statement(stmt),
                 LabelledItem::FunctionDeclaration(_) => ControlFlow::Continue(()),
             }
         }
 
-        fn visit_try(&mut self, node: &'ast crate::statement::Try) -> ControlFlow<Self::BreakTy> {
+        fn visit_try(
+            &mut self,
+            node: &'ast crate::statement::Try<'arena>,
+        ) -> ControlFlow<Self::BreakTy> {
             let continue_labels = self.continue_labels.take();
             self.visit_block(node.block())?;
             if let Some(catch) = node.catch() {
@@ -1685,7 +1729,7 @@ where
 
         fn visit_module_item_list(
             &mut self,
-            node: &'ast crate::ModuleItemList,
+            node: &'ast crate::ModuleItemList<'arena>,
         ) -> ControlFlow<Self::BreakTy> {
             let continue_labels = self.continue_labels.take();
             for item in node.items() {
@@ -1695,7 +1739,10 @@ where
             ControlFlow::Continue(())
         }
 
-        fn visit_module_item(&mut self, node: &'ast ModuleItem) -> ControlFlow<Self::BreakTy> {
+        fn visit_module_item(
+            &mut self,
+            node: &'ast ModuleItem<'arena>,
+        ) -> ControlFlow<Self::BreakTy> {
             match node {
                 ModuleItem::ImportDeclaration(_) | ModuleItem::ExportDeclaration(_) => {
                     ControlFlow::Continue(())
@@ -1722,19 +1769,19 @@ where
 
 /// Returns `true` if the given node contains a `CoverInitializedName`.
 #[must_use]
-pub fn contains_invalid_object_literal<N>(node: &N) -> bool
+pub fn contains_invalid_object_literal<'arena, N>(node: &N) -> bool
 where
-    N: VisitWith,
+    N: VisitWith<'arena>,
 {
     #[derive(Debug, Clone)]
     struct ContainsInvalidObjectLiteral {}
 
-    impl<'ast> Visitor<'ast> for ContainsInvalidObjectLiteral {
+    impl<'ast, 'arena: 'ast> Visitor<'ast, 'arena> for ContainsInvalidObjectLiteral {
         type BreakTy = ();
 
         fn visit_object_literal(
             &mut self,
-            node: &'ast crate::expression::literal::ObjectLiteral,
+            node: &'ast crate::expression::literal::ObjectLiteral<'arena>,
         ) -> ControlFlow<Self::BreakTy> {
             for pd in node.properties() {
                 if let PropertyDefinition::CoverInitializedName(..) = pd {
@@ -1753,32 +1800,32 @@ where
 
 /// The type of a lexically scoped declaration.
 #[derive(Copy, Clone, Debug)]
-pub enum LexicallyScopedDeclaration<'a> {
+pub enum LexicallyScopedDeclaration<'a, 'arena> {
     /// See [`LexicalDeclaration`]
-    LexicalDeclaration(&'a LexicalDeclaration),
+    LexicalDeclaration(&'a LexicalDeclaration<'arena>),
 
     /// See [`FunctionDeclaration`]
-    FunctionDeclaration(&'a FunctionDeclaration),
+    FunctionDeclaration(&'a FunctionDeclaration<'arena>),
 
     /// See [`GeneratorDeclaration`]
-    GeneratorDeclaration(&'a GeneratorDeclaration),
+    GeneratorDeclaration(&'a GeneratorDeclaration<'arena>),
 
     /// See [`AsyncFunctionDeclaration`]
-    AsyncFunctionDeclaration(&'a AsyncFunctionDeclaration),
+    AsyncFunctionDeclaration(&'a AsyncFunctionDeclaration<'arena>),
 
     /// See [`AsyncGeneratorDeclaration`]
-    AsyncGeneratorDeclaration(&'a AsyncGeneratorDeclaration),
+    AsyncGeneratorDeclaration(&'a AsyncGeneratorDeclaration<'arena>),
 
     /// See [`ClassDeclaration`]
-    ClassDeclaration(&'a ClassDeclaration),
+    ClassDeclaration(&'a ClassDeclaration<'arena>),
 
     /// A default assignment expression as an export declaration.
     ///
     /// Only valid inside module exports.
-    AssignmentExpression(&'a Expression),
+    AssignmentExpression(&'a Expression<'arena>),
 }
 
-impl LexicallyScopedDeclaration<'_> {
+impl LexicallyScopedDeclaration<'_, '_> {
     /// Return the bound names of the declaration.
     #[must_use]
     pub fn bound_names(&self) -> Vec<Sym> {
@@ -1794,8 +1841,10 @@ impl LexicallyScopedDeclaration<'_> {
     }
 }
 
-impl<'ast> From<&'ast Declaration> for LexicallyScopedDeclaration<'ast> {
-    fn from(value: &'ast Declaration) -> LexicallyScopedDeclaration<'ast> {
+impl<'ast, 'arena: 'ast> From<&'ast Declaration<'arena>>
+    for LexicallyScopedDeclaration<'ast, 'arena>
+{
+    fn from(value: &'ast Declaration<'arena>) -> LexicallyScopedDeclaration<'ast, 'arena> {
         match value {
             Declaration::FunctionDeclaration(f) => Self::FunctionDeclaration(f),
             Declaration::GeneratorDeclaration(g) => Self::GeneratorDeclaration(g),
@@ -1813,9 +1862,11 @@ impl<'ast> From<&'ast Declaration> for LexicallyScopedDeclaration<'ast> {
 ///
 /// [spec]: https://tc39.es/ecma262/#sec-static-semantics-lexicallyscopeddeclarations
 #[must_use]
-pub fn lexically_scoped_declarations<'a, N>(node: &'a N) -> Vec<LexicallyScopedDeclaration<'a>>
+pub fn lexically_scoped_declarations<'a, 'arena: 'a, N>(
+    node: &'a N,
+) -> Vec<LexicallyScopedDeclaration<'a, 'arena>>
 where
-    &'a N: Into<NodeRef<'a>>,
+    &'a N: Into<NodeRef<'a, 'arena>>,
 {
     let mut declarations = Vec::new();
     let _ = LexicallyScopedDeclarationsVisitor(&mut declarations).visit(node.into());
@@ -1824,18 +1875,25 @@ where
 
 /// The [`Visitor`] used to obtain the lexically scoped declarations of a node.
 #[derive(Debug)]
-struct LexicallyScopedDeclarationsVisitor<'a, 'ast>(&'a mut Vec<LexicallyScopedDeclaration<'ast>>);
+struct LexicallyScopedDeclarationsVisitor<'a, 'ast, 'arena>(
+    &'a mut Vec<LexicallyScopedDeclaration<'ast, 'arena>>,
+);
 
-impl<'ast> Visitor<'ast> for LexicallyScopedDeclarationsVisitor<'_, 'ast> {
+impl<'ast, 'arena: 'ast> Visitor<'ast, 'arena>
+    for LexicallyScopedDeclarationsVisitor<'_, 'ast, 'arena>
+{
     type BreakTy = Infallible;
 
     // ScriptBody : StatementList
-    fn visit_script(&mut self, node: &'ast Script) -> ControlFlow<Self::BreakTy> {
+    fn visit_script(&mut self, node: &'ast Script<'arena>) -> ControlFlow<Self::BreakTy> {
         // 1. Return TopLevelLexicallyScopedDeclarations of StatementList.
         TopLevelLexicallyScopedDeclarationsVisitor(self.0).visit_statement_list(node.statements())
     }
 
-    fn visit_function_body(&mut self, node: &'ast FunctionBody) -> ControlFlow<Self::BreakTy> {
+    fn visit_function_body(
+        &mut self,
+        node: &'ast FunctionBody<'arena>,
+    ) -> ControlFlow<Self::BreakTy> {
         // 1. Return TopLevelVarScopedDeclarations of StatementList.
         TopLevelLexicallyScopedDeclarationsVisitor(self.0)
             .visit_statement_list(node.statement_list())
@@ -1843,7 +1901,7 @@ impl<'ast> Visitor<'ast> for LexicallyScopedDeclarationsVisitor<'_, 'ast> {
 
     fn visit_export_declaration(
         &mut self,
-        node: &'ast ExportDeclaration,
+        node: &'ast ExportDeclaration<'arena>,
     ) -> ControlFlow<Self::BreakTy> {
         let decl = match node {
             // ExportDeclaration :
@@ -1898,7 +1956,7 @@ impl<'ast> Visitor<'ast> for LexicallyScopedDeclarationsVisitor<'_, 'ast> {
 
     fn visit_statement_list_item(
         &mut self,
-        node: &'ast StatementListItem,
+        node: &'ast StatementListItem<'arena>,
     ) -> ControlFlow<Self::BreakTy> {
         match node {
             // StatementListItem : Statement
@@ -1921,7 +1979,10 @@ impl<'ast> Visitor<'ast> for LexicallyScopedDeclarationsVisitor<'_, 'ast> {
         }
     }
 
-    fn visit_labelled_item(&mut self, node: &'ast LabelledItem) -> ControlFlow<Self::BreakTy> {
+    fn visit_labelled_item(
+        &mut self,
+        node: &'ast LabelledItem<'arena>,
+    ) -> ControlFlow<Self::BreakTy> {
         match node {
             // LabelledItem : FunctionDeclaration
             LabelledItem::FunctionDeclaration(f) => {
@@ -1938,7 +1999,7 @@ impl<'ast> Visitor<'ast> for LexicallyScopedDeclarationsVisitor<'_, 'ast> {
         ControlFlow::Continue(())
     }
 
-    fn visit_module_item(&mut self, node: &'ast ModuleItem) -> ControlFlow<Self::BreakTy> {
+    fn visit_module_item(&mut self, node: &'ast ModuleItem<'arena>) -> ControlFlow<Self::BreakTy> {
         match node {
             ModuleItem::StatementListItem(item) => self.visit_statement_list_item(item),
             ModuleItem::ExportDeclaration(export) => self.visit_export_declaration(export),
@@ -1957,16 +2018,18 @@ impl<'ast> Visitor<'ast> for LexicallyScopedDeclarationsVisitor<'_, 'ast> {
 ///
 /// [spec]: https://tc39.es/ecma262/#sec-static-semantics-toplevellexicallyscopeddeclarations
 #[derive(Debug)]
-struct TopLevelLexicallyScopedDeclarationsVisitor<'a, 'ast>(
-    &'a mut Vec<LexicallyScopedDeclaration<'ast>>,
+struct TopLevelLexicallyScopedDeclarationsVisitor<'a, 'ast, 'arena>(
+    &'a mut Vec<LexicallyScopedDeclaration<'ast, 'arena>>,
 );
 
-impl<'ast> Visitor<'ast> for TopLevelLexicallyScopedDeclarationsVisitor<'_, 'ast> {
+impl<'ast, 'arena: 'ast> Visitor<'ast, 'arena>
+    for TopLevelLexicallyScopedDeclarationsVisitor<'_, 'ast, 'arena>
+{
     type BreakTy = Infallible;
 
     fn visit_statement_list_item(
         &mut self,
-        node: &'ast StatementListItem,
+        node: &'ast StatementListItem<'arena>,
     ) -> ControlFlow<Self::BreakTy> {
         match node {
             // StatementListItem : Declaration
@@ -2002,24 +2065,24 @@ impl<'ast> Visitor<'ast> for TopLevelLexicallyScopedDeclarationsVisitor<'_, 'ast
 
 /// The type of a var scoped declaration.
 #[derive(Clone, Debug)]
-pub enum VarScopedDeclaration {
+pub enum VarScopedDeclaration<'arena> {
     /// See [`VarDeclaration`]
-    VariableDeclaration(Variable),
+    VariableDeclaration(Variable<'arena>),
 
     /// See [`FunctionDeclaration`]
-    FunctionDeclaration(FunctionDeclaration),
+    FunctionDeclaration(FunctionDeclaration<'arena>),
 
     /// See [`GeneratorDeclaration`]
-    GeneratorDeclaration(GeneratorDeclaration),
+    GeneratorDeclaration(GeneratorDeclaration<'arena>),
 
     /// See [`AsyncFunctionDeclaration`]
-    AsyncFunctionDeclaration(AsyncFunctionDeclaration),
+    AsyncFunctionDeclaration(AsyncFunctionDeclaration<'arena>),
 
     /// See [`AsyncGeneratorDeclaration`]
-    AsyncGeneratorDeclaration(AsyncGeneratorDeclaration),
+    AsyncGeneratorDeclaration(AsyncGeneratorDeclaration<'arena>),
 }
 
-impl VarScopedDeclaration {
+impl VarScopedDeclaration<'_> {
     /// Return the bound names of the declaration.
     #[must_use]
     pub fn bound_names(&self) -> Vec<Sym> {
@@ -2051,9 +2114,9 @@ impl VarScopedDeclaration {
 ///
 /// [spec]: https://tc39.es/ecma262/#sec-static-semantics-varscopeddeclarations
 #[must_use]
-pub fn var_scoped_declarations<'a, N>(node: &'a N) -> Vec<VarScopedDeclaration>
+pub fn var_scoped_declarations<'a, 'arena: 'a, N>(node: &'a N) -> Vec<VarScopedDeclaration<'arena>>
 where
-    &'a N: Into<NodeRef<'a>>,
+    &'a N: Into<NodeRef<'a, 'arena>>,
 {
     let mut declarations = Vec::new();
     let _ = VarScopedDeclarationsVisitor(&mut declarations).visit(node.into());
@@ -2062,23 +2125,26 @@ where
 
 /// The [`Visitor`] used to obtain the var scoped declarations of a node.
 #[derive(Debug)]
-struct VarScopedDeclarationsVisitor<'a>(&'a mut Vec<VarScopedDeclaration>);
+struct VarScopedDeclarationsVisitor<'a, 'arena>(&'a mut Vec<VarScopedDeclaration<'arena>>);
 
-impl<'ast> Visitor<'ast> for VarScopedDeclarationsVisitor<'_> {
+impl<'ast, 'arena: 'ast> Visitor<'ast, 'arena> for VarScopedDeclarationsVisitor<'_, 'arena> {
     type BreakTy = Infallible;
 
     // ScriptBody : StatementList
-    fn visit_script(&mut self, node: &'ast Script) -> ControlFlow<Self::BreakTy> {
+    fn visit_script(&mut self, node: &'ast Script<'arena>) -> ControlFlow<Self::BreakTy> {
         // 1. Return TopLevelVarScopedDeclarations of StatementList.
         TopLevelVarScopedDeclarationsVisitor(self.0).visit_statement_list(node.statements())
     }
 
-    fn visit_function_body(&mut self, node: &'ast FunctionBody) -> ControlFlow<Self::BreakTy> {
+    fn visit_function_body(
+        &mut self,
+        node: &'ast FunctionBody<'arena>,
+    ) -> ControlFlow<Self::BreakTy> {
         // 1. Return TopLevelVarScopedDeclarations of StatementList.
         TopLevelVarScopedDeclarationsVisitor(self.0).visit_statement_list(node.statement_list())
     }
 
-    fn visit_statement(&mut self, node: &'ast Statement) -> ControlFlow<Self::BreakTy> {
+    fn visit_statement(&mut self, node: &'ast Statement<'arena>) -> ControlFlow<Self::BreakTy> {
         match node {
             Statement::Block(s) => self.visit(s),
             Statement::Var(s) => self.visit(s),
@@ -2104,7 +2170,7 @@ impl<'ast> Visitor<'ast> for VarScopedDeclarationsVisitor<'_> {
 
     fn visit_statement_list_item(
         &mut self,
-        node: &'ast StatementListItem,
+        node: &'ast StatementListItem<'arena>,
     ) -> ControlFlow<Self::BreakTy> {
         match node {
             StatementListItem::Declaration(_) => ControlFlow::Continue(()),
@@ -2112,7 +2178,10 @@ impl<'ast> Visitor<'ast> for VarScopedDeclarationsVisitor<'_> {
         }
     }
 
-    fn visit_var_declaration(&mut self, node: &'ast VarDeclaration) -> ControlFlow<Self::BreakTy> {
+    fn visit_var_declaration(
+        &mut self,
+        node: &'ast VarDeclaration<'arena>,
+    ) -> ControlFlow<Self::BreakTy> {
         for var in node.0.as_ref() {
             self.0
                 .push(VarScopedDeclaration::VariableDeclaration(var.clone()));
@@ -2120,7 +2189,7 @@ impl<'ast> Visitor<'ast> for VarScopedDeclarationsVisitor<'_> {
         ControlFlow::Continue(())
     }
 
-    fn visit_if(&mut self, node: &'ast crate::statement::If) -> ControlFlow<Self::BreakTy> {
+    fn visit_if(&mut self, node: &'ast crate::statement::If<'arena>) -> ControlFlow<Self::BreakTy> {
         self.visit(node.body())?;
         if let Some(else_node) = node.else_node() {
             self.visit(else_node)?;
@@ -2130,7 +2199,7 @@ impl<'ast> Visitor<'ast> for VarScopedDeclarationsVisitor<'_> {
 
     fn visit_do_while_loop(
         &mut self,
-        node: &'ast crate::statement::DoWhileLoop,
+        node: &'ast crate::statement::DoWhileLoop<'arena>,
     ) -> ControlFlow<Self::BreakTy> {
         self.visit(node.body())?;
         ControlFlow::Continue(())
@@ -2138,7 +2207,7 @@ impl<'ast> Visitor<'ast> for VarScopedDeclarationsVisitor<'_> {
 
     fn visit_while_loop(
         &mut self,
-        node: &'ast crate::statement::WhileLoop,
+        node: &'ast crate::statement::WhileLoop<'arena>,
     ) -> ControlFlow<Self::BreakTy> {
         self.visit(node.body())?;
         ControlFlow::Continue(())
@@ -2146,7 +2215,7 @@ impl<'ast> Visitor<'ast> for VarScopedDeclarationsVisitor<'_> {
 
     fn visit_for_loop(
         &mut self,
-        node: &'ast crate::statement::ForLoop,
+        node: &'ast crate::statement::ForLoop<'arena>,
     ) -> ControlFlow<Self::BreakTy> {
         if let Some(ForLoopInitializer::Var(v)) = node.init() {
             self.visit(v)?;
@@ -2157,7 +2226,7 @@ impl<'ast> Visitor<'ast> for VarScopedDeclarationsVisitor<'_> {
 
     fn visit_for_in_loop(
         &mut self,
-        node: &'ast crate::statement::ForInLoop,
+        node: &'ast crate::statement::ForInLoop<'arena>,
     ) -> ControlFlow<Self::BreakTy> {
         if let IterableLoopInitializer::Var(var) = node.initializer() {
             self.0
@@ -2169,7 +2238,7 @@ impl<'ast> Visitor<'ast> for VarScopedDeclarationsVisitor<'_> {
 
     fn visit_for_of_loop(
         &mut self,
-        node: &'ast crate::statement::ForOfLoop,
+        node: &'ast crate::statement::ForOfLoop<'arena>,
     ) -> ControlFlow<Self::BreakTy> {
         if let IterableLoopInitializer::Var(var) = node.initializer() {
             self.0
@@ -2179,12 +2248,15 @@ impl<'ast> Visitor<'ast> for VarScopedDeclarationsVisitor<'_> {
         ControlFlow::Continue(())
     }
 
-    fn visit_with(&mut self, node: &'ast With) -> ControlFlow<Self::BreakTy> {
+    fn visit_with(&mut self, node: &'ast With<'arena>) -> ControlFlow<Self::BreakTy> {
         self.visit(node.statement())?;
         ControlFlow::Continue(())
     }
 
-    fn visit_switch(&mut self, node: &'ast crate::statement::Switch) -> ControlFlow<Self::BreakTy> {
+    fn visit_switch(
+        &mut self,
+        node: &'ast crate::statement::Switch<'arena>,
+    ) -> ControlFlow<Self::BreakTy> {
         for case in node.cases() {
             self.visit(case)?;
         }
@@ -2194,24 +2266,33 @@ impl<'ast> Visitor<'ast> for VarScopedDeclarationsVisitor<'_> {
         ControlFlow::Continue(())
     }
 
-    fn visit_case(&mut self, node: &'ast crate::statement::Case) -> ControlFlow<Self::BreakTy> {
+    fn visit_case(
+        &mut self,
+        node: &'ast crate::statement::Case<'arena>,
+    ) -> ControlFlow<Self::BreakTy> {
         self.visit(node.body())?;
         ControlFlow::Continue(())
     }
 
-    fn visit_labelled_item(&mut self, node: &'ast LabelledItem) -> ControlFlow<Self::BreakTy> {
+    fn visit_labelled_item(
+        &mut self,
+        node: &'ast LabelledItem<'arena>,
+    ) -> ControlFlow<Self::BreakTy> {
         match node {
             LabelledItem::Statement(s) => self.visit(s),
             LabelledItem::FunctionDeclaration(_) => ControlFlow::Continue(()),
         }
     }
 
-    fn visit_catch(&mut self, node: &'ast crate::statement::Catch) -> ControlFlow<Self::BreakTy> {
+    fn visit_catch(
+        &mut self,
+        node: &'ast crate::statement::Catch<'arena>,
+    ) -> ControlFlow<Self::BreakTy> {
         self.visit(node.block())?;
         ControlFlow::Continue(())
     }
 
-    fn visit_module_item(&mut self, node: &'ast ModuleItem) -> ControlFlow<Self::BreakTy> {
+    fn visit_module_item(&mut self, node: &'ast ModuleItem<'arena>) -> ControlFlow<Self::BreakTy> {
         match node {
             // ModuleItem : ExportDeclaration
             ModuleItem::ExportDeclaration(decl) => {
@@ -2239,14 +2320,16 @@ impl<'ast> Visitor<'ast> for VarScopedDeclarationsVisitor<'_> {
 ///
 /// [spec]: https://tc39.es/ecma262/#sec-static-semantics-toplevelvarscopeddeclarations
 #[derive(Debug)]
-struct TopLevelVarScopedDeclarationsVisitor<'a>(&'a mut Vec<VarScopedDeclaration>);
+struct TopLevelVarScopedDeclarationsVisitor<'a, 'arena>(&'a mut Vec<VarScopedDeclaration<'arena>>);
 
-impl<'ast> Visitor<'ast> for TopLevelVarScopedDeclarationsVisitor<'_> {
+impl<'ast, 'arena: 'ast> Visitor<'ast, 'arena>
+    for TopLevelVarScopedDeclarationsVisitor<'_, 'arena>
+{
     type BreakTy = Infallible;
 
     fn visit_statement_list_item(
         &mut self,
-        node: &'ast StatementListItem,
+        node: &'ast StatementListItem<'arena>,
     ) -> ControlFlow<Self::BreakTy> {
         match node {
             StatementListItem::Declaration(d) => {
@@ -2281,7 +2364,10 @@ impl<'ast> Visitor<'ast> for TopLevelVarScopedDeclarationsVisitor<'_> {
         }
     }
 
-    fn visit_labelled_item(&mut self, node: &'ast LabelledItem) -> ControlFlow<Self::BreakTy> {
+    fn visit_labelled_item(
+        &mut self,
+        node: &'ast LabelledItem<'arena>,
+    ) -> ControlFlow<Self::BreakTy> {
         match node {
             LabelledItem::Statement(Statement::Labelled(s)) => self.visit(s),
             LabelledItem::Statement(s) => {
@@ -2310,9 +2396,9 @@ impl<'ast> Visitor<'ast> for TopLevelVarScopedDeclarationsVisitor<'_> {
 /// [spec1]: https://tc39.es/ecma262/#sec-web-compat-globaldeclarationinstantiation
 /// [spec2]: https://tc39.es/ecma262/#sec-web-compat-evaldeclarationinstantiation
 #[must_use]
-pub fn annex_b_function_declarations_names<'a, N>(node: &'a N) -> Vec<Sym>
+pub fn annex_b_function_declarations_names<'a, 'arena: 'a, N>(node: &'a N) -> Vec<Sym>
 where
-    &'a N: Into<NodeRef<'a>>,
+    &'a N: Into<NodeRef<'a, 'arena>>,
 {
     let mut declarations = Vec::new();
     let _ = AnnexBFunctionDeclarationNamesVisitor(&mut declarations).visit(node.into());
@@ -2323,12 +2409,12 @@ where
 #[derive(Debug)]
 struct AnnexBFunctionDeclarationNamesVisitor<'a>(&'a mut Vec<Sym>);
 
-impl<'ast> Visitor<'ast> for AnnexBFunctionDeclarationNamesVisitor<'_> {
+impl<'ast, 'arena: 'ast> Visitor<'ast, 'arena> for AnnexBFunctionDeclarationNamesVisitor<'_> {
     type BreakTy = Infallible;
 
     fn visit_statement_list_item(
         &mut self,
-        node: &'ast StatementListItem,
+        node: &'ast StatementListItem<'arena>,
     ) -> ControlFlow<Self::BreakTy> {
         match node {
             StatementListItem::Statement(node) => self.visit(node.as_ref()),
@@ -2336,7 +2422,7 @@ impl<'ast> Visitor<'ast> for AnnexBFunctionDeclarationNamesVisitor<'_> {
         }
     }
 
-    fn visit_statement(&mut self, node: &'ast Statement) -> ControlFlow<Self::BreakTy> {
+    fn visit_statement(&mut self, node: &'ast Statement<'arena>) -> ControlFlow<Self::BreakTy> {
         match node {
             Statement::Block(node) => self.visit(node),
             Statement::If(node) => self.visit(node),
@@ -2353,7 +2439,10 @@ impl<'ast> Visitor<'ast> for AnnexBFunctionDeclarationNamesVisitor<'_> {
         }
     }
 
-    fn visit_block(&mut self, node: &'ast crate::statement::Block) -> ControlFlow<Self::BreakTy> {
+    fn visit_block(
+        &mut self,
+        node: &'ast crate::statement::Block<'arena>,
+    ) -> ControlFlow<Self::BreakTy> {
         self.visit(node.statement_list())?;
         for statement in node.statement_list().statements() {
             if let StatementListItem::Declaration(declaration) = statement
@@ -2372,7 +2461,10 @@ impl<'ast> Visitor<'ast> for AnnexBFunctionDeclarationNamesVisitor<'_> {
         ControlFlow::Continue(())
     }
 
-    fn visit_switch(&mut self, node: &'ast crate::statement::Switch) -> ControlFlow<Self::BreakTy> {
+    fn visit_switch(
+        &mut self,
+        node: &'ast crate::statement::Switch<'arena>,
+    ) -> ControlFlow<Self::BreakTy> {
         for case in node.cases() {
             self.visit(case)?;
             for statement in case.body().statements() {
@@ -2404,7 +2496,10 @@ impl<'ast> Visitor<'ast> for AnnexBFunctionDeclarationNamesVisitor<'_> {
         ControlFlow::Continue(())
     }
 
-    fn visit_try(&mut self, node: &'ast crate::statement::Try) -> ControlFlow<Self::BreakTy> {
+    fn visit_try(
+        &mut self,
+        node: &'ast crate::statement::Try<'arena>,
+    ) -> ControlFlow<Self::BreakTy> {
         self.visit(node.block())?;
         if let Some(catch) = node.catch() {
             self.visit(catch.block())?;
@@ -2421,7 +2516,7 @@ impl<'ast> Visitor<'ast> for AnnexBFunctionDeclarationNamesVisitor<'_> {
         ControlFlow::Continue(())
     }
 
-    fn visit_if(&mut self, node: &'ast crate::statement::If) -> ControlFlow<Self::BreakTy> {
+    fn visit_if(&mut self, node: &'ast crate::statement::If<'arena>) -> ControlFlow<Self::BreakTy> {
         if let Some(node) = node.else_node() {
             self.visit(node)?;
         }
@@ -2430,21 +2525,21 @@ impl<'ast> Visitor<'ast> for AnnexBFunctionDeclarationNamesVisitor<'_> {
 
     fn visit_do_while_loop(
         &mut self,
-        node: &'ast crate::statement::DoWhileLoop,
+        node: &'ast crate::statement::DoWhileLoop<'arena>,
     ) -> ControlFlow<Self::BreakTy> {
         self.visit(node.body())
     }
 
     fn visit_while_loop(
         &mut self,
-        node: &'ast crate::statement::WhileLoop,
+        node: &'ast crate::statement::WhileLoop<'arena>,
     ) -> ControlFlow<Self::BreakTy> {
         self.visit(node.body())
     }
 
     fn visit_for_loop(
         &mut self,
-        node: &'ast crate::statement::ForLoop,
+        node: &'ast crate::statement::ForLoop<'arena>,
     ) -> ControlFlow<Self::BreakTy> {
         self.visit(node.body())?;
 
@@ -2458,7 +2553,7 @@ impl<'ast> Visitor<'ast> for AnnexBFunctionDeclarationNamesVisitor<'_> {
 
     fn visit_for_in_loop(
         &mut self,
-        node: &'ast crate::statement::ForInLoop,
+        node: &'ast crate::statement::ForInLoop<'arena>,
     ) -> ControlFlow<Self::BreakTy> {
         self.visit(node.body())?;
 
@@ -2476,7 +2571,7 @@ impl<'ast> Visitor<'ast> for AnnexBFunctionDeclarationNamesVisitor<'_> {
 
     fn visit_for_of_loop(
         &mut self,
-        node: &'ast crate::statement::ForOfLoop,
+        node: &'ast crate::statement::ForOfLoop<'arena>,
     ) -> ControlFlow<Self::BreakTy> {
         self.visit(node.body())?;
 
@@ -2494,7 +2589,7 @@ impl<'ast> Visitor<'ast> for AnnexBFunctionDeclarationNamesVisitor<'_> {
 
     fn visit_labelled(
         &mut self,
-        node: &'ast crate::statement::Labelled,
+        node: &'ast crate::statement::Labelled<'arena>,
     ) -> ControlFlow<Self::BreakTy> {
         if let LabelledItem::Statement(node) = node.item() {
             self.visit(node)?;
@@ -2502,16 +2597,16 @@ impl<'ast> Visitor<'ast> for AnnexBFunctionDeclarationNamesVisitor<'_> {
         ControlFlow::Continue(())
     }
 
-    fn visit_with(&mut self, node: &'ast With) -> ControlFlow<Self::BreakTy> {
+    fn visit_with(&mut self, node: &'ast With<'arena>) -> ControlFlow<Self::BreakTy> {
         self.visit(node.statement())
     }
 }
 
 /// Returns `true` if the given statement returns a value.
 #[must_use]
-pub fn returns_value<'a, N>(node: &'a N) -> bool
+pub fn returns_value<'a, 'arena: 'a, N>(node: &'a N) -> bool
 where
-    &'a N: Into<NodeRef<'a>>,
+    &'a N: Into<NodeRef<'a, 'arena>>,
 {
     ReturnsValueVisitor.visit(node.into()).is_break()
 }
@@ -2520,10 +2615,13 @@ where
 #[derive(Debug)]
 struct ReturnsValueVisitor;
 
-impl<'ast> Visitor<'ast> for ReturnsValueVisitor {
+impl<'ast, 'arena: 'ast> Visitor<'ast, 'arena> for ReturnsValueVisitor {
     type BreakTy = ();
 
-    fn visit_block(&mut self, node: &'ast crate::statement::Block) -> ControlFlow<Self::BreakTy> {
+    fn visit_block(
+        &mut self,
+        node: &'ast crate::statement::Block<'arena>,
+    ) -> ControlFlow<Self::BreakTy> {
         for statement in node.statement_list().statements() {
             match statement {
                 StatementListItem::Declaration(_) => {}
@@ -2533,7 +2631,7 @@ impl<'ast> Visitor<'ast> for ReturnsValueVisitor {
         ControlFlow::Continue(())
     }
 
-    fn visit_statement(&mut self, node: &'ast Statement) -> ControlFlow<Self::BreakTy> {
+    fn visit_statement(&mut self, node: &'ast Statement<'arena>) -> ControlFlow<Self::BreakTy> {
         match node {
             Statement::Empty | Statement::Var(_) => {}
             Statement::Block(node) => self.visit(node)?,
@@ -2543,7 +2641,10 @@ impl<'ast> Visitor<'ast> for ReturnsValueVisitor {
         ControlFlow::Continue(())
     }
 
-    fn visit_case(&mut self, node: &'ast crate::statement::Case) -> ControlFlow<Self::BreakTy> {
+    fn visit_case(
+        &mut self,
+        node: &'ast crate::statement::Case<'arena>,
+    ) -> ControlFlow<Self::BreakTy> {
         for statement in node.body().statements() {
             match statement {
                 StatementListItem::Declaration(_) => {}
@@ -2555,7 +2656,7 @@ impl<'ast> Visitor<'ast> for ReturnsValueVisitor {
 
     fn visit_labelled(
         &mut self,
-        node: &'ast crate::statement::Labelled,
+        node: &'ast crate::statement::Labelled<'arena>,
     ) -> ControlFlow<Self::BreakTy> {
         match node.item() {
             LabelledItem::Statement(node) => self.visit(node)?,

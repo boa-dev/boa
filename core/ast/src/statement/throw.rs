@@ -23,47 +23,47 @@ use core::ops::ControlFlow;
 #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
 #[cfg_attr(feature = "arbitrary", derive(arbitrary::Arbitrary))]
 #[derive(Clone, Debug, PartialEq)]
-pub struct Throw {
-    target: Expression,
+pub struct Throw<'arena> {
+    target: Expression<'arena>,
 }
 
-impl Throw {
+impl<'arena> Throw<'arena> {
     /// Gets the target expression of this `Throw` statement.
     #[must_use]
-    pub const fn target(&self) -> &Expression {
+    pub const fn target(&self) -> &Expression<'arena> {
         &self.target
     }
 
     /// Creates a `Throw` AST node.
     #[must_use]
-    pub const fn new(target: Expression) -> Self {
+    pub const fn new(target: Expression<'arena>) -> Self {
         Self { target }
     }
 }
 
-impl ToInternedString for Throw {
+impl ToInternedString for Throw<'_> {
     fn to_interned_string(&self, interner: &Interner) -> String {
         format!("throw {}", self.target.to_interned_string(interner))
     }
 }
 
-impl From<Throw> for Statement {
-    fn from(trw: Throw) -> Self {
+impl<'arena> From<Throw<'arena>> for Statement<'arena> {
+    fn from(trw: Throw<'arena>) -> Self {
         Self::Throw(trw)
     }
 }
 
-impl VisitWith for Throw {
+impl<'arena> VisitWith<'arena> for Throw<'arena> {
     fn visit_with<'a, V>(&'a self, visitor: &mut V) -> ControlFlow<V::BreakTy>
     where
-        V: Visitor<'a>,
+        V: Visitor<'a, 'arena>,
     {
         visitor.visit_expression(&self.target)
     }
 
     fn visit_with_mut<'a, V>(&'a mut self, visitor: &mut V) -> ControlFlow<V::BreakTy>
     where
-        V: VisitorMut<'a>,
+        V: VisitorMut<'a, 'arena>,
     {
         visitor.visit_expression_mut(&mut self.target)
     }

@@ -17,12 +17,13 @@ use boa_interner::Interner;
 /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Statements/throw
 /// [spec]: https://tc39.es/ecma262/#prod-ThrowStatement
 #[derive(Debug, Clone, Copy)]
-pub(super) struct ThrowStatement {
+pub(super) struct ThrowStatement<'arena> {
     allow_yield: AllowYield,
     allow_await: AllowAwait,
+    _marker: std::marker::PhantomData<&'arena ()>,
 }
 
-impl ThrowStatement {
+impl ThrowStatement<'_> {
     /// Creates a new `ThrowStatement` parser.
     pub(super) fn new<Y, A>(allow_yield: Y, allow_await: A) -> Self
     where
@@ -32,15 +33,16 @@ impl ThrowStatement {
         Self {
             allow_yield: allow_yield.into(),
             allow_await: allow_await.into(),
+            _marker: std::marker::PhantomData,
         }
     }
 }
 
-impl<R> TokenParser<R> for ThrowStatement
+impl<'arena, R> TokenParser<'arena, R> for ThrowStatement<'arena>
 where
     R: ReadChar,
 {
-    type Output = Throw;
+    type Output = Throw<'arena>;
 
     fn parse(self, cursor: &mut Cursor<R>, interner: &mut Interner) -> ParseResult<Self::Output> {
         cursor.expect((Keyword::Throw, false), "throw statement", interner)?;

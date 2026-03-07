@@ -33,7 +33,7 @@ impl Spanned for ImportMeta {
     }
 }
 
-impl From<ImportMeta> for Expression {
+impl From<ImportMeta> for Expression<'_> {
     #[inline]
     fn from(value: ImportMeta) -> Self {
         Expression::ImportMeta(value)
@@ -47,17 +47,17 @@ impl ToInternedString for ImportMeta {
     }
 }
 
-impl VisitWith for ImportMeta {
+impl<'arena> VisitWith<'arena> for ImportMeta {
     fn visit_with<'a, V>(&'a self, _visitor: &mut V) -> ControlFlow<V::BreakTy>
     where
-        V: Visitor<'a>,
+        V: Visitor<'a, 'arena>,
     {
         ControlFlow::Continue(())
     }
 
     fn visit_with_mut<'a, V>(&'a mut self, _visitor: &mut V) -> ControlFlow<V::BreakTy>
     where
-        V: VisitorMut<'a>,
+        V: VisitorMut<'a, 'arena>,
     {
         ControlFlow::Continue(())
     }

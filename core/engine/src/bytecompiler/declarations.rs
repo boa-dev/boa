@@ -36,7 +36,7 @@ use boa_ast::operations::annex_b_function_declarations_names;
 #[allow(clippy::ptr_arg)]
 pub(crate) fn global_declaration_instantiation_context(
     _annex_b_function_names: &mut Vec<Sym>,
-    _script: &Script,
+    _script: &Script<'_>,
     _env: &Scope,
     _context: &mut Context,
 ) -> JsResult<()> {
@@ -55,7 +55,7 @@ pub(crate) fn global_declaration_instantiation_context(
 #[cfg(feature = "annex-b")]
 pub(crate) fn global_declaration_instantiation_context(
     annex_b_function_names: &mut Vec<Sym>,
-    script: &Script,
+    script: &Script<'_>,
     env: &Scope,
     context: &mut Context,
 ) -> JsResult<()> {
@@ -197,7 +197,7 @@ pub(crate) fn global_declaration_instantiation_context(
 /// [spec]: https://tc39.es/ecma262/#sec-evaldeclarationinstantiation
 pub(crate) fn eval_declaration_instantiation_context(
     #[allow(unused, clippy::ptr_arg)] annex_b_function_names: &mut Vec<Sym>,
-    body: &Script,
+    body: &Script<'_>,
     #[allow(unused)] strict: bool,
     #[allow(unused)] var_env: &Scope,
     #[allow(unused)] lex_env: &Scope,
@@ -371,14 +371,14 @@ pub(crate) fn eval_declaration_instantiation_context(
     Ok(())
 }
 
-impl ByteCompiler<'_> {
+impl<'arena> ByteCompiler<'arena, '_> {
     /// `GlobalDeclarationInstantiation ( script, env )`
     ///
     /// More information:
     ///  - [ECMAScript reference][spec]
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-globaldeclarationinstantiation
-    pub(crate) fn global_declaration_instantiation(&mut self, script: &Script) {
+    pub(crate) fn global_declaration_instantiation(&mut self, script: &Script<'arena>) {
         // 1. Let lexNames be the LexicallyDeclaredNames of script.
         let lex_names = lexically_declared_names(script);
 
@@ -584,7 +584,7 @@ impl ByteCompiler<'_> {
     /// [spec]: https://tc39.es/ecma262/#sec-blockdeclarationinstantiation
     pub(crate) fn block_declaration_instantiation<'a, N>(&mut self, block: &'a N)
     where
-        &'a N: Into<NodeRef<'a>>,
+        &'a N: Into<NodeRef<'a, 'a>>,
     {
         // 1. Let declarations be the LexicallyScopedDeclarations of code.
         let declarations = lexically_scoped_declarations(block);
@@ -634,7 +634,7 @@ impl ByteCompiler<'_> {
     /// [spec]: https://tc39.es/ecma262/#sec-evaldeclarationinstantiation
     pub(crate) fn eval_declaration_instantiation(
         &mut self,
-        body: &Script,
+        body: &Script<'arena>,
         #[allow(unused_variables)] strict: bool,
         var_env: &Scope,
         bindings: EvalDeclarationBindings,
@@ -921,8 +921,8 @@ impl ByteCompiler<'_> {
     /// [spec]: https://tc39.es/ecma262/#sec-functiondeclarationinstantiation
     pub(crate) fn function_declaration_instantiation(
         &mut self,
-        body: &FunctionBody,
-        formals: &FormalParameterList,
+        body: &'arena FunctionBody<'arena>,
+        formals: &'arena FormalParameterList<'arena>,
         arrow: bool,
         strict: bool,
         generator: bool,

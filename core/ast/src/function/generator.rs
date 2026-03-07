@@ -21,10 +21,10 @@ use core::{fmt::Write as _, ops::ControlFlow};
 #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
 #[cfg_attr(feature = "arbitrary", derive(arbitrary::Arbitrary))]
 #[derive(Clone, Debug, PartialEq)]
-pub struct GeneratorDeclaration {
+pub struct GeneratorDeclaration<'arena> {
     name: Identifier,
-    pub(crate) parameters: FormalParameterList,
-    pub(crate) body: FunctionBody,
+    pub(crate) parameters: FormalParameterList<'arena>,
+    pub(crate) body: FunctionBody<'arena>,
     pub(crate) contains_direct_eval: bool,
 
     #[cfg_attr(feature = "serde", serde(skip))]
@@ -32,14 +32,14 @@ pub struct GeneratorDeclaration {
     linear_span: LinearSpanIgnoreEq,
 }
 
-impl GeneratorDeclaration {
+impl<'arena> GeneratorDeclaration<'arena> {
     /// Creates a new generator declaration.
     #[inline]
     #[must_use]
     pub fn new(
         name: Identifier,
-        parameters: FormalParameterList,
-        body: FunctionBody,
+        parameters: FormalParameterList<'arena>,
+        body: FunctionBody<'arena>,
         linear_span: LinearSpan,
     ) -> Self {
         let contains_direct_eval = contains(&parameters, ContainsSymbol::DirectEval)
@@ -64,14 +64,14 @@ impl GeneratorDeclaration {
     /// Gets the list of parameters of the generator declaration.
     #[inline]
     #[must_use]
-    pub const fn parameters(&self) -> &FormalParameterList {
+    pub const fn parameters(&self) -> &FormalParameterList<'arena> {
         &self.parameters
     }
 
     /// Gets the body of the generator declaration.
     #[inline]
     #[must_use]
-    pub const fn body(&self) -> &FunctionBody {
+    pub const fn body(&self) -> &FunctionBody<'arena> {
         &self.body
     }
 
@@ -97,7 +97,7 @@ impl GeneratorDeclaration {
     }
 }
 
-impl ToIndentedString for GeneratorDeclaration {
+impl ToIndentedString for GeneratorDeclaration<'_> {
     fn to_indented_string(&self, interner: &Interner, indentation: usize) -> String {
         format!(
             "function* {}({}) {}",
@@ -108,10 +108,10 @@ impl ToIndentedString for GeneratorDeclaration {
     }
 }
 
-impl VisitWith for GeneratorDeclaration {
+impl<'arena> VisitWith<'arena> for GeneratorDeclaration<'arena> {
     fn visit_with<'a, V>(&'a self, visitor: &mut V) -> ControlFlow<V::BreakTy>
     where
-        V: Visitor<'a>,
+        V: Visitor<'a, 'arena>,
     {
         visitor.visit_identifier(&self.name)?;
         visitor.visit_formal_parameter_list(&self.parameters)?;
@@ -120,7 +120,7 @@ impl VisitWith for GeneratorDeclaration {
 
     fn visit_with_mut<'a, V>(&'a mut self, visitor: &mut V) -> ControlFlow<V::BreakTy>
     where
-        V: VisitorMut<'a>,
+        V: VisitorMut<'a, 'arena>,
     {
         visitor.visit_identifier_mut(&mut self.name)?;
         visitor.visit_formal_parameter_list_mut(&mut self.parameters)?;
@@ -128,9 +128,9 @@ impl VisitWith for GeneratorDeclaration {
     }
 }
 
-impl From<GeneratorDeclaration> for Declaration {
+impl<'arena> From<GeneratorDeclaration<'arena>> for Declaration<'arena> {
     #[inline]
-    fn from(f: GeneratorDeclaration) -> Self {
+    fn from(f: GeneratorDeclaration<'arena>) -> Self {
         Self::GeneratorDeclaration(f)
     }
 }
@@ -146,10 +146,10 @@ impl From<GeneratorDeclaration> for Declaration {
 #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
 #[cfg_attr(feature = "arbitrary", derive(arbitrary::Arbitrary))]
 #[derive(Clone, Debug, PartialEq)]
-pub struct GeneratorExpression {
+pub struct GeneratorExpression<'arena> {
     pub(crate) name: Option<Identifier>,
-    pub(crate) parameters: FormalParameterList,
-    pub(crate) body: FunctionBody,
+    pub(crate) parameters: FormalParameterList<'arena>,
+    pub(crate) body: FunctionBody<'arena>,
     pub(crate) has_binding_identifier: bool,
     pub(crate) contains_direct_eval: bool,
 
@@ -163,14 +163,14 @@ pub struct GeneratorExpression {
     span: Span,
 }
 
-impl GeneratorExpression {
+impl<'arena> GeneratorExpression<'arena> {
     /// Creates a new generator expression.
     #[inline]
     #[must_use]
     pub fn new(
         name: Option<Identifier>,
-        parameters: FormalParameterList,
-        body: FunctionBody,
+        parameters: FormalParameterList<'arena>,
+        body: FunctionBody<'arena>,
         linear_span: LinearSpan,
         has_binding_identifier: bool,
         span: Span,
@@ -200,14 +200,14 @@ impl GeneratorExpression {
     /// Gets the list of parameters of the generator expression.
     #[inline]
     #[must_use]
-    pub const fn parameters(&self) -> &FormalParameterList {
+    pub const fn parameters(&self) -> &FormalParameterList<'arena> {
         &self.parameters
     }
 
     /// Gets the body of the generator expression.
     #[inline]
     #[must_use]
-    pub const fn body(&self) -> &FunctionBody {
+    pub const fn body(&self) -> &FunctionBody<'arena> {
         &self.body
     }
 
@@ -247,14 +247,14 @@ impl GeneratorExpression {
     }
 }
 
-impl Spanned for GeneratorExpression {
+impl Spanned for GeneratorExpression<'_> {
     #[inline]
     fn span(&self) -> Span {
         self.span
     }
 }
 
-impl ToIndentedString for GeneratorExpression {
+impl ToIndentedString for GeneratorExpression<'_> {
     fn to_indented_string(&self, interner: &Interner, indentation: usize) -> String {
         let mut buf = "function*".to_owned();
         if self.has_binding_identifier
@@ -273,17 +273,17 @@ impl ToIndentedString for GeneratorExpression {
     }
 }
 
-impl From<GeneratorExpression> for Expression {
+impl<'arena> From<GeneratorExpression<'arena>> for Expression<'arena> {
     #[inline]
-    fn from(expr: GeneratorExpression) -> Self {
+    fn from(expr: GeneratorExpression<'arena>) -> Self {
         Self::GeneratorExpression(expr)
     }
 }
 
-impl VisitWith for GeneratorExpression {
+impl<'arena> VisitWith<'arena> for GeneratorExpression<'arena> {
     fn visit_with<'a, V>(&'a self, visitor: &mut V) -> ControlFlow<V::BreakTy>
     where
-        V: Visitor<'a>,
+        V: Visitor<'a, 'arena>,
     {
         if let Some(ident) = &self.name {
             visitor.visit_identifier(ident)?;
@@ -294,7 +294,7 @@ impl VisitWith for GeneratorExpression {
 
     fn visit_with_mut<'a, V>(&'a mut self, visitor: &mut V) -> ControlFlow<V::BreakTy>
     where
-        V: VisitorMut<'a>,
+        V: VisitorMut<'a, 'arena>,
     {
         if let Some(ident) = &mut self.name {
             visitor.visit_identifier_mut(ident)?;

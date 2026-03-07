@@ -35,12 +35,13 @@ use boa_interner::{Interner, Sym};
 ///
 /// [spec]: https://tc39.es/ecma262/#prod-MemberExpression
 #[derive(Debug, Clone, Copy)]
-pub(super) struct MemberExpression {
+pub(super) struct MemberExpression<'arena> {
     allow_yield: AllowYield,
     allow_await: AllowAwait,
+    _marker: std::marker::PhantomData<&'arena ()>,
 }
 
-impl MemberExpression {
+impl MemberExpression<'_> {
     /// Creates a new `MemberExpression` parser.
     pub(super) fn new<Y, A>(allow_yield: Y, allow_await: A) -> Self
     where
@@ -50,22 +51,23 @@ impl MemberExpression {
         Self {
             allow_yield: allow_yield.into(),
             allow_await: allow_await.into(),
+            _marker: std::marker::PhantomData,
         }
     }
 }
 
-impl<R> TokenParser<R> for MemberExpression
+impl<'arena, R> TokenParser<'arena, R> for MemberExpression<'arena>
 where
     R: ReadChar,
 {
-    type Output = FormalParameterListOrExpression;
+    type Output = FormalParameterListOrExpression<'arena>;
 
     fn parse(self, cursor: &mut Cursor<R>, interner: &mut Interner) -> ParseResult<Self::Output> {
         cursor.set_goal(InputElement::RegExp);
 
         let token = cursor.peek(0, interner).or_abrupt()?;
         let position = token.span().start();
-        let lhs: FormalParameterListOrExpression = match token.kind() {
+        let lhs: FormalParameterListOrExpression<'_> = match token.kind() {
             TokenKind::Keyword((Keyword::New | Keyword::Super | Keyword::Import, true)) => {
                 return Err(Error::general(
                     "keyword must not contain escaped characters",

@@ -25,12 +25,13 @@ use boa_interner::Interner;
 /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Operators/yield
 /// [spec]: https://tc39.es/ecma262/#prod-YieldExpression
 #[derive(Debug, Clone, Copy)]
-pub(in crate::parser) struct YieldExpression {
+pub(in crate::parser) struct YieldExpression<'arena> {
     allow_in: AllowIn,
     allow_await: AllowAwait,
+    _marker: std::marker::PhantomData<&'arena ()>,
 }
 
-impl YieldExpression {
+impl YieldExpression<'_> {
     /// Creates a new `YieldExpression` parser.
     pub(in crate::parser) fn new<I, A>(allow_in: I, allow_await: A) -> Self
     where
@@ -40,15 +41,16 @@ impl YieldExpression {
         Self {
             allow_in: allow_in.into(),
             allow_await: allow_await.into(),
+            _marker: std::marker::PhantomData,
         }
     }
 }
 
-impl<R> TokenParser<R> for YieldExpression
+impl<'arena, R> TokenParser<'arena, R> for YieldExpression<'arena>
 where
     R: ReadChar,
 {
-    type Output = Expression;
+    type Output = Expression<'arena>;
 
     fn parse(self, cursor: &mut Cursor<R>, interner: &mut Interner) -> ParseResult<Self::Output> {
         let yield_span = cursor

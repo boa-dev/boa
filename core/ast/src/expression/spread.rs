@@ -27,16 +27,16 @@ use super::Expression;
 #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
 #[cfg_attr(feature = "arbitrary", derive(arbitrary::Arbitrary))]
 #[derive(Clone, Debug, PartialEq)]
-pub struct Spread {
-    target: Box<Expression>,
+pub struct Spread<'arena> {
+    target: Box<Expression<'arena>>,
     span: Span,
 }
 
-impl Spread {
+impl<'arena> Spread<'arena> {
     /// Creates a [`Spread`] AST Expression.
     #[inline]
     #[must_use]
-    pub fn new(target: Expression, span: Span) -> Self {
+    pub fn new(target: Expression<'arena>, span: Span) -> Self {
         Self {
             target: Box::new(target),
             span,
@@ -46,43 +46,43 @@ impl Spread {
     /// Gets the target expression to be expanded by the spread operator.
     #[inline]
     #[must_use]
-    pub const fn target(&self) -> &Expression {
+    pub const fn target(&self) -> &Expression<'arena> {
         &self.target
     }
 }
 
-impl Spanned for Spread {
+impl Spanned for Spread<'_> {
     #[inline]
     fn span(&self) -> Span {
         self.span
     }
 }
 
-impl ToInternedString for Spread {
+impl ToInternedString for Spread<'_> {
     #[inline]
     fn to_interned_string(&self, interner: &Interner) -> String {
         format!("...{}", self.target().to_interned_string(interner))
     }
 }
 
-impl From<Spread> for Expression {
+impl<'arena> From<Spread<'arena>> for Expression<'arena> {
     #[inline]
-    fn from(spread: Spread) -> Self {
+    fn from(spread: Spread<'arena>) -> Self {
         Self::Spread(spread)
     }
 }
 
-impl VisitWith for Spread {
+impl<'arena> VisitWith<'arena> for Spread<'arena> {
     fn visit_with<'a, V>(&'a self, visitor: &mut V) -> ControlFlow<V::BreakTy>
     where
-        V: Visitor<'a>,
+        V: Visitor<'a, 'arena>,
     {
         visitor.visit_expression(&self.target)
     }
 
     fn visit_with_mut<'a, V>(&'a mut self, visitor: &mut V) -> ControlFlow<V::BreakTy>
     where
-        V: VisitorMut<'a>,
+        V: VisitorMut<'a, 'arena>,
     {
         visitor.visit_expression_mut(&mut self.target)
     }

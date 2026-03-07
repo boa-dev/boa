@@ -28,12 +28,13 @@ use std::convert::TryInto;
 /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Statements/var
 /// [spec]: https://tc39.es/ecma262/#prod-VariableStatement
 #[derive(Debug, Clone, Copy)]
-pub(in crate::parser::statement) struct VariableStatement {
+pub(in crate::parser::statement) struct VariableStatement<'arena> {
     allow_yield: AllowYield,
     allow_await: AllowAwait,
+    _marker: std::marker::PhantomData<&'arena ()>,
 }
 
-impl VariableStatement {
+impl VariableStatement<'_> {
     /// Creates a new `VariableStatement` parser.
     pub(in crate::parser::statement) fn new<Y, A>(allow_yield: Y, allow_await: A) -> Self
     where
@@ -43,15 +44,16 @@ impl VariableStatement {
         Self {
             allow_yield: allow_yield.into(),
             allow_await: allow_await.into(),
+            _marker: std::marker::PhantomData,
         }
     }
 }
 
-impl<R> TokenParser<R> for VariableStatement
+impl<'arena, R> TokenParser<'arena, R> for VariableStatement<'arena>
 where
     R: ReadChar,
 {
-    type Output = VarDeclaration;
+    type Output = VarDeclaration<'arena>;
 
     fn parse(self, cursor: &mut Cursor<R>, interner: &mut Interner) -> ParseResult<Self::Output> {
         cursor.expect((Keyword::Var, false), "variable statement", interner)?;
@@ -74,13 +76,14 @@ where
 /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Statements/var
 /// [spec]: https://tc39.es/ecma262/#prod-VariableDeclarationList
 #[derive(Debug, Clone, Copy)]
-pub(in crate::parser::statement) struct VariableDeclarationList {
+pub(in crate::parser::statement) struct VariableDeclarationList<'arena> {
     allow_in: AllowIn,
     allow_yield: AllowYield,
     allow_await: AllowAwait,
+    _marker: std::marker::PhantomData<&'arena ()>,
 }
 
-impl VariableDeclarationList {
+impl VariableDeclarationList<'_> {
     /// Creates a new `VariableDeclarationList` parser.
     pub(in crate::parser::statement) fn new<I, Y, A>(
         allow_in: I,
@@ -96,15 +99,16 @@ impl VariableDeclarationList {
             allow_in: allow_in.into(),
             allow_yield: allow_yield.into(),
             allow_await: allow_await.into(),
+            _marker: std::marker::PhantomData,
         }
     }
 }
 
-impl<R> TokenParser<R> for VariableDeclarationList
+impl<'arena, R> TokenParser<'arena, R> for VariableDeclarationList<'arena>
 where
     R: ReadChar,
 {
-    type Output = VarDeclaration;
+    type Output = VarDeclaration<'arena>;
 
     fn parse(self, cursor: &mut Cursor<R>, interner: &mut Interner) -> ParseResult<Self::Output> {
         let mut list = Vec::new();
@@ -133,13 +137,14 @@ where
 ///
 /// [spec]: https://tc39.es/ecma262/#prod-VariableDeclaration
 #[derive(Debug, Clone, Copy)]
-struct VariableDeclaration {
+struct VariableDeclaration<'arena> {
     allow_in: AllowIn,
     allow_yield: AllowYield,
     allow_await: AllowAwait,
+    _marker: std::marker::PhantomData<&'arena ()>,
 }
 
-impl VariableDeclaration {
+impl VariableDeclaration<'_> {
     /// Creates a new `VariableDeclaration` parser.
     fn new<I, Y, A>(allow_in: I, allow_yield: Y, allow_await: A) -> Self
     where
@@ -151,15 +156,16 @@ impl VariableDeclaration {
             allow_in: allow_in.into(),
             allow_yield: allow_yield.into(),
             allow_await: allow_await.into(),
+            _marker: std::marker::PhantomData,
         }
     }
 }
 
-impl<R> TokenParser<R> for VariableDeclaration
+impl<'arena, R> TokenParser<'arena, R> for VariableDeclaration<'arena>
 where
     R: ReadChar,
 {
-    type Output = Variable;
+    type Output = Variable<'arena>;
 
     fn parse(self, cursor: &mut Cursor<R>, interner: &mut Interner) -> ParseResult<Self::Output> {
         let peek_token = cursor.peek(0, interner).or_abrupt()?;

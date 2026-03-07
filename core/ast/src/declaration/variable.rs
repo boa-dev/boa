@@ -43,31 +43,31 @@ use core::{convert::TryFrom, fmt::Write as _, ops::ControlFlow};
 #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
 #[cfg_attr(feature = "arbitrary", derive(arbitrary::Arbitrary))]
 #[derive(Clone, Debug, PartialEq)]
-pub struct VarDeclaration(pub VariableList);
+pub struct VarDeclaration<'arena>(pub VariableList<'arena>);
 
-impl From<VarDeclaration> for Statement {
-    fn from(var: VarDeclaration) -> Self {
+impl<'arena> From<VarDeclaration<'arena>> for Statement<'arena> {
+    fn from(var: VarDeclaration<'arena>) -> Self {
         Self::Var(var)
     }
 }
 
-impl ToInternedString for VarDeclaration {
+impl ToInternedString for VarDeclaration<'_> {
     fn to_interned_string(&self, interner: &Interner) -> String {
         format!("var {}", self.0.to_interned_string(interner))
     }
 }
 
-impl VisitWith for VarDeclaration {
+impl<'arena> VisitWith<'arena> for VarDeclaration<'arena> {
     fn visit_with<'a, V>(&'a self, visitor: &mut V) -> ControlFlow<V::BreakTy>
     where
-        V: Visitor<'a>,
+        V: Visitor<'a, 'arena>,
     {
         visitor.visit_variable_list(&self.0)
     }
 
     fn visit_with_mut<'a, V>(&'a mut self, visitor: &mut V) -> ControlFlow<V::BreakTy>
     where
-        V: VisitorMut<'a>,
+        V: VisitorMut<'a, 'arena>,
     {
         visitor.visit_variable_list_mut(&mut self.0)
     }
@@ -80,7 +80,7 @@ impl VisitWith for VarDeclaration {
 #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
 #[cfg_attr(feature = "arbitrary", derive(arbitrary::Arbitrary))]
 #[derive(Clone, Debug, PartialEq)]
-pub enum LexicalDeclaration {
+pub enum LexicalDeclaration<'arena> {
     /// A <code>[const]</code> variable creates a constant whose scope can be either global or local
     /// to the block in which it is declared.
     ///
@@ -88,7 +88,7 @@ pub enum LexicalDeclaration {
     /// in which it's declared. (This makes sense, given that it can't be changed later)
     ///
     /// [const]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Statements/const
-    Const(VariableList),
+    Const(VariableList<'arena>),
 
     /// A <code>[let]</code> variable is limited to a scope of a block statement, or expression on
     /// which it is used, unlike the `var` keyword, which defines a variable globally, or locally to
@@ -100,13 +100,13 @@ pub enum LexicalDeclaration {
     /// If a let declaration does not have an initializer, the variable is assigned the value `undefined`.
     ///
     /// [let]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Statements/let
-    Let(VariableList),
+    Let(VariableList<'arena>),
 }
 
-impl LexicalDeclaration {
+impl<'arena> LexicalDeclaration<'arena> {
     /// Gets the inner variable list of the `LexicalDeclaration`
     #[must_use]
-    pub const fn variable_list(&self) -> &VariableList {
+    pub const fn variable_list(&self) -> &VariableList<'arena> {
         match self {
             Self::Const(list) | Self::Let(list) => list,
         }
@@ -119,13 +119,13 @@ impl LexicalDeclaration {
     }
 }
 
-impl From<LexicalDeclaration> for Declaration {
-    fn from(lex: LexicalDeclaration) -> Self {
+impl<'arena> From<LexicalDeclaration<'arena>> for Declaration<'arena> {
+    fn from(lex: LexicalDeclaration<'arena>) -> Self {
         Self::Lexical(lex)
     }
 }
 
-impl ToInternedString for LexicalDeclaration {
+impl ToInternedString for LexicalDeclaration<'_> {
     fn to_interned_string(&self, interner: &Interner) -> String {
         format!(
             "{} {}",
@@ -138,10 +138,10 @@ impl ToInternedString for LexicalDeclaration {
     }
 }
 
-impl VisitWith for LexicalDeclaration {
+impl<'arena> VisitWith<'arena> for LexicalDeclaration<'arena> {
     fn visit_with<'a, V>(&'a self, visitor: &mut V) -> ControlFlow<V::BreakTy>
     where
-        V: Visitor<'a>,
+        V: Visitor<'a, 'arena>,
     {
         match self {
             Self::Const(vars) | Self::Let(vars) => visitor.visit_variable_list(vars),
@@ -150,7 +150,7 @@ impl VisitWith for LexicalDeclaration {
 
     fn visit_with_mut<'a, V>(&'a mut self, visitor: &mut V) -> ControlFlow<V::BreakTy>
     where
-        V: VisitorMut<'a>,
+        V: VisitorMut<'a, 'arena>,
     {
         match self {
             Self::Const(vars) | Self::Let(vars) => visitor.visit_variable_list_mut(vars),
@@ -162,14 +162,14 @@ impl VisitWith for LexicalDeclaration {
 #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
 #[cfg_attr(feature = "arbitrary", derive(arbitrary::Arbitrary))]
 #[derive(Clone, Debug, PartialEq)]
-pub struct VariableList {
-    list: Box<[Variable]>,
+pub struct VariableList<'arena> {
+    list: Box<[Variable<'arena>]>,
 }
 
-impl VariableList {
+impl<'arena> VariableList<'arena> {
     /// Creates a variable list if the provided list of [`Variable`] is not empty.
     #[must_use]
-    pub fn new(list: Box<[Variable]>) -> Option<Self> {
+    pub fn new(list: Box<[Variable<'arena>]>) -> Option<Self> {
         if list.is_empty() {
             return None;
         }
@@ -178,22 +178,22 @@ impl VariableList {
     }
 }
 
-impl AsRef<[Variable]> for VariableList {
-    fn as_ref(&self) -> &[Variable] {
+impl<'arena> AsRef<[Variable<'arena>]> for VariableList<'arena> {
+    fn as_ref(&self) -> &[Variable<'arena>] {
         &self.list
     }
 }
 
-impl ToInternedString for VariableList {
+impl ToInternedString for VariableList<'_> {
     fn to_interned_string(&self, interner: &Interner) -> String {
         join_nodes(interner, self.list.as_ref())
     }
 }
 
-impl VisitWith for VariableList {
+impl<'arena> VisitWith<'arena> for VariableList<'arena> {
     fn visit_with<'a, V>(&'a self, visitor: &mut V) -> ControlFlow<V::BreakTy>
     where
-        V: Visitor<'a>,
+        V: Visitor<'a, 'arena>,
     {
         for variable in &*self.list {
             visitor.visit_variable(variable)?;
@@ -203,7 +203,7 @@ impl VisitWith for VariableList {
 
     fn visit_with_mut<'a, V>(&'a mut self, visitor: &mut V) -> ControlFlow<V::BreakTy>
     where
-        V: VisitorMut<'a>,
+        V: VisitorMut<'a, 'arena>,
     {
         for variable in &mut *self.list {
             visitor.visit_variable_mut(variable)?;
@@ -212,7 +212,7 @@ impl VisitWith for VariableList {
     }
 }
 
-/// The error returned by the [`VariableList::try_from`] function.
+/// The error returned by the [`VariableList<'arena>::try_from`] function.
 #[derive(Debug, Copy, Clone, PartialEq, Eq)]
 pub struct TryFromVariableListError(());
 
@@ -222,18 +222,18 @@ impl std::fmt::Display for TryFromVariableListError {
     }
 }
 
-impl TryFrom<Box<[Variable]>> for VariableList {
+impl<'arena> TryFrom<Box<[Variable<'arena>]>> for VariableList<'arena> {
     type Error = TryFromVariableListError;
 
-    fn try_from(value: Box<[Variable]>) -> Result<Self, Self::Error> {
+    fn try_from(value: Box<[Variable<'arena>]>) -> Result<Self, Self::Error> {
         Self::new(value).ok_or(TryFromVariableListError(()))
     }
 }
 
-impl TryFrom<Vec<Variable>> for VariableList {
+impl<'arena> TryFrom<Vec<Variable<'arena>>> for VariableList<'arena> {
     type Error = TryFromVariableListError;
 
-    fn try_from(value: Vec<Variable>) -> Result<Self, Self::Error> {
+    fn try_from(value: Vec<Variable<'arena>>) -> Result<Self, Self::Error> {
         Self::try_from(value.into_boxed_slice())
     }
 }
@@ -253,12 +253,12 @@ impl TryFrom<Vec<Variable>> for VariableList {
 #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
 #[cfg_attr(feature = "arbitrary", derive(arbitrary::Arbitrary))]
 #[derive(Clone, Debug, PartialEq)]
-pub struct Variable {
-    binding: Binding,
-    init: Option<Expression>,
+pub struct Variable<'arena> {
+    binding: Binding<'arena>,
+    init: Option<Expression<'arena>>,
 }
 
-impl ToInternedString for Variable {
+impl ToInternedString for Variable<'_> {
     fn to_interned_string(&self, interner: &Interner) -> String {
         let mut buf = self.binding.to_interned_string(interner);
 
@@ -269,11 +269,11 @@ impl ToInternedString for Variable {
     }
 }
 
-impl Variable {
+impl<'arena> Variable<'arena> {
     /// Creates a new variable declaration from a `BindingIdentifier`.
     #[inline]
     #[must_use]
-    pub const fn from_identifier(ident: Identifier, init: Option<Expression>) -> Self {
+    pub const fn from_identifier(ident: Identifier, init: Option<Expression<'arena>>) -> Self {
         Self {
             binding: Binding::Identifier(ident),
             init,
@@ -283,7 +283,7 @@ impl Variable {
     /// Creates a new variable declaration from a `Pattern`.
     #[inline]
     #[must_use]
-    pub const fn from_pattern(pattern: Pattern, init: Option<Expression>) -> Self {
+    pub const fn from_pattern(pattern: Pattern<'arena>, init: Option<Expression<'arena>>) -> Self {
         Self {
             binding: Binding::Pattern(pattern),
             init,
@@ -291,22 +291,22 @@ impl Variable {
     }
     /// Gets the variable declaration binding.
     #[must_use]
-    pub const fn binding(&self) -> &Binding {
+    pub const fn binding(&self) -> &Binding<'arena> {
         &self.binding
     }
 
     /// Gets the initialization expression for the variable declaration, if any.
     #[inline]
     #[must_use]
-    pub const fn init(&self) -> Option<&Expression> {
+    pub const fn init(&self) -> Option<&Expression<'arena>> {
         self.init.as_ref()
     }
 }
 
-impl VisitWith for Variable {
+impl<'arena> VisitWith<'arena> for Variable<'arena> {
     fn visit_with<'a, V>(&'a self, visitor: &mut V) -> ControlFlow<V::BreakTy>
     where
-        V: Visitor<'a>,
+        V: Visitor<'a, 'arena>,
     {
         visitor.visit_binding(&self.binding)?;
         if let Some(init) = &self.init {
@@ -317,7 +317,7 @@ impl VisitWith for Variable {
 
     fn visit_with_mut<'a, V>(&'a mut self, visitor: &mut V) -> ControlFlow<V::BreakTy>
     where
-        V: VisitorMut<'a>,
+        V: VisitorMut<'a, 'arena>,
     {
         visitor.visit_binding_mut(&mut self.binding)?;
         if let Some(init) = &mut self.init {
@@ -336,26 +336,26 @@ impl VisitWith for Variable {
 #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
 #[cfg_attr(feature = "arbitrary", derive(arbitrary::Arbitrary))]
 #[derive(Clone, Debug, PartialEq)]
-pub enum Binding {
+pub enum Binding<'arena> {
     /// A single identifier binding.
     Identifier(Identifier),
     /// A pattern binding.
-    Pattern(Pattern),
+    Pattern(Pattern<'arena>),
 }
 
-impl From<Identifier> for Binding {
+impl From<Identifier> for Binding<'_> {
     fn from(id: Identifier) -> Self {
         Self::Identifier(id)
     }
 }
 
-impl From<Pattern> for Binding {
-    fn from(pat: Pattern) -> Self {
+impl<'arena> From<Pattern<'arena>> for Binding<'arena> {
+    fn from(pat: Pattern<'arena>) -> Self {
         Self::Pattern(pat)
     }
 }
 
-impl ToInternedString for Binding {
+impl ToInternedString for Binding<'_> {
     fn to_interned_string(&self, interner: &Interner) -> String {
         match self {
             Self::Identifier(id) => id.to_interned_string(interner),
@@ -364,10 +364,10 @@ impl ToInternedString for Binding {
     }
 }
 
-impl VisitWith for Binding {
+impl<'arena> VisitWith<'arena> for Binding<'arena> {
     fn visit_with<'a, V>(&'a self, visitor: &mut V) -> ControlFlow<V::BreakTy>
     where
-        V: Visitor<'a>,
+        V: Visitor<'a, 'arena>,
     {
         match self {
             Self::Identifier(id) => visitor.visit_identifier(id),
@@ -377,7 +377,7 @@ impl VisitWith for Binding {
 
     fn visit_with_mut<'a, V>(&'a mut self, visitor: &mut V) -> ControlFlow<V::BreakTy>
     where
-        V: VisitorMut<'a>,
+        V: VisitorMut<'a, 'arena>,
     {
         match self {
             Self::Identifier(id) => visitor.visit_identifier_mut(id),

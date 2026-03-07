@@ -81,13 +81,13 @@ impl<'context> Optimizer<'context> {
     }
 
     /// Run the constant folding optimization on an expression.
-    fn run_constant_folding_pass(&mut self, expr: &mut Expression) -> bool {
+    fn run_constant_folding_pass<'arena>(&mut self, expr: &mut Expression<'arena>) -> bool {
         self.statistics.constant_folding_run_count += 1;
 
         let mut has_changes = false;
         loop {
             self.statistics.constant_folding_pass_count += 1;
-            let mut walker = Walker::new(|expr| -> PassAction<Expression> {
+            let mut walker = Walker::new(|expr| -> PassAction<Expression<'arena>> {
                 ConstantFolding::fold_expression(expr, self.context)
             });
             // NOTE: postoder traversal is optimal for constant folding,
@@ -101,7 +101,7 @@ impl<'context> Optimizer<'context> {
         has_changes
     }
 
-    fn run_all(&mut self, expr: &mut Expression) {
+    fn run_all(&mut self, expr: &mut Expression<'_>) {
         if self
             .context
             .optimizer_options()
@@ -112,8 +112,11 @@ impl<'context> Optimizer<'context> {
     }
 
     /// Apply optimizations inplace.
-    pub(crate) fn apply(&mut self, statement_list: &mut StatementList) -> OptimizerStatistics {
-        let _ = self.visit_statement_list_mut(statement_list);
+    pub(crate) fn apply<'arena>(
+        &mut self,
+        statement_list: &mut StatementList<'arena>,
+    ) -> OptimizerStatistics {
+        let _ = <Self as VisitorMut<'_, 'arena>>::visit_statement_list_mut(self, statement_list);
 
         #[allow(clippy::print_stdout)]
         if self
@@ -127,10 +130,13 @@ impl<'context> Optimizer<'context> {
     }
 }
 
-impl<'ast> VisitorMut<'ast> for Optimizer<'_> {
+impl<'ast, 'arena: 'ast> VisitorMut<'ast, 'arena> for Optimizer<'_> {
     type BreakTy = ();
 
-    fn visit_expression_mut(&mut self, node: &'ast mut Expression) -> ControlFlow<Self::BreakTy> {
+    fn visit_expression_mut(
+        &mut self,
+        node: &'ast mut Expression<'arena>,
+    ) -> ControlFlow<Self::BreakTy> {
         self.run_all(node);
         ControlFlow::Continue(())
     }

@@ -11,8 +11,8 @@ use boa_ast::{
     scope::BindingLocatorError,
 };
 
-impl ByteCompiler<'_> {
-    pub(crate) fn compile_assign(&mut self, assign: &Assign, dst: &Register) {
+impl<'arena> ByteCompiler<'arena, '_> {
+    pub(crate) fn compile_assign(&mut self, assign: &'arena Assign<'arena>, dst: &Register) {
         let mut compiler = self.position_guard(assign);
 
         if assign.op() == AssignOp::Assign {
@@ -39,7 +39,7 @@ impl ByteCompiler<'_> {
 
             let emit = |compiler: &mut Self,
                         dst: &Register,
-                        expr: &Expression,
+                        expr: &'arena Expression<'arena>,
                         op: AssignOp|
              -> Option<Label> {
                 if short_circuit {

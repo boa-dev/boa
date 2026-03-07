@@ -84,7 +84,7 @@ where
 ///
 /// This includes the curly braces at the start and end. This will not indent the first brace,
 /// but will indent the last brace.
-fn block_to_string(body: &StatementList, interner: &Interner, indentation: usize) -> String {
+fn block_to_string(body: &StatementList<'_>, interner: &Interner, indentation: usize) -> String {
     if body.statements().is_empty() {
         "{}".to_owned()
     } else {

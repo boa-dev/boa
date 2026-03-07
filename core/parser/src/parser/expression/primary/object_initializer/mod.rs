@@ -52,12 +52,13 @@ use boa_interner::{Interner, Sym};
 /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Operators/Object_initializer
 /// [spec]: https://tc39.es/ecma262/#prod-ObjectLiteral
 #[derive(Debug, Clone, Copy)]
-pub(super) struct ObjectLiteral {
+pub(super) struct ObjectLiteral<'arena> {
     allow_yield: AllowYield,
     allow_await: AllowAwait,
+    _marker: std::marker::PhantomData<&'arena ()>,
 }
 
-impl ObjectLiteral {
+impl ObjectLiteral<'_> {
     /// Creates a new `ObjectLiteral` parser.
     pub(super) fn new<Y, A>(allow_yield: Y, allow_await: A) -> Self
     where
@@ -67,15 +68,16 @@ impl ObjectLiteral {
         Self {
             allow_yield: allow_yield.into(),
             allow_await: allow_await.into(),
+            _marker: std::marker::PhantomData,
         }
     }
 }
 
-impl<R> TokenParser<R> for ObjectLiteral
+impl<'arena, R> TokenParser<'arena, R> for ObjectLiteral<'arena>
 where
     R: ReadChar,
 {
-    type Output = literal::ObjectLiteral;
+    type Output = literal::ObjectLiteral<'arena>;
 
     fn parse(self, cursor: &mut Cursor<R>, interner: &mut Interner) -> ParseResult<Self::Output> {
         let open_block_token = cursor.expect(Punctuator::OpenBlock, "object parsing", interner)?;
@@ -147,12 +149,13 @@ where
 ///
 /// [spec]: https://tc39.es/ecma262/#prod-PropertyDefinition
 #[derive(Debug, Clone, Copy)]
-pub(in crate::parser) struct PropertyDefinition {
+pub(in crate::parser) struct PropertyDefinition<'arena> {
     allow_yield: AllowYield,
     allow_await: AllowAwait,
+    _marker: std::marker::PhantomData<&'arena ()>,
 }
 
-impl PropertyDefinition {
+impl PropertyDefinition<'_> {
     /// Creates a new `PropertyDefinition` parser.
     pub(in crate::parser) fn new<Y, A>(allow_yield: Y, allow_await: A) -> Self
     where
@@ -162,15 +165,16 @@ impl PropertyDefinition {
         Self {
             allow_yield: allow_yield.into(),
             allow_await: allow_await.into(),
+            _marker: std::marker::PhantomData,
         }
     }
 }
 
-impl<R> TokenParser<R> for PropertyDefinition
+impl<'arena, R> TokenParser<'arena, R> for PropertyDefinition<'arena>
 where
     R: ReadChar,
 {
-    type Output = PropertyDefinitionNode;
+    type Output = PropertyDefinitionNode<'arena>;
 
     fn parse(self, cursor: &mut Cursor<R>, interner: &mut Interner) -> ParseResult<Self::Output> {
         match cursor.peek(1, interner).or_abrupt()?.kind() {
@@ -406,7 +410,7 @@ where
                     )?
                     .span()
                     .end();
-                let params: FormalParameterList = FormalParameter::new(false, false)
+                let params: FormalParameterList<'_> = FormalParameter::new(false, false)
                     .parse(cursor, interner)?
                     .into();
                 cursor.expect(
@@ -540,13 +544,14 @@ where
 ///  - [ECMAScript specification][spec]
 ///
 /// [spec]: https://tc39.es/ecma262/#prod-PropertyName
-#[derive(Debug, Clone)]
-pub(in crate::parser) struct PropertyName {
+#[derive(Debug, Clone, Copy)]
+pub(in crate::parser) struct PropertyName<'arena> {
     allow_yield: AllowYield,
     allow_await: AllowAwait,
+    _marker: std::marker::PhantomData<&'arena ()>,
 }
 
-impl PropertyName {
+impl PropertyName<'_> {
     /// Creates a new `PropertyName` parser.
     pub(in crate::parser) fn new<Y, A>(allow_yield: Y, allow_await: A) -> Self
     where
@@ -556,19 +561,20 @@ impl PropertyName {
         Self {
             allow_yield: allow_yield.into(),
             allow_await: allow_await.into(),
+            _marker: std::marker::PhantomData,
         }
     }
 }
 
-impl<R> TokenParser<R> for PropertyName
+impl<'arena, R> TokenParser<'arena, R> for PropertyName<'arena>
 where
     R: ReadChar,
 {
-    type Output = PropertyNameNode;
+    type Output = PropertyNameNode<'arena>;
 
     fn parse(self, cursor: &mut Cursor<R>, interner: &mut Interner) -> ParseResult<Self::Output> {
         let token = cursor.peek(0, interner).or_abrupt()?;
-        let name: PropertyNameNode = match token.kind() {
+        let name: PropertyNameNode<'_> = match token.kind() {
             TokenKind::Punctuator(Punctuator::OpenBracket) => {
                 cursor.advance(interner);
                 let node = AssignmentExpression::new(true, self.allow_yield, self.allow_await)
@@ -620,13 +626,14 @@ where
 ///  - [ECMAScript reference][spec]
 ///
 /// [spec]: https://tc39.es/ecma262/#prod-ClassElementName
-#[derive(Debug, Clone)]
-pub(in crate::parser) struct ClassElementName {
+#[derive(Debug, Clone, Copy)]
+pub(in crate::parser) struct ClassElementName<'arena> {
     allow_yield: AllowYield,
     allow_await: AllowAwait,
+    _marker: std::marker::PhantomData<&'arena ()>,
 }
 
-impl ClassElementName {
+impl ClassElementName<'_> {
     /// Creates a new `ClassElementName` parser.
     pub(in crate::parser) fn new<Y, A>(allow_yield: Y, allow_await: A) -> Self
     where
@@ -636,15 +643,16 @@ impl ClassElementName {
         Self {
             allow_yield: allow_yield.into(),
             allow_await: allow_await.into(),
+            _marker: std::marker::PhantomData,
         }
     }
 }
 
-impl<R> TokenParser<R> for ClassElementName
+impl<'arena, R> TokenParser<'arena, R> for ClassElementName<'arena>
 where
     R: ReadChar,
 {
-    type Output = ClassElementNameNode;
+    type Output = ClassElementNameNode<'arena>;
 
     fn parse(self, cursor: &mut Cursor<R>, interner: &mut Interner) -> ParseResult<Self::Output> {
         let token = cursor.peek(0, interner).or_abrupt()?;
@@ -671,13 +679,14 @@ where
 ///
 /// [spec]: https://tc39.es/ecma262/#prod-Initializer
 #[derive(Debug, Clone, Copy)]
-pub(in crate::parser) struct Initializer {
+pub(in crate::parser) struct Initializer<'arena> {
     allow_in: AllowIn,
     allow_yield: AllowYield,
     allow_await: AllowAwait,
+    _marker: std::marker::PhantomData<&'arena ()>,
 }
 
-impl Initializer {
+impl Initializer<'_> {
     /// Creates a new `Initializer` parser.
     pub(in crate::parser) fn new<I, Y, A>(allow_in: I, allow_yield: Y, allow_await: A) -> Self
     where
@@ -689,15 +698,16 @@ impl Initializer {
             allow_in: allow_in.into(),
             allow_yield: allow_yield.into(),
             allow_await: allow_await.into(),
+            _marker: std::marker::PhantomData,
         }
     }
 }
 
-impl<R> TokenParser<R> for Initializer
+impl<'arena, R> TokenParser<'arena, R> for Initializer<'arena>
 where
     R: ReadChar,
 {
-    type Output = Expression;
+    type Output = Expression<'arena>;
 
     fn parse(self, cursor: &mut Cursor<R>, interner: &mut Interner) -> ParseResult<Self::Output> {
         cursor.expect(Punctuator::Assign, "initializer", interner)?;
@@ -713,12 +723,13 @@ where
 ///
 /// [spec]: https://tc39.es/ecma262/#prod-GeneratorMethod
 #[derive(Debug, Clone, Copy)]
-pub(in crate::parser) struct GeneratorMethod {
+pub(in crate::parser) struct GeneratorMethod<'arena> {
     allow_yield: AllowYield,
     allow_await: AllowAwait,
+    _marker: std::marker::PhantomData<&'arena ()>,
 }
 
-impl GeneratorMethod {
+impl GeneratorMethod<'_> {
     /// Creates a new `GeneratorMethod` parser.
     pub(in crate::parser) fn new<Y, A>(allow_yield: Y, allow_await: A) -> Self
     where
@@ -728,15 +739,20 @@ impl GeneratorMethod {
         Self {
             allow_yield: allow_yield.into(),
             allow_await: allow_await.into(),
+            _marker: std::marker::PhantomData,
         }
     }
 }
 
-impl<R> TokenParser<R> for GeneratorMethod
+impl<'arena, R> TokenParser<'arena, R> for GeneratorMethod<'arena>
 where
     R: ReadChar,
 {
-    type Output = (ClassElementNameNode, FormalParameterList, FunctionBodyAst);
+    type Output = (
+        ClassElementNameNode<'arena>,
+        FormalParameterList<'arena>,
+        FunctionBodyAst<'arena>,
+    );
 
     fn parse(self, cursor: &mut Cursor<R>, interner: &mut Interner) -> ParseResult<Self::Output> {
         cursor.expect(Punctuator::Mul, "generator method definition", interner)?;
@@ -798,12 +814,13 @@ where
 ///
 /// [spec]: https://tc39.es/ecma262/#prod-AsyncGeneratorMethod
 #[derive(Debug, Clone, Copy)]
-pub(in crate::parser) struct AsyncGeneratorMethod {
+pub(in crate::parser) struct AsyncGeneratorMethod<'arena> {
     allow_yield: AllowYield,
     allow_await: AllowAwait,
+    _marker: std::marker::PhantomData<&'arena ()>,
 }
 
-impl AsyncGeneratorMethod {
+impl AsyncGeneratorMethod<'_> {
     /// Creates a new `AsyncGeneratorMethod` parser.
     pub(in crate::parser) fn new<Y, A>(allow_yield: Y, allow_await: A) -> Self
     where
@@ -813,15 +830,20 @@ impl AsyncGeneratorMethod {
         Self {
             allow_yield: allow_yield.into(),
             allow_await: allow_await.into(),
+            _marker: std::marker::PhantomData,
         }
     }
 }
 
-impl<R> TokenParser<R> for AsyncGeneratorMethod
+impl<'arena, R> TokenParser<'arena, R> for AsyncGeneratorMethod<'arena>
 where
     R: ReadChar,
 {
-    type Output = (ClassElementNameNode, FormalParameterList, FunctionBodyAst);
+    type Output = (
+        ClassElementNameNode<'arena>,
+        FormalParameterList<'arena>,
+        FunctionBodyAst<'arena>,
+    );
 
     fn parse(self, cursor: &mut Cursor<R>, interner: &mut Interner) -> ParseResult<Self::Output> {
         cursor.expect(
@@ -897,12 +919,13 @@ where
 ///
 /// [spec]: https://tc39.es/ecma262/#prod-AsyncMethod
 #[derive(Debug, Clone, Copy)]
-pub(in crate::parser) struct AsyncMethod {
+pub(in crate::parser) struct AsyncMethod<'arena> {
     allow_yield: AllowYield,
     allow_await: AllowAwait,
+    _marker: std::marker::PhantomData<&'arena ()>,
 }
 
-impl AsyncMethod {
+impl AsyncMethod<'_> {
     /// Creates a new `AsyncMethod` parser.
     pub(in crate::parser) fn new<Y, A>(allow_yield: Y, allow_await: A) -> Self
     where
@@ -912,15 +935,20 @@ impl AsyncMethod {
         Self {
             allow_yield: allow_yield.into(),
             allow_await: allow_await.into(),
+            _marker: std::marker::PhantomData,
         }
     }
 }
 
-impl<R> TokenParser<R> for AsyncMethod
+impl<'arena, R> TokenParser<'arena, R> for AsyncMethod<'arena>
 where
     R: ReadChar,
 {
-    type Output = (ClassElementNameNode, FormalParameterList, FunctionBodyAst);
+    type Output = (
+        ClassElementNameNode<'arena>,
+        FormalParameterList<'arena>,
+        FunctionBodyAst<'arena>,
+    );
 
     fn parse(self, cursor: &mut Cursor<R>, interner: &mut Interner) -> ParseResult<Self::Output> {
         let class_element_name =
@@ -972,12 +1000,13 @@ where
 ///
 /// [spec]: https://tc39.es/ecma262/#prod-CoverInitializedName
 #[derive(Debug, Clone, Copy)]
-pub(in crate::parser) struct CoverInitializedName {
+pub(in crate::parser) struct CoverInitializedName<'arena> {
     allow_yield: AllowYield,
     allow_await: AllowAwait,
+    _marker: std::marker::PhantomData<&'arena ()>,
 }
 
-impl CoverInitializedName {
+impl CoverInitializedName<'_> {
     /// Creates a new `CoverInitializedName` parser.
     pub(in crate::parser) fn new<Y, A>(allow_yield: Y, allow_await: A) -> Self
     where
@@ -987,15 +1016,16 @@ impl CoverInitializedName {
         Self {
             allow_yield: allow_yield.into(),
             allow_await: allow_await.into(),
+            _marker: std::marker::PhantomData,
         }
     }
 }
 
-impl<R> TokenParser<R> for CoverInitializedName
+impl<'arena, R> TokenParser<'arena, R> for CoverInitializedName<'arena>
 where
     R: ReadChar,
 {
-    type Output = PropertyDefinitionNode;
+    type Output = PropertyDefinitionNode<'arena>;
 
     fn parse(self, cursor: &mut Cursor<R>, interner: &mut Interner) -> ParseResult<Self::Output> {
         let ident =

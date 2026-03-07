@@ -12,11 +12,11 @@ use core::{fmt::Write as _, ops::ControlFlow};
 #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
 #[cfg_attr(feature = "arbitrary", derive(arbitrary::Arbitrary))]
 #[derive(Clone, Debug, PartialEq)]
-pub enum OptionalOperationKind {
+pub enum OptionalOperationKind<'arena> {
     /// A property access (`a?.prop`).
     SimplePropertyAccess {
         /// The field accessed.
-        field: PropertyAccessField,
+        field: PropertyAccessField<'arena>,
     },
     /// A private property access (`a?.#prop`).
     PrivatePropertyAccess {
@@ -26,14 +26,14 @@ pub enum OptionalOperationKind {
     /// A function call (`a?.(arg)`).
     Call {
         /// The args passed to the function call.
-        args: Box<[Expression]>,
+        args: Box<[Expression<'arena>]>,
     },
 }
 
-impl VisitWith for OptionalOperationKind {
+impl<'arena> VisitWith<'arena> for OptionalOperationKind<'arena> {
     fn visit_with<'a, V>(&'a self, visitor: &mut V) -> ControlFlow<V::BreakTy>
     where
-        V: Visitor<'a>,
+        V: Visitor<'a, 'arena>,
     {
         match self {
             Self::SimplePropertyAccess { field } => visitor.visit_property_access_field(field),
@@ -49,7 +49,7 @@ impl VisitWith for OptionalOperationKind {
 
     fn visit_with_mut<'a, V>(&'a mut self, visitor: &mut V) -> ControlFlow<V::BreakTy>
     where
-        V: VisitorMut<'a>,
+        V: VisitorMut<'a, 'arena>,
     {
         match self {
             Self::SimplePropertyAccess { field } => visitor.visit_property_access_field_mut(field),
@@ -73,17 +73,17 @@ impl VisitWith for OptionalOperationKind {
 #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
 #[cfg_attr(feature = "arbitrary", derive(arbitrary::Arbitrary))]
 #[derive(Clone, Debug, PartialEq)]
-pub struct OptionalOperation {
-    kind: OptionalOperationKind,
+pub struct OptionalOperation<'arena> {
+    kind: OptionalOperationKind<'arena>,
     shorted: bool,
     span: Span,
 }
 
-impl OptionalOperation {
+impl<'arena> OptionalOperation<'arena> {
     /// Creates a new `OptionalOperation`.
     #[inline]
     #[must_use]
-    pub const fn new(kind: OptionalOperationKind, shorted: bool, span: Span) -> Self {
+    pub const fn new(kind: OptionalOperationKind<'arena>, shorted: bool, span: Span) -> Self {
         Self {
             kind,
             shorted,
@@ -93,7 +93,7 @@ impl OptionalOperation {
     /// Gets the kind of operation.
     #[inline]
     #[must_use]
-    pub const fn kind(&self) -> &OptionalOperationKind {
+    pub const fn kind(&self) -> &OptionalOperationKind<'arena> {
         &self.kind
     }
 
@@ -106,14 +106,14 @@ impl OptionalOperation {
     }
 }
 
-impl Spanned for OptionalOperation {
+impl Spanned for OptionalOperation<'_> {
     #[inline]
     fn span(&self) -> Span {
         self.span
     }
 }
 
-impl ToInternedString for OptionalOperation {
+impl ToInternedString for OptionalOperation<'_> {
     fn to_interned_string(&self, interner: &Interner) -> String {
         let mut buf = if self.shorted {
             String::from("?.")
@@ -151,17 +151,17 @@ impl ToInternedString for OptionalOperation {
     }
 }
 
-impl VisitWith for OptionalOperation {
+impl<'arena> VisitWith<'arena> for OptionalOperation<'arena> {
     fn visit_with<'a, V>(&'a self, visitor: &mut V) -> ControlFlow<V::BreakTy>
     where
-        V: Visitor<'a>,
+        V: Visitor<'a, 'arena>,
     {
         visitor.visit_optional_operation_kind(&self.kind)
     }
 
     fn visit_with_mut<'a, V>(&'a mut self, visitor: &mut V) -> ControlFlow<V::BreakTy>
     where
-        V: VisitorMut<'a>,
+        V: VisitorMut<'a, 'arena>,
     {
         visitor.visit_optional_operation_kind_mut(&mut self.kind)
     }
@@ -192,17 +192,21 @@ impl VisitWith for OptionalOperation {
 #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
 #[cfg_attr(feature = "arbitrary", derive(arbitrary::Arbitrary))]
 #[derive(Clone, Debug, PartialEq)]
-pub struct Optional {
-    target: Box<Expression>,
-    chain: Box<[OptionalOperation]>,
+pub struct Optional<'arena> {
+    target: Box<Expression<'arena>>,
+    chain: Box<[OptionalOperation<'arena>]>,
     span: Span,
 }
 
-impl Optional {
+impl<'arena> Optional<'arena> {
     /// Creates a new `Optional` expression.
     #[inline]
     #[must_use]
-    pub fn new(target: Expression, chain: Box<[OptionalOperation]>, span: Span) -> Self {
+    pub fn new(
+        target: Expression<'arena>,
+        chain: Box<[OptionalOperation<'arena>]>,
+        span: Span,
+    ) -> Self {
         Self {
             target: Box::new(target),
             chain,
@@ -213,32 +217,32 @@ impl Optional {
     /// Gets the target of this `Optional` expression.
     #[inline]
     #[must_use]
-    pub fn target(&self) -> &Expression {
+    pub fn target(&self) -> &Expression<'arena> {
         self.target.as_ref()
     }
 
     /// Gets the chain of accesses and calls that will be applied to the target at runtime.
     #[inline]
     #[must_use]
-    pub fn chain(&self) -> &[OptionalOperation] {
+    pub fn chain(&self) -> &[OptionalOperation<'arena>] {
         self.chain.as_ref()
     }
 }
 
-impl Spanned for Optional {
+impl Spanned for Optional<'_> {
     #[inline]
     fn span(&self) -> Span {
         self.span
     }
 }
 
-impl From<Optional> for Expression {
-    fn from(opt: Optional) -> Self {
+impl<'arena> From<Optional<'arena>> for Expression<'arena> {
+    fn from(opt: Optional<'arena>) -> Self {
         Self::Optional(opt)
     }
 }
 
-impl ToInternedString for Optional {
+impl ToInternedString for Optional<'_> {
     fn to_interned_string(&self, interner: &Interner) -> String {
         let mut buf = self.target.to_interned_string(interner);
 
@@ -250,10 +254,10 @@ impl ToInternedString for Optional {
     }
 }
 
-impl VisitWith for Optional {
+impl<'arena> VisitWith<'arena> for Optional<'arena> {
     fn visit_with<'a, V>(&'a self, visitor: &mut V) -> ControlFlow<V::BreakTy>
     where
-        V: Visitor<'a>,
+        V: Visitor<'a, 'arena>,
     {
         visitor.visit_expression(&self.target)?;
         for op in &*self.chain {
@@ -264,7 +268,7 @@ impl VisitWith for Optional {
 
     fn visit_with_mut<'a, V>(&'a mut self, visitor: &mut V) -> ControlFlow<V::BreakTy>
     where
-        V: VisitorMut<'a>,
+        V: VisitorMut<'a, 'arena>,
     {
         visitor.visit_expression_mut(&mut self.target)?;
         for op in &mut *self.chain {

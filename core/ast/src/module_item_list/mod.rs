@@ -30,15 +30,15 @@ use std::{convert::Infallible, hash::BuildHasherDefault, ops::ControlFlow};
 /// [spec]: https://tc39.es/ecma262/#prod-ModuleItemList
 #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
 #[derive(Clone, Debug, Default, PartialEq)]
-pub struct ModuleItemList {
-    items: Box<[ModuleItem]>,
+pub struct ModuleItemList<'arena> {
+    items: Box<[ModuleItem<'arena>]>,
 }
 
-impl ModuleItemList {
+impl<'arena> ModuleItemList<'arena> {
     /// Gets the list of module items.
     #[inline]
     #[must_use]
-    pub const fn items(&self) -> &[ModuleItem] {
+    pub const fn items(&self) -> &[ModuleItem<'arena>] {
         &self.items
     }
 
@@ -51,7 +51,7 @@ impl ModuleItemList {
         #[derive(Debug)]
         struct ExportedItemsVisitor<'vec>(&'vec mut Vec<Sym>);
 
-        impl<'ast> Visitor<'ast> for ExportedItemsVisitor<'_> {
+        impl<'ast, 'arena: 'ast> Visitor<'ast, 'arena> for ExportedItemsVisitor<'_> {
             type BreakTy = Infallible;
 
             fn visit_import_declaration(
@@ -62,7 +62,7 @@ impl ModuleItemList {
             }
             fn visit_statement_list_item(
                 &mut self,
-                _: &'ast StatementListItem,
+                _: &'ast StatementListItem<'arena>,
             ) -> ControlFlow<Self::BreakTy> {
                 ControlFlow::Continue(())
             }
@@ -75,7 +75,7 @@ impl ModuleItemList {
             }
             fn visit_export_declaration(
                 &mut self,
-                node: &'ast ExportDeclaration,
+                node: &'ast ExportDeclaration<'arena>,
             ) -> ControlFlow<Self::BreakTy> {
                 match node {
                     ExportDeclaration::ReExport { kind, .. } => {
@@ -131,7 +131,7 @@ impl ModuleItemList {
         #[derive(Debug)]
         struct ExportedBindingsVisitor<'vec>(&'vec mut FxHashSet<Sym>);
 
-        impl<'ast> Visitor<'ast> for ExportedBindingsVisitor<'_> {
+        impl<'ast, 'arena: 'ast> Visitor<'ast, 'arena> for ExportedBindingsVisitor<'_> {
             type BreakTy = Infallible;
 
             fn visit_import_declaration(
@@ -142,7 +142,7 @@ impl ModuleItemList {
             }
             fn visit_statement_list_item(
                 &mut self,
-                _: &'ast StatementListItem,
+                _: &'ast StatementListItem<'arena>,
             ) -> ControlFlow<Self::BreakTy> {
                 ControlFlow::Continue(())
             }
@@ -155,7 +155,7 @@ impl ModuleItemList {
             }
             fn visit_export_declaration(
                 &mut self,
-                node: &'ast ExportDeclaration,
+                node: &'ast ExportDeclaration<'arena>,
             ) -> ControlFlow<Self::BreakTy> {
                 let name = match node {
                     ExportDeclaration::ReExport { .. } => return ControlFlow::Continue(()),
@@ -205,12 +205,12 @@ impl ModuleItemList {
         #[derive(Debug)]
         struct RequestsVisitor<'vec>(&'vec mut IndexSet<Sym, BuildHasherDefault<FxHasher>>);
 
-        impl<'ast> Visitor<'ast> for RequestsVisitor<'_> {
+        impl<'ast, 'arena: 'ast> Visitor<'ast, 'arena> for RequestsVisitor<'_> {
             type BreakTy = Infallible;
 
             fn visit_statement_list_item(
                 &mut self,
-                _: &'ast StatementListItem,
+                _: &'ast StatementListItem<'arena>,
             ) -> ControlFlow<Self::BreakTy> {
                 ControlFlow::Continue(())
             }
@@ -241,10 +241,13 @@ impl ModuleItemList {
         #[derive(Debug)]
         struct ImportEntriesVisitor<'vec>(&'vec mut Vec<ImportEntry>);
 
-        impl<'ast> Visitor<'ast> for ImportEntriesVisitor<'_> {
+        impl<'ast, 'arena: 'ast> Visitor<'ast, 'arena> for ImportEntriesVisitor<'_> {
             type BreakTy = Infallible;
 
-            fn visit_module_item(&mut self, node: &'ast ModuleItem) -> ControlFlow<Self::BreakTy> {
+            fn visit_module_item(
+                &mut self,
+                node: &'ast ModuleItem<'arena>,
+            ) -> ControlFlow<Self::BreakTy> {
                 match node {
                     ModuleItem::ImportDeclaration(import) => self.visit_import_declaration(import),
                     ModuleItem::ExportDeclaration(_) | ModuleItem::StatementListItem(_) => {
@@ -313,10 +316,13 @@ impl ModuleItemList {
         #[derive(Debug)]
         struct ExportEntriesVisitor<'vec>(&'vec mut Vec<ExportEntry>);
 
-        impl<'ast> Visitor<'ast> for ExportEntriesVisitor<'_> {
+        impl<'ast, 'arena: 'ast> Visitor<'ast, 'arena> for ExportEntriesVisitor<'_> {
             type BreakTy = Infallible;
 
-            fn visit_module_item(&mut self, node: &'ast ModuleItem) -> ControlFlow<Self::BreakTy> {
+            fn visit_module_item(
+                &mut self,
+                node: &'ast ModuleItem<'arena>,
+            ) -> ControlFlow<Self::BreakTy> {
                 match node {
                     ModuleItem::ExportDeclaration(import) => self.visit_export_declaration(import),
                     ModuleItem::ImportDeclaration(_) | ModuleItem::StatementListItem(_) => {
@@ -327,7 +333,7 @@ impl ModuleItemList {
 
             fn visit_export_declaration(
                 &mut self,
-                node: &'ast ExportDeclaration,
+                node: &'ast ExportDeclaration<'arena>,
             ) -> ControlFlow<Self::BreakTy> {
                 let name = match node {
                     ExportDeclaration::ReExport {
@@ -417,9 +423,9 @@ impl ModuleItemList {
     }
 }
 
-impl<T> From<T> for ModuleItemList
+impl<'arena, T> From<T> for ModuleItemList<'arena>
 where
-    T: Into<Box<[ModuleItem]>>,
+    T: Into<Box<[ModuleItem<'arena>]>>,
 {
     #[inline]
     fn from(items: T) -> Self {
@@ -429,10 +435,10 @@ where
     }
 }
 
-impl VisitWith for ModuleItemList {
+impl<'arena> VisitWith<'arena> for ModuleItemList<'arena> {
     fn visit_with<'a, V>(&'a self, visitor: &mut V) -> ControlFlow<V::BreakTy>
     where
-        V: Visitor<'a>,
+        V: Visitor<'a, 'arena>,
     {
         for item in &*self.items {
             visitor.visit_module_item(item)?;
@@ -443,7 +449,7 @@ impl VisitWith for ModuleItemList {
 
     fn visit_with_mut<'a, V>(&'a mut self, visitor: &mut V) -> ControlFlow<V::BreakTy>
     where
-        V: VisitorMut<'a>,
+        V: VisitorMut<'a, 'arena>,
     {
         for item in &mut *self.items {
             visitor.visit_module_item_mut(item)?;
@@ -465,19 +471,19 @@ impl VisitWith for ModuleItemList {
 /// [spec]: https://tc39.es/ecma262/#prod-ModuleItem
 #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
 #[derive(Clone, Debug, PartialEq)]
-pub enum ModuleItem {
+pub enum ModuleItem<'arena> {
     /// See [`ImportDeclaration`].
     ImportDeclaration(ImportDeclaration),
     /// See [`ExportDeclaration`].
-    ExportDeclaration(Box<ExportDeclaration>),
+    ExportDeclaration(Box<ExportDeclaration<'arena>>),
     /// See [`StatementListItem`].
-    StatementListItem(StatementListItem),
+    StatementListItem(StatementListItem<'arena>),
 }
 
-impl VisitWith for ModuleItem {
+impl<'arena> VisitWith<'arena> for ModuleItem<'arena> {
     fn visit_with<'a, V>(&'a self, visitor: &mut V) -> ControlFlow<V::BreakTy>
     where
-        V: Visitor<'a>,
+        V: Visitor<'a, 'arena>,
     {
         match self {
             Self::ImportDeclaration(i) => visitor.visit_import_declaration(i),
@@ -488,7 +494,7 @@ impl VisitWith for ModuleItem {
 
     fn visit_with_mut<'a, V>(&'a mut self, visitor: &mut V) -> ControlFlow<V::BreakTy>
     where
-        V: VisitorMut<'a>,
+        V: VisitorMut<'a, 'arena>,
     {
         match self {
             Self::ImportDeclaration(i) => visitor.visit_import_declaration_mut(i),

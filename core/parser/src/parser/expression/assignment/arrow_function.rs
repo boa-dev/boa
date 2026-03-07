@@ -38,13 +38,14 @@ use boa_interner::Interner;
 /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Functions/Arrow_functions
 /// [spec]: https://tc39.es/ecma262/#prod-ArrowFunction
 #[derive(Debug, Clone, Copy)]
-pub(in crate::parser) struct ArrowFunction {
+pub(in crate::parser) struct ArrowFunction<'arena> {
     allow_in: AllowIn,
     allow_yield: AllowYield,
     allow_await: AllowAwait,
+    _marker: std::marker::PhantomData<&'arena ()>,
 }
 
-impl ArrowFunction {
+impl ArrowFunction<'_> {
     /// Creates a new `ArrowFunction` parser.
     pub(in crate::parser) fn new<I, Y, A>(allow_in: I, allow_yield: Y, allow_await: A) -> Self
     where
@@ -56,15 +57,16 @@ impl ArrowFunction {
             allow_in: allow_in.into(),
             allow_yield: allow_yield.into(),
             allow_await: allow_await.into(),
+            _marker: std::marker::PhantomData,
         }
     }
 }
 
-impl<R> TokenParser<R> for ArrowFunction
+impl<'arena, R> TokenParser<'arena, R> for ArrowFunction<'arena>
 where
     R: ReadChar,
 {
-    type Output = ast::function::ArrowFunction;
+    type Output = ast::function::ArrowFunction<'arena>;
 
     fn parse(self, cursor: &mut Cursor<R>, interner: &mut Interner) -> ParseResult<Self::Output> {
         let next_token = cursor.peek(0, interner).or_abrupt()?;
@@ -167,11 +169,12 @@ where
 
 /// <https://tc39.es/ecma262/#prod-ConciseBody>
 #[derive(Debug, Clone, Copy)]
-pub(in crate::parser) struct ConciseBody {
+pub(in crate::parser) struct ConciseBody<'arena> {
     allow_in: AllowIn,
+    _marker: std::marker::PhantomData<&'arena ()>,
 }
 
-impl ConciseBody {
+impl ConciseBody<'_> {
     /// Creates a new `ConciseBody` parser.
     pub(in crate::parser) fn new<I>(allow_in: I) -> Self
     where
@@ -179,15 +182,16 @@ impl ConciseBody {
     {
         Self {
             allow_in: allow_in.into(),
+            _marker: std::marker::PhantomData,
         }
     }
 }
 
-impl<R> TokenParser<R> for ConciseBody
+impl<'arena, R> TokenParser<'arena, R> for ConciseBody<'arena>
 where
     R: ReadChar,
 {
-    type Output = ast::function::FunctionBody;
+    type Output = ast::function::FunctionBody<'arena>;
 
     fn parse(self, cursor: &mut Cursor<R>, interner: &mut Interner) -> ParseResult<Self::Output> {
         let stmts = if let TokenKind::Punctuator(Punctuator::OpenBlock) =
@@ -213,12 +217,13 @@ where
 
 /// <https://tc39.es/ecma262/#prod-ExpressionBody>
 #[derive(Debug, Clone, Copy)]
-pub(super) struct ExpressionBody {
+pub(super) struct ExpressionBody<'arena> {
     allow_in: AllowIn,
     allow_await: AllowAwait,
+    _marker: std::marker::PhantomData<&'arena ()>,
 }
 
-impl ExpressionBody {
+impl ExpressionBody<'_> {
     /// Creates a new `ExpressionBody` parser.
     pub(super) fn new<I, A>(allow_in: I, allow_await: A) -> Self
     where
@@ -228,15 +233,16 @@ impl ExpressionBody {
         Self {
             allow_in: allow_in.into(),
             allow_await: allow_await.into(),
+            _marker: std::marker::PhantomData,
         }
     }
 }
 
-impl<R> TokenParser<R> for ExpressionBody
+impl<'arena, R> TokenParser<'arena, R> for ExpressionBody<'arena>
 where
     R: ReadChar,
 {
-    type Output = Expression;
+    type Output = Expression<'arena>;
 
     fn parse(self, cursor: &mut Cursor<R>, interner: &mut Interner) -> ParseResult<Self::Output> {
         AssignmentExpression::new(self.allow_in, false, self.allow_await).parse(cursor, interner)

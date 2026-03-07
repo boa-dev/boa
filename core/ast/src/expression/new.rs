@@ -24,71 +24,71 @@ use super::Expression;
 #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
 #[cfg_attr(feature = "arbitrary", derive(arbitrary::Arbitrary))]
 #[derive(Clone, Debug, PartialEq)]
-pub struct New {
-    call: Call,
+pub struct New<'arena> {
+    call: Call<'arena>,
 }
 
-impl New {
+impl<'arena> New<'arena> {
     /// Gets the constructor of the new expression.
     #[inline]
     #[must_use]
-    pub const fn constructor(&self) -> &Expression {
+    pub const fn constructor(&self) -> &Expression<'arena> {
         self.call.function()
     }
 
     /// Retrieves the arguments passed to the constructor.
     #[inline]
     #[must_use]
-    pub const fn arguments(&self) -> &[Expression] {
+    pub const fn arguments(&self) -> &[Expression<'arena>] {
         self.call.args()
     }
 
     /// Returns the inner call expression.
     #[must_use]
-    pub const fn call(&self) -> &Call {
+    pub const fn call(&self) -> &Call<'arena> {
         &self.call
     }
 }
 
-impl From<Call> for New {
+impl<'arena> From<Call<'arena>> for New<'arena> {
     #[inline]
-    fn from(call: Call) -> Self {
+    fn from(call: Call<'arena>) -> Self {
         Self { call }
     }
 }
 
-impl Spanned for New {
+impl Spanned for New<'_> {
     #[inline]
     fn span(&self) -> Span {
         self.call.span()
     }
 }
 
-impl ToInternedString for New {
+impl ToInternedString for New<'_> {
     #[inline]
     fn to_interned_string(&self, interner: &Interner) -> String {
         format!("new {}", self.call.to_interned_string(interner))
     }
 }
 
-impl From<New> for Expression {
+impl<'arena> From<New<'arena>> for Expression<'arena> {
     #[inline]
-    fn from(new: New) -> Self {
+    fn from(new: New<'arena>) -> Self {
         Self::New(new)
     }
 }
 
-impl VisitWith for New {
+impl<'arena> VisitWith<'arena> for New<'arena> {
     fn visit_with<'a, V>(&'a self, visitor: &mut V) -> ControlFlow<V::BreakTy>
     where
-        V: Visitor<'a>,
+        V: Visitor<'a, 'arena>,
     {
         visitor.visit_call(&self.call)
     }
 
     fn visit_with_mut<'a, V>(&'a mut self, visitor: &mut V) -> ControlFlow<V::BreakTy>
     where
-        V: VisitorMut<'a>,
+        V: VisitorMut<'a, 'arena>,
     {
         visitor.visit_call_mut(&mut self.call)
     }

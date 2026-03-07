@@ -59,13 +59,14 @@ pub(super) use exponentiation::ExponentiationExpression;
 /// [spec]: https://tc39.es/ecma262/#prod-AssignmentExpression
 /// [lhs]: ../lhs_expression/struct.LeftHandSideExpression.html
 #[derive(Debug, Clone, Copy)]
-pub(in crate::parser) struct AssignmentExpression {
+pub(in crate::parser) struct AssignmentExpression<'arena> {
     allow_in: AllowIn,
     allow_yield: AllowYield,
     allow_await: AllowAwait,
+    _marker: std::marker::PhantomData<&'arena ()>,
 }
 
-impl AssignmentExpression {
+impl AssignmentExpression<'_> {
     /// Creates a new `AssignmentExpression` parser.
     pub(in crate::parser) fn new<I, Y, A>(allow_in: I, allow_yield: Y, allow_await: A) -> Self
     where
@@ -77,17 +78,22 @@ impl AssignmentExpression {
             allow_in: allow_in.into(),
             allow_yield: allow_yield.into(),
             allow_await: allow_await.into(),
+            _marker: std::marker::PhantomData,
         }
     }
 }
 
-impl<R> TokenParser<R> for AssignmentExpression
+impl<'arena, R> TokenParser<'arena, R> for AssignmentExpression<'arena>
 where
     R: ReadChar,
 {
-    type Output = Expression;
+    type Output = Expression<'arena>;
 
-    fn parse(self, cursor: &mut Cursor<R>, interner: &mut Interner) -> ParseResult<Expression> {
+    fn parse(
+        self,
+        cursor: &mut Cursor<R>,
+        interner: &mut Interner,
+    ) -> ParseResult<Expression<'arena>> {
         cursor.set_goal(InputElement::RegExp);
 
         match cursor.peek(0, interner).or_abrupt()?.kind() {

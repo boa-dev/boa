@@ -71,11 +71,11 @@ pub(in crate::parser) use {
 /// The fifth parameter is an `Option<InputElement>` which sets the goal symbol to set before parsing (or None to leave it as is).
 macro_rules! expression {
     ($name:ident, $lower:ident, [$( $op:path ),*], [$( $low_param:ident ),*], $goal:expr ) => {
-        impl<R> TokenParser<R> for $name
+        impl<'arena, R> TokenParser<'arena, R> for $name<'arena>
         where
             R: ReadChar
         {
-            type Output = FormalParameterListOrExpression;
+            type Output = FormalParameterListOrExpression<'arena>;
 
             fn parse(self, cursor: &mut Cursor<R>, interner: &mut Interner)-> ParseResult<Self::Output> {
 
@@ -117,13 +117,14 @@ macro_rules! expression {
 /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Operators
 /// [spec]: https://tc39.es/ecma262/#prod-Expression
 #[derive(Debug, Clone, Copy)]
-pub(super) struct Expression {
+pub(super) struct Expression<'arena> {
     allow_in: AllowIn,
     allow_yield: AllowYield,
     allow_await: AllowAwait,
+    _marker: std::marker::PhantomData<&'arena ()>,
 }
 
-impl Expression {
+impl Expression<'_> {
     /// Creates a new `Expression` parser.
     pub(super) fn new<I, Y, A>(allow_in: I, allow_yield: Y, allow_await: A) -> Self
     where
@@ -135,15 +136,16 @@ impl Expression {
             allow_in: allow_in.into(),
             allow_yield: allow_yield.into(),
             allow_await: allow_await.into(),
+            _marker: std::marker::PhantomData,
         }
     }
 }
 
-impl<R> TokenParser<R> for Expression
+impl<'arena, R> TokenParser<'arena, R> for Expression<'arena>
 where
     R: ReadChar,
 {
-    type Output = ast::Expression;
+    type Output = ast::Expression<'arena>;
 
     fn parse(self, cursor: &mut Cursor<R>, interner: &mut Interner) -> ParseResult<Self::Output> {
         let mut lhs = AssignmentExpression::new(self.allow_in, self.allow_yield, self.allow_await)
@@ -196,11 +198,12 @@ where
 /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Operators/Logical_Operators
 /// [spec]: https://tc39.es/ecma262/#prod-ShortCircuitExpression
 #[derive(Debug, Clone, Copy)]
-struct ShortCircuitExpression {
+struct ShortCircuitExpression<'arena> {
     allow_in: AllowIn,
     allow_yield: AllowYield,
     allow_await: AllowAwait,
     previous: PreviousExpr,
+    _marker: std::marker::PhantomData<&'arena ()>,
 }
 
 #[derive(Debug, Clone, Copy, PartialEq)]
@@ -210,7 +213,7 @@ enum PreviousExpr {
     Coalesce,
 }
 
-impl ShortCircuitExpression {
+impl ShortCircuitExpression<'_> {
     /// Creates a new `ShortCircuitExpression` parser.
     pub(super) fn new<I, Y, A>(allow_in: I, allow_yield: Y, allow_await: A) -> Self
     where
@@ -223,6 +226,7 @@ impl ShortCircuitExpression {
             allow_yield: allow_yield.into(),
             allow_await: allow_await.into(),
             previous: PreviousExpr::None,
+            _marker: std::marker::PhantomData,
         }
     }
 
@@ -242,15 +246,16 @@ impl ShortCircuitExpression {
             allow_yield: allow_yield.into(),
             allow_await: allow_await.into(),
             previous,
+            _marker: std::marker::PhantomData,
         }
     }
 }
 
-impl<R> TokenParser<R> for ShortCircuitExpression
+impl<'arena, R> TokenParser<'arena, R> for ShortCircuitExpression<'arena>
 where
     R: ReadChar,
 {
-    type Output = FormalParameterListOrExpression;
+    type Output = FormalParameterListOrExpression<'arena>;
 
     fn parse(self, cursor: &mut Cursor<R>, interner: &mut Interner) -> ParseResult<Self::Output> {
         let current_node =
@@ -340,13 +345,14 @@ where
 /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Operators/Bitwise_Operators#Bitwise_OR
 /// [spec]: https://tc39.es/ecma262/#prod-BitwiseORExpression
 #[derive(Debug, Clone, Copy)]
-struct BitwiseORExpression {
+struct BitwiseORExpression<'arena> {
     allow_in: AllowIn,
     allow_yield: AllowYield,
     allow_await: AllowAwait,
+    _marker: std::marker::PhantomData<&'arena ()>,
 }
 
-impl BitwiseORExpression {
+impl BitwiseORExpression<'_> {
     /// Creates a new `BitwiseORExpression` parser.
     pub(super) fn new<I, Y, A>(allow_in: I, allow_yield: Y, allow_await: A) -> Self
     where
@@ -358,6 +364,7 @@ impl BitwiseORExpression {
             allow_in: allow_in.into(),
             allow_yield: allow_yield.into(),
             allow_await: allow_await.into(),
+            _marker: std::marker::PhantomData,
         }
     }
 }
@@ -379,13 +386,14 @@ expression!(
 /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Operators/Bitwise_Operators#Bitwise_XOR
 /// [spec]: https://tc39.es/ecma262/#prod-BitwiseXORExpression
 #[derive(Debug, Clone, Copy)]
-struct BitwiseXORExpression {
+struct BitwiseXORExpression<'arena> {
     allow_in: AllowIn,
     allow_yield: AllowYield,
     allow_await: AllowAwait,
+    _marker: std::marker::PhantomData<&'arena ()>,
 }
 
-impl BitwiseXORExpression {
+impl BitwiseXORExpression<'_> {
     /// Creates a new `BitwiseXORExpression` parser.
     pub(super) fn new<I, Y, A>(allow_in: I, allow_yield: Y, allow_await: A) -> Self
     where
@@ -397,6 +405,7 @@ impl BitwiseXORExpression {
             allow_in: allow_in.into(),
             allow_yield: allow_yield.into(),
             allow_await: allow_await.into(),
+            _marker: std::marker::PhantomData,
         }
     }
 }
@@ -418,13 +427,14 @@ expression!(
 /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Operators/Bitwise_Operators#Bitwise_AND
 /// [spec]: https://tc39.es/ecma262/#prod-BitwiseANDExpression
 #[derive(Debug, Clone, Copy)]
-struct BitwiseANDExpression {
+struct BitwiseANDExpression<'arena> {
     allow_in: AllowIn,
     allow_yield: AllowYield,
     allow_await: AllowAwait,
+    _marker: std::marker::PhantomData<&'arena ()>,
 }
 
-impl BitwiseANDExpression {
+impl BitwiseANDExpression<'_> {
     /// Creates a new `BitwiseANDExpression` parser.
     pub(super) fn new<I, Y, A>(allow_in: I, allow_yield: Y, allow_await: A) -> Self
     where
@@ -436,6 +446,7 @@ impl BitwiseANDExpression {
             allow_in: allow_in.into(),
             allow_yield: allow_yield.into(),
             allow_await: allow_await.into(),
+            _marker: std::marker::PhantomData,
         }
     }
 }
@@ -457,13 +468,14 @@ expression!(
 /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Operators/Comparison_Operators#Equality_operators
 /// [spec]: https://tc39.es/ecma262/#sec-equality-operators
 #[derive(Debug, Clone, Copy)]
-struct EqualityExpression {
+struct EqualityExpression<'arena> {
     allow_in: AllowIn,
     allow_yield: AllowYield,
     allow_await: AllowAwait,
+    _marker: std::marker::PhantomData<&'arena ()>,
 }
 
-impl EqualityExpression {
+impl EqualityExpression<'_> {
     /// Creates a new `EqualityExpression` parser.
     pub(super) fn new<I, Y, A>(allow_in: I, allow_yield: Y, allow_await: A) -> Self
     where
@@ -475,6 +487,7 @@ impl EqualityExpression {
             allow_in: allow_in.into(),
             allow_yield: allow_yield.into(),
             allow_await: allow_await.into(),
+            _marker: std::marker::PhantomData,
         }
     }
 }
@@ -501,13 +514,14 @@ expression!(
 /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Operators/Comparison_Operators#Relational_operators
 /// [spec]: https://tc39.es/ecma262/#sec-relational-operators
 #[derive(Debug, Clone, Copy)]
-struct RelationalExpression {
+struct RelationalExpression<'arena> {
     allow_in: AllowIn,
     allow_yield: AllowYield,
     allow_await: AllowAwait,
+    _marker: std::marker::PhantomData<&'arena ()>,
 }
 
-impl RelationalExpression {
+impl RelationalExpression<'_> {
     /// Creates a new `RelationalExpression` parser.
     pub(super) fn new<I, Y, A>(allow_in: I, allow_yield: Y, allow_await: A) -> Self
     where
@@ -519,15 +533,16 @@ impl RelationalExpression {
             allow_in: allow_in.into(),
             allow_yield: allow_yield.into(),
             allow_await: allow_await.into(),
+            _marker: std::marker::PhantomData,
         }
     }
 }
 
-impl<R> TokenParser<R> for RelationalExpression
+impl<'arena, R> TokenParser<'arena, R> for RelationalExpression<'arena>
 where
     R: ReadChar,
 {
-    type Output = FormalParameterListOrExpression;
+    type Output = FormalParameterListOrExpression<'arena>;
 
     fn parse(self, cursor: &mut Cursor<R>, interner: &mut Interner) -> ParseResult<Self::Output> {
         if self.allow_in.0 {
@@ -623,12 +638,13 @@ where
 /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Operators/Bitwise_Operators#Bitwise_shift_operators
 /// [spec]: https://tc39.es/ecma262/#sec-bitwise-shift-operators
 #[derive(Debug, Clone, Copy)]
-struct ShiftExpression {
+struct ShiftExpression<'arena> {
     allow_yield: AllowYield,
     allow_await: AllowAwait,
+    _marker: std::marker::PhantomData<&'arena ()>,
 }
 
-impl ShiftExpression {
+impl ShiftExpression<'_> {
     /// Creates a new `ShiftExpression` parser.
     pub(super) fn new<Y, A>(allow_yield: Y, allow_await: A) -> Self
     where
@@ -638,6 +654,7 @@ impl ShiftExpression {
         Self {
             allow_yield: allow_yield.into(),
             allow_await: allow_await.into(),
+            _marker: std::marker::PhantomData,
         }
     }
 }
@@ -665,12 +682,13 @@ expression!(
 /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Operators/Arithmetic_Operators
 /// [spec]: https://tc39.es/ecma262/#sec-additive-operators
 #[derive(Debug, Clone, Copy)]
-struct AdditiveExpression {
+struct AdditiveExpression<'arena> {
     allow_yield: AllowYield,
     allow_await: AllowAwait,
+    _marker: std::marker::PhantomData<&'arena ()>,
 }
 
-impl AdditiveExpression {
+impl AdditiveExpression<'_> {
     /// Creates a new `AdditiveExpression` parser.
     pub(super) fn new<Y, A>(allow_yield: Y, allow_await: A) -> Self
     where
@@ -680,6 +698,7 @@ impl AdditiveExpression {
         Self {
             allow_yield: allow_yield.into(),
             allow_await: allow_await.into(),
+            _marker: std::marker::PhantomData,
         }
     }
 }
@@ -703,12 +722,13 @@ expression!(
 /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Operators/Arithmetic_Operators#Division
 /// [spec]: https://tc39.es/ecma262/#sec-multiplicative-operators
 #[derive(Debug, Clone, Copy)]
-struct MultiplicativeExpression {
+struct MultiplicativeExpression<'arena> {
     allow_yield: AllowYield,
     allow_await: AllowAwait,
+    _marker: std::marker::PhantomData<&'arena ()>,
 }
 
-impl MultiplicativeExpression {
+impl MultiplicativeExpression<'_> {
     /// Creates a new `MultiplicativeExpression` parser.
     pub(super) fn new<Y, A>(allow_yield: Y, allow_await: A) -> Self
     where
@@ -718,6 +738,7 @@ impl MultiplicativeExpression {
         Self {
             allow_yield: allow_yield.into(),
             allow_await: allow_await.into(),
+            _marker: std::marker::PhantomData,
         }
     }
 }

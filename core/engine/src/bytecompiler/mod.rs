@@ -127,13 +127,13 @@ impl FunctionKind {
 
 /// Describes the complete specification of a function node.
 #[derive(Debug, Clone, Copy)]
-pub(crate) struct FunctionSpec<'a> {
+pub(crate) struct FunctionSpec<'arena> {
     pub(crate) kind: FunctionKind,
     pub(crate) name: Option<Identifier>,
-    parameters: &'a FormalParameterList,
-    body: &'a FunctionBody,
-    pub(crate) scopes: &'a FunctionScopes,
-    pub(crate) name_scope: Option<&'a Scope>,
+    parameters: &'arena FormalParameterList<'arena>,
+    body: &'arena FunctionBody<'arena>,
+    pub(crate) scopes: &'arena FunctionScopes,
+    pub(crate) name_scope: Option<&'arena Scope>,
     linear_span: Option<LinearSpan>,
     pub(crate) contains_direct_eval: bool,
 }
@@ -143,15 +143,15 @@ impl PartialEq for FunctionSpec<'_> {
         // all fields except `linear_span`
         self.kind == other.kind
             && self.name == other.name
-            && self.parameters == other.parameters
-            && self.body == other.body
+            && std::ptr::eq(self.parameters, other.parameters)
+            && std::ptr::eq(self.body, other.body)
             && self.scopes == other.scopes
             && self.name_scope == other.name_scope
     }
 }
 
-impl<'a> From<&'a FunctionDeclaration> for FunctionSpec<'a> {
-    fn from(function: &'a FunctionDeclaration) -> Self {
+impl<'arena> From<&'arena FunctionDeclaration<'arena>> for FunctionSpec<'arena> {
+    fn from(function: &'arena FunctionDeclaration<'arena>) -> Self {
         FunctionSpec {
             kind: FunctionKind::Ordinary,
             name: Some(function.name()),
@@ -165,8 +165,8 @@ impl<'a> From<&'a FunctionDeclaration> for FunctionSpec<'a> {
     }
 }
 
-impl<'a> From<&'a GeneratorDeclaration> for FunctionSpec<'a> {
-    fn from(function: &'a GeneratorDeclaration) -> Self {
+impl<'arena> From<&'arena GeneratorDeclaration<'arena>> for FunctionSpec<'arena> {
+    fn from(function: &'arena GeneratorDeclaration<'arena>) -> Self {
         FunctionSpec {
             kind: FunctionKind::Generator,
             name: Some(function.name()),
@@ -180,8 +180,8 @@ impl<'a> From<&'a GeneratorDeclaration> for FunctionSpec<'a> {
     }
 }
 
-impl<'a> From<&'a AsyncFunctionDeclaration> for FunctionSpec<'a> {
-    fn from(function: &'a AsyncFunctionDeclaration) -> Self {
+impl<'arena> From<&'arena AsyncFunctionDeclaration<'arena>> for FunctionSpec<'arena> {
+    fn from(function: &'arena AsyncFunctionDeclaration<'arena>) -> Self {
         FunctionSpec {
             kind: FunctionKind::Async,
             name: Some(function.name()),
@@ -195,8 +195,8 @@ impl<'a> From<&'a AsyncFunctionDeclaration> for FunctionSpec<'a> {
     }
 }
 
-impl<'a> From<&'a AsyncGeneratorDeclaration> for FunctionSpec<'a> {
-    fn from(function: &'a AsyncGeneratorDeclaration) -> Self {
+impl<'arena> From<&'arena AsyncGeneratorDeclaration<'arena>> for FunctionSpec<'arena> {
+    fn from(function: &'arena AsyncGeneratorDeclaration<'arena>) -> Self {
         FunctionSpec {
             kind: FunctionKind::AsyncGenerator,
             name: Some(function.name()),
@@ -210,8 +210,8 @@ impl<'a> From<&'a AsyncGeneratorDeclaration> for FunctionSpec<'a> {
     }
 }
 
-impl<'a> From<&'a FunctionExpression> for FunctionSpec<'a> {
-    fn from(function: &'a FunctionExpression) -> Self {
+impl<'arena> From<&'arena FunctionExpression<'arena>> for FunctionSpec<'arena> {
+    fn from(function: &'arena FunctionExpression<'arena>) -> Self {
         FunctionSpec {
             kind: FunctionKind::Ordinary,
             name: function.name(),
@@ -225,8 +225,8 @@ impl<'a> From<&'a FunctionExpression> for FunctionSpec<'a> {
     }
 }
 
-impl<'a> From<&'a ArrowFunction> for FunctionSpec<'a> {
-    fn from(function: &'a ArrowFunction) -> Self {
+impl<'arena> From<&'arena ArrowFunction<'arena>> for FunctionSpec<'arena> {
+    fn from(function: &'arena ArrowFunction<'arena>) -> Self {
         FunctionSpec {
             kind: FunctionKind::Arrow,
             name: function.name(),
@@ -240,8 +240,8 @@ impl<'a> From<&'a ArrowFunction> for FunctionSpec<'a> {
     }
 }
 
-impl<'a> From<&'a AsyncArrowFunction> for FunctionSpec<'a> {
-    fn from(function: &'a AsyncArrowFunction) -> Self {
+impl<'arena> From<&'arena AsyncArrowFunction<'arena>> for FunctionSpec<'arena> {
+    fn from(function: &'arena AsyncArrowFunction<'arena>) -> Self {
         FunctionSpec {
             kind: FunctionKind::AsyncArrow,
             name: function.name(),
@@ -255,8 +255,8 @@ impl<'a> From<&'a AsyncArrowFunction> for FunctionSpec<'a> {
     }
 }
 
-impl<'a> From<&'a AsyncFunctionExpression> for FunctionSpec<'a> {
-    fn from(function: &'a AsyncFunctionExpression) -> Self {
+impl<'arena> From<&'arena AsyncFunctionExpression<'arena>> for FunctionSpec<'arena> {
+    fn from(function: &'arena AsyncFunctionExpression<'arena>) -> Self {
         FunctionSpec {
             kind: FunctionKind::Async,
             name: function.name(),
@@ -270,8 +270,8 @@ impl<'a> From<&'a AsyncFunctionExpression> for FunctionSpec<'a> {
     }
 }
 
-impl<'a> From<&'a GeneratorExpression> for FunctionSpec<'a> {
-    fn from(function: &'a GeneratorExpression) -> Self {
+impl<'arena> From<&'arena GeneratorExpression<'arena>> for FunctionSpec<'arena> {
+    fn from(function: &'arena GeneratorExpression<'arena>) -> Self {
         FunctionSpec {
             kind: FunctionKind::Generator,
             name: function.name(),
@@ -285,8 +285,8 @@ impl<'a> From<&'a GeneratorExpression> for FunctionSpec<'a> {
     }
 }
 
-impl<'a> From<&'a AsyncGeneratorExpression> for FunctionSpec<'a> {
-    fn from(function: &'a AsyncGeneratorExpression) -> Self {
+impl<'arena> From<&'arena AsyncGeneratorExpression<'arena>> for FunctionSpec<'arena> {
+    fn from(function: &'arena AsyncGeneratorExpression<'arena>) -> Self {
         FunctionSpec {
             kind: FunctionKind::AsyncGenerator,
             name: function.name(),
@@ -300,8 +300,8 @@ impl<'a> From<&'a AsyncGeneratorExpression> for FunctionSpec<'a> {
     }
 }
 
-impl<'a> From<&'a ClassMethodDefinition> for FunctionSpec<'a> {
-    fn from(method: &'a ClassMethodDefinition) -> Self {
+impl<'arena> From<&'arena ClassMethodDefinition<'arena>> for FunctionSpec<'arena> {
+    fn from(method: &'arena ClassMethodDefinition<'arena>) -> Self {
         let kind = match method.kind() {
             MethodDefinitionKind::Generator => FunctionKind::Generator,
             MethodDefinitionKind::AsyncGenerator => FunctionKind::AsyncGenerator,
@@ -322,8 +322,8 @@ impl<'a> From<&'a ClassMethodDefinition> for FunctionSpec<'a> {
     }
 }
 
-impl<'a> From<&'a ObjectMethodDefinition> for FunctionSpec<'a> {
-    fn from(method: &'a ObjectMethodDefinition) -> Self {
+impl<'arena> From<&'arena ObjectMethodDefinition<'arena>> for FunctionSpec<'arena> {
+    fn from(method: &'arena ObjectMethodDefinition<'arena>) -> Self {
         let kind = match method.kind() {
             MethodDefinitionKind::Generator => FunctionKind::Generator,
             MethodDefinitionKind::AsyncGenerator => FunctionKind::AsyncGenerator,
@@ -353,9 +353,9 @@ pub(crate) enum MethodKind {
 
 /// Represents a callable expression, like `f()` or `new Cl()`
 #[derive(Debug, Clone, Copy)]
-enum Callable<'a> {
-    Call(&'a Call),
-    New(&'a New),
+enum Callable<'arena> {
+    Call(&'arena Call<'arena>),
+    New(&'arena New<'arena>),
 }
 
 #[derive(Debug, Clone, PartialEq, Eq, Hash)]
@@ -372,14 +372,20 @@ pub(crate) struct Label {
 
 #[derive(Debug, Clone, Copy)]
 #[allow(variant_size_differences)]
-enum Access<'a> {
-    Variable { name: Identifier },
-    Property { access: &'a PropertyAccess },
+enum Access<'arena> {
+    Variable {
+        name: Identifier,
+    },
+    Property {
+        access: &'arena PropertyAccess<'arena>,
+    },
     This,
 }
 
-impl Access<'_> {
-    const fn from_assign_target(target: &AssignTarget) -> Result<Access<'_>, &Pattern> {
+impl<'arena> Access<'arena> {
+    const fn from_assign_target(
+        target: &'arena AssignTarget<'arena>,
+    ) -> Result<Access<'arena>, &'arena Pattern<'arena>> {
         match target {
             AssignTarget::Identifier(ident) => Ok(Access::Variable { name: *ident }),
             AssignTarget::Access(access) => Ok(Access::Property { access }),
@@ -387,7 +393,7 @@ impl Access<'_> {
         }
     }
 
-    const fn from_expression(expr: &Expression) -> Option<Access<'_>> {
+    const fn from_expression(expr: &'arena Expression<'arena>) -> Option<Access<'arena>> {
         match expr {
             Expression::Identifier(name) => Some(Access::Variable { name: *name }),
             Expression::PropertyAccess(access) => Some(Access::Property { access }),
@@ -397,7 +403,7 @@ impl Access<'_> {
         }
     }
 
-    const fn from_update_target(target: &UpdateTarget) -> Access<'_> {
+    const fn from_update_target(target: &'arena UpdateTarget<'arena>) -> Access<'arena> {
         match target {
             UpdateTarget::Identifier(name) => Access::Variable { name: *name },
             UpdateTarget::PropertyAccess(access) => Access::Property { access },
@@ -420,38 +426,38 @@ pub(crate) enum BindingAccessOpcode {
 }
 
 /// Manages the source position scope, push on creation, pop on drop.
-pub(crate) struct SourcePositionGuard<'a, 'b> {
-    compiler: &'a mut ByteCompiler<'b>,
+pub(crate) struct SourcePositionGuard<'a, 'arena, 'b> {
+    compiler: &'a mut ByteCompiler<'arena, 'b>,
 }
-impl<'a, 'b> SourcePositionGuard<'a, 'b> {
-    fn new(compiler: &'a mut ByteCompiler<'b>, position: Position) -> Self {
+impl<'a, 'arena, 'b> SourcePositionGuard<'a, 'arena, 'b> {
+    fn new(compiler: &'a mut ByteCompiler<'arena, 'b>, position: Position) -> Self {
         compiler.push_source_position(position);
         Self { compiler }
     }
 }
-impl Drop for SourcePositionGuard<'_, '_> {
+impl Drop for SourcePositionGuard<'_, '_, '_> {
     fn drop(&mut self) {
         self.pop_source_position();
     }
 }
-impl<'a> Deref for SourcePositionGuard<'_, 'a> {
-    type Target = ByteCompiler<'a>;
+impl<'arena, 'a> Deref for SourcePositionGuard<'_, 'arena, 'a> {
+    type Target = ByteCompiler<'arena, 'a>;
     fn deref(&self) -> &Self::Target {
         self.compiler
     }
 }
-impl DerefMut for SourcePositionGuard<'_, '_> {
+impl DerefMut for SourcePositionGuard<'_, '_, '_> {
     fn deref_mut(&mut self) -> &mut Self::Target {
         self.compiler
     }
 }
-impl<'a> Borrow<ByteCompiler<'a>> for SourcePositionGuard<'_, 'a> {
-    fn borrow(&self) -> &ByteCompiler<'a> {
+impl<'arena, 'a> Borrow<ByteCompiler<'arena, 'a>> for SourcePositionGuard<'_, 'arena, 'a> {
+    fn borrow(&self) -> &ByteCompiler<'arena, 'a> {
         self.compiler
     }
 }
-impl<'a> BorrowMut<ByteCompiler<'a>> for SourcePositionGuard<'_, 'a> {
-    fn borrow_mut(&mut self) -> &mut ByteCompiler<'a> {
+impl<'arena, 'a> BorrowMut<ByteCompiler<'arena, 'a>> for SourcePositionGuard<'_, 'arena, 'a> {
+    fn borrow_mut(&mut self) -> &mut ByteCompiler<'arena, 'a> {
         self.compiler
     }
 }
@@ -459,7 +465,7 @@ impl<'a> BorrowMut<ByteCompiler<'a>> for SourcePositionGuard<'_, 'a> {
 /// The [`ByteCompiler`] is used to compile ECMAScript AST from [`boa_ast`] to bytecode.
 #[derive(Debug)]
 #[allow(clippy::struct_excessive_bools)]
-pub struct ByteCompiler<'ctx> {
+pub struct ByteCompiler<'arena, 'ctx> {
     /// Name of this function.
     pub(crate) function_name: JsString,
 
@@ -472,7 +478,7 @@ pub struct ByteCompiler<'ctx> {
     pub(crate) this_mode: ThisMode,
 
     /// Parameters passed to this function.
-    pub(crate) params: FormalParameterList,
+    pub(crate) params: FormalParameterList<'arena>,
 
     /// Scope of the function parameters.
     pub(crate) parameter_scope: Scope,
@@ -535,7 +541,7 @@ pub(crate) enum BindingKind {
     Global(u32),
 }
 
-impl<'ctx> ByteCompiler<'ctx> {
+impl<'arena, 'ctx> ByteCompiler<'arena, 'ctx> {
     /// Represents a placeholder address that will be patched later.
     const DUMMY_ADDRESS: Address = Address::new(u32::MAX);
     const DUMMY_LABEL: Label = Label {
@@ -558,7 +564,7 @@ impl<'ctx> ByteCompiler<'ctx> {
         in_with: bool,
         spanned_source_text: SpannedSourceText,
         source_path: SourcePath,
-    ) -> ByteCompiler<'ctx> {
+    ) -> ByteCompiler<'arena, 'ctx> {
         let mut code_block_flags = CodeBlockFlags::empty();
         code_block_flags.set(CodeBlockFlags::STRICT, strict);
         code_block_flags.set(CodeBlockFlags::IS_ASYNC, is_async);
@@ -812,7 +818,7 @@ impl<'ctx> ByteCompiler<'ctx> {
     pub(crate) fn position_guard(
         &mut self,
         spanned: impl Spanned,
-    ) -> SourcePositionGuard<'_, 'ctx> {
+    ) -> SourcePositionGuard<'_, 'arena, 'ctx> {
         SourcePositionGuard::new(self, spanned.span().start())
     }
 
@@ -1081,8 +1087,8 @@ impl<'ctx> ByteCompiler<'ctx> {
     pub(crate) fn if_else(
         &mut self,
         bool: &Register,
-        true_case: impl FnOnce(&mut ByteCompiler<'_>),
-        false_case: impl FnOnce(&mut ByteCompiler<'_>),
+        true_case: impl FnOnce(&mut ByteCompiler<'arena, '_>),
+        false_case: impl FnOnce(&mut ByteCompiler<'arena, '_>),
     ) {
         let jump_false = self.jump_if_false(bool);
 
@@ -1102,8 +1108,8 @@ impl<'ctx> ByteCompiler<'ctx> {
     pub(crate) fn if_else_with_dealloc(
         &mut self,
         bool: Register,
-        true_case: impl FnOnce(&mut ByteCompiler<'_>),
-        false_case: impl FnOnce(&mut ByteCompiler<'_>),
+        true_case: impl FnOnce(&mut ByteCompiler<'arena, '_>),
+        false_case: impl FnOnce(&mut ByteCompiler<'arena, '_>),
     ) {
         let jump_false = self.jump_if_false(&bool);
         self.register_allocator.dealloc(bool);
@@ -1130,7 +1136,10 @@ impl<'ctx> ByteCompiler<'ctx> {
     /// When the condition is a relational comparison (`<`, `<=`, `>`, `>=`),
     /// emits a single fused comparison+branch opcode instead of separate
     /// `LessThan` + `JumpIfFalse` instructions.
-    pub(crate) fn compile_condition_and_branch(&mut self, condition: &Expression) -> Label {
+    pub(crate) fn compile_condition_and_branch(
+        &mut self,
+        condition: &'arena Expression<'arena>,
+    ) -> Label {
         if let Expression::Binary(binary) = condition
             && let BinaryOp::Relational(op) = binary.op()
             && let Some(label) = self.try_fused_comparison_branch(op, binary)
@@ -1145,7 +1154,11 @@ impl<'ctx> ByteCompiler<'ctx> {
         label
     }
 
-    fn try_fused_comparison_branch(&mut self, op: RelationalOp, binary: &Binary) -> Option<Label> {
+    fn try_fused_comparison_branch(
+        &mut self,
+        op: RelationalOp,
+        binary: &'arena Binary<'arena>,
+    ) -> Option<Label> {
         use crate::vm::opcode::ByteCodeEmitter;
 
         let emit_fn: fn(&mut ByteCodeEmitter, Address, RegisterOperand, RegisterOperand) = match op
@@ -1264,7 +1277,7 @@ impl<'ctx> ByteCompiler<'ctx> {
         self.patch_jump(skip_eval);
     }
 
-    fn access_get(&mut self, access: Access<'_>, dst: &Register) {
+    fn access_get(&mut self, access: Access<'arena>, dst: &Register) {
         match access {
             Access::Variable { name } => {
                 let name = self.resolve_identifier_expect(name);
@@ -1354,9 +1367,9 @@ impl<'ctx> ByteCompiler<'ctx> {
         }
     }
 
-    fn access_set<'a, F>(&mut self, access: Access<'_>, expr_fn: F)
+    fn access_set<'a, F>(&mut self, access: Access<'arena>, expr_fn: F)
     where
-        F: FnOnce(&mut ByteCompiler<'_>) -> &'a Register,
+        F: FnOnce(&mut ByteCompiler<'arena, '_>) -> &'a Register,
     {
         match access {
             Access::Variable { name } => {
@@ -1474,7 +1487,7 @@ impl<'ctx> ByteCompiler<'ctx> {
         }
     }
 
-    fn access_delete(&mut self, access: Access<'_>, dst: &Register) {
+    fn access_delete(&mut self, access: Access<'arena>, dst: &Register) {
         match access {
             Access::Property { access } => match access {
                 PropertyAccess::Simple(access) => match access.field() {
@@ -1509,7 +1522,12 @@ impl<'ctx> ByteCompiler<'ctx> {
     }
 
     /// Compile a [`StatementList`].
-    pub fn compile_statement_list(&mut self, list: &StatementList, use_expr: bool, block: bool) {
+    pub fn compile_statement_list(
+        &mut self,
+        list: &'arena StatementList<'arena>,
+        use_expr: bool,
+        block: bool,
+    ) {
         if use_expr || self.jump_control_info_has_use_expr() {
             let mut use_expr_index = 0;
             for (i, statement) in list.statements().iter().enumerate() {
@@ -1536,7 +1554,7 @@ impl<'ctx> ByteCompiler<'ctx> {
 
     /// Compile an [`Expression`].
     #[inline]
-    pub(crate) fn compile_expr(&mut self, expr: &Expression, dst: &'_ Register) {
+    pub(crate) fn compile_expr(&mut self, expr: &'arena Expression<'arena>, dst: &'_ Register) {
         self.compile_expr_impl(expr, dst);
     }
 
@@ -1549,7 +1567,7 @@ impl<'ctx> ByteCompiler<'ctx> {
     /// The `inner_fn` passed in will be called before the register get deallocated.
     pub(crate) fn compile_expr_operand(
         &mut self,
-        expr: &Expression,
+        expr: &'arena Expression<'arena>,
         inner_fn: impl FnOnce(&mut Self, RegisterOperand),
     ) {
         if let Expression::Identifier(name) = expr {
@@ -1586,7 +1604,7 @@ impl<'ctx> ByteCompiler<'ctx> {
     /// `b`.
     fn compile_access_preserve_this(
         &mut self,
-        access: &PropertyAccess,
+        access: &'arena PropertyAccess<'arena>,
         this: &Register,
         dst: &Register,
     ) {
@@ -1656,7 +1674,7 @@ impl<'ctx> ByteCompiler<'ctx> {
     /// `this` value of the call.
     fn compile_optional_preserve_this(
         &mut self,
-        optional: &Optional,
+        optional: &'arena Optional<'arena>,
         this: &Register,
         value: &Register,
     ) {
@@ -1705,7 +1723,11 @@ impl<'ctx> ByteCompiler<'ctx> {
     /// Follows the same short-circuit logic as `compile_optional_preserve_this`, but
     /// emits delete opcodes for the final link in the chain instead of get opcodes.
     /// When the chain short-circuits (base is null/undefined), returns `true` per spec.
-    pub(crate) fn compile_optional_delete(&mut self, optional: &Optional, dst: &Register) {
+    pub(crate) fn compile_optional_delete(
+        &mut self,
+        optional: &'arena Optional<'arena>,
+        dst: &Register,
+    ) {
         let value = self.register_allocator.alloc();
         let this = self.register_allocator.alloc();
 
@@ -1772,7 +1794,7 @@ impl<'ctx> ByteCompiler<'ctx> {
     /// Emit delete opcodes for the final operation in an optional chain.
     fn compile_optional_delete_final(
         &mut self,
-        kind: &OptionalOperationKind,
+        kind: &'arena OptionalOperationKind<'arena>,
         this: &Register,
         value: &Register,
         dst: &Register,
@@ -1826,7 +1848,7 @@ impl<'ctx> ByteCompiler<'ctx> {
     ///   since the operation compiled by this function could be a call.
     fn compile_optional_item_kind(
         &mut self,
-        kind: &OptionalOperationKind,
+        kind: &'arena OptionalOperationKind<'arena>,
         this: &Register,
         value: &Register,
     ) {
@@ -1906,7 +1928,7 @@ impl<'ctx> ByteCompiler<'ctx> {
     }
 
     /// Compile a [`VarDeclaration`].
-    fn compile_var_decl(&mut self, decl: &VarDeclaration) {
+    fn compile_var_decl(&mut self, decl: &'arena VarDeclaration<'arena>) {
         for variable in decl.0.as_ref() {
             match variable.binding() {
                 Binding::Identifier(ident) => {
@@ -1944,7 +1966,7 @@ impl<'ctx> ByteCompiler<'ctx> {
     }
 
     /// Compile a [`LexicalDeclaration`].
-    fn compile_lexical_decl(&mut self, decl: &LexicalDeclaration) {
+    fn compile_lexical_decl(&mut self, decl: &'arena LexicalDeclaration<'arena>) {
         match decl {
             LexicalDeclaration::Let(decls) => {
                 for variable in decls.as_ref() {
@@ -2050,7 +2072,12 @@ impl<'ctx> ByteCompiler<'ctx> {
     }
 
     /// Compile a [`StatementListItem`].
-    fn compile_stmt_list_item(&mut self, item: &StatementListItem, use_expr: bool, block: bool) {
+    fn compile_stmt_list_item(
+        &mut self,
+        item: &'arena StatementListItem<'arena>,
+        use_expr: bool,
+        block: bool,
+    ) {
         match item {
             StatementListItem::Statement(stmt) => {
                 self.compile_stmt(stmt, use_expr, false);
@@ -2061,7 +2088,7 @@ impl<'ctx> ByteCompiler<'ctx> {
 
     /// Compile a [`Declaration`].
     #[allow(unused_variables)]
-    pub fn compile_decl(&mut self, decl: &Declaration, block: bool) {
+    pub fn compile_decl(&mut self, decl: &'arena Declaration<'arena>, block: bool) {
         match decl {
             #[cfg(feature = "annex-b")]
             Declaration::FunctionDeclaration(function) if block => {
@@ -2276,7 +2303,7 @@ impl<'ctx> ByteCompiler<'ctx> {
         dst
     }
 
-    fn call(&mut self, callable: Callable<'_>, dst: &Register) {
+    fn call(&mut self, callable: Callable<'arena>, dst: &Register) {
         #[derive(PartialEq)]
         enum CallKind {
             CallEval,
@@ -2462,7 +2489,7 @@ impl<'ctx> ByteCompiler<'ctx> {
 
     fn compile_declaration_pattern(
         &mut self,
-        pattern: &Pattern,
+        pattern: &'arena Pattern<'arena>,
         def: BindingOpcode,
         object: &Register,
     ) {

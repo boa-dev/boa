@@ -117,7 +117,7 @@ impl Spanned for Literal {
     }
 }
 
-impl From<Literal> for Expression {
+impl From<Literal> for Expression<'_> {
     #[inline]
     fn from(lit: Literal) -> Self {
         Self::Literal(lit)
@@ -131,10 +131,10 @@ impl ToInternedString for Literal {
     }
 }
 
-impl VisitWith for Literal {
+impl<'arena> VisitWith<'arena> for Literal {
     fn visit_with<'a, V>(&'a self, visitor: &mut V) -> ControlFlow<V::BreakTy>
     where
-        V: Visitor<'a>,
+        V: Visitor<'a, 'arena>,
     {
         if let LiteralKind::String(sym) = &self.kind {
             visitor.visit_sym(sym)
@@ -145,7 +145,7 @@ impl VisitWith for Literal {
 
     fn visit_with_mut<'a, V>(&'a mut self, visitor: &mut V) -> ControlFlow<V::BreakTy>
     where
-        V: VisitorMut<'a>,
+        V: VisitorMut<'a, 'arena>,
     {
         if let LiteralKind::String(sym) = &mut self.kind {
             visitor.visit_sym_mut(sym)

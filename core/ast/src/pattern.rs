@@ -37,14 +37,14 @@ use core::{fmt::Write as _, ops::ControlFlow};
 #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
 #[cfg_attr(feature = "arbitrary", derive(arbitrary::Arbitrary))]
 #[derive(Clone, Debug, PartialEq)]
-pub enum Pattern {
+pub enum Pattern<'arena> {
     /// An object pattern (`let {a, b, c} = object`).
-    Object(ObjectPattern),
+    Object(ObjectPattern<'arena>),
     /// An array pattern (`[a, b, c] = array`).
-    Array(ArrayPattern),
+    Array(ArrayPattern<'arena>),
 }
 
-impl Spanned for Pattern {
+impl Spanned for Pattern<'_> {
     #[inline]
     fn span(&self) -> Span {
         match self {
@@ -54,19 +54,19 @@ impl Spanned for Pattern {
     }
 }
 
-impl From<ObjectPattern> for Pattern {
-    fn from(obj: ObjectPattern) -> Self {
+impl<'arena> From<ObjectPattern<'arena>> for Pattern<'arena> {
+    fn from(obj: ObjectPattern<'arena>) -> Self {
         Self::Object(obj)
     }
 }
 
-impl From<ArrayPattern> for Pattern {
-    fn from(obj: ArrayPattern) -> Self {
+impl<'arena> From<ArrayPattern<'arena>> for Pattern<'arena> {
+    fn from(obj: ArrayPattern<'arena>) -> Self {
         Self::Array(obj)
     }
 }
 
-impl ToInternedString for Pattern {
+impl ToInternedString for Pattern<'_> {
     fn to_interned_string(&self, interner: &Interner) -> String {
         match &self {
             Self::Object(o) => o.to_interned_string(interner),
@@ -75,10 +75,10 @@ impl ToInternedString for Pattern {
     }
 }
 
-impl VisitWith for Pattern {
+impl<'arena> VisitWith<'arena> for Pattern<'arena> {
     fn visit_with<'a, V>(&'a self, visitor: &mut V) -> ControlFlow<V::BreakTy>
     where
-        V: Visitor<'a>,
+        V: Visitor<'a, 'arena>,
     {
         match self {
             Self::Object(op) => visitor.visit_object_pattern(op),
@@ -88,7 +88,7 @@ impl VisitWith for Pattern {
 
     fn visit_with_mut<'a, V>(&'a mut self, visitor: &mut V) -> ControlFlow<V::BreakTy>
     where
-        V: VisitorMut<'a>,
+        V: VisitorMut<'a, 'arena>,
     {
         match self {
             Self::Object(op) => visitor.visit_object_pattern_mut(op),
@@ -109,12 +109,12 @@ impl VisitWith for Pattern {
 #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
 #[cfg_attr(feature = "arbitrary", derive(arbitrary::Arbitrary))]
 #[derive(Clone, Debug, PartialEq)]
-pub struct ObjectPattern {
-    elements: Box<[ObjectPatternElement]>,
+pub struct ObjectPattern<'arena> {
+    elements: Box<[ObjectPatternElement<'arena>]>,
     span: Span,
 }
 
-impl ToInternedString for ObjectPattern {
+impl ToInternedString for ObjectPattern<'_> {
     fn to_interned_string(&self, interner: &Interner) -> String {
         let mut buf = "{".to_owned();
         for (i, binding) in self.elements.iter().enumerate() {
@@ -135,18 +135,18 @@ impl ToInternedString for ObjectPattern {
     }
 }
 
-impl ObjectPattern {
+impl<'arena> ObjectPattern<'arena> {
     /// Creates a new object binding pattern.
     #[inline]
     #[must_use]
-    pub const fn new(elements: Box<[ObjectPatternElement]>, span: Span) -> Self {
+    pub const fn new(elements: Box<[ObjectPatternElement<'arena>]>, span: Span) -> Self {
         Self { elements, span }
     }
 
     /// Gets the bindings for the object binding pattern.
     #[inline]
     #[must_use]
-    pub const fn bindings(&self) -> &[ObjectPatternElement] {
+    pub const fn bindings(&self) -> &[ObjectPatternElement<'arena>] {
         &self.elements
     }
 
@@ -161,17 +161,17 @@ impl ObjectPattern {
     }
 }
 
-impl Spanned for ObjectPattern {
+impl Spanned for ObjectPattern<'_> {
     #[inline]
     fn span(&self) -> Span {
         self.span
     }
 }
 
-impl VisitWith for ObjectPattern {
+impl<'arena> VisitWith<'arena> for ObjectPattern<'arena> {
     fn visit_with<'a, V>(&'a self, visitor: &mut V) -> ControlFlow<V::BreakTy>
     where
-        V: Visitor<'a>,
+        V: Visitor<'a, 'arena>,
     {
         for elem in &*self.elements {
             visitor.visit_object_pattern_element(elem)?;
@@ -181,7 +181,7 @@ impl VisitWith for ObjectPattern {
 
     fn visit_with_mut<'a, V>(&'a mut self, visitor: &mut V) -> ControlFlow<V::BreakTy>
     where
-        V: VisitorMut<'a>,
+        V: VisitorMut<'a, 'arena>,
     {
         for elem in &mut *self.elements {
             visitor.visit_object_pattern_element_mut(elem)?;
@@ -202,12 +202,12 @@ impl VisitWith for ObjectPattern {
 #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
 #[cfg_attr(feature = "arbitrary", derive(arbitrary::Arbitrary))]
 #[derive(Clone, Debug, PartialEq)]
-pub struct ArrayPattern {
-    bindings: Box<[ArrayPatternElement]>,
+pub struct ArrayPattern<'arena> {
+    bindings: Box<[ArrayPatternElement<'arena>]>,
     span: Span,
 }
 
-impl ToInternedString for ArrayPattern {
+impl ToInternedString for ArrayPattern<'_> {
     fn to_interned_string(&self, interner: &Interner) -> String {
         let mut buf = "[".to_owned();
         for (i, binding) in self.bindings.iter().enumerate() {
@@ -229,33 +229,33 @@ impl ToInternedString for ArrayPattern {
     }
 }
 
-impl ArrayPattern {
+impl<'arena> ArrayPattern<'arena> {
     /// Creates a new array binding pattern.
     #[inline]
     #[must_use]
-    pub fn new(bindings: Box<[ArrayPatternElement]>, span: Span) -> Self {
+    pub fn new(bindings: Box<[ArrayPatternElement<'arena>]>, span: Span) -> Self {
         Self { bindings, span }
     }
 
     /// Gets the bindings for the array binding pattern.
     #[inline]
     #[must_use]
-    pub const fn bindings(&self) -> &[ArrayPatternElement] {
+    pub const fn bindings(&self) -> &[ArrayPatternElement<'arena>] {
         &self.bindings
     }
 }
 
-impl Spanned for ArrayPattern {
+impl Spanned for ArrayPattern<'_> {
     #[inline]
     fn span(&self) -> Span {
         self.span
     }
 }
 
-impl VisitWith for ArrayPattern {
+impl<'arena> VisitWith<'arena> for ArrayPattern<'arena> {
     fn visit_with<'a, V>(&'a self, visitor: &mut V) -> ControlFlow<V::BreakTy>
     where
-        V: Visitor<'a>,
+        V: Visitor<'a, 'arena>,
     {
         for elem in &*self.bindings {
             visitor.visit_array_pattern_element(elem)?;
@@ -265,7 +265,7 @@ impl VisitWith for ArrayPattern {
 
     fn visit_with_mut<'a, V>(&'a mut self, visitor: &mut V) -> ControlFlow<V::BreakTy>
     where
-        V: VisitorMut<'a>,
+        V: VisitorMut<'a, 'arena>,
     {
         for elem in &mut *self.bindings {
             visitor.visit_array_pattern_element_mut(elem)?;
@@ -283,7 +283,7 @@ impl VisitWith for ArrayPattern {
 #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
 #[cfg_attr(feature = "arbitrary", derive(arbitrary::Arbitrary))]
 #[derive(Clone, Debug, PartialEq)]
-pub enum ObjectPatternElement {
+pub enum ObjectPatternElement<'arena> {
     /// `SingleName` represents one of the following properties:
     ///
     /// - `SingleName` with an identifier and an optional default initializer.
@@ -297,11 +297,11 @@ pub enum ObjectPatternElement {
     /// [spec2]: https://tc39.es/ecma262/#prod-BindingProperty
     SingleName {
         /// The identifier name of the property to be destructured.
-        name: PropertyName,
+        name: PropertyName<'arena>,
         /// The variable name where the property value will be stored.
         ident: Identifier,
         /// An optional default value for the variable, in case the property doesn't exist.
-        default_init: Option<Expression>,
+        default_init: Option<Expression<'arena>>,
     },
 
     /// `RestProperty` represents a `BindingRestProperty` with an identifier.
@@ -329,11 +329,11 @@ pub enum ObjectPatternElement {
     /// [spec]: https://tc39.es/ecma262/#prod-AssignmentProperty
     AssignmentPropertyAccess {
         /// The identifier name of the property to be destructured.
-        name: PropertyName,
+        name: PropertyName<'arena>,
         /// The property access where the property value will be destructured.
-        access: PropertyAccess,
+        access: PropertyAccess<'arena>,
         /// An optional default value for the variable, in case the property doesn't exist.
-        default_init: Option<Expression>,
+        default_init: Option<Expression<'arena>>,
     },
 
     /// `AssignmentRestProperty` represents a rest property with a `DestructuringAssignmentTarget`.
@@ -347,7 +347,7 @@ pub enum ObjectPatternElement {
     /// [spec]: https://tc39.es/ecma262/#prod-AssignmentRestProperty
     AssignmentRestPropertyAccess {
         /// The property access where the unassigned properties will be stored.
-        access: PropertyAccess,
+        access: PropertyAccess<'arena>,
     },
 
     /// Pattern represents a property with a `Pattern` as the element.
@@ -361,15 +361,15 @@ pub enum ObjectPatternElement {
     /// [spec1]: https://tc39.es/ecma262/#prod-BindingProperty
     Pattern {
         /// The identifier name of the property to be destructured.
-        name: PropertyName,
+        name: PropertyName<'arena>,
         /// The pattern where the property value will be destructured.
-        pattern: Pattern,
+        pattern: Pattern<'arena>,
         /// An optional default value for the variable, in case the property doesn't exist.
-        default_init: Option<Expression>,
+        default_init: Option<Expression<'arena>>,
     },
 }
 
-impl ToInternedString for ObjectPatternElement {
+impl ToInternedString for ObjectPatternElement<'_> {
     fn to_interned_string(&self, interner: &Interner) -> String {
         match self {
             Self::SingleName {
@@ -463,10 +463,10 @@ impl ToInternedString for ObjectPatternElement {
     }
 }
 
-impl VisitWith for ObjectPatternElement {
+impl<'arena> VisitWith<'arena> for ObjectPatternElement<'arena> {
     fn visit_with<'a, V>(&'a self, visitor: &mut V) -> ControlFlow<V::BreakTy>
     where
-        V: Visitor<'a>,
+        V: Visitor<'a, 'arena>,
     {
         match self {
             Self::SingleName {
@@ -517,7 +517,7 @@ impl VisitWith for ObjectPatternElement {
 
     fn visit_with_mut<'a, V>(&'a mut self, visitor: &mut V) -> ControlFlow<V::BreakTy>
     where
-        V: VisitorMut<'a>,
+        V: VisitorMut<'a, 'arena>,
     {
         match self {
             Self::SingleName {
@@ -576,7 +576,7 @@ impl VisitWith for ObjectPatternElement {
 #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
 #[cfg_attr(feature = "arbitrary", derive(arbitrary::Arbitrary))]
 #[derive(Clone, Debug, PartialEq)]
-pub enum ArrayPatternElement {
+pub enum ArrayPatternElement<'arena> {
     /// Elision represents the elision of an item in the array binding pattern.
     ///
     /// An `Elision` may occur at multiple points in the pattern and may be multiple elisions.
@@ -598,7 +598,7 @@ pub enum ArrayPatternElement {
         /// The variable name where the index element will be stored.
         ident: Identifier,
         /// An optional default value for the variable, in case the index element doesn't exist.
-        default_init: Option<Expression>,
+        default_init: Option<Expression<'arena>>,
     },
 
     /// `PropertyAccess` represents a binding with a property accessor.
@@ -612,9 +612,9 @@ pub enum ArrayPatternElement {
     /// [spec]: https://tc39.es/ecma262/#prod-AssignmentExpression
     PropertyAccess {
         /// The property access where the index element will be stored.
-        access: PropertyAccess,
+        access: PropertyAccess<'arena>,
         /// An optional default value for the variable, in case the index element doesn't exist.
-        default_init: Option<Expression>,
+        default_init: Option<Expression<'arena>>,
     },
 
     /// Pattern represents a `Pattern` in an `Element` of an array pattern.
@@ -627,9 +627,9 @@ pub enum ArrayPatternElement {
     /// [spec1]: https://tc39.es/ecma262/#prod-BindingElement
     Pattern {
         /// The pattern where the index element will be stored.
-        pattern: Pattern,
+        pattern: Pattern<'arena>,
         /// An optional default value for the pattern, in case the index element doesn't exist.
-        default_init: Option<Expression>,
+        default_init: Option<Expression<'arena>>,
     },
 
     /// `SingleNameRest` represents a `BindingIdentifier` in a `BindingRestElement` of an array pattern.
@@ -654,7 +654,7 @@ pub enum ArrayPatternElement {
     /// [spec]: https://tc39.es/ecma262/#prod-AssignmentExpression
     PropertyAccessRest {
         /// The property access where the unassigned index elements will be stored.
-        access: PropertyAccess,
+        access: PropertyAccess<'arena>,
     },
 
     /// `PatternRest` represents a `Pattern` in a `RestElement` of an array pattern.
@@ -665,11 +665,11 @@ pub enum ArrayPatternElement {
     /// [spec1]: https://tc39.es/ecma262/#prod-BindingRestElement
     PatternRest {
         /// The pattern where the unassigned index elements will be stored.
-        pattern: Pattern,
+        pattern: Pattern<'arena>,
     },
 }
 
-impl ToInternedString for ArrayPatternElement {
+impl ToInternedString for ArrayPatternElement<'_> {
     fn to_interned_string(&self, interner: &Interner) -> String {
         match self {
             Self::Elision => " ".to_owned(),
@@ -716,10 +716,10 @@ impl ToInternedString for ArrayPatternElement {
     }
 }
 
-impl VisitWith for ArrayPatternElement {
+impl<'arena> VisitWith<'arena> for ArrayPatternElement<'arena> {
     fn visit_with<'a, V>(&'a self, visitor: &mut V) -> ControlFlow<V::BreakTy>
     where
-        V: Visitor<'a>,
+        V: Visitor<'a, 'arena>,
     {
         match self {
             Self::SingleName {
@@ -767,7 +767,7 @@ impl VisitWith for ArrayPatternElement {
 
     fn visit_with_mut<'a, V>(&'a mut self, visitor: &mut V) -> ControlFlow<V::BreakTy>
     where
-        V: VisitorMut<'a>,
+        V: VisitorMut<'a, 'arena>,
     {
         match self {
             Self::SingleName {

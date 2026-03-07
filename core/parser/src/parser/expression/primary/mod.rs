@@ -68,12 +68,13 @@ pub(in crate::parser) use object_initializer::Initializer;
 /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Guide/Expressions_and_Operators#Primary_expressions
 /// [spec]: https://tc39.es/ecma262/#prod-PrimaryExpression
 #[derive(Debug, Clone, Copy)]
-pub(super) struct PrimaryExpression {
+pub(super) struct PrimaryExpression<'arena> {
     allow_yield: AllowYield,
     allow_await: AllowAwait,
+    _marker: std::marker::PhantomData<&'arena ()>,
 }
 
-impl PrimaryExpression {
+impl PrimaryExpression<'_> {
     /// Creates a new `PrimaryExpression` parser.
     pub(super) fn new<Y, A>(allow_yield: Y, allow_await: A) -> Self
     where
@@ -83,15 +84,16 @@ impl PrimaryExpression {
         Self {
             allow_yield: allow_yield.into(),
             allow_await: allow_await.into(),
+            _marker: std::marker::PhantomData,
         }
     }
 }
 
-impl<R> TokenParser<R> for PrimaryExpression
+impl<'arena, R> TokenParser<'arena, R> for PrimaryExpression<'arena>
 where
     R: ReadChar,
 {
-    type Output = FormalParameterListOrExpression;
+    type Output = FormalParameterListOrExpression<'arena>;
 
     fn parse(self, cursor: &mut Cursor<R>, interner: &mut Interner) -> ParseResult<Self::Output> {
         // TODO: tok currently consumes the token instead of peeking, so the token
@@ -284,12 +286,13 @@ where
 ///
 /// [spec]: https://tc39.es/ecma262/#prod-CoverParenthesizedExpressionAndArrowParameterList
 #[derive(Debug, Clone, Copy)]
-pub(super) struct CoverParenthesizedExpressionAndArrowParameterList {
+pub(super) struct CoverParenthesizedExpressionAndArrowParameterList<'arena> {
     allow_yield: AllowYield,
     allow_await: AllowAwait,
+    _marker: std::marker::PhantomData<&'arena ()>,
 }
 
-impl CoverParenthesizedExpressionAndArrowParameterList {
+impl CoverParenthesizedExpressionAndArrowParameterList<'_> {
     /// Creates a new `CoverParenthesizedExpressionAndArrowParameterList` parser.
     pub(super) fn new<Y, A>(allow_yield: Y, allow_await: A) -> Self
     where
@@ -299,22 +302,23 @@ impl CoverParenthesizedExpressionAndArrowParameterList {
         Self {
             allow_yield: allow_yield.into(),
             allow_await: allow_await.into(),
+            _marker: std::marker::PhantomData,
         }
     }
 }
 
-impl<R> TokenParser<R> for CoverParenthesizedExpressionAndArrowParameterList
+impl<'arena, R> TokenParser<'arena, R> for CoverParenthesizedExpressionAndArrowParameterList<'arena>
 where
     R: ReadChar,
 {
-    type Output = FormalParameterListOrExpression;
+    type Output = FormalParameterListOrExpression<'arena>;
 
     fn parse(self, cursor: &mut Cursor<R>, interner: &mut Interner) -> ParseResult<Self::Output> {
         #[derive(Debug)]
-        enum InnerExpression {
-            Expression(ast::Expression),
-            SpreadObject(ObjectPattern),
-            SpreadArray(ArrayPattern),
+        enum InnerExpression<'arena> {
+            Expression(ast::Expression<'arena>),
+            SpreadObject(ObjectPattern<'arena>),
+            SpreadArray(ArrayPattern<'arena>),
             SpreadBinding(Identifier),
         }
         let span_start = cursor
@@ -553,9 +557,9 @@ where
 }
 
 /// Convert an expression to a formal parameter and append it to the given parameter list.
-fn expression_to_formal_parameters(
-    node: &ast::Expression,
-    parameters: &mut Vec<FormalParameter>,
+fn expression_to_formal_parameters<'arena>(
+    node: &ast::Expression<'arena>,
+    parameters: &mut Vec<FormalParameter<'arena>>,
     strict: bool,
     span: Span,
 ) -> ParseResult<()> {

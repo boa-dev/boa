@@ -23,25 +23,25 @@ use std::hash::Hash;
 #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
 #[cfg_attr(feature = "arbitrary", derive(arbitrary::Arbitrary))]
 #[derive(Clone, Debug, PartialEq)]
-pub struct ClassDeclaration {
+pub struct ClassDeclaration<'arena> {
     name: Identifier,
-    pub(crate) super_ref: Option<Expression>,
-    pub(crate) constructor: Option<FunctionExpression>,
-    pub(crate) elements: Box<[ClassElement]>,
+    pub(crate) super_ref: Option<Expression<'arena>>,
+    pub(crate) constructor: Option<FunctionExpression<'arena>>,
+    pub(crate) elements: Box<[ClassElement<'arena>]>,
 
     #[cfg_attr(feature = "serde", serde(skip))]
     pub(crate) name_scope: Scope,
 }
 
-impl ClassDeclaration {
+impl<'arena> ClassDeclaration<'arena> {
     /// Creates a new class declaration.
     #[inline]
     #[must_use]
     pub fn new(
         name: Identifier,
-        super_ref: Option<Expression>,
-        constructor: Option<FunctionExpression>,
-        elements: Box<[ClassElement]>,
+        super_ref: Option<Expression<'arena>>,
+        constructor: Option<FunctionExpression<'arena>>,
+        elements: Box<[ClassElement<'arena>]>,
     ) -> Self {
         Self {
             name,
@@ -62,21 +62,21 @@ impl ClassDeclaration {
     /// Returns the super class ref of the class declaration.
     #[inline]
     #[must_use]
-    pub const fn super_ref(&self) -> Option<&Expression> {
+    pub const fn super_ref(&self) -> Option<&Expression<'arena>> {
         self.super_ref.as_ref()
     }
 
     /// Returns the constructor of the class declaration.
     #[inline]
     #[must_use]
-    pub const fn constructor(&self) -> Option<&FunctionExpression> {
+    pub const fn constructor(&self) -> Option<&FunctionExpression<'arena>> {
         self.constructor.as_ref()
     }
 
     /// Gets the list of all fields defined on the class declaration.
     #[inline]
     #[must_use]
-    pub const fn elements(&self) -> &[ClassElement] {
+    pub const fn elements(&self) -> &[ClassElement<'arena>] {
         &self.elements
     }
 
@@ -88,7 +88,7 @@ impl ClassDeclaration {
     }
 }
 
-impl ToIndentedString for ClassDeclaration {
+impl ToIndentedString for ClassDeclaration<'_> {
     fn to_indented_string(&self, interner: &Interner, indent_n: usize) -> String {
         let mut buf = format!("class {}", interner.resolve_expect(self.name.sym()));
         if let Some(super_ref) = self.super_ref.as_ref() {
@@ -116,10 +116,10 @@ impl ToIndentedString for ClassDeclaration {
     }
 }
 
-impl VisitWith for ClassDeclaration {
+impl<'arena> VisitWith<'arena> for ClassDeclaration<'arena> {
     fn visit_with<'a, V>(&'a self, visitor: &mut V) -> ControlFlow<V::BreakTy>
     where
-        V: Visitor<'a>,
+        V: Visitor<'a, 'arena>,
     {
         visitor.visit_identifier(&self.name)?;
         if let Some(expr) = &self.super_ref {
@@ -136,7 +136,7 @@ impl VisitWith for ClassDeclaration {
 
     fn visit_with_mut<'a, V>(&'a mut self, visitor: &mut V) -> ControlFlow<V::BreakTy>
     where
-        V: VisitorMut<'a>,
+        V: VisitorMut<'a, 'arena>,
     {
         visitor.visit_identifier_mut(&mut self.name)?;
         if let Some(expr) = &mut self.super_ref {
@@ -152,8 +152,8 @@ impl VisitWith for ClassDeclaration {
     }
 }
 
-impl From<ClassDeclaration> for Declaration {
-    fn from(f: ClassDeclaration) -> Self {
+impl<'arena> From<ClassDeclaration<'arena>> for Declaration<'arena> {
+    fn from(f: ClassDeclaration<'arena>) -> Self {
         Self::ClassDeclaration(Box::new(f))
     }
 }
@@ -169,11 +169,11 @@ impl From<ClassDeclaration> for Declaration {
 #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
 #[cfg_attr(feature = "arbitrary", derive(arbitrary::Arbitrary))]
 #[derive(Clone, Debug, PartialEq)]
-pub struct ClassExpression {
+pub struct ClassExpression<'arena> {
     pub(crate) name: Option<Identifier>,
-    pub(crate) super_ref: Option<Expression>,
-    pub(crate) constructor: Option<FunctionExpression>,
-    pub(crate) elements: Box<[ClassElement]>,
+    pub(crate) super_ref: Option<Expression<'arena>>,
+    pub(crate) constructor: Option<FunctionExpression<'arena>>,
+    pub(crate) elements: Box<[ClassElement<'arena>]>,
 
     span: Span,
 
@@ -181,15 +181,15 @@ pub struct ClassExpression {
     pub(crate) name_scope: Option<Scope>,
 }
 
-impl ClassExpression {
+impl<'arena> ClassExpression<'arena> {
     /// Creates a new class expression.
     #[inline]
     #[must_use]
     pub fn new(
         name: Option<Identifier>,
-        super_ref: Option<Expression>,
-        constructor: Option<FunctionExpression>,
-        elements: Box<[ClassElement]>,
+        super_ref: Option<Expression<'arena>>,
+        constructor: Option<FunctionExpression<'arena>>,
+        elements: Box<[ClassElement<'arena>]>,
         has_binding_identifier: bool,
         span: Span,
     ) -> Self {
@@ -218,21 +218,21 @@ impl ClassExpression {
     /// Returns the super class ref of the class expression.
     #[inline]
     #[must_use]
-    pub const fn super_ref(&self) -> Option<&Expression> {
+    pub const fn super_ref(&self) -> Option<&Expression<'arena>> {
         self.super_ref.as_ref()
     }
 
     /// Returns the constructor of the class expression.
     #[inline]
     #[must_use]
-    pub const fn constructor(&self) -> Option<&FunctionExpression> {
+    pub const fn constructor(&self) -> Option<&FunctionExpression<'arena>> {
         self.constructor.as_ref()
     }
 
     /// Gets the list of all fields defined on the class expression.
     #[inline]
     #[must_use]
-    pub const fn elements(&self) -> &[ClassElement] {
+    pub const fn elements(&self) -> &[ClassElement<'arena>] {
         &self.elements
     }
 
@@ -244,14 +244,14 @@ impl ClassExpression {
     }
 }
 
-impl Spanned for ClassExpression {
+impl Spanned for ClassExpression<'_> {
     #[inline]
     fn span(&self) -> Span {
         self.span
     }
 }
 
-impl ToIndentedString for ClassExpression {
+impl ToIndentedString for ClassExpression<'_> {
     fn to_indented_string(&self, interner: &Interner, indent_n: usize) -> String {
         let mut buf = "class".to_string();
         if self.name_scope.is_some()
@@ -284,16 +284,16 @@ impl ToIndentedString for ClassExpression {
     }
 }
 
-impl From<ClassExpression> for Expression {
-    fn from(expr: ClassExpression) -> Self {
+impl<'arena> From<ClassExpression<'arena>> for Expression<'arena> {
+    fn from(expr: ClassExpression<'arena>) -> Self {
         Self::ClassExpression(Box::new(expr))
     }
 }
 
-impl VisitWith for ClassExpression {
+impl<'arena> VisitWith<'arena> for ClassExpression<'arena> {
     fn visit_with<'a, V>(&'a self, visitor: &mut V) -> ControlFlow<V::BreakTy>
     where
-        V: Visitor<'a>,
+        V: Visitor<'a, 'arena>,
     {
         if let Some(ident) = &self.name {
             visitor.visit_identifier(ident)?;
@@ -312,7 +312,7 @@ impl VisitWith for ClassExpression {
 
     fn visit_with_mut<'a, V>(&'a mut self, visitor: &mut V) -> ControlFlow<V::BreakTy>
     where
-        V: VisitorMut<'a>,
+        V: VisitorMut<'a, 'arena>,
     {
         if let Some(ident) = &mut self.name {
             visitor.visit_identifier_mut(ident)?;
@@ -338,18 +338,18 @@ impl VisitWith for ClassExpression {
 #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
 #[cfg_attr(feature = "arbitrary", derive(arbitrary::Arbitrary))]
 #[derive(Clone, Debug, PartialEq)]
-pub struct StaticBlockBody {
-    pub(crate) body: FunctionBody,
+pub struct StaticBlockBody<'arena> {
+    pub(crate) body: FunctionBody<'arena>,
 
     #[cfg_attr(feature = "serde", serde(skip))]
     pub(crate) scopes: FunctionScopes,
 }
 
-impl StaticBlockBody {
+impl<'arena> StaticBlockBody<'arena> {
     /// Creates a new static block body.
     #[inline]
     #[must_use]
-    pub fn new(body: FunctionBody) -> Self {
+    pub fn new(body: FunctionBody<'arena>) -> Self {
         Self {
             body,
             scopes: FunctionScopes::default(),
@@ -359,7 +359,7 @@ impl StaticBlockBody {
     /// Gets the body static block.
     #[inline]
     #[must_use]
-    pub const fn statements(&self) -> &FunctionBody {
+    pub const fn statements(&self) -> &FunctionBody<'arena> {
         &self.body
     }
 
@@ -380,25 +380,25 @@ impl StaticBlockBody {
 #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
 #[cfg_attr(feature = "arbitrary", derive(arbitrary::Arbitrary))]
 #[derive(Clone, Debug, PartialEq)]
-pub enum ClassElement {
+pub enum ClassElement<'arena> {
     /// A method definition.
-    MethodDefinition(ClassMethodDefinition),
+    MethodDefinition(ClassMethodDefinition<'arena>),
 
     /// A field definition.
-    FieldDefinition(ClassFieldDefinition),
+    FieldDefinition(ClassFieldDefinition<'arena>),
 
     /// A static field definition, accessible from the class constructor object
-    StaticFieldDefinition(ClassFieldDefinition),
+    StaticFieldDefinition(ClassFieldDefinition<'arena>),
 
     /// A private field definition, only accessible inside the class declaration.
-    PrivateFieldDefinition(PrivateFieldDefinition),
+    PrivateFieldDefinition(PrivateFieldDefinition<'arena>),
 
     /// A private static field definition, only accessible from static methods and fields inside the
     /// class declaration.
-    PrivateStaticFieldDefinition(PrivateFieldDefinition),
+    PrivateStaticFieldDefinition(PrivateFieldDefinition<'arena>),
 
     /// A static block, where a class can have initialization logic for its static fields.
-    StaticBlock(StaticBlockBody),
+    StaticBlock(StaticBlockBody<'arena>),
 }
 
 /// A non-private class element field definition.
@@ -410,19 +410,19 @@ pub enum ClassElement {
 #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
 #[cfg_attr(feature = "arbitrary", derive(arbitrary::Arbitrary))]
 #[derive(Clone, Debug, PartialEq)]
-pub struct ClassFieldDefinition {
-    pub(crate) name: PropertyName,
-    pub(crate) initializer: Option<Expression>,
+pub struct ClassFieldDefinition<'arena> {
+    pub(crate) name: PropertyName<'arena>,
+    pub(crate) initializer: Option<Expression<'arena>>,
 
     #[cfg_attr(feature = "serde", serde(skip))]
     pub(crate) scope: Scope,
 }
 
-impl ClassFieldDefinition {
+impl<'arena> ClassFieldDefinition<'arena> {
     /// Creates a new class field definition.
     #[inline]
     #[must_use]
-    pub fn new(name: PropertyName, initializer: Option<Expression>) -> Self {
+    pub fn new(name: PropertyName<'arena>, initializer: Option<Expression<'arena>>) -> Self {
         Self {
             name,
             initializer,
@@ -433,14 +433,14 @@ impl ClassFieldDefinition {
     /// Returns the name of the class field definition.
     #[inline]
     #[must_use]
-    pub const fn name(&self) -> &PropertyName {
+    pub const fn name(&self) -> &PropertyName<'arena> {
         &self.name
     }
 
     /// Returns the initializer of the class field definition.
     #[inline]
     #[must_use]
-    pub const fn initializer(&self) -> Option<&Expression> {
+    pub const fn initializer(&self) -> Option<&Expression<'arena>> {
         self.initializer.as_ref()
     }
 
@@ -461,19 +461,19 @@ impl ClassFieldDefinition {
 #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
 #[cfg_attr(feature = "arbitrary", derive(arbitrary::Arbitrary))]
 #[derive(Clone, Debug, PartialEq)]
-pub struct PrivateFieldDefinition {
+pub struct PrivateFieldDefinition<'arena> {
     pub(crate) name: PrivateName,
-    pub(crate) initializer: Option<Expression>,
+    pub(crate) initializer: Option<Expression<'arena>>,
 
     #[cfg_attr(feature = "serde", serde(skip))]
     pub(crate) scope: Scope,
 }
 
-impl PrivateFieldDefinition {
+impl<'arena> PrivateFieldDefinition<'arena> {
     /// Creates a new private field definition.
     #[inline]
     #[must_use]
-    pub fn new(name: PrivateName, initializer: Option<Expression>) -> Self {
+    pub fn new(name: PrivateName, initializer: Option<Expression<'arena>>) -> Self {
         Self {
             name,
             initializer,
@@ -491,7 +491,7 @@ impl PrivateFieldDefinition {
     /// Returns the initializer of the private field definition.
     #[inline]
     #[must_use]
-    pub const fn initializer(&self) -> Option<&Expression> {
+    pub const fn initializer(&self) -> Option<&Expression<'arena>> {
         self.initializer.as_ref()
     }
 
@@ -503,7 +503,7 @@ impl PrivateFieldDefinition {
     }
 }
 
-impl ToIndentedString for ClassElement {
+impl ToIndentedString for ClassElement<'_> {
     fn to_indented_string(&self, interner: &Interner, indent_n: usize) -> String {
         let indentation = "    ".repeat(indent_n + 1);
         match self {
@@ -584,10 +584,10 @@ impl ToIndentedString for ClassElement {
     }
 }
 
-impl VisitWith for ClassElement {
+impl<'arena> VisitWith<'arena> for ClassElement<'arena> {
     fn visit_with<'a, V>(&'a self, visitor: &mut V) -> ControlFlow<V::BreakTy>
     where
-        V: Visitor<'a>,
+        V: Visitor<'a, 'arena>,
     {
         match self {
             Self::MethodDefinition(m) => {
@@ -631,7 +631,7 @@ impl VisitWith for ClassElement {
 
     fn visit_with_mut<'a, V>(&'a mut self, visitor: &mut V) -> ControlFlow<V::BreakTy>
     where
-        V: VisitorMut<'a>,
+        V: VisitorMut<'a, 'arena>,
     {
         match self {
             Self::MethodDefinition(m) => {
@@ -686,10 +686,10 @@ impl VisitWith for ClassElement {
 #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
 #[cfg_attr(feature = "arbitrary", derive(arbitrary::Arbitrary))]
 #[derive(Clone, Debug, PartialEq)]
-pub struct ClassMethodDefinition {
-    name: ClassElementName,
-    pub(crate) parameters: FormalParameterList,
-    pub(crate) body: FunctionBody,
+pub struct ClassMethodDefinition<'arena> {
+    name: ClassElementName<'arena>,
+    pub(crate) parameters: FormalParameterList<'arena>,
+    pub(crate) body: FunctionBody<'arena>,
     pub(crate) contains_direct_eval: bool,
     kind: MethodDefinitionKind,
     is_static: bool,
@@ -699,14 +699,14 @@ pub struct ClassMethodDefinition {
     linear_span: LinearSpanIgnoreEq,
 }
 
-impl ClassMethodDefinition {
+impl<'arena> ClassMethodDefinition<'arena> {
     /// Creates a new class method definition.
     #[inline]
     #[must_use]
     pub fn new(
-        name: ClassElementName,
-        parameters: FormalParameterList,
-        body: FunctionBody,
+        name: ClassElementName<'arena>,
+        parameters: FormalParameterList<'arena>,
+        body: FunctionBody<'arena>,
         kind: MethodDefinitionKind,
         is_static: bool,
         start_linear_pos: LinearPosition,
@@ -731,21 +731,21 @@ impl ClassMethodDefinition {
     /// Returns the name of the class method definition.
     #[inline]
     #[must_use]
-    pub const fn name(&self) -> &ClassElementName {
+    pub const fn name(&self) -> &ClassElementName<'arena> {
         &self.name
     }
 
     /// Returns the parameters of the class method definition.
     #[inline]
     #[must_use]
-    pub const fn parameters(&self) -> &FormalParameterList {
+    pub const fn parameters(&self) -> &FormalParameterList<'arena> {
         &self.parameters
     }
 
     /// Returns the body of the class method definition.
     #[inline]
     #[must_use]
-    pub const fn body(&self) -> &FunctionBody {
+    pub const fn body(&self) -> &FunctionBody<'arena> {
         &self.body
     }
 
@@ -792,7 +792,7 @@ impl ClassMethodDefinition {
     }
 }
 
-impl ToIndentedString for ClassMethodDefinition {
+impl ToIndentedString for ClassMethodDefinition<'_> {
     fn to_indented_string(&self, interner: &Interner, indent_n: usize) -> String {
         let indentation = "    ".repeat(indent_n + 1);
         let prefix = match (self.is_static, &self.kind) {
@@ -825,15 +825,15 @@ impl ToIndentedString for ClassMethodDefinition {
 #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
 #[cfg_attr(feature = "arbitrary", derive(arbitrary::Arbitrary))]
 #[derive(Clone, Debug, PartialEq)]
-pub enum ClassElementName {
+pub enum ClassElementName<'arena> {
     /// A property name.
-    PropertyName(PropertyName),
+    PropertyName(PropertyName<'arena>),
 
     /// A private name.
     PrivateName(PrivateName),
 }
 
-impl ClassElementName {
+impl ClassElementName<'_> {
     /// Returns whether the class element name is private.
     #[inline]
     #[must_use]
@@ -842,7 +842,7 @@ impl ClassElementName {
     }
 }
 
-impl ToInternedString for ClassElementName {
+impl ToInternedString for ClassElementName<'_> {
     fn to_interned_string(&self, interner: &Interner) -> String {
         match &self {
             Self::PropertyName(name) => name.to_interned_string(interner),
@@ -886,17 +886,17 @@ impl Spanned for PrivateName {
     }
 }
 
-impl VisitWith for PrivateName {
+impl<'arena> VisitWith<'arena> for PrivateName {
     fn visit_with<'a, V>(&'a self, visitor: &mut V) -> ControlFlow<V::BreakTy>
     where
-        V: Visitor<'a>,
+        V: Visitor<'a, 'arena>,
     {
         visitor.visit_sym(&self.description)
     }
 
     fn visit_with_mut<'a, V>(&'a mut self, visitor: &mut V) -> ControlFlow<V::BreakTy>
     where
-        V: VisitorMut<'a>,
+        V: VisitorMut<'a, 'arena>,
     {
         visitor.visit_sym_mut(&mut self.description)
     }

@@ -46,16 +46,16 @@ impl ToInternedString for Continue {
     }
 }
 
-impl From<Continue> for Statement {
+impl From<Continue> for Statement<'_> {
     fn from(cont: Continue) -> Self {
         Self::Continue(cont)
     }
 }
 
-impl VisitWith for Continue {
+impl<'arena> VisitWith<'arena> for Continue {
     fn visit_with<'a, V>(&'a self, visitor: &mut V) -> ControlFlow<V::BreakTy>
     where
-        V: Visitor<'a>,
+        V: Visitor<'a, 'arena>,
     {
         if let Some(sym) = &self.label {
             visitor.visit_sym(sym)
@@ -66,7 +66,7 @@ impl VisitWith for Continue {
 
     fn visit_with_mut<'a, V>(&'a mut self, visitor: &mut V) -> ControlFlow<V::BreakTy>
     where
-        V: VisitorMut<'a>,
+        V: VisitorMut<'a, 'arena>,
     {
         if let Some(sym) = &mut self.label {
             visitor.visit_sym_mut(sym)

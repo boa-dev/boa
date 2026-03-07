@@ -14,7 +14,7 @@ struct SymbolVisitor {
     observed: HashSet<Sym>,
 }
 
-impl<'ast> Visitor<'ast> for SymbolVisitor {
+impl<'ast> Visitor<'ast, 'ast> for SymbolVisitor {
     type BreakTy = Infallible;
 
     fn visit_sym(&mut self, node: &'ast Sym) -> ControlFlow<Self::BreakTy> {

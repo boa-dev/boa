@@ -64,30 +64,30 @@ use crate::{
 #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
 #[cfg_attr(feature = "arbitrary", derive(arbitrary::Arbitrary))]
 #[derive(Clone, Debug, PartialEq)]
-pub struct FunctionBody {
-    pub(crate) statements: StatementList,
+pub struct FunctionBody<'arena> {
+    pub(crate) statements: StatementList<'arena>,
     span: Span,
 }
 
-impl FunctionBody {
+impl<'arena> FunctionBody<'arena> {
     /// Creates a new `FunctionBody` AST node.
     #[inline]
     #[must_use]
-    pub fn new(statements: StatementList, span: Span) -> Self {
+    pub fn new(statements: StatementList<'arena>, span: Span) -> Self {
         Self { statements, span }
     }
 
     /// Gets the list of statements.
     #[inline]
     #[must_use]
-    pub const fn statements(&self) -> &[StatementListItem] {
+    pub const fn statements(&self) -> &[StatementListItem<'arena>] {
         self.statements.statements()
     }
 
     /// Gets the statement list.
     #[inline]
     #[must_use]
-    pub const fn statement_list(&self) -> &StatementList {
+    pub const fn statement_list(&self) -> &StatementList<'arena> {
         &self.statements
     }
 
@@ -106,23 +106,23 @@ impl FunctionBody {
     }
 }
 
-impl Spanned for FunctionBody {
+impl Spanned for FunctionBody<'_> {
     #[inline]
     fn span(&self) -> Span {
         self.span
     }
 }
 
-impl ToIndentedString for FunctionBody {
+impl ToIndentedString for FunctionBody<'_> {
     fn to_indented_string(&self, interner: &Interner, indentation: usize) -> String {
         self.statements.to_indented_string(interner, indentation)
     }
 }
 
-impl VisitWith for FunctionBody {
+impl<'arena> VisitWith<'arena> for FunctionBody<'arena> {
     fn visit_with<'a, V>(&'a self, visitor: &mut V) -> ControlFlow<V::BreakTy>
     where
-        V: Visitor<'a>,
+        V: Visitor<'a, 'arena>,
     {
         for statement in &*self.statements {
             visitor.visit_statement_list_item(statement)?;
@@ -132,7 +132,7 @@ impl VisitWith for FunctionBody {
 
     fn visit_with_mut<'a, V>(&'a mut self, visitor: &mut V) -> ControlFlow<V::BreakTy>
     where
-        V: VisitorMut<'a>,
+        V: VisitorMut<'a, 'arena>,
     {
         for statement in &mut *self.statements.statements {
             visitor.visit_statement_list_item_mut(statement)?;

@@ -25,13 +25,14 @@ use rustc_hash::FxHashSet;
 /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Statements/try...catch
 /// [spec]: https://tc39.es/ecma262/#prod-Catch
 #[derive(Debug, Clone, Copy)]
-pub(super) struct Catch {
+pub(super) struct Catch<'arena> {
     allow_yield: AllowYield,
     allow_await: AllowAwait,
     allow_return: AllowReturn,
+    _marker: std::marker::PhantomData<&'arena ()>,
 }
 
-impl Catch {
+impl Catch<'_> {
     /// Creates a new `Catch` block parser.
     pub(super) fn new<Y, A, R>(allow_yield: Y, allow_await: A, allow_return: R) -> Self
     where
@@ -43,15 +44,16 @@ impl Catch {
             allow_yield: allow_yield.into(),
             allow_await: allow_await.into(),
             allow_return: allow_return.into(),
+            _marker: std::marker::PhantomData,
         }
     }
 }
 
-impl<R> TokenParser<R> for Catch
+impl<'arena, R> TokenParser<'arena, R> for Catch<'arena>
 where
     R: ReadChar,
 {
-    type Output = statement::Catch;
+    type Output = statement::Catch<'arena>;
 
     fn parse(self, cursor: &mut Cursor<R>, interner: &mut Interner) -> ParseResult<Self::Output> {
         cursor.expect((Keyword::Catch, false), "try statement", interner)?;
@@ -127,12 +129,13 @@ where
 /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Statements/try...catch
 /// [spec]: https://tc39.es/ecma262/#prod-CatchParameter
 #[derive(Debug, Clone, Copy)]
-pub(super) struct CatchParameter {
+pub(super) struct CatchParameter<'arena> {
     allow_yield: AllowYield,
     allow_await: AllowAwait,
+    _marker: std::marker::PhantomData<&'arena ()>,
 }
 
-impl CatchParameter {
+impl CatchParameter<'_> {
     /// Creates a new `CatchParameter` parser.
     pub(super) fn new<Y, A>(allow_yield: Y, allow_await: A) -> Self
     where
@@ -142,15 +145,16 @@ impl CatchParameter {
         Self {
             allow_yield: allow_yield.into(),
             allow_await: allow_await.into(),
+            _marker: std::marker::PhantomData,
         }
     }
 }
 
-impl<R> TokenParser<R> for CatchParameter
+impl<'arena, R> TokenParser<'arena, R> for CatchParameter<'arena>
 where
     R: ReadChar,
 {
-    type Output = Binding;
+    type Output = Binding<'arena>;
 
     fn parse(self, cursor: &mut Cursor<R>, interner: &mut Interner) -> ParseResult<Self::Output> {
         let token = cursor.peek(0, interner).or_abrupt()?;

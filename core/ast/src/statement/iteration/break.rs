@@ -48,16 +48,16 @@ impl ToInternedString for Break {
     }
 }
 
-impl From<Break> for Statement {
+impl From<Break> for Statement<'_> {
     fn from(break_smt: Break) -> Self {
         Self::Break(break_smt)
     }
 }
 
-impl VisitWith for Break {
+impl<'arena> VisitWith<'arena> for Break {
     fn visit_with<'a, V>(&'a self, visitor: &mut V) -> ControlFlow<V::BreakTy>
     where
-        V: Visitor<'a>,
+        V: Visitor<'a, 'arena>,
     {
         if let Some(sym) = &self.label {
             visitor.visit_sym(sym)
@@ -68,7 +68,7 @@ impl VisitWith for Break {
 
     fn visit_with_mut<'a, V>(&'a mut self, visitor: &mut V) -> ControlFlow<V::BreakTy>
     where
-        V: VisitorMut<'a>,
+        V: VisitorMut<'a, 'arena>,
     {
         if let Some(sym) = &mut self.label {
             visitor.visit_sym_mut(sym)

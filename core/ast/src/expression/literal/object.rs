@@ -39,18 +39,18 @@ use core::{fmt::Write as _, ops::ControlFlow};
 #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
 #[cfg_attr(feature = "arbitrary", derive(arbitrary::Arbitrary))]
 #[derive(Clone, Debug, PartialEq)]
-pub struct ObjectLiteral {
-    properties: Box<[PropertyDefinition]>,
+pub struct ObjectLiteral<'arena> {
+    properties: Box<[PropertyDefinition<'arena>]>,
     span: Span,
 }
 
-impl ObjectLiteral {
+impl<'arena> ObjectLiteral<'arena> {
     /// Create a new [`ObjectLiteral`].
     #[inline]
     #[must_use]
     pub fn new<T>(properties: T, span: Span) -> Self
     where
-        T: Into<Box<[PropertyDefinition]>>,
+        T: Into<Box<[PropertyDefinition<'arena>]>>,
     {
         Self {
             properties: properties.into(),
@@ -61,13 +61,13 @@ impl ObjectLiteral {
     /// Gets the object literal properties
     #[inline]
     #[must_use]
-    pub const fn properties(&self) -> &[PropertyDefinition] {
+    pub const fn properties(&self) -> &[PropertyDefinition<'arena>] {
         &self.properties
     }
 
     /// Converts the object literal into an [`ObjectPattern`].
     #[must_use]
-    pub fn to_pattern(&self, strict: bool) -> Option<ObjectPattern> {
+    pub fn to_pattern(&self, strict: bool) -> Option<ObjectPattern<'arena>> {
         let mut bindings = Vec::new();
         for (i, property) in self.properties.iter().enumerate() {
             match property {
@@ -221,14 +221,14 @@ impl ObjectLiteral {
     }
 }
 
-impl Spanned for ObjectLiteral {
+impl Spanned for ObjectLiteral<'_> {
     #[inline]
     fn span(&self) -> Span {
         self.span
     }
 }
 
-impl ToIndentedString for ObjectLiteral {
+impl ToIndentedString for ObjectLiteral<'_> {
     fn to_indented_string(&self, interner: &Interner, indent_n: usize) -> String {
         let mut buf = "{\n".to_owned();
         let indentation = "    ".repeat(indent_n + 1);
@@ -271,17 +271,17 @@ impl ToIndentedString for ObjectLiteral {
     }
 }
 
-impl From<ObjectLiteral> for Expression {
+impl<'arena> From<ObjectLiteral<'arena>> for Expression<'arena> {
     #[inline]
-    fn from(obj: ObjectLiteral) -> Self {
+    fn from(obj: ObjectLiteral<'arena>) -> Self {
         Self::ObjectLiteral(obj)
     }
 }
 
-impl VisitWith for ObjectLiteral {
+impl<'arena> VisitWith<'arena> for ObjectLiteral<'arena> {
     fn visit_with<'a, V>(&'a self, visitor: &mut V) -> ControlFlow<V::BreakTy>
     where
-        V: Visitor<'a>,
+        V: Visitor<'a, 'arena>,
     {
         for pd in &*self.properties {
             visitor.visit_property_definition(pd)?;
@@ -291,7 +291,7 @@ impl VisitWith for ObjectLiteral {
 
     fn visit_with_mut<'a, V>(&'a mut self, visitor: &mut V) -> ControlFlow<V::BreakTy>
     where
-        V: VisitorMut<'a>,
+        V: VisitorMut<'a, 'arena>,
     {
         for pd in &mut *self.properties {
             visitor.visit_property_definition_mut(pd)?;
@@ -316,7 +316,7 @@ impl VisitWith for ObjectLiteral {
 #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
 #[cfg_attr(feature = "arbitrary", derive(arbitrary::Arbitrary))]
 #[derive(Clone, Debug, PartialEq)]
-pub enum PropertyDefinition {
+pub enum PropertyDefinition<'arena> {
     /// Puts a variable into an object.
     ///
     /// More information:
@@ -335,7 +335,7 @@ pub enum PropertyDefinition {
     ///
     /// [spec]: https://tc39.es/ecma262/#prod-PropertyDefinition
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Operators/Object_initializer#Property_definitions
-    Property(PropertyName, Expression),
+    Property(PropertyName<'arena>, Expression<'arena>),
 
     /// A property of an object can also refer to a function or a getter or setter method.
     ///
@@ -345,7 +345,7 @@ pub enum PropertyDefinition {
     ///
     /// [spec]: https://tc39.es/ecma262/#prod-MethodDefinition
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Operators/Object_initializer#Method_definitions
-    MethodDefinition(ObjectMethodDefinition),
+    MethodDefinition(ObjectMethodDefinition<'arena>),
 
     /// The Rest/Spread Properties for ECMAScript proposal (stage 4) adds spread properties to object literals.
     /// It copies own enumerable properties from a provided object onto a new object.
@@ -358,7 +358,7 @@ pub enum PropertyDefinition {
     ///
     /// [spec]: https://tc39.es/ecma262/#prod-PropertyDefinition
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Operators/Object_initializer#Spread_properties
-    SpreadObject(Expression),
+    SpreadObject(Expression<'arena>),
 
     /// Cover grammar for when an object literal is used as an object binding pattern.
     ///
@@ -366,13 +366,13 @@ pub enum PropertyDefinition {
     ///  - [ECMAScript reference][spec]
     ///
     /// [spec]: https://tc39.es/ecma262/#prod-CoverInitializedName
-    CoverInitializedName(Identifier, Expression),
+    CoverInitializedName(Identifier, Expression<'arena>),
 }
 
-impl VisitWith for PropertyDefinition {
+impl<'arena> VisitWith<'arena> for PropertyDefinition<'arena> {
     fn visit_with<'a, V>(&'a self, visitor: &mut V) -> ControlFlow<V::BreakTy>
     where
-        V: Visitor<'a>,
+        V: Visitor<'a, 'arena>,
     {
         match self {
             Self::IdentifierReference(id) => visitor.visit_identifier(id),
@@ -391,7 +391,7 @@ impl VisitWith for PropertyDefinition {
 
     fn visit_with_mut<'a, V>(&'a mut self, visitor: &mut V) -> ControlFlow<V::BreakTy>
     where
-        V: VisitorMut<'a>,
+        V: VisitorMut<'a, 'arena>,
     {
         match self {
             Self::IdentifierReference(id) => visitor.visit_identifier_mut(id),
@@ -420,10 +420,10 @@ impl VisitWith for PropertyDefinition {
 #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
 #[cfg_attr(feature = "arbitrary", derive(arbitrary::Arbitrary))]
 #[derive(Clone, Debug, PartialEq)]
-pub struct ObjectMethodDefinition {
-    pub(crate) name: PropertyName,
-    pub(crate) parameters: FormalParameterList,
-    pub(crate) body: FunctionBody,
+pub struct ObjectMethodDefinition<'arena> {
+    pub(crate) name: PropertyName<'arena>,
+    pub(crate) parameters: FormalParameterList<'arena>,
+    pub(crate) body: FunctionBody<'arena>,
     pub(crate) contains_direct_eval: bool,
     kind: MethodDefinitionKind,
 
@@ -432,14 +432,14 @@ pub struct ObjectMethodDefinition {
     linear_span: LinearSpanIgnoreEq,
 }
 
-impl ObjectMethodDefinition {
+impl<'arena> ObjectMethodDefinition<'arena> {
     /// Creates a new object method definition.
     #[inline]
     #[must_use]
     pub fn new(
-        name: PropertyName,
-        parameters: FormalParameterList,
-        body: FunctionBody,
+        name: PropertyName<'arena>,
+        parameters: FormalParameterList<'arena>,
+        body: FunctionBody<'arena>,
         kind: MethodDefinitionKind,
         start_linear_pos: LinearPosition,
     ) -> Self {
@@ -461,21 +461,21 @@ impl ObjectMethodDefinition {
     /// Returns the name of the object method definition.
     #[inline]
     #[must_use]
-    pub const fn name(&self) -> &PropertyName {
+    pub const fn name(&self) -> &PropertyName<'arena> {
         &self.name
     }
 
     /// Returns the parameters of the object method definition.
     #[inline]
     #[must_use]
-    pub const fn parameters(&self) -> &FormalParameterList {
+    pub const fn parameters(&self) -> &FormalParameterList<'arena> {
         &self.parameters
     }
 
     /// Returns the body of the object method definition.
     #[inline]
     #[must_use]
-    pub const fn body(&self) -> &FunctionBody {
+    pub const fn body(&self) -> &FunctionBody<'arena> {
         &self.body
     }
 
@@ -508,7 +508,7 @@ impl ObjectMethodDefinition {
     }
 }
 
-impl ToIndentedString for ObjectMethodDefinition {
+impl ToIndentedString for ObjectMethodDefinition<'_> {
     fn to_indented_string(&self, interner: &Interner, indent_n: usize) -> String {
         let indentation = "    ".repeat(indent_n + 1);
         let prefix = match &self.kind {
@@ -526,10 +526,10 @@ impl ToIndentedString for ObjectMethodDefinition {
     }
 }
 
-impl VisitWith for ObjectMethodDefinition {
+impl<'arena> VisitWith<'arena> for ObjectMethodDefinition<'arena> {
     fn visit_with<'a, V>(&'a self, visitor: &mut V) -> ControlFlow<V::BreakTy>
     where
-        V: Visitor<'a>,
+        V: Visitor<'a, 'arena>,
     {
         visitor.visit_property_name(&self.name)?;
         visitor.visit_formal_parameter_list(&self.parameters)?;
@@ -538,7 +538,7 @@ impl VisitWith for ObjectMethodDefinition {
 
     fn visit_with_mut<'a, V>(&'a mut self, visitor: &mut V) -> ControlFlow<V::BreakTy>
     where
-        V: VisitorMut<'a>,
+        V: VisitorMut<'a, 'arena>,
     {
         visitor.visit_property_name_mut(&mut self.name)?;
         visitor.visit_formal_parameter_list_mut(&mut self.parameters)?;

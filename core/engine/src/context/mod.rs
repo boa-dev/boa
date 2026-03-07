@@ -207,7 +207,7 @@ impl Context {
     /// Applies optimizations to the [`StatementList`] inplace.
     pub fn optimize_statement_list(
         &mut self,
-        statement_list: &mut StatementList,
+        statement_list: &mut StatementList<'_>,
     ) -> OptimizerStatistics {
         let mut optimizer = Optimizer::new(self);
         optimizer.apply(statement_list)
@@ -906,7 +906,6 @@ impl Context {
 ///
 /// This builder allows custom initialization of the [`Interner`] within
 /// the context.
-#[derive(Default)]
 pub struct ContextBuilder {
     interner: Option<Interner>,
     host_hooks: Option<Rc<dyn HostHooks>>,
@@ -920,6 +919,26 @@ pub struct ContextBuilder {
     timezone_provider: Option<Box<dyn TimeZoneProvider>>,
     #[cfg(feature = "fuzz")]
     instructions_remaining: usize,
+}
+
+#[allow(clippy::derivable_impls)]
+impl Default for ContextBuilder {
+    fn default() -> Self {
+        Self {
+            interner: None,
+            host_hooks: None,
+            clock: None,
+            job_executor: None,
+            module_loader: None,
+            can_block: false,
+            #[cfg(feature = "intl")]
+            icu: None,
+            #[cfg(feature = "temporal")]
+            timezone_provider: None,
+            #[cfg(feature = "fuzz")]
+            instructions_remaining: usize::MAX,
+        }
+    }
 }
 
 impl std::fmt::Debug for ContextBuilder {

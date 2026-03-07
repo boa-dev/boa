@@ -37,7 +37,7 @@ use std::ops::ControlFlow;
 ///
 /// # Errors
 /// Any break in the control flow that happened during the collection.
-pub(crate) fn collect_bindings<'a, N>(
+pub(crate) fn collect_bindings<'a, 'arena: 'a, N>(
     node: &'a mut N,
     strict: bool,
     eval: bool,
@@ -45,7 +45,7 @@ pub(crate) fn collect_bindings<'a, N>(
     interner: &Interner,
 ) -> Result<(), &'static str>
 where
-    &'a mut N: Into<NodeRefMut<'a>>,
+    &'a mut N: Into<NodeRefMut<'a, 'arena>>,
 {
     let mut visitor = BindingCollectorVisitor {
         strict,
@@ -64,14 +64,14 @@ where
 ///
 /// # Errors
 /// Any break in the control flow that happened during the analysis.
-pub(crate) fn analyze_binding_escapes<'a, N>(
+pub(crate) fn analyze_binding_escapes<'a, 'arena: 'a, N>(
     node: &'a mut N,
     in_eval: bool,
     scope: Scope,
     interner: &Interner,
 ) -> Result<(), &'static str>
 where
-    &'a mut N: Into<NodeRefMut<'a>>,
+    &'a mut N: Into<NodeRefMut<'a, 'arena>>,
 {
     let mut visitor = BindingEscapeAnalyzer {
         scope,
@@ -93,7 +93,7 @@ struct BindingEscapeAnalyzer<'interner> {
     interner: &'interner Interner,
 }
 
-impl<'ast> VisitorMut<'ast> for BindingEscapeAnalyzer<'_> {
+impl<'ast, 'arena: 'ast> VisitorMut<'ast, 'arena> for BindingEscapeAnalyzer<'_> {
     type BreakTy = &'static str;
 
     fn visit_identifier_mut(&mut self, node: &'ast mut Identifier) -> ControlFlow<Self::BreakTy> {
@@ -103,7 +103,7 @@ impl<'ast> VisitorMut<'ast> for BindingEscapeAnalyzer<'_> {
         ControlFlow::Continue(())
     }
 
-    fn visit_block_mut(&mut self, node: &'ast mut Block) -> ControlFlow<Self::BreakTy> {
+    fn visit_block_mut(&mut self, node: &'ast mut Block<'_>) -> ControlFlow<Self::BreakTy> {
         let direct_eval_old = self.direct_eval;
         self.direct_eval = node.contains_direct_eval || self.direct_eval;
         if let Some(scope) = &mut node.scope {
@@ -122,7 +122,7 @@ impl<'ast> VisitorMut<'ast> for BindingEscapeAnalyzer<'_> {
         ControlFlow::Continue(())
     }
 
-    fn visit_switch_mut(&mut self, node: &'ast mut Switch) -> ControlFlow<Self::BreakTy> {
+    fn visit_switch_mut(&mut self, node: &'ast mut Switch<'arena>) -> ControlFlow<Self::BreakTy> {
         self.visit_expression_mut(&mut node.val)?;
         let direct_eval_old = self.direct_eval;
         self.direct_eval = node.contains_direct_eval || self.direct_eval;
@@ -143,7 +143,7 @@ impl<'ast> VisitorMut<'ast> for BindingEscapeAnalyzer<'_> {
         ControlFlow::Continue(())
     }
 
-    fn visit_with_mut(&mut self, node: &'ast mut With) -> ControlFlow<Self::BreakTy> {
+    fn visit_with_mut(&mut self, node: &'ast mut With<'arena>) -> ControlFlow<Self::BreakTy> {
         let with = self.with;
         self.with = true;
         if self.direct_eval {
@@ -158,7 +158,7 @@ impl<'ast> VisitorMut<'ast> for BindingEscapeAnalyzer<'_> {
         ControlFlow::Continue(())
     }
 
-    fn visit_catch_mut(&mut self, node: &'ast mut Catch) -> ControlFlow<Self::BreakTy> {
+    fn visit_catch_mut(&mut self, node: &'ast mut Catch<'_>) -> ControlFlow<Self::BreakTy> {
         let direct_eval_old = self.direct_eval;
         self.direct_eval = node.contains_direct_eval || self.direct_eval;
         if self.direct_eval {
@@ -175,7 +175,10 @@ impl<'ast> VisitorMut<'ast> for BindingEscapeAnalyzer<'_> {
         ControlFlow::Continue(())
     }
 
-    fn visit_for_loop_mut(&mut self, node: &'ast mut ForLoop) -> ControlFlow<Self::BreakTy> {
+    fn visit_for_loop_mut(
+        &mut self,
+        node: &'ast mut ForLoop<'arena>,
+    ) -> ControlFlow<Self::BreakTy> {
         let direct_eval_old = self.direct_eval;
         self.direct_eval = node.inner.contains_direct_eval || self.direct_eval;
         if let Some(ForLoopInitializer::Lexical(decl)) = &mut node.inner.init {
@@ -202,7 +205,10 @@ impl<'ast> VisitorMut<'ast> for BindingEscapeAnalyzer<'_> {
         ControlFlow::Continue(())
     }
 
-    fn visit_for_in_loop_mut(&mut self, node: &'ast mut ForInLoop) -> ControlFlow<Self::BreakTy> {
+    fn visit_for_in_loop_mut(
+        &mut self,
+        node: &'ast mut ForInLoop<'arena>,
+    ) -> ControlFlow<Self::BreakTy> {
         let direct_eval_old = self.direct_eval;
         if let Some(scope) = &mut node.target_scope {
             self.direct_eval = node.target_contains_direct_eval || self.direct_eval;
@@ -234,7 +240,10 @@ impl<'ast> VisitorMut<'ast> for BindingEscapeAnalyzer<'_> {
         ControlFlow::Continue(())
     }
 
-    fn visit_for_of_loop_mut(&mut self, node: &'ast mut ForOfLoop) -> ControlFlow<Self::BreakTy> {
+    fn visit_for_of_loop_mut(
+        &mut self,
+        node: &'ast mut ForOfLoop<'arena>,
+    ) -> ControlFlow<Self::BreakTy> {
         let direct_eval_old = self.direct_eval;
         if let Some(scope) = &mut node.iterable_scope {
             self.direct_eval = node.iterable_contains_direct_eval || self.direct_eval;
@@ -268,7 +277,7 @@ impl<'ast> VisitorMut<'ast> for BindingEscapeAnalyzer<'_> {
 
     fn visit_function_declaration_mut(
         &mut self,
-        node: &'ast mut FunctionDeclaration,
+        node: &'ast mut FunctionDeclaration<'arena>,
     ) -> ControlFlow<Self::BreakTy> {
         self.visit_function_like(
             &mut node.parameters,
@@ -280,7 +289,7 @@ impl<'ast> VisitorMut<'ast> for BindingEscapeAnalyzer<'_> {
 
     fn visit_generator_declaration_mut(
         &mut self,
-        node: &'ast mut GeneratorDeclaration,
+        node: &'ast mut GeneratorDeclaration<'arena>,
     ) -> ControlFlow<Self::BreakTy> {
         self.visit_function_like(
             &mut node.parameters,
@@ -292,7 +301,7 @@ impl<'ast> VisitorMut<'ast> for BindingEscapeAnalyzer<'_> {
 
     fn visit_async_function_declaration_mut(
         &mut self,
-        node: &'ast mut AsyncFunctionDeclaration,
+        node: &'ast mut AsyncFunctionDeclaration<'arena>,
     ) -> ControlFlow<Self::BreakTy> {
         self.visit_function_like(
             &mut node.parameters,
@@ -304,7 +313,7 @@ impl<'ast> VisitorMut<'ast> for BindingEscapeAnalyzer<'_> {
 
     fn visit_async_generator_declaration_mut(
         &mut self,
-        node: &'ast mut AsyncGeneratorDeclaration,
+        node: &'ast mut AsyncGeneratorDeclaration<'arena>,
     ) -> ControlFlow<Self::BreakTy> {
         self.visit_function_like(
             &mut node.parameters,
@@ -316,7 +325,7 @@ impl<'ast> VisitorMut<'ast> for BindingEscapeAnalyzer<'_> {
 
     fn visit_function_expression_mut(
         &mut self,
-        node: &'ast mut FunctionExpression,
+        node: &'ast mut FunctionExpression<'arena>,
     ) -> ControlFlow<Self::BreakTy> {
         self.visit_function_like(
             &mut node.parameters,
@@ -328,7 +337,7 @@ impl<'ast> VisitorMut<'ast> for BindingEscapeAnalyzer<'_> {
 
     fn visit_generator_expression_mut(
         &mut self,
-        node: &'ast mut GeneratorExpression,
+        node: &'ast mut GeneratorExpression<'arena>,
     ) -> ControlFlow<Self::BreakTy> {
         self.visit_function_like(
             &mut node.parameters,
@@ -340,7 +349,7 @@ impl<'ast> VisitorMut<'ast> for BindingEscapeAnalyzer<'_> {
 
     fn visit_async_function_expression_mut(
         &mut self,
-        node: &'ast mut AsyncFunctionExpression,
+        node: &'ast mut AsyncFunctionExpression<'arena>,
     ) -> ControlFlow<Self::BreakTy> {
         self.visit_function_like(
             &mut node.parameters,
@@ -352,7 +361,7 @@ impl<'ast> VisitorMut<'ast> for BindingEscapeAnalyzer<'_> {
 
     fn visit_async_generator_expression_mut(
         &mut self,
-        node: &'ast mut AsyncGeneratorExpression,
+        node: &'ast mut AsyncGeneratorExpression<'arena>,
     ) -> ControlFlow<Self::BreakTy> {
         self.visit_function_like(
             &mut node.parameters,
@@ -364,7 +373,7 @@ impl<'ast> VisitorMut<'ast> for BindingEscapeAnalyzer<'_> {
 
     fn visit_arrow_function_mut(
         &mut self,
-        node: &'ast mut ArrowFunction,
+        node: &'ast mut ArrowFunction<'arena>,
     ) -> ControlFlow<Self::BreakTy> {
         self.visit_function_like(
             &mut node.parameters,
@@ -376,7 +385,7 @@ impl<'ast> VisitorMut<'ast> for BindingEscapeAnalyzer<'_> {
 
     fn visit_async_arrow_function_mut(
         &mut self,
-        node: &'ast mut AsyncArrowFunction,
+        node: &'ast mut AsyncArrowFunction<'arena>,
     ) -> ControlFlow<Self::BreakTy> {
         self.visit_function_like(
             &mut node.parameters,
@@ -388,7 +397,7 @@ impl<'ast> VisitorMut<'ast> for BindingEscapeAnalyzer<'_> {
 
     fn visit_class_declaration_mut(
         &mut self,
-        node: &'ast mut ClassDeclaration,
+        node: &'ast mut ClassDeclaration<'arena>,
     ) -> ControlFlow<Self::BreakTy> {
         node.name_scope.escape_all_bindings();
         std::mem::swap(&mut self.scope, &mut node.name_scope);
@@ -408,7 +417,7 @@ impl<'ast> VisitorMut<'ast> for BindingEscapeAnalyzer<'_> {
 
     fn visit_class_expression_mut(
         &mut self,
-        node: &'ast mut ClassExpression,
+        node: &'ast mut ClassExpression<'arena>,
     ) -> ControlFlow<Self::BreakTy> {
         if let Some(name_scope) = &mut node.name_scope {
             if self.direct_eval {
@@ -435,7 +444,7 @@ impl<'ast> VisitorMut<'ast> for BindingEscapeAnalyzer<'_> {
 
     fn visit_class_element_mut(
         &mut self,
-        node: &'ast mut ClassElement,
+        node: &'ast mut ClassElement<'arena>,
     ) -> ControlFlow<Self::BreakTy> {
         match node {
             ClassElement::MethodDefinition(node) => self.visit_function_like(
@@ -476,7 +485,7 @@ impl<'ast> VisitorMut<'ast> for BindingEscapeAnalyzer<'_> {
 
     fn visit_object_method_definition_mut(
         &mut self,
-        node: &'ast mut ObjectMethodDefinition,
+        node: &'ast mut ObjectMethodDefinition<'arena>,
     ) -> ControlFlow<Self::BreakTy> {
         self.visit_property_name_mut(&mut node.name)?;
         self.visit_function_like(
@@ -489,7 +498,7 @@ impl<'ast> VisitorMut<'ast> for BindingEscapeAnalyzer<'_> {
 
     fn visit_export_declaration_mut(
         &mut self,
-        node: &'ast mut ExportDeclaration,
+        node: &'ast mut ExportDeclaration<'arena>,
     ) -> ControlFlow<Self::BreakTy> {
         match node {
             ExportDeclaration::ReExport {
@@ -528,7 +537,7 @@ impl<'ast> VisitorMut<'ast> for BindingEscapeAnalyzer<'_> {
         }
     }
 
-    fn visit_module_mut(&mut self, node: &'ast mut Module) -> ControlFlow<Self::BreakTy> {
+    fn visit_module_mut(&mut self, node: &'ast mut Module<'arena>) -> ControlFlow<Self::BreakTy> {
         let mut scope = node.scope.clone();
         scope.escape_all_bindings();
         std::mem::swap(&mut self.scope, &mut scope);
@@ -542,8 +551,8 @@ impl<'ast> VisitorMut<'ast> for BindingEscapeAnalyzer<'_> {
 impl BindingEscapeAnalyzer<'_> {
     fn visit_function_like(
         &mut self,
-        parameters: &mut FormalParameterList,
-        body: &mut FunctionBody,
+        parameters: &mut FormalParameterList<'_>,
+        body: &mut FunctionBody<'_>,
         scopes: &mut FunctionScopes,
         contains_direct_eval: bool,
     ) -> ControlFlow<&'static str> {
@@ -582,7 +591,7 @@ struct BindingCollectorVisitor<'interner> {
     interner: &'interner Interner,
 }
 
-impl<'ast> VisitorMut<'ast> for BindingCollectorVisitor<'_> {
+impl<'ast, 'arena: 'ast> VisitorMut<'ast, 'arena> for BindingCollectorVisitor<'_> {
     type BreakTy = &'static str;
 
     fn visit_this_mut(
@@ -598,7 +607,7 @@ impl<'ast> VisitorMut<'ast> for BindingCollectorVisitor<'_> {
 
     fn visit_function_declaration_mut(
         &mut self,
-        node: &'ast mut FunctionDeclaration,
+        node: &'ast mut FunctionDeclaration<'arena>,
     ) -> ControlFlow<Self::BreakTy> {
         let strict = node.body.strict();
         self.visit_function_like(
@@ -614,7 +623,7 @@ impl<'ast> VisitorMut<'ast> for BindingCollectorVisitor<'_> {
 
     fn visit_generator_declaration_mut(
         &mut self,
-        node: &'ast mut GeneratorDeclaration,
+        node: &'ast mut GeneratorDeclaration<'arena>,
     ) -> ControlFlow<Self::BreakTy> {
         let strict = node.body.strict();
         self.visit_function_like(
@@ -630,7 +639,7 @@ impl<'ast> VisitorMut<'ast> for BindingCollectorVisitor<'_> {
 
     fn visit_async_function_declaration_mut(
         &mut self,
-        node: &'ast mut AsyncFunctionDeclaration,
+        node: &'ast mut AsyncFunctionDeclaration<'arena>,
     ) -> ControlFlow<Self::BreakTy> {
         let strict = node.body.strict();
         self.visit_function_like(
@@ -646,7 +655,7 @@ impl<'ast> VisitorMut<'ast> for BindingCollectorVisitor<'_> {
 
     fn visit_async_generator_declaration_mut(
         &mut self,
-        node: &'ast mut AsyncGeneratorDeclaration,
+        node: &'ast mut AsyncGeneratorDeclaration<'arena>,
     ) -> ControlFlow<Self::BreakTy> {
         let strict = node.body.strict();
         self.visit_function_like(
@@ -662,7 +671,7 @@ impl<'ast> VisitorMut<'ast> for BindingCollectorVisitor<'_> {
 
     fn visit_function_expression_mut(
         &mut self,
-        node: &'ast mut FunctionExpression,
+        node: &'ast mut FunctionExpression<'arena>,
     ) -> ControlFlow<Self::BreakTy> {
         let name = if node.has_binding_identifier {
             node.name()
@@ -683,7 +692,7 @@ impl<'ast> VisitorMut<'ast> for BindingCollectorVisitor<'_> {
 
     fn visit_generator_expression_mut(
         &mut self,
-        node: &'ast mut GeneratorExpression,
+        node: &'ast mut GeneratorExpression<'arena>,
     ) -> ControlFlow<Self::BreakTy> {
         let name = if node.has_binding_identifier {
             node.name()
@@ -704,7 +713,7 @@ impl<'ast> VisitorMut<'ast> for BindingCollectorVisitor<'_> {
 
     fn visit_async_function_expression_mut(
         &mut self,
-        node: &'ast mut AsyncFunctionExpression,
+        node: &'ast mut AsyncFunctionExpression<'arena>,
     ) -> ControlFlow<Self::BreakTy> {
         let name = if node.has_binding_identifier {
             node.name()
@@ -725,7 +734,7 @@ impl<'ast> VisitorMut<'ast> for BindingCollectorVisitor<'_> {
 
     fn visit_async_generator_expression_mut(
         &mut self,
-        node: &'ast mut AsyncGeneratorExpression,
+        node: &'ast mut AsyncGeneratorExpression<'arena>,
     ) -> ControlFlow<Self::BreakTy> {
         let name = if node.has_binding_identifier {
             node.name()
@@ -746,7 +755,7 @@ impl<'ast> VisitorMut<'ast> for BindingCollectorVisitor<'_> {
 
     fn visit_arrow_function_mut(
         &mut self,
-        node: &'ast mut ArrowFunction,
+        node: &'ast mut ArrowFunction<'arena>,
     ) -> ControlFlow<Self::BreakTy> {
         let strict = node.body.strict();
         self.visit_function_like(
@@ -762,7 +771,7 @@ impl<'ast> VisitorMut<'ast> for BindingCollectorVisitor<'_> {
 
     fn visit_async_arrow_function_mut(
         &mut self,
-        node: &'ast mut AsyncArrowFunction,
+        node: &'ast mut AsyncArrowFunction<'arena>,
     ) -> ControlFlow<Self::BreakTy> {
         let strict = node.body.strict();
         self.visit_function_like(
@@ -778,7 +787,7 @@ impl<'ast> VisitorMut<'ast> for BindingCollectorVisitor<'_> {
 
     fn visit_class_declaration_mut(
         &mut self,
-        node: &'ast mut ClassDeclaration,
+        node: &'ast mut ClassDeclaration<'arena>,
     ) -> ControlFlow<Self::BreakTy> {
         let mut name_scope = Scope::new(self.scope.clone(), false);
         let name = node.name().to_js_string(self.interner);
@@ -800,7 +809,7 @@ impl<'ast> VisitorMut<'ast> for BindingCollectorVisitor<'_> {
 
     fn visit_class_expression_mut(
         &mut self,
-        node: &'ast mut ClassExpression,
+        node: &'ast mut ClassExpression<'arena>,
     ) -> ControlFlow<Self::BreakTy> {
         let mut name_scope = None;
         if let Some(name) = node.name
@@ -831,7 +840,7 @@ impl<'ast> VisitorMut<'ast> for BindingCollectorVisitor<'_> {
 
     fn visit_class_element_mut(
         &mut self,
-        node: &'ast mut ClassElement,
+        node: &'ast mut ClassElement<'arena>,
     ) -> ControlFlow<Self::BreakTy> {
         match node {
             ClassElement::MethodDefinition(node) => {
@@ -885,7 +894,7 @@ impl<'ast> VisitorMut<'ast> for BindingCollectorVisitor<'_> {
 
     fn visit_object_method_definition_mut(
         &mut self,
-        node: &'ast mut ObjectMethodDefinition,
+        node: &'ast mut ObjectMethodDefinition<'arena>,
     ) -> ControlFlow<Self::BreakTy> {
         match &mut node.name {
             PropertyName::Literal(_) => {}
@@ -905,7 +914,7 @@ impl<'ast> VisitorMut<'ast> for BindingCollectorVisitor<'_> {
         )
     }
 
-    fn visit_block_mut(&mut self, node: &'ast mut Block) -> ControlFlow<Self::BreakTy> {
+    fn visit_block_mut(&mut self, node: &'ast mut Block<'_>) -> ControlFlow<Self::BreakTy> {
         let mut scope = block_declaration_instantiation(node, self.scope.clone(), self.interner);
         if let Some(scope) = &mut scope {
             std::mem::swap(&mut self.scope, scope);
@@ -918,7 +927,7 @@ impl<'ast> VisitorMut<'ast> for BindingCollectorVisitor<'_> {
         ControlFlow::Continue(())
     }
 
-    fn visit_switch_mut(&mut self, node: &'ast mut Switch) -> ControlFlow<Self::BreakTy> {
+    fn visit_switch_mut(&mut self, node: &'ast mut Switch<'arena>) -> ControlFlow<Self::BreakTy> {
         self.visit_expression_mut(&mut node.val)?;
         let mut scope = block_declaration_instantiation(node, self.scope.clone(), self.interner);
         if let Some(scope) = &mut scope {
@@ -934,7 +943,7 @@ impl<'ast> VisitorMut<'ast> for BindingCollectorVisitor<'_> {
         ControlFlow::Continue(())
     }
 
-    fn visit_with_mut(&mut self, node: &'ast mut With) -> ControlFlow<Self::BreakTy> {
+    fn visit_with_mut(&mut self, node: &'ast mut With<'arena>) -> ControlFlow<Self::BreakTy> {
         self.visit_expression_mut(&mut node.expression)?;
         let mut scope = Scope::new(self.scope.clone(), false);
         std::mem::swap(&mut self.scope, &mut scope);
@@ -944,7 +953,7 @@ impl<'ast> VisitorMut<'ast> for BindingCollectorVisitor<'_> {
         ControlFlow::Continue(())
     }
 
-    fn visit_catch_mut(&mut self, node: &'ast mut Catch) -> ControlFlow<Self::BreakTy> {
+    fn visit_catch_mut(&mut self, node: &'ast mut Catch<'_>) -> ControlFlow<Self::BreakTy> {
         let mut scope = Scope::new(self.scope.clone(), false);
         if let Some(binding) = node.parameter() {
             match binding {
@@ -970,7 +979,10 @@ impl<'ast> VisitorMut<'ast> for BindingCollectorVisitor<'_> {
         ControlFlow::Continue(())
     }
 
-    fn visit_for_loop_mut(&mut self, node: &'ast mut ForLoop) -> ControlFlow<Self::BreakTy> {
+    fn visit_for_loop_mut(
+        &mut self,
+        node: &'ast mut ForLoop<'arena>,
+    ) -> ControlFlow<Self::BreakTy> {
         let scope = match &mut node.inner.init {
             Some(ForLoopInitializer::Lexical(decl)) => {
                 let mut scope = Scope::new(self.scope.clone(), false);
@@ -1008,7 +1020,10 @@ impl<'ast> VisitorMut<'ast> for BindingCollectorVisitor<'_> {
         ControlFlow::Continue(())
     }
 
-    fn visit_for_in_loop_mut(&mut self, node: &'ast mut ForInLoop) -> ControlFlow<Self::BreakTy> {
+    fn visit_for_in_loop_mut(
+        &mut self,
+        node: &'ast mut ForInLoop<'arena>,
+    ) -> ControlFlow<Self::BreakTy> {
         let initializer_bound_names = match node.initializer() {
             IterableLoopInitializer::Let(declaration)
             | IterableLoopInitializer::Const(declaration) => bound_names(declaration),
@@ -1075,7 +1090,10 @@ impl<'ast> VisitorMut<'ast> for BindingCollectorVisitor<'_> {
         ControlFlow::Continue(())
     }
 
-    fn visit_for_of_loop_mut(&mut self, node: &'ast mut ForOfLoop) -> ControlFlow<Self::BreakTy> {
+    fn visit_for_of_loop_mut(
+        &mut self,
+        node: &'ast mut ForOfLoop<'arena>,
+    ) -> ControlFlow<Self::BreakTy> {
         let initializer_bound_names = match node.initializer() {
             IterableLoopInitializer::Let(declaration)
             | IterableLoopInitializer::Const(declaration) => bound_names(declaration),
@@ -1142,7 +1160,7 @@ impl<'ast> VisitorMut<'ast> for BindingCollectorVisitor<'_> {
         ControlFlow::Continue(())
     }
 
-    fn visit_module_mut(&mut self, node: &'ast mut Module) -> ControlFlow<Self::BreakTy> {
+    fn visit_module_mut(&mut self, node: &'ast mut Module<'arena>) -> ControlFlow<Self::BreakTy> {
         let mut scope = Scope::new(self.scope.clone(), true);
         module_instantiation(node, &scope, self.interner);
         std::mem::swap(&mut self.scope, &mut scope);
@@ -1152,7 +1170,7 @@ impl<'ast> VisitorMut<'ast> for BindingCollectorVisitor<'_> {
         ControlFlow::Continue(())
     }
 
-    fn visit_script_mut(&mut self, node: &'ast mut Script) -> ControlFlow<Self::BreakTy> {
+    fn visit_script_mut(&mut self, node: &'ast mut Script<'arena>) -> ControlFlow<Self::BreakTy> {
         if self.eval {
             self.visit_statement_list_mut(node.statements_mut())?;
         } else {
@@ -1167,12 +1185,12 @@ impl<'ast> VisitorMut<'ast> for BindingCollectorVisitor<'_> {
     }
 }
 
-impl BindingCollectorVisitor<'_> {
+impl<'arena> BindingCollectorVisitor<'_> {
     #[allow(clippy::too_many_arguments)]
     fn visit_function_like(
         &mut self,
-        body: &mut FunctionBody,
-        parameters: &mut FormalParameterList,
+        body: &mut FunctionBody<'arena>,
+        parameters: &mut FormalParameterList<'arena>,
         scopes: &mut FunctionScopes,
         name: Option<Identifier>,
         name_scope: &mut Option<Scope>,
@@ -1222,9 +1240,9 @@ impl BindingCollectorVisitor<'_> {
 }
 
 /// Optimize scope indices when scopes only contain local bindings.
-pub(crate) fn optimize_scope_indices<'a, N>(node: &'a mut N, scope: &Scope)
+pub(crate) fn optimize_scope_indices<'a, 'arena: 'a, N>(node: &'a mut N, scope: &Scope)
 where
-    &'a mut N: Into<NodeRefMut<'a>>,
+    &'a mut N: Into<NodeRefMut<'a, 'arena>>,
 {
     let mut visitor = ScopeIndexVisitor {
         index: scope.scope_index(),
@@ -1239,7 +1257,7 @@ where
 /// the optimizer must account for that even when the function scope would
 /// otherwise be elided.
 pub(crate) fn optimize_scope_indices_function_constructor(
-    node: &mut FunctionExpression,
+    node: &mut FunctionExpression<'_>,
     scope: &Scope,
 ) {
     let mut visitor = ScopeIndexVisitor {
@@ -1260,12 +1278,12 @@ struct ScopeIndexVisitor {
     index: u32,
 }
 
-impl<'ast> VisitorMut<'ast> for ScopeIndexVisitor {
+impl<'ast, 'arena: 'ast> VisitorMut<'ast, 'arena> for ScopeIndexVisitor {
     type BreakTy = ();
 
     fn visit_function_declaration_mut(
         &mut self,
-        node: &'ast mut FunctionDeclaration,
+        node: &'ast mut FunctionDeclaration<'arena>,
     ) -> ControlFlow<Self::BreakTy> {
         let contains_direct_eval = node.contains_direct_eval();
         self.visit_function_like(
@@ -1280,7 +1298,7 @@ impl<'ast> VisitorMut<'ast> for ScopeIndexVisitor {
 
     fn visit_generator_declaration_mut(
         &mut self,
-        node: &'ast mut GeneratorDeclaration,
+        node: &'ast mut GeneratorDeclaration<'arena>,
     ) -> ControlFlow<Self::BreakTy> {
         let contains_direct_eval = node.contains_direct_eval();
         self.visit_function_like(
@@ -1295,7 +1313,7 @@ impl<'ast> VisitorMut<'ast> for ScopeIndexVisitor {
 
     fn visit_async_function_declaration_mut(
         &mut self,
-        node: &'ast mut AsyncFunctionDeclaration,
+        node: &'ast mut AsyncFunctionDeclaration<'arena>,
     ) -> ControlFlow<Self::BreakTy> {
         let contains_direct_eval = node.contains_direct_eval();
         self.visit_function_like(
@@ -1310,7 +1328,7 @@ impl<'ast> VisitorMut<'ast> for ScopeIndexVisitor {
 
     fn visit_async_generator_declaration_mut(
         &mut self,
-        node: &'ast mut AsyncGeneratorDeclaration,
+        node: &'ast mut AsyncGeneratorDeclaration<'arena>,
     ) -> ControlFlow<Self::BreakTy> {
         let contains_direct_eval = node.contains_direct_eval();
         self.visit_function_like(
@@ -1325,7 +1343,7 @@ impl<'ast> VisitorMut<'ast> for ScopeIndexVisitor {
 
     fn visit_function_expression_mut(
         &mut self,
-        node: &'ast mut FunctionExpression,
+        node: &'ast mut FunctionExpression<'arena>,
     ) -> ControlFlow<Self::BreakTy> {
         let contains_direct_eval = node.contains_direct_eval();
         self.visit_function_like(
@@ -1340,7 +1358,7 @@ impl<'ast> VisitorMut<'ast> for ScopeIndexVisitor {
 
     fn visit_generator_expression_mut(
         &mut self,
-        node: &'ast mut GeneratorExpression,
+        node: &'ast mut GeneratorExpression<'arena>,
     ) -> ControlFlow<Self::BreakTy> {
         let contains_direct_eval = node.contains_direct_eval();
         self.visit_function_like(
@@ -1355,7 +1373,7 @@ impl<'ast> VisitorMut<'ast> for ScopeIndexVisitor {
 
     fn visit_async_function_expression_mut(
         &mut self,
-        node: &'ast mut AsyncFunctionExpression,
+        node: &'ast mut AsyncFunctionExpression<'arena>,
     ) -> ControlFlow<Self::BreakTy> {
         let contains_direct_eval = node.contains_direct_eval();
         self.visit_function_like(
@@ -1370,7 +1388,7 @@ impl<'ast> VisitorMut<'ast> for ScopeIndexVisitor {
 
     fn visit_async_generator_expression_mut(
         &mut self,
-        node: &'ast mut AsyncGeneratorExpression,
+        node: &'ast mut AsyncGeneratorExpression<'arena>,
     ) -> ControlFlow<Self::BreakTy> {
         let contains_direct_eval = node.contains_direct_eval();
         self.visit_function_like(
@@ -1385,7 +1403,7 @@ impl<'ast> VisitorMut<'ast> for ScopeIndexVisitor {
 
     fn visit_arrow_function_mut(
         &mut self,
-        node: &'ast mut ArrowFunction,
+        node: &'ast mut ArrowFunction<'arena>,
     ) -> ControlFlow<Self::BreakTy> {
         let contains_direct_eval = node.contains_direct_eval();
         self.visit_function_like(
@@ -1400,7 +1418,7 @@ impl<'ast> VisitorMut<'ast> for ScopeIndexVisitor {
 
     fn visit_async_arrow_function_mut(
         &mut self,
-        node: &'ast mut AsyncArrowFunction,
+        node: &'ast mut AsyncArrowFunction<'arena>,
     ) -> ControlFlow<Self::BreakTy> {
         let contains_direct_eval = node.contains_direct_eval();
         self.visit_function_like(
@@ -1415,7 +1433,7 @@ impl<'ast> VisitorMut<'ast> for ScopeIndexVisitor {
 
     fn visit_class_declaration_mut(
         &mut self,
-        node: &'ast mut ClassDeclaration,
+        node: &'ast mut ClassDeclaration<'arena>,
     ) -> ControlFlow<Self::BreakTy> {
         let index = self.index;
         if !node.name_scope.all_bindings_local() {
@@ -1445,7 +1463,7 @@ impl<'ast> VisitorMut<'ast> for ScopeIndexVisitor {
 
     fn visit_class_expression_mut(
         &mut self,
-        node: &'ast mut ClassExpression,
+        node: &'ast mut ClassExpression<'arena>,
     ) -> ControlFlow<Self::BreakTy> {
         let index = self.index;
         if let Some(scope) = &node.name_scope {
@@ -1476,7 +1494,7 @@ impl<'ast> VisitorMut<'ast> for ScopeIndexVisitor {
 
     fn visit_class_element_mut(
         &mut self,
-        node: &'ast mut ClassElement,
+        node: &'ast mut ClassElement<'arena>,
     ) -> ControlFlow<Self::BreakTy> {
         match node {
             ClassElement::MethodDefinition(node) => {
@@ -1525,7 +1543,7 @@ impl<'ast> VisitorMut<'ast> for ScopeIndexVisitor {
 
     fn visit_object_method_definition_mut(
         &mut self,
-        node: &'ast mut ObjectMethodDefinition,
+        node: &'ast mut ObjectMethodDefinition<'arena>,
     ) -> ControlFlow<Self::BreakTy> {
         match &mut node.name {
             PropertyName::Literal(_) => {}
@@ -1544,7 +1562,7 @@ impl<'ast> VisitorMut<'ast> for ScopeIndexVisitor {
         )
     }
 
-    fn visit_block_mut(&mut self, node: &'ast mut Block) -> ControlFlow<Self::BreakTy> {
+    fn visit_block_mut(&mut self, node: &'ast mut Block<'arena>) -> ControlFlow<Self::BreakTy> {
         let index = self.index;
         if let Some(scope) = &node.scope {
             if !scope.all_bindings_local() {
@@ -1557,7 +1575,7 @@ impl<'ast> VisitorMut<'ast> for ScopeIndexVisitor {
         ControlFlow::Continue(())
     }
 
-    fn visit_switch_mut(&mut self, node: &'ast mut Switch) -> ControlFlow<Self::BreakTy> {
+    fn visit_switch_mut(&mut self, node: &'ast mut Switch<'arena>) -> ControlFlow<Self::BreakTy> {
         let index = self.index;
         self.visit_expression_mut(&mut node.val)?;
         if let Some(scope) = &node.scope {
@@ -1573,7 +1591,7 @@ impl<'ast> VisitorMut<'ast> for ScopeIndexVisitor {
         ControlFlow::Continue(())
     }
 
-    fn visit_with_mut(&mut self, node: &'ast mut With) -> ControlFlow<Self::BreakTy> {
+    fn visit_with_mut(&mut self, node: &'ast mut With<'arena>) -> ControlFlow<Self::BreakTy> {
         let index = self.index;
         self.visit_expression_mut(&mut node.expression)?;
         self.index += 1;
@@ -1583,7 +1601,7 @@ impl<'ast> VisitorMut<'ast> for ScopeIndexVisitor {
         ControlFlow::Continue(())
     }
 
-    fn visit_catch_mut(&mut self, node: &'ast mut Catch) -> ControlFlow<Self::BreakTy> {
+    fn visit_catch_mut(&mut self, node: &'ast mut Catch<'arena>) -> ControlFlow<Self::BreakTy> {
         let index = self.index;
         if !node.scope.all_bindings_local() {
             self.index += 1;
@@ -1597,7 +1615,10 @@ impl<'ast> VisitorMut<'ast> for ScopeIndexVisitor {
         ControlFlow::Continue(())
     }
 
-    fn visit_for_loop_mut(&mut self, node: &'ast mut ForLoop) -> ControlFlow<Self::BreakTy> {
+    fn visit_for_loop_mut(
+        &mut self,
+        node: &'ast mut ForLoop<'arena>,
+    ) -> ControlFlow<Self::BreakTy> {
         let index = self.index;
         if let Some(ForLoopInitializer::Lexical(decl)) = &mut node.inner.init {
             if !decl.scope.all_bindings_local() {
@@ -1619,7 +1640,10 @@ impl<'ast> VisitorMut<'ast> for ScopeIndexVisitor {
         ControlFlow::Continue(())
     }
 
-    fn visit_for_in_loop_mut(&mut self, node: &'ast mut ForInLoop) -> ControlFlow<Self::BreakTy> {
+    fn visit_for_in_loop_mut(
+        &mut self,
+        node: &'ast mut ForInLoop<'arena>,
+    ) -> ControlFlow<Self::BreakTy> {
         {
             let index = self.index;
             if let Some(scope) = &node.target_scope {
@@ -1644,7 +1668,10 @@ impl<'ast> VisitorMut<'ast> for ScopeIndexVisitor {
         ControlFlow::Continue(())
     }
 
-    fn visit_for_of_loop_mut(&mut self, node: &'ast mut ForOfLoop) -> ControlFlow<Self::BreakTy> {
+    fn visit_for_of_loop_mut(
+        &mut self,
+        node: &'ast mut ForOfLoop<'arena>,
+    ) -> ControlFlow<Self::BreakTy> {
         {
             let index = self.index;
             if let Some(scope) = &node.iterable_scope {
@@ -1670,11 +1697,11 @@ impl<'ast> VisitorMut<'ast> for ScopeIndexVisitor {
     }
 }
 
-impl ScopeIndexVisitor {
+impl<'arena> ScopeIndexVisitor {
     fn visit_function_like(
         &mut self,
-        body: &mut FunctionBody,
-        parameters: &mut FormalParameterList,
+        body: &mut FunctionBody<'arena>,
+        parameters: &mut FormalParameterList<'arena>,
         scopes: &mut FunctionScopes,
         name_scope: &mut Option<Scope>,
         arrow: bool,
@@ -1738,7 +1765,7 @@ impl ScopeIndexVisitor {
 ///
 /// - If a duplicate lexical declaration is found.
 fn global_declaration_instantiation(
-    script: &Script,
+    script: &Script<'_>,
     env: &Scope,
     interner: &Interner,
 ) -> Result<(), &'static str> {
@@ -1814,13 +1841,13 @@ fn global_declaration_instantiation(
 ///  - [ECMAScript reference][spec]
 ///
 /// [spec]: https://tc39.es/ecma262/#sec-blockdeclarationinstantiation
-fn block_declaration_instantiation<'a, N>(
+fn block_declaration_instantiation<'a, 'arena: 'a, N>(
     block: &'a N,
     scope: Scope,
     interner: &Interner,
 ) -> Option<Scope>
 where
-    &'a N: Into<NodeRef<'a>>,
+    &'a N: Into<NodeRef<'a, 'arena>>,
 {
     let scope = Scope::new(scope, false);
 
@@ -1835,7 +1862,7 @@ where
         // i. If IsConstantDeclaration of d is true, then
         if let LexicallyScopedDeclaration::LexicalDeclaration(LexicalDeclaration::Const(d)) = d {
             // a. For each element dn of the BoundNames of d, do
-            for dn in bound_names::<'_, VariableList>(d) {
+            for dn in bound_names::<'_, 'arena, VariableList<'arena>>(d) {
                 // 1. Perform ! env.CreateImmutableBinding(dn, true).
                 let dn = dn.to_js_string(interner);
                 scope.create_immutable_binding(dn, true);
@@ -1874,9 +1901,9 @@ where
 ///  - [ECMAScript reference][spec]
 ///
 /// [spec]: https://tc39.es/ecma262/#sec-functiondeclarationinstantiation
-fn function_declaration_instantiation(
-    body: &FunctionBody,
-    formals: &FormalParameterList,
+fn function_declaration_instantiation<'arena>(
+    body: &FunctionBody<'arena>,
+    formals: &FormalParameterList<'arena>,
     arrow: bool,
     strict: bool,
     function_scope: Scope,
@@ -2201,7 +2228,7 @@ fn function_declaration_instantiation(
 /// Abstract operation [`InitializeEnvironment ( )`][spec].
 ///
 /// [spec]: https://tc39.es/ecma262/#sec-source-text-module-record-initialize-environment
-fn module_instantiation(module: &Module, env: &Scope, interner: &Interner) {
+fn module_instantiation(module: &Module<'_>, env: &Scope, interner: &Interner) {
     for entry in module.items().import_entries() {
         let local_name = entry.local_name().to_js_string(interner);
         env.create_immutable_binding(local_name, true);
@@ -2291,7 +2318,7 @@ pub struct EvalDeclarationBindings {
 /// * Returns a syntax error if a variable declaration in an eval function already exists as a lexical variable.
 #[allow(clippy::missing_panics_doc)]
 pub(crate) fn eval_declaration_instantiation_scope(
-    body: &Script,
+    body: &Script<'_>,
     strict: bool,
     var_env: &Scope,
     lex_env: &Scope,

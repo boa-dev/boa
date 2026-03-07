@@ -48,12 +48,13 @@ use boa_interner::Interner;
 /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Guide/Expressions_and_Operators#Left-hand-side_expressions
 /// [spec]: https://tc39.es/ecma262/#prod-LeftHandSideExpression
 #[derive(Debug, Clone, Copy)]
-pub(in crate::parser) struct LeftHandSideExpression {
+pub(in crate::parser) struct LeftHandSideExpression<'arena> {
     allow_yield: AllowYield,
     allow_await: AllowAwait,
+    _marker: std::marker::PhantomData<&'arena ()>,
 }
 
-impl LeftHandSideExpression {
+impl LeftHandSideExpression<'_> {
     /// Creates a new `LeftHandSideExpression` parser.
     pub(in crate::parser) fn new<Y, A>(allow_yield: Y, allow_await: A) -> Self
     where
@@ -63,15 +64,16 @@ impl LeftHandSideExpression {
         Self {
             allow_yield: allow_yield.into(),
             allow_await: allow_await.into(),
+            _marker: std::marker::PhantomData,
         }
     }
 }
 
-impl<R> TokenParser<R> for LeftHandSideExpression
+impl<'arena, R> TokenParser<'arena, R> for LeftHandSideExpression<'arena>
 where
     R: ReadChar,
 {
-    type Output = FormalParameterListOrExpression;
+    type Output = FormalParameterListOrExpression<'arena>;
 
     fn parse(self, cursor: &mut Cursor<R>, interner: &mut Interner) -> ParseResult<Self::Output> {
         /// Checks if we need to parse a keyword call expression `keyword()`.
@@ -114,7 +116,7 @@ where
 
         cursor.set_goal(InputElement::TemplateTail);
 
-        let mut lhs: FormalParameterListOrExpression =
+        let mut lhs: FormalParameterListOrExpression<'_> =
             if let Some(start) = is_keyword_call(Keyword::Super, cursor, interner)? {
                 cursor.advance(interner);
                 let (args, args_span) =

@@ -4,9 +4,9 @@ use boa_ast::{
     statement::{Labelled, LabelledItem},
 };
 
-impl ByteCompiler<'_> {
+impl<'arena> ByteCompiler<'arena, '_> {
     /// Compile a [`Labelled`] `boa_ast` node
-    pub(crate) fn compile_labelled(&mut self, labelled: &Labelled, use_expr: bool) {
+    pub(crate) fn compile_labelled(&mut self, labelled: &'arena Labelled<'arena>, use_expr: bool) {
         let labelled_loc = self.next_opcode_location();
         self.push_labelled_control_info(labelled.label(), labelled_loc, use_expr);
 

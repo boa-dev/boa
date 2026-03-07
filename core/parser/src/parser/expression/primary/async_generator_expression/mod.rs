@@ -35,21 +35,25 @@ use boa_interner::{Interner, Sym};
 ///
 /// [spec]: https://tc39.es/ecma262/#prod-AsyncGeneratorExpression
 #[derive(Debug, Clone, Copy)]
-pub(super) struct AsyncGeneratorExpression {}
+pub(super) struct AsyncGeneratorExpression<'arena> {
+    _marker: std::marker::PhantomData<&'arena ()>,
+}
 
-impl AsyncGeneratorExpression {
+impl AsyncGeneratorExpression<'_> {
     /// Creates a new `AsyncGeneratorExpression` parser.
     pub(in crate::parser) fn new() -> Self {
-        Self {}
+        Self {
+            _marker: std::marker::PhantomData,
+        }
     }
 }
 
-impl<R> TokenParser<R> for AsyncGeneratorExpression
+impl<'arena, R> TokenParser<'arena, R> for AsyncGeneratorExpression<'arena>
 where
     R: ReadChar,
 {
     //The below needs to be implemented in ast::node
-    type Output = AsyncGeneratorExpressionNode;
+    type Output = AsyncGeneratorExpressionNode<'arena>;
 
     fn parse(self, cursor: &mut Cursor<R>, interner: &mut Interner) -> ParseResult<Self::Output> {
         let token = cursor.expect(

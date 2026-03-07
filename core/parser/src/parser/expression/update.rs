@@ -33,12 +33,13 @@ use boa_interner::Interner;
 ///
 /// [spec]: https://tc39.es/ecma262/#prod-UpdateExpression
 #[derive(Debug, Clone, Copy)]
-pub(super) struct UpdateExpression {
+pub(super) struct UpdateExpression<'arena> {
     allow_yield: AllowYield,
     allow_await: AllowAwait,
+    _marker: std::marker::PhantomData<&'arena ()>,
 }
 
-impl UpdateExpression {
+impl UpdateExpression<'_> {
     /// Creates a new `UpdateExpression` parser.
     pub(super) fn new<Y, A>(allow_yield: Y, allow_await: A) -> Self
     where
@@ -48,6 +49,7 @@ impl UpdateExpression {
         Self {
             allow_yield: allow_yield.into(),
             allow_await: allow_await.into(),
+            _marker: std::marker::PhantomData,
         }
     }
 }
@@ -58,11 +60,11 @@ impl UpdateExpression {
 ///  - [ECMAScript specification][spec]
 ///
 /// [spec]: https://tc39.es/ecma262/#sec-static-semantics-assignmenttargettype
-fn as_simple(
-    expr: &Expression,
+fn as_simple<'arena>(
+    expr: &Expression<'arena>,
     position: Position,
     strict: bool,
-) -> ParseResult<Option<UpdateTarget>> {
+) -> ParseResult<Option<UpdateTarget<'arena>>> {
     match expr {
         Expression::Identifier(ident) => {
             if strict {
@@ -78,11 +80,11 @@ fn as_simple(
     }
 }
 
-impl<R> TokenParser<R> for UpdateExpression
+impl<'arena, R> TokenParser<'arena, R> for UpdateExpression<'arena>
 where
     R: ReadChar,
 {
-    type Output = FormalParameterListOrExpression;
+    type Output = FormalParameterListOrExpression<'arena>;
 
     fn parse(self, cursor: &mut Cursor<R>, interner: &mut Interner) -> ParseResult<Self::Output> {
         let tok = cursor.peek(0, interner).or_abrupt()?;

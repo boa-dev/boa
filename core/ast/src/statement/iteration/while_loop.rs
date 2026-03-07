@@ -20,16 +20,16 @@ use core::ops::ControlFlow;
 #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
 #[cfg_attr(feature = "arbitrary", derive(arbitrary::Arbitrary))]
 #[derive(Clone, Debug, PartialEq)]
-pub struct WhileLoop {
-    condition: Expression,
-    body: Box<Statement>,
+pub struct WhileLoop<'arena> {
+    condition: Expression<'arena>,
+    body: Box<Statement<'arena>>,
 }
 
-impl WhileLoop {
+impl<'arena> WhileLoop<'arena> {
     /// Creates a `WhileLoop` AST node.
     #[inline]
     #[must_use]
-    pub fn new(condition: Expression, body: Statement) -> Self {
+    pub fn new(condition: Expression<'arena>, body: Statement<'arena>) -> Self {
         Self {
             condition,
             body: body.into(),
@@ -39,19 +39,19 @@ impl WhileLoop {
     /// Gets the condition of the while loop.
     #[inline]
     #[must_use]
-    pub const fn condition(&self) -> &Expression {
+    pub const fn condition(&self) -> &Expression<'arena> {
         &self.condition
     }
 
     /// Gets the body of the while loop.
     #[inline]
     #[must_use]
-    pub const fn body(&self) -> &Statement {
+    pub const fn body(&self) -> &Statement<'arena> {
         &self.body
     }
 }
 
-impl ToIndentedString for WhileLoop {
+impl ToIndentedString for WhileLoop<'_> {
     fn to_indented_string(&self, interner: &Interner, indentation: usize) -> String {
         format!(
             "while ({}) {}",
@@ -61,17 +61,17 @@ impl ToIndentedString for WhileLoop {
     }
 }
 
-impl From<WhileLoop> for Statement {
+impl<'arena> From<WhileLoop<'arena>> for Statement<'arena> {
     #[inline]
-    fn from(while_loop: WhileLoop) -> Self {
+    fn from(while_loop: WhileLoop<'arena>) -> Self {
         Self::WhileLoop(while_loop)
     }
 }
 
-impl VisitWith for WhileLoop {
+impl<'arena> VisitWith<'arena> for WhileLoop<'arena> {
     fn visit_with<'a, V>(&'a self, visitor: &mut V) -> ControlFlow<V::BreakTy>
     where
-        V: Visitor<'a>,
+        V: Visitor<'a, 'arena>,
     {
         visitor.visit_expression(&self.condition)?;
         visitor.visit_statement(&self.body)
@@ -79,7 +79,7 @@ impl VisitWith for WhileLoop {
 
     fn visit_with_mut<'a, V>(&'a mut self, visitor: &mut V) -> ControlFlow<V::BreakTy>
     where
-        V: VisitorMut<'a>,
+        V: VisitorMut<'a, 'arena>,
     {
         visitor.visit_expression_mut(&mut self.condition)?;
         visitor.visit_statement_mut(&mut self.body)

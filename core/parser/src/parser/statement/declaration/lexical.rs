@@ -30,14 +30,15 @@ use rustc_hash::FxHashSet;
 ///
 /// [spec]: https://tc39.es/ecma262/#prod-LexicalDeclaration
 #[derive(Debug, Clone, Copy)]
-pub(in crate::parser) struct LexicalDeclaration {
+pub(in crate::parser) struct LexicalDeclaration<'arena> {
     allow_in: AllowIn,
     allow_yield: AllowYield,
     allow_await: AllowAwait,
     loop_init: bool,
+    _marker: std::marker::PhantomData<&'arena ()>,
 }
 
-impl LexicalDeclaration {
+impl LexicalDeclaration<'_> {
     /// Creates a new `LexicalDeclaration` parser.
     pub(in crate::parser) fn new<I, Y, A>(
         allow_in: I,
@@ -55,15 +56,16 @@ impl LexicalDeclaration {
             allow_yield: allow_yield.into(),
             allow_await: allow_await.into(),
             loop_init,
+            _marker: std::marker::PhantomData,
         }
     }
 }
 
-impl<R> TokenParser<R> for LexicalDeclaration
+impl<'arena, R> TokenParser<'arena, R> for LexicalDeclaration<'arena>
 where
     R: ReadChar,
 {
-    type Output = ast::declaration::LexicalDeclaration;
+    type Output = ast::declaration::LexicalDeclaration<'arena>;
 
     fn parse(self, cursor: &mut Cursor<R>, interner: &mut Interner) -> ParseResult<Self::Output> {
         let tok = cursor.next(interner).or_abrupt()?;
@@ -146,15 +148,16 @@ pub(crate) fn allowed_token_after_let(token: Option<&Token>) -> bool {
 ///
 /// [spec]: https://tc39.es/ecma262/#prod-BindingList
 #[derive(Debug, Clone, Copy)]
-struct BindingList {
+struct BindingList<'arena> {
     allow_in: AllowIn,
     allow_yield: AllowYield,
     allow_await: AllowAwait,
     is_const: bool,
     loop_init: bool,
+    _marker: std::marker::PhantomData<&'arena ()>,
 }
 
-impl BindingList {
+impl BindingList<'_> {
     /// Creates a new `BindingList` parser.
     fn new<I, Y, A>(
         allow_in: I,
@@ -174,15 +177,16 @@ impl BindingList {
             allow_await: allow_await.into(),
             is_const,
             loop_init,
+            _marker: std::marker::PhantomData,
         }
     }
 }
 
-impl<R> TokenParser<R> for BindingList
+impl<'arena, R> TokenParser<'arena, R> for BindingList<'arena>
 where
     R: ReadChar,
 {
-    type Output = ast::declaration::LexicalDeclaration;
+    type Output = ast::declaration::LexicalDeclaration<'arena>;
 
     fn parse(self, cursor: &mut Cursor<R>, interner: &mut Interner) -> ParseResult<Self::Output> {
         // Create vectors to store the variable declarations
@@ -263,13 +267,14 @@ where
 ///  - [ECMAScript specification][spec]
 ///
 /// [spec]: https://tc39.es/ecma262/#prod-LexicalBinding
-struct LexicalBinding {
+struct LexicalBinding<'arena> {
     allow_in: AllowIn,
     allow_yield: AllowYield,
     allow_await: AllowAwait,
+    _marker: std::marker::PhantomData<&'arena ()>,
 }
 
-impl LexicalBinding {
+impl LexicalBinding<'_> {
     /// Creates a new `BindingList` parser.
     fn new<I, Y, A>(allow_in: I, allow_yield: Y, allow_await: A) -> Self
     where
@@ -281,15 +286,16 @@ impl LexicalBinding {
             allow_in: allow_in.into(),
             allow_yield: allow_yield.into(),
             allow_await: allow_await.into(),
+            _marker: std::marker::PhantomData,
         }
     }
 }
 
-impl<R> TokenParser<R> for LexicalBinding
+impl<'arena, R> TokenParser<'arena, R> for LexicalBinding<'arena>
 where
     R: ReadChar,
 {
-    type Output = Variable;
+    type Output = Variable<'arena>;
 
     fn parse(self, cursor: &mut Cursor<R>, interner: &mut Interner) -> ParseResult<Self::Output> {
         let peek_token = cursor.peek(0, interner).or_abrupt()?;

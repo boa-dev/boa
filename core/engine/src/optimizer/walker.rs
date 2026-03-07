@@ -6,23 +6,29 @@ use boa_ast::{
 use std::{convert::Infallible, ops::ControlFlow};
 
 /// The utility structure that traverses the AST.
-pub(crate) struct Walker<F>
+pub(crate) struct Walker<'arena, F>
 where
-    F: FnMut(&mut Expression) -> PassAction<Expression>,
+    F: FnMut(&mut Expression<'arena>) -> PassAction<Expression<'arena>>,
 {
     /// The function to be applied to the node.
     f: F,
 
     /// Did a change happen while traversing.
     changed: bool,
+
+    _phantom: std::marker::PhantomData<&'arena ()>,
 }
 
-impl<F> Walker<F>
+impl<'arena, F> Walker<'arena, F>
 where
-    F: FnMut(&mut Expression) -> PassAction<Expression>,
+    F: FnMut(&mut Expression<'arena>) -> PassAction<Expression<'arena>>,
 {
     pub(crate) const fn new(f: F) -> Self {
-        Self { f, changed: false }
+        Self {
+            f,
+            changed: false,
+            _phantom: std::marker::PhantomData,
+        }
     }
 
     pub(crate) const fn changed(&self) -> bool {
@@ -30,19 +36,22 @@ where
     }
 
     /// Walk the AST in postorder.
-    pub(crate) fn walk_expression_postorder(&mut self, expr: &mut Expression) {
+    pub(crate) fn walk_expression_postorder(&mut self, expr: &mut Expression<'arena>) {
         let _ = self.visit_expression_mut(expr);
     }
 }
 
-impl<'ast, F> VisitorMut<'ast> for Walker<F>
+impl<'ast, 'arena: 'ast, F> VisitorMut<'ast, 'arena> for Walker<'arena, F>
 where
-    F: FnMut(&mut Expression) -> PassAction<Expression>,
+    F: FnMut(&mut Expression<'arena>) -> PassAction<Expression<'arena>>,
 {
     type BreakTy = Infallible;
 
     /// Visits the tree in postorder.
-    fn visit_expression_mut(&mut self, expr: &'ast mut Expression) -> ControlFlow<Self::BreakTy> {
+    fn visit_expression_mut(
+        &mut self,
+        expr: &'ast mut Expression<'arena>,
+    ) -> ControlFlow<Self::BreakTy> {
         expr.visit_with_mut(self)?;
 
         match (self.f)(expr) {

@@ -24,10 +24,10 @@ use core::{fmt::Write as _, ops::ControlFlow};
 #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
 #[cfg_attr(feature = "arbitrary", derive(arbitrary::Arbitrary))]
 #[derive(Clone, Debug, PartialEq)]
-pub struct AsyncGeneratorDeclaration {
+pub struct AsyncGeneratorDeclaration<'arena> {
     name: Identifier,
-    pub(crate) parameters: FormalParameterList,
-    pub(crate) body: FunctionBody,
+    pub(crate) parameters: FormalParameterList<'arena>,
+    pub(crate) body: FunctionBody<'arena>,
     pub(crate) contains_direct_eval: bool,
 
     #[cfg_attr(feature = "serde", serde(skip))]
@@ -35,14 +35,14 @@ pub struct AsyncGeneratorDeclaration {
     linear_span: LinearSpanIgnoreEq,
 }
 
-impl AsyncGeneratorDeclaration {
+impl<'arena> AsyncGeneratorDeclaration<'arena> {
     /// Creates a new async generator declaration.
     #[inline]
     #[must_use]
     pub fn new(
         name: Identifier,
-        parameters: FormalParameterList,
-        body: FunctionBody,
+        parameters: FormalParameterList<'arena>,
+        body: FunctionBody<'arena>,
         linear_span: LinearSpan,
     ) -> Self {
         let contains_direct_eval = contains(&parameters, ContainsSymbol::DirectEval)
@@ -67,14 +67,14 @@ impl AsyncGeneratorDeclaration {
     /// Gets the list of parameters of the async generator declaration.
     #[inline]
     #[must_use]
-    pub const fn parameters(&self) -> &FormalParameterList {
+    pub const fn parameters(&self) -> &FormalParameterList<'arena> {
         &self.parameters
     }
 
     /// Gets the body of the async generator declaration.
     #[inline]
     #[must_use]
-    pub const fn body(&self) -> &FunctionBody {
+    pub const fn body(&self) -> &FunctionBody<'arena> {
         &self.body
     }
 
@@ -100,7 +100,7 @@ impl AsyncGeneratorDeclaration {
     }
 }
 
-impl ToIndentedString for AsyncGeneratorDeclaration {
+impl ToIndentedString for AsyncGeneratorDeclaration<'_> {
     fn to_indented_string(&self, interner: &Interner, indentation: usize) -> String {
         format!(
             "async function* {}({}) {}",
@@ -111,10 +111,10 @@ impl ToIndentedString for AsyncGeneratorDeclaration {
     }
 }
 
-impl VisitWith for AsyncGeneratorDeclaration {
+impl<'arena> VisitWith<'arena> for AsyncGeneratorDeclaration<'arena> {
     fn visit_with<'a, V>(&'a self, visitor: &mut V) -> ControlFlow<V::BreakTy>
     where
-        V: Visitor<'a>,
+        V: Visitor<'a, 'arena>,
     {
         visitor.visit_identifier(&self.name)?;
         visitor.visit_formal_parameter_list(&self.parameters)?;
@@ -123,7 +123,7 @@ impl VisitWith for AsyncGeneratorDeclaration {
 
     fn visit_with_mut<'a, V>(&'a mut self, visitor: &mut V) -> ControlFlow<V::BreakTy>
     where
-        V: VisitorMut<'a>,
+        V: VisitorMut<'a, 'arena>,
     {
         visitor.visit_identifier_mut(&mut self.name)?;
         visitor.visit_formal_parameter_list_mut(&mut self.parameters)?;
@@ -131,9 +131,9 @@ impl VisitWith for AsyncGeneratorDeclaration {
     }
 }
 
-impl From<AsyncGeneratorDeclaration> for Declaration {
+impl<'arena> From<AsyncGeneratorDeclaration<'arena>> for Declaration<'arena> {
     #[inline]
-    fn from(f: AsyncGeneratorDeclaration) -> Self {
+    fn from(f: AsyncGeneratorDeclaration<'arena>) -> Self {
         Self::AsyncGeneratorDeclaration(f)
     }
 }
@@ -149,10 +149,10 @@ impl From<AsyncGeneratorDeclaration> for Declaration {
 #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
 #[cfg_attr(feature = "arbitrary", derive(arbitrary::Arbitrary))]
 #[derive(Clone, Debug, PartialEq)]
-pub struct AsyncGeneratorExpression {
+pub struct AsyncGeneratorExpression<'arena> {
     pub(crate) name: Option<Identifier>,
-    pub(crate) parameters: FormalParameterList,
-    pub(crate) body: FunctionBody,
+    pub(crate) parameters: FormalParameterList<'arena>,
+    pub(crate) body: FunctionBody<'arena>,
     pub(crate) has_binding_identifier: bool,
     pub(crate) contains_direct_eval: bool,
 
@@ -166,14 +166,14 @@ pub struct AsyncGeneratorExpression {
     span: Span,
 }
 
-impl AsyncGeneratorExpression {
+impl<'arena> AsyncGeneratorExpression<'arena> {
     /// Creates a new async generator expression.
     #[inline]
     #[must_use]
     pub fn new(
         name: Option<Identifier>,
-        parameters: FormalParameterList,
-        body: FunctionBody,
+        parameters: FormalParameterList<'arena>,
+        body: FunctionBody<'arena>,
         linear_span: LinearSpan,
         has_binding_identifier: bool,
         span: Span,
@@ -203,14 +203,14 @@ impl AsyncGeneratorExpression {
     /// Gets the list of parameters of the async generator expression.
     #[inline]
     #[must_use]
-    pub const fn parameters(&self) -> &FormalParameterList {
+    pub const fn parameters(&self) -> &FormalParameterList<'arena> {
         &self.parameters
     }
 
     /// Gets the body of the async generator expression.
     #[inline]
     #[must_use]
-    pub const fn body(&self) -> &FunctionBody {
+    pub const fn body(&self) -> &FunctionBody<'arena> {
         &self.body
     }
 
@@ -250,14 +250,14 @@ impl AsyncGeneratorExpression {
     }
 }
 
-impl Spanned for AsyncGeneratorExpression {
+impl Spanned for AsyncGeneratorExpression<'_> {
     #[inline]
     fn span(&self) -> Span {
         self.span
     }
 }
 
-impl ToIndentedString for AsyncGeneratorExpression {
+impl ToIndentedString for AsyncGeneratorExpression<'_> {
     fn to_indented_string(&self, interner: &Interner, indentation: usize) -> String {
         let mut buf = "async function*".to_owned();
         if self.has_binding_identifier
@@ -276,17 +276,17 @@ impl ToIndentedString for AsyncGeneratorExpression {
     }
 }
 
-impl From<AsyncGeneratorExpression> for Expression {
+impl<'arena> From<AsyncGeneratorExpression<'arena>> for Expression<'arena> {
     #[inline]
-    fn from(expr: AsyncGeneratorExpression) -> Self {
+    fn from(expr: AsyncGeneratorExpression<'arena>) -> Self {
         Self::AsyncGeneratorExpression(expr)
     }
 }
 
-impl VisitWith for AsyncGeneratorExpression {
+impl<'arena> VisitWith<'arena> for AsyncGeneratorExpression<'arena> {
     fn visit_with<'a, V>(&'a self, visitor: &mut V) -> ControlFlow<V::BreakTy>
     where
-        V: Visitor<'a>,
+        V: Visitor<'a, 'arena>,
     {
         if let Some(ident) = &self.name {
             visitor.visit_identifier(ident)?;
@@ -297,7 +297,7 @@ impl VisitWith for AsyncGeneratorExpression {
 
     fn visit_with_mut<'a, V>(&'a mut self, visitor: &mut V) -> ControlFlow<V::BreakTy>
     where
-        V: VisitorMut<'a>,
+        V: VisitorMut<'a, 'arena>,
     {
         if let Some(ident) = &mut self.name {
             visitor.visit_identifier_mut(ident)?;

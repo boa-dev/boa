@@ -38,17 +38,17 @@ enum StaticFieldName {
 
 /// Describes the complete specification of a class.
 #[derive(Debug, Clone, Copy, PartialEq)]
-pub(crate) struct ClassSpec<'a> {
+pub(crate) struct ClassSpec<'arena, 'a> {
     name: Option<Identifier>,
-    super_ref: Option<&'a Expression>,
-    constructor: Option<&'a FunctionExpression>,
-    elements: &'a [ClassElement],
+    super_ref: Option<&'a Expression<'arena>>,
+    constructor: Option<&'a FunctionExpression<'arena>>,
+    elements: &'a [ClassElement<'arena>],
     has_binding_identifier: bool,
     name_scope: Option<&'a Scope>,
 }
 
-impl<'a> From<&'a ClassDeclaration> for ClassSpec<'a> {
-    fn from(class: &'a ClassDeclaration) -> Self {
+impl<'arena, 'a> From<&'a ClassDeclaration<'arena>> for ClassSpec<'arena, 'a> {
+    fn from(class: &'a ClassDeclaration<'arena>) -> Self {
         Self {
             name: Some(class.name()),
             super_ref: class.super_ref(),
@@ -60,8 +60,8 @@ impl<'a> From<&'a ClassDeclaration> for ClassSpec<'a> {
     }
 }
 
-impl<'a> From<&'a ClassExpression> for ClassSpec<'a> {
-    fn from(class: &'a ClassExpression) -> Self {
+impl<'arena, 'a> From<&'a ClassExpression<'arena>> for ClassSpec<'arena, 'a> {
+    fn from(class: &'a ClassExpression<'arena>) -> Self {
         Self {
             name: class.name(),
             super_ref: class.super_ref(),
@@ -73,13 +73,17 @@ impl<'a> From<&'a ClassExpression> for ClassSpec<'a> {
     }
 }
 
-impl ByteCompiler<'_> {
+impl<'arena> ByteCompiler<'arena, '_> {
     /// This function compiles a class declaration or expression.
     ///
     /// The compilation of a class declaration and expression is mostly equal.
     /// A class declaration binds the resulting class object to it's identifier.
     /// A class expression leaves the resulting class object on the stack for following operations.
-    pub(crate) fn compile_class(&mut self, class: ClassSpec<'_>, dst: Option<&Register>) {
+    pub(crate) fn compile_class(
+        &mut self,
+        class: ClassSpec<'arena, 'arena>,
+        dst: Option<&Register>,
+    ) {
         // 11.2.2 Strict Mode Code - <https://tc39.es/ecma262/#sec-strict-mode-code>
         //  - All parts of a ClassDeclaration or a ClassExpression are strict mode code.
         let strict = self.strict();
@@ -611,9 +615,10 @@ impl ByteCompiler<'_> {
                     compiler.code_block_flags |= CodeBlockFlags::HAS_FUNCTION_SCOPE;
                     let _ = compiler.push_scope(block.scopes().function_scope());
 
+                    let default_params = FormalParameterList::default();
                     compiler.function_declaration_instantiation(
                         block.statements(),
-                        &FormalParameterList::default(),
+                        &default_params,
                         false,
                         true,
                         false,

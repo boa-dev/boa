@@ -46,13 +46,14 @@ use rustc_hash::{FxHashMap, FxHashSet};
 /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Statements/class
 /// [spec]: https://tc39.es/ecma262/#prod-ClassDeclaration
 #[derive(Debug, Clone, Copy)]
-pub(in crate::parser) struct ClassDeclaration {
+pub(in crate::parser) struct ClassDeclaration<'arena> {
     allow_yield: AllowYield,
     allow_await: AllowAwait,
     is_default: AllowDefault,
+    _marker: std::marker::PhantomData<&'arena ()>,
 }
 
-impl ClassDeclaration {
+impl ClassDeclaration<'_> {
     /// Creates a new `ClassDeclaration` parser.
     pub(in crate::parser) fn new<Y, A, D>(allow_yield: Y, allow_await: A, is_default: D) -> Self
     where
@@ -64,15 +65,16 @@ impl ClassDeclaration {
             allow_yield: allow_yield.into(),
             allow_await: allow_await.into(),
             is_default: is_default.into(),
+            _marker: std::marker::PhantomData,
         }
     }
 }
 
-impl<R> TokenParser<R> for ClassDeclaration
+impl<'arena, R> TokenParser<'arena, R> for ClassDeclaration<'arena>
 where
     R: ReadChar,
 {
-    type Output = ClassDeclarationNode;
+    type Output = ClassDeclarationNode<'arena>;
 
     fn parse(self, cursor: &mut Cursor<R>, interner: &mut Interner) -> ParseResult<Self::Output> {
         let span = cursor
@@ -122,13 +124,14 @@ where
 ///
 /// [spec]: https://tc39.es/ecma262/#prod-ClassTail
 #[derive(Debug, Clone, Copy)]
-pub(in crate::parser) struct ClassTail {
+pub(in crate::parser) struct ClassTail<'arena> {
     name: Option<Identifier>,
     allow_yield: AllowYield,
     allow_await: AllowAwait,
+    _marker: std::marker::PhantomData<&'arena ()>,
 }
 
-impl ClassTail {
+impl ClassTail<'_> {
     /// Creates a new `ClassTail` parser.
     pub(in crate::parser) fn new<N, Y, A>(name: N, allow_yield: Y, allow_await: A) -> Self
     where
@@ -140,18 +143,19 @@ impl ClassTail {
             name: name.into(),
             allow_yield: allow_yield.into(),
             allow_await: allow_await.into(),
+            _marker: std::marker::PhantomData,
         }
     }
 }
 
-impl<R> TokenParser<R> for ClassTail
+impl<'arena, R> TokenParser<'arena, R> for ClassTail<'arena>
 where
     R: ReadChar,
 {
     type Output = (
-        Option<Expression>,
-        Option<FunctionExpression>,
-        Vec<function::ClassElement>,
+        Option<Expression<'arena>>,
+        Option<FunctionExpression<'arena>>,
+        Vec<function::ClassElement<'arena>>,
         Position,
     );
 
@@ -215,12 +219,13 @@ where
 ///
 /// [spec]: https://tc39.es/ecma262/#prod-ClassHeritage
 #[derive(Debug, Clone, Copy)]
-pub(in crate::parser) struct ClassHeritage {
+pub(in crate::parser) struct ClassHeritage<'arena> {
     allow_yield: AllowYield,
     allow_await: AllowAwait,
+    _marker: std::marker::PhantomData<&'arena ()>,
 }
 
-impl ClassHeritage {
+impl ClassHeritage<'_> {
     /// Creates a new `ClassHeritage` parser.
     pub(in crate::parser) fn new<Y, A>(allow_yield: Y, allow_await: A) -> Self
     where
@@ -230,15 +235,16 @@ impl ClassHeritage {
         Self {
             allow_yield: allow_yield.into(),
             allow_await: allow_await.into(),
+            _marker: std::marker::PhantomData,
         }
     }
 }
 
-impl<R> TokenParser<R> for ClassHeritage
+impl<'arena, R> TokenParser<'arena, R> for ClassHeritage<'arena>
 where
     R: ReadChar,
 {
-    type Output = Expression;
+    type Output = Expression<'arena>;
 
     fn parse(self, cursor: &mut Cursor<R>, interner: &mut Interner) -> ParseResult<Self::Output> {
         cursor.expect(
@@ -265,13 +271,14 @@ where
 ///
 /// [spec]: https://tc39.es/ecma262/#prod-ClassBody
 #[derive(Debug, Clone, Copy)]
-pub(in crate::parser) struct ClassBody {
+pub(in crate::parser) struct ClassBody<'arena> {
     name: Option<Identifier>,
     allow_yield: AllowYield,
     allow_await: AllowAwait,
+    _marker: std::marker::PhantomData<&'arena ()>,
 }
 
-impl ClassBody {
+impl ClassBody<'_> {
     /// Creates a new `ClassBody` parser.
     pub(in crate::parser) fn new<N, Y, A>(name: N, allow_yield: Y, allow_await: A) -> Self
     where
@@ -283,15 +290,19 @@ impl ClassBody {
             name: name.into(),
             allow_yield: allow_yield.into(),
             allow_await: allow_await.into(),
+            _marker: std::marker::PhantomData,
         }
     }
 }
 
-impl<R> TokenParser<R> for ClassBody
+impl<'arena, R> TokenParser<'arena, R> for ClassBody<'arena>
 where
     R: ReadChar,
 {
-    type Output = (Option<FunctionExpression>, Vec<function::ClassElement>);
+    type Output = (
+        Option<FunctionExpression<'arena>>,
+        Vec<function::ClassElement<'arena>>,
+    );
 
     fn parse(self, cursor: &mut Cursor<R>, interner: &mut Interner) -> ParseResult<Self::Output> {
         let mut constructor = None;
@@ -504,13 +515,14 @@ pub(crate) enum PrivateElement {
 ///
 /// [spec]: https://tc39.es/ecma262/#prod-ClassElement
 #[derive(Debug, Clone, Copy)]
-pub(in crate::parser) struct ClassElement {
+pub(in crate::parser) struct ClassElement<'arena> {
     name: Option<Identifier>,
     allow_yield: AllowYield,
     allow_await: AllowAwait,
+    _marker: std::marker::PhantomData<&'arena ()>,
 }
 
-impl ClassElement {
+impl ClassElement<'_> {
     /// Creates a new `ClassElement` parser.
     pub(in crate::parser) fn new<N, Y, A>(name: N, allow_yield: Y, allow_await: A) -> Self
     where
@@ -522,15 +534,19 @@ impl ClassElement {
             name: name.into(),
             allow_yield: allow_yield.into(),
             allow_await: allow_await.into(),
+            _marker: std::marker::PhantomData,
         }
     }
 }
 
-impl<R> TokenParser<R> for ClassElement
+impl<'arena, R> TokenParser<'arena, R> for ClassElement<'arena>
 where
     R: ReadChar,
 {
-    type Output = (Option<FunctionExpression>, Option<function::ClassElement>);
+    type Output = (
+        Option<FunctionExpression<'arena>>,
+        Option<function::ClassElement<'arena>>,
+    );
 
     fn parse(self, cursor: &mut Cursor<R>, interner: &mut Interner) -> ParseResult<Self::Output> {
         let token = cursor.peek(0, interner).or_abrupt()?;
