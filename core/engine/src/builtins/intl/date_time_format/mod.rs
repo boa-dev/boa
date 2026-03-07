@@ -541,7 +541,7 @@ impl ToLocalTime {
         Ok(DateTime {
             date: Date::try_new_iso(self.year, self.month, self.day)
                 .ok()
-                .js_expect("TimeClip insures valid range.")?,
+                .js_expect("TimeClip ensures valid range.")?,
             time: Time::try_new(self.hour, self.minute, self.second, self.subsecond)
                 .ok()
                 .js_expect("valid values")?,
@@ -929,7 +929,8 @@ fn unwrap_date_time_format(
 ) -> JsResult<JsObject<DateTimeFormat>> {
     // 1. If Type(dtf) is not Object, throw a TypeError exception.
     let dtf_o = dtf.as_object().ok_or_else(|| {
-        JsNativeError::typ().with_message("value was not an `Intl.DateTimeFormat` object")
+        JsNativeError::typ()
+            .with_message("value was not an initialized `Intl.DateTimeFormat` object")
     })?;
 
     if let Ok(dtf) = dtf_o.clone().downcast::<DateTimeFormat>() {
@@ -964,6 +965,6 @@ fn unwrap_date_time_format(
     }
 
     Err(JsNativeError::typ()
-        .with_message("object was not an `Intl.DateTimeFormat` object")
+        .with_message("object was not an initialized `Intl.DateTimeFormat` object")
         .into())
 }
