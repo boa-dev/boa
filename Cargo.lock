@@ -2519,6 +2519,7 @@ dependencies = [
 name = "insta-bytecode"
 version = "1.0.0-dev"
 dependencies = [
+ "boa_engine",
  "insta",
 ]
 

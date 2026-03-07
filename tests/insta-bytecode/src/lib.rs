@@ -1,40 +1,19 @@
-use std::{
-    fs::File,
-    path::PathBuf,
-    process::{Command, Stdio},
-};
+use boa_engine::{Context, Script, Source};
 
 pub const MANIFEST_DIR: &str = env!("CARGO_MANIFEST_DIR");
 
-pub fn js_directory() -> PathBuf {
-    PathBuf::from(MANIFEST_DIR).join("js")
-}
-
-pub fn collect_file_trace(file_path: PathBuf) -> String {
-    let file_path_msg = file_path.to_string_lossy().to_string();
-    println!("Testing {}", file_path_msg);
-    let result = Command::new("boa")
-        .args(["--trace"])
-        .stdin(Stdio::from(File::open(file_path).unwrap()))
-        .output()
-        .unwrap();
-    if result.status.success() {
-        let full_trace = String::from_utf8_lossy(&result.stdout).to_string();
-        let (bytecode, _trace) = full_trace
-            .split_once("\n\n")
-            .expect("trace block should have two line breaks");
-        bytecode.to_owned()
-    } else {
-        let failure_msg = String::from_utf8_lossy(&result.stderr).to_string();
-        panic!("boa failed: {}", failure_msg);
-    }
+pub fn compile_bytecode(src: &'static str) -> String {
+    let context = &mut Context::default();
+    let source = Source::from_bytes(src);
+    let script = Script::parse(source, None, context).unwrap();
+    script.codeblock(context).unwrap().to_string()
 }
 
 macro_rules! test_case {
-    ($fn_name:ident, $js_filename:literal) => {
+    ($fn_name:ident, $js:literal) => {
         #[test]
         fn $fn_name() {
-            let output = collect_file_trace(js_directory().join("basicLoop.js"));
+            let output = compile_bytecode($js);
             insta::assert_snapshot!(output)
         }
     };
@@ -47,5 +26,21 @@ macro_rules! test_case {
 // The first arg is the function name / snapshot name
 // The second arg is the js filename
 //
-test_case!(basic_loop, "basicLoop.js");
-test_case!(double_loop_function, "doubleLoopFunction.js");
+test_case!(basic_loop, r"for (let i = 0; i < 100; ++i) {}");
+
+test_case!(
+    double_loop_function,
+    r"
+function f(x) {
+  return x * x;
+}
+
+for (let n = 0; n < 20; n++) {
+  for (let n = 0; n < 50; n++) {
+    f(n);
+  }
+}
+
+undefined;
+"
+);
