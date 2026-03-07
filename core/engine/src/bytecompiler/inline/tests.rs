@@ -286,3 +286,82 @@ fn no_inline_return_in_nested_function_is_ok() {
 }
 
 use crate::JsValue;
+
+// === Trivial return fast path ===
+
+#[test]
+fn trivial_return_flag_is_set() {
+    // Verify the TRIVIAL_RETURN flag is actually set on empty function code blocks.
+    use crate::{Context, Source, builtins::function::OrdinaryFunction};
+
+    let mut context = Context::default();
+    context
+        .eval(Source::from_bytes("function f() {}"))
+        .expect("should not fail");
+    let f = context
+        .global_object()
+        .get(js_str!("f"), &mut context)
+        .expect("should not fail");
+    let f_obj = f.as_object().expect("f should be an object");
+    let func = f_obj
+        .downcast_ref::<OrdinaryFunction>()
+        .expect("f should be a function");
+    assert!(
+        func.code.is_trivial_return(),
+        "empty function should have TRIVIAL_RETURN flag"
+    );
+}
+
+#[test]
+fn trivial_empty_function_call() {
+    run_test_actions([TestAction::assert_eq(
+        indoc! {r#"
+            function f() {}
+            f()
+        "#},
+        JsValue::undefined(),
+    )]);
+}
+
+#[test]
+fn trivial_empty_function_side_effects_preserved() {
+    // Ensure calling a trivial function doesn't break surrounding code
+    run_test_actions([TestAction::assert_eq(
+        indoc! {r#"
+            let x = 0;
+            function f() {}
+            x = 42;
+            f();
+            x
+        "#},
+        42,
+    )]);
+}
+
+#[test]
+fn trivial_empty_function_return_value_ignored() {
+    run_test_actions([TestAction::assert_eq(
+        indoc! {r#"
+            function f() {}
+            const result = f();
+            result === undefined
+        "#},
+        true,
+    )]);
+}
+
+#[test]
+fn trivial_empty_function_in_loop() {
+    run_test_actions([TestAction::assert_eq(
+        indoc! {r#"
+            function f() {}
+            let sum = 0;
+            for (let i = 0; i < 100; i++) {
+                f();
+                sum += i;
+            }
+            sum
+        "#},
+        4950,
+    )]);
+}

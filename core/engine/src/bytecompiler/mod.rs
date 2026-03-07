@@ -2406,6 +2406,18 @@ impl<'ctx> ByteCompiler<'ctx> {
     #[must_use]
     #[allow(clippy::missing_const_for_fn)]
     pub fn finish(mut self) -> CodeBlock {
+        // Check if the function body is trivial (nothing emitted before the return).
+        // This means the function just returns undefined and we can skip frame creation.
+        let is_trivial = self.next_opcode_location().as_u32() == 0
+            && !self.is_async()
+            && !self.is_generator()
+            && self.handlers.is_empty()
+            && self.async_handler.is_none();
+
+        if is_trivial {
+            self.code_block_flags |= CodeBlockFlags::TRIVIAL_RETURN;
+        }
+
         // Push return at the end of the function compilation.
         if let Some(async_handler) = self.async_handler {
             self.patch_handler(async_handler);

@@ -1000,6 +1000,20 @@ pub(crate) fn function_call(
             .into());
     }
 
+    // Fast path: trivial functions (empty body, just returns undefined).
+    // Skip frame creation entirely, similar to native function calls.
+    if function.code.is_trivial_return() {
+        drop(function);
+        context
+            .vm
+            .stack
+            .calling_convention_pop_arguments(argument_count);
+        let _func = context.vm.stack.pop();
+        let _this = context.vm.stack.pop();
+        context.vm.stack.push(JsValue::undefined());
+        return Ok(CallValue::Complete);
+    }
+
     let code = function.code.clone();
     let environments = function.environments.clone();
     let script_or_module = function.script_or_module.clone();
