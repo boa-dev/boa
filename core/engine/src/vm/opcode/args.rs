@@ -263,7 +263,7 @@ mod tests {
 
     #[test]
     fn test_argument_u32() {
-        let val = 0x12345678u32;
+        let val = 0x1234_5678_u32;
         let mut bytes = Vec::new();
         val.encode(&mut bytes);
         let (decoded, next) = <u32>::decode(&bytes, 0);
@@ -273,7 +273,7 @@ mod tests {
 
     #[test]
     fn test_argument_u32_varying() {
-        let v1 = 0x12345678u32;
+        let v1 = 0x1234_5678_u32;
         let v2 = 500u32;
         let arg = (v1, VaryingOperand::new(v2));
         let mut bytes = Vec::new();
@@ -285,21 +285,21 @@ mod tests {
     }
 
     #[test]
-    #[should_panic]
+    #[should_panic(expected = "buffer too small to read type T")]
     fn test_varying_operand_decode_out_of_bounds() {
         let bytes = [1];
         VaryingOperand::decode(&bytes, 0);
     }
 
     #[test]
-    #[should_panic]
+    #[should_panic(expected = "buffer too small to read type T")]
     fn test_complex_tuple_decode_out_of_bounds() {
         let bytes = [0, 1, 2];
         <(VaryingOperand, i8)>::decode(&bytes, 0);
     }
 
     #[test]
-    #[should_panic]
+    #[should_panic(expected = "buffer too small to read type T")]
     fn test_thinvec_decode_out_of_bounds() {
         let bytes = [2, 0, 1, 0, 0, 0];
         <(VaryingOperand, ThinVec<VaryingOperand>)>::decode(&bytes, 0);
