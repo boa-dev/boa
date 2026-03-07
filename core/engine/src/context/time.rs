@@ -1,6 +1,6 @@
 //! Clock related types and functions.
 
-use instant::Instant;
+use crate::sys::time::Instant;
 
 /// A monotonic instant in time, in the Boa engine.
 ///
