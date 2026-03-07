@@ -70,6 +70,12 @@ pub struct IteratorPrototypes {
     /// The `%SegmentIteratorPrototype%` prototype object.
     #[cfg(feature = "intl")]
     segment: JsObject,
+
+    /// The `%IteratorHelperPrototype%` prototype object.
+    iterator_helper: JsObject,
+
+    /// The `%WrapForValidIteratorPrototype%` prototype object.
+    wrap_for_valid_iterator: JsObject,
 }
 
 impl Default for IteratorPrototypes {
@@ -85,6 +91,8 @@ impl Default for IteratorPrototypes {
             map: JsObject::with_null_proto(),
             #[cfg(feature = "intl")]
             segment: JsObject::with_null_proto(),
+            iterator_helper: JsObject::with_null_proto(),
+            wrap_for_valid_iterator: JsObject::with_null_proto(),
         }
     }
 }
@@ -152,6 +160,20 @@ impl IteratorPrototypes {
     #[cfg(feature = "intl")]
     pub fn segment(&self) -> JsObject {
         self.segment.clone()
+    }
+
+    /// Returns the `%IteratorHelperPrototype%` object.
+    #[inline]
+    #[must_use]
+    pub fn iterator_helper(&self) -> JsObject {
+        self.iterator_helper.clone()
+    }
+
+    /// Returns the `%WrapForValidIteratorPrototype%` object.
+    #[inline]
+    #[must_use]
+    pub fn wrap_for_valid_iterator(&self) -> JsObject {
+        self.wrap_for_valid_iterator.clone()
     }
 }
 

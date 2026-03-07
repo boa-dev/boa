@@ -16,6 +16,7 @@ pub mod function;
 pub mod generator;
 pub mod generator_function;
 pub mod iterable;
+pub mod iterator;
 pub mod json;
 pub mod map;
 pub mod math;
@@ -95,6 +96,7 @@ use crate::{
         generator::Generator,
         generator_function::GeneratorFunction,
         iterable::{AsyncFromSyncIterator, AsyncIterator, Iterator},
+        iterator::{IteratorConstructor, IteratorHelperPrototype, WrapForValidIteratorPrototype},
         map::MapIterator,
         regexp::RegExpStringIterator,
         set::SetIterator,
@@ -241,6 +243,9 @@ impl Realm {
         Iterator::init(self);
         AsyncIterator::init(self);
         AsyncFromSyncIterator::init(self);
+        IteratorHelperPrototype::init(self);
+        WrapForValidIteratorPrototype::init(self);
+        IteratorConstructor::init(self);
         Math::init(self);
         Json::init(self);
         Array::init(self);
@@ -432,6 +437,7 @@ pub(crate) fn set_default_global_bindings(context: &mut Context) -> JsResult<()>
     global_binding::<WeakMap>(context)?;
     global_binding::<WeakSet>(context)?;
     global_binding::<Atomics>(context)?;
+    global_binding::<IteratorConstructor>(context)?;
 
     #[cfg(feature = "annex-b")]
     {

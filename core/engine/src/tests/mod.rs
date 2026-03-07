@@ -8,6 +8,7 @@ mod class;
 mod control_flow;
 mod env;
 mod function;
+mod iterator_helpers;
 mod iterators;
 mod operators;
 mod promise;

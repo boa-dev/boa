@@ -132,6 +132,7 @@ pub struct StandardConstructors {
     generator_function: StandardConstructor,
     async_generator_function: StandardConstructor,
     array: StandardConstructor,
+    iterator: StandardConstructor,
     bigint: StandardConstructor,
     number: StandardConstructor,
     boolean: StandardConstructor,
@@ -221,6 +222,7 @@ impl Default for StandardConstructors {
             async_function: StandardConstructor::default(),
             generator_function: StandardConstructor::default(),
             array: StandardConstructor::with_prototype(JsObject::from_proto_and_data(None, Array)),
+            iterator: StandardConstructor::default(),
             bigint: StandardConstructor::default(),
             number: StandardConstructor::with_prototype(JsObject::from_proto_and_data(None, 0.0)),
             boolean: StandardConstructor::with_prototype(JsObject::from_proto_and_data(
@@ -816,6 +818,18 @@ impl StandardConstructors {
     #[must_use]
     pub const fn weak_ref(&self) -> &StandardConstructor {
         &self.weak_ref
+    }
+
+    /// Returns the `Iterator` constructor.
+    ///
+    /// More information:
+    ///  - [ECMAScript reference][spec]
+    ///
+    /// [spec]: https://tc39.es/proposal-iterator-helpers/#sec-iterator-constructor
+    #[inline]
+    #[must_use]
+    pub const fn iterator(&self) -> &StandardConstructor {
+        &self.iterator
     }
 
     /// Returns the `WeakMap` constructor.
