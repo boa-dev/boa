@@ -601,7 +601,7 @@ fn main() -> Result<()> {
         println!();
     }
 
-    let handle = start_readline_thread(sender, printer.clone(), args.vi_mode);
+    let handle = start_readline_thread(sender, printer.clone(), args.vi_mode, args.strict);
 
     // TODO: Replace the `__BOA_LOAD_FILE__` string sentinel with a `CliCommand` enum
     // (e.g. `Exec(String)` / `LoadFile(PathBuf)`) for type-safe cross-thread communication.
@@ -679,6 +679,7 @@ fn readline_thread_main(
     sender: &Sender<String>,
     printer_out: &SharedExternalPrinterLogger,
     vi_mode: bool,
+    strict: bool,
 ) -> Result<()> {
     let config = Config::builder()
         .keyseq_timeout(Some(1))
@@ -706,7 +707,7 @@ fn readline_thread_main(
         .load_history(CLI_HISTORY)
         .wrap_err("failed to read history file `.boa_history`")?;
     let readline = ">> ";
-    editor.set_helper(Some(helper::RLHelper::new(readline)));
+    editor.set_helper(Some(helper::RLHelper::new(readline, strict)));
 
     loop {
         match editor.readline(readline).map(|l| l.trim().to_string()) {
@@ -773,9 +774,10 @@ fn start_readline_thread(
     sender: Sender<String>,
     printer_out: SharedExternalPrinterLogger,
     vi_mode: bool,
+    strict: bool,
 ) -> thread::JoinHandle<()> {
     thread::spawn(
-        move || match readline_thread_main(&sender, &printer_out, vi_mode) {
+        move || match readline_thread_main(&sender, &printer_out, vi_mode, strict) {
             Ok(()) => {}
             Err(e) => eprintln!("readline thread failed: {e}"),
         },
