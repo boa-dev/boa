@@ -34,7 +34,7 @@ pub(super) struct TryStatement<'arena> {
     _marker: std::marker::PhantomData<&'arena ()>,
 }
 
-impl<'arena> TryStatement<'arena> {
+impl TryStatement<'_> {
     /// Creates a new `TryStatement` parser.
     pub(super) fn new<Y, A, R>(allow_yield: Y, allow_await: A, allow_return: R) -> Self
     where

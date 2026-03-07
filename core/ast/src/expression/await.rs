@@ -41,14 +41,14 @@ impl<'arena> Await<'arena> {
     }
 }
 
-impl<'arena> Spanned for Await<'arena> {
+impl Spanned for Await<'_> {
     #[inline]
     fn span(&self) -> Span {
         self.span
     }
 }
 
-impl<'arena> ToInternedString for Await<'arena> {
+impl ToInternedString for Await<'_> {
     #[inline]
     fn to_interned_string(&self, interner: &Interner) -> String {
         format!("await {}", self.target.to_indented_string(interner, 0))

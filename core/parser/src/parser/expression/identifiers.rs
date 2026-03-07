@@ -28,7 +28,7 @@ pub(in crate::parser) struct IdentifierReference<'arena> {
     _marker: std::marker::PhantomData<&'arena ()>,
 }
 
-impl<'arena> IdentifierReference<'arena> {
+impl IdentifierReference<'_> {
     /// Creates a new `IdentifierReference` parser.
     #[inline]
     pub(in crate::parser) fn new<Y, A>(allow_yield: Y, allow_await: A) -> Self
@@ -82,7 +82,7 @@ pub(in crate::parser) struct BindingIdentifier<'arena> {
     _marker: std::marker::PhantomData<&'arena ()>,
 }
 
-impl<'arena> BindingIdentifier<'arena> {
+impl BindingIdentifier<'_> {
     /// Creates a new `BindingIdentifier` parser.
     #[inline]
     pub(in crate::parser) fn new<Y, A>(allow_yield: Y, allow_await: A) -> Self
@@ -151,7 +151,7 @@ pub(in crate::parser) type LabelIdentifier<'arena> = IdentifierReference<'arena>
 #[derive(Debug, Clone, Copy)]
 pub(in crate::parser) struct Identifier;
 
-impl<'arena, R> TokenParser<'arena, R> for Identifier
+impl<R> TokenParser<'_, R> for Identifier
 where
     R: ReadChar,
 {

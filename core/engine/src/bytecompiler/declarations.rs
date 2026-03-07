@@ -34,9 +34,9 @@ use boa_ast::operations::annex_b_function_declarations_names;
 #[cfg(not(feature = "annex-b"))]
 #[allow(clippy::unnecessary_wraps)]
 #[allow(clippy::ptr_arg)]
-pub(crate) fn global_declaration_instantiation_context<'arena>(
+pub(crate) fn global_declaration_instantiation_context(
     _annex_b_function_names: &mut Vec<Sym>,
-    _script: &Script<'arena>,
+    _script: &Script<'_>,
     _env: &Scope,
     _context: &mut Context,
 ) -> JsResult<()> {
@@ -53,9 +53,9 @@ pub(crate) fn global_declaration_instantiation_context<'arena>(
 ///
 /// [spec]: https://tc39.es/ecma262/#sec-globaldeclarationinstantiation
 #[cfg(feature = "annex-b")]
-pub(crate) fn global_declaration_instantiation_context<'arena>(
+pub(crate) fn global_declaration_instantiation_context(
     annex_b_function_names: &mut Vec<Sym>,
-    script: &Script<'arena>,
+    script: &Script<'_>,
     env: &Scope,
     context: &mut Context,
 ) -> JsResult<()> {
@@ -195,9 +195,9 @@ pub(crate) fn global_declaration_instantiation_context<'arena>(
 ///  - [ECMAScript reference][spec]
 ///
 /// [spec]: https://tc39.es/ecma262/#sec-evaldeclarationinstantiation
-pub(crate) fn eval_declaration_instantiation_context<'arena>(
+pub(crate) fn eval_declaration_instantiation_context(
     #[allow(unused, clippy::ptr_arg)] annex_b_function_names: &mut Vec<Sym>,
-    body: &Script<'arena>,
+    body: &Script<'_>,
     #[allow(unused)] strict: bool,
     #[allow(unused)] var_env: &Scope,
     #[allow(unused)] lex_env: &Scope,

@@ -53,7 +53,7 @@ pub(in crate::parser) struct ClassDeclaration<'arena> {
     _marker: std::marker::PhantomData<&'arena ()>,
 }
 
-impl<'arena> ClassDeclaration<'arena> {
+impl ClassDeclaration<'_> {
     /// Creates a new `ClassDeclaration` parser.
     pub(in crate::parser) fn new<Y, A, D>(allow_yield: Y, allow_await: A, is_default: D) -> Self
     where
@@ -131,7 +131,7 @@ pub(in crate::parser) struct ClassTail<'arena> {
     _marker: std::marker::PhantomData<&'arena ()>,
 }
 
-impl<'arena> ClassTail<'arena> {
+impl ClassTail<'_> {
     /// Creates a new `ClassTail` parser.
     pub(in crate::parser) fn new<N, Y, A>(name: N, allow_yield: Y, allow_await: A) -> Self
     where
@@ -225,7 +225,7 @@ pub(in crate::parser) struct ClassHeritage<'arena> {
     _marker: std::marker::PhantomData<&'arena ()>,
 }
 
-impl<'arena> ClassHeritage<'arena> {
+impl ClassHeritage<'_> {
     /// Creates a new `ClassHeritage` parser.
     pub(in crate::parser) fn new<Y, A>(allow_yield: Y, allow_await: A) -> Self
     where
@@ -278,7 +278,7 @@ pub(in crate::parser) struct ClassBody<'arena> {
     _marker: std::marker::PhantomData<&'arena ()>,
 }
 
-impl<'arena> ClassBody<'arena> {
+impl ClassBody<'_> {
     /// Creates a new `ClassBody` parser.
     pub(in crate::parser) fn new<N, Y, A>(name: N, allow_yield: Y, allow_await: A) -> Self
     where
@@ -522,7 +522,7 @@ pub(in crate::parser) struct ClassElement<'arena> {
     _marker: std::marker::PhantomData<&'arena ()>,
 }
 
-impl<'arena> ClassElement<'arena> {
+impl ClassElement<'_> {
     /// Creates a new `ClassElement` parser.
     pub(in crate::parser) fn new<N, Y, A>(name: N, allow_yield: Y, allow_await: A) -> Self
     where

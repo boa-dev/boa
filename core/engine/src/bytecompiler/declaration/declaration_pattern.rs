@@ -272,7 +272,11 @@ impl<'arena> ByteCompiler<'arena, '_> {
         }
     }
 
-    fn compile_array_pattern_element(&mut self, element: &'arena ArrayPatternElement<'arena>, def: BindingOpcode) {
+    fn compile_array_pattern_element(
+        &mut self,
+        element: &'arena ArrayPatternElement<'arena>,
+        def: BindingOpcode,
+    ) {
         use ArrayPatternElement::{
             Elision, Pattern, PatternRest, PropertyAccess, PropertyAccessRest, SingleName,
             SingleNameRest,

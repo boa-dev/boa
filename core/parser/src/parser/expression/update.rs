@@ -39,7 +39,7 @@ pub(super) struct UpdateExpression<'arena> {
     _marker: std::marker::PhantomData<&'arena ()>,
 }
 
-impl<'arena> UpdateExpression<'arena> {
+impl UpdateExpression<'_> {
     /// Creates a new `UpdateExpression` parser.
     pub(super) fn new<Y, A>(allow_yield: Y, allow_await: A) -> Self
     where

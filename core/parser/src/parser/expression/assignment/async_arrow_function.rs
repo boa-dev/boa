@@ -46,7 +46,7 @@ pub(in crate::parser) struct AsyncArrowFunction<'arena> {
     _marker: std::marker::PhantomData<&'arena ()>,
 }
 
-impl<'arena> AsyncArrowFunction<'arena> {
+impl AsyncArrowFunction<'_> {
     /// Creates a new `AsyncArrowFunction` parser.
     pub(in crate::parser) fn new<I, Y>(allow_in: I, allow_yield: Y) -> Self
     where
@@ -167,7 +167,7 @@ pub(in crate::parser) struct AsyncConciseBody<'arena> {
     _marker: std::marker::PhantomData<&'arena ()>,
 }
 
-impl<'arena> AsyncConciseBody<'arena> {
+impl AsyncConciseBody<'_> {
     /// Creates a new `AsyncConciseBody` parser.
     pub(in crate::parser) fn new<I>(allow_in: I) -> Self
     where

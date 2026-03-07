@@ -8,7 +8,11 @@ use boa_interner::Sym;
 use thin_vec::ThinVec;
 
 impl<'arena> ByteCompiler<'arena, '_> {
-    pub(crate) fn compile_object_literal(&mut self, literal: &'arena ObjectLiteral<'arena>, dst: &Register) {
+    pub(crate) fn compile_object_literal(
+        &mut self,
+        literal: &'arena ObjectLiteral<'arena>,
+        dst: &Register,
+    ) {
         self.bytecode.emit_push_empty_object(dst.variable());
 
         for property in literal.properties() {

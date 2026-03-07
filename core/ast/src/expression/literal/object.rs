@@ -221,14 +221,14 @@ impl<'arena> ObjectLiteral<'arena> {
     }
 }
 
-impl<'arena> Spanned for ObjectLiteral<'arena> {
+impl Spanned for ObjectLiteral<'_> {
     #[inline]
     fn span(&self) -> Span {
         self.span
     }
 }
 
-impl<'arena> ToIndentedString for ObjectLiteral<'arena> {
+impl ToIndentedString for ObjectLiteral<'_> {
     fn to_indented_string(&self, interner: &Interner, indent_n: usize) -> String {
         let mut buf = "{\n".to_owned();
         let indentation = "    ".repeat(indent_n + 1);
@@ -508,7 +508,7 @@ impl<'arena> ObjectMethodDefinition<'arena> {
     }
 }
 
-impl<'arena> ToIndentedString for ObjectMethodDefinition<'arena> {
+impl ToIndentedString for ObjectMethodDefinition<'_> {
     fn to_indented_string(&self, interner: &Interner, indent_n: usize) -> String {
         let indentation = "    ".repeat(indent_n + 1);
         let prefix = match &self.kind {

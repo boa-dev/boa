@@ -44,7 +44,7 @@ pub enum Pattern<'arena> {
     Array(ArrayPattern<'arena>),
 }
 
-impl<'arena> Spanned for Pattern<'arena> {
+impl Spanned for Pattern<'_> {
     #[inline]
     fn span(&self) -> Span {
         match self {
@@ -66,7 +66,7 @@ impl<'arena> From<ArrayPattern<'arena>> for Pattern<'arena> {
     }
 }
 
-impl<'arena> ToInternedString for Pattern<'arena> {
+impl ToInternedString for Pattern<'_> {
     fn to_interned_string(&self, interner: &Interner) -> String {
         match &self {
             Self::Object(o) => o.to_interned_string(interner),
@@ -114,7 +114,7 @@ pub struct ObjectPattern<'arena> {
     span: Span,
 }
 
-impl<'arena> ToInternedString for ObjectPattern<'arena> {
+impl ToInternedString for ObjectPattern<'_> {
     fn to_interned_string(&self, interner: &Interner) -> String {
         let mut buf = "{".to_owned();
         for (i, binding) in self.elements.iter().enumerate() {
@@ -161,7 +161,7 @@ impl<'arena> ObjectPattern<'arena> {
     }
 }
 
-impl<'arena> Spanned for ObjectPattern<'arena> {
+impl Spanned for ObjectPattern<'_> {
     #[inline]
     fn span(&self) -> Span {
         self.span
@@ -207,7 +207,7 @@ pub struct ArrayPattern<'arena> {
     span: Span,
 }
 
-impl<'arena> ToInternedString for ArrayPattern<'arena> {
+impl ToInternedString for ArrayPattern<'_> {
     fn to_interned_string(&self, interner: &Interner) -> String {
         let mut buf = "[".to_owned();
         for (i, binding) in self.bindings.iter().enumerate() {
@@ -245,7 +245,7 @@ impl<'arena> ArrayPattern<'arena> {
     }
 }
 
-impl<'arena> Spanned for ArrayPattern<'arena> {
+impl Spanned for ArrayPattern<'_> {
     #[inline]
     fn span(&self) -> Span {
         self.span
@@ -369,7 +369,7 @@ pub enum ObjectPatternElement<'arena> {
     },
 }
 
-impl<'arena> ToInternedString for ObjectPatternElement<'arena> {
+impl ToInternedString for ObjectPatternElement<'_> {
     fn to_interned_string(&self, interner: &Interner) -> String {
         match self {
             Self::SingleName {
@@ -669,7 +669,7 @@ pub enum ArrayPatternElement<'arena> {
     },
 }
 
-impl<'arena> ToInternedString for ArrayPatternElement<'arena> {
+impl ToInternedString for ArrayPatternElement<'_> {
     fn to_interned_string(&self, interner: &Interner) -> String {
         match self {
             Self::Elision => " ".to_owned(),

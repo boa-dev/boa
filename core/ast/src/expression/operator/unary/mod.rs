@@ -72,14 +72,14 @@ impl<'arena> Unary<'arena> {
     }
 }
 
-impl<'arena> Spanned for Unary<'arena> {
+impl Spanned for Unary<'_> {
     #[inline]
     fn span(&self) -> Span {
         self.span
     }
 }
 
-impl<'arena> ToInternedString for Unary<'arena> {
+impl ToInternedString for Unary<'_> {
     #[inline]
     fn to_interned_string(&self, interner: &Interner) -> String {
         format!("{} {}", self.op, self.target.to_interned_string(interner))

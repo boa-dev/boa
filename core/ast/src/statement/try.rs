@@ -80,7 +80,7 @@ impl<'arena> Try<'arena> {
     }
 }
 
-impl<'arena> ToIndentedString for Try<'arena> {
+impl ToIndentedString for Try<'_> {
     fn to_indented_string(&self, interner: &Interner, indentation: usize) -> String {
         let mut buf = format!(
             "{}try {}",
@@ -190,7 +190,7 @@ impl<'arena> Catch<'arena> {
     }
 }
 
-impl<'arena> ToIndentedString for Catch<'arena> {
+impl ToIndentedString for Catch<'_> {
     fn to_indented_string(&self, interner: &Interner, indentation: usize) -> String {
         let mut buf = " catch".to_owned();
         if let Some(param) = &self.parameter {
@@ -245,7 +245,7 @@ impl<'arena> Finally<'arena> {
     }
 }
 
-impl<'arena> ToIndentedString for Finally<'arena> {
+impl ToIndentedString for Finally<'_> {
     fn to_indented_string(&self, interner: &Interner, indentation: usize) -> String {
         format!(
             " finally {}",

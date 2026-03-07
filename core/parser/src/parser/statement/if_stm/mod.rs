@@ -35,7 +35,7 @@ pub(super) struct IfStatement<'arena> {
     _marker: std::marker::PhantomData<&'arena ()>,
 }
 
-impl<'arena> IfStatement<'arena> {
+impl IfStatement<'_> {
     /// Creates a new `IfStatement` parser.
     pub(super) fn new<Y, A, R>(allow_yield: Y, allow_await: A, allow_return: R) -> Self
     where

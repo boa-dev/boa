@@ -87,14 +87,14 @@ impl<'arena> Binary<'arena> {
     }
 }
 
-impl<'arena> Spanned for Binary<'arena> {
+impl Spanned for Binary<'_> {
     #[inline]
     fn span(&self) -> Span {
         Span::new(self.lhs.span().start(), self.rhs.span().end())
     }
 }
 
-impl<'arena> ToInternedString for Binary<'arena> {
+impl ToInternedString for Binary<'_> {
     #[inline]
     fn to_interned_string(&self, interner: &Interner) -> String {
         format!(
@@ -170,14 +170,14 @@ impl<'arena> BinaryInPrivate<'arena> {
     }
 }
 
-impl<'arena> Spanned for BinaryInPrivate<'arena> {
+impl Spanned for BinaryInPrivate<'_> {
     #[inline]
     fn span(&self) -> Span {
         Span::new(self.lhs.span().start(), self.rhs.span().end())
     }
 }
 
-impl<'arena> ToInternedString for BinaryInPrivate<'arena> {
+impl ToInternedString for BinaryInPrivate<'_> {
     #[inline]
     fn to_interned_string(&self, interner: &Interner) -> String {
         format!(

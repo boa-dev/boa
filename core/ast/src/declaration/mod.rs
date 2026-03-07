@@ -58,7 +58,7 @@ pub enum Declaration<'arena> {
     Lexical(LexicalDeclaration<'arena>),
 }
 
-impl<'arena> ToIndentedString for Declaration<'arena> {
+impl ToIndentedString for Declaration<'_> {
     fn to_indented_string(&self, interner: &Interner, indentation: usize) -> String {
         match self {
             Self::FunctionDeclaration(f) => f.to_indented_string(interner, indentation),

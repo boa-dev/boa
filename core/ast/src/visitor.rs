@@ -203,7 +203,7 @@ node_ref! {
         This, NewTarget, ImportMeta,
         Continue, Break, PrivateName,
         ModuleSpecifier, ImportAttribute,
-        ImportSpecifier, ExportSpecifier, 
+        ImportSpecifier, ExportSpecifier,
         ReExportKind, ImportDeclaration, ImportKind
     }
 }
@@ -232,10 +232,26 @@ pub trait Visitor<'ast, 'arena: 'ast>: Sized {
     define_visit!(visit_function_declaration, FunctionDeclaration, arena);
     define_visit!(visit_generator_expression, GeneratorExpression, arena);
     define_visit!(visit_generator_declaration, GeneratorDeclaration, arena);
-    define_visit!(visit_async_function_expression, AsyncFunctionExpression, arena);
-    define_visit!(visit_async_function_declaration, AsyncFunctionDeclaration, arena);
-    define_visit!(visit_async_generator_expression, AsyncGeneratorExpression, arena);
-    define_visit!(visit_async_generator_declaration, AsyncGeneratorDeclaration, arena);
+    define_visit!(
+        visit_async_function_expression,
+        AsyncFunctionExpression,
+        arena
+    );
+    define_visit!(
+        visit_async_function_declaration,
+        AsyncFunctionDeclaration,
+        arena
+    );
+    define_visit!(
+        visit_async_generator_expression,
+        AsyncGeneratorExpression,
+        arena
+    );
+    define_visit!(
+        visit_async_generator_declaration,
+        AsyncGeneratorDeclaration,
+        arena
+    );
     define_visit!(visit_class_expression, ClassExpression, arena);
     define_visit!(visit_class_declaration, ClassDeclaration, arena);
     define_visit!(visit_lexical_declaration, LexicalDeclaration, arena);
@@ -292,7 +308,11 @@ pub trait Visitor<'ast, 'arena: 'ast>: Sized {
     define_visit!(visit_new_target, NewTarget, plain);
     define_visit!(visit_import_meta, ImportMeta, plain);
     define_visit!(visit_for_loop_initializer, ForLoopInitializer, arena);
-    define_visit!(visit_iterable_loop_initializer, IterableLoopInitializer, arena);
+    define_visit!(
+        visit_iterable_loop_initializer,
+        IterableLoopInitializer,
+        arena
+    );
     define_visit!(visit_case, Case, arena);
     define_visit!(visit_sym, Sym, plain);
     define_visit!(visit_labelled_item, LabelledItem, arena);
@@ -300,7 +320,11 @@ pub trait Visitor<'ast, 'arena: 'ast>: Sized {
     define_visit!(visit_finally, Finally, arena);
     define_visit!(visit_formal_parameter, FormalParameter, arena);
     define_visit!(visit_property_name, PropertyName, arena);
-    define_visit!(visit_object_method_definition, ObjectMethodDefinition, arena);
+    define_visit!(
+        visit_object_method_definition,
+        ObjectMethodDefinition,
+        arena
+    );
     define_visit!(visit_object_pattern, ObjectPattern, arena);
     define_visit!(visit_array_pattern, ArrayPattern, arena);
     define_visit!(visit_property_definition, PropertyDefinition, arena);
@@ -462,7 +486,11 @@ pub trait VisitorMut<'ast, 'arena: 'ast>: Sized {
     define_visit_mut!(visit_function_declaration_mut, FunctionDeclaration, arena);
     define_visit_mut!(visit_generator_expression_mut, GeneratorExpression, arena);
     define_visit_mut!(visit_generator_declaration_mut, GeneratorDeclaration, arena);
-    define_visit_mut!(visit_async_function_expression_mut, AsyncFunctionExpression, arena);
+    define_visit_mut!(
+        visit_async_function_expression_mut,
+        AsyncFunctionExpression,
+        arena
+    );
     define_visit_mut!(
         visit_async_function_declaration_mut,
         AsyncFunctionDeclaration,
@@ -534,7 +562,11 @@ pub trait VisitorMut<'ast, 'arena: 'ast>: Sized {
     define_visit_mut!(visit_new_target_mut, NewTarget, plain);
     define_visit_mut!(visit_import_meta_mut, ImportMeta, plain);
     define_visit_mut!(visit_for_loop_initializer_mut, ForLoopInitializer, arena);
-    define_visit_mut!(visit_iterable_loop_initializer_mut, IterableLoopInitializer, arena);
+    define_visit_mut!(
+        visit_iterable_loop_initializer_mut,
+        IterableLoopInitializer,
+        arena
+    );
     define_visit_mut!(visit_case_mut, Case, arena);
     define_visit_mut!(visit_sym_mut, Sym, plain);
     define_visit_mut!(visit_labelled_item_mut, LabelledItem, arena);
@@ -542,20 +574,40 @@ pub trait VisitorMut<'ast, 'arena: 'ast>: Sized {
     define_visit_mut!(visit_finally_mut, Finally, arena);
     define_visit_mut!(visit_formal_parameter_mut, FormalParameter, arena);
     define_visit_mut!(visit_property_name_mut, PropertyName, arena);
-    define_visit_mut!(visit_object_method_definition_mut, ObjectMethodDefinition, arena);
+    define_visit_mut!(
+        visit_object_method_definition_mut,
+        ObjectMethodDefinition,
+        arena
+    );
     define_visit_mut!(visit_object_pattern_mut, ObjectPattern, arena);
     define_visit_mut!(visit_array_pattern_mut, ArrayPattern, arena);
     define_visit_mut!(visit_property_definition_mut, PropertyDefinition, arena);
     define_visit_mut!(visit_template_element_mut, TemplateElement, arena);
-    define_visit_mut!(visit_simple_property_access_mut, SimplePropertyAccess, arena);
-    define_visit_mut!(visit_private_property_access_mut, PrivatePropertyAccess, arena);
+    define_visit_mut!(
+        visit_simple_property_access_mut,
+        SimplePropertyAccess,
+        arena
+    );
+    define_visit_mut!(
+        visit_private_property_access_mut,
+        PrivatePropertyAccess,
+        arena
+    );
     define_visit_mut!(visit_super_property_access_mut, SuperPropertyAccess, arena);
     define_visit_mut!(visit_optional_operation_mut, OptionalOperation, arena);
     define_visit_mut!(visit_assign_target_mut, AssignTarget, arena);
-    define_visit_mut!(visit_object_pattern_element_mut, ObjectPatternElement, arena);
+    define_visit_mut!(
+        visit_object_pattern_element_mut,
+        ObjectPatternElement,
+        arena
+    );
     define_visit_mut!(visit_array_pattern_element_mut, ArrayPatternElement, arena);
     define_visit_mut!(visit_property_access_field_mut, PropertyAccessField, arena);
-    define_visit_mut!(visit_optional_operation_kind_mut, OptionalOperationKind, arena);
+    define_visit_mut!(
+        visit_optional_operation_kind_mut,
+        OptionalOperationKind,
+        arena
+    );
     define_visit_mut!(visit_module_item_list_mut, ModuleItemList, arena);
     define_visit_mut!(visit_module_item_mut, ModuleItem, arena);
     define_visit_mut!(visit_module_specifier_mut, ModuleSpecifier, plain);

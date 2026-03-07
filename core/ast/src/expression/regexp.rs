@@ -78,7 +78,7 @@ impl ToInternedString for RegExpLiteral {
     }
 }
 
-impl<'arena> From<RegExpLiteral> for Expression<'arena> {
+impl From<RegExpLiteral> for Expression<'_> {
     #[inline]
     fn from(value: RegExpLiteral) -> Self {
         Self::RegExpLiteral(value)

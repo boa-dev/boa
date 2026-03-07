@@ -244,7 +244,10 @@ impl<'arena> ModuleItemList<'arena> {
         impl<'ast, 'arena: 'ast> Visitor<'ast, 'arena> for ImportEntriesVisitor<'_> {
             type BreakTy = Infallible;
 
-            fn visit_module_item(&mut self, node: &'ast ModuleItem<'arena>) -> ControlFlow<Self::BreakTy> {
+            fn visit_module_item(
+                &mut self,
+                node: &'ast ModuleItem<'arena>,
+            ) -> ControlFlow<Self::BreakTy> {
                 match node {
                     ModuleItem::ImportDeclaration(import) => self.visit_import_declaration(import),
                     ModuleItem::ExportDeclaration(_) | ModuleItem::StatementListItem(_) => {
@@ -316,7 +319,10 @@ impl<'arena> ModuleItemList<'arena> {
         impl<'ast, 'arena: 'ast> Visitor<'ast, 'arena> for ExportEntriesVisitor<'_> {
             type BreakTy = Infallible;
 
-            fn visit_module_item(&mut self, node: &'ast ModuleItem<'arena>) -> ControlFlow<Self::BreakTy> {
+            fn visit_module_item(
+                &mut self,
+                node: &'ast ModuleItem<'arena>,
+            ) -> ControlFlow<Self::BreakTy> {
                 match node {
                     ModuleItem::ExportDeclaration(import) => self.visit_export_declaration(import),
                     ModuleItem::ImportDeclaration(_) | ModuleItem::StatementListItem(_) => {

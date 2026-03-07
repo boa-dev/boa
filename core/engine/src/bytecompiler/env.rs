@@ -2,7 +2,7 @@ use super::ByteCompiler;
 use crate::vm::Constant;
 use boa_ast::scope::Scope;
 
-impl<'arena> ByteCompiler<'arena, '_> {
+impl ByteCompiler<'_, '_> {
     /// Push either a new declarative or function scope on the environment stack.
     #[must_use]
     pub(crate) fn push_scope(&mut self, scope: &Scope) -> u32 {

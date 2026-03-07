@@ -36,7 +36,7 @@ pub enum PropertyAccessField<'arena> {
     Expr(Box<Expression<'arena>>),
 }
 
-impl<'arena> Spanned for PropertyAccessField<'arena> {
+impl Spanned for PropertyAccessField<'_> {
     #[inline]
     fn span(&self) -> Span {
         match self {
@@ -46,7 +46,7 @@ impl<'arena> Spanned for PropertyAccessField<'arena> {
     }
 }
 
-impl<'arena> From<Identifier> for PropertyAccessField<'arena> {
+impl From<Identifier> for PropertyAccessField<'_> {
     #[inline]
     fn from(id: Identifier) -> Self {
         Self::Const(id)
@@ -97,7 +97,7 @@ pub enum PropertyAccess<'arena> {
     Super(SuperPropertyAccess<'arena>),
 }
 
-impl<'arena> Spanned for PropertyAccess<'arena> {
+impl Spanned for PropertyAccess<'_> {
     #[inline]
     fn span(&self) -> Span {
         match self {
@@ -108,7 +108,7 @@ impl<'arena> Spanned for PropertyAccess<'arena> {
     }
 }
 
-impl<'arena> ToInternedString for PropertyAccess<'arena> {
+impl ToInternedString for PropertyAccess<'_> {
     #[inline]
     fn to_interned_string(&self, interner: &Interner) -> String {
         match self {
@@ -186,14 +186,14 @@ impl<'arena> SimplePropertyAccess<'arena> {
     }
 }
 
-impl<'arena> Spanned for SimplePropertyAccess<'arena> {
+impl Spanned for SimplePropertyAccess<'_> {
     #[inline]
     fn span(&self) -> Span {
         Span::new(self.target.span().start(), self.field.span().end())
     }
 }
 
-impl<'arena> ToInternedString for SimplePropertyAccess<'arena> {
+impl ToInternedString for SimplePropertyAccess<'_> {
     #[inline]
     fn to_interned_string(&self, interner: &Interner) -> String {
         let target = self.target.to_interned_string(interner);
@@ -279,14 +279,14 @@ impl<'arena> PrivatePropertyAccess<'arena> {
     }
 }
 
-impl<'arena> Spanned for PrivatePropertyAccess<'arena> {
+impl Spanned for PrivatePropertyAccess<'_> {
     #[inline]
     fn span(&self) -> Span {
         self.span
     }
 }
 
-impl<'arena> ToInternedString for PrivatePropertyAccess<'arena> {
+impl ToInternedString for PrivatePropertyAccess<'_> {
     #[inline]
     fn to_interned_string(&self, interner: &Interner) -> String {
         format!(
@@ -352,14 +352,14 @@ impl<'arena> SuperPropertyAccess<'arena> {
     }
 }
 
-impl<'arena> Spanned for SuperPropertyAccess<'arena> {
+impl Spanned for SuperPropertyAccess<'_> {
     #[inline]
     fn span(&self) -> Span {
         self.span
     }
 }
 
-impl<'arena> ToInternedString for SuperPropertyAccess<'arena> {
+impl ToInternedString for SuperPropertyAccess<'_> {
     #[inline]
     fn to_interned_string(&self, interner: &Interner) -> String {
         match &self.field {

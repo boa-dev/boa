@@ -108,7 +108,7 @@ impl ToInternedString for Identifier {
     }
 }
 
-impl<'arena> From<Identifier> for Expression<'arena> {
+impl From<Identifier> for Expression<'_> {
     #[inline]
     fn from(local: Identifier) -> Self {
         Self::Identifier(local)

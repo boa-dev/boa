@@ -33,7 +33,7 @@ impl Spanned for This {
     }
 }
 
-impl<'arena> From<This> for Expression<'arena> {
+impl From<This> for Expression<'_> {
     #[inline]
     fn from(value: This) -> Self {
         Expression::This(value)

@@ -314,7 +314,7 @@ pub struct ScriptParser<'arena> {
     _marker: std::marker::PhantomData<&'arena ()>,
 }
 
-impl<'arena> ScriptParser<'arena> {
+impl ScriptParser<'_> {
     /// Create a new `Script` parser.
     #[inline]
     const fn new(direct_eval: bool) -> Self {
@@ -376,7 +376,7 @@ pub struct ScriptBody<'arena> {
     _marker: std::marker::PhantomData<&'arena ()>,
 }
 
-impl<'arena> ScriptBody<'arena> {
+impl ScriptBody<'_> {
     /// Create a new `ScriptBody` parser.
     #[inline]
     const fn new(directive_prologues: bool, strict: bool, direct_eval: bool) -> Self {
@@ -463,7 +463,7 @@ struct ModuleParser<'arena> {
     _marker: std::marker::PhantomData<&'arena ()>,
 }
 
-impl<'arena> ModuleParser<'arena> {
+impl ModuleParser<'_> {
     /// Create a new `Module` parser.
     #[inline]
     const fn new() -> Self {

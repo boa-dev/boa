@@ -40,7 +40,7 @@ pub(super) struct ArrayLiteral<'arena> {
     _marker: std::marker::PhantomData<&'arena ()>,
 }
 
-impl<'arena> ArrayLiteral<'arena> {
+impl ArrayLiteral<'_> {
     /// Creates a new `ArrayLiteral` parser.
     pub(super) fn new<Y, A>(allow_yield: Y, allow_await: A) -> Self
     where

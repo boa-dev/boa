@@ -22,7 +22,7 @@ pub(in crate::parser::statement) struct ExpressionStatement<'arena> {
     _marker: std::marker::PhantomData<&'arena ()>,
 }
 
-impl<'arena> ExpressionStatement<'arena> {
+impl ExpressionStatement<'_> {
     /// Creates a new `ExpressionStatement` parser.
     pub(in crate::parser::statement) fn new<Y, A>(allow_yield: Y, allow_await: A) -> Self
     where

@@ -79,7 +79,11 @@ impl<'arena> ByteCompiler<'arena, '_> {
     /// The compilation of a class declaration and expression is mostly equal.
     /// A class declaration binds the resulting class object to it's identifier.
     /// A class expression leaves the resulting class object on the stack for following operations.
-    pub(crate) fn compile_class(&mut self, class: ClassSpec<'arena, 'arena>, dst: Option<&Register>) {
+    pub(crate) fn compile_class(
+        &mut self,
+        class: ClassSpec<'arena, 'arena>,
+        dst: Option<&Register>,
+    ) {
         // 11.2.2 Strict Mode Code - <https://tc39.es/ecma262/#sec-strict-mode-code>
         //  - All parts of a ClassDeclaration or a ClassExpression are strict mode code.
         let strict = self.strict();

@@ -51,14 +51,14 @@ impl<'arena> Spread<'arena> {
     }
 }
 
-impl<'arena> Spanned for Spread<'arena> {
+impl Spanned for Spread<'_> {
     #[inline]
     fn span(&self) -> Span {
         self.span
     }
 }
 
-impl<'arena> ToInternedString for Spread<'arena> {
+impl ToInternedString for Spread<'_> {
     #[inline]
     fn to_interned_string(&self, interner: &Interner) -> String {
         format!("...{}", self.target().to_interned_string(interner))

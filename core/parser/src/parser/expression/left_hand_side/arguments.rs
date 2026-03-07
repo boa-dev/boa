@@ -34,7 +34,7 @@ pub(in crate::parser::expression) struct Arguments<'arena> {
     _marker: std::marker::PhantomData<&'arena ()>,
 }
 
-impl<'arena> Arguments<'arena> {
+impl Arguments<'_> {
     /// Creates a new `Arguments` parser.
     pub(in crate::parser::expression) fn new<Y, A>(allow_yield: Y, allow_await: A) -> Self
     where

@@ -84,14 +84,14 @@ impl<'arena> TaggedTemplate<'arena> {
     }
 }
 
-impl<'arena> Spanned for TaggedTemplate<'arena> {
+impl Spanned for TaggedTemplate<'_> {
     #[inline]
     fn span(&self) -> Span {
         self.span
     }
 }
 
-impl<'arena> ToInternedString for TaggedTemplate<'arena> {
+impl ToInternedString for TaggedTemplate<'_> {
     #[inline]
     fn to_interned_string(&self, interner: &Interner) -> String {
         let mut buf = format!("{}`", self.tag.to_interned_string(interner));

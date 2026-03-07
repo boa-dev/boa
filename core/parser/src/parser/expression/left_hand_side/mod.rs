@@ -54,7 +54,7 @@ pub(in crate::parser) struct LeftHandSideExpression<'arena> {
     _marker: std::marker::PhantomData<&'arena ()>,
 }
 
-impl<'arena> LeftHandSideExpression<'arena> {
+impl LeftHandSideExpression<'_> {
     /// Creates a new `LeftHandSideExpression` parser.
     pub(in crate::parser) fn new<Y, A>(allow_yield: Y, allow_await: A) -> Self
     where
@@ -116,7 +116,7 @@ where
 
         cursor.set_goal(InputElement::TemplateTail);
 
-        let mut lhs: FormalParameterListOrExpression =
+        let mut lhs: FormalParameterListOrExpression<'_> =
             if let Some(start) = is_keyword_call(Keyword::Super, cursor, interner)? {
                 cursor.advance(interner);
                 let (args, args_span) =

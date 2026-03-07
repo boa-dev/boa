@@ -44,7 +44,7 @@ pub(super) struct Declaration<'arena> {
     _marker: std::marker::PhantomData<&'arena ()>,
 }
 
-impl<'arena> Declaration<'arena> {
+impl Declaration<'_> {
     /// Creates a new declaration parser.
     #[inline]
     pub(super) fn new<Y, A>(allow_yield: Y, allow_await: A) -> Self
@@ -107,7 +107,7 @@ struct FromClause<'arena> {
     _marker: std::marker::PhantomData<&'arena ()>,
 }
 
-impl<'arena> FromClause<'arena> {
+impl FromClause<'_> {
     /// Creates a new `from` clause parser
     #[inline]
     const fn new(context: &'static str) -> Self {
@@ -154,7 +154,7 @@ pub(in crate::parser) struct WithClause<'arena> {
     _marker: std::marker::PhantomData<&'arena ()>,
 }
 
-impl<'arena> WithClause<'arena> {
+impl WithClause<'_> {
     /// Creates a new `with` clause parser.
     #[inline]
     pub(in crate::parser) const fn new(context: &'static str) -> Self {

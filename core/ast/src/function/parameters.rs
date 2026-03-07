@@ -259,7 +259,7 @@ impl<'arena> FormalParameter<'arena> {
     }
 }
 
-impl<'arena> ToInternedString for FormalParameter<'arena> {
+impl ToInternedString for FormalParameter<'_> {
     fn to_interned_string(&self, interner: &Interner) -> String {
         let mut buf = if self.is_rest_param {
             "...".to_owned()

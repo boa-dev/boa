@@ -51,7 +51,7 @@ impl<'arena> DoWhileLoop<'arena> {
     }
 }
 
-impl<'arena> ToIndentedString for DoWhileLoop<'arena> {
+impl ToIndentedString for DoWhileLoop<'_> {
     fn to_indented_string(&self, interner: &Interner, indentation: usize) -> String {
         format!(
             "do {} while ({})",

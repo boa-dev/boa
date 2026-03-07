@@ -72,14 +72,14 @@ impl<'arena> Assign<'arena> {
     }
 }
 
-impl<'arena> Spanned for Assign<'arena> {
+impl Spanned for Assign<'_> {
     #[inline]
     fn span(&self) -> Span {
         Span::new(self.lhs.span().start(), self.rhs.span().end())
     }
 }
 
-impl<'arena> ToInternedString for Assign<'arena> {
+impl ToInternedString for Assign<'_> {
     #[inline]
     fn to_interned_string(&self, interner: &Interner) -> String {
         format!(
@@ -170,7 +170,7 @@ impl<'arena> AssignTarget<'arena> {
     }
 }
 
-impl<'arena> Spanned for AssignTarget<'arena> {
+impl Spanned for AssignTarget<'_> {
     #[inline]
     fn span(&self) -> Span {
         match self {
@@ -181,7 +181,7 @@ impl<'arena> Spanned for AssignTarget<'arena> {
     }
 }
 
-impl<'arena> ToInternedString for AssignTarget<'arena> {
+impl ToInternedString for AssignTarget<'_> {
     #[inline]
     fn to_interned_string(&self, interner: &Interner) -> String {
         match self {
@@ -192,7 +192,7 @@ impl<'arena> ToInternedString for AssignTarget<'arena> {
     }
 }
 
-impl<'arena> From<Identifier> for AssignTarget<'arena> {
+impl From<Identifier> for AssignTarget<'_> {
     #[inline]
     fn from(target: Identifier) -> Self {
         Self::Identifier(target)

@@ -24,7 +24,7 @@ pub(super) struct Finally<'arena> {
     _marker: std::marker::PhantomData<&'arena ()>,
 }
 
-impl<'arena> Finally<'arena> {
+impl Finally<'_> {
     /// Creates a new `Finally` block parser.
     pub(super) fn new<Y, A, R>(allow_yield: Y, allow_await: A, allow_return: R) -> Self
     where

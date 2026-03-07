@@ -71,7 +71,7 @@ impl<'arena> ForLoop<'arena> {
     }
 }
 
-impl<'arena> ToIndentedString for ForLoop<'arena> {
+impl ToIndentedString for ForLoop<'_> {
     fn to_indented_string(&self, interner: &Interner, indentation: usize) -> String {
         let mut buf = String::from("for (");
         if let Some(init) = self.init() {
@@ -255,7 +255,7 @@ impl<'arena> ForLoopInitializerLexical<'arena> {
     }
 }
 
-impl<'arena> ToInternedString for ForLoopInitializer<'arena> {
+impl ToInternedString for ForLoopInitializer<'_> {
     fn to_interned_string(&self, interner: &Interner) -> String {
         match self {
             Self::Var(var) => var.to_interned_string(interner),

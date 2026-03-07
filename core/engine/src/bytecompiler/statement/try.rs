@@ -179,7 +179,12 @@ impl<'arena> ByteCompiler<'arena, '_> {
         }
     }
 
-    pub(crate) fn compile_catch_stmt(&mut self, catch: &'arena Catch<'arena>, error: &Register, use_expr: bool) {
+    pub(crate) fn compile_catch_stmt(
+        &mut self,
+        catch: &'arena Catch<'arena>,
+        error: &Register,
+        use_expr: bool,
+    ) {
         let outer_scope = self.push_declarative_scope(Some(catch.scope()));
 
         if let Some(binding) = catch.parameter() {

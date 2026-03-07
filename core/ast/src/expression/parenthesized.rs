@@ -41,7 +41,7 @@ impl<'arena> Parenthesized<'arena> {
     }
 }
 
-impl<'arena> Spanned for Parenthesized<'arena> {
+impl Spanned for Parenthesized<'_> {
     #[inline]
     fn span(&self) -> Span {
         self.span
@@ -54,7 +54,7 @@ impl<'arena> From<Parenthesized<'arena>> for Expression<'arena> {
     }
 }
 
-impl<'arena> ToInternedString for Parenthesized<'arena> {
+impl ToInternedString for Parenthesized<'_> {
     #[inline]
     fn to_interned_string(&self, interner: &Interner) -> String {
         format!("({})", self.expression.to_interned_string(interner))

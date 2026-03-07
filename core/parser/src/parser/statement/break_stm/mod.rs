@@ -37,7 +37,7 @@ pub(super) struct BreakStatement<'arena> {
     _marker: std::marker::PhantomData<&'arena ()>,
 }
 
-impl<'arena> BreakStatement<'arena> {
+impl BreakStatement<'_> {
     /// Creates a new `BreakStatement` parser.
     pub(super) fn new<Y, A>(allow_yield: Y, allow_await: A) -> Self
     where

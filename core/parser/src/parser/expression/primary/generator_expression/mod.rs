@@ -41,7 +41,7 @@ pub(super) struct GeneratorExpression<'arena> {
     _marker: std::marker::PhantomData<&'arena ()>,
 }
 
-impl<'arena> GeneratorExpression<'arena> {
+impl GeneratorExpression<'_> {
     /// Creates a new `GeneratorExpression` parser.
     pub(in crate::parser) fn new() -> Self {
         Self {

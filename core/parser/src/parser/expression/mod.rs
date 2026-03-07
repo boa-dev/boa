@@ -124,7 +124,7 @@ pub(super) struct Expression<'arena> {
     _marker: std::marker::PhantomData<&'arena ()>,
 }
 
-impl<'arena> Expression<'arena> {
+impl Expression<'_> {
     /// Creates a new `Expression` parser.
     pub(super) fn new<I, Y, A>(allow_in: I, allow_yield: Y, allow_await: A) -> Self
     where
@@ -213,7 +213,7 @@ enum PreviousExpr {
     Coalesce,
 }
 
-impl<'arena> ShortCircuitExpression<'arena> {
+impl ShortCircuitExpression<'_> {
     /// Creates a new `ShortCircuitExpression` parser.
     pub(super) fn new<I, Y, A>(allow_in: I, allow_yield: Y, allow_await: A) -> Self
     where
@@ -352,7 +352,7 @@ struct BitwiseORExpression<'arena> {
     _marker: std::marker::PhantomData<&'arena ()>,
 }
 
-impl<'arena> BitwiseORExpression<'arena> {
+impl BitwiseORExpression<'_> {
     /// Creates a new `BitwiseORExpression` parser.
     pub(super) fn new<I, Y, A>(allow_in: I, allow_yield: Y, allow_await: A) -> Self
     where
@@ -393,7 +393,7 @@ struct BitwiseXORExpression<'arena> {
     _marker: std::marker::PhantomData<&'arena ()>,
 }
 
-impl<'arena> BitwiseXORExpression<'arena> {
+impl BitwiseXORExpression<'_> {
     /// Creates a new `BitwiseXORExpression` parser.
     pub(super) fn new<I, Y, A>(allow_in: I, allow_yield: Y, allow_await: A) -> Self
     where
@@ -434,7 +434,7 @@ struct BitwiseANDExpression<'arena> {
     _marker: std::marker::PhantomData<&'arena ()>,
 }
 
-impl<'arena> BitwiseANDExpression<'arena> {
+impl BitwiseANDExpression<'_> {
     /// Creates a new `BitwiseANDExpression` parser.
     pub(super) fn new<I, Y, A>(allow_in: I, allow_yield: Y, allow_await: A) -> Self
     where
@@ -475,7 +475,7 @@ struct EqualityExpression<'arena> {
     _marker: std::marker::PhantomData<&'arena ()>,
 }
 
-impl<'arena> EqualityExpression<'arena> {
+impl EqualityExpression<'_> {
     /// Creates a new `EqualityExpression` parser.
     pub(super) fn new<I, Y, A>(allow_in: I, allow_yield: Y, allow_await: A) -> Self
     where
@@ -521,7 +521,7 @@ struct RelationalExpression<'arena> {
     _marker: std::marker::PhantomData<&'arena ()>,
 }
 
-impl<'arena> RelationalExpression<'arena> {
+impl RelationalExpression<'_> {
     /// Creates a new `RelationalExpression` parser.
     pub(super) fn new<I, Y, A>(allow_in: I, allow_yield: Y, allow_await: A) -> Self
     where
@@ -644,7 +644,7 @@ struct ShiftExpression<'arena> {
     _marker: std::marker::PhantomData<&'arena ()>,
 }
 
-impl<'arena> ShiftExpression<'arena> {
+impl ShiftExpression<'_> {
     /// Creates a new `ShiftExpression` parser.
     pub(super) fn new<Y, A>(allow_yield: Y, allow_await: A) -> Self
     where
@@ -688,7 +688,7 @@ struct AdditiveExpression<'arena> {
     _marker: std::marker::PhantomData<&'arena ()>,
 }
 
-impl<'arena> AdditiveExpression<'arena> {
+impl AdditiveExpression<'_> {
     /// Creates a new `AdditiveExpression` parser.
     pub(super) fn new<Y, A>(allow_yield: Y, allow_await: A) -> Self
     where
@@ -728,7 +728,7 @@ struct MultiplicativeExpression<'arena> {
     _marker: std::marker::PhantomData<&'arena ()>,
 }
 
-impl<'arena> MultiplicativeExpression<'arena> {
+impl MultiplicativeExpression<'_> {
     /// Creates a new `MultiplicativeExpression` parser.
     pub(super) fn new<Y, A>(allow_yield: Y, allow_await: A) -> Self
     where

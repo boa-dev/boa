@@ -30,7 +30,7 @@ pub(in crate::parser) struct AwaitExpression<'arena> {
     _marker: std::marker::PhantomData<&'arena ()>,
 }
 
-impl<'arena> AwaitExpression<'arena> {
+impl AwaitExpression<'_> {
     /// Creates a new `AwaitExpression` parser.
     pub(in crate::parser) fn new<Y>(allow_yield: Y) -> Self
     where

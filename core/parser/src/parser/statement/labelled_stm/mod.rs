@@ -28,7 +28,7 @@ pub(super) struct LabelledStatement<'arena> {
     _marker: std::marker::PhantomData<&'arena ()>,
 }
 
-impl<'arena> LabelledStatement<'arena> {
+impl LabelledStatement<'_> {
     pub(super) fn new<Y, A, R>(allow_yield: Y, allow_await: A, allow_return: R) -> Self
     where
         Y: Into<AllowYield>,

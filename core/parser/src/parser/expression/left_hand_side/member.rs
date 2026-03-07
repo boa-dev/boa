@@ -41,7 +41,7 @@ pub(super) struct MemberExpression<'arena> {
     _marker: std::marker::PhantomData<&'arena ()>,
 }
 
-impl<'arena> MemberExpression<'arena> {
+impl MemberExpression<'_> {
     /// Creates a new `MemberExpression` parser.
     pub(super) fn new<Y, A>(allow_yield: Y, allow_await: A) -> Self
     where
@@ -67,7 +67,7 @@ where
 
         let token = cursor.peek(0, interner).or_abrupt()?;
         let position = token.span().start();
-        let lhs: FormalParameterListOrExpression = match token.kind() {
+        let lhs: FormalParameterListOrExpression<'_> = match token.kind() {
             TokenKind::Keyword((Keyword::New | Keyword::Super | Keyword::Import, true)) => {
                 return Err(Error::general(
                     "keyword must not contain escaped characters",

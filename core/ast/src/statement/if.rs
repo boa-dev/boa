@@ -57,7 +57,11 @@ impl<'arena> If<'arena> {
     /// Creates an `If` AST node.
     #[inline]
     #[must_use]
-    pub fn new(condition: Expression<'arena>, body: Statement<'arena>, else_node: Option<Statement<'arena>>) -> Self {
+    pub fn new(
+        condition: Expression<'arena>,
+        body: Statement<'arena>,
+        else_node: Option<Statement<'arena>>,
+    ) -> Self {
         Self {
             condition,
             body: body.into(),
@@ -66,7 +70,7 @@ impl<'arena> If<'arena> {
     }
 }
 
-impl<'arena> ToIndentedString for If<'arena> {
+impl ToIndentedString for If<'_> {
     fn to_indented_string(&self, interner: &Interner, indent: usize) -> String {
         let mut buf = format!("if ({}) ", self.cond().to_interned_string(interner));
         match self.else_node() {

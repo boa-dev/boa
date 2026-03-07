@@ -27,7 +27,7 @@ pub(in crate::parser) struct GeneratorDeclaration<'arena> {
     _marker: std::marker::PhantomData<&'arena ()>,
 }
 
-impl<'arena> GeneratorDeclaration<'arena> {
+impl GeneratorDeclaration<'_> {
     /// Creates a new `GeneratorDeclaration` parser.
     pub(in crate::parser) fn new<Y, A, D>(allow_yield: Y, allow_await: A, is_default: D) -> Self
     where
@@ -44,7 +44,7 @@ impl<'arena> GeneratorDeclaration<'arena> {
     }
 }
 
-impl<'arena> CallableDeclaration for GeneratorDeclaration<'arena> {
+impl CallableDeclaration for GeneratorDeclaration<'_> {
     fn error_context(&self) -> &'static str {
         "generator declaration"
     }

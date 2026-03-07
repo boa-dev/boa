@@ -36,7 +36,11 @@ impl<'arena> ForInLoop<'arena> {
     /// Creates a new `ForInLoop`.
     #[inline]
     #[must_use]
-    pub fn new(initializer: IterableLoopInitializer<'arena>, target: Expression<'arena>, body: Statement<'arena>) -> Self {
+    pub fn new(
+        initializer: IterableLoopInitializer<'arena>,
+        target: Expression<'arena>,
+        body: Statement<'arena>,
+    ) -> Self {
         let target_contains_direct_eval = contains(&target, ContainsSymbol::DirectEval);
         let contains_direct_eval = contains(&initializer, ContainsSymbol::DirectEval)
             || contains(&body, ContainsSymbol::DirectEval);
@@ -87,7 +91,7 @@ impl<'arena> ForInLoop<'arena> {
     }
 }
 
-impl<'arena> ToIndentedString for ForInLoop<'arena> {
+impl ToIndentedString for ForInLoop<'_> {
     fn to_indented_string(&self, interner: &Interner, indentation: usize) -> String {
         let mut buf = format!(
             "for ({} in {}) ",

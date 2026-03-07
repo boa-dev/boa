@@ -106,14 +106,14 @@ impl<'arena> FunctionBody<'arena> {
     }
 }
 
-impl<'arena> Spanned for FunctionBody<'arena> {
+impl Spanned for FunctionBody<'_> {
     #[inline]
     fn span(&self) -> Span {
         self.span
     }
 }
 
-impl<'arena> ToIndentedString for FunctionBody<'arena> {
+impl ToIndentedString for FunctionBody<'_> {
     fn to_indented_string(&self, interner: &Interner, indentation: usize) -> String {
         self.statements.to_indented_string(interner, indentation)
     }

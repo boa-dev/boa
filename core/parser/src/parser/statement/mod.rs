@@ -94,7 +94,7 @@ pub(super) struct Statement<'arena> {
     _marker: std::marker::PhantomData<&'arena ()>,
 }
 
-impl<'arena> Statement<'arena> {
+impl Statement<'_> {
     /// Creates a new `Statement` parser.
     pub(super) fn new<Y, A, R>(allow_yield: Y, allow_await: A, allow_return: R) -> Self
     where
@@ -248,7 +248,7 @@ pub(super) struct StatementList<'arena> {
     _marker: std::marker::PhantomData<&'arena ()>,
 }
 
-impl<'arena> StatementList<'arena> {
+impl StatementList<'_> {
     /// Creates a new `StatementList` parser.
     pub(super) fn new<Y, A, R>(
         allow_yield: Y,
@@ -403,7 +403,7 @@ struct StatementListItem<'arena> {
     _marker: std::marker::PhantomData<&'arena ()>,
 }
 
-impl<'arena> StatementListItem<'arena> {
+impl StatementListItem<'_> {
     /// Creates a new `StatementListItem` parser.
     fn new<Y, A, R>(allow_yield: Y, allow_await: A, allow_return: R) -> Self
     where
@@ -483,7 +483,7 @@ pub(super) struct ObjectBindingPattern<'arena> {
     _marker: std::marker::PhantomData<&'arena ()>,
 }
 
-impl<'arena> ObjectBindingPattern<'arena> {
+impl ObjectBindingPattern<'_> {
     /// Creates a new `ObjectBindingPattern` parser.
     pub(super) fn new<Y, A>(allow_yield: Y, allow_await: A) -> Self
     where
@@ -733,7 +733,7 @@ pub(super) struct ArrayBindingPattern<'arena> {
     _marker: std::marker::PhantomData<&'arena ()>,
 }
 
-impl<'arena> ArrayBindingPattern<'arena> {
+impl ArrayBindingPattern<'_> {
     /// Creates a new `ArrayBindingPattern` parser.
     pub(super) fn new<Y, A>(allow_yield: Y, allow_await: A) -> Self
     where
@@ -946,7 +946,7 @@ pub(super) struct ModuleItemList<'arena> {
     _marker: std::marker::PhantomData<&'arena ()>,
 }
 
-impl<'arena> ModuleItemList<'arena> {
+impl ModuleItemList<'_> {
     /// Creates a new `ModuleItemList` parser.
     #[inline]
     pub(super) const fn new() -> Self {
@@ -1009,7 +1009,7 @@ struct ModuleItem<'arena> {
     _marker: std::marker::PhantomData<&'arena ()>,
 }
 
-impl<'arena> ModuleItem<'arena> {
+impl ModuleItem<'_> {
     /// Creates a new `ModuleItem` parser.
     #[inline]
     const fn new() -> Self {

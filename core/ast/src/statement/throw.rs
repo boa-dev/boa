@@ -41,7 +41,7 @@ impl<'arena> Throw<'arena> {
     }
 }
 
-impl<'arena> ToInternedString for Throw<'arena> {
+impl ToInternedString for Throw<'_> {
     fn to_interned_string(&self, interner: &Interner) -> String {
         format!("throw {}", self.target.to_interned_string(interner))
     }

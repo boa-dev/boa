@@ -35,7 +35,7 @@ pub(in crate::parser::statement) struct DoWhileStatement<'arena> {
     _marker: std::marker::PhantomData<&'arena ()>,
 }
 
-impl<'arena> DoWhileStatement<'arena> {
+impl DoWhileStatement<'_> {
     /// Creates a new `DoWhileStatement` parser.
     pub(in crate::parser::statement) fn new<Y, A, R>(
         allow_yield: Y,

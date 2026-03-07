@@ -62,7 +62,7 @@ impl<'arena> From<With<'arena>> for Statement<'arena> {
     }
 }
 
-impl<'arena> ToIndentedString for With<'arena> {
+impl ToIndentedString for With<'_> {
     fn to_indented_string(&self, interner: &Interner, indentation: usize) -> String {
         format!(
             "with ({}) {}",

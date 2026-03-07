@@ -51,7 +51,7 @@ impl<'arena> From<VarDeclaration<'arena>> for Statement<'arena> {
     }
 }
 
-impl<'arena> ToInternedString for VarDeclaration<'arena> {
+impl ToInternedString for VarDeclaration<'_> {
     fn to_interned_string(&self, interner: &Interner) -> String {
         format!("var {}", self.0.to_interned_string(interner))
     }
@@ -125,7 +125,7 @@ impl<'arena> From<LexicalDeclaration<'arena>> for Declaration<'arena> {
     }
 }
 
-impl<'arena> ToInternedString for LexicalDeclaration<'arena> {
+impl ToInternedString for LexicalDeclaration<'_> {
     fn to_interned_string(&self, interner: &Interner) -> String {
         format!(
             "{} {}",
@@ -184,7 +184,7 @@ impl<'arena> AsRef<[Variable<'arena>]> for VariableList<'arena> {
     }
 }
 
-impl<'arena> ToInternedString for VariableList<'arena> {
+impl ToInternedString for VariableList<'_> {
     fn to_interned_string(&self, interner: &Interner) -> String {
         join_nodes(interner, self.list.as_ref())
     }
@@ -258,7 +258,7 @@ pub struct Variable<'arena> {
     init: Option<Expression<'arena>>,
 }
 
-impl<'arena> ToInternedString for Variable<'arena> {
+impl ToInternedString for Variable<'_> {
     fn to_interned_string(&self, interner: &Interner) -> String {
         let mut buf = self.binding.to_interned_string(interner);
 
@@ -343,7 +343,7 @@ pub enum Binding<'arena> {
     Pattern(Pattern<'arena>),
 }
 
-impl<'arena> From<Identifier> for Binding<'arena> {
+impl From<Identifier> for Binding<'_> {
     fn from(id: Identifier) -> Self {
         Self::Identifier(id)
     }
@@ -355,7 +355,7 @@ impl<'arena> From<Pattern<'arena>> for Binding<'arena> {
     }
 }
 
-impl<'arena> ToInternedString for Binding<'arena> {
+impl ToInternedString for Binding<'_> {
     fn to_interned_string(&self, interner: &Interner) -> String {
         match self {
             Self::Identifier(id) => id.to_interned_string(interner),

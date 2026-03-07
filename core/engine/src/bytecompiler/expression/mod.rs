@@ -50,7 +50,11 @@ impl<'arena> ByteCompiler<'arena, '_> {
         );
     }
 
-    fn compile_template_literal(&mut self, template_literal: &'arena TemplateLiteral<'arena>, dst: &Register) {
+    fn compile_template_literal(
+        &mut self,
+        template_literal: &'arena TemplateLiteral<'arena>,
+        dst: &Register,
+    ) {
         let mut registers = Vec::with_capacity(template_literal.elements().len());
         for element in template_literal.elements() {
             let value = self.register_allocator.alloc();

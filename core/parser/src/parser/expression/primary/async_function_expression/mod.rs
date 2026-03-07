@@ -32,7 +32,7 @@ pub(super) struct AsyncFunctionExpression<'arena> {
     _marker: std::marker::PhantomData<&'arena ()>,
 }
 
-impl<'arena> AsyncFunctionExpression<'arena> {
+impl AsyncFunctionExpression<'_> {
     /// Creates a new `AsyncFunctionExpression` parser.
     pub(super) fn new() -> Self {
         Self {

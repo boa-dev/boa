@@ -38,7 +38,7 @@ pub(in crate::parser) struct LexicalDeclaration<'arena> {
     _marker: std::marker::PhantomData<&'arena ()>,
 }
 
-impl<'arena> LexicalDeclaration<'arena> {
+impl LexicalDeclaration<'_> {
     /// Creates a new `LexicalDeclaration` parser.
     pub(in crate::parser) fn new<I, Y, A>(
         allow_in: I,
@@ -157,7 +157,7 @@ struct BindingList<'arena> {
     _marker: std::marker::PhantomData<&'arena ()>,
 }
 
-impl<'arena> BindingList<'arena> {
+impl BindingList<'_> {
     /// Creates a new `BindingList` parser.
     fn new<I, Y, A>(
         allow_in: I,
@@ -274,7 +274,7 @@ struct LexicalBinding<'arena> {
     _marker: std::marker::PhantomData<&'arena ()>,
 }
 
-impl<'arena> LexicalBinding<'arena> {
+impl LexicalBinding<'_> {
     /// Creates a new `BindingList` parser.
     fn new<I, Y, A>(allow_in: I, allow_yield: Y, allow_await: A) -> Self
     where

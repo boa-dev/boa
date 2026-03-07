@@ -48,7 +48,10 @@ where
     type BreakTy = Infallible;
 
     /// Visits the tree in postorder.
-    fn visit_expression_mut(&mut self, expr: &'ast mut Expression<'arena>) -> ControlFlow<Self::BreakTy> {
+    fn visit_expression_mut(
+        &mut self,
+        expr: &'ast mut Expression<'arena>,
+    ) -> ControlFlow<Self::BreakTy> {
         expr.visit_with_mut(self)?;
 
         match (self.f)(expr) {

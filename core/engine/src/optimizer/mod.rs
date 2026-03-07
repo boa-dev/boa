@@ -101,7 +101,7 @@ impl<'context> Optimizer<'context> {
         has_changes
     }
 
-    fn run_all<'arena>(&mut self, expr: &mut Expression<'arena>) {
+    fn run_all(&mut self, expr: &mut Expression<'_>) {
         if self
             .context
             .optimizer_options()
@@ -112,7 +112,10 @@ impl<'context> Optimizer<'context> {
     }
 
     /// Apply optimizations inplace.
-    pub(crate) fn apply<'arena>(&mut self, statement_list: &mut StatementList<'arena>) -> OptimizerStatistics {
+    pub(crate) fn apply<'arena>(
+        &mut self,
+        statement_list: &mut StatementList<'arena>,
+    ) -> OptimizerStatistics {
         let _ = <Self as VisitorMut<'_, 'arena>>::visit_statement_list_mut(self, statement_list);
 
         #[allow(clippy::print_stdout)]
@@ -130,7 +133,10 @@ impl<'context> Optimizer<'context> {
 impl<'ast, 'arena: 'ast> VisitorMut<'ast, 'arena> for Optimizer<'_> {
     type BreakTy = ();
 
-    fn visit_expression_mut(&mut self, node: &'ast mut Expression<'arena>) -> ControlFlow<Self::BreakTy> {
+    fn visit_expression_mut(
+        &mut self,
+        node: &'ast mut Expression<'arena>,
+    ) -> ControlFlow<Self::BreakTy> {
         self.run_all(node);
         ControlFlow::Continue(())
     }

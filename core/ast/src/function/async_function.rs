@@ -66,14 +66,14 @@ impl<'arena> AsyncFunctionDeclaration<'arena> {
     /// Gets the list of parameters of the async function declaration.
     #[inline]
     #[must_use]
-    pub const fn parameters(&self) -> &FormalParameterList {
+    pub const fn parameters(&self) -> &FormalParameterList<'_> {
         &self.parameters
     }
 
     /// Gets the body of the async function declaration.
     #[inline]
     #[must_use]
-    pub const fn body(&self) -> &FunctionBody {
+    pub const fn body(&self) -> &FunctionBody<'_> {
         &self.body
     }
 
@@ -99,7 +99,7 @@ impl<'arena> AsyncFunctionDeclaration<'arena> {
     }
 }
 
-impl<'arena> ToIndentedString for AsyncFunctionDeclaration<'arena> {
+impl ToIndentedString for AsyncFunctionDeclaration<'_> {
     fn to_indented_string(&self, interner: &Interner, indentation: usize) -> String {
         format!(
             "async function {}({}) {}",
@@ -249,14 +249,14 @@ impl<'arena> AsyncFunctionExpression<'arena> {
     }
 }
 
-impl<'arena> Spanned for AsyncFunctionExpression<'arena> {
+impl Spanned for AsyncFunctionExpression<'_> {
     #[inline]
     fn span(&self) -> Span {
         self.span
     }
 }
 
-impl<'arena> ToIndentedString for AsyncFunctionExpression<'arena> {
+impl ToIndentedString for AsyncFunctionExpression<'_> {
     fn to_indented_string(&self, interner: &Interner, indentation: usize) -> String {
         let mut buf = "async function".to_owned();
         if self.has_binding_identifier

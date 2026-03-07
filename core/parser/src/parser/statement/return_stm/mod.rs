@@ -25,7 +25,7 @@ pub(super) struct ReturnStatement<'arena> {
     _marker: std::marker::PhantomData<&'arena ()>,
 }
 
-impl<'arena> ReturnStatement<'arena> {
+impl ReturnStatement<'_> {
     /// Creates a new `ReturnStatement` parser.
     pub(super) fn new<Y, A>(allow_yield: Y, allow_await: A) -> Self
     where

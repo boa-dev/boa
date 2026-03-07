@@ -97,7 +97,7 @@ impl<'arena> GeneratorDeclaration<'arena> {
     }
 }
 
-impl<'arena> ToIndentedString for GeneratorDeclaration<'arena> {
+impl ToIndentedString for GeneratorDeclaration<'_> {
     fn to_indented_string(&self, interner: &Interner, indentation: usize) -> String {
         format!(
             "function* {}({}) {}",
@@ -247,14 +247,14 @@ impl<'arena> GeneratorExpression<'arena> {
     }
 }
 
-impl<'arena> Spanned for GeneratorExpression<'arena> {
+impl Spanned for GeneratorExpression<'_> {
     #[inline]
     fn span(&self) -> Span {
         self.span
     }
 }
 
-impl<'arena> ToIndentedString for GeneratorExpression<'arena> {
+impl ToIndentedString for GeneratorExpression<'_> {
     fn to_indented_string(&self, interner: &Interner, indentation: usize) -> String {
         let mut buf = "function*".to_owned();
         if self.has_binding_identifier

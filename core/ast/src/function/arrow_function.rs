@@ -107,14 +107,14 @@ impl<'arena> ArrowFunction<'arena> {
     }
 }
 
-impl<'arena> Spanned for ArrowFunction<'arena> {
+impl Spanned for ArrowFunction<'_> {
     #[inline]
     fn span(&self) -> Span {
         self.span
     }
 }
 
-impl<'arena> ToIndentedString for ArrowFunction<'arena> {
+impl ToIndentedString for ArrowFunction<'_> {
     fn to_indented_string(&self, interner: &Interner, indentation: usize) -> String {
         let mut buf = format!("({}", join_nodes(interner, self.parameters.as_ref()));
         if self.body().statements().is_empty() {

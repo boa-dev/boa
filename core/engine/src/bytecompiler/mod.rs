@@ -373,13 +373,19 @@ pub(crate) struct Label {
 #[derive(Debug, Clone, Copy)]
 #[allow(variant_size_differences)]
 enum Access<'arena> {
-    Variable { name: Identifier },
-    Property { access: &'arena PropertyAccess<'arena> },
+    Variable {
+        name: Identifier,
+    },
+    Property {
+        access: &'arena PropertyAccess<'arena>,
+    },
     This,
 }
 
 impl<'arena> Access<'arena> {
-    const fn from_assign_target(target: &'arena AssignTarget<'arena>) -> Result<Access<'arena>, &'arena Pattern<'arena>> {
+    const fn from_assign_target(
+        target: &'arena AssignTarget<'arena>,
+    ) -> Result<Access<'arena>, &'arena Pattern<'arena>> {
         match target {
             AssignTarget::Identifier(ident) => Ok(Access::Variable { name: *ident }),
             AssignTarget::Access(access) => Ok(Access::Property { access }),
@@ -1130,7 +1136,10 @@ impl<'arena, 'ctx> ByteCompiler<'arena, 'ctx> {
     /// When the condition is a relational comparison (`<`, `<=`, `>`, `>=`),
     /// emits a single fused comparison+branch opcode instead of separate
     /// `LessThan` + `JumpIfFalse` instructions.
-    pub(crate) fn compile_condition_and_branch(&mut self, condition: &'arena Expression<'arena>) -> Label {
+    pub(crate) fn compile_condition_and_branch(
+        &mut self,
+        condition: &'arena Expression<'arena>,
+    ) -> Label {
         if let Expression::Binary(binary) = condition
             && let BinaryOp::Relational(op) = binary.op()
             && let Some(label) = self.try_fused_comparison_branch(op, binary)
@@ -1145,7 +1154,11 @@ impl<'arena, 'ctx> ByteCompiler<'arena, 'ctx> {
         label
     }
 
-    fn try_fused_comparison_branch(&mut self, op: RelationalOp, binary: &'arena Binary<'arena>) -> Option<Label> {
+    fn try_fused_comparison_branch(
+        &mut self,
+        op: RelationalOp,
+        binary: &'arena Binary<'arena>,
+    ) -> Option<Label> {
         use crate::vm::opcode::ByteCodeEmitter;
 
         let emit_fn: fn(&mut ByteCodeEmitter, Address, RegisterOperand, RegisterOperand) = match op
@@ -1509,7 +1522,12 @@ impl<'arena, 'ctx> ByteCompiler<'arena, 'ctx> {
     }
 
     /// Compile a [`StatementList`].
-    pub fn compile_statement_list(&mut self, list: &'arena StatementList<'arena>, use_expr: bool, block: bool) {
+    pub fn compile_statement_list(
+        &mut self,
+        list: &'arena StatementList<'arena>,
+        use_expr: bool,
+        block: bool,
+    ) {
         if use_expr || self.jump_control_info_has_use_expr() {
             let mut use_expr_index = 0;
             for (i, statement) in list.statements().iter().enumerate() {
@@ -1705,7 +1723,11 @@ impl<'arena, 'ctx> ByteCompiler<'arena, 'ctx> {
     /// Follows the same short-circuit logic as `compile_optional_preserve_this`, but
     /// emits delete opcodes for the final link in the chain instead of get opcodes.
     /// When the chain short-circuits (base is null/undefined), returns `true` per spec.
-    pub(crate) fn compile_optional_delete(&mut self, optional: &'arena Optional<'arena>, dst: &Register) {
+    pub(crate) fn compile_optional_delete(
+        &mut self,
+        optional: &'arena Optional<'arena>,
+        dst: &Register,
+    ) {
         let value = self.register_allocator.alloc();
         let this = self.register_allocator.alloc();
 
@@ -2050,7 +2072,12 @@ impl<'arena, 'ctx> ByteCompiler<'arena, 'ctx> {
     }
 
     /// Compile a [`StatementListItem`].
-    fn compile_stmt_list_item(&mut self, item: &'arena StatementListItem<'arena>, use_expr: bool, block: bool) {
+    fn compile_stmt_list_item(
+        &mut self,
+        item: &'arena StatementListItem<'arena>,
+        use_expr: bool,
+        block: bool,
+    ) {
         match item {
             StatementListItem::Statement(stmt) => {
                 self.compile_stmt(stmt, use_expr, false);

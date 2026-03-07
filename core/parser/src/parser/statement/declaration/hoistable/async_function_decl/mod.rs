@@ -27,7 +27,7 @@ pub(in crate::parser) struct AsyncFunctionDeclaration<'arena> {
     _marker: std::marker::PhantomData<&'arena ()>,
 }
 
-impl<'arena> AsyncFunctionDeclaration<'arena> {
+impl AsyncFunctionDeclaration<'_> {
     /// Creates a new `AsyncFunctionDeclaration` parser.
     pub(in crate::parser) fn new<Y, A, D>(allow_yield: Y, allow_await: A, is_default: D) -> Self
     where
@@ -44,7 +44,7 @@ impl<'arena> AsyncFunctionDeclaration<'arena> {
     }
 }
 
-impl<'arena> CallableDeclaration for AsyncFunctionDeclaration<'arena> {
+impl CallableDeclaration for AsyncFunctionDeclaration<'_> {
     fn error_context(&self) -> &'static str {
         "async function declaration"
     }

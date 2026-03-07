@@ -58,7 +58,7 @@ pub(super) struct ObjectLiteral<'arena> {
     _marker: std::marker::PhantomData<&'arena ()>,
 }
 
-impl<'arena> ObjectLiteral<'arena> {
+impl ObjectLiteral<'_> {
     /// Creates a new `ObjectLiteral` parser.
     pub(super) fn new<Y, A>(allow_yield: Y, allow_await: A) -> Self
     where
@@ -155,7 +155,7 @@ pub(in crate::parser) struct PropertyDefinition<'arena> {
     _marker: std::marker::PhantomData<&'arena ()>,
 }
 
-impl<'arena> PropertyDefinition<'arena> {
+impl PropertyDefinition<'_> {
     /// Creates a new `PropertyDefinition` parser.
     pub(in crate::parser) fn new<Y, A>(allow_yield: Y, allow_await: A) -> Self
     where
@@ -410,7 +410,7 @@ where
                     )?
                     .span()
                     .end();
-                let params: FormalParameterList = FormalParameter::new(false, false)
+                let params: FormalParameterList<'_> = FormalParameter::new(false, false)
                     .parse(cursor, interner)?
                     .into();
                 cursor.expect(
@@ -551,7 +551,7 @@ pub(in crate::parser) struct PropertyName<'arena> {
     _marker: std::marker::PhantomData<&'arena ()>,
 }
 
-impl<'arena> PropertyName<'arena> {
+impl PropertyName<'_> {
     /// Creates a new `PropertyName` parser.
     pub(in crate::parser) fn new<Y, A>(allow_yield: Y, allow_await: A) -> Self
     where
@@ -574,7 +574,7 @@ where
 
     fn parse(self, cursor: &mut Cursor<R>, interner: &mut Interner) -> ParseResult<Self::Output> {
         let token = cursor.peek(0, interner).or_abrupt()?;
-        let name: PropertyNameNode = match token.kind() {
+        let name: PropertyNameNode<'_> = match token.kind() {
             TokenKind::Punctuator(Punctuator::OpenBracket) => {
                 cursor.advance(interner);
                 let node = AssignmentExpression::new(true, self.allow_yield, self.allow_await)
@@ -633,7 +633,7 @@ pub(in crate::parser) struct ClassElementName<'arena> {
     _marker: std::marker::PhantomData<&'arena ()>,
 }
 
-impl<'arena> ClassElementName<'arena> {
+impl ClassElementName<'_> {
     /// Creates a new `ClassElementName` parser.
     pub(in crate::parser) fn new<Y, A>(allow_yield: Y, allow_await: A) -> Self
     where
@@ -686,7 +686,7 @@ pub(in crate::parser) struct Initializer<'arena> {
     _marker: std::marker::PhantomData<&'arena ()>,
 }
 
-impl<'arena> Initializer<'arena> {
+impl Initializer<'_> {
     /// Creates a new `Initializer` parser.
     pub(in crate::parser) fn new<I, Y, A>(allow_in: I, allow_yield: Y, allow_await: A) -> Self
     where
@@ -729,7 +729,7 @@ pub(in crate::parser) struct GeneratorMethod<'arena> {
     _marker: std::marker::PhantomData<&'arena ()>,
 }
 
-impl<'arena> GeneratorMethod<'arena> {
+impl GeneratorMethod<'_> {
     /// Creates a new `GeneratorMethod` parser.
     pub(in crate::parser) fn new<Y, A>(allow_yield: Y, allow_await: A) -> Self
     where
@@ -820,7 +820,7 @@ pub(in crate::parser) struct AsyncGeneratorMethod<'arena> {
     _marker: std::marker::PhantomData<&'arena ()>,
 }
 
-impl<'arena> AsyncGeneratorMethod<'arena> {
+impl AsyncGeneratorMethod<'_> {
     /// Creates a new `AsyncGeneratorMethod` parser.
     pub(in crate::parser) fn new<Y, A>(allow_yield: Y, allow_await: A) -> Self
     where
@@ -925,7 +925,7 @@ pub(in crate::parser) struct AsyncMethod<'arena> {
     _marker: std::marker::PhantomData<&'arena ()>,
 }
 
-impl<'arena> AsyncMethod<'arena> {
+impl AsyncMethod<'_> {
     /// Creates a new `AsyncMethod` parser.
     pub(in crate::parser) fn new<Y, A>(allow_yield: Y, allow_await: A) -> Self
     where
@@ -1006,7 +1006,7 @@ pub(in crate::parser) struct CoverInitializedName<'arena> {
     _marker: std::marker::PhantomData<&'arena ()>,
 }
 
-impl<'arena> CoverInitializedName<'arena> {
+impl CoverInitializedName<'_> {
     /// Creates a new `CoverInitializedName` parser.
     pub(in crate::parser) fn new<Y, A>(allow_yield: Y, allow_await: A) -> Self
     where

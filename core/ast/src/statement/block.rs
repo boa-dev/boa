@@ -67,7 +67,7 @@ where
     }
 }
 
-impl<'arena> ToIndentedString for Block<'arena> {
+impl ToIndentedString for Block<'_> {
     fn to_indented_string(&self, interner: &Interner, indentation: usize) -> String {
         format!(
             "{{\n{}{}}}",

@@ -55,14 +55,14 @@ impl<'arena> Call<'arena> {
     }
 }
 
-impl<'arena> Spanned for Call<'arena> {
+impl Spanned for Call<'_> {
     #[inline]
     fn span(&self) -> Span {
         self.span
     }
 }
 
-impl<'arena> ToInternedString for Call<'arena> {
+impl ToInternedString for Call<'_> {
     #[inline]
     fn to_interned_string(&self, interner: &Interner) -> String {
         format!(
@@ -139,14 +139,14 @@ impl<'arena> SuperCall<'arena> {
     }
 }
 
-impl<'arena> Spanned for SuperCall<'arena> {
+impl Spanned for SuperCall<'_> {
     #[inline]
     fn span(&self) -> Span {
         self.span
     }
 }
 
-impl<'arena> ToInternedString for SuperCall<'arena> {
+impl ToInternedString for SuperCall<'_> {
     #[inline]
     fn to_interned_string(&self, interner: &Interner) -> String {
         format!("super({})", join_nodes(interner, &self.args))
@@ -246,14 +246,14 @@ impl<'arena> ImportCall<'arena> {
     }
 }
 
-impl<'arena> Spanned for ImportCall<'arena> {
+impl Spanned for ImportCall<'_> {
     #[inline]
     fn span(&self) -> Span {
         self.span
     }
 }
 
-impl<'arena> ToInternedString for ImportCall<'arena> {
+impl ToInternedString for ImportCall<'_> {
     #[inline]
     fn to_interned_string(&self, interner: &Interner) -> String {
         if let Some(options) = &self.options {

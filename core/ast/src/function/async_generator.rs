@@ -100,7 +100,7 @@ impl<'arena> AsyncGeneratorDeclaration<'arena> {
     }
 }
 
-impl<'arena> ToIndentedString for AsyncGeneratorDeclaration<'arena> {
+impl ToIndentedString for AsyncGeneratorDeclaration<'_> {
     fn to_indented_string(&self, interner: &Interner, indentation: usize) -> String {
         format!(
             "async function* {}({}) {}",
@@ -250,14 +250,14 @@ impl<'arena> AsyncGeneratorExpression<'arena> {
     }
 }
 
-impl<'arena> Spanned for AsyncGeneratorExpression<'arena> {
+impl Spanned for AsyncGeneratorExpression<'_> {
     #[inline]
     fn span(&self) -> Span {
         self.span
     }
 }
 
-impl<'arena> ToIndentedString for AsyncGeneratorExpression<'arena> {
+impl ToIndentedString for AsyncGeneratorExpression<'_> {
     fn to_indented_string(&self, interner: &Interner, indentation: usize) -> String {
         let mut buf = "async function*".to_owned();
         if self.has_binding_identifier

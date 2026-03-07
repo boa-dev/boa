@@ -106,7 +106,7 @@ impl<'arena> ForOfLoop<'arena> {
     }
 }
 
-impl<'arena> ToIndentedString for ForOfLoop<'arena> {
+impl ToIndentedString for ForOfLoop<'_> {
     fn to_indented_string(&self, interner: &Interner, indentation: usize) -> String {
         format!(
             "for ({} of {}) {}",

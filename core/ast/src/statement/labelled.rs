@@ -27,7 +27,7 @@ pub enum LabelledItem<'arena> {
     Statement(Statement<'arena>),
 }
 
-impl<'arena> LabelledItem<'arena> {
+impl LabelledItem<'_> {
     pub(crate) fn to_indented_string(&self, interner: &Interner, indentation: usize) -> String {
         match self {
             Self::FunctionDeclaration(f) => f.to_indented_string(interner, indentation),
@@ -36,7 +36,7 @@ impl<'arena> LabelledItem<'arena> {
     }
 }
 
-impl<'arena> ToInternedString for LabelledItem<'arena> {
+impl ToInternedString for LabelledItem<'_> {
     fn to_interned_string(&self, interner: &Interner) -> String {
         self.to_indented_string(interner, 0)
     }
@@ -124,7 +124,7 @@ impl<'arena> Labelled<'arena> {
     }
 }
 
-impl<'arena> ToInternedString for Labelled<'arena> {
+impl ToInternedString for Labelled<'_> {
     fn to_interned_string(&self, interner: &Interner) -> String {
         self.to_indented_string(interner, 0)
     }

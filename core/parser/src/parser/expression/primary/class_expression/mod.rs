@@ -22,7 +22,7 @@ pub(super) struct ClassExpression<'arena> {
     _marker: std::marker::PhantomData<&'arena ()>,
 }
 
-impl<'arena> ClassExpression<'arena> {
+impl ClassExpression<'_> {
     /// Creates a new `ClassExpression` parser.
     pub(in crate::parser) fn new<Y, A>(allow_yield: Y, allow_await: A) -> Self
     where

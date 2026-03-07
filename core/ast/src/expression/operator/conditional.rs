@@ -54,7 +54,11 @@ impl<'arena> Conditional<'arena> {
     /// Creates a `Conditional` AST Expression.
     #[inline]
     #[must_use]
-    pub fn new(condition: Expression<'arena>, if_true: Expression<'arena>, if_false: Expression<'arena>) -> Self {
+    pub fn new(
+        condition: Expression<'arena>,
+        if_true: Expression<'arena>,
+        if_false: Expression<'arena>,
+    ) -> Self {
         Self {
             condition: Box::new(condition),
             if_true: Box::new(if_true),
@@ -63,14 +67,14 @@ impl<'arena> Conditional<'arena> {
     }
 }
 
-impl<'arena> Spanned for Conditional<'arena> {
+impl Spanned for Conditional<'_> {
     #[inline]
     fn span(&self) -> Span {
         Span::new(self.condition.span().start(), self.if_false.span().end())
     }
 }
 
-impl<'arena> ToInternedString for Conditional<'arena> {
+impl ToInternedString for Conditional<'_> {
     #[inline]
     fn to_interned_string(&self, interner: &Interner) -> String {
         format!(

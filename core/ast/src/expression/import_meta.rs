@@ -33,7 +33,7 @@ impl Spanned for ImportMeta {
     }
 }
 
-impl<'arena> From<ImportMeta> for Expression<'arena> {
+impl From<ImportMeta> for Expression<'_> {
     #[inline]
     fn from(value: ImportMeta) -> Self {
         Expression::ImportMeta(value)

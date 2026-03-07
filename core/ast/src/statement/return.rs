@@ -50,7 +50,7 @@ impl<'arena> From<Return<'arena>> for Statement<'arena> {
     }
 }
 
-impl<'arena> ToInternedString for Return<'arena> {
+impl ToInternedString for Return<'_> {
     fn to_interned_string(&self, interner: &Interner) -> String {
         self.target().map_or_else(
             || "return".to_owned(),

@@ -32,7 +32,7 @@ pub(super) struct Catch<'arena> {
     _marker: std::marker::PhantomData<&'arena ()>,
 }
 
-impl<'arena> Catch<'arena> {
+impl Catch<'_> {
     /// Creates a new `Catch` block parser.
     pub(super) fn new<Y, A, R>(allow_yield: Y, allow_await: A, allow_return: R) -> Self
     where
@@ -135,7 +135,7 @@ pub(super) struct CatchParameter<'arena> {
     _marker: std::marker::PhantomData<&'arena ()>,
 }
 
-impl<'arena> CatchParameter<'arena> {
+impl CatchParameter<'_> {
     /// Creates a new `CatchParameter` parser.
     pub(super) fn new<Y, A>(allow_yield: Y, allow_await: A) -> Self
     where

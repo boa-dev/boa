@@ -106,14 +106,14 @@ impl<'arena> OptionalOperation<'arena> {
     }
 }
 
-impl<'arena> Spanned for OptionalOperation<'arena> {
+impl Spanned for OptionalOperation<'_> {
     #[inline]
     fn span(&self) -> Span {
         self.span
     }
 }
 
-impl<'arena> ToInternedString for OptionalOperation<'arena> {
+impl ToInternedString for OptionalOperation<'_> {
     fn to_interned_string(&self, interner: &Interner) -> String {
         let mut buf = if self.shorted {
             String::from("?.")
@@ -202,7 +202,11 @@ impl<'arena> Optional<'arena> {
     /// Creates a new `Optional` expression.
     #[inline]
     #[must_use]
-    pub fn new(target: Expression<'arena>, chain: Box<[OptionalOperation<'arena>]>, span: Span) -> Self {
+    pub fn new(
+        target: Expression<'arena>,
+        chain: Box<[OptionalOperation<'arena>]>,
+        span: Span,
+    ) -> Self {
         Self {
             target: Box::new(target),
             chain,
@@ -225,7 +229,7 @@ impl<'arena> Optional<'arena> {
     }
 }
 
-impl<'arena> Spanned for Optional<'arena> {
+impl Spanned for Optional<'_> {
     #[inline]
     fn span(&self) -> Span {
         self.span
@@ -238,7 +242,7 @@ impl<'arena> From<Optional<'arena>> for Expression<'arena> {
     }
 }
 
-impl<'arena> ToInternedString for Optional<'arena> {
+impl ToInternedString for Optional<'_> {
     fn to_interned_string(&self, interner: &Interner) -> String {
         let mut buf = self.target.to_interned_string(interner);
 

@@ -52,7 +52,7 @@ pub enum IterableLoopInitializer<'arena> {
     Pattern(Pattern<'arena>),
 }
 
-impl<'arena> ToInternedString for IterableLoopInitializer<'arena> {
+impl ToInternedString for IterableLoopInitializer<'_> {
     fn to_interned_string(&self, interner: &Interner) -> String {
         let (binding, pre) = match self {
             Self::Identifier(ident) => return ident.to_interned_string(interner),

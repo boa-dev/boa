@@ -54,7 +54,7 @@ pub(super) struct Block<'arena> {
     _marker: std::marker::PhantomData<&'arena ()>,
 }
 
-impl<'arena> Block<'arena> {
+impl Block<'_> {
     /// Creates a new `Block` parser.
     pub(super) fn new<Y, A, R>(allow_yield: Y, allow_await: A, allow_return: R) -> Self
     where
@@ -83,7 +83,10 @@ where
             && tk.kind() == &TokenKind::Punctuator(Punctuator::CloseBlock)
         {
             cursor.advance(interner);
-            return Ok(statement::Block::from((vec![].into_boxed_slice(), cursor.linear_pos())));
+            return Ok(statement::Block::from((
+                vec![].into_boxed_slice(),
+                cursor.linear_pos(),
+            )));
         }
         let position = cursor.peek(0, interner).or_abrupt()?.span().start();
         let (statement_list, _end) = StatementList::new(

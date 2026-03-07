@@ -175,7 +175,7 @@ impl<'arena> Switch<'arena> {
     }
 }
 
-impl<'arena> ToIndentedString for Switch<'arena> {
+impl ToIndentedString for Switch<'_> {
     fn to_indented_string(&self, interner: &Interner, indentation: usize) -> String {
         let indent = "    ".repeat(indentation);
         let mut buf = format!("switch ({}) {{\n", self.val().to_interned_string(interner));

@@ -51,7 +51,7 @@ impl<'arena> Yield<'arena> {
     }
 }
 
-impl<'arena> Spanned for Yield<'arena> {
+impl Spanned for Yield<'_> {
     #[inline]
     fn span(&self) -> Span {
         self.span
@@ -65,7 +65,7 @@ impl<'arena> From<Yield<'arena>> for Expression<'arena> {
     }
 }
 
-impl<'arena> ToInternedString for Yield<'arena> {
+impl ToInternedString for Yield<'_> {
     #[inline]
     fn to_interned_string(&self, interner: &Interner) -> String {
         let y = if self.delegate { "yield*" } else { "yield" };

@@ -307,9 +307,9 @@ impl<'arena> SourceTextModule {
     ///
     /// [parse]: https://tc39.es/ecma262/#sec-parsemodule
     pub(super) fn new(
-        code: boa_ast::Module<'arena>,
-        source_text: SourceText,
-        path: Option<PathBuf>,
+        code: &boa_ast::Module<'arena>,
+        source_text: &SourceText,
+        path: Option<&PathBuf>,
         context: &mut Context,
     ) -> Self {
         let interner = context.interner();
@@ -322,7 +322,7 @@ impl<'arena> SourceTextModule {
                 interner,
                 requests: IndexSet::default(),
             };
-            let _ = visitor.visit_module(&code);
+            let _ = visitor.visit_module(code);
             visitor.requests
         };
         // 4. Let importEntries be ImportEntries of body.
@@ -395,7 +395,7 @@ impl<'arena> SourceTextModule {
         }
 
         // 11. Let async be body Contains await.
-        let has_tla = contains(&code, ContainsSymbol::AwaitExpression);
+        let has_tla = contains(code, ContainsSymbol::AwaitExpression);
 
         let mut compiler = ByteCompiler::new(
             js_string!("<main>"),
@@ -408,12 +408,12 @@ impl<'arena> SourceTextModule {
             context.interner_mut(),
             false,
             SpannedSourceText::new_source_only(source_text.clone()),
-            path.clone().into(),
+            path.cloned().into(),
         );
 
         compiler.async_handler = has_tla.then(|| compiler.push_handler());
 
-        let lex_declarations = lexically_scoped_declarations(&code);
+        let lex_declarations = lexically_scoped_declarations(code);
         let mut functions = Vec::new();
         for declaration in lex_declarations {
             let (spec, locator) = match declaration {
@@ -453,7 +453,7 @@ impl<'arena> SourceTextModule {
 
         // 18. Let code be module.[[ECMAScriptCode]].
         // 19. Let varDeclarations be the VarScopedDeclarations of code.
-        let var_declarations = var_scoped_declarations(&code);
+        let var_declarations = var_scoped_declarations(code);
         // 20. Let declaredVarNames be a new empty List.
         let mut declared_var_names = Vec::new();
         // 21. For each element d of varDeclarations, do

@@ -207,7 +207,7 @@ impl Context {
     /// Applies optimizations to the [`StatementList`] inplace.
     pub fn optimize_statement_list(
         &mut self,
-        statement_list: &mut StatementList,
+        statement_list: &mut StatementList<'_>,
     ) -> OptimizerStatistics {
         let mut optimizer = Optimizer::new(self);
         optimizer.apply(statement_list)

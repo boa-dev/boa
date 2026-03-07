@@ -42,7 +42,7 @@ pub(in crate::parser) struct UnaryExpression<'arena> {
     _marker: std::marker::PhantomData<&'arena ()>,
 }
 
-impl<'arena> UnaryExpression<'arena> {
+impl UnaryExpression<'_> {
     /// Creates a new `UnaryExpression` parser.
     pub(in crate::parser) fn new<Y, A>(allow_yield: Y, allow_await: A) -> Self
     where

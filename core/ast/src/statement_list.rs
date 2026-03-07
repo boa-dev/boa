@@ -8,6 +8,7 @@ use crate::{
 };
 use boa_interner::{Interner, ToIndentedString};
 use core::ops::ControlFlow;
+use std::marker::PhantomData;
 use std::ops::Deref;
 
 /// An item inside a [`StatementList`] Parse Node, as defined by the [spec].
@@ -26,7 +27,7 @@ pub enum StatementListItem<'arena> {
     Declaration(Box<Declaration<'arena>>),
 }
 
-impl<'arena> ToIndentedString for StatementListItem<'arena> {
+impl ToIndentedString for StatementListItem<'_> {
     /// Creates a string of the value of the node with the given indentation. For example, an
     /// indent level of 2 would produce this:
     ///
@@ -95,17 +96,16 @@ impl<'arena> VisitWith<'arena> for StatementListItem<'arena> {
 ///  - [ECMAScript reference][spec]
 ///
 /// [spec]: https://tc39.es/ecma262/#prod-StatementList
-use std::marker::PhantomData;
 #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
 #[derive(Clone, Debug, Default)]
 pub struct StatementList<'arena> {
     pub(crate) statements: Box<[StatementListItem<'arena>]>,
     linear_pos_end: LinearPosition,
     strict: bool,
-    _marker: PhantomData<&'arena ()>, // remove this, this is temporary just to use the 'arena before doing any allocation in the AST arena
+    _marker: PhantomData<&'arena ()>,
 }
 
-impl<'arena> PartialEq for StatementList<'arena> {
+impl PartialEq for StatementList<'_> {
     fn eq(&self, other: &Self) -> bool {
         self.statements == other.statements && self.strict == other.strict
     }
@@ -180,7 +180,7 @@ impl<'arena> Deref for StatementList<'arena> {
     }
 }
 
-impl<'arena> ToIndentedString for StatementList<'arena> {
+impl ToIndentedString for StatementList<'_> {
     fn to_indented_string(&self, interner: &Interner, indentation: usize) -> String {
         let mut buf = String::new();
         // Print statements
@@ -223,6 +223,7 @@ impl<'a, 'arena> arbitrary::Arbitrary<'a> for StatementList<'arena> {
             statements: u.arbitrary()?,
             linear_pos_end: LinearPosition::default(),
             strict: false, // disable strictness; this is *not* in source data
+            _marker: PhantomData,
         })
     }
 }

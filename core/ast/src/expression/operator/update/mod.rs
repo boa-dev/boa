@@ -63,14 +63,14 @@ impl<'arena> Update<'arena> {
     }
 }
 
-impl<'arena> Spanned for Update<'arena> {
+impl Spanned for Update<'_> {
     #[inline]
     fn span(&self) -> Span {
         self.span
     }
 }
 
-impl<'arena> ToInternedString for Update<'arena> {
+impl ToInternedString for Update<'_> {
     #[inline]
     fn to_interned_string(&self, interner: &Interner) -> String {
         match self.op {
@@ -132,7 +132,7 @@ pub enum UpdateTarget<'arena> {
     PropertyAccess(PropertyAccess<'arena>),
 }
 
-impl<'arena> ToInternedString for UpdateTarget<'arena> {
+impl ToInternedString for UpdateTarget<'_> {
     #[inline]
     fn to_interned_string(&self, interner: &Interner) -> String {
         match self {

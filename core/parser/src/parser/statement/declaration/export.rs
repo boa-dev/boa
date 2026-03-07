@@ -41,7 +41,7 @@ pub(in crate::parser) struct ExportDeclaration<'arena> {
     _marker: std::marker::PhantomData<&'arena ()>,
 }
 
-impl<'arena> ExportDeclaration<'arena> {
+impl ExportDeclaration<'_> {
     /// Creates a new `ExportDeclaration` parser.
     pub(in crate::parser) fn new() -> Self {
         Self {
@@ -245,7 +245,7 @@ struct NamedExports<'arena> {
     _marker: std::marker::PhantomData<&'arena ()>,
 }
 
-impl<'arena> NamedExports<'arena> {
+impl NamedExports<'_> {
     /// Creates a new `NamedExports` parser.
     fn new() -> Self {
         Self {
@@ -321,7 +321,7 @@ pub(super) struct ModuleExportName<'arena> {
     _marker: std::marker::PhantomData<&'arena ()>,
 }
 
-impl<'arena> ModuleExportName<'arena> {
+impl ModuleExportName<'_> {
     /// Creates a new `ModuleExportName` parser.
     pub(super) fn new() -> Self {
         Self {
@@ -376,7 +376,7 @@ struct ExportSpecifier<'arena> {
     _marker: std::marker::PhantomData<&'arena ()>,
 }
 
-impl<'arena> ExportSpecifier<'arena> {
+impl ExportSpecifier<'_> {
     /// Creates a new `ExportSpecifier` parser.
     fn new() -> Self {
         Self {

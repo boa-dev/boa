@@ -27,7 +27,7 @@ pub(in crate::parser::statement) struct WithStatement<'arena> {
     _marker: std::marker::PhantomData<&'arena ()>,
 }
 
-impl<'arena> WithStatement<'arena> {
+impl WithStatement<'_> {
     /// Creates a new `WithStatement` parser.
     pub(in crate::parser::statement) fn new<Y, A, R>(
         allow_yield: Y,

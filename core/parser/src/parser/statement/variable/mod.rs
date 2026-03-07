@@ -34,7 +34,7 @@ pub(in crate::parser::statement) struct VariableStatement<'arena> {
     _marker: std::marker::PhantomData<&'arena ()>,
 }
 
-impl<'arena> VariableStatement<'arena> {
+impl VariableStatement<'_> {
     /// Creates a new `VariableStatement` parser.
     pub(in crate::parser::statement) fn new<Y, A>(allow_yield: Y, allow_await: A) -> Self
     where
@@ -83,7 +83,7 @@ pub(in crate::parser::statement) struct VariableDeclarationList<'arena> {
     _marker: std::marker::PhantomData<&'arena ()>,
 }
 
-impl<'arena> VariableDeclarationList<'arena> {
+impl VariableDeclarationList<'_> {
     /// Creates a new `VariableDeclarationList` parser.
     pub(in crate::parser::statement) fn new<I, Y, A>(
         allow_in: I,
@@ -144,7 +144,7 @@ struct VariableDeclaration<'arena> {
     _marker: std::marker::PhantomData<&'arena ()>,
 }
 
-impl<'arena> VariableDeclaration<'arena> {
+impl VariableDeclaration<'_> {
     /// Creates a new `VariableDeclaration` parser.
     fn new<I, Y, A>(allow_in: I, allow_yield: Y, allow_await: A) -> Self
     where

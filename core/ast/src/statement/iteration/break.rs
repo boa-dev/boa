@@ -48,7 +48,7 @@ impl ToInternedString for Break {
     }
 }
 
-impl<'arena> From<Break> for Statement<'arena> {
+impl From<Break> for Statement<'_> {
     fn from(break_smt: Break) -> Self {
         Self::Break(break_smt)
     }

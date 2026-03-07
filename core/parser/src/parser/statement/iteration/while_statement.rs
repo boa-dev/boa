@@ -25,7 +25,7 @@ pub(in crate::parser::statement) struct WhileStatement<'arena> {
     _marker: std::marker::PhantomData<&'arena ()>,
 }
 
-impl<'arena> WhileStatement<'arena> {
+impl WhileStatement<'_> {
     /// Creates a new `WhileStatement` parser.
     pub(in crate::parser::statement) fn new<Y, A, R>(
         allow_yield: Y,

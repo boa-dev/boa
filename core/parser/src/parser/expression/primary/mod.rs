@@ -74,7 +74,7 @@ pub(super) struct PrimaryExpression<'arena> {
     _marker: std::marker::PhantomData<&'arena ()>,
 }
 
-impl<'arena> PrimaryExpression<'arena> {
+impl PrimaryExpression<'_> {
     /// Creates a new `PrimaryExpression` parser.
     pub(super) fn new<Y, A>(allow_yield: Y, allow_await: A) -> Self
     where
@@ -292,7 +292,7 @@ pub(super) struct CoverParenthesizedExpressionAndArrowParameterList<'arena> {
     _marker: std::marker::PhantomData<&'arena ()>,
 }
 
-impl<'arena> CoverParenthesizedExpressionAndArrowParameterList<'arena> {
+impl CoverParenthesizedExpressionAndArrowParameterList<'_> {
     /// Creates a new `CoverParenthesizedExpressionAndArrowParameterList` parser.
     pub(super) fn new<Y, A>(allow_yield: Y, allow_await: A) -> Self
     where

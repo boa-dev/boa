@@ -37,7 +37,7 @@ pub(super) struct ContinueStatement<'arena> {
     _marker: std::marker::PhantomData<&'arena ()>,
 }
 
-impl<'arena> ContinueStatement<'arena> {
+impl ContinueStatement<'_> {
     /// Creates a new `ContinueStatement` parser.
     pub(super) fn new<Y, A>(allow_yield: Y, allow_await: A) -> Self
     where

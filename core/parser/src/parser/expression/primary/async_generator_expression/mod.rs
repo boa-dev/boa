@@ -39,7 +39,7 @@ pub(super) struct AsyncGeneratorExpression<'arena> {
     _marker: std::marker::PhantomData<&'arena ()>,
 }
 
-impl<'arena> AsyncGeneratorExpression<'arena> {
+impl AsyncGeneratorExpression<'_> {
     /// Creates a new `AsyncGeneratorExpression` parser.
     pub(in crate::parser) fn new() -> Self {
         Self {

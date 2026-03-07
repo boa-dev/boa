@@ -32,7 +32,7 @@ pub(in crate::parser) struct AsyncGeneratorDeclaration<'arena> {
     _marker: std::marker::PhantomData<&'arena ()>,
 }
 
-impl<'arena> AsyncGeneratorDeclaration<'arena> {
+impl AsyncGeneratorDeclaration<'_> {
     /// Creates a new `AsyncGeneratorDeclaration` parser.
     pub(in crate::parser) fn new<Y, A, D>(allow_yield: Y, allow_await: A, is_default: D) -> Self
     where
@@ -49,7 +49,7 @@ impl<'arena> AsyncGeneratorDeclaration<'arena> {
     }
 }
 
-impl<'arena> CallableDeclaration for AsyncGeneratorDeclaration<'arena> {
+impl CallableDeclaration for AsyncGeneratorDeclaration<'_> {
     fn error_context(&self) -> &'static str {
         "async generator declaration"
     }

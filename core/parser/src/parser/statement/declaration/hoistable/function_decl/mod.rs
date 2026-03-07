@@ -28,7 +28,7 @@ pub(in crate::parser) struct FunctionDeclaration<'arena> {
     _marker: std::marker::PhantomData<&'arena ()>,
 }
 
-impl<'arena> FunctionDeclaration<'arena> {
+impl FunctionDeclaration<'_> {
     /// Creates a new `FunctionDeclaration` parser.
     pub(in crate::parser) fn new<Y, A, D>(allow_yield: Y, allow_await: A, is_default: D) -> Self
     where
@@ -45,7 +45,7 @@ impl<'arena> FunctionDeclaration<'arena> {
     }
 }
 
-impl<'arena> CallableDeclaration for FunctionDeclaration<'arena> {
+impl CallableDeclaration for FunctionDeclaration<'_> {
     fn error_context(&self) -> &'static str {
         "function declaration"
     }

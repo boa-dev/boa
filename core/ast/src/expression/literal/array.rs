@@ -163,7 +163,7 @@ impl<'arena> ArrayLiteral<'arena> {
     }
 }
 
-impl<'arena> Spanned for ArrayLiteral<'arena> {
+impl Spanned for ArrayLiteral<'_> {
     #[inline]
     fn span(&self) -> Span {
         self.span
@@ -184,7 +184,7 @@ impl<'arena> AsMut<[Option<Expression<'arena>>]> for ArrayLiteral<'arena> {
     }
 }
 
-impl<'arena> ToInternedString for ArrayLiteral<'arena> {
+impl ToInternedString for ArrayLiteral<'_> {
     #[inline]
     fn to_interned_string(&self, interner: &Interner) -> String {
         let mut buf = String::from("[");

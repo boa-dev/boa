@@ -36,7 +36,7 @@ pub(in crate::parser::expression) struct ConditionalExpression<'arena> {
     _marker: std::marker::PhantomData<&'arena ()>,
 }
 
-impl<'arena> ConditionalExpression<'arena> {
+impl ConditionalExpression<'_> {
     /// Creates a new `ConditionalExpression` parser.
     pub(in crate::parser::expression) fn new<I, Y, A>(
         allow_in: I,

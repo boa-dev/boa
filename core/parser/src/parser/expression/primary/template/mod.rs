@@ -36,7 +36,7 @@ pub(super) struct TemplateLiteral<'arena> {
     _marker: std::marker::PhantomData<&'arena ()>,
 }
 
-impl<'arena> TemplateLiteral<'arena> {
+impl TemplateLiteral<'_> {
     /// Creates a new `TemplateLiteral` parser.
     pub(super) fn new<Y, A>(
         allow_yield: Y,

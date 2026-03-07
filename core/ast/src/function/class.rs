@@ -88,7 +88,7 @@ impl<'arena> ClassDeclaration<'arena> {
     }
 }
 
-impl<'arena> ToIndentedString for ClassDeclaration<'arena> {
+impl ToIndentedString for ClassDeclaration<'_> {
     fn to_indented_string(&self, interner: &Interner, indent_n: usize) -> String {
         let mut buf = format!("class {}", interner.resolve_expect(self.name.sym()));
         if let Some(super_ref) = self.super_ref.as_ref() {
@@ -244,14 +244,14 @@ impl<'arena> ClassExpression<'arena> {
     }
 }
 
-impl<'arena> Spanned for ClassExpression<'arena> {
+impl Spanned for ClassExpression<'_> {
     #[inline]
     fn span(&self) -> Span {
         self.span
     }
 }
 
-impl<'arena> ToIndentedString for ClassExpression<'arena> {
+impl ToIndentedString for ClassExpression<'_> {
     fn to_indented_string(&self, interner: &Interner, indent_n: usize) -> String {
         let mut buf = "class".to_string();
         if self.name_scope.is_some()
@@ -503,7 +503,7 @@ impl<'arena> PrivateFieldDefinition<'arena> {
     }
 }
 
-impl<'arena> ToIndentedString for ClassElement<'arena> {
+impl ToIndentedString for ClassElement<'_> {
     fn to_indented_string(&self, interner: &Interner, indent_n: usize) -> String {
         let indentation = "    ".repeat(indent_n + 1);
         match self {
@@ -792,7 +792,7 @@ impl<'arena> ClassMethodDefinition<'arena> {
     }
 }
 
-impl<'arena> ToIndentedString for ClassMethodDefinition<'arena> {
+impl ToIndentedString for ClassMethodDefinition<'_> {
     fn to_indented_string(&self, interner: &Interner, indent_n: usize) -> String {
         let indentation = "    ".repeat(indent_n + 1);
         let prefix = match (self.is_static, &self.kind) {
@@ -833,7 +833,7 @@ pub enum ClassElementName<'arena> {
     PrivateName(PrivateName),
 }
 
-impl<'arena> ClassElementName<'arena> {
+impl ClassElementName<'_> {
     /// Returns whether the class element name is private.
     #[inline]
     #[must_use]
@@ -842,7 +842,7 @@ impl<'arena> ClassElementName<'arena> {
     }
 }
 
-impl<'arena> ToInternedString for ClassElementName<'arena> {
+impl ToInternedString for ClassElementName<'_> {
     fn to_interned_string(&self, interner: &Interner) -> String {
         match &self {
             Self::PropertyName(name) => name.to_interned_string(interner),

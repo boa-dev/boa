@@ -119,13 +119,13 @@ impl<'arena> VisitWith<'arena> for Script<'arena> {
     }
 }
 
-impl<'arena> ToIndentedString for Script<'arena> {
+impl ToIndentedString for Script<'_> {
     fn to_indented_string(&self, interner: &Interner, indentation: usize) -> String {
         self.statements.to_indented_string(interner, indentation)
     }
 }
 
-impl<'arena> PartialEq for Script<'arena> {
+impl PartialEq for Script<'_> {
     fn eq(&self, other: &Self) -> bool {
         self.statements == other.statements
     }

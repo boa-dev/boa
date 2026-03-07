@@ -41,7 +41,7 @@ pub(super) struct FunctionExpression<'arena> {
     _marker: std::marker::PhantomData<&'arena ()>,
 }
 
-impl<'arena> FunctionExpression<'arena> {
+impl FunctionExpression<'_> {
     /// Creates a new `FunctionExpression` parser.
     pub(in crate::parser) fn new() -> Self {
         Self {

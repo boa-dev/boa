@@ -278,7 +278,7 @@ impl Module {
             parser.parse_module_with_source(realm.scope(), context.interner_mut())?;
 
         let source_text = SourceText::new(source);
-        let src = SourceTextModule::new(module, source_text, path.clone(), context);
+        let src = SourceTextModule::new(&module, &source_text, path.as_ref(), context);
 
         Ok(Self {
             inner: Gc::new(ModuleRepr {

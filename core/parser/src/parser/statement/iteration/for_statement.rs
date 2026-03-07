@@ -51,7 +51,7 @@ pub(in crate::parser::statement) struct ForStatement<'arena> {
     _marker: std::marker::PhantomData<&'arena ()>,
 }
 
-impl<'arena> ForStatement<'arena> {
+impl ForStatement<'_> {
     /// Creates a new `ForStatement` parser.
     pub(in crate::parser::statement) fn new<Y, A, R>(
         allow_yield: Y,
@@ -323,12 +323,12 @@ where
     }
 }
 
-fn initializer_to_iterable_loop_initializer<'arena>(
-    initializer: ForLoopInitializer<'arena>,
+fn initializer_to_iterable_loop_initializer(
+    initializer: ForLoopInitializer<'_>,
     position: Position,
     strict: bool,
     in_loop: bool,
-) -> ParseResult<IterableLoopInitializer<'arena>> {
+) -> ParseResult<IterableLoopInitializer<'_>> {
     let loop_type = if in_loop { "for-in" } else { "for-of" };
     match initializer {
         ForLoopInitializer::Expression(mut expr) => {

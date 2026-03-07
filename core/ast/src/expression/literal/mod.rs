@@ -117,7 +117,7 @@ impl Spanned for Literal {
     }
 }
 
-impl<'arena> From<Literal> for Expression<'arena> {
+impl From<Literal> for Expression<'_> {
     #[inline]
     fn from(lit: Literal) -> Self {
         Self::Literal(lit)

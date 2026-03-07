@@ -180,7 +180,7 @@ pub enum Expression<'arena> {
     Parenthesized(Parenthesized<'arena>),
 }
 
-impl<'arena> Expression<'arena> {
+impl Expression<'_> {
     /// Implements the display formatting with indentation.
     ///
     /// This will not prefix the value with any indentation. If you want to prefix this with proper
@@ -277,7 +277,7 @@ impl<'arena> Expression<'arena> {
     }
 }
 
-impl<'arena> Spanned for Expression<'arena> {
+impl Spanned for Expression<'_> {
     #[inline]
     fn span(&self) -> Span {
         match self {
@@ -325,7 +325,7 @@ impl<'arena> From<Expression<'arena>> for Statement<'arena> {
     }
 }
 
-impl<'arena> ToIndentedString for Expression<'arena> {
+impl ToIndentedString for Expression<'_> {
     #[inline]
     fn to_indented_string(&self, interner: &Interner, indentation: usize) -> String {
         self.to_no_indent_string(interner, indentation)

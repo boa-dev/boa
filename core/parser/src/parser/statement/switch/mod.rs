@@ -38,7 +38,7 @@ pub(super) struct SwitchStatement<'arena> {
     _marker: std::marker::PhantomData<&'arena ()>,
 }
 
-impl<'arena> SwitchStatement<'arena> {
+impl SwitchStatement<'_> {
     /// Creates a new `SwitchStatement` parser.
     pub(super) fn new<Y, A, R>(allow_yield: Y, allow_await: A, allow_return: R) -> Self
     where
@@ -124,7 +124,7 @@ struct CaseBlock<'arena> {
     _marker: std::marker::PhantomData<&'arena ()>,
 }
 
-impl<'arena> CaseBlock<'arena> {
+impl CaseBlock<'_> {
     /// Creates a new `CaseBlock` parser.
     fn new<Y, A, R>(allow_yield: Y, allow_await: A, allow_return: R) -> Self
     where

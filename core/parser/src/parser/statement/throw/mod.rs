@@ -23,7 +23,7 @@ pub(super) struct ThrowStatement<'arena> {
     _marker: std::marker::PhantomData<&'arena ()>,
 }
 
-impl<'arena> ThrowStatement<'arena> {
+impl ThrowStatement<'_> {
     /// Creates a new `ThrowStatement` parser.
     pub(super) fn new<Y, A>(allow_yield: Y, allow_await: A) -> Self
     where

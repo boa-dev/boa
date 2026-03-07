@@ -31,7 +31,7 @@ pub(in crate::parser) struct YieldExpression<'arena> {
     _marker: std::marker::PhantomData<&'arena ()>,
 }
 
-impl<'arena> YieldExpression<'arena> {
+impl YieldExpression<'_> {
     /// Creates a new `YieldExpression` parser.
     pub(in crate::parser) fn new<I, A>(allow_in: I, allow_await: A) -> Self
     where

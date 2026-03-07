@@ -69,7 +69,7 @@ impl<'arena> PropertyName<'arena> {
     }
 }
 
-impl<'arena> ToInternedString for PropertyName<'arena> {
+impl ToInternedString for PropertyName<'_> {
     fn to_interned_string(&self, interner: &Interner) -> String {
         match self {
             Self::Literal(key) => interner.resolve_expect(key.sym()).to_string(),
@@ -78,7 +78,7 @@ impl<'arena> ToInternedString for PropertyName<'arena> {
     }
 }
 
-impl<'arena> From<Identifier> for PropertyName<'arena> {
+impl From<Identifier> for PropertyName<'_> {
     fn from(name: Identifier) -> Self {
         Self::Literal(name)
     }

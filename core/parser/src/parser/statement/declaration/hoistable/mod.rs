@@ -55,7 +55,7 @@ pub(in crate::parser) struct HoistableDeclaration<'arena> {
     _marker: std::marker::PhantomData<&'arena ()>,
 }
 
-impl<'arena> HoistableDeclaration<'arena> {
+impl HoistableDeclaration<'_> {
     /// Creates a new `HoistableDeclaration` parser.
     pub(in crate::parser) fn new<Y, A, D>(allow_yield: Y, allow_await: A, is_default: D) -> Self
     where
@@ -148,7 +148,11 @@ fn parse_callable_declaration<'arena, R: ReadChar, C: CallableDeclaration>(
     c: &C,
     cursor: &mut Cursor<R>,
     interner: &mut Interner,
-) -> ParseResult<(Identifier, FormalParameterList<'arena>, ast::function::FunctionBody<'arena>)> {
+) -> ParseResult<(
+    Identifier,
+    FormalParameterList<'arena>,
+    ast::function::FunctionBody<'arena>,
+)> {
     let token = cursor.peek(0, interner).or_abrupt()?;
     let name_span = token.span();
     let name = match token.kind() {

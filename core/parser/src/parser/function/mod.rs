@@ -47,7 +47,7 @@ pub(in crate::parser) struct FormalParameters<'arena> {
     _marker: std::marker::PhantomData<&'arena ()>,
 }
 
-impl<'arena> FormalParameters<'arena> {
+impl FormalParameters<'_> {
     /// Creates a new `FormalParameters` parser.
     pub(in crate::parser) fn new<Y, A>(allow_yield: Y, allow_await: A) -> Self
     where
@@ -159,7 +159,7 @@ pub(in crate::parser) struct UniqueFormalParameters<'arena> {
     _marker: std::marker::PhantomData<&'arena ()>,
 }
 
-impl<'arena> UniqueFormalParameters<'arena> {
+impl UniqueFormalParameters<'_> {
     /// Creates a new `UniqueFormalParameters` parser.
     pub(in crate::parser) fn new<Y, A>(allow_yield: Y, allow_await: A) -> Self
     where
@@ -233,7 +233,7 @@ struct BindingRestElement<'arena> {
     _marker: std::marker::PhantomData<&'arena ()>,
 }
 
-impl<'arena> BindingRestElement<'arena> {
+impl BindingRestElement<'_> {
     /// Creates a new `BindingRestElement` parser.
     fn new<Y, A>(allow_yield: Y, allow_await: A) -> Self
     where
@@ -332,7 +332,7 @@ pub(in crate::parser) struct FormalParameter<'arena> {
     _marker: std::marker::PhantomData<&'arena ()>,
 }
 
-impl<'arena> FormalParameter<'arena> {
+impl FormalParameter<'_> {
     /// Creates a new `FormalParameter` parser.
     pub(in crate::parser) fn new<Y, A>(allow_yield: Y, allow_await: A) -> Self
     where
@@ -446,7 +446,7 @@ pub(in crate::parser) struct FunctionStatementList<'arena> {
     _marker: std::marker::PhantomData<&'arena ()>,
 }
 
-impl<'arena> FunctionStatementList<'arena> {
+impl FunctionStatementList<'_> {
     /// Creates a new `FunctionStatementList` parser.
     pub(in crate::parser) fn new<Y, A>(
         allow_yield: Y,

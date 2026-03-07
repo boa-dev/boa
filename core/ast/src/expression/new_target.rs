@@ -33,7 +33,7 @@ impl Spanned for NewTarget {
     }
 }
 
-impl<'arena> From<NewTarget> for Expression<'arena> {
+impl From<NewTarget> for Expression<'_> {
     #[inline]
     fn from(value: NewTarget) -> Self {
         Expression::NewTarget(value)

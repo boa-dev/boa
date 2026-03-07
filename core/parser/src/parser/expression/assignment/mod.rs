@@ -66,7 +66,7 @@ pub(in crate::parser) struct AssignmentExpression<'arena> {
     _marker: std::marker::PhantomData<&'arena ()>,
 }
 
-impl<'arena> AssignmentExpression<'arena> {
+impl AssignmentExpression<'_> {
     /// Creates a new `AssignmentExpression` parser.
     pub(in crate::parser) fn new<I, Y, A>(allow_in: I, allow_yield: Y, allow_await: A) -> Self
     where
@@ -89,7 +89,11 @@ where
 {
     type Output = Expression<'arena>;
 
-    fn parse(self, cursor: &mut Cursor<R>, interner: &mut Interner) -> ParseResult<Expression<'arena>> {
+    fn parse(
+        self,
+        cursor: &mut Cursor<R>,
+        interner: &mut Interner,
+    ) -> ParseResult<Expression<'arena>> {
         cursor.set_goal(InputElement::RegExp);
 
         match cursor.peek(0, interner).or_abrupt()?.kind() {

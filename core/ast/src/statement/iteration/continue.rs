@@ -46,7 +46,7 @@ impl ToInternedString for Continue {
     }
 }
 
-impl<'arena> From<Continue> for Statement<'arena> {
+impl From<Continue> for Statement<'_> {
     fn from(cont: Continue) -> Self {
         Self::Continue(cont)
     }

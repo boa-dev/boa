@@ -42,7 +42,7 @@ pub(in crate::parser) struct ImportDeclaration<'arena> {
     _marker: std::marker::PhantomData<&'arena ()>,
 }
 
-impl<'arena> ImportDeclaration<'arena> {
+impl ImportDeclaration<'_> {
     /// Creates a new `ImportDeclaration` parser.
     pub(in crate::parser) fn new() -> Self {
         Self {
@@ -51,7 +51,7 @@ impl<'arena> ImportDeclaration<'arena> {
     }
 }
 
-impl<'arena> ImportDeclaration<'arena> {
+impl ImportDeclaration<'_> {
     /// Tests if the next node is an `ImportDeclaration`.
     pub(in crate::parser) fn test<R: ReadChar>(
         cursor: &mut Cursor<R>,
@@ -189,7 +189,7 @@ struct ImportedBinding<'arena> {
     _marker: std::marker::PhantomData<&'arena ()>,
 }
 
-impl<'arena> ImportedBinding<'arena> {
+impl ImportedBinding<'_> {
     /// Creates a new `ImportedBinding` parser.
     fn new() -> Self {
         Self {
@@ -221,7 +221,7 @@ struct NamedImports<'arena> {
     _marker: std::marker::PhantomData<&'arena ()>,
 }
 
-impl<'arena> NamedImports<'arena> {
+impl NamedImports<'_> {
     /// Creates a new `NamedImports` parser.
     fn new() -> Self {
         Self {
@@ -296,10 +296,11 @@ where
 enum ImportClause<'arena> {
     Namespace(Option<Identifier>, Identifier),
     ImportList(Option<Identifier>, Box<[AstImportSpecifier]>),
-    _marker(std::marker::PhantomData<&'arena ()>),
+    #[allow(dead_code)]
+    Marker(std::marker::PhantomData<&'arena ()>),
 }
 
-impl<'arena> ImportClause<'arena> {
+impl ImportClause<'_> {
     #[inline]
     fn with_specifier_and_attributes(
         self,
@@ -330,7 +331,7 @@ impl<'arena> ImportClause<'arena> {
                     )
                 }
             }
-            Self::_marker(_) => unreachable!("PhantomData should not be matched"),
+            Self::Marker(_) => unreachable!("PhantomData should not be matched"),
         }
     }
 }
@@ -346,7 +347,7 @@ struct ImportSpecifier<'arena> {
     _marker: std::marker::PhantomData<&'arena ()>,
 }
 
-impl<'arena> ImportSpecifier<'arena> {
+impl ImportSpecifier<'_> {
     /// Creates a new `ImportSpecifier` parser.
     fn new() -> Self {
         Self {
@@ -442,7 +443,7 @@ struct NameSpaceImport<'arena> {
     _marker: std::marker::PhantomData<&'arena ()>,
 }
 
-impl<'arena> NameSpaceImport<'arena> {
+impl NameSpaceImport<'_> {
     /// Creates a new `NameSpaceImport` parser.
     fn new() -> Self {
         Self {

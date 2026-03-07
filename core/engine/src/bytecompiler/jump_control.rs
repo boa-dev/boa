@@ -366,7 +366,7 @@ impl JumpControlInfo {
 }
 
 // `JumpControlInfo` related methods that are implemented on `ByteCompiler`.
-impl<'arena> ByteCompiler<'arena, '_> {
+impl ByteCompiler<'_, '_> {
     /// Pushes a generic `JumpControlInfo` onto `ByteCompiler`
     ///
     /// Default `JumpControlInfoKind` is `JumpControlInfoKind::Loop`

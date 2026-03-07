@@ -57,14 +57,14 @@ impl<'arena> From<Call<'arena>> for New<'arena> {
     }
 }
 
-impl<'arena> Spanned for New<'arena> {
+impl Spanned for New<'_> {
     #[inline]
     fn span(&self) -> Span {
         self.call.span()
     }
 }
 
-impl<'arena> ToInternedString for New<'arena> {
+impl ToInternedString for New<'_> {
     #[inline]
     fn to_interned_string(&self, interner: &Interner) -> String {
         format!("new {}", self.call.to_interned_string(interner))

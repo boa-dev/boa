@@ -38,7 +38,7 @@ pub(in crate::parser::expression) struct ExponentiationExpression<'arena> {
     _marker: std::marker::PhantomData<&'arena ()>,
 }
 
-impl<'arena> ExponentiationExpression<'arena> {
+impl ExponentiationExpression<'_> {
     /// Creates a new `ExponentiationExpression` parser.
     pub(in crate::parser::expression) fn new<Y, A>(allow_yield: Y, allow_await: A) -> Self
     where

@@ -100,7 +100,7 @@ impl<'arena> FunctionDeclaration<'arena> {
     }
 }
 
-impl<'arena> ToIndentedString for FunctionDeclaration<'arena> {
+impl ToIndentedString for FunctionDeclaration<'_> {
     fn to_indented_string(&self, interner: &Interner, indentation: usize) -> String {
         format!(
             "function {}({}) {}",
@@ -167,7 +167,7 @@ pub struct FunctionExpression<'arena> {
     linear_span: Option<LinearSpan>,
 }
 
-impl<'arena> PartialEq for FunctionExpression<'arena> {
+impl PartialEq for FunctionExpression<'_> {
     fn eq(&self, other: &Self) -> bool {
         // all fields except for `linear_span`
         self.name == other.name
@@ -181,7 +181,7 @@ impl<'arena> PartialEq for FunctionExpression<'arena> {
     }
 }
 
-impl<'arena> Spanned for FunctionExpression<'arena> {
+impl Spanned for FunctionExpression<'_> {
     #[inline]
     fn span(&self) -> Span {
         self.span
@@ -289,7 +289,7 @@ impl<'arena> FunctionExpression<'arena> {
     }
 }
 
-impl<'arena> ToIndentedString for FunctionExpression<'arena> {
+impl ToIndentedString for FunctionExpression<'_> {
     fn to_indented_string(&self, interner: &Interner, indentation: usize) -> String {
         let mut buf = "function".to_owned();
         if self.has_binding_identifier

@@ -139,7 +139,11 @@ impl<'arena> ByteCompiler<'arena, '_> {
         });
     }
 
-    pub(crate) fn compile_binary_in_private(&mut self, binary: &'arena BinaryInPrivate<'arena>, dst: &Register) {
+    pub(crate) fn compile_binary_in_private(
+        &mut self,
+        binary: &'arena BinaryInPrivate<'arena>,
+        dst: &Register,
+    ) {
         let index = self.get_or_insert_private_name(*binary.lhs());
         self.compile_expr(binary.rhs(), dst);
         self.bytecode
