@@ -221,7 +221,7 @@ impl_argument_for_int!(u8 u16 u32 u64 i8 i16 i32 f32 f64);
 
 #[cfg(test)]
 mod tests {
-    use super::{Argument, Address, RegisterOperand, VaryingOperand};
+    use super::{Address, Argument, RegisterOperand, VaryingOperand};
     use std::mem::size_of;
     use thin_vec::ThinVec;
 
@@ -249,19 +249,29 @@ mod tests {
     #[test]
     fn test_address_round_trip() {
         round_trip_eq(&Address::new(0), |a, b| u32::from(*a) == u32::from(*b));
-        round_trip_eq(&Address::new(0x1234_5678), |a, b| u32::from(*a) == u32::from(*b));
+        round_trip_eq(&Address::new(0x1234_5678), |a, b| {
+            u32::from(*a) == u32::from(*b)
+        });
     }
 
     #[test]
     fn test_register_operand_round_trip() {
-        round_trip_eq(&RegisterOperand::new(0), |a, b| u32::from(*a) == u32::from(*b));
-        round_trip_eq(&RegisterOperand::new(255), |a, b| u32::from(*a) == u32::from(*b));
+        round_trip_eq(&RegisterOperand::new(0), |a, b| {
+            u32::from(*a) == u32::from(*b)
+        });
+        round_trip_eq(&RegisterOperand::new(255), |a, b| {
+            u32::from(*a) == u32::from(*b)
+        });
     }
 
     #[test]
     fn test_varying_operand_round_trip() {
-        round_trip_eq(&VaryingOperand::new(0), |a, b| u32::from(*a) == u32::from(*b));
-        round_trip_eq(&VaryingOperand::new(0xFFFF_FFFF), |a, b| u32::from(*a) == u32::from(*b));
+        round_trip_eq(&VaryingOperand::new(0), |a, b| {
+            u32::from(*a) == u32::from(*b)
+        });
+        round_trip_eq(&VaryingOperand::new(0xFFFF_FFFF), |a, b| {
+            u32::from(*a) == u32::from(*b)
+        });
     }
 
     #[test]
@@ -301,11 +311,14 @@ mod tests {
         round_trip(&v);
         let v: ThinVec<u32> = [1u32, 2, 3].into_iter().collect();
         round_trip(&v);
-        let v: ThinVec<RegisterOperand> =
-            [RegisterOperand::new(0), RegisterOperand::new(1)].into_iter().collect();
+        let v: ThinVec<RegisterOperand> = [RegisterOperand::new(0), RegisterOperand::new(1)]
+            .into_iter()
+            .collect();
         round_trip_eq(&v, |a, b| {
             a.len() == b.len()
-                && a.iter().zip(b.iter()).all(|(x, y)| u32::from(*x) == u32::from(*y))
+                && a.iter()
+                    .zip(b.iter())
+                    .all(|(x, y)| u32::from(*x) == u32::from(*y))
         });
     }
 
