@@ -1,5 +1,5 @@
 use std::{
-    fs::File,
+    fs::{self, File},
     path::PathBuf,
     process::{Command, Stdio},
 };
@@ -10,22 +10,30 @@ pub fn js_directory() -> PathBuf {
     PathBuf::from(MANIFEST_DIR).join("js")
 }
 
-pub fn target_diretory() -> PathBuf {
-    PathBuf::from(MANIFEST_DIR)
+pub fn target_directory() -> PathBuf {
+    // NOTE: Github does weird things.
+    let workspace_root = PathBuf::from(MANIFEST_DIR)
         .parent()
         .unwrap()
         .parent()
         .unwrap()
-        .join("target")
+        .to_path_buf();
+    if fs::exists(workspace_root.join("target")).is_ok() {
+        workspace_root.join("target")
+    } else {
+        // We try to go up one more to deal with GitHub CI's boa/boa
+        workspace_root.parent().unwrap().join("target")
+    }
 }
 
 pub fn collect_file_trace(file_path: PathBuf) -> String {
     let file_path_msg = file_path.to_string_lossy().to_string();
     println!("Testing {}", file_path_msg);
-    let boa_exe = target_diretory()
+    let boa_exe = target_directory()
         .join("debug/boa")
         .to_string_lossy()
         .to_string();
+    println!("target: {:?}", std::env::var("CARGO_BIN_NAME"));
     println!("Using boa: {boa_exe:?}");
     let result = Command::new(boa_exe)
         .args(["--trace"])
