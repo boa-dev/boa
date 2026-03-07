@@ -1,4 +1,5 @@
 use boa_gc::{Finalize, Trace, WeakGc};
+use boa_macros::JsData;
 
 use crate::{
     Context, JsArgs, JsNativeError, JsResult, JsString, JsValue,
@@ -12,6 +13,12 @@ use crate::{
     symbol::JsSymbol,
 };
 
+#[derive(Clone, Trace, Finalize, JsData)]
+pub(crate) enum WeakRefTarget {
+    Object(WeakGc<ErasedVTableObject>),
+    Symbol(JsSymbol),
+}
+
 /// Boa's implementation of ECMAScript's `WeakRef` builtin object.
 ///
 /// The `WeakRef` is a way to refer to a target object without rooting the target and thus preserving it in garbage
@@ -22,14 +29,6 @@ use crate::{
 ///  - [ECMAScript Reference][spec]
 ///
 /// [spec]: https://tc39.es/ecma262/#sec-weak-ref-objects
-use boa_macros::JsData;
-
-#[derive(Clone, Trace, Finalize, JsData)]
-pub(crate) enum WeakRefTarget {
-    Object(WeakGc<ErasedVTableObject>),
-    Symbol(JsSymbol),
-}
-
 #[derive(Debug, Clone, Trace, Finalize)]
 pub(crate) struct WeakRef;
 
@@ -96,7 +95,9 @@ impl BuiltInConstructor for WeakRef {
         } else if let Some(sym) = target_val.as_symbol() {
             WeakRefTarget::Symbol(sym)
         } else {
-            unreachable!()
+            unreachable!(
+                "target_val.can_be_held_weakly() returned true for non-object, non-symbol key"
+            )
         };
 
         let prototype =

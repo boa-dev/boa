@@ -16,3 +16,12 @@ fn weak_set_global_symbol_rejection() {
         "WeakSet.add: expected target argument of type `object` or non-registered symbol, got target of type `symbol`",
     )]);
 }
+
+#[test]
+fn weak_set_global_symbol_has_delete_behavior() {
+    run_test_actions([
+        TestAction::run("const ws = new WeakSet();"),
+        TestAction::assert("ws.has(Symbol.for('sim')) === false"),
+        TestAction::assert("ws.delete(Symbol.for('sim')) === false"),
+    ]);
+}

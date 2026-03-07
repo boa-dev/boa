@@ -26,6 +26,10 @@ use boa_macros::JsData;
 use rustc_hash::FxHashSet;
 
 #[derive(Trace, Finalize, JsData)]
+// Symbols are ECMAScript primitives and not GC-managed objects.
+// Because of this they cannot participate in the GC weak semantics used
+// for object keys. Symbol keys are therefore stored in a strong map/set
+// while object keys remain weak.
 pub(crate) struct NativeWeakSet {
     pub(crate) objects: boa_gc::WeakMap<ErasedVTableObject, ()>,
     pub(crate) symbols: FxHashSet<JsSymbol>,
@@ -203,6 +207,8 @@ impl WeakSet {
             set.objects.insert(obj.inner(), ());
         } else if let Some(sym) = value.as_symbol() {
             set.symbols.insert(sym);
+        } else {
+            unreachable!("value.can_be_held_weakly() returned true for non-object, non-symbol key")
         }
 
         // 7. Return S.
@@ -248,7 +254,7 @@ impl WeakSet {
         } else if let Some(sym) = value.as_symbol() {
             set.symbols.remove(&sym)
         } else {
-            unreachable!()
+            unreachable!("value.can_be_held_weakly() returned true for non-object, non-symbol key")
         };
         Ok(has_removed.into())
     }
@@ -292,7 +298,7 @@ impl WeakSet {
         } else if let Some(sym) = value.as_symbol() {
             set.symbols.contains(&sym)
         } else {
-            unreachable!()
+            unreachable!("value.can_be_held_weakly() returned true for non-object, non-symbol key")
         };
         Ok(has.into())
     }

@@ -130,3 +130,13 @@ fn weak_map_global_symbol_rejection() {
         "WeakMap.set: expected target argument of type `object` or non-registered symbol, got target of type `symbol`",
     )]);
 }
+
+#[test]
+fn weak_map_global_symbol_nonthrowing_ops() {
+    run_test_actions([
+        TestAction::run("const wm = new WeakMap(); const s = Symbol.for('sim');"),
+        TestAction::assert("wm.get(s) === undefined"),
+        TestAction::assert("wm.has(s) === false"),
+        TestAction::assert("wm.delete(s) === false"),
+    ]);
+}

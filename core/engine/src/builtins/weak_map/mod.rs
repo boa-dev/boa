@@ -27,6 +27,10 @@ use boa_macros::JsData;
 use rustc_hash::FxHashMap;
 
 #[derive(Trace, Finalize, JsData)]
+// Symbols are ECMAScript primitives and not GC-managed objects.
+// Because of this they cannot participate in the GC weak semantics used
+// for object keys. Symbol keys are therefore stored in a strong map/set
+// while object keys remain weak.
 pub(crate) struct NativeWeakMap {
     pub(crate) objects: boa_gc::WeakMap<ErasedVTableObject, JsValue>,
     pub(crate) symbols: FxHashMap<JsSymbol, JsValue>,
@@ -181,7 +185,7 @@ impl WeakMap {
         } else if let Some(sym) = key.as_symbol() {
             map.symbols.remove(&sym).is_some()
         } else {
-            unreachable!()
+            unreachable!("key.can_be_held_weakly() returned true for non-object, non-symbol key")
         };
         Ok(has_removed.into())
     }
@@ -223,7 +227,7 @@ impl WeakMap {
         } else if let Some(sym) = key.as_symbol() {
             map.symbols.get(&sym).cloned()
         } else {
-            unreachable!()
+            unreachable!("key.can_be_held_weakly() returned true for non-object, non-symbol key")
         };
         Ok(val.unwrap_or_default())
     }
@@ -265,7 +269,7 @@ impl WeakMap {
         } else if let Some(sym) = key.as_symbol() {
             map.symbols.contains_key(&sym)
         } else {
-            unreachable!()
+            unreachable!("key.can_be_held_weakly() returned true for non-object, non-symbol key")
         };
         Ok(has.into())
     }
@@ -313,7 +317,7 @@ impl WeakMap {
         } else if let Some(sym) = key.as_symbol() {
             map.symbols.insert(sym, value);
         } else {
-            unreachable!()
+            unreachable!("key.can_be_held_weakly() returned true for non-object, non-symbol key")
         }
 
         // 8. Return M.
@@ -379,7 +383,7 @@ impl WeakMap {
                 .insert(sym, value.clone());
             Ok(value)
         } else {
-            unreachable!()
+            unreachable!("key.can_be_held_weakly() returned true for non-object, non-symbol key")
         }
     }
 
@@ -457,6 +461,8 @@ impl WeakMap {
                 .data_mut()
                 .symbols
                 .insert(sym, value.clone());
+        } else {
+            unreachable!("key.can_be_held_weakly() returned true for non-object, non-symbol key")
         }
         Ok(value)
     }
