@@ -27,19 +27,18 @@ use crate::builtins::array_buffer::utils::SliceRef;
 const BASE64_STANDARD: &[u8; 64] =
     b"ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/";
 
-const BASE64_URL: &[u8; 64] =
-    b"ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789-_";
+const BASE64_URL: &[u8; 64] = b"ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789-_";
 
 // ===== Helper: ValidateUint8Array =====
 
 fn validate_uint8_array(this: &JsValue) -> JsResult<JsObject> {
-    let obj = this.as_object().ok_or_else(|| {
-        JsNativeError::typ().with_message("Value is not a Uint8Array")
-    })?;
+    let obj = this
+        .as_object()
+        .ok_or_else(|| JsNativeError::typ().with_message("Value is not a Uint8Array"))?;
 
-    let ta = obj.downcast_ref::<TypedArray>().ok_or_else(|| {
-        JsNativeError::typ().with_message("Value is not a Uint8Array")
-    })?;
+    let ta = obj
+        .downcast_ref::<TypedArray>()
+        .ok_or_else(|| JsNativeError::typ().with_message("Value is not a Uint8Array"))?;
 
     if ta.kind().js_name() != js_string!("Uint8Array") {
         return Err(JsNativeError::typ()
@@ -69,9 +68,9 @@ fn read_bytes_from_slice_ref(data: &SliceRef<'_>, offset: usize, len: usize) -> 
 }
 
 fn get_uint8_array_bytes(obj: &JsObject) -> JsResult<Vec<u8>> {
-    let ta = obj.downcast_ref::<TypedArray>().ok_or_else(|| {
-        JsNativeError::typ().with_message("Value is not a Uint8Array")
-    })?;
+    let ta = obj
+        .downcast_ref::<TypedArray>()
+        .ok_or_else(|| JsNativeError::typ().with_message("Value is not a Uint8Array"))?;
 
     let buf = ta.viewed_array_buffer().as_buffer();
     let Some(data) = buf
@@ -92,9 +91,9 @@ fn get_uint8_array_bytes(obj: &JsObject) -> JsResult<Vec<u8>> {
 // ===== Helper: SetUint8ArrayBytes =====
 
 fn set_uint8_array_bytes(obj: &JsObject, bytes: &[u8]) -> JsResult<()> {
-    let ta = obj.downcast_ref::<TypedArray>().ok_or_else(|| {
-        JsNativeError::typ().with_message("Value is not a Uint8Array")
-    })?;
+    let ta = obj
+        .downcast_ref::<TypedArray>()
+        .ok_or_else(|| JsNativeError::typ().with_message("Value is not a Uint8Array"))?;
 
     let buf_obj = ta.viewed_array_buffer().clone();
     let byte_offset = ta.byte_offset() as usize;
@@ -158,20 +157,17 @@ fn skip_ascii_whitespace(string: &[u16], index: usize) -> usize {
 fn base64_char_to_value(ch: u16) -> Option<u8> {
     match ch {
         0x41..=0x5A => Some((ch - 0x41) as u8),      // A-Z => 0-25
-        0x61..=0x7A => Some((ch - 0x61 + 26) as u8),  // a-z => 26-51
-        0x30..=0x39 => Some((ch - 0x30 + 52) as u8),  // 0-9 => 52-61
-        0x2B => Some(62),                               // +
-        0x2F => Some(63),                               // /
+        0x61..=0x7A => Some((ch - 0x61 + 26) as u8), // a-z => 26-51
+        0x30..=0x39 => Some((ch - 0x30 + 52) as u8), // 0-9 => 52-61
+        0x2B => Some(62),                            // +
+        0x2F => Some(63),                            // /
         _ => None,
     }
 }
 
 // ===== Helper: DecodeBase64Chunk =====
 
-fn decode_base64_chunk(
-    chunk: &[u16],
-    throw_on_extra_bits: Option<bool>,
-) -> JsResult<Vec<u8>> {
+fn decode_base64_chunk(chunk: &[u16], throw_on_extra_bits: Option<bool>) -> JsResult<Vec<u8>> {
     let chunk_length = chunk.len();
 
     let padded: Vec<u16> = if chunk_length == 2 {
@@ -185,9 +181,8 @@ fn decode_base64_chunk(
 
     let mut n: u32 = 0;
     for &ch in &padded {
-        let val = base64_char_to_value(ch).ok_or_else(|| {
-            JsNativeError::syntax().with_message("invalid base64 character")
-        })?;
+        let val = base64_char_to_value(ch)
+            .ok_or_else(|| JsNativeError::syntax().with_message("invalid base64 character"))?;
         n = (n << 6) | u32::from(val);
     }
 
@@ -231,7 +226,11 @@ fn from_base64(
     let max_length = max_length.unwrap_or(usize::MAX);
 
     if max_length == 0 {
-        return FromBase64Result { read: 0, bytes: Vec::new(), error: None };
+        return FromBase64Result {
+            read: 0,
+            bytes: Vec::new(),
+            error: None,
+        };
     }
 
     let mut read: usize = 0;
@@ -246,7 +245,11 @@ fn from_base64(
         if index == length {
             if !chunk.is_empty() {
                 if last_chunk_handling == "stop-before-partial" {
-                    return FromBase64Result { read, bytes, error: None };
+                    return FromBase64Result {
+                        read,
+                        bytes,
+                        error: None,
+                    };
                 } else if last_chunk_handling == "loose" {
                     if chunk.len() == 1 {
                         return FromBase64Result {
@@ -261,7 +264,13 @@ fn from_base64(
                     }
                     match decode_base64_chunk(&chunk, Some(false)) {
                         Ok(result) => bytes.extend(result),
-                        Err(e) => return FromBase64Result { read, bytes, error: Some(e) },
+                        Err(e) => {
+                            return FromBase64Result {
+                                read,
+                                bytes,
+                                error: Some(e),
+                            };
+                        }
                     }
                 } else {
                     // strict
@@ -270,13 +279,19 @@ fn from_base64(
                         bytes,
                         error: Some(
                             JsNativeError::syntax()
-                                .with_message("invalid base64 string: incomplete chunk in strict mode")
+                                .with_message(
+                                    "invalid base64 string: incomplete chunk in strict mode",
+                                )
                                 .into(),
                         ),
                     };
                 }
             }
-            return FromBase64Result { read: length, bytes, error: None };
+            return FromBase64Result {
+                read: length,
+                bytes,
+                error: None,
+            };
         }
 
         let char_code = string[index];
@@ -301,14 +316,20 @@ fn from_base64(
             if chunk.len() == 2 {
                 if index == length {
                     if last_chunk_handling == "stop-before-partial" {
-                        return FromBase64Result { read, bytes, error: None };
+                        return FromBase64Result {
+                            read,
+                            bytes,
+                            error: None,
+                        };
                     }
                     return FromBase64Result {
                         read,
                         bytes,
                         error: Some(
                             JsNativeError::syntax()
-                                .with_message("invalid base64 string: missing second padding character")
+                                .with_message(
+                                    "invalid base64 string: missing second padding character",
+                                )
                                 .into(),
                         ),
                     };
@@ -336,9 +357,19 @@ fn from_base64(
             match decode_base64_chunk(&chunk, Some(throw_on)) {
                 Ok(result) => {
                     bytes.extend(result);
-                    return FromBase64Result { read: length, bytes, error: None };
+                    return FromBase64Result {
+                        read: length,
+                        bytes,
+                        error: None,
+                    };
                 }
-                Err(e) => return FromBase64Result { read, bytes, error: Some(e) },
+                Err(e) => {
+                    return FromBase64Result {
+                        read,
+                        bytes,
+                        error: Some(e),
+                    };
+                }
             }
         }
 
@@ -379,7 +410,11 @@ fn from_base64(
         // Check remaining capacity
         let remaining = max_length - bytes.len();
         if (remaining == 1 && chunk.len() == 2) || (remaining == 2 && chunk.len() == 3) {
-            return FromBase64Result { read, bytes, error: None };
+            return FromBase64Result {
+                read,
+                bytes,
+                error: None,
+            };
         }
 
         chunk.push(mapped_char);
@@ -387,13 +422,23 @@ fn from_base64(
         if chunk.len() == 4 {
             match decode_base64_chunk(&chunk, None) {
                 Ok(result) => bytes.extend(result),
-                Err(e) => return FromBase64Result { read, bytes, error: Some(e) },
+                Err(e) => {
+                    return FromBase64Result {
+                        read,
+                        bytes,
+                        error: Some(e),
+                    };
+                }
             }
             chunk.clear();
             read = index;
 
             if bytes.len() == max_length {
-                return FromBase64Result { read, bytes, error: None };
+                return FromBase64Result {
+                    read,
+                    bytes,
+                    error: None,
+                };
             }
         }
     }
@@ -410,8 +455,8 @@ struct FromHexResult {
 fn hex_char_to_value(ch: u16) -> Option<u8> {
     match ch {
         0x30..=0x39 => Some((ch - 0x30) as u8),      // '0'-'9'
-        0x41..=0x46 => Some((ch - 0x41 + 10) as u8),  // 'A'-'F'
-        0x61..=0x66 => Some((ch - 0x61 + 10) as u8),  // 'a'-'f'
+        0x41..=0x46 => Some((ch - 0x41 + 10) as u8), // 'A'-'F'
+        0x61..=0x66 => Some((ch - 0x61 + 10) as u8), // 'a'-'f'
         _ => None,
     }
 }
@@ -458,7 +503,11 @@ fn from_hex(string: &[u16], max_length: Option<usize>) -> FromHexResult {
         bytes.push(byte);
     }
 
-    FromHexResult { read, bytes, error: None }
+    FromHexResult {
+        read,
+        bytes,
+        error: None,
+    }
 }
 
 // ===== Public methods =====
@@ -494,7 +543,11 @@ pub(crate) fn to_base64(
 
     let to_encode = get_uint8_array_bytes(&obj)?;
 
-    let table = if alphabet == "base64" { BASE64_STANDARD } else { BASE64_URL };
+    let table = if alphabet == "base64" {
+        BASE64_STANDARD
+    } else {
+        BASE64_URL
+    };
 
     let mut out = String::new();
 
@@ -547,7 +600,8 @@ pub(crate) fn from_base64_static(
     args: &[JsValue],
     context: &mut Context,
 ) -> JsResult<JsValue> {
-    let js_str = args.get_or_undefined(0)
+    let js_str = args
+        .get_or_undefined(0)
         .as_string()
         .ok_or_else(|| JsNativeError::typ().with_message("first argument must be a string"))?;
 
@@ -603,9 +657,9 @@ pub(crate) fn from_base64_static(
         context,
     )?;
 
-    let ta_obj = ta.as_object().ok_or_else(|| {
-        JsNativeError::typ().with_message("failed to create Uint8Array")
-    })?;
+    let ta_obj = ta
+        .as_object()
+        .ok_or_else(|| JsNativeError::typ().with_message("failed to create Uint8Array"))?;
 
     set_uint8_array_bytes(&ta_obj, &result.bytes)?;
 
@@ -618,7 +672,8 @@ pub(crate) fn from_hex_static(
     args: &[JsValue],
     context: &mut Context,
 ) -> JsResult<JsValue> {
-    let js_str = args.get_or_undefined(0)
+    let js_str = args
+        .get_or_undefined(0)
         .as_string()
         .ok_or_else(|| JsNativeError::typ().with_message("first argument must be a string"))?;
 
@@ -642,9 +697,9 @@ pub(crate) fn from_hex_static(
         context,
     )?;
 
-    let ta_obj = ta.as_object().ok_or_else(|| {
-        JsNativeError::typ().with_message("failed to create Uint8Array")
-    })?;
+    let ta_obj = ta
+        .as_object()
+        .ok_or_else(|| JsNativeError::typ().with_message("failed to create Uint8Array"))?;
 
     set_uint8_array_bytes(&ta_obj, &result.bytes)?;
 
@@ -659,7 +714,8 @@ pub(crate) fn set_from_base64(
 ) -> JsResult<JsValue> {
     let into = validate_uint8_array(this)?;
 
-    let js_str = args.get_or_undefined(0)
+    let js_str = args
+        .get_or_undefined(0)
         .as_string()
         .ok_or_else(|| JsNativeError::typ().with_message("first argument must be a string"))?;
 
@@ -696,9 +752,9 @@ pub(crate) fn set_from_base64(
     }
 
     let byte_length = {
-        let ta = into.downcast_ref::<TypedArray>().ok_or_else(|| {
-            JsNativeError::typ().with_message("Value is not a Uint8Array")
-        })?;
+        let ta = into
+            .downcast_ref::<TypedArray>()
+            .ok_or_else(|| JsNativeError::typ().with_message("Value is not a Uint8Array"))?;
         let buf = ta.viewed_array_buffer().as_buffer();
         let Some(data) = buf
             .bytes(Ordering::SeqCst)
@@ -722,8 +778,16 @@ pub(crate) fn set_from_base64(
     }
 
     let result_object = crate::object::ObjectInitializer::new(context)
-        .property(js_string!("read"), JsValue::new(result.read as u64), Attribute::all())
-        .property(js_string!("written"), JsValue::new(written as u64), Attribute::all())
+        .property(
+            js_string!("read"),
+            JsValue::new(result.read as u64),
+            Attribute::all(),
+        )
+        .property(
+            js_string!("written"),
+            JsValue::new(written as u64),
+            Attribute::all(),
+        )
         .build();
 
     Ok(JsValue::from(result_object))
@@ -737,14 +801,15 @@ pub(crate) fn set_from_hex(
 ) -> JsResult<JsValue> {
     let into = validate_uint8_array(this)?;
 
-    let js_str = args.get_or_undefined(0)
+    let js_str = args
+        .get_or_undefined(0)
         .as_string()
         .ok_or_else(|| JsNativeError::typ().with_message("first argument must be a string"))?;
 
     let byte_length = {
-        let ta = into.downcast_ref::<TypedArray>().ok_or_else(|| {
-            JsNativeError::typ().with_message("Value is not a Uint8Array")
-        })?;
+        let ta = into
+            .downcast_ref::<TypedArray>()
+            .ok_or_else(|| JsNativeError::typ().with_message("Value is not a Uint8Array"))?;
         let buf = ta.viewed_array_buffer().as_buffer();
         let Some(data) = buf
             .bytes(Ordering::SeqCst)
@@ -768,8 +833,16 @@ pub(crate) fn set_from_hex(
     }
 
     let result_object = crate::object::ObjectInitializer::new(context)
-        .property(js_string!("read"), JsValue::new(result.read as u64), Attribute::all())
-        .property(js_string!("written"), JsValue::new(written as u64), Attribute::all())
+        .property(
+            js_string!("read"),
+            JsValue::new(result.read as u64),
+            Attribute::all(),
+        )
+        .property(
+            js_string!("written"),
+            JsValue::new(written as u64),
+            Attribute::all(),
+        )
         .build();
 
     Ok(JsValue::from(result_object))

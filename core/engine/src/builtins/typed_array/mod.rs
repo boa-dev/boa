@@ -19,10 +19,7 @@ use crate::{
     error::JsNativeError,
     js_string,
     native_function::NativeFunction,
-    object::{
-        FunctionObjectBuilder, JsObject,
-        internal_methods::get_prototype_from_constructor,
-    },
+    object::{FunctionObjectBuilder, JsObject, internal_methods::get_prototype_from_constructor},
     property::{Attribute, PropertyDescriptor},
     realm::Realm,
     string::StaticJsStrings,
