@@ -1,6 +1,6 @@
 use thin_vec::ThinVec;
 
-use super::VaryingOperand;
+use super::{Address, RegisterOperand, VaryingOperand};
 
 /// A trait for types that can be read from a byte slice.
 ///
@@ -14,7 +14,9 @@ unsafe impl Readable for i8 {}
 unsafe impl Readable for u16 {}
 unsafe impl Readable for i16 {}
 unsafe impl Readable for u32 {}
+unsafe impl Readable for i32 {}
 unsafe impl Readable for u64 {}
+unsafe impl Readable for f32 {}
 unsafe impl Readable for f64 {}
 unsafe impl Readable for (u8, u8) {}
 unsafe impl Readable for (u8, i8) {}
@@ -64,26 +66,37 @@ pub(crate) trait Argument: Sized + std::fmt::Debug {
     fn decode(bytes: &[u8], pos: usize) -> (Self, usize);
 }
 
+#[inline(always)]
+fn write_u8(bytes: &mut Vec<u8>, value: u8) {
+    bytes.extend_from_slice(&value.to_le_bytes());
+}
+
+#[inline(always)]
 fn write_i8(bytes: &mut Vec<u8>, value: i8) {
     bytes.extend_from_slice(&value.to_le_bytes());
 }
 
+#[inline(always)]
 fn write_u16(bytes: &mut Vec<u8>, value: u16) {
     bytes.extend_from_slice(&value.to_le_bytes());
 }
 
+#[inline(always)]
 fn write_i16(bytes: &mut Vec<u8>, value: i16) {
     bytes.extend_from_slice(&value.to_le_bytes());
 }
 
+#[inline(always)]
 fn write_u32(bytes: &mut Vec<u8>, value: u32) {
     bytes.extend_from_slice(&value.to_le_bytes());
 }
 
+#[inline(always)]
 fn write_i32(bytes: &mut Vec<u8>, value: i32) {
     bytes.extend_from_slice(&value.to_le_bytes());
 }
 
+#[inline(always)]
 fn write_u64(bytes: &mut Vec<u8>, value: u64) {
     bytes.extend_from_slice(&value.to_le_bytes());
 }
@@ -93,7 +106,28 @@ fn write_f32(bytes: &mut Vec<u8>, value: f32) {
 }
 
 fn write_f64(bytes: &mut Vec<u8>, value: f64) {
-    bytes.extend_from_slice(&value.to_le_bytes());
+    bytes.extend_from_slice(&value.to_bits().to_le_bytes());
+}
+
+impl<T: Argument> Argument for ThinVec<T> {
+    fn encode(self, bytes: &mut Vec<u8>) {
+        write_u32(bytes, self.len() as u32);
+        for arg in self {
+            arg.encode(bytes);
+        }
+    }
+
+    fn decode(bytes: &[u8], pos: usize) -> (Self, usize) {
+        let (len, mut pos) = read::<u32>(bytes, pos);
+        let total_len = len as usize;
+        let mut result = ThinVec::with_capacity(total_len);
+        for _ in 0..total_len {
+            let (arg, new_pos) = T::decode(bytes, pos);
+            result.push(arg);
+            pos = new_pos;
+        }
+        (result, pos)
+    }
 }
 
 impl Argument for () {
@@ -115,446 +149,198 @@ impl Argument for VaryingOperand {
     }
 }
 
-impl Argument for (VaryingOperand, i8) {
+impl Argument for RegisterOperand {
     fn encode(self, bytes: &mut Vec<u8>) {
-        write_u32(bytes, self.0.value);
-        write_i8(bytes, self.1);
+        write_u32(bytes, self.value);
     }
 
     fn decode(bytes: &[u8], pos: usize) -> (Self, usize) {
-        assert!(bytes.len() >= pos + 5, "buffer too small to read arguments");
-        let (arg1, arg2) = unsafe {
-            (
-                read_unchecked::<u32>(bytes, pos),
-                read_unchecked::<i8>(bytes, pos + 4),
-            )
-        };
-        ((arg1.into(), arg2), pos + 5)
+        let (arg1, pos) = read::<u32>(bytes, pos);
+        (Self::new(arg1), pos)
     }
 }
 
-impl Argument for (VaryingOperand, i16) {
+impl Argument for Address {
+    #[inline(always)]
     fn encode(self, bytes: &mut Vec<u8>) {
-        write_u32(bytes, self.0.value);
-        write_i16(bytes, self.1);
+        write_u32(bytes, self.value);
     }
 
+    #[inline(always)]
     fn decode(bytes: &[u8], pos: usize) -> (Self, usize) {
-        assert!(bytes.len() >= pos + 6, "buffer too small to read arguments");
-        let (arg1, arg2) = unsafe {
-            (
-                read_unchecked::<u32>(bytes, pos),
-                read_unchecked::<i16>(bytes, pos + 4),
-            )
-        };
-        ((arg1.into(), arg2), pos + 6)
+        let (value, pos) = read::<u32>(bytes, pos);
+        (Self::new(value), pos)
     }
 }
 
-impl Argument for (VaryingOperand, i32) {
-    fn encode(self, bytes: &mut Vec<u8>) {
-        write_u32(bytes, self.0.value);
-        write_i32(bytes, self.1);
-    }
+macro_rules! impl_argument_for_tuple {
+    ($( $i: ident  $t: ident ),*) => {
+        impl<$( $t: Argument, )*> Argument for ($( $t, )*) {
+            #[inline(always)]
+            fn encode(self, bytes: &mut Vec<u8>) {
+                let ($($i, )*) = self;
+                $( $i.encode(bytes); )*
+            }
 
-    fn decode(bytes: &[u8], pos: usize) -> (Self, usize) {
-        let ((arg1, arg2), pos) = read::<(u32, i32)>(bytes, pos);
-        ((arg1.into(), arg2), pos)
-    }
-}
-
-impl Argument for (VaryingOperand, f32) {
-    fn encode(self, bytes: &mut Vec<u8>) {
-        write_u32(bytes, self.0.value);
-        write_f32(bytes, self.1);
-    }
-
-    fn decode(bytes: &[u8], pos: usize) -> (Self, usize) {
-        let ((arg1, arg2), pos) = read::<(u32, u32)>(bytes, pos);
-        ((arg1.into(), f32::from_bits(arg2)), pos)
-    }
-}
-
-impl Argument for (VaryingOperand, f64) {
-    fn encode(self, bytes: &mut Vec<u8>) {
-        write_u32(bytes, self.0.value);
-        write_f64(bytes, self.1);
-    }
-
-    fn decode(bytes: &[u8], pos: usize) -> (Self, usize) {
-        assert!(
-            bytes.len() >= pos + 12,
-            "buffer too small to read arguments"
-        );
-
-        let (arg1, arg2) = unsafe {
-            (
-                read_unchecked::<u32>(bytes, pos),
-                read_unchecked::<f64>(bytes, pos + 4),
-            )
-        };
-
-        ((arg1.into(), arg2), pos + 12)
-    }
-}
-
-impl Argument for (VaryingOperand, VaryingOperand) {
-    fn encode(self, bytes: &mut Vec<u8>) {
-        write_u32(bytes, self.0.value);
-        write_u32(bytes, self.1.value);
-    }
-
-    fn decode(bytes: &[u8], pos: usize) -> (Self, usize) {
-        let ((arg1, arg2), pos) = read::<(u32, u32)>(bytes, pos);
-        ((arg1.into(), arg2.into()), pos)
-    }
-}
-
-impl Argument for (VaryingOperand, VaryingOperand, VaryingOperand) {
-    fn encode(self, bytes: &mut Vec<u8>) {
-        write_u32(bytes, self.0.value);
-        write_u32(bytes, self.1.value);
-        write_u32(bytes, self.2.value);
-    }
-
-    fn decode(bytes: &[u8], pos: usize) -> (Self, usize) {
-        let ((arg1, arg2, arg3), pos) = read::<(u32, u32, u32)>(bytes, pos);
-        ((arg1.into(), arg2.into(), arg3.into()), pos)
-    }
-}
-
-impl Argument
-    for (
-        VaryingOperand,
-        VaryingOperand,
-        VaryingOperand,
-        VaryingOperand,
-    )
-{
-    fn encode(self, bytes: &mut Vec<u8>) {
-        write_u32(bytes, self.0.value);
-        write_u32(bytes, self.1.value);
-        write_u32(bytes, self.2.value);
-        write_u32(bytes, self.3.value);
-    }
-
-    fn decode(bytes: &[u8], pos: usize) -> (Self, usize) {
-        let ((arg1, arg2, arg3, arg4), pos) = read::<(u32, u32, u32, u32)>(bytes, pos);
-        ((arg1.into(), arg2.into(), arg3.into(), arg4.into()), pos)
-    }
-}
-
-impl Argument for u32 {
-    fn encode(self, bytes: &mut Vec<u8>) {
-        write_u32(bytes, self);
-    }
-
-    fn decode(bytes: &[u8], pos: usize) -> (Self, usize) {
-        read::<u32>(bytes, pos)
-    }
-}
-
-impl Argument for (u32, VaryingOperand) {
-    fn encode(self, bytes: &mut Vec<u8>) {
-        write_u32(bytes, self.0);
-        write_u32(bytes, self.1.value);
-    }
-
-    fn decode(bytes: &[u8], pos: usize) -> (Self, usize) {
-        let ((arg1, arg2), pos) = read::<(u32, u32)>(bytes, pos);
-        ((arg1, arg2.into()), pos)
-    }
-}
-
-impl Argument for (u32, VaryingOperand, VaryingOperand) {
-    fn encode(self, bytes: &mut Vec<u8>) {
-        write_u32(bytes, self.0);
-        write_u32(bytes, self.1.value);
-        write_u32(bytes, self.2.value);
-    }
-
-    fn decode(bytes: &[u8], pos: usize) -> (Self, usize) {
-        let ((arg1, arg2, arg3), pos) = read::<(u32, u32, u32)>(bytes, pos);
-        ((arg1, arg2.into(), arg3.into()), pos)
-    }
-}
-
-impl Argument for (VaryingOperand, ThinVec<VaryingOperand>) {
-    fn encode(self, bytes: &mut Vec<u8>) {
-        // Write length of all arguments
-        let total_len = self.1.len();
-        write_u16(bytes, total_len as u16);
-
-        // Write first argument
-        write_u32(bytes, self.0.value);
-
-        // Write remaining arguments
-        for arg in self.1 {
-            write_u32(bytes, arg.value);
+            #[inline(always)]
+            fn decode(bytes: &[u8], pos: usize) -> (Self, usize) {
+                $( let ($i, pos) = $t::decode(bytes, pos); )*
+                (($($i,)*), pos)
+            }
         }
-    }
-
-    fn decode(bytes: &[u8], pos: usize) -> (Self, usize) {
-        // Read the length
-        let (total_len, _) = read::<u16>(bytes, pos);
-        let total_len = total_len as usize;
-
-        assert!(
-            bytes.len() >= pos + 6 + total_len * 4,
-            "buffer too small to read arguments"
-        );
-
-        // Read the first argument
-        let first = unsafe { read_unchecked::<u32>(bytes, pos + 2) };
-
-        // Read remaining arguments
-        let mut rest = ThinVec::with_capacity(total_len);
-        for i in 0..total_len {
-            let value = unsafe { read_unchecked::<u32>(bytes, pos + 6 + i * 4) };
-            rest.push(value.into());
-        }
-
-        ((first.into(), rest), pos + 6 + total_len * 4)
-    }
+    };
 }
 
-impl Argument for (VaryingOperand, VaryingOperand, ThinVec<VaryingOperand>) {
-    fn encode(self, bytes: &mut Vec<u8>) {
-        // Write length of all arguments
-        let total_len = self.2.len();
-        write_u16(bytes, total_len as u16);
+impl_argument_for_tuple!(a A);
+impl_argument_for_tuple!(a A, b B);
+impl_argument_for_tuple!(a A, b B, c C);
+impl_argument_for_tuple!(a A, b B, c C, d D);
+impl_argument_for_tuple!(a A, b B, c C, d D, e E);
 
-        // Write first two arguments
-        write_u32(bytes, self.0.value);
-        write_u32(bytes, self.1.value);
+macro_rules! impl_argument_for_int {
+    ($( $t: ty )*) => {
+        $(
+        impl Argument for $t {
+            #[inline(always)]
+            fn encode(self, bytes: &mut Vec<u8>) {
+                paste::paste! {
+                    [<write_ $t>](bytes, self);
+                }
+            }
 
-        // Write remaining arguments
-        for arg in self.2 {
-            write_u32(bytes, arg.value);
+            #[inline(always)]
+            fn decode(bytes: &[u8], pos: usize) -> (Self, usize) {
+                read::<$t>(bytes, pos)
+            }
         }
-    }
-
-    fn decode(bytes: &[u8], pos: usize) -> (Self, usize) {
-        // Read the length
-        let (total_len, _) = read::<u16>(bytes, pos);
-        let total_len = total_len as usize;
-
-        assert!(
-            bytes.len() >= pos + 10 + total_len * 4,
-            "buffer too small to read arguments"
-        );
-
-        // Read the first two arguments
-        let (first, second) = unsafe { read_unchecked::<(u32, u32)>(bytes, pos + 2) };
-
-        // Read remaining arguments
-        let mut rest = ThinVec::with_capacity(total_len);
-        for i in 0..total_len {
-            let value = unsafe { read_unchecked::<u32>(bytes, pos + 10 + i * 4) };
-            rest.push(value.into());
-        }
-
-        (
-            (first.into(), second.into(), rest),
-            pos + 10 + total_len * 4,
-        )
-    }
+        )*
+    };
 }
 
-impl Argument for (u32, u64, VaryingOperand) {
-    fn encode(self, bytes: &mut Vec<u8>) {
-        write_u32(bytes, self.0);
-        write_u64(bytes, self.1);
-        write_u32(bytes, self.2.value);
+impl_argument_for_int!(u8 u16 u32 u64 i8 i16 i32 f32 f64);
+
+#[cfg(test)]
+mod tests {
+    use super::{Address, Argument, RegisterOperand, VaryingOperand};
+    use std::mem::size_of;
+    use thin_vec::ThinVec;
+
+    fn round_trip<T: Argument + PartialEq + Clone>(value: &T) {
+        let mut bytes = Vec::new();
+        value.clone().encode(&mut bytes);
+        let (decoded, pos) = T::decode(&bytes, 0);
+        assert_eq!(decoded, *value);
+        assert_eq!(pos, bytes.len());
     }
 
-    fn decode(bytes: &[u8], pos: usize) -> (Self, usize) {
-        assert!(
-            bytes.len() >= pos + 16,
-            "buffer too small to read arguments"
-        );
-        let arg1 = unsafe { read_unchecked::<u32>(bytes, pos) };
-        let arg2 = unsafe { read_unchecked::<u64>(bytes, pos + 4) };
-        let arg3 = unsafe { read_unchecked::<u32>(bytes, pos + 12) };
-        ((arg1, arg2, arg3.into()), pos + 16)
-    }
-}
-
-impl Argument for (u32, u32, VaryingOperand, VaryingOperand, VaryingOperand) {
-    fn encode(self, bytes: &mut Vec<u8>) {
-        write_u32(bytes, self.0);
-        write_u32(bytes, self.1);
-        write_u32(bytes, self.2.value);
-        write_u32(bytes, self.3.value);
-        write_u32(bytes, self.4.value);
+    fn round_trip_eq<T: Argument + Clone, F: Fn(&T, &T) -> bool>(value: &T, eq: F) {
+        let mut bytes = Vec::new();
+        value.clone().encode(&mut bytes);
+        let (decoded, pos) = T::decode(&bytes, 0);
+        assert!(eq(&decoded, value));
+        assert_eq!(pos, bytes.len());
     }
 
-    fn decode(bytes: &[u8], pos: usize) -> (Self, usize) {
-        let ((arg1, arg2, arg3, arg4, arg5), pos) = read::<(u32, u32, u32, u32, u32)>(bytes, pos);
-        ((arg1, arg2, arg3.into(), arg4.into(), arg5.into()), pos)
-    }
-}
-
-impl Argument for (u32, ThinVec<u32>) {
-    fn encode(self, bytes: &mut Vec<u8>) {
-        // Write length
-        let total_len = self.1.len();
-        write_u16(bytes, total_len as u16);
-
-        // Write first argument
-        write_u32(bytes, self.0);
-
-        // Write remaining arguments
-        for arg in &self.1 {
-            write_u32(bytes, *arg);
-        }
+    #[test]
+    fn test_unit_round_trip() {
+        round_trip(&());
     }
 
-    fn decode(bytes: &[u8], pos: usize) -> (Self, usize) {
-        // Read the length
-        let (total_len, _) = read::<u16>(bytes, pos);
-        let total_len = total_len as usize;
-
-        assert!(
-            bytes.len() >= pos + 6 + total_len * 4,
-            "buffer too small to read arguments"
-        );
-
-        // Read the first argument
-        let first = unsafe { read_unchecked::<u32>(bytes, pos + 2) };
-
-        // Read remaining arguments
-        let mut rest = ThinVec::with_capacity(total_len);
-        for i in 0..total_len {
-            let value = unsafe { read_unchecked::<u32>(bytes, pos + 6 + i * 4) };
-            rest.push(value);
-        }
-
-        ((first, rest), pos + 6 + total_len * 4)
-    }
-}
-
-impl Argument for (u64, VaryingOperand, ThinVec<u32>) {
-    fn encode(self, bytes: &mut Vec<u8>) {
-        // Write length
-        let total_len = self.2.len();
-        write_u16(bytes, total_len as u16);
-
-        // Write arguments
-        write_u64(bytes, self.0);
-        write_u32(bytes, self.1.value);
-
-        // Write remaining arguments
-        for arg in &self.2 {
-            write_u32(bytes, *arg);
-        }
+    #[test]
+    fn test_address_round_trip() {
+        round_trip_eq(&Address::new(0), |a, b| u32::from(*a) == u32::from(*b));
+        round_trip_eq(&Address::new(0x1234_5678), |a, b| {
+            u32::from(*a) == u32::from(*b)
+        });
     }
 
-    fn decode(bytes: &[u8], pos: usize) -> (Self, usize) {
-        // Read the length
-        let (total_len, _) = read::<u16>(bytes, pos);
-        let total_len = total_len as usize;
-
-        assert!(
-            bytes.len() >= pos + 14 + total_len * 4,
-            "buffer too small to read arguments"
-        );
-
-        // Read first two arguments
-        let first = unsafe { read_unchecked::<u64>(bytes, pos + 2) };
-        let second = unsafe { read_unchecked::<u32>(bytes, pos + 10) };
-
-        // Read remaining arguments
-        let mut rest = ThinVec::with_capacity(total_len);
-        for i in 0..total_len {
-            let value = unsafe { read_unchecked::<u32>(bytes, pos + 14 + i * 4) };
-            rest.push(value);
-        }
-
-        ((first, second.into(), rest), pos + 14 + total_len * 4)
-    }
-}
-
-impl Argument for (VaryingOperand, ThinVec<u32>) {
-    fn encode(self, bytes: &mut Vec<u8>) {
-        // Write length
-        let total_len = self.1.len();
-        write_u16(bytes, total_len as u16);
-
-        // Write first argument
-        write_u32(bytes, self.0.value);
-
-        // Write remaining arguments
-        for arg in &self.1 {
-            write_u32(bytes, *arg);
-        }
+    #[test]
+    fn test_register_operand_round_trip() {
+        round_trip_eq(&RegisterOperand::new(0), |a, b| {
+            u32::from(*a) == u32::from(*b)
+        });
+        round_trip_eq(&RegisterOperand::new(255), |a, b| {
+            u32::from(*a) == u32::from(*b)
+        });
     }
 
-    fn decode(bytes: &[u8], pos: usize) -> (Self, usize) {
-        // Read the length
-        let (total_len, _) = read::<u16>(bytes, pos);
-        let total_len = total_len as usize;
-
-        assert!(
-            bytes.len() >= pos + 6 + total_len * 4,
-            "buffer too small to read arguments"
-        );
-
-        // Read the first argument
-        let first = unsafe { read_unchecked::<u32>(bytes, pos + 2) };
-
-        // Read remaining arguments
-        let mut rest = ThinVec::with_capacity(total_len);
-        for i in 0..total_len {
-            let value = unsafe { read_unchecked::<u32>(bytes, pos + 6 + i * 4) };
-            rest.push(value);
-        }
-
-        ((first.into(), rest), pos + 6 + total_len * 4)
-    }
-}
-
-impl Argument for (u32, u32, ThinVec<u32>) {
-    fn encode(self, bytes: &mut Vec<u8>) {
-        // Write first argument
-        write_u32(bytes, self.0);
-
-        // Write length
-        let total_len = self.2.len();
-        write_u16(bytes, total_len as u16);
-
-        // Write second argument
-        write_u32(bytes, self.1);
-
-        // Write remaining arguments
-        for arg in &self.2 {
-            write_u32(bytes, *arg);
-        }
+    #[test]
+    fn test_varying_operand_round_trip() {
+        round_trip_eq(&VaryingOperand::new(0), |a, b| {
+            u32::from(*a) == u32::from(*b)
+        });
+        round_trip_eq(&VaryingOperand::new(0xFFFF_FFFF), |a, b| {
+            u32::from(*a) == u32::from(*b)
+        });
     }
 
-    fn decode(bytes: &[u8], pos: usize) -> (Self, usize) {
-        // Read the first argument
-        let (first, _) = read::<u32>(bytes, pos);
+    #[test]
+    fn test_primitive_round_trips() {
+        round_trip(&0u8);
+        round_trip(&255u8);
+        round_trip(&0i8);
+        round_trip(&(-128i8));
+        round_trip(&0u16);
+        round_trip(&0xFFFFu16);
+        round_trip(&(-32768i16));
+        round_trip(&0u32);
+        round_trip(&0xFFFF_FFFFu32);
+        round_trip(&0i32);
+        round_trip(&i32::MIN);
+        round_trip(&0u64);
+        round_trip(&0xFFFF_FFFF_FFFF_FFFFu64);
+        round_trip(&0.0f32);
+        round_trip(&1.5f32);
+        round_trip(&0.0f64);
+        round_trip(&1.5f64);
+    }
 
-        // Read the length
-        let (total_len, _) = read::<u16>(bytes, pos + 4);
-        let total_len = total_len as usize;
+    #[test]
+    fn test_tuple_round_trips() {
+        round_trip(&(0u8, 1u8));
+        round_trip(&(0u32, 1u32));
+        let tuple = (Address::new(0), RegisterOperand::new(1));
+        round_trip_eq(&tuple, |a, b| {
+            u32::from(a.0) == u32::from(b.0) && u32::from(a.1) == u32::from(b.1)
+        });
+    }
 
-        assert!(
-            bytes.len() >= pos + 10 + total_len * 4,
-            "buffer too small to read arguments"
-        );
+    #[test]
+    fn test_thin_vec_round_trip() {
+        let v: ThinVec<u32> = ThinVec::new();
+        round_trip(&v);
+        let v: ThinVec<u32> = [1u32, 2, 3].into_iter().collect();
+        round_trip(&v);
+        let v: ThinVec<RegisterOperand> = [RegisterOperand::new(0), RegisterOperand::new(1)]
+            .into_iter()
+            .collect();
+        round_trip_eq(&v, |a, b| {
+            a.len() == b.len()
+                && a.iter()
+                    .zip(b.iter())
+                    .all(|(x, y)| u32::from(*x) == u32::from(*y))
+        });
+    }
 
-        // Read the second argument
-        let second = unsafe { read_unchecked::<u32>(bytes, pos + 6) };
+    #[test]
+    fn test_encoded_size_matches_type_size() {
+        let mut bytes = Vec::new();
+        Address::new(0xDEAD_BEEF).encode(&mut bytes);
+        assert_eq!(bytes.len(), size_of::<u32>());
 
-        // Read remaining arguments
-        let mut rest = ThinVec::with_capacity(total_len);
-        for i in 0..total_len {
-            let value = unsafe { read_unchecked::<u32>(bytes, pos + 10 + i * 4) };
-            rest.push(value);
-        }
+        bytes.clear();
+        (0u64).encode(&mut bytes);
+        assert_eq!(bytes.len(), size_of::<u64>());
 
-        ((first, second, rest), pos + 10 + total_len * 4)
+        bytes.clear();
+        (0.0f64).encode(&mut bytes);
+        assert_eq!(bytes.len(), size_of::<f64>());
+    }
+
+    #[test]
+    #[should_panic(expected = "buffer too small")]
+    fn decode_truncated_buffer_panics() {
+        let bytes = [0u8; 2];
+        let _ = u32::decode(&bytes, 0);
     }
 }

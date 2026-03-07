@@ -1,6 +1,6 @@
 use crate::{
     Context, JsResult, JsValue,
-    vm::opcode::{Operation, VaryingOperand},
+    vm::opcode::{Operation, RegisterOperand},
 };
 
 macro_rules! implement_bin_ops {
@@ -15,7 +15,7 @@ macro_rules! implement_bin_ops {
         impl $name {
             #[inline]
             pub(crate) fn operation(
-                (dst, lhs, rhs): (VaryingOperand, VaryingOperand, VaryingOperand),
+                (dst, lhs, rhs): (RegisterOperand, RegisterOperand, RegisterOperand),
                 context: &mut Context,
             ) -> JsResult<()> {
                 let lhs = context.vm.get_register(lhs.into());

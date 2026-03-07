@@ -22,8 +22,11 @@ wasm-bindgen-test.workspace = true
 [features]
 default = [
     "boa_engine/annex-b",
-    "boa_engine/intl_bundled",
     "boa_engine/experimental",
+    "boa_engine/float16",
+    "boa_engine/intl_bundled",
+    "boa_engine/temporal",
+    "boa_engine/xsum",
 ]
 
 [lib]

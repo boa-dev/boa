@@ -242,8 +242,8 @@ impl std::fmt::Debug for SourceTextModule {
 struct ModuleCode {
     has_tla: bool,
     requested_modules: IndexSet<super::ModuleRequest, BuildHasherDefault<FxHasher>>,
-    source: boa_ast::Module,
-    source_text: SourceText,
+    source: RefCell<Option<boa_ast::Module>>,
+    source_text: RefCell<Option<SourceText>>,
     path: Option<PathBuf>,
     import_entries: Vec<ImportEntry>,
     local_export_entries: Vec<LocalExportEntry>,
@@ -414,8 +414,8 @@ impl SourceTextModule {
             async_parent_modules: GcRefCell::default(),
             import_meta: GcRefCell::default(),
             code: ModuleCode {
-                source: code,
-                source_text,
+                source: RefCell::new(Some(code)),
+                source_text: RefCell::new(Some(source_text)),
                 path,
                 requested_modules,
                 has_tla,
@@ -1560,19 +1560,31 @@ impl SourceTextModule {
         // 4. Assert: realm is not undefined.
         let realm = module_self.realm().clone();
 
+        // Take the AST and source text — they are only needed during compilation.
+        // Dropping them here frees the parse tree after linking is complete.
+        let source = self
+            .code
+            .source
+            .take()
+            .expect("module source consumed before initialize_environment");
+        let source_text = self
+            .code
+            .source_text
+            .take()
+            .expect("module source_text consumed before initialize_environment");
+
         // 5. Let env be NewModuleEnvironment(realm.[[GlobalEnv]]).
         // 6. Set module.[[Environment]] to env.
         let global_env = realm.environment().clone();
-        let env = self.code.source.scope().clone();
+        let env = source.scope().clone();
 
-        let spanned_source_text = SpannedSourceText::new_source_only(self.code.source_text.clone());
-
+        let spanned_source_text = SpannedSourceText::new_source_only(source_text);
         let mut compiler = ByteCompiler::new(
             js_string!("<main>"),
             true,
             false,
-            self.code.source.scope().clone(),
-            self.code.source.scope().clone(),
+            source.scope().clone(),
+            source.scope().clone(),
             self.code.has_tla,
             false,
             context.interner_mut(),
@@ -1654,7 +1666,7 @@ impl SourceTextModule {
 
             // 18. Let code be module.[[ECMAScriptCode]].
             // 19. Let varDeclarations be the VarScopedDeclarations of code.
-            let var_declarations = var_scoped_declarations(&self.code.source);
+            let var_declarations = var_scoped_declarations(&source);
             // 20. Let declaredVarNames be a new empty List.
             let mut declared_var_names = Vec::new();
             // 21. For each element d of varDeclarations, do
@@ -1671,14 +1683,11 @@ impl SourceTextModule {
                             .get_binding_reference(&name)
                             .expect("binding must exist");
                         let index = compiler.insert_binding(binding);
-                        let value = compiler.register_allocator.alloc();
-                        compiler.bytecode.emit_push_undefined(value.variable());
                         compiler.emit_binding_access(
                             BindingAccessOpcode::DefInitVar,
                             &index,
-                            &value,
+                            &CallFrame::undefined_register(),
                         );
-                        compiler.register_allocator.dealloc(value);
 
                         // 3. Append dn to declaredVarNames.
                         declared_var_names.push(name);
@@ -1688,7 +1697,7 @@ impl SourceTextModule {
 
             // 22. Let lexDeclarations be the LexicallyScopedDeclarations of code.
             // 23. Let privateEnv be null.
-            let lex_declarations = lexically_scoped_declarations(&self.code.source);
+            let lex_declarations = lexically_scoped_declarations(&source);
             let mut functions = Vec::new();
             // 24. For each element d of lexDeclarations, do
             for declaration in lex_declarations {
@@ -1744,14 +1753,14 @@ impl SourceTextModule {
                 .map(|(spec, locator)| (compiler.function(spec), locator))
                 .collect::<Vec<_>>();
 
-            compiler.compile_module_item_list(self.code.source.items());
+            compiler.compile_module_item_list(source.items());
 
             (Gc::new(compiler.finish()), functions)
         };
 
         // 8. Let moduleContext be a new ECMAScript code execution context.
         let mut envs = EnvironmentStack::new(global_env);
-        envs.push_module(self.code.source.scope().clone());
+        envs.push_module(source.scope().clone());
 
         // 9. Set the Function of moduleContext to null.
         // 10. Assert: module.[[Realm]] is not undefined.
@@ -1778,7 +1787,7 @@ impl SourceTextModule {
                 ImportBinding::Namespace { locator, module } => {
                     // i. Let namespace be GetModuleNamespace(importedModule).
                     let namespace = module.namespace(context);
-                    context.vm.frame.environments.put_lexical_value(
+                    context.vm.frame_mut().environments.put_lexical_value(
                         locator.scope(),
                         locator.binding_index(),
                         namespace.into(),
@@ -1790,7 +1799,7 @@ impl SourceTextModule {
                 } => match export_locator.binding_name() {
                     BindingName::Name(name) => context
                         .vm
-                        .frame
+                        .frame()
                         .environments
                         .current_declarative_ref()
                         .expect("must be declarative")
@@ -1800,7 +1809,7 @@ impl SourceTextModule {
                         .set_indirect(locator.binding_index(), export_locator.module, name),
                     BindingName::Namespace => {
                         let namespace = export_locator.module.namespace(context);
-                        context.vm.frame.environments.put_lexical_value(
+                        context.vm.frame_mut().environments.put_lexical_value(
                             locator.scope(),
                             locator.binding_index(),
                             namespace.into(),
@@ -1816,7 +1825,7 @@ impl SourceTextModule {
 
             let function = create_function_object_fast(code, context);
 
-            context.vm.frame.environments.put_lexical_value(
+            context.vm.frame_mut().environments.put_lexical_value(
                 locator.scope(),
                 locator.binding_index(),
                 function.into(),
@@ -1897,10 +1906,7 @@ impl SourceTextModule {
             .push_frame_with_stack(callframe, JsValue::undefined(), JsValue::null());
 
         if let Some(capability) = capability {
-            context
-                .vm
-                .stack
-                .set_promise_capability(&context.vm.frame, capability)?;
+            context.vm.set_promise_capability(capability)?;
         }
 
         // 9. If module.[[HasTLA]] is false, then

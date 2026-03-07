@@ -436,17 +436,20 @@ impl JsObject {
     /// # Examples
     ///
     /// ```
-    /// # use boa_engine::{Context, JsObject, JsValue};
+    /// # use boa_engine::{Context, JsObject, JsValue ,JsResult};
     /// # use boa_engine::object::builtins::JsArray;
+    /// # fn main() -> JsResult<()> {
     /// let context = &mut Context::default();
     ///
-    /// let array = JsArray::new(context);
+    /// let array = JsArray::new(context)?;
     /// // A JsArray's inner JsObject is an array.
     /// assert!(JsObject::from(array).is_array());
     ///
     /// // An ordinary object is not an array.
     /// let obj = JsObject::with_object_proto(context.intrinsics());
     /// assert!(!obj.is_array());
+    /// # Ok(())
+    /// # }
     /// ```
     #[inline]
     #[must_use]

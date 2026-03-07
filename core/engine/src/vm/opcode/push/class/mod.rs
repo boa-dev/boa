@@ -2,7 +2,7 @@ use crate::{
     Context, JsResult, JsValue,
     error::JsNativeError,
     object::PROTOTYPE,
-    vm::opcode::{Operation, VaryingOperand},
+    vm::opcode::{Operation, RegisterOperand},
 };
 
 pub(crate) mod field;
@@ -21,7 +21,7 @@ pub(crate) struct PushClassPrototype;
 impl PushClassPrototype {
     #[inline(always)]
     pub(crate) fn operation(
-        (dst, class, superclass): (VaryingOperand, VaryingOperand, VaryingOperand),
+        (dst, class, superclass): (RegisterOperand, RegisterOperand, RegisterOperand),
         context: &mut Context,
     ) -> JsResult<()> {
         let class = context.vm.get_register(class.into()).clone();
