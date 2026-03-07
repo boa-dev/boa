@@ -18,7 +18,9 @@
 #![allow(
     clippy::redundant_pub_crate,
     // TODO deny once false positive is fixed (https://github.com/rust-lang/rust-clippy/issues/9626).
-    clippy::trait_duplication_in_bounds
+    clippy::trait_duplication_in_bounds,
+    // Field names intentionally mirror the encoding type they store.
+    clippy::struct_field_names
 )]
 #![cfg_attr(not(feature = "arbitrary"), no_std)]
 

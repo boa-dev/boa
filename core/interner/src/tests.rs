@@ -133,6 +133,12 @@ fn check_capacity() {
 
 #[test]
 fn check_is_latin1() {
+    static STATIC_STR: &str = "static_latin1";
+    static STATIC_UTF16: &[u16] = &[
+        's' as u16, 't' as u16, 'a' as u16, 't' as u16, 'i' as u16, 'c' as u16, '_' as u16,
+        'l' as u16, 'a' as u16, 't' as u16, 'i' as u16, 'n' as u16, '1' as u16,
+    ];
+
     let mut interner = Interner::default();
 
     // Common/static strings (e.g. keywords) are always Latin1.
@@ -158,13 +164,6 @@ fn check_is_latin1() {
     assert!(!interner.is_latin1(boundary_non_sym));
 
     // get_or_intern_static also caches correctly.
-    static STATIC_STR: &str = "static_latin1";
-    static STATIC_UTF16: &[u16] = &[
-        's' as u16, 't' as u16, 'a' as u16, 't' as u16, 'i' as u16, 'c' as u16,
-        '_' as u16, 'l' as u16, 'a' as u16, 't' as u16, 'i' as u16, 'n' as u16,
-        '1' as u16,
-    ];
     let static_sym = interner.get_or_intern_static(STATIC_STR, STATIC_UTF16);
     assert!(interner.is_latin1(static_sym));
 }
-
