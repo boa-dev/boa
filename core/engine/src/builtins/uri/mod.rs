@@ -21,7 +21,7 @@ use self::consts::{
 
 use super::{BuiltInBuilder, BuiltInObject, IntrinsicObject};
 use crate::{
-    Context, JsArgs, JsNativeError, JsResult, JsString, JsValue,
+    Context, JsArgs, JsExpect, JsNativeError, JsResult, JsString, JsValue,
     context::intrinsics::Intrinsics,
     js_string,
     object::{JsFunction, JsObject},
@@ -309,7 +309,7 @@ where
         }
 
         // b. Let C be the code unit at index k within string.
-        let c = string.code_unit_at(k).expect("Bounds were verified");
+        let c = string.code_unit_at(k).js_expect("Bounds were verified")?;
 
         // c. If C is in unescapedSet, then
         if unescaped_set(c) {
