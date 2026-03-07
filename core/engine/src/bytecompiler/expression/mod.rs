@@ -140,8 +140,8 @@ impl ByteCompiler<'_> {
             Expression::AsyncGeneratorExpression(function) => {
                 self.function_with_binding(function.into(), NodeKind::Expression, dst);
             }
-            Expression::Call(call) => self.call(Callable::Call(call), dst),
-            Expression::New(new) => self.call(Callable::New(new), dst),
+            Expression::Call(call) => self.call(Callable::Call(call), Some(dst)),
+            Expression::New(new) => self.call(Callable::New(new), Some(dst)),
             Expression::TemplateLiteral(template_literal) => {
                 self.compile_template_literal(template_literal, dst);
             }

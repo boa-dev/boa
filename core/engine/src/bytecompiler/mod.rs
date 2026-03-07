@@ -1540,6 +1540,27 @@ impl<'ctx> ByteCompiler<'ctx> {
         self.compile_expr_impl(expr, dst);
     }
 
+    /// Compile an expression purely for its side effects, discarding the result.
+    ///
+    /// This avoids allocating a register and emitting a store for the result
+    /// when it's not needed (e.g., expression statements, for-loop updates).
+    pub(crate) fn compile_expr_for_side_effects(&mut self, expr: &Expression) {
+        match expr {
+            Expression::Call(call) => self.call(Callable::Call(call), None),
+            Expression::New(new) => self.call(Callable::New(new), None),
+            Expression::Update(update) => {
+                let tmp = self.register_allocator.alloc();
+                self.compile_update(update, &tmp, true);
+                self.register_allocator.dealloc(tmp);
+            }
+            _ => {
+                let tmp = self.register_allocator.alloc();
+                self.compile_expr(expr, &tmp);
+                self.register_allocator.dealloc(tmp);
+            }
+        }
+    }
+
     /// Compile an expression and return the operand where the result lives.
     ///
     /// For local variable references, this returns the local's persistent register
@@ -2276,7 +2297,7 @@ impl<'ctx> ByteCompiler<'ctx> {
         dst
     }
 
-    fn call(&mut self, callable: Callable<'_>, dst: &Register) {
+    fn call(&mut self, callable: Callable<'_>, dst: Option<&Register>) {
         #[derive(PartialEq)]
         enum CallKind {
             CallEval,
@@ -2414,7 +2435,11 @@ impl<'ctx> ByteCompiler<'ctx> {
                 .bytecode
                 .emit_new((call.args().len() as u32).into()),
         }
-        compiler.pop_into_register(dst);
+        if let Some(dst) = dst {
+            compiler.pop_into_register(dst);
+        } else {
+            compiler.bytecode.emit_pop();
+        }
     }
 
     /// Finish compiling code with the [`ByteCompiler`] and return the generated [`CodeBlock`].
