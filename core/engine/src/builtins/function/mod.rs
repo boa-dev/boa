@@ -1106,6 +1106,34 @@ fn function_construct(
         "only ordinary functions can be constructed"
     );
 
+    // Fast path: trivial constructors (empty body, no fields/private methods, not derived).
+    // Skip frame creation — just create the object and return it.
+    if function.code.is_trivial_return()
+        && !function.code.is_derived_constructor()
+        && function.get_fields().is_empty()
+        && function.get_private_methods().is_empty()
+    {
+        drop(function);
+
+        let new_target = context.vm.stack.pop();
+        let prototype =
+            get_prototype_from_constructor(&new_target, StandardConstructors::object, context)?;
+        let this = JsObject::from_proto_and_data_with_shared_shape(
+            context.root_shape(),
+            prototype,
+            OrdinaryObject,
+        );
+
+        context
+            .vm
+            .stack
+            .calling_convention_pop_arguments(argument_count);
+        let _func = context.vm.stack.pop();
+        let _this = context.vm.stack.pop();
+        context.vm.stack.push(JsValue::new(this));
+        return Ok(CallValue::Complete);
+    }
+
     let code = function.code.clone();
     let environments = function.environments.clone();
     let script_or_module = function.script_or_module.clone();

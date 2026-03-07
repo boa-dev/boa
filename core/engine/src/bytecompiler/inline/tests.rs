@@ -365,3 +365,79 @@ fn trivial_empty_function_in_loop() {
         4950,
     )]);
 }
+
+// === Trivial constructor fast path ===
+
+#[test]
+fn trivial_constructor_returns_object() {
+    run_test_actions([TestAction::assert_eq(
+        indoc! {r#"
+            function Foo() {}
+            const obj = new Foo();
+            typeof obj
+        "#},
+        js_str!("object"),
+    )]);
+}
+
+#[test]
+fn trivial_constructor_has_correct_prototype() {
+    run_test_actions([TestAction::assert(
+        indoc! {r#"
+            function Foo() {}
+            const obj = new Foo();
+            Object.getPrototypeOf(obj) === Foo.prototype
+        "#},
+    )]);
+}
+
+#[test]
+fn trivial_constructor_instanceof() {
+    run_test_actions([TestAction::assert(
+        indoc! {r#"
+            function Foo() {}
+            const obj = new Foo();
+            obj instanceof Foo
+        "#},
+    )]);
+}
+
+#[test]
+fn trivial_constructor_with_args() {
+    // Args are ignored for trivial constructors but should not crash.
+    run_test_actions([TestAction::assert(
+        indoc! {r#"
+            function Foo() {}
+            const obj = new Foo(1, 2, 3);
+            obj instanceof Foo
+        "#},
+    )]);
+}
+
+#[test]
+fn trivial_constructor_in_loop() {
+    run_test_actions([TestAction::assert_eq(
+        indoc! {r#"
+            function Foo() {}
+            let count = 0;
+            for (let i = 0; i < 100; i++) {
+                const obj = new Foo();
+                if (obj instanceof Foo) count++;
+            }
+            count
+        "#},
+        100,
+    )]);
+}
+
+#[test]
+fn trivial_constructor_unique_objects() {
+    run_test_actions([TestAction::assert(
+        indoc! {r#"
+            function Foo() {}
+            const a = new Foo();
+            const b = new Foo();
+            a !== b
+        "#},
+    )]);
+}
