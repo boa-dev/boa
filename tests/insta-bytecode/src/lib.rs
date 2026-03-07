@@ -1,0 +1,44 @@
+use std::{fs::File, path::PathBuf, process::{Command, Stdio}};
+
+pub const MANIFEST_DIR: &str = env!("CARGO_MANIFEST_DIR");
+
+pub fn js_directory() -> PathBuf {
+    PathBuf::from(MANIFEST_DIR).join("js")
+}
+
+pub fn collect_file_trace(file_path: PathBuf) -> String {
+    let file_path_msg = file_path.to_string_lossy().to_string();
+    println!("Testing {}", file_path_msg);
+    let result = Command::new("boa")
+        .args(["--trace"])
+        .stdin(Stdio::from(File::open(file_path).unwrap()))
+        .output()
+        .unwrap();
+    if result.status.success() {
+        return String::from_utf8_lossy(&result.stdout).to_string()
+    } else {
+        let failure_msg = String::from_utf8_lossy(&result.stderr).to_string();
+        panic!("boa failed: {}", failure_msg);
+    }
+}
+
+#[test]
+fn basic_loop() {
+    let output = collect_file_trace(js_directory().join("basicLoop.js"));
+    insta::with_settings!({filters => vec![
+        (r"[0-9]+μs", "[time]")
+    ]}, {
+        insta::assert_snapshot!(output)
+    })
+
+}
+
+#[test]
+fn double_loop_function() {
+    let output = collect_file_trace(js_directory().join("doubleLoopFunction.js"));
+    insta::with_settings!({filters => vec![
+        (r"[0-9]+μs", "[time]")
+    ]}, {
+        insta::assert_snapshot!(output)
+    })
+}
