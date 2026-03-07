@@ -523,6 +523,7 @@ fn evaluate_files(
     Ok(())
 }
 
+#[expect(clippy::too_many_lines)]
 fn main() -> Result<()> {
     color_eyre::config::HookBuilder::default()
         .display_location_section(false)
