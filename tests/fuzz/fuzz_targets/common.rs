@@ -11,12 +11,15 @@ use std::{
 
 /// Context for performing fuzzing. This structure contains both the generated AST as well as the
 /// context used to resolve the symbols therein.
-pub struct FuzzData {
+pub struct FuzzData<'arena> {
     pub interner: Interner,
-    pub ast: StatementList,
+    pub ast: StatementList<'arena>,
 }
 
-impl<'a> Arbitrary<'a> for FuzzData {
+impl<'a, 'arena> Arbitrary<'a> for FuzzData<'arena>
+where
+    'a: 'arena,
+{
     fn arbitrary(u: &mut Unstructured<'a>) -> arbitrary::Result<Self> {
         let mut interner = Interner::with_capacity(8);
         let mut syms_available = Vec::with_capacity(8);
@@ -26,18 +29,20 @@ impl<'a> Arbitrary<'a> for FuzzData {
 
         let mut ast = StatementList::arbitrary(u)?;
 
-        struct FuzzReplacer<'a, 's, 'u> {
+        struct FuzzReplacer<'s> {
             syms: &'s [Sym],
-            u: &'u mut Unstructured<'a>,
         }
-        impl<'a, 's, 'u, 'ast> VisitorMut<'ast> for FuzzReplacer<'a, 's, 'u> {
+        impl<'s, 'ast, 'arena> VisitorMut<'ast, 'arena> for FuzzReplacer<'s>
+        where
+            'arena: 'ast,
+        {
             type BreakTy = arbitrary::Error;
 
             // TODO arbitrary strings literals?
 
             fn visit_expression_mut(
                 &mut self,
-                node: &'ast mut Expression,
+                node: &'ast mut Expression<'arena>,
             ) -> ControlFlow<Self::BreakTy> {
                 node.visit_with_mut(self)
             }
@@ -50,7 +55,6 @@ impl<'a> Arbitrary<'a> for FuzzData {
 
         let mut replacer = FuzzReplacer {
             syms: &syms_available,
-            u,
         };
         if let ControlFlow::Break(e) = replacer.visit_statement_list_mut(&mut ast) {
             Err(e)
@@ -60,7 +64,7 @@ impl<'a> Arbitrary<'a> for FuzzData {
     }
 }
 
-impl Debug for FuzzData {
+impl Debug for FuzzData<'_> {
     fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
         f.debug_struct("FuzzData")
             .field("ast", &self.ast)

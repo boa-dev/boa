@@ -921,6 +921,7 @@ pub struct ContextBuilder {
     instructions_remaining: usize,
 }
 
+#[allow(clippy::derivable_impls)]
 impl Default for ContextBuilder {
     fn default() -> Self {
         Self {
