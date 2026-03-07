@@ -19,7 +19,9 @@ pub fn collect_file_trace(file_path: PathBuf) -> String {
         .output()
         .unwrap();
     if result.status.success() {
-        String::from_utf8_lossy(&result.stdout).to_string()
+        let full_trace = String::from_utf8_lossy(&result.stdout).to_string();
+        let (bytecode, _trace) = full_trace.split_once("\n\n").expect("trace block should have two line breaks");
+        return bytecode.to_owned()
     } else {
         let failure_msg = String::from_utf8_lossy(&result.stderr).to_string();
         panic!("boa failed: {}", failure_msg);
