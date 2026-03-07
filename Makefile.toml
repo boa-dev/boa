@@ -13,9 +13,9 @@ run_task.name = [
     "ci-lint-no-features"
 ]
 
-[tasks.build-cli]
+[tasks.install-cli]
 command = "cargo"
-args = ["build", "-p", "boa_cli"]
+args = ["install", "--path", "./cli"]
 
 [tasks.format]
 install_crate = "rustfmt"
@@ -39,13 +39,13 @@ args = ["run", "--bin", "boa", "--release", "--", "@@remove-empty(BOA_DATA_ROOT)
 install_crate = "cargo-insta"
 command = "cargo"
 args = ["insta", "test", "-p", "insta-bytecode", "--review"]
-dependencies = ["build-cli"]
+dependencies = ["install-cli"]
 
 [tasks.insta-review]
 install_crate = "cargo-insta"
 command = "cargo"
 args = ["insta", "review", "--manifest-path", "./tests/insta-bytecode/Cargo.toml"]
-dependencies = ["build-cli"]
+dependencies = ["install-cli"]
 
 [env.development]
 RELEASE_ARG=""
