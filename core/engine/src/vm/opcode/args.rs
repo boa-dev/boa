@@ -304,10 +304,7 @@ mod tests {
     fn test_thinvec_decode_out_of_bounds() {
         let bytes = [2, 0, 1, 0, 0, 0];
         <(VaryingOperand, ThinVec<VaryingOperand>)>::decode(&bytes, 0);
-=======
-    use super::{Address, Argument, RegisterOperand, VaryingOperand};
-    use std::mem::size_of;
-    use thin_vec::ThinVec;
+    }
 
     fn round_trip<T: Argument + PartialEq + Clone>(value: &T) {
         let mut bytes = Vec::new();
