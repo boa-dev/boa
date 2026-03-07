@@ -689,10 +689,8 @@ pub(crate) enum FormatType {
     Any,
 }
 
-#[allow(unused)] // All is currently unused, potentially remove.
 #[derive(Debug, Clone, Copy, PartialEq)]
 pub(crate) enum FormatDefaults {
     Date,
     Time,
-    All,
 }
