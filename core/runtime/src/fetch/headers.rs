@@ -50,17 +50,7 @@ pub struct JsHeaders {
 
 impl TryFromJs for JsHeaders {
     fn try_from_js(value: &JsValue, context: &mut Context) -> JsResult<Self> {
-        let o = value.to_object(context)?;
-
-        let mut this = JsHeaders::default();
-        for k in &o.own_property_keys(context)? {
-            let value = o.get(k.clone(), context)?;
-            this.append(
-                Convert::from(k.to_string()),
-                Convert::try_from_js(&value, context)?,
-            )?;
-        }
-        Ok(this)
+        JsHeaders::constructor(value.clone(), context)
     }
 }
 
