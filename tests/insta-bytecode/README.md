@@ -18,4 +18,3 @@ OR
 ```bash
 cargo insta review
 ```
-
