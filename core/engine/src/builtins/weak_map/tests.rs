@@ -1,4 +1,4 @@
-use crate::{JsNativeErrorKind, TestAction, run_test_actions};
+use crate::{Context, JsNativeErrorKind, JsValue, Source, TestAction, run_test_actions};
 use boa_macros::js_str;
 
 #[test]
@@ -112,4 +112,247 @@ fn get_or_insert_computed_this_not_weakmap() {
         JsNativeErrorKind::Type,
         "WeakMap.getOrInsertComputed: called with non-object value",
     )]);
+}
+
+#[test]
+fn weakmap_set_and_get() {
+    let mut context = Context::default();
+    let result = context
+        .eval(Source::from_bytes(
+            r#"
+            const wm = new WeakMap();
+            const obj = {};
+            wm.set(obj, 42);
+            wm.get(obj)
+        "#,
+        ))
+        .unwrap();
+    assert_eq!(result, JsValue::new(42));
+}
+
+#[test]
+fn weakmap_overwrite_value() {
+    let mut context = Context::default();
+    let result = context
+        .eval(Source::from_bytes(
+            r#"
+            const wm = new WeakMap();
+            const obj = {};
+            wm.set(obj, 1);
+            wm.set(obj, 2);
+            wm.get(obj)
+        "#,
+        ))
+        .unwrap();
+    assert_eq!(result, JsValue::new(2));
+}
+
+#[test]
+fn weakmap_has() {
+    let mut context = Context::default();
+    let result = context
+        .eval(Source::from_bytes(
+            r#"
+            const wm = new WeakMap();
+            const obj = {};
+            wm.set(obj, 10);
+            wm.has(obj)
+        "#,
+        ))
+        .unwrap();
+    assert_eq!(result, JsValue::new(true));
+}
+
+#[test]
+fn weakmap_delete() {
+    let mut context = Context::default();
+    let result = context
+        .eval(Source::from_bytes(
+            r#"
+            const wm = new WeakMap();
+            const obj = {};
+            wm.set(obj, 1);
+            wm.delete(obj)
+        "#,
+        ))
+        .unwrap();
+    assert_eq!(result, JsValue::new(true));
+}
+
+#[test]
+fn weakmap_delete_twice() {
+    let mut context = Context::default();
+    let result = context
+        .eval(Source::from_bytes(
+            r#"
+            const wm = new WeakMap();
+            const obj = {};
+            wm.set(obj, 1);
+            wm.delete(obj);
+            wm.delete(obj)
+        "#,
+        ))
+        .unwrap();
+    assert_eq!(result, JsValue::new(false));
+}
+
+#[test]
+fn weakmap_get_missing_key() {
+    let mut context = Context::default();
+    let result = context
+        .eval(Source::from_bytes(
+            r#"
+            const wm = new WeakMap();
+            wm.get({})
+        "#,
+        ))
+        .unwrap();
+    assert!(result.is_undefined());
+}
+
+#[test]
+fn weakmap_multiple_keys() {
+    let mut context = Context::default();
+    let result = context
+        .eval(Source::from_bytes(
+            r#"
+            const wm = new WeakMap();
+            const a = {};
+            const b = {};
+            wm.set(a, 1);
+            wm.set(b, 2);
+            wm.get(a) + wm.get(b)
+        "#,
+        ))
+        .unwrap();
+    assert_eq!(result, JsValue::new(3));
+}
+
+#[test]
+fn weakmap_set_returns_this() {
+    let mut context = Context::default();
+    let result = context
+        .eval(Source::from_bytes(
+            r#"
+            const wm = new WeakMap();
+            const obj = {};
+            wm.set(obj, 1) === wm
+        "#,
+        ))
+        .unwrap();
+    assert_eq!(result, JsValue::new(true));
+}
+
+#[test]
+fn weakmap_set_rejects_number() {
+    let mut context = Context::default();
+    let result = context
+        .eval(Source::from_bytes(
+            r#"
+            const wm = new WeakMap();
+            try {
+                wm.set(42, "value");
+                false
+            } catch (e) {
+                e instanceof TypeError
+            }
+        "#,
+        ))
+        .unwrap();
+    assert_eq!(result, JsValue::new(true));
+}
+
+#[test]
+fn weakmap_set_rejects_string() {
+    let mut context = Context::default();
+    let result = context
+        .eval(Source::from_bytes(
+            r#"
+            const wm = new WeakMap();
+            try {
+                wm.set("string", "value");
+                false
+            } catch (e) {
+                e instanceof TypeError
+            }
+        "#,
+        ))
+        .unwrap();
+    assert_eq!(result, JsValue::new(true));
+}
+
+#[test]
+fn weakmap_set_rejects_boolean() {
+    let mut context = Context::default();
+    let result = context
+        .eval(Source::from_bytes(
+            r#"
+            const wm = new WeakMap();
+            try {
+                wm.set(true, "value");
+                false
+            } catch (e) {
+                e instanceof TypeError
+            }
+        "#,
+        ))
+        .unwrap();
+    assert_eq!(result, JsValue::new(true));
+}
+
+#[test]
+fn weakmap_set_rejects_null() {
+    let mut context = Context::default();
+    let result = context
+        .eval(Source::from_bytes(
+            r#"
+            const wm = new WeakMap();
+            try {
+                wm.set(null, "value");
+                false
+            } catch (e) {
+                e instanceof TypeError
+            }
+        "#,
+        ))
+        .unwrap();
+    assert_eq!(result, JsValue::new(true));
+}
+
+#[test]
+fn weakmap_set_rejects_undefined() {
+    let mut context = Context::default();
+    let result = context
+        .eval(Source::from_bytes(
+            r#"
+            const wm = new WeakMap();
+            try {
+                wm.set(undefined, "value");
+                false
+            } catch (e) {
+                e instanceof TypeError
+            }
+        "#,
+        ))
+        .unwrap();
+    assert_eq!(result, JsValue::new(true));
+}
+
+#[test]
+fn weakmap_set_rejects_symbol() {
+    let mut context = Context::default();
+    let result = context
+        .eval(Source::from_bytes(
+            r#"
+            const wm = new WeakMap();
+            try {
+                wm.set(Symbol("sim"), "value");
+                false
+            } catch (e) {
+                e instanceof TypeError
+            }
+        "#,
+        ))
+        .unwrap();
+    assert_eq!(result, JsValue::new(true));
 }
