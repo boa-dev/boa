@@ -245,6 +245,11 @@ impl Symbol {
             })
     }
 
+    /// Determines if a symbol is registered in the global symbol registry.
+    pub(crate) fn is_global(sym: &JsSymbol) -> bool {
+        GLOBAL_SYMBOL_REGISTRY.symbols.contains_key(sym)
+    }
+
     /// `Symbol.prototype.toString()`
     ///
     /// This method returns a string representing the specified `Symbol` object.

@@ -22,10 +22,35 @@ use boa_gc::{Finalize, Trace};
 
 use super::iterable::IteratorHint;
 
-pub(crate) type NativeWeakSet = boa_gc::WeakMap<ErasedVTableObject, ()>;
+use boa_macros::JsData;
+use rustc_hash::FxHashSet;
+
+#[derive(Trace, Finalize, JsData)]
+pub(crate) struct NativeWeakSet {
+    pub(crate) objects: boa_gc::WeakMap<ErasedVTableObject, ()>,
+    pub(crate) symbols: FxHashSet<JsSymbol>,
+}
+
+impl Default for NativeWeakSet {
+    fn default() -> Self {
+        Self {
+            objects: boa_gc::WeakMap::new(),
+            symbols: FxHashSet::default(),
+        }
+    }
+}
+
+impl NativeWeakSet {
+    pub(crate) fn new() -> Self {
+        Self::default()
+    }
+}
 
 #[derive(Debug, Trace, Finalize)]
 pub(crate) struct WeakSet;
+
+#[cfg(test)]
+mod tests;
 
 impl IntrinsicObject for WeakSet {
     fn get(intrinsics: &Intrinsics) -> JsObject {
@@ -152,24 +177,33 @@ impl WeakSet {
 
         // 3. If Type(value) is not Object, throw a TypeError exception.
         let value = args.get_or_undefined(0);
-        let Some(value) = value.as_object() else {
+        if !value.can_be_held_weakly() {
             return Err(JsNativeError::typ()
                 .with_message(format!(
-                    "WeakSet.add: expected target argument of type `object`, got target of type `{}`",
+                    "WeakSet.add: expected target argument of type `object` or non-registered symbol, got target of type `{}`",
                     value.type_of()
-                )).into());
-        };
+                ))
+                .into());
+        }
 
         // 4. Let entries be the List that is S.[[WeakSetData]].
         // 5. For each element e of entries, do
-        if set.contains_key(value.inner()) {
-            // a. If e is not empty and SameValue(e, value) is true, then
-            // i. Return S.
+        if let Some(obj) = value.as_object() {
+            if set.objects.contains_key(obj.inner()) {
+                return Ok(this.clone());
+            }
+        } else if let Some(sym) = value.as_symbol()
+            && set.symbols.contains(&sym)
+        {
             return Ok(this.clone());
         }
 
         // 6. Append value as the last element of entries.
-        set.insert(value.inner(), ());
+        if let Some(obj) = value.as_object() {
+            set.objects.insert(obj.inner(), ());
+        } else if let Some(sym) = value.as_symbol() {
+            set.symbols.insert(sym);
+        }
 
         // 7. Return S.
         Ok(this.clone())
@@ -202,17 +236,21 @@ impl WeakSet {
 
         // 3. If Type(value) is not Object, return false.
         let value = args.get_or_undefined(0);
-        let Some(value) = value.as_object() else {
+        if !value.can_be_held_weakly() {
             return Ok(false.into());
-        };
+        }
 
         // 4. Let entries be the List that is S.[[WeakSetData]].
         // 5. For each element e of entries, do
-        // a. If e is not empty and SameValue(e, value) is true, then
-        // i. Replace the element of entries whose value is e with an element whose value is empty.
-        // ii. Return true.
-        // 6. Return false.
-        Ok(set.remove(value.inner()).is_some().into())
+        // ...
+        let has_removed = if let Some(obj) = value.as_object() {
+            set.objects.remove(obj.inner()).is_some()
+        } else if let Some(sym) = value.as_symbol() {
+            set.symbols.remove(&sym)
+        } else {
+            unreachable!()
+        };
+        Ok(has_removed.into())
     }
 
     /// `WeakSet.prototype.has( value )`
@@ -243,13 +281,19 @@ impl WeakSet {
         // 3. Let entries be the List that is S.[[WeakSetData]].
         // 4. If Type(value) is not Object, return false.
         let value = args.get_or_undefined(0);
-        let Some(value) = value.as_object() else {
+        if !value.can_be_held_weakly() {
             return Ok(false.into());
-        };
+        }
 
         // 5. For each element e of entries, do
-        // a. If e is not empty and SameValue(e, value) is true, return true.
-        // 6. Return false.
-        Ok(set.contains_key(value.inner()).into())
+        // ...
+        let has = if let Some(obj) = value.as_object() {
+            set.objects.contains_key(obj.inner())
+        } else if let Some(sym) = value.as_symbol() {
+            set.symbols.contains(&sym)
+        } else {
+            unreachable!()
+        };
+        Ok(has.into())
     }
 }

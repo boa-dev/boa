@@ -34,7 +34,7 @@ fn get_or_insert_requires_object_key() {
     run_test_actions([TestAction::assert_native_error(
         "new WeakMap().getOrInsert('x', 1)",
         JsNativeErrorKind::Type,
-        "WeakMap.getOrInsert: expected target argument of type `object`, got target of type `string`",
+        "WeakMap.getOrInsert: expected target argument of type `object` or non-registered symbol, got target of type `string`",
     )]);
 }
 
@@ -43,7 +43,7 @@ fn get_or_insert_computed_requires_object_key() {
     run_test_actions([TestAction::assert_native_error(
         "new WeakMap().getOrInsertComputed('x', () => 1)",
         JsNativeErrorKind::Type,
-        "WeakMap.getOrInsertComputed: expected target argument of type `object`, got target of type `string`",
+        "WeakMap.getOrInsertComputed: expected target argument of type `object` or non-registered symbol, got target of type `string`",
     )]);
 }
 
@@ -111,5 +111,22 @@ fn get_or_insert_computed_this_not_weakmap() {
         "WeakMap.prototype.getOrInsertComputed.call({}, {}, x => x)",
         JsNativeErrorKind::Type,
         "WeakMap.getOrInsertComputed: called with non-object value",
+    )]);
+}
+
+#[test]
+fn weak_map_symbol_support() {
+    run_test_actions([
+        TestAction::run("const wm = new WeakMap(); const s = Symbol(); wm.set(s, 10);"),
+        TestAction::assert_eq("wm.get(s)", 10),
+    ]);
+}
+
+#[test]
+fn weak_map_global_symbol_rejection() {
+    run_test_actions([TestAction::assert_native_error(
+        "new WeakMap().set(Symbol.for('sim'), 1)",
+        JsNativeErrorKind::Type,
+        "WeakMap.set: expected target argument of type `object` or non-registered symbol, got target of type `symbol`",
     )]);
 }

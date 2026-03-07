@@ -309,6 +309,24 @@ impl JsValue {
         self.0.is_object()
     }
 
+    /// Returns true if the value can be held weakly by weak collections.
+    ///
+    /// More information:
+    /// - [ECMAScript reference][spec]
+    ///
+    /// [spec]: https://tc39.es/ecma262/#sec-canbeheldweakly
+    #[inline]
+    #[must_use]
+    pub fn can_be_held_weakly(&self) -> bool {
+        if self.is_object() {
+            true
+        } else if let Some(sym) = self.as_symbol() {
+            !crate::builtins::symbol::Symbol::is_global(&sym)
+        } else {
+            false
+        }
+    }
+
     /// Returns the object if the value is object, otherwise `None`.
     ///
     /// # Examples
