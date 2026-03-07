@@ -132,7 +132,10 @@ impl PartialEq for Script<'_> {
 }
 
 #[cfg(feature = "arbitrary")]
-impl<'a, 'arena> arbitrary::Arbitrary<'a> for Script<'arena> {
+impl<'a, 'arena> arbitrary::Arbitrary<'a> for Script<'arena>
+where
+    'a: 'arena,
+{
     fn arbitrary(u: &mut arbitrary::Unstructured<'a>) -> arbitrary::Result<Self> {
         let statements = StatementList::arbitrary(u)?;
         Ok(Self { statements })

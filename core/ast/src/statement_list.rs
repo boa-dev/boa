@@ -217,7 +217,10 @@ impl<'arena> VisitWith<'arena> for StatementList<'arena> {
 }
 
 #[cfg(feature = "arbitrary")]
-impl<'a, 'arena> arbitrary::Arbitrary<'a> for StatementList<'arena> {
+impl<'a, 'arena> arbitrary::Arbitrary<'a> for StatementList<'arena>
+where
+    'a: 'arena,
+{
     fn arbitrary(u: &mut arbitrary::Unstructured<'a>) -> arbitrary::Result<Self> {
         Ok(Self {
             statements: u.arbitrary()?,

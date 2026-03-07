@@ -25,9 +25,12 @@ pub struct TemplateLiteral<'arena> {
 
 /// Manual implementation, because string and expression in the element list must always appear in order.
 #[cfg(feature = "arbitrary")]
-impl<'a, 'arena> arbitrary::Arbitrary<'a> for TemplateLiteral<'arena> {
+impl<'a, 'arena> arbitrary::Arbitrary<'a> for TemplateLiteral<'arena>
+where
+    'a: 'arena,
+{
     fn arbitrary(u: &mut arbitrary::Unstructured<'a>) -> arbitrary::Result<Self> {
-        let len = u.arbitrary_len::<Box<[TemplateElement]>>()?;
+        let len = u.arbitrary_len::<Box<[TemplateElement<'arena>]>>()?;
 
         let mut elements = Vec::with_capacity(len);
         for i in 0..len {

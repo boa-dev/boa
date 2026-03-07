@@ -168,9 +168,12 @@ impl<'arena> VisitWith<'arena> for FormalParameterList<'arena> {
 }
 
 #[cfg(feature = "arbitrary")]
-impl<'a> arbitrary::Arbitrary<'a> for FormalParameterList {
+impl<'a, 'arena> arbitrary::Arbitrary<'a> for FormalParameterList<'arena>
+where
+    'a: 'arena,
+{
     fn arbitrary(u: &mut arbitrary::Unstructured<'a>) -> arbitrary::Result<Self> {
-        let params: Vec<FormalParameter> = u.arbitrary()?;
+        let params: Vec<FormalParameter<'arena>> = u.arbitrary()?;
         Ok(Self::from(params))
     }
 }

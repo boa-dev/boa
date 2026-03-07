@@ -86,7 +86,7 @@ impl<'a> JsonSourceVisitor<'a> {
     }
 }
 
-impl<'ast> boa_ast::visitor::Visitor<'ast> for JsonSourceVisitor<'_> {
+impl<'ast> boa_ast::visitor::Visitor<'ast, 'ast> for JsonSourceVisitor<'_> {
     type BreakTy = std::convert::Infallible;
 
     fn visit_literal(
@@ -102,7 +102,7 @@ impl<'ast> boa_ast::visitor::Visitor<'ast> for JsonSourceVisitor<'_> {
 
     fn visit_array_literal(
         &mut self,
-        node: &'ast boa_ast::expression::literal::ArrayLiteral,
+        node: &'ast boa_ast::expression::literal::ArrayLiteral<'_>,
     ) -> std::ops::ControlFlow<Self::BreakTy> {
         let count = node.as_ref().len();
         let base = self.stack.len();
@@ -126,7 +126,7 @@ impl<'ast> boa_ast::visitor::Visitor<'ast> for JsonSourceVisitor<'_> {
 
     fn visit_object_literal(
         &mut self,
-        node: &'ast boa_ast::expression::literal::ObjectLiteral,
+        node: &'ast boa_ast::expression::literal::ObjectLiteral<'_>,
     ) -> std::ops::ControlFlow<Self::BreakTy> {
         use boa_ast::expression::literal::PropertyDefinition;
 
@@ -156,7 +156,7 @@ impl<'ast> boa_ast::visitor::Visitor<'ast> for JsonSourceVisitor<'_> {
 
     fn visit_unary(
         &mut self,
-        node: &'ast boa_ast::expression::operator::Unary,
+        node: &'ast boa_ast::expression::operator::Unary<'_>,
     ) -> std::ops::ControlFlow<Self::BreakTy> {
         use boa_ast::expression::operator::unary::UnaryOp;
         use boa_ast::visitor::VisitWith;
@@ -177,7 +177,7 @@ impl<'ast> boa_ast::visitor::Visitor<'ast> for JsonSourceVisitor<'_> {
 
     fn visit_parenthesized(
         &mut self,
-        node: &'ast boa_ast::expression::Parenthesized,
+        node: &'ast boa_ast::expression::Parenthesized<'_>,
     ) -> std::ops::ControlFlow<Self::BreakTy> {
         // Unwrap parentheses and visit inner expression
         self.visit_expression(node.expression())
