@@ -720,9 +720,9 @@ impl JobExecutor for SimpleJobExecutor {
                 let jobs_to_run = {
                     let mut timeout_jobs = self.timeout_jobs.borrow_mut();
                     // Use `now + 1ns` so jobs whose deadline equals `now` are
-                // included in `jobs_to_run` rather than deferred.
-                let split_at = now + time::Duration::from_nanos(1).into();
-                let mut jobs_to_keep = timeout_jobs.split_off(&split_at);
+                    // included in `jobs_to_run` rather than deferred.
+                    let split_at = now + time::Duration::from_nanos(1).into();
+                    let mut jobs_to_keep = timeout_jobs.split_off(&split_at);
                     jobs_to_keep.retain(|_, jobs| {
                         jobs.retain(|job| !job.is_cancelled());
                         !jobs.is_empty()
