@@ -92,8 +92,7 @@ impl JsRegExp {
         RegExp::get_has_indices(&self.inner.clone().into(), &[], context).and_then(|v| {
             v.as_boolean().ok_or_else(|| {
                 JsError::from(
-                    JsNativeError::typ()
-                        .with_message("RegExp getter must return a boolean"),
+                    JsNativeError::typ().with_message("RegExp getter must return a boolean"),
                 )
             })
         })
@@ -105,8 +104,7 @@ impl JsRegExp {
         RegExp::get_global(&self.inner.clone().into(), &[], context).and_then(|v| {
             v.as_boolean().ok_or_else(|| {
                 JsError::from(
-                    JsNativeError::typ()
-                        .with_message("RegExp getter must return a boolean"),
+                    JsNativeError::typ().with_message("RegExp getter must return a boolean"),
                 )
             })
         })
@@ -118,8 +116,7 @@ impl JsRegExp {
         RegExp::get_ignore_case(&self.inner.clone().into(), &[], context).and_then(|v| {
             v.as_boolean().ok_or_else(|| {
                 JsError::from(
-                    JsNativeError::typ()
-                        .with_message("RegExp getter must return a boolean"),
+                    JsNativeError::typ().with_message("RegExp getter must return a boolean"),
                 )
             })
         })
@@ -131,8 +128,7 @@ impl JsRegExp {
         RegExp::get_multiline(&self.inner.clone().into(), &[], context).and_then(|v| {
             v.as_boolean().ok_or_else(|| {
                 JsError::from(
-                    JsNativeError::typ()
-                        .with_message("RegExp getter must return a boolean"),
+                    JsNativeError::typ().with_message("RegExp getter must return a boolean"),
                 )
             })
         })
@@ -144,8 +140,7 @@ impl JsRegExp {
         RegExp::get_dot_all(&self.inner.clone().into(), &[], context).and_then(|v| {
             v.as_boolean().ok_or_else(|| {
                 JsError::from(
-                    JsNativeError::typ()
-                        .with_message("RegExp getter must return a boolean"),
+                    JsNativeError::typ().with_message("RegExp getter must return a boolean"),
                 )
             })
         })
@@ -157,8 +152,7 @@ impl JsRegExp {
         RegExp::get_unicode(&self.inner.clone().into(), &[], context).and_then(|v| {
             v.as_boolean().ok_or_else(|| {
                 JsError::from(
-                    JsNativeError::typ()
-                        .with_message("RegExp getter must return a boolean"),
+                    JsNativeError::typ().with_message("RegExp getter must return a boolean"),
                 )
             })
         })
@@ -170,8 +164,7 @@ impl JsRegExp {
         RegExp::get_sticky(&self.inner.clone().into(), &[], context).and_then(|v| {
             v.as_boolean().ok_or_else(|| {
                 JsError::from(
-                    JsNativeError::typ()
-                        .with_message("RegExp getter must return a boolean"),
+                    JsNativeError::typ().with_message("RegExp getter must return a boolean"),
                 )
             })
         })
