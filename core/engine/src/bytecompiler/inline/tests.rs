@@ -1,4 +1,4 @@
-use crate::{run_test_actions, TestAction};
+use crate::{TestAction, run_test_actions};
 use boa_macros::js_str;
 use indoc::indoc;
 
@@ -6,10 +6,7 @@ use indoc::indoc;
 
 #[test]
 fn inline_arrow_expression_body() {
-    run_test_actions([TestAction::assert_eq(
-        "((a, b) => a + b)(3, 4)",
-        7,
-    )]);
+    run_test_actions([TestAction::assert_eq("((a, b) => a + b)(3, 4)", 7)]);
 }
 
 #[test]
@@ -30,9 +27,7 @@ fn inline_arrow_no_args() {
 
 #[test]
 fn inline_arrow_missing_args() {
-    run_test_actions([TestAction::assert(
-        "Number.isNaN(((a, b) => a + b)(1))",
-    )]);
+    run_test_actions([TestAction::assert("Number.isNaN(((a, b) => a + b)(1))")]);
 }
 
 #[test]
@@ -42,10 +37,7 @@ fn inline_arrow_extra_args() {
 
 #[test]
 fn inline_arrow_nested() {
-    run_test_actions([TestAction::assert_eq(
-        "((a) => ((b) => a + b)(20))(3)",
-        23,
-    )]);
+    run_test_actions([TestAction::assert_eq("((a) => ((b) => a + b)(20))(3)", 23)]);
 }
 
 #[test]
@@ -81,10 +73,7 @@ fn inline_arrow_side_effects_in_args() {
 
 #[test]
 fn inline_arrow_used_in_expression() {
-    run_test_actions([TestAction::assert_eq(
-        "1 + ((x) => x * 2)(10) + 3",
-        24,
-    )]);
+    run_test_actions([TestAction::assert_eq("1 + ((x) => x * 2)(10) + 3", 24)]);
 }
 
 #[test]
@@ -94,10 +83,7 @@ fn inline_arrow_boolean_logic() {
 
 #[test]
 fn inline_arrow_conditional() {
-    run_test_actions([TestAction::assert_eq(
-        "((x) => x > 0 ? x : -x)(-5)",
-        5,
-    )]);
+    run_test_actions([TestAction::assert_eq("((x) => x > 0 ? x : -x)(-5)", 5)]);
 }
 
 #[test]
@@ -188,10 +174,7 @@ fn inline_void_body_multiple_statements() {
 
 #[test]
 fn inline_empty_body() {
-    run_test_actions([TestAction::assert_eq(
-        "(() => {})()",
-        JsValue::undefined(),
-    )]);
+    run_test_actions([TestAction::assert_eq("(() => {})()", JsValue::undefined())]);
 }
 
 // === Statements with trailing return ===
@@ -382,36 +365,30 @@ fn trivial_constructor_returns_object() {
 
 #[test]
 fn trivial_constructor_has_correct_prototype() {
-    run_test_actions([TestAction::assert(
-        indoc! {r#"
+    run_test_actions([TestAction::assert(indoc! {r#"
             function Foo() {}
             const obj = new Foo();
             Object.getPrototypeOf(obj) === Foo.prototype
-        "#},
-    )]);
+        "#})]);
 }
 
 #[test]
 fn trivial_constructor_instanceof() {
-    run_test_actions([TestAction::assert(
-        indoc! {r#"
+    run_test_actions([TestAction::assert(indoc! {r#"
             function Foo() {}
             const obj = new Foo();
             obj instanceof Foo
-        "#},
-    )]);
+        "#})]);
 }
 
 #[test]
 fn trivial_constructor_with_args() {
     // Args are ignored for trivial constructors but should not crash.
-    run_test_actions([TestAction::assert(
-        indoc! {r#"
+    run_test_actions([TestAction::assert(indoc! {r#"
             function Foo() {}
             const obj = new Foo(1, 2, 3);
             obj instanceof Foo
-        "#},
-    )]);
+        "#})]);
 }
 
 #[test]
@@ -432,12 +409,10 @@ fn trivial_constructor_in_loop() {
 
 #[test]
 fn trivial_constructor_unique_objects() {
-    run_test_actions([TestAction::assert(
-        indoc! {r#"
+    run_test_actions([TestAction::assert(indoc! {r#"
             function Foo() {}
             const a = new Foo();
             const b = new Foo();
             a !== b
-        "#},
-    )]);
+        "#})]);
 }

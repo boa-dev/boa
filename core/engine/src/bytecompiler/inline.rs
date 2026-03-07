@@ -56,21 +56,13 @@ impl ByteCompiler<'_> {
             return false;
         }
 
-        let Some(body) =
-            Self::classify_body(arrow.body().statement_list().statements())
-        else {
+        let Some(body) = Self::classify_body(arrow.body().statement_list().statements()) else {
             return false;
         };
 
         let params: Vec<_> = arrow.parameters().as_ref().to_vec();
 
-        self.inline_function_body(
-            &params,
-            args,
-            &body,
-            arrow.scopes(),
-            dst,
-        );
+        self.inline_function_body(&params, args, &body, arrow.scopes(), dst);
 
         true
     }
@@ -86,21 +78,13 @@ impl ByteCompiler<'_> {
             return false;
         }
 
-        let Some(body) =
-            Self::classify_body(func.body().statement_list().statements())
-        else {
+        let Some(body) = Self::classify_body(func.body().statement_list().statements()) else {
             return false;
         };
 
         let params: Vec<_> = func.parameters().as_ref().to_vec();
 
-        self.inline_function_body(
-            &params,
-            args,
-            &body,
-            func.scopes(),
-            dst,
-        );
+        self.inline_function_body(&params, args, &body, func.scopes(), dst);
 
         true
     }
@@ -309,10 +293,7 @@ impl ByteCompiler<'_> {
                 }
                 self.bytecode.emit_push_undefined(dst.variable());
             }
-            InlinableBody::StatementsWithReturn {
-                stmts,
-                return_expr,
-            } => {
+            InlinableBody::StatementsWithReturn { stmts, return_expr } => {
                 for item in *stmts {
                     self.compile_stmt_list_item(item, false, false);
                 }
