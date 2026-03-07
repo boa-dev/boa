@@ -500,10 +500,11 @@ impl Json {
         if let Some(n) = value.as_number() {
             // a. If value is finite, return ! ToString(value).
             if n.is_finite() {
-                let s = value
-                    .to_string(context)
-                    .js_expect("ToString should never fail here")?;
-                return Ok(Some(s));
+                return Ok(Some(
+                    value
+                        .to_string(context)
+                        .js_expect("ToString should never fail here")?,
+                ));
             }
 
             // b. Return "null".
@@ -549,6 +550,10 @@ impl Json {
         // 2. For each code point C of ! StringToCodePoints(value), do
         for code_point in value.code_points() {
             match code_point {
+                // a. If C is listed in the “Code Point” column of Table 73, then
+                // i. Set product to the string-concatenation of product and the
+                // escape sequence for C as specified in the “Escape Sequence”
+                // column of the corresponding row.
                 CodePoint::Unicode('\u{0008}') => product.extend_from_slice(utf16!(r"\b")),
                 CodePoint::Unicode('\u{0009}') => product.extend_from_slice(utf16!(r"\t")),
                 CodePoint::Unicode('\u{000A}') => product.extend_from_slice(utf16!(r"\n")),
@@ -556,19 +561,31 @@ impl Json {
                 CodePoint::Unicode('\u{000D}') => product.extend_from_slice(utf16!(r"\r")),
                 CodePoint::Unicode('\u{0022}') => product.extend_from_slice(utf16!(r#"\""#)),
                 CodePoint::Unicode('\u{005C}') => product.extend_from_slice(utf16!(r"\\")),
+                // b. Else if C has a numeric value less than 0x0020 (SPACE), or
+                // if C has the same numeric value as a leading surrogate or
+                // trailing surrogate, then
+                //     i. Let unit be the code unit whose numeric value is that
+                //     of C.
+                //     ii. Set product to the string-concatenation of product
+                //     and UnicodeEscape(unit).
                 CodePoint::Unicode(c) if c < '\u{0020}' => {
                     product.extend(format!("\\u{:04x}", c as u32).encode_utf16());
                 }
                 CodePoint::UnpairedSurrogate(surr) => {
                     product.extend(format!("\\u{surr:04x}").encode_utf16());
                 }
+                // c. Else,
                 CodePoint::Unicode(c) => {
+                    // i. Set product to the string-concatenation of product and ! UTF16EncodeCodePoint(C).
                     product.extend_from_slice(c.encode_utf16(&mut buf));
                 }
             }
         }
 
+        // 3. Set product to the string-concatenation of product and the code unit 0x0022 (QUOTATION MARK).
         product.push('"' as u16);
+
+        // 4. Return product.
         js_string!(&product[..])
     }
 
@@ -607,7 +624,7 @@ impl Json {
         } else {
             // a. Let K be ? EnumerableOwnPropertyNames(value, key).
             let keys = value.enumerable_own_property_names(PropertyNameKind::Key, context)?;
-            // EnumerableOwnPropertyNames with kind "key" only returns string values.
+            // Unwrap is safe, because EnumerableOwnPropertyNames with kind "key" only returns string values.
             keys.iter()
                 .map(|v| {
                     v.to_string(context)
@@ -654,6 +671,10 @@ impl Json {
         } else {
             // a. If state.[[Gap]] is the empty String, then
             if state.gap.is_empty() {
+                // i. Let properties be the String value formed by concatenating all the element Strings of partial
+                //    with each adjacent pair of Strings separated with the code unit 0x002C (COMMA).
+                //    A comma is not inserted either before the first String or after the last String.
+                // ii. Let final be the string-concatenation of "{", properties, and "}".
                 let separator = utf16!(",");
                 let result = once(utf16!("{"))
                     .chain(Itertools::intersperse(
@@ -667,8 +688,16 @@ impl Json {
                 js_string!(&result[..])
             // b. Else,
             } else {
+                // i. Let separator be the string-concatenation of the code unit 0x002C (COMMA),
+                //    the code unit 0x000A (LINE FEED), and state.[[Indent]].
                 let mut separator = utf16!(",\n").to_vec();
                 separator.extend(state.indent.iter());
+                // ii. Let properties be the String value formed by concatenating all the element Strings of partial
+                //     with each adjacent pair of Strings separated with separator.
+                //     The separator String is not inserted either before the first String or after the last String.
+                // iii. Let final be the string-concatenation of "{", the code
+                //      unit 0x000A (LINE FEED), state.[[Indent]], properties,
+                //      the code unit 0x000A (LINE FEED), stepback, and "}".
                 let result = [utf16!("{\n"), &state.indent.to_vec()[..]]
                     .into_iter()
                     .chain(Itertools::intersperse(
@@ -756,6 +785,10 @@ impl Json {
         } else {
             // a. If state.[[Gap]] is the empty String, then
             if state.gap.is_empty() {
+                // i. Let properties be the String value formed by concatenating all the element Strings of partial
+                //    with each adjacent pair of Strings separated with the code unit 0x002C (COMMA).
+                //    A comma is not inserted either before the first String or after the last String.
+                // ii. Let final be the string-concatenation of "[", properties, and "]".
                 let separator = utf16!(",");
                 let result = once(utf16!("["))
                     .chain(Itertools::intersperse(
@@ -769,8 +802,14 @@ impl Json {
                 js_string!(&result[..])
             // b. Else,
             } else {
+                // i. Let separator be the string-concatenation of the code unit 0x002C (COMMA),
+                //    the code unit 0x000A (LINE FEED), and state.[[Indent]].
                 let mut separator = utf16!(",\n").to_vec();
                 separator.extend(state.indent.iter());
+                // ii. Let properties be the String value formed by concatenating all the element Strings of partial
+                //     with each adjacent pair of Strings separated with separator.
+                //     The separator String is not inserted either before the first String or after the last String.
+                // iii. Let final be the string-concatenation of "[", the code unit 0x000A (LINE FEED), state.[[Indent]], properties, the code unit 0x000A (LINE FEED), stepback, and "]".
                 let result = [utf16!("[\n"), &state.indent.to_vec()[..]]
                     .into_iter()
                     .chain(Itertools::intersperse(
