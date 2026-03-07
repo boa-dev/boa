@@ -38,6 +38,7 @@ use crate::{
     realm::Realm,
 };
 use boa_gc::{Finalize, Trace};
+use futures_channel::oneshot;
 use futures_concurrency::future::FutureGroup;
 use futures_lite::{StreamExt, future};
 use portable_atomic::AtomicBool;
@@ -48,6 +49,7 @@ use std::mem;
 use std::rc::Rc;
 use std::sync::Arc;
 use std::sync::atomic::Ordering;
+use std::task::Poll;
 use std::{cell::RefCell, collections::VecDeque, fmt::Debug, future::Future, pin::Pin};
 
 /// An ECMAScript [Job Abstract Closure].
@@ -718,7 +720,10 @@ impl JobExecutor for SimpleJobExecutor {
                 let now = context.borrow().clock().now();
                 let jobs_to_run = {
                     let mut timeout_jobs = self.timeout_jobs.borrow_mut();
-                    let mut jobs_to_keep = timeout_jobs.split_off(&now);
+                    // Use `now + 1ns` so jobs whose deadline equals `now` are
+                    // included in `jobs_to_run` rather than deferred.
+                    let split_at = now + time::Duration::from_nanos(1).into();
+                    let mut jobs_to_keep = timeout_jobs.split_off(&split_at);
                     jobs_to_keep.retain(|_, jobs| {
                         jobs.retain(|job| !job.is_cancelled());
                         !jobs.is_empty()
@@ -741,24 +746,8 @@ impl JobExecutor for SimpleJobExecutor {
             if self.is_empty() && group.is_empty() {
                 break;
             }
-            // Check if there are no timeout jobs ready to run
-            let now = context.borrow().clock().now();
 
-            let no_timeout_jobs_to_run = !self.timeout_jobs.borrow().iter().any(|(t, _)| now >= *t);
-
-            // If no synchronous work is ready, block until a NativeAsyncJob future resolves
-            // rather than busy-spinning with poll_once + yield_now at 100% CPU.
-            let no_sync_work = self.promise_jobs.borrow().is_empty()
-                && self.async_jobs.borrow().is_empty()
-                && self.generic_jobs.borrow().is_empty()
-                && no_timeout_jobs_to_run;
-
-            if no_sync_work && !group.is_empty() {
-                if let Some(Err(err)) = group.next().await {
-                    self.clear();
-                    return Err(err);
-                }
-            } else if let Some(Err(err)) = future::poll_once(group.next()).await.flatten() {
+            if let Some(Err(err)) = future::poll_once(group.next()).await.flatten() {
                 self.clear();
                 return Err(err);
             }
@@ -779,6 +768,51 @@ impl JobExecutor for SimpleJobExecutor {
                 }
             }
             context.borrow_mut().clear_kept_objects();
+
+            let no_live_work = group.is_empty()
+                && self.promise_jobs.borrow().is_empty()
+                && self.async_jobs.borrow().is_empty()
+                && self.generic_jobs.borrow().is_empty();
+
+            if no_live_work && !self.timeout_jobs.borrow().is_empty() {
+                // Only future-scheduled timeout jobs remain. Idle until the
+                // earliest one is due instead of busy-spinning.
+                let now = context.borrow().clock().now();
+                let deadline = self
+                    .timeout_jobs
+                    .borrow()
+                    .keys()
+                    .next()
+                    .copied()
+                    .filter(|&d| d > now);
+
+                if let Some(deadline) = deadline {
+                    let dur = time::Duration::from(deadline - now);
+                    if !dur.is_zero() {
+                        let (tx, mut rx) = oneshot::channel::<()>();
+                        std::thread::spawn(move || {
+                            std::thread::sleep(dur);
+                            let _ = tx.send(());
+                        });
+                        // Re-check the clock on every poll so that mock clocks
+                        // (e.g. FixedClock used in tests) can advance past the
+                        // deadline without waiting for real-time sleep to complete.
+                        std::future::poll_fn(|cx| {
+                            let now = context.borrow().clock().now();
+                            if now >= deadline {
+                                return Poll::Ready(());
+                            }
+                            match Pin::new(&mut rx).poll(cx) {
+                                Poll::Ready(_) => Poll::Ready(()),
+                                Poll::Pending => Poll::Pending,
+                            }
+                        })
+                        .await;
+                    }
+                }
+            } else {
+                future::yield_now().await;
+            }
         }
 
         Ok(())
