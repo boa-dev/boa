@@ -17,6 +17,7 @@ use boa_ast::{
     Expression, Statement, StatementListItem,
     declaration::Binding,
     function::{ArrowFunction, FunctionExpression},
+    operations::{annex_b_function_declarations_names, var_scoped_declarations},
     visitor::{VisitWith, Visitor},
 };
 
@@ -109,6 +110,16 @@ impl ByteCompiler<'_> {
             return false;
         }
 
+        // No var-scoped declarations (hoisted functions, var statements) or
+        // Annex B block-scoped function declarations —
+        // these require function_declaration_instantiation which inlining skips.
+        if !var_scoped_declarations(arrow.body()).is_empty() {
+            return false;
+        }
+        if !annex_b_function_declarations_names(arrow.body()).is_empty() {
+            return false;
+        }
+
         let scopes = arrow.scopes();
 
         // All bindings must be register-local (no environment needed)
@@ -148,6 +159,16 @@ impl ByteCompiler<'_> {
             .iter()
             .any(boa_ast::function::FormalParameter::is_rest_param)
         {
+            return false;
+        }
+
+        // No var-scoped declarations (hoisted functions, var statements) or
+        // Annex B block-scoped function declarations —
+        // these require function_declaration_instantiation which inlining skips.
+        if !var_scoped_declarations(func.body()).is_empty() {
+            return false;
+        }
+        if !annex_b_function_declarations_names(func.body()).is_empty() {
             return false;
         }
 
