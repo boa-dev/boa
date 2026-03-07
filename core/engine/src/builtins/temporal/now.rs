@@ -215,7 +215,7 @@ impl HostClock for &Context {
     fn get_host_epoch_nanoseconds(&self) -> TemporalResult<EpochNanoseconds> {
         // Temporal needs actual Unix epoch time, not monotonic time
         let millis = self.clock().system_time_millis();
-        let nanos = millis as i128 * 1_000_000;
+        let nanos = i128::from(millis) * 1_000_000;
         Ok(EpochNanoseconds::from(nanos))
     }
 }

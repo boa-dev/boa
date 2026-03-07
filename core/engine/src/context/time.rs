@@ -1,5 +1,7 @@
 //! Clock related types and functions.
 
+use instant::Instant;
+
 /// A monotonic instant in time, in the Boa engine.
 ///
 /// This type is guaranteed to be monotonic, i.e. if two instants
@@ -158,8 +160,9 @@ pub trait Clock {
 
 /// A clock that uses the standard monotonic clock.
 ///
-/// This clock is based on [`std::time::Instant`] and is guaranteed to be
-/// monotonic. Time measurements are relative to an arbitrary starting point
+/// This clock is based on [`instant::Instant`] which provides cross-platform
+/// monotonic time, including WASM support via `performance.now()`.
+/// Time measurements are relative to an arbitrary starting point
 /// (the first call to `now()`) and are not affected by system clock adjustments.
 ///
 /// This ensures that time never goes backward, which is critical for
@@ -167,7 +170,7 @@ pub trait Clock {
 #[derive(Debug, Clone, Copy)]
 pub struct StdClock {
     /// The base instant from which all measurements are relative.
-    base: std::time::Instant,
+    base: Instant,
 }
 
 impl Default for StdClock {
@@ -181,7 +184,7 @@ impl StdClock {
     #[must_use]
     pub fn new() -> Self {
         Self {
-            base: std::time::Instant::now(),
+            base: Instant::now(),
         }
     }
 }
@@ -275,19 +278,19 @@ fn basic() {
 #[test]
 fn monotonic_behavior() {
     let clock = StdClock::new();
-    
+
     // Verify that time always moves forward
     let t1 = clock.now();
     std::thread::sleep(std::time::Duration::from_millis(1));
     let t2 = clock.now();
     std::thread::sleep(std::time::Duration::from_millis(1));
     let t3 = clock.now();
-    
+
     // Time must always increase
     assert!(t2 > t1, "Time must move forward");
     assert!(t3 > t2, "Time must continue moving forward");
     assert!(t3 > t1, "Time must be transitive");
-    
+
     // Verify that elapsed time is reasonable
     let elapsed = t3 - t1;
     assert!(elapsed.as_millis() >= 2, "At least 2ms should have elapsed");
@@ -299,10 +302,10 @@ fn clock_independence() {
     let clock1 = StdClock::new();
     std::thread::sleep(std::time::Duration::from_millis(10));
     let clock2 = StdClock::new();
-    
+
     let t1 = clock1.now();
     let t2 = clock2.now();
-    
+
     // clock1 started earlier, so it should show more elapsed time
     assert!(t1.millis_since_epoch() >= t2.millis_since_epoch());
 }
