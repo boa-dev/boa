@@ -38,6 +38,7 @@ use crate::{
     realm::Realm,
 };
 use boa_gc::{Finalize, Trace};
+use futures_channel::oneshot;
 use futures_concurrency::future::FutureGroup;
 use futures_lite::{StreamExt, future};
 use portable_atomic::AtomicBool;
@@ -718,7 +719,10 @@ impl JobExecutor for SimpleJobExecutor {
                 let now = context.borrow().clock().now();
                 let jobs_to_run = {
                     let mut timeout_jobs = self.timeout_jobs.borrow_mut();
-                    let mut jobs_to_keep = timeout_jobs.split_off(&now);
+                    // Use `now + 1ns` so jobs whose deadline equals `now` are
+                // included in `jobs_to_run` rather than deferred.
+                let split_at = now + time::Duration::from_nanos(1).into();
+                let mut jobs_to_keep = timeout_jobs.split_off(&split_at);
                     jobs_to_keep.retain(|_, jobs| {
                         jobs.retain(|job| !job.is_cancelled());
                         !jobs.is_empty()
@@ -763,7 +767,36 @@ impl JobExecutor for SimpleJobExecutor {
                 }
             }
             context.borrow_mut().clear_kept_objects();
-            future::yield_now().await;
+
+            let no_live_work = group.is_empty()
+                && self.promise_jobs.borrow().is_empty()
+                && self.async_jobs.borrow().is_empty()
+                && self.generic_jobs.borrow().is_empty();
+
+            if no_live_work && !self.timeout_jobs.borrow().is_empty() {
+                // Only future-scheduled timeout jobs remain.  Sleep until the
+                // earliest one is due instead of busy-spinning.
+                let sleep_dur = {
+                    let now = context.borrow().clock().now();
+                    self.timeout_jobs
+                        .borrow()
+                        .keys()
+                        .next()
+                        .map(|&deadline| time::Duration::from(deadline - now))
+                };
+                if let Some(dur) = sleep_dur {
+                    if !dur.is_zero() {
+                        let (tx, rx) = oneshot::channel::<()>();
+                        std::thread::spawn(move || {
+                            std::thread::sleep(dur);
+                            let _ = tx.send(());
+                        });
+                        let _ = rx.await;
+                    }
+                }
+            } else {
+                future::yield_now().await;
+            }
         }
 
         Ok(())
