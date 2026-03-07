@@ -535,6 +535,16 @@ pub(crate) enum BindingKind {
     Global(u32),
 }
 
+/// Where the call result should go.
+enum CallResultDest<'a> {
+    /// Pop result into the given register.
+    Register(&'a Register),
+    /// Discard the result (emit Pop).
+    Discard,
+    /// Leave the result on the stack.
+    Stack,
+}
+
 impl<'ctx> ByteCompiler<'ctx> {
     /// Represents a placeholder address that will be patched later.
     const DUMMY_ADDRESS: Address = Address::new(u32::MAX);
@@ -1546,16 +1556,47 @@ impl<'ctx> ByteCompiler<'ctx> {
     /// when it's not needed (e.g., expression statements, for-loop updates).
     pub(crate) fn compile_expr_for_side_effects(&mut self, expr: &Expression) {
         match expr {
-            Expression::Call(call) => self.call(Callable::Call(call), None),
-            Expression::New(new) => self.call(Callable::New(new), None),
+            Expression::Call(call) => {
+                self.call(Callable::Call(call), CallResultDest::Discard);
+            }
+            Expression::New(new) => {
+                self.call(Callable::New(new), CallResultDest::Discard);
+            }
             Expression::Update(update) => {
                 let tmp = self.register_allocator.alloc();
                 self.compile_update(update, &tmp, true);
                 self.register_allocator.dealloc(tmp);
             }
+            Expression::Parenthesized(parenthesized) => {
+                self.compile_expr_for_side_effects(parenthesized.expression());
+            }
             _ => {
                 let tmp = self.register_allocator.alloc();
                 self.compile_expr(expr, &tmp);
+                self.register_allocator.dealloc(tmp);
+            }
+        }
+    }
+
+    /// Compile an expression and leave the result on the stack.
+    ///
+    /// For call/new expressions, this avoids the `PopIntoRegister` + `PushFromRegister`
+    /// round-trip by leaving the call result directly on the stack.
+    pub(crate) fn compile_expr_to_stack(&mut self, expr: &Expression) {
+        match expr {
+            Expression::Call(call) => {
+                self.call(Callable::Call(call), CallResultDest::Stack);
+            }
+            Expression::New(new) => {
+                self.call(Callable::New(new), CallResultDest::Stack);
+            }
+            Expression::Parenthesized(parenthesized) => {
+                self.compile_expr_to_stack(parenthesized.expression());
+            }
+            _ => {
+                let tmp = self.register_allocator.alloc();
+                self.compile_expr(expr, &tmp);
+                self.push_from_register(&tmp);
                 self.register_allocator.dealloc(tmp);
             }
         }
@@ -1912,10 +1953,7 @@ impl<'ctx> ByteCompiler<'ctx> {
                     self.bytecode.emit_call_spread();
                 } else {
                     for arg in args {
-                        let value = self.register_allocator.alloc();
-                        self.compile_expr(arg, &value);
-                        self.push_from_register(&value);
-                        self.register_allocator.dealloc(value);
+                        self.compile_expr_to_stack(arg);
                     }
                     self.bytecode.emit_call((args.len() as u32).into());
                 }
@@ -2297,7 +2335,7 @@ impl<'ctx> ByteCompiler<'ctx> {
         dst
     }
 
-    fn call(&mut self, callable: Callable<'_>, dst: Option<&Register>) {
+    fn call(&mut self, callable: Callable<'_>, dst: CallResultDest<'_>) {
         #[derive(PartialEq)]
         enum CallKind {
             CallEval,
@@ -2357,10 +2395,7 @@ impl<'ctx> ByteCompiler<'ctx> {
                     self.push_from_register(&CallFrame::undefined_register());
                 }
 
-                let value = self.register_allocator.alloc();
-                self.compile_expr(expr, &value);
-                self.push_from_register(&value);
-                self.register_allocator.dealloc(value);
+                self.compile_expr_to_stack(expr);
             }
             expr => {
                 let value = self.register_allocator.alloc();
@@ -2404,10 +2439,7 @@ impl<'ctx> ByteCompiler<'ctx> {
             compiler.register_allocator.dealloc(value);
         } else {
             for arg in call.args() {
-                let value = compiler.register_allocator.alloc();
-                compiler.compile_expr(arg, &value);
-                compiler.push_from_register(&value);
-                compiler.register_allocator.dealloc(value);
+                compiler.compile_expr_to_stack(arg);
             }
         }
 
@@ -2435,10 +2467,10 @@ impl<'ctx> ByteCompiler<'ctx> {
                 .bytecode
                 .emit_new((call.args().len() as u32).into()),
         }
-        if let Some(dst) = dst {
-            compiler.pop_into_register(dst);
-        } else {
-            compiler.bytecode.emit_pop();
+        match dst {
+            CallResultDest::Register(dst) => compiler.pop_into_register(dst),
+            CallResultDest::Discard => compiler.bytecode.emit_pop(),
+            CallResultDest::Stack => {} // leave result on stack
         }
     }
 
