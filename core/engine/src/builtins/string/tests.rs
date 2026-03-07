@@ -916,3 +916,30 @@ fn from_code_point() {
         ),
     ]);
 }
+
+#[test]
+fn match_with_symbol_match_method() {
+    run_test_actions([TestAction::assert_eq(
+        indoc! {r#"
+                const obj = {
+                  [Symbol.match](str) {
+                    return ["custom", str];
+                  }
+                };
+                "abc".match(obj)[0]
+            "#},
+        js_str!("custom"),
+    )]);
+}
+
+#[test]
+fn match_with_overridden_exec() {
+    run_test_actions([TestAction::assert_eq(
+        indoc! {r#"
+                let r = /a/;
+                r.exec = () => ["fake"];
+                "abc".match(r)[0]
+            "#},
+        js_str!("fake"),
+    )]);
+}
