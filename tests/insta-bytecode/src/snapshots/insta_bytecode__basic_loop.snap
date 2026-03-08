@@ -1,0 +1,22 @@
+---
+source: tests/insta-bytecode/src/lib.rs
+expression: output
+---
+---------------------------Compiled Output: '<main>'----------------------------
+Location     Handler      Opcode                            Operands
+  000000                    PushZero                          dst:r02
+  000005                    Jump                              address:000014
+  00000a                    IncrementLoopIteration            
+  00000b                    Inc                               src:r02, dst:r02
+  000014                    PushInt8                          value:100, dst:r03
+  00001a                    JumpIfNotLessThan                 lhs:r02, rhs:r03, address:00002c
+  000027                    Jump                              address:00000a
+  00002c                    CheckReturn                       
+  00002d                    Return                            
+
+Register Count: 4, Flags: CodeBlockFlags(HAS_PROTOTYPE_PROPERTY)
+Constants: <empty>
+Bindings: <empty>
+Handlers: <empty>
+Source Map:
+    0000: 11..20: (1, 26)

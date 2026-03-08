@@ -12,7 +12,7 @@ use intrinsics::Intrinsics;
 #[cfg(any(feature = "temporal", feature = "intl"))]
 use temporal_rs::provider::TimeZoneProvider;
 #[cfg(any(feature = "temporal", feature = "intl"))]
-use timezone_provider::tzif::CompiledTzdbProvider;
+use timezone_provider::experimental_tzif::ZeroCompiledTzdbProvider;
 
 use crate::job::Job;
 use crate::module::DynModuleLoader;
@@ -136,7 +136,7 @@ impl std::fmt::Debug for Context {
         let mut debug = f.debug_struct("Context");
 
         debug
-            .field("realm", &self.vm.frame.realm)
+            .field("realm", &self.vm.frame().realm)
             .field("interner", &self.interner)
             .field("vm", &self.vm)
             .field("strict", &self.strict)
@@ -436,14 +436,14 @@ impl Context {
     #[inline]
     #[must_use]
     pub fn global_object(&self) -> JsObject {
-        self.vm.frame.realm.global_object().clone()
+        self.vm.frame().realm.global_object().clone()
     }
 
     /// Returns the currently active intrinsic constructors and objects.
     #[inline]
     #[must_use]
     pub fn intrinsics(&self) -> &Intrinsics {
-        self.vm.frame.realm.intrinsics()
+        self.vm.frame().realm.intrinsics()
     }
 
     /// Returns the amount of remaining instructions to be executed
@@ -457,8 +457,8 @@ impl Context {
     /// Returns the currently active realm.
     #[inline]
     #[must_use]
-    pub const fn realm(&self) -> &Realm {
-        &self.vm.frame.realm
+    pub fn realm(&self) -> &Realm {
+        &self.vm.frame().realm
     }
 
     /// Set the value of trace on the context
@@ -516,27 +516,19 @@ impl Context {
     /// The stack trace is returned ordered with the most recent frames first.
     #[inline]
     pub fn stack_trace(&self) -> impl Iterator<Item = &CallFrame> {
-        // Create a list containing the previous frames plus the current frame.
-        let frames: Vec<_> = self
-            .vm
-            .frames
-            .iter()
-            .chain(std::iter::once(&self.vm.frame))
-            .collect();
-
         // The first frame is always a dummy frame (see `Vm` implementation for more details),
         // so skip the dummy frame and return the reversed list so that the most recent frames are first.
-        frames.into_iter().skip(1).rev()
+        self.vm.frames.iter().skip(1).rev()
     }
 
     /// Replaces the currently active realm with `realm`, and returns the old realm.
     #[inline]
     pub fn enter_realm(&mut self, realm: Realm) -> Realm {
         self.vm
-            .frame
+            .frame_mut()
             .environments
             .replace_global(realm.environment().clone());
-        std::mem::replace(&mut self.vm.frame.realm, realm)
+        std::mem::replace(&mut self.vm.frame_mut().realm, realm)
     }
 
     /// Create a new Realm with the default global bindings.
@@ -654,7 +646,7 @@ impl Context {
 
     /// Swaps the currently active realm with `realm`.
     pub(crate) fn swap_realm(&mut self, realm: &mut Realm) {
-        std::mem::swap(&mut self.vm.frame.realm, realm);
+        std::mem::swap(&mut self.vm.frame_mut().realm, realm);
     }
 
     /// Increment and get the parser identifier.
@@ -862,7 +854,7 @@ impl Context {
         // 1. If the execution context stack is empty, return null.
         // 2. Let ec be the topmost execution context on the execution context stack whose ScriptOrModule component is not null.
         // 3. If no such execution context exists, return null. Otherwise, return ec's ScriptOrModule.
-        if let Some(active_runnable) = &self.vm.frame.active_runnable {
+        if let Some(active_runnable) = &self.vm.frame().active_runnable {
             return Some(active_runnable.clone());
         }
 
@@ -1142,7 +1134,7 @@ impl ContextBuilder {
             timezone_provider: if let Some(provider) = self.timezone_provider {
                 provider
             } else {
-                Box::new(CompiledTzdbProvider::default())
+                Box::new(ZeroCompiledTzdbProvider::default())
             },
             #[cfg(feature = "intl")]
             intl_provider: if let Some(icu) = self.icu {
