@@ -33,7 +33,9 @@ pub struct ModuleNamespace {
     /// of the parent `module` field (which IS traced). Those modules are reachable
     /// through `SourceTextModule::loaded_modules` / `SyntheticModule`, so tracing
     /// them again here would be redundant. Skipping the trace avoids walking the
-    /// entire hashmap on every GC cycle.
+    /// entire hashmap on every GC cycle. This is a performance optimization:
+    /// our GC already ignores pointers that were already traced, but this avoids
+    /// a lookup to check if the pointer is alive. The logic is correct either way.
     #[unsafe_ignore_trace]
     resolved_bindings: FxHashMap<JsString, ResolvedBinding>,
 }
@@ -335,7 +337,7 @@ fn module_namespace_exotic_try_get(
     // 8. Assert: targetModule is not undefined.
     let target_module = binding.module();
 
-    if let BindingName::Name(name) = binding.binding_name_ref() {
+    if let BindingName::Name(name) = binding.binding_name() {
         // 10. Let targetEnv be targetModule.[[Environment]].
         let Some(env) = target_module.environment() else {
             // 11. If targetEnv is empty, throw a ReferenceError exception.
@@ -423,7 +425,7 @@ fn module_namespace_exotic_get(
     // 8. Assert: targetModule is not undefined.
     let target_module = binding.module();
 
-    if let BindingName::Name(name) = binding.binding_name_ref() {
+    if let BindingName::Name(name) = binding.binding_name() {
         // 10. Let targetEnv be targetModule.[[Environment]].
         let Some(env) = target_module.environment() else {
             // 11. If targetEnv is empty, throw a ReferenceError exception.

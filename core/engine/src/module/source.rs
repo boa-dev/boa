@@ -730,8 +730,8 @@ impl SourceTextModule {
                     return Err(ResolveExportError::Ambiguous);
                 }
                 match (
-                    resolution.binding_name_ref(),
-                    star_resolution.binding_name_ref(),
+                    resolution.binding_name(),
+                    star_resolution.binding_name(),
                 ) {
                     // 3. If resolution.[[BindingName]] is not starResolution.[[BindingName]] and either
                     //    resolution.[[BindingName]] or starResolution.[[BindingName]] is namespace,
@@ -1632,7 +1632,7 @@ impl SourceTextModule {
                     let local_name = entry.local_name().to_js_string(compiler.interner());
                     let locator = env.get_binding(&local_name).expect("binding must exist");
 
-                    if let BindingName::Name(_) = resolution.binding_name_ref() {
+                    if let BindingName::Name(_) = resolution.binding_name() {
                         // 1. Perform env.CreateImportBinding(in.[[LocalName]], resolution.[[Module]],
                         //    resolution.[[BindingName]]).
                         //    deferred to initialization below
@@ -1796,7 +1796,7 @@ impl SourceTextModule {
                 ImportBinding::Single {
                     locator,
                     export_locator,
-                } => match export_locator.binding_name_ref() {
+                } => match export_locator.binding_name() {
                     BindingName::Name(name) => context
                         .vm
                         .frame()

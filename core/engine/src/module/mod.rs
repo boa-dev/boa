@@ -244,7 +244,7 @@ impl ResolvedBinding {
     }
 
     /// Gets a reference to the binding associated with the resolved export.
-    pub(crate) const fn binding_name_ref(&self) -> &BindingName {
+    pub(crate) const fn binding_name(&self) -> &BindingName {
         &self.binding_name
     }
 }
