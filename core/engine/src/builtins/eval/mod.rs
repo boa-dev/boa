@@ -12,7 +12,7 @@
 use crate::{
     Context, JsArgs, JsResult, JsString, JsValue, SpannedSourceText,
     builtins::{BuiltInObject, function::OrdinaryFunction},
-    bytecompiler::{ByteCompiler, eval_declaration_instantiation_context},
+    bytecompiler::{ByteCompiler, prepare_eval_declaration_instantiation},
     context::intrinsics::Intrinsics,
     environments::Environment,
     error::JsNativeError,
@@ -256,7 +256,7 @@ impl Eval {
 
         let mut annex_b_function_names = Vec::new();
 
-        eval_declaration_instantiation_context(
+        prepare_eval_declaration_instantiation(
             &mut annex_b_function_names,
             &body,
             strict,
@@ -335,7 +335,7 @@ impl Eval {
         let environments = context.vm.frame().environments.clone();
         let realm = context.realm().clone();
         context.vm.push_frame_with_stack(
-            CallFrame::new(code_block, None, environments, realm)
+            CallFrame::new(code_block.clone(), None, environments, realm)
                 .with_env_fp(env_fp)
                 .with_flags(CallFrameFlags::EXIT_EARLY),
             JsValue::undefined(),
@@ -343,6 +343,12 @@ impl Eval {
         );
 
         context.realm().resize_global_env();
+
+        context
+            .eval_declaration_instantiation(&code_block)
+            .inspect_err(|_| {
+                context.vm.pop_frame();
+            })?;
 
         let record = context.run();
         context.vm.pop_frame();

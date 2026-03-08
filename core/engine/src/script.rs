@@ -223,7 +223,7 @@ impl Script {
         let global_env = EnvironmentStack::new(self.inner.realm.environment().clone());
         context.vm.push_frame_with_stack(
             CallFrame::new(
-                codeblock,
+                codeblock.clone(),
                 Some(ActiveRunnable::Script(self.clone())),
                 global_env,
                 self.inner.realm.clone(),
@@ -234,9 +234,14 @@ impl Script {
             JsValue::null(),
         );
 
-        // TODO: Here should be https://tc39.es/ecma262/#sec-globaldeclarationinstantiation
-
         self.realm().resize_global_env();
+
+        context
+            .global_declaration_instantiation(&codeblock)
+            .inspect_err(|_| {
+                context.vm.pop_frame();
+            })?;
+
 
         Ok(())
     }

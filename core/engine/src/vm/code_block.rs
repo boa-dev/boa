@@ -151,6 +151,12 @@ pub struct CodeBlock {
 
     /// Bytecode to source code mapping.
     pub(crate) source_info: SourceInfo,
+
+    pub(crate) global_lexs: Box<[u32]>,
+    pub(crate) global_fns: Box<[u32]>,
+    pub(crate) global_vars: Box<[u32]>,
+    pub(crate) global_fn_bindings: Box<[(u32, u32)]>,
+    pub(crate) global_declared_vars: Box<[u32]>,
 }
 
 /// ---- `CodeBlock` public API ----
@@ -177,6 +183,11 @@ impl CodeBlock {
                 name,
                 SpannedSourceText::new_empty(),
             ),
+            global_lexs: Box::default(),
+            global_fns: Box::default(),
+            global_vars: Box::default(),
+            global_fn_bindings: Box::default(),
+            global_declared_vars: Box::default(),
         }
     }
 
