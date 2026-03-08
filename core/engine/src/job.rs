@@ -747,11 +747,21 @@ impl JobExecutor for SimpleJobExecutor {
                 return Err(err);
             }
 
-            let jobs = mem::take(&mut *self.promise_jobs.borrow_mut());
-            for job in jobs {
-                if let Err(err) = job.call(&mut context.borrow_mut()) {
-                    self.clear();
-                    return Err(err);
+            // Drain the promise-job queue completely (Microtask Checkpoint).
+            // A single `mem::take` snapshot is not enough: each job may
+            // enqueue further promise jobs via `.then()`, and those must be
+            // processed in the same checkpoint before the event loop can
+            // yield or sleep again.
+            loop {
+                let jobs = mem::take(&mut *self.promise_jobs.borrow_mut());
+                if jobs.is_empty() {
+                    break;
+                }
+                for job in jobs {
+                    if let Err(err) = job.call(&mut context.borrow_mut()) {
+                        self.clear();
+                        return Err(err);
+                    }
                 }
             }
 
