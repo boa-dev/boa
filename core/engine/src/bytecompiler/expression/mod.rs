@@ -6,7 +6,7 @@ mod update;
 
 use std::ops::Deref;
 
-use super::{Access, Callable, NodeKind, Register, ToJsString};
+use super::{Access, CallResultDest, Callable, NodeKind, Register, ToJsString};
 use crate::{
     bytecompiler::{ByteCompiler, Literal},
     vm::{CallFrame, GeneratorResumeKind},
@@ -140,8 +140,12 @@ impl ByteCompiler<'_> {
             Expression::AsyncGeneratorExpression(function) => {
                 self.function_with_binding(function.into(), NodeKind::Expression, dst);
             }
-            Expression::Call(call) => self.call(Callable::Call(call), dst),
-            Expression::New(new) => self.call(Callable::New(new), dst),
+            Expression::Call(call) => {
+                self.call(Callable::Call(call), CallResultDest::Register(dst));
+            }
+            Expression::New(new) => {
+                self.call(Callable::New(new), CallResultDest::Register(dst));
+            }
             Expression::TemplateLiteral(template_literal) => {
                 self.compile_template_literal(template_literal, dst);
             }
@@ -313,10 +317,7 @@ impl ByteCompiler<'_> {
                 self.push_from_register(dst);
 
                 for expr in template.exprs() {
-                    let value = self.register_allocator.alloc();
-                    self.compile_expr(expr, &value);
-                    self.push_from_register(&value);
-                    self.register_allocator.dealloc(value);
+                    self.compile_expr_to_stack(expr);
                 }
 
                 self.bytecode
@@ -364,10 +365,7 @@ impl ByteCompiler<'_> {
                     self.register_allocator.dealloc(array);
                 } else {
                     for arg in super_call.arguments() {
-                        let value = self.register_allocator.alloc();
-                        self.compile_expr(arg, &value);
-                        self.push_from_register(&value);
-                        self.register_allocator.dealloc(value);
+                        self.compile_expr_to_stack(arg);
                     }
                 }
 
