@@ -729,21 +729,20 @@ impl SourceTextModule {
                 if resolution.module() != star_resolution.module() {
                     return Err(ResolveExportError::Ambiguous);
                 }
-                match (
-                    resolution.binding_name(),
-                    star_resolution.binding_name(),
-                ) {
-                    // 3. If resolution.[[BindingName]] is not starResolution.[[BindingName]] and either
-                    //    resolution.[[BindingName]] or starResolution.[[BindingName]] is namespace,
-                    //    return ambiguous.
+                // 3. If resolution.[[BindingName]] is not starResolution.[[BindingName]] and either
+                //    resolution.[[BindingName]] or starResolution.[[BindingName]] is namespace,
+                //    return ambiguous.
+                // 4. If resolution.[[BindingName]] is a String, starResolution.[[BindingName]] is a
+                //    String, and SameValue(resolution.[[BindingName]], starResolution.[[BindingName]])
+                //    is false, return ambiguous.
+                match (resolution.binding_name(), star_resolution.binding_name()) {
                     (BindingName::Namespace, BindingName::Name(_))
                     | (BindingName::Name(_), BindingName::Namespace) => {
+                        // See step 3 above.
                         return Err(ResolveExportError::Ambiguous);
                     }
-                    // 4. If resolution.[[BindingName]] is a String, starResolution.[[BindingName]] is a
-                    //    String, and SameValue(resolution.[[BindingName]], starResolution.[[BindingName]])
-                    //    is false, return ambiguous.
                     (BindingName::Name(res), BindingName::Name(star)) if res != star => {
+                        // See step 4 above.
                         return Err(ResolveExportError::Ambiguous);
                     }
                     _ => {}
