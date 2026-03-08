@@ -824,12 +824,20 @@ impl From<&[u16]> for JsString {
 impl From<&str> for JsString {
     #[inline]
     fn from(s: &str) -> Self {
-        // TODO: Check for latin1 encoding
+        // Check for Latin1 encoding
         if s.is_ascii() {
             let js_str = JsStr::latin1(s.as_bytes());
             return StaticJsStrings::get_string(&js_str)
                 .unwrap_or_else(|| JsString::from_slice_skip_interning(js_str));
         }
+
+        // New Latin1 check
+        if s.chars().all(|c| c as u32 <= 0xFF) {
+            let bytes = s.bytes().collect::<Vec<u8>>();
+            let js_str = JsStr::latin1(&bytes);
+            return JsString::from_slice_skip_interning(js_str);
+        }
+
         let s = s.encode_utf16().collect::<Vec<_>>();
         JsString::from_slice_skip_interning(JsStr::utf16(&s[..]))
     }
