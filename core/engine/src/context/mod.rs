@@ -914,6 +914,7 @@ pub struct ContextBuilder {
     job_executor: Option<Rc<dyn JobExecutor>>,
     module_loader: Option<Rc<dyn DynModuleLoader>>,
     can_block: bool,
+    gc_config: Option<boa_gc::GcConfig>,
     #[cfg(feature = "intl")]
     icu: Option<icu::IntlProvider>,
     #[cfg(feature = "temporal")]
@@ -1062,6 +1063,15 @@ impl ContextBuilder {
         self
     }
 
+    /// Sets the garbage collector configuration for this context.
+    ///
+    /// Applied before any allocations occur during [`build`][Self::build].
+    #[must_use]
+    pub fn gc_config(mut self, config: boa_gc::GcConfig) -> Self {
+        self.gc_config = Some(config);
+        self
+    }
+
     /// [`AgentCanSuspend ( )`][spec] aka `[[CanBlock]]`
     ///
     /// Defines if this context can be suspended by calls to the [`Atomics.wait`][wait] function.
@@ -1105,6 +1115,10 @@ impl ContextBuilder {
             }
         } else {
             CANNOT_BLOCK_COUNTER.set(CANNOT_BLOCK_COUNTER.get() + 1);
+        }
+
+        if let Some(gc_config) = self.gc_config {
+            boa_gc::configure_gc(gc_config);
         }
 
         let root_shape = RootShape::default();

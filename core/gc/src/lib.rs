@@ -50,17 +50,75 @@ thread_local!(static BOA_GC: RefCell<BoaGc> = RefCell::new( BoaGc {
     weak_maps: Vec::default(),
 }));
 
+/// Configuration for the garbage collector.
+///
+/// Sets how much memory to use before collecting and how full the heap can get
+/// before the limit is raised. Pass a custom config via [`configure_gc`].
+///
+/// # Example
+///
+/// ```
+/// use boa_gc::GcConfig;
+///
+/// let config = GcConfig::default()
+///     .with_threshold(4 * 1024 * 1024)   // start collecting at 4 MB
+///     .with_used_space_percentage(75);    // allow 75% occupancy before growing
+/// ```
 #[derive(Debug, Clone, Copy)]
-struct GcConfig {
+pub struct GcConfig {
     /// The threshold at which the garbage collector will trigger a collection.
     threshold: usize,
     /// The percentage of used space at which the garbage collector will trigger a collection.
     used_space_percentage: usize,
 }
 
-// Setting the defaults to an arbitrary value currently.
-//
-// TODO: Add a configure later
+impl GcConfig {
+    /// Returns the current collection threshold in bytes.
+    #[must_use]
+    pub const fn threshold(&self) -> usize {
+        self.threshold
+    }
+
+    /// Sets the initial collection threshold in bytes.
+    ///
+    /// No collection will run until this many bytes are allocated.
+    /// Lower values collect more often, higher values collect less often.
+    ///
+    /// # Panics
+    ///
+    /// Panics if `threshold` is zero.
+    #[must_use]
+    pub const fn with_threshold(mut self, threshold: usize) -> Self {
+        assert!(threshold > 0, "GC threshold must be greater than zero");
+        self.threshold = threshold;
+        self
+    }
+
+    /// Returns the used space percentage that triggers threshold growth.
+    #[must_use]
+    pub const fn used_space_percentage(&self) -> usize {
+        self.used_space_percentage
+    }
+
+    /// Sets the used space percentage at which the threshold is grown.
+    ///
+    /// After each collection if the heap is still more than `percentage`% full,
+    /// the threshold is increased. Must be in the range `1..=99`.
+    ///
+    /// # Panics
+    ///
+    /// Panics if percentage is 0 or ≥ 100.
+    #[must_use]
+    pub const fn with_used_space_percentage(mut self, percentage: usize) -> Self {
+        assert!(
+            percentage > 0 && percentage < 100,
+            "used_space_percentage must be between 1 and 99 (inclusive)"
+        );
+        self.used_space_percentage = percentage;
+        self
+    }
+}
+
 impl Default for GcConfig {
     fn default() -> Self {
         Self {
@@ -528,6 +586,17 @@ impl Collector {
             let _unmarked_node = unsafe { Box::from_raw(node.as_ptr()) };
         }
     }
+}
+
+/// Applies `config` to the garbage collector on the current thread.
+///
+/// Should be called before any GC allocations are made. If called after
+/// allocations have started, the new settings take effect on the next
+/// allocation cycle.
+pub fn configure_gc(config: GcConfig) {
+    BOA_GC.with(|gc| {
+        gc.borrow_mut().config = config;
+    });
 }
 
 /// Forcefully runs a garbage collection of all inaccessible nodes.
