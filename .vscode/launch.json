@@ -12,7 +12,7 @@
         "program": "${workspaceFolder}/target/debug/boa.exe"
       },
       "program": "${workspaceFolder}/target/debug/boa",
-      "args": ["experim/main.js", "--debug-object"],
+      "args": ["${workspaceFolder}/${input:filePath}", "--debug-object"],
       "sourceLanguages": ["rust"],
       "preLaunchTask": "Cargo Build boa_cli"
     },
