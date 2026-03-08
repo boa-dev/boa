@@ -407,18 +407,14 @@ fn check_complex_numeric_operations() {
                             Span::new((1, 5), (1, 6)),
                         )
                         .into(),
-                        Parenthesized::new(
-                            Binary::new(
-                                ArithmeticOp::Sub.into(),
-                                Identifier::new(
-                                    interner.get_or_intern_static("b", utf16!("b")),
-                                    Span::new((1, 8), (1, 9)),
-                                )
-                                .into(),
-                                Literal::new(3, Span::new((1, 10), (1, 11))).into(),
+                        Binary::new(
+                            ArithmeticOp::Sub.into(),
+                            Identifier::new(
+                                interner.get_or_intern_static("b", utf16!("b")),
+                                Span::new((1, 8), (1, 9)),
                             )
                             .into(),
-                            Span::new((1, 7), (1, 12)),
+                            Literal::new(3, Span::new((1, 10), (1, 11))).into(),
                         )
                         .into(),
                     )
