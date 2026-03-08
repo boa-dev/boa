@@ -92,10 +92,11 @@ macro_rules! expression {
                     match *tok.kind() {
                         TokenKind::Punctuator(op) if $( op == $op )||* => {
                             cursor.advance(interner);
+                            let rhs = $lower::new($( self.$low_param ),*).parse(cursor, interner)?.try_into_expression()?;
                             lhs = Binary::new(
                                 op.as_binary_op().expect("Could not get binary operation."),
-                                lhs,
-                                $lower::new($( self.$low_param ),*).parse(cursor, interner)?.try_into_expression()?
+                                lhs.flatten().clone(),
+                                rhs.flatten().clone()
                             ).into();
                         }
                         _ => break
@@ -281,7 +282,7 @@ where
                             .try_into_expression()?;
 
                     current_node =
-                        Binary::new(BinaryOp::Logical(LogicalOp::And), current_node, rhs).into();
+                        Binary::new(BinaryOp::Logical(LogicalOp::And), current_node.flatten().clone(), rhs.flatten().clone()).into();
                 }
                 TokenKind::Punctuator(Punctuator::BoolOr) => {
                     if previous == PreviousExpr::Coalesce {
@@ -303,7 +304,7 @@ where
                     .parse(cursor, interner)?
                     .try_into_expression()?;
                     current_node =
-                        Binary::new(BinaryOp::Logical(LogicalOp::Or), current_node, rhs).into();
+                        Binary::new(BinaryOp::Logical(LogicalOp::Or), current_node.flatten().clone(), rhs.flatten().clone()).into();
                 }
                 TokenKind::Punctuator(Punctuator::Coalesce) => {
                     if previous == PreviousExpr::Logical {
@@ -321,7 +322,7 @@ where
                             .parse(cursor, interner)?
                             .try_into_expression()?;
                     current_node =
-                        Binary::new(BinaryOp::Logical(LogicalOp::Coalesce), current_node, rhs)
+                        Binary::new(BinaryOp::Logical(LogicalOp::Coalesce), current_node.flatten().clone(), rhs.flatten().clone())
                             .into();
                 }
                 _ => break,
@@ -577,12 +578,13 @@ where
                         || op == Punctuator::GreaterThanOrEq =>
                 {
                     cursor.advance(interner);
+                    let rhs = ShiftExpression::new(self.allow_yield, self.allow_await)
+                        .parse(cursor, interner)?
+                        .try_into_expression()?;
                     lhs = Binary::new(
                         op.as_binary_op().expect("Could not get binary operation."),
-                        lhs,
-                        ShiftExpression::new(self.allow_yield, self.allow_await)
-                            .parse(cursor, interner)?
-                            .try_into_expression()?,
+                        lhs.flatten().clone(),
+                        rhs.flatten().clone()
                     )
                     .into();
                 }
