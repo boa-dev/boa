@@ -17,7 +17,7 @@ pub use object::{ObjectLiteral, ObjectMethodDefinition, PropertyDefinition};
 pub use template::{TemplateElement, TemplateLiteral};
 
 use crate::{
-    Span, Spanned,
+    LinearSpan, LinearSpanIgnoreEq, Span, Spanned,
     visitor::{VisitWith, Visitor, VisitorMut},
 };
 use boa_interner::{Interner, Sym, ToInternedString};
@@ -41,6 +41,7 @@ use super::Expression;
 pub struct Literal {
     kind: LiteralKind,
     span: Span,
+    linear_span: LinearSpanIgnoreEq,
 }
 
 impl Literal {
@@ -51,6 +52,22 @@ impl Literal {
         Self {
             kind: kind.into(),
             span,
+            linear_span: LinearSpanIgnoreEq(LinearSpan::default()),
+        }
+    }
+
+    /// Create a new [`Literal`] with a [`LinearSpan`] for source text tracking.
+    #[inline]
+    #[must_use]
+    pub fn with_linear_span<T: Into<LiteralKind>>(
+        kind: T,
+        span: Span,
+        linear_span: LinearSpan,
+    ) -> Self {
+        Self {
+            kind: kind.into(),
+            span,
+            linear_span: LinearSpanIgnoreEq(linear_span),
         }
     }
 
@@ -66,6 +83,13 @@ impl Literal {
     #[must_use]
     pub const fn kind_mut(&mut self) -> &mut LiteralKind {
         &mut self.kind
+    }
+
+    /// Get the [`LinearSpan`] of this literal in the source text.
+    #[inline]
+    #[must_use]
+    pub const fn linear_span(&self) -> LinearSpan {
+        self.linear_span.0
     }
 
     /// Get position of the node.
