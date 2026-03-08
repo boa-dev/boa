@@ -165,6 +165,9 @@ pub struct CodeBlock {
     pub(crate) global_lexs: Box<[u32]>,
     pub(crate) global_fns: Box<[GlobalFunctionBinding]>,
     pub(crate) global_vars: Box<[u32]>,
+
+    // Used for identifying anonymous functions in compiled output and call frames.
+    pub(crate) debug_id: u64,
 }
 
 /// ---- `CodeBlock` public API ----
@@ -194,6 +197,7 @@ impl CodeBlock {
             global_lexs: Box::default(),
             global_fns: Box::default(),
             global_vars: Box::default(),
+            debug_id: CodeBlock::get_next_codeblock_id(),
         }
     }
 
@@ -346,7 +350,6 @@ impl CodeBlock {
         &self.source_info
     }
 
-    #[cfg(feature = "trace")]
     pub(crate) fn get_next_codeblock_id() -> u64 {
         thread_local! {
             static CODEBLOCK_ID_COUNTER: Cell<u64> = const { Cell::new(0) };
