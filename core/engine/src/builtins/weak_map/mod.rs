@@ -7,11 +7,15 @@
 //! [spec]: https://tc39.es/ecma262/#sec-weakmap-objects
 //! [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/WeakMap
 
+use std::collections::HashMap;
+
+use crate::JsData;
 use crate::{
     Context, JsArgs, JsNativeError, JsResult, JsString, JsValue,
     builtins::{
         BuiltInBuilder, BuiltInConstructor, BuiltInObject, IntrinsicObject,
         map::add_entries_from_iterable,
+        weak::{WeakKey, can_be_held_weakly},
     },
     context::intrinsics::{Intrinsics, StandardConstructor, StandardConstructors},
     js_string,
@@ -23,7 +27,32 @@ use crate::{
 };
 use boa_gc::{Finalize, Trace};
 
-pub(crate) type NativeWeakMap = boa_gc::WeakMap<ErasedVTableObject, JsValue>;
+/// Native data for `WeakMap` objects with dual storage:
+/// - `objects`: GC-backed weak map for object keys (uses ephemerons)
+/// - `symbols`: regular `HashMap` for symbol keys (symbols use `Arc`, not GC)
+#[derive(Trace, Finalize, JsData)]
+pub(crate) struct NativeWeakMap {
+    objects: boa_gc::WeakMap<ErasedVTableObject, JsValue>,
+    #[unsafe_ignore_trace]
+    symbols: HashMap<u64, (JsSymbol, JsValue)>,
+}
+
+impl NativeWeakMap {
+    pub(crate) fn new() -> Self {
+        Self {
+            objects: boa_gc::WeakMap::new(),
+            symbols: HashMap::new(),
+        }
+    }
+}
+
+impl std::fmt::Debug for NativeWeakMap {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        f.debug_struct("NativeWeakMap")
+            .field("symbols", &self.symbols)
+            .finish_non_exhaustive()
+    }
+}
 
 #[derive(Debug, Trace, Finalize)]
 pub(crate) struct WeakMap;
@@ -114,7 +143,7 @@ impl BuiltInConstructor for WeakMap {
         let adder = map
             .get(js_string!("set"), context)?
             .as_function()
-            .ok_or_else(|| JsNativeError::typ().with_message("WeakMap: 'add' is not a function"))?;
+            .ok_or_else(|| JsNativeError::typ().with_message("WeakMap: 'set' is not a function"))?;
 
         // 7. Return ? AddEntriesFromIterable(map, iterable, adder).
         add_entries_from_iterable(&map, iterable, &adder, context)
@@ -146,18 +175,22 @@ impl WeakMap {
             })?;
 
         // 3. Let entries be M.[[WeakMapData]].
-        // 4. If key is not an Object, return false.
-        let Some(key) = args.get_or_undefined(0).as_object() else {
+        // 4. If CanBeHeldWeakly(key) is false, return false.
+        let key = args.get_or_undefined(0);
+        let Some(weak_key) = can_be_held_weakly(key) else {
             return Ok(false.into());
         };
 
         // 5. For each Record { [[Key]], [[Value]] } p of entries, do
-        // a. If p.[[Key]] is not empty and SameValue(p.[[Key]], key) is true, then
-        // i. Set p.[[Key]] to empty.
-        // ii. Set p.[[Value]] to empty.
-        // iii. Return true.
+        //   a. If p.[[Key]] is not empty and SameValue(p.[[Key]], key) is true, then
+        //     i. Set p.[[Key]] to empty.
+        //     ii. Set p.[[Value]] to empty.
+        //     iii. Return true.
         // 6. Return false.
-        Ok(map.remove(key.inner()).is_some().into())
+        match weak_key {
+            WeakKey::Object(obj) => Ok(map.objects.remove(obj.inner()).is_some().into()),
+            WeakKey::Symbol(sym) => Ok(map.symbols.remove(&sym.hash()).is_some().into()),
+        }
     }
 
     /// `WeakMap.prototype.get ( key )`
@@ -184,15 +217,24 @@ impl WeakMap {
             })?;
 
         // 3. Let entries be M.[[WeakMapData]].
-        // 4. If key is not an Object, return undefined.
-        let Some(key) = args.get_or_undefined(0).as_object() else {
+        // 4. If CanBeHeldWeakly(key) is false, return undefined.
+        let key = args.get_or_undefined(0);
+        let Some(weak_key) = can_be_held_weakly(key) else {
             return Ok(JsValue::undefined());
         };
 
         // 5. For each Record { [[Key]], [[Value]] } p of entries, do
-        // a. If p.[[Key]] is not empty and SameValue(p.[[Key]], key) is true, return p.[[Value]].
+        //   a. If p.[[Key]] is not empty and SameValue(p.[[Key]], key) is true,
+        //      return p.[[Value]].
         // 6. Return undefined.
-        Ok(map.get(key.inner()).unwrap_or_default())
+        match weak_key {
+            WeakKey::Object(obj) => Ok(map.objects.get(obj.inner()).unwrap_or_default()),
+            WeakKey::Symbol(sym) => Ok(map
+                .symbols
+                .get(&sym.hash())
+                .map(|(_, v)| v.clone())
+                .unwrap_or_default()),
+        }
     }
 
     /// `WeakMap.prototype.has ( key )`
@@ -219,15 +261,20 @@ impl WeakMap {
             })?;
 
         // 3. Let entries be M.[[WeakMapData]].
-        // 4. If key is not an Object, return false.
-        let Some(key) = args.get_or_undefined(0).as_object() else {
+        // 4. If CanBeHeldWeakly(key) is false, return false.
+        let key = args.get_or_undefined(0);
+        let Some(weak_key) = can_be_held_weakly(key) else {
             return Ok(false.into());
         };
 
         // 5. For each Record { [[Key]], [[Value]] } p of entries, do
-        // a. If p.[[Key]] is not empty and SameValue(p.[[Key]], key) is true, return true.
+        //   a. If p.[[Key]] is not empty and SameValue(p.[[Key]], key) is true,
+        //      return true.
         // 6. Return false.
-        Ok(map.contains_key(key.inner()).into())
+        match weak_key {
+            WeakKey::Object(obj) => Ok(map.objects.contains_key(obj.inner()).into()),
+            WeakKey::Symbol(sym) => Ok(map.symbols.contains_key(&sym.hash()).into()),
+        }
     }
 
     /// `WeakMap.prototype.set ( key, value )`
@@ -254,25 +301,33 @@ impl WeakMap {
             })?;
 
         // 3. Let entries be M.[[WeakMapData]].
-        // 4. If key is not an Object, throw a TypeError exception.
+        // 4. If CanBeHeldWeakly(key) is false, throw a TypeError exception.
         let key = args.get_or_undefined(0);
-        let Some(key) = key.as_object() else {
-            return Err(JsNativeError::typ()
-                .with_message(format!(
-                    "WeakMap.set: expected target argument of type `object`, got target of type `{}`",
-                    key.type_of()
-                )).into());
-        };
+        let weak_key = can_be_held_weakly(key).ok_or_else(|| {
+            JsNativeError::typ().with_message(format!(
+                "WeakMap.set: invalid key type `{}`: cannot be held weakly",
+                key.type_of()
+            ))
+        })?;
+
+        let value = args.get_or_undefined(1).clone();
 
         // 5. For each Record { [[Key]], [[Value]] } p of entries, do
-        // a. If p.[[Key]] is not empty and SameValue(p.[[Key]], key) is true, then
-        // i. Set p.[[Value]] to value.
-        // ii. Return M.
+        //   a. If p.[[Key]] is not empty and SameValue(p.[[Key]], key) is true, then
+        //     i. Set p.[[Value]] to value.
+        //     ii. Return M.
         // 6. Let p be the Record { [[Key]]: key, [[Value]]: value }.
         // 7. Append p to entries.
-        map.insert(key.inner(), args.get_or_undefined(1).clone());
-
         // 8. Return M.
+        match weak_key {
+            WeakKey::Object(obj) => {
+                map.objects.insert(obj.inner(), value);
+            }
+            WeakKey::Symbol(sym) => {
+                map.symbols.insert(sym.hash(), (sym, value));
+            }
+        }
+
         Ok(this.clone())
     }
 
@@ -303,31 +358,44 @@ impl WeakMap {
             })?;
 
         // 3. If CanBeHeldWeakly(key) is false, throw a TypeError exception.
-        // TODO: Implement proper CanBeHeldWeakly once available. For now, only
-        //       objects are accepted as keys; symbols should be allowed in the
-        //       future according to the proposal.
         let key_val = args.get_or_undefined(0);
-        let Some(key) = key_val.as_object() else {
-            return Err(JsNativeError::typ()
-                .with_message(format!(
-                    "WeakMap.getOrInsert: expected target argument of type `object`, got target of type `{}`",
-                    key_val.type_of()
-                ))
-                .into());
-        };
+        let weak_key = can_be_held_weakly(key_val).ok_or_else(|| {
+            JsNativeError::typ().with_message(format!(
+                "WeakMap.getOrInsert: invalid key type `{}`: cannot be held weakly",
+                key_val.type_of()
+            ))
+        })?;
 
-        // 4. For each Record { [[Key]], [[Value]] } p of M.[[WeakMapData]]
-        if let Some(existing) = map.borrow().data().get(key.inner()) {
-            // a. If p.[[Key]] is not empty and SameValue(p.[[Key]], key) is true, return p.[[Value]].
-            return Ok(existing);
+        // 4. For each Record { [[Key]], [[Value]] } p of M.[[WeakMapData]], do
+        //   a. If p.[[Key]] is not empty and SameValue(p.[[Key]], key) is true,
+        //      return p.[[Value]].
+        // 5. Let p be the Record { [[Key]]: key, [[Value]]: value }.
+        // 6. Append p to M.[[WeakMapData]].
+        // 7. Return value.
+        match weak_key {
+            WeakKey::Object(obj) => {
+                if let Some(existing) = map.borrow().data().objects.get(obj.inner()) {
+                    return Ok(existing);
+                }
+                let value = args.get_or_undefined(1).clone();
+                map.borrow_mut()
+                    .data_mut()
+                    .objects
+                    .insert(obj.inner(), value.clone());
+                Ok(value)
+            }
+            WeakKey::Symbol(sym) => {
+                if let Some((_, existing)) = map.borrow().data().symbols.get(&sym.hash()) {
+                    return Ok(existing.clone());
+                }
+                let value = args.get_or_undefined(1).clone();
+                map.borrow_mut()
+                    .data_mut()
+                    .symbols
+                    .insert(sym.hash(), (sym, value.clone()));
+                Ok(value)
+            }
         }
-
-        // 5-6. Insert the new record with provided value and return it.
-        let value = args.get_or_undefined(1).clone();
-        map.borrow_mut()
-            .data_mut()
-            .insert(key.inner(), value.clone());
-        Ok(value)
     }
 
     /// `WeakMap.prototype.getOrInsertComputed ( key, callback )`
@@ -357,44 +425,68 @@ impl WeakMap {
             })?;
 
         // 3. If CanBeHeldWeakly(key) is false, throw a TypeError exception.
-        // TODO: Implement proper CanBeHeldWeakly once available. For now, only
-        //       objects are accepted as keys; symbols should be allowed in the
-        //       future according to the proposal.
         let key_value = args.get_or_undefined(0).clone();
-        let Some(key_obj) = key_value.as_object() else {
-            return Err(JsNativeError::typ()
-                .with_message(format!(
-                    "WeakMap.getOrInsertComputed: expected target argument of type `object`, got target of type `{}`",
-                    key_value.type_of()
-                ))
-                .into());
-        };
+        let weak_key = can_be_held_weakly(&key_value).ok_or_else(|| {
+            JsNativeError::typ().with_message(format!(
+                "WeakMap.getOrInsertComputed: invalid key type `{}`: cannot be held weakly",
+                key_value.type_of()
+            ))
+        })?;
 
         // 4. If IsCallable(callback) is false, throw a TypeError exception.
         let Some(callback_fn) = args.get_or_undefined(1).as_callable() else {
             return Err(JsNativeError::typ()
-                .with_message("Method WeakMap.prototype.getOrInsertComputed called with non-callable callback function")
+                .with_message("WeakMap.getOrInsertComputed: callback is not a function")
                 .into());
         };
 
-        // 5. For each Record { [[Key]], [[Value]] } p of M.[[WeakMapData]]
-        if let Some(existing) = map.borrow().data().get(key_obj.inner()) {
-            // a. If p.[[Key]] is not empty and SameValue(p.[[Key]], key) is true, return p.[[Value]].
-            return Ok(existing);
-        }
-
+        // 5. For each Record { [[Key]], [[Value]] } p of M.[[WeakMapData]], do
+        //   a. If p.[[Key]] is not empty and SameValue(p.[[Key]], key) is true,
+        //      return p.[[Value]].
         // 6. Let value be ? Call(callback, undefined, « key »).
-        // 7. NOTE: The WeakMap may have been modified during execution of callback.
-        let value = callback_fn.call(
-            &JsValue::undefined(),
-            std::slice::from_ref(&key_value),
-            context,
-        )?;
+        // 7. NOTE: The callback may have already inserted an entry for key.
+        // 8. For each Record { [[Key]], [[Value]] } p of M.[[WeakMapData]], do
+        //   a. If p.[[Key]] is not empty and SameValue(p.[[Key]], key) is true, then
+        //     i. Set p.[[Value]] to value.
+        //     ii. Return value.
+        // 9. Let p be the Record { [[Key]]: key, [[Value]]: value }.
+        // 10. Append p to M.[[WeakMapData]].
+        // 11. Return value.
+        match weak_key {
+            WeakKey::Object(obj) => {
+                if let Some(existing) = map.borrow().data().objects.get(obj.inner()) {
+                    return Ok(existing);
+                }
 
-        // 8-10. Insert or update the entry and return value.
-        map.borrow_mut()
-            .data_mut()
-            .insert(key_obj.inner(), value.clone());
-        Ok(value)
+                let value = callback_fn.call(
+                    &JsValue::undefined(),
+                    std::slice::from_ref(&key_value),
+                    context,
+                )?;
+
+                map.borrow_mut()
+                    .data_mut()
+                    .objects
+                    .insert(obj.inner(), value.clone());
+                Ok(value)
+            }
+            WeakKey::Symbol(sym) => {
+                if let Some((_, existing)) = map.borrow().data().symbols.get(&sym.hash()) {
+                    return Ok(existing.clone());
+                }
+
+                let value = callback_fn.call(
+                    &JsValue::undefined(),
+                    std::slice::from_ref(&key_value),
+                    context,
+                )?;
+
+                map.borrow_mut()
+                    .data_mut()
+                    .symbols
+                    .insert(sym.hash(), (sym, value.clone()));
+                Ok(value)
+            }
+        }
     }
 }

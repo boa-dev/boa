@@ -88,6 +88,16 @@ impl GlobalSymbolRegistry {
     }
 }
 
+/// Returns `true` if the given symbol was created by `Symbol.for()` and is
+/// therefore part of the global symbol registry.
+///
+/// Per ECMAScript §20.4.5.1 `KeyForSymbol`, a symbol that is in the
+/// `GlobalSymbolRegistry` is not suitable for use as a weak reference key
+/// (see §9.13 `CanBeHeldWeakly`).
+pub(crate) fn is_registered_symbol(sym: &JsSymbol) -> bool {
+    GLOBAL_SYMBOL_REGISTRY.get_key(sym).is_some()
+}
+
 /// The internal representation of a `Symbol` object.
 #[derive(Debug, Clone, Copy)]
 pub struct Symbol;

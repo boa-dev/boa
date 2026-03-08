@@ -7,9 +7,15 @@
 //! [spec]: https://tc39.es/ecma262/#sec-weakset-objects
 //! [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/WeakSet
 
+use std::collections::HashMap;
+
+use crate::JsData;
 use crate::{
     Context, JsArgs, JsNativeError, JsResult, JsString, JsValue,
-    builtins::{BuiltInBuilder, BuiltInConstructor, BuiltInObject, IntrinsicObject},
+    builtins::{
+        BuiltInBuilder, BuiltInConstructor, BuiltInObject, IntrinsicObject,
+        weak::{WeakKey, can_be_held_weakly},
+    },
     context::intrinsics::{Intrinsics, StandardConstructor, StandardConstructors},
     js_string,
     object::{ErasedVTableObject, JsObject, internal_methods::get_prototype_from_constructor},
@@ -22,10 +28,40 @@ use boa_gc::{Finalize, Trace};
 
 use super::iterable::IteratorHint;
 
-pub(crate) type NativeWeakSet = boa_gc::WeakMap<ErasedVTableObject, ()>;
+/// Native data for `WeakSet` objects with dual storage:
+/// - `objects`: GC-backed weak map for object values (uses ephemerons)
+/// - `symbols`: regular `HashMap` for symbol values (symbols use `Arc`, not GC).
+///   Keyed by `JsSymbol::hash()` (guaranteed unique) and stores the `JsSymbol`
+///   to keep the identity alive.
+#[derive(Trace, Finalize, JsData)]
+pub(crate) struct NativeWeakSet {
+    objects: boa_gc::WeakMap<ErasedVTableObject, ()>,
+    #[unsafe_ignore_trace]
+    symbols: HashMap<u64, JsSymbol>,
+}
+
+impl NativeWeakSet {
+    pub(crate) fn new() -> Self {
+        Self {
+            objects: boa_gc::WeakMap::new(),
+            symbols: HashMap::new(),
+        }
+    }
+}
+
+impl std::fmt::Debug for NativeWeakSet {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        f.debug_struct("NativeWeakSet")
+            .field("symbols", &self.symbols)
+            .finish_non_exhaustive()
+    }
+}
 
 #[derive(Debug, Trace, Finalize)]
 pub(crate) struct WeakSet;
+
+#[cfg(test)]
+mod tests;
 
 impl IntrinsicObject for WeakSet {
     fn get(intrinsics: &Intrinsics) -> JsObject {
@@ -127,7 +163,7 @@ impl BuiltInConstructor for WeakSet {
 impl WeakSet {
     /// `WeakSet.prototype.add( value )`
     ///
-    /// The `add()` method appends a new object to the end of a `WeakSet` object.
+    /// The `add()` method appends a new value to the end of a `WeakSet` object.
     ///
     /// More information:
     ///  - [ECMAScript reference][spec]
@@ -150,28 +186,28 @@ impl WeakSet {
                 JsNativeError::typ().with_message("WeakSet.add: called with non-object value")
             })?;
 
-        // 3. If Type(value) is not Object, throw a TypeError exception.
+        // 3. If CanBeHeldWeakly(value) is false, throw a TypeError exception.
         let value = args.get_or_undefined(0);
-        let Some(value) = value.as_object() else {
-            return Err(JsNativeError::typ()
-                .with_message(format!(
-                    "WeakSet.add: expected target argument of type `object`, got target of type `{}`",
-                    value.type_of()
-                )).into());
-        };
+        let weak_key = can_be_held_weakly(value).ok_or_else(|| {
+            JsNativeError::typ().with_message(format!(
+                "WeakSet.add: invalid value type `{}`: cannot be held weakly",
+                value.type_of()
+            ))
+        })?;
 
-        // 4. Let entries be the List that is S.[[WeakSetData]].
-        // 5. For each element e of entries, do
-        if set.contains_key(value.inner()) {
-            // a. If e is not empty and SameValue(e, value) is true, then
-            // i. Return S.
-            return Ok(this.clone());
+        // 4. For each element e of S.[[WeakSetData]], do
+        //   a. If e is not empty and SameValue(e, value) is true, return S.
+        // 5. Append value to S.[[WeakSetData]].
+        // 6. Return S.
+        match weak_key {
+            WeakKey::Object(obj) => {
+                set.objects.insert(obj.inner(), ());
+            }
+            WeakKey::Symbol(sym) => {
+                set.symbols.insert(sym.hash(), sym);
+            }
         }
 
-        // 6. Append value as the last element of entries.
-        set.insert(value.inner(), ());
-
-        // 7. Return S.
         Ok(this.clone())
     }
 
@@ -200,24 +236,26 @@ impl WeakSet {
                 JsNativeError::typ().with_message("WeakSet.delete: called with non-object value")
             })?;
 
-        // 3. If Type(value) is not Object, return false.
+        // 3. If CanBeHeldWeakly(value) is false, return false.
         let value = args.get_or_undefined(0);
-        let Some(value) = value.as_object() else {
+        let Some(weak_key) = can_be_held_weakly(value) else {
             return Ok(false.into());
         };
 
-        // 4. Let entries be the List that is S.[[WeakSetData]].
-        // 5. For each element e of entries, do
-        // a. If e is not empty and SameValue(e, value) is true, then
-        // i. Replace the element of entries whose value is e with an element whose value is empty.
-        // ii. Return true.
-        // 6. Return false.
-        Ok(set.remove(value.inner()).is_some().into())
+        // 4. For each element e of S.[[WeakSetData]], do
+        //   a. If e is not empty and SameValue(e, value) is true, then
+        //     i. Replace e in S.[[WeakSetData]] with empty.
+        //     ii. Return true.
+        // 5. Return false.
+        match weak_key {
+            WeakKey::Object(obj) => Ok(set.objects.remove(obj.inner()).is_some().into()),
+            WeakKey::Symbol(sym) => Ok(set.symbols.remove(&sym.hash()).is_some().into()),
+        }
     }
 
     /// `WeakSet.prototype.has( value )`
     ///
-    /// The `has()` method returns a boolean indicating whether an object exists in a `WeakSet` or not.
+    /// The `has()` method returns a boolean indicating whether a value exists in a `WeakSet` or not.
     ///
     /// More information:
     ///  - [ECMAScript reference][spec]
@@ -240,16 +278,18 @@ impl WeakSet {
                 JsNativeError::typ().with_message("WeakSet.has: called with non-object value")
             })?;
 
-        // 3. Let entries be the List that is S.[[WeakSetData]].
-        // 4. If Type(value) is not Object, return false.
+        // 3. If CanBeHeldWeakly(value) is false, return false.
         let value = args.get_or_undefined(0);
-        let Some(value) = value.as_object() else {
+        let Some(weak_key) = can_be_held_weakly(value) else {
             return Ok(false.into());
         };
 
-        // 5. For each element e of entries, do
-        // a. If e is not empty and SameValue(e, value) is true, return true.
-        // 6. Return false.
-        Ok(set.contains_key(value.inner()).into())
+        // 4. For each element e of S.[[WeakSetData]], do
+        //   a. If e is not empty and SameValue(e, value) is true, return true.
+        // 5. Return false.
+        match weak_key {
+            WeakKey::Object(obj) => Ok(set.objects.contains_key(obj.inner()).into()),
+            WeakKey::Symbol(sym) => Ok(set.symbols.contains_key(&sym.hash()).into()),
+        }
     }
 }
