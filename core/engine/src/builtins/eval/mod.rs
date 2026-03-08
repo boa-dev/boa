@@ -289,14 +289,11 @@ impl Eval {
             SourcePath::Eval,
         );
 
+        // Increments the number of open environments to
+        // account for the environment scope pushed to
+        // the context at the end of `perform_eval`.
         compiler.current_open_environments_count += 1;
 
-        // let scope_index = compiler.constants.len() as u32;
-        // compiler
-        //     .constants
-        //     .push(Constant::Scope(lexical_scope.clone()));
-
-        // compiler.bytecode.emit_push_scope(scope_index.into());
         if strict {
             variable_scope = lexical_scope.clone();
             compiler.variable_scope = lexical_scope.clone();
