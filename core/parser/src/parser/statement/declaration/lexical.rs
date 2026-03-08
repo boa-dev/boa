@@ -91,7 +91,12 @@ where
                 self.loop_init,
             )
             .parse(cursor, interner)?,
-            _ => unreachable!("unknown token found: {:?}", tok),
+            _ => {
+                return Err(Error::general(
+                    "expected 'let' or 'const' in lexical declaration",
+                    tok.span().start(),
+                ));
+            }
         };
 
         if !self.loop_init {

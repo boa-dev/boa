@@ -119,7 +119,10 @@ where
                     .parse(cursor, interner)
                     .map(Declaration::from)
             }
-            _ => unreachable!("unknown token found: {:?}", tok),
+            _ => Err(Error::general(
+                "expected 'function', 'async', or 'class' in declaration",
+                tok.span().start(),
+            )),
         }
     }
 }
