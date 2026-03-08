@@ -19,6 +19,9 @@ use shadow_stack::ShadowStack;
 use std::{future::Future, ops::ControlFlow, pin::Pin, task};
 
 #[cfg(feature = "trace")]
+pub use trace::{EmptyTracer, StdoutTracer, VirtualMachineTracer};
+
+#[cfg(feature = "trace")]
 use crate::sys::time::Instant;
 
 #[cfg(feature = "trace")]
@@ -52,6 +55,9 @@ mod runtime_limits;
 pub(crate) mod opcode;
 pub(crate) mod shadow_stack;
 pub(crate) mod source_info;
+
+#[cfg(feature = "trace")]
+mod trace;
 
 #[cfg(feature = "flowgraph")]
 pub mod flowgraph;
@@ -98,6 +104,10 @@ pub struct Vm {
 
     #[cfg(feature = "trace")]
     pub(crate) trace: bool,
+
+    /// A tracer registered to emit VM events
+    #[cfg(feature = "trace")]
+    pub(crate) tracer: Box<dyn VirtualMachineTracer>,
 }
 
 /// The stack holds the [`JsValue`]s for the calling convention and registers.
@@ -334,6 +344,10 @@ impl Vm {
             shadow_stack: ShadowStack::default(),
             #[cfg(feature = "trace")]
             trace: false,
+            #[cfg(all(feature = "trace", not(feature = "trace-stdout")))]
+            tracer: Box::new(EmptyTracer),
+            #[cfg(feature = "trace-stdout")]
+            tracer: Box::new(StdoutTracer),
         }
     }
 
@@ -581,40 +595,35 @@ impl Vm {
     }
 }
 
-#[allow(clippy::print_stdout)]
 #[cfg(feature = "trace")]
 impl Context {
-    const COLUMN_WIDTH: usize = 26;
-    const TIME_COLUMN_WIDTH: usize = Self::COLUMN_WIDTH / 2;
-    const OPCODE_COLUMN_WIDTH: usize = Self::COLUMN_WIDTH;
-    const OPERAND_COLUMN_WIDTH: usize = Self::COLUMN_WIDTH;
-    const NUMBER_OF_COLUMNS: usize = 4;
+    /// Sets the `Vm` tracer to the provided `VirtualMachineTracer` implementation
+    pub fn set_virtual_machine_tracer(&mut self, tracer: Box<dyn VirtualMachineTracer>) {
+        self.vm.tracer = tracer;
+    }
 
     pub(crate) fn trace_call_frame(&self) {
-        let frame = self.vm.frame();
-        let msg = if self.vm.frames.is_empty() {
-            " VM Start ".to_string()
-        } else {
-            format!(
-                " Call Frame -- {} ",
-                frame.code_block().name().to_std_string_escaped()
-            )
+        use crate::vm::trace::{
+            CallFrameMessage, CallFrameName, ExecutionStartMessage, VirtualMachineEvent,
         };
+        let frame = self.vm.frame();
+        let call_frame_message = CallFrameMessage {
+            bytecode: frame.code_block.to_string(),
+        };
+        self.vm
+            .tracer
+            .emit_event(VirtualMachineEvent::CallFrameTrace(call_frame_message));
 
-        println!("{}", frame.code_block);
-        println!(
-            "{msg:-^width$}",
-            width = Self::COLUMN_WIDTH * Self::NUMBER_OF_COLUMNS - 10
-        );
-        println!(
-            "{:<TIME_COLUMN_WIDTH$} {:<OPCODE_COLUMN_WIDTH$} {:<OPERAND_COLUMN_WIDTH$} Stack\n",
-            "Time",
-            "Opcode",
-            "Operands",
-            TIME_COLUMN_WIDTH = Self::TIME_COLUMN_WIDTH,
-            OPCODE_COLUMN_WIDTH = Self::OPCODE_COLUMN_WIDTH,
-            OPERAND_COLUMN_WIDTH = Self::OPERAND_COLUMN_WIDTH,
-        );
+        let call_frame_name = if self.vm.frames.is_empty() {
+            CallFrameName::Global
+        } else {
+            CallFrameName::Name(frame.code_block().name().to_std_string_escaped())
+        };
+        self.vm
+            .tracer
+            .emit_event(VirtualMachineEvent::ExecutionStart(ExecutionStartMessage {
+                call_frame_name,
+            }));
     }
 
     fn trace_execute_instruction<F>(
@@ -625,6 +634,8 @@ impl Context {
     where
         F: FnOnce(&mut Context, Opcode) -> ControlFlow<CompletionRecord>,
     {
+        use crate::vm::trace::{OpcodeExecutionMessage, VirtualMachineEvent};
+
         let frame = self.vm.frame();
         let (instruction, _) = frame
             .code_block
@@ -647,7 +658,9 @@ impl Context {
             | Opcode::SuperCall
             | Opcode::SuperCallSpread
             | Opcode::SuperCallDerived => {
-                println!();
+                self.vm
+                    .tracer
+                    .emit_event(VirtualMachineEvent::ExecutionCallEvent);
             }
             _ => {}
         }
@@ -661,14 +674,16 @@ impl Context {
             .stack
             .display_trace(self.vm.frame(), self.vm.frames.len() - 1);
 
-        println!(
-            "{:<TIME_COLUMN_WIDTH$} {:<OPCODE_COLUMN_WIDTH$} {operands:<OPERAND_COLUMN_WIDTH$} {stack}",
-            format!("{}μs", duration.as_micros()),
-            format!("{}", opcode.as_str()),
-            TIME_COLUMN_WIDTH = Self::TIME_COLUMN_WIDTH,
-            OPCODE_COLUMN_WIDTH = Self::OPCODE_COLUMN_WIDTH,
-            OPERAND_COLUMN_WIDTH = Self::OPERAND_COLUMN_WIDTH,
-        );
+        self.vm
+            .tracer
+            .emit_event(VirtualMachineEvent::ExecutionTrace(
+                OpcodeExecutionMessage {
+                    opcode: opcode.as_str(),
+                    duration,
+                    operands,
+                    stack,
+                },
+            ));
 
         result
     }
