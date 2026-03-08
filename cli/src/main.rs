@@ -612,13 +612,25 @@ fn main() -> Result<()> {
 
             if let Some(file_path) = line.strip_prefix("__BOA_LOAD_FILE__:") {
                 let path = Path::new(file_path);
-                if path.exists() {
-                    let mut context = context.borrow_mut();
-                    if let Err(e) =
-                        evaluate_file(path, &args, &mut context, &loader, &printer_clone)
-                    {
-                        printer_clone.print(format!("{e}\n"));
-                    }
+               if let Some(file_path) = line.strip_prefix("__BOA_LOAD_FILE__:") {
+    let path = Path::new(file_path);
+
+    if !path.exists() {
+        printer_clone.print(format!(
+            "{} file '{}' not found\n",
+            "Error:".red().bold(),
+            file_path
+        ));
+        continue;
+    }
+
+    let mut context = context.borrow_mut();
+    if let Err(e) = evaluate_file(path, &args, &mut context, &loader, &printer_clone) {
+        printer_clone.print(format!("{e}\n"));
+    }
+
+    continue;
+}
                 } else {
                     printer_clone.print(format!(
                         "{} file '{}' not found\n",
@@ -670,7 +682,9 @@ fn main() -> Result<()> {
     let result = future::block_on(executor.run_jobs_async(&RefCell::new(context)))
         .map_err(|e| e.into_erased(context));
 
-    handle.join().expect("failed to join thread");
+    if let Err(err) = handle.join() {
+    eprintln!("readline thread failed: {err:?}");
+}
 
     Ok(result?)
 }
