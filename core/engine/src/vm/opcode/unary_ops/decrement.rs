@@ -17,7 +17,7 @@ impl Dec {
         (dst, src): (RegisterOperand, RegisterOperand),
         context: &mut Context,
     ) -> JsResult<()> {
-        let value = context.vm.get_register(src.into()).clone();
+        let value = context.vm.take_register(src.into());
 
         let (numeric, value) = match value.variant() {
             JsVariant::Integer32(number) if number > i32::MIN => {

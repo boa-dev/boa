@@ -116,7 +116,7 @@ impl Array {
                     from_array_like(Ok(JsValue::undefined()), &coroutine_state, context)?
                 {
                     // Coroutine yielded. We need to allocate it for a future execution.
-                    JsPromise::resolve(value, context).await_native(
+                    JsPromise::resolve(value, context)?.await_native(
                         NativeCoroutine::from_copy_closure_with_captures(
                             from_array_like,
                             coroutine_state,
@@ -161,7 +161,7 @@ impl Array {
             if let CoroutineState::Yielded(value) =
                 from_async_iterator(Ok(JsValue::undefined()), &coroutine_state, context)?
             {
-                JsPromise::resolve(value, context).await_native(
+                JsPromise::resolve(value, context)?.await_native(
                     NativeCoroutine::from_copy_closure_with_captures(
                         from_async_iterator,
                         coroutine_state,
@@ -449,7 +449,7 @@ fn from_async_iterator(
 
         // i. Assert: result is a throw completion.
         Err(err) => {
-            // ii. Perform ! Call(promiseCapability.[[Reject]], undefined, « result.[[Value]] »).
+            // ii. Perform ! Call(promiseCapability.[[Reject]], undefined, « result.[[Value]] »).
             global_state
                 .resolvers
                 .reject
@@ -610,7 +610,7 @@ fn from_array_like(
         Ok(cont) => Ok(cont),
         // i. Assert: result is a throw completion.
         Err(err) => {
-            // ii. Perform ! Call(promiseCapability.[[Reject]], undefined, « result.[[Value]] »).
+            // ii. Perform ! Call(promiseCapability.[[Reject]], undefined, « result.[[Value]] »).
             global_state
                 .resolvers
                 .reject

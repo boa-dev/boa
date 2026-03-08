@@ -86,6 +86,9 @@ jobs:
         with:
           toolchain: stable
 
+      - name: Install Cargo insta
+        run: cargo install --locked cargo-insta
+
       - name: Cache cargo
         uses: actions/cache@v5
         with:
@@ -106,6 +109,8 @@ jobs:
         run: cargo nextest run --profile ci --cargo-profile ci --features annex-b,intl_bundled,experimental,embedded_lz4
       - name: Test docs
         run: cargo test --doc --profile ci --features annex-b,intl_bundled,experimental
+      - name: Test bytecode output
+        run: cargo insta test -p insta-bytecode
 
   miri:
     name: Miri

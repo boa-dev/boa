@@ -1,4 +1,12 @@
-//! This module contains the bytecode compiler.
+//! Boa's bytecode compiler.
+//!
+//! The bytecompiler is responsible for lowering ECMAScript AST nodes into
+//! executable bytecode for the virtual machine.
+//!
+//! It walks the parsed AST and emits instructions using the bytecode emitter,
+//! producing code blocks that are later executed by the VM.
+//!
+//! This module provides the necessary functionality to compile JavaScript code into bytecode.
 
 mod class;
 mod declaration;
@@ -533,6 +541,17 @@ pub(crate) enum BindingKind {
     Stack(u32),
     Local(Option<u32>),
     Global(u32),
+}
+
+/// Where the call result should go.
+#[derive(Copy, Clone)]
+enum CallResultDest<'a> {
+    /// Pop result into the given register.
+    Register(&'a Register),
+    /// Discard the result (emit Pop).
+    Discard,
+    /// Leave the result on the stack.
+    Stack,
 }
 
 impl<'ctx> ByteCompiler<'ctx> {
@@ -1540,6 +1559,58 @@ impl<'ctx> ByteCompiler<'ctx> {
         self.compile_expr_impl(expr, dst);
     }
 
+    /// Compile an expression purely for its side effects, discarding the result.
+    ///
+    /// This avoids allocating a register and emitting a store for the result
+    /// when it's not needed (e.g., expression statements, for-loop updates).
+    pub(crate) fn compile_expr_for_side_effects(&mut self, expr: &Expression) {
+        match expr {
+            Expression::Call(call) => {
+                self.call(Callable::Call(call), CallResultDest::Discard);
+            }
+            Expression::New(new) => {
+                self.call(Callable::New(new), CallResultDest::Discard);
+            }
+            Expression::Update(update) => {
+                let tmp = self.register_allocator.alloc();
+                self.compile_update(update, &tmp, true);
+                self.register_allocator.dealloc(tmp);
+            }
+            Expression::Parenthesized(parenthesized) => {
+                self.compile_expr_for_side_effects(parenthesized.expression());
+            }
+            _ => {
+                let tmp = self.register_allocator.alloc();
+                self.compile_expr(expr, &tmp);
+                self.register_allocator.dealloc(tmp);
+            }
+        }
+    }
+
+    /// Compile an expression and leave the result on the stack.
+    ///
+    /// For call/new expressions, this avoids the `PopIntoRegister` + `PushFromRegister`
+    /// round-trip by leaving the call result directly on the stack.
+    pub(crate) fn compile_expr_to_stack(&mut self, expr: &Expression) {
+        match expr {
+            Expression::Call(call) => {
+                self.call(Callable::Call(call), CallResultDest::Stack);
+            }
+            Expression::New(new) => {
+                self.call(Callable::New(new), CallResultDest::Stack);
+            }
+            Expression::Parenthesized(parenthesized) => {
+                self.compile_expr_to_stack(parenthesized.expression());
+            }
+            _ => {
+                let tmp = self.register_allocator.alloc();
+                self.compile_expr(expr, &tmp);
+                self.push_from_register(&tmp);
+                self.register_allocator.dealloc(tmp);
+            }
+        }
+    }
+
     /// Compile an expression and return the operand where the result lives.
     ///
     /// For local variable references, this returns the local's persistent register
@@ -1558,6 +1629,12 @@ impl<'ctx> ByteCompiler<'ctx> {
             let index = self.get_binding(&binding);
             if let BindingKind::Local(Some(local_reg)) = &index {
                 inner_fn(self, RegisterOperand::from(*local_reg));
+                return;
+            }
+            if !self.in_with
+                && let Some(&cached_reg) = self.const_binding_cache.get(&binding.locator())
+            {
+                inner_fn(self, cached_reg.into());
                 return;
             }
         }
@@ -1885,10 +1962,7 @@ impl<'ctx> ByteCompiler<'ctx> {
                     self.bytecode.emit_call_spread();
                 } else {
                     for arg in args {
-                        let value = self.register_allocator.alloc();
-                        self.compile_expr(arg, &value);
-                        self.push_from_register(&value);
-                        self.register_allocator.dealloc(value);
+                        self.compile_expr_to_stack(arg);
                     }
                     self.bytecode.emit_call((args.len() as u32).into());
                 }
@@ -1945,14 +2019,33 @@ impl<'ctx> ByteCompiler<'ctx> {
                     match variable.binding() {
                         Binding::Identifier(ident) => {
                             let ident = ident.to_js_string(self.interner());
-                            let value = self.register_allocator.alloc();
-                            if let Some(init) = variable.init() {
-                                self.compile_expr(init, &value);
+                            let binding = self.lexical_scope.get_identifier_reference(ident);
+                            if binding.local() {
+                                // Pre-allocate the persistent register but do NOT
+                                // insert into local_binding_registers yet, so that
+                                // TDZ checks still fire during initializer compilation.
+                                let reg = self.register_allocator.alloc_persistent();
+                                if let Some(init) = variable.init() {
+                                    self.compile_expr(init, &reg);
+                                } else {
+                                    self.bytecode.emit_push_undefined(reg.variable());
+                                }
+                                self.local_binding_registers.insert(binding, reg.index());
                             } else {
-                                self.bytecode.emit_push_undefined(value.variable());
+                                let value = self.register_allocator.alloc();
+                                if let Some(init) = variable.init() {
+                                    self.compile_expr(init, &value);
+                                } else {
+                                    self.bytecode.emit_push_undefined(value.variable());
+                                }
+                                let binding_kind = self.insert_binding(binding);
+                                self.emit_binding_access(
+                                    BindingAccessOpcode::PutLexicalValue,
+                                    &binding_kind,
+                                    &value,
+                                );
+                                self.register_allocator.dealloc(value);
                             }
-                            self.emit_binding(BindingOpcode::InitLexical, ident, &value);
-                            self.register_allocator.dealloc(value);
                         }
                         Binding::Pattern(pattern) => {
                             let value = self.register_allocator.alloc();
@@ -1979,20 +2072,30 @@ impl<'ctx> ByteCompiler<'ctx> {
                             let init = variable
                                 .init()
                                 .expect("const declaration must have initializer");
-                            let value = self.register_allocator.alloc();
-                            self.compile_expr(init, &value);
-                            self.emit_binding(BindingOpcode::InitLexical, ident.clone(), &value);
-                            // Cache non-local const bindings in a persistent register
-                            // so subsequent reads avoid GetName environment lookups.
-                            let binding = self.lexical_scope.get_identifier_reference(ident);
-                            if !binding.local() {
+                            let binding =
+                                self.lexical_scope.get_identifier_reference(ident.clone());
+                            if binding.local() {
+                                let reg = self.register_allocator.alloc_persistent();
+                                self.compile_expr(init, &reg);
+                                self.local_binding_registers.insert(binding, reg.index());
+                            } else {
+                                let value = self.register_allocator.alloc();
+                                self.compile_expr(init, &value);
+                                let binding_kind = self.insert_binding(binding.clone());
+                                self.emit_binding_access(
+                                    BindingAccessOpcode::PutLexicalValue,
+                                    &binding_kind,
+                                    &value,
+                                );
+                                // Cache non-local const bindings in a persistent register
+                                // so subsequent reads avoid GetName environment lookups.
                                 let cache_reg = self.register_allocator.alloc_persistent();
                                 self.bytecode
                                     .emit_move(cache_reg.variable(), value.variable());
                                 self.const_binding_cache
                                     .insert(binding.locator(), cache_reg.index());
+                                self.register_allocator.dealloc(value);
                             }
-                            self.register_allocator.dealloc(value);
                         }
                         Binding::Pattern(pattern) => {
                             let value = self.register_allocator.alloc();
@@ -2241,7 +2344,7 @@ impl<'ctx> ByteCompiler<'ctx> {
         dst
     }
 
-    fn call(&mut self, callable: Callable<'_>, dst: &Register) {
+    fn call(&mut self, callable: Callable<'_>, dst: CallResultDest<'_>) {
         #[derive(PartialEq)]
         enum CallKind {
             CallEval,
@@ -2301,10 +2404,7 @@ impl<'ctx> ByteCompiler<'ctx> {
                     self.push_from_register(&CallFrame::undefined_register());
                 }
 
-                let value = self.register_allocator.alloc();
-                self.compile_expr(expr, &value);
-                self.push_from_register(&value);
-                self.register_allocator.dealloc(value);
+                self.compile_expr_to_stack(expr);
             }
             expr => {
                 let value = self.register_allocator.alloc();
@@ -2348,10 +2448,7 @@ impl<'ctx> ByteCompiler<'ctx> {
             compiler.register_allocator.dealloc(value);
         } else {
             for arg in call.args() {
-                let value = compiler.register_allocator.alloc();
-                compiler.compile_expr(arg, &value);
-                compiler.push_from_register(&value);
-                compiler.register_allocator.dealloc(value);
+                compiler.compile_expr_to_stack(arg);
             }
         }
 
@@ -2379,7 +2476,11 @@ impl<'ctx> ByteCompiler<'ctx> {
                 .bytecode
                 .emit_new((call.args().len() as u32).into()),
         }
-        compiler.pop_into_register(dst);
+        match dst {
+            CallResultDest::Register(dst) => compiler.pop_into_register(dst),
+            CallResultDest::Discard => compiler.bytecode.emit_pop(),
+            CallResultDest::Stack => {} // leave result on stack
+        }
     }
 
     /// Finish compiling code with the [`ByteCompiler`] and return the generated [`CodeBlock`].

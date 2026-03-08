@@ -8,7 +8,10 @@
 //! [spec]: https://tc39.es/ecma262/#sec-scripts
 //! [script]: https://tc39.es/ecma262/#sec-script-records
 
-use std::path::{Path, PathBuf};
+use std::{
+    cell::RefCell,
+    path::{Path, PathBuf},
+};
 
 use rustc_hash::FxHashMap;
 
@@ -37,19 +40,22 @@ impl std::fmt::Debug for Script {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         f.debug_struct("Script")
             .field("realm", &self.inner.realm.addr())
-            .field("code", &self.inner.source)
+            .field("phase", &self.inner.phase.borrow())
             .field("loaded_modules", &self.inner.loaded_modules)
             .finish()
     }
 }
-
+#[derive(Debug, Finalize)]
+enum ScriptPhase {
+    Ast(boa_ast::Script),
+    Codeblock(Gc<CodeBlock>),
+}
 #[derive(Trace, Finalize)]
 struct Inner {
     realm: Realm,
     #[unsafe_ignore_trace]
-    source: boa_ast::Script,
+    phase: RefCell<ScriptPhase>,
     source_text: SourceText,
-    codeblock: GcRefCell<Option<Gc<CodeBlock>>>,
     loaded_modules: GcRefCell<FxHashMap<JsString, Module>>,
     host_defined: HostDefined,
     path: Option<PathBuf>,
@@ -102,9 +108,8 @@ impl Script {
         Ok(Self {
             inner: Gc::new(Inner {
                 realm: realm.unwrap_or_else(|| context.realm().clone()),
-                source: code,
+                phase: RefCell::new(ScriptPhase::Ast(code)),
                 source_text,
-                codeblock: GcRefCell::default(),
                 loaded_modules: GcRefCell::default(),
                 host_defined: HostDefined::default(),
                 path,
@@ -116,48 +121,50 @@ impl Script {
     ///
     /// This is a no-op if this has been called previously.
     pub fn codeblock(&self, context: &mut Context) -> JsResult<Gc<CodeBlock>> {
-        let mut codeblock = self.inner.codeblock.borrow_mut();
+        let cb = {
+            let phase = self.inner.phase.borrow();
+            let source = match &*phase {
+                ScriptPhase::Codeblock(codeblock) => return Ok(codeblock.clone()),
+                ScriptPhase::Ast(source) => source,
+            };
 
-        if let Some(codeblock) = &*codeblock {
-            return Ok(codeblock.clone());
-        }
+            let mut annex_b_function_names = Vec::new();
 
-        let mut annex_b_function_names = Vec::new();
+            global_declaration_instantiation_context(
+                &mut annex_b_function_names,
+                source,
+                self.inner.realm.scope(),
+                context,
+            )?;
 
-        global_declaration_instantiation_context(
-            &mut annex_b_function_names,
-            &self.inner.source,
-            self.inner.realm.scope(),
-            context,
-        )?;
+            let spanned_source_text = SpannedSourceText::new_source_only(self.get_source());
 
-        let spanned_source_text = SpannedSourceText::new_source_only(self.get_source());
-        let mut compiler = ByteCompiler::new(
-            js_string!("<main>"),
-            self.inner.source.strict(),
-            false,
-            self.inner.realm.scope().clone(),
-            self.inner.realm.scope().clone(),
-            false,
-            false,
-            context.interner_mut(),
-            false,
-            spanned_source_text,
-            self.path().map(Path::to_owned).into(),
-        );
+            let mut compiler = ByteCompiler::new(
+                js_string!("<main>"),
+                source.strict(),
+                false,
+                self.inner.realm.scope().clone(),
+                self.inner.realm.scope().clone(),
+                false,
+                false,
+                context.interner_mut(),
+                false,
+                spanned_source_text,
+                self.path().map(Path::to_owned).into(),
+            );
 
-        #[cfg(feature = "annex-b")]
-        {
-            compiler.annex_b_function_names = annex_b_function_names;
-        }
+            #[cfg(feature = "annex-b")]
+            {
+                compiler.annex_b_function_names = annex_b_function_names;
+            }
 
-        // TODO: move to `Script::evaluate` to make this operation infallible.
-        compiler.global_declaration_instantiation(&self.inner.source);
-        compiler.compile_statement_list(self.inner.source.statements(), true, false);
+            compiler.global_declaration_instantiation(source);
+            compiler.compile_statement_list(source.statements(), true, false);
 
-        let cb = Gc::new(compiler.finish());
+            Gc::new(compiler.finish())
+        };
 
-        *codeblock = Some(cb.clone());
+        *self.inner.phase.borrow_mut() = ScriptPhase::Codeblock(cb.clone());
 
         Ok(cb)
     }
@@ -173,6 +180,7 @@ impl Script {
         let record = context.run();
 
         context.vm.pop_frame();
+
         record.consume()
     }
 
@@ -205,6 +213,7 @@ impl Script {
         let record = context.run_async_with_budget(budget).await;
 
         context.vm.pop_frame();
+
         record.consume()
     }
 

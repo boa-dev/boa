@@ -1,0 +1,50 @@
+---
+source: tests/insta-bytecode/src/lib.rs
+expression: output
+---
+---------------------------Compiled Output: '<main>'----------------------------
+Location     Handler      Opcode                            Operands
+  000000                    CanDeclareGlobalFunction          index:0, dst:r01
+  000009                    JumpIfTrue                        value:r01, address:000017
+  000012                    ThrowNewTypeError                 message:1
+  000017                    GetFunction                       index:2, dst:r01
+  000020                    CreateGlobalFunctionBinding       src:r01, configurable:0, name_index:0
+  00002d                    PushZero                          dst:r02
+  000032                    Jump                              address:000041
+  000037                    IncrementLoopIteration            
+  000038                    Inc                               src:r02, dst:r02
+  000041                    PushInt8                          value:20, dst:r03
+  000047                    JumpIfNotLessThan                 lhs:r02, rhs:r03, address:0000b0
+  000054                    PushZero                          dst:r04
+  000059                    Jump                              address:000068
+  00005e                    IncrementLoopIteration            
+  00005f                    Inc                               src:r04, dst:r04
+  000068                    PushInt8                          value:50, dst:r05
+  00006e                    JumpIfNotLessThan                 lhs:r04, rhs:r05, address:0000ab
+  00007b                    PushFromRegister                  src:r00
+  000080                    GetNameGlobal                     dst:r05, binding_index:0, ic_index:0
+  00008d                    PushFromRegister                  src:r05
+  000092                    Move                              src:r04, dst:r05
+  00009b                    PushFromRegister                  src:r05
+  0000a0                    Call                              argument_count:1
+  0000a5                    Pop                               
+  0000a6                    Jump                              address:00005e
+  0000ab                    Jump                              address:000037
+  0000b0                    GetNameGlobal                     dst:r05, binding_index:1, ic_index:1
+  0000bd                    SetAccumulator                    src:r05
+  0000c2                    CheckReturn                       
+  0000c3                    Return                            
+
+Register Count: 6, Flags: CodeBlockFlags(HAS_PROTOTYPE_PROPERTY)
+Constants:
+    0000: [STRING] "f"
+    0001: [STRING] "cannot declare global function"
+    0002: [FUNCTION] name: 'f' (length: 1)
+Bindings:
+    0000: f, scope: GlobalObject
+    0001: undefined, scope: GlobalObject
+Handlers: <empty>
+Source Map:
+    0000: 56..95: (6, 25)
+    0001: 95..146: (7, 27)
+    0002: 146..166: (8, 6)
