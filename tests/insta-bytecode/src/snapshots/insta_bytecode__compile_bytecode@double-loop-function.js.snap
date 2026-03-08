@@ -1,6 +1,7 @@
 ---
 source: tests/insta-bytecode/src/lib.rs
 expression: output
+input_file: tests/insta-bytecode/scripts/double-loop-function.js
 ---
 ---------------------------Compiled Output: '<main>'----------------------------
 Location     Handler      Opcode                            Operands
@@ -45,6 +46,6 @@ Bindings:
     0001: undefined, scope: GlobalObject
 Handlers: <empty>
 Source Map:
-    0000: 56..95: (6, 25)
-    0001: 95..146: (7, 27)
-    0002: 146..170: (8, 6)
+    0000: 56..95: (5, 25)
+    0001: 95..146: (6, 27)
+    0002: 146..170: (7, 6)
