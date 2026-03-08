@@ -274,17 +274,19 @@ pub(crate) fn log_value_to(
                     write!(f, "{position}")?;
                 }
                 Ok(())
-            } else if let Some(promise) = v.downcast_ref::<Promise>() {
-                f.write_str("Promise { ")?;
-                match promise.state() {
-                    PromiseState::Pending => f.write_str("<pending>")?,
-                    PromiseState::Fulfilled(val) => Display::fmt(&val.display(), f)?,
-                    PromiseState::Rejected(reason) => {
-                        write!(f, "<rejected> {}", JsError::from_opaque(reason.clone()))?;
-                    }
-                }
-                f.write_str(" }")
-            } else if v.is_constructor() {
+            } } else if let Some(promise) = v.downcast_ref::<Promise>() {
+    f.write_str("Promise { ")?;
+    match promise.state() {
+        PromiseState::Pending => f.write_str("<pending>")?,
+        PromiseState::Fulfilled(val) => Display::fmt(&val.display(), f)?,
+        PromiseState::Rejected(reason) => {
+            write!(f, "<rejected> {}", JsError::from_opaque(reason.clone()))?;
+        }
+    }
+    f.write_str(" }")
+} else if let Some(buffer) = v.downcast_ref::<ArrayBuffer>() {
+    write!(f, "ArrayBuffer {{ byteLength: {} }}", buffer.byte_length())
+} else if v.is_constructor() {
                 // FIXME: ArrayBuffer is not [class ArrayBuffer] but we cannot distinguish it.
                 let name = v
                     .get_property(&PropertyKey::from(js_string!("name")))
