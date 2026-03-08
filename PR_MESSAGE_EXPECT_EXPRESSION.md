@@ -10,12 +10,12 @@ The `FormalParameterListOrExpression` type represents the grammar ambiguity betw
 
 ## Changes
 
-| Category   | Description |
-|-----------|-------------|
-| **Replaced** | `lhs.expect_expression()` with `lhs.try_into_expression()?` in conditional expression parser |
+| Category     | Description                                                                                           |
+| ------------ | ----------------------------------------------------------------------------------------------------- |
+| **Replaced** | `lhs.expect_expression()` with `lhs.try_into_expression()?` in conditional expression parser          |
 | **Replaced** | `member.expect_expression()` with `member.try_into_expression()?` in left-hand side (call expression) |
-| **Replaced** | `lhs.expect_expression()` with `lhs.try_into_expression()?` in left-hand side (optional expression) |
-| **Removed** | `expect_expression()` method from `FormalParameterListOrExpression` to prevent future misuse |
+| **Replaced** | `lhs.expect_expression()` with `lhs.try_into_expression()?` in left-hand side (optional expression)   |
+| **Removed**  | `expect_expression()` method from `FormalParameterListOrExpression` to prevent future misuse          |
 
 ## Technical Details
 
