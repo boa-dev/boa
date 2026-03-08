@@ -108,6 +108,16 @@ pub(crate) enum Constant {
     Scope(#[unsafe_ignore_trace] Scope),
 }
 
+/// Binding information about a global function.
+#[derive(Copy, Clone, Debug, Trace, Finalize)]
+#[boa_gc(empty_trace)]
+pub(crate) struct GlobalFunctionBinding {
+    /// The index of the global function's name in the constants array.
+    pub(crate) name_index: u32,
+    /// The index of the global function in the constants array
+    pub(crate) function_index: u32,
+}
+
 /// The internal representation of a JavaScript function.
 ///
 /// A `CodeBlock` is generated for each function compiled by the
@@ -153,10 +163,8 @@ pub struct CodeBlock {
     pub(crate) source_info: SourceInfo,
 
     pub(crate) global_lexs: Box<[u32]>,
-    pub(crate) global_fns: Box<[u32]>,
+    pub(crate) global_fns: Box<[GlobalFunctionBinding]>,
     pub(crate) global_vars: Box<[u32]>,
-    pub(crate) global_fn_bindings: Box<[(u32, u32)]>,
-    pub(crate) global_declared_vars: Box<[u32]>,
 }
 
 /// ---- `CodeBlock` public API ----
@@ -186,8 +194,6 @@ impl CodeBlock {
             global_lexs: Box::default(),
             global_fns: Box::default(),
             global_vars: Box::default(),
-            global_fn_bindings: Box::default(),
-            global_declared_vars: Box::default(),
         }
     }
 
@@ -434,14 +440,10 @@ impl CodeBlock {
             Instruction::PushLiteral { index, dst }
             | Instruction::ThisForObjectEnvironmentName { index, dst }
             | Instruction::GetFunction { index, dst }
-            | Instruction::HasRestrictedGlobalProperty { index, dst }
-            | Instruction::CanDeclareGlobalFunction { index, dst }
-            | Instruction::CanDeclareGlobalVar { index, dst }
             | Instruction::GetArgument { index, dst } => {
                 format!("index:{index}, dst:{dst}")
             }
             Instruction::ThrowNewTypeError { message }
-            | Instruction::ThrowNewSyntaxError { message }
             | Instruction::ThrowNewReferenceError { message } => format!("message:{message}"),
             Instruction::PushRegexp {
                 pattern_index,
@@ -793,19 +795,6 @@ impl CodeBlock {
             Instruction::IteratorReturn { value, called } => {
                 format!("value:{value}, called:{called}")
             }
-            Instruction::CreateGlobalFunctionBinding {
-                src,
-                configurable,
-                name_index,
-            } => {
-                format!("src:{src}, configurable:{configurable}, name_index:{name_index}")
-            }
-            Instruction::CreateGlobalVarBinding {
-                configurable,
-                name_index,
-            } => {
-                format!("configurable:{configurable}, name_index:{name_index}")
-            }
             Instruction::PushPrivateEnvironment {
                 class,
                 name_indices,
@@ -907,7 +896,13 @@ impl CodeBlock {
             | Instruction::Reserved51
             | Instruction::Reserved52
             | Instruction::Reserved53
-            | Instruction::Reserved54 => unreachable!("Reserved opcodes are unreachable"),
+            | Instruction::Reserved54
+            | Instruction::Reserved55
+            | Instruction::Reserved56
+            | Instruction::Reserved57
+            | Instruction::Reserved58
+            | Instruction::Reserved59
+            | Instruction::Reserved60 => unreachable!("Reserved opcodes are unreachable"),
         }
     }
 }

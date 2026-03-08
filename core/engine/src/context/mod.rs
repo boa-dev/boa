@@ -891,13 +891,11 @@ impl Context {
         //       i. Assert: d is either a FunctionDeclaration, a GeneratorDeclaration, an AsyncFunctionDeclaration, or an AsyncGeneratorDeclaration.
         //       ii. NOTE: If there are multiple function declarations for the same name, the last declaration is used.
         //       iii. Let fn be the sole element of the BoundNames of d.
-        // NOTE: On `ByteCompiler` we already push the elements in reverse list
-        // order, so we don't need to reverse here.
-        for global_fn in &codeblock.global_fns {
+        for fun in codeblock.global_fns.iter().rev() {
             // ...
             // 1. Let fnDefinable be ? env.CanDeclareGlobalFunction(fn).
             // 2. If fnDefinable is false, throw a TypeError exception.
-            let name = codeblock.constant_string(*global_fn as usize);
+            let name = codeblock.constant_string(fun.name_index as usize);
             if !self.can_declare_global_function(&name)? {
                 return Err(js_error!(TypeError: "cannot declare global function"));
             }
@@ -915,17 +913,19 @@ impl Context {
         }
 
         // 16. For each Parse Node f of functionsToInitialize, do
-        for (name, function) in &codeblock.global_fn_bindings {
+        for fun in &codeblock.global_fns {
             // ...
             // c. Perform ? env.CreateGlobalFunctionBinding(fn, fo, false).
-            let function =
-                create_function_object_fast(codeblock.constant_function(*function as usize), self);
-            let name = codeblock.constant_string(*name as usize);
+            let function = create_function_object_fast(
+                codeblock.constant_function(fun.function_index as usize),
+                self,
+            );
+            let name = codeblock.constant_string(fun.name_index as usize);
             self.create_global_function_binding(name, function, is_eval_call)?;
         }
 
         // 17. For each String vn of declaredVarNames, do
-        for global_declared_var in &codeblock.global_declared_vars {
+        for global_declared_var in &codeblock.global_vars {
             // a. Perform ? env.CreateGlobalVarBinding(vn, false).
             let name = codeblock.constant_string(*global_declared_var as usize);
             self.create_global_var_binding(name, is_eval_call)?;

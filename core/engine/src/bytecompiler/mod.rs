@@ -32,7 +32,8 @@ use crate::{
     builtins::function::{ThisMode, arguments::MappedArguments},
     js_string,
     vm::{
-        CallFrame, CodeBlock, CodeBlockFlags, Constant, GeneratorResumeKind, Handler, InlineCache,
+        CallFrame, CodeBlock, CodeBlockFlags, Constant, GeneratorResumeKind, GlobalFunctionBinding,
+        Handler, InlineCache,
         opcode::{Address, BindingOpcode, ByteCodeEmitter, RegisterOperand},
         source_info::{SourceInfo, SourceMap, SourceMapBuilder, SourcePath},
     },
@@ -534,10 +535,8 @@ pub struct ByteCompiler<'ctx> {
     spanned_source_text: SpannedSourceText,
 
     pub(crate) global_lexs: Vec<u32>,
-    pub(crate) global_fns: Vec<u32>,
+    pub(crate) global_fns: Vec<GlobalFunctionBinding>,
     pub(crate) global_vars: Vec<u32>,
-    pub(crate) global_fn_bindings: Vec<(u32, u32)>,
-    pub(crate) global_declared_vars: Vec<u32>,
 
     #[cfg(feature = "annex-b")]
     pub(crate) annex_b_function_names: Vec<Sym>,
@@ -662,8 +661,6 @@ impl<'ctx> ByteCompiler<'ctx> {
             global_lexs: Vec::new(),
             global_fns: Vec::new(),
             global_vars: Vec::new(),
-            global_fn_bindings: Vec::new(),
-            global_declared_vars: Vec::new(),
         }
     }
 
@@ -2538,8 +2535,6 @@ impl<'ctx> ByteCompiler<'ctx> {
             global_lexs: self.global_lexs.into_boxed_slice(),
             global_fns: self.global_fns.into_boxed_slice(),
             global_vars: self.global_vars.into_boxed_slice(),
-            global_fn_bindings: self.global_fn_bindings.into_boxed_slice(),
-            global_declared_vars: self.global_declared_vars.into_boxed_slice(),
         }
     }
 

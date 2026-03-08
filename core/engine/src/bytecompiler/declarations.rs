@@ -2,7 +2,7 @@ use super::{BindingAccessOpcode, ToJsString};
 use crate::{
     Context, JsNativeError, JsResult, SpannedSourceText,
     bytecompiler::{ByteCompiler, FunctionCompiler, FunctionSpec, NodeKind},
-    vm::{CallFrame, opcode::BindingOpcode},
+    vm::{CallFrame, GlobalFunctionBinding, opcode::BindingOpcode},
 };
 use boa_ast::{
     Script,
@@ -425,9 +425,10 @@ impl ByteCompiler<'_> {
             if !declared_function_names.contains(&name.sym()) {
                 // 1. Let fnDefinable be ? env.CanDeclareGlobalFunction(fn).
                 // 2. If fnDefinable is false, throw a TypeError exception.
-                // Done in `Context::global_declaration_instantiation`
-                let index = self.get_or_insert_name(name.sym());
-                self.global_fns.push(index);
+                // Done in `Context::global_declaration_instantiation`.
+                // The names checked here are the same names from the functions
+                // in `functions_to_initialize`, but in reverse order, so we can
+                // reuse `global_fns` for this check.
 
                 // 3. Append fn to declaredFunctionNames.
                 declared_function_names.push(name.sym());
@@ -456,8 +457,9 @@ impl ByteCompiler<'_> {
                     // a. Let vnDefinable be ? env.CanDeclareGlobalVar(vn).
                     // b. If vnDefinable is false, throw a TypeError exception.
                     // Done in `Context::global_declaration_instantiation`
-                    let index = self.get_or_insert_name(name);
-                    self.global_vars.push(index);
+                    // The names checked here are the same names from the functions
+                    // in `declared_var_names`, so we can reuse `global_vars`
+                    // for this check.
 
                     // c. If declaredVarNames does not contain vn, then
                     if !declared_var_names.contains(&name) {
@@ -546,7 +548,10 @@ impl ByteCompiler<'_> {
             // b. Let fo be InstantiateFunctionObject of f with arguments env and privateEnv.
             // c. Perform ? env.CreateGlobalFunctionBinding(fn, fo, false).
             // Done in `Context::global_declaration_instantiation`
-            self.global_fn_bindings.push((name_index, function_index));
+            self.global_fns.push(GlobalFunctionBinding {
+                name_index,
+                function_index,
+            });
         }
 
         // 17 is done in `Context::global_declaration_instantiation
@@ -554,7 +559,7 @@ impl ByteCompiler<'_> {
         // 17. For each String vn of declaredVarNames, do
         for var in declared_var_names {
             let index = self.get_or_insert_name(var);
-            self.global_declared_vars.push(index);
+            self.global_vars.push(index);
 
             // a. Perform ? env.CreateGlobalVarBinding(vn, false).
             // Done in `Context::global_declaration_instantiation`
@@ -670,13 +675,12 @@ impl ByteCompiler<'_> {
             // a.iv. If declaredFunctionNames does not contain fn, then
             if !declared_function_names.contains(&name.sym()) {
                 // 1. If varEnv is a Global Environment Record, then
-                if var_env.is_global() {
-                    // a. Let fnDefinable be ? varEnv.CanDeclareGlobalFunction(fn).
-                    // b. If fnDefinable is false, throw a TypeError exception.
-                    // Done in `Context::eval_declaration_instantiation`
-                    let index = self.get_or_insert_name(name.sym());
-                    self.global_fns.push(index);
-                }
+                //    a. Let fnDefinable be ? varEnv.CanDeclareGlobalFunction(fn).
+                //    b. If fnDefinable is false, throw a TypeError exception.
+                //    Done in `Context::eval_declaration_instantiation`
+                //    The names checked here are the same names from the functions
+                //    in `functions_to_initialize`, but in reverse order, so we can
+                //    reuse `global_fns` for this check.
 
                 // 2. Append fn to declaredFunctionNames.
                 declared_function_names.push(name.sym());
@@ -727,13 +731,12 @@ impl ByteCompiler<'_> {
                 // 1. If declaredFunctionNames does not contain vn, then
                 if !declared_function_names.contains(&name) {
                     // a. If varEnv is a Global Environment Record, then
-                    if var_env.is_global() {
-                        // i. Let vnDefinable be ? varEnv.CanDeclareGlobalVar(vn).
-                        // ii. If vnDefinable is false, throw a TypeError exception.
-                        // Done in `Context::eval_declaration_instantiation`
-                        let index = self.get_or_insert_name(name);
-                        self.global_vars.push(index);
-                    }
+                    //    i. Let vnDefinable be ? varEnv.CanDeclareGlobalVar(vn).
+                    //    ii. If vnDefinable is false, throw a TypeError exception.
+                    //    Done in `Context::eval_declaration_instantiation`
+                    //    The names checked here are the same names from the functions
+                    //    in `declared_var_names`, so we can reuse `global_vars`
+                    //    for this check.
 
                     // b. If declaredVarNames does not contain vn, then
                     if !declared_var_names.contains(&name) {
@@ -824,7 +827,10 @@ impl ByteCompiler<'_> {
                 // i. Perform ? varEnv.CreateGlobalFunctionBinding(fn, fo, true).
                 // Done in `Context::eval_declaration_instantiation`
                 let name_index = self.get_or_insert_name(name.sym());
-                self.global_fn_bindings.push((name_index, index));
+                self.global_fns.push(GlobalFunctionBinding {
+                    name_index,
+                    function_index: index,
+                });
             }
             // d. Else,
             else {
@@ -862,7 +868,7 @@ impl ByteCompiler<'_> {
 
                 // i. Perform ? varEnv.CreateGlobalVarBinding(vn, true).
                 // Done in `Context::eval_declaration_instantiation`
-                self.global_declared_vars.push(index);
+                self.global_vars.push(index);
             }
         }
         // 18.b
