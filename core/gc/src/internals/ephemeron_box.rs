@@ -109,8 +109,8 @@ impl<K: Trace + ?Sized, V: Trace> EphemeronBox<K, V> {
     }
 
     #[inline]
-    pub(crate) fn inc_non_root_count(&self) {
-        self.header.inc_non_root_count();
+    pub(crate) fn inc_non_root_count(&self) -> Result<(), &'static str> {
+        self.header.inc_non_root_count()
     }
 }
 

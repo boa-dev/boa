@@ -45,8 +45,8 @@ impl<T: Trace + ?Sized> GcBox<T> {
     }
 
     #[inline]
-    pub(crate) fn inc_non_root_count(&self) {
-        self.header.inc_non_root_count();
+    pub(crate) fn inc_non_root_count(&self) -> Result<(), &'static str> {
+        self.header.inc_non_root_count()
     }
 
     pub(crate) fn reset_non_root_count(&self) {

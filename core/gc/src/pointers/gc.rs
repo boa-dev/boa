@@ -335,7 +335,8 @@ unsafe impl<T: Trace + ?Sized> Trace for Gc<T> {
     }
 
     unsafe fn trace_non_roots(&self) {
-        self.inner().inc_non_root_count();
+        let _ = self.inner().inc_non_root_count();
+        // Optionally, handle the error (e.g., log or debug_assert!)
     }
 
     fn run_finalizer(&self) {

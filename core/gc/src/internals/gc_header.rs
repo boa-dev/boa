@@ -37,14 +37,15 @@ impl GcHeader {
     }
 
     /// Increments [`GcHeader`]'s non-roots count.
-    pub(crate) fn inc_non_root_count(&self) {
+    pub(crate) fn inc_non_root_count(&self) -> Result<(), &'static str> {
         let non_root_count = self.non_root_count.get();
 
         if (non_root_count & NON_ROOTS_MASK) < NON_ROOTS_MAX {
             self.non_root_count.set(non_root_count.wrapping_add(1));
+            Ok(())
         } else {
-            // TODO: implement a better way to handle root overload.
-            panic!("non-roots counter overflow");
+            // Instead of panicking, return an error.
+            Err("non-roots counter overflow")
         }
     }
 
