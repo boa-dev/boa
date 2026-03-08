@@ -400,7 +400,7 @@ fn main() -> Result<()> {
     let executor = Rc::new(Executor::default());
     let loader = Rc::new(SimpleModuleLoader::new(&args.root).map_err(|e| eyre!(e.to_string()))?);
     let mut context = ContextBuilder::new()
-        .job_executor(executor)
+        .job_executor(executor.clone())
         .module_loader(loader.clone())
         .build()
         .map_err(|e| eyre!(e.to_string()))?;
@@ -431,9 +431,28 @@ fn main() -> Result<()> {
             evaluate_expr(expr, &args, &mut context)?;
         }
 
+        // Lifecycle Management for Safe Shutdown
+        // We must explicitly drop the context and its shared dependencies (loader, executor)
+        // to ensure all Garbage Collected (GC) roots are cleared before the main thread exits.
+        // This is critical for hardware-backed resources like WebGPU (#4370) that rely on
+        // Thread Local Storage (TLS). By forcing collection here, we ensure resources are
+        // finalized while the TLS is still active.
+        drop(context);
+        drop(loader);
+        drop(executor);
+        boa_gc::force_collect();
+
         return Ok(());
     } else if let Some(ref expr) = args.expression {
         evaluate_expr(expr, &args, &mut context)?;
+
+        // Post-Expression Cleanup
+        // Explicitly clear engine state to prevent TLS AccessErrors during thread teardown.
+        drop(context);
+        drop(loader);
+        drop(executor);
+        boa_gc::force_collect();
+
         return Ok(());
     }
 
@@ -487,6 +506,12 @@ fn main() -> Result<()> {
     }
 
     editor.save_history(CLI_HISTORY)?;
+    // Ensure context and executors are dropped before the thread exits
+    // to prevent Thread Local Storage (TLS) AccessErrors during GC cleanup.
+    drop(context);
+    drop(loader);
+    drop(executor);
+    boa_gc::force_collect();
 
     Ok(())
 }

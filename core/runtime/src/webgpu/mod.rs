@@ -133,5 +133,27 @@ pub fn register(context: &mut Context) -> JsResult<()> {
     context.register_global_class::<Device>()?;
     context.register_global_class::<Queue>()?;
     context.register_global_class::<Buffer>()?;
+
+    // Register the global `navigator` object and attach the `gpu` instance to it.
+    // This is required to expose the WebGPU entry point in the JavaScript environment,
+    // allowing scripts to access `navigator.gpu` as per the WebGPU specification.
+
+    let instance = Instance::default();
+    let gpu_obj = Class::from_data(instance, context)?;
+
+    let navigator = boa_engine::object::ObjectInitializer::new(context)
+        .property(
+            boa_engine::js_string!("gpu"),
+            gpu_obj,
+            boa_engine::property::Attribute::all(),
+        )
+        .build();
+
+    context.register_global_property(
+        boa_engine::js_string!("navigator"),
+        navigator,
+        boa_engine::property::Attribute::all(),
+    )?;
+
     Ok(())
 }
