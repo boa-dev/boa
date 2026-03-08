@@ -189,6 +189,12 @@ impl ByteCompiler<'_> {
             return false;
         }
 
+        // The `arguments` object is created by function_declaration_instantiation
+        // which inlining skips.
+        if scopes.arguments_object_accessed() {
+            return false;
+        }
+
         true
     }
 
