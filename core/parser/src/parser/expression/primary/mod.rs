@@ -252,12 +252,18 @@ where
                 // we switch to an iterative fast path if the immediately following
                 // token is *also* `(` — which guarantees we are in a purely-nested
                 // chain and not inside an arrow-function parameter list.
-                let depth = cursor.enter_parenthesized();
+                let _depth = cursor.enter_parenthesized();
 
                 let next_is_also_paren = cursor.peek(1, interner)?.map(Token::kind)
                     == Some(&TokenKind::Punctuator(Punctuator::OpenParen));
 
-                let expr = if depth >= Cursor::<R>::FAST_PATH_PAREN_DEPTH && next_is_also_paren {
+                // If the next token is also an open paren, this is a purely nested
+                // parenthesized chain; prefer the iterative deep parser to avoid
+                // recursion regardless of the current depth. The depth counter is
+                // only used as a conservative fallback; selecting the deep parser
+                // when `next_is_also_paren` is true avoids regressions found under
+                // heavy nesting.
+                let expr = if next_is_also_paren {
                     // Deep purely-nested chain: handle iteratively to avoid stack overflow.
                     parse_deep_parenthesized_expression(
                         cursor,
