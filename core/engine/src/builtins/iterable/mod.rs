@@ -1,7 +1,7 @@
 //! Boa's implementation of ECMAScript's `IteratorRecord` and iterator prototype objects.
 
 use crate::{
-    Context, JsResult, JsValue,
+    Context, JsArgs, JsResult, JsValue,
     builtins::{BuiltInBuilder, IntrinsicObject},
     context::intrinsics::Intrinsics,
     error::JsNativeError,
@@ -14,6 +14,9 @@ use boa_gc::{Finalize, Trace};
 
 mod async_from_sync_iterator;
 pub(crate) use async_from_sync_iterator::AsyncFromSyncIterator;
+
+mod zip_iterator;
+pub(crate) use zip_iterator::{ZipIterator, ZipMode, ZipResultKind};
 
 /// `IfAbruptCloseIterator ( value, iteratorRecord )`
 ///
@@ -167,11 +170,295 @@ impl IntrinsicObject for Iterator {
     fn init(realm: &Realm) {
         BuiltInBuilder::with_intrinsic::<Self>(realm)
             .static_method(|v, _, _| Ok(v.clone()), JsSymbol::iterator(), 0)
+            .static_method(Self::zip, js_string!("zip"), 1)
+            .static_method(Self::zip_keyed, js_string!("zipKeyed"), 1)
             .build();
     }
 
     fn get(intrinsics: &Intrinsics) -> JsObject {
         intrinsics.objects().iterator_prototypes().iterator()
+    }
+}
+
+impl Iterator {
+    /// `Iterator.zip ( iterables [ , options ] )`
+    ///
+    /// More information:
+    ///  - [TC39 proposal][spec]
+    ///
+    /// [spec]: https://tc39.es/proposal-joint-iteration/#sec-iterator.zip
+    fn zip(_: &JsValue, args: &[JsValue], context: &mut Context) -> JsResult<JsValue> {
+        let iterables = args.get_or_undefined(0);
+        let options = args.get_or_undefined(1);
+
+        // 1. If iterables is not an Object, throw a TypeError exception.
+        let iterables_obj = iterables.as_object().ok_or_else(|| {
+            JsNativeError::typ().with_message("Iterator.zip requires an iterable object")
+        })?;
+
+        // 2-5. Parse mode from options (default "shortest").
+        let mode = Self::parse_zip_mode(options, context)?;
+
+        // 6-7. Parse padding option (only for "longest" mode).
+        let padding_option = if mode == ZipMode::Longest {
+            let opts_obj = options.as_object();
+            if let Some(opts) = opts_obj {
+                let p = opts.get(js_string!("padding"), context)?;
+                if !p.is_undefined() {
+                    if !p.is_object() {
+                        return Err(JsNativeError::typ()
+                            .with_message("padding must be an object")
+                            .into());
+                    }
+                    Some(p)
+                } else {
+                    None
+                }
+            } else {
+                None
+            }
+        } else {
+            None
+        };
+
+        // 8-11. Collect iterator records from iterables.
+        let iterables_val: JsValue = iterables_obj.clone().into();
+        let mut input_iter = iterables_val.get_iterator(IteratorHint::Sync, context)?;
+        let mut iters: Vec<IteratorRecord> = Vec::new();
+
+        loop {
+            let next = input_iter.step_value(context);
+            match next {
+                Err(err) => {
+                    // IfAbruptCloseIterators(next, iters)
+                    for iter in &iters {
+                        let _ = iter.close(Ok(JsValue::undefined()), context);
+                    }
+                    return Err(err);
+                }
+                Ok(None) => break, // done
+                Ok(Some(value)) => {
+                    // GetIteratorFlattenable(next, reject-primitives)
+                    if !value.is_object() {
+                        // Close all collected iterators and the input iterator.
+                        for iter in &iters {
+                            let _ = iter.close(Ok(JsValue::undefined()), context);
+                        }
+                        let _ = input_iter.close(Ok(JsValue::undefined()), context);
+                        return Err(JsNativeError::typ()
+                            .with_message("iterator value is not an object")
+                            .into());
+                    }
+                    let iter_result = value.get_iterator(IteratorHint::Sync, context);
+                    match iter_result {
+                        Err(err) => {
+                            for iter in &iters {
+                                let _ = iter.close(Ok(JsValue::undefined()), context);
+                            }
+                            let _ = input_iter.close(Ok(JsValue::undefined()), context);
+                            return Err(err);
+                        }
+                        Ok(iter) => iters.push(iter),
+                    }
+                }
+            }
+        }
+
+        let iter_count = iters.len();
+
+        // 12-16. Build padding list.
+        let padding = Self::build_padding(padding_option, iter_count, &iters, context)?;
+
+        // Return IteratorZip(iters, mode, padding, finishResults).
+        Ok(ZipIterator::create_zip_iterator(
+            iters,
+            mode,
+            padding,
+            ZipResultKind::Array,
+            context,
+        ))
+    }
+
+    /// `Iterator.zipKeyed ( iterables [ , options ] )`
+    ///
+    /// More information:
+    ///  - [TC39 proposal][spec]
+    ///
+    /// [spec]: https://tc39.es/proposal-joint-iteration/#sec-iterator.zipkeyed
+    fn zip_keyed(_: &JsValue, args: &[JsValue], context: &mut Context) -> JsResult<JsValue> {
+        let iterables = args.get_or_undefined(0);
+        let options = args.get_or_undefined(1);
+
+        // 1. If iterables is not an Object, throw a TypeError exception.
+        let iterables_obj = iterables.as_object().ok_or_else(|| {
+            JsNativeError::typ().with_message("Iterator.zipKeyed requires an object")
+        })?;
+
+        // 2-5. Parse mode from options.
+        let mode = Self::parse_zip_mode(options, context)?;
+
+        // 6-7. Parse padding option.
+        let padding_option = if mode == ZipMode::Longest {
+            let opts_obj = options.as_object();
+            if let Some(opts) = opts_obj {
+                let p = opts.get(js_string!("padding"), context)?;
+                if !p.is_undefined() {
+                    if !p.is_object() {
+                        return Err(JsNativeError::typ()
+                            .with_message("padding must be an object")
+                            .into());
+                    }
+                    Some(p)
+                } else {
+                    None
+                }
+            } else {
+                None
+            }
+        } else {
+            None
+        };
+
+        // 8-10. Get own enumerable string-keyed properties and their iterator values.
+        let mut iters: Vec<IteratorRecord> = Vec::new();
+        let mut keys: Vec<JsValue> = Vec::new();
+
+        let all_keys = iterables_obj.own_property_keys(context)?;
+        for key in all_keys {
+            let key_val: JsValue = key.clone().into();
+            let value = iterables_obj.get(key.clone(), context)?;
+            if !value.is_undefined() {
+                keys.push(key_val);
+                if !value.is_object() {
+                    for iter in &iters {
+                        let _ = iter.close(Ok(JsValue::undefined()), context);
+                    }
+                    return Err(JsNativeError::typ()
+                        .with_message("iterator value is not an object")
+                        .into());
+                }
+                let iter = value.get_iterator(IteratorHint::Sync, context);
+                match iter {
+                    Err(err) => {
+                        for it in &iters {
+                            let _ = it.close(Ok(JsValue::undefined()), context);
+                        }
+                        return Err(err);
+                    }
+                    Ok(iter) => iters.push(iter),
+                }
+            }
+        }
+
+        let iter_count = iters.len();
+
+        // Build padding for zipKeyed.
+        let padding = if mode == ZipMode::Longest {
+            match padding_option {
+                None => vec![JsValue::undefined(); iter_count],
+                Some(pad_obj) => {
+                    let pad = pad_obj.as_object().unwrap();
+                    let mut padding = Vec::with_capacity(iter_count);
+                    for key in &keys {
+                        let prop_key = key.to_string(context)
+                            .unwrap_or_default();
+                        let val = pad.get(prop_key, context)?;
+                        padding.push(val);
+                    }
+                    padding
+                }
+            }
+        } else {
+            Vec::new()
+        };
+
+        Ok(ZipIterator::create_zip_iterator(
+            iters,
+            mode,
+            padding,
+            ZipResultKind::Keyed(keys),
+            context,
+        ))
+    }
+
+    /// Parses the `mode` option from the options object.
+    fn parse_zip_mode(options: &JsValue, context: &mut Context) -> JsResult<ZipMode> {
+        if options.is_undefined() || options.is_null() {
+            return Ok(ZipMode::Shortest);
+        }
+        let opts = options.as_object().ok_or_else(|| {
+            JsNativeError::typ().with_message("options must be an object")
+        })?;
+        let mode_val = opts.get(js_string!("mode"), context)?;
+        if mode_val.is_undefined() {
+            return Ok(ZipMode::Shortest);
+        }
+        let mode_str = mode_val.to_string(context)?;
+        match mode_str.to_std_string_escaped().as_str() {
+            "shortest" => Ok(ZipMode::Shortest),
+            "longest" => Ok(ZipMode::Longest),
+            "strict" => Ok(ZipMode::Strict),
+            _ => Err(JsNativeError::typ()
+                .with_message("mode must be \"shortest\", \"longest\", or \"strict\"")
+                .into()),
+        }
+    }
+
+    /// Builds the padding list for "longest" mode.
+    fn build_padding(
+        padding_option: Option<JsValue>,
+        iter_count: usize,
+        iters: &[IteratorRecord],
+        context: &mut Context,
+    ) -> JsResult<Vec<JsValue>> {
+        match padding_option {
+            None => Ok(vec![JsValue::undefined(); iter_count]),
+            Some(pad_val) => {
+                let mut padding_iter = pad_val.get_iterator(IteratorHint::Sync, context)
+                    .map_err(|err| {
+                        for iter in iters {
+                            let _ = iter.close(Ok(JsValue::undefined()), context);
+                        }
+                        err
+                    })?;
+                let mut padding = Vec::new();
+                let mut using_iterator = true;
+
+                for _ in 0..iter_count {
+                    if using_iterator {
+                        match padding_iter.step_value(context) {
+                            Err(err) => {
+                                for iter in iters {
+                                    let _ = iter.close(Ok(JsValue::undefined()), context);
+                                }
+                                return Err(err);
+                            }
+                            Ok(None) => {
+                                using_iterator = false;
+                                padding.push(JsValue::undefined());
+                            }
+                            Ok(Some(val)) => {
+                                padding.push(val);
+                            }
+                        }
+                    } else {
+                        padding.push(JsValue::undefined());
+                    }
+                }
+
+                if using_iterator {
+                    let close_result = padding_iter.close(Ok(JsValue::undefined()), context);
+                    if let Err(err) = close_result {
+                        for iter in iters {
+                            let _ = iter.close(Ok(JsValue::undefined()), context);
+                        }
+                        return Err(err);
+                    }
+                }
+
+                Ok(padding)
+            }
+        }
     }
 }
 
