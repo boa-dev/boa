@@ -41,7 +41,7 @@ use std::cell::RefCell;
 use std::time::{Duration, Instant};
 use std::{
     fs::OpenOptions,
-    io::{self, IsTerminal, Read},
+    io::{self, IsTerminal, Read, Write},
     path::{Path, PathBuf},
     rc::Rc,
     thread,
@@ -167,6 +167,10 @@ struct Opt {
     /// executed prior to the expression.
     #[arg(long, short = 'e')]
     expression: Option<String>,
+
+    /// Suppress the welcome banner when starting the REPL.
+    #[arg(long, short = 'q')]
+    quiet: bool,
 }
 
 impl Opt {
@@ -361,14 +365,18 @@ fn generate_flowgraph<R: ReadChar>(
 
 #[must_use]
 fn uncaught_error(error: &JsError) -> String {
-    format!("{}: {}\n", "Uncaught".red(), error.to_string().red())
+    format!(
+        "{} {}\n",
+        "Uncaught Error:".red().bold(),
+        error.to_string().red()
+    )
 }
 
 #[must_use]
 fn uncaught_job_error(error: &JsError) -> String {
     format!(
-        "{}: {}\n",
-        "Uncaught error (during job evaluation)".red(),
+        "{} {}\n",
+        "Uncaught Error (during job evaluation):".red().bold(),
         error.to_string().red()
     )
 }
@@ -515,6 +523,7 @@ fn evaluate_files(
     Ok(())
 }
 
+#[expect(clippy::too_many_lines)]
 fn main() -> Result<()> {
     color_eyre::config::HookBuilder::default()
         .display_location_section(false)
@@ -580,12 +589,46 @@ fn main() -> Result<()> {
         };
     }
 
+    // Print the welcome banner unless --quiet is passed.
+    if !args.quiet {
+        let version = env!("CARGO_PKG_VERSION");
+        println!("{}", format!("Welcome to Boa v{version}").bold());
+        println!(
+            "Type {} for more information, {} to exit.",
+            "\".help\"".green(),
+            "Ctrl+D".green()
+        );
+        println!();
+    }
+
     let handle = start_readline_thread(sender, printer.clone(), args.vi_mode);
 
+    // TODO: Replace the `__BOA_LOAD_FILE__` string sentinel with a `CliCommand` enum
+    // (e.g. `Exec(String)` / `LoadFile(PathBuf)`) for type-safe cross-thread communication.
     let exec = executor.clone();
     let eval_loop = NativeAsyncJob::new(async move |context| {
         while let Ok(line) = receiver.recv().await {
             let printer_clone = printer.clone();
+
+            if let Some(file_path) = line.strip_prefix("__BOA_LOAD_FILE__:") {
+                let path = Path::new(file_path);
+                if path.exists() {
+                    let mut context = context.borrow_mut();
+                    if let Err(e) =
+                        evaluate_file(path, &args, &mut context, &loader, &printer_clone)
+                    {
+                        printer_clone.print(format!("{e}\n"));
+                    }
+                } else {
+                    printer_clone.print(format!(
+                        "{} file '{}' not found\n",
+                        "Error:".red().bold(),
+                        file_path
+                    ));
+                }
+                continue;
+            }
+
             // schedule a new evaluation job that can run asynchronously
             // with the other evaluations.
             let eval_script = NativeAsyncJob::new(async move |context| {
@@ -666,14 +709,45 @@ fn readline_thread_main(
     editor.set_helper(Some(helper::RLHelper::new(readline)));
 
     loop {
-        match editor.readline(readline) {
+        match editor.readline(readline).map(|l| l.trim().to_string()) {
             Ok(line) if line == ".exit" => break,
-            Err(ReadlineError::Interrupted | ReadlineError::Eof) => break,
+            Err(ReadlineError::Eof) => break,
+            Err(ReadlineError::Interrupted) => {
+                println!("(To exit, press Ctrl+D or type .exit)");
+            }
+
+            Ok(ref line) if line == ".help" => {
+                println!("REPL Commands:");
+                println!("  {}       Show this help message", ".help".green());
+                println!("  {}       Exit the REPL", ".exit".green());
+                println!("  {}      Clear the terminal screen", ".clear".green());
+                println!(
+                    "  {} Load and evaluate a JavaScript file",
+                    ".load <file>".green()
+                );
+                println!();
+                println!("Press {} to abort the current expression.", "Ctrl+C".bold());
+                println!("Press {} to exit the REPL.", "Ctrl+D".bold());
+            }
+
+            Ok(ref line) if line == ".clear" => {
+                print!("\x1B[2J\x1B[3J\x1B[1;1H");
+                io::stdout().flush().ok();
+            }
+
+            Ok(ref line) if line == ".load" || line.starts_with(".load ") => {
+                let file = line.strip_prefix(".load").unwrap_or("").trim();
+                if file.is_empty() {
+                    eprintln!("{}", "Usage: .load <filename>".yellow());
+                } else {
+                    sender.send_blocking(format!("__BOA_LOAD_FILE__:{file}"))?;
+                    thread::sleep(Duration::from_millis(10));
+                }
+            }
 
             Ok(line) => {
-                let line = line.trim_end();
-                editor.add_history_entry(line).map_err(io::Error::other)?;
-                sender.send_blocking(line.to_string())?;
+                editor.add_history_entry(&line).map_err(io::Error::other)?;
+                sender.send_blocking(line)?;
                 thread::sleep(Duration::from_millis(10));
             }
 
