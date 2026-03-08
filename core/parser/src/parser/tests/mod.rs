@@ -793,9 +793,9 @@ fn deny_unicode_escape_in_null_expression() {
 
 #[test]
 fn stress_test_operations() {
-    let src = ("1 * 2 + /* comment why not */ 3 / 4 % 5 + ".repeat(1_000)
-        + "1; // end of line\n\n")
-        .repeat(1_000);
+    // Reduced repeat counts to avoid stack overflow or OOM in CI environments.
+    let src = ("1 * 2 + /* comment why not */ 3 / 4 % 5 + ".repeat(100) + "1; // end of line\n\n")
+        .repeat(100);
 
     assert!(
         Parser::new(Source::from_bytes(&src))

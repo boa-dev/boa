@@ -281,8 +281,12 @@ where
                             .parse(cursor, interner)?
                             .try_into_expression()?;
 
-                    current_node =
-                        Binary::new(BinaryOp::Logical(LogicalOp::And), current_node.flatten().clone(), rhs.flatten().clone()).into();
+                    current_node = Binary::new(
+                        BinaryOp::Logical(LogicalOp::And),
+                        current_node.flatten().clone(),
+                        rhs.flatten().clone(),
+                    )
+                    .into();
                 }
                 TokenKind::Punctuator(Punctuator::BoolOr) => {
                     if previous == PreviousExpr::Coalesce {
@@ -303,8 +307,12 @@ where
                     )
                     .parse(cursor, interner)?
                     .try_into_expression()?;
-                    current_node =
-                        Binary::new(BinaryOp::Logical(LogicalOp::Or), current_node.flatten().clone(), rhs.flatten().clone()).into();
+                    current_node = Binary::new(
+                        BinaryOp::Logical(LogicalOp::Or),
+                        current_node.flatten().clone(),
+                        rhs.flatten().clone(),
+                    )
+                    .into();
                 }
                 TokenKind::Punctuator(Punctuator::Coalesce) => {
                     if previous == PreviousExpr::Logical {
@@ -321,9 +329,12 @@ where
                         BitwiseORExpression::new(self.allow_in, self.allow_yield, self.allow_await)
                             .parse(cursor, interner)?
                             .try_into_expression()?;
-                    current_node =
-                        Binary::new(BinaryOp::Logical(LogicalOp::Coalesce), current_node.flatten().clone(), rhs.flatten().clone())
-                            .into();
+                    current_node = Binary::new(
+                        BinaryOp::Logical(LogicalOp::Coalesce),
+                        current_node.flatten().clone(),
+                        rhs.flatten().clone(),
+                    )
+                    .into();
                 }
                 _ => break,
             }
@@ -584,7 +595,7 @@ where
                     lhs = Binary::new(
                         op.as_binary_op().expect("Could not get binary operation."),
                         lhs.flatten().clone(),
-                        rhs.flatten().clone()
+                        rhs.flatten().clone(),
                     )
                     .into();
                 }
