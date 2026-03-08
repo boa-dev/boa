@@ -292,3 +292,20 @@ fn shared_typed_array_copy_within_backward() {
         TestAction::assert("arr[12] === 13"),
     ]);
 }
+
+/// Tests zero-length slice to exercise the `count == 0` early return.
+#[test]
+fn shared_array_buffer_slice_empty() {
+    run_test_actions([
+        TestAction::run(
+            r#"
+            var sab = new SharedArrayBuffer(16);
+            var view = new Uint8Array(sab);
+            for (var i = 0; i < 16; i++) view[i] = i + 1;
+            var sliced = sab.slice(5, 5);
+            var result = new Uint8Array(sliced);
+        "#,
+        ),
+        TestAction::assert("result.length === 0"),
+    ]);
+}

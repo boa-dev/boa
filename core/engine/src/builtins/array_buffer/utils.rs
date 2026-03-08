@@ -385,6 +385,10 @@ const BATCH_SIZE: usize = size_of::<u64>();
 /// - `dest` must be valid for `count` writes of `AtomicU8`.
 /// - The memory regions must not overlap.
 unsafe fn batched_atomic_copy_forward(src: *const AtomicU8, dest: *const AtomicU8, count: usize) {
+    if count == 0 {
+        return;
+    }
+
     // Batch only if both pointers have the same misalignment, so that aligning
     // one automatically aligns the other. Otherwise, fall back to byte-by-byte.
     if (src as usize) % BATCH_SIZE != (dest as usize) % BATCH_SIZE {
@@ -417,6 +421,13 @@ unsafe fn batched_atomic_copy_forward(src: *const AtomicU8, dest: *const AtomicU
             );
             offset += 1;
         }
+    }
+
+    // Verify both pointers are now aligned after Phase 1.
+    #[cfg(debug_assertions)]
+    {
+        debug_assert_eq!((dest as usize + offset) % BATCH_SIZE, 0);
+        debug_assert_eq!((src as usize + offset) % BATCH_SIZE, 0);
     }
 
     // Phase 2: Copy aligned 8-byte chunks using AtomicU64 load/store.
@@ -458,6 +469,10 @@ unsafe fn batched_atomic_copy_forward(src: *const AtomicU8, dest: *const AtomicU
 /// - `src` must be valid for `count` reads of `AtomicU8`.
 /// - `dest` must be valid for `count` writes of `AtomicU8`.
 unsafe fn batched_atomic_copy_backward(src: *const AtomicU8, dest: *const AtomicU8, count: usize) {
+    if count == 0 {
+        return;
+    }
+
     // Batch only if both pointers have the same misalignment.
     if (src as usize) % BATCH_SIZE != (dest as usize) % BATCH_SIZE {
         // SAFETY: ensured by the caller.
@@ -483,6 +498,13 @@ unsafe fn batched_atomic_copy_backward(src: *const AtomicU8, dest: *const Atomic
             end -= 1;
             (*dest.add(end)).store((*src.add(end)).load(Ordering::Relaxed), Ordering::Relaxed);
         }
+    }
+
+    // Verify both end pointers are now aligned after Phase 1.
+    #[cfg(debug_assertions)]
+    {
+        debug_assert_eq!((dest as usize + end) % BATCH_SIZE, 0);
+        debug_assert_eq!((src as usize + end) % BATCH_SIZE, 0);
     }
 
     // Phase 2: Copy aligned 8-byte chunks backwards.
@@ -519,6 +541,10 @@ unsafe fn batched_atomic_copy_backward(src: *const AtomicU8, dest: *const Atomic
 /// - `dest` must be valid for `count` writes of `AtomicU8`.
 /// - The memory regions must not overlap.
 unsafe fn batched_copy_bytes_to_atomic(src: *const u8, dest: *const AtomicU8, count: usize) {
+    if count == 0 {
+        return;
+    }
+
     // Batch only if both pointers have the same misalignment.
     if (src as usize) % BATCH_SIZE != (dest as usize) % BATCH_SIZE {
         // SAFETY: ensured by the caller.
@@ -547,6 +573,13 @@ unsafe fn batched_copy_bytes_to_atomic(src: *const u8, dest: *const AtomicU8, co
             (*dest.add(offset)).store(*src.add(offset), Ordering::Relaxed);
             offset += 1;
         }
+    }
+
+    // Verify both pointers are now aligned after Phase 1.
+    #[cfg(debug_assertions)]
+    {
+        debug_assert_eq!((dest as usize + offset) % BATCH_SIZE, 0);
+        debug_assert_eq!((src as usize + offset) % BATCH_SIZE, 0);
     }
 
     // Phase 2: Aligned 8-byte chunks.
@@ -582,6 +615,10 @@ unsafe fn batched_copy_bytes_to_atomic(src: *const u8, dest: *const AtomicU8, co
 /// - `dest` must be valid for `count` writes.
 /// - The memory regions must not overlap.
 unsafe fn batched_copy_atomic_to_bytes(src: *const AtomicU8, dest: *mut u8, count: usize) {
+    if count == 0 {
+        return;
+    }
+
     // Batch only if both pointers have the same misalignment.
     if (src as usize) % BATCH_SIZE != (dest as usize) % BATCH_SIZE {
         // SAFETY: ensured by the caller.
@@ -610,6 +647,13 @@ unsafe fn batched_copy_atomic_to_bytes(src: *const AtomicU8, dest: *mut u8, coun
             *dest.add(offset) = (*src.add(offset)).load(Ordering::Relaxed);
             offset += 1;
         }
+    }
+
+    // Verify both pointers are now aligned after Phase 1.
+    #[cfg(debug_assertions)]
+    {
+        debug_assert_eq!((src as usize + offset) % BATCH_SIZE, 0);
+        debug_assert_eq!((dest as usize + offset) % BATCH_SIZE, 0);
     }
 
     // Phase 2: Aligned 8-byte chunks.
@@ -793,5 +837,109 @@ pub(crate) unsafe fn memmove(ptr: BytesMutPtr, from: usize, to: usize, count: us
                 copy_shared_to_shared(src, dest, count);
             }
         },
+    }
+}
+
+#[cfg(test)]
+mod utils_tests {
+    use super::*;
+    use portable_atomic::AtomicU8;
+    use std::sync::atomic::Ordering;
+
+    /// Tests `batched_atomic_copy_forward` with misaligned pointers
+    /// (different misalignment) to exercise the byte-by-byte fallback.
+    #[test]
+    fn batched_forward_misaligned_fallback() {
+        let src_data: Vec<AtomicU8> = (0..32).map(|i| AtomicU8::new(i as u8)).collect();
+        let dest_data: Vec<AtomicU8> = (0..32).map(|_| AtomicU8::new(0)).collect();
+
+        // SAFETY: Vec has 32 elements, offset 1 and 2 are within bounds.
+        let src = unsafe { src_data.as_ptr().add(1) };
+        // SAFETY: Vec has 32 elements, offset 2 is within bounds.
+        let dest = unsafe { dest_data.as_ptr().add(2) };
+        let count = 20;
+
+        // SAFETY: Both pointers are valid for 20 reads/writes (32 - max_offset = 30 >= 20).
+        unsafe { batched_atomic_copy_forward(src, dest, count) };
+
+        for i in 0..count {
+            // SAFETY: `src` is valid for `count` reads starting from its base.
+            let expected = unsafe { (*src.add(i)).load(Ordering::Relaxed) };
+            // SAFETY: `dest` is valid for `count` reads starting from its base.
+            let actual = unsafe { (*dest.add(i)).load(Ordering::Relaxed) };
+            assert_eq!(actual, expected, "mismatch at index {i}");
+        }
+    }
+
+    /// Tests `batched_atomic_copy_backward` with misaligned pointers.
+    #[test]
+    fn batched_backward_misaligned_fallback() {
+        let src_data: Vec<AtomicU8> = (0..32).map(|i| AtomicU8::new(i as u8)).collect();
+        let dest_data: Vec<AtomicU8> = (0..32).map(|_| AtomicU8::new(0)).collect();
+
+        // SAFETY: Vec has 32 elements, offset 1 is within bounds.
+        let src = unsafe { src_data.as_ptr().add(1) };
+        // SAFETY: Vec has 32 elements, offset 2 is within bounds.
+        let dest = unsafe { dest_data.as_ptr().add(2) };
+        let count = 20;
+
+        // SAFETY: Both pointers are valid for 20 reads/writes (32 - max_offset = 30 >= 20).
+        unsafe { batched_atomic_copy_backward(src, dest, count) };
+
+        for i in 0..count {
+            // SAFETY: `src` is valid for `count` reads starting from its base.
+            let expected = unsafe { (*src.add(i)).load(Ordering::Relaxed) };
+            // SAFETY: `dest` is valid for `count` reads starting from its base.
+            let actual = unsafe { (*dest.add(i)).load(Ordering::Relaxed) };
+            assert_eq!(actual, expected, "mismatch at index {i}");
+        }
+    }
+
+    /// Tests `batched_copy_bytes_to_atomic` with misaligned pointers.
+    #[test]
+    fn batched_bytes_to_atomic_misaligned_fallback() {
+        let src_data: Vec<u8> = (0..32).map(|i| i as u8).collect();
+        let dest_data: Vec<AtomicU8> = (0..32).map(|_| AtomicU8::new(0)).collect();
+
+        // SAFETY: Vec has 32 elements, offset 1 is within bounds.
+        let src = unsafe { src_data.as_ptr().add(1) };
+        // SAFETY: Vec has 32 elements, offset 2 is within bounds.
+        let dest = unsafe { dest_data.as_ptr().add(2) };
+        let count = 20;
+
+        // SAFETY: Both pointers are valid for 20 reads/writes, regions do not overlap.
+        unsafe { batched_copy_bytes_to_atomic(src, dest, count) };
+
+        for i in 0..count {
+            // SAFETY: `src` is valid for `count` reads starting from its base.
+            let expected = unsafe { *src.add(i) };
+            // SAFETY: `dest` is valid for `count` reads starting from its base.
+            let actual = unsafe { (*dest.add(i)).load(Ordering::Relaxed) };
+            assert_eq!(actual, expected, "mismatch at index {i}");
+        }
+    }
+
+    /// Tests `batched_copy_atomic_to_bytes` with misaligned pointers.
+    #[test]
+    fn batched_atomic_to_bytes_misaligned_fallback() {
+        let src_data: Vec<AtomicU8> = (0..32).map(|i| AtomicU8::new(i as u8)).collect();
+        let mut dest_data: Vec<u8> = vec![0u8; 32];
+
+        // SAFETY: Vec has 32 elements, offset 1 is within bounds.
+        let src = unsafe { src_data.as_ptr().add(1) };
+        // SAFETY: Vec has 32 elements, offset 2 is within bounds.
+        let dest = unsafe { dest_data.as_mut_ptr().add(2) };
+        let count = 20;
+
+        // SAFETY: Both pointers are valid for 20 reads/writes, regions do not overlap.
+        unsafe { batched_copy_atomic_to_bytes(src, dest, count) };
+
+        for i in 0..count {
+            // SAFETY: `src` is valid for `count` reads starting from its base.
+            let expected = unsafe { (*src.add(i)).load(Ordering::Relaxed) };
+            // SAFETY: `dest` is valid for `count` reads starting from its base.
+            let actual = unsafe { *dest.add(i) };
+            assert_eq!(actual, expected, "mismatch at index {i}");
+        }
     }
 }
