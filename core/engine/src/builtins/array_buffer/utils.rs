@@ -376,7 +376,8 @@ impl<'a> From<&'a [AtomicU8]> for SliceRefMut<'a> {
 const BATCH_SIZE: usize = size_of::<u64>();
 
 /// Copies `count` bytes forward from `src` to `dest` using `AtomicU64` for aligned
-/// 8-byte chunks and `AtomicU8` for unaligned head/tail bytes.
+/// 8-byte chunks when both pointers share the same misalignment, falling back to
+/// byte-by-byte `AtomicU8` copies otherwise.
 ///
 /// # Safety
 ///
@@ -384,12 +385,23 @@ const BATCH_SIZE: usize = size_of::<u64>();
 /// - `dest` must be valid for `count` writes of `AtomicU8`.
 /// - The memory regions must not overlap.
 unsafe fn batched_atomic_copy_forward(src: *const AtomicU8, dest: *const AtomicU8, count: usize) {
+    // Batch only if both pointers have the same misalignment, so that aligning
+    // one automatically aligns the other. Otherwise, fall back to byte-by-byte.
+    if (src as usize) % BATCH_SIZE != (dest as usize) % BATCH_SIZE {
+        // SAFETY: ensured by the caller.
+        unsafe {
+            for i in 0..count {
+                (*dest.add(i)).store((*src.add(i)).load(Ordering::Relaxed), Ordering::Relaxed);
+            }
+        }
+        return;
+    }
+
     let mut offset = 0usize;
 
-    // Phase 1: Copy unaligned head bytes until `dest + offset` is 8-byte aligned.
-    let dest_addr = dest as usize;
+    // Phase 1: Copy unaligned head bytes until both pointers are 8-byte aligned.
     let head = {
-        let misalign = dest_addr % BATCH_SIZE;
+        let misalign = (dest as usize) % BATCH_SIZE;
         if misalign == 0 {
             0
         } else {
@@ -407,23 +419,19 @@ unsafe fn batched_atomic_copy_forward(src: *const AtomicU8, dest: *const AtomicU
         }
     }
 
-    // Phase 2: Copy aligned 8-byte chunks.
+    // Phase 2: Copy aligned 8-byte chunks using AtomicU64 load/store.
     let remaining = count - offset;
     let chunks = remaining / BATCH_SIZE;
-    // SAFETY: `dest + offset` is now 8-byte aligned (guaranteed by Phase 1).
+    // SAFETY: Both `src + offset` and `dest + offset` are now 8-byte aligned
+    // (same misalignment guaranteed, Phase 1 aligned dest, so src is also aligned).
     // `AtomicU8` is `#[repr(transparent)]` over `u8`, so casting to `AtomicU64`
-    // is valid when properly aligned. We read source bytes individually through
-    // atomic loads to avoid UB with concurrent writers, then pack into u64.
+    // is valid when properly aligned.
     #[allow(clippy::cast_ptr_alignment)]
     unsafe {
+        let src_u64 = src.add(offset).cast::<AtomicU64>();
         let dest_u64 = dest.add(offset).cast::<AtomicU64>();
         for i in 0..chunks {
-            let base = offset + i * BATCH_SIZE;
-            let mut bytes = [0u8; BATCH_SIZE];
-            for (j, byte) in bytes.iter_mut().enumerate() {
-                *byte = (*src.add(base + j)).load(Ordering::Relaxed);
-            }
-            (*dest_u64.add(i)).store(u64::from_ne_bytes(bytes), Ordering::Relaxed);
+            (*dest_u64.add(i)).store((*src_u64.add(i)).load(Ordering::Relaxed), Ordering::Relaxed);
         }
         offset += chunks * BATCH_SIZE;
     }
@@ -442,16 +450,28 @@ unsafe fn batched_atomic_copy_forward(src: *const AtomicU8, dest: *const AtomicU
 }
 
 /// Copies `count` bytes backward from `src` to `dest` using `AtomicU64` for aligned
-/// 8-byte chunks and `AtomicU8` for unaligned head/tail bytes.
+/// 8-byte chunks when both pointers share the same misalignment, falling back to
+/// byte-by-byte `AtomicU8` copies otherwise.
 ///
 /// # Safety
 ///
 /// - `src` must be valid for `count` reads of `AtomicU8`.
 /// - `dest` must be valid for `count` writes of `AtomicU8`.
 unsafe fn batched_atomic_copy_backward(src: *const AtomicU8, dest: *const AtomicU8, count: usize) {
+    // Batch only if both pointers have the same misalignment.
+    if (src as usize) % BATCH_SIZE != (dest as usize) % BATCH_SIZE {
+        // SAFETY: ensured by the caller.
+        unsafe {
+            for i in (0..count).rev() {
+                (*dest.add(i)).store((*src.add(i)).load(Ordering::Relaxed), Ordering::Relaxed);
+            }
+        }
+        return;
+    }
+
     let mut end = count;
 
-    // Phase 1: Copy tail bytes until `dest + end` is 8-byte aligned.
+    // Phase 1: Copy tail bytes until both `dest + end` and `src + end` are 8-byte aligned.
     let tail = {
         let end_addr = (dest as usize).wrapping_add(end);
         let misalign = end_addr % BATCH_SIZE;
@@ -468,19 +488,15 @@ unsafe fn batched_atomic_copy_backward(src: *const AtomicU8, dest: *const Atomic
     // Phase 2: Copy aligned 8-byte chunks backwards.
     let chunks = end / BATCH_SIZE;
     let chunk_base = end - chunks * BATCH_SIZE;
-    // SAFETY: `dest + end` is 8-byte aligned (Phase 1), and `chunk_base = end - chunks*8`.
-    // Since `dest + end` is aligned and we subtract a multiple of 8, `dest + chunk_base`
-    // is also aligned. Source bytes are read individually via atomic loads.
+    // SAFETY: Both `dest + end` and `src + end` are 8-byte aligned (same misalignment
+    // guaranteed, Phase 1 aligned the end). `dest + chunk_base` is aligned because
+    // `dest + end` is aligned minus a multiple of 8.
     #[allow(clippy::cast_ptr_alignment)]
     unsafe {
+        let src_u64 = src.add(chunk_base).cast::<AtomicU64>();
         let dest_u64 = dest.add(chunk_base).cast::<AtomicU64>();
         for i in (0..chunks).rev() {
-            let base = chunk_base + i * BATCH_SIZE;
-            let mut bytes = [0u8; BATCH_SIZE];
-            for (j, byte) in bytes.iter_mut().enumerate() {
-                *byte = (*src.add(base + j)).load(Ordering::Relaxed);
-            }
-            (*dest_u64.add(i)).store(u64::from_ne_bytes(bytes), Ordering::Relaxed);
+            (*dest_u64.add(i)).store((*src_u64.add(i)).load(Ordering::Relaxed), Ordering::Relaxed);
         }
         end = chunk_base;
     }
@@ -494,8 +510,8 @@ unsafe fn batched_atomic_copy_backward(src: *const AtomicU8, dest: *const Atomic
     }
 }
 
-/// Copies `count` bytes from a non-atomic `src` to atomic `dest` using `AtomicU64`
-/// for aligned 8-byte chunks.
+/// Copies `count` bytes from non-atomic `src` to atomic `dest` using `u64`/`AtomicU64`
+/// for aligned 8-byte chunks when both pointers share the same misalignment.
 ///
 /// # Safety
 ///
@@ -503,9 +519,20 @@ unsafe fn batched_atomic_copy_backward(src: *const AtomicU8, dest: *const Atomic
 /// - `dest` must be valid for `count` writes of `AtomicU8`.
 /// - The memory regions must not overlap.
 unsafe fn batched_copy_bytes_to_atomic(src: *const u8, dest: *const AtomicU8, count: usize) {
+    // Batch only if both pointers have the same misalignment.
+    if (src as usize) % BATCH_SIZE != (dest as usize) % BATCH_SIZE {
+        // SAFETY: ensured by the caller.
+        unsafe {
+            for i in 0..count {
+                (*dest.add(i)).store(*src.add(i), Ordering::Relaxed);
+            }
+        }
+        return;
+    }
+
     let mut offset = 0usize;
 
-    // Phase 1: Head bytes until `dest + offset` is 8-byte aligned.
+    // Phase 1: Head bytes until both pointers are 8-byte aligned.
     let head = {
         let misalign = (dest as usize) % BATCH_SIZE;
         if misalign == 0 {
@@ -525,15 +552,13 @@ unsafe fn batched_copy_bytes_to_atomic(src: *const u8, dest: *const AtomicU8, co
     // Phase 2: Aligned 8-byte chunks.
     let remaining = count - offset;
     let chunks = remaining / BATCH_SIZE;
-    // SAFETY: `dest + offset` is 8-byte aligned; `src` may not be, so we use
-    // `read_unaligned`.
+    // SAFETY: Both `src + offset` and `dest + offset` are 8-byte aligned.
     #[allow(clippy::cast_ptr_alignment)]
     unsafe {
+        let src_u64 = src.add(offset).cast::<u64>();
         let dest_u64 = dest.add(offset).cast::<AtomicU64>();
-        let src_u64 = src.add(offset);
         for i in 0..chunks {
-            let val = ptr::read_unaligned(src_u64.add(i * BATCH_SIZE).cast::<u64>());
-            (*dest_u64.add(i)).store(val, Ordering::Relaxed);
+            (*dest_u64.add(i)).store(ptr::read(src_u64.add(i)), Ordering::Relaxed);
         }
         offset += chunks * BATCH_SIZE;
     }
@@ -548,8 +573,8 @@ unsafe fn batched_copy_bytes_to_atomic(src: *const u8, dest: *const AtomicU8, co
     }
 }
 
-/// Copies `count` bytes from atomic `src` to non-atomic `dest` using `AtomicU64`
-/// for aligned 8-byte chunks.
+/// Copies `count` bytes from atomic `src` to non-atomic `dest` using `AtomicU64`/`u64`
+/// for aligned 8-byte chunks when both pointers share the same misalignment.
 ///
 /// # Safety
 ///
@@ -557,9 +582,20 @@ unsafe fn batched_copy_bytes_to_atomic(src: *const u8, dest: *const AtomicU8, co
 /// - `dest` must be valid for `count` writes.
 /// - The memory regions must not overlap.
 unsafe fn batched_copy_atomic_to_bytes(src: *const AtomicU8, dest: *mut u8, count: usize) {
+    // Batch only if both pointers have the same misalignment.
+    if (src as usize) % BATCH_SIZE != (dest as usize) % BATCH_SIZE {
+        // SAFETY: ensured by the caller.
+        unsafe {
+            for i in 0..count {
+                *dest.add(i) = (*src.add(i)).load(Ordering::Relaxed);
+            }
+        }
+        return;
+    }
+
     let mut offset = 0usize;
 
-    // Phase 1: Head bytes until `src + offset` is 8-byte aligned.
+    // Phase 1: Head bytes until both pointers are 8-byte aligned.
     let head = {
         let misalign = (src as usize) % BATCH_SIZE;
         if misalign == 0 {
@@ -579,15 +615,13 @@ unsafe fn batched_copy_atomic_to_bytes(src: *const AtomicU8, dest: *mut u8, coun
     // Phase 2: Aligned 8-byte chunks.
     let remaining = count - offset;
     let chunks = remaining / BATCH_SIZE;
-    // SAFETY: `src + offset` is 8-byte aligned; `dest` may not be, so we use
-    // `write_unaligned`.
+    // SAFETY: Both `src + offset` and `dest + offset` are 8-byte aligned.
     #[allow(clippy::cast_ptr_alignment)]
     unsafe {
         let src_u64 = src.add(offset).cast::<AtomicU64>();
-        let dest_u64 = dest.add(offset);
+        let dest_u64 = dest.add(offset).cast::<u64>();
         for i in 0..chunks {
-            let val = (*src_u64.add(i)).load(Ordering::Relaxed);
-            ptr::write_unaligned(dest_u64.add(i * BATCH_SIZE).cast::<u64>(), val);
+            ptr::write(dest_u64.add(i), (*src_u64.add(i)).load(Ordering::Relaxed));
         }
         offset += chunks * BATCH_SIZE;
     }
