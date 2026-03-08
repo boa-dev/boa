@@ -22,6 +22,19 @@ pub struct Ephemeron<K: Trace + ?Sized + 'static, V: Trace + 'static> {
     inner_ptr: NonNull<EphemeronBox<K, V>>,
 }
 
+impl<K: Trace + ?Sized, V: Trace> Ephemeron<K, V> {
+    /// Returns a reference to the stored value or `None` if the key was garbage collected.
+    ///
+    /// The caller must hold the enclosing [`GcRef`][crate::GcRef] borrow for the lifetime of the
+    /// returned reference.
+    #[must_use]
+    pub fn value_ref(&self) -> Option<&V> {
+        // SAFETY: this is safe because `Ephemeron` is tracked to always point to a valid pointer
+        // `inner_ptr`
+        unsafe { self.inner_ptr.as_ref().value() }
+    }
+}
+
 impl<K: Trace + ?Sized, V: Trace + Clone> Ephemeron<K, V> {
     /// Gets the stored value of this `Ephemeron`, or `None` if the key was already garbage collected.
     ///

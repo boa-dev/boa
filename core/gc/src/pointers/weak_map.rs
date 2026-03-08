@@ -6,7 +6,7 @@ use hashbrown::{
     hash_table::{Entry as RawEntry, Iter as RawIter},
 };
 
-use crate::{Allocator, Ephemeron, Finalize, Gc, GcRefCell, Trace, custom_trace};
+use crate::{Allocator, Ephemeron, Finalize, Gc, GcRef, GcRefCell, Trace, custom_trace};
 use std::{fmt, hash::BuildHasher, marker::PhantomData};
 
 /// A map that holds weak references to its keys and is traced by the garbage collector.
@@ -40,7 +40,9 @@ impl<K: Trace + ?Sized, V: Trace + Clone> WeakMap<K, V> {
     pub fn remove(&mut self, key: &Gc<K>) -> Option<V> {
         self.inner.borrow_mut().remove(key)
     }
+}
 
+impl<K: Trace + ?Sized, V: Trace> WeakMap<K, V> {
     /// Returns `true` if the map contains a value for the specified key.
     #[must_use]
     #[inline]
@@ -51,8 +53,8 @@ impl<K: Trace + ?Sized, V: Trace + Clone> WeakMap<K, V> {
     /// Returns a reference to the value corresponding to the key.
     #[must_use]
     #[inline]
-    pub fn get(&self, key: &Gc<K>) -> Option<V> {
-        self.inner.borrow().get(key)
+    pub fn get(&self, key: &Gc<K>) -> Option<GcRef<'_, V>> {
+        GcRef::try_map(self.inner.borrow(), |map: &RawWeakMap<K, V>| map.get(key))
     }
 }
 
@@ -222,6 +224,28 @@ where
 impl<K, V, S> RawWeakMap<K, V, S>
 where
     K: Trace + ?Sized + 'static,
+    V: Trace + 'static,
+    S: BuildHasher,
+{
+    /// Returns a reference to the value corresponding to the supplied key.
+    pub(crate) fn get(&self, k: &Gc<K>) -> Option<&V> {
+        if self.table.is_empty() {
+            None
+        } else {
+            let hash = make_hash_from_gc(&self.hash_builder, k);
+            self.table.find(hash, equivalent_key(k))?.value_ref()
+        }
+    }
+
+    /// Returns `true` if the map contains a value for the specified key.
+    pub(crate) fn contains_key(&self, k: &Gc<K>) -> bool {
+        self.get(k).is_some()
+    }
+}
+
+impl<K, V, S> RawWeakMap<K, V, S>
+where
+    K: Trace + ?Sized + 'static,
     V: Trace + Clone + 'static,
     S: BuildHasher,
 {
@@ -273,22 +297,6 @@ where
     pub(crate) fn shrink_to(&mut self, min_capacity: usize) {
         self.table
             .shrink_to(min_capacity, make_hasher::<_, V, S>(&self.hash_builder));
-    }
-
-    /// Returns the value corresponding to the supplied key.
-    // TODO: make this return a reference instead of cloning.
-    pub(crate) fn get(&self, k: &Gc<K>) -> Option<V> {
-        if self.table.is_empty() {
-            None
-        } else {
-            let hash = make_hash_from_gc(&self.hash_builder, k);
-            self.table.find(hash, equivalent_key(k))?.value()
-        }
-    }
-
-    /// Returns `true` if the map contains a value for the specified key.
-    pub(crate) fn contains_key(&self, k: &Gc<K>) -> bool {
-        self.get(k).is_some()
     }
 
     // Inserts a key-value pair into the map.
