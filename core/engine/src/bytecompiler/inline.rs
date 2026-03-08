@@ -17,7 +17,7 @@ use boa_ast::{
     Expression, Statement, StatementListItem,
     declaration::Binding,
     function::{ArrowFunction, FunctionExpression},
-    operations::{annex_b_function_declarations_names, var_scoped_declarations},
+    operations::{ContainsSymbol, annex_b_function_declarations_names, contains, var_scoped_declarations},
     visitor::{VisitWith, Visitor},
 };
 
@@ -43,6 +43,11 @@ enum InlinableBody<'a> {
 }
 
 impl ByteCompiler<'_> {
+    /// Check if any arguments use spread syntax, which the inliner cannot handle.
+    fn args_contain_spread(args: &[Expression]) -> bool {
+        args.iter().any(|arg| matches!(arg, Expression::Spread(_)))
+    }
+
     /// Try to inline an IIFE arrow function call: `((params) => body)(args)`.
     ///
     /// Returns `true` if the call was successfully inlined, `false` if it
@@ -53,6 +58,9 @@ impl ByteCompiler<'_> {
         args: &[Expression],
         dst: &super::Register,
     ) -> bool {
+        if Self::args_contain_spread(args) {
+            return false;
+        }
         if !Self::is_arrow_inlinable(arrow) {
             return false;
         }
@@ -75,7 +83,10 @@ impl ByteCompiler<'_> {
         args: &[Expression],
         dst: &super::Register,
     ) -> bool {
-        if !Self::is_function_expr_inlinable(func) {
+        if Self::args_contain_spread(args) {
+            return false;
+        }
+        if !self.is_function_expr_inlinable(func) {
             return false;
         }
 
@@ -139,13 +150,25 @@ impl ByteCompiler<'_> {
     }
 
     /// Check if a function expression is eligible for inlining.
-    fn is_function_expr_inlinable(func: &FunctionExpression) -> bool {
+    fn is_function_expr_inlinable(&self, func: &FunctionExpression) -> bool {
         if func.contains_direct_eval() {
             return false;
         }
 
         // No binding identifier (no self-reference like `(function f() { f(); })()`)
         if func.has_binding_identifier() {
+            return false;
+        }
+
+        // Function expressions have their own `this` binding (unlike arrows).
+        // Cannot inline if `this` is referenced, since the caller's `this` differs.
+        if contains(func.body(), ContainsSymbol::This) {
+            return false;
+        }
+
+        // Reject if the function's strictness differs from the caller.
+        // A "use strict" directive in the function body would be lost when inlined.
+        if func.body().strict() != self.strict() {
             return false;
         }
 
