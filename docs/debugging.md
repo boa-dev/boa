@@ -1,4 +1,4 @@
-# Debugging
+## Debugging
 
 There are multiple ways to debug what Boa is doing. Or maybe you just want to
 know how it works under the hood. Or even test some JavaScript.
