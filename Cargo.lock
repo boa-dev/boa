@@ -3575,9 +3575,8 @@ checksum = "dc897dd8d9e8bd1ed8cdad82b5966c3e0ecae09fb1907d58efaa013543185d0a"
 
 [[package]]
 name = "regress"
-version = "0.10.5"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "2057b2325e68a893284d1538021ab90279adac1139957ca2a74426c6f118fb48"
+version = "0.10.4"
+source = "git+https://github.com/ridiculousfish/regress?rev=b4dc529#b4dc5290318862c5cedf5bc683189790b2c0c94e"
 dependencies = [
  "hashbrown 0.16.1",
  "memchr",
