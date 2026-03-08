@@ -541,12 +541,14 @@ fn main() -> Result<()> {
 
     let executor = Rc::new(Executor::new(printer.clone()));
     let loader = Rc::new(SimpleModuleLoader::new(&args.root).map_err(|e| eyre!(e.to_string()))?);
-    let context = &mut ContextBuilder::new()
+    // Bind the Context to an owned variable so it can be explicitly dropped
+    // before process termination, preventing TLS AccessErrors during garbage collection.
+    let mut owned_context = ContextBuilder::new()
         .job_executor(executor.clone())
         .module_loader(loader.clone())
         .build()
         .map_err(|e| eyre!(e.to_string()))?;
-
+    let context = &mut owned_context;
     // Strict mode
     context.strict(args.strict);
 
@@ -572,21 +574,37 @@ fn main() -> Result<()> {
         if let Some(ref expr) = args.expression {
             evaluate_expr(expr, &args, context, &printer)?;
         }
-
+        // Ensure context is dropped and collected to finalize resources (e.g., wgpu) safely.
+        drop(loader);
+        drop(executor);
+        drop(owned_context);
+        boa_gc::force_collect();
         return Ok(());
     } else if let Some(ref expr) = args.expression {
         evaluate_expr(expr, &args, context, &printer)?;
+        // Ensure context is dropped and collected to finalize resources (e.g., wgpu) safely.
+        drop(loader);
+        drop(executor);
+        drop(owned_context);
+        boa_gc::force_collect();
         return Ok(());
     } else if !io::stdin().is_terminal() {
         let mut input = String::new();
         io::stdin()
             .read_to_string(&mut input)
             .wrap_err("failed to read stdin")?;
-        return if input.is_empty() {
+
+        let result = if input.is_empty() {
             Ok(())
         } else {
             evaluate_expr(&input, &args, context, &printer)
         };
+        // Ensure context is dropped and collected to finalize resources (e.g., wgpu) safely.
+        drop(loader);
+        drop(executor);
+        drop(owned_context);
+        boa_gc::force_collect();
+        return result;
     }
 
     // Print the welcome banner unless --quiet is passed.
@@ -671,6 +689,10 @@ fn main() -> Result<()> {
         .map_err(|e| e.into_erased(context));
 
     handle.join().expect("failed to join thread");
+    // Explicitly drop the root context and force garbage collection.
+    // This allows hardware-linked finalizers to run while Thread Local Storage is still active.
+    drop(owned_context);
+    boa_gc::force_collect();
 
     Ok(result?)
 }
