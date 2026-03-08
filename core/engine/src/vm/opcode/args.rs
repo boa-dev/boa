@@ -218,3 +218,129 @@ macro_rules! impl_argument_for_int {
 }
 
 impl_argument_for_int!(u8 u16 u32 u64 i8 i16 i32 f32 f64);
+
+#[cfg(test)]
+mod tests {
+    use super::{Address, Argument, RegisterOperand, VaryingOperand};
+    use std::mem::size_of;
+    use thin_vec::ThinVec;
+
+    fn round_trip<T: Argument + PartialEq + Clone>(value: &T) {
+        let mut bytes = Vec::new();
+        value.clone().encode(&mut bytes);
+        let (decoded, pos) = T::decode(&bytes, 0);
+        assert_eq!(decoded, *value);
+        assert_eq!(pos, bytes.len());
+    }
+
+    fn round_trip_eq<T: Argument + Clone, F: Fn(&T, &T) -> bool>(value: &T, eq: F) {
+        let mut bytes = Vec::new();
+        value.clone().encode(&mut bytes);
+        let (decoded, pos) = T::decode(&bytes, 0);
+        assert!(eq(&decoded, value));
+        assert_eq!(pos, bytes.len());
+    }
+
+    #[test]
+    fn test_unit_round_trip() {
+        round_trip(&());
+    }
+
+    #[test]
+    fn test_address_round_trip() {
+        round_trip_eq(&Address::new(0), |a, b| u32::from(*a) == u32::from(*b));
+        round_trip_eq(&Address::new(0x1234_5678), |a, b| {
+            u32::from(*a) == u32::from(*b)
+        });
+    }
+
+    #[test]
+    fn test_register_operand_round_trip() {
+        round_trip_eq(&RegisterOperand::new(0), |a, b| {
+            u32::from(*a) == u32::from(*b)
+        });
+        round_trip_eq(&RegisterOperand::new(255), |a, b| {
+            u32::from(*a) == u32::from(*b)
+        });
+    }
+
+    #[test]
+    fn test_varying_operand_round_trip() {
+        round_trip_eq(&VaryingOperand::new(0), |a, b| {
+            u32::from(*a) == u32::from(*b)
+        });
+        round_trip_eq(&VaryingOperand::new(0xFFFF_FFFF), |a, b| {
+            u32::from(*a) == u32::from(*b)
+        });
+    }
+
+    #[test]
+    fn test_primitive_round_trips() {
+        round_trip(&0u8);
+        round_trip(&255u8);
+        round_trip(&0i8);
+        round_trip(&(-128i8));
+        round_trip(&0u16);
+        round_trip(&0xFFFFu16);
+        round_trip(&(-32768i16));
+        round_trip(&0u32);
+        round_trip(&0xFFFF_FFFFu32);
+        round_trip(&0i32);
+        round_trip(&i32::MIN);
+        round_trip(&0u64);
+        round_trip(&0xFFFF_FFFF_FFFF_FFFFu64);
+        round_trip(&0.0f32);
+        round_trip(&1.5f32);
+        round_trip(&0.0f64);
+        round_trip(&1.5f64);
+    }
+
+    #[test]
+    fn test_tuple_round_trips() {
+        round_trip(&(0u8, 1u8));
+        round_trip(&(0u32, 1u32));
+        let tuple = (Address::new(0), RegisterOperand::new(1));
+        round_trip_eq(&tuple, |a, b| {
+            u32::from(a.0) == u32::from(b.0) && u32::from(a.1) == u32::from(b.1)
+        });
+    }
+
+    #[test]
+    fn test_thin_vec_round_trip() {
+        let v: ThinVec<u32> = ThinVec::new();
+        round_trip(&v);
+        let v: ThinVec<u32> = [1u32, 2, 3].into_iter().collect();
+        round_trip(&v);
+        let v: ThinVec<RegisterOperand> = [RegisterOperand::new(0), RegisterOperand::new(1)]
+            .into_iter()
+            .collect();
+        round_trip_eq(&v, |a, b| {
+            a.len() == b.len()
+                && a.iter()
+                    .zip(b.iter())
+                    .all(|(x, y)| u32::from(*x) == u32::from(*y))
+        });
+    }
+
+    #[test]
+    fn test_encoded_size_matches_type_size() {
+        let mut bytes = Vec::new();
+        Address::new(0xDEAD_BEEF).encode(&mut bytes);
+        assert_eq!(bytes.len(), size_of::<u32>());
+
+        bytes.clear();
+        (0u64).encode(&mut bytes);
+        assert_eq!(bytes.len(), size_of::<u64>());
+
+        bytes.clear();
+        (0.0f64).encode(&mut bytes);
+        assert_eq!(bytes.len(), size_of::<f64>());
+    }
+
+    #[test]
+    #[should_panic(expected = "buffer too small")]
+    fn decode_truncated_buffer_panics() {
+        let bytes = [0u8; 2];
+        let _ = u32::decode(&bytes, 0);
+    }
+}
