@@ -178,12 +178,13 @@ where
                     .map(Into::into)
             }
             TokenKind::BooleanLiteral((boolean, _)) => {
-                let node = Literal::new(*boolean, tok.span());
+                let node = Literal::with_linear_span(*boolean, tok.span(), tok.linear_span());
                 cursor.advance(interner);
                 Ok(node.into())
             }
             TokenKind::NullLiteral(_) => {
-                let node = Literal::new(LiteralKind::Null, tok.span());
+                let node =
+                    Literal::with_linear_span(LiteralKind::Null, tok.span(), tok.linear_span());
                 cursor.advance(interner);
                 Ok(node.into())
             }
@@ -195,7 +196,7 @@ where
                 .parse(cursor, interner)
                 .map(Into::into),
             TokenKind::StringLiteral((lit, _)) => {
-                let node = Literal::new(*lit, tok.span());
+                let node = Literal::with_linear_span(*lit, tok.span(), tok.linear_span());
                 cursor.advance(interner);
                 Ok(node.into())
             }
@@ -214,17 +215,17 @@ where
                 Ok(temp.into())
             }
             TokenKind::NumericLiteral(Numeric::Integer(num)) => {
-                let node = Literal::new(*num, tok.span());
+                let node = Literal::with_linear_span(*num, tok.span(), tok.linear_span());
                 cursor.advance(interner);
                 Ok(node.into())
             }
             TokenKind::NumericLiteral(Numeric::Rational(num)) => {
-                let node = Literal::new(*num, tok.span());
+                let node = Literal::with_linear_span(*num, tok.span(), tok.linear_span());
                 cursor.advance(interner);
                 Ok(node.into())
             }
             TokenKind::NumericLiteral(Numeric::BigInt(num)) => {
-                let node = Literal::new(num.clone(), tok.span());
+                let node = Literal::with_linear_span(num.clone(), tok.span(), tok.linear_span());
                 cursor.advance(interner);
                 Ok(node.into())
             }

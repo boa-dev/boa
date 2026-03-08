@@ -58,9 +58,9 @@ jobs:
           targets: wasm32-unknown-unknown
 
       - name: Install wasm-pack
-        uses: jetli/wasm-pack-action@v0.4.0
+        uses: baptiste0928/cargo-install@v3.4.0
         with:
-          version: 'latest'
+          crate: wasm-pack
 
       - name: Build boa_wasm
         run: wasm-pack build --scope boa-dev ./ffi/wasm
