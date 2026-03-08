@@ -833,7 +833,7 @@ impl From<&str> for JsString {
 
         // New Latin1 check
         if s.chars().all(|c| c as u32 <= 0xFF) {
-           let bytes: Vec<u8> = s.chars().map(|c| c as u8).collect();
+            let bytes: Vec<u8> = s.chars().map(|c| c as u8).collect();
             let js_str = JsStr::latin1(&bytes);
             return JsString::from_slice_skip_interning(js_str);
         }
