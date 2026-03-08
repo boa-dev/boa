@@ -56,7 +56,7 @@ intl = [
     "dep:fixed_decimal",
     "dep:tinystr",
     "dep:timezone_provider",
-    "timezone_provider/tzif",
+    "timezone_provider/experimental_tzif",
 ]
 
 fuzz = ["boa_ast/arbitrary", "boa_interner/arbitrary"]
@@ -71,7 +71,7 @@ trace = ["js"]
 annex-b = ["boa_ast/annex-b", "boa_parser/annex-b"]
 
 # Enable Boa's Temporal proposal implementation
-temporal = ["dep:icu_calendar", "dep:temporal_rs", "dep:timezone_provider", "timezone_provider/tzif"]
+temporal = ["dep:icu_calendar", "dep:temporal_rs", "dep:timezone_provider", "timezone_provider/experimental_tzif"]
 
 #Enable access to host system timezone
 system-time-zone = ["dep:iana-time-zone"]

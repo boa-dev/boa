@@ -56,6 +56,7 @@ impl IntrinsicObject for OrdinaryObject {
 
         let legacy_setter_proto = BuiltInBuilder::callable(realm, Self::legacy_proto_setter)
             .name(js_string!("set __proto__"))
+            .length(1)
             .build();
 
         BuiltInBuilder::from_standard_constructor::<Self>(realm)
