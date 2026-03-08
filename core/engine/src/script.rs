@@ -242,7 +242,6 @@ impl Script {
                 context.vm.pop_frame();
             })?;
 
-
         Ok(())
     }
 

@@ -21,7 +21,7 @@ use crate::{
     realm::Realm,
     spanned_source_text::SourceText,
     string::StaticJsStrings,
-    vm::{CallFrame, CallFrameFlags, Constant, source_info::SourcePath},
+    vm::{CallFrame, CallFrameFlags, source_info::SourcePath},
 };
 use boa_ast::{
     operations::{ContainsSymbol, contains, contains_arguments},
@@ -291,12 +291,12 @@ impl Eval {
 
         compiler.current_open_environments_count += 1;
 
-        let scope_index = compiler.constants.len() as u32;
-        compiler
-            .constants
-            .push(Constant::Scope(lexical_scope.clone()));
+        // let scope_index = compiler.constants.len() as u32;
+        // compiler
+        //     .constants
+        //     .push(Constant::Scope(lexical_scope.clone()));
 
-        compiler.bytecode.emit_push_scope(scope_index.into());
+        // compiler.bytecode.emit_push_scope(scope_index.into());
         if strict {
             variable_scope = lexical_scope.clone();
             compiler.variable_scope = lexical_scope.clone();
@@ -343,6 +343,15 @@ impl Eval {
         );
 
         context.realm().resize_global_env();
+
+        // Pushing the scope here ensures any function objects created
+        // in `eval_declaration_instantiation` get their proper
+        // environment stack.
+        context
+            .vm
+            .frame_mut()
+            .environments
+            .push_lexical(lexical_scope.num_bindings_non_local());
 
         context
             .eval_declaration_instantiation(&code_block)

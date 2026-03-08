@@ -71,7 +71,7 @@ use rustc_hash::FxHashMap;
 use thin_vec::ThinVec;
 
 pub(crate) use declarations::{
-    prepare_eval_declaration_instantiation, global_declaration_instantiation_context,
+    global_declaration_instantiation_context, prepare_eval_declaration_instantiation,
 };
 pub(crate) use function::FunctionCompiler;
 pub(crate) use jump_control::JumpControlInfo;

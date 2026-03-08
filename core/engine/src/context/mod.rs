@@ -883,8 +883,8 @@ impl Context {
     /// Creates all globals required to evaluate `codeblock`.
     ///
     /// This is the common path of the instantiations:
-    /// - EvalDeclarationInstantiation ( body, varEnv, lexEnv, privateEnv, strict )
-    /// - GlobalDeclarationInstantiation ( script, env )
+    /// - `EvalDeclarationInstantiation ( body, varEnv, lexEnv, privateEnv, strict )`
+    /// - `GlobalDeclarationInstantiation ( script, env )`
     fn create_globals(&mut self, codeblock: &CodeBlock, is_eval_call: bool) -> JsResult<()> {
         // 8. For each element d of varDeclarations, in reverse List order, do
         //    a. If d is not either a VariableDeclaration, a ForBinding, or a BindingIdentifier, then
@@ -899,7 +899,7 @@ impl Context {
             // 2. If fnDefinable is false, throw a TypeError exception.
             let name = codeblock.constant_string(*global_fn as usize);
             if !self.can_declare_global_function(&name)? {
-                return Err(js_error!("cannot declare global function"));
+                return Err(js_error!(TypeError: "cannot declare global function"));
             }
         }
 
