@@ -44,7 +44,6 @@ impl StrengthReduction {
             && div_val == 2
         {
             let span = binary.span();
-            // Extract the LHS out of the tree without cloning, replacing the old spot with a dummy Unefined
             let lhs = std::mem::replace(
                 binary.lhs_mut(),
                 boa_ast::expression::literal::Literal::new(
@@ -77,7 +76,6 @@ impl StrengthReduction {
             && Self::is_side_effect_free(binary.lhs())
         {
             let span = binary.span();
-            // We take the original LHS without cloning
             let lhs = std::mem::replace(
                 binary.lhs_mut(),
                 boa_ast::expression::literal::Literal::new(
