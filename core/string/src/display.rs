@@ -19,7 +19,7 @@ impl fmt::Display for JsStrDisplayEscaped<'_> {
             JsStrVariant::Latin1(v) => v
                 .iter()
                 .copied()
-                .map(char::from)
+                .map(|b| char::from_u32(b as u32).unwrap())
                 .try_for_each(|c| f.write_char(c)),
             JsStrVariant::Utf16(_) => self.inner.code_points().try_for_each(|r| match r {
                 CodePoint::Unicode(c) => f.write_char(c),
