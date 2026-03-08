@@ -2340,21 +2340,21 @@ impl<'ctx> ByteCompiler<'ctx> {
     fn call(&mut self, callable: Callable<'_>, dst: CallResultDest<'_>) {
         // Try to inline IIFE calls: ((a, b) => expr)(x, y)
         // Only when the result goes into a register (the common expression case).
-        if let CallResultDest::Register(dst) = dst {
-            if let Callable::Call(call) = callable {
-                match call.function().flatten() {
-                    Expression::ArrowFunction(arrow) => {
-                        if self.try_inline_arrow_call(arrow, call.args(), dst) {
-                            return;
-                        }
+        if let CallResultDest::Register(dst) = dst
+            && let Callable::Call(call) = callable
+        {
+            match call.function().flatten() {
+                Expression::ArrowFunction(arrow) => {
+                    if self.try_inline_arrow_call(arrow, call.args(), dst) {
+                        return;
                     }
-                    Expression::FunctionExpression(func) => {
-                        if self.try_inline_function_call(func, call.args(), dst) {
-                            return;
-                        }
-                    }
-                    _ => {}
                 }
+                Expression::FunctionExpression(func) => {
+                    if self.try_inline_function_call(func, call.args(), dst) {
+                        return;
+                    }
+                }
+                _ => {}
             }
         }
         #[derive(PartialEq)]

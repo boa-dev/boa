@@ -17,7 +17,9 @@ use boa_ast::{
     Expression, Statement, StatementListItem,
     declaration::Binding,
     function::{ArrowFunction, FunctionExpression},
-    operations::{ContainsSymbol, annex_b_function_declarations_names, contains, var_scoped_declarations},
+    operations::{
+        ContainsSymbol, annex_b_function_declarations_names, contains, var_scoped_declarations,
+    },
     visitor::{VisitWith, Visitor},
 };
 
