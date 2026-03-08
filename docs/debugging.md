@@ -1,120 +1,213 @@
-# Debugging
+## Debugging
 
-There are multiple ways to debug what Boa is doing. Or maybe you just want to
-know how it works under the hood. Or even test some JavaScript.
+There are multiple ways to debug what Boa is doing. You may also want to
+inspect how the engine works internally or simply test some JavaScript code.
 
 One way to do so is to create a file in the root of the repository. For example
-`test.js`. Then execute `cargo run -- test.js` to run the file with boa. You can
-compile a list of JavaScript files by running `cargo run -- file1.js file2.js`
-and so on.
+test.js. Then execute:
 
-You can also run boa interactively by simply calling `cargo run` without any
-arguments to start a shell to execute JS.
+cargo run -- test.js
 
-These are added in order of how the code is read:
+to run the file with Boa.
+
+You can also execute multiple JavaScript files:
+
+cargo run -- file1.js file2.js
+
+Additionally, Boa can be run interactively by simply calling:
+
+cargo run
+
+This starts the REPL shell where you can execute JavaScript directly.
+
+The following sections describe the debugging tools available in Boa in roughly
+the order that the engine processes JavaScript code.
 
 ## Tokens and AST nodes
 
-The first thing boa will do is to generate tokens from the source code.
-These tokens are then parsed into an abstract syntax tree (AST).
-Any syntax errors should be thrown while the AST is generated.
+The first step Boa performs is generating tokens from the source code.
+These tokens are then parsed into an Abstract Syntax Tree (AST).
+Any syntax errors should occur during this stage.
 
-You can use the `boa_cli` command-line flag `--dump-ast` to print the AST.
-The flag supports these formats: `Debug`, `Json`, `JsonPretty`. By default
-it is the `Debug` format.
+You can use the boa_cli command-line flag --dump-ast to print the AST.
+
+Supported formats:
+
+Debug
+
+Json
+
+JsonPretty
+
+The default format is Debug.
 
 Dumping the AST of a file:
 
-```bash
-cargo run -- test.js --dump-ast # AST dump format is Debug by default.
-```
+cargo run -- test.js --dump-ast
 
-or with interactive mode (REPL):
+Using interactive mode (REPL):
 
-```bash
-cargo run -- --dump-ast # AST dump format is Debug by default.
-```
+cargo run -- --dump-ast
 
-## Bytecode generation and Execution
+## Bytecode generation and execution
 
-Once the AST has been generated, boa will compile it into bytecode, which is then executed by the VM.
-You can print the bytecode and the executed instructions with the command-line flag `--trace`.
+Once the AST has been generated, Boa compiles it into bytecode which is then
+executed by the virtual machine (VM).
 
-For more detailed information about the VM and the trace output look [here](./vm.md).
+You can print the bytecode and executed instructions using the --trace flag.
+
+For more detailed information about the VM and trace output see:
+vm.md.
 
 ## Instruction flowgraph
 
-We can also get the VM instructions flowgraph, which is a visual representation of the instruction flow.
+Boa can generate a visual representation of VM instruction flow.
 
-The `Start` (in green) and `End` (in red) node in the graph represents the start and end point of execution.
-They are not instructions, just markers.
+In the generated graph:
 
-The conditional instructions are diamond shaped, with the `"YES"` branch in green and the `"NO"` branch in red.
-The push and pop environment pairs match colors and are connected by a dotted line.
+Start (green) represents the start of execution.
 
-You can use the `--flowgraph` (or `--flowgraph=mermaid` for [mermaid][mermaid] format) flag which outputs
-[graphviz][graphviz] format by default, and pipe it to `dot` (from the `graphviz` package which is installed
-on most linux distros by default) or use an online editor like: <https://dreampuf.github.io/GraphvizOnline> to
-view the graph.
+End (red) represents the end of execution.
 
-```bash
+Conditional instructions are diamond-shaped.
+
+"YES" branches are shown in green and "NO" branches in red.
+
+Push/pop environment pairs share colors and are connected by dotted lines.
+
+Use the --flowgraph flag to generate a flowgraph.
+
+Example:
+
 cargo run -- test.js --flowgraph | dot -Tpng > test.png
-```
 
-You can specify the `-Tsvg` to generate a `svg` instead of a `png` file.
+The output is in Graphviz format by default.
 
-![Graphviz flowgraph](./img/graphviz_flowgraph.svg)
+You can also generate Mermaid diagrams:
 
-Mermaid graphs can be displayed on github [natively without third-party programs][gihub-mermaid].
-By using a `mermaid` block as seen below.
+cargo run -- test.js --flowgraph=mermaid
 
-````
-```mermaid
-// graph contents here...
-```
-````
+To change graph direction:
 
-Additionally you can specify the direction of "flow" by using the `--flowgraph-direction` cli option,
-for example `--flowgraph-direction=left-to-right`, the default is `top-to-bottom`.
+--flowgraph-direction=left-to-right
 
-[mermaid]: https://mermaid-js.github.io/
-[gihub-mermaid]: https://docs.github.com/en/get-started/writing-on-github/working-with-advanced-formatting/creating-diagrams
-[graphviz]: https://graphviz.org/
+The default direction is top-to-bottom.
+
+Mermaid diagrams can be rendered directly on GitHub.
 
 ## Debugging through the debug object $boa
 
-Certain debugging actions in JavaScript land are difficult to impossible, like triggering a GC collect.
+Some debugging actions are difficult or impossible from standard JavaScript.
+For this purpose Boa provides a special debug object called $boa.
 
-For such purposes we have the `$boa` object that contains useful utilities that can be used to debug JavaScript in JavaScript.
-The debug object becomes available with the `--debug-object` cli flag, It injects the `$boa` debug object in the context as global variable,
-the object is separated into modules `gc`, `function`, `object`, etc.
+This object becomes available when running the CLI with:
 
-We can now do `$boa.gc.collect()`, which force triggers a GC collect.
+cargo run -- --debug-object
 
-If you want to trace only a particular function (without being flooded by the `--trace` flag, that traces everything),
-for that we have the `$boa.function.trace(func, this, ...args)`.
+It injects the $boa object into the global scope.
 
-The full documentation of the `$boa` object's modules and functionalities can be found [`here`](./boa_object.md).
+The object contains modules such as:
+
+gc
+
+function
+
+object
+
+Example: forcing a garbage collection
+
+$boa.gc.collect()
+
+Tracing a single function:
+
+$boa.function.trace(func, this, ...args)
+
+This allows tracing a specific function without enabling the global --trace
+flag which traces the entire program.
+
+Full documentation for $boa can be found here:
+
+boa_object.md
 
 ## Compiler panics
 
-In the case of a compiler panic, to get a full backtrace you will need to set
-the environment variable `RUST_BACKTRACE=1`.
+If the compiler panics, you can enable a full backtrace by setting the
+environment variable:
 
-## Debugger
+RUST_BACKTRACE=1
 
-### VS Code Debugger
+Example:
 
-The quickest way to get debugging is to use the CodeLLDB plugin and add breakpoints. You can get
-more information [here][blog_debugging].
+RUST_BACKTRACE=1 cargo run -- test.js
 
-### LLDB Manual debugging
+## Running tests with debug output
 
-You can also use rust-lldb. You should be able to use that environment to run your code.
+When debugging engine behavior it is often useful to run tests while
+seeing debug output.
 
-```
+Rust hides println! output in tests by default. To display it, run:
+
+cargo test -- --nocapture
+
+To run a single test with visible output:
+
+cargo test test_name -- --nocapture
+
+This is helpful when investigating specific failing tests.
+
+## Inspecting JsValue internals
+
+When debugging engine behavior it can be useful to inspect JavaScript
+values at runtime.
+
+Boa provides helper display functions:
+
+value.display()
+
+To include internal object information such as hidden properties and
+prototype details:
+
+value.display().internals(true)
+
+These helpers are frequently used in the REPL and during engine debugging.
+
+## Formatting and linting
+
+Before submitting a pull request or while iterating on debugging changes,
+it is recommended to run the project's formatting and linting tools.
+
+Format the code:
+
+cargo fmt
+
+Run the linter:
+
+cargo clippy
+
+These tools help maintain code quality and consistency.
+
+## Debugger VS Code debugger
+
+The easiest way to debug Boa is by using the CodeLLDB extension
+for Visual Studio Code and setting breakpoints.
+
+More information is available here:
+
+## LLDB manual debugging
+
+You can also debug manually using rust-lldb:
+
 rust-lldb ./target/debug/boa [arguments]
-```
 
-[remote_containers]: https://marketplace.visualstudio.com/items?itemName=ms-vscode-remote.remote-containers
-[blog_debugging]: https://jason-williams.co.uk/debugging-rust-in-vscode
+## Building Boa in debug mode
+
+During development Boa is usually built in debug mode:
+
+cargo build
+
+Debug builds include additional checks and produce more useful stack
+traces during debugging.
+
+For performance testing or production builds you can use:
+
+cargo build --release
