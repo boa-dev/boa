@@ -40,7 +40,6 @@ Prefer a CLI? Feel free to try out `boa_cli`!
 You can run the CLI using Cargo, or use a prebuilt binary if you prefer not to install Rust.
 
 - **Prebuilt binaries (recommended for quick use):** Download the appropriate archive from the GitHub Releases page, extract it, and add the `boa` (or `boa.exe` on Windows) binary to your `PATH`.
-
   - Linux / macOS (example):
 
     ```bash
@@ -68,6 +67,7 @@ You can run the CLI using Cargo, or use a prebuilt binary if you prefer not to i
   ```
 
 Notes:
+
 - Using the prebuilt binary avoids installing Rust/toolchains.
 - `cargo install --path . -p boa_cli` installs the CLI from the workspace; on some platforms you may need to run `rustup` or install a target toolchain first.
 
