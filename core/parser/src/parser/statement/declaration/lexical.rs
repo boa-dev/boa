@@ -100,7 +100,6 @@ where
                 self.loop_init,
             )
             .parse(cursor, interner)?,
-<<<<<<< feat/resource
             TokenKind::Keyword((Keyword::Using, false)) => BindingList::new(
                 self.allow_in,
                 self.allow_yield,
@@ -110,7 +109,7 @@ where
             )
             .parse(cursor, interner)?,
             TokenKind::Keyword((Keyword::Await, false)) => {
-                // Per spec: https://arai-a.github.io/ecma262-compare/snapshot.html?pr=3000#prod-LexicalDeclaration
+                // Per spec: <https://arai-a.github.io/ecma262-compare/snapshot.html?pr=3000#prod-LexicalDeclaration>
                 // `await using` is only valid when [+Await] is true
                 if !self.allow_await.0 {
                     return Err(Error::general(
@@ -119,7 +118,7 @@ where
                     ));
                 }
 
-                // Per spec: https://arai-a.github.io/ecma262-compare/snapshot.html?pr=3000#prod-AwaitUsingDeclarationHead
+                // Per spec: <https://arai-a.github.io/ecma262-compare/snapshot.html?pr=3000#prod-AwaitUsingDeclarationHead>
                 // There must be [no LineTerminator here] between `await` and `using`
                 let next_tok = cursor.peek_no_skip_line_term(0, interner).or_abrupt()?;
 
@@ -150,16 +149,6 @@ where
                 }
             }
             _ => unreachable!("unknown token found: {:?}", tok),
-=======
-            _ => {
-                return Err(Error::expected(
-                    [Keyword::Let.to_string(), Keyword::Const.to_string()],
-                    tok.to_string(interner),
-                    tok.span(),
-                    "lexical declaration",
-                ));
-            }
->>>>>>> main
         };
 
         if !self.loop_init {
