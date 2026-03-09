@@ -94,20 +94,20 @@ simple_logger = "5.1.0"
 cargo_metadata = "0.23.1"
 trybuild = "1.0.116"
 rayon = "1.10.0"
-toml = "1.0.2"
+toml = "1.0.6"
 color-eyre = "0.6.3"
 comfy-table = "7.2.2"
 serde_repr = "0.1.20"
 bus = "2.4.1"
 wasm-bindgen = { version = "0.2.97", default-features = false }
-getrandom = { version = "0.4.1", default-features = false }
+getrandom = { version = "0.4.2", default-features = false }
 console_error_panic_hook = "0.1.7"
 wasm-bindgen-test = "0.3.64"
 smol = "2.0.2"
 isahc = "1.7.2"
 rustyline = { version = "17.0.2", default-features = false }
 dhat = "0.3.3"
-quote = "1.0.44"
+quote = "1.0.45"
 syn = { version = "2.0.116", default-features = false }
 proc-macro2 = "1.0"
 synstructure = "0.13"
@@ -137,7 +137,7 @@ futures-lite = "2.6.1"
 test-case = "3.3.1"
 rstest = "0.26.1"
 url = "2.5.8"
-tokio = { version = "1.49.0", default-features = false }
+tokio = { version = "1.50.0", default-features = false }
 futures-concurrency = "7.7.1"
 dynify = "0.1.2"
 futures-channel = "0.3.32"
