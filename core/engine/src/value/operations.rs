@@ -835,46 +835,46 @@ impl JsValue {
 
     /// Fast path for the `<` operator.
     #[inline]
-    pub(crate) fn lt_fast(&self, other: &Self) -> Option<Self> {
+    pub(crate) fn lt_fast(&self, other: &Self) -> Option<bool> {
         if let (Some(x), Some(y)) = (self.0.as_integer32(), other.0.as_integer32()) {
-            return Some(Self::new(x < y));
+            return Some(x < y);
         }
         let x = self.as_number_cheap()?;
         let y = other.as_number_cheap()?;
-        Some(Self::new(x < y))
+        Some(x < y)
     }
 
     /// Fast path for the `<=` operator.
     #[inline]
-    pub(crate) fn le_fast(&self, other: &Self) -> Option<Self> {
+    pub(crate) fn le_fast(&self, other: &Self) -> Option<bool> {
         if let (Some(x), Some(y)) = (self.0.as_integer32(), other.0.as_integer32()) {
-            return Some(Self::new(x <= y));
+            return Some(x <= y);
         }
         let x = self.as_number_cheap()?;
         let y = other.as_number_cheap()?;
-        Some(Self::new(x <= y))
+        Some(x <= y)
     }
 
     /// Fast path for the `>` operator.
     #[inline]
-    pub(crate) fn gt_fast(&self, other: &Self) -> Option<Self> {
+    pub(crate) fn gt_fast(&self, other: &Self) -> Option<bool> {
         if let (Some(x), Some(y)) = (self.0.as_integer32(), other.0.as_integer32()) {
-            return Some(Self::new(x > y));
+            return Some(x > y);
         }
         let x = self.as_number_cheap()?;
         let y = other.as_number_cheap()?;
-        Some(Self::new(x > y))
+        Some(x > y)
     }
 
     /// Fast path for the `>=` operator.
     #[inline]
-    pub(crate) fn ge_fast(&self, other: &Self) -> Option<Self> {
+    pub(crate) fn ge_fast(&self, other: &Self) -> Option<bool> {
         if let (Some(x), Some(y)) = (self.0.as_integer32(), other.0.as_integer32()) {
-            return Some(Self::new(x >= y));
+            return Some(x >= y);
         }
         let x = self.as_number_cheap()?;
         let y = other.as_number_cheap()?;
-        Some(Self::new(x >= y))
+        Some(x >= y)
     }
 
     /// Fast path for the `==` operator (numeric only).

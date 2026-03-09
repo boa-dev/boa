@@ -257,8 +257,8 @@ impl SyntheticModule {
     ///
     /// [spec]: https://tc39.es/proposal-json-modules/#sec-smr-LoadRequestedModules
     pub(super) fn load(context: &mut Context) -> JsPromise {
-        // 1. Return ! PromiseResolve(%Promise%, undefined).
         JsPromise::resolve(JsValue::undefined(), context)
+            .expect("default resolve functions cannot throw and must return a promise")
     }
 
     /// Concrete method [`GetExportedNames ( [ exportStarSet ] )`][spec].
@@ -276,13 +276,13 @@ impl SyntheticModule {
     pub(super) fn resolve_export(
         &self,
         module_self: &Module,
-        export_name: JsString,
+        export_name: &JsString,
     ) -> Result<ResolvedBinding, ResolveExportError> {
-        if self.export_names.contains(&export_name) {
+        if self.export_names.contains(export_name) {
             // 2. Return ResolvedBinding Record { [[Module]]: module, [[BindingName]]: exportName }.
             Ok(ResolvedBinding {
                 module: module_self.clone(),
-                binding_name: BindingName::Name(export_name),
+                binding_name: BindingName::Name(export_name.clone()),
             })
         } else {
             // 1. If module.[[ExportNames]] does not contain exportName, return null.

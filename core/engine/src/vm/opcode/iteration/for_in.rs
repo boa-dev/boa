@@ -1,7 +1,7 @@
 use crate::{
     Context, JsResult, JsValue,
     builtins::{iterable::IteratorRecord, object::for_in_iterator::ForInIterator},
-    vm::opcode::{Operation, VaryingOperand},
+    vm::opcode::{Operation, RegisterOperand},
 };
 
 /// `CreateForInIterator` implements the Opcode Operation for `Opcode::CreateForInIterator`
@@ -13,7 +13,7 @@ pub(crate) struct CreateForInIterator;
 
 impl CreateForInIterator {
     #[inline(always)]
-    pub(crate) fn operation(value: VaryingOperand, context: &mut Context) -> JsResult<()> {
+    pub(crate) fn operation(value: RegisterOperand, context: &mut Context) -> JsResult<()> {
         let object = context.vm.get_register(value.into()).clone();
         let object = object.to_object(context)?;
         let (iterator, next_method) =

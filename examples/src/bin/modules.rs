@@ -70,6 +70,7 @@ fn main() -> Result<(), Box<dyn Error>> {
             None,
             context,
         )
+        .expect("`then` cannot fail for a native `JsPromise`")
         .then(
             Some(
                 NativeFunction::from_copy_closure_with_captures(
@@ -84,7 +85,8 @@ fn main() -> Result<(), Box<dyn Error>> {
             ),
             None,
             context,
-        );
+        )
+        .expect("`then` cannot fail for a native `JsPromise`");
 
     // Very important to push forward the job queue after queueing promises.
     context.run_jobs()?;
