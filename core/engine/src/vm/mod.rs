@@ -43,6 +43,8 @@ pub use {
     source_info::{NativeSourceInfo, SourcePath},
 };
 
+pub(crate) use code_block::GlobalFunctionBinding;
+
 mod call_frame;
 mod code_block;
 mod completion_record;
