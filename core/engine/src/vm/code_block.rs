@@ -373,15 +373,15 @@ impl CodeBlock {
         match instruction {
             Instruction::SetRegisterFromAccumulator { dst }
             | Instruction::PopIntoRegister { dst }
-            | Instruction::PushZero { dst }
-            | Instruction::PushOne { dst }
-            | Instruction::PushNan { dst }
-            | Instruction::PushPositiveInfinity { dst }
-            | Instruction::PushNegativeInfinity { dst }
-            | Instruction::PushNull { dst }
-            | Instruction::PushTrue { dst }
-            | Instruction::PushFalse { dst }
-            | Instruction::PushUndefined { dst }
+            | Instruction::StoreZero { dst }
+            | Instruction::StoreOne { dst }
+            | Instruction::StoreNan { dst }
+            | Instruction::StorePositiveInfinity { dst }
+            | Instruction::StoreNegativeInfinity { dst }
+            | Instruction::StoreNull { dst }
+            | Instruction::StoreTrue { dst }
+            | Instruction::StoreFalse { dst }
+            | Instruction::StoreUndefined { dst }
             | Instruction::Exception { dst }
             | Instruction::This { dst }
             | Instruction::NewTarget { dst }
@@ -438,22 +438,22 @@ impl CodeBlock {
                     }
                 )
             }
-            Instruction::PushInt8 { value, dst } => {
+            Instruction::StoreInt8 { value, dst } => {
                 format!("value:{value}, dst:{dst}")
             }
-            Instruction::PushInt16 { value, dst } => {
+            Instruction::StoreInt16 { value, dst } => {
                 format!("value:{value}, dst:{dst}")
             }
-            Instruction::PushInt32 { value, dst } => {
+            Instruction::StoreInt32 { value, dst } => {
                 format!("value:{value}, dst:{dst}")
             }
-            Instruction::PushFloat { value, dst } => {
+            Instruction::StoreFloat { value, dst } => {
                 format!("value:{value}, dst:{dst}")
             }
-            Instruction::PushDouble { value, dst } => {
+            Instruction::StoreDouble { value, dst } => {
                 format!("value:{value}, dst:{dst}")
             }
-            Instruction::PushLiteral { index, dst }
+            Instruction::StoreLiteral { index, dst }
             | Instruction::ThisForObjectEnvironmentName { index, dst }
             | Instruction::GetFunction { index, dst }
             | Instruction::GetArgument { index, dst } => {
@@ -461,7 +461,7 @@ impl CodeBlock {
             }
             Instruction::ThrowNewTypeError { message }
             | Instruction::ThrowNewReferenceError { message } => format!("message:{message}"),
-            Instruction::PushRegexp {
+            Instruction::StoreRegexp {
                 pattern_index,
                 flags_index,
                 dst,

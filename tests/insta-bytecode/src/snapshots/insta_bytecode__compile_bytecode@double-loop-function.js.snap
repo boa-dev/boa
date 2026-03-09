@@ -5,17 +5,17 @@ input_file: tests/insta-bytecode/scripts/double-loop-function.js
 ---
 -------------------------- Compiled Output: '<main>' ---------------------------
 Location     Handler      Opcode                            Operands
-  000000                    PushZero                          dst:r02
+  000000                    StoreZero                         dst:r02
   000005                    Jump                              address:000014
   00000a                    IncrementLoopIteration            
   00000b                    Inc                               src:r02, dst:r02
-  000014                    PushInt8                          value:20, dst:r03
+  000014                    StoreInt8                         value:20, dst:r03
   00001a                    JumpIfNotLessThan                 lhs:r02, rhs:r03, address:000083
-  000027                    PushZero                          dst:r04
+  000027                    StoreZero                         dst:r04
   00002c                    Jump                              address:00003b
   000031                    IncrementLoopIteration            
   000032                    Inc                               src:r04, dst:r04
-  00003b                    PushInt8                          value:50, dst:r05
+  00003b                    StoreInt8                         value:50, dst:r05
   000041                    JumpIfNotLessThan                 lhs:r04, rhs:r05, address:00007e
   00004e                    PushFromRegister                  src:r00
   000053                    GetNameGlobal                     dst:r05, binding_index:0, ic_index:0

@@ -555,101 +555,101 @@ generate_opcodes! {
     /// - Stack: value **=>**
     Pop,
 
-    /// Push integer `0` on the stack.
+    /// Store integer `0` in dst.
     ///
     /// - Registers:
     ///   - Output: dst
-    PushZero { dst: RegisterOperand },
+    StoreZero { dst: RegisterOperand },
 
-    /// Push integer `1` on the stack.
+    /// Store integer `1` in dst.
     ///
     /// - Registers:
     ///   - Output: dst
-    PushOne { dst: RegisterOperand },
+    StoreOne { dst: RegisterOperand },
 
-    /// Push `i8` value on the stack.
+    /// Store `i8` value in dst.
     ///
     /// - Operands:
     ///   - value: `i8`
     /// - Registers:
     ///   - Output: dst
-    PushInt8 { dst: RegisterOperand, value: i8 },
+    StoreInt8 { dst: RegisterOperand, value: i8 },
 
-    /// Push i16 value on the stack.
+    /// Store `i16` value in dst.
     ///
     /// - Operands:
     ///   - value: `i16`
     /// - Registers:
     ///   - Output: dst
-    PushInt16 { dst: RegisterOperand, value: i16 },
+    StoreInt16 { dst: RegisterOperand, value: i16 },
 
-    /// Push i32 value on the stack.
+    /// Store `i32` value in dst.
     ///
     /// - Operands:
     ///   - value: `i32`
     /// - Registers:
     ///   - Output: dst
-    PushInt32 { dst: RegisterOperand, value: i32 },
+    StoreInt32 { dst: RegisterOperand, value: i32 },
 
-    /// Push `f32` value on the stack.
+    /// Store `f32` value in dst.
     ///
     /// - Operands:
     ///   - value: `f32`
     /// - Registers:
     ///   - Output: dst
-    PushFloat { dst: RegisterOperand, value: f32 },
+    StoreFloat { dst: RegisterOperand, value: f32 },
 
-    /// Push `f64` value on the stack.
+    /// Store `f64` value in dst.
     ///
     /// - Operands:
     ///   - value: `f64`
     /// - Registers:
     ///   - Output: dst
-    PushDouble { dst: RegisterOperand, value: f64 },
+    StoreDouble { dst: RegisterOperand, value: f64 },
 
-    /// Push `NaN` integer on the stack.
+    /// Store `NaN` in dst.
     ///
     /// - Registers:
     ///   - Output: dst
-    PushNan { dst: RegisterOperand },
+    StoreNan { dst: RegisterOperand },
 
-    /// Push `Infinity` value on the stack.
+    /// Store `Infinity` in dst.
     ///
     /// - Registers:
     ///   - Output: dst
-    PushPositiveInfinity { dst: RegisterOperand },
+    StorePositiveInfinity { dst: RegisterOperand },
 
-    /// Push `-Infinity` value on the stack.
+    /// Store `-Infinity` in dst.
     ///
     /// - Registers:
     ///   - Output: dst
-    PushNegativeInfinity { dst: RegisterOperand },
+    StoreNegativeInfinity { dst: RegisterOperand },
 
-    /// Push `null` value on the stack.
+    /// Store `null` in dst.
     ///
     /// - Registers:
     ///   - Output: dst
-    PushNull { dst: RegisterOperand },
+    StoreNull { dst: RegisterOperand },
 
-    /// Push `true` value on the stack.
+    /// Store `true` in dst.
     ///
     /// - Registers:
     ///   - Output: dst
-    PushTrue { dst: RegisterOperand },
+    StoreTrue { dst: RegisterOperand },
 
-    /// Push `false` value on the stack.
+    /// Store `false` in dst.
     ///
     /// - Registers:
     ///   - Output: dst
-    PushFalse { dst: RegisterOperand },
+    StoreFalse { dst: RegisterOperand },
 
-    /// Push `undefined` value on the stack.
+    /// Store `undefined` in dst.
     ///
     /// - Registers:
     ///   - Output: dst
-    PushUndefined { dst: RegisterOperand },
+    StoreUndefined { dst: RegisterOperand },
 
-    /// Push literal value on the stack.
+    /// Store literal value in dst.
     ///
     /// Like strings and bigints. The index operand is used to index into the `literals`
     /// array to get the value.
@@ -658,16 +658,16 @@ generate_opcodes! {
     ///   - index: `VaryingOperand`
     /// - Registers:
     ///   - Output: dst
-    PushLiteral { dst: RegisterOperand, index: VaryingOperand },
+    StoreLiteral { dst: RegisterOperand, index: VaryingOperand },
 
-    /// Push regexp value on the stack.
+    /// Store regexp value in dst.
     ///
     /// - Operands:
     ///   - pattern_index: `VaryingOperand`
     ///   - flags: `VaryingOperand`
     /// - Registers:
     ///   - Output: dst
-    PushRegexp { dst: RegisterOperand, pattern_index: VaryingOperand, flags_index: VaryingOperand },
+    StoreRegexp { dst: RegisterOperand, pattern_index: VaryingOperand, flags_index: VaryingOperand },
 
     /// Push empty object `{}` value on the stack.
     ///
