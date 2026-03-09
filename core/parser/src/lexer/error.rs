@@ -46,7 +46,7 @@ impl Error {
     #[inline]
     pub(crate) fn unexpected<F, M, P>(found: F, message: M, pos: P) -> Self
     where
-        F: std::fmt::Display,
+        F: fmt::Display,
         M: Into<Box<str>>,
         P: Into<Position>,
     {
