@@ -163,7 +163,7 @@ impl Argument for RegisterOperand {
 impl Argument for Address {
     #[inline(always)]
     fn encode(self, bytes: &mut Vec<u8>) {
-        write_u32(bytes, self.value);
+        write_u32(bytes, self.0);
     }
 
     #[inline(always)]

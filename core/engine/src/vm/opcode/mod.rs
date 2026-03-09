@@ -176,25 +176,23 @@ pub(crate) struct Bytecode {
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord)]
 /// An address is a bytecode offset, displayed as hexadecimal.
-pub(crate) struct Address {
-    value: u32,
-}
+pub(crate) struct Address(u32);
 
 impl Address {
     /// Create a new [`Address`] from a u32 value.
     pub(crate) const fn new(value: u32) -> Self {
-        Self { value }
+        Self(value)
     }
 
     /// Returns the inner `u32` value.
     pub(crate) const fn as_u32(self) -> u32 {
-        self.value
+        self.0
     }
 }
 
 impl From<Address> for u32 {
     fn from(addr: Address) -> Self {
-        addr.value
+        addr.0
     }
 }
 
@@ -208,14 +206,14 @@ impl std::ops::Add<u32> for Address {
     type Output = Self;
 
     fn add(self, rhs: u32) -> Self {
-        Self::new(self.value + rhs)
+        Self::new(self.0 + rhs)
     }
 }
 
 impl std::fmt::Display for Address {
     #[inline]
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        write!(f, "{:06x}", self.value)
+        write!(f, "{:06x}", self.0)
     }
 }
 
