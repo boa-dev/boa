@@ -455,7 +455,7 @@ fn intersection_no_common_elements() {
     ]);
 }
 
-/// `Set.prototype.intersection` — `this` is not a Set → TypeError.
+/// Set.prototype.intersection — this is not a Set → \
 #[test]
 fn intersection_this_not_a_set() {
     run_test_actions([TestAction::assert_native_error(
@@ -465,8 +465,7 @@ fn intersection_this_not_a_set() {
     )]);
 }
 
-/// `Set.prototype.intersection` — `other` is not a valid Set-like object → TypeError.
-#[test]
+/// Set.prototype.intersection — other is not a valid Set-like object → \#[test]
 fn intersection_other_not_set_like() {
     run_test_actions([
         // Primitive value — GetSetRecord rejects non-objects.
