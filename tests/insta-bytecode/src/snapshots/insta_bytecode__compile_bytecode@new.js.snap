@@ -1,0 +1,61 @@
+---
+source: tests/insta-bytecode/src/lib.rs
+expression: output
+input_file: tests/insta-bytecode/scripts/new.js
+---
+---------------------------Compiled Output: '<main>'----------------------------
+Location     Handler      Opcode                            Operands
+  000000                    HasRestrictedGlobalProperty       index:0, dst:r01
+  000009                    JumpIfFalse                       value:r01, address:000017
+  000012                    ThrowNewSyntaxError               message:1
+  000017                    PushScope                         scope_index:2
+  00001c                    GetFunction                       index:3, dst:r01
+  000025                    PushUndefined                     dst:r02
+  00002a                    SetClassPrototype                 dst:r03, prototype:r02, class:r01
+  000037                    PushPrivateEnvironment            class:r01, names:[]
+  000040                    PutLexicalValue                   src:r01, binding_index:0
+  000049                    PopEnvironment                    
+  00004a                    PopPrivateEnvironment             
+  00004b                    DefInitVar                        src:r01, binding_index:1
+  000054                    PushNewArray                      dst:r02
+  000059                    GetNameGlobal                     dst:r06, binding_index:2, ic_index:0
+  000066                    PushFromRegister                  src:r00
+  00006b                    PushFromRegister                  src:r06
+  000070                    PushInt32                         value:100000, dst:r06
+  000079                    PushFromRegister                  src:r06
+  00007e                    New                               argument_count:1
+  000083                    PopIntoRegister                   dst:r04
+  000088                    GetPropertyByName                 dst:r05, value:r04, ic:(name:map entries:())
+  000095                    PushFromRegister                  src:r04
+  00009a                    PushFromRegister                  src:r05
+  00009f                    GetFunction                       index:5, dst:r04
+  0000a8                    PushFromRegister                  src:r04
+  0000ad                    Call                              argument_count:1
+  0000b2                    PopIntoRegister                   dst:r03
+  0000b7                    GetIterator                       src:r03
+  0000bc                    PushIteratorToArray               array:r02
+  0000c1                    GetLengthProperty                 dst:r01, value:r02, ic:(name:length entries:())
+  0000ce                    SetAccumulator                    src:r01
+  0000d3                    CheckReturn                       
+  0000d4                    Return                            
+
+Register Count: 7, Flags: CodeBlockFlags(HAS_PROTOTYPE_PROPERTY)
+Constants:
+    0000: [STRING] "SomeClass"
+    0001: [STRING] "cannot redefine non-configurable global property"
+    0002: [SCOPE] index: 1, bindings: 1
+    0003: [FUNCTION] name: 'SomeClass' (length: 0)
+    0004: [STRING] "map"
+    0005: [FUNCTION] name: '' (length: 0)
+    0006: [STRING] "length"
+Bindings:
+    0000: SomeClass, scope: Stack(0)
+    0001: SomeClass, scope: GlobalDeclarative
+    0002: Array, scope: GlobalObject
+Handlers: <empty>
+Source Map:
+    0000: 84..112: (3, 52)
+    0001: 112..136: (3, 5)
+    0002: 136..159: (3, 52)
+    0003: 159..183: (3, 27)
+    0004: 183..206: (3, 52)

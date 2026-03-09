@@ -1,6 +1,7 @@
 ---
 source: tests/insta-bytecode/src/lib.rs
 expression: output
+input_file: tests/insta-bytecode/scripts/basic-loop.js
 ---
 ---------------------------Compiled Output: '<main>'----------------------------
 Location     Handler      Opcode                            Operands
