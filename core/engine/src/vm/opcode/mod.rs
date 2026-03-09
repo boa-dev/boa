@@ -125,12 +125,12 @@ pub(crate) struct BytecodeEmitter {
 }
 
 impl BytecodeEmitter {
-    /// Create a new [`ByteCodeEmitter`] instance.
+    /// Create a new [`BytecodeEmitter`] instance.
     pub(crate) fn new() -> Self {
         Self { bytes: Vec::new() }
     }
 
-    /// Convert the [`ByteCodeEmitter`] into a [`ByteCode`] instance.
+    /// Convert the [`BytecodeEmitter`] into a [`Bytecode`] instance.
     pub(crate) fn into_bytecode(self) -> Bytecode {
         Bytecode {
             bytes: self.bytes.into_boxed_slice(),
