@@ -24,7 +24,6 @@ mod environment;
 mod function;
 mod generator;
 mod get;
-mod global;
 mod iteration;
 mod meta;
 mod new;
@@ -67,8 +66,6 @@ pub(crate) use function::*;
 pub(crate) use generator::*;
 #[doc(inline)]
 pub(crate) use get::*;
-#[doc(inline)]
-pub(crate) use global::*;
 #[doc(inline)]
 pub(crate) use iteration::*;
 #[doc(inline)]
@@ -407,7 +404,7 @@ macro_rules! generate_opcodes {
 
         type OpcodeHandler = fn(&mut Context, usize) -> ControlFlow<CompletionRecord>;
 
-        const OPCODE_HANDLERS: [OpcodeHandler; 256] = {
+        pub(crate) const OPCODE_HANDLERS: [OpcodeHandler; 256] = {
             [
                 $(
                     paste::paste! { [<handle_ $Variant:snake>] },
@@ -417,7 +414,7 @@ macro_rules! generate_opcodes {
 
         type OpcodeHandlerBudget = fn(&mut Context, usize, &mut u32) -> ControlFlow<CompletionRecord>;
 
-        const OPCODE_HANDLERS_BUDGET: [OpcodeHandlerBudget; 256] = {
+        pub(crate) const OPCODE_HANDLERS_BUDGET: [OpcodeHandlerBudget; 256] = {
             [
                 $(
                     paste::paste! { [<handle_ $Variant:snake _budget>] },
@@ -430,7 +427,7 @@ macro_rules! generate_opcodes {
                 #[inline(always)]
                 #[allow(unused_parens)]
                 fn [<handle_ $Variant:snake>](context: &mut Context, pc: usize) -> ControlFlow<CompletionRecord> {
-                    let bytes = &context.vm.frame.code_block.bytecode.bytecode;
+                    let bytes = &context.vm.frame().code_block.bytecode.bytecode;
                     let (args, next_pc) = <($($($FieldType),*)?)>::decode(bytes, pc + 1);
                     context.vm.frame_mut().pc = next_pc as u32;
                     let result = $Variant::operation(args, context);
@@ -445,7 +442,7 @@ macro_rules! generate_opcodes {
                 #[allow(unused_parens)]
                 fn [<handle_ $Variant:snake _budget>](context: &mut Context, pc: usize, budget: &mut u32) -> ControlFlow<CompletionRecord> {
                     *budget = budget.saturating_sub(u32::from($Variant::COST));
-                    let bytes = &context.vm.frame.code_block.bytecode.bytecode;
+                    let bytes = &context.vm.frame().code_block.bytecode.bytecode;
                     let (args, next_pc) = <($($($FieldType),*)?)>::decode(bytes, pc + 1);
                     context.vm.frame_mut().pc = next_pc as u32;
                     let result = $Variant::operation(args, context);
@@ -505,29 +502,6 @@ macro_rules! generate_opcodes {
                 }
             }
         }
-    }
-}
-
-impl Context {
-    pub(crate) fn execute_bytecode_instruction(
-        &mut self,
-        opcode: Opcode,
-    ) -> ControlFlow<CompletionRecord> {
-        let frame = self.vm.frame_mut();
-        let pc = frame.pc as usize;
-
-        OPCODE_HANDLERS[opcode as usize](self, pc)
-    }
-
-    pub(crate) fn execute_bytecode_instruction_with_budget(
-        &mut self,
-        budget: &mut u32,
-        opcode: Opcode,
-    ) -> ControlFlow<CompletionRecord> {
-        let frame = self.vm.frame_mut();
-        let pc = frame.pc as usize;
-
-        OPCODE_HANDLERS_BUDGET[opcode as usize](self, pc, budget)
     }
 }
 
@@ -1764,12 +1738,6 @@ generate_opcodes! {
     ///   - message: `VaryingOperand`
     ThrowNewTypeError { message: VaryingOperand },
 
-    /// Throw a new `SyntaxError` exception
-    ///
-    /// - Operands:
-    ///   - message: `VaryingOperand`
-    ThrowNewSyntaxError { message: VaryingOperand },
-
     /// Throw a new `ReferenceError` exception
     ///
     /// - Operands:
@@ -2181,56 +2149,6 @@ generate_opcodes! {
     ///   - Output: dst
     CreateUnmappedArgumentsObject { dst: RegisterOperand },
 
-    /// Performs [`HasRestrictedGlobalProperty ( N )`][spec]
-    ///
-    /// - Operands:
-    ///   - index: `VaryingOperand`
-    /// - Registers:
-    ///   - Output: dst
-    ///
-    /// [spec]: https://tc39.es/ecma262/#sec-hasrestrictedglobalproperty
-    HasRestrictedGlobalProperty { dst: RegisterOperand, index: VaryingOperand },
-
-    /// Performs [`CanDeclareGlobalFunction ( N )`][spec]
-    ///
-    /// - Operands:
-    ///   - index: `VaryingOperand`
-    /// - Registers:
-    ///   - Output: dst
-    ///
-    /// [spec]: https://tc39.es/ecma262/#sec-candeclareglobalfunction
-    CanDeclareGlobalFunction { dst: RegisterOperand, index: VaryingOperand },
-
-    /// Performs [`CanDeclareGlobalVar ( N )`][spec]
-    ///
-    /// - Operands:
-    ///   - index: `VaryingOperand`
-    /// - Registers:
-    ///   - Output: dst
-    ///
-    /// [spec]: https://tc39.es/ecma262/#sec-candeclareglobalvar
-    CanDeclareGlobalVar { dst: RegisterOperand, index: VaryingOperand },
-
-    /// Performs [`CreateGlobalFunctionBinding ( N, V, D )`][spec]
-    ///
-    /// - Operands:
-    ///   - configurable: `bool`
-    ///   - name_index: `VaryingOperand`
-    /// - Registers:
-    ///   - Input: src
-    ///
-    /// [spec]: https://tc39.es/ecma262/#sec-createglobalfunctionbinding
-    CreateGlobalFunctionBinding { src: RegisterOperand, configurable: VaryingOperand, name_index: VaryingOperand },
-
-    /// Performs [`CreateGlobalVarBinding ( N, V, D )`][spec]
-    ///
-    /// - Operands:
-    ///   - configurable: `bool`
-    ///   - name_index: `VaryingOperand`
-    ///
-    /// [spec]: https://tc39.es/ecma262/#sec-createglobalvarbinding
-    CreateGlobalVarBinding { configurable: VaryingOperand, name_index: VaryingOperand },
-
     /// Reserved [`Opcode`].
     Reserved1 => Reserved,
     /// Reserved [`Opcode`].
@@ -2339,4 +2257,16 @@ generate_opcodes! {
     Reserved53 => Reserved,
     /// Reserved [`Opcode`].
     Reserved54 => Reserved,
+    /// Reserved [`Opcode`].
+    Reserved55 => Reserved,
+    /// Reserved [`Opcode`].
+    Reserved56 => Reserved,
+    /// Reserved [`Opcode`].
+    Reserved57 => Reserved,
+    /// Reserved [`Opcode`].
+    Reserved58 => Reserved,
+    /// Reserved [`Opcode`].
+    Reserved59 => Reserved,
+    /// Reserved [`Opcode`].
+    Reserved60 => Reserved,
 }

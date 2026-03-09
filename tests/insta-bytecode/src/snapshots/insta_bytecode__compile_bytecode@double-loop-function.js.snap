@@ -1,0 +1,45 @@
+---
+source: tests/insta-bytecode/src/lib.rs
+expression: output
+input_file: tests/insta-bytecode/scripts/double-loop-function.js
+---
+---------------------------Compiled Output: '<main>'----------------------------
+Location     Handler      Opcode                            Operands
+  000000                    PushZero                          dst:r02
+  000005                    Jump                              address:000014
+  00000a                    IncrementLoopIteration            
+  00000b                    Inc                               src:r02, dst:r02
+  000014                    PushInt8                          value:20, dst:r03
+  00001a                    JumpIfNotLessThan                 lhs:r02, rhs:r03, address:000083
+  000027                    PushZero                          dst:r04
+  00002c                    Jump                              address:00003b
+  000031                    IncrementLoopIteration            
+  000032                    Inc                               src:r04, dst:r04
+  00003b                    PushInt8                          value:50, dst:r05
+  000041                    JumpIfNotLessThan                 lhs:r04, rhs:r05, address:00007e
+  00004e                    PushFromRegister                  src:r00
+  000053                    GetNameGlobal                     dst:r05, binding_index:0, ic_index:0
+  000060                    PushFromRegister                  src:r05
+  000065                    Move                              src:r04, dst:r05
+  00006e                    PushFromRegister                  src:r05
+  000073                    Call                              argument_count:1
+  000078                    Pop                               
+  000079                    Jump                              address:000031
+  00007e                    Jump                              address:00000a
+  000083                    GetNameGlobal                     dst:r05, binding_index:1, ic_index:1
+  000090                    SetAccumulator                    src:r05
+  000095                    CheckReturn                       
+  000096                    Return                            
+
+Register Count: 6, Flags: CodeBlockFlags(HAS_PROTOTYPE_PROPERTY)
+Constants:
+    0000: [STRING] "f"
+    0001: [FUNCTION] name: 'f' (length: 1)
+Bindings:
+    0000: f, scope: GlobalObject
+    0001: undefined, scope: GlobalObject
+Handlers: <empty>
+Source Map:
+    0000: 11..50: (5, 25)
+    0001: 50..101: (6, 27)
+    0002: 101..121: (7, 6)

@@ -37,7 +37,7 @@ description = "Boa is a Javascript lexer, parser and compiler written in Rust. C
 
 # Repo Crates
 boa_ast = { version = "~1.0.0-dev", path = "core/ast" }
-boa_engine = { version = "~1.0.0-dev", path = "core/engine" }
+boa_engine = { version = "~1.0.0-dev", path = "core/engine", default-features = false }
 boa_gc = { version = "~1.0.0-dev", path = "core/gc" }
 boa_icu_provider = { version = "~1.0.0-dev", path = "core/icu_provider" }
 boa_interner = { version = "~1.0.0-dev", path = "core/interner" }
@@ -52,6 +52,7 @@ small_btree = { version = "~0.1.0", path = "utils/small_btree" }
 
 # Shared deps
 arbitrary = "1"
+base64 = "0.22.1"
 bitflags = "2.11.0"
 clap = "4.5.59"
 colored = "3.1.1"

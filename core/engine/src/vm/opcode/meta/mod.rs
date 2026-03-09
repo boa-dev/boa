@@ -18,7 +18,7 @@ impl NewTarget {
     pub(super) fn operation(dst: RegisterOperand, context: &mut Context) {
         let new_target = if let Some(new_target) = context
             .vm
-            .frame
+            .frame()
             .environments
             .get_this_environment()
             .as_function()
