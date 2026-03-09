@@ -69,6 +69,10 @@ impl ByteCompiler<'_> {
 
         self.push_empty_loop_jump_control(use_expr);
 
+        // Hoist loop-invariant constants from the condition (e.g. `10` in `i < 10`)
+        // so the value is loaded into a register once, not on every iteration.
+        let hoisted = self.try_hoist_loop_condition(for_loop.condition());
+
         // Per-iteration binding copy: for `for (let i = ...)`, each iteration needs
         // a fresh binding per the spec (important for closures). When the scope requires
         // a runtime environment (scope_index is Some), we must pop/push the environment
@@ -128,7 +132,9 @@ impl ByteCompiler<'_> {
 
         let exit = for_loop
             .condition()
-            .map(|condition| self.compile_condition_and_branch(condition));
+            .map(|condition| {
+                self.compile_condition_and_branch(condition, hoisted.as_ref())
+            });
 
         self.compile_stmt(for_loop.body(), use_expr, true);
 
@@ -138,6 +144,10 @@ impl ByteCompiler<'_> {
             self.patch_jump(exit);
         }
         self.pop_loop_control_info();
+
+        if let Some(hoisted) = hoisted {
+            self.register_allocator.dealloc(hoisted.register);
+        }
 
         if let Some(outer_scope_local) = outer_scope_local {
             self.lexical_scope = outer_scope_local;
@@ -416,11 +426,15 @@ impl ByteCompiler<'_> {
         label: Option<Sym>,
         use_expr: bool,
     ) {
+        // Hoist loop-invariant constants from the condition.
+        let hoisted = self.try_hoist_loop_condition(Some(while_loop.condition()));
+
         let start_address = self.next_opcode_location();
         self.bytecode.emit_increment_loop_iteration();
         self.push_loop_control_info(label, start_address, use_expr);
 
-        let exit = self.compile_condition_and_branch(while_loop.condition());
+        let exit = self
+            .compile_condition_and_branch(while_loop.condition(), hoisted.as_ref());
 
         self.compile_stmt(while_loop.body(), use_expr, true);
 
@@ -428,6 +442,10 @@ impl ByteCompiler<'_> {
 
         self.patch_jump(exit);
         self.pop_loop_control_info();
+
+        if let Some(hoisted) = hoisted {
+            self.register_allocator.dealloc(hoisted.register);
+        }
     }
 
     pub(crate) fn compile_do_while_loop(
@@ -436,6 +454,9 @@ impl ByteCompiler<'_> {
         label: Option<Sym>,
         use_expr: bool,
     ) {
+        // Hoist loop-invariant constants from the condition.
+        let hoisted = self.try_hoist_loop_condition(Some(do_while_loop.cond()));
+
         let initial_label = self.jump();
 
         let start_address = self.next_opcode_location();
@@ -445,7 +466,8 @@ impl ByteCompiler<'_> {
         let condition_label_address = self.next_opcode_location();
         self.bytecode.emit_increment_loop_iteration();
 
-        let exit = self.compile_condition_and_branch(do_while_loop.cond());
+        let exit = self
+            .compile_condition_and_branch(do_while_loop.cond(), hoisted.as_ref());
 
         self.patch_jump(initial_label);
 
@@ -455,5 +477,9 @@ impl ByteCompiler<'_> {
         self.patch_jump(exit);
 
         self.pop_loop_control_info();
+
+        if let Some(hoisted) = hoisted {
+            self.register_allocator.dealloc(hoisted.register);
+        }
     }
 }

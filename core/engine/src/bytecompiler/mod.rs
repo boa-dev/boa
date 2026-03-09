@@ -378,6 +378,18 @@ pub(crate) struct Label {
     index: Address,
 }
 
+/// A loop-invariant operand that was hoisted out of a loop condition.
+///
+/// When a loop condition like `i < 10` has a literal operand, we can compile
+/// the constant (`10`) into a register once before the loop, rather than
+/// re-emitting a `PushInt8`/`PushInt32` on every iteration.
+pub(crate) struct HoistedOperand {
+    /// The register holding the pre-compiled constant value.
+    pub(crate) register: Register,
+    /// `true` if this operand is the RHS of the comparison (e.g. `10` in `i < 10`).
+    pub(crate) is_rhs: bool,
+}
+
 #[derive(Debug, Clone, Copy)]
 #[allow(variant_size_differences)]
 enum Access<'a> {
@@ -1149,10 +1161,17 @@ impl<'ctx> ByteCompiler<'ctx> {
     /// When the condition is a relational comparison (`<`, `<=`, `>`, `>=`),
     /// emits a single fused comparison+branch opcode instead of separate
     /// `LessThan` + `JumpIfFalse` instructions.
-    pub(crate) fn compile_condition_and_branch(&mut self, condition: &Expression) -> Label {
+    ///
+    /// If `hoisted` is provided, the pre-compiled register is used for one
+    /// operand of the comparison, avoiding a constant reload on every iteration.
+    pub(crate) fn compile_condition_and_branch(
+        &mut self,
+        condition: &Expression,
+        hoisted: Option<&HoistedOperand>,
+    ) -> Label {
         if let Expression::Binary(binary) = condition
             && let BinaryOp::Relational(op) = binary.op()
-            && let Some(label) = self.try_fused_comparison_branch(op, binary)
+            && let Some(label) = self.try_fused_comparison_branch(op, binary, hoisted)
         {
             return label;
         }
@@ -1164,7 +1183,95 @@ impl<'ctx> ByteCompiler<'ctx> {
         label
     }
 
-    fn try_fused_comparison_branch(&mut self, op: RelationalOp, binary: &Binary) -> Option<Label> {
+    /// Try to hoist a constant operand from a loop condition into a register
+    /// that is loaded once before the loop, rather than on every iteration.
+    ///
+    /// Returns `Some(HoistedOperand)` when one side of a relational comparison
+    /// is a literal value (e.g. `i < 10` hoists `10`).
+    pub(crate) fn try_hoist_loop_condition(
+        &mut self,
+        condition: Option<&Expression>,
+    ) -> Option<HoistedOperand> {
+        let condition = condition?;
+        let Expression::Binary(binary) = condition else {
+            return None;
+        };
+        let BinaryOp::Relational(op) = binary.op() else {
+            return None;
+        };
+        match op {
+            RelationalOp::LessThan
+            | RelationalOp::LessThanOrEqual
+            | RelationalOp::GreaterThan
+            | RelationalOp::GreaterThanOrEqual => {}
+            _ => return None,
+        }
+        // Prefer hoisting RHS (most common pattern: `i < 10`)
+        if self.is_loop_invariant(binary.rhs()) {
+            let reg = self.register_allocator.alloc();
+            self.compile_expr(binary.rhs(), &reg);
+            return Some(HoistedOperand {
+                register: reg,
+                is_rhs: true,
+            });
+        }
+        // Try LHS (less common: `0 < i`)
+        if self.is_loop_invariant(binary.lhs()) {
+            let reg = self.register_allocator.alloc();
+            self.compile_expr(binary.lhs(), &reg);
+            return Some(HoistedOperand {
+                register: reg,
+                is_rhs: false,
+            });
+        }
+        None
+    }
+
+    /// Returns `true` if the expression is loop-invariant and would benefit
+    /// from being hoisted out of a loop (compiled once before the loop rather
+    /// than on every iteration).
+    ///
+    /// An expression qualifies if it is:
+    /// - A literal value (always immutable, always emits code)
+    /// - A `const` identifier that is NOT already optimized by
+    ///   [`compile_expr_operand`](Self::compile_expr_operand) (i.e., not local
+    ///   and not in `const_binding_cache`), since those are already handled
+    ///   with zero instructions inside the loop.
+    fn is_loop_invariant(&self, expr: &Expression) -> bool {
+        match expr {
+            Expression::Literal(_) => true,
+            Expression::Identifier(name) => {
+                let name = self.resolve_identifier_expect(*name);
+                let binding = self.lexical_scope.get_identifier_reference(name.clone());
+                // Local bindings already use persistent registers directly
+                // in compile_expr_operand — hoisting would add a redundant Move.
+                if binding.local() {
+                    return false;
+                }
+                // Cached const bindings are already handled by compile_expr_operand
+                // without emitting code — hoisting would add a redundant Move.
+                if !self.in_with
+                    && self.const_binding_cache.contains_key(&binding.locator())
+                {
+                    return false;
+                }
+                // Only hoist if the binding is immutable (const).
+                // Mutable bindings (let, var) can change between iterations.
+                matches!(
+                    self.lexical_scope.is_binding_mutable(&name),
+                    Some(false)
+                )
+            }
+            _ => false,
+        }
+    }
+
+    fn try_fused_comparison_branch(
+        &mut self,
+        op: RelationalOp,
+        binary: &Binary,
+        hoisted: Option<&HoistedOperand>,
+    ) -> Option<Label> {
         use crate::vm::opcode::ByteCodeEmitter;
 
         let emit_fn: fn(&mut ByteCodeEmitter, Address, RegisterOperand, RegisterOperand) = match op
@@ -1178,12 +1285,30 @@ impl<'ctx> ByteCompiler<'ctx> {
             _ => return None,
         };
         let mut label_index = Address::new(0);
-        self.compile_expr_operand(binary.lhs(), |compiler, lhs| {
-            compiler.compile_expr_operand(binary.rhs(), |compiler, rhs| {
-                label_index = compiler.next_opcode_location();
-                emit_fn(&mut compiler.bytecode, Self::DUMMY_ADDRESS, lhs, rhs);
-            });
-        });
+        match hoisted {
+            Some(h) if h.is_rhs => {
+                let rhs = h.register.variable();
+                self.compile_expr_operand(binary.lhs(), |compiler, lhs| {
+                    label_index = compiler.next_opcode_location();
+                    emit_fn(&mut compiler.bytecode, Self::DUMMY_ADDRESS, lhs, rhs);
+                });
+            }
+            Some(h) => {
+                let lhs = h.register.variable();
+                self.compile_expr_operand(binary.rhs(), |compiler, rhs| {
+                    label_index = compiler.next_opcode_location();
+                    emit_fn(&mut compiler.bytecode, Self::DUMMY_ADDRESS, lhs, rhs);
+                });
+            }
+            None => {
+                self.compile_expr_operand(binary.lhs(), |compiler, lhs| {
+                    compiler.compile_expr_operand(binary.rhs(), |compiler, rhs| {
+                        label_index = compiler.next_opcode_location();
+                        emit_fn(&mut compiler.bytecode, Self::DUMMY_ADDRESS, lhs, rhs);
+                    });
+                });
+            }
+        }
         Some(Label { index: label_index })
     }
 
