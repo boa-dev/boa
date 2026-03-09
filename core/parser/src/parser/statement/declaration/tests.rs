@@ -776,8 +776,8 @@ fn await_using_requires_async_context() {
 }
 
 /// Checks that line terminator between `await` and `using` is rejected.
-/// Per spec: https://arai-a.github.io/ecma262-compare/snapshot.html?pr=3000#prod-AwaitUsingDeclarationHead
-/// There must be [no LineTerminator here] between the keywords.
+/// Per spec: <https://arai-a.github.io/ecma262-compare/snapshot.html?pr=3000#prod-AwaitUsingDeclarationHead>
+/// There must be [no `LineTerminator` here] between the keywords.
 #[test]
 fn await_using_no_line_terminator() {
     // Line terminator between await and using should fail
@@ -797,7 +797,7 @@ fn await_using_no_line_terminator() {
 }
 
 /// Checks that destructuring patterns are rejected for `using` declarations.
-/// Per spec: https://tc39.es/proposal-explicit-resource-management/
+/// Per spec: <https://tc39.es/proposal-explicit-resource-management/>
 /// The grammar uses ~Pattern parameter which means destructuring is NOT allowed.
 #[test]
 fn using_no_destructuring_object() {

@@ -280,10 +280,10 @@ where
                         DeclarationType::Const => "const",
                         DeclarationType::Using => "using",
                         DeclarationType::AwaitUsing => "await using",
-                        _ => unreachable!(),
+                        DeclarationType::Let => unreachable!(),
                     };
                     return Err(Error::general(
-                        format!("Expected initializer for {} declaration", decl_name),
+                        format!("Expected initializer for {decl_name} declaration"),
                         next.span().start(),
                     ));
                 }
