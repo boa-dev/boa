@@ -12,7 +12,7 @@
 use crate::{
     Context, JsArgs, JsResult, JsString, JsValue, SpannedSourceText,
     builtins::{BuiltInObject, function::OrdinaryFunction},
-    bytecompiler::{ByteCompiler, eval_declaration_instantiation_context},
+    bytecompiler::{ByteCompiler, prepare_eval_declaration_instantiation},
     context::intrinsics::Intrinsics,
     environments::Environment,
     error::JsNativeError,
@@ -21,7 +21,7 @@ use crate::{
     realm::Realm,
     spanned_source_text::SourceText,
     string::StaticJsStrings,
-    vm::{CallFrame, CallFrameFlags, Constant, source_info::SourcePath},
+    vm::{CallFrame, CallFrameFlags, source_info::SourcePath},
 };
 use boa_ast::{
     operations::{ContainsSymbol, contains, contains_arguments},
@@ -256,7 +256,7 @@ impl Eval {
 
         let mut annex_b_function_names = Vec::new();
 
-        eval_declaration_instantiation_context(
+        prepare_eval_declaration_instantiation(
             &mut annex_b_function_names,
             &body,
             strict,
@@ -289,14 +289,11 @@ impl Eval {
             SourcePath::Eval,
         );
 
+        // Increments the number of open environments to
+        // account for the environment scope pushed to
+        // the context at the end of `perform_eval`.
         compiler.current_open_environments_count += 1;
 
-        let scope_index = compiler.constants.len() as u32;
-        compiler
-            .constants
-            .push(Constant::Scope(lexical_scope.clone()));
-
-        compiler.bytecode.emit_push_scope(scope_index.into());
         if strict {
             variable_scope = lexical_scope.clone();
             compiler.variable_scope = lexical_scope.clone();
@@ -335,7 +332,7 @@ impl Eval {
         let environments = context.vm.frame().environments.clone();
         let realm = context.realm().clone();
         context.vm.push_frame_with_stack(
-            CallFrame::new(code_block, None, environments, realm)
+            CallFrame::new(code_block.clone(), None, environments, realm)
                 .with_env_fp(env_fp)
                 .with_flags(CallFrameFlags::EXIT_EARLY),
             JsValue::undefined(),
@@ -343,6 +340,21 @@ impl Eval {
         );
 
         context.realm().resize_global_env();
+
+        // Pushing the scope here ensures any function objects created
+        // in `eval_declaration_instantiation` get their proper
+        // environment stack.
+        context
+            .vm
+            .frame_mut()
+            .environments
+            .push_lexical(lexical_scope.num_bindings_non_local());
+
+        context
+            .eval_declaration_instantiation(&code_block)
+            .inspect_err(|_| {
+                context.vm.pop_frame();
+            })?;
 
         let record = context.run();
         context.vm.pop_frame();
