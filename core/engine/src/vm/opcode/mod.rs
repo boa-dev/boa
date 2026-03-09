@@ -120,51 +120,49 @@ pub(crate) trait Operation {
 
 /// The compile time representation of bytecode instructions.
 #[derive(Debug)]
-pub(crate) struct ByteCodeEmitter {
-    bytecode: Vec<u8>,
+pub(crate) struct BytecodeEmitter {
+    bytes: Vec<u8>,
 }
 
-impl ByteCodeEmitter {
+impl BytecodeEmitter {
     /// Create a new [`ByteCodeEmitter`] instance.
     pub(crate) fn new() -> Self {
-        Self {
-            bytecode: Vec::new(),
-        }
+        Self { bytes: Vec::new() }
     }
 
     /// Convert the [`ByteCodeEmitter`] into a [`ByteCode`] instance.
-    pub(crate) fn into_bytecode(self) -> ByteCode {
-        ByteCode {
-            bytecode: self.bytecode.into_boxed_slice(),
+    pub(crate) fn into_bytecode(self) -> Bytecode {
+        Bytecode {
+            bytes: self.bytes.into_boxed_slice(),
         }
     }
 
     /// Get the location of the next opcode in the bytecode.
     pub(crate) fn next_opcode_location(&self) -> Address {
-        Address::new(self.bytecode.len() as u32)
+        Address::new(self.bytes.len() as u32)
     }
 
     /// Patch the jump instruction at the given label with the given address.
     pub(crate) fn patch_jump(&mut self, label: Address, patch: Address) {
         let pos = u32::from(label) as usize;
         let bytes = u32::from(patch).to_le_bytes();
-        self.bytecode[pos + 1] = bytes[0];
-        self.bytecode[pos + 2] = bytes[1];
-        self.bytecode[pos + 3] = bytes[2];
-        self.bytecode[pos + 4] = bytes[3];
+        self.bytes[pos + 1] = bytes[0];
+        self.bytes[pos + 2] = bytes[1];
+        self.bytes[pos + 3] = bytes[2];
+        self.bytes[pos + 4] = bytes[3];
     }
 
     /// Patch the jump instruction at the given label with jump table addresses.
     pub(crate) fn patch_jump_table(&mut self, label: Address, patch: &[Address]) {
         let length_offset = u32::from(label) as usize + 1;
 
-        let (length, first_offset) = read::<u32>(&self.bytecode, length_offset);
+        let (length, first_offset) = read::<u32>(&self.bytes, length_offset);
         assert_eq!(length as usize, patch.len());
 
         // Write patched address values.
         for (i, value) in patch.iter().enumerate() {
             let offset = first_offset + i * size_of::<u32>();
-            self.bytecode[offset..offset + size_of::<u32>()]
+            self.bytes[offset..offset + size_of::<u32>()]
                 .copy_from_slice(&u32::from(*value).to_le_bytes());
         }
     }
@@ -172,8 +170,8 @@ impl ByteCodeEmitter {
 
 #[derive(Clone, Debug, Default)]
 /// The bytecode representation of a codeblock.
-pub(crate) struct ByteCode {
-    pub(crate) bytecode: Box<[u8]>,
+pub(crate) struct Bytecode {
+    pub(crate) bytes: Box<[u8]>,
 }
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord)]
@@ -387,7 +385,7 @@ macro_rules! generate_opcodes {
             }
         }
 
-        impl ByteCodeEmitter {
+        impl BytecodeEmitter {
             $(
                 paste::paste! {
                     #[allow(unused)]
@@ -395,7 +393,7 @@ macro_rules! generate_opcodes {
                         encode_instruction(
                             Opcode::$Variant,
                             ($($($FieldName),*)?),
-                            &mut self.bytecode,
+                            &mut self.bytes,
                         );
                     }
                 }
@@ -427,7 +425,7 @@ macro_rules! generate_opcodes {
                 #[inline(always)]
                 #[allow(unused_parens)]
                 fn [<handle_ $Variant:snake>](context: &mut Context, pc: usize) -> ControlFlow<CompletionRecord> {
-                    let bytes = &context.vm.frame().code_block.bytecode.bytecode;
+                    let bytes = &context.vm.frame().code_block.bytecode.bytes;
                     let (args, next_pc) = <($($($FieldType),*)?)>::decode(bytes, pc + 1);
                     context.vm.frame_mut().pc = next_pc as u32;
                     let result = $Variant::operation(args, context);
@@ -442,7 +440,7 @@ macro_rules! generate_opcodes {
                 #[allow(unused_parens)]
                 fn [<handle_ $Variant:snake _budget>](context: &mut Context, pc: usize, budget: &mut u32) -> ControlFlow<CompletionRecord> {
                     *budget = budget.saturating_sub(u32::from($Variant::COST));
-                    let bytes = &context.vm.frame().code_block.bytecode.bytecode;
+                    let bytes = &context.vm.frame().code_block.bytecode.bytes;
                     let (args, next_pc) = <($($($FieldType),*)?)>::decode(bytes, pc + 1);
                     context.vm.frame_mut().pc = next_pc as u32;
                     let result = $Variant::operation(args, context);
@@ -482,10 +480,10 @@ macro_rules! generate_opcodes {
             ),*
         }
 
-        impl ByteCode {
+        impl Bytecode {
             #[allow(unused_parens)]
             pub(crate) fn next_instruction(&self, pc: usize) -> (Instruction, usize) {
-                let bytes = &self.bytecode;
+                let bytes = &self.bytes;
                 let opcode = Opcode::decode(bytes[pc]);
 
                 match opcode {
@@ -508,7 +506,7 @@ macro_rules! generate_opcodes {
 /// Iterator over the instructions in the compact bytecode.
 // #[derive(Debug, Clone)]
 pub(crate) struct InstructionIterator<'bytecode> {
-    bytes: &'bytecode ByteCode,
+    bytes: &'bytecode Bytecode,
     pc: usize,
 }
 
@@ -518,7 +516,7 @@ impl<'bytecode> InstructionIterator<'bytecode> {
     /// Create a new [`InstructionIterator`] from bytecode array.
     #[inline]
     #[must_use]
-    pub(crate) const fn new(bytes: &'bytecode ByteCode) -> Self {
+    pub(crate) const fn new(bytes: &'bytecode Bytecode) -> Self {
         Self { bytes, pc: 0 }
     }
 
@@ -536,11 +534,11 @@ impl Iterator for InstructionIterator<'_> {
     #[inline]
     fn next(&mut self) -> Option<Self::Item> {
         let start_pc = self.pc;
-        if self.pc >= self.bytes.bytecode.len() {
+        if self.pc >= self.bytes.bytes.len() {
             return None;
         }
 
-        let bytes = &self.bytes.bytecode;
+        let bytes = &self.bytes.bytes;
         let opcode = Opcode::decode(bytes[self.pc]);
         // Get instruction and determine how much to advance pc
         let (instruction, read_size) = self.bytes.next_instruction(self.pc);
