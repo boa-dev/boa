@@ -378,13 +378,12 @@ const BATCH_SIZE: usize = size_of::<u64>();
 /// Given a pointer address and total byte count, computes the number of
 /// head bytes needed to reach 8-byte alignment, the number of aligned
 /// 8-byte chunks, and the number of remaining tail bytes.
-const fn compute_batch_offsets(ptr_addr: usize, count: usize) -> (usize, usize, usize) {
+fn compute_batch_offsets(ptr_addr: usize, count: usize) -> (usize, usize, usize) {
     let misalign = ptr_addr % BATCH_SIZE;
     let head = if misalign == 0 {
         0
     } else {
-        let needed = BATCH_SIZE - misalign;
-        if needed < count { needed } else { count }
+        (BATCH_SIZE - misalign).min(count)
     };
     let remaining = count - head;
     let chunks = remaining / BATCH_SIZE;
