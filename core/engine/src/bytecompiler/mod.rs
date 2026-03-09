@@ -2256,7 +2256,7 @@ impl<'ctx> ByteCompiler<'ctx> {
                             if let Some(init) = variable.init() {
                                 self.compile_expr(init, &value);
                             } else {
-                                self.bytecode.emit_push_undefined(value.variable());
+                                self.bytecode.emit_store_undefined(value.variable());
                             }
 
                             // TODO(@abhinavs1920): Add resource to disposal stack
@@ -2272,7 +2272,7 @@ impl<'ctx> ByteCompiler<'ctx> {
                             if let Some(init) = variable.init() {
                                 self.compile_expr(init, &value);
                             } else {
-                                self.bytecode.emit_push_undefined(value.variable());
+                                self.bytecode.emit_store_undefined(value.variable());
                             }
 
                             // TODO: Same as above
@@ -2297,7 +2297,7 @@ impl<'ctx> ByteCompiler<'ctx> {
                             if let Some(init) = variable.init() {
                                 self.compile_expr(init, &value);
                             } else {
-                                self.bytecode.emit_push_undefined(value.variable());
+                                self.bytecode.emit_store_undefined(value.variable());
                             }
 
                             // TODO: Add resource to async disposal stack
@@ -2313,7 +2313,7 @@ impl<'ctx> ByteCompiler<'ctx> {
                             if let Some(init) = variable.init() {
                                 self.compile_expr(init, &value);
                             } else {
-                                self.bytecode.emit_push_undefined(value.variable());
+                                self.bytecode.emit_store_undefined(value.variable());
                             }
 
                             // TODO: SAME
