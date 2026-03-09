@@ -3,7 +3,7 @@ use std::{cell::RefCell, mem::MaybeUninit};
 use boa_string::JsString;
 use dynify::Dynify;
 
-use super::{RegisterOperand, IndexOperand};
+use super::{IndexOperand, RegisterOperand};
 use crate::{
     Context, JsError, JsObject, JsResult, JsValue, NativeFunction,
     builtins::{Promise, promise::PromiseCapability},

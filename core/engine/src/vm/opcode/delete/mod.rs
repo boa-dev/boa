@@ -3,7 +3,7 @@ use crate::{
     object::internal_methods::InternalMethodPropertyContext, vm::opcode::Operation,
 };
 
-use super::{RegisterOperand, IndexOperand};
+use super::{IndexOperand, RegisterOperand};
 
 /// `DeletePropertyByName` implements the Opcode Operation for `Opcode::DeletePropertyByName`
 ///

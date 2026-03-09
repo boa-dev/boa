@@ -2,7 +2,7 @@ use crate::{
     Context, JsResult, js_str, js_string,
     object::PrivateElement,
     property::PropertyDescriptor,
-    vm::opcode::{Operation, RegisterOperand, IndexOperand},
+    vm::opcode::{IndexOperand, Operation, RegisterOperand},
 };
 
 /// `SetPrivateField` implements the Opcode Operation for `Opcode::SetPrivateField`

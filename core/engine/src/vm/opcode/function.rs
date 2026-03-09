@@ -1,7 +1,7 @@
 use crate::{
     Context, JsExpect, JsResult, JsValue,
     builtins::function::OrdinaryFunction,
-    vm::opcode::{Operation, RegisterOperand, IndexOperand},
+    vm::opcode::{IndexOperand, Operation, RegisterOperand},
 };
 
 /// `SetHomeObject` implements the Opcode Operation for `Opcode::SetHomeObject`

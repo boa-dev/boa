@@ -4,7 +4,7 @@ use crate::{
     Context, JsError, JsNativeError, JsResult,
     vm::{
         CompletionRecord,
-        opcode::{Operation, RegisterOperand, IndexOperand},
+        opcode::{IndexOperand, Operation, RegisterOperand},
     },
 };
 

@@ -3,7 +3,7 @@ use crate::{
     error::JsNativeError,
     object::{internal_methods::InternalMethodPropertyContext, shape::slot::SlotAttributes},
     property::PropertyKey,
-    vm::opcode::{Operation, RegisterOperand, IndexOperand},
+    vm::opcode::{IndexOperand, Operation, RegisterOperand},
 };
 
 /// `GetName` implements the Opcode Operation for `Opcode::GetName`

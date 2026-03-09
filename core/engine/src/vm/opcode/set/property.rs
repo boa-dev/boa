@@ -1,6 +1,6 @@
 use crate::JsValue;
 use crate::value::JsVariant;
-use crate::vm::opcode::{RegisterOperand, IndexOperand};
+use crate::vm::opcode::{IndexOperand, RegisterOperand};
 use crate::{
     Context, JsNativeError, JsResult,
     builtins::function::set_function_name,

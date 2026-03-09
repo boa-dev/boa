@@ -4,7 +4,7 @@ use crate::{
     Context, JsResult, JsValue, js_string,
     object::{internal_methods::InternalMethodPropertyContext, shape::slot::SlotAttributes},
     property::PropertyKey,
-    vm::opcode::{Operation, RegisterOperand, IndexOperand},
+    vm::opcode::{IndexOperand, Operation, RegisterOperand},
 };
 
 fn get_by_name<const LENGTH: bool>(

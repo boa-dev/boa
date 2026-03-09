@@ -1,4 +1,4 @@
-use super::{RegisterOperand, IndexOperand};
+use super::{IndexOperand, RegisterOperand};
 use crate::{Context, JsResult, JsValue, vm::opcode::Operation};
 
 pub(crate) mod class;

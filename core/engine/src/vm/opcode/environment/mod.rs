@@ -1,4 +1,4 @@
-use super::{RegisterOperand, IndexOperand};
+use super::{IndexOperand, RegisterOperand};
 use crate::{
     Context, JsExpect, JsResult, JsValue,
     error::JsNativeError,

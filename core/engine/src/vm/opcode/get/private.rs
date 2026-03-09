@@ -1,6 +1,6 @@
 use crate::{
     Context, JsResult,
-    vm::opcode::{Operation, RegisterOperand, IndexOperand},
+    vm::opcode::{IndexOperand, Operation, RegisterOperand},
 };
 
 /// `GetPrivateField` implements the Opcode Operation for `Opcode::GetPrivateField`
