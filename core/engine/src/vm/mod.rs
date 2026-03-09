@@ -598,8 +598,13 @@ impl Context {
             " VM Start ".to_string()
         } else {
             format!(
-                " Call Frame -- {} ",
-                frame.code_block().name().to_std_string_escaped()
+                " Call Frame '{}'{} ",
+                frame.code_block().name().to_std_string_escaped(),
+                if frame.code_block().name().is_empty() {
+                    format!(" [anon#{}]", frame.code_block().debug_id)
+                } else {
+                    String::new()
+                }
             )
         };
 
