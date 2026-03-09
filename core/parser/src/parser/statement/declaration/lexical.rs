@@ -100,6 +100,7 @@ where
                 self.loop_init,
             )
             .parse(cursor, interner)?,
+<<<<<<< feat/resource
             TokenKind::Keyword((Keyword::Using, false)) => BindingList::new(
                 self.allow_in,
                 self.allow_yield,
@@ -149,6 +150,16 @@ where
                 }
             }
             _ => unreachable!("unknown token found: {:?}", tok),
+=======
+            _ => {
+                return Err(Error::expected(
+                    [Keyword::Let.to_string(), Keyword::Const.to_string()],
+                    tok.to_string(interner),
+                    tok.span(),
+                    "lexical declaration",
+                ));
+            }
+>>>>>>> main
         };
 
         if !self.loop_init {

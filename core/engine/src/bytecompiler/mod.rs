@@ -1,4 +1,12 @@
-//! This module contains the bytecode compiler.
+//! Boa's bytecode compiler.
+//!
+//! The bytecompiler is responsible for lowering ECMAScript AST nodes into
+//! executable bytecode for the virtual machine.
+//!
+//! It walks the parsed AST and emits instructions using the bytecode emitter,
+//! producing code blocks that are later executed by the VM.
+//!
+//! This module provides the necessary functionality to compile JavaScript code into bytecode.
 
 mod class;
 mod declaration;
@@ -24,7 +32,8 @@ use crate::{
     builtins::function::{ThisMode, arguments::MappedArguments},
     js_string,
     vm::{
-        CallFrame, CodeBlock, CodeBlockFlags, Constant, GeneratorResumeKind, Handler, InlineCache,
+        CallFrame, CodeBlock, CodeBlockFlags, Constant, GeneratorResumeKind, GlobalFunctionBinding,
+        Handler, InlineCache,
         opcode::{Address, BindingOpcode, ByteCodeEmitter, RegisterOperand},
         source_info::{SourceInfo, SourceMap, SourceMapBuilder, SourcePath},
     },
@@ -63,7 +72,7 @@ use rustc_hash::FxHashMap;
 use thin_vec::ThinVec;
 
 pub(crate) use declarations::{
-    eval_declaration_instantiation_context, global_declaration_instantiation_context,
+    global_declaration_instantiation_context, prepare_eval_declaration_instantiation,
 };
 pub(crate) use function::FunctionCompiler;
 pub(crate) use jump_control::JumpControlInfo;
@@ -525,6 +534,10 @@ pub struct ByteCompiler<'ctx> {
     pub(crate) interner: &'ctx mut Interner,
     spanned_source_text: SpannedSourceText,
 
+    pub(crate) global_lexs: Vec<u32>,
+    pub(crate) global_fns: Vec<GlobalFunctionBinding>,
+    pub(crate) global_vars: Vec<u32>,
+
     #[cfg(feature = "annex-b")]
     pub(crate) annex_b_function_names: Vec<Sym>,
 }
@@ -644,6 +657,10 @@ impl<'ctx> ByteCompiler<'ctx> {
             annex_b_function_names: Vec::new(),
             in_with,
             emitted_mapped_arguments_object_opcode: false,
+
+            global_lexs: Vec::new(),
+            global_fns: Vec::new(),
+            global_vars: Vec::new(),
         }
     }
 
@@ -1021,10 +1038,6 @@ impl<'ctx> ByteCompiler<'ctx> {
     fn emit_type_error(&mut self, message: &str) {
         let error_msg = self.get_or_insert_literal(Literal::String(js_string!(message)));
         self.bytecode.emit_throw_new_type_error(error_msg.into());
-    }
-    fn emit_syntax_error(&mut self, message: &str) {
-        let error_msg = self.get_or_insert_literal(Literal::String(js_string!(message)));
-        self.bytecode.emit_throw_new_syntax_error(error_msg.into());
     }
 
     fn emit_push_integer(&mut self, value: i32, dst: &Register) {
@@ -1481,7 +1494,11 @@ impl<'ctx> ByteCompiler<'ctx> {
                     }
                 },
             },
-            Access::This => todo!("access_set `this`"),
+            Access::This => {
+                // In non-strict code, assignment to `this` is a no-op per spec; we still evaluate
+                // the RHS for side effects (e.g. `this = foo()` must call foo()).
+                let _ = expr_fn(self);
+            }
         }
     }
 
@@ -2600,6 +2617,9 @@ impl<'ctx> ByteCompiler<'ctx> {
                 self.function_name,
                 self.spanned_source_text,
             ),
+            global_lexs: self.global_lexs.into_boxed_slice(),
+            global_fns: self.global_fns.into_boxed_slice(),
+            global_vars: self.global_vars.into_boxed_slice(),
         }
     }
 
