@@ -76,6 +76,15 @@ impl SliceRef<'_> {
         }
     }
 
+    /// Copies the slice into a new `Vec<u8>`. For `AtomicSlice`, each byte is loaded with `SeqCst` ordering.
+    #[must_use]
+    pub(crate) fn to_vec(self) -> Vec<u8> {
+        match self {
+            Self::Slice(s) => s.to_vec(),
+            Self::AtomicSlice(s) => s.iter().map(|a| a.load(Ordering::SeqCst)).collect(),
+        }
+    }
+
     /// Gets the starting address of this `SliceRef`.
     #[cfg(debug_assertions)]
     pub(crate) fn addr(&self) -> usize {
