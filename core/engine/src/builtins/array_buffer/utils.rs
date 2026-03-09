@@ -485,47 +485,40 @@ unsafe fn batched_atomic_copy_backward(src: *const AtomicU8, dest: *const Atomic
         return;
     }
 
-    // Compute offsets from the end: peel tail bytes to align the end, then
-    // process aligned 8-byte chunks, leaving remaining head bytes.
-    let end_addr = (dest as usize).wrapping_add(count);
-    let tail = (end_addr % BATCH_SIZE).min(count);
-    let remaining = count - tail;
-    let chunks = remaining / BATCH_SIZE;
-    let head = remaining % BATCH_SIZE;
+    let (head, chunks, tail) = compute_batch_offsets(dest as usize, count);
+    let tail_start = head + chunks * BATCH_SIZE;
 
-    // Phase 1: Copy tail bytes (from the end) until both end pointers are 8-byte aligned.
+    // Phase 1: Copy tail bytes backwards.
     // SAFETY: ensured by the caller — both pointers are valid for `count` bytes.
     unsafe {
-        for i in 0..tail {
-            let idx = count - 1 - i;
-            (*dest.add(idx)).store((*src.add(idx)).load(Ordering::Relaxed), Ordering::Relaxed);
+        for i in (0..tail).rev() {
+            (*dest.add(tail_start + i)).store(
+                (*src.add(tail_start + i)).load(Ordering::Relaxed),
+                Ordering::Relaxed,
+            );
         }
     }
 
-    let aligned_end = count - tail;
-
-    // Verify both end pointers are now aligned after Phase 1.
+    // Verify both pointers are aligned after peeling tail bytes.
     #[cfg(debug_assertions)]
     {
-        debug_assert_eq!((dest as usize + aligned_end) % BATCH_SIZE, 0);
-        debug_assert_eq!((src as usize + aligned_end) % BATCH_SIZE, 0);
+        debug_assert_eq!((dest as usize + tail_start) % BATCH_SIZE, 0);
+        debug_assert_eq!((src as usize + tail_start) % BATCH_SIZE, 0);
     }
 
     // Phase 2: Copy aligned 8-byte chunks backwards.
-    let chunk_base = aligned_end - chunks * BATCH_SIZE;
-    // SAFETY: Both `dest + aligned_end` and `src + aligned_end` are 8-byte aligned
-    // (same misalignment guaranteed, Phase 1 aligned the end). `dest + chunk_base`
-    // is aligned because `dest + aligned_end` is aligned minus a multiple of 8.
+    // SAFETY: Both `src + head` and `dest + head` are 8-byte aligned
+    // (same misalignment guaranteed, Phase 1 peeled tail bytes).
     #[allow(clippy::cast_ptr_alignment)]
     unsafe {
-        let src_u64 = src.add(chunk_base).cast::<AtomicU64>();
-        let dest_u64 = dest.add(chunk_base).cast::<AtomicU64>();
+        let src_u64 = src.add(head).cast::<AtomicU64>();
+        let dest_u64 = dest.add(head).cast::<AtomicU64>();
         for i in (0..chunks).rev() {
             (*dest_u64.add(i)).store((*src_u64.add(i)).load(Ordering::Relaxed), Ordering::Relaxed);
         }
     }
 
-    // Phase 3: Copy remaining head bytes.
+    // Phase 3: Copy remaining head bytes backwards.
     // SAFETY: ensured by the caller.
     unsafe {
         for i in (0..head).rev() {
