@@ -505,7 +505,10 @@ fn evaluate_file(
                 println!("{}", v.display());
             }
         }
-        Err(v) => printer.print(uncaught_error(&v)),
+        Err(v) => {
+            printer.print(uncaught_error(&v));
+            return Err(v.into_erased(context).into());
+        }
     }
 
     Ok(())
