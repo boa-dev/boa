@@ -1250,17 +1250,12 @@ impl<'ctx> ByteCompiler<'ctx> {
                 }
                 // Cached const bindings are already handled by compile_expr_operand
                 // without emitting code — hoisting would add a redundant Move.
-                if !self.in_with
-                    && self.const_binding_cache.contains_key(&binding.locator())
-                {
+                if !self.in_with && self.const_binding_cache.contains_key(&binding.locator()) {
                     return false;
                 }
                 // Only hoist if the binding is immutable (const).
                 // Mutable bindings (let, var) can change between iterations.
-                matches!(
-                    self.lexical_scope.is_binding_mutable(&name),
-                    Some(false)
-                )
+                matches!(self.lexical_scope.is_binding_mutable(&name), Some(false))
             }
             _ => false,
         }

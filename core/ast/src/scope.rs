@@ -268,7 +268,13 @@ impl Scope {
     /// or `None` if the binding is not found in this or any outer scope.
     #[must_use]
     pub fn is_binding_mutable(&self, name: &JsString) -> Option<bool> {
-        if let Some(binding) = self.inner.bindings.borrow().iter().find(|b| &b.name == name) {
+        if let Some(binding) = self
+            .inner
+            .bindings
+            .borrow()
+            .iter()
+            .find(|b| &b.name == name)
+        {
             Some(binding.is_mutable())
         } else if let Some(outer) = &self.inner.outer {
             outer.is_binding_mutable(name)

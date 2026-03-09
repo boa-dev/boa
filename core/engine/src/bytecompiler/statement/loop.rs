@@ -132,9 +132,7 @@ impl ByteCompiler<'_> {
 
         let exit = for_loop
             .condition()
-            .map(|condition| {
-                self.compile_condition_and_branch(condition, hoisted.as_ref())
-            });
+            .map(|condition| self.compile_condition_and_branch(condition, hoisted.as_ref()));
 
         self.compile_stmt(for_loop.body(), use_expr, true);
 
@@ -433,8 +431,7 @@ impl ByteCompiler<'_> {
         self.bytecode.emit_increment_loop_iteration();
         self.push_loop_control_info(label, start_address, use_expr);
 
-        let exit = self
-            .compile_condition_and_branch(while_loop.condition(), hoisted.as_ref());
+        let exit = self.compile_condition_and_branch(while_loop.condition(), hoisted.as_ref());
 
         self.compile_stmt(while_loop.body(), use_expr, true);
 
@@ -466,8 +463,7 @@ impl ByteCompiler<'_> {
         let condition_label_address = self.next_opcode_location();
         self.bytecode.emit_increment_loop_iteration();
 
-        let exit = self
-            .compile_condition_and_branch(do_while_loop.cond(), hoisted.as_ref());
+        let exit = self.compile_condition_and_branch(do_while_loop.cond(), hoisted.as_ref());
 
         self.patch_jump(initial_label);
 
