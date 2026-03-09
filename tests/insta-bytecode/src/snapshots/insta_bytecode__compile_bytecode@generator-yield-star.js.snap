@@ -1,0 +1,33 @@
+---
+source: tests/insta-bytecode/src/lib.rs
+expression: output
+input_file: tests/insta-bytecode/scripts/generator-yield-star.js
+---
+---------------------------Compiled Output: '<main>'----------------------------
+Location     Handler      Opcode                            Operands
+  000000                    GetLocator                        binding_index:0
+  000005                    PushEmptyObject                   dst:r01
+  00000a                    GetNameGlobal                     dst:r03, binding_index:1, ic_index:0
+  000017                    GetPropertyByName                 dst:r02, value:r03, ic:(name:asyncIterator entries:())
+  000024                    ToPropertyKey                     src:r02, dst:r02
+  00002d                    GetFunction                       index:4, dst:r03
+  000036                    SetFunctionName                   function:r03, name:r02, prefix:prefix:
+  000043                    SetHomeObject                     function:r03, home:r01
+  00004c                    DefineOwnPropertyByValue          object:r01, key:r02, value:r03
+  000059                    SetNameByLocator                  src:r01
+  00005e                    CheckReturn                       
+  00005f                    Return                            
+
+Register Count: 4, Flags: CodeBlockFlags(HAS_PROTOTYPE_PROPERTY)
+Constants:
+    0000: [STRING] "gen"
+    0001: [FUNCTION] name: 'gen' (length: 0)
+    0002: [STRING] "obj"
+    0003: [STRING] "asyncIterator"
+    0004: [FUNCTION] name: '' (length: 0)
+Bindings:
+    0000: obj, scope: GlobalObject
+    0001: Symbol, scope: GlobalObject
+Handlers: <empty>
+Source Map:
+    0000: 10..36: (2, 11)
