@@ -812,7 +812,7 @@ pub(crate) unsafe fn memmove(ptr: BytesMutPtr, from: usize, to: usize, count: us
 }
 
 #[cfg(test)]
-mod utils_tests {
+mod tests_miri {
     use super::*;
     use portable_atomic::AtomicU8;
     use std::sync::atomic::Ordering;
