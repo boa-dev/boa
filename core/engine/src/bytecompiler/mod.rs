@@ -15,6 +15,7 @@ mod env;
 mod expression;
 mod function;
 mod generator;
+mod iterator;
 mod jump_control;
 mod module;
 mod register;
