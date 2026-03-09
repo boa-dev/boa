@@ -1489,7 +1489,11 @@ impl<'ctx> ByteCompiler<'ctx> {
                     }
                 },
             },
-            Access::This => todo!("access_set `this`"),
+            Access::This => {
+                // In non-strict code, assignment to `this` is a no-op per spec; we still evaluate
+                // the RHS for side effects (e.g. `this = foo()` must call foo()).
+                let _ = expr_fn(self);
+            }
         }
     }
 
