@@ -2,7 +2,7 @@ use crate::{
     Context,
     vm::{
         code_block::create_function_object_fast,
-        opcode::{Operation, RegisterOperand, VaryingOperand},
+        opcode::{Operation, RegisterOperand, IndexOperand},
     },
 };
 
@@ -16,7 +16,7 @@ pub(crate) struct GetFunction;
 impl GetFunction {
     #[inline(always)]
     pub(crate) fn operation(
-        (dst, index): (RegisterOperand, VaryingOperand),
+        (dst, index): (RegisterOperand, IndexOperand),
         context: &mut Context,
     ) {
         let code = context

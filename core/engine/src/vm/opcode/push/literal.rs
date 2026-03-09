@@ -3,7 +3,7 @@ use crate::{
     object::JsRegExp,
     vm::{
         Constant,
-        opcode::{Operation, RegisterOperand, VaryingOperand},
+        opcode::{Operation, RegisterOperand, IndexOperand},
     },
 };
 
@@ -17,7 +17,7 @@ pub(crate) struct PushLiteral;
 impl PushLiteral {
     #[inline(always)]
     pub(crate) fn operation(
-        (dst, index): (RegisterOperand, VaryingOperand),
+        (dst, index): (RegisterOperand, IndexOperand),
         context: &mut Context,
     ) {
         let constant = &context.vm.frame().code_block().constants[usize::from(index)];
@@ -46,7 +46,7 @@ pub(crate) struct PushRegexp;
 impl PushRegexp {
     #[inline(always)]
     pub(crate) fn operation(
-        (dst, pattern_index, flags_index): (RegisterOperand, VaryingOperand, VaryingOperand),
+        (dst, pattern_index, flags_index): (RegisterOperand, IndexOperand, IndexOperand),
         context: &mut Context,
     ) -> JsResult<()> {
         let code_block = context.vm.frame().code_block();

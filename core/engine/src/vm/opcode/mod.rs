@@ -266,58 +266,56 @@ impl std::fmt::Display for RegisterOperand {
 }
 
 #[derive(Debug, Clone, Copy)]
-/// A varying operand is a value that can be either a u8, u16 or u32.
-pub(crate) struct VaryingOperand {
-    value: u32,
-}
+/// A index operand is e.g. an index into the constant pool
+pub(crate) struct IndexOperand(u32);
 
-impl VaryingOperand {
+impl IndexOperand {
     /// Create a new [`VaryingOperand`] from a u32 value.
     pub(crate) fn new(value: u32) -> Self {
-        Self { value }
+        Self(value)
     }
 }
 
-impl From<VaryingOperand> for u32 {
-    fn from(value: VaryingOperand) -> Self {
-        value.value
+impl From<IndexOperand> for u32 {
+    fn from(value: IndexOperand) -> Self {
+        value.0
     }
 }
 
-impl From<VaryingOperand> for usize {
-    fn from(value: VaryingOperand) -> Self {
-        value.value as usize
+impl From<IndexOperand> for usize {
+    fn from(value: IndexOperand) -> Self {
+        value.0 as usize
     }
 }
 
-impl From<bool> for VaryingOperand {
+impl From<bool> for IndexOperand {
     fn from(value: bool) -> Self {
         Self::new(value.into())
     }
 }
 
-impl From<u8> for VaryingOperand {
+impl From<u8> for IndexOperand {
     fn from(value: u8) -> Self {
         Self::new(value.into())
     }
 }
 
-impl From<u16> for VaryingOperand {
+impl From<u16> for IndexOperand {
     fn from(value: u16) -> Self {
         Self::new(value.into())
     }
 }
 
-impl From<u32> for VaryingOperand {
+impl From<u32> for IndexOperand {
     fn from(value: u32) -> Self {
         Self::new(value)
     }
 }
 
-impl std::fmt::Display for VaryingOperand {
+impl std::fmt::Display for IndexOperand {
     #[inline]
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        write!(f, "{}", self.value)
+        write!(f, "{}", self.0)
     }
 }
 
@@ -652,7 +650,7 @@ generate_opcodes! {
     ///   - index: `VaryingOperand`
     /// - Registers:
     ///   - Output: dst
-    PushLiteral { dst: RegisterOperand, index: VaryingOperand },
+    PushLiteral { dst: RegisterOperand, index: IndexOperand },
 
     /// Push regexp value on the stack.
     ///
@@ -661,7 +659,7 @@ generate_opcodes! {
     ///   - flags: `VaryingOperand`
     /// - Registers:
     ///   - Output: dst
-    PushRegexp { dst: RegisterOperand, pattern_index: VaryingOperand, flags_index: VaryingOperand },
+    PushRegexp { dst: RegisterOperand, pattern_index: IndexOperand, flags_index: IndexOperand },
 
     /// Push empty object `{}` value on the stack.
     ///
@@ -860,7 +858,7 @@ generate_opcodes! {
     /// - Registers:
     ///   - Input: rhs
     ///   - Output: dst
-    InPrivate { dst: RegisterOperand, index: VaryingOperand, rhs: RegisterOperand },
+    InPrivate { dst: RegisterOperand, index: IndexOperand, rhs: RegisterOperand },
 
     /// Binary `==` operator.
     ///
@@ -1005,7 +1003,7 @@ generate_opcodes! {
     ///
     /// - Operands:
     ///   - binding_index: `VaryingOperand`
-    DefVar { binding_index: VaryingOperand },
+    DefVar { binding_index: IndexOperand },
 
     /// Declare and initialize `var` type variable.
     ///
@@ -1013,7 +1011,7 @@ generate_opcodes! {
     ///   - binding_index: `VaryingOperand`
     /// - Registers:
     ///   - Input: src
-    DefInitVar { src: RegisterOperand, binding_index: VaryingOperand },
+    DefInitVar { src: RegisterOperand, binding_index: IndexOperand },
 
     /// Initialize a lexical binding.
     ///
@@ -1021,13 +1019,13 @@ generate_opcodes! {
     ///   - binding_index: `VaryingOperand`
     /// - Registers:
     ///   - Input: src
-    PutLexicalValue { src: RegisterOperand, binding_index: VaryingOperand },
+    PutLexicalValue { src: RegisterOperand, binding_index: IndexOperand },
 
     /// Throws an error because the binding access is illegal.
     ///
     /// - Operands:
     ///   -index: `VaryingOperand`
-    ThrowMutateImmutable { index: VaryingOperand },
+    ThrowMutateImmutable { index: IndexOperand },
 
     /// Get i-th argument of the current frame.
     ///
@@ -1037,7 +1035,7 @@ generate_opcodes! {
     ///   - index: `VaryingOperand`
     /// - Registers:
     ///   - Output: dst
-    GetArgument { index: VaryingOperand, dst: RegisterOperand },
+    GetArgument { index: IndexOperand, dst: RegisterOperand },
 
     /// Find a binding on the environment chain and push its value.
     ///
@@ -1045,7 +1043,7 @@ generate_opcodes! {
     ///   - binding_index: `VaryingOperand`
     /// - Registers:
     ///   - Output: dst
-    GetName { dst: RegisterOperand, binding_index: VaryingOperand },
+    GetName { dst: RegisterOperand, binding_index: IndexOperand },
 
     /// Find a binding in the global object and push its value.
     ///
@@ -1054,13 +1052,13 @@ generate_opcodes! {
     ///   - ic_index: `VaryingOperand`
     /// - Registers:
     ///   - Output: dst
-    GetNameGlobal { dst: RegisterOperand, binding_index: VaryingOperand, ic_index: VaryingOperand },
+    GetNameGlobal { dst: RegisterOperand, binding_index: IndexOperand, ic_index: IndexOperand },
 
     /// Find a binding on the environment and set the `current_binding` of the current frame.
     ///
     /// - Operands:
     ///   - binding_index: `VaryingOperand`
-    GetLocator { binding_index: VaryingOperand },
+    GetLocator { binding_index: IndexOperand },
 
     /// Find a binding on the environment chain and push its value to the stack and its
     /// `BindingLocator` to the `bindings_stack`.
@@ -1069,7 +1067,7 @@ generate_opcodes! {
     ///   - binding_index: `VaryingOperand`
     /// - Registers:
     ///   - Output: dst
-    GetNameAndLocator { dst: RegisterOperand, binding_index: VaryingOperand },
+    GetNameAndLocator { dst: RegisterOperand, binding_index: IndexOperand },
 
     /// Find a binding on the environment chain and push its value. If the binding does not exist push undefined.
     ///
@@ -1077,7 +1075,7 @@ generate_opcodes! {
     ///   - binding_index: `VaryingOperand`
     /// - Registers:
     ///   - Output: dst
-    GetNameOrUndefined { dst: RegisterOperand, binding_index: VaryingOperand },
+    GetNameOrUndefined { dst: RegisterOperand, binding_index: IndexOperand },
 
     /// Find a binding on the environment chain and assign its value.
     ///
@@ -1085,7 +1083,7 @@ generate_opcodes! {
     ///   - binding_index: `VaryingOperand`
     /// - Registers:
     ///   - Input: src
-    SetName { src: RegisterOperand, binding_index: VaryingOperand },
+    SetName { src: RegisterOperand, binding_index: IndexOperand },
 
     /// Assigns a value to the binding pointed by the top of the `bindings_stack`.
     ///
@@ -1099,7 +1097,7 @@ generate_opcodes! {
     ///   - binding_index: `VaryingOperand`
     /// - Registers:
     ///   - Output: dst
-    DeleteName { dst: RegisterOperand, binding_index: VaryingOperand },
+    DeleteName { dst: RegisterOperand, binding_index: IndexOperand },
 
     /// Gets a method from an object, or `undefined` if the method does not exist.
     ///
@@ -1108,7 +1106,7 @@ generate_opcodes! {
     ///
     /// Registers (inout)
     ///  - object: `JsObject` as input, `JsObject` or `undefined` as output.
-    GetMethod { object: RegisterOperand, name_index: VaryingOperand },
+    GetMethod { object: RegisterOperand, name_index: IndexOperand },
 
     /// Get the length property by name from an object.
     ///
@@ -1122,7 +1120,7 @@ generate_opcodes! {
     GetLengthProperty {
         dst: RegisterOperand,
         value: RegisterOperand,
-        ic_index: VaryingOperand
+        ic_index: IndexOperand
     },
 
     /// Get a property by name from an object.
@@ -1137,7 +1135,7 @@ generate_opcodes! {
     GetPropertyByName {
         dst: RegisterOperand,
         value: RegisterOperand,
-        ic_index: VaryingOperand
+        ic_index: IndexOperand
     },
 
     /// Get a property by name from an object.
@@ -1153,7 +1151,7 @@ generate_opcodes! {
         dst: RegisterOperand,
         receiver: RegisterOperand,
         value: RegisterOperand,
-        ic_index: VaryingOperand
+        ic_index: IndexOperand
     },
 
     /// Get a property by value from an object.
@@ -1195,7 +1193,7 @@ generate_opcodes! {
     SetPropertyByName {
         value: RegisterOperand,
         object: RegisterOperand,
-        ic_index: VaryingOperand
+        ic_index: IndexOperand
     },
 
     /// Sets a property by name of an object.
@@ -1210,7 +1208,7 @@ generate_opcodes! {
         value: RegisterOperand,
         receiver: RegisterOperand,
         object: RegisterOperand,
-        ic_index: VaryingOperand
+        ic_index: IndexOperand
     },
 
     /// Sets the name of a function object.
@@ -1226,7 +1224,7 @@ generate_opcodes! {
     ///     - 2: "set "
     /// - Registers:
     ///   - Input: function, name
-    SetFunctionName { function: RegisterOperand, name: RegisterOperand, prefix: VaryingOperand },
+    SetFunctionName { function: RegisterOperand, name: RegisterOperand, prefix: IndexOperand },
 
     /// Defines a own property of an object by name.
     ///
@@ -1234,7 +1232,7 @@ generate_opcodes! {
     ///   - name_index: `VaryingOperand`
     /// - Registers:
     ///   - Input: object, value
-    DefineOwnPropertyByName { object: RegisterOperand, value: RegisterOperand, name_index: VaryingOperand },
+    DefineOwnPropertyByName { object: RegisterOperand, value: RegisterOperand, name_index: IndexOperand },
 
     /// Defines a static class method by name.
     ///
@@ -1245,7 +1243,7 @@ generate_opcodes! {
     DefineClassStaticMethodByName {
         value: RegisterOperand,
         object: RegisterOperand,
-        name_index: VaryingOperand
+        name_index: IndexOperand
     },
 
     /// Defines a class method by name.
@@ -1257,7 +1255,7 @@ generate_opcodes! {
     DefineClassMethodByName {
         value: RegisterOperand,
         object: RegisterOperand,
-        name_index: VaryingOperand
+        name_index: IndexOperand
     },
 
     /// Sets a property by value of an object.
@@ -1311,7 +1309,7 @@ generate_opcodes! {
     ///   - name_index: `VaryingOperand`
     /// - Registers:
     ///   - Input: object, value
-    SetPropertyGetterByName { object: RegisterOperand, value: RegisterOperand, name_index: VaryingOperand },
+    SetPropertyGetterByName { object: RegisterOperand, value: RegisterOperand, name_index: IndexOperand },
 
     /// Defines a static getter class method by name.
     ///
@@ -1324,7 +1322,7 @@ generate_opcodes! {
     DefineClassStaticGetterByName {
         value: RegisterOperand,
         object: RegisterOperand,
-        name_index: VaryingOperand
+        name_index: IndexOperand
     },
 
     /// Defines a getter class method by name.
@@ -1338,7 +1336,7 @@ generate_opcodes! {
     DefineClassGetterByName {
         value: RegisterOperand,
         object: RegisterOperand,
-        name_index: VaryingOperand
+        name_index: IndexOperand
     },
 
     /// Sets a getter property by value of an object.
@@ -1385,7 +1383,7 @@ generate_opcodes! {
     ///   - name_index: `VaryingOperand`
     /// - Registers:
     ///   - Input: object, value
-    SetPropertySetterByName { object: RegisterOperand, value: RegisterOperand, name_index: VaryingOperand },
+    SetPropertySetterByName { object: RegisterOperand, value: RegisterOperand, name_index: IndexOperand },
 
     /// Defines a static setter class method by name.
     ///
@@ -1398,7 +1396,7 @@ generate_opcodes! {
     DefineClassStaticSetterByName {
         value: RegisterOperand,
         object: RegisterOperand,
-        name_index: VaryingOperand
+        name_index: IndexOperand
     },
 
     /// Defines a setter class method by name.
@@ -1412,7 +1410,7 @@ generate_opcodes! {
     DefineClassSetterByName {
         value: RegisterOperand,
         object: RegisterOperand,
-        name_index: VaryingOperand
+        name_index: IndexOperand
     },
 
     /// Sets a setter property by value of an object.
@@ -1459,7 +1457,7 @@ generate_opcodes! {
     ///   - name_index: `VaryingOperand`
     /// - Registers:
     ///   - Input: object, value
-    SetPrivateField { value: RegisterOperand, object: RegisterOperand, name_index: VaryingOperand },
+    SetPrivateField { value: RegisterOperand, object: RegisterOperand, name_index: IndexOperand },
 
     /// Define a private property of a class constructor by it's name.
     ///
@@ -1469,7 +1467,7 @@ generate_opcodes! {
     ///   - name_index: `VaryingOperand`
     /// - Registers:
     ///   - Input: object, value
-    DefinePrivateField { object: RegisterOperand, value: RegisterOperand, name_index: VaryingOperand },
+    DefinePrivateField { object: RegisterOperand, value: RegisterOperand, name_index: IndexOperand },
 
     /// Set a private method of a class constructor by it's name.
     ///
@@ -1479,7 +1477,7 @@ generate_opcodes! {
     ///   - name_index: `VaryingOperand`
     /// - Registers:
     ///   - Input: object, value
-    SetPrivateMethod { object: RegisterOperand, value: RegisterOperand, name_index: VaryingOperand },
+    SetPrivateMethod { object: RegisterOperand, value: RegisterOperand, name_index: IndexOperand },
 
     /// Set a private setter property of a class constructor by it's name.
     ///
@@ -1489,7 +1487,7 @@ generate_opcodes! {
     ///   - name_index: `VaryingOperand`
     /// - Registers:
     ///   - Input: object, value
-    SetPrivateSetter { object: RegisterOperand, value: RegisterOperand, name_index: VaryingOperand },
+    SetPrivateSetter { object: RegisterOperand, value: RegisterOperand, name_index: IndexOperand },
 
     /// Set a private getter property of a class constructor by it's name.
     ///
@@ -1499,7 +1497,7 @@ generate_opcodes! {
     ///   - name_index: `VaryingOperand`
     /// - Registers:
     ///   - Input: object, value
-    SetPrivateGetter { object: RegisterOperand, value: RegisterOperand, name_index: VaryingOperand },
+    SetPrivateGetter { object: RegisterOperand, value: RegisterOperand, name_index: IndexOperand },
 
     /// Get a private property by name from an object an push it on the stack.
     ///
@@ -1510,7 +1508,7 @@ generate_opcodes! {
     /// - Registers:
     ///   - Input: object
     ///   - Output: dst
-    GetPrivateField { dst: RegisterOperand, object: RegisterOperand, name_index: VaryingOperand },
+    GetPrivateField { dst: RegisterOperand, object: RegisterOperand, name_index: IndexOperand },
 
     /// Push a field to a class.
     ///
@@ -1519,7 +1517,7 @@ generate_opcodes! {
     ///   - is_anonymous_function: `bool`
     /// - Registers:
     ///   - Input: object, value
-    PushClassField { object: RegisterOperand, name: RegisterOperand, value: RegisterOperand, is_anonymous_function: VaryingOperand },
+    PushClassField { object: RegisterOperand, name: RegisterOperand, value: RegisterOperand, is_anonymous_function: IndexOperand },
 
     /// Push a private field to the class.
     ///
@@ -1527,7 +1525,7 @@ generate_opcodes! {
     ///   - name_index: `VaryingOperand`
     /// - Registers:
     ///   - Input: object, value
-    PushClassFieldPrivate { object: RegisterOperand, value: RegisterOperand, name_index: VaryingOperand },
+    PushClassFieldPrivate { object: RegisterOperand, value: RegisterOperand, name_index: IndexOperand },
 
     /// Push a private getter to the class.
     ///
@@ -1535,7 +1533,7 @@ generate_opcodes! {
     ///   - name_index: `VaryingOperand`
     /// - Registers:
     ///   - Input: object, value
-    PushClassPrivateGetter { object: RegisterOperand, value: RegisterOperand, name_index: VaryingOperand },
+    PushClassPrivateGetter { object: RegisterOperand, value: RegisterOperand, name_index: IndexOperand },
 
     /// Push a private setter to the class.
     ///
@@ -1543,7 +1541,7 @@ generate_opcodes! {
     ///   - name_index: `VaryingOperand`
     /// - Registers:
     ///   - Input: object, value
-    PushClassPrivateSetter { object: RegisterOperand, value: RegisterOperand, name_index: VaryingOperand },
+    PushClassPrivateSetter { object: RegisterOperand, value: RegisterOperand, name_index: IndexOperand },
 
     /// Push a private method to the class.
     ///
@@ -1551,7 +1549,7 @@ generate_opcodes! {
     ///   - name_index: `VaryingOperand`
     /// - Registers:
     ///   - Input: object, proto, value
-    PushClassPrivateMethod { object: RegisterOperand, proto: RegisterOperand, value: RegisterOperand, name_index: VaryingOperand },
+    PushClassPrivateMethod { object: RegisterOperand, proto: RegisterOperand, value: RegisterOperand, name_index: IndexOperand },
 
     /// Deletes a property by name of an object.
     ///
@@ -1561,7 +1559,7 @@ generate_opcodes! {
     ///   - name_index: `VaryingOperand`
     /// - Registers:
     ///   - Input: object
-    DeletePropertyByName { object: RegisterOperand, name_index: VaryingOperand },
+    DeletePropertyByName { object: RegisterOperand, name_index: IndexOperand },
 
     /// Deletes a property by value of an object.
     ///
@@ -1730,13 +1728,13 @@ generate_opcodes! {
     ///
     /// - Operands:
     ///   - message: `VaryingOperand`
-    ThrowNewTypeError { message: VaryingOperand },
+    ThrowNewTypeError { message: IndexOperand },
 
     /// Throw a new `ReferenceError` exception
     ///
     /// - Operands:
     ///   - message: `VaryingOperand`
-    ThrowNewReferenceError { message: VaryingOperand },
+    ThrowNewReferenceError { message: IndexOperand },
 
     /// Gets the function object of the current function environment
     ///
@@ -1756,14 +1754,14 @@ generate_opcodes! {
     ///   - index: `VaryingOperand`
     /// - Registers:
     ///   - Output: dst
-    ThisForObjectEnvironmentName { dst: RegisterOperand, index: VaryingOperand },
+    ThisForObjectEnvironmentName { dst: RegisterOperand, index: IndexOperand },
 
     /// Execute the `super()` method.
     ///
     /// - Operands:
     ///   - argument_count: `VaryingOperand`
     /// - Stack: super_constructor, argument_1, ... argument_n **=>**
-    SuperCall { argument_count: VaryingOperand },
+    SuperCall { argument_count: IndexOperand },
 
     /// Execute the `super()` method where the arguments contain spreads.
     ///
@@ -1815,7 +1813,7 @@ generate_opcodes! {
     ///   - index: `VaryingOperand`
     /// - Registers:
     ///   - Output: dst
-    GetFunction { dst: RegisterOperand, index: VaryingOperand },
+    GetFunction { dst: RegisterOperand, index: IndexOperand },
 
     /// Call a function named "eval".
     ///
@@ -1823,21 +1821,21 @@ generate_opcodes! {
     ///   - argument_count: `VaryingOperand`
     ///   - scope_index: `VaryingOperand`
     /// - Stack: this, func, argument_1, ... argument_n **=>** result
-    CallEval { argument_count: VaryingOperand, scope_index: VaryingOperand },
+    CallEval { argument_count: IndexOperand, scope_index: IndexOperand },
 
     /// Call a function named "eval" where the arguments contain spreads.
     ///
     /// - Operands:
     ///   - scope_index: `VaryingOperand`
     /// - Stack: Stack: this, func, arguments_array **=>** result
-    CallEvalSpread { scope_index: VaryingOperand },
+    CallEvalSpread { scope_index: IndexOperand },
 
     /// Call a function.
     ///
     /// - Operands:
     ///   - argument_count: `VaryingOperand`
     /// - Stack: this, func, argument_1, ... argument_n **=>** result
-    Call { argument_count: VaryingOperand },
+    Call { argument_count: IndexOperand },
 
     /// Call a function where the arguments contain spreads.
     ///
@@ -1851,7 +1849,7 @@ generate_opcodes! {
     /// - Operands:
     ///   - argument_count: `VaryingOperand`
     /// - Stack: this, func, argument_1, ... argument_n **=>** result
-    New { argument_count: VaryingOperand },
+    New { argument_count: IndexOperand },
 
     /// Call construct on a function where the arguments contain spreads.
     ///
@@ -1914,7 +1912,7 @@ generate_opcodes! {
     ///
     /// - Operands:
     ///   - scope_index: `VaryingOperand`
-    PushScope { scope_index: VaryingOperand },
+    PushScope { scope_index: IndexOperand },
 
     /// Push an object environment.
     ///
@@ -2022,7 +2020,7 @@ generate_opcodes! {
     /// - Registers:
     ///   - Input: value
     ///   - Output: value
-    CreateIteratorResult { value: RegisterOperand, done: VaryingOperand },
+    CreateIteratorResult { value: RegisterOperand, done: IndexOperand },
 
     /// Calls `return` on the current iterator and returns the result.
     ///

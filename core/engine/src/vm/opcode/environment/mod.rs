@@ -1,4 +1,4 @@
-use super::{RegisterOperand, VaryingOperand};
+use super::{RegisterOperand, IndexOperand};
 use crate::{
     Context, JsExpect, JsResult, JsValue,
     error::JsNativeError,
@@ -94,7 +94,7 @@ pub(crate) struct ThisForObjectEnvironmentName;
 impl ThisForObjectEnvironmentName {
     #[inline(always)]
     pub(super) fn operation(
-        (dst, index): (RegisterOperand, VaryingOperand),
+        (dst, index): (RegisterOperand, IndexOperand),
         context: &mut Context,
     ) -> JsResult<()> {
         let binding_locator = context.vm.frame().code_block.bindings[usize::from(index)].clone();
@@ -121,7 +121,7 @@ pub(crate) struct SuperCall;
 
 impl SuperCall {
     #[inline(always)]
-    pub(super) fn operation(argument_count: VaryingOperand, context: &mut Context) -> JsResult<()> {
+    pub(super) fn operation(argument_count: IndexOperand, context: &mut Context) -> JsResult<()> {
         let super_constructor = context
             .vm
             .stack

@@ -5,7 +5,7 @@ use crate::{
     builtins::function::{OrdinaryFunction, set_function_name},
     object::internal_methods::InternalMethodPropertyContext,
     property::PropertyDescriptor,
-    vm::opcode::{Operation, RegisterOperand, VaryingOperand},
+    vm::opcode::{Operation, RegisterOperand, IndexOperand},
 };
 
 /// `DefineClassStaticGetterByName` implements the Opcode Operation for `Opcode::DefineClassStaticGetterByName`
@@ -18,7 +18,7 @@ pub(crate) struct DefineClassStaticGetterByName;
 impl DefineClassStaticGetterByName {
     #[inline(always)]
     pub(crate) fn operation(
-        (function, class, index): (RegisterOperand, RegisterOperand, VaryingOperand),
+        (function, class, index): (RegisterOperand, RegisterOperand, IndexOperand),
         context: &mut Context,
     ) -> JsResult<()> {
         let function = context.vm.get_register(function.into()).clone();
@@ -75,7 +75,7 @@ pub(crate) struct DefineClassGetterByName;
 impl DefineClassGetterByName {
     #[inline(always)]
     pub(crate) fn operation(
-        (function, class_proto, index): (RegisterOperand, RegisterOperand, VaryingOperand),
+        (function, class_proto, index): (RegisterOperand, RegisterOperand, IndexOperand),
         context: &mut Context,
     ) -> JsResult<()> {
         let function = context.vm.get_register(function.into()).clone();

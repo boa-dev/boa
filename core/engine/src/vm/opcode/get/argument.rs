@@ -1,6 +1,6 @@
 use crate::{
     Context,
-    vm::opcode::{Operation, RegisterOperand, VaryingOperand},
+    vm::opcode::{Operation, RegisterOperand, IndexOperand},
 };
 
 /// `GetArgument` implements the Opcode Operation for `Opcode::GetArgument`
@@ -13,7 +13,7 @@ pub(crate) struct GetArgument;
 impl GetArgument {
     #[inline(always)]
     pub(crate) fn operation(
-        (index, dst): (VaryingOperand, RegisterOperand),
+        (index, dst): (IndexOperand, RegisterOperand),
         context: &mut Context,
     ) {
         let value = context
