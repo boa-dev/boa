@@ -111,6 +111,18 @@ impl<F: crate::fetch::Fetcher + Debug + 'static> RuntimeExtension for FetchExten
     }
 }
 
+/// `AbortController` and `AbortSignal` extension.
+#[cfg(feature = "fetch")]
+#[derive(Copy, Clone, Debug)]
+pub struct AbortControllerExtension;
+
+#[cfg(feature = "fetch")]
+impl RuntimeExtension for AbortControllerExtension {
+    fn register(self, realm: Option<Realm>, context: &mut Context) -> JsResult<()> {
+        crate::abort::register(realm, context)
+    }
+}
+
 /// Register the `postMessage` JavaScript API with the specified
 /// [`crate::message::MessageSender`].
 #[derive(Debug)]

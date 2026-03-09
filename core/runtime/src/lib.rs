@@ -110,6 +110,8 @@ pub mod console;
 #[doc(inline)]
 pub use console::{Console, ConsoleState, DefaultLogger, Logger, NullLogger};
 
+#[cfg(feature = "fetch")]
+pub mod abort;
 pub mod clone;
 pub mod extensions;
 #[cfg(feature = "fetch")]
@@ -150,6 +152,8 @@ pub fn register(
         extensions::UrlExtension,
         #[cfg(feature = "process")]
         ProcessExtension,
+        #[cfg(feature = "fetch")]
+        extensions::AbortControllerExtension,
         extensions,
     )
         .register(realm, ctx)?;
