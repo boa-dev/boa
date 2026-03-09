@@ -78,7 +78,7 @@ pub enum Error {
 
     /// A scope analysis error.
     ScopeAnalysis {
-        /// The error that ocurred during scope analysis.
+        /// The error that occurred during scope analysis.
         err: &'static str,
     },
 
