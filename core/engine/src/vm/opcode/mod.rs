@@ -221,26 +221,24 @@ impl std::fmt::Display for Address {
 
 #[derive(Debug, Clone, Copy)]
 /// A register operand is a register index used in bytecode instructions.
-pub(crate) struct RegisterOperand {
-    value: u32,
-}
+pub(crate) struct RegisterOperand(u32);
 
 impl RegisterOperand {
     /// Create a new [`RegisterOperand`] from a u32 value.
     pub(crate) fn new(value: u32) -> Self {
-        Self { value }
+        Self(value)
     }
 }
 
 impl From<RegisterOperand> for u32 {
     fn from(value: RegisterOperand) -> Self {
-        value.value
+        value.0
     }
 }
 
 impl From<RegisterOperand> for usize {
     fn from(value: RegisterOperand) -> Self {
-        value.value as usize
+        value.0 as usize
     }
 }
 
@@ -265,7 +263,7 @@ impl From<u32> for RegisterOperand {
 impl std::fmt::Display for RegisterOperand {
     #[inline]
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        write!(f, "r{:02}", self.value)
+        write!(f, "r{:02}", self.0)
     }
 }
 
