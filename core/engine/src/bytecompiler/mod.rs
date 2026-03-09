@@ -1471,7 +1471,7 @@ impl<'ctx> ByteCompiler<'ctx> {
                 },
             },
             Access::This => {
-                // In sloppy mode, assignment to `this` is a no-op per spec; we still evaluate
+                // In non-strict code, assignment to `this` is a no-op per spec; we still evaluate
                 // the RHS for side effects (e.g. `this = foo()` must call foo()).
                 let _ = expr_fn(self);
             }

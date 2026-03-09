@@ -119,9 +119,15 @@ where
                     .parse(cursor, interner)
                     .map(Declaration::from)
             }
-            _ => Err(Error::general(
-                "expected 'function', 'async', or 'class' in declaration",
-                tok.span().start(),
+            _ => Err(Error::expected(
+                [
+                    Keyword::Function.to_string(),
+                    Keyword::Async.to_string(),
+                    Keyword::Class.to_string(),
+                ],
+                tok.to_string(interner),
+                tok.span(),
+                "declaration",
             )),
         }
     }

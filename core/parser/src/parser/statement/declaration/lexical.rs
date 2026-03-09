@@ -92,9 +92,11 @@ where
             )
             .parse(cursor, interner)?,
             _ => {
-                return Err(Error::general(
-                    "expected 'let' or 'const' in lexical declaration",
-                    tok.span().start(),
+                return Err(Error::expected(
+                    [Keyword::Let.to_string(), Keyword::Const.to_string()],
+                    tok.to_string(interner),
+                    tok.span(),
+                    "lexical declaration",
                 ));
             }
         };
