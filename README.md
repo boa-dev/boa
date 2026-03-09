@@ -35,6 +35,59 @@ Try out the engine now at the live Wasm playground [here](https://boajs.dev/play
 
 Prefer a CLI? Feel free to try out `boa_cli`!
 
+## 📥 Installation
+
+You can run the CLI using Cargo, or use a prebuilt binary if you prefer not to install Rust.
+
+- **Prebuilt binaries (recommended for quick use):** Download the appropriate archive from the GitHub Releases page, extract it, and add the `boa` (or `boa.exe` on Windows) binary to your `PATH`.
+
+  - Linux / macOS (example):
+
+    ```bash
+    curl -L -o boa.tar.gz https://github.com/boa-dev/boa/releases/latest/download/boa-x86_64-unknown-linux-gnu.tar.gz
+    tar xzf boa.tar.gz
+    sudo mv boa /usr/local/bin/
+    ```
+
+  - Windows (PowerShell example):
+
+    ```powershell
+    Invoke-WebRequest -Uri "https://github.com/boa-dev/boa/releases/latest/download/boa-x86_64-pc-windows-msvc.zip" -OutFile boa.zip
+    Expand-Archive -Path boa.zip -DestinationPath .\boa
+    Move-Item .\boa\boa.exe C:\Windows\System32\boa.exe
+    ```
+
+- **Build/install via Cargo:** If you have Rust installed you can build locally or install the CLI into your Cargo binaries:
+
+  ```bash
+  # Build and run from the workspace
+  cargo run --bin boa -- path/to/script.js
+
+  # Install the CLI to your cargo bin dir
+  cargo install --path . -p boa_cli
+  ```
+
+Notes:
+- Using the prebuilt binary avoids installing Rust/toolchains.
+- `cargo install --path . -p boa_cli` installs the CLI from the workspace; on some platforms you may need to run `rustup` or install a target toolchain first.
+
+<!-- TODO: CI GIF example -->
+<!-- TODO: If you want a small animated demo in CI, consider using `vhs` to record a short terminal session and upload a GIF via artifacts or use a GIF action. Example (adapt to your CI):
+
+```bash
+# Install vhs and asciinema locally (or in CI image)
+npm install -g @softprops/vhs
+
+# Record a short script to a GIF (vhs saves demo.gif)
+vhs record --output demo.cast --command "cargo run --bin boa -- examples/helloworld.js"
+vhs render demo.cast --output demo.gif
+
+# Upload demo.gif as a GitHub Action artifact and/or embed in the README
+```
+
+TODO: Add a small GitHub Actions workflow step to generate and publish the GIF when merging to `main` (keep the demo <10s to limit CI time).
+-->
+
 ## 📦 Crates
 
 Boa currently publishes and actively maintains the following crates:
