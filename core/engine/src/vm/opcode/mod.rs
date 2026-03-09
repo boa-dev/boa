@@ -270,7 +270,7 @@ impl std::fmt::Display for RegisterOperand {
 pub(crate) struct IndexOperand(u32);
 
 impl IndexOperand {
-    /// Create a new [`VaryingOperand`] from a u32 value.
+    /// Create a new [`IndexOperand`] from a u32 value.
     pub(crate) fn new(value: u32) -> Self {
         Self(value)
     }
@@ -647,7 +647,7 @@ generate_opcodes! {
     /// array to get the value.
     ///
     /// - Operands:
-    ///   - index: `VaryingOperand`
+    ///   - index: `IndexOperand`
     /// - Registers:
     ///   - Output: dst
     PushLiteral { dst: RegisterOperand, index: IndexOperand },
@@ -655,8 +655,8 @@ generate_opcodes! {
     /// Push regexp value on the stack.
     ///
     /// - Operands:
-    ///   - pattern_index: `VaryingOperand`
-    ///   - flags: `VaryingOperand`
+    ///   - pattern_index: `IndexOperand`
+    ///   - flags: `IndexOperand`
     /// - Registers:
     ///   - Output: dst
     PushRegexp { dst: RegisterOperand, pattern_index: IndexOperand, flags_index: IndexOperand },
@@ -1002,13 +1002,13 @@ generate_opcodes! {
     /// Declare `var` type variable.
     ///
     /// - Operands:
-    ///   - binding_index: `VaryingOperand`
+    ///   - binding_index: `IndexOperand`
     DefVar { binding_index: IndexOperand },
 
     /// Declare and initialize `var` type variable.
     ///
     /// - Operands:
-    ///   - binding_index: `VaryingOperand`
+    ///   - binding_index: `IndexOperand`
     /// - Registers:
     ///   - Input: src
     DefInitVar { src: RegisterOperand, binding_index: IndexOperand },
@@ -1016,7 +1016,7 @@ generate_opcodes! {
     /// Initialize a lexical binding.
     ///
     /// - Operands:
-    ///   - binding_index: `VaryingOperand`
+    ///   - binding_index: `IndexOperand`
     /// - Registers:
     ///   - Input: src
     PutLexicalValue { src: RegisterOperand, binding_index: IndexOperand },
@@ -1024,7 +1024,7 @@ generate_opcodes! {
     /// Throws an error because the binding access is illegal.
     ///
     /// - Operands:
-    ///   -index: `VaryingOperand`
+    ///   -index: `IndexOperand`
     ThrowMutateImmutable { index: IndexOperand },
 
     /// Get i-th argument of the current frame.
@@ -1032,7 +1032,7 @@ generate_opcodes! {
     /// Returns `undefined` if `arguments.len()` < `index`.
     ///
     /// - Operands:
-    ///   - index: `VaryingOperand`
+    ///   - index: `IndexOperand`
     /// - Registers:
     ///   - Output: dst
     GetArgument { index: IndexOperand, dst: RegisterOperand },
@@ -1040,7 +1040,7 @@ generate_opcodes! {
     /// Find a binding on the environment chain and push its value.
     ///
     /// - Operands:
-    ///   - binding_index: `VaryingOperand`
+    ///   - binding_index: `IndexOperand`
     /// - Registers:
     ///   - Output: dst
     GetName { dst: RegisterOperand, binding_index: IndexOperand },
@@ -1048,8 +1048,8 @@ generate_opcodes! {
     /// Find a binding in the global object and push its value.
     ///
     /// - Operands:
-    ///   - binding_index: `VaryingOperand`
-    ///   - ic_index: `VaryingOperand`
+    ///   - binding_index: `IndexOperand`
+    ///   - ic_index: `IndexOperand`
     /// - Registers:
     ///   - Output: dst
     GetNameGlobal { dst: RegisterOperand, binding_index: IndexOperand, ic_index: IndexOperand },
@@ -1057,14 +1057,14 @@ generate_opcodes! {
     /// Find a binding on the environment and set the `current_binding` of the current frame.
     ///
     /// - Operands:
-    ///   - binding_index: `VaryingOperand`
+    ///   - binding_index: `IndexOperand`
     GetLocator { binding_index: IndexOperand },
 
     /// Find a binding on the environment chain and push its value to the stack and its
     /// `BindingLocator` to the `bindings_stack`.
     ///
     /// - Operands:
-    ///   - binding_index: `VaryingOperand`
+    ///   - binding_index: `IndexOperand`
     /// - Registers:
     ///   - Output: dst
     GetNameAndLocator { dst: RegisterOperand, binding_index: IndexOperand },
@@ -1072,7 +1072,7 @@ generate_opcodes! {
     /// Find a binding on the environment chain and push its value. If the binding does not exist push undefined.
     ///
     /// - Operands:
-    ///   - binding_index: `VaryingOperand`
+    ///   - binding_index: `IndexOperand`
     /// - Registers:
     ///   - Output: dst
     GetNameOrUndefined { dst: RegisterOperand, binding_index: IndexOperand },
@@ -1080,7 +1080,7 @@ generate_opcodes! {
     /// Find a binding on the environment chain and assign its value.
     ///
     /// - Operands:
-    ///   - binding_index: `VaryingOperand`
+    ///   - binding_index: `IndexOperand`
     /// - Registers:
     ///   - Input: src
     SetName { src: RegisterOperand, binding_index: IndexOperand },
@@ -1094,7 +1094,7 @@ generate_opcodes! {
     /// Deletes a property of the global object.
     ///
     /// - Operands:
-    ///   - binding_index: `VaryingOperand`
+    ///   - binding_index: `IndexOperand`
     /// - Registers:
     ///   - Output: dst
     DeleteName { dst: RegisterOperand, binding_index: IndexOperand },
@@ -1113,7 +1113,7 @@ generate_opcodes! {
     /// Like `object.name`
     ///
     /// - Operands:
-    ///   - ic_index: `VaryingOperand`
+    ///   - ic_index: `IndexOperand`
     /// - Registers:
     ///   - Input: value
     ///   - Output: dst
@@ -1128,7 +1128,7 @@ generate_opcodes! {
     /// Like `object.name`
     ///
     /// - Operands:
-    ///   - ic_index: `VaryingOperand`
+    ///   - ic_index: `IndexOperand`
     /// - Registers:
     ///   - Input: value
     ///   - Output: dst
@@ -1143,7 +1143,7 @@ generate_opcodes! {
     /// Like `object.name`
     ///
     /// - Operands:
-    ///   - ic_index: `VaryingOperand`
+    ///   - ic_index: `IndexOperand`
     /// - Registers:
     ///   - Input: receiver, value
     ///   - Output: dst
@@ -1187,7 +1187,7 @@ generate_opcodes! {
     /// Like `object.name = value`
     ///
     /// - Operands:
-    ///   - ic_index: `VaryingOperand`
+    ///   - ic_index: `IndexOperand`
     /// - Registers:
     ///   - Input: object, value
     SetPropertyByName {
@@ -1201,7 +1201,7 @@ generate_opcodes! {
     /// Like `object.name = value`
     ///
     /// - Operands:
-    ///   - ic_index: `VaryingOperand`
+    ///   - ic_index: `IndexOperand`
     /// - Registers:
     ///   - Input: object,receiver, value
     SetPropertyByNameWithThis {
@@ -1229,7 +1229,7 @@ generate_opcodes! {
     /// Defines a own property of an object by name.
     ///
     /// - Operands:
-    ///   - name_index: `VaryingOperand`
+    ///   - name_index: `IndexOperand`
     /// - Registers:
     ///   - Input: object, value
     DefineOwnPropertyByName { object: RegisterOperand, value: RegisterOperand, name_index: IndexOperand },
@@ -1237,7 +1237,7 @@ generate_opcodes! {
     /// Defines a static class method by name.
     ///
     /// - Operands:
-    ///   - name_index: `VaryingOperand`
+    ///   - name_index: `IndexOperand`
     /// - Registers:
     ///   - Input: object, value
     DefineClassStaticMethodByName {
@@ -1249,7 +1249,7 @@ generate_opcodes! {
     /// Defines a class method by name.
     ///
     /// - Operands:
-    ///   - name_index: `VaryingOperand`
+    ///   - name_index: `IndexOperand`
     /// - Registers:
     ///   - Input: object, value
     DefineClassMethodByName {
@@ -1306,7 +1306,7 @@ generate_opcodes! {
     /// Like `get name() value`
     ///
     /// - Operands:
-    ///   - name_index: `VaryingOperand`
+    ///   - name_index: `IndexOperand`
     /// - Registers:
     ///   - Input: object, value
     SetPropertyGetterByName { object: RegisterOperand, value: RegisterOperand, name_index: IndexOperand },
@@ -1316,7 +1316,7 @@ generate_opcodes! {
     /// Like `static get name() value`
     ///
     /// - Operands:
-    ///   - name_index: `VaryingOperand`
+    ///   - name_index: `IndexOperand`
     /// - Registers:
     ///   - Input: object, value
     DefineClassStaticGetterByName {
@@ -1330,7 +1330,7 @@ generate_opcodes! {
     /// Like `get name() value`
     ///
     /// - Operands:
-    ///   - name_index: `VaryingOperand`
+    ///   - name_index: `IndexOperand`
     /// - Registers:
     ///   - Input: object, value
     DefineClassGetterByName {
@@ -1380,7 +1380,7 @@ generate_opcodes! {
     /// Like `set name() value`
     ///
     /// - Operands:
-    ///   - name_index: `VaryingOperand`
+    ///   - name_index: `IndexOperand`
     /// - Registers:
     ///   - Input: object, value
     SetPropertySetterByName { object: RegisterOperand, value: RegisterOperand, name_index: IndexOperand },
@@ -1390,7 +1390,7 @@ generate_opcodes! {
     /// Like `static set name() value`
     ///
     /// - Operands:
-    ///   - name_index: `VaryingOperand`
+    ///   - name_index: `IndexOperand`
     /// - Registers:
     ///   - Input: object, value
     DefineClassStaticSetterByName {
@@ -1404,7 +1404,7 @@ generate_opcodes! {
     /// Like `set name() value`
     ///
     /// - Operands:
-    ///   - name_index: `VaryingOperand`
+    ///   - name_index: `IndexOperand`
     /// - Registers:
     ///   - Input: object, value
     DefineClassSetterByName {
@@ -1454,7 +1454,7 @@ generate_opcodes! {
     /// Like `obj.#name = value`
     ///
     /// - Operands:
-    ///   - name_index: `VaryingOperand`
+    ///   - name_index: `IndexOperand`
     /// - Registers:
     ///   - Input: object, value
     SetPrivateField { value: RegisterOperand, object: RegisterOperand, name_index: IndexOperand },
@@ -1464,7 +1464,7 @@ generate_opcodes! {
     /// Like `#name = value`
     ///
     /// - Operands:
-    ///   - name_index: `VaryingOperand`
+    ///   - name_index: `IndexOperand`
     /// - Registers:
     ///   - Input: object, value
     DefinePrivateField { object: RegisterOperand, value: RegisterOperand, name_index: IndexOperand },
@@ -1474,7 +1474,7 @@ generate_opcodes! {
     /// Like `#name() {}`
     ///
     /// - Operands:
-    ///   - name_index: `VaryingOperand`
+    ///   - name_index: `IndexOperand`
     /// - Registers:
     ///   - Input: object, value
     SetPrivateMethod { object: RegisterOperand, value: RegisterOperand, name_index: IndexOperand },
@@ -1484,7 +1484,7 @@ generate_opcodes! {
     /// Like `set #name() {}`
     ///
     /// - Operands:
-    ///   - name_index: `VaryingOperand`
+    ///   - name_index: `IndexOperand`
     /// - Registers:
     ///   - Input: object, value
     SetPrivateSetter { object: RegisterOperand, value: RegisterOperand, name_index: IndexOperand },
@@ -1494,7 +1494,7 @@ generate_opcodes! {
     /// Like `get #name() {}`
     ///
     /// - Operands:
-    ///   - name_index: `VaryingOperand`
+    ///   - name_index: `IndexOperand`
     /// - Registers:
     ///   - Input: object, value
     SetPrivateGetter { object: RegisterOperand, value: RegisterOperand, name_index: IndexOperand },
@@ -1504,7 +1504,7 @@ generate_opcodes! {
     /// Like `object.#name`
     ///
     /// - Operands:
-    ///   - name_index: `VaryingOperand`
+    ///   - name_index: `IndexOperand`
     /// - Registers:
     ///   - Input: object
     ///   - Output: dst
@@ -1513,7 +1513,7 @@ generate_opcodes! {
     /// Push a field to a class.
     ///
     /// - Operands:
-    ///   - name_index: `VaryingOperand`
+    ///   - name_index: `IndexOperand`
     ///   - is_anonymous_function: `bool`
     /// - Registers:
     ///   - Input: object, value
@@ -1522,7 +1522,7 @@ generate_opcodes! {
     /// Push a private field to the class.
     ///
     /// - Operands:
-    ///   - name_index: `VaryingOperand`
+    ///   - name_index: `IndexOperand`
     /// - Registers:
     ///   - Input: object, value
     PushClassFieldPrivate { object: RegisterOperand, value: RegisterOperand, name_index: IndexOperand },
@@ -1530,7 +1530,7 @@ generate_opcodes! {
     /// Push a private getter to the class.
     ///
     /// - Operands:
-    ///   - name_index: `VaryingOperand`
+    ///   - name_index: `IndexOperand`
     /// - Registers:
     ///   - Input: object, value
     PushClassPrivateGetter { object: RegisterOperand, value: RegisterOperand, name_index: IndexOperand },
@@ -1538,7 +1538,7 @@ generate_opcodes! {
     /// Push a private setter to the class.
     ///
     /// - Operands:
-    ///   - name_index: `VaryingOperand`
+    ///   - name_index: `IndexOperand`
     /// - Registers:
     ///   - Input: object, value
     PushClassPrivateSetter { object: RegisterOperand, value: RegisterOperand, name_index: IndexOperand },
@@ -1546,7 +1546,7 @@ generate_opcodes! {
     /// Push a private method to the class.
     ///
     /// - Operands:
-    ///   - name_index: `VaryingOperand`
+    ///   - name_index: `IndexOperand`
     /// - Registers:
     ///   - Input: object, proto, value
     PushClassPrivateMethod { object: RegisterOperand, proto: RegisterOperand, value: RegisterOperand, name_index: IndexOperand },
@@ -1556,7 +1556,7 @@ generate_opcodes! {
     /// Like `delete object.key`
     ///
     /// - Operands:
-    ///   - name_index: `VaryingOperand`
+    ///   - name_index: `IndexOperand`
     /// - Registers:
     ///   - Input: object
     DeletePropertyByName { object: RegisterOperand, name_index: IndexOperand },
@@ -1727,13 +1727,13 @@ generate_opcodes! {
     /// Throw a new `TypeError` exception
     ///
     /// - Operands:
-    ///   - message: `VaryingOperand`
+    ///   - message: `IndexOperand`
     ThrowNewTypeError { message: IndexOperand },
 
     /// Throw a new `ReferenceError` exception
     ///
     /// - Operands:
-    ///   - message: `VaryingOperand`
+    ///   - message: `IndexOperand`
     ThrowNewReferenceError { message: IndexOperand },
 
     /// Gets the function object of the current function environment
@@ -1751,7 +1751,7 @@ generate_opcodes! {
     /// Pushes `this` value that is related to the object environment of the given binding
     ///
     /// - Operands:
-    ///   - index: `VaryingOperand`
+    ///   - index: `IndexOperand`
     /// - Registers:
     ///   - Output: dst
     ThisForObjectEnvironmentName { dst: RegisterOperand, index: IndexOperand },
@@ -1759,7 +1759,7 @@ generate_opcodes! {
     /// Execute the `super()` method.
     ///
     /// - Operands:
-    ///   - argument_count: `VaryingOperand`
+    ///   - argument_count: `IndexOperand`
     /// - Stack: super_constructor, argument_1, ... argument_n **=>**
     SuperCall { argument_count: IndexOperand },
 
@@ -1810,7 +1810,7 @@ generate_opcodes! {
     /// Get function from the pre-compiled inner functions.
     ///
     /// - Operands:
-    ///   - index: `VaryingOperand`
+    ///   - index: `IndexOperand`
     /// - Registers:
     ///   - Output: dst
     GetFunction { dst: RegisterOperand, index: IndexOperand },
@@ -1818,22 +1818,22 @@ generate_opcodes! {
     /// Call a function named "eval".
     ///
     /// - Operands:
-    ///   - argument_count: `VaryingOperand`
-    ///   - scope_index: `VaryingOperand`
+    ///   - argument_count: `IndexOperand`
+    ///   - scope_index: `IndexOperand`
     /// - Stack: this, func, argument_1, ... argument_n **=>** result
     CallEval { argument_count: IndexOperand, scope_index: IndexOperand },
 
     /// Call a function named "eval" where the arguments contain spreads.
     ///
     /// - Operands:
-    ///   - scope_index: `VaryingOperand`
+    ///   - scope_index: `IndexOperand`
     /// - Stack: Stack: this, func, arguments_array **=>** result
     CallEvalSpread { scope_index: IndexOperand },
 
     /// Call a function.
     ///
     /// - Operands:
-    ///   - argument_count: `VaryingOperand`
+    ///   - argument_count: `IndexOperand`
     /// - Stack: this, func, argument_1, ... argument_n **=>** result
     Call { argument_count: IndexOperand },
 
@@ -1847,7 +1847,7 @@ generate_opcodes! {
     /// Call construct on a function.
     ///
     /// - Operands:
-    ///   - argument_count: `VaryingOperand`
+    ///   - argument_count: `IndexOperand`
     /// - Stack: this, func, argument_1, ... argument_n **=>** result
     New { argument_count: IndexOperand },
 
@@ -1911,7 +1911,7 @@ generate_opcodes! {
     /// Push a declarative environment.
     ///
     /// - Operands:
-    ///   - scope_index: `VaryingOperand`
+    ///   - scope_index: `IndexOperand`
     PushScope { scope_index: IndexOperand },
 
     /// Push an object environment.
