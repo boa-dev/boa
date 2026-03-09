@@ -24,7 +24,6 @@ mod environment;
 mod function;
 mod generator;
 mod get;
-mod global;
 mod iteration;
 mod meta;
 mod new;
@@ -67,8 +66,6 @@ pub(crate) use function::*;
 pub(crate) use generator::*;
 #[doc(inline)]
 pub(crate) use get::*;
-#[doc(inline)]
-pub(crate) use global::*;
 #[doc(inline)]
 pub(crate) use iteration::*;
 #[doc(inline)]
@@ -1741,12 +1738,6 @@ generate_opcodes! {
     ///   - message: `VaryingOperand`
     ThrowNewTypeError { message: VaryingOperand },
 
-    /// Throw a new `SyntaxError` exception
-    ///
-    /// - Operands:
-    ///   - message: `VaryingOperand`
-    ThrowNewSyntaxError { message: VaryingOperand },
-
     /// Throw a new `ReferenceError` exception
     ///
     /// - Operands:
@@ -2158,56 +2149,6 @@ generate_opcodes! {
     ///   - Output: dst
     CreateUnmappedArgumentsObject { dst: RegisterOperand },
 
-    /// Performs [`HasRestrictedGlobalProperty ( N )`][spec]
-    ///
-    /// - Operands:
-    ///   - index: `VaryingOperand`
-    /// - Registers:
-    ///   - Output: dst
-    ///
-    /// [spec]: https://tc39.es/ecma262/#sec-hasrestrictedglobalproperty
-    HasRestrictedGlobalProperty { dst: RegisterOperand, index: VaryingOperand },
-
-    /// Performs [`CanDeclareGlobalFunction ( N )`][spec]
-    ///
-    /// - Operands:
-    ///   - index: `VaryingOperand`
-    /// - Registers:
-    ///   - Output: dst
-    ///
-    /// [spec]: https://tc39.es/ecma262/#sec-candeclareglobalfunction
-    CanDeclareGlobalFunction { dst: RegisterOperand, index: VaryingOperand },
-
-    /// Performs [`CanDeclareGlobalVar ( N )`][spec]
-    ///
-    /// - Operands:
-    ///   - index: `VaryingOperand`
-    /// - Registers:
-    ///   - Output: dst
-    ///
-    /// [spec]: https://tc39.es/ecma262/#sec-candeclareglobalvar
-    CanDeclareGlobalVar { dst: RegisterOperand, index: VaryingOperand },
-
-    /// Performs [`CreateGlobalFunctionBinding ( N, V, D )`][spec]
-    ///
-    /// - Operands:
-    ///   - configurable: `bool`
-    ///   - name_index: `VaryingOperand`
-    /// - Registers:
-    ///   - Input: src
-    ///
-    /// [spec]: https://tc39.es/ecma262/#sec-createglobalfunctionbinding
-    CreateGlobalFunctionBinding { src: RegisterOperand, configurable: VaryingOperand, name_index: VaryingOperand },
-
-    /// Performs [`CreateGlobalVarBinding ( N, V, D )`][spec]
-    ///
-    /// - Operands:
-    ///   - configurable: `bool`
-    ///   - name_index: `VaryingOperand`
-    ///
-    /// [spec]: https://tc39.es/ecma262/#sec-createglobalvarbinding
-    CreateGlobalVarBinding { configurable: VaryingOperand, name_index: VaryingOperand },
-
     /// Reserved [`Opcode`].
     Reserved1 => Reserved,
     /// Reserved [`Opcode`].
@@ -2316,4 +2257,16 @@ generate_opcodes! {
     Reserved53 => Reserved,
     /// Reserved [`Opcode`].
     Reserved54 => Reserved,
+    /// Reserved [`Opcode`].
+    Reserved55 => Reserved,
+    /// Reserved [`Opcode`].
+    Reserved56 => Reserved,
+    /// Reserved [`Opcode`].
+    Reserved57 => Reserved,
+    /// Reserved [`Opcode`].
+    Reserved58 => Reserved,
+    /// Reserved [`Opcode`].
+    Reserved59 => Reserved,
+    /// Reserved [`Opcode`].
+    Reserved60 => Reserved,
 }

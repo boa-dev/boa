@@ -3,49 +3,43 @@ source: tests/insta-bytecode/src/lib.rs
 expression: output
 input_file: tests/insta-bytecode/scripts/double-loop-function.js
 ---
----------------------------Compiled Output: '<main>'----------------------------
+-------------------------- Compiled Output: '<main>' ---------------------------
 Location     Handler      Opcode                            Operands
-  000000                    CanDeclareGlobalFunction          index:0, dst:r01
-  000009                    JumpIfTrue                        value:r01, address:000017
-  000012                    ThrowNewTypeError                 message:1
-  000017                    GetFunction                       index:2, dst:r01
-  000020                    CreateGlobalFunctionBinding       src:r01, configurable:0, name_index:0
-  00002d                    PushZero                          dst:r02
-  000032                    PushInt8                          value:20, dst:r03
-  000038                    Jump                              address:000047
-  00003d                    IncrementLoopIteration            
-  00003e                    Inc                               src:r02, dst:r02
-  000047                    JumpIfNotLessThan                 lhs:r02, rhs:r03, address:0000b0
-  000054                    PushZero                          dst:r05
-  000059                    PushInt8                          value:50, dst:r06
-  00005f                    Jump                              address:00006e
-  000064                    IncrementLoopIteration            
-  000065                    Inc                               src:r05, dst:r05
-  00006e                    JumpIfNotLessThan                 lhs:r05, rhs:r06, address:0000ab
-  00007b                    PushFromRegister                  src:r00
-  000080                    GetNameGlobal                     dst:r07, binding_index:0, ic_index:0
-  00008d                    PushFromRegister                  src:r07
-  000092                    Move                              src:r05, dst:r07
-  00009b                    PushFromRegister                  src:r07
-  0000a0                    Call                              argument_count:1
-  0000a5                    Pop                               
-  0000a6                    Jump                              address:000064
-  0000ab                    Jump                              address:00003d
-  0000b0                    GetNameGlobal                     dst:r03, binding_index:1, ic_index:1
-  0000bd                    SetAccumulator                    src:r03
-  0000c2                    CheckReturn                       
-  0000c3                    Return                            
+  000000                    PushZero                          dst:r02
+  000005                    PushInt8                          value:20, dst:r03
+  00000b                    Jump                              address:00001a
+  000010                    IncrementLoopIteration            
+  000011                    Inc                               src:r02, dst:r02
+  00001a                    JumpIfNotLessThan                 lhs:r02, rhs:r03, address:000083
+  000027                    PushZero                          dst:r05
+  00002c                    PushInt8                          value:50, dst:r06
+  000032                    Jump                              address:000041
+  000037                    IncrementLoopIteration            
+  000038                    Inc                               src:r05, dst:r05
+  000041                    JumpIfNotLessThan                 lhs:r05, rhs:r06, address:00007e
+  00004e                    PushFromRegister                  src:r00
+  000053                    GetNameGlobal                     dst:r07, binding_index:0, ic_index:0
+  000060                    PushFromRegister                  src:r07
+  000065                    Move                              src:r05, dst:r07
+  00006e                    PushFromRegister                  src:r07
+  000073                    Call                              argument_count:1
+  000078                    Pop                               
+  000079                    Jump                              address:000037
+  00007e                    Jump                              address:000010
+  000083                    GetNameGlobal                     dst:r03, binding_index:1, ic_index:1
+  000090                    SetAccumulator                    src:r03
+  000095                    CheckReturn                       
+  000096                    Return                            
 
 Register Count: 8, Flags: CodeBlockFlags(HAS_PROTOTYPE_PROPERTY)
 Constants:
     0000: [STRING] "f"
-    0001: [STRING] "cannot declare global function"
-    0002: [FUNCTION] name: 'f' (length: 1)
+    0001: [FUNCTION] name: 'f' (length: 1)
 Bindings:
     0000: f, scope: GlobalObject
     0001: undefined, scope: GlobalObject
 Handlers: <empty>
 Source Map:
-    0000: 62..101: (5, 25)
-    0001: 101..146: (6, 27)
-    0002: 146..166: (7, 6)
+    0000: 17..56: (5, 25)
+    0001: 56..101: (6, 27)
+    0002: 101..121: (7, 6)

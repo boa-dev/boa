@@ -3,7 +3,7 @@ source: tests/insta-bytecode/src/lib.rs
 expression: output
 input_file: tests/insta-bytecode/scripts/basic-loop.js
 ---
----------------------------Compiled Output: '<main>'----------------------------
+-------------------------- Compiled Output: '<main>' ---------------------------
 Location     Handler      Opcode                            Operands
   000000                    PushZero                          dst:r02
   000005                    PushInt8                          value:100, dst:r03
