@@ -674,7 +674,11 @@ impl BuiltInFunctionObject {
 
         let saved = context.vm.frame_mut().environments.pop_to_global();
         let function_object = crate::vm::create_function_object(code, prototype, context);
-        context.vm.frame_mut().environments.restore_from_saved(saved);
+        context
+            .vm
+            .frame_mut()
+            .environments
+            .restore_from_saved(saved);
 
         Ok(function_object)
     }

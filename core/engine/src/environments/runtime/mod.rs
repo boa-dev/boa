@@ -88,10 +88,10 @@ impl EnvironmentStack {
     /// Gets the next outer function environment.
     pub(crate) fn outer_function_environment(&self) -> Option<(Gc<DeclarativeEnvironment>, Scope)> {
         for (env, _) in self.iter_from_tip() {
-            if let Some(decl) = env.as_declarative() {
-                if let Some(function_env) = decl.kind().as_function() {
-                    return Some((decl.clone(), function_env.compile().clone()));
-                }
+            if let Some(decl) = env.as_declarative()
+                && let Some(function_env) = decl.kind().as_function()
+            {
+                return Some((decl.clone(), function_env.compile().clone()));
             }
         }
         None
@@ -267,7 +267,10 @@ impl EnvironmentStack {
     /// Pop environment from the environments stack.
     #[track_caller]
     pub(crate) fn pop(&mut self) {
-        let node = self.tip.as_ref().expect("cannot pop empty environment chain");
+        let node = self
+            .tip
+            .as_ref()
+            .expect("cannot pop empty environment chain");
         self.tip = node.parent.clone();
         self.depth -= 1;
     }

@@ -24,7 +24,8 @@ impl GetFunctionObject {
     ) -> JsResult<()> {
         let env = {
             let frame = context.vm.frame();
-            frame.environments
+            frame
+                .environments
                 .get_this_environment(frame.realm.environment())
                 .as_function()
                 .js_expect("must be in a function environment")?
@@ -136,7 +137,8 @@ impl SuperCall {
 
         let this_env = {
             let frame = context.vm.frame();
-            frame.environments
+            frame
+                .environments
                 .get_this_environment(frame.realm.environment())
                 .as_function()
                 .expect("super call must be in function environment")
@@ -201,7 +203,8 @@ impl SuperCallSpread {
 
         let this_env = {
             let frame = context.vm.frame();
-            frame.environments
+            frame
+                .environments
                 .get_this_environment(frame.realm.environment())
                 .as_function()
                 .expect("super call must be in function environment")
@@ -240,7 +243,8 @@ impl SuperCallDerived {
     pub(super) fn operation((): (), context: &mut Context) -> JsResult<()> {
         let this_env = {
             let frame = context.vm.frame();
-            frame.environments
+            frame
+                .environments
                 .get_this_environment(frame.realm.environment())
                 .as_function()
                 .expect("super call must be in function environment")
@@ -306,7 +310,8 @@ impl BindThisValue {
         // 7. Let thisER be GetThisEnvironment().
         let this_env = {
             let frame = context.vm.frame();
-            frame.environments
+            frame
+                .environments
                 .get_this_environment(frame.realm.environment())
                 .as_function()
                 .expect("super call must be in function environment")

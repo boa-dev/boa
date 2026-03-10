@@ -1802,7 +1802,8 @@ impl SourceTextModule {
                 } => match export_locator.binding_name() {
                     BindingName::Name(name) => {
                         let frame = context.vm.frame();
-                        frame.environments
+                        frame
+                            .environments
                             .current_declarative_ref(frame.realm.environment())
                             .expect("must be declarative")
                             .kind()

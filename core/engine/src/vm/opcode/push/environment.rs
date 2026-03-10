@@ -20,7 +20,9 @@ impl PushScope {
         let scope = context.vm.frame().code_block().constant_scope(index.into());
         let frame = context.vm.frame_mut();
         let global = frame.realm.environment();
-        frame.environments.push_lexical(scope.num_bindings_non_local(), global);
+        frame
+            .environments
+            .push_lexical(scope.num_bindings_non_local(), global);
     }
 }
 

@@ -142,7 +142,7 @@ impl Eval {
                 .environments
                 .get_this_environment(frame.realm.environment())
         }
-            .as_function()
+        .as_function()
         {
             // 10. If direct is true, then
             //     b. If thisEnvRec is a Function Environment Record, then
@@ -347,7 +347,9 @@ impl Eval {
         {
             let frame = context.vm.frame_mut();
             let global = frame.realm.environment();
-            frame.environments.push_lexical(lexical_scope.num_bindings_non_local(), global);
+            frame
+                .environments
+                .push_lexical(lexical_scope.num_bindings_non_local(), global);
         }
 
         context

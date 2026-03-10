@@ -24,7 +24,8 @@ impl CreateMappedArgumentsObject {
         let args = context.vm.stack.get_arguments(context.vm.frame());
         let env = {
             let frame = context.vm.frame();
-            frame.environments
+            frame
+                .environments
                 .current_declarative_ref(frame.realm.environment())
                 .expect("must be declarative")
                 .clone()
