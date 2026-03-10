@@ -162,7 +162,15 @@ impl<R> Tokenizer<R> for Operator {
             b'~' => {
                 Token::new_by_position_group(Punctuator::Neg.into(), start_pos, cursor.pos_group())
             }
-            op => unimplemented!("operator {}", op),
+            op => {
+                return Err(Error::syntax(
+                    format!(
+                        "unexpected character '{}' in operator",
+                        char::from_u32(u32::from(op)).unwrap_or('\u{FFFD}')
+                    ),
+                    start_pos.position(),
+                ));
+            }
         })
     }
 }
