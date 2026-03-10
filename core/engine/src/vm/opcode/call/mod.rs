@@ -3,7 +3,7 @@ use std::{cell::RefCell, mem::MaybeUninit};
 use boa_string::JsString;
 use dynify::Dynify;
 
-use super::{RegisterOperand, VaryingOperand};
+use super::{IndexOperand, RegisterOperand};
 use crate::{
     Context, JsError, JsObject, JsResult, JsValue, NativeFunction,
     builtins::{Promise, promise::PromiseCapability},
@@ -24,7 +24,7 @@ pub(crate) struct CallEval;
 impl CallEval {
     #[inline(always)]
     pub(super) fn operation(
-        (argument_count, scope_index): (VaryingOperand, VaryingOperand),
+        (argument_count, scope_index): (IndexOperand, IndexOperand),
         context: &mut Context,
     ) -> JsResult<()> {
         let func = context
@@ -102,7 +102,7 @@ pub(crate) struct CallEvalSpread;
 
 impl CallEvalSpread {
     #[inline(always)]
-    pub(super) fn operation(index: VaryingOperand, context: &mut Context) -> JsResult<()> {
+    pub(super) fn operation(index: IndexOperand, context: &mut Context) -> JsResult<()> {
         // Get the arguments that are stored as an array object on the stack.
         let arguments_array = context.vm.stack.pop();
         let arguments_array_object = arguments_array
@@ -183,7 +183,7 @@ pub(crate) struct Call;
 
 impl Call {
     #[inline(always)]
-    pub(super) fn operation(argument_count: VaryingOperand, context: &mut Context) -> JsResult<()> {
+    pub(super) fn operation(argument_count: IndexOperand, context: &mut Context) -> JsResult<()> {
         let func = context
             .vm
             .stack

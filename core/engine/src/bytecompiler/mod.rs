@@ -32,8 +32,9 @@ use crate::{
     builtins::function::{ThisMode, arguments::MappedArguments},
     js_string,
     vm::{
-        CallFrame, CodeBlock, CodeBlockFlags, Constant, GeneratorResumeKind, Handler, InlineCache,
-        opcode::{Address, BindingOpcode, ByteCodeEmitter, RegisterOperand},
+        CallFrame, CodeBlock, CodeBlockFlags, Constant, GeneratorResumeKind, GlobalFunctionBinding,
+        Handler, InlineCache,
+        opcode::{Address, BindingOpcode, BytecodeEmitter, RegisterOperand},
         source_info::{SourceInfo, SourceMap, SourceMapBuilder, SourcePath},
     },
 };
@@ -71,7 +72,7 @@ use rustc_hash::FxHashMap;
 use thin_vec::ThinVec;
 
 pub(crate) use declarations::{
-    eval_declaration_instantiation_context, global_declaration_instantiation_context,
+    global_declaration_instantiation_context, prepare_eval_declaration_instantiation,
 };
 pub(crate) use function::FunctionCompiler;
 pub(crate) use jump_control::JumpControlInfo;
@@ -486,7 +487,7 @@ pub struct ByteCompiler<'ctx> {
     pub(crate) parameter_scope: Scope,
 
     /// Bytecode
-    pub(crate) bytecode: ByteCodeEmitter,
+    pub(crate) bytecode: BytecodeEmitter,
 
     pub(crate) source_map_builder: SourceMapBuilder,
     pub(crate) source_path: SourcePath,
@@ -532,6 +533,10 @@ pub struct ByteCompiler<'ctx> {
 
     pub(crate) interner: &'ctx mut Interner,
     spanned_source_text: SpannedSourceText,
+
+    pub(crate) global_lexs: Vec<u32>,
+    pub(crate) global_fns: Vec<GlobalFunctionBinding>,
+    pub(crate) global_vars: Vec<u32>,
 
     #[cfg(feature = "annex-b")]
     pub(crate) annex_b_function_names: Vec<Sym>,
@@ -620,7 +625,7 @@ impl<'ctx> ByteCompiler<'ctx> {
         Self {
             function_name: name,
             length: 0,
-            bytecode: ByteCodeEmitter::new(),
+            bytecode: BytecodeEmitter::new(),
             source_map_builder: SourceMapBuilder::default(),
             constants: ThinVec::default(),
             bindings: Vec::default(),
@@ -652,6 +657,10 @@ impl<'ctx> ByteCompiler<'ctx> {
             annex_b_function_names: Vec::new(),
             in_with,
             emitted_mapped_arguments_object_opcode: false,
+
+            global_lexs: Vec::new(),
+            global_fns: Vec::new(),
+            global_vars: Vec::new(),
         }
     }
 
@@ -1030,10 +1039,6 @@ impl<'ctx> ByteCompiler<'ctx> {
         let error_msg = self.get_or_insert_literal(Literal::String(js_string!(message)));
         self.bytecode.emit_throw_new_type_error(error_msg.into());
     }
-    fn emit_syntax_error(&mut self, message: &str) {
-        let error_msg = self.get_or_insert_literal(Literal::String(js_string!(message)));
-        self.bytecode.emit_throw_new_syntax_error(error_msg.into());
-    }
 
     fn emit_push_integer(&mut self, value: i32, dst: &Register) {
         self.emit_push_integer_with_index(value, dst.variable());
@@ -1165,15 +1170,15 @@ impl<'ctx> ByteCompiler<'ctx> {
     }
 
     fn try_fused_comparison_branch(&mut self, op: RelationalOp, binary: &Binary) -> Option<Label> {
-        use crate::vm::opcode::ByteCodeEmitter;
+        use crate::vm::opcode::BytecodeEmitter;
 
-        let emit_fn: fn(&mut ByteCodeEmitter, Address, RegisterOperand, RegisterOperand) = match op
+        let emit_fn: fn(&mut BytecodeEmitter, Address, RegisterOperand, RegisterOperand) = match op
         {
-            RelationalOp::LessThan => ByteCodeEmitter::emit_jump_if_not_less_than,
-            RelationalOp::LessThanOrEqual => ByteCodeEmitter::emit_jump_if_not_less_than_or_equal,
-            RelationalOp::GreaterThan => ByteCodeEmitter::emit_jump_if_not_greater_than,
+            RelationalOp::LessThan => BytecodeEmitter::emit_jump_if_not_less_than,
+            RelationalOp::LessThanOrEqual => BytecodeEmitter::emit_jump_if_not_less_than_or_equal,
+            RelationalOp::GreaterThan => BytecodeEmitter::emit_jump_if_not_greater_than,
             RelationalOp::GreaterThanOrEqual => {
-                ByteCodeEmitter::emit_jump_if_not_greater_than_or_equal
+                BytecodeEmitter::emit_jump_if_not_greater_than_or_equal
             }
             _ => return None,
         };
@@ -1489,7 +1494,11 @@ impl<'ctx> ByteCompiler<'ctx> {
                     }
                 },
             },
-            Access::This => todo!("access_set `this`"),
+            Access::This => {
+                // In non-strict code, assignment to `this` is a no-op per spec; we still evaluate
+                // the RHS for side effects (e.g. `this = foo()` must call foo()).
+                let _ = expr_fn(self);
+            }
         }
     }
 
@@ -2523,6 +2532,10 @@ impl<'ctx> ByteCompiler<'ctx> {
                 self.function_name,
                 self.spanned_source_text,
             ),
+            global_lexs: self.global_lexs.into_boxed_slice(),
+            global_fns: self.global_fns.into_boxed_slice(),
+            global_vars: self.global_vars.into_boxed_slice(),
+            debug_id: CodeBlock::get_next_codeblock_id(),
         }
     }
 
