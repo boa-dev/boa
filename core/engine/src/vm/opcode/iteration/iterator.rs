@@ -7,7 +7,7 @@ use crate::{
     js_string,
     vm::{
         GeneratorResumeKind,
-        opcode::{Operation, RegisterOperand, VaryingOperand},
+        opcode::{IndexOperand, Operation, RegisterOperand},
     },
 };
 
@@ -427,10 +427,7 @@ pub(crate) struct CreateIteratorResult;
 
 impl CreateIteratorResult {
     #[inline(always)]
-    pub(crate) fn operation(
-        (value, done): (RegisterOperand, VaryingOperand),
-        context: &mut Context,
-    ) {
+    pub(crate) fn operation((value, done): (RegisterOperand, IndexOperand), context: &mut Context) {
         let done = u32::from(done) != 0;
         let val = context.vm.take_register(value.into());
         let result = create_iter_result_object(val, done, context);

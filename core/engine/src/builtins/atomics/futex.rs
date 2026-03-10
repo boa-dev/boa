@@ -163,8 +163,6 @@ use boa_string::JsString;
 use intrusive_collections::{LinkedList, LinkedListLink, UnsafeRef, intrusive_adapter};
 use small_btree::{Entry, SmallBTreeMap};
 
-use futures_channel::oneshot;
-
 /// The result of the [`wait`] and [`wait_async`] functions.
 #[derive(Debug, Clone, Copy)]
 pub(super) enum AtomicsWaitResult {
@@ -315,7 +313,12 @@ impl FutexWaiters {
                 // SAFETY: All entries on the waiter list must be valid, and all async entries
                 // must come from an Arc.
                 unsafe { Arc::from_raw(UnsafeRef::into_raw(elem)) };
-                let _ = async_data.sender.send(AtomicsWaitResult::Ok);
+                // - If the async waiter is still awaiting, this should never fail.
+                // - If the async waiter was dropped, the channel is now closed.
+                //   We don't need to handle the error since this can only happen
+                //   if the async waiter task was dropped, and at that point the
+                //   message won't even matter.
+                drop(async_data.sender.send(AtomicsWaitResult::Ok));
             }
         }
 
@@ -355,7 +358,12 @@ impl FutexWaiters {
             unsafe {
                 Arc::from_raw(UnsafeRef::into_raw(node));
             }
-            let _ = async_data.sender.send(AtomicsWaitResult::TimedOut);
+            // - If the async waiter is still awaiting, this should never fail.
+            // - If the async waiter was dropped, the channel is now closed.
+            //   We don't need to handle the error since this can only happen
+            //   if the async waiter task was dropped, and at that point the
+            //   message won't even matter.
+            drop(async_data.sender.send(AtomicsWaitResult::TimedOut));
         }
 
         if wl.get().is_empty() {
@@ -524,7 +532,7 @@ pub(super) unsafe fn wait_async<E: Element + PartialEq>(
     // 24. Let additionalTimeout be an implementation-defined non-negative mathematical value.
     // 25. Let timeoutTime be ℝ(now) + t + additionalTimeout.
     // 26. NOTE: When t is +∞, timeoutTime is also +∞.
-    let (sender, receiver) = oneshot::channel();
+    let (sender, receiver) = oneshot::async_channel();
 
     // 27. Let waiterRecord be a new Waiter Record { [[AgentSignifier]]: thisAgent,
     //     [[PromiseCapability]]: promiseCapability, [[TimeoutTime]]: timeoutTime, [[Result]]: "ok"}.
@@ -604,8 +612,8 @@ pub(super) unsafe fn wait_async<E: Element + PartialEq>(
                     )
                     .expect("default resolving functions cannot error");
             } else {
-                // The "else" branch can only happen if the waker was dropped in both
-                // the timeout job and the whole wakers map, which is only possible if
+                // The "else" branch can only happen if the channel was dropped in both
+                // the timeout job and the whole waiters map, which is only possible if
                 // we panicked. We just GIGO then, since it doesn't make sense to
                 // resolve a promise in a thread that is panicking.
             }

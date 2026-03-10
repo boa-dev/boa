@@ -4,7 +4,7 @@ use crate::{
     Context, JsError, JsNativeError, JsResult,
     vm::{
         CompletionRecord,
-        opcode::{Operation, RegisterOperand, VaryingOperand},
+        opcode::{IndexOperand, Operation, RegisterOperand},
     },
 };
 
@@ -152,7 +152,7 @@ pub(crate) struct ThrowNewTypeError;
 
 impl ThrowNewTypeError {
     #[inline(always)]
-    pub(crate) fn operation(index: VaryingOperand, context: &mut Context) -> JsError {
+    pub(crate) fn operation(index: IndexOperand, context: &mut Context) -> JsError {
         let msg = context
             .vm
             .frame()
@@ -180,7 +180,7 @@ pub(crate) struct ThrowNewReferenceError;
 
 impl ThrowNewReferenceError {
     #[inline(always)]
-    pub(crate) fn operation(index: VaryingOperand, context: &mut Context) -> JsError {
+    pub(crate) fn operation(index: IndexOperand, context: &mut Context) -> JsError {
         let msg = context
             .vm
             .frame()
