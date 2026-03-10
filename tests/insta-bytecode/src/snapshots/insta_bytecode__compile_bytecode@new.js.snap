@@ -14,7 +14,7 @@ Location     Handler      Opcode                            Operands
   000032                    PopEnvironment                    
   000033                    PopPrivateEnvironment             
   000034                    DefInitVar                        src:r01, binding_index:1
-  00003d                    StoreNewArray                      dst:r02
+  00003d                    StoreNewArray                     dst:r02
   000042                    GetNameGlobal                     dst:r06, binding_index:2, ic_index:0
   00004f                    PushFromRegister                  src:r00
   000054                    PushFromRegister                  src:r06
