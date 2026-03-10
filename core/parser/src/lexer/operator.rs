@@ -164,7 +164,10 @@ impl<R> Tokenizer<R> for Operator {
             }
             op => {
                 return Err(Error::syntax(
-                    format!("unexpected operator '{}'", char::from(op)),
+                    format!(
+                        "unexpected character '{}' in operator",
+                        char::from_u32(u32::from(op)).unwrap_or('\u{FFFD}')
+                    ),
                     start_pos.position(),
                 ));
             }
