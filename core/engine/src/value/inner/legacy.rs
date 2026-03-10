@@ -274,14 +274,9 @@ impl EnumBasedValue {
         match self {
             Self::Symbol(_) => true,
             // Objects are truthy, unless they have [[IsHTMLDDA]] (Annex B §B.3.6.1).
-            Self::Object(obj) => {
-                #[cfg(feature = "annex-b")]
-                if obj.is::<IsHTMLDDA>() {
-                    return false;
-                }
-                let _ = obj;
-                true
-            }
+            #[cfg(feature = "annex-b")]
+            Self::Object(obj) if obj.is::<IsHTMLDDA>() => false,
+            Self::Object(_) => true,
             Self::Null | Self::Undefined => false,
             Self::Integer32(n) => *n != 0,
             Self::Boolean(v) => *v,
