@@ -9,6 +9,7 @@ use std::{
 use boa_engine::{
     Context, JsArgs, JsNativeError, JsResult, JsValue, Source,
     builtins::array_buffer::{ArrayBuffer, SharedArrayBuffer},
+    builtins::is_html_dda::IsHTMLDDA,
     js_string,
     native_function::NativeFunction,
     object::{JsObject, ObjectInitializer, builtins::JsSharedArrayBuffer},
@@ -103,6 +104,11 @@ pub(super) fn register_js262(
         .property(
             js_string!("agent"),
             agent,
+            Attribute::WRITABLE | Attribute::CONFIGURABLE,
+        )
+        .property(
+            js_string!("IsHTMLDDA"),
+            JsObject::from_proto_and_data(None, IsHTMLDDA),
             Attribute::WRITABLE | Attribute::CONFIGURABLE,
         )
         .build();

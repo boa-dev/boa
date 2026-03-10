@@ -1,5 +1,5 @@
 use super::{JsBigInt, JsObject, JsResult, JsValue, PreferredType};
-use crate::{Context, JsVariant, builtins::Number};
+use crate::{Context, JsVariant, builtins::Number, builtins::is_html_dda::IsHTMLDDA};
 use std::collections::HashSet;
 
 impl JsValue {
@@ -72,6 +72,18 @@ impl JsValue {
             // 2. If x is null and y is undefined, return true.
             // 3. If x is undefined and y is null, return true.
             (JsVariant::Null, JsVariant::Undefined) | (JsVariant::Undefined, JsVariant::Null) => {
+                true
+            }
+
+            // B.3.6.2: Objects with [[IsHTMLDDA]] are loosely equal to null and undefined.
+            (JsVariant::Object(ref obj), JsVariant::Null | JsVariant::Undefined)
+                if obj.is::<IsHTMLDDA>() =>
+            {
+                true
+            }
+            (JsVariant::Null | JsVariant::Undefined, JsVariant::Object(ref obj))
+                if obj.is::<IsHTMLDDA>() =>
+            {
                 true
             }
 

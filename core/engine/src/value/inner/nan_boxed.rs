@@ -107,8 +107,8 @@
 #![allow(clippy::inline_always)]
 
 use crate::{
-    JsBigInt, JsObject, JsSymbol, JsVariant, bigint::RawBigInt, object::ErasedVTableObject,
-    symbol::RawJsSymbol, value::Type,
+    JsBigInt, JsObject, JsSymbol, JsVariant, bigint::RawBigInt, builtins::is_html_dda::IsHTMLDDA,
+    object::ErasedVTableObject, symbol::RawJsSymbol, value::Type,
 };
 use boa_gc::{Finalize, GcBox, Trace, custom_trace};
 use boa_string::JsString;
@@ -756,8 +756,13 @@ impl NanBoxedValue {
     #[inline(always)]
     pub(crate) fn to_boolean(&self) -> bool {
         match self.value() & bits::MASK_KIND {
-            // Objects and Symbols are always truthy.
-            bits::MASK_OBJECT | bits::MASK_SYMBOL => true,
+            // Symbols are always truthy.
+            bits::MASK_SYMBOL => true,
+            // Objects are truthy, unless they have [[IsHTMLDDA]] (Annex B §B.3.6.1).
+            bits::MASK_OBJECT => {
+                // SAFETY: tag confirmed this is an Object.
+                unsafe { !self.as_object_unchecked().is::<IsHTMLDDA>() }
+            }
             // Null and Undefined are always falsy.
             bits::MASK_OTHER => false,
             bits::MASK_INT32 => bits::untag_i32(self.value()) != 0,

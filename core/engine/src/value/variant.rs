@@ -1,4 +1,4 @@
-use crate::{JsBigInt, JsObject, JsSymbol, JsValue};
+use crate::{JsBigInt, JsObject, JsSymbol, JsValue, builtins::is_html_dda::IsHTMLDDA};
 use boa_engine::js_string;
 use boa_string::JsString;
 
@@ -71,7 +71,9 @@ impl JsVariant {
             JsVariant::Undefined => "undefined",
             JsVariant::BigInt(_) => "bigint",
             JsVariant::Object(object) => {
-                if object.is_callable() {
+                if object.is::<IsHTMLDDA>() {
+                    "undefined"
+                } else if object.is_callable() {
                     "function"
                 } else {
                     "object"
@@ -92,7 +94,9 @@ impl JsVariant {
             JsVariant::Undefined => js_string!("undefined"),
             JsVariant::BigInt(_) => js_string!("bigint"),
             JsVariant::Object(object) => {
-                if object.is_callable() {
+                if object.is::<IsHTMLDDA>() {
+                    js_string!("undefined")
+                } else if object.is_callable() {
                     js_string!("function")
                 } else {
                     js_string!("object")

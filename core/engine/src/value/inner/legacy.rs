@@ -2,7 +2,7 @@
 //! interface as the `NanBoxedValue` type, but using an enum instead of
 //! a 64-bits float.
 
-use crate::{JsBigInt, JsObject, JsSymbol, value::Type};
+use crate::{JsBigInt, JsObject, JsSymbol, builtins::is_html_dda::IsHTMLDDA, value::Type};
 use boa_engine::JsVariant;
 use boa_gc::{Finalize, Trace, custom_trace};
 use boa_string::JsString;
@@ -270,7 +270,9 @@ impl EnumBasedValue {
     #[inline]
     pub(crate) fn to_boolean(&self) -> bool {
         match self {
-            Self::Object(_) | Self::Symbol(_) => true,
+            Self::Symbol(_) => true,
+            // Objects are truthy, unless they have [[IsHTMLDDA]] (Annex B §B.3.6.1).
+            Self::Object(obj) => !obj.is::<IsHTMLDDA>(),
             Self::Null | Self::Undefined => false,
             Self::Integer32(n) => *n != 0,
             Self::Boolean(v) => *v,
