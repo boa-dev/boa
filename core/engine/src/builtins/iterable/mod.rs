@@ -196,23 +196,27 @@ impl Iterator {
             JsNativeError::typ().with_message("Iterator.zip requires an iterable object")
         })?;
 
-        // 2-5. Parse mode from options (default "shortest").
+        // 2. Set options to ? GetOptionsObject(options).
+        // 3. Let mode be ? Get(options, "mode").
+        // 4. If mode is undefined, set mode to "shortest".
+        // 5. If mode is not one of "shortest", "longest", or "strict", throw a TypeError exception.
         let mode = Self::parse_zip_mode(options, context)?;
 
-        // 6-7. Parse padding option (only for "longest" mode).
+        // 6. Let paddingOption be undefined.
+        // 7. If mode is "longest", then
+        //     a. Set paddingOption to ? Get(options, "padding").
+        //     b. If paddingOption is not undefined and paddingOption is not an Object, throw a TypeError exception.
         let padding_option = if mode == ZipMode::Longest {
-            let opts_obj = options.as_object();
-            if let Some(opts) = opts_obj {
+            if let Some(opts) = options.as_object() {
                 let p = opts.get(js_string!("padding"), context)?;
-                if !p.is_undefined() {
-                    if !p.is_object() {
-                        return Err(JsNativeError::typ()
-                            .with_message("padding must be an object")
-                            .into());
-                    }
-                    Some(p)
-                } else {
+                if p.is_undefined() {
                     None
+                } else if !p.is_object() {
+                    return Err(JsNativeError::typ()
+                        .with_message("padding must be an object")
+                        .into());
+                } else {
+                    Some(p)
                 }
             } else {
                 None
@@ -221,11 +225,24 @@ impl Iterator {
             None
         };
 
-        // 8-11. Collect iterator records from iterables.
-        let iterables_val: JsValue = iterables_obj.clone().into();
-        let mut input_iter = iterables_val.get_iterator(IteratorHint::Sync, context)?;
+        // 8. Let iters be a new empty List.
         let mut iters: Vec<IteratorRecord> = Vec::new();
 
+        // 9. Let padding be a new empty List.
+        // (padding list built later in build_padding)
+
+        // 10. Let inputIter be ? GetIterator(iterables, sync).
+        let iterables_val: JsValue = iterables_obj.clone().into();
+        let mut input_iter = iterables_val.get_iterator(IteratorHint::Sync, context)?;
+
+        // 11. Let next be not-started.
+        // 12. Repeat, while next is not done,
+        //     a. Set next to Completion(IteratorStepValue(inputIter)).
+        //     b. IfAbruptCloseIterators(next, iters).
+        //     c. If next is not done, then
+        //         i. Let iter be Completion(GetIteratorFlattenable(next, reject-primitives)).
+        //         ii. IfAbruptCloseIterators(iter, the list-concatenation of « inputIter » and iters).
+        //         iii. Append iter to iters.
         loop {
             let next = input_iter.step_value(context);
             match next {
@@ -264,12 +281,14 @@ impl Iterator {
             }
         }
 
+        // 13. Let iterCount be the number of elements in iters.
         let iter_count = iters.len();
 
-        // 12-16. Build padding list.
+        // 14. If mode is "longest", then ... Build padding list.
         let padding = Self::build_padding(padding_option, iter_count, &iters, context)?;
 
-        // Return IteratorZip(iters, mode, padding, finishResults).
+        // 15. Let finishResults be a new Abstract Closure ... (handled in ZipIterator::create_zip_iterator)
+        // 16. Return ? IteratorZip(iters, mode, padding, finishResults).
         Ok(ZipIterator::create_zip_iterator(
             iters,
             mode,
@@ -294,23 +313,27 @@ impl Iterator {
             JsNativeError::typ().with_message("Iterator.zipKeyed requires an object")
         })?;
 
-        // 2-5. Parse mode from options.
+        // 2. Set options to ? GetOptionsObject(options).
+        // 3. Let mode be ? Get(options, "mode").
+        // 4. If mode is undefined, set mode to "shortest".
+        // 5. If mode is not one of "shortest", "longest", or "strict", throw a TypeError exception.
         let mode = Self::parse_zip_mode(options, context)?;
 
-        // 6-7. Parse padding option.
+        // 6. Let paddingOption be undefined.
+        // 7. If mode is "longest", then
+        //     a. Set paddingOption to ? Get(options, "padding").
+        //     b. If paddingOption is not undefined and paddingOption is not an Object, throw a TypeError exception.
         let padding_option = if mode == ZipMode::Longest {
-            let opts_obj = options.as_object();
-            if let Some(opts) = opts_obj {
+            if let Some(opts) = options.as_object() {
                 let p = opts.get(js_string!("padding"), context)?;
-                if !p.is_undefined() {
-                    if !p.is_object() {
-                        return Err(JsNativeError::typ()
-                            .with_message("padding must be an object")
-                            .into());
-                    }
-                    Some(p)
-                } else {
+                if p.is_undefined() {
                     None
+                } else if !p.is_object() {
+                    return Err(JsNativeError::typ()
+                        .with_message("padding must be an object")
+                        .into());
+                } else {
+                    Some(p)
                 }
             } else {
                 None
@@ -319,11 +342,20 @@ impl Iterator {
             None
         };
 
-        // 8-10. Get own enumerable string-keyed properties and their iterator values.
+        // 8. Let iters be a new empty List.
         let mut iters: Vec<IteratorRecord> = Vec::new();
+        // 9. Let keys be a new empty List.
         let mut keys: Vec<JsValue> = Vec::new();
 
+        // 10. Let iterablesKeys be ? EnumerableOwnProperties(iterables, key).
         let all_keys = iterables_obj.own_property_keys(context)?;
+        // 11. For each element key of iterablesKeys, do
+        //     a. Let value be ? Get(iterables, key).
+        //     b. If value is not undefined, then
+        //         i. Append key to keys.
+        //         ii. Let iter be Completion(GetIteratorFlattenable(value, reject-primitives)).
+        //         iii. IfAbruptCloseIterators(iter, iters).
+        //         iv. Append iter to iters.
         for key in all_keys {
             let key_val: JsValue = key.clone().into();
             let value = iterables_obj.get(key.clone(), context)?;
@@ -350,9 +382,11 @@ impl Iterator {
             }
         }
 
+        // 12. Let iterCount be the number of elements in iters.
         let iter_count = iters.len();
 
-        // Build padding for zipKeyed.
+        // 13. Let padding be a new empty List.
+        // 14. If mode is "longest", then ... (Build padding for zipKeyed)
         let padding = if mode == ZipMode::Longest {
             match padding_option {
                 None => vec![JsValue::undefined(); iter_count],
@@ -372,6 +406,8 @@ impl Iterator {
             Vec::new()
         };
 
+        // 15. Let finishResults be a new Abstract Closure ... (handled in ZipIterator::create_zip_iterator)
+        // 16. Return ? IteratorZip(iters, mode, padding, finishResults).
         Ok(ZipIterator::create_zip_iterator(
             iters,
             mode,
