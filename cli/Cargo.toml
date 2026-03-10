@@ -26,8 +26,9 @@ dhat = { workspace = true, optional = true }
 color-eyre.workspace = true
 cow-utils.workspace = true
 futures-concurrency.workspace = true
-futures-lite.workspace = true
 async-channel = "2.5.0"
+smol.workspace = true
+event-listener.workspace = true
 
 [features]
 default = [

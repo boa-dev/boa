@@ -35,7 +35,6 @@ use color_eyre::{
 };
 use colored::Colorize;
 use debug::init_boa_debug_object;
-use futures_lite::future;
 use rustyline::{EditMode, Editor, config::Config, error::ReadlineError};
 use std::cell::RefCell;
 use std::time::{Duration, Instant};
@@ -662,12 +661,12 @@ fn main() -> Result<()> {
         }
         // channel was closed, so clear the executor queue to abort all
         // pending jobs and exit.
-        exec.clear();
+        exec.stop();
         Ok(JsValue::undefined())
     });
     context.enqueue_job(eval_loop.into());
 
-    let result = future::block_on(executor.run_jobs_async(&RefCell::new(context)))
+    let result = smol::block_on(executor.run_jobs_async(&RefCell::new(context)))
         .map_err(|e| e.into_erased(context));
 
     handle.join().expect("failed to join thread");
