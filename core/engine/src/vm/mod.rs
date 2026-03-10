@@ -43,6 +43,8 @@ pub use {
     source_info::{NativeSourceInfo, SourcePath},
 };
 
+pub(crate) use code_block::GlobalFunctionBinding;
+
 mod call_frame;
 mod code_block;
 mod completion_record;
@@ -596,8 +598,13 @@ impl Context {
             " VM Start ".to_string()
         } else {
             format!(
-                " Call Frame -- {} ",
-                frame.code_block().name().to_std_string_escaped()
+                " Call Frame '{}'{} ",
+                frame.code_block().name().to_std_string_escaped(),
+                if frame.code_block().name().is_empty() {
+                    format!(" [anon#{}]", frame.code_block().debug_id)
+                } else {
+                    String::new()
+                }
             )
         };
 
@@ -860,7 +867,7 @@ impl Context {
             .frame()
             .code_block
             .bytecode
-            .bytecode
+            .bytes
             .get(self.vm.frame().pc as usize)
         {
             let opcode = Opcode::decode(*byte);
@@ -898,7 +905,7 @@ impl Context {
             .frame()
             .code_block
             .bytecode
-            .bytecode
+            .bytes
             .get(self.vm.frame().pc as usize)
         {
             let opcode = Opcode::decode(*byte);

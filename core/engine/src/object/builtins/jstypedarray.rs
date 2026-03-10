@@ -12,6 +12,7 @@ use crate::{
 };
 use boa_gc::{Finalize, Trace};
 use std::ops::Deref;
+use std::sync::atomic::Ordering;
 
 /// `JsTypedArray` provides a wrapper for Boa's implementation of the ECMAScript `TypedArray`
 /// builtin object.
@@ -1135,6 +1136,54 @@ JsTypedArrayType!(
     to_uint8,
     u8
 );
+
+impl JsUint8Array {
+    /// Copies the viewed byte range of this `Uint8Array` into a new `Vec<u8>`.
+    ///
+    /// Works with both `ArrayBuffer` and `SharedArrayBuffer` backing storage. The buffer must not be
+    /// detached; otherwise a `TypeError` is returned.
+    ///
+    /// # Example
+    ///
+    /// ```
+    /// # use boa_engine::{Context, JsResult, object::builtins::JsUint8Array};
+    /// # fn main() -> JsResult<()> {
+    ///
+    /// let context = &mut Context::default();
+    /// let data: Vec<u8> = (0..=255).collect();
+    /// let array = JsUint8Array::from_iter(data.clone(), context)?;
+    /// let bytes = array.to_vec(context)?;
+    /// assert_eq!(bytes, data);
+    ///
+    /// # Ok(())
+    /// # }
+    /// ```
+    #[inline]
+    pub fn to_vec(&self, _context: &mut Context) -> JsResult<Vec<u8>> {
+        let this_val = self.inner.inner.clone().into();
+        let (obj, buf_byte_len) = TypedArray::validate(&this_val, Ordering::SeqCst)?;
+        let vec = {
+            let array = obj.borrow();
+            let ta = array.data();
+            let buffer = ta.viewed_array_buffer().as_buffer();
+            let Some(slice) = buffer.bytes(Ordering::SeqCst) else {
+                return Err(JsNativeError::typ()
+                    .with_message("typed array buffer is detached or out of bounds")
+                    .into());
+            };
+            if ta.is_out_of_bounds(slice.len()) {
+                return Err(JsNativeError::typ()
+                    .with_message("typed array is outside the bounds of its inner buffer")
+                    .into());
+            }
+            let byte_offset = ta.byte_offset() as usize;
+            let byte_len = ta.byte_length(buf_byte_len) as usize;
+            slice.subslice(byte_offset..byte_offset + byte_len).to_vec()
+        };
+        Ok(vec)
+    }
+}
+
 JsTypedArrayType!(
     JsUint8ClampedArray,
     Uint8ClampedArray,
@@ -1269,6 +1318,15 @@ fn typed_iterators_uint8() {
     let array = JsUint8Array::from_iter(vec.clone(), context).unwrap();
     let vec2 = array.iter(context).collect::<Vec<_>>();
     assert_eq!(vec, vec2);
+}
+
+#[test]
+fn uint8_array_to_vec_roundtrip() {
+    let context = &mut Context::default();
+    let data: Vec<u8> = (0..=255).collect();
+    let array = JsUint8Array::from_iter(data.clone(), context).unwrap();
+    let bytes = array.to_vec(context).unwrap();
+    assert_eq!(bytes, data);
 }
 
 #[test]
