@@ -1,4 +1,4 @@
-//! This module implements the `HeadersIterator` object.
+﻿//! This module implements the `HeadersIterator` object.
 //!
 //! More information:
 //!  - [Fetch specification][spec]
@@ -42,7 +42,7 @@ pub(crate) struct HeadersIterator {
 
 #[boa_class(rename = "Headers Iterator")]
 impl HeadersIterator {
-    /// Prevent direct construction — `HeadersIterator` instances are only
+    /// Prevent direct construction ΓÇö `HeadersIterator` instances are only
     /// created internally via [`HeadersIterator::create_headers_iterator`].
     #[boa(constructor)]
     fn constructor() -> JsResult<Self> {

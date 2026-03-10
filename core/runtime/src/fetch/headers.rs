@@ -1,4 +1,4 @@
-//! The `Headers` JavaScript class, implemented as [`JsHeaders`].
+﻿//! The `Headers` JavaScript class, implemented as [`JsHeaders`].
 //!
 //! See <https://developer.mozilla.org/en-US/docs/Web/API/Headers>.
 #![allow(clippy::needless_pass_by_value)]
