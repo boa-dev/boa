@@ -40,6 +40,21 @@ cargo run -- --dump-ast # AST dump format is Debug by default.
 Once the AST has been generated, boa will compile it into bytecode, which is then executed by the VM.
 You can print the bytecode and the executed instructions with the command-line flag `--trace`.
 
+For non-interactive workflows (scripts, CI, wrappers), you can also enable the same
+trace mode via the `BOA_TRACE` environment variable:
+
+```bash
+BOA_TRACE=1 cargo run -- test.js
+```
+
+Accepted values are:
+
+- truthy: `1`, `true`, `yes`, `on`
+- falsy: `0`, `false`, `no`, `off`
+
+Values are case-insensitive and leading/trailing whitespace is ignored.
+If both are provided, `--trace` takes precedence over `BOA_TRACE`.
+
 For more detailed information about the VM and the trace output look [here](./vm.md).
 
 ## Instruction flowgraph

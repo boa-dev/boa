@@ -112,7 +112,11 @@ struct Opt {
     #[allow(clippy::option_option)]
     dump_ast: Option<Option<DumpFormat>>,
 
-    /// Dump the AST to stdout with the given format.
+    /// Enable VM instruction tracing.
+    ///
+    /// This can also be enabled with the `BOA_TRACE` environment variable using
+    /// one of the following values: `1`, `true`, `yes`, `on`, `0`, `false`,
+    /// `no`, `off`.
     #[arg(long, short, conflicts_with = "graph")]
     trace: bool,
 
@@ -177,6 +181,39 @@ impl Opt {
     /// Returns whether a dump flag has been used.
     const fn has_dump_flag(&self) -> bool {
         self.dump_ast.is_some()
+    }
+}
+
+fn parse_bool_env_var(name: &str, value: &str) -> Result<bool> {
+    let value = value.trim();
+    if ["1", "true", "yes", "on"]
+        .iter()
+        .any(|candidate| value.eq_ignore_ascii_case(candidate))
+    {
+        return Ok(true);
+    }
+
+    if ["0", "false", "no", "off"]
+        .iter()
+        .any(|candidate| value.eq_ignore_ascii_case(candidate))
+    {
+        return Ok(false);
+    }
+
+    Err(eyre!(
+        "{name} has invalid value `{value}`; expected one of: 1, true, yes, on, 0, false, no, off"
+    ))
+}
+
+fn resolve_trace_flag(cli_trace: bool) -> Result<bool> {
+    if cli_trace {
+        return Ok(true);
+    }
+
+    match std::env::var("BOA_TRACE") {
+        Ok(value) => parse_bool_env_var("BOA_TRACE", &value),
+        Err(std::env::VarError::NotPresent) => Ok(false),
+        Err(std::env::VarError::NotUnicode(_)) => Err(eyre!("BOA_TRACE must be valid UTF-8")),
     }
 }
 
@@ -553,8 +590,8 @@ fn main() -> Result<()> {
     // Add `console`.
     add_runtime(printer.clone(), context);
 
-    // Trace Output
-    context.set_trace(args.trace);
+    // Trace output (`--trace` or BOA_TRACE=...).
+    context.set_trace(resolve_trace_flag(args.trace)?);
 
     if args.debug_object {
         init_boa_debug_object(context);
@@ -798,4 +835,36 @@ fn add_runtime(printer: SharedExternalPrinterLogger, context: &mut Context) {
         context,
     )
     .expect("should not fail while registering the runtime");
+}
+
+#[cfg(test)]
+mod tests {
+    use super::parse_bool_env_var;
+
+    #[test]
+    fn parse_bool_env_var_accepts_truthy_values() {
+        assert!(parse_bool_env_var("BOA_TRACE", "1").unwrap());
+        assert!(parse_bool_env_var("BOA_TRACE", "true").unwrap());
+        assert!(parse_bool_env_var("BOA_TRACE", "TRUE").unwrap());
+        assert!(parse_bool_env_var("BOA_TRACE", "yes").unwrap());
+        assert!(parse_bool_env_var("BOA_TRACE", "on").unwrap());
+        assert!(parse_bool_env_var("BOA_TRACE", "  on  ").unwrap());
+    }
+
+    #[test]
+    fn parse_bool_env_var_accepts_falsy_values() {
+        assert!(!parse_bool_env_var("BOA_TRACE", "0").unwrap());
+        assert!(!parse_bool_env_var("BOA_TRACE", "false").unwrap());
+        assert!(!parse_bool_env_var("BOA_TRACE", "FALSE").unwrap());
+        assert!(!parse_bool_env_var("BOA_TRACE", "no").unwrap());
+        assert!(!parse_bool_env_var("BOA_TRACE", "off").unwrap());
+        assert!(!parse_bool_env_var("BOA_TRACE", "  off  ").unwrap());
+    }
+
+    #[test]
+    fn parse_bool_env_var_rejects_invalid_values() {
+        assert!(parse_bool_env_var("BOA_TRACE", "").is_err());
+        assert!(parse_bool_env_var("BOA_TRACE", "2").is_err());
+        assert!(parse_bool_env_var("BOA_TRACE", "maybe").is_err());
+    }
 }
