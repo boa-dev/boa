@@ -465,7 +465,8 @@ fn intersection_this_not_a_set() {
     )]);
 }
 
-/// Set.prototype.intersection — other is not a valid Set-like object → \#[test]
+/// Set.prototype.intersection — other is not a valid Set-like object → \
+#[test]
 fn intersection_other_not_set_like() {
     run_test_actions([
         // Primitive value — GetSetRecord rejects non-objects.
