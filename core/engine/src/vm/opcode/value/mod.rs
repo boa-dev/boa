@@ -35,7 +35,7 @@ impl Operation for ValueNotNullOrUndefined {
 /// `IsObject` implements the Opcode Operation for `Opcode::IsObject`
 ///
 /// Operation:
-///  - Pushes `true` to the stack if the top stack value is an object, or `false` otherwise.
+///  - Store `true` in the register if the value is an object, or `false` otherwise.
 #[derive(Debug, Clone, Copy)]
 pub(crate) struct IsObject;
 

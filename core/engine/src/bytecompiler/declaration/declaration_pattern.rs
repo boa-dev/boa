@@ -87,7 +87,7 @@ impl ByteCompiler<'_> {
                         //  BindingRestProperty : ... BindingIdentifier
                         RestProperty { ident } => {
                             let value = self.register_allocator.alloc();
-                            self.bytecode.emit_push_empty_object(value.variable());
+                            self.bytecode.emit_store_empty_object(value.variable());
                             let mut excluded_keys =
                                 ThinVec::with_capacity(excluded_keys_registers.len());
                             for r in &excluded_keys_registers {
@@ -106,7 +106,7 @@ impl ByteCompiler<'_> {
                         }
                         AssignmentRestPropertyAccess { access } => {
                             let value = self.register_allocator.alloc();
-                            self.bytecode.emit_push_empty_object(value.variable());
+                            self.bytecode.emit_store_empty_object(value.variable());
                             let mut excluded_keys =
                                 ThinVec::with_capacity(excluded_keys_registers.len());
                             for r in &excluded_keys_registers {

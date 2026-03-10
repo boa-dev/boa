@@ -669,20 +669,20 @@ generate_opcodes! {
     ///   - Output: dst
     StoreRegexp { dst: RegisterOperand, pattern_index: VaryingOperand, flags_index: VaryingOperand },
 
-    /// Push empty object `{}` value on the stack.
+    /// Store empty object `{}` in dst.
     ///
     /// - Registers:
     ///   - Output: dst
-    PushEmptyObject { dst: RegisterOperand },
+    StoreEmptyObject { dst: RegisterOperand },
 
-    /// Get the prototype of a superclass and push it on the stack.
+    /// Get the prototype of a superclass and store it in dst.
     ///
     /// Additionally this sets the `[[prototype]]` of the class and the `DERIVED` flag.
     ///
     /// - Registers:
     ///   - Input: class, superclass
     ///   - Output: dst
-    PushClassPrototype {
+    StoreClassPrototype {
         dst: RegisterOperand,
         class: RegisterOperand,
         superclass: RegisterOperand
@@ -738,11 +738,11 @@ generate_opcodes! {
         object: RegisterOperand,
     },
 
-    /// Push an empty array value on the stack.
+    /// Store an empty array in dst.
     ///
     /// - Registers:
     ///   - Output: dst
-    PushNewArray { dst: RegisterOperand },
+    StoreNewArray { dst: RegisterOperand },
 
     /// Push a value to an array.
     ///
@@ -1045,7 +1045,7 @@ generate_opcodes! {
     ///   - Output: dst
     GetArgument { index: VaryingOperand, dst: RegisterOperand },
 
-    /// Find a binding on the environment chain and push its value.
+    /// Find a binding on the environment chain and store its value in dst.
     ///
     /// - Operands:
     ///   - binding_index: `VaryingOperand`
@@ -1053,7 +1053,7 @@ generate_opcodes! {
     ///   - Output: dst
     GetName { dst: RegisterOperand, binding_index: VaryingOperand },
 
-    /// Find a binding in the global object and push its value.
+    /// Find a binding in the global object and store its value in dst.
     ///
     /// - Operands:
     ///   - binding_index: `VaryingOperand`
@@ -1068,7 +1068,7 @@ generate_opcodes! {
     ///   - binding_index: `VaryingOperand`
     GetLocator { binding_index: VaryingOperand },
 
-    /// Find a binding on the environment chain and push its value to the stack and its
+    /// Find a binding on the environment chain and store its value in dst, and push its
     /// `BindingLocator` to the `bindings_stack`.
     ///
     /// - Operands:
@@ -1077,7 +1077,7 @@ generate_opcodes! {
     ///   - Output: dst
     GetNameAndLocator { dst: RegisterOperand, binding_index: VaryingOperand },
 
-    /// Find a binding on the environment chain and push its value. If the binding does not exist push undefined.
+    /// Find a binding on the environment chain and store its value in dst. If the binding does not exist, store undefined.
     ///
     /// - Operands:
     ///   - binding_index: `VaryingOperand`
@@ -1507,7 +1507,7 @@ generate_opcodes! {
     ///   - Input: object, value
     SetPrivateGetter { object: RegisterOperand, value: RegisterOperand, name_index: VaryingOperand },
 
-    /// Get a private property by name from an object an push it on the stack.
+    /// Get a private property by name from an object and store it in dst.
     ///
     /// Like `object.#name`
     ///
@@ -1717,7 +1717,7 @@ generate_opcodes! {
     /// from the generator.
     ReThrow,
 
-    /// Get the thrown pending exception (if it's set) and push on the stack.
+    /// Get the thrown pending exception (if it's set) and store it in dst.
     ///
     /// If there is no pending exception, which can happen if we are handling `return()` call on generator,
     /// then we rethrow the empty exception. See [`Opcode::ReThrow`].
@@ -1726,7 +1726,7 @@ generate_opcodes! {
     ///   - Output: dst
     Exception { dst: RegisterOperand },
 
-    /// Get the thrown pending exception if it's set and push `true`, otherwise push only `false`.
+    /// Get the thrown pending exception if it's set and store `true` in `has_exception`, otherwise store `false`.
     ///
     /// - Registers:
     ///   - Output: exception, has_exception
@@ -1803,12 +1803,8 @@ generate_opcodes! {
     ///   - Output: specifier
     ImportCall { specifier: RegisterOperand, options: RegisterOperand },
 
-    /// Pop the two values of the stack, strict equal compares the two values,
-    /// if true jumps to address, otherwise push the second pop'ed value.
-    ///
-    /// Operands: address: `Address`
-    ///
-    /// Stack: value, cond **=>** cond (if `cond !== value`).
+    /// Strict equal compare two register values,
+    /// if true jumps to address.
     /// - Operands:
     ///   - address: `Address`
     /// - Registers:
@@ -2014,7 +2010,7 @@ generate_opcodes! {
     /// - Iterator Stack: `iterator` **=>** `iterator`
     IteratorToArray { dst: RegisterOperand },
 
-    /// Pushes `true` to the stack if the iterator stack is empty.
+    /// Store `true` in dst if the iterator stack is empty.
     ///
     /// - Registers:
     ///   - Output: dst
@@ -2081,19 +2077,19 @@ generate_opcodes! {
     ///   - Output: resume_kind, received
     Await { src: RegisterOperand },
 
-    /// Push the current new target to the stack.
+    /// Store the current new target in dst.
     ///
     /// - Registers:
     ///   - Output: dst
     NewTarget { dst: RegisterOperand },
 
-    /// Push the current `import.meta` to the stack.
+    /// Store the current `import.meta` in dst.
     ///
     /// - Registers:
     ///   - Output: dst
     ImportMeta { dst: RegisterOperand },
 
-    /// Pushes `true` to the stack if the top stack value is an object, or `false` otherwise.
+    /// Store `true` in the register if the value is an object, or `false` otherwise.
     ///
     /// - Registers:
     ///   - Input: value

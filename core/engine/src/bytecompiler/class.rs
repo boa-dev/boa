@@ -166,7 +166,7 @@ impl ByteCompiler<'_> {
 
         if let Some(node) = class.super_ref {
             self.compile_expr(node, &prototype_register);
-            self.bytecode.emit_push_class_prototype(
+            self.bytecode.emit_store_class_prototype(
                 prototype_register.variable(),
                 class_register.variable(),
                 prototype_register.variable(),

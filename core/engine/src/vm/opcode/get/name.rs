@@ -9,7 +9,7 @@ use crate::{
 /// `GetName` implements the Opcode Operation for `Opcode::GetName`
 ///
 /// Operation:
-///  - Find a binding on the environment chain and push its value.
+///  - Find a binding on the environment chain and store its value in dst.
 #[derive(Debug, Clone, Copy)]
 pub(crate) struct GetName;
 
@@ -40,7 +40,7 @@ impl Operation for GetName {
 /// `GetNameGlobal` implements the Opcode Operation for `Opcode::GetNameGlobal`
 ///
 /// Operation:
-///  - Find a binding in the global object and push its value.
+///  - Find a binding in the global object and store its value in dst.
 #[derive(Debug, Clone, Copy)]
 pub(crate) struct GetNameGlobal;
 
@@ -151,7 +151,7 @@ impl Operation for GetLocator {
 /// `GetNameAndLocator` implements the Opcode Operation for `Opcode::GetNameAndLocator`
 ///
 /// Operation:
-///  - Find a binding on the environment chain and push its value to the stack, setting the
+///  - Find a binding on the environment chain and store its value in dst, setting the
 ///    `current_binding` of the current frame.
 #[derive(Debug, Clone, Copy)]
 pub(crate) struct GetNameAndLocator;
@@ -185,7 +185,7 @@ impl Operation for GetNameAndLocator {
 /// `GetNameOrUndefined` implements the Opcode Operation for `Opcode::GetNameOrUndefined`
 ///
 /// Operation:
-///  - Find a binding on the environment chain and push its value. If the binding does not exist push undefined.
+///  - Find a binding on the environment chain and store its value in dst. If the binding does not exist, store undefined.
 #[derive(Debug, Clone, Copy)]
 pub(crate) struct GetNameOrUndefined;
 

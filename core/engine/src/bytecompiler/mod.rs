@@ -1950,7 +1950,7 @@ impl<'ctx> ByteCompiler<'ctx> {
                     let array = self.register_allocator.alloc();
                     let value = self.register_allocator.alloc();
 
-                    self.bytecode.emit_push_new_array(array.variable());
+                    self.bytecode.emit_store_new_array(array.variable());
 
                     for arg in args {
                         self.compile_expr(arg, &value);
@@ -2435,7 +2435,7 @@ impl<'ctx> ByteCompiler<'ctx> {
             let array = compiler.register_allocator.alloc();
             let value = compiler.register_allocator.alloc();
 
-            compiler.bytecode.emit_push_new_array(array.variable());
+            compiler.bytecode.emit_store_new_array(array.variable());
 
             for arg in call.args() {
                 compiler.compile_expr(arg, &value);

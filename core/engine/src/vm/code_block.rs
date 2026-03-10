@@ -389,7 +389,7 @@ impl CodeBlock {
             | Instruction::CreateMappedArgumentsObject { dst }
             | Instruction::CreateUnmappedArgumentsObject { dst }
             | Instruction::RestParameterInit { dst }
-            | Instruction::PushNewArray { dst } => format!("dst:{dst}"),
+            | Instruction::StoreNewArray { dst } => format!("dst:{dst}"),
             Instruction::Add { lhs, rhs, dst }
             | Instruction::Sub { lhs, rhs, dst }
             | Instruction::Div { lhs, rhs, dst }
@@ -715,7 +715,7 @@ impl CodeBlock {
             Instruction::CreateIteratorResult { value, done } => {
                 format!("value:{value}, done:{done}")
             }
-            Instruction::PushClassPrototype {
+            Instruction::StoreClassPrototype {
                 dst,
                 class,
                 superclass,
@@ -802,7 +802,7 @@ impl CodeBlock {
             | Instruction::IteratorResult { dst }
             | Instruction::IteratorToArray { dst }
             | Instruction::IteratorStackEmpty { dst }
-            | Instruction::PushEmptyObject { dst } => {
+            | Instruction::StoreEmptyObject { dst } => {
                 format!("dst:{dst}")
             }
             Instruction::IteratorFinishAsyncNext { resume_kind, value } => {

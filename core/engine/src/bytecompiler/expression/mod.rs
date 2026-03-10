@@ -102,7 +102,7 @@ impl ByteCompiler<'_> {
             Expression::ArrayLiteral(literal) => {
                 let value = self.register_allocator.alloc();
 
-                self.bytecode.emit_push_new_array(dst.variable());
+                self.bytecode.emit_store_new_array(dst.variable());
 
                 for element in literal.as_ref() {
                     if let Some(element) = element {
@@ -346,7 +346,7 @@ impl ByteCompiler<'_> {
                     let array = self.register_allocator.alloc();
                     let value = self.register_allocator.alloc();
 
-                    self.bytecode.emit_push_new_array(array.variable());
+                    self.bytecode.emit_store_new_array(array.variable());
 
                     for arg in super_call.arguments() {
                         self.compile_expr(arg, &value);

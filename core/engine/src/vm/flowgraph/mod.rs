@@ -295,8 +295,8 @@ impl CodeBlock {
                 | Instruction::StoreTrue { .. }
                 | Instruction::StoreFalse { .. }
                 | Instruction::StoreUndefined { .. }
-                | Instruction::PushEmptyObject { .. }
-                | Instruction::PushClassPrototype { .. }
+                | Instruction::StoreEmptyObject { .. }
+                | Instruction::StoreClassPrototype { .. }
                 | Instruction::SetClassPrototype { .. }
                 | Instruction::SetHomeObject { .. }
                 | Instruction::GetHomeObject { .. }
@@ -341,7 +341,7 @@ impl CodeBlock {
                 | Instruction::PushValueToArray { .. }
                 | Instruction::PushElisionToArray { .. }
                 | Instruction::PushIteratorToArray { .. }
-                | Instruction::PushNewArray { .. }
+                | Instruction::StoreNewArray { .. }
                 | Instruction::GeneratorYield { .. }
                 | Instruction::AsyncGeneratorYield { .. }
                 | Instruction::AsyncGeneratorClose
