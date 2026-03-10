@@ -63,9 +63,7 @@ fn validate_credentials(credentials: &str) -> JsResult<()> {
 
 fn validate_cache(cache: &str) -> JsResult<()> {
     match cache {
-        "default" | "no-store" | "reload" | "no-cache" | "force-cache" | "only-if-cached" => {
-            Ok(())
-        }
+        "default" | "no-store" | "reload" | "no-cache" | "force-cache" | "only-if-cached" => Ok(()),
         other => Err(js_error!(
             TypeError: "Request constructor: cache '{}' is not a supported value",
             other
@@ -85,8 +83,14 @@ fn validate_redirect(redirect: &str) -> JsResult<()> {
 
 fn validate_referrer_policy(referrer_policy: &str) -> JsResult<()> {
     match referrer_policy {
-        "" | "no-referrer" | "no-referrer-when-downgrade" | "same-origin" | "origin"
-        | "strict-origin" | "origin-when-cross-origin" | "strict-origin-when-cross-origin"
+        ""
+        | "no-referrer"
+        | "no-referrer-when-downgrade"
+        | "same-origin"
+        | "origin"
+        | "strict-origin"
+        | "origin-when-cross-origin"
+        | "strict-origin-when-cross-origin"
         | "unsafe-url" => Ok(()),
         other => Err(js_error!(
             TypeError: "Request constructor: referrerPolicy '{}' is not a supported value",

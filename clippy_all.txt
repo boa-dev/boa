@@ -1,0 +1,60 @@
+cargo :  Downloading crates ...
+At line:1 char:1
++ cargo clippy -p boa_cli --all-features --all-targets 2>&1 | Out-File  ...
++ ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo              : NotSpecifi    ed: ( Downloading     crates ...:String)     [], RemoteExcepti    on
+    + FullyQualifiedEr    rorId : NativeComm    andError
+ 
+  Downloaded rustc-hash v1.1.0
+  Downloaded thousands v0.2.0
+  Downloaded dhat v0.3.3
+  Downloaded mintex v0.1.4
+core\engine\src\module\loader\mod.rs:65:31: warning: use of a disallowed method `str::replace`
+    Checking parking_lot v0.12.5
+    Checking rustc-hash v1.1.0
+    Checking thousands v0.2.0
+warning: `boa_engine` (lib) generated 1 warning
+    Checking mintex v0.1.4
+    Checking dhat v0.3.3
+    Checking boa_cli v1.0.0-dev (C:\Users\Sahana\boa\cli)
+warning: this `continue` expression is redundant
+   --> cli\src\main.rs:684:17
+    |
+684 |                 continue;
+    |                 ^^^^^^^^
+    |
+    = help: consider dropping the `continue` expression
+    = help: for further information visit https://rust-lang.github.io/rust-clippy/rust-1.93.0/index.html#needless_continue
+    = note: `-W clippy::needless-continue` implied by `-W clippy::pedantic`
+    = help: to override `-W clippy::pedantic` add `#[allow(clippy::needless_continue)]`
+
+warning: this `continue` expression is redundant
+   --> cli\src\main.rs:699:17
+    |
+699 |                 continue;
+    |                 ^^^^^^^^
+    |
+    = help: consider dropping the `continue` expression
+    = help: for further information visit https://rust-lang.github.io/rust-clippy/rust-1.93.0/index.html#needless_continue
+
+warning: this `continue` expression is redundant
+   --> cli\src\main.rs:705:17
+    |
+705 |                 continue;
+    |                 ^^^^^^^^
+    |
+    = help: consider dropping the `continue` expression
+    = help: for further information visit https://rust-lang.github.io/rust-clippy/rust-1.93.0/index.html#needless_continue
+
+warning: this `continue` expression is redundant
+   --> cli\src\main.rs:716:17
+    |
+716 |                 continue;
+    |                 ^^^^^^^^
+    |
+    = help: consider dropping the `continue` expression
+    = help: for further information visit https://rust-lang.github.io/rust-clippy/rust-1.93.0/index.html#needless_continue
+
+warning: `boa_cli` (bin "boa") generated 4 warnings (3 duplicates)
+warning: `boa_cli` (bin "boa" test) generated 4 warnings (1 duplicate)
+    Finished `dev` profile [unoptimized + debuginfo] target(s) in 4.53s

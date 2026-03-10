@@ -1,0 +1,95 @@
+cargo :     Checking 
+boa_string v1.0.0-dev (
+C:\Users\Sahana\boa\cor
+e\string)
+At line:1 char:1
++ cargo clippy -p 
+boa_cli 
+--message-format=short 
+2>&1 | Out-File -FileP 
+...
++ ~~~~~~~~~~~~~~~~~~~~~
+~~~~~~~~~~~~~~~~~~~~~~~
+~~~~~~~
+    + CategoryInfo     
+         : NotSpecifi  
+  ed: (    Checking    
+ bo...oa\core\strin    
+g):String) [], Rem    
+oteException
+    + FullyQualifiedEr 
+   rorId : NativeComm  
+  andError
+ 
+   Compiling 
+boa_macros v1.0.0-dev (
+C:\Users\Sahana\boa\cor
+e\macros)
+    Checking 
+boa_icu_provider 
+v1.0.0-dev (C:\Users\Sa
+hana\boa\core\icu_provi
+der)
+    Checking 
+small_btree v0.1.0 (C:\
+Users\Sahana\boa\utils\
+small_btree)
+   Compiling 
+boa_runtime v1.0.0-dev 
+(C:\Users\Sahana\boa\co
+re\runtime)
+    Checking tag_ptr 
+v0.1.0 (C:\Users\Sahana
+\boa\utils\tag_ptr)
+    Checking boa_gc 
+v1.0.0-dev (C:\Users\Sa
+hana\boa\core\gc)
+    Checking 
+boa_interner 
+v1.0.0-dev (C:\Users\Sa
+hana\boa\core\interner)
+    Checking boa_ast 
+v1.0.0-dev (C:\Users\Sa
+hana\boa\core\ast)
+    Checking 
+boa_parser v1.0.0-dev (
+C:\Users\Sahana\boa\cor
+e\parser)
+    Checking 
+boa_engine v1.0.0-dev (
+C:\Users\Sahana\boa\cor
+e\engine)
+core\engine\src\module\
+loader\mod.rs:65:31: 
+warning: use of a 
+disallowed method 
+`str::replace`
+warning: `boa_engine` 
+(lib) generated 1 
+warning
+    Checking boa_cli 
+v1.0.0-dev (C:\Users\Sa
+hana\boa\cli)
+cli\src\main.rs:684:17:
+ warning: this 
+`continue` expression 
+is redundant
+cli\src\main.rs:699:17:
+ warning: this 
+`continue` expression 
+is redundant
+cli\src\main.rs:705:17:
+ warning: this 
+`continue` expression 
+is redundant
+cli\src\main.rs:716:17:
+ warning: this 
+`continue` expression 
+is redundant
+warning: `boa_cli` 
+(bin "boa") generated 
+4 warnings
+    Finished `dev` 
+profile [unoptimized + 
+debuginfo] target(s) 
+in 1m 16s
