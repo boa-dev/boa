@@ -19,7 +19,7 @@ use thin_vec::ThinVec;
 
 use super::{
     InlineCache,
-    opcode::{Address, ByteCode, Instruction, InstructionIterator},
+    opcode::{Address, Bytecode, Instruction, InstructionIterator},
     source_info::{SourceInfo, SourceMap, SourcePath},
 };
 
@@ -144,7 +144,7 @@ pub struct CodeBlock {
 
     /// Bytecode
     #[unsafe_ignore_trace]
-    pub(crate) bytecode: ByteCode,
+    pub(crate) bytecode: Bytecode,
 
     pub(crate) constants: ThinVec<Constant>,
 
@@ -178,7 +178,7 @@ impl CodeBlock {
         let mut flags = CodeBlockFlags::empty();
         flags.set(CodeBlockFlags::STRICT, strict);
         Self {
-            bytecode: ByteCode::default(),
+            bytecode: Bytecode::default(),
             constants: ThinVec::default(),
             bindings: Box::default(),
             flags: Cell::new(flags),
@@ -1040,7 +1040,7 @@ impl Display for CodeBlock {
         } else {
             f.write_char('\n')?;
 
-            let bytecode_len = self.bytecode.bytecode.len() as u32;
+            let bytecode_len = self.bytecode.bytes.len() as u32;
             for (i, handler) in self.source_info().map().entries().windows(2).enumerate() {
                 let current = handler[0];
                 let next = handler.get(1);
