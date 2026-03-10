@@ -47,12 +47,25 @@ type VecOrMap<K, V> = Either<Vec<(K, V)>, BTreeMap<K, V>>;
 /// class) that can be used as options for creating a [`JsRequest`].
 ///
 /// [mdn]:https://developer.mozilla.org/en-US/docs/Web/API/RequestInit
-// TODO: This class does not contain all fields that are defined in the spec.
+// NOTE: This does not yet contain *all* fields from the spec, but it
+// now supports several of the most common ones.
 #[derive(Debug, Clone, TryFromJs, Trace, Finalize)]
 pub struct RequestInit {
     body: Option<JsValue>,
     headers: Option<VecOrMap<JsString, Convert<JsString>>>,
     method: Option<Convert<JsString>>,
+
+    // Additional RequestInit fields from the Fetch spec. For now these
+    // are parsed and validated, but most of them are not yet wired
+    // through to the underlying HTTP client.
+    mode: Option<Convert<JsString>>,
+    credentials: Option<Convert<JsString>>,
+    cache: Option<Convert<JsString>>,
+    redirect: Option<Convert<JsString>>,
+    referrer: Option<Convert<JsString>>,
+    referrer_policy: Option<Convert<JsString>>,
+    integrity: Option<Convert<JsString>>,
+    keepalive: Option<bool>,
 }
 
 impl RequestInit {
@@ -96,6 +109,91 @@ impl RequestInit {
                 |_| js_error!(TypeError: "Request constructor: {} is an invalid method", method.to_std_string_escaped()),
             )?.as_str());
         }
+
+        // Validate additional RequestInit fields. At this stage most of
+        // them are not hooked into the HTTP client yet, but we still
+        // enforce that the values, when present, are among the allowed
+        // strings from the Fetch spec.
+
+        if let Some(Convert(ref mode)) = self.mode.take() {
+            let mode = mode.to_std_string_escaped();
+            match mode.as_str() {
+                "navigate" | "same-origin" | "no-cors" | "cors" => {}
+                other => {
+                    return Err(js_error!(
+                        TypeError: "Request constructor: mode '{}' is not a supported value",
+                        other
+                    ));
+                }
+            }
+        }
+
+        if let Some(Convert(ref credentials)) = self.credentials.take() {
+            let credentials = credentials.to_std_string_escaped();
+            match credentials.as_str() {
+                "omit" | "same-origin" | "include" => {}
+                other => {
+                    return Err(js_error!(
+                        TypeError: "Request constructor: credentials '{}' is not a supported value",
+                        other
+                    ));
+                }
+            }
+        }
+
+        if let Some(Convert(ref cache)) = self.cache.take() {
+            let cache = cache.to_std_string_escaped();
+            match cache.as_str() {
+                "default" | "no-store" | "reload" | "no-cache" | "force-cache"
+                | "only-if-cached" => {}
+                other => {
+                    return Err(js_error!(
+                        TypeError: "Request constructor: cache '{}' is not a supported value",
+                        other
+                    ));
+                }
+            }
+        }
+
+        if let Some(Convert(ref redirect)) = self.redirect.take() {
+            let redirect = redirect.to_std_string_escaped();
+            match redirect.as_str() {
+                "follow" | "error" | "manual" => {}
+                other => {
+                    return Err(js_error!(
+                        TypeError: "Request constructor: redirect '{}' is not a supported value",
+                        other
+                    ));
+                }
+            }
+        }
+
+        if let Some(Convert(ref referrer_policy)) = self.referrer_policy.take() {
+            let referrer_policy = referrer_policy.to_std_string_escaped();
+            match referrer_policy.as_str() {
+                ""
+                | "no-referrer"
+                | "no-referrer-when-downgrade"
+                | "same-origin"
+                | "origin"
+                | "strict-origin"
+                | "origin-when-cross-origin"
+                | "strict-origin-when-cross-origin"
+                | "unsafe-url" => {}
+                other => {
+                    return Err(js_error!(
+                        TypeError: "Request constructor: referrerPolicy '{}' is not a supported value",
+                        other
+                    ));
+                }
+            }
+        }
+
+        // `referrer`, `integrity` and `keepalive` are accepted for now but
+        // treated as no-ops until the runtime makes use of them.
+        drop(self.referrer.take());
+        drop(self.integrity.take());
+        let _ = self.keepalive.take();
 
         if let Some(body) = &self.body {
             // TODO: add more support types.
