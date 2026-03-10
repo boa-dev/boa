@@ -6,10 +6,11 @@ use std::{
     time::Duration,
 };
 
+#[cfg(feature = "annex-b")]
+use boa_engine::builtins::is_html_dda::IsHTMLDDA;
 use boa_engine::{
     Context, JsArgs, JsNativeError, JsResult, JsValue, Source,
     builtins::array_buffer::{ArrayBuffer, SharedArrayBuffer},
-    builtins::is_html_dda::IsHTMLDDA,
     js_string,
     native_function::NativeFunction,
     object::{JsObject, ObjectInitializer, builtins::JsSharedArrayBuffer},
@@ -106,12 +107,16 @@ pub(super) fn register_js262(
             agent,
             Attribute::WRITABLE | Attribute::CONFIGURABLE,
         )
-        .property(
+        .build();
+
+    #[cfg(feature = "annex-b")]
+    js262
+        .create_data_property_or_throw(
             js_string!("IsHTMLDDA"),
             JsObject::from_proto_and_data(None, IsHTMLDDA),
-            Attribute::WRITABLE | Attribute::CONFIGURABLE,
+            context,
         )
-        .build();
+        .expect("the IsHTMLDDA property must be definable");
 
     context
         .register_global_property(

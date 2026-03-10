@@ -15,6 +15,7 @@ pub mod eval;
 pub mod function;
 pub mod generator;
 pub mod generator_function;
+#[cfg(feature = "annex-b")]
 pub mod is_html_dda;
 pub mod iterable;
 pub mod json;
