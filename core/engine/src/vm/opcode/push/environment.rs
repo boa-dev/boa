@@ -2,7 +2,7 @@ use crate::{
     Context, JsResult,
     builtins::function::OrdinaryFunction,
     environments::PrivateEnvironment,
-    vm::opcode::{Operation, RegisterOperand, VaryingOperand},
+    vm::opcode::{IndexOperand, Operation, RegisterOperand},
 };
 use boa_gc::Gc;
 use thin_vec::ThinVec;
@@ -16,7 +16,7 @@ pub(crate) struct PushScope;
 
 impl PushScope {
     #[inline(always)]
-    pub(crate) fn operation(index: VaryingOperand, context: &mut Context) {
+    pub(crate) fn operation(index: IndexOperand, context: &mut Context) {
         let scope = context.vm.frame().code_block().constant_scope(index.into());
         context
             .vm

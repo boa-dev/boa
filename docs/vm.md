@@ -76,7 +76,7 @@ The above output contains the following information:
 - `Stack`: The trace of the stack after execution ends.
 - The result of the execution (The top element of the stack, if the stack is empty then `undefined` is returned).
 
-### Comparing ByteCode output
+### Comparing Bytecode output
 
 If you wanted another engine's bytecode output for the same JS, SpiderMonkey's bytecode output is the best to use. You can follow the setup [here](https://udn.realityripple.com/docs/Mozilla/Projects/SpiderMonkey/Introduction_to_the_JavaScript_shell). You will need to build from source because the pre-built binarys don't include the debugging utilities which we need.
 

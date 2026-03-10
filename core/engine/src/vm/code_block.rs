@@ -19,7 +19,7 @@ use thin_vec::ThinVec;
 
 use super::{
     InlineCache,
-    opcode::{Address, ByteCode, Instruction, InstructionIterator},
+    opcode::{Address, Bytecode, Instruction, InstructionIterator},
     source_info::{SourceInfo, SourceMap, SourcePath},
 };
 
@@ -144,7 +144,7 @@ pub struct CodeBlock {
 
     /// Bytecode
     #[unsafe_ignore_trace]
-    pub(crate) bytecode: ByteCode,
+    pub(crate) bytecode: Bytecode,
 
     pub(crate) constants: ThinVec<Constant>,
 
@@ -165,6 +165,9 @@ pub struct CodeBlock {
     pub(crate) global_lexs: Box<[u32]>,
     pub(crate) global_fns: Box<[GlobalFunctionBinding]>,
     pub(crate) global_vars: Box<[u32]>,
+
+    // Used for identifying anonymous functions in compiled output and call frames.
+    pub(crate) debug_id: u64,
 }
 
 /// ---- `CodeBlock` public API ----
@@ -175,7 +178,7 @@ impl CodeBlock {
         let mut flags = CodeBlockFlags::empty();
         flags.set(CodeBlockFlags::STRICT, strict);
         Self {
-            bytecode: ByteCode::default(),
+            bytecode: Bytecode::default(),
             constants: ThinVec::default(),
             bindings: Box::default(),
             flags: Cell::new(flags),
@@ -194,6 +197,7 @@ impl CodeBlock {
             global_lexs: Box::default(),
             global_fns: Box::default(),
             global_vars: Box::default(),
+            debug_id: CodeBlock::get_next_codeblock_id(),
         }
     }
 
@@ -344,6 +348,18 @@ impl CodeBlock {
 
     pub(crate) fn source_info(&self) -> &SourceInfo {
         &self.source_info
+    }
+
+    pub(crate) fn get_next_codeblock_id() -> u64 {
+        thread_local! {
+            static CODEBLOCK_ID_COUNTER: Cell<u64> = const { Cell::new(0) };
+        }
+
+        CODEBLOCK_ID_COUNTER.with(|c| {
+            let id = c.get();
+            c.set(id + 1);
+            id
+        })
     }
 }
 
@@ -913,7 +929,14 @@ impl Display for CodeBlock {
         writeln!(
             f,
             "{:-^80}",
-            format!("Compiled Output: '{}'", name.to_std_string_escaped()),
+            format!(
+                " Compiled Output: {} ",
+                if name.is_empty() {
+                    format!("[anon#{}]", self.debug_id)
+                } else {
+                    format!("'{}'", name.to_std_string_escaped())
+                }
+            ),
         )?;
         writeln!(
             f,
@@ -1017,7 +1040,7 @@ impl Display for CodeBlock {
         } else {
             f.write_char('\n')?;
 
-            let bytecode_len = self.bytecode.bytecode.len() as u32;
+            let bytecode_len = self.bytecode.bytes.len() as u32;
             for (i, handler) in self.source_info().map().entries().windows(2).enumerate() {
                 let current = handler[0];
                 let next = handler.get(1);
