@@ -41,6 +41,60 @@ fn add_headers_to_builder<'a>(
     Ok(builder)
 }
 
+fn validate_mode(mode: &str) -> JsResult<()> {
+    match mode {
+        "navigate" | "same-origin" | "no-cors" | "cors" => Ok(()),
+        other => Err(js_error!(
+            TypeError: "Request constructor: mode '{}' is not a supported value",
+            other
+        )),
+    }
+}
+
+fn validate_credentials(credentials: &str) -> JsResult<()> {
+    match credentials {
+        "omit" | "same-origin" | "include" => Ok(()),
+        other => Err(js_error!(
+            TypeError: "Request constructor: credentials '{}' is not a supported value",
+            other
+        )),
+    }
+}
+
+fn validate_cache(cache: &str) -> JsResult<()> {
+    match cache {
+        "default" | "no-store" | "reload" | "no-cache" | "force-cache" | "only-if-cached" => {
+            Ok(())
+        }
+        other => Err(js_error!(
+            TypeError: "Request constructor: cache '{}' is not a supported value",
+            other
+        )),
+    }
+}
+
+fn validate_redirect(redirect: &str) -> JsResult<()> {
+    match redirect {
+        "follow" | "error" | "manual" => Ok(()),
+        other => Err(js_error!(
+            TypeError: "Request constructor: redirect '{}' is not a supported value",
+            other
+        )),
+    }
+}
+
+fn validate_referrer_policy(referrer_policy: &str) -> JsResult<()> {
+    match referrer_policy {
+        "" | "no-referrer" | "no-referrer-when-downgrade" | "same-origin" | "origin"
+        | "strict-origin" | "origin-when-cross-origin" | "strict-origin-when-cross-origin"
+        | "unsafe-url" => Ok(()),
+        other => Err(js_error!(
+            TypeError: "Request constructor: referrerPolicy '{}' is not a supported value",
+            other
+        )),
+    }
+}
+
 type VecOrMap<K, V> = Either<Vec<(K, V)>, BTreeMap<K, V>>;
 
 /// A [RequestInit][mdn] object. This is a JavaScript object (not a
@@ -116,77 +170,23 @@ impl RequestInit {
         // strings from the Fetch spec.
 
         if let Some(Convert(ref mode)) = self.mode.take() {
-            let mode = mode.to_std_string_escaped();
-            match mode.as_str() {
-                "navigate" | "same-origin" | "no-cors" | "cors" => {}
-                other => {
-                    return Err(js_error!(
-                        TypeError: "Request constructor: mode '{}' is not a supported value",
-                        other
-                    ));
-                }
-            }
+            validate_mode(&mode.to_std_string_escaped())?;
         }
 
         if let Some(Convert(ref credentials)) = self.credentials.take() {
-            let credentials = credentials.to_std_string_escaped();
-            match credentials.as_str() {
-                "omit" | "same-origin" | "include" => {}
-                other => {
-                    return Err(js_error!(
-                        TypeError: "Request constructor: credentials '{}' is not a supported value",
-                        other
-                    ));
-                }
-            }
+            validate_credentials(&credentials.to_std_string_escaped())?;
         }
 
         if let Some(Convert(ref cache)) = self.cache.take() {
-            let cache = cache.to_std_string_escaped();
-            match cache.as_str() {
-                "default" | "no-store" | "reload" | "no-cache" | "force-cache"
-                | "only-if-cached" => {}
-                other => {
-                    return Err(js_error!(
-                        TypeError: "Request constructor: cache '{}' is not a supported value",
-                        other
-                    ));
-                }
-            }
+            validate_cache(&cache.to_std_string_escaped())?;
         }
 
         if let Some(Convert(ref redirect)) = self.redirect.take() {
-            let redirect = redirect.to_std_string_escaped();
-            match redirect.as_str() {
-                "follow" | "error" | "manual" => {}
-                other => {
-                    return Err(js_error!(
-                        TypeError: "Request constructor: redirect '{}' is not a supported value",
-                        other
-                    ));
-                }
-            }
+            validate_redirect(&redirect.to_std_string_escaped())?;
         }
 
         if let Some(Convert(ref referrer_policy)) = self.referrer_policy.take() {
-            let referrer_policy = referrer_policy.to_std_string_escaped();
-            match referrer_policy.as_str() {
-                ""
-                | "no-referrer"
-                | "no-referrer-when-downgrade"
-                | "same-origin"
-                | "origin"
-                | "strict-origin"
-                | "origin-when-cross-origin"
-                | "strict-origin-when-cross-origin"
-                | "unsafe-url" => {}
-                other => {
-                    return Err(js_error!(
-                        TypeError: "Request constructor: referrerPolicy '{}' is not a supported value",
-                        other
-                    ));
-                }
-            }
+            validate_referrer_policy(&referrer_policy.to_std_string_escaped())?;
         }
 
         // `referrer`, `integrity` and `keepalive` are accepted for now but
