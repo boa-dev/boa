@@ -46,11 +46,7 @@ implement_store_generics!(
     JsValue::undefined(),
     "Store `undefined` in dst."
 );
-implement_store_generics!(
-    StoreNull,
-    JsValue::null(),
-    "Store `null` in dst."
-);
+implement_store_generics!(StoreNull, JsValue::null(), "Store `null` in dst.");
 implement_store_generics!(StoreTrue, true, "Store `true` in dst.");
 implement_store_generics!(StoreFalse, false, "Store `false` in dst.");
 implement_store_generics!(StoreZero, 0, "Store integer `0` in dst.");

@@ -120,7 +120,8 @@ impl ByteCompiler<'_> {
                 // it rethrows the empty exception, so if we reached this section,
                 // that means it's not an `return()` generator exception.
                 let re_throw_generator = self.register_allocator.alloc();
-                self.bytecode.emit_store_false(re_throw_generator.variable());
+                self.bytecode
+                    .emit_store_false(re_throw_generator.variable());
 
                 // Should we rethrow the exception?
                 self.bytecode.emit_store_true(finally_re_throw.variable());

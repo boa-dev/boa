@@ -118,7 +118,9 @@ impl JumpRecord {
                     finally_throw_index,
                 } => {
                     let index = value as i32;
-                    compiler.bytecode.emit_store_false(finally_throw_flag.into());
+                    compiler
+                        .bytecode
+                        .emit_store_false(finally_throw_flag.into());
                     compiler.emit_store_integer_with_index(index, finally_throw_index.into());
                 }
                 JumpRecordAction::CloseIterator { r#async } => {
