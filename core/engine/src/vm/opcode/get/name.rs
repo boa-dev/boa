@@ -3,7 +3,7 @@ use crate::{
     error::JsNativeError,
     object::{internal_methods::InternalMethodPropertyContext, shape::slot::SlotAttributes},
     property::PropertyKey,
-    vm::opcode::{Operation, VaryingOperand},
+    vm::opcode::{IndexOperand, Operation, RegisterOperand},
 };
 
 /// `GetName` implements the Opcode Operation for `Opcode::GetName`
@@ -16,7 +16,7 @@ pub(crate) struct GetName;
 impl GetName {
     #[inline(always)]
     pub(crate) fn operation(
-        (value, index): (VaryingOperand, VaryingOperand),
+        (value, index): (RegisterOperand, IndexOperand),
         context: &mut Context,
     ) -> JsResult<()> {
         let mut binding_locator =
@@ -47,7 +47,7 @@ pub(crate) struct GetNameGlobal;
 impl GetNameGlobal {
     #[inline(always)]
     pub(crate) fn operation(
-        (dst, index, ic_index): (VaryingOperand, VaryingOperand, VaryingOperand),
+        (dst, index, ic_index): (RegisterOperand, IndexOperand, IndexOperand),
         context: &mut Context,
     ) -> JsResult<()> {
         let mut binding_locator =
@@ -131,7 +131,7 @@ pub(crate) struct GetLocator;
 
 impl GetLocator {
     #[inline(always)]
-    pub(crate) fn operation(index: VaryingOperand, context: &mut Context) -> JsResult<()> {
+    pub(crate) fn operation(index: IndexOperand, context: &mut Context) -> JsResult<()> {
         let mut binding_locator =
             context.vm.frame().code_block.bindings[usize::from(index)].clone();
         context.find_runtime_binding(&mut binding_locator)?;
@@ -159,7 +159,7 @@ pub(crate) struct GetNameAndLocator;
 impl GetNameAndLocator {
     #[inline(always)]
     pub(crate) fn operation(
-        (value, index): (VaryingOperand, VaryingOperand),
+        (value, index): (RegisterOperand, IndexOperand),
         context: &mut Context,
     ) -> JsResult<()> {
         let mut binding_locator =
@@ -192,7 +192,7 @@ pub(crate) struct GetNameOrUndefined;
 impl GetNameOrUndefined {
     #[inline(always)]
     pub(crate) fn operation(
-        (value, index): (VaryingOperand, VaryingOperand),
+        (value, index): (RegisterOperand, IndexOperand),
         context: &mut Context,
     ) -> JsResult<()> {
         let mut binding_locator =

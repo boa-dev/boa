@@ -1,6 +1,6 @@
 use crate::JsValue;
 use crate::value::JsVariant;
-use crate::vm::opcode::VaryingOperand;
+use crate::vm::opcode::{IndexOperand, RegisterOperand};
 use crate::{
     Context, JsNativeError, JsResult,
     builtins::function::set_function_name,
@@ -11,10 +11,10 @@ use crate::{
 use boa_macros::js_str;
 
 fn set_by_name(
-    value: VaryingOperand,
+    value: RegisterOperand,
     value_object: &JsValue,
     receiver: &JsValue,
-    index: VaryingOperand,
+    index: IndexOperand,
     context: &mut Context,
 ) -> JsResult<()> {
     let value = context.vm.get_register(value.into()).clone();
@@ -91,7 +91,7 @@ pub(crate) struct SetPropertyByName;
 impl SetPropertyByName {
     #[inline(always)]
     pub(crate) fn operation(
-        (value, object, index): (VaryingOperand, VaryingOperand, VaryingOperand),
+        (value, object, index): (RegisterOperand, RegisterOperand, IndexOperand),
         context: &mut Context,
     ) -> JsResult<()> {
         let object = context.vm.get_register(object.into()).clone();
@@ -116,10 +116,10 @@ impl SetPropertyByNameWithThis {
     #[inline(always)]
     pub(crate) fn operation(
         (value, receiver, object, index): (
-            VaryingOperand,
-            VaryingOperand,
-            VaryingOperand,
-            VaryingOperand,
+            RegisterOperand,
+            RegisterOperand,
+            RegisterOperand,
+            IndexOperand,
         ),
         context: &mut Context,
     ) -> JsResult<()> {
@@ -146,10 +146,10 @@ impl SetPropertyByValue {
     #[inline(always)]
     pub(crate) fn operation(
         (value, key, receiver, object): (
-            VaryingOperand,
-            VaryingOperand,
-            VaryingOperand,
-            VaryingOperand,
+            RegisterOperand,
+            RegisterOperand,
+            RegisterOperand,
+            RegisterOperand,
         ),
         context: &mut Context,
     ) -> JsResult<()> {
@@ -215,7 +215,7 @@ pub(crate) struct SetPropertyGetterByName;
 impl SetPropertyGetterByName {
     #[inline(always)]
     pub(crate) fn operation(
-        (object, value, index): (VaryingOperand, VaryingOperand, VaryingOperand),
+        (object, value, index): (RegisterOperand, RegisterOperand, IndexOperand),
         context: &mut Context,
     ) -> JsResult<()> {
         let object = context.vm.get_register(object.into()).clone();
@@ -263,7 +263,7 @@ pub(crate) struct SetPropertyGetterByValue;
 impl SetPropertyGetterByValue {
     #[inline(always)]
     pub(crate) fn operation(
-        (value, key, object): (VaryingOperand, VaryingOperand, VaryingOperand),
+        (value, key, object): (RegisterOperand, RegisterOperand, RegisterOperand),
         context: &mut Context,
     ) -> JsResult<()> {
         let value = context.vm.get_register(value.into()).clone();
@@ -307,7 +307,7 @@ pub(crate) struct SetPropertySetterByName;
 impl SetPropertySetterByName {
     #[inline(always)]
     pub(crate) fn operation(
-        (object, value, index): (VaryingOperand, VaryingOperand, VaryingOperand),
+        (object, value, index): (RegisterOperand, RegisterOperand, IndexOperand),
         context: &mut Context,
     ) -> JsResult<()> {
         let object = context.vm.get_register(object.into()).clone();
@@ -356,7 +356,7 @@ pub(crate) struct SetPropertySetterByValue;
 impl SetPropertySetterByValue {
     #[inline(always)]
     pub(crate) fn operation(
-        (value, key, object): (VaryingOperand, VaryingOperand, VaryingOperand),
+        (value, key, object): (RegisterOperand, RegisterOperand, RegisterOperand),
         context: &mut Context,
     ) -> JsResult<()> {
         let value = context.vm.get_register(value.into()).clone();
@@ -401,7 +401,7 @@ pub(crate) struct SetFunctionName;
 impl SetFunctionName {
     #[inline(always)]
     pub(crate) fn operation(
-        (function, name, prefix): (VaryingOperand, VaryingOperand, VaryingOperand),
+        (function, name, prefix): (RegisterOperand, RegisterOperand, IndexOperand),
         context: &mut Context,
     ) {
         let function = context.vm.get_register(function.into()).clone();

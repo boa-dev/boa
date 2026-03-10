@@ -66,18 +66,25 @@ impl GeneratorContext {
     /// Creates a new `GeneratorContext` from the current `Context` state.
     pub(crate) fn from_current(context: &mut Context, async_generator: Option<JsObject>) -> Self {
         let mut frame = context.vm.frame().clone();
-        frame.environments = context.vm.frame.environments.clone();
+        frame.environments = context.vm.frame().environments.clone();
         frame.realm = context.realm().clone();
-        let mut stack = context.vm.stack.split_off_frame(&frame);
 
-        frame.rp = CallFrame::FUNCTION_PROLOGUE + frame.argument_count;
+        // Split the stack at fp. The split-off portion starts at what was fp,
+        // so adjust rp and fp to be relative to the new base.
+        let mut stack = context.vm.stack.split_off_frame(&frame);
+        frame.rp -= frame.fp;
+        frame.fp = 0;
 
         // NOTE: Since we get a pre-built call frame with stack, and we reuse them.
         //       So we don't need to push the registers in subsequent calls.
         frame.flags |= CallFrameFlags::REGISTERS_ALREADY_PUSHED;
 
         if let Some(async_generator) = async_generator {
-            stack.set_async_generator_object(&frame, async_generator);
+            stack.set_register(
+                &frame,
+                CallFrame::ASYNC_GENERATOR_OBJECT_REGISTER_INDEX,
+                async_generator.into(),
+            );
         }
 
         Self {
@@ -95,10 +102,12 @@ impl GeneratorContext {
     ) -> CompletionRecord {
         std::mem::swap(&mut context.vm.stack, &mut self.stack);
         let frame = self.call_frame.take().expect("should have a call frame");
+        let fp = frame.fp;
         let rp = frame.rp;
         context.vm.push_frame(frame);
 
         let frame = context.vm.frame_mut();
+        frame.fp = fp;
         frame.rp = rp;
         frame.set_exit_early(true);
 
@@ -117,10 +126,15 @@ impl GeneratorContext {
 
     /// Returns the async generator object, if the function that this [`GeneratorContext`] is from an async generator, [`None`] otherwise.
     pub(crate) fn async_generator_object(&self) -> Option<JsObject> {
-        if let Some(frame) = &self.call_frame {
-            return self.stack.async_generator_object(frame);
+        let frame = self.call_frame.as_ref()?;
+        if !frame.code_block().is_async_generator() {
+            return None;
         }
-        None
+
+        self.stack
+            .get_register(frame, CallFrame::ASYNC_GENERATOR_OBJECT_REGISTER_INDEX)
+            .expect("registers must have an async generator object")
+            .as_object()
     }
 }
 

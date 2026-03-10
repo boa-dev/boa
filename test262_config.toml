@@ -1,4 +1,4 @@
-commit = "7d0f906f4bef32bad3d6cce30c53978e26d8d10c"
+commit = "72ec758c9b6351b5baa299e0a162c2b7fe497cc6"
 
 [ignored]
 # Not implemented yet:
@@ -21,6 +21,12 @@ features = [
 
     ### Pending proposals
 
+    # https://github.com/tc39/proposal-import-bytes
+    "import-bytes",
+
+    # https://github.com/tc39/proposal-await-dictionary
+    "await-dictionary",
+
     # https://github.com/tc39/proposal-intl-locale-info
     "Intl.Locale-info",
 
@@ -38,9 +44,6 @@ features = [
 
     # https://github.com/tc39/proposal-decorators
     "decorators",
-
-    # https://github.com/tc39/proposal-json-parse-with-source
-    "json-parse-with-source",
 
     # Uint8Array Base64
     # https://github.com/tc39/proposal-arraybuffer-base64
@@ -92,4 +95,5 @@ tests = [
     "test/intl402/Locale/constructor-options-canonicalized.js",
     # TODO: Remove this once regress fixes the named groups parsing issue.
     "test/built-ins/RegExp/named-groups/non-unicode-property-names-valid.js",
+    
 ]

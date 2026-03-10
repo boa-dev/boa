@@ -494,8 +494,8 @@ impl Scope {
 
     /// Gets the outer scope of this scope.
     #[must_use]
-    pub fn outer(&self) -> Option<Self> {
-        self.inner.outer.clone()
+    pub fn outer(&self) -> Option<&Self> {
+        self.inner.outer.as_ref()
     }
 
     /// Returns the unique ID of this scope.
