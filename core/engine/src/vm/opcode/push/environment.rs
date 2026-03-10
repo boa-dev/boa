@@ -18,11 +18,9 @@ impl PushScope {
     #[inline(always)]
     pub(crate) fn operation(index: VaryingOperand, context: &mut Context) {
         let scope = context.vm.frame().code_block().constant_scope(index.into());
-        context
-            .vm
-            .frame_mut()
-            .environments
-            .push_lexical(scope.num_bindings_non_local());
+        let frame = context.vm.frame_mut();
+        let global = frame.realm.environment();
+        frame.environments.push_lexical(scope.num_bindings_non_local(), global);
     }
 }
 

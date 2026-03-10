@@ -22,17 +22,18 @@ impl CreateMappedArgumentsObject {
             .expect("there should be a function object");
         let code = frame.code_block().clone();
         let args = context.vm.stack.get_arguments(context.vm.frame());
-        let env = context
-            .vm
-            .frame()
-            .environments
-            .current_declarative_ref()
-            .expect("must be declarative");
+        let env = {
+            let frame = context.vm.frame();
+            frame.environments
+                .current_declarative_ref(frame.realm.environment())
+                .expect("must be declarative")
+                .clone()
+        };
         let arguments = MappedArguments::new(
             &function_object,
             &code.mapped_arguments_binding_indices,
             args,
-            env,
+            &env,
             context,
         );
         context.vm.set_register(value.into(), arguments.into());

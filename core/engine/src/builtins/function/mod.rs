@@ -672,9 +672,9 @@ impl BuiltInFunctionObject {
                 context.interner_mut(),
             );
 
-        let environments = context.vm.frame_mut().environments.pop_to_global();
+        let saved = context.vm.frame_mut().environments.pop_to_global();
         let function_object = crate::vm::create_function_object(code, prototype, context);
-        context.vm.frame_mut().environments.extend(environments);
+        context.vm.frame_mut().environments.restore_from_saved(saved);
 
         Ok(function_object)
     }
@@ -1061,20 +1061,26 @@ pub(crate) fn function_call(
     let has_function_scope = context.vm.frame().code_block().has_function_scope();
 
     if has_binding_identifier {
-        let index = context.vm.frame_mut().environments.push_lexical(1);
-        context.vm.frame_mut().environments.put_lexical_value(
+        let frame = context.vm.frame_mut();
+        let global = frame.realm.environment();
+        let index = frame.environments.push_lexical(1, global);
+        frame.environments.put_lexical_value(
             BindingLocatorScope::Stack(index),
             0,
             function_object.clone().into(),
+            global,
         );
         last_env += 1;
     }
 
     if has_function_scope {
         let scope = context.vm.frame().code_block().constant_scope(last_env);
-        context.vm.frame_mut().environments.push_function(
+        let frame = context.vm.frame_mut();
+        let global = frame.realm.environment();
+        frame.environments.push_function(
             scope,
             FunctionSlots::new(this, function_object.clone(), None),
+            global,
         );
     }
 
@@ -1162,18 +1168,23 @@ fn function_construct(
     let has_function_scope = context.vm.frame().code_block().has_function_scope();
 
     if has_binding_identifier {
-        let index = context.vm.frame_mut().environments.push_lexical(1);
-        context.vm.frame_mut().environments.put_lexical_value(
+        let frame = context.vm.frame_mut();
+        let global = frame.realm.environment();
+        let index = frame.environments.push_lexical(1, global);
+        frame.environments.put_lexical_value(
             BindingLocatorScope::Stack(index),
             0,
             this_function_object.clone().into(),
+            global,
         );
         last_env += 1;
     }
 
     if has_function_scope {
         let scope = context.vm.frame().code_block().constant_scope(last_env);
-        context.vm.frame_mut().environments.push_function(
+        let frame = context.vm.frame_mut();
+        let global = frame.realm.environment();
+        frame.environments.push_function(
             scope,
             FunctionSlots::new(
                 this.clone().map_or(ThisBindingStatus::Uninitialized, |o| {
@@ -1187,6 +1198,7 @@ fn function_construct(
                         .clone(),
                 ),
             ),
+            global,
         );
     }
 

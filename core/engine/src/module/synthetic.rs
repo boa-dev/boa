@@ -337,7 +337,7 @@ impl SyntheticModule {
 
         let cb = Gc::new(compiler.finish());
 
-        let mut envs = EnvironmentStack::new(global_env);
+        let mut envs = EnvironmentStack::new();
         envs.push_module(module_scope);
 
         for locator in exports {
@@ -346,11 +346,12 @@ impl SyntheticModule {
                 locator.scope(),
                 locator.binding_index(),
                 JsValue::undefined(),
+                &global_env,
             );
         }
 
         let env = envs
-            .current_declarative_ref()
+            .current_declarative_ref(&global_env)
             .cloned()
             .expect("should have the module environment");
 
