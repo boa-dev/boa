@@ -3,7 +3,7 @@ use std::cell::RefCell;
 use std::path::{Component, Path, PathBuf};
 use std::rc::Rc;
 
-use dynify::{Fn, from_fn};
+use dynify::dynify;
 use rustc_hash::FxHashMap;
 
 use boa_gc::GcRefCell;
@@ -152,6 +152,7 @@ impl From<ActiveRunnable> for Referrer {
 ///
 /// This trait allows to customize the behaviour of the engine on module load requests and
 /// `import.meta` requests.
+#[dynify]
 pub trait ModuleLoader: Any {
     /// Host hook [`HostLoadImportedModule ( referrer, specifier, hostDefined, payload )`][spec].
     ///
@@ -175,7 +176,7 @@ pub trait ModuleLoader: Any {
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-HostLoadImportedModule
     /// [finish]: https://tc39.es/ecma262/#sec-FinishLoadingImportedModule
-    #[expect(async_fn_in_trait, reason = "all our APIs are single-threaded")]
+    #[allow(async_fn_in_trait, reason = "all our APIs are single-threaded")]
     async fn load_imported_module(
         self: Rc<Self>,
         referrer: Referrer,
@@ -195,58 +196,13 @@ pub trait ModuleLoader: Any {
     ///
     /// [meta]: https://tc39.es/ecma262/#sec-hostgetimportmetaproperties
     /// [final]: https://tc39.es/ecma262/#sec-hostfinalizeimportmeta
-    fn init_import_meta(
-        self: Rc<Self>,
-        _import_meta: &JsObject,
-        _module: &Module,
-        _context: &mut Context,
-    ) {
-    }
-}
-
-/// A dyn-compatible version of [`ModuleLoader`].
-pub(crate) trait DynModuleLoader: Any {
-    /// See [`ModuleLoader::load_imported_module`].
-    fn load_imported_module<'a, 'b, 'fut>(
-        self: Rc<Self>,
-        referrer: Referrer,
-        request: ModuleRequest,
-        context: &'a RefCell<&'b mut Context>,
-    ) -> Fn!(Rc<Self>, Referrer, ModuleRequest, &'a RefCell<&'b mut Context> => dyn 'fut + Future<Output = JsResult<Module>>)
-    where
-        'a: 'fut,
-        'b: 'fut;
-
-    /// See [`ModuleLoader::init_import_meta`].
-    fn init_import_meta(
-        self: Rc<Self>,
-        import_meta: &JsObject,
-        module: &Module,
-        context: &mut Context,
-    );
-}
-
-impl<T: ModuleLoader> DynModuleLoader for T {
-    fn load_imported_module<'a, 'b, 'fut>(
-        self: Rc<Self>,
-        referrer: Referrer,
-        request: ModuleRequest,
-        context: &'a RefCell<&'b mut Context>,
-    ) -> Fn!(Rc<Self>, Referrer, ModuleRequest, &'a RefCell<&'b mut Context> => dyn 'fut + Future<Output = JsResult<Module>>)
-    where
-        'a: 'fut,
-        'b: 'fut,
-    {
-        from_fn!(T::load_imported_module, self, referrer, request, context)
-    }
-
+    #[allow(unused_variables, reason = "this should be overridden by implementors")]
     fn init_import_meta(
         self: Rc<Self>,
         import_meta: &JsObject,
         module: &Module,
         context: &mut Context,
     ) {
-        T::init_import_meta(self, import_meta, module, context);
     }
 }
 
