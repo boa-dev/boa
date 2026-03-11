@@ -2,7 +2,7 @@ use crate::{
     Context, JsResult,
     builtins::function::OrdinaryFunction,
     object::JsFunction,
-    vm::opcode::{Operation, VaryingOperand},
+    vm::opcode::{IndexOperand, Operation, RegisterOperand},
 };
 
 /// `PushClassField` implements the Opcode Operation for `Opcode::PushClassField`
@@ -16,10 +16,10 @@ impl PushClassField {
     #[inline(always)]
     pub(crate) fn operation(
         (class, name, function, is_anonymous_function): (
-            VaryingOperand,
-            VaryingOperand,
-            VaryingOperand,
-            VaryingOperand,
+            RegisterOperand,
+            RegisterOperand,
+            RegisterOperand,
+            IndexOperand,
         ),
         context: &mut Context,
     ) -> JsResult<()> {
@@ -71,7 +71,7 @@ pub(crate) struct PushClassFieldPrivate;
 impl PushClassFieldPrivate {
     #[inline(always)]
     pub(crate) fn operation(
-        (class, function, index): (VaryingOperand, VaryingOperand, VaryingOperand),
+        (class, function, index): (RegisterOperand, RegisterOperand, IndexOperand),
         context: &mut Context,
     ) {
         let class = context.vm.get_register(class.into());

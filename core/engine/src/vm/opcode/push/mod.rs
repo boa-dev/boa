@@ -1,6 +1,6 @@
 use crate::{
     Context, JsValue,
-    vm::opcode::{Operation, VaryingOperand},
+    vm::opcode::{Operation, RegisterOperand},
 };
 
 pub(crate) mod array;
@@ -28,7 +28,7 @@ macro_rules! implement_push_generics {
 
         impl $name {
             #[inline(always)]
-            pub(super) fn operation(dst: VaryingOperand,  context: &mut Context) {
+            pub(super) fn operation(dst: RegisterOperand,  context: &mut Context) {
                 context.vm.set_register(dst.into(), $push_value.into());
             }
         }

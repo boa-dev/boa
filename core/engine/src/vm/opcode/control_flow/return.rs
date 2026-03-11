@@ -4,7 +4,7 @@ use crate::{
     Context, JsNativeError,
     vm::{
         CompletionRecord,
-        opcode::{Operation, VaryingOperand},
+        opcode::{Operation, RegisterOperand},
     },
 };
 
@@ -63,7 +63,7 @@ impl CheckReturn {
             if frame.has_this_value_cached() {
                 this.clone()
             } else {
-                match context.vm.frame.environments.get_this_binding() {
+                match context.vm.frame().environments.get_this_binding() {
                     Err(err) => {
                         // Avoid setting the realm here, since it needs to be set by the parent
                         // execution context.
@@ -96,7 +96,7 @@ pub(crate) struct SetAccumulator;
 
 impl SetAccumulator {
     #[inline(always)]
-    pub(crate) fn operation(register: VaryingOperand, context: &mut Context) {
+    pub(crate) fn operation(register: RegisterOperand, context: &mut Context) {
         let value = context.vm.get_register(register.into());
         context.vm.set_return_value(value.clone());
     }
@@ -117,7 +117,7 @@ pub(crate) struct Move;
 
 impl Move {
     #[inline(always)]
-    pub(crate) fn operation((dst, src): (VaryingOperand, VaryingOperand), context: &mut Context) {
+    pub(crate) fn operation((dst, src): (RegisterOperand, RegisterOperand), context: &mut Context) {
         let value = context.vm.get_register(src.into());
         context.vm.set_register(dst.into(), value.clone());
     }
@@ -138,8 +138,8 @@ pub(crate) struct PopIntoRegister;
 
 impl PopIntoRegister {
     #[inline(always)]
-    pub(crate) fn operation(dst: VaryingOperand, context: &mut Context) {
-        let value = context.vm.stack.pop().clone();
+    pub(crate) fn operation(dst: RegisterOperand, context: &mut Context) {
+        let value = context.vm.stack.pop();
         context.vm.set_register(dst.into(), value);
     }
 }
@@ -159,7 +159,7 @@ pub(crate) struct PushFromRegister;
 
 impl PushFromRegister {
     #[inline(always)]
-    pub(crate) fn operation(dst: VaryingOperand, context: &mut Context) {
+    pub(crate) fn operation(dst: RegisterOperand, context: &mut Context) {
         let value = context.vm.get_register(dst.into());
         context.vm.stack.push(value.clone());
     }
@@ -180,7 +180,7 @@ pub(crate) struct SetRegisterFromAccumulator;
 
 impl SetRegisterFromAccumulator {
     #[inline(always)]
-    pub(crate) fn operation(register: VaryingOperand, context: &mut Context) {
+    pub(crate) fn operation(register: RegisterOperand, context: &mut Context) {
         context
             .vm
             .set_register(register.into(), context.vm.get_return_value());

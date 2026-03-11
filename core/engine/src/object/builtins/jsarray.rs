@@ -1,6 +1,6 @@
 //! A Rust API wrapper for Boa's `Array` Builtin ECMAScript Object
 use crate::{
-    Context, JsResult, JsString, JsValue,
+    Context, JsExpect, JsResult, JsString, JsValue,
     builtins::Array,
     error::JsNativeError,
     object::{JsFunction, JsObject},
@@ -17,12 +17,16 @@ pub struct JsArray {
 
 impl JsArray {
     /// Create a new empty array.
+    ///
+    /// # Errors
+    ///
+    /// Returns a `PanicError` if creating the array fails due to an engine bug.
     #[inline]
-    pub fn new(context: &mut Context) -> Self {
+    pub fn new(context: &mut Context) -> JsResult<Self> {
         let inner = Array::array_create(0, None, context)
-            .expect("creating an empty array with the default prototype must not fail");
+            .js_expect("creating an empty array with the default prototype must not fail")?;
 
-        Self { inner }
+        Ok(Self { inner })
     }
 
     /// Create an array from a `IntoIterator<Item = JsValue>` convertible object.
@@ -115,7 +119,7 @@ impl JsArray {
     pub fn concat(&self, items: &[JsValue], context: &mut Context) -> JsResult<Self> {
         let object = Array::concat(&self.inner.clone().into(), items, context)?
             .as_object()
-            .expect("Array.prototype.filter should always return object");
+            .js_expect("Array.prototype.concat should always return object")?;
 
         Self::from_object(object)
     }
@@ -123,15 +127,15 @@ impl JsArray {
     /// Calls `Array.prototype.join()`.
     #[inline]
     pub fn join(&self, separator: Option<JsString>, context: &mut Context) -> JsResult<JsString> {
-        Array::join(
+        let result = Array::join(
             &self.inner.clone().into(),
             &[separator.into_or_undefined()],
             context,
-        )
-        .map(|x| {
-            x.as_string()
-                .expect("Array.prototype.join always returns string")
-        })
+        )?;
+        result
+            .as_string()
+            .js_expect("Array.prototype.join always returns string")
+            .map_err(Into::into)
     }
 
     /// Calls `Array.prototype.fill()`.
@@ -173,7 +177,7 @@ impl JsArray {
             context,
         )?
         .as_number()
-        .expect("Array.prototype.indexOf should always return number");
+        .js_expect("Array.prototype.indexOf should always return number")?;
 
         #[allow(clippy::float_cmp)]
         if index == -1.0 {
@@ -199,7 +203,7 @@ impl JsArray {
             context,
         )?
         .as_number()
-        .expect("Array.prototype.lastIndexOf should always return number");
+        .js_expect("Array.prototype.lastIndexOf should always return number")?;
 
         #[allow(clippy::float_cmp)]
         if index == -1.0 {
@@ -238,7 +242,7 @@ impl JsArray {
             context,
         )?
         .as_object()
-        .expect("Array.prototype.filter should always return object");
+        .js_expect("Array.prototype.filter should always return object")?;
 
         Self::from_object(object)
     }
@@ -257,7 +261,7 @@ impl JsArray {
             context,
         )?
         .as_object()
-        .expect("Array.prototype.map should always return object");
+        .js_expect("Array.prototype.map should always return object")?;
 
         Self::from_object(object)
     }
@@ -276,7 +280,7 @@ impl JsArray {
             context,
         )?
         .as_boolean()
-        .expect("Array.prototype.every should always return boolean");
+        .js_expect("Array.prototype.every should always return boolean")?;
 
         Ok(result)
     }
@@ -295,7 +299,7 @@ impl JsArray {
             context,
         )?
         .as_boolean()
-        .expect("Array.prototype.some should always return boolean");
+        .js_expect("Array.prototype.some should always return boolean")?;
 
         Ok(result)
     }
@@ -326,7 +330,7 @@ impl JsArray {
             context,
         )?
         .as_object()
-        .expect("Array.prototype.slice should always return object");
+        .js_expect("Array.prototype.slice should always return object")?;
 
         Self::from_object(object)
     }
@@ -378,7 +382,7 @@ impl JsArray {
             context,
         )?
         .as_object()
-        .expect("Array.prototype.splice should always return object");
+        .js_expect("Array.prototype.splice should always return object")?;
 
         Self::from_object(object)
     }
@@ -421,7 +425,7 @@ impl JsArray {
         Ok(Self {
             inner: array
                 .as_object()
-                .expect("`to_reversed` must always return an `Array` on success"),
+                .js_expect("`to_reversed` must always return an `Array` on success")?,
         })
     }
 
@@ -441,7 +445,7 @@ impl JsArray {
         Ok(Self {
             inner: array
                 .as_object()
-                .expect("`to_sorted` must always return an `Array` on success"),
+                .js_expect("`to_sorted` must always return an `Array` on success")?,
         })
     }
 
@@ -453,7 +457,7 @@ impl JsArray {
         Ok(Self {
             inner: array
                 .as_object()
-                .expect("`with` must always return an `Array` on success"),
+                .js_expect("`with` must always return an `Array` on success")?,
         })
     }
 }
@@ -547,7 +551,7 @@ mod tests {
     #[test]
     fn splice_empty_array() {
         let context = &mut Context::default();
-        let array = JsArray::new(context);
+        let array = JsArray::new(context).unwrap();
 
         let removed = array.splice(0, Some(0), &[], context).unwrap();
 

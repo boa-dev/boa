@@ -45,10 +45,6 @@ pub(crate) enum StringTerminator {
 pub(crate) trait UTF16CodeUnitsBuffer {
     /// Encodes the code point to UTF-16 code units and push to the buffer.
     fn push_code_point(&mut self, code_point: u32);
-
-    /// Decodes the buffer into a String and replace the invalid data with the replacement character (U+FFFD).
-    #[allow(dead_code)]
-    fn to_string_lossy(&self) -> String;
 }
 
 impl UTF16CodeUnitsBuffer for Vec<u16> {
@@ -67,10 +63,6 @@ impl UTF16CodeUnitsBuffer for Vec<u16> {
             .expect("decoded an u32 into two u16.");
         self.push(cu1);
         self.push(cu2);
-    }
-
-    fn to_string_lossy(&self) -> String {
-        String::from_utf16_lossy(self.as_slice())
     }
 }
 
