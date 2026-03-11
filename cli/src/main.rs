@@ -411,15 +411,22 @@ fn evaluate_expr(
                     let result = script.evaluate(context);
                     if let Err(err) = context.run_jobs() {
                         printer.print(uncaught_job_error(&err));
+                        return Err(err.into_erased(context).into());
                     }
                     result
                 };
                 match result {
                     Ok(v) => printer.print(format!("{}\n", v.display())),
-                    Err(ref v) => printer.print(uncaught_error(v)),
+                    Err(v) => {
+                        printer.print(uncaught_error(&v));
+                        return Err(v.into_erased(context).into());
+                    }
                 }
             }
-            Err(ref v) => printer.print(uncaught_error(v)),
+            Err(v) => {
+                printer.print(uncaught_error(&v));
+                return Err(v.into_erased(context).into());
+            }
         }
     }
 
