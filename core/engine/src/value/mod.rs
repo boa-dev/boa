@@ -1424,7 +1424,7 @@ impl JsValue {
     /// Converts a value to a 16-bit floating point.
     #[cfg(feature = "float16")]
     pub fn to_f16(&self, context: &mut Context) -> JsResult<float16::f16> {
-        self.to_number(context).map(float16::f16::from_f64)
+        self.to_number(context).map(f64_to_f16)
     }
 
     /// Converts a value to a 32 bit floating point.
@@ -1634,6 +1634,109 @@ impl JsValue {
         self.as_object()
             .as_ref()
             .map_or(Ok(false), JsObject::is_array_abstract)
+    }
+}
+
+/// Converts an `f64` to an `f16` using IEEE 754 roundTiesToEven.
+///
+/// This is a custom implementation that fixes a subnormal rounding bug in the
+/// `float16` crate v0.1.5, where certain values near the smallest f16 subnormal
+/// boundary are incorrectly rounded.
+#[cfg(feature = "float16")]
+pub(crate) fn f64_to_f16(value: f64) -> float16::f16 {
+    // IEEE 754 binary64: 1 sign + 11 exponent + 52 mantissa
+    // IEEE 754 binary16: 1 sign + 5 exponent + 10 mantissa
+    const F64_MAN_MASK: u64 = 0x000F_FFFF_FFFF_FFFF;
+    const F64_EXP_BIAS: i64 = 1023;
+
+    const F16_EXP_BIAS: i64 = 15;
+    const F16_MAN_BITS: u32 = 10;
+    // Max unbiased exponent for f16 normals (also equals F16_EXP_BIAS by coincidence).
+    const F16_MAX_EXP: i64 = 15;
+    const F16_MIN_EXP: i64 = -14; // smallest normal exponent
+
+    // f16 bit patterns
+    const F16_INF: u16 = 0x7C00;
+    const F16_QNAN: u16 = 0x7E00; // canonical quiet NaN
+
+    let bits = value.to_bits();
+    let sign = ((bits >> 63) & 1) as u16;
+    let f64_exp = ((bits >> 52) & 0x7FF) as i64;
+    let f64_man = bits & F64_MAN_MASK;
+
+    let f16_sign = sign << 15;
+
+    // NaN or Infinity
+    if f64_exp == 0x7FF {
+        return if f64_man != 0 {
+            float16::f16::from_bits(f16_sign | F16_QNAN)
+        } else {
+            float16::f16::from_bits(f16_sign | F16_INF)
+        };
+    }
+
+    // Zero (includes -0) or f64 subnormal (too tiny for f16, rounds to zero)
+    if f64_exp == 0 {
+        return float16::f16::from_bits(f16_sign);
+    }
+
+    let unbiased_exp = f64_exp - F64_EXP_BIAS;
+    let full_man = f64_man | (1u64 << 52); // implicit leading 1
+
+    // Overflow to f16 infinity.
+    // Any unbiased exponent > 15 overflows. Values at exponent 15 may also
+    // overflow via mantissa rounding, which is handled in the normal path below.
+    if unbiased_exp > F16_MAX_EXP {
+        return float16::f16::from_bits(f16_sign | F16_INF);
+    }
+
+    if unbiased_exp >= F16_MIN_EXP {
+        // Normal f16 range: truncate mantissa from 52 to 10 bits with rounding.
+        let shift = 52 - F16_MAN_BITS; // 42
+        let round_bits = full_man & ((1u64 << shift) - 1);
+        let halfway = 1u64 << (shift - 1);
+
+        let mut f16_man = (full_man >> shift) as u16 & 0x03FF;
+        let mut f16_exp = (unbiased_exp + F16_EXP_BIAS) as u16;
+
+        // Round ties to even
+        if round_bits > halfway || (round_bits == halfway && (f16_man & 1) != 0) {
+            f16_man += 1;
+            if f16_man > 0x03FF {
+                // Mantissa overflow: increment exponent
+                f16_man = 0;
+                f16_exp += 1;
+                if f16_exp >= 0x1F {
+                    return float16::f16::from_bits(f16_sign | F16_INF);
+                }
+            }
+        }
+
+        float16::f16::from_bits(f16_sign | (f16_exp << 10) | f16_man)
+    } else {
+        // Subnormal f16 range (or rounds to zero).
+        // In f16 subnormal: value = 2^(-14) * (mantissa / 2^10).
+        // Shift = 52 - 10 + 14 - unbiased_exp = 56 - unbiased_exp.
+        let shift = (F16_MIN_EXP - unbiased_exp + 52 - F16_MAN_BITS as i64) as u32;
+
+        if shift >= 64 {
+            return float16::f16::from_bits(f16_sign);
+        }
+
+        let round_bits = full_man & ((1u64 << shift) - 1);
+        let halfway = 1u64 << (shift - 1);
+        let mut f16_man = (full_man >> shift) as u16 & 0x03FF;
+
+        // Round ties to even
+        if round_bits > halfway || (round_bits == halfway && (f16_man & 1) != 0) {
+            f16_man += 1;
+            if f16_man > 0x03FF {
+                // Rounded up from max subnormal to smallest normal
+                return float16::f16::from_bits(f16_sign | (1u16 << 10));
+            }
+        }
+
+        float16::f16::from_bits(f16_sign | f16_man)
     }
 }
 
