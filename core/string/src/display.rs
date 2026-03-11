@@ -92,7 +92,7 @@ impl fmt::Debug for JsStringDebugInfo<'_> {
 
         // Show kind specific fields from string.
         match self.inner.kind() {
-            JsStringKind::Latin1Sequence | JsStringKind::Utf16Sequence => {
+            JsStringKind::Latin1Sequence | JsStringKind::Utf16Sequence | JsStringKind::Rope => {
                 if let Some(rc) = self.inner.refcount() {
                     dbg.borrow_mut().field("refcount", &rc);
                 }

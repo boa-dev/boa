@@ -1,15 +1,23 @@
 use crate::iter::CodePointsIter;
-use crate::vtable::JsStringVTable;
-use crate::{JsStr, JsString, JsStringKind};
+use crate::vtable::{JsStringVTable, RawJsString};
+use crate::{JsStr, JsStringKind};
 use std::hash::{Hash, Hasher};
 use std::ptr::NonNull;
+
+/// Static vtable for static strings.
+pub(crate) static STATIC_VTABLE: JsStringVTable = JsStringVTable {
+    as_str: static_as_str,
+    code_points: static_code_points,
+    code_unit_at: static_code_unit_at,
+    dealloc: |_| {}, // Static strings are never deallocated.
+};
 
 /// A static string with vtable for uniform dispatch.
 #[derive(Debug, Clone, Copy)]
 #[repr(C)]
 pub struct StaticString {
-    /// Embedded `VTable` - must be the first field for vtable dispatch.
-    vtable: JsStringVTable,
+    /// Standardized header for all strings.
+    pub(crate) header: RawJsString,
     /// The actual string data.
     pub(crate) str: JsStr<'static>,
 }
@@ -19,14 +27,12 @@ impl StaticString {
     #[must_use]
     pub const fn new(str: JsStr<'static>) -> Self {
         Self {
-            vtable: JsStringVTable {
-                clone: static_clone,
-                drop: static_drop,
-                as_str: static_as_str,
-                code_points: static_code_points,
-                refcount: static_refcount,
+            header: RawJsString {
+                vtable: &STATIC_VTABLE,
                 len: str.len(),
+                refcount: 0, // Static strings don't use refcounts
                 kind: JsStringKind::Static,
+                hash: 0,
             },
             str,
         }
@@ -53,32 +59,23 @@ impl std::borrow::Borrow<JsStr<'static>> for &'static StaticString {
     }
 }
 
-#[inline]
-pub(crate) fn static_clone(this: NonNull<JsStringVTable>) -> JsString {
-    // Static strings don't need ref counting, just copy the pointer.
-    // SAFETY: validated the string outside this function.
-    unsafe { JsString::from_ptr(this) }
-}
+// Unused static_clone removed.
 
 #[inline]
-fn static_drop(_ptr: NonNull<JsStringVTable>) {
-    // Static strings don't need cleanup.
-}
-
-#[inline]
-fn static_as_str(this: NonNull<JsStringVTable>) -> JsStr<'static> {
+fn static_as_str(ptr: NonNull<RawJsString>) -> JsStr<'static> {
     // SAFETY: validated the string outside this function.
-    let this: &StaticString = unsafe { this.cast().as_ref() };
+    let this: &StaticString = unsafe { ptr.cast().as_ref() };
     this.str
 }
 
 #[inline]
-fn static_code_points(this: NonNull<JsStringVTable>) -> CodePointsIter<'static> {
-    CodePointsIter::new(static_as_str(this))
+fn static_code_points(ptr: NonNull<RawJsString>) -> CodePointsIter<'static> {
+    CodePointsIter::new(static_as_str(ptr))
 }
 
 #[inline]
-fn static_refcount(_ptr: NonNull<JsStringVTable>) -> Option<usize> {
-    // Static strings don't have refcount.
-    None
+fn static_code_unit_at(ptr: NonNull<RawJsString>, index: usize) -> Option<u16> {
+    static_as_str(ptr).get(index)
 }
+
+// Unused static_refcount removed.
