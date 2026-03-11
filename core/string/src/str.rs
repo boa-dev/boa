@@ -425,22 +425,31 @@ impl<'a> JsStr<'a> {
 impl Hash for JsStr<'_> {
     #[inline]
     fn hash<H: Hasher>(&self, state: &mut H) {
-        // NOTE: The hash function has been inlined to ensure that a hash of latin1 and U16
-        // encoded strings remains the same if they have the same characters
+        state.write_u64(self.content_hash());
+    }
+}
+
+impl JsStr<'_> {
+    /// Computes the hash of the string content.
+    #[inline]
+    #[must_use]
+    pub fn content_hash(&self) -> u64 {
+        let mut h = rustc_hash::FxHasher::default();
         match self.variant() {
             JsStrVariant::Latin1(s) => {
-                state.write_usize(s.len());
+                h.write_usize(s.len());
                 for elem in s {
-                    state.write_u16(u16::from(*elem));
+                    h.write_u16(u16::from(*elem));
                 }
             }
             JsStrVariant::Utf16(s) => {
-                state.write_usize(s.len());
+                h.write_usize(s.len());
                 for elem in s {
-                    state.write_u16(*elem);
+                    h.write_u16(*elem);
                 }
             }
         }
+        h.finish()
     }
 }
 

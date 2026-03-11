@@ -19,7 +19,7 @@ mod display;
 mod iter;
 mod str;
 mod r#type;
-mod vtable;
+pub(crate) mod vtable;
 
 #[cfg(test)]
 mod tests;
@@ -29,7 +29,7 @@ use crate::display::{JsStrDisplayEscaped, JsStrDisplayLossy, JsStringDebugInfo};
 use crate::iter::CodePointsIter;
 use crate::r#type::{Latin1, Utf16};
 pub use crate::vtable::StaticString;
-use crate::vtable::{SequenceString, SliceString};
+pub(crate) use crate::vtable::{RawJsString, RopeString, SequenceString, SliceString};
 #[doc(inline)]
 pub use crate::{
     builder::{CommonJsStringBuilder, Latin1JsStringBuilder, Utf16JsStringBuilder},
@@ -38,12 +38,13 @@ pub use crate::{
     iter::Iter,
     str::{JsStr, JsStrVariant},
 };
-use std::marker::PhantomData;
+use std::ptr::NonNull;
+use std::sync::atomic::{AtomicU64, AtomicUsize, Ordering};
 use std::{borrow::Cow, mem::ManuallyDrop};
 use std::{
     convert::Infallible,
     hash::{Hash, Hasher},
-    ptr::{self, NonNull},
+    ptr::{self},
     str::FromStr,
 };
 use vtable::JsStringVTable;
@@ -91,13 +92,6 @@ pub(crate) const fn is_trimmable_whitespace_latin1(c: u8) -> bool {
     )
 }
 
-/// Opaque type of a raw string pointer.
-#[allow(missing_copy_implementations, missing_debug_implementations)]
-pub struct RawJsString {
-    // Make this non-send, non-sync, invariant and unconstructable.
-    phantom_data: PhantomData<*mut ()>,
-}
-
 /// Strings can be represented internally by multiple kinds. This is used to identify
 /// the storage kind of string.
 #[derive(Debug, Clone, Copy, Eq, PartialEq)]
@@ -114,6 +108,9 @@ pub(crate) enum JsStringKind {
 
     /// A static string that is valid for `'static` lifetime.
     Static = 3,
+
+    /// A rope string that is a tree of other strings. See [`RopeString`].
+    Rope = 4,
 }
 
 /// A Latin1 or UTF-16–encoded, reference counted, immutable string.
@@ -136,9 +133,8 @@ pub(crate) enum JsStringKind {
 /// type to allow for better optimization (and simpler code).
 #[allow(clippy::module_name_repetitions)]
 pub struct JsString {
-    /// Pointer to the string data. Always points to a struct whose first field is
-    /// `JsStringVTable`.
-    ptr: NonNull<JsStringVTable>,
+    /// Pointer to the string data. Always points to a `RawJsString` header.
+    pub(crate) ptr: NonNull<RawJsString>,
 }
 
 // `JsString` should always be thin-pointer sized.
@@ -207,9 +203,7 @@ impl JsString {
     /// errors.
     #[inline]
     #[allow(clippy::missing_panics_doc)]
-    pub fn to_std_string_with_surrogates(
-        &self,
-    ) -> impl Iterator<Item = Result<String, u16>> + use<'_> {
+    pub fn to_std_string_with_surrogates(&self) -> impl Iterator<Item = Result<String, u16>> + '_ {
         let mut iter = self.code_points().peekable();
 
         std::iter::from_fn(move || {
@@ -261,6 +255,8 @@ impl JsString {
     #[inline]
     #[must_use]
     pub fn code_points(&self) -> CodePointsIter<'_> {
+        // SAFETY: The `vtable().code_points` function is guaranteed to be a valid function pointer
+        // for the specific string type, and `self.ptr` is a valid `NonNull<RawJsString>` pointer.
         (self.vtable().code_points)(self.ptr)
     }
 
@@ -268,7 +264,29 @@ impl JsString {
     #[inline]
     #[must_use]
     pub fn variant(&self) -> JsStrVariant<'_> {
-        self.as_str().variant()
+        // SAFETY: The pointer `self.ptr` is always valid and points to a `RawJsString` header.
+        let header = unsafe { self.ptr.as_ref() };
+        match header.kind {
+            JsStringKind::Latin1Sequence => {
+                // SAFETY: `header.kind` is `Latin1Sequence`, so `self.ptr` can be safely cast to `SequenceString<Latin1>`.
+                let seq: &SequenceString<Latin1> = unsafe { self.ptr.cast().as_ref() };
+                // SAFETY: `seq.data()` is a valid pointer to the Latin1 data, and `header.len` is the correct length.
+                JsStrVariant::Latin1(unsafe { std::slice::from_raw_parts(seq.data(), header.len) })
+            }
+            JsStringKind::Utf16Sequence => {
+                // SAFETY: `header.kind` is `Utf16Sequence`, so `self.ptr` can be safely cast to `SequenceString<Utf16>`.
+                let seq: &SequenceString<Utf16> = unsafe { self.ptr.cast().as_ref() };
+                // SAFETY: `seq.data()` is a valid pointer to the UTF-16 data, and `header.len` is the correct length.
+                JsStrVariant::Utf16(unsafe {
+                    std::slice::from_raw_parts(seq.data().cast(), header.len)
+                })
+            }
+            // For Static, Slice, and Rope, the `as_str()` method handles the variant conversion.
+            // This avoids redundant logic and ensures consistency.
+            JsStringKind::Static | JsStringKind::Slice | JsStringKind::Rope => {
+                self.as_str().variant()
+            }
+        }
     }
 
     /// Abstract operation `StringIndexOf ( string, searchValue, fromIndex )`
@@ -324,7 +342,8 @@ impl JsString {
     #[inline]
     #[must_use]
     pub fn len(&self) -> usize {
-        self.vtable().len
+        // SAFETY: The pointer `self.ptr` is always valid and points to a `RawJsString` header.
+        unsafe { self.ptr.as_ref().len }
     }
 
     /// Return true if the [`JsString`] is empty.
@@ -381,7 +400,8 @@ impl JsString {
             }
         };
 
-        // SAFETY: `position(...)` and `rposition(...)` cannot exceed the length of the string.
+        // SAFETY: `start` and `end` are calculated from valid indices within the string,
+        // ensuring `start <= end` and `end <= self.len()`.
         unsafe { Self::slice_unchecked(self, start, end + 1) }
     }
 
@@ -399,7 +419,7 @@ impl JsString {
             return StaticJsStrings::EMPTY_STRING;
         };
 
-        // SAFETY: `position(...)` cannot exceed the length of the string.
+        // SAFETY: `start` is a valid index within the string, ensuring `start <= self.len()`.
         unsafe { Self::slice_unchecked(self, start, self.len()) }
     }
 
@@ -417,8 +437,7 @@ impl JsString {
             return StaticJsStrings::EMPTY_STRING;
         };
 
-        // SAFETY: `rposition(...)` cannot exceed the length of the string. `end` is the first
-        //         character that is not trimmable, therefore we need to add 1 to it.
+        // SAFETY: `end` is a valid index within the string, ensuring `end + 1 <= self.len()`.
         unsafe { Self::slice_unchecked(self, 0, end + 1) }
     }
 
@@ -437,15 +456,7 @@ impl JsString {
     // We check the size, so this should never panic.
     #[allow(clippy::missing_panics_doc)]
     pub fn ends_with(&self, needle: JsStr<'_>) -> bool {
-        self.as_str().starts_with(needle)
-    }
-
-    /// Get the `u16` code unit at index. This does not parse any characters if there
-    /// are pairs, it is simply the index of the `u16` elements.
-    #[inline]
-    #[must_use]
-    pub fn code_unit_at(&self, index: usize) -> Option<u16> {
-        self.as_str().get(index)
+        self.as_str().ends_with(needle)
     }
 
     /// Get the element at the given index, or [`None`] if the index is out of range.
@@ -499,7 +510,6 @@ impl JsString {
     ///
     /// To avoid a memory leak the pointer must be converted back to a `JsString` using
     /// [`JsString::from_raw`].
-    #[inline]
     #[must_use]
     pub fn into_raw(self) -> NonNull<RawJsString> {
         ManuallyDrop::new(self).ptr.cast()
@@ -517,18 +527,6 @@ impl JsString {
     #[inline]
     #[must_use]
     pub const unsafe fn from_raw(ptr: NonNull<RawJsString>) -> Self {
-        Self { ptr: ptr.cast() }
-    }
-
-    /// Constructs a `JsString` from a reference to a `VTable`.
-    ///
-    /// # Safety
-    ///
-    /// This function is unsafe because improper use may lead to memory unsafety,
-    /// even if the returned `JsString` is never accessed.
-    #[inline]
-    #[must_use]
-    pub(crate) const unsafe fn from_ptr(ptr: NonNull<JsStringVTable>) -> Self {
         Self { ptr }
     }
 }
@@ -542,16 +540,15 @@ impl JsString {
     #[inline]
     #[must_use]
     pub fn is_static(&self) -> bool {
-        // Check the vtable kind tag
-        self.vtable().kind == JsStringKind::Static
+        self.kind() == JsStringKind::Static
     }
 
     /// Get the vtable for this string.
     #[inline]
     #[must_use]
     const fn vtable(&self) -> &JsStringVTable {
-        // SAFETY: All JsString variants have vtable as the first field (embedded directly).
-        unsafe { self.ptr.as_ref() }
+        // SAFETY: The pointer `self.ptr` is always valid and points to a `RawJsString` header.
+        unsafe { self.ptr.as_ref().vtable }
     }
 
     /// Create a [`JsString`] from a [`StaticString`] instance. This is assumed that the
@@ -560,8 +557,12 @@ impl JsString {
     #[inline]
     #[must_use]
     pub const fn from_static(str: &'static StaticString) -> Self {
+        // SAFETY: `str` is a reference to a `StaticString`, which is guaranteed to have a valid `header` field.
+        // The address of `str.header` is valid and non-null, and casting to `*mut RawJsString` is safe
+        // because `RawJsString` is the common header for all string types.
         Self {
-            ptr: NonNull::from_ref(str).cast(),
+            // SAFETY: The address of `str.header` is guaranteed to be non-null.
+            ptr: unsafe { NonNull::new_unchecked((&raw const str.header).cast_mut()) },
         }
     }
 
@@ -576,11 +577,36 @@ impl JsString {
     #[inline]
     #[must_use]
     pub unsafe fn slice_unchecked(data: &JsString, start: usize, end: usize) -> Self {
-        // Safety: invariant stated by this whole function.
+        // Safety: The caller guarantees `start <= end` and `end <= data.len()`.
+        // `SliceString::new` creates a valid slice, and `Box::leak` correctly manages memory.
         let slice = Box::new(unsafe { SliceString::new(data, start, end) });
 
         Self {
             ptr: NonNull::from(Box::leak(slice)).cast(),
+        }
+    }
+
+    /// Casts the string to an inner type.
+    ///
+    /// # Safety
+    /// The caller must ensure that the string is of the correct kind.
+    #[inline]
+    #[must_use]
+    pub(crate) unsafe fn as_inner<T>(&self) -> &T {
+        // SAFETY: The caller must ensure that the string is of the correct kind,
+        // allowing the `self.ptr` to be safely cast to `NonNull<T>` and then dereferenced.
+        unsafe { self.ptr.cast().as_ref() }
+    }
+
+    /// Get the depth of the rope (0 if not a rope).
+    #[inline]
+    #[must_use]
+    pub fn depth(&self) -> u8 {
+        if self.kind() == JsStringKind::Rope {
+            // SAFETY: `self.kind()` is checked to be `Rope`, so `self.as_inner::<RopeString>()` is safe.
+            unsafe { self.as_inner::<RopeString>().depth() }
+        } else {
+            0
         }
     }
 
@@ -595,7 +621,7 @@ impl JsString {
         if p1 >= p2 {
             StaticJsStrings::EMPTY_STRING
         } else {
-            // SAFETY: We just checked the conditions.
+            // SAFETY: The conditions `p1 <= p2` and `p2 <= self.len()` are ensured by the `if` blocks above.
             unsafe { Self::slice_unchecked(self, p1, p2) }
         }
     }
@@ -604,34 +630,151 @@ impl JsString {
     #[inline]
     #[must_use]
     pub(crate) fn kind(&self) -> JsStringKind {
-        self.vtable().kind
+        // SAFETY: The pointer `self.ptr` is always valid and points to a `RawJsString` header.
+        unsafe { self.ptr.as_ref().kind }
     }
 
-    /// Get the inner pointer as a reference of type T.
-    ///
-    /// # Safety
-    /// This should only be used when the inner type has been validated via `kind()`.
-    /// Using an unvalidated inner type is undefined behaviour.
+    /// Returns the string as a [`JsStr`].
     #[inline]
-    pub(crate) unsafe fn as_inner<T>(&self) -> &T {
-        // SAFETY: Caller must ensure the type matches.
-        unsafe { self.ptr.cast::<T>().as_ref() }
+    #[must_use]
+    pub fn as_str(&self) -> JsStr<'static> {
+        // SAFETY: The pointer `self.ptr` is always valid and points to a `RawJsString` header.
+        let header = unsafe { self.ptr.as_ref() };
+        // FAST PATH: Devirtualize common kinds.
+        match header.kind {
+            JsStringKind::Latin1Sequence => {
+                // SAFETY: `header.kind` is `Latin1Sequence`, so `self.ptr` can be safely cast to `SequenceString<Latin1>`.
+                let seq: &SequenceString<Latin1> = unsafe { self.ptr.cast().as_ref() };
+                // SAFETY: `seq.data()` returns a valid pointer to the Latin1 data, and `header.len` is the correct length.
+                unsafe { JsStr::latin1(std::slice::from_raw_parts(seq.data(), header.len)) }
+            }
+            JsStringKind::Utf16Sequence => {
+                // SAFETY: `header.kind` is `Utf16Sequence`, so `self.ptr` can be safely cast to `SequenceString<Utf16>`.
+                let seq: &SequenceString<Utf16> = unsafe { self.ptr.cast().as_ref() };
+                // SAFETY: `seq.data()` returns a valid pointer to the UTF-16 data, and `header.len` is the correct length.
+                unsafe { JsStr::utf16(std::slice::from_raw_parts(seq.data().cast(), header.len)) }
+            }
+            JsStringKind::Static => {
+                // SAFETY: `header.kind` is `Static`, so `self.ptr` can be safely cast to `StaticString`.
+                let s: &StaticString = unsafe { self.ptr.cast().as_ref() };
+                s.str
+            }
+            JsStringKind::Slice => {
+                // SAFETY: `header.kind` is `Slice`, so `self.ptr` can be safely cast to `SliceString`.
+                let s: &SliceString = unsafe { self.ptr.cast().as_ref() };
+                s.inner
+            }
+            JsStringKind::Rope => {
+                // SAFETY: The `vtable.as_str` function is guaranteed to be a valid function pointer
+                // for the specific string type, and `self.ptr` is a valid `NonNull<RawJsString>` pointer.
+                (header.vtable.as_str)(self.ptr)
+            }
+        }
+    }
+
+    /// Returns the code unit at `index`.
+    #[inline]
+    #[must_use]
+    pub fn code_unit_at(&self, index: usize) -> Option<u16> {
+        // SAFETY: The pointer `self.ptr` is always valid and points to a `RawJsString` header.
+        let header = unsafe { self.ptr.as_ref() };
+        if index >= header.len {
+            return None;
+        }
+        // FAST PATH: Devirtualize common kinds.
+        match header.kind {
+            JsStringKind::Latin1Sequence => {
+                // SAFETY: `header.kind` is `Latin1Sequence`, so `self.ptr` can be safely cast to `SequenceString<Latin1>`.
+                let seq: &SequenceString<Latin1> = unsafe { self.ptr.cast().as_ref() };
+                // SAFETY: `seq.data()` returns a valid pointer to the Latin1 data.
+                // `index` is checked to be within `header.len`, so `add(index)` is in bounds.
+                Some(u16::from(unsafe { *seq.data().add(index) }))
+            }
+            JsStringKind::Utf16Sequence => {
+                // SAFETY: `header.kind` is `Utf16Sequence`, so `self.ptr` can be safely cast to `SequenceString<Utf16>`.
+                let seq: &SequenceString<Utf16> = unsafe { self.ptr.cast().as_ref() };
+                // SAFETY: `seq.data()` returns a valid pointer to the UTF-16 data.
+                // `index` is checked to be within `header.len`, so `add(index)` is in bounds.
+                // The pointer is aligned because `RawJsString` has an alignment of 8 and a size that is a multiple of 2.
+                #[allow(clippy::cast_ptr_alignment)]
+                Some(unsafe { *seq.data().cast::<u16>().add(index) })
+            }
+            JsStringKind::Static | JsStringKind::Slice => {
+                // All these have a direct JsStr representation.
+                self.as_str().get(index)
+            }
+            JsStringKind::Rope => (header.vtable.code_unit_at)(self.ptr, index),
+        }
+    }
+
+    /// Returns a reference to the reference count cell, if it exists.
+    #[inline]
+    fn refcount_cell(&self) -> Option<&AtomicUsize> {
+        // SAFETY: The pointer is always valid.
+        let header = unsafe { self.ptr.as_ref() };
+        if header.kind == JsStringKind::Static {
+            None
+        } else {
+            // SAFETY: Alignment and size match, and we checked it's not static.
+            Some(unsafe { &*(&raw const header.refcount).cast::<AtomicUsize>() })
+        }
     }
 }
 
 impl JsString {
-    /// Obtains the underlying [`&[u16]`][slice] slice of a [`JsString`]
-    #[inline]
-    #[must_use]
-    pub fn as_str(&self) -> JsStr<'_> {
-        (self.vtable().as_str)(self.ptr)
-    }
-
     /// Creates a new [`JsString`] from the concatenation of `x` and `y`.
     #[inline]
     #[must_use]
-    pub fn concat(x: JsStr<'_>, y: JsStr<'_>) -> Self {
+    pub fn concat(x: &Self, y: &Self) -> Self {
+        Self::concat_array_strings(&[x.clone(), y.clone()])
+    }
+
+    /// Creates a new [`JsString`] from the concatenation of two slices `x` and `y`.
+    #[inline]
+    #[must_use]
+    pub fn concat_slices(x: JsStr<'_>, y: JsStr<'_>) -> Self {
         Self::concat_array(&[x, y])
+    }
+
+    /// Creates a new [`JsString`] from the concatenation of every element of
+    /// `strings`.
+    ///
+    /// This will use a [`RopeString`] if the concatenation is large enough to
+    /// warrant it.
+    #[inline]
+    #[must_use]
+    pub fn concat_array_strings(strings: &[Self]) -> Self {
+        if strings.is_empty() {
+            return StaticJsStrings::EMPTY_STRING;
+        }
+        if strings.len() == 1 {
+            return strings[0].clone();
+        }
+
+        let full_count: usize = strings.iter().map(Self::len).sum();
+
+        // Hybrid Strategy: Use ropes for large concatenations.
+        if full_count > 1024 {
+            return Self::concat_strings_balanced(strings);
+        }
+
+        let slices: Vec<_> = strings.iter().map(Self::as_str).collect();
+        Self::concat_array(&slices)
+    }
+
+    /// Internal helper to build a balanced rope tree from a slice of strings.
+    fn concat_strings_balanced(strings: &[Self]) -> Self {
+        match strings.len() {
+            0 => StaticJsStrings::EMPTY_STRING,
+            1 => strings[0].clone(),
+            2 => RopeString::create(strings[0].clone(), strings[1].clone()),
+            _ => {
+                let mid = strings.len() / 2;
+                let left = Self::concat_strings_balanced(&strings[..mid]);
+                let right = Self::concat_strings_balanced(&strings[mid..]);
+                RopeString::create(left, right)
+            }
+        }
     }
 
     /// Creates a new [`JsString`] from the concatenation of every element of
@@ -756,14 +899,17 @@ impl JsString {
     #[inline]
     #[must_use]
     pub fn refcount(&self) -> Option<usize> {
-        (self.vtable().refcount)(self.ptr)
+        self.refcount_cell().map(|rc| rc.load(Ordering::Relaxed))
     }
 }
 
 impl Clone for JsString {
     #[inline]
     fn clone(&self) -> Self {
-        (self.vtable().clone)(self.ptr)
+        if let Some(refcount) = self.refcount_cell() {
+            refcount.fetch_add(1, Ordering::Relaxed);
+        }
+        Self { ptr: self.ptr }
     }
 }
 
@@ -777,7 +923,16 @@ impl Default for JsString {
 impl Drop for JsString {
     #[inline]
     fn drop(&mut self) {
-        (self.vtable().drop)(self.ptr);
+        if let Some(refcount) = self.refcount_cell() {
+            let val = refcount.load(Ordering::Relaxed);
+            if val > 1 {
+                refcount.store(val - 1, Ordering::Relaxed);
+                return;
+            }
+        }
+        // SAFETY: The pointer is always valid and this is the last reference.
+        let vtable = unsafe { self.ptr.as_ref().vtable };
+        (vtable.dealloc)(self.ptr);
     }
 }
 
@@ -849,17 +1004,24 @@ impl From<JsStr<'_>> for JsString {
     }
 }
 
+impl From<&JsString> for JsString {
+    #[inline]
+    fn from(value: &JsString) -> Self {
+        value.clone()
+    }
+}
+
 impl From<&[JsString]> for JsString {
     #[inline]
     fn from(value: &[JsString]) -> Self {
-        Self::concat_array(&value.iter().map(Self::as_str).collect::<Vec<_>>()[..])
+        Self::concat_array_strings(value)
     }
 }
 
 impl<const N: usize> From<&[JsString; N]> for JsString {
     #[inline]
     fn from(value: &[JsString; N]) -> Self {
-        Self::concat_array(&value.iter().map(Self::as_str).collect::<Vec<_>>()[..])
+        Self::concat_array_strings(value)
     }
 }
 
@@ -890,7 +1052,22 @@ impl<const N: usize> From<&[u16; N]> for JsString {
 impl Hash for JsString {
     #[inline]
     fn hash<H: Hasher>(&self, state: &mut H) {
-        self.as_str().hash(state);
+        // SAFETY: The pointer is always valid.
+        let header = unsafe { self.ptr.as_ref() };
+        let hash_ptr = (&raw const header.hash).cast::<AtomicU64>();
+        // SAFETY: Alignment and size match. we only mutate if hash == 0.
+        let mut hash = unsafe { (*hash_ptr).load(Ordering::Relaxed) };
+        if hash == 0 {
+            hash = self.as_str().content_hash();
+            if hash == 0 {
+                hash = 1;
+            }
+            if header.kind != JsStringKind::Static {
+                // SAFETY: Not a static string.
+                unsafe { (*hash_ptr).store(hash, Ordering::Relaxed) };
+            }
+        }
+        state.write_u64(hash);
     }
 }
 
@@ -911,6 +1088,13 @@ impl Ord for JsString {
 impl PartialEq for JsString {
     #[inline]
     fn eq(&self, other: &Self) -> bool {
+        if self.ptr == other.ptr {
+            return true;
+        }
+        if self.len() != other.len() {
+            return false;
+        }
+
         self.as_str() == other.as_str()
     }
 }

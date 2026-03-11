@@ -104,6 +104,13 @@ impl ExactSizeIterator for Windows<'_> {
 enum CodePointsIterInner<'a> {
     Latin1(std::iter::Copied<std::slice::Iter<'a, u8>>),
     Utf16(std::char::DecodeUtf16<std::iter::Copied<std::slice::Iter<'a, u16>>>),
+    Rope(Box<RopeCodePointsIter<'a>>),
+}
+
+#[derive(Debug, Clone)]
+pub(crate) struct RopeCodePointsIter<'a> {
+    stack: Vec<crate::JsString>,
+    current: Option<(crate::JsString, CodePointsIter<'a>)>,
 }
 
 #[derive(Debug, Clone)]
@@ -122,6 +129,16 @@ impl<'a> CodePointsIter<'a> {
         };
         CodePointsIter { inner }
     }
+
+    #[inline]
+    pub(super) fn rope(s: crate::JsString) -> Self {
+        CodePointsIter {
+            inner: CodePointsIterInner::Rope(Box::new(RopeCodePointsIter {
+                stack: vec![s],
+                current: None,
+            })),
+        }
+    }
 }
 
 impl Iterator for CodePointsIter<'_> {
@@ -137,6 +154,37 @@ impl Iterator for CodePointsIter<'_> {
                 Ok(c) => CodePoint::Unicode(c),
                 Err(e) => CodePoint::UnpairedSurrogate(e.unpaired_surrogate()),
             }),
+            CodePointsIterInner::Rope(rope) => rope.next(),
+        }
+    }
+}
+
+impl<'a> Iterator for RopeCodePointsIter<'a> {
+    type Item = CodePoint;
+
+    fn next(&mut self) -> Option<Self::Item> {
+        loop {
+            if let Some((_, ref mut iter)) = self.current {
+                if let Some(cp) = iter.next() {
+                    return Some(cp);
+                }
+                self.current = None;
+            }
+
+            let s = self.stack.pop()?;
+            if s.kind() == crate::JsStringKind::Rope {
+                // SAFETY: We know it's a rope.
+                let r = unsafe { crate::vtable::RopeString::from_vtable(s.ptr) };
+                self.stack.push(r.right.clone());
+                self.stack.push(r.left.clone());
+            } else {
+                // SAFETY: We keep `s` alive in `self.current`, so its code points are valid
+                // for the duration of the iteration.
+                let iter = unsafe {
+                    std::mem::transmute::<CodePointsIter<'_>, CodePointsIter<'a>>(s.code_points())
+                };
+                self.current = Some((s, iter));
+            }
         }
     }
 }

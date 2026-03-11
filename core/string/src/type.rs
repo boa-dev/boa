@@ -18,6 +18,9 @@ pub(crate) trait InternalStringType: StringType {
     /// The kind of string produced by this string type.
     const KIND: JsStringKind;
 
+    /// The static vtable for this string type.
+    const VTABLE: &'static crate::vtable::JsStringVTable;
+
     /// Create the base layout for the sequence string header.
     fn base_layout() -> Layout;
 
@@ -46,6 +49,7 @@ impl StringType for Latin1 {
 impl InternalStringType for Latin1 {
     const DATA_OFFSET: usize = size_of::<SequenceString<Self>>();
     const KIND: JsStringKind = JsStringKind::Latin1Sequence;
+    const VTABLE: &'static crate::vtable::JsStringVTable = &crate::vtable::LATIN1_VTABLE;
 
     fn base_layout() -> Layout {
         Layout::new::<SequenceString<Self>>()
@@ -70,6 +74,7 @@ impl StringType for Utf16 {
 impl InternalStringType for Utf16 {
     const DATA_OFFSET: usize = size_of::<SequenceString<Self>>();
     const KIND: JsStringKind = JsStringKind::Utf16Sequence;
+    const VTABLE: &'static crate::vtable::JsStringVTable = &crate::vtable::UTF16_VTABLE;
 
     fn base_layout() -> Layout {
         Layout::new::<SequenceString<Self>>()
