@@ -69,6 +69,12 @@ impl JsHeaders {
     pub fn as_header_map(&self) -> Rc<RefCell<HttpHeaderMap>> {
         self.headers.clone()
     }
+
+    pub(crate) fn deep_clone(&self) -> Self {
+        Self {
+            headers: Rc::new(RefCell::new((*self.headers.borrow()).clone())),
+        }
+    }
 }
 
 #[boa_class(rename = "Headers")]
