@@ -29,6 +29,9 @@ futures-concurrency.workspace = true
 futures-lite.workspace = true
 async-channel = "2.5.0"
 
+[dev-dependencies]
+assert_cmd = "2.0.16"
+
 [features]
 default = [
     "boa_engine/annex-b",
