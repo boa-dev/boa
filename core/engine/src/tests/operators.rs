@@ -792,8 +792,8 @@ mod in_operator {
     }
 }
 
-/// NaN comparison, both via numeric literals (fast path) and
-/// via `Number` object properties (slow path through abstract_relation).
+/// `NaN` comparison, both via numeric literals (fast path) and
+/// via `Number` object properties (slow path through `abstract_relation`).
 ///
 #[test]
 fn nan_comparisons() {
