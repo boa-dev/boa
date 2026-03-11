@@ -499,6 +499,14 @@ impl JsObject {
         // 1. Assert: Type(O) is Object.
         // 2. Assert: level is either sealed or frozen.
 
+        if let Some(ta) = self.downcast_ref::<crate::builtins::typed_array::TypedArray>() {
+            if !ta.viewed_array_buffer().as_buffer().is_fixed_len() {
+                return Err(JsNativeError::typ()
+                    .with_message("Cannot freeze or seal a TypedArray backed by a resizable ArrayBuffer")
+                    .into());
+            }
+        }
+
         // 3. Let status be ? O.[[PreventExtensions]]().
         let status =
             self.__prevent_extensions__(&mut InternalMethodPropertyContext::new(context))?;
