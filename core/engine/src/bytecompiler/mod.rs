@@ -34,7 +34,7 @@ use crate::{
     vm::{
         CallFrame, CodeBlock, CodeBlockFlags, Constant, GeneratorResumeKind, GlobalFunctionBinding,
         Handler, InlineCache,
-        opcode::{Address, BindingOpcode, ByteCodeEmitter, RegisterOperand},
+        opcode::{Address, BindingOpcode, BytecodeEmitter, RegisterOperand},
         source_info::{SourceInfo, SourceMap, SourceMapBuilder, SourcePath},
     },
 };
@@ -499,7 +499,7 @@ pub struct ByteCompiler<'ctx> {
     pub(crate) parameter_scope: Scope,
 
     /// Bytecode
-    pub(crate) bytecode: ByteCodeEmitter,
+    pub(crate) bytecode: BytecodeEmitter,
 
     pub(crate) source_map_builder: SourceMapBuilder,
     pub(crate) source_path: SourcePath,
@@ -637,7 +637,7 @@ impl<'ctx> ByteCompiler<'ctx> {
         Self {
             function_name: name,
             length: 0,
-            bytecode: ByteCodeEmitter::new(),
+            bytecode: BytecodeEmitter::new(),
             source_map_builder: SourceMapBuilder::default(),
             constants: ThinVec::default(),
             bindings: Vec::default(),
@@ -1272,15 +1272,15 @@ impl<'ctx> ByteCompiler<'ctx> {
         binary: &Binary,
         hoisted: Option<&HoistedOperand>,
     ) -> Option<Label> {
-        use crate::vm::opcode::ByteCodeEmitter;
+        use crate::vm::opcode::BytecodeEmitter;
 
-        let emit_fn: fn(&mut ByteCodeEmitter, Address, RegisterOperand, RegisterOperand) = match op
+        let emit_fn: fn(&mut BytecodeEmitter, Address, RegisterOperand, RegisterOperand) = match op
         {
-            RelationalOp::LessThan => ByteCodeEmitter::emit_jump_if_not_less_than,
-            RelationalOp::LessThanOrEqual => ByteCodeEmitter::emit_jump_if_not_less_than_or_equal,
-            RelationalOp::GreaterThan => ByteCodeEmitter::emit_jump_if_not_greater_than,
+            RelationalOp::LessThan => BytecodeEmitter::emit_jump_if_not_less_than,
+            RelationalOp::LessThanOrEqual => BytecodeEmitter::emit_jump_if_not_less_than_or_equal,
+            RelationalOp::GreaterThan => BytecodeEmitter::emit_jump_if_not_greater_than,
             RelationalOp::GreaterThanOrEqual => {
-                ByteCodeEmitter::emit_jump_if_not_greater_than_or_equal
+                BytecodeEmitter::emit_jump_if_not_greater_than_or_equal
             }
             _ => return None,
         };

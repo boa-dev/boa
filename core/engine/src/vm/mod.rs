@@ -867,7 +867,7 @@ impl Context {
             .frame()
             .code_block
             .bytecode
-            .bytecode
+            .bytes
             .get(self.vm.frame().pc as usize)
         {
             let opcode = Opcode::decode(*byte);
@@ -905,7 +905,7 @@ impl Context {
             .frame()
             .code_block
             .bytecode
-            .bytecode
+            .bytes
             .get(self.vm.frame().pc as usize)
         {
             let opcode = Opcode::decode(*byte);
