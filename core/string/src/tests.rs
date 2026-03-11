@@ -127,15 +127,15 @@ fn concat() {
     let x = JsString::from("hello");
     let z = JsString::from("world");
 
-    let xy = JsString::concat(x.as_str(), JsString::from(Y).as_str());
+    let xy = JsString::concat(&x, &JsString::from(Y));
     assert_eq!(&xy, &ascii_to_utf16(b"hello, "));
     assert_eq!(xy.refcount(), Some(1));
 
-    let xyz = JsString::concat(xy.as_str(), z.as_str());
+    let xyz = JsString::concat(&xy, &z);
     assert_eq!(&xyz, &ascii_to_utf16(b"hello, world"));
     assert_eq!(xyz.refcount(), Some(1));
 
-    let xyzw = JsString::concat(xyz.as_str(), JsString::from(W).as_str());
+    let xyzw = JsString::concat(&xyz, &JsString::from(W));
     assert_eq!(&xyzw, &ascii_to_utf16(b"hello, world!"));
     assert_eq!(xyzw.refcount(), Some(1));
 }
@@ -552,4 +552,50 @@ fn trim() {
     // Very basic test for trimming. The extensive testing is done by `boa_engine`.
     let base_str = JsString::from(" \u{000B} Hello World \t ");
     assert_eq!(base_str.trim(), JsString::from("Hello World"));
+}
+#[test]
+fn rope_basic() {
+    let s_large = JsString::from("a".repeat(1025)); // 1025 chars
+    let s3 = JsString::from("!");
+    let rope = JsString::concat_array_strings(&[s_large.clone(), s3.clone()]);
+
+    assert_eq!(rope.kind(), JsStringKind::Rope);
+    assert_eq!(rope.len(), 1026);
+    assert_eq!(rope.code_unit_at(1025), Some(b'!' as u16));
+}
+
+#[test]
+fn rope_balanced_tree() {
+    let strings: Vec<JsString> = (0..8)
+        .map(|i| JsString::from("a".repeat(1025) + &format!("{i:03}")))
+        .collect();
+
+    let rope = JsString::concat_array_strings(&strings);
+    assert_eq!(rope.kind(), JsStringKind::Rope);
+    assert_eq!(rope.len(), 8 * 1028);
+
+    // With 8 strings, balanced tree should have depth 3.
+    assert_eq!(rope.depth(), 3);
+}
+
+#[test]
+fn rope_depth_limit() {
+    let mut s = JsString::from("a".repeat(1025));
+    for _ in 0..31 {
+        s = JsString::concat_array_strings(&[s, JsString::from("b")]);
+    }
+    // Initial s is depth 0.
+    // 1st concat: depth 1
+    // ...
+    // 31st concat: depth 31
+    assert_eq!(s.kind(), JsStringKind::Rope);
+    assert_eq!(s.depth(), 31);
+
+    // 32nd concat: depth 32
+    s = JsString::concat_array_strings(&[s, JsString::from("c")]);
+    assert_eq!(s.depth(), 32);
+
+    // 33rd concat: triggers flatten (depth 33 > 32)
+    let s_final = JsString::concat_array_strings(&[s, JsString::from("d")]);
+    assert_ne!(s_final.kind(), JsStringKind::Rope);
 }

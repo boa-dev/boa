@@ -1,14 +1,25 @@
-//! `VTable` implementations for [`SequenceString`].
-use crate::iter::CodePointsIter;
-use crate::r#type::InternalStringType;
-use crate::vtable::JsStringVTable;
-use crate::{JsStr, JsString, alloc_overflow};
 use std::alloc::{Layout, alloc, dealloc};
-use std::cell::Cell;
 use std::marker::PhantomData;
-use std::process::abort;
-use std::ptr;
-use std::ptr::NonNull;
+use std::ptr::{self, NonNull};
+
+use crate::iter::CodePointsIter;
+use crate::r#type::{InternalStringType, Latin1, Utf16};
+use crate::vtable::{JsStringVTable, RawJsString};
+use crate::{JsStr, alloc_overflow};
+pub(crate) static LATIN1_VTABLE: JsStringVTable = JsStringVTable {
+    as_str: seq_as_str::<Latin1>,
+    code_points: seq_code_points::<Latin1>,
+    code_unit_at: seq_code_unit_at::<Latin1>,
+    dealloc: seq_dealloc::<Latin1>,
+};
+
+/// Static vtable for UTF-16 sequence strings.
+pub(crate) static UTF16_VTABLE: JsStringVTable = JsStringVTable {
+    as_str: seq_as_str::<Utf16>,
+    code_points: seq_code_points::<Utf16>,
+    code_unit_at: seq_code_unit_at::<Utf16>,
+    dealloc: seq_dealloc::<Utf16>,
+};
 
 /// A sequential memory array of `T::Char` elements.
 ///
@@ -18,9 +29,8 @@ use std::ptr::NonNull;
 /// `Send`, although within Boa this does not make sense.
 #[repr(C)]
 pub(crate) struct SequenceString<T: InternalStringType> {
-    /// Embedded `VTable` - must be the first field for vtable dispatch.
-    vtable: JsStringVTable,
-    refcount: Cell<usize>,
+    /// Standardized header for all strings.
+    pub(crate) header: RawJsString,
     // Forces invariant contract.
     _marker: PhantomData<fn() -> T>,
     pub(crate) data: [u8; 0],
@@ -33,16 +43,13 @@ impl<T: InternalStringType> SequenceString<T> {
     #[must_use]
     pub(crate) fn new(len: usize) -> Self {
         SequenceString {
-            vtable: JsStringVTable {
-                clone: seq_clone::<T>,
-                drop: seq_drop::<T>,
-                as_str: seq_as_str::<T>,
-                code_points: seq_code_points::<T>,
-                refcount: seq_refcount::<T>,
+            header: RawJsString {
+                vtable: T::VTABLE,
                 len,
+                refcount: 1,
                 kind: T::KIND,
+                hash: 0,
             },
-            refcount: Cell::new(1),
             _marker: PhantomData,
             data: [0; 0],
         }
@@ -125,68 +132,48 @@ impl<T: InternalStringType> SequenceString<T> {
 }
 
 #[inline]
-fn seq_clone<T: InternalStringType>(vtable: NonNull<JsStringVTable>) -> JsString {
-    // SAFETY: This is part of the correct vtable which is validated on construction.
-    let this: &SequenceString<T> = unsafe { vtable.cast().as_ref() };
-    let Some(strong) = this.refcount.get().checked_add(1) else {
-        abort();
-    };
-    this.refcount.set(strong);
-    // SAFETY: validated the string outside this function.
-    unsafe { JsString::from_ptr(vtable) }
-}
-
-#[inline]
-fn seq_drop<T: InternalStringType>(vtable: NonNull<JsStringVTable>) {
-    // SAFETY: This is part of the correct vtable which is validated on construction.
-    let this: &SequenceString<T> = unsafe { vtable.cast().as_ref() };
-    let Some(new) = this.refcount.get().checked_sub(1) else {
-        abort();
-    };
-    this.refcount.set(new);
-    if new != 0 {
-        return;
-    }
-
-    // SAFETY: All the checks for the validity of the layout have already been made on allocation.
+fn seq_dealloc<T: InternalStringType>(ptr: NonNull<RawJsString>) {
+    // SAFETY: The vtable ensures that the pointer is valid and points to a
+    // SequenceString of the correct type.
+    let header = unsafe { ptr.as_ref() };
+    // SAFETY: Layout was validated on allocation. The `len` field is guaranteed
+    // to be valid for the string type `T`.
     let layout = unsafe {
-        Layout::for_value(this)
-            .extend(Layout::array::<T::Byte>(this.vtable.len).unwrap_unchecked())
+        T::base_layout()
+            .extend(Layout::array::<T::Byte>(header.len).unwrap_unchecked())
             .unwrap_unchecked()
             .0
             .pad_to_align()
     };
-
-    // SAFETY: If refcount is 0, this is the last reference, so deallocating is safe.
+    // SAFETY: The `ptr` is a valid `NonNull` pointer to the allocated memory.
+    // The `layout` correctly describes the allocation.
     unsafe {
-        dealloc(vtable.as_ptr().cast(), layout);
+        dealloc(ptr.as_ptr().cast(), layout);
     }
 }
 
 #[inline]
-fn seq_as_str<T: InternalStringType>(vtable: NonNull<JsStringVTable>) -> JsStr<'static> {
+fn seq_as_str<T: InternalStringType>(ptr: NonNull<RawJsString>) -> JsStr<'static> {
     // SAFETY: This is part of the correct vtable which is validated on construction.
-    let this: &SequenceString<T> = unsafe { vtable.cast().as_ref() };
-    let len = this.vtable.len;
+    // The `ptr` is guaranteed to be a valid `RawJsString` pointer for a `SequenceString<T>`.
+    let this: &SequenceString<T> = unsafe { ptr.cast().as_ref() };
+    let len = this.header.len;
     let data_ptr = (&raw const this.data).cast::<T::Byte>();
 
     // SAFETY: SequenceString data is always valid and properly aligned.
+    // `data_ptr` points to the start of the character data, and `len` is the
+    // number of characters, which is guaranteed to be within the allocated bounds.
+    // `T::str_ctor` correctly handles the conversion from `&[T::Byte]` to `JsStr`.
     let slice = unsafe { std::slice::from_raw_parts(data_ptr, len) };
     T::str_ctor(slice)
 }
 
 #[inline]
-fn seq_code_points<T: InternalStringType>(
-    vtable: NonNull<JsStringVTable>,
-) -> CodePointsIter<'static> {
-    CodePointsIter::new(seq_as_str::<T>(vtable))
+fn seq_code_points<T: InternalStringType>(ptr: NonNull<RawJsString>) -> CodePointsIter<'static> {
+    CodePointsIter::new(seq_as_str::<T>(ptr))
 }
 
-/// `VTable` function for refcount, need to return an `Option<usize>`.
 #[inline]
-#[allow(clippy::unnecessary_wraps)]
-fn seq_refcount<T: InternalStringType>(vtable: NonNull<JsStringVTable>) -> Option<usize> {
-    // SAFETY: This is part of the correct vtable which is validated on construction.
-    let this: &SequenceString<T> = unsafe { vtable.cast().as_ref() };
-    Some(this.refcount.get())
+fn seq_code_unit_at<T: InternalStringType>(ptr: NonNull<RawJsString>, index: usize) -> Option<u16> {
+    seq_as_str::<T>(ptr).get(index)
 }
