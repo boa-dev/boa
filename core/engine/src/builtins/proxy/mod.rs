@@ -619,7 +619,7 @@ pub(crate) fn proxy_exotic_define_own_property(
     if !trap
         .call(
             &handler.into(),
-            &[target.clone().into(), key.clone().into()],
+            &[target.clone().into(), key.clone().into(), desc_obj.into()],
             context,
         )?
         .to_boolean()
