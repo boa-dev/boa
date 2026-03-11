@@ -4,7 +4,7 @@
 #![allow(clippy::needless_pass_by_value)]
 
 use boa_engine::interop::JsClass;
-use boa_engine::object::builtins::{JsArray, TypedJsFunction};
+use boa_engine::object::builtins::TypedJsFunction;
 use boa_engine::value::{Convert, TryFromJs};
 use boa_engine::{
     Context, Finalize, JsData, JsObject, JsResult, JsString, JsValue, Trace, boa_class, js_error,
@@ -15,6 +15,9 @@ use std::cell::RefCell;
 use std::collections::BTreeMap;
 use std::rc::Rc;
 use std::str::FromStr;
+
+use super::headers_iterator::HeadersIterator;
+use boa_engine::property::PropertyNameKind;
 
 /// A callback function for the `forEach` method.
 pub type ForEachCallback = TypedJsFunction<(JsString, JsString, JsObject), ()>;
@@ -72,6 +75,11 @@ impl JsHeaders {
         Self {
             headers: Rc::new(RefCell::new(http)),
         }
+    }
+
+    /// Exposes the inner `Rc<RefCell<HttpHeaderMap>>` to the `HeadersIterator`.
+    pub(crate) fn headers_map(&self) -> http::header::HeaderMap {
+        self.headers.borrow().clone()
     }
 }
 
@@ -153,21 +161,13 @@ impl JsHeaders {
     }
 
     /// Returns an iterator allowing to go through all key/value pairs contained in this object.
-    // TODO: This should return a JsIterator, but not such thing exists yet.
-    pub fn entries(&self, context: &mut Context) -> JsValue {
-        JsArray::from_iter(
-            self.headers
-                .borrow()
-                .iter()
-                .map(|(k, v)| {
-                    let k: JsValue = JsString::from(k.as_str()).into();
-                    let v: JsValue = JsString::from(v.to_str().unwrap_or_default()).into();
-                    JsArray::from_iter([k, v], context).into()
-                })
-                .collect::<Vec<_>>(),
+    #[boa(method)]
+    pub fn entries(this: JsClass<Self>, context: &mut Context) -> JsValue {
+        HeadersIterator::create_headers_iterator(
+            this.inner().clone().upcast(),
+            PropertyNameKind::KeyAndValue,
             context,
         )
-        .into()
     }
 
     /// Executes a provided function once for each key/value pair in the Headers object.
@@ -175,7 +175,6 @@ impl JsHeaders {
     /// # Errors
     /// If the callback function returns an error, it is returned.
     #[allow(clippy::needless_pass_by_value)]
-    #[boa(method)]
     pub fn for_each(
         this: JsClass<Self>,
         callback: ForEachCallback,
@@ -243,13 +242,13 @@ impl JsHeaders {
 
     /// Returns an iterator allowing you to go through all keys of the key/value pairs
     /// contained in this object.
-    #[allow(clippy::unused_self)]
-    fn keys(&self) -> Vec<JsString> {
-        self.headers
-            .borrow()
-            .keys()
-            .map(|k| JsString::from(k.as_str()))
-            .collect()
+    #[boa(method)]
+    fn keys(this: JsClass<Self>, context: &mut Context) -> JsValue {
+        HeadersIterator::create_headers_iterator(
+            this.inner().clone().upcast(),
+            PropertyNameKind::Key,
+            context,
+        )
     }
 
     /// Sets a new value for an existing header inside a Headers object, or adds the
@@ -261,11 +260,22 @@ impl JsHeaders {
         Ok(())
     }
 
-    fn values(&self) -> Vec<JsString> {
-        self.headers
-            .borrow()
-            .values()
-            .map(|v| JsString::from(v.to_str().unwrap_or("")))
-            .collect()
+    #[boa(method)]
+    fn values(this: JsClass<Self>, context: &mut Context) -> JsValue {
+        HeadersIterator::create_headers_iterator(
+            this.inner().clone().upcast(),
+            PropertyNameKind::Value,
+            context,
+        )
+    }
+
+    /// [Symbol.iterator]() is an alias for entries()
+    #[boa(symbol = "iterator")]
+    fn symbol_iterator(this: JsClass<Self>, context: &mut Context) -> JsValue {
+        HeadersIterator::create_headers_iterator(
+            this.inner().clone().upcast(),
+            PropertyNameKind::KeyAndValue,
+            context,
+        )
     }
 }
