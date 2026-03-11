@@ -34,7 +34,7 @@ use crate::{
     vm::{
         CallFrame, CodeBlock, CodeBlockFlags, Constant, GeneratorResumeKind, GlobalFunctionBinding,
         Handler, InlineCache,
-        opcode::{Address, BindingOpcode, ByteCodeEmitter, RegisterOperand},
+        opcode::{Address, BindingOpcode, BytecodeEmitter, RegisterOperand},
         source_info::{SourceInfo, SourceMap, SourceMapBuilder, SourcePath},
     },
 };
@@ -379,6 +379,18 @@ pub(crate) struct Label {
     index: Address,
 }
 
+/// A loop-invariant operand that was hoisted out of a loop condition.
+///
+/// When a loop condition like `i < 10` has a literal operand, we can compile
+/// the constant (`10`) into a register once before the loop, rather than
+/// re-emitting a `PushInt8`/`PushInt32` on every iteration.
+pub(crate) struct HoistedOperand {
+    /// The register holding the pre-compiled constant value.
+    pub(crate) register: Register,
+    /// `true` if this operand is the RHS of the comparison (e.g. `10` in `i < 10`).
+    pub(crate) is_rhs: bool,
+}
+
 #[derive(Debug, Clone, Copy)]
 #[allow(variant_size_differences)]
 enum Access<'a> {
@@ -487,7 +499,7 @@ pub struct ByteCompiler<'ctx> {
     pub(crate) parameter_scope: Scope,
 
     /// Bytecode
-    pub(crate) bytecode: ByteCodeEmitter,
+    pub(crate) bytecode: BytecodeEmitter,
 
     pub(crate) source_map_builder: SourceMapBuilder,
     pub(crate) source_path: SourcePath,
@@ -625,7 +637,7 @@ impl<'ctx> ByteCompiler<'ctx> {
         Self {
             function_name: name,
             length: 0,
-            bytecode: ByteCodeEmitter::new(),
+            bytecode: BytecodeEmitter::new(),
             source_map_builder: SourceMapBuilder::default(),
             constants: ThinVec::default(),
             bindings: Vec::default(),
@@ -962,7 +974,7 @@ impl<'ctx> ByteCompiler<'ctx> {
                 | BindingAccessOpcode::SetNameByLocator => {
                     self.bytecode.emit_move((*index).into(), value.variable());
                 }
-                BindingAccessOpcode::DeleteName => self.bytecode.emit_push_false(value.variable()),
+                BindingAccessOpcode::DeleteName => self.bytecode.emit_store_false(value.variable()),
             },
         }
     }
@@ -1040,51 +1052,51 @@ impl<'ctx> ByteCompiler<'ctx> {
         self.bytecode.emit_throw_new_type_error(error_msg.into());
     }
 
-    fn emit_push_integer(&mut self, value: i32, dst: &Register) {
-        self.emit_push_integer_with_index(value, dst.variable());
+    fn emit_store_integer(&mut self, value: i32, dst: &Register) {
+        self.emit_store_integer_with_index(value, dst.variable());
     }
 
-    fn emit_push_integer_with_index(&mut self, value: i32, dst: RegisterOperand) {
+    fn emit_store_integer_with_index(&mut self, value: i32, dst: RegisterOperand) {
         match value {
-            0 => self.bytecode.emit_push_zero(dst),
-            1 => self.bytecode.emit_push_one(dst),
-            x if i32::from(x as i8) == x => self.bytecode.emit_push_int8(dst, x as i8),
+            0 => self.bytecode.emit_store_zero(dst),
+            1 => self.bytecode.emit_store_one(dst),
+            x if i32::from(x as i8) == x => self.bytecode.emit_store_int8(dst, x as i8),
             x if i32::from(x as i16) == x => {
-                self.bytecode.emit_push_int16(dst, x as i16);
+                self.bytecode.emit_store_int16(dst, x as i16);
             }
-            x => self.bytecode.emit_push_int32(dst, x),
+            x => self.bytecode.emit_store_int32(dst, x),
         }
     }
 
-    fn emit_push_literal(&mut self, literal: Literal, dst: &Register) {
+    fn emit_store_literal(&mut self, literal: Literal, dst: &Register) {
         let index = self.get_or_insert_literal(literal);
         self.bytecode
-            .emit_push_literal(dst.variable(), index.into());
+            .emit_store_literal(dst.variable(), index.into());
     }
 
-    fn emit_push_rational(&mut self, value: f64, dst: &Register) {
+    fn emit_store_rational(&mut self, value: f64, dst: &Register) {
         if value.is_nan() {
-            return self.bytecode.emit_push_nan(dst.variable());
+            return self.bytecode.emit_store_nan(dst.variable());
         }
 
         if value.is_infinite() {
             if value.is_sign_positive() {
-                return self.bytecode.emit_push_positive_infinity(dst.variable());
+                return self.bytecode.emit_store_positive_infinity(dst.variable());
             }
-            return self.bytecode.emit_push_negative_infinity(dst.variable());
+            return self.bytecode.emit_store_negative_infinity(dst.variable());
         }
 
         // Check if the f64 value can fit in an i32.
         if f64::from(value as i32).to_bits() == value.to_bits() {
-            self.emit_push_integer(value as i32, dst);
+            self.emit_store_integer(value as i32, dst);
         } else {
             let f32_value = value as f32;
 
             #[allow(clippy::float_cmp)]
             if f64::from(f32_value) == value {
-                self.bytecode.emit_push_float(dst.variable(), f32_value);
+                self.bytecode.emit_store_float(dst.variable(), f32_value);
             } else {
-                self.bytecode.emit_push_double(dst.variable(), value);
+                self.bytecode.emit_store_double(dst.variable(), value);
             }
         }
     }
@@ -1154,10 +1166,17 @@ impl<'ctx> ByteCompiler<'ctx> {
     /// When the condition is a relational comparison (`<`, `<=`, `>`, `>=`),
     /// emits a single fused comparison+branch opcode instead of separate
     /// `LessThan` + `JumpIfFalse` instructions.
-    pub(crate) fn compile_condition_and_branch(&mut self, condition: &Expression) -> Label {
+    ///
+    /// If `hoisted` is provided, the pre-compiled register is used for one
+    /// operand of the comparison, avoiding a constant reload on every iteration.
+    pub(crate) fn compile_condition_and_branch(
+        &mut self,
+        condition: &Expression,
+        hoisted: Option<&HoistedOperand>,
+    ) -> Label {
         if let Expression::Binary(binary) = condition
             && let BinaryOp::Relational(op) = binary.op()
-            && let Some(label) = self.try_fused_comparison_branch(op, binary)
+            && let Some(label) = self.try_fused_comparison_branch(op, binary, hoisted)
         {
             return label;
         }
@@ -1169,26 +1188,127 @@ impl<'ctx> ByteCompiler<'ctx> {
         label
     }
 
-    fn try_fused_comparison_branch(&mut self, op: RelationalOp, binary: &Binary) -> Option<Label> {
-        use crate::vm::opcode::ByteCodeEmitter;
+    /// Try to hoist a constant operand from a loop condition into a register
+    /// that is loaded once before the loop, rather than on every iteration.
+    ///
+    /// Returns `Some(HoistedOperand)` when one side of a relational comparison
+    /// is a literal value (e.g. `i < 10` hoists `10`).
+    pub(crate) fn try_hoist_loop_condition(
+        &mut self,
+        condition: Option<&Expression>,
+    ) -> Option<HoistedOperand> {
+        let condition = condition?;
+        let Expression::Binary(binary) = condition else {
+            return None;
+        };
+        let BinaryOp::Relational(op) = binary.op() else {
+            return None;
+        };
+        match op {
+            RelationalOp::LessThan
+            | RelationalOp::LessThanOrEqual
+            | RelationalOp::GreaterThan
+            | RelationalOp::GreaterThanOrEqual => {}
+            _ => return None,
+        }
+        // Prefer hoisting RHS (most common pattern: `i < 10`)
+        if self.is_loop_invariant(binary.rhs()) {
+            let reg = self.register_allocator.alloc();
+            self.compile_expr(binary.rhs(), &reg);
+            return Some(HoistedOperand {
+                register: reg,
+                is_rhs: true,
+            });
+        }
+        // Try LHS (less common: `0 < i`)
+        if self.is_loop_invariant(binary.lhs()) {
+            let reg = self.register_allocator.alloc();
+            self.compile_expr(binary.lhs(), &reg);
+            return Some(HoistedOperand {
+                register: reg,
+                is_rhs: false,
+            });
+        }
+        None
+    }
 
-        let emit_fn: fn(&mut ByteCodeEmitter, Address, RegisterOperand, RegisterOperand) = match op
+    /// Returns `true` if the expression is loop-invariant and would benefit
+    /// from being hoisted out of a loop (compiled once before the loop rather
+    /// than on every iteration).
+    ///
+    /// An expression qualifies if it is:
+    /// - A literal value (always immutable, always emits code)
+    /// - A `const` identifier that is NOT already optimized by
+    ///   [`compile_expr_operand`](Self::compile_expr_operand) (i.e., not local
+    ///   and not in `const_binding_cache`), since those are already handled
+    ///   with zero instructions inside the loop.
+    fn is_loop_invariant(&self, expr: &Expression) -> bool {
+        match expr {
+            Expression::Literal(_) => true,
+            Expression::Identifier(name) => {
+                let name = self.resolve_identifier_expect(*name);
+                let binding = self.lexical_scope.get_identifier_reference(name.clone());
+                // Local bindings already use persistent registers directly
+                // in compile_expr_operand — hoisting would add a redundant Move.
+                if binding.local() {
+                    return false;
+                }
+                // Cached const bindings are already handled by compile_expr_operand
+                // without emitting code — hoisting would add a redundant Move.
+                if !self.in_with && self.const_binding_cache.contains_key(&binding.locator()) {
+                    return false;
+                }
+                // Only hoist if the binding is immutable (const).
+                // Mutable bindings (let, var) can change between iterations.
+                matches!(self.lexical_scope.is_binding_mutable(&name), Some(false))
+            }
+            _ => false,
+        }
+    }
+
+    fn try_fused_comparison_branch(
+        &mut self,
+        op: RelationalOp,
+        binary: &Binary,
+        hoisted: Option<&HoistedOperand>,
+    ) -> Option<Label> {
+        use crate::vm::opcode::BytecodeEmitter;
+
+        let emit_fn: fn(&mut BytecodeEmitter, Address, RegisterOperand, RegisterOperand) = match op
         {
-            RelationalOp::LessThan => ByteCodeEmitter::emit_jump_if_not_less_than,
-            RelationalOp::LessThanOrEqual => ByteCodeEmitter::emit_jump_if_not_less_than_or_equal,
-            RelationalOp::GreaterThan => ByteCodeEmitter::emit_jump_if_not_greater_than,
+            RelationalOp::LessThan => BytecodeEmitter::emit_jump_if_not_less_than,
+            RelationalOp::LessThanOrEqual => BytecodeEmitter::emit_jump_if_not_less_than_or_equal,
+            RelationalOp::GreaterThan => BytecodeEmitter::emit_jump_if_not_greater_than,
             RelationalOp::GreaterThanOrEqual => {
-                ByteCodeEmitter::emit_jump_if_not_greater_than_or_equal
+                BytecodeEmitter::emit_jump_if_not_greater_than_or_equal
             }
             _ => return None,
         };
         let mut label_index = Address::new(0);
-        self.compile_expr_operand(binary.lhs(), |compiler, lhs| {
-            compiler.compile_expr_operand(binary.rhs(), |compiler, rhs| {
-                label_index = compiler.next_opcode_location();
-                emit_fn(&mut compiler.bytecode, Self::DUMMY_ADDRESS, lhs, rhs);
-            });
-        });
+        match hoisted {
+            Some(h) if h.is_rhs => {
+                let rhs = h.register.variable();
+                self.compile_expr_operand(binary.lhs(), |compiler, lhs| {
+                    label_index = compiler.next_opcode_location();
+                    emit_fn(&mut compiler.bytecode, Self::DUMMY_ADDRESS, lhs, rhs);
+                });
+            }
+            Some(h) => {
+                let lhs = h.register.variable();
+                self.compile_expr_operand(binary.rhs(), |compiler, rhs| {
+                    label_index = compiler.next_opcode_location();
+                    emit_fn(&mut compiler.bytecode, Self::DUMMY_ADDRESS, lhs, rhs);
+                });
+            }
+            None => {
+                self.compile_expr_operand(binary.lhs(), |compiler, lhs| {
+                    compiler.compile_expr_operand(binary.rhs(), |compiler, rhs| {
+                        label_index = compiler.next_opcode_location();
+                        emit_fn(&mut compiler.bytecode, Self::DUMMY_ADDRESS, lhs, rhs);
+                    });
+                });
+            }
+        }
         Some(Label { index: label_index })
     }
 
@@ -1228,7 +1348,7 @@ impl<'ctx> ByteCompiler<'ctx> {
     }
 
     fn emit_resume_kind(&mut self, resume_kind: GeneratorResumeKind, dst: &Register) {
-        self.emit_push_integer(resume_kind as i32, dst);
+        self.emit_store_integer(resume_kind as i32, dst);
     }
 
     fn jump_if_not_resume_kind(
@@ -1237,7 +1357,7 @@ impl<'ctx> ByteCompiler<'ctx> {
         value: &Register,
     ) -> Label {
         let r1 = self.register_allocator.alloc();
-        self.emit_push_integer((resume_kind as u8).into(), &r1);
+        self.emit_store_integer((resume_kind as u8).into(), &r1);
 
         let index = self.next_opcode_location();
         self.bytecode
@@ -1267,7 +1387,7 @@ impl<'ctx> ByteCompiler<'ctx> {
         self.bytecode.emit_get_home_object(super_.variable());
 
         let r1 = self.register_allocator.alloc();
-        self.bytecode.emit_push_null(r1.variable());
+        self.bytecode.emit_store_null(r1.variable());
         // jump to evaluation if `super` is already a valid home object.
         let skip_move = self.jump_if_neq(&r1, super_);
         self.bytecode.emit_move(r1.variable(), this.variable());
@@ -1532,7 +1652,7 @@ impl<'ctx> ByteCompiler<'ctx> {
                 let index = self.get_binding(&binding);
                 self.emit_binding_access(BindingAccessOpcode::DeleteName, &index, dst);
             }
-            Access::This => self.bytecode.emit_push_true(dst.variable()),
+            Access::This => self.bytecode.emit_store_true(dst.variable()),
         }
     }
 
@@ -1748,7 +1868,7 @@ impl<'ctx> ByteCompiler<'ctx> {
             }
             Expression::Optional(opt) => self.compile_optional_preserve_this(opt, this, value),
             expr => {
-                self.bytecode.emit_push_undefined(this.variable());
+                self.bytecode.emit_store_undefined(this.variable());
                 self.compile_expr(expr, value);
             }
         }
@@ -1774,7 +1894,7 @@ impl<'ctx> ByteCompiler<'ctx> {
 
         for label in jumps {
             self.patch_jump(label);
-            self.bytecode.emit_push_undefined(value.variable());
+            self.bytecode.emit_store_undefined(value.variable());
         }
 
         self.patch_jump(skip_undef);
@@ -1800,7 +1920,7 @@ impl<'ctx> ByteCompiler<'ctx> {
                 self.compile_optional_preserve_this(opt, &this, &value);
             }
             expr => {
-                self.bytecode.emit_push_undefined(this.variable());
+                self.bytecode.emit_store_undefined(this.variable());
                 self.compile_expr(expr, &value);
             }
         }
@@ -1841,7 +1961,7 @@ impl<'ctx> ByteCompiler<'ctx> {
         for label in jumps {
             self.patch_jump(label);
         }
-        self.bytecode.emit_push_true(dst.variable());
+        self.bytecode.emit_store_true(dst.variable());
 
         self.patch_jump(skip_true);
 
@@ -1883,7 +2003,7 @@ impl<'ctx> ByteCompiler<'ctx> {
             OptionalOperationKind::Call { .. } => {
                 // `delete obj?.method()` — evaluate the call, then return true.
                 self.compile_optional_item_kind(kind, this, value);
-                self.bytecode.emit_push_true(dst.variable());
+                self.bytecode.emit_store_true(dst.variable());
             }
         }
     }
@@ -1950,7 +2070,7 @@ impl<'ctx> ByteCompiler<'ctx> {
                     let array = self.register_allocator.alloc();
                     let value = self.register_allocator.alloc();
 
-                    self.bytecode.emit_push_new_array(array.variable());
+                    self.bytecode.emit_store_new_array(array.variable());
 
                     for arg in args {
                         self.compile_expr(arg, &value);
@@ -1977,7 +2097,7 @@ impl<'ctx> ByteCompiler<'ctx> {
                 }
 
                 self.pop_into_register(value);
-                self.bytecode.emit_push_undefined(this.variable());
+                self.bytecode.emit_store_undefined(this.variable());
             }
         }
     }
@@ -2011,7 +2131,7 @@ impl<'ctx> ByteCompiler<'ctx> {
                     if let Some(init) = variable.init() {
                         self.compile_expr(init, &value);
                     } else {
-                        self.bytecode.emit_push_undefined(value.variable());
+                        self.bytecode.emit_store_undefined(value.variable());
                     }
                     self.compile_declaration_pattern(pattern, BindingOpcode::InitVar, &value);
                     self.register_allocator.dealloc(value);
@@ -2037,7 +2157,7 @@ impl<'ctx> ByteCompiler<'ctx> {
                                 if let Some(init) = variable.init() {
                                     self.compile_expr(init, &reg);
                                 } else {
-                                    self.bytecode.emit_push_undefined(reg.variable());
+                                    self.bytecode.emit_store_undefined(reg.variable());
                                 }
                                 self.local_binding_registers.insert(binding, reg.index());
                             } else {
@@ -2045,7 +2165,7 @@ impl<'ctx> ByteCompiler<'ctx> {
                                 if let Some(init) = variable.init() {
                                     self.compile_expr(init, &value);
                                 } else {
-                                    self.bytecode.emit_push_undefined(value.variable());
+                                    self.bytecode.emit_store_undefined(value.variable());
                                 }
                                 let binding_kind = self.insert_binding(binding);
                                 self.emit_binding_access(
@@ -2061,7 +2181,7 @@ impl<'ctx> ByteCompiler<'ctx> {
                             if let Some(init) = variable.init() {
                                 self.compile_expr(init, &value);
                             } else {
-                                self.bytecode.emit_push_undefined(value.variable());
+                                self.bytecode.emit_store_undefined(value.variable());
                             }
                             self.compile_declaration_pattern(
                                 pattern,
@@ -2111,7 +2231,7 @@ impl<'ctx> ByteCompiler<'ctx> {
                             if let Some(init) = variable.init() {
                                 self.compile_expr(init, &value);
                             } else {
-                                self.bytecode.emit_push_undefined(value.variable());
+                                self.bytecode.emit_store_undefined(value.variable());
                             }
                             self.compile_declaration_pattern(
                                 pattern,
@@ -2435,7 +2555,7 @@ impl<'ctx> ByteCompiler<'ctx> {
             let array = compiler.register_allocator.alloc();
             let value = compiler.register_allocator.alloc();
 
-            compiler.bytecode.emit_push_new_array(array.variable());
+            compiler.bytecode.emit_store_new_array(array.variable());
 
             for arg in call.args() {
                 compiler.compile_expr(arg, &value);
@@ -2535,6 +2655,7 @@ impl<'ctx> ByteCompiler<'ctx> {
             global_lexs: self.global_lexs.into_boxed_slice(),
             global_fns: self.global_fns.into_boxed_slice(),
             global_vars: self.global_vars.into_boxed_slice(),
+            debug_id: CodeBlock::get_next_codeblock_id(),
         }
     }
 

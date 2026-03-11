@@ -1,4 +1,4 @@
-use super::{RegisterOperand, VaryingOperand};
+use super::{IndexOperand, RegisterOperand};
 use crate::{Context, JsResult, JsValue, vm::opcode::Operation};
 
 pub(crate) mod class;
@@ -16,7 +16,7 @@ pub(crate) struct DefVar;
 
 impl DefVar {
     #[inline(always)]
-    pub(super) fn operation(index: VaryingOperand, context: &mut Context) {
+    pub(super) fn operation(index: IndexOperand, context: &mut Context) {
         // TODO: spec specifies to return `empty` on empty vars, but we're trying to initialize.
         let binding_locator = context.vm.frame().code_block.bindings[usize::from(index)].clone();
 
@@ -49,7 +49,7 @@ pub(crate) struct DefInitVar;
 impl DefInitVar {
     #[inline(always)]
     pub(super) fn operation(
-        (value, index): (RegisterOperand, VaryingOperand),
+        (value, index): (RegisterOperand, IndexOperand),
         context: &mut Context,
     ) -> JsResult<()> {
         let value = context.vm.get_register(value.into()).clone();
@@ -79,7 +79,7 @@ pub(crate) struct PutLexicalValue;
 impl PutLexicalValue {
     #[inline(always)]
     pub(super) fn operation(
-        (value, index): (RegisterOperand, VaryingOperand),
+        (value, index): (RegisterOperand, IndexOperand),
         context: &mut Context,
     ) {
         let value = context.vm.get_register(value.into()).clone();

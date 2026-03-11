@@ -9,7 +9,7 @@ use std::unreachable;
 /// `NewTarget` implements the Opcode Operation for `Opcode::NewTarget`
 ///
 /// Operation:
-///  - Push the current new target to the stack.
+///  - Store the current new target in dst.
 #[derive(Debug, Clone, Copy)]
 pub(crate) struct NewTarget;
 
@@ -41,7 +41,7 @@ impl Operation for NewTarget {
 /// `ImportMeta` implements the Opcode Operation for `Opcode::ImportMeta`
 ///
 /// Operation:
-///  - Push the current `import.meta` to the stack
+///  - Store the current `import.meta` in dst.
 #[derive(Debug, Clone, Copy)]
 pub(crate) struct ImportMeta;
 
