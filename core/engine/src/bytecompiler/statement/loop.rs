@@ -50,7 +50,7 @@ impl ByteCompiler<'_> {
                     let names = bound_names(decl.declaration());
                     if decl.declaration().is_const() {
                     } else {
-                        let mut indices = Vec::new();
+                        let mut indices = Vec::with_capacity(names.len());
                         for name in &names {
                             let name = name.to_js_string(self.interner());
                             let binding = decl
