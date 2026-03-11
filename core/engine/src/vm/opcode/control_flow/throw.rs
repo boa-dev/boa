@@ -79,7 +79,7 @@ impl Operation for ReThrow {
 /// `Exception` implements the Opcode Operation for `Opcode::Exception`
 ///
 /// Operation:
-///  - Get the thrown exception and push it on the stack.
+///  - Get the thrown exception and store it in dst.
 #[derive(Debug, Clone, Copy)]
 pub(crate) struct Exception;
 
