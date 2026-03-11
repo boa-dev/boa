@@ -921,14 +921,66 @@ fn f64_to_exponential(n: f64) -> JsString {
 }
 
 /// Helper function that formats a float as a ES6-style exponential number string with a given precision.
-// We can't use the same approach as in `f64_to_exponential`
-// because in cases like (0.999).toExponential(0) the result will be 1e0.
-// Instead we get the index of 'e', and if the next character is not '-' we insert the plus sign
+///
+/// Uses round-half-away-from-zero to match ECMAScript semantics, instead of Rust's
+/// default banker's rounding (round-half-to-even).
 fn f64_to_exponential_with_precision(n: f64, prec: usize) -> JsString {
-    let mut res = format!("{n:.prec$e}");
-    let idx = res.find('e').expect("'e' not found in exponential string");
-    if res.as_bytes()[idx + 1] != b'-' {
-        res.insert(idx + 1, '+');
+    let negative = n.is_sign_negative();
+    let abs_n = n.abs();
+
+    // Get full-precision digits in scientific notation.
+    let full = format!("{abs_n:.100e}");
+    let e_pos = full.find('e').expect("'e' not found in exponential string");
+    let mut exp: i32 = full[e_pos + 1..].parse().expect("invalid exponent");
+
+    // Collect digit bytes (skip the decimal point).
+    let mut digits: Vec<u8> = full[..e_pos].bytes().filter(|&b| b != b'.').collect();
+
+    // Round to (prec + 1) significant digits using round-half-away-from-zero.
+    let sig = prec + 1;
+    if digits.len() > sig {
+        let round_up = digits[sig] >= b'5';
+        digits.truncate(sig);
+
+        if round_up {
+            let mut i = sig;
+            loop {
+                if i == 0 {
+                    // Carry overflowed all digits (e.g. 9.95 → 10.0).
+                    digits[0] = b'1';
+                    for d in &mut digits[1..] {
+                        *d = b'0';
+                    }
+                    exp += 1;
+                    break;
+                }
+                i -= 1;
+                if digits[i] < b'9' {
+                    digits[i] += 1;
+                    break;
+                }
+                digits[i] = b'0';
+            }
+        }
+    } else {
+        digits.resize(sig, b'0');
     }
+
+    // Build the result string.
+    let mut res = String::with_capacity(prec + 10);
+    if negative {
+        res.push('-');
+    }
+    res.push(digits[0] as char);
+    if prec > 0 {
+        res.push('.');
+        // SAFETY: `digits` only contains ASCII digit bytes.
+        res.push_str(std::str::from_utf8(&digits[1..=prec]).expect("digits are valid ASCII"));
+    }
+    res.push('e');
+    if exp >= 0 {
+        res.push('+');
+    }
+    res.push_str(&exp.to_string());
     js_string!(res)
 }
