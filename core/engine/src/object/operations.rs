@@ -502,7 +502,9 @@ impl JsObject {
         if let Some(ta) = self.downcast_ref::<crate::builtins::typed_array::TypedArray>() {
             if !ta.viewed_array_buffer().as_buffer().is_fixed_len() {
                 return Err(JsNativeError::typ()
-                    .with_message("Cannot freeze or seal a TypedArray backed by a resizable ArrayBuffer")
+                    .with_message(
+                        "Cannot freeze or seal a TypedArray backed by a resizable ArrayBuffer",
+                    )
                     .into());
             }
         }
