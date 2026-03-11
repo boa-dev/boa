@@ -401,7 +401,6 @@ dependencies = [
  "colored",
  "cow-utils",
  "dhat",
- "event-listener 5.4.1",
  "futures-concurrency",
  "jemallocator",
  "mimalloc-safe",
@@ -410,6 +409,7 @@ dependencies = [
  "rustyline",
  "serde_json",
  "smol",
+ "unsend",
 ]
 
 [[package]]
@@ -4889,6 +4889,15 @@ name = "unsafe-libyaml"
 version = "0.2.11"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "673aac59facbab8a9007c7f6108d11f63b603f7cabff99fabf650fea5c32b861"
+
+[[package]]
+name = "unsend"
+version = "0.2.1"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "a53ed0f41cab22aa8d4aee9d2357a1b21cb365537d7349066c76fcd67bc3121d"
+dependencies = [
+ "pin-project-lite",
+]
 
 [[package]]
 name = "untrusted"

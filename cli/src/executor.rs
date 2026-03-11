@@ -3,6 +3,7 @@ use std::{
     collections::VecDeque,
     mem,
     ops::ControlFlow,
+    pin::{Pin, pin},
     rc::Rc,
 };
 
@@ -10,9 +11,9 @@ use boa_engine::{
     Context, JsResult,
     job::{GenericJob, Job, JobExecutor, NativeAsyncJob, PromiseJob},
 };
-use event_listener::{Event, IntoNotification};
 use futures_concurrency::future::FutureGroup;
 use smol::{future::FutureExt, stream::StreamExt};
+use unsend::{Event, EventListener, IntoNotification};
 
 use crate::{logger::SharedExternalPrinterLogger, uncaught_job_error};
 
@@ -20,7 +21,7 @@ pub(crate) struct Executor {
     promise_jobs: RefCell<VecDeque<PromiseJob>>,
     async_jobs: RefCell<VecDeque<NativeAsyncJob>>,
     generic_jobs: RefCell<VecDeque<GenericJob>>,
-    new_event: Event<ControlFlow<()>>,
+    event: Event<ControlFlow<()>>,
     idle_tasks_counter: Cell<u8>,
 
     printer: SharedExternalPrinterLogger,
@@ -32,7 +33,7 @@ impl Executor {
             promise_jobs: RefCell::default(),
             async_jobs: RefCell::default(),
             generic_jobs: RefCell::default(),
-            new_event: Event::with_tag(),
+            event: Event::new(),
             idle_tasks_counter: Cell::new(0),
             printer,
         }
@@ -42,21 +43,23 @@ impl Executor {
         self.promise_jobs.borrow_mut().clear();
         self.async_jobs.borrow_mut().clear();
         self.generic_jobs.borrow_mut().clear();
-        self.new_event.notify(
-            self.idle_tasks_counter
-                .get()
-                .additional()
-                .relaxed()
-                .tag_with(|| ControlFlow::Break(())),
-        );
+        self.event
+            .notify(u8::MAX.tag_with(|| ControlFlow::Break(())));
     }
 
     /// Continually run all pending promise jobs, yielding to the async
     /// executor after every successful run.
     async fn run_promise_jobs(&self, context: &RefCell<&mut Context>) {
+        let mut listener = EventListener::new(&self.event);
         loop {
-            if self.promise_jobs.borrow().is_empty() && self.wait_for_events().await.is_break() {
-                return;
+            if self.promise_jobs.borrow().is_empty() {
+                if self.wait_for_events(pin!(listener)).await.is_break() {
+                    return;
+                }
+
+                // Restore the listener since it should have been consumed by
+                // `wait_for_events`.
+                listener = EventListener::new(&self.event);
             }
 
             let jobs = mem::take(&mut *self.promise_jobs.borrow_mut());
@@ -76,9 +79,16 @@ impl Executor {
     /// Continually run a single pending generic job, yielding to the async
     /// executor after every successful run.
     async fn run_generic_jobs(&self, context: &RefCell<&mut Context>) {
+        let mut listener = EventListener::new(&self.event);
         loop {
-            if self.generic_jobs.borrow().is_empty() && self.wait_for_events().await.is_break() {
-                return;
+            if self.generic_jobs.borrow().is_empty() {
+                if self.wait_for_events(pin!(listener)).await.is_break() {
+                    return;
+                }
+
+                // Restore the listener since it should have been consumed by
+                // `wait_for_events`.
+                listener = EventListener::new(&self.event);
             }
 
             let job = self.generic_jobs.borrow_mut().pop_front();
@@ -99,17 +109,30 @@ impl Executor {
     /// it assumes that every async job will not block the execution thread.
     async fn run_async_tasks(&self, context: &RefCell<&mut Context>) {
         let mut group = FutureGroup::new();
+        let mut listener = self.event.listen();
         loop {
-            if self.async_jobs.borrow().is_empty()
-                && group.is_empty()
-                && self.wait_for_events().await.is_break()
-            {
-                return;
+            if self.async_jobs.borrow().is_empty() && group.is_empty() {
+                if self.wait_for_events(listener.as_mut()).await.is_break() {
+                    return;
+                }
+
+                // Restore the listener since it should have been consumed by
+                // `wait_for_events`.
+                listener = self.event.listen();
             }
 
             for job in mem::take(&mut *self.async_jobs.borrow_mut()) {
                 group.insert(job.call(context));
             }
+
+            let event_listener = async {
+                let result = (&mut listener).await;
+
+                // Restore the listener since it should have been consumed by
+                // the await.
+                listener = self.event.listen();
+                result
+            };
 
             let next_job = async {
                 if let Some(Err(err)) = group.next().await {
@@ -120,7 +143,7 @@ impl Executor {
 
             // This can only exit if the main program is exiting, so
             // it doesn't matter if we drop all pending futures.
-            if next_job.or(self.new_event.listen()).await.is_break() {
+            if event_listener.or(next_job).await.is_break() {
                 return;
             }
 
@@ -133,24 +156,26 @@ impl Executor {
     /// Returns `ControlFlow::Break` if all tasks are paused for lack
     /// of new jobs, or if the event loop was manually stopped using the
     /// `Executor::stop()` method.
-    async fn wait_for_events(&self) -> ControlFlow<()> {
+    async fn wait_for_events<'a>(
+        &'a self,
+        listener: Pin<&mut EventListener<'a, ControlFlow<()>>>,
+    ) -> ControlFlow<()> {
         let idle_tasks = self.idle_tasks_counter.get();
 
-        // we need to have all 3 tasks idle (counting the task executing
+        // We need to have all 3 tasks idle (counting the task executing
         // this check) to exit from the event loop.
         if idle_tasks >= 2 {
-            self.new_event.notify(
-                idle_tasks
-                    .additional()
-                    .relaxed()
-                    .tag_with(|| ControlFlow::Break(())),
-            );
+            self.event
+                .notify(u8::MAX.tag_with(|| ControlFlow::Break(())));
             return ControlFlow::Break(());
         }
+
         self.idle_tasks_counter.set(idle_tasks + 1);
-        let result = self.new_event.listen().await;
-        self.idle_tasks_counter
-            .set(self.idle_tasks_counter.get() - 1);
+        let result = listener.await;
+
+        // Cannot reuse `idle_tasks` since the counter could have updated.
+        self.idle_tasks_counter.update(|n| n - 1);
+
         result
     }
 }
@@ -171,13 +196,8 @@ impl JobExecutor for Executor {
             Job::GenericJob(job) => self.generic_jobs.borrow_mut().push_back(job),
             job => self.printer.print(format!("unsupported job type {job:?}")),
         }
-        self.new_event.notify(
-            self.idle_tasks_counter
-                .get()
-                .additional()
-                .relaxed()
-                .tag_with(|| ControlFlow::Continue(())),
-        );
+        self.event
+            .notify(u8::MAX.tag_with(|| ControlFlow::Continue(())));
     }
 
     fn run_jobs(self: Rc<Self>, context: &mut Context) -> JsResult<()> {

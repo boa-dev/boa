@@ -28,7 +28,7 @@ cow-utils.workspace = true
 futures-concurrency.workspace = true
 async-channel = "2.5.0"
 smol.workspace = true
-event-listener.workspace = true
+unsend = { workspace = true, features = ["alloc"] }
 
 [features]
 default = [
