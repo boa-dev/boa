@@ -30,6 +30,9 @@ futures-lite.workspace = true
 async-channel.workspace = true
 rustls.workspace = true
 
+[dev-dependencies]
+assert_cmd = "2.0.16"
+
 [features]
 default = [
     "boa_engine/annex-b",
