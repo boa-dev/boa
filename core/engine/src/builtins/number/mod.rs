@@ -921,14 +921,98 @@ fn f64_to_exponential(n: f64) -> JsString {
 }
 
 /// Helper function that formats a float as a ES6-style exponential number string with a given precision.
-// We can't use the same approach as in `f64_to_exponential`
-// because in cases like (0.999).toExponential(0) the result will be 1e0.
-// Instead we get the index of 'e', and if the next character is not '-' we insert the plus sign
+///
+/// Uses `ryu_js::Buffer::format_to_fixed` for correct ECMAScript rounding, applied to the
+/// **original number** to avoid floating-point scaling errors in trailing digits.
 fn f64_to_exponential_with_precision(n: f64, prec: usize) -> JsString {
-    let mut res = format!("{n:.prec$e}");
-    let idx = res.find('e').expect("'e' not found in exponential string");
-    if res.as_bytes()[idx + 1] != b'-' {
-        res.insert(idx + 1, '+');
+    // Handle zero specially
+    if n == 0.0 {
+        if prec == 0 {
+            return js_string!("0e+0");
+        }
+        let mut res = String::from("0.");
+        res.push_str(&"0".repeat(prec));
+        res.push_str("e+0");
+        return js_string!(res);
     }
+
+    let sign = n.is_sign_negative();
+    let abs_n = n.abs();
+    let mut buffer = ryu_js::Buffer::new();
+
+    // Compute approximate base-10 exponent
+    let mut exp = abs_n.log10().floor() as i32;
+
+    // To get prec+1 significant digits with correct rounding, we need
+    // `dp = prec - exp` decimal places from format_to_fixed.
+    let dp = prec as i32 - exp;
+
+    // Get the correctly-rounded fixed-point string
+    let fixed_str = if (0..=100).contains(&dp) {
+        // Primary path: call format_to_fixed on the ORIGINAL number.
+        // This avoids floating-point scaling errors in trailing digits.
+        buffer.format_to_fixed(abs_n, dp as u8).to_string()
+    } else if dp < 0 {
+        // prec < exp: need to round left of the decimal point.
+        // Divide by 10^(exp - prec) to shift, then round to integer.
+        let divisor = 10f64.powi(exp - prec as i32);
+        let scaled = abs_n / divisor;
+        buffer.format_to_fixed(scaled, 0).to_string()
+    } else {
+        // dp > 100: very small number, scale up (fallback)
+        let scale = 10f64.powi(-exp);
+        let scaled = abs_n * scale;
+        buffer.format_to_fixed(scaled, prec as u8).to_string()
+    };
+
+    // Parse the fixed-point string to extract significant digits
+    let dot_pos = fixed_str.find('.');
+    let int_part = dot_pos.map_or(fixed_str.as_str(), |p| &fixed_str[..p]);
+    let frac_part = dot_pos.map_or("", |p| &fixed_str[p + 1..]);
+
+    // Combine all digit characters (removing the decimal point)
+    let mut all_digits = String::with_capacity(int_part.len() + frac_part.len());
+    all_digits.push_str(int_part);
+    all_digits.push_str(frac_part);
+
+    // Find the first significant (non-zero) digit
+    let first_sig = all_digits.find(|c: char| c != '0').unwrap_or(0);
+
+    // Recalculate exponent from the string for the non-scaling paths
+    if dp >= 0 {
+        // The decimal point was at position int_part.len() in all_digits.
+        // The first significant digit at position first_sig gives us:
+        exp = int_part.len() as i32 - 1 - first_sig as i32;
+    } else {
+        // For the scaled-down path, check for rounding carry
+        // (e.g., 9995 / 10 = 999.5 → rounds to 1000 → 4 digits instead of 3)
+        let expected_len = prec + 1;
+        if fixed_str.len() > expected_len {
+            exp += (fixed_str.len() - expected_len) as i32;
+        }
+    }
+
+    // Extract exactly prec+1 significant digits
+    let mut sig_digits: String = all_digits[first_sig..].chars().take(prec + 1).collect();
+    // Pad with zeros if we don't have enough
+    while sig_digits.len() < prec + 1 {
+        sig_digits.push('0');
+    }
+
+    // Build the result string
+    let mut res = String::new();
+    if sign {
+        res.push('-');
+    }
+    res.push(sig_digits.as_bytes()[0] as char);
+    if prec > 0 {
+        res.push('.');
+        res.push_str(&sig_digits[1..]);
+    }
+    res.push('e');
+    if exp >= 0 {
+        res.push('+');
+    }
+    res.push_str(&exp.to_string());
     js_string!(res)
 }

@@ -1537,9 +1537,14 @@ impl Date {
         }
 
         // 5. If tv corresponds with a year that cannot be represented in the Date Time String Format, throw a RangeError exception.
+        let year = year_from_time(tv);
+        if !(-999_999..=999_999).contains(&year) {
+            return Err(JsNativeError::range()
+                .with_message("toISOString: year outside valid range for Date Time String Format")
+                .into());
+        }
         // 6. Return a String representation of tv in the Date Time String Format on the UTC time scale,
         //    including all format elements and the UTC offset representation "Z".
-        let year = year_from_time(tv);
         let year = if year >= 10000 {
             js_string!(js_str!("+"), pad_six(year.unsigned_abs(), &mut [0; 6]))
         } else if year >= 0 {

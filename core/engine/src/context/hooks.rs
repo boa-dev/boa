@@ -202,6 +202,7 @@ pub trait HostHooks {
         OffsetDateTime::from_unix_timestamp(unix_time_seconds)
             .ok()
             .and_then(|t| UtcOffset::local_offset_at(t).ok())
+            .or_else(|| UtcOffset::current_local_offset().ok())
             .map_or(0, UtcOffset::whole_seconds)
     }
 
