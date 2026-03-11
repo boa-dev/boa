@@ -8,12 +8,12 @@ use std::{
 };
 
 use boa_engine::{
-    Context, JsResult,
+    Context, JsResult, JsValue,
     job::{GenericJob, Job, JobExecutor, NativeAsyncJob, PromiseJob},
 };
 use futures_concurrency::future::FutureGroup;
 use smol::{future::FutureExt, stream::StreamExt};
-use unsend::{Event, EventListener, IntoNotification};
+use unsend::{Event, EventListener, EventListenerRc, IntoNotification};
 
 use crate::{logger::SharedExternalPrinterLogger, uncaught_job_error};
 
@@ -186,11 +186,27 @@ impl JobExecutor for Executor {
             Job::PromiseJob(job) => self.promise_jobs.borrow_mut().push_back(job),
             Job::AsyncJob(job) => self.async_jobs.borrow_mut().push_back(job),
             Job::TimeoutJob(job) => {
+                let event = Rc::new(Event::new());
+                let listener = EventListenerRc::new(Rc::clone(&event));
+                job.set_cancellation_callback(move || {
+                    event.notify(u8::MAX);
+                });
                 self.async_jobs
                     .borrow_mut()
                     .push_back(NativeAsyncJob::new(async move |context| {
-                        smol::Timer::after(job.timeout().into()).await;
-                        job.call(&mut context.borrow_mut())
+                        let timer_job = async {
+                            smol::Timer::after(job.timeout().into());
+                            false
+                        };
+                        let cancel_job = async {
+                            pin!(listener).await;
+                            true
+                        };
+                        if timer_job.or(cancel_job).await {
+                            Ok(JsValue::undefined())
+                        } else {
+                            job.call(&mut context.borrow_mut())
+                        }
                     }));
             }
             Job::GenericJob(job) => self.generic_jobs.borrow_mut().push_back(job),

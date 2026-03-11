@@ -127,24 +127,47 @@ impl NativeJob {
     }
 }
 
+type Callback = Box<dyn FnOnce()>;
+
 /// Flag that can only be set once.
-#[derive(Debug, Clone)]
-pub(crate) struct OnceFlag(Rc<Cell<bool>>);
+#[derive(Clone)]
+pub(crate) struct OnceFlag(Rc<Cell<Option<Callback>>>);
+
+impl Debug for OnceFlag {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        let flag = self.0.take();
+        let is_set = flag.is_none();
+        self.0.set(flag);
+        f.debug_struct("OnceFlag")
+            .field("is_set", &is_set)
+            .finish_non_exhaustive()
+    }
+}
 
 impl OnceFlag {
     /// Creates a new `OnceFlag`.
     pub(crate) fn new() -> Self {
-        Self(Rc::new(Cell::new(false)))
+        Self(Rc::new(Cell::new(Some(Box::new(|| {})))))
+    }
+
+    /// Sets a callback to run when the flag is set
+    pub(crate) fn set_callback(&self, f: impl FnOnce() + 'static) {
+        self.0.set(Some(Box::new(f)));
     }
 
     /// Sets this `OnceFlag` to `true`.
     pub(crate) fn set(&self) {
-        self.0.set(true);
+        if let Some(fun) = self.0.take() {
+            fun();
+        }
     }
 
     /// Returns `true` if this `OnceFlag` has been set, or `false` otherwise.
     pub(crate) fn is_set(&self) -> bool {
-        self.0.get()
+        let flag = self.0.take();
+        let is_set = flag.is_none();
+        self.0.set(flag);
+        is_set
     }
 }
 
@@ -231,6 +254,14 @@ impl TimeoutJob {
     #[must_use]
     pub fn is_cancelled(&self) -> bool {
         self.cancelled.is_set()
+    }
+
+    /// Sets a cancellation callback for the timeout job.
+    ///
+    /// This callback will get called if the timeout job gets cancelled.
+    #[inline]
+    pub fn set_cancellation_callback(&self, f: impl FnOnce() + 'static) {
+        self.cancelled.set_callback(f);
     }
 
     /// Returns the `OnceFlag` to cancel this timeout job.
