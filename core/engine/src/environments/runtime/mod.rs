@@ -37,8 +37,8 @@ pub(crate) struct EnvironmentNode {
 /// just a reference-count bump on the tip pointer plus small scalar copies.
 ///
 /// The global declarative environment is NOT stored here — it lives in the
-/// [`Realm`] and is accessed via `frame.realm.environment()`. This avoids
-/// a `Gc` clone on every function call.
+/// [`crate::realm::Realm`] and is accessed via `frame.realm.environment()`.
+/// This avoids a `Gc` clone on every function call.
 #[derive(Clone, Debug, Trace, Finalize)]
 pub(crate) struct EnvironmentStack {
     /// The tip (most recently pushed) environment in the chain.
