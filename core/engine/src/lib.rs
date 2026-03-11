@@ -94,6 +94,7 @@ pub mod job;
 pub mod module;
 pub mod native_function;
 pub mod object;
+/// ECMAScript Abstract Syntax Tree (AST) optimizer.
 pub mod optimizer;
 pub mod property;
 pub mod realm;
