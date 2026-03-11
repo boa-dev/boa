@@ -400,7 +400,7 @@ impl Operation for IteratorToArray {
 /// `IteratorStackEmpty` implements the Opcode Operation for `Opcode::IteratorStackEmpty`
 ///
 /// Operation:
-/// - Pushes `true` to the stack if the iterator stack is empty.
+/// - Store `true` in dst if the iterator stack is empty.
 #[derive(Debug, Clone, Copy)]
 pub(crate) struct IteratorStackEmpty;
 
