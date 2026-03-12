@@ -194,19 +194,15 @@ impl JobExecutor for Executor {
                 self.async_jobs
                     .borrow_mut()
                     .push_back(NativeAsyncJob::new(async move |context| {
-                        let timer_job = async {
-                            smol::Timer::after(job.timeout().into());
-                            false
-                        };
-                        let cancel_job = async {
-                            pin!(listener).await;
-                            true
-                        };
-                        if timer_job.or(cancel_job).await {
-                            Ok(JsValue::undefined())
-                        } else {
+                        let timer = async {
+                            smol::Timer::after(job.timeout().into()).await;
                             job.call(&mut context.borrow_mut())
-                        }
+                        };
+                        let cancel = async {
+                            listener.await;
+                            Ok(JsValue::undefined())
+                        };
+                        timer.or(cancel).await
                     }));
             }
             Job::GenericJob(job) => self.generic_jobs.borrow_mut().push_back(job),
