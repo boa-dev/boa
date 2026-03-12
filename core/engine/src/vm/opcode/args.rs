@@ -423,6 +423,5 @@ mod tests {
     fn decode_truncated_buffer_panics() {
         let bytes = [0u8; 2];
         let _ = u32::decode(&bytes, 0);
-
     }
 }
