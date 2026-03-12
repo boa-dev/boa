@@ -1,5 +1,5 @@
 use crate::{
-    Context, JsResult,
+    Context,
     builtins::function::OrdinaryFunction,
     vm::{
         code_block::create_function_object_fast,
@@ -45,7 +45,7 @@ impl SetArrowLexicalThis {
     pub(crate) fn operation(
         (function, this_value): (RegisterOperand, RegisterOperand),
         context: &mut Context,
-    ) -> JsResult<()> {
+    ) {
         let this = context.vm.get_register(this_value.into()).clone();
         let func_obj = context
             .vm
@@ -57,7 +57,6 @@ impl SetArrowLexicalThis {
             .downcast_mut::<OrdinaryFunction>()
             .expect("SetArrowLexicalThis: object must be an OrdinaryFunction")
             .lexical_this = Some(this);
-        Ok(())
     }
 }
 

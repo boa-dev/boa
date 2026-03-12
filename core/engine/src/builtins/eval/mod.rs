@@ -241,15 +241,19 @@ impl Eval {
             }
         });
 
-        let (var_environment, mut variable_scope) =
-            if let Some(e) = context.vm.frame_mut().environments.outer_function_environment() {
-                (e.0, e.1)
-            } else {
-                (
-                    context.realm().environment().clone(),
-                    context.realm().scope().clone(),
-                )
-            };
+        let (var_environment, mut variable_scope) = if let Some(e) = context
+            .vm
+            .frame_mut()
+            .environments
+            .outer_function_environment()
+        {
+            (e.0, e.1)
+        } else {
+            (
+                context.realm().environment().clone(),
+                context.realm().scope().clone(),
+            )
+        };
 
         let lexical_scope = lexical_scope.unwrap_or(context.realm().scope().clone());
         let lexical_scope = Scope::new(lexical_scope, strict);

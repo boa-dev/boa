@@ -1706,8 +1706,7 @@ impl ScopeIndexVisitor {
                 // Do NOT set requires_function_scope or increment index —
                 // no runtime environment will be pushed.
             } else {
-                scopes.requires_function_scope =
-                    escaped_this || has_super || has_new_target;
+                scopes.requires_function_scope = escaped_this || has_super || has_new_target;
                 self.index += u32::from(scopes.requires_function_scope);
             }
         }

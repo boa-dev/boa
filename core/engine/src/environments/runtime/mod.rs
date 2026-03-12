@@ -425,10 +425,7 @@ impl EnvironmentStack {
         if idx >= captured {
             matches!(self.local[idx - captured], LocalEnvironment::Object(_))
         } else {
-            matches!(
-                self.get_captured(idx),
-                Some(Environment::Object(_))
-            )
+            matches!(self.get_captured(idx), Some(Environment::Object(_)))
         }
     }
 
@@ -451,15 +448,16 @@ impl EnvironmentStack {
 
     /// Get the `DeclarativeEnvironmentKind` at the given absolute index.
     #[allow(dead_code)]
-    pub(crate) fn get_declarative_kind(&self, env_index: u32) -> Option<&DeclarativeEnvironmentKind> {
+    pub(crate) fn get_declarative_kind(
+        &self,
+        env_index: u32,
+    ) -> Option<&DeclarativeEnvironmentKind> {
         let captured = self.captured_depth as usize;
         let idx = env_index as usize;
         if idx >= captured {
             self.local[idx - captured].as_declarative_kind()
         } else {
-            self.get_captured(idx)?
-                .as_declarative()
-                .map(|gc| gc.kind())
+            self.get_captured(idx)?.as_declarative().map(|gc| gc.kind())
         }
     }
 
@@ -479,9 +477,7 @@ impl EnvironmentStack {
                 None
             }
         } else {
-            self.get_captured(idx)?
-                .as_declarative()
-                .cloned()
+            self.get_captured(idx)?.as_declarative().cloned()
         }
     }
 
@@ -515,10 +511,10 @@ impl EnvironmentStack {
     ) -> &'a DeclarativeEnvironmentKind {
         // Search local environments first (tip to base).
         for local in self.local.iter().rev() {
-            if let Some(kind) = local.as_declarative_kind() {
-                if kind.has_this_binding() {
-                    return kind;
-                }
+            if let Some(kind) = local.as_declarative_kind()
+                && kind.has_this_binding()
+            {
+                return kind;
             }
         }
         // Then search captured chain.
@@ -599,10 +595,7 @@ impl EnvironmentStack {
     /// environment that is not poisoned and not inside a `with`.
     ///
     /// Used as a fast-path check in `find_runtime_binding` and similar.
-    pub(crate) fn current_is_clean_declarative(
-        &self,
-        global: &Gc<DeclarativeEnvironment>,
-    ) -> bool {
+    pub(crate) fn current_is_clean_declarative(&self, global: &Gc<DeclarativeEnvironment>) -> bool {
         if let Some(local) = self.local.last() {
             local.is_declarative() && !local.poisoned() && !local.with()
         } else if let Some(node) = self.captured_tip.as_deref() {
@@ -620,9 +613,7 @@ impl EnvironmentStack {
         if let Some(local) = self.local.last() {
             local.is_declarative() && !local.with()
         } else if let Some(node) = self.captured_tip.as_deref() {
-            node.env
-                .as_declarative()
-                .is_some_and(|d| !d.with())
+            node.env.as_declarative().is_some_and(|d| !d.with())
         } else {
             !global.with()
         }
@@ -811,7 +802,7 @@ impl EnvironmentStack {
 
     /// Promote all inline local environments to Gc.
     ///
-    /// Call this before cloning the EnvironmentStack (e.g., for generators).
+    /// Call this before cloning the `EnvironmentStack` (e.g., for generators).
     #[allow(dead_code)]
     pub(crate) fn promote_all(&mut self) {
         for local in &mut self.local {
@@ -940,9 +931,7 @@ impl Context {
         }
 
         let (global_scope, min_index) = match locator.scope() {
-            BindingLocatorScope::GlobalObject | BindingLocatorScope::GlobalDeclarative => {
-                (true, 0)
-            }
+            BindingLocatorScope::GlobalObject | BindingLocatorScope::GlobalDeclarative => (true, 0),
             BindingLocatorScope::Stack(index) => (false, index),
         };
         let max_index = self.vm.frame().environments.len() as u32;
@@ -973,7 +962,12 @@ impl Context {
                     let idx = index as usize;
                     if idx >= captured {
                         let local = &self.vm.frame().environments.local[idx - captured];
-                        (local.poisoned(), local.with(), local.is_function(), local.as_declarative_kind())
+                        (
+                            local.poisoned(),
+                            local.with(),
+                            local.is_function(),
+                            local.as_declarative_kind(),
+                        )
                     } else {
                         let env = self
                             .vm
@@ -982,7 +976,12 @@ impl Context {
                             .get_captured(idx)
                             .and_then(Environment::as_declarative);
                         if let Some(env) = env {
-                            (env.poisoned(), env.with(), env.is_function(), Some(env.kind()))
+                            (
+                                env.poisoned(),
+                                env.with(),
+                                env.is_function(),
+                                Some(env.kind()),
+                            )
                         } else {
                             continue;
                         }
@@ -1022,12 +1021,7 @@ impl Context {
         locator: &BindingLocator,
     ) -> JsResult<Option<JsObject>> {
         let global = self.vm.frame().realm.environment();
-        if self
-            .vm
-            .frame()
-            .environments
-            .current_is_not_with(global)
-        {
+        if self.vm.frame().environments.current_is_not_with(global) {
             return Ok(None);
         }
 
@@ -1208,10 +1202,11 @@ impl Context {
                     let key = locator.name().clone();
                     obj.set(key, value, strict, self)?;
                 } else {
-                    self.vm
-                        .frame()
-                        .environments
-                        .set_binding_value(index, locator.binding_index(), value);
+                    self.vm.frame().environments.set_binding_value(
+                        index,
+                        locator.binding_index(),
+                        value,
+                    );
                 }
             }
         }
@@ -1250,5 +1245,4 @@ impl Context {
             }
         }
     }
-
 }

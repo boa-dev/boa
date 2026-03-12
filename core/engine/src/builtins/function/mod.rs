@@ -1043,10 +1043,10 @@ pub(crate) fn function_call(
         // directly on this arrow closure — use it instead of walking the
         // environment chain.
         if let Some(this) = captured_lexical_this {
-            context.vm.stack.set_this(
-                context.vm.frames.last().expect("frame must exist"),
-                this,
-            );
+            context
+                .vm
+                .stack
+                .set_this(context.vm.frames.last().expect("frame must exist"), this);
             context.vm.frame_mut().flags |= CallFrameFlags::THIS_VALUE_CACHED;
         }
         ThisBindingStatus::Lexical
