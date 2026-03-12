@@ -9,7 +9,7 @@ use thin_vec::ThinVec;
 
 impl ByteCompiler<'_> {
     pub(crate) fn compile_object_literal(&mut self, literal: &ObjectLiteral, dst: &Register) {
-        self.bytecode.emit_push_empty_object(dst.variable());
+        self.bytecode.emit_store_empty_object(dst.variable());
 
         for property in literal.properties() {
             match property {

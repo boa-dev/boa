@@ -1,3 +1,5 @@
+use boa_engine::{ast::scope::Scope, interner::Interner};
+use boa_parser::Source;
 use colored::{Color, Colorize};
 use phf::{Set, phf_set};
 use regex::{Captures, Regex, Replacer};
@@ -5,7 +7,7 @@ use rustyline::{
     Completer, Helper, Hinter,
     error::ReadlineError,
     highlight::{CmdKind, Highlighter},
-    validate::{MatchingBracketValidator, ValidationContext, ValidationResult, Validator},
+    validate::{ValidationContext, ValidationResult, Validator},
 };
 use std::borrow::Cow::{self, Borrowed};
 
@@ -38,16 +40,16 @@ const READLINE_COLOR: Color = Color::Cyan;
 #[allow(clippy::upper_case_acronyms, clippy::redundant_pub_crate)]
 #[derive(Completer, Helper, Hinter)]
 pub(crate) struct RLHelper {
+    strict: bool,
     highlighter: LineHighlighter,
-    validator: MatchingBracketValidator,
     colored_prompt: String,
 }
 
 impl RLHelper {
-    pub(crate) fn new(prompt: &str) -> Self {
+    pub(crate) fn new(prompt: &str, strict: bool) -> Self {
         Self {
             highlighter: LineHighlighter::new(),
-            validator: MatchingBracketValidator::new(),
+            strict,
             colored_prompt: prompt.color(READLINE_COLOR).bold().to_string(),
         }
     }
@@ -58,11 +60,28 @@ impl Validator for RLHelper {
         &self,
         context: &mut ValidationContext<'_>,
     ) -> Result<ValidationResult, ReadlineError> {
-        self.validator.validate(context)
+        let mut parser = boa_parser::Parser::new(Source::from_bytes(context.input()));
+        if self.strict {
+            parser.set_strict();
+        }
+
+        match parser.parse_script(&Scope::new_global(), &mut Interner::new()) {
+            // Skip scope analysis errors, those can be caused by not having the
+            // context's Scope to resolve variables.
+            Ok(_) | Err(boa_parser::Error::ScopeAnalysis { .. }) => {
+                Ok(ValidationResult::Valid(None))
+            }
+            Err(boa_parser::Error::AbruptEnd) => Ok(ValidationResult::Incomplete),
+            Err(err) => Ok(ValidationResult::Invalid(Some(format!(
+                "\n{} {}",
+                "Uncaught SyntaxError".red(),
+                err.to_string().red()
+            )))),
+        }
     }
 
     fn validate_while_typing(&self) -> bool {
-        self.validator.validate_while_typing()
+        false
     }
 }
 

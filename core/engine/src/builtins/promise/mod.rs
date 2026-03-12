@@ -1904,11 +1904,11 @@ impl Promise {
                 context
                     .job_executor()
                     .enqueue_job(reject_job.into(), context);
-
-                // 12. Set promise.[[PromiseIsHandled]] to true.
-                promise.borrow_mut().data_mut().handled = true;
             }
         }
+
+        // 12. Set promise.[[PromiseIsHandled]] to true.
+        promise.borrow_mut().data_mut().handled = true;
 
         // 13. If resultCapability is undefined, then
         //   a. Return undefined.

@@ -689,7 +689,7 @@ impl SourceTextModule {
                     //    2. Return importedModule.ResolveExport(e.[[ImportName]], resolveSet).
                     ReExportImportName::Name(name) => {
                         let name = name.to_js_string(interner);
-                        imported_module.resolve_export(name, resolve_set, interner)
+                        imported_module.resolve_export(&name, resolve_set, interner)
                     }
                 };
             }
@@ -712,7 +712,7 @@ impl SourceTextModule {
             let imported_module = self.loaded_modules.borrow()[e].clone();
             // b. Let resolution be importedModule.ResolveExport(exportName, resolveSet).
             let resolution =
-                match imported_module.resolve_export(export_name.clone(), resolve_set, interner) {
+                match imported_module.resolve_export(export_name, resolve_set, interner) {
                     // d. If resolution is not null, then
                     Ok(resolution) => resolution,
                     // c. If resolution is ambiguous, return ambiguous.
@@ -726,24 +726,23 @@ impl SourceTextModule {
                 //    1. Assert: There is more than one * import that includes the requested name.
                 //    2. If resolution.[[Module]] and starResolution.[[Module]] are not the same Module Record,
                 //       return ambiguous.
-                if resolution.module != star_resolution.module {
+                if resolution.module() != star_resolution.module() {
                     return Err(ResolveExportError::Ambiguous);
                 }
-                match (
-                    resolution.binding_name,
-                    star_resolution.binding_name.clone(),
-                ) {
-                    // 3. If resolution.[[BindingName]] is not starResolution.[[BindingName]] and either
-                    //    resolution.[[BindingName]] or starResolution.[[BindingName]] is namespace,
-                    //    return ambiguous.
+                // 3. If resolution.[[BindingName]] is not starResolution.[[BindingName]] and either
+                //    resolution.[[BindingName]] or starResolution.[[BindingName]] is namespace,
+                //    return ambiguous.
+                // 4. If resolution.[[BindingName]] is a String, starResolution.[[BindingName]] is a
+                //    String, and SameValue(resolution.[[BindingName]], starResolution.[[BindingName]])
+                //    is false, return ambiguous.
+                match (resolution.binding_name(), star_resolution.binding_name()) {
                     (BindingName::Namespace, BindingName::Name(_))
                     | (BindingName::Name(_), BindingName::Namespace) => {
+                        // See step 3 above.
                         return Err(ResolveExportError::Ambiguous);
                     }
-                    // 4. If resolution.[[BindingName]] is a String, starResolution.[[BindingName]] is a
-                    //    String, and SameValue(resolution.[[BindingName]], starResolution.[[BindingName]])
-                    //    is false, return ambiguous.
                     (BindingName::Name(res), BindingName::Name(star)) if res != star => {
+                        // See step 4 above.
                         return Err(ResolveExportError::Ambiguous);
                     }
                     _ => {}
@@ -1532,7 +1531,7 @@ impl SourceTextModule {
                 // a. Let resolution be module.ResolveExport(e.[[ExportName]]).
                 module_self
                     .resolve_export(
-                        e.export_name().to_js_string(context.interner()),
+                        &e.export_name().to_js_string(context.interner()),
                         &mut HashSet::default(),
                         context.interner(),
                     )
@@ -1575,7 +1574,6 @@ impl SourceTextModule {
 
         // 5. Let env be NewModuleEnvironment(realm.[[GlobalEnv]]).
         // 6. Set module.[[Environment]] to env.
-        let global_env = realm.environment().clone();
         let env = source.scope().clone();
 
         let spanned_source_text = SpannedSourceText::new_source_only(source_text);
@@ -1613,7 +1611,7 @@ impl SourceTextModule {
                     // c. Else,
                     //    i. Let resolution be importedModule.ResolveExport(in.[[ImportName]]).
                     let resolution = imported_module
-                        .resolve_export(name.clone(), &mut HashSet::default(), compiler.interner())
+                        .resolve_export(&name, &mut HashSet::default(), compiler.interner())
                         // ii. If resolution is either null or ambiguous, throw a SyntaxError exception.
                         .map_err(|err| match err {
                             ResolveExportError::NotFound => JsNativeError::syntax().with_message(
@@ -1632,7 +1630,7 @@ impl SourceTextModule {
                     let local_name = entry.local_name().to_js_string(compiler.interner());
                     let locator = env.get_binding(&local_name).expect("binding must exist");
 
-                    if let BindingName::Name(_) = resolution.binding_name {
+                    if let BindingName::Name(_) = resolution.binding_name() {
                         // 1. Perform env.CreateImportBinding(in.[[LocalName]], resolution.[[Module]],
                         //    resolution.[[BindingName]]).
                         //    deferred to initialization below
@@ -1645,7 +1643,7 @@ impl SourceTextModule {
                         // deferred to initialization below
                         imports.push(ImportBinding::Namespace {
                             locator,
-                            module: resolution.module,
+                            module: resolution.into_module(),
                         });
                     }
                 } else {
@@ -1759,7 +1757,7 @@ impl SourceTextModule {
         };
 
         // 8. Let moduleContext be a new ECMAScript code execution context.
-        let mut envs = EnvironmentStack::new(global_env);
+        let mut envs = EnvironmentStack::new();
         envs.push_module(source.scope().clone());
 
         // 9. Set the Function of moduleContext to null.
@@ -1787,32 +1785,45 @@ impl SourceTextModule {
                 ImportBinding::Namespace { locator, module } => {
                     // i. Let namespace be GetModuleNamespace(importedModule).
                     let namespace = module.namespace(context);
-                    context.vm.frame_mut().environments.put_lexical_value(
-                        locator.scope(),
-                        locator.binding_index(),
-                        namespace.into(),
-                    );
+                    {
+                        let frame = context.vm.frame_mut();
+                        let global = frame.realm.environment();
+                        frame.environments.put_lexical_value(
+                            locator.scope(),
+                            locator.binding_index(),
+                            namespace.into(),
+                            global,
+                        );
+                    }
                 }
                 ImportBinding::Single {
                     locator,
                     export_locator,
                 } => match export_locator.binding_name() {
-                    BindingName::Name(name) => context
-                        .vm
-                        .frame()
-                        .environments
-                        .current_declarative_ref()
-                        .expect("must be declarative")
-                        .kind()
-                        .as_module()
-                        .expect("last environment should be the module env")
-                        .set_indirect(locator.binding_index(), export_locator.module, name),
+                    BindingName::Name(name) => {
+                        let frame = context.vm.frame();
+                        frame
+                            .environments
+                            .current_declarative_ref(frame.realm.environment())
+                            .expect("must be declarative")
+                            .kind()
+                            .as_module()
+                            .expect("last environment should be the module env")
+                            .set_indirect(
+                                locator.binding_index(),
+                                export_locator.module().clone(),
+                                name.clone(),
+                            );
+                    }
                     BindingName::Namespace => {
                         let namespace = export_locator.module.namespace(context);
-                        context.vm.frame_mut().environments.put_lexical_value(
+                        let frame = context.vm.frame_mut();
+                        let global = frame.realm.environment();
+                        frame.environments.put_lexical_value(
                             locator.scope(),
                             locator.binding_index(),
                             namespace.into(),
+                            global,
                         );
                     }
                 },
@@ -1825,11 +1836,16 @@ impl SourceTextModule {
 
             let function = create_function_object_fast(code, context);
 
-            context.vm.frame_mut().environments.put_lexical_value(
-                locator.scope(),
-                locator.binding_index(),
-                function.into(),
-            );
+            {
+                let frame = context.vm.frame_mut();
+                let global = frame.realm.environment();
+                frame.environments.put_lexical_value(
+                    locator.scope(),
+                    locator.binding_index(),
+                    function.into(),
+                    global,
+                );
+            }
         }
 
         // 25. Remove moduleContext from the execution context stack.
@@ -1840,7 +1856,7 @@ impl SourceTextModule {
 
         let env = frame
             .environments
-            .current_declarative_ref()
+            .current_declarative_ref(frame.realm.environment())
             .cloned()
             .expect("frame must have a declarative environment");
 
