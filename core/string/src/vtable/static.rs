@@ -2,7 +2,7 @@ use crate::iter::CodePointsIter;
 use crate::vtable::{JsStringVTable, RawJsString};
 use crate::{JsStr, JsStringKind};
 use std::hash::{Hash, Hasher};
-use std::ptr::NonNull;
+use std::ptr::{self, NonNull};
 
 /// Static vtable for static strings.
 pub(crate) static STATIC_VTABLE: JsStringVTable = JsStringVTable {
@@ -10,6 +10,7 @@ pub(crate) static STATIC_VTABLE: JsStringVTable = JsStringVTable {
     code_points: static_code_points,
     code_unit_at: static_code_unit_at,
     dealloc: |_| {}, // Static strings are never deallocated.
+    kind: JsStringKind::Static,
 };
 
 /// A static string with vtable for uniform dispatch.
@@ -30,8 +31,7 @@ impl StaticString {
             header: RawJsString {
                 vtable: &STATIC_VTABLE,
                 len: str.len(),
-                refcount: 0, // Static strings don't use refcounts
-                kind: JsStringKind::Static,
+                refcount: 0,
                 hash: 0,
             },
             str,
@@ -62,20 +62,24 @@ impl std::borrow::Borrow<JsStr<'static>> for &'static StaticString {
 // Unused static_clone removed.
 
 #[inline]
-fn static_as_str(ptr: NonNull<RawJsString>) -> JsStr<'static> {
-    // SAFETY: validated the string outside this function.
-    let this: &StaticString = unsafe { ptr.cast().as_ref() };
+fn static_as_str(header: &RawJsString) -> JsStr<'_> {
+    // SAFETY: The header is part of a StaticString and it's aligned.
+    let this: &StaticString = unsafe { &*ptr::from_ref(header).cast::<StaticString>() };
     this.str
 }
 
 #[inline]
 fn static_code_points(ptr: NonNull<RawJsString>) -> CodePointsIter<'static> {
-    CodePointsIter::new(static_as_str(ptr))
+    // SAFETY: ptr is valid.
+    let header = unsafe { ptr.as_ref() };
+    CodePointsIter::new(static_as_str(header))
 }
 
 #[inline]
 fn static_code_unit_at(ptr: NonNull<RawJsString>, index: usize) -> Option<u16> {
-    static_as_str(ptr).get(index)
+    // SAFETY: ptr is valid.
+    let header = unsafe { ptr.as_ref() };
+    static_as_str(header).get(index)
 }
 
 // Unused static_refcount removed.

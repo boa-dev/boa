@@ -561,7 +561,7 @@ fn rope_basic() {
 
     assert_eq!(rope.kind(), JsStringKind::Rope);
     assert_eq!(rope.len(), 1026);
-    assert_eq!(rope.code_unit_at(1025), Some(b'!' as u16));
+    assert_eq!(rope.code_unit_at(1025), Some(u16::from(b'!')));
 }
 
 #[test]
@@ -579,23 +579,42 @@ fn rope_balanced_tree() {
 }
 
 #[test]
-fn rope_depth_limit() {
+fn rope_rebalancing() {
     let mut s = JsString::from("a".repeat(1025));
-    for _ in 0..31 {
+    // Highly unbalanced incremental concatenation.
+    for _ in 0..100 {
         s = JsString::concat_array_strings(&[s, JsString::from("b")]);
     }
-    // Initial s is depth 0.
-    // 1st concat: depth 1
-    // ...
-    // 31st concat: depth 31
+
+    // Without rebalancing, depth would be 100.
+    // With Fibonacci rebalancing, depth should be kept small (e.g. < 15).
     assert_eq!(s.kind(), JsStringKind::Rope);
-    assert_eq!(s.depth(), 31);
+    assert!(
+        s.depth() < 15,
+        "Depth should be balanced (was {})",
+        s.depth()
+    );
 
-    // 32nd concat: depth 32
-    s = JsString::concat_array_strings(&[s, JsString::from("c")]);
-    assert_eq!(s.depth(), 32);
+    // Verify it still works.
+    assert_eq!(s.code_unit_at(0), Some(u16::from(b'a')));
+    assert_eq!(s.code_unit_at(1025), Some(u16::from(b'b')));
+    assert_eq!(s.code_unit_at(1025 + 99), Some(u16::from(b'b')));
+}
 
-    // 33rd concat: triggers flatten (depth 33 > 32)
-    let s_final = JsString::concat_array_strings(&[s, JsString::from("d")]);
-    assert_ne!(s_final.kind(), JsStringKind::Rope);
+#[test]
+fn pathological_batch_rebalancing() {
+    // Create a very deep (unbalanced) rope manually (if possible) or by bypassing create if needed.
+    // Actually, we can just create strings that are just at the threshold of rebalancing.
+    // But since concat_strings_balanced now collects leaves, it's inherently safe.
+    let strings: Vec<JsString> = (0..50).map(|_| JsString::from("a".repeat(200))).collect();
+
+    // Batch concat should produce a balanced tree.
+    let rope = JsString::concat_array_strings(&strings);
+    assert_eq!(rope.kind(), JsStringKind::Rope);
+    // log2(50) is ~6.
+    assert!(
+        rope.depth() <= 7,
+        "Batch concat should be perfectly balanced (was {})",
+        rope.depth()
+    );
 }

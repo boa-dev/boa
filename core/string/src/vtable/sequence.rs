@@ -5,12 +5,13 @@ use std::ptr::{self, NonNull};
 use crate::iter::CodePointsIter;
 use crate::r#type::{InternalStringType, Latin1, Utf16};
 use crate::vtable::{JsStringVTable, RawJsString};
-use crate::{JsStr, alloc_overflow};
+use crate::{JsStr, JsStringKind, alloc_overflow};
 pub(crate) static LATIN1_VTABLE: JsStringVTable = JsStringVTable {
     as_str: seq_as_str::<Latin1>,
     code_points: seq_code_points::<Latin1>,
     code_unit_at: seq_code_unit_at::<Latin1>,
     dealloc: seq_dealloc::<Latin1>,
+    kind: JsStringKind::Latin1Sequence,
 };
 
 /// Static vtable for UTF-16 sequence strings.
@@ -19,6 +20,7 @@ pub(crate) static UTF16_VTABLE: JsStringVTable = JsStringVTable {
     code_points: seq_code_points::<Utf16>,
     code_unit_at: seq_code_unit_at::<Utf16>,
     dealloc: seq_dealloc::<Utf16>,
+    kind: JsStringKind::Utf16Sequence,
 };
 
 /// A sequential memory array of `T::Char` elements.
@@ -47,7 +49,6 @@ impl<T: InternalStringType> SequenceString<T> {
                 vtable: T::VTABLE,
                 len,
                 refcount: 1,
-                kind: T::KIND,
                 hash: 0,
             },
             _marker: PhantomData,
@@ -84,9 +85,7 @@ impl<T: InternalStringType> SequenceString<T> {
         debug_assert_eq!(layout.align(), align_of::<Self>());
 
         #[allow(clippy::cast_ptr_alignment)]
-        // SAFETY:
-        // The layout size of `SequenceString` is never zero, since it has to store
-        // the length of the string and the reference count.
+        // SAFETY: The layout size of `SequenceString` is never zero.
         let inner = unsafe { alloc(layout).cast::<Self>() };
 
         // We need to verify that the pointer returned by `alloc` is not null, otherwise
@@ -94,9 +93,7 @@ impl<T: InternalStringType> SequenceString<T> {
         // right now.
         let inner = NonNull::new(inner).ok_or(Some(layout))?;
 
-        // SAFETY:
-        // `NonNull` verified for us that the pointer returned by `alloc` is valid,
-        // meaning we can write to its pointed memory.
+        // SAFETY: `NonNull` verified that the pointer is valid.
         unsafe {
             // Write the first part, the `SequenceString`.
             inner.as_ptr().write(Self::new(len));
@@ -104,13 +101,7 @@ impl<T: InternalStringType> SequenceString<T> {
 
         debug_assert!({
             let inner = inner.as_ptr();
-            // SAFETY:
-            // - `inner` must be a valid pointer, since it comes from a `NonNull`,
-            // meaning we can safely dereference it to `SequenceString`.
-            // - `offset` should point us to the beginning of the array,
-            // and since we requested a `SequenceString` layout with a trailing
-            // `[T::Byte; str_len]`, the memory of the array must be in the `usize`
-            // range for the allocation to succeed.
+            // SAFETY: `inner` is a valid pointer and `offset` points to the array start.
             unsafe {
                 // This is `<u8>` as the offset is in bytes.
                 ptr::eq(
@@ -153,27 +144,33 @@ fn seq_dealloc<T: InternalStringType>(ptr: NonNull<RawJsString>) {
 }
 
 #[inline]
-fn seq_as_str<T: InternalStringType>(ptr: NonNull<RawJsString>) -> JsStr<'static> {
-    // SAFETY: This is part of the correct vtable which is validated on construction.
-    // The `ptr` is guaranteed to be a valid `RawJsString` pointer for a `SequenceString<T>`.
-    let this: &SequenceString<T> = unsafe { ptr.cast().as_ref() };
-    let len = this.header.len;
+fn seq_as_str<T: InternalStringType>(header: &RawJsString) -> JsStr<'_> {
+    // SAFETY: The header is part of a SequenceString<T> and it's aligned.
+    let this: &SequenceString<T> = unsafe { &*ptr::from_ref(header).cast::<SequenceString<T>>() };
+    let len = header.len;
     let data_ptr = (&raw const this.data).cast::<T::Byte>();
 
     // SAFETY: SequenceString data is always valid and properly aligned.
     // `data_ptr` points to the start of the character data, and `len` is the
     // number of characters, which is guaranteed to be within the allocated bounds.
-    // `T::str_ctor` correctly handles the conversion from `&[T::Byte]` to `JsStr`.
     let slice = unsafe { std::slice::from_raw_parts(data_ptr, len) };
     T::str_ctor(slice)
 }
 
 #[inline]
 fn seq_code_points<T: InternalStringType>(ptr: NonNull<RawJsString>) -> CodePointsIter<'static> {
-    CodePointsIter::new(seq_as_str::<T>(ptr))
+    // SAFETY: This is part of the correct vtable which is validated on construction.
+    let header = unsafe { ptr.as_ref() };
+    // SAFETY: We transmute the lifetime to 'static because the iterator for sequences
+    // only holds a slice, and we currently don't have a way to return a tied iterator
+    // from the vtable without changing the whole iterator architecture.
+    // TODO: Fix this by making CodePointsIter manage lifetimes properly.
+    unsafe { std::mem::transmute(CodePointsIter::new(seq_as_str::<T>(header))) }
 }
 
 #[inline]
 fn seq_code_unit_at<T: InternalStringType>(ptr: NonNull<RawJsString>, index: usize) -> Option<u16> {
-    seq_as_str::<T>(ptr).get(index)
+    // SAFETY: This is part of the correct vtable which is validated on construction.
+    let header = unsafe { ptr.as_ref() };
+    seq_as_str::<T>(header).get(index)
 }
