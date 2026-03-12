@@ -1,6 +1,7 @@
 //! `AbortController` and `AbortSignal` Web API implementations.
 
 use boa_engine::class::Class;
+use boa_engine::job::GenericJob;
 use boa_engine::object::builtins::JsFunction;
 use boa_engine::realm::Realm;
 use boa_engine::{
@@ -9,9 +10,32 @@ use boa_engine::{
 };
 use boa_gc::GcRefCell;
 use std::cell::Cell;
+use std::sync::Arc;
+use std::sync::atomic::{AtomicBool, Ordering};
 
 #[cfg(test)]
 mod tests;
+
+/// Cancellation token for cooperative abort.
+#[derive(Debug, Clone)]
+pub struct CancellationToken(Arc<AtomicBool>);
+
+impl CancellationToken {
+    fn new() -> Self {
+        Self(Arc::new(AtomicBool::new(false)))
+    }
+
+    /// Cancel the token.
+    pub fn cancel(&self) {
+        self.0.store(true, Ordering::Release);
+    }
+
+    /// Returns `true` if cancelled.
+    #[must_use]
+    pub fn is_cancelled(&self) -> bool {
+        self.0.load(Ordering::Acquire)
+    }
+}
 
 fn make_abort_error(context: &mut Context) -> JsValue {
     let obj = JsNativeError::error()
@@ -23,26 +47,55 @@ fn make_abort_error(context: &mut Context) -> JsValue {
 }
 
 /// The JavaScript `AbortSignal` class.
-#[derive(Debug, Clone, Default, JsData, Trace, Finalize)]
+#[derive(Debug, Clone, JsData, Trace, Finalize)]
 pub struct JsAbortSignal {
     #[unsafe_ignore_trace]
     aborted: Cell<bool>,
     reason: GcRefCell<Option<JsValue>>,
     listeners: GcRefCell<Vec<JsFunction>>,
+    #[unsafe_ignore_trace]
+    cancel_token: CancellationToken,
+}
+
+impl Default for JsAbortSignal {
+    fn default() -> Self {
+        Self {
+            aborted: Cell::new(false),
+            reason: GcRefCell::default(),
+            listeners: GcRefCell::default(),
+            cancel_token: CancellationToken::new(),
+        }
+    }
 }
 
 impl JsAbortSignal {
-    fn signal_abort(&self, reason: JsValue, context: &mut Context) -> JsResult<()> {
+    /// # Errors
+    ///
+    /// Returns an error if the signal has already been aborted.
+    pub fn signal_abort(&self, reason: JsValue, context: &mut Context) -> JsResult<()> {
         if self.aborted.get() {
             return Ok(());
         }
         self.aborted.set(true);
         *self.reason.borrow_mut() = Some(reason);
 
-        let listeners: Vec<JsFunction> = self.listeners.borrow().clone();
-        for listener in &listeners {
-            listener.call(&JsValue::undefined(), &[], context)?;
+        let listeners: Vec<JsFunction> = self.listeners.borrow_mut().drain(..).collect();
+
+        let realm = context.realm().clone();
+        for listener in listeners {
+            context.enqueue_job(
+                GenericJob::new(
+                    move |context| {
+                        drop(listener.call(&JsValue::undefined(), &[], context));
+                        Ok(JsValue::undefined())
+                    },
+                    realm.clone(),
+                )
+                .into(),
+            );
         }
+
+        self.cancel_token.cancel();
 
         Ok(())
     }
@@ -54,11 +107,20 @@ impl JsAbortSignal {
     }
 
     /// Returns the abort reason.
-    pub fn abort_reason(&self) -> JsValue {
+    pub fn abort_reason(&self, context: &mut Context) -> JsValue {
+        if !self.aborted.get() {
+            return JsValue::undefined();
+        }
         self.reason
             .borrow()
             .clone()
-            .unwrap_or_else(|| js_string!("AbortError").into())
+            .unwrap_or_else(|| make_abort_error(context))
+    }
+
+    /// Returns the cancellation token.
+    #[must_use]
+    pub fn cancellation_token(&self) -> CancellationToken {
+        self.cancel_token.clone()
     }
 }
 
@@ -66,8 +128,10 @@ impl JsAbortSignal {
 #[boa(rename_all = "camelCase")]
 impl JsAbortSignal {
     #[boa(constructor)]
-    fn constructor() -> Self {
-        Self::default()
+    fn constructor() -> JsResult<Self> {
+        Err(JsNativeError::typ()
+            .with_message("Illegal constructor")
+            .into())
     }
 
     #[boa(getter)]
@@ -76,13 +140,13 @@ impl JsAbortSignal {
     }
 
     #[boa(getter)]
-    fn reason(&self) -> JsValue {
-        self.abort_reason()
+    fn reason(&self, context: &mut Context) -> JsValue {
+        self.abort_reason(context)
     }
 
-    fn throw_if_aborted(&self) -> JsResult<()> {
+    fn throw_if_aborted(&self, context: &mut Context) -> JsResult<()> {
         if self.aborted.get() {
-            Err(JsError::from_opaque(self.abort_reason()))
+            Err(JsError::from_opaque(self.abort_reason(context)))
         } else {
             Ok(())
         }
@@ -103,6 +167,15 @@ impl JsAbortSignal {
             self.listeners.borrow_mut().push(callback);
         }
         Ok(())
+    }
+
+    fn remove_event_listener(&self, event_type: boa_engine::JsString, callback: JsFunction) {
+        if event_type.to_std_string_escaped() != "abort" {
+            return;
+        }
+        self.listeners
+            .borrow_mut()
+            .retain(|f| !JsObject::equals(f, &callback));
     }
 }
 

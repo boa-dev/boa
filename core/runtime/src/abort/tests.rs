@@ -93,53 +93,80 @@ fn throw_if_aborted_throws_when_aborted() {
 
 #[test]
 fn add_event_listener_fires_on_abort() {
-    run_test_actions([TestAction::run(
-        r"
-        let ctrl = new AbortController();
-        let called = false;
-        ctrl.signal.addEventListener('abort', function() {
-            called = true;
-        });
-        ctrl.abort();
-        if (!called) {
-            throw new Error('abort listener was not called');
-        }
-        ",
-    )]);
+    run_test_actions([
+        TestAction::run(
+            r"
+            let ctrl = new AbortController();
+            let called = false;
+            ctrl.signal.addEventListener('abort', function() {
+                called = true;
+            });
+            ctrl.abort();
+            ",
+        ),
+        TestAction::inspect_context(|ctx| {
+            ctx.run_jobs().unwrap();
+        }),
+        TestAction::run(
+            r"
+            if (!called) {
+                throw new Error('abort listener was not called');
+            }
+            ",
+        ),
+    ]);
 }
 
 #[test]
 fn multiple_listeners() {
-    run_test_actions([TestAction::run(
-        r"
-        let ctrl = new AbortController();
-        let count = 0;
-        ctrl.signal.addEventListener('abort', function() { count += 1; });
-        ctrl.signal.addEventListener('abort', function() { count += 1; });
-        ctrl.signal.addEventListener('abort', function() { count += 1; });
-        ctrl.abort();
-        if (count !== 3) {
-            throw new Error('expected 3 listeners called, got: ' + count);
-        }
-        ",
-    )]);
+    run_test_actions([
+        TestAction::run(
+            r"
+            let ctrl = new AbortController();
+            let count = 0;
+            ctrl.signal.addEventListener('abort', function() { count += 1; });
+            ctrl.signal.addEventListener('abort', function() { count += 1; });
+            ctrl.signal.addEventListener('abort', function() { count += 1; });
+            ctrl.abort();
+            ",
+        ),
+        TestAction::inspect_context(|ctx| {
+            ctx.run_jobs().unwrap();
+        }),
+        TestAction::run(
+            r"
+            if (count !== 3) {
+                throw new Error('expected 3 listeners called, got: ' + count);
+            }
+            ",
+        ),
+    ]);
 }
 
 #[test]
 fn repeated_abort_is_idempotent() {
-    run_test_actions([TestAction::run(
-        r"
-        let ctrl = new AbortController();
-        let count = 0;
-        ctrl.signal.addEventListener('abort', function() { count += 1; });
-        ctrl.abort();
-        ctrl.abort();
-        ctrl.abort();
-        if (count !== 1) {
-            throw new Error('listeners should fire only once, got: ' + count);
-        }
-        ",
-    )]);
+    run_test_actions([
+        TestAction::run(
+            r"
+            let ctrl = new AbortController();
+            let count = 0;
+            ctrl.signal.addEventListener('abort', function() { count += 1; });
+            ctrl.abort();
+            ctrl.abort();
+            ctrl.abort();
+            ",
+        ),
+        TestAction::inspect_context(|ctx| {
+            ctx.run_jobs().unwrap();
+        }),
+        TestAction::run(
+            r"
+            if (count !== 1) {
+                throw new Error('listeners should fire only once, got: ' + count);
+            }
+            ",
+        ),
+    ]);
 }
 
 #[test]
@@ -154,5 +181,33 @@ fn signal_reuse_across_references() {
             throw new Error('both signal references should be aborted');
         }
         ",
+    )]);
+}
+
+#[test]
+fn reason_undefined_when_not_aborted() {
+    run_test_actions([TestAction::run(
+        r"
+        let ctrl = new AbortController();
+        if (ctrl.signal.reason !== undefined) {
+            throw new Error('reason should be undefined before abort, got: ' + ctrl.signal.reason);
+        }
+        ",
+    )]);
+}
+
+#[test]
+fn reason_abort_error_when_aborted_without_reason() {
+    run_test_actions([TestAction::run(
+        r#"
+        let ctrl = new AbortController();
+        ctrl.abort();
+        if (!(ctrl.signal.reason instanceof Error)) {
+            throw new Error('reason should be an instance of Error');
+        }
+        if (ctrl.signal.reason.name !== "AbortError") {
+            throw new Error('reason.name should be "AbortError", got: ' + ctrl.signal.reason.name);
+        }
+        "#,
     )]);
 }
