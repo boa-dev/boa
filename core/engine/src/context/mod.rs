@@ -525,10 +525,6 @@ impl Context {
     /// Replaces the currently active realm with `realm`, and returns the old realm.
     #[inline]
     pub fn enter_realm(&mut self, realm: Realm) -> Realm {
-        self.vm
-            .frame_mut()
-            .environments
-            .replace_global(realm.environment().clone());
         std::mem::replace(&mut self.vm.frame_mut().realm, realm)
     }
 

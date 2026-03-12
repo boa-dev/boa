@@ -16,14 +16,14 @@ pub(crate) struct NewTarget;
 impl NewTarget {
     #[inline(always)]
     pub(super) fn operation(dst: RegisterOperand, context: &mut Context) {
-        let new_target = if let Some(new_target) = context
-            .vm
-            .frame()
-            .environments
-            .get_this_environment()
-            .as_function()
-            .and_then(|env| env.slots().new_target().cloned())
-        {
+        let new_target = if let Some(new_target) = {
+            let frame = context.vm.frame();
+            frame
+                .environments
+                .get_this_environment(frame.realm.environment())
+                .as_function()
+                .and_then(|env| env.slots().new_target().cloned())
+        } {
             new_target.into()
         } else {
             JsValue::undefined()
