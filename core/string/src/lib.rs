@@ -739,7 +739,7 @@ impl JsString {
     /// Creates a new [`JsString`] from the concatenation of every element of
     /// `strings`.
     ///
-    /// This will use a [`RopeString`] if the concatenation is large enough to
+    /// This will use a rope representation if the concatenation is large enough to
     /// warrant it.
     #[inline]
     #[must_use]
