@@ -2656,6 +2656,7 @@ impl<'ctx> ByteCompiler<'ctx> {
             global_fns: self.global_fns.into_boxed_slice(),
             global_vars: self.global_vars.into_boxed_slice(),
             debug_id: CodeBlock::get_next_codeblock_id(),
+            #[cfg(feature = "trace")]
             traced: Cell::new(false),
         }
     }
