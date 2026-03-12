@@ -12,6 +12,9 @@ mod executor;
 mod helper;
 mod logger;
 
+#[cfg(test)]
+use assert_cmd as _;
+
 use crate::executor::Executor;
 use crate::logger::SharedExternalPrinterLogger;
 use async_channel::Sender;
