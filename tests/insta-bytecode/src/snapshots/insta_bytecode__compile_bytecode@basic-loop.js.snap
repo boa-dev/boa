@@ -5,8 +5,8 @@ input_file: tests/insta-bytecode/scripts/basic-loop.js
 ---
 -------------------------- Compiled Output: '<main>' ---------------------------
 Location     Handler      Opcode                            Operands
-  000000                    PushZero                          dst:r02
-  000005                    PushInt8                          value:100, dst:r03
+  000000                    StoreZero                         dst:r02
+  000005                    StoreInt8                         value:100, dst:r03
   00000b                    Jump                              address:00001a
   000010                    IncrementLoopIteration            
   000011                    Inc                               src:r02, dst:r02

@@ -3,7 +3,7 @@ use crate::{
     vm::opcode::{Operation, RegisterOperand},
 };
 
-macro_rules! implement_push_numbers_with_conversion {
+macro_rules! implement_store_numbers_with_conversion {
     ($name:ident, $num_type:ty, $doc_string:literal) => {
         #[doc= concat!("`", stringify!($name), "` implements the `OpCode` Operation for `Opcode::", stringify!($name), "`\n")]
         #[doc= "\n"]
@@ -27,7 +27,7 @@ macro_rules! implement_push_numbers_with_conversion {
     };
 }
 
-macro_rules! implement_push_numbers_no_conversion {
+macro_rules! implement_store_numbers_no_conversion {
     ($name:ident, $num_type:ty, $doc_string:literal) => {
         #[doc= concat!("`", stringify!($name), "` implements the `OpCode` Operation for `Opcode::", stringify!($name), "`\n")]
         #[doc= "\n"]
@@ -51,9 +51,9 @@ macro_rules! implement_push_numbers_no_conversion {
     };
 }
 
-implement_push_numbers_with_conversion!(PushInt8, i8, "Push `i8` value on the stack");
-implement_push_numbers_with_conversion!(PushInt16, i16, "Push `i16` value on the stack");
+implement_store_numbers_with_conversion!(StoreInt8, i8, "Store `i8` value in dst");
+implement_store_numbers_with_conversion!(StoreInt16, i16, "Store `i16` value in dst");
 
-implement_push_numbers_no_conversion!(PushInt32, i32, "Push `i32` value on the stack");
-implement_push_numbers_no_conversion!(PushFloat, f32, "Push `f32` value on the stack");
-implement_push_numbers_no_conversion!(PushDouble, f64, "Push `f64` value on the stack");
+implement_store_numbers_no_conversion!(StoreInt32, i32, "Store `i32` value in dst");
+implement_store_numbers_no_conversion!(StoreFloat, f32, "Store `f32` value in dst");
+implement_store_numbers_no_conversion!(StoreDouble, f64, "Store `f64` value in dst");

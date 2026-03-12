@@ -6,7 +6,7 @@ use crate::{
 /// `GetPrivateField` implements the Opcode Operation for `Opcode::GetPrivateField`
 ///
 /// Operation:
-///  - Get a private property by name from an object an push it on the stack.
+///  - Get a private property by name from an object and store it in dst.
 #[derive(Debug, Clone, Copy)]
 pub(crate) struct GetPrivateField;
 
