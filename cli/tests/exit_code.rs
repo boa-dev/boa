@@ -1,3 +1,5 @@
+#![allow(missing_docs, unused_crate_dependencies)]
+
 use assert_cmd::Command;
 
 #[test]
