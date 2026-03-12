@@ -613,7 +613,10 @@ impl Context {
         };
 
         // Only print a functions compiled output if it has not been printed already
-        println!("{}", frame.code_block);
+        if !frame.code_block.traced.get() {
+            println!("{}", frame.code_block);
+            frame.code_block.traced.set(true);
+        }
         println!(
             "{msg:-^width$}",
             width = Self::COLUMN_WIDTH * Self::NUMBER_OF_COLUMNS - 10
