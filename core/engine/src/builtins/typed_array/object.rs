@@ -258,12 +258,11 @@ impl TypedArray {
     }
 }
 
-/// `[[PreventExtensions]]` internal method for `TypedArray` exotic objects.
-///
-/// More information:
-///  - [ECMAScript reference][spec]
-///
-/// [spec]: https://tc39.es/ecma262/#sec-integer-indexed-exotic-objects-preventextensions
+// Integer-Indexed Exotic Objects [[PreventExtensions]] ( O )
+// https://tc39.es/ecma262/#sec-integer-indexed-exotic-objects-preventextensions
+//
+// 1. If IsTypedArrayFixedLength(O) is false, return false.
+// 2. Return OrdinaryPreventExtensions(O).
 pub(crate) fn typed_array_exotic_prevent_extensions(
     obj: &JsObject,
     context: &mut Context,
@@ -276,10 +275,12 @@ pub(crate) fn typed_array_exotic_prevent_extensions(
         ta.viewed_array_buffer().as_buffer().is_fixed_len()
     };
 
+    // 1. If IsTypedArrayFixedLength(O) is false, return false.
     if !is_fixed_length {
         return Ok(false);
     }
 
+    // 2. Return OrdinaryPreventExtensions(O).
     ordinary_prevent_extensions(obj, context)
 }
 
