@@ -100,6 +100,8 @@ pub struct Vm {
 
     #[cfg(feature = "trace")]
     pub(crate) trace: bool,
+    #[cfg(feature = "trace")]
+    pub(crate) current_frame: Option<*const CallFrame>,
 }
 
 /// The stack holds the [`JsValue`]s for the calling convention and registers.
@@ -336,6 +338,8 @@ impl Vm {
             shadow_stack: ShadowStack::default(),
             #[cfg(feature = "trace")]
             trace: false,
+            #[cfg(feature = "trace")]
+            current_frame: None,
         }
     }
 
@@ -608,7 +612,11 @@ impl Context {
             )
         };
 
-        println!("{}", frame.code_block);
+        // Only print a functions compiled output if it has not been printed already
+        if !frame.code_block.traced.get() {
+            println!("{}", frame.code_block);
+            frame.code_block.traced.set(true);
+        }
         println!(
             "{msg:-^width$}",
             width = Self::COLUMN_WIDTH * Self::NUMBER_OF_COLUMNS - 10
@@ -632,6 +640,11 @@ impl Context {
     where
         F: FnOnce(&mut Context, Opcode) -> ControlFlow<CompletionRecord>,
     {
+        if self.vm.current_frame != Some(self.vm.frame()) {
+            println!();
+            self.trace_call_frame();
+            self.vm.current_frame = Some(self.vm.frame());
+        }
         let frame = self.vm.frame();
         let (instruction, _) = frame
             .code_block
@@ -642,22 +655,6 @@ impl Context {
             .frame()
             .code_block()
             .instruction_operands(&instruction);
-
-        match opcode {
-            Opcode::Call
-            | Opcode::CallSpread
-            | Opcode::CallEval
-            | Opcode::CallEvalSpread
-            | Opcode::New
-            | Opcode::NewSpread
-            | Opcode::Return
-            | Opcode::SuperCall
-            | Opcode::SuperCallSpread
-            | Opcode::SuperCallDerived => {
-                println!();
-            }
-            _ => {}
-        }
 
         let instant = Instant::now();
         let result = self.execute_instruction(f, opcode);
@@ -855,11 +852,6 @@ impl Context {
     /// "clock cycles" have passed.
     #[allow(clippy::future_not_send)]
     pub(crate) async fn run_async_with_budget(&mut self, budget: u32) -> CompletionRecord {
-        #[cfg(feature = "trace")]
-        if self.vm.trace {
-            self.trace_call_frame();
-        }
-
         let mut runtime_budget: u32 = budget;
 
         while let Some(byte) = self
@@ -895,11 +887,6 @@ impl Context {
     }
 
     pub(crate) fn run(&mut self) -> CompletionRecord {
-        #[cfg(feature = "trace")]
-        if self.vm.trace {
-            self.trace_call_frame();
-        }
-
         while let Some(byte) = self
             .vm
             .frame()
