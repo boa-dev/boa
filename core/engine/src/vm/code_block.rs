@@ -168,6 +168,10 @@ pub struct CodeBlock {
 
     // Used for identifying anonymous functions in compiled output and call frames.
     pub(crate) debug_id: u64,
+
+    #[cfg(feature = "trace")]
+    #[unsafe_ignore_trace]
+    pub(crate) traced: Cell<bool>,
 }
 
 /// ---- `CodeBlock` public API ----
@@ -198,6 +202,8 @@ impl CodeBlock {
             global_fns: Box::default(),
             global_vars: Box::default(),
             debug_id: CodeBlock::get_next_codeblock_id(),
+            #[cfg(feature = "trace")]
+            traced: Cell::new(false),
         }
     }
 
