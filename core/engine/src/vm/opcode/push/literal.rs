@@ -3,23 +3,20 @@ use crate::{
     object::JsRegExp,
     vm::{
         Constant,
-        opcode::{Operation, RegisterOperand, VaryingOperand},
+        opcode::{IndexOperand, Operation, RegisterOperand},
     },
 };
 
-/// `PushLiteral` implements the Opcode Operation for `Opcode::PushLiteral`
+/// `StoreLiteral` implements the Opcode Operation for `Opcode::StoreLiteral`
 ///
 /// Operation:
-///  - Push literal value on the stack.
+///  - Store literal value in dst.
 #[derive(Debug, Clone, Copy)]
-pub(crate) struct PushLiteral;
+pub(crate) struct StoreLiteral;
 
-impl PushLiteral {
+impl StoreLiteral {
     #[inline(always)]
-    pub(crate) fn operation(
-        (dst, index): (RegisterOperand, VaryingOperand),
-        context: &mut Context,
-    ) {
+    pub(crate) fn operation((dst, index): (RegisterOperand, IndexOperand), context: &mut Context) {
         let constant = &context.vm.frame().code_block().constants[usize::from(index)];
         let value: JsValue = match constant {
             Constant::BigInt(v) => v.clone().into(),
@@ -30,23 +27,23 @@ impl PushLiteral {
     }
 }
 
-impl Operation for PushLiteral {
-    const NAME: &'static str = "PushLiteral";
-    const INSTRUCTION: &'static str = "INST - PushLiteral";
+impl Operation for StoreLiteral {
+    const NAME: &'static str = "StoreLiteral";
+    const INSTRUCTION: &'static str = "INST - StoreLiteral";
     const COST: u8 = 1;
 }
 
-/// `PushRegexp` implements the Opcode Operation for `Opcode::PushRegexp`
+/// `StoreRegexp` implements the Opcode Operation for `Opcode::StoreRegexp`
 ///
 /// Operation:
-///  - Push regexp value on the stack.
+///  - Store regexp value in dst.
 #[derive(Debug, Clone, Copy)]
-pub(crate) struct PushRegexp;
+pub(crate) struct StoreRegexp;
 
-impl PushRegexp {
+impl StoreRegexp {
     #[inline(always)]
     pub(crate) fn operation(
-        (dst, pattern_index, flags_index): (RegisterOperand, VaryingOperand, VaryingOperand),
+        (dst, pattern_index, flags_index): (RegisterOperand, IndexOperand, IndexOperand),
         context: &mut Context,
     ) -> JsResult<()> {
         let code_block = context.vm.frame().code_block();
@@ -58,8 +55,8 @@ impl PushRegexp {
     }
 }
 
-impl Operation for PushRegexp {
-    const NAME: &'static str = "PushRegexp";
-    const INSTRUCTION: &'static str = "INST - PushRegexp";
+impl Operation for StoreRegexp {
+    const NAME: &'static str = "StoreRegexp";
+    const INSTRUCTION: &'static str = "INST - StoreRegexp";
     const COST: u8 = 5;
 }

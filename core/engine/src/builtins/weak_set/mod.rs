@@ -254,3 +254,6 @@ impl WeakSet {
         Ok(set.contains_key(value.inner()).into())
     }
 }
+
+#[cfg(test)]
+mod tests;

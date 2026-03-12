@@ -12,11 +12,12 @@ use intrinsics::Intrinsics;
 #[cfg(any(feature = "temporal", feature = "intl"))]
 use temporal_rs::provider::TimeZoneProvider;
 #[cfg(any(feature = "temporal", feature = "intl"))]
-use timezone_provider::tzif::CompiledTzdbProvider;
+use timezone_provider::experimental_tzif::ZeroCompiledTzdbProvider;
 
 use crate::job::Job;
+use crate::js_error;
 use crate::module::DynModuleLoader;
-use crate::vm::RuntimeLimits;
+use crate::vm::{CodeBlock, RuntimeLimits, create_function_object_fast};
 use crate::{
     HostDefined, JsNativeError, JsResult, JsString, JsValue, NativeObject, Source, builtins,
     class::{Class, ClassBuilder},
@@ -524,10 +525,6 @@ impl Context {
     /// Replaces the currently active realm with `realm`, and returns the old realm.
     #[inline]
     pub fn enter_realm(&mut self, realm: Realm) -> Realm {
-        self.vm
-            .frame_mut()
-            .environments
-            .replace_global(realm.environment().clone());
         std::mem::replace(&mut self.vm.frame_mut().realm, realm)
     }
 
@@ -878,6 +875,99 @@ impl Context {
 
         self.vm.stack.get_function(self.vm.frame())
     }
+
+    /// Creates all globals required to evaluate `codeblock`.
+    ///
+    /// This is the common path of the instantiations:
+    /// - `EvalDeclarationInstantiation ( body, varEnv, lexEnv, privateEnv, strict )`
+    /// - `GlobalDeclarationInstantiation ( script, env )`
+    fn create_globals(
+        &mut self,
+        codeblock: &CodeBlock,
+        configurable_globals: bool,
+    ) -> JsResult<()> {
+        // 8. For each element d of varDeclarations, in reverse List order, do
+        //    a. If d is not either a VariableDeclaration, a ForBinding, or a BindingIdentifier, then
+        //       i. Assert: d is either a FunctionDeclaration, a GeneratorDeclaration, an AsyncFunctionDeclaration, or an AsyncGeneratorDeclaration.
+        //       ii. NOTE: If there are multiple function declarations for the same name, the last declaration is used.
+        //       iii. Let fn be the sole element of the BoundNames of d.
+        for fun in codeblock.global_fns.iter().rev() {
+            // ...
+            // 1. Let fnDefinable be ? env.CanDeclareGlobalFunction(fn).
+            // 2. If fnDefinable is false, throw a TypeError exception.
+            let name = codeblock.constant_string(fun.name_index as usize);
+            if !self.can_declare_global_function(&name)? {
+                return Err(js_error!(TypeError: "cannot declare global function"));
+            }
+        }
+
+        // 10. For each element d of varDeclarations, do
+        for global_var in &codeblock.global_vars {
+            // ...
+            // a. Let vnDefinable be ? env.CanDeclareGlobalVar(vn).
+            // b. If vnDefinable is false, throw a TypeError exception.
+            let name = codeblock.constant_string(*global_var as usize);
+            if !self.can_declare_global_var(&name)? {
+                return Err(js_error!(TypeError: "cannot declare global variable"));
+            }
+        }
+
+        // 16. For each Parse Node f of functionsToInitialize, do
+        for fun in &codeblock.global_fns {
+            // ...
+            // c. Perform ? env.CreateGlobalFunctionBinding(fn, fo, false).
+            let function = create_function_object_fast(
+                codeblock.constant_function(fun.function_index as usize),
+                self,
+            );
+            let name = codeblock.constant_string(fun.name_index as usize);
+            self.create_global_function_binding(name, function, configurable_globals)?;
+        }
+
+        // 17. For each String vn of declaredVarNames, do
+        for global_declared_var in &codeblock.global_vars {
+            // a. Perform ? env.CreateGlobalVarBinding(vn, false).
+            let name = codeblock.constant_string(*global_declared_var as usize);
+            self.create_global_var_binding(name, configurable_globals)?;
+        }
+
+        Ok(())
+    }
+
+    /// `GlobalDeclarationInstantiation ( script, env )`
+    ///
+    /// More information:
+    ///  - [ECMAScript reference][spec]
+    ///
+    /// [spec]: https://tc39.es/ecma262/#sec-globaldeclarationinstantiation
+    pub(crate) fn global_declaration_instantiation(
+        &mut self,
+        codeblock: &CodeBlock,
+    ) -> JsResult<()> {
+        // 3. For each element name of lexNames, do
+        for global_lex in &codeblock.global_lexs {
+            // c. Let hasRestrictedGlobal be ? env.HasRestrictedGlobalProperty(name).
+            // d. If hasRestrictedGlobal is true, throw a SyntaxError exception.
+            let name = codeblock.constant_string(*global_lex as usize);
+            if self.has_restricted_global_property(&name)? {
+                return Err(
+                    js_error!(SyntaxError: "cannot redefine non-configurable global property"),
+                );
+            }
+        }
+
+        self.create_globals(codeblock, false)
+    }
+
+    /// `EvalDeclarationInstantiation ( body, varEnv, lexEnv, privateEnv, strict )`
+    ///
+    /// More information:
+    ///  - [ECMAScript reference][spec]
+    ///
+    /// [spec]: https://tc39.es/ecma262/#sec-evaldeclarationinstantiation
+    pub(crate) fn eval_declaration_instantiation(&mut self, codeblock: &CodeBlock) -> JsResult<()> {
+        self.create_globals(codeblock, true)
+    }
 }
 
 impl Context {
@@ -1134,7 +1224,7 @@ impl ContextBuilder {
             timezone_provider: if let Some(provider) = self.timezone_provider {
                 provider
             } else {
-                Box::new(CompiledTzdbProvider::default())
+                Box::new(ZeroCompiledTzdbProvider::default())
             },
             #[cfg(feature = "intl")]
             intl_provider: if let Some(icu) = self.icu {
