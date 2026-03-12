@@ -14,7 +14,7 @@ use crate::{
     builtins::{BuiltInObject, function::OrdinaryFunction},
     bytecompiler::{ByteCompiler, prepare_eval_declaration_instantiation},
     context::intrinsics::Intrinsics,
-    environments::Environment,
+    environments::SavedEnvironments,
     error::JsNativeError,
     js_string,
     object::JsObject,
@@ -90,10 +90,9 @@ impl Eval {
 
         /// Possible actions that can be executed after exiting this function to restore the environment to its
         /// original state.
-        #[derive(Debug)]
         enum EnvStackAction {
             Truncate(usize),
-            Restore(Vec<Environment>),
+            Restore(SavedEnvironments),
         }
 
         // 1. Assert: If direct is false, then strictCaller is also false.
@@ -137,12 +136,13 @@ impl Eval {
         // 8. Let inDerivedConstructor be false.
         // 9. Let inClassFieldInitializer be false.
         // a. Let thisEnvRec be GetThisEnvironment().
-        let flags = match context
-            .vm
-            .frame()
-            .environments
-            .get_this_environment()
-            .as_function()
+        let flags = match {
+            let frame = context.vm.frame();
+            frame
+                .environments
+                .get_this_environment(frame.realm.environment())
+        }
+        .as_function()
         {
             // 10. If direct is true, then
             //     b. If thisEnvRec is a Function Environment Record, then
@@ -211,11 +211,11 @@ impl Eval {
 
             // Poison the last parent function environment, because it may contain new declarations after/during eval.
             if !strict {
-                context
-                    .vm
-                    .frame_mut()
-                    .environments
-                    .poison_until_last_function();
+                {
+                    let frame = context.vm.frame_mut();
+                    let global = frame.realm.environment();
+                    frame.environments.poison_until_last_function(global);
+                }
             }
 
             // Set the compile time environment to the current running environment and save the number of current environments.
@@ -227,17 +227,17 @@ impl Eval {
             // If the call to eval is indirect, the code is executed in the global environment.
 
             // Pop all environments before the eval execution.
-            let environments = context.vm.frame_mut().environments.pop_to_global();
+            let saved = context.vm.frame_mut().environments.pop_to_global();
 
             // Restore all environments to the state from before the eval execution.
-            EnvStackAction::Restore(environments)
+            EnvStackAction::Restore(saved)
         };
 
         let context = &mut context.guard(move |ctx| match action {
             EnvStackAction::Truncate(len) => ctx.vm.frame_mut().environments.truncate(len),
-            EnvStackAction::Restore(envs) => {
+            EnvStackAction::Restore(saved) => {
                 ctx.vm.frame_mut().environments.truncate(0);
-                ctx.vm.frame_mut().environments.extend(envs);
+                ctx.vm.frame_mut().environments.restore_from_saved(saved);
             }
         });
 
@@ -344,11 +344,13 @@ impl Eval {
         // Pushing the scope here ensures any function objects created
         // in `eval_declaration_instantiation` get their proper
         // environment stack.
-        context
-            .vm
-            .frame_mut()
-            .environments
-            .push_lexical(lexical_scope.num_bindings_non_local());
+        {
+            let frame = context.vm.frame_mut();
+            let global = frame.realm.environment();
+            frame
+                .environments
+                .push_lexical(lexical_scope.num_bindings_non_local(), global);
+        }
 
         context
             .eval_declaration_instantiation(&code_block)
