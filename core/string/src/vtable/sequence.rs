@@ -24,7 +24,7 @@ pub(crate) static UTF16_VTABLE: JsStringVTable = JsStringVTable {
 /// A sequential memory array of `T::Char` elements.
 ///
 /// # Notes
-/// A [`SequenceString`] is `!Sync` (using [`Cell`]) and invariant over `T` (strings
+/// A [`SequenceString`] is `!Sync` (using [`std::cell::Cell`]) and invariant over `T` (strings
 /// of various types cannot be used interchangeably). The string, however, could be
 /// `Send`, although within Boa this does not make sense.
 #[repr(C)]
