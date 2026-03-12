@@ -297,7 +297,7 @@ where
     let str_len = string.len();
 
     // 2. Let R be the empty String.
-    let mut r = Vec::new();
+    let mut r = Vec::with_capacity(str_len);
 
     // 3. Let k be 0.
     let mut k = 0;
@@ -370,7 +370,7 @@ where
     // 1. Let strLen be the length of string.
     let str_len = string.len();
     // 2. Let R be the empty String.
-    let mut r = Vec::new();
+    let mut r = Vec::with_capacity(str_len);
 
     let mut octets = Vec::with_capacity(4);
 
@@ -587,6 +587,6 @@ mod tests {
         let s = js_string!("%E7%9A%8");
         let err = decode(&s, |_| false).expect_err("should error on incomplete escape");
         let native = err.as_native().expect("error should be native");
-        assert!(matches!(native.kind, JsNativeErrorKind::Uri));
+        assert!(matches!(native.kind(), JsNativeErrorKind::Uri));
     }
 }

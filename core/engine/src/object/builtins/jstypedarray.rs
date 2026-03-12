@@ -877,6 +877,41 @@ impl JsTypedArray {
         })
     }
 
+    /// Calls `TypedArray.prototype.entries()`.
+    #[inline]
+    pub fn entries(&self, context: &mut Context) -> JsResult<JsValue> {
+        BuiltinTypedArray::entries(&self.inner.clone().into(), &[], context)
+    }
+
+    /// Calls `TypedArray.prototype.keys()`.
+    #[inline]
+    pub fn keys(&self, context: &mut Context) -> JsResult<JsValue> {
+        BuiltinTypedArray::keys(&self.inner.clone().into(), &[], context)
+    }
+
+    /// Calls `TypedArray.prototype.values()`.
+    #[inline]
+    pub fn values(&self, context: &mut Context) -> JsResult<JsValue> {
+        BuiltinTypedArray::values(&self.inner.clone().into(), &[], context)
+    }
+
+    /// Calls `TypedArray.prototype[@@iterator]()`.
+    #[inline]
+    pub fn iterator(&self, context: &mut Context) -> JsResult<JsValue> {
+        BuiltinTypedArray::values(&self.inner.clone().into(), &[], context)
+    }
+
+    /// Calls `TypedArray.prototype.toString()`.
+    #[inline]
+    pub fn to_string(&self, context: &mut Context) -> JsResult<JsString> {
+        // TypedArray.prototype.toString is the same as Array.prototype.toString
+        let result = crate::builtins::Array::to_string(&self.inner.clone().into(), &[], context)?;
+        result
+            .as_string()
+            .js_expect("Array.prototype.toString always returns string")
+            .map_err(Into::into)
+    }
+
     /// It is a getter that returns the same string as the typed array constructor's name.
     /// It returns `Ok(JsValue::Undefined)` if the this value is not one of the typed array subclasses.
     ///
@@ -1347,4 +1382,171 @@ fn typed_iterators_f32() {
     let array = JsFloat32Array::from_iter(vec.clone(), context).unwrap();
     let vec2 = array.iter(context).collect::<Vec<_>>();
     assert_eq!(vec, vec2);
+}
+
+#[test]
+fn typed_array_to_string() {
+    let context = &mut Context::default();
+    let vec = vec![1u8, 2, 3];
+    let array = JsUint8Array::from_iter(vec, context).unwrap();
+    assert_eq!(
+        array.to_string(context).unwrap(),
+        crate::js_string!("1,2,3")
+    );
+}
+
+#[test]
+fn typed_array_entries() {
+    let context = &mut Context::default();
+    let vec = vec![1u8, 2];
+    let array = JsUint8Array::from_iter(vec, context).unwrap();
+    let entries = array.entries(context).unwrap();
+    let mut entries_vec = Vec::new();
+    let next_str = crate::js_string!("next");
+    loop {
+        let next_fn = entries
+            .as_object()
+            .unwrap()
+            .get(next_str.clone(), context)
+            .unwrap();
+        let result = next_fn
+            .as_object()
+            .unwrap()
+            .call(&entries, &[], context)
+            .unwrap();
+        if result
+            .as_object()
+            .unwrap()
+            .get(crate::js_string!("done"), context)
+            .unwrap()
+            .to_boolean()
+        {
+            break;
+        }
+        entries_vec.push(
+            result
+                .as_object()
+                .unwrap()
+                .get(crate::js_string!("value"), context)
+                .unwrap(),
+        );
+    }
+    assert_eq!(entries_vec.len(), 2);
+}
+
+#[test]
+fn typed_array_keys() {
+    let context = &mut Context::default();
+    let vec = vec![1u8, 2];
+    let array = JsUint8Array::from_iter(vec, context).unwrap();
+    let keys = array.keys(context).unwrap();
+    let mut keys_vec = Vec::new();
+    let next_str = crate::js_string!("next");
+    loop {
+        let next_fn = keys
+            .as_object()
+            .unwrap()
+            .get(next_str.clone(), context)
+            .unwrap();
+        let result = next_fn
+            .as_object()
+            .unwrap()
+            .call(&keys, &[], context)
+            .unwrap();
+        if result
+            .as_object()
+            .unwrap()
+            .get(crate::js_string!("done"), context)
+            .unwrap()
+            .to_boolean()
+        {
+            break;
+        }
+        keys_vec.push(
+            result
+                .as_object()
+                .unwrap()
+                .get(crate::js_string!("value"), context)
+                .unwrap(),
+        );
+    }
+    assert_eq!(keys_vec, vec![JsValue::new(0), JsValue::new(1)]);
+}
+
+#[test]
+fn typed_array_values() {
+    let context = &mut Context::default();
+    let vec = vec![1u8, 2];
+    let array = JsUint8Array::from_iter(vec, context).unwrap();
+    let values = array.values(context).unwrap();
+    let mut values_vec = Vec::new();
+    let next_str = crate::js_string!("next");
+    loop {
+        let next_fn = values
+            .as_object()
+            .unwrap()
+            .get(next_str.clone(), context)
+            .unwrap();
+        let result = next_fn
+            .as_object()
+            .unwrap()
+            .call(&values, &[], context)
+            .unwrap();
+        if result
+            .as_object()
+            .unwrap()
+            .get(crate::js_string!("done"), context)
+            .unwrap()
+            .to_boolean()
+        {
+            break;
+        }
+        values_vec.push(
+            result
+                .as_object()
+                .unwrap()
+                .get(crate::js_string!("value"), context)
+                .unwrap(),
+        );
+    }
+    assert_eq!(values_vec, vec![JsValue::new(1), JsValue::new(2)]);
+}
+
+#[test]
+fn typed_array_iterator() {
+    let context = &mut Context::default();
+    let vec = vec![1u8, 2];
+    let array = JsUint8Array::from_iter(vec, context).unwrap();
+    let values = array.iterator(context).unwrap();
+    let mut values_vec = Vec::new();
+    let next_str = crate::js_string!("next");
+    loop {
+        let next_fn = values
+            .as_object()
+            .unwrap()
+            .get(next_str.clone(), context)
+            .unwrap();
+        let result = next_fn
+            .as_object()
+            .unwrap()
+            .call(&values, &[], context)
+            .unwrap();
+        if result
+            .as_object()
+            .unwrap()
+            .get(crate::js_string!("done"), context)
+            .unwrap()
+            .to_boolean()
+        {
+            break;
+        }
+        values_vec.push(
+            result
+                .as_object()
+                .unwrap()
+                .get(crate::js_string!("value"), context)
+                .unwrap(),
+        );
+    }
+    assert_eq!(values_vec, vec![JsValue::new(1), JsValue::new(2)]);
 }
