@@ -104,7 +104,6 @@ getrandom = { version = "0.4.2", default-features = false }
 console_error_panic_hook = "0.1.7"
 wasm-bindgen-test = "0.3.64"
 smol = "2.0.2"
-isahc = "1.7.2"
 rustyline = { version = "17.0.2", default-features = false }
 dhat = "0.3.3"
 quote = "1.0.45"
