@@ -624,7 +624,7 @@ impl BuiltinTypedArray {
     ///  - [ECMAScript reference][spec]
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-%typedarray%.prototype.entries
-    pub(crate) fn entries(this: &JsValue, _: &[JsValue], context: &mut Context) -> JsResult<JsValue> {
+    fn entries(this: &JsValue, _: &[JsValue], context: &mut Context) -> JsResult<JsValue> {
         // 1. Let O be the this value.
         // 2. Perform ? ValidateTypedArray(O, seq-cst).
         let (ta, _) = TypedArray::validate(this, Ordering::SeqCst)?;
@@ -2546,7 +2546,7 @@ impl BuiltinTypedArray {
     ///  - [ECMAScript reference][spec]
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-%typedarray%.prototype.values
-    pub(crate) fn values(this: &JsValue, _: &[JsValue], context: &mut Context) -> JsResult<JsValue> {
+    fn values(this: &JsValue, _: &[JsValue], context: &mut Context) -> JsResult<JsValue> {
         // 1. Let O be the this value.
         // 2. Perform ? ValidateTypedArray(O, seq-cst).
         let (ta, _) = TypedArray::validate(this, Ordering::SeqCst)?;

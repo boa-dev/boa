@@ -177,33 +177,40 @@ impl JsObject {
         self.__define_own_property__(&key.into(), new_desc.into(), context)
     }
 
-    /// `7.3.5 CreateMethodProperty ( O, P, V )`
+    /// `10.2.8 DefineMethodProperty ( homeObject, key, closure, enumerable )`
+    ///
+    /// Defines a method property on an object with the specified attributes.
     ///
     /// More information:
     ///  - [ECMAScript reference][spec]
     ///
-    /// [spec]: https://tc39.es/ecma262/#sec-createmethodproperty
-    pub(crate) fn create_method_property<K, V>(
+    /// [spec]: https://tc39.es/ecma262/#sec-definemethodproperty
+    pub(crate) fn define_method_property<K, V>(
         &self,
         key: K,
         value: V,
         context: &mut InternalMethodPropertyContext<'_>,
-    ) -> JsResult<bool>
+    ) -> JsResult<()>
     where
         K: Into<PropertyKey>,
         V: Into<JsValue>,
     {
-        // 1. Assert: Type(O) is Object.
-        // 2. Assert: IsPropertyKey(P) is true.
-        // 3. Let newDesc be the PropertyDescriptor { [[Value]]: V, [[Writable]]: true, [[Enumerable]]: false, [[Configurable]]: true }.
+        // 1. Assert: homeObject is an ordinary, extensible object with no non-configurable properties.
+        // 2. If key is a Private Name, then
+        //    a. Return PrivateElement { [[Key]]: key, [[Kind]]: method, [[Value]]: closure }.
+        // 3. Else,
+        //    a. Let desc be the PropertyDescriptor { [[Value]]: closure, [[Writable]]: true, [[Enumerable]]: enumerable, [[Configurable]]: true }.
         let new_desc = PropertyDescriptor::builder()
             .value(value)
             .writable(true)
             .enumerable(false)
             .configurable(true);
 
-        // 4. Return ! O.[[DefineOwnProperty]](P, newDesc).
-        self.__define_own_property__(&key.into(), new_desc.into(), context)
+        //    b. Perform ! DefinePropertyOrThrow(homeObject, key, desc).
+        self.__define_own_property__(&key.into(), new_desc.into(), context)?;
+
+        //    c. Return unused.
+        Ok(())
     }
 
     /// Create data property or throw
