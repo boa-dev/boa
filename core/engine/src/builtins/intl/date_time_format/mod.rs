@@ -8,7 +8,7 @@
 //! [spec]: https://tc39.es/ecma402/#datetimeformat-objects
 
 use crate::{
-    Context, JsArgs, JsData, JsResult, JsString, JsValue, NativeFunction,
+    Context, JsArgs, JsData, JsExpect, JsResult, JsString, JsValue, NativeFunction,
     builtins::{
         BuiltInBuilder, BuiltInConstructor, BuiltInObject, IntrinsicObject,
         date::utils::{
@@ -273,7 +273,7 @@ impl DateTimeFormat {
                                 .with_message(format!("failed to load formatter: {e}"))
                         })?;
 
-                        let dt = fields.to_formattable_datetime();
+                        let dt = fields.to_formattable_datetime()?;
                         let tz_info = dtf.borrow().data().time_zone.to_time_zone_info();
                         let tz_info_at_time = tz_info.at_date_time_iso(dt);
 
@@ -358,13 +358,15 @@ impl ToLocalTime {
         })
     }
 
-    pub(crate) fn to_formattable_datetime(&self) -> DateTime<Iso> {
-        DateTime {
+    pub(crate) fn to_formattable_datetime(&self) -> JsResult<DateTime<Iso>> {
+        Ok(DateTime {
             date: Date::try_new_iso(self.year, self.month, self.day)
-                .expect("TimeClip insures valid range."),
+                .ok()
+                .js_expect("TimeClip insures valid range.")?,
             time: Time::try_new(self.hour, self.minute, self.second, self.subsecond)
-                .expect("valid values"),
-        }
+                .ok()
+                .js_expect("valid values")?,
+        })
     }
 }
 
