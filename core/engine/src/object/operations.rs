@@ -2,7 +2,7 @@ use super::internal_methods::InternalMethodPropertyContext;
 use crate::js_error;
 use crate::value::JsVariant;
 use crate::{
-    Context, JsResult, JsSymbol, JsValue,
+    Context, JsExpect, JsResult, JsSymbol, JsValue,
     builtins::{
         Array, Proxy,
         function::{BoundFunction, ClassFieldDefinition, OrdinaryFunction, set_function_name},
@@ -1238,11 +1238,11 @@ impl JsObject {
                     set_function_name(
                         &init_value
                             .as_object()
-                            .expect("init value must be a function object"),
+                            .js_expect("init value must be a function object")?,
                         function_name,
                         None,
                         context,
-                    );
+                    )?;
                 }
 
                 // a. Assert: IsPropertyKey(fieldName) is true.

@@ -19,7 +19,7 @@ use super::{
 use crate::builtins::function::arguments::{MappedArguments, UnmappedArguments};
 use crate::value::JsVariant;
 use crate::{
-    Context, JsArgs, JsData, JsResult, JsString,
+    Context, JsArgs, JsData, JsExpect, JsResult, JsString,
     builtins::{BuiltInObject, iterable::IteratorHint, map},
     context::intrinsics::{Intrinsics, StandardConstructor, StandardConstructors},
     error::JsNativeError,
@@ -169,7 +169,7 @@ impl BuiltInConstructor for OrdinaryObject {
                     .unwrap_or_else(|| context.intrinsics().constructors().object().constructor())
                     .into()
         {
-            //     a. Return ? OrdinaryCreateFromConstructor(NewTarget, "%Object.prototype%").
+            //     a. Return ? OrdinaryCreateFromConstructor(NewTarget, "%Object.prototype%").
             let prototype =
                 get_prototype_from_constructor(new_target, StandardConstructors::object, context)?;
             let object = JsObject::from_proto_and_data_with_shared_shape(
@@ -186,7 +186,7 @@ impl BuiltInConstructor for OrdinaryObject {
         if value.is_null_or_undefined() {
             Ok(JsObject::with_object_proto(context.intrinsics()).into())
         } else {
-            // 3. Return ! ToObject(value).
+            // 3. Return ! ToObject(value).
             value.to_object(context).map(JsValue::from)
         }
     }
@@ -511,7 +511,7 @@ impl OrdinaryObject {
             obj.__get_own_property__(&key, &mut InternalMethodPropertyContext::new(context))?;
 
         // 4. Return FromPropertyDescriptor(desc).
-        Ok(Self::from_property_descriptor(desc, context))
+        Self::from_property_descriptor(desc, context)
     }
 
     /// `Object.getOwnPropertyDescriptors( object )`
@@ -547,14 +547,14 @@ impl OrdinaryObject {
                 obj.__get_own_property__(&key, &mut InternalMethodPropertyContext::new(context))?;
 
             // b. Let descriptor be FromPropertyDescriptor(desc).
-            let descriptor = Self::from_property_descriptor(desc, context);
+            let descriptor = Self::from_property_descriptor(desc, context)?;
 
             // c. If descriptor is not undefined,
             //    perform ! CreateDataPropertyOrThrow(descriptors, key, descriptor).
             if !descriptor.is_undefined() {
                 descriptors
                     .create_data_property_or_throw(key, descriptor, context)
-                    .expect("should not fail according to spec");
+                    .js_expect("should not fail according to spec")?;
             }
         }
 
@@ -570,10 +570,10 @@ impl OrdinaryObject {
     pub(crate) fn from_property_descriptor(
         desc: Option<PropertyDescriptor>,
         context: &mut Context,
-    ) -> JsValue {
+    ) -> JsResult<JsValue> {
         // 1. If Desc is undefined, return undefined.
         let Some(desc) = desc else {
-            return JsValue::undefined();
+            return Ok(JsValue::undefined());
         };
 
         // 2. Let obj be ! OrdinaryObjectCreate(%Object.prototype%).
@@ -584,46 +584,46 @@ impl OrdinaryObject {
         if let Some(value) = desc.value() {
             // a. Perform ! CreateDataPropertyOrThrow(obj, "value", Desc.[[Value]]).
             obj.create_data_property_or_throw(js_string!("value"), value.clone(), context)
-                .expect("CreateDataPropertyOrThrow cannot fail here");
+                .js_expect("CreateDataPropertyOrThrow cannot fail here")?;
         }
 
         // 5. If Desc has a [[Writable]] field, then
         if let Some(writable) = desc.writable() {
             // a. Perform ! CreateDataPropertyOrThrow(obj, "writable", Desc.[[Writable]]).
             obj.create_data_property_or_throw(js_string!("writable"), writable, context)
-                .expect("CreateDataPropertyOrThrow cannot fail here");
+                .js_expect("CreateDataPropertyOrThrow cannot fail here")?;
         }
 
         // 6. If Desc has a [[Get]] field, then
         if let Some(get) = desc.get() {
             // a. Perform ! CreateDataPropertyOrThrow(obj, "get", Desc.[[Get]]).
             obj.create_data_property_or_throw(js_string!("get"), get.clone(), context)
-                .expect("CreateDataPropertyOrThrow cannot fail here");
+                .js_expect("CreateDataPropertyOrThrow cannot fail here")?;
         }
 
         // 7. If Desc has a [[Set]] field, then
         if let Some(set) = desc.set() {
             // a. Perform ! CreateDataPropertyOrThrow(obj, "set", Desc.[[Set]]).
             obj.create_data_property_or_throw(js_string!("set"), set.clone(), context)
-                .expect("CreateDataPropertyOrThrow cannot fail here");
+                .js_expect("CreateDataPropertyOrThrow cannot fail here")?;
         }
 
         // 8. If Desc has an [[Enumerable]] field, then
         if let Some(enumerable) = desc.enumerable() {
             // a. Perform ! CreateDataPropertyOrThrow(obj, "enumerable", Desc.[[Enumerable]]).
             obj.create_data_property_or_throw(js_string!("enumerable"), enumerable, context)
-                .expect("CreateDataPropertyOrThrow cannot fail here");
+                .js_expect("CreateDataPropertyOrThrow cannot fail here")?;
         }
 
         // 9. If Desc has a [[Configurable]] field, then
         if let Some(configurable) = desc.configurable() {
             // a. Perform ! CreateDataPropertyOrThrow(obj, "configurable", Desc.[[Configurable]]).
             obj.create_data_property_or_throw(js_string!("configurable"), configurable, context)
-                .expect("CreateDataPropertyOrThrow cannot fail here");
+                .js_expect("CreateDataPropertyOrThrow cannot fail here")?;
         }
 
         // 10. Return obj.
-        obj.into()
+        Ok(obj.into())
     }
 
     /// Uses the `SameValue` algorithm to check equality of objects
@@ -841,7 +841,9 @@ impl OrdinaryObject {
             return Ok(js_string!("[object Null]").into());
         }
         // 3. Let O be ! ToObject(this value).
-        let o = this.to_object(context).expect("toObject cannot fail here");
+        let o = this
+            .to_object(context)
+            .js_expect("toObject cannot fail here")?;
 
         //  4. Let isArray be ? IsArray(O).
         //  5. If isArray is true, let builtinTag be "Array".
@@ -993,7 +995,7 @@ impl OrdinaryObject {
                 // 3.a.i. Let from be ! ToObject(nextSource).
                 let from = source
                     .to_object(context)
-                    .expect("this ToObject call must not fail");
+                    .js_expect("this ToObject call must not fail")?;
                 // 3.a.ii. Let keys be ? from.[[OwnPropertyKeys]]().
                 let keys =
                     from.__own_property_keys__(&mut InternalMethodPropertyContext::new(context))?;
@@ -1446,7 +1448,7 @@ impl OrdinaryObject {
 
             // b. Perform ! CreateDataPropertyOrThrow(obj, g.[[Key]], elements).
             obj.create_data_property_or_throw(key, elements, context)
-                .expect("cannot fail for a newly created object");
+                .js_expect("cannot fail for a newly created object")?;
         }
 
         // 4. Return obj.

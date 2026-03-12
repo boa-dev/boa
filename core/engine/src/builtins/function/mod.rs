@@ -12,7 +12,7 @@
 //! [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Function
 
 use crate::{
-    Context, JsArgs, JsResult, JsStr, JsString, JsValue, SpannedSourceText,
+    Context, JsArgs, JsExpect, JsResult, JsStr, JsString, JsValue, SpannedSourceText,
     builtins::{
         BuiltInBuilder, BuiltInConstructor, BuiltInObject, IntrinsicObject, OrdinaryObject,
     },
@@ -762,7 +762,7 @@ impl BuiltInFunctionObject {
                 // 1. Let targetLenAsInt be ! ToIntegerOrInfinity(targetLen).
                 match target_len
                     .to_integer_or_infinity(context)
-                    .expect("to_integer_or_infinity cannot fail for a number")
+                    .js_expect("to_integer_or_infinity cannot fail for a number")?
                 {
                     // i. If targetLen is +∞𝔽, set L to +∞.
                     IntegerOrInfinity::PositiveInfinity => l = f64::INFINITY.into(),
@@ -789,7 +789,7 @@ impl BuiltInFunctionObject {
                 .configurable(true),
             context,
         )
-        .expect("defining the `length` property for a new object should not fail");
+        .js_expect("defining the `length` property for a new object should not fail")?;
 
         // 8. Let targetName be ? Get(Target, "name").
         let target_name = target.get(js_string!("name"), context)?;
@@ -798,7 +798,7 @@ impl BuiltInFunctionObject {
         let target_name = target_name.as_string().unwrap_or_default();
 
         // 10. Perform SetFunctionName(F, targetName, "bound").
-        set_function_name(&f, &target_name.into(), Some(js_str!("bound")), context);
+        set_function_name(&f, &target_name.into(), Some(js_str!("bound")), context)?;
 
         // 11. Return F.
         Ok(f.into())
@@ -922,7 +922,7 @@ pub(crate) fn set_function_name(
     name: &PropertyKey,
     prefix: Option<JsStr<'_>>,
     context: &mut Context,
-) {
+) -> JsResult<()> {
     // 1. Assert: F is an extensible object that does not have a "name" own property.
     // 2. If Type(name) is Symbol, then
     let mut name = match name {
@@ -967,7 +967,9 @@ pub(crate) fn set_function_name(
                 .configurable(true),
             context,
         )
-        .expect("defining the `name` property must not fail per the spec");
+        .js_expect("defining the `name` property must not fail per the spec")?;
+
+    Ok(())
 }
 
 /// Call this object.
@@ -990,7 +992,7 @@ pub(crate) fn function_call(
 
     let function = function_object
         .downcast_ref::<OrdinaryFunction>()
-        .expect("not a function");
+        .js_expect("not a function")?;
     let realm = function.realm().clone();
 
     if function.code.is_class_constructor() {
@@ -1041,18 +1043,18 @@ pub(crate) fn function_call(
             context.vm.frame_mut().flags |= CallFrameFlags::THIS_VALUE_CACHED;
             let this: JsValue = context.realm().global_this().clone().into();
             context.vm.stack.set_this(
-                context.vm.frames.last().expect("frame must exist"),
+                context.vm.frames.last().js_expect("frame must exist")?,
                 this.clone(),
             );
             ThisBindingStatus::Initialized(this)
         } else {
             let this: JsValue = this
                 .to_object(context)
-                .expect("conversion cannot fail")
+                .js_expect("conversion cannot fail")?
                 .into();
             context.vm.frame_mut().flags |= CallFrameFlags::THIS_VALUE_CACHED;
             context.vm.stack.set_this(
-                context.vm.frames.last().expect("frame must exist"),
+                context.vm.frames.last().js_expect("frame must exist")?,
                 this.clone(),
             );
             ThisBindingStatus::Initialized(this)
@@ -1106,7 +1108,7 @@ fn function_construct(
 
     let function = this_function_object
         .downcast_ref::<OrdinaryFunction>()
-        .expect("not a function");
+        .js_expect("not a function")?;
     let realm = function.realm().clone();
 
     debug_assert!(
@@ -1198,7 +1200,7 @@ fn function_construct(
                 Some(
                     new_target
                         .as_object()
-                        .expect("new.target should be an object")
+                        .js_expect("new.target should be an object")?
                         .clone(),
                 ),
             ),
@@ -1208,7 +1210,7 @@ fn function_construct(
 
     let context = context.context();
     context.vm.stack.set_this(
-        context.vm.frames.last().expect("frame must exist"),
+        context.vm.frames.last().js_expect("frame must exist")?,
         this.map(JsValue::new).unwrap_or_default(),
     );
 

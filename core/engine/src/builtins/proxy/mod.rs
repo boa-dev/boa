@@ -612,7 +612,7 @@ pub(crate) fn proxy_exotic_define_own_property(
     };
 
     // 7. Let descObj be FromPropertyDescriptor(Desc).
-    let desc_obj = OrdinaryObject::from_property_descriptor(Some(desc.clone()), context);
+    let desc_obj = OrdinaryObject::from_property_descriptor(Some(desc.clone()), context)?;
 
     // 8. Let booleanTrapResult be ! ToBoolean(? Call(trap, handler, « target, P, descObj »)).
     // 9. If booleanTrapResult is false, return false.
