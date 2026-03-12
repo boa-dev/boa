@@ -1,14 +1,15 @@
 use crate::iter::CodePointsIter;
 use crate::vtable::{JsStringVTable, RawJsString};
 use crate::{JsStr, JsString, JsStringKind};
-use std::ptr::NonNull;
+use std::ptr::{self, NonNull};
 
 /// Static vtable for slice strings.
 pub(crate) static SLICE_VTABLE: JsStringVTable = JsStringVTable {
     as_str: slice_as_str,
     code_points: slice_code_points,
     code_unit_at: slice_code_unit_at,
-    dealloc: slice_dealloc,
+    dealloc: slice_dealloc, // Slice strings are now correctly deallocated.
+    kind: JsStringKind::Slice,
 };
 
 /// A slice of an existing string.
@@ -32,18 +33,19 @@ impl SliceString {
     #[inline]
     #[must_use]
     pub(crate) unsafe fn new(owned: &JsString, start: usize, end: usize) -> Self {
-        // SAFETY: invariant stated for this whole function.
+        // SAFETY: The caller is responsible for ensuring start and end are safe (`start` <= `end`,
+        // `start` >= 0, `end` <= `owned.len()`).
         let inner = unsafe { owned.as_str().get_unchecked(start..end) };
         SliceString {
             header: RawJsString {
                 vtable: &SLICE_VTABLE,
                 len: end - start,
                 refcount: 1,
-                kind: JsStringKind::Slice,
                 hash: 0,
             },
             owned: owned.clone(),
             // SAFETY: this inner's lifetime is tied to the owned string above.
+            // We transmute the lifetime to 'static to satisfy the long-lived nature of the string vtable.
             inner: unsafe { inner.as_static() },
         }
     }
@@ -56,6 +58,15 @@ impl SliceString {
     }
 }
 
+// Unused slice_clone removed.
+
+#[inline]
+fn slice_as_str(header: &RawJsString) -> JsStr<'_> {
+    // SAFETY: The header is part of a SliceString and it's aligned.
+    let this: &SliceString = unsafe { &*ptr::from_ref(header).cast::<SliceString>() };
+    this.inner
+}
+
 #[inline]
 fn slice_dealloc(ptr: NonNull<RawJsString>) {
     // SAFETY: This is part of the correct vtable which is validated on construction.
@@ -65,23 +76,19 @@ fn slice_dealloc(ptr: NonNull<RawJsString>) {
     }
 }
 
-// Unused slice_clone removed.
-
-#[inline]
-fn slice_as_str(ptr: NonNull<RawJsString>) -> JsStr<'static> {
-    // SAFETY: This is part of the correct vtable which is validated on construction.
-    let this: &SliceString = unsafe { ptr.cast().as_ref() };
-    this.inner
-}
-
 #[inline]
 fn slice_code_points(ptr: NonNull<RawJsString>) -> CodePointsIter<'static> {
-    CodePointsIter::new(slice_as_str(ptr))
+    // SAFETY: ptr is valid.
+    let header = unsafe { ptr.as_ref() };
+    // SAFETY: Transmuting to 'static is currently used for vtable consistency.
+    unsafe { std::mem::transmute(CodePointsIter::new(slice_as_str(header))) }
 }
 
 #[inline]
 fn slice_code_unit_at(ptr: NonNull<RawJsString>, index: usize) -> Option<u16> {
-    slice_as_str(ptr).get(index)
+    // SAFETY: ptr is valid.
+    let header = unsafe { ptr.as_ref() };
+    slice_as_str(header).get(index)
 }
 
 // Unused refcount method removed.

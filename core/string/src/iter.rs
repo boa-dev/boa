@@ -173,13 +173,14 @@ impl<'a> Iterator for RopeCodePointsIter<'a> {
 
             let s = self.stack.pop()?;
             if s.kind() == crate::JsStringKind::Rope {
-                // SAFETY: We know it's a rope.
+                // SAFETY: We just checked that the kind is a rope.
                 let r = unsafe { crate::vtable::RopeString::from_vtable(s.ptr) };
                 self.stack.push(r.right.clone());
                 self.stack.push(r.left.clone());
             } else {
                 // SAFETY: We keep `s` alive in `self.current`, so its code points are valid
-                // for the duration of the iteration.
+                // for the duration of the iteration. We transmute the lifetime to `'a` because
+                // the iterator's lifetime is tied to the rope.
                 let iter = unsafe {
                     std::mem::transmute::<CodePointsIter<'_>, CodePointsIter<'a>>(s.code_points())
                 };
