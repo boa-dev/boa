@@ -68,7 +68,7 @@ impl<D: InternalStringType> JsStringBuilder<D> {
         self.cap
     }
 
-    /// Returns the allocated byte of inner `RawJsString`'s data.
+    /// Returns the allocated byte of `RawJsString`'s data.
     #[must_use]
     const fn allocated_data_byte_len(&self) -> usize {
         self.len() * Self::DATA_SIZE
@@ -91,7 +91,7 @@ impl<D: InternalStringType> JsStringBuilder<D> {
         #[allow(clippy::cast_ptr_alignment)]
         // SAFETY:
         // The layout size of `RawJsString` is never zero, since it has to store
-        // the length of the string and the reference count.
+        // basic string metadata like length and refcount.
         let ptr = unsafe { alloc(layout) };
 
         let Some(ptr) = NonNull::new(ptr.cast()) else {
@@ -163,12 +163,12 @@ impl<D: InternalStringType> JsStringBuilder<D> {
             // SAFETY:
             // Valid pointer is required by `realloc` and pointer is checked above to be valid.
             // The layout size of the sequence string is never zero, since it has to store
-            // the length of the string and the reference count.
+            // the `RawJsString` header.
             unsafe { realloc(old_ptr.cast(), old_layout, new_layout.size()) }
         } else {
             // SAFETY:
             // The layout size of the sequence string is never zero, since it has to store
-            // the length of the string and the reference count.
+            // the `RawJsString` header.
             unsafe { alloc(new_layout) }
         };
 
