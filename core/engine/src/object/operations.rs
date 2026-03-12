@@ -735,7 +735,7 @@ impl JsObject {
         let own_keys =
             self.__own_property_keys__(&mut InternalMethodPropertyContext::new(context))?;
         // 3. Let properties be a new empty List.
-        let mut properties = vec![];
+        let mut properties = Vec::with_capacity(own_keys.len());
 
         // 4. For each element key of ownKeys, do
         for key in own_keys {

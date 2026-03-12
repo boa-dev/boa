@@ -440,7 +440,7 @@ impl String {
         context: &mut Context,
     ) -> JsResult<JsValue> {
         // 1. Let result be the empty String.
-        let mut result = Vec::new();
+        let mut result = Vec::with_capacity(args.len());
 
         // 2. For each element next of codeUnits, do
         for next in args {
