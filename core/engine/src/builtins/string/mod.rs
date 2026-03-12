@@ -689,15 +689,40 @@ impl String {
         // 2. Let S be ? ToString(O).
         let string = this.to_string(context)?;
 
+        // 3. Let n be ? ToIntegerOrInfinity(count).
+        let n = args.get_or_undefined(0).to_integer_or_infinity(context)?;
+
+        // 4 & 5. If n < 0 or n is +∞, throw a RangeError exception.
+        let n = match n {
+            IntegerOrInfinity::Integer(i) if i < 0 => {
+                return Err(JsNativeError::range()
+                    .with_message("String.prototype.repeat: count must be non-negative")
+                    .into());
+            }
+            IntegerOrInfinity::PositiveInfinity => {
+                return Err(JsNativeError::range()
+                    .with_message("String.prototype.repeat: count must be less than infinity")
+                    .into());
+            }
+            IntegerOrInfinity::NegativeInfinity => {
+                // Technically also covered by n < 0, but good to be explicit
+                return Err(JsNativeError::range()
+                    .with_message("String.prototype.repeat: count must be non-negative")
+                    .into());
+            }
+            IntegerOrInfinity::Integer(i) => i,
+        };
+
+        // Now 'n' is just a regular integer we can work with!
         let len = string.len();
 
-        // 3. Let n be ? ToIntegerOrInfinity(count).
-        match args.get_or_undefined(0).to_integer_or_infinity(context)? {
-            IntegerOrInfinity::Integer(n)
-                if u64::try_from(n)
-                    .ok()
-                    .and_then(|n| n.checked_mul(len as u64))
-                    .is_some_and(|total_len| total_len <= (Self::MAX_STRING_LENGTH as u64)) =>
+        match n {
+            // If n is 0, return the empty String.
+            0 => Ok(js_string!().into()),
+            n if u64::try_from(n)
+                .ok()
+                .and_then(|n| n.checked_mul(len as u64))
+                .is_some_and(|total_len| total_len <= (Self::MAX_STRING_LENGTH as u64)) =>
             {
                 if string.is_empty() {
                     return Ok(js_string!().into());
@@ -710,9 +735,7 @@ impl String {
                 // 6. Return the String value that is made from n copies of S appended together.
                 Ok(JsString::concat_array(&result).into())
             }
-            // 5. If n is 0, return the empty String.
-            IntegerOrInfinity::Integer(0) => Ok(js_string!().into()),
-            // 4. If n < 0 or n is +∞, throw a RangeError exception.
+            // Handle overflow case
             _ => Err(JsNativeError::range()
                 .with_message(
                     "repeat count must be a positive finite number \
