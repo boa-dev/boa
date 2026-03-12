@@ -201,7 +201,7 @@ impl CodeBlock {
             global_fns: Box::default(),
             global_vars: Box::default(),
             debug_id: CodeBlock::get_next_codeblock_id(),
-            traced: Cell::new(false)
+            traced: Cell::new(false),
         }
     }
 
