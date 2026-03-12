@@ -102,8 +102,30 @@ For more information on Boa's API, feel free to check out our documentation.
 
 ## 🏅 Conformance
 
-To know more details about Boa's conformance surrounding the _ECMAScript_ specification,
-you can check out our _ECMAScript Test262_ test suite results [here](https://boajs.dev/conformance).
+### Running Test262 Locally
+
+To run the official ECMAScript Test262 test suite with Boa, you can use the maintained forks of `eshost` and `test262-harness` by [@CanadaHonk](https://github.com/CanadaHonk), which include support for Boa.
+
+1. Install the tools globally:
+
+```sh
+npm install -g https://github.com/CanadaHonk/eshost https://github.com/CanadaHonk/test262-harness
+```
+2. Build Boa in release mode:
+
+```sh
+cargo build --release -p boa_cli
+```
+
+3. Run Test262 (adjust paths to your environment):
+
+```sh
+test262-harness \
+  --hostType=boa \
+  --hostPath=./target/release/boa \
+  --test262Dir=/path/to/test262 \
+  "test/**/*.js"
+```
 
 ## 🪚 Contributing
 
