@@ -36,7 +36,7 @@ pub(crate) enum JumpRecordAction {
     /// Handles finally, this needs to be done if we are in the try or catch section of a try statement that
     /// has a finally block.
     ///
-    /// It places push integer value [`crate::vm::opcode::Opcode`] as well as [`crate::vm::opcode::Opcode::PushFalse`], which means don't [`ReThrow`](crate::vm::opcode::Opcode::ReThrow).
+    /// It places push integer value [`crate::vm::opcode::Opcode`] as well as [`crate::vm::opcode::Opcode::StoreFalse`], which means don't [`ReThrow`](crate::vm::opcode::Opcode::ReThrow).
     ///
     /// The integer is an index used to jump. See [`crate::vm::opcode::Opcode::JumpTable`]. This is needed because the following code:
     ///
@@ -118,8 +118,10 @@ impl JumpRecord {
                     finally_throw_index,
                 } => {
                     let index = value as i32;
-                    compiler.bytecode.emit_push_false(finally_throw_flag.into());
-                    compiler.emit_push_integer_with_index(index, finally_throw_index.into());
+                    compiler
+                        .bytecode
+                        .emit_store_false(finally_throw_flag.into());
+                    compiler.emit_store_integer_with_index(index, finally_throw_index.into());
                 }
                 JumpRecordAction::CloseIterator { r#async } => {
                     compiler.iterator_close(r#async);

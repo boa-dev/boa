@@ -54,7 +54,7 @@ impl ByteCompiler<'_> {
                                 .resolve_expect(Sym::DEFAULT)
                                 .into_common(false);
                             let key = self.register_allocator.alloc();
-                            self.emit_push_literal(Literal::String(default), &key);
+                            self.emit_store_literal(Literal::String(default), &key);
                             self.bytecode.emit_set_function_name(
                                 function.variable(),
                                 key.variable(),

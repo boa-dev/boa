@@ -2326,7 +2326,7 @@ pub(crate) fn eval_declaration_instantiation_scope(
         }
 
         // b. Let thisEnv be lexEnv.
-        let mut this_env = lex_env.clone();
+        let mut this_env = lex_env;
 
         // c. Assert: The following loop will terminate.
         // d. Repeat, while thisEnv is not varEnv,
