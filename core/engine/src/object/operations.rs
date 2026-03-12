@@ -177,7 +177,34 @@ impl JsObject {
         self.__define_own_property__(&key.into(), new_desc.into(), context)
     }
 
-    // todo: CreateMethodProperty
+    /// `7.3.5 CreateMethodProperty ( O, P, V )`
+    ///
+    /// More information:
+    ///  - [ECMAScript reference][spec]
+    ///
+    /// [spec]: https://tc39.es/ecma262/#sec-createmethodproperty
+    pub(crate) fn create_method_property<K, V>(
+        &self,
+        key: K,
+        value: V,
+        context: &mut InternalMethodPropertyContext<'_>,
+    ) -> JsResult<bool>
+    where
+        K: Into<PropertyKey>,
+        V: Into<JsValue>,
+    {
+        // 1. Assert: Type(O) is Object.
+        // 2. Assert: IsPropertyKey(P) is true.
+        // 3. Let newDesc be the PropertyDescriptor { [[Value]]: V, [[Writable]]: true, [[Enumerable]]: false, [[Configurable]]: true }.
+        let new_desc = PropertyDescriptor::builder()
+            .value(value)
+            .writable(true)
+            .enumerable(false)
+            .configurable(true);
+
+        // 4. Return ! O.[[DefineOwnProperty]](P, newDesc).
+        self.__define_own_property__(&key.into(), new_desc.into(), context)
+    }
 
     /// Create data property or throw
     ///
@@ -842,7 +869,74 @@ impl JsObject {
         Ok(context.realm().clone())
     }
 
-    // todo: CopyDataProperties
+    /// `7.3.26 CopyDataProperties ( target, source, excludedItems )`
+    ///
+    /// More information:
+    ///  - [ECMAScript reference][spec]
+    ///
+    /// [spec]: https://tc39.es/ecma262/#sec-copydataproperties
+    pub fn copy_data_properties<K>(
+        &self,
+        source: &JsValue,
+        excluded_keys: Vec<K>,
+        context: &mut Context,
+    ) -> JsResult<()>
+    where
+        K: Into<PropertyKey>,
+    {
+        let context = &mut InternalMethodPropertyContext::new(context);
+
+        // 1. Assert: Type(target) is Object.
+        // 2. Assert: excludedItems is a List of property keys.
+        // 3. If source is undefined or null, return target.
+        if source.is_null_or_undefined() {
+            return Ok(());
+        }
+
+        // 4. Let from be ! ToObject(source).
+        let from = source
+            .to_object(context)
+            .expect("function ToObject should never complete abruptly here");
+
+        // 5. Let keys be ? from.[[OwnPropertyKeys]]().
+        // 6. For each element nextKey of keys, do
+        let excluded_keys: Vec<PropertyKey> = excluded_keys.into_iter().map(Into::into).collect();
+        for key in from.__own_property_keys__(context)? {
+            // a. Let excluded be false.
+            let mut excluded = false;
+
+            // b. For each element e of excludedItems, do
+            for e in &excluded_keys {
+                // i. If SameValue(e, nextKey) is true, then
+                if *e == key {
+                    // 1. Set excluded to true.
+                    excluded = true;
+                    break;
+                }
+            }
+            // c. If excluded is false, then
+            if !excluded {
+                // i. Let desc be ? from.[[GetOwnProperty]](nextKey).
+                let desc = from.__get_own_property__(&key, context)?;
+
+                // ii. If desc is not undefined and desc.[[Enumerable]] is true, then
+                if let Some(desc) = desc
+                    && let Some(enumerable) = desc.enumerable()
+                    && enumerable
+                {
+                    // 1. Let propValue be ? Get(from, nextKey).
+                    let prop_value = from.__get__(&key, from.clone().into(), context)?;
+
+                    // 2. Perform ! CreateDataPropertyOrThrow(target, nextKey, propValue).
+                    self.create_data_property_or_throw(key, prop_value, context)
+                        .expect("CreateDataPropertyOrThrow should never complete abruptly here");
+                }
+            }
+        }
+
+        // 7. Return target.
+        Ok(())
+    }
 
     /// Abstract operation `PrivateElementFind ( O, P )`
     ///
