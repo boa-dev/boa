@@ -168,6 +168,10 @@ pub struct CodeBlock {
 
     // Used for identifying anonymous functions in compiled output and call frames.
     pub(crate) debug_id: u64,
+
+    #[cfg(feature = "trace")]
+    #[unsafe_ignore_trace]
+    pub(crate) traced: Cell<bool>,
 }
 
 /// ---- `CodeBlock` public API ----
@@ -198,6 +202,8 @@ impl CodeBlock {
             global_fns: Box::default(),
             global_vars: Box::default(),
             debug_id: CodeBlock::get_next_codeblock_id(),
+            #[cfg(feature = "trace")]
+            traced: Cell::new(false),
         }
     }
 
@@ -1090,7 +1096,7 @@ pub(crate) fn create_function_object(
     let is_generator = code.is_generator();
     let function = OrdinaryFunction::new(
         code,
-        context.vm.frame().environments.clone(),
+        context.vm.frame().environments.snapshot_for_closure(),
         script_or_module,
         context.realm().clone(),
     );
@@ -1159,7 +1165,7 @@ pub(crate) fn create_function_object_fast(code: Gc<CodeBlock>, context: &mut Con
     let has_prototype_property = code.has_prototype_property();
     let function = OrdinaryFunction::new(
         code,
-        context.vm.frame().environments.clone(),
+        context.vm.frame().environments.snapshot_for_closure(),
         script_or_module,
         context.realm().clone(),
     );

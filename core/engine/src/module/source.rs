@@ -1574,7 +1574,6 @@ impl SourceTextModule {
 
         // 5. Let env be NewModuleEnvironment(realm.[[GlobalEnv]]).
         // 6. Set module.[[Environment]] to env.
-        let global_env = realm.environment().clone();
         let env = source.scope().clone();
 
         let spanned_source_text = SpannedSourceText::new_source_only(source_text);
@@ -1758,7 +1757,7 @@ impl SourceTextModule {
         };
 
         // 8. Let moduleContext be a new ECMAScript code execution context.
-        let mut envs = EnvironmentStack::new(global_env);
+        let mut envs = EnvironmentStack::new();
         envs.push_module(source.scope().clone());
 
         // 9. Set the Function of moduleContext to null.
@@ -1786,36 +1785,45 @@ impl SourceTextModule {
                 ImportBinding::Namespace { locator, module } => {
                     // i. Let namespace be GetModuleNamespace(importedModule).
                     let namespace = module.namespace(context);
-                    context.vm.frame_mut().environments.put_lexical_value(
-                        locator.scope(),
-                        locator.binding_index(),
-                        namespace.into(),
-                    );
+                    {
+                        let frame = context.vm.frame_mut();
+                        let global = frame.realm.environment();
+                        frame.environments.put_lexical_value(
+                            locator.scope(),
+                            locator.binding_index(),
+                            namespace.into(),
+                            global,
+                        );
+                    }
                 }
                 ImportBinding::Single {
                     locator,
                     export_locator,
                 } => match export_locator.binding_name() {
-                    BindingName::Name(name) => context
-                        .vm
-                        .frame()
-                        .environments
-                        .current_declarative_ref()
-                        .expect("must be declarative")
-                        .kind()
-                        .as_module()
-                        .expect("last environment should be the module env")
-                        .set_indirect(
-                            locator.binding_index(),
-                            export_locator.module().clone(),
-                            name.clone(),
-                        ),
+                    BindingName::Name(name) => {
+                        let frame = context.vm.frame();
+                        frame
+                            .environments
+                            .current_declarative_ref(frame.realm.environment())
+                            .expect("must be declarative")
+                            .kind()
+                            .as_module()
+                            .expect("last environment should be the module env")
+                            .set_indirect(
+                                locator.binding_index(),
+                                export_locator.module().clone(),
+                                name.clone(),
+                            );
+                    }
                     BindingName::Namespace => {
                         let namespace = export_locator.module.namespace(context);
-                        context.vm.frame_mut().environments.put_lexical_value(
+                        let frame = context.vm.frame_mut();
+                        let global = frame.realm.environment();
+                        frame.environments.put_lexical_value(
                             locator.scope(),
                             locator.binding_index(),
                             namespace.into(),
+                            global,
                         );
                     }
                 },
@@ -1828,11 +1836,16 @@ impl SourceTextModule {
 
             let function = create_function_object_fast(code, context);
 
-            context.vm.frame_mut().environments.put_lexical_value(
-                locator.scope(),
-                locator.binding_index(),
-                function.into(),
-            );
+            {
+                let frame = context.vm.frame_mut();
+                let global = frame.realm.environment();
+                frame.environments.put_lexical_value(
+                    locator.scope(),
+                    locator.binding_index(),
+                    function.into(),
+                    global,
+                );
+            }
         }
 
         // 25. Remove moduleContext from the execution context stack.
@@ -1843,7 +1856,7 @@ impl SourceTextModule {
 
         let env = frame
             .environments
-            .current_declarative_ref()
+            .current_declarative_ref(frame.realm.environment())
             .cloned()
             .expect("frame must have a declarative environment");
 
