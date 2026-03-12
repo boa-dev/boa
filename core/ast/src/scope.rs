@@ -716,6 +716,11 @@ pub struct FunctionScopes {
     pub(crate) lexical_scope: Option<Scope>,
     pub(crate) mapped_arguments_object: bool,
     pub(crate) requires_function_scope: bool,
+    /// Set when the *only* reason the function would need a runtime
+    /// function-environment is that `this` escapes into an inner arrow.
+    /// When this is `true`, the byte-compiler avoids `HAS_FUNCTION_SCOPE`
+    /// and instead propagates `this` directly to inner arrow closures.
+    pub(crate) this_escaped_only: bool,
 }
 
 impl FunctionScopes {
@@ -759,6 +764,13 @@ impl FunctionScopes {
     #[must_use]
     pub fn requires_function_scope(&self) -> bool {
         self.requires_function_scope
+    }
+
+    /// Returns `true` when `escaped_this()` is the sole reason a function
+    /// scope would be needed (no `super`, `new.target`, or escaping bindings).
+    #[must_use]
+    pub fn this_escaped_only(&self) -> bool {
+        self.this_escaped_only
     }
 
     /// Returns the parameters eval scope for this function.
@@ -840,6 +852,7 @@ impl<'a> arbitrary::Arbitrary<'a> for FunctionScopes {
             lexical_scope: None,
             mapped_arguments_object: false,
             requires_function_scope: false,
+            this_escaped_only: false,
         })
     }
 }

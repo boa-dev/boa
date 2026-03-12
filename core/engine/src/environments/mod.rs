@@ -27,7 +27,7 @@
 mod runtime;
 
 pub(crate) use runtime::{
-    DeclarativeEnvironment, Environment, EnvironmentStack, FunctionSlots, PrivateEnvironment,
+    DeclarativeEnvironment, EnvironmentStack, FunctionSlots, PrivateEnvironment,
     SavedEnvironments, ThisBindingStatus,
 };
 

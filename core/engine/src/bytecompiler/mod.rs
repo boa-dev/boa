@@ -540,6 +540,8 @@ pub struct ByteCompiler<'ctx> {
     /// Whether the function is in a `with` statement.
     pub(crate) in_with: bool,
 
+    pub(crate) propagate_lexical_this: bool,
+
     /// Used to determine if a we emitted a `CreateUnmappedArgumentsObject` opcode
     pub(crate) emitted_mapped_arguments_object_opcode: bool,
 
@@ -668,6 +670,7 @@ impl<'ctx> ByteCompiler<'ctx> {
             #[cfg(feature = "annex-b")]
             annex_b_function_names: Vec::new(),
             in_with,
+            propagate_lexical_this: false,
             emitted_mapped_arguments_object_opcode: false,
 
             global_lexs: Vec::new(),
@@ -2324,6 +2327,7 @@ impl<'ctx> ByteCompiler<'ctx> {
             .strict(self.strict())
             .arrow(arrow)
             .in_with(self.in_with)
+            .propagate_lexical_this(self.propagate_lexical_this && arrow)
             .name_scope(name_scope.cloned())
             .source_path(self.source_path.clone())
             .compile(
@@ -2348,8 +2352,21 @@ impl<'ctx> ByteCompiler<'ctx> {
         dst: &Register,
     ) {
         let name = function.name;
+        let is_arrow = function.kind.is_arrow();
         let index = self.function(function);
         self.emit_get_function(dst, index);
+
+        // When the enclosing function uses THIS_ESCAPED_ONLY, eagerly
+        // resolve `this` and store it on the arrow function object so the
+        // function environment can be elided.
+        if self.propagate_lexical_this && is_arrow {
+            let this = self.register_allocator.alloc();
+            self.bytecode.emit_this(this.variable());
+            self.bytecode
+                .emit_set_arrow_lexical_this(dst.variable(), this.variable());
+            self.register_allocator.dealloc(this);
+        }
+
         match node_kind {
             NodeKind::Declaration => {
                 self.emit_binding(

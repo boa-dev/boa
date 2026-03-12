@@ -2137,8 +2137,16 @@ generate_opcodes! {
     ///   - Output: dst
     CreateUnmappedArgumentsObject { dst: RegisterOperand },
 
-    /// Reserved [`Opcode`].
-    Reserved1 => Reserved,
+    /// Set the captured lexical `this` on an arrow function object.
+    ///
+    /// Used by the `THIS_ESCAPED_ONLY` optimisation: instead of allocating a
+    /// function-environment just for `FunctionSlots`, the enclosing function
+    /// resolves `this` and writes it directly onto each inner arrow closure.
+    ///
+    /// - Registers:
+    ///   - function: the arrow function object (in/out)
+    ///   - this_value: the resolved `this` value
+    SetArrowLexicalThis { function: RegisterOperand, this_value: RegisterOperand },
     /// Reserved [`Opcode`].
     Reserved2 => Reserved,
     /// Reserved [`Opcode`].

@@ -2,7 +2,6 @@ use boa_ast::scope::{BindingLocator, BindingLocatorScope};
 
 use crate::{
     Context, JsError, JsNativeError, JsResult,
-    environments::Environment,
     vm::opcode::{IndexOperand, Operation, RegisterOperand},
 };
 
@@ -119,17 +118,23 @@ fn verify_initialized(locator: &BindingLocator, context: &mut Context) -> JsResu
                 "cannot assign to uninitialized binding `{}`",
                 key.to_std_string_escaped()
             )),
-            BindingLocatorScope::Stack(index) => match context.environment_expect(index) {
-                Environment::Declarative(_) => Some(format!(
-                    "cannot assign to uninitialized binding `{}`",
-                    key.to_std_string_escaped()
-                )),
-                Environment::Object(_) if strict => Some(format!(
-                    "cannot assign to uninitialized property `{}`",
-                    key.to_std_string_escaped()
-                )),
-                Environment::Object(_) => None,
-            },
+            BindingLocatorScope::Stack(index) => {
+                if context.vm.frame().environments.is_object_env(index) {
+                    if strict {
+                        Some(format!(
+                            "cannot assign to uninitialized property `{}`",
+                            key.to_std_string_escaped()
+                        ))
+                    } else {
+                        None
+                    }
+                } else {
+                    Some(format!(
+                        "cannot assign to uninitialized binding `{}`",
+                        key.to_std_string_escaped()
+                    ))
+                }
+            }
         };
 
         if let Some(message) = message {

@@ -24,6 +24,10 @@ pub(crate) struct FunctionCompiler {
     method: bool,
     in_with: bool,
     force_function_scope: bool,
+    /// When `true`, inner arrow functions should have `this` propagated
+    /// via `SetArrowLexicalThis` instead of inheriting it from the
+    /// environment chain.
+    propagate_lexical_this: bool,
     name_scope: Option<Scope>,
     spanned_source_text: SpannedSourceText,
     source_path: SourcePath,
@@ -41,6 +45,7 @@ impl FunctionCompiler {
             method: false,
             in_with: false,
             force_function_scope: false,
+            propagate_lexical_this: false,
             name_scope: None,
             spanned_source_text,
             source_path: SourcePath::None,
@@ -105,6 +110,12 @@ impl FunctionCompiler {
         self
     }
 
+    /// Propagate lexical `this` to inner arrow functions.
+    pub(crate) const fn propagate_lexical_this(mut self, v: bool) -> Self {
+        self.propagate_lexical_this = v;
+        self
+    }
+
     /// Set source map file path.
     pub(crate) fn source_path(mut self, source_path: SourcePath) -> Self {
         self.source_path = source_path;
@@ -149,6 +160,11 @@ impl FunctionCompiler {
 
         if self.arrow {
             compiler.this_mode = ThisMode::Lexical;
+            // Arrow functions continue propagating `this` to nested arrows
+            // when the enclosing non-arrow function uses THIS_ESCAPED_ONLY.
+            if self.propagate_lexical_this {
+                compiler.propagate_lexical_this = true;
+            }
         }
 
         if let Some(scope) = self.name_scope
@@ -161,10 +177,18 @@ impl FunctionCompiler {
         if contains_direct_eval || !scopes.function_scope().all_bindings_local() {
             compiler.code_block_flags |= CodeBlockFlags::HAS_FUNCTION_SCOPE;
         } else if !self.arrow {
-            compiler.code_block_flags.set(
-                CodeBlockFlags::HAS_FUNCTION_SCOPE,
-                self.force_function_scope || scopes.requires_function_scope(),
-            );
+            if scopes.this_escaped_only() && !self.force_function_scope {
+                // `this` escapes into inner arrows, but nothing else requires a
+                // function-environment.  Mark the code block so the byte compiler
+                // emits `SetArrowLexicalThis` instead of allocating an env.
+                compiler.code_block_flags |= CodeBlockFlags::THIS_ESCAPED_ONLY;
+                compiler.propagate_lexical_this = true;
+            } else {
+                compiler.code_block_flags.set(
+                    CodeBlockFlags::HAS_FUNCTION_SCOPE,
+                    self.force_function_scope || scopes.requires_function_scope(),
+                );
+            }
         }
 
         if compiler.code_block_flags.has_function_scope() {

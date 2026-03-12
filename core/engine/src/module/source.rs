@@ -1804,9 +1804,8 @@ impl SourceTextModule {
                         let frame = context.vm.frame();
                         frame
                             .environments
-                            .current_declarative_ref(frame.realm.environment())
+                            .current_declarative_kind(frame.realm.environment())
                             .expect("must be declarative")
-                            .kind()
                             .as_module()
                             .expect("last environment should be the module env")
                             .set_indirect(
@@ -1849,18 +1848,22 @@ impl SourceTextModule {
         }
 
         // 25. Remove moduleContext from the execution context stack.
-        let frame = context
+        let mut frame = context
             .vm
             .pop_frame()
             .expect("There should be a call frame");
 
-        let env = frame
-            .environments
-            .current_declarative_ref(frame.realm.environment())
-            .cloned()
-            .expect("frame must have a declarative environment");
+        let env = {
+            let global = frame.realm.environment().clone();
+            frame
+                .environments
+                .current_declarative_gc(&global)
+                .expect("frame must have a declarative environment")
+        };
 
         // 16. Set module.[[Context]] to moduleContext.
+        // Promote all inline environments before cloning for the module context.
+        frame.environments.promote_all();
         self.status.borrow_mut().transition(|state| match state {
             ModuleStatus::Linking { info } => ModuleStatus::PreLinked {
                 environment: env,
