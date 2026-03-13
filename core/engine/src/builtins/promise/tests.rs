@@ -1,10 +1,11 @@
 use std::{cell::Cell, rc::Rc};
 
 use crate::{
-    Context, JsObject, TestAction, run_test_actions, run_test_actions_with,
+    Context, JsObject, TestAction,
     builtins::Promise,
     builtins::promise::OperationType,
     context::{ContextBuilder, HostHooks},
+    run_test_actions, run_test_actions_with,
 };
 use indoc::indoc;
 
