@@ -185,7 +185,6 @@ If anything in the specification is confusing, don’t hesitate to ask in the
 
 For contributors looking to learn JavaScript and how it works, check out the [Mozilla Developer Guided Tours](https://www.youtube.com/playlist?list=PLo3w8EB99pqJVPhmYbYdInBvAGarDavh-).
 
-
 ### Installation
 
 To install the `boa_cli` package, you can use the following command:
