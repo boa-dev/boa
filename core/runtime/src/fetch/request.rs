@@ -9,6 +9,7 @@ use boa_engine::{
     Finalize, JsData, JsObject, JsResult, JsString, JsValue, Trace, boa_class, js_error,
 };
 use either::Either;
+use std::cell::Cell;
 use std::collections::BTreeMap;
 use std::mem;
 
@@ -132,6 +133,9 @@ impl RequestInit {
 pub struct JsRequest {
     #[unsafe_ignore_trace]
     inner: HttpRequest<Vec<u8>>,
+    
+    #[unsafe_ignore_trace]
+    body_used: Cell<bool>,
 }
 
 impl JsRequest {
@@ -176,16 +180,16 @@ impl JsRequest {
 
         if let Some(options) = options {
             let inner = options.into_request_builder(Some(request))?;
-            Ok(Self { inner })
+            Ok(Self { inner, body_used: Cell::new(false) })
         } else {
-            Ok(Self { inner: request })
+            Ok(Self { inner: request, body_used: Cell::new(false) })
         }
     }
 }
 
 impl From<HttpRequest<Vec<u8>>> for JsRequest {
     fn from(inner: HttpRequest<Vec<u8>>) -> Self {
-        Self { inner }
+        Self { inner, body_used: Cell::new(false) }
     }
 }
 
@@ -213,5 +217,23 @@ impl JsRequest {
             Either::Left(i) => Either::Left(i),
         };
         JsRequest::create_from_js(input, options)
+    }
+
+    #[boa(getter)]
+    #[boa(rename = "bodyUsed")]
+    fn body_used(&self) -> bool {
+        self.body_used.get()
+    }
+
+    #[boa(method)]
+    #[boa(rename = "clone")]
+    fn clone_js(&self) -> JsResult<Self> {
+        if self.body_used.get() {
+            return Err(js_error!(TypeError: "Request body is already used"));
+        }
+        Ok(Self {
+            inner: self.inner.clone(),
+            body_used: Cell::new(false),
+        })
     }
 }

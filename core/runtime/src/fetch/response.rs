@@ -14,6 +14,7 @@ use boa_engine::{
 };
 use boa_gc::{Finalize, Trace};
 use http::StatusCode;
+use std::cell::Cell;
 use std::rc::Rc;
 
 /// The type read-only property of the Response interface contains the type of the
@@ -108,6 +109,9 @@ pub struct JsResponse {
 
     #[unsafe_ignore_trace]
     body: Rc<Vec<u8>>,
+
+    #[unsafe_ignore_trace]
+    body_used: Cell<bool>,
 }
 
 impl JsResponse {
@@ -125,6 +129,7 @@ impl JsResponse {
             status,
             headers,
             body,
+            body_used: Cell::new(false),
         }
     }
 
@@ -137,6 +142,7 @@ impl JsResponse {
             status: None,
             headers: JsHeaders::default(),
             body: Rc::new(Vec::new()),
+            body_used: Cell::new(false),
         }
     }
 
@@ -207,31 +213,80 @@ impl JsResponse {
         self.url.clone()
     }
 
-    fn bytes(&self, context: &mut Context) -> JsPromise {
+    #[boa(getter)]
+    #[boa(rename = "bodyUsed")]
+    fn body_used(&self) -> bool {
+        self.body_used.get()
+    }
+
+    #[boa(method)]
+    #[boa(rename = "clone")]
+    fn clone_js(&self) -> JsResult<Self> {
+        if self.body_used.get() {
+            return Err(JsNativeError::typ().with_message("Body has already been consumed").into());
+        }
+        Ok(Self {
+            url: self.url.clone(),
+            r#type: self.r#type,
+            status: self.status,
+            headers: self.headers.deep_clone(),
+            body: self.body.clone(),
+            body_used: Cell::new(false),
+        })
+    }
+
+    fn bytes(&self, context: &mut Context) -> JsResult<JsPromise> {
+        if self.body_used.get() {
+            return JsPromise::reject(
+                JsNativeError::typ()
+                    .with_message("Body has already been consumed"),
+                context,
+            );
+        }
+        self.body_used.set(true);
+
         let body = self.body.clone();
-        JsPromise::from_async_fn(
+        Ok(JsPromise::from_async_fn(
             async move |context| {
                 JsUint8Array::from_iter(body.iter().copied(), &mut context.borrow_mut())
                     .map(Into::into)
             },
             context,
-        )
+        ))
     }
 
-    fn text(&self, context: &mut Context) -> JsPromise {
+    fn text(&self, context: &mut Context) -> JsResult<JsPromise> {
+        if self.body_used.get() {
+            return JsPromise::reject(
+                JsNativeError::typ()
+                    .with_message("Body has already been consumed"),
+                context,
+            );
+        }
+        self.body_used.set(true);
+
         let body = self.body.clone();
-        JsPromise::from_async_fn(
+        Ok(JsPromise::from_async_fn(
             async move |_| {
                 let body = String::from_utf8_lossy(body.as_ref());
                 Ok(JsString::from(body).into())
             },
             context,
-        )
+        ))
     }
 
-    fn json(&self, context: &mut Context) -> JsPromise {
+    fn json(&self, context: &mut Context) -> JsResult<JsPromise> {
+        if self.body_used.get() {
+            return JsPromise::reject(
+                JsNativeError::typ()
+                    .with_message("Body has already been consumed"),
+                context,
+            );
+        }
+        self.body_used.set(true);
+
         let body = self.body.clone();
-        JsPromise::from_async_fn(
+        Ok(JsPromise::from_async_fn(
             async move |context| {
                 let json_string = String::from_utf8_lossy(body.as_ref());
                 let json = serde_json::from_str::<serde_json::Value>(&json_string)
@@ -240,6 +295,6 @@ impl JsResponse {
                 JsValue::from_json(&json, &mut context.borrow_mut())
             },
             context,
-        )
+        ))
     }
 }

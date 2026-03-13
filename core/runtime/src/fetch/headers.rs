@@ -65,6 +65,14 @@ impl TryFromJs for JsHeaders {
 }
 
 impl JsHeaders {
+    /// Creates a deep clone of the headers.
+    #[must_use]
+    pub fn deep_clone(&self) -> Self {
+        Self {
+            headers: Rc::new(RefCell::new(self.headers.borrow().clone())),
+        }
+    }
+
     /// Creates a [`JsHeaders`] from an internal [`http::HeaderMap`]. Takes ownership
     /// of the inner map.
     #[must_use]
