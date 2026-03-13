@@ -333,9 +333,6 @@ impl UrlSearchParamsIterator {
 impl UrlSearchParams {
     #[boa(constructor)]
     fn constructor(init: JsValue, context: &mut Context) -> JsResult<Self> {
-        // Follow the WHATWG URLSearchParams constructor shape:
-        // preserve existing params, otherwise prefer iterable input over record input,
-        // and finally treat primitives as strings to parse.
         let list = if init.is_undefined() || init.is_null() {
             Vec::new()
         } else if let Some(object) = init.as_object() {
@@ -675,7 +672,6 @@ impl Url {
             return Ok(existing.into());
         }
 
-        // The getter must return the same live URLSearchParams object for a URL instance.
         let params = UrlSearchParams::from_url(this.inner(), context)?;
         this.borrow_mut().search_params = Some(params.clone());
         Ok(params.into())
