@@ -4,7 +4,7 @@
 //!
 //! [mdn]: https://developer.mozilla.org/en-US/docs/Web/API/Request
 use super::HttpRequest;
-use boa_engine::object::builtins::{JsArrayBuffer, JsDataView, JsTypedArray};
+use boa_engine::object::builtins::{JsArrayBuffer, JsDataView, JsSharedArrayBuffer, JsTypedArray};
 use boa_engine::value::{Convert, TryFromJs};
 use boa_engine::{
     Finalize, JsData, JsObject, JsResult, JsString, JsValue, Trace, boa_class, js_error,
@@ -68,6 +68,7 @@ impl RequestInit {
     ///
     /// # Errors
     /// If the body is not a valid type, an error is returned.
+    #[allow(clippy::too_many_lines)]
     pub fn into_request_builder(
         mut self,
         request: Option<HttpRequest<Vec<u8>>>,
@@ -106,7 +107,7 @@ impl RequestInit {
         }
 
         if let Some(body) = &self.body {
-            // TODO: add more support types.
+            // TODO: support additional Fetch body types (e.g., Blob, FormData, URLSearchParams).
             if let Some(str_body) = body.as_string() {
                 let body_str = str_body.to_std_string().map_err(
                     |_| js_error!(TypeError: "Request constructor: body is not a valid string"),
@@ -121,38 +122,64 @@ impl RequestInit {
                             js_error!(TypeError: "Request constructor: ArrayBuffer detached or unusable"),
                         );
                     }
+                } else if let Ok(buf) = JsSharedArrayBuffer::from_object(object.clone()) {
+                    request_body = buf.to_vec();
                 } else if let Ok(ta) = JsTypedArray::from_object(object.clone()) {
                     let buffer = ta.buffer(context)?;
-                    let array_buffer = JsArrayBuffer::from_object(
-                        buffer
-                            .as_object()
-                            .expect("buffer must be an object")
-                            .clone(),
-                    )?;
-                    if let Some(bytes) = array_buffer.to_vec() {
-                        let offset = ta.byte_offset(context)?;
-                        let length = ta.byte_length(context)?;
+                    let buffer_obj = buffer
+                        .as_object()
+                        .ok_or_else(|| {
+                            js_error!(TypeError: "Request constructor: TypedArray buffer must be an object")
+                        })?
+                        .clone();
+
+                    let offset = ta.byte_offset(context)?;
+                    let length = ta.byte_length(context)?;
+
+                    if let Ok(array_buffer) = JsArrayBuffer::from_object(buffer_obj.clone()) {
+                        if let Some(buffer_data) = array_buffer.data() {
+                            let bytes = buffer_data.as_ref();
+                            request_body = bytes[offset..offset + length].to_vec();
+                        } else {
+                            return Err(
+                                js_error!(TypeError: "Request constructor: TypedArray buffer detached or unusable"),
+                            );
+                        }
+                    } else if let Ok(shared_buffer) = JsSharedArrayBuffer::from_object(buffer_obj) {
+                        let bytes = shared_buffer.to_vec();
                         request_body = bytes[offset..offset + length].to_vec();
                     } else {
                         return Err(
-                            js_error!(TypeError: "Request constructor: TypedArray buffer detached or unusable"),
+                            js_error!(TypeError: "Request constructor: TypedArray buffer is not an ArrayBuffer or SharedArrayBuffer"),
                         );
                     }
                 } else if let Ok(dv) = JsDataView::from_object(object.clone()) {
                     let buffer = dv.buffer(context)?;
-                    let array_buffer = JsArrayBuffer::from_object(
-                        buffer
-                            .as_object()
-                            .expect("buffer must be an object")
-                            .clone(),
-                    )?;
-                    if let Some(bytes) = array_buffer.to_vec() {
-                        let offset = dv.byte_offset(context)? as usize;
-                        let length = dv.byte_length(context)? as usize;
+                    let buffer_obj = buffer
+                        .as_object()
+                        .ok_or_else(|| {
+                            js_error!(TypeError: "Request constructor: DataView buffer must be an object")
+                        })?
+                        .clone();
+
+                    let offset = usize::try_from(dv.byte_offset(context)?).unwrap_or(0);
+                    let length = usize::try_from(dv.byte_length(context)?).unwrap_or(0);
+
+                    if let Ok(array_buffer) = JsArrayBuffer::from_object(buffer_obj.clone()) {
+                        if let Some(buffer_data) = array_buffer.data() {
+                            let bytes = buffer_data.as_ref();
+                            request_body = bytes[offset..offset + length].to_vec();
+                        } else {
+                            return Err(
+                                js_error!(TypeError: "Request constructor: DataView buffer detached or unusable"),
+                            );
+                        }
+                    } else if let Ok(shared_buffer) = JsSharedArrayBuffer::from_object(buffer_obj) {
+                        let bytes = shared_buffer.to_vec();
                         request_body = bytes[offset..offset + length].to_vec();
                     } else {
                         return Err(
-                            js_error!(TypeError: "Request constructor: DataView buffer detached or unusable"),
+                            js_error!(TypeError: "Request constructor: DataView buffer is not an ArrayBuffer or SharedArrayBuffer"),
                         );
                     }
                 } else {

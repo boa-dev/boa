@@ -174,6 +174,24 @@ fn request_body_typedarray() {
                     method: "POST",
                     body: dv,
                 });
+                // Uint8Array subarray exercising offset/length slicing ("ell")
+                const sub = buf.subarray(1, 4);
+                globalThis.req3 = new Request("http://unit.test", {
+                    method: "POST",
+                    body: sub,
+                });
+                // DataView with non-zero byteOffset and explicit byteLength ("ell")
+                const dvSlice = new DataView(buf.buffer, 1, 3);
+                globalThis.req4 = new Request("http://unit.test", {
+                    method: "POST",
+                    body: dvSlice,
+                });
+                // Plain ArrayBuffer body ("hello")
+                const ab = buf.buffer;
+                globalThis.req5 = new Request("http://unit.test", {
+                    method: "POST",
+                    body: ab,
+                });
             "#,
         ),
         TestAction::inspect_context(|ctx| {
@@ -186,6 +204,21 @@ fn request_body_typedarray() {
             let request2_obj = request2.as_object().unwrap();
             let request2 = request2_obj.downcast_ref::<JsRequest>().unwrap();
             assert_eq!(request2.inner().body().as_slice(), b"hello");
+
+            let request3 = ctx.global_object().get(js_str!("req3"), ctx).unwrap();
+            let request3_obj = request3.as_object().unwrap();
+            let request3 = request3_obj.downcast_ref::<JsRequest>().unwrap();
+            assert_eq!(request3.inner().body().as_slice(), b"ell");
+
+            let request4 = ctx.global_object().get(js_str!("req4"), ctx).unwrap();
+            let request4_obj = request4.as_object().unwrap();
+            let request4 = request4_obj.downcast_ref::<JsRequest>().unwrap();
+            assert_eq!(request4.inner().body().as_slice(), b"ell");
+
+            let request5 = ctx.global_object().get(js_str!("req5"), ctx).unwrap();
+            let request5_obj = request5.as_object().unwrap();
+            let request5 = request5_obj.downcast_ref::<JsRequest>().unwrap();
+            assert_eq!(request5.inner().body().as_slice(), b"hello");
         }),
     ]);
 }
