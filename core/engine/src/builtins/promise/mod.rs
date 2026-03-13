@@ -1104,13 +1104,13 @@ impl Promise {
         Ok(result_capability.promise.clone())
     }
 
-    #[cfg(feature = "experimental")]
     /// `Promise.allKeyed ( promises )`
     ///
     /// More information:
     ///  - [TC39 proposal spec][spec]
     ///
     /// [spec]: https://tc39.es/proposal-await-dictionary/#sec-promise.allkeyed
+    #[cfg(feature = "experimental")]
     pub(crate) fn all_keyed(
         this: &JsValue,
         args: &[JsValue],
@@ -1119,13 +1119,13 @@ impl Promise {
         Self::keyed_common(this, args, context, KeyedVariant::All, "allKeyed")
     }
 
-    #[cfg(feature = "experimental")]
     /// `Promise.allSettledKeyed ( promises )`
     ///
     /// More information:
     ///  - [TC39 proposal spec][spec]
     ///
     /// [spec]: https://tc39.es/proposal-await-dictionary/#sec-promise.allsettledkeyed
+    #[cfg(feature = "experimental")]
     pub(crate) fn all_settled_keyed(
         this: &JsValue,
         args: &[JsValue],
@@ -1140,8 +1140,8 @@ impl Promise {
         )
     }
 
-    #[cfg(feature = "experimental")]
     /// Shared entry-point logic for `Promise.allKeyed` and `Promise.allSettledKeyed`.
+    #[cfg(feature = "experimental")]
     fn keyed_common(
         this: &JsValue,
         args: &[JsValue],
@@ -1198,13 +1198,13 @@ impl Promise {
         Ok(promise_capability.promise.clone().into())
     }
 
-    #[cfg(feature = "experimental")]
     /// `PerformPromiseAllKeyed ( variant, promises, constructor, resultCapability, promiseResolve )`
     ///
     /// More information:
     ///  - [TC39 proposal spec][spec]
     ///
     /// [spec]: https://tc39.es/proposal-await-dictionary/#sec-performpromiseallkeyed
+    #[cfg(feature = "experimental")]
     fn perform_promise_all_keyed(
         variant: KeyedVariant,
         promises: &JsObject,
