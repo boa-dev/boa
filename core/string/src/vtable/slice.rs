@@ -77,17 +77,12 @@ fn slice_dealloc(ptr: NonNull<RawJsString>) {
 }
 
 #[inline]
-fn slice_code_points(ptr: NonNull<RawJsString>) -> CodePointsIter<'static> {
-    // SAFETY: ptr is valid.
-    let header = unsafe { ptr.as_ref() };
-    // SAFETY: Transmuting to 'static is currently used for vtable consistency.
-    unsafe { std::mem::transmute(CodePointsIter::new(slice_as_str(header))) }
+fn slice_code_points(header: &RawJsString) -> CodePointsIter<'_> {
+    CodePointsIter::new(slice_as_str(header))
 }
 
 #[inline]
-fn slice_code_unit_at(ptr: NonNull<RawJsString>, index: usize) -> Option<u16> {
-    // SAFETY: ptr is valid.
-    let header = unsafe { ptr.as_ref() };
+fn slice_code_unit_at(header: &RawJsString, index: usize) -> Option<u16> {
     slice_as_str(header).get(index)
 }
 

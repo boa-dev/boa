@@ -255,9 +255,9 @@ impl JsString {
     #[inline]
     #[must_use]
     pub fn code_points(&self) -> CodePointsIter<'_> {
-        // SAFETY: The `vtable()` function is guaranteed to be a valid function pointer
-        // for the specific string type, and `self.ptr` is a valid `NonNull<RawJsString>` pointer.
-        (self.vtable().code_points)(self.ptr)
+        // SAFETY: The pointer `self.ptr` is always valid and points to a `RawJsString` header.
+        let header = unsafe { self.ptr.as_ref() };
+        (header.vtable.code_points)(header)
     }
 
     /// Get the variant of this string.
@@ -715,7 +715,7 @@ impl JsString {
                 // All these have a direct JsStr representation.
                 self.as_str().get(index)
             }
-            JsStringKind::Rope => (header.vtable.code_unit_at)(self.ptr, index),
+            JsStringKind::Rope => (header.vtable.code_unit_at)(header, index),
         }
     }
 
