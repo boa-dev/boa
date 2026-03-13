@@ -77,12 +77,38 @@ impl ToInternedString for PropertyName {
                 if is_identifier_name(&name) {
                     name
                 } else {
-                    format!("\"{name}\"")
+                    format!("\"{}\"", escape_js_string(&name))
                 }
             }
             Self::Computed(key) => format!("[{}]", key.to_interned_string(interner)),
         }
     }
+}
+
+fn escape_js_string(value: &str) -> String {
+    let mut escaped = String::with_capacity(value.len());
+
+    for ch in value.chars() {
+        match ch {
+            '"' => escaped.push_str("\\\""),
+            '\\' => escaped.push_str("\\\\"),
+            '\n' => escaped.push_str("\\n"),
+            '\r' => escaped.push_str("\\r"),
+            '\t' => escaped.push_str("\\t"),
+            '\u{0008}' => escaped.push_str("\\b"),
+            '\u{000C}' => escaped.push_str("\\f"),
+            '\u{000B}' => escaped.push_str("\\v"),
+            '\u{2028}' => escaped.push_str("\\u2028"),
+            '\u{2029}' => escaped.push_str("\\u2029"),
+            ch if ch < ' ' => {
+                use core::fmt::Write as _;
+                let _ = write!(escaped, "\\u{:04X}", ch as u32);
+            }
+            _ => escaped.push(ch),
+        }
+    }
+
+    escaped
 }
 
 fn is_identifier_name(value: &str) -> bool {
