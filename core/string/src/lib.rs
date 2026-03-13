@@ -824,9 +824,15 @@ impl From<&[u16]> for JsString {
 impl From<&str> for JsString {
     #[inline]
     fn from(s: &str) -> Self {
-        // TODO: Check for latin1 encoding
         if s.is_ascii() {
             let js_str = JsStr::latin1(s.as_bytes());
+            return StaticJsStrings::get_string(&js_str)
+                .unwrap_or_else(|| JsString::from_slice_skip_interning(js_str));
+        }
+        // Non-ASCII but still Latin1-encodable (U+0080..=U+00FF): chars map 1-to-1 to u8.
+        if s.chars().all(|c| c as u32 <= 0xFF) {
+            let bytes: Vec<u8> = s.chars().map(|c| c as u8).collect();
+            let js_str = JsStr::latin1(&bytes);
             return StaticJsStrings::get_string(&js_str)
                 .unwrap_or_else(|| JsString::from_slice_skip_interning(js_str));
         }
