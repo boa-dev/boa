@@ -13,6 +13,7 @@ use crate::{
     Context, JsArgs, JsExpect, JsResult, JsString, JsValue,
     builtins::{Array, BuiltInObject, Number, RegExp},
     context::intrinsics::{Intrinsics, StandardConstructor, StandardConstructors},
+    error::RuntimeLimitError,
     error::JsNativeError,
     js_string,
     object::{JsObject, internal_methods::get_prototype_from_constructor},
@@ -692,34 +693,68 @@ impl String {
         let len = string.len();
 
         // 3. Let n be ? ToIntegerOrInfinity(count).
-        match args.get_or_undefined(0).to_integer_or_infinity(context)? {
-            IntegerOrInfinity::Integer(n)
-                if u64::try_from(n)
-                    .ok()
-                    .and_then(|n| n.checked_mul(len as u64))
-                    .is_some_and(|total_len| total_len <= (Self::MAX_STRING_LENGTH as u64)) =>
-            {
-                if string.is_empty() {
-                    return Ok(js_string!().into());
-                }
-                let n = n as usize;
-                let mut result = Vec::with_capacity(n);
-
-                std::iter::repeat_n(string.as_str(), n).for_each(|s| result.push(s));
-
-                // 6. Return the String value that is made from n copies of S appended together.
-                Ok(JsString::concat_array(&result).into())
+        let n = match args.get_or_undefined(0).to_integer_or_infinity(context)? {
+            IntegerOrInfinity::Integer(0) => {
+                // 5. If n is 0, return the empty String.
+                return Ok(js_string!().into());
             }
-            // 5. If n is 0, return the empty String.
-            IntegerOrInfinity::Integer(0) => Ok(js_string!().into()),
+            IntegerOrInfinity::Integer(n) => n,
             // 4. If n < 0 or n is +∞, throw a RangeError exception.
-            _ => Err(JsNativeError::range()
+            _ => {
+                return Err(JsNativeError::range()
+                    .with_message(
+                        "repeat count must be a positive finite number \
+                        that doesn't overflow the maximum string length (2^32 - 1)",
+                    )
+                    .into());
+            }
+        };
+
+        if n < 0 {
+            return Err(JsNativeError::range()
                 .with_message(
                     "repeat count must be a positive finite number \
                         that doesn't overflow the maximum string length (2^32 - 1)",
                 )
-                .into()),
+                .into());
         }
+
+        let n = u64::try_from(n).expect("n was checked to be non-negative");
+
+        if n
+            .checked_mul(len as u64)
+            .is_none_or(|total_len| total_len > (Self::MAX_STRING_LENGTH as u64))
+        {
+            return Err(JsNativeError::range()
+                .with_message(
+                    "repeat count must be a positive finite number \
+                        that doesn't overflow the maximum string length (2^32 - 1)",
+                )
+                .into());
+        }
+
+        if string.is_empty() {
+            return Ok(js_string!().into());
+        }
+
+        // Runtime limit guard for native loops inside this builtin.
+        let previous_iteration_count = context.vm.frame().loop_iteration_count;
+        let max_iteration_count = context.vm.runtime_limits.loop_iteration_limit();
+        let loop_iteration_count = previous_iteration_count.saturating_add(n);
+
+        if loop_iteration_count > max_iteration_count {
+            return Err(RuntimeLimitError::LoopIteration.into());
+        }
+
+        context.vm.frame_mut().loop_iteration_count = loop_iteration_count;
+
+        let n = usize::try_from(n).expect("repeat count is bounded by max string length");
+        let mut result = Vec::with_capacity(n);
+
+        std::iter::repeat_n(string.as_str(), n).for_each(|s| result.push(s));
+
+        // 6. Return the String value that is made from n copies of S appended together.
+        Ok(JsString::concat_array(&result).into())
     }
 
     /// `String.prototype.slice( beginIndex [, endIndex] )`
