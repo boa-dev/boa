@@ -278,6 +278,14 @@ fn url_search_params_optional_value_argument() {
                 assert_eq(deleteAllParams.toString(), "");
             "##,
         ),
+        TestAction::run(
+            r##"
+                const url = new URL("https://example.com/?a=undefined&a=x");
+                assert(url.searchParams.has("a", undefined));
+                url.searchParams.delete("a", undefined);
+                assert_eq(url.search, "?a=x");
+            "##,
+        ),
     ]);
 }
 
