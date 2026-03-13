@@ -180,6 +180,11 @@ pub struct OrdinaryFunction {
     /// The [`Realm`] the function is defined in.
     pub(crate) realm: Realm,
 
+    /// Captured `this` for arrow functions compiled under
+    /// the `THIS_ESCAPED_ONLY` optimisation.  Set at closure-creation time
+    /// by `SetArrowLexicalThis`, read at call time.
+    pub(crate) lexical_this: Option<JsValue>,
+
     /// The `[[Fields]]` internal slot.
     fields: ThinVec<ClassFieldDefinition>,
 
@@ -221,6 +226,7 @@ impl OrdinaryFunction {
             home_object: None,
             script_or_module,
             realm,
+            lexical_this: None,
             fields: ThinVec::default(),
             private_methods: ThinVec::default(),
         }
@@ -1009,6 +1015,7 @@ pub(crate) fn function_call(
     let code = function.code.clone();
     let environments = function.environments.clone();
     let script_or_module = function.script_or_module.clone();
+    let captured_lexical_this = function.lexical_this.clone();
 
     drop(function);
 
@@ -1033,6 +1040,17 @@ pub(crate) fn function_call(
 
     let lexical_this_mode = context.vm.frame().code_block.this_mode == ThisMode::Lexical;
     let this = if lexical_this_mode {
+        // Arrow function.  If the enclosing function used the
+        // THIS_ESCAPED_ONLY optimisation, the resolved `this` was stored
+        // directly on this arrow closure — use it instead of walking the
+        // environment chain.
+        if let Some(this) = captured_lexical_this {
+            context
+                .vm
+                .stack
+                .set_this(context.vm.frames.last().expect("frame must exist"), this);
+            context.vm.frame_mut().flags |= CallFrameFlags::THIS_VALUE_CACHED;
+        }
         ThisBindingStatus::Lexical
     } else {
         let this = context.vm.stack.get_this(context.vm.frame());

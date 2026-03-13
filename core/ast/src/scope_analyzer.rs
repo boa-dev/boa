@@ -1693,12 +1693,22 @@ impl ScopeIndexVisitor {
             self.index += 1;
         } else if !arrow {
             assert!(scopes.function_scope().is_function());
-            scopes.requires_function_scope = scopes.function_scope().escaped_this()
-                || contains(parameters, ContainsSymbol::Super)
-                || contains(body, ContainsSymbol::Super)
-                || contains(parameters, ContainsSymbol::NewTarget)
+            let escaped_this = scopes.function_scope().escaped_this();
+            let has_super = contains(parameters, ContainsSymbol::Super)
+                || contains(body, ContainsSymbol::Super);
+            let has_new_target = contains(parameters, ContainsSymbol::NewTarget)
                 || contains(body, ContainsSymbol::NewTarget);
-            self.index += u32::from(scopes.requires_function_scope);
+
+            if escaped_this && !has_super && !has_new_target {
+                // `this` escapes (inner arrow captures it), but nothing else
+                // requires a function-environment at runtime.
+                scopes.this_escaped_only = true;
+                // Do NOT set requires_function_scope or increment index —
+                // no runtime environment will be pushed.
+            } else {
+                scopes.requires_function_scope = escaped_this || has_super || has_new_target;
+                self.index += u32::from(scopes.requires_function_scope);
+            }
         }
 
         scopes.function_scope.set_index(self.index);
@@ -1889,6 +1899,7 @@ fn function_declaration_instantiation(
         lexical_scope: None,
         mapped_arguments_object: false,
         requires_function_scope: false,
+        this_escaped_only: false,
     };
 
     // 1. Let calleeContext be the running execution context.

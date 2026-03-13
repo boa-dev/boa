@@ -241,15 +241,19 @@ impl Eval {
             }
         });
 
-        let (var_environment, mut variable_scope) =
-            if let Some(e) = context.vm.frame().environments.outer_function_environment() {
-                (e.0, e.1)
-            } else {
-                (
-                    context.realm().environment().clone(),
-                    context.realm().scope().clone(),
-                )
-            };
+        let (var_environment, mut variable_scope) = if let Some(e) = context
+            .vm
+            .frame_mut()
+            .environments
+            .outer_function_environment()
+        {
+            (e.0, e.1)
+        } else {
+            (
+                context.realm().environment().clone(),
+                context.realm().scope().clone(),
+            )
+        };
 
         let lexical_scope = lexical_scope.unwrap_or(context.realm().scope().clone());
         let lexical_scope = Scope::new(lexical_scope, strict);
@@ -329,6 +333,10 @@ impl Eval {
         }
 
         let env_fp = context.vm.frame().environments.len() as u32;
+        // Promote all inline environments before cloning so that the eval
+        // frame and the enclosing frame share the same Gc-managed environments.
+        // This is correct because eval can add bindings to existing scopes.
+        context.vm.frame_mut().environments.promote_all();
         let environments = context.vm.frame().environments.clone();
         let realm = context.realm().clone();
         context.vm.push_frame_with_stack(

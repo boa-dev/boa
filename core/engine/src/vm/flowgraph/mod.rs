@@ -367,15 +367,15 @@ impl CodeBlock {
                 | Instruction::CheckReturn
                 | Instruction::BindThisValue { .. }
                 | Instruction::CreateMappedArgumentsObject { .. }
-                | Instruction::CreateUnmappedArgumentsObject { .. } => {
+                | Instruction::CreateUnmappedArgumentsObject { .. }
+                | Instruction::SetArrowLexicalThis { .. } => {
                     graph.add_node(previous_pc, NodeShape::None, label.into(), Color::None);
                     graph.add_edge(previous_pc, pc, None, Color::None, EdgeStyle::Line);
                 }
                 Instruction::Return => {
                     graph.add_node(previous_pc, NodeShape::Diamond, label.into(), Color::Red);
                 }
-                Instruction::Reserved1
-                | Instruction::Reserved2
+                Instruction::Reserved2
                 | Instruction::Reserved3
                 | Instruction::Reserved4
                 | Instruction::Reserved5

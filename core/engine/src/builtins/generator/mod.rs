@@ -65,6 +65,9 @@ pub(crate) struct GeneratorContext {
 impl GeneratorContext {
     /// Creates a new `GeneratorContext` from the current `Context` state.
     pub(crate) fn from_current(context: &mut Context, async_generator: Option<JsObject>) -> Self {
+        // Promote all inline environments before cloning so that the generator
+        // frame and the current frame share the same Gc-managed environments.
+        context.vm.frame_mut().environments.promote_all();
         let mut frame = context.vm.frame().clone();
         frame.environments = context.vm.frame().environments.clone();
         frame.realm = context.realm().clone();

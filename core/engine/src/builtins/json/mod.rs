@@ -303,6 +303,9 @@ impl Json {
         let realm = context.realm().clone();
 
         let env_fp = context.vm.frame().environments.len() as u32;
+        // Promote all inline environments before cloning so that the JSON
+        // frame and the enclosing frame share the same Gc-managed environments.
+        context.vm.frame_mut().environments.promote_all();
         context.vm.push_frame_with_stack(
             CallFrame::new(
                 code_block,

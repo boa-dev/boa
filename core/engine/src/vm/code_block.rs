@@ -51,6 +51,8 @@ bitflags! {
         /// If the function requires a function scope.
         const HAS_FUNCTION_SCOPE = 0b1_0000_0000;
 
+        const THIS_ESCAPED_ONLY = 0b10_0000_0000;
+
         /// Trace instruction execution to `stdout`.
         #[cfg(feature = "trace")]
         const TRACEABLE = 0b1000_0000_0000_0000;
@@ -848,6 +850,12 @@ impl CodeBlock {
             Instruction::GetFunctionObject { function_object } => {
                 format!("function_object:{function_object}")
             }
+            Instruction::SetArrowLexicalThis {
+                function,
+                this_value,
+            } => {
+                format!("function:{function}, this_value:{this_value}")
+            }
             Instruction::Pop
             | Instruction::DeleteSuperThrow
             | Instruction::ReThrow
@@ -865,8 +873,7 @@ impl CodeBlock {
             | Instruction::PopPrivateEnvironment
             | Instruction::Generator
             | Instruction::AsyncGenerator => String::new(),
-            Instruction::Reserved1
-            | Instruction::Reserved2
+            Instruction::Reserved2
             | Instruction::Reserved3
             | Instruction::Reserved4
             | Instruction::Reserved5
@@ -1094,9 +1101,10 @@ pub(crate) fn create_function_object(
 
     let is_async = code.is_async();
     let is_generator = code.is_generator();
+    let env_snapshot = context.vm.frame_mut().environments.snapshot_for_closure();
     let function = OrdinaryFunction::new(
         code,
-        context.vm.frame().environments.snapshot_for_closure(),
+        env_snapshot,
         script_or_module,
         context.realm().clone(),
     );
@@ -1163,9 +1171,10 @@ pub(crate) fn create_function_object_fast(code: Gc<CodeBlock>, context: &mut Con
     let is_async = code.is_async();
     let is_generator = code.is_generator();
     let has_prototype_property = code.has_prototype_property();
+    let env_snapshot = context.vm.frame_mut().environments.snapshot_for_closure();
     let function = OrdinaryFunction::new(
         code,
-        context.vm.frame().environments.snapshot_for_closure(),
+        env_snapshot,
         script_or_module,
         context.realm().clone(),
     );
