@@ -17,7 +17,7 @@ mod tests;
 use boa_engine::builtins::iterable::create_iter_result_object;
 use boa_engine::builtins::object::OrdinaryObject;
 use boa_engine::class::Class;
-use boa_engine::interop::JsClass;
+use boa_engine::interop::{JsClass, TryFromJsArgument};
 use boa_engine::object::{
     ObjectInitializer,
     builtins::{JsArray, TypedJsFunction},
@@ -26,8 +26,8 @@ use boa_engine::property::Attribute;
 use boa_engine::realm::Realm;
 use boa_engine::value::Convert;
 use boa_engine::{
-    Context, Finalize, JsData, JsObject, JsResult, JsString, JsSymbol, JsValue, Trace, boa_class,
-    boa_module, js_error, js_string, native_function::NativeFunction,
+    Context, Finalize, JsData, JsError, JsObject, JsResult, JsString, JsSymbol, JsValue, Trace,
+    boa_class, boa_module, js_error, js_string, native_function::NativeFunction,
 };
 use std::fmt::Display;
 
@@ -77,68 +77,223 @@ fn serialize_search_params(params: &[(JsString, JsString)]) -> String {
     serializer.finish()
 }
 
-fn has_callable_iterator(object: &JsObject, context: &mut Context) -> JsResult<bool> {
-    let method = object.get(JsSymbol::iterator(), context)?;
+#[derive(Debug, Clone)]
+struct OptionalArg(Option<JsValue>);
+
+impl<'a> TryFromJsArgument<'a> for OptionalArg {
+    fn try_from_js_argument(
+        _: &'a JsValue,
+        rest: &'a [JsValue],
+        _: &mut Context,
+    ) -> JsResult<(Self, &'a [JsValue])> {
+        match rest.split_first() {
+            Some((first, rest)) => Ok((Self(Some(first.clone())), rest)),
+            None => Ok((Self(None), rest)),
+        }
+    }
+}
+
+#[derive(Debug, Clone)]
+struct SyncIterator {
+    iterator: JsObject,
+    next: JsObject,
+    done: bool,
+}
+
+#[derive(Debug, Clone)]
+struct IteratorStep {
+    done: bool,
+    value: JsValue,
+}
+
+fn get_method<K>(object: &JsObject, key: K, context: &mut Context) -> JsResult<Option<JsObject>>
+where
+    K: Into<boa_engine::property::PropertyKey>,
+{
+    let method = object.get(key, context)?;
     if method.is_null_or_undefined() {
-        return Ok(false);
+        return Ok(None);
     }
 
-    if method.as_callable().is_none() {
-        return Err(
-            js_error!(TypeError: "URLSearchParams constructor requires @@iterator to be callable"),
+    let Some(method) = method.as_object().filter(JsObject::is_callable) else {
+        return Err(js_error!(
+            TypeError: "value returned for property of object is not a function"
+        ));
+    };
+
+    Ok(Some(method.clone()))
+}
+
+impl SyncIterator {
+    fn from_method(
+        value: &JsValue,
+        iterator_method: &JsObject,
+        context: &mut Context,
+    ) -> JsResult<Self> {
+        let iterator = iterator_method.call(value, &[], context)?;
+        let Some(iterator) = iterator.as_object() else {
+            return Err(js_error!(TypeError: "returned iterator is not an object"));
+        };
+
+        let next = iterator.get(js_string!("next"), context)?;
+        let Some(next) = next.as_object().filter(JsObject::is_callable) else {
+            return Err(js_error!(
+                TypeError: "value returned for property of object is not a function"
+            ));
+        };
+
+        Ok(Self {
+            iterator: iterator.clone(),
+            next: next.clone(),
+            done: false,
+        })
+    }
+
+    fn next_result(
+        &mut self,
+        value: Option<&JsValue>,
+        context: &mut Context,
+    ) -> JsResult<IteratorStep> {
+        let result = self
+            .next
+            .call(
+                &self.iterator.clone().into(),
+                value.map_or(&[], std::slice::from_ref),
+                context,
+            )
+            .inspect_err(|_| {
+                self.done = true;
+            })?;
+
+        let Some(result) = result.as_object() else {
+            self.done = true;
+            return Err(js_error!(TypeError: "next value should be an object"));
+        };
+
+        let done = result
+            .get(js_string!("done"), context)
+            .inspect_err(|_| {
+                self.done = true;
+            })?
+            .to_boolean();
+        let value = result.get(js_string!("value"), context).inspect_err(|_| {
+            self.done = true;
+        })?;
+
+        self.done = done;
+
+        Ok(IteratorStep { done, value })
+    }
+
+    fn step_value(&mut self, context: &mut Context) -> JsResult<Option<JsValue>> {
+        let result = self.next_result(None, context)?;
+        Ok((!result.done).then_some(result.value))
+    }
+
+    fn close(&self, completion: JsResult<JsValue>, context: &mut Context) -> JsResult<JsValue> {
+        let return_method = match get_method(&self.iterator, js_string!("return"), context) {
+            Ok(Some(return_method)) => {
+                return_method.call(&self.iterator.clone().into(), &[], context)
+            }
+            Ok(None) => return completion,
+            Err(err) => {
+                completion?;
+                return Err(err);
+            }
+        };
+
+        let completion = completion?;
+        let return_value = return_method?;
+
+        if return_value.is_object() {
+            Ok(completion)
+        } else {
+            Err(js_error!(TypeError: "inner result was not an object"))
+        }
+    }
+}
+
+fn close_iterator_with_error<T>(
+    iterator: &SyncIterator,
+    error: JsError,
+    context: &mut Context,
+) -> JsResult<T> {
+    match iterator.close(Err(error), context) {
+        Ok(_) => unreachable!("iterator close with error completion should not succeed"),
+        Err(err) => Err(err),
+    }
+}
+
+fn collect_sequence_item_pair(
+    item: &JsObject,
+    context: &mut Context,
+) -> JsResult<(JsString, JsString)> {
+    let Some(iterator_method) = get_method(item, JsSymbol::iterator(), context)? else {
+        return Err(js_error!(
+            TypeError: "URLSearchParams constructor expects each sequence item to be an iterable pair"
+        ));
+    };
+
+    let mut pair_iterator =
+        SyncIterator::from_method(&item.clone().into(), &iterator_method, context)?;
+
+    let Some(name) = pair_iterator.step_value(context)? else {
+        return Err(js_error!(
+            TypeError: "URLSearchParams constructor expects each sequence item to contain exactly two values"
+        ));
+    };
+    let name = match to_usv_string_value(&name, context) {
+        Ok(name) => name,
+        Err(err) => return close_iterator_with_error(&pair_iterator, err, context),
+    };
+
+    let Some(value) = pair_iterator.step_value(context)? else {
+        return Err(js_error!(
+            TypeError: "URLSearchParams constructor expects each sequence item to contain exactly two values"
+        ));
+    };
+    let value = match to_usv_string_value(&value, context) {
+        Ok(value) => value,
+        Err(err) => return close_iterator_with_error(&pair_iterator, err, context),
+    };
+
+    if pair_iterator.step_value(context)?.is_some() {
+        return close_iterator_with_error(
+            &pair_iterator,
+            js_error!(
+                TypeError: "URLSearchParams constructor expects each sequence item to contain exactly two values"
+            ),
+            context,
         );
     }
 
-    Ok(true)
-}
-
-fn array_from(value: &JsValue, context: &mut Context) -> JsResult<JsArray> {
-    let array = context
-        .global_object()
-        .get(js_string!("Array"), context)?
-        .to_object(context)?;
-    let from = array
-        .get(js_string!("from"), context)?
-        .as_object()
-        .ok_or_else(|| js_error!(Error: "Array.from should be callable"))?;
-
-    let value = from.call(&array.clone().into(), std::slice::from_ref(value), context)?;
-    JsArray::from_object(value.to_object(context)?)
+    Ok((name, value))
 }
 
 fn collect_sequence_pairs(
     init: &JsValue,
+    iterator_method: &JsObject,
     context: &mut Context,
 ) -> JsResult<Vec<(JsString, JsString)>> {
-    let items = array_from(init, context)?;
-    let length = usize::try_from(items.length(context)?)
-        .map_err(|_| js_error!(RangeError: "URLSearchParams sequence is too large"))?;
-    let mut pairs = Vec::with_capacity(length);
+    let mut items = SyncIterator::from_method(init, iterator_method, context)?;
+    let mut pairs = Vec::new();
 
-    for index in 0..length {
-        let item = items.get(index, context)?;
+    while let Some(item) = items.step_value(context)? {
         let Some(item_object) = item.as_object() else {
-            return Err(js_error!(
-                TypeError: "URLSearchParams constructor expects each sequence item to be an iterable pair"
-            ));
+            return close_iterator_with_error(
+                &items,
+                js_error!(
+                    TypeError: "URLSearchParams constructor expects each sequence item to be an iterable pair"
+                ),
+                context,
+            );
         };
 
-        if !has_callable_iterator(&item_object, context)? {
-            return Err(js_error!(
-                TypeError: "URLSearchParams constructor expects each sequence item to be an iterable pair"
-            ));
-        }
-
-        let pair = array_from(&item, context)?;
-        if pair.length(context)? != 2 {
-            return Err(js_error!(
-                TypeError: "URLSearchParams constructor expects each sequence item to contain exactly two values"
-            ));
-        }
-
-        let name = to_usv_string_value(&pair.get(0, context)?, context)?;
-        let value = to_usv_string_value(&pair.get(1, context)?, context)?;
-        pairs.push((name, value));
+        let pair = match collect_sequence_item_pair(&item_object, context) {
+            Ok(pair) => pair,
+            Err(err) => return close_iterator_with_error(&items, err, context),
+        };
+        pairs.push(pair);
     }
 
     Ok(pairs)
@@ -336,10 +491,8 @@ impl UrlSearchParams {
         let list = if init.is_undefined() || init.is_null() {
             Vec::new()
         } else if let Some(object) = init.as_object() {
-            if let Some(other) = object.downcast_ref::<Self>() {
-                other.pairs()
-            } else if has_callable_iterator(&object, context)? {
-                collect_sequence_pairs(&init, context)?
+            if let Some(iterator_method) = get_method(&object, JsSymbol::iterator(), context)? {
+                collect_sequence_pairs(&init, &iterator_method, context)?
             } else {
                 collect_record_pairs(&object, context)?
             }
@@ -361,9 +514,19 @@ impl UrlSearchParams {
         self.update(pairs);
     }
 
-    fn delete(&mut self, name: Convert<JsString>, value: Option<Convert<JsString>>) {
+    fn delete(
+        &mut self,
+        name: Convert<JsString>,
+        value: OptionalArg,
+        context: &mut Context,
+    ) -> JsResult<()> {
         let name = to_usv_string(&name.0);
-        let value = value.as_ref().map(|value| to_usv_string(&value.0));
+        let value = value
+            .0
+            .as_ref()
+            .map(|value| value.try_js_into::<Convert<JsString>>(context))
+            .transpose()?
+            .map(|value| to_usv_string(&value.0));
         let mut pairs = self.pairs();
 
         match value {
@@ -378,6 +541,7 @@ impl UrlSearchParams {
         }
 
         self.update(pairs);
+        Ok(())
     }
 
     fn entries(this: JsClass<Self>, context: &mut Context) -> JsValue {
@@ -431,10 +595,21 @@ impl UrlSearchParams {
             .collect()
     }
 
-    fn has(&self, name: Convert<JsString>, value: Option<Convert<JsString>>) -> bool {
+    fn has(
+        &self,
+        name: Convert<JsString>,
+        value: OptionalArg,
+        context: &mut Context,
+    ) -> JsResult<bool> {
         let name = to_usv_string(&name.0);
-        let value = value.as_ref().map(|value| to_usv_string(&value.0));
-        match value {
+        let value = value
+            .0
+            .as_ref()
+            .map(|value| value.try_js_into::<Convert<JsString>>(context))
+            .transpose()?
+            .map(|value| to_usv_string(&value.0));
+
+        Ok(match value {
             Some(value) => self
                 .pairs()
                 .into_iter()
@@ -445,7 +620,7 @@ impl UrlSearchParams {
                 .pairs()
                 .into_iter()
                 .any(|(existing_name, _)| existing_name == name),
-        }
+        })
     }
 
     #[boa(symbol = "iterator")]
