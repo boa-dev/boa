@@ -782,7 +782,7 @@ impl Context {
 
         let result = self.vm.take_return_value();
         if exit_early {
-            return ControlFlow::Break(CompletionRecord::Normal(result));
+            return ControlFlow::Break(CompletionRecord::Return(result));
         }
 
         self.vm.stack.push(result);
@@ -793,7 +793,7 @@ impl Context {
     fn handle_yield(&mut self) -> ControlFlow<CompletionRecord> {
         let result = self.vm.take_return_value();
         if self.vm.frame().exit_early() {
-            return ControlFlow::Break(CompletionRecord::Return(result));
+            return ControlFlow::Break(CompletionRecord::Normal(result));
         }
 
         self.vm.stack.push(result);

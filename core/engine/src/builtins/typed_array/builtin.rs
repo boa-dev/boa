@@ -2603,15 +2603,19 @@ impl BuiltinTypedArray {
                 .with_message("invalid integer index for TypedArray operation")
                 .into());
         };
-        let actual_index = u64::try_from(relative_index) // should succeed if `relative_index >= 0`
-            .ok()
-            .or_else(|| len.checked_add_signed(relative_index))
-            // TODO: Replace with `is_valid_integer_index_u64` or equivalent.
-            .filter(|&rel| is_valid_integer_index(&ta.clone().upcast(), rel as f64))
-            .ok_or_else(|| {
-                JsNativeError::range()
-                    .with_message("invalid integer index for TypedArray operation")
-            })?;
+        let actual_index = (|| {
+            let rel = u64::try_from(relative_index)
+                .ok()
+                .or_else(|| len.checked_add_signed(relative_index))?;
+
+            let inner = ta.borrow();
+            let buf = inner.data().viewed_array_buffer().as_buffer();
+            let s = buf.bytes(Ordering::Relaxed)?;
+            inner.data().validate_index_u64(rel, s.len())
+        })()
+        .ok_or_else(|| {
+            JsNativeError::range().with_message("invalid integer index for TypedArray operation")
+        })?;
 
         // 10. Let A be ? TypedArrayCreateSameType(O, « 𝔽(len) »).
         let new_array = Self::from_kind_and_length(kind, len, context)?;
