@@ -56,9 +56,9 @@ impl DefinePrivateField {
     pub(crate) fn operation(
         (object, value, index): (RegisterOperand, RegisterOperand, IndexOperand),
         context: &mut Context,
-    ) {
-        let object = context.vm.get_register(object.into());
-        let value = context.vm.get_register(value.into());
+    ) -> JsResult<()> {
+        let object = context.vm.get_register(object.into()).clone();
+        let value = context.vm.get_register(value.into()).clone();
         let name = context
             .vm
             .frame()
@@ -69,10 +69,9 @@ impl DefinePrivateField {
             .as_object()
             .expect("class prototype must be an object");
 
-        object.borrow_mut().append_private_element(
-            object.private_name(name),
-            PrivateElement::Field(value.clone()),
-        );
+        let name = object.private_name(name);
+        object.private_field_add(&name, value, context)?;
+        Ok(())
     }
 }
 
