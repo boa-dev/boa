@@ -183,11 +183,21 @@ impl JsResponse {
             ..
         } = options.unwrap_or_default();
         let status_code = status.unwrap_or(200);
-        let headers = headers.clone().unwrap_or_default();
+
+        // If init["status"] is not in the range 200 to 599, inclusive,
+        // then throw a RangeError.
+        // https://fetch.spec.whatwg.org/#response-class 
+        if !(200..=599).contains(&status_code) {
+            return Err(JsNativeError::range()
+                .with_message(format!("Invalid status code: {status_code}"))
+                .into());
+        }
 
         let status = StatusCode::from_u16(status_code).map_err(|_| {
             JsNativeError::range().with_message(format!("Invalid status code - {status_code}"))
         })?;
+
+        let headers = headers.clone().unwrap_or_default();
 
         let body_bytes = if body.is_null_or_undefined() {
             Vec::new()
