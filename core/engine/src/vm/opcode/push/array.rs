@@ -5,14 +5,14 @@ use crate::{
     vm::opcode::{Operation, RegisterOperand},
 };
 
-/// `PushNewArray` implements the Opcode Operation for `Opcode::PushNewArray`
+/// `StoreNewArray` implements the Opcode Operation for `Opcode::StoreNewArray`
 ///
 /// Operation:
-///  - Push an empty array value on the stack.
+///  - Store an empty array in dst.
 #[derive(Debug, Clone, Copy)]
-pub(crate) struct PushNewArray;
+pub(crate) struct StoreNewArray;
 
-impl PushNewArray {
+impl StoreNewArray {
     #[inline(always)]
     pub(crate) fn operation(array: RegisterOperand, context: &mut Context) {
         let value = context
@@ -24,9 +24,9 @@ impl PushNewArray {
     }
 }
 
-impl Operation for PushNewArray {
-    const NAME: &'static str = "PushNewArray";
-    const INSTRUCTION: &'static str = "INST - PushNewArray";
+impl Operation for StoreNewArray {
+    const NAME: &'static str = "StoreNewArray";
+    const INSTRUCTION: &'static str = "INST - StoreNewArray";
     const COST: u8 = 3;
 }
 

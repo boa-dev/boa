@@ -122,6 +122,7 @@ impl StaticJsStrings {
         // Builtins
         (ARRAY, "Array"),
         (ARRAY_BUFFER, "ArrayBuffer"),
+        (ITERATOR, "Iterator"),
         (SHARED_ARRAY_BUFFER, "SharedArrayBuffer"),
         (ASYNC_FUNCTION, "AsyncFunction"),
         (ASYNC_GENERATOR, "AsyncGenerator"),
@@ -268,6 +269,7 @@ const RAW_STATICS: &[StaticString] = &[
     // Well known builtins
     StaticString::new(JsStr::latin1("Array".as_bytes())),
     StaticString::new(JsStr::latin1("ArrayBuffer".as_bytes())),
+    StaticString::new(JsStr::latin1("Iterator".as_bytes())),
     StaticString::new(JsStr::latin1("SharedArrayBuffer".as_bytes())),
     StaticString::new(JsStr::latin1("AsyncFunction".as_bytes())),
     StaticString::new(JsStr::latin1("AsyncGenerator".as_bytes())),
