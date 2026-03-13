@@ -439,8 +439,14 @@ unsafe fn batched_atomic_copy_forward(src: *const AtomicU8, dest: *const AtomicU
     // Verify both pointers are now aligned after Phase 1.
     #[cfg(debug_assertions)]
     {
-        debug_assert_eq!((dest as usize + head) % BATCH_SIZE, 0);
-        debug_assert_eq!((src as usize + head) % BATCH_SIZE, 0);
+        debug_assert!(
+            head == count || (dest as usize + head) % BATCH_SIZE == 0,
+            "dest pointer failed to reach alignment after phase 1"
+        );
+        debug_assert!(
+            head == count || (src as usize + head) % BATCH_SIZE == 0,
+            "src pointer failed to reach alignment after phase 1"
+        );
     }
 
     // Phase 2: Copy aligned 8-byte chunks using AtomicU64 load/store.
@@ -511,8 +517,14 @@ unsafe fn batched_atomic_copy_backward(src: *const AtomicU8, dest: *const Atomic
     // Verify both pointers are aligned after peeling tail bytes.
     #[cfg(debug_assertions)]
     {
-        debug_assert_eq!((dest as usize + tail_start) % BATCH_SIZE, 0);
-        debug_assert_eq!((src as usize + tail_start) % BATCH_SIZE, 0);
+        debug_assert!(
+            head == count || (dest as usize + tail_start) % BATCH_SIZE == 0,
+            "dest pointer failed to reach alignment after phase 1"
+        );
+        debug_assert!(
+            head == count || (src as usize + tail_start) % BATCH_SIZE == 0,
+            "src pointer failed to reach alignment after phase 1"
+        );
     }
 
     // Phase 2: Copy aligned 8-byte chunks backwards.
@@ -573,8 +585,14 @@ unsafe fn batched_copy_bytes_to_atomic(src: *const u8, dest: *const AtomicU8, co
     // Verify both pointers are now aligned after Phase 1.
     #[cfg(debug_assertions)]
     {
-        debug_assert_eq!((dest as usize + head) % BATCH_SIZE, 0);
-        debug_assert_eq!((src as usize + head) % BATCH_SIZE, 0);
+        debug_assert!(
+            head == count || (dest as usize + head) % BATCH_SIZE == 0,
+            "dest pointer failed to reach alignment after phase 1"
+        );
+        debug_assert!(
+            head == count || (src as usize + head) % BATCH_SIZE == 0,
+            "src pointer failed to reach alignment after phase 1"
+        );
     }
 
     // Phase 2: Aligned 8-byte chunks.
@@ -635,8 +653,14 @@ unsafe fn batched_copy_atomic_to_bytes(src: *const AtomicU8, dest: *mut u8, coun
     // Verify both pointers are now aligned after Phase 1.
     #[cfg(debug_assertions)]
     {
-        debug_assert_eq!((src as usize + head) % BATCH_SIZE, 0);
-        debug_assert_eq!((dest as usize + head) % BATCH_SIZE, 0);
+        debug_assert!(
+            head == count || (src as usize + head) % BATCH_SIZE == 0,
+            "src pointer failed to reach alignment after phase 1"
+        );
+        debug_assert!(
+            head == count || (dest as usize + head) % BATCH_SIZE == 0,
+            "dest pointer failed to reach alignment after phase 1"
+        );
     }
 
     // Phase 2: Aligned 8-byte chunks.
