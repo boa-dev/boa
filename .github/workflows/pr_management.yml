@@ -13,7 +13,7 @@ jobs:
     steps:
       - name: Auto Add Label
         if: github.event.action == 'opened' || github.event.action == 'reopened' || github.event.action == 'synchronize'
-        uses: actions/github-script@v6
+        uses: actions/github-script@v8
         with:
           script: |
             github.rest.issues.addLabels({
@@ -25,7 +25,7 @@ jobs:
 
       - name: Auto Remove Label
         if: github.event.action == 'closed'
-        uses: actions/github-script@v6
+        uses: actions/github-script@v8
         continue-on-error: true
         with:
           script: |
@@ -42,7 +42,7 @@ jobs:
 
       - name: Auto Assign Reviewers and Milestone
         if: github.event.action == 'opened'
-        uses: actions/github-script@v6
+        uses: actions/github-script@v8
         with:
           script: |
             // Fetch open milestones and assign the closest one
