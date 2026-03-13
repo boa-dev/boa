@@ -115,7 +115,7 @@ When a function gets called, its portion of the stack looks like this:
   └─ Frame pointer (fp)
 ```
 
-The first two slots are always `this` and the function object — that's the *prologue*. Then come
+The first two slots are always `this` and the function object — that's the _prologue_. Then come
 the arguments. After that, the callee allocates `register_count` slots for its local registers.
 The register pointer (`rp`) sits right at the boundary, so registers are addressed as simple
 offsets from `rp`.
@@ -123,13 +123,12 @@ offsets from `rp`.
 Let's see a concrete example. Given:
 
 ```javascript
-function x(a) {
-}
+function x(a) {}
 function y(b, c) {
-    return x(b + c)
+  return x(b + c);
 }
 
-y(1, 2)
+y(1, 2);
 ```
 
 During the call to `x`, the stack looks like:
@@ -258,11 +257,11 @@ So for a try/catch like:
 
 ```javascript
 try {
-    // bytecode at pc 10..50
-    riskyOperation();
+  // bytecode at pc 10..50
+  riskyOperation();
 } catch (e) {
-    // handler at pc 50
-    handleError(e);
+  // handler at pc 50
+  handleError(e);
 }
 ```
 
