@@ -17,9 +17,9 @@ use crate::{
     native_function::NativeFunction,
     object::{
         CONSTRUCTOR, FunctionObjectBuilder, JsFunction, JsObject,
-        internal_methods::{InternalMethodPropertyContext, get_prototype_from_constructor},
+        internal_methods::get_prototype_from_constructor,
     },
-    property::{Attribute, PropertyKey},
+    property::Attribute,
     realm::Realm,
     string::StaticJsStrings,
     symbol::JsSymbol,
@@ -27,7 +27,13 @@ use crate::{
 };
 use boa_gc::{Finalize, Gc, GcRefCell, Trace, custom_trace};
 use boa_macros::JsData;
-use std::{cell::Cell, cell::RefCell, rc::Rc};
+use std::{cell::Cell, rc::Rc};
+#[cfg(feature = "experimental")]
+use std::cell::RefCell;
+#[cfg(feature = "experimental")]
+use crate::object::internal_methods::InternalMethodPropertyContext;
+#[cfg(feature = "experimental")]
+use crate::property::PropertyKey;
 
 // ==================== Public API ====================
 
@@ -337,11 +343,9 @@ impl IntrinsicObject for Promise {
             .name(js_string!("get [Symbol.species]"))
             .build();
 
-        BuiltInBuilder::from_standard_constructor::<Self>(realm)
+        let builder = BuiltInBuilder::from_standard_constructor::<Self>(realm)
             .static_method(Self::all, js_string!("all"), 1)
-            .static_method(Self::all_keyed, js_string!("allKeyed"), 1)
             .static_method(Self::all_settled, js_string!("allSettled"), 1)
-            .static_method(Self::all_settled_keyed, js_string!("allSettledKeyed"), 1)
             .static_method(Self::any, js_string!("any"), 1)
             .static_method(Self::race, js_string!("race"), 1)
             .static_method(Self::reject, js_string!("reject"), 1)
@@ -362,8 +366,14 @@ impl IntrinsicObject for Promise {
                 JsSymbol::to_string_tag(),
                 Self::NAME,
                 Attribute::READONLY | Attribute::NON_ENUMERABLE | Attribute::CONFIGURABLE,
-            )
-            .build();
+            );
+
+        #[cfg(feature = "experimental")]
+        let builder = builder
+            .static_method(Self::all_keyed, js_string!("allKeyed"), 1)
+            .static_method(Self::all_settled_keyed, js_string!("allSettledKeyed"), 1);
+
+        builder.build();
     }
 
     fn get(intrinsics: &Intrinsics) -> JsObject {
@@ -378,7 +388,7 @@ impl BuiltInObject for Promise {
 impl BuiltInConstructor for Promise {
     const CONSTRUCTOR_ARGUMENTS: usize = 1;
     const PROTOTYPE_STORAGE_SLOTS: usize = 4;
-    const CONSTRUCTOR_STORAGE_SLOTS: usize = 12;
+    const CONSTRUCTOR_STORAGE_SLOTS: usize = 10;
 
     const STANDARD_CONSTRUCTOR: fn(&StandardConstructors) -> &StandardConstructor =
         StandardConstructors::promise;
@@ -1094,6 +1104,7 @@ impl Promise {
         Ok(result_capability.promise.clone())
     }
 
+    #[cfg(feature = "experimental")]
     /// `Promise.allKeyed ( promises )`
     ///
     /// More information:
@@ -1108,6 +1119,7 @@ impl Promise {
         Self::keyed_common(this, args, context, KeyedVariant::All, "allKeyed")
     }
 
+    #[cfg(feature = "experimental")]
     /// `Promise.allSettledKeyed ( promises )`
     ///
     /// More information:
@@ -1128,6 +1140,7 @@ impl Promise {
         )
     }
 
+    #[cfg(feature = "experimental")]
     /// Shared entry-point logic for `Promise.allKeyed` and `Promise.allSettledKeyed`.
     fn keyed_common(
         this: &JsValue,
@@ -1185,6 +1198,7 @@ impl Promise {
         Ok(promise_capability.promise.clone().into())
     }
 
+    #[cfg(feature = "experimental")]
     /// `PerformPromiseAllKeyed ( variant, promises, constructor, resultCapability, promiseResolve )`
     ///
     /// More information:
@@ -2719,6 +2733,7 @@ fn new_promise_resolve_thenable_job(
     PromiseJob::with_realm(job, realm)
 }
 
+#[cfg(feature = "experimental")]
 /// Variant for the `PerformPromiseAllKeyed` algorithm.
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 enum KeyedVariant {
@@ -2728,6 +2743,7 @@ enum KeyedVariant {
     AllSettled,
 }
 
+#[cfg(feature = "experimental")]
 /// `CreateKeyedPromiseCombinatorResultObject ( keys, values )`
 ///
 /// Creates a null-prototype object with data properties mapping keys to values.
