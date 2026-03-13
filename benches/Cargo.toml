@@ -8,6 +8,10 @@ publish = false
 boa_engine.workspace = true
 boa_runtime.workspace = true
 
+[features]
+default = []
+tailcall = ["boa_engine/tailcall"]
+
 [dev-dependencies]
 criterion.workspace = true
 walkdir = "2"
