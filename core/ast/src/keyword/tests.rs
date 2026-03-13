@@ -308,6 +308,7 @@ fn try_into_binary_op() {
             | Keyword::Throw
             | Keyword::Try
             | Keyword::TypeOf
+            | Keyword::Using
             | Keyword::Var
             | Keyword::Void
             | Keyword::While
