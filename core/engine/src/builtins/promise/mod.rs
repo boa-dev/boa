@@ -7,6 +7,10 @@ use super::{
     BuiltInBuilder, BuiltInConstructor, IntrinsicObject,
     iterable::{IteratorHint, IteratorRecord},
 };
+#[cfg(feature = "experimental")]
+use crate::object::internal_methods::InternalMethodPropertyContext;
+#[cfg(feature = "experimental")]
+use crate::property::PropertyKey;
 use crate::{
     Context, JsArgs, JsError, JsExpect, JsResult, JsString,
     builtins::{Array, BuiltInObject},
@@ -27,13 +31,9 @@ use crate::{
 };
 use boa_gc::{Finalize, Gc, GcRefCell, Trace, custom_trace};
 use boa_macros::JsData;
-use std::{cell::Cell, rc::Rc};
 #[cfg(feature = "experimental")]
 use std::cell::RefCell;
-#[cfg(feature = "experimental")]
-use crate::object::internal_methods::InternalMethodPropertyContext;
-#[cfg(feature = "experimental")]
-use crate::property::PropertyKey;
+use std::{cell::Cell, rc::Rc};
 
 // ==================== Public API ====================
 
