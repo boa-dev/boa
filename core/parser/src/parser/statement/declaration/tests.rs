@@ -662,3 +662,240 @@ fn import_non_string_attribute_value() {
         .is_err()
     );
 }
+
+/// Checks `using` declaration parsing.
+#[test]
+fn using_declaration() {
+    let interner = &mut Interner::default();
+    check_script_parser(
+        "using x = resource;",
+        vec![
+            Declaration::Lexical(LexicalDeclaration::Using(
+                vec![Variable::from_identifier(
+                    Identifier::new(
+                        interner.get_or_intern_static("x", utf16!("x")),
+                        Span::new((1, 7), (1, 8)),
+                    ),
+                    Some(
+                        Identifier::new(
+                            interner.get_or_intern_static("resource", utf16!("resource")),
+                            Span::new((1, 11), (1, 19)),
+                        )
+                        .into(),
+                    ),
+                )]
+                .try_into()
+                .unwrap(),
+            ))
+            .into(),
+        ],
+        interner,
+    );
+}
+
+/// Checks `using` declaration with multiple bindings.
+#[test]
+fn using_declaration_multiple() {
+    let interner = &mut Interner::default();
+    check_script_parser(
+        "using a = res1, b = res2;",
+        vec![
+            Declaration::Lexical(LexicalDeclaration::Using(
+                vec![
+                    Variable::from_identifier(
+                        Identifier::new(
+                            interner.get_or_intern_static("a", utf16!("a")),
+                            Span::new((1, 7), (1, 8)),
+                        ),
+                        Some(
+                            Identifier::new(
+                                interner.get_or_intern_static("res1", utf16!("res1")),
+                                Span::new((1, 11), (1, 15)),
+                            )
+                            .into(),
+                        ),
+                    ),
+                    Variable::from_identifier(
+                        Identifier::new(
+                            interner.get_or_intern_static("b", utf16!("b")),
+                            Span::new((1, 17), (1, 18)),
+                        ),
+                        Some(
+                            Identifier::new(
+                                interner.get_or_intern_static("res2", utf16!("res2")),
+                                Span::new((1, 21), (1, 25)),
+                            )
+                            .into(),
+                        ),
+                    ),
+                ]
+                .try_into()
+                .unwrap(),
+            ))
+            .into(),
+        ],
+        interner,
+    );
+}
+
+/// Checks that `using` declaration without initializer fails.
+#[test]
+fn using_declaration_no_init() {
+    check_invalid_script("using x;");
+}
+
+/// Checks `await using` declaration parsing in async function.
+#[test]
+fn await_using_declaration() {
+    let interner = &mut Interner::default();
+    // await using is only valid in async contexts, so we test it inside an async function
+    // We just verify it parses without error
+    let source = Source::from_bytes("async function f() { await using x = resource; }");
+    let mut parser = Parser::new(source);
+    let scope = boa_ast::scope::Scope::new_global();
+    let result = parser.parse_script(&scope, interner);
+    assert!(
+        result.is_ok(),
+        "Failed to parse await using in async function: {:?}",
+        result.err()
+    );
+}
+
+/// Checks that `await using` declaration without initializer fails.
+#[test]
+fn await_using_declaration_no_init() {
+    // Test in async function context
+    check_invalid_script("async function f() { await using x; }");
+}
+
+/// Checks that `await using` is only valid in async contexts.
+#[test]
+fn await_using_requires_async_context() {
+    // Should fail in non-async context (top-level script)
+    check_invalid_script("await using x = resource;");
+}
+
+/// Checks that line terminator between `await` and `using` is rejected.
+/// Per spec: <https://arai-a.github.io/ecma262-compare/snapshot.html?pr=3000#prod-AwaitUsingDeclarationHead>
+/// There must be [no `LineTerminator` here] between the keywords.
+#[test]
+fn await_using_no_line_terminator() {
+    // Line terminator between await and using should fail
+    check_invalid_script("async function f() { await\nusing x = resource; }");
+
+    // Without line terminator should succeed
+    let interner = &mut Interner::default();
+    let source = Source::from_bytes("async function f() { await using x = resource; }");
+    let mut parser = Parser::new(source);
+    let scope = boa_ast::scope::Scope::new_global();
+    let result = parser.parse_script(&scope, interner);
+    assert!(
+        result.is_ok(),
+        "Failed to parse await using without line terminator: {:?}",
+        result.err()
+    );
+}
+
+/// Checks that destructuring patterns are rejected for `using` declarations.
+/// Per spec: <https://tc39.es/proposal-explicit-resource-management/>
+/// The grammar uses ~Pattern parameter which means destructuring is NOT allowed.
+#[test]
+fn using_no_destructuring_object() {
+    check_invalid_script("using {x, y} = resource;");
+}
+
+/// Checks that destructuring patterns are rejected for `using` declarations.
+#[test]
+fn using_no_destructuring_array() {
+    check_invalid_script("using [a, b] = resource;");
+}
+
+/// Checks that destructuring patterns are rejected for `await using` declarations.
+#[test]
+fn await_using_no_destructuring_object() {
+    check_invalid_script("async function f() { await using {x, y} = resource; }");
+}
+
+/// Checks that destructuring patterns are rejected for `await using` declarations.
+#[test]
+fn await_using_no_destructuring_array() {
+    check_invalid_script("async function f() { await using [a, b] = resource; }");
+}
+
+/// Checks that `using let` is rejected (let is not allowed as a bound name).
+#[test]
+fn using_let_rejected() {
+    check_invalid_script("using let = resource;");
+}
+
+/// Checks that duplicate names in `using` declarations are rejected.
+#[test]
+fn using_duplicate_names() {
+    check_invalid_script("using x = r1, x = r2;");
+}
+
+/// Checks that `await using` with duplicate names is rejected.
+#[test]
+fn await_using_duplicate_names() {
+    check_invalid_script("async function f() { await using x = r1, x = r2; }");
+}
+
+/// Checks that `using` works with valid identifiers.
+#[test]
+fn using_valid_identifiers() {
+    let interner = &mut Interner::default();
+    check_script_parser(
+        "using x = resource, y = resource2;",
+        vec![
+            Declaration::Lexical(LexicalDeclaration::Using(
+                vec![
+                    Variable::from_identifier(
+                        Identifier::new(
+                            interner.get_or_intern_static("x", utf16!("x")),
+                            Span::new((1, 7), (1, 8)),
+                        ),
+                        Some(
+                            Identifier::new(
+                                interner.get_or_intern_static("resource", utf16!("resource")),
+                                Span::new((1, 11), (1, 19)),
+                            )
+                            .into(),
+                        ),
+                    ),
+                    Variable::from_identifier(
+                        Identifier::new(
+                            interner.get_or_intern_static("y", utf16!("y")),
+                            Span::new((1, 21), (1, 22)),
+                        ),
+                        Some(
+                            Identifier::new(
+                                interner.get_or_intern_static("resource2", utf16!("resource2")),
+                                Span::new((1, 25), (1, 34)),
+                            )
+                            .into(),
+                        ),
+                    ),
+                ]
+                .try_into()
+                .unwrap(),
+            ))
+            .into(),
+        ],
+        interner,
+    );
+}
+
+/// Checks that `await using` works with valid identifiers in async context.
+#[test]
+fn await_using_valid_identifiers() {
+    let interner = &mut Interner::default();
+    let source = Source::from_bytes("async function f() { await using x = r1, y = r2; }");
+    let mut parser = Parser::new(source);
+    let scope = boa_ast::scope::Scope::new_global();
+    let result = parser.parse_script(&scope, interner);
+    assert!(
+        result.is_ok(),
+        "Failed to parse await using with multiple bindings: {:?}",
+        result.err()
+    );
+}
