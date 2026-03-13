@@ -86,7 +86,7 @@ impl JsAbortSignal {
             context.enqueue_job(
                 GenericJob::new(
                     move |context| {
-                        drop(listener.call(&JsValue::undefined(), &[], context));
+                        listener.call(&JsValue::undefined(), &[], context)?;
                         Ok(JsValue::undefined())
                     },
                     realm.clone(),
