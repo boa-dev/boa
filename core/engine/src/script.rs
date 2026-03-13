@@ -220,7 +220,7 @@ impl Script {
     fn prepare_run(&self, context: &mut Context) -> JsResult<()> {
         let codeblock = self.codeblock(context)?;
 
-        let global_env = EnvironmentStack::new(self.inner.realm.environment().clone());
+        let global_env = EnvironmentStack::new();
         context.vm.push_frame_with_stack(
             CallFrame::new(
                 codeblock.clone(),

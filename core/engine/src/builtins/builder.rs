@@ -178,6 +178,11 @@ pub(crate) struct BuiltInConstructorWithPrototype<'ctx> {
     __proto__: JsPrototype,
     inherits: Option<JsObject>,
     attributes: Attribute,
+    /// If `Some`, the `constructor` property on the prototype will be installed
+    /// as a get/set accessor pair instead of as a writable data property.
+    /// This is needed by `Iterator.prototype.constructor` per the spec
+    /// (web-compat requirement).
+    constructor_accessor: Option<(JsFunction, JsFunction)>,
 }
 
 #[allow(dead_code)]
@@ -189,10 +194,17 @@ impl BuiltInConstructorWithPrototype<'_> {
     const OWN_CONSTRUCTOR_STORAGE_SLOTS: usize = 3;
 
     /// The number of storage slots properties that are always present in a
-    /// standard constructor's prototype object.
+    /// standard constructor's prototype object when `constructor` is a **data** property.
     ///
     /// See [`BuiltInConstructorWithPrototype::build`].
     const OWN_PROTOTYPE_STORAGE_SLOTS: usize = 1;
+
+    /// The number of storage slots properties that are always present in a
+    /// standard constructor's prototype object when `constructor` is installed
+    /// as a get/set **accessor** property (two slots: getter + setter).
+    ///
+    /// See [`BuiltInConstructorWithPrototype::constructor_accessor`].
+    const OWN_PROTOTYPE_STORAGE_SLOTS_ACCESSOR: usize = 2;
 
     /// Specify how many arguments the constructor function takes.
     ///
@@ -378,6 +390,25 @@ impl BuiltInConstructorWithPrototype<'_> {
         self
     }
 
+    /// Installs `Iterator.prototype.constructor` (or any analogous property) as a
+    /// configurable, non-enumerable **accessor** descriptor instead of the default
+    /// writable data property.
+    ///
+    /// Per the [ECMAScript spec][spec], `Iterator.prototype.constructor` must be an
+    /// accessor for web-compatibility reasons: previously the property did not exist, so
+    /// making it a setter that ignores writes to the prototype avoids breaking existing code
+    /// that assigns `Iterator.prototype.constructor = ...`.
+    ///
+    /// When this method is called the `PROTOTYPE_STORAGE_SLOTS` constant on the
+    /// implementing built-in **must** account for two extra slots (getter + setter)
+    /// instead of the usual one slot for a data property.
+    ///
+    /// [spec]: https://tc39.es/ecma262/#sec-iterator.prototype.constructor
+    pub(crate) fn constructor_accessor(mut self, get: JsFunction, set: JsFunction) -> Self {
+        self.constructor_accessor = Some((get, set));
+        self
+    }
+
     #[track_caller]
     pub(crate) fn build(mut self) {
         let length = self.length;
@@ -387,12 +418,42 @@ impl BuiltInConstructorWithPrototype<'_> {
         self = self.static_property(js_string!("name"), name, Attribute::CONFIGURABLE);
         self = self.static_property(PROTOTYPE, prototype, Attribute::empty());
 
-        let attributes = self.attributes;
-        let object = self.constructor.clone();
-        self = self.property(CONSTRUCTOR, object, attributes);
-
-        #[cfg(debug_assertions)]
-        {
+        // Install the `constructor` property on the prototype — either as a writable
+        // data property (the common case) or as a get/set accessor (needed by
+        // `Iterator.prototype.constructor` for web-compat, see `constructor_accessor`).
+        if let Some((get, set)) = self.constructor_accessor.take() {
+            // Accessor path: two storage slots (getter + setter).  The `CONSTRUCTOR` key
+            // must NOT already be present (no duplicate insertion).
+            let mut attributes = SlotAttributes::CONFIGURABLE;
+            attributes.set(SlotAttributes::GET, true);
+            attributes.set(SlotAttributes::SET, true);
+            debug_assert!(
+                !self
+                    .prototype_property_table
+                    .map
+                    .contains_key(&CONSTRUCTOR.into())
+            );
+            self.prototype_property_table
+                .insert(CONSTRUCTOR.into(), attributes);
+            self.prototype_storage
+                .extend([JsValue::new(get), JsValue::new(set)]);
+            #[cfg(debug_assertions)]
+            assert!(
+                self.prototype_storage.len()
+                    <= self.prototype_storage_slots_expected
+                        + Self::OWN_PROTOTYPE_STORAGE_SLOTS_ACCESSOR,
+                "expected to allocate at most {} prototype storage slots, got {}. \
+                constant {}::PROTOTYPE_STORAGE_SLOTS may need to be adjusted",
+                self.prototype_storage_slots_expected,
+                self.prototype_storage.len() - Self::OWN_PROTOTYPE_STORAGE_SLOTS_ACCESSOR,
+                self.name.display_escaped(),
+            );
+        } else {
+            // Data property path (the default).
+            let attributes = self.attributes;
+            let object = self.constructor.clone();
+            self = self.property(CONSTRUCTOR, object, attributes);
+            #[cfg(debug_assertions)]
             assert!(
                 self.prototype_storage.len()
                     <= self.prototype_storage_slots_expected + Self::OWN_PROTOTYPE_STORAGE_SLOTS,
@@ -402,17 +463,18 @@ impl BuiltInConstructorWithPrototype<'_> {
                 self.prototype_storage.len() - Self::OWN_PROTOTYPE_STORAGE_SLOTS,
                 self.name.display_escaped(),
             );
-            assert!(
-                self.constructor_storage.len()
-                    <= self.constructor_storage_slots_expected
-                        + Self::OWN_CONSTRUCTOR_STORAGE_SLOTS,
-                "expected to allocate at most {} constructor storage slots, got {}. \
-                constant {}::CONSTRUCTOR_STORAGE_SLOTS may need to be adjusted",
-                self.constructor_storage_slots_expected,
-                self.constructor_storage.len() - Self::OWN_CONSTRUCTOR_STORAGE_SLOTS,
-                self.name.display_escaped(),
-            );
         }
+
+        #[cfg(debug_assertions)]
+        assert!(
+            self.constructor_storage.len()
+                <= self.constructor_storage_slots_expected + Self::OWN_CONSTRUCTOR_STORAGE_SLOTS,
+            "expected to allocate at most {} constructor storage slots, got {}. \
+            constant {}::CONSTRUCTOR_STORAGE_SLOTS may need to be adjusted",
+            self.constructor_storage_slots_expected,
+            self.constructor_storage.len() - Self::OWN_CONSTRUCTOR_STORAGE_SLOTS,
+            self.name.display_escaped(),
+        );
 
         {
             let mut prototype = self.prototype.borrow_mut();
@@ -620,6 +682,7 @@ impl<'ctx> BuiltInBuilder<'ctx, Callable<Constructor>> {
             __proto__: Some(realm.intrinsics().constructors().function().prototype()),
             inherits: Some(realm.intrinsics().constructors().object().prototype()),
             attributes: Attribute::WRITABLE | Attribute::CONFIGURABLE | Attribute::NON_ENUMERABLE,
+            constructor_accessor: None,
         }
     }
 }
