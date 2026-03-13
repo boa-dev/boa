@@ -137,6 +137,17 @@ fn object() {
 }
 
 #[test]
+fn object_string_key() {
+    test_formatting(
+        r#"
+        let styles = {
+            ":checked + div": "primary",
+        };
+        "#,
+    );
+}
+
+#[test]
 fn array_literal_empty() {
     test_formatting(
         r"

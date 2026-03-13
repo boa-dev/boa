@@ -72,10 +72,37 @@ impl PropertyName {
 impl ToInternedString for PropertyName {
     fn to_interned_string(&self, interner: &Interner) -> String {
         match self {
-            Self::Literal(key) => interner.resolve_expect(key.sym()).to_string(),
+            Self::Literal(key) => {
+                let name = interner.resolve_expect(key.sym()).to_string();
+                if is_identifier_name(&name) {
+                    name
+                } else {
+                    format!("\"{name}\"")
+                }
+            }
             Self::Computed(key) => format!("[{}]", key.to_interned_string(interner)),
         }
     }
+}
+
+fn is_identifier_name(value: &str) -> bool {
+    let mut chars = value.chars();
+
+    let Some(first) = chars.next() else {
+        return false;
+    };
+
+    if !(first == '$' || first == '_' || first.is_alphabetic()) {
+        return false;
+    }
+
+    chars.all(|ch| {
+        ch == '$'
+            || ch == '_'
+            || ch == '\u{200C}'
+            || ch == '\u{200D}'
+            || ch.is_alphanumeric()
+    })
 }
 
 impl From<Identifier> for PropertyName {
