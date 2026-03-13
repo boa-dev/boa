@@ -186,7 +186,7 @@ impl JsResponse {
 
         // If init["status"] is not in the range 200 to 599, inclusive,
         // then throw a RangeError.
-        // https://fetch.spec.whatwg.org/#response-class 
+        // https://fetch.spec.whatwg.org/#response-class
         if !(200..=599).contains(&status_code) {
             return Err(JsNativeError::range()
                 .with_message(format!("Invalid status code: {status_code}"))
