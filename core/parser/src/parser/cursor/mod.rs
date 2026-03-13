@@ -37,12 +37,46 @@ pub(super) struct Cursor<R> {
 
     /// Tracks the number of tagged templates that are currently being parsed.
     tagged_templates_count: u32,
+
+    /// How many parenthesized-expression levels the parser has recursed into.
+    /// No hard ceiling — used only to decide when to switch to the iterative fast path.
+    parenthesized_depth: u32,
+}
+
+/// RAII guard to ensure `parenthesized_depth` is decremented on drop.
+#[derive(Debug)]
+pub(super) struct ParenthesizedDepthGuard<'a, R: ReadChar> {
+    cursor: &'a mut Cursor<R>,
+}
+
+impl<'a, R: ReadChar> ParenthesizedDepthGuard<'a, R> {
+    fn new(cursor: &'a mut Cursor<R>) -> Self {
+        cursor.parenthesized_depth += 1;
+        Self { cursor }
+    }
+
+    pub(super) fn depth(&self) -> u32 {
+        self.cursor.parenthesized_depth
+    }
+}
+
+impl<R: ReadChar> Drop for ParenthesizedDepthGuard<'_, R> {
+    fn drop(&mut self) {
+        self.cursor.parenthesized_depth = self.cursor.parenthesized_depth.saturating_sub(1);
+    }
 }
 
 impl<R> Cursor<R>
 where
     R: ReadChar,
 {
+    /// Switch to the iterative fast path at this many paren levels of recursion.
+    /// Kept low so the recursive descent parser never overflows the stack.
+    #[cfg(debug_assertions)]
+    pub(super) const FAST_PATH_PAREN_DEPTH: u32 = 4;
+    #[cfg(not(debug_assertions))]
+    pub(super) const FAST_PATH_PAREN_DEPTH: u32 = 20;
+
     /// Creates a new cursor with the given reader.
     pub(super) fn new(reader: R) -> Self {
         Self {
@@ -51,7 +85,18 @@ where
             json_parse: false,
             identifier: 0,
             tagged_templates_count: 0,
+            parenthesized_depth: 0,
         }
+    }
+
+    /// Records entering one parenthesized-expression level and returns a guard.
+    pub(super) fn enter_parenthesized(&mut self) -> ParenthesizedDepthGuard<'_, R> {
+        ParenthesizedDepthGuard::new(self)
+    }
+
+    /// Gets the current parenthesized depth.
+    pub(super) const fn parenthesized_depth(&self) -> u32 {
+        self.parenthesized_depth
     }
 
     /// Sets the goal symbol of the cursor to `Module`.
