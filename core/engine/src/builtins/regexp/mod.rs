@@ -1220,12 +1220,10 @@ impl RegExp {
         let a = Array::array_create(n + 1, None, context)?;
 
         // 22. Perform ! CreateDataPropertyOrThrow(A, "index", 𝔽(lastIndex)).
-        a.create_data_property_or_throw(js_string!("index"), last_index, context)
-            .expect("this CreateDataPropertyOrThrow call must not fail");
+        a.create_data_property_or_throw(js_string!("index"), last_index, context)?;
 
         // 23. Perform ! CreateDataPropertyOrThrow(A, "input", S).
-        a.create_data_property_or_throw(js_string!("input"), input.clone(), context)
-            .expect("this CreateDataPropertyOrThrow call must not fail");
+        a.create_data_property_or_throw(js_string!("input"), input.clone(), context)?;
 
         // 24. Let match be the Match Record { [[StartIndex]]: lastIndex, [[EndIndex]]: e }.
         // Immediately convert it to an array according to 22.2.7.7 GetMatchIndexPair(S, match)
@@ -1240,16 +1238,13 @@ impl RegExp {
         let indices = Array::array_create(n + 1, None, context)?;
 
         // 27. Append match to indices.
-        indices
-            .create_data_property_or_throw(0, match_record, context)
-            .expect("this CreateDataPropertyOrThrow call must not fail");
+        indices.create_data_property_or_throw(0, match_record, context)?;
 
         // 28. Let matchedSubstr be GetMatchString(S, match).
         let matched_substr = input.get_expect((last_index as usize)..(e));
 
         // 29. Perform ! CreateDataPropertyOrThrow(A, "0", matchedSubstr).
-        a.create_data_property_or_throw(0, matched_substr, context)
-            .expect("this CreateDataPropertyOrThrow call must not fail");
+        a.create_data_property_or_throw(0, matched_substr, context)?;
 
         let named_groups = match_value
             .named_groups()
@@ -1275,37 +1270,37 @@ impl RegExp {
                 if let Some(range) = range {
                     let value = input.get_expect(range.clone());
 
-                    groups
-                        .create_data_property_or_throw(name.clone(), value, context)
-                        .expect("this CreateDataPropertyOrThrow call must not fail");
+                    groups.create_data_property_or_throw(name.clone(), value, context)?;
 
                     // 22.2.7.8 MakeMatchIndicesIndexPairArray ( S, indices, groupNames, hasGroups )
                     // a. Let matchIndices be indices[i].
                     // b. If matchIndices is not undefined, then
                     // i. Let matchIndexPair be GetMatchIndexPair(S, matchIndices).
                     // d. Perform ! CreateDataPropertyOrThrow(A, ! ToString(𝔽(i)), matchIndexPair).
-                    group_names
-                        .create_data_property_or_throw(
-                            name.clone(),
-                            Array::create_array_from_list(
-                                [range.start.into(), range.end.into()],
-                                context,
-                            ),
+                    group_names.create_data_property_or_throw(
+                        name.clone(),
+                        Array::create_array_from_list(
+                            [range.start.into(), range.end.into()],
                             context,
-                        )
-                        .expect("this CreateDataPropertyOrThrow call must not fail");
+                        ),
+                        context,
+                    )?;
                 } else {
-                    groups
-                        .create_data_property_or_throw(name.clone(), JsValue::undefined(), context)
-                        .expect("this CreateDataPropertyOrThrow call must not fail");
+                    groups.create_data_property_or_throw(
+                        name.clone(),
+                        JsValue::undefined(),
+                        context,
+                    )?;
 
                     // 22.2.7.8 MakeMatchIndicesIndexPairArray ( S, indices, groupNames, hasGroups )
                     // c. Else,
                     // i. Let matchIndexPair be undefined.
                     // d. Perform ! CreateDataPropertyOrThrow(A, ! ToString(𝔽(i)), matchIndexPair).
-                    group_names
-                        .create_data_property_or_throw(name, JsValue::undefined(), context)
-                        .expect("this CreateDataPropertyOrThrow call must not fail");
+                    group_names.create_data_property_or_throw(
+                        name,
+                        JsValue::undefined(),
+                        context,
+                    )?;
                 }
             }
 
@@ -1317,13 +1312,10 @@ impl RegExp {
 
         // 22.2.7.8 MakeMatchIndicesIndexPairArray ( S, indices, groupNames, hasGroups )
         // 8. Perform ! CreateDataPropertyOrThrow(A, "groups", groups).
-        indices
-            .create_data_property_or_throw(js_string!("groups"), group_names, context)
-            .expect("this CreateDataPropertyOrThrow call must not fail");
+        indices.create_data_property_or_throw(js_string!("groups"), group_names, context)?;
 
         // 32. Perform ! CreateDataPropertyOrThrow(A, "groups", groups).
-        a.create_data_property_or_throw(js_string!("groups"), groups, context)
-            .expect("this CreateDataPropertyOrThrow call must not fail");
+        a.create_data_property_or_throw(js_string!("groups"), groups, context)?;
 
         // 27. For each integer i such that i ≥ 1 and i ≤ n, in ascending order, do
         for i in 1..=n {
@@ -1338,8 +1330,7 @@ impl RegExp {
             });
 
             // e. Perform ! CreateDataPropertyOrThrow(A, ! ToString(𝔽(i)), capturedValue).
-            a.create_data_property_or_throw(i, captured_value.clone(), context)
-                .expect("this CreateDataPropertyOrThrow call must not fail");
+            a.create_data_property_or_throw(i, captured_value.clone(), context)?;
 
             // 22.2.7.8 MakeMatchIndicesIndexPairArray ( S, indices, groupNames, hasGroups )
             if has_indices {
@@ -1353,9 +1344,7 @@ impl RegExp {
                 });
 
                 // d. Perform ! CreateDataPropertyOrThrow(A, ! ToString(𝔽(i)), matchIndexPair).
-                indices
-                    .create_data_property_or_throw(i, indices_range, context)
-                    .expect("this CreateDataPropertyOrThrow call must not fail");
+                indices.create_data_property_or_throw(i, indices_range, context)?;
             }
         }
 
@@ -1363,8 +1352,7 @@ impl RegExp {
         // a. Let indicesArray be MakeMatchIndicesIndexPairArray(S, indices, groupNames, hasGroups).
         // b. Perform ! CreateDataPropertyOrThrow(A, "indices", indicesArray).
         if has_indices {
-            a.create_data_property_or_throw(js_string!("indices"), indices, context)
-                .expect("this CreateDataPropertyOrThrow call must not fail");
+            a.create_data_property_or_throw(js_string!("indices"), indices, context)?;
         }
 
         // 35. Return A.
@@ -1416,7 +1404,7 @@ impl RegExp {
         rx.set(js_string!("lastIndex"), 0, true, context)?;
 
         // c. Let A be ! ArrayCreate(0).
-        let a = Array::array_create(0, None, context).expect("this ArrayCreate call must not fail");
+        let a = Array::array_create(0, None, context)?;
 
         // d. Let n be 0.
         let mut n = 0;
@@ -1433,8 +1421,7 @@ impl RegExp {
                 let match_str = result.get(0, context)?.to_string(context)?;
 
                 // 2. Perform ! CreateDataPropertyOrThrow(A, ! ToString(𝔽(n)), matchStr).
-                a.create_data_property_or_throw(n, match_str.clone(), context)
-                    .expect("this CreateDataPropertyOrThrow call must not fail");
+                a.create_data_property_or_throw(n, match_str.clone(), context)?;
 
                 // 3. If matchStr is the empty String, then
                 if match_str.is_empty() {
@@ -1925,7 +1912,7 @@ impl RegExp {
         )?;
 
         // 11. Let A be ! ArrayCreate(0).
-        let a = Array::array_create(0, None, context).expect("this ArrayCreate call must not fail");
+        let a = Array::array_create(0, None, context)?;
 
         // 12. Let lengthA be 0.
         let mut length_a = 0;
@@ -1957,8 +1944,7 @@ impl RegExp {
             }
 
             // c. Perform ! CreateDataPropertyOrThrow(A, "0", S).
-            a.create_data_property_or_throw(0, arg_str, context)
-                .expect("this CreateDataPropertyOrThrow call must not fail");
+            a.create_data_property_or_throw(0, arg_str, context)?;
 
             // d. Return A.
             return Ok(a.into());
@@ -1997,8 +1983,7 @@ impl RegExp {
                     let arg_str_substring = arg_str.get_expect(p as usize..q as usize);
 
                     // 2. Perform ! CreateDataPropertyOrThrow(A, ! ToString(𝔽(lengthA)), T).
-                    a.create_data_property_or_throw(length_a, arg_str_substring, context)
-                        .expect("this CreateDataPropertyOrThrow call must not fail");
+                    a.create_data_property_or_throw(length_a, arg_str_substring, context)?;
 
                     // 3. Set lengthA to lengthA + 1.
                     length_a += 1;
@@ -2024,8 +2009,7 @@ impl RegExp {
                         let next_capture = result.get(i, context)?;
 
                         // b. Perform ! CreateDataPropertyOrThrow(A, ! ToString(𝔽(lengthA)), nextCapture).
-                        a.create_data_property_or_throw(length_a, next_capture, context)
-                            .expect("this CreateDataPropertyOrThrow call must not fail");
+                        a.create_data_property_or_throw(length_a, next_capture, context)?;
 
                         // d. Set lengthA to lengthA + 1.
                         length_a += 1;
@@ -2048,8 +2032,7 @@ impl RegExp {
         let arg_str_substring = arg_str.get_expect(p as usize..size as usize);
 
         // 21. Perform ! CreateDataPropertyOrThrow(A, ! ToString(𝔽(lengthA)), T).
-        a.create_data_property_or_throw(length_a, arg_str_substring, context)
-            .expect("this CreateDataPropertyOrThrow call must not fail");
+        a.create_data_property_or_throw(length_a, arg_str_substring, context)?;
 
         // 22. Return A.
         Ok(a.into())

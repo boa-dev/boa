@@ -9,7 +9,7 @@ use icu_list::{
 use icu_locale::Locale;
 
 use crate::{
-    Context, JsArgs, JsData, JsNativeError, JsResult, JsString, JsValue,
+    Context, JsArgs, JsData, JsExpect, JsNativeError, JsResult, JsString, JsValue,
     builtins::{
         Array, BuiltInBuilder, BuiltInConstructor, BuiltInObject, IntrinsicObject, OrdinaryObject,
         intl::options::EmptyPreferences,
@@ -374,7 +374,7 @@ impl ListFormat {
 
         // 2. Let result be ! ArrayCreate(0).
         let result = Array::array_create(0, None, context)
-            .expect("creating an empty array with default proto must not fail");
+            .js_expect("creating an empty array with default proto must not fail")?;
 
         // 3. Let n be 0.
         // 4. For each Record { [[Type]], [[Value]] } part in parts, do
@@ -388,16 +388,16 @@ impl ListFormat {
 
             // b. Perform ! CreateDataPropertyOrThrow(O, "type", part.[[Type]]).
             o.create_data_property_or_throw(js_string!("type"), js_string!(part.typ()), context)
-                .expect("operation must not fail per the spec");
+                .js_expect("operation must not fail per the spec")?;
 
             // c. Perform ! CreateDataPropertyOrThrow(O, "value", part.[[Value]]).
             o.create_data_property_or_throw(js_string!("value"), js_string!(part.value()), context)
-                .expect("operation must not fail per the spec");
+                .js_expect("operation must not fail per the spec")?;
 
             // d. Perform ! CreateDataPropertyOrThrow(result, ! ToString(n), O).
             result
                 .create_data_property_or_throw(n, o, context)
-                .expect("operation must not fail per the spec");
+                .js_expect("operation must not fail per the spec")?;
 
             // e. Increment n by 1.
         }
@@ -446,7 +446,7 @@ impl ListFormat {
                 js_string!(lf.locale.to_string()),
                 context,
             )
-            .expect("operation must not fail per the spec");
+            .js_expect("operation must not fail per the spec")?;
         options
             .create_data_property_or_throw(
                 js_string!("type"),
@@ -457,7 +457,7 @@ impl ListFormat {
                 },
                 context,
             )
-            .expect("operation must not fail per the spec");
+            .js_expect("operation must not fail per the spec")?;
         options
             .create_data_property_or_throw(
                 js_string!("style"),
@@ -469,7 +469,7 @@ impl ListFormat {
                 },
                 context,
             )
-            .expect("operation must not fail per the spec");
+            .js_expect("operation must not fail per the spec")?;
 
         // 5. Return options.
         Ok(options.into())

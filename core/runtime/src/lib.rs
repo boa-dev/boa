@@ -105,11 +105,14 @@
     clippy::let_unit_value
 )]
 
+pub mod base64;
 pub mod console;
 
 #[doc(inline)]
 pub use console::{Console, ConsoleState, DefaultLogger, Logger, NullLogger};
 
+#[cfg(feature = "fetch")]
+pub mod abort;
 pub mod clone;
 pub mod extensions;
 #[cfg(feature = "fetch")]
@@ -127,7 +130,8 @@ pub mod url;
 #[cfg(feature = "process")]
 use crate::extensions::ProcessExtension;
 use crate::extensions::{
-    EncodingExtension, MicrotaskExtension, StructuredCloneExtension, TimeoutExtension,
+    Base64Extension, EncodingExtension, MicrotaskExtension, StructuredCloneExtension,
+    TimeoutExtension,
 };
 pub use extensions::RuntimeExtension;
 
@@ -142,6 +146,7 @@ pub fn register(
     ctx: &mut boa_engine::Context,
 ) -> boa_engine::JsResult<()> {
     (
+        Base64Extension,
         TimeoutExtension,
         EncodingExtension,
         MicrotaskExtension,
@@ -150,6 +155,8 @@ pub fn register(
         extensions::UrlExtension,
         #[cfg(feature = "process")]
         ProcessExtension,
+        #[cfg(feature = "fetch")]
+        extensions::AbortControllerExtension,
         extensions,
     )
         .register(realm, ctx)?;
@@ -391,7 +398,7 @@ pub(crate) mod test {
                         ),
                     };
 
-                    assert_eq!(&native.kind, &kind, "{}", fmt_test(&source, i));
+                    assert_eq!(native.kind(), &kind, "{}", fmt_test(&source, i));
                     assert_eq!(native.message(), message, "{}", fmt_test(&source, i));
                     i += 1;
                 }

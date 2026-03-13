@@ -130,3 +130,40 @@ fn check_capacity() {
 
     assert!(interner.resolve(sym).is_none());
 }
+
+#[test]
+fn check_is_latin1() {
+    static STATIC_STR: &str = "static_latin1";
+    static STATIC_UTF16: &[u16] = &[
+        's' as u16, 't' as u16, 'a' as u16, 't' as u16, 'i' as u16, 'c' as u16, '_' as u16,
+        'l' as u16, 'a' as u16, 't' as u16, 'i' as u16, 'n' as u16, '1' as u16,
+    ];
+
+    let mut interner = Interner::default();
+
+    // Common/static strings (e.g. keywords) are always Latin1.
+    let common_sym = interner.get_or_intern("break");
+    assert!(interner.is_latin1(common_sym));
+
+    // Dynamic ASCII string.
+    let ascii_sym = interner.get_or_intern("hello_world");
+    assert!(interner.is_latin1(ascii_sym));
+
+    // Dynamic non-ASCII but Latin1-encodable (U+0080..=U+00FF).
+    let latin1_sym = interner.get_or_intern(&[0x00E9u16, 0x00FC, 0x00F1][..]);
+    assert!(interner.is_latin1(latin1_sym));
+
+    // Dynamic non-Latin1 (code unit > 0xFF).
+    let non_latin1_sym = interner.get_or_intern(&[0x4E2Du16, 0x6587][..]);
+    assert!(!interner.is_latin1(non_latin1_sym));
+
+    // Boundary: U+00FF (last Latin1) and U+0100 (first non-Latin1).
+    let boundary_sym = interner.get_or_intern(&[0x00FFu16][..]);
+    assert!(interner.is_latin1(boundary_sym));
+    let boundary_non_sym = interner.get_or_intern(&[0x0100u16][..]);
+    assert!(!interner.is_latin1(boundary_non_sym));
+
+    // get_or_intern_static also caches correctly.
+    let static_sym = interner.get_or_intern_static(STATIC_STR, STATIC_UTF16);
+    assert!(interner.is_latin1(static_sym));
+}

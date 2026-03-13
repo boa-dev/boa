@@ -91,7 +91,14 @@ where
                 self.loop_init,
             )
             .parse(cursor, interner)?,
-            _ => unreachable!("unknown token found: {:?}", tok),
+            _ => {
+                return Err(Error::expected(
+                    [Keyword::Let.to_string(), Keyword::Const.to_string()],
+                    tok.to_string(interner),
+                    tok.span(),
+                    "lexical declaration",
+                ));
+            }
         };
 
         if !self.loop_init {
@@ -200,9 +207,11 @@ where
                     decls.push(decl);
                 } else {
                     let next = cursor.next(interner).or_abrupt()?;
-                    return Err(Error::general(
-                        "Expected initializer for const declaration",
-                        next.span().start(),
+                    return Err(Error::expected(
+                        [Punctuator::Assign.to_string()],
+                        next.to_string(interner),
+                        next.span(),
+                        "const declaration",
                     ));
                 }
             } else {
