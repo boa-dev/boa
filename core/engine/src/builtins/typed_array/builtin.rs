@@ -2515,7 +2515,9 @@ impl BuiltinTypedArray {
 
                 // Ask ICU for the list pattern literal by formatting two empty elements.
                 // For many locales this yields ", ", but it may differ.
-                js_string!(formatter.format_to_string(std::iter::once("").chain(std::iter::once(""))))
+                js_string!(
+                    formatter.format_to_string(std::iter::once("").chain(std::iter::once("")))
+                )
             }
 
             #[cfg(not(feature = "intl"))]
