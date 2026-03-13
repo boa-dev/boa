@@ -1,6 +1,6 @@
 use crate::iter::CodePointsIter;
 use crate::{JsStr, JsStringKind};
-use std::ptr::NonNull;
+use std::ptr::{self, NonNull};
 
 pub(crate) mod sequence;
 pub(crate) use sequence::SequenceString;
@@ -47,9 +47,9 @@ pub(crate) struct JsStringVTable {
     /// Get the string as a `JsStr`.
     pub as_str: for<'a> fn(&'a RawJsString) -> JsStr<'a>,
     /// Get an iterator of code points.
-    pub code_points: fn(NonNull<RawJsString>) -> CodePointsIter<'static>,
+    pub code_points: for<'a> fn(&'a RawJsString) -> CodePointsIter<'a>,
     /// Get the code unit at the given index.
-    pub code_unit_at: fn(NonNull<RawJsString>, usize) -> Option<u16>,
+    pub code_unit_at: fn(&RawJsString, usize) -> Option<u16>,
     /// Deallocate the string.
     pub dealloc: fn(NonNull<RawJsString>),
 

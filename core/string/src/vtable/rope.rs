@@ -1,6 +1,6 @@
 use crate::vtable::{JsStringVTable, RawJsString};
 use crate::{JsStr, JsStrVariant, JsString, JsStringKind};
-use std::cell::OnceCell;
+use std::sync::OnceLock;
 use std::ptr::{self, NonNull};
 
 /// Fibonacci numbers for rope balancing thresholds.
@@ -65,7 +65,7 @@ pub(crate) struct RopeString {
     pub(crate) header: RawJsString,
     pub(crate) left: JsString,
     pub(crate) right: JsString,
-    flattened: OnceCell<JsString>,
+    flattened: OnceLock<JsString>,
     pub(crate) depth: u8,
 }
 
@@ -107,7 +107,7 @@ impl RopeString {
             },
             left,
             right,
-            flattened: OnceCell::new(),
+            flattened: OnceLock::new(),
             depth,
         });
 
@@ -118,13 +118,16 @@ impl RopeString {
 
     /// Internal helper to collect all leaf strings of a rope.
     pub(crate) fn collect_leaves(s: &JsString, leaves: &mut Vec<JsString>) {
-        if s.kind() == JsStringKind::Rope {
-            // SAFETY: kind is Rope.
-            let r = unsafe { Self::from_vtable(s.ptr) };
-            Self::collect_leaves(&r.left, leaves);
-            Self::collect_leaves(&r.right, leaves);
-        } else if !s.is_empty() {
-            leaves.push(s.clone());
+        let mut stack = vec![s.clone()];
+        while let Some(current) = stack.pop() {
+            if current.kind() == JsStringKind::Rope {
+                // SAFETY: kind is Rope.
+                let r = unsafe { Self::from_vtable(current.ptr) };
+                stack.push(r.right.clone());
+                stack.push(r.left.clone());
+            } else if !current.is_empty() {
+                leaves.push(current);
+            }
         }
     }
 
@@ -146,10 +149,29 @@ impl RopeString {
 
 #[inline]
 fn rope_dealloc(ptr: NonNull<RawJsString>) {
-    // SAFETY: This is part of the correct vtable which is validated on construction.
-    // The pointer is guaranteed to be a valid `NonNull<RawJsString>` pointing to a `RopeString`.
-    unsafe {
-        drop(Box::from_raw(ptr.cast::<RopeString>().as_ptr()));
+    // We use a stack to iteratively drop rope nodes and avoid stack overflow.
+    let mut stack = vec![ptr];
+    while let Some(current_ptr) = stack.pop() {
+        // SAFETY: The pointer is guaranteed to be a valid `NonNull<RawJsString>` pointing to a `RopeString`
+        // that is ready to be deallocated (refcount reached 0).
+        unsafe {
+            let rope_ptr = current_ptr.cast::<RopeString>();
+            let mut rope_box = Box::from_raw(rope_ptr.as_ptr());
+
+            // Check children. If they are ropes and we are the last reference, defer their deallocation.
+            // This prevents the recursive drop of fields.
+            let left = std::mem::replace(&mut rope_box.left, crate::StaticJsStrings::EMPTY_STRING);
+            if left.kind() == JsStringKind::Rope && left.refcount() == Some(1) {
+                stack.push(left.ptr);
+                std::mem::forget(left);
+            }
+            let right = std::mem::replace(&mut rope_box.right, crate::StaticJsStrings::EMPTY_STRING);
+            if right.kind() == JsStringKind::Rope && right.refcount() == Some(1) {
+                stack.push(right.ptr);
+                std::mem::forget(right);
+            }
+            // rope_box is dropped here. Its remaining fields (depth, OnceCell, and the empty JsStrings) are dropped normally.
+        }
     }
 }
 
@@ -160,54 +182,61 @@ fn rope_as_str(header: &RawJsString) -> JsStr<'_> {
 
     // Lazy flattening.
     let flattened = this.flattened.get_or_init(|| {
-        let mut vec = Vec::with_capacity(this.header.len);
+        let mut leaves = Vec::with_capacity(this.depth as usize * 2);
+        let mut current_strings = Vec::with_capacity(this.depth as usize * 2);
+        
         // We need an iterative approach to avoid stack overflow for deep trees.
         let mut stack: Vec<&JsString> = Vec::with_capacity(this.depth as usize + 1);
         stack.push(&this.right);
         stack.push(&this.left);
 
         while let Some(s) = stack.pop() {
-            match s.kind() {
-                JsStringKind::Rope => {
-                    // SAFETY: s is a Rope.
-                    let rope: &RopeString = unsafe { s.ptr.cast().as_ref() };
-                    stack.push(&rope.right);
-                    stack.push(&rope.left);
-                }
-                _ => match s.variant() {
-                    JsStrVariant::Latin1(l) => vec.extend(l.iter().map(|&b| u16::from(b))),
-                    JsStrVariant::Utf16(u) => vec.extend_from_slice(u),
-                },
+            if s.kind() == JsStringKind::Rope {
+                // SAFETY: s is a Rope.
+                let rope: &RopeString = unsafe { s.ptr.cast().as_ref() };
+                stack.push(&rope.right);
+                stack.push(&rope.left);
+            } else if !s.is_empty() {
+                // To safely get `JsStr` with a long enough lifetime for `concat_array`,
+                // we collect the `JsString`s and only then get their `as_str()`.
+                // This is because `concat_array` requires `&[JsStr<'_>]`.
+                current_strings.push(s.clone());
             }
         }
-        debug_assert_eq!(vec.len(), this.header.len);
-        JsString::from(&vec[..])
+        
+        for s in &current_strings {
+            leaves.push(s.as_str());
+        }
+
+        JsString::concat_array(&leaves)
     });
 
     flattened.as_str()
 }
 
 #[inline]
-fn rope_code_points(ptr: NonNull<RawJsString>) -> crate::iter::CodePointsIter<'static> {
+fn rope_code_points(header: &RawJsString) -> crate::iter::CodePointsIter<'_> {
     // SAFETY: We are creating a new handle from a raw pointer, so we must increment the refcount
     // to avoid a use-after-free when the iterator's handle is dropped.
     // We also know that the kind is not static (since this is ROPE), so we can safely cast the refcount
     // pointer to an atomic for concurrent updates.
+    // NOTE: Casting a non-atomic `usize` to `AtomicUsize` is technically undefined behavior in the Rust
+    // strict provenance model, but it is a common pattern in JS engines where atomic and non-atomic
+    // states share layout, and is practically safe on our supported platforms.
     unsafe {
-        let header = ptr.as_ref();
         let rc_ptr = (&raw const header.refcount).cast::<std::sync::atomic::AtomicUsize>();
         (*rc_ptr).fetch_add(1, std::sync::atomic::Ordering::Relaxed);
     }
     // SAFETY: We just incremented the refcount, so we can safely create a new handle.
-    let s = unsafe { JsString::from_raw(ptr) };
+    let s = unsafe { JsString::from_raw(NonNull::from(header)) };
     crate::iter::CodePointsIter::rope(s)
 }
 
 #[inline]
-fn rope_code_unit_at(ptr: NonNull<RawJsString>, mut index: usize) -> Option<u16> {
+fn rope_code_unit_at(header: &RawJsString, mut index: usize) -> Option<u16> {
     // SAFETY: This is part of the correct vtable which is validated on construction.
     // The pointer is guaranteed to be a valid `NonNull<RawJsString>` pointing to a `RopeString`.
-    let mut current: &RopeString = unsafe { ptr.cast().as_ref() };
+    let mut current: &RopeString = unsafe { &*ptr::from_ref(header).cast::<RopeString>() };
 
     loop {
         if index >= current.header.len {

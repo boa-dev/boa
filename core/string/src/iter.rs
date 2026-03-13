@@ -179,10 +179,16 @@ impl<'a> Iterator for RopeCodePointsIter<'a> {
                 self.stack.push(r.left.clone());
             } else {
                 // SAFETY: We keep `s` alive in `self.current`, so its code points are valid
-                // for the duration of the iteration. We transmute the lifetime to `'a` because
-                // the iterator's lifetime is tied to the rope.
+                // for the duration of the iteration. Since `JsString` is a reference counted
+                // pointer to heap data, its data address is stable even when moved.
+                let iter = s.code_points();
+                // SAFETY: We are moving `s` and its own iterator into the same struct.
+                // The iterator's lifetime is logically tied to the heap data owned by `s`.
+                // Because `s` is moved into `self.current`, it remains alive for the duration
+                // of the iteration; thus, lengthening its lifetime to `'a` (the lifetime of
+                // our RopeCodePointsIter) here is sound.
                 let iter = unsafe {
-                    std::mem::transmute::<CodePointsIter<'_>, CodePointsIter<'a>>(s.code_points())
+                    std::mem::transmute::<CodePointsIter<'_>, CodePointsIter<'a>>(iter)
                 };
                 self.current = Some((s, iter));
             }
