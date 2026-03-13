@@ -8,7 +8,7 @@
 //! [spec]: https://tc39.es/ecma402/#datetimeformat-objects
 
 use crate::{
-    Context, JsArgs, JsData, JsResult, JsString, JsValue, NativeFunction,
+    Context, JsArgs, JsData, JsExpect, JsResult, JsString, JsValue, NativeFunction,
     builtins::{
         BuiltInBuilder, BuiltInConstructor, BuiltInObject, IntrinsicObject,
         date::utils::{
@@ -18,7 +18,7 @@ use crate::{
         intl::{
             Service,
             date_time_format::options::{DateStyle, FormatMatcher, FormatOptions, TimeStyle},
-            locale::{canonicalize_locale_list, resolve_locale},
+            locale::{canonicalize_locale_list, filter_locales, resolve_locale},
             options::{IntlOptions, coerce_options_to_object},
         },
         options::get_option,
@@ -79,6 +79,7 @@ impl FormatTimeZone {
 /// JavaScript `Intl.DateTimeFormat` object.
 #[derive(Debug, Clone, Trace, Finalize, JsData)]
 #[boa_gc(unsafe_empty_trace)] // Safety: No traceable types
+#[allow(dead_code)]
 pub(crate) struct DateTimeFormat {
     locale: Locale,
     calendar_algorithm: Option<CalendarAlgorithm>, // TODO: Potentially remove ?
@@ -88,6 +89,7 @@ pub(crate) struct DateTimeFormat {
     time_style: Option<TimeStyle>,
     time_zone: FormatTimeZone,
     fieldset: CompositeFieldSet,
+    formatter: DateTimeFormatter<CompositeFieldSet>,
     bound_format: Option<JsFunction>,
 }
 
@@ -104,6 +106,11 @@ impl IntrinsicObject for DateTimeFormat {
             .build();
 
         BuiltInBuilder::from_standard_constructor::<Self>(realm)
+            .static_method(
+                Self::supported_locales_of,
+                js_string!("supportedLocalesOf"),
+                1,
+            )
             .accessor(
                 js_string!("format"),
                 Some(get_format),
@@ -125,8 +132,8 @@ impl BuiltInObject for DateTimeFormat {
 
 impl BuiltInConstructor for DateTimeFormat {
     const CONSTRUCTOR_ARGUMENTS: usize = 0;
-    const PROTOTYPE_STORAGE_SLOTS: usize = 3; //2 -> 3 because of adding resolvedOptions
-    const CONSTRUCTOR_STORAGE_SLOTS: usize = 0;
+    const PROTOTYPE_STORAGE_SLOTS: usize = 3;
+    const CONSTRUCTOR_STORAGE_SLOTS: usize = 1;
 
     const STANDARD_CONSTRUCTOR: fn(&StandardConstructors) -> &StandardConstructor =
         StandardConstructors::date_time_format;
@@ -268,17 +275,9 @@ impl DateTimeFormat {
                         // information about the specified calendar.
                         let fields = ToLocalTime::from_local_epoch_milliseconds(tz)?;
 
-                        let formatter = DateTimeFormatter::try_new_with_buffer_provider(
-                            context.intl_provider().erased_provider(),
-                            dtf.borrow().data().locale.clone().into(),
-                            dtf.borrow().data().fieldset,
-                        )
-                        .map_err(|e| {
-                            JsNativeError::range()
-                                .with_message(format!("failed to load formatter: {e}"))
-                        })?;
+                        let formatter = dtf.borrow().data().formatter.clone();
 
-                        let dt = fields.to_formattable_datetime();
+                        let dt = fields.to_formattable_datetime()?;
                         let tz_info = dtf.borrow().data().time_zone.to_time_zone_info();
                         let tz_info_at_time = tz_info.at_date_time_iso(dt);
 
@@ -302,6 +301,33 @@ impl DateTimeFormat {
             dtf.data_mut().bound_format = Some(bound_format.clone());
             Ok(bound_format.into())
         }
+    }
+
+    /// [`Intl.DateTimeFormat.supportedLocalesOf ( locales [ , options ] )`][spec]
+    ///
+    /// Returns an array containing those of the provided locales that are
+    /// supported in date and time formatting without having to fall back to
+    /// the runtime's default locale.
+    ///
+    /// More information:
+    ///  - [MDN documentation][mdn]
+    ///
+    /// [spec]: https://tc39.es/ecma402/#sec-intl.datetimeformat.supportedlocalesof
+    /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Intl/DateTimeFormat/supportedLocalesOf
+    fn supported_locales_of(
+        _: &JsValue,
+        args: &[JsValue],
+        context: &mut Context,
+    ) -> JsResult<JsValue> {
+        let locales = args.get_or_undefined(0);
+        let options = args.get_or_undefined(1);
+
+        // 1. Let availableLocales be %DateTimeFormat%.[[AvailableLocales]].
+        // 2. Let requestedLocales be ? CanonicalizeLocaleList(locales).
+        let requested_locales = canonicalize_locale_list(locales, context)?;
+
+        // 3. Return ? FilterLocales(availableLocales, requestedLocales, options).
+        filter_locales::<Self>(requested_locales, options, context).map(JsValue::from)
     }
 
     /// [`Intl.DateTimeFormat.prototype.resolvedOptions ( )`][spec]
@@ -488,13 +514,15 @@ impl ToLocalTime {
         })
     }
 
-    pub(crate) fn to_formattable_datetime(&self) -> DateTime<Iso> {
-        DateTime {
+    pub(crate) fn to_formattable_datetime(&self) -> JsResult<DateTime<Iso>> {
+        Ok(DateTime {
             date: Date::try_new_iso(self.year, self.month, self.day)
-                .expect("TimeClip insures valid range."),
+                .ok()
+                .js_expect("TimeClip insures valid range.")?,
             time: Time::try_new(self.hour, self.minute, self.second, self.subsecond)
-                .expect("valid values"),
-        }
+                .ok()
+                .js_expect("valid values")?,
+        })
     }
 }
 
@@ -785,6 +813,13 @@ fn create_date_time_format(
     // 33. If bestFormat has a field [[hour]], then
     // a. Set dateTimeFormat.[[HourCycle]] to hc.
     // 34. Return dateTimeFormat.
+    let formatter = DateTimeFormatter::try_new_with_buffer_provider(
+        context.intl_provider().erased_provider(),
+        resolved_locale.clone().into(),
+        fieldset,
+    )
+    .map_err(|e| JsNativeError::range().with_message(format!("failed to load formatter: {e}")))?;
+
     Ok(JsObject::from_proto_and_data(
         prototype,
         DateTimeFormat {
@@ -796,6 +831,7 @@ fn create_date_time_format(
             time_style,
             time_zone,
             fieldset,
+            formatter,
             bound_format: None,
         },
     ))

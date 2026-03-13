@@ -1256,7 +1256,13 @@ where
                     }
                 }
             }
-            _ => return Err(Error::general("unexpected token", token.span().start())),
+            _ => {
+                return Err(Error::unexpected(
+                    token.to_string(interner),
+                    token.span(),
+                    "expected class element (method, field, or static block)",
+                ));
+            }
         };
 
         match &element {

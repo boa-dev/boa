@@ -261,7 +261,7 @@ pub struct LinearSpan {
     end: LinearPosition,
 }
 impl LinearSpan {
-    /// Creates a new `LinearPosition`.
+    /// Creates a new `LinearSpan`.
     ///
     /// # Panics
     ///
