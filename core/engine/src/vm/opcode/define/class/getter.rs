@@ -5,7 +5,7 @@ use crate::{
     builtins::function::{OrdinaryFunction, set_function_name},
     object::internal_methods::InternalMethodPropertyContext,
     property::PropertyDescriptor,
-    vm::opcode::{Operation, RegisterOperand, VaryingOperand},
+    vm::opcode::{IndexOperand, Operation, RegisterOperand},
 };
 
 /// `DefineClassStaticGetterByName` implements the Opcode Operation for `Opcode::DefineClassStaticGetterByName`
@@ -18,7 +18,7 @@ pub(crate) struct DefineClassStaticGetterByName;
 impl DefineClassStaticGetterByName {
     #[inline(always)]
     pub(crate) fn operation(
-        (function, class, index): (RegisterOperand, RegisterOperand, VaryingOperand),
+        (function, class, index): (RegisterOperand, RegisterOperand, IndexOperand),
         context: &mut Context,
     ) -> JsResult<()> {
         let function = context.vm.get_register(function.into()).clone();
@@ -34,7 +34,7 @@ impl DefineClassStaticGetterByName {
             let function_object = function
                 .as_object()
                 .expect("method must be function object");
-            set_function_name(&function_object, &key, Some(js_str!("get")), context);
+            set_function_name(&function_object, &key, Some(js_str!("get")), context)?;
             function_object
                 .downcast_mut::<OrdinaryFunction>()
                 .expect("method must be function object")
@@ -75,7 +75,7 @@ pub(crate) struct DefineClassGetterByName;
 impl DefineClassGetterByName {
     #[inline(always)]
     pub(crate) fn operation(
-        (function, class_proto, index): (RegisterOperand, RegisterOperand, VaryingOperand),
+        (function, class_proto, index): (RegisterOperand, RegisterOperand, IndexOperand),
         context: &mut Context,
     ) -> JsResult<()> {
         let function = context.vm.get_register(function.into()).clone();
@@ -91,7 +91,7 @@ impl DefineClassGetterByName {
             let function_object = function
                 .as_object()
                 .expect("method must be function object");
-            set_function_name(&function_object, &key, Some(js_str!("get")), context);
+            set_function_name(&function_object, &key, Some(js_str!("get")), context)?;
             function_object
                 .downcast_mut::<OrdinaryFunction>()
                 .expect("method must be function object")
@@ -146,7 +146,7 @@ impl DefineClassStaticGetterByValue {
             let function_object = function
                 .as_object()
                 .expect("method must be function object");
-            set_function_name(&function_object, &key, Some(js_str!("get")), context);
+            set_function_name(&function_object, &key, Some(js_str!("get")), context)?;
             function_object
                 .downcast_mut::<OrdinaryFunction>()
                 .expect("method must be function object")
@@ -202,7 +202,7 @@ impl DefineClassGetterByValue {
             let function_object = function
                 .as_object()
                 .expect("method must be function object");
-            set_function_name(&function_object, &key, Some(js_str!("get")), context);
+            set_function_name(&function_object, &key, Some(js_str!("get")), context)?;
             function_object
                 .downcast_mut::<OrdinaryFunction>()
                 .expect("method must be function object")

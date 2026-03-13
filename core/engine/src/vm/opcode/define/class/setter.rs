@@ -5,7 +5,7 @@ use crate::{
     builtins::function::{OrdinaryFunction, set_function_name},
     object::internal_methods::InternalMethodPropertyContext,
     property::PropertyDescriptor,
-    vm::opcode::{Operation, RegisterOperand, VaryingOperand},
+    vm::opcode::{IndexOperand, Operation, RegisterOperand},
 };
 
 /// `DefineClassStaticSetterByName` implements the Opcode Operation for `Opcode::DefineClassStaticSetterByName`
@@ -18,7 +18,7 @@ pub(crate) struct DefineClassStaticSetterByName;
 impl DefineClassStaticSetterByName {
     #[inline(always)]
     pub(crate) fn operation(
-        (function, class, index): (RegisterOperand, RegisterOperand, VaryingOperand),
+        (function, class, index): (RegisterOperand, RegisterOperand, IndexOperand),
         context: &mut Context,
     ) -> JsResult<()> {
         let function = context.vm.get_register(function.into()).clone();
@@ -34,7 +34,7 @@ impl DefineClassStaticSetterByName {
             let function_object = function
                 .as_object()
                 .expect("method must be function object");
-            set_function_name(&function_object, &key, Some(js_str!("set")), context);
+            set_function_name(&function_object, &key, Some(js_str!("set")), context)?;
             function_object
                 .downcast_mut::<OrdinaryFunction>()
                 .expect("method must be function object")
@@ -76,7 +76,7 @@ pub(crate) struct DefineClassSetterByName;
 impl DefineClassSetterByName {
     #[inline(always)]
     pub(crate) fn operation(
-        (function, class_proto, index): (RegisterOperand, RegisterOperand, VaryingOperand),
+        (function, class_proto, index): (RegisterOperand, RegisterOperand, IndexOperand),
         context: &mut Context,
     ) -> JsResult<()> {
         let function = context.vm.get_register(function.into()).clone();
@@ -92,7 +92,7 @@ impl DefineClassSetterByName {
             let function_object = function
                 .as_object()
                 .expect("method must be function object");
-            set_function_name(&function_object, &key, Some(js_str!("set")), context);
+            set_function_name(&function_object, &key, Some(js_str!("set")), context)?;
             function_object
                 .downcast_mut::<OrdinaryFunction>()
                 .expect("method must be function object")
@@ -149,7 +149,7 @@ impl DefineClassStaticSetterByValue {
             let function_object = function
                 .as_object()
                 .expect("method must be function object");
-            set_function_name(&function_object, &key, Some(js_str!("set")), context);
+            set_function_name(&function_object, &key, Some(js_str!("set")), context)?;
             function_object
                 .downcast_mut::<OrdinaryFunction>()
                 .expect("method must be function object")
@@ -206,7 +206,7 @@ impl DefineClassSetterByValue {
             let function_object = function
                 .as_object()
                 .expect("method must be function object");
-            set_function_name(&function_object, &key, Some(js_str!("set")), context);
+            set_function_name(&function_object, &key, Some(js_str!("set")), context)?;
             function_object
                 .downcast_mut::<OrdinaryFunction>()
                 .expect("method must be function object")

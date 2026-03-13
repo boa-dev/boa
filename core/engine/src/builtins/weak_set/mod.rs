@@ -8,10 +8,10 @@
 //! [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/WeakSet
 
 use crate::{
-    Context, JsArgs, JsNativeError, JsResult, JsString, JsValue,
+    Context, JsArgs, JsResult, JsString, JsValue,
     builtins::{BuiltInBuilder, BuiltInConstructor, BuiltInObject, IntrinsicObject},
     context::intrinsics::{Intrinsics, StandardConstructor, StandardConstructors},
-    js_string,
+    js_error, js_string,
     object::{ErasedVTableObject, JsObject, internal_methods::get_prototype_from_constructor},
     property::Attribute,
     realm::Realm,
@@ -76,9 +76,7 @@ impl BuiltInConstructor for WeakSet {
     ) -> JsResult<JsValue> {
         // 1. If NewTarget is undefined, throw a TypeError exception.
         if new_target.is_undefined() {
-            return Err(JsNativeError::typ()
-                .with_message("WeakSet: cannot call constructor without `new`")
-                .into());
+            return Err(js_error!(TypeError: "WeakSet: cannot call constructor without `new`"));
         }
 
         // 2. Let set be ? OrdinaryCreateFromConstructor(NewTarget, "%WeakSet.prototype%", « [[WeakSetData]] »).
@@ -104,7 +102,7 @@ impl BuiltInConstructor for WeakSet {
         // 6. If IsCallable(adder) is false, throw a TypeError exception.
         let adder = adder
             .as_callable()
-            .ok_or_else(|| JsNativeError::typ().with_message("WeakSet: 'add' is not a function"))?;
+            .ok_or_else(|| js_error!(TypeError: "WeakSet: 'add' is not a function"))?;
 
         // 7. Let iteratorRecord be ? GetIterator(iterable, sync).
         let mut iterator_record = iterable.clone().get_iterator(IteratorHint::Sync, context)?;
@@ -147,17 +145,17 @@ impl WeakSet {
             .as_ref()
             .and_then(JsObject::downcast_mut::<NativeWeakSet>)
             .ok_or_else(|| {
-                JsNativeError::typ().with_message("WeakSet.add: called with non-object value")
+                js_error!(TypeError:
+                    "WeakSet.prototype.add: expected 'this' to be a WeakSet object")
             })?;
 
         // 3. If Type(value) is not Object, throw a TypeError exception.
         let value = args.get_or_undefined(0);
         let Some(value) = value.as_object() else {
-            return Err(JsNativeError::typ()
-                .with_message(format!(
-                    "WeakSet.add: expected target argument of type `object`, got target of type `{}`",
-                    value.type_of()
-                )).into());
+            return Err(js_error!(TypeError:
+                "WeakSet.add: expected target argument of type `object`, got target of type `{}`",
+                value.type_of()
+            ));
         };
 
         // 4. Let entries be the List that is S.[[WeakSetData]].
@@ -197,7 +195,9 @@ impl WeakSet {
             .as_ref()
             .and_then(JsObject::downcast_mut::<NativeWeakSet>)
             .ok_or_else(|| {
-                JsNativeError::typ().with_message("WeakSet.delete: called with non-object value")
+                js_error!(TypeError:
+                    "WeakSet.prototype.delete: expected 'this' to be a WeakSet object",
+                )
             })?;
 
         // 3. If Type(value) is not Object, return false.
@@ -237,7 +237,8 @@ impl WeakSet {
             .as_ref()
             .and_then(JsObject::downcast_ref::<NativeWeakSet>)
             .ok_or_else(|| {
-                JsNativeError::typ().with_message("WeakSet.has: called with non-object value")
+                js_error!(TypeError:
+                    "WeakSet.prototype.has: expected 'this' to be a WeakSet object")
             })?;
 
         // 3. Let entries be the List that is S.[[WeakSetData]].
@@ -253,3 +254,6 @@ impl WeakSet {
         Ok(set.contains_key(value.inner()).into())
     }
 }
+
+#[cfg(test)]
+mod tests;

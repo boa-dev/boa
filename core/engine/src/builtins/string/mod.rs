@@ -10,7 +10,7 @@
 //! [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String
 
 use crate::{
-    Context, JsArgs, JsResult, JsString, JsValue,
+    Context, JsArgs, JsExpect, JsResult, JsString, JsValue,
     builtins::{Array, BuiltInObject, Number, RegExp},
     context::intrinsics::{Intrinsics, StandardConstructor, StandardConstructors},
     error::JsNativeError,
@@ -440,7 +440,7 @@ impl String {
         context: &mut Context,
     ) -> JsResult<JsValue> {
         // 1. Let result be the empty String.
-        let mut result = Vec::new();
+        let mut result = Vec::with_capacity(args.len());
 
         // 2. For each element next of codeUnits, do
         for next in args {
@@ -1218,7 +1218,7 @@ impl String {
                     replace_str,
                     context,
                 )
-                .expect("GetSubstitution should never fail here."),
+                .js_expect("GetSubstitution should never fail here.")?,
             };
 
             // d. Set result to the string-concatenation of result, preserved, and replacement.
@@ -1348,7 +1348,7 @@ impl String {
         } else {
             JsValue::new(num_pos)
                 .to_integer_or_infinity(context)
-                .expect("Already called `to_number so this must not fail.")
+                .js_expect("Already called `to_number so this must not fail.")?
         };
 
         // 7. Let len be the length of S.
@@ -1426,7 +1426,7 @@ impl String {
                 let collator = object
                     .as_ref()
                     .and_then(|o| o.downcast_ref::<Collator>())
-                    .expect("constructor must return a `Collator` object");
+                    .js_expect("constructor must return a `Collator` object")?;
 
                 let s = s.iter().collect::<Vec<_>>();
                 let that_value = that_value.iter().collect::<Vec<_>>();
@@ -2727,7 +2727,7 @@ pub(crate) fn get_substitution(
                         // a. Assert: Type(namedCaptures) is Object.
                         let named_captures = named_captures
                             .as_object()
-                            .expect("should be an object according to spec");
+                            .js_expect("should be an object according to spec")?;
 
                         // b. Scan until the next > U+003E (GREATER-THAN SIGN).
                         let mut group_name = vec![];

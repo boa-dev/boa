@@ -76,6 +76,12 @@ pub enum Error {
         err: LexError,
     },
 
+    /// A scope analysis error.
+    ScopeAnalysis {
+        /// The error that occurred during scope analysis.
+        err: &'static str,
+    },
+
     /// Catch all General Error
     General {
         /// The error message.
@@ -138,6 +144,11 @@ impl Error {
             span,
             message: message.into(),
         }
+    }
+
+    /// Creates a `ScopeAnalysis` parsing error.
+    pub(crate) fn scope_analysis(err: &'static str) -> Self {
+        Self::ScopeAnalysis { err }
     }
 
     /// Creates a "general" parsing error.
@@ -230,6 +241,7 @@ impl fmt::Display for Error {
                 position.column_number()
             ),
             Self::Lex { err } => err.fmt(f),
+            Self::ScopeAnalysis { err } => write!(f, "invalid scope analysis: {err}"),
         }
     }
 }
