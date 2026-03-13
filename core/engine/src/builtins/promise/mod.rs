@@ -388,7 +388,7 @@ impl BuiltInObject for Promise {
 impl BuiltInConstructor for Promise {
     const CONSTRUCTOR_ARGUMENTS: usize = 1;
     const PROTOTYPE_STORAGE_SLOTS: usize = 4;
-    const CONSTRUCTOR_STORAGE_SLOTS: usize = 10;
+    const CONSTRUCTOR_STORAGE_SLOTS: usize = 12;
 
     const STANDARD_CONSTRUCTOR: fn(&StandardConstructors) -> &StandardConstructor =
         StandardConstructors::promise;
