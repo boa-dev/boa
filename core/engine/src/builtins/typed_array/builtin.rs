@@ -2611,14 +2611,16 @@ impl BuiltinTypedArray {
                 .into());
         };
         let actual_index = (|| {
-            let rel = u64::try_from(relative_index)
-                .ok()
-                .or_else(|| len.checked_add_signed(relative_index))?;
+            let rel = usize::try_from(relative_index).ok().or_else(|| {
+                isize::try_from(relative_index)
+                    .ok()
+                    .and_then(|i| len.checked_add_signed(i))
+            })?;
 
             let inner = ta.borrow();
             let buf = inner.data().viewed_array_buffer().as_buffer();
             let s = buf.bytes(Ordering::Relaxed)?;
-            inner.data().validate_index_u64(rel, s.len())
+            inner.data().validate_index_usize(rel, s.len())
         })()
         .ok_or_else(|| {
             JsNativeError::range().with_message("invalid integer index for TypedArray operation")

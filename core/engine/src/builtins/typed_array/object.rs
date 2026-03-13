@@ -253,12 +253,12 @@ impl TypedArray {
         Some(index as usize)
     }
 
-    /// Validates a `u64` index to be in bounds for the inner buffer of this `TypedArray`.
+    /// Validates a `usize` index to be in bounds for the inner buffer of this `TypedArray`.
     ///
     /// This is an optimized variant of [`validate_index`](Self::validate_index) for cases where
     /// the index is already known to be a non-negative integer (`u64`), skipping the redundant
     /// checks for `NaN`, infinity, fractional values, and negative zero.
-    pub(crate) fn validate_index_u64(&self, index: u64, buf_len: usize) -> Option<u64> {
+    pub(crate) fn validate_index_usize(&self, index: usize, buf_len: usize) -> Option<usize> {
         // 1. If IsTypedArrayOutOfBounds(taRecord) is true, return false.
         if self.is_out_of_bounds(buf_len) {
             return None;

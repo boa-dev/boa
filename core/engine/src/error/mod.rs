@@ -622,7 +622,7 @@ impl JsError {
                                         source: e,
                                     }
                                 })?;
-                                error_list.reserve(length as usize);
+                                error_list.reserve(length);
                                 for i in 0..length {
                                     error_list.push(Self::from_opaque(
                                         errors.get(i, context).map_err(|e| {

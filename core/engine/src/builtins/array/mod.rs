@@ -1015,7 +1015,7 @@ impl Array {
         };
 
         // 5. Let R be the empty String.
-        let mut r = Vec::with_capacity(len as usize + len.saturating_sub(1) as usize);
+        let mut r = Vec::with_capacity(len + len.saturating_sub(1));
         // 6. Let k be 0.
         // 7. Repeat, while k < len,
         for k in 0..len {
@@ -2199,7 +2199,7 @@ impl Array {
         };
 
         // 4. Let R be the empty String.
-        let mut r = Vec::with_capacity(len as usize + len.saturating_sub(1) as usize);
+        let mut r = Vec::with_capacity(len + len.saturating_sub(1));
 
         // 5. Let k be 0.
         // 6. Repeat, while k < len,
