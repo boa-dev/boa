@@ -2173,8 +2173,23 @@ impl Array {
         let separator = {
             #[cfg(feature = "intl")]
             {
-                // TODO: this should eventually return a locale-sensitive separator.
-                js_string!(", ")
+                use crate::builtins::intl::locale::default_locale;
+                use icu_list::{
+                    ListFormatter, ListFormatterPreferences, options::ListFormatterOptions,
+                };
+
+                let locale = default_locale(context.intl_provider().locale_canonicalizer()?);
+                let preferences = ListFormatterPreferences::from(&locale);
+                let formatter = ListFormatter::try_new_unit_with_buffer_provider(
+                    context.intl_provider().erased_provider(),
+                    preferences,
+                    ListFormatterOptions::default(),
+                )
+                .map_err(|e| JsNativeError::typ().with_message(e.to_string()))?;
+
+                // Ask ICU for the list pattern literal by formatting two empty elements.
+                // For many locales this yields ", ", but it may differ.
+                js_string!(formatter.format_to_string(std::iter::once("").chain(std::iter::once(""))))
             }
 
             #[cfg(not(feature = "intl"))]

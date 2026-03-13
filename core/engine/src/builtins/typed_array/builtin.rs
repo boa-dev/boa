@@ -3,7 +3,6 @@ use std::{
     sync::atomic::Ordering,
 };
 
-use boa_macros::utf16;
 use num_traits::Zero;
 
 use super::{
@@ -1897,11 +1896,7 @@ impl BuiltinTypedArray {
                         .get_value(src_type, Ordering::Relaxed)
                 };
 
-                let value = JsValue::from(value);
-
-                let value = target_type
-                    .get_element(&value, context)
-                    .expect("value can only be f64 or BigInt");
+                let value = value.cast_to(target_type);
 
                 // ii. Perform SetValueInBuffer(targetBuffer, targetByteIndex, targetType, value, true, Unordered).
                 // SAFETY: previous checks preserve the validity  of the indices.
@@ -2504,13 +2499,28 @@ impl BuiltinTypedArray {
         let separator = {
             #[cfg(feature = "intl")]
             {
-                // TODO: this should eventually return a locale-sensitive separator.
-                utf16!(", ")
+                use crate::builtins::intl::locale::default_locale;
+                use icu_list::{
+                    ListFormatter, ListFormatterPreferences, options::ListFormatterOptions,
+                };
+
+                let locale = default_locale(context.intl_provider().locale_canonicalizer()?);
+                let preferences = ListFormatterPreferences::from(&locale);
+                let formatter = ListFormatter::try_new_unit_with_buffer_provider(
+                    context.intl_provider().erased_provider(),
+                    preferences,
+                    ListFormatterOptions::default(),
+                )
+                .map_err(|e| JsNativeError::typ().with_message(e.to_string()))?;
+
+                // Ask ICU for the list pattern literal by formatting two empty elements.
+                // For many locales this yields ", ", but it may differ.
+                js_string!(formatter.format_to_string(std::iter::once("").chain(std::iter::once(""))))
             }
 
             #[cfg(not(feature = "intl"))]
             {
-                utf16!(", ")
+                js_string!(", ")
             }
         };
 
@@ -2518,7 +2528,7 @@ impl BuiltinTypedArray {
 
         for k in 0..len {
             if k > 0 {
-                r.extend_from_slice(separator);
+                r.extend(separator.iter());
             }
 
             let next_element = array.get(k, context)?;
@@ -2961,12 +2971,7 @@ impl BuiltinTypedArray {
                             .get_value(src_type, Ordering::Relaxed)
                     };
 
-                    let value = JsValue::from(value);
-
-                    // TODO: cast between types instead of converting to `JsValue`.
-                    let value = element_type
-                        .get_element(&value, context)
-                        .expect("value must be bigint or float");
+                    let value = value.cast_to(element_type);
 
                     // ii. Perform SetValueInBuffer(data, targetByteIndex, elementType, value, true, unordered).
                     // SAFETY: The newly created buffer has at least `element_size * element_length`

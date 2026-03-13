@@ -14,7 +14,10 @@
 
 use crate::{
     Context, JsArgs, JsResult, JsString,
-    builtins::{BuiltInBuilder, BuiltInConstructor, BuiltInObject, IntrinsicObject},
+    builtins::{
+        BuiltInBuilder, BuiltInConstructor, BuiltInObject, IntrinsicObject,
+        number::{f64_to_int32, f64_to_uint32},
+    },
     context::intrinsics::{Intrinsics, StandardConstructor, StandardConstructors},
     error::JsNativeError,
     js_string,
@@ -26,6 +29,7 @@ use crate::{
     value::{JsValue, Numeric},
 };
 use boa_gc::{Finalize, Trace};
+use num_traits::Zero;
 
 mod builtin;
 mod element;
@@ -554,6 +558,172 @@ pub(crate) enum TypedArrayElement {
 }
 
 impl TypedArrayElement {
+    fn content_type(self) -> ContentType {
+        match self {
+            TypedArrayElement::BigInt64(_) | TypedArrayElement::BigUint64(_) => ContentType::BigInt,
+            TypedArrayElement::Int8(_)
+            | TypedArrayElement::Uint8(_)
+            | TypedArrayElement::Uint8Clamped(_)
+            | TypedArrayElement::Int16(_)
+            | TypedArrayElement::Uint16(_)
+            | TypedArrayElement::Int32(_)
+            | TypedArrayElement::Uint32(_)
+            | TypedArrayElement::Float32(_)
+            | TypedArrayElement::Float64(_) => ContentType::Number,
+            #[cfg(feature = "float16")]
+            TypedArrayElement::Float16(_) => ContentType::Number,
+        }
+    }
+
+    fn to_f64(self) -> f64 {
+        match self {
+            TypedArrayElement::Int8(value) => f64::from(value),
+            TypedArrayElement::Uint8(value) => f64::from(value),
+            TypedArrayElement::Uint8Clamped(value) => f64::from(value.0),
+            TypedArrayElement::Int16(value) => f64::from(value),
+            TypedArrayElement::Uint16(value) => f64::from(value),
+            TypedArrayElement::Int32(value) => f64::from(value),
+            TypedArrayElement::Uint32(value) => f64::from(value),
+            #[cfg(feature = "float16")]
+            TypedArrayElement::Float16(value) => value.0.into(),
+            TypedArrayElement::Float32(value) => f64::from(value),
+            TypedArrayElement::Float64(value) => value,
+            TypedArrayElement::BigInt64(_) | TypedArrayElement::BigUint64(_) => {
+                unreachable!("BigInt elements cannot be converted through the number path")
+            }
+        }
+    }
+
+    fn to_int8_from_f64(number: f64) -> i8 {
+        if number.is_nan() || number.is_zero() || number.is_infinite() {
+            return 0;
+        }
+
+        let int = number.abs().floor().copysign(number) as i64;
+        let int_8_bit = int % 2i64.pow(8);
+
+        if int_8_bit >= 2i64.pow(7) {
+            (int_8_bit - 2i64.pow(8)) as i8
+        } else {
+            int_8_bit as i8
+        }
+    }
+
+    fn to_uint8_from_f64(number: f64) -> u8 {
+        if number.is_nan() || number.is_zero() || number.is_infinite() {
+            return 0;
+        }
+
+        let int = number.abs().floor().copysign(number) as i64;
+        let int_8_bit = int % 2i64.pow(8);
+
+        int_8_bit as u8
+    }
+
+    fn to_uint8_clamp_from_f64(number: f64) -> u8 {
+        if number.is_nan() {
+            return 0;
+        }
+
+        if number <= 0.0 {
+            return 0;
+        }
+
+        if number >= 255.0 {
+            return 255;
+        }
+
+        let f = number.floor();
+
+        if f + 0.5 < number {
+            return f as u8 + 1;
+        }
+
+        if number < f + 0.5 {
+            return f as u8;
+        }
+
+        if !(f as u8).is_multiple_of(2) {
+            return f as u8 + 1;
+        }
+
+        f as u8
+    }
+
+    fn to_int16_from_f64(number: f64) -> i16 {
+        if number.is_nan() || number.is_zero() || number.is_infinite() {
+            return 0;
+        }
+
+        let int = number.abs().floor().copysign(number) as i64;
+        let int_16_bit = int % 2i64.pow(16);
+
+        if int_16_bit >= 2i64.pow(15) {
+            (int_16_bit - 2i64.pow(16)) as i16
+        } else {
+            int_16_bit as i16
+        }
+    }
+
+    fn to_uint16_from_f64(number: f64) -> u16 {
+        if number.is_nan() || number.is_zero() || number.is_infinite() {
+            return 0;
+        }
+
+        let int = number.abs().floor().copysign(number) as i64;
+        let int_16_bit = int % 2i64.pow(16);
+
+        int_16_bit as u16
+    }
+
+    /// Casts this element into the target typed array kind without going through `JsValue`.
+    ///
+    /// This is used on TypedArray-to-TypedArray copy paths where source and target have the
+    /// same `ContentType` and we only need numeric conversion semantics.
+    pub(crate) fn cast_to(self, kind: TypedArrayKind) -> Self {
+        debug_assert_eq!(self.content_type(), kind.content_type());
+
+        match kind.content_type() {
+            ContentType::Number => {
+                let number = self.to_f64();
+
+                match kind {
+                    TypedArrayKind::Int8 => Self::Int8(Self::to_int8_from_f64(number)),
+                    TypedArrayKind::Uint8 => Self::Uint8(Self::to_uint8_from_f64(number)),
+                    TypedArrayKind::Uint8Clamped => {
+                        Self::Uint8Clamped(ClampedU8(Self::to_uint8_clamp_from_f64(number)))
+                    }
+                    TypedArrayKind::Int16 => Self::Int16(Self::to_int16_from_f64(number)),
+                    TypedArrayKind::Uint16 => Self::Uint16(Self::to_uint16_from_f64(number)),
+                    TypedArrayKind::Int32 => Self::Int32(f64_to_int32(number)),
+                    TypedArrayKind::Uint32 => Self::Uint32(f64_to_uint32(number)),
+                    #[cfg(feature = "float16")]
+                    TypedArrayKind::Float16 => {
+                        Self::Float16(Float16(float16::f16::from_f64(number)))
+                    }
+                    TypedArrayKind::Float32 => Self::Float32(number as f32),
+                    TypedArrayKind::Float64 => Self::Float64(number),
+                    TypedArrayKind::BigInt64 | TypedArrayKind::BigUint64 => {
+                        unreachable!("BigInt kinds cannot be reached from number content")
+                    }
+                }
+            }
+            ContentType::BigInt => match kind {
+                TypedArrayKind::BigInt64 => match self {
+                    Self::BigInt64(value) => Self::BigInt64(value),
+                    Self::BigUint64(value) => Self::BigInt64(value as i64),
+                    _ => unreachable!("number elements cannot be reached from bigint content"),
+                },
+                TypedArrayKind::BigUint64 => match self {
+                    Self::BigInt64(value) => Self::BigUint64(value as u64),
+                    Self::BigUint64(value) => Self::BigUint64(value),
+                    _ => unreachable!("number elements cannot be reached from bigint content"),
+                },
+                _ => unreachable!("number kinds cannot be reached from bigint content"),
+            },
+        }
+    }
+
     /// Converts the element into its extended bytes representation as an `u64`.
     ///
     /// This is guaranteed to never fail, since all numeric types supported by JS are less than
