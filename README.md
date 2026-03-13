@@ -208,4 +208,3 @@ We also have a [Discord](https://discord.gg/tUFFk9Y) for any questions or issues
 ## ⚖️ License
 
 This project is licensed under the [Unlicense](./LICENSE-UNLICENSE) or [MIT](./LICENSE-MIT) licenses, at your option.
-
