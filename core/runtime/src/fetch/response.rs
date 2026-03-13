@@ -223,7 +223,9 @@ impl JsResponse {
     #[boa(rename = "clone")]
     fn clone_js(&self) -> JsResult<Self> {
         if self.body_used.get() {
-            return Err(JsNativeError::typ().with_message("Body has already been consumed").into());
+            return Err(JsNativeError::typ()
+                .with_message("Body has already been consumed")
+                .into());
         }
         Ok(Self {
             url: self.url.clone(),
@@ -238,8 +240,7 @@ impl JsResponse {
     fn bytes(&self, context: &mut Context) -> JsResult<JsPromise> {
         if self.body_used.get() {
             return JsPromise::reject(
-                JsNativeError::typ()
-                    .with_message("Body has already been consumed"),
+                JsNativeError::typ().with_message("Body has already been consumed"),
                 context,
             );
         }
@@ -258,8 +259,7 @@ impl JsResponse {
     fn text(&self, context: &mut Context) -> JsResult<JsPromise> {
         if self.body_used.get() {
             return JsPromise::reject(
-                JsNativeError::typ()
-                    .with_message("Body has already been consumed"),
+                JsNativeError::typ().with_message("Body has already been consumed"),
                 context,
             );
         }
@@ -278,8 +278,7 @@ impl JsResponse {
     fn json(&self, context: &mut Context) -> JsResult<JsPromise> {
         if self.body_used.get() {
             return JsPromise::reject(
-                JsNativeError::typ()
-                    .with_message("Body has already been consumed"),
+                JsNativeError::typ().with_message("Body has already been consumed"),
                 context,
             );
         }

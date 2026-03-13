@@ -133,7 +133,7 @@ impl RequestInit {
 pub struct JsRequest {
     #[unsafe_ignore_trace]
     inner: HttpRequest<Vec<u8>>,
-    
+
     #[unsafe_ignore_trace]
     body_used: Cell<bool>,
 }
@@ -180,16 +180,25 @@ impl JsRequest {
 
         if let Some(options) = options {
             let inner = options.into_request_builder(Some(request))?;
-            Ok(Self { inner, body_used: Cell::new(false) })
+            Ok(Self {
+                inner,
+                body_used: Cell::new(false),
+            })
         } else {
-            Ok(Self { inner: request, body_used: Cell::new(false) })
+            Ok(Self {
+                inner: request,
+                body_used: Cell::new(false),
+            })
         }
     }
 }
 
 impl From<HttpRequest<Vec<u8>>> for JsRequest {
     fn from(inner: HttpRequest<Vec<u8>>) -> Self {
-        Self { inner, body_used: Cell::new(false) }
+        Self {
+            inner,
+            body_used: Cell::new(false),
+        }
     }
 }
 
