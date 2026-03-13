@@ -39,6 +39,14 @@ use boa_parser::{Parser, Source};
 
 use super::{BuiltInBuilder, IntrinsicObject};
 
+/// Converts a nibble (0-15) to its lowercase hex digit as a UTF-16 code unit.
+const fn to_hex_digit(val: u16) -> u16 {
+    match val & 0xF {
+        v @ 0..=9 => b'0' as u16 + v,
+        v => b'a' as u16 + (v - 10),
+    }
+}
+
 #[cfg(test)]
 mod tests;
 
@@ -884,14 +892,15 @@ impl Json {
     fn quote_json_string(value: &JsString) -> JsString {
         let mut buf = [0; 2];
         // 1. Let product be the String value consisting solely of the code unit 0x0022 (QUOTATION MARK).
-        let mut product = vec!['"' as u16];
+        let mut product = Vec::with_capacity(value.len() + 2);
+        product.push('"' as u16);
 
         // 2. For each code point C of ! StringToCodePoints(value), do
         for code_point in value.code_points() {
             match code_point {
-                // a. If C is listed in the “Code Point” column of Table 73, then
+                // a. If C is listed in the "Code Point" column of Table 73, then
                 // i. Set product to the string-concatenation of product and the
-                // escape sequence for C as specified in the “Escape Sequence”
+                // escape sequence for C as specified in the "Escape Sequence"
                 // column of the corresponding row.
                 CodePoint::Unicode('\u{0008}') => product.extend_from_slice(utf16!(r"\b")),
                 CodePoint::Unicode('\u{0009}') => product.extend_from_slice(utf16!(r"\t")),
@@ -908,10 +917,25 @@ impl Json {
                 //     ii. Set product to the string-concatenation of product
                 //     and UnicodeEscape(unit).
                 CodePoint::Unicode(c) if c < '\u{0020}' => {
-                    product.extend(format!("\\u{:04x}", c as u32).encode_utf16());
+                    let val = c as u16;
+                    product.extend_from_slice(&[
+                        '\\' as u16,
+                        'u' as u16,
+                        to_hex_digit(val >> 12),
+                        to_hex_digit((val >> 8) & 0xF),
+                        to_hex_digit((val >> 4) & 0xF),
+                        to_hex_digit(val & 0xF),
+                    ]);
                 }
                 CodePoint::UnpairedSurrogate(surr) => {
-                    product.extend(format!("\\u{surr:04x}").encode_utf16());
+                    product.extend_from_slice(&[
+                        '\\' as u16,
+                        'u' as u16,
+                        to_hex_digit(surr >> 12),
+                        to_hex_digit((surr >> 8) & 0xF),
+                        to_hex_digit((surr >> 4) & 0xF),
+                        to_hex_digit(surr & 0xF),
+                    ]);
                 }
                 // c. Else,
                 CodePoint::Unicode(c) => {
@@ -973,7 +997,7 @@ impl Json {
         };
 
         // 7. Let partial be a new empty List.
-        let mut partial = Vec::new();
+        let mut partial = Vec::with_capacity(k.len());
 
         // 8. For each element P of K, do
         for p in &k {
@@ -1037,13 +1061,15 @@ impl Json {
                 // iii. Let final be the string-concatenation of "{", the code
                 //      unit 0x000A (LINE FEED), state.[[Indent]], properties,
                 //      the code unit 0x000A (LINE FEED), stepback, and "}".
-                let result = [utf16!("{\n"), &state.indent.to_vec()[..]]
+                let indent_vec = state.indent.to_vec();
+                let stepback_vec = stepback.to_vec();
+                let result = [utf16!("{\n"), &indent_vec[..]]
                     .into_iter()
                     .chain(Itertools::intersperse(
                         partial.iter().map(Vec::as_slice),
                         &separator,
                     ))
-                    .chain([utf16!("\n"), &stepback.to_vec()[..], utf16!("}")])
+                    .chain([utf16!("\n"), &stepback_vec[..], utf16!("}")])
                     .flatten()
                     .copied()
                     .collect::<Vec<_>>();
@@ -1088,11 +1114,11 @@ impl Json {
         // 4. Set state.[[Indent]] to the string-concatenation of state.[[Indent]] and state.[[Gap]].
         state.indent = js_string!(&state.indent, &state.gap);
 
-        // 5. Let partial be a new empty List.
-        let mut partial = Vec::new();
-
         // 6. Let len be ? LengthOfArrayLike(value).
         let len = value.length_of_array_like(context)?;
+
+        // 5. Let partial be a new empty List.
+        let mut partial = Vec::with_capacity(len as usize);
 
         // 7. Let index be 0.
         let mut index = 0;
@@ -1149,13 +1175,15 @@ impl Json {
                 //     with each adjacent pair of Strings separated with separator.
                 //     The separator String is not inserted either before the first String or after the last String.
                 // iii. Let final be the string-concatenation of "[", the code unit 0x000A (LINE FEED), state.[[Indent]], properties, the code unit 0x000A (LINE FEED), stepback, and "]".
-                let result = [utf16!("[\n"), &state.indent.to_vec()[..]]
+                let indent_vec = state.indent.to_vec();
+                let stepback_vec = stepback.to_vec();
+                let result = [utf16!("[\n"), &indent_vec[..]]
                     .into_iter()
                     .chain(Itertools::intersperse(
                         partial.iter().map(Cow::as_ref),
                         &separator,
                     ))
-                    .chain([utf16!("\n"), &stepback.to_vec()[..], utf16!("]")])
+                    .chain([utf16!("\n"), &stepback_vec[..], utf16!("]")])
                     .flatten()
                     .copied()
                     .collect::<Vec<_>>();

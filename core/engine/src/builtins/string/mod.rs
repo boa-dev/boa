@@ -1543,8 +1543,18 @@ impl String {
             if r == 0 { q } else { q + 1 }
         };
 
-        let truncated_string_filler = filler.to_vec().repeat(repetitions as usize);
-        let truncated_string_filler = JsString::from(&truncated_string_filler[..fill_len as usize]);
+        let mut truncated_string_filler = Vec::with_capacity(fill_len as usize);
+        let filler_slice = filler.to_vec();
+        for _ in 0..repetitions {
+            let remaining = fill_len as usize - truncated_string_filler.len();
+            if remaining >= filler_slice.len() {
+                truncated_string_filler.extend_from_slice(&filler_slice);
+            } else {
+                truncated_string_filler.extend_from_slice(&filler_slice[..remaining]);
+                break;
+            }
+        }
+        let truncated_string_filler = JsString::from(&truncated_string_filler[..]);
 
         // 10. If placement is start, return the string-concatenation of truncatedStringFiller and S.
         if placement == Placement::Start {
