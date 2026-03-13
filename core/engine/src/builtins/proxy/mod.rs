@@ -1243,3 +1243,6 @@ fn proxy_exotic_construct(
     context.vm.stack.push(new_obj);
     Ok(CallValue::Complete)
 }
+
+#[cfg(test)]
+mod tests;
