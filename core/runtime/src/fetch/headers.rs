@@ -3,17 +3,17 @@
 //! See <https://developer.mozilla.org/en-US/docs/Web/API/Headers>.
 #![allow(clippy::needless_pass_by_value)]
 
+use boa_engine::builtins::iterable::create_iter_result_object;
 use boa_engine::interop::JsClass;
-use boa_engine::object::builtins::{JsArray, TypedJsFunction};
+use boa_engine::native_function::NativeFunction;
 use boa_engine::object::FunctionObjectBuilder;
+use boa_engine::object::builtins::{JsArray, TypedJsFunction};
 use boa_engine::property::PropertyDescriptor;
 use boa_engine::value::{Convert, TryFromJs};
 use boa_engine::{
     Context, Finalize, JsData, JsObject, JsResult, JsString, JsValue, Trace, boa_class, js_error,
     js_string,
 };
-use boa_engine::builtins::iterable::create_iter_result_object;
-use boa_engine::native_function::NativeFunction;
 use http::header::HeaderMap as HttpHeaderMap;
 use http::{HeaderName, HeaderValue};
 use std::cell::RefCell;
@@ -44,7 +44,7 @@ enum HeadersIteratorKind {
 ///  - [WHATWG spec](https://fetch.spec.whatwg.org/#headers-class)
 #[derive(Debug, Clone, JsData, Trace, Finalize)]
 struct HeadersIterator {
-    headers: JsHeaders,
+    headers: Vec<(JsString, JsString)>,
     index: usize,
     kind: HeadersIteratorKind,
 }
@@ -52,36 +52,46 @@ struct HeadersIterator {
 impl HeadersIterator {
     /// Creates a new Headers iterator.
     fn new(headers: JsHeaders, kind: HeadersIteratorKind) -> Self {
+        let headers_vec: Vec<(JsString, JsString)> = {
+            let headers_data = headers.headers.borrow();
+            headers_data
+                .iter()
+                .map(|(key, value)| {
+                    (
+                        JsString::from(key.as_str()),
+                        JsString::from(value.to_str().unwrap_or_default()),
+                    )
+                })
+                .collect()
+        };
+
         Self {
-            headers,
+            headers: headers_vec,
             index: 0,
             kind,
         }
     }
 
     /// Gets the next entry in the headers iterator.
-    fn next(&mut self, context: &mut Context) -> JsResult<JsValue> {
-        let headers_data = self.headers.headers.borrow();
-        let headers_vec: Vec<_> = headers_data.iter().collect();
-
-        if self.index >= headers_vec.len() {
-            return Ok(create_iter_result_object(JsValue::undefined(), true, context));
+    fn next(&mut self, context: &mut Context) -> JsValue {
+        if self.index >= self.headers.len() {
+            return create_iter_result_object(JsValue::undefined(), true, context);
         }
 
-        let (key, value) = headers_vec[self.index];
+        let (key, value) = &self.headers[self.index];
         self.index += 1;
 
         let value_obj = match self.kind {
             HeadersIteratorKind::Entries => {
-                let key_val: JsValue = JsString::from(key.as_str()).into();
-                let val_val: JsValue = JsString::from(value.to_str().unwrap_or_default()).into();
+                let key_val: JsValue = key.clone().into();
+                let val_val: JsValue = value.clone().into();
                 JsArray::from_iter([key_val, val_val], context).into()
             }
-            HeadersIteratorKind::Keys => JsString::from(key.as_str()).into(),
-            HeadersIteratorKind::Values => JsString::from(value.to_str().unwrap_or_default()).into(),
+            HeadersIteratorKind::Keys => key.clone().into(),
+            HeadersIteratorKind::Values => value.clone().into(),
         };
 
-        Ok(create_iter_result_object(value_obj, false, context))
+        create_iter_result_object(value_obj, false, context)
     }
 }
 
@@ -122,12 +132,19 @@ fn headers_iterator_next(
         .and_then(JsObject::downcast_mut::<HeadersIterator>)
         .ok_or_else(|| js_error!(TypeError: "`this` is not a Headers iterator"))?;
 
-    iterator.next(context)
+    Ok(iterator.next(context))
 }
 
 /// Creates a Headers iterator object wrapper.
-fn create_headers_iterator_object(iterator: HeadersIterator, context: &mut Context) -> JsValue {
-    let proto = context.intrinsics().objects().iterator_prototypes().iterator();
+fn create_headers_iterator_object(
+    iterator: HeadersIterator,
+    context: &mut Context,
+) -> JsResult<JsValue> {
+    let proto = context
+        .intrinsics()
+        .objects()
+        .iterator_prototypes()
+        .iterator();
     let iterator_obj = JsObject::from_proto_and_data(proto, iterator);
 
     let next_fn = FunctionObjectBuilder::new(
@@ -139,8 +156,7 @@ fn create_headers_iterator_object(iterator: HeadersIterator, context: &mut Conte
     .constructor(false)
     .build();
 
-    #[allow(let_underscore_drop)]
-    let _ = iterator_obj.define_property_or_throw(
+    iterator_obj.define_property_or_throw(
         js_string!("next"),
         PropertyDescriptor::builder()
             .value(next_fn)
@@ -148,9 +164,9 @@ fn create_headers_iterator_object(iterator: HeadersIterator, context: &mut Conte
             .enumerable(false)
             .configurable(true),
         context,
-    );
+    )?;
 
-    iterator_obj.into()
+    Ok(iterator_obj.into())
 }
 
 /// A JavaScript wrapper for the `Headers` object.
@@ -266,10 +282,13 @@ impl JsHeaders {
 
     /// Returns an iterator allowing to go through all key/value pairs contained in this object.
     ///
+    /// # Errors
+    /// Returns an error if the iterator object cannot be created.
+    ///
     /// More information:
     ///  - [WHATWG spec](https://fetch.spec.whatwg.org/#headers-class)
     #[boa(method)]
-    pub fn entries(this: JsClass<Self>, context: &mut Context) -> JsValue {
+    pub fn entries(this: JsClass<Self>, context: &mut Context) -> JsResult<JsValue> {
         let iterator = HeadersIterator::new(this.clone_inner(), HeadersIteratorKind::Entries);
         create_headers_iterator_object(iterator, context)
     }
@@ -348,10 +367,13 @@ impl JsHeaders {
     /// Returns an iterator allowing you to go through all keys of the key/value pairs
     /// contained in this object.
     ///
+    /// # Errors
+    /// Returns an error if the iterator object cannot be created.
+    ///
     /// More information:
     ///  - [WHATWG spec](https://fetch.spec.whatwg.org/#headers-class)
     #[boa(method)]
-    fn keys(this: JsClass<Self>, context: &mut Context) -> JsValue {
+    fn keys(this: JsClass<Self>, context: &mut Context) -> JsResult<JsValue> {
         let iterator = HeadersIterator::new(this.clone_inner(), HeadersIteratorKind::Keys);
         create_headers_iterator_object(iterator, context)
     }
@@ -367,10 +389,13 @@ impl JsHeaders {
 
     /// Returns an iterator allowing you to go through all values in the Headers object.
     ///
+    /// # Errors
+    /// Returns an error if the iterator object cannot be created.
+    ///
     /// More information:
     ///  - [WHATWG spec](https://fetch.spec.whatwg.org/#headers-class)
     #[boa(method)]
-    pub fn values(this: JsClass<Self>, context: &mut Context) -> JsValue {
+    pub fn values(this: JsClass<Self>, context: &mut Context) -> JsResult<JsValue> {
         let iterator = HeadersIterator::new(this.clone_inner(), HeadersIteratorKind::Values);
         create_headers_iterator_object(iterator, context)
     }

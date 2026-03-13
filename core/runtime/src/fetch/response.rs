@@ -179,12 +179,19 @@ impl JsResponse {
         }
 
         let mut js_response = Self::basic(js_string!(""), http::Response::new(Vec::new()));
-        js_response.status = Some(StatusCode::from_u16(status).expect("guaranteed to be a valid status by preceding match"));
+        js_response.status = Some(
+            StatusCode::from_u16(status)
+                .expect("guaranteed to be a valid status by preceding match"),
+        );
+
+        let url_str = url.to_std_string_escaped();
+        let parsed_url = url::Url::parse(&url_str)
+            .map_err(|_| JsNativeError::typ().with_message("Invalid redirect URL"))?;
 
         let mut headers = JsHeaders::default();
         headers.append(
             Convert::from("Location".to_string()),
-            Convert::from(url.to_std_string_escaped()),
+            Convert::from(parsed_url.to_string()),
         )?;
         js_response.headers = headers;
 
@@ -201,16 +208,13 @@ impl JsResponse {
         init: Option<JsResponseOptions>,
         context: &mut Context,
     ) -> JsResult<Self> {
-        let json = context.global_object().get(js_string!("JSON"), context)?;
-        let stringify = json
-            .as_object()
-            .ok_or_else(|| JsNativeError::typ().with_message("JSON is not an object"))?
-            .get(js_string!("stringify"), context)?;
+        let json = context.intrinsics().objects().json();
+        let stringify = json.get(js_string!("stringify"), context)?;
 
         let text = stringify
             .as_callable()
             .ok_or_else(|| JsNativeError::typ().with_message("stringify is not a function"))?
-            .call(&json, &[data], context)?;
+            .call(&json.into(), &[data], context)?;
 
         let text = if let Some(s) = text.as_string() {
             s.to_std_string_escaped()

@@ -11,12 +11,11 @@ use crate::fetch::headers::JsHeaders;
 use crate::fetch::request::{JsRequest, RequestInit};
 use crate::fetch::response::JsResponse;
 use boa_engine::class::Class;
-use boa_engine::object::FunctionObjectBuilder;
 use boa_engine::property::PropertyDescriptor;
 use boa_engine::realm::Realm;
 use boa_engine::{
     Context, Finalize, JsData, JsError, JsObject, JsResult, JsString, JsSymbol, JsValue,
-    NativeObject, Trace, boa_module, js_error, js_string, native_function::NativeFunction,
+    NativeObject, Trace, boa_module, js_error, js_string,
 };
 use either::Either;
 use http::{HeaderName, HeaderValue, Request as HttpRequest, Request};
@@ -204,22 +203,6 @@ pub mod js_module {
 #[doc(inline)]
 pub use js_module::fetch;
 
-fn headers_iterator(this: &JsValue, _: &[JsValue], context: &mut Context) -> JsResult<JsValue> {
-    // Call the entries method through the JavaScript object mechanism
-    let this_object = this.as_object()
-        .ok_or_else(|| {
-            js_error!(TypeError: "`Headers.prototype[Symbol.iterator]` requires a `Headers` object")
-        })?;
-
-    // Get the entries method from the prototype and call it
-    let entries_fn = this_object
-        .get(js_string!("entries"), context)?;
-    
-    entries_fn.as_function()
-        .ok_or_else(|| js_error!(TypeError: "entries is not a function"))?
-        .call(this, &[], context)
-}
-
 /// Register the `fetch` function in the realm, as well as ALL supporting classes.
 /// Pass `None` as the realm to register globally.
 ///
@@ -246,19 +229,12 @@ pub fn register<F: Fetcher>(
     .ok_or_else(|| js_error!(Error: "Headers class should be registered"))?
     .prototype();
 
-    let iterator = FunctionObjectBuilder::new(
-        context.realm(),
-        NativeFunction::from_fn_ptr(headers_iterator),
-    )
-    .name(js_string!("[Symbol.iterator]"))
-    .length(0)
-    .constructor(false)
-    .build();
+    let entries_fn = headers_proto.get(js_string!("entries"), context)?;
 
     headers_proto.define_property_or_throw(
         JsSymbol::iterator(),
         PropertyDescriptor::builder()
-            .value(iterator)
+            .value(entries_fn)
             .writable(true)
             .enumerable(false)
             .configurable(true),

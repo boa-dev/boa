@@ -2,9 +2,7 @@ use boa_macros::js_str;
 use indoc::indoc;
 
 use crate::{
-    JsNativeErrorKind, JsValue, TestAction,
-    error::RuntimeLimitError,
-    js_string, run_test_actions,
+    JsNativeErrorKind, JsValue, TestAction, error::RuntimeLimitError, js_string, run_test_actions,
 };
 
 #[test]

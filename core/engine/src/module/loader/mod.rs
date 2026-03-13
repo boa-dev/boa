@@ -62,6 +62,7 @@ pub fn resolve_module_specifier(
 
     // On Windows, also replace `/` with `\`. JavaScript imports use `/` as path separator.
     #[cfg(target_family = "windows")]
+    #[allow(clippy::disallowed_methods)]
     let specifier = specifier.replace('/', "\\");
 
     let short_path = Path::new(&specifier);

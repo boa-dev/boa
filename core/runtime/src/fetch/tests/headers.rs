@@ -24,3 +24,40 @@ fn headers_are_iterable() {
         ),
     ]);
 }
+
+#[test]
+fn headers_iterators() {
+    run_test_actions([
+        TestAction::harness(),
+        TestAction::inspect_context(register),
+        TestAction::run(
+            r#"
+                const headers = new Headers([["a", "1"], ["b", "2"]]);
+                
+                // entries()
+                const entriesList = [...headers.entries()];
+                assertEq(entriesList.length, 2);
+                assertEq(entriesList[0][0], "a");
+                assertEq(entriesList[0][1], "1");
+                
+                // keys()
+                const keysList = [...headers.keys()];
+                assertEq(keysList.length, 2);
+                assertEq(keysList[0], "a");
+                assertEq(keysList[1], "b");
+                
+                // values()
+                const valuesList = [...headers.values()];
+                assertEq(valuesList.length, 2);
+                assertEq(valuesList[0], "1");
+                assertEq(valuesList[1], "2");
+                
+                // .next() directly
+                const it = headers.entries();
+                const first = it.next();
+                assertEq(first.done, false);
+                assertEq(first.value[0], "a");
+            "#,
+        ),
+    ]);
+}
