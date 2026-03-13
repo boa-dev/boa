@@ -2606,8 +2606,13 @@ impl BuiltinTypedArray {
         let actual_index = u64::try_from(relative_index) // should succeed if `relative_index >= 0`
             .ok()
             .or_else(|| len.checked_add_signed(relative_index))
-            // TODO: Replace with `is_valid_integer_index_u64` or equivalent.
-            .filter(|&rel| is_valid_integer_index(&ta.clone().upcast(), rel as f64))
+            .filter(|&rel| {
+                let inner = ta.borrow();
+                let buf = inner.data().viewed_array_buffer().as_buffer();
+                buf.bytes(Ordering::Relaxed)
+                    .and_then(|s| inner.data().validate_index_u64(rel, s.len()))
+                    .is_some()
+            })
             .ok_or_else(|| {
                 JsNativeError::range()
                     .with_message("invalid integer index for TypedArray operation")
