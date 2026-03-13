@@ -177,7 +177,11 @@ impl JsResponse {
         options: Option<JsResponseOptions>,
         context: &mut Context,
     ) -> JsResult<Self> {
-        let JsResponseOptions { status, ref headers, .. } = options.unwrap_or_default();
+        let JsResponseOptions {
+            status,
+            ref headers,
+            ..
+        } = options.unwrap_or_default();
         let status_code = status.unwrap_or(200);
         let headers = headers.clone().unwrap_or_default();
 
@@ -185,10 +189,10 @@ impl JsResponse {
             JsNativeError::range().with_message(format!("Invalid status code - {status_code}"))
         })?;
 
-        let body_bytes = if !body.is_null_or_undefined() {
-            body.to_string(context)?.to_std_string_lossy().into_bytes()
-        } else {
+        let body_bytes = if body.is_null_or_undefined() {
             Vec::new()
+        } else {
+            body.to_string(context)?.to_std_string_lossy().into_bytes()
         };
 
         Ok(Self {
