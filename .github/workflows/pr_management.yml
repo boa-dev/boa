@@ -45,16 +45,7 @@ jobs:
         uses: actions/github-script@v6
         with:
           script: |
-            // 1. Assign to default reviewers (e.g. Jason Williams)
-            // Replace 'jasonwilliams' with the actual handle used in the project if needed
-            await github.rest.issues.addAssignees({
-              issue_number: context.issue.number,
-              owner: context.repo.owner,
-              repo: context.repo.repo,
-              assignees: ['jasonwilliams']
-            });
-            
-            // 2. Fetch open milestones and assign the closest one
+            // Fetch open milestones and assign the closest one
             const { data: milestones } = await github.rest.issues.listMilestones({
               owner: context.repo.owner,
               repo: context.repo.repo,
