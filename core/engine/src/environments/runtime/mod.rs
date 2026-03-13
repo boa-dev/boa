@@ -180,10 +180,10 @@ impl LocalEnvironment {
 ///   current function's execution. No `Gc` allocation on push. Accessed via O(1)
 ///   Vec indexing.
 ///
-/// When a closure captures the environment ([`snapshot_for_closure`]), all local
-/// inline environments are promoted to `Gc<DeclarativeEnvironment>` and linked into
-/// the captured chain. After promotion, both the outer scope and the closure share
-/// the same `Gc` pointers.
+/// When a closure captures the environment
+/// ([`EnvironmentStack::snapshot_for_closure`]), all local inline environments are
+/// promoted to `Gc<DeclarativeEnvironment>` and linked into the captured chain.
+/// After promotion, both the outer scope and the closure share the same `Gc` pointers.
 ///
 /// The global declarative environment is NOT stored here — it lives in the
 /// [`crate::realm::Realm`] and is accessed via `frame.realm.environment()`.
