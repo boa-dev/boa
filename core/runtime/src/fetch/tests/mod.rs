@@ -41,6 +41,7 @@ impl crate::fetch::Fetcher for TestFetcher {
     async fn fetch(
         self: Rc<Self>,
         request: JsRequest,
+        _signal: Option<boa_engine::JsObject>,
         _context: &RefCell<&mut Context>,
     ) -> JsResult<JsResponse> {
         let request = request.into_inner();

@@ -23,8 +23,6 @@ features = [
     # https://github.com/tc39/proposal-import-bytes
     "import-bytes",
 
-    # https://github.com/tc39/proposal-await-dictionary
-    "await-dictionary",
 
     # https://github.com/tc39/proposal-intl-locale-info
     "Intl.Locale-info",

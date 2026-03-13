@@ -22,8 +22,7 @@ use crate::{
     Context, JsArgs, JsData, JsExpect, JsResult, JsString,
     builtins::{BuiltInObject, iterable::IteratorHint, map},
     context::intrinsics::{Intrinsics, StandardConstructor, StandardConstructors},
-    error::JsNativeError,
-    js_string,
+    js_error, js_string,
     native_function::NativeFunction,
     object::{
         FunctionObjectBuilder, IntegrityLevel, JsObject,
@@ -255,9 +254,7 @@ impl OrdinaryObject {
 
         // 5. If status is false, throw a TypeError exception.
         if !status {
-            return Err(JsNativeError::typ()
-                .with_message("__proto__ called on null or undefined")
-                .into());
+            return Err(js_error!(TypeError: "__proto__ called on null or undefined"));
         }
 
         // 6. Return undefined.
@@ -286,9 +283,9 @@ impl OrdinaryObject {
 
         // 2. If IsCallable(getter) is false, throw a TypeError exception.
         if !getter.is_callable() {
-            return Err(JsNativeError::typ()
-                .with_message("Object.prototype.__defineGetter__: Expecting function")
-                .into());
+            return Err(js_error!(TypeError:
+                "Object.prototype.__defineGetter__: expected 'getter' to be a Function object",
+            ));
         }
 
         // 3. Let desc be PropertyDescriptor { [[Get]]: getter, [[Enumerable]]: true, [[Configurable]]: true }.
@@ -329,9 +326,9 @@ impl OrdinaryObject {
 
         // 2. If IsCallable(setter) is false, throw a TypeError exception.
         if !setter.is_callable() {
-            return Err(JsNativeError::typ()
-                .with_message("Object.prototype.__defineSetter__: Expecting function")
-                .into());
+            return Err(js_error!(TypeError:
+                "Object.prototype.__defineSetter__: expected 'setter' to be a Function object",
+            ));
         }
 
         // 3. Let desc be PropertyDescriptor { [[Set]]: setter, [[Enumerable]]: true, [[Configurable]]: true }.
@@ -467,12 +464,10 @@ impl OrdinaryObject {
                 .upcast()
             }
             _ => {
-                return Err(JsNativeError::typ()
-                    .with_message(format!(
-                        "Object prototype may only be an Object or null: {}",
-                        prototype.display()
-                    ))
-                    .into());
+                return Err(js_error!(TypeError:
+                    "Object.create: expected 'proto' to be an Object or null, got `{}`",
+                    prototype.type_of()
+                ));
             }
         };
 
@@ -645,11 +640,9 @@ impl OrdinaryObject {
         context: &mut Context,
     ) -> JsResult<JsValue> {
         if args.is_empty() {
-            return Err(JsNativeError::typ()
-                .with_message(
-                    "Object.getPrototypeOf: At least 1 argument required, but only 0 passed",
-                )
-                .into());
+            return Err(js_error!(TypeError:
+                "Object.getPrototypeOf: At least 1 argument required, but only 0 passed",
+            ));
         }
 
         // 1. Let obj be ? ToObject(O).
@@ -672,12 +665,10 @@ impl OrdinaryObject {
         context: &mut Context,
     ) -> JsResult<JsValue> {
         if args.len() < 2 {
-            return Err(JsNativeError::typ()
-                .with_message(format!(
-                    "Object.setPrototypeOf: At least 2 arguments required, but only {} passed",
-                    args.len()
-                ))
-                .into());
+            return Err(js_error!(TypeError:
+                "Object.setPrototypeOf: At least 2 arguments required, but only {} passed",
+                args.len()
+            ));
         }
 
         // 1. Set O to ? RequireObjectCoercible(O).
@@ -693,12 +684,10 @@ impl OrdinaryObject {
             JsVariant::Null => None,
             // 2. If Type(proto) is neither Object nor Null, throw a TypeError exception.
             val => {
-                return Err(JsNativeError::typ()
-                    .with_message(format!(
-                        "expected an object or null, got `{}`",
-                        val.type_of()
-                    ))
-                    .into());
+                return Err(js_error!(TypeError:
+                    "Object.setPrototypeOf: expected 'proto' to be an Object or null, got `{}`",
+                    val.type_of()
+                ));
             }
         };
 
@@ -711,11 +700,8 @@ impl OrdinaryObject {
         let status =
             obj.__set_prototype_of__(proto, &mut InternalMethodPropertyContext::new(context))?;
 
-        // 5. If status is false, throw a TypeError exception.
         if !status {
-            return Err(JsNativeError::typ()
-                .with_message("can't set prototype of this object")
-                .into());
+            return Err(js_error!(TypeError: "can't set prototype of this object"));
         }
 
         // 6. Return O.
@@ -774,9 +760,7 @@ impl OrdinaryObject {
 
             Ok(object.clone().into())
         } else {
-            Err(JsNativeError::typ()
-                .with_message("Object.defineProperty called on non-object")
-                .into())
+            Err(js_error!(TypeError: "Object.defineProperty: expected 'this' to be an Object"))
         }
     }
 
@@ -801,9 +785,7 @@ impl OrdinaryObject {
             object_define_properties(&obj, props, context)?;
             Ok(arg.clone())
         } else {
-            Err(JsNativeError::typ()
-                .with_message("Expected an object")
-                .into())
+            Err(js_error!(TypeError: "Object.defineProperties: expected 'this' to be an Object"))
         }
     }
 
@@ -1122,9 +1104,7 @@ impl OrdinaryObject {
             let status = o.set_integrity_level(IntegrityLevel::Sealed, context)?;
             // 3. If status is false, throw a TypeError exception.
             if !status {
-                return Err(JsNativeError::typ()
-                    .with_message("cannot seal object")
-                    .into());
+                return Err(js_error!(TypeError: "cannot seal object"));
             }
         }
         // 1. If Type(O) is not Object, return O.
@@ -1169,9 +1149,7 @@ impl OrdinaryObject {
             let status = o.set_integrity_level(IntegrityLevel::Frozen, context)?;
             // 3. If status is false, throw a TypeError exception.
             if !status {
-                return Err(JsNativeError::typ()
-                    .with_message("cannot freeze object")
-                    .into());
+                return Err(js_error!(TypeError: "cannot freeze object"));
             }
         }
         // 1. If Type(O) is not Object, return O.
@@ -1221,9 +1199,7 @@ impl OrdinaryObject {
                 o.__prevent_extensions__(&mut InternalMethodPropertyContext::new(context))?;
             // 3. If status is false, throw a TypeError exception.
             if !status {
-                return Err(JsNativeError::typ()
-                    .with_message("cannot prevent extensions")
-                    .into());
+                return Err(js_error!(TypeError: "cannot prevent extensions"));
             }
         }
         // 1. If Type(O) is not Object, return O.
@@ -1381,9 +1357,9 @@ impl OrdinaryObject {
         items.require_object_coercible()?;
 
         // 2. If IsCallable(callbackfn) is false, throw a TypeError exception.
-        let callback = callback.as_callable().ok_or_else(|| {
-            JsNativeError::typ().with_message("callback must be a callable object")
-        })?;
+        let callback = callback
+            .as_callable()
+            .ok_or_else(|| js_error!(TypeError: "callback must be a callable object"))?;
 
         // 3. Let groups be a new empty List.
         let mut groups: IndexMap<PropertyKey, Vec<JsValue>, BuildHasherDefault<FxHasher>> =
@@ -1400,9 +1376,7 @@ impl OrdinaryObject {
             // a. If k ≥ 2^53 - 1, then
             if k >= Number::MAX_SAFE_INTEGER as u64 {
                 // i. Let error be ThrowCompletion(a newly created TypeError object).
-                let error = JsNativeError::typ()
-                    .with_message("exceeded maximum safe integer")
-                    .into();
+                let error = js_error!(TypeError: "exceeded maximum safe integer");
 
                 // ii. Return ? IteratorClose(iteratorRecord, error).
                 return iterator.close(Err(error), context);
