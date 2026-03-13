@@ -737,14 +737,15 @@ impl String {
             return Ok(js_string!().into());
         }
 
-        // Runtime limit guard for native loops inside this builtin.
+        // Mirror VM `IncrementLoopIteration` semantics for a bulk increment.
         let previous_iteration_count = context.vm.frame().loop_iteration_count;
         let max_iteration_count = context.vm.runtime_limits.loop_iteration_limit();
-        let loop_iteration_count = previous_iteration_count.saturating_add(n);
 
-        if loop_iteration_count > max_iteration_count {
+        if previous_iteration_count.saturating_add(n - 1) > max_iteration_count {
             return Err(RuntimeLimitError::LoopIteration.into());
         }
+
+        let loop_iteration_count = previous_iteration_count.saturating_add(n);
 
         context.vm.frame_mut().loop_iteration_count = loop_iteration_count;
 

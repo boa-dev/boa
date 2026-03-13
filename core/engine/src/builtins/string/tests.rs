@@ -154,8 +154,9 @@ fn repeat_respects_loop_runtime_limit() {
         TestAction::inspect_context(|context| {
             context.runtime_limits_mut().set_loop_iteration_limit(10);
         }),
-        TestAction::assert_runtime_limit_error("'x'.repeat(11)", RuntimeLimitError::LoopIteration),
         TestAction::assert_eq("'x'.repeat(10)", js_str!("xxxxxxxxxx")),
+        TestAction::assert_eq("'x'.repeat(11)", js_str!("xxxxxxxxxxx")),
+        TestAction::assert_runtime_limit_error("'x'.repeat(12)", RuntimeLimitError::LoopIteration),
     ]);
 }
 
