@@ -1,3 +1,4 @@
+use crate::JsExpect;
 use crate::JsValue;
 use crate::value::JsVariant;
 use crate::vm::opcode::{IndexOperand, RegisterOperand};
@@ -403,7 +404,7 @@ impl SetFunctionName {
     pub(crate) fn operation(
         (function, name, prefix): (RegisterOperand, RegisterOperand, IndexOperand),
         context: &mut Context,
-    ) {
+    ) -> JsResult<()> {
         let function = context.vm.get_register(function.into()).clone();
         let name = context.vm.get_register(name.into()).clone();
         let name = match name.variant() {
@@ -419,11 +420,14 @@ impl SetFunctionName {
         };
 
         set_function_name(
-            &function.as_object().expect("function is not an object"),
+            &function
+                .as_object()
+                .js_expect("function is not an object")?,
             &name,
             prefix,
             context,
-        );
+        )?;
+        Ok(())
     }
 }
 

@@ -19,7 +19,7 @@ use icu_provider::{
 use tinystr::TinyAsciiStr;
 
 use crate::{
-    Context, JsNativeError, JsObject, JsResult, JsStr, JsString, JsValue,
+    Context, JsExpect, JsNativeError, JsObject, JsResult, JsStr, JsString, JsValue,
     builtins::{
         intl::{
             ServicePreferences,
@@ -500,7 +500,7 @@ impl UnitFormatOptions {
             Style::Currency => {
                 UnitFormatOptions::Currency {
                     // a. Set intlObj.[[Currency]] to the ASCII-uppercase of currency.
-                    currency: currency.expect("asserted above that `currency` is not None"),
+                    currency: currency.js_expect("asserted above that `currency` is not None")?,
                     // b. Set intlObj.[[CurrencyDisplay]] to currencyDisplay.
                     display: currency_display,
                     // c. Set intlObj.[[CurrencySign]] to currencySign.
@@ -511,7 +511,7 @@ impl UnitFormatOptions {
             Style::Unit => {
                 UnitFormatOptions::Unit {
                     //     a. Set intlObj.[[Unit]] to unit.
-                    unit: unit.expect("asserted above that `unit` is not None"),
+                    unit: unit.js_expect("asserted above that `unit` is not None")?,
                     // b. Set intlObj.[[UnitDisplay]] to unitDisplay.
                     display: unit_display,
                 }

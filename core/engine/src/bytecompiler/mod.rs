@@ -83,16 +83,15 @@ pub(crate) trait ToJsString {
 }
 
 impl ToJsString for Sym {
+    #[allow(clippy::cast_possible_truncation)]
     fn to_js_string(&self, interner: &Interner) -> JsString {
-        // TODO: Identify latin1 encodeable strings during parsing to avoid this check.
-        let string = interner.resolve_expect(*self).utf16();
-        for c in string {
-            if u8::try_from(*c).is_err() {
-                return js_string!(string);
-            }
+        let utf16 = interner.resolve_expect(*self).utf16();
+        if interner.is_latin1(*self) {
+            let bytes: Vec<u8> = utf16.iter().map(|&c| c as u8).collect();
+            js_string!(JsStr::latin1(&bytes))
+        } else {
+            js_string!(utf16)
         }
-        let string = string.iter().map(|c| *c as u8).collect::<Vec<_>>();
-        js_string!(JsStr::latin1(&string))
     }
 }
 
@@ -2656,6 +2655,8 @@ impl<'ctx> ByteCompiler<'ctx> {
             global_fns: self.global_fns.into_boxed_slice(),
             global_vars: self.global_vars.into_boxed_slice(),
             debug_id: CodeBlock::get_next_codeblock_id(),
+            #[cfg(feature = "trace")]
+            traced: Cell::new(false),
         }
     }
 
