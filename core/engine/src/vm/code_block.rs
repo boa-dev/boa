@@ -13,12 +13,13 @@ use crate::{
 use bitflags::bitflags;
 use boa_ast::scope::{BindingLocator, Scope};
 use boa_gc::{Finalize, Gc, Trace, empty_trace};
+use itertools::Itertools;
 use std::{cell::Cell, fmt::Display, fmt::Write as _};
 use thin_vec::ThinVec;
 
 use super::{
     InlineCache,
-    opcode::{ByteCode, Instruction, InstructionIterator},
+    opcode::{Address, Bytecode, Instruction, InstructionIterator},
     source_info::{SourceInfo, SourceMap, SourcePath},
 };
 
@@ -78,20 +79,20 @@ unsafe impl Trace for CodeBlockFlags {
 /// [`Handler`] and remove any environments or stack values that where pushed after the handler.
 #[derive(Debug, Clone, Copy)]
 pub(crate) struct Handler {
-    pub(crate) start: u32,
-    pub(crate) end: u32,
+    pub(crate) start: Address,
+    pub(crate) end: Address,
     pub(crate) environment_count: u32,
 }
 
 impl Handler {
     /// Get the handler address.
-    pub(crate) const fn handler(&self) -> u32 {
+    pub(crate) const fn handler(&self) -> Address {
         self.end
     }
 
     /// Check if the provided `pc` is contained in the handler range.
     pub(crate) const fn contains(&self, pc: u32) -> bool {
-        pc < self.end && pc >= self.start
+        pc < self.end.as_u32() && pc >= self.start.as_u32()
     }
 }
 
@@ -105,6 +106,16 @@ pub(crate) enum Constant {
     /// Declarative or function scope.
     // Safety: Nothing in `Scope` needs tracing, so this is safe.
     Scope(#[unsafe_ignore_trace] Scope),
+}
+
+/// Binding information about a global function.
+#[derive(Copy, Clone, Debug, Trace, Finalize)]
+#[boa_gc(empty_trace)]
+pub(crate) struct GlobalFunctionBinding {
+    /// The index of the global function's name in the constants array.
+    pub(crate) name_index: u32,
+    /// The index of the global function in the constants array
+    pub(crate) function_index: u32,
 }
 
 /// The internal representation of a JavaScript function.
@@ -133,7 +144,7 @@ pub struct CodeBlock {
 
     /// Bytecode
     #[unsafe_ignore_trace]
-    pub(crate) bytecode: ByteCode,
+    pub(crate) bytecode: Bytecode,
 
     pub(crate) constants: ThinVec<Constant>,
 
@@ -150,6 +161,17 @@ pub struct CodeBlock {
 
     /// Bytecode to source code mapping.
     pub(crate) source_info: SourceInfo,
+
+    pub(crate) global_lexs: Box<[u32]>,
+    pub(crate) global_fns: Box<[GlobalFunctionBinding]>,
+    pub(crate) global_vars: Box<[u32]>,
+
+    // Used for identifying anonymous functions in compiled output and call frames.
+    pub(crate) debug_id: u64,
+
+    #[cfg(feature = "trace")]
+    #[unsafe_ignore_trace]
+    pub(crate) traced: Cell<bool>,
 }
 
 /// ---- `CodeBlock` public API ----
@@ -160,7 +182,7 @@ impl CodeBlock {
         let mut flags = CodeBlockFlags::empty();
         flags.set(CodeBlockFlags::STRICT, strict);
         Self {
-            bytecode: ByteCode::default(),
+            bytecode: Bytecode::default(),
             constants: ThinVec::default(),
             bindings: Box::default(),
             flags: Cell::new(flags),
@@ -176,6 +198,12 @@ impl CodeBlock {
                 name,
                 SpannedSourceText::new_empty(),
             ),
+            global_lexs: Box::default(),
+            global_fns: Box::default(),
+            global_vars: Box::default(),
+            debug_id: CodeBlock::get_next_codeblock_id(),
+            #[cfg(feature = "trace")]
+            traced: Cell::new(false),
         }
     }
 
@@ -327,6 +355,18 @@ impl CodeBlock {
     pub(crate) fn source_info(&self) -> &SourceInfo {
         &self.source_info
     }
+
+    pub(crate) fn get_next_codeblock_id() -> u64 {
+        thread_local! {
+            static CODEBLOCK_ID_COUNTER: Cell<u64> = const { Cell::new(0) };
+        }
+
+        CODEBLOCK_ID_COUNTER.with(|c| {
+            let id = c.get();
+            c.set(id + 1);
+            id
+        })
+    }
 }
 
 /// ---- `CodeBlock` private API ----
@@ -339,25 +379,23 @@ impl CodeBlock {
         match instruction {
             Instruction::SetRegisterFromAccumulator { dst }
             | Instruction::PopIntoRegister { dst }
-            | Instruction::PushZero { dst }
-            | Instruction::PushOne { dst }
-            | Instruction::PushNan { dst }
-            | Instruction::PushPositiveInfinity { dst }
-            | Instruction::PushNegativeInfinity { dst }
-            | Instruction::PushNull { dst }
-            | Instruction::PushTrue { dst }
-            | Instruction::PushFalse { dst }
-            | Instruction::PushUndefined { dst }
+            | Instruction::StoreZero { dst }
+            | Instruction::StoreOne { dst }
+            | Instruction::StoreNan { dst }
+            | Instruction::StorePositiveInfinity { dst }
+            | Instruction::StoreNegativeInfinity { dst }
+            | Instruction::StoreNull { dst }
+            | Instruction::StoreTrue { dst }
+            | Instruction::StoreFalse { dst }
+            | Instruction::StoreUndefined { dst }
             | Instruction::Exception { dst }
             | Instruction::This { dst }
-            | Instruction::Super { dst }
-            | Instruction::SuperCallPrepare { dst }
             | Instruction::NewTarget { dst }
             | Instruction::ImportMeta { dst }
             | Instruction::CreateMappedArgumentsObject { dst }
             | Instruction::CreateUnmappedArgumentsObject { dst }
             | Instruction::RestParameterInit { dst }
-            | Instruction::PushNewArray { dst } => format!("dst:{dst}"),
+            | Instruction::StoreNewArray { dst } => format!("dst:{dst}"),
             Instruction::Add { lhs, rhs, dst }
             | Instruction::Sub { lhs, rhs, dst }
             | Instruction::Div { lhs, rhs, dst }
@@ -406,44 +444,37 @@ impl CodeBlock {
                     }
                 )
             }
-            Instruction::Generator { r#async } => {
-                format!("async: {async}")
-            }
-            Instruction::PushInt8 { value, dst } => {
+            Instruction::StoreInt8 { value, dst } => {
                 format!("value:{value}, dst:{dst}")
             }
-            Instruction::PushInt16 { value, dst } => {
+            Instruction::StoreInt16 { value, dst } => {
                 format!("value:{value}, dst:{dst}")
             }
-            Instruction::PushInt32 { value, dst } => {
+            Instruction::StoreInt32 { value, dst } => {
                 format!("value:{value}, dst:{dst}")
             }
-            Instruction::PushFloat { value, dst } => {
+            Instruction::StoreFloat { value, dst } => {
                 format!("value:{value}, dst:{dst}")
             }
-            Instruction::PushDouble { value, dst } => {
+            Instruction::StoreDouble { value, dst } => {
                 format!("value:{value}, dst:{dst}")
             }
-            Instruction::PushLiteral { index, dst }
+            Instruction::StoreLiteral { index, dst }
             | Instruction::ThisForObjectEnvironmentName { index, dst }
             | Instruction::GetFunction { index, dst }
-            | Instruction::HasRestrictedGlobalProperty { index, dst }
-            | Instruction::CanDeclareGlobalFunction { index, dst }
-            | Instruction::CanDeclareGlobalVar { index, dst }
             | Instruction::GetArgument { index, dst } => {
                 format!("index:{index}, dst:{dst}")
             }
             Instruction::ThrowNewTypeError { message }
-            | Instruction::ThrowNewSyntaxError { message }
             | Instruction::ThrowNewReferenceError { message } => format!("message:{message}"),
-            Instruction::PushRegexp {
+            Instruction::StoreRegexp {
                 pattern_index,
                 flags_index,
                 dst,
             } => {
                 format!("pattern:{pattern_index}, flags:{flags_index}, dst:{dst}")
             }
-            Instruction::Jump { address } => address.to_string(),
+            Instruction::Jump { address } => format!("address:{address}"),
             Instruction::JumpIfTrue { address, value }
             | Instruction::JumpIfFalse { address, value }
             | Instruction::JumpIfNotUndefined { address, value }
@@ -452,6 +483,13 @@ impl CodeBlock {
             | Instruction::LogicalOr { address, value }
             | Instruction::Coalesce { address, value } => {
                 format!("value:{value}, address:{address}")
+            }
+            Instruction::JumpIfNotLessThan { address, lhs, rhs }
+            | Instruction::JumpIfNotLessThanOrEqual { address, lhs, rhs }
+            | Instruction::JumpIfNotGreaterThan { address, lhs, rhs }
+            | Instruction::JumpIfNotGreaterThanOrEqual { address, lhs, rhs }
+            | Instruction::JumpIfNotEqual { address, lhs, rhs } => {
+                format!("lhs:{lhs}, rhs:{rhs}, address:{address}")
             }
             Instruction::Case {
                 address,
@@ -495,28 +533,6 @@ impl CodeBlock {
                 ic_index,
             } => {
                 format!("dst:{dst}, binding_index:{binding_index}, ic_index:{ic_index}")
-            }
-            Instruction::GeneratorDelegateNext {
-                return_method_undefined,
-                throw_method_undefined,
-                value,
-                resume_kind,
-                is_return,
-            } => {
-                format!(
-                    "return_method_undefined:{return_method_undefined}, throw_method_undefined:{throw_method_undefined}, value:{value}, resume_kind:{resume_kind}, is_return:{is_return}"
-                )
-            }
-            Instruction::GeneratorDelegateResume {
-                r#return: rreturn,
-                exit,
-                value,
-                resume_kind,
-                is_return,
-            } => {
-                format!(
-                    "return:{rreturn}, exit:{exit}, value:{value}, resume_kind:{resume_kind}, is_return:{is_return}"
-                )
             }
             Instruction::DefineOwnPropertyByName {
                 object,
@@ -623,7 +639,8 @@ impl CodeBlock {
             Instruction::ThrowMutateImmutable { index } => {
                 format!("index:{index}")
             }
-            Instruction::DeletePropertyByName { object, name_index } => {
+            Instruction::DeletePropertyByName { object, name_index }
+            | Instruction::GetMethod { object, name_index } => {
                 format!("object:{object}, name_index:{name_index}")
             }
             Instruction::GetLengthProperty {
@@ -704,7 +721,7 @@ impl CodeBlock {
             Instruction::CreateIteratorResult { value, done } => {
                 format!("value:{value}, done:{done}")
             }
-            Instruction::PushClassPrototype {
+            Instruction::StoreClassPrototype {
                 dst,
                 class,
                 superclass,
@@ -721,8 +738,14 @@ impl CodeBlock {
             Instruction::SetHomeObject { function, home } => {
                 format!("function:{function}, home:{home}")
             }
+            Instruction::GetHomeObject { function } => {
+                format!("function:{function}")
+            }
             Instruction::SetPrototype { object, prototype } => {
                 format!("object:{object}, prototype:{prototype}")
+            }
+            Instruction::GetPrototype { object } => {
+                format!("object:{object}")
             }
             Instruction::PushValueToArray { value, array } => {
                 format!("value:{value}, array:{array}")
@@ -745,12 +768,12 @@ impl CodeBlock {
             }
             Instruction::PushClassField {
                 object,
-                name_index,
+                name,
                 value,
                 is_anonymous_function,
             } => {
                 format!(
-                    "object:{object}, value:{value}, name_index:{name_index}, is_anonymous_function:{is_anonymous_function}"
+                    "object:{object}, value:{value}, name:{name}, is_anonymous_function:{is_anonymous_function}"
                 )
             }
             Instruction::MaybeException {
@@ -773,40 +796,26 @@ impl CodeBlock {
             | Instruction::Await { src } => {
                 format!("src:{src}")
             }
+            Instruction::IteratorPush { iterator, next }
+            | Instruction::IteratorPop { iterator, next } => {
+                format!("iterator:{iterator}, next:{next}")
+            }
+            Instruction::IteratorUpdateResult { result } => {
+                format!("result:{result}")
+            }
             Instruction::IteratorDone { dst }
             | Instruction::IteratorValue { dst }
             | Instruction::IteratorResult { dst }
             | Instruction::IteratorToArray { dst }
             | Instruction::IteratorStackEmpty { dst }
-            | Instruction::PushEmptyObject { dst } => {
+            | Instruction::StoreEmptyObject { dst } => {
                 format!("dst:{dst}")
             }
-            Instruction::IteratorFinishAsyncNext { resume_kind, value }
-            | Instruction::GeneratorNext { resume_kind, value } => {
+            Instruction::IteratorFinishAsyncNext { resume_kind, value } => {
                 format!("resume_kind:{resume_kind}, value:{value}")
             }
             Instruction::IteratorReturn { value, called } => {
                 format!("value:{value}, called:{called}")
-            }
-            Instruction::JumpIfNotResumeKind {
-                address,
-                resume_kind,
-                src,
-            } => {
-                format!("address:{address}, resume_kind:{resume_kind}, src:{src}")
-            }
-            Instruction::CreateGlobalFunctionBinding {
-                src,
-                configurable,
-                name_index,
-            } => {
-                format!("src:{src}, configurable:{configurable}, name_index:{name_index}")
-            }
-            Instruction::CreateGlobalVarBinding {
-                configurable,
-                name_index,
-            } => {
-                format!("configurable:{configurable}, name_index:{name_index}")
             }
             Instruction::PushPrivateEnvironment {
                 class,
@@ -817,17 +826,11 @@ impl CodeBlock {
             Instruction::TemplateLookup { address, site, dst } => {
                 format!("address:{address}, site:{site}, dst:{dst}")
             }
-            Instruction::JumpTable {
-                index,
-                default,
-                addresses,
-            } => {
-                let mut operands =
-                    format!("index:{index} #{}: Default: {default:4}", addresses.len());
-                for (i, address) in addresses.iter().enumerate() {
-                    let _ = write!(operands, ", {i}: {address}");
-                }
-                operands
+            Instruction::JumpTable { index, addresses } => {
+                format!(
+                    "index:{index}, jump_table:({})",
+                    addresses.iter().format(", ")
+                )
             }
             Instruction::ConcatToString { dst, values } => {
                 format!("dst:{dst}, values:{values:?}")
@@ -842,6 +845,9 @@ impl CodeBlock {
             Instruction::TemplateCreate { site, dst, values } => {
                 format!("site:{site}, dst:{dst}, values:{values:?}")
             }
+            Instruction::GetFunctionObject { function_object } => {
+                format!("function_object:{function_object}")
+            }
             Instruction::Pop
             | Instruction::DeleteSuperThrow
             | Instruction::ReThrow
@@ -849,7 +855,6 @@ impl CodeBlock {
             | Instruction::Return
             | Instruction::AsyncGeneratorClose
             | Instruction::CreatePromiseCapability
-            | Instruction::CompletePromiseCapability
             | Instruction::PopEnvironment
             | Instruction::IncrementLoopIteration
             | Instruction::IteratorNext
@@ -857,7 +862,9 @@ impl CodeBlock {
             | Instruction::CallSpread
             | Instruction::NewSpread
             | Instruction::SuperCallSpread
-            | Instruction::PopPrivateEnvironment => String::new(),
+            | Instruction::PopPrivateEnvironment
+            | Instruction::Generator
+            | Instruction::AsyncGenerator => String::new(),
             Instruction::Reserved1
             | Instruction::Reserved2
             | Instruction::Reserved3
@@ -927,37 +934,42 @@ impl Display for CodeBlock {
         let name = self.name();
         writeln!(
             f,
-            "{:-^70}",
-            format!("Compiled Output: '{}'", name.to_std_string_escaped()),
+            "{:-^80}",
+            format!(
+                " Compiled Output: {} ",
+                if name.is_empty() {
+                    format!("[anon#{}]", self.debug_id)
+                } else {
+                    format!("'{}'", name.to_std_string_escaped())
+                }
+            ),
         )?;
         writeln!(
             f,
-            "Location  Count    Handler    Opcode                     Operands"
+            "Location     Handler      Opcode                            Operands"
         )?;
         let mut iterator = InstructionIterator::new(&self.bytecode);
-        let mut count = 0;
         while let Some((instruction_start_pc, opcode, instruction)) = iterator.next() {
             let opcode = opcode.as_str();
             let operands = self.instruction_operands(&instruction);
             let pc = iterator.pc();
             let handler = if let Some((i, handler)) = self.find_handler(instruction_start_pc as u32)
             {
-                let border_char = if instruction_start_pc as u32 == handler.start {
+                let border_char = if instruction_start_pc as u32 == u32::from(handler.start) {
                     '>'
-                } else if pc as u32 == handler.end {
+                } else if pc as u32 == u32::from(handler.end) {
                     '<'
                 } else {
                     ' '
                 };
-                format!("{border_char}{i:2}: {:04}", handler.handler())
+                format!("{border_char}{i:2}: {}", handler.handler())
             } else {
-                "   none  ".to_string()
+                "           ".to_string()
             };
             writeln!(
                 f,
-                "{instruction_start_pc:06}    {count:04}   {handler}    {opcode:<27}{operands}",
+                "  {instruction_start_pc:>06x}    {handler}     {opcode:<32}  {operands}",
             )?;
-            count += 1;
         }
         writeln!(
             f,
@@ -1034,7 +1046,7 @@ impl Display for CodeBlock {
         } else {
             f.write_char('\n')?;
 
-            let bytecode_len = self.bytecode.bytecode.len() as u32;
+            let bytecode_len = self.bytecode.bytes.len() as u32;
             for (i, handler) in self.source_info().map().entries().windows(2).enumerate() {
                 let current = handler[0];
                 let next = handler.get(1);
@@ -1084,7 +1096,7 @@ pub(crate) fn create_function_object(
     let is_generator = code.is_generator();
     let function = OrdinaryFunction::new(
         code,
-        context.vm.frame.environments.clone(),
+        context.vm.frame().environments.snapshot_for_closure(),
         script_or_module,
         context.realm().clone(),
     );
@@ -1153,7 +1165,7 @@ pub(crate) fn create_function_object_fast(code: Gc<CodeBlock>, context: &mut Con
     let has_prototype_property = code.has_prototype_property();
     let function = OrdinaryFunction::new(
         code,
-        context.vm.frame.environments.clone(),
+        context.vm.frame().environments.snapshot_for_closure(),
         script_or_module,
         context.realm().clone(),
     );

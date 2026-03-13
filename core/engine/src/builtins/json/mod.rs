@@ -16,17 +16,19 @@
 use std::{borrow::Cow, iter::once};
 
 use boa_ast::scope::Scope;
+use boa_gc::{Finalize, Gc, Trace};
 use boa_macros::utf16;
 use itertools::Itertools;
 
+use crate::JsExpect;
 use crate::{
-    Context, JsArgs, JsBigInt, JsResult, JsString, JsValue, SpannedSourceText,
+    Context, JsArgs, JsBigInt, JsData, JsResult, JsString, JsValue, SpannedSourceText,
     builtins::BuiltInObject,
     bytecompiler::ByteCompiler,
     context::intrinsics::Intrinsics,
     error::JsNativeError,
     js_string,
-    object::{JsObject, internal_methods::InternalMethodPropertyContext},
+    object::{IntegrityLevel, JsObject, internal_methods::InternalMethodPropertyContext},
     property::{Attribute, PropertyNameKind},
     realm::Realm,
     string::{CodePoint, StaticJsStrings},
@@ -34,13 +36,154 @@ use crate::{
     value::IntegerOrInfinity,
     vm::{CallFrame, CallFrameFlags, source_info::SourcePath},
 };
-use boa_gc::Gc;
 use boa_parser::{Parser, Source};
 
 use super::{BuiltInBuilder, IntrinsicObject};
 
 #[cfg(test)]
 mod tests;
+
+/// Marker struct for the `[[IsRawJSON]]` internal slot.
+#[derive(Debug, Trace, Finalize, JsData)]
+pub(crate) struct RawJson;
+
+/// A tree node representing the structure of parsed JSON, preserving source
+/// text spans for primitive values. Used to provide `context.source` to
+/// the reviver function in `JSON.parse`.
+#[derive(Debug)]
+enum JsonNode {
+    /// A primitive value (string, number, boolean, null) with its original source text.
+    Primitive(String),
+    /// An array of child nodes.
+    Array(Vec<JsonNode>),
+    /// An object with key-value pairs.
+    Object(Vec<(String, JsonNode)>),
+}
+
+/// Visitor that builds a `JsonNode` source tree by walking the parsed AST,
+/// extracting source text from `LinearSpan` information tracked by the parser.
+/// Uses a stack to build the tree bottom-up during depth-first traversal.
+struct JsonSourceVisitor<'a> {
+    source_text: &'a boa_ast::SourceText,
+    interner: &'a boa_interner::Interner,
+    /// Stack used to build the tree bottom-up. Leaf nodes (literals) are pushed
+    /// first, then parent nodes (arrays/objects) pop their children and push themselves.
+    stack: Vec<JsonNode>,
+}
+
+impl<'a> JsonSourceVisitor<'a> {
+    /// Creates a new `JsonSourceVisitor`.
+    fn new(source_text: &'a boa_ast::SourceText, interner: &'a boa_interner::Interner) -> Self {
+        Self {
+            source_text,
+            interner,
+            stack: Vec::new(),
+        }
+    }
+
+    /// Consumes the visitor and returns the final `JsonNode` tree.
+    fn finish(mut self) -> Option<JsonNode> {
+        self.stack.pop()
+    }
+}
+
+impl<'ast> boa_ast::visitor::Visitor<'ast> for JsonSourceVisitor<'_> {
+    type BreakTy = std::convert::Infallible;
+
+    fn visit_literal(
+        &mut self,
+        node: &'ast boa_ast::expression::literal::Literal,
+    ) -> std::ops::ControlFlow<Self::BreakTy> {
+        let span = node.linear_span();
+        let code_points = self.source_text.get_code_points_from_span(span);
+        let text = String::from_utf16_lossy(code_points);
+        self.stack.push(JsonNode::Primitive(text));
+        std::ops::ControlFlow::Continue(())
+    }
+
+    fn visit_array_literal(
+        &mut self,
+        node: &'ast boa_ast::expression::literal::ArrayLiteral,
+    ) -> std::ops::ControlFlow<Self::BreakTy> {
+        let count = node.as_ref().len();
+        let base = self.stack.len();
+
+        // Visit each element, which pushes child nodes onto the stack
+        for elem in node.as_ref() {
+            if let Some(expr) = elem {
+                self.visit_expression(expr)?;
+            } else {
+                // Sparse element (should not happen in JSON)
+                self.stack.push(JsonNode::Primitive("null".to_string()));
+            }
+        }
+
+        // Pop the children that were just pushed and collect into array
+        let children: Vec<JsonNode> = self.stack.drain(base..).collect();
+        debug_assert_eq!(children.len(), count);
+        self.stack.push(JsonNode::Array(children));
+        std::ops::ControlFlow::Continue(())
+    }
+
+    fn visit_object_literal(
+        &mut self,
+        node: &'ast boa_ast::expression::literal::ObjectLiteral,
+    ) -> std::ops::ControlFlow<Self::BreakTy> {
+        use boa_ast::expression::literal::PropertyDefinition;
+
+        let base = self.stack.len();
+        let mut keys: Vec<String> = Vec::new();
+
+        for prop in node.properties() {
+            if let PropertyDefinition::Property(name, value) = prop {
+                let key = if let Some(ident) = name.literal() {
+                    self.interner.resolve_expect(ident.sym()).to_string()
+                } else {
+                    String::new()
+                };
+                keys.push(key);
+                // Visit the value expression, which pushes the child node
+                self.visit_expression(value)?;
+            }
+        }
+
+        // Pop the value nodes and zip with keys
+        let values: Vec<JsonNode> = self.stack.drain(base..).collect();
+        debug_assert_eq!(keys.len(), values.len());
+        let entries: Vec<(String, JsonNode)> = keys.into_iter().zip(values).collect();
+        self.stack.push(JsonNode::Object(entries));
+        std::ops::ControlFlow::Continue(())
+    }
+
+    fn visit_unary(
+        &mut self,
+        node: &'ast boa_ast::expression::operator::Unary,
+    ) -> std::ops::ControlFlow<Self::BreakTy> {
+        use boa_ast::expression::operator::unary::UnaryOp;
+        use boa_ast::visitor::VisitWith;
+
+        if node.op() == UnaryOp::Minus
+            && let boa_ast::Expression::Literal(lit) = node.target()
+        {
+            let span = lit.linear_span();
+            let code_points = self.source_text.get_code_points_from_span(span);
+            let num_text = String::from_utf16_lossy(code_points);
+            self.stack.push(JsonNode::Primitive(format!("-{num_text}")));
+            return std::ops::ControlFlow::Continue(());
+        }
+
+        // Default: recurse into children
+        node.visit_with(self)
+    }
+
+    fn visit_parenthesized(
+        &mut self,
+        node: &'ast boa_ast::expression::Parenthesized,
+    ) -> std::ops::ControlFlow<Self::BreakTy> {
+        // Unwrap parentheses and visit inner expression
+        self.visit_expression(node.expression())
+    }
+}
 
 /// JavaScript `JSON` global object.
 #[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash)]
@@ -54,6 +197,8 @@ impl IntrinsicObject for Json {
         BuiltInBuilder::with_intrinsic::<Self>(realm)
             .static_method(Self::parse, js_string!("parse"), 2)
             .static_method(Self::stringify, js_string!("stringify"), 3)
+            .static_method(Self::raw_json, js_string!("rawJSON"), 1)
+            .static_method(Self::is_raw_json, js_string!("isRawJSON"), 1)
             .static_property(to_string_tag, Self::NAME, attribute)
             .build();
     }
@@ -96,28 +241,48 @@ impl Json {
             return Err(JsNativeError::syntax().with_message(e.to_string()).into());
         }
 
+        // Check if a reviver is provided, to determine if we need source text tracking
+        let has_reviver = args.get_or_undefined(1).is_callable();
+
         // 3. Let scriptString be the string-concatenation of "(", jsonString, and ");".
-        // TODO: fix script read for eval
         let script_string = format!("({json_string});");
 
-        // 4. Let script be ParseText(! StringToCodePoints(scriptString), Script).
-        // 5. NOTE: The early error rules defined in 13.2.5.1 have special handling for the above invocation of ParseText.
-        // 6. Assert: script is a Parse Node.
-        // 7. Let completion be the result of evaluating script.
-        // 8. NOTE: The PropertyDefinitionEvaluation semantics defined in 13.2.5.5 have special handling for the above evaluation.
-        // 9. Let unfiltered be completion.[[Value]].
-        // 10. Assert: unfiltered is either a String, Number, Boolean, Null, or an Object that is defined by either an ArrayLiteral or an ObjectLiteral.
+        // 4-10. Parse and evaluate the script
         let source = Source::from_bytes(&script_string);
-
         let mut parser = Parser::new(source);
         parser.set_json_parse();
-        // In json we don't need the source: there no way to pass an object that needs a source text
-        // But if it's incorrect, just call `parser.parse_script_with_source` here
-        let script = parser.parse_script(&Scope::new_global(), context.interner_mut())?;
+
+        // Use parse_script_with_source to get SourceText for span-based source extraction
+        let (script, source_text) =
+            parser.parse_script_with_source(&Scope::new_global(), context.interner_mut())?;
+
+        // Build the source tree from the AST if a reviver is present.
+        // This walks the parsed AST and extracts source text from LinearSpan information,
+        // avoiding the need to re-parse the JSON string separately.
+        let source_tree = if has_reviver {
+            let expr = script.statements().statements().first().and_then(|item| {
+                if let boa_ast::StatementListItem::Statement(stmt) = item
+                    && let boa_ast::Statement::Expression(expr) = stmt.as_ref()
+                {
+                    return Some(expr);
+                }
+                None
+            });
+            expr.and_then(|e| {
+                use boa_ast::visitor::Visitor;
+                let mut visitor = JsonSourceVisitor::new(&source_text, context.interner());
+                let _ = visitor.visit_expression(e);
+                visitor.finish()
+            })
+        } else {
+            None
+        };
+
         let code_block = {
-            let in_with = context.vm.frame.environments.has_object_environment();
-            // If the source is needed then call `parser.parse_script_with_source` and pass `source_text` here.
-            let spanned_source_text = SpannedSourceText::new_empty();
+            let in_with = context.vm.frame().environments.has_object_environment();
+            let spanned_source_text = SpannedSourceText::new_source_only(
+                crate::spanned_source_text::SourceText::new(source_text),
+            );
             let mut compiler = ByteCompiler::new(
                 js_string!("<json>"),
                 script.strict(),
@@ -129,7 +294,6 @@ impl Json {
                 context.interner_mut(),
                 in_with,
                 spanned_source_text,
-                // TODO: Could give more information from previous shadow stack.
                 SourcePath::Json,
             );
             compiler.compile_statement_list(script.statements(), true, false);
@@ -138,12 +302,12 @@ impl Json {
 
         let realm = context.realm().clone();
 
-        let env_fp = context.vm.frame.environments.len() as u32;
+        let env_fp = context.vm.frame().environments.len() as u32;
         context.vm.push_frame_with_stack(
             CallFrame::new(
                 code_block,
                 None,
-                context.vm.frame.environments.clone(),
+                context.vm.frame().environments.clone(),
                 realm,
             )
             .with_env_fp(env_fp)
@@ -166,10 +330,16 @@ impl Json {
             // b. Let rootName be the empty String.
             // c. Perform ! CreateDataPropertyOrThrow(root, rootName, unfiltered).
             root.create_data_property_or_throw(js_string!(), unfiltered, context)
-                .expect("CreateDataPropertyOrThrow should never throw here");
+                .js_expect("CreateDataPropertyOrThrow should never throw here")?;
 
             // d. Return ? InternalizeJSONProperty(root, rootName, reviver).
-            Self::internalize_json_property(&root, js_string!(), &obj, context)
+            Self::internalize_json_property(
+                &root,
+                js_string!(),
+                &obj,
+                source_tree.as_ref(),
+                context,
+            )
         } else {
             // 12. Else,
             // a. Return unfiltered.
@@ -187,6 +357,7 @@ impl Json {
         holder: &JsObject,
         name: JsString,
         reviver: &JsObject,
+        source_node: Option<&JsonNode>,
         context: &mut Context,
     ) -> JsResult<JsValue> {
         // 1. Let val be ? Get(holder, name).
@@ -201,11 +372,21 @@ impl Json {
                 // ii. Let len be ? LengthOfArrayLike(val).
                 // iii. Repeat, while I < len,
                 let len = obj.length_of_array_like(context)? as i64;
+                let children = match source_node {
+                    Some(JsonNode::Array(children)) => Some(children),
+                    _ => None,
+                };
                 for i in 0..len {
+                    let child_node = children.and_then(|c| c.get(i as usize));
                     // 1. Let prop be ! ToString(𝔽(I)).
                     // 2. Let newElement be ? InternalizeJSONProperty(val, prop, reviver).
-                    let new_element =
-                        Self::internalize_json_property(&obj, i.into(), reviver, context)?;
+                    let new_element = Self::internalize_json_property(
+                        &obj,
+                        i.into(),
+                        reviver,
+                        child_node,
+                        context,
+                    )?;
 
                     // 3. If newElement is undefined, then
                     if new_element.is_undefined() {
@@ -226,17 +407,30 @@ impl Json {
             else {
                 // i. Let keys be ? EnumerableOwnPropertyNames(val, key).
                 let keys = obj.enumerable_own_property_names(PropertyNameKind::Key, context)?;
+                let entries = match source_node {
+                    Some(JsonNode::Object(entries)) => Some(entries),
+                    _ => None,
+                };
 
                 // ii. For each String P of keys, do
                 for p in keys {
                     // This is safe, because EnumerableOwnPropertyNames with 'key' type only returns strings.
                     let p = p
                         .as_string()
-                        .expect("EnumerableOwnPropertyNames only returns strings");
+                        .js_expect("EnumerableOwnPropertyNames only returns strings")?;
+
+                    let p_std = p.to_std_string_escaped();
+                    let child_node =
+                        entries.and_then(|e| e.iter().rfind(|(k, _)| k == &p_std).map(|(_, v)| v));
 
                     // 1. Let newElement be ? InternalizeJSONProperty(val, P, reviver).
-                    let new_element =
-                        Self::internalize_json_property(&obj, p.clone(), reviver, context)?;
+                    let new_element = Self::internalize_json_property(
+                        &obj,
+                        p.clone(),
+                        reviver,
+                        child_node,
+                        context,
+                    )?;
 
                     // 2. If newElement is undefined, then
                     if new_element.is_undefined() {
@@ -255,8 +449,149 @@ impl Json {
             }
         }
 
-        // 3. Return ? Call(reviver, holder, « name, val »).
-        reviver.call(&holder.clone().into(), &[name.into(), val], context)
+        // Build the context object for the reviver call.
+        // For primitive JSON values: context = { source: "<original text>" }
+        // For objects/arrays or modified values: context = {} (no source property)
+        // Per spec, source is only provided when the value is still the same
+        // primitive that was produced by parsing the original JSON text.
+        let ctx_obj = JsObject::with_object_proto(context.intrinsics());
+        if let Some(JsonNode::Primitive(source_text)) = source_node {
+            // Check if the current value matches what the source text produces.
+            // If the reviver modified the value, it won't match and we skip source.
+            let value_matches = match source_text.as_str() {
+                "null" => val.is_null(),
+                "true" => val.as_boolean() == Some(true),
+                "false" => val.as_boolean() == Some(false),
+                s if s.starts_with('"') => {
+                    // String: compare parsed string value
+                    if let Some(js_str) = val.as_string() {
+                        serde_json::from_str::<String>(s)
+                            .map(|parsed| js_str.to_std_string_escaped() == parsed)
+                            .unwrap_or(false)
+                    } else {
+                        false
+                    }
+                }
+                s => {
+                    // Number: compare parsed number value
+                    // Exact comparison is intentional: we want to detect if the
+                    // value was replaced by the reviver, not approximate equality.
+                    #[allow(clippy::float_cmp)]
+                    if let Some(n) = val.as_number() {
+                        s.parse::<f64>().map(|parsed| n == parsed).unwrap_or(false)
+                    } else {
+                        false
+                    }
+                }
+            };
+            if value_matches {
+                ctx_obj.create_data_property_or_throw(
+                    js_string!("source"),
+                    JsValue::from(js_string!(source_text.as_str())),
+                    context,
+                )?;
+            }
+        }
+
+        // 3. Return ? Call(reviver, holder, « name, val, context »).
+        reviver.call(
+            &holder.clone().into(),
+            &[name.into(), val, ctx_obj.into()],
+            context,
+        )
+    }
+
+    /// `JSON.rawJSON ( text )`
+    ///
+    /// Creates a raw JSON object from the given text.
+    ///
+    /// More information:
+    ///  - [ECMAScript reference][spec]
+    ///
+    /// [spec]: https://tc39.es/ecma262/#sec-json.rawjson
+    pub(crate) fn raw_json(
+        _: &JsValue,
+        args: &[JsValue],
+        context: &mut Context,
+    ) -> JsResult<JsValue> {
+        // 1. Let jsonString be ? ToString(text).
+        let json_string = args.get_or_undefined(0).to_string(context)?;
+
+        // 2. Throw a SyntaxError exception if jsonString is the empty String, or if
+        //    either the first or last code unit of jsonString is any of 0x0009
+        //    (CHARACTER TABULATION), 0x000A (LINE FEED), 0x000D (CARRIAGE RETURN), or
+        //    0x0020 (SPACE).
+        let std_string = json_string
+            .to_std_string()
+            .map_err(|e| JsNativeError::syntax().with_message(e.to_string()))?;
+
+        if std_string.is_empty() {
+            return Err(JsNativeError::syntax()
+                .with_message("JSON.rawJSON text must not be the empty string")
+                .into());
+        }
+
+        let first = std_string.as_bytes()[0];
+        let last = std_string.as_bytes()[std_string.len() - 1];
+        if matches!(first, b'\t' | b'\n' | b'\r' | b' ')
+            || matches!(last, b'\t' | b'\n' | b'\r' | b' ')
+        {
+            return Err(JsNativeError::syntax()
+                .with_message("JSON.rawJSON text must not start or end with whitespace")
+                .into());
+        }
+
+        // 3. Parse StringToCodePoints(jsonString) as a JSON text as specified in ECMA-404.
+        //    Throw a SyntaxError exception if it is not a valid JSON text as defined in that
+        //    specification, or if its outermost value is an object or array.
+        let parsed: serde_json::Value = serde_json::from_str(&std_string)
+            .map_err(|e| JsNativeError::syntax().with_message(e.to_string()))?;
+
+        // Must not be an object or array
+        match parsed {
+            serde_json::Value::Object(_) | serde_json::Value::Array(_) => {
+                return Err(JsNativeError::syntax()
+                    .with_message("JSON.rawJSON text must not be an object or array")
+                    .into());
+            }
+            _ => {}
+        }
+
+        // 3. Let internalSlotsList be « [[IsRawJSON]] ».
+        // 4. Let obj be OrdinaryObjectCreate(null, internalSlotsList).
+        let obj = JsObject::from_proto_and_data(None::<JsObject>, RawJson);
+
+        // 5. Perform ! CreateDataPropertyOrThrow(obj, "rawJSON", jsonString).
+        obj.create_data_property_or_throw(js_string!("rawJSON"), json_string, context)
+            .expect("CreateDataPropertyOrThrow should never throw here");
+
+        // 6. Perform ! SetIntegrityLevel(obj, frozen).
+        obj.set_integrity_level(IntegrityLevel::Frozen, context)
+            .expect("SetIntegrityLevel should never throw here");
+
+        // 7. Return obj.
+        Ok(obj.into())
+    }
+
+    /// `JSON.isRawJSON ( O )`
+    ///
+    /// Checks if the given value is a raw JSON object.
+    ///
+    /// More information:
+    ///  - [ECMAScript reference][spec]
+    ///
+    /// [spec]: https://tc39.es/ecma262/#sec-json.israwjson
+    #[allow(clippy::unnecessary_wraps)]
+    pub(crate) fn is_raw_json(
+        _: &JsValue,
+        args: &[JsValue],
+        _context: &mut Context,
+    ) -> JsResult<JsValue> {
+        // 1. If Type(O) is Object and O has an [[IsRawJSON]] internal slot, return true.
+        // 2. Return false.
+        let value = args.get_or_undefined(0);
+        let result = value.as_object().is_some_and(|obj| obj.is::<RawJson>());
+        Ok(result.into())
     }
 
     /// `JSON.stringify( value[, replacer[, space]] )`
@@ -329,7 +664,7 @@ impl Json {
                         } else if v.is_number() {
                             property_set.insert(
                                 v.to_string(context)
-                                    .expect("ToString cannot fail on number value"),
+                                    .js_expect("ToString cannot fail on number value")?,
                             );
                         } else if let Some(obj) = v.as_object()
                             && (obj.is::<JsString>() || obj.is::<f64>())
@@ -369,7 +704,7 @@ impl Json {
             // c. If spaceMV < 1, let gap be the empty String; otherwise let gap be the String value containing spaceMV occurrences of the code unit 0x0020 (SPACE).
             match space
                 .to_integer_or_infinity(context)
-                .expect("ToIntegerOrInfinity cannot fail on number")
+                .js_expect("ToIntegerOrInfinity cannot fail on number")?
             {
                 IntegerOrInfinity::PositiveInfinity => js_string!("          "),
                 IntegerOrInfinity::NegativeInfinity => js_string!(),
@@ -399,7 +734,7 @@ impl Json {
         // 10. Perform ! CreateDataPropertyOrThrow(wrapper, the empty String, value).
         wrapper
             .create_data_property_or_throw(js_string!(), args.get_or_undefined(0).clone(), context)
-            .expect("CreateDataPropertyOrThrow should never fail here");
+            .js_expect("CreateDataPropertyOrThrow should never fail here")?;
 
         // 11. Let state be the Record { [[ReplacerFunction]]: ReplacerFunction, [[Stack]]: stack, [[Indent]]: indent, [[Gap]]: gap, [[PropertyList]]: PropertyList }.
         let mut state = StateRecord {
@@ -473,6 +808,12 @@ impl Json {
                 // i. Set value to value.[[BigIntData]].
                 value = bigint.clone().into();
             }
+            // e. Else if value has a [[IsRawJSON]] internal slot, then
+            else if obj.is::<RawJson>() {
+                // i. Return the value of the "rawJSON" property of value.
+                let raw = obj.get(js_string!("rawJSON"), context)?;
+                return Ok(raw.as_string());
+            }
         }
 
         // 5. If value is null, return "null".
@@ -502,7 +843,7 @@ impl Json {
                 return Ok(Some(
                     value
                         .to_string(context)
-                        .expect("ToString should never fail here"),
+                        .js_expect("ToString should never fail here")?,
                 ));
             }
 
@@ -627,9 +968,9 @@ impl Json {
             keys.iter()
                 .map(|v| {
                     v.to_string(context)
-                        .expect("EnumerableOwnPropertyNames only returns strings")
+                        .js_expect("EnumerableOwnPropertyNames only returns strings")
                 })
-                .collect()
+                .collect::<Result<Vec<_>, _>>()?
         };
 
         // 7. Let partial be a new empty List.

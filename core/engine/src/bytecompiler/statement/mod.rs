@@ -1,5 +1,5 @@
 use super::jump_control::{JumpRecord, JumpRecordAction, JumpRecordKind};
-use crate::bytecompiler::ByteCompiler;
+use crate::{bytecompiler::ByteCompiler, vm::CallFrame};
 use boa_ast::Statement;
 
 mod block;
@@ -41,19 +41,15 @@ impl ByteCompiler<'_> {
             }
             Statement::Continue(node) => {
                 if root_statement && (use_expr || self.jump_control_info_has_use_expr()) {
-                    let value = self.register_allocator.alloc();
-                    self.bytecode.emit_push_undefined(value.variable());
-                    self.bytecode.emit_set_accumulator(value.variable());
-                    self.register_allocator.dealloc(value);
+                    self.bytecode
+                        .emit_set_accumulator(CallFrame::undefined_register().variable());
                 }
                 self.compile_continue(*node, use_expr);
             }
             Statement::Break(node) => {
                 if root_statement && (use_expr || self.jump_control_info_has_use_expr()) {
-                    let value = self.register_allocator.alloc();
-                    self.bytecode.emit_push_undefined(value.variable());
-                    self.bytecode.emit_set_accumulator(value.variable());
-                    self.register_allocator.dealloc(value);
+                    self.bytecode
+                        .emit_set_accumulator(CallFrame::undefined_register().variable());
                 }
                 self.compile_break(*node, use_expr);
             }
@@ -69,35 +65,37 @@ impl ByteCompiler<'_> {
                 self.compile_switch(switch, use_expr);
             }
             Statement::Return(ret) => {
-                let value = self.register_allocator.alloc();
                 if let Some(expr) = ret.target() {
-                    self.compile_expr(expr, &value);
-
                     if self.is_async_generator() {
+                        let value = self.register_allocator.alloc();
+                        self.compile_expr(expr, &value);
                         self.bytecode.emit_await(value.variable());
                         let resume_kind = self.register_allocator.alloc();
                         self.pop_into_register(&resume_kind);
                         self.pop_into_register(&value);
-                        self.bytecode
-                            .emit_generator_next(resume_kind.variable(), value.variable());
+                        self.generator_next(&value, &resume_kind);
                         self.register_allocator.dealloc(resume_kind);
+                        self.push_from_register(&value);
+                        self.register_allocator.dealloc(value);
+                    } else {
+                        self.compile_expr_to_stack(expr);
                     }
                 } else {
-                    self.bytecode.emit_push_undefined(value.variable());
+                    self.push_from_register(&CallFrame::undefined_register());
                 }
 
-                self.push_from_register(&value);
-                self.register_allocator.dealloc(value);
                 self.r#return(true);
             }
             Statement::Try(t) => self.compile_try(t, use_expr),
             Statement::Expression(expr) => {
-                let value = self.register_allocator.alloc();
-                self.compile_expr(expr, &value);
                 if use_expr {
+                    let value = self.register_allocator.alloc();
+                    self.compile_expr(expr, &value);
                     self.bytecode.emit_set_accumulator(value.variable());
+                    self.register_allocator.dealloc(value);
+                } else {
+                    self.compile_expr_for_side_effects(expr);
                 }
-                self.register_allocator.dealloc(value);
             }
             Statement::With(with) => self.compile_with(with, use_expr),
             Statement::Empty | Statement::Debugger => {}

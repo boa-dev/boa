@@ -10,7 +10,7 @@ repository.workspace = true
 rust-version.workspace = true
 
 [dependencies]
-boa_engine = { workspace = true, features = ["annex-b"] }
+boa_engine = { workspace = true, features = ["annex-b", "float16", "xsum", "temporal"] }
 boa_ast.workspace = true
 boa_interner.workspace = true
 boa_gc.workspace = true
@@ -20,8 +20,8 @@ time.workspace = true
 smol.workspace = true
 futures-concurrency.workspace = true
 futures-lite.workspace = true
-isahc.workspace = true
 tokio = { workspace = true, features = ["rt", "rt-multi-thread", "time", "macros"] }
+reqwest.workspace = true
 
 # use explicit lints for examples, since we don't need to lint for docs
 [lints.rust]

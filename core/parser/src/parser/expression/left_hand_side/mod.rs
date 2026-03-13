@@ -178,7 +178,7 @@ where
                     CallExpression::new(
                         self.allow_yield,
                         self.allow_await,
-                        member.expect_expression(),
+                        member.try_into_expression()?,
                     )
                     .parse(cursor, interner)?
                     .into()
@@ -193,7 +193,7 @@ where
             lhs = OptionalExpression::new(
                 self.allow_yield,
                 self.allow_await,
-                lhs.expect_expression(),
+                lhs.try_into_expression()?,
             )
             .parse(cursor, interner)?
             .into();

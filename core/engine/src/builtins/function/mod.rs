@@ -12,7 +12,7 @@
 //! [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Function
 
 use crate::{
-    Context, JsArgs, JsResult, JsStr, JsString, JsValue, SpannedSourceText,
+    Context, JsArgs, JsExpect, JsResult, JsStr, JsString, JsValue, SpannedSourceText,
     builtins::{
         BuiltInBuilder, BuiltInConstructor, BuiltInObject, IntrinsicObject, OrdinaryObject,
     },
@@ -653,7 +653,7 @@ impl BuiltInFunctionObject {
             return Err(js_error!(SyntaxError: "failed to analyze function scope: {}", reason));
         }
 
-        let in_with = context.vm.frame.environments.has_object_environment();
+        let in_with = context.vm.frame().environments.has_object_environment();
         let spanned_source_text = SpannedSourceText::new_empty();
 
         let code = FunctionCompiler::new(spanned_source_text)
@@ -672,9 +672,13 @@ impl BuiltInFunctionObject {
                 context.interner_mut(),
             );
 
-        let environments = context.vm.frame.environments.pop_to_global();
+        let saved = context.vm.frame_mut().environments.pop_to_global();
         let function_object = crate::vm::create_function_object(code, prototype, context);
-        context.vm.frame.environments.extend(environments);
+        context
+            .vm
+            .frame_mut()
+            .environments
+            .restore_from_saved(saved);
 
         Ok(function_object)
     }
@@ -758,7 +762,7 @@ impl BuiltInFunctionObject {
                 // 1. Let targetLenAsInt be ! ToIntegerOrInfinity(targetLen).
                 match target_len
                     .to_integer_or_infinity(context)
-                    .expect("to_integer_or_infinity cannot fail for a number")
+                    .js_expect("to_integer_or_infinity cannot fail for a number")?
                 {
                     // i. If targetLen is +∞𝔽, set L to +∞.
                     IntegerOrInfinity::PositiveInfinity => l = f64::INFINITY.into(),
@@ -785,7 +789,7 @@ impl BuiltInFunctionObject {
                 .configurable(true),
             context,
         )
-        .expect("defining the `length` property for a new object should not fail");
+        .js_expect("defining the `length` property for a new object should not fail")?;
 
         // 8. Let targetName be ? Get(Target, "name").
         let target_name = target.get(js_string!("name"), context)?;
@@ -794,7 +798,7 @@ impl BuiltInFunctionObject {
         let target_name = target_name.as_string().unwrap_or_default();
 
         // 10. Perform SetFunctionName(F, targetName, "bound").
-        set_function_name(&f, &target_name.into(), Some(js_str!("bound")), context);
+        set_function_name(&f, &target_name.into(), Some(js_str!("bound")), context)?;
 
         // 11. Return F.
         Ok(f.into())
@@ -918,7 +922,7 @@ pub(crate) fn set_function_name(
     name: &PropertyKey,
     prefix: Option<JsStr<'_>>,
     context: &mut Context,
-) {
+) -> JsResult<()> {
     // 1. Assert: F is an extensible object that does not have a "name" own property.
     // 2. If Type(name) is Symbol, then
     let mut name = match name {
@@ -963,7 +967,9 @@ pub(crate) fn set_function_name(
                 .configurable(true),
             context,
         )
-        .expect("defining the `name` property must not fail per the spec");
+        .js_expect("defining the `name` property must not fail per the spec")?;
+
+    Ok(())
 }
 
 /// Call this object.
@@ -986,7 +992,7 @@ pub(crate) fn function_call(
 
     let function = function_object
         .downcast_ref::<OrdinaryFunction>()
-        .expect("not a function");
+        .js_expect("not a function")?;
     let realm = function.realm().clone();
 
     if function.code.is_class_constructor() {
@@ -1008,7 +1014,7 @@ pub(crate) fn function_call(
 
     let env_fp = environments.len() as u32;
 
-    let frame = CallFrame::new(code.clone(), script_or_module, environments, realm)
+    let frame = CallFrame::new(code, script_or_module, environments, realm)
         .with_argument_count(argument_count as u32)
         .with_env_fp(env_fp);
 
@@ -1022,47 +1028,65 @@ pub(crate) fn function_call(
     }
 
     context.vm.push_frame(frame);
-    let this = context.vm.stack.get_this(context.vm.frame());
 
     let context = context.context();
 
-    let lexical_this_mode = code.this_mode == ThisMode::Lexical;
+    let lexical_this_mode = context.vm.frame().code_block.this_mode == ThisMode::Lexical;
     let this = if lexical_this_mode {
         ThisBindingStatus::Lexical
-    } else if code.strict() {
-        context.vm.frame_mut().flags |= CallFrameFlags::THIS_VALUE_CACHED;
-        ThisBindingStatus::Initialized(this)
-    } else if this.is_null_or_undefined() {
-        context.vm.frame_mut().flags |= CallFrameFlags::THIS_VALUE_CACHED;
-        let this: JsValue = context.realm().global_this().clone().into();
-        context.vm.stack.set_this(&context.vm.frame, this.clone());
-        ThisBindingStatus::Initialized(this)
     } else {
-        let this: JsValue = this
-            .to_object(context)
-            .expect("conversion cannot fail")
-            .into();
-        context.vm.frame_mut().flags |= CallFrameFlags::THIS_VALUE_CACHED;
-        context.vm.stack.set_this(&context.vm.frame, this.clone());
-        ThisBindingStatus::Initialized(this)
+        let this = context.vm.stack.get_this(context.vm.frame());
+        if context.vm.frame().code_block.strict() {
+            context.vm.frame_mut().flags |= CallFrameFlags::THIS_VALUE_CACHED;
+            ThisBindingStatus::Initialized(this)
+        } else if this.is_null_or_undefined() {
+            context.vm.frame_mut().flags |= CallFrameFlags::THIS_VALUE_CACHED;
+            let this: JsValue = context.realm().global_this().clone().into();
+            context.vm.stack.set_this(
+                context.vm.frames.last().js_expect("frame must exist")?,
+                this.clone(),
+            );
+            ThisBindingStatus::Initialized(this)
+        } else {
+            let this: JsValue = this
+                .to_object(context)
+                .js_expect("conversion cannot fail")?
+                .into();
+            context.vm.frame_mut().flags |= CallFrameFlags::THIS_VALUE_CACHED;
+            context.vm.stack.set_this(
+                context.vm.frames.last().js_expect("frame must exist")?,
+                this.clone(),
+            );
+            ThisBindingStatus::Initialized(this)
+        }
     };
 
     let mut last_env = 0;
 
-    if code.has_binding_identifier() {
-        let index = context.vm.frame.environments.push_lexical(1);
-        context.vm.frame.environments.put_lexical_value(
+    let has_binding_identifier = context.vm.frame().code_block().has_binding_identifier();
+    let has_function_scope = context.vm.frame().code_block().has_function_scope();
+
+    if has_binding_identifier {
+        let frame = context.vm.frame_mut();
+        let global = frame.realm.environment();
+        let index = frame.environments.push_lexical(1, global);
+        frame.environments.put_lexical_value(
             BindingLocatorScope::Stack(index),
             0,
             function_object.clone().into(),
+            global,
         );
         last_env += 1;
     }
 
-    if code.has_function_scope() {
-        context.vm.frame.environments.push_function(
-            code.constant_scope(last_env),
+    if has_function_scope {
+        let scope = context.vm.frame().code_block().constant_scope(last_env);
+        let frame = context.vm.frame_mut();
+        let global = frame.realm.environment();
+        frame.environments.push_function(
+            scope,
             FunctionSlots::new(this, function_object.clone(), None),
+            global,
         );
     }
 
@@ -1084,7 +1108,7 @@ fn function_construct(
 
     let function = this_function_object
         .downcast_ref::<OrdinaryFunction>()
-        .expect("not a function");
+        .js_expect("not a function")?;
     let realm = function.realm().clone();
 
     debug_assert!(
@@ -1122,7 +1146,7 @@ fn function_construct(
         Some(this)
     };
 
-    let mut frame = CallFrame::new(code.clone(), script_or_module, environments, realm)
+    let mut frame = CallFrame::new(code, script_or_module, environments, realm)
         .with_argument_count(argument_count as u32)
         .with_env_fp(env_fp)
         .with_flags(CallFrameFlags::CONSTRUCT);
@@ -1146,19 +1170,28 @@ fn function_construct(
 
     let mut last_env = 0;
 
-    if code.has_binding_identifier() {
-        let index = context.vm.frame.environments.push_lexical(1);
-        context.vm.frame.environments.put_lexical_value(
+    let has_binding_identifier = context.vm.frame().code_block().has_binding_identifier();
+    let has_function_scope = context.vm.frame().code_block().has_function_scope();
+
+    if has_binding_identifier {
+        let frame = context.vm.frame_mut();
+        let global = frame.realm.environment();
+        let index = frame.environments.push_lexical(1, global);
+        frame.environments.put_lexical_value(
             BindingLocatorScope::Stack(index),
             0,
             this_function_object.clone().into(),
+            global,
         );
         last_env += 1;
     }
 
-    if code.has_function_scope() {
-        context.vm.frame.environments.push_function(
-            code.constant_scope(last_env),
+    if has_function_scope {
+        let scope = context.vm.frame().code_block().constant_scope(last_env);
+        let frame = context.vm.frame_mut();
+        let global = frame.realm.environment();
+        frame.environments.push_function(
+            scope,
             FunctionSlots::new(
                 this.clone().map_or(ThisBindingStatus::Uninitialized, |o| {
                     ThisBindingStatus::Initialized(o.into())
@@ -1167,16 +1200,17 @@ fn function_construct(
                 Some(
                     new_target
                         .as_object()
-                        .expect("new.target should be an object")
+                        .js_expect("new.target should be an object")?
                         .clone(),
                 ),
             ),
+            global,
         );
     }
 
     let context = context.context();
     context.vm.stack.set_this(
-        &context.vm.frame,
+        context.vm.frames.last().js_expect("frame must exist")?,
         this.map(JsValue::new).unwrap_or_default(),
     );
 

@@ -1,3 +1,4 @@
+use crate::class;
 use crate::class::Function;
 use crate::utils::{RenameScheme, SpannedResult, error, take_name_value_string, take_path_attr};
 use proc_macro::TokenStream;
@@ -64,7 +65,7 @@ fn fn_item(
     }
 
     let fn_ = Function::from_sig(
-        name.clone(),
+        class::MethodName::String(name.clone()),
         false,
         false,
         &mut fn_.attrs,

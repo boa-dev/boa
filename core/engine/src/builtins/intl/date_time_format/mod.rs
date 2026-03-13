@@ -8,7 +8,7 @@
 //! [spec]: https://tc39.es/ecma402/#datetimeformat-objects
 
 use crate::{
-    Context, JsArgs, JsData, JsResult, JsString, JsValue, NativeFunction,
+    Context, JsArgs, JsData, JsExpect, JsResult, JsString, JsValue, NativeFunction,
     builtins::{
         BuiltInBuilder, BuiltInConstructor, BuiltInObject, IntrinsicObject,
         date::utils::{
@@ -27,7 +27,7 @@ use crate::{
     error::JsNativeError,
     js_error, js_string,
     object::{
-        FunctionObjectBuilder, JsFunction, JsObject,
+        FunctionObjectBuilder, JsFunction, JsObject, ObjectInitializer,
         internal_methods::get_prototype_from_constructor,
     },
     property::Attribute,
@@ -79,11 +79,17 @@ impl FormatTimeZone {
 /// JavaScript `Intl.DateTimeFormat` object.
 #[derive(Debug, Clone, Trace, Finalize, JsData)]
 #[boa_gc(unsafe_empty_trace)] // Safety: No traceable types
+#[allow(dead_code)]
 pub(crate) struct DateTimeFormat {
     locale: Locale,
-    _calendar_algorithm: Option<CalendarAlgorithm>, // TODO: Potentially remove ?
+    calendar_algorithm: Option<CalendarAlgorithm>, // TODO: Potentially remove ?
+    numbering_system: Option<NumberingSystem>,
+    hour_cycle: Option<IcuHourCycle>,
+    date_style: Option<DateStyle>,
+    time_style: Option<TimeStyle>,
     time_zone: FormatTimeZone,
     fieldset: CompositeFieldSet,
+    formatter: DateTimeFormatter<CompositeFieldSet>,
     bound_format: Option<JsFunction>,
 }
 
@@ -111,6 +117,7 @@ impl IntrinsicObject for DateTimeFormat {
                 None,
                 Attribute::CONFIGURABLE,
             )
+            .method(Self::resolved_options, js_string!("resolvedOptions"), 0)
             .build();
     }
 
@@ -125,7 +132,7 @@ impl BuiltInObject for DateTimeFormat {
 
 impl BuiltInConstructor for DateTimeFormat {
     const CONSTRUCTOR_ARGUMENTS: usize = 0;
-    const PROTOTYPE_STORAGE_SLOTS: usize = 2;
+    const PROTOTYPE_STORAGE_SLOTS: usize = 3;
     const CONSTRUCTOR_STORAGE_SLOTS: usize = 1;
 
     const STANDARD_CONSTRUCTOR: fn(&StandardConstructors) -> &StandardConstructor =
@@ -268,17 +275,9 @@ impl DateTimeFormat {
                         // information about the specified calendar.
                         let fields = ToLocalTime::from_local_epoch_milliseconds(tz)?;
 
-                        let formatter = DateTimeFormatter::try_new_with_buffer_provider(
-                            context.intl_provider().erased_provider(),
-                            dtf.borrow().data().locale.clone().into(),
-                            dtf.borrow().data().fieldset,
-                        )
-                        .map_err(|e| {
-                            JsNativeError::range()
-                                .with_message(format!("failed to load formatter: {e}"))
-                        })?;
+                        let formatter = dtf.borrow().data().formatter.clone();
 
-                        let dt = fields.to_formattable_datetime();
+                        let dt = fields.to_formattable_datetime()?;
                         let tz_info = dtf.borrow().data().time_zone.to_time_zone_info();
                         let tz_info_at_time = tz_info.at_date_time_iso(dt);
 
@@ -329,6 +328,131 @@ impl DateTimeFormat {
 
         // 3. Return ? FilterLocales(availableLocales, requestedLocales, options).
         filter_locales::<Self>(requested_locales, options, context).map(JsValue::from)
+    }
+
+    /// [`Intl.DateTimeFormat.prototype.resolvedOptions ( )`][spec]
+    ///
+    /// [spec]: https://tc39.es/ecma402/#sec-intl.datetimeformat.prototype.resolvedoptions
+    /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Intl/DateTimeFormat/resolvedOptions
+    fn resolved_options(this: &JsValue, _: &[JsValue], context: &mut Context) -> JsResult<JsValue> {
+        //This function provides access to the locale and options computed during initialization of the object.
+
+        // 1. Let dtf be the this value.
+
+        // (This is an optional step; boa does not implement constructor wrapping mode)
+        // 2. If the implementation supports the normative optional constructor mode of 4.3 Note 1, then
+        //       a. Set dtf to ? UnwrapDateTimeFormat(dtf).
+
+        // 3. Perform ? RequireInternalSlot(dtf, [[InitializedDateTimeFormat]]).
+        let object = this.as_object();
+        let dtf = object
+            .as_ref()
+            .and_then(JsObject::downcast_ref::<Self>)
+            .ok_or_else(|| {
+                JsNativeError::typ().with_message(
+                    "`resolvedOptions` can only be called on a `DateTimeFormat` object",
+                )
+            })?;
+
+        // 4. Let options be OrdinaryObjectCreate(%Object.prototype%).
+        // 5. For each row of Table 15, except the header row, in table order, do
+        //      a. Let p be the Property value of the current row.
+        //      b. If there is an Internal Slot value in the current row, then
+        //          i. Let v be the value of dtf's internal slot whose name is the Internal Slot value of the current row.
+        //      c. Else,
+        //          i. Let format be dtf.[[DateTimeFormat]].
+        //          ii. If format has a field [[<p>]] and dtf.[[DateStyle]] is undefined and dtf.[[TimeStyle]] is undefined, then
+        //              1. Let v be format.[[<p>]].
+        //          iii. Else,
+        //              1. Let v be undefined.
+        //      d. If v is not undefined, then
+        //          i. If there is a Conversion value in the current row, then
+        //              1. Let conversion be the Conversion value of the current row.
+        //              2. If conversion is hour12, then
+        //              a. If v is "h11" or "h12", set v to true. Otherwise, set v to false.
+        //              3. Else,
+        //              a. Assert: conversion is number.
+        //              b. Set v to 𝔽(v).
+        //          ii. Perform ! CreateDataPropertyOrThrow(options, p, v).
+        let mut options = ObjectInitializer::new(context);
+        options.property(
+            js_string!("locale"),
+            js_string!(dtf.locale.to_string()),
+            Attribute::all(),
+        );
+
+        if let Some(ca) = &dtf.calendar_algorithm {
+            options.property(
+                js_string!("calendar"),
+                js_string!(ca.as_str()),
+                Attribute::all(),
+            );
+        }
+
+        if let Some(nu) = &dtf.numbering_system {
+            options.property(
+                js_string!("numberingSystem"),
+                js_string!(nu.as_str()),
+                Attribute::all(),
+            );
+        }
+
+        let time_zone_str = match &dtf.time_zone {
+            FormatTimeZone::UtcOffset(offset) => {
+                let seconds = offset.to_seconds();
+                let hours = seconds / 3600;
+                let minutes = (seconds.abs() % 3600) / 60;
+                format!("{hours:+03}:{minutes:02}")
+            }
+            FormatTimeZone::Identifier((tz, _id)) => tz.to_string(),
+        };
+        options.property(
+            js_string!("timeZone"),
+            js_string!(time_zone_str),
+            Attribute::all(),
+        );
+
+        if let Some(hc) = &dtf.hour_cycle {
+            options.property(
+                js_string!("hourCycle"),
+                js_string!(hc.as_str()),
+                Attribute::all(),
+            );
+            //h11/h12 -> true, h23/h24 -> false , because its h12 conversion time
+            let hour12 = matches!(hc, IcuHourCycle::H11 | IcuHourCycle::H12);
+            options.property(js_string!("hour12"), hour12, Attribute::all());
+        }
+
+        if let Some(ds) = dtf.date_style {
+            let ds_str = match ds {
+                DateStyle::Full => "full",
+                DateStyle::Long => "long",
+                DateStyle::Medium => "medium",
+                DateStyle::Short => "short",
+            };
+            options.property(
+                js_string!("dateStyle"),
+                js_string!(ds_str),
+                Attribute::all(),
+            );
+        }
+
+        if let Some(ts) = dtf.time_style {
+            let ts_str = match ts {
+                TimeStyle::Full => "full",
+                TimeStyle::Long => "long",
+                TimeStyle::Medium => "medium",
+                TimeStyle::Short => "short",
+            };
+            options.property(
+                js_string!("timeStyle"),
+                js_string!(ts_str),
+                Attribute::all(),
+            );
+        }
+
+        // 6. Return options.
+        Ok(options.build().into())
     }
 }
 
@@ -390,13 +514,15 @@ impl ToLocalTime {
         })
     }
 
-    pub(crate) fn to_formattable_datetime(&self) -> DateTime<Iso> {
-        DateTime {
+    pub(crate) fn to_formattable_datetime(&self) -> JsResult<DateTime<Iso>> {
+        Ok(DateTime {
             date: Date::try_new_iso(self.year, self.month, self.day)
-                .expect("TimeClip insures valid range."),
+                .ok()
+                .js_expect("TimeClip insures valid range.")?,
             time: Time::try_new(self.hour, self.minute, self.second, self.subsecond)
-                .expect("valid values"),
-        }
+                .ok()
+                .js_expect("valid values")?,
+        })
     }
 }
 
@@ -498,6 +624,32 @@ fn create_date_time_format(
         context.intl_provider(),
     )?;
 
+    // TODO: The resolved calendar, numbering system, and hour cycle should come from
+    // the ICU4X locale resolution result, not hardcoded defaults. However, ICU4X does
+    // not yet expose getters for these computed values on DateTimeFormatter.
+    // This means e.g. `new Intl.DateTimeFormat("ar").resolvedOptions().numberingSystem`
+    // incorrectly returns "latn" instead of "arab".
+    // Tracked at: unicode-org/icu4x#5868
+    if intl_options.preferences.calendar_algorithm.is_none() {
+        intl_options.preferences.calendar_algorithm = CalendarAlgorithm::try_from(
+            &Value::try_from_str("gregory").expect("'gregory' is a valid BCP 47 value"),
+        )
+        .ok();
+    }
+
+    if intl_options.preferences.numbering_system.is_none() {
+        intl_options.preferences.numbering_system = NumberingSystem::try_from(
+            Value::try_from_str("latn").expect("'latn' is a valid BCP 47 value"),
+        )
+        .ok();
+    }
+
+    if intl_options.preferences.hour_cycle.is_none() {
+        intl_options.preferences.hour_cycle = IcuHourCycle::try_from(
+            &Value::try_from_str("h12").expect("'h12' is a valid BCP 47 value"),
+        )
+        .ok();
+    }
     // 5. Set options to optionsResolution.[[Options]].
     // 6. Let r be optionsResolution.[[ResolvedLocale]].
     // 7. Set (deferred) dateTimeFormat.[[Locale]] to r.[[Locale]].
@@ -582,7 +734,7 @@ fn create_date_time_format(
 
     // TODO: how should formatMatcher be used?
     // 25. Let formatMatcher be ? GetOption(options, "formatMatcher", string, « "basic", "best fit" », "best fit").
-    let _format_matcher =
+    let format_matcher =
         get_option::<FormatMatcher>(&options, js_string!("formatMatcher"), context)?
             .unwrap_or(FormatMatcher::BestFit);
     // 26. Let dateStyle be ? GetOption(options, "dateStyle", string, « "full", "long", "medium", "short" », undefined).
@@ -647,24 +799,39 @@ fn create_date_time_format(
         // a specific API by which this is accessed.
         //
         // f. Let formats be resolvedLocaleData.[[formats]].[[<resolvedCalendar>]].
-        // TODO: Support formatMatcher for formatOptions matcher
         // g. If formatMatcher is "basic", then
         // i. Let bestFormat be BasicFormatMatcher(formatOptions, formats).
         // h. Else,
         // i. Let bestFormat be BestFitFormatMatcher(formatOptions, formats).
-        best_fit_date_time_format(&format_options)?
+        match format_matcher {
+            FormatMatcher::Basic | FormatMatcher::BestFit => {
+                best_fit_date_time_format(&format_options)?
+            }
+        }
     };
     // 32. Set dateTimeFormat.[[DateTimeFormat]] to bestFormat.
     // 33. If bestFormat has a field [[hour]], then
     // a. Set dateTimeFormat.[[HourCycle]] to hc.
     // 34. Return dateTimeFormat.
+    let formatter = DateTimeFormatter::try_new_with_buffer_provider(
+        context.intl_provider().erased_provider(),
+        resolved_locale.clone().into(),
+        fieldset,
+    )
+    .map_err(|e| JsNativeError::range().with_message(format!("failed to load formatter: {e}")))?;
+
     Ok(JsObject::from_proto_and_data(
         prototype,
         DateTimeFormat {
             locale: resolved_locale,
-            _calendar_algorithm: intl_options.preferences.calendar_algorithm,
+            calendar_algorithm: intl_options.preferences.calendar_algorithm,
+            numbering_system: intl_options.preferences.numbering_system,
+            hour_cycle: intl_options.preferences.hour_cycle,
+            date_style,
+            time_style,
             time_zone,
             fieldset,
+            formatter,
             bound_format: None,
         },
     ))
@@ -721,10 +888,8 @@ pub(crate) enum FormatType {
     Any,
 }
 
-#[allow(unused)] // All is currently unused, potentially remove.
 #[derive(Debug, Clone, Copy, PartialEq)]
 pub(crate) enum FormatDefaults {
     Date,
     Time,
-    All,
 }

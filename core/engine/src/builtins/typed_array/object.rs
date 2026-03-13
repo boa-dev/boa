@@ -10,7 +10,7 @@ use crate::{
         internal_methods::{
             InternalMethodPropertyContext, InternalObjectMethods, ORDINARY_INTERNAL_METHODS,
             ordinary_define_own_property, ordinary_delete, ordinary_get, ordinary_get_own_property,
-            ordinary_has_property, ordinary_set, ordinary_try_get,
+            ordinary_has_property, ordinary_prevent_extensions, ordinary_set, ordinary_try_get,
         },
     },
     property::{PropertyDescriptor, PropertyKey},
@@ -47,6 +47,7 @@ impl JsData for TypedArray {
             __set__: typed_array_exotic_set,
             __delete__: typed_array_exotic_delete,
             __own_property_keys__: typed_array_exotic_own_property_keys,
+            __prevent_extensions__: typed_array_exotic_prevent_extensions,
             ..ORDINARY_INTERNAL_METHODS
         };
 
@@ -255,6 +256,32 @@ impl TypedArray {
         // 9. Return true.
         Some(index as u64)
     }
+}
+
+// Integer-Indexed Exotic Objects [[PreventExtensions]] ( O )
+// https://tc39.es/ecma262/#sec-integer-indexed-exotic-objects-preventextensions
+//
+// 1. If IsTypedArrayFixedLength(O) is false, return false.
+// 2. Return OrdinaryPreventExtensions(O).
+pub(crate) fn typed_array_exotic_prevent_extensions(
+    obj: &JsObject,
+    context: &mut Context,
+) -> JsResult<bool> {
+    let is_fixed_length = {
+        let ta = obj
+            .downcast_ref::<TypedArray>()
+            .expect("must be a TypedArray");
+
+        ta.viewed_array_buffer().as_buffer().is_fixed_len()
+    };
+
+    // 1. If IsTypedArrayFixedLength(O) is false, return false.
+    if !is_fixed_length {
+        return Ok(false);
+    }
+
+    // 2. Return OrdinaryPreventExtensions(O).
+    ordinary_prevent_extensions(obj, context)
 }
 
 /// `CanonicalNumericIndexString ( argument )`

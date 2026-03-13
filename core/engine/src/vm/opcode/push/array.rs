@@ -2,19 +2,19 @@ use crate::{
     Context, JsResult, JsValue,
     builtins::Array,
     string::StaticJsStrings,
-    vm::opcode::{Operation, VaryingOperand},
+    vm::opcode::{Operation, RegisterOperand},
 };
 
-/// `PushNewArray` implements the Opcode Operation for `Opcode::PushNewArray`
+/// `StoreNewArray` implements the Opcode Operation for `Opcode::StoreNewArray`
 ///
 /// Operation:
-///  - Push an empty array value on the stack.
+///  - Store an empty array in dst.
 #[derive(Debug, Clone, Copy)]
-pub(crate) struct PushNewArray;
+pub(crate) struct StoreNewArray;
 
-impl PushNewArray {
+impl StoreNewArray {
     #[inline(always)]
-    pub(crate) fn operation(array: VaryingOperand, context: &mut Context) {
+    pub(crate) fn operation(array: RegisterOperand, context: &mut Context) {
         let value = context
             .intrinsics()
             .templates()
@@ -24,9 +24,9 @@ impl PushNewArray {
     }
 }
 
-impl Operation for PushNewArray {
-    const NAME: &'static str = "PushNewArray";
-    const INSTRUCTION: &'static str = "INST - PushNewArray";
+impl Operation for StoreNewArray {
+    const NAME: &'static str = "StoreNewArray";
+    const INSTRUCTION: &'static str = "INST - StoreNewArray";
     const COST: u8 = 3;
 }
 
@@ -40,7 +40,7 @@ pub(crate) struct PushValueToArray;
 impl PushValueToArray {
     #[inline(always)]
     pub(crate) fn operation(
-        (value, array): (VaryingOperand, VaryingOperand),
+        (value, array): (RegisterOperand, RegisterOperand),
         context: &mut Context,
     ) {
         let value = context.vm.get_register(value.into()).clone();
@@ -86,7 +86,7 @@ pub(crate) struct PushElisionToArray;
 
 impl PushElisionToArray {
     #[inline(always)]
-    pub(crate) fn operation(array: VaryingOperand, context: &mut Context) -> JsResult<()> {
+    pub(crate) fn operation(array: RegisterOperand, context: &mut Context) -> JsResult<()> {
         let array = context.vm.get_register(array.into()).clone();
         let o = array.as_object().expect("should always be an object");
         let len = o
@@ -116,7 +116,7 @@ pub(crate) struct PushIteratorToArray;
 
 impl PushIteratorToArray {
     #[inline(always)]
-    pub(crate) fn operation(array: VaryingOperand, context: &mut Context) -> JsResult<()> {
+    pub(crate) fn operation(array: RegisterOperand, context: &mut Context) -> JsResult<()> {
         let array = context.vm.get_register(array.into()).clone();
         let mut iterator = context
             .vm

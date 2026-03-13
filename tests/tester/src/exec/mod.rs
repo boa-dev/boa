@@ -597,7 +597,7 @@ impl Test {
 /// Returns `true` if `error` is a `target_type` error.
 fn is_error_type(error: &JsError, target_type: ErrorType, context: &mut Context) -> bool {
     if let Ok(error) = error.try_native(context) {
-        match &error.kind {
+        match error.kind() {
             JsNativeErrorKind::Syntax if target_type == ErrorType::SyntaxError => {}
             JsNativeErrorKind::Reference if target_type == ErrorType::ReferenceError => {}
             JsNativeErrorKind::Range if target_type == ErrorType::RangeError => {}

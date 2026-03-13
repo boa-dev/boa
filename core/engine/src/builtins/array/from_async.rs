@@ -7,7 +7,8 @@ use crate::builtins::promise::ResolvingFunctions;
 use crate::native_function::{CoroutineState, NativeCoroutine};
 use crate::object::{JsFunction, JsPromise};
 use crate::{
-    Context, JsArgs, JsError, JsNativeError, JsObject, JsResult, JsSymbol, JsValue, js_string,
+    Context, JsArgs, JsError, JsExpect, JsNativeError, JsObject, JsResult, JsSymbol, JsValue,
+    js_string,
 };
 use std::cell::Cell;
 
@@ -116,7 +117,7 @@ impl Array {
                     from_array_like(Ok(JsValue::undefined()), &coroutine_state, context)?
                 {
                     // Coroutine yielded. We need to allocate it for a future execution.
-                    JsPromise::resolve(value, context).await_native(
+                    JsPromise::resolve(value, context)?.await_native(
                         NativeCoroutine::from_copy_closure_with_captures(
                             from_array_like,
                             coroutine_state,
@@ -161,7 +162,7 @@ impl Array {
             if let CoroutineState::Yielded(value) =
                 from_async_iterator(Ok(JsValue::undefined()), &coroutine_state, context)?
             {
-                JsPromise::resolve(value, context).await_native(
+                JsPromise::resolve(value, context)?.await_native(
                     NativeCoroutine::from_copy_closure_with_captures(
                         from_async_iterator,
                         coroutine_state,
@@ -185,7 +186,7 @@ impl Array {
             resolvers
                 .reject
                 .call(&JsValue::undefined(), &[err.into_opaque(context)?], context)
-                .expect("resolving functions cannot fail");
+                .js_expect("resolving functions cannot fail")?;
         }
 
         // 5. Return promiseCapability.[[Promise]].
@@ -313,7 +314,7 @@ fn from_async_iterator(
                             .resolvers
                             .resolve
                             .call(&JsValue::undefined(), &[a.into()], context)
-                            .expect("resolving functions cannot fail");
+                            .js_expect("resolving functions cannot fail")?;
 
                         return Ok(CoroutineState::Done);
                     }
@@ -449,12 +450,12 @@ fn from_async_iterator(
 
         // i. Assert: result is a throw completion.
         Err(err) => {
-            // ii. Perform ! Call(promiseCapability.[[Reject]], undefined, « result.[[Value]] »).
+            // ii. Perform ! Call(promiseCapability.[[Reject]], undefined, « result.[[Value]] »).
             global_state
                 .resolvers
                 .reject
                 .call(&JsValue::undefined(), &[err.into_opaque(context)?], context)
-                .expect("resolving functions cannot fail");
+                .js_expect("resolving functions cannot fail")?;
             Ok(CoroutineState::Done)
         }
     }
@@ -523,7 +524,7 @@ fn from_array_like(
                             .resolvers
                             .resolve
                             .call(&JsValue::undefined(), &[a.into()], context)
-                            .expect("resolving functions cannot fail");
+                            .js_expect("resolving functions cannot fail")?;
 
                         return Ok(CoroutineState::Done);
                     }
@@ -610,12 +611,12 @@ fn from_array_like(
         Ok(cont) => Ok(cont),
         // i. Assert: result is a throw completion.
         Err(err) => {
-            // ii. Perform ! Call(promiseCapability.[[Reject]], undefined, « result.[[Value]] »).
+            // ii. Perform ! Call(promiseCapability.[[Reject]], undefined, « result.[[Value]] »).
             global_state
                 .resolvers
                 .reject
                 .call(&JsValue::undefined(), &[err.into_opaque(context)?], context)
-                .expect("resolving functions cannot fail");
+                .js_expect("resolving functions cannot fail")?;
             Ok(CoroutineState::Done)
         }
     }

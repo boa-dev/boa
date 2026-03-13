@@ -42,7 +42,7 @@ impl ByteCompiler<'_> {
                                 PropertyName::Literal(ident) => {
                                     self.emit_get_property_by_name(&dst, None, object, ident.sym());
                                     let key = self.register_allocator.alloc();
-                                    self.emit_push_literal(
+                                    self.emit_store_literal(
                                         Literal::String(
                                             self.interner()
                                                 .resolve_expect(ident.sym())
@@ -76,7 +76,7 @@ impl ByteCompiler<'_> {
                             }
 
                             if let Some(init) = default_init {
-                                let skip = self.emit_jump_if_not_undefined(&dst);
+                                let skip = self.jump_if_not_undefined(&dst);
                                 self.compile_expr(init, &dst);
                                 self.patch_jump(skip);
                             }
@@ -87,7 +87,7 @@ impl ByteCompiler<'_> {
                         //  BindingRestProperty : ... BindingIdentifier
                         RestProperty { ident } => {
                             let value = self.register_allocator.alloc();
-                            self.bytecode.emit_push_empty_object(value.variable());
+                            self.bytecode.emit_store_empty_object(value.variable());
                             let mut excluded_keys =
                                 ThinVec::with_capacity(excluded_keys_registers.len());
                             for r in &excluded_keys_registers {
@@ -106,7 +106,7 @@ impl ByteCompiler<'_> {
                         }
                         AssignmentRestPropertyAccess { access } => {
                             let value = self.register_allocator.alloc();
-                            self.bytecode.emit_push_empty_object(value.variable());
+                            self.bytecode.emit_store_empty_object(value.variable());
                             let mut excluded_keys =
                                 ThinVec::with_capacity(excluded_keys_registers.len());
                             for r in &excluded_keys_registers {
@@ -132,7 +132,7 @@ impl ByteCompiler<'_> {
                             match &name {
                                 PropertyName::Literal(ident) => {
                                     let key = self.register_allocator.alloc();
-                                    self.emit_push_literal(
+                                    self.emit_store_literal(
                                         Literal::String(
                                             self.interner()
                                                 .resolve_expect(ident.sym())
@@ -185,7 +185,7 @@ impl ByteCompiler<'_> {
                                     }
 
                                     if let Some(init) = default_init {
-                                        let skip = compiler.emit_jump_if_not_undefined(&dst);
+                                        let skip = compiler.jump_if_not_undefined(&dst);
                                         compiler.compile_expr(init, &dst);
                                         compiler.patch_jump(skip);
                                     }
@@ -220,7 +220,7 @@ impl ByteCompiler<'_> {
                             }
 
                             if let Some(init) = default_init {
-                                let skip = self.emit_jump_if_not_undefined(&dst);
+                                let skip = self.jump_if_not_undefined(&dst);
                                 self.compile_expr(init, &dst);
                                 self.patch_jump(skip);
                             }
@@ -291,15 +291,14 @@ impl ByteCompiler<'_> {
                 self.bytecode.emit_iterator_next();
                 let value = self.register_allocator.alloc();
                 self.bytecode.emit_iterator_done(value.variable());
-                let done = self.jump_if_true(&value);
-                self.bytecode.emit_iterator_value(value.variable());
-                let skip_push = self.jump();
-                self.patch_jump(done);
-                self.bytecode.emit_push_undefined(value.variable());
-                self.patch_jump(skip_push);
+                self.if_else(
+                    &value,
+                    |compiler| compiler.bytecode.emit_store_undefined(value.variable()),
+                    |compiler| compiler.bytecode.emit_iterator_value(value.variable()),
+                );
 
                 if let Some(init) = default_init {
-                    let skip = self.emit_jump_if_not_undefined(&value);
+                    let skip = self.jump_if_not_undefined(&value);
                     self.compile_expr(init, &value);
                     self.patch_jump(skip);
                 }
@@ -315,15 +314,14 @@ impl ByteCompiler<'_> {
                 self.access_set(Access::Property { access }, |compiler| {
                     compiler.bytecode.emit_iterator_next();
                     compiler.bytecode.emit_iterator_done(value.variable());
-                    let done = compiler.jump_if_true(&value);
-                    compiler.bytecode.emit_iterator_value(value.variable());
-                    let skip_push = compiler.jump();
-                    compiler.patch_jump(done);
-                    compiler.bytecode.emit_push_undefined(value.variable());
-                    compiler.patch_jump(skip_push);
+                    compiler.if_else(
+                        &value,
+                        |compiler| compiler.bytecode.emit_store_undefined(value.variable()),
+                        |compiler| compiler.bytecode.emit_iterator_value(value.variable()),
+                    );
 
                     if let Some(init) = default_init {
-                        let skip = compiler.emit_jump_if_not_undefined(&value);
+                        let skip = compiler.jump_if_not_undefined(&value);
                         compiler.compile_expr(init, &value);
                         compiler.patch_jump(skip);
                     }
@@ -340,15 +338,14 @@ impl ByteCompiler<'_> {
                 self.bytecode.emit_iterator_next();
                 let value = self.register_allocator.alloc();
                 self.bytecode.emit_iterator_done(value.variable());
-                let done = self.jump_if_true(&value);
-                self.bytecode.emit_iterator_value(value.variable());
-                let skip_push = self.jump();
-                self.patch_jump(done);
-                self.bytecode.emit_push_undefined(value.variable());
-                self.patch_jump(skip_push);
+                self.if_else(
+                    &value,
+                    |compiler| compiler.bytecode.emit_store_undefined(value.variable()),
+                    |compiler| compiler.bytecode.emit_iterator_value(value.variable()),
+                );
 
                 if let Some(init) = default_init {
-                    let skip = self.emit_jump_if_not_undefined(&value);
+                    let skip = self.jump_if_not_undefined(&value);
                     self.compile_expr(init, &value);
                     self.patch_jump(skip);
                 }
