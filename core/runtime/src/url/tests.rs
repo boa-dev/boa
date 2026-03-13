@@ -171,6 +171,31 @@ fn url_search_params_constructor_and_methods() {
                 assert_eq(new URLSearchParams(record).toString(), "a=1");
             "##,
         ),
+        TestAction::run(
+            r##"
+                const originalFrom = Array.from;
+                Array.from = () => {
+                    throw new Error("patched");
+                };
+
+                try {
+                    const params = new URLSearchParams([["a", "1"], new Set(["b", "2"])]);
+                    assert_eq(params.toString(), "a=1&b=2");
+                } finally {
+                    Array.from = originalFrom;
+                }
+            "##,
+        ),
+        TestAction::run(
+            r##"
+                const customParams = new URLSearchParams("x=1");
+                customParams[Symbol.iterator] = function* () {
+                    yield ["a", "b"];
+                };
+
+                assert_eq(new URLSearchParams(customParams).toString(), "a=b");
+            "##,
+        ),
     ]);
 }
 
@@ -226,6 +251,31 @@ fn url_search_params_is_live_and_cached() {
                 });
 
                 assert_eq(forEachSeen.join("&"), "param0=0&param2=2");
+            "##,
+        ),
+    ]);
+}
+
+#[test]
+fn url_search_params_optional_value_argument() {
+    run_test_actions([
+        TestAction::run(TEST_HARNESS),
+        TestAction::run(
+            r##"
+                const params = new URLSearchParams("a=b&a=undefined&b=c");
+
+                assert(params.has("a", undefined));
+                assert(!params.has("a", "missing"));
+
+                params.delete("a", undefined);
+                assert_eq(params.toString(), "a=b&b=c");
+            "##,
+        ),
+        TestAction::run(
+            r##"
+                const deleteAllParams = new URLSearchParams("a=b&a=undefined&a=d");
+                deleteAllParams.delete("a");
+                assert_eq(deleteAllParams.toString(), "");
             "##,
         ),
     ]);
