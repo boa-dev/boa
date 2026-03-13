@@ -207,9 +207,11 @@ where
                     decls.push(decl);
                 } else {
                     let next = cursor.next(interner).or_abrupt()?;
-                    return Err(Error::general(
-                        "Expected initializer for const declaration",
-                        next.span().start(),
+                    return Err(Error::expected(
+                        [Punctuator::Assign.to_string()],
+                        next.to_string(interner),
+                        next.span(),
+                        "const declaration",
                     ));
                 }
             } else {
