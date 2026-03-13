@@ -30,6 +30,7 @@ use boa_gc::{Finalize, Trace};
 mod builtin;
 mod element;
 mod object;
+mod uint8_base64;
 
 pub(crate) use builtin::{BuiltinTypedArray, is_valid_integer_index};
 #[cfg(feature = "float16")]
@@ -52,7 +53,7 @@ impl<T: TypedArrayMarker> IntrinsicObject for T {
             .name(js_string!("get [Symbol.species]"))
             .build();
 
-        BuiltInBuilder::from_standard_constructor::<Self>(realm)
+        let mut builder = BuiltInBuilder::from_standard_constructor::<Self>(realm)
             .prototype(
                 realm
                     .intrinsics()
@@ -78,8 +79,24 @@ impl<T: TypedArrayMarker> IntrinsicObject for T {
                 js_string!("BYTES_PER_ELEMENT"),
                 size_of::<T::Element>(),
                 Attribute::READONLY | Attribute::NON_ENUMERABLE | Attribute::PERMANENT,
-            )
-            .build();
+            );
+
+        // Add Uint8Array-specific Base64/Hex methods
+        if T::ERASED == TypedArrayKind::Uint8 {
+            builder = builder
+                .static_method(uint8_base64::from_base64, js_string!("fromBase64"), 1)
+                .static_method(uint8_base64::from_hex, js_string!("fromHex"), 1)
+                .method(uint8_base64::to_base64, js_string!("toBase64"), 0)
+                .method(uint8_base64::to_hex, js_string!("toHex"), 0)
+                .method(
+                    uint8_base64::set_from_base64,
+                    js_string!("setFromBase64"),
+                    1,
+                )
+                .method(uint8_base64::set_from_hex, js_string!("setFromHex"), 1);
+        }
+
+        builder.build();
     }
 }
 

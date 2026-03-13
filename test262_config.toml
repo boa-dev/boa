@@ -44,7 +44,7 @@ features = [
 
     # Uint8Array Base64
     # https://github.com/tc39/proposal-arraybuffer-base64
-    "uint8array-base64",
+    # "uint8array-base64",  # IMPLEMENTED
 
     # Source Phase Imports
     # https://github.com/tc39/proposal-source-phase-imports
