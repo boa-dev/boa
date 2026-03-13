@@ -133,7 +133,7 @@ impl ByteCompiler<'_> {
                 compiler.compile_statement_list(expr.body().statement_list(), false, false);
             }
 
-            compiler.bytecode.emit_push_undefined(value.variable());
+            compiler.bytecode.emit_store_undefined(value.variable());
         } else if class.super_ref.is_some() {
             // We push an empty, unused function scope since the compiler expects a function scope.
             compiler.code_block_flags |= CodeBlockFlags::HAS_FUNCTION_SCOPE;
@@ -145,7 +145,7 @@ impl ByteCompiler<'_> {
             // We push an empty, unused function scope since the compiler expects a function scope.
             compiler.code_block_flags |= CodeBlockFlags::HAS_FUNCTION_SCOPE;
             let _ = compiler.push_scope(&Scope::new(compiler.lexical_scope.clone(), true));
-            compiler.bytecode.emit_push_undefined(value.variable());
+            compiler.bytecode.emit_store_undefined(value.variable());
         }
         compiler.bytecode.emit_set_accumulator(value.variable());
         compiler.register_allocator.dealloc(value);
@@ -166,14 +166,14 @@ impl ByteCompiler<'_> {
 
         if let Some(node) = class.super_ref {
             self.compile_expr(node, &prototype_register);
-            self.bytecode.emit_push_class_prototype(
+            self.bytecode.emit_store_class_prototype(
                 prototype_register.variable(),
                 class_register.variable(),
                 prototype_register.variable(),
             );
         } else {
             self.bytecode
-                .emit_push_undefined(prototype_register.variable());
+                .emit_store_undefined(prototype_register.variable());
         }
 
         let proto_register = self.register_allocator.alloc();
@@ -392,7 +392,7 @@ impl ByteCompiler<'_> {
                     let name = self.register_allocator.alloc();
                     match field.name() {
                         PropertyName::Literal(ident) => {
-                            self.emit_push_literal(
+                            self.emit_store_literal(
                                 Literal::String(
                                     self.interner()
                                         .resolve_expect(ident.sym())
@@ -429,7 +429,7 @@ impl ByteCompiler<'_> {
                     } else {
                         field_compiler
                             .bytecode
-                            .emit_push_undefined(value.variable());
+                            .emit_store_undefined(value.variable());
                         false
                     };
 
@@ -477,7 +477,7 @@ impl ByteCompiler<'_> {
                     } else {
                         field_compiler
                             .bytecode
-                            .emit_push_undefined(value.variable());
+                            .emit_store_undefined(value.variable());
                     }
                     field_compiler
                         .bytecode
@@ -530,7 +530,7 @@ impl ByteCompiler<'_> {
                     } else {
                         field_compiler
                             .bytecode
-                            .emit_push_undefined(value.variable());
+                            .emit_store_undefined(value.variable());
                         false
                     };
 
@@ -574,7 +574,7 @@ impl ByteCompiler<'_> {
                     } else {
                         field_compiler
                             .bytecode
-                            .emit_push_undefined(value.variable());
+                            .emit_store_undefined(value.variable());
                         false
                     };
 

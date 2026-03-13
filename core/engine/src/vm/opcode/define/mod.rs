@@ -20,15 +20,16 @@ impl DefVar {
         // TODO: spec specifies to return `empty` on empty vars, but we're trying to initialize.
         let binding_locator = context.vm.frame().code_block.bindings[usize::from(index)].clone();
 
-        context
-            .vm
-            .frame_mut()
-            .environments
-            .put_value_if_uninitialized(
+        {
+            let frame = context.vm.frame_mut();
+            let global = frame.realm.environment();
+            frame.environments.put_value_if_uninitialized(
                 binding_locator.scope(),
                 binding_locator.binding_index(),
                 JsValue::undefined(),
+                global,
             );
+        }
     }
 }
 
@@ -83,11 +84,16 @@ impl PutLexicalValue {
     ) {
         let value = context.vm.get_register(value.into()).clone();
         let binding_locator = context.vm.frame().code_block.bindings[usize::from(index)].clone();
-        context.vm.frame_mut().environments.put_lexical_value(
-            binding_locator.scope(),
-            binding_locator.binding_index(),
-            value,
-        );
+        {
+            let frame = context.vm.frame_mut();
+            let global = frame.realm.environment();
+            frame.environments.put_lexical_value(
+                binding_locator.scope(),
+                binding_locator.binding_index(),
+                value,
+                global,
+            );
+        }
     }
 }
 

@@ -173,7 +173,10 @@ where
                     && let ForLoopInitializer::Expression(ast::Expression::Identifier(ident)) = init
                     && ident.sym() == Sym::LET
                 {
-                    return Err(Error::general("unexpected token", position));
+                    return Err(Error::general(
+                        "'let' cannot be used as the iterable in a for-of loop",
+                        position,
+                    ));
                 }
 
                 if init_is_async_of
@@ -387,7 +390,9 @@ fn initializer_to_iterable_loop_initializer(
                         ast::declaration::LexicalDeclaration::Const(_) => {
                             IterableLoopInitializer::Const(decl.binding().clone())
                         }
-                        ast::declaration::LexicalDeclaration::Let(_) => {
+                        ast::declaration::LexicalDeclaration::Let(_)
+                        | ast::declaration::LexicalDeclaration::Using(_)
+                        | ast::declaration::LexicalDeclaration::AwaitUsing(_) => {
                             IterableLoopInitializer::Let(decl.binding().clone())
                         }
                     })

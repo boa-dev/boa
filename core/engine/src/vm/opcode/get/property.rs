@@ -233,7 +233,7 @@ impl Operation for GetPropertyByNameWithThis {
 /// `GetPropertyByValue` implements the Opcode Operation for `Opcode::GetPropertyByValue`
 ///
 /// Operation:
-///  - Get a property by value from an object an push it on the stack.
+///  - Get a property by value from an object and store it in dst.
 #[derive(Debug, Clone, Copy)]
 pub(crate) struct GetPropertyByValue;
 
@@ -261,7 +261,7 @@ impl Operation for GetPropertyByValue {
 /// `GetPropertyByValuePush` implements the Opcode Operation for `Opcode::GetPropertyByValuePush`
 ///
 /// Operation:
-///  - Get a property by value from an object an push the key and value on the stack.
+///  - Get a property by value from an object and store the key and value in registers.
 #[derive(Debug, Clone, Copy)]
 pub(crate) struct GetPropertyByValuePush;
 
