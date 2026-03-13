@@ -10,10 +10,11 @@
 //! [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Generator
 
 use crate::{
-    Context, JsArgs, JsData, JsError, JsResult, JsString,
+    Context, JsArgs, JsData, JsError, JsExpect, JsResult, JsString,
     builtins::iterable::create_iter_result_object,
     context::intrinsics::Intrinsics,
     error::JsNativeError,
+    error::PanicError,
     js_string,
     object::{CONSTRUCTOR, JsObject},
     property::Attribute,
@@ -101,7 +102,9 @@ impl GeneratorContext {
         context: &mut Context,
     ) -> CompletionRecord {
         std::mem::swap(&mut context.vm.stack, &mut self.stack);
-        let frame = self.call_frame.take().expect("should have a call frame");
+        let Some(frame) = self.call_frame.take() else {
+            return CompletionRecord::Throw(PanicError::new("should have a call frame").into());
+        };
         let fp = frame.fp;
         let rp = frame.rp;
         context.vm.push_frame(frame);
@@ -125,16 +128,21 @@ impl GeneratorContext {
     }
 
     /// Returns the async generator object, if the function that this [`GeneratorContext`] is from an async generator, [`None`] otherwise.
-    pub(crate) fn async_generator_object(&self) -> Option<JsObject> {
-        let frame = self.call_frame.as_ref()?;
+    pub(crate) fn async_generator_object(&self) -> JsResult<Option<JsObject>> {
+        let Some(frame) = self.call_frame.as_ref() else {
+            return Ok(None);
+        };
+
         if !frame.code_block().is_async_generator() {
-            return None;
+            return Ok(None);
         }
 
-        self.stack
+        let val = self
+            .stack
             .get_register(frame, CallFrame::ASYNC_GENERATOR_OBJECT_REGISTER_INDEX)
-            .expect("registers must have an async generator object")
-            .as_object()
+            .js_expect("registers must have an async generator object")?;
+
+        Ok(val.as_object())
     }
 }
 
@@ -306,7 +314,7 @@ impl Generator {
 
         let mut r#gen = generator_obj
             .downcast_mut::<Self>()
-            .expect("already checked this object type");
+            .js_expect("already checked this object type")?;
 
         // 8. Push genContext onto the execution context stack; genContext is now the running execution context.
         // 9. Resume the suspended evaluation of genContext using NormalCompletion(value) as the result of the operation that suspended it. Let result be the value returned by the resumed computation.
