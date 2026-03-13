@@ -1,0 +1,74 @@
+name: PR Management
+
+on:
+  pull_request_target:
+    types: [opened, reopened, synchronize, closed]
+
+jobs:
+  manage_pr:
+    runs-on: ubuntu-latest
+    permissions:
+      pull-requests: write
+      issues: write
+    steps:
+      - name: Auto Add Label
+        if: github.event.action == 'opened' || github.event.action == 'reopened' || github.event.action == 'synchronize'
+        uses: actions/github-script@v6
+        with:
+          script: |
+            github.rest.issues.addLabels({
+              issue_number: context.issue.number,
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              labels: ['waiting-for-review']
+            })
+
+      - name: Auto Remove Label
+        if: github.event.action == 'closed'
+        uses: actions/github-script@v6
+        continue-on-error: true
+        with:
+          script: |
+            try {
+              await github.rest.issues.removeLabel({
+                issue_number: context.issue.number,
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                name: 'waiting-for-review'
+              });
+            } catch (error) {
+              console.log('Label "waiting-for-review" not found or could not be removed.');
+            }
+
+      - name: Auto Assign Reviewers and Milestone
+        if: github.event.action == 'opened'
+        uses: actions/github-script@v6
+        with:
+          script: |
+            // 1. Assign to default reviewers (e.g. Jason Williams)
+            // Replace 'jasonwilliams' with the actual handle used in the project if needed
+            await github.rest.issues.addAssignees({
+              issue_number: context.issue.number,
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              assignees: ['jasonwilliams']
+            });
+            
+            // 2. Fetch open milestones and assign the closest one
+            const { data: milestones } = await github.rest.issues.listMilestones({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              state: 'open',
+              sort: 'due_on',
+              direction: 'asc'
+            });
+
+            if (milestones.length > 0) {
+              const latestMilestone = milestones[0];
+              await github.rest.issues.update({
+                issue_number: context.issue.number,
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                milestone: latestMilestone.number
+              });
+            }
