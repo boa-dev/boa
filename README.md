@@ -209,26 +209,3 @@ We also have a [Discord](https://discord.gg/tUFFk9Y) for any questions or issues
 
 This project is licensed under the [Unlicense](./LICENSE-UNLICENSE) or [MIT](./LICENSE-MIT) licenses, at your option.
 
-## Installation
-
-### Prebuilt Binaries
-
-Prebuilt binaries for Boa are available for download from the [releases page](https://github.com/boa-dev/boa/releases).
-
-### From Source
-
-To install the `boa_cli` package from source, use the following command:
-
-```bash
-cargo install --path . -p boa_cli
-```
-
-### Windows Example
-
-To run Boa on Windows, you can use the following command:
-
-```cmd
-cargo run -- test.js
-```
-
-Replace `test.js` with the path to your JavaScript file.
