@@ -26,7 +26,7 @@ jobs:
 
       # Install Rust toolchain
       - name: Install Rust toolchain
-        uses: dtolnay/rust-toolchain@stable
+        uses: dtolnay/rust-toolchain@master
         with:
           toolchain: stable
 

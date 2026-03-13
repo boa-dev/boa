@@ -37,7 +37,9 @@ jobs:
         uses: actions/checkout@v6
 
       - name: Install Rust toolchain
-        uses: dtolnay/rust-toolchain@stable
+        uses: dtolnay/rust-toolchain@master
+        with:
+          toolchain: stable
 
       - name: Cache cargo
         uses: actions/cache@v5
@@ -82,7 +84,7 @@ jobs:
         uses: actions/checkout@v6
 
       - name: Install Rust toolchain
-        uses: dtolnay/rust-toolchain@stable
+        uses: dtolnay/rust-toolchain@master
         with:
           toolchain: stable
 
@@ -128,8 +130,9 @@ jobs:
         uses: actions/checkout@v6
 
       - name: Install Rust nightly with miri
-        uses: dtolnay/rust-toolchain@nightly
+        uses: dtolnay/rust-toolchain@master
         with:
+          toolchain: nightly
           components: miri
 
       - name: Cache cargo
@@ -165,7 +168,7 @@ jobs:
         run: echo "rust_version=$(grep '^rust-version' Cargo.toml | cut -d' ' -f3 | tr -d '"')" >> $GITHUB_OUTPUT
 
       - name: Install Rust toolchain
-        uses: dtolnay/rust-toolchain@stable
+        uses: dtolnay/rust-toolchain@master
         with:
           toolchain: ${{ steps.rust_version.outputs.rust_version }}
 
@@ -185,7 +188,7 @@ jobs:
         uses: actions/checkout@v6
 
       - name: Install Rust toolchain
-        uses: dtolnay/rust-toolchain@stable
+        uses: dtolnay/rust-toolchain@master
         with:
           toolchain: stable
           components: rustfmt
@@ -217,7 +220,7 @@ jobs:
         uses: actions/checkout@v6
 
       - name: Install Rust toolchain
-        uses: dtolnay/rust-toolchain@stable
+        uses: dtolnay/rust-toolchain@master
         with:
           toolchain: stable
           components: clippy
@@ -260,7 +263,7 @@ jobs:
         uses: actions/checkout@v6
 
       - name: Install Rust toolchain
-        uses: dtolnay/rust-toolchain@stable
+        uses: dtolnay/rust-toolchain@master
         with:
           toolchain: stable
 
@@ -289,7 +292,7 @@ jobs:
         uses: actions/checkout@v6
 
       - name: Install Rust toolchain
-        uses: dtolnay/rust-toolchain@stable
+        uses: dtolnay/rust-toolchain@master
         with:
           toolchain: stable
 
@@ -321,7 +324,7 @@ jobs:
         uses: actions/checkout@v6
 
       - name: Install Rust toolchain
-        uses: dtolnay/rust-toolchain@stable
+        uses: dtolnay/rust-toolchain@master
         with:
           toolchain: stable
 
