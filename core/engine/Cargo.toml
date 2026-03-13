@@ -201,6 +201,7 @@ float-cmp.workspace = true
 indoc.workspace = true
 textwrap.workspace = true
 test-case.workspace = true
+husky-rs.workspace = true
 
 [target.x86_64-unknown-linux-gnu.dev-dependencies]
 jemallocator.workspace = true
