@@ -155,3 +155,83 @@ fn response_getter() {
         }),
     ]);
 }
+
+#[test]
+fn response_redirect_default_status() {
+    run_test_actions([
+        TestAction::harness(),
+        TestAction::inspect_context(|ctx| register(&[], ctx)),
+        TestAction::run(
+            r#"
+                const response = Response.redirect("http://example.com/");
+                assertEq(response.status, 302);
+                assertEq(response.headers.get("location"), "http://example.com/");
+            "#,
+        ),
+    ]);
+}
+
+#[test]
+fn response_redirect_custom_status_and_coercion() {
+    run_test_actions([
+        TestAction::harness(),
+        TestAction::inspect_context(|ctx| register(&[], ctx)),
+        TestAction::run(
+            r#"
+                const response = Response.redirect("http://example.com/", 301);
+                assertEq(response.status, 301);
+
+                // Tests Web IDL coercion of the URL parameter
+                const response2 = Response.redirect(12345);
+                assertEq(response2.headers.get("location"), "12345");
+            "#,
+        ),
+    ]);
+}
+
+#[test]
+fn response_redirect_invalid_status() {
+    run_test_actions([
+        TestAction::harness(),
+        TestAction::inspect_context(|ctx| register(&[], ctx)),
+        TestAction::run(
+            r#"
+                let threw = false;
+                try {
+                    Response.redirect("http://example.com/", 200);
+                } catch (e) {
+                    threw = true;
+                    if (!(e instanceof RangeError)) {
+                        throw new Error("Expected RangeError, got " + e.name);
+                    }
+                }
+                if (!threw) {
+                    throw new Error("Expected RangeError, but no error was thrown");
+                }
+            "#,
+        ),
+    ]);
+}
+
+#[test]
+fn response_json_static() {
+    run_test_actions([
+        TestAction::harness(),
+        TestAction::inspect_context(|ctx| register(&[], ctx)),
+        TestAction::run(
+            r#"
+                globalThis.p = (async () => {
+                    const response = Response.json({ hello: "world" });
+                    assertEq(response.status, 200);
+                    assertEq(response.headers.get("content-type"), "application/json");
+                    const body = await response.json();
+                    assertEq(body.hello, "world");
+                })();
+            "#,
+        ),
+        TestAction::inspect_context(|ctx| {
+            let p = ctx.global_object().get(js_str!("p"), ctx).unwrap();
+            p.as_promise().unwrap().await_blocking(ctx).unwrap();
+        }),
+    ]);
+}

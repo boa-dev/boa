@@ -7,13 +7,13 @@
 
 use crate::fetch::headers::JsHeaders;
 use boa_engine::object::builtins::{JsPromise, JsUint8Array};
-use boa_engine::value::{TryFromJs, TryIntoJs};
+use boa_engine::value::{Convert, TryFromJs, TryIntoJs};
 use boa_engine::{
     Context, JsData, JsNativeError, JsResult, JsString, JsValue, boa_class, js_error, js_str,
     js_string,
 };
 use boa_gc::{Finalize, Trace};
-use http::StatusCode;
+use http::{HeaderName, HeaderValue, StatusCode};
 use std::rc::Rc;
 
 /// The type read-only property of the Response interface contains the type of the
@@ -163,6 +163,75 @@ impl JsResponse {
     #[boa(rename = "error")]
     fn error_() -> Self {
         Self::error()
+    }
+
+    /// `Response.redirect(url, status)` per Fetch spec §7.4.
+    #[boa(static)]
+    fn redirect(url: JsValue, status: Option<u16>, context: &mut Context) -> JsResult<Self> {
+        let status = status.unwrap_or(302);
+        if !matches!(status, 301 | 302 | 303 | 307 | 308) {
+            return Err(js_error!(RangeError: "Invalid redirect status: {}", status));
+        }
+        let url_str = url.to_string(context)?.to_std_string_escaped();
+        http::Uri::try_from(url_str.as_str())
+            .map_err(|_| js_error!(TypeError: "Invalid URL: {}", url_str))?;
+
+        let status_code = StatusCode::from_u16(status)
+            .map_err(|_| js_error!(RangeError: "Invalid status code: {}", status))?;
+
+        let mut headers = http::header::HeaderMap::new();
+        headers.insert(
+            HeaderName::from_static("location"),
+            HeaderValue::try_from(url_str)
+                .map_err(|_| js_error!(TypeError: "Invalid URL for header value"))?,
+        );
+
+        Ok(Self {
+            url: js_string!(""),
+            r#type: ResponseType::Basic,
+            status: Some(status_code),
+            headers: JsHeaders::from_http(headers),
+            body: Rc::new(Vec::new()),
+        })
+    }
+
+    /// `Response.json(data, init)` per Fetch spec §7.4.
+    #[boa(static)]
+    #[boa(rename = "json")]
+    fn json_static(
+        data: JsValue,
+        init: Option<JsResponseOptions>,
+        context: &mut Context,
+    ) -> JsResult<Self> {
+        let json_value = data
+            .to_json(context)?
+            .ok_or_else(|| js_error!(TypeError: "Cannot serialize undefined to JSON"))?;
+        let body = serde_json::to_string(&json_value)
+            .map_err(|e| JsNativeError::typ().with_message(e.to_string()))?;
+
+        let status = init.as_ref().and_then(|o| o.status).unwrap_or(200);
+        let status_code = StatusCode::from_u16(status)
+            .map_err(|_| js_error!(RangeError: "Invalid status code: {}", status))?;
+
+        let mut headers = init
+            .as_ref()
+            .and_then(|o| o.headers.clone())
+            .unwrap_or_default();
+        // Per spec, set Content-Type only if not already present.
+        if !headers.has(Convert(String::from("content-type")))? {
+            headers.append(
+                Convert(String::from("content-type")),
+                Convert(String::from("application/json")),
+            )?;
+        }
+
+        Ok(Self {
+            url: js_string!(""),
+            r#type: ResponseType::Basic,
+            status: Some(status_code),
+            headers,
+            body: Rc::new(body.into_bytes()),
+        })
     }
 
     #[boa(constructor)]
