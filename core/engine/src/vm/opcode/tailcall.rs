@@ -1,11 +1,15 @@
 use crate::{
-    Context, JsValue, vm::{Opcode, completion_record::CompletionRecord}
+    Context, JsValue,
+    vm::{Opcode, completion_record::CompletionRecord},
 };
 
 use super::OPCODE_HANDLERS_TAILCALL;
 
 impl Context {
-    pub(crate) extern "rust-preserve-none" fn dispatch_next(&mut self, pc: usize) -> CompletionRecord {
+    pub(crate) extern "rust-preserve-none" fn dispatch_next(
+        &mut self,
+        pc: usize,
+    ) -> CompletionRecord {
         match self.vm.frame().code_block.bytecode.bytes.get(pc) {
             Some(&byte) => {
                 let opcode = Opcode::decode(byte);
@@ -69,7 +73,7 @@ macro_rules! generate_opcode_tailcall_handlers {
                         ControlFlow::Continue(()) => become context.dispatch_next(context.vm.frame().pc as usize),
                         ControlFlow::Break(value) => value,
                     }
-                }            
+                }
             }
         )*
 

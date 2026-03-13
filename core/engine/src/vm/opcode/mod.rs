@@ -37,12 +37,12 @@ mod push;
 mod rest_parameter;
 mod set;
 mod switch;
+#[cfg(feature = "tailcall")]
+mod tailcall;
 mod templates;
 mod to;
 mod unary_ops;
 mod value;
-#[cfg(feature = "tailcall")]
-mod tailcall;
 
 // Operation structs
 #[doc(inline)]

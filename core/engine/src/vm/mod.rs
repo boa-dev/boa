@@ -935,7 +935,6 @@ impl Context {
 
         #[cfg(feature = "tailcall")]
         return self.dispatch_next(self.vm.frame().pc as usize);
-
     }
 
     /// Checks if we haven't exceeded the defined runtime limits.
