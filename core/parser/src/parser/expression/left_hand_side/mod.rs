@@ -35,7 +35,7 @@ use crate::{
 };
 use boa_ast::{
     Keyword, Position, Punctuator, Span, Spanned,
-    expression::{ImportCall, SuperCall},
+    expression::{ImportCall, ImportPhase, SuperCall},
 };
 use boa_interner::Interner;
 
@@ -107,6 +107,27 @@ where
                     {
                         return Ok(Some(keyword_token_start));
                     }
+                    // Also check for `import.defer(` and `import.source(` patterns
+                    if keyword == Keyword::Import
+                        && let Some(dot) = cursor.peek(1, interner)?
+                        && dot.kind() == &TokenKind::Punctuator(Punctuator::Dot)
+                        && let Some(ident_tok) = cursor.peek(2, interner)?
+                    {
+                        let is_phase_ident = matches!(
+                            ident_tok.kind(),
+                            TokenKind::IdentifierName((sym, _))
+                                if {
+                                    let s = interner.resolve_expect(*sym).utf8().unwrap_or("");
+                                    s == "defer" || s == "source"
+                                }
+                        );
+                        if is_phase_ident
+                            && let Some(paren) = cursor.peek(3, interner)?
+                            && paren.kind() == &TokenKind::Punctuator(Punctuator::OpenParen)
+                        {
+                            return Ok(Some(keyword_token_start));
+                        }
+                    }
                 }
             }
             Ok(None)
@@ -123,6 +144,43 @@ where
             } else if let Some(start) = is_keyword_call(Keyword::Import, cursor, interner)? {
                 // `import`
                 cursor.advance(interner);
+
+                // Check for `import.defer(...)` or `import.source(...)`
+                let phase = if cursor
+                    .peek(0, interner)?
+                    .is_some_and(|t| t.kind() == &TokenKind::Punctuator(Punctuator::Dot))
+                {
+                    // Peek at the identifier after the dot
+                    let detected_phase = cursor.peek(1, interner)?.and_then(|ident_tok| {
+                        if let TokenKind::IdentifierName((sym, _)) = ident_tok.kind() {
+                            match interner.resolve_expect(*sym).utf8().unwrap_or("") {
+                                "defer" => Some(ImportPhase::Defer),
+                                "source" => Some(ImportPhase::Source),
+                                _ => None,
+                            }
+                        } else {
+                            None
+                        }
+                    });
+                    if let Some(phase) = detected_phase {
+                        if cursor.peek(2, interner)?.is_some_and(|t| {
+                            t.kind() == &TokenKind::Punctuator(Punctuator::OpenParen)
+                        }) {
+                            // Consume `.`
+                            cursor.advance(interner);
+                            // Consume `defer` or `source`
+                            cursor.advance(interner);
+                            phase
+                        } else {
+                            unreachable!("is_keyword_call already validated the open paren")
+                        }
+                    } else {
+                        unreachable!("is_keyword_call already validated defer/source identifier")
+                    }
+                } else {
+                    ImportPhase::Evaluation
+                };
+
                 // `(`
                 cursor.advance(interner);
 
@@ -165,7 +223,7 @@ where
                 CallExpressionTail::new(
                     self.allow_yield,
                     self.allow_await,
-                    ImportCall::new(specifier, options, Span::new(start, end)).into(),
+                    ImportCall::new(specifier, options, phase, Span::new(start, end)).into(),
                 )
                 .parse(cursor, interner)?
                 .into()
