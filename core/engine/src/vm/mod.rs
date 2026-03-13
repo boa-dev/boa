@@ -12,8 +12,14 @@ use crate::{
     object::JsFunction,
     realm::Realm,
     script::Script,
-    vm::opcode::{OPCODE_HANDLERS, OPCODE_HANDLERS_BUDGET},
 };
+
+#[cfg(not(feature = "tailcall"))]
+use crate::vm::opcode::{OPCODE_HANDLERS, OPCODE_HANDLERS_BUDGET};
+
+#[cfg(feature = "tailcall")]
+use crate::vm::opcode::OPCODE_HANDLERS_BUDGET;
+
 use boa_gc::{Finalize, Gc, Trace, custom_trace};
 use shadow_stack::ShadowStack;
 use std::{future::Future, ops::ControlFlow, path::Path, pin::Pin, task};
@@ -900,6 +906,7 @@ impl Context {
     }
 
     pub(crate) fn run(&mut self) -> CompletionRecord {
+        #[cfg(not(feature = "tailcall"))]
         while let Some(byte) = self
             .vm
             .frame()
@@ -923,8 +930,12 @@ impl Context {
                 ControlFlow::Break(value) => return value,
             }
         }
+        #[cfg(not(feature = "tailcall"))]
+        return CompletionRecord::Throw(JsError::from_native(JsNativeError::error()));
 
-        CompletionRecord::Throw(JsError::from_native(JsNativeError::error()))
+        #[cfg(feature = "tailcall")]
+        return self.dispatch_next(self.vm.frame().pc as usize);
+
     }
 
     /// Checks if we haven't exceeded the defined runtime limits.
