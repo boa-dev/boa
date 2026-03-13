@@ -177,6 +177,12 @@ impl JsResponse {
     }
 
     #[boa(getter)]
+    fn ok(&self) -> bool {
+        let status = self.status();
+        (200..=299).contains(&status)
+    }
+
+    #[boa(getter)]
     fn status_text(&self) -> JsString {
         if let Some(status) = self.status {
             JsString::from(status.canonical_reason().unwrap_or_else(|| status.as_str()))
