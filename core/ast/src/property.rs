@@ -118,7 +118,8 @@ fn is_identifier_name(value: &str) -> bool {
         return false;
     };
 
-    if !(first == '$' || first == '_' || first.is_alphabetic()) {
+    // Be conservative: accept only ASCII identifier start chars.
+    if !(first == '$' || first == '_' || first.is_ascii_alphabetic()) {
         return false;
     }
 
@@ -127,7 +128,7 @@ fn is_identifier_name(value: &str) -> bool {
             || ch == '_'
             || ch == '\u{200C}'
             || ch == '\u{200D}'
-            || ch.is_alphanumeric()
+            || ch.is_ascii_alphanumeric()
     })
 }
 
