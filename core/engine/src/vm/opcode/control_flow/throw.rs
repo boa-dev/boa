@@ -4,7 +4,7 @@ use crate::{
     Context, JsError, JsNativeError, JsResult,
     vm::{
         CompletionRecord,
-        opcode::{Operation, RegisterOperand, VaryingOperand},
+        opcode::{IndexOperand, Operation, RegisterOperand},
     },
 };
 
@@ -79,7 +79,7 @@ impl Operation for ReThrow {
 /// `Exception` implements the Opcode Operation for `Opcode::Exception`
 ///
 /// Operation:
-///  - Get the thrown exception and push it on the stack.
+///  - Get the thrown exception and store it in dst.
 #[derive(Debug, Clone, Copy)]
 pub(crate) struct Exception;
 
@@ -152,7 +152,7 @@ pub(crate) struct ThrowNewTypeError;
 
 impl ThrowNewTypeError {
     #[inline(always)]
-    pub(crate) fn operation(index: VaryingOperand, context: &mut Context) -> JsError {
+    pub(crate) fn operation(index: IndexOperand, context: &mut Context) -> JsError {
         let msg = context
             .vm
             .frame()
@@ -171,34 +171,6 @@ impl Operation for ThrowNewTypeError {
     const COST: u8 = 2;
 }
 
-/// `ThrowNewSyntaxError` implements the Opcode Operation for `Opcode::ThrowNewSyntaxError`
-///
-/// Operation:
-///  - Throws a `SyntaxError` exception.
-#[derive(Debug, Clone, Copy)]
-pub(crate) struct ThrowNewSyntaxError;
-
-impl ThrowNewSyntaxError {
-    #[inline(always)]
-    pub(crate) fn operation(index: VaryingOperand, context: &mut Context) -> JsError {
-        let msg = context
-            .vm
-            .frame()
-            .code_block()
-            .constant_string(index.into());
-        let msg = msg
-            .to_std_string()
-            .expect("throw message must be an ASCII string");
-        JsNativeError::syntax().with_message(msg).into()
-    }
-}
-
-impl Operation for ThrowNewSyntaxError {
-    const NAME: &'static str = "ThrowNewSyntaxError";
-    const INSTRUCTION: &'static str = "INST - ThrowNewSyntaxError";
-    const COST: u8 = 2;
-}
-
 /// `ThrowNewReferenceError` implements the Opcode Operation for `Opcode::ThrowNewReferenceError`
 ///
 /// Operation:
@@ -208,7 +180,7 @@ pub(crate) struct ThrowNewReferenceError;
 
 impl ThrowNewReferenceError {
     #[inline(always)]
-    pub(crate) fn operation(index: VaryingOperand, context: &mut Context) -> JsError {
+    pub(crate) fn operation(index: IndexOperand, context: &mut Context) -> JsError {
         let msg = context
             .vm
             .frame()

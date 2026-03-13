@@ -75,10 +75,11 @@ impl Fetcher for WptFetcher {
     async fn fetch(
         self: Rc<Self>,
         request: JsRequest,
+        signal: Option<boa_engine::JsObject>,
         context: &RefCell<&mut Context>,
     ) -> JsResult<JsResponse> {
         eprintln!("request: {request:?}");
-        let response = self.inner.clone().fetch(request, context).await;
+        let response = self.inner.clone().fetch(request, signal, context).await;
         eprintln!("response: {response:?}");
         response
     }

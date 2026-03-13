@@ -1,6 +1,6 @@
 use thin_vec::ThinVec;
 
-use super::{Address, RegisterOperand, VaryingOperand};
+use super::{Address, IndexOperand, RegisterOperand};
 
 /// A trait for types that can be read from a byte slice.
 ///
@@ -138,9 +138,9 @@ impl Argument for () {
     }
 }
 
-impl Argument for VaryingOperand {
+impl Argument for IndexOperand {
     fn encode(self, bytes: &mut Vec<u8>) {
-        write_u32(bytes, self.value);
+        write_u32(bytes, self.0);
     }
 
     fn decode(bytes: &[u8], pos: usize) -> (Self, usize) {
@@ -151,7 +151,7 @@ impl Argument for VaryingOperand {
 
 impl Argument for RegisterOperand {
     fn encode(self, bytes: &mut Vec<u8>) {
-        write_u32(bytes, self.value);
+        write_u32(bytes, self.0);
     }
 
     fn decode(bytes: &[u8], pos: usize) -> (Self, usize) {
@@ -163,7 +163,7 @@ impl Argument for RegisterOperand {
 impl Argument for Address {
     #[inline(always)]
     fn encode(self, bytes: &mut Vec<u8>) {
-        write_u32(bytes, self.value);
+        write_u32(bytes, self.0);
     }
 
     #[inline(always)]
@@ -221,90 +221,9 @@ impl_argument_for_int!(u8 u16 u32 u64 i8 i16 i32 f32 f64);
 
 #[cfg(test)]
 mod tests {
-
-    use super::*;
-
-    #[test]
-    fn test_read_u8() {
-        let bytes = [1, 2, 3];
-        let (val, next) = read::<u8>(&bytes, 0);
-        assert_eq!(val, 1);
-        assert_eq!(next, 1);
-    }
-
-    #[test]
-    #[should_panic(expected = "buffer too small to read type T")]
-    fn test_read_out_of_bounds() {
-        let bytes = [1, 2];
-        read::<u32>(&bytes, 0);
-    }
-
-    #[test]
-    fn test_argument_unit() {
-        let mut bytes = Vec::new();
-        ().encode(&mut bytes);
-        assert!(bytes.is_empty());
-        let (val, next) = <()>::decode(&bytes, 0);
-        assert_eq!(val, ());
-        assert_eq!(next, 0);
-    }
-
-    #[test]
-    fn test_argument_varying_operand() {
-        let test_cases = vec![10u32, 500u32, 100_000u32];
-        for val in test_cases {
-            let arg = VaryingOperand::new(val);
-            let mut bytes = Vec::new();
-            arg.encode(&mut bytes);
-            let (decoded, next) = VaryingOperand::decode(&bytes, 0);
-            assert_eq!(u32::from(decoded), val);
-            assert_eq!(next, bytes.len());
-        }
-    }
-
-    #[test]
-    fn test_argument_u32() {
-        let val = 0x1234_5678_u32;
-        let mut bytes = Vec::new();
-        val.encode(&mut bytes);
-        let (decoded, next) = <u32>::decode(&bytes, 0);
-        assert_eq!(decoded, val);
-        assert_eq!(next, 4);
-    }
-
-    #[test]
-    fn test_argument_u32_varying() {
-        let v1 = 0x1234_5678_u32;
-        let v2 = 500u32;
-        let arg = (v1, VaryingOperand::new(v2));
-        let mut bytes = Vec::new();
-        arg.encode(&mut bytes);
-        let (decoded, next) = <(u32, VaryingOperand)>::decode(&bytes, 0);
-        assert_eq!(decoded.0, v1);
-        assert_eq!(u32::from(decoded.1), v2);
-        assert_eq!(next, 8);
-    }
-
-    #[test]
-    #[should_panic(expected = "buffer too small to read type T")]
-    fn test_varying_operand_decode_out_of_bounds() {
-        let bytes = [1];
-        VaryingOperand::decode(&bytes, 0);
-    }
-
-    #[test]
-    #[should_panic(expected = "buffer too small to read type T")]
-    fn test_complex_tuple_decode_out_of_bounds() {
-        let bytes = [0, 1, 2];
-        <(VaryingOperand, i8)>::decode(&bytes, 0);
-    }
-
-    #[test]
-    #[should_panic(expected = "buffer too small to read type T")]
-    fn test_thinvec_decode_out_of_bounds() {
-        let bytes = [2, 0, 1, 0, 0, 0];
-        <(VaryingOperand, ThinVec<VaryingOperand>)>::decode(&bytes, 0);
-    }
+    use super::{Address, Argument, IndexOperand, RegisterOperand};
+    use std::mem::size_of;
+    use thin_vec::ThinVec;
 
     fn round_trip<T: Argument + PartialEq + Clone>(value: &T) {
         let mut bytes = Vec::new();
@@ -347,10 +266,8 @@ mod tests {
 
     #[test]
     fn test_varying_operand_round_trip() {
-        round_trip_eq(&VaryingOperand::new(0), |a, b| {
-            u32::from(*a) == u32::from(*b)
-        });
-        round_trip_eq(&VaryingOperand::new(0xFFFF_FFFF), |a, b| {
+        round_trip_eq(&IndexOperand::new(0), |a, b| u32::from(*a) == u32::from(*b));
+        round_trip_eq(&IndexOperand::new(0xFFFF_FFFF), |a, b| {
             u32::from(*a) == u32::from(*b)
         });
     }

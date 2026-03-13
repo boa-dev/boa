@@ -4,15 +4,11 @@ use boa_engine::{
     Context, JsNativeError, JsResult, JsValue, Module,
     builtins::promise::PromiseState,
     job::{Job, JobExecutor, NativeAsyncJob, PromiseJob},
-    js_string,
+    js_error, js_string,
     module::{ModuleLoader, ModuleRequest},
 };
 use boa_parser::Source;
 use futures_concurrency::future::FutureGroup;
-use isahc::{
-    AsyncReadResponseExt, Request, RequestExt,
-    config::{Configurable, RedirectPolicy},
-};
 use smol::{future, stream::StreamExt};
 
 #[derive(Debug, Default)]
@@ -33,15 +29,10 @@ impl ModuleLoader for HttpModuleLoader {
         println!("Fetching `{url}`...");
 
         // This could also retry fetching in case there's an error while requesting the module.
-        let response = async {
-            let request = Request::get(&url)
-                .redirect_policy(RedirectPolicy::Limit(5))
-                .body(())?;
-            let response = request.send_async().await?.text().await?;
-            Ok(response)
-        }
-        .await
-        .map_err(|err: isahc::Error| JsNativeError::typ().with_message(err.to_string()))?;
+        // async, a poor man's `try` block lmao
+        let response = async { reqwest::get(&url).await?.text().await }
+            .await
+            .map_err(|err| JsNativeError::typ().with_message(err.to_string()))?;
 
         println!("Finished fetching `{url}`");
 
@@ -170,7 +161,9 @@ impl JobExecutor for Queue {
 
     // While the sync flavor of `run_jobs` will block the current thread until all the jobs have finished...
     fn run_jobs(self: Rc<Self>, context: &mut Context) -> JsResult<()> {
-        smol::block_on(smol::LocalExecutor::new().run(self.run_jobs_async(&RefCell::new(context))))
+        let runtime =
+            tokio::runtime::Runtime::new().map_err(|err| js_error!(TypeError: "{}", err))?;
+        runtime.block_on(self.run_jobs_async(&RefCell::new(context)))
     }
 
     // ...the async flavor won't, which allows concurrent execution with external async tasks.

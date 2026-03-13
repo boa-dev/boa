@@ -19,7 +19,7 @@ use thin_vec::ThinVec;
 
 use super::{
     InlineCache,
-    opcode::{Address, ByteCode, Instruction, InstructionIterator},
+    opcode::{Address, Bytecode, Instruction, InstructionIterator},
     source_info::{SourceInfo, SourceMap, SourcePath},
 };
 
@@ -108,6 +108,16 @@ pub(crate) enum Constant {
     Scope(#[unsafe_ignore_trace] Scope),
 }
 
+/// Binding information about a global function.
+#[derive(Copy, Clone, Debug, Trace, Finalize)]
+#[boa_gc(empty_trace)]
+pub(crate) struct GlobalFunctionBinding {
+    /// The index of the global function's name in the constants array.
+    pub(crate) name_index: u32,
+    /// The index of the global function in the constants array
+    pub(crate) function_index: u32,
+}
+
 /// The internal representation of a JavaScript function.
 ///
 /// A `CodeBlock` is generated for each function compiled by the
@@ -134,7 +144,7 @@ pub struct CodeBlock {
 
     /// Bytecode
     #[unsafe_ignore_trace]
-    pub(crate) bytecode: ByteCode,
+    pub(crate) bytecode: Bytecode,
 
     pub(crate) constants: ThinVec<Constant>,
 
@@ -151,6 +161,17 @@ pub struct CodeBlock {
 
     /// Bytecode to source code mapping.
     pub(crate) source_info: SourceInfo,
+
+    pub(crate) global_lexs: Box<[u32]>,
+    pub(crate) global_fns: Box<[GlobalFunctionBinding]>,
+    pub(crate) global_vars: Box<[u32]>,
+
+    // Used for identifying anonymous functions in compiled output and call frames.
+    pub(crate) debug_id: u64,
+
+    #[cfg(feature = "trace")]
+    #[unsafe_ignore_trace]
+    pub(crate) traced: Cell<bool>,
 }
 
 /// ---- `CodeBlock` public API ----
@@ -161,7 +182,7 @@ impl CodeBlock {
         let mut flags = CodeBlockFlags::empty();
         flags.set(CodeBlockFlags::STRICT, strict);
         Self {
-            bytecode: ByteCode::default(),
+            bytecode: Bytecode::default(),
             constants: ThinVec::default(),
             bindings: Box::default(),
             flags: Cell::new(flags),
@@ -177,6 +198,12 @@ impl CodeBlock {
                 name,
                 SpannedSourceText::new_empty(),
             ),
+            global_lexs: Box::default(),
+            global_fns: Box::default(),
+            global_vars: Box::default(),
+            debug_id: CodeBlock::get_next_codeblock_id(),
+            #[cfg(feature = "trace")]
+            traced: Cell::new(false),
         }
     }
 
@@ -328,6 +355,18 @@ impl CodeBlock {
     pub(crate) fn source_info(&self) -> &SourceInfo {
         &self.source_info
     }
+
+    pub(crate) fn get_next_codeblock_id() -> u64 {
+        thread_local! {
+            static CODEBLOCK_ID_COUNTER: Cell<u64> = const { Cell::new(0) };
+        }
+
+        CODEBLOCK_ID_COUNTER.with(|c| {
+            let id = c.get();
+            c.set(id + 1);
+            id
+        })
+    }
 }
 
 /// ---- `CodeBlock` private API ----
@@ -340,15 +379,15 @@ impl CodeBlock {
         match instruction {
             Instruction::SetRegisterFromAccumulator { dst }
             | Instruction::PopIntoRegister { dst }
-            | Instruction::PushZero { dst }
-            | Instruction::PushOne { dst }
-            | Instruction::PushNan { dst }
-            | Instruction::PushPositiveInfinity { dst }
-            | Instruction::PushNegativeInfinity { dst }
-            | Instruction::PushNull { dst }
-            | Instruction::PushTrue { dst }
-            | Instruction::PushFalse { dst }
-            | Instruction::PushUndefined { dst }
+            | Instruction::StoreZero { dst }
+            | Instruction::StoreOne { dst }
+            | Instruction::StoreNan { dst }
+            | Instruction::StorePositiveInfinity { dst }
+            | Instruction::StoreNegativeInfinity { dst }
+            | Instruction::StoreNull { dst }
+            | Instruction::StoreTrue { dst }
+            | Instruction::StoreFalse { dst }
+            | Instruction::StoreUndefined { dst }
             | Instruction::Exception { dst }
             | Instruction::This { dst }
             | Instruction::NewTarget { dst }
@@ -356,7 +395,7 @@ impl CodeBlock {
             | Instruction::CreateMappedArgumentsObject { dst }
             | Instruction::CreateUnmappedArgumentsObject { dst }
             | Instruction::RestParameterInit { dst }
-            | Instruction::PushNewArray { dst } => format!("dst:{dst}"),
+            | Instruction::StoreNewArray { dst } => format!("dst:{dst}"),
             Instruction::Add { lhs, rhs, dst }
             | Instruction::Sub { lhs, rhs, dst }
             | Instruction::Div { lhs, rhs, dst }
@@ -405,34 +444,30 @@ impl CodeBlock {
                     }
                 )
             }
-            Instruction::PushInt8 { value, dst } => {
+            Instruction::StoreInt8 { value, dst } => {
                 format!("value:{value}, dst:{dst}")
             }
-            Instruction::PushInt16 { value, dst } => {
+            Instruction::StoreInt16 { value, dst } => {
                 format!("value:{value}, dst:{dst}")
             }
-            Instruction::PushInt32 { value, dst } => {
+            Instruction::StoreInt32 { value, dst } => {
                 format!("value:{value}, dst:{dst}")
             }
-            Instruction::PushFloat { value, dst } => {
+            Instruction::StoreFloat { value, dst } => {
                 format!("value:{value}, dst:{dst}")
             }
-            Instruction::PushDouble { value, dst } => {
+            Instruction::StoreDouble { value, dst } => {
                 format!("value:{value}, dst:{dst}")
             }
-            Instruction::PushLiteral { index, dst }
+            Instruction::StoreLiteral { index, dst }
             | Instruction::ThisForObjectEnvironmentName { index, dst }
             | Instruction::GetFunction { index, dst }
-            | Instruction::HasRestrictedGlobalProperty { index, dst }
-            | Instruction::CanDeclareGlobalFunction { index, dst }
-            | Instruction::CanDeclareGlobalVar { index, dst }
             | Instruction::GetArgument { index, dst } => {
                 format!("index:{index}, dst:{dst}")
             }
             Instruction::ThrowNewTypeError { message }
-            | Instruction::ThrowNewSyntaxError { message }
             | Instruction::ThrowNewReferenceError { message } => format!("message:{message}"),
-            Instruction::PushRegexp {
+            Instruction::StoreRegexp {
                 pattern_index,
                 flags_index,
                 dst,
@@ -686,7 +721,7 @@ impl CodeBlock {
             Instruction::CreateIteratorResult { value, done } => {
                 format!("value:{value}, done:{done}")
             }
-            Instruction::PushClassPrototype {
+            Instruction::StoreClassPrototype {
                 dst,
                 class,
                 superclass,
@@ -773,7 +808,7 @@ impl CodeBlock {
             | Instruction::IteratorResult { dst }
             | Instruction::IteratorToArray { dst }
             | Instruction::IteratorStackEmpty { dst }
-            | Instruction::PushEmptyObject { dst } => {
+            | Instruction::StoreEmptyObject { dst } => {
                 format!("dst:{dst}")
             }
             Instruction::IteratorFinishAsyncNext { resume_kind, value } => {
@@ -781,19 +816,6 @@ impl CodeBlock {
             }
             Instruction::IteratorReturn { value, called } => {
                 format!("value:{value}, called:{called}")
-            }
-            Instruction::CreateGlobalFunctionBinding {
-                src,
-                configurable,
-                name_index,
-            } => {
-                format!("src:{src}, configurable:{configurable}, name_index:{name_index}")
-            }
-            Instruction::CreateGlobalVarBinding {
-                configurable,
-                name_index,
-            } => {
-                format!("configurable:{configurable}, name_index:{name_index}")
             }
             Instruction::PushPrivateEnvironment {
                 class,
@@ -896,7 +918,13 @@ impl CodeBlock {
             | Instruction::Reserved51
             | Instruction::Reserved52
             | Instruction::Reserved53
-            | Instruction::Reserved54 => unreachable!("Reserved opcodes are unreachable"),
+            | Instruction::Reserved54
+            | Instruction::Reserved55
+            | Instruction::Reserved56
+            | Instruction::Reserved57
+            | Instruction::Reserved58
+            | Instruction::Reserved59
+            | Instruction::Reserved60 => unreachable!("Reserved opcodes are unreachable"),
         }
     }
 }
@@ -907,7 +935,14 @@ impl Display for CodeBlock {
         writeln!(
             f,
             "{:-^80}",
-            format!("Compiled Output: '{}'", name.to_std_string_escaped()),
+            format!(
+                " Compiled Output: {} ",
+                if name.is_empty() {
+                    format!("[anon#{}]", self.debug_id)
+                } else {
+                    format!("'{}'", name.to_std_string_escaped())
+                }
+            ),
         )?;
         writeln!(
             f,
@@ -1011,7 +1046,7 @@ impl Display for CodeBlock {
         } else {
             f.write_char('\n')?;
 
-            let bytecode_len = self.bytecode.bytecode.len() as u32;
+            let bytecode_len = self.bytecode.bytes.len() as u32;
             for (i, handler) in self.source_info().map().entries().windows(2).enumerate() {
                 let current = handler[0];
                 let next = handler.get(1);
@@ -1061,7 +1096,7 @@ pub(crate) fn create_function_object(
     let is_generator = code.is_generator();
     let function = OrdinaryFunction::new(
         code,
-        context.vm.frame().environments.clone(),
+        context.vm.frame().environments.snapshot_for_closure(),
         script_or_module,
         context.realm().clone(),
     );
@@ -1130,7 +1165,7 @@ pub(crate) fn create_function_object_fast(code: Gc<CodeBlock>, context: &mut Con
     let has_prototype_property = code.has_prototype_property();
     let function = OrdinaryFunction::new(
         code,
-        context.vm.frame().environments.clone(),
+        context.vm.frame().environments.snapshot_for_closure(),
         script_or_module,
         context.realm().clone(),
     );

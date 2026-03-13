@@ -20,6 +20,7 @@ use boa_gc::{Finalize, Gc, Trace};
 use boa_macros::utf16;
 use itertools::Itertools;
 
+use crate::JsExpect;
 use crate::{
     Context, JsArgs, JsBigInt, JsData, JsResult, JsString, JsValue, SpannedSourceText,
     builtins::BuiltInObject,
@@ -329,7 +330,7 @@ impl Json {
             // b. Let rootName be the empty String.
             // c. Perform ! CreateDataPropertyOrThrow(root, rootName, unfiltered).
             root.create_data_property_or_throw(js_string!(), unfiltered, context)
-                .expect("CreateDataPropertyOrThrow should never throw here");
+                .js_expect("CreateDataPropertyOrThrow should never throw here")?;
 
             // d. Return ? InternalizeJSONProperty(root, rootName, reviver).
             Self::internalize_json_property(
@@ -416,7 +417,7 @@ impl Json {
                     // This is safe, because EnumerableOwnPropertyNames with 'key' type only returns strings.
                     let p = p
                         .as_string()
-                        .expect("EnumerableOwnPropertyNames only returns strings");
+                        .js_expect("EnumerableOwnPropertyNames only returns strings")?;
 
                     let p_std = p.to_std_string_escaped();
                     let child_node =
@@ -663,7 +664,7 @@ impl Json {
                         } else if v.is_number() {
                             property_set.insert(
                                 v.to_string(context)
-                                    .expect("ToString cannot fail on number value"),
+                                    .js_expect("ToString cannot fail on number value")?,
                             );
                         } else if let Some(obj) = v.as_object()
                             && (obj.is::<JsString>() || obj.is::<f64>())
@@ -703,7 +704,7 @@ impl Json {
             // c. If spaceMV < 1, let gap be the empty String; otherwise let gap be the String value containing spaceMV occurrences of the code unit 0x0020 (SPACE).
             match space
                 .to_integer_or_infinity(context)
-                .expect("ToIntegerOrInfinity cannot fail on number")
+                .js_expect("ToIntegerOrInfinity cannot fail on number")?
             {
                 IntegerOrInfinity::PositiveInfinity => js_string!("          "),
                 IntegerOrInfinity::NegativeInfinity => js_string!(),
@@ -733,7 +734,7 @@ impl Json {
         // 10. Perform ! CreateDataPropertyOrThrow(wrapper, the empty String, value).
         wrapper
             .create_data_property_or_throw(js_string!(), args.get_or_undefined(0).clone(), context)
-            .expect("CreateDataPropertyOrThrow should never fail here");
+            .js_expect("CreateDataPropertyOrThrow should never fail here")?;
 
         // 11. Let state be the Record { [[ReplacerFunction]]: ReplacerFunction, [[Stack]]: stack, [[Indent]]: indent, [[Gap]]: gap, [[PropertyList]]: PropertyList }.
         let mut state = StateRecord {
@@ -842,7 +843,7 @@ impl Json {
                 return Ok(Some(
                     value
                         .to_string(context)
-                        .expect("ToString should never fail here"),
+                        .js_expect("ToString should never fail here")?,
                 ));
             }
 
@@ -967,9 +968,9 @@ impl Json {
             keys.iter()
                 .map(|v| {
                     v.to_string(context)
-                        .expect("EnumerableOwnPropertyNames only returns strings")
+                        .js_expect("EnumerableOwnPropertyNames only returns strings")
                 })
-                .collect()
+                .collect::<Result<Vec<_>, _>>()?
         };
 
         // 7. Let partial be a new empty List.

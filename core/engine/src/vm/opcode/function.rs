@@ -1,7 +1,7 @@
 use crate::{
     Context, JsExpect, JsResult, JsValue,
     builtins::function::OrdinaryFunction,
-    vm::opcode::{Operation, RegisterOperand, VaryingOperand},
+    vm::opcode::{IndexOperand, Operation, RegisterOperand},
 };
 
 /// `SetHomeObject` implements the Opcode Operation for `Opcode::SetHomeObject`
@@ -91,7 +91,7 @@ pub(crate) struct GetMethod;
 impl GetMethod {
     #[inline(always)]
     pub(crate) fn operation(
-        (object, name_index): (RegisterOperand, VaryingOperand),
+        (object, name_index): (RegisterOperand, IndexOperand),
         context: &mut Context,
     ) -> JsResult<()> {
         let function_val = context.vm.take_register(object.into());
