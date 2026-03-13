@@ -101,7 +101,7 @@ fn get_or_insert_this_not_weakmap() {
     run_test_actions([TestAction::assert_native_error(
         "WeakMap.prototype.getOrInsert.call({}, {}, 1)",
         JsNativeErrorKind::Type,
-        "WeakMap.getOrInsert: called with non-object value",
+        "WeakMap.prototype.getOrInsert: expected 'this' to be a WeakMap object",
     )]);
 }
 
@@ -110,6 +110,6 @@ fn get_or_insert_computed_this_not_weakmap() {
     run_test_actions([TestAction::assert_native_error(
         "WeakMap.prototype.getOrInsertComputed.call({}, {}, x => x)",
         JsNativeErrorKind::Type,
-        "WeakMap.getOrInsertComputed: called with non-object value",
+        "WeakMap.prototype.getOrInsertComputed: expected 'this' to be a WeakMap object",
     )]);
 }
