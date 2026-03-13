@@ -2,7 +2,7 @@ use crate::iter::CodePointsIter;
 use crate::vtable::{JsStringVTable, RawJsString};
 use crate::{JsStr, JsStringKind};
 use std::hash::{Hash, Hasher};
-use std::ptr::{self, NonNull};
+use std::ptr::{self};
 
 /// Static vtable for static strings.
 pub(crate) static STATIC_VTABLE: JsStringVTable = JsStringVTable {
@@ -69,16 +69,12 @@ fn static_as_str(header: &RawJsString) -> JsStr<'_> {
 }
 
 #[inline]
-fn static_code_points(ptr: NonNull<RawJsString>) -> CodePointsIter<'static> {
-    // SAFETY: ptr is valid.
-    let header = unsafe { ptr.as_ref() };
+fn static_code_points(header: &RawJsString) -> CodePointsIter<'_> {
     CodePointsIter::new(static_as_str(header))
 }
 
 #[inline]
-fn static_code_unit_at(ptr: NonNull<RawJsString>, index: usize) -> Option<u16> {
-    // SAFETY: ptr is valid.
-    let header = unsafe { ptr.as_ref() };
+fn static_code_unit_at(header: &RawJsString, index: usize) -> Option<u16> {
     static_as_str(header).get(index)
 }
 

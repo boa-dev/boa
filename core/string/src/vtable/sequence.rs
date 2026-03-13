@@ -158,19 +158,11 @@ fn seq_as_str<T: InternalStringType>(header: &RawJsString) -> JsStr<'_> {
 }
 
 #[inline]
-fn seq_code_points<T: InternalStringType>(ptr: NonNull<RawJsString>) -> CodePointsIter<'static> {
-    // SAFETY: This is part of the correct vtable which is validated on construction.
-    let header = unsafe { ptr.as_ref() };
-    // SAFETY: We transmute the lifetime to 'static because the iterator for sequences
-    // only holds a slice, and we currently don't have a way to return a tied iterator
-    // from the vtable without changing the whole iterator architecture.
-    // TODO: Fix this by making CodePointsIter manage lifetimes properly.
-    unsafe { std::mem::transmute(CodePointsIter::new(seq_as_str::<T>(header))) }
+fn seq_code_points<T: InternalStringType>(header: &RawJsString) -> CodePointsIter<'_> {
+    CodePointsIter::new(seq_as_str::<T>(header))
 }
 
 #[inline]
-fn seq_code_unit_at<T: InternalStringType>(ptr: NonNull<RawJsString>, index: usize) -> Option<u16> {
-    // SAFETY: This is part of the correct vtable which is validated on construction.
-    let header = unsafe { ptr.as_ref() };
+fn seq_code_unit_at<T: InternalStringType>(header: &RawJsString, index: usize) -> Option<u16> {
     seq_as_str::<T>(header).get(index)
 }
