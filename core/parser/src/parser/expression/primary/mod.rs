@@ -90,7 +90,7 @@ impl PrimaryExpression {
 /// Iteratively parses deeply nested parenthesized expressions to avoid stack overflow.
 ///
 /// Called when we are already `FAST_PATH_PAREN_DEPTH` levels deep in parenthesized
-/// expression recursion AND the very next two tokens are both `(`. The function
+/// expression recursion OR the very next two tokens are both `(`. The function
 /// consumes consecutive `(` tokens in a loop — but **only** while the token that
 /// follows each `(` is itself another `(`. This guarantees that the innermost
 /// opening `(` (whose contents may be an arrow function, spread, etc.) is left
@@ -245,25 +245,13 @@ where
                 }
             }
             TokenKind::Punctuator(Punctuator::OpenParen) => {
-                // Track how many parenthesized expression levels deep we are.
-                // This counter is used purely as a strategy selector: below the
-                // threshold we use the normal recursive cover parser (which correctly
-                // handles arrow functions, spread, etc.); at or above the threshold
-                // we switch to an iterative fast path if the immediately following
-                // token is *also* `(` — which guarantees we are in a purely-nested
-                // chain and not inside an arrow-function parameter list.
-                let _depth = cursor.enter_parenthesized();
+                // Tracking depth manually to avoid borrow checker errors.
+                let depth = cursor.enter_parenthesized();
 
                 let next_is_also_paren = cursor.peek(1, interner)?.map(Token::kind)
                     == Some(&TokenKind::Punctuator(Punctuator::OpenParen));
 
-                // If the next token is also an open paren, this is a purely nested
-                // parenthesized chain; prefer the iterative deep parser to avoid
-                // recursion regardless of the current depth. The depth counter is
-                // only used as a conservative fallback; selecting the deep parser
-                // when `next_is_also_paren` is true avoids regressions found under
-                // heavy nesting.
-                let expr = if next_is_also_paren {
+                let result = if next_is_also_paren && depth >= Cursor::<R>::FAST_PATH_PAREN_DEPTH {
                     // Deep purely-nested chain: handle iteratively to avoid stack overflow.
                     parse_deep_parenthesized_expression(
                         cursor,
@@ -272,8 +260,9 @@ where
                         self.allow_await,
                     )
                 } else {
-                    // Normal depth or complex inner expression: use the standard recursive
-                    // cover parser which handles arrow functions, spread, trailing commas, etc.
+                    // Normal depth or complex inner expression (no immediate `((`):
+                    // use the standard recursive cover parser which handles arrow functions,
+                    // spread, trailing commas, etc.
                     CoverParenthesizedExpressionAndArrowParameterList::new(
                         self.allow_yield,
                         self.allow_await,
@@ -282,7 +271,7 @@ where
                 };
 
                 cursor.exit_parenthesized();
-                expr
+                result
             }
             TokenKind::Punctuator(Punctuator::OpenBracket) => {
                 ArrayLiteral::new(self.allow_yield, self.allow_await)

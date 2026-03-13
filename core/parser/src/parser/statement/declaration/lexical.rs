@@ -91,7 +91,14 @@ where
                 self.loop_init,
             )
             .parse(cursor, interner)?,
-            _ => unreachable!("unknown token found: {:?}", tok),
+            _ => {
+                return Err(Error::expected(
+                    [Keyword::Let.to_string(), Keyword::Const.to_string()],
+                    tok.to_string(interner),
+                    tok.span(),
+                    "lexical declaration",
+                ));
+            }
         };
 
         if !self.loop_init {

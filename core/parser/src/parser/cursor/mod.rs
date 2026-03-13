@@ -51,10 +51,8 @@ where
     /// Kept low so the recursive descent parser never overflows the stack,
     /// even for adversarial inputs like `'('.repeat(N) + '() => {}' + ')'.repeat(N)`.
     #[cfg(debug_assertions)]
-    #[allow(dead_code)]
     pub(super) const FAST_PATH_PAREN_DEPTH: u32 = 4;
     #[cfg(not(debug_assertions))]
-    #[allow(dead_code)]
     pub(super) const FAST_PATH_PAREN_DEPTH: u32 = 20;
 
     /// Creates a new cursor with the given reader.
@@ -70,16 +68,20 @@ where
     }
 
     /// Records entering one parenthesized-expression level.
-    /// Returns the depth **before** entering (0 = outermost).
+    /// Returns the depth **after** entering.
     pub(super) fn enter_parenthesized(&mut self) -> u32 {
-        let depth = self.parenthesized_depth;
         self.parenthesized_depth += 1;
-        depth
+        self.parenthesized_depth
     }
 
     /// Records leaving one parenthesized-expression level.
     pub(super) fn exit_parenthesized(&mut self) {
         self.parenthesized_depth = self.parenthesized_depth.saturating_sub(1);
+    }
+
+    /// Gets the current parenthesized depth.
+    pub(super) const fn parenthesized_depth(&self) -> u32 {
+        self.parenthesized_depth
     }
 
     /// Sets the goal symbol of the cursor to `Module`.
