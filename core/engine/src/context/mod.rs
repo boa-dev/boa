@@ -847,7 +847,8 @@ impl Context {
     ///  - [ECMAScript reference][spec]
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-getactivescriptormodule
-    pub(crate) fn get_active_script_or_module(&self) -> Option<ActiveRunnable> {
+    #[must_use]
+    pub fn get_active_script_or_module(&self) -> Option<ActiveRunnable> {
         // 1. If the execution context stack is empty, return null.
         // 2. Let ec be the topmost execution context on the execution context stack whose ScriptOrModule component is not null.
         // 3. If no such execution context exists, return null. Otherwise, return ec's ScriptOrModule.
