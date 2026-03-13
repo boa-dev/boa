@@ -196,6 +196,21 @@ pub fn register<F: Fetcher>(
 
     if realm.is_none() {
         context.register_global_class::<headers_iterator::HeadersIterator>()?;
+
+        // `#[boa_class]` cannot express symbol-keyed static properties, so
+        // we set `@@toStringTag` on the prototype manually after registration.
+        let proto = context
+            .get_global_class::<headers_iterator::HeadersIterator>()
+            .expect("just registered")
+            .prototype();
+        proto.define_property_or_throw(
+            boa_engine::JsSymbol::to_string_tag(),
+            boa_engine::property::PropertyDescriptor::builder()
+                .value(JsString::from("Headers Iterator"))
+                .configurable(true)
+                .build(),
+            context,
+        )?;
     }
 
     Ok(())

@@ -6,16 +6,9 @@
 //! [spec]: https://fetch.spec.whatwg.org/#headers-class
 
 use boa_engine::{
-    Context, JsData, JsResult, JsString, JsValue,
-    builtins::iterable::create_iter_result_object,
-    class::{Class, ClassBuilder},
-    error::JsNativeError,
-    js_string,
-    native_function::NativeFunction,
-    object::JsObject,
-    object::builtins::JsArray,
-    property::{Attribute, PropertyNameKind},
-    symbol::JsSymbol,
+    Context, JsData, JsResult, JsString, JsValue, boa_class,
+    builtins::iterable::create_iter_result_object, error::JsNativeError, interop::JsClass,
+    object::JsObject, object::builtins::JsArray, property::PropertyNameKind,
 };
 use boa_gc::{Finalize, Trace};
 
@@ -36,42 +29,74 @@ pub(crate) struct HeadersIterator {
     iteration_kind: PropertyNameKind,
 }
 
-impl Class for HeadersIterator {
-    const NAME: &'static str = "Headers Iterator";
-    const LENGTH: usize = 0;
-
-    fn init(class: &mut ClassBuilder<'_>) -> JsResult<()> {
-        class.method(
-            js_string!("next"),
-            0,
-            NativeFunction::from_fn_ptr(Self::next),
-        );
-        class.static_property(
-            JsSymbol::to_string_tag(),
-            JsString::from("Headers Iterator"),
-            Attribute::CONFIGURABLE,
-        );
-        class.method(
-            JsSymbol::iterator(),
-            0,
-            NativeFunction::from_fn_ptr(|this, _args, _context| Ok(this.clone())),
-        );
-        Ok(())
-    }
-
-    fn data_constructor(
-        _new_target: &JsValue,
-        _args: &[JsValue],
-        _context: &mut Context,
-    ) -> JsResult<Self> {
+#[boa_class(rename = "Headers Iterator")]
+impl HeadersIterator {
+    /// Prevent direct construction — `HeadersIterator` instances are only
+    /// created internally via [`HeadersIterator::create_headers_iterator`].
+    #[boa(constructor)]
+    fn constructor() -> JsResult<Self> {
         Err(JsNativeError::typ()
             .with_message("Illegal constructor")
             .into())
     }
+
+    /// `%HeadersIteratorPrototype%.next()`
+    ///
+    /// Advances the iterator and returns the next `{ value, done }` result.
+    #[boa(method)]
+    fn next(&mut self, context: &mut Context) -> JsResult<JsValue> {
+        let item_kind = self.iteration_kind;
+
+        let element = {
+            let headers = self
+                .iterated_headers
+                .downcast_ref::<JsHeaders>()
+                .ok_or_else(|| {
+                    JsNativeError::typ().with_message("Object is not a Headers object")
+                })?;
+
+            headers
+                .headers_map()
+                .iter()
+                .nth(self.next_index)
+                .map(|(k, v)| {
+                    (
+                        JsValue::from(JsString::from(k.as_str())),
+                        JsValue::from(JsString::from(v.to_str().unwrap_or(""))),
+                    )
+                })
+        };
+
+        if let Some((key, value)) = element {
+            self.next_index += 1;
+
+            return match item_kind {
+                PropertyNameKind::Key => Ok(create_iter_result_object(key, false, context)),
+                PropertyNameKind::Value => Ok(create_iter_result_object(value, false, context)),
+                PropertyNameKind::KeyAndValue => {
+                    let result = JsArray::from_iter([key, value], context);
+                    Ok(create_iter_result_object(result.into(), false, context))
+                }
+            };
+        }
+
+        Ok(create_iter_result_object(
+            JsValue::undefined(),
+            true,
+            context,
+        ))
+    }
+
+    /// Returns `this`, making the iterator itself iterable (`for...of` support).
+    #[boa(method)]
+    #[boa(symbol = "iterator")]
+    fn symbol_iterator(this: JsClass<Self>) -> JsValue {
+        this.inner().clone().upcast().into()
+    }
 }
 
 impl HeadersIterator {
-    /// Creates a new iterator over the given Headers.
+    /// Creates a new iterator over the given `Headers` object.
     pub(crate) fn create_headers_iterator(
         headers: JsObject,
         kind: PropertyNameKind,
@@ -90,57 +115,5 @@ impl HeadersIterator {
             iter,
         );
         headers_iterator.into()
-    }
-
-    /// %HeadersIteratorPrototype%.next( )
-    ///
-    /// Advances the iterator and gets the next result in the headers.
-    pub(crate) fn next(this: &JsValue, _: &[JsValue], context: &mut Context) -> JsResult<JsValue> {
-        let object = this.as_object();
-        let mut headers_iterator = object
-            .as_ref()
-            .and_then(JsObject::downcast_mut::<Self>)
-            .ok_or_else(|| JsNativeError::typ().with_message("`this` is not a Headers Iterator"))?;
-
-        let item_kind = headers_iterator.iteration_kind;
-        let element = {
-            let headers = headers_iterator
-                .iterated_headers
-                .downcast_ref::<JsHeaders>()
-                .ok_or_else(|| {
-                    JsNativeError::typ().with_message("Object is not a Headers object")
-                })?;
-
-            headers
-                .headers_map()
-                .iter()
-                .nth(headers_iterator.next_index)
-                .map(|(k, v)| {
-                    (
-                        JsValue::from(JsString::from(k.as_str())),
-                        JsValue::from(JsString::from(v.to_str().unwrap_or(""))),
-                    )
-                })
-        };
-
-        if let Some((key, value)) = element {
-            headers_iterator.next_index += 1;
-
-            let item = match item_kind {
-                PropertyNameKind::Key => Ok(create_iter_result_object(key, false, context)),
-                PropertyNameKind::Value => Ok(create_iter_result_object(value, false, context)),
-                PropertyNameKind::KeyAndValue => {
-                    let result = JsArray::from_iter([key, value], context);
-                    Ok(create_iter_result_object(result.into(), false, context))
-                }
-            };
-            return item;
-        }
-
-        Ok(create_iter_result_object(
-            JsValue::undefined(),
-            true,
-            context,
-        ))
     }
 }
