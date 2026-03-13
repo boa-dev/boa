@@ -149,7 +149,7 @@ impl JsResponse {
 
 /// Parse an optional [`JsResponseOptions`] argument.
 fn parse_response_options(init: &JsValue, context: &mut Context) -> JsResult<JsResponseOptions> {
-    if init.is_undefined() || init.is_null() {
+    if init.is_null_or_undefined() {
         Ok(JsResponseOptions::default())
     } else {
         JsResponseOptions::try_from_js(init, context)
@@ -191,7 +191,8 @@ impl JsResponse {
 
     /// Creates a `Response` with a JSON-serialized body and `Content-Type: application/json`.
     ///
-    /// See <https://developer.mozilla.org/en-US/docs/Web/API/Response/json_static>.
+    /// See <https://fetch.spec.whatwg.org/#dom-response-json> and
+    /// <https://developer.mozilla.org/en-US/docs/Web/API/Response/json_static>.
     #[boa(static)]
     #[boa(rename = "json")]
     fn json_static(data: JsValue, init: JsValue, context: &mut Context) -> JsResult<Self> {
