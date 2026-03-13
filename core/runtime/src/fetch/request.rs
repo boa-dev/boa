@@ -41,61 +41,178 @@ fn add_headers_to_builder<'a>(
     Ok(builder)
 }
 
-fn validate_mode(mode: &str) -> JsResult<()> {
-    match mode {
-        "navigate" | "same-origin" | "no-cors" | "cors" => Ok(()),
-        other => Err(js_error!(
-            TypeError: "Request constructor: mode '{}' is not a supported value",
-            other
-        )),
+/// The [mode][mdn] for a `Request`.
+///
+/// [mdn]: https://developer.mozilla.org/en-US/docs/Web/API/Request/mode
+#[derive(Debug, Clone, Trace, Finalize)]
+pub enum RequestMode {
+    /// Navigation request.
+    Navigate,
+    /// Same-origin request.
+    SameOrigin,
+    /// No CORS check.
+    NoCors,
+    /// CORS-enabled request.
+    Cors,
+}
+
+impl TryFromJs for RequestMode {
+    fn try_from_js(value: &JsValue, context: &mut boa_engine::Context) -> JsResult<Self> {
+        let s = value.to_string(context)?;
+        match s.to_std_string_escaped().as_str() {
+            "navigate" => Ok(Self::Navigate),
+            "same-origin" => Ok(Self::SameOrigin),
+            "no-cors" => Ok(Self::NoCors),
+            "cors" => Ok(Self::Cors),
+            other => Err(js_error!(
+                TypeError: "Request constructor: mode '{}' is not a supported value",
+                other
+            )),
+        }
     }
 }
 
-fn validate_credentials(credentials: &str) -> JsResult<()> {
-    match credentials {
-        "omit" | "same-origin" | "include" => Ok(()),
-        other => Err(js_error!(
-            TypeError: "Request constructor: credentials '{}' is not a supported value",
-            other
-        )),
+/// The [credentials][mdn] mode for a `Request`.
+///
+/// [mdn]: https://developer.mozilla.org/en-US/docs/Web/API/Request/credentials
+#[derive(Debug, Clone, Trace, Finalize)]
+pub enum RequestCredentials {
+    /// Never send or receive cookies.
+    Omit,
+    /// Send credentials only if the URL is on the same origin.
+    SameOrigin,
+    /// Always send credentials.
+    Include,
+}
+
+impl TryFromJs for RequestCredentials {
+    fn try_from_js(value: &JsValue, context: &mut boa_engine::Context) -> JsResult<Self> {
+        let s = value.to_string(context)?;
+        match s.to_std_string_escaped().as_str() {
+            "omit" => Ok(Self::Omit),
+            "same-origin" => Ok(Self::SameOrigin),
+            "include" => Ok(Self::Include),
+            other => Err(js_error!(
+                TypeError: "Request constructor: credentials '{}' is not a supported value",
+                other
+            )),
+        }
     }
 }
 
-fn validate_cache(cache: &str) -> JsResult<()> {
-    match cache {
-        "default" | "no-store" | "reload" | "no-cache" | "force-cache" | "only-if-cached" => Ok(()),
-        other => Err(js_error!(
-            TypeError: "Request constructor: cache '{}' is not a supported value",
-            other
-        )),
+/// The [cache][mdn] mode for a `Request`.
+///
+/// [mdn]: https://developer.mozilla.org/en-US/docs/Web/API/Request/cache
+#[derive(Debug, Clone, Trace, Finalize)]
+pub enum RequestCache {
+    /// The browser looks for a matching request in its HTTP cache.
+    Default,
+    /// The browser fetches the resource from the remote server without first
+    /// looking in the cache, and will not update the cache with the response.
+    NoStore,
+    /// The browser fetches the resource from the remote server without first
+    /// looking in the cache, but then will update the cache with the response.
+    Reload,
+    /// The browser looks for a matching request in its HTTP cache; if found,
+    /// the browser revalidates the response.
+    NoCache,
+    /// The browser looks for a matching request in its HTTP cache; if found,
+    /// returns the cached response even if stale.
+    ForceCache,
+    /// The browser looks for a matching request in its HTTP cache; if found,
+    /// returns it. Otherwise returns a `504 Gateway Timeout`.
+    OnlyIfCached,
+}
+
+impl TryFromJs for RequestCache {
+    fn try_from_js(value: &JsValue, context: &mut boa_engine::Context) -> JsResult<Self> {
+        let s = value.to_string(context)?;
+        match s.to_std_string_escaped().as_str() {
+            "default" => Ok(Self::Default),
+            "no-store" => Ok(Self::NoStore),
+            "reload" => Ok(Self::Reload),
+            "no-cache" => Ok(Self::NoCache),
+            "force-cache" => Ok(Self::ForceCache),
+            "only-if-cached" => Ok(Self::OnlyIfCached),
+            other => Err(js_error!(
+                TypeError: "Request constructor: cache '{}' is not a supported value",
+                other
+            )),
+        }
     }
 }
 
-fn validate_redirect(redirect: &str) -> JsResult<()> {
-    match redirect {
-        "follow" | "error" | "manual" => Ok(()),
-        other => Err(js_error!(
-            TypeError: "Request constructor: redirect '{}' is not a supported value",
-            other
-        )),
+/// The [redirect][mdn] mode for a `Request`.
+///
+/// [mdn]: https://developer.mozilla.org/en-US/docs/Web/API/Request/redirect
+#[derive(Debug, Clone, Trace, Finalize)]
+pub enum RequestRedirect {
+    /// Automatically follow redirects.
+    Follow,
+    /// Abort with an error if a redirect occurs.
+    Error,
+    /// Return a filtered response whose type is `opaqueredirect`.
+    Manual,
+}
+
+impl TryFromJs for RequestRedirect {
+    fn try_from_js(value: &JsValue, context: &mut boa_engine::Context) -> JsResult<Self> {
+        let s = value.to_string(context)?;
+        match s.to_std_string_escaped().as_str() {
+            "follow" => Ok(Self::Follow),
+            "error" => Ok(Self::Error),
+            "manual" => Ok(Self::Manual),
+            other => Err(js_error!(
+                TypeError: "Request constructor: redirect '{}' is not a supported value",
+                other
+            )),
+        }
     }
 }
 
-fn validate_referrer_policy(referrer_policy: &str) -> JsResult<()> {
-    match referrer_policy {
-        ""
-        | "no-referrer"
-        | "no-referrer-when-downgrade"
-        | "same-origin"
-        | "origin"
-        | "strict-origin"
-        | "origin-when-cross-origin"
-        | "strict-origin-when-cross-origin"
-        | "unsafe-url" => Ok(()),
-        other => Err(js_error!(
-            TypeError: "Request constructor: referrerPolicy '{}' is not a supported value",
-            other
-        )),
+/// The [referrer policy][mdn] for a `Request`.
+///
+/// [mdn]: https://developer.mozilla.org/en-US/docs/Web/API/Request/referrerPolicy
+#[derive(Debug, Clone, Trace, Finalize)]
+pub enum ReferrerPolicy {
+    /// No policy (empty string).
+    Empty,
+    /// No referrer information sent.
+    NoReferrer,
+    /// Send the referrer for same-protocol destinations (HTTPS→HTTPS).
+    NoReferrerWhenDowngrade,
+    /// Only send referrer for same-origin requests.
+    SameOrigin,
+    /// Only send the origin as the referrer.
+    Origin,
+    /// Send origin for cross-origin; full URL for same-origin.
+    StrictOrigin,
+    /// Send origin for cross-origin; full URL for same-origin.
+    OriginWhenCrossOrigin,
+    /// Same as origin-when-cross-origin but only for same-protocol.
+    StrictOriginWhenCrossOrigin,
+    /// Always send the full URL as the referrer.
+    UnsafeUrl,
+}
+
+impl TryFromJs for ReferrerPolicy {
+    fn try_from_js(value: &JsValue, context: &mut boa_engine::Context) -> JsResult<Self> {
+        let s = value.to_string(context)?;
+        match s.to_std_string_escaped().as_str() {
+            "" => Ok(Self::Empty),
+            "no-referrer" => Ok(Self::NoReferrer),
+            "no-referrer-when-downgrade" => Ok(Self::NoReferrerWhenDowngrade),
+            "same-origin" => Ok(Self::SameOrigin),
+            "origin" => Ok(Self::Origin),
+            "strict-origin" => Ok(Self::StrictOrigin),
+            "origin-when-cross-origin" => Ok(Self::OriginWhenCrossOrigin),
+            "strict-origin-when-cross-origin" => Ok(Self::StrictOriginWhenCrossOrigin),
+            "unsafe-url" => Ok(Self::UnsafeUrl),
+            other => Err(js_error!(
+                TypeError: "Request constructor: referrerPolicy '{}' is not a supported value",
+                other
+            )),
+        }
     }
 }
 
@@ -113,15 +230,15 @@ pub struct RequestInit {
     headers: Option<VecOrMap<JsString, Convert<JsString>>>,
     method: Option<Convert<JsString>>,
 
-    // Additional RequestInit fields from the Fetch spec. For now these
-    // are parsed and validated, but most of them are not yet wired
-    // through to the underlying HTTP client.
-    mode: Option<Convert<JsString>>,
-    credentials: Option<Convert<JsString>>,
-    cache: Option<Convert<JsString>>,
-    redirect: Option<Convert<JsString>>,
+    // Additional RequestInit fields from the Fetch spec. These are
+    // parsed and validated via their enum TryFromJs implementations,
+    // but most are not yet wired through to the underlying HTTP client.
+    mode: Option<RequestMode>,
+    credentials: Option<RequestCredentials>,
+    cache: Option<RequestCache>,
+    redirect: Option<RequestRedirect>,
     referrer: Option<Convert<JsString>>,
-    referrer_policy: Option<Convert<JsString>>,
+    referrer_policy: Option<ReferrerPolicy>,
     integrity: Option<Convert<JsString>>,
     keepalive: Option<bool>,
     signal: Option<JsObject>,
@@ -174,30 +291,15 @@ impl RequestInit {
             )?.as_str());
         }
 
-        // Validate additional RequestInit fields. At this stage most of
-        // them are not hooked into the HTTP client yet, but we still
-        // enforce that the values, when present, are among the allowed
-        // strings from the Fetch spec.
-
-        if let Some(Convert(ref mode)) = self.mode.take() {
-            validate_mode(&mode.to_std_string_escaped())?;
-        }
-
-        if let Some(Convert(ref credentials)) = self.credentials.take() {
-            validate_credentials(&credentials.to_std_string_escaped())?;
-        }
-
-        if let Some(Convert(ref cache)) = self.cache.take() {
-            validate_cache(&cache.to_std_string_escaped())?;
-        }
-
-        if let Some(Convert(ref redirect)) = self.redirect.take() {
-            validate_redirect(&redirect.to_std_string_escaped())?;
-        }
-
-        if let Some(Convert(ref referrer_policy)) = self.referrer_policy.take() {
-            validate_referrer_policy(&referrer_policy.to_std_string_escaped())?;
-        }
+        // The enum fields (mode, credentials, cache, redirect,
+        // referrer_policy) are already validated by their TryFromJs
+        // implementations. They are accepted here but treated as no-ops
+        // until the runtime wires them to the underlying HTTP client.
+        drop(self.mode.take());
+        drop(self.credentials.take());
+        drop(self.cache.take());
+        drop(self.redirect.take());
+        drop(self.referrer_policy.take());
 
         // `referrer`, `integrity` and `keepalive` are accepted for now but
         // treated as no-ops until the runtime makes use of them.
