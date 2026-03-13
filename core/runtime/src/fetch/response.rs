@@ -7,7 +7,7 @@
 
 use crate::fetch::headers::JsHeaders;
 use boa_engine::object::builtins::{JsPromise, JsUint8Array};
-use boa_engine::value::{TryFromJs, TryIntoJs};
+use boa_engine::value::{Convert, TryFromJs, TryIntoJs};
 use boa_engine::{
     Context, JsData, JsNativeError, JsResult, JsString, JsValue, boa_class, js_error, js_str,
     js_string,
@@ -163,6 +163,84 @@ impl JsResponse {
     #[boa(rename = "error")]
     fn error_() -> Self {
         Self::error()
+    }
+
+    /// `Response.redirect()`
+    ///
+    /// [spec]: https://fetch.spec.whatwg.org/#dom-response-redirect
+    #[boa(static)]
+    fn redirect(url: JsString, status: Option<u16>, _context: &mut Context) -> JsResult<Self> {
+        let status = status.unwrap_or(302);
+
+        if !matches!(status, 301 | 302 | 303 | 307 | 308) {
+            return Err(JsNativeError::range()
+                .with_message("Invalid redirect status code")
+                .into());
+        }
+
+        let mut js_response = Self::basic(js_string!(""), http::Response::new(Vec::new()));
+        js_response.status = Some(StatusCode::from_u16(status).expect("guaranteed to be a valid status by preceding match"));
+
+        let mut headers = JsHeaders::default();
+        headers.append(
+            Convert::from("Location".to_string()),
+            Convert::from(url.to_std_string_escaped()),
+        )?;
+        js_response.headers = headers;
+
+        Ok(js_response)
+    }
+
+    /// `Response.json()`
+    ///
+    /// [spec]: https://fetch.spec.whatwg.org/#dom-response-json
+    #[boa(static)]
+    #[boa(rename = "json")]
+    fn json_static(
+        data: JsValue,
+        init: Option<JsResponseOptions>,
+        context: &mut Context,
+    ) -> JsResult<Self> {
+        let json = context.global_object().get(js_string!("JSON"), context)?;
+        let stringify = json
+            .as_object()
+            .ok_or_else(|| JsNativeError::typ().with_message("JSON is not an object"))?
+            .get(js_string!("stringify"), context)?;
+
+        let text = stringify
+            .as_callable()
+            .ok_or_else(|| JsNativeError::typ().with_message("stringify is not a function"))?
+            .call(&json, &[data], context)?;
+
+        let text = if let Some(s) = text.as_string() {
+            s.to_std_string_escaped()
+        } else {
+            return Err(JsNativeError::typ()
+                .with_message("stringify returned non-string")
+                .into());
+        };
+
+        let mut js_response = Self::basic(js_string!(""), http::Response::new(text.into_bytes()));
+
+        let init = init.unwrap_or_else(|| JsResponseOptions {
+            status: None,
+            status_text: None,
+            headers: None,
+        });
+
+        js_response.status = Some(
+            StatusCode::from_u16(init.status.unwrap_or(200))
+                .map_err(|_| JsNativeError::range().with_message("Invalid status code"))?,
+        );
+
+        let mut headers = init.headers.clone().unwrap_or_default();
+        let content_type = Convert::from("content-type".to_string());
+        if !headers.has(content_type.clone())? {
+            headers.append(content_type, Convert::from("application/json".to_string()))?;
+        }
+        js_response.headers = headers;
+
+        Ok(js_response)
     }
 
     #[boa(constructor)]

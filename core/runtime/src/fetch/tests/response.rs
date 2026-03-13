@@ -155,3 +155,70 @@ fn response_getter() {
         }),
     ]);
 }
+
+#[test]
+fn response_redirect() {
+    run_test_actions([
+        TestAction::harness(),
+        TestAction::inspect_context(|ctx| {
+            register(&[], ctx);
+        }),
+        TestAction::run(
+            r#"
+                const response = Response.redirect("http://example.com/other1", 301);
+                assertEq(response.status, 301);
+                assertEq(response.headers.get("Location"), "http://example.com/other1");
+
+                const responseDefault = Response.redirect("http://example.com/other2");
+                assertEq(responseDefault.status, 302);
+                assertEq(responseDefault.headers.get("Location"), "http://example.com/other2");
+
+                let threw = false;
+                try {
+                    Response.redirect("http://example.com/", 200);
+                } catch(e) {
+                    threw = e instanceof RangeError;
+                }
+                assertEq(threw, true);
+            "#,
+        ),
+    ]);
+}
+
+#[test]
+fn response_static_json() {
+    run_test_actions([
+        TestAction::harness(),
+        TestAction::inspect_context(|ctx| {
+            register(&[], ctx);
+        }),
+        TestAction::run(
+            r#"
+                globalThis.response_tests = (async () => {
+                    const data = { message: "Hello" };
+                    const res = Response.json(data);
+                    assertEq(res.status, 200);
+                    assertEq(res.headers.get("Content-Type"), "application/json");
+
+                    const body = await res.json();
+                    assertEq(body.message, "Hello");
+
+                    const res2 = Response.json([1, 2, 3], { status: 201, headers: { "X-Test": "test" } });
+                    assertEq(res2.status, 201);
+                    assertEq(res2.headers.get("Content-Type"), "application/json");
+                    assertEq(res2.headers.get("X-Test"), "test");
+                    
+                    const res3 = Response.json(null, { headers: { "Content-Type": "application/custom+json" } });
+                    assertEq(res3.headers.get("Content-Type"), "application/custom+json");
+                })();
+            "#,
+        ),
+        TestAction::inspect_context(|ctx| {
+            let response = ctx
+                .global_object()
+                .get(js_str!("response_tests"), ctx)
+                .unwrap();
+            response.as_promise().unwrap().await_blocking(ctx).unwrap();
+        }),
+    ]);
+}
