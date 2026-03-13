@@ -8,7 +8,7 @@ use super::{
     iterable::{IteratorHint, IteratorRecord},
 };
 use crate::{
-    Context, JsArgs, JsError, JsResult, JsString,
+    Context, JsArgs, JsError, JsExpect, JsResult, JsString,
     builtins::{Array, BuiltInObject},
     context::intrinsics::{Intrinsics, StandardConstructor, StandardConstructors},
     error::JsNativeError,
@@ -917,7 +917,7 @@ impl Promise {
                             js_string!("fulfilled"),
                             context,
                         )
-                        .expect("cannot fail per spec");
+                        .js_expect("cannot fail per spec")?;
 
                         // 11. Perform ! CreateDataPropertyOrThrow(obj, "value", x).
                         obj.create_data_property_or_throw(
@@ -925,7 +925,7 @@ impl Promise {
                             args.get_or_undefined(0).clone(),
                             context,
                         )
-                        .expect("cannot fail per spec");
+                        .js_expect("cannot fail per spec")?;
 
                         // 12. Set values[index] to obj.
                         captures.values.borrow_mut()[captures.index] = obj.into();
@@ -1007,7 +1007,7 @@ impl Promise {
                             js_string!("rejected"),
                             context,
                         )
-                        .expect("cannot fail per spec");
+                        .js_expect("cannot fail per spec")?;
 
                         // 11. Perform ! CreateDataPropertyOrThrow(obj, "reason", x).
                         obj.create_data_property_or_throw(
@@ -1015,7 +1015,7 @@ impl Promise {
                             args.get_or_undefined(0).clone(),
                             context,
                         )
-                        .expect("cannot fail per spec");
+                        .js_expect("cannot fail per spec")?;
 
                         // 12. Set values[index] to obj.
                         captures.values.borrow_mut()[captures.index] = obj.into();

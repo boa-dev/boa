@@ -7,7 +7,8 @@ use crate::builtins::promise::ResolvingFunctions;
 use crate::native_function::{CoroutineState, NativeCoroutine};
 use crate::object::{JsFunction, JsPromise};
 use crate::{
-    Context, JsArgs, JsError, JsNativeError, JsObject, JsResult, JsSymbol, JsValue, js_string,
+    Context, JsArgs, JsError, JsExpect, JsNativeError, JsObject, JsResult, JsSymbol, JsValue,
+    js_string,
 };
 use std::cell::Cell;
 
@@ -185,7 +186,7 @@ impl Array {
             resolvers
                 .reject
                 .call(&JsValue::undefined(), &[err.into_opaque(context)?], context)
-                .expect("resolving functions cannot fail");
+                .js_expect("resolving functions cannot fail")?;
         }
 
         // 5. Return promiseCapability.[[Promise]].
@@ -313,7 +314,7 @@ fn from_async_iterator(
                             .resolvers
                             .resolve
                             .call(&JsValue::undefined(), &[a.into()], context)
-                            .expect("resolving functions cannot fail");
+                            .js_expect("resolving functions cannot fail")?;
 
                         return Ok(CoroutineState::Done);
                     }
@@ -454,7 +455,7 @@ fn from_async_iterator(
                 .resolvers
                 .reject
                 .call(&JsValue::undefined(), &[err.into_opaque(context)?], context)
-                .expect("resolving functions cannot fail");
+                .js_expect("resolving functions cannot fail")?;
             Ok(CoroutineState::Done)
         }
     }
@@ -523,7 +524,7 @@ fn from_array_like(
                             .resolvers
                             .resolve
                             .call(&JsValue::undefined(), &[a.into()], context)
-                            .expect("resolving functions cannot fail");
+                            .js_expect("resolving functions cannot fail")?;
 
                         return Ok(CoroutineState::Done);
                     }
@@ -615,7 +616,7 @@ fn from_array_like(
                 .resolvers
                 .reject
                 .call(&JsValue::undefined(), &[err.into_opaque(context)?], context)
-                .expect("resolving functions cannot fail");
+                .js_expect("resolving functions cannot fail")?;
             Ok(CoroutineState::Done)
         }
     }

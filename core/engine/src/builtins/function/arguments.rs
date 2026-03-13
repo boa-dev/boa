@@ -1,5 +1,5 @@
 use crate::{
-    Context, JsData, JsResult, JsValue,
+    Context, JsData, JsExpect, JsResult, JsValue,
     bytecompiler::ToJsString,
     environments::DeclarativeEnvironment,
     object::{
@@ -296,7 +296,7 @@ pub(crate) fn arguments_exotic_get_own_property(
     if let PropertyKey::Index(index) = key
         && let Some(value) = obj
             .downcast_ref::<MappedArguments>()
-            .expect("arguments exotic method must only be callable from arguments objects")
+            .js_expect("arguments exotic method must only be callable from arguments objects")?
             .get(index.get())
     {
         // a. Set desc.[[Value]] to Get(map, P).
@@ -331,7 +331,7 @@ pub(crate) fn arguments_exotic_define_own_property(
     let mapped = if let &PropertyKey::Index(index) = &key {
         // 1. Let map be args.[[ParameterMap]].
         obj.downcast_ref::<MappedArguments>()
-            .expect("arguments exotic method must only be callable from arguments objects")
+            .js_expect("arguments exotic method must only be callable from arguments objects")?
             .get(index.get())
             .map(|value| (index, value))
     } else {
@@ -376,7 +376,7 @@ pub(crate) fn arguments_exotic_define_own_property(
         // 1. Let map be args.[[ParameterMap]].
         let mut map = obj
             .downcast_mut::<MappedArguments>()
-            .expect("arguments exotic method must only be callable from arguments objects");
+            .js_expect("arguments exotic method must only be callable from arguments objects")?;
 
         // a. If IsAccessorDescriptor(Desc) is true, then
         if desc.is_accessor_descriptor() {
@@ -425,7 +425,7 @@ pub(crate) fn arguments_exotic_try_get(
     if let PropertyKey::Index(index) = key
         && let Some(value) = obj
             .downcast_ref::<MappedArguments>()
-            .expect("arguments exotic method must only be callable from arguments objects")
+            .js_expect("arguments exotic method must only be callable from arguments objects")?
             .get(index.get())
     {
         // a. Assert: map contains a formal parameter mapping for P.
@@ -455,7 +455,7 @@ pub(crate) fn arguments_exotic_get(
     if let PropertyKey::Index(index) = key
         && let Some(value) = obj
             .downcast_ref::<MappedArguments>()
-            .expect("arguments exotic method must only be callable from arguments objects")
+            .js_expect("arguments exotic method must only be callable from arguments objects")?
             .get(index.get())
     {
         // a. Assert: map contains a formal parameter mapping for P.
@@ -493,7 +493,7 @@ pub(crate) fn arguments_exotic_set(
         // a. Let setStatus be Set(map, P, V, false).
         // b. Assert: setStatus is true because formal parameters mapped by argument objects are always writable.
         obj.downcast_ref::<MappedArguments>()
-            .expect("arguments exotic method must only be callable from arguments objects")
+            .js_expect("arguments exotic method must only be callable from arguments objects")?
             .set(index.get(), &value);
     }
 
@@ -521,7 +521,7 @@ pub(crate) fn arguments_exotic_delete(
         // 4. If result is true and isMapped is true, then
         // a. Call map.[[Delete]](P).
         obj.downcast_mut::<MappedArguments>()
-            .expect("arguments exotic method must only be callable from arguments objects")
+            .js_expect("arguments exotic method must only be callable from arguments objects")?
             .delete(index.get());
     }
 
