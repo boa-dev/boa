@@ -16,7 +16,7 @@ use crate::{
 };
 use boa_gc::{Finalize, Gc, Trace, custom_trace};
 use shadow_stack::ShadowStack;
-use std::{future::Future, ops::ControlFlow, pin::Pin, task};
+use std::{future::Future, ops::ControlFlow, path::Path, pin::Pin, task};
 
 #[cfg(feature = "trace")]
 use crate::sys::time::Instant;
@@ -303,8 +303,10 @@ impl Stack {
 
 /// Active runnable in the current vm context.
 #[derive(Debug, Clone, Finalize)]
-pub(crate) enum ActiveRunnable {
+pub enum ActiveRunnable {
+    /// A [**Script Record**](https://tc39.es/ecma262/#sec-script-records)
     Script(Script),
+    /// A [**Source Text Module Record**](https://tc39.es/ecma262/#sec-source-text-module-records).
     Module(Module),
 }
 
@@ -315,6 +317,17 @@ unsafe impl Trace for ActiveRunnable {
             Self::Module(module) => mark(module),
         }
     });
+}
+
+impl ActiveRunnable {
+    /// Gets the path of the runnable, if it has one.
+    #[must_use]
+    pub fn path(&self) -> Option<&Path> {
+        match self {
+            Self::Script(script) => script.path(),
+            Self::Module(module) => module.path(),
+        }
+    }
 }
 
 impl Vm {
