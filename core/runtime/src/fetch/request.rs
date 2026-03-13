@@ -4,6 +4,7 @@
 //!
 //! [mdn]: https://developer.mozilla.org/en-US/docs/Web/API/Request
 use super::HttpRequest;
+use boa_engine::object::builtins::{JsArrayBuffer, JsDataView, JsTypedArray};
 use boa_engine::value::{Convert, TryFromJs};
 use boa_engine::{
     Finalize, JsData, JsObject, JsResult, JsString, JsValue, Trace, boa_class, js_error,
@@ -70,6 +71,7 @@ impl RequestInit {
     pub fn into_request_builder(
         mut self,
         request: Option<HttpRequest<Vec<u8>>>,
+        context: &mut boa_engine::Context,
     ) -> JsResult<HttpRequest<Vec<u8>>> {
         let mut builder = HttpRequest::builder();
         let mut request_body = Vec::new();
@@ -105,11 +107,59 @@ impl RequestInit {
 
         if let Some(body) = &self.body {
             // TODO: add more support types.
-            if let Some(body) = body.as_string() {
-                let body = body.to_std_string().map_err(
+            if let Some(str_body) = body.as_string() {
+                let body_str = str_body.to_std_string().map_err(
                     |_| js_error!(TypeError: "Request constructor: body is not a valid string"),
                 )?;
-                request_body = body.into_bytes();
+                request_body = body_str.into_bytes();
+            } else if let Some(object) = body.as_object() {
+                if let Ok(buf) = JsArrayBuffer::from_object(object.clone()) {
+                    if let Some(bytes) = buf.to_vec() {
+                        request_body = bytes;
+                    } else {
+                        return Err(
+                            js_error!(TypeError: "Request constructor: ArrayBuffer detached or unusable"),
+                        );
+                    }
+                } else if let Ok(ta) = JsTypedArray::from_object(object.clone()) {
+                    let buffer = ta.buffer(context)?;
+                    let array_buffer = JsArrayBuffer::from_object(
+                        buffer
+                            .as_object()
+                            .expect("buffer must be an object")
+                            .clone(),
+                    )?;
+                    if let Some(bytes) = array_buffer.to_vec() {
+                        let offset = ta.byte_offset(context)?;
+                        let length = ta.byte_length(context)?;
+                        request_body = bytes[offset..offset + length].to_vec();
+                    } else {
+                        return Err(
+                            js_error!(TypeError: "Request constructor: TypedArray buffer detached or unusable"),
+                        );
+                    }
+                } else if let Ok(dv) = JsDataView::from_object(object.clone()) {
+                    let buffer = dv.buffer(context)?;
+                    let array_buffer = JsArrayBuffer::from_object(
+                        buffer
+                            .as_object()
+                            .expect("buffer must be an object")
+                            .clone(),
+                    )?;
+                    if let Some(bytes) = array_buffer.to_vec() {
+                        let offset = dv.byte_offset(context)? as usize;
+                        let length = dv.byte_length(context)? as usize;
+                        request_body = bytes[offset..offset + length].to_vec();
+                    } else {
+                        return Err(
+                            js_error!(TypeError: "Request constructor: DataView buffer detached or unusable"),
+                        );
+                    }
+                } else {
+                    return Err(
+                        js_error!(TypeError: "Request constructor: body is not a supported type"),
+                    );
+                }
             } else {
                 return Err(
                     js_error!(TypeError: "Request constructor: body is not a supported type"),
@@ -158,6 +208,7 @@ impl JsRequest {
     pub fn create_from_js(
         input: Either<JsString, JsRequest>,
         options: Option<RequestInit>,
+        context: &mut boa_engine::Context,
     ) -> JsResult<Self> {
         let request = match input {
             Either::Left(uri) => {
@@ -175,7 +226,7 @@ impl JsRequest {
         };
 
         if let Some(options) = options {
-            let inner = options.into_request_builder(Some(request))?;
+            let inner = options.into_request_builder(Some(request), context)?;
             Ok(Self { inner })
         } else {
             Ok(Self { inner: request })
@@ -199,6 +250,7 @@ impl JsRequest {
     pub fn constructor(
         input: Either<JsString, JsObject>,
         options: Option<RequestInit>,
+        context: &mut boa_engine::Context,
     ) -> JsResult<Self> {
         // Need to use a match as `Either::map_right` does not have an equivalent
         // `Either::map_right_ok`.
@@ -212,6 +264,6 @@ impl JsRequest {
             }
             Either::Left(i) => Either::Left(i),
         };
-        JsRequest::create_from_js(input, options)
+        JsRequest::create_from_js(input, options, context)
     }
 }

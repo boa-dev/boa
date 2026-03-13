@@ -39,10 +39,13 @@ fn request_constructor() {
                 "Hello World".as_bytes()
             );
         }),
-        TestAction::inspect_context(|_ctx| {
-            let request =
-                JsRequest::create_from_js(Either::Left(js_string!("http://example.com")), None)
-                    .unwrap();
+        TestAction::inspect_context(|ctx| {
+            let request = JsRequest::create_from_js(
+                Either::Left(js_string!("http://example.com")),
+                None,
+                ctx,
+            )
+            .unwrap();
             assert_eq!(request.uri().to_string(), "http://example.com/");
         }),
     ]);
@@ -149,6 +152,40 @@ fn request_clone_no_body_preserved() {
             let request_obj = request.as_object().unwrap();
             let request = request_obj.downcast_ref::<JsRequest>().unwrap();
             assert_eq!(request.inner().body().as_slice(), b"");
+        }),
+    ]);
+}
+#[test]
+fn request_body_typedarray() {
+    run_test_actions([
+        TestAction::inspect_context(|ctx| {
+            let fetcher = TestFetcher::default();
+            crate::fetch::register(fetcher, None, ctx).expect("failed to register fetch");
+        }),
+        TestAction::run(
+            r#"
+                const buf = new Uint8Array([104, 101, 108, 108, 111]); // "hello"
+                globalThis.req1 = new Request("http://unit.test", {
+                    method: "POST",
+                    body: buf,
+                });
+                const dv = new DataView(buf.buffer);
+                globalThis.req2 = new Request("http://unit.test", {
+                    method: "POST",
+                    body: dv,
+                });
+            "#,
+        ),
+        TestAction::inspect_context(|ctx| {
+            let request1 = ctx.global_object().get(js_str!("req1"), ctx).unwrap();
+            let request1_obj = request1.as_object().unwrap();
+            let request1 = request1_obj.downcast_ref::<JsRequest>().unwrap();
+            assert_eq!(request1.inner().body().as_slice(), b"hello");
+
+            let request2 = ctx.global_object().get(js_str!("req2"), ctx).unwrap();
+            let request2_obj = request2.as_object().unwrap();
+            let request2 = request2_obj.downcast_ref::<JsRequest>().unwrap();
+            assert_eq!(request2.inner().body().as_slice(), b"hello");
         }),
     ]);
 }

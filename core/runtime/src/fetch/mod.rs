@@ -146,7 +146,7 @@ async fn fetch_inner<T: Fetcher>(
     };
 
     let mut request = if let Some(options) = options {
-        options.into_request_builder(Some(request))?
+        options.into_request_builder(Some(request), &mut context.borrow_mut())?
     } else {
         request
     };
