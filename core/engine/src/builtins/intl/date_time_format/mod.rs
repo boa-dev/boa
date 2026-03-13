@@ -30,7 +30,7 @@ use crate::{
         FunctionObjectBuilder, JsFunction, JsObject, ObjectInitializer,
         internal_methods::get_prototype_from_constructor,
     },
-    property::Attribute,
+    property::{Attribute, PropertyDescriptor},
     realm::Realm,
     string::StaticJsStrings,
 };
@@ -152,7 +152,7 @@ impl BuiltInConstructor for DateTimeFormat {
     ) -> JsResult<JsValue> {
         // NOTE (nekevss): separate calls to `CreateDateTimeFormat` to avoid clone.
         // 1. If NewTarget is undefined, let newTarget be the active function object, else let newTarget be NewTarget.
-        let new_target = if new_target.is_undefined() {
+        let new_target_inner = &if new_target.is_undefined() {
             context
                 .active_function_object()
                 .unwrap_or_else(|| {
@@ -171,7 +171,7 @@ impl BuiltInConstructor for DateTimeFormat {
 
         // 2. Let dateTimeFormat be ? CreateDateTimeFormat(newTarget, locales, options, any, date).
         let date_time_format = create_date_time_format(
-            &new_target,
+            new_target_inner,
             locales,
             options,
             FormatType::Any,
@@ -179,31 +179,63 @@ impl BuiltInConstructor for DateTimeFormat {
             context,
         )?;
 
-        // TODO: Should we support the ChainDateTimeFormat?
         // 3. If the implementation supports the normative optional constructor mode of 4.3 Note 1, then
-        // a. Let this be the this value.
-        // b. Return ? ChainDateTimeFormat(dateTimeFormat, NewTarget, this).
-        // 4. Return dateTimeFormat.
-        Ok(date_time_format.into())
+        //     a. Let this be the this value.
+        //     b. Return ? ChainDateTimeFormat(dateTimeFormat, NewTarget, this).
+        // ChainDateTimeFormat ( dateTimeFormat, newTarget, this )
+        // <https://tc39.es/ecma402/#sec-chaindatetimeformat>
+
+        let this = context.vm.stack.get_this(context.vm.frame());
+        let Some(this_obj) = this.as_object() else {
+            return Ok(date_time_format.into());
+        };
+
+        let constructor = context
+            .intrinsics()
+            .constructors()
+            .date_time_format()
+            .constructor();
+
+        // 1. If newTarget is undefined and ? OrdinaryHasInstance(%Intl.DateTimeFormat%, this) is true, then
+        if new_target.is_undefined()
+            && JsValue::ordinary_has_instance(&constructor.into(), &this, context)?
+        {
+            let fallback_symbol = context
+                .intrinsics()
+                .objects()
+                .intl()
+                .borrow()
+                .data()
+                .fallback_symbol();
+
+            // a. Perform ? DefinePropertyOrThrow(this, %Intl%.[[FallbackSymbol]],
+            //    PropertyDescriptor{ [[Value]]: dateTimeFormat, [[Writable]]: false,
+            //    [[Enumerable]]: false, [[Configurable]]: false }).
+            this_obj.define_property_or_throw(
+                fallback_symbol,
+                PropertyDescriptor::builder()
+                    .value(date_time_format)
+                    .writable(false)
+                    .enumerable(false)
+                    .configurable(false),
+                context,
+            )?;
+            // b. Return this.
+            Ok(this)
+        } else {
+            // 4. Return dateTimeFormat.
+            Ok(date_time_format.into())
+        }
     }
 }
 
 impl DateTimeFormat {
     fn get_format(this: &JsValue, _: &[JsValue], context: &mut Context) -> JsResult<JsValue> {
         // 1. Let dtf be the this value.
-        let object = this.as_object().ok_or_else(|| {
-            JsNativeError::typ()
-                .with_message("the this value of Intl.DateTimeFormat must be an object.")
-        })?;
-
-        // NOTE (nekevss): Defer Step 2
         // 2. If the implementation supports the normative optional constructor mode of 4.3 Note 1, then
-        // a. Set dtf to ? UnwrapDateTimeFormat(dtf).
+        //     a. Set dtf to ? UnwrapDateTimeFormat(dtf).
         // 3. Perform ? RequireInternalSlot(dtf, [[InitializedDateTimeFormat]]).
-        let dtf_object = object.downcast::<Self>().map_err(|_| {
-            JsNativeError::typ()
-                .with_message("the `this` object must be an initializedDateTimeFormat object")
-        })?;
+        let dtf_object = unwrap_date_time_format(this, context)?;
         let dtf_clone = dtf_object.clone();
         let mut dtf = dtf_object.borrow_mut();
 
@@ -338,21 +370,12 @@ impl DateTimeFormat {
         //This function provides access to the locale and options computed during initialization of the object.
 
         // 1. Let dtf be the this value.
-
-        // (This is an optional step; boa does not implement constructor wrapping mode)
         // 2. If the implementation supports the normative optional constructor mode of 4.3 Note 1, then
         //       a. Set dtf to ? UnwrapDateTimeFormat(dtf).
-
         // 3. Perform ? RequireInternalSlot(dtf, [[InitializedDateTimeFormat]]).
-        let object = this.as_object();
-        let dtf = object
-            .as_ref()
-            .and_then(JsObject::downcast_ref::<Self>)
-            .ok_or_else(|| {
-                JsNativeError::typ().with_message(
-                    "`resolvedOptions` can only be called on a `DateTimeFormat` object",
-                )
-            })?;
+        let dtf_object = unwrap_date_time_format(this, context)?;
+        let dtf = dtf_object.borrow();
+        let dtf = dtf.data();
 
         // 4. Let options be OrdinaryObjectCreate(%Object.prototype%).
         // 5. For each row of Table 15, except the header row, in table order, do
@@ -892,4 +915,55 @@ pub(crate) enum FormatType {
 pub(crate) enum FormatDefaults {
     Date,
     Time,
+}
+
+/// Abstract operation [`UnwrapDateTimeFormat ( dtf )`][spec].
+///
+/// This also checks that the returned object is a `DateTimeFormat`, which skips the
+/// call to `RequireInternalSlot`.
+///
+/// [spec]: https://tc39.es/ecma402/#sec-unwrapdatetimeformat
+fn unwrap_date_time_format(
+    dtf: &JsValue,
+    context: &mut Context,
+) -> JsResult<JsObject<DateTimeFormat>> {
+    // 1. If Type(dtf) is not Object, throw a TypeError exception.
+    let dtf_o = dtf.as_object().ok_or_else(|| {
+        JsNativeError::typ().with_message("value was not an `Intl.DateTimeFormat` object")
+    })?;
+
+    if let Ok(dtf) = dtf_o.clone().downcast::<DateTimeFormat>() {
+        // 3. Return dtf.
+        return Ok(dtf);
+    }
+
+    // 2. If dtf does not have an [[InitializedDateTimeFormat]] internal slot and
+    //    ? OrdinaryHasInstance(%Intl.DateTimeFormat%, dtf) is true, then
+    let constructor = context
+        .intrinsics()
+        .constructors()
+        .date_time_format()
+        .constructor();
+    if JsValue::ordinary_has_instance(&constructor.into(), dtf, context)? {
+        let fallback_symbol = context
+            .intrinsics()
+            .objects()
+            .intl()
+            .borrow()
+            .data()
+            .fallback_symbol();
+
+        //    a. Return ? Get(dtf, %Intl%.[[FallbackSymbol]]).
+        if let Some(dtf) = dtf_o
+            .get(fallback_symbol, context)?
+            .as_object()
+            .and_then(|o| o.downcast::<DateTimeFormat>().ok())
+        {
+            return Ok(dtf);
+        }
+    }
+
+    Err(JsNativeError::typ()
+        .with_message("object was not an `Intl.DateTimeFormat` object")
+        .into())
 }
