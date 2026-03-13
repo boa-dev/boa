@@ -390,7 +390,9 @@ fn initializer_to_iterable_loop_initializer(
                         ast::declaration::LexicalDeclaration::Const(_) => {
                             IterableLoopInitializer::Const(decl.binding().clone())
                         }
-                        ast::declaration::LexicalDeclaration::Let(_) => {
+                        ast::declaration::LexicalDeclaration::Let(_)
+                        | ast::declaration::LexicalDeclaration::Using(_)
+                        | ast::declaration::LexicalDeclaration::AwaitUsing(_) => {
                             IterableLoopInitializer::Let(decl.binding().clone())
                         }
                     })
