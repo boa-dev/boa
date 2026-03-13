@@ -53,9 +53,15 @@ pub struct RequestInit {
     body: Option<JsValue>,
     headers: Option<VecOrMap<JsString, Convert<JsString>>>,
     method: Option<Convert<JsString>>,
+    signal: Option<JsObject>,
 }
 
 impl RequestInit {
+    /// Takes the abort signal from the options, if present.
+    pub fn take_signal(&mut self) -> Option<JsObject> {
+        self.signal.take()
+    }
+
     /// Create an [`http::request::Builder`] object and return both the
     /// body specified by JavaScript and the builder.
     ///

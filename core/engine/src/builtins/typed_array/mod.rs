@@ -671,3 +671,6 @@ impl From<TypedArrayElement> for JsValue {
         .into()
     }
 }
+
+#[cfg(test)]
+mod tests;

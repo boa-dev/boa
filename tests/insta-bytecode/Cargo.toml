@@ -1,0 +1,11 @@
+[package]
+name = "insta-bytecode"
+publish = false
+version.workspace = true
+edition.workspace = true
+
+[dependencies]
+boa_engine = { workspace = true }
+
+[dev-dependencies]
+insta = { version = "1.46.3", features = ["filters", "glob"] }

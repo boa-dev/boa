@@ -2,8 +2,8 @@ use super::{Display, HashSet, JsValue, JsVariant, fmt};
 use crate::{
     JsError, JsObject, JsString,
     builtins::{
-        Array, Promise, error::Error, map::ordered_map::OrderedMap, promise::PromiseState,
-        set::ordered_set::OrderedSet,
+        Array, Promise, error::Error, function::OrdinaryFunction, map::ordered_map::OrderedMap,
+        promise::PromiseState, set::ordered_set::OrderedSet,
     },
     js_string,
     property::{DescriptorKind, PropertyDescriptor, PropertyKey},
@@ -284,25 +284,30 @@ pub(crate) fn log_value_to(
                     }
                 }
                 f.write_str(" }")
-            } else if v.is_constructor() {
-                // FIXME: ArrayBuffer is not [class ArrayBuffer] but we cannot distinguish it.
-                let name = v
-                    .get_property(&PropertyKey::from(js_string!("name")))
-                    .and_then(|d| Some(d.value()?.as_string()?.to_std_string_escaped()));
-                match name {
-                    Some(name) => write!(f, "[class {name}]"),
-                    None => f.write_str("[class (anonymous)]"),
-                }
-            } else if v.is_callable() {
-                let name = v
-                    .get_property(&PropertyKey::from(js_string!("name")))
-                    .and_then(|d| Some(d.value()?.as_string()?.to_std_string_escaped()));
-                match name {
-                    Some(name) => write!(f, "[Function: {name}]"),
-                    None => f.write_str("[Function (anonymous)]"),
-                }
             } else {
-                Display::fmt(&x.display_obj(print_internals), f)
+                let is_class_constructor = v
+                    .downcast_ref::<OrdinaryFunction>()
+                    .is_some_and(|f| f.codeblock().is_class_constructor());
+
+                if is_class_constructor {
+                    let name = v
+                        .get_property(&PropertyKey::from(js_string!("name")))
+                        .and_then(|d| Some(d.value()?.as_string()?.to_std_string_escaped()));
+                    match name {
+                        Some(name) => write!(f, "[class {name}]"),
+                        None => f.write_str("[class (anonymous)]"),
+                    }
+                } else if v.is_callable() {
+                    let name = v
+                        .get_property(&PropertyKey::from(js_string!("name")))
+                        .and_then(|d| Some(d.value()?.as_string()?.to_std_string_escaped()));
+                    match name {
+                        Some(name) => write!(f, "[Function: {name}]"),
+                        None => f.write_str("[Function (anonymous)]"),
+                    }
+                } else {
+                    Display::fmt(&x.display_obj(print_internals), f)
+                }
             }
         }
         JsVariant::Null => write!(f, "null"),
