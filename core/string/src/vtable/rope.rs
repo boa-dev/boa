@@ -4,7 +4,7 @@ use std::ptr::{self, NonNull};
 use std::sync::OnceLock;
 
 /// Fibonacci numbers for rope balancing thresholds.
-/// F[n] = Fib(n + 2). A rope of depth n is balanced if its length >= F[n].
+/// `F[n] = Fib(n + 2)`. A rope of depth `n` is balanced if its length >= `F[n]`.
 static FIBONACCI_THRESHOLDS: [usize; 41] = [
     1,
     2,
