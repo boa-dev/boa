@@ -1,7 +1,11 @@
 use boa_macros::js_str;
 use indoc::indoc;
 
-use crate::{JsNativeErrorKind, JsValue, TestAction, js_string, run_test_actions};
+use crate::{
+    JsNativeErrorKind, JsValue, TestAction,
+    error::RuntimeLimitError,
+    js_string, run_test_actions,
+};
 
 #[test]
 fn length() {
@@ -141,6 +145,17 @@ fn repeat_generic() {
         TestAction::assert_eq("(1).repeat(1)", js_str!("1")),
         TestAction::assert_eq("(1).repeat(5)", js_str!("11111")),
         TestAction::assert_eq("(12).repeat(3)", js_str!("121212")),
+    ]);
+}
+
+#[test]
+fn repeat_respects_loop_runtime_limit() {
+    run_test_actions([
+        TestAction::inspect_context(|context| {
+            context.runtime_limits_mut().set_loop_iteration_limit(10);
+        }),
+        TestAction::assert_runtime_limit_error("'x'.repeat(11)", RuntimeLimitError::LoopIteration),
+        TestAction::assert_eq("'x'.repeat(10)", js_str!("xxxxxxxxxx")),
     ]);
 }
 
