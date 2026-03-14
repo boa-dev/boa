@@ -72,10 +72,64 @@ impl PropertyName {
 impl ToInternedString for PropertyName {
     fn to_interned_string(&self, interner: &Interner) -> String {
         match self {
-            Self::Literal(key) => interner.resolve_expect(key.sym()).to_string(),
+            Self::Literal(key) => {
+                let name = interner.resolve_expect(key.sym()).to_string();
+                if is_identifier_name(&name) {
+                    name
+                } else {
+                    format!("\"{}\"", escape_js_string(&name))
+                }
+            }
             Self::Computed(key) => format!("[{}]", key.to_interned_string(interner)),
         }
     }
+}
+
+fn escape_js_string(value: &str) -> String {
+    let mut escaped = String::with_capacity(value.len());
+
+    for ch in value.chars() {
+        match ch {
+            '"' => escaped.push_str("\\\""),
+            '\\' => escaped.push_str("\\\\"),
+            '\n' => escaped.push_str("\\n"),
+            '\r' => escaped.push_str("\\r"),
+            '\t' => escaped.push_str("\\t"),
+            '\u{0008}' => escaped.push_str("\\b"),
+            '\u{000C}' => escaped.push_str("\\f"),
+            '\u{000B}' => escaped.push_str("\\v"),
+            '\u{2028}' => escaped.push_str("\\u2028"),
+            '\u{2029}' => escaped.push_str("\\u2029"),
+            ch if ch < ' ' => {
+                use core::fmt::Write as _;
+                let _ = write!(escaped, "\\u{:04X}", ch as u32);
+            }
+            _ => escaped.push(ch),
+        }
+    }
+
+    escaped
+}
+
+fn is_identifier_name(value: &str) -> bool {
+    let mut chars = value.chars();
+
+    let Some(first) = chars.next() else {
+        return false;
+    };
+
+    // Be conservative: accept only ASCII identifier start chars.
+    if !(first == '$' || first == '_' || first.is_ascii_alphabetic()) {
+        return false;
+    }
+
+    chars.all(|ch| {
+        ch == '$'
+            || ch == '_'
+            || ch == '\u{200C}'
+            || ch == '\u{200D}'
+            || ch.is_ascii_alphanumeric()
+    })
 }
 
 impl From<Identifier> for PropertyName {
