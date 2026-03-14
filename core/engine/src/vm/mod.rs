@@ -898,6 +898,8 @@ impl Context {
 
             if runtime_budget == 0 {
                 runtime_budget = budget;
+                // TODO: change the approach of yielding so we may yield in the middle tailcalling
+                // maybe can be done by adding Yield to the ControlFlow enum?
                 yield_now().await;
             }
         }

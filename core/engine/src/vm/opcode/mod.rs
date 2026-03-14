@@ -399,6 +399,31 @@ macro_rules! generate_opcodes {
             )*
         }
 
+        type OpcodeHandlerBudget = fn(&mut Context, usize, &mut u32) -> ControlFlow<CompletionRecord>;
+
+        pub(crate) const OPCODE_HANDLERS_BUDGET: [OpcodeHandlerBudget; 256] = {
+            [
+                $(
+                    paste::paste! { [<handle_ $Variant:snake _budget>] },
+                )*
+            ]
+        };
+
+        $(
+            paste::paste! {
+                #[inline(always)]
+                #[allow(unused_parens)]
+                fn [<handle_ $Variant:snake _budget>](context: &mut Context, pc: usize, budget: &mut u32) -> ControlFlow<CompletionRecord> {
+                    *budget = budget.saturating_sub(u32::from($Variant::COST));
+                    let bytes = &context.vm.frame().code_block.bytecode.bytes;
+                    let (args, next_pc) = <($($($FieldType),*)?)>::decode(bytes, pc + 1);
+                    context.vm.frame_mut().pc = next_pc as u32;
+                    let result = $Variant::operation(args, context);
+                    IntoCompletionRecord::into_completion_record(result, context)
+                }
+            }
+        )*
+
         $(
             $(
                 struct $Variant {}
@@ -2284,6 +2309,7 @@ macro_rules! for_each_opcode {
     };
 }
 
+// Budget handlers are generated here
 for_each_opcode!(generate_opcodes);
 
 #[cfg(not(all(feature = "tailcall", boa_nightly)))]

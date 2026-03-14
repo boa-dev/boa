@@ -44,16 +44,6 @@ macro_rules! generate_opcode_tailcall_handlers {
             ]
         };
 
-        type OpcodeHandlerBudget = fn(&mut Context, usize, &mut u32) -> ControlFlow<CompletionRecord>;
-
-        pub(crate) const OPCODE_HANDLERS_BUDGET: [OpcodeHandlerBudget; 256] = {
-            [
-                $(
-                    paste::paste! { [<handle_ $Variant:snake _budget>] },
-                )*
-            ]
-        };
-
         $(
             paste::paste! {
                 #[allow(unused_parens)]
@@ -73,21 +63,6 @@ macro_rules! generate_opcode_tailcall_handlers {
                         ControlFlow::Continue(()) => become context.dispatch_next(context.vm.frame().pc as usize),
                         ControlFlow::Break(value) => value,
                     }
-                }
-            }
-        )*
-
-        $(
-            paste::paste! {
-                #[inline(always)]
-                #[allow(unused_parens)]
-                fn [<handle_ $Variant:snake _budget>](context: &mut Context, pc: usize, budget: &mut u32) -> ControlFlow<CompletionRecord> {
-                    *budget = budget.saturating_sub(u32::from($Variant::COST));
-                    let bytes = &context.vm.frame().code_block.bytecode.bytes;
-                    let (args, next_pc) = <($($($FieldType),*)?)>::decode(bytes, pc + 1);
-                    context.vm.frame_mut().pc = next_pc as u32;
-                    let result = $Variant::operation(args, context);
-                    IntoCompletionRecord::into_completion_record(result, context)
                 }
             }
         )*
