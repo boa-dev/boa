@@ -20,6 +20,19 @@ fn headers_are_iterable() {
 
                 const map = new Map(headers);
                 assertEq(map.get("x"), "y");
+
+                const keys = [...headers.keys()];
+                assertEq(keys.length, 1);
+                assertEq(keys[0], "x");
+
+                const values = [...headers.values()];
+                assertEq(values.length, 1);
+                assertEq(values[0], "y");
+
+                const iterEntries = [...headers.entries()];
+                assertEq(iterEntries.length, 1);
+                assertEq(iterEntries[0][0], "x");
+                assertEq(iterEntries[0][1], "y");
             "#,
         ),
     ]);

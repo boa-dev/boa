@@ -3,17 +3,17 @@
 //! See <https://developer.mozilla.org/en-US/docs/Web/API/Headers>.
 #![allow(clippy::needless_pass_by_value)]
 
+use boa_engine::builtins::iterable::create_iter_result_object;
 use boa_engine::interop::JsClass;
-use boa_engine::object::builtins::{JsArray, TypedJsFunction};
+use boa_engine::native_function::NativeFunction;
 use boa_engine::object::FunctionObjectBuilder;
+use boa_engine::object::builtins::{JsArray, TypedJsFunction};
 use boa_engine::property::PropertyDescriptor;
 use boa_engine::value::{Convert, TryFromJs};
 use boa_engine::{
     Context, Finalize, JsData, JsObject, JsResult, JsString, JsValue, Trace, boa_class, js_error,
     js_string,
 };
-use boa_engine::builtins::iterable::create_iter_result_object;
-use boa_engine::native_function::NativeFunction;
 use http::header::HeaderMap as HttpHeaderMap;
 use http::{HeaderName, HeaderValue};
 use std::cell::RefCell;
@@ -60,16 +60,19 @@ impl HeadersIterator {
     }
 
     /// Gets the next entry in the headers iterator.
-    fn next(&mut self, context: &mut Context) -> JsResult<JsValue> {
+    fn next(&mut self, context: &mut Context) -> JsValue {
         let headers_data = self.headers.headers.borrow();
-        let headers_vec: Vec<_> = headers_data.iter().collect();
+        let mut iter = headers_data.iter();
 
-        if self.index >= headers_vec.len() {
-            return Ok(create_iter_result_object(JsValue::undefined(), true, context));
-        }
-
-        let (key, value) = headers_vec[self.index];
-        self.index += 1;
+        let (key, value) = match iter.nth(self.index) {
+            Some((key, value)) => {
+                self.index += 1;
+                (key, value)
+            }
+            None => {
+                return create_iter_result_object(JsValue::undefined(), true, context);
+            }
+        };
 
         let value_obj = match self.kind {
             HeadersIteratorKind::Entries => {
@@ -78,10 +81,12 @@ impl HeadersIterator {
                 JsArray::from_iter([key_val, val_val], context).into()
             }
             HeadersIteratorKind::Keys => JsString::from(key.as_str()).into(),
-            HeadersIteratorKind::Values => JsString::from(value.to_str().unwrap_or_default()).into(),
+            HeadersIteratorKind::Values => {
+                JsString::from(value.to_str().unwrap_or_default()).into()
+            }
         };
 
-        Ok(create_iter_result_object(value_obj, false, context))
+        create_iter_result_object(value_obj, false, context)
     }
 }
 
@@ -122,12 +127,16 @@ fn headers_iterator_next(
         .and_then(JsObject::downcast_mut::<HeadersIterator>)
         .ok_or_else(|| js_error!(TypeError: "`this` is not a Headers iterator"))?;
 
-    iterator.next(context)
+    Ok(iterator.next(context))
 }
 
 /// Creates a Headers iterator object wrapper.
 fn create_headers_iterator_object(iterator: HeadersIterator, context: &mut Context) -> JsValue {
-    let proto = context.intrinsics().objects().iterator_prototypes().iterator();
+    let proto = context
+        .intrinsics()
+        .objects()
+        .iterator_prototypes()
+        .iterator();
     let iterator_obj = JsObject::from_proto_and_data(proto, iterator);
 
     let next_fn = FunctionObjectBuilder::new(
@@ -139,16 +148,17 @@ fn create_headers_iterator_object(iterator: HeadersIterator, context: &mut Conte
     .constructor(false)
     .build();
 
-    #[allow(let_underscore_drop)]
-    let _ = iterator_obj.define_property_or_throw(
-        js_string!("next"),
-        PropertyDescriptor::builder()
-            .value(next_fn)
-            .writable(true)
-            .enumerable(false)
-            .configurable(true),
-        context,
-    );
+    iterator_obj
+        .define_property_or_throw(
+            js_string!("next"),
+            PropertyDescriptor::builder()
+                .value(next_fn)
+                .writable(true)
+                .enumerable(false)
+                .configurable(true),
+            context,
+        )
+        .expect("failed to define 'next' method on Headers iterator object");
 
     iterator_obj.into()
 }

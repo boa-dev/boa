@@ -13,8 +13,8 @@ use crate::{
     Context, JsArgs, JsExpect, JsResult, JsString, JsValue,
     builtins::{Array, BuiltInObject, Number, RegExp},
     context::intrinsics::{Intrinsics, StandardConstructor, StandardConstructors},
-    error::RuntimeLimitError,
     error::JsNativeError,
+    error::RuntimeLimitError,
     js_string,
     object::{JsObject, internal_methods::get_prototype_from_constructor},
     property::{Attribute, PropertyDescriptor},
@@ -721,8 +721,7 @@ impl String {
 
         let n = u64::try_from(n).expect("n was checked to be non-negative");
 
-        if n
-            .checked_mul(len as u64)
+        if n.checked_mul(len as u64)
             .is_none_or(|total_len| total_len > (Self::MAX_STRING_LENGTH as u64))
         {
             return Err(JsNativeError::range()

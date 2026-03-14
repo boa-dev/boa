@@ -206,17 +206,25 @@ pub use js_module::fetch;
 
 fn headers_iterator(this: &JsValue, _: &[JsValue], context: &mut Context) -> JsResult<JsValue> {
     // Call the entries method through the JavaScript object mechanism
-    let this_object = this.as_object()
-        .ok_or_else(|| {
-            js_error!(TypeError: "`Headers.prototype[Symbol.iterator]` requires a `Headers` object")
-        })?;
+    let this_object = this.as_object().ok_or_else(
+        || js_error!(TypeError: "`Headers.prototype[Symbol.iterator]` requires a `Headers` object"),
+    )?;
+
+    // Brand check: ensure `this` is actually a `Headers` instance.
+    if this_object.downcast_ref::<JsHeaders>().is_none() {
+        return Err(
+            js_error!(TypeError: "`Headers.prototype[Symbol.iterator]` requires a `Headers` object"),
+        );
+    }
 
     // Get the entries method from the prototype and call it
-    let entries_fn = this_object
-        .get(js_string!("entries"), context)?;
-    
-    entries_fn.as_function()
-        .ok_or_else(|| js_error!(TypeError: "entries is not a function"))?
+    let entries_fn = this_object.get(js_string!("entries"), context)?;
+
+    entries_fn
+        .as_function()
+        .ok_or_else(|| {
+            js_error!(TypeError: "`Headers.prototype[Symbol.iterator]` expected `this.entries` to be a function")
+        })?
         .call(this, &[], context)
 }
 
