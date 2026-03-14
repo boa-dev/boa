@@ -73,6 +73,12 @@ impl JsHeaders {
             headers: Rc::new(RefCell::new(http)),
         }
     }
+
+    pub(crate) fn deep_clone(&self) -> Self {
+        Self {
+            headers: Rc::new(RefCell::new((*self.headers.borrow()).clone())),
+        }
+    }
 }
 
 #[boa_class(rename = "Headers")]
