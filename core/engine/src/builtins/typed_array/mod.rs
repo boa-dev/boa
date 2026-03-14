@@ -533,6 +533,41 @@ impl TypedArrayKind {
             TypedArrayKind::Float64 => value.to_number(context).map(TypedArrayElement::Float64),
         }
     }
+
+    /// Convert `value` into the typed array element corresponding to this `TypedArrayKind`,
+    /// assuming the `ContentType` of this kind is `Number`.
+    pub(crate) fn to_element_f64(self, value: f64) -> TypedArrayElement {
+        match self {
+            TypedArrayKind::Int8 => TypedArrayElement::Int8(value as i8),
+            TypedArrayKind::Uint8 => TypedArrayElement::Uint8(value as u8),
+            TypedArrayKind::Uint8Clamped => {
+                TypedArrayElement::Uint8Clamped(ClampedU8(value.clamp(0.0, 255.0).round() as u8))
+            }
+            TypedArrayKind::Int16 => TypedArrayElement::Int16(value as i16),
+            TypedArrayKind::Uint16 => TypedArrayElement::Uint16(value as u16),
+            TypedArrayKind::Int32 => TypedArrayElement::Int32(value as i32),
+            TypedArrayKind::Uint32 => TypedArrayElement::Uint32(value as u32),
+            #[cfg(feature = "float16")]
+            TypedArrayKind::Float16 => {
+                TypedArrayElement::Float16(Float16(float16::f16::from_f64(value)))
+            }
+            TypedArrayKind::Float32 => TypedArrayElement::Float32(value as f32),
+            TypedArrayKind::Float64 => TypedArrayElement::Float64(value),
+            TypedArrayKind::BigInt64 | TypedArrayKind::BigUint64 => {
+                panic!("cannot convert f64 to BigInt typed array element")
+            }
+        }
+    }
+
+    /// Convert `value` into the typed array element corresponding to this `TypedArrayKind`,
+    /// assuming the `ContentType` of this kind is `BigInt`.
+    pub(crate) fn to_element_i64(self, value: i64) -> TypedArrayElement {
+        match self {
+            TypedArrayKind::BigInt64 => TypedArrayElement::BigInt64(value),
+            TypedArrayKind::BigUint64 => TypedArrayElement::BigUint64(value as u64),
+            _ => panic!("cannot convert i64 to Number typed array element"),
+        }
+    }
 }
 
 /// An element of a certain `TypedArray` kind.
@@ -577,178 +612,52 @@ impl TypedArrayElement {
         }
     }
 
+    /// Gets the `f64` representation of this `TypedArrayElement`.
+    ///
+    /// # Panics
+    ///
+    /// Panics if the `ContentType` of `self` is not `Number`.
+    pub(crate) fn as_f64(self) -> f64 {
+        match self {
+            TypedArrayElement::Int8(v) => v.into(),
+            TypedArrayElement::Uint8(v) => v.into(),
+            TypedArrayElement::Uint8Clamped(v) => v.0.into(),
+            TypedArrayElement::Int16(v) => v.into(),
+            TypedArrayElement::Uint16(v) => v.into(),
+            TypedArrayElement::Int32(v) => v.into(),
+            TypedArrayElement::Uint32(v) => v.into(),
+            #[cfg(feature = "float16")]
+            TypedArrayElement::Float16(v) => v.0.to_f64(),
+            TypedArrayElement::Float32(v) => v.into(),
+            TypedArrayElement::Float64(v) => v,
+            TypedArrayElement::BigInt64(_) | TypedArrayElement::BigUint64(_) => {
+                panic!("cannot convert BigInt typed array element to f64")
+            }
+        }
+    }
+
+    /// Gets the `i64` representation of this `TypedArrayElement`.
+    ///
+    /// # Panics
+    ///
+    /// Panics if the `ContentType` of `self` is not `BigInt`.
+    pub(crate) fn as_i64(self) -> i64 {
+        match self {
+            TypedArrayElement::BigInt64(v) => v,
+            TypedArrayElement::BigUint64(v) => v as i64,
+            _ => panic!("cannot convert Number typed array element to i64"),
+        }
+    }
+
     /// Casts this `TypedArrayElement` into another `TypedArrayKind`.
     ///
     /// # Panics
     ///
     /// Panics if the `ContentType` of `self` and `target` don't match.
     pub(crate) fn cast(self, target: TypedArrayKind) -> Self {
-        match (self, target) {
-            (Self::Int8(v), TypedArrayKind::Int8) => v.into(),
-            (Self::Int8(v), TypedArrayKind::Uint8) => (v as u8).into(),
-            (Self::Int8(v), TypedArrayKind::Uint8Clamped) => ClampedU8(v as u8).into(),
-            (Self::Int8(v), TypedArrayKind::Int16) => i16::from(v).into(),
-            (Self::Int8(v), TypedArrayKind::Uint16) => (v as u16).into(),
-            (Self::Int8(v), TypedArrayKind::Int32) => i32::from(v).into(),
-            (Self::Int8(v), TypedArrayKind::Uint32) => (v as u32).into(),
-            (Self::Int8(v), TypedArrayKind::Float32) => f32::from(v).into(),
-            (Self::Int8(v), TypedArrayKind::Float64) => f64::from(v).into(),
-
-            (Self::Uint8(v), TypedArrayKind::Int8) => (v as i8).into(),
-            (Self::Uint8(v), TypedArrayKind::Uint8) => v.into(),
-            (Self::Uint8(v), TypedArrayKind::Uint8Clamped) => ClampedU8(v).into(),
-            (Self::Uint8(v), TypedArrayKind::Int16) => i16::from(v).into(),
-            (Self::Uint8(v), TypedArrayKind::Uint16) => u16::from(v).into(),
-            (Self::Uint8(v), TypedArrayKind::Int32) => i32::from(v).into(),
-            (Self::Uint8(v), TypedArrayKind::Uint32) => u32::from(v).into(),
-            (Self::Uint8(v), TypedArrayKind::Float32) => f32::from(v).into(),
-            (Self::Uint8(v), TypedArrayKind::Float64) => f64::from(v).into(),
-
-            (Self::Uint8Clamped(v), TypedArrayKind::Int8) => (v.0 as i8).into(),
-            (Self::Uint8Clamped(v), TypedArrayKind::Uint8) => v.0.into(),
-            (Self::Uint8Clamped(v), TypedArrayKind::Uint8Clamped) => v.into(),
-            (Self::Uint8Clamped(v), TypedArrayKind::Int16) => i16::from(v.0).into(),
-            (Self::Uint8Clamped(v), TypedArrayKind::Uint16) => u16::from(v.0).into(),
-            (Self::Uint8Clamped(v), TypedArrayKind::Int32) => i32::from(v.0).into(),
-            (Self::Uint8Clamped(v), TypedArrayKind::Uint32) => u32::from(v.0).into(),
-            (Self::Uint8Clamped(v), TypedArrayKind::Float32) => f32::from(v.0).into(),
-            (Self::Uint8Clamped(v), TypedArrayKind::Float64) => f64::from(v.0).into(),
-
-            (Self::Int16(v), TypedArrayKind::Int8) => (v as i8).into(),
-            (Self::Int16(v), TypedArrayKind::Uint8) => (v as u8).into(),
-            (Self::Int16(v), TypedArrayKind::Uint8Clamped) => {
-                ClampedU8(v.clamp(0, 255) as u8).into()
-            }
-            (Self::Int16(v), TypedArrayKind::Int16) => v.into(),
-            (Self::Int16(v), TypedArrayKind::Uint16) => (v as u16).into(),
-            (Self::Int16(v), TypedArrayKind::Int32) => i32::from(v).into(),
-            (Self::Int16(v), TypedArrayKind::Uint32) => (v as u32).into(),
-            (Self::Int16(v), TypedArrayKind::Float32) => f32::from(v).into(),
-            (Self::Int16(v), TypedArrayKind::Float64) => f64::from(v).into(),
-
-            (Self::Uint16(v), TypedArrayKind::Int8) => (v as i8).into(),
-            (Self::Uint16(v), TypedArrayKind::Uint8) => (v as u8).into(),
-            (Self::Uint16(v), TypedArrayKind::Uint8Clamped) => ClampedU8(v.min(255) as u8).into(),
-            (Self::Uint16(v), TypedArrayKind::Int16) => (v as i16).into(),
-            (Self::Uint16(v), TypedArrayKind::Uint16) => v.into(),
-            (Self::Uint16(v), TypedArrayKind::Int32) => i32::from(v).into(),
-            (Self::Uint16(v), TypedArrayKind::Uint32) => u32::from(v).into(),
-            (Self::Uint16(v), TypedArrayKind::Float32) => f32::from(v).into(),
-            (Self::Uint16(v), TypedArrayKind::Float64) => f64::from(v).into(),
-
-            (Self::Int32(v), TypedArrayKind::Int8) => (v as i8).into(),
-            (Self::Int32(v), TypedArrayKind::Uint8) => (v as u8).into(),
-            (Self::Int32(v), TypedArrayKind::Uint8Clamped) => {
-                ClampedU8(v.clamp(0, 255) as u8).into()
-            }
-            (Self::Int32(v), TypedArrayKind::Int16) => (v as i16).into(),
-            (Self::Int32(v), TypedArrayKind::Uint16) => (v as u16).into(),
-            (Self::Int32(v), TypedArrayKind::Int32) => v.into(),
-            (Self::Int32(v), TypedArrayKind::Uint32) => (v as u32).into(),
-            (Self::Int32(v), TypedArrayKind::Float32) => (v as f32).into(),
-            (Self::Int32(v), TypedArrayKind::Float64) => f64::from(v).into(),
-
-            (Self::Uint32(v), TypedArrayKind::Int8) => (v as i8).into(),
-            (Self::Uint32(v), TypedArrayKind::Uint8) => (v as u8).into(),
-            (Self::Uint32(v), TypedArrayKind::Uint8Clamped) => ClampedU8(v.min(255) as u8).into(),
-            (Self::Uint32(v), TypedArrayKind::Int16) => (v as i16).into(),
-            (Self::Uint32(v), TypedArrayKind::Uint16) => (v as u16).into(),
-            (Self::Uint32(v), TypedArrayKind::Int32) => (v as i32).into(),
-            (Self::Uint32(v), TypedArrayKind::Uint32) => v.into(),
-            (Self::Uint32(v), TypedArrayKind::Float32) => (v as f32).into(),
-            (Self::Uint32(v), TypedArrayKind::Float64) => f64::from(v).into(),
-
-            (Self::Float32(v), TypedArrayKind::Int8) => (v as i8).into(),
-            (Self::Float32(v), TypedArrayKind::Uint8) => (v as u8).into(),
-            (Self::Float32(v), TypedArrayKind::Uint8Clamped) => {
-                ClampedU8(v.clamp(0.0, 255.0).round() as u8).into()
-            }
-            (Self::Float32(v), TypedArrayKind::Int16) => (v as i16).into(),
-            (Self::Float32(v), TypedArrayKind::Uint16) => (v as u16).into(),
-            (Self::Float32(v), TypedArrayKind::Int32) => (v as i32).into(),
-            (Self::Float32(v), TypedArrayKind::Uint32) => (v as u32).into(),
-            (Self::Float32(v), TypedArrayKind::Float32) => v.into(),
-            (Self::Float32(v), TypedArrayKind::Float64) => f64::from(v).into(),
-
-            (Self::Float64(v), TypedArrayKind::Int8) => (v as i8).into(),
-            (Self::Float64(v), TypedArrayKind::Uint8) => (v as u8).into(),
-            (Self::Float64(v), TypedArrayKind::Uint8Clamped) => {
-                ClampedU8(v.clamp(0.0, 255.0).round() as u8).into()
-            }
-            (Self::Float64(v), TypedArrayKind::Int16) => (v as i16).into(),
-            (Self::Float64(v), TypedArrayKind::Uint16) => (v as u16).into(),
-            (Self::Float64(v), TypedArrayKind::Int32) => (v as i32).into(),
-            (Self::Float64(v), TypedArrayKind::Uint32) => (v as u32).into(),
-            (Self::Float64(v), TypedArrayKind::Float32) => (v as f32).into(),
-            (Self::Float64(v), TypedArrayKind::Float64) => v.into(),
-
-            (Self::BigInt64(v), TypedArrayKind::BigInt64) => v.into(),
-            (Self::BigInt64(v), TypedArrayKind::BigUint64) => (v as u64).into(),
-
-            (Self::BigUint64(v), TypedArrayKind::BigInt64) => (v as i64).into(),
-            (Self::BigUint64(v), TypedArrayKind::BigUint64) => v.into(),
-
-            #[cfg(feature = "float16")]
-            (Self::Float16(v), TypedArrayKind::Int8) => (v.0.to_f32() as i8).into(),
-            #[cfg(feature = "float16")]
-            (Self::Float16(v), TypedArrayKind::Uint8) => (v.0.to_f32() as u8).into(),
-            #[cfg(feature = "float16")]
-            (Self::Float16(v), TypedArrayKind::Uint8Clamped) => {
-                ClampedU8(v.0.to_f32().clamp(0.0, 255.0).round() as u8).into()
-            }
-            #[cfg(feature = "float16")]
-            (Self::Float16(v), TypedArrayKind::Int16) => (v.0.to_f32() as i16).into(),
-            #[cfg(feature = "float16")]
-            (Self::Float16(v), TypedArrayKind::Uint16) => (v.0.to_f32() as u16).into(),
-            #[cfg(feature = "float16")]
-            (Self::Float16(v), TypedArrayKind::Int32) => (v.0.to_f32() as i32).into(),
-            #[cfg(feature = "float16")]
-            (Self::Float16(v), TypedArrayKind::Uint32) => (v.0.to_f32() as u32).into(),
-            #[cfg(feature = "float16")]
-            (Self::Float16(v), TypedArrayKind::Float16) => v.into(),
-            #[cfg(feature = "float16")]
-            (Self::Float16(v), TypedArrayKind::Float32) => v.0.to_f32().into(),
-            #[cfg(feature = "float16")]
-            (Self::Float16(v), TypedArrayKind::Float64) => v.0.to_f64().into(),
-
-            #[cfg(feature = "float16")]
-            (Self::Int8(v), TypedArrayKind::Float16) => {
-                Float16(float16::f16::from_f32(f32::from(v))).into()
-            }
-            #[cfg(feature = "float16")]
-            (Self::Uint8(v), TypedArrayKind::Float16) => {
-                Float16(float16::f16::from_f32(f32::from(v))).into()
-            }
-            #[cfg(feature = "float16")]
-            (Self::Uint8Clamped(v), TypedArrayKind::Float16) => {
-                Float16(float16::f16::from_f32(f32::from(v.0))).into()
-            }
-            #[cfg(feature = "float16")]
-            (Self::Int16(v), TypedArrayKind::Float16) => {
-                Float16(float16::f16::from_f32(f32::from(v))).into()
-            }
-            #[cfg(feature = "float16")]
-            (Self::Uint16(v), TypedArrayKind::Float16) => {
-                Float16(float16::f16::from_f32(f32::from(v))).into()
-            }
-            #[cfg(feature = "float16")]
-            (Self::Int32(v), TypedArrayKind::Float16) => {
-                Float16(float16::f16::from_f64(f64::from(v))).into()
-            }
-            #[cfg(feature = "float16")]
-            (Self::Uint32(v), TypedArrayKind::Float16) => {
-                Float16(float16::f16::from_f64(f64::from(v))).into()
-            }
-            #[cfg(feature = "float16")]
-            (Self::Float32(v), TypedArrayKind::Float16) => {
-                Float16(float16::f16::from_f32(v)).into()
-            }
-            #[cfg(feature = "float16")]
-            (Self::Float64(v), TypedArrayKind::Float16) => {
-                Float16(float16::f16::from_f64(v)).into()
-            }
-
-            _ => panic!("cannot cast between different content types"),
+        match target.content_type() {
+            ContentType::Number => target.to_element_f64(self.as_f64()),
+            ContentType::BigInt => target.to_element_i64(self.as_i64()),
         }
     }
 }
