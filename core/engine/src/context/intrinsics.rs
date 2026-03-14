@@ -148,6 +148,7 @@ pub struct StandardConstructors {
     aggregate_error: StandardConstructor,
     map: StandardConstructor,
     set: StandardConstructor,
+    shadow_realm: StandardConstructor,
     typed_array: StandardConstructor,
     typed_int8_array: StandardConstructor,
     typed_uint8_array: StandardConstructor,
@@ -243,6 +244,7 @@ impl Default for StandardConstructors {
             aggregate_error: StandardConstructor::default(),
             map: StandardConstructor::default(),
             set: StandardConstructor::default(),
+            shadow_realm: StandardConstructor::default(),
             typed_array: StandardConstructor::default(),
             typed_int8_array: StandardConstructor::default(),
             typed_uint8_array: StandardConstructor::default(),
@@ -589,6 +591,18 @@ impl StandardConstructors {
     #[must_use]
     pub const fn set(&self) -> &StandardConstructor {
         &self.set
+    }
+
+    /// Returns the `ShadowRealm` constructor.
+    ///
+    /// More information:
+    ///  - [ECMAScript reference][spec]
+    ///
+    /// [spec]: https://tc39.es/proposal-shadowrealm/#sec-shadowrealm-constructor
+    #[inline]
+    #[must_use]
+    pub const fn shadow_realm(&self) -> &StandardConstructor {
+        &self.shadow_realm
     }
 
     /// Returns the `TypedArray` constructor.

@@ -28,6 +28,7 @@ pub mod proxy;
 pub mod reflect;
 pub mod regexp;
 pub mod set;
+pub mod shadow_realm;
 pub mod string;
 pub mod symbol;
 pub mod typed_array;
@@ -77,6 +78,7 @@ pub(crate) use self::{
     reflect::Reflect,
     regexp::RegExp,
     set::Set,
+    shadow_realm::ShadowRealm,
     string::String,
     symbol::Symbol,
     typed_array::{
@@ -272,8 +274,9 @@ impl Realm {
         Number::init(self);
         Eval::init(self);
         Set::init(self);
-        SetIterator::init(self);
+        ShadowRealm::init(self);
         String::init(self);
+        SetIterator::init(self);
         StringIterator::init(self);
         RegExp::init(self);
         RegExpStringIterator::init(self);
@@ -408,6 +411,7 @@ pub(crate) fn set_default_global_bindings(context: &mut Context) -> JsResult<()>
     global_binding::<Number>(context)?;
     global_binding::<Eval>(context)?;
     global_binding::<Set>(context)?;
+    global_binding::<ShadowRealm>(context)?;
     global_binding::<String>(context)?;
     global_binding::<RegExp>(context)?;
     global_binding::<BuiltinTypedArray>(context)?;
