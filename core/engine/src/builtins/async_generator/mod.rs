@@ -26,7 +26,7 @@ use crate::{
     vm::{CompletionRecord, GeneratorResumeKind},
 };
 use boa_gc::{Finalize, Trace};
-use std::collections::VecDeque;
+use std::{collections::VecDeque, slice};
 
 use super::{BuiltInBuilder, IntrinsicObject};
 
@@ -143,6 +143,21 @@ impl AsyncGenerator {
         });
         let generator = if_abrupt_reject_promise!(result, promise_capability, context);
 
+        Self::inner_next(
+            &generator,
+            promise_capability,
+            args.get_or_undefined(0).clone(),
+            context,
+        )
+        .map(JsValue::from)
+    }
+
+    pub(crate) fn inner_next(
+        generator: &JsObject<AsyncGenerator>,
+        cap: PromiseCapability,
+        value: JsValue,
+        context: &mut Context,
+    ) -> JsResult<JsObject> {
         // 5. Let state be generator.[[AsyncGeneratorState]].
         let state = generator.borrow().data().state;
 
@@ -152,21 +167,18 @@ impl AsyncGenerator {
             let iterator_result = create_iter_result_object(JsValue::undefined(), true, context);
 
             // b. Perform ! Call(promiseCapability.[[Resolve]], undefined, « iteratorResult »).
-            promise_capability.resolve().call(
-                &JsValue::undefined(),
-                &[iterator_result],
-                context,
-            )?;
+            cap.resolve()
+                .call(&JsValue::undefined(), &[iterator_result], context)?;
 
             // c. Return promiseCapability.[[Promise]].
-            return Ok(promise_capability.promise().clone().into());
+            return Ok(cap.promise);
         }
 
         // 7. Let completion be NormalCompletion(value).
-        let completion = CompletionRecord::Normal(args.get_or_undefined(0).clone());
+        let completion = CompletionRecord::Normal(value);
 
         // 8. Perform AsyncGeneratorEnqueue(generator, completion, promiseCapability).
-        Self::enqueue(&generator, completion.clone(), promise_capability.clone());
+        Self::enqueue(&generator, completion.clone(), cap.clone());
 
         // 9. If state is either suspendedStart or suspendedYield, then
         if state == AsyncGeneratorState::SuspendedStart
@@ -177,7 +189,7 @@ impl AsyncGenerator {
         }
 
         // 11. Return promiseCapability.[[Promise]].
-        Ok(promise_capability.promise().clone().into())
+        Ok(cap.promise)
     }
 
     /// `AsyncGenerator.prototype.return ( value )`
@@ -216,12 +228,26 @@ impl AsyncGenerator {
         });
         let generator = if_abrupt_reject_promise!(result, promise_capability, context);
 
+        Self::inner_return(
+            &generator,
+            promise_capability,
+            args.get_or_undefined(0).clone(),
+            context,
+        )
+        .map(JsValue::from)
+    }
+
+    pub(crate) fn inner_return(
+        generator: &JsObject<AsyncGenerator>,
+        cap: PromiseCapability,
+        return_value: JsValue,
+        context: &mut Context,
+    ) -> JsResult<JsObject> {
         // 5. Let completion be Completion Record { [[Type]]: return, [[Value]]: value, [[Target]]: empty }.
-        let return_value = args.get_or_undefined(0).clone();
         let completion = CompletionRecord::Return(return_value.clone());
 
         // 6. Perform AsyncGeneratorEnqueue(generator, completion, promiseCapability).
-        Self::enqueue(&generator, completion.clone(), promise_capability.clone());
+        Self::enqueue(&generator, completion.clone(), cap.clone());
 
         // 7. Let state be generator.[[AsyncGeneratorState]].
         let state = generator.borrow().data().state;
@@ -243,7 +269,7 @@ impl AsyncGenerator {
         //     a. Assert: state is either executing or draining-queue.
 
         // 11. Return promiseCapability.[[Promise]].
-        Ok(promise_capability.promise().clone().into())
+        Ok(cap.promise)
     }
 
     /// `AsyncGenerator.prototype.throw ( exception )`
@@ -281,6 +307,21 @@ impl AsyncGenerator {
                 .into()
         });
         let generator = if_abrupt_reject_promise!(result, promise_capability, context);
+        Self::inner_throw(
+            &generator,
+            promise_capability,
+            args.get_or_undefined(0).clone(),
+            context,
+        )
+        .map(JsValue::from)
+    }
+
+    pub(crate) fn inner_throw(
+        generator: &JsObject<AsyncGenerator>,
+        cap: PromiseCapability,
+        error_value: JsValue,
+        context: &mut Context,
+    ) -> JsResult<JsObject> {
         let mut r#gen = generator.borrow_mut();
 
         // 5. Let state be generator.[[AsyncGeneratorState]].
@@ -301,22 +342,21 @@ impl AsyncGenerator {
         // 7. If state is completed, then
         if state == AsyncGeneratorState::Completed {
             // a. Perform ! Call(promiseCapability.[[Reject]], undefined, « exception »).
-            promise_capability.reject().call(
+            cap.reject().call(
                 &JsValue::undefined(),
-                &[args.get_or_undefined(0).clone()],
+                slice::from_ref(&error_value),
                 context,
             )?;
 
             // b. Return promiseCapability.[[Promise]].
-            return Ok(promise_capability.promise().clone().into());
+            return Ok(cap.promise().clone().into());
         }
 
         // 8. Let completion be ThrowCompletion(exception).
-        let completion =
-            CompletionRecord::Throw(JsError::from_opaque(args.get_or_undefined(0).clone()));
+        let completion = CompletionRecord::Throw(JsError::from_opaque(error_value));
 
         // 9. Perform AsyncGeneratorEnqueue(generator, completion, promiseCapability).
-        Self::enqueue(&generator, completion.clone(), promise_capability.clone());
+        Self::enqueue(&generator, completion.clone(), cap.clone());
 
         // 10. If state is suspended-yield, then
         if state == AsyncGeneratorState::SuspendedYield {
@@ -328,7 +368,7 @@ impl AsyncGenerator {
         //     a. Assert: state is either executing or draining-queue.
 
         // 12. Return promiseCapability.[[Promise]].
-        Ok(promise_capability.promise().clone().into())
+        Ok(cap.promise().clone().into())
     }
 
     /// `AsyncGeneratorEnqueue ( generator, completion, promiseCapability )`
