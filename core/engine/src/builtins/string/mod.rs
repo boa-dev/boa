@@ -21,6 +21,7 @@ use crate::{
     string::{CodePoint, StaticJsStrings},
     symbol::JsSymbol,
     value::IntegerOrInfinity,
+    vm::opcode::IncrementLoopIteration,
 };
 use boa_macros::utf16;
 
@@ -705,7 +706,10 @@ impl String {
                 let n = n as usize;
                 let mut result = Vec::with_capacity(n);
 
-                std::iter::repeat_n(string.as_str(), n).for_each(|s| result.push(s));
+                for _ in 0..n {
+                    IncrementLoopIteration::operation((), context)?;
+                    result.push(string.as_str());
+                }
 
                 // 6. Return the String value that is made from n copies of S appended together.
                 Ok(JsString::concat_array(&result).into())

@@ -344,6 +344,55 @@ fn loop_runtime_limit() {
 }
 
 #[test]
+fn builtin_loop_runtime_limit_parity() {
+    run_test_actions([
+        TestAction::run("const arr = Array.from({ length: 20 }, (_, i) => i);"),
+        TestAction::run("const ta = Uint8Array.from({ length: 20 }, (_, i) => i);"),
+        TestAction::assert_eq("'ab'.repeat(3)", js_str!("ababab")),
+        TestAction::assert_eq("arr.find(() => false)", JsValue::undefined()),
+        TestAction::assert_eq("ta.find(() => false)", JsValue::undefined()),
+        TestAction::inspect_context(|context| {
+            context.runtime_limits_mut().set_loop_iteration_limit(10);
+        }),
+        TestAction::assert_runtime_limit_error(
+            indoc! {r#"
+                for (let i = 0; i < 20; ++i) { }
+            "#},
+            RuntimeLimitError::LoopIteration,
+        ),
+        TestAction::assert_runtime_limit_error(
+            "'x'.repeat(20)",
+            RuntimeLimitError::LoopIteration,
+        ),
+        TestAction::assert_runtime_limit_error(
+            "arr.find(() => false)",
+            RuntimeLimitError::LoopIteration,
+        ),
+        TestAction::assert_runtime_limit_error(
+            "ta.find(() => false)",
+            RuntimeLimitError::LoopIteration,
+        ),
+        TestAction::assert_runtime_limit_error(
+            "arr.sort()",
+            RuntimeLimitError::LoopIteration,
+        ),
+    ]);
+}
+
+#[test]
+fn repeat_large_count_respects_runtime_limit() {
+    run_test_actions([
+        TestAction::inspect_context(|context| {
+            context.runtime_limits_mut().set_loop_iteration_limit(1);
+        }),
+        TestAction::assert_runtime_limit_error(
+            "'x'.repeat(1_000_000)",
+            RuntimeLimitError::LoopIteration,
+        ),
+    ]);
+}
+
+#[test]
 fn recursion_runtime_limit() {
     run_test_actions([
         TestAction::run(indoc! {r#"

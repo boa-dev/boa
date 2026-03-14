@@ -26,6 +26,7 @@ use crate::{
     realm::Realm,
     string::StaticJsStrings,
     value::IntegerOrInfinity,
+    vm::opcode::IncrementLoopIteration,
 };
 use crate::{builtins::array_buffer::utils::memmove_naive, value::JsVariant};
 
@@ -675,6 +676,8 @@ impl BuiltinTypedArray {
         // 6. Repeat, while k < len,
         let ta = ta.upcast();
         for k in 0..len {
+            IncrementLoopIteration::operation((), context)?;
+
             // a. Let Pk be ! ToString(𝔽(k)).
             // b. Let kValue be ! Get(O, Pk).
             let k_value = ta.get(k, context)?;
@@ -766,6 +769,8 @@ impl BuiltinTypedArray {
 
         let ta = ta.upcast();
         for k in start_index..end_index {
+            IncrementLoopIteration::operation((), context)?;
+
             // a. Let Pk be ! ToString(𝔽(k)).
             // b. Perform ! Set(O, Pk, value, true).
             ta.set(k, value.clone(), true, context)
@@ -818,6 +823,8 @@ impl BuiltinTypedArray {
         // 8. Repeat, while k < len,
         let ta = ta.upcast();
         for k in 0..len {
+            IncrementLoopIteration::operation((), context)?;
+
             // a. Let Pk be ! ToString(𝔽(k)).
             // b. Let kValue be ! Get(O, Pk).
             let k_value = ta.get(k, context).expect("Get cannot fail here");
@@ -1034,6 +1041,8 @@ impl BuiltinTypedArray {
         // 6. Repeat, while k < len,
         let ta = ta.upcast();
         for k in 0..len {
+            IncrementLoopIteration::operation((), context)?;
+
             // a. Let Pk be ! ToString(𝔽(k)).
             // b. Let kValue be ! Get(O, Pk).
             let k_value = ta.get(k, context).expect("Get cannot fail here");
@@ -1099,6 +1108,8 @@ impl BuiltinTypedArray {
         // 11. Repeat, while k < len,
         let ta = ta.upcast();
         for k in k..len {
+            IncrementLoopIteration::operation((), context)?;
+
             // a. Let elementK be ! Get(O, ! ToString(𝔽(k))).
             let element_k = ta.get(k, context).expect("Get cannot fail here");
 
@@ -1163,6 +1174,8 @@ impl BuiltinTypedArray {
         // 11. Repeat, while k < len,
         let ta = ta.upcast();
         for k in k..len {
+            IncrementLoopIteration::operation((), context)?;
+
             // a. Let kPresent be ! HasProperty(O, ! ToString(𝔽(k))).
             // b. If kPresent is true, then
             // b.i. Let elementK be ! Get(O, ! ToString(𝔽(k))).
@@ -1215,6 +1228,8 @@ impl BuiltinTypedArray {
         // 8. Repeat, while k < len,
         let ta = ta.upcast();
         for k in 0..len {
+            IncrementLoopIteration::operation((), context)?;
+
             // a. If k > 0, set R to the string-concatenation of R and sep.
             if k > 0 {
                 r.extend(sep.iter());
@@ -1298,6 +1313,8 @@ impl BuiltinTypedArray {
         // 9. Repeat, while k ≥ 0,
         let ta = ta.upcast();
         for k in (0..k).rev() {
+            IncrementLoopIteration::operation((), context)?;
+
             // a. Let kPresent be ! HasProperty(O, ! ToString(𝔽(k))).
             // b. If kPresent is true, then
             // b.i. Let elementK be ! Get(O, ! ToString(𝔽(k))).
@@ -1389,6 +1406,8 @@ impl BuiltinTypedArray {
         // 6. Let k be 0.
         // 7. Repeat, while k < len,
         for k in 0..len {
+            IncrementLoopIteration::operation((), context)?;
+
             // a. Let Pk be ! ToString(𝔽(k)).
             // b. Let kValue be ! Get(O, Pk).
             let k_value = ta.get(k, context).expect("Get cannot fail here");
@@ -1465,6 +1484,8 @@ impl BuiltinTypedArray {
 
         // 10. Repeat, while k < len,
         for k in k..len {
+            IncrementLoopIteration::operation((), context)?;
+
             // a. Let Pk be ! ToString(𝔽(k)).
             // b. Let kValue be ! Get(O, Pk).
             let k_value = ta.get(k, context).expect("Get cannot fail here");
@@ -1538,6 +1559,8 @@ impl BuiltinTypedArray {
 
         // 10. Repeat, while k ≥ 0,
         for k in (0..k).rev() {
+            IncrementLoopIteration::operation((), context)?;
+
             // a. Let Pk be ! ToString(𝔽(k)).
             // b. Let kValue be ! Get(O, Pk).
             let k_value = ta.get(k, context).expect("Get cannot fail here");
@@ -1584,6 +1607,8 @@ impl BuiltinTypedArray {
         let mut lower = 0;
         // 6. Repeat, while lower ≠ middle,
         while lower != middle {
+            IncrementLoopIteration::operation((), context)?;
+
             // a. Let upper be len - lower - 1.
             let upper = len - lower - 1;
 
@@ -1632,6 +1657,8 @@ impl BuiltinTypedArray {
         // 6. Repeat, while k < length,
         let ta = ta.upcast();
         for k in 0..len {
+            IncrementLoopIteration::operation((), context)?;
+
             // a. Let from be ! ToString(𝔽(length - k - 1)).
             // b. Let Pk be ! ToString(𝔽(k)).
             // c. Let fromValue be ! Get(O, from).
@@ -1984,6 +2011,8 @@ impl BuiltinTypedArray {
         // 9. Repeat, while k < srcLength,
         let target = target.clone().upcast();
         for k in 0..src_length {
+            IncrementLoopIteration::operation((), context)?;
+
             // a. Let Pk be ! ToString(𝔽(k)).
             // b. Let value be ? Get(src, Pk).
             let value = src.get(k, context)?;
@@ -2517,6 +2546,8 @@ impl BuiltinTypedArray {
         let mut r = Vec::new();
 
         for k in 0..len {
+            IncrementLoopIteration::operation((), context)?;
+
             if k > 0 {
                 r.extend_from_slice(separator);
             }
@@ -2624,6 +2655,8 @@ impl BuiltinTypedArray {
         // 12. Repeat, while k < len,
         let ta = ta.upcast();
         for k in 0..len {
+            IncrementLoopIteration::operation((), context)?;
+
             // a. Let Pk be ! ToString(𝔽(k)).
             let value = if k == actual_index {
                 // b. If k is actualIndex, let fromValue be numericValue.

@@ -31,6 +31,7 @@ use crate::{
     string::StaticJsStrings,
     symbol::JsSymbol,
     value::{IntegerOrInfinity, JsValue},
+    vm::opcode::IncrementLoopIteration,
 };
 use std::cmp::{Ordering, min};
 
@@ -2645,6 +2646,8 @@ impl Array {
         // 2. Let k be 0.
         // 3. Repeat, while k < len,
         for i in 0..len {
+            IncrementLoopIteration::operation((), context)?;
+
             // a. Let Pk be ! ToString(𝔽(k)).
             // b. If holes is skip-holes, then
             let read = if skip_holes {
@@ -3410,6 +3413,8 @@ pub(crate) fn find_via_predicate(
 
     // 4. For each integer k of indices, do
     for k in indices {
+        IncrementLoopIteration::operation((), context)?;
+
         // a. Let Pk be ! ToString(𝔽(k)).
         let pk = k;
 
