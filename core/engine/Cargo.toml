@@ -13,6 +13,8 @@ rust-version.workspace = true
 
 [features]
 default = ["float16", "xsum", "temporal"]
+vm-trace = []
+
 
 embedded_lz4 = ["boa_macros/embedded_lz4", "lz4_flex"]
 
@@ -92,6 +94,7 @@ xsum = ["dep:xsum"]
 native-backtrace = []
 
 [dependencies]
+tracing = "0.1"
 tag_ptr.workspace = true
 boa_interner.workspace = true
 boa_gc = { workspace = true, features = ["thin-vec", "boa_string", "arrayvec"] }

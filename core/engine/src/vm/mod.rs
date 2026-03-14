@@ -3,7 +3,6 @@
 //! The Virtual Machine (VM) handles generating instructions, then executing them.
 //! This module will provide an instruction set for the AST to use, various traits,
 //! plus an interpreter to execute those instructions
-
 use crate::{
     Context, JsError, JsNativeError, JsObject, JsResult, JsString, JsValue, Module,
     builtins::promise::{PromiseCapability, ResolvingFunctions},
@@ -592,8 +591,10 @@ impl Context {
             width = Self::COLUMN_WIDTH * Self::NUMBER_OF_COLUMNS - 10
         );
         println!(
-            "{:<TIME_COLUMN_WIDTH$} {:<OPCODE_COLUMN_WIDTH$} {:<OPERAND_COLUMN_WIDTH$} Stack\n",
+            "{:<TIME_COLUMN_WIDTH$} {:<8} {:<6} {:<OPCODE_COLUMN_WIDTH$} {:<OPERAND_COLUMN_WIDTH$} Stack\n",
             "Time",
+            "Depth",
+            "PC",
             "Opcode",
             "Operands",
             TIME_COLUMN_WIDTH = Self::TIME_COLUMN_WIDTH,
@@ -611,6 +612,7 @@ impl Context {
         F: FnOnce(&mut Context, Opcode) -> ControlFlow<CompletionRecord>,
     {
         let frame = self.vm.frame();
+        let pc = frame.pc;
         let (instruction, _) = frame
             .code_block
             .bytecode
@@ -628,11 +630,13 @@ impl Context {
             | Opcode::CallEvalSpread
             | Opcode::New
             | Opcode::NewSpread
-            | Opcode::Return
             | Opcode::SuperCall
             | Opcode::SuperCallSpread
             | Opcode::SuperCallDerived => {
-                println!();
+                println!("\n--- entering call frame ---");
+            }
+            Opcode::Return => {
+                println!("\n--- leaving call frame ---");
             }
             _ => {}
         }
@@ -646,9 +650,13 @@ impl Context {
             .stack
             .display_trace(self.vm.frame(), self.vm.frames.len() - 1);
 
+        let frame_depth = self.vm.frames.len() - 1;
+
         println!(
-            "{:<TIME_COLUMN_WIDTH$} {:<OPCODE_COLUMN_WIDTH$} {operands:<OPERAND_COLUMN_WIDTH$} {stack}",
+            "{:<TIME_COLUMN_WIDTH$} depth={:<3} pc={:<6} {:<OPCODE_COLUMN_WIDTH$} {operands:<OPERAND_COLUMN_WIDTH$} {stack}",
             format!("{}μs", duration.as_micros()),
+            frame_depth,
+            pc,
             format!("{}", opcode.as_str()),
             TIME_COLUMN_WIDTH = Self::TIME_COLUMN_WIDTH,
             OPCODE_COLUMN_WIDTH = Self::OPCODE_COLUMN_WIDTH,
@@ -842,6 +850,8 @@ impl Context {
         {
             let opcode = Opcode::decode(*byte);
 
+            println!("TRACE_HOOK_REACHED");
+
             match self.execute_one(
                 |context, opcode| {
                     context.execute_bytecode_instruction_with_budget(&mut runtime_budget, opcode)
@@ -877,6 +887,15 @@ impl Context {
         {
             let opcode = Opcode::decode(*byte);
 
+            #[cfg(feature = "vm-trace")]
+            {
+                debug!(
+                    pc = self.vm.frame.pc,
+                    opcode = ?opcode,
+                    stack_depth = self.vm.stack.stack.len(),
+                    "vm_instruction"
+                );
+            }
             match self.execute_one(Self::execute_bytecode_instruction, opcode) {
                 ControlFlow::Continue(()) => {}
                 ControlFlow::Break(value) => return value,

@@ -483,6 +483,7 @@ dependencies = [
  "time",
  "timezone_provider",
  "tinystr",
+ "tracing",
  "web-time",
  "writeable",
  "xsum",
