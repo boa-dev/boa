@@ -20,7 +20,7 @@ jobs:
               issue_number: context.issue.number,
               owner: context.repo.owner,
               repo: context.repo.repo,
-              labels: ['waiting-for-review']
+              labels: ['Waiting On Review']
             })
 
       - name: Auto Remove Label
@@ -34,10 +34,10 @@ jobs:
                 issue_number: context.issue.number,
                 owner: context.repo.owner,
                 repo: context.repo.repo,
-                name: 'waiting-for-review'
+                name: 'Waiting On Review'
               });
             } catch (error) {
-              console.log('Label "waiting-for-review" not found or could not be removed.');
+              console.log('Label "Waiting On Review" not found or could not be removed.');
             }
 
       - name: Auto Assign Milestone
