@@ -1,3 +1,4 @@
+use cow_utils::CowUtils;
 use std::any::Any;
 use std::cell::RefCell;
 use std::path::{Component, Path, PathBuf};
@@ -60,6 +61,8 @@ pub fn resolve_module_specifier(
 
     let specifier = specifier.to_std_string_escaped();
 
+    #[cfg(target_family = "windows")]
+    let specifier = specifier.cow_replace('/', "\\");
 
     let short_path = Path::new(&*specifier);
 

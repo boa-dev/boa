@@ -27,6 +27,7 @@ use boa_gc::{Finalize, Trace};
 use rustc_hash::{FxHashMap, FxHashSet};
 
 type TableData = (Vec<FxHashMap<String, String>>, Vec<String>);
+use comfy_table::{Cell, Table};
 use std::{
     cell::RefCell, collections::hash_map::Entry, fmt::Write as _, io::Write, rc::Rc,
     time::SystemTime,
@@ -682,69 +683,93 @@ impl Console {
             col_names = Self::filter_columns(col_names, props, context)?;
         }
 
-        let widths = Self::format_table(&rows, &col_names);
-        let output = Self::render_table(&rows, &col_names, &widths);
+        let mut table = Table::new();
+        table.load_preset(comfy_table::presets::UTF8_FULL);
+        table.set_content_arrangement(comfy_table::ContentArrangement::Dynamic);
+        table.set_header(&col_names);
 
-        logger.table(output, &console.state, context)?;
+        for row in rows {
+            let mut cells = Vec::new();
+            for name in &col_names {
+                cells.push(Cell::new(row.get(name).cloned().unwrap_or_default()));
+            }
+            table.add_row(cells);
+        }
+
+        logger.table(table.to_string(), &console.state, context)?;
 
         Ok(JsValue::undefined())
     }
 
     /// Extracts rows and initial column names from tabular data.
     fn extract_rows(obj: &JsObject, context: &mut Context) -> JsResult<TableData> {
-        let tabular_data = JsValue::from(obj.clone());
-        let tabular_keys_val =
-            BuiltinObject::keys(&JsValue::undefined(), std::slice::from_ref(&tabular_data), context)?;
-        let tabular_keys_obj = tabular_keys_val.as_object().ok_or_else(|| {
-            JsError::from_opaque(js_string!("Object.keys did not return an object").into())
-        })?;
-        let len = tabular_keys_obj
-            .get(js_string!("length"), context)?
-            .to_length(context)?;
-
+        let tabular_keys = Self::get_object_keys(obj, context)?;
         let mut col_names = vec!["(index)".to_string()];
         let mut seen_cols = FxHashSet::default();
         seen_cols.insert("(index)".to_string());
 
         let mut rows = Vec::new();
-
+        let len = tabular_keys
+            .get(js_string!("length"), context)?
+            .to_length(context)?;
         for i in 0..len {
-            let index_key = tabular_keys_obj.get(i, context)?;
+            let index_key = tabular_keys.get(i, context)?;
             let index_str = index_key.to_string(context)?.to_std_string_escaped();
             let mut row_data = FxHashMap::default();
             row_data.insert("(index)".to_string(), index_str);
 
             let val = obj.get(index_key.to_property_key(context)?, context)?;
-            if let Some(val_obj) = val.as_object() {
-                let inner_keys_val =
-                    BuiltinObject::keys(&JsValue::undefined(), std::slice::from_ref(&val), context)?;
-                let inner_keys_obj = inner_keys_val.as_object().ok_or_else(|| {
-                    JsError::from_opaque(js_string!("Object.keys did not return an object").into())
-                })?;
-                let inner_len = inner_keys_obj
-                    .get(js_string!("length"), context)?
-                    .to_length(context)?;
-
-                for j in 0..inner_len {
-                    let ik_val = inner_keys_obj.get(j, context)?;
-                    let ik_str = ik_val.to_string(context)?.to_std_string_escaped();
-                    if seen_cols.insert(ik_str.clone()) {
-                        col_names.push(ik_str.clone());
-                    }
-                    let cell_val = val_obj.get(ik_val.to_property_key(context)?, context)?;
-                    row_data.insert(ik_str, cell_val.display().to_string());
-                }
-            } else {
-                let v_key = "Value".to_string();
-                if seen_cols.insert(v_key.clone()) {
-                    col_names.push(v_key.clone());
-                }
-                row_data.insert(v_key, val.display().to_string());
-            }
+            Self::extract_row_data(&val, &mut row_data, &mut col_names, &mut seen_cols, context)?;
             rows.push(row_data);
         }
 
         Ok((rows, col_names))
+    }
+
+    /// Gets keys of an object as a `JsObject` (array).
+    fn get_object_keys(obj: &JsObject, context: &mut Context) -> JsResult<JsObject> {
+        let tabular_data = JsValue::from(obj.clone());
+        let tabular_keys_val = BuiltinObject::keys(
+            &JsValue::undefined(),
+            std::slice::from_ref(&tabular_data),
+            context,
+        )?;
+        tabular_keys_val.as_object().ok_or_else(|| {
+            JsError::from_opaque(js_string!("Object.keys did not return an object").into())
+        })
+    }
+
+    /// Extracts data for a single row from a value.
+    fn extract_row_data(
+        val: &JsValue,
+        row_data: &mut FxHashMap<String, String>,
+        col_names: &mut Vec<String>,
+        seen_cols: &mut FxHashSet<String>,
+        context: &mut Context,
+    ) -> JsResult<()> {
+        if let Some(val_obj) = val.as_object() {
+            let inner_keys_obj = Self::get_object_keys(&val_obj, context)?;
+            let inner_len = inner_keys_obj
+                .get(js_string!("length"), context)?
+                .to_length(context)?;
+
+            for j in 0..inner_len {
+                let ik_val = inner_keys_obj.get(j, context)?;
+                let ik_str = ik_val.to_string(context)?.to_std_string_escaped();
+                if seen_cols.insert(ik_str.clone()) {
+                    col_names.push(ik_str.clone());
+                }
+                let cell_val = val_obj.get(ik_val.to_property_key(context)?, context)?;
+                row_data.insert(ik_str, cell_val.display().to_string());
+            }
+        } else {
+            let v_key = "Value".to_string();
+            if seen_cols.insert(v_key.clone()) {
+                col_names.push(v_key.clone());
+            }
+            row_data.insert(v_key, val.display().to_string());
+        }
+        Ok(())
     }
 
     /// Filters column names based on the optional properties argument.
@@ -757,8 +782,6 @@ impl Console {
             return Ok(col_names);
         }
 
-        // Spec: "If properties is not undefined and is an iterable, then let columns be a list of the elements of properties."
-        // Boa's try_from_js for Vec handles iterables correctly.
         if let Ok(iterator) = Vec::<JsValue>::try_from_js(properties, context) {
             let mut filtered_cols = vec!["(index)".to_string()];
             for prop in iterator {
@@ -769,74 +792,6 @@ impl Console {
         }
 
         Ok(col_names)
-    }
-
-    /// Calculates the maximum width for each column.
-    fn format_table(rows: &[FxHashMap<String, String>], col_names: &[String]) -> Vec<usize> {
-        let mut widths = vec![0; col_names.len()];
-        for (i, name) in col_names.iter().enumerate() {
-            widths[i] = name.len();
-        }
-        for row in rows {
-            for (i, name) in col_names.iter().enumerate() {
-                if let Some(val) = row.get(name) {
-                    widths[i] = widths[i].max(val.len());
-                }
-            }
-        }
-        widths
-    }
-
-    /// Renders the table as a string.
-    fn render_table(
-        rows: &[FxHashMap<String, String>],
-        col_names: &[String],
-        widths: &[usize],
-    ) -> String {
-        let mut output = String::new();
-        output.push('┌');
-        for (i, _) in col_names.iter().enumerate() {
-            let _ = write!(output, "─{:─^width$}─", "", width = widths[i]);
-            if i == col_names.len() - 1 {
-                output.push_str("┐\n");
-            } else {
-                output.push('┬');
-            }
-        }
-
-        for (i, name) in col_names.iter().enumerate() {
-            let _ = write!(output, "│ {:<width$} ", name, width = widths[i]);
-        }
-        output.push_str("│\n");
-
-        output.push('├');
-        for (i, _) in col_names.iter().enumerate() {
-            let _ = write!(output, "─{:─^width$}─", "", width = widths[i]);
-            if i == col_names.len() - 1 {
-                output.push_str("┤\n");
-            } else {
-                output.push('┼');
-            }
-        }
-
-        for row in rows {
-            for (i, name) in col_names.iter().enumerate() {
-                let cell_val = row.get(name).cloned().unwrap_or_default();
-                let _ = write!(output, "│ {:<width$} ", cell_val, width = widths[i]);
-            }
-            output.push_str("│\n");
-        }
-
-        output.push('└');
-        for (i, _) in col_names.iter().enumerate() {
-            let _ = write!(output, "─{:─^width$}─", "", width = widths[i]);
-            if i == col_names.len() - 1 {
-                output.push('┘');
-            } else {
-                output.push('┴');
-            }
-        }
-        output
     }
 
     /// `console.count(label)`

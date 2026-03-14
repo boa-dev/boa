@@ -45,7 +45,6 @@ jobs:
             target
           key: ${{ matrix.os }}-${{ runner.arch }}-cargo-${{ hashFiles('**/Cargo.lock') }}
 
-
       - name: Build
         run: cargo build --target ${{ matrix.target }} --release --locked --bin boa
 
