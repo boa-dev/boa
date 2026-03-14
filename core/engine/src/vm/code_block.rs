@@ -14,7 +14,7 @@ use bitflags::bitflags;
 use boa_ast::scope::{BindingLocator, Scope};
 use boa_gc::{Finalize, Gc, Trace, empty_trace};
 use itertools::Itertools;
-#[cfg(feature = "trace")]
+#[cfg(all(feature = "trace", all(feature = "tailcall", boa_nightly)))]
 use std::time::Instant;
 use std::{cell::Cell, fmt::Display, fmt::Write as _};
 use thin_vec::ThinVec;
