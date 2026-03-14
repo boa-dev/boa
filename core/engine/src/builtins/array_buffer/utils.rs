@@ -81,7 +81,23 @@ impl SliceRef<'_> {
     pub(crate) fn to_vec(self) -> Vec<u8> {
         match self {
             Self::Slice(s) => s.to_vec(),
-            Self::AtomicSlice(s) => s.iter().map(|a| a.load(Ordering::SeqCst)).collect(),
+            Self::AtomicSlice(s) => {
+                let count = s.len();
+                let mut target = Vec::with_capacity(count);
+                // SAFETY: we only copy `count` bytes, which should be in bounds
+                // for both the target buffer and the source atomic slice.
+                // `target` also has enough capacity for `count` elements and
+                // all its elements are initialized by `memcpy`.
+                unsafe {
+                    memcpy(
+                        BytesConstPtr::AtomicBytes(s.as_ptr()),
+                        BytesMutPtr::Bytes(target.as_mut_ptr()),
+                        count,
+                    );
+                    target.set_len(s.len());
+                }
+                target
+            }
         }
     }
 
