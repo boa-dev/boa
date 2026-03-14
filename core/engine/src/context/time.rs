@@ -160,7 +160,7 @@ pub trait Clock {
 
 /// A clock that uses the standard monotonic clock.
 ///
-/// This clock is based on [`web_time::Instant`] (via `crate::sys::time`) which provides
+/// This clock is based on the `instant` crate's `Instant` type, which provides
 /// cross-platform monotonic time, including WASM support via `performance.now()`.
 /// Time measurements are relative to an arbitrary starting point
 /// (the first call to `now()`) and are not affected by system clock adjustments.
