@@ -1,7 +1,7 @@
 use crate::vtable::{JsStringHeader, JsStringVTable};
 use crate::{JsStr, JsString, JsStringKind};
+use std::cell::OnceCell;
 use std::ptr::{self, NonNull};
-use std::sync::OnceLock;
 
 /// Fibonacci numbers for rope balancing thresholds.
 /// `F[n] = Fib(n + 2)`. A rope of depth `n` is balanced if its length >= `F[n]`.
@@ -65,7 +65,7 @@ pub(crate) struct RopeString {
     pub(crate) header: JsStringHeader,
     pub(crate) left: JsString,
     pub(crate) right: JsString,
-    flattened: OnceLock<JsString>,
+    flattened: OnceCell<JsString>,
     pub(crate) depth: u8,
 }
 
@@ -107,7 +107,7 @@ impl RopeString {
             },
             left,
             right,
-            flattened: OnceLock::new(),
+            flattened: OnceCell::new(),
             depth,
         });
 
