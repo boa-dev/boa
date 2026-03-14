@@ -2742,7 +2742,7 @@ impl<'ctx> ByteCompiler<'ctx> {
             debug_id: CodeBlock::get_next_codeblock_id(),
             #[cfg(feature = "trace")]
             traced: Cell::new(false),
-            #[cfg(feature = "trace")]
+            #[cfg(all(feature = "trace", all(feature = "tailcall", boa_nightly)))]
             last_trace_time: Cell::new(None),
         }
     }
