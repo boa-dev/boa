@@ -14,6 +14,8 @@ use bitflags::bitflags;
 use boa_ast::scope::{BindingLocator, Scope};
 use boa_gc::{Finalize, Gc, Trace, empty_trace};
 use itertools::Itertools;
+#[cfg(all(feature = "trace", all(feature = "tailcall", boa_nightly)))]
+use std::time::Instant;
 use std::{cell::Cell, fmt::Display, fmt::Write as _};
 use thin_vec::ThinVec;
 
@@ -172,6 +174,10 @@ pub struct CodeBlock {
     #[cfg(feature = "trace")]
     #[unsafe_ignore_trace]
     pub(crate) traced: Cell<bool>,
+
+    #[cfg(all(feature = "trace", all(feature = "tailcall", boa_nightly)))]
+    #[unsafe_ignore_trace]
+    pub(crate) last_trace_time: Cell<Option<Instant>>,
 }
 
 /// ---- `CodeBlock` public API ----
@@ -204,6 +210,8 @@ impl CodeBlock {
             debug_id: CodeBlock::get_next_codeblock_id(),
             #[cfg(feature = "trace")]
             traced: Cell::new(false),
+            #[cfg(all(feature = "trace", all(feature = "tailcall", boa_nightly)))]
+            last_trace_time: Cell::new(None),
         }
     }
 
