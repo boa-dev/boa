@@ -123,7 +123,7 @@ static FEATURE_EDITION: phf::Map<&'static str, SpecEdition> = phf::phf_map! {
 
     // ArrayBuffer transfer
     // https://github.com/tc39/proposal-arraybuffer-transfer
-    "arraybuffer-transfer" => SpecEdition::ESNext,
+    "arraybuffer-transfer" => SpecEdition::ES15,
 
     // Intl.DurationFormat
     // https://github.com/tc39/proposal-intl-duration-format
@@ -277,7 +277,7 @@ static FEATURE_EDITION: phf::Map<&'static str, SpecEdition> = phf::phf_map! {
     "String.prototype.toWellFormed" => SpecEdition::ES15,
     "String.prototype.trimEnd" => SpecEdition::ES10,
     "String.prototype.trimStart" => SpecEdition::ES10,
-    "set-methods" => SpecEdition::ES15,
+    "set-methods" => SpecEdition::ES16,
     "super" => SpecEdition::ES6,
     "Symbol" => SpecEdition::ES6,
     "symbols-as-weakmap-keys" => SpecEdition::ES14,
@@ -379,6 +379,10 @@ pub(crate) enum SpecEdition {
     ///
     /// <https://262.ecma-international.org/15.0>
     ES15,
+    /// ECMAScript 16th Edition
+    ///
+    /// <https://262.ecma-international.org/16.0>
+    ES16,
     /// The edition being worked on right now.
     ///
     /// A draft is currently available [here](https://tc39.es/ecma262).
@@ -443,6 +447,7 @@ impl SpecEdition {
             Self::ES13,
             Self::ES14,
             Self::ES15,
+            Self::ES16,
             Self::ESNext,
         ]
         .into_iter()
