@@ -291,23 +291,51 @@ impl Number {
     ///
     /// The `toLocaleString()` method returns a string with a language-sensitive representation of this number.
     ///
-    /// Note that while this technically conforms to the Ecma standard, it does no actual
-    /// internationalization logic.
-    ///
     /// More information:
     ///  - [ECMAScript reference][spec]
     ///  - [MDN documentation][mdn]
     ///
-    /// [spec]: https://tc39.es/ecma262/#sec-number.prototype.tolocalestring
+    /// [spec]: https://tc39.es/ecma402/#sup-number.prototype.tolocalestring
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Number/toLocaleString
     #[allow(clippy::wrong_self_convention)]
+    #[allow(
+        unused_variables,
+        reason = "`args` and `context` are used if the `intl` feature is enabled"
+    )]
     pub(crate) fn to_locale_string(
         this: &JsValue,
-        _: &[JsValue],
-        _: &mut Context,
+        args: &[JsValue],
+        context: &mut Context,
     ) -> JsResult<JsValue> {
-        let this_num = Self::this_number_value(this)?;
-        Ok(JsValue::new(js_string!(this_num)))
+        // Let x be ? thisNumberValue(this value).
+        let x = Self::this_number_value(this)?;
+
+        #[cfg(feature = "intl")]
+        {
+            use fixed_decimal::{Decimal, FloatPrecision};
+
+            use crate::builtins::intl::NumberFormat;
+
+            if !x.is_finite() {
+                return Ok(JsValue::new(js_string!(x)));
+            }
+
+            let locales = args.get_or_undefined(0).clone();
+            let options = args.get_or_undefined(1).clone();
+
+            // Let numberFormat be ? Construct(%Intl.NumberFormat%, « locales, options »).
+            let number_format = NumberFormat::new(&locales, &options, context)?;
+            let mut x = Decimal::try_from_f64(x, FloatPrecision::RoundTrip)
+                .map_err(|err| JsNativeError::range().with_message(err.to_string()))?;
+
+            // Return FormatNumeric(numberFormat, ℝ(x)).
+            Ok(js_string!(number_format.format(&mut x).to_string()).into())
+        }
+
+        #[cfg(not(feature = "intl"))]
+        {
+            Ok(JsValue::new(js_string!(x)))
+        }
     }
 
     /// `flt_str_to_exp` - used in `to_precision`
