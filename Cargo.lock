@@ -439,7 +439,6 @@ dependencies = [
  "icu_time",
  "indexmap",
  "indoc",
- "instant",
  "intrusive-collections",
  "itertools 0.14.0",
  "jemallocator",
