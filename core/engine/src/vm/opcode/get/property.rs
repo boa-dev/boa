@@ -4,11 +4,11 @@ use crate::{
     Context, JsResult, JsValue, js_string,
     object::{internal_methods::InternalMethodPropertyContext, shape::slot::SlotAttributes},
     property::PropertyKey,
-    vm::opcode::{Operation, RegisterOperand, VaryingOperand},
+    vm::opcode::{IndexOperand, Operation, RegisterOperand},
 };
 
 fn get_by_name<const LENGTH: bool>(
-    (dst, object, receiver, index): (RegisterOperand, &JsValue, &JsValue, VaryingOperand),
+    (dst, object, receiver, index): (RegisterOperand, &JsValue, &JsValue, IndexOperand),
     context: &mut Context,
 ) -> JsResult<()> {
     if LENGTH {
@@ -162,7 +162,7 @@ pub(crate) struct GetLengthProperty;
 impl GetLengthProperty {
     #[inline(always)]
     pub(crate) fn operation(
-        (dst, object, index): (RegisterOperand, RegisterOperand, VaryingOperand),
+        (dst, object, index): (RegisterOperand, RegisterOperand, IndexOperand),
         context: &mut Context,
     ) -> JsResult<()> {
         let object = context.vm.get_register(object.into()).clone();
@@ -186,7 +186,7 @@ pub(crate) struct GetPropertyByName;
 impl GetPropertyByName {
     #[inline(always)]
     pub(crate) fn operation(
-        (dst, object, index): (RegisterOperand, RegisterOperand, VaryingOperand),
+        (dst, object, index): (RegisterOperand, RegisterOperand, IndexOperand),
         context: &mut Context,
     ) -> JsResult<()> {
         let object = context.vm.get_register(object.into()).clone();
@@ -214,7 +214,7 @@ impl GetPropertyByNameWithThis {
             RegisterOperand,
             RegisterOperand,
             RegisterOperand,
-            VaryingOperand,
+            IndexOperand,
         ),
         context: &mut Context,
     ) -> JsResult<()> {
@@ -233,7 +233,7 @@ impl Operation for GetPropertyByNameWithThis {
 /// `GetPropertyByValue` implements the Opcode Operation for `Opcode::GetPropertyByValue`
 ///
 /// Operation:
-///  - Get a property by value from an object an push it on the stack.
+///  - Get a property by value from an object and store it in dst.
 #[derive(Debug, Clone, Copy)]
 pub(crate) struct GetPropertyByValue;
 
@@ -261,7 +261,7 @@ impl Operation for GetPropertyByValue {
 /// `GetPropertyByValuePush` implements the Opcode Operation for `Opcode::GetPropertyByValuePush`
 ///
 /// Operation:
-///  - Get a property by value from an object an push the key and value on the stack.
+///  - Get a property by value from an object and store the key and value in registers.
 #[derive(Debug, Clone, Copy)]
 pub(crate) struct GetPropertyByValuePush;
 

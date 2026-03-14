@@ -1,7 +1,10 @@
 //! A Rust API wrapper for Boa's `SharedArrayBuffer` Builtin ECMAScript Object
 use crate::{
-    Context, JsResult, JsValue, builtins::array_buffer::SharedArrayBuffer, error::JsNativeError,
-    object::JsObject, value::TryFromJs,
+    Context, JsResult, JsValue,
+    builtins::array_buffer::{SharedArrayBuffer, utils::SliceRef},
+    error::JsNativeError,
+    object::JsObject,
+    value::TryFromJs,
 };
 use boa_gc::{Finalize, Trace};
 use std::{ops::Deref, sync::atomic::Ordering};
@@ -84,6 +87,31 @@ impl JsSharedArrayBuffer {
         self.borrow().data().len(Ordering::SeqCst)
     }
 
+    /// Copies the contents of this [`JsSharedArrayBuffer`] into a new [`Vec<u8>`].
+    ///
+    /// Each byte is loaded with `SeqCst` ordering into the returned buffer.
+    /// GC-safe and safe for concurrent access within Boa's memory model.
+    ///
+    /// # Example
+    ///
+    /// ```
+    /// # use boa_engine::{Context, JsResult, object::builtins::JsSharedArrayBuffer};
+    /// # fn main() -> JsResult<()> {
+    /// let context = &mut Context::default();
+    /// let sab = JsSharedArrayBuffer::new(64, context)?;
+    /// let bytes = sab.to_vec();
+    /// assert_eq!(bytes.len(), 64);
+    /// # Ok(())
+    /// # }
+    /// ```
+    #[must_use]
+    pub fn to_vec(&self) -> Vec<u8> {
+        let obj = self.borrow();
+        let src = obj.data().bytes(Ordering::SeqCst);
+        let src = SliceRef::AtomicSlice(src);
+        src.to_vec()
+    }
+
     /// Gets the raw buffer of this `JsSharedArrayBuffer`.
     #[inline]
     #[must_use]
@@ -124,5 +152,41 @@ impl TryFromJs for JsSharedArrayBuffer {
                 .with_message("value is not a SharedArrayBuffer object")
                 .into())
         }
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn shared_array_buffer_to_vec_roundtrip() {
+        let context = &mut Context::default();
+        let len = 64;
+        let sab = JsSharedArrayBuffer::new(len, context).unwrap();
+        assert_eq!(sab.byte_length(), len);
+
+        // Write a pattern at multiple indices and ensure `to_vec` observes it.
+        let inner = sab.inner();
+        let atoms = inner.bytes(Ordering::SeqCst);
+        atoms[0].store(1, Ordering::SeqCst);
+        atoms[1].store(2, Ordering::SeqCst);
+        atoms[len - 1].store(255, Ordering::SeqCst);
+
+        let bytes = sab.to_vec();
+        assert_eq!(bytes.len(), len);
+        assert_eq!(bytes[0], 1);
+        assert_eq!(bytes[1], 2);
+        assert_eq!(bytes[len - 1], 255);
+    }
+
+    #[test]
+    fn shared_array_buffer_to_vec_zero_length() {
+        let context = &mut Context::default();
+        let sab = JsSharedArrayBuffer::new(0, context).unwrap();
+        assert_eq!(sab.byte_length(), 0);
+
+        let bytes = sab.to_vec();
+        assert!(bytes.is_empty());
     }
 }

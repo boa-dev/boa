@@ -276,13 +276,13 @@ impl SyntheticModule {
     pub(super) fn resolve_export(
         &self,
         module_self: &Module,
-        export_name: JsString,
+        export_name: &JsString,
     ) -> Result<ResolvedBinding, ResolveExportError> {
-        if self.export_names.contains(&export_name) {
+        if self.export_names.contains(export_name) {
             // 2. Return ResolvedBinding Record { [[Module]]: module, [[BindingName]]: exportName }.
             Ok(ResolvedBinding {
                 module: module_self.clone(),
-                binding_name: BindingName::Name(export_name),
+                binding_name: BindingName::Name(export_name.clone()),
             })
         } else {
             // 1. If module.[[ExportNames]] does not contain exportName, return null.
@@ -337,7 +337,7 @@ impl SyntheticModule {
 
         let cb = Gc::new(compiler.finish());
 
-        let mut envs = EnvironmentStack::new(global_env);
+        let mut envs = EnvironmentStack::new();
         envs.push_module(module_scope);
 
         for locator in exports {
@@ -346,11 +346,12 @@ impl SyntheticModule {
                 locator.scope(),
                 locator.binding_index(),
                 JsValue::undefined(),
+                &global_env,
             );
         }
 
         let env = envs
-            .current_declarative_ref()
+            .current_declarative_ref(&global_env)
             .cloned()
             .expect("should have the module environment");
 

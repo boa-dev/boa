@@ -313,13 +313,13 @@ impl Generator {
         // 10. Assert: When we return here, genContext has already been removed from the execution context stack and methodContext is the currently running execution context.
         // 11. Return Completion(result).
         match record {
-            CompletionRecord::Return(value) => {
+            CompletionRecord::Normal(value) => {
                 r#gen.state = GeneratorState::SuspendedYield {
                     context: generator_context,
                 };
                 Ok(value)
             }
-            CompletionRecord::Normal(value) => {
+            CompletionRecord::Return(value) => {
                 r#gen.state = GeneratorState::Completed;
                 Ok(create_iter_result_object(value, true, context))
             }
@@ -404,13 +404,13 @@ impl Generator {
         })?;
 
         match record {
-            CompletionRecord::Return(value) => {
+            CompletionRecord::Normal(value) => {
                 r#gen.state = GeneratorState::SuspendedYield {
                     context: generator_context,
                 };
                 Ok(value)
             }
-            CompletionRecord::Normal(value) => {
+            CompletionRecord::Return(value) => {
                 r#gen.state = GeneratorState::Completed;
                 Ok(create_iter_result_object(value, true, context))
             }

@@ -261,6 +261,28 @@ impl Scope {
         self.inner.outer.is_none()
     }
 
+    /// Check if a binding with the given name is mutable.
+    ///
+    /// Returns `Some(true)` for mutable bindings (`let`, `var`),
+    /// `Some(false)` for immutable bindings (`const`),
+    /// or `None` if the binding is not found in this or any outer scope.
+    #[must_use]
+    pub fn is_binding_mutable(&self, name: &JsString) -> Option<bool> {
+        if let Some(binding) = self
+            .inner
+            .bindings
+            .borrow()
+            .iter()
+            .find(|b| &b.name == name)
+        {
+            Some(binding.is_mutable())
+        } else if let Some(outer) = &self.inner.outer {
+            outer.is_binding_mutable(name)
+        } else {
+            None
+        }
+    }
+
     /// Get the locator for a binding name.
     #[must_use]
     pub fn get_binding(&self, name: &JsString) -> Option<BindingLocator> {
@@ -494,8 +516,8 @@ impl Scope {
 
     /// Gets the outer scope of this scope.
     #[must_use]
-    pub fn outer(&self) -> Option<Self> {
-        self.inner.outer.clone()
+    pub fn outer(&self) -> Option<&Self> {
+        self.inner.outer.as_ref()
     }
 
     /// Returns the unique ID of this scope.

@@ -57,6 +57,7 @@ pub trait Fetcher: NativeObject {
     async fn fetch(
         self: Rc<Self>,
         request: JsRequest,
+        signal: Option<JsObject>,
         context: &RefCell<&mut Context>,
     ) -> JsResult<JsResponse>;
 }
@@ -91,6 +92,16 @@ fn get_fetcher<T: Fetcher>(context: &mut Context) -> JsResult<Rc<T>> {
     Ok(fetcher.0.clone())
 }
 
+fn check_abort(signal: Option<&JsObject>, context: &mut Context) -> JsResult<()> {
+    if let Some(signal_obj) = signal
+        && let Some(signal_ref) = signal_obj.downcast_ref::<crate::abort::JsAbortSignal>()
+        && signal_ref.is_aborted()
+    {
+        return Err(JsError::from_opaque(signal_ref.abort_reason(context)));
+    }
+    Ok(())
+}
+
 /// The `fetch` function internals.
 async fn fetch_inner<T: Fetcher>(
     resource: Either<JsString, JsObject>,
@@ -98,6 +109,16 @@ async fn fetch_inner<T: Fetcher>(
     context: &RefCell<&mut Context>,
 ) -> JsResult<JsValue> {
     let fetcher = get_fetcher::<T>(&mut context.borrow_mut())?;
+
+    let (options, signal) = match options {
+        Some(mut opts) => {
+            let sig = opts.take_signal();
+            (Some(opts), sig)
+        }
+        None => (None, None),
+    };
+
+    check_abort(signal.as_ref(), &mut context.borrow_mut())?;
 
     // The resource parsing is complicated, so we parse it in Rust here (instead of relying on
     // `TryFromJs` and friends).
@@ -140,7 +161,12 @@ async fn fetch_inner<T: Fetcher>(
         request.headers_mut().append("Accept-Language", lang);
     }
 
-    let response = fetcher.fetch(JsRequest::from(request), context).await?;
+    let response = fetcher
+        .fetch(JsRequest::from(request), signal.clone(), context)
+        .await?;
+
+    check_abort(signal.as_ref(), &mut context.borrow_mut())?;
+
     let result = Class::from_data(response, &mut context.borrow_mut())?;
     Ok(result.into())
 }

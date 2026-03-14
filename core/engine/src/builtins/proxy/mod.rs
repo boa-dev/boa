@@ -11,6 +11,7 @@
 //! [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Proxy
 
 use super::{BuiltInBuilder, BuiltInConstructor, IntrinsicObject, OrdinaryObject};
+use crate::JsExpect;
 use crate::object::internal_methods::InternalMethodCallContext;
 use crate::value::JsVariant;
 use crate::{
@@ -204,7 +205,7 @@ impl Proxy {
                     // f. Set p.[[ProxyTarget]] to null.
                     // g. Set p.[[ProxyHandler]] to null.
                     p.downcast_mut::<Proxy>()
-                        .expect("[[RevocableProxy]] must be a proxy object")
+                        .js_expect("[[RevocableProxy]] must be a proxy object")?
                         .data = None;
                 }
 
@@ -236,12 +237,12 @@ impl Proxy {
         // 6. Perform ! CreateDataPropertyOrThrow(result, "proxy", p).
         result
             .create_data_property_or_throw(js_string!("proxy"), p, context)
-            .expect("CreateDataPropertyOrThrow cannot fail here");
+            .js_expect("CreateDataPropertyOrThrow cannot fail here")?;
 
         // 7. Perform ! CreateDataPropertyOrThrow(result, "revoke", revoker).
         result
             .create_data_property_or_throw(js_string!("revoke"), revoker, context)
-            .expect("CreateDataPropertyOrThrow cannot fail here");
+            .js_expect("CreateDataPropertyOrThrow cannot fail here")?;
 
         // 8. Return result.
         Ok(result.into())
@@ -264,7 +265,7 @@ pub(crate) fn proxy_exotic_get_prototype_of(
     // 4. Let target be O.[[ProxyTarget]].
     let (target, handler) = obj
         .downcast_ref::<Proxy>()
-        .expect("Proxy object internal internal method called on non-proxy object")
+        .js_expect("Proxy object internal internal method called on non-proxy object")?
         .try_data()?;
 
     // 5. Let trap be ? GetMethod(handler, "getPrototypeOf").
@@ -325,7 +326,7 @@ pub(crate) fn proxy_exotic_set_prototype_of(
     // 4. Let target be O.[[ProxyTarget]].
     let (target, handler) = obj
         .downcast_ref::<Proxy>()
-        .expect("Proxy object internal internal method called on non-proxy object")
+        .js_expect("Proxy object internal internal method called on non-proxy object")?
         .try_data()?;
 
     // 5. Let trap be ? GetMethod(handler, "setPrototypeOf").
@@ -384,7 +385,7 @@ pub(crate) fn proxy_exotic_is_extensible(obj: &JsObject, context: &mut Context) 
     // 4. Let target be O.[[ProxyTarget]].
     let (target, handler) = obj
         .downcast_ref::<Proxy>()
-        .expect("Proxy object internal internal method called on non-proxy object")
+        .js_expect("Proxy object internal internal method called on non-proxy object")?
         .try_data()?;
 
     // 5. Let trap be ? GetMethod(handler, "isExtensible").
@@ -429,7 +430,7 @@ pub(crate) fn proxy_exotic_prevent_extensions(
     // 4. Let target be O.[[ProxyTarget]].
     let (target, handler) = obj
         .downcast_ref::<Proxy>()
-        .expect("Proxy object internal internal method called on non-proxy object")
+        .js_expect("Proxy object internal internal method called on non-proxy object")?
         .try_data()?;
 
     // 5. Let trap be ? GetMethod(handler, "preventExtensions").
@@ -476,7 +477,7 @@ pub(crate) fn proxy_exotic_get_own_property(
     // 4. Let target be O.[[ProxyTarget]].
     let (target, handler) = obj
         .downcast_ref::<Proxy>()
-        .expect("Proxy object internal internal method called on non-proxy object")
+        .js_expect("Proxy object internal internal method called on non-proxy object")?
         .try_data()?;
 
     // 5. Let trap be ? GetMethod(handler, "getOwnPropertyDescriptor").
@@ -601,7 +602,7 @@ pub(crate) fn proxy_exotic_define_own_property(
     // 4. Let target be O.[[ProxyTarget]].
     let (target, handler) = obj
         .downcast_ref::<Proxy>()
-        .expect("Proxy object internal internal method called on non-proxy object")
+        .js_expect("Proxy object internal internal method called on non-proxy object")?
         .try_data()?;
 
     // 5. Let trap be ? GetMethod(handler, "defineProperty").
@@ -612,7 +613,7 @@ pub(crate) fn proxy_exotic_define_own_property(
     };
 
     // 7. Let descObj be FromPropertyDescriptor(Desc).
-    let desc_obj = OrdinaryObject::from_property_descriptor(Some(desc.clone()), context);
+    let desc_obj = OrdinaryObject::from_property_descriptor(Some(desc.clone()), context)?;
 
     // 8. Let booleanTrapResult be ! ToBoolean(? Call(trap, handler, « target, P, descObj »)).
     // 9. If booleanTrapResult is false, return false.
@@ -713,7 +714,7 @@ pub(crate) fn proxy_exotic_has_property(
     // 4. Let target be O.[[ProxyTarget]].
     let (target, handler) = obj
         .downcast_ref::<Proxy>()
-        .expect("Proxy object internal internal method called on non-proxy object")
+        .js_expect("Proxy object internal internal method called on non-proxy object")?
         .try_data()?;
 
     // 5. Let trap be ? GetMethod(handler, "has").
@@ -805,7 +806,7 @@ pub(crate) fn proxy_exotic_get(
     // 4. Let target be O.[[ProxyTarget]].
     let (target, handler) = obj
         .downcast_ref::<Proxy>()
-        .expect("Proxy object internal internal method called on non-proxy object")
+        .js_expect("Proxy object internal internal method called on non-proxy object")?
         .try_data()?;
 
     // 5. Let trap be ? GetMethod(handler, "get").
@@ -875,7 +876,7 @@ pub(crate) fn proxy_exotic_set(
     // 4. Let target be O.[[ProxyTarget]].
     let (target, handler) = obj
         .downcast_ref::<Proxy>()
-        .expect("Proxy object internal internal method called on non-proxy object")
+        .js_expect("Proxy object internal internal method called on non-proxy object")?
         .try_data()?;
 
     // 5. Let trap be ? GetMethod(handler, "set").
@@ -955,7 +956,7 @@ pub(crate) fn proxy_exotic_delete(
     // 4. Let target be O.[[ProxyTarget]].
     let (target, handler) = obj
         .downcast_ref::<Proxy>()
-        .expect("Proxy object internal internal method called on non-proxy object")
+        .js_expect("Proxy object internal internal method called on non-proxy object")?
         .try_data()?;
 
     // 5. Let trap be ? GetMethod(handler, "deleteProperty").
@@ -1020,7 +1021,7 @@ pub(crate) fn proxy_exotic_own_property_keys(
     // 4. Let target be O.[[ProxyTarget]].
     let (target, handler) = obj
         .downcast_ref::<Proxy>()
-        .expect("Proxy object internal internal method called on non-proxy object")
+        .js_expect("Proxy object internal internal method called on non-proxy object")?
         .try_data()?;
 
     // 5. Let trap be ? GetMethod(handler, "ownKeys").
@@ -1154,7 +1155,7 @@ fn proxy_exotic_call(
     // 4. Let target be O.[[ProxyTarget]].
     let (target, handler) = obj
         .downcast_ref::<Proxy>()
-        .expect("Proxy object internal internal method called on non-proxy object")
+        .js_expect("Proxy object internal internal method called on non-proxy object")?
         .try_data()?;
 
     // 5. Let trap be ? GetMethod(handler, "apply").
@@ -1202,7 +1203,7 @@ fn proxy_exotic_construct(
     // 4. Let target be O.[[ProxyTarget]].
     let (target, handler) = obj
         .downcast_ref::<Proxy>()
-        .expect("Proxy object internal internal method called on non-proxy object")
+        .js_expect("Proxy object internal internal method called on non-proxy object")?
         .try_data()?;
 
     // 5. Assert: IsConstructor(target) is true.
@@ -1242,3 +1243,6 @@ fn proxy_exotic_construct(
     context.vm.stack.push(new_obj);
     Ok(CallValue::Complete)
 }
+
+#[cfg(test)]
+mod tests;

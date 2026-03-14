@@ -2255,6 +2255,18 @@ fn module_instantiation(module: &Module, env: &Scope, interner: &Interner) {
                     drop(env.create_mutable_binding(name, false));
                 }
             }
+            LexicallyScopedDeclaration::LexicalDeclaration(LexicalDeclaration::Using(u)) => {
+                for name in bound_names(u) {
+                    let name = name.to_js_string(interner);
+                    drop(env.create_mutable_binding(name, false));
+                }
+            }
+            LexicallyScopedDeclaration::LexicalDeclaration(LexicalDeclaration::AwaitUsing(au)) => {
+                for name in bound_names(au) {
+                    let name = name.to_js_string(interner);
+                    drop(env.create_mutable_binding(name, false));
+                }
+            }
             LexicallyScopedDeclaration::AssignmentExpression(expr) => {
                 for name in bound_names(expr) {
                     let name = name.to_js_string(interner);
@@ -2326,7 +2338,7 @@ pub(crate) fn eval_declaration_instantiation_scope(
         }
 
         // b. Let thisEnv be lexEnv.
-        let mut this_env = lex_env.clone();
+        let mut this_env = lex_env;
 
         // c. Assert: The following loop will terminate.
         // d. Repeat, while thisEnv is not varEnv,
