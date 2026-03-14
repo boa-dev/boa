@@ -3,7 +3,7 @@ use std::cell::RefCell;
 use boa_ast::scope::Scope;
 use boa_gc::{Finalize, GcRefCell, Trace};
 
-use crate::{JsNativeError, JsResult, JsString, JsValue, module::Module};
+use crate::{JsResult, JsString, JsValue, error::PanicError, module::Module};
 
 /// Type of accessor used to access an indirect binding.
 #[derive(Debug, Clone)]
@@ -107,9 +107,10 @@ impl ModuleEnvironment {
                 *v = Some(value);
                 Ok(())
             }
-            BindingType::Indirect(_) => Err(JsNativeError::typ()
-                .with_message("cannot modify indirect references to other environments")
-                .into()),
+            BindingType::Indirect(_) => Err(PanicError::new(
+                "cannot modify indirect references to other environments",
+            )
+            .into()),
         }
     }
 
