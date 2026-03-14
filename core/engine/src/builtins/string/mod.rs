@@ -703,9 +703,13 @@ impl String {
                     return Ok(js_string!().into());
                 }
                 let n = n as usize;
-                let mut result = Vec::with_capacity(n);
 
-                std::iter::repeat_n(string.as_str(), n).for_each(|s| result.push(s));
+                // Charge each repetition against the VM loop-iteration limit.
+                let mut result = Vec::new();
+                for _ in 0..n {
+                    crate::vm::opcode::IncrementLoopIteration::operation((), context)?;
+                    result.push(string.as_str());
+                }
 
                 // 6. Return the String value that is made from n copies of S appended together.
                 Ok(JsString::concat_array(&result).into())
