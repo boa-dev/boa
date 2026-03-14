@@ -360,10 +360,7 @@ fn builtin_loop_runtime_limit_parity() {
             "#},
             RuntimeLimitError::LoopIteration,
         ),
-        TestAction::assert_runtime_limit_error(
-            "'x'.repeat(20)",
-            RuntimeLimitError::LoopIteration,
-        ),
+        TestAction::assert_runtime_limit_error("'x'.repeat(20)", RuntimeLimitError::LoopIteration),
         TestAction::assert_runtime_limit_error(
             "arr.find(() => false)",
             RuntimeLimitError::LoopIteration,
@@ -372,10 +369,7 @@ fn builtin_loop_runtime_limit_parity() {
             "ta.find(() => false)",
             RuntimeLimitError::LoopIteration,
         ),
-        TestAction::assert_runtime_limit_error(
-            "arr.sort()",
-            RuntimeLimitError::LoopIteration,
-        ),
+        TestAction::assert_runtime_limit_error("arr.sort()", RuntimeLimitError::LoopIteration),
     ]);
 }
 
