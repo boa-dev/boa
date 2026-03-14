@@ -233,8 +233,31 @@ where
                     }
                 }
                 ClassElement::FieldDefinition(field)
-                | ClassElement::StaticFieldDefinition(field) => field.name.visit_with(self),
-                _ => ControlFlow::Continue(()),
+                | ClassElement::StaticFieldDefinition(field) => {
+                    field.name.visit_with(self)?;
+                    if self.0 == ContainsSymbol::DirectEval
+                        && let Some(expr) = &field.initializer
+                    {
+                        expr.visit_with(self)?;
+                    }
+                    ControlFlow::Continue(())
+                }
+                ClassElement::PrivateFieldDefinition(field)
+                | ClassElement::PrivateStaticFieldDefinition(field) => {
+                    if self.0 == ContainsSymbol::DirectEval
+                        && let Some(expr) = &field.initializer
+                    {
+                        expr.visit_with(self)?;
+                    }
+                    ControlFlow::Continue(())
+                }
+                ClassElement::StaticBlock(block) => {
+                    if self.0 == ContainsSymbol::DirectEval {
+                        ControlFlow::Continue(())
+                    } else {
+                        block.body.visit_with(self)
+                    }
+                }
             }
         }
 

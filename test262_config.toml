@@ -65,7 +65,6 @@ tests = [
     "test/staging/sm/String/replace-math.js",
     # Panics
     "test/staging/sm/regress/regress-554955-2.js",
-    "test/staging/sm/class/fields-static-class-name-binding-eval.js",
     "test/staging/sm/regress/regress-554955-1.js",
     "test/staging/sm/regress/regress-554955-3.js",
     # Extension canonicalization not yet supported by ICU4X.
