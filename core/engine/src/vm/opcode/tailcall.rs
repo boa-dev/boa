@@ -12,8 +12,43 @@ impl Context {
     ) -> CompletionRecord {
         match self.vm.frame().code_block.bytecode.bytes.get(pc) {
             Some(&byte) => {
+                #[cfg(all(feature = "trace", not(all(feature = "tailcall", boa_nightly))))]
+                unreachable!();
                 let opcode = Opcode::decode(byte);
-                become OPCODE_HANDLERS_TAILCALL[opcode as usize](self, pc)
+
+                #[cfg(feature = "trace")]
+                if self.vm.trace || self.vm.frame().code_block.traceable() {
+                    use crate::sys::time::Instant;
+
+                    if self.vm.current_frame != Some(self.vm.frame()) {
+                        println!();
+                        self.trace_call_frame();
+                        self.vm.current_frame = Some(self.vm.frame());
+                    }
+
+                    let frame = self.vm.frame();
+                    let (instruction, _) = frame.code_block.bytecode.next_instruction(pc);
+
+                    let operands = frame.code_block().instruction_operands(&instruction);
+
+                    // measure time since last dispatch
+                    let now = Instant::now();
+                    let duration = now - frame.code_block().last_trace_time.get().unwrap_or(now);
+                    frame.code_block().last_trace_time.set(Some(now));
+
+                    let stack = self.vm.stack.display_trace(frame, self.vm.frames.len() - 1);
+
+                    println!(
+                        "{:<TIME_COLUMN_WIDTH$} {:<OPCODE_COLUMN_WIDTH$} {operands:<OPERAND_COLUMN_WIDTH$} {stack}",
+                        format!("{}μs", duration.as_micros()),
+                        opcode.as_str(),
+                        TIME_COLUMN_WIDTH = Context::TIME_COLUMN_WIDTH,
+                        OPCODE_COLUMN_WIDTH = Context::OPCODE_COLUMN_WIDTH,
+                        OPERAND_COLUMN_WIDTH = Context::OPERAND_COLUMN_WIDTH,
+                    );
+                }
+
+                become OPCODE_HANDLERS_TAILCALL[opcode as usize](self, pc);
             }
             None => CompletionRecord::Throw(JsError::from_native(JsNativeError::error())), // program ended without a return
         }

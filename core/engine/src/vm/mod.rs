@@ -640,9 +640,16 @@ impl Context {
             "{msg:-^width$}",
             width = Self::COLUMN_WIDTH * Self::NUMBER_OF_COLUMNS - 10
         );
+
+        let time_header = if cfg!(all(feature = "tailcall", boa_nightly)) {
+            "ΔTime(prev)"
+        } else {
+            "Time"
+        };
+
         println!(
             "{:<TIME_COLUMN_WIDTH$} {:<OPCODE_COLUMN_WIDTH$} {:<OPERAND_COLUMN_WIDTH$} Stack\n",
-            "Time",
+            time_header,
             "Opcode",
             "Operands",
             TIME_COLUMN_WIDTH = Self::TIME_COLUMN_WIDTH,
