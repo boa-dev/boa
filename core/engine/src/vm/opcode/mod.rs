@@ -8,7 +8,7 @@ use args::{Argument, read};
 use std::ops::ControlFlow;
 use thin_vec::ThinVec;
 
-#[cfg(feature = "tailcall")]
+#[cfg(all(feature = "tailcall", boa_nightly))]
 use tailcall::generate_opcode_tailcall_handlers;
 
 mod args;
@@ -37,7 +37,7 @@ mod push;
 mod rest_parameter;
 mod set;
 mod switch;
-#[cfg(feature = "tailcall")]
+#[cfg(all(feature = "tailcall", boa_nightly))]
 mod tailcall;
 mod templates;
 mod to;
@@ -453,7 +453,7 @@ macro_rules! generate_opcodes {
     }
 }
 
-#[cfg(not(feature = "tailcall"))]
+#[cfg(not(all(feature = "tailcall", boa_nightly)))]
 macro_rules! generate_opcode_handlers {
         (
         $(
@@ -2286,8 +2286,8 @@ macro_rules! for_each_opcode {
 
 for_each_opcode!(generate_opcodes);
 
-#[cfg(not(feature = "tailcall"))]
+#[cfg(not(all(feature = "tailcall", boa_nightly)))]
 for_each_opcode!(generate_opcode_handlers);
 
-#[cfg(feature = "tailcall")]
+#[cfg(all(feature = "tailcall", boa_nightly))]
 for_each_opcode!(generate_opcode_tailcall_handlers);

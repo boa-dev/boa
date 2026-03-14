@@ -453,6 +453,7 @@ dependencies = [
  "rand 0.10.0",
  "regress",
  "rustc-hash 2.1.1",
+ "rustversion",
  "ryu-js",
  "serde",
  "serde_json",

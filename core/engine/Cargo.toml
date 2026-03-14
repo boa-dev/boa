@@ -212,6 +212,9 @@ textwrap.workspace = true
 test-case.workspace = true
 husky-rs.workspace = true
 
+[build-dependencies]
+rustversion.workspace = true
+
 [target.x86_64-unknown-linux-gnu.dev-dependencies]
 jemallocator.workspace = true
 

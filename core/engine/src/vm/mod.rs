@@ -14,10 +14,10 @@ use crate::{
     script::Script,
 };
 
-#[cfg(not(feature = "tailcall"))]
+#[cfg(not(all(feature = "tailcall", boa_nightly)))]
 use crate::vm::opcode::{OPCODE_HANDLERS, OPCODE_HANDLERS_BUDGET};
 
-#[cfg(feature = "tailcall")]
+#[cfg(all(feature = "tailcall", boa_nightly))]
 use crate::vm::opcode::OPCODE_HANDLERS_BUDGET;
 
 use boa_gc::{Finalize, Gc, Trace, custom_trace};
@@ -906,7 +906,7 @@ impl Context {
     }
 
     pub(crate) fn run(&mut self) -> CompletionRecord {
-        #[cfg(not(feature = "tailcall"))]
+        #[cfg(not(all(feature = "tailcall", boa_nightly)))]
         while let Some(byte) = self
             .vm
             .frame()
@@ -930,10 +930,10 @@ impl Context {
                 ControlFlow::Break(value) => return value,
             }
         }
-        #[cfg(not(feature = "tailcall"))]
+        #[cfg(not(all(feature = "tailcall", boa_nightly)))]
         return CompletionRecord::Throw(JsError::from_native(JsNativeError::error()));
 
-        #[cfg(feature = "tailcall")]
+        #[cfg(all(feature = "tailcall", boa_nightly))]
         return self.dispatch_next(self.vm.frame().pc as usize);
     }
 

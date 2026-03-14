@@ -50,9 +50,9 @@
     html_logo_url = "https://raw.githubusercontent.com/boa-dev/boa/main/assets/logo_black.svg",
     html_favicon_url = "https://raw.githubusercontent.com/boa-dev/boa/main/assets/logo_black.svg"
 )]
-#![cfg_attr(feature = "tailcall", allow(incomplete_features))]
-#![cfg_attr(feature = "tailcall", feature(explicit_tail_calls))]
-#![cfg_attr(feature = "tailcall", feature(rust_preserve_none_cc))]
+#![cfg_attr(all(feature = "tailcall", boa_nightly), allow(incomplete_features))]
+#![cfg_attr(all(feature = "tailcall", boa_nightly), feature(explicit_tail_calls))]
+#![cfg_attr(all(feature = "tailcall", boa_nightly), feature(rust_preserve_none_cc))]
 #![cfg_attr(test, allow(clippy::needless_raw_string_hashes))] // Makes strings a bit more copy-pastable
 #![cfg_attr(not(test), forbid(clippy::unwrap_used))]
 #![allow(
