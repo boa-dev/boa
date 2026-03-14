@@ -704,10 +704,11 @@ impl String {
                     return Ok(js_string!().into());
                 }
                 let n = n as usize;
-                let mut result = Vec::with_capacity(n);
 
+                // Charge each repetition against the VM loop-iteration limit.
+                let mut result = Vec::with_capacity(n);
                 for _ in 0..n {
-                    IncrementLoopIteration::operation((), context)?;
+                    crate::vm::opcode::IncrementLoopIteration::operation((), context)?;
                     result.push(string.as_str());
                 }
 
