@@ -1,5 +1,5 @@
 use crate::{
-    Context, JsValue,
+    Context, JsError, JsNativeError,
     vm::{Opcode, completion_record::CompletionRecord},
 };
 
@@ -15,7 +15,7 @@ impl Context {
                 let opcode = Opcode::decode(byte);
                 become OPCODE_HANDLERS_TAILCALL[opcode as usize](self, pc)
             }
-            None => CompletionRecord::Normal(JsValue::undefined()),
+            None => CompletionRecord::Throw(JsError::from_native(JsNativeError::error())), // program ended without a return
         }
     }
 }
