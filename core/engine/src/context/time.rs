@@ -147,8 +147,8 @@ impl std::ops::Sub for JsInstant {
 pub trait Clock {
     /// Returns the current monotonic time.
     ///
-    /// This is guaranteed to be monotonic and should be used for measuring
-    /// durations and scheduling timeouts.
+    /// Implementers must ensure this is monotonic and should be used for measuring
+    /// durations and scheduling timeouts. The engine assumes monotonicity.
     fn now(&self) -> JsInstant;
 
     /// Returns the current wall-clock time in milliseconds since the Unix epoch.
@@ -160,8 +160,8 @@ pub trait Clock {
 
 /// A clock that uses the standard monotonic clock.
 ///
-/// This clock is based on [`instant::Instant`] which provides cross-platform
-/// monotonic time, including WASM support via `performance.now()`.
+/// This clock is based on [`web_time::Instant`] (via `crate::sys::time`) which provides
+/// cross-platform monotonic time, including WASM support via `performance.now()`.
 /// Time measurements are relative to an arbitrary starting point
 /// (the first call to `now()`) and are not affected by system clock adjustments.
 ///
