@@ -2,13 +2,13 @@
 
 ## Overview
 
-In the Boa JavaScript engine, a [`JsString`] is a reference-counted, immutable string that represents strings in ECMAScript. To optimize memory usage, `JsString` can store data in either Latin-1 (1 byte per character) or UTF-16 (2 bytes per character) encodings. 
+In the Boa JavaScript engine, a [`JsString`] is a reference-counted, immutable string that represents strings in ECMAScript. To optimize memory usage, `JsString` can store data in either Latin-1 (1 byte per character) or UTF-16 (2 bytes per character) encodings.
 
 `JsString` is designed to have a small memory footprint, being exactly the size of a single thin pointer (e.g., 8 bytes on 64-bit systems).
 
 ## Memory Layout (`vtable`)
 
-A key aspect of `JsString` is its internal representation. The `ptr` field inside `JsString` always points to a heap allocation where the very first field is a `JsStringVTable` struct. 
+A key aspect of `JsString` is its internal representation. The `ptr` field inside `JsString` always points to a heap allocation where the very first field is a `JsStringVTable` struct.
 
 ```rust
 pub struct JsString {
