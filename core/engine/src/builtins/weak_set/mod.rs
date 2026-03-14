@@ -27,6 +27,9 @@ pub(crate) type NativeWeakSet = boa_gc::WeakMap<ErasedVTableObject, ()>;
 #[derive(Debug, Trace, Finalize)]
 pub(crate) struct WeakSet;
 
+#[cfg(test)]
+mod tests;
+
 impl IntrinsicObject for WeakSet {
     fn get(intrinsics: &Intrinsics) -> JsObject {
         Self::STANDARD_CONSTRUCTOR(intrinsics.constructors()).constructor()
