@@ -1,5 +1,5 @@
 use crate::iter::CodePointsIter;
-use crate::vtable::{JsStringVTable, RawJsString};
+use crate::vtable::{JsStringHeader, JsStringVTable};
 use crate::{JsStr, JsString, JsStringKind};
 use std::ptr::{self, NonNull};
 
@@ -16,7 +16,7 @@ pub(crate) static SLICE_VTABLE: JsStringVTable = JsStringVTable {
 #[repr(C)]
 pub(crate) struct SliceString {
     /// Standardized header for all strings.
-    pub(crate) header: RawJsString,
+    pub(crate) header: JsStringHeader,
     // Keep this for refcounting the original string.
     pub(crate) owned: JsString,
     // Pointer to the data itself. This is guaranteed to be safe as long as `owned` is
@@ -37,7 +37,7 @@ impl SliceString {
         // `start` >= 0, `end` <= `owned.len()`).
         let inner = unsafe { owned.as_str().get_unchecked(start..end) };
         SliceString {
-            header: RawJsString {
+            header: JsStringHeader {
                 vtable: &SLICE_VTABLE,
                 len: end - start,
                 refcount: 1,
@@ -61,28 +61,28 @@ impl SliceString {
 // Unused slice_clone removed.
 
 #[inline]
-fn slice_as_str(header: &RawJsString) -> JsStr<'_> {
+fn slice_as_str(header: &JsStringHeader) -> JsStr<'_> {
     // SAFETY: The header is part of a SliceString and it's aligned.
     let this: &SliceString = unsafe { &*ptr::from_ref(header).cast::<SliceString>() };
     this.inner
 }
 
 #[inline]
-fn slice_dealloc(ptr: NonNull<RawJsString>) {
+fn slice_dealloc(ptr: NonNull<JsStringHeader>) {
     // SAFETY: This is part of the correct vtable which is validated on construction.
-    // The pointer is guaranteed to be a valid `NonNull<RawJsString>` pointing to a `SliceString`.
+    // The pointer is guaranteed to be a valid `NonNull<JsStringHeader>` pointing to a `SliceString`.
     unsafe {
         drop(Box::from_raw(ptr.cast::<SliceString>().as_ptr()));
     }
 }
 
 #[inline]
-fn slice_code_points(header: &RawJsString) -> CodePointsIter<'_> {
+fn slice_code_points(header: &JsStringHeader) -> CodePointsIter<'_> {
     CodePointsIter::new(slice_as_str(header))
 }
 
 #[inline]
-fn slice_code_unit_at(header: &RawJsString, index: usize) -> Option<u16> {
+fn slice_code_unit_at(header: &JsStringHeader, index: usize) -> Option<u16> {
     slice_as_str(header).get(index)
 }
 

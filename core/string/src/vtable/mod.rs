@@ -1,6 +1,6 @@
 use crate::iter::CodePointsIter;
 use crate::{JsStr, JsStringKind};
-use std::ptr::{self, NonNull};
+use std::ptr::NonNull;
 
 pub(crate) mod sequence;
 pub(crate) use sequence::SequenceString;
@@ -22,7 +22,7 @@ pub(crate) use rope::RopeString;
 /// and improve cache locality for common operations.
 #[repr(C)]
 #[derive(Debug, Clone, Copy)]
-pub struct RawJsString {
+pub struct JsStringHeader {
     /// Reference to the static vtable for this string kind.
     pub(crate) vtable: &'static JsStringVTable,
     /// Length of the string in code units.
@@ -33,11 +33,6 @@ pub struct RawJsString {
     pub(crate) hash: u64,
 }
 
-// SAFETY: We only mutate refcount and hash via atomic-casts when kind != Static.
-unsafe impl Sync for RawJsString {}
-// SAFETY: RawJsString contains only thread-safe data.
-unsafe impl Send for RawJsString {}
-
 /// Static vtable for `JsString` operations.
 ///
 /// This contains function pointers for polymorphic operations and static metadata.
@@ -45,19 +40,14 @@ unsafe impl Send for RawJsString {}
 #[derive(Debug, Copy, Clone)]
 pub(crate) struct JsStringVTable {
     /// Get the string as a `JsStr`.
-    pub as_str: for<'a> fn(&'a RawJsString) -> JsStr<'a>,
+    pub as_str: for<'a> fn(&'a JsStringHeader) -> JsStr<'a>,
     /// Get an iterator of code points.
-    pub code_points: for<'a> fn(&'a RawJsString) -> CodePointsIter<'a>,
+    pub code_points: for<'a> fn(&'a JsStringHeader) -> CodePointsIter<'a>,
     /// Get the code unit at the given index.
-    pub code_unit_at: fn(&RawJsString, usize) -> Option<u16>,
+    pub code_unit_at: fn(&JsStringHeader, usize) -> Option<u16>,
     /// Deallocate the string.
-    pub dealloc: fn(NonNull<RawJsString>),
+    pub dealloc: fn(NonNull<JsStringHeader>),
 
     /// Kind tag to identify the string type. Shared across all strings of this vtable.
     pub kind: JsStringKind,
 }
-
-// SAFETY: We only mutate refcount and hash via atomic-casts when kind != Static.
-unsafe impl Sync for JsStringVTable {}
-// SAFETY: JsStringVTable contains only thread-safe data.
-unsafe impl Send for JsStringVTable {}

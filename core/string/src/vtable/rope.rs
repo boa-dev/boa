@@ -1,7 +1,7 @@
-use crate::vtable::{JsStringVTable, RawJsString};
-use crate::{JsStr, JsStrVariant, JsString, JsStringKind};
-use std::sync::OnceLock;
+use crate::vtable::{JsStringHeader, JsStringVTable};
+use crate::{JsStr, JsString, JsStringKind};
 use std::ptr::{self, NonNull};
+use std::sync::OnceLock;
 
 /// Fibonacci numbers for rope balancing thresholds.
 /// F[n] = Fib(n + 2). A rope of depth n is balanced if its length >= F[n].
@@ -62,7 +62,7 @@ pub(crate) static ROPE_VTABLE: JsStringVTable = JsStringVTable {
 #[repr(C)]
 pub(crate) struct RopeString {
     /// Standardized header for all strings.
-    pub(crate) header: RawJsString,
+    pub(crate) header: JsStringHeader,
     pub(crate) left: JsString,
     pub(crate) right: JsString,
     flattened: OnceLock<JsString>,
@@ -95,11 +95,11 @@ impl RopeString {
             let mut leaves = Vec::with_capacity(std::cmp::max(depth as usize * 2, 16));
             Self::collect_leaves(&left, &mut leaves);
             Self::collect_leaves(&right, &mut leaves);
-            return JsString::concat_strings_balanced(&leaves);
+            return JsString::concat_leaves_balanced(&leaves);
         }
 
         let rope = Box::new(Self {
-            header: RawJsString {
+            header: JsStringHeader {
                 vtable: &ROPE_VTABLE,
                 len,
                 refcount: 1,
@@ -112,7 +112,7 @@ impl RopeString {
         });
 
         // SAFETY: The `rope` is leaked as a raw pointer and wrapped in `NonNull`.
-        // The `RawJsString` header is at the start of `RopeString`.
+        // The `JsStringHeader` header is at the start of `RopeString`.
         unsafe { JsString::from_raw(NonNull::from(Box::leak(rope)).cast()) }
     }
 
@@ -136,26 +136,28 @@ impl RopeString {
         self.depth
     }
 
-    /// Casts a `NonNull<RawJsString>` to `&Self`.
+    /// Casts a `NonNull<JsStringHeader>` to `&Self`.
     ///
     /// # Safety
     /// The caller must ensure the pointer is valid and of the correct kind.
     #[inline]
-    pub(crate) unsafe fn from_vtable<'a>(ptr: NonNull<RawJsString>) -> &'a Self {
+    pub(crate) unsafe fn from_vtable<'a>(ptr: NonNull<JsStringHeader>) -> &'a Self {
         // SAFETY: The caller must ensure the pointer is valid and of the correct kind.
         unsafe { ptr.cast().as_ref() }
     }
 }
 
 #[inline]
-fn rope_dealloc(ptr: NonNull<RawJsString>) {
+fn rope_dealloc(ptr: NonNull<JsStringHeader>) {
     // We use a stack to iteratively drop rope nodes and avoid stack overflow.
     let mut stack = vec![ptr];
     while let Some(current_ptr) = stack.pop() {
-        // SAFETY: The pointer is guaranteed to be a valid `NonNull<RawJsString>` pointing to a `RopeString`
+        // SAFETY: The pointer is guaranteed to be a valid `NonNull<JsStringHeader>` pointing to a `RopeString`
         // that is ready to be deallocated (refcount reached 0).
         unsafe {
+            // SAFETY: The pointer was created from a Box in `create` and hasn't been freed yet.
             let rope_ptr = current_ptr.cast::<RopeString>();
+            // SAFETY: We own this pointer now conceptually.
             let mut rope_box = Box::from_raw(rope_ptr.as_ptr());
 
             // Check children. If they are ropes and we are the last reference, defer their deallocation.
@@ -165,7 +167,8 @@ fn rope_dealloc(ptr: NonNull<RawJsString>) {
                 stack.push(left.ptr);
                 std::mem::forget(left);
             }
-            let right = std::mem::replace(&mut rope_box.right, crate::StaticJsStrings::EMPTY_STRING);
+            let right =
+                std::mem::replace(&mut rope_box.right, crate::StaticJsStrings::EMPTY_STRING);
             if right.kind() == JsStringKind::Rope && right.refcount() == Some(1) {
                 stack.push(right.ptr);
                 std::mem::forget(right);
@@ -176,7 +179,7 @@ fn rope_dealloc(ptr: NonNull<RawJsString>) {
 }
 
 #[inline]
-fn rope_as_str(header: &RawJsString) -> JsStr<'_> {
+fn rope_as_str(header: &JsStringHeader) -> JsStr<'_> {
     // SAFETY: The header is part of a RopeString and it's aligned.
     let this: &RopeString = unsafe { &*ptr::from_ref(header).cast::<RopeString>() };
 
@@ -184,7 +187,7 @@ fn rope_as_str(header: &RawJsString) -> JsStr<'_> {
     let flattened = this.flattened.get_or_init(|| {
         let mut leaves = Vec::with_capacity(this.depth as usize * 2);
         let mut current_strings = Vec::with_capacity(this.depth as usize * 2);
-        
+
         // We need an iterative approach to avoid stack overflow for deep trees.
         let mut stack: Vec<&JsString> = Vec::with_capacity(this.depth as usize + 1);
         stack.push(&this.right);
@@ -203,7 +206,7 @@ fn rope_as_str(header: &RawJsString) -> JsStr<'_> {
                 current_strings.push(s.clone());
             }
         }
-        
+
         for s in &current_strings {
             leaves.push(s.as_str());
         }
@@ -215,7 +218,7 @@ fn rope_as_str(header: &RawJsString) -> JsStr<'_> {
 }
 
 #[inline]
-fn rope_code_points(header: &RawJsString) -> crate::iter::CodePointsIter<'_> {
+fn rope_code_points(header: &JsStringHeader) -> crate::iter::CodePointsIter<'_> {
     // SAFETY: We are creating a new handle from a raw pointer, so we must increment the refcount
     // to avoid a use-after-free when the iterator's handle is dropped.
     // We also know that the kind is not static (since this is ROPE), so we can safely cast the refcount
@@ -233,9 +236,9 @@ fn rope_code_points(header: &RawJsString) -> crate::iter::CodePointsIter<'_> {
 }
 
 #[inline]
-fn rope_code_unit_at(header: &RawJsString, mut index: usize) -> Option<u16> {
+fn rope_code_unit_at(header: &JsStringHeader, mut index: usize) -> Option<u16> {
     // SAFETY: This is part of the correct vtable which is validated on construction.
-    // The pointer is guaranteed to be a valid `NonNull<RawJsString>` pointing to a `RopeString`.
+    // The pointer is guaranteed to be a valid `NonNull<JsStringHeader>` pointing to a `RopeString`.
     let mut current: &RopeString = unsafe { &*ptr::from_ref(header).cast::<RopeString>() };
 
     loop {

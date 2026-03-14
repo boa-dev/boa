@@ -1,5 +1,5 @@
 use crate::iter::CodePointsIter;
-use crate::vtable::{JsStringVTable, RawJsString};
+use crate::vtable::{JsStringHeader, JsStringVTable};
 use crate::{JsStr, JsStringKind};
 use std::hash::{Hash, Hasher};
 use std::ptr::{self};
@@ -18,7 +18,7 @@ pub(crate) static STATIC_VTABLE: JsStringVTable = JsStringVTable {
 #[repr(C)]
 pub struct StaticString {
     /// Standardized header for all strings.
-    pub(crate) header: RawJsString,
+    pub(crate) header: JsStringHeader,
     /// The actual string data.
     pub(crate) str: JsStr<'static>,
 }
@@ -28,7 +28,7 @@ impl StaticString {
     #[must_use]
     pub const fn new(str: JsStr<'static>) -> Self {
         Self {
-            header: RawJsString {
+            header: JsStringHeader {
                 vtable: &STATIC_VTABLE,
                 len: str.len(),
                 refcount: 0,
@@ -62,19 +62,19 @@ impl std::borrow::Borrow<JsStr<'static>> for &'static StaticString {
 // Unused static_clone removed.
 
 #[inline]
-fn static_as_str(header: &RawJsString) -> JsStr<'_> {
+fn static_as_str(header: &JsStringHeader) -> JsStr<'_> {
     // SAFETY: The header is part of a StaticString and it's aligned.
     let this: &StaticString = unsafe { &*ptr::from_ref(header).cast::<StaticString>() };
     this.str
 }
 
 #[inline]
-fn static_code_points(header: &RawJsString) -> CodePointsIter<'_> {
+fn static_code_points(header: &JsStringHeader) -> CodePointsIter<'_> {
     CodePointsIter::new(static_as_str(header))
 }
 
 #[inline]
-fn static_code_unit_at(header: &RawJsString, index: usize) -> Option<u16> {
+fn static_code_unit_at(header: &JsStringHeader, index: usize) -> Option<u16> {
     static_as_str(header).get(index)
 }
 
