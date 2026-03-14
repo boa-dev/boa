@@ -1,7 +1,7 @@
 use crate::vtable::{JsStringHeader, JsStringVTable};
 use crate::{JsStr, JsString, JsStringKind};
-use std::cell::OnceCell;
 use std::ptr::{self, NonNull};
+use std::sync::OnceLock;
 
 /// Fibonacci numbers for rope balancing thresholds.
 /// `F[n] = Fib(n + 2)`. A rope of depth `n` is balanced if its length >= `F[n]`.
@@ -65,7 +65,11 @@ pub(crate) struct RopeString {
     pub(crate) header: JsStringHeader,
     pub(crate) left: JsString,
     pub(crate) right: JsString,
-    flattened: OnceCell<JsString>,
+    // We use `OnceLock` over `OnceCell` despite `JsString` being `!Sync`.
+    // The reason is that rope flattening is structurally reentrant: `rope.as_str()` can internally
+    // trigger `.as_str()` on its children, which might be identical shared references (DAG).
+    // `OnceCell` explicitly panics on reentrant initialization, whereas `OnceLock` handles it.
+    flattened: OnceLock<JsString>,
     pub(crate) depth: u8,
 }
 
@@ -107,7 +111,7 @@ impl RopeString {
             },
             left,
             right,
-            flattened: OnceCell::new(),
+            flattened: OnceLock::new(),
             depth,
         });
 
