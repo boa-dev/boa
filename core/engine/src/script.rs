@@ -8,10 +8,7 @@
 //! [spec]: https://tc39.es/ecma262/#sec-scripts
 //! [script]: https://tc39.es/ecma262/#sec-script-records
 
-use std::{
-    cell::RefCell,
-    path::{Path, PathBuf},
-};
+use std::path::{Path, PathBuf};
 
 use rustc_hash::FxHashMap;
 
@@ -45,16 +42,17 @@ impl std::fmt::Debug for Script {
             .finish()
     }
 }
-#[derive(Debug, Finalize)]
+
+#[derive(Trace, Debug, Finalize)]
 enum ScriptPhase {
-    Ast(boa_ast::Script),
+    Ast(#[unsafe_ignore_trace] boa_ast::Script),
     Codeblock(Gc<CodeBlock>),
 }
+
 #[derive(Trace, Finalize)]
 struct Inner {
     realm: Realm,
-    #[unsafe_ignore_trace]
-    phase: RefCell<ScriptPhase>,
+    phase: GcRefCell<ScriptPhase>,
     source_text: SourceText,
     loaded_modules: GcRefCell<FxHashMap<JsString, Module>>,
     host_defined: HostDefined,
@@ -108,7 +106,7 @@ impl Script {
         Ok(Self {
             inner: Gc::new(Inner {
                 realm: realm.unwrap_or_else(|| context.realm().clone()),
-                phase: RefCell::new(ScriptPhase::Ast(code)),
+                phase: GcRefCell::new(ScriptPhase::Ast(code)),
                 source_text,
                 loaded_modules: GcRefCell::default(),
                 host_defined: HostDefined::default(),

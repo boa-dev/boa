@@ -62,12 +62,18 @@ pub(super) struct DfsInfo {
 /// but with a state machine-like design for better correctness.
 ///
 /// [cyclic]: https://tc39.es/ecma262/#table-cyclic-module-fields
-#[derive(Debug, Trace, Finalize, Default)]
+#[derive(Debug, Trace, Finalize)]
 #[boa_gc(unsafe_no_drop)]
 enum ModuleStatus {
-    #[default]
-    Unlinked,
+    Unlinked {
+        #[unsafe_ignore_trace]
+        source: boa_ast::Module,
+        source_text: SourceText,
+    },
     Linking {
+        #[unsafe_ignore_trace]
+        source: boa_ast::Module,
+        source_text: SourceText,
         info: DfsInfo,
     },
     PreLinked {
@@ -111,15 +117,21 @@ impl ModuleStatus {
     where
         F: FnOnce(Self) -> Self,
     {
-        *self = f(std::mem::take(self));
+        *self = f(std::mem::replace(
+            self,
+            ModuleStatus::Unlinked {
+                source: boa_ast::Module::default(),
+                source_text: SourceText::default(),
+            },
+        ));
     }
 
     /// Gets the current index info of the module within the dependency graph, or `None` if the
     /// module is not in a state executing the dfs algorithm.
     const fn dfs_info(&self) -> Option<&DfsInfo> {
         match self {
-            Self::Unlinked | Self::EvaluatingAsync { .. } | Self::Evaluated { .. } => None,
-            Self::Linking { info }
+            Self::Unlinked { .. } | Self::EvaluatingAsync { .. } | Self::Evaluated { .. } => None,
+            Self::Linking { info, .. }
             | Self::PreLinked { info, .. }
             | Self::Linked { info, .. }
             | Self::Evaluating { info, .. } => Some(info),
@@ -130,8 +142,8 @@ impl ModuleStatus {
     /// or `None` if the module is not in a state executing the dfs algorithm.
     fn dfs_info_mut(&mut self) -> Option<&mut DfsInfo> {
         match self {
-            Self::Unlinked | Self::EvaluatingAsync { .. } | Self::Evaluated { .. } => None,
-            Self::Linking { info }
+            Self::Unlinked { .. } | Self::EvaluatingAsync { .. } | Self::Evaluated { .. } => None,
+            Self::Linking { info, .. }
             | Self::PreLinked { info, .. }
             | Self::Linked { info, .. }
             | Self::Evaluating { info, .. } => Some(info),
@@ -142,7 +154,7 @@ impl ModuleStatus {
     /// level capability.
     const fn top_level_capability(&self) -> Option<&PromiseCapability> {
         match &self {
-            Self::Unlinked
+            Self::Unlinked { .. }
             | Self::Linking { .. }
             | Self::PreLinked { .. }
             | Self::Linked { .. } => None,
@@ -182,12 +194,28 @@ impl ModuleStatus {
     /// Gets the declarative environment from the module status.
     fn environment(&self) -> Option<Gc<DeclarativeEnvironment>> {
         match self {
-            ModuleStatus::Unlinked | ModuleStatus::Linking { .. } => None,
+            ModuleStatus::Unlinked { .. } | ModuleStatus::Linking { .. } => None,
             ModuleStatus::PreLinked { environment, .. }
             | ModuleStatus::Linked { environment, .. }
             | ModuleStatus::Evaluating { environment, .. }
             | ModuleStatus::EvaluatingAsync { environment, .. }
             | ModuleStatus::Evaluated { environment, .. } => Some(environment.clone()),
+        }
+    }
+
+    /// If this module is in the unlinked or linking states, gets its source.
+    fn source(&self) -> Option<(&boa_ast::Module, &SourceText)> {
+        match self {
+            ModuleStatus::Unlinked {
+                source,
+                source_text,
+            }
+            | ModuleStatus::Linking {
+                source,
+                source_text,
+                ..
+            } => Some((source, source_text)),
+            _ => None,
         }
     }
 }
@@ -242,8 +270,6 @@ impl std::fmt::Debug for SourceTextModule {
 struct ModuleCode {
     has_tla: bool,
     requested_modules: IndexSet<super::ModuleRequest, BuildHasherDefault<FxHasher>>,
-    source: RefCell<Option<boa_ast::Module>>,
-    source_text: RefCell<Option<SourceText>>,
     path: Option<PathBuf>,
     import_entries: Vec<ImportEntry>,
     local_export_entries: Vec<LocalExportEntry>,
@@ -307,7 +333,7 @@ impl SourceTextModule {
     ///
     /// [parse]: https://tc39.es/ecma262/#sec-parsemodule
     pub(super) fn new(
-        code: boa_ast::Module,
+        source: boa_ast::Module,
         interner: &Interner,
         source_text: SourceText,
         path: Option<PathBuf>,
@@ -320,11 +346,11 @@ impl SourceTextModule {
                 interner,
                 requests: IndexSet::default(),
             };
-            let _ = visitor.visit_module(&code);
+            let _ = visitor.visit_module(&source);
             visitor.requests
         };
         // 4. Let importEntries be ImportEntries of body.
-        let import_entries = code.items().import_entries();
+        let import_entries = source.items().import_entries();
 
         // 5. Let importedBoundNames be ImportedLocalNames(importEntries).
         // Can be ignored because this is just a simple `Iter::map`
@@ -337,7 +363,7 @@ impl SourceTextModule {
         let mut star_export_entries = Vec::new();
 
         // 10. For each ExportEntry Record ee of exportEntries, do
-        for ee in code.items().export_entries() {
+        for ee in source.items().export_entries() {
             match ee {
                 // a. If ee.[[ModuleRequest]] is null, then
                 ExportEntry::Ordinary(entry) => {
@@ -393,7 +419,7 @@ impl SourceTextModule {
         }
 
         // 11. Let async be body Contains await.
-        let has_tla = contains(&code, ContainsSymbol::AwaitExpression);
+        let has_tla = contains(&source, ContainsSymbol::AwaitExpression);
 
         // 12. Return Source Text Module Record {
         //     [[Realm]]: realm, [[Environment]]: empty, [[Namespace]]: empty, [[CycleRoot]]: empty,
@@ -409,16 +435,17 @@ impl SourceTextModule {
         // }.
         // Most of this can be ignored, since `Status` takes care of the remaining state.
         Self {
-            status: GcRefCell::default(),
+            status: GcRefCell::new(ModuleStatus::Unlinked {
+                source,
+                source_text,
+            }),
             loaded_modules: GcRefCell::default(),
             async_parent_modules: GcRefCell::default(),
             import_meta: GcRefCell::default(),
             code: ModuleCode {
-                source: RefCell::new(Some(code)),
-                source_text: RefCell::new(Some(source_text)),
-                path,
-                requested_modules,
                 has_tla,
+                requested_modules,
+                path,
                 import_entries,
                 local_export_entries,
                 indirect_export_entries,
@@ -523,7 +550,7 @@ impl SourceTextModule {
         // 2. If module is a Cyclic Module Record, module.[[Status]] is new, and state.[[Visited]] does not contain
         //    module, then
         // a. Append module to state.[[Visited]].
-        if matches!(&*self.status.borrow(), ModuleStatus::Unlinked)
+        if matches!(&*self.status.borrow(), ModuleStatus::Unlinked { .. })
             && state.visited.borrow_mut().insert(module_self.clone())
         {
             // b. Let requestedModulesCount be the number of elements in module.[[RequestedModules]].
@@ -765,7 +792,7 @@ impl SourceTextModule {
         // 1. Assert: module.[[Status]] is one of unlinked, linked, evaluating-async, or evaluated.
         debug_assert!(matches!(
             &*self.status.borrow(),
-            ModuleStatus::Unlinked
+            ModuleStatus::Unlinked { .. }
                 | ModuleStatus::Linked { .. }
                 | ModuleStatus::EvaluatingAsync { .. }
                 | ModuleStatus::Evaluated { .. }
@@ -780,12 +807,24 @@ impl SourceTextModule {
             // a. For each Cyclic Module Record m of stack, do
             for m in stack.iter().filter_map(|cmr| cmr.kind().as_source_text()) {
                 // i. Assert: m.[[Status]] is linking.
-                debug_assert!(matches!(&*m.status.borrow(), ModuleStatus::Linking { .. }));
                 // ii. Set m.[[Status]] to unlinked.
-                *m.status.borrow_mut() = ModuleStatus::Unlinked;
+                m.status.borrow_mut().transition(|status| match status {
+                    ModuleStatus::Linking {
+                        source,
+                        source_text,
+                        ..
+                    } => ModuleStatus::Unlinked {
+                        source,
+                        source_text,
+                    },
+                    _ => unreachable!("i. Assert: m.[[Status]] is linking."),
+                });
             }
             // b. Assert: module.[[Status]] is unlinked.
-            debug_assert!(matches!(&*self.status.borrow(), ModuleStatus::Unlinked));
+            debug_assert!(matches!(
+                &*self.status.borrow(),
+                ModuleStatus::Unlinked { .. }
+            ));
             // c. Return ? result.
             return Err(err);
         }
@@ -827,18 +866,23 @@ impl SourceTextModule {
             return Ok(index);
         }
 
-        // 3. Assert: module.[[Status]] is unlinked.
-        debug_assert!(matches!(&*self.status.borrow(), ModuleStatus::Unlinked));
-
         // 4. Set module.[[Status]] to linking.
         // 5. Set module.[[DFSIndex]] to index.
         // 6. Set module.[[DFSAncestorIndex]] to index.
-        *self.status.borrow_mut() = ModuleStatus::Linking {
-            info: DfsInfo {
-                dfs_index: index,
-                dfs_ancestor_index: index,
+        self.status.borrow_mut().transition(|status| match status {
+            ModuleStatus::Unlinked {
+                source,
+                source_text,
+            } => ModuleStatus::Linking {
+                source,
+                source_text,
+                info: DfsInfo {
+                    dfs_index: index,
+                    dfs_ancestor_index: index,
+                },
             },
-        };
+            _ => unreachable!("3. Assert: module.[[Status]] is unlinked."),
+        });
 
         // 7. Set index to index + 1.
         index += 1;
@@ -873,10 +917,11 @@ impl SourceTextModule {
                         DfsInfo {
                             dfs_ancestor_index, ..
                         },
+                    ..
                 } = &*required_module_src.status.borrow()
                 {
-                    // 1. Set module.[[DFSAncestorIndex]] to min(module.[[DFSAncestorIndex]],
-                    //    requiredModule.[[DFSAncestorIndex]]).
+                    // 1. Set module.[[DFSAncestorIndex]] to
+                    //    min(module.[[DFSAncestorIndex]], requiredModule.[[DFSAncestorIndex]]).
 
                     Some(*dfs_ancestor_index)
                 } else {
@@ -976,7 +1021,7 @@ impl SourceTextModule {
         // 1. Assert: This call to Evaluate is not happening at the same time as another call to Evaluate within the surrounding agent.
         let (module, promise) = {
             match &*self.status.borrow() {
-                ModuleStatus::Unlinked
+                ModuleStatus::Unlinked { .. }
                 | ModuleStatus::Linking { .. }
                 | ModuleStatus::PreLinked { .. }
                 | ModuleStatus::Evaluating { .. } => {
@@ -1559,24 +1604,16 @@ impl SourceTextModule {
         // 4. Assert: realm is not undefined.
         let realm = module_self.realm().clone();
 
-        // Take the AST and source text — they are only needed during compilation.
-        // Dropping them here frees the parse tree after linking is complete.
-        let source = self
-            .code
-            .source
-            .take()
-            .expect("module source consumed before initialize_environment");
-        let source_text = self
-            .code
-            .source_text
-            .take()
-            .expect("module source_text consumed before initialize_environment");
+        let status = self.status.borrow();
+        let (source, source_text) = status
+            .source()
+            .expect("module can only initialize its environment in the linking phase");
 
         // 5. Let env be NewModuleEnvironment(realm.[[GlobalEnv]]).
         // 6. Set module.[[Environment]] to env.
         let env = source.scope().clone();
 
-        let spanned_source_text = SpannedSourceText::new_source_only(source_text);
+        let spanned_source_text = SpannedSourceText::new_source_only(source_text.clone());
         let mut compiler = ByteCompiler::new(
             js_string!("<main>"),
             true,
@@ -1664,7 +1701,7 @@ impl SourceTextModule {
 
             // 18. Let code be module.[[ECMAScriptCode]].
             // 19. Let varDeclarations be the VarScopedDeclarations of code.
-            let var_declarations = var_scoped_declarations(&source);
+            let var_declarations = var_scoped_declarations(source);
             // 20. Let declaredVarNames be a new empty List.
             let mut declared_var_names = Vec::new();
             // 21. For each element d of varDeclarations, do
@@ -1695,7 +1732,7 @@ impl SourceTextModule {
 
             // 22. Let lexDeclarations be the LexicallyScopedDeclarations of code.
             // 23. Let privateEnv be null.
-            let lex_declarations = lexically_scoped_declarations(&source);
+            let lex_declarations = lexically_scoped_declarations(source);
             let mut functions = Vec::new();
             // 24. For each element d of lexDeclarations, do
             for declaration in lex_declarations {
@@ -1759,6 +1796,7 @@ impl SourceTextModule {
         // 8. Let moduleContext be a new ECMAScript code execution context.
         let mut envs = EnvironmentStack::new();
         envs.push_module(source.scope().clone());
+        drop(status);
 
         // 9. Set the Function of moduleContext to null.
         // 10. Assert: module.[[Realm]] is not undefined.
@@ -1862,7 +1900,7 @@ impl SourceTextModule {
 
         // 16. Set module.[[Context]] to moduleContext.
         self.status.borrow_mut().transition(|state| match state {
-            ModuleStatus::Linking { info } => ModuleStatus::PreLinked {
+            ModuleStatus::Linking { info, .. } => ModuleStatus::PreLinked {
                 environment: env,
                 info,
                 context: SourceTextContext {
