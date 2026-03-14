@@ -41,7 +41,7 @@ impl<D: InternalStringType> JsStringBuilder<D> {
         }
     }
 
-    /// Returns the number of elements that inner `RawJsString` holds.
+    /// Returns the number of elements that inner `JsStringHeader` holds.
     #[inline]
     #[must_use]
     pub const fn len(&self) -> usize {
@@ -68,7 +68,7 @@ impl<D: InternalStringType> JsStringBuilder<D> {
         self.cap
     }
 
-    /// Returns the allocated byte of `RawJsString`'s data.
+    /// Returns the allocated byte of `JsStringHeader`'s data.
     #[must_use]
     const fn allocated_data_byte_len(&self) -> usize {
         self.len() * Self::DATA_SIZE
@@ -90,7 +90,7 @@ impl<D: InternalStringType> JsStringBuilder<D> {
         let layout = Self::new_layout(cap);
         #[allow(clippy::cast_ptr_alignment)]
         // SAFETY:
-        // The layout size of `RawJsString` is never zero, since it has to store
+        // The layout size of `JsStringHeader` is never zero, since it has to store
         // basic string metadata like length and refcount.
         let ptr = unsafe { alloc(layout) };
 
@@ -105,7 +105,7 @@ impl<D: InternalStringType> JsStringBuilder<D> {
         }
     }
 
-    /// Checks if the inner `RawJsString` is allocated.
+    /// Checks if the inner `JsStringHeader` is allocated.
     #[must_use]
     fn is_allocated(&self) -> bool {
         self.inner != NonNull::dangling()
@@ -163,12 +163,12 @@ impl<D: InternalStringType> JsStringBuilder<D> {
             // SAFETY:
             // Valid pointer is required by `realloc` and pointer is checked above to be valid.
             // The layout size of the sequence string is never zero, since it has to store
-            // the `RawJsString` header.
+            // the `JsStringHeader` header.
             unsafe { realloc(old_ptr.cast(), old_layout, new_layout.size()) }
         } else {
             // SAFETY:
             // The layout size of the sequence string is never zero, since it has to store
-            // the `RawJsString` header.
+            // the `JsStringHeader` header.
             unsafe { alloc(new_layout) }
         };
 
@@ -179,7 +179,7 @@ impl<D: InternalStringType> JsStringBuilder<D> {
         self.cap = Self::capacity_from_layout(new_layout);
     }
 
-    /// Appends an element to the inner `RawJsString` of `JsStringBuilder`.
+    /// Appends an element to the inner `JsStringHeader` of `JsStringBuilder`.
     #[inline]
     pub fn push(&mut self, v: D::Byte) {
         let required_cap = self.len() + 1;
@@ -277,7 +277,7 @@ impl<D: InternalStringType> JsStringBuilder<D> {
         }
     }
 
-    /// Allocates memory to the inner `RawJsString` by the given capacity.
+    /// Allocates memory to the inner `JsStringHeader` by the given capacity.
     /// Capacity calculation is from [`Vec::reserve`].
     fn allocate(&mut self, cap: usize) {
         let cap = std::cmp::max(self.capacity() * 2, cap);
@@ -285,7 +285,7 @@ impl<D: InternalStringType> JsStringBuilder<D> {
         self.allocate_inner(Self::new_layout(cap));
     }
 
-    /// Appends an element to the inner `RawJsString` of `JsStringBuilder` without doing bounds check.
+    /// Appends an element to the inner `JsStringHeader` of `JsStringBuilder` without doing bounds check.
     /// # Safety
     ///
     /// Caller should ensure the capacity is large enough to hold elements.
@@ -305,7 +305,7 @@ impl<D: InternalStringType> JsStringBuilder<D> {
         self.len() == 0
     }
 
-    /// Checks if all bytes in inner `RawJsString`'s data are ascii.
+    /// Checks if all bytes in inner `JsStringHeader`'s data are ascii.
     #[inline]
     #[must_use]
     pub fn is_ascii(&self) -> bool {
@@ -318,20 +318,20 @@ impl<D: InternalStringType> JsStringBuilder<D> {
         data.is_ascii()
     }
 
-    /// Extracts a slice containing the elements in the inner `RawJsString`.
+    /// Extracts a slice containing the elements in the inner `JsStringHeader`.
     #[inline]
     #[must_use]
     pub fn as_slice(&self) -> &[D::Byte] {
         if self.is_allocated() {
             // SAFETY:
-            // The inner `RawJsString` is allocated which means it is not null.
+            // The inner `JsStringHeader` is allocated which means it is not null.
             unsafe { std::slice::from_raw_parts(self.data(), self.len()) }
         } else {
             &[]
         }
     }
 
-    /// Extracts a mutable slice containing the elements in the inner `RawJsString`.
+    /// Extracts a mutable slice containing the elements in the inner `JsStringHeader`.
     ///
     /// # Safety
     /// The caller must ensure that the content of the slice is valid encoding before the borrow ends.
@@ -341,7 +341,7 @@ impl<D: InternalStringType> JsStringBuilder<D> {
     pub unsafe fn as_mut_slice(&mut self) -> &mut [D::Byte] {
         if self.is_allocated() {
             // SAFETY:
-            // The inner `RawJsString` is allocated which means it is not null.
+            // The inner `JsStringHeader` is allocated which means it is not null.
             unsafe { std::slice::from_raw_parts_mut(self.data(), self.len()) }
         } else {
             &mut []

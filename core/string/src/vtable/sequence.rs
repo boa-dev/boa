@@ -4,7 +4,7 @@ use std::ptr::{self, NonNull};
 
 use crate::iter::CodePointsIter;
 use crate::r#type::{InternalStringType, Latin1, Utf16};
-use crate::vtable::{JsStringVTable, RawJsString};
+use crate::vtable::{JsStringHeader, JsStringVTable};
 use crate::{JsStr, JsStringKind, alloc_overflow};
 pub(crate) static LATIN1_VTABLE: JsStringVTable = JsStringVTable {
     as_str: seq_as_str::<Latin1>,
@@ -32,7 +32,7 @@ pub(crate) static UTF16_VTABLE: JsStringVTable = JsStringVTable {
 #[repr(C)]
 pub(crate) struct SequenceString<T: InternalStringType> {
     /// Standardized header for all strings.
-    pub(crate) header: RawJsString,
+    pub(crate) header: JsStringHeader,
     // Forces invariant contract.
     _marker: PhantomData<fn() -> T>,
     pub(crate) data: [u8; 0],
@@ -45,7 +45,7 @@ impl<T: InternalStringType> SequenceString<T> {
     #[must_use]
     pub(crate) fn new(len: usize) -> Self {
         SequenceString {
-            header: RawJsString {
+            header: JsStringHeader {
                 vtable: T::VTABLE,
                 len,
                 refcount: 1,
@@ -123,7 +123,7 @@ impl<T: InternalStringType> SequenceString<T> {
 }
 
 #[inline]
-fn seq_dealloc<T: InternalStringType>(ptr: NonNull<RawJsString>) {
+fn seq_dealloc<T: InternalStringType>(ptr: NonNull<JsStringHeader>) {
     // SAFETY: The vtable ensures that the pointer is valid and points to a
     // SequenceString of the correct type.
     let header = unsafe { ptr.as_ref() };
@@ -144,7 +144,7 @@ fn seq_dealloc<T: InternalStringType>(ptr: NonNull<RawJsString>) {
 }
 
 #[inline]
-fn seq_as_str<T: InternalStringType>(header: &RawJsString) -> JsStr<'_> {
+fn seq_as_str<T: InternalStringType>(header: &JsStringHeader) -> JsStr<'_> {
     // SAFETY: The header is part of a SequenceString<T> and it's aligned.
     let this: &SequenceString<T> = unsafe { &*ptr::from_ref(header).cast::<SequenceString<T>>() };
     let len = header.len;
@@ -158,11 +158,11 @@ fn seq_as_str<T: InternalStringType>(header: &RawJsString) -> JsStr<'_> {
 }
 
 #[inline]
-fn seq_code_points<T: InternalStringType>(header: &RawJsString) -> CodePointsIter<'_> {
+fn seq_code_points<T: InternalStringType>(header: &JsStringHeader) -> CodePointsIter<'_> {
     CodePointsIter::new(seq_as_str::<T>(header))
 }
 
 #[inline]
-fn seq_code_unit_at<T: InternalStringType>(header: &RawJsString, index: usize) -> Option<u16> {
+fn seq_code_unit_at<T: InternalStringType>(header: &JsStringHeader, index: usize) -> Option<u16> {
     seq_as_str::<T>(header).get(index)
 }

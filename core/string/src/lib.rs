@@ -29,7 +29,7 @@ use crate::display::{JsStrDisplayEscaped, JsStrDisplayLossy, JsStringDebugInfo};
 use crate::iter::CodePointsIter;
 use crate::r#type::{Latin1, Utf16};
 pub use crate::vtable::StaticString;
-pub(crate) use crate::vtable::{RawJsString, RopeString, SequenceString, SliceString};
+pub(crate) use crate::vtable::{JsStringHeader, RopeString, SequenceString, SliceString};
 #[doc(inline)]
 pub use crate::{
     builder::{CommonJsStringBuilder, Latin1JsStringBuilder, Utf16JsStringBuilder},
@@ -133,8 +133,8 @@ pub(crate) enum JsStringKind {
 /// type to allow for better optimization (and simpler code).
 #[allow(clippy::module_name_repetitions)]
 pub struct JsString {
-    /// Pointer to the string data. Always points to a `RawJsString` header.
-    pub(crate) ptr: NonNull<RawJsString>,
+    /// Pointer to the string data. Always points to a `JsStringHeader` header.
+    pub(crate) ptr: NonNull<JsStringHeader>,
 }
 
 // `JsString` should always be thin-pointer sized.
@@ -255,7 +255,7 @@ impl JsString {
     #[inline]
     #[must_use]
     pub fn code_points(&self) -> CodePointsIter<'_> {
-        // SAFETY: The pointer `self.ptr` is always valid and points to a `RawJsString` header.
+        // SAFETY: The pointer `self.ptr` is always valid and points to a `JsStringHeader` header.
         let header = unsafe { self.ptr.as_ref() };
         (header.vtable.code_points)(header)
     }
@@ -264,7 +264,7 @@ impl JsString {
     #[inline]
     #[must_use]
     pub fn variant(&self) -> JsStrVariant<'_> {
-        // SAFETY: The pointer `self.ptr` is always valid and points to a `RawJsString` header.
+        // SAFETY: The pointer `self.ptr` is always valid and points to a `JsStringHeader` header.
         let header = unsafe { self.ptr.as_ref() };
         match header.vtable.kind {
             JsStringKind::Latin1Sequence => {
@@ -344,7 +344,7 @@ impl JsString {
     #[inline]
     #[must_use]
     pub fn len(&self) -> usize {
-        // SAFETY: The pointer `self.ptr` is always valid and points to a `RawJsString` header.
+        // SAFETY: The pointer `self.ptr` is always valid and points to a `JsStringHeader` header.
         unsafe { self.ptr.as_ref().len }
     }
 
@@ -513,7 +513,7 @@ impl JsString {
     /// To avoid a memory leak the pointer must be converted back to a `JsString` using
     /// [`JsString::from_raw`].
     #[must_use]
-    pub fn into_raw(self) -> NonNull<RawJsString> {
+    pub fn into_raw(self) -> NonNull<JsStringHeader> {
         ManuallyDrop::new(self).ptr
     }
 
@@ -528,7 +528,7 @@ impl JsString {
     /// even if the returned `JsString` is never accessed.
     #[inline]
     #[must_use]
-    pub const unsafe fn from_raw(ptr: NonNull<RawJsString>) -> Self {
+    pub const unsafe fn from_raw(ptr: NonNull<JsStringHeader>) -> Self {
         Self { ptr }
     }
 }
@@ -548,8 +548,9 @@ impl JsString {
     /// Get the vtable for this string.
     #[inline]
     #[must_use]
+    #[allow(dead_code)]
     const fn vtable(&self) -> &JsStringVTable {
-        // SAFETY: The pointer `self.ptr` is always valid and points to a `RawJsString` header.
+        // SAFETY: The pointer `self.ptr` is always valid and points to a `JsStringHeader` header.
         unsafe { self.ptr.as_ref().vtable }
     }
 
@@ -560,8 +561,8 @@ impl JsString {
     #[must_use]
     pub const fn from_static(str: &'static StaticString) -> Self {
         // SAFETY: `str` is a reference to a `StaticString`, which is guaranteed to have a valid `header` field.
-        // The address of `str.header` is valid and non-null, and casting to `*mut RawJsString` is safe
-        // because `RawJsString` is the common header for all string types.
+        // The address of `str.header` is valid and non-null, and casting to `*mut JsStringHeader` is safe
+        // because `JsStringHeader` is the common header for all string types.
         Self {
             // SAFETY: The address of `str.header` is guaranteed to be non-null.
             ptr: unsafe { NonNull::new_unchecked((&raw const str.header).cast_mut()) },
@@ -632,7 +633,7 @@ impl JsString {
     #[inline]
     #[must_use]
     pub(crate) fn kind(&self) -> JsStringKind {
-        // SAFETY: The pointer `self.ptr` is always valid and points to a `RawJsString` header.
+        // SAFETY: The pointer `self.ptr` is always valid and points to a `JsStringHeader` header.
         unsafe { self.ptr.as_ref().vtable.kind }
     }
 
@@ -640,7 +641,7 @@ impl JsString {
     #[inline]
     #[must_use]
     pub fn as_str(&self) -> JsStr<'_> {
-        // SAFETY: The pointer `self.ptr` is always valid and points to a `RawJsString` header.
+        // SAFETY: The pointer `self.ptr` is always valid and points to a `JsStringHeader` header.
         let header = unsafe { self.ptr.as_ref() };
         // FAST PATH: Devirtualize common kinds.
         match header.vtable.kind {
@@ -686,7 +687,7 @@ impl JsString {
     #[inline]
     #[must_use]
     pub fn code_unit_at(&self, index: usize) -> Option<u16> {
-        // SAFETY: The pointer `self.ptr` is always valid and points to a `RawJsString` header.
+        // SAFETY: The pointer `self.ptr` is always valid and points to a `JsStringHeader` header.
         let header = unsafe { self.ptr.as_ref() };
         if index >= header.len {
             return None;
@@ -705,7 +706,7 @@ impl JsString {
                 let seq: &SequenceString<Utf16> = unsafe { self.ptr.cast().as_ref() };
                 // SAFETY: `seq.data()` returns a valid pointer to the UTF-16 data.
                 // `index` is checked to be within `header.len`, so `add(index)` is in bounds.
-                // The pointer is aligned because `RawJsString` has an alignment of 8 and a size that is a multiple of 2.
+                // The pointer is aligned because `JsStringHeader` has an alignment of 8 and a size that is a multiple of 2.
                 #[allow(clippy::cast_ptr_alignment)]
                 unsafe {
                     Some(*seq.data().cast::<u16>().add(index))
@@ -795,7 +796,7 @@ impl JsString {
     }
 
     /// Recursively builds a balanced rope tree from a flat list of leaves.
-    fn concat_leaves_balanced(leaves: &[Self]) -> Self {
+    pub(crate) fn concat_leaves_balanced(leaves: &[Self]) -> Self {
         match leaves.len() {
             0 => StaticJsStrings::EMPTY_STRING,
             1 => leaves[0].clone(),
@@ -876,7 +877,7 @@ impl JsString {
             }
 
             Self {
-                ptr: ptr.cast::<RawJsString>(),
+                ptr: ptr.cast::<JsStringHeader>(),
             }
         };
 
@@ -898,7 +899,7 @@ impl JsString {
                         .cast::<<Latin1 as r#type::StringType>::Byte>();
                     ptr::copy_nonoverlapping(s.as_ptr(), data, count);
                     Self {
-                        ptr: ptr.cast::<RawJsString>(),
+                        ptr: ptr.cast::<JsStringHeader>(),
                     }
                 }
                 JsStrVariant::Utf16(s) => {
@@ -907,7 +908,7 @@ impl JsString {
                         .cast::<<Utf16 as r#type::StringType>::Byte>();
                     ptr::copy_nonoverlapping(s.as_ptr(), data, count);
                     Self {
-                        ptr: ptr.cast::<RawJsString>(),
+                        ptr: ptr.cast::<JsStringHeader>(),
                     }
                 }
             }

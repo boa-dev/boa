@@ -618,3 +618,41 @@ fn pathological_batch_rebalancing() {
         rope.depth()
     );
 }
+
+#[test]
+fn test_rope_fibonacci_rebalancing() {
+    let mut s1 = JsString::from("a".repeat(20)); // Base length to bypass 512 flat threshold quickly
+    let mut s2 = JsString::from("b".repeat(20));
+
+    // Skew right
+    for _ in 0..10_000 {
+        s1 = JsString::concat(&s1, &JsString::from("c"));
+    }
+    // Skew left
+    for _ in 0..10_000 {
+        s2 = JsString::concat(&JsString::from("d"), &s2);
+    }
+
+    assert_eq!(s1.len(), 20 + 10_000);
+    assert_eq!(s2.len(), 20 + 10_000);
+
+    // Despite 10,000 skewed concatenations, the Fibonacci heuristic
+    // ensures the rope depth does not exceed ~20-25. It should never be 10,000.
+    assert!(
+        s1.depth() < 30,
+        "Right-skewed rope should have logarithmic depth via Fibonacci rebalancing, got: {}",
+        s1.depth()
+    );
+    assert!(
+        s2.depth() < 30,
+        "Left-skewed rope should have logarithmic depth via Fibonacci rebalancing, got: {}",
+        s2.depth()
+    );
+
+    // Verify traversal is still accurate across the rebalanced structure
+    assert_eq!(s1.code_unit_at(0), Some(u16::from(b'a')));
+    assert_eq!(s1.code_unit_at(10_019), Some(u16::from(b'c')));
+
+    assert_eq!(s2.code_unit_at(0), Some(u16::from(b'd')));
+    assert_eq!(s2.code_unit_at(10_019), Some(u16::from(b'b')));
+}

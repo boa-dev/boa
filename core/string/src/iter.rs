@@ -187,9 +187,8 @@ impl<'a> Iterator for RopeCodePointsIter<'a> {
                 // Because `s` is moved into `self.current`, it remains alive for the duration
                 // of the iteration; thus, lengthening its lifetime to `'a` (the lifetime of
                 // our RopeCodePointsIter) here is sound.
-                let iter = unsafe {
-                    std::mem::transmute::<CodePointsIter<'_>, CodePointsIter<'a>>(iter)
-                };
+                let iter =
+                    unsafe { std::mem::transmute::<CodePointsIter<'_>, CodePointsIter<'a>>(iter) };
                 self.current = Some((s, iter));
             }
         }
