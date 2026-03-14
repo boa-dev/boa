@@ -40,7 +40,7 @@ jobs:
               console.log('Label "waiting-for-review" not found or could not be removed.');
             }
 
-      - name: Auto Assign Reviewers and Milestone
+      - name: Auto Assign Milestone
         if: github.event.action == 'opened'
         uses: actions/github-script@v8
         with:
