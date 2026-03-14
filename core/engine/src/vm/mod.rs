@@ -98,6 +98,16 @@ pub struct Vm {
 
     pub(crate) shadow_stack: ShadowStack,
 
+    /// Stack of disposable resources for explicit resource management.
+    ///
+    /// Resources are added via `using` declarations and disposed in reverse order (LIFO)
+    /// when the scope exits. Each entry contains (value, dispose_method, scope_depth).
+    pub(crate) disposal_stack: Vec<(JsValue, JsValue)>,
+    
+    /// Tracks the disposal stack depth for each scope level.
+    /// When a scope exits, we dispose resources back to this depth.
+    pub(crate) disposal_scope_depths: Vec<usize>,
+
     #[cfg(feature = "trace")]
     pub(crate) trace: bool,
     #[cfg(feature = "trace")]
@@ -349,6 +359,8 @@ impl Vm {
             native_active_function: None,
             host_call_depth: 0,
             shadow_stack: ShadowStack::default(),
+            disposal_stack: Vec::new(),
+            disposal_scope_depths: Vec::new(),
             #[cfg(feature = "trace")]
             trace: false,
             #[cfg(feature = "trace")]
@@ -597,6 +609,31 @@ impl Vm {
 
     pub(crate) fn take_return_value(&mut self) -> JsValue {
         std::mem::take(&mut self.return_value)
+    }
+
+    /// Push a disposable resource onto the disposal stack.
+    pub(crate) fn push_disposable_resource(&mut self, value: JsValue, method: JsValue) {
+        self.disposal_stack.push((value, method));
+    }
+
+    /// Pop a disposable resource from the disposal stack.
+    pub(crate) fn pop_disposable_resource(&mut self) -> Option<(JsValue, JsValue)> {
+        self.disposal_stack.pop()
+    }
+    
+    /// Mark the current disposal stack depth for a new scope.
+    pub(crate) fn push_disposal_scope(&mut self) {
+        self.disposal_scope_depths.push(self.disposal_stack.len());
+    }
+    
+    /// Get the disposal stack depth for the current scope.
+    pub(crate) fn current_disposal_scope_depth(&self) -> usize {
+        self.disposal_scope_depths.last().copied().unwrap_or(0)
+    }
+    
+    /// Pop the disposal scope depth marker.
+    pub(crate) fn pop_disposal_scope(&mut self) {
+        self.disposal_scope_depths.pop();
     }
 }
 

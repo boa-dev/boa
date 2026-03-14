@@ -2258,11 +2258,10 @@ impl<'ctx> ByteCompiler<'ctx> {
                             } else {
                                 self.bytecode.emit_store_undefined(value.variable());
                             }
-
-                            // TODO(@abhinavs1920): Add resource to disposal stack
-                            // For now, we just bind the variable like a let declaration
-                            // Full implementation will add: AddDisposableResource opcode
-
+                            
+                            // Add resource to disposal stack
+                            self.bytecode.emit_add_disposable_resource(value.variable());
+                            
                             self.emit_binding(BindingOpcode::InitLexical, ident, &value);
                             self.register_allocator.dealloc(value);
                         }
@@ -2274,9 +2273,10 @@ impl<'ctx> ByteCompiler<'ctx> {
                             } else {
                                 self.bytecode.emit_store_undefined(value.variable());
                             }
-
-                            // TODO: Same as above
-
+                            
+                            // Add resource to disposal stack
+                            self.bytecode.emit_add_disposable_resource(value.variable());
+                            
                             self.compile_declaration_pattern(
                                 pattern,
                                 BindingOpcode::InitLexical,
