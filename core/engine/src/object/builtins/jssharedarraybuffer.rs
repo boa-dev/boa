@@ -1,7 +1,10 @@
 //! A Rust API wrapper for Boa's `SharedArrayBuffer` Builtin ECMAScript Object
 use crate::{
-    Context, JsResult, JsValue, builtins::array_buffer::SharedArrayBuffer, error::JsNativeError,
-    object::JsObject, value::TryFromJs,
+    Context, JsResult, JsValue,
+    builtins::array_buffer::{SharedArrayBuffer, utils::SliceRef},
+    error::JsNativeError,
+    object::JsObject,
+    value::TryFromJs,
 };
 use boa_gc::{Finalize, Trace};
 use std::{ops::Deref, sync::atomic::Ordering};
@@ -103,12 +106,10 @@ impl JsSharedArrayBuffer {
     /// ```
     #[must_use]
     pub fn to_vec(&self) -> Vec<u8> {
-        self.borrow()
-            .data()
-            .bytes(Ordering::SeqCst)
-            .iter()
-            .map(|a| a.load(Ordering::SeqCst))
-            .collect()
+        let obj = self.borrow();
+        let src = obj.data().bytes(Ordering::SeqCst);
+        let src = SliceRef::AtomicSlice(src);
+        src.to_vec()
     }
 
     /// Gets the raw buffer of this `JsSharedArrayBuffer`.

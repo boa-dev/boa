@@ -56,10 +56,6 @@ features = [
     # https://github.com/tc39/proposal-immutable-arraybuffer
     "immutable-arraybuffer",
 
-    # Non-extensible Applies to Private
-    # https://github.com/tc39/proposal-nonextensible-applies-to-private
-    "nonextensible-applies-to-private",
-
     ### Non-standard
     "caller",
 ]
