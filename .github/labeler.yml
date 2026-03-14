@@ -71,7 +71,7 @@ C-Tests:
 - changed-files:
   - any-glob-to-any-file:
     - '**/tests/**'
-    - '**/test**'
+    - '**/test*'
 
 C-VM:
 - changed-files:
