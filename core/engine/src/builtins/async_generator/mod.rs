@@ -178,14 +178,14 @@ impl AsyncGenerator {
         let completion = CompletionRecord::Normal(value);
 
         // 8. Perform AsyncGeneratorEnqueue(generator, completion, promiseCapability).
-        Self::enqueue(&generator, completion.clone(), cap.clone());
+        Self::enqueue(generator, completion.clone(), cap.clone());
 
         // 9. If state is either suspendedStart or suspendedYield, then
         if state == AsyncGeneratorState::SuspendedStart
             || state == AsyncGeneratorState::SuspendedYield
         {
             // a. Perform AsyncGeneratorResume(generator, completion).
-            Self::resume(&generator, completion, context)?;
+            Self::resume(generator, completion, context)?;
         }
 
         // 11. Return promiseCapability.[[Promise]].
@@ -247,7 +247,7 @@ impl AsyncGenerator {
         let completion = CompletionRecord::Return(return_value.clone());
 
         // 6. Perform AsyncGeneratorEnqueue(generator, completion, promiseCapability).
-        Self::enqueue(&generator, completion.clone(), cap.clone());
+        Self::enqueue(generator, completion.clone(), cap.clone());
 
         // 7. Let state be generator.[[AsyncGeneratorState]].
         let state = generator.borrow().data().state;
@@ -258,12 +258,12 @@ impl AsyncGenerator {
             generator.borrow_mut().data_mut().state = AsyncGeneratorState::DrainingQueue;
 
             // b. Perform ! AsyncGeneratorAwaitReturn(generator).
-            Self::await_return(&generator, return_value, context)?;
+            Self::await_return(generator, return_value, context)?;
         }
         // 9. Else if state is suspended-yield, then
         else if state == AsyncGeneratorState::SuspendedYield {
             // a. Perform AsyncGeneratorResume(generator, completion).
-            Self::resume(&generator, completion, context)?;
+            Self::resume(generator, completion, context)?;
         }
         // 10. Else,
         //     a. Assert: state is either executing or draining-queue.
@@ -349,26 +349,26 @@ impl AsyncGenerator {
             )?;
 
             // b. Return promiseCapability.[[Promise]].
-            return Ok(cap.promise().clone().into());
+            return Ok(cap.promise);
         }
 
         // 8. Let completion be ThrowCompletion(exception).
         let completion = CompletionRecord::Throw(JsError::from_opaque(error_value));
 
         // 9. Perform AsyncGeneratorEnqueue(generator, completion, promiseCapability).
-        Self::enqueue(&generator, completion.clone(), cap.clone());
+        Self::enqueue(generator, completion.clone(), cap.clone());
 
         // 10. If state is suspended-yield, then
         if state == AsyncGeneratorState::SuspendedYield {
             // a. Perform AsyncGeneratorResume(generator, completion).
-            Self::resume(&generator, completion, context)?;
+            Self::resume(generator, completion, context)?;
         }
 
         // 11. Else,
         //     a. Assert: state is either executing or draining-queue.
 
         // 12. Return promiseCapability.[[Promise]].
-        Ok(cap.promise().clone().into())
+        Ok(cap.promise)
     }
 
     /// `AsyncGeneratorEnqueue ( generator, completion, promiseCapability )`

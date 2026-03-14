@@ -45,7 +45,7 @@ impl JsAsyncGenerator {
         let (typed_promise, functions) = JsPromise::new_pending(context);
         let capability = PromiseCapability {
             functions,
-            promise: (&*typed_promise).clone().upcast(),
+            promise: JsObject::clone(&typed_promise).clone().upcast(),
         };
         AsyncGenerator::inner_next(&self.inner, capability, value.into(), context)?;
 
@@ -65,7 +65,7 @@ impl JsAsyncGenerator {
         let (typed_promise, functions) = JsPromise::new_pending(context);
         let capability = PromiseCapability {
             functions,
-            promise: (&*typed_promise).clone().upcast(),
+            promise: JsObject::clone(&typed_promise).upcast(),
         };
         AsyncGenerator::inner_return(&self.inner, capability, value.into(), context)?;
         Ok(typed_promise)
@@ -84,7 +84,7 @@ impl JsAsyncGenerator {
         let (typed_promise, functions) = JsPromise::new_pending(context);
         let capability = PromiseCapability {
             functions,
-            promise: (&*typed_promise).clone().upcast(),
+            promise: JsObject::clone(&typed_promise).clone().upcast(),
         };
         AsyncGenerator::inner_throw(&self.inner, capability, value.into(), context)?;
         Ok(typed_promise)
