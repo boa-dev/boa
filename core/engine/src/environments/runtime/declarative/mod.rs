@@ -82,12 +82,16 @@ impl DeclarativeEnvironment {
 
     /// Sets the binding value from the environment by index.
     ///
+    /// # Errors
+    ///
+    /// Returns an error if the binding is an indirect module reference.
+    ///
     /// # Panics
     ///
     /// Panics if the binding value is out of range.
     #[track_caller]
-    pub(crate) fn set(&self, index: u32, value: JsValue) {
-        self.kind.set(index, value);
+    pub(crate) fn set(&self, index: u32, value: JsValue) -> JsResult<()> {
+        self.kind.set(index, value)
     }
 
     /// `GetThisBinding`
@@ -199,11 +203,15 @@ impl DeclarativeEnvironmentKind {
 
     /// Sets the binding value from the environment by index.
     ///
+    /// # Errors
+    ///
+    /// Returns an error if the binding is an indirect module reference.
+    ///
     /// # Panics
     ///
     /// Panics if the binding value is out of range.
     #[track_caller]
-    pub(crate) fn set(&self, index: u32, value: JsValue) {
+    pub(crate) fn set(&self, index: u32, value: JsValue) -> JsResult<()> {
         match self {
             Self::Lexical(inner) => inner.set(index, value),
             Self::Global(inner) => inner.set(index, value),

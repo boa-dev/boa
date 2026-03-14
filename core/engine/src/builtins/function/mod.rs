@@ -1066,7 +1066,7 @@ pub(crate) fn function_call(
             BindingLocatorScope::Stack(index),
             0,
             function_object.clone().into(),
-        );
+        )?;
         last_env += 1;
     }
 
@@ -1167,7 +1167,7 @@ fn function_construct(
             BindingLocatorScope::Stack(index),
             0,
             this_function_object.clone().into(),
-        );
+        )?;
         last_env += 1;
     }
 

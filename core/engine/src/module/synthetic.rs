@@ -217,7 +217,7 @@ impl SyntheticModule {
                     export_name.to_std_string_escaped()
                 ))
             })?;
-        env.set(locator.binding_index(), export_value);
+        env.set(locator.binding_index(), export_value)?;
 
         Ok(())
     }
@@ -346,7 +346,8 @@ impl SyntheticModule {
                 locator.scope(),
                 locator.binding_index(),
                 JsValue::undefined(),
-            );
+            )
+            .expect("synthetic module bindings are always direct");
         }
 
         let env = envs

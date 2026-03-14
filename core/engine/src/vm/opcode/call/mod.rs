@@ -378,7 +378,9 @@ async fn load_dyn_import(
     match referrer {
         Referrer::Module(mod_ref) => {
             let ModuleKind::SourceText(src) = mod_ref.kind() else {
-                panic!("referrer cannot be a synthetic module");
+                return Err(JsNativeError::typ()
+                    .with_message("referrer cannot be a synthetic module")
+                    .into());
             };
 
             let mut loaded_modules = src.loaded_modules().borrow_mut();

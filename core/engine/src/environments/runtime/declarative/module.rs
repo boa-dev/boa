@@ -3,7 +3,7 @@ use std::cell::RefCell;
 use boa_ast::scope::Scope;
 use boa_gc::{Finalize, GcRefCell, Trace};
 
-use crate::{JsString, JsValue, module::Module};
+use crate::{JsNativeError, JsResult, JsString, JsValue, module::Module};
 
 /// Type of accessor used to access an indirect binding.
 #[derive(Debug, Clone)]
@@ -95,18 +95,21 @@ impl ModuleEnvironment {
 
     /// Sets the binding value from the environment by index.
     ///
-    /// # Panics
+    /// # Errors
     ///
-    /// Panics if the binding value is out of range.
+    /// Returns a `TypeError` if the binding is an indirect reference to another environment.
     #[track_caller]
-    pub(crate) fn set(&self, index: u32, value: JsValue) {
+    pub(crate) fn set(&self, index: u32, value: JsValue) -> JsResult<()> {
         let mut bindings = self.bindings.borrow_mut();
 
         match &mut bindings[index as usize] {
-            BindingType::Direct(v) => *v = Some(value),
-            BindingType::Indirect(_) => {
-                panic!("cannot modify indirect references to other environments")
+            BindingType::Direct(v) => {
+                *v = Some(value);
+                Ok(())
             }
+            BindingType::Indirect(_) => Err(JsNativeError::typ()
+                .with_message("cannot modify indirect references to other environments")
+                .into()),
         }
     }
 

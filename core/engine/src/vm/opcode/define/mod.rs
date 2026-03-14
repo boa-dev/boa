@@ -16,7 +16,7 @@ pub(crate) struct DefVar;
 
 impl DefVar {
     #[inline(always)]
-    pub(super) fn operation(index: IndexOperand, context: &mut Context) {
+    pub(super) fn operation(index: IndexOperand, context: &mut Context) -> JsResult<()> {
         // TODO: spec specifies to return `empty` on empty vars, but we're trying to initialize.
         let binding_locator = context.vm.frame().code_block.bindings[usize::from(index)].clone();
 
@@ -28,7 +28,7 @@ impl DefVar {
                 binding_locator.scope(),
                 binding_locator.binding_index(),
                 JsValue::undefined(),
-            );
+            )
     }
 }
 
@@ -80,14 +80,14 @@ impl PutLexicalValue {
     pub(super) fn operation(
         (value, index): (RegisterOperand, IndexOperand),
         context: &mut Context,
-    ) {
+    ) -> JsResult<()> {
         let value = context.vm.get_register(value.into()).clone();
         let binding_locator = context.vm.frame().code_block.bindings[usize::from(index)].clone();
         context.vm.frame_mut().environments.put_lexical_value(
             binding_locator.scope(),
             binding_locator.binding_index(),
             value,
-        );
+        )
     }
 }
 

@@ -1,6 +1,6 @@
 use boa_gc::{Finalize, GcRefCell, Trace};
 
-use crate::JsValue;
+use crate::{JsResult, JsValue};
 
 #[derive(Debug, Trace, Finalize)]
 pub(crate) struct LexicalEnvironment {
@@ -31,8 +31,9 @@ impl LexicalEnvironment {
     ///
     /// Panics if the binding value is out of range.
     #[track_caller]
-    pub(crate) fn set(&self, index: u32, value: JsValue) {
+    pub(crate) fn set(&self, index: u32, value: JsValue) -> JsResult<()> {
         self.bindings.borrow_mut()[index as usize] = Some(value);
+        Ok(())
     }
 
     /// Gets the bindings of this poisonable environment.

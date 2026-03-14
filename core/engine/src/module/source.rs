@@ -1790,7 +1790,7 @@ impl SourceTextModule {
                         locator.scope(),
                         locator.binding_index(),
                         namespace.into(),
-                    );
+                    )?;
                 }
                 ImportBinding::Single {
                     locator,
@@ -1816,7 +1816,7 @@ impl SourceTextModule {
                             locator.scope(),
                             locator.binding_index(),
                             namespace.into(),
-                        );
+                        )?;
                     }
                 },
             }
@@ -1832,7 +1832,7 @@ impl SourceTextModule {
                 locator.scope(),
                 locator.binding_index(),
                 function.into(),
-            );
+            )?;
         }
 
         // 25. Remove moduleContext from the execution context stack.

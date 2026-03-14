@@ -267,6 +267,10 @@ impl EnvironmentStack {
 
     /// Set the value of a lexical binding.
     ///
+    /// # Errors
+    ///
+    /// Returns an error if the binding is an indirect module reference.
+    ///
     /// # Panics
     ///
     /// Panics if the environment or binding index are out of range.
@@ -276,7 +280,7 @@ impl EnvironmentStack {
         environment: BindingLocatorScope,
         binding_index: u32,
         value: JsValue,
-    ) {
+    ) -> JsResult<()> {
         let env = match environment {
             BindingLocatorScope::GlobalObject | BindingLocatorScope::GlobalDeclarative => {
                 self.global()
@@ -287,10 +291,14 @@ impl EnvironmentStack {
                 .and_then(Environment::as_declarative)
                 .expect("must be declarative environment"),
         };
-        env.set(binding_index, value);
+        env.set(binding_index, value)
     }
 
     /// Set the value of a binding if it is uninitialized.
+    ///
+    /// # Errors
+    ///
+    /// Returns an error if the binding is an indirect module reference.
     ///
     /// # Panics
     ///
@@ -301,7 +309,7 @@ impl EnvironmentStack {
         environment: BindingLocatorScope,
         binding_index: u32,
         value: JsValue,
-    ) {
+    ) -> JsResult<()> {
         let env = match environment {
             BindingLocatorScope::GlobalObject | BindingLocatorScope::GlobalDeclarative => {
                 self.global()
@@ -313,8 +321,9 @@ impl EnvironmentStack {
                 .expect("must be declarative environment"),
         };
         if env.get(binding_index).is_none() {
-            env.set(binding_index, value);
+            env.set(binding_index, value)?;
         }
+        Ok(())
     }
 
     /// Push a private environment to the private environment stack.
@@ -559,11 +568,11 @@ impl Context {
             }
             BindingLocatorScope::GlobalDeclarative => {
                 let env = self.vm.frame().environments.global();
-                env.set(locator.binding_index(), value);
+                env.set(locator.binding_index(), value)?;
             }
             BindingLocatorScope::Stack(index) => match self.environment_expect(index) {
                 Environment::Declarative(decl) => {
-                    decl.set(locator.binding_index(), value);
+                    decl.set(locator.binding_index(), value)?;
                 }
                 Environment::Object(obj) => {
                     let key = locator.name().clone();

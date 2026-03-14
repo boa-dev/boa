@@ -137,7 +137,9 @@ impl MappedArguments {
     /// [spec]: https://tc39.es/ecma262/#sec-makeargsetter
     pub(crate) fn set(&self, index: u32, value: &JsValue) {
         if let Some(binding_index) = self.binding_indices.get(index as usize).copied().flatten() {
-            self.environment.set(binding_index, value.clone());
+            // Mapped arguments always point to function-scope direct bindings,
+            // which cannot fail.
+            drop(self.environment.set(binding_index, value.clone()));
         }
     }
 }
