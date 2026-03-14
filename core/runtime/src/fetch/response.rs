@@ -206,7 +206,7 @@ pub struct JsResponseOptions {
 /// `body_with_type` is a body paired with its MIME type (if any), as produced by
 /// "extract a body". `None` means no body was provided.
 fn initialize_response(
-    init: JsResponseOptions,
+    init: &JsResponseOptions,
     body_with_type: Option<(Vec<u8>, Option<&str>)>,
 ) -> JsResult<JsResponse> {
     // Step 1: If init["status"] is not in the range 200 to 599, inclusive, throw a RangeError.
@@ -246,13 +246,13 @@ fn initialize_response(
 
         // Step 6.3: If body's type is non-null and response's header list does not contain
         //           `Content-Type`, append (`Content-Type`, body's type) to the header list.
-        if let Some(content_type) = body_type {
-            if !headers.has(Convert::from("content-type".to_string()))? {
-                headers.append(
-                    Convert::from("content-type".to_string()),
-                    Convert::from(content_type.to_string()),
-                )?;
-            }
+        if let Some(content_type) = body_type
+            && !headers.has(Convert::from("content-type".to_string()))?
+        {
+            headers.append(
+                Convert::from("content-type".to_string()),
+                Convert::from(content_type.to_string()),
+            )?;
         }
 
         Rc::new(body_bytes)
@@ -275,7 +275,7 @@ fn initialize_response(
 /// This is a simplified implementation of the "extract a body" algorithm.
 ///
 /// See <https://fetch.spec.whatwg.org/#concept-bodyinit-extract>
-fn extract_body(val: JsValue, context: &mut Context) -> JsResult<(Vec<u8>, Option<&'static str>)> {
+fn extract_body(val: &JsValue, context: &mut Context) -> JsResult<(Vec<u8>, Option<&'static str>)> {
     // TODO: handle other BodyInit types: Blob, ArrayBuffer, ArrayBufferView,
     //       FormData, URLSearchParams.
     // Currently only USVString is supported.
@@ -320,7 +320,7 @@ impl JsResponse {
             JsResponseOptions::try_from_js(&init, context)?
         };
 
-        initialize_response(options, Some(body_with_type))
+        initialize_response(&options, Some(body_with_type))
     }
 
     /// Creates a `Response` using the constructor.
@@ -336,7 +336,7 @@ impl JsResponse {
         let body_with_type: Option<(Vec<u8>, Option<&'static str>)> = match body {
             None => None,
             Some(ref val) if val.is_null_or_undefined() => None,
-            Some(val) => Some(extract_body(val, context)?),
+            Some(val) => Some(extract_body(&val, context)?),
         };
 
         // Step 5: Perform initialize a response given this, init, and bodyWithType.
@@ -346,7 +346,7 @@ impl JsResponse {
             JsResponseOptions::try_from_js(&init, context)?
         };
 
-        initialize_response(options, body_with_type)
+        initialize_response(&options, body_with_type)
     }
 
     /// Returns the HTTP status code of the response.
@@ -407,6 +407,7 @@ impl JsResponse {
     ///
     /// See <https://fetch.spec.whatwg.org/#dom-response-redirected>
     #[boa(getter)]
+    #[allow(clippy::unused_self)]
     fn redirected(&self) -> bool {
         // The spec says: return true if this's response's URL list's size is greater than 1.
         // TODO: track the full URL list to implement this properly.
