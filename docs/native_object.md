@@ -48,8 +48,9 @@ let object = JsObject::from_proto_and_data(Some(prototype), my_data);
 
 Once wrapped, the underlying Rust data can be accessed safely via downcasting:
 
-1. `object.downcast_ref::<T>()` -> Returns `Option<&T>` representing an immutable reference to the native object data if the types match.
-2. `object.downcast_mut::<T>()` -> Returns `Option<&mut T>` representing a mutable reference to the native object data.
-3. `object.borrow_mut()` -> Often used when working closely with garbage collected `NativeObject`s that need interior mutability inside contexts.
+1. `object.downcast::<T>()` -> Returns `Result<JsObject<T>, Self>`, converting the object into a typed `JsObject<T>` that can be borrowed later without losing the type information.
+2. `object.downcast_ref::<T>()` -> Returns `Option<&T>` representing an immutable reference to the native object data if the types match.
+3. `object.downcast_mut::<T>()` -> Returns `Option<&mut T>` representing a mutable reference to the native object data.
+4. `object.borrow_mut()` -> Often used when working closely with garbage collected `NativeObject`s that need interior mutability inside contexts.
 
 By using `NativeObject`, Boa provides an ergonomic, type-safe, and memory-safe interface for extending ECMAScript objects with powerful native Rust functionality.
