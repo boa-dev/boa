@@ -282,7 +282,7 @@ pub enum TryNativeError {
     #[error("could not get element `{index}` of property `errors`")]
     InvalidErrorsIndex {
         /// The index of the error that could not be accessed.
-        index: u64,
+        index: usize,
 
         /// The source error.
         source: JsError,
@@ -622,7 +622,7 @@ impl JsError {
                                         source: e,
                                     }
                                 })?;
-                                error_list.reserve(length as usize);
+                                error_list.reserve(length);
                                 for i in 0..length {
                                     error_list.push(Self::from_opaque(
                                         errors.get(i, context).map_err(|e| {

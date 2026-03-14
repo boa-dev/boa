@@ -270,7 +270,7 @@ impl BuiltInConstructor for Array {
             debug_assert!(number_of_args >= 2);
 
             // b. Let array be ? ArrayCreate(numberOfArgs, proto).
-            let array = Self::array_create(number_of_args as u64, Some(prototype), context)?;
+            let array = Self::array_create(number_of_args, Some(prototype), context)?;
 
             // c. Let k be 0.
             // d. Repeat, while k < numberOfArgs,
@@ -292,8 +292,8 @@ impl BuiltInConstructor for Array {
 
 impl Array {
     /// Optimized helper function, that sets the length of the array.
-    fn set_length(o: &JsObject, len: u64, context: &mut Context) -> JsResult<()> {
-        if o.is_array() && len < (2u64.pow(32) - 1) {
+    fn set_length(o: &JsObject, len: usize, context: &mut Context) -> JsResult<()> {
+        if o.is_array() && len < (2u64.pow(32) - 1) as usize {
             let mut borrowed_object = o.borrow_mut();
             if borrowed_object.properties().shape.to_addr_usize()
                 == context
@@ -320,12 +320,12 @@ impl Array {
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-arraycreate
     pub(crate) fn array_create(
-        length: u64,
+        length: usize,
         prototype: Option<JsObject>,
         context: &mut Context,
     ) -> JsResult<JsObject> {
         // 1. If length > 2^32 - 1, throw a RangeError exception.
-        if length > 2u64.pow(32) - 1 {
+        if length as u64 > 2u64.pow(32) - 1 {
             return Err(JsNativeError::range()
                 .with_message("array exceeded max size")
                 .into());
@@ -459,7 +459,7 @@ impl Array {
     /// see: <https://tc39.es/ecma262/#sec-arrayspeciescreate>
     pub(crate) fn array_species_create(
         original_array: &JsObject,
-        length: u64,
+        length: usize,
         context: &mut Context,
     ) -> JsResult<JsObject> {
         // 1. Let isArray be ? IsArray(originalArray).
@@ -706,7 +706,7 @@ impl Array {
         //     a. Let A be ? ArrayCreate(len).
         let a = match this.as_constructor() {
             Some(constructor) => constructor.construct(&[len.into()], None, context)?,
-            _ => Self::array_create(len as u64, None, context)?,
+            _ => Self::array_create(len, None, context)?,
         };
 
         // 6. Let k be 0.
@@ -720,7 +720,7 @@ impl Array {
         }
 
         // 8. Perform ? Set(A, "length", lenNumber, true).
-        Self::set_length(&a, len as u64, context)?;
+        Self::set_length(&a, len, context)?;
 
         // 9. Return A.
         Ok(a.into())
@@ -785,7 +785,7 @@ impl Array {
         // 2. Let A be ? ArraySpeciesCreate(O, 0).
         let arr = Self::array_species_create(&obj, 0, context)?;
         // 3. Let n be 0.
-        let mut n = 0;
+        let mut n: usize = 0;
         // 4. Prepend O to items.
         // 5. For each element E of items, do
         for item in std::iter::once(&JsValue::new(obj)).chain(args.iter()) {
@@ -800,10 +800,15 @@ impl Array {
                 // ii. Let len be ? LengthOfArrayLike(E).
                 let len = item.length_of_array_like(context)?;
                 // iii. If n + len > 2^53 - 1, throw a TypeError exception.
-                if n + len > Number::MAX_SAFE_INTEGER as u64 {
+                let total = n.checked_add(len).ok_or_else(|| {
+                    JsNativeError::typ().with_message(
+                        "length + number of arguments exceeds the platform's maximum safe integer limit for an index",
+                    )
+                })?;
+                if total as u64 > Number::MAX_SAFE_INTEGER as u64 {
                     return Err(JsNativeError::typ()
                         .with_message(
-                            "length + number of arguments exceeds the max safe integer limit",
+                            "length + number of arguments exceeds the maximum safe integer limit",
                         )
                         .into());
                 }
@@ -826,7 +831,7 @@ impl Array {
             else {
                 // i. NOTE: E is added as a single item rather than spread.
                 // ii. If n ≥ 2^53 - 1, throw a TypeError exception.
-                if n >= Number::MAX_SAFE_INTEGER as u64 {
+                if n as u64 >= Number::MAX_SAFE_INTEGER as u64 {
                     return Err(JsNativeError::typ()
                         .with_message("length exceeds the max safe integer limit")
                         .into());
@@ -866,15 +871,23 @@ impl Array {
         // 2. Let len be ? LengthOfArrayLike(O).
         let mut len = o.length_of_array_like(context)?;
         // 3. Let argCount be the number of elements in items.
-        let arg_count = args.len() as u64;
+        let arg_count = args.len();
         // 4. If len + argCount > 2^53 - 1, throw a TypeError exception.
-        if len + arg_count > 2u64.pow(53) - 1 {
+
+        let sum = len.checked_add(arg_count).ok_or_else(|| {
+            JsNativeError::typ()
+                .with_message(
+                    "the length + the number of arguments exceed the platform's maximum safe integer limit for an index",
+                )
+        })?;
+        if sum as u64 > Number::MAX_SAFE_INTEGER as u64 {
             return Err(JsNativeError::typ()
                 .with_message(
                     "the length + the number of arguments exceed the maximum safe integer limit",
                 )
                 .into());
         }
+
         // 5. For each element E of items, do
         for element in args.iter().cloned() {
             // a. Perform ? Set(O, ! ToString(𝔽(len)), E, true).
@@ -1002,7 +1015,7 @@ impl Array {
         };
 
         // 5. Let R be the empty String.
-        let mut r = Vec::with_capacity(len as usize + len.saturating_sub(1) as usize);
+        let mut r = Vec::with_capacity(len + len.saturating_sub(1));
         // 6. Let k be 0.
         // 7. Repeat, while k < len,
         for k in 0..len {
@@ -1203,7 +1216,7 @@ impl Array {
             let mut o_borrow = o.borrow_mut();
             if let IndexedProperties::DenseI32(dense) =
                 &mut o_borrow.properties_mut().indexed_properties
-                && len <= dense.len() as u64
+                && len <= dense.len()
             {
                 let v = dense.remove(0);
                 drop(o_borrow);
@@ -1212,7 +1225,7 @@ impl Array {
             }
             if let IndexedProperties::DenseF64(dense) =
                 &mut o_borrow.properties_mut().indexed_properties
-                && len <= dense.len() as u64
+                && len <= dense.len()
             {
                 let v = dense.remove(0);
                 drop(o_borrow);
@@ -1220,7 +1233,7 @@ impl Array {
                 return Ok(v.into());
             }
             if let Some(dense) = o_borrow.properties_mut().dense_indexed_properties_mut()
-                && len <= dense.len() as u64
+                && len <= dense.len()
             {
                 let v = dense.remove(0);
                 drop(o_borrow);
@@ -1282,11 +1295,11 @@ impl Array {
         // 2. Let len be ? LengthOfArrayLike(O).
         let len = o.length_of_array_like(context)?;
         // 3. Let argCount be the number of elements in items.
-        let arg_count = args.len() as u64;
+        let arg_count = args.len();
         // 4. If argCount > 0, then
         if arg_count > 0 {
             // a. If len + argCount > 2^53 - 1, throw a TypeError exception.
-            if len + arg_count > 2u64.pow(53) - 1 {
+            if (len + arg_count) as u64 > Number::MAX_SAFE_INTEGER as u64 {
                 return Err(JsNativeError::typ()
                     .with_message("length + number of arguments exceeds the max safe integer limit")
                     .into());
@@ -1771,8 +1784,10 @@ impl Array {
             // a. Set depthNum to ? ToIntegerOrInfinity(depth).
             // b. If depthNum < 0, set depthNum to 0.
             match depth.to_integer_or_infinity(context)? {
-                IntegerOrInfinity::Integer(value) if value >= 0 => value as u64,
-                IntegerOrInfinity::PositiveInfinity => u64::MAX,
+                IntegerOrInfinity::Integer(value) if value >= 0 => {
+                    usize::try_from(value).unwrap_or(usize::MAX)
+                }
+                IntegerOrInfinity::PositiveInfinity => usize::MAX,
                 _ => 0,
             }
         };
@@ -1853,13 +1868,13 @@ impl Array {
     fn flatten_into_array(
         target: &JsObject,
         source: &JsObject,
-        source_len: u64,
-        start: u64,
-        depth: u64,
+        source_len: usize,
+        start: usize,
+        depth: usize,
         mapper_function: Option<&JsObject>,
         this_arg: &JsValue,
         context: &mut Context,
-    ) -> JsResult<u64> {
+    ) -> JsResult<usize> {
         // 1. Assert target is Object
         // 2. Assert source is Object
 
@@ -1908,8 +1923,8 @@ impl Array {
                     let element = element.as_object().js_expect("must be an object")?;
 
                     // 1. If depth is +Infinity let newDepth be +Infinity
-                    let new_depth = if depth == u64::MAX {
-                        u64::MAX
+                    let new_depth = if depth == usize::MAX {
+                        usize::MAX
                     // 2. Else, let newDepth be depth - 1
                     } else {
                         depth - 1
@@ -1933,7 +1948,7 @@ impl Array {
                 // vi. Else
                 } else {
                     // 1. If targetIndex >= 2^53 - 1, throw a TypeError exception
-                    if target_index >= Number::MAX_SAFE_INTEGER as u64 {
+                    if target_index as u64 >= Number::MAX_SAFE_INTEGER as u64 {
                         return Err(JsNativeError::typ()
                             .with_message("Target index exceeded max safe integer value")
                             .into());
@@ -2120,7 +2135,7 @@ impl Array {
         let a = Self::array_species_create(&o, count, context)?;
 
         // 13. Let n be 0.
-        let mut n: u64 = 0;
+        let mut n: usize = 0;
         // 14. Repeat, while k < final,
         while k < final_ {
             // a. Let Pk be ! ToString(𝔽(k)).
@@ -2184,7 +2199,7 @@ impl Array {
         };
 
         // 4. Let R be the empty String.
-        let mut r = Vec::with_capacity(len as usize + len.saturating_sub(1) as usize);
+        let mut r = Vec::with_capacity(len + len.saturating_sub(1));
 
         // 5. Let k be 0.
         // 6. Repeat, while k < len,
@@ -2220,12 +2235,12 @@ impl Array {
 
     /// Gets the delete count of a splice operation.
     fn get_delete_count(
-        len: u64,
-        actual_start: u64,
+        len: usize,
+        actual_start: usize,
         start: Option<&JsValue>,
         delete_count: Option<&JsValue>,
         context: &mut Context,
-    ) -> JsResult<u64> {
+    ) -> JsResult<usize> {
         // 8. If start is not present, then
         let actual_delete_count = if start.is_none() {
             // a. Let actualDeleteCount be 0.
@@ -2239,7 +2254,7 @@ impl Array {
             // b. Let actualDeleteCount be the result of clamping dc between 0 and len - actualStart.
             let max = len - actual_start;
             match dc {
-                IntegerOrInfinity::Integer(i) => u64::try_from(i)
+                IntegerOrInfinity::Integer(i) => usize::try_from(i)
                     .unwrap_or_default()
                     .clamp(0, len - actual_start),
                 IntegerOrInfinity::PositiveInfinity => max,
@@ -2292,18 +2307,25 @@ impl Array {
             Self::get_relative_start(context, start.unwrap_or(&JsValue::undefined()), len)?;
 
         // 7. Let itemCount be the number of elements in items.
-        let item_count = items.len() as u64;
+        let item_count = items.len();
 
         let actual_delete_count =
             Self::get_delete_count(len, actual_start, start, delete_count, context)?;
 
         // If len + itemCount - actualDeleteCount > 2**53 - 1, throw a TypeError exception.
-        if len + item_count - actual_delete_count > Number::MAX_SAFE_INTEGER as u64 {
+        let new_len = len
+            .checked_add(item_count)
+            .and_then(|v| v.checked_sub(actual_delete_count))
+            .ok_or_else(|| {
+                JsNativeError::typ().with_message(
+                    "Target splice exceeded platform's max safe integer value for an index",
+                )
+            })?;
+        if new_len as u64 > Number::MAX_SAFE_INTEGER as u64 {
             return Err(JsNativeError::typ()
                 .with_message("Target splice exceeded max safe integer value")
                 .into());
         }
-
         // 12. Let A be ? ArraySpeciesCreate(O, actualDeleteCount).
         let arr = Self::array_species_create(&o, actual_delete_count, context)?;
 
@@ -2323,7 +2345,7 @@ impl Array {
         // 15. Perform ? Set(A, "length", 𝔽(actualDeleteCount), true).
         Self::set_length(&arr, actual_delete_count, context)?;
 
-        let item_count = items.len() as u64;
+        let item_count = items.len();
 
         match item_count.cmp(&actual_delete_count) {
             Ordering::Equal => {}
@@ -2392,7 +2414,7 @@ impl Array {
         for (i, item) in items.iter().enumerate() {
             //     a. Perform ? Set(O, ! ToString(𝔽(k)), E, true).
             //     b. Set k to k + 1.
-            o.set(actual_start + i as u64, item.clone(), true, context)?;
+            o.set(actual_start + i, item.clone(), true, context)?;
         }
 
         // 20. Perform ? Set(O, "length", 𝔽(len - actualDeleteCount + itemCount), true).
@@ -2426,7 +2448,7 @@ impl Array {
             Self::get_relative_start(context, start.unwrap_or(&JsValue::undefined()), len)?;
 
         // 7. Let insertCount be the number of elements in items.
-        let insert_count = items.len() as u64;
+        let insert_count = items.len();
 
         let actual_skip_count =
             Self::get_delete_count(len, actual_start, start, skip_count, context)?;
@@ -2435,7 +2457,7 @@ impl Array {
         let new_len = len + insert_count - actual_skip_count;
 
         // 12. If newLen > 2**53 - 1, throw a TypeError exception.
-        if new_len > Number::MAX_SAFE_INTEGER as u64 {
+        if new_len as u64 > Number::MAX_SAFE_INTEGER as u64 {
             return Err(JsNativeError::typ()
                 .with_message("Target splice exceeded max safe integer value")
                 .into());
@@ -2613,7 +2635,7 @@ impl Array {
     /// [spec]: https://tc39.es/ecma262/#sec-sortindexedproperties
     pub(crate) fn sort_indexed_properties<F>(
         obj: &JsObject,
-        len: u64,
+        len: usize,
         sort_compare: F,
         skip_holes: bool,
         context: &mut Context,
@@ -2623,7 +2645,7 @@ impl Array {
     {
         // 1. Let items be a new empty List.
         // doesn't matter if it clamps since it's just a best-effort optimization
-        let mut items = Vec::with_capacity(len as usize);
+        let mut items = Vec::with_capacity(len);
 
         // 2. Let k be 0.
         // 3. Repeat, while k < len,
@@ -2711,7 +2733,7 @@ impl Array {
         // 5. Let sortedList be ? SortIndexedProperties(obj, len, SortCompare, skip-holes).
         let sorted = Self::sort_indexed_properties(&obj, len, sort_compare, true, context)?;
 
-        let sorted_len = sorted.len() as u64;
+        let sorted_len = sorted.len();
 
         // 6. Let itemCount be the number of elements in sortedList.
         // 7. Let j be 0.
@@ -3168,16 +3190,28 @@ impl Array {
         let value = args.get_or_undefined(1);
 
         // 4. If relativeIndex ≥ 0, let actualIndex be relativeIndex.
-        let actual_index = u64::try_from(relative_index) // should succeed if `relative_index >= 0`
-            .ok()
-            // 5. Else, let actualIndex be len + relativeIndex.
-            .or_else(|| len.checked_add_signed(relative_index))
-            .filter(|&rel| rel < len)
-            .ok_or_else(|| {
-                // 6. If actualIndex ≥ len or actualIndex < 0, throw a RangeError exception.
+        let actual_index = if relative_index >= 0 {
+            usize::try_from(relative_index).map_err(|_| {
+                JsNativeError::range()
+                    .with_message("invalid integer index for TypedArray operation")
+            })?
+        } else {
+            let rel = isize::try_from(relative_index).map_err(|_| {
                 JsNativeError::range()
                     .with_message("invalid integer index for TypedArray operation")
             })?;
+
+            len.checked_add_signed(rel).ok_or_else(|| {
+                JsNativeError::range()
+                    .with_message("invalid integer index for TypedArray operation")
+            })?
+        };
+
+        if actual_index >= len {
+            return Err(JsNativeError::range()
+                .with_message("invalid integer index for TypedArray operation")
+                .into());
+        }
 
         // 7. Let A be ? ArrayCreate(len).
         let new_array = Array::array_create(len, None, context)?;
@@ -3210,17 +3244,23 @@ impl Array {
     pub(super) fn get_relative_start(
         context: &mut Context,
         arg: &JsValue,
-        len: u64,
-    ) -> JsResult<u64> {
+        len: usize,
+    ) -> JsResult<usize> {
         // 1. Let relativeStart be ? ToIntegerOrInfinity(start).
         let relative_start = arg.to_integer_or_infinity(context)?;
         let start = match relative_start {
             // 2. If relativeStart is -∞, let k be 0.
             IntegerOrInfinity::NegativeInfinity => 0,
             // 3. Else if relativeStart < 0, let k be max(len + relativeStart, 0).
-            IntegerOrInfinity::Integer(i) if i < 0 => len.checked_add_signed(i).unwrap_or(0),
+            IntegerOrInfinity::Integer(i) if i < 0 => match isize::try_from(i) {
+                Ok(i) => len.checked_add_signed(i).unwrap_or(0),
+                Err(_) => 0,
+            },
             // 4. Else, let k be min(relativeStart, len).
-            IntegerOrInfinity::Integer(i) => min(i as u64, len),
+            IntegerOrInfinity::Integer(i) => {
+                let i = usize::try_from(i).unwrap_or(usize::MAX);
+                i.min(len)
+            }
 
             // Special case - positive infinity. `len` is always smaller than +inf, thus from (4)
             IntegerOrInfinity::PositiveInfinity => len,
@@ -3233,8 +3273,8 @@ impl Array {
     pub(super) fn get_relative_end(
         context: &mut Context,
         value: &JsValue,
-        len: u64,
-    ) -> JsResult<u64> {
+        len: usize,
+    ) -> JsResult<usize> {
         // 1. If end is undefined, let relativeEnd be len [and return it]
         if value.is_undefined() {
             Ok(len)
@@ -3245,10 +3285,18 @@ impl Array {
                 // 2. If relativeEnd is -∞, let final be 0.
                 IntegerOrInfinity::NegativeInfinity => 0,
                 // 3. Else if relativeEnd < 0, let final be max(len + relativeEnd, 0).
-                IntegerOrInfinity::Integer(i) if i < 0 => len.checked_add_signed(i).unwrap_or(0),
+                IntegerOrInfinity::Integer(i) if i < 0 => {
+                    match isize::try_from(i) {
+                        Ok(i) => len.checked_add_signed(i).unwrap_or(0),
+                        Err(_) => 0, // too negative → clamp to 0 per spec
+                    }
+                }
                 // 4. Else, let final be min(relativeEnd, len).
                 // Both `as` casts are safe as both variables are non-negative
-                IntegerOrInfinity::Integer(i) => min(i as u64, len),
+                IntegerOrInfinity::Integer(i) => {
+                    let i = usize::try_from(i).unwrap_or(usize::MAX);
+                    i.min(len)
+                }
 
                 // Special case - positive infinity. `len` is always smaller than +inf, thus from (4)
                 IntegerOrInfinity::PositiveInfinity => len,
@@ -3370,7 +3418,7 @@ fn compare_array_elements(
 /// [spec]: https://tc39.es/ecma262/#sec-findviapredicate
 pub(crate) fn find_via_predicate(
     o: &JsObject,
-    len: u64,
+    len: usize,
     direction: Direction,
     predicate: &JsValue,
     this_arg: &JsValue,

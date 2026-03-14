@@ -152,7 +152,7 @@ impl JsValue {
 
                 if obj.is_array() {
                     let len = obj.length_of_array_like(context)?;
-                    let mut arr = Vec::with_capacity(len as usize);
+                    let mut arr = Vec::with_capacity(len);
 
                     for k in 0..len as u32 {
                         let val = value_by_prop_key(k.into(), context)?;

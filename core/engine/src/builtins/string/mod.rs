@@ -367,7 +367,7 @@ impl String {
         let substitutions = args.get(1..).unwrap_or_default();
 
         // 1. Let numberOfSubstitutions be the number of elements in substitutions.
-        let number_of_substitutions = substitutions.len() as u64;
+        let number_of_substitutions = substitutions.len();
 
         // 2. Let cooked be ? ToObject(template).
         let cooked = args.get_or_undefined(0).to_object(context)?;
@@ -409,7 +409,7 @@ impl String {
 
             // e. If nextIndex < numberOfSubstitutions, let next be substitutions[nextIndex].
             let next = if next_index < number_of_substitutions {
-                substitutions.get_or_undefined(next_index as usize).clone()
+                substitutions.get_or_undefined(next_index).clone()
 
             // f. Else, let next be the empty String.
             } else {
@@ -694,15 +694,16 @@ impl String {
         // 3. Let n be ? ToIntegerOrInfinity(count).
         match args.get_or_undefined(0).to_integer_or_infinity(context)? {
             IntegerOrInfinity::Integer(n)
-                if u64::try_from(n)
+                if usize::try_from(n)
                     .ok()
-                    .and_then(|n| n.checked_mul(len as u64))
-                    .is_some_and(|total_len| total_len <= (Self::MAX_STRING_LENGTH as u64)) =>
+                    .and_then(|n| n.checked_mul(len))
+                    .is_some_and(|total_len| total_len <= Self::MAX_STRING_LENGTH) =>
             {
                 if string.is_empty() {
                     return Ok(js_string!().into());
                 }
-                let n = n as usize;
+
+                let n = n as usize; // safe due to guard above
                 let mut result = Vec::with_capacity(n);
 
                 std::iter::repeat_n(string.as_str(), n).for_each(|s| result.push(s));
@@ -1511,7 +1512,7 @@ impl String {
         let int_max_length = max_length.to_length(context)?;
 
         // 3. Let stringLength be the length of S.
-        let string_length = string.len() as u64;
+        let string_length = string.len();
 
         // 4. If intMaxLength ≤ stringLength, return S.
         if int_max_length <= string_length {
@@ -1533,7 +1534,7 @@ impl String {
 
         // 8. Let fillLen be intMaxLength - stringLength.
         let fill_len = int_max_length - string_length;
-        let filler_len = filler.len() as u64;
+        let filler_len = filler.len();
 
         // 9. Let truncatedStringFiller be the String value consisting of repeated
         // concatenations of filler truncated to length fillLen.
@@ -1543,8 +1544,8 @@ impl String {
             if r == 0 { q } else { q + 1 }
         };
 
-        let truncated_string_filler = filler.to_vec().repeat(repetitions as usize);
-        let truncated_string_filler = JsString::from(&truncated_string_filler[..fill_len as usize]);
+        let truncated_string_filler = filler.to_vec().repeat(repetitions);
+        let truncated_string_filler = JsString::from(&truncated_string_filler[..fill_len]);
 
         // 10. If placement is start, return the string-concatenation of truncatedStringFiller and S.
         if placement == Placement::Start {

@@ -986,7 +986,7 @@ impl Math {
             None
         };
         let mut sum = if let Some(length) = length {
-            if length <= XSUM_THRESHOLD as u64 {
+            if length <= XSUM_THRESHOLD {
                 XsumVariant::Small(XsumSmall::new())
             } else {
                 XsumVariant::Large(XsumLarge::new())

@@ -565,23 +565,36 @@ fn to_index() {
 #[test]
 fn to_length() {
     run_test_actions([TestAction::inspect_context(|ctx| {
-        assert_eq!(JsValue::new(f64::NAN).to_length(ctx).unwrap(), 0);
-        assert_eq!(JsValue::new(f64::NEG_INFINITY).to_length(ctx).unwrap(), 0);
-        assert_eq!(
-            JsValue::new(f64::INFINITY).to_length(ctx).unwrap(),
-            Number::MAX_SAFE_INTEGER as u64
-        );
         assert_eq!(JsValue::new(0.0).to_length(ctx).unwrap(), 0);
         assert_eq!(JsValue::new(-0.0).to_length(ctx).unwrap(), 0);
         assert_eq!(JsValue::new(20.9).to_length(ctx).unwrap(), 20);
         assert_eq!(JsValue::new(-20.9).to_length(ctx).unwrap(), 0);
+        assert_eq!(JsValue::new(f64::NAN).to_length(ctx).unwrap(), 0);
+        assert_eq!(JsValue::new(f64::NEG_INFINITY).to_length(ctx).unwrap(), 0);
+    })]);
+}
+
+#[cfg(target_pointer_width = "32")]
+#[test]
+fn to_length_32bit() {
+    run_test_actions([TestAction::inspect_context(|ctx| {
+        assert!(JsValue::new(f64::INFINITY).to_length(ctx).is_err());
+
+        assert!(JsValue::new(100_000_000_000.0).to_length(ctx).is_err());
+    })]);
+}
+
+#[cfg(target_pointer_width = "64")]
+#[test]
+fn to_length_64bit() {
+    run_test_actions([TestAction::inspect_context(|ctx| {
+        assert_eq!(
+            JsValue::new(f64::INFINITY).to_length(ctx).unwrap(),
+            Number::MAX_SAFE_INTEGER as usize
+        );
         assert_eq!(
             JsValue::new(100_000_000_000.0).to_length(ctx).unwrap(),
             100_000_000_000
-        );
-        assert_eq!(
-            JsValue::new(4_010_101_101.0).to_length(ctx).unwrap(),
-            4_010_101_101
         );
     })]);
 }
