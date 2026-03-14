@@ -705,7 +705,7 @@ impl String {
                 let n = n as usize;
 
                 // Charge each repetition against the VM loop-iteration limit.
-                let mut result = Vec::new();
+                let mut result = Vec::with_capacity(n);
                 for _ in 0..n {
                     crate::vm::opcode::IncrementLoopIteration::operation((), context)?;
                     result.push(string.as_str());
