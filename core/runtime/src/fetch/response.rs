@@ -148,7 +148,7 @@ impl JsResponse {
 }
 
 /// Options used in the construction of a `Response` object.
-#[derive(Debug, Clone, TryFromJs, TryIntoJs, Trace, Finalize, JsData)]
+#[derive(Debug, Default, Clone, TryFromJs, TryIntoJs, Trace, Finalize, JsData)]
 #[boa(rename_all = "camelCase")]
 pub struct JsResponseOptions {
     status: Option<u16>,
@@ -165,9 +165,67 @@ impl JsResponse {
         Self::error()
     }
 
+    /// Creates a new `Response` object.
+    ///
+    /// More information:
+    ///  - [WHATWG Fetch spec][spec]
+    ///  - [Initialize a response][init]
+    ///
+    /// [spec]: https://fetch.spec.whatwg.org/#dom-response
+    /// [init]: https://fetch.spec.whatwg.org/#initialize-a-response
     #[boa(constructor)]
-    fn constructor(_body: Option<JsValue>, _options: JsResponseOptions) -> Self {
-        Self::basic(js_string!(""), http::Response::new(Vec::new()))
+    fn constructor(
+        body: JsValue,
+        options: Option<JsResponseOptions>,
+        context: &mut Context,
+    ) -> JsResult<Self> {
+        let JsResponseOptions {
+            status,
+            ref headers,
+            ..
+        } = options.unwrap_or_default();
+        let status_code = status.unwrap_or(200);
+
+        // 1. If init["status"] is not in the range 200 to 599, inclusive, then throw a RangeError.
+        if !(200..=599).contains(&status_code) {
+            return Err(JsNativeError::range()
+                .with_message(format!("Invalid status code: {status_code}"))
+                .into());
+        }
+
+        let status = StatusCode::from_u16(status_code).map_err(|_| {
+            JsNativeError::range().with_message(format!("Invalid status code: {status_code}"))
+        })?;
+
+        // TODO: 2. If init["statusText"] does not match the reason-phrase token production,
+        //          then throw a TypeError.
+
+        // 3. Set response's response's status to init["status"].
+        // 4. Set response's response's status message to init["statusText"].
+        // 5. If init["headers"] exists, then fill response's headers with init["headers"].
+        let headers = headers.clone().unwrap_or_default();
+
+        // 6. If body is non-null, then:
+        //    6.1. If response's status is a null body status, then throw a TypeError.
+        //    6.2. Set response's body to body's body.
+        let body_bytes = if !body.is_null_or_undefined() {
+            if matches!(status_code, 101 | 103 | 204 | 205 | 304) {
+                return Err(JsNativeError::typ()
+                    .with_message("Response with null body status cannot have a body")
+                    .into());
+            }
+            body.to_string(context)?.to_std_string_lossy().into_bytes()
+        } else {
+            Vec::new()
+        };
+
+        Ok(Self {
+            url: js_string!(""),
+            r#type: ResponseType::Basic,
+            status: Some(status),
+            headers,
+            body: Rc::new(body_bytes),
+        })
     }
 
     #[boa(getter)]
