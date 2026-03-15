@@ -551,7 +551,7 @@ impl ToLocalTime {
 
 // ==== Abstract Operations ====
 
-fn create_date_time_format(
+pub(crate) fn create_date_time_format(
     new_target: &JsValue,
     locales: &JsValue,
     options: &JsValue,
@@ -807,13 +807,13 @@ fn create_date_time_format(
         // 2. If value is not undefined, set needDefaults to false.
         let needs_defaults = format_options.check_dtf_type(date_time_format_type);
         // d. If needDefaults is true and defaults is either date or all, then
-        if needs_defaults && defaults != FormatDefaults::Time {
+        if needs_defaults && (defaults == FormatDefaults::All || defaults == FormatDefaults::Date) {
             // i. For each property name prop of « "year", "month", "day" », do
             // 1. Set formatOptions.[[<prop>]] to "numeric".
             format_options.set_date_defaults();
         }
         // e. If needDefaults is true and defaults is either time or all, then
-        if needs_defaults && defaults != FormatDefaults::Date {
+        if needs_defaults && (defaults == FormatDefaults::All || defaults == FormatDefaults::Time) {
             // i. For each property name prop of « "hour", "minute", "second" », do
             // 1. Set formatOptions.[[<prop>]] to "numeric".
             format_options.set_time_defaults();
@@ -911,10 +911,14 @@ pub(crate) enum FormatType {
     Any,
 }
 
+/// Indicates which default fields should be applied when `ToDateTimeOptions`
+/// determines defaults are needed. `All` applies both date and time defaults.
 #[derive(Debug, Clone, Copy, PartialEq)]
 pub(crate) enum FormatDefaults {
     Date,
     Time,
+    /// Apply both date and time defaults (e.g. for `toLocaleString`).
+    All,
 }
 
 /// Abstract operation [`UnwrapDateTimeFormat ( dtf )`][spec].
@@ -966,4 +970,58 @@ fn unwrap_date_time_format(
     Err(JsNativeError::typ()
         .with_message("object was not an `Intl.DateTimeFormat` object")
         .into())
+}
+
+/// Shared helper used by Date.prototype.toLocaleString,
+/// Date.prototype.toLocaleDateString, and Date.prototype.toLocaleTimeString.
+/// Applies `ToDateTimeOptions` defaults, constructs `Intl.DateTimeFormat`,
+/// and formats the provided timestamp.
+#[allow(clippy::too_many_arguments)]
+pub(crate) fn format_date_time_locale(
+    locales: &JsValue,
+    options: &JsValue,
+    format_type: FormatType,
+    defaults: FormatDefaults,
+    timestamp: f64,
+    context: &mut Context,
+) -> JsResult<JsValue> {
+    let options = coerce_options_to_object(options, context)?;
+    if format_type != FormatType::Time
+        && get_option::<DateStyle>(&options, js_string!("dateStyle"), context)?.is_none()
+    {
+        options.create_data_property_or_throw(
+            js_string!("dateStyle"),
+            JsValue::from(js_string!("long")),
+            context,
+        )?;
+    }
+    if format_type != FormatType::Date
+        && get_option::<TimeStyle>(&options, js_string!("timeStyle"), context)?.is_none()
+    {
+        options.create_data_property_or_throw(
+            js_string!("timeStyle"),
+            JsValue::from(js_string!("long")),
+            context,
+        )?;
+    }
+    let new_target = context
+        .intrinsics()
+        .constructors()
+        .date_time_format()
+        .constructor()
+        .into();
+    let options_value = options.into();
+    let dtf = create_date_time_format(
+        &new_target,
+        locales,
+        &options_value,
+        format_type,
+        defaults,
+        context,
+    )?;
+    let format_val = dtf.get(js_string!("format"), context)?;
+    let format_fn = format_val
+        .as_callable()
+        .ok_or_else(|| JsNativeError::typ().with_message("format is not callable"))?;
+    format_fn.call(&dtf.into(), &[JsValue::from(timestamp)], context)
 }
