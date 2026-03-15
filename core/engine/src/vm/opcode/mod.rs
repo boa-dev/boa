@@ -18,6 +18,7 @@ mod call;
 mod concat;
 mod control_flow;
 mod copy;
+mod debugger;
 mod define;
 mod delete;
 mod environment;
@@ -54,6 +55,8 @@ pub(crate) use concat::*;
 pub(crate) use control_flow::*;
 #[doc(inline)]
 pub(crate) use copy::*;
+#[doc(inline)]
+pub(crate) use debugger::*;
 #[doc(inline)]
 pub(crate) use define::*;
 #[doc(inline)]
@@ -2141,6 +2144,18 @@ generate_opcodes! {
     ///   - Output: dst
     CreateUnmappedArgumentsObject { dst: RegisterOperand },
 
+    /// The `debugger` statement.
+    ///
+    /// Currently a no-op. This opcode is emitted for `debugger;` statements
+    /// so they are represented in the bytecode, enabling future debugger
+    /// integration to intercept them.
+    ///
+    /// More information:
+    ///  - [ECMAScript reference][spec]
+    ///
+    /// [spec]: https://tc39.es/ecma262/#sec-debugger-statement
+    Debugger,
+
     /// Reserved [`Opcode`].
     Reserved1 => Reserved,
     /// Reserved [`Opcode`].
@@ -2259,6 +2274,4 @@ generate_opcodes! {
     Reserved58 => Reserved,
     /// Reserved [`Opcode`].
     Reserved59 => Reserved,
-    /// Reserved [`Opcode`].
-    Reserved60 => Reserved,
 }
