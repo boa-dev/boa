@@ -1291,6 +1291,55 @@ impl Array {
                     .with_message("length + number of arguments exceeds the max safe integer limit")
                     .into());
             }
+
+            // Small optimization for arrays using dense properties.
+            // Mirrors the fast-path in `shift`.
+            if o.is_array() {
+                let mut o_borrow = o.borrow_mut();
+                let props = &mut o_borrow.properties_mut().indexed_properties;
+
+                let fast_path_done = match props {
+                    IndexedProperties::DenseI32(dense) if len <= dense.len() as u64 => {
+                        // Only take the fast path if ALL new items are i32.
+                        let all_i32: Option<Vec<i32>> = args.iter().map(JsValue::as_i32).collect();
+                        if let Some(items) = all_i32 {
+                            for (i, item) in items.into_iter().enumerate() {
+                                dense.insert(i, item);
+                            }
+                            true
+                        } else {
+                            false
+                        }
+                    }
+                    IndexedProperties::DenseF64(dense) if len <= dense.len() as u64 => {
+                        let all_f64: Option<Vec<f64>> =
+                            args.iter().map(JsValue::as_number).collect();
+                        if let Some(items) = all_f64 {
+                            for (i, item) in items.into_iter().enumerate() {
+                                dense.insert(i, item);
+                            }
+                            true
+                        } else {
+                            false
+                        }
+                    }
+                    IndexedProperties::DenseElement(dense) if len <= dense.len() as u64 => {
+                        for (i, item) in args.iter().enumerate() {
+                            dense.insert(i, item.clone());
+                        }
+                        true
+                    }
+                    _ => false,
+                };
+
+                drop(o_borrow);
+
+                if fast_path_done {
+                    Self::set_length(&o, len + arg_count, context)?;
+                    return Ok((len + arg_count).into());
+                }
+            }
+
             // b. Let k be len.
             let mut k = len;
             // c. Repeat, while k > 0,
