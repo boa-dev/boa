@@ -46,7 +46,7 @@ type VecOrMap<K, V> = Either<Vec<(K, V)>, BTreeMap<K, V>>;
 /// A [RequestInit][mdn] object. This is a JavaScript object (not a
 /// class) that can be used as options for creating a [`JsRequest`].
 ///
-/// [mdn]:https://developer.mozilla.org/en-US/docs/Web/API/RequestInit
+/// [mdn]: https://developer.mozilla.org/en-US/docs/Web/API/RequestInit
 // TODO: This class does not contain all fields that are defined in the spec.
 #[derive(Debug, Clone, TryFromJs, Trace, Finalize)]
 pub struct RequestInit {
