@@ -556,7 +556,7 @@ pub enum Job {
     /// For this reason, it is recommended to exclude `FinalizationRegistry` cleanup
     /// jobs from any condition that returns from [`JobExecutor::run_jobs`].
     ///
-    /// By the same token, it is recommended to execute [`FinalizationRegistryCleanubJob`]
+    /// By the same token, it is recommended to execute `FinalizationRegistry` cleanup jobs
     /// separately from all other enqueued [`NativeAsyncJob`]s, prioritizing the
     /// execution of all other jobs if possible.
     ///
