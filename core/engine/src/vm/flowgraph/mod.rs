@@ -367,17 +367,39 @@ impl CodeBlock {
                 | Instruction::CheckReturn
                 | Instruction::BindThisValue { .. }
                 | Instruction::CreateMappedArgumentsObject { .. }
-                | Instruction::CreateUnmappedArgumentsObject { .. } => {
+                | Instruction::CreateUnmappedArgumentsObject { .. }
+                | Instruction::HasRestrictedGlobalProperty { .. }
+                | Instruction::CanDeclareGlobalFunction { .. }
+                | Instruction::CanDeclareGlobalVar { .. }
+                | Instruction::CreateGlobalFunctionBinding { .. }
+                | Instruction::CreateGlobalVarBinding { .. } => {
                     graph.add_node(previous_pc, NodeShape::None, label.into(), Color::None);
                     graph.add_edge(previous_pc, pc, None, Color::None, EdgeStyle::Line);
                 }
                 Instruction::Return => {
                     graph.add_node(previous_pc, NodeShape::Diamond, label.into(), Color::Red);
                 }
-                Instruction::Reserved1
-                | Instruction::Reserved2
-                | Instruction::Reserved3
-                | Instruction::Reserved4
+                Instruction::AddDisposableResource { value } => {
+                    let label = format!("AddDisposableResource value: {value}");
+                    graph.add_node(previous_pc, NodeShape::None, label.into(), Color::None);
+                }
+                Instruction::DisposeResources => {
+                    graph.add_node(
+                        previous_pc,
+                        NodeShape::None,
+                        "DisposeResources".into(),
+                        Color::None,
+                    );
+                }
+                Instruction::PushDisposalScope => {
+                    graph.add_node(
+                        previous_pc,
+                        NodeShape::None,
+                        "PushDisposalScope".into(),
+                        Color::None,
+                    );
+                }
+                Instruction::Reserved4
                 | Instruction::Reserved5
                 | Instruction::Reserved6
                 | Instruction::Reserved7
@@ -428,12 +450,7 @@ impl CodeBlock {
                 | Instruction::Reserved52
                 | Instruction::Reserved53
                 | Instruction::Reserved54
-                | Instruction::Reserved55
-                | Instruction::Reserved56
-                | Instruction::Reserved57
-                | Instruction::Reserved58
-                | Instruction::Reserved59
-                | Instruction::Reserved60 => unreachable!("Reserved opcodes are unreachable"),
+                | Instruction::Reserved55 => unreachable!("Reserved opcodes are unreachable"),
             }
         }
 
