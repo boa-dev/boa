@@ -33,6 +33,10 @@ use super::{
     to_temporal_duration,
 };
 
+#[cfg(feature = "temporal")]
+#[cfg(test)]
+mod tests;
+
 /// The `Temporal.PlainYearMonth` built-in implementation
 ///
 /// More information:
@@ -755,12 +759,15 @@ impl PlainYearMonth {
     ///
     /// [spec]: https://tc39.es/proposal-temporal/#sec-temporal.plainyearmonth.tolocalestring
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Temporal/PlainYearMonth/toLocaleString
+    #[allow(
+        unused_variables,
+        reason = "`args` and `context` are used when the `intl` feature is enabled"
+    )]
     pub(crate) fn to_locale_string(
         this: &JsValue,
-        _: &[JsValue],
-        _: &mut Context,
+        args: &[JsValue],
+        context: &mut Context,
     ) -> JsResult<JsValue> {
-        // TODO: Update for ECMA-402 compliance
         let object = this.as_object();
         let year_month = object
             .as_ref()
@@ -769,7 +776,30 @@ impl PlainYearMonth {
                 JsNativeError::typ().with_message("this value must be a PlainYearMonth object.")
             })?;
 
-        Ok(JsString::from(year_month.inner.to_string()).into())
+        #[cfg(feature = "intl")]
+        {
+            use crate::builtins::{
+                date::utils::timestamp_for_first_of_month_utc,
+                intl::date_time_format::{FormatDefaults, FormatType, format_date_time_locale},
+            };
+            let locales = args.get_or_undefined(0);
+            let options = args.get_or_undefined(1);
+            let timestamp =
+                timestamp_for_first_of_month_utc(year_month.inner.year(), year_month.inner.month());
+            format_date_time_locale(
+                locales,
+                options,
+                FormatType::Date,
+                FormatDefaults::Date,
+                timestamp,
+                context,
+            )
+        }
+
+        #[cfg(not(feature = "intl"))]
+        {
+            Ok(JsString::from(year_month.inner.to_string()).into())
+        }
     }
 
     /// 9.3.21 `Temporal.PlainYearMonth.prototype.toJSON ( )`
