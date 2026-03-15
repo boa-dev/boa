@@ -6,7 +6,7 @@ use std::ptr::{self, NonNull};
 
 /// Fibonacci numbers for rope balancing thresholds.
 /// `F(n) = Fib(n + 2)`. A rope of depth `n` is balanced if its length >= `F(n)`.
-static FIBONACCI_THRESHOLDS: [usize; 64] = [
+static FIBONACCI_THRESHOLDS: [usize; 46] = [
     1,
     2,
     3,
@@ -53,24 +53,6 @@ static FIBONACCI_THRESHOLDS: [usize; 64] = [
     1_134_903_170,
     1_836_311_903,
     2_971_215_073,
-    4_807_526_976,
-    7_778_742_049,
-    12_586_269_025,
-    20_365_011_074,
-    32_951_280_099,
-    53_316_291_173,
-    86_267_571_272,
-    139_583_862_445,
-    225_851_433_717,
-    365_435_296_162,
-    591_286_729_879,
-    956_722_026_041,
-    1_548_008_755_920,
-    2_504_730_781_961,
-    4_052_739_537_881,
-    6_557_470_319_842,
-    10_610_209_857_723,
-    17_167_680_177_565,
 ];
 
 /// Static vtable for rope strings.
