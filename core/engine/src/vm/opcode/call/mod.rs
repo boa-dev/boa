@@ -345,6 +345,7 @@ async fn load_dyn_import(
     referrer: Referrer,
     request: ModuleRequest,
     cap: PromiseCapability,
+    phase: u32,
     context: &RefCell<&mut Context>,
 ) -> JsResult<()> {
     let loader = context.borrow().module_loader();
@@ -409,6 +410,36 @@ async fn load_dyn_import(
                 .or_insert_with(|| module.clone());
             debug_assert_eq!(&module, entry);
         }
+    }
+
+    // When the `experimental` feature is disabled, reject any non-evaluation phase.
+    #[cfg(not(feature = "experimental"))]
+    if phase != 0 {
+        let err = JsNativeError::syntax()
+            .with_message("import.defer() and import.source() require the 'experimental' feature")
+            .into();
+        let err = JsError::into_opaque(err, &mut context.borrow_mut())?;
+        cap.reject()
+            .call(&JsValue::undefined(), &[err], &mut context.borrow_mut())
+            .expect("default `reject` function cannot throw");
+        return Ok(());
+    }
+
+    // TODO: For source phase (phase == 2), implement GetModuleSource()
+    // 16.2.1.7.2 GetModuleSource ( )
+    // Source Text Module Record provides a GetModuleSource implementation
+    // that always returns an abrupt completion indicating that a source phase import is not available.
+    // 1. Throw a SyntaxError exception.
+    #[cfg(feature = "experimental")]
+    if phase == 2 {
+        let err = JsNativeError::syntax()
+            .with_message("source phase import is not available for this module")
+            .into();
+        let err = JsError::into_opaque(err, &mut context.borrow_mut())?;
+        cap.reject()
+            .call(&JsValue::undefined(), &[err], &mut context.borrow_mut())
+            .expect("default `reject` function cannot throw");
+        return Ok(());
     }
 
     // 2. Let module be moduleCompletion.[[Value]].
@@ -517,12 +548,14 @@ pub(crate) struct ImportCall;
 impl ImportCall {
     #[inline(always)]
     pub(super) fn operation(
-        (specifier_op, options_op): (RegisterOperand, RegisterOperand),
+        (specifier_op, options_op, phase_op): (RegisterOperand, RegisterOperand, IndexOperand),
         context: &mut Context,
     ) -> JsResult<()> {
         // Import Calls
         // Runtime Semantics: Evaluation
         // https://tc39.es/ecma262/#sec-import-call-runtime-semantics-evaluation
+
+        let phase: u32 = phase_op.into();
 
         // 1. Let referrer be GetActiveScriptOrModule().
         // 2. If referrer is null, set referrer to the current Realm Record.
@@ -570,7 +603,7 @@ impl ImportCall {
         // 8. Perform HostLoadImportedModule(referrer, specifierString, empty, promiseCapability).
         let job = NativeAsyncJob::with_realm(
             async move |context| {
-                load_dyn_import(referrer, request, cap, context).await?;
+                load_dyn_import(referrer, request, cap, phase, context).await?;
                 Ok(JsValue::undefined())
             },
             context.realm().clone(),

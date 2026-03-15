@@ -1790,10 +1790,12 @@ generate_opcodes! {
 
     /// Dynamically import a module.
     ///
+    /// - Operands:
+    ///   - phase: `IndexOperand` (0 = evaluation, 1 = defer, 2 = source)
     /// - Registers:
     ///   - Input: specifier, options
     ///   - Output: specifier
-    ImportCall { specifier: RegisterOperand, options: RegisterOperand },
+    ImportCall { specifier: RegisterOperand, options: RegisterOperand, phase: IndexOperand },
 
     /// Strict equal compare two register values,
     /// if true jumps to address.
