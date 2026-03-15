@@ -396,6 +396,24 @@ impl CodeBlock {
             | Instruction::CreateUnmappedArgumentsObject { dst }
             | Instruction::RestParameterInit { dst }
             | Instruction::StoreNewArray { dst } => format!("dst:{dst}"),
+            Instruction::HasRestrictedGlobalProperty { dst, index }
+            | Instruction::CanDeclareGlobalFunction { dst, index }
+            | Instruction::CanDeclareGlobalVar { dst, index } => {
+                format!("dst: {dst}, index: {index}")
+            }
+            Instruction::CreateGlobalFunctionBinding {
+                src,
+                configurable,
+                name_index,
+            } => {
+                format!("src: {src}, configurable: {configurable}, name_index: {name_index}")
+            }
+            Instruction::CreateGlobalVarBinding {
+                configurable,
+                name_index,
+            } => {
+                format!("configurable: {configurable}, name_index: {name_index}")
+            }
             Instruction::Add { lhs, rhs, dst }
             | Instruction::Sub { lhs, rhs, dst }
             | Instruction::Div { lhs, rhs, dst }
@@ -931,12 +949,7 @@ impl CodeBlock {
             | Instruction::Reserved52
             | Instruction::Reserved53
             | Instruction::Reserved54
-            | Instruction::Reserved55
-            | Instruction::Reserved56
-            | Instruction::Reserved57
-            | Instruction::Reserved58
-            | Instruction::Reserved59
-            | Instruction::Reserved60 => unreachable!("Reserved opcodes are unreachable"),
+            | Instruction::Reserved55 => unreachable!("Reserved opcodes are unreachable"),
         }
     }
 }
