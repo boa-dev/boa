@@ -563,11 +563,11 @@ impl Json {
 
         // 5. Perform ! CreateDataPropertyOrThrow(obj, "rawJSON", jsonString).
         obj.create_data_property_or_throw(js_string!("rawJSON"), json_string, context)
-            .expect("CreateDataPropertyOrThrow should never throw here");
+            .js_expect("CreateDataPropertyOrThrow should never throw here")?;
 
         // 6. Perform ! SetIntegrityLevel(obj, frozen).
         obj.set_integrity_level(IntegrityLevel::Frozen, context)
-            .expect("SetIntegrityLevel should never throw here");
+            .js_expect("SetIntegrityLevel should never throw here")?;
 
         // 7. Return obj.
         Ok(obj.into())

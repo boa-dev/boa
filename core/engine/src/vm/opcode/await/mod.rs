@@ -64,7 +64,7 @@ impl Await {
                     let mut r#gen = captures.take().expect("should only run once");
 
                     // NOTE: We need to get the object before resuming, since it could clear the stack.
-                    let async_generator = r#gen.async_generator_object();
+                    let async_generator = r#gen.async_generator_object()?;
 
                     r#gen.resume(
                         Some(args.get_or_undefined(0).clone()),
@@ -105,7 +105,7 @@ impl Await {
                     let mut r#gen = captures.take().expect("should only run once");
 
                     // NOTE: We need to get the object before resuming, since it could clear the stack.
-                    let async_generator = r#gen.async_generator_object();
+                    let async_generator = r#gen.async_generator_object()?;
 
                     r#gen.resume(
                         Some(args.get_or_undefined(0).clone()),
