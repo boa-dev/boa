@@ -1,4 +1,11 @@
-use boa_engine::{Context, JsResult, JsValue, Source};
+//! Tests for explicit resource management (using declarations).
+//!
+//! This module tests the core disposal mechanism for `using` declarations,
+//! verifying that resources are properly disposed when scopes exit.
+
+#![allow(unused_crate_dependencies)]
+
+use boa_engine::{Context, JsValue, Source};
 
 #[test]
 fn basic_disposal() {
