@@ -874,7 +874,8 @@ impl CodeBlock {
             | Instruction::SuperCallSpread
             | Instruction::PopPrivateEnvironment
             | Instruction::Generator
-            | Instruction::AsyncGenerator => String::new(),
+            | Instruction::AsyncGenerator
+            | Instruction::Debugger => String::new(),
             Instruction::Reserved1
             | Instruction::Reserved2
             | Instruction::Reserved3
@@ -933,8 +934,7 @@ impl CodeBlock {
             | Instruction::Reserved56
             | Instruction::Reserved57
             | Instruction::Reserved58
-            | Instruction::Reserved59
-            | Instruction::Reserved60 => unreachable!("Reserved opcodes are unreachable"),
+            | Instruction::Reserved59 => unreachable!("Reserved opcodes are unreachable"),
         }
     }
 }

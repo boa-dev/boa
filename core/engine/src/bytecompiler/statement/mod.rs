@@ -98,7 +98,10 @@ impl ByteCompiler<'_> {
                 }
             }
             Statement::With(with) => self.compile_with(with, use_expr),
-            Statement::Empty | Statement::Debugger => {}
+            Statement::Empty => {}
+            Statement::Debugger => {
+                self.bytecode.emit_debugger();
+            }
         }
     }
 
