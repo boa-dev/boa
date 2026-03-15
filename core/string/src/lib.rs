@@ -36,7 +36,7 @@ pub use crate::{
     code_point::CodePoint,
     common::StaticJsStrings,
     iter::Iter,
-    str::{JsStr, JsStrVariant},
+    str::JsStr,
 };
 use std::ptr::NonNull;
 use std::sync::atomic::{AtomicU64, AtomicUsize, Ordering};
@@ -263,7 +263,7 @@ impl JsString {
     /// Get the variant of this string.
     #[inline]
     #[must_use]
-    pub fn variant(&self) -> JsStrVariant<'_> {
+    pub fn variant(&self) -> JsStr<'_> {
         // SAFETY: The pointer `self.ptr` is always valid and points to a `JsStringHeader` header.
         let header = unsafe { self.ptr.as_ref() };
         match header.vtable.kind {
@@ -273,7 +273,7 @@ impl JsString {
                 // SAFETY: `seq.data()` is a valid pointer to the Latin1 data, and `header.len` is the correct length.
                 unsafe {
                     let slice = std::slice::from_raw_parts(seq.data(), header.len);
-                    JsStrVariant::Latin1(slice)
+                    JsStr::Latin1(slice)
                 }
             }
             JsStringKind::Utf16Sequence => {
@@ -281,13 +281,11 @@ impl JsString {
                 let seq: &SequenceString<Utf16> = unsafe { self.ptr.cast().as_ref() };
                 // SAFETY: `seq.data()` is a valid pointer to the UTF-16 data, and `header.len` is the correct length.
                 let slice = unsafe { std::slice::from_raw_parts(seq.data().cast(), header.len) };
-                JsStrVariant::Utf16(slice)
+                JsStr::Utf16(slice)
             }
             // For Static, Slice, and Rope, the `as_str()` method handles the variant conversion.
             // This avoids redundant logic and ensures consistency.
-            JsStringKind::Static | JsStringKind::Slice | JsStringKind::Rope => {
-                self.as_str().variant()
-            }
+            JsStringKind::Static | JsStringKind::Slice | JsStringKind::Rope => self.as_str(),
         }
     }
 
@@ -375,7 +373,7 @@ impl JsString {
     pub fn trim(&self) -> JsString {
         // Calculate both bounds directly to avoid intermediate allocations.
         let (start, end) = match self.variant() {
-            JsStrVariant::Latin1(v) => {
+            JsStr::Latin1(v) => {
                 let Some(start) = v.iter().position(|c| !is_trimmable_whitespace_latin1(*c)) else {
                     return StaticJsStrings::EMPTY_STRING;
                 };
@@ -385,7 +383,7 @@ impl JsString {
                     .unwrap_or(start);
                 (start, end)
             }
-            JsStrVariant::Utf16(v) => {
+            JsStr::Utf16(v) => {
                 let Some(start) = v.iter().copied().position(|r| {
                     !char::from_u32(u32::from(r)).is_some_and(is_trimmable_whitespace)
                 }) else {
@@ -394,6 +392,20 @@ impl JsString {
                 let end = v
                     .iter()
                     .copied()
+                    .rposition(|r| {
+                        !char::from_u32(u32::from(r)).is_some_and(is_trimmable_whitespace)
+                    })
+                    .unwrap_or(start);
+                (start, end)
+            }
+            JsStr::Rope(_) => {
+                let Some(start) = self.iter().position(|r| {
+                    !char::from_u32(u32::from(r)).is_some_and(is_trimmable_whitespace)
+                }) else {
+                    return StaticJsStrings::EMPTY_STRING;
+                };
+                let end = self
+                    .iter()
                     .rposition(|r| {
                         !char::from_u32(u32::from(r)).is_some_and(is_trimmable_whitespace)
                     })
@@ -412,10 +424,13 @@ impl JsString {
     #[must_use]
     pub fn trim_start(&self) -> JsString {
         let Some(start) = (match self.variant() {
-            JsStrVariant::Latin1(v) => v.iter().position(|c| !is_trimmable_whitespace_latin1(*c)),
-            JsStrVariant::Utf16(v) => v
+            JsStr::Latin1(v) => v.iter().position(|c| !is_trimmable_whitespace_latin1(*c)),
+            JsStr::Utf16(v) => v
                 .iter()
                 .copied()
+                .position(|r| !char::from_u32(u32::from(r)).is_some_and(is_trimmable_whitespace)),
+            JsStr::Rope(_) => self
+                .iter()
                 .position(|r| !char::from_u32(u32::from(r)).is_some_and(is_trimmable_whitespace)),
         }) else {
             return StaticJsStrings::EMPTY_STRING;
@@ -430,10 +445,13 @@ impl JsString {
     #[must_use]
     pub fn trim_end(&self) -> JsString {
         let Some(end) = (match self.variant() {
-            JsStrVariant::Latin1(v) => v.iter().rposition(|c| !is_trimmable_whitespace_latin1(*c)),
-            JsStrVariant::Utf16(v) => v
+            JsStr::Latin1(v) => v.iter().rposition(|c| !is_trimmable_whitespace_latin1(*c)),
+            JsStr::Utf16(v) => v
                 .iter()
                 .copied()
+                .rposition(|r| !char::from_u32(u32::from(r)).is_some_and(is_trimmable_whitespace)),
+            JsStr::Rope(_) => self
+                .iter()
                 .rposition(|r| !char::from_u32(u32::from(r)).is_some_and(is_trimmable_whitespace)),
         }) else {
             return StaticJsStrings::EMPTY_STRING;
@@ -860,25 +878,32 @@ impl JsString {
                 unsafe {
                     // NOTE: The alignment is checked when we allocate the array.
                     #[allow(clippy::cast_ptr_alignment)]
-                    match (latin1_encoding, string.variant()) {
-                        (true, JsStrVariant::Latin1(s)) => {
+                    match (latin1_encoding, string) {
+                        (true, JsStr::Latin1(s)) => {
                             let count = s.len();
                             ptr::copy_nonoverlapping(s.as_ptr(), data.cast::<u8>(), count);
                             data = data.cast::<u8>().add(count).cast::<u8>();
                         }
-                        (false, JsStrVariant::Latin1(s)) => {
+                        (false, JsStr::Latin1(s)) => {
                             let count = s.len();
                             for (i, byte) in s.iter().enumerate() {
                                 *data.cast::<u16>().add(i) = u16::from(*byte);
                             }
                             data = data.cast::<u16>().add(count).cast::<u8>();
                         }
-                        (false, JsStrVariant::Utf16(s)) => {
+                        (false, JsStr::Utf16(s)) => {
                             let count = s.len();
                             ptr::copy_nonoverlapping(s.as_ptr(), data.cast::<u16>(), count);
                             data = data.cast::<u16>().add(count).cast::<u8>();
                         }
-                        (true, JsStrVariant::Utf16(_)) => {
+                        (false, JsStr::Rope(r)) => {
+                            let count = r.len();
+                            for (i, cu) in string.iter().enumerate() {
+                                *data.cast::<u16>().add(i) = cu;
+                            }
+                            data = data.cast::<u16>().add(count).cast::<u8>();
+                        }
+                        (true, JsStr::Utf16(_) | JsStr::Rope(_)) => {
                             unreachable!("Already checked that it's latin1 encoding")
                         }
                     }
@@ -901,8 +926,8 @@ impl JsString {
         unsafe {
             // NOTE: The alignment is checked when we allocate the array.
             #[allow(clippy::cast_ptr_alignment)]
-            match string.variant() {
-                JsStrVariant::Latin1(s) => {
+            match string {
+                JsStr::Latin1(s) => {
                     let ptr = SequenceString::<Latin1>::allocate(count);
                     let data = (&raw mut (*ptr.as_ptr()).data)
                         .cast::<<Latin1 as r#type::StringType>::Byte>();
@@ -911,11 +936,22 @@ impl JsString {
                         ptr: ptr.cast::<JsStringHeader>(),
                     }
                 }
-                JsStrVariant::Utf16(s) => {
+                JsStr::Utf16(s) => {
                     let ptr = SequenceString::<Utf16>::allocate(count);
                     let data = (&raw mut (*ptr.as_ptr()).data)
                         .cast::<<Utf16 as r#type::StringType>::Byte>();
                     ptr::copy_nonoverlapping(s.as_ptr(), data, count);
+                    Self {
+                        ptr: ptr.cast::<JsStringHeader>(),
+                    }
+                }
+                JsStr::Rope(_) => {
+                    let ptr = SequenceString::<Utf16>::allocate(count);
+                    let data = (&raw mut (*ptr.as_ptr()).data)
+                        .cast::<<Utf16 as r#type::StringType>::Byte>();
+                    for (i, cu) in string.iter().enumerate() {
+                        ptr::write(data.add(i), cu);
+                    }
                     Self {
                         ptr: ptr.cast::<JsStringHeader>(),
                     }

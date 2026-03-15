@@ -8,7 +8,6 @@ use crate::{
 };
 
 use boa_macros::js_str;
-use boa_string::JsStrVariant;
 
 /// Builtin javascript 'isFinite(number)' function.
 ///
@@ -359,11 +358,16 @@ pub(crate) fn parse_float(
         return Ok(JsValue::nan());
     }
 
-    let value = match trimmed_string.variant() {
-        JsStrVariant::Latin1(s) => fast_float2::parse_partial::<f64, _>(s),
-        JsStrVariant::Utf16(s) => {
+    let value = match trimmed_string.as_str() {
+        JsStr::Latin1(s) => fast_float2::parse_partial::<f64, _>(s),
+        JsStr::Utf16(s) => {
             // TODO: Explore adding direct UTF-16 parsing support to fast_float2.
             let s = String::from_utf16_lossy(s);
+            fast_float2::parse_partial::<f64, _>(s.as_bytes())
+        }
+        JsStr::Rope(_) => {
+            let s = input_string.to_vec();
+            let s = String::from_utf16_lossy(&s);
             fast_float2::parse_partial::<f64, _>(s.as_bytes())
         }
     };

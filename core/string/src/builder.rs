@@ -1,5 +1,5 @@
 use crate::r#type::{InternalStringType, Latin1, Utf16};
-use crate::{JsStr, JsStrVariant, JsString, SequenceString, alloc_overflow};
+use crate::{JsStr, JsString, SequenceString, alloc_overflow};
 use std::{
     alloc::{Layout, alloc, dealloc, realloc},
     marker::PhantomData,
@@ -810,14 +810,16 @@ impl<'seg, 'ref_str: 'seg> CommonJsStringBuilder<'seg> {
             match seg {
                 Segment::String(s) => {
                     let js_str = s.as_str();
-                    match js_str.variant() {
-                        JsStrVariant::Latin1(s) => builder.extend(s.iter().copied().map(u16::from)),
-                        JsStrVariant::Utf16(s) => builder.extend_from_slice(s),
+                    match js_str {
+                        JsStr::Latin1(s) => builder.extend(s.iter().copied().map(u16::from)),
+                        JsStr::Utf16(s) => builder.extend_from_slice(s),
+                        JsStr::Rope(_) => builder.extend(js_str.iter()),
                     }
                 }
-                Segment::Str(s) => match s.variant() {
-                    JsStrVariant::Latin1(s) => builder.extend(s.iter().copied().map(u16::from)),
-                    JsStrVariant::Utf16(s) => builder.extend_from_slice(s),
+                Segment::Str(s) => match s {
+                    JsStr::Latin1(s) => builder.extend(s.iter().copied().map(u16::from)),
+                    JsStr::Utf16(s) => builder.extend_from_slice(s),
+                    JsStr::Rope(_) => builder.extend(s.iter()),
                 },
                 Segment::Latin1(latin1) => builder.push(u16::from(latin1)),
                 Segment::CodePoint(code_point) => {

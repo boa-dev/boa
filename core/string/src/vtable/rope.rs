@@ -1,4 +1,3 @@
-use crate::str::JsStrVariant;
 use crate::vtable::{JsStringHeader, JsStringVTable};
 use crate::{JsStr, JsString, JsStringKind};
 use std::cell::OnceCell;
@@ -64,6 +63,8 @@ pub(crate) static ROPE_VTABLE: JsStringVTable = JsStringVTable {
     kind: JsStringKind::Rope,
 };
 
+#[allow(dead_code)]
+#[derive(Debug)]
 pub(crate) enum Flattened {
     Latin1(Box<[u8]>),
     Utf16(Box<[u16]>),
@@ -71,6 +72,7 @@ pub(crate) enum Flattened {
 
 /// A rope string that is a tree of other strings.
 #[repr(C)]
+#[derive(Debug)]
 pub(crate) struct RopeString {
     /// Standardized header for all strings.
     pub(crate) header: JsStringHeader,
@@ -136,7 +138,7 @@ impl RopeString {
         let mut stack = vec![s.clone()];
         while let Some(current) = stack.pop() {
             if current.kind() == JsStringKind::Rope {
-                // SAFETY: kind is Rope.
+                // SAFETY: We know the kind is `Rope`, so it's safe to cast the pointer to `RopeString`.
                 let r = unsafe { Self::from_vtable(current.ptr) };
 
                 // If the child is already flattened, don't descend into it; just use its cached result.
@@ -209,8 +211,28 @@ fn rope_as_str(header: &JsStringHeader) -> JsStr<'_> {
     // SAFETY: The header is part of a RopeString and it's aligned.
     let this: &RopeString = unsafe { &*ptr::from_ref(header).cast::<RopeString>() };
 
-    let flattened = this.flattened.get_or_init(|| {
-        // SAFETY: Temporary handle for traversal.
+    if let Some(flattened) = this.flattened.get() {
+        return match flattened {
+            Flattened::Latin1(b) => JsStr::latin1(b),
+            Flattened::Utf16(b) => JsStr::utf16(b),
+        };
+    }
+
+    JsStr::rope(crate::str::RopeSlice {
+        header,
+        start: 0,
+        end: header.len,
+    })
+}
+
+/// Flattens a rope string into a contiguous buffer.
+#[allow(dead_code)]
+pub(crate) fn flatten_rope(header: &JsStringHeader) -> &Flattened {
+    // SAFETY: The header is part of a RopeString and it's aligned.
+    let this: &RopeString = unsafe { &*ptr::from_ref(header).cast::<RopeString>() };
+
+    this.flattened.get_or_init(|| {
+        // SAFETY: We manually increment the refcount to ensure the `JsString` handle is valid for traversal.
         let root_handle = unsafe {
             let rc_ptr = (&raw const header.refcount).cast::<std::sync::atomic::AtomicUsize>();
             (*rc_ptr).fetch_add(1, std::sync::atomic::Ordering::Relaxed);
@@ -286,41 +308,33 @@ fn rope_as_str(header: &JsStringHeader) -> JsStr<'_> {
                         stack.push(r.left.clone());
                     }
                 } else {
-                    let variant = current.as_str().variant();
-                    match variant {
-                        JsStrVariant::Latin1(s) => buffer.extend(s.iter().copied().map(u16::from)),
-                        JsStrVariant::Utf16(s) => buffer.extend_from_slice(s),
+                    let s = current.as_str();
+                    match s {
+                        JsStr::Latin1(s) => buffer.extend(s.iter().copied().map(u16::from)),
+                        JsStr::Utf16(s) => buffer.extend_from_slice(s),
+                        // SAFETY: We skip recursion for the current node to avoid stack overflow,
+                        // and `flatten_rope` logic ensures we eventually reach leaves.
+                        JsStr::Rope(_) => buffer.extend(s.iter()),
                     }
                 }
             }
             Flattened::Utf16(buffer.into_boxed_slice())
         }
-    });
-
-    match flattened {
-        Flattened::Latin1(b) => JsStr::latin1(b),
-        Flattened::Utf16(b) => JsStr::utf16(b),
-    }
+    })
 }
 
 #[inline]
 fn rope_code_points(header: &JsStringHeader) -> crate::iter::CodePointsIter<'_> {
-    // SAFETY: We are creating a new handle from a raw pointer, so we must increment the refcount
-    // to avoid a use-after-free when the iterator's handle is dropped.
-    // We also know that the kind is not static (since this is ROPE), so we can safely cast the refcount
-    // pointer to an atomic for concurrent updates.
-    // NOTE: Casting a non-atomic `usize` to `AtomicUsize` is technically undefined behavior in the Rust
-    // strict provenance model, but it is a common pattern in JS engines where atomic and non-atomic
-    // states share layout, and is practically safe on our supported platforms.
-    // We derive the refcount pointer from a raw pointer to avoid Frozen tags from the shared reference `header`.
+    // SAFETY: The header is guaranteed to be a `RopeString` and alive for the duration of the iterator
+    // as it is bound by the lifetime of the input reference.
     unsafe {
         let header_ptr: *const JsStringHeader = header;
-        let rc_ptr = (&raw const (*header_ptr).refcount).cast::<std::sync::atomic::AtomicUsize>();
-        (*rc_ptr).fetch_add(1, std::sync::atomic::Ordering::Relaxed);
-
-        // SAFETY: We just incremented the refcount, so we can safely create a new handle.
+        // We create a temporary handle to pass to the iterator.
+        // Since the iterator only takes a reference, we don't need to increment refcount.
         let s = JsString::from_raw(NonNull::new_unchecked(header_ptr.cast_mut()));
-        crate::iter::CodePointsIter::rope(s)
+        let iter = crate::iter::CodePointsIter::rope(&s);
+        std::mem::forget(s);
+        iter
     }
 }
 
