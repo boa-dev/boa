@@ -315,7 +315,8 @@ impl Stack {
         let mut groups: Vec<(String, usize, Option<usize>)> = Vec::new();
         for (val, idx) in &entries {
             if let Some(last) = groups.last_mut()
-                && last.0 == *val && last.2.is_none()
+                && last.0 == *val
+                && last.2.is_none()
             {
                 last.1 += 1;
                 continue;
