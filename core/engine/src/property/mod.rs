@@ -827,8 +827,12 @@ impl PartialEq<[u16]> for PropertyKey {
 }
 
 #[derive(Debug, Clone, Copy)]
-pub(crate) enum PropertyNameKind {
+/// An enum representing the type of property name to iterate over.
+pub enum PropertyNameKind {
+    /// Iterates over the keys of the object.
     Key,
+    /// Iterates over the values of the object.
     Value,
+    /// Iterates over both keys and values of the object.
     KeyAndValue,
 }

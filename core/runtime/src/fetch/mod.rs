@@ -11,13 +11,10 @@ use crate::fetch::headers::JsHeaders;
 use crate::fetch::request::{JsRequest, RequestInit};
 use crate::fetch::response::JsResponse;
 use boa_engine::class::Class;
-use boa_engine::object::FunctionObjectBuilder;
-use boa_engine::object::builtins::JsArray;
-use boa_engine::property::PropertyDescriptor;
 use boa_engine::realm::Realm;
 use boa_engine::{
-    Context, Finalize, JsData, JsError, JsObject, JsResult, JsString, JsSymbol, JsValue,
-    NativeObject, Trace, boa_module, js_error, js_string, native_function::NativeFunction,
+    Context, Finalize, JsData, JsError, JsObject, JsResult, JsString, JsValue, NativeObject, Trace,
+    boa_module, js_error,
 };
 use either::Either;
 use http::{HeaderName, HeaderValue, Request as HttpRequest, Request};
@@ -25,6 +22,7 @@ use std::cell::RefCell;
 use std::rc::Rc;
 
 pub mod headers;
+pub mod headers_iterator;
 pub mod request;
 pub mod response;
 pub mod tests;
@@ -205,20 +203,6 @@ pub mod js_module {
 #[doc(inline)]
 pub use js_module::fetch;
 
-fn headers_iterator(this: &JsValue, _: &[JsValue], context: &mut Context) -> JsResult<JsValue> {
-    let this_object = this.as_object();
-    let headers = this_object
-        .as_ref()
-        .and_then(JsObject::downcast_ref::<JsHeaders>)
-        .ok_or_else(|| {
-            js_error!(TypeError: "`Headers.prototype[Symbol.iterator]` requires a `Headers` object")
-        })?;
-
-    let entries = headers.entries(context);
-    let entries_array = JsArray::from_object(entries.to_object(context)?)?;
-    entries_array.values(context)
-}
-
 /// Register the `fetch` function in the realm, as well as ALL supporting classes.
 /// Pass `None` as the realm to register globally.
 ///
@@ -236,33 +220,24 @@ pub fn register<F: Fetcher>(
     }
     js_module::boa_register::<F>(realm.clone(), context)?;
 
-    // TODO(#4688): Replace this manual `[Symbol.iterator]` wiring once `#[boa(class)]`
-    // supports symbol-named methods.
-    let headers_proto = match realm {
-        Some(realm) => realm.get_class::<JsHeaders>(),
-        None => context.get_global_class::<JsHeaders>(),
+    if realm.is_none() {
+        context.register_global_class::<headers_iterator::HeadersIterator>()?;
+
+        // `#[boa_class]` cannot express symbol-keyed static properties, so
+        // we set `@@toStringTag` on the prototype manually after registration.
+        let proto = context
+            .get_global_class::<headers_iterator::HeadersIterator>()
+            .expect("just registered")
+            .prototype();
+        proto.define_property_or_throw(
+            boa_engine::JsSymbol::to_string_tag(),
+            boa_engine::property::PropertyDescriptor::builder()
+                .value(JsString::from("Headers Iterator"))
+                .configurable(true)
+                .build(),
+            context,
+        )?;
     }
-    .ok_or_else(|| js_error!(Error: "Headers class should be registered"))?
-    .prototype();
-
-    let iterator = FunctionObjectBuilder::new(
-        context.realm(),
-        NativeFunction::from_fn_ptr(headers_iterator),
-    )
-    .name(js_string!("[Symbol.iterator]"))
-    .length(0)
-    .constructor(false)
-    .build();
-
-    headers_proto.define_property_or_throw(
-        JsSymbol::iterator(),
-        PropertyDescriptor::builder()
-            .value(iterator)
-            .writable(true)
-            .enumerable(false)
-            .configurable(true),
-        context,
-    )?;
 
     Ok(())
 }
