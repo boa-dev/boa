@@ -4,7 +4,7 @@
 //!
 //! # TC55 Status
 //!
-//! `atob` and `btoa` are required in the WinterTC TC55 Minimum Common Web API.
+//! `atob` and `btoa` are required in the `WinterTC` TC55 Minimum Common Web API.
 //!
 //! # TODO
 //!

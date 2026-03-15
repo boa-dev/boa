@@ -4,7 +4,7 @@
 //!
 //! # TC55 Status
 //!
-//! `URL` and `URLSearchParams` are required in the WinterTC TC55 Minimum Common Web API.
+//! `URL` and `URLSearchParams` are required in the `WinterTC` TC55 Minimum Common Web API.
 //!
 //! # TODO
 //!

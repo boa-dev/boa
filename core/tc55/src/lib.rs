@@ -1,7 +1,7 @@
 //! Boa's **`boa_tc55`** crate implements the [WinterTC (TC55) Minimum Common Web API](https://min-common-api.proposal.wintertc.org/)
 //! for the `boa_engine` crate.
 //!
-//! WinterTC (TC55) is an Ecma International Technical Committee working towards a baseline set
+//! `WinterTC` (TC55) is an Ecma International Technical Committee working towards a baseline set
 //! of Web Platform APIs that all server-side JavaScript runtimes (Deno, Bun, Cloudflare Workers,
 //! Node.js, etc.) agree to implement, enabling portable server-side JavaScript.
 //!
@@ -50,13 +50,14 @@ pub mod url;
 
 /// Register all TC55-mandated Web APIs into the given [`boa_engine::Context`].
 ///
-/// This registers the Minimum Common Web API as specified by WinterTC (TC55):
+/// This registers the Minimum Common Web API as specified by `WinterTC` (TC55):
 /// <https://min-common-api.proposal.wintertc.org/>
 ///
 /// # Errors
 ///
 /// Returns a [`boa_engine::JsError`] if any API fails to register (e.g. a global
 /// object already exists with a conflicting name).
+#[allow(clippy::needless_pass_by_value)]
 pub fn register(
     realm: Option<boa_engine::realm::Realm>,
     ctx: &mut boa_engine::Context,

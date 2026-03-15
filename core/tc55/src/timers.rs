@@ -4,7 +4,7 @@
 //!
 //! # TC55 Status
 //!
-//! Timer APIs are required in the WinterTC TC55 Minimum Common Web API.
+//! Timer APIs are required in the `WinterTC` TC55 Minimum Common Web API.
 //!
 //! # TODO
 //!

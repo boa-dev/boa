@@ -4,7 +4,7 @@
 //!
 //! # TC55 Status
 //!
-//! `console` is required in the WinterTC TC55 Minimum Common Web API.
+//! `console` is required in the `WinterTC` TC55 Minimum Common Web API.
 //!
 //! # TODO
 //!

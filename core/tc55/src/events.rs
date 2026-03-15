@@ -4,7 +4,7 @@
 //!
 //! # TC55 Status
 //!
-//! `EventTarget` and associated event interfaces are required in the WinterTC TC55
+//! `EventTarget` and associated event interfaces are required in the `WinterTC` TC55
 //! Minimum Common Web API.
 //!
 //! # TODO

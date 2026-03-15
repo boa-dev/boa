@@ -4,7 +4,7 @@
 //!
 //! # TC55 Status
 //!
-//! The Fetch API is required in the WinterTC TC55 Minimum Common Web API.
+//! The Fetch API is required in the `WinterTC` TC55 Minimum Common Web API.
 //!
 //! # TODO
 //!

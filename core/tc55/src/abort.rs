@@ -4,7 +4,7 @@
 //!
 //! # TC55 Status
 //!
-//! `AbortController` and `AbortSignal` are required in the WinterTC TC55 Minimum Common Web API.
+//! `AbortController` and `AbortSignal` are required in the `WinterTC` TC55 Minimum Common Web API.
 //!
 //! # TODO
 //!

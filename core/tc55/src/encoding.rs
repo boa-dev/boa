@@ -5,7 +5,7 @@
 //! # TC55 Status
 //!
 //! `TextEncoder`, `TextDecoder`, `TextEncoderStream`, and `TextDecoderStream` are required
-//! in the WinterTC TC55 Minimum Common Web API.
+//! in the `WinterTC` TC55 Minimum Common Web API.
 //!
 //! # TODO
 //!

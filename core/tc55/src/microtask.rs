@@ -4,7 +4,7 @@
 //!
 //! # TC55 Status
 //!
-//! `queueMicrotask` is required in the WinterTC TC55 Minimum Common Web API.
+//! `queueMicrotask` is required in the `WinterTC` TC55 Minimum Common Web API.
 //!
 //! # TODO
 //!

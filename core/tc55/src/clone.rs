@@ -4,7 +4,7 @@
 //!
 //! # TC55 Status
 //!
-//! `structuredClone` is required in the WinterTC TC55 Minimum Common Web API.
+//! `structuredClone` is required in the `WinterTC` TC55 Minimum Common Web API.
 //!
 //! # TODO
 //!
