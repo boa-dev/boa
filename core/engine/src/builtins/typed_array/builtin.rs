@@ -2500,73 +2500,92 @@ impl BuiltinTypedArray {
             o.array_length(buf_len)
         };
 
-        // 3. Let separator be the implementation-defined list-separator String value
-        //    appropriate for the host environment's current locale (such as ", ").
-        let separator = {
-            #[cfg(feature = "intl")]
-            {
-                use crate::builtins::intl::locale::default_locale;
-                use icu_list::{
-                    ListFormatter, ListFormatterPreferences, options::ListFormatterOptions,
-                };
+        let locales = args.get_or_undefined(0).clone();
+        let options = args.get_or_undefined(1).clone();
 
-                let locale = default_locale(context.intl_provider().locale_canonicalizer()?);
-                let preferences = ListFormatterPreferences::from(&locale);
-                let formatter = ListFormatter::try_new_unit_with_buffer_provider(
-                    context.intl_provider().erased_provider(),
-                    preferences,
-                    ListFormatterOptions::default(),
-                )
-                .map_err(|e| JsNativeError::typ().with_message(e.to_string()))?;
+        #[cfg(feature = "intl")]
+        let (number_format, formatter) = {
+            use crate::builtins::intl::{locale::default_locale, number_format::NumberFormat};
+            use icu_list::{
+                options::ListFormatterOptions, ListFormatter, ListFormatterPreferences,
+            };
 
-                // Extract the list separator by formatting two empty strings.
-                js_string!(
-                    formatter.format_to_string(std::iter::once("").chain(std::iter::once("")))
-                )
-            }
+            let locale = default_locale(context.intl_provider().locale_canonicalizer()?);
+            let preferences = ListFormatterPreferences::from(&locale);
+            let formatter = ListFormatter::try_new_unit_with_buffer_provider(
+                context.intl_provider().erased_provider(),
+                preferences,
+                ListFormatterOptions::default(),
+            )
+            .map_err(|e| JsNativeError::typ().with_message(e.to_string()))?;
 
-            #[cfg(not(feature = "intl"))]
-            {
-                js_string!(", ")
-            }
+            let number_format = NumberFormat::new(&locales, &options, context)?;
+
+            (number_format, formatter)
         };
 
-        let locales = args.get_or_undefined(0);
-        let options = args.get_or_undefined(1);
-
         // 4. Let R be the empty String.
-        let mut r = Vec::new();
+        let mut r = Vec::<JsString>::with_capacity(len as usize);
+
+        #[cfg(not(feature = "intl"))]
+        let call_args = [locales, options];
 
         // 5. Let k be 0.
         // 6. Repeat, while k < len,
         for k in 0..len {
-            // a. If k > 0, then
-            if k > 0 {
-                // i. Set R to the string-concatenation of R and separator.
-                r.extend(separator.iter());
-            }
-
             // b. Let nextElement be ? Get(O, ! ToString(𝔽(k))).
             let next_element = array.get(k, context)?;
 
             // c. If nextElement is not undefined or null, then
-            if !next_element.is_null_or_undefined() {
-                // i. Let S be ? ToString(? Invoke(nextElement, "toLocaleString", « locales, options »)).
-                let s = next_element
-                    .invoke(
-                        js_string!("toLocaleString"),
-                        &[locales.clone(), options.clone()],
-                        context,
-                    )?
-                    .to_string(context)?;
-
-                // ii. Set R to the string-concatenation of R and S.
-                r.extend(s.iter());
+            //    i. Let S be ? ToString(? Invoke(nextElement, "toLocaleString", « locales, options »)).
+            if next_element.is_null_or_undefined() {
+                r.push(js_string!(""));
+            } else {
+                #[cfg(feature = "intl")]
+                {
+                    use crate::builtins::intl::number_format::to_intl_mathematical_value;
+                    let mut x = to_intl_mathematical_value(&next_element, context)?;
+                    r.push(js_string!(number_format.format(&mut x).to_string()));
+                }
+                #[cfg(not(feature = "intl"))]
+                {
+                    let s = next_element
+                        .invoke(js_string!("toLocaleString"), &call_args, context)?
+                        .to_string(context)?;
+                    r.push(s);
+                }
             }
         }
 
         // 7. Return R.
-        Ok(js_string!(&r[..]).into())
+        #[cfg(feature = "intl")]
+        {
+            if r.is_empty() {
+                Ok(js_string!("").into())
+            } else {
+                Ok(js_string!(formatter.format_to_string(r.into_iter().map(|s| s.to_std_string_escaped()))).into())
+            }
+        }
+
+        #[cfg(not(feature = "intl"))]
+        {
+            if r.is_empty() {
+                Ok(js_string!("").into())
+            } else {
+                let separator = js_string!(", ");
+                let mut result = Vec::with_capacity(
+                    r.iter().map(|s| s.len()).sum::<usize>()
+                        + separator.len() * (len.saturating_sub(1) as usize),
+                );
+                for (i, s) in r.into_iter().enumerate() {
+                    if i > 0 {
+                        result.extend(separator.iter());
+                    }
+                    result.extend(s.iter());
+                }
+                Ok(js_string!(&result[..]).into())
+            }
+        }
     }
 
     /// `%TypedArray%.prototype.values ( )`
