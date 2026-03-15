@@ -1537,6 +1537,17 @@ impl String {
 
         // 8. Let fillLen be intMaxLength - stringLength.
         let fill_len = int_max_length - string_length;
+
+        // Check if the resulting string would exceed the maximum string length
+        if int_max_length > (Self::MAX_STRING_LENGTH as u64) {
+            return Err(JsNativeError::range()
+                .with_message(format!(
+                    "padStart/padEnd would create a string longer than the maximum allowed length ({})",
+                    Self::MAX_STRING_LENGTH
+                ))
+                .into());
+        }
+
         let filler_len = filler.len() as u64;
 
         // 9. Let truncatedStringFiller be the String value consisting of repeated
