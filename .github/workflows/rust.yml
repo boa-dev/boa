@@ -74,7 +74,7 @@ jobs:
           - os: ubuntu-latest
     steps:
       - name: Set environment
-        if: matrix.os != 'windows-latest'
+        if: ${{ matrix.os != 'windows-latest' }}
         # Setting `RUSTFLAGS` overrides any flags set on .cargo/config.toml, so we need to
         # set the target flags instead which are cumulative.
         # Track https://github.com/rust-lang/cargo/issues/5376
@@ -82,7 +82,7 @@ jobs:
           target=$(rustc -vV | awk '/^host/ { print $2 }' | tr '[:lower:]' '[:upper:]' | tr '-' '_')
           echo "CARGO_TARGET_${target}_RUSTFLAGS=$W_FLAGS" >> $GITHUB_ENV
       - name: Set environment
-        if: matrix.os == "windows-latest"
+        if: ${{ matrix.os == "windows-latest" }}
         run: |
           $target = (rustc -vV | Select-String '^host') -replace '^host:\s+', '' | ForEach-Object { $_.ToUpper().Replace('-', '_') }
           "CARGO_TARGET_${target}_RUSTFLAGS=$env:W_FLAGS" | Out-File -FilePath $env:GITHUB_ENV -Append -Encoding utf8
