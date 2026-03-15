@@ -121,53 +121,53 @@ jobs:
       - name: Test bytecode output
         run: cargo insta test -p insta-bytecode
 
-    cross-tests:
-      name: Test with Cross
-      runs-on: ubuntu-latest
-      timeout-minutes: 60
-      strategy:
-        matrix:
-          include:
-            - target: i686-unknown-linux-gnu
-      steps:
-        - name: Set environment
-          # Setting `RUSTFLAGS` overrides any flags set on .cargo/config.toml, so we need to
-          # set the target flags instead which are cumulative.
-          # Track https://github.com/rust-lang/cargo/issues/5376
-          run: |
-            target=$(echo ${{ matrix.target }} | tr [:lower:] [:upper:] | tr '-' '_')
-            echo "CARGO_TARGET_${target}_RUSTFLAGS=$W_FLAGS" >> $GITHUB_ENV
+  cross-tests:
+    name: Test with Cross
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+    strategy:
+      matrix:
+        include:
+          - target: i686-unknown-linux-gnu
+    steps:
+      - name: Set environment
+        # Setting `RUSTFLAGS` overrides any flags set on .cargo/config.toml, so we need to
+        # set the target flags instead which are cumulative.
+        # Track https://github.com/rust-lang/cargo/issues/5376
+        run: |
+          target=$(echo ${{ matrix.target }} | tr [:lower:] [:upper:] | tr '-' '_')
+          echo "CARGO_TARGET_${target}_RUSTFLAGS=$W_FLAGS" >> $GITHUB_ENV
 
-        - name: Checkout repository
-          uses: actions/checkout@v6
+      - name: Checkout repository
+        uses: actions/checkout@v6
 
-        - name: Install Rust toolchain
-          uses: dtolnay/rust-toolchain@stable
-          with:
-            toolchain: stable
-            target: ${{ matrix.target }}
+      - name: Install Rust toolchain
+        uses: dtolnay/rust-toolchain@stable
+        with:
+          toolchain: stable
+          target: ${{ matrix.target }}
 
-        - name: Install Cross
-          uses: baptiste0928/cargo-install@v3.4.0
-          with:
-            crate: cross
-            git: https://github.com/cross-rs/cross
+      - name: Install Cross
+        uses: baptiste0928/cargo-install@v3.4.0
+        with:
+          crate: cross
+          git: https://github.com/cross-rs/cross
 
-        - name: Cache cargo
-          uses: actions/cache@v5
-          with:
-            path: |
-              target
-              ~/.cargo/git
-              ~/.cargo/registry
-            key: ${{ matrix.target }}-${{ runner.arch }}-cargo-${{ hashFiles('**/Cargo.lock') }}
+      - name: Cache cargo
+        uses: actions/cache@v5
+        with:
+          path: |
+            target
+            ~/.cargo/git
+            ~/.cargo/registry
+          key: ${{ matrix.target }}-${{ runner.arch }}-cargo-${{ hashFiles('**/Cargo.lock') }}
 
-        - name: Run tests
-          run: |
-            cross test --target ${{ matrix.target }} \
-              --profile ci \
-              --features annex-b,intl_bundled,experimental \
-              --exclude boa_macros,boa_macros_tests
+      - name: Run tests
+        run: |
+          cross test --target ${{ matrix.target }} \
+            --profile ci \
+            --features annex-b,intl_bundled,experimental \
+            --exclude boa_macros,boa_macros_tests
 
   miri:
     name: Miri
