@@ -152,4 +152,7 @@ static_syms! {
     "meta",
     "defer",
     "source"
+    "using",
+    "dispose",
+    "asyncDispose"
 }

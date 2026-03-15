@@ -81,7 +81,23 @@ impl SliceRef<'_> {
     pub(crate) fn to_vec(self) -> Vec<u8> {
         match self {
             Self::Slice(s) => s.to_vec(),
-            Self::AtomicSlice(s) => s.iter().map(|a| a.load(Ordering::SeqCst)).collect(),
+            Self::AtomicSlice(s) => {
+                let count = s.len();
+                let mut target = Vec::with_capacity(count);
+                // SAFETY: we only copy `count` bytes, which should be in bounds
+                // for both the target buffer and the source atomic slice.
+                // `target` also has enough capacity for `count` elements and
+                // all its elements are initialized by `memcpy`.
+                unsafe {
+                    memcpy(
+                        BytesConstPtr::AtomicBytes(s.as_ptr()),
+                        BytesMutPtr::Bytes(target.as_mut_ptr()),
+                        count,
+                    );
+                    target.set_len(s.len());
+                }
+                target
+            }
         }
     }
 
@@ -428,6 +444,16 @@ unsafe fn batched_atomic_copy_forward(src: *const AtomicU8, dest: *const AtomicU
 
     let (head, chunks, tail) = compute_batch_offsets(dest as usize, count);
 
+    if chunks == 0 {
+        // SAFETY: ensured by the caller.
+        unsafe {
+            for i in 0..count {
+                (*dest.add(i)).store((*src.add(i)).load(Ordering::Relaxed), Ordering::Relaxed);
+            }
+        }
+        return;
+    }
+
     // Phase 1: Copy unaligned head bytes until both pointers are 8-byte aligned.
     // SAFETY: ensured by the caller — both pointers are valid for `count` bytes.
     unsafe {
@@ -495,6 +521,17 @@ unsafe fn batched_atomic_copy_backward(src: *const AtomicU8, dest: *const Atomic
     }
 
     let (head, chunks, tail) = compute_batch_offsets(dest as usize, count);
+
+    if chunks == 0 {
+        // SAFETY: ensured by the caller.
+        unsafe {
+            for i in (0..count).rev() {
+                (*dest.add(i)).store((*src.add(i)).load(Ordering::Relaxed), Ordering::Relaxed);
+            }
+        }
+        return;
+    }
+
     let tail_start = head + chunks * BATCH_SIZE;
 
     // Phase 1: Copy tail bytes backwards.
@@ -562,6 +599,16 @@ unsafe fn batched_copy_bytes_to_atomic(src: *const u8, dest: *const AtomicU8, co
 
     let (head, chunks, tail) = compute_batch_offsets(dest as usize, count);
 
+    if chunks == 0 {
+        // SAFETY: ensured by the caller.
+        unsafe {
+            for i in 0..count {
+                (*dest.add(i)).store(*src.add(i), Ordering::Relaxed);
+            }
+        }
+        return;
+    }
+
     // Phase 1: Head bytes until both pointers are 8-byte aligned.
     // SAFETY: ensured by the caller.
     unsafe {
@@ -623,6 +670,16 @@ unsafe fn batched_copy_atomic_to_bytes(src: *const AtomicU8, dest: *mut u8, coun
     }
 
     let (head, chunks, tail) = compute_batch_offsets(src as usize, count);
+
+    if chunks == 0 {
+        // SAFETY: ensured by the caller.
+        unsafe {
+            for i in 0..count {
+                *dest.add(i) = (*src.add(i)).load(Ordering::Relaxed);
+            }
+        }
+        return;
+    }
 
     // Phase 1: Head bytes until both pointers are 8-byte aligned.
     // SAFETY: ensured by the caller.
