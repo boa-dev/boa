@@ -7,7 +7,7 @@
 //!
 //! # Relationship to `boa_runtime`
 //!
-//! `boa_wintertc` is a standalone crate that depends only on `boa_engine` and `boa_gc`.
+//! `boa_wintertc` is a standalone crate that depends only on `boa_engine`.
 //! `boa_runtime` depends on `boa_wintertc` and re-exports its APIs, so users of `boa_runtime`
 //! automatically get TC55 compliance without any extra setup.
 //!
