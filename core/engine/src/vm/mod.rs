@@ -314,11 +314,11 @@ impl Stack {
         // Group consecutive identical values
         let mut groups: Vec<(String, usize, Option<usize>)> = Vec::new();
         for (val, idx) in &entries {
-            if let Some(last) = groups.last_mut() {
-                if last.0 == *val && last.2.is_none() {
-                    last.1 += 1;
-                    continue;
-                }
+            if let Some(last) = groups.last_mut()
+                && last.0 == *val && last.2.is_none()
+            {
+                last.1 += 1;
+                continue;
             }
 
             let frame_marker = if frame.frame_pointer() == *idx {
@@ -356,7 +356,7 @@ impl Stack {
         }
 
         if truncated {
-            string.push_str(&format!(".. ({total} total) ]"));
+            let _ = write!(string, ".. ({total} total) ]");
         } else {
             string.push(']');
         }
