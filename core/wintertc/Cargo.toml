@@ -1,5 +1,5 @@
 [package]
-name = "boa_tc55"
+name = "boa_wintertc"
 description = "WinterTC (TC55) Minimum Common Web API implementation for the Boa JavaScript engine."
 keywords = ["javascript", "js", "runtime", "tc55", "wintertc"]
 categories = ["wasm", "web-programming"]

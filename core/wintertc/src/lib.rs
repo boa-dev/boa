@@ -1,4 +1,4 @@
-//! Boa's **`boa_tc55`** crate implements the [WinterTC (TC55) Minimum Common Web API](https://min-common-api.proposal.wintertc.org/)
+//! Boa's **`boa_wintertc`** crate implements the [WinterTC (TC55) Minimum Common Web API](https://min-common-api.proposal.wintertc.org/)
 //! for the `boa_engine` crate.
 //!
 //! `WinterTC` (TC55) is an Ecma International Technical Committee working towards a baseline set
@@ -7,11 +7,11 @@
 //!
 //! # Relationship to `boa_runtime`
 //!
-//! `boa_tc55` is a standalone crate that depends only on `boa_engine` and `boa_gc`.
-//! `boa_runtime` depends on `boa_tc55` and re-exports its APIs, so users of `boa_runtime`
+//! `boa_wintertc` is a standalone crate that depends only on `boa_engine` and `boa_gc`.
+//! `boa_runtime` depends on `boa_wintertc` and re-exports its APIs, so users of `boa_runtime`
 //! automatically get TC55 compliance without any extra setup.
 //!
-//! If you only want the TC55-mandated APIs and nothing else, depend on `boa_tc55` directly.
+//! If you only want the TC55-mandated APIs and nothing else, depend on `boa_wintertc` directly.
 //!
 //! # Example: Registering all TC55 APIs
 //!
@@ -20,7 +20,7 @@
 //!
 //! let mut context = Context::default();
 //!
-//! boa_tc55::register(None, &mut context)
+//! boa_wintertc::register(None, &mut context)
 //!     .expect("failed to register TC55 APIs");
 //! ```
 #![doc = include_str!("../ABOUT.md")]
