@@ -375,3 +375,33 @@ fn trace_with_stack_trace() {
         "# }
     );
 }
+
+#[test]
+fn console_table() {
+    let mut context = Context::default();
+    let logger = RecordingLogger::default();
+    Console::register_with_logger(logger.clone(), &mut context).unwrap();
+
+    run_test_actions_with(
+        [
+            TestAction::run(TEST_HARNESS),
+            TestAction::run(indoc! {r#"
+            console.table([{a: 1, b: 2}, {a: 3, b: 4}]);
+            console.table([{a: 1, b: 2}, {a: 3, b: 4}], ["a"]);
+        "#}),
+        ],
+        &mut context,
+    );
+
+    let logs = logger.log.borrow().clone();
+
+    // Check that data is present. Border styling varies by platform/preset.
+    assert!(logs.contains("(index)"));
+    assert!(logs.contains("a"));
+    assert!(logs.contains("b"));
+    assert!(logs.contains("0"));
+    assert!(logs.contains("1"));
+    assert!(logs.contains("2"));
+    assert!(logs.contains("3"));
+    assert!(logs.contains("4"));
+}
