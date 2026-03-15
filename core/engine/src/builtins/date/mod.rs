@@ -50,7 +50,7 @@ impl Date {
 
     /// Creates a new `Date` from the current UTC time of the host.
     pub(crate) fn utc_now(context: &mut Context) -> Self {
-        Self(context.clock().now().millis_since_epoch() as f64)
+        Self(context.clock().system_time_millis() as f64)
     }
 }
 
@@ -210,7 +210,7 @@ impl BuiltInConstructor for Date {
         // 1. If NewTarget is undefined, then
         if new_target.is_undefined() {
             // a. Let now be the time value (UTC) identifying the current time.
-            let now = context.clock().now().millis_since_epoch();
+            let now = context.clock().system_time_millis();
 
             // b. Return ToDateString(now).
             return Ok(JsValue::from(to_date_string_t(
@@ -328,7 +328,7 @@ impl Date {
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Date/now
     #[allow(clippy::unnecessary_wraps)]
     pub(crate) fn now(_: &JsValue, _: &[JsValue], context: &mut Context) -> JsResult<JsValue> {
-        Ok(JsValue::new(context.clock().now().millis_since_epoch()))
+        Ok(JsValue::new(context.clock().system_time_millis()))
     }
 
     /// `Date.parse()`
