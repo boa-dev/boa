@@ -26,7 +26,14 @@ use boa_engine::{
 use boa_gc::{Finalize, Trace};
 use rustc_hash::{FxHashMap, FxHashSet};
 
-type TableData = (Vec<FxHashMap<String, String>>, Vec<String>);
+/// Data for a table.
+#[derive(Debug, Clone)]
+pub struct TableData {
+    /// Rows of the table.
+    pub rows: Vec<FxHashMap<String, String>>,
+    /// Column names of the table.
+    pub col_names: Vec<String>,
+}
 use comfy_table::{Cell, Table};
 use std::{
     cell::RefCell, collections::hash_map::Entry, fmt::Write as _, io::Write, rc::Rc,
@@ -92,9 +99,7 @@ pub trait Logger: Trace {
     ///
     /// # Errors
     /// Returning an error will throw an exception in JavaScript.
-    fn table(&self, msg: String, state: &ConsoleState, context: &mut Context) -> JsResult<()> {
-        self.log(msg, state, context)
-    }
+    fn table(&self, data: TableData, state: &ConsoleState, context: &mut Context) -> JsResult<()>;
 }
 
 /// The default implementation for logging from the console.
@@ -127,6 +132,23 @@ impl Logger for DefaultLogger {
         let indent = state.indent();
         writeln!(std::io::stderr(), "{msg:>indent$}").map_err(JsError::from_rust)
     }
+
+    fn table(&self, data: TableData, state: &ConsoleState, context: &mut Context) -> JsResult<()> {
+        let mut table = Table::new();
+        table.load_preset(comfy_table::presets::UTF8_FULL);
+        table.set_content_arrangement(comfy_table::ContentArrangement::Dynamic);
+        table.set_header(&data.col_names);
+
+        for row in data.rows {
+            let mut cells = Vec::new();
+            for name in &data.col_names {
+                cells.push(Cell::new(row.get(name).cloned().unwrap_or_default()));
+            }
+            table.add_row(cells);
+        }
+
+        self.log(table.to_string(), state, context)
+    }
 }
 
 /// A logger that drops all logging. Useful for testing.
@@ -151,6 +173,11 @@ impl Logger for NullLogger {
 
     #[inline]
     fn error(&self, _: String, _: &ConsoleState, _: &mut Context) -> JsResult<()> {
+        Ok(())
+    }
+
+    #[inline]
+    fn table(&self, _: TableData, _: &ConsoleState, _: &mut Context) -> JsResult<()> {
         Ok(())
     }
 }
@@ -683,26 +710,16 @@ impl Console {
             col_names = Self::filter_columns(col_names, props, context)?;
         }
 
-        let mut table = Table::new();
-        table.load_preset(comfy_table::presets::UTF8_FULL);
-        table.set_content_arrangement(comfy_table::ContentArrangement::Dynamic);
-        table.set_header(&col_names);
-
-        for row in rows {
-            let mut cells = Vec::new();
-            for name in &col_names {
-                cells.push(Cell::new(row.get(name).cloned().unwrap_or_default()));
-            }
-            table.add_row(cells);
-        }
-
-        logger.table(table.to_string(), &console.state, context)?;
+        logger.table(TableData { rows, col_names }, &console.state, context)?;
 
         Ok(JsValue::undefined())
     }
 
     /// Extracts rows and initial column names from tabular data.
-    fn extract_rows(obj: &JsObject, context: &mut Context) -> JsResult<TableData> {
+    fn extract_rows(
+        obj: &JsObject,
+        context: &mut Context,
+    ) -> JsResult<(Vec<FxHashMap<String, String>>, Vec<String>)> {
         let tabular_keys = Self::get_object_keys(obj, context)?;
         let mut col_names = vec!["(index)".to_string()];
         let mut seen_cols = FxHashSet::default();
