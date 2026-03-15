@@ -1,5 +1,5 @@
 use crate::{
-    Context, JsResult, JsString,
+    Context, JsExpect, JsResult, JsString,
     object::{JsData, JsObject},
     property::{PropertyDescriptor, PropertyKey},
 };
@@ -90,7 +90,7 @@ pub(crate) fn string_exotic_own_property_keys(
     // 3. Assert: Type(str) is String.
     let string = obj
         .downcast_ref::<JsString>()
-        .expect("string exotic method should only be callable from string objects")
+        .js_expect("string exotic method should only be callable from string objects")?
         .clone();
     // 4. Let len be the length of str.
     let len = string.len();
