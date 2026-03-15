@@ -1,22 +1,27 @@
 use crate::iter::CodePointsIter;
-use crate::vtable::JsStringVTable;
+use crate::vtable::{JsStringHeader, JsStringVTable};
 use crate::{JsStr, JsString, JsStringKind};
-use std::cell::Cell;
-use std::process::abort;
-use std::ptr::NonNull;
+use std::ptr::{self, NonNull};
+
+/// Static vtable for slice strings.
+pub(crate) static SLICE_VTABLE: JsStringVTable = JsStringVTable {
+    as_str: slice_as_str,
+    code_points: slice_code_points,
+    code_unit_at: slice_code_unit_at,
+    dealloc: slice_dealloc, // Slice strings are now correctly deallocated.
+    kind: JsStringKind::Slice,
+};
 
 /// A slice of an existing string.
 #[repr(C)]
 pub(crate) struct SliceString {
-    /// Embedded `VTable` - must be the first field for vtable dispatch.
-    vtable: JsStringVTable,
+    /// Standardized header for all strings.
+    pub(crate) header: JsStringHeader,
     // Keep this for refcounting the original string.
-    owned: JsString,
+    pub(crate) owned: JsString,
     // Pointer to the data itself. This is guaranteed to be safe as long as `owned` is
     // owned.
-    inner: JsStr<'static>,
-    // Refcount for this string as we need to clone/drop it as well.
-    refcount: Cell<usize>,
+    pub(crate) inner: JsStr<'static>,
 }
 
 impl SliceString {
@@ -28,22 +33,20 @@ impl SliceString {
     #[inline]
     #[must_use]
     pub(crate) unsafe fn new(owned: &JsString, start: usize, end: usize) -> Self {
-        // SAFETY: invariant stated for this whole function.
+        // SAFETY: The caller is responsible for ensuring start and end are safe (`start` <= `end`,
+        // `start` >= 0, `end` <= `owned.len()`).
         let inner = unsafe { owned.as_str().get_unchecked(start..end) };
         SliceString {
-            vtable: JsStringVTable {
-                clone: slice_clone,
-                drop: slice_drop,
-                as_str: slice_as_str,
-                code_points: slice_code_points,
-                refcount: slice_refcount,
+            header: JsStringHeader {
+                vtable: &SLICE_VTABLE,
                 len: end - start,
-                kind: JsStringKind::Slice,
+                refcount: 1,
+                hash: 0,
             },
             owned: owned.clone(),
             // SAFETY: this inner's lifetime is tied to the owned string above.
+            // We transmute the lifetime to 'static to satisfy the long-lived nature of the string vtable.
             inner: unsafe { inner.as_static() },
-            refcount: Cell::new(1),
         }
     }
 
@@ -55,54 +58,32 @@ impl SliceString {
     }
 }
 
-#[inline]
-pub(super) fn slice_clone(vtable: NonNull<JsStringVTable>) -> JsString {
-    // SAFETY: This is part of the correct vtable which is validated on construction.
-    let this: &SliceString = unsafe { vtable.cast().as_ref() };
-    let Some(strong) = this.refcount.get().checked_add(1) else {
-        abort();
-    };
-    this.refcount.set(strong);
-    // SAFETY: validated the string outside this function.
-    unsafe { JsString::from_ptr(vtable) }
-}
+// Unused slice_clone removed.
 
 #[inline]
-fn slice_drop(vtable: NonNull<JsStringVTable>) {
-    // SAFETY: This is part of the correct vtable which is validated on construction.
-    let this: &SliceString = unsafe { vtable.cast().as_ref() };
-    let Some(new) = this.refcount.get().checked_sub(1) else {
-        abort();
-    };
-    this.refcount.set(new);
-    if new != 0 {
-        return;
-    }
-
-    // SAFETY: This is the last reference, so we can deallocate.
-    // The vtable pointer is actually pointing to a SliceString, so cast it correctly.
-    unsafe {
-        drop(Box::from_raw(vtable.cast::<SliceString>().as_ptr()));
-    }
-}
-
-#[inline]
-fn slice_as_str(vtable: NonNull<JsStringVTable>) -> JsStr<'static> {
-    // SAFETY: This is part of the correct vtable which is validated on construction.
-    let this: &SliceString = unsafe { vtable.cast().as_ref() };
+fn slice_as_str(header: &JsStringHeader) -> JsStr<'_> {
+    // SAFETY: The header is part of a SliceString and it's aligned.
+    let this: &SliceString = unsafe { &*ptr::from_ref(header).cast::<SliceString>() };
     this.inner
 }
 
 #[inline]
-fn slice_code_points(vtable: NonNull<JsStringVTable>) -> CodePointsIter<'static> {
-    CodePointsIter::new(slice_as_str(vtable))
+fn slice_dealloc(ptr: NonNull<JsStringHeader>) {
+    // SAFETY: This is part of the correct vtable which is validated on construction.
+    // The pointer is guaranteed to be a valid `NonNull<JsStringHeader>` pointing to a `SliceString`.
+    unsafe {
+        drop(Box::from_raw(ptr.cast::<SliceString>().as_ptr()));
+    }
 }
 
-/// `VTable` function for refcount, need to return an `Option<usize>`.
 #[inline]
-#[allow(clippy::unnecessary_wraps)]
-fn slice_refcount(vtable: NonNull<JsStringVTable>) -> Option<usize> {
-    // SAFETY: This is part of the correct vtable which is validated on construction.
-    let this: &SliceString = unsafe { vtable.cast().as_ref() };
-    Some(this.refcount.get())
+fn slice_code_points(header: &JsStringHeader) -> CodePointsIter<'_> {
+    CodePointsIter::new(slice_as_str(header))
 }
+
+#[inline]
+fn slice_code_unit_at(header: &JsStringHeader, index: usize) -> Option<u16> {
+    slice_as_str(header).get(index)
+}
+
+// Unused refcount method removed.
