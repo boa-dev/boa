@@ -5,7 +5,7 @@ use icu_segmenter::{
 };
 
 use crate::{
-    Context, JsData, JsNativeError, JsObject, JsResult, JsString, JsSymbol, JsValue,
+    Context, JsData, JsExpect, JsNativeError, JsObject, JsResult, JsString, JsSymbol, JsValue,
     builtins::{BuiltInBuilder, IntrinsicObject, iterable::create_iter_result_object},
     context::intrinsics::Intrinsics,
     js_string,
@@ -126,7 +126,8 @@ impl SegmentIterator {
             let segmenter = iter
                 .segmenter
                 .downcast_ref::<Segmenter>()
-                .expect("segment iterator object should contain a segmenter");
+                .js_expect("segment iterator object should contain a segmenter")
+                .ok()?;
             let mut segments = segmenter.native.segment(string.variant());
             // the first elem is always 0.
             segments.next();

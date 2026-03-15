@@ -32,21 +32,16 @@ impl DefineClassStaticMethodByName {
             let function_object = function
                 .as_object()
                 .expect("method must be function object");
-            set_function_name(&function_object, &key, None, context);
+            set_function_name(&function_object, &key, None, context)?;
             function_object
                 .downcast_mut::<OrdinaryFunction>()
                 .expect("method must be function object")
                 .set_home_object(class.clone());
         }
 
-        class.__define_own_property__(
-            &key,
-            PropertyDescriptor::builder()
-                .value(function.clone())
-                .writable(true)
-                .enumerable(false)
-                .configurable(true)
-                .build(),
+        class.define_method_property(
+            key,
+            function.clone(),
             &mut InternalMethodPropertyContext::new(context),
         )?;
         Ok(())
@@ -85,21 +80,16 @@ impl DefineClassMethodByName {
             let function_object = function
                 .as_object()
                 .expect("method must be function object");
-            set_function_name(&function_object, &key, None, context);
+            set_function_name(&function_object, &key, None, context)?;
             function_object
                 .downcast_mut::<OrdinaryFunction>()
                 .expect("method must be function object")
                 .set_home_object(class_proto.clone());
         }
 
-        class_proto.__define_own_property__(
-            &key,
-            PropertyDescriptor::builder()
-                .value(function.clone())
-                .writable(true)
-                .enumerable(false)
-                .configurable(true)
-                .build(),
+        class_proto.define_method_property(
+            key,
+            function.clone(),
             &mut InternalMethodPropertyContext::new(context),
         )?;
         Ok(())
@@ -136,7 +126,7 @@ impl DefineClassStaticMethodByValue {
             let function_object = function
                 .as_object()
                 .expect("method must be function object");
-            set_function_name(&function_object, &key, None, context);
+            set_function_name(&function_object, &key, None, context)?;
             function_object
                 .downcast_mut::<OrdinaryFunction>()
                 .expect("method must be function object")
@@ -187,21 +177,16 @@ impl DefineClassMethodByValue {
             let function_object = function
                 .as_object()
                 .expect("method must be function object");
-            set_function_name(&function_object, &key, None, context);
+            set_function_name(&function_object, &key, None, context)?;
             function_object
                 .downcast_mut::<OrdinaryFunction>()
                 .expect("method must be function object")
                 .set_home_object(class_proto.clone());
         }
 
-        class_proto.__define_own_property__(
-            &key,
-            PropertyDescriptor::builder()
-                .value(function.clone())
-                .writable(true)
-                .enumerable(false)
-                .configurable(true)
-                .build(),
+        class_proto.define_method_property(
+            key,
+            function.clone(),
             &mut InternalMethodPropertyContext::new(context),
         )?;
         Ok(())

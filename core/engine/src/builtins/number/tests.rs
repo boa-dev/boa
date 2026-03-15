@@ -642,3 +642,29 @@ fn issue_2717() {
         ),
     ]);
 }
+
+#[test]
+fn to_precision_edge_cases() {
+    run_test_actions([
+        TestAction::assert_eq("(NaN).toPrecision(3)", js_str!("NaN")),
+        TestAction::assert_eq("(Infinity).toPrecision(3)", js_str!("Infinity")),
+        TestAction::assert_eq("(-Infinity).toPrecision(3)", js_str!("-Infinity")),
+        TestAction::assert_eq("(-0).toPrecision(5)", js_str!("0.0000")),
+        // Carry-over rounding tests
+        TestAction::assert_eq("(9.95).toPrecision(2)", js_str!("9.9")),
+        TestAction::assert_eq("(99.95).toPrecision(3)", js_str!("100")),
+        TestAction::assert_eq("(999.95).toPrecision(4)", js_str!("1000")),
+        TestAction::assert_eq("(9.5).toPrecision(1)", js_str!("1e+1")),
+        TestAction::assert_eq("(123.456).toPrecision(5)", js_str!("123.46")),
+        TestAction::assert_eq("(0.00456).toPrecision(3)", js_str!("0.00456")),
+        TestAction::assert_eq("(0.0000001).toPrecision(2)", js_str!("1.0e-7")),
+        TestAction::assert_eq("(0.000000123).toPrecision(3)", js_str!("1.23e-7")),
+        TestAction::assert_eq("(123456789).toPrecision(3)", js_str!("1.23e+8")),
+        TestAction::assert_eq("(0.1 + 0.2).toPrecision(1)", js_str!("0.3")),
+        TestAction::assert_eq("(123).toPrecision(3)", js_str!("123")),
+        TestAction::assert_eq("(123).toPrecision(4)", js_str!("123.0")),
+        TestAction::assert_eq("(0).toPrecision(1)", js_str!("0")),
+        TestAction::assert_eq("(1).toPrecision(1)", js_str!("1")),
+        TestAction::assert_eq("(9).toPrecision(1)", js_str!("9")),
+    ]);
+}

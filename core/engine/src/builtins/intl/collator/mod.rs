@@ -9,7 +9,7 @@ use icu_collator::{
 use icu_locale::{Locale, extensions::unicode};
 
 use crate::{
-    Context, JsArgs, JsData, JsNativeError, JsResult, JsString, JsValue,
+    Context, JsArgs, JsData, JsExpect, JsNativeError, JsResult, JsString, JsValue,
     builtins::{
         BuiltInBuilder, BuiltInConstructor, BuiltInObject, IntrinsicObject, OrdinaryObject,
         options::get_option,
@@ -362,7 +362,7 @@ impl Collator {
                         // 2. Assert: Type(collator) is Object and collator has an [[InitializedCollator]] internal slot.
                         let collator = collator
                             .downcast_ref::<Self>()
-                            .expect("checked above that the object was a collator object");
+                            .js_expect("checked above that the object was a collator object")?;
 
                         // 3. If x is not provided, let x be undefined.
                         // 5. Let X be ? ToString(x).
@@ -445,7 +445,7 @@ impl Collator {
                 js_string!(collator.locale.to_string()),
                 context,
             )
-            .expect("operation must not fail per the spec");
+            .js_expect("operation must not fail per the spec")?;
         options
             .create_data_property_or_throw(
                 js_string!("usage"),
@@ -455,7 +455,7 @@ impl Collator {
                 },
                 context,
             )
-            .expect("operation must not fail per the spec");
+            .js_expect("operation must not fail per the spec")?;
         options
             .create_data_property_or_throw(
                 js_string!("sensitivity"),
@@ -467,14 +467,14 @@ impl Collator {
                 },
                 context,
             )
-            .expect("operation must not fail per the spec");
+            .js_expect("operation must not fail per the spec")?;
         options
             .create_data_property_or_throw(
                 js_string!("ignorePunctuation"),
                 collator.ignore_punctuation,
                 context,
             )
-            .expect("operation must not fail per the spec");
+            .js_expect("operation must not fail per the spec")?;
         options
             .create_data_property_or_throw(
                 js_string!("collation"),
@@ -484,10 +484,10 @@ impl Collator {
                     .unwrap_or(js_string!("default")),
                 context,
             )
-            .expect("operation must not fail per the spec");
+            .js_expect("operation must not fail per the spec")?;
         options
             .create_data_property_or_throw(js_string!("numeric"), collator.numeric, context)
-            .expect("operation must not fail per the spec");
+            .js_expect("operation must not fail per the spec")?;
         if let Some(kf) = collator.case_first {
             options
                 .create_data_property_or_throw(
@@ -495,7 +495,7 @@ impl Collator {
                     js_string!(kf.as_str()),
                     context,
                 )
-                .expect("operation must not fail per the spec");
+                .js_expect("operation must not fail per the spec")?;
         }
 
         // 5. Return options.
