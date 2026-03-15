@@ -664,8 +664,11 @@ impl Instant {
     ///
     /// [spec]: https://tc39.es/proposal-temporal/#sec-temporal.instant.tolocalestring
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Temporal/Instant/toLocaleString
-    fn to_locale_string(this: &JsValue, _: &[JsValue], context: &mut Context) -> JsResult<JsValue> {
-        // TODO: Update for ECMA-402 compliance
+    fn to_locale_string(
+        this: &JsValue,
+        args: &[JsValue],
+        context: &mut Context,
+    ) -> JsResult<JsValue> {
         let object = this.as_object();
         let instant = object
             .as_ref()
@@ -675,11 +678,15 @@ impl Instant {
                     .with_message("the this object must be a Temporal.Instant object.")
             })?;
 
+        let _locales = args.get_or_undefined(0);
+        let _options = args.get_or_undefined(1);
+
         let ixdtf = instant.inner.to_ixdtf_string_with_provider(
             None,
             ToStringRoundingOptions::default(),
             context.timezone_provider(),
         )?;
+
         Ok(JsString::from(ixdtf).into())
     }
 
