@@ -2476,9 +2476,6 @@ impl BuiltinTypedArray {
         args: &[JsValue],
         context: &mut Context,
     ) -> JsResult<JsValue> {
-        // This is a distinct method that implements the same algorithm as Array.prototype.toLocaleString as defined in
-        // 23.1.3.32 except that TypedArrayLength is called in place of performing a [[Get]] of "length".
-
         let array = this.as_object().ok_or_else(|| {
             JsNativeError::typ().with_message("Value is not a typed array object")
         })?;
@@ -2497,7 +2494,6 @@ impl BuiltinTypedArray {
                     .with_message("typed array is outside the bounds of its inner buffer")
                     .into());
             };
-
             (
                 o.array_length(buf_len),
                 o.kind().content_type() == ContentType::BigInt,
@@ -2510,91 +2506,130 @@ impl BuiltinTypedArray {
 
         let locales = args.get_or_undefined(0).clone();
         let options = args.get_or_undefined(1).clone();
+        let call_args = [locales.clone(), options.clone()];
 
         #[cfg(feature = "intl")]
-        let number_format = if _is_bigint {
-            None
-        } else {
-            use crate::builtins::intl::number_format::NumberFormat;
-            Some(NumberFormat::new(&locales, &options, context)?)
-        };
+        {
+            use crate::builtins::intl::number_format::{NumberFormat, to_intl_mathematical_value};
+            use icu_list::{
+                ListFormatter, ListFormatterPreferences,
+                options::{ListFormatterOptions, ListLength},
+            };
 
-        // 4. Let R be the empty String.
-        let mut r = Vec::<JsString>::with_capacity(len as usize);
-
-        let call_args = [locales, options];
-
-        #[cfg(feature = "intl")]
-        let is_unmodified = {
-            let number_proto = context.intrinsics().constructors().number().prototype();
-
-            let current_tls = number_proto.get(js_string!("toLocaleString"), context)?;
-
+            // Retrieve the stored intrinsic built-in for Number.prototype.toLocaleString.
+            // From number/mod.rs: it is registered with `callable_with_object` using
+            // the pre-allocated object from `realm.intrinsics().objects()
+            //     .number_prototype_to_locale_string()`.
+            // From intrinsics.rs: `number_prototype_to_locale_string()` returns JsFunction.
+            //
+            // We compare the current value on Number.prototype against this stored
+            // intrinsic by pointer identity (JsObject::equals). If they match, the
+            // built-in has not been replaced and we can safely use the fast path.
+            // If a test has replaced it (e.g. Test262 observability tests that do
+            // `Number.prototype.toLocaleString = function() { callCount++; }`),
+            // the comparison fails and we fall through to the slow path which
+            // calls invoke("toLocaleString"), hitting the replacement.
             let builtin_tls = context
                 .intrinsics()
                 .objects()
                 .number_prototype_to_locale_string();
 
-            current_tls
-                .as_object()
-                .is_some_and(|o| JsObject::equals(&o, &builtin_tls.into()))
-        };
+            let current_tls = context
+                .intrinsics()
+                .constructors()
+                .number()
+                .prototype()
+                .get(js_string!("toLocaleString"), context)?;
 
-        // 5. Let k be 0.
-        // 6. Repeat, while k < len,
+            let tls_is_builtin = current_tls
+                .as_object()
+                .is_some_and(|o| JsObject::equals(&o, &builtin_tls.clone().into()));
+
+            // Use the fast path only for numeric (non-BigInt) typed arrays where
+            // the built-in toLocaleString is still intact.
+            if !_is_bigint && tls_is_builtin {
+                // ONE NumberFormat for the entire array — the core optimization.
+                let number_format = NumberFormat::new(&locales, &options, context)?;
+
+                // ONE ListFormatter to join all formatted strings.
+                // ListLength::Narrow produces comma-separated output without
+                // locale-specific conjunctions like "and".
+                // From list_format/mod.rs: the correct API is
+                //   ListFormatterOptions::default().with_length(style)
+                // where style is a ListLength variant.
+                let prefs = ListFormatterPreferences::default();
+                let list_formatter = ListFormatter::try_new_unit_with_buffer_provider(
+                    context.intl_provider().erased_provider(),
+                    prefs,
+                    ListFormatterOptions::default().with_length(ListLength::Narrow),
+                )
+                .map_err(|e| JsNativeError::typ().with_message(e.to_string()))?;
+
+                // Format each element. Abort the entire fast path if any element
+                // is non-finite (NaN, Infinity) because to_intl_mathematical_value
+                // cannot represent those — fall through to the slow path instead.
+                let mut formatted: Vec<String> = Vec::with_capacity(len as usize);
+                let mut use_fast = true;
+
+                for k in 0..len {
+                    let elem = array.get(k, context)?;
+
+                    // Spec: null/undefined elements become empty string.
+                    if elem.is_null_or_undefined() {
+                        formatted.push(String::new());
+                        continue;
+                    }
+
+                    match elem.variant() {
+                        // Finite integers — always safe.
+                        JsVariant::Integer32(_) => {
+                            let mut x = to_intl_mathematical_value(&elem, context)?;
+                            formatted.push(number_format.format(&mut x).to_string());
+                        }
+                        // Finite floats — safe.
+                        JsVariant::Float64(f) if f.is_finite() => {
+                            let mut x = to_intl_mathematical_value(&elem, context)?;
+                            formatted.push(number_format.format(&mut x).to_string());
+                        }
+                        // NaN, Infinity, -Infinity — abort fast path.
+                        _ => {
+                            use_fast = false;
+                            break;
+                        }
+                    }
+                }
+
+                if use_fast {
+                    // Join all formatted strings with the ListFormatter in one call.
+                    let joined = list_formatter.format_to_string(formatted.into_iter());
+                    return Ok(js_string!(joined.as_str()).into());
+                }
+                // If use_fast is false, fall through to the slow path below.
+            }
+        }
+
+        // Slow path: always spec-correct.
+        // Used when:
+        //   - intl feature is disabled
+        //   - typed array is BigInt (BigInt64Array / BigUint64Array)
+        //   - Number.prototype.toLocaleString has been replaced
+        //   - array contains NaN or Infinity
+        let mut r = Vec::<JsString>::with_capacity(len as usize);
+
         for k in 0..len {
-            // b. Let nextElement be ? Get(O, ! ToString(𝔽(k))).
             let next_element = array.get(k, context)?;
 
-            // c. If nextElement is not undefined or null, then
-            //    i. Let S be ? ToString(? Invoke(nextElement, "toLocaleString", « locales, options »)).
             if next_element.is_null_or_undefined() {
                 r.push(js_string!(""));
                 continue;
             }
 
-            #[cfg(feature = "intl")]
-            {
-                use crate::{
-                    builtins::intl::number_format::to_intl_mathematical_value, value::JsVariant,
-                };
-
-                // Fast path: finite primitive numbers only
-                let use_fast_path = is_unmodified
-                    && match next_element.variant() {
-                        JsVariant::Integer32(_) => !_is_bigint,
-                        JsVariant::Float64(f) => !_is_bigint && f.is_finite(),
-                        _ => false,
-                    };
-
-                if use_fast_path {
-                    let mut x = to_intl_mathematical_value(&next_element, context)?;
-                    r.push(js_string!(
-                        number_format
-                            .as_ref()
-                            .expect("number_format is Some for numeric typed arrays")
-                            .format(&mut x)
-                            .to_string()
-                    ));
-                } else {
-                    // Slow path: delegate to element.toLocaleString()
-                    let s = next_element
-                        .invoke(js_string!("toLocaleString"), &call_args, context)?
-                        .to_string(context)?;
-                    r.push(s);
-                }
-            }
-
-            #[cfg(not(feature = "intl"))]
-            {
-                let s = next_element
-                    .invoke(js_string!("toLocaleString"), &call_args, context)?
-                    .to_string(context)?;
-                r.push(s);
-            }
+            let s = next_element
+                .invoke(js_string!("toLocaleString"), &call_args, context)?
+                .to_string(context)?;
+            r.push(s);
         }
 
-        // 7. Return R.
         let separator = js_string!(", ");
         let mut result = Vec::with_capacity(
             r.iter().map(JsString::len).sum::<usize>()
