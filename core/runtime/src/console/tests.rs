@@ -1,8 +1,9 @@
-use super::{Console, ConsoleState, formatter};
+use super::{Console, ConsoleState, TableData, formatter};
 use crate::test::{TestAction, run_test_actions, run_test_actions_with};
 use crate::{Logger, NullLogger};
 use boa_engine::{Context, JsError, JsResult, JsValue, js_string, property::Attribute};
 use boa_gc::{Gc, GcRefCell};
+use comfy_table::{Cell, Table};
 use indoc::indoc;
 
 #[test]
@@ -136,6 +137,23 @@ impl Logger for RecordingLogger {
 
     fn error(&self, msg: String, state: &ConsoleState, context: &mut Context) -> JsResult<()> {
         self.log(msg, state, context)
+    }
+
+    fn table(&self, data: TableData, state: &ConsoleState, context: &mut Context) -> JsResult<()> {
+        let mut table = Table::new();
+        table.load_preset(comfy_table::presets::UTF8_FULL);
+        table.set_content_arrangement(comfy_table::ContentArrangement::Dynamic);
+        table.set_header(&data.col_names);
+
+        for row in data.rows {
+            let mut cells = Vec::new();
+            for name in &data.col_names {
+                cells.push(Cell::new(row.get(name).cloned().unwrap_or_default()));
+            }
+            table.add_row(cells);
+        }
+
+        self.log(table.to_string(), state, context)
     }
 }
 
@@ -374,4 +392,34 @@ fn trace_with_stack_trace() {
             <main>
         "# }
     );
+}
+
+#[test]
+fn console_table() {
+    let mut context = Context::default();
+    let logger = RecordingLogger::default();
+    Console::register_with_logger(logger.clone(), &mut context).unwrap();
+
+    run_test_actions_with(
+        [
+            TestAction::run(TEST_HARNESS),
+            TestAction::run(indoc! {r#"
+            console.table([{a: 1, b: 2}, {a: 3, b: 4}]);
+            console.table([{a: 1, b: 2}, {a: 3, b: 4}], ["a"]);
+        "#}),
+        ],
+        &mut context,
+    );
+
+    let logs = logger.log.borrow().clone();
+
+    // Check that data is present. Border styling varies by platform/preset.
+    assert!(logs.contains("(index)"));
+    assert!(logs.contains("a"));
+    assert!(logs.contains("b"));
+    assert!(logs.contains("0"));
+    assert!(logs.contains("1"));
+    assert!(logs.contains("2"));
+    assert!(logs.contains("3"));
+    assert!(logs.contains("4"));
 }
