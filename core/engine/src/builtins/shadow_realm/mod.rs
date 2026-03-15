@@ -1,3 +1,4 @@
+#![cfg(feature = "experimental")]
 //! Boa's implementation of ECMAScript's global `ShadowRealm` object.
 //!
 //! The `ShadowRealm` object is a distinct global environment that can execute

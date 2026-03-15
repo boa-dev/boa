@@ -1,3 +1,4 @@
+#![cfg(feature = "experimental")]
 use crate::{run_test_actions, TestAction};
 
 #[test]

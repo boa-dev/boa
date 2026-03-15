@@ -28,6 +28,7 @@ pub mod proxy;
 pub mod reflect;
 pub mod regexp;
 pub mod set;
+#[cfg(feature = "experimental")]
 pub mod shadow_realm;
 pub mod string;
 pub mod symbol;
@@ -78,7 +79,6 @@ pub(crate) use self::{
     reflect::Reflect,
     regexp::RegExp,
     set::Set,
-    shadow_realm::ShadowRealm,
     string::String,
     symbol::Symbol,
     typed_array::{
@@ -86,6 +86,9 @@ pub(crate) use self::{
         Int32Array, Uint8Array, Uint8ClampedArray, Uint16Array, Uint32Array,
     },
 };
+
+#[cfg(feature = "experimental")]
+pub(crate) use self::shadow_realm::ShadowRealm;
 
 use crate::{
     Context, JsResult, JsString, JsValue,
@@ -274,6 +277,7 @@ impl Realm {
         Number::init(self);
         Eval::init(self);
         Set::init(self);
+        #[cfg(feature = "experimental")]
         ShadowRealm::init(self);
         String::init(self);
         SetIterator::init(self);
@@ -411,6 +415,7 @@ pub(crate) fn set_default_global_bindings(context: &mut Context) -> JsResult<()>
     global_binding::<Number>(context)?;
     global_binding::<Eval>(context)?;
     global_binding::<Set>(context)?;
+    #[cfg(feature = "experimental")]
     global_binding::<ShadowRealm>(context)?;
     global_binding::<String>(context)?;
     global_binding::<RegExp>(context)?;

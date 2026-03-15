@@ -9,6 +9,7 @@ use std::sync::LazyLock;
 macro_rules! well_known_statics {
     ( $( $(#[$attr:meta])* ($name:ident, $string:literal) ),+$(,)? ) => {
         $(
+            $(#[$attr])*
             paste!{
                 #[doc = "Gets the static `JsString` for `\"" $string "\"`."]
                 pub const $name: JsString = const {
@@ -164,6 +165,7 @@ impl StaticJsStrings {
         (REFLECT, "Reflect"),
         (REG_EXP, "RegExp"),
         (SET, "Set"),
+        #[cfg(feature = "experimental")]
         (SHADOW_REALM, "ShadowRealm"),
         (STRING, "String"),
         (SYMBOL, "Symbol"),
@@ -308,6 +310,7 @@ const RAW_STATICS: &[StaticString] = &[
     StaticString::new(JsStr::latin1("Reflect".as_bytes())),
     StaticString::new(JsStr::latin1("RegExp".as_bytes())),
     StaticString::new(JsStr::latin1("Set".as_bytes())),
+    #[cfg(feature = "experimental")]
     StaticString::new(JsStr::latin1("ShadowRealm".as_bytes())),
     StaticString::new(JsStr::latin1("String".as_bytes())),
     StaticString::new(JsStr::latin1("Symbol".as_bytes())),

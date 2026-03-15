@@ -11,6 +11,10 @@ license.workspace = true
 repository.workspace = true
 rust-version.workspace = true
 
+[features]
+experimental = []
+float16 = []
+
 [dependencies]
 itoa.workspace = true
 rustc-hash = { workspace = true, features = ["std"] }

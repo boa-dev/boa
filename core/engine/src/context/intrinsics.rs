@@ -148,6 +148,7 @@ pub struct StandardConstructors {
     aggregate_error: StandardConstructor,
     map: StandardConstructor,
     set: StandardConstructor,
+    #[cfg(feature = "experimental")]
     shadow_realm: StandardConstructor,
     typed_array: StandardConstructor,
     typed_int8_array: StandardConstructor,
@@ -244,6 +245,7 @@ impl Default for StandardConstructors {
             aggregate_error: StandardConstructor::default(),
             map: StandardConstructor::default(),
             set: StandardConstructor::default(),
+            #[cfg(feature = "experimental")]
             shadow_realm: StandardConstructor::default(),
             typed_array: StandardConstructor::default(),
             typed_int8_array: StandardConstructor::default(),
@@ -593,6 +595,7 @@ impl StandardConstructors {
         &self.set
     }
 
+    #[cfg(feature = "experimental")]
     /// Returns the `ShadowRealm` constructor.
     ///
     /// More information:
