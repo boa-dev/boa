@@ -400,6 +400,7 @@ version = "1.0.0-dev"
 dependencies = [
  "aligned-vec",
  "arrayvec",
+ "async-channel",
  "bitflags",
  "boa_ast",
  "boa_gc",

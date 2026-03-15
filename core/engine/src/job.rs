@@ -535,6 +535,34 @@ pub enum Job {
     ///
     /// See [`GenericJob`] for more information.
     GenericJob(GenericJob),
+    /// A job that will eventually cleanup a FinalizationRegistry.
+    ///
+    /// This job differs slightly from the [spec]; originally it's defined
+    /// as being enqueued exactly when a FinalizationRegistry needs to call
+    /// `FinalizationRegistry::cleanup`, but here it's defined as an async
+    /// job that suspends execution until it receives a signal from the engine
+    /// that the FinalizationRegistry needs to be cleaned up.
+    ///
+    /// # Execution
+    ///
+    /// As described on the [spec's section about execution][execution],
+    ///
+    /// > Because calling HostEnqueueFinalizationRegistryCleanupJob is optional,
+    ///   registered objects in a FinalizationRegistry do not necessarily hold
+    ///   that FinalizationRegistry live. Implementations may omit FinalizationRegistry
+    ///   callbacks for any reason, e.g., if the FinalizationRegistry itself becomes
+    ///   dead, or if the application is shutting down.
+    ///
+    /// For this reason, it is recommended to exclude `FinalizationRegistry` cleanup
+    /// jobs from any condition that returns from [`JobExecutor::run_jobs`].
+    ///
+    /// By the same token, it is recommended to execute [`FinalizationRegistryCleanubJob`]
+    /// separately from all other enqueued [`NativeAsyncJob`]s, prioritizing the
+    /// execution of all other jobs if possible.
+    ///
+    /// [spec]: https://tc39.es/ecma262/#sec-weakref-host-hooks
+    /// [execution]: https://tc39.es/ecma262/#sec-weakref-execution
+    FinalizationRegistryCleanupJob(NativeAsyncJob),
 }
 
 impl From<NativeAsyncJob> for Job {

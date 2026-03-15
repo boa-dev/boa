@@ -22,6 +22,7 @@ pub struct Ephemeron<K: Trace + ?Sized + 'static, V: Trace + 'static> {
     inner_ptr: NonNull<EphemeronBox<K, V>>,
 }
 
+
 impl<K: Trace + ?Sized, V: Trace + Clone> Ephemeron<K, V> {
     /// Gets the stored value of this `Ephemeron`, or `None` if the key was already garbage collected.
     ///

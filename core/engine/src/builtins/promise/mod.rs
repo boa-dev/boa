@@ -2629,7 +2629,7 @@ fn new_promise_reaction_job(
             },
             //   e. Else, let handlerResult be Completion(HostCallJobCallback(handler, undefined, « argument »)).
             Some(handler) => match context.host_hooks().call_job_callback(
-                handler,
+                &handler,
                 &JsValue::undefined(),
                 std::slice::from_ref(&argument),
                 context,
@@ -2707,7 +2707,7 @@ fn new_promise_resolve_thenable_job(
 
         //    b. Let thenCallResult be Completion(HostCallJobCallback(then, thenable, « resolvingFunctions.[[Resolve]], resolvingFunctions.[[Reject]] »)).
         let then_call_result = context.host_hooks().call_job_callback(
-            then,
+            &then,
             &thenable,
             &[
                 resolving_functions.resolve.clone().into(),
