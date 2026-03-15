@@ -25,13 +25,15 @@ use super::{BuiltInConstructor, BuiltInObject, IntrinsicObject, builder::BuiltIn
 
 /// On GG collection, sends a message to a [`FinalizationRegistry`] indicating that it needs to
 /// be collected.
-#[derive(Trace, Clone)]
+#[derive(Trace)]
 #[boa_gc(unsafe_empty_trace)]
-struct CleanupSignaler(async_channel::WeakSender<()>);
+struct CleanupSignaler(Cell<Option<async_channel::WeakSender<()>>>);
 
 impl Finalize for CleanupSignaler {
     fn finalize(&self) {
-        if let Some(sender) = self.0.upgrade() {
+        if let Some(sender) = self.0.take()
+            && let Some(sender) = sender.upgrade()
+        {
             // We don't need to handle errors:
             // - If the channel is full, the `FinalizationRegistry` has already
             //   been enqueued for cleanup.
@@ -52,7 +54,7 @@ pub(crate) struct RegistryCell {
 
 /// Boa's implementation of ECMAScript's [`FinalizationRegistry`] builtin object.
 ///
-/// FinalizationRegistry provides a way to request that a cleanup callback get called at some point
+/// `FinalizationRegistry` provides a way to request that a cleanup callback get called at some point
 /// when a value registered with the registry has been reclaimed (garbage-collected).
 ///
 /// [`FinalizationRegistry`]: https://tc39.es/ecma262/#sec-finalization-registry-objects
@@ -178,7 +180,7 @@ impl BuiltInConstructor for FinalizationRegistry {
                         async move |context| inner_cleanup(weak_registry, receiver, context).await,
                     )));
 
-                result.map(|_| JsValue::undefined())
+                result.map(|()| JsValue::undefined())
             }
 
             context.enqueue_job(Job::FinalizationRegistryCleanupJob(NativeAsyncJob::new(
@@ -249,7 +251,9 @@ impl FinalizationRegistry {
         let cell = RegistryCell {
             target: Ephemeron::new(
                 target_obj.inner(),
-                CleanupSignaler(registry.cleanup_notifier.clone().downgrade()),
+                CleanupSignaler(Cell::new(Some(
+                    registry.cleanup_notifier.clone().downgrade(),
+                ))),
             ),
             held_value: held_value.clone(),
             unregister_token,
@@ -302,14 +306,18 @@ impl FinalizationRegistry {
             // a. If cell.[[UnregisterToken]] is not empty and SameValue(cell.[[UnregisterToken]], unregisterToken) is true, then
             if let Some(tok) = cell.unregister_token.as_ref()
                 && let Some(tok) = tok.upgrade()
-                && Gc::ptr_eq(&tok, &unregister_token)
+                && Gc::ptr_eq(&tok, unregister_token)
             {
                 // i. Remove cell from finalizationRegistry.[[Cells]].
                 let cell = registry.cells.swap_remove(i);
-                if let Some(value) = cell.target.value() {
-                    // Remove the inner signaler to avoid notifying a registry that doesn't
-                    // have dead entries.
-                    value.0.take();
+                let _key = cell.target.key();
+                // TODO: it might be better to add a special ref for the value that
+                // also preserves the original key instead.
+                // SAFETY: the original key is alive per our previous call to `key`,
+                // so if this returns `Some`, then the value cannot be collected
+                // until `key` gets dropped.
+                unsafe {
+                    cell.target.value_ref().and_then(|v| v.0.take());
                 }
 
                 // ii. Set removed to true.
@@ -353,7 +361,9 @@ impl FinalizationRegistry {
                 break Ok(());
             }
             // 3. While finalizationRegistry.[[Cells]] contains a Record cell such that cell.[[WeakRefTarget]] is empty, an implementation may perform the following steps:
-            if !obj.borrow().data().cells[i].target.has_value() {
+            if obj.borrow().data().cells[i].target.has_value() {
+                i += 1;
+            } else {
                 // a. Choose any such cell.
                 // b. Remove cell from finalizationRegistry.[[Cells]].
                 let cell = obj.borrow_mut().data_mut().cells.swap_remove(i);
@@ -368,8 +378,6 @@ impl FinalizationRegistry {
                 if let Err(err) = result {
                     break Err(err);
                 }
-            } else {
-                i += 1;
             }
         };
 
