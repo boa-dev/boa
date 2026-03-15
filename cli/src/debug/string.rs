@@ -1,6 +1,6 @@
 use boa_engine::{
     Context, JsNativeError, JsObject, JsResult, JsValue, NativeFunction, js_string,
-    object::ObjectInitializer, property::Attribute, string::JsStrVariant,
+    object::ObjectInitializer, property::Attribute, string::JsStr,
 };
 
 fn storage(_: &JsValue, args: &[JsValue], _: &mut Context) -> JsResult<JsValue> {
@@ -34,9 +34,10 @@ fn encoding(_: &JsValue, args: &[JsValue], _: &mut Context) -> JsResult<JsValue>
     };
 
     let str = string.as_str();
-    let encoding = match str.variant() {
-        JsStrVariant::Latin1(_) => "latin1",
-        JsStrVariant::Utf16(_) => "utf16",
+    let encoding = match str {
+        JsStr::Latin1(_) => "latin1",
+        JsStr::Utf16(_) => "utf16",
+        JsStr::Rope(_) => "rope",
     };
     Ok(js_string!(encoding).into())
 }
@@ -55,9 +56,10 @@ fn summary(_: &JsValue, args: &[JsValue], context: &mut Context) -> JsResult<JsV
     };
 
     let storage = if string.is_static() { "static" } else { "heap" };
-    let encoding = match string.as_str().variant() {
-        JsStrVariant::Latin1(_) => "latin1",
-        JsStrVariant::Utf16(_) => "utf16",
+    let encoding = match string.as_str() {
+        JsStr::Latin1(_) => "latin1",
+        JsStr::Utf16(_) => "utf16",
+        JsStr::Rope(_) => "rope",
     };
 
     let summary = ObjectInitializer::new(context)
