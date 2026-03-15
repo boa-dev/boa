@@ -122,7 +122,7 @@ jobs:
         run: cargo insta test -p insta-bytecode
 
   cross-tests:
-    name: Test with Cross
+    name: Test
     runs-on: ubuntu-latest
     timeout-minutes: 60
     strategy:
@@ -164,7 +164,7 @@ jobs:
 
       - name: Run tests
         run: |
-          cross test --target ${{ matrix.target }} \
+          cross test --workspace --target ${{ matrix.target }} \
             --profile ci \
             --features annex-b,intl_bundled,experimental \
             --exclude boa_macros,boa_macros_tests
