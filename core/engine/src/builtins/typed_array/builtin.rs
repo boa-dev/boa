@@ -1208,7 +1208,7 @@ impl BuiltinTypedArray {
         };
 
         // 6. Let R be the empty String.
-        let mut r = Vec::new();
+        let mut r = Vec::with_capacity(len as usize);
 
         // 7. Let k be 0.
         // 8. Repeat, while k < len,
