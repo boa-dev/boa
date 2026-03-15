@@ -2961,12 +2961,7 @@ impl BuiltinTypedArray {
                             .get_value(src_type, Ordering::Relaxed)
                     };
 
-                    let value = JsValue::from(value);
-
-                    // TODO: cast between types instead of converting to `JsValue`.
-                    let value = element_type
-                        .get_element(&value, context)
-                        .expect("value must be bigint or float");
+                    let value = value.cast(element_type);
 
                     // ii. Perform SetValueInBuffer(data, targetByteIndex, elementType, value, true, unordered).
                     // SAFETY: The newly created buffer has at least `element_size * element_length`
