@@ -26,8 +26,8 @@ use indexmap::IndexSet;
 use rustc_hash::{FxHashMap, FxHashSet, FxHasher};
 
 use crate::{
-    Context, JsArgs, JsError, JsNativeError, JsObject, JsResult, JsString, JsValue, NativeFunction,
-    SpannedSourceText,
+    Context, JsArgs, JsError, JsExpect, JsNativeError, JsObject, JsResult, JsString, JsValue,
+    NativeFunction, SpannedSourceText,
     builtins::{Promise, promise::PromiseCapability},
     bytecompiler::{BindingAccessOpcode, ByteCompiler, FunctionSpec, ToJsString},
     environments::{DeclarativeEnvironment, EnvironmentStack},
@@ -539,7 +539,7 @@ impl SourceTextModule {
                         .capability
                         .reject()
                         .call(&JsValue::undefined(), &[err], &mut context.borrow_mut())
-                        .expect("cannot fail for the default reject function");
+                        .js_expect("cannot fail for the default reject function")?;
                 }
             }
 
@@ -935,7 +935,7 @@ impl SourceTextModule {
                         dfs_ancestor_index, ..
                     } = status
                         .dfs_info_mut()
-                        .expect("should be on the linking state");
+                        .js_expect("should be on the linking state")?;
                     *dfs_ancestor_index = usize::min(*dfs_ancestor_index, required_index);
                 }
             }
@@ -972,7 +972,7 @@ impl SourceTextModule {
             Some(info) if info.dfs_ancestor_index == info.dfs_index => loop {
                 //    i. Let requiredModule be the last element of stack.
                 //    ii. Remove the last element of stack.
-                let last = stack.pop().expect("should have at least one element");
+                let last = stack.pop().js_expect("should have at least one element")?;
                 let ModuleKind::SourceText(last_src) = last.kind() else {
                     unreachable!("iii. Assert: requiredModule is a Cyclic Module Record.")
                 };
@@ -1042,10 +1042,14 @@ impl SourceTextModule {
                     ..
                 } => (
                     cycle_root.clone(),
-                    top_level_capability.as_ref().map(|cap| {
-                        JsPromise::from_object(cap.promise().clone())
-                            .expect("promise created from the %Promise% intrinsic is always native")
-                    }),
+                    top_level_capability
+                        .as_ref()
+                        .map(|cap| {
+                            JsPromise::from_object(cap.promise().clone()).js_expect(
+                                "promise created from the %Promise% intrinsic is always native",
+                            )
+                        })
+                        .transpose()?,
                 ),
             }
         };
@@ -1065,7 +1069,9 @@ impl SourceTextModule {
             &context.intrinsics().constructors().promise().constructor(),
             context,
         )
-        .expect("capability creation must always succeed when using the `%Promise%` intrinsic");
+        .js_expect(
+            "capability creation must always succeed when using the `%Promise%` intrinsic",
+        )?;
 
         // 8. Let result be Completion(InnerModuleEvaluation(module, stack, 0)).
         let ModuleKind::SourceText(module_src) = module.kind() else {
@@ -1092,7 +1098,7 @@ impl SourceTextModule {
                     capability
                         .resolve()
                         .call(&JsValue::undefined(), &[], context)
-                        .expect("cannot fail for the default resolve function");
+                        .js_expect("cannot fail for the default resolve function")?;
                 }
 
                 //     d. Assert: stack is empty.
@@ -1139,13 +1145,13 @@ impl SourceTextModule {
                 capability
                     .reject()
                     .call(&JsValue::undefined(), &[err.into_opaque(context)?], context)
-                    .expect("cannot fail for the default reject function");
+                    .js_expect("cannot fail for the default reject function")?;
             }
         }
 
         // 11. Return capability.[[Promise]].
         Ok(JsPromise::from_object(capability.promise().clone())
-            .expect("promise created from the %Promise% intrinsic is always native"))
+            .js_expect("promise created from the %Promise% intrinsic is always native")?)
     }
 
     /// Abstract operation [`InnerModuleEvaluation ( module, stack, index )`][spec]
@@ -1297,7 +1303,7 @@ impl SourceTextModule {
                     let mut status = self.status.borrow_mut();
                     let info = status
                         .dfs_info_mut()
-                        .expect("self should still be in the evaluating state");
+                        .js_expect("self should still be in the evaluating state")?;
                     info.dfs_ancestor_index =
                         usize::min(info.dfs_ancestor_index, req_info.dfs_ancestor_index);
                 }
@@ -1341,9 +1347,9 @@ impl SourceTextModule {
             self.execute(module_self, None, context)?;
         }
 
-        let dfs_info = self.status.borrow().dfs_info().copied().expect(
+        let dfs_info = self.status.borrow().dfs_info().copied().js_expect(
             "haven't transitioned from the `Evaluating` state, so it should have its dfs info",
-        );
+        )?;
 
         // 14. Assert: module occurs exactly once in stack.
         debug_assert_eq!(stack.iter().filter(|m| *m == module_self).count(), 1);
@@ -1359,7 +1365,7 @@ impl SourceTextModule {
                 // ii. Remove the last element of stack.
                 let required_module = stack
                     .pop()
-                    .expect("should at least have `self` in the stack");
+                    .js_expect("should at least have `self` in the stack")?;
                 let is_self = module_self == &required_module;
 
                 let ModuleKind::SourceText(required_module_src) = required_module.kind() else {
@@ -1607,7 +1613,7 @@ impl SourceTextModule {
         let status = self.status.borrow();
         let (source, source_text) = status
             .source()
-            .expect("module can only initialize its environment in the linking phase");
+            .js_expect("module can only initialize its environment in the linking phase")?;
 
         // 5. Let env be NewModuleEnvironment(realm.[[GlobalEnv]]).
         // 6. Set module.[[Environment]] to env.
@@ -1665,7 +1671,9 @@ impl SourceTextModule {
                     // 2. Perform ! env.CreateImmutableBinding(in.[[LocalName]], true).
                     // 3. Perform ! env.InitializeBinding(in.[[LocalName]], namespace).
                     let local_name = entry.local_name().to_js_string(compiler.interner());
-                    let locator = env.get_binding(&local_name).expect("binding must exist");
+                    let locator = env
+                        .get_binding(&local_name)
+                        .js_expect("binding must exist")?;
 
                     if let BindingName::Name(_) = resolution.binding_name() {
                         // 1. Perform env.CreateImportBinding(in.[[LocalName]], resolution.[[Module]],
@@ -1688,7 +1696,7 @@ impl SourceTextModule {
                     //    ii. Perform ! env.CreateImmutableBinding(in.[[LocalName]], true).
                     //    iii. Perform ! env.InitializeBinding(in.[[LocalName]], namespace).
                     let name = entry.local_name().to_js_string(compiler.interner());
-                    let locator = env.get_binding(&name).expect("binding must exist");
+                    let locator = env.get_binding(&name).js_expect("binding must exist")?;
 
                     //    i. Let namespace be GetModuleNamespace(importedModule).
                     //       deferred to initialization below
@@ -1716,7 +1724,7 @@ impl SourceTextModule {
                         // 2. Perform ! env.InitializeBinding(dn, undefined).
                         let binding = env
                             .get_binding_reference(&name)
-                            .expect("binding must exist");
+                            .js_expect("binding must exist")?;
                         let index = compiler.insert_binding(binding);
                         compiler.emit_binding_access(
                             BindingAccessOpcode::DefInitVar,
@@ -1749,25 +1757,25 @@ impl SourceTextModule {
                 let (spec, locator): (FunctionSpec<'_>, _) = match declaration {
                     LexicallyScopedDeclaration::FunctionDeclaration(f) => {
                         let name = bound_names(f)[0].to_js_string(compiler.interner());
-                        let locator = env.get_binding(&name).expect("binding must exist");
+                        let locator = env.get_binding(&name).js_expect("binding must exist")?;
 
                         (f.into(), locator)
                     }
                     LexicallyScopedDeclaration::GeneratorDeclaration(g) => {
                         let name = bound_names(g)[0].to_js_string(compiler.interner());
-                        let locator = env.get_binding(&name).expect("binding must exist");
+                        let locator = env.get_binding(&name).js_expect("binding must exist")?;
 
                         (g.into(), locator)
                     }
                     LexicallyScopedDeclaration::AsyncFunctionDeclaration(af) => {
                         let name = bound_names(af)[0].to_js_string(compiler.interner());
-                        let locator = env.get_binding(&name).expect("binding must exist");
+                        let locator = env.get_binding(&name).js_expect("binding must exist")?;
 
                         (af.into(), locator)
                     }
                     LexicallyScopedDeclaration::AsyncGeneratorDeclaration(ag) => {
                         let name = bound_names(ag)[0].to_js_string(compiler.interner());
-                        let locator = env.get_binding(&name).expect("binding must exist");
+                        let locator = env.get_binding(&name).js_expect("binding must exist")?;
 
                         (ag.into(), locator)
                     }
@@ -1843,10 +1851,10 @@ impl SourceTextModule {
                         frame
                             .environments
                             .current_declarative_ref(frame.realm.environment())
-                            .expect("must be declarative")
+                            .js_expect("must be declarative")?
                             .kind()
                             .as_module()
-                            .expect("last environment should be the module env")
+                            .js_expect("last environment should be the module env")?
                             .set_indirect(
                                 locator.binding_index(),
                                 export_locator.module().clone(),
@@ -1890,13 +1898,13 @@ impl SourceTextModule {
         let frame = context
             .vm
             .pop_frame()
-            .expect("There should be a call frame");
+            .js_expect("There should be a call frame")?;
 
         let env = frame
             .environments
             .current_declarative_ref(frame.realm.environment())
             .cloned()
-            .expect("frame must have a declarative environment");
+            .js_expect("frame must have a declarative environment")?;
 
         // 16. Set module.[[Context]] to moduleContext.
         self.status.borrow_mut().transition(|state| match state {
@@ -2051,7 +2059,7 @@ fn async_module_execution_fulfilled(module: &Module, context: &mut Context) -> J
         // b. Perform ! Call(module.[[TopLevelCapability]].[[Resolve]], undefined, « undefined »).
         cap.resolve()
             .call(&JsValue::undefined(), &[], context)
-            .expect("default `resolve` function cannot fail");
+            .js_expect("default `resolve` function cannot fail")?;
     }
 
     // 8. Let execList be a new empty List.
@@ -2133,7 +2141,7 @@ fn async_module_execution_fulfilled(module: &Module, context: &mut Context) -> J
                     // b. Perform ! Call(m.[[TopLevelCapability]].[[Resolve]], undefined, « undefined »).
                     cap.resolve()
                         .call(&JsValue::undefined(), &[], context)
-                        .expect("default `resolve` function cannot fail");
+                        .js_expect("default `resolve` function cannot fail")?;
                 }
             }
         }
@@ -2203,7 +2211,7 @@ fn async_module_execution_rejected(
                 &[error.into_opaque(context)?],
                 context,
             )
-            .expect("default `reject` function cannot fail");
+            .js_expect("default `reject` function cannot fail")?;
     }
     // 9. Return unused.
     Ok(())

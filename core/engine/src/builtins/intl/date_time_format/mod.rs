@@ -257,7 +257,7 @@ impl DateTimeFormat {
                             // NOTE (nekevss) i64 should be sufficient for a millisecond
                             // representation.
                             // a. Let x be ! Call(%Date.now%, undefined).
-                            context.clock().now().millis_since_epoch() as f64
+                            context.clock().system_time_millis() as f64
                         // 4. Else,
                         } else {
                             // NOTE (nekevss) The i64 covers all MAX_SAFE_INTEGER values.
