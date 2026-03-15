@@ -1,6 +1,5 @@
 use crate::{JsStr, JsString, context::HostHooks, js_string, value::IntegerOrInfinity};
 use boa_macros::js_str;
-use boa_string::JsStrVariant;
 use std::slice::Iter;
 use std::str;
 use std::{borrow::Cow, iter::Peekable};
@@ -754,16 +753,24 @@ pub(super) fn pad_six(t: u32, output: &mut [u8; 6]) -> JsStr<'_> {
 pub(super) fn parse_date(date: &JsString, hooks: &dyn HostHooks) -> Option<i64> {
     // All characters must be ASCII so we can return early if we find a non-ASCII character.
     let owned_js_str = date.as_str();
-    let date = match owned_js_str.variant() {
-        JsStrVariant::Latin1(s) => {
+    let date = match owned_js_str {
+        JsStr::Latin1(s) => {
             if !s.is_ascii() {
                 return None;
             }
             // SAFETY: Since all characters are ASCII we can safely convert this into str.
             Cow::Borrowed(unsafe { str::from_utf8_unchecked(s) })
         }
-        JsStrVariant::Utf16(s) => {
+        JsStr::Utf16(s) => {
             let date = String::from_utf16(s).ok()?;
+            if !date.is_ascii() {
+                return None;
+            }
+            Cow::Owned(date)
+        }
+        JsStr::Rope(_) => {
+            let s = date.to_vec();
+            let date = String::from_utf16(&s).ok()?;
             if !date.is_ascii() {
                 return None;
             }

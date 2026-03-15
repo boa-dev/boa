@@ -18,7 +18,7 @@ use crate::{
     object::{CONSTRUCTOR, JsObject, internal_methods::get_prototype_from_constructor},
     property::Attribute,
     realm::Realm,
-    string::{CodePoint, CommonJsStringBuilder, JsStrVariant, StaticJsStrings},
+    string::{CodePoint, CommonJsStringBuilder, JsStr, StaticJsStrings},
     symbol::JsSymbol,
     value::JsValue,
 };
@@ -1157,19 +1157,27 @@ impl RegExp {
 
         // 13.b. Let inputIndex be the index into input of the character that was obtained from element lastIndex of S.
         // 13.c. Let r be matcher(input, inputIndex).
-        let r: Option<regress::Match> = match (full_unicode, input.as_str().variant()) {
-            (true | false, JsStrVariant::Latin1(_)) => {
+        let r: Option<regress::Match> = match (full_unicode, input.as_str()) {
+            (true | false, JsStr::Latin1(_)) => {
                 // TODO: Currently regress does not support latin1 encoding.
                 let input = input.to_vec();
 
                 // NOTE: We can use the faster ucs2 variant since there will never be two byte unicode.
                 matcher.find_from_ucs2(&input, last_index as usize).next()
             }
-            (true, JsStrVariant::Utf16(input)) => {
+            (true, JsStr::Utf16(input)) => {
                 matcher.find_from_utf16(input, last_index as usize).next()
             }
-            (false, JsStrVariant::Utf16(input)) => {
+            (false, JsStr::Utf16(input)) => {
                 matcher.find_from_ucs2(input, last_index as usize).next()
+            }
+            (true, JsStr::Rope(_)) => {
+                let input = input.to_vec();
+                matcher.find_from_utf16(&input, last_index as usize).next()
+            }
+            (false, JsStr::Rope(_)) => {
+                let input = input.to_vec();
+                matcher.find_from_ucs2(&input, last_index as usize).next()
             }
         };
 
