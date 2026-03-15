@@ -2482,27 +2482,26 @@ impl BuiltinTypedArray {
             JsNativeError::typ().with_message("Value is not a typed array object")
         })?;
 
-        let (len, is_fixed_len) = {
+        let len = {
             let o = array.downcast_ref::<TypedArray>().ok_or_else(|| {
                 JsNativeError::typ().with_message("Value is not a typed array object")
             })?;
             let buf = o.viewed_array_buffer().as_buffer();
-            let Some((buf_len, is_fixed_len)) = buf
+            let Some(buf_len) = buf
                 .bytes(Ordering::SeqCst)
                 .filter(|s| !o.is_out_of_bounds(s.len()))
-                .map(|s| (s.len(), buf.is_fixed_len()))
+                .map(|s| s.len())
             else {
                 return Err(JsNativeError::typ()
                     .with_message("typed array is outside the bounds of its inner buffer")
                     .into());
             };
 
-            (o.array_length(buf_len), is_fixed_len)
+            o.array_length(buf_len)
         };
 
-        let locales = args.get_or_undefined(0);
-        let options = args.get_or_undefined(1);
-
+        // 3. Let separator be the implementation-defined list-separator String value
+        //    appropriate for the host environment's current locale (such as ", ").
         let separator = {
             #[cfg(feature = "intl")]
             {
@@ -2520,8 +2519,7 @@ impl BuiltinTypedArray {
                 )
                 .map_err(|e| JsNativeError::typ().with_message(e.to_string()))?;
 
-                // Ask ICU for the list pattern literal by formatting two empty elements.
-                // For many locales this yields ", ", but it may differ.
+                // Extract the list separator by formatting two empty strings.
                 js_string!(
                     formatter.format_to_string(std::iter::once("").chain(std::iter::once("")))
                 )
@@ -2533,18 +2531,27 @@ impl BuiltinTypedArray {
             }
         };
 
-        let mut r = Vec::with_capacity((len + len.saturating_sub(1)) as usize);
+        let locales = args.get_or_undefined(0);
+        let options = args.get_or_undefined(1);
 
+        // 4. Let R be the empty String.
+        let mut r = Vec::new();
+
+        // 5. Let k be 0.
+        // 6. Repeat, while k < len,
         for k in 0..len {
+            // a. If k > 0, then
             if k > 0 {
+                // i. Set R to the string-concatenation of R and separator.
                 r.extend(separator.iter());
             }
 
+            // b. Let nextElement be ? Get(O, ! ToString(𝔽(k))).
             let next_element = array.get(k, context)?;
 
-            // Mirrors the behaviour of `join`, but the compiler
-            // could unswitch the loop using `is_fixed_len`.
-            if is_fixed_len || !next_element.is_undefined() {
+            // c. If nextElement is not undefined or null, then
+            if !next_element.is_null_or_undefined() {
+                // i. Let S be ? ToString(? Invoke(nextElement, "toLocaleString", « locales, options »)).
                 let s = next_element
                     .invoke(
                         js_string!("toLocaleString"),
@@ -2553,10 +2560,12 @@ impl BuiltinTypedArray {
                     )?
                     .to_string(context)?;
 
+                // ii. Set R to the string-concatenation of R and S.
                 r.extend(s.iter());
             }
         }
 
+        // 7. Return R.
         Ok(js_string!(&r[..]).into())
     }
 
