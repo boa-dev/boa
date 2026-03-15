@@ -16,6 +16,7 @@ pub(crate) trait ErrorContext {
     fn set_context(self, context: &'static str) -> Self;
 
     /// Gets the context of the error, if any.
+    #[allow(dead_code)]
     fn context(&self) -> Option<&'static str>;
 }
 
@@ -32,6 +33,7 @@ impl ErrorContext for Error {
         }
     }
 
+    #[allow(dead_code)]
     fn context(&self) -> Option<&'static str> {
         if let Self::Expected { context, .. } = self {
             Some(*context)
@@ -46,6 +48,7 @@ impl<T> ErrorContext for ParseResult<T> {
         self.map_err(|e| e.set_context(context))
     }
 
+    #[allow(dead_code)]
     fn context(&self) -> Option<&'static str> {
         self.as_ref().err().and_then(ErrorContext::context)
     }
