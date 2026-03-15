@@ -1086,6 +1086,9 @@ pub struct IntrinsicObjects {
     /// [`%Array.prototype.toString%`](https://tc39.es/ecma262/#sec-array.prototype.tostring)
     array_prototype_to_string: JsFunction,
 
+    /// [`%Number.prototype.toLocaleString%`](https://tc39.es/ecma262/#sec-number.prototype.tolocalestring)
+    number_prototype_to_locale_string: JsFunction,
+
     /// Cached iterator prototypes.
     iterator_prototypes: IteratorPrototypes,
 
@@ -1158,6 +1161,7 @@ impl IntrinsicObjects {
             throw_type_error: JsFunction::empty_intrinsic_function(false),
             array_prototype_values: JsFunction::empty_intrinsic_function(false),
             array_prototype_to_string: JsFunction::empty_intrinsic_function(false),
+            number_prototype_to_locale_string: JsFunction::empty_intrinsic_function(false),
             iterator_prototypes: IteratorPrototypes::default(),
             generator: JsObject::with_null_proto(),
             async_generator: JsObject::with_null_proto(),
@@ -1208,6 +1212,15 @@ impl IntrinsicObjects {
     #[must_use]
     pub fn array_prototype_to_string(&self) -> JsFunction {
         self.array_prototype_to_string.clone()
+    }
+
+    /// Gets the [`%Number.prototype.toLocaleString%`][spec] intrinsic function.
+    ///
+    /// [spec]: https://tc39.es/ecma262/#sec-number.prototype.tolocalestring
+    #[inline]
+    #[must_use]
+    pub fn number_prototype_to_locale_string(&self) -> JsFunction {
+        self.number_prototype_to_locale_string.clone()
     }
 
     /// Gets the cached iterator prototypes.
