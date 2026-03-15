@@ -182,6 +182,32 @@ impl VisitWith for SuperCall {
     }
 }
 
+/// The phase of a dynamic import call.
+///
+/// Determines how the imported module is handled:
+/// - `Evaluation` (default): `import(specifier)` — loads, links, and evaluates the module.
+/// - `Defer`: `import.defer(specifier)` — deferred evaluation of the module.
+/// - `Source`: `import.source(specifier)` — source phase import.
+///
+/// More information:
+///  - [import-defer proposal][defer]
+///  - [source-phase-imports proposal][source]
+///
+/// [defer]: https://github.com/tc39/proposal-defer-import-eval
+/// [source]: https://github.com/tc39/proposal-source-phase-imports
+#[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
+#[cfg_attr(feature = "arbitrary", derive(arbitrary::Arbitrary))]
+#[derive(Clone, Copy, Debug, PartialEq, Eq, Default)]
+pub enum ImportPhase {
+    /// `import(specifier)` — standard dynamic import.
+    #[default]
+    Evaluation,
+    /// `import.defer(specifier)` — deferred import evaluation.
+    Defer,
+    /// `import.source(specifier)` — source phase import.
+    Source,
+}
+
 /// The `import()` syntax, commonly called dynamic import, is a function-like expression that allows
 /// loading an ECMAScript module asynchronously and dynamically into a potentially non-module
 /// environment.
@@ -198,6 +224,7 @@ impl VisitWith for SuperCall {
 pub struct ImportCall {
     specifier: Box<Expression>,
     options: Option<Box<Expression>>,
+    phase: ImportPhase,
     span: Span,
 }
 
@@ -205,13 +232,14 @@ impl ImportCall {
     /// Creates a new `ImportCall` AST node.
     #[inline]
     #[must_use]
-    pub fn new<S>(specifier: S, options: Option<Expression>, span: Span) -> Self
+    pub fn new<S>(specifier: S, options: Option<Expression>, phase: ImportPhase, span: Span) -> Self
     where
         S: Into<Expression>,
     {
         Self {
             specifier: Box::new(specifier.into()),
             options: options.map(Box::new),
+            phase,
             span,
         }
     }
@@ -235,6 +263,13 @@ impl ImportCall {
         self.options.as_deref()
     }
 
+    /// Returns the phase of this import call.
+    #[inline]
+    #[must_use]
+    pub const fn phase(&self) -> ImportPhase {
+        self.phase
+    }
+
     /// Gets the module specifier of the import call.
     ///
     /// This is an alias for [`Self::specifier`] for backwards compatibility.
@@ -256,14 +291,24 @@ impl Spanned for ImportCall {
 impl ToInternedString for ImportCall {
     #[inline]
     fn to_interned_string(&self, interner: &Interner) -> String {
+        let phase_str = match self.phase {
+            ImportPhase::Evaluation => "",
+            ImportPhase::Defer => ".defer",
+            ImportPhase::Source => ".source",
+        };
         if let Some(options) = &self.options {
             format!(
-                "import({}, {})",
+                "import{}({}, {})",
+                phase_str,
                 self.specifier.to_interned_string(interner),
                 options.to_interned_string(interner)
             )
         } else {
-            format!("import({})", self.specifier.to_interned_string(interner))
+            format!(
+                "import{}({})",
+                phase_str,
+                self.specifier.to_interned_string(interner)
+            )
         }
     }
 }

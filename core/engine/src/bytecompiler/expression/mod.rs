@@ -14,6 +14,7 @@ use crate::{
 use boa_ast::{
     Expression,
     expression::{
+        ImportPhase,
         access::{PropertyAccess, PropertyAccessField},
         literal::{
             Literal as AstLiteral, LiteralKind as AstLiteralKind, TemplateElement, TemplateLiteral,
@@ -386,8 +387,14 @@ impl ByteCompiler<'_> {
                 } else {
                     self.bytecode.emit_store_undefined(options.variable());
                 }
+
+                let phase: u32 = match import.phase() {
+                    ImportPhase::Evaluation => 0,
+                    ImportPhase::Defer => 1,
+                    ImportPhase::Source => 2,
+                };
                 self.bytecode
-                    .emit_import_call(dst.variable(), options.variable());
+                    .emit_import_call(dst.variable(), options.variable(), phase.into());
                 self.register_allocator.dealloc(options);
             }
             Expression::NewTarget(_new_target) => {
