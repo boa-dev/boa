@@ -271,61 +271,13 @@ impl DateTimeFormat {
                         };
 
                         // 5. Return ? FormatDateTime(dtf, x).
-
-                        // A.O 11.5.6 PartitionDateTimePattern
-
-                        // 1. Let x be TimeClip(x).
-                        // 2. If x is NaN, throw a RangeError exception.
+                        // A.O 11.5.6 PartitionDateTimePattern: 1. TimeClip(x). 2. If NaN throw. Then ToLocalTime and format.
                         let x = time_clip(x);
                         if x.is_nan() {
                             return Err(js_error!(RangeError: "formatted date cannot be NaN"));
                         }
-
-                        // A.O 11.5.12 ToLocalTime
-                       let time_zone_offset = match dtf.borrow().data().time_zone {
-                            // 1. If IsTimeZoneOffsetString(timeZoneIdentifier) is true, then
-                            // a. Let offsetNs be ParseTimeZoneOffsetString(timeZoneIdentifier).
-                            FormatTimeZone::UtcOffset(offset) => offset.to_seconds(),
-                            // 2. Else,
-                            FormatTimeZone::Identifier((_, time_zone_id)) => {
-                                // Shift x in epoch milliseconds to epoch nanoseconds
-                                let epoch_ns = x as i128 * 1_000_000;
-                                // a. Assert: GetAvailableNamedTimeZoneIdentifier(timeZoneIdentifier) is not empty.
-                                // b. Let offsetNs be GetNamedTimeZoneOffsetNanoseconds(timeZoneIdentifier, epochNs).
-                                let offset_seconds = context
-                                    .timezone_provider()
-                                    .transition_nanoseconds_for_utc_epoch_nanoseconds(time_zone_id, epoch_ns)
-                                    .map_err(|_e| js_error!(RangeError: "unable to determine transition nanoseconds"))?;
-                                offset_seconds.0 as i32
-                            }
-                        };
-
-                        // 3. Let tz be ℝ(epochNs) + offsetNs.
-                        let tz = x + f64::from(time_zone_offset * 1_000);
-
-                        // TODO: Non-gregorian calendar support?
-                        // 4. If calendar is "gregory", then
-                        // a. Return a ToLocalTime Record with fields calculated from tz according to Table 17.
-                        // 5. Else,
-                        // a. Return a ToLocalTime Record with the fields calculated from tz for
-                        // the given calendar. The calculations should use best available
-                        // information about the specified calendar.
-                        let fields = ToLocalTime::from_local_epoch_milliseconds(tz)?;
-
-                        let formatter = dtf.borrow().data().formatter.clone();
-
-                        let dt = fields.to_formattable_datetime()?;
-                        let tz_info = dtf.borrow().data().time_zone.to_time_zone_info();
-                        let tz_info_at_time = tz_info.at_date_time_iso(dt);
-
-                        let zdt = ZonedDateTime {
-                            date: dt.date,
-                            time: dt.time,
-                            zone: tz_info_at_time,
-                        };
-                        let result = formatter.format(&zdt).to_string();
-
-                        Ok(JsString::from(result).into())
+                        let result = format_timestamp_with_dtf(dtf.borrow().data(), x, context)?;
+                        Ok(JsValue::from(result))
                     },
                     dtf_clone,
                 ),
@@ -805,13 +757,13 @@ pub(crate) fn create_date_time_format(
         // 2. If value is not undefined, set needDefaults to false.
         let needs_defaults = format_options.check_dtf_type(date_time_format_type);
         // d. If needDefaults is true and defaults is either date or all, then
-        if needs_defaults && (defaults == FormatDefaults::All || defaults == FormatDefaults::Date) {
+        if needs_defaults && defaults != FormatDefaults::Time {
             // i. For each property name prop of « "year", "month", "day" », do
             // 1. Set formatOptions.[[<prop>]] to "numeric".
             format_options.set_date_defaults();
         }
         // e. If needDefaults is true and defaults is either time or all, then
-        if needs_defaults && (defaults == FormatDefaults::All || defaults == FormatDefaults::Time) {
+        if needs_defaults && defaults != FormatDefaults::Date {
             // i. For each property name prop of « "hour", "minute", "second" », do
             // 1. Set formatOptions.[[<prop>]] to "numeric".
             format_options.set_time_defaults();
@@ -856,21 +808,17 @@ pub(crate) fn create_date_time_format(
 }
 
 /// Formats a timestamp (epoch milliseconds) using the given [`DateTimeFormat`] internals.
-/// Used by the bound `format` function and by [`format_date_time_locale`] without creating a JS object.
+/// Callers must have already applied `TimeClip` and `NaN` check (`FormatDateTime` steps 1–2).
+/// This performs `ToLocalTime` and format only.
 fn format_timestamp_with_dtf(
     dtf: &DateTimeFormat,
     timestamp: f64,
     context: &mut Context,
 ) -> JsResult<JsString> {
-    // FormatDateTime / PartitionDateTimePattern: TimeClip, then ToLocalTime, then format.
-    let x = time_clip(timestamp);
-    if x.is_nan() {
-        return Err(js_error!(RangeError: "formatted date cannot be NaN"));
-    }
     let time_zone_offset = match dtf.time_zone {
         FormatTimeZone::UtcOffset(offset) => offset.to_seconds(),
         FormatTimeZone::Identifier((_, time_zone_id)) => {
-            let epoch_ns = x as i128 * 1_000_000;
+            let epoch_ns = timestamp as i128 * 1_000_000;
             let offset_seconds = context
                 .timezone_provider()
                 .transition_nanoseconds_for_utc_epoch_nanoseconds(time_zone_id, epoch_ns)
@@ -880,7 +828,7 @@ fn format_timestamp_with_dtf(
             offset_seconds.0 as i32
         }
     };
-    let tz = x + f64::from(time_zone_offset * 1_000);
+    let tz = timestamp + f64::from(time_zone_offset * 1_000);
     let fields = ToLocalTime::from_local_epoch_milliseconds(tz)?;
     let dt = fields.to_formattable_datetime()?;
     let tz_info = dtf.time_zone.to_time_zone_info();
@@ -1040,6 +988,11 @@ pub(crate) fn format_date_time_locale(
     }
     let options_value = options.into();
     let dtf = create_date_time_format(locales, &options_value, format_type, defaults, context)?;
-    let result = format_timestamp_with_dtf(&dtf, timestamp, context)?;
+    // FormatDateTime steps 1–2: TimeClip and NaN check (format_timestamp_with_dtf does ToLocalTime + format only).
+    let x = time_clip(timestamp);
+    if x.is_nan() {
+        return Err(js_error!(RangeError: "formatted date cannot be NaN"));
+    }
+    let result = format_timestamp_with_dtf(&dtf, x, context)?;
     Ok(JsValue::from(result))
 }

@@ -1608,15 +1608,6 @@ impl Date {
         func.call(this, &[], context)
     }
 
-    /// Returns the `[[DateValue]]` internal slot (RequireInternalSlot(dateObject, `[[DateValue]]`)).
-    fn this_date_value(this: &JsValue) -> JsResult<f64> {
-        this.as_object()
-            .and_then(|obj| obj.downcast_ref::<Date>().as_deref().copied())
-            .ok_or_else(|| JsNativeError::typ().with_message("'this' is not a Date"))
-            .map(|d| d.0)
-            .map_err(Into::into)
-    }
-
     /// [`Date.prototype.toLocaleDateString()`][spec].
     ///
     /// The `toLocaleDateString()` method returns the date portion of the given Date instance according
@@ -1636,21 +1627,25 @@ impl Date {
         args: &[JsValue],
         context: &mut Context,
     ) -> JsResult<JsValue> {
-        // Let dateObject be the this value.
-        // Perform ? RequireInternalSlot(dateObject, [[DateValue]]).
-        // Let x be dateObject.[[DateValue]].
-        let t = Self::this_date_value(this)?;
-        // If x is NaN, return "Invalid Date".
-        if t.is_nan() {
-            return Ok(JsValue::new(js_string!("Invalid Date")));
-        }
-        // Let dateFormat be ? CreateDateTimeFormat(%Intl.DateTimeFormat%, locales, options, date, date).
-        // Return ! FormatDateTime(dateFormat, x).
         #[cfg(feature = "intl")]
         {
             use crate::builtins::intl::date_time_format::{
                 FormatDefaults, FormatType, format_date_time_locale,
             };
+            // 1. Let dateObject be the this value.
+            // 2. Perform ? RequireInternalSlot(dateObject, [[DateValue]]).
+            // 3. Let x be dateObject.[[DateValue]].
+            let t = this
+                .as_object()
+                .and_then(|obj| obj.downcast_ref::<Date>().as_deref().copied())
+                .ok_or_else(|| JsNativeError::typ().with_message("'this' is not a Date"))?
+                .0;
+            // 4. If x is NaN, return "Invalid Date".
+            if t.is_nan() {
+                return Ok(JsValue::new(js_string!("Invalid Date")));
+            }
+            // 5. Let dateFormat be ? CreateDateTimeFormat(%Intl.DateTimeFormat%, locales, options, date, date).
+            // 6. Return ! FormatDateTime(dateFormat, x).
             let locales = args.get_or_undefined(0);
             let options = args.get_or_undefined(1);
             format_date_time_locale(
@@ -1686,21 +1681,25 @@ impl Date {
         args: &[JsValue],
         context: &mut Context,
     ) -> JsResult<JsValue> {
-        // Let dateObject be the this value.
-        // Perform ? RequireInternalSlot(dateObject, [[DateValue]]).
-        // Let x be dateObject.[[DateValue]].
-        let t = Self::this_date_value(this)?;
-        // If x is NaN, return "Invalid Date".
-        if t.is_nan() {
-            return Ok(JsValue::new(js_string!("Invalid Date")));
-        }
-        // Let dateFormat be ? CreateDateTimeFormat(%Intl.DateTimeFormat%, locales, options, any, all).
-        // Return ! FormatDateTime(dateFormat, x).
         #[cfg(feature = "intl")]
         {
             use crate::builtins::intl::date_time_format::{
                 FormatDefaults, FormatType, format_date_time_locale,
             };
+            // 1. Let dateObject be the this value.
+            // 2. Perform ? RequireInternalSlot(dateObject, [[DateValue]]).
+            // 3. Let x be dateObject.[[DateValue]].
+            let t = this
+                .as_object()
+                .and_then(|obj| obj.downcast_ref::<Date>().as_deref().copied())
+                .ok_or_else(|| JsNativeError::typ().with_message("'this' is not a Date"))?
+                .0;
+            // 4. If x is NaN, return "Invalid Date".
+            if t.is_nan() {
+                return Ok(JsValue::new(js_string!("Invalid Date")));
+            }
+            // 5. Let dateFormat be ? CreateDateTimeFormat(%Intl.DateTimeFormat%, locales, options, any, all).
+            // 6. Return ! FormatDateTime(dateFormat, x).
             let locales = args.get_or_undefined(0);
             let options = args.get_or_undefined(1);
             format_date_time_locale(
@@ -1737,21 +1736,25 @@ impl Date {
         args: &[JsValue],
         context: &mut Context,
     ) -> JsResult<JsValue> {
-        // Let dateObject be the this value.
-        // Perform ? RequireInternalSlot(dateObject, [[DateValue]]).
-        // Let x be dateObject.[[DateValue]].
-        let t = Self::this_date_value(this)?;
-        // If x is NaN, return "Invalid Date".
-        if t.is_nan() {
-            return Ok(JsValue::new(js_string!("Invalid Date")));
-        }
-        // Let timeFormat be ? CreateDateTimeFormat(%Intl.DateTimeFormat%, locales, options, time, time).
-        // Return ! FormatDateTime(timeFormat, x).
         #[cfg(feature = "intl")]
         {
             use crate::builtins::intl::date_time_format::{
                 FormatDefaults, FormatType, format_date_time_locale,
             };
+            // 1. Let dateObject be the this value.
+            // 2. Perform ? RequireInternalSlot(dateObject, [[DateValue]]).
+            // 3. Let x be dateObject.[[DateValue]].
+            let t = this
+                .as_object()
+                .and_then(|obj| obj.downcast_ref::<Date>().as_deref().copied())
+                .ok_or_else(|| JsNativeError::typ().with_message("'this' is not a Date"))?
+                .0;
+            // 4. If x is NaN, return "Invalid Date".
+            if t.is_nan() {
+                return Ok(JsValue::new(js_string!("Invalid Date")));
+            }
+            // 5. Let timeFormat be ? CreateDateTimeFormat(%Intl.DateTimeFormat%, locales, options, time, time).
+            // 6. Return ! FormatDateTime(timeFormat, x).
             let locales = args.get_or_undefined(0);
             let options = args.get_or_undefined(1);
             format_date_time_locale(
