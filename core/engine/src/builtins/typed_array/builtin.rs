@@ -2470,6 +2470,7 @@ impl BuiltinTypedArray {
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-%typedarray%.prototype.tolocalestring
     /// [spec-402]: https://402.ecma-international.org/10.0/#sup-array.prototype.tolocalestring
+    #[allow(clippy::used_underscore_binding)]
     pub(crate) fn to_locale_string(
         this: &JsValue,
         args: &[JsValue],
@@ -2482,7 +2483,7 @@ impl BuiltinTypedArray {
             JsNativeError::typ().with_message("Value is not a typed array object")
         })?;
 
-        let (len, is_bigint) = {
+        let (len, _is_bigint) = {
             let o = array.downcast_ref::<TypedArray>().ok_or_else(|| {
                 JsNativeError::typ().with_message("Value is not a typed array object")
             })?;
@@ -2511,7 +2512,7 @@ impl BuiltinTypedArray {
         let options = args.get_or_undefined(1).clone();
 
         #[cfg(feature = "intl")]
-        let number_format = if is_bigint {
+        let number_format = if _is_bigint {
             None
         } else {
             use crate::builtins::intl::number_format::NumberFormat;
@@ -2522,6 +2523,22 @@ impl BuiltinTypedArray {
         let mut r = Vec::<JsString>::with_capacity(len as usize);
 
         let call_args = [locales, options];
+
+        #[cfg(feature = "intl")]
+        let is_unmodified = {
+            let number_proto = context.intrinsics().constructors().number().prototype();
+
+            let current_tls = number_proto.get(js_string!("toLocaleString"), context)?;
+
+            let builtin_tls = context
+                .intrinsics()
+                .objects()
+                .number_prototype_to_locale_string();
+
+            current_tls
+                .as_object()
+                .is_some_and(|o| JsObject::equals(&o, &builtin_tls.into()))
+        };
 
         // 5. Let k be 0.
         // 6. Repeat, while k < len,
@@ -2537,21 +2554,35 @@ impl BuiltinTypedArray {
             }
 
             #[cfg(feature = "intl")]
-            if is_bigint {
-                let s = next_element
-                    .invoke(js_string!("toLocaleString"), &call_args, context)?
-                    .to_string(context)?;
-                r.push(s);
-            } else {
-                use crate::builtins::intl::number_format::to_intl_mathematical_value;
-                let mut x = to_intl_mathematical_value(&next_element, context)?;
-                r.push(js_string!(
-                    number_format
-                        .as_ref()
-                        .expect("number_format should be initialized for numeric typed arrays")
-                        .format(&mut x)
-                        .to_string()
-                ));
+            {
+                use crate::{
+                    builtins::intl::number_format::to_intl_mathematical_value, value::JsVariant,
+                };
+
+                // Fast path: finite primitive numbers only
+                let use_fast_path = is_unmodified
+                    && match next_element.variant() {
+                        JsVariant::Integer32(_) => !_is_bigint,
+                        JsVariant::Float64(f) => !_is_bigint && f.is_finite(),
+                        _ => false,
+                    };
+
+                if use_fast_path {
+                    let mut x = to_intl_mathematical_value(&next_element, context)?;
+                    r.push(js_string!(
+                        number_format
+                            .as_ref()
+                            .expect("number_format is Some for numeric typed arrays")
+                            .format(&mut x)
+                            .to_string()
+                    ));
+                } else {
+                    // Slow path: delegate to element.toLocaleString()
+                    let s = next_element
+                        .invoke(js_string!("toLocaleString"), &call_args, context)?
+                        .to_string(context)?;
+                    r.push(s);
+                }
             }
 
             #[cfg(not(feature = "intl"))]
@@ -2566,7 +2597,7 @@ impl BuiltinTypedArray {
         // 7. Return R.
         let separator = js_string!(", ");
         let mut result = Vec::with_capacity(
-            r.iter().map(boa_string::JsString::len).sum::<usize>()
+            r.iter().map(JsString::len).sum::<usize>()
                 + separator.len() * (len.saturating_sub(1) as usize),
         );
         for (i, s) in r.into_iter().enumerate() {
