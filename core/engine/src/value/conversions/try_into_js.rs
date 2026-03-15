@@ -1,19 +1,9 @@
-use crate::class::Class;
 use crate::{Context, JsNativeError, JsResult, JsString, JsValue};
 
 /// This trait adds a conversions from a Rust Type into [`JsValue`].
 pub trait TryIntoJs: Sized {
     /// This function tries to convert a `Self` into [`JsValue`].
     fn try_into_js(&self, context: &mut Context) -> JsResult<JsValue>;
-}
-
-impl<T> TryIntoJs for T
-where
-    T: Class + Clone,
-{
-    fn try_into_js(&self, context: &mut Context) -> JsResult<JsValue> {
-        T::from_data(self.clone(), context).map(JsValue::from)
-    }
 }
 
 impl TryIntoJs for bool {
@@ -146,6 +136,42 @@ impl TryIntoJs for u128 {
     }
 }
 
+impl<T> TryIntoJs for &T
+where
+    T: TryIntoJs,
+{
+    fn try_into_js(&self, context: &mut Context) -> JsResult<JsValue> {
+        (**self).try_into_js(context)
+    }
+}
+
+impl<T> TryIntoJs for Box<T>
+where
+    T: TryIntoJs,
+{
+    fn try_into_js(&self, context: &mut Context) -> JsResult<JsValue> {
+        self.as_ref().try_into_js(context)
+    }
+}
+
+impl<T> TryIntoJs for std::rc::Rc<T>
+where
+    T: TryIntoJs,
+{
+    fn try_into_js(&self, context: &mut Context) -> JsResult<JsValue> {
+        self.as_ref().try_into_js(context)
+    }
+}
+
+impl<T> TryIntoJs for std::sync::Arc<T>
+where
+    T: TryIntoJs,
+{
+    fn try_into_js(&self, context: &mut Context) -> JsResult<JsValue> {
+        self.as_ref().try_into_js(context)
+    }
+}
+
 impl<T> TryIntoJs for Option<T>
 where
     T: TryIntoJs,
@@ -236,7 +262,7 @@ where
 #[cfg(test)]
 mod try_into_js_tests {
     use crate::value::{TryFromJs, TryIntoJs};
-    use crate::{Context, JsResult};
+    use crate::{Context, JsResult, JsValue};
 
     #[test]
     fn big_int_err() {
@@ -312,6 +338,33 @@ mod try_into_js_tests {
         println!("JsValue: {}", js_value.display());
         let vec: Vec<(i64, u64)> = TryFromJs::try_from_js(&js_value, context)?;
         assert_eq!(vec_init, vec);
+        Ok(())
+    }
+
+    #[test]
+    fn manual_repro_4360() -> JsResult<()> {
+        use crate::JsObject;
+        use crate::js_string;
+
+        let mut context = Context::default();
+        let context = &mut context;
+
+        let obj = JsObject::default(context.intrinsics());
+        obj.create_data_property_or_throw(
+            js_string!("foo"),
+            TryIntoJs::try_into_js(&0usize, context).unwrap(),
+            context,
+        )
+        .unwrap();
+        obj.create_data_property_or_throw(
+            js_string!("bar"),
+            TryIntoJs::try_into_js(&1usize, context).unwrap(),
+            context,
+        )
+        .unwrap();
+        let value: JsValue = obj.into();
+        let s = value.to_string(context).unwrap();
+        assert_eq!(s.to_std_string_escaped(), "[object Object]");
         Ok(())
     }
 }
