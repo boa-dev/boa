@@ -2533,7 +2533,7 @@ impl BuiltinTypedArray {
             }
         };
 
-        let mut r = Vec::new();
+        let mut r = Vec::with_capacity((len + len.saturating_sub(1)) as usize);
 
         for k in 0..len {
             if k > 0 {
