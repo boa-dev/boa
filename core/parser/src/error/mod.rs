@@ -20,13 +20,37 @@ pub(crate) trait ErrorContext {
     fn context(&self) -> Option<&'static str>;
 }
 
+impl ErrorContext for Error {
+    fn set_context(self, new_context: &'static str) -> Self {
+        match self {
+            Self::Expected {
+                expected,
+                found,
+                span,
+                ..
+            } => Self::expected(expected, found, span, new_context),
+            e => e,
+        }
+    }
+
+    #[allow(dead_code)]
+    fn context(&self) -> Option<&'static str> {
+        if let Self::Expected { context, .. } = self {
+            Some(*context)
+        } else {
+            None
+        }
+    }
+}
+
 impl<T> ErrorContext for ParseResult<T> {
     fn set_context(self, context: &'static str) -> Self {
         self.map_err(|e| e.set_context(context))
     }
 
+    #[allow(dead_code)]
     fn context(&self) -> Option<&'static str> {
-        self.as_ref().err().and_then(Error::context)
+        self.as_ref().err().and_then(ErrorContext::context)
     }
 }
 
@@ -93,29 +117,6 @@ pub enum Error {
 }
 
 impl Error {
-    /// Changes the context of the error, if any.
-    fn set_context(self, new_context: &'static str) -> Self {
-        match self {
-            Self::Expected {
-                expected,
-                found,
-                span,
-                ..
-            } => Self::expected(expected, found, span, new_context),
-            e => e,
-        }
-    }
-
-    /// Gets the context of the error, if any.
-    #[allow(unused)] // TODO: context method is unused, candidate for removal?
-    const fn context(&self) -> Option<&'static str> {
-        if let Self::Expected { context, .. } = self {
-            Some(context)
-        } else {
-            None
-        }
-    }
-
     /// Creates an `Expected` parsing error.
     pub(crate) fn expected<E, F>(expected: E, found: F, span: Span, context: &'static str) -> Self
     where
