@@ -138,12 +138,11 @@ where
                         Sym::SOURCE => Some(ImportPhase::Source),
                         _ => None,
                     };
-                    if let Some(phase) = phase {
-                        if let Some(paren) = cursor.peek(3, interner)?
-                            && paren.kind() == &TokenKind::Punctuator(Punctuator::OpenParen)
-                        {
-                            return Ok(Some((keyword_token_start, phase)));
-                        }
+                    if let Some(phase) = phase
+                        && let Some(paren) = cursor.peek(3, interner)?
+                        && paren.kind() == &TokenKind::Punctuator(Punctuator::OpenParen)
+                    {
+                        return Ok(Some((keyword_token_start, phase)));
                     }
                 }
             }
@@ -203,7 +202,13 @@ where
                 CallExpressionTail::new(
                     self.allow_yield,
                     self.allow_await,
-                    ImportCall::new(specifier, options, ImportPhase::Evaluation, Span::new(start, end)).into(),
+                    ImportCall::new(
+                        specifier,
+                        options,
+                        ImportPhase::Evaluation,
+                        Span::new(start, end),
+                    )
+                    .into(),
                 )
                 .parse(cursor, interner)?
                 .into()

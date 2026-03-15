@@ -151,7 +151,7 @@ static_syms! {
     ("*default*", DEFAULT_EXPORT),
     "meta",
     "defer",
-    "source"
+    "source",
     "using",
     "dispose",
     "asyncDispose"
