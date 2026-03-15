@@ -2482,7 +2482,7 @@ impl BuiltinTypedArray {
             JsNativeError::typ().with_message("Value is not a typed array object")
         })?;
 
-        let len = {
+        let (len, is_bigint) = {
             let o = array.downcast_ref::<TypedArray>().ok_or_else(|| {
                 JsNativeError::typ().with_message("Value is not a typed array object")
             })?;
@@ -2497,37 +2497,30 @@ impl BuiltinTypedArray {
                     .into());
             };
 
-            o.array_length(buf_len)
+            (
+                o.array_length(buf_len),
+                o.kind().content_type() == ContentType::BigInt,
+            )
         };
+
+        if len == 0 {
+            return Ok(js_string!("").into());
+        }
 
         let locales = args.get_or_undefined(0).clone();
         let options = args.get_or_undefined(1).clone();
 
         #[cfg(feature = "intl")]
-        let (number_format, formatter) = {
-            use crate::builtins::intl::{locale::default_locale, number_format::NumberFormat};
-            use icu_list::{
-                options::ListFormatterOptions, ListFormatter, ListFormatterPreferences,
-            };
-
-            let locale = default_locale(context.intl_provider().locale_canonicalizer()?);
-            let preferences = ListFormatterPreferences::from(&locale);
-            let formatter = ListFormatter::try_new_unit_with_buffer_provider(
-                context.intl_provider().erased_provider(),
-                preferences,
-                ListFormatterOptions::default(),
-            )
-            .map_err(|e| JsNativeError::typ().with_message(e.to_string()))?;
-
-            let number_format = NumberFormat::new(&locales, &options, context)?;
-
-            (number_format, formatter)
+        let number_format = if is_bigint {
+            None
+        } else {
+            use crate::builtins::intl::number_format::NumberFormat;
+            Some(NumberFormat::new(&locales, &options, context)?)
         };
 
         // 4. Let R be the empty String.
         let mut r = Vec::<JsString>::with_capacity(len as usize);
 
-        #[cfg(not(feature = "intl"))]
         let call_args = [locales, options];
 
         // 5. Let k be 0.
@@ -2540,52 +2533,49 @@ impl BuiltinTypedArray {
             //    i. Let S be ? ToString(? Invoke(nextElement, "toLocaleString", « locales, options »)).
             if next_element.is_null_or_undefined() {
                 r.push(js_string!(""));
+                continue;
+            }
+
+            #[cfg(feature = "intl")]
+            if is_bigint {
+                let s = next_element
+                    .invoke(js_string!("toLocaleString"), &call_args, context)?
+                    .to_string(context)?;
+                r.push(s);
             } else {
-                #[cfg(feature = "intl")]
-                {
-                    use crate::builtins::intl::number_format::to_intl_mathematical_value;
-                    let mut x = to_intl_mathematical_value(&next_element, context)?;
-                    r.push(js_string!(number_format.format(&mut x).to_string()));
-                }
-                #[cfg(not(feature = "intl"))]
-                {
-                    let s = next_element
-                        .invoke(js_string!("toLocaleString"), &call_args, context)?
-                        .to_string(context)?;
-                    r.push(s);
-                }
+                use crate::builtins::intl::number_format::to_intl_mathematical_value;
+                let mut x = to_intl_mathematical_value(&next_element, context)?;
+                r.push(js_string!(
+                    number_format
+                        .as_ref()
+                        .expect("number_format should be initialized for numeric typed arrays")
+                        .format(&mut x)
+                        .to_string()
+                ));
+            }
+
+            #[cfg(not(feature = "intl"))]
+            {
+                let s = next_element
+                    .invoke(js_string!("toLocaleString"), &call_args, context)?
+                    .to_string(context)?;
+                r.push(s);
             }
         }
 
         // 7. Return R.
-        #[cfg(feature = "intl")]
-        {
-            if r.is_empty() {
-                Ok(js_string!("").into())
-            } else {
-                Ok(js_string!(formatter.format_to_string(r.into_iter().map(|s| s.to_std_string_escaped()))).into())
+        let separator = js_string!(", ");
+        let mut result = Vec::with_capacity(
+            r.iter().map(boa_string::JsString::len).sum::<usize>()
+                + separator.len() * (len.saturating_sub(1) as usize),
+        );
+        for (i, s) in r.into_iter().enumerate() {
+            if i > 0 {
+                result.extend(separator.iter());
             }
+            result.extend(s.iter());
         }
-
-        #[cfg(not(feature = "intl"))]
-        {
-            if r.is_empty() {
-                Ok(js_string!("").into())
-            } else {
-                let separator = js_string!(", ");
-                let mut result = Vec::with_capacity(
-                    r.iter().map(|s| s.len()).sum::<usize>()
-                        + separator.len() * (len.saturating_sub(1) as usize),
-                );
-                for (i, s) in r.into_iter().enumerate() {
-                    if i > 0 {
-                        result.extend(separator.iter());
-                    }
-                    result.extend(s.iter());
-                }
-                Ok(js_string!(&result[..]).into())
-            }
-        }
+        Ok(js_string!(&result[..]).into())
     }
 
     /// `%TypedArray%.prototype.values ( )`
