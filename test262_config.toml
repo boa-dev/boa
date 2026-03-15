@@ -7,7 +7,6 @@ flags = []
 features = [
     ### Unimplemented features:
 
-    "FinalizationRegistry",
     "symbols-as-weakmap-keys",
     "Intl.DisplayNames",
     "Intl.RelativeTimeFormat",
@@ -86,6 +85,7 @@ tests = [
     "test/intl402/Locale/constructor-options-canonicalized.js",
     # TODO: Remove this once regress fixes the named groups parsing issue.
     "test/built-ins/RegExp/named-groups/non-unicode-property-names-valid.js",
+
     # Source Phase Imports: AbstractModuleSource built-in and static `import source` not yet implemented.
     "test/built-ins/AbstractModuleSource/proto.js",
     "test/built-ins/AbstractModuleSource/name.js",
