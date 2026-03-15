@@ -724,12 +724,19 @@ impl JsString {
     #[inline]
     fn refcount_cell(&self) -> Option<&AtomicUsize> {
         // SAFETY: The pointer is always valid.
-        let header = unsafe { self.ptr.as_ref() };
-        if header.vtable.kind == JsStringKind::Static {
-            None
-        } else {
-            // SAFETY: Alignment and size match, and we checked it's not static.
-            unsafe { Some(&*(&raw const header.refcount).cast::<AtomicUsize>()) }
+        // We use raw pointer projection to avoid creating a shared reference to the header,
+        // which would mark the memory as read-only (Frozen) in Miri's borrow model.
+        unsafe {
+            let header_ptr = self.ptr.as_ptr();
+            let kind = (*header_ptr).vtable.kind;
+            if kind == JsStringKind::Static {
+                None
+            } else {
+                // Deriving the pointer to refcount directly from the raw pointer ensures
+                // it's not restricted by a temporary shared reference to the whole struct.
+                let refcount_ptr = &raw const (*header_ptr).refcount;
+                Some(&*refcount_ptr.cast::<AtomicUsize>())
+            }
         }
     }
 }
@@ -768,6 +775,9 @@ impl JsString {
 
         // Hybrid Strategy: Use ropes for large concatenations.
         if full_count > 1024 {
+            if strings.len() == 2 {
+                return RopeString::create(strings[0].clone(), strings[1].clone());
+            }
             return Self::concat_strings_balanced(strings);
         }
 
@@ -784,7 +794,6 @@ impl JsString {
             _ => {
                 // To build a truly balanced tree, we first collect all leaves if the input
                 // contains ropes. This prevents the "unbalanced ropes in array" problem.
-                // We use a capacity of strings.len() * 2 as a heuristic for potential ropes.
                 let mut leaves = Vec::with_capacity(strings.len() * 2);
                 for s in strings {
                     RopeString::collect_leaves(s, &mut leaves);
@@ -1083,21 +1092,24 @@ impl Hash for JsString {
     #[inline]
     fn hash<H: Hasher>(&self, state: &mut H) {
         // SAFETY: The pointer is always valid.
-        let header = unsafe { self.ptr.as_ref() };
-        let hash_ptr = (&raw const header.hash).cast::<AtomicU64>();
-        // SAFETY: Alignment and size match. we only mutate if hash == 0.
-        let mut hash = unsafe { (*hash_ptr).load(Ordering::Relaxed) };
-        if hash == 0 {
-            hash = self.as_str().content_hash();
+        // We use raw pointer projection to avoid creating a read-only shared reference to the header
+        // that covers the hash field, as we intend to perform interior mutation (atomic store) on it.
+        unsafe {
+            let header_ptr = self.ptr.as_ptr();
+            let hash_ptr = (&raw const (*header_ptr).hash).cast::<AtomicU64>();
+            let mut hash = (*hash_ptr).load(Ordering::Relaxed);
             if hash == 0 {
-                hash = 1;
+                hash = self.as_str().content_hash();
+                if hash == 0 {
+                    hash = 1;
+                }
+                if (*header_ptr).vtable.kind != JsStringKind::Static {
+                    // SAFETY: Not a static string. Alignment and size match.
+                    (*hash_ptr).store(hash, Ordering::Relaxed);
+                }
             }
-            if header.vtable.kind != JsStringKind::Static {
-                // SAFETY: Not a static string. Alignment and size match.
-                unsafe { (*hash_ptr).store(hash, Ordering::Relaxed) };
-            }
+            state.write_u64(hash);
         }
-        state.write_u64(hash);
     }
 }
 
