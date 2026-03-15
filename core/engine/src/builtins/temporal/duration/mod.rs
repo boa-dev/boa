@@ -1125,25 +1125,64 @@ impl Duration {
     /// [spec]: https://tc39.es/proposal-temporal/#sec-temporal.duration.prototype.tolocalestring
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Temporal/Duration/toLocaleString
     pub(crate) fn to_locale_string(
-        this: &JsValue,
-        _: &[JsValue],
-        _: &mut Context,
-    ) -> JsResult<JsValue> {
-        // TODO: Update for ECMA-402 compliance
-        let object = this.as_object();
-        let duration = object
-            .as_ref()
-            .and_then(JsObject::downcast_ref::<Self>)
-            .ok_or_else(|| {
-                JsNativeError::typ().with_message("this value must be a Duration object.")
-            })?;
+    this: &JsValue,
+    args: &[JsValue],
+    context: &mut Context,
+) -> JsResult<JsValue> {
+    // 1. Validate `this` is a Duration object.
+    let object = this.as_object();
+    let duration = object
+        .as_ref()
+        .and_then(JsObject::downcast_ref::<Self>)
+        .ok_or_else(|| {
+            JsNativeError::typ().with_message("this value must be a Duration object.")
+        })?;
 
+    let locales = args.get_or_undefined(0);
+    let options = args.get_or_undefined(1);
+
+    // 2. If the intl feature is not enabled, fallback to toString() behavior.
+    #[cfg(not(feature = "intl"))]
+    {
+        let _ = locales;
+        let _ = options;
         let result = duration
             .inner
             .as_temporal_string(ToStringRoundingOptions::default())?;
+        return Ok(JsString::from(result).into());
+    }
 
+    // 3. With intl feature enabled, attempt to use Intl.DurationFormat.
+    #[cfg(feature = "intl")]
+    {
+        // Get the Intl global object safely.
+        let intl = context.global_object().get(js_string!("Intl"), context)?;
+        
+        // Use if let to avoid unwrap()
+        if let Some(intl_obj) = intl.as_object() {
+            let duration_format_prop = intl_obj.get(js_string!("DurationFormat"), context)?;
+
+            // Check if DurationFormat exists and is a constructor.
+            if let Some(constructor) = duration_format_prop.as_constructor() {
+                // Construct: new Intl.DurationFormat(locales, options)
+                let formatter = constructor.construct(&[locales.clone(), options.clone()], context)?;
+
+                // Get the format method.
+                let format_method = formatter.get(js_string!("format"), context)?;
+                if let Some(format_fn) = format_method.as_callable() {
+                    // Call format with the duration object.
+                    return format_fn.call(&formatter.into(), &[this.clone()], context);
+                }
+            }
+        }
+
+        // 4. If any step fails (Intl not found or DurationFormat not supported), fallback.
+        let result = duration
+            .inner
+            .as_temporal_string(ToStringRoundingOptions::default())?;
         Ok(JsString::from(result).into())
     }
+}
 
     /// 7.3.25 `Temporal.Duration.prototype.valueOf ( )`
     ///
