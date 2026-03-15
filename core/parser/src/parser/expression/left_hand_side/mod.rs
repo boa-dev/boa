@@ -37,7 +37,7 @@ use boa_ast::{
     Keyword, Position, Punctuator, Span, Spanned,
     expression::{ImportCall, ImportPhase, SuperCall},
 };
-use boa_interner::Interner;
+use boa_interner::{Interner, Sym};
 
 /// Parses a left hand side expression.
 ///
@@ -107,25 +107,42 @@ where
                     {
                         return Ok(Some(keyword_token_start));
                     }
-                    // Also check for `import.defer(` and `import.source(` patterns
-                    if keyword == Keyword::Import
-                        && let Some(dot) = cursor.peek(1, interner)?
-                        && dot.kind() == &TokenKind::Punctuator(Punctuator::Dot)
-                        && let Some(ident_tok) = cursor.peek(2, interner)?
-                    {
-                        let is_phase_ident = matches!(
-                            ident_tok.kind(),
-                            TokenKind::IdentifierName((sym, _))
-                                if {
-                                    let s = interner.resolve_expect(*sym).utf8().unwrap_or("");
-                                    s == "defer" || s == "source"
-                                }
-                        );
-                        if is_phase_ident
-                            && let Some(paren) = cursor.peek(3, interner)?
+                }
+            }
+            Ok(None)
+        }
+
+        /// Checks if the next tokens form an `import.defer(` or `import.source(` pattern.
+        /// Returns `Some((position, phase))` if matched, `None` otherwise.
+        fn is_import_phase_call<R: ReadChar>(
+            cursor: &mut Cursor<R>,
+            interner: &mut Interner,
+        ) -> ParseResult<Option<(Position, ImportPhase)>> {
+            if let Some(next) = cursor.peek(0, interner)?
+                && let TokenKind::Keyword((Keyword::Import, escaped)) = next.kind()
+            {
+                let keyword_token_start = next.span().start();
+                if *escaped {
+                    return Err(Error::general(
+                        "keyword `import` cannot contain escaped characters",
+                        keyword_token_start,
+                    ));
+                }
+                if let Some(dot) = cursor.peek(1, interner)?
+                    && dot.kind() == &TokenKind::Punctuator(Punctuator::Dot)
+                    && let Some(ident_tok) = cursor.peek(2, interner)?
+                    && let TokenKind::IdentifierName((sym, _)) = ident_tok.kind()
+                {
+                    let phase = match *sym {
+                        Sym::DEFER => Some(ImportPhase::Defer),
+                        Sym::SOURCE => Some(ImportPhase::Source),
+                        _ => None,
+                    };
+                    if let Some(phase) = phase {
+                        if let Some(paren) = cursor.peek(3, interner)?
                             && paren.kind() == &TokenKind::Punctuator(Punctuator::OpenParen)
                         {
-                            return Ok(Some(keyword_token_start));
+                            return Ok(Some((keyword_token_start, phase)));
                         }
                     }
                 }
@@ -142,46 +159,63 @@ where
                     Arguments::new(self.allow_yield, self.allow_await).parse(cursor, interner)?;
                 SuperCall::new(args, Span::new(start, args_span.end())).into()
             } else if let Some(start) = is_keyword_call(Keyword::Import, cursor, interner)? {
-                // `import`
+                // Plain `import(...)` call
+                cursor.advance(interner);
+                // `(`
                 cursor.advance(interner);
 
-                // Check for `import.defer(...)` or `import.source(...)`
-                let phase = if cursor
-                    .peek(0, interner)?
-                    .is_some_and(|t| t.kind() == &TokenKind::Punctuator(Punctuator::Dot))
-                {
-                    // Peek at the identifier after the dot
-                    let detected_phase = cursor.peek(1, interner)?.and_then(|ident_tok| {
-                        if let TokenKind::IdentifierName((sym, _)) = ident_tok.kind() {
-                            match interner.resolve_expect(*sym).utf8().unwrap_or("") {
-                                "defer" => Some(ImportPhase::Defer),
-                                "source" => Some(ImportPhase::Source),
-                                _ => None,
-                            }
-                        } else {
-                            None
-                        }
-                    });
-                    if let Some(phase) = detected_phase {
-                        if cursor.peek(2, interner)?.is_some_and(|t| {
-                            t.kind() == &TokenKind::Punctuator(Punctuator::OpenParen)
+                let specifier = AssignmentExpression::new(true, self.allow_yield, self.allow_await)
+                    .parse(cursor, interner)?;
+
+                let options =
+                    if cursor
+                        .next_if(TokenKind::Punctuator(Punctuator::Comma), interner)?
+                        .is_some()
+                    {
+                        if cursor.peek(0, interner)?.is_some_and(|t| {
+                            t.kind() == &TokenKind::Punctuator(Punctuator::CloseParen)
                         }) {
-                            // Consume `.`
-                            cursor.advance(interner);
-                            // Consume `defer` or `source`
-                            cursor.advance(interner);
-                            phase
+                            None
                         } else {
-                            unreachable!("is_keyword_call already validated the open paren")
+                            let opts =
+                                AssignmentExpression::new(true, self.allow_yield, self.allow_await)
+                                    .parse(cursor, interner)?;
+                            if cursor.peek(0, interner)?.is_some_and(|t| {
+                                t.kind() == &TokenKind::Punctuator(Punctuator::Comma)
+                            }) {
+                                cursor.advance(interner);
+                            }
+                            Some(opts)
                         }
                     } else {
-                        unreachable!("is_keyword_call already validated defer/source identifier")
-                    }
-                } else {
-                    ImportPhase::Evaluation
-                };
+                        None
+                    };
 
-                // `(`
+                let end = cursor
+                    .expect(
+                        TokenKind::Punctuator(Punctuator::CloseParen),
+                        "import call",
+                        interner,
+                    )?
+                    .span()
+                    .end();
+
+                CallExpressionTail::new(
+                    self.allow_yield,
+                    self.allow_await,
+                    ImportCall::new(specifier, options, ImportPhase::Evaluation, Span::new(start, end)).into(),
+                )
+                .parse(cursor, interner)?
+                .into()
+            } else if let Some((start, phase)) = is_import_phase_call(cursor, interner)? {
+                // `import.defer(...)` or `import.source(...)` call
+                // Consume `import`
+                cursor.advance(interner);
+                // Consume `.`
+                cursor.advance(interner);
+                // Consume `defer` or `source`
+                cursor.advance(interner);
+                // Consume `(`
                 cursor.advance(interner);
 
                 let specifier = AssignmentExpression::new(true, self.allow_yield, self.allow_await)
