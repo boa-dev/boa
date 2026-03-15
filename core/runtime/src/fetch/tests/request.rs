@@ -152,3 +152,46 @@ fn request_clone_no_body_preserved() {
         }),
     ]);
 }
+
+#[test]
+fn request_init_accepts_valid_mode_and_credentials() {
+    run_test_actions([
+        TestAction::inspect_context(|ctx| {
+            let fetcher = TestFetcher::default();
+            crate::fetch::register(fetcher, None, ctx).expect("failed to register fetch");
+        }),
+        TestAction::run(
+            r#"
+                // Valid mode / credentials combinations should not throw.
+                new Request("http://unit.test", { mode: "cors", credentials: "include" });
+            "#,
+        ),
+    ]);
+}
+
+#[test]
+fn request_init_rejects_invalid_mode() {
+    run_test_actions([
+        TestAction::inspect_context(|ctx| {
+            let fetcher = TestFetcher::default();
+            crate::fetch::register(fetcher, None, ctx).expect("failed to register fetch");
+        }),
+        TestAction::run(
+            r#"
+                let threw = false;
+                try {
+                    new Request("http://unit.test", { mode: "totally-invalid-mode" });
+                } catch (e) {
+                    if (e instanceof TypeError) {
+                        threw = true;
+                    } else {
+                        throw new Error("Expected TypeError, got " + e);
+                    }
+                }
+                if (!threw) {
+                    throw new Error("Expected TypeError to be thrown");
+                }
+            "#,
+        ),
+    ]);
+}
