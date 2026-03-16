@@ -284,8 +284,10 @@ impl Stack {
     #[cfg(feature = "trace")]
     fn format_value(value: &JsValue) -> String {
         let raw = match value {
-            v if v.is_callable() => return "[function]".to_string(),
-            v if v.is_object() => return "[object]".to_string(),
+            v if v.is_callable() => return "func".to_string(),
+            v if v.is_object() => return "obj".to_string(),
+            v if v.is_undefined() => return "und".to_string(),
+            v if v.is_null() => return "null".to_string(),
             v => v.display().to_string(),
         };
         if raw.len() <= Self::MAX_VALUE_LEN {
