@@ -724,7 +724,8 @@ impl String {
 
         if u64::try_from(n)
             .ok()
-            .and_then(|n| n.checked_mul(len as u64)).is_none_or(|total_len| total_len > (Self::MAX_STRING_LENGTH as u64))
+            .and_then(|n| n.checked_mul(len as u64))
+            .is_none_or(|total_len| total_len > (Self::MAX_STRING_LENGTH as u64))
         {
             return Err(JsNativeError::range()
                 .with_message(
