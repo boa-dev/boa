@@ -1,43 +1,36 @@
-use crate::{Context, JsError, JsNativeError, JsResult, vm::opcode::Operation};
+use crate::{
+    Context, JsError, JsNativeError, JsResult,
+    vm::opcode::{IndexOperand, Operation},
+};
 
 /// `DisposeResources` implements the DisposeResources operation.
 ///
-/// This opcode disposes all resources in the current disposal stack.
+/// This opcode disposes the last `count` resources from the disposal stack.
+/// The count is statically determined by the bytecompiler.
 ///
 /// Operation:
 ///  - Stack: **=>**
 pub(crate) struct DisposeResources;
 
 impl DisposeResources {
-    pub(crate) fn operation((): (), context: &mut Context) -> JsResult<()> {
+    pub(crate) fn operation(count: IndexOperand, context: &mut Context) -> JsResult<()> {
+        let count = u32::from(count) as usize;
         let mut suppressed_error: Option<JsError> = None;
 
-        // Get the scope depth to know how many resources to dispose
-        let scope_depth = context.vm.current_disposal_scope_depth();
-
-        // Dispose resources in reverse order (LIFO) until we reach the scope depth
-        while context.vm.disposal_stack.len() > scope_depth {
+        // Dispose exactly `count` resources in reverse order (LIFO)
+        for _ in 0..count {
             if let Some((value, method)) = context.vm.pop_disposable_resource() {
-                // Call the dispose method
                 let result = method.call(&value, &[], context);
 
-                // If an error occurs, aggregate it
                 if let Err(err) = result {
                     suppressed_error = Some(match suppressed_error {
                         None => err,
-                        Some(previous) => {
-                            // Create a SuppressedError
-                            create_suppressed_error(err, &previous, context)
-                        }
+                        Some(previous) => create_suppressed_error(err, &previous, context),
                     });
                 }
             }
         }
 
-        // Pop the disposal scope depth marker
-        context.vm.pop_disposal_scope();
-
-        // If there were any errors, throw the aggregated error
         if let Some(err) = suppressed_error {
             return Err(err);
         }
@@ -62,7 +55,6 @@ fn create_suppressed_error(
     // TODO: Implement proper SuppressedError builtin in Phase 2
     let message = format!("An error was suppressed during disposal: {suppressed}");
 
-    // Attach the original error as a property
     // This is a temporary solution until SuppressedError is implemented
     JsNativeError::error().with_message(message).into()
 }

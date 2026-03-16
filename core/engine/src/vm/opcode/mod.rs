@@ -2207,18 +2207,11 @@ generate_opcodes! {
     /// Dispose all resources in the current disposal stack.
     ///
     /// This opcode implements the DisposeResources abstract operation.
-    /// It calls all dispose methods in reverse order (LIFO).
+    /// It calls the last `count` dispose methods in reverse order (LIFO).
+    /// The count is statically determined by the bytecompiler.
     ///
     /// - Stack: **=>**
-    DisposeResources,
-
-    /// Push a new disposal scope.
-    ///
-    /// This marks the current disposal stack depth for a new scope.
-    /// When DisposeResources is called, it will dispose resources back to this depth.
-    ///
-    /// - Stack: **=>**
-    PushDisposalScope,
+    DisposeResources { count: IndexOperand },
     /// Reserved [`Opcode`].
     Reserved4 => Reserved,
     /// Reserved [`Opcode`].
@@ -2323,4 +2316,6 @@ generate_opcodes! {
     Reserved54 => Reserved,
     /// Reserved [`Opcode`].
     Reserved55 => Reserved,
+    /// Reserved [`Opcode`].
+    Reserved56 => Reserved,
 }

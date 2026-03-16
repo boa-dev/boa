@@ -11,26 +11,26 @@ impl ByteCompiler<'_> {
         let scope = self.push_declarative_scope(block.scope());
         self.block_declaration_instantiation(block);
 
-        // Check if this block has any using declarations
-        let has_using = lexically_scoped_declarations(block).iter().any(|decl| {
-            matches!(
-                decl,
-                LexicallyScopedDeclaration::LexicalDeclaration(
-                    LexicalDeclaration::Using(_) | LexicalDeclaration::AwaitUsing(_)
-                )
-            )
-        });
-
-        // Push disposal scope if this block has using declarations
-        if has_using {
-            self.bytecode.emit_push_disposal_scope();
-        }
+        // Count how many `using` bindings are in this block (statically known at compile time)
+        let using_count: u32 = lexically_scoped_declarations(block)
+            .iter()
+            .filter_map(|decl| {
+                if let LexicallyScopedDeclaration::LexicalDeclaration(
+                    LexicalDeclaration::Using(u) | LexicalDeclaration::AwaitUsing(u),
+                ) = decl
+                {
+                    Some(u.as_ref().len() as u32)
+                } else {
+                    None
+                }
+            })
+            .sum();
 
         self.compile_statement_list(block.statement_list(), use_expr, true);
 
-        // Dispose resources if this block has using declarations
-        if has_using {
-            self.bytecode.emit_dispose_resources();
+        // Emit DisposeResources with the static count if there are any using declarations
+        if using_count > 0 {
+            self.bytecode.emit_dispose_resources(using_count.into());
         }
 
         self.pop_declarative_scope(scope);

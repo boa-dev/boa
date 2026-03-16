@@ -892,10 +892,9 @@ impl CodeBlock {
             | Instruction::SuperCallSpread
             | Instruction::PopPrivateEnvironment
             | Instruction::Generator
-            | Instruction::AsyncGenerator
-            | Instruction::AddDisposableResource { .. }
-            | Instruction::DisposeResources
-            | Instruction::PushDisposalScope => String::new(),
+            | Instruction::AsyncGenerator => String::new(),
+            Instruction::AddDisposableResource { value } => format!("value: {value}"),
+            Instruction::DisposeResources { count } => format!("count: {count}"),
             Instruction::Reserved4
             | Instruction::Reserved5
             | Instruction::Reserved6
@@ -947,7 +946,8 @@ impl CodeBlock {
             | Instruction::Reserved52
             | Instruction::Reserved53
             | Instruction::Reserved54
-            | Instruction::Reserved55 => unreachable!("Reserved opcodes are unreachable"),
+            | Instruction::Reserved55
+            | Instruction::Reserved56 => unreachable!("Reserved opcodes are unreachable"),
         }
     }
 }
