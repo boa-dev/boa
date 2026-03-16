@@ -547,17 +547,17 @@ pub enum Job {
     ///
     /// As described on the [spec's section about execution][execution],
     ///
-    /// > Because calling HostEnqueueFinalizationRegistryCleanupJob is optional,
-    /// > registered objects in a FinalizationRegistry do not necessarily hold
-    /// > that FinalizationRegistry live. Implementations may omit FinalizationRegistry
-    /// > callbacks for any reason, e.g., if the FinalizationRegistry itself becomes
+    /// > Because calling `HostEnqueueFinalizationRegistryCleanupJob` is optional,
+    /// > registered objects in a `FinalizationRegistry` do not necessarily hold
+    /// > that `FinalizationRegistry` live. Implementations may omit `FinalizationRegistry`
+    /// > callbacks for any reason, e.g., if the `FinalizationRegistry` itself becomes
     /// > dead, or if the application is shutting down.
     ///
     /// For this reason, it is recommended to exclude `FinalizationRegistry` cleanup
-    /// jobs from any condition that returns from [`JobExecutor::run_jobs`].
+    /// jobs from any condition that exits from [`JobExecutor::run_jobs`].
     ///
-    /// By the same token, it is recommended to execute [`FinalizationRegistryCleanubJob`]
-    /// separately from all other enqueued [`NativeAsyncJob`]s, prioritizing the
+    /// By the same token, it is recommended to execute `FinalizationRegistry` cleanup
+    /// jobs separately from all other enqueued [`NativeAsyncJob`]s, prioritizing the
     /// execution of all other jobs if possible.
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-weakref-host-hooks

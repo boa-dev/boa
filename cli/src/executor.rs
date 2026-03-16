@@ -20,6 +20,7 @@ pub(crate) struct Executor {
     async_jobs: RefCell<VecDeque<NativeAsyncJob>>,
     timeout_jobs: RefCell<BTreeMap<JsInstant, Vec<TimeoutJob>>>,
     generic_jobs: RefCell<VecDeque<GenericJob>>,
+    finalization_registry_jobs: RefCell<VecDeque<NativeAsyncJob>>,
 
     printer: SharedExternalPrinterLogger,
 }
@@ -31,6 +32,7 @@ impl Executor {
             async_jobs: RefCell::default(),
             timeout_jobs: RefCell::default(),
             generic_jobs: RefCell::default(),
+            finalization_registry_jobs: RefCell::default(),
             printer,
         }
     }
@@ -96,6 +98,9 @@ impl JobExecutor for Executor {
                     .push(job);
             }
             Job::GenericJob(job) => self.generic_jobs.borrow_mut().push_back(job),
+            Job::FinalizationRegistryCleanupJob(job) => {
+                self.finalization_registry_jobs.borrow_mut().push_back(job);
+            }
             job => self.printer.print(format!("unsupported job type {job:?}")),
         }
     }
@@ -106,10 +111,15 @@ impl JobExecutor for Executor {
 
     async fn run_jobs_async(self: Rc<Self>, context: &RefCell<&mut Context>) -> JsResult<()> {
         let mut group = FutureGroup::new();
+        let mut fr_group = FutureGroup::new();
 
         loop {
             for job in mem::take(&mut *self.async_jobs.borrow_mut()) {
                 group.insert(job.call(context));
+            }
+
+            for job in mem::take(&mut *self.finalization_registry_jobs.borrow_mut()) {
+                fr_group.insert(job.call(context));
             }
 
             if let Some(Err(e)) = future::poll_once(group.next()).await.flatten() {
@@ -120,7 +130,16 @@ impl JobExecutor for Executor {
             // event loop is cancelled almost immediately after the channel with
             // the reader gets closed.
             if self.is_empty() && group.is_empty() {
-                return Ok(());
+                // Run finalizers with a lower priority than every other type of
+                // job.
+                if let Some(Err(e)) = future::poll_once(fr_group.next()).await.flatten() {
+                    self.printer.print(uncaught_job_error(&e));
+                }
+
+                // Finalizers could enqueue new jobs, so we cannot just exit.
+                if self.is_empty() {
+                    return Ok(());
+                }
             }
 
             {
