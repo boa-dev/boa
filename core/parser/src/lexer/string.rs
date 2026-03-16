@@ -250,69 +250,63 @@ impl StringLiteral {
     {
         // Support \u{X..X} (Unicode CodePoint)
         if cursor.next_if(0x7B /* { */)? {
-            // TODO: use bytes for a bit better performance (using stack)
-            let mut code_point_buf = Vec::with_capacity(6);
-            cursor.take_until(0x7D /* } */, &mut code_point_buf)?;
+            let mut code_point = 0u32;
+            let mut first_digit = true;
+            loop {
+                let pos = cursor.pos();
+                let Some(c) = cursor.next_char()? else {
+                    return Err(Error::syntax(
+                        "Unexpected end of file when looking for character }",
+                        pos,
+                    ));
+                };
+                if c == 0x7D
+                /* } */
+                {
+                    if first_digit {
+                        return Err(Error::syntax(
+                            "malformed Unicode character escape sequence",
+                            start_pos,
+                        ));
+                    }
+                    break;
+                }
 
-            let mut s = String::with_capacity(code_point_buf.len());
-            for c in code_point_buf {
-                if let Some(c) = char::from_u32(c) {
-                    s.push(c);
-                } else {
+                let Some(digit) = char::from_u32(c).and_then(|c| c.to_digit(16)) else {
                     return Err(Error::syntax(
                         "malformed Unicode character escape sequence",
                         start_pos,
                     ));
+                };
+
+                code_point = (code_point << 4) | digit;
+
+                if code_point > 0x10_FFFF {
+                    return Err(Error::syntax(
+                        "Unicode codepoint must not be greater than 0x10FFFF in escape sequence",
+                        start_pos,
+                    ));
                 }
-            }
-
-            let Ok(code_point) = u32::from_str_radix(&s, 16) else {
-                return Err(Error::syntax(
-                    "malformed Unicode character escape sequence",
-                    start_pos,
-                ));
-            };
-
-            // UTF16Encoding of a numeric code point value
-            if code_point > 0x10_FFFF {
-                return Err(Error::syntax(
-                    "Unicode codepoint must not be greater than 0x10FFFF in escape sequence",
-                    start_pos,
-                ));
+                first_digit = false;
             }
 
             Ok(code_point)
         } else {
             // Grammar: Hex4Digits
             // Collect each character after \u e.g \uD83D will give "D83D"
-            let mut buffer = [0u32; 4];
-            buffer[0] = cursor
-                .next_char()?
-                .ok_or_else(|| Error::syntax("invalid Unicode escape sequence", start_pos))?;
-            buffer[1] = cursor
-                .next_char()?
-                .ok_or_else(|| Error::syntax("invalid Unicode escape sequence", start_pos))?;
-            buffer[2] = cursor
-                .next_char()?
-                .ok_or_else(|| Error::syntax("invalid Unicode escape sequence", start_pos))?;
-            buffer[3] = cursor
-                .next_char()?
-                .ok_or_else(|| Error::syntax("invalid Unicode escape sequence", start_pos))?;
-
-            let mut s = String::with_capacity(buffer.len());
-            for c in buffer {
-                if let Some(c) = char::from_u32(c) {
-                    s.push(c);
-                } else {
+            let mut code_point = 0u32;
+            for _ in 0..4 {
+                let pos = cursor.pos();
+                let c = cursor
+                    .next_char()?
+                    .ok_or_else(|| Error::syntax("invalid Unicode escape sequence", pos))?;
+                let Some(digit) = char::from_u32(c).and_then(|c| c.to_digit(16)) else {
                     return Err(Error::syntax("invalid Unicode escape sequence", start_pos));
-                }
+                };
+                code_point = (code_point << 4) | digit;
             }
 
-            let Ok(code_point) = u16::from_str_radix(&s, 16) else {
-                return Err(Error::syntax("invalid Unicode escape sequence", start_pos));
-            };
-
-            Ok(u32::from(code_point))
+            Ok(code_point)
         }
     }
 
@@ -323,34 +317,22 @@ impl StringLiteral {
     where
         R: ReadChar,
     {
-        let mut buffer = [0u32; 2];
-        buffer[0] = cursor
-            .next_char()?
-            .ok_or_else(|| Error::syntax("invalid Hexadecimal escape sequence", start_pos))?;
-        buffer[1] = cursor
-            .next_char()?
-            .ok_or_else(|| Error::syntax("invalid Hexadecimal escape sequence", start_pos))?;
-
-        let mut s = String::with_capacity(buffer.len());
-        for c in buffer {
-            if let Some(c) = char::from_u32(c) {
-                s.push(c);
-            } else {
+        let mut code_point = 0u32;
+        for _ in 0..2 {
+            let pos = cursor.pos();
+            let c = cursor
+                .next_char()?
+                .ok_or_else(|| Error::syntax("invalid Hexadecimal escape sequence", pos))?;
+            let Some(digit) = char::from_u32(c).and_then(|c| c.to_digit(16)) else {
                 return Err(Error::syntax(
                     "invalid Hexadecimal escape sequence",
                     start_pos,
                 ));
-            }
+            };
+            code_point = (code_point << 4) | digit;
         }
 
-        let Ok(code_point) = u16::from_str_radix(&s, 16) else {
-            return Err(Error::syntax(
-                "invalid Hexadecimal escape sequence",
-                start_pos,
-            ));
-        };
-
-        Ok(u32::from(code_point))
+        Ok(code_point)
     }
 
     fn take_legacy_octal_escape_sequence<R>(

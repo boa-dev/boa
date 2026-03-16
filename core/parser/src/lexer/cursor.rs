@@ -2,7 +2,7 @@
 
 use crate::source::{ReadChar, UTF8Input};
 use boa_ast::{LinearPosition, Position, PositionGroup, SourceText};
-use std::io::{self, Error, ErrorKind};
+use std::io::{self, Error};
 
 /// Cursor over the source code.
 #[derive(Debug)]
@@ -137,25 +137,6 @@ impl<R: ReadChar> Cursor<R> {
             }
             Some(_) | None => false,
         })
-    }
-
-    /// Fills the buffer with all bytes until the stop byte is found.
-    /// Returns error when reaching the end of the buffer.
-    ///
-    /// Note that all bytes up until the stop byte are added to the buffer, including the byte right before.
-    pub(super) fn take_until(&mut self, stop: u32, buf: &mut Vec<u32>) -> io::Result<()> {
-        loop {
-            if self.next_if(stop)? {
-                return Ok(());
-            } else if let Some(c) = self.next_char()? {
-                buf.push(c);
-            } else {
-                return Err(Error::new(
-                    ErrorKind::UnexpectedEof,
-                    format!("Unexpected end of file when looking for character {stop}"),
-                ));
-            }
-        }
     }
 
     /// Fills a mutable slice up to the ends while characters are alphabetic. Returns
