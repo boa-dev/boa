@@ -101,6 +101,7 @@ impl Service for DateTimeFormat {
 
 impl IntrinsicObject for DateTimeFormat {
     fn init(realm: &Realm) {
+        use crate::JsSymbol;
         let get_format = BuiltInBuilder::callable(realm, Self::get_format)
             .name(js_string!("get format"))
             .build();
@@ -118,6 +119,11 @@ impl IntrinsicObject for DateTimeFormat {
                 Attribute::CONFIGURABLE,
             )
             .method(Self::resolved_options, js_string!("resolvedOptions"), 0)
+            .property(
+                JsSymbol::to_string_tag(),
+                js_string!("Intl.DateTimeFormat"),
+                Attribute::READONLY | Attribute::NON_ENUMERABLE | Attribute::CONFIGURABLE,
+            )
             .build();
     }
 
@@ -132,7 +138,7 @@ impl BuiltInObject for DateTimeFormat {
 
 impl BuiltInConstructor for DateTimeFormat {
     const CONSTRUCTOR_ARGUMENTS: usize = 0;
-    const PROTOTYPE_STORAGE_SLOTS: usize = 3;
+    const PROTOTYPE_STORAGE_SLOTS: usize = 4;
     const CONSTRUCTOR_STORAGE_SLOTS: usize = 1;
 
     const STANDARD_CONSTRUCTOR: fn(&StandardConstructors) -> &StandardConstructor =
