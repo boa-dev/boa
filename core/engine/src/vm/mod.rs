@@ -325,14 +325,13 @@ impl Stack {
         for (val, idx) in &entries {
             let is_frame = frame.frame_pointer() == *idx;
 
-            if !is_frame {
-                if let Some(last) = groups.last_mut()
-                    && last.0 == *val
-                    && last.2.is_none()
-                {
-                    last.1 += 1;
-                    continue;
-                }
+            if !is_frame
+                && let Some(last) = groups.last_mut()
+                && last.0 == *val
+                && last.2.is_none()
+            {
+                last.1 += 1;
+                continue;
             }
 
             let marker = if is_frame { Some(frame_count) } else { None };
