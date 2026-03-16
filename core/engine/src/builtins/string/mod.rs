@@ -1538,7 +1538,7 @@ impl String {
         if int_max_length > (Self::MAX_STRING_LENGTH as u64) {
             return Err(JsNativeError::range()
                 .with_message(format!(
-                    "padStart/padEnd would create a string longer than the maximum allowed length ({})",
+                    "cannot create a string longer than the maximum allowed length ({})",
                     Self::MAX_STRING_LENGTH
                 ))
                 .into());
