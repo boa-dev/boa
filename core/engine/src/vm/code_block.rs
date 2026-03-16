@@ -892,12 +892,10 @@ impl CodeBlock {
             | Instruction::SuperCallSpread
             | Instruction::PopPrivateEnvironment
             | Instruction::Generator
-            | Instruction::AsyncGenerator => String::new(),
-            Instruction::AddDisposableResource { value } => {
-                format!("value: {value}")
-            }
-            Instruction::DisposeResources => String::new(),
-            Instruction::PushDisposalScope => String::new(),
+            | Instruction::AsyncGenerator
+            | Instruction::AddDisposableResource { .. }
+            | Instruction::DisposeResources
+            | Instruction::PushDisposalScope => String::new(),
             Instruction::Reserved4
             | Instruction::Reserved5
             | Instruction::Reserved6

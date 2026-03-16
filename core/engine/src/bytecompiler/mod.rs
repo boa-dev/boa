@@ -2258,10 +2258,10 @@ impl<'ctx> ByteCompiler<'ctx> {
                             } else {
                                 self.bytecode.emit_store_undefined(value.variable());
                             }
-                            
+
                             // Add resource to disposal stack
                             self.bytecode.emit_add_disposable_resource(value.variable());
-                            
+
                             self.emit_binding(BindingOpcode::InitLexical, ident, &value);
                             self.register_allocator.dealloc(value);
                         }
@@ -2273,10 +2273,10 @@ impl<'ctx> ByteCompiler<'ctx> {
                             } else {
                                 self.bytecode.emit_store_undefined(value.variable());
                             }
-                            
+
                             // Add resource to disposal stack
                             self.bytecode.emit_add_disposable_resource(value.variable());
-                            
+
                             self.compile_declaration_pattern(
                                 pattern,
                                 BindingOpcode::InitLexical,

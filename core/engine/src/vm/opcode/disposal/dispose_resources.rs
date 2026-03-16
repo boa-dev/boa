@@ -1,7 +1,4 @@
-use crate::{
-    vm::opcode::Operation,
-    Context, JsError, JsNativeError, JsResult,
-};
+use crate::{Context, JsError, JsNativeError, JsResult, vm::opcode::Operation};
 
 /// `DisposeResources` implements the DisposeResources operation.
 ///
@@ -14,7 +11,7 @@ pub(crate) struct DisposeResources;
 impl DisposeResources {
     pub(crate) fn operation((): (), context: &mut Context) -> JsResult<()> {
         let mut suppressed_error: Option<JsError> = None;
-        
+
         // Get the scope depth to know how many resources to dispose
         let scope_depth = context.vm.current_disposal_scope_depth();
 
@@ -30,13 +27,13 @@ impl DisposeResources {
                         None => err,
                         Some(previous) => {
                             // Create a SuppressedError
-                            create_suppressed_error(err, previous, context)
+                            create_suppressed_error(err, &previous, context)
                         }
                     });
                 }
             }
         }
-        
+
         // Pop the disposal scope depth marker
         context.vm.pop_disposal_scope();
 
@@ -56,19 +53,16 @@ impl Operation for DisposeResources {
 }
 
 /// Helper function to create a SuppressedError
-fn create_suppressed_error(_error: JsError, suppressed: JsError, _context: &mut Context) -> JsError {
+fn create_suppressed_error(
+    _error: JsError,
+    suppressed: &JsError,
+    _context: &mut Context,
+) -> JsError {
     // For now, we'll create a simple error that contains both errors
     // TODO: Implement proper SuppressedError builtin in Phase 2
-    let message = format!(
-        "An error was suppressed during disposal: {}",
-        suppressed
-    );
-    
-    let err = JsNativeError::error()
-        .with_message(message)
-        .into();
-    
+    let message = format!("An error was suppressed during disposal: {suppressed}");
+
     // Attach the original error as a property
     // This is a temporary solution until SuppressedError is implemented
-    err
+    JsNativeError::error().with_message(message).into()
 }

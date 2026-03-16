@@ -2202,7 +2202,7 @@ generate_opcodes! {
     ///
     /// - Registers:
     ///   - Input: value
-    AddDisposableResource { value: RegisterOperand },
+    AddDisposableResource { #[allow(dead_code)] value: RegisterOperand },
 
     /// Dispose all resources in the current disposal stack.
     ///
@@ -2211,7 +2211,7 @@ generate_opcodes! {
     ///
     /// - Stack: **=>**
     DisposeResources,
-    
+
     /// Push a new disposal scope.
     ///
     /// This marks the current disposal stack depth for a new scope.

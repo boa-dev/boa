@@ -1,6 +1,6 @@
 use crate::{
-    vm::opcode::{Operation, RegisterOperand, IndexOperand},
     Context, JsResult,
+    vm::opcode::{IndexOperand, Operation, RegisterOperand},
 };
 
 /// `HasRestrictedGlobalProperty` implements the Opcode Operation for `Opcode::HasRestrictedGlobalProperty`
@@ -101,16 +101,13 @@ impl CreateGlobalFunctionBinding {
         let name = code_block.constant_string(name_index.into());
         let value = context.vm.get_register(src.into()).clone();
         let configurable = u32::from(configurable) != 0;
-        
+
         // Convert JsValue to JsObject
         let function = value
             .as_object()
-            .ok_or_else(|| {
-                crate::JsNativeError::typ()
-                    .with_message("value is not an object")
-            })?
+            .ok_or_else(|| crate::JsNativeError::typ().with_message("value is not an object"))?
             .clone();
-        
+
         context.create_global_function_binding(name, function, configurable)?;
         Ok(())
     }

@@ -1,6 +1,6 @@
 use crate::{
-    vm::opcode::{Operation, RegisterOperand},
     Context, JsResult,
+    vm::opcode::{Operation, RegisterOperand},
 };
 
 /// `AddDisposableResource` implements the AddDisposableResource operation.
@@ -32,7 +32,9 @@ impl AddDisposableResource {
         };
 
         // Add to disposal stack
-        context.vm.push_disposable_resource(value, dispose_method.into());
+        context
+            .vm
+            .push_disposable_resource(value, dispose_method.into());
 
         Ok(())
     }

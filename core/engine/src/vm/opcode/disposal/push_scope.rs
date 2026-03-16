@@ -1,7 +1,4 @@
-use crate::{
-    vm::opcode::Operation,
-    Context, JsResult,
-};
+use crate::{Context, vm::opcode::Operation};
 
 /// `PushDisposalScope` marks the current disposal stack depth for a new scope.
 ///
@@ -12,9 +9,8 @@ use crate::{
 pub(crate) struct PushDisposalScope;
 
 impl PushDisposalScope {
-    pub(crate) fn operation((): (), context: &mut Context) -> JsResult<()> {
+    pub(crate) fn operation((): (), context: &mut Context) {
         context.vm.push_disposal_scope();
-        Ok(())
     }
 }
 
