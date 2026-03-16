@@ -358,18 +358,14 @@ pub(crate) fn parse_float(
         return Ok(JsValue::nan());
     }
 
-    let value = match trimmed_string.as_str() {
+    let value = match input_string.as_flat_str() {
         JsStr::Latin1(s) => fast_float2::parse_partial::<f64, _>(s),
         JsStr::Utf16(s) => {
             // TODO: Explore adding direct UTF-16 parsing support to fast_float2.
             let s = String::from_utf16_lossy(s);
             fast_float2::parse_partial::<f64, _>(s.as_bytes())
         }
-        JsStr::Rope(_) => {
-            let s = input_string.to_vec();
-            let s = String::from_utf16_lossy(&s);
-            fast_float2::parse_partial::<f64, _>(s.as_bytes())
-        }
+        JsStr::Rope(_) => unreachable!("rope should be flattened by as_flat_str"),
     };
 
     Ok(value.map_or_else(

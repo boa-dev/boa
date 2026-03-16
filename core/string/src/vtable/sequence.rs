@@ -45,12 +45,7 @@ impl<T: InternalStringType> SequenceString<T> {
     #[must_use]
     pub(crate) fn new(len: usize) -> Self {
         SequenceString {
-            header: JsStringHeader {
-                vtable: T::VTABLE,
-                len,
-                refcount: 1,
-                hash: 0,
-            },
+            header: JsStringHeader::new(T::VTABLE, len, 1),
             _marker: PhantomData,
             data: [0; 0],
         }

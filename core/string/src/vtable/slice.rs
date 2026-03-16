@@ -37,12 +37,7 @@ impl SliceString {
         // `start` >= 0, `end` <= `owned.len()`).
         let inner = unsafe { owned.as_str().get_unchecked(start..end) };
         SliceString {
-            header: JsStringHeader {
-                vtable: &SLICE_VTABLE,
-                len: end - start,
-                refcount: 1,
-                hash: 0,
-            },
+            header: JsStringHeader::new(&SLICE_VTABLE, end - start, 1),
             owned: owned.clone(),
             // SAFETY: this inner's lifetime is tied to the owned string above.
             // We transmute the lifetime to 'static to satisfy the long-lived nature of the string vtable.

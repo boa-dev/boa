@@ -1157,11 +1157,10 @@ impl RegExp {
 
         // 13.b. Let inputIndex be the index into input of the character that was obtained from element lastIndex of S.
         // 13.c. Let r be matcher(input, inputIndex).
-        let r: Option<regress::Match> = match (full_unicode, input.as_str()) {
-            (true | false, JsStr::Latin1(_)) => {
+        let r: Option<regress::Match> = match (full_unicode, input.as_flat_str()) {
+            (true | false, JsStr::Latin1(input)) => {
                 // TODO: Currently regress does not support latin1 encoding.
-                let input = input.to_vec();
-
+                let input = input.iter().map(|&b| u16::from(b)).collect::<Vec<u16>>();
                 // NOTE: We can use the faster ucs2 variant since there will never be two byte unicode.
                 matcher.find_from_ucs2(&input, last_index as usize).next()
             }
@@ -1171,14 +1170,7 @@ impl RegExp {
             (false, JsStr::Utf16(input)) => {
                 matcher.find_from_ucs2(input, last_index as usize).next()
             }
-            (true, JsStr::Rope(_)) => {
-                let input = input.to_vec();
-                matcher.find_from_utf16(&input, last_index as usize).next()
-            }
-            (false, JsStr::Rope(_)) => {
-                let input = input.to_vec();
-                matcher.find_from_ucs2(&input, last_index as usize).next()
-            }
+            (_, JsStr::Rope(_)) => unreachable!("rope should be flattened by as_flat_str"),
         };
 
         let Some(match_value) = r else {
