@@ -1,4 +1,4 @@
-//! Boa's implementation of ECMAScript's global `String` object.
+///! Boa's implementation of ECMAScript's global `String` object.
 //!
 //! The `String` global object is a constructor for strings or a sequence of characters.
 //!
@@ -714,7 +714,7 @@ impl String {
 
         let len = string.len();
 
-        if n == 0 || string.is_empty {
+        if n == 0 || string.is_empty() {
             return Ok(js_string!().into());
         }
 
