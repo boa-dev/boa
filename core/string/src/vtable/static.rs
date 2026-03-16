@@ -28,12 +28,7 @@ impl StaticString {
     #[must_use]
     pub const fn new(str: JsStr<'static>) -> Self {
         Self {
-            header: JsStringHeader {
-                vtable: &STATIC_VTABLE,
-                len: str.len(),
-                refcount: 0,
-                hash: 0,
-            },
+            header: JsStringHeader::new(&STATIC_VTABLE, str.len(), 0),
             str,
         }
     }

@@ -8,7 +8,7 @@ use std::{
 /// A view into a rope string.
 #[derive(Debug, Clone, Copy)]
 pub struct RopeSlice<'a> {
-    pub(crate) header: &'a crate::vtable::JsStringHeader,
+    pub header: &'a crate::vtable::JsStringHeader,
     pub(crate) start: usize,
     pub(crate) end: usize,
 }

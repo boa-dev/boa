@@ -19,7 +19,8 @@ mod display;
 mod iter;
 mod str;
 mod r#type;
-pub(crate) mod vtable;
+/// VTable-based string implementation details.
+pub mod vtable;
 
 #[cfg(test)]
 mod tests;
@@ -96,7 +97,7 @@ pub(crate) const fn is_trimmable_whitespace_latin1(c: u8) -> bool {
 /// the storage kind of string.
 #[derive(Debug, Clone, Copy, Eq, PartialEq)]
 #[repr(u8)]
-pub(crate) enum JsStringKind {
+pub enum JsStringKind {
     /// A sequential memory slice of Latin1 bytes. See [`SequenceString`].
     Latin1Sequence = 0,
 
@@ -644,6 +645,22 @@ impl JsString {
         } else {
             // SAFETY: The conditions `p1 <= p2` and `p2 <= self.len()` are ensured by the `if` blocks above.
             unsafe { Self::slice_unchecked(self, p1, p2) }
+        }
+    }
+
+    /// Returns the string as a contiguous [`JsStr`].
+    ///
+    /// If the string is a rope, this flattens it into a contiguous buffer and returns a view
+    /// into that buffer. Subsequent calls will return the cached buffer instantly.
+    #[inline]
+    #[must_use]
+    pub fn as_flat_str(&self) -> JsStr<'_> {
+        let view = self.as_str();
+        if let JsStr::Rope(rope) = view {
+            let flat = vtable::rope::flatten_rope(rope.header);
+            flat.as_str()
+        } else {
+            view
         }
     }
 

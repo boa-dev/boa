@@ -63,11 +63,25 @@ pub(crate) static ROPE_VTABLE: JsStringVTable = JsStringVTable {
     kind: JsStringKind::Rope,
 };
 
+/// The flattened representation of a rope.
 #[allow(dead_code)]
 #[derive(Debug)]
-pub(crate) enum Flattened {
+pub enum Flattened {
+    /// Latin1 encoded contiguous buffer.
     Latin1(Box<[u8]>),
+    /// UTF-16 encoded contiguous buffer.
     Utf16(Box<[u16]>),
+}
+
+impl Flattened {
+    /// Gets the flattened string as a `JsStr`.
+    #[must_use]
+    pub fn as_str(&self) -> JsStr<'_> {
+        match self {
+            Self::Latin1(b) => JsStr::Latin1(b),
+            Self::Utf16(b) => JsStr::Utf16(b),
+        }
+    }
 }
 
 /// A rope string that is a tree of other strings.
@@ -98,16 +112,28 @@ impl RopeString {
 
         let d = depth as usize;
 
+        // Leaf Consolidation: If the result is small, always flatten to avoid depth build-up for small concatenations.
+        if len < 512 {
+            return JsString::concat_array(&[left.as_str(), right.as_str()]);
+        }
+
+        // Leaf Sinking: If we're appending a small string and the left side is a rope,
+        // try to sink the append into the rightmost leaf.
+        // This keeps the tree shallow and avoids frequent rebalancing for small repeated appends.
+        if right.len() < 256 && left.kind() == JsStringKind::Rope {
+            // SAFETY: kind() check ensures this is a rope.
+            let left_rope = unsafe { Self::from_vtable(left.ptr) };
+            if left_rope.right.len() + right.len() < 512 {
+                let new_right = JsString::concat_slices(left_rope.right.as_str(), right.as_str());
+                return Self::create(left_rope.left.clone(), new_right);
+            }
+        }
+
         // Classical Fibonacci Weight Invariant:
         // A rope of depth `d` is considered balanced if its length is at least `Fib(d + 2)`.
         // If the current length is less than the threshold for the current depth, we rebalance.
         // This alone guarantees logarithmic depth while ensuring rebalancing happens only O(log n) times.
         if d >= FIBONACCI_THRESHOLDS.len() || len < FIBONACCI_THRESHOLDS[d] {
-            // If the string is small, just flatten it to a sequence for maximum efficiency.
-            if len < 512 {
-                return JsString::concat_array(&[left.as_str(), right.as_str()]);
-            }
-
             // Otherwise, collect leaves and rebuild a balanced tree.
             let mut leaves = Vec::with_capacity(std::cmp::max(depth as usize * 2, 16));
             Self::collect_leaves(&left, &mut leaves);
@@ -116,12 +142,7 @@ impl RopeString {
         }
 
         let rope = Box::new(Self {
-            header: JsStringHeader {
-                vtable: &ROPE_VTABLE,
-                len,
-                refcount: 1,
-                hash: 0,
-            },
+            header: JsStringHeader::new(&ROPE_VTABLE, len, 1),
             left,
             right,
             flattened: OnceCell::new(),
@@ -226,8 +247,12 @@ fn rope_as_str(header: &JsStringHeader) -> JsStr<'_> {
 }
 
 /// Flattens a rope string into a contiguous buffer.
-#[allow(dead_code)]
-pub(crate) fn flatten_rope(header: &JsStringHeader) -> &Flattened {
+///
+/// # Panics
+///
+/// Panics if the string contains non-Latin1 characters but was expected to be Latin1.
+#[must_use]
+pub fn flatten_rope(header: &JsStringHeader) -> &Flattened {
     // SAFETY: The header is part of a RopeString and it's aligned.
     let this: &RopeString = unsafe { &*ptr::from_ref(header).cast::<RopeString>() };
 
@@ -287,7 +312,13 @@ pub(crate) fn flatten_rope(header: &JsStringHeader) -> &Flattened {
                         stack.push(r.left.clone());
                     }
                 } else {
-                    buffer.extend_from_slice(current.as_str().as_latin1().unwrap());
+                    // SAFETY: The initial pass already verified that all components of this rope are Latin1.
+                    buffer.extend_from_slice(
+                        current
+                            .as_str()
+                            .as_latin1()
+                            .expect("initial pass verified encoding"),
+                    );
                 }
             }
             Flattened::Latin1(buffer.into_boxed_slice())
@@ -325,6 +356,17 @@ pub(crate) fn flatten_rope(header: &JsStringHeader) -> &Flattened {
 
 #[inline]
 fn rope_code_points(header: &JsStringHeader) -> crate::iter::CodePointsIter<'_> {
+    // SAFETY: The header is guaranteed to be a `RopeString` and it's aligned.
+    let this: &RopeString = unsafe { &*ptr::from_ref(header).cast::<RopeString>() };
+
+    // CACHE-AWARE: If already flattened, use the fast contiguous iterator.
+    if let Some(flattened) = this.flattened.get() {
+        return match flattened {
+            Flattened::Latin1(b) => JsStr::latin1(b).code_points(),
+            Flattened::Utf16(b) => JsStr::utf16(b).code_points(),
+        };
+    }
+
     // SAFETY: The header is guaranteed to be a `RopeString` and alive for the duration of the iterator
     // as it is bound by the lifetime of the input reference.
     unsafe {
@@ -344,9 +386,25 @@ fn rope_code_unit_at(header: &JsStringHeader, mut index: usize) -> Option<u16> {
     // The pointer is guaranteed to be a valid `NonNull<JsStringHeader>` pointing to a `RopeString`.
     let mut current: &RopeString = unsafe { &*ptr::from_ref(header).cast::<RopeString>() };
 
+    // CACHE-AWARE: If the root is already flattened, return the unit from the buffer in O(1).
+    if let Some(flattened) = current.flattened.get() {
+        return match flattened {
+            Flattened::Latin1(b) => b.get(index).copied().map(u16::from),
+            Flattened::Utf16(b) => b.get(index).copied(),
+        };
+    }
+
     loop {
         if index >= current.header.len {
             return None;
+        }
+
+        // If the current node we are traversing is already flattened, we can finish early.
+        if let Some(flattened) = current.flattened.get() {
+            return match flattened {
+                Flattened::Latin1(b) => b.get(index).copied().map(u16::from),
+                Flattened::Utf16(b) => b.get(index).copied(),
+            };
         }
 
         let left_len = current.left.len();

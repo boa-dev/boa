@@ -752,8 +752,7 @@ pub(super) fn pad_six(t: u32, output: &mut [u8; 6]) -> JsStr<'_> {
 /// [spec-format]: https://tc39.es/ecma262/#sec-date-time-string-format
 pub(super) fn parse_date(date: &JsString, hooks: &dyn HostHooks) -> Option<i64> {
     // All characters must be ASCII so we can return early if we find a non-ASCII character.
-    let owned_js_str = date.as_str();
-    let date = match owned_js_str {
+    let date = match date.as_flat_str() {
         JsStr::Latin1(s) => {
             if !s.is_ascii() {
                 return None;
@@ -768,14 +767,7 @@ pub(super) fn parse_date(date: &JsString, hooks: &dyn HostHooks) -> Option<i64> 
             }
             Cow::Owned(date)
         }
-        JsStr::Rope(_) => {
-            let s = date.to_vec();
-            let date = String::from_utf16(&s).ok()?;
-            if !date.is_ascii() {
-                return None;
-            }
-            Cow::Owned(date)
-        }
+        JsStr::Rope(_) => unreachable!("rope should be flattened by as_flat_str"),
     };
 
     // Date Time String Format: 'YYYY-MM-DDTHH:mm:ss.sssZ'
