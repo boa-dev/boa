@@ -1,4 +1,4 @@
-///! Boa's implementation of ECMAScript's global `String` object.
+//! This module implements the global `String` object.
 //!
 //! The `String` global object is a constructor for strings or a sequence of characters.
 //!
