@@ -1,4 +1,4 @@
-//! Boa's implementation of ECMAScript's global `String` object.
+//! This module implements the global `String` object.
 //!
 //! The `String` global object is a constructor for strings or a sequence of characters.
 //!
@@ -689,41 +689,59 @@ impl String {
         // 2. Let S be ? ToString(O).
         let string = this.to_string(context)?;
 
+        // 3. Let n be ? ToIntegerOrInfinity(count).
+        let n = args.get_or_undefined(0).to_integer_or_infinity(context)?;
+
+        // 4. If n < 0 or n is +∞, throw a RangeError exception.
+        let n = match n {
+            IntegerOrInfinity::Integer(i) if i < 0 => {
+                return Err(JsNativeError::range()
+                    .with_message("String.prototype.repeat: count must be non-negative")
+                    .into());
+            }
+            IntegerOrInfinity::PositiveInfinity => {
+                return Err(JsNativeError::range()
+                    .with_message("String.prototype.repeat: count must be less than infinity")
+                    .into());
+            }
+            IntegerOrInfinity::NegativeInfinity => {
+                return Err(JsNativeError::range()
+                    .with_message("String.prototype.repeat: count must be non-negative")
+                    .into());
+            }
+            IntegerOrInfinity::Integer(i) => i,
+        };
+
         let len = string.len();
 
-        // 3. Let n be ? ToIntegerOrInfinity(count).
-        match args.get_or_undefined(0).to_integer_or_infinity(context)? {
-            IntegerOrInfinity::Integer(n)
-                if u64::try_from(n)
-                    .ok()
-                    .and_then(|n| n.checked_mul(len as u64))
-                    .is_some_and(|total_len| total_len <= (Self::MAX_STRING_LENGTH as u64)) =>
-            {
-                if string.is_empty() {
-                    return Ok(js_string!().into());
-                }
-                let n = n as usize;
+        if n == 0 || string.is_empty() {
+            return Ok(js_string!().into());
+        }
 
-                // Charge each repetition against the VM loop-iteration limit.
-                let mut result = Vec::with_capacity(n);
-                for _ in 0..n {
-                    crate::vm::opcode::IncrementLoopIteration::operation((), context)?;
-                    result.push(string.as_str());
-                }
-
-                // 6. Return the String value that is made from n copies of S appended together.
-                Ok(JsString::concat_array(&result).into())
-            }
-            // 5. If n is 0, return the empty String.
-            IntegerOrInfinity::Integer(0) => Ok(js_string!().into()),
-            // 4. If n < 0 or n is +∞, throw a RangeError exception.
-            _ => Err(JsNativeError::range()
+        if u64::try_from(n)
+            .ok()
+            .and_then(|n| n.checked_mul(len as u64))
+            .is_none_or(|total_len| total_len > (Self::MAX_STRING_LENGTH as u64))
+        {
+            return Err(JsNativeError::range()
                 .with_message(
                     "repeat count must be a positive finite number \
                         that doesn't overflow the maximum string length (2^32 - 1)",
                 )
-                .into()),
+                .into());
         }
+
+        let n = n as usize;
+
+        // Charge each repetition against the VM loop-iteration limit.
+        let mut result = Vec::with_capacity(n);
+        for _ in 0..n {
+            crate::vm::opcode::IncrementLoopIteration::operation((), context)?;
+            result.push(string.as_str());
+        }
+
+        // 6. Return the String value that is made from n copies of S appended together.
+        Ok(JsString::concat_array(&result).into())
     }
 
     /// `String.prototype.slice( beginIndex [, endIndex] )`
