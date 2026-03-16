@@ -1,5 +1,5 @@
 use crate::{
-    Context, JsValue, TestAction, builtins::promise::PromiseState, object::JsPromise,
+    Context, JsValue, Source, TestAction, builtins::promise::PromiseState, object::JsPromise,
     run_test_actions,
 };
 use boa_macros::js_str;
@@ -119,4 +119,50 @@ fn return_on_then_queue() {
         }),
         TestAction::assert_eq("count", JsValue::from(2)),
     ]);
+}
+
+#[test]
+fn cross_realm_async_generator_yield() {
+    // Exercises AsyncGeneratorYield spec steps 6-8 (previousRealm handling)
+    // by creating a generator in one realm and consuming it from another.
+    let mut context = Context::default();
+
+    let generator_realm = context.create_realm().unwrap();
+
+    let old_realm = context.enter_realm(generator_realm);
+    let generator = context
+        .eval(Source::from_bytes(
+            b"(async function* g() { yield 42; yield 99; })()",
+        ))
+        .unwrap();
+    context.enter_realm(old_realm);
+
+    let next_fn = generator
+        .as_object()
+        .unwrap()
+        .get(js_str!("next"), &mut context)
+        .unwrap();
+
+    let call_next = |ctx: &mut Context| -> JsValue {
+        let result = next_fn
+            .as_callable()
+            .unwrap()
+            .call(&generator, &[], ctx)
+            .unwrap();
+        ctx.run_jobs().unwrap();
+        result
+    };
+
+    assert_promise_iter_value(
+        &call_next(&mut context),
+        &JsValue::from(42),
+        false,
+        &mut context,
+    );
+    assert_promise_iter_value(
+        &call_next(&mut context),
+        &JsValue::from(99),
+        false,
+        &mut context,
+    );
 }

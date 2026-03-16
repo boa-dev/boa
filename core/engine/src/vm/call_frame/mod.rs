@@ -77,6 +77,10 @@ pub struct CallFrame {
     /// \[\[Realm\]\]
     pub(crate) realm: Realm,
 
+    /// The caller's realm, captured during generator resume.
+    /// Used by `AsyncGeneratorYield` to pass `previousRealm` to `AsyncGeneratorCompleteStep`.
+    pub(crate) caller_realm: Option<Realm>,
+
     // SAFETY: Nothing in `CallFrameFlags` requires tracing, so this is safe.
     #[unsafe_ignore_trace]
     pub(crate) flags: CallFrameFlags,
@@ -154,6 +158,7 @@ impl CallFrame {
             active_runnable,
             environments,
             realm,
+            caller_realm: None,
             flags: CallFrameFlags::empty(),
         }
     }
