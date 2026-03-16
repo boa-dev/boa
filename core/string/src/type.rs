@@ -11,7 +11,7 @@ mod sealed {
 /// Internal trait for crate-specific usage. Contains implementation details
 /// that should not leak through the API.
 #[allow(private_interfaces)]
-pub(crate) trait InternalStringType: StringType {
+pub trait InternalStringType: StringType {
     /// The offset to the data field in the sequence string struct.
     const DATA_OFFSET: usize;
 
