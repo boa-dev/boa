@@ -100,9 +100,6 @@ impl GeneratorContext {
         resume_kind: GeneratorResumeKind,
         context: &mut Context,
     ) -> CompletionRecord {
-        // Capture the caller's realm for AsyncGeneratorYield (spec §27.6.3.8 step 8).
-        let caller_realm = Some(context.realm().clone());
-
         std::mem::swap(&mut context.vm.stack, &mut self.stack);
         let frame = self.call_frame.take().expect("should have a call frame");
         let fp = frame.fp;
@@ -112,7 +109,6 @@ impl GeneratorContext {
         let frame = context.vm.frame_mut();
         frame.fp = fp;
         frame.rp = rp;
-        frame.caller_realm = caller_realm;
         frame.set_exit_early(true);
 
         if let Some(value) = value {

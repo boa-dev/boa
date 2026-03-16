@@ -69,7 +69,11 @@ impl AsyncGeneratorYield {
         // 6. Assert: The execution context stack has at least two elements.
         // 7. Let previousContext be the second to top element of the execution context stack.
         // 8. Let previousRealm be previousContext's Realm.
-        let previous_realm = context.vm.frame().caller_realm.clone();
+        let previous_realm = context
+            .vm
+            .frames
+            .get(context.vm.frames.len() - 2)
+            .map(|frame| frame.realm.clone());
 
         // 9. Perform AsyncGeneratorCompleteStep(generator, completion, false, previousRealm).
         if let Err(err) = AsyncGenerator::complete_step(
