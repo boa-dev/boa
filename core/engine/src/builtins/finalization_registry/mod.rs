@@ -23,11 +23,13 @@ use crate::{
 
 use super::{BuiltInConstructor, BuiltInObject, IntrinsicObject, builder::BuiltInBuilder};
 
+#[cfg(test)]
+mod tests;
+
 /// On GG collection, sends a message to a [`FinalizationRegistry`] indicating that it needs to
 /// be collected.
 #[derive(Trace)]
-#[boa_gc(unsafe_empty_trace)]
-struct CleanupSignaler(Cell<Option<async_channel::WeakSender<()>>>);
+struct CleanupSignaler(#[unsafe_ignore_trace] Cell<Option<async_channel::WeakSender<()>>>);
 
 impl Finalize for CleanupSignaler {
     fn finalize(&self) {
@@ -313,12 +315,7 @@ impl FinalizationRegistry {
                 let _key = cell.target.key();
                 // TODO: it might be better to add a special ref for the value that
                 // also preserves the original key instead.
-                // SAFETY: the original key is alive per our previous call to `key`,
-                // so if this returns `Some`, then the value cannot be collected
-                // until `key` gets dropped.
-                unsafe {
-                    cell.target.value_ref().and_then(|v| v.0.take());
-                }
+                cell.target.value().and_then(|v| v.0.take());
 
                 // ii. Set removed to true.
                 removed = true;

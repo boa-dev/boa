@@ -447,6 +447,7 @@ pub(crate) fn set_default_global_bindings(context: &mut Context) -> JsResult<()>
     global_binding::<WeakSet>(context)?;
     global_binding::<IteratorConstructor>(context)?;
     global_binding::<Atomics>(context)?;
+    global_binding::<FinalizationRegistry>(context)?;
 
     #[cfg(feature = "annex-b")]
     {
