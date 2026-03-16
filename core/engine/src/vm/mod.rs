@@ -282,19 +282,26 @@ impl Stack {
     const MAX_STACK_WIDTH: usize = 68;
 
     #[cfg(feature = "trace")]
-    fn format_value(value: &JsValue) -> String {
-        let raw = match value {
-            v if v.is_callable() => return "func".to_string(),
-            v if v.is_object() => return "obj".to_string(),
-            v if v.is_undefined() => return "und".to_string(),
-            v if v.is_null() => return "null".to_string(),
+    fn raw_value(value: &JsValue) -> String {
+        match value {
+            v if v.is_callable() => "func".to_string(),
+            v if v.is_object() => "obj".to_string(),
+            v if v.is_undefined() => "und".to_string(),
+            v if v.is_null() => "null".to_string(),
             v => v.display().to_string(),
-        };
-        if raw.len() <= Self::MAX_VALUE_LEN {
-            raw
-        } else {
-            format!("{}..", &raw[..Self::MAX_VALUE_LEN - 2])
         }
+    }
+
+    #[cfg(feature = "trace")]
+    fn truncate_display(val: &str) -> String {
+        if val.len() <= Self::MAX_VALUE_LEN {
+            return val.to_string();
+        }
+        let mut end = Self::MAX_VALUE_LEN - 2;
+        while !val.is_char_boundary(end) && end > 0 {
+            end -= 1;
+        }
+        format!("{}..", &val[..end])
     }
 
     #[cfg(feature = "trace")]
@@ -304,42 +311,43 @@ impl Stack {
             return "[ <empty> ]".to_string();
         }
 
-        // Build (formatted_value, original_index) pairs, top of stack first
+        // Build (raw_value, index) pairs, top of stack first
         let entries: Vec<(String, usize)> = self
             .stack
             .iter()
             .enumerate()
             .rev()
-            .map(|(j, v)| (Self::format_value(v), j))
+            .map(|(j, v)| (Self::raw_value(v), j))
             .collect();
 
-        // Group consecutive identical values
+        // Group consecutive identical values, but never merge frame pointer entries
         let mut groups: Vec<(String, usize, Option<usize>)> = Vec::new();
         for (val, idx) in &entries {
-            if let Some(last) = groups.last_mut()
-                && last.0 == *val
-                && last.2.is_none()
-            {
-                last.1 += 1;
-                continue;
+            let is_frame = frame.frame_pointer() == *idx;
+
+            if !is_frame {
+                if let Some(last) = groups.last_mut()
+                    && last.0 == *val
+                    && last.2.is_none()
+                {
+                    last.1 += 1;
+                    continue;
+                }
             }
 
-            let frame_marker = if frame.frame_pointer() == *idx {
-                Some(frame_count)
-            } else {
-                None
-            };
-            groups.push((val.clone(), 1, frame_marker));
+            let marker = if is_frame { Some(frame_count) } else { None };
+            groups.push((val.clone(), 1, marker));
         }
 
         let mut string = String::from("[ ");
         let mut truncated = false;
 
         for (i, (val, count, marker)) in groups.iter().enumerate() {
+            let display_val = Self::truncate_display(val);
             let part = if *count > 1 {
-                format!("{val} (x{count})")
+                format!("{display_val} (x{count})")
             } else {
-                val.clone()
+                display_val
             };
 
             let separator = if let Some(fc) = marker {
