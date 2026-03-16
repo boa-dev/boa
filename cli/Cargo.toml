@@ -27,7 +27,8 @@ color-eyre.workspace = true
 cow-utils.workspace = true
 futures-concurrency.workspace = true
 futures-lite.workspace = true
-async-channel = "2.5.0"
+async-channel.workspace = true
+rustls.workspace = true
 
 [features]
 default = [
