@@ -22,6 +22,7 @@ futures-concurrency.workspace = true
 futures-lite.workspace = true
 tokio = { workspace = true, features = ["rt", "rt-multi-thread", "time", "macros"] }
 reqwest.workspace = true
+rustls.workspace = true
 
 # use explicit lints for examples, since we don't need to lint for docs
 [lints.rust]
