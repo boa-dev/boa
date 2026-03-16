@@ -10,7 +10,7 @@
 //! [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String
 
 use crate::{
-    Context, JsArgs, JsResult, JsString, JsValue,
+    Context, JsArgs, JsExpect, JsResult, JsString, JsValue,
     builtins::{Array, BuiltInObject, Number, RegExp},
     context::intrinsics::{Intrinsics, StandardConstructor, StandardConstructors},
     error::JsNativeError,
@@ -703,9 +703,13 @@ impl String {
                     return Ok(js_string!().into());
                 }
                 let n = n as usize;
-                let mut result = Vec::with_capacity(n);
 
-                std::iter::repeat_n(string.as_str(), n).for_each(|s| result.push(s));
+                // Charge each repetition against the VM loop-iteration limit.
+                let mut result = Vec::with_capacity(n);
+                for _ in 0..n {
+                    crate::vm::opcode::IncrementLoopIteration::operation((), context)?;
+                    result.push(string.as_str());
+                }
 
                 // 6. Return the String value that is made from n copies of S appended together.
                 Ok(JsString::concat_array(&result).into())
@@ -1218,7 +1222,7 @@ impl String {
                     replace_str,
                     context,
                 )
-                .expect("GetSubstitution should never fail here."),
+                .js_expect("GetSubstitution should never fail here.")?,
             };
 
             // d. Set result to the string-concatenation of result, preserved, and replacement.
@@ -1348,7 +1352,7 @@ impl String {
         } else {
             JsValue::new(num_pos)
                 .to_integer_or_infinity(context)
-                .expect("Already called `to_number so this must not fail.")
+                .js_expect("Already called `to_number so this must not fail.")?
         };
 
         // 7. Let len be the length of S.
@@ -1426,7 +1430,7 @@ impl String {
                 let collator = object
                     .as_ref()
                     .and_then(|o| o.downcast_ref::<Collator>())
-                    .expect("constructor must return a `Collator` object");
+                    .js_expect("constructor must return a `Collator` object")?;
 
                 let s = s.iter().collect::<Vec<_>>();
                 let that_value = that_value.iter().collect::<Vec<_>>();
@@ -1554,8 +1558,18 @@ impl String {
             if r == 0 { q } else { q + 1 }
         };
 
-        let truncated_string_filler = filler.to_vec().repeat(repetitions as usize);
-        let truncated_string_filler = JsString::from(&truncated_string_filler[..fill_len as usize]);
+        let mut truncated_string_filler = Vec::with_capacity(fill_len as usize);
+        let filler_slice = filler.to_vec();
+        for _ in 0..repetitions {
+            let remaining = fill_len as usize - truncated_string_filler.len();
+            if remaining >= filler_slice.len() {
+                truncated_string_filler.extend_from_slice(&filler_slice);
+            } else {
+                truncated_string_filler.extend_from_slice(&filler_slice[..remaining]);
+                break;
+            }
+        }
+        let truncated_string_filler = JsString::from(&truncated_string_filler[..]);
 
         // 10. If placement is start, return the string-concatenation of truncatedStringFiller and S.
         if placement == Placement::Start {
@@ -2738,7 +2752,7 @@ pub(crate) fn get_substitution(
                         // a. Assert: Type(namedCaptures) is Object.
                         let named_captures = named_captures
                             .as_object()
-                            .expect("should be an object according to spec");
+                            .js_expect("should be an object according to spec")?;
 
                         // b. Scan until the next > U+003E (GREATER-THAN SIGN).
                         let mut group_name = vec![];

@@ -350,4 +350,48 @@ impl Error {
             .is_some_and(|o| o.is::<Error>())
             .into())
     }
+
+    /// Shared constructor logic for all `NativeError` subtypes.
+    ///
+    /// Implements the [`NativeError ( message [ , options ] )`][spec] algorithm,
+    /// which is identical for `EvalError`, `RangeError`, `ReferenceError`,
+    /// `SyntaxError`, `TypeError`, and `URIError`.
+    ///
+    /// [spec]: https://tc39.es/ecma262/#sec-nativeerror
+    pub(super) fn native_error_constructor(
+        new_target: &JsValue,
+        args: &[JsValue],
+        context: &mut Context,
+        error_kind: ErrorKind,
+        constructor_fn: fn(&StandardConstructors) -> &StandardConstructor,
+    ) -> JsResult<JsValue> {
+        let new_target = &if new_target.is_undefined() {
+            context
+                .active_function_object()
+                .unwrap_or_else(|| {
+                    constructor_fn(context.intrinsics().constructors()).constructor()
+                })
+                .into()
+        } else {
+            new_target.clone()
+        };
+
+        let prototype = get_prototype_from_constructor(new_target, constructor_fn, context)?;
+        let o = JsObject::from_proto_and_data_with_shared_shape(
+            context.root_shape(),
+            prototype,
+            Error::with_caller_position(error_kind, context),
+        )
+        .upcast();
+
+        let message = args.get_or_undefined(0);
+        if !message.is_undefined() {
+            let msg = message.to_string(context)?;
+            o.create_non_enumerable_data_property_or_throw(js_string!("message"), msg, context);
+        }
+
+        Error::install_error_cause(&o, args.get_or_undefined(1), context)?;
+
+        Ok(o.into())
+    }
 }

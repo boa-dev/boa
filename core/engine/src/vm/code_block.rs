@@ -763,8 +763,18 @@ impl CodeBlock {
             | Instruction::BitNot { value } => {
                 format!("value:{value}")
             }
-            Instruction::ImportCall { specifier, options } => {
-                format!("specifier:{specifier}, options:{options}")
+            Instruction::ImportCall {
+                specifier,
+                options,
+                phase,
+            } => {
+                let phase_str = match u32::from(*phase) {
+                    0 => "evaluation",
+                    1 => "defer",
+                    2 => "source",
+                    _ => "unknown",
+                };
+                format!("specifier:{specifier}, options:{options}, phase:{phase_str}")
             }
             Instruction::PushClassField {
                 object,

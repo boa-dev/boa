@@ -1,0 +1,85 @@
+C-Actions:
+- changed-files:
+  - any-glob-to-any-file:
+    - '.github/**'
+
+C-AST:
+- changed-files:
+  - any-glob-to-any-file: 'core/ast/**'
+
+C-Benchmark:
+- changed-files:
+  - any-glob-to-any-file:
+    - 'benches/**'
+    - 'core/engine/benches/**'
+
+C-Builtins:
+- changed-files:
+  - any-glob-to-any-file:
+    - 'core/engine/src/builtins/**'
+    - 'core/engine/src/object/builtins/**'
+  - all-globs-to-all-files:
+    - '!core/engine/src/object/builtins/intl/**'
+
+C-CLI:
+- changed-files:
+  - any-glob-to-any-file:
+    - 'cli/**'
+
+C-Dependencies:
+- changed-files:
+  - any-glob-to-any-file:
+    - '**/Cargo.lock'
+    - '**/Cargo.toml'
+
+C-Documentation:
+- changed-files:
+  - any-glob-to-any-file:
+    - '**/*.md'
+
+C-FFI:
+- changed-files:
+  - any-glob-to-any-file:
+    - 'ffi/**'
+
+C-GC:
+- changed-files:
+  - any-glob-to-any-file:
+    - 'core/gc/**'
+
+C-Intl:
+- changed-files:
+  - any-glob-to-any-file:
+    - 'core/engine/src/builtins/intl/**'
+
+C-Javascript:
+- changed-files:
+  - any-glob-to-any-file:
+    - '**/*.js'
+
+C-Parser:
+- changed-files:
+  - any-glob-to-any-file:
+    - 'core/parser/**'
+
+C-Runtime:
+- changed-files:
+  - any-glob-to-any-file:
+    - 'core/runtime/**'
+
+C-Tests:
+- changed-files:
+  - any-glob-to-any-file:
+    - '**/tests/**'
+    - '**/test*'
+
+C-VM:
+- changed-files:
+  - any-glob-to-any-file:
+    - 'core/engine/src/bytecompiler/**'
+    - 'core/engine/src/vm/**'
+
+C-WebAssembly:
+- changed-files:
+  - any-glob-to-any-file:
+    - 'ffi/wasm/**'

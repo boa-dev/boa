@@ -96,6 +96,9 @@ use crate::{
         error::r#type::ThrowTypeError,
         generator::Generator,
         generator_function::GeneratorFunction,
+        iterable::iterator_constructor::IteratorConstructor,
+        iterable::iterator_helper::IteratorHelper,
+        iterable::wrap_for_valid_iterator::WrapForValidIterator,
         iterable::{AsyncFromSyncIterator, AsyncIterator, Iterator},
         map::MapIterator,
         regexp::RegExpStringIterator,
@@ -243,6 +246,12 @@ impl Realm {
         Iterator::init(self);
         AsyncIterator::init(self);
         AsyncFromSyncIterator::init(self);
+        // IteratorConstructor must init first — IteratorHelper and WrapForValidIterator
+        // set their [[Prototype]] to Iterator.prototype (the constructor's prototype),
+        // so the constructor must be fully initialized first.
+        IteratorConstructor::init(self);
+        WrapForValidIterator::init(self);
+        IteratorHelper::init(self);
         Math::init(self);
         Json::init(self);
         Array::init(self);
@@ -433,6 +442,7 @@ pub(crate) fn set_default_global_bindings(context: &mut Context) -> JsResult<()>
     global_binding::<WeakRef>(context)?;
     global_binding::<WeakMap>(context)?;
     global_binding::<WeakSet>(context)?;
+    global_binding::<IteratorConstructor>(context)?;
     global_binding::<Atomics>(context)?;
 
     #[cfg(feature = "annex-b")]

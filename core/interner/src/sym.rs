@@ -149,5 +149,10 @@ static_syms! {
     "name",
     "await",
     ("*default*", DEFAULT_EXPORT),
-    "meta"
+    "meta",
+    "defer",
+    "source",
+    "using",
+    "dispose",
+    "asyncDispose"
 }
