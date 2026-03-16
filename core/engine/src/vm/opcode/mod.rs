@@ -1811,12 +1811,14 @@ macro_rules! for_each_opcode {
             /// [spec]: https://tc39.es/ecma262/#sec-super-keyword-runtime-semantics-evaluation
             BindThisValue { value: RegisterOperand },
 
-            /// Dynamically import a module.
-            ///
-            /// - Registers:
-            ///   - Input: specifier, options
-            ///   - Output: specifier
-            ImportCall { specifier: RegisterOperand, options: RegisterOperand },
+    /// Dynamically import a module.
+    ///
+    /// - Operands:
+    ///   - phase: `IndexOperand` (0 = evaluation, 1 = defer, 2 = source)
+    /// - Registers:
+    ///   - Input: specifier, options
+    ///   - Output: specifier
+    ImportCall { specifier: RegisterOperand, options: RegisterOperand, phase: IndexOperand },
 
             /// Strict equal compare two register values,
             /// if true jumps to address.

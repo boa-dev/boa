@@ -530,6 +530,10 @@ fn main() -> Result<()> {
         .display_env_section(false)
         .install()?;
 
+    rustls::crypto::ring::default_provider()
+        .install_default()
+        .map_err(|_| eyre!("could not install ring as the default crypto provider"))?;
+
     #[cfg(feature = "dhat")]
     let _profiler = dhat::Profiler::new_heap();
 
