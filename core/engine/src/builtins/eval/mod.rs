@@ -10,7 +10,7 @@
 //! [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/eval
 
 use crate::{
-    Context, JsArgs, JsResult, JsString, JsValue, SpannedSourceText,
+    Context, JsArgs, JsExpect, JsResult, JsString, JsValue, SpannedSourceText,
     builtins::{BuiltInObject, function::OrdinaryFunction},
     bytecompiler::{ByteCompiler, prepare_eval_declaration_instantiation},
     context::intrinsics::Intrinsics,
@@ -152,7 +152,7 @@ impl Eval {
                     .slots()
                     .function_object()
                     .downcast_ref::<OrdinaryFunction>()
-                    .expect("must be function object");
+                    .js_expect("must be function object")?;
 
                 // ii. Set inFunction to true.
                 let mut flags = Flags::IN_FUNCTION;
