@@ -714,11 +714,7 @@ impl String {
 
         let len = string.len();
 
-        if n == 0 {
-            return Ok(js_string!().into());
-        }
-
-        if string.is_empty() {
+        if n == 0 || string.is_empty {
             return Ok(js_string!().into());
         }
 
