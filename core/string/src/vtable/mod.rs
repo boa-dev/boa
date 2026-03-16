@@ -2,19 +2,21 @@ use crate::iter::CodePointsIter;
 use crate::{JsStr, JsStringKind};
 use std::ptr::NonNull;
 
-pub(crate) mod sequence;
-pub(crate) use sequence::SequenceString;
+/// Sequential string implementation.
+pub mod sequence;
+pub use sequence::SequenceString;
 pub(crate) use sequence::{LATIN1_VTABLE, UTF16_VTABLE};
 
-pub(crate) mod slice;
-pub(crate) use slice::SliceString;
+/// Slice string implementation.
+pub mod slice;
+pub use slice::SliceString;
 
 pub(crate) mod r#static;
 pub use r#static::StaticString;
 
 /// Rope string implementation.
 pub mod rope;
-pub(crate) use rope::RopeString;
+pub use rope::RopeString;
 
 /// Header for all `JsString` allocations.
 ///

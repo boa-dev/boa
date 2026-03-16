@@ -87,7 +87,7 @@ impl Flattened {
 /// A rope string that is a tree of other strings.
 #[repr(C)]
 #[derive(Debug)]
-pub(crate) struct RopeString {
+pub struct RopeString {
     /// Standardized header for all strings.
     pub(crate) header: JsStringHeader,
     pub(crate) left: JsString,
