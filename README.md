@@ -104,27 +104,24 @@ For more information on Boa's API, feel free to check out our documentation.
 
 ### Running Test262 Locally
 
-To run the official ECMAScript Test262 test suite with Boa, you can use the maintained forks of `eshost` and `test262-harness` by [@CanadaHonk](https://github.com/CanadaHonk), which include support for Boa.
+You can run the ECMAScript Test262 test suite with Boa locally.
 
-1. Install the tools globally:
+1. Clone the Test262 repository:
 
-```sh
-npm install -g https://github.com/CanadaHonk/eshost https://github.com/CanadaHonk/test262-harness
+```bash
+git clone https://github.com/tc39/test262.git
 ```
+
 2. Build Boa in release mode:
 
-```sh
+```bash
 cargo build --release -p boa_cli
 ```
 
-3. Run Test262 (adjust paths to your environment):
+3. Run the Test262 test suite:
 
-```sh
-test262-harness \
-  --hostType=boa \
-  --hostPath=./target/release/boa \
-  --test262Dir=/path/to/test262 \
-  "test/**/*.js"
+```bash
+cargo run --release -p boa_tester -- test262
 ```
 
 ## 🪚 Contributing
