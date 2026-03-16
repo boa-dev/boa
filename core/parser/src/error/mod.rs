@@ -197,7 +197,6 @@ impl fmt::Display for Error {
                 span,
                 ..
             } => {
-                let context = self.context().expect("expected errors always have context");
                 write!(f, "expected ")?;
                 match &**expected {
                     [single] => write!(f, "token '{single}'")?,
@@ -215,12 +214,21 @@ impl fmt::Display for Error {
                         }
                     }
                 }
-                write!(
-                    f,
-                    ", got '{found}' in {context} at line {}, col {}",
-                    span.start().line_number(),
-                    span.start().column_number()
-                )
+                if let Some(context) = self.context() {
+                    write!(
+                        f,
+                        ", got '{found}' in {context} at line {}, col {}",
+                        span.start().line_number(),
+                        span.start().column_number()
+                    )
+                } else {
+                    write!(
+                        f,
+                        ", got '{found}' at line {}, col {}",
+                        span.start().line_number(),
+                        span.start().column_number()
+                    )
+                }
             }
             Self::Unexpected {
                 found,
