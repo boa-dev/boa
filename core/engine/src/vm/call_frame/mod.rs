@@ -261,10 +261,10 @@ impl JsValue {
                 0 => return GeneratorResumeKind::Normal,
                 1 => return GeneratorResumeKind::Throw,
                 2 => return GeneratorResumeKind::Return,
-                _ => unreachable!("generator kind must be a integer between 1..=2, got {value}"),
+                _ => unreachable!("generator kind must be an integer between 1..=2, got {value}"),
             }
         }
 
-        unreachable!("generator kind must be a integer type")
+        unreachable!("generator kind must be an integer type")
     }
 }

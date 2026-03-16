@@ -5,7 +5,7 @@
 //!  - [ECMAScript specification][spec]
 //!
 //! [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Statements#Declarations
-//! [spec]:https://tc39.es/ecma262/#sec-declarations-and-the-variable-statement
+//! [spec]: https://tc39.es/ecma262/#sec-declarations-and-the-variable-statement
 
 mod export;
 mod hoistable;
