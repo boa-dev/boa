@@ -100,8 +100,21 @@ impl GeneratorContext {
         resume_kind: GeneratorResumeKind,
         context: &mut Context,
     ) -> CompletionRecord {
+        // Capture the caller's realm before the stack swap.
+        // `native_function_call` stores the pre-swap realm in `native_caller_realm`,
+        // which is the actual caller's realm (not the function's realm).
+        // AsyncGeneratorYield uses this as `previousRealm` (spec §27.6.3.8, step 8).
+        //
+        // Only set on the initial resume (from `next()`); subsequent resumes
+        // (e.g., await continuations from `run_jobs()`) must preserve the
+        // previously captured caller realm.
+        let caller_realm = context.vm.native_caller_realm.clone();
+
         std::mem::swap(&mut context.vm.stack, &mut self.stack);
-        let frame = self.call_frame.take().expect("should have a call frame");
+        let mut frame = self.call_frame.take().expect("should have a call frame");
+        if frame.caller_realm.is_none() {
+            frame.caller_realm = caller_realm;
+        }
         let fp = frame.fp;
         let rp = frame.rp;
         context.vm.push_frame(frame);
