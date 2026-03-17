@@ -311,7 +311,6 @@ impl Stack {
         let mut groups: Vec<(String, usize, Option<usize>)> = Vec::new();
         let mut force_truncate = false;
 
-<<<<<<< HEAD
         // Lazily group values to avoid eagerly evaluating `raw_value` for the entire stack.
         for (idx, v) in self.stack.iter().enumerate().rev() {
             let is_frame = frame.frame_pointer() == idx;
@@ -333,15 +332,6 @@ impl Stack {
                     force_truncate = true;
                     break;
                 }
-=======
-            if !is_frame
-                && let Some(last) = groups.last_mut()
-                && last.0 == *val
-                && last.2.is_none()
-            {
-                last.1 += 1;
-                continue;
->>>>>>> 99179d06a9886a97a6405d9696c6d0b5bdc8adce
             }
         }
 
