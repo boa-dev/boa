@@ -54,8 +54,6 @@ impl SliceString {
     }
 }
 
-// Unused slice_clone removed.
-
 #[inline]
 fn slice_as_str(header: &JsStringHeader) -> JsStr<'_> {
     // SAFETY: The header is part of a SliceString and it's aligned.
@@ -65,10 +63,35 @@ fn slice_as_str(header: &JsStringHeader) -> JsStr<'_> {
 
 #[inline]
 fn slice_dealloc(ptr: NonNull<JsStringHeader>) {
-    // SAFETY: This is part of the correct vtable which is validated on construction.
-    // The pointer is guaranteed to be a valid `NonNull<JsStringHeader>` pointing to a `SliceString`.
-    unsafe {
-        drop(Box::from_raw(ptr.cast::<SliceString>().as_ptr()));
+    // Iteratively destroy slice chains to avoid recursive drop stack overflow.
+    let mut current = ptr;
+
+    loop {
+        // SAFETY: the vtable ensures this pointer refers to `SliceString`.
+        unsafe {
+            // Take ownership of the slice node.
+            let slice_ptr = current.cast::<SliceString>();
+            let mut slice_box = Box::from_raw(slice_ptr.as_ptr());
+
+            // Extract the parent string.
+            let parent =
+                std::mem::replace(&mut slice_box.owned, crate::StaticJsStrings::EMPTY_STRING);
+
+            // Drop the slice node itself.
+            drop(slice_box);
+
+            // If the parent is another slice and we are the last reference,
+            // continue iteratively instead of recursing.
+            if parent.kind() == JsStringKind::Slice && parent.refcount() == Some(1) {
+                current = parent.ptr;
+                std::mem::forget(parent);
+                continue;
+            }
+
+            // Otherwise drop normally and finish.
+            drop(parent);
+            break;
+        }
     }
 }
 
