@@ -142,8 +142,7 @@ fn repeat_throws_when_count_is_negative() {
     run_test_actions([TestAction::assert_native_error(
         "'x'.repeat(-1)",
         JsNativeErrorKind::Range,
-        "repeat count must be a positive finite number \
-                  that doesn't overflow the maximum string length (2^32 - 1)",
+        "String.prototype.repeat: count must be non-negative",
     )]);
 }
 
@@ -152,8 +151,7 @@ fn repeat_throws_when_count_is_infinity() {
     run_test_actions([TestAction::assert_native_error(
         "'x'.repeat(Infinity)",
         JsNativeErrorKind::Range,
-        "repeat count must be a positive finite number \
-                  that doesn't overflow the maximum string length (2^32 - 1)",
+        "String.prototype.repeat: count must be less than infinity",
     )]);
 }
 

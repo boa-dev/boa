@@ -1248,7 +1248,7 @@ impl JsPromise {
                     let mut r#gen = captures.1.take().js_expect("should only run once")?;
 
                     // NOTE: We need to get the object before resuming, since it could clear the stack.
-                    let async_generator = r#gen.async_generator_object();
+                    let async_generator = r#gen.async_generator_object()?;
 
                     std::mem::swap(&mut context.vm.stack, &mut r#gen.stack);
                     let frame = r#gen
@@ -1310,7 +1310,7 @@ impl JsPromise {
                     let mut r#gen = captures.1.take().js_expect("should only run once")?;
 
                     // NOTE: We need to get the object before resuming, since it could clear the stack.
-                    let async_generator = r#gen.async_generator_object();
+                    let async_generator = r#gen.async_generator_object()?;
 
                     std::mem::swap(&mut context.vm.stack, &mut r#gen.stack);
                     let frame = r#gen

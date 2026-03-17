@@ -1298,10 +1298,10 @@ impl Promise {
                                     js_string!("fulfilled"),
                                     context,
                                 )
-                                .expect("cannot fail per spec");
+                                .js_expect("cannot fail per spec")?;
                                 // c. Perform ! CreateDataPropertyOrThrow(obj, "value", x).
                                 obj.create_data_property_or_throw(js_string!("value"), x, context)
-                                    .expect("cannot fail per spec");
+                                    .js_expect("cannot fail per spec")?;
                                 // d. Set values[index] to obj.
                                 captures.values.borrow_mut()[captures.index] = obj.into();
                             }
@@ -1374,10 +1374,10 @@ impl Promise {
                                     js_string!("rejected"),
                                     context,
                                 )
-                                .expect("cannot fail per spec");
+                                .js_expect("cannot fail per spec")?;
                                 // 5. Perform ! CreateDataPropertyOrThrow(obj, "reason", x).
                                 obj.create_data_property_or_throw(js_string!("reason"), x, context)
-                                    .expect("cannot fail per spec");
+                                    .js_expect("cannot fail per spec")?;
                                 // 6. Set values[index] to obj.
                                 captures.values.borrow_mut()[captures.index] = obj.into();
 

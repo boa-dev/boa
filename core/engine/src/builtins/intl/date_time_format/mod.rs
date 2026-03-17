@@ -91,6 +91,7 @@ pub(crate) struct DateTimeFormat {
     fieldset: CompositeFieldSet,
     formatter: DateTimeFormatter<CompositeFieldSet>,
     bound_format: Option<JsFunction>,
+    resolved_options: Option<JsObject>,
 }
 
 impl Service for DateTimeFormat {
@@ -101,6 +102,7 @@ impl Service for DateTimeFormat {
 
 impl IntrinsicObject for DateTimeFormat {
     fn init(realm: &Realm) {
+        use crate::JsSymbol;
         let get_format = BuiltInBuilder::callable(realm, Self::get_format)
             .name(js_string!("get format"))
             .build();
@@ -118,6 +120,11 @@ impl IntrinsicObject for DateTimeFormat {
                 Attribute::CONFIGURABLE,
             )
             .method(Self::resolved_options, js_string!("resolvedOptions"), 0)
+            .property(
+                JsSymbol::to_string_tag(),
+                js_string!("Intl.DateTimeFormat"),
+                Attribute::READONLY | Attribute::NON_ENUMERABLE | Attribute::CONFIGURABLE,
+            )
             .build();
     }
 
@@ -132,7 +139,7 @@ impl BuiltInObject for DateTimeFormat {
 
 impl BuiltInConstructor for DateTimeFormat {
     const CONSTRUCTOR_ARGUMENTS: usize = 0;
-    const PROTOTYPE_STORAGE_SLOTS: usize = 3;
+    const PROTOTYPE_STORAGE_SLOTS: usize = 4;
     const CONSTRUCTOR_STORAGE_SLOTS: usize = 1;
 
     const STANDARD_CONSTRUCTOR: fn(&StandardConstructors) -> &StandardConstructor =
@@ -262,7 +269,7 @@ impl DateTimeFormat {
                             // NOTE (nekevss) i64 should be sufficient for a millisecond
                             // representation.
                             // a. Let x be ! Call(%Date.now%, undefined).
-                            context.clock().now().millis_since_epoch() as f64
+                            context.clock().system_time_millis() as f64
                         // 4. Else,
                         } else {
                             // NOTE (nekevss) The i64 covers all MAX_SAFE_INTEGER values.
@@ -331,8 +338,9 @@ impl DateTimeFormat {
         //       a. Set dtf to ? UnwrapDateTimeFormat(dtf).
         // 3. Perform ? RequireInternalSlot(dtf, [[InitializedDateTimeFormat]]).
         let dtf_object = unwrap_date_time_format(this, context)?;
-        let dtf = dtf_object.borrow();
-        let dtf = dtf.data();
+        if let Some(cached) = dtf_object.borrow().data().resolved_options.clone() {
+            return Ok(cached.into());
+        }
 
         // 4. Let options be OrdinaryObjectCreate(%Object.prototype%).
         // 5. For each row of Table 15, except the header row, in table order, do
@@ -354,85 +362,93 @@ impl DateTimeFormat {
         //              a. Assert: conversion is number.
         //              b. Set v to 𝔽(v).
         //          ii. Perform ! CreateDataPropertyOrThrow(options, p, v).
-        let mut options = ObjectInitializer::new(context);
-        options.property(
-            js_string!("locale"),
-            js_string!(dtf.locale.to_string()),
-            Attribute::all(),
-        );
+        let result = {
+            let dtf = dtf_object.borrow();
+            let dtf = dtf.data();
 
-        if let Some(ca) = &dtf.calendar_algorithm {
+            let mut options = ObjectInitializer::new(context);
             options.property(
-                js_string!("calendar"),
-                js_string!(ca.as_str()),
+                js_string!("locale"),
+                js_string!(dtf.locale.to_string()),
                 Attribute::all(),
             );
-        }
 
-        if let Some(nu) = &dtf.numbering_system {
-            options.property(
-                js_string!("numberingSystem"),
-                js_string!(nu.as_str()),
-                Attribute::all(),
-            );
-        }
-
-        let time_zone_str = match &dtf.time_zone {
-            FormatTimeZone::UtcOffset(offset) => {
-                let seconds = offset.to_seconds();
-                let hours = seconds / 3600;
-                let minutes = (seconds.abs() % 3600) / 60;
-                format!("{hours:+03}:{minutes:02}")
+            if let Some(ca) = &dtf.calendar_algorithm {
+                options.property(
+                    js_string!("calendar"),
+                    js_string!(ca.as_str()),
+                    Attribute::all(),
+                );
             }
-            FormatTimeZone::Identifier((tz, _id)) => tz.to_string(),
+
+            if let Some(nu) = &dtf.numbering_system {
+                options.property(
+                    js_string!("numberingSystem"),
+                    js_string!(nu.as_str()),
+                    Attribute::all(),
+                );
+            }
+
+            let time_zone_str = match &dtf.time_zone {
+                FormatTimeZone::UtcOffset(offset) => {
+                    let seconds = offset.to_seconds();
+                    let hours = seconds / 3600;
+                    let minutes = (seconds.abs() % 3600) / 60;
+                    format!("{hours:+03}:{minutes:02}")
+                }
+                FormatTimeZone::Identifier((tz, _id)) => tz.to_string(),
+            };
+            options.property(
+                js_string!("timeZone"),
+                js_string!(time_zone_str),
+                Attribute::all(),
+            );
+
+            if let Some(hc) = &dtf.hour_cycle {
+                options.property(
+                    js_string!("hourCycle"),
+                    js_string!(hc.as_str()),
+                    Attribute::all(),
+                );
+                //h11/h12 -> true, h23/h24 -> false , because its h12 conversion time
+                let hour12 = matches!(hc, IcuHourCycle::H11 | IcuHourCycle::H12);
+                options.property(js_string!("hour12"), hour12, Attribute::all());
+            }
+
+            if let Some(ds) = dtf.date_style {
+                let ds_str = match ds {
+                    DateStyle::Full => "full",
+                    DateStyle::Long => "long",
+                    DateStyle::Medium => "medium",
+                    DateStyle::Short => "short",
+                };
+                options.property(
+                    js_string!("dateStyle"),
+                    js_string!(ds_str),
+                    Attribute::all(),
+                );
+            }
+
+            if let Some(ts) = dtf.time_style {
+                let ts_str = match ts {
+                    TimeStyle::Full => "full",
+                    TimeStyle::Long => "long",
+                    TimeStyle::Medium => "medium",
+                    TimeStyle::Short => "short",
+                };
+                options.property(
+                    js_string!("timeStyle"),
+                    js_string!(ts_str),
+                    Attribute::all(),
+                );
+            }
+
+            options.build()
         };
-        options.property(
-            js_string!("timeZone"),
-            js_string!(time_zone_str),
-            Attribute::all(),
-        );
-
-        if let Some(hc) = &dtf.hour_cycle {
-            options.property(
-                js_string!("hourCycle"),
-                js_string!(hc.as_str()),
-                Attribute::all(),
-            );
-            //h11/h12 -> true, h23/h24 -> false , because its h12 conversion time
-            let hour12 = matches!(hc, IcuHourCycle::H11 | IcuHourCycle::H12);
-            options.property(js_string!("hour12"), hour12, Attribute::all());
-        }
-
-        if let Some(ds) = dtf.date_style {
-            let ds_str = match ds {
-                DateStyle::Full => "full",
-                DateStyle::Long => "long",
-                DateStyle::Medium => "medium",
-                DateStyle::Short => "short",
-            };
-            options.property(
-                js_string!("dateStyle"),
-                js_string!(ds_str),
-                Attribute::all(),
-            );
-        }
-
-        if let Some(ts) = dtf.time_style {
-            let ts_str = match ts {
-                TimeStyle::Full => "full",
-                TimeStyle::Long => "long",
-                TimeStyle::Medium => "medium",
-                TimeStyle::Short => "short",
-            };
-            options.property(
-                js_string!("timeStyle"),
-                js_string!(ts_str),
-                Attribute::all(),
-            );
-        }
 
         // 6. Return options.
-        Ok(options.build().into())
+        dtf_object.borrow_mut().data_mut().resolved_options = Some(result.clone());
+        Ok(result.into())
     }
 }
 
@@ -498,7 +514,7 @@ impl ToLocalTime {
         Ok(DateTime {
             date: Date::try_new_iso(self.year, self.month, self.day)
                 .ok()
-                .js_expect("TimeClip insures valid range.")?,
+                .js_expect("TimeClip ensures valid range.")?,
             time: Time::try_new(self.hour, self.minute, self.second, self.subsecond)
                 .ok()
                 .js_expect("valid values")?,
@@ -804,6 +820,7 @@ pub(crate) fn create_date_time_format(
         fieldset,
         formatter,
         bound_format: None,
+        resolved_options: None,
     })
 }
 
@@ -954,7 +971,8 @@ fn unwrap_date_time_format(
 ) -> JsResult<JsObject<DateTimeFormat>> {
     // 1. If Type(dtf) is not Object, throw a TypeError exception.
     let dtf_o = dtf.as_object().ok_or_else(|| {
-        JsNativeError::typ().with_message("value was not an `Intl.DateTimeFormat` object")
+        JsNativeError::typ()
+            .with_message("value was not an initialized `Intl.DateTimeFormat` object")
     })?;
 
     if let Ok(dtf) = dtf_o.clone().downcast::<DateTimeFormat>() {
@@ -989,7 +1007,7 @@ fn unwrap_date_time_format(
     }
 
     Err(JsNativeError::typ()
-        .with_message("object was not an `Intl.DateTimeFormat` object")
+        .with_message("object was not an initialized `Intl.DateTimeFormat` object")
         .into())
 }
 
