@@ -34,9 +34,29 @@ fn to_header_name(key: impl AsRef<str>) -> JsResult<HeaderName> {
 /// # Errors
 /// If the value is not valid ASCII, an error is returned.
 #[inline]
+fn normalize_header_value(value: &str) -> &str {
+    let bytes = value.as_bytes();
+
+    let mut start = 0;
+    while start < bytes.len() && matches!(bytes[start], b'\t' | b'\n' | b'\r' | b' ') {
+        start += 1;
+    }
+
+    let mut end = bytes.len();
+    while end > start && matches!(bytes[end - 1], b'\t' | b'\n' | b'\r' | b' ') {
+        end -= 1;
+    }
+
+    &value[start..end]
+}
+
+/// Converts a JavaScript string to a valid header value (or error).
+///
+/// # Errors
+/// If the value is not valid ASCII, an error is returned.
+#[inline]
 fn to_header_value(value: impl AsRef<str>) -> JsResult<HeaderValue> {
-    value
-        .as_ref()
+    normalize_header_value(value.as_ref())
         .parse()
         .map_err(|_| js_error!("Cannot convert value to header string as it is not valid ASCII."))
 }
