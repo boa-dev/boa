@@ -17,7 +17,7 @@ pub(crate) trait ErasedWeakMapBox {
     unsafe fn trace(&self, tracer: &mut Tracer);
 }
 
-impl<K: Trace + ?Sized, V: Trace + Clone> ErasedWeakMapBox for WeakMapBox<K, V> {
+impl<K: Trace + ?Sized, V: Trace> ErasedWeakMapBox for WeakMapBox<K, V> {
     fn clear_dead_entries(&self) {
         if let Some(map) = self.map.upgrade()
             && let Ok(mut map) = map.try_borrow_mut()
