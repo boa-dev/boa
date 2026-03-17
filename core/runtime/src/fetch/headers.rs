@@ -29,25 +29,10 @@ fn to_header_name(key: impl AsRef<str>) -> JsResult<HeaderName> {
         .map_err(|_| js_error!("Cannot convert key to header string as it is not valid ASCII."))
 }
 
-/// Converts a JavaScript string to a valid header value (or error).
-///
-/// # Errors
-/// If the value is not valid ASCII, an error is returned.
+/// Trims leading and trailing HTTP whitespace from a header value.
 #[inline]
 fn normalize_header_value(value: &str) -> &str {
-    let bytes = value.as_bytes();
-
-    let mut start = 0;
-    while start < bytes.len() && matches!(bytes[start], b'\t' | b'\n' | b'\r' | b' ') {
-        start += 1;
-    }
-
-    let mut end = bytes.len();
-    while end > start && matches!(bytes[end - 1], b'\t' | b'\n' | b'\r' | b' ') {
-        end -= 1;
-    }
-
-    &value[start..end]
+    value.trim_matches(|ch| matches!(ch, '\t' | '\n' | '\r' | ' '))
 }
 
 /// Converts a JavaScript string to a valid header value (or error).
