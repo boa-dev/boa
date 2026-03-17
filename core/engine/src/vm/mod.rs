@@ -89,11 +89,6 @@ pub struct Vm {
     /// because we don't push a frame for them.
     pub(crate) native_active_function: Option<JsObject>,
 
-    /// The caller's realm before a native function's `swap_realm`.
-    /// Used by `GeneratorContext::resume()` to capture `previousRealm`
-    /// for `AsyncGeneratorYield`.
-    pub(crate) native_caller_realm: Option<Realm>,
-
     /// Number of nested host calls that re-enter the VM via `Context::run()`.
     ///
     /// This is incremented by high-level host entry points such as
@@ -352,7 +347,6 @@ impl Vm {
             pending_exception: None,
             runtime_limits: RuntimeLimits::default(),
             native_active_function: None,
-            native_caller_realm: None,
             host_call_depth: 0,
             shadow_stack: ShadowStack::default(),
             #[cfg(feature = "trace")]

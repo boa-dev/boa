@@ -125,22 +125,28 @@ fn return_on_then_queue() {
 fn cross_realm_async_generator_yield() {
     // Exercises AsyncGeneratorYield spec steps 6-8 (previousRealm handling)
     // by creating a generator in one realm and consuming it from another.
-    // Also verifies that the iter result objects are created in the caller's
-    // realm by checking their prototype against old_realm's Object.prototype.
+    // Per spec, previousRealm is the realm of the second-to-top execution
+    // context (the `next()` / AwaitFulfilled handler), which has the same
+    // realm as the generator. The iter result prototype should match the
+    // generator realm's Object.prototype.
     let mut context = Context::default();
 
     let generator_realm = context.create_realm().unwrap();
 
-    let old_realm = context.enter_realm(generator_realm);
+    let old_realm = context.enter_realm(generator_realm.clone());
     let generator = context
         .eval(Source::from_bytes(
             b"(async function* g() { yield 42; yield 99; })()",
         ))
         .unwrap();
-    context.enter_realm(old_realm.clone());
+    context.enter_realm(old_realm);
 
-    // Grab Object.prototype from the caller's realm (old_realm).
-    let caller_object_proto = old_realm.intrinsics().constructors().object().prototype();
+    // Grab Object.prototype from the generator's realm (previousRealm per spec).
+    let gen_realm_object_proto = generator_realm
+        .intrinsics()
+        .constructors()
+        .object()
+        .prototype();
 
     let next_fn = generator
         .as_object()
@@ -162,29 +168,29 @@ fn cross_realm_async_generator_yield() {
     let first = call_next(&mut context);
     assert_promise_iter_value(&first, &JsValue::from(42), false, &mut context);
 
-    // Verify the iter result was created in old_realm.
+    // Verify the iter result was created in the generator's realm (previousRealm).
     let first_promise = JsPromise::from_object(first.as_object().unwrap().clone()).unwrap();
     let PromiseState::Fulfilled(first_result) = first_promise.state() else {
         panic!("promise was not fulfilled");
     };
     assert_eq!(
         first_result.as_object().unwrap().prototype(),
-        Some(caller_object_proto.clone()),
-        "iter result prototype should be old_realm's Object.prototype"
+        Some(gen_realm_object_proto.clone()),
+        "iter result prototype should be generator realm's Object.prototype"
     );
 
     // Second yield: value 99
     let second = call_next(&mut context);
     assert_promise_iter_value(&second, &JsValue::from(99), false, &mut context);
 
-    // Verify the iter result was created in old_realm.
+    // Verify the iter result was created in the generator's realm (previousRealm).
     let second_promise = JsPromise::from_object(second.as_object().unwrap().clone()).unwrap();
     let PromiseState::Fulfilled(second_result) = second_promise.state() else {
         panic!("promise was not fulfilled");
     };
     assert_eq!(
         second_result.as_object().unwrap().prototype(),
-        Some(caller_object_proto),
-        "iter result prototype should be old_realm's Object.prototype"
+        Some(gen_realm_object_proto),
+        "iter result prototype should be generator realm's Object.prototype"
     );
 }
