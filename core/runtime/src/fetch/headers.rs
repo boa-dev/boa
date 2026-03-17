@@ -29,14 +29,19 @@ fn to_header_name(key: impl AsRef<str>) -> JsResult<HeaderName> {
         .map_err(|_| js_error!("Cannot convert key to header string as it is not valid ASCII."))
 }
 
+/// Trims leading and trailing HTTP whitespace from a header value.
+#[inline]
+fn normalize_header_value(value: &str) -> &str {
+    value.trim_matches(['\t', '\n', '\r', ' '])
+}
+
 /// Converts a JavaScript string to a valid header value (or error).
 ///
 /// # Errors
 /// If the value is not valid ASCII, an error is returned.
 #[inline]
 fn to_header_value(value: impl AsRef<str>) -> JsResult<HeaderValue> {
-    value
-        .as_ref()
+    normalize_header_value(value.as_ref())
         .parse()
         .map_err(|_| js_error!("Cannot convert value to header string as it is not valid ASCII."))
 }

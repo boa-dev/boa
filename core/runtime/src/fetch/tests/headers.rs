@@ -24,3 +24,45 @@ fn headers_are_iterable() {
         ),
     ]);
 }
+
+#[test]
+fn headers_normalize_values() {
+    run_test_actions([
+        TestAction::harness(),
+        TestAction::inspect_context(register),
+        TestAction::run(
+            r#"
+                const expectations = {
+                    name1: [" space ", "space"],
+                    name2: ["\ttab\t", "tab"],
+                    name3: [" spaceAndTab\t", "spaceAndTab"],
+                    name4: ["\r\n newLine", "newLine"],
+                    name5: ["newLine\r\n ", "newLine"],
+                    name6: ["\r\n\tnewLine", "newLine"],
+                };
+
+                const fromObject = new Headers(
+                    Object.fromEntries(
+                        Object.entries(expectations).map(([name, [value]]) => [name, value]),
+                    ),
+                );
+
+                for (const [name, [, expected]] of Object.entries(expectations)) {
+                    assertEq(fromObject.get(name), expected, `constructor should normalize ${name}`);
+                }
+
+                const appended = new Headers();
+                for (const [name, [value, expected]] of Object.entries(expectations)) {
+                    appended.append(name, value);
+                    assertEq(appended.get(name), expected, `append should normalize ${name}`);
+                }
+
+                const setHeaders = new Headers();
+                for (const [name, [value, expected]] of Object.entries(expectations)) {
+                    setHeaders.set(name, value);
+                    assertEq(setHeaders.get(name), expected, `set should normalize ${name}`);
+                }
+            "#,
+        ),
+    ]);
+}
