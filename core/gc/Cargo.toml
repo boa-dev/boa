@@ -22,9 +22,6 @@ either = ["dep:either"]
 # Enable default implementations of trace and finalize for the arrayvec crate
 arrayvec = ["dep:arrayvec"]
 
-experimental_mark_sweep = ["oscars", "oscars/mark_sweep"]
-experimental_mark_sweep2 = ["oscars", "oscars/mark_sweep2"]
-
 oscars = ["dep:oscars", "unstable"]
 
 # Unstable feature
