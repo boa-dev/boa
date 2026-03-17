@@ -392,49 +392,48 @@ impl<'a> Iterator for RopeCodePointsIter<'a> {
                 self.current = None;
             }
 
-            if let Some(slice) = self.stack.pop() {
-                if slice.header.vtable.kind == crate::JsStringKind::Rope {
-                    // SAFETY: The header is guaranteed to be a `RopeString` because the kind is `Rope`.
-                    let r = unsafe {
-                        &*std::ptr::from_ref(slice.header).cast::<crate::vtable::RopeString>()
-                    };
-                    let left_len = r.left.len();
+            let slice = self.stack.pop()?;
 
-                    if slice.start < left_len {
-                        let left_end = std::cmp::min(slice.end, left_len);
-                        if slice.end > left_len {
-                            self.stack.push(RopeSlice {
-                                // SAFETY: The child pointers in a `RopeString` are always valid `JsStringHeader` pointers.
-                                header: unsafe { &*r.right.ptr.as_ptr().cast() },
-                                start: 0,
-                                end: slice.end - left_len,
-                            });
-                        }
-                        self.stack.push(RopeSlice {
-                            // SAFETY: The child pointers in a `RopeString` are always valid `JsStringHeader` pointers.
-                            header: unsafe { &*r.left.ptr.as_ptr().cast() },
-                            start: slice.start,
-                            end: left_end,
-                        });
-                    } else {
+            if slice.header.vtable.kind == crate::JsStringKind::Rope {
+                // SAFETY: The header is guaranteed to be a `RopeString` because the kind is `Rope`.
+                let r = unsafe {
+                    &*std::ptr::from_ref(slice.header).cast::<crate::vtable::RopeString>()
+                };
+                let left_len = r.left.len();
+
+                if slice.start < left_len {
+                    let left_end = std::cmp::min(slice.end, left_len);
+                    if slice.end > left_len {
                         self.stack.push(RopeSlice {
                             // SAFETY: The child pointers in a `RopeString` are always valid `JsStringHeader` pointers.
                             header: unsafe { &*r.right.ptr.as_ptr().cast() },
-                            start: slice.start - left_len,
+                            start: 0,
                             end: slice.end - left_len,
                         });
                     }
+                    self.stack.push(RopeSlice {
+                        // SAFETY: The child pointers in a `RopeString` are always valid `JsStringHeader` pointers.
+                        header: unsafe { &*r.left.ptr.as_ptr().cast() },
+                        start: slice.start,
+                        end: left_end,
+                    });
                 } else {
-                    let s = (slice.header.vtable.as_str)(slice.header)
-                        .get(slice.start..slice.end)
-                        .expect("valid slice");
-                    let iter = s.code_points();
-                    // SAFETY: The lifetime of the code points is tied to the rope string, which is guaranteed to live for 'a.
-                    let iter = unsafe {
-                        std::mem::transmute::<CodePointsIter<'_>, CodePointsIter<'a>>(iter)
-                    };
-                    self.current = Some((None, iter));
+                    self.stack.push(RopeSlice {
+                        // SAFETY: The child pointers in a `RopeString` are always valid `JsStringHeader` pointers.
+                        header: unsafe { &*r.right.ptr.as_ptr().cast() },
+                        start: slice.start - left_len,
+                        end: slice.end - left_len,
+                    });
                 }
+            } else {
+                let s = (slice.header.vtable.as_str)(slice.header)
+                    .get(slice.start..slice.end)
+                    .expect("valid slice");
+                let iter = s.code_points();
+                // SAFETY: The lifetime of the code points is tied to the rope string, which is guaranteed to live for 'a.
+                let iter =
+                    unsafe { std::mem::transmute::<CodePointsIter<'_>, CodePointsIter<'a>>(iter) };
+                self.current = Some((None, iter));
             }
         }
     }
