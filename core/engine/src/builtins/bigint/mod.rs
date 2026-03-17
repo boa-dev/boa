@@ -13,7 +13,7 @@
 //! [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/BigInt
 
 use crate::{
-    Context, JsArgs, JsBigInt, JsResult, JsString, JsValue,
+    Context, JsArgs, JsBigInt, JsExpect, JsResult, JsString, JsValue,
     builtins::BuiltInObject,
     context::intrinsics::{Intrinsics, StandardConstructor, StandardConstructors},
     error::JsNativeError,
@@ -122,7 +122,12 @@ impl BigInt {
         }
 
         // 2. Return the BigInt value that represents ℝ(number).
-        Ok(JsBigInt::from(number.to_bigint().expect("This conversion must be safe")).into())
+        Ok(JsBigInt::from(
+            number
+                .to_bigint()
+                .js_expect("This conversion must be safe")?,
+        )
+        .into())
     }
 
     /// The abstract operation `thisBigIntValue` takes argument value.

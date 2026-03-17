@@ -167,13 +167,30 @@ fn issue_2609() {
 
 #[test]
 fn to_locale_string() {
-    // TODO: We don't actually do any locale checking here
-    // To honor the spec we should print numbers according to user locale.
     run_test_actions([
         TestAction::assert_eq("Number().toLocaleString()", js_str!("0")),
         TestAction::assert_eq("Number(5).toLocaleString()", js_str!("5")),
-        TestAction::assert_eq("Number('345600').toLocaleString()", js_str!("345600")),
         TestAction::assert_eq("Number(-25).toLocaleString()", js_str!("-25")),
+        TestAction::assert_eq("NaN.toLocaleString()", js_str!("NaN")),
+        TestAction::assert_eq("Infinity.toLocaleString()", js_str!("Infinity")),
+        TestAction::assert_eq("(-Infinity).toLocaleString()", js_str!("-Infinity")),
+    ]);
+}
+
+#[test]
+#[cfg(feature = "intl")]
+fn to_locale_string_intl() {
+    run_test_actions([
+        TestAction::assert_eq("(345600).toLocaleString('en-US')", js_str!("345,600")),
+        TestAction::assert_eq("(1234.5).toLocaleString('de-DE')", js_str!("1.234,5")),
+        TestAction::assert_eq(
+            "(1000).toLocaleString('en-US', { useGrouping: false })",
+            js_str!("1000"),
+        ),
+        TestAction::assert_eq(
+            "(12.3).toLocaleString('en-US', { minimumFractionDigits: 2 })",
+            js_str!("12.30"),
+        ),
     ]);
 }
 
