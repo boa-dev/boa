@@ -808,30 +808,69 @@ pub(crate) fn create_date_time_format(
 }
 
 /// Formats a timestamp (epoch milliseconds) using the given [`DateTimeFormat`] internals.
-/// Callers must have already applied `TimeClip` and `NaN` check (`FormatDateTime` steps 1–2).
-/// This performs `ToLocalTime` and format only.
+///
+/// This is the shared implementation used by:
+/// - the bound `format` function created in `get_format`, and
+/// - [`format_date_time_locale`] used by `Date.prototype.toLocaleString` (and friends).
+///
+/// It corresponds to the *post*-`TimeClip` portion of
+/// [`FormatDateTime(dtf, x)`](https://tc39.es/ecma402/#sec-formatdatetime),
+/// and the `ToLocalTime` / `PartitionDateTimePattern` logic from
+/// [11.5.6](https://tc39.es/ecma402/#sec-partitiondatetimepattern) and
+/// [11.5.12](https://tc39.es/ecma402/#sec-tolocaltime).
+///
+/// Callers must have already applied `TimeClip` and `NaN` check
+/// (`FormatDateTime` steps 1–2). This helper implements:
+///
+/// 11.5.6 `PartitionDateTimePattern` ( dtf, x )
+/// 1. Let x be TimeClip(x). (Done by caller)
+/// 2. If x is `NaN`, throw a `RangeError` exception. (Done by caller)
+/// 3. Let epochNanoseconds be ℤ(ℝ(x) × 10^6).
+/// 4. Let timeZone be dtf.[[`TimeZone`]].
+/// 5. Let offsetNs be GetOffsetNanosecondsFor(timeZone, epochNanoseconds).
+/// 6. Let tz be 𝔽(ℝ(x) + ℝ(offsetNs) / 10^6).
+///
+/// Then calls `ToLocalTime::from_local_epoch_milliseconds` to obtain calendar fields,
+/// and formats the resulting `ZonedDateTime` with ICU4X.
 fn format_timestamp_with_dtf(
     dtf: &DateTimeFormat,
     timestamp: f64,
     context: &mut Context,
 ) -> JsResult<JsString> {
-    let time_zone_offset = match dtf.time_zone {
+    // PartitionDateTimePattern ( dtf, x ) step 3:
+    // Let epochNanoseconds be ℤ(ℝ(x) × 10^6).
+    //
+    // NOTE: `timestamp` is already `TimeClip`'d by the caller and represents *UTC epoch milliseconds*.
+    let epoch_ns = timestamp as i128 * 1_000_000;
+
+    // PartitionDateTimePattern ( dtf, x ) step 4:
+    // Let timeZone be dtf.[[`TimeZone`]].
+    let time_zone = &dtf.time_zone;
+
+    // PartitionDateTimePattern ( dtf, x ) step 5:
+    // Let offsetNs be GetOffsetNanosecondsFor(timeZone, epochNanoseconds).
+    //
+    // NOTE: the spec describes the offset in *nanoseconds*. Internally, we obtain/normalize it to
+    // seconds (and then milliseconds) for use with `ToLocalTime::from_local_epoch_milliseconds`.
+    let time_zone_offset_seconds = match time_zone {
         FormatTimeZone::UtcOffset(offset) => offset.to_seconds(),
         FormatTimeZone::Identifier((_, time_zone_id)) => {
-            let epoch_ns = timestamp as i128 * 1_000_000;
             let offset_seconds = context
                 .timezone_provider()
-                .transition_nanoseconds_for_utc_epoch_nanoseconds(time_zone_id, epoch_ns)
+                .transition_nanoseconds_for_utc_epoch_nanoseconds(*time_zone_id, epoch_ns)
                 .map_err(
                     |_e| js_error!(RangeError: "unable to determine transition nanoseconds"),
                 )?;
             offset_seconds.0 as i32
         }
     };
-    let tz = timestamp + f64::from(time_zone_offset * 1_000);
+
+    // PartitionDateTimePattern ( dtf, x ) step 6:
+    // Let tz be 𝔽(ℝ(x) + ℝ(offsetNs) / 10^6).
+    let tz = timestamp + f64::from(time_zone_offset_seconds * 1_000);
     let fields = ToLocalTime::from_local_epoch_milliseconds(tz)?;
     let dt = fields.to_formattable_datetime()?;
-    let tz_info = dtf.time_zone.to_time_zone_info();
+    let tz_info = time_zone.to_time_zone_info();
     let tz_info_at_time = tz_info.at_date_time_iso(dt);
     let zdt = ZonedDateTime {
         date: dt.date,
