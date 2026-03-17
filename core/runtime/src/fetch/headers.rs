@@ -32,7 +32,7 @@ fn to_header_name(key: impl AsRef<str>) -> JsResult<HeaderName> {
 /// Trims leading and trailing HTTP whitespace from a header value.
 #[inline]
 fn normalize_header_value(value: &str) -> &str {
-    value.trim_matches(|ch| matches!(ch, '\t' | '\n' | '\r' | ' '))
+    value.trim_matches(['\t', '\n', '\r', ' '])
 }
 
 /// Converts a JavaScript string to a valid header value (or error).
