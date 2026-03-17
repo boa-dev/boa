@@ -7,6 +7,10 @@
 //!  - [MDN documentation][mdn]
 //!  - [WHATWG `URL` specification][spec]
 //!
+//! Implemented sections in this file:
+//! - `URL.searchParams`: <https://url.spec.whatwg.org/#dom-url-searchparams>
+//! - `URLSearchParams` constructor and methods: <https://url.spec.whatwg.org/#urlsearchparams>
+//!
 //! [spec]: https://url.spec.whatwg.org/
 //! [mdn]: https://developer.mozilla.org/en-US/docs/Web/API/URL
 #![allow(clippy::needless_pass_by_value)]
@@ -79,6 +83,10 @@ fn serialize_search_params(params: &[(JsString, JsString)]) -> String {
     serializer.finish()
 }
 
+/// Captures whether an optional argument was actually supplied.
+///
+/// This is used for overloads where an explicit `undefined` must not be treated
+/// the same as an omitted argument.
 #[derive(Debug, Clone)]
 struct OptionalArg(Option<JsValue>);
 
@@ -106,24 +114,6 @@ struct SyncIterator {
 struct IteratorStep {
     done: bool,
     value: JsValue,
-}
-
-fn get_method<K>(object: &JsObject, key: K, context: &mut Context) -> JsResult<Option<JsObject>>
-where
-    K: Into<boa_engine::property::PropertyKey>,
-{
-    let method = object.get(key, context)?;
-    if method.is_null_or_undefined() {
-        return Ok(None);
-    }
-
-    let Some(method) = method.as_object().filter(JsObject::is_callable) else {
-        return Err(js_error!(
-            TypeError: "value returned for property of object is not a function"
-        ));
-    };
-
-    Ok(Some(method.clone()))
 }
 
 impl SyncIterator {
@@ -193,7 +183,7 @@ impl SyncIterator {
     }
 
     fn close(&self, completion: JsResult<JsValue>, context: &mut Context) -> JsResult<JsValue> {
-        let return_method = match get_method(&self.iterator, js_string!("return"), context) {
+        let return_method = match self.iterator.get_method(js_string!("return"), context) {
             Ok(Some(return_method)) => {
                 return_method.call(&self.iterator.clone().into(), &[], context)
             }
@@ -230,7 +220,7 @@ fn collect_sequence_item_pair(
     item: &JsObject,
     context: &mut Context,
 ) -> JsResult<(JsString, JsString)> {
-    let Some(iterator_method) = get_method(item, JsSymbol::iterator(), context)? else {
+    let Some(iterator_method) = item.get_method(JsSymbol::iterator(), context)? else {
         return Err(js_error!(
             TypeError: "URLSearchParams constructor expects each sequence item to be an iterable pair"
         ));
@@ -486,12 +476,19 @@ impl UrlSearchParamsIterator {
 #[boa_class(rename = "URLSearchParams")]
 #[boa(rename_all = "camelCase")]
 impl UrlSearchParams {
+    /// WHATWG URL: <https://url.spec.whatwg.org/#dom-urlsearchparams-urlsearchparams>
+    ///
+    /// This implements the constructor branches for:
+    /// - empty / null init
+    /// - sequence input via @@iterator
+    /// - record input via enumerable own properties
+    /// - string input parsed as application/x-www-form-urlencoded
     #[boa(constructor)]
     fn constructor(init: JsValue, context: &mut Context) -> JsResult<Self> {
         let list = if init.is_undefined() || init.is_null() {
             Vec::new()
         } else if let Some(object) = init.as_object() {
-            if let Some(iterator_method) = get_method(&object, JsSymbol::iterator(), context)? {
+            if let Some(iterator_method) = object.get_method(JsSymbol::iterator(), context)? {
                 collect_sequence_pairs(&init, &iterator_method, context)?
             } else {
                 collect_record_pairs(&object, context)?
@@ -520,6 +517,8 @@ impl UrlSearchParams {
         value: OptionalArg,
         context: &mut Context,
     ) -> JsResult<()> {
+        // WHATWG URL: <https://url.spec.whatwg.org/#dom-urlsearchparams-delete>
+        // The second argument only participates when it was actually supplied.
         let name = to_usv_string(&name.0);
         let value = value
             .0
@@ -601,6 +600,8 @@ impl UrlSearchParams {
         value: OptionalArg,
         context: &mut Context,
     ) -> JsResult<bool> {
+        // WHATWG URL: <https://url.spec.whatwg.org/#dom-urlsearchparams-has>
+        // The second argument only participates when it was actually supplied.
         let name = to_usv_string(&name.0);
         let value = value
             .0
@@ -691,6 +692,9 @@ impl Url {
     }
 
     /// Create a native `Url` value from Rust code.
+    ///
+    /// # Errors
+    /// Returns an error if `url` cannot be parsed against the optional `base`.
     pub fn new(Convert(ref url): Convert<String>, base: Option<Convert<String>>) -> JsResult<Self> {
         Ok(Self {
             inner: Rc::new(RefCell::new(Self::parse_url(
@@ -702,6 +706,10 @@ impl Url {
     }
 
     /// Create a JavaScript `URL` object from native `Url` data.
+    ///
+    /// # Errors
+    /// Returns an error if the object or its eagerly-created `searchParams`
+    /// view cannot be allocated.
     pub fn from_data(mut data: Self, context: &mut Context) -> JsResult<JsObject> {
         if data.search_params.is_none() {
             data.search_params = Some(UrlSearchParams::from_url(data.inner.clone(), context)?);
@@ -865,11 +873,14 @@ impl Url {
     }
 
     #[boa(getter)]
-    fn search_params(&self) -> JsValue {
+    fn search_params(&self) -> JsObject {
+        // WHATWG URL: <https://url.spec.whatwg.org/#dom-url-searchparams>
+        // `searchParams` is created during URL construction and the getter
+        // returns that same live object.
         self.search_params
             .clone()
             .expect("URL.searchParams should be initialized during construction")
-            .into()
+            .upcast()
     }
 
     #[boa(getter)]
