@@ -29,7 +29,9 @@ use boa_engine::{
     Context, Finalize, JsData, JsError, JsObject, JsResult, JsString, JsSymbol, JsValue, Trace,
     boa_class, boa_module, js_error, js_string, native_function::NativeFunction,
 };
+use std::cell::RefCell;
 use std::fmt::Display;
+use std::rc::Rc;
 
 /// A callback function for the `URLSearchParams.prototype.forEach` method.
 pub type SearchParamsForEachCallback = TypedJsFunction<(JsString, JsString, JsObject), ()>;
@@ -330,11 +332,12 @@ fn collect_record_pairs(
 #[derive(Debug, JsData, Trace, Finalize)]
 pub struct UrlSearchParams {
     list: Vec<(JsString, JsString)>,
-    url: Option<JsObject<Url>>,
+    #[unsafe_ignore_trace]
+    url: Option<Rc<RefCell<url::Url>>>,
 }
 
 impl UrlSearchParams {
-    fn from_url(url: JsObject<Url>, context: &mut Context) -> JsResult<JsObject<Self>> {
+    fn from_url(url: Rc<RefCell<url::Url>>, context: &mut Context) -> JsResult<JsObject<Self>> {
         Self::from_data(
             Self {
                 list: Vec::new(),
@@ -350,8 +353,6 @@ impl UrlSearchParams {
         if let Some(url) = &self.url {
             let url = url.borrow();
             return url
-                .data()
-                .inner
                 .query_pairs()
                 .map(|(name, value)| {
                     (
@@ -368,13 +369,12 @@ impl UrlSearchParams {
     fn update(&mut self, pairs: Vec<(JsString, JsString)>) {
         if let Some(url) = &self.url {
             let mut url = url.borrow_mut();
-            let url = url.data_mut();
 
             if pairs.is_empty() {
-                url.inner.set_query(None);
+                url.set_query(None);
             } else {
                 let query = serialize_search_params(&pairs);
-                url.inner.set_query(Some(&query));
+                url.set_query(Some(&query));
             }
             return;
         }
@@ -676,7 +676,7 @@ impl UrlSearchParams {
 #[boa_gc(unsafe_no_drop)]
 pub struct Url {
     #[unsafe_ignore_trace]
-    inner: url::Url,
+    inner: Rc<RefCell<url::Url>>,
     search_params: Option<JsObject<UrlSearchParams>>,
 }
 
@@ -689,26 +689,54 @@ impl Url {
     pub fn register(realm: Option<Realm>, context: &mut Context) -> JsResult<()> {
         js_module::boa_register(realm, context)
     }
+
+    /// Create a native `Url` value from Rust code.
+    pub fn new(Convert(ref url): Convert<String>, base: Option<Convert<String>>) -> JsResult<Self> {
+        Ok(Self {
+            inner: Rc::new(RefCell::new(Self::parse_url(
+                url,
+                base.as_ref().map(|base| base.0.as_str()),
+            )?)),
+            search_params: None,
+        })
+    }
+
+    /// Create a JavaScript `URL` object from native `Url` data.
+    pub fn from_data(mut data: Self, context: &mut Context) -> JsResult<JsObject> {
+        if data.search_params.is_none() {
+            data.search_params = Some(UrlSearchParams::from_url(data.inner.clone(), context)?);
+        }
+
+        <Self as Class>::from_data(data, context)
+    }
+
+    fn parse_url(url: &str, base: Option<&str>) -> JsResult<url::Url> {
+        if let Some(base) = base {
+            let base_url = url::Url::parse(base)
+                .map_err(|e| js_error!(TypeError: "Failed to parse base URL: {}", e))?;
+
+            base_url
+                .join(url)
+                .map_err(|e| js_error!(TypeError: "Failed to parse URL: {}", e))
+        } else {
+            url::Url::parse(url).map_err(|e| js_error!(TypeError: "Failed to parse URL: {}", e))
+        }
+    }
+
+    fn from_parsed(url: url::Url, context: &mut Context) -> JsResult<Self> {
+        let inner = Rc::new(RefCell::new(url));
+        let search_params = UrlSearchParams::from_url(inner.clone(), context)?;
+
+        Ok(Self {
+            inner,
+            search_params: Some(search_params),
+        })
+    }
 }
 
 impl Display for Url {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        write!(f, "{}", self.inner)
-    }
-}
-
-impl From<url::Url> for Url {
-    fn from(url: url::Url) -> Self {
-        Self {
-            inner: url,
-            search_params: None,
-        }
-    }
-}
-
-impl From<Url> for url::Url {
-    fn from(url: Url) -> url::Url {
-        url.inner
+        write!(f, "{}", self.inner.borrow())
     }
 }
 
@@ -720,156 +748,148 @@ impl Url {
     /// # Errors
     /// Any errors that might occur during URL parsing.
     #[boa(constructor)]
-    pub fn new(Convert(ref url): Convert<String>, base: Option<Convert<String>>) -> JsResult<Self> {
-        if let Some(Convert(ref base)) = base {
-            let base_url = url::Url::parse(base)
-                .map_err(|e| js_error!(TypeError: "Failed to parse base URL: {}", e))?;
-
-            let url = base_url
-                .join(url)
-                .map_err(|e| js_error!(TypeError: "Failed to parse URL: {}", e))?;
-            Ok(Self::from(url))
-        } else {
-            let url = url::Url::parse(url)
-                .map_err(|e| js_error!(TypeError: "Failed to parse URL: {}", e))?;
-            Ok(Self::from(url))
-        }
+    pub fn constructor(
+        Convert(ref url): Convert<String>,
+        base: Option<Convert<String>>,
+        context: &mut Context,
+    ) -> JsResult<Self> {
+        Self::from_parsed(
+            Self::parse_url(url, base.as_ref().map(|base| base.0.as_str()))?,
+            context,
+        )
     }
 
     #[boa(getter)]
     fn hash(&self) -> JsString {
-        JsString::from(url::quirks::hash(&self.inner))
+        JsString::from(url::quirks::hash(&self.inner.borrow()))
     }
 
     #[boa(setter)]
     #[boa(rename = "hash")]
     fn set_hash(&mut self, value: Convert<String>) {
-        url::quirks::set_hash(&mut self.inner, &value.0);
+        url::quirks::set_hash(&mut self.inner.borrow_mut(), &value.0);
     }
 
     #[boa(getter)]
     fn hostname(&self) -> JsString {
-        JsString::from(url::quirks::hostname(&self.inner))
+        JsString::from(url::quirks::hostname(&self.inner.borrow()))
     }
 
     #[boa(setter)]
     #[boa(rename = "hostname")]
     fn set_hostname(&mut self, value: Convert<String>) {
-        let _ = url::quirks::set_hostname(&mut self.inner, &value.0);
+        let _ = url::quirks::set_hostname(&mut self.inner.borrow_mut(), &value.0);
     }
 
     #[boa(getter)]
     fn host(&self) -> JsString {
-        JsString::from(url::quirks::host(&self.inner))
+        JsString::from(url::quirks::host(&self.inner.borrow()))
     }
 
     #[boa(setter)]
     #[boa(rename = "host")]
     fn set_host(&mut self, value: Convert<String>) {
-        let _ = url::quirks::set_host(&mut self.inner, &value.0);
+        let _ = url::quirks::set_host(&mut self.inner.borrow_mut(), &value.0);
     }
 
     #[boa(getter)]
     fn href(&self) -> JsString {
-        JsString::from(url::quirks::href(&self.inner))
+        JsString::from(url::quirks::href(&self.inner.borrow()))
     }
 
     #[boa(setter)]
     #[boa(rename = "href")]
     fn set_href(&mut self, value: Convert<String>) -> JsResult<()> {
-        url::quirks::set_href(&mut self.inner, &value.0)
+        url::quirks::set_href(&mut self.inner.borrow_mut(), &value.0)
             .map_err(|e| js_error!(TypeError: "Failed to set href: {}", e))
     }
 
     #[boa(getter)]
     fn origin(&self) -> JsString {
-        JsString::from(url::quirks::origin(&self.inner))
+        JsString::from(url::quirks::origin(&self.inner.borrow()))
     }
 
     #[boa(getter)]
     fn password(&self) -> JsString {
-        JsString::from(url::quirks::password(&self.inner))
+        JsString::from(url::quirks::password(&self.inner.borrow()))
     }
 
     #[boa(setter)]
     #[boa(rename = "password")]
     fn set_password(&mut self, value: Convert<String>) {
-        let _ = url::quirks::set_password(&mut self.inner, &value.0);
+        let _ = url::quirks::set_password(&mut self.inner.borrow_mut(), &value.0);
     }
 
     #[boa(getter)]
     fn pathname(&self) -> JsString {
-        JsString::from(url::quirks::pathname(&self.inner))
+        JsString::from(url::quirks::pathname(&self.inner.borrow()))
     }
 
     #[boa(setter)]
     #[boa(rename = "pathname")]
     fn set_pathname(&mut self, value: Convert<String>) {
-        let () = url::quirks::set_pathname(&mut self.inner, &value.0);
+        let () = url::quirks::set_pathname(&mut self.inner.borrow_mut(), &value.0);
     }
 
     #[boa(getter)]
     fn port(&self) -> JsString {
-        JsString::from(url::quirks::port(&self.inner))
+        JsString::from(url::quirks::port(&self.inner.borrow()))
     }
 
     #[boa(setter)]
     #[boa(rename = "port")]
     fn set_port(&mut self, value: Convert<JsString>) {
-        let _ = url::quirks::set_port(&mut self.inner, &value.0.to_std_string_lossy());
+        let _ = url::quirks::set_port(&mut self.inner.borrow_mut(), &value.0.to_std_string_lossy());
     }
 
     #[boa(getter)]
     fn protocol(&self) -> JsString {
-        JsString::from(url::quirks::protocol(&self.inner))
+        JsString::from(url::quirks::protocol(&self.inner.borrow()))
     }
 
     #[boa(setter)]
     #[boa(rename = "protocol")]
     fn set_protocol(&mut self, value: Convert<String>) {
-        let _ = url::quirks::set_protocol(&mut self.inner, &value.0);
+        let _ = url::quirks::set_protocol(&mut self.inner.borrow_mut(), &value.0);
     }
 
     #[boa(getter)]
     fn search(&self) -> JsString {
-        JsString::from(url::quirks::search(&self.inner))
+        JsString::from(url::quirks::search(&self.inner.borrow()))
     }
 
     #[boa(setter)]
     #[boa(rename = "search")]
     fn set_search(&mut self, value: Convert<String>) {
-        url::quirks::set_search(&mut self.inner, &value.0);
+        url::quirks::set_search(&mut self.inner.borrow_mut(), &value.0);
     }
 
     #[boa(getter)]
-    fn search_params(this: JsClass<Self>, context: &mut Context) -> JsResult<JsValue> {
-        if let Some(existing) = this.borrow().search_params.clone() {
-            return Ok(existing.into());
-        }
-
-        let params = UrlSearchParams::from_url(this.inner(), context)?;
-        this.borrow_mut().search_params = Some(params.clone());
-        Ok(params.into())
+    fn search_params(&self) -> JsValue {
+        self.search_params
+            .clone()
+            .expect("URL.searchParams should be initialized during construction")
+            .into()
     }
 
     #[boa(getter)]
     fn username(&self) -> JsString {
-        JsString::from(self.inner.username())
+        JsString::from(self.inner.borrow().username())
     }
 
     #[boa(setter)]
     #[boa(rename = "username")]
     fn set_username(&mut self, value: Convert<String>) {
-        let _ = self.inner.set_username(&value.0);
+        let _ = self.inner.borrow_mut().set_username(&value.0);
     }
 
     fn to_string(&self) -> JsString {
-        JsString::from(format!("{}", self.inner))
+        JsString::from(format!("{}", self.inner.borrow()))
     }
 
     #[boa(rename = "toJSON")]
     fn to_json(&self) -> JsString {
-        JsString::from(format!("{}", self.inner))
+        JsString::from(format!("{}", self.inner.borrow()))
     }
 
     #[boa(static)]
@@ -879,7 +899,7 @@ impl Url {
 
     #[boa(static)]
     fn can_parse(url: Convert<String>, base: Option<Convert<String>>) -> bool {
-        Url::new(url, base).is_ok()
+        Self::parse_url(&url.0, base.as_ref().map(|base| base.0.as_str())).is_ok()
     }
 
     #[boa(static)]
@@ -888,9 +908,10 @@ impl Url {
         base: Option<Convert<String>>,
         context: &mut Context,
     ) -> JsResult<JsValue> {
-        Url::new(url, base).map_or(Ok(JsValue::null()), |u| {
-            Url::from_data(u, context).map(JsValue::from)
-        })
+        Self::parse_url(&url.0, base.as_ref().map(|base| base.0.as_str()))
+            .map_or(Ok(JsValue::null()), |url| {
+                Self::from_data(Self::from_parsed(url, context)?, context).map(JsValue::from)
+            })
     }
 
     #[boa(static)]
