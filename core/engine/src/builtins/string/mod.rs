@@ -1557,7 +1557,7 @@ impl String {
         let fill_len = int_max_length - string_length;
 
         // Check if the resulting string would exceed the maximum string length
-        if int_max_length > (Self::MAX_STRING_LENGTH as u64) {
+        if int_max_length > Self::MAX_STRING_LENGTH {
             return Err(JsNativeError::range()
                 .with_message(format!(
                     "cannot create a string longer than the maximum allowed length ({})",
@@ -1566,7 +1566,7 @@ impl String {
                 .into());
         }
 
-        let filler_len = filler.len() as u64;
+        let filler_len = filler.len();
 
         // 9. Let truncatedStringFiller be the String value consisting of repeated
         // concatenations of filler truncated to length fillLen.
@@ -1576,10 +1576,10 @@ impl String {
             if r == 0 { q } else { q + 1 }
         };
 
-        let mut truncated_string_filler = Vec::with_capacity(fill_len as usize);
+        let mut truncated_string_filler = Vec::with_capacity(fill_len);
         let filler_slice = filler.to_vec();
         for _ in 0..repetitions {
-            let remaining = fill_len as usize - truncated_string_filler.len();
+            let remaining = fill_len - truncated_string_filler.len();
             if remaining >= filler_slice.len() {
                 truncated_string_filler.extend_from_slice(&filler_slice);
             } else {
