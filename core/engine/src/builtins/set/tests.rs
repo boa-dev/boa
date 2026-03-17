@@ -409,3 +409,89 @@ fn union_same_set() {
         }),
     ]);
 }
+
+/// `Set.prototype.intersection` — happy-path: elements present in both sets.
+#[test]
+fn intersection_common_elements() {
+    run_test_actions([
+        TestAction::run(indoc! {r#"
+            let setA = new Set([1, 2, 3, 4]);
+            let setB = new Set([3, 4, 5, 6]);
+        "#}),
+        // Both directions must yield the same logical result (order follows `this`).
+        TestAction::assert_with_op("setA.intersection(setB)", |v, _| {
+            v.display().to_string() == "Set { 3, 4 }"
+        }),
+        TestAction::assert_with_op("setB.intersection(setA)", |v, _| {
+            v.display().to_string() == "Set { 3, 4 }"
+        }),
+        // Intersecting a set with itself yields an identical set.
+        TestAction::assert_with_op("setA.intersection(setA)", |v, _| {
+            v.display().to_string() == "Set { 1, 2, 3, 4 }"
+        }),
+    ]);
+}
+
+/// `Set.prototype.intersection` — disjoint sets produce an empty result.
+#[test]
+fn intersection_no_common_elements() {
+    run_test_actions([
+        TestAction::run(indoc! {r#"
+            let setA = new Set([1, 2, 3]);
+            let setB = new Set([4, 5, 6]);
+            let setEmpty = new Set([]);
+        "#}),
+        // Two sets with nothing in common.
+        TestAction::assert_with_op("setA.intersection(setB)", |v, _| {
+            v.display().to_string() == "Set(0)"
+        }),
+        // Intersection with an empty set is always empty.
+        TestAction::assert_with_op("setA.intersection(setEmpty)", |v, _| {
+            v.display().to_string() == "Set(0)"
+        }),
+        TestAction::assert_with_op("setEmpty.intersection(setA)", |v, _| {
+            v.display().to_string() == "Set(0)"
+        }),
+    ]);
+}
+
+/// Set.prototype.intersection — this is not a Set → \
+#[test]
+fn intersection_this_not_a_set() {
+    run_test_actions([TestAction::assert_native_error(
+        "Set.prototype.intersection.call({}, new Set([1, 2, 3]))",
+        JsNativeErrorKind::Type,
+        "method `Set.prototype.intersection` called on incompatible receiver",
+    )]);
+}
+
+/// Set.prototype.intersection — other is not a valid Set-like object → \
+#[test]
+fn intersection_other_not_set_like() {
+    run_test_actions([
+        // Primitive value — GetSetRecord rejects non-objects.
+        TestAction::assert_native_error(
+            "new Set([1, 2]).intersection(42)",
+            JsNativeErrorKind::Type,
+            "Set operation called with non-object argument",
+        ),
+        // Plain object whose `size` is `undefined` (NaN after ToNumber).
+        TestAction::assert_native_error(
+            "new Set([1, 2]).intersection({})",
+            JsNativeErrorKind::Type,
+            "size is undefined",
+        ),
+        // `has` is present but not callable.
+        TestAction::assert_native_error(
+            "new Set([1, 2]).intersection({ size: 0, has: 1, keys: () => [][Symbol.iterator]() })",
+            JsNativeErrorKind::Type,
+            "Set-like object must have a callable 'has' method",
+        ),
+        // `keys` is present but not callable.
+        TestAction::assert_native_error(
+            "new Set([1, 2]).intersection({ size: 0, has: () => false, keys: 1 })",
+            JsNativeErrorKind::Type,
+            "Set-like object must have a callable 'keys' method",
+        ),
+    ]);
+}

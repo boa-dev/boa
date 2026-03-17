@@ -1,0 +1,9 @@
+#!/bin/sh
+
+if ! command -v cargo-make >/dev/null 2>&1; then
+    echo "cargo-make is not installed. Install it with:"
+    echo "  cargo install cargo-make"
+    exit 1
+fi
+
+cargo make run-ci

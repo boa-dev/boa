@@ -63,7 +63,7 @@ pub struct CallFrame {
     // The stack of bindings being updated.
     // SAFETY: Nothing in `BindingLocator` requires tracing, so this is safe.
     #[unsafe_ignore_trace]
-    pub(crate) binding_stack: Vec<BindingLocator>,
+    pub(crate) binding_stack: ThinVec<BindingLocator>,
 
     /// How many iterations a loop has done.
     pub(crate) loop_iteration_count: u64,
@@ -148,7 +148,7 @@ impl CallFrame {
             argument_count: 0,
             rp: 0,
             iterators: ThinVec::new(),
-            binding_stack: Vec::new(),
+            binding_stack: ThinVec::new(),
             code_block,
             loop_iteration_count: 0,
             active_runnable,
@@ -256,10 +256,10 @@ impl JsValue {
                 0 => return GeneratorResumeKind::Normal,
                 1 => return GeneratorResumeKind::Throw,
                 2 => return GeneratorResumeKind::Return,
-                _ => unreachable!("generator kind must be a integer between 1..=2, got {value}"),
+                _ => unreachable!("generator kind must be an integer between 1..=2, got {value}"),
             }
         }
 
-        unreachable!("generator kind must be a integer type")
+        unreachable!("generator kind must be an integer type")
     }
 }
