@@ -2,6 +2,7 @@
 
 pub mod array;
 pub mod array_buffer;
+pub mod async_disposable_stack;
 pub mod async_function;
 pub mod async_generator;
 pub mod async_generator_function;
@@ -10,6 +11,7 @@ pub mod bigint;
 pub mod boolean;
 pub mod dataview;
 pub mod date;
+pub mod disposable_stack;
 pub mod error;
 pub mod eval;
 pub mod function;
@@ -63,7 +65,8 @@ pub(crate) use self::{
     dataview::DataView,
     date::Date,
     error::{
-        AggregateError, EvalError, RangeError, ReferenceError, SyntaxError, TypeError, UriError,
+        AggregateError, EvalError, RangeError, ReferenceError, SuppressedError, SyntaxError,
+        TypeError, UriError,
     },
     eval::Eval,
     function::BuiltInFunctionObject,
@@ -301,6 +304,9 @@ impl Realm {
         EvalError::init(self);
         UriError::init(self);
         AggregateError::init(self);
+        SuppressedError::init(self);
+        disposable_stack::DisposableStack::init(self);
+        async_disposable_stack::AsyncDisposableStack::init(self);
         Reflect::init(self);
         Generator::init(self);
         GeneratorFunction::init(self);
@@ -433,6 +439,9 @@ pub(crate) fn set_default_global_bindings(context: &mut Context) -> JsResult<()>
     global_binding::<EvalError>(context)?;
     global_binding::<UriError>(context)?;
     global_binding::<AggregateError>(context)?;
+    global_binding::<SuppressedError>(context)?;
+    global_binding::<disposable_stack::DisposableStack>(context)?;
+    global_binding::<async_disposable_stack::AsyncDisposableStack>(context)?;
     global_binding::<Reflect>(context)?;
     global_binding::<Promise>(context)?;
     global_binding::<EncodeUri>(context)?;

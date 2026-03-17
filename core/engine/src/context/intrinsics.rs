@@ -170,6 +170,9 @@ pub struct StandardConstructors {
     weak_ref: StandardConstructor,
     weak_map: StandardConstructor,
     weak_set: StandardConstructor,
+    suppressed_error: StandardConstructor,
+    disposable_stack: StandardConstructor,
+    async_disposable_stack: StandardConstructor,
     iterator: StandardConstructor,
     #[cfg(feature = "intl")]
     collator: StandardConstructor,
@@ -265,6 +268,9 @@ impl Default for StandardConstructors {
             weak_ref: StandardConstructor::default(),
             weak_map: StandardConstructor::default(),
             weak_set: StandardConstructor::default(),
+            suppressed_error: StandardConstructor::default(),
+            disposable_stack: StandardConstructor::default(),
+            async_disposable_stack: StandardConstructor::default(),
             iterator: StandardConstructor::default(),
             #[cfg(feature = "intl")]
             collator: StandardConstructor::default(),
@@ -565,6 +571,42 @@ impl StandardConstructors {
     #[must_use]
     pub const fn aggregate_error(&self) -> &StandardConstructor {
         &self.aggregate_error
+    }
+
+    /// Returns the `SuppressedError` constructor.
+    ///
+    /// More information:
+    ///  - [ECMAScript reference][spec]
+    ///
+    /// [spec]: https://tc39.es/ecma262/#sec-suppressederror-constructor
+    #[inline]
+    #[must_use]
+    pub const fn suppressed_error(&self) -> &StandardConstructor {
+        &self.suppressed_error
+    }
+
+    /// Returns the `DisposableStack` constructor.
+    ///
+    /// More information:
+    ///  - [ECMAScript reference][spec]
+    ///
+    /// [spec]: https://tc39.es/ecma262/#sec-disposablestack-constructor
+    #[inline]
+    #[must_use]
+    pub const fn disposable_stack(&self) -> &StandardConstructor {
+        &self.disposable_stack
+    }
+
+    /// Returns the `AsyncDisposableStack` constructor.
+    ///
+    /// More information:
+    ///  - [ECMAScript reference][spec]
+    ///
+    /// [spec]: https://tc39.es/ecma262/#sec-asyncdisposablestack-constructor
+    #[inline]
+    #[must_use]
+    pub const fn async_disposable_stack(&self) -> &StandardConstructor {
+        &self.async_disposable_stack
     }
 
     /// Returns the `Map` constructor.
