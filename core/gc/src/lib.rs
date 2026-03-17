@@ -18,9 +18,7 @@
 extern crate self as boa_gc;
 
 #[cfg(feature = "oscars")]
-pub mod oscars {
-    use oscars::*;
-}
+pub use oscars;
 
 mod cell;
 mod pointers;

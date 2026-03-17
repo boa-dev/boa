@@ -3119,7 +3119,7 @@ dependencies = [
 [[package]]
 name = "oscars"
 version = "0.1.0"
-source = "git+https://github.com/boa-dev/oscars.git?branch=main#a47bfba6fd06194eedffd58d37037ae8b34d8ff4"
+source = "git+https://github.com/boa-dev/oscars.git?rev=d4864e7#d4864e7a6245139adc6eeac85a9f2b651d5937c3"
 dependencies = [
  "hashbrown 0.16.1",
  "oscars_derive",
@@ -3129,7 +3129,7 @@ dependencies = [
 [[package]]
 name = "oscars_derive"
 version = "0.1.0"
-source = "git+https://github.com/boa-dev/oscars.git?branch=main#a47bfba6fd06194eedffd58d37037ae8b34d8ff4"
+source = "git+https://github.com/boa-dev/oscars.git?rev=d4864e7#d4864e7a6245139adc6eeac85a9f2b651d5937c3"
 dependencies = [
  "cfg-if",
  "proc-macro2",
