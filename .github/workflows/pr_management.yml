@@ -4,6 +4,9 @@ on:
   pull_request_target:
     types: [opened, reopened, synchronize, closed]
 
+permissions:
+  contents: read
+
 jobs:
   manage_pr:
     runs-on: ubuntu-latest
