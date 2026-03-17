@@ -112,13 +112,12 @@ impl GeneratorContext {
         let caller_realm = context.vm.native_caller_realm.clone();
 
         std::mem::swap(&mut context.vm.stack, &mut self.stack);
-        let mut frame = self.call_frame.take().expect("should have a call frame");
+        let Some(mut frame) = self.call_frame.take() else {
+            return CompletionRecord::Throw(PanicError::new("should have a call frame").into());
+        };
         if frame.caller_realm.is_none() {
             frame.caller_realm = caller_realm;
         }
-        let Some(frame) = self.call_frame.take() else {
-            return CompletionRecord::Throw(PanicError::new("should have a call frame").into());
-        };
         let fp = frame.fp;
         let rp = frame.rp;
         context.vm.push_frame(frame);
