@@ -1294,7 +1294,11 @@ impl Array {
 
             // Small optimization for arrays using dense properties.
             // Mirrors the fast-path in `shift`.
-            if o.is_array() {
+            // Guard: only take the fast path when len > 0, because for empty
+            // arrays (len == 0) there are no own indexed properties and `Set`
+            // must traverse the prototype chain (which may have setters that
+            // freeze the array or make `length` non-writable mid-operation).
+            if o.is_array() && len > 0 {
                 let mut o_borrow = o.borrow_mut();
                 let props = &mut o_borrow.properties_mut().indexed_properties;
 
