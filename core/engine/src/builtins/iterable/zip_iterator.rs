@@ -5,6 +5,7 @@
 //!
 //! [proposal]: https://tc39.es/proposal-joint-iteration/
 
+use crate::property::PropertyKey;
 use crate::{
     Context, JsData, JsResult, JsValue,
     builtins::{
@@ -20,7 +21,6 @@ use crate::{
     symbol::JsSymbol,
 };
 use boa_gc::{Finalize, Trace};
-use crate::property::PropertyKey;
 
 /// The mode for zip iteration.
 #[derive(Debug, Clone, PartialEq, Eq, Trace, Finalize)]
@@ -98,7 +98,7 @@ impl IntrinsicObject for ZipIterator {
     }
 
     fn get(intrinsics: &Intrinsics) -> JsObject {
-        intrinsics.objects().iterator_prototypes().iterator()
+        intrinsics.objects().iterator_prototypes().zip_iterator()
     }
 }
 
@@ -139,7 +139,7 @@ impl ZipIterator {
                 .intrinsics()
                 .objects()
                 .iterator_prototypes()
-                .iterator(),
+                .zip_iterator(),
             zip_iter,
         );
         obj.into()
@@ -180,9 +180,8 @@ impl ZipIterator {
                 let obj = JsObject::with_null_proto();
                 for (i, key) in keys.iter().enumerate() {
                     if let Some(val) = results.get(i) {
-                        let prop_key: PropertyKey = key.to_string(context)
-                            .unwrap_or_default()
-                            .into();
+                        let prop_key: PropertyKey =
+                            key.to_string(context).unwrap_or_default().into();
                         obj.set(prop_key, val.clone(), false, context)
                             .expect("setting property on new object should not fail");
                     }
@@ -201,13 +200,13 @@ impl ZipIterator {
     ///
     /// [proposal]: https://tc39.es/proposal-joint-iteration/#sec-iteratorzip
     pub(crate) fn next(this: &JsValue, _: &[JsValue], context: &mut Context) -> JsResult<JsValue> {
-        let obj = this.as_object().ok_or_else(|| {
-            JsNativeError::typ().with_message("`this` is not a ZipIterator")
-        })?;
+        let obj = this
+            .as_object()
+            .ok_or_else(|| JsNativeError::typ().with_message("`this` is not a ZipIterator"))?;
 
-        let mut zip_iter = obj.downcast_mut::<Self>().ok_or_else(|| {
-            JsNativeError::typ().with_message("`this` is not a ZipIterator")
-        })?;
+        let mut zip_iter = obj
+            .downcast_mut::<Self>()
+            .ok_or_else(|| JsNativeError::typ().with_message("`this` is not a ZipIterator"))?;
 
         // If already done, return { value: undefined, done: true }
         if zip_iter.done {
@@ -261,12 +260,7 @@ impl ZipIterator {
                     zip_iter.done = true;
                     // Return ? IteratorCloseAll(openIters, result).
                     let open = zip_iter.open_iters.clone();
-                    return Self::close_all(
-                        &mut zip_iter.iters,
-                        &open,
-                        Err(err),
-                        context,
-                    );
+                    return Self::close_all(&mut zip_iter.iters, &open, Err(err), context);
                 }
                 Ok(None) => {
                     // result is done.
@@ -298,16 +292,14 @@ impl ZipIterator {
                                 // If i ≠ 0, throw TypeError after closing all.
                                 zip_iter.done = true;
                                 let open = zip_iter.open_iters.clone();
-                                let _ = Self::close_all(
+                                drop(Self::close_all(
                                     &mut zip_iter.iters,
                                     &open,
                                     Ok(JsValue::undefined()),
                                     context,
-                                );
+                                ));
                                 return Err(JsNativeError::typ()
-                                    .with_message(
-                                        "iterators have different lengths in strict mode",
-                                    )
+                                    .with_message("iterators have different lengths in strict mode")
                                     .into());
                             }
 
@@ -340,12 +332,12 @@ impl ZipIterator {
                                             // Not done → length mismatch, throw TypeError
                                             zip_iter.done = true;
                                             let open = zip_iter.open_iters.clone();
-                                            let _ = Self::close_all(
+                                            drop(Self::close_all(
                                                 &mut zip_iter.iters,
                                                 &open,
                                                 Ok(JsValue::undefined()),
                                                 context,
-                                            );
+                                            ));
                                             return Err(JsNativeError::typ()
                                                 .with_message(
                                                     "iterators have different lengths in strict mode",
@@ -406,13 +398,13 @@ impl ZipIterator {
         _: &[JsValue],
         context: &mut Context,
     ) -> JsResult<JsValue> {
-        let obj = this.as_object().ok_or_else(|| {
-            JsNativeError::typ().with_message("`this` is not a ZipIterator")
-        })?;
+        let obj = this
+            .as_object()
+            .ok_or_else(|| JsNativeError::typ().with_message("`this` is not a ZipIterator"))?;
 
-        let mut zip_iter = obj.downcast_mut::<Self>().ok_or_else(|| {
-            JsNativeError::typ().with_message("`this` is not a ZipIterator")
-        })?;
+        let mut zip_iter = obj
+            .downcast_mut::<Self>()
+            .ok_or_else(|| JsNativeError::typ().with_message("`this` is not a ZipIterator"))?;
 
         zip_iter.done = true;
         let open = zip_iter.open_iters.clone();
