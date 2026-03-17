@@ -252,6 +252,8 @@ impl Realm {
         IteratorConstructor::init(self);
         WrapForValidIterator::init(self);
         IteratorHelper::init(self);
+        #[cfg(feature = "experimental")]
+        iterable::ZipIterator::init(self);
         Math::init(self);
         Json::init(self);
         Array::init(self);

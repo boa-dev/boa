@@ -1,7 +1,7 @@
 //! Boa's implementation of ECMAScript's `IteratorRecord` and iterator prototype objects.
 
 use crate::{
-    Context, JsArgs, JsResult, JsValue,
+    Context, JsResult, JsValue,
     builtins::{BuiltInBuilder, IntrinsicObject},
     context::intrinsics::Intrinsics,
     error::JsNativeError,
@@ -11,6 +11,9 @@ use crate::{
     symbol::JsSymbol,
 };
 use boa_gc::{Finalize, Trace};
+
+#[cfg(feature = "experimental")]
+use crate::JsArgs;
 
 mod async_from_sync_iterator;
 pub(crate) mod iterator_constructor;
@@ -88,6 +91,10 @@ pub struct IteratorPrototypes {
 
     /// The `%WrapForValidIteratorPrototype%` prototype object.
     wrap_for_valid_iterator: JsObject,
+
+    /// The `ZipIteratorPrototype` prototype object.
+    #[cfg(feature = "experimental")]
+    zip_iterator: JsObject,
 }
 
 impl Default for IteratorPrototypes {
@@ -105,6 +112,8 @@ impl Default for IteratorPrototypes {
             segment: JsObject::with_null_proto(),
             iterator_helper: JsObject::with_null_proto(),
             wrap_for_valid_iterator: JsObject::with_null_proto(),
+            #[cfg(feature = "experimental")]
+            zip_iterator: JsObject::with_null_proto(),
         }
     }
 }
@@ -187,6 +196,14 @@ impl IteratorPrototypes {
     pub fn wrap_for_valid_iterator(&self) -> JsObject {
         self.wrap_for_valid_iterator.clone()
     }
+
+    /// Returns the `ZipIteratorPrototype` object.
+    #[inline]
+    #[must_use]
+    #[cfg(feature = "experimental")]
+    pub fn zip_iterator(&self) -> JsObject {
+        self.zip_iterator.clone()
+    }
 }
 
 /// `%IteratorPrototype%` object
@@ -199,15 +216,20 @@ pub(crate) struct Iterator;
 
 impl IntrinsicObject for Iterator {
     fn init(realm: &Realm) {
-        let builder = BuiltInBuilder::with_intrinsic::<Self>(realm)
-            .static_method(|v, _, _| Ok(v.clone()), JsSymbol::iterator(), 0);
+        let builder = BuiltInBuilder::with_intrinsic::<Self>(realm).static_method(
+            |v, _, _| Ok(v.clone()),
+            JsSymbol::iterator(),
+            0,
+        );
+
+        #[cfg(not(feature = "experimental"))]
+        builder.build();
 
         #[cfg(feature = "experimental")]
-        let builder = builder
+        builder
             .static_method(Self::zip, js_string!("zip"), 1)
-            .static_method(Self::zip_keyed, js_string!("zipKeyed"), 1);
-
-        builder.build();
+            .static_method(Self::zip_keyed, js_string!("zipKeyed"), 1)
+            .build();
     }
 
     fn get(intrinsics: &Intrinsics) -> JsObject {
@@ -285,7 +307,7 @@ impl Iterator {
                 Err(err) => {
                     // IfAbruptCloseIterators(next, iters)
                     for iter in &iters {
-                        let _ = iter.close(Ok(JsValue::undefined()), context);
+                        drop(iter.close(Ok(JsValue::undefined()), context));
                     }
                     return Err(err);
                 }
@@ -295,9 +317,9 @@ impl Iterator {
                     if !value.is_object() {
                         // Close all collected iterators and the input iterator.
                         for iter in &iters {
-                            let _ = iter.close(Ok(JsValue::undefined()), context);
+                            drop(iter.close(Ok(JsValue::undefined()), context));
                         }
-                        let _ = input_iter.close(Ok(JsValue::undefined()), context);
+                        drop(input_iter.close(Ok(JsValue::undefined()), context));
                         return Err(JsNativeError::typ()
                             .with_message("iterator value is not an object")
                             .into());
@@ -306,9 +328,9 @@ impl Iterator {
                     match iter_result {
                         Err(err) => {
                             for iter in &iters {
-                                let _ = iter.close(Ok(JsValue::undefined()), context);
+                                drop(iter.close(Ok(JsValue::undefined()), context));
                             }
-                            let _ = input_iter.close(Ok(JsValue::undefined()), context);
+                            drop(input_iter.close(Ok(JsValue::undefined()), context));
                             return Err(err);
                         }
                         Ok(iter) => iters.push(iter),
@@ -400,7 +422,7 @@ impl Iterator {
                 keys.push(key_val);
                 if !value.is_object() {
                     for iter in &iters {
-                        let _ = iter.close(Ok(JsValue::undefined()), context);
+                        drop(iter.close(Ok(JsValue::undefined()), context));
                     }
                     return Err(JsNativeError::typ()
                         .with_message("iterator value is not an object")
@@ -410,7 +432,7 @@ impl Iterator {
                 match iter {
                     Err(err) => {
                         for it in &iters {
-                            let _ = it.close(Ok(JsValue::undefined()), context);
+                            drop(it.close(Ok(JsValue::undefined()), context));
                         }
                         return Err(err);
                     }
@@ -431,8 +453,7 @@ impl Iterator {
                     let pad = pad_obj.as_object().unwrap();
                     let mut padding = Vec::with_capacity(iter_count);
                     for key in &keys {
-                        let prop_key = key.to_string(context)
-                            .unwrap_or_default();
+                        let prop_key = key.to_string(context).unwrap_or_default();
                         let val = pad.get(prop_key, context)?;
                         padding.push(val);
                     }
@@ -460,9 +481,9 @@ impl Iterator {
         if options.is_undefined() || options.is_null() {
             return Ok(ZipMode::Shortest);
         }
-        let opts = options.as_object().ok_or_else(|| {
-            JsNativeError::typ().with_message("options must be an object")
-        })?;
+        let opts = options
+            .as_object()
+            .ok_or_else(|| JsNativeError::typ().with_message("options must be an object"))?;
         let mode_val = opts.get(js_string!("mode"), context)?;
         if mode_val.is_undefined() {
             return Ok(ZipMode::Shortest);
@@ -489,13 +510,15 @@ impl Iterator {
         match padding_option {
             None => Ok(vec![JsValue::undefined(); iter_count]),
             Some(pad_val) => {
-                let mut padding_iter = pad_val.get_iterator(IteratorHint::Sync, context)
-                    .map_err(|err| {
-                        for iter in iters {
-                            let _ = iter.close(Ok(JsValue::undefined()), context);
-                        }
-                        err
-                    })?;
+                let mut padding_iter =
+                    pad_val
+                        .get_iterator(IteratorHint::Sync, context)
+                        .map_err(|err| {
+                            for iter in iters {
+                                drop(iter.close(Ok(JsValue::undefined()), context));
+                            }
+                            err
+                        })?;
                 let mut padding = Vec::new();
                 let mut using_iterator = true;
 
@@ -504,7 +527,7 @@ impl Iterator {
                         match padding_iter.step_value(context) {
                             Err(err) => {
                                 for iter in iters {
-                                    let _ = iter.close(Ok(JsValue::undefined()), context);
+                                    drop(iter.close(Ok(JsValue::undefined()), context));
                                 }
                                 return Err(err);
                             }
@@ -525,7 +548,7 @@ impl Iterator {
                     let close_result = padding_iter.close(Ok(JsValue::undefined()), context);
                     if let Err(err) = close_result {
                         for iter in iters {
-                            let _ = iter.close(Ok(JsValue::undefined()), context);
+                            drop(iter.close(Ok(JsValue::undefined()), context));
                         }
                         return Err(err);
                     }
