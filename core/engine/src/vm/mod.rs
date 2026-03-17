@@ -21,9 +21,6 @@ use std::{future::Future, ops::ControlFlow, path::Path, pin::Pin, task};
 #[cfg(feature = "trace")]
 use crate::sys::time::Instant;
 
-#[cfg(feature = "trace")]
-use std::fmt::Write as _;
-
 #[allow(unused_imports)]
 pub(crate) use opcode::{Instruction, InstructionIterator, Opcode};
 
@@ -311,20 +308,32 @@ impl Stack {
             return "[ <empty> ]".to_string();
         }
 
-        // Build (raw_value, index) pairs, top of stack first
-        let entries: Vec<(String, usize)> = self
-            .stack
-            .iter()
-            .enumerate()
-            .rev()
-            .map(|(j, v)| (Self::raw_value(v), j))
-            .collect();
-
-        // Group consecutive identical values, but never merge frame pointer entries
         let mut groups: Vec<(String, usize, Option<usize>)> = Vec::new();
-        for (val, idx) in &entries {
-            let is_frame = frame.frame_pointer() == *idx;
+        let mut force_truncate = false;
 
+<<<<<<< HEAD
+        // Lazily group values to avoid eagerly evaluating `raw_value` for the entire stack.
+        for (idx, v) in self.stack.iter().enumerate().rev() {
+            let is_frame = frame.frame_pointer() == idx;
+            let raw = Self::raw_value(v);
+
+            if !is_frame
+                && let Some(last) = groups.last_mut()
+                && last.0 == raw
+                && last.2.is_none()
+            {
+                last.1 += 1;
+            } else {
+                let marker = if is_frame { Some(frame_count) } else { None };
+                groups.push((raw, 1, marker));
+
+                // If groups is large enough to mathematically guarantee overflowing the display width,
+                // we can stop evaluating to save instruction budget / time.
+                if groups.len() > Self::MAX_STACK_WIDTH / 2 {
+                    force_truncate = true;
+                    break;
+                }
+=======
             if !is_frame
                 && let Some(last) = groups.last_mut()
                 && last.0 == *val
@@ -332,14 +341,13 @@ impl Stack {
             {
                 last.1 += 1;
                 continue;
+>>>>>>> 99179d06a9886a97a6405d9696c6d0b5bdc8adce
             }
-
-            let marker = if is_frame { Some(frame_count) } else { None };
-            groups.push((val.clone(), 1, marker));
         }
 
         let mut string = String::from("[ ");
-        let mut truncated = false;
+        let mut truncated = force_truncate;
+        let suffix = format!(".. ({total} total) ]");
 
         for (i, (val, count, marker)) in groups.iter().enumerate() {
             let display_val = Self::truncate_display(val);
@@ -351,14 +359,15 @@ impl Stack {
 
             let separator = if let Some(fc) = marker {
                 format!(" |{fc}|")
-            } else if i + 1 < groups.len() {
+            } else if i + 1 < total && !(force_truncate && i + 1 == groups.len()) {
+                // Ensure a comma is added as long as there are more elements in the stack overall.
                 ",".to_string()
             } else {
                 String::new()
             };
 
             let addition = format!("{part}{separator} ");
-            if string.len() + addition.len() > Self::MAX_STACK_WIDTH - 10 {
+            if string.len() + addition.len() + suffix.len() > Self::MAX_STACK_WIDTH {
                 truncated = true;
                 break;
             }
@@ -366,7 +375,7 @@ impl Stack {
         }
 
         if truncated {
-            let _ = write!(string, ".. ({total} total) ]");
+            string.push_str(&suffix);
         } else {
             string.push(']');
         }
