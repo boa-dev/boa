@@ -3,7 +3,7 @@
 use std::sync::atomic::Ordering;
 
 use crate::{
-    Context, JsNativeError, JsResult, JsString, JsValue,
+    Context, JsExpect, JsNativeError, JsResult, JsString, JsValue,
     builtins::array_buffer::BufferObject,
     object::{
         JsData, JsObject,
@@ -293,7 +293,7 @@ pub(crate) fn typed_array_exotic_prevent_extensions(
     let is_fixed_length = {
         let ta = obj
             .downcast_ref::<TypedArray>()
-            .expect("must be a TypedArray");
+            .js_expect("must be a TypedArray")?;
 
         ta.viewed_array_buffer().as_buffer().is_fixed_len()
     };
@@ -355,7 +355,7 @@ pub(crate) fn typed_array_exotic_get_own_property(
     // 1.b. If numericIndex is not undefined, then
     if let Some(numeric_index) = p {
         // i. Let value be IntegerIndexedElementGet(O, numericIndex).
-        let value = typed_array_get_element(obj, numeric_index);
+        let value = typed_array_get_element(obj, numeric_index)?;
 
         // ii. If value is undefined, return undefined.
         // iii. Return the PropertyDescriptor { [[Value]]: value, [[Writable]]: true, [[Enumerable]]: true, [[Configurable]]: true }.
@@ -396,7 +396,7 @@ pub(crate) fn typed_array_exotic_has_property(
     // 1. If P is a String, then
     // 1.b. If numericIndex is not undefined, return IsValidIntegerIndex(O, numericIndex).
     if let Some(numeric_index) = p {
-        return Ok(is_valid_integer_index(obj, numeric_index));
+        return is_valid_integer_index(obj, numeric_index);
     }
 
     // 2. Return ? OrdinaryHasProperty(O, P).
@@ -428,7 +428,7 @@ pub(crate) fn typed_array_exotic_define_own_property(
     // 1.b. If numericIndex is not undefined, then
     if let Some(numeric_index) = p {
         // i. If IsValidIntegerIndex(O, numericIndex) is false, return false.
-        if !is_valid_integer_index(obj, numeric_index) {
+        if !is_valid_integer_index(obj, numeric_index)? {
             return Ok(false);
         }
 
@@ -494,7 +494,7 @@ pub(crate) fn typed_array_exotic_try_get(
     // 1.b. If numericIndex is not undefined, then
     if let Some(numeric_index) = p {
         // i. Return IntegerIndexedElementGet(O, numericIndex).
-        return Ok(typed_array_get_element(obj, numeric_index));
+        return typed_array_get_element(obj, numeric_index);
     }
 
     // 2. Return ? OrdinaryGet(O, P, Receiver).
@@ -526,7 +526,7 @@ pub(crate) fn typed_array_exotic_get(
     // 1.b. If numericIndex is not undefined, then
     if let Some(numeric_index) = p {
         // i. Return IntegerIndexedElementGet(O, numericIndex).
-        return Ok(typed_array_get_element(obj, numeric_index).unwrap_or_default());
+        return Ok(typed_array_get_element(obj, numeric_index)?.unwrap_or_default());
     }
 
     // 2. Return ? OrdinaryGet(O, P, Receiver).
@@ -568,7 +568,7 @@ pub(crate) fn typed_array_exotic_set(
         }
 
         // ii. If IsValidIntegerIndex(O, numericIndex) is false, return true.
-        if !is_valid_integer_index(obj, numeric_index) {
+        if !is_valid_integer_index(obj, numeric_index)? {
             return Ok(true);
         }
     }
@@ -601,7 +601,7 @@ pub(crate) fn typed_array_exotic_delete(
     // 1.b. If numericIndex is not undefined, then
     if let Some(numeric_index) = p {
         // i. If IsValidIntegerIndex(O, numericIndex) is false, return true; else return false.
-        return Ok(!is_valid_integer_index(obj, numeric_index));
+        return Ok(!is_valid_integer_index(obj, numeric_index)?);
     }
 
     // 2. Return ! OrdinaryDelete(O, P).
@@ -621,7 +621,7 @@ pub(crate) fn typed_array_exotic_own_property_keys(
 ) -> JsResult<Vec<PropertyKey>> {
     let inner = obj
         .downcast_ref::<TypedArray>()
-        .expect("TypedArray exotic method should only be callable from TypedArray objects");
+        .js_expect("TypedArray exotic method should only be callable from TypedArray objects")?;
 
     // 1. Let taRecord be MakeTypedArrayWithBufferWitnessRecord(O, seq-cst).
     // 2. Let keys be a new empty List.
@@ -659,17 +659,21 @@ pub(crate) fn typed_array_exotic_own_property_keys(
 ///  - [ECMAScript reference][spec]
 ///
 /// [spec]: https://tc39.es/ecma262/sec-typedarraygetelement
-fn typed_array_get_element(obj: &JsObject, index: f64) -> Option<JsValue> {
+fn typed_array_get_element(obj: &JsObject, index: f64) -> JsResult<Option<JsValue>> {
     let inner = obj
         .downcast_ref::<TypedArray>()
-        .expect("Must be an TypedArray object");
+        .js_expect("typed_array_get_element should only be called on TypedArray objects")?;
     let buffer = inner.viewed_array_buffer();
     let buffer = buffer.as_buffer();
 
     // 1. If IsValidIntegerIndex(O, index) is false, return undefined.
-    let buffer = buffer.bytes(Ordering::Relaxed)?;
+    let Some(buffer) = buffer.bytes(Ordering::Relaxed) else {
+        return Ok(None);
+    };
 
-    let index = inner.validate_index(index, buffer.len())?;
+    let Some(index) = inner.validate_index(index, buffer.len()) else {
+        return Ok(None);
+    };
 
     // 2. Let offset be O.[[ByteOffset]].
     let offset = inner.byte_offset();
@@ -692,7 +696,7 @@ fn typed_array_get_element(obj: &JsObject, index: f64) -> Option<JsValue> {
             .get_value(elem_type, Ordering::Relaxed)
     };
 
-    Some(value.into())
+    Ok(Some(value.into()))
 }
 
 /// Abstract operation `TypedArraySetElement ( O, index, value )`.
@@ -710,8 +714,8 @@ pub(crate) fn typed_array_set_element(
     let obj = obj
         .clone()
         .downcast::<TypedArray>()
-        .expect("function can only be called for typed array objects");
-
+        .ok()
+        .js_expect("function can only be called for typed array objects")?;
     // b. Let arrayTypeName be the String value of O.[[TypedArrayName]].
     // e. Let elementType be the Element Type value in Table 73 for arrayTypeName.
     let elem_type = obj.borrow().data().kind();

@@ -66,7 +66,7 @@ indoc = "2.0.7"
 itoa = "1.0.17"
 jemallocator = "0.5.4"
 mimalloc-safe = "0.1.56"
-lz4_flex = "0.12.0"
+lz4_flex = "0.13.0"
 num-bigint = "0.4.6"
 num-traits = "0.2.19"
 once_cell = { version = "1.21.3", default-features = false }
@@ -75,7 +75,8 @@ phf = { version = "0.13.1", default-features = false }
 pollster = "0.4.0"
 regex = "1.12.3"
 regress = { version = "0.11.0", features = ["utf16"] }
-reqwest = { version = "0.13.2" }
+reqwest = { version = "0.13.2", default-features = false, features = ["rustls-no-provider"] }
+rustls = { version = "0.23.37", default-features = false, features = ["ring"] }
 rustc-hash = { version = "2.1.1", default-features = false }
 serde_json = "1.0.149"
 serde = "1.0.219"
@@ -118,7 +119,7 @@ ryu-js = "1.0.2"
 tap = "1.0.1"
 thiserror = { version = "2.0.18", default-features = false }
 dashmap = "6.1.0"
-num_enum = "0.7.5"
+num_enum = "0.7.6"
 itertools = { version = "0.14.0", default-features = false }
 portable-atomic = "1.13.1"
 bytemuck = { version = "1.25.0", default-features = false }
@@ -144,6 +145,7 @@ aligned-vec = "0.6.4"
 temp-env = "0.3.6"
 strum = { version = "0.28", features = ["derive"] }
 husky-rs = "0.3.2"
+async-channel = "2.5.0"
 
 # ICU4X
 
