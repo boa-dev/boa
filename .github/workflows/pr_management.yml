@@ -16,12 +16,21 @@ jobs:
         uses: actions/github-script@v8
         with:
           script: |
-            github.rest.issues.addLabels({
-              issue_number: context.issue.number,
+            const labels = await github.rest.issues.listLabelsOnIssue({
               owner: context.repo.owner,
               repo: context.repo.repo,
-              labels: ['Waiting On Review']
-            })
+              issue_number: context.issue.number
+            });
+
+            if (labels.every(label => label.name != "Waiting On Author")) {
+              github.rest.issues.addLabels({
+                issue_number: context.issue.number,
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                labels: ['Waiting On Review']
+              })
+            }
+
 
       - name: Auto Remove Label
         if: github.event.action == 'closed'
