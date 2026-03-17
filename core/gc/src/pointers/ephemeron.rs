@@ -5,7 +5,27 @@ use crate::{
     internals::EphemeronBox,
     trace::{Finalize, Trace},
 };
-use std::ptr::NonNull;
+use std::{ops::Deref, ptr::NonNull};
+
+/// A reference to the value held by an [`Ephemeron`].
+///
+/// This reference can be thought as a `(Gc<K>, &V)` pair, where the
+/// returned `Gc<K>` ensures that the reference `&V` is always valid until
+/// the `Gc<K>` gets dropped.
+#[derive(Debug)]
+pub struct EphemeronValueRef<'a, K: Trace + ?Sized + 'static, V> {
+    // Only required to maintain the reference `&V` alive.
+    _key: Gc<K>,
+    value: &'a V,
+}
+
+impl<K: Trace + ?Sized, V> Deref for EphemeronValueRef<'_, K, V> {
+    type Target = V;
+
+    fn deref(&self) -> &Self::Target {
+        self.value
+    }
+}
 
 /// A key-value pair where the value becomes inaccessible when the key is garbage collected.
 ///
@@ -22,16 +42,12 @@ pub struct Ephemeron<K: Trace + ?Sized + 'static, V: Trace + 'static> {
     inner_ptr: NonNull<EphemeronBox<K, V>>,
 }
 
-impl<K: Trace + ?Sized, V: Trace + Clone> Ephemeron<K, V> {
-    /// Gets the stored value of this `Ephemeron`, or `None` if the key was already garbage collected.
-    ///
-    /// This needs to return a clone of the value because holding a reference to it between
-    /// garbage collection passes could drop the underlying allocation, causing an Use After Free.
+impl<K: Trace + ?Sized, V: Trace> Ephemeron<K, V> {
+    /// Creates a new `Ephemeron`.
     #[must_use]
-    pub fn value(&self) -> Option<V> {
-        // SAFETY: this is safe because `Ephemeron` is tracked to always point to a valid pointer
-        // `inner_ptr`.
-        unsafe { self.inner_ptr.as_ref().value().cloned() }
+    pub fn new(key: &Gc<K>, value: V) -> Self {
+        let inner_ptr = Allocator::alloc_ephemeron(EphemeronBox::new(key, value));
+        Self { inner_ptr }
     }
 
     /// Gets the stored key of this `Ephemeron`, or `None` if the key was already garbage collected.
@@ -51,21 +67,24 @@ impl<K: Trace + ?Sized, V: Trace + Clone> Ephemeron<K, V> {
         Some(unsafe { Gc::from_raw(key_ptr) })
     }
 
+    /// Gets the stored value of this `Ephemeron`, or `None` if the key was already garbage collected.
+    #[must_use]
+    pub fn value(&self) -> Option<EphemeronValueRef<'_, K, V>> {
+        let key = self.key()?;
+
+        // SAFETY: this is safe because `Ephemeron` is tracked to always point to a valid pointer
+        // `inner_ptr`.
+        let value = unsafe { self.inner_ptr.as_ref().value()? };
+
+        Some(EphemeronValueRef { _key: key, value })
+    }
+
     /// Checks if the [`Ephemeron`] has a value.
     #[must_use]
     pub fn has_value(&self) -> bool {
         // SAFETY: this is safe because `Ephemeron` is tracked to always point to a valid pointer
         // `inner_ptr`.
         unsafe { self.inner_ptr.as_ref().value().is_some() }
-    }
-}
-
-impl<K: Trace + ?Sized, V: Trace> Ephemeron<K, V> {
-    /// Creates a new `Ephemeron`.
-    #[must_use]
-    pub fn new(key: &Gc<K>, value: V) -> Self {
-        let inner_ptr = Allocator::alloc_ephemeron(EphemeronBox::new(key, value));
-        Self { inner_ptr }
     }
 
     /// Returns `true` if the two `Ephemeron`s point to the same allocation.
