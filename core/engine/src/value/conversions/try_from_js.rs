@@ -71,6 +71,33 @@ impl TryFromJs for JsString {
     }
 }
 
+impl<T> TryFromJs for Box<T>
+where
+    T: TryFromJs,
+{
+    fn try_from_js(value: &JsValue, context: &mut Context) -> JsResult<Self> {
+        T::try_from_js(value, context).map(Box::new)
+    }
+}
+
+impl<T> TryFromJs for std::rc::Rc<T>
+where
+    T: TryFromJs,
+{
+    fn try_from_js(value: &JsValue, context: &mut Context) -> JsResult<Self> {
+        T::try_from_js(value, context).map(std::rc::Rc::new)
+    }
+}
+
+impl<T> TryFromJs for std::sync::Arc<T>
+where
+    T: TryFromJs,
+{
+    fn try_from_js(value: &JsValue, context: &mut Context) -> JsResult<Self> {
+        T::try_from_js(value, context).map(std::sync::Arc::new)
+    }
+}
+
 impl<T> TryFromJs for Option<T>
 where
     T: TryFromJs,
