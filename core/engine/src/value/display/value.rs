@@ -116,12 +116,10 @@ pub(crate) fn log_value_to(
                     None => f.write_str("Invalid Date"),
                 }
             } else if let Some(regexp) = v.downcast_ref::<crate::builtins::regexp::RegExp>() {
-                let str = format!(
-                    "/{}/{}",
-                    regexp.original_source().to_std_string_escaped(),
-                    regexp.original_flags().to_std_string_escaped()
-                );
-                write!(f, "{str}")
+                let source =
+                    escape_regexp_source(&regexp.original_source().to_std_string_escaped());
+                let flags = regexp.original_flags().to_std_string_escaped();
+                write!(f, "/{source}/{flags}")
             } else if v.is_callable() {
                 let name = v
                     .get_property(&PropertyKey::from(js_string!("name")))
@@ -156,6 +154,28 @@ pub(crate) fn log_value_to(
         JsVariant::Integer32(v) => write!(f, "{v}"),
         JsVariant::BigInt(num) => write!(f, "{num}n"),
     }
+}
+
+/// Escapes characters in a regex source string so the result is valid inside `/.../` syntax.
+///
+/// Per `RegExp.prototype.toString` (ES2022 §21.2.5.14):
+/// - `/` → `\/`  (avoids prematurely closing the literal)
+/// - Line terminators (`\n`, `\r`, U+2028, U+2029) are escaped so the literal
+///   does not span lines: `\n` and `\r` become `\\n`/`\\r`, U+2028/U+2029
+///   become `\u2028`/`\u2029`.
+fn escape_regexp_source(source: &str) -> String {
+    let mut out = String::with_capacity(source.len());
+    for ch in source.chars() {
+        match ch {
+            '/' => out.push_str("\\/"),
+            '\n' => out.push_str("\\n"),
+            '\r' => out.push_str("\\r"),
+            '\u{2028}' => out.push_str("\\u2028"),
+            '\u{2029}' => out.push_str("\\u2029"),
+            c => out.push(c),
+        }
+    }
+    out
 }
 
 /// Formats a [`JsValue`] inline and compactly, collapsing deeply-nested objects.

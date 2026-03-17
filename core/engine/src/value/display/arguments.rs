@@ -1,7 +1,11 @@
+use crate::builtins::function::arguments::MappedArguments;
+use crate::property::DescriptorKind;
 use crate::value::display::value;
 use crate::{JsObject, JsValue, js_string};
 use std::collections::HashSet;
 use std::fmt::{self, Write};
+
+const MAX_ARGUMENTS_TO_LOG: u32 = 100;
 
 /// Formats an Arguments object for display.
 ///
@@ -18,44 +22,73 @@ pub(super) fn log_arguments_to(
     print_internals: bool,
     print_children: bool,
 ) -> fmt::Result {
-    let len = x
+    let reported_len = x
         .borrow()
         .properties()
         .get(&js_string!("length").into())
         .and_then(|d| d.value().cloned())
         .and_then(|v| v.as_number())
-        .map_or(0, |n| n as i32);
+        .map_or(0u32, |n| n.max(0.0) as u32);
+
+    let len = reported_len.min(MAX_ARGUMENTS_TO_LOG);
 
     if !print_children {
-        return write!(f, "Arguments({len})");
+        return write!(f, "Arguments({reported_len})");
     }
 
-    if len == 0 {
+    if reported_len == 0 {
         return f.write_str("[Arguments] {}");
     }
 
     f.write_str("[Arguments] {\n")?;
     for i in 0..len {
-        // FIXME: handle accessor descriptors
-        let val = x
-            .borrow()
-            .properties()
-            .get(&i.into())
-            .and_then(|d| d.value().cloned());
+        // For MappedArguments, prefer the live value from the environment parameter map.
+        // Named parameters are backed by environment bindings, not the stored property value,
+        // so reading properties().get(...).value() can return a stale initial value.
+        let mapped_value = x.downcast_ref::<MappedArguments>().and_then(|m| m.get(i));
 
-        match val {
-            Some(v) => {
-                write!(
-                    f,
-                    "  {i}: {}",
-                    CompactValue {
-                        value: &v,
-                        print_internals
+        write!(f, "  {i}: ")?;
+
+        if let Some(v) = mapped_value {
+            write!(
+                f,
+                "{}",
+                CompactValue {
+                    value: &v,
+                    print_internals
+                }
+            )?;
+        } else {
+            let borrow = x.borrow();
+            if let Some(d) = borrow.properties().get(&i.into()) {
+                match d.kind() {
+                    DescriptorKind::Data { value, .. } => {
+                        if let Some(v) = value {
+                            write!(
+                                f,
+                                "{}",
+                                CompactValue {
+                                    value: v,
+                                    print_internals
+                                }
+                            )?;
+                        } else {
+                            f.write_str("undefined")?;
+                        }
                     }
-                )?;
-            }
-            None => {
-                write!(f, "  {i}: <empty>")?;
+                    DescriptorKind::Accessor { get, set } => {
+                        let label = match (get.is_some(), set.is_some()) {
+                            (true, true) => "[Getter/Setter]",
+                            (true, false) => "[Getter]",
+                            (false, true) => "[Setter]",
+                            _ => "[No Getter/Setter]",
+                        };
+                        f.write_str(label)?;
+                    }
+                    DescriptorKind::Generic => f.write_str("undefined")?,
+                }
+            } else {
+                f.write_str("<empty>")?;
             }
         }
 

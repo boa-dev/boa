@@ -376,6 +376,8 @@ fn console_log_regexp() {
         [TestAction::run(indoc! {r#"
             console.log(/foo/gi);
             console.log(/^hello$/m);
+            console.log(new RegExp("a/b", "g"));
+            console.log(new RegExp("foo\nbar", "m"));
         "#})],
         &mut context,
     );
@@ -386,6 +388,8 @@ fn console_log_regexp() {
         indoc! { r#"
             /foo/gi
             /^hello$/m
+            /a\/b/g
+            /foo\nbar/m
         "# }
     );
 }
