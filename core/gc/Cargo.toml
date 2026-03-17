@@ -22,6 +22,14 @@ either = ["dep:either"]
 # Enable default implementations of trace and finalize for the arrayvec crate
 arrayvec = ["dep:arrayvec"]
 
+experimental_mark_sweep = ["oscars", "oscars/mark_sweep"]
+experimental_mark_sweep2 = ["oscars", "oscars/mark_sweep2"]
+
+oscars = ["dep:oscars", "unstable"]
+
+# Unstable feature
+unstable = []
+
 [dependencies]
 boa_macros.workspace = true
 hashbrown.workspace = true
@@ -31,6 +39,8 @@ either = { workspace = true, optional = true }
 thin-vec = { workspace = true, optional = true }
 icu_locale_core = { workspace = true, optional = true }
 arrayvec = { workspace = true, optional = true }
+oscars = { git = "https://github.com/boa-dev/oscars.git", rev = "d4864e7", optional = true }
+
 
 [lints]
 workspace = true
