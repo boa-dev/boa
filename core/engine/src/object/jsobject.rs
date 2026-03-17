@@ -4,9 +4,7 @@
 
 use super::{
     JsPrototype, NativeObject, Object, ObjectData, PrivateName, PropertyMap,
-    internal_methods::{
-        InternalMethodPropertyContext, InternalObjectMethods, ORDINARY_INTERNAL_METHODS,
-    },
+    internal_methods::{InternalObjectMethods, ORDINARY_INTERNAL_METHODS},
     shape::RootShape,
 };
 use crate::{
@@ -766,75 +764,6 @@ Cannot both specify accessors and a value or writable attribute",
 
         // 16. Return desc.
         Ok(desc.build())
-    }
-
-    /// `7.3.25 CopyDataProperties ( target, source, excludedItems )`
-    ///
-    /// More information:
-    ///  - [ECMAScript][spec]
-    ///
-    /// [spec]: https://tc39.es/ecma262/#sec-copydataproperties
-    pub fn copy_data_properties<K>(
-        &self,
-        source: &JsValue,
-        excluded_keys: Vec<K>,
-        context: &mut Context,
-    ) -> JsResult<()>
-    where
-        K: Into<PropertyKey>,
-    {
-        let context = &mut InternalMethodPropertyContext::new(context);
-
-        // 1. Assert: Type(target) is Object.
-        // 2. Assert: excludedItems is a List of property keys.
-        // 3. If source is undefined or null, return target.
-        if source.is_null_or_undefined() {
-            return Ok(());
-        }
-
-        // 4. Let from be ! ToObject(source).
-        let from = source
-            .to_object(context)
-            .expect("function ToObject should never complete abruptly here");
-
-        // 5. Let keys be ? from.[[OwnPropertyKeys]]().
-        // 6. For each element nextKey of keys, do
-        let excluded_keys: Vec<PropertyKey> = excluded_keys.into_iter().map(Into::into).collect();
-        for key in from.__own_property_keys__(context)? {
-            // a. Let excluded be false.
-            let mut excluded = false;
-
-            // b. For each element e of excludedItems, do
-            for e in &excluded_keys {
-                // i. If SameValue(e, nextKey) is true, then
-                if *e == key {
-                    // 1. Set excluded to true.
-                    excluded = true;
-                    break;
-                }
-            }
-            // c. If excluded is false, then
-            if !excluded {
-                // i. Let desc be ? from.[[GetOwnProperty]](nextKey).
-                let desc = from.__get_own_property__(&key, context)?;
-
-                // ii. If desc is not undefined and desc.[[Enumerable]] is true, then
-                if let Some(desc) = desc
-                    && let Some(enumerable) = desc.enumerable()
-                    && enumerable
-                {
-                    // 1. Let propValue be ? Get(from, nextKey).
-                    let prop_value = from.__get__(&key, from.clone().into(), context)?;
-
-                    // 2. Perform ! CreateDataPropertyOrThrow(target, nextKey, propValue).
-                    self.create_data_property_or_throw(key, prop_value, context)
-                        .expect("CreateDataPropertyOrThrow should never complete abruptly here");
-                }
-            }
-        }
-
-        // 7. Return target.
-        Ok(())
     }
 
     // Allow lint, false positive.

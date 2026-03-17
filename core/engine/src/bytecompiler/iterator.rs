@@ -52,7 +52,7 @@ impl ByteCompiler<'_> {
     /// needs to make sure that the iterator will be pushed before calling this.
     pub(crate) fn iterator_to_array(&mut self, array: &Register) {
         let temp = self.register_allocator.alloc();
-        self.bytecode.emit_push_new_array(array.variable());
+        self.bytecode.emit_store_new_array(array.variable());
 
         let loop_ = self.next_opcode_location();
         self.push_loop_control_info(None, loop_, false);
@@ -82,7 +82,7 @@ impl ByteCompiler<'_> {
 
         // preemtively push false and only push true when we are sure `return`
         // was called.
-        self.bytecode.emit_push_false(called.variable());
+        self.bytecode.emit_store_false(called.variable());
 
         self.bytecode.emit_iterator_stack_empty(temp.variable());
         let no_iterators = self.jump_if_true(&temp);
@@ -111,7 +111,7 @@ impl ByteCompiler<'_> {
         self.bytecode.emit_call(0u8.into());
         self.bytecode.emit_set_accumulator(value.variable());
         self.bytecode.emit_pop_into_register(value.variable());
-        self.bytecode.emit_push_true(called.variable());
+        self.bytecode.emit_store_true(called.variable());
 
         self.patch_jump(no_iterators);
         self.patch_jump(done);

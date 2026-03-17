@@ -104,12 +104,45 @@ fn repeat() {
 }
 
 #[test]
+fn repeat_respects_loop_limit() {
+    run_test_actions([
+        // Set a small loop iteration limit so long repeats trip it.
+        TestAction::inspect_context(|context| {
+            context.runtime_limits_mut().set_loop_iteration_limit(10);
+        }),
+        // Plain JS loop should hit the runtime limit.
+        TestAction::assert_runtime_limit_error(
+            "for (let i = 0; i < 100; ++i) {}",
+            crate::error::RuntimeLimitError::LoopIteration,
+        ),
+        // String.prototype.repeat should use the same mechanism and error.
+        TestAction::assert_runtime_limit_error(
+            "'x'.repeat(100)",
+            crate::error::RuntimeLimitError::LoopIteration,
+        ),
+    ]);
+}
+
+#[test]
+fn repeat_large_count_hits_limit() {
+    run_test_actions([
+        TestAction::inspect_context(|context| {
+            context.runtime_limits_mut().set_loop_iteration_limit(50);
+        }),
+        // Large repeat count with a small loop limit should raise the same runtime limit error.
+        TestAction::assert_runtime_limit_error(
+            "'a'.repeat(10_000)",
+            crate::error::RuntimeLimitError::LoopIteration,
+        ),
+    ]);
+}
+
+#[test]
 fn repeat_throws_when_count_is_negative() {
     run_test_actions([TestAction::assert_native_error(
         "'x'.repeat(-1)",
         JsNativeErrorKind::Range,
-        "repeat count must be a positive finite number \
-                  that doesn't overflow the maximum string length (2^32 - 1)",
+        "String.prototype.repeat: count must be non-negative",
     )]);
 }
 
@@ -118,8 +151,7 @@ fn repeat_throws_when_count_is_infinity() {
     run_test_actions([TestAction::assert_native_error(
         "'x'.repeat(Infinity)",
         JsNativeErrorKind::Range,
-        "repeat count must be a positive finite number \
-                  that doesn't overflow the maximum string length (2^32 - 1)",
+        "String.prototype.repeat: count must be less than infinity",
     )]);
 }
 

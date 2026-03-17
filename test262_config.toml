@@ -8,7 +8,6 @@ features = [
     ### Unimplemented features:
 
     "FinalizationRegistry",
-    "IsHTMLDDA",
     "symbols-as-weakmap-keys",
     "Intl.DisplayNames",
     "Intl.RelativeTimeFormat",
@@ -24,8 +23,6 @@ features = [
     # https://github.com/tc39/proposal-import-bytes
     "import-bytes",
 
-    # https://github.com/tc39/proposal-await-dictionary
-    "await-dictionary",
 
     # https://github.com/tc39/proposal-intl-locale-info
     "Intl.Locale-info",
@@ -50,18 +47,12 @@ features = [
     "uint8array-base64",
 
     # Source Phase Imports
-    # https://github.com/tc39/proposal-source-phase-imports
-    "source-phase-imports",
     # test262 special specifier
     "source-phase-imports-module-source",
 
     # Immutable Array Buffer
     # https://github.com/tc39/proposal-immutable-arraybuffer
     "immutable-arraybuffer",
-
-    # Non-extensible Applies to Private
-    # https://github.com/tc39/proposal-nonextensible-applies-to-private
-    "nonextensible-applies-to-private",
 
     ### Non-standard
     "caller",
@@ -95,7 +86,14 @@ tests = [
     "test/intl402/Locale/constructor-options-canonicalized.js",
     # TODO: Remove this once regress fixes the named groups parsing issue.
     "test/built-ins/RegExp/named-groups/non-unicode-property-names-valid.js",
-    # TODO: Remove when https://github.com/boa-dev/boa/issues/4791 is fixed.
-    "test/built-ins/RegExp/unicodeSets/generated/rgi-emoji-16.0.js",
-    "test/built-ins/RegExp/unicodeSets/generated/rgi-emoji-17.0.js"
+    # Source Phase Imports: AbstractModuleSource built-in and static `import source` not yet implemented.
+    "test/built-ins/AbstractModuleSource/proto.js",
+    "test/built-ins/AbstractModuleSource/name.js",
+    "test/built-ins/AbstractModuleSource/length.js",
+    "test/built-ins/AbstractModuleSource/prototype/proto.js",
+    "test/built-ins/AbstractModuleSource/prototype/Symbol.toStringTag.js",
+    "test/built-ins/AbstractModuleSource/prototype/constructor.js",
+    "test/built-ins/AbstractModuleSource/prototype.js",
+    "test/built-ins/AbstractModuleSource/throw-from-constructor.js",
+    "test/language/module-code/source-phase-import/import-source.js",
 ]

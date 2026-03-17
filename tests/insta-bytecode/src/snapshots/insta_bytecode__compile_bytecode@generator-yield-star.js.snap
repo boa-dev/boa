@@ -3,10 +3,10 @@ source: tests/insta-bytecode/src/lib.rs
 expression: output
 input_file: tests/insta-bytecode/scripts/generator-yield-star.js
 ---
----------------------------Compiled Output: '<main>'----------------------------
+-------------------------- Compiled Output: '<main>' ---------------------------
 Location     Handler      Opcode                            Operands
   000000                    GetLocator                        binding_index:0
-  000005                    PushEmptyObject                   dst:r01
+  000005                    StoreEmptyObject                  dst:r01
   00000a                    GetNameGlobal                     dst:r03, binding_index:1, ic_index:0
   000017                    GetPropertyByName                 dst:r02, value:r03, ic:(name:asyncIterator entries:())
   000024                    ToPropertyKey                     src:r02, dst:r02

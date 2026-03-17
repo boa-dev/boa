@@ -1,4 +1,4 @@
-use super::VaryingOperand;
+use super::IndexOperand;
 use crate::{Context, JsResult, error::JsNativeError, vm::opcode::Operation};
 
 /// `New` implements the Opcode Operation for `Opcode::New`
@@ -10,7 +10,7 @@ pub(crate) struct New;
 
 impl New {
     #[inline(always)]
-    pub(super) fn operation(argument_count: VaryingOperand, context: &mut Context) -> JsResult<()> {
+    pub(super) fn operation(argument_count: IndexOperand, context: &mut Context) -> JsResult<()> {
         let func = context
             .vm
             .stack

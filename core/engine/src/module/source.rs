@@ -26,8 +26,8 @@ use indexmap::IndexSet;
 use rustc_hash::{FxHashMap, FxHashSet, FxHasher};
 
 use crate::{
-    Context, JsArgs, JsError, JsNativeError, JsObject, JsResult, JsString, JsValue, NativeFunction,
-    SpannedSourceText,
+    Context, JsArgs, JsError, JsExpect, JsNativeError, JsObject, JsResult, JsString, JsValue,
+    NativeFunction, SpannedSourceText,
     builtins::{Promise, promise::PromiseCapability},
     bytecompiler::{BindingAccessOpcode, ByteCompiler, FunctionSpec, ToJsString},
     environments::{DeclarativeEnvironment, EnvironmentStack},
@@ -62,12 +62,18 @@ pub(super) struct DfsInfo {
 /// but with a state machine-like design for better correctness.
 ///
 /// [cyclic]: https://tc39.es/ecma262/#table-cyclic-module-fields
-#[derive(Debug, Trace, Finalize, Default)]
+#[derive(Debug, Trace, Finalize)]
 #[boa_gc(unsafe_no_drop)]
 enum ModuleStatus {
-    #[default]
-    Unlinked,
+    Unlinked {
+        #[unsafe_ignore_trace]
+        source: boa_ast::Module,
+        source_text: SourceText,
+    },
     Linking {
+        #[unsafe_ignore_trace]
+        source: boa_ast::Module,
+        source_text: SourceText,
         info: DfsInfo,
     },
     PreLinked {
@@ -111,15 +117,21 @@ impl ModuleStatus {
     where
         F: FnOnce(Self) -> Self,
     {
-        *self = f(std::mem::take(self));
+        *self = f(std::mem::replace(
+            self,
+            ModuleStatus::Unlinked {
+                source: boa_ast::Module::default(),
+                source_text: SourceText::default(),
+            },
+        ));
     }
 
     /// Gets the current index info of the module within the dependency graph, or `None` if the
     /// module is not in a state executing the dfs algorithm.
     const fn dfs_info(&self) -> Option<&DfsInfo> {
         match self {
-            Self::Unlinked | Self::EvaluatingAsync { .. } | Self::Evaluated { .. } => None,
-            Self::Linking { info }
+            Self::Unlinked { .. } | Self::EvaluatingAsync { .. } | Self::Evaluated { .. } => None,
+            Self::Linking { info, .. }
             | Self::PreLinked { info, .. }
             | Self::Linked { info, .. }
             | Self::Evaluating { info, .. } => Some(info),
@@ -130,8 +142,8 @@ impl ModuleStatus {
     /// or `None` if the module is not in a state executing the dfs algorithm.
     fn dfs_info_mut(&mut self) -> Option<&mut DfsInfo> {
         match self {
-            Self::Unlinked | Self::EvaluatingAsync { .. } | Self::Evaluated { .. } => None,
-            Self::Linking { info }
+            Self::Unlinked { .. } | Self::EvaluatingAsync { .. } | Self::Evaluated { .. } => None,
+            Self::Linking { info, .. }
             | Self::PreLinked { info, .. }
             | Self::Linked { info, .. }
             | Self::Evaluating { info, .. } => Some(info),
@@ -142,7 +154,7 @@ impl ModuleStatus {
     /// level capability.
     const fn top_level_capability(&self) -> Option<&PromiseCapability> {
         match &self {
-            Self::Unlinked
+            Self::Unlinked { .. }
             | Self::Linking { .. }
             | Self::PreLinked { .. }
             | Self::Linked { .. } => None,
@@ -182,12 +194,28 @@ impl ModuleStatus {
     /// Gets the declarative environment from the module status.
     fn environment(&self) -> Option<Gc<DeclarativeEnvironment>> {
         match self {
-            ModuleStatus::Unlinked | ModuleStatus::Linking { .. } => None,
+            ModuleStatus::Unlinked { .. } | ModuleStatus::Linking { .. } => None,
             ModuleStatus::PreLinked { environment, .. }
             | ModuleStatus::Linked { environment, .. }
             | ModuleStatus::Evaluating { environment, .. }
             | ModuleStatus::EvaluatingAsync { environment, .. }
             | ModuleStatus::Evaluated { environment, .. } => Some(environment.clone()),
+        }
+    }
+
+    /// If this module is in the unlinked or linking states, gets its source.
+    fn source(&self) -> Option<(&boa_ast::Module, &SourceText)> {
+        match self {
+            ModuleStatus::Unlinked {
+                source,
+                source_text,
+            }
+            | ModuleStatus::Linking {
+                source,
+                source_text,
+                ..
+            } => Some((source, source_text)),
+            _ => None,
         }
     }
 }
@@ -242,8 +270,6 @@ impl std::fmt::Debug for SourceTextModule {
 struct ModuleCode {
     has_tla: bool,
     requested_modules: IndexSet<super::ModuleRequest, BuildHasherDefault<FxHasher>>,
-    source: RefCell<Option<boa_ast::Module>>,
-    source_text: RefCell<Option<SourceText>>,
     path: Option<PathBuf>,
     import_entries: Vec<ImportEntry>,
     local_export_entries: Vec<LocalExportEntry>,
@@ -307,7 +333,7 @@ impl SourceTextModule {
     ///
     /// [parse]: https://tc39.es/ecma262/#sec-parsemodule
     pub(super) fn new(
-        code: boa_ast::Module,
+        source: boa_ast::Module,
         interner: &Interner,
         source_text: SourceText,
         path: Option<PathBuf>,
@@ -320,11 +346,11 @@ impl SourceTextModule {
                 interner,
                 requests: IndexSet::default(),
             };
-            let _ = visitor.visit_module(&code);
+            let _ = visitor.visit_module(&source);
             visitor.requests
         };
         // 4. Let importEntries be ImportEntries of body.
-        let import_entries = code.items().import_entries();
+        let import_entries = source.items().import_entries();
 
         // 5. Let importedBoundNames be ImportedLocalNames(importEntries).
         // Can be ignored because this is just a simple `Iter::map`
@@ -337,7 +363,7 @@ impl SourceTextModule {
         let mut star_export_entries = Vec::new();
 
         // 10. For each ExportEntry Record ee of exportEntries, do
-        for ee in code.items().export_entries() {
+        for ee in source.items().export_entries() {
             match ee {
                 // a. If ee.[[ModuleRequest]] is null, then
                 ExportEntry::Ordinary(entry) => {
@@ -393,7 +419,7 @@ impl SourceTextModule {
         }
 
         // 11. Let async be body Contains await.
-        let has_tla = contains(&code, ContainsSymbol::AwaitExpression);
+        let has_tla = contains(&source, ContainsSymbol::AwaitExpression);
 
         // 12. Return Source Text Module Record {
         //     [[Realm]]: realm, [[Environment]]: empty, [[Namespace]]: empty, [[CycleRoot]]: empty,
@@ -409,16 +435,17 @@ impl SourceTextModule {
         // }.
         // Most of this can be ignored, since `Status` takes care of the remaining state.
         Self {
-            status: GcRefCell::default(),
+            status: GcRefCell::new(ModuleStatus::Unlinked {
+                source,
+                source_text,
+            }),
             loaded_modules: GcRefCell::default(),
             async_parent_modules: GcRefCell::default(),
             import_meta: GcRefCell::default(),
             code: ModuleCode {
-                source: RefCell::new(Some(code)),
-                source_text: RefCell::new(Some(source_text)),
-                path,
-                requested_modules,
                 has_tla,
+                requested_modules,
+                path,
                 import_entries,
                 local_export_entries,
                 indirect_export_entries,
@@ -512,7 +539,7 @@ impl SourceTextModule {
                         .capability
                         .reject()
                         .call(&JsValue::undefined(), &[err], &mut context.borrow_mut())
-                        .expect("cannot fail for the default reject function");
+                        .js_expect("cannot fail for the default reject function")?;
                 }
             }
 
@@ -523,7 +550,7 @@ impl SourceTextModule {
         // 2. If module is a Cyclic Module Record, module.[[Status]] is new, and state.[[Visited]] does not contain
         //    module, then
         // a. Append module to state.[[Visited]].
-        if matches!(&*self.status.borrow(), ModuleStatus::Unlinked)
+        if matches!(&*self.status.borrow(), ModuleStatus::Unlinked { .. })
             && state.visited.borrow_mut().insert(module_self.clone())
         {
             // b. Let requestedModulesCount be the number of elements in module.[[RequestedModules]].
@@ -765,7 +792,7 @@ impl SourceTextModule {
         // 1. Assert: module.[[Status]] is one of unlinked, linked, evaluating-async, or evaluated.
         debug_assert!(matches!(
             &*self.status.borrow(),
-            ModuleStatus::Unlinked
+            ModuleStatus::Unlinked { .. }
                 | ModuleStatus::Linked { .. }
                 | ModuleStatus::EvaluatingAsync { .. }
                 | ModuleStatus::Evaluated { .. }
@@ -780,12 +807,24 @@ impl SourceTextModule {
             // a. For each Cyclic Module Record m of stack, do
             for m in stack.iter().filter_map(|cmr| cmr.kind().as_source_text()) {
                 // i. Assert: m.[[Status]] is linking.
-                debug_assert!(matches!(&*m.status.borrow(), ModuleStatus::Linking { .. }));
                 // ii. Set m.[[Status]] to unlinked.
-                *m.status.borrow_mut() = ModuleStatus::Unlinked;
+                m.status.borrow_mut().transition(|status| match status {
+                    ModuleStatus::Linking {
+                        source,
+                        source_text,
+                        ..
+                    } => ModuleStatus::Unlinked {
+                        source,
+                        source_text,
+                    },
+                    _ => unreachable!("i. Assert: m.[[Status]] is linking."),
+                });
             }
             // b. Assert: module.[[Status]] is unlinked.
-            debug_assert!(matches!(&*self.status.borrow(), ModuleStatus::Unlinked));
+            debug_assert!(matches!(
+                &*self.status.borrow(),
+                ModuleStatus::Unlinked { .. }
+            ));
             // c. Return ? result.
             return Err(err);
         }
@@ -827,18 +866,23 @@ impl SourceTextModule {
             return Ok(index);
         }
 
-        // 3. Assert: module.[[Status]] is unlinked.
-        debug_assert!(matches!(&*self.status.borrow(), ModuleStatus::Unlinked));
-
         // 4. Set module.[[Status]] to linking.
         // 5. Set module.[[DFSIndex]] to index.
         // 6. Set module.[[DFSAncestorIndex]] to index.
-        *self.status.borrow_mut() = ModuleStatus::Linking {
-            info: DfsInfo {
-                dfs_index: index,
-                dfs_ancestor_index: index,
+        self.status.borrow_mut().transition(|status| match status {
+            ModuleStatus::Unlinked {
+                source,
+                source_text,
+            } => ModuleStatus::Linking {
+                source,
+                source_text,
+                info: DfsInfo {
+                    dfs_index: index,
+                    dfs_ancestor_index: index,
+                },
             },
-        };
+            _ => unreachable!("3. Assert: module.[[Status]] is unlinked."),
+        });
 
         // 7. Set index to index + 1.
         index += 1;
@@ -873,10 +917,11 @@ impl SourceTextModule {
                         DfsInfo {
                             dfs_ancestor_index, ..
                         },
+                    ..
                 } = &*required_module_src.status.borrow()
                 {
-                    // 1. Set module.[[DFSAncestorIndex]] to min(module.[[DFSAncestorIndex]],
-                    //    requiredModule.[[DFSAncestorIndex]]).
+                    // 1. Set module.[[DFSAncestorIndex]] to
+                    //    min(module.[[DFSAncestorIndex]], requiredModule.[[DFSAncestorIndex]]).
 
                     Some(*dfs_ancestor_index)
                 } else {
@@ -890,7 +935,7 @@ impl SourceTextModule {
                         dfs_ancestor_index, ..
                     } = status
                         .dfs_info_mut()
-                        .expect("should be on the linking state");
+                        .js_expect("should be on the linking state")?;
                     *dfs_ancestor_index = usize::min(*dfs_ancestor_index, required_index);
                 }
             }
@@ -927,7 +972,7 @@ impl SourceTextModule {
             Some(info) if info.dfs_ancestor_index == info.dfs_index => loop {
                 //    i. Let requiredModule be the last element of stack.
                 //    ii. Remove the last element of stack.
-                let last = stack.pop().expect("should have at least one element");
+                let last = stack.pop().js_expect("should have at least one element")?;
                 let ModuleKind::SourceText(last_src) = last.kind() else {
                     unreachable!("iii. Assert: requiredModule is a Cyclic Module Record.")
                 };
@@ -976,7 +1021,7 @@ impl SourceTextModule {
         // 1. Assert: This call to Evaluate is not happening at the same time as another call to Evaluate within the surrounding agent.
         let (module, promise) = {
             match &*self.status.borrow() {
-                ModuleStatus::Unlinked
+                ModuleStatus::Unlinked { .. }
                 | ModuleStatus::Linking { .. }
                 | ModuleStatus::PreLinked { .. }
                 | ModuleStatus::Evaluating { .. } => {
@@ -997,10 +1042,14 @@ impl SourceTextModule {
                     ..
                 } => (
                     cycle_root.clone(),
-                    top_level_capability.as_ref().map(|cap| {
-                        JsPromise::from_object(cap.promise().clone())
-                            .expect("promise created from the %Promise% intrinsic is always native")
-                    }),
+                    top_level_capability
+                        .as_ref()
+                        .map(|cap| {
+                            JsPromise::from_object(cap.promise().clone()).js_expect(
+                                "promise created from the %Promise% intrinsic is always native",
+                            )
+                        })
+                        .transpose()?,
                 ),
             }
         };
@@ -1020,7 +1069,9 @@ impl SourceTextModule {
             &context.intrinsics().constructors().promise().constructor(),
             context,
         )
-        .expect("capability creation must always succeed when using the `%Promise%` intrinsic");
+        .js_expect(
+            "capability creation must always succeed when using the `%Promise%` intrinsic",
+        )?;
 
         // 8. Let result be Completion(InnerModuleEvaluation(module, stack, 0)).
         let ModuleKind::SourceText(module_src) = module.kind() else {
@@ -1047,7 +1098,7 @@ impl SourceTextModule {
                     capability
                         .resolve()
                         .call(&JsValue::undefined(), &[], context)
-                        .expect("cannot fail for the default resolve function");
+                        .js_expect("cannot fail for the default resolve function")?;
                 }
 
                 //     d. Assert: stack is empty.
@@ -1094,13 +1145,13 @@ impl SourceTextModule {
                 capability
                     .reject()
                     .call(&JsValue::undefined(), &[err.into_opaque(context)?], context)
-                    .expect("cannot fail for the default reject function");
+                    .js_expect("cannot fail for the default reject function")?;
             }
         }
 
         // 11. Return capability.[[Promise]].
         Ok(JsPromise::from_object(capability.promise().clone())
-            .expect("promise created from the %Promise% intrinsic is always native"))
+            .js_expect("promise created from the %Promise% intrinsic is always native")?)
     }
 
     /// Abstract operation [`InnerModuleEvaluation ( module, stack, index )`][spec]
@@ -1252,7 +1303,7 @@ impl SourceTextModule {
                     let mut status = self.status.borrow_mut();
                     let info = status
                         .dfs_info_mut()
-                        .expect("self should still be in the evaluating state");
+                        .js_expect("self should still be in the evaluating state")?;
                     info.dfs_ancestor_index =
                         usize::min(info.dfs_ancestor_index, req_info.dfs_ancestor_index);
                 }
@@ -1296,9 +1347,9 @@ impl SourceTextModule {
             self.execute(module_self, None, context)?;
         }
 
-        let dfs_info = self.status.borrow().dfs_info().copied().expect(
+        let dfs_info = self.status.borrow().dfs_info().copied().js_expect(
             "haven't transitioned from the `Evaluating` state, so it should have its dfs info",
-        );
+        )?;
 
         // 14. Assert: module occurs exactly once in stack.
         debug_assert_eq!(stack.iter().filter(|m| *m == module_self).count(), 1);
@@ -1314,7 +1365,7 @@ impl SourceTextModule {
                 // ii. Remove the last element of stack.
                 let required_module = stack
                     .pop()
-                    .expect("should at least have `self` in the stack");
+                    .js_expect("should at least have `self` in the stack")?;
                 let is_self = module_self == &required_module;
 
                 let ModuleKind::SourceText(required_module_src) = required_module.kind() else {
@@ -1559,25 +1610,16 @@ impl SourceTextModule {
         // 4. Assert: realm is not undefined.
         let realm = module_self.realm().clone();
 
-        // Take the AST and source text — they are only needed during compilation.
-        // Dropping them here frees the parse tree after linking is complete.
-        let source = self
-            .code
-            .source
-            .take()
-            .expect("module source consumed before initialize_environment");
-        let source_text = self
-            .code
-            .source_text
-            .take()
-            .expect("module source_text consumed before initialize_environment");
+        let status = self.status.borrow();
+        let (source, source_text) = status
+            .source()
+            .js_expect("module can only initialize its environment in the linking phase")?;
 
         // 5. Let env be NewModuleEnvironment(realm.[[GlobalEnv]]).
         // 6. Set module.[[Environment]] to env.
-        let global_env = realm.environment().clone();
         let env = source.scope().clone();
 
-        let spanned_source_text = SpannedSourceText::new_source_only(source_text);
+        let spanned_source_text = SpannedSourceText::new_source_only(source_text.clone());
         let mut compiler = ByteCompiler::new(
             js_string!("<main>"),
             true,
@@ -1629,7 +1671,9 @@ impl SourceTextModule {
                     // 2. Perform ! env.CreateImmutableBinding(in.[[LocalName]], true).
                     // 3. Perform ! env.InitializeBinding(in.[[LocalName]], namespace).
                     let local_name = entry.local_name().to_js_string(compiler.interner());
-                    let locator = env.get_binding(&local_name).expect("binding must exist");
+                    let locator = env
+                        .get_binding(&local_name)
+                        .js_expect("binding must exist")?;
 
                     if let BindingName::Name(_) = resolution.binding_name() {
                         // 1. Perform env.CreateImportBinding(in.[[LocalName]], resolution.[[Module]],
@@ -1652,7 +1696,7 @@ impl SourceTextModule {
                     //    ii. Perform ! env.CreateImmutableBinding(in.[[LocalName]], true).
                     //    iii. Perform ! env.InitializeBinding(in.[[LocalName]], namespace).
                     let name = entry.local_name().to_js_string(compiler.interner());
-                    let locator = env.get_binding(&name).expect("binding must exist");
+                    let locator = env.get_binding(&name).js_expect("binding must exist")?;
 
                     //    i. Let namespace be GetModuleNamespace(importedModule).
                     //       deferred to initialization below
@@ -1665,7 +1709,7 @@ impl SourceTextModule {
 
             // 18. Let code be module.[[ECMAScriptCode]].
             // 19. Let varDeclarations be the VarScopedDeclarations of code.
-            let var_declarations = var_scoped_declarations(&source);
+            let var_declarations = var_scoped_declarations(source);
             // 20. Let declaredVarNames be a new empty List.
             let mut declared_var_names = Vec::new();
             // 21. For each element d of varDeclarations, do
@@ -1680,7 +1724,7 @@ impl SourceTextModule {
                         // 2. Perform ! env.InitializeBinding(dn, undefined).
                         let binding = env
                             .get_binding_reference(&name)
-                            .expect("binding must exist");
+                            .js_expect("binding must exist")?;
                         let index = compiler.insert_binding(binding);
                         compiler.emit_binding_access(
                             BindingAccessOpcode::DefInitVar,
@@ -1696,7 +1740,7 @@ impl SourceTextModule {
 
             // 22. Let lexDeclarations be the LexicallyScopedDeclarations of code.
             // 23. Let privateEnv be null.
-            let lex_declarations = lexically_scoped_declarations(&source);
+            let lex_declarations = lexically_scoped_declarations(source);
             let mut functions = Vec::new();
             // 24. For each element d of lexDeclarations, do
             for declaration in lex_declarations {
@@ -1713,25 +1757,25 @@ impl SourceTextModule {
                 let (spec, locator): (FunctionSpec<'_>, _) = match declaration {
                     LexicallyScopedDeclaration::FunctionDeclaration(f) => {
                         let name = bound_names(f)[0].to_js_string(compiler.interner());
-                        let locator = env.get_binding(&name).expect("binding must exist");
+                        let locator = env.get_binding(&name).js_expect("binding must exist")?;
 
                         (f.into(), locator)
                     }
                     LexicallyScopedDeclaration::GeneratorDeclaration(g) => {
                         let name = bound_names(g)[0].to_js_string(compiler.interner());
-                        let locator = env.get_binding(&name).expect("binding must exist");
+                        let locator = env.get_binding(&name).js_expect("binding must exist")?;
 
                         (g.into(), locator)
                     }
                     LexicallyScopedDeclaration::AsyncFunctionDeclaration(af) => {
                         let name = bound_names(af)[0].to_js_string(compiler.interner());
-                        let locator = env.get_binding(&name).expect("binding must exist");
+                        let locator = env.get_binding(&name).js_expect("binding must exist")?;
 
                         (af.into(), locator)
                     }
                     LexicallyScopedDeclaration::AsyncGeneratorDeclaration(ag) => {
                         let name = bound_names(ag)[0].to_js_string(compiler.interner());
-                        let locator = env.get_binding(&name).expect("binding must exist");
+                        let locator = env.get_binding(&name).js_expect("binding must exist")?;
 
                         (ag.into(), locator)
                     }
@@ -1758,8 +1802,9 @@ impl SourceTextModule {
         };
 
         // 8. Let moduleContext be a new ECMAScript code execution context.
-        let mut envs = EnvironmentStack::new(global_env);
+        let mut envs = EnvironmentStack::new();
         envs.push_module(source.scope().clone());
+        drop(status);
 
         // 9. Set the Function of moduleContext to null.
         // 10. Assert: module.[[Realm]] is not undefined.
@@ -1786,36 +1831,45 @@ impl SourceTextModule {
                 ImportBinding::Namespace { locator, module } => {
                     // i. Let namespace be GetModuleNamespace(importedModule).
                     let namespace = module.namespace(context);
-                    context.vm.frame_mut().environments.put_lexical_value(
-                        locator.scope(),
-                        locator.binding_index(),
-                        namespace.into(),
-                    );
+                    {
+                        let frame = context.vm.frame_mut();
+                        let global = frame.realm.environment();
+                        frame.environments.put_lexical_value(
+                            locator.scope(),
+                            locator.binding_index(),
+                            namespace.into(),
+                            global,
+                        );
+                    }
                 }
                 ImportBinding::Single {
                     locator,
                     export_locator,
                 } => match export_locator.binding_name() {
-                    BindingName::Name(name) => context
-                        .vm
-                        .frame()
-                        .environments
-                        .current_declarative_ref()
-                        .expect("must be declarative")
-                        .kind()
-                        .as_module()
-                        .expect("last environment should be the module env")
-                        .set_indirect(
-                            locator.binding_index(),
-                            export_locator.module().clone(),
-                            name.clone(),
-                        ),
+                    BindingName::Name(name) => {
+                        let frame = context.vm.frame();
+                        frame
+                            .environments
+                            .current_declarative_ref(frame.realm.environment())
+                            .js_expect("must be declarative")?
+                            .kind()
+                            .as_module()
+                            .js_expect("last environment should be the module env")?
+                            .set_indirect(
+                                locator.binding_index(),
+                                export_locator.module().clone(),
+                                name.clone(),
+                            );
+                    }
                     BindingName::Namespace => {
                         let namespace = export_locator.module.namespace(context);
-                        context.vm.frame_mut().environments.put_lexical_value(
+                        let frame = context.vm.frame_mut();
+                        let global = frame.realm.environment();
+                        frame.environments.put_lexical_value(
                             locator.scope(),
                             locator.binding_index(),
                             namespace.into(),
+                            global,
                         );
                     }
                 },
@@ -1828,28 +1882,33 @@ impl SourceTextModule {
 
             let function = create_function_object_fast(code, context);
 
-            context.vm.frame_mut().environments.put_lexical_value(
-                locator.scope(),
-                locator.binding_index(),
-                function.into(),
-            );
+            {
+                let frame = context.vm.frame_mut();
+                let global = frame.realm.environment();
+                frame.environments.put_lexical_value(
+                    locator.scope(),
+                    locator.binding_index(),
+                    function.into(),
+                    global,
+                );
+            }
         }
 
         // 25. Remove moduleContext from the execution context stack.
         let frame = context
             .vm
             .pop_frame()
-            .expect("There should be a call frame");
+            .js_expect("There should be a call frame")?;
 
         let env = frame
             .environments
-            .current_declarative_ref()
+            .current_declarative_ref(frame.realm.environment())
             .cloned()
-            .expect("frame must have a declarative environment");
+            .js_expect("frame must have a declarative environment")?;
 
         // 16. Set module.[[Context]] to moduleContext.
         self.status.borrow_mut().transition(|state| match state {
-            ModuleStatus::Linking { info } => ModuleStatus::PreLinked {
+            ModuleStatus::Linking { info, .. } => ModuleStatus::PreLinked {
                 environment: env,
                 info,
                 context: SourceTextContext {
@@ -2000,7 +2059,7 @@ fn async_module_execution_fulfilled(module: &Module, context: &mut Context) -> J
         // b. Perform ! Call(module.[[TopLevelCapability]].[[Resolve]], undefined, « undefined »).
         cap.resolve()
             .call(&JsValue::undefined(), &[], context)
-            .expect("default `resolve` function cannot fail");
+            .js_expect("default `resolve` function cannot fail")?;
     }
 
     // 8. Let execList be a new empty List.
@@ -2082,7 +2141,7 @@ fn async_module_execution_fulfilled(module: &Module, context: &mut Context) -> J
                     // b. Perform ! Call(m.[[TopLevelCapability]].[[Resolve]], undefined, « undefined »).
                     cap.resolve()
                         .call(&JsValue::undefined(), &[], context)
-                        .expect("default `resolve` function cannot fail");
+                        .js_expect("default `resolve` function cannot fail")?;
                 }
             }
         }
@@ -2152,7 +2211,7 @@ fn async_module_execution_rejected(
                 &[error.into_opaque(context)?],
                 context,
             )
-            .expect("default `reject` function cannot fail");
+            .js_expect("default `reject` function cannot fail")?;
     }
     // 9. Return unused.
     Ok(())

@@ -74,13 +74,13 @@ impl CodeBlock {
                 | Instruction::CreateIteratorResult { .. }
                 | Instruction::Generator
                 | Instruction::AsyncGenerator
-                | Instruction::PushInt8 { .. }
-                | Instruction::PushInt16 { .. }
-                | Instruction::PushInt32 { .. }
-                | Instruction::PushFloat { .. }
-                | Instruction::PushDouble { .. }
-                | Instruction::PushLiteral { .. }
-                | Instruction::PushRegexp { .. } => {
+                | Instruction::StoreInt8 { .. }
+                | Instruction::StoreInt16 { .. }
+                | Instruction::StoreInt32 { .. }
+                | Instruction::StoreFloat { .. }
+                | Instruction::StoreDouble { .. }
+                | Instruction::StoreLiteral { .. }
+                | Instruction::StoreRegexp { .. } => {
                     graph.add_node(previous_pc, NodeShape::None, label.into(), Color::None);
                     graph.add_edge(previous_pc, pc, None, Color::None, EdgeStyle::Line);
                 }
@@ -286,17 +286,17 @@ impl CodeBlock {
                     }
                 }
                 Instruction::Pop
-                | Instruction::PushZero { .. }
-                | Instruction::PushOne { .. }
-                | Instruction::PushNan { .. }
-                | Instruction::PushPositiveInfinity { .. }
-                | Instruction::PushNegativeInfinity { .. }
-                | Instruction::PushNull { .. }
-                | Instruction::PushTrue { .. }
-                | Instruction::PushFalse { .. }
-                | Instruction::PushUndefined { .. }
-                | Instruction::PushEmptyObject { .. }
-                | Instruction::PushClassPrototype { .. }
+                | Instruction::StoreZero { .. }
+                | Instruction::StoreOne { .. }
+                | Instruction::StoreNan { .. }
+                | Instruction::StorePositiveInfinity { .. }
+                | Instruction::StoreNegativeInfinity { .. }
+                | Instruction::StoreNull { .. }
+                | Instruction::StoreTrue { .. }
+                | Instruction::StoreFalse { .. }
+                | Instruction::StoreUndefined { .. }
+                | Instruction::StoreEmptyObject { .. }
+                | Instruction::StoreClassPrototype { .. }
                 | Instruction::SetClassPrototype { .. }
                 | Instruction::SetHomeObject { .. }
                 | Instruction::GetHomeObject { .. }
@@ -338,7 +338,7 @@ impl CodeBlock {
                 | Instruction::PushValueToArray { .. }
                 | Instruction::PushElisionToArray { .. }
                 | Instruction::PushIteratorToArray { .. }
-                | Instruction::PushNewArray { .. }
+                | Instruction::StoreNewArray { .. }
                 | Instruction::GeneratorYield { .. }
                 | Instruction::AsyncGeneratorYield { .. }
                 | Instruction::AsyncGeneratorClose

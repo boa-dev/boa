@@ -13,7 +13,7 @@ use crate::object::internal_methods::{
 };
 use crate::object::{JsData, JsPrototype};
 use crate::property::{PropertyDescriptor, PropertyKey};
-use crate::{Context, JsResult, JsString, JsValue, js_string, object::JsObject};
+use crate::{Context, JsExpect, JsResult, JsString, JsValue, js_string, object::JsObject};
 use crate::{JsNativeError, Module};
 
 use super::{BindingName, ResolvedBinding};
@@ -149,7 +149,7 @@ fn module_namespace_exotic_set_prototype_of(
     // 1. Return ! SetImmutablePrototype(O, V).
     Ok(
         immutable_prototype_exotic_set_prototype_of(obj, val, context)
-            .expect("this must not fail per the spec"),
+            .js_expect("this must not fail per the spec")?,
     )
 }
 
@@ -188,7 +188,7 @@ fn module_namespace_exotic_get_own_property(
     {
         let obj = obj
             .downcast_ref::<ModuleNamespace>()
-            .expect("internal method can only be called on module namespace objects");
+            .js_expect("internal method can only be called on module namespace objects")?;
         // 2. Let exports be O.[[Exports]].
         let exports = obj.exports();
 
@@ -266,7 +266,7 @@ fn module_namespace_exotic_has_property(
 
     let obj = obj
         .downcast_ref::<ModuleNamespace>()
-        .expect("internal method can only be called on module namespace objects");
+        .js_expect("internal method can only be called on module namespace objects")?;
 
     // 2. Let exports be O.[[Exports]].
     let exports = obj.exports();
@@ -302,7 +302,7 @@ fn module_namespace_exotic_try_get(
 
     let obj = obj
         .downcast_ref::<ModuleNamespace>()
-        .expect("internal method can only be called on module namespace objects");
+        .js_expect("internal method can only be called on module namespace objects")?;
 
     // 2. Let exports be O.[[Exports]].
     let exports = obj.exports();
@@ -352,10 +352,10 @@ fn module_namespace_exotic_try_get(
         let locator = env
             .kind()
             .as_module()
-            .expect("must be module environment")
+            .js_expect("must be module environment")?
             .compile()
             .get_binding(name)
-            .expect("checked before that the name was reachable");
+            .js_expect("checked before that the name was reachable")?;
 
         // 12. Return ? targetEnv.GetBindingValue(binding.[[BindingName]], true).
         env.get(locator.binding_index()).map(Some).ok_or_else(|| {
@@ -391,7 +391,7 @@ fn module_namespace_exotic_get(
 
     let obj = obj
         .downcast_ref::<ModuleNamespace>()
-        .expect("internal method can only be called on module namespace objects");
+        .js_expect("internal method can only be called on module namespace objects")?;
 
     // 2. Let exports be O.[[Exports]].
     let exports = obj.exports();
@@ -440,10 +440,10 @@ fn module_namespace_exotic_get(
         let locator = env
             .kind()
             .as_module()
-            .expect("must be module environment")
+            .js_expect("must be module environment")?
             .compile()
             .get_binding(name)
-            .expect("checked before that the name was reachable");
+            .js_expect("checked before that the name was reachable")?;
 
         // 12. Return ? targetEnv.GetBindingValue(binding.[[BindingName]], true).
         env.get(locator.binding_index()).ok_or_else(|| {
@@ -493,7 +493,7 @@ fn module_namespace_exotic_delete(
 
     let obj = obj
         .downcast_ref::<ModuleNamespace>()
-        .expect("internal method can only be called on module namespace objects");
+        .js_expect("internal method can only be called on module namespace objects")?;
 
     // 2. Let exports be O.[[Exports]].
     let exports = obj.exports();
@@ -515,7 +515,7 @@ fn module_namespace_exotic_own_property_keys(
 
     let obj = obj
         .downcast_ref::<ModuleNamespace>()
-        .expect("internal method can only be called on module namespace objects");
+        .js_expect("internal method can only be called on module namespace objects")?;
 
     // 1. Let exports be O.[[Exports]].
     let exports = obj.exports();
