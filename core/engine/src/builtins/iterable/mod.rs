@@ -22,7 +22,9 @@ mod tests;
 
 pub(crate) use async_from_sync_iterator::AsyncFromSyncIterator;
 
+#[cfg(feature = "experimental")]
 mod zip_iterator;
+#[cfg(feature = "experimental")]
 pub(crate) use zip_iterator::{ZipIterator, ZipMode, ZipResultKind};
 
 /// `IfAbruptCloseIterator ( value, iteratorRecord )`
@@ -197,11 +199,15 @@ pub(crate) struct Iterator;
 
 impl IntrinsicObject for Iterator {
     fn init(realm: &Realm) {
-        BuiltInBuilder::with_intrinsic::<Self>(realm)
-            .static_method(|v, _, _| Ok(v.clone()), JsSymbol::iterator(), 0)
+        let builder = BuiltInBuilder::with_intrinsic::<Self>(realm)
+            .static_method(|v, _, _| Ok(v.clone()), JsSymbol::iterator(), 0);
+
+        #[cfg(feature = "experimental")]
+        let builder = builder
             .static_method(Self::zip, js_string!("zip"), 1)
-            .static_method(Self::zip_keyed, js_string!("zipKeyed"), 1)
-            .build();
+            .static_method(Self::zip_keyed, js_string!("zipKeyed"), 1);
+
+        builder.build();
     }
 
     fn get(intrinsics: &Intrinsics) -> JsObject {
@@ -210,6 +216,7 @@ impl IntrinsicObject for Iterator {
 }
 
 impl Iterator {
+    #[cfg(feature = "experimental")]
     /// `Iterator.zip ( iterables [ , options ] )`
     ///
     /// More information:
@@ -327,6 +334,7 @@ impl Iterator {
         ))
     }
 
+    #[cfg(feature = "experimental")]
     /// `Iterator.zipKeyed ( iterables [ , options ] )`
     ///
     /// More information:
@@ -446,6 +454,7 @@ impl Iterator {
         ))
     }
 
+    #[cfg(feature = "experimental")]
     /// Parses the `mode` option from the options object.
     fn parse_zip_mode(options: &JsValue, context: &mut Context) -> JsResult<ZipMode> {
         if options.is_undefined() || options.is_null() {
@@ -469,6 +478,7 @@ impl Iterator {
         }
     }
 
+    #[cfg(feature = "experimental")]
     /// Builds the padding list for "longest" mode.
     fn build_padding(
         padding_option: Option<JsValue>,
