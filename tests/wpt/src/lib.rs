@@ -398,6 +398,7 @@ fn console(
 fn encoding(
     #[base_dir = "${WPT_ROOT}"]
     #[files("encoding/api-*.any.js")]
+    #[files("encoding/textencoder-constructor-non-utf.any.js")]
     // TODO: re-enable those when better encoding and options are supported.
     // #[files("encoding/textdecoder-*.any.js")]
     // #[files("encoding/textencoder-*.any.js")]

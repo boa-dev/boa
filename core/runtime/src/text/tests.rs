@@ -125,11 +125,37 @@ fn decoder_js_invalid() {
     );
 }
 
+#[test]
+fn roundtrip_utf8() {
+    let context = &mut Context::default();
+    text::register(None, context).unwrap();
+
+    run_test_actions_with(
+        [
+            TestAction::run(indoc! {r#"
+                const encoder = new TextEncoder();
+                const decoder = new TextDecoder();
+                const text = "Hello, World!";
+                const encoded = encoder.encode(text);
+                decoded = decoder.decode(encoded);
+            "#}),
+            TestAction::inspect_context(|context| {
+                let decoded = context
+                    .global_object()
+                    .get(js_str!("decoded"), context)
+                    .unwrap();
+                assert_eq!(decoded.as_string(), Some(js_string!("Hello, World!")));
+            }),
+        ],
+        context,
+    );
+}
+
 #[test_case("utf-8")]
 #[test_case("utf-16")]
 #[test_case("utf-16le")]
 #[test_case("utf-16be")]
-fn roundtrip(encoding: &'static str) {
+fn encoder_ignores_non_utf_encoding_arguments(encoding: &'static str) {
     let context = &mut Context::default();
     text::register(None, context).unwrap();
 
@@ -138,18 +164,25 @@ fn roundtrip(encoding: &'static str) {
             TestAction::run(format!(
                 r#"
                 const encoder = new TextEncoder({encoding:?});
-                const decoder = new TextDecoder({encoding:?});
-                const text = "Hello, World!";
-                const encoded = encoder.encode(text);
-                decoded = decoder.decode(encoded);
+                actualEncoding = encoder.encoding;
+                encoded = encoder.encode("Hi");
             "#
             )),
             TestAction::inspect_context(|context| {
-                let decoded = context
+                let actual_encoding = context
                     .global_object()
-                    .get(js_str!("decoded"), context)
+                    .get(js_str!("actualEncoding"), context)
                     .unwrap();
-                assert_eq!(decoded.as_string(), Some(js_string!("Hello, World!")));
+                assert_eq!(actual_encoding.as_string(), Some(js_string!("utf-8")));
+
+                let encoded = context
+                    .global_object()
+                    .get(js_str!("encoded"), context)
+                    .unwrap();
+                let array =
+                    JsUint8Array::from_object(encoded.as_object().unwrap().clone()).unwrap();
+                let buffer = array.iter(context).collect::<Vec<_>>();
+                assert_eq!(buffer, b"Hi");
             }),
         ],
         context,
