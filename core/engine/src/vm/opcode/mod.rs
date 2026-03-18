@@ -25,7 +25,6 @@ mod environment;
 mod function;
 mod generator;
 mod get;
-mod global;
 mod iteration;
 mod meta;
 mod new;
@@ -70,8 +69,6 @@ pub(crate) use function::*;
 pub(crate) use generator::*;
 #[doc(inline)]
 pub(crate) use get::*;
-#[doc(inline)]
-pub(crate) use global::*;
 #[doc(inline)]
 pub(crate) use iteration::*;
 #[doc(inline)]
@@ -2145,56 +2142,6 @@ generate_opcodes! {
     ///   - Output: dst
     CreateUnmappedArgumentsObject { dst: RegisterOperand },
 
-    /// Performs [`HasRestrictedGlobalProperty ( N )`][spec]
-    ///
-    /// - Operands:
-    ///   - index: `VaryingOperand`
-    /// - Registers:
-    ///   - Output: dst
-    ///
-    /// [spec]: https://tc39.es/ecma262/#sec-hasrestrictedglobalproperty
-    HasRestrictedGlobalProperty { dst: RegisterOperand, index: IndexOperand },
-
-    /// Performs [`CanDeclareGlobalFunction ( N )`][spec]
-    ///
-    /// - Operands:
-    ///   - index: `VaryingOperand`
-    /// - Registers:
-    ///   - Output: dst
-    ///
-    /// [spec]: https://tc39.es/ecma262/#sec-candeclareglobalfunction
-    CanDeclareGlobalFunction { dst: RegisterOperand, index: IndexOperand },
-
-    /// Performs [`CanDeclareGlobalVar ( N )`][spec]
-    ///
-    /// - Operands:
-    ///   - index: `VaryingOperand`
-    /// - Registers:
-    ///   - Output: dst
-    ///
-    /// [spec]: https://tc39.es/ecma262/#sec-candeclareglobalvar
-    CanDeclareGlobalVar { dst: RegisterOperand, index: IndexOperand },
-
-    /// Performs [`CreateGlobalFunctionBinding ( N, V, D )`][spec]
-    ///
-    /// - Operands:
-    ///   - configurable: `bool`
-    ///   - name_index: `VaryingOperand`
-    /// - Registers:
-    ///   - Input: src
-    ///
-    /// [spec]: https://tc39.es/ecma262/#sec-createglobalfunctionbinding
-    CreateGlobalFunctionBinding { src: RegisterOperand, configurable: IndexOperand, name_index: IndexOperand },
-
-    /// Performs [`CreateGlobalVarBinding ( N, V, D )`][spec]
-    ///
-    /// - Operands:
-    ///   - configurable: `bool`
-    ///   - name_index: `VaryingOperand`
-    ///
-    /// [spec]: https://tc39.es/ecma262/#sec-createglobalvarbinding
-    CreateGlobalVarBinding { configurable: IndexOperand, name_index: IndexOperand },
-
     /// Add a disposable resource to the disposal stack.
     ///
     /// This opcode implements the AddDisposableResource abstract operation.
@@ -2212,6 +2159,12 @@ generate_opcodes! {
     ///
     /// - Stack: **=>**
     DisposeResources { count: IndexOperand },
+    /// Reserved [`Opcode`].
+    Reserved1 => Reserved,
+    /// Reserved [`Opcode`].
+    Reserved2 => Reserved,
+    /// Reserved [`Opcode`].
+    Reserved3 => Reserved,
     /// Reserved [`Opcode`].
     Reserved4 => Reserved,
     /// Reserved [`Opcode`].
@@ -2318,4 +2271,8 @@ generate_opcodes! {
     Reserved55 => Reserved,
     /// Reserved [`Opcode`].
     Reserved56 => Reserved,
+    /// Reserved [`Opcode`].
+    Reserved57 => Reserved,
+    /// Reserved [`Opcode`].
+    Reserved58 => Reserved,
 }
