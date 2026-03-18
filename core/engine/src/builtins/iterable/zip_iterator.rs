@@ -248,7 +248,7 @@ impl ZipIterator {
             }
 
             // Let result be Completion(IteratorStepValue(iter))
-            let iter = zip_iter.iters[i].as_mut().unwrap();
+            let iter = zip_iter.iters[i].as_mut().expect("iterator is guaranteed to be present here unless exhausted");
             let step_result = iter.step_value(context);
 
             match step_result {
@@ -308,7 +308,7 @@ impl ZipIterator {
                                 if zip_iter.iters[k].is_none() {
                                     continue;
                                 }
-                                let other = zip_iter.iters[k].as_mut().unwrap();
+                                let other = zip_iter.iters[k].as_mut().expect("iterator is present");
                                 let step = other.step(context);
                                 match step {
                                     Err(err) => {
