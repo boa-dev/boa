@@ -26,6 +26,24 @@ fn headers_are_iterable() {
 }
 
 #[test]
+fn headers_get_combines_duplicate_values_with_comma_space() {
+    run_test_actions([
+        TestAction::harness(),
+        TestAction::inspect_context(register),
+        TestAction::run(
+            r#"
+                const headers = new Headers([
+                    ["x-test", "1"],
+                    ["x-test", "2"],
+                ]);
+
+                assertEq(headers.get("x-test"), "1, 2");
+            "#,
+        ),
+    ]);
+}
+
+#[test]
 fn headers_normalize_values() {
     run_test_actions([
         TestAction::harness(),
