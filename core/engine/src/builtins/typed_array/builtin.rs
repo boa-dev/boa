@@ -3,7 +3,6 @@ use std::{
     sync::atomic::Ordering,
 };
 
-use boa_macros::utf16;
 use num_traits::Zero;
 
 use super::{
@@ -1211,7 +1210,7 @@ impl BuiltinTypedArray {
         };
 
         // 6. Let R be the empty String.
-        let mut r = Vec::new();
+        let mut r = Vec::with_capacity(len as usize);
 
         // 7. Let k be 0.
         // 8. Repeat, while k < len,
@@ -2503,24 +2502,44 @@ impl BuiltinTypedArray {
             (o.array_length(buf_len), is_fixed_len)
         };
 
+        let locales = args.get_or_undefined(0);
+        let options = args.get_or_undefined(1);
+
         let separator = {
             #[cfg(feature = "intl")]
             {
-                // TODO: this should eventually return a locale-sensitive separator.
-                utf16!(", ")
+                use crate::builtins::intl::locale::default_locale;
+                use icu_list::{
+                    ListFormatter, ListFormatterPreferences, options::ListFormatterOptions,
+                };
+
+                let locale = default_locale(context.intl_provider().locale_canonicalizer()?);
+                let preferences = ListFormatterPreferences::from(&locale);
+                let formatter = ListFormatter::try_new_unit_with_buffer_provider(
+                    context.intl_provider().erased_provider(),
+                    preferences,
+                    ListFormatterOptions::default(),
+                )
+                .map_err(|e| JsNativeError::typ().with_message(e.to_string()))?;
+
+                // Ask ICU for the list pattern literal by formatting two empty elements.
+                // For many locales this yields ", ", but it may differ.
+                js_string!(
+                    formatter.format_to_string(std::iter::once("").chain(std::iter::once("")))
+                )
             }
 
             #[cfg(not(feature = "intl"))]
             {
-                utf16!(", ")
+                js_string!(", ")
             }
         };
 
-        let mut r = Vec::new();
+        let mut r = Vec::with_capacity((len + len.saturating_sub(1)) as usize);
 
         for k in 0..len {
             if k > 0 {
-                r.extend_from_slice(separator);
+                r.extend(separator.iter());
             }
 
             let next_element = array.get(k, context)?;
@@ -2531,10 +2550,7 @@ impl BuiltinTypedArray {
                 let s = next_element
                     .invoke(
                         js_string!("toLocaleString"),
-                        &[
-                            args.get_or_undefined(0).clone(),
-                            args.get_or_undefined(1).clone(),
-                        ],
+                        &[locales.clone(), options.clone()],
                         context,
                     )?
                     .to_string(context)?;
