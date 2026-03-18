@@ -3,6 +3,9 @@ on:
   release:
     types: [published]
 
+permissions:
+  contents: read
+
 jobs:
   publish:
     name: Publish crates
@@ -88,6 +91,8 @@ jobs:
 
   release-binaries:
     name: Publish binaries
+    permissions:
+      contents: write
     needs: publish
     strategy:
       fail-fast: false
