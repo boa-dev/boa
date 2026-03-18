@@ -226,6 +226,17 @@ fn response_json_static() {
                     assertEq(response.headers.get("content-type"), "application/json");
                     const body = await response.json();
                     assertEq(body.hello, "world");
+                })();
+            "#,
+        ),
+        TestAction::inspect_context(|ctx| {
+            let p = ctx.global_object().get(js_str!("p"), ctx).unwrap();
+            p.as_promise().unwrap().await_blocking(ctx).unwrap();
+        }),
+    ]);
+}
+
+#[test]
 fn response_headers_get_combines_duplicate_values_with_comma_space() {
     run_test_actions([
         TestAction::harness(),
@@ -248,8 +259,6 @@ fn response_headers_get_combines_duplicate_values_with_comma_space() {
             "#,
         ),
         TestAction::inspect_context(|ctx| {
-            let p = ctx.global_object().get(js_str!("p"), ctx).unwrap();
-            p.as_promise().unwrap().await_blocking(ctx).unwrap();
             let response = ctx.global_object().get(js_str!("response"), ctx).unwrap();
             response.as_promise().unwrap().await_blocking(ctx).unwrap();
         }),

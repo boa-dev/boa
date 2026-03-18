@@ -320,48 +320,10 @@ impl JsResponse {
         Ok(Self {
             url: js_string!(""),
             r#type: ResponseType::Basic,
-            status: Some(status_code),
+            status: status_code.as_u16(),
+            status_text: JsString::from(status_code.canonical_reason().unwrap_or("")),
             headers: JsHeaders::from_http(headers),
             body: Rc::new(Vec::new()),
-        })
-    }
-
-    /// `Response.json(data, init)` per Fetch spec §7.4.
-    #[boa(static)]
-    #[boa(rename = "json")]
-    fn json_static(
-        data: JsValue,
-        init: Option<JsResponseOptions>,
-        context: &mut Context,
-    ) -> JsResult<Self> {
-        let json_value = data
-            .to_json(context)?
-            .ok_or_else(|| js_error!(TypeError: "Cannot serialize undefined to JSON"))?;
-        let body = serde_json::to_string(&json_value)
-            .map_err(|e| JsNativeError::typ().with_message(e.to_string()))?;
-
-        let status = init.as_ref().and_then(|o| o.status).unwrap_or(200);
-        let status_code = StatusCode::from_u16(status)
-            .map_err(|_| js_error!(RangeError: "Invalid status code: {}", status))?;
-
-        let mut headers = init
-            .as_ref()
-            .and_then(|o| o.headers.clone())
-            .unwrap_or_default();
-        // Per spec, set Content-Type only if not already present.
-        if !headers.has(Convert(String::from("content-type")))? {
-            headers.append(
-                Convert(String::from("content-type")),
-                Convert(String::from("application/json")),
-            )?;
-        }
-
-        Ok(Self {
-            url: js_string!(""),
-            r#type: ResponseType::Basic,
-            status: Some(status_code),
-            headers,
-            body: Rc::new(body.into_bytes()),
         })
     }
 
