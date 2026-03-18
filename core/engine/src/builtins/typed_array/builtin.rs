@@ -3,7 +3,6 @@ use std::{
     sync::atomic::Ordering,
 };
 
-use boa_macros::utf16;
 use num_traits::Zero;
 
 use super::{
@@ -2506,13 +2505,28 @@ impl BuiltinTypedArray {
         let separator = {
             #[cfg(feature = "intl")]
             {
-                // TODO: this should eventually return a locale-sensitive separator.
-                utf16!(", ")
+                use crate::builtins::intl::locale::default_locale;
+                use icu_list::{
+                    ListFormatter, ListFormatterPreferences, options::ListFormatterOptions,
+                };
+
+                let locale = default_locale(context.intl_provider().locale_canonicalizer()?);
+                let preferences = ListFormatterPreferences::from(&locale);
+                let formatter = ListFormatter::try_new_unit_with_buffer_provider(
+                    context.intl_provider().erased_provider(),
+                    preferences,
+                    ListFormatterOptions::default(),
+                )
+                .map_err(|e| JsNativeError::typ().with_message(e.to_string()))?;
+
+                js_string!(
+                    formatter.format_to_string(std::iter::once("").chain(std::iter::once("")))
+                )
             }
 
             #[cfg(not(feature = "intl"))]
             {
-                utf16!(", ")
+                js_string!(", ")
             }
         };
 
@@ -2520,7 +2534,7 @@ impl BuiltinTypedArray {
 
         for k in 0..len {
             if k > 0 {
-                r.extend_from_slice(separator);
+                r.extend(separator.iter());
             }
 
             let next_element = array.get(k, context)?;
