@@ -184,3 +184,93 @@ fn response_headers_get_combines_duplicate_values_with_comma_space() {
         }),
     ]);
 }
+
+#[test]
+fn response_clone_read_both() {
+    run_test_actions([
+        TestAction::harness(),
+        TestAction::inspect_context(|ctx| {
+            register(
+                &[("http://unit.test", Response::new(b"Hello World".to_vec()))],
+                ctx,
+            );
+        }),
+        TestAction::run(
+            r#"
+                globalThis.response = (async () => {
+                    const response = await fetch(new Request("http://unit.test"));
+                    const cloned = response.clone();
+                    const t1 = await response.text();
+                    const t2 = await cloned.text();
+                    assertEq(t1, "Hello World");
+                    assertEq(t2, "Hello World");
+                })();
+            "#,
+        ),
+        TestAction::inspect_context(|ctx| {
+            let response = ctx.global_object().get(js_str!("response"), ctx).unwrap();
+            response.as_promise().unwrap().await_blocking(ctx).unwrap();
+        }),
+    ]);
+}
+
+#[test]
+fn response_clone_header_independence() {
+    run_test_actions([
+        TestAction::harness(),
+        TestAction::inspect_context(|ctx| {
+            let mut resp = Response::new(b"body".to_vec());
+            resp.headers_mut()
+                .append("x-original", "value".parse().unwrap());
+            register(&[("http://unit.test", resp)], ctx);
+        }),
+        TestAction::run(
+            r#"
+                globalThis.response = (async () => {
+                    const response = await fetch(new Request("http://unit.test"));
+                    const cloned = response.clone();
+
+                    cloned.headers.set("x-original", "mutated");
+                    cloned.headers.set("x-new", "added");
+
+                    assertEq(response.headers.get("x-original"), "value");
+                    assertEq(response.headers.get("x-new"), null);
+                    assertEq(cloned.headers.get("x-original"), "mutated");
+                    assertEq(cloned.headers.get("x-new"), "added");
+                })();
+            "#,
+        ),
+        TestAction::inspect_context(|ctx| {
+            let response = ctx.global_object().get(js_str!("response"), ctx).unwrap();
+            response.as_promise().unwrap().await_blocking(ctx).unwrap();
+        }),
+    ]);
+}
+
+#[test]
+fn response_clone_preserves_status() {
+    run_test_actions([
+        TestAction::harness(),
+        TestAction::inspect_context(|ctx| {
+            register(&[("http://unit.test", Response::new(b"ok".to_vec()))], ctx);
+        }),
+        TestAction::run(
+            r#"
+                globalThis.response = (async () => {
+                    const response = await fetch(new Request("http://unit.test"));
+                    const cloned = response.clone();
+
+                    assertEq(cloned.status, response.status);
+                    assertEq(cloned.statusText, response.statusText);
+                    assertEq(cloned.type, response.type);
+                    assertEq(cloned.url, response.url);
+                    assertEq(cloned.ok, response.ok);
+                })();
+            "#,
+        ),
+        TestAction::inspect_context(|ctx| {
+            let response = ctx.global_object().get(js_str!("response"), ctx).unwrap();
+            response.as_promise().unwrap().await_blocking(ctx).unwrap();
+        }),
+    ]);
+}

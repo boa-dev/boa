@@ -414,6 +414,18 @@ impl JsResponse {
         false
     }
 
+    #[boa(rename = "clone")]
+    fn clone_response(&self) -> Self {
+        Self {
+            url: self.url.clone(),
+            r#type: self.r#type,
+            status: self.status,
+            status_text: self.status_text.clone(),
+            headers: self.headers.deep_clone(),
+            body: Rc::new((*self.body).clone()),
+        }
+    }
+
     fn bytes(&self, context: &mut Context) -> JsPromise {
         let body = self.body.clone();
         JsPromise::from_async_fn(
