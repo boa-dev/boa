@@ -25,6 +25,7 @@ jobs:
             os: windows-latest
             binary_extension: ".exe"
     runs-on: ${{ matrix.os }}
+    timeout-minutes: 60
     steps:
       - name: Checkout repository
         uses: actions/checkout@v6

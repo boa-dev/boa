@@ -107,6 +107,7 @@ jobs:
           target: x86_64-pc-windows-msvc
           binary_extension: ".exe"
     runs-on: ${{ matrix.os }}
+    timeout-minutes: 60
     steps:
       - name: Checkout repository
         uses: actions/checkout@v6
