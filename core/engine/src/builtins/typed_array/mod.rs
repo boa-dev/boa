@@ -533,6 +533,41 @@ impl TypedArrayKind {
             TypedArrayKind::Float64 => value.to_number(context).map(TypedArrayElement::Float64),
         }
     }
+
+    /// Convert `value` into the typed array element corresponding to this `TypedArrayKind`,
+    /// assuming the `ContentType` of this kind is `Number`.
+    pub(crate) fn to_element_f64(self, value: f64) -> TypedArrayElement {
+        match self {
+            TypedArrayKind::Int8 => TypedArrayElement::Int8(value as i8),
+            TypedArrayKind::Uint8 => TypedArrayElement::Uint8(value as u8),
+            TypedArrayKind::Uint8Clamped => {
+                TypedArrayElement::Uint8Clamped(ClampedU8(value.clamp(0.0, 255.0).round() as u8))
+            }
+            TypedArrayKind::Int16 => TypedArrayElement::Int16(value as i16),
+            TypedArrayKind::Uint16 => TypedArrayElement::Uint16(value as u16),
+            TypedArrayKind::Int32 => TypedArrayElement::Int32(value as i32),
+            TypedArrayKind::Uint32 => TypedArrayElement::Uint32(value as u32),
+            #[cfg(feature = "float16")]
+            TypedArrayKind::Float16 => {
+                TypedArrayElement::Float16(Float16(float16::f16::from_f64(value)))
+            }
+            TypedArrayKind::Float32 => TypedArrayElement::Float32(value as f32),
+            TypedArrayKind::Float64 => TypedArrayElement::Float64(value),
+            TypedArrayKind::BigInt64 | TypedArrayKind::BigUint64 => {
+                panic!("cannot convert f64 to BigInt typed array element")
+            }
+        }
+    }
+
+    /// Convert `value` into the typed array element corresponding to this `TypedArrayKind`,
+    /// assuming the `ContentType` of this kind is `BigInt`.
+    pub(crate) fn to_element_i64(self, value: i64) -> TypedArrayElement {
+        match self {
+            TypedArrayKind::BigInt64 => TypedArrayElement::BigInt64(value),
+            TypedArrayKind::BigUint64 => TypedArrayElement::BigUint64(value as u64),
+            _ => panic!("cannot convert i64 to Number typed array element"),
+        }
+    }
 }
 
 /// An element of a certain `TypedArray` kind.
@@ -574,6 +609,55 @@ impl TypedArrayElement {
             TypedArrayElement::Float16(num) => num.0.to_bits() as u64,
             TypedArrayElement::Float32(num) => num.to_bits() as u64,
             TypedArrayElement::Float64(num) => num.to_bits(),
+        }
+    }
+
+    /// Gets the `f64` representation of this `TypedArrayElement`.
+    ///
+    /// # Panics
+    ///
+    /// Panics if the `ContentType` of `self` is not `Number`.
+    pub(crate) fn as_f64(self) -> f64 {
+        match self {
+            TypedArrayElement::Int8(v) => v.into(),
+            TypedArrayElement::Uint8(v) => v.into(),
+            TypedArrayElement::Uint8Clamped(v) => v.0.into(),
+            TypedArrayElement::Int16(v) => v.into(),
+            TypedArrayElement::Uint16(v) => v.into(),
+            TypedArrayElement::Int32(v) => v.into(),
+            TypedArrayElement::Uint32(v) => v.into(),
+            #[cfg(feature = "float16")]
+            TypedArrayElement::Float16(v) => v.0.to_f64(),
+            TypedArrayElement::Float32(v) => v.into(),
+            TypedArrayElement::Float64(v) => v,
+            TypedArrayElement::BigInt64(_) | TypedArrayElement::BigUint64(_) => {
+                panic!("cannot convert BigInt typed array element to f64")
+            }
+        }
+    }
+
+    /// Gets the `i64` representation of this `TypedArrayElement`.
+    ///
+    /// # Panics
+    ///
+    /// Panics if the `ContentType` of `self` is not `BigInt`.
+    pub(crate) fn as_i64(self) -> i64 {
+        match self {
+            TypedArrayElement::BigInt64(v) => v,
+            TypedArrayElement::BigUint64(v) => v as i64,
+            _ => panic!("cannot convert Number typed array element to i64"),
+        }
+    }
+
+    /// Casts this `TypedArrayElement` into another `TypedArrayKind`.
+    ///
+    /// # Panics
+    ///
+    /// Panics if the `ContentType` of `self` and `target` don't match.
+    pub(crate) fn cast(self, target: TypedArrayKind) -> Self {
+        match target.content_type() {
+            ContentType::Number => target.to_element_f64(self.as_f64()),
+            ContentType::BigInt => target.to_element_i64(self.as_i64()),
         }
     }
 }

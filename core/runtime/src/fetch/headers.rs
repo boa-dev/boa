@@ -208,13 +208,10 @@ impl JsHeaders {
             .get_all(name.clone())
             .into_iter()
             .map(|v| v.to_str().unwrap_or(""))
-            // Use an Option<String> to accumulate the values into a single string,
-            // if there are any. Otherwise, we return None.
-            // Cannot use `join(",")` as we need to return undefined if none is found.
             .fold(None, |mut acc, v| {
                 let str = acc.get_or_insert_with(String::new);
                 if !str.is_empty() {
-                    str.push(',');
+                    str.push_str(", ");
                 }
                 str.push_str(v);
                 acc
