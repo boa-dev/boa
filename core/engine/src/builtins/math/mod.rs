@@ -318,16 +318,24 @@ impl Math {
     /// [spec]: https://tc39.es/ecma262/#sec-math.ceil
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Math/ceil
     pub(crate) fn ceil(_: &JsValue, args: &[JsValue], context: &mut Context) -> JsResult<JsValue> {
-        Ok(args
+        let x = args
             .get_or_undefined(0)
             // 1. Let n be ? ToNumber(x).
-            .to_number(context)?
-            // 2. If n is NaN, n is +0𝔽, n is -0𝔽, n is +∞𝔽, or n is -∞𝔽, return n.
-            // 3. If n < +0𝔽 and n > -1𝔽, return -0𝔽.
-            // 4. If n is an integral Number, return n.
-            // 5. Return the smallest (closest to -∞) integral Number value that is not less than n.
-            .ceil()
-            .into())
+            .to_number(context)?;
+
+        // 2. If n is NaN, n is +0𝔽, n is -0𝔽, n is +∞𝔽, or n is -∞𝔽, return n.
+        if x.is_nan() || x == 0.0 || x.is_infinite() {
+            return Ok(x.into());
+        }
+
+        // 3. If n < +0𝔽 and n > -1𝔽, return -0𝔽.
+        if x < 0.0 && x > -1.0 {
+            return Ok((-0.0).into());
+        }
+
+        // 4. If n is an integral Number, return n.
+        // 5. Return the smallest (closest to -∞) integral Number value that is not less than n.
+        Ok(x.ceil().into())
     }
 
     /// Get the number of leading zeros in the 32 bit representation of a number
@@ -442,16 +450,24 @@ impl Math {
     /// [spec]: https://tc39.es/ecma262/#sec-math.floor
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Math/floor
     pub(crate) fn floor(_: &JsValue, args: &[JsValue], context: &mut Context) -> JsResult<JsValue> {
-        Ok(args
+        let x = args
             .get_or_undefined(0)
             // 1. Let n be ? ToNumber(x).
-            .to_number(context)?
-            // 2. If n is NaN, n is +0𝔽, n is -0𝔽, n is +∞𝔽, or n is -∞𝔽, return n.
-            // 3. If n < 1𝔽 and n > +0𝔽, return +0𝔽.
-            // 4. If n is an integral Number, return n.
-            // 5. Return the greatest (closest to +∞) integral Number value that is not greater than n.
-            .floor()
-            .into())
+            .to_number(context)?;
+
+        // 2. If n is NaN, n is +0𝔽, n is -0𝔽, n is +∞𝔽, or n is -∞𝔽, return n.
+        if x.is_nan() || x == 0.0 || x.is_infinite() {
+            return Ok(x.into());
+        }
+
+        // 3. If n < 1𝔽 and n > +0𝔽, return +0𝔽.
+        if x > 0.0 && x < 1.0 {
+            return Ok(0.0.into());
+        }
+
+        // 4. If n is an integral Number, return n.
+        // 5. Return the greatest (closest to +∞) integral Number value that is not greater than n.
+        Ok(x.floor().into())
     }
 
     /// The `Math.f16round()` static method returns the nearest 16-bit half precision
