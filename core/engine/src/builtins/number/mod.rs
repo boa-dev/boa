@@ -48,19 +48,6 @@ pub(crate) struct Number;
 
 impl IntrinsicObject for Number {
     fn init(realm: &Realm) {
-        let to_locale_string_function = BuiltInBuilder::callable_with_object(
-            realm,
-            realm
-                .intrinsics()
-                .objects()
-                .number_prototype_to_locale_string()
-                .into(),
-            Self::to_locale_string,
-        )
-        .name(js_string!("toLocaleString"))
-        .length(0)
-        .build();
-
         let attribute = Attribute::READONLY | Attribute::NON_ENUMERABLE | Attribute::PERMANENT;
 
         BuiltInBuilder::from_standard_constructor::<Self>(realm)
@@ -100,11 +87,7 @@ impl IntrinsicObject for Number {
             .static_method(Self::number_is_integer, js_string!("isInteger"), 1)
             .method(Self::to_exponential, js_string!("toExponential"), 1)
             .method(Self::to_fixed, js_string!("toFixed"), 1)
-            .property(
-                js_string!("toLocaleString"),
-                to_locale_string_function,
-                Attribute::WRITABLE | Attribute::NON_ENUMERABLE | Attribute::CONFIGURABLE,
-            )
+            .method(Self::to_locale_string, js_string!("toLocaleString"), 0)
             .method(Self::to_precision, js_string!("toPrecision"), 1)
             .method(Self::to_string, js_string!("toString"), 1)
             .method(Self::value_of, js_string!("valueOf"), 0)
