@@ -458,7 +458,7 @@ impl JsObject {
         let result = context.run().consume();
         context.vm.host_call_depth = context.vm.host_call_depth.saturating_sub(1);
 
-        context.vm.pop_frame().expect("frame must exist");
+        context.vm.pop_frame().js_expect("frame must exist")?;
 
         result
     }
@@ -500,7 +500,7 @@ impl JsObject {
             let result = context.vm.stack.pop();
             return Ok(result
                 .as_object()
-                .expect("construct value should be an object")
+                .js_expect("construct value should be an object")?
                 .clone());
         }
 
@@ -514,9 +514,12 @@ impl JsObject {
         let result = context.run().consume();
         context.vm.host_call_depth = context.vm.host_call_depth.saturating_sub(1);
 
-        context.vm.pop_frame().expect("frame must exist");
+        context.vm.pop_frame().js_expect("frame must exist")?;
 
-        Ok(result?.as_object().expect("should be an object").clone())
+        Ok(result?
+            .as_object()
+            .js_expect("should be an object")?
+            .clone())
     }
 
     /// Make the object [`sealed`][IntegrityLevel::Sealed] or [`frozen`][IntegrityLevel::Frozen].
@@ -1270,7 +1273,7 @@ impl JsObject {
     ) -> JsResult<()> {
         let constructor_function = constructor
             .downcast_ref::<OrdinaryFunction>()
-            .expect("class constructor must be function object");
+            .js_expect("class constructor must be function object")?;
 
         // 1. Let methods be the value of constructor.[[PrivateMethods]].
         // 2. For each PrivateElement method of methods, do

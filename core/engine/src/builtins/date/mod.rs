@@ -50,7 +50,35 @@ impl Date {
 
     /// Creates a new `Date` from the current UTC time of the host.
     pub(crate) fn utc_now(context: &mut Context) -> Self {
-        Self(context.clock().now().millis_since_epoch() as f64)
+        Self(context.clock().system_time_millis() as f64)
+    }
+
+    /// Formats this date as an ISO 8601 string for display purposes.
+    ///
+    /// Returns `None` if the date value is not finite (i.e. `Invalid Date`).
+    pub(crate) fn to_iso_display(self) -> Option<String> {
+        let tv = self.0;
+        if !tv.is_finite() {
+            return None;
+        }
+        let year = year_from_time(tv);
+        let year_str = if year.is_positive() && year >= 10000 {
+            format!("+{year:06}")
+        } else if year >= 0 {
+            format!("{year:04}")
+        } else {
+            format!("-{:06}", year.unsigned_abs())
+        };
+        Some(format!(
+            "{}-{:02}-{:02}T{:02}:{:02}:{:02}.{:03}Z",
+            year_str,
+            month_from_time(tv) + 1,
+            date_from_time(tv),
+            hour_from_time(tv),
+            min_from_time(tv),
+            sec_from_time(tv),
+            ms_from_time(tv),
+        ))
     }
 }
 
@@ -210,7 +238,7 @@ impl BuiltInConstructor for Date {
         // 1. If NewTarget is undefined, then
         if new_target.is_undefined() {
             // a. Let now be the time value (UTC) identifying the current time.
-            let now = context.clock().now().millis_since_epoch();
+            let now = context.clock().system_time_millis();
 
             // b. Return ToDateString(now).
             return Ok(JsValue::from(to_date_string_t(
@@ -328,7 +356,7 @@ impl Date {
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Date/now
     #[allow(clippy::unnecessary_wraps)]
     pub(crate) fn now(_: &JsValue, _: &[JsValue], context: &mut Context) -> JsResult<JsValue> {
-        Ok(JsValue::new(context.clock().now().millis_since_epoch()))
+        Ok(JsValue::new(context.clock().system_time_millis()))
     }
 
     /// `Date.parse()`

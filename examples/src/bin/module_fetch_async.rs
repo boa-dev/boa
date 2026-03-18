@@ -66,6 +66,12 @@ fn main() -> JsResult<()> {
         export default result;
     "#;
 
+    rustls::crypto::ring::default_provider()
+        .install_default()
+        .map_err(
+            |_| js_error!(TypeError: "could not install ring as the default crypto provider"),
+        )?;
+
     let context = &mut Context::builder()
         .job_executor(Rc::new(Queue::new()))
         // NEW: sets the context module loader to our custom loader
