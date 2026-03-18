@@ -1,14 +1,14 @@
 //! Rust API wrappers for the `TypedArray` Builtin ECMAScript Objects
 use crate::{
+    Context, JsExpect, JsResult, JsString, JsValue,
     builtins::{
+        BuiltInConstructor,
         array_buffer::AlignedVec,
         typed_array::{BuiltinTypedArray, TypedArray, TypedArrayKind},
-        BuiltInConstructor,
     },
     error::JsNativeError,
     object::{JsArrayBuffer, JsFunction, JsObject, JsSharedArrayBuffer},
     value::{IntoOrUndefined, TryFromJs},
-    Context, JsExpect, JsResult, JsString, JsValue,
 };
 use boa_gc::{Finalize, Trace};
 use std::ops::Deref;
