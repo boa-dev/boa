@@ -147,7 +147,7 @@ impl ZipIterator {
 
     /// Closes all open iterators with the given completion.
     fn close_all(
-        iters: &mut Vec<Option<IteratorRecord>>,
+        iters: &mut [Option<IteratorRecord>],
         open_iters: &[usize],
         completion: JsResult<JsValue>,
         context: &mut Context,
@@ -193,7 +193,7 @@ impl ZipIterator {
 
     /// `%ZipIteratorPrototype%.next()`
     ///
-    /// Implements the IteratorZip abstract operation from the TC39 Joint Iteration proposal.
+    /// Implements the `IteratorZip` abstract operation from the TC39 Joint Iteration proposal.
     ///
     /// More information:
     ///  - [TC39 proposal][proposal]
