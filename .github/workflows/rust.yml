@@ -372,3 +372,5 @@ jobs:
 
       - name: Check Semver
         uses: obi1kenobi/cargo-semver-checks-action@v2
+        with:
+          exclude: boa_wintertc

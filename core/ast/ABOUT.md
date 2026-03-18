@@ -18,8 +18,9 @@ Try out the most recent release with Boa's live demo
 - [**`boa_interner`**][interner] - Boa's string interner.
 - [**`boa_macros`**][macros] - Boa's macros.
 - [**`boa_parser`**][parser] - Boa's lexer and parser.
-- [**`boa_runtime`**][runtime] - Boa's `WebAPI` features.
+- [**`boa_runtime`**][runtime] - Boa's WebAPI features.
 - [**`boa_string`**][string] - Boa's ECMAScript string implementation.
+- [**`boa_wintertc`**][wintertc] - Boa's WinterTC (TC55) Minimum Common Web API implementation.
 - [**`tag_ptr`**][tag_ptr] - Utility library that enables a pointer to be associated with a tag of type `usize`.
 - [**`small_btree`**][small_btree] - Utility library that adds the `SmallBTreeMap` data structure.
 
@@ -34,6 +35,7 @@ Try out the most recent release with Boa's live demo
 [icu]: https://docs.rs/boa_icu_provider/latest/boa_icu_provider/index.html
 [runtime]: https://docs.rs/boa_runtime/latest/boa_runtime/index.html
 [string]: https://docs.rs/boa_string/latest/boa_string/index.html
+[wintertc]: https://docs.rs/boa_wintertc/latest/boa_wintertc/index.html
 [tag_ptr]: https://docs.rs/tag_ptr/latest/tag_ptr/index.html
 [small_btree]: https://docs.rs/small_btree/latest/small_btree/index.html
 [macros]: https://docs.rs/boa_macros/latest/boa_macros/index.html
