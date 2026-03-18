@@ -450,7 +450,7 @@ impl Iterator {
             match padding_option {
                 None => vec![JsValue::undefined(); iter_count],
                 Some(pad_obj) => {
-                    let pad = pad_obj.as_object().unwrap();
+                    let pad = pad_obj.as_object().expect("padding object verification already executed above");
                     let mut padding = Vec::with_capacity(iter_count);
                     for key in &keys {
                         let prop_key = key.to_string(context).unwrap_or_default();
