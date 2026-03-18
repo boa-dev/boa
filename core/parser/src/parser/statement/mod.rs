@@ -424,12 +424,46 @@ where
         let tok = cursor.peek(0, interner).or_abrupt()?;
 
         match tok.kind().clone() {
-            TokenKind::Keyword((
-                Keyword::Function | Keyword::Class | Keyword::Const | Keyword::Using,
-                _,
-            )) => Declaration::new(self.allow_yield, self.allow_await)
-                .parse(cursor, interner)
-                .map(ast::StatementListItem::from),
+            TokenKind::Keyword((Keyword::Function | Keyword::Class | Keyword::Const, _)) => {
+                Declaration::new(self.allow_yield, self.allow_await)
+                    .parse(cursor, interner)
+                    .map(ast::StatementListItem::from)
+            }
+            TokenKind::Keyword((Keyword::Using, false)) => {
+                // Per spec: `using [no LineTerminator here] BindingList ;`
+                // If there's a line terminator after `using`, then `using` is an identifier.
+                let skip_n = if cursor.peek_is_line_terminator(0, interner).or_abrupt()? {
+                    2
+                } else {
+                    1
+                };
+                let is_line_terminator = cursor
+                    .peek_is_line_terminator(skip_n, interner)?
+                    .unwrap_or(true);
+
+                if is_line_terminator {
+                    return Statement::new(self.allow_yield, self.allow_await, self.allow_return)
+                        .parse(cursor, interner)
+                        .map(ast::StatementListItem::from);
+                }
+
+                // If the next (non-LT) token is `[` or `{`, `using` is an identifier
+                // (element access or object literal, not a declaration).
+                if let Some(next_tok) = cursor.peek(1, interner)?
+                    && matches!(
+                        next_tok.kind(),
+                        TokenKind::Punctuator(Punctuator::OpenBracket | Punctuator::OpenBlock)
+                    )
+                {
+                    return Statement::new(self.allow_yield, self.allow_await, self.allow_return)
+                        .parse(cursor, interner)
+                        .map(ast::StatementListItem::from);
+                }
+
+                Declaration::new(self.allow_yield, self.allow_await)
+                    .parse(cursor, interner)
+                    .map(ast::StatementListItem::from)
+            }
             TokenKind::Keyword((Keyword::Let, false))
                 if allowed_token_after_let(cursor.peek(1, interner)?) =>
             {

@@ -2,10 +2,14 @@
 
 use crate::{
     Context, JsResult, JsValue,
-    builtins::{BuiltInBuilder, IntrinsicObject},
+    builtins::{
+        BuiltInBuilder, IntrinsicObject,
+        promise::{Promise, PromiseCapability},
+    },
     context::intrinsics::Intrinsics,
     error::JsNativeError,
     js_string,
+    native_function::NativeFunction,
     object::JsObject,
     realm::Realm,
     symbol::JsSymbol,
@@ -196,11 +200,34 @@ impl IntrinsicObject for Iterator {
     fn init(realm: &Realm) {
         BuiltInBuilder::with_intrinsic::<Self>(realm)
             .static_method(|v, _, _| Ok(v.clone()), JsSymbol::iterator(), 0)
+            .static_method(Self::dispose, JsSymbol::dispose(), 0)
             .build();
     }
 
     fn get(intrinsics: &Intrinsics) -> JsObject {
         intrinsics.objects().iterator_prototypes().iterator()
+    }
+}
+
+impl Iterator {
+    /// `%IteratorPrototype% [ @@dispose ] ()`
+    ///
+    /// [spec]: https://tc39.es/ecma262/#sec-%iteratorprototype%-@@dispose
+    fn dispose(this: &JsValue, _: &[JsValue], context: &mut Context) -> JsResult<JsValue> {
+        // 1. Let O be the this value.
+        let o = this;
+
+        // 2. Let return be ? GetMethod(O, "return").
+        let ret = o.get_method(js_string!("return"), context)?;
+
+        // 3. If return is not undefined, then
+        if let Some(ret) = ret {
+            // a. Perform ? Call(return, O, « »).
+            ret.call(o, &[], context)?;
+        }
+
+        // 4. Return undefined.
+        Ok(JsValue::undefined())
     }
 }
 
@@ -216,11 +243,101 @@ impl IntrinsicObject for AsyncIterator {
     fn init(realm: &Realm) {
         BuiltInBuilder::with_intrinsic::<Self>(realm)
             .static_method(|v, _, _| Ok(v.clone()), JsSymbol::async_iterator(), 0)
+            .static_method(Self::async_dispose, JsSymbol::async_dispose(), 0)
             .build();
     }
 
     fn get(intrinsics: &Intrinsics) -> JsObject {
         intrinsics.objects().iterator_prototypes().async_iterator()
+    }
+}
+
+impl AsyncIterator {
+    /// `%AsyncIteratorPrototype% [ @@asyncDispose ] ()`
+    ///
+    /// [spec]: https://tc39.es/ecma262/#sec-%asynciteratorprototype%-@@asyncDispose
+    fn async_dispose(this: &JsValue, _: &[JsValue], context: &mut Context) -> JsResult<JsValue> {
+        let o = this.clone();
+
+        // 2. Let promiseCapability be ! NewPromiseCapability(%Promise%).
+        let promise_capability = PromiseCapability::new(
+            &context.intrinsics().constructors().promise().constructor(),
+            context,
+        )?;
+
+        // 3. Let return be GetMethod(O, "return").
+        // 4. IfAbruptRejectPromise(return, promiseCapability).
+        let ret = match o.get_method(js_string!("return"), context) {
+            Ok(ret) => ret,
+            Err(err) => {
+                let e = err.into_opaque(context).unwrap_or(JsValue::undefined());
+                promise_capability
+                    .reject()
+                    .call(&JsValue::undefined(), &[e], context)?;
+                return Ok(promise_capability.promise().clone().into());
+            }
+        };
+
+        match ret {
+            // 5. If return is undefined, then
+            None => {
+                //  a. Perform ! Call(promiseCapability.[[Resolve]], undefined, « undefined »).
+                promise_capability.resolve().call(
+                    &JsValue::undefined(),
+                    &[JsValue::undefined()],
+                    context,
+                )?;
+            }
+            // 6. Else,
+            Some(ret) => {
+                //  a. Let result be Call(return, O, « undefined »).
+                //  b. IfAbruptRejectPromise(result, promiseCapability).
+                let result = match ret.call(&o, &[JsValue::undefined()], context) {
+                    Ok(r) => r,
+                    Err(err) => {
+                        let e = err.into_opaque(context).unwrap_or(JsValue::undefined());
+                        promise_capability
+                            .reject()
+                            .call(&JsValue::undefined(), &[e], context)?;
+                        return Ok(promise_capability.promise().clone().into());
+                    }
+                };
+
+                //  c. Let resultWrapper be Completion(PromiseResolve(%Promise%, result)).
+                //  d. IfAbruptRejectPromise(resultWrapper, promiseCapability).
+                let promise_ctor = context.intrinsics().constructors().promise().constructor();
+                let result_wrapper = match Promise::promise_resolve(&promise_ctor, result, context)
+                {
+                    Ok(r) => r
+                        .downcast::<Promise>()
+                        .expect("%Promise% constructor must return a `Promise` object"),
+                    Err(err) => {
+                        let e = err.into_opaque(context).unwrap_or(JsValue::undefined());
+                        promise_capability
+                            .reject()
+                            .call(&JsValue::undefined(), &[e], context)?;
+                        return Ok(promise_capability.promise().clone().into());
+                    }
+                };
+
+                //  e. Let unwrap be a new Abstract Closure that returns undefined.
+                //  f. Let onFulfilled be CreateBuiltinFunction(unwrap, 1, "", « »).
+                let on_fulfilled = NativeFunction::from_fn_ptr(|_, _, _| Ok(JsValue::undefined()))
+                    .to_js_function(context.realm());
+
+                //  g. Perform PerformPromiseThen(resultWrapper, onFulfilled, undefined, promiseCapability).
+                Promise::perform_promise_then(
+                    &result_wrapper,
+                    Some(on_fulfilled),
+                    None,
+                    Some(promise_capability.clone()),
+                    context,
+                );
+            }
+        }
+
+        // 7. Return promiseCapability.[[Promise]].
+        Ok(promise_capability.promise().clone().into())
     }
 }
 

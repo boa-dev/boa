@@ -146,6 +146,7 @@ pub struct StandardConstructors {
     eval_error: StandardConstructor,
     uri_error: StandardConstructor,
     aggregate_error: StandardConstructor,
+    suppressed_error: StandardConstructor,
     map: StandardConstructor,
     set: StandardConstructor,
     typed_array: StandardConstructor,
@@ -241,6 +242,7 @@ impl Default for StandardConstructors {
             eval_error: StandardConstructor::default(),
             uri_error: StandardConstructor::default(),
             aggregate_error: StandardConstructor::default(),
+            suppressed_error: StandardConstructor::default(),
             map: StandardConstructor::default(),
             set: StandardConstructor::default(),
             typed_array: StandardConstructor::default(),
@@ -565,6 +567,18 @@ impl StandardConstructors {
     #[must_use]
     pub const fn aggregate_error(&self) -> &StandardConstructor {
         &self.aggregate_error
+    }
+
+    /// Returns the `SuppressedError` constructor.
+    ///
+    /// More information:
+    ///  - [ECMAScript reference][spec]
+    ///
+    /// [spec]: https://tc39.es/ecma262/#sec-suppressed-error-constructor
+    #[inline]
+    #[must_use]
+    pub const fn suppressed_error(&self) -> &StandardConstructor {
+        &self.suppressed_error
     }
 
     /// Returns the `Map` constructor.

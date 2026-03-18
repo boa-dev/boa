@@ -2462,11 +2462,10 @@ impl<'ast> Visitor<'ast> for AnnexBFunctionDeclarationNamesVisitor<'_> {
     ) -> ControlFlow<Self::BreakTy> {
         self.visit(node.body())?;
 
-        if let IterableLoopInitializer::Let(node) = node.initializer() {
-            let bound_names = bound_names(node);
-            self.0.retain(|name| !bound_names.contains(name));
-        }
-        if let IterableLoopInitializer::Const(node) = node.initializer() {
+        if let IterableLoopInitializer::Let(node)
+        | IterableLoopInitializer::Const(node)
+        | IterableLoopInitializer::Using(node) = node.initializer()
+        {
             let bound_names = bound_names(node);
             self.0.retain(|name| !bound_names.contains(name));
         }
@@ -2480,11 +2479,10 @@ impl<'ast> Visitor<'ast> for AnnexBFunctionDeclarationNamesVisitor<'_> {
     ) -> ControlFlow<Self::BreakTy> {
         self.visit(node.body())?;
 
-        if let IterableLoopInitializer::Let(node) = node.initializer() {
-            let bound_names = bound_names(node);
-            self.0.retain(|name| !bound_names.contains(name));
-        }
-        if let IterableLoopInitializer::Const(node) = node.initializer() {
+        if let IterableLoopInitializer::Let(node)
+        | IterableLoopInitializer::Const(node)
+        | IterableLoopInitializer::Using(node) = node.initializer()
+        {
             let bound_names = bound_names(node);
             self.0.retain(|name| !bound_names.contains(name));
         }

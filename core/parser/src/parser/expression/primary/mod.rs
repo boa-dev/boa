@@ -190,7 +190,7 @@ where
             }
             TokenKind::IdentifierName(_)
             | TokenKind::Keyword((
-                Keyword::Let | Keyword::Yield | Keyword::Await | Keyword::Of,
+                Keyword::Let | Keyword::Yield | Keyword::Await | Keyword::Of | Keyword::Using,
                 _,
             )) => IdentifierReference::new(self.allow_yield, self.allow_await)
                 .parse(cursor, interner)

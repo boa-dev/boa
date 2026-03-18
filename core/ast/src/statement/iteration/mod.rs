@@ -48,6 +48,8 @@ pub enum IterableLoopInitializer {
     Let(Binding),
     /// A new const declaration.
     Const(Binding),
+    /// A new using declaration.
+    Using(Binding),
     /// A pattern with already declared variables.
     Pattern(Pattern),
 }
@@ -61,6 +63,7 @@ impl ToInternedString for IterableLoopInitializer {
             Self::Var(binding) => (binding.to_interned_string(interner), "var"),
             Self::Let(binding) => (binding.to_interned_string(interner), "let"),
             Self::Const(binding) => (binding.to_interned_string(interner), "const"),
+            Self::Using(binding) => (binding.to_interned_string(interner), "using"),
         };
 
         format!("{pre} {binding}")
@@ -76,7 +79,7 @@ impl VisitWith for IterableLoopInitializer {
             Self::Identifier(id) => visitor.visit_identifier(id),
             Self::Access(pa) => visitor.visit_property_access(pa),
             Self::Var(b) => visitor.visit_variable(b),
-            Self::Let(b) | Self::Const(b) => visitor.visit_binding(b),
+            Self::Let(b) | Self::Const(b) | Self::Using(b) => visitor.visit_binding(b),
             Self::Pattern(p) => visitor.visit_pattern(p),
         }
     }
@@ -89,7 +92,7 @@ impl VisitWith for IterableLoopInitializer {
             Self::Identifier(id) => visitor.visit_identifier_mut(id),
             Self::Access(pa) => visitor.visit_property_access_mut(pa),
             Self::Var(b) => visitor.visit_variable_mut(b),
-            Self::Let(b) | Self::Const(b) => visitor.visit_binding_mut(b),
+            Self::Let(b) | Self::Const(b) | Self::Using(b) => visitor.visit_binding_mut(b),
             Self::Pattern(p) => visitor.visit_pattern_mut(p),
         }
     }

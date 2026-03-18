@@ -599,7 +599,7 @@ impl JsError {
 
                 let position = error_data.position.clone();
                 let kind = match error_data.tag {
-                    ErrorKind::Error => JsNativeErrorKind::Error,
+                    ErrorKind::Error | ErrorKind::Suppressed => JsNativeErrorKind::Error,
                     ErrorKind::Eval => JsNativeErrorKind::Eval,
                     ErrorKind::Type => JsNativeErrorKind::Type,
                     ErrorKind::Range => JsNativeErrorKind::Range,

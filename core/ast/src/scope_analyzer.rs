@@ -975,7 +975,12 @@ impl<'ast> VisitorMut<'ast> for BindingCollectorVisitor<'_> {
             Some(ForLoopInitializer::Lexical(decl)) => {
                 let mut scope = Scope::new(self.scope.clone(), false);
                 let names = bound_names(&decl.declaration);
-                if decl.declaration.is_const() {
+                if decl.declaration.is_const()
+                    || matches!(
+                        decl.declaration,
+                        LexicalDeclaration::Using(_) | LexicalDeclaration::AwaitUsing(_)
+                    )
+                {
                     for name in &names {
                         let name = name.to_js_string(self.interner);
                         scope.create_immutable_binding(name, true);
@@ -1011,7 +1016,8 @@ impl<'ast> VisitorMut<'ast> for BindingCollectorVisitor<'_> {
     fn visit_for_in_loop_mut(&mut self, node: &'ast mut ForInLoop) -> ControlFlow<Self::BreakTy> {
         let initializer_bound_names = match node.initializer() {
             IterableLoopInitializer::Let(declaration)
-            | IterableLoopInitializer::Const(declaration) => bound_names(declaration),
+            | IterableLoopInitializer::Const(declaration)
+            | IterableLoopInitializer::Using(declaration) => bound_names(declaration),
             _ => Vec::new(),
         };
         if initializer_bound_names.is_empty() {
@@ -1078,7 +1084,8 @@ impl<'ast> VisitorMut<'ast> for BindingCollectorVisitor<'_> {
     fn visit_for_of_loop_mut(&mut self, node: &'ast mut ForOfLoop) -> ControlFlow<Self::BreakTy> {
         let initializer_bound_names = match node.initializer() {
             IterableLoopInitializer::Let(declaration)
-            | IterableLoopInitializer::Const(declaration) => bound_names(declaration),
+            | IterableLoopInitializer::Const(declaration)
+            | IterableLoopInitializer::Using(declaration) => bound_names(declaration),
             _ => Vec::new(),
         };
         if initializer_bound_names.is_empty() {
@@ -1111,7 +1118,8 @@ impl<'ast> VisitorMut<'ast> for BindingCollectorVisitor<'_> {
                 }
                 Some(scope)
             }
-            IterableLoopInitializer::Const(declaration) => {
+            IterableLoopInitializer::Const(declaration)
+            | IterableLoopInitializer::Using(declaration) => {
                 let scope = Scope::new(self.scope.clone(), false);
                 match declaration {
                     Binding::Identifier(ident) => {
@@ -1794,7 +1802,11 @@ fn global_declaration_instantiation(
                         drop(env.create_mutable_binding(name, false));
                     }
                 }
-                Declaration::Lexical(LexicalDeclaration::Const(declaration)) => {
+                Declaration::Lexical(
+                    LexicalDeclaration::Const(declaration)
+                    | LexicalDeclaration::Using(declaration)
+                    | LexicalDeclaration::AwaitUsing(declaration),
+                ) => {
                     for name in bound_names(declaration) {
                         let name = name.to_js_string(interner);
                         env.create_immutable_binding(name, true);
@@ -2174,7 +2186,11 @@ fn function_declaration_instantiation(
                         drop(lex_env.create_mutable_binding(name, false));
                     }
                 }
-                Declaration::Lexical(LexicalDeclaration::Const(declaration)) => {
+                Declaration::Lexical(
+                    LexicalDeclaration::Const(declaration)
+                    | LexicalDeclaration::Using(declaration)
+                    | LexicalDeclaration::AwaitUsing(declaration),
+                ) => {
                     for name in bound_names(declaration) {
                         let name = name.to_js_string(interner);
                         lex_env.create_immutable_binding(name, true);
@@ -2492,7 +2508,11 @@ pub(crate) fn eval_declaration_instantiation_scope(
                         drop(lex_env.create_mutable_binding(name, false));
                     }
                 }
-                Declaration::Lexical(LexicalDeclaration::Const(declaration)) => {
+                Declaration::Lexical(
+                    LexicalDeclaration::Const(declaration)
+                    | LexicalDeclaration::Using(declaration)
+                    | LexicalDeclaration::AwaitUsing(declaration),
+                ) => {
                     for name in bound_names(declaration) {
                         let name = name.to_js_string(interner);
                         lex_env.create_immutable_binding(name, true);

@@ -24,6 +24,7 @@ impl ByteCompiler<'_> {
         let mut let_binding_indices = None;
         let mut outer_scope_local = None;
         let mut outer_scope = None;
+        let mut has_using = false;
 
         if let Some(init) = for_loop.init() {
             match init {
@@ -48,8 +49,13 @@ impl ByteCompiler<'_> {
                     };
 
                     let names = bound_names(decl.declaration());
-                    if decl.declaration().is_const() {
-                    } else {
+                    if !decl.declaration().is_const()
+                        && !matches!(
+                            decl.declaration(),
+                            boa_ast::declaration::LexicalDeclaration::Using(_)
+                                | boa_ast::declaration::LexicalDeclaration::AwaitUsing(_)
+                        )
+                    {
                         let mut indices = Vec::with_capacity(names.len());
                         for name in &names {
                             let name = name.to_js_string(self.interner());
@@ -61,6 +67,15 @@ impl ByteCompiler<'_> {
                             indices.push(index);
                         }
                         let_binding_indices = Some((indices, scope_index));
+                    }
+                    // Check if this is a `using` declaration.
+                    has_using = matches!(
+                        decl.declaration(),
+                        boa_ast::declaration::LexicalDeclaration::Using(_)
+                            | boa_ast::declaration::LexicalDeclaration::AwaitUsing(_)
+                    );
+                    if has_using {
+                        self.bytecode.emit_create_dispose_capability();
                     }
                     self.compile_lexical_decl(decl.declaration());
                 }
@@ -148,7 +163,13 @@ impl ByteCompiler<'_> {
         }
 
         if let Some(outer_scope_local) = outer_scope_local {
+            if has_using {
+                self.bytecode.emit_dispose_resources();
+            }
             self.lexical_scope = outer_scope_local;
+        }
+        if has_using && outer_scope.is_some() {
+            self.bytecode.emit_dispose_resources();
         }
         self.pop_declarative_scope(outer_scope);
     }
@@ -197,7 +218,8 @@ impl ByteCompiler<'_> {
         // For let/const with a local identifier binding, emit iterator_value
         // directly into the binding's persistent register to avoid a Move.
         if let IterableLoopInitializer::Let(Binding::Identifier(ident))
-        | IterableLoopInitializer::Const(Binding::Identifier(ident)) = for_in_loop.initializer()
+        | IterableLoopInitializer::Const(Binding::Identifier(ident))
+        | IterableLoopInitializer::Using(Binding::Identifier(ident)) = for_in_loop.initializer()
             && let ident = ident.to_js_string(self.interner())
             && let binding = self.lexical_scope.get_identifier_reference(ident)
             && binding.local()
@@ -227,7 +249,8 @@ impl ByteCompiler<'_> {
                     }
                 },
                 IterableLoopInitializer::Let(declaration)
-                | IterableLoopInitializer::Const(declaration) => match declaration {
+                | IterableLoopInitializer::Const(declaration)
+                | IterableLoopInitializer::Using(declaration) => match declaration {
                     Binding::Identifier(ident) => {
                         let ident = ident.to_js_string(self.interner());
                         self.emit_binding(BindingOpcode::InitLexical, ident, &value);
@@ -313,7 +336,8 @@ impl ByteCompiler<'_> {
         // For let/const with a local identifier binding, emit iterator_value
         // directly into the binding's persistent register to avoid a Move.
         let handler_index = if let IterableLoopInitializer::Let(Binding::Identifier(ident))
-        | IterableLoopInitializer::Const(Binding::Identifier(ident)) =
+        | IterableLoopInitializer::Const(Binding::Identifier(ident))
+        | IterableLoopInitializer::Using(Binding::Identifier(ident)) =
             for_of_loop.initializer()
             && let ident = ident.to_js_string(self.interner())
             && let ident = self.lexical_scope.get_identifier_reference(ident)
@@ -368,7 +392,8 @@ impl ByteCompiler<'_> {
                     }
                 }
                 IterableLoopInitializer::Let(declaration)
-                | IterableLoopInitializer::Const(declaration) => match declaration {
+                | IterableLoopInitializer::Const(declaration)
+                | IterableLoopInitializer::Using(declaration) => match declaration {
                     Binding::Identifier(ident) => {
                         let ident = ident.to_js_string(self.interner());
                         self.emit_binding(BindingOpcode::InitLexical, ident, &value);

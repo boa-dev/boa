@@ -9,7 +9,7 @@ use crate::{
     bytecompiler::Register,
     environments::EnvironmentStack,
     realm::Realm,
-    vm::{CodeBlock, SourcePath},
+    vm::{CodeBlock, SourcePath, opcode::DisposeEntry},
 };
 use boa_ast::Position;
 use boa_ast::scope::BindingLocator;
@@ -76,6 +76,9 @@ pub struct CallFrame {
 
     /// \[\[Realm\]\]
     pub(crate) realm: Realm,
+
+    /// The stack of disposable resources for `using` declarations.
+    pub(crate) dispose_stack: ThinVec<DisposeEntry>,
 
     // SAFETY: Nothing in `CallFrameFlags` requires tracing, so this is safe.
     #[unsafe_ignore_trace]
@@ -154,6 +157,7 @@ impl CallFrame {
             active_runnable,
             environments,
             realm,
+            dispose_stack: ThinVec::new(),
             flags: CallFrameFlags::empty(),
         }
     }

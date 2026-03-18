@@ -2243,10 +2243,10 @@ impl<'ctx> ByteCompiler<'ctx> {
                 }
             }
             LexicalDeclaration::Using(decls) => {
-                // For each using declaration, we need to:
+                // For each using declaration:
                 // 1. Evaluate the initializer
-                // 2. Add the resource to the disposal stack
-                // 3. Bind the variable
+                // 2. Bind the variable
+                // 3. Add the resource to the disposal stack
                 for variable in decls.as_ref() {
                     match variable.binding() {
                         Binding::Identifier(ident) => {
@@ -2259,30 +2259,17 @@ impl<'ctx> ByteCompiler<'ctx> {
                                 self.bytecode.emit_store_undefined(value.variable());
                             }
 
-                            // TODO(@abhinavs1920): Add resource to disposal stack
-                            // For now, we just bind the variable like a let declaration
-                            // Full implementation will add: AddDisposableResource opcode
-
                             self.emit_binding(BindingOpcode::InitLexical, ident, &value);
+
+                            // Emit AddDisposableResource to register for disposal.
+                            self.bytecode.emit_add_disposable_resource(value.variable());
+
                             self.register_allocator.dealloc(value);
                         }
-                        Binding::Pattern(pattern) => {
-                            let value = self.register_allocator.alloc();
-
-                            if let Some(init) = variable.init() {
-                                self.compile_expr(init, &value);
-                            } else {
-                                self.bytecode.emit_store_undefined(value.variable());
-                            }
-
-                            // TODO: Same as above
-
-                            self.compile_declaration_pattern(
-                                pattern,
-                                BindingOpcode::InitLexical,
-                                &value,
-                            );
-                            self.register_allocator.dealloc(value);
+                        Binding::Pattern(_) => {
+                            // The spec disallows destructuring in using declarations.
+                            // The parser should have rejected this.
+                            unreachable!("using declarations do not support destructuring");
                         }
                     }
                 }
@@ -2300,29 +2287,16 @@ impl<'ctx> ByteCompiler<'ctx> {
                                 self.bytecode.emit_store_undefined(value.variable());
                             }
 
-                            // TODO: Add resource to async disposal stack
-                            // For now, we just bind the variable like a let declaration
-                            // Full implementation will add: AddAsyncDisposableResource opcode
-
                             self.emit_binding(BindingOpcode::InitLexical, ident, &value);
+
+                            // TODO: Emit AddAsyncDisposableResource for await using.
+                            // For now, treat same as sync using.
+                            self.bytecode.emit_add_disposable_resource(value.variable());
+
                             self.register_allocator.dealloc(value);
                         }
-                        Binding::Pattern(pattern) => {
-                            let value = self.register_allocator.alloc();
-
-                            if let Some(init) = variable.init() {
-                                self.compile_expr(init, &value);
-                            } else {
-                                self.bytecode.emit_store_undefined(value.variable());
-                            }
-
-                            // TODO: SAME
-                            self.compile_declaration_pattern(
-                                pattern,
-                                BindingOpcode::InitLexical,
-                                &value,
-                            );
-                            self.register_allocator.dealloc(value);
+                        Binding::Pattern(_) => {
+                            unreachable!("await using declarations do not support destructuring");
                         }
                     }
                 }

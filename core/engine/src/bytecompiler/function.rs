@@ -219,7 +219,25 @@ impl FunctionCompiler {
 
         {
             let mut compiler = compiler.position_guard(body);
+
+            // Push a dispose capability marker for `using` declarations in function bodies.
+            compiler.bytecode.emit_create_dispose_capability();
+
+            // Install an exception handler so `DisposeResources` runs on abnormal completion.
+            let handler = compiler.push_handler();
+
             compiler.compile_statement_list(body.statement_list(), false, false);
+
+            // Normal completion: dispose resources and jump past the handler.
+            compiler.bytecode.emit_dispose_resources();
+            let skip = compiler.jump();
+
+            // Exception handler: dispose resources and re-throw.
+            compiler.patch_handler(handler);
+            compiler.bytecode.emit_dispose_resources();
+            compiler.bytecode.emit_re_throw();
+
+            compiler.patch_jump(skip);
         }
 
         compiler.params = parameters.clone();

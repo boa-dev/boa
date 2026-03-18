@@ -131,6 +131,31 @@ where
                     .parse(cursor, interner)?
                     .into(),
             ),
+            TokenKind::Keyword((Keyword::Using, false))
+                if matches!(
+                    cursor.peek(1, interner)?.map(|t| t.kind().clone()),
+                    Some(
+                        TokenKind::IdentifierName(_)
+                            | TokenKind::Keyword((Keyword::Yield | Keyword::Await, _)),
+                    )
+                ) || (
+                    // `for (using of = null;;)` — `of` is a valid binding name for `using`.
+                    // But `for (using of of arr)` — `using` is an identifier, not a keyword.
+                    matches!(
+                        cursor.peek(1, interner)?.map(|t| t.kind().clone()),
+                        Some(TokenKind::Keyword((Keyword::Of, false)))
+                    ) && !matches!(
+                        cursor.peek(2, interner)?.map(|t| t.kind().clone()),
+                        Some(TokenKind::Keyword((Keyword::Of, _)))
+                    )
+                ) =>
+            {
+                Some(
+                    LexicalDeclaration::new(false, self.allow_yield, self.allow_await, true)
+                        .parse(cursor, interner)?
+                        .into(),
+                )
+            }
             TokenKind::Keyword((Keyword::Async, false)) if !r#await => {
                 if matches!(
                     cursor.peek(1, interner).or_abrupt()?.kind(),
@@ -165,6 +190,20 @@ where
             (Some(_), TokenKind::Keyword((Keyword::In, false))) if r#await => {
                 return Err(Error::general(
                     "`await` can only be used in a `for await .. of` loop",
+                    position,
+                ));
+            }
+            (
+                Some(ForLoopInitializer::Lexical(ref init)),
+                TokenKind::Keyword((Keyword::In, false)),
+            ) if matches!(
+                init.declaration(),
+                ast::declaration::LexicalDeclaration::Using(_)
+                    | ast::declaration::LexicalDeclaration::AwaitUsing(_)
+            ) =>
+            {
+                return Err(Error::general(
+                    "`using` declarations are not allowed in `for-in` loops",
                     position,
                 ));
             }
@@ -221,7 +260,9 @@ where
                 // Checks are only applicable to lexical bindings.
                 if matches!(
                     &init,
-                    IterableLoopInitializer::Const(_) | IterableLoopInitializer::Let(_)
+                    IterableLoopInitializer::Const(_)
+                        | IterableLoopInitializer::Let(_)
+                        | IterableLoopInitializer::Using(_)
                 ) {
                     // It is a Syntax Error if the BoundNames of ForDeclaration contains "let".
                     // It is a Syntax Error if any element of the BoundNames of ForDeclaration also occurs in the VarDeclaredNames of Statement.
@@ -390,9 +431,11 @@ fn initializer_to_iterable_loop_initializer(
                         ast::declaration::LexicalDeclaration::Const(_) => {
                             IterableLoopInitializer::Const(decl.binding().clone())
                         }
-                        ast::declaration::LexicalDeclaration::Let(_)
-                        | ast::declaration::LexicalDeclaration::Using(_)
+                        ast::declaration::LexicalDeclaration::Using(_)
                         | ast::declaration::LexicalDeclaration::AwaitUsing(_) => {
+                            IterableLoopInitializer::Using(decl.binding().clone())
+                        }
+                        ast::declaration::LexicalDeclaration::Let(_) => {
                             IterableLoopInitializer::Let(decl.binding().clone())
                         }
                     })

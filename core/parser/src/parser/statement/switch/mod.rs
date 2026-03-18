@@ -175,6 +175,25 @@ where
                     )
                     .parse(cursor, interner)?;
 
+                    // It is a Syntax Error if UsingDeclaration is contained directly
+                    // within the StatementList of a CaseClause.
+                    for statement in statement_list.statements() {
+                        if let ast::StatementListItem::Declaration(decl) = statement
+                            && matches!(
+                                decl.as_ref(),
+                                ast::Declaration::Lexical(
+                                    ast::declaration::LexicalDeclaration::Using(_)
+                                        | ast::declaration::LexicalDeclaration::AwaitUsing(_),
+                                ),
+                            )
+                        {
+                            return Err(Error::general(
+                                "`using` declarations are not allowed directly in switch clauses",
+                                token.span().start(),
+                            ));
+                        }
+                    }
+
                     cases.push(statement::Case::new(cond, statement_list));
                 }
                 TokenKind::Keyword((Keyword::Default, false)) => {
@@ -198,6 +217,25 @@ where
                         false,
                     )
                     .parse(cursor, interner)?;
+
+                    // It is a Syntax Error if UsingDeclaration is contained directly
+                    // within the StatementList of a DefaultClause.
+                    for statement in statement_list.statements() {
+                        if let ast::StatementListItem::Declaration(decl) = statement
+                            && matches!(
+                                decl.as_ref(),
+                                ast::Declaration::Lexical(
+                                    ast::declaration::LexicalDeclaration::Using(_)
+                                        | ast::declaration::LexicalDeclaration::AwaitUsing(_),
+                                ),
+                            )
+                        {
+                            return Err(Error::general(
+                                "`using` declarations are not allowed directly in switch clauses",
+                                token.span().start(),
+                            ));
+                        }
+                    }
 
                     cases.push(statement::Case::default(statement_list));
 

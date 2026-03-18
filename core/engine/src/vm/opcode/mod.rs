@@ -20,6 +20,7 @@ mod control_flow;
 mod copy;
 mod define;
 mod delete;
+mod dispose;
 mod environment;
 mod function;
 mod generator;
@@ -58,6 +59,8 @@ pub(crate) use copy::*;
 pub(crate) use define::*;
 #[doc(inline)]
 pub(crate) use delete::*;
+#[doc(inline)]
+pub(crate) use dispose::*;
 #[doc(inline)]
 pub(crate) use environment::*;
 #[doc(inline)]
@@ -2191,12 +2194,22 @@ generate_opcodes! {
     Reserved25 => Reserved,
     /// Reserved [`Opcode`].
     Reserved26 => Reserved,
-    /// Reserved [`Opcode`].
-    Reserved27 => Reserved,
-    /// Reserved [`Opcode`].
-    Reserved28 => Reserved,
-    /// Reserved [`Opcode`].
-    Reserved29 => Reserved,
+    /// Create a dispose capability (scope marker) on the disposal stack.
+    CreateDisposeCapability,
+
+    /// Add a disposable resource to the disposal stack.
+    ///
+    /// Gets `Symbol.dispose` from the value and pushes it.
+    ///
+    /// - Registers:
+    ///   - Input: value
+    AddDisposableResource { value: RegisterOperand },
+
+    /// Dispose resources back to the last scope marker.
+    ///
+    /// Calls dispose methods in reverse order, wrapping errors in SuppressedError.
+    DisposeResources,
+
     /// Reserved [`Opcode`].
     Reserved30 => Reserved,
     /// Reserved [`Opcode`].

@@ -63,7 +63,8 @@ pub(crate) use self::{
     dataview::DataView,
     date::Date,
     error::{
-        AggregateError, EvalError, RangeError, ReferenceError, SyntaxError, TypeError, UriError,
+        AggregateError, EvalError, RangeError, ReferenceError, SuppressedError, SyntaxError,
+        TypeError, UriError,
     },
     eval::Eval,
     function::BuiltInFunctionObject,
@@ -301,6 +302,7 @@ impl Realm {
         EvalError::init(self);
         UriError::init(self);
         AggregateError::init(self);
+        SuppressedError::init(self);
         Reflect::init(self);
         Generator::init(self);
         GeneratorFunction::init(self);
@@ -433,6 +435,7 @@ pub(crate) fn set_default_global_bindings(context: &mut Context) -> JsResult<()>
     global_binding::<EvalError>(context)?;
     global_binding::<UriError>(context)?;
     global_binding::<AggregateError>(context)?;
+    global_binding::<SuppressedError>(context)?;
     global_binding::<Reflect>(context)?;
     global_binding::<Promise>(context)?;
     global_binding::<EncodeUri>(context)?;

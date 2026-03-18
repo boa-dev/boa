@@ -760,7 +760,8 @@ impl CodeBlock {
             | Instruction::Neg { value }
             | Instruction::IsObject { value }
             | Instruction::BindThisValue { value }
-            | Instruction::BitNot { value } => {
+            | Instruction::BitNot { value }
+            | Instruction::AddDisposableResource { value } => {
                 format!("value:{value}")
             }
             Instruction::ImportCall {
@@ -874,7 +875,9 @@ impl CodeBlock {
             | Instruction::SuperCallSpread
             | Instruction::PopPrivateEnvironment
             | Instruction::Generator
-            | Instruction::AsyncGenerator => String::new(),
+            | Instruction::AsyncGenerator
+            | Instruction::CreateDisposeCapability
+            | Instruction::DisposeResources => String::new(),
             Instruction::Reserved1
             | Instruction::Reserved2
             | Instruction::Reserved3
@@ -901,9 +904,6 @@ impl CodeBlock {
             | Instruction::Reserved24
             | Instruction::Reserved25
             | Instruction::Reserved26
-            | Instruction::Reserved27
-            | Instruction::Reserved28
-            | Instruction::Reserved29
             | Instruction::Reserved30
             | Instruction::Reserved31
             | Instruction::Reserved32
