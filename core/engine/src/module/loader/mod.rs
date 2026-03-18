@@ -62,7 +62,8 @@ pub fn resolve_module_specifier(
 
     // On Windows, also replace `/` with `\`. JavaScript imports use `/` as path separator.
     #[cfg(target_family = "windows")]
-    let specifier = specifier.replace('/', "\\");
+    use cow_utils::CowUtils;
+    let specifier = specifier.cow_replace('/', "\\");
 
     let short_path = Path::new(&specifier);
 
