@@ -17,7 +17,7 @@ jobs:
     steps:
       - name: Auto Add Label
         if: github.event.action == 'opened' || github.event.action == 'reopened' || github.event.action == 'synchronize'
-        uses: actions/github-script@v8
+        uses: actions/github-script@ed597411d8f924073f98dfc5c65a23a2325f34cd # v8
         with:
           script: |
             const labels = await github.rest.issues.listLabelsOnIssue({
@@ -38,7 +38,7 @@ jobs:
 
       - name: Auto Remove Label
         if: github.event.action == 'closed'
-        uses: actions/github-script@v8
+        uses: actions/github-script@ed597411d8f924073f98dfc5c65a23a2325f34cd # v8
         continue-on-error: true
         with:
           script: |
@@ -55,7 +55,7 @@ jobs:
 
       - name: Auto Assign Milestone
         if: github.event.action == 'opened'
-        uses: actions/github-script@v8
+        uses: actions/github-script@ed597411d8f924073f98dfc5c65a23a2325f34cd # v8
         with:
           script: |
             // Fetch open milestones and assign the closest one

@@ -30,18 +30,18 @@ jobs:
     timeout-minutes: 60
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v6
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6
         with:
           path: boa
           ref: ${{ github.event.pull_request.head.sha }}
 
       - name: Install Rust toolchain
-        uses: dtolnay/rust-toolchain@stable
+        uses: dtolnay/rust-toolchain@631a55b12751854ce901bb631d5902ceb48146f7 # stable
         with:
           toolchain: stable
 
       - name: Cache cargo
-        uses: actions/cache@v5
+        uses: actions/cache@668228422ae6a00e4ad889ee87cd7109ec5666a7 # v5
         with:
           path: |
             target
@@ -50,7 +50,7 @@ jobs:
           key: ${{ runner.os }}-${{ runner.arch }}-cargo-${{ hashFiles('**/Cargo.lock') }}
 
       - name: Checkout the data repo
-        uses: actions/checkout@v6
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6
         with:
           repository: boa-dev/data
           path: data
@@ -80,10 +80,10 @@ jobs:
 
       - name: Get the PR number
         id: pr-number
-        uses: kkak10/pr-number-action@v1.3
+        uses: kkak10/pr-number-action@8f5358941366822cd0825e04dfe68437f2f5f15b # v1.3
 
       - name: Find Previous Comment
-        uses: peter-evans/find-comment@v4
+        uses: peter-evans/find-comment@b30e6a3c0ed37e7c023ccd3f1db5c6c0b0c23aad # v4
         id: previous-comment
         with:
           issue-number: ${{ steps.pr-number.outputs.pr }}
@@ -91,7 +91,7 @@ jobs:
 
       - name: Update comment
         if: steps.previous-comment.outputs.comment-id
-        uses: peter-evans/create-or-update-comment@v5
+        uses: peter-evans/create-or-update-comment@e8674b075228eee787fea43ef493e45ece1004c9 # v5
         continue-on-error: true
         with:
           comment-id: ${{ steps.previous-comment.outputs.comment-id }}
@@ -103,7 +103,7 @@ jobs:
 
       - name: Write a new comment
         if: ${{ !steps.previous-comment.outputs.comment-id }}
-        uses: peter-evans/create-or-update-comment@v5
+        uses: peter-evans/create-or-update-comment@e8674b075228eee787fea43ef493e45ece1004c9 # v5
         continue-on-error: true
         with:
           issue-number: ${{ steps.pr-number.outputs.pr }}
