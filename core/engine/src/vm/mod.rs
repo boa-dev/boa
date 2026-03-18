@@ -349,8 +349,7 @@ impl Stack {
 
             let separator = if let Some(fc) = marker {
                 format!(" |{fc}|")
-            } else if i + 1 < total && !(force_truncate && i + 1 == groups.len()) {
-                // Ensure a comma is added as long as there are more elements in the stack overall.
+            } else if i + 1 < groups.len() {
                 ",".to_string()
             } else {
                 String::new()
