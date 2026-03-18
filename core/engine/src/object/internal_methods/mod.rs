@@ -281,15 +281,19 @@ impl JsObject {
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-ordinary-object-internal-methods-and-internal-slots-set-p-v-receiver
     pub(crate) fn __set__(
-        &self,
-        key: PropertyKey,
-        value: JsValue,
-        receiver: JsValue,
-        context: &mut InternalMethodPropertyContext<'_>,
-    ) -> JsResult<bool> {
-        (self.vtable().__set__)(self, key, value, receiver, context)
+    &self,
+    key: PropertyKey,
+    value: JsValue,
+    receiver: JsValue,
+    context: &mut InternalMethodPropertyContext<'_>,
+) -> JsResult<bool> {
+    let result = (self.vtable().__set__)(self, key.clone(), value.clone(), receiver.clone(), context);
+    #[cfg(feature = "trace")]
+    if let Ok(true) = result {
+        println!("[TRACE] SET -> key: {:?}, value: {:?}", key, value);
     }
-
+    result
+}
     /// Internal method `[[Delete]]`
     ///
     /// Delete the specified own property of this object.
@@ -709,6 +713,8 @@ pub(crate) fn ordinary_get(
     receiver: JsValue,
     context: &mut InternalMethodPropertyContext<'_>,
 ) -> JsResult<JsValue> {
+    #[cfg(feature = "trace-object")]
+    println!("[trace:object] GET property '{}'", key);
     // 1. Assert: IsPropertyKey(P) is true.
     // 2. Let desc be ? O.[[GetOwnProperty]](P).
     match obj.__get_own_property__(key, context)? {

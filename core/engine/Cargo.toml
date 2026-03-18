@@ -13,6 +13,7 @@ rust-version.workspace = true
 
 [features]
 default = ["float16", "xsum", "temporal"]
+trace = ["js"] # Enable Boa's VM instruction tracing
 
 embedded_lz4 = ["boa_macros/embedded_lz4", "lz4_flex"]
 
@@ -63,9 +64,6 @@ fuzz = ["boa_ast/arbitrary", "boa_interner/arbitrary"]
 
 # Enable Boa's VM instruction flowgraph generator.
 flowgraph = []
-
-# Enable Boa's VM instruction tracing.
-trace = ["js"]
 
 # Enable Boa's additional ECMAScript features for web browsers.
 annex-b = ["boa_ast/annex-b", "boa_parser/annex-b"]
