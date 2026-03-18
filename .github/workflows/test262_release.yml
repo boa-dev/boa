@@ -20,19 +20,19 @@ jobs:
     steps:
       # Checkout the main repository
       - name: Checkout repository
-        uses: actions/checkout@v6
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6
         with:
           path: boa
 
       # Install Rust toolchain
       - name: Install Rust toolchain
-        uses: dtolnay/rust-toolchain@stable
+        uses: dtolnay/rust-toolchain@631a55b12751854ce901bb631d5902ceb48146f7 # stable
         with:
           toolchain: stable
 
       # Cache cargo dependencies
       - name: Cache cargo
-        uses: actions/cache@v5
+        uses: actions/cache@668228422ae6a00e4ad889ee87cd7109ec5666a7 # v5
         with:
           path: |
             target
@@ -42,7 +42,7 @@ jobs:
 
       # Checkout the `data` repository
       - name: Checkout the data repo
-        uses: actions/checkout@v6
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6
         with:
           repository: boa-dev/data
           token: ${{ secrets.DATA_PAT }}
@@ -63,7 +63,7 @@ jobs:
           git add test262
           git commit -m "Update Test262 results ( ${{ github.ref_name }} )"
       - name: Push changes
-        uses: ad-m/github-push-action@master
+        uses: ad-m/github-push-action@4cc74773234f74829a8c21bc4d69dd4be9cfa599 # master
         with:
             # cannot use secrets.GITHUB_TOKEN since it only gives you
             # write permissions to the current repository.

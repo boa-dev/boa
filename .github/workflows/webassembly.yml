@@ -23,7 +23,7 @@ jobs:
     timeout-minutes: 60
     steps:
       - name: Checkout
-        uses: actions/checkout@v6
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6
       - name: Check code formatting
         run: npx prettier --check .
 
@@ -42,16 +42,16 @@ jobs:
         # Track https://github.com/rust-lang/cargo/issues/5376
         run: echo "CARGO_TARGET_WASM32_UNKNOWN_UNKNOWN_RUSTFLAGS=$W_FLAGS" >> $GITHUB_ENV
       - name: Checkout repository
-        uses: actions/checkout@v6
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6
 
       - name: Install Rust toolchain
-        uses: dtolnay/rust-toolchain@stable
+        uses: dtolnay/rust-toolchain@631a55b12751854ce901bb631d5902ceb48146f7 # stable
         with:
           toolchain: stable
 
 
       - name: Cache cargo
-        uses: actions/cache@v5
+        uses: actions/cache@668228422ae6a00e4ad889ee87cd7109ec5666a7 # v5
         with:
           path: |
             target
@@ -60,7 +60,7 @@ jobs:
           key: ${{ runner.os }}-${{ runner.arch }}-cargo-${{ hashFiles('**/Cargo.lock') }}
 
       - name: Install wasm-pack
-        uses: baptiste0928/cargo-install@v3.4.0
+        uses: baptiste0928/cargo-install@f204293d9709061b7bc1756fec3ec4e2cd57dec0 # v3.4.0
         with:
           crate: wasm-pack
 

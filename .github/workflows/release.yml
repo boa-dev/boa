@@ -19,10 +19,10 @@ jobs:
           target=$(rustc -vV | awk '/^host/ { print $2 }' | tr [:lower:] [:upper:] | tr '-' '_')
           echo "CARGO_TARGET_${target}_RUSTFLAGS=$W_FLAGS" >> $GITHUB_ENV
       - name: Checkout repository
-        uses: actions/checkout@v6
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6
 
       - name: Install Rust toolchain
-        uses: dtolnay/rust-toolchain@stable
+        uses: dtolnay/rust-toolchain@631a55b12751854ce901bb631d5902ceb48146f7 # stable
         with:
           toolchain: stable
 
@@ -49,16 +49,16 @@ jobs:
     timeout-minutes: 60
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v6
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6
 
       - name: Install Rust toolchain
-        uses: dtolnay/rust-toolchain@stable
+        uses: dtolnay/rust-toolchain@631a55b12751854ce901bb631d5902ceb48146f7 # stable
         with:
           toolchain: stable
           targets: wasm32-unknown-unknown
 
       - name: Install wasm-pack
-        uses: baptiste0928/cargo-install@v3.4.0
+        uses: baptiste0928/cargo-install@f204293d9709061b7bc1756fec3ec4e2cd57dec0 # v3.4.0
         with:
           crate: wasm-pack
 
@@ -66,7 +66,7 @@ jobs:
         run: wasm-pack build --scope boa-dev ./ffi/wasm
 
       - name: Set-up Node.js
-        uses: actions/setup-node@v6
+        uses: actions/setup-node@53b83947a5a98c8d113130e565377fae1a50d02f # v6
         with:
           node-version: "20"
 
@@ -109,16 +109,16 @@ jobs:
     runs-on: ${{ matrix.os }}
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v6
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6
 
       - name: Install Rust toolchain
-        uses: dtolnay/rust-toolchain@stable
+        uses: dtolnay/rust-toolchain@631a55b12751854ce901bb631d5902ceb48146f7 # stable
         with:
           toolchain: stable
           targets: ${{ matrix.target }}
 
       - name: Cache cargo
-        uses: actions/cache@v5
+        uses: actions/cache@668228422ae6a00e4ad889ee87cd7109ec5666a7 # v5
         with:
           path: |
             target
@@ -130,7 +130,7 @@ jobs:
         run: cargo build --target ${{ matrix.target }} --verbose --release --locked --bin boa
 
       - name: Upload binaries to release
-        uses: svenstaro/upload-release-action@v2
+        uses: svenstaro/upload-release-action@29e53e917877a24fad85510ded594ab3c9ca12de # v2
         with:
           repo_token: ${{ secrets.GITHUB_TOKEN }}
           file: target/${{ matrix.target }}/release/boa${{ matrix.binary_extension }}

@@ -27,17 +27,17 @@ jobs:
     runs-on: ${{ matrix.os }}
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v6
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6
 
       - name: Install Rust toolchain
-        uses: dtolnay/rust-toolchain@stable
+        uses: dtolnay/rust-toolchain@631a55b12751854ce901bb631d5902ceb48146f7 # stable
         with:
           toolchain: stable
           targets: ${{ matrix.target }}
 
       - name: Restore cache
         id: cache
-        uses: actions/cache@v5
+        uses: actions/cache@668228422ae6a00e4ad889ee87cd7109ec5666a7 # v5
         with:
           path: |
             ~/.cargo/registry
@@ -49,7 +49,7 @@ jobs:
         run: cargo build --target ${{ matrix.target }} --release --locked --bin boa
 
       - name: Upload binaries to release
-        uses: svenstaro/upload-release-action@v2
+        uses: svenstaro/upload-release-action@29e53e917877a24fad85510ded594ab3c9ca12de # v2
         with:
           repo_token: ${{ secrets.GITHUB_TOKEN }}
           file: target/${{ matrix.target }}/release/boa${{ matrix.binary_extension }}
