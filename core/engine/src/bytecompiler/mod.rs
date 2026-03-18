@@ -2260,7 +2260,13 @@ impl<'ctx> ByteCompiler<'ctx> {
                             }
 
                             // Add resource to disposal stack
+                            #[cfg(feature = "experimental")]
                             self.bytecode.emit_add_disposable_resource(value.variable());
+
+                            #[cfg(not(feature = "experimental"))]
+                            self.emit_type_error(
+                                "using declarations require the 'experimental' feature",
+                            );
 
                             self.emit_binding(BindingOpcode::InitLexical, ident, &value);
                             self.register_allocator.dealloc(value);
@@ -2275,7 +2281,13 @@ impl<'ctx> ByteCompiler<'ctx> {
                             }
 
                             // Add resource to disposal stack
+                            #[cfg(feature = "experimental")]
                             self.bytecode.emit_add_disposable_resource(value.variable());
+
+                            #[cfg(not(feature = "experimental"))]
+                            self.emit_type_error(
+                                "using declarations require the 'experimental' feature",
+                            );
 
                             self.compile_declaration_pattern(
                                 pattern,
@@ -2300,9 +2312,11 @@ impl<'ctx> ByteCompiler<'ctx> {
                                 self.bytecode.emit_store_undefined(value.variable());
                             }
 
-                            // TODO: Add resource to async disposal stack
-                            // For now, we just bind the variable like a let declaration
-                            // Full implementation will add: AddAsyncDisposableResource opcode
+                            // await using is not yet implemented even under experimental
+                            #[cfg(not(feature = "experimental"))]
+                            self.emit_type_error(
+                                "await using declarations require the 'experimental' feature",
+                            );
 
                             self.emit_binding(BindingOpcode::InitLexical, ident, &value);
                             self.register_allocator.dealloc(value);
@@ -2316,7 +2330,12 @@ impl<'ctx> ByteCompiler<'ctx> {
                                 self.bytecode.emit_store_undefined(value.variable());
                             }
 
-                            // TODO: SAME
+                            // await using is not yet implemented even under experimental
+                            #[cfg(not(feature = "experimental"))]
+                            self.emit_type_error(
+                                "await using declarations require the 'experimental' feature",
+                            );
+
                             self.compile_declaration_pattern(
                                 pattern,
                                 BindingOpcode::InitLexical,
