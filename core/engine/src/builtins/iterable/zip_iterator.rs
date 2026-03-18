@@ -281,12 +281,8 @@ impl ZipIterator {
                                 Ok(JsValue::undefined()),
                                 context,
                             )
-                            .and_then(|_| {
-                                Ok(create_iter_result_object(
-                                    JsValue::undefined(),
-                                    true,
-                                    context,
-                                ))
+                            .map(|_| {
+                                create_iter_result_object(JsValue::undefined(), true, context)
                             });
                         }
                         ZipMode::Strict => {
