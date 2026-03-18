@@ -512,15 +512,13 @@ impl Iterator {
         match padding_option {
             None => Ok(vec![JsValue::undefined(); iter_count]),
             Some(pad_val) => {
-                let mut padding_iter =
-                    pad_val
-                        .get_iterator(IteratorHint::Sync, context)
-                        .map_err(|err| {
-                            for iter in iters {
-                                drop(iter.close(Ok(JsValue::undefined()), context));
-                            }
-                            err
-                        })?;
+                let mut padding_iter = pad_val
+                    .get_iterator(IteratorHint::Sync, context)
+                    .inspect_err(|_err| {
+                        for iter in iters {
+                            drop(iter.close(Ok(JsValue::undefined()), context));
+                        }
+                    })?;
                 let mut padding = Vec::new();
                 let mut using_iterator = true;
 
