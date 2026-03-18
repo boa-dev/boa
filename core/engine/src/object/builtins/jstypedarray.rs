@@ -1513,6 +1513,44 @@ fn typed_array_values() {
 }
 
 #[test]
+fn typed_array_iterator() {
+    let context = &mut Context::default();
+    let array = JsUint8Array::from_iter(vec![1u8, 2], context).unwrap();
+    let values = array.iterator(context).unwrap();
+    let mut values_vec = Vec::new();
+    let next_str = crate::js_string!("next");
+    loop {
+        let next_fn = values
+            .as_object()
+            .unwrap()
+            .get(next_str.clone(), context)
+            .unwrap();
+        let result = next_fn
+            .as_object()
+            .unwrap()
+            .call(&values, &[], context)
+            .unwrap();
+        if result
+            .as_object()
+            .unwrap()
+            .get(crate::js_string!("done"), context)
+            .unwrap()
+            .to_boolean()
+        {
+            break;
+        }
+        values_vec.push(
+            result
+                .as_object()
+                .unwrap()
+                .get(crate::js_string!("value"), context)
+                .unwrap(),
+        );
+    }
+    assert_eq!(values_vec, vec![JsValue::new(1), JsValue::new(2)]);
+}
+
+#[test]
 fn typed_array_to_reversed() {
     let context = &mut Context::default();
     let array = JsUint8Array::from_iter(vec![3u8, 1, 2], context).unwrap();
