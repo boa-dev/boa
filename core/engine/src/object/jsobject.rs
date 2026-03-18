@@ -1,7 +1,7 @@
 //! This module implements the `JsObject` structure.
 //!
 //! The `JsObject` is a garbage collected Object.
-
+use crate::object::internal_methods::InternalMethodPropertyContext;
 use super::{
     JsPrototype, NativeObject, Object, ObjectData, PrivateName, PropertyMap,
     internal_methods::{InternalObjectMethods, ORDINARY_INTERNAL_METHODS},
@@ -82,7 +82,20 @@ pub(crate) struct VTableObject<T: NativeObject + ?Sized> {
     vtable: &'static InternalObjectMethods,
     object: GcRefCell<Object<T>>,
 }
+impl JsObject {
+    pub(crate) fn __set__(
+        &self,
+        key: PropertyKey,
+        value: JsValue,
+        receiver: JsValue,
+        context: &mut InternalMethodPropertyContext<'_>,
+    ) -> JsResult<bool> {
+        #[cfg(feature = "trace")]
+        tracing::trace!(?key, ?value, "JSObject::__set__ called");
 
+        (self.vtable().__set__)(self, key, value, receiver, context)
+    }
+}
 impl JsObject {
     /// Converts the `JsObject` into a raw pointer to its inner `GcBox<ErasedVTableObject>`.
     #[cfg(not(feature = "jsvalue-enum"))]

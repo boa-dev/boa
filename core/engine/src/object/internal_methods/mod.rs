@@ -4,6 +4,8 @@
 //!  - [ECMAScript reference][spec]
 //!
 //! [spec]: https://tc39.es/ecma262/#sec-ordinary-object-internal-methods-and-internal-slots
+#[cfg(feature = "trace")]
+use tracing::trace;
 
 use std::ops::{Deref, DerefMut};
 
@@ -280,20 +282,6 @@ impl JsObject {
     ///  - [ECMAScript reference][spec]
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-ordinary-object-internal-methods-and-internal-slots-set-p-v-receiver
-    pub(crate) fn __set__(
-    &self,
-    key: PropertyKey,
-    value: JsValue,
-    receiver: JsValue,
-    context: &mut InternalMethodPropertyContext<'_>,
-) -> JsResult<bool> {
-    let result = (self.vtable().__set__)(self, key.clone(), value.clone(), receiver.clone(), context);
-    #[cfg(feature = "trace")]
-    if let Ok(true) = result {
-        println!("[TRACE] SET -> key: {:?}, value: {:?}", key, value);
-    }
-    result
-}
     /// Internal method `[[Delete]]`
     ///
     /// Delete the specified own property of this object.
@@ -536,8 +524,16 @@ pub(crate) fn ordinary_get_prototype_of(
 pub(crate) fn ordinary_set_prototype_of(
     obj: &JsObject,
     val: JsPrototype,
-    _: &mut Context,
+    context: &mut Context,
 ) -> JsResult<bool> {
+    #[cfg(feature = "trace")]
+    {
+        println!(
+            "[TRACE] SET PROTOTYPE -> object: {:?}, new prototype: {:?}",
+            obj, val
+        );
+    }
+
     // 1. Assert: Either Type(V) is Object or Type(V) is Null.
     // 2. Let current be O.[[Prototype]].
     let current = obj.prototype();
@@ -582,7 +578,6 @@ pub(crate) fn ordinary_set_prototype_of(
     // 10. Return true.
     Ok(true)
 }
-
 /// Abstract operation `OrdinaryIsExtensible`.
 ///
 /// More information:
@@ -713,7 +708,7 @@ pub(crate) fn ordinary_get(
     receiver: JsValue,
     context: &mut InternalMethodPropertyContext<'_>,
 ) -> JsResult<JsValue> {
-    #[cfg(feature = "trace-object")]
+    #[cfg(feature = "trace")]
     println!("[trace:object] GET property '{}'", key);
     // 1. Assert: IsPropertyKey(P) is true.
     // 2. Let desc be ? O.[[GetOwnProperty]](P).
@@ -818,40 +813,23 @@ pub(crate) fn ordinary_set(
     receiver: JsValue,
     context: &mut InternalMethodPropertyContext<'_>,
 ) -> JsResult<bool> {
-    // 1. Assert: IsPropertyKey(P) is true.
-    // 2. Let ownDesc be ? O.[[GetOwnProperty]](P).
-    // 3. Return OrdinarySetWithOwnDescriptor(O, P, V, Receiver, ownDesc).
-
-    // OrdinarySetWithOwnDescriptor ( O, P, V, Receiver, ownDesc )
-    // https://tc39.es/ecma262/multipage/ordinary-and-exotic-objects-behaviours.html#sec-ordinarysetwithowndescriptor
-
     let mut has_own_desc = false;
 
-    // 1. Assert: IsPropertyKey(P) is true.
+    // Get own property descriptor
     let own_desc = if let Some(desc) = obj.__get_own_property__(&key, context)? {
         has_own_desc = true;
         desc
-    }
-    // 2. If ownDesc is undefined, then
-    // a. Let parent be ? O.[[GetPrototypeOf]]().
-    // b. If parent is not null, then
-    else if let Some(parent) = obj.__get_prototype_of__(context)? {
+    } else if let Some(parent) = obj.__get_prototype_of__(context)? {
         context.slot().set_not_cacheable_if_already_prototype();
         context.slot().attributes |= SlotAttributes::PROTOTYPE;
 
-        // i. Return ? parent.[[Set]](P, V, Receiver).
         return parent.__set__(key, value, receiver, context);
-    }
-    // c. Else,
-    else {
-        // It's not on prototype chain.
+    } else {
         context
             .slot()
             .attributes
             .remove(SlotAttributes::PROTOTYPE | SlotAttributes::NOT_CACHEABLE);
 
-        // i. Set ownDesc to the PropertyDescriptor { [[Value]]: undefined, [[Writable]]: true,
-        // [[Enumerable]]: true, [[Configurable]]: true }.
         PropertyDescriptor::builder()
             .value(JsValue::undefined())
             .writable(true)
@@ -860,79 +838,71 @@ pub(crate) fn ordinary_set(
             .build()
     };
 
-    // 3. If IsDataDescriptor(ownDesc) is true, then
+    // Handle data descriptor
     if own_desc.is_data_descriptor() {
-        // a. If ownDesc.[[Writable]] is false, return false.
         if !own_desc.expect_writable() {
             return Ok(false);
         }
 
-        // b. If Type(Receiver) is not Object, return false.
         let Some(receiver) = receiver.as_object() else {
             return Ok(false);
         };
 
         let obj_is_receiver = JsObject::equals(obj, &receiver);
-
-        // NOTE(HaledOdat): If the object and receiver are not the same then it's not inline cacheable for now.
         context
             .slot()
             .attributes
             .set(SlotAttributes::NOT_CACHEABLE, !obj_is_receiver);
 
-        // OPTIMIZATION: If obj and receiver are the same, there's no need to call [[GetOwnProperty]](P)
-        //              again because it was already performed above.
         let existing_descriptor = if has_own_desc && obj_is_receiver {
             Some(own_desc)
         } else {
-            // c. Let existingDescriptor be ? Receiver.[[GetOwnProperty]](P).
             receiver.__get_own_property__(&key, context)?
         };
 
-        // d. If existingDescriptor is not undefined, then
+        // ✅ Clone key/value for trace only
+        #[cfg(feature = "trace")]
+        let (key_for_trace, value_for_trace) = (key.clone(), value.clone());
+
         if let Some(ref existing_desc) = existing_descriptor {
-            // i. If IsAccessorDescriptor(existingDescriptor) is true, return false.
             if existing_desc.is_accessor_descriptor() {
                 return Ok(false);
             }
 
-            // ii. If existingDescriptor.[[Writable]] is false, return false.
             if !existing_desc.expect_writable() {
                 return Ok(false);
             }
 
-            // iii. Let valueDesc be the PropertyDescriptor { [[Value]]: V }.
-            // iv. Return ? Receiver.[[DefineOwnProperty]](P, valueDesc).
-            return receiver.__define_own_property__(
+            let res = receiver.__define_own_property__(
                 &key,
-                PropertyDescriptor::builder().value(value).build(),
+                PropertyDescriptor::builder().value(value.clone()).build(),
                 context,
-            );
+            )?;
+
+            #[cfg(feature = "trace")]
+            tracing::trace!(?key_for_trace, ?value_for_trace, "SET -> existing descriptor");
+
+            return Ok(res);
         }
 
-        // e. Else
-        // i. Assert: Receiver does not currently have a property P.
-        // ii. Return ? CreateDataProperty(Receiver, P, V).
-        return receiver.create_data_property_with_slot(key, value, context);
+        let res = receiver.create_data_property_with_slot(key.clone(), value.clone(), context)?;
+
+        #[cfg(feature = "trace")]
+        tracing::trace!(?key_for_trace, ?value_for_trace, "SET -> new property");
+
+        return Ok(res);
     }
 
-    // 4. Assert: IsAccessorDescriptor(ownDesc) is true.
+    // Handle accessor descriptors
     debug_assert!(own_desc.is_accessor_descriptor());
-
-    // 5. Let setter be ownDesc.[[Set]].
     match own_desc.set() {
         Some(set) if !set.is_undefined() => {
-            // 7. Perform ? Call(setter, Receiver, « V »).
             set.call(&receiver, &[value], context)?;
-
-            // 8. Return true.
             Ok(true)
         }
-        // 6. If setter is undefined, return false.
         _ => Ok(false),
     }
 }
-
 /// Abstract operation `OrdinaryDelete`.
 ///
 /// More information:
