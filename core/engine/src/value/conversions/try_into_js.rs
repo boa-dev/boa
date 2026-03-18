@@ -341,8 +341,9 @@ mod try_into_js_tests {
         Ok(())
     }
 
+    // https://github.com/boa-dev/boa/issues/4360
     #[test]
-    fn manual_repro_4360() -> JsResult<()> {
+    fn try_into_js_to_string() {
         use crate::JsObject;
         use crate::js_string;
 
@@ -365,6 +366,5 @@ mod try_into_js_tests {
         let value: JsValue = obj.into();
         let s = value.to_string(context).unwrap();
         assert_eq!(s.to_std_string_escaped(), "[object Object]");
-        Ok(())
     }
 }
