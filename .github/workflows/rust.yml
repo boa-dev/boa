@@ -207,6 +207,7 @@ jobs:
     env:
       RUSTUP_WINDOWS_PATH_ADD_BIN: 1
     strategy:
+      fail-fast: false
       matrix:
         include:
           - os: macos-14
