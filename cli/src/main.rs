@@ -411,7 +411,7 @@ fn evaluate_expr(
                     let result = script.evaluate(context);
                     if let Err(err) = context.run_jobs() {
                         printer.print(uncaught_job_error(&err));
-                        return Err(err.into_erased(context).into());
+                        return Err(eyre!("execution failed"));
                     }
                     result
                 };
@@ -419,13 +419,13 @@ fn evaluate_expr(
                     Ok(v) => printer.print(format!("{}\n", v.display())),
                     Err(v) => {
                         printer.print(uncaught_error(&v));
-                        return Err(v.into_erased(context).into());
+                        return Err(eyre!("execution failed"));
                     }
                 }
             }
             Err(v) => {
                 printer.print(uncaught_error(&v));
-                return Err(v.into_erased(context).into());
+                return Err(eyre!("parsing failed"));
             }
         }
     }
