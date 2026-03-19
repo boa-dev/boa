@@ -4,28 +4,41 @@ on:
   pull_request_target:
     types: [opened, reopened, synchronize, closed]
 
+permissions:
+  contents: read
+
 jobs:
   manage_pr:
     runs-on: ubuntu-latest
+    timeout-minutes: 10
     permissions:
       pull-requests: write
       issues: write
     steps:
       - name: Auto Add Label
         if: github.event.action == 'opened' || github.event.action == 'reopened' || github.event.action == 'synchronize'
-        uses: actions/github-script@v8
+        uses: actions/github-script@ed597411d8f924073f98dfc5c65a23a2325f34cd # v8
         with:
           script: |
-            github.rest.issues.addLabels({
-              issue_number: context.issue.number,
+            const labels = await github.rest.issues.listLabelsOnIssue({
               owner: context.repo.owner,
               repo: context.repo.repo,
-              labels: ['Waiting On Review']
-            })
+              issue_number: context.issue.number
+            });
+
+            if (labels.data.every(label => label.name != "Waiting On Author")) {
+              github.rest.issues.addLabels({
+                issue_number: context.issue.number,
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                labels: ['Waiting On Review']
+              })
+            }
+
 
       - name: Auto Remove Label
         if: github.event.action == 'closed'
-        uses: actions/github-script@v8
+        uses: actions/github-script@ed597411d8f924073f98dfc5c65a23a2325f34cd # v8
         continue-on-error: true
         with:
           script: |
@@ -42,7 +55,7 @@ jobs:
 
       - name: Auto Assign Milestone
         if: github.event.action == 'opened'
-        uses: actions/github-script@v8
+        uses: actions/github-script@ed597411d8f924073f98dfc5c65a23a2325f34cd # v8
         with:
           script: |
             // Fetch open milestones and assign the closest one

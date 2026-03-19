@@ -761,7 +761,10 @@ fn unwrap_number_format(nf: &JsValue, context: &mut Context) -> JsResult<JsObjec
 /// Abstract operation [`ToIntlMathematicalValue ( value )`][spec].
 ///
 /// [spec]: https://tc39.es/ecma402/#sec-tointlmathematicalvalue
-fn to_intl_mathematical_value(value: &JsValue, context: &mut Context) -> JsResult<Decimal> {
+pub(crate) fn to_intl_mathematical_value(
+    value: &JsValue,
+    context: &mut Context,
+) -> JsResult<Decimal> {
     // 1. Let primValue be ? ToPrimitive(value, number).
     let prim_value = value.to_primitive(context, PreferredType::Number)?;
 

@@ -212,7 +212,7 @@ impl WeakSet {
         // i. Replace the element of entries whose value is e with an element whose value is empty.
         // ii. Return true.
         // 6. Return false.
-        Ok(set.remove(value.inner()).is_some().into())
+        Ok(set.remove(value.inner()).into())
     }
 
     /// `WeakSet.prototype.has( value )`
