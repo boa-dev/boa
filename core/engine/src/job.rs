@@ -129,11 +129,11 @@ impl NativeJob {
 
 type Callback = Box<dyn FnOnce()>;
 
-/// Flag that can only be set once.
+/// Token to cancel a [`TimeoutJob`]
 #[derive(Clone)]
-pub(crate) struct OnceFlag(Rc<Cell<Option<Callback>>>);
+pub(crate) struct CancellationToken(Rc<Cell<Option<Callback>>>);
 
-impl Debug for OnceFlag {
+impl Debug for CancellationToken {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         let flag = self.0.take();
         let is_set = flag.is_none();
@@ -144,26 +144,26 @@ impl Debug for OnceFlag {
     }
 }
 
-impl OnceFlag {
-    /// Creates a new `OnceFlag`.
+impl CancellationToken {
+    /// Creates a new `CancellationToken`.
     pub(crate) fn new() -> Self {
         Self(Rc::new(Cell::new(Some(Box::new(|| {})))))
     }
 
-    /// Sets a callback to run when the flag is set
+    /// Sets a callback to run when the `CancellationToken` gets used.
     pub(crate) fn set_callback(&self, f: impl FnOnce() + 'static) {
         self.0.set(Some(Box::new(f)));
     }
 
-    /// Sets this `OnceFlag` to `true`.
-    pub(crate) fn set(&self) {
+    /// Cancels the [`TimeoutJob`] associated with this cancellation token.
+    pub(crate) fn cancel(&self) {
         if let Some(fun) = self.0.take() {
             fun();
         }
     }
 
-    /// Returns `true` if this `OnceFlag` has been set, or `false` otherwise.
-    pub(crate) fn is_set(&self) -> bool {
+    /// Returns `true` if this `CancellationToken` was used.
+    pub(crate) fn cancelled(&self) -> bool {
         let flag = self.0.take();
         let is_set = flag.is_none();
         self.0.set(flag);
@@ -184,7 +184,7 @@ pub struct TimeoutJob {
     /// The job to run after the time has passed.
     job: NativeJob,
     /// Signals if the timeout job was cancelled.
-    cancelled: OnceFlag,
+    cancelled: CancellationToken,
     /// Signals that this job is recurring. A recurring job shouldn't be
     /// awaited for when considering whether a run of the event loop is
     /// done.
@@ -198,7 +198,7 @@ impl TimeoutJob {
         Self {
             timeout: JsDuration::from_millis(timeout_in_millis),
             job,
-            cancelled: OnceFlag::new(),
+            cancelled: CancellationToken::new(),
             recurring: false,
         }
     }
@@ -209,7 +209,7 @@ impl TimeoutJob {
         Self {
             timeout: JsDuration::from_millis(timeout_in_millis),
             job,
-            cancelled: OnceFlag::new(),
+            cancelled: CancellationToken::new(),
             recurring: true,
         }
     }
@@ -252,8 +252,8 @@ impl TimeoutJob {
     /// Returns `true` if the timeout was cancelled, and its execution can be skipped.
     #[inline]
     #[must_use]
-    pub fn is_cancelled(&self) -> bool {
-        self.cancelled.is_set()
+    pub fn cancelled(&self) -> bool {
+        self.cancelled.cancelled()
     }
 
     /// Sets a cancellation callback for the timeout job.
@@ -264,8 +264,8 @@ impl TimeoutJob {
         self.cancelled.set_callback(f);
     }
 
-    /// Returns the `OnceFlag` to cancel this timeout job.
-    pub(crate) fn cancelled_flag(&self) -> OnceFlag {
+    /// Returns the [`CancellationToken`] for this timeout job.
+    pub(crate) fn cancellation_token(&self) -> CancellationToken {
         self.cancelled.clone()
     }
 
@@ -747,7 +747,7 @@ impl JobExecutor for SimpleJobExecutor {
                     let mut timeout_jobs = self.timeout_jobs.borrow_mut();
                     let mut jobs_to_keep = timeout_jobs.split_off(&now);
                     jobs_to_keep.retain(|_, jobs| {
-                        jobs.retain(|job| !job.is_cancelled());
+                        jobs.retain(|job| !job.cancelled());
                         !jobs.is_empty()
                     });
                     mem::replace(&mut *timeout_jobs, jobs_to_keep)
@@ -755,7 +755,7 @@ impl JobExecutor for SimpleJobExecutor {
 
                 for jobs in jobs_to_run.into_values() {
                     for job in jobs {
-                        if !job.is_cancelled()
+                        if !job.cancelled()
                             && let Err(err) = job.call(&mut context.borrow_mut())
                         {
                             self.clear();
