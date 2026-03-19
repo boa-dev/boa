@@ -1,6 +1,6 @@
 name: Nightly Build
 permissions:
-  "contents": "write"
+  contents: read
 
 # Schedule this workflow to run at midnight every day
 on:
@@ -10,6 +10,8 @@ on:
 
 jobs:
   build:
+    permissions:
+      contents: write
     strategy:
       matrix:
         include:
@@ -29,6 +31,8 @@ jobs:
     steps:
       - name: Checkout repository
         uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6
+        with:
+          persist-credentials: false
 
       - name: Install Rust toolchain
         uses: dtolnay/rust-toolchain@631a55b12751854ce901bb631d5902ceb48146f7 # stable
