@@ -327,23 +327,16 @@ fn decoder_rejects_unsupported_label_after_normalization() {
     text::register(None, context).unwrap();
 
     run_test_actions_with(
-        [
-            TestAction::run(indoc! {r#"
-                threw = false;
+        [TestAction::run(indoc! {r#"
                 try {
                     new TextDecoder(" utf-32 ");
+                    throw new Error("expected RangeError");
                 } catch (e) {
-                    threw = e instanceof RangeError;
+                    if (!(e instanceof RangeError)) {
+                        throw e;
+                    }
                 }
-            "#}),
-            TestAction::inspect_context(|context| {
-                let threw = context
-                    .global_object()
-                    .get(js_str!("threw"), context)
-                    .unwrap();
-                assert_eq!(threw.as_boolean(), Some(true));
-            }),
-        ],
+            "#})],
         context,
     );
 }

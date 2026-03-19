@@ -34,49 +34,33 @@ pub enum Encoding {
     Utf16Be,
 }
 
-const UTF_8_LABELS: &[&str] = &[
-    "unicode-1-1-utf-8",
-    "unicode11utf8",
-    "unicode20utf8",
-    "utf-8",
-    "utf8",
-    "x-unicode20utf8",
-];
-
-const UTF_16BE_LABELS: &[&str] = &["unicodefffe", "utf-16be"];
-
-const UTF_16LE_LABELS: &[&str] = &[
-    "csunicode",
-    "iso-10646-ucs-2",
-    "ucs-2",
-    "unicode",
-    "unicodefeff",
-    "utf-16",
-    "utf-16le",
+const TEXT_DECODER_LABELS: &[(&str, Encoding)] = &[
+    ("unicode-1-1-utf-8", Encoding::Utf8),
+    ("unicode11utf8", Encoding::Utf8),
+    ("unicode20utf8", Encoding::Utf8),
+    ("utf-8", Encoding::Utf8),
+    ("utf8", Encoding::Utf8),
+    ("x-unicode20utf8", Encoding::Utf8),
+    ("unicodefffe", Encoding::Utf16Be),
+    ("utf-16be", Encoding::Utf16Be),
+    ("csunicode", Encoding::Utf16Le),
+    ("iso-10646-ucs-2", Encoding::Utf16Le),
+    ("ucs-2", Encoding::Utf16Le),
+    ("unicode", Encoding::Utf16Le),
+    ("unicodefeff", Encoding::Utf16Le),
+    ("utf-16", Encoding::Utf16Le),
+    ("utf-16le", Encoding::Utf16Le),
 ];
 
 #[inline]
 fn resolve_text_decoder_label(label: &str) -> Option<Encoding> {
     let label = label.trim_matches(['\u{0009}', '\u{000A}', '\u{000C}', '\u{000D}', '\u{0020}']);
 
-    if UTF_8_LABELS
+    TEXT_DECODER_LABELS
         .iter()
-        .any(|supported| label.eq_ignore_ascii_case(supported))
-    {
-        Some(Encoding::Utf8)
-    } else if UTF_16LE_LABELS
-        .iter()
-        .any(|supported| label.eq_ignore_ascii_case(supported))
-    {
-        Some(Encoding::Utf16Le)
-    } else if UTF_16BE_LABELS
-        .iter()
-        .any(|supported| label.eq_ignore_ascii_case(supported))
-    {
-        Some(Encoding::Utf16Be)
-    } else {
-        None
-    }
+        .find_map(|(supported, encoding)| {
+            label.eq_ignore_ascii_case(supported).then_some(*encoding)
+        })
 }
 
 /// The [`TextDecoder`][mdn] class represents an encoder for a specific method, that is
