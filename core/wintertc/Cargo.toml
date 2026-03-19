@@ -1,0 +1,25 @@
+[package]
+name = "boa_wintertc"
+description = "WinterTC (TC55) Minimum Common Web API implementation for the Boa JavaScript engine."
+keywords = ["javascript", "js", "runtime", "tc55", "wintertc"]
+categories = ["wasm", "web-programming"]
+version.workspace = true
+edition.workspace = true
+authors.workspace = true
+license.workspace = true
+repository.workspace = true
+rust-version.workspace = true
+
+[dependencies]
+boa_engine.workspace = true
+
+[lints]
+workspace = true
+
+[package.metadata.docs.rs]
+all-features = true
+
+[features]
+default = []
+url = []
+fetch = []

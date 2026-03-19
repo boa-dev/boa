@@ -29,14 +29,19 @@ fn to_header_name(key: impl AsRef<str>) -> JsResult<HeaderName> {
         .map_err(|_| js_error!("Cannot convert key to header string as it is not valid ASCII."))
 }
 
+/// Trims leading and trailing HTTP whitespace from a header value.
+#[inline]
+fn normalize_header_value(value: &str) -> &str {
+    value.trim_matches(['\t', '\n', '\r', ' '])
+}
+
 /// Converts a JavaScript string to a valid header value (or error).
 ///
 /// # Errors
 /// If the value is not valid ASCII, an error is returned.
 #[inline]
 fn to_header_value(value: impl AsRef<str>) -> JsResult<HeaderValue> {
-    value
-        .as_ref()
+    normalize_header_value(value.as_ref())
         .parse()
         .map_err(|_| js_error!("Cannot convert value to header string as it is not valid ASCII."))
 }
@@ -68,6 +73,12 @@ impl JsHeaders {
     #[must_use]
     pub fn as_header_map(&self) -> Rc<RefCell<HttpHeaderMap>> {
         self.headers.clone()
+    }
+
+    pub(crate) fn deep_clone(&self) -> Self {
+        Self {
+            headers: Rc::new(RefCell::new((*self.headers.borrow()).clone())),
+        }
     }
 }
 
@@ -203,13 +214,10 @@ impl JsHeaders {
             .get_all(name.clone())
             .into_iter()
             .map(|v| v.to_str().unwrap_or(""))
-            // Use an Option<String> to accumulate the values into a single string,
-            // if there are any. Otherwise, we return None.
-            // Cannot use `join(",")` as we need to return undefined if none is found.
             .fold(None, |mut acc, v| {
                 let str = acc.get_or_insert_with(String::new);
                 if !str.is_empty() {
-                    str.push(',');
+                    str.push_str(", ");
                 }
                 str.push_str(v);
                 acc

@@ -178,4 +178,11 @@ impl JsRequest {
         };
         JsRequest::create_from_js(input, options)
     }
+
+    #[boa(rename = "clone")]
+    fn clone_request(&self) -> Self {
+        Self {
+            inner: self.inner.clone(),
+        }
+    }
 }

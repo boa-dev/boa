@@ -11,6 +11,10 @@ on:
       - releases/**
   merge_group:
     types: [checks_requested]
+  workflow_dispatch:
+
+permissions:
+  contents: read
 
 concurrency:
   group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
@@ -472,3 +476,5 @@ jobs:
 
       - name: Check Semver
         uses: obi1kenobi/cargo-semver-checks-action@v2
+        with:
+          exclude: boa_wintertc

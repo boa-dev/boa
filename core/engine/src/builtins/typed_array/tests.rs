@@ -1,4 +1,4 @@
-use crate::{TestAction, run_test_actions};
+use crate::{JsNativeErrorKind, TestAction, run_test_actions};
 
 #[test]
 fn uint8array_constructor_length() {
@@ -107,5 +107,57 @@ fn typedarray_prototype_subarray_shared_memory() {
         ),
         TestAction::assert_eq("a[1]", 99),
         TestAction::assert_eq("b[0]", 99),
+    ]);
+}
+
+#[test]
+fn typedarray_conversion_number() {
+    run_test_actions([
+        TestAction::run("let a = new Int8Array([1, -1, 127]);"),
+        TestAction::run("let b = new Float64Array(a);"),
+        TestAction::assert_eq("b.length", 3),
+        TestAction::assert_eq("b[0]", 1),
+        TestAction::assert_eq("b[1]", -1),
+        TestAction::assert_eq("b[2]", 127),
+    ]);
+}
+
+#[test]
+fn typedarray_conversion_bigint() {
+    run_test_actions([
+        TestAction::run("let a = new BigInt64Array([1n, -1n]);"),
+        TestAction::run("let b = new BigUint64Array(a);"),
+        TestAction::assert_eq("b.length", 2),
+        TestAction::assert("b[0] === 1n"),
+        TestAction::assert("b[1] === 0xffffffffffffffffn"),
+    ]);
+}
+
+#[test]
+fn typedarray_conversion_clamped() {
+    run_test_actions([
+        TestAction::run("let a = new Float64Array([255.5, 256.1, -0.5]);"),
+        TestAction::run("let b = new Uint8ClampedArray(a);"),
+        TestAction::assert_eq("b[0]", 255),
+        TestAction::assert_eq("b[1]", 255),
+        TestAction::assert_eq("b[2]", 0),
+    ]);
+}
+
+#[test]
+fn typedarray_conversion_mismatch_throws() {
+    run_test_actions([
+        TestAction::run("let a = new Int8Array([1]);"),
+        TestAction::assert_native_error(
+            "new BigInt64Array(a)",
+            JsNativeErrorKind::Type,
+            "Cannot initialize typed array from different content type",
+        ),
+        TestAction::run("let b = new BigInt64Array([1n]);"),
+        TestAction::assert_native_error(
+            "new Int8Array(b)",
+            JsNativeErrorKind::Type,
+            "Cannot initialize typed array from different content type",
+        ),
     ]);
 }

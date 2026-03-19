@@ -636,6 +636,13 @@ dependencies = [
 ]
 
 [[package]]
+name = "boa_wintertc"
+version = "1.0.0-dev"
+dependencies = [
+ "boa_engine",
+]
+
+[[package]]
 name = "bstr"
 version = "1.12.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"

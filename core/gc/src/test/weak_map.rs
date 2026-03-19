@@ -126,7 +126,7 @@ mod miri {
             assert!(map.contains_key(&key));
             assert!(map.contains_key(&key_copy));
 
-            assert_eq!(map.remove(&key), Some(()));
+            assert!(map.remove(&key));
 
             map.insert(&key, ());
 
