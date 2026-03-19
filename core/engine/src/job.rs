@@ -155,14 +155,10 @@ impl CancellationToken {
     /// On debug builds, this will panic if the cancellation token was already
     /// used.
     pub(crate) fn set_callback(&self, f: impl FnOnce() + 'static) {
-        #[cfg(debug_assertions)]
-        {
-            let callback = self.0.take();
-            assert!(
-                callback.is_some(),
-                "setting a callback on an already used cancellation token"
-            );
-        }
+        debug_assert!(
+            self.0.take().is_some(),
+            "setting a callback on an already used cancellation token"
+        );
         self.0.set(Some(Box::new(f)));
     }
 
