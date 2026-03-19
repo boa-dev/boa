@@ -38,19 +38,19 @@ pub(crate) struct CheckReturn;
 impl CheckReturn {
     #[inline(always)]
     pub(crate) fn operation((): (), context: &mut Context) -> ControlFlow<CompletionRecord> {
-        let frame = context.vm.frame();
+        let frame = context.frame();
         if !frame.construct() {
             return ControlFlow::Continue(());
         }
-        let this = &context.vm.stack.get_this(frame);
-        let result = context.vm.take_return_value();
+        let this = &context.stack_get_this();
+        let result = context.take_return_value();
 
         let result = if result.is_object() {
             result
         } else if !this.is_undefined() {
             this.clone()
         } else if !result.is_undefined() {
-            context.vm.pending_exception = Some(
+            context.set_pending_exception(
                 // Avoid setting the realm here, since it needs to be set by the parent
                 // execution context.
                 JsNativeError::typ()
@@ -59,15 +59,15 @@ impl CheckReturn {
             );
             return context.handle_throw();
         } else {
-            let frame = context.vm.frame();
+            let frame = context.frame();
             if frame.has_this_value_cached() {
                 this.clone()
             } else {
-                match context.vm.frame().environments.get_this_binding() {
+                match context.frame().environments.get_this_binding() {
                     Err(err) => {
                         // Avoid setting the realm here, since it needs to be set by the parent
                         // execution context.
-                        context.vm.pending_exception = Some(err);
+                        context.set_pending_exception(err);
                         return context.handle_throw();
                     }
                     Ok(Some(this)) => this,
@@ -76,7 +76,7 @@ impl CheckReturn {
             }
         };
 
-        context.vm.set_return_value(result);
+        context.set_return_value(result);
         ControlFlow::Continue(())
     }
 }
@@ -97,8 +97,8 @@ pub(crate) struct SetAccumulator;
 impl SetAccumulator {
     #[inline(always)]
     pub(crate) fn operation(register: RegisterOperand, context: &mut Context) {
-        let value = context.vm.get_register(register.into());
-        context.vm.set_return_value(value.clone());
+        let value = context.get_register(register.into());
+        context.set_return_value(value.clone());
     }
 }
 
@@ -118,8 +118,8 @@ pub(crate) struct Move;
 impl Move {
     #[inline(always)]
     pub(crate) fn operation((dst, src): (RegisterOperand, RegisterOperand), context: &mut Context) {
-        let value = context.vm.get_register(src.into());
-        context.vm.set_register(dst.into(), value.clone());
+        let value = context.get_register(src.into());
+        context.set_register(dst.into(), value.clone());
     }
 }
 
@@ -139,8 +139,8 @@ pub(crate) struct PopIntoRegister;
 impl PopIntoRegister {
     #[inline(always)]
     pub(crate) fn operation(dst: RegisterOperand, context: &mut Context) {
-        let value = context.vm.stack.pop();
-        context.vm.set_register(dst.into(), value);
+        let value = context.stack_pop();
+        context.set_register(dst.into(), value);
     }
 }
 
@@ -160,8 +160,8 @@ pub(crate) struct PushFromRegister;
 impl PushFromRegister {
     #[inline(always)]
     pub(crate) fn operation(dst: RegisterOperand, context: &mut Context) {
-        let value = context.vm.get_register(dst.into());
-        context.vm.stack.push(value.clone());
+        let value = context.get_register(dst.into());
+        context.stack_push(value.clone());
     }
 }
 
@@ -181,9 +181,7 @@ pub(crate) struct SetRegisterFromAccumulator;
 impl SetRegisterFromAccumulator {
     #[inline(always)]
     pub(crate) fn operation(register: RegisterOperand, context: &mut Context) {
-        context
-            .vm
-            .set_register(register.into(), context.vm.get_return_value());
+        context.set_register(register.into(), context.get_return_value());
     }
 }
 

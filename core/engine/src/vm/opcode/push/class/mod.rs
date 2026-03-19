@@ -24,8 +24,8 @@ impl StoreClassPrototype {
         (dst, class, superclass): (RegisterOperand, RegisterOperand, RegisterOperand),
         context: &mut Context,
     ) -> JsResult<()> {
-        let class = context.vm.get_register(class.into()).clone();
-        let superclass = context.vm.get_register(superclass.into()).clone();
+        let class = context.get_register(class.into()).clone();
+        let superclass = context.get_register(superclass.into()).clone();
 
         // // Taken from `15.7.14 Runtime Semantics: ClassDefinitionEvaluation`:
         // <https://tc39.es/ecma262/#sec-runtime-semantics-classdefinitionevaluation>
@@ -68,7 +68,7 @@ impl StoreClassPrototype {
             class_object.set_prototype(Some(constructor_parent));
         }
 
-        context.vm.set_register(dst.into(), proto_parent);
+        context.set_register(dst.into(), proto_parent);
         Ok(())
     }
 }

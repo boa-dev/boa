@@ -170,7 +170,7 @@ impl Error {
     pub(crate) fn with_caller_position(tag: ErrorKind, context: &Context) -> Self {
         Self {
             tag,
-            position: IgnoreEq(context.vm.shadow_stack.caller_position()),
+            position: IgnoreEq(context.shadow_stack().caller_position()),
             backtrace: IgnoreEq(None),
         }
     }

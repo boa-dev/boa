@@ -74,7 +74,7 @@ impl IteratorPush {
             .get_register(iterator.into())
             .as_object()
             .js_expect("iterator should be an object")?;
-        let next = context.vm.get_register(next.into()).clone();
+        let next = context.get_register(next.into()).clone();
 
         context
             .vm
@@ -111,12 +111,12 @@ impl IteratorUpdateResult {
             .iterators
             .pop()
             .js_expect("iterator stack should have at least an iterator")?;
-        let result_v = context.vm.take_register(result.into());
+        let result_v = context.take_register(result.into());
         iterator.update_result(result_v, context)?;
         context
             .vm
             .set_register(result.into(), iterator.done().into());
-        context.vm.frame_mut().iterators.push(iterator);
+        context.frame_mut().iterators.push(iterator);
 
         Ok(())
     }
@@ -147,7 +147,7 @@ impl IteratorNext {
 
         iterator.step(context)?;
 
-        context.vm.frame_mut().iterators.push(iterator);
+        context.frame_mut().iterators.push(iterator);
 
         Ok(())
     }
@@ -192,9 +192,9 @@ impl IteratorFinishAsyncNext {
             return Ok(());
         }
 
-        let value = context.vm.get_register(value.into());
+        let value = context.get_register(value.into());
         iterator.update_result(value.clone(), context)?;
-        context.vm.frame_mut().iterators.push(iterator);
+        context.frame_mut().iterators.push(iterator);
         Ok(())
     }
 }
@@ -224,7 +224,7 @@ impl IteratorResult {
             .last_result()
             .object()
             .clone();
-        context.vm.set_register(value.into(), last_result.into());
+        context.set_register(value.into(), last_result.into());
     }
 }
 
@@ -252,9 +252,9 @@ impl IteratorValue {
             .expect("iterator on the call frame must exist");
 
         let iter_value = iterator.value(context)?;
-        context.vm.set_register(value.into(), iter_value);
+        context.set_register(value.into(), iter_value);
 
-        context.vm.frame_mut().iterators.push(iterator);
+        context.frame_mut().iterators.push(iterator);
 
         Ok(())
     }
@@ -283,7 +283,7 @@ impl IteratorDone {
             .last()
             .expect("iterator on the call frame must exist")
             .done();
-        context.vm.set_register(done.into(), value.into());
+        context.set_register(done.into(), value.into());
     }
 }
 
@@ -306,13 +306,13 @@ impl IteratorReturn {
         (value, called): (RegisterOperand, RegisterOperand),
         context: &mut Context,
     ) -> JsResult<()> {
-        let Some(record) = context.vm.frame_mut().iterators.pop() else {
-            context.vm.set_register(called.into(), false.into());
+        let Some(record) = context.frame_mut().iterators.pop() else {
+            context.set_register(called.into(), false.into());
             return Ok(());
         };
 
         if record.done() {
-            context.vm.set_register(called.into(), false.into());
+            context.set_register(called.into(), false.into());
             return Ok(());
         }
 
@@ -320,18 +320,18 @@ impl IteratorReturn {
             .iterator()
             .get_method(js_string!("return"), context)?
         else {
-            context.vm.set_register(called.into(), false.into());
+            context.set_register(called.into(), false.into());
             return Ok(());
         };
 
-        let old_return_value = context.vm.get_return_value();
+        let old_return_value = context.get_return_value();
 
         let return_value = ret.call(&record.iterator().clone().into(), &[], context)?;
 
-        context.vm.set_return_value(old_return_value);
+        context.set_return_value(old_return_value);
 
-        context.vm.set_register(value.into(), return_value);
-        context.vm.set_register(called.into(), true.into());
+        context.set_register(value.into(), return_value);
+        context.set_register(called.into(), true.into());
 
         Ok(())
     }
@@ -366,7 +366,7 @@ impl IteratorToArray {
             let done = match iterator.step(context) {
                 Ok(done) => done,
                 Err(err) => {
-                    context.vm.frame_mut().iterators.push(iterator);
+                    context.frame_mut().iterators.push(iterator);
                     return Err(err);
                 }
             };
@@ -378,15 +378,15 @@ impl IteratorToArray {
             match iterator.value(context) {
                 Ok(value) => values.push(value),
                 Err(err) => {
-                    context.vm.frame_mut().iterators.push(iterator);
+                    context.frame_mut().iterators.push(iterator);
                     return Err(err);
                 }
             }
         }
 
-        context.vm.frame_mut().iterators.push(iterator);
+        context.frame_mut().iterators.push(iterator);
         let result = Array::create_array_from_list(values, context);
-        context.vm.set_register(array.into(), result.into());
+        context.set_register(array.into(), result.into());
         Ok(())
     }
 }
@@ -407,8 +407,8 @@ pub(crate) struct IteratorStackEmpty;
 impl IteratorStackEmpty {
     #[inline(always)]
     pub(crate) fn operation(empty: RegisterOperand, context: &mut Context) {
-        let is_empty = context.vm.frame().iterators.is_empty();
-        context.vm.set_register(empty.into(), is_empty.into());
+        let is_empty = context.frame().iterators.is_empty();
+        context.set_register(empty.into(), is_empty.into());
     }
 }
 
@@ -429,9 +429,9 @@ impl CreateIteratorResult {
     #[inline(always)]
     pub(crate) fn operation((value, done): (RegisterOperand, IndexOperand), context: &mut Context) {
         let done = u32::from(done) != 0;
-        let val = context.vm.take_register(value.into());
+        let val = context.take_register(value.into());
         let result = create_iter_result_object(val, done, context);
-        context.vm.set_register(value.into(), result);
+        context.set_register(value.into(), result);
     }
 }
 

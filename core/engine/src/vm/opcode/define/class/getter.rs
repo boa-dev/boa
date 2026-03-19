@@ -21,8 +21,8 @@ impl DefineClassStaticGetterByName {
         (function, class, index): (RegisterOperand, RegisterOperand, IndexOperand),
         context: &mut Context,
     ) -> JsResult<()> {
-        let function = context.vm.get_register(function.into()).clone();
-        let class = context.vm.get_register(class.into()).clone();
+        let function = context.get_register(function.into()).clone();
+        let class = context.get_register(class.into()).clone();
         let class = class.as_object().expect("class must be object");
         let key = context
             .vm
@@ -78,8 +78,8 @@ impl DefineClassGetterByName {
         (function, class_proto, index): (RegisterOperand, RegisterOperand, IndexOperand),
         context: &mut Context,
     ) -> JsResult<()> {
-        let function = context.vm.get_register(function.into()).clone();
-        let class_proto = context.vm.get_register(class_proto.into()).clone();
+        let function = context.get_register(function.into()).clone();
+        let class_proto = context.get_register(class_proto.into()).clone();
         let class_proto = class_proto.as_object().expect("class must be object");
         let key = context
             .vm
@@ -135,9 +135,9 @@ impl DefineClassStaticGetterByValue {
         (function, key, class): (RegisterOperand, RegisterOperand, RegisterOperand),
         context: &mut Context,
     ) -> JsResult<()> {
-        let function = context.vm.get_register(function.into()).clone();
-        let key = context.vm.get_register(key.into()).clone();
-        let class = context.vm.get_register(class.into()).clone();
+        let function = context.get_register(function.into()).clone();
+        let key = context.get_register(key.into()).clone();
+        let class = context.get_register(class.into()).clone();
         let class = class.as_object().expect("class must be object");
         let key = key
             .to_property_key(context)
@@ -191,9 +191,9 @@ impl DefineClassGetterByValue {
         (function, key, class_proto): (RegisterOperand, RegisterOperand, RegisterOperand),
         context: &mut Context,
     ) -> JsResult<()> {
-        let function = context.vm.get_register(function.into()).clone();
-        let key = context.vm.get_register(key.into()).clone();
-        let class_proto = context.vm.get_register(class_proto.into()).clone();
+        let function = context.get_register(function.into()).clone();
+        let key = context.get_register(key.into()).clone();
+        let class_proto = context.get_register(class_proto.into()).clone();
         let class_proto = class_proto.as_object().expect("class must be object");
         let key = key
             .to_property_key(context)

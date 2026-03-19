@@ -653,7 +653,7 @@ impl BuiltInFunctionObject {
             return Err(js_error!(SyntaxError: "failed to analyze function scope: {}", reason));
         }
 
-        let in_with = context.vm.frame().environments.has_object_environment();
+        let in_with = context.frame().environments.has_object_environment();
         let spanned_source_text = SpannedSourceText::new_empty();
 
         let code = FunctionCompiler::new(spanned_source_text)
@@ -672,7 +672,7 @@ impl BuiltInFunctionObject {
                 context.interner_mut(),
             );
 
-        let saved = context.vm.frame_mut().environments.pop_to_global();
+        let saved = context.frame_mut().environments.pop_to_global();
         let function_object = crate::vm::create_function_object(code, prototype, context);
         context
             .vm
@@ -1027,48 +1027,42 @@ pub(crate) fn function_call(
             .patch_last_native(native_source_info);
     }
 
-    context.vm.push_frame(frame);
-    context.vm.set_return_value(JsValue::undefined());
+    context.push_frame(frame);
+    context.set_return_value(JsValue::undefined());
 
     let context = context.context();
 
-    let lexical_this_mode = context.vm.frame().code_block.this_mode == ThisMode::Lexical;
+    let lexical_this_mode = context.frame().code_block.this_mode == ThisMode::Lexical;
     let this = if lexical_this_mode {
         ThisBindingStatus::Lexical
     } else {
-        let this = context.vm.stack.get_this(context.vm.frame());
-        if context.vm.frame().code_block.strict() {
-            context.vm.frame_mut().flags |= CallFrameFlags::THIS_VALUE_CACHED;
+        let this = context.stack_get_this();
+        if context.frame().code_block.strict() {
+            context.frame_mut().flags |= CallFrameFlags::THIS_VALUE_CACHED;
             ThisBindingStatus::Initialized(this)
         } else if this.is_null_or_undefined() {
-            context.vm.frame_mut().flags |= CallFrameFlags::THIS_VALUE_CACHED;
+            context.frame_mut().flags |= CallFrameFlags::THIS_VALUE_CACHED;
             let this: JsValue = context.realm().global_this().clone().into();
-            context.vm.stack.set_this(
-                context.vm.frames.last().js_expect("frame must exist")?,
-                this.clone(),
-            );
+            context.stack_set_this(this.clone());
             ThisBindingStatus::Initialized(this)
         } else {
             let this: JsValue = this
                 .to_object(context)
                 .js_expect("conversion cannot fail")?
                 .into();
-            context.vm.frame_mut().flags |= CallFrameFlags::THIS_VALUE_CACHED;
-            context.vm.stack.set_this(
-                context.vm.frames.last().js_expect("frame must exist")?,
-                this.clone(),
-            );
+            context.frame_mut().flags |= CallFrameFlags::THIS_VALUE_CACHED;
+            context.stack_set_this(this.clone());
             ThisBindingStatus::Initialized(this)
         }
     };
 
     let mut last_env = 0;
 
-    let has_binding_identifier = context.vm.frame().code_block().has_binding_identifier();
-    let has_function_scope = context.vm.frame().code_block().has_function_scope();
+    let has_binding_identifier = context.frame().code_block().has_binding_identifier();
+    let has_function_scope = context.frame().code_block().has_function_scope();
 
     if has_binding_identifier {
-        let frame = context.vm.frame_mut();
+        let frame = context.frame_mut();
         let global = frame.realm.environment();
         let index = frame.environments.push_lexical(1, global);
         frame.environments.put_lexical_value(
@@ -1081,8 +1075,8 @@ pub(crate) fn function_call(
     }
 
     if has_function_scope {
-        let scope = context.vm.frame().code_block().constant_scope(last_env);
-        let frame = context.vm.frame_mut();
+        let scope = context.frame().code_block().constant_scope(last_env);
+        let frame = context.frame_mut();
         let global = frame.realm.environment();
         frame.environments.push_function(
             scope,
@@ -1124,7 +1118,7 @@ fn function_construct(
 
     let env_fp = environments.len() as u32;
 
-    let new_target = context.vm.stack.pop();
+    let new_target = context.stack_pop();
 
     let this = if code.is_derived_constructor() {
         None
@@ -1167,16 +1161,16 @@ fn function_construct(
             .patch_last_native(native_source_info);
     }
 
-    context.vm.push_frame(frame);
-    context.vm.set_return_value(JsValue::undefined());
+    context.push_frame(frame);
+    context.set_return_value(JsValue::undefined());
 
     let mut last_env = 0;
 
-    let has_binding_identifier = context.vm.frame().code_block().has_binding_identifier();
-    let has_function_scope = context.vm.frame().code_block().has_function_scope();
+    let has_binding_identifier = context.frame().code_block().has_binding_identifier();
+    let has_function_scope = context.frame().code_block().has_function_scope();
 
     if has_binding_identifier {
-        let frame = context.vm.frame_mut();
+        let frame = context.frame_mut();
         let global = frame.realm.environment();
         let index = frame.environments.push_lexical(1, global);
         frame.environments.put_lexical_value(
@@ -1189,8 +1183,8 @@ fn function_construct(
     }
 
     if has_function_scope {
-        let scope = context.vm.frame().code_block().constant_scope(last_env);
-        let frame = context.vm.frame_mut();
+        let scope = context.frame().code_block().constant_scope(last_env);
+        let frame = context.frame_mut();
         let global = frame.realm.environment();
         frame.environments.push_function(
             scope,
@@ -1211,10 +1205,7 @@ fn function_construct(
     }
 
     let context = context.context();
-    context.vm.stack.set_this(
-        context.vm.frames.last().js_expect("frame must exist")?,
-        this.map(JsValue::new).unwrap_or_default(),
-    );
+    context.stack_set_this(this.map(JsValue::new).unwrap_or_default());
 
     Ok(CallValue::Ready)
 }

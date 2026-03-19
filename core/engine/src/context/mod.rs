@@ -43,6 +43,7 @@ mod hooks;
 #[cfg(feature = "intl")]
 pub(crate) mod icu;
 pub mod intrinsics;
+mod vm_access;
 
 thread_local! {
     static CANNOT_BLOCK_COUNTER: Cell<u64> = const { Cell::new(0) };

@@ -16,10 +16,10 @@ impl GetArgument {
         let value = context
             .vm
             .stack
-            .get_argument(context.vm.frame(), index.into())
+            .get_argument(context.frame(), index.into())
             .cloned()
             .unwrap_or_default();
-        context.vm.set_register(dst.into(), value);
+        context.set_register(dst.into(), value);
     }
 }
 

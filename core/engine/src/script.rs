@@ -177,7 +177,7 @@ impl Script {
         self.prepare_run(context)?;
         let record = context.run();
 
-        context.vm.pop_frame();
+        context.pop_frame();
 
         record.consume()
     }
@@ -210,7 +210,7 @@ impl Script {
 
         let record = context.run_async_with_budget(budget).await;
 
-        context.vm.pop_frame();
+        context.pop_frame();
 
         record.consume()
     }
@@ -219,7 +219,7 @@ impl Script {
         let codeblock = self.codeblock(context)?;
 
         let global_env = EnvironmentStack::new();
-        context.vm.push_frame_with_stack(
+        context.push_frame_with_stack(
             CallFrame::new(
                 codeblock.clone(),
                 Some(ActiveRunnable::Script(self.clone())),
@@ -237,7 +237,7 @@ impl Script {
         context
             .global_declaration_instantiation(&codeblock)
             .inspect_err(|_| {
-                context.vm.pop_frame();
+                context.pop_frame();
             })?;
 
         Ok(())

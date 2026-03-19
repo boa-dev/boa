@@ -20,10 +20,10 @@ impl StrictEq {
         (dst, lhs, rhs): (RegisterOperand, RegisterOperand, RegisterOperand),
         context: &mut Context,
     ) {
-        let lhs = context.vm.get_register(lhs.into());
-        let rhs = context.vm.get_register(rhs.into());
+        let lhs = context.get_register(lhs.into());
+        let rhs = context.get_register(rhs.into());
         let value = lhs.strict_equals(rhs);
-        context.vm.set_register(dst.into(), value.into());
+        context.set_register(dst.into(), value.into());
     }
 }
 
@@ -46,10 +46,10 @@ impl StrictNotEq {
         (dst, lhs, rhs): (RegisterOperand, RegisterOperand, RegisterOperand),
         context: &mut Context,
     ) {
-        let lhs = context.vm.get_register(lhs.into());
-        let rhs = context.vm.get_register(rhs.into());
+        let lhs = context.get_register(lhs.into());
+        let rhs = context.get_register(rhs.into());
         let value = !lhs.strict_equals(rhs);
-        context.vm.set_register(dst.into(), value.into());
+        context.set_register(dst.into(), value.into());
     }
 }
 
@@ -72,7 +72,7 @@ impl In {
         (dst, lhs, rhs): (RegisterOperand, RegisterOperand, RegisterOperand),
         context: &mut Context,
     ) -> JsResult<()> {
-        let rhs = context.vm.get_register(rhs.into()).clone();
+        let rhs = context.get_register(rhs.into()).clone();
         let Some(rhs) = rhs.as_object() else {
             return Err(JsNativeError::typ()
                 .with_message(format!(
@@ -81,10 +81,10 @@ impl In {
                 ))
                 .into());
         };
-        let lhs = context.vm.get_register(lhs.into()).clone();
+        let lhs = context.get_register(lhs.into()).clone();
         let key = lhs.to_property_key(context)?;
         let value = rhs.has_property(key, context)?;
-        context.vm.set_register(dst.into(), value.into());
+        context.set_register(dst.into(), value.into());
         Ok(())
     }
 }
@@ -113,7 +113,7 @@ impl InPrivate {
             .frame()
             .code_block()
             .constant_string(index.into());
-        let rhs = context.vm.get_register(rhs.into());
+        let rhs = context.get_register(rhs.into());
 
         let Some(rhs) = rhs.as_object() else {
             return Err(JsNativeError::typ()
@@ -133,7 +133,7 @@ impl InPrivate {
 
         let value = rhs.private_element_find(&name, true, true).is_some();
 
-        context.vm.set_register(dst.into(), value.into());
+        context.set_register(dst.into(), value.into());
         Ok(())
     }
 }

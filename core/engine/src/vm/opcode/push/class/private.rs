@@ -25,9 +25,9 @@ impl PushClassPrivateMethod {
         ),
         context: &mut Context,
     ) {
-        let object = context.vm.get_register(object.into()).clone();
-        let prototype = context.vm.get_register(prototype.into()).clone();
-        let value = context.vm.get_register(value.into()).clone();
+        let object = context.get_register(object.into()).clone();
+        let prototype = context.get_register(prototype.into()).clone();
+        let value = context.get_register(value.into()).clone();
         let name = context
             .vm
             .frame()
@@ -88,8 +88,8 @@ impl PushClassPrivateGetter {
         (object, value, index): (RegisterOperand, RegisterOperand, IndexOperand),
         context: &mut Context,
     ) {
-        let object = context.vm.get_register(object.into());
-        let value = context.vm.get_register(value.into());
+        let object = context.get_register(object.into());
+        let value = context.get_register(value.into());
         let name = context
             .vm
             .frame()
@@ -131,8 +131,8 @@ impl PushClassPrivateSetter {
         (object, value, index): (RegisterOperand, RegisterOperand, IndexOperand),
         context: &mut Context,
     ) {
-        let object = context.vm.get_register(object.into());
-        let value = context.vm.get_register(value.into());
+        let object = context.get_register(object.into());
+        let value = context.get_register(value.into());
         let name = context
             .vm
             .frame()

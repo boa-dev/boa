@@ -56,11 +56,11 @@ fn is_html_dda_call(
         .vm
         .stack
         .calling_convention_pop_arguments(argument_count);
-    let _func = context.vm.stack.pop();
-    let _this = context.vm.stack.pop();
+    let _func = context.stack_pop();
+    let _this = context.stack_pop();
 
     // Push undefined as the return value.
-    context.vm.stack.push(JsValue::undefined());
+    context.stack_push(JsValue::undefined());
 
     Ok(CallValue::Complete)
 }

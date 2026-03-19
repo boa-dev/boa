@@ -879,7 +879,7 @@ impl Context {
 
             match self.execute_one(
                 |context, opcode| {
-                    let frame = context.vm.frame();
+                    let frame = context.frame();
                     let pc = frame.pc as usize;
 
                     OPCODE_HANDLERS_BUDGET[opcode as usize](context, pc, &mut runtime_budget)
@@ -912,7 +912,7 @@ impl Context {
 
             match self.execute_one(
                 |context, opcode| {
-                    let frame = context.vm.frame();
+                    let frame = context.frame();
                     let pc = frame.pc as usize;
 
                     OPCODE_HANDLERS[opcode as usize](context, pc)

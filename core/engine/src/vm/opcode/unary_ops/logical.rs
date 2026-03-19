@@ -13,9 +13,9 @@ pub(crate) struct LogicalNot;
 impl LogicalNot {
     #[inline(always)]
     pub(crate) fn operation(value: RegisterOperand, context: &mut Context) {
-        context.vm.set_register(
+        context.set_register(
             value.into(),
-            (!context.vm.get_register(value.into()).to_boolean()).into(),
+            (!context.get_register(value.into()).to_boolean()).into(),
         );
     }
 }

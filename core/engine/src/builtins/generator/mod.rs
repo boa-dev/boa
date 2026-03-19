@@ -66,13 +66,13 @@ pub(crate) struct GeneratorContext {
 impl GeneratorContext {
     /// Creates a new `GeneratorContext` from the current `Context` state.
     pub(crate) fn from_current(context: &mut Context, async_generator: Option<JsObject>) -> Self {
-        let mut frame = context.vm.frame().clone();
-        frame.environments = context.vm.frame().environments.clone();
+        let mut frame = context.frame().clone();
+        frame.environments = context.frame().environments.clone();
         frame.realm = context.realm().clone();
 
         // Split the stack at fp. The split-off portion starts at what was fp,
         // so adjust rp and fp to be relative to the new base.
-        let mut stack = context.vm.stack.split_off_frame(&frame);
+        let mut stack = context.stack_split_off_at(&frame);
         frame.rp -= frame.fp;
         frame.fp = 0;
 
@@ -101,28 +101,28 @@ impl GeneratorContext {
         resume_kind: GeneratorResumeKind,
         context: &mut Context,
     ) -> CompletionRecord {
-        std::mem::swap(&mut context.vm.stack, &mut self.stack);
+        context.stack_swap(&mut self.stack);
         let Some(frame) = self.call_frame.take() else {
             return CompletionRecord::Throw(PanicError::new("should have a call frame").into());
         };
         let fp = frame.fp;
         let rp = frame.rp;
-        context.vm.push_frame(frame);
+        context.push_frame(frame);
 
-        let frame = context.vm.frame_mut();
+        let frame = context.frame_mut();
         frame.fp = fp;
         frame.rp = rp;
         frame.set_exit_early(true);
 
         if let Some(value) = value {
-            context.vm.stack.push(value);
+            context.stack_push(value);
         }
-        context.vm.stack.push(resume_kind);
+        context.stack_push(resume_kind);
 
         let result = context.run();
 
-        std::mem::swap(&mut context.vm.stack, &mut self.stack);
-        self.call_frame = context.vm.pop_frame();
+        context.stack_swap(&mut self.stack);
+        self.call_frame = context.pop_frame();
         assert!(self.call_frame.is_some());
         result
     }

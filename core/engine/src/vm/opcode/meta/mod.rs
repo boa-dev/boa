@@ -17,7 +17,7 @@ impl NewTarget {
     #[inline(always)]
     pub(super) fn operation(dst: RegisterOperand, context: &mut Context) {
         let new_target = if let Some(new_target) = {
-            let frame = context.vm.frame();
+            let frame = context.frame();
             frame
                 .environments
                 .get_this_environment(frame.realm.environment())
@@ -28,7 +28,7 @@ impl NewTarget {
         } else {
             JsValue::undefined()
         };
-        context.vm.set_register(dst.into(), new_target);
+        context.set_register(dst.into(), new_target);
     }
 }
 
@@ -90,7 +90,7 @@ impl ImportMeta {
 
         //     b. Return importMeta.
         //     f. Return importMeta.
-        context.vm.set_register(dst.into(), import_meta.into());
+        context.set_register(dst.into(), import_meta.into());
     }
 }
 

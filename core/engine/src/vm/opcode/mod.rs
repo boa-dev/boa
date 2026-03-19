@@ -419,9 +419,9 @@ macro_rules! generate_opcodes {
                 #[inline(always)]
                 #[allow(unused_parens)]
                 fn [<handle_ $Variant:snake>](context: &mut Context, pc: usize) -> ControlFlow<CompletionRecord> {
-                    let bytes = &context.vm.frame().code_block.bytecode.bytes;
+                    let bytes = &context.frame().code_block.bytecode.bytes;
                     let (args, next_pc) = <($($($FieldType),*)?)>::decode(bytes, pc + 1);
-                    context.vm.frame_mut().pc = next_pc as u32;
+                    context.frame_mut().pc = next_pc as u32;
                     let result = $Variant::operation(args, context);
                     IntoCompletionRecord::into_completion_record(result, context)
                 }
@@ -434,9 +434,9 @@ macro_rules! generate_opcodes {
                 #[allow(unused_parens)]
                 fn [<handle_ $Variant:snake _budget>](context: &mut Context, pc: usize, budget: &mut u32) -> ControlFlow<CompletionRecord> {
                     *budget = budget.saturating_sub(u32::from($Variant::COST));
-                    let bytes = &context.vm.frame().code_block.bytecode.bytes;
+                    let bytes = &context.frame().code_block.bytecode.bytes;
                     let (args, next_pc) = <($($($FieldType),*)?)>::decode(bytes, pc + 1);
-                    context.vm.frame_mut().pc = next_pc as u32;
+                    context.frame_mut().pc = next_pc as u32;
                     let result = $Variant::operation(args, context);
                     IntoCompletionRecord::into_completion_record(result, context)
                 }

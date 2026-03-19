@@ -23,8 +23,8 @@ impl SetPrivateField {
             .frame()
             .code_block()
             .constant_string(index.into());
-        let value = context.vm.get_register(value.into()).clone();
-        let object = context.vm.get_register(object.into()).clone();
+        let value = context.get_register(value.into()).clone();
+        let object = context.get_register(object.into()).clone();
         let base_obj = object.to_object(context)?;
         let name = context
             .vm
@@ -57,8 +57,8 @@ impl DefinePrivateField {
         (object, value, index): (RegisterOperand, RegisterOperand, IndexOperand),
         context: &mut Context,
     ) -> JsResult<()> {
-        let object = context.vm.get_register(object.into()).clone();
-        let value = context.vm.get_register(value.into()).clone();
+        let object = context.get_register(object.into()).clone();
+        let value = context.get_register(value.into()).clone();
         let name = context
             .vm
             .frame()
@@ -94,8 +94,8 @@ impl SetPrivateMethod {
         (object, value, index): (RegisterOperand, RegisterOperand, IndexOperand),
         context: &mut Context,
     ) {
-        let object = context.vm.get_register(object.into()).clone();
-        let value = context.vm.get_register(value.into()).clone();
+        let object = context.get_register(object.into()).clone();
+        let value = context.get_register(value.into()).clone();
         let name = context
             .vm
             .frame()
@@ -144,8 +144,8 @@ impl SetPrivateSetter {
         (object, value, index): (RegisterOperand, RegisterOperand, IndexOperand),
         context: &mut Context,
     ) {
-        let object = context.vm.get_register(object.into());
-        let value = context.vm.get_register(value.into());
+        let object = context.get_register(object.into());
+        let value = context.get_register(value.into());
         let name = context
             .vm
             .frame()
@@ -186,8 +186,8 @@ impl SetPrivateGetter {
         (object, value, index): (RegisterOperand, RegisterOperand, IndexOperand),
         context: &mut Context,
     ) {
-        let object = context.vm.get_register(object.into());
-        let value = context.vm.get_register(value.into());
+        let object = context.get_register(object.into());
+        let value = context.get_register(value.into());
         let name = context
             .vm
             .frame()

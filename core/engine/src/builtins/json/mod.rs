@@ -287,7 +287,7 @@ impl Json {
         };
 
         let code_block = {
-            let in_with = context.vm.frame().environments.has_object_environment();
+            let in_with = context.frame().environments.has_object_environment();
             let spanned_source_text = SpannedSourceText::new_source_only(
                 crate::spanned_source_text::SourceText::new(source_text),
             );
@@ -310,12 +310,12 @@ impl Json {
 
         let realm = context.realm().clone();
 
-        let env_fp = context.vm.frame().environments.len() as u32;
-        context.vm.push_frame_with_stack(
+        let env_fp = context.frame().environments.len() as u32;
+        context.push_frame_with_stack(
             CallFrame::new(
                 code_block,
                 None,
-                context.vm.frame().environments.clone(),
+                context.frame().environments.clone(),
                 realm,
             )
             .with_env_fp(env_fp)
@@ -326,7 +326,7 @@ impl Json {
 
         context.realm().resize_global_env();
         let record = context.run();
-        context.vm.pop_frame();
+        context.pop_frame();
 
         let unfiltered = record.consume()?;
 
