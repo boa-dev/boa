@@ -758,14 +758,8 @@ fn zip_iterator_next_after_done() {
             const zipped = Iterator.zip([[]]);
             "#,
         ),
-        TestAction::assert_eq(
-            "JSON.stringify(zipped.next())",
-            js_str!("{\"done\":true}"),
-        ),
-        TestAction::assert_eq(
-            "JSON.stringify(zipped.next())",
-            js_str!("{\"done\":true}"),
-        ),
+        TestAction::assert_eq("JSON.stringify(zipped.next())", js_str!("{\"done\":true}")),
+        TestAction::assert_eq("JSON.stringify(zipped.next())", js_str!("{\"done\":true}")),
     ]);
 }
 

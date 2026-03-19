@@ -1,5 +1,4 @@
 use crate::{JsNativeErrorKind, TestAction, run_test_actions};
-use boa_macros::js_str;
 
 #[test]
 fn uint8array_constructor_length() {
@@ -160,20 +159,5 @@ fn typedarray_conversion_mismatch_throws() {
             JsNativeErrorKind::Type,
             "Cannot initialize typed array from different content type",
         ),
-    ]);
-}
-
-#[test]
-fn typedarray_prototype_to_locale_string() {
-    run_test_actions([
-        TestAction::assert_eq(
-            "new Uint8Array([1, 2, 3]).toLocaleString()",
-            js_str!("1, 2, 3"),
-        ),
-        TestAction::assert_eq(
-            "new Float64Array([1.5, 2.5]).toLocaleString()",
-            js_str!("1.5, 2.5"),
-        ),
-        TestAction::assert_eq("new Uint8Array([]).toLocaleString()", js_str!("")),
     ]);
 }

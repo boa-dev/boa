@@ -584,7 +584,6 @@ impl IteratorConstructor {
                 Ok(padding)
             }
         }
-        }
     }
 
     // ==================== Prototype Accessor Properties ====================

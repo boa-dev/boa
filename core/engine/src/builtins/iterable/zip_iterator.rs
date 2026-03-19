@@ -80,13 +80,7 @@ pub(crate) struct ZipIterator {
 impl IntrinsicObject for ZipIterator {
     fn init(realm: &Realm) {
         BuiltInBuilder::with_intrinsic::<Self>(realm)
-            .prototype(
-                realm
-                    .intrinsics()
-                    .constructors()
-                    .iterator()
-                    .prototype(),
-            )
+            .prototype(realm.intrinsics().constructors().iterator().prototype())
             .static_method(Self::next, js_string!("next"), 0)
             .static_method(Self::r#return, js_string!("return"), 0)
             .static_property(
