@@ -143,6 +143,15 @@ impl<S: crate::message::MessageSender + Debug + 'static> RuntimeExtension
 {
     fn register(self, realm: Option<Realm>, context: &mut Context) -> JsResult<()> {
         crate::message::register(self.0, realm, context)
+}
+
+/// Register the `Worker` JavaScript API.
+#[derive(Debug)]
+pub struct WorkerExtension;
+
+impl RuntimeExtension for WorkerExtension {
+    fn register(self, realm: Option<Realm>, context: &mut Context) -> JsResult<()> {
+        crate::worker::Worker::register(realm, context)
     }
 }
 

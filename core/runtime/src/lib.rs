@@ -126,12 +126,13 @@ pub mod store;
 pub mod text;
 #[cfg(feature = "url")]
 pub mod url;
+pub mod worker;
 
 #[cfg(feature = "process")]
 use crate::extensions::ProcessExtension;
 use crate::extensions::{
     Base64Extension, EncodingExtension, MicrotaskExtension, StructuredCloneExtension,
-    TimeoutExtension,
+    TimeoutExtension, WorkerExtension,
 };
 pub use extensions::RuntimeExtension;
 
@@ -157,6 +158,7 @@ pub fn register(
         ProcessExtension,
         #[cfg(feature = "fetch")]
         extensions::AbortControllerExtension,
+        WorkerExtension,
         extensions,
     )
         .register(realm, ctx)?;
