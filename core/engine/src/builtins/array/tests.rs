@@ -249,6 +249,24 @@ fn unshift() {
         TestAction::assert_eq("arr.unshift(1, 2)", 4),
         TestAction::assert("arrayEquals(arr, [1, 2, 3, 4])"),
     ]);
+
+    // Test case from PR 5076 ensuring unshift doesn't bypass setters
+    run_test_actions([
+        TestAction::run_harness(),
+        TestAction::run(indoc! {r#"
+            var array = [1];
+            Object.defineProperty(Array.prototype, "1", {
+                set(_val) {
+                    Object.freeze(array);
+                },
+            });
+        "#}),
+        TestAction::assert_native_error(
+            "array.unshift(0)",
+            JsNativeErrorKind::Type,
+            "cannot set non-writable property: 0",
+        ),
+    ]);
 }
 
 #[test]
