@@ -379,12 +379,10 @@ where
     // 4. Repeat,
     loop {
         // a. If k = strLen, return R.
-        if k == str_len {
-            return Ok(js_string!(&r[..]));
-        }
-
         // b. Let C be the code unit at index k within string.
-        let c = string.code_unit_at(k).js_expect("Bounds were verified")?;
+        let Some(c) = string.code_unit_at(k) else {
+            return Ok(js_string!(&r[..]));
+        };
 
         // c. If C is not the code unit 0x0025 (PERCENT SIGN), then
         #[allow(clippy::if_not_else)]
