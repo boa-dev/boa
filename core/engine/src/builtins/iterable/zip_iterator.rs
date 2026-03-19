@@ -83,9 +83,9 @@ impl IntrinsicObject for ZipIterator {
             .prototype(
                 realm
                     .intrinsics()
-                    .objects()
-                    .iterator_prototypes()
-                    .iterator(),
+                    .constructors()
+                    .iterator()
+                    .prototype(),
             )
             .static_method(Self::next, js_string!("next"), 0)
             .static_method(Self::r#return, js_string!("return"), 0)

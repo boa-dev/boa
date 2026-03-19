@@ -375,6 +375,44 @@ fn iterator_concat_zero_arguments() {
     )]);
 }
 
+// ── Iterator.zip — shortest mode (default) ──────────────────────────────────
+
+#[cfg(feature = "experimental")]
+#[test]
+fn iterator_zip_basic_two_arrays() {
+    run_test_actions([TestAction::assert_eq(
+        "JSON.stringify(Iterator.zip([[1,2,3], ['a','b','c']]).toArray())",
+        js_str!("[[1,\"a\"],[2,\"b\"],[3,\"c\"]]"),
+    )]);
+}
+
+#[cfg(feature = "experimental")]
+#[test]
+fn iterator_zip_basic_three_arrays() {
+    run_test_actions([TestAction::assert_eq(
+        "JSON.stringify(Iterator.zip([[1,2], ['a','b'], [true, false]]).toArray())",
+        js_str!("[[1,\"a\",true],[2,\"b\",false]]"),
+    )]);
+}
+
+#[cfg(feature = "experimental")]
+#[test]
+fn iterator_zip_stops_at_shortest() {
+    run_test_actions([TestAction::assert_eq(
+        "JSON.stringify(Iterator.zip([[1,2,3], ['a']]).toArray())",
+        js_str!("[[1,\"a\"]]"),
+    )]);
+}
+
+#[cfg(feature = "experimental")]
+#[test]
+fn iterator_zip_empty_iterables() {
+    run_test_actions([TestAction::assert_eq(
+        "Iterator.zip([]).toArray().length",
+        0,
+    )]);
+}
+
 #[test]
 fn iterator_concat_single_argument() {
     run_test_actions([TestAction::assert_eq(
@@ -395,6 +433,130 @@ fn iterator_concat_three_arguments() {
 fn iterator_concat_lazy_next() {
     run_test_actions([TestAction::assert_eq(
         "Iterator.concat([1,2],[3,4]).next().value",
+        1,
+    )]);
+}
+
+#[cfg(feature = "experimental")]
+#[test]
+fn iterator_zip_single_iterable() {
+    run_test_actions([TestAction::assert_eq(
+        "JSON.stringify(Iterator.zip([[1,2,3]]).toArray())",
+        js_str!("[[1],[2],[3]]"),
+    )]);
+}
+
+#[cfg(feature = "experimental")]
+#[test]
+fn iterator_zip_shortest_mode_explicit() {
+    run_test_actions([TestAction::assert_eq(
+        "JSON.stringify(Iterator.zip([[1,2,3], ['a','b']], { mode: 'shortest' }).toArray())",
+        js_str!("[[1,\"a\"],[2,\"b\"]]"),
+    )]);
+}
+
+// ── Iterator.zip — longest mode ─────────────────────────────────────────────
+
+#[cfg(feature = "experimental")]
+#[test]
+fn iterator_zip_longest_pads_with_undefined() {
+    run_test_actions([TestAction::assert_eq(
+        r#"
+        const result = Iterator.zip([[1,2,3], ['a']], { mode: 'longest' }).toArray();
+        JSON.stringify(result)
+        "#,
+        js_str!("[[1,\"a\"],[2,null],[3,null]]"),
+    )]);
+}
+
+#[cfg(feature = "experimental")]
+#[test]
+fn iterator_zip_longest_custom_padding() {
+    run_test_actions([TestAction::assert_eq(
+        r#"
+        const result = Iterator.zip(
+            [[1,2,3], ['a']],
+            { mode: 'longest', padding: ['?', '!'] }
+        ).toArray();
+        JSON.stringify(result)
+        "#,
+        js_str!("[[1,\"a\"],[2,\"!\"],[3,\"!\"]]"),
+    )]);
+}
+
+#[cfg(feature = "experimental")]
+#[test]
+fn iterator_zip_longest_same_length() {
+    run_test_actions([TestAction::assert_eq(
+        r#"
+        JSON.stringify(Iterator.zip([[1,2], ['a','b']], { mode: 'longest' }).toArray())
+        "#,
+        js_str!("[[1,\"a\"],[2,\"b\"]]"),
+    )]);
+}
+
+// ── Iterator.zip — strict mode ──────────────────────────────────────────────
+
+#[cfg(feature = "experimental")]
+#[test]
+fn iterator_zip_strict_same_length() {
+    run_test_actions([TestAction::assert_eq(
+        "JSON.stringify(Iterator.zip([[1,2], ['a','b']], { mode: 'strict' }).toArray())",
+        js_str!("[[1,\"a\"],[2,\"b\"]]"),
+    )]);
+}
+
+#[cfg(feature = "experimental")]
+#[test]
+fn iterator_zip_strict_different_length_throws() {
+    run_test_actions([TestAction::assert_native_error(
+        "Iterator.zip([[1,2,3], ['a','b']], { mode: 'strict' }).toArray()",
+        JsNativeErrorKind::Type,
+        "iterators have different lengths in strict mode",
+    )]);
+}
+
+#[cfg(feature = "experimental")]
+#[test]
+fn iterator_zip_strict_first_shorter_throws() {
+    run_test_actions([TestAction::assert_native_error(
+        "Iterator.zip([[1], ['a','b','c']], { mode: 'strict' }).toArray()",
+        JsNativeErrorKind::Type,
+        "iterators have different lengths in strict mode",
+    )]);
+}
+
+#[cfg(feature = "experimental")]
+#[test]
+fn iterator_zip_strict_empty_iterators() {
+    run_test_actions([TestAction::assert_eq(
+        "Iterator.zip([[], []], { mode: 'strict' }).toArray().length",
+        0,
+    )]);
+}
+
+// ── Iterator.zipKeyed ───────────────────────────────────────────────────────
+
+#[cfg(feature = "experimental")]
+#[test]
+fn iterator_zip_keyed_basic() {
+    run_test_actions([TestAction::assert_eq(
+        r#"
+        const result = Iterator.zipKeyed({ a: [1,2,3], b: ['x','y','z'] }).toArray();
+        result.map(o => o.a + ':' + o.b).join(',')
+        "#,
+        js_str!("1:x,2:y,3:z"),
+    )]);
+}
+
+#[cfg(feature = "experimental")]
+#[test]
+fn iterator_zip_keyed_shortest_default() {
+    run_test_actions([TestAction::assert_eq(
+        r#"
+        const result = Iterator.zipKeyed({ x: [1,2,3], y: ['a'] }).toArray();
+        result.length
+        "#,
         1,
     )]);
 }
@@ -443,5 +605,200 @@ fn iterator_concat_return_result_shape() {
     run_test_actions([TestAction::assert(
         "const it = Iterator.concat([1,2]); it.next();
          const r = it.return(); r.done === true && r.value === undefined",
+    )]);
+}
+
+#[cfg(feature = "experimental")]
+#[test]
+fn iterator_zip_keyed_longest_mode() {
+    run_test_actions([TestAction::assert_eq(
+        r#"
+        const result = Iterator.zipKeyed(
+            { x: [1,2,3], y: ['a'] },
+            { mode: 'longest' }
+        ).toArray();
+        result.length
+        "#,
+        3,
+    )]);
+}
+
+#[cfg(feature = "experimental")]
+#[test]
+fn iterator_zip_keyed_longest_with_padding() {
+    run_test_actions([TestAction::assert_eq(
+        r#"
+        const result = Iterator.zipKeyed(
+            { x: [1,2,3], y: ['a'] },
+            { mode: 'longest', padding: { y: 'default' } }
+        ).toArray();
+        result.map(o => o.x + ':' + o.y).join(',')
+        "#,
+        js_str!("1:a,2:default,3:default"),
+    )]);
+}
+
+#[cfg(feature = "experimental")]
+#[test]
+fn iterator_zip_keyed_strict_same_length() {
+    run_test_actions([TestAction::assert_eq(
+        r#"
+        const result = Iterator.zipKeyed(
+            { a: [1,2], b: ['x','y'] },
+            { mode: 'strict' }
+        ).toArray();
+        result.length
+        "#,
+        2,
+    )]);
+}
+
+#[cfg(feature = "experimental")]
+#[test]
+fn iterator_zip_keyed_strict_different_length_throws() {
+    run_test_actions([TestAction::assert_native_error(
+        r#"
+        Iterator.zipKeyed(
+            { a: [1,2,3], b: ['x','y'] },
+            { mode: 'strict' }
+        ).toArray()
+        "#,
+        JsNativeErrorKind::Type,
+        "iterators have different lengths in strict mode",
+    )]);
+}
+
+// ── Error handling ──────────────────────────────────────────────────────────
+
+#[cfg(feature = "experimental")]
+#[test]
+fn iterator_zip_non_object_iterables_throws() {
+    run_test_actions([TestAction::assert_native_error(
+        "Iterator.zip(42)",
+        JsNativeErrorKind::Type,
+        "Iterator.zip requires an iterable object",
+    )]);
+}
+
+#[cfg(feature = "experimental")]
+#[test]
+fn iterator_zip_invalid_mode_throws() {
+    run_test_actions([TestAction::assert_native_error(
+        "Iterator.zip([[1]], { mode: 'invalid' })",
+        JsNativeErrorKind::Type,
+        "mode must be \"shortest\", \"longest\", or \"strict\"",
+    )]);
+}
+
+#[cfg(feature = "experimental")]
+#[test]
+fn iterator_zip_non_object_padding_throws() {
+    run_test_actions([TestAction::assert_native_error(
+        "Iterator.zip([[1]], { mode: 'longest', padding: 42 })",
+        JsNativeErrorKind::Type,
+        "padding must be an object",
+    )]);
+}
+
+#[cfg(feature = "experimental")]
+#[test]
+fn iterator_zip_options_must_be_object() {
+    run_test_actions([TestAction::assert_native_error(
+        "Iterator.zip([[1]], 'notAnObject')",
+        JsNativeErrorKind::Type,
+        "options must be an object",
+    )]);
+}
+
+#[cfg(feature = "experimental")]
+#[test]
+fn iterator_zip_keyed_non_object_iterables_throws() {
+    run_test_actions([TestAction::assert_native_error(
+        "Iterator.zipKeyed(42)",
+        JsNativeErrorKind::Type,
+        "Iterator.zipKeyed requires an object",
+    )]);
+}
+
+// ── ZipIterator protocol ────────────────────────────────────────────────────
+
+#[cfg(feature = "experimental")]
+#[test]
+fn zip_iterator_return_closes_iterators() {
+    run_test_actions([
+        TestAction::run(
+            r#"
+            let closed1 = false;
+            let closed2 = false;
+            const iter1 = {
+                [Symbol.iterator]() { return this; },
+                next() { return { value: 1, done: false }; },
+                return() { closed1 = true; return { value: undefined, done: true }; }
+            };
+            const iter2 = {
+                [Symbol.iterator]() { return this; },
+                next() { return { value: 2, done: false }; },
+                return() { closed2 = true; return { value: undefined, done: true }; }
+            };
+            const zipped = Iterator.zip([iter1, iter2]);
+            zipped.return();
+            "#,
+        ),
+        TestAction::assert("closed1"),
+        TestAction::assert("closed2"),
+    ]);
+}
+
+#[cfg(feature = "experimental")]
+#[test]
+fn zip_iterator_next_after_done() {
+    run_test_actions([
+        TestAction::run(
+            r#"
+            const zipped = Iterator.zip([[]]);
+            "#,
+        ),
+        TestAction::assert_eq(
+            "JSON.stringify(zipped.next())",
+            js_str!("{\"done\":true}"),
+        ),
+        TestAction::assert_eq(
+            "JSON.stringify(zipped.next())",
+            js_str!("{\"done\":true}"),
+        ),
+    ]);
+}
+
+#[cfg(feature = "experimental")]
+#[test]
+fn zip_iterator_to_string_tag() {
+    run_test_actions([TestAction::assert_eq(
+        "Iterator.zip([[1]]).next(); Iterator.zip([[1]])[Symbol.toStringTag]",
+        js_str!("Iterator Helper"),
+    )]);
+}
+
+#[cfg(feature = "experimental")]
+#[test]
+fn iterator_zip_with_generators() {
+    run_test_actions([TestAction::assert_eq(
+        r#"
+        function* nums() { yield 1; yield 2; yield 3; }
+        function* letters() { yield 'a'; yield 'b'; yield 'c'; }
+        JSON.stringify(Iterator.zip([nums(), letters()]).toArray())
+        "#,
+        js_str!("[[1,\"a\"],[2,\"b\"],[3,\"c\"]]"),
+    )]);
+}
+
+#[cfg(feature = "experimental")]
+#[test]
+fn iterator_zip_longest_with_three_iterators() {
+    run_test_actions([TestAction::assert_eq(
+        r#"
+        const result = Iterator.zip([[1], [10, 20], [100, 200, 300]], { mode: 'longest' }).toArray();
+        JSON.stringify(result)
+        "#,
+        js_str!("[[1,10,100],[null,20,200],[null,null,300]]"),
     )]);
 }
