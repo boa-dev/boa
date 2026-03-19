@@ -1456,10 +1456,25 @@ impl PlainDateTime {
     /// - [ECMAScript Temporal proposal][spec]
     /// - [MDN reference][mdn]
     ///
-    /// [spec]: https://tc39.es/proposal-temporal/#sec-temporal.plaindatetime.prototype.with
-    /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Temporal/PlainDateTime/with
-    fn to_locale_string(this: &JsValue, _args: &[JsValue], _: &mut Context) -> JsResult<JsValue> {
+    /// [spec]: https://tc39.es/proposal-temporal/#sec-temporal.plaindatetime.prototype.tolocalestring
+    /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Temporal/PlainDateTime/toLocaleString
+    fn to_locale_string(
+        this: &JsValue,
+        _args: &[JsValue],
+        _context: &mut Context,
+    ) -> JsResult<JsValue> {
         // TODO: Update for ECMA-402 compliance
+        // The spec requires integration with Intl.DateTimeFormat which is still in progress.
+        // For now, this returns the ISO string representation similar to toString().
+        // 
+        // Proper implementation should:
+        // 1. Create an Intl.DateTimeFormat with the provided locales and options
+        // 2. Convert PlainDateTime to a formattable datetime
+        // 3. Format using the DateTimeFormat
+        // 
+        // See: https://tc39.es/proposal-temporal/#sec-temporal.plaindatetime.prototype.tolocalestring
+        // and https://tc39.es/ecma402/#sec-datetimeformat-objects
+        
         let object = this.as_object();
         let dt = object
             .as_ref()
@@ -1468,6 +1483,8 @@ impl PlainDateTime {
                 JsNativeError::typ().with_message("the this object must be a PlainDateTime object.")
             })?;
 
+        // Temporary implementation until full ECMA-402 integration
+        // This matches the current behavior of ZonedDateTime.toLocaleString
         let ixdtf = dt
             .inner
             .to_ixdtf_string(ToStringRoundingOptions::default(), DisplayCalendar::Auto)?;
