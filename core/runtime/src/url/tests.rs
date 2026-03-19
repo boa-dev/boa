@@ -406,6 +406,13 @@ fn url_search_params_constructor_errors() {
                 assert(threw, "enumerable symbol keys must throw during record conversion");
             "##,
         ),
+    ]);
+}
+
+#[test]
+fn url_search_params_constructor_iterator_cleanup_errors() {
+    run_test_actions([
+        TestAction::run(TEST_HARNESS),
         TestAction::run(
             r##"
                 var cleanup = [];
@@ -490,6 +497,13 @@ fn url_search_params_constructor_errors() {
                 assert_eq(cleanup.join(","), "pair,outer");
             "##,
         ),
+    ]);
+}
+
+#[test]
+fn url_search_params_constructor_iterator_protocol_errors() {
+    run_test_actions([
+        TestAction::run(TEST_HARNESS),
         TestAction::run(
             r##"
                 var threw = false;
