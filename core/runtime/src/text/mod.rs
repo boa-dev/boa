@@ -34,6 +34,51 @@ pub enum Encoding {
     Utf16Be,
 }
 
+const UTF_8_LABELS: &[&str] = &[
+    "unicode-1-1-utf-8",
+    "unicode11utf8",
+    "unicode20utf8",
+    "utf-8",
+    "utf8",
+    "x-unicode20utf8",
+];
+
+const UTF_16BE_LABELS: &[&str] = &["unicodefffe", "utf-16be"];
+
+const UTF_16LE_LABELS: &[&str] = &[
+    "csunicode",
+    "iso-10646-ucs-2",
+    "ucs-2",
+    "unicode",
+    "unicodefeff",
+    "utf-16",
+    "utf-16le",
+];
+
+#[inline]
+fn resolve_text_decoder_label(label: &str) -> Option<Encoding> {
+    let label = label.trim_matches(['\u{0009}', '\u{000A}', '\u{000C}', '\u{000D}', '\u{0020}']);
+
+    if UTF_8_LABELS
+        .iter()
+        .any(|supported| label.eq_ignore_ascii_case(supported))
+    {
+        Some(Encoding::Utf8)
+    } else if UTF_16LE_LABELS
+        .iter()
+        .any(|supported| label.eq_ignore_ascii_case(supported))
+    {
+        Some(Encoding::Utf16Le)
+    } else if UTF_16BE_LABELS
+        .iter()
+        .any(|supported| label.eq_ignore_ascii_case(supported))
+    {
+        Some(Encoding::Utf16Be)
+    } else {
+        None
+    }
+}
+
 /// The [`TextDecoder`][mdn] class represents an encoder for a specific method, that is
 /// a specific character encoding, like `utf-8`.
 ///
@@ -62,17 +107,12 @@ impl TextDecoder {
         let ignore_bom = options.and_then(|o| o.ignore_bom).unwrap_or(false);
 
         let encoding = match encoding {
-            Some(enc) => match enc.to_std_string_lossy().as_str() {
-                "utf-8" => Encoding::Utf8,
-                // Default encoding is Little Endian.
-                "utf-16" | "utf-16le" => Encoding::Utf16Le,
-                "utf-16be" => Encoding::Utf16Be,
-                e => {
-                    return Err(
-                        js_error!(RangeError: "The given encoding '{}' is not supported.", e),
-                    );
-                }
-            },
+            Some(enc) => {
+                let label = enc.to_std_string_lossy();
+                resolve_text_decoder_label(&label).ok_or_else(
+                    || js_error!(RangeError: "The given encoding '{}' is not supported.", label),
+                )?
+            }
             None => Encoding::default(),
         };
 
