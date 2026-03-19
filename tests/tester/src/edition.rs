@@ -456,7 +456,10 @@ impl SpecEdition {
 #[cfg(test)]
 mod tests {
     use super::SpecEdition;
-    use crate::read::{MetaData, TestFlag};
+    use crate::{
+        Locale,
+        read::{MetaData, TestFlag},
+    };
 
     fn metadata(features: &[&str]) -> MetaData {
         MetaData {
@@ -473,7 +476,7 @@ mod tests {
             includes: Box::default(),
             flags: Box::<[TestFlag]>::default(),
             negative: None,
-            locale: Default::default(),
+            locale: Locale::default(),
         }
     }
 

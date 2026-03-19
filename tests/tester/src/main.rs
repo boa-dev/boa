@@ -760,6 +760,11 @@ impl AddAssign for VersionedStats {
 mod tests {
     use super::{SpecEdition, Statistics, VersionedStats};
 
+    fn mark_passed(entry: &mut Statistics) {
+        entry.total += 1;
+        entry.passed += 1;
+    }
+
     #[test]
     fn deserializes_es16_from_older_results() {
         let stats: VersionedStats = serde_json::from_value(serde_json::json!({
@@ -793,11 +798,6 @@ mod tests {
     #[test]
     fn apply_updates_es16_statistics() {
         let mut stats = VersionedStats::default();
-
-        fn mark_passed(entry: &mut Statistics) {
-            entry.total += 1;
-            entry.passed += 1;
-        }
 
         stats.apply(SpecEdition::ES16, mark_passed);
 
