@@ -440,16 +440,13 @@ impl String {
         context: &mut Context,
     ) -> JsResult<JsValue> {
         // 1. Let result be the empty String.
-        let mut result = Vec::with_capacity(args.len());
-
         // 2. For each element next of codeUnits, do
-        for next in args {
-            // a. Let nextCU be the code unit whose numeric value is ℝ(? ToUint16(next)).
-            let next_cu = next.to_uint16(context)?;
-
-            // b. Set result to the string-concatenation of result and nextCU.
-            result.push(next_cu);
-        }
+        // a. Let nextCU be the code unit whose numeric value is ℝ(? ToUint16(next)).
+        // b. Set result to the string-concatenation of result and nextCU.
+        let result = args
+            .iter()
+            .map(|next| next.to_uint16(context))
+            .collect::<JsResult<Vec<_>>>()?;
 
         // 3. Return result.
         Ok(js_string!(&result[..]).into())
