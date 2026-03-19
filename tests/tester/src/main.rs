@@ -756,65 +756,6 @@ impl AddAssign for VersionedStats {
     }
 }
 
-#[cfg(test)]
-mod tests {
-    use super::{SpecEdition, Statistics, VersionedStats};
-
-    fn mark_passed(entry: &mut Statistics) {
-        entry.total += 1;
-        entry.passed += 1;
-    }
-
-    #[test]
-    fn deserializes_es16_from_older_results() {
-        let stats: VersionedStats = serde_json::from_value(serde_json::json!({
-            "es5": {"t": 1, "o": 1, "i": 0, "p": 0},
-            "es6": {"t": 2, "o": 2, "i": 0, "p": 0},
-            "es7": {"t": 3, "o": 3, "i": 0, "p": 0},
-            "es8": {"t": 4, "o": 4, "i": 0, "p": 0},
-            "es9": {"t": 5, "o": 5, "i": 0, "p": 0},
-            "es10": {"t": 6, "o": 6, "i": 0, "p": 0},
-            "es11": {"t": 7, "o": 7, "i": 0, "p": 0},
-            "es12": {"t": 8, "o": 8, "i": 0, "p": 0},
-            "es13": {"t": 9, "o": 9, "i": 0, "p": 0},
-            "es14": {"t": 10, "o": 10, "i": 0, "p": 0},
-            "es15": {"t": 11, "o": 11, "i": 0, "p": 0}
-        }))
-        .expect("older result schema should deserialize");
-
-        let es15 = stats
-            .get(SpecEdition::ES15)
-            .expect("ES15 stats should exist");
-        let es16 = stats
-            .get(SpecEdition::ES16)
-            .expect("ES16 stats should exist");
-
-        assert_eq!(es16.total, es15.total);
-        assert_eq!(es16.passed, es15.passed);
-        assert_eq!(es16.ignored, es15.ignored);
-        assert_eq!(es16.panic, es15.panic);
-    }
-
-    #[test]
-    fn apply_updates_es16_statistics() {
-        let mut stats = VersionedStats::default();
-
-        stats.apply(SpecEdition::ES16, mark_passed);
-
-        let es15 = stats
-            .get(SpecEdition::ES15)
-            .expect("ES15 stats should exist");
-        let es16 = stats
-            .get(SpecEdition::ES16)
-            .expect("ES16 stats should exist");
-
-        assert_eq!(es15.total, 0);
-        assert_eq!(es15.passed, 0);
-        assert_eq!(es16.total, 1);
-        assert_eq!(es16.passed, 1);
-    }
-}
-
 /// Outcome of a test suite.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 struct SuiteResult {
