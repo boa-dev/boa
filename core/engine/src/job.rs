@@ -145,13 +145,24 @@ impl Debug for CancellationToken {
 }
 
 impl CancellationToken {
-    /// Creates a new `CancellationToken`.
+    /// Creates a new cancellation token.
     pub(crate) fn new() -> Self {
         Self(Rc::new(Cell::new(Some(Box::new(|| {})))))
     }
 
-    /// Sets a callback to run when the `CancellationToken` gets used.
+    /// Sets a callback to run when the cancellation token gets used.
+    ///
+    /// On debug builds, this will panic if the cancellation token was already
+    /// used.
     pub(crate) fn set_callback(&self, f: impl FnOnce() + 'static) {
+        #[cfg(debug_assertions)]
+        {
+            let callback = self.0.take();
+            assert!(
+                callback.is_some(),
+                "setting a callback on an already used cancellation token"
+            );
+        }
         self.0.set(Some(Box::new(f)));
     }
 
@@ -162,7 +173,7 @@ impl CancellationToken {
         }
     }
 
-    /// Returns `true` if this `CancellationToken` was used.
+    /// Returns `true` if this cancellation token was used.
     pub(crate) fn cancelled(&self) -> bool {
         let flag = self.0.take();
         let is_set = flag.is_none();
