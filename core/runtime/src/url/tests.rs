@@ -116,6 +116,17 @@ fn url_static_methods() {
                 assert(URL.canParse("http://example.org/new/path?new-query#new-fragment", "about:blank"));
             "##,
         ),
+        TestAction::run(
+            r##"
+                const parsed = URL.parse("https://example.org/?a=1");
+                assert(parsed instanceof URL);
+                assert_eq(parsed.searchParams.get("a"), "1");
+
+                parsed.searchParams.append("b", "2");
+                assert_eq(parsed.href, "https://example.org/?a=1&b=2");
+                assert_eq(URL.parse("http//:example.org/"), null);
+            "##,
+        ),
     ]);
 }
 
@@ -257,6 +268,57 @@ fn url_search_params_is_live_and_cached() {
 }
 
 #[test]
+fn url_search_params_iterators() {
+    run_test_actions([
+        TestAction::run(TEST_HARNESS),
+        TestAction::run(
+            r##"
+                const params = new URLSearchParams([["a", "1"], ["b", "2"]]);
+                const entries = params.entries();
+
+                assert(entries[Symbol.iterator]() === entries, "iterator should return itself");
+                assert_eq(Object.prototype.toString.call(entries), "[object URLSearchParams Iterator]");
+
+                assert_eq(entries.next().value.join("="), "a=1");
+                assert_eq(entries.next().value.join("="), "b=2");
+
+                const done = entries.next();
+                assert(done.done);
+                assert_eq(done.value, undefined);
+
+                const doneAgain = entries.next();
+                assert(doneAgain.done);
+                assert_eq(doneAgain.value, undefined);
+
+                assert_eq([...params.keys()].join(","), "a,b");
+                assert_eq([...params.values()].join(","), "1,2");
+            "##,
+        ),
+        TestAction::run(
+            r##"
+                const next = new URLSearchParams("a=1").entries().next;
+
+                let primitiveThisThrew = false;
+                try {
+                    next.call(1);
+                } catch (e) {
+                    primitiveThisThrew = e instanceof TypeError;
+                }
+                assert(primitiveThisThrew, "calling iterator next with primitive this must throw");
+
+                let wrongObjectThrew = false;
+                try {
+                    next.call({});
+                } catch (e) {
+                    wrongObjectThrew = e instanceof TypeError;
+                }
+                assert(wrongObjectThrew, "calling iterator next with a plain object must throw");
+            "##,
+        ),
+    ]);
+}
+
+#[test]
 fn url_search_params_optional_value_argument() {
     run_test_actions([
         TestAction::run(TEST_HARNESS),
@@ -293,6 +355,12 @@ fn url_search_params_optional_value_argument() {
 fn url_search_params_constructor_errors() {
     run_test_actions([
         TestAction::run(TEST_HARNESS),
+        TestAction::run(
+            r##"
+                assert_eq(new URLSearchParams().toString(), "");
+                assert_eq(new URLSearchParams(null).toString(), "");
+            "##,
+        ),
         TestAction::run(
             r##"
                 var threw = false;
@@ -336,6 +404,169 @@ fn url_search_params_constructor_errors() {
                     threw = e instanceof TypeError;
                 }
                 assert(threw, "enumerable symbol keys must throw during record conversion");
+            "##,
+        ),
+        TestAction::run(
+            r##"
+                var cleanup = [];
+                var threw = false;
+
+                try {
+                    new URLSearchParams({
+                        [Symbol.iterator]() {
+                            return {
+                                next() {
+                                    return { value: 1, done: false };
+                                },
+                                return() {
+                                    cleanup.push("outer");
+                                    return {};
+                                },
+                            };
+                        },
+                    });
+                } catch (e) {
+                    threw = e instanceof TypeError;
+                }
+
+                assert(threw, "non-object sequence items must throw");
+                assert_eq(cleanup.join(","), "outer");
+            "##,
+        ),
+        TestAction::run(
+            r##"
+                var cleanup = [];
+                var threw = false;
+
+                try {
+                    new URLSearchParams({
+                        [Symbol.iterator]() {
+                            return {
+                                next() {
+                                    return {
+                                        value: {
+                                            [Symbol.iterator]() {
+                                                let step = 0;
+                                                return {
+                                                    next() {
+                                                        step += 1;
+                                                        if (step === 1) {
+                                                            return { value: "a", done: false };
+                                                        }
+                                                        if (step === 2) {
+                                                            return {
+                                                                value: {
+                                                                    toString() {
+                                                                        throw new Error("boom");
+                                                                    },
+                                                                },
+                                                                done: false,
+                                                            };
+                                                        }
+                                                        return { done: true };
+                                                    },
+                                                    return() {
+                                                        cleanup.push("pair");
+                                                        return {};
+                                                    },
+                                                };
+                                            },
+                                        },
+                                        done: false,
+                                    };
+                                },
+                                return() {
+                                    cleanup.push("outer");
+                                    return {};
+                                },
+                            };
+                        },
+                    });
+                } catch (e) {
+                    threw = e instanceof Error && e.message === "boom";
+                }
+
+                assert(threw, "errors from pair value coercion must propagate");
+                assert_eq(cleanup.join(","), "pair,outer");
+            "##,
+        ),
+        TestAction::run(
+            r##"
+                var threw = false;
+
+                try {
+                    new URLSearchParams({
+                        [Symbol.iterator]() {
+                            return 1;
+                        },
+                    });
+                } catch (e) {
+                    threw = e instanceof TypeError;
+                }
+
+                assert(threw, "iterator methods must return an object");
+            "##,
+        ),
+        TestAction::run(
+            r##"
+                var threw = false;
+
+                try {
+                    new URLSearchParams({
+                        [Symbol.iterator]() {
+                            return { next: 1 };
+                        },
+                    });
+                } catch (e) {
+                    threw = e instanceof TypeError;
+                }
+
+                assert(threw, "iterator next must be callable");
+            "##,
+        ),
+        TestAction::run(
+            r##"
+                var threw = false;
+
+                try {
+                    new URLSearchParams({
+                        [Symbol.iterator]() {
+                            return {
+                                next() {
+                                    return 1;
+                                },
+                            };
+                        },
+                    });
+                } catch (e) {
+                    threw = e instanceof TypeError;
+                }
+
+                assert(threw, "iterator next result must be an object");
+            "##,
+        ),
+        TestAction::run(
+            r##"
+                var threw = false;
+
+                try {
+                    new URLSearchParams({
+                        [Symbol.iterator]() {
+                            return {
+                                next() {
+                                    return { value: 1, done: false };
+                                },
+                                return() {
+                                    return 1;
+                                },
+                            };
+                        },
+                    });
+                } catch (e) {
+                    threw = e instanceof TypeError;
+                }
+
+                assert(threw, "iterator return must produce an object");
             "##,
         ),
     ]);
