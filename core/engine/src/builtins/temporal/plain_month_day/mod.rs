@@ -627,3 +627,6 @@ fn to_temporal_month_day(
     // 16. Return ! CreateTemporalMonthDay(isoDate, calendar).
     Ok(InnerMonthDay::from_parsed(parse_record)?)
 }
+
+#[cfg(test)]
+mod tests;
