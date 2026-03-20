@@ -242,6 +242,13 @@ impl BuiltInConstructor for DateTimeFormat {
 }
 
 impl DateTimeFormat {
+    #[inline]
+    #[must_use]
+    pub(crate) fn calendar_algorithm(&self) -> CalendarAlgorithm {
+        self.calendar_algorithm
+            .unwrap_or(CalendarAlgorithm::Iso8601)
+    }
+
     fn get_format(this: &JsValue, _: &[JsValue], context: &mut Context) -> JsResult<JsValue> {
         // 1. Let dtf be the this value.
         // 2. If the implementation supports the normative optional constructor mode of 4.3 Note 1, then

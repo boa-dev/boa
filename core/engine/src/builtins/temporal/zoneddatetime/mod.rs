@@ -12,7 +12,7 @@ use crate::{
         temporal::{calendar::to_temporal_calendar_identifier, options::get_digits_option},
     },
     context::intrinsics::{Intrinsics, StandardConstructor, StandardConstructors},
-    js_string,
+    js_error, js_string,
     object::internal_methods::get_prototype_from_constructor,
     property::Attribute,
     realm::Realm,
@@ -1641,6 +1641,15 @@ impl ZonedDateTime {
                 FormatDefaults::All,
                 context,
             )?;
+
+            let cal_1 = zdt.inner.calendar();
+            let cal_2 = dtf.calendar_algorithm();
+
+            if !cal_1.is_iso() && cal_1.identifier() != cal_2.as_str() {
+                return Err(
+                    js_error!(RangeError: "calendars {} and {} aren't compatible", cal_1.identifier(), cal_2.as_str()),
+                );
+            }
 
             Ok(JsString::from(String::new()).into())
         }
