@@ -25,6 +25,7 @@ use crate::{
 use boa_gc::{Finalize, Trace};
 
 use super::{
+    IteratorRecord,
     if_abrupt_close_iterator,
     iterator_helper::{IteratorHelper, IteratorHelperOp},
     wrap_for_valid_iterator::WrapForValidIterator,
@@ -68,6 +69,7 @@ impl IntrinsicObject for IteratorConstructor {
             ))
             // Static methods
             .static_method(Self::from, js_string!("from"), 1)
+            .static_method(Self::concat, js_string!("concat"), 0)
             // Prototype methods — lazy (return IteratorHelper)
             .method(Self::map, js_string!("map"), 1)
             .method(Self::filter, js_string!("filter"), 1)
@@ -104,7 +106,7 @@ impl BuiltInObject for IteratorConstructor {
 
 impl BuiltInConstructor for IteratorConstructor {
     const PROTOTYPE_STORAGE_SLOTS: usize = 14; // 11 methods + @@toStringTag accessor (2 slots) + constructor accessor (2 slots)
-    const CONSTRUCTOR_STORAGE_SLOTS: usize = 1; // Iterator.from
+    const CONSTRUCTOR_STORAGE_SLOTS: usize = 2;
     const CONSTRUCTOR_ARGUMENTS: usize = 0;
     const STANDARD_CONSTRUCTOR: fn(&StandardConstructors) -> &StandardConstructor =
         StandardConstructors::iterator;
@@ -200,6 +202,42 @@ impl IteratorConstructor {
         );
 
         Ok(wrapper.into())
+    }
+
+    fn concat(_this: &JsValue, args: &[JsValue], context: &mut Context) -> JsResult<JsValue> {
+        let mut iterables = Vec::with_capacity(args.len());
+
+        for item in args {
+            if !item.is_object() {
+                return Err(JsNativeError::typ()
+                    .with_message("Iterator.concat requires iterable objects")
+                    .into());
+            }
+
+            let method = item
+                .get_method(JsSymbol::iterator(), context)?
+                .ok_or_else(|| {
+                    JsNativeError::typ()
+                        .with_message("Iterator.concat requires objects with @@iterator")
+                })?;
+
+            iterables.push((method, item.clone()));
+        }
+
+        let dummy_iterator =
+            IteratorRecord::new(JsObject::with_null_proto(), JsValue::undefined());
+
+        let helper = IteratorHelper::create(
+            dummy_iterator,
+            IteratorHelperOp::Concat {
+                iterables,
+                current_index: 0,
+                inner: None,
+            },
+            context,
+        );
+
+        Ok(helper.into())
     }
 
     // ==================== Prototype Accessor Properties ====================
