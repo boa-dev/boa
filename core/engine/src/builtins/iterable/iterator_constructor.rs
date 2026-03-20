@@ -25,8 +25,7 @@ use crate::{
 use boa_gc::{Finalize, Trace};
 
 use super::{
-    IteratorRecord,
-    if_abrupt_close_iterator,
+    IteratorRecord, if_abrupt_close_iterator,
     iterator_helper::{IteratorHelper, IteratorHelperOp},
     wrap_for_valid_iterator::WrapForValidIterator,
 };
@@ -224,8 +223,7 @@ impl IteratorConstructor {
             iterables.push((method, item.clone()));
         }
 
-        let dummy_iterator =
-            IteratorRecord::new(JsObject::with_null_proto(), JsValue::undefined());
+        let dummy_iterator = IteratorRecord::new(JsObject::with_null_proto(), JsValue::undefined());
 
         let helper = IteratorHelper::create(
             dummy_iterator,

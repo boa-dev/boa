@@ -396,10 +396,7 @@ impl IteratorHelper {
                         let inner_iter = inner.as_mut().expect("checked above");
                         let inner_value = inner_iter.step_value(context)?;
                         if let Some(val) = inner_value {
-                            return Ok((
-                                create_iter_result_object(val, false, context),
-                                false,
-                            ));
+                            return Ok((create_iter_result_object(val, false, context), false));
                         }
                         drop(helper);
                         let mut helper = object
