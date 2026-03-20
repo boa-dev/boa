@@ -136,6 +136,13 @@ impl TextDecoder {
                 return Err(js_error!(TypeError: "Invalid buffer backing DataView."));
             };
 
+            let offset = usize::try_from(data_view.byte_offset(context)?)
+                .map_err(|_| js_error!(RangeError: "DataView offset exceeds addressable size."))?;
+            let length = usize::try_from(data_view.byte_length(context)?)
+                .map_err(|_| js_error!(RangeError: "DataView length exceeds addressable size."))?;
+
+            range = Some(offset..offset + length);
+
             JsArrayBuffer::from_object(obj)?
         } else {
             return Err(js_error!(
