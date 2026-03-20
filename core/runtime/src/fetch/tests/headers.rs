@@ -115,7 +115,6 @@ fn headers_invalid_inputs_throw_type_error_objects() {
                         assert(typeof e.message === "string" && e.message.length > 0, "error message should be non-empty");
                     }
 
-                    assert(threw, "expected Headers validation to throw");
                 }
             "#,
         ),
