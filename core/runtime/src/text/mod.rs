@@ -134,6 +134,8 @@ impl TextDecoder {
     /// The [`TextDecoder.decode()`][mdn] method returns a string containing text decoded from the
     /// buffer passed as a parameter.
     ///
+    /// If `buffer` is omitted or `undefined`, this returns an empty string.
+    ///
     /// `buffer` can be an `ArrayBuffer`, a `TypedArray` or a `DataView`.
     ///
     /// # Errors

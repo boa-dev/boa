@@ -104,13 +104,19 @@ fn decoder_js_without_input() {
             TestAction::run(indoc! {r#"
                 const d = new TextDecoder();
                 decoded = d.decode();
+                decodedUndefined = d.decode(undefined);
             "#}),
             TestAction::inspect_context(|context| {
                 let decoded = context
                     .global_object()
                     .get(js_str!("decoded"), context)
                     .unwrap();
+                let decoded_undefined = context
+                    .global_object()
+                    .get(js_str!("decodedUndefined"), context)
+                    .unwrap();
                 assert_eq!(decoded.as_string(), Some(js_string!("")));
+                assert_eq!(decoded_undefined.as_string(), Some(js_string!("")));
             }),
         ],
         context,
