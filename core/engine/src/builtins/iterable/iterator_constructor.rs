@@ -204,15 +204,20 @@ impl IteratorConstructor {
     }
 
     fn concat(_this: &JsValue, args: &[JsValue], context: &mut Context) -> JsResult<JsValue> {
+        // 1. Let iterables be a new empty List.
         let mut iterables = Vec::with_capacity(args.len());
 
+        // 2. For each element item of items, do
         for item in args {
+            // a. If item is not an Object, throw a TypeError exception.
             if !item.is_object() {
                 return Err(JsNativeError::typ()
                     .with_message("Iterator.concat requires iterable objects")
                     .into());
             }
 
+            // b. Let method be ? GetMethod(item, %Symbol.iterator%).
+            // c. If method is undefined, throw a TypeError exception.
             let method = item
                 .get_method(JsSymbol::iterator(), context)?
                 .ok_or_else(|| {
@@ -220,9 +225,15 @@ impl IteratorConstructor {
                         .with_message("Iterator.concat requires objects with @@iterator")
                 })?;
 
+            // d. Append the Record { [[OpenMethod]]: method, [[Iterable]]: item } to iterables.
             iterables.push((method, item.clone()));
         }
 
+        // 3. Let closure be a new Abstract Closure with no parameters that captures iterables
+        //    and performs the following steps when called:
+        //    (implemented via IteratorHelperOp::Concat in execute_next)
+        // 4-5. Let result be CreateIteratorFromClosure(closure, "Iterator Helper", ...)
+        //      with [[UnderlyingIterators]] set to a new empty List.
         let helper = IteratorHelper::create(
             vec![],
             IteratorHelperOp::Concat {
@@ -233,6 +244,7 @@ impl IteratorConstructor {
             context,
         );
 
+        // 6. Return result.
         Ok(helper.into())
     }
 

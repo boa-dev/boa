@@ -362,7 +362,8 @@ impl IteratorHelper {
             }
         }
 
-        // Concat arm
+        // Concat arm — Iterator.concat closure steps:
+        // https://tc39.es/ecma262/#sec-iterator.concat
         {
             let is_concat = {
                 let helper = object
@@ -391,11 +392,14 @@ impl IteratorHelper {
                             unreachable!()
                         };
                         let inner_iter = inner.as_mut().expect("checked above");
+                        // 3.b.v. Let innerValue be ? IteratorStepValue(iteratorRecord).
                         let inner_value = inner_iter.step_value(context)?;
                         if let Some(val) = inner_value {
+                            // 3.b.v.2. Let completion be Completion(Yield(innerValue)).
                             return Ok((create_iter_result_object(val, false, context), false));
                         }
                         drop(helper);
+                        // 3.b.v.1. If innerValue is done, then set innerAlive to false.
                         let mut helper = object
                             .downcast_mut::<Self>()
                             .expect("object type already verified");
@@ -434,6 +438,7 @@ impl IteratorHelper {
                         }
                     };
 
+                    // 3.a. If current_index >= iterables.len(), return undefined, done.
                     let Some((open_method, iterable)) = iterable_data else {
                         return Ok((
                             create_iter_result_object(JsValue::undefined(), true, context),
@@ -441,13 +446,17 @@ impl IteratorHelper {
                         ));
                     };
 
+                    // 3.b.i. Let iter be ? Call(iterable.[[OpenMethod]], iterable.[[Iterable]]).
                     let iter = open_method.call(&iterable, &[], context)?;
+                    // 3.b.ii. If iter is not an Object, throw a TypeError exception.
                     let iter_obj = iter.as_object().ok_or_else(|| {
                         JsNativeError::typ()
                             .with_message("Iterator.concat: iterator is not an object")
                     })?;
+                    // 3.b.iii. Let iteratorRecord be ? GetIteratorDirect(iter).
                     let iterator_record = super::get_iterator_direct(&iter_obj, context)?;
 
+                    // Append iteratorRecord to O.[[UnderlyingIterators]].
                     let mut helper = object
                         .downcast_mut::<Self>()
                         .expect("object type already verified");
@@ -596,20 +605,26 @@ impl IteratorHelper {
 
         match helper.state {
             // 4. If O.[[GeneratorState]] is suspended-start, then
+            // 5. If O.[[GeneratorState]] is suspended-yield, then
             IteratorHelperState::SuspendedStart
             | IteratorHelperState::SuspendedYield
             | IteratorHelperState::Executing => {
+                // a. Set O.[[GeneratorState]] to completed.
                 helper.state = IteratorHelperState::Completed;
+                // b. Let iters be O.[[UnderlyingIterators]].
                 let iterators: Vec<IteratorRecord> =
                     helper.underlying_iterators.drain(..).collect();
                 drop(helper);
 
-                // IteratorCloseAll (§7.4.12): close in reverse order,
-                // last error wins.
+                // c. Return ? IteratorCloseAll(iters, NormalCompletion(undefined)).
+                //
+                // IteratorCloseAll (§7.4.12):
+                // 1. For each element iter of iters, in reverse List order, do
+                //    a. Set completion to Completion(IteratorClose(iter, completion)).
+                // 2. Return ? completion.
                 let mut completion: JsResult<JsValue> = Ok(JsValue::undefined());
                 for iter in iterators.iter().rev() {
-                    let result = iter.close(completion.clone(), context);
-                    completion = result;
+                    completion = iter.close(completion.clone(), context);
                 }
                 completion?;
                 Ok(create_iter_result_object(
