@@ -442,14 +442,6 @@ pub(super) fn make_date(day: f64, time: f64) -> f64 {
     tv
 }
 
-#[cfg(feature = "intl")]
-pub(crate) fn timestamp_for_first_of_month_utc(year: i32, month: u8) -> f64 {
-    debug_assert!((1..=12).contains(&month));
-    let day = make_day(f64::from(year), f64::from(month - 1), 1.0);
-    let time = make_time(0.0, 0.0, 0.0, 0.0);
-    time_clip(make_date(day, time))
-}
-
 /// Abstract operation `MakeFullYear ( year )`
 ///
 /// More info:

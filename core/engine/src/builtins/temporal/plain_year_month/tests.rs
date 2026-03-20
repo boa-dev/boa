@@ -40,3 +40,22 @@ fn to_locale_string_options_affect_output() {
         ),
     ]);
 }
+
+#[cfg(feature = "intl")]
+#[test]
+fn to_locale_string_ignores_time_zone_for_plain_values() {
+    run_test_actions([TestAction::assert(
+        "Temporal.PlainYearMonth.from('2024-03').toLocaleString('en-US', { timeZone: 'America/New_York' }) === \
+         Temporal.PlainYearMonth.from('2024-03').toLocaleString('en-US', { timeZone: '+00:00' })",
+    )]);
+}
+
+#[cfg(feature = "intl")]
+#[test]
+fn to_locale_string_incompatible_calendar_throws() {
+    run_test_actions([TestAction::assert_native_error(
+        "Temporal.PlainYearMonth.from('2024-03').toLocaleString('en-US', { calendar: 'japanese' })",
+        JsNativeErrorKind::Range,
+        "Temporal.PlainYearMonth calendar must match Intl.DateTimeFormat calendar.",
+    )]);
+}
