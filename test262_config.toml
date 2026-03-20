@@ -7,7 +7,6 @@ flags = []
 features = [
     ### Unimplemented features:
 
-    "FinalizationRegistry",
     "symbols-as-weakmap-keys",
     "Intl.DisplayNames",
     "Intl.RelativeTimeFormat",
