@@ -625,13 +625,10 @@ impl Json {
         args: &[JsValue],
         context: &mut Context,
     ) -> JsResult<JsValue> {
-        // 1. Let stack be a new empty List.
-        let stack = Vec::new();
-
-        // 2. Let indent be the empty String.
+        // 1. Let indent be the empty String.
         let indent = js_string!();
 
-        // 3. Let PropertyList and ReplacerFunction be undefined.
+        // 2. Let PropertyList and ReplacerFunction be undefined.
         let mut property_list = None;
         let mut replacer_function = None;
 
@@ -749,7 +746,6 @@ impl Json {
         // 11. Let state be the Record { [[ReplacerFunction]]: ReplacerFunction, [[Stack]]: stack, [[Indent]]: indent, [[Gap]]: gap, [[PropertyList]]: PropertyList }.
         let mut state = StateRecord {
             replacer_function,
-            stack,
             stack_set: FxHashSet::default(),
             indent,
             gap,
@@ -968,139 +964,151 @@ impl Json {
         context: &mut Context,
     ) -> JsResult<JsString> {
         // 1. If state.[[Stack]] contains value, throw a TypeError exception because the structure is cyclical.
-        if state.stack_set.contains(value) {
+        if !state.stack_set.insert(value.clone()) {
             return Err(JsNativeError::typ()
                 .with_message("cyclic object value")
                 .into());
         }
 
-        // 2. Append value to state.[[Stack]].
-        state.stack.push(value.clone());
-        state.stack_set.insert(value.clone());
+        // 3. Let stepback be state.[[Indent]].
+        let stepback = state.indent.clone();
 
-        // Use a closure to ensure we always pop the stack and remove from the set, even on early returns (Err).
-        let mut inner = || -> JsResult<JsString> {
-            // 3. Let stepback be state.[[Indent]].
-            let stepback = state.indent.clone();
+        // 4. Set state.[[Indent]] to the string-concatenation of state.[[Indent]] and state.[[Gap]].
+        state.indent = js_string!(&state.indent, &state.gap);
 
-            // 4. Set state.[[Indent]] to the string-concatenation of state.[[Indent]] and state.[[Gap]].
-            state.indent = js_string!(&state.indent, &state.gap);
-
-            // 5. If state.[[PropertyList]] is not undefined, then
-            let k = if let Some(p) = &state.property_list {
-                // a. Let K be state.[[PropertyList]].
-                p.clone()
-            // 6. Else,
-            } else {
-                // a. Let K be ? EnumerableOwnPropertyNames(value, key).
-                let keys = value.enumerable_own_property_names(PropertyNameKind::Key, context)?;
-                // Unwrap is safe, because EnumerableOwnPropertyNames with kind "key" only returns string values.
-                keys.iter()
-                    .map(|v| {
-                        v.to_string(context)
-                            .js_expect("EnumerableOwnPropertyNames only returns strings")
-                    })
-                    .collect::<Result<Vec<_>, _>>()?
+        // 5. If state.[[PropertyList]] is not undefined, then
+        let k = if let Some(p) = &state.property_list {
+            // a. Let K be state.[[PropertyList]].
+            p.clone()
+        // 6. Else,
+        } else {
+            // a. Let K be ? EnumerableOwnPropertyNames(value, key).
+            let keys = value.enumerable_own_property_names(PropertyNameKind::Key, context);
+            // 11. Remove value from state.[[Stack]] on error.
+            let keys = match keys {
+                Ok(k) => k,
+                Err(e) => {
+                    let removed = state.stack_set.remove(value);
+                    debug_assert!(removed);
+                    return Err(e);
+                }
             };
-
-            // 7. Let partial be a new empty List.
-            let mut partial = Vec::with_capacity(k.len());
-
-            // 8. For each element P of K, do
-            for p in &k {
-                // a. Let strP be ? SerializeJSONProperty(state, P, value).
-                let str_p = Self::serialize_json_property(state, p.clone(), value, context)?;
-
-                // b. If strP is not undefined, then
-                if let Some(str_p) = str_p {
-                    // i. Let member be QuoteJSONString(P).
-                    let mut member = Self::quote_json_string(p).iter().collect::<Vec<_>>();
-
-                    // ii. Set member to the string-concatenation of member and ":".
-                    member.push(':' as u16);
-
-                    // iii. If state.[[Gap]] is not the empty String, then
-                    if !state.gap.is_empty() {
-                        // 1. Set member to the string-concatenation of member and the code unit 0x0020 (SPACE).
-                        member.push(' ' as u16);
-                    }
-
-                    // iv. Set member to the string-concatenation of member and strP.
-                    member.extend(str_p.iter());
-
-                    // v. Append member to partial.
-                    partial.push(member);
+            // Unwrap is safe, because EnumerableOwnPropertyNames with kind "key" only returns string values.
+            match keys
+                .iter()
+                .map(|v| {
+                    v.to_string(context)
+                        .js_expect("EnumerableOwnPropertyNames only returns strings")
+                })
+                .collect::<Result<Vec<_>, _>>()
+            {
+                Ok(k) => k,
+                Err(e) => {
+                    let removed = state.stack_set.remove(value);
+                    debug_assert!(removed);
+                    return Err(e.into());
                 }
             }
+        };
 
-            // 9. If partial is empty, then
-            let r#final = if partial.is_empty() {
-                // a. Let final be "{}".
-                js_string!("{}")
-            // 10. Else,
-            } else {
-                // a. If state.[[Gap]] is the empty String, then
-                if state.gap.is_empty() {
-                    // i. Let properties be the String value formed by concatenating all the element Strings of partial
-                    //    with each adjacent pair of Strings separated with the code unit 0x002C (COMMA).
-                    //    A comma is not inserted either before the first String or after the last String.
-                    // ii. Let final be the string-concatenation of "{", properties, and "}".
-                    let separator = utf16!(",");
-                    let result = once(utf16!("{"))
-                        .chain(Itertools::intersperse(
-                            partial.iter().map(Vec::as_slice),
-                            separator,
-                        ))
-                        .chain(once(utf16!("}")))
-                        .flatten()
-                        .copied()
-                        .collect::<Vec<_>>();
-                    js_string!(&result[..])
-                // b. Else,
-                } else {
-                    // i. Let separator be the string-concatenation of the code unit 0x002C (COMMA),
-                    //    the code unit 0x000A (LINE FEED), and state.[[Indent]].
-                    let mut separator = utf16!(",\n").to_vec();
-                    separator.extend(state.indent.iter());
-                    // ii. Let properties be the String value formed by concatenating all the element Strings of partial
-                    //     with each adjacent pair of Strings separated with separator.
-                    //     The separator String is not inserted either before the first String or after the last String.
-                    // iii. Let final be the string-concatenation of "{", the code
-                    //      unit 0x000A (LINE FEED), state.[[Indent]], properties,
-                    //      the code unit 0x000A (LINE FEED), stepback, and "}".
-                    let indent_vec = state.indent.to_vec();
-                    let stepback_vec = stepback.to_vec();
-                    let result = [utf16!("{\n"), &indent_vec[..]]
-                        .into_iter()
-                        .chain(Itertools::intersperse(
-                            partial.iter().map(Vec::as_slice),
-                            &separator,
-                        ))
-                        .chain([utf16!("\n"), &stepback_vec[..], utf16!("}")])
-                        .flatten()
-                        .copied()
-                        .collect::<Vec<_>>();
-                    js_string!(&result[..])
+        // 7. Let partial be a new empty List.
+        let mut partial = Vec::with_capacity(k.len());
+
+        // 8. For each element P of K, do
+        for p in &k {
+            // a. Let strP be ? SerializeJSONProperty(state, P, value).
+            let str_p = Self::serialize_json_property(state, p.clone(), value, context);
+            let str_p = match str_p {
+                Ok(v) => v,
+                Err(e) => {
+                    let removed = state.stack_set.remove(value);
+                    debug_assert!(removed);
+                    return Err(e);
                 }
             };
 
-            // 12. Set state.[[Indent]] to stepback.
-            state.indent = stepback;
+            // b. If strP is not undefined, then
+            if let Some(str_p) = str_p {
+                // i. Let member be QuoteJSONString(P).
+                let mut member = Self::quote_json_string(p).iter().collect::<Vec<_>>();
 
-            // 13. Return final.
-            Ok(r#final)
+                // ii. Set member to the string-concatenation of member and ":".
+                member.push(':' as u16);
+
+                // iii. If state.[[Gap]] is not the empty String, then
+                if !state.gap.is_empty() {
+                    // 1. Set member to the string-concatenation of member and the code unit 0x0020 (SPACE).
+                    member.push(' ' as u16);
+                }
+
+                // iv. Set member to the string-concatenation of member and strP.
+                member.extend(str_p.iter());
+
+                // v. Append member to partial.
+                partial.push(member);
+            }
+        }
+
+        // 9. If partial is empty, then
+        let r#final = if partial.is_empty() {
+            // a. Let final be "{}".
+            js_string!("{}")
+        // 10. Else,
+        } else {
+            // a. If state.[[Gap]] is the empty String, then
+            if state.gap.is_empty() {
+                // i. Let properties be the String value formed by concatenating all the element Strings of partial
+                //    with each adjacent pair of Strings separated with the code unit 0x002C (COMMA).
+                //    A comma is not inserted either before the first String or after the last String.
+                // ii. Let final be the string-concatenation of "{", properties, and "}".
+                let separator = utf16!(",");
+                let result = once(utf16!("{"))
+                    .chain(Itertools::intersperse(
+                        partial.iter().map(Vec::as_slice),
+                        separator,
+                    ))
+                    .chain(once(utf16!("}")))
+                    .flatten()
+                    .copied()
+                    .collect::<Vec<_>>();
+                js_string!(&result[..])
+            // b. Else,
+            } else {
+                // i. Let separator be the string-concatenation of the code unit 0x002C (COMMA),
+                //    the code unit 0x000A (LINE FEED), and state.[[Indent]].
+                let mut separator = utf16!(",\n").to_vec();
+                separator.extend(state.indent.iter());
+                // ii. Let properties be the String value formed by concatenating all the element Strings of partial
+                //     with each adjacent pair of Strings separated with separator.
+                //     The separator String is not inserted either before the first String or after the last String.
+                // iii. Let final be the string-concatenation of "{", the code
+                //      unit 0x000A (LINE FEED), state.[[Indent]], properties,
+                //      the code unit 0x000A (LINE FEED), stepback, and "}".
+                let indent_vec = state.indent.to_vec();
+                let stepback_vec = stepback.to_vec();
+                let result = [utf16!("{\n"), &indent_vec[..]]
+                    .into_iter()
+                    .chain(Itertools::intersperse(
+                        partial.iter().map(Vec::as_slice),
+                        &separator,
+                    ))
+                    .chain([utf16!("\n"), &stepback_vec[..], utf16!("}")])
+                    .flatten()
+                    .copied()
+                    .collect::<Vec<_>>();
+                js_string!(&result[..])
+            }
         };
 
-        let result = inner();
+        // 12. Set state.[[Indent]] to stepback.
+        state.indent = stepback;
 
-        // 11. Remove the last element of state.[[Stack]].
-        let popped = state
-            .stack
-            .pop()
-            .expect("json stringify stack should not be empty");
-        state.stack_set.remove(&popped);
+        // 11. Remove value from state.[[Stack]].
+        let removed = state.stack_set.remove(value);
+        debug_assert!(removed);
 
-        result
+        // 13. Return final.
+        Ok(r#final)
     }
 
     /// `25.5.2.5 SerializeJSONArray ( state, value )`
@@ -1115,123 +1123,124 @@ impl Json {
         context: &mut Context,
     ) -> JsResult<JsString> {
         // 1. If state.[[Stack]] contains value, throw a TypeError exception because the structure is cyclical.
-        if state.stack_set.contains(value) {
+        if !state.stack_set.insert(value.clone()) {
             return Err(JsNativeError::typ()
                 .with_message("cyclic object value")
                 .into());
         }
 
-        // 2. Append value to state.[[Stack]].
-        state.stack.push(value.clone());
-        state.stack_set.insert(value.clone());
+        // 3. Let stepback be state.[[Indent]].
+        let stepback = state.indent.clone();
 
-        let mut inner = || -> JsResult<JsString> {
-            // 3. Let stepback be state.[[Indent]].
-            let stepback = state.indent.clone();
+        // 4. Set state.[[Indent]] to the string-concatenation of state.[[Indent]] and state.[[Gap]].
+        state.indent = js_string!(&state.indent, &state.gap);
 
-            // 4. Set state.[[Indent]] to the string-concatenation of state.[[Indent]] and state.[[Gap]].
-            state.indent = js_string!(&state.indent, &state.gap);
-
-            // 6. Let len be ? LengthOfArrayLike(value).
-            let len = value.length_of_array_like(context)?;
-
-            // 5. Let partial be a new empty List.
-            let mut partial = Vec::with_capacity(len as usize);
-
-            // 7. Let index be 0.
-            let mut index = 0;
-
-            // 8. Repeat, while index < len,
-            while index < len {
-                // a. Let strP be ? SerializeJSONProperty(state, ! ToString(𝔽(index)), value).
-                let str_p = Self::serialize_json_property(state, index.into(), value, context)?;
-
-                // b. If strP is undefined, then
-                if let Some(str_p) = str_p {
-                    // i. Append strP to partial.
-                    partial.push(Cow::Owned(str_p.iter().collect::<_>()));
-                // c. Else,
-                } else {
-                    // i. Append "null" to partial.
-                    partial.push(Cow::Borrowed(utf16!("null")));
-                }
-
-                // d. Set index to index + 1.
-                index += 1;
+        // 6. Let len be ? LengthOfArrayLike(value).
+        let len = match value.length_of_array_like(context) {
+            Ok(n) => n,
+            Err(e) => {
+                let removed = state.stack_set.remove(value);
+                debug_assert!(removed);
+                return Err(e);
             }
+        };
 
-            // 9. If partial is empty, then
-            let r#final = if partial.is_empty() {
-                // a. Let final be "[]".
-                js_string!("[]")
-            // 10. Else,
-            } else {
-                // a. If state.[[Gap]] is the empty String, then
-                if state.gap.is_empty() {
-                    // i. Let properties be the String value formed by concatenating all the element Strings of partial
-                    //    with each adjacent pair of Strings separated with the code unit 0x002C (COMMA).
-                    //    A comma is not inserted either before the first String or after the last String.
-                    // ii. Let final be the string-concatenation of "[", properties, and "]".
-                    let separator = utf16!(",");
-                    let result = once(utf16!("["))
-                        .chain(Itertools::intersperse(
-                            partial.iter().map(Cow::as_ref),
-                            separator,
-                        ))
-                        .chain(once(utf16!("]")))
-                        .flatten()
-                        .copied()
-                        .collect::<Vec<_>>();
-                    js_string!(&result[..])
-                // b. Else,
-                } else {
-                    // i. Let separator be the string-concatenation of the code unit 0x002C (COMMA),
-                    //    the code unit 0x000A (LINE FEED), and state.[[Indent]].
-                    let mut separator = utf16!(",\n").to_vec();
-                    separator.extend(state.indent.iter());
-                    // ii. Let properties be the String value formed by concatenating all the element Strings of partial
-                    //     with each adjacent pair of Strings separated with separator.
-                    //     The separator String is not inserted either before the first String or after the last String.
-                    // iii. Let final be the string-concatenation of "[", the code unit 0x000A (LINE FEED), state.[[Indent]], properties, the code unit 0x000A (LINE FEED), stepback, and "]".
-                    let indent_vec = state.indent.to_vec();
-                    let stepback_vec = stepback.to_vec();
-                    let result = [utf16!("[\n"), &indent_vec[..]]
-                        .into_iter()
-                        .chain(Itertools::intersperse(
-                            partial.iter().map(Cow::as_ref),
-                            &separator,
-                        ))
-                        .chain([utf16!("\n"), &stepback_vec[..], utf16!("]")])
-                        .flatten()
-                        .copied()
-                        .collect::<Vec<_>>();
-                    js_string!(&result[..])
+        // 5. Let partial be a new empty List.
+        let mut partial = Vec::with_capacity(len as usize);
+
+        // 7. Let index be 0.
+        let mut index = 0;
+
+        // 8. Repeat, while index < len,
+        while index < len {
+            // a. Let strP be ? SerializeJSONProperty(state, ! ToString(𝔽(index)), value).
+            let str_p = Self::serialize_json_property(state, index.into(), value, context);
+            let str_p = match str_p {
+                Ok(v) => v,
+                Err(e) => {
+                    let removed = state.stack_set.remove(value);
+                    debug_assert!(removed);
+                    return Err(e);
                 }
             };
 
-            // 12. Set state.[[Indent]] to stepback.
-            state.indent = stepback;
+            // b. If strP is undefined, then
+            if let Some(str_p) = str_p {
+                // i. Append strP to partial.
+                partial.push(Cow::Owned(str_p.iter().collect::<_>()));
+            // c. Else,
+            } else {
+                // i. Append "null" to partial.
+                partial.push(Cow::Borrowed(utf16!("null")));
+            }
 
-            // 13. Return final.
-            Ok(r#final)
+            // d. Set index to index + 1.
+            index += 1;
+        }
+
+        // 9. If partial is empty, then
+        let r#final = if partial.is_empty() {
+            // a. Let final be "[]".
+            js_string!("[]")
+        // 10. Else,
+        } else {
+            // a. If state.[[Gap]] is the empty String, then
+            if state.gap.is_empty() {
+                // i. Let properties be the String value formed by concatenating all the element Strings of partial
+                //    with each adjacent pair of Strings separated with the code unit 0x002C (COMMA).
+                //    A comma is not inserted either before the first String or after the last String.
+                // ii. Let final be the string-concatenation of "[", properties, and "]".
+                let separator = utf16!(",");
+                let result = once(utf16!("["))
+                    .chain(Itertools::intersperse(
+                        partial.iter().map(Cow::as_ref),
+                        separator,
+                    ))
+                    .chain(once(utf16!("]")))
+                    .flatten()
+                    .copied()
+                    .collect::<Vec<_>>();
+                js_string!(&result[..])
+            // b. Else,
+            } else {
+                // i. Let separator be the string-concatenation of the code unit 0x002C (COMMA),
+                //    the code unit 0x000A (LINE FEED), and state.[[Indent]].
+                let mut separator = utf16!(",\n").to_vec();
+                separator.extend(state.indent.iter());
+                // ii. Let properties be the String value formed by concatenating all the element Strings of partial
+                //     with each adjacent pair of Strings separated with separator.
+                //     The separator String is not inserted either before the first String or after the last String.
+                // iii. Let final be the string-concatenation of "[", the code unit 0x000A (LINE FEED), state.[[Indent]], properties, the code unit 0x000A (LINE FEED), stepback, and "]".
+                let indent_vec = state.indent.to_vec();
+                let stepback_vec = stepback.to_vec();
+                let result = [utf16!("[\n"), &indent_vec[..]]
+                    .into_iter()
+                    .chain(Itertools::intersperse(
+                        partial.iter().map(Cow::as_ref),
+                        &separator,
+                    ))
+                    .chain([utf16!("\n"), &stepback_vec[..], utf16!("]")])
+                    .flatten()
+                    .copied()
+                    .collect::<Vec<_>>();
+                js_string!(&result[..])
+            }
         };
 
-        let result = inner();
+        // 12. Set state.[[Indent]] to stepback.
+        state.indent = stepback;
 
-        // 11. Remove the last element of state.[[Stack]].
-        let popped = state
-            .stack
-            .pop()
-            .expect("json stringify stack should not be empty");
-        state.stack_set.remove(&popped);
+        // 11. Remove value from state.[[Stack]].
+        let removed = state.stack_set.remove(value);
+        debug_assert!(removed);
 
-        result
+        // 13. Return final.
+        Ok(r#final)
     }
 }
 
 struct StateRecord {
     replacer_function: Option<JsObject>,
-    stack: Vec<JsObject>,
     stack_set: FxHashSet<JsObject>,
     indent: JsString,
     gap: JsString,
