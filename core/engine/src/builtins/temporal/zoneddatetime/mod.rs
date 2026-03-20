@@ -1629,6 +1629,21 @@ impl ZonedDateTime {
 
         #[cfg(feature = "intl")]
         {
+            use crate::builtins::intl::date_time_format::{
+                FormatDefaults, FormatType, create_date_time_format,
+            };
+            // 3. Let dateTimeFormat be ? CreateDateTimeFormat(%Intl.DateTimeFormat%, locales, options, any, all, zonedDateTime.[[TimeZone]]).
+            let locales = _args.get_or_undefined(0);
+            let options = _args.get_or_undefined(1);
+
+            let dtf = create_date_time_format(
+                locales,
+                options,
+                FormatType::Any,
+                FormatDefaults::All,
+                context,
+            )?;
+
             Ok(JsValue::null())
         }
 
