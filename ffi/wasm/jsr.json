@@ -1,0 +1,14 @@
+{
+  "name": "@boa-dev/boa",
+  "version": "0.1.0",
+  "license": "Apache-2.0 OR MIT",
+  "exports": "./pkg/boa_wasm.js",
+  "publish": {
+    "include": [
+      "pkg/boa_wasm.js",
+      "pkg/boa_wasm_bg.wasm",
+      "pkg/boa_wasm.d.ts",
+      "jsr.json"
+    ]
+  }
+}
