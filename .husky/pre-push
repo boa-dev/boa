@@ -1,5 +1,8 @@
 #!/bin/sh
 
+target=$(rustc -vV | awk '/^host/ { print $2 }' | tr '[:lower:]' '[:upper:]' | tr '-' '_')
+export CARGO_TARGET_${target}_RUSTFLAGS='-D warnings'
+
 if ! command -v cargo-make >/dev/null 2>&1; then
     echo "cargo-make is not installed. Install it with:"
     echo "  cargo install cargo-make"
