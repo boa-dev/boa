@@ -279,13 +279,21 @@ impl Stack {
     #[cfg(feature = "trace")]
     /// Display the stack trace of the current frame.
     fn display_trace(&self, frame: &CallFrame, frame_count: usize) -> String {
+        const MAX_VALUE_LENGTH: usize = 20;
+        const MAX_STACK_DISPLAY_WIDTH: usize = 60;
+
         let mut string = String::from("[ ");
         for (i, (j, value)) in self.stack.iter().enumerate().rev().enumerate() {
-            match value {
-                value if value.is_callable() => string.push_str("[function]"),
-                value if value.is_object() => string.push_str("[object]"),
-                value => string.push_str(&value.display().to_string()),
+            let mut value_str = match value {
+                value if value.is_callable() => "[function]".to_string(),
+                value if value.is_object() => "[object]".to_string(),
+                value => value.display().to_string(),
+            };
+            if value_str.len() > MAX_VALUE_LENGTH {
+                value_str.truncate(MAX_VALUE_LENGTH - 3);
+                value_str.push_str("...");
             }
+            string.push_str(&value_str);
 
             if frame.frame_pointer() == j {
                 let _ = write!(string, " |{frame_count}|");
@@ -294,6 +302,11 @@ impl Stack {
             }
 
             string.push(' ');
+        }
+
+        if string.len() > MAX_STACK_DISPLAY_WIDTH {
+            string.truncate(MAX_STACK_DISPLAY_WIDTH - 4);
+            string.push_str("... ");
         }
 
         string.push(']');
@@ -663,11 +676,16 @@ impl Context {
             .code_block
             .bytecode
             .next_instruction(frame.pc as usize);
-        let operands = self
+        let mut operands = self
             .vm
             .frame()
             .code_block()
             .instruction_operands(&instruction);
+
+        if operands.len() > Self::OPERAND_COLUMN_WIDTH {
+            operands.truncate(Self::OPERAND_COLUMN_WIDTH - 3);
+            operands.push_str("...");
+        }
 
         let instant = Instant::now();
         let result = self.execute_instruction(f, opcode);
