@@ -4,6 +4,9 @@ updates:
     directory: /
     schedule:
       interval: weekly
+    labels:
+      - "C-Dependencies"
+      - "C-Actions"
     groups:
       ci-dependencies:
         applies-to: version-updates
@@ -15,6 +18,8 @@ updates:
     directory: /
     schedule:
       interval: weekly
+    labels:
+      - "C-Dependencies"
     groups:
       rust-dependencies:
         applies-to: version-updates
@@ -26,6 +31,8 @@ updates:
     directory: /tests/fuzz/
     schedule:
       interval: weekly
+    labels:
+      - "C-Dependencies"
     groups:
       fuzz-dependencies:
         applies-to: version-updates
