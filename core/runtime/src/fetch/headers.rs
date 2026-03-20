@@ -25,8 +25,9 @@ pub type ForEachCallback = TypedJsFunction<(JsString, JsString, JsObject), ()>;
 /// If the key is not valid ASCII, an error is returned.
 #[inline]
 fn to_header_name(key: impl AsRef<str>) -> JsResult<HeaderName> {
-    HeaderName::from_str(key.as_ref())
-        .map_err(|_| js_error!("Cannot convert key to header string as it is not valid ASCII."))
+    HeaderName::from_str(key.as_ref()).map_err(
+        |_| js_error!(TypeError: "Cannot convert key to header string as it is not valid ASCII."),
+    )
 }
 
 /// Trims leading and trailing HTTP whitespace from a header value.
@@ -41,9 +42,9 @@ fn normalize_header_value(value: &str) -> &str {
 /// If the value is not valid ASCII, an error is returned.
 #[inline]
 fn to_header_value(value: impl AsRef<str>) -> JsResult<HeaderValue> {
-    normalize_header_value(value.as_ref())
-        .parse()
-        .map_err(|_| js_error!("Cannot convert value to header string as it is not valid ASCII."))
+    normalize_header_value(value.as_ref()).parse().map_err(
+        |_| js_error!(TypeError: "Cannot convert value to header string as it is not valid ASCII."),
+    )
 }
 
 /// A JavaScript wrapper for the `Headers` object.

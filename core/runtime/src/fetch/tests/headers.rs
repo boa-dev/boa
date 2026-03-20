@@ -84,3 +84,41 @@ fn headers_normalize_values() {
         ),
     ]);
 }
+
+#[test]
+fn headers_invalid_inputs_throw_type_error_objects() {
+    run_test_actions([
+        TestAction::harness(),
+        TestAction::inspect_context(register),
+        TestAction::run(
+            r#"
+                const cases = [
+                    () => new Headers([["a\n", "b"]]),
+                    () => new Headers([["x-test", "a\u0000b"]]),
+                    () => {
+                        const h = new Headers();
+                        h.append("a\n", "b");
+                    },
+                    () => {
+                        const h = new Headers();
+                        h.set("x-test", "a\u0000b");
+                    },
+                ];
+
+                for (const make of cases) {
+                    let threw = false;
+                    try {
+                        make();
+                    } catch (e) {
+                        threw = true;
+                        assertEq(typeof e, "object", "should throw an Error object");
+                        assertEq(e.name, "TypeError", "should throw TypeError");
+                        assert(typeof e.message === "string" && e.message.length > 0, "error message should be non-empty");
+                    }
+
+                    assert(threw, "expected Headers validation to throw");
+                }
+            "#,
+        ),
+    ]);
+}
