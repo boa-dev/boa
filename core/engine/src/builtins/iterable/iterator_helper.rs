@@ -385,20 +385,23 @@ impl IteratorHelper {
                     };
 
                     if has_inner {
-                        let mut helper = object
-                            .downcast_mut::<Self>()
-                            .expect("object type already verified");
-                        let IteratorHelperOp::Concat { inner, .. } = &mut helper.op else {
-                            unreachable!()
+                        // Clone the inner iterator record and drop the borrow before
+                        // calling step_value, since user code may re-enter .next().
+                        let mut inner_iter = {
+                            let helper = object
+                                .downcast_mut::<Self>()
+                                .expect("object type already verified");
+                            let IteratorHelperOp::Concat { inner, .. } = &helper.op else {
+                                unreachable!()
+                            };
+                            inner.clone().expect("checked above")
                         };
-                        let inner_iter = inner.as_mut().expect("checked above");
                         // 3.b.v. Let innerValue be ? IteratorStepValue(iteratorRecord).
                         let inner_value = inner_iter.step_value(context)?;
                         if let Some(val) = inner_value {
                             // 3.b.v.2. Let completion be Completion(Yield(innerValue)).
                             return Ok((create_iter_result_object(val, false, context), false));
                         }
-                        drop(helper);
                         // 3.b.v.1. If innerValue is done, then set innerAlive to false.
                         let mut helper = object
                             .downcast_mut::<Self>()
