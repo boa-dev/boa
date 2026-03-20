@@ -7,6 +7,7 @@ use crate::{
     JsSymbol, JsValue, JsVariant,
     builtins::{
         BuiltInBuilder, BuiltInConstructor, BuiltInObject, IntrinsicObject,
+        intl::date_time_format::{FormatDefaults, FormatType, create_date_time_format},
         options::{get_option, get_options_object},
         temporal::{calendar::to_temporal_calendar_identifier, options::get_digits_option},
     },
@@ -1627,6 +1628,22 @@ impl ZonedDateTime {
             .ok_or_else(|| {
                 JsNativeError::typ().with_message("the this object must be a ZonedDateTime object.")
             })?;
+
+        #[cfg(feature = "intl")]
+        {
+            let locales = _args.get_or_undefined(0);
+            let options = _args.get_or_undefined(1);
+
+            let dtf = create_date_time_format(
+                locales,
+                options,
+                FormatType::Any,
+                FormatDefaults::All,
+                context,
+            )?;
+
+            Ok(JsString::from(String::new()).into())
+        }
 
         #[cfg(not(feature = "intl"))]
         {
