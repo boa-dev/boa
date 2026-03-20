@@ -34,6 +34,35 @@ pub enum Encoding {
     Utf16Be,
 }
 
+const TEXT_DECODER_LABELS: &[(&str, Encoding)] = &[
+    ("unicode-1-1-utf-8", Encoding::Utf8),
+    ("unicode11utf8", Encoding::Utf8),
+    ("unicode20utf8", Encoding::Utf8),
+    ("utf-8", Encoding::Utf8),
+    ("utf8", Encoding::Utf8),
+    ("x-unicode20utf8", Encoding::Utf8),
+    ("unicodefffe", Encoding::Utf16Be),
+    ("utf-16be", Encoding::Utf16Be),
+    ("csunicode", Encoding::Utf16Le),
+    ("iso-10646-ucs-2", Encoding::Utf16Le),
+    ("ucs-2", Encoding::Utf16Le),
+    ("unicode", Encoding::Utf16Le),
+    ("unicodefeff", Encoding::Utf16Le),
+    ("utf-16", Encoding::Utf16Le),
+    ("utf-16le", Encoding::Utf16Le),
+];
+
+#[inline]
+fn resolve_text_decoder_label(label: &str) -> Option<Encoding> {
+    let label = label.trim_matches(['\u{0009}', '\u{000A}', '\u{000C}', '\u{000D}', '\u{0020}']);
+
+    TEXT_DECODER_LABELS
+        .iter()
+        .find_map(|(supported, encoding)| {
+            label.eq_ignore_ascii_case(supported).then_some(*encoding)
+        })
+}
+
 /// The [`TextDecoder`][mdn] class represents an encoder for a specific method, that is
 /// a specific character encoding, like `utf-8`.
 ///
@@ -62,17 +91,12 @@ impl TextDecoder {
         let ignore_bom = options.and_then(|o| o.ignore_bom).unwrap_or(false);
 
         let encoding = match encoding {
-            Some(enc) => match enc.to_std_string_lossy().as_str() {
-                "utf-8" => Encoding::Utf8,
-                // Default encoding is Little Endian.
-                "utf-16" | "utf-16le" => Encoding::Utf16Le,
-                "utf-16be" => Encoding::Utf16Be,
-                e => {
-                    return Err(
-                        js_error!(RangeError: "The given encoding '{}' is not supported.", e),
-                    );
-                }
-            },
+            Some(enc) => {
+                let label = enc.to_std_string_lossy();
+                resolve_text_decoder_label(&label).ok_or_else(
+                    || js_error!(RangeError: "The given encoding '{}' is not supported.", label),
+                )?
+            }
             None => Encoding::default(),
         };
 
