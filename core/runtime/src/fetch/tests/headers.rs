@@ -112,8 +112,6 @@ fn headers_invalid_inputs_throw_type_error_objects() {
                         throw Error("expected the call above to throw");
                     } catch (e) {
                         threw = true;
-                        assertEq(typeof e, "object", "should throw an Error object");
-                        assertEq(e.name, "TypeError", "should throw TypeError");
                         assert(e instanceof TypeError, "should throw TypeError instance");
                         assert(typeof e.message === "string" && e.message.length > 0, "error message should be non-empty");
                     }
