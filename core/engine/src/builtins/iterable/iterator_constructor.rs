@@ -233,6 +233,7 @@ impl IteratorConstructor {
                 iterables,
                 current_index: 0,
                 inner: None,
+                opened: Vec::new(),
             },
             context,
         );

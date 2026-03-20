@@ -46,6 +46,7 @@ pub(crate) enum IteratorHelperOp {
         iterables: Vec<(JsObject, JsValue)>,
         current_index: usize,
         inner: Option<IteratorRecord>,
+        opened: Vec<IteratorRecord>,
     },
 }
 
@@ -456,9 +457,10 @@ impl IteratorHelper {
                     let mut helper = object
                         .downcast_mut::<Self>()
                         .expect("object type already verified");
-                    let IteratorHelperOp::Concat { inner, .. } = &mut helper.op else {
+                    let IteratorHelperOp::Concat { inner, opened, .. } = &mut helper.op else {
                         unreachable!()
                     };
+                    opened.push(iterator_record.clone());
                     *inner = Some(iterator_record);
                 }
             }
