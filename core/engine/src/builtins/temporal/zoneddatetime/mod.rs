@@ -1614,7 +1614,11 @@ impl ZonedDateTime {
     ///
     /// [spec]: https://tc39.es/proposal-temporal/#sec-temporal.zoneddatetime.prototype.tolocalestring
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Temporal/ZonedDateTime/toLocaleString
-    fn to_locale_string(this: &JsValue, _: &[JsValue], context: &mut Context) -> JsResult<JsValue> {
+    fn to_locale_string(
+        this: &JsValue,
+        _args: &[JsValue],
+        context: &mut Context,
+    ) -> JsResult<JsValue> {
         // TODO: Update for ECMA-402 compliance
         let object = this.as_object();
         let zdt = object
@@ -1624,15 +1628,18 @@ impl ZonedDateTime {
                 JsNativeError::typ().with_message("the this object must be a ZonedDateTime object.")
             })?;
 
-        let ixdtf = zdt.inner.to_ixdtf_string_with_provider(
-            DisplayOffset::Auto,
-            DisplayTimeZone::Auto,
-            DisplayCalendar::Auto,
-            ToStringRoundingOptions::default(),
-            context.timezone_provider(),
-        )?;
+        #[cfg(not(feature = "intl"))]
+        {
+            let ixdtf = zdt.inner.to_ixdtf_string_with_provider(
+                DisplayOffset::Auto,
+                DisplayTimeZone::Auto,
+                DisplayCalendar::Auto,
+                ToStringRoundingOptions::default(),
+                context.timezone_provider(),
+            )?;
 
-        Ok(JsString::from(ixdtf).into())
+            Ok(JsString::from(ixdtf).into())
+        }
     }
 
     /// 6.3.43 `Temporal.ZonedDateTime.prototype.toJSON ( )`
