@@ -80,6 +80,10 @@ jobs:
           toolchain: stable
           components: clippy
 
+      - name: Get rust_version
+        id: rust_version
+        run: echo "version=$(rustc -V)" >> $GITHUB_OUTPUT
+
       - name: Cache cargo
         uses: actions/cache@668228422ae6a00e4ad889ee87cd7109ec5666a7 # v5
         with:
@@ -87,7 +91,7 @@ jobs:
             target
             ~/.cargo/git
             ~/.cargo/registry
-          key: ${{ runner.os }}-${{ runner.arch }}-cargo-${{ hashFiles('**/Cargo.lock') }}
+          key: ${{ runner.os }}-${{ runner.arch }}-cargo-${{ steps.rust_version.outputs.version }}-${{ hashFiles('**/Cargo.lock') }}
 
       - name: Install cargo-workspaces
         run: cargo install cargo-workspaces
@@ -124,6 +128,10 @@ jobs:
         with:
           toolchain: stable
 
+      - name: Get rust_version
+        id: rust_version
+        run: echo "version=$(rustc -V)" >> $GITHUB_OUTPUT
+
       - name: Cache cargo
         uses: actions/cache@668228422ae6a00e4ad889ee87cd7109ec5666a7 # v5
         with:
@@ -131,7 +139,7 @@ jobs:
             target
             ~/.cargo/git
             ~/.cargo/registry
-          key: ${{ runner.os }}-${{ runner.arch }}-cargo-${{ hashFiles('**/Cargo.lock') }}
+          key: ${{ runner.os }}-${{ runner.arch }}-cargo-${{ steps.rust_version.outputs.version }}-${{ hashFiles('**/Cargo.lock') }}
 
       - name: Generate documentation
         run: cargo doc -v --document-private-items --all-features
@@ -190,6 +198,10 @@ jobs:
       - name: Install Rust toolchain
         uses: dtolnay/rust-toolchain@631a55b12751854ce901bb631d5902ceb48146f7 # stable
 
+      - name: Get rust_version
+        id: rust_version
+        run: echo "version=$(rustc -V)" >> $GITHUB_OUTPUT
+
       - name: Cache cargo
         uses: actions/cache@668228422ae6a00e4ad889ee87cd7109ec5666a7 # v5
         with:
@@ -197,7 +209,7 @@ jobs:
             target
             ~/.cargo/git
             ~/.cargo/registry
-          key: ${{ runner.os }}-${{ runner.arch }}-cargo-${{ hashFiles('**/Cargo.lock') }}
+          key: ${{ runner.os }}-${{ runner.arch }}-cargo-${{ steps.rust_version.outputs.version }}-${{ hashFiles('**/Cargo.lock') }}
 
       - name: Install cargo-tarpaulin
         uses: baptiste0928/cargo-install@f204293d9709061b7bc1756fec3ec4e2cd57dec0 # v3.4.0
@@ -258,6 +270,10 @@ jobs:
       - name: Install Cargo insta
         run: cargo install --locked cargo-insta
 
+      - name: Get rust_version
+        id: rust_version
+        run: echo "version=$(rustc -V)" >> $GITHUB_OUTPUT
+
       - name: Cache cargo
         uses: actions/cache@668228422ae6a00e4ad889ee87cd7109ec5666a7 # v5
         with:
@@ -265,7 +281,7 @@ jobs:
             target
             ~/.cargo/git
             ~/.cargo/registry
-          key: ${{ matrix.os }}-${{ runner.arch }}-cargo-${{ hashFiles('**/Cargo.lock') }}
+          key: ${{ matrix.os }}-${{ runner.arch }}-cargo-${{ steps.rust_version.outputs.version }}-${{ hashFiles('**/Cargo.lock') }}
 
       - name: Build tests
         run: cargo test --no-run --profile ci
@@ -321,6 +337,10 @@ jobs:
           crate: cross
           git: https://github.com/cross-rs/cross
 
+      - name: Get rust_version
+        id: rust_version
+        run: echo "version=$(rustc -V)" >> $GITHUB_OUTPUT
+
       - name: Cache cargo
         uses: actions/cache@668228422ae6a00e4ad889ee87cd7109ec5666a7 # v5
         with:
@@ -328,7 +348,7 @@ jobs:
             target
             ~/.cargo/git
             ~/.cargo/registry
-          key: ${{ matrix.target }}-${{ runner.arch }}-cargo-${{ hashFiles('**/Cargo.lock') }}
+          key: ${{ matrix.target }}-${{ runner.arch }}-cargo-${{ steps.rust_version.outputs.version }}-${{ hashFiles('**/Cargo.lock') }}
 
       - name: Run tests
         run: |
@@ -366,6 +386,10 @@ jobs:
         with:
           components: miri
 
+      - name: Get rust_version
+        id: rust_version
+        run: echo "version=$(rustc -V)" >> $GITHUB_OUTPUT
+
       - name: Cache cargo
         uses: actions/cache@668228422ae6a00e4ad889ee87cd7109ec5666a7 # v5
         with:
@@ -373,7 +397,7 @@ jobs:
             target
             ~/.cargo/git
             ~/.cargo/registry
-          key: ${{ runner.os }}-${{ runner.arch }}-cargo-miri-${{ hashFiles('**/Cargo.lock') }}
+          key: ${{ runner.os }}-${{ runner.arch }}-cargo-miri-${{ steps.rust_version.outputs.version }}-${{ hashFiles('**/Cargo.lock') }}
 
       - name: Setup miri
         run: cargo miri setup
@@ -406,6 +430,10 @@ jobs:
         with:
           toolchain: stable
 
+      - name: Get rust_version
+        id: rust_version
+        run: echo "version=$(rustc -V)" >> $GITHUB_OUTPUT
+
       - name: Cache cargo
         uses: actions/cache@668228422ae6a00e4ad889ee87cd7109ec5666a7 # v5
         with:
@@ -413,7 +441,7 @@ jobs:
             target
             ~/.cargo/git
             ~/.cargo/registry
-          key: ${{ runner.os }}-${{ runner.arch }}-cargo-${{ hashFiles('**/Cargo.lock') }}
+          key: ${{ runner.os }}-${{ runner.arch }}-cargo-${{ steps.rust_version.outputs.version }}-${{ hashFiles('**/Cargo.lock') }}
 
       - name: Install cargo-fuzz
         run: cargo install cargo-fuzz
@@ -446,6 +474,10 @@ jobs:
         with:
           toolchain: stable
 
+      - name: Get rust_version
+        id: rust_version
+        run: echo "version=$(rustc -V)" >> $GITHUB_OUTPUT
+
       - name: Cache cargo
         uses: actions/cache@668228422ae6a00e4ad889ee87cd7109ec5666a7 # v5
         with:
@@ -453,7 +485,7 @@ jobs:
             target
             ~/.cargo/git
             ~/.cargo/registry
-          key: ${{ runner.os }}-${{ runner.arch }}-cargo-${{ hashFiles('**/Cargo.lock') }}
+          key: ${{ runner.os }}-${{ runner.arch }}-cargo-${{ steps.rust_version.outputs.version }}-${{ hashFiles('**/Cargo.lock') }}
 
       - name: Install cargo-workspaces
         run: cargo install cargo-workspaces
@@ -490,6 +522,10 @@ jobs:
         with:
           persist-credentials: false
 
+      - name: Get rust_version
+        id: rust_version
+        run: echo "version=$(rustc -V)" >> $GITHUB_OUTPUT
+
       - name: Cache cargo
         uses: actions/cache@668228422ae6a00e4ad889ee87cd7109ec5666a7 # v5
         with:
@@ -497,7 +533,7 @@ jobs:
             ~/.cargo/registry
             ~/.cargo/git
             target
-          key: ${{ runner.os }}-cargo-${{ hashFiles('**/Cargo.lock') }}
+          key: ${{ runner.os }}-cargo-${{ steps.rust_version.outputs.version }}-${{ hashFiles('**/Cargo.lock') }}
 
       - name: Check Semver
         uses: obi1kenobi/cargo-semver-checks-action@5b298c9520f7096a4683c0bd981a7ac5a7e249ae # v2

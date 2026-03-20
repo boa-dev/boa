@@ -40,6 +40,10 @@ jobs:
           toolchain: stable
           targets: ${{ matrix.target }}
 
+      - name: Get rust_version
+        id: rust_version
+        run: echo "version=$(rustc -V)" >> $GITHUB_OUTPUT
+
       - name: Restore cache
         id: cache
         uses: actions/cache@668228422ae6a00e4ad889ee87cd7109ec5666a7 # v5
@@ -48,7 +52,7 @@ jobs:
             ~/.cargo/registry
             ~/.cargo/git
             target
-          key: ${{ matrix.os }}-${{ runner.arch }}-cargo-${{ hashFiles('**/Cargo.lock') }}
+          key: ${{ matrix.os }}-${{ runner.arch }}-cargo-${{ steps.rust_version.outputs.version }}-${{ hashFiles('**/Cargo.lock') }}
 
       - name: Build
         run: cargo build --target ${{ matrix.target }} --release --locked --bin boa

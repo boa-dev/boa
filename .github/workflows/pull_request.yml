@@ -31,6 +31,10 @@ jobs:
         with:
           toolchain: stable
 
+      - name: Get rust_version
+        id: rust_version
+        run: echo "version=$(rustc -V)" >> $GITHUB_OUTPUT
+
       - name: Cache cargo
         uses: actions/cache@668228422ae6a00e4ad889ee87cd7109ec5666a7 # v5
         with:
@@ -38,7 +42,7 @@ jobs:
             target
             ~/.cargo/git
             ~/.cargo/registry
-          key: ${{ runner.os }}-${{ runner.arch }}-cargo-${{ hashFiles('**/Cargo.lock') }}
+          key: ${{ runner.os }}-${{ runner.arch }}-cargo-${{ steps.rust_version.outputs.version }}-${{ hashFiles('**/Cargo.lock') }}
       - uses: boa-dev/criterion-compare-action@adfd3a94634fe2041ce5613eb7df09d247555b87 # v3.2.4
         with:
           token: ${{ secrets.GITHUB_TOKEN }}
