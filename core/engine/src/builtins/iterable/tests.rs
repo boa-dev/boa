@@ -437,3 +437,11 @@ fn iterator_concat_return_closes_inner() {
         TestAction::assert("closed"),
     ]);
 }
+
+#[test]
+fn iterator_concat_return_result_shape() {
+    run_test_actions([TestAction::assert(
+        "const it = Iterator.concat([1,2]); it.next();
+         const r = it.return(); r.done === true && r.value === undefined",
+    )]);
+}

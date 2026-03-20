@@ -600,17 +600,27 @@ impl IteratorHelper {
         match helper.state {
             // 4. If O.[[GeneratorState]] is suspended-start, then
             IteratorHelperState::SuspendedStart => {
-                // a. Set O.[[GeneratorState]] to completed.
                 helper.state = IteratorHelperState::Completed;
 
-                // b. Perform ? IteratorClose(O.[[UnderlyingIterator]], NormalCompletion(unused)).
+                if let IteratorHelperOp::Concat { inner, .. } = &mut helper.op {
+                    let inner_to_close = inner.take();
+                    drop(helper);
+                    if let Some(inner_iter) = inner_to_close {
+                        inner_iter.close(Ok(JsValue::undefined()), context)?;
+                    }
+                    return Ok(create_iter_result_object(
+                        JsValue::undefined(),
+                        true,
+                        context,
+                    ));
+                }
+
                 let close_result = helper
                     .underlying_iterator
                     .close(Ok(JsValue::undefined()), context);
                 drop(helper);
                 close_result?;
 
-                // c. Return CreateIterResultObject(undefined, true).
                 Ok(create_iter_result_object(
                     JsValue::undefined(),
                     true,
