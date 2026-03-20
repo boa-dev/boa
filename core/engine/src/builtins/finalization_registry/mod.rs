@@ -218,6 +218,13 @@ impl FinalizationRegistry {
         let unregister_token = args.get_or_undefined(2);
 
         // 3. If CanBeHeldWeakly(target) is false, throw a TypeError exception.
+        //
+        // [`CanBeHeldWeakly ( v )`](https://tc39.es/ecma262/#sec-canbeheldweakly)
+        //
+        // 1. If v is an Object, return true.
+        // 2. If v is a Symbol and KeyForSymbol(v) is undefined, return true.
+        // 3. Return false.
+        //
         // TODO: support Symbols
         let Some(target_obj) = target.as_object() else {
             return Err(js_error!(
@@ -235,6 +242,13 @@ impl FinalizationRegistry {
         }
 
         // 5. If CanBeHeldWeakly(unregisterToken) is false, then
+        //
+        // // [`CanBeHeldWeakly ( v )`](https://tc39.es/ecma262/#sec-canbeheldweakly)
+        //
+        // 1. If v is an Object, return true.
+        // 2. If v is a Symbol and KeyForSymbol(v) is undefined, return true.
+        // 3. Return false.
+        //
         // TODO: support Symbols
         let unregister_token = match unregister_token.variant() {
             JsVariant::Object(obj) => Some(WeakGc::new(obj.inner())),
@@ -286,6 +300,13 @@ impl FinalizationRegistry {
             })?;
 
         // 3. If CanBeHeldWeakly(unregisterToken) is false, throw a TypeError exception.\
+        //
+        // // [`CanBeHeldWeakly ( v )`](https://tc39.es/ecma262/#sec-canbeheldweakly)
+        //
+        // 1. If v is an Object, return true.
+        // 2. If v is a Symbol and KeyForSymbol(v) is undefined, return true.
+        // 3. Return false.
+        //
         // TODO: support Symbols
         let unregister_token = args.get_or_undefined(0).as_object();
         let unregister_token = unregister_token
