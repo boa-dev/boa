@@ -14,7 +14,6 @@ features = [
     "Intl-enumeration",
     "Intl.DurationFormat",
     "regexp-duplicate-named-groups",
-    "iterator-helpers",
     "explicit-resource-management",
     "joint-iteration",
 
@@ -32,9 +31,6 @@ features = [
 
     # https://github.com/tc39/proposal-defer-import-eval
     "import-defer",
-
-    # https://github.com/tc39/proposal-iterator-sequencing
-    "iterator-sequencing",
 
     # https://github.com/tc39/proposal-realms
     "ShadowRealm",
