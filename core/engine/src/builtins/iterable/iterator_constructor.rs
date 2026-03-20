@@ -25,7 +25,7 @@ use crate::{
 use boa_gc::{Finalize, Trace};
 
 use super::{
-    IteratorRecord, if_abrupt_close_iterator,
+    if_abrupt_close_iterator,
     iterator_helper::{IteratorHelper, IteratorHelperOp},
     wrap_for_valid_iterator::WrapForValidIterator,
 };
@@ -223,15 +223,12 @@ impl IteratorConstructor {
             iterables.push((method, item.clone()));
         }
 
-        let dummy_iterator = IteratorRecord::new(JsObject::with_null_proto(), JsValue::undefined());
-
         let helper = IteratorHelper::create(
-            dummy_iterator,
+            vec![],
             IteratorHelperOp::Concat {
                 iterables,
                 current_index: 0,
                 inner: None,
-                opened: Vec::new(),
             },
             context,
         );
@@ -402,7 +399,7 @@ impl IteratorConstructor {
 
         // 5-17. Create IteratorHelper with map operation.
         let helper = IteratorHelper::create(
-            iterated,
+            vec![iterated],
             IteratorHelperOp::Map {
                 mapper: mapper_obj.clone(),
                 counter: 0,
@@ -444,7 +441,7 @@ impl IteratorConstructor {
 
         // 5-13. Create IteratorHelper with filter operation.
         let helper = IteratorHelper::create(
-            iterated,
+            vec![iterated],
             IteratorHelperOp::Filter {
                 predicate: predicate_obj.clone(),
                 counter: 0,
@@ -513,7 +510,7 @@ impl IteratorConstructor {
 
         // 8-10. Return CreateIteratorHelper with a take closure.
         let helper = IteratorHelper::create(
-            iterated,
+            vec![iterated],
             IteratorHelperOp::Take {
                 remaining: integer_limit,
             },
@@ -581,7 +578,7 @@ impl IteratorConstructor {
 
         // 8-10. Return CreateIteratorHelper with a drop closure.
         let helper = IteratorHelper::create(
-            iterated,
+            vec![iterated],
             IteratorHelperOp::Drop {
                 remaining: integer_limit,
                 done_dropping: false,
@@ -623,7 +620,7 @@ impl IteratorConstructor {
 
         // 5+. Create IteratorHelper with flatMap operation.
         let helper = IteratorHelper::create(
-            iterated,
+            vec![iterated],
             IteratorHelperOp::FlatMap {
                 mapper: mapper_obj.clone(),
                 counter: 0,
