@@ -95,6 +95,29 @@ fn decoder_js() {
 }
 
 #[test]
+fn decoder_js_without_input() {
+    let context = &mut Context::default();
+    text::register(None, context).unwrap();
+
+    run_test_actions_with(
+        [
+            TestAction::run(indoc! {r#"
+                const d = new TextDecoder();
+                decoded = d.decode();
+            "#}),
+            TestAction::inspect_context(|context| {
+                let decoded = context
+                    .global_object()
+                    .get(js_str!("decoded"), context)
+                    .unwrap();
+                assert_eq!(decoded.as_string(), Some(js_string!("")));
+            }),
+        ],
+        context,
+    );
+}
+
+#[test]
 fn decoder_js_invalid() {
     use crate::test::{TestAction, run_test_actions_with};
     use indoc::indoc;

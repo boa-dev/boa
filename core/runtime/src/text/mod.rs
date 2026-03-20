@@ -141,6 +141,10 @@ impl TextDecoder {
     ///
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/API/TextDecoder/decode
     pub fn decode(&self, buffer: JsValue, context: &mut Context) -> JsResult<JsString> {
+        if buffer.is_undefined() {
+            return Ok(js_string!(""));
+        }
+
         let mut range = None;
         let array_buffer = if let Ok(array_buffer) = JsArrayBuffer::try_from_js(&buffer, context) {
             array_buffer
