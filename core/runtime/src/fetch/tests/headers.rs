@@ -109,6 +109,7 @@ fn headers_invalid_inputs_throw_type_error_objects() {
                     let threw = false;
                     try {
                         make();
+                        throw Error("expected the call above to throw");
                     } catch (e) {
                         threw = true;
                         assertEq(typeof e, "object", "should throw an Error object");
