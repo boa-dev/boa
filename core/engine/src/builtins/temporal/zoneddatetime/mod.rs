@@ -1643,6 +1643,16 @@ impl ZonedDateTime {
                 FormatDefaults::All,
                 context,
             )?;
+            // 4. If zonedDateTime.[[Calendar]] is not "iso8601" and CalendarEquals(zonedDateTime.[[Calendar]], dateTimeFormat.[[Calendar]]) is false,
+            // throw a RangeError exception.
+            let zdt_cal = zdt.inner.calendar();
+            let dtf_cal = dtf.calendar_algorithm();
+
+            if !zdt_cal.is_iso() && zdt_cal.identifier() != dtf_cal.as_str() {
+                return Err(
+                    js_error!(RangeError: "calendars {} and {} aren't compatible", zdt_cal.identifier(), dtf_cal.as_str()),
+                );
+            }
 
             Ok(JsValue::null())
         }
