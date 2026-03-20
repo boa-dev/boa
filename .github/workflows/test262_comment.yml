@@ -1,0 +1,46 @@
+name: test262_comment
+
+on:
+  workflow_run:
+    workflows: ["test262"]
+    types:
+      - completed
+
+permissions:
+  contents: read
+  pull-requests: write
+
+jobs:
+  comment:
+    name: Post results to PR
+    runs-on: ubuntu-latest
+    if: ${{ github.event.workflow_run.event == 'pull_request' && github.event.workflow_run.conclusion == 'success' }}
+    steps:
+      - name: Download results
+        uses: actions/download-artifact@fa0a91b85d4f404e444e00e005971372dc801d16 # v4.1.8
+        with:
+          name: test262-results
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          run-id: ${{ github.event.workflow_run.id }}
+          path: downloaded-results
+
+      - name: Read results
+        id: results
+        shell: bash
+        run: |
+          echo "pr_number=$(cat downloaded-results/pr_number.txt)" >> $GITHUB_OUTPUT
+
+      - name: Find Previous Comment
+        uses: peter-evans/find-comment@b30e6a3c0ed37e7c023ccd3f1db5c6c0b0c23aad # v4
+        id: previous-comment
+        with:
+          issue-number: ${{ steps.results.outputs.pr_number }}
+          body-includes: "<!-- test262-compliance-report -->"
+
+      - name: Update or create comment
+        uses: peter-evans/create-or-update-comment@e8674b075228eee787fea43ef493e45ece1004c9 # v5
+        with:
+          comment-id: ${{ steps.previous-comment.outputs.comment-id }}
+          issue-number: ${{ steps.results.outputs.pr_number }}
+          body-path: downloaded-results/comment.md
+          edit-mode: replace

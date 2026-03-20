@@ -1042,6 +1042,10 @@ impl<T: NativeObject> JsObject<T> {
         &self.inner
     }
 
+    pub(crate) fn from_inner(inner: Gc<VTableObject<T>>) -> Self {
+        Self { inner }
+    }
+
     /// Create a new private name with this object as the unique identifier.
     pub(crate) fn private_name(&self, description: JsString) -> PrivateName {
         let ptr: *const _ = self.as_ref();
