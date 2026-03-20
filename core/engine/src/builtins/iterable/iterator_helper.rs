@@ -603,9 +603,15 @@ impl IteratorHelper {
                 let iterators: Vec<IteratorRecord> =
                     helper.underlying_iterators.drain(..).collect();
                 drop(helper);
-                for iter in &iterators {
-                    iter.close(Ok(JsValue::undefined()), context)?;
+
+                // IteratorCloseAll (§7.4.12): close in reverse order,
+                // last error wins.
+                let mut completion: JsResult<JsValue> = Ok(JsValue::undefined());
+                for iter in iterators.iter().rev() {
+                    let result = iter.close(completion.clone(), context);
+                    completion = result;
                 }
+                completion?;
                 Ok(create_iter_result_object(
                     JsValue::undefined(),
                     true,
