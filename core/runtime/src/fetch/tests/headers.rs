@@ -106,7 +106,6 @@ fn headers_invalid_inputs_throw_type_error_objects() {
                 ];
 
                 for (const make of cases) {
-                    let threw = false;
                     try {
                         make();
                         throw Error("expected the call above to throw");
