@@ -512,7 +512,7 @@ fn evaluate_file(
         }
         Err(v) => {
             printer.print(uncaught_error(&v));
-            return Err(v.into_erased(context).into());
+            return Err(eyre!("execution failed"));
         }
     }
 
