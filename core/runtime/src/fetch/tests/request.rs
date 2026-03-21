@@ -5,6 +5,7 @@ use crate::test::{TestAction, run_test_actions};
 use boa_engine::{js_str, js_string};
 use either::Either;
 use http::{Response, Uri};
+use indoc::indoc;
 
 #[test]
 fn request_constructor() {
@@ -45,6 +46,66 @@ fn request_constructor() {
                     .unwrap();
             assert_eq!(request.uri().to_string(), "http://example.com/");
         }),
+    ]);
+}
+
+#[test]
+fn request_constructor_connect_method_throws() {
+    run_test_actions([
+        TestAction::inspect_context(|ctx| {
+            let fetcher = TestFetcher::default();
+            crate::fetch::register(fetcher, None, ctx).expect("failed to register fetch");
+        }),
+        TestAction::run(indoc! {r#"
+            try {
+                new Request("http://unit.test", { method: "CONNECT" });
+                throw Error("expected the call above to throw");
+            } catch (e) {
+                if (!(e instanceof TypeError)) {
+                    throw e;
+                }
+            }
+        "#}),
+    ]);
+}
+
+#[test]
+fn request_constructor_trace_method_throws() {
+    run_test_actions([
+        TestAction::inspect_context(|ctx| {
+            let fetcher = TestFetcher::default();
+            crate::fetch::register(fetcher, None, ctx).expect("failed to register fetch");
+        }),
+        TestAction::run(indoc! {r#"
+            try {
+                new Request("http://unit.test", { method: "TRACE" });
+                throw Error("expected the call above to throw");
+            } catch (e) {
+                if (!(e instanceof TypeError)) {
+                    throw e;
+                }
+            }
+        "#}),
+    ]);
+}
+
+#[test]
+fn request_constructor_track_method_throws() {
+    run_test_actions([
+        TestAction::inspect_context(|ctx| {
+            let fetcher = TestFetcher::default();
+            crate::fetch::register(fetcher, None, ctx).expect("failed to register fetch");
+        }),
+        TestAction::run(indoc! {r#"
+            try {
+                new Request("http://unit.test", { method: "TRACK" });
+                throw Error("expected the call above to throw");
+            } catch (e) {
+                if (!(e instanceof TypeError)) {
+                    throw e;
+                }
+            }
+        "#}),
     ]);
 }
 
