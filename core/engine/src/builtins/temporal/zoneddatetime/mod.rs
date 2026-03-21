@@ -7,7 +7,9 @@ use crate::{
     JsSymbol, JsValue, JsVariant,
     builtins::{
         BuiltInBuilder, BuiltInConstructor, BuiltInObject, IntrinsicObject,
-        intl::date_time_format::{FormatDefaults, FormatType, create_date_time_format},
+        intl::date_time_format::{
+            FormatDefaults, FormatType, create_date_time_format, format_date_time_locale,
+        },
         options::{get_option, get_options_object},
         temporal::{calendar::to_temporal_calendar_identifier, options::get_digits_option},
     },
@@ -1651,7 +1653,15 @@ impl ZonedDateTime {
                 );
             }
 
-            Ok(JsString::from(String::new()).into())
+            let inst = create_temporal_instant(zdt.inner.to_instant(), None, context)?;
+            format_date_time_locale(
+                locales,
+                options,
+                FormatType::Any,
+                FormatDefaults::All,
+                zdt.inner.to_instant().epoch_milliseconds() as f64,
+                context,
+            )
         }
 
         #[cfg(not(feature = "intl"))]
