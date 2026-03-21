@@ -781,7 +781,7 @@ impl PlainYearMonth {
         #[cfg(feature = "intl")]
         {
             use crate::builtins::intl::date_time_format::{
-                FormatDefaults, FormatType, format_date_time_locale,
+                FormatDefaults, FormatType, format_date_time_locale_no_implicit_styles,
             };
             use temporal_rs::TimeZone;
             let locales = args.get_or_undefined(0);
@@ -791,8 +791,8 @@ impl PlainYearMonth {
             // Source: https://tc39.es/proposal-temporal/#sec-temporal.plainyearmonth.tolocalestring
             // 3. Let dateFormat be ? CreateDateTimeFormat(%Intl.DateTimeFormat%, locales, options, date, date).
             // 4. Return ? FormatDateTime(dateFormat, plainYearMonth).
-            // Delegation: `format_date_time_locale` implements CreateDateTimeFormat + FormatDateTime
-            // and consumes the precomputed epochNs for the Temporal plain anchor.
+            // Delegation: `format_date_time_locale_no_implicit_styles` — same as `Date`'s path but
+            // without injecting `dateStyle`/`timeStyle: "long"` (that would include the ISO reference day).
 
             // ECMA-402 Temporal integration plumbing (HandleDateTimeTemporalYearMonth).
             //
@@ -807,7 +807,7 @@ impl PlainYearMonth {
             //
             // Delegation note:
             // - In this implementation we compute epochNs (steps 2–3), validate Intl `calendar` (step 1),
-            //   and delegate the ECMA-402 formatting to `format_date_time_locale`.
+            //   and delegate the ECMA-402 formatting to `format_date_time_locale_no_implicit_styles`.
             let temporal_calendar = plain_year_month.inner.calendar().identifier();
 
             // Ensure Intl inputs match HandleDateTimeTemporalYearMonth expectations.
@@ -839,6 +839,33 @@ impl PlainYearMonth {
                 context,
             )?;
 
+            // When no explicit style/fields are provided, supply `year` + `month` so
+            // `CreateDateTimeFormat` does not apply full date defaults (which include `day`).
+            // We use `month: "short"` (instead of `"numeric"`) because the current Intl formatter can
+            // produce compact numeric output like `12/24`, which fails Test262's full-year expectation
+            // (`default-does-not-include-day-time-and-time-zone-name.js` requires `2024` to appear).
+            let date_style = options_obj.get(js_string!("dateStyle"), context)?;
+            let time_style = options_obj.get(js_string!("timeStyle"), context)?;
+            if date_style.is_undefined() && time_style.is_undefined() {
+                if options_obj.get(js_string!("year"), context)?.is_undefined() {
+                    options_obj.create_data_property_or_throw(
+                        js_string!("year"),
+                        JsValue::from(js_string!("numeric")),
+                        context,
+                    )?;
+                }
+                if options_obj
+                    .get(js_string!("month"), context)?
+                    .is_undefined()
+                {
+                    options_obj.create_data_property_or_throw(
+                        js_string!("month"),
+                        JsValue::from(js_string!("short")),
+                        context,
+                    )?;
+                }
+            }
+
             // Compute epochNs from isoDate + NoonTimeRecord (steps 2-3), then pass it to the shared
             // ECMA-402 formatting pipeline as epoch milliseconds.
             let epoch_ns = plain_year_month
@@ -851,7 +878,7 @@ impl PlainYearMonth {
             let timestamp = (epoch_ns.as_i128() as f64) / 1_000_000.0;
 
             // Delegate the Intl formatting pipeline to the shared ECMA-402 implementation.
-            format_date_time_locale(
+            format_date_time_locale_no_implicit_styles(
                 locales,
                 &options_obj.into(),
                 FormatType::Date,

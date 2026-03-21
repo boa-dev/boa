@@ -1011,6 +1011,25 @@ fn unwrap_date_time_format(
         .into())
 }
 
+fn format_date_time_locale_after_coerce(
+    locales: &JsValue,
+    options: JsObject,
+    format_type: FormatType,
+    defaults: FormatDefaults,
+    timestamp: f64,
+    context: &mut Context,
+) -> JsResult<JsValue> {
+    // `options` is already normalized/coerced by the caller.
+    let options_value = options.into();
+    let dtf = create_date_time_format(locales, &options_value, format_type, defaults, context)?;
+    let x = time_clip(timestamp);
+    if x.is_nan() {
+        return Err(js_error!(RangeError: "formatted date cannot be NaN"));
+    }
+    let result = format_timestamp_with_dtf(&dtf, x, context)?;
+    Ok(JsValue::from(result))
+}
+
 /// Shared helper used by Date.prototype.toLocaleString,
 /// Date.prototype.toLocaleDateString, and Date.prototype.toLocaleTimeString.
 /// Applies `ToDateTimeOptions` defaults, calls [`create_date_time_format`], and formats
@@ -1043,13 +1062,37 @@ pub(crate) fn format_date_time_locale(
             context,
         )?;
     }
-    let options_value = options.into();
-    let dtf = create_date_time_format(locales, &options_value, format_type, defaults, context)?;
-    // FormatDateTime steps 1–2: TimeClip and NaN check (format_timestamp_with_dtf does ToLocalTime + format only).
-    let x = time_clip(timestamp);
-    if x.is_nan() {
-        return Err(js_error!(RangeError: "formatted date cannot be NaN"));
-    }
-    let result = format_timestamp_with_dtf(&dtf, x, context)?;
-    Ok(JsValue::from(result))
+    format_date_time_locale_after_coerce(
+        locales,
+        options,
+        format_type,
+        defaults,
+        timestamp,
+        context,
+    )
+}
+
+/// Like [`format_date_time_locale`], but does not inject `"long"` `dateStyle` / `timeStyle`.
+///
+/// Callers that need Temporal `PlainYearMonth` default presentation should supply explicit
+/// `year` / `month` (or `dateStyle`) on the options object so `CreateDateTimeFormat` does not apply
+/// full date defaults that include `day`.
+#[allow(clippy::too_many_arguments)]
+pub(crate) fn format_date_time_locale_no_implicit_styles(
+    locales: &JsValue,
+    options: &JsValue,
+    format_type: FormatType,
+    defaults: FormatDefaults,
+    timestamp: f64,
+    context: &mut Context,
+) -> JsResult<JsValue> {
+    let options = coerce_options_to_object(options, context)?;
+    format_date_time_locale_after_coerce(
+        locales,
+        options,
+        format_type,
+        defaults,
+        timestamp,
+        context,
+    )
 }
