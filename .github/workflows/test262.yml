@@ -77,7 +77,7 @@ jobs:
           echo "${{ github.event.pull_request.number }}" > "$output_dir/pr_number.txt"
 
       - name: Upload results
-        uses: actions/upload-artifact@65c4c4a1ddee5b72f698fdd19549f0f0fb45cf08 # v4.6.0
+        uses: actions/upload-artifact@bbbca2ddaa5d8feaa63e36b76fdaad77386f024f # v7.0.0
         with:
           name: test262-results
           path: results/outputs
