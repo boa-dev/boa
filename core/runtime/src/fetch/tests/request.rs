@@ -112,6 +112,48 @@ fn request_constructor_head_with_body_throws() {
 }
 
 #[test]
+fn request_constructor_get_with_inherited_empty_body_throws() {
+    run_test_actions([
+        TestAction::inspect_context(|ctx| {
+            let fetcher = TestFetcher::default();
+            crate::fetch::register(fetcher, None, ctx).expect("failed to register fetch");
+        }),
+        TestAction::run(indoc! {r#"
+            const request = new Request("http://unit.test", { method: "POST", body: "" });
+            try {
+                new Request(request, { method: "GET" });
+                throw Error("expected the call above to throw");
+            } catch (e) {
+                if (!(e instanceof TypeError)) {
+                    throw e;
+                }
+            }
+        "#}),
+    ]);
+}
+
+#[test]
+fn request_constructor_head_with_inherited_empty_body_throws() {
+    run_test_actions([
+        TestAction::inspect_context(|ctx| {
+            let fetcher = TestFetcher::default();
+            crate::fetch::register(fetcher, None, ctx).expect("failed to register fetch");
+        }),
+        TestAction::run(indoc! {r#"
+            const request = new Request("http://unit.test", { method: "POST", body: "" });
+            try {
+                new Request(request, { method: "HEAD" });
+                throw Error("expected the call above to throw");
+            } catch (e) {
+                if (!(e instanceof TypeError)) {
+                    throw e;
+                }
+            }
+        "#}),
+    ]);
+}
+
+#[test]
 fn request_clone_preserves_body_without_override() {
     run_test_actions([
         TestAction::inspect_context(|ctx| {

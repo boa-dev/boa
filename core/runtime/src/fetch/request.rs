@@ -25,6 +25,9 @@ pub struct RequestInit {
     signal: Option<JsObject>,
 }
 
+#[derive(Clone, Copy)]
+struct HasBody;
+
 impl RequestInit {
     /// Takes the abort signal from the options, if present.
     pub fn take_signal(&mut self) -> Option<JsObject> {
@@ -47,7 +50,7 @@ impl RequestInit {
         if let Some(r) = request {
             let (parts, body) = r.into_parts();
             is_get_or_head_method = matches!(parts.method, http::Method::GET | http::Method::HEAD);
-            has_inherited_body = !body.is_empty();
+            has_inherited_body = parts.extensions.get::<HasBody>().is_some() || !body.is_empty();
             builder = builder
                 .method(parts.method)
                 .uri(parts.uri)
@@ -109,9 +112,13 @@ impl RequestInit {
             }
         }
 
-        builder
+        let mut request = builder
             .body(request_body)
-            .map_err(|_| js_error!(Error: "Cannot construct request"))
+            .map_err(|_| js_error!(Error: "Cannot construct request"))?;
+        if self.body.is_some() || has_inherited_body {
+            request.extensions_mut().insert(HasBody);
+        }
+        Ok(request)
     }
 }
 
