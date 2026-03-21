@@ -41,9 +41,13 @@ impl RequestInit {
         request: Option<HttpRequest<Vec<u8>>>,
     ) -> JsResult<HttpRequest<Vec<u8>>> {
         let mut builder = HttpRequest::builder();
+        let mut is_get_or_head_method = true;
+        let mut has_inherited_body = false;
         let mut request_body = Vec::new();
         if let Some(r) = request {
             let (parts, body) = r.into_parts();
+            is_get_or_head_method = matches!(parts.method, http::Method::GET | http::Method::HEAD);
+            has_inherited_body = !body.is_empty();
             builder = builder
                 .method(parts.method)
                 .uri(parts.uri)
@@ -65,7 +69,6 @@ impl RequestInit {
             let method = method.to_std_string().map_err(
                 |_| js_error!(TypeError: "Request constructor: {} is an invalid method", method.to_std_string_escaped()),
             )?;
-
             // 25. If init["method"] exists, then:
             //     1. Let method be init["method"].
             //     2. If method is not a method or method is a forbidden method, throw a TypeError.
@@ -82,7 +85,14 @@ impl RequestInit {
                 ));
             }
 
+            is_get_or_head_method =
+                method.eq_ignore_ascii_case("GET") || method.eq_ignore_ascii_case("HEAD");
+
             builder = builder.method(method.as_str());
+        }
+
+        if is_get_or_head_method && (self.body.is_some() || has_inherited_body) {
+            return Err(js_error!(TypeError: "Request with GET/HEAD method cannot have body."));
         }
 
         if let Some(body) = &self.body {
