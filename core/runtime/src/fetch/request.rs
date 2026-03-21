@@ -23,6 +23,7 @@ pub struct RequestInit {
     headers: Option<JsHeaders>,
     method: Option<Convert<JsString>>,
     signal: Option<JsObject>,
+    window: Option<JsValue>,
 }
 
 impl RequestInit {
@@ -65,6 +66,12 @@ impl RequestInit {
             builder = builder.method(method.to_std_string().map_err(
                 |_| js_error!(TypeError: "Request constructor: {} is an invalid method", method.to_std_string_escaped()),
             )?.as_str());
+        }
+
+        if let Some(window) = &self.window
+            && !window.is_null()
+        {
+            return Err(js_error!(TypeError: "Request constructor: window must be null"));
         }
 
         if let Some(body) = &self.body {

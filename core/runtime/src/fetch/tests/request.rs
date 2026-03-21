@@ -49,6 +49,31 @@ fn request_constructor() {
 }
 
 #[test]
+fn request_constructor_window_must_be_null() {
+    run_test_actions([
+        TestAction::inspect_context(|ctx| {
+            let fetcher = TestFetcher::default();
+            crate::fetch::register(fetcher, None, ctx).expect("failed to register fetch");
+        }),
+        TestAction::run(
+            r#"
+                for (const windowValue of [0, "", true, {}]) {
+                    try {
+                        new Request("http://unit.test", { window: windowValue });
+                        throw Error("expected the call above to throw");
+                    } catch (e) {
+                        if (!(e instanceof TypeError)) {
+                            throw e;
+                        }
+                    }
+                }
+                new Request("http://unit.test", { window: null });
+            "#,
+        ),
+    ]);
+}
+
+#[test]
 fn request_clone_preserves_body_without_override() {
     run_test_actions([
         TestAction::inspect_context(|ctx| {
