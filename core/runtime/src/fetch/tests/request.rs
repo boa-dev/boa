@@ -68,6 +68,7 @@ fn request_constructor_window_must_be_null() {
                     }
                 }
                 new Request("http://unit.test", { window: null });
+                new Request("http://unit.test", { window: undefined });
             "#,
         ),
     ]);
