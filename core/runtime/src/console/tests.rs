@@ -455,3 +455,99 @@ fn trace_with_stack_trace() {
         "# }
     );
 }
+
+#[test]
+fn console_table_primitive_fallback() {
+    let mut context = Context::default();
+    let logger = RecordingLogger::default();
+    Console::register_with_logger(logger.clone(), &mut context).unwrap();
+
+    run_test_actions_with(
+        [TestAction::run(r#"console.table("hello");"#)],
+        &mut context,
+    );
+
+    let logs = logger.log.borrow().clone();
+    assert!(logs.contains("hello"));
+}
+
+#[test]
+fn console_table_array_of_primitives() {
+    let mut context = Context::default();
+    let logger = RecordingLogger::default();
+    Console::register_with_logger(logger.clone(), &mut context).unwrap();
+
+    run_test_actions_with(
+        [TestAction::run(r#"console.table([1, 2, 3]);"#)],
+        &mut context,
+    );
+
+    let logs = logger.log.borrow().clone();
+    assert!(logs.contains("(index)"));
+    assert!(logs.contains("Values"));
+    assert!(logs.contains('1'));
+}
+
+#[test]
+fn console_table_array_of_objects() {
+    let mut context = Context::default();
+    let logger = RecordingLogger::default();
+    Console::register_with_logger(logger.clone(), &mut context).unwrap();
+
+    run_test_actions_with(
+        [TestAction::run(indoc! {r#"
+            console.table([
+                { name: "Alice", age: 30 },
+                { name: "Bob",   age: 25 },
+            ]);
+        "#})],
+        &mut context,
+    );
+
+    let logs = logger.log.borrow().clone();
+    assert!(logs.contains("name"));
+    assert!(logs.contains("age"));
+    assert!(logs.contains("Alice"));
+    assert!(logs.contains("Bob"));
+}
+
+#[test]
+fn console_table_column_filter() {
+    let mut context = Context::default();
+    let logger = RecordingLogger::default();
+    Console::register_with_logger(logger.clone(), &mut context).unwrap();
+
+    run_test_actions_with(
+        [TestAction::run(indoc! {r#"
+            console.table(
+                [{ name: "Alice", age: 30 }, { name: "Bob", age: 25 }],
+                ["name"]
+            );
+        "#})],
+        &mut context,
+    );
+
+    let logs = logger.log.borrow().clone();
+    assert!(logs.contains("name"));
+    assert!(logs.contains("Alice"));
+    assert!(!logs.contains("age"));
+}
+
+#[test]
+fn console_table_plain_object() {
+    let mut context = Context::default();
+    let logger = RecordingLogger::default();
+    Console::register_with_logger(logger.clone(), &mut context).unwrap();
+
+    run_test_actions_with(
+        [TestAction::run(indoc! {r#"
+            console.table({ a: 1, b: 2 });
+        "#})],
+        &mut context,
+    );
+
+    let logs = logger.log.borrow().clone();
+    assert!(logs.contains("(index)"));
+    assert!(logs.contains('a'));
+    assert!(logs.contains('b'));
+}

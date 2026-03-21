@@ -23,6 +23,7 @@ reqwest = { workspace = true, optional = true }
 rustc-hash = { workspace = true, features = ["std"] }
 serde_json = { workspace = true, optional = true }
 url = { workspace = true, optional = true }
+comfy-table="7"
 
 [dev-dependencies]
 indoc.workspace = true

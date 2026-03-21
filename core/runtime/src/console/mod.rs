@@ -83,6 +83,14 @@ pub trait Logger: Trace {
     /// # Errors
     /// Returning an error will throw an exception in JavaScript.
     fn error(&self, msg: String, state: &ConsoleState, context: &mut Context) -> JsResult<()>;
+
+    /// Log tabular data (`console.table`). By default, formats the table and passes to `log`.
+    ///
+    /// # Errors
+    /// Returning an error will throw an exception in JavaScript.
+    fn table(&self, msg: String, state: &ConsoleState, context: &mut Context) -> JsResult<()> {
+        self.log(msg, state, context)
+    }
 }
 
 /// The default implementation for logging from the console.
@@ -231,6 +239,70 @@ fn formatter(data: &[JsValue], context: &mut Context) -> JsResult<String> {
             Ok(formatted)
         }
     }
+}
+
+/// Converts a `PropertyKey` to a display string, returning `None` for symbols.
+fn property_key_display(key: &boa_engine::property::PropertyKey) -> Option<String> {
+    use boa_engine::property::PropertyKey;
+    match key {
+        PropertyKey::String(s) => Some(s.to_std_string_escaped()),
+        PropertyKey::Index(i) => Some(i.get().to_string()),
+        PropertyKey::Symbol(_) => None,
+    }
+}
+
+/// Extracts column names and cell values from a single row value.
+/// Primitives are placed under the `"Values"` column.
+fn extract_row_cells(
+    value: &JsValue,
+    context: &mut Context,
+    all_columns: &mut Vec<String>,
+) -> JsResult<Vec<(String, String)>> {
+    if let Some(obj) = value.as_object() {
+        let keys = obj.own_property_keys(context)?;
+        let mut cells = Vec::new();
+        for key in &keys {
+            let Some(col) = property_key_display(key) else {
+                continue;
+            };
+            let cell = obj.get(key.clone(), context)?;
+            if !all_columns.contains(&col) {
+                all_columns.push(col.clone());
+            }
+            cells.push((col, cell.display().to_string()));
+        }
+        Ok(cells)
+    } else {
+        let col = "Values".to_string();
+        if !all_columns.contains(&col) {
+            all_columns.push(col.clone());
+        }
+        Ok(vec![(col, value.display().to_string())])
+    }
+}
+
+/// Renders rows and columns into an ASCII table string using `comfy-table`.
+fn build_table_string(rows: &[(String, Vec<(String, String)>)], columns: &[String]) -> String {
+    let mut table = comfy_table::Table::new();
+    table.load_preset(comfy_table::presets::ASCII_MARKDOWN);
+
+    let mut header = vec!["(index)".to_string()];
+    header.extend_from_slice(columns);
+    table.set_header(header);
+
+    for (index, cells) in rows {
+        let cell_map: std::collections::HashMap<&str, &str> = cells
+            .iter()
+            .map(|(k, v)| (k.as_str(), v.as_str()))
+            .collect();
+        let mut row = vec![index.clone()];
+        for col in columns {
+            row.push((*cell_map.get(col.as_str()).unwrap_or(&"")).to_string());
+        }
+        table.add_row(row);
+    }
+
+    table.to_string()
 }
 
 /// The current state of the console, passed to the logger backend.
@@ -434,8 +506,13 @@ impl Console {
             0,
         )
         .function(
-            console_method(Self::dir, state, logger.clone()),
+            console_method(Self::dir, state.clone(), logger.clone()),
             js_string!("dirxml"),
+            0,
+        )
+        .function(
+            console_method(Self::table, state, logger.clone()),
+            js_string!("table"),
             0,
         )
         .build()
@@ -915,6 +992,79 @@ impl Console {
             &console.state,
             context,
         )?;
+        Ok(JsValue::undefined())
+    }
+
+    /// `console.table(tabularData, properties)`
+    ///
+    /// Prints tabular data formatted as a table.
+    ///
+    /// More information:
+    ///  - [MDN documentation][mdn]
+    ///  - [WHATWG `console` specification][spec]
+    ///
+    /// [spec]: https://console.spec.whatwg.org/#table
+    /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/API/console/table_static
+    fn table(
+        _: &JsValue,
+        args: &[JsValue],
+        console: &Self,
+        logger: &impl Logger,
+        context: &mut Context,
+    ) -> JsResult<JsValue> {
+        let tabular_data = args.get_or_undefined(0);
+
+        // Non-object: fall back to plain log
+        let Some(data_obj) = tabular_data.as_object() else {
+            logger.log(formatter(args, context)?, &console.state, context)?;
+            return Ok(JsValue::undefined());
+        };
+
+        // Parse optional column filter from second argument
+        let column_filter: Option<Vec<String>> = match args.get(1).and_then(JsValue::as_object) {
+            Some(props_obj) => {
+                let len = usize::try_from(
+                    props_obj
+                        .get(js_string!("length"), context)?
+                        .to_length(context)?,
+                )
+                .unwrap_or(0);
+                let mut cols = Vec::with_capacity(len);
+                for i in 0..len {
+                    let val = props_obj.get(i, context)?;
+                    cols.push(val.to_string(context)?.to_std_string_escaped());
+                }
+                Some(cols)
+            }
+            None => None,
+        };
+
+        // Build rows and discover all column names
+        let keys = data_obj.own_property_keys(context)?;
+        let mut rows: Vec<(String, Vec<(String, String)>)> = Vec::new();
+        let mut all_columns: Vec<String> = Vec::new();
+
+        for key in &keys {
+            let Some(index_str) = property_key_display(key) else {
+                continue;
+            };
+            let val = data_obj.get(key.clone(), context)?;
+            let cells = extract_row_cells(&val, context, &mut all_columns)?;
+            rows.push((index_str, cells));
+        }
+
+        // Apply column filter if provided
+        let columns: Vec<String> = match column_filter {
+            Some(filter) => all_columns
+                .into_iter()
+                .filter(|c| filter.contains(c))
+                .collect(),
+            None => all_columns,
+        };
+
+        let output = build_table_string(&rows, &columns);
+        logger.table(output, &console.state, context)?;
+
         Ok(JsValue::undefined())
     }
 }
