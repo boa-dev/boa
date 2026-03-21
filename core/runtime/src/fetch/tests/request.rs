@@ -50,59 +50,21 @@ fn request_constructor() {
 }
 
 #[test]
-fn request_constructor_connect_method_throws() {
+fn request_constructor_forbidden_method_throws() {
     run_test_actions([
         TestAction::inspect_context(|ctx| {
             let fetcher = TestFetcher::default();
             crate::fetch::register(fetcher, None, ctx).expect("failed to register fetch");
         }),
         TestAction::run(indoc! {r#"
-            try {
-                new Request("http://unit.test", { method: "CONNECT" });
-                throw Error("expected the call above to throw");
-            } catch (e) {
-                if (!(e instanceof TypeError)) {
-                    throw e;
-                }
-            }
-        "#}),
-    ]);
-}
-
-#[test]
-fn request_constructor_trace_method_throws() {
-    run_test_actions([
-        TestAction::inspect_context(|ctx| {
-            let fetcher = TestFetcher::default();
-            crate::fetch::register(fetcher, None, ctx).expect("failed to register fetch");
-        }),
-        TestAction::run(indoc! {r#"
-            try {
-                new Request("http://unit.test", { method: "TRACE" });
-                throw Error("expected the call above to throw");
-            } catch (e) {
-                if (!(e instanceof TypeError)) {
-                    throw e;
-                }
-            }
-        "#}),
-    ]);
-}
-
-#[test]
-fn request_constructor_track_method_throws() {
-    run_test_actions([
-        TestAction::inspect_context(|ctx| {
-            let fetcher = TestFetcher::default();
-            crate::fetch::register(fetcher, None, ctx).expect("failed to register fetch");
-        }),
-        TestAction::run(indoc! {r#"
-            try {
-                new Request("http://unit.test", { method: "TRACK" });
-                throw Error("expected the call above to throw");
-            } catch (e) {
-                if (!(e instanceof TypeError)) {
-                    throw e;
+            for (const method of ["CONNECT", "TRACE", "TRACK", "connect"]) {
+                try {
+                    new Request("http://unit.test", { method });
+                    throw Error("expected the call above to throw");
+                } catch (e) {
+                    if (!(e instanceof TypeError)) {
+                        throw e;
+                    }
                 }
             }
         "#}),
