@@ -1,6 +1,6 @@
 use super::TestFetcher;
 use crate::test::{TestAction, run_test_actions};
-use boa_engine::{Context, js_str};
+use boa_engine::{Context, JsValue, js_str};
 use http::{Response, Uri};
 
 fn register(responses: &[(&'static str, Response<Vec<u8>>)], ctx: &mut Context) {
@@ -351,6 +351,59 @@ fn response_clone_preserves_status() {
         TestAction::inspect_context(|ctx| {
             let response = ctx.global_object().get(js_str!("response"), ctx).unwrap();
             response.as_promise().unwrap().await_blocking(ctx).unwrap();
+        }),
+    ]);
+}
+
+#[test]
+fn response_body_buffer_sources() {
+    run_test_actions([
+        TestAction::harness(),
+        TestAction::inspect_context(|ctx| register(&[], ctx)),
+        TestAction::run(
+            r#"
+                // ArrayBuffer body
+                let ab = new Uint8Array([104,101,108,108,111]).buffer;
+                let r0 = new Response(ab);
+                assertEq(r0.headers.has("content-type"), false);
+
+                // Uint8Array body (no content-type should be injected)
+                let u8a = new Uint8Array([104,101,108,108,111]);
+                let r1 = new Response(u8a);
+                assertEq(r1.headers.has("content-type"), false);
+
+                // Subarray/view slicing
+                let sub = new Uint8Array([0,104,101,108,108,111,0]).subarray(1, 6);
+                let r2 = new Response(sub);
+                assertEq(r2.headers.has("content-type"), false);
+
+                // DataView with non-zero offset
+                let buffer = new Uint8Array([0,104,101,108,108,111,0]).buffer;
+                let dv = new DataView(buffer, 1, 5);
+                let r3 = new Response(dv);
+                assertEq(r3.headers.has("content-type"), false);
+
+                // String body fallback (should retain default text content-type)
+                let r4 = new Response("hello");
+                assertEq(r4.headers.get("content-type"), "text/plain;charset=UTF-8");
+
+                globalThis.verify = async () => {
+                    assertEq(await r0.text(), "hello");
+                    assertEq(await r1.text(), "hello");
+                    assertEq(await r2.text(), "hello");
+                    assertEq(await r3.text(), "hello");
+                    assertEq(await r4.text(), "hello");
+                };
+            "#,
+        ),
+        TestAction::inspect_context(|ctx| {
+            let verify_fn = ctx.global_object().get(js_str!("verify"), ctx).unwrap();
+            let promise = verify_fn
+                .as_callable()
+                .unwrap()
+                .call(&JsValue::undefined(), &[], ctx)
+                .unwrap();
+            promise.as_promise().unwrap().await_blocking(ctx).unwrap();
         }),
     ]);
 }
