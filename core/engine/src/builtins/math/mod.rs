@@ -153,9 +153,11 @@ impl Math {
     /// [spec]: https://tc39.es/ecma262/#sec-math.acosh
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Math/acosh
     pub(crate) fn acosh(_: &JsValue, args: &[JsValue], context: &mut Context) -> JsResult<JsValue> {
+        const ACOSH_LARGE_INPUT_THRESHOLD: f64 = 1e154;
+
         // 1. Let n be ? ToNumber(x).
         let n = args.get_or_undefined(0).to_number(context)?;
-        if n.is_finite() && n > 1e154 {
+        if n.is_finite() && n > ACOSH_LARGE_INPUT_THRESHOLD {
             return Ok((n.ln() + std::f64::consts::LN_2).into());
         }
 
