@@ -153,16 +153,17 @@ impl Math {
     /// [spec]: https://tc39.es/ecma262/#sec-math.acosh
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Math/acosh
     pub(crate) fn acosh(_: &JsValue, args: &[JsValue], context: &mut Context) -> JsResult<JsValue> {
-        Ok(args
-            .get_or_undefined(0)
-            // 1. Let n be ? ToNumber(x).
-            .to_number(context)?
-            // 4. If n < 1𝔽, return NaN.
-            // 2. If n is NaN or n is +∞𝔽, return n.
-            // 3. If n is 1𝔽, return +0𝔽.
-            // 5. Return an implementation-approximated value representing the result of the inverse hyperbolic cosine of ℝ(n).
-            .acosh()
-            .into())
+        // 1. Let n be ? ToNumber(x).
+        let n = args.get_or_undefined(0).to_number(context)?;
+        if n.is_finite() && n > 1e154 {
+            return Ok((n.ln() + std::f64::consts::LN_2).into());
+        }
+
+        // 4. If n < 1𝔽, return NaN.
+        // 2. If n is NaN or n is +∞𝔽, return n.
+        // 3. If n is 1𝔽, return +0𝔽.
+        // 5. Return an implementation-approximated value representing the result of the inverse hyperbolic cosine of ℝ(n).
+        Ok(n.acosh().into())
     }
 
     /// Get the arcsine of a number.
