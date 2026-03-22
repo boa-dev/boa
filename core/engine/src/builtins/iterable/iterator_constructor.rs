@@ -9,9 +9,19 @@
 //! [spec]: https://tc39.es/ecma262/#sec-iterator-constructor
 
 use crate::{
-    Context, JsArgs, JsData, JsResult, JsString, JsValue, builtins::{
-        BuiltInBuilder, BuiltInConstructor, BuiltInObject, IntrinsicObject, iterable::IteratorRecord, object::OrdinaryObject
-    }, context::intrinsics::{Intrinsics, StandardConstructor, StandardConstructors}, error::JsNativeError, js_error, js_string, object::JsObject, property::Attribute, realm::Realm, string::StaticJsStrings, symbol::JsSymbol
+    Context, JsArgs, JsData, JsResult, JsString, JsValue,
+    builtins::{
+        BuiltInBuilder, BuiltInConstructor, BuiltInObject, IntrinsicObject,
+        iterable::IteratorRecord, object::OrdinaryObject,
+    },
+    context::intrinsics::{Intrinsics, StandardConstructor, StandardConstructors},
+    error::JsNativeError,
+    js_error, js_string,
+    object::JsObject,
+    property::Attribute,
+    realm::Realm,
+    string::StaticJsStrings,
+    symbol::JsSymbol,
 };
 use boa_gc::{Finalize, Trace};
 
@@ -83,10 +93,10 @@ impl IntrinsicObject for IteratorConstructor {
             // Accessor: Iterator.prototype.constructor (web-compat, 2 slots)
             .constructor_accessor(get_constructor, set_constructor);
 
-            #[cfg(feature = "experimental")]
-            let builder = builder.method(Self::includes, js_string!("includes"), 1);
+        #[cfg(feature = "experimental")]
+        let builder = builder.method(Self::includes, js_string!("includes"), 1);
 
-            builder.build();
+        builder.build();
     }
 
     fn get(intrinsics: &Intrinsics) -> JsObject {
@@ -666,7 +676,9 @@ impl IteratorConstructor {
             // Step 4.a
             None => 0,
             // Step 5.b
-            Some(Some(number)) if !number.is_nan() => number.clamp(i64::MIN as f64, i64::MAX as f64) as i64,
+            Some(Some(number)) if !number.is_nan() => {
+                number.clamp(i64::MIN as f64, i64::MAX as f64) as i64
+            }
             // Step 5.a
             _ => {
                 let error = js_error!(TypeError: "skippedElements must be a number");
@@ -697,7 +709,7 @@ impl IteratorConstructor {
                 // i. Set skipped to skipped + 1.
                 skipped += 1;
             // d. Else if SameValueZero(value, searchElement) is true, then
-            } else if JsValue::same_value_zero(&value, &search_element) {
+            } else if JsValue::same_value_zero(&value, search_element) {
                 // i. Return ? IteratorClose(iterated, NormalCompletion(true)).
                 return iterated.close(Ok(true.into()), context);
             }
