@@ -985,3 +985,4 @@ fn array_prototype_find_edge_cases() {
         "#}),
     ]);
 }
+
