@@ -38,3 +38,36 @@ fn object_properties_return_order() {
         ),
     ]);
 }
+
+#[test]
+fn array_prototype_for_each_edge_cases() {
+    run_test_actions([
+        TestAction::run_harness(),
+        // Empty array — callback never called
+        TestAction::assert(indoc! {r#"
+            var called = 0;
+            [].forEach(() => { called++; });
+            called === 0
+        "#}),
+        // Return value is always undefined
+        TestAction::assert(indoc! {r#"
+            var result = [1, 2, 3].forEach(x => x * 2);
+            result === undefined
+        "#}),
+        // Sparse array — holes are skipped
+        TestAction::assert(indoc! {r#"
+            var count = 0;
+            let arr = [1, , 3];
+            arr.forEach(() => { count++; });
+            count === 2
+        "#}),
+        // this binding via second argument
+        TestAction::assert(indoc! {r#"
+            var obj = { multiplier: 2, result: 0 };
+            [1, 2, 3].forEach(function(x) {
+                this.result += x * this.multiplier;
+            }, obj);
+            obj.result === 12
+        "#}),
+    ]);
+}
