@@ -68,6 +68,7 @@ impl IntrinsicObject for IteratorConstructor {
             ))
             // Static methods
             .static_method(Self::from, js_string!("from"), 1)
+            .static_method(Self::concat, js_string!("concat"), 0)
             // Prototype methods — lazy (return IteratorHelper)
             .method(Self::map, js_string!("map"), 1)
             .method(Self::filter, js_string!("filter"), 1)
@@ -104,7 +105,7 @@ impl BuiltInObject for IteratorConstructor {
 
 impl BuiltInConstructor for IteratorConstructor {
     const PROTOTYPE_STORAGE_SLOTS: usize = 14; // 11 methods + @@toStringTag accessor (2 slots) + constructor accessor (2 slots)
-    const CONSTRUCTOR_STORAGE_SLOTS: usize = 1; // Iterator.from
+    const CONSTRUCTOR_STORAGE_SLOTS: usize = 2;
     const CONSTRUCTOR_ARGUMENTS: usize = 0;
     const STANDARD_CONSTRUCTOR: fn(&StandardConstructors) -> &StandardConstructor =
         StandardConstructors::iterator;
@@ -200,6 +201,51 @@ impl IteratorConstructor {
         );
 
         Ok(wrapper.into())
+    }
+
+    fn concat(_this: &JsValue, args: &[JsValue], context: &mut Context) -> JsResult<JsValue> {
+        // 1. Let iterables be a new empty List.
+        let mut iterables = Vec::with_capacity(args.len());
+
+        // 2. For each element item of items, do
+        for item in args {
+            // a. If item is not an Object, throw a TypeError exception.
+            if !item.is_object() {
+                return Err(JsNativeError::typ()
+                    .with_message("Iterator.concat requires iterable objects")
+                    .into());
+            }
+
+            // b. Let method be ? GetMethod(item, %Symbol.iterator%).
+            // c. If method is undefined, throw a TypeError exception.
+            let method = item
+                .get_method(JsSymbol::iterator(), context)?
+                .ok_or_else(|| {
+                    JsNativeError::typ()
+                        .with_message("Iterator.concat requires objects with @@iterator")
+                })?;
+
+            // d. Append the Record { [[OpenMethod]]: method, [[Iterable]]: item } to iterables.
+            iterables.push((method, item.clone()));
+        }
+
+        // 3. Let closure be a new Abstract Closure with no parameters that captures iterables
+        //    and performs the following steps when called:
+        //    (implemented via IteratorHelperOp::Concat in execute_next)
+        // 4-5. Let result be CreateIteratorFromClosure(closure, "Iterator Helper", ...)
+        //      with [[UnderlyingIterators]] set to a new empty List.
+        let helper = IteratorHelper::create(
+            vec![],
+            IteratorHelperOp::Concat {
+                iterables,
+                current_index: 0,
+                inner: None,
+            },
+            context,
+        );
+
+        // 6. Return result.
+        Ok(helper.into())
     }
 
     // ==================== Prototype Accessor Properties ====================
@@ -365,7 +411,7 @@ impl IteratorConstructor {
 
         // 5-17. Create IteratorHelper with map operation.
         let helper = IteratorHelper::create(
-            iterated,
+            vec![iterated],
             IteratorHelperOp::Map {
                 mapper: mapper_obj.clone(),
                 counter: 0,
@@ -407,7 +453,7 @@ impl IteratorConstructor {
 
         // 5-13. Create IteratorHelper with filter operation.
         let helper = IteratorHelper::create(
-            iterated,
+            vec![iterated],
             IteratorHelperOp::Filter {
                 predicate: predicate_obj.clone(),
                 counter: 0,
@@ -476,7 +522,7 @@ impl IteratorConstructor {
 
         // 8-10. Return CreateIteratorHelper with a take closure.
         let helper = IteratorHelper::create(
-            iterated,
+            vec![iterated],
             IteratorHelperOp::Take {
                 remaining: integer_limit,
             },
@@ -544,7 +590,7 @@ impl IteratorConstructor {
 
         // 8-10. Return CreateIteratorHelper with a drop closure.
         let helper = IteratorHelper::create(
-            iterated,
+            vec![iterated],
             IteratorHelperOp::Drop {
                 remaining: integer_limit,
                 done_dropping: false,
@@ -586,7 +632,7 @@ impl IteratorConstructor {
 
         // 5+. Create IteratorHelper with flatMap operation.
         let helper = IteratorHelper::create(
-            iterated,
+            vec![iterated],
             IteratorHelperOp::FlatMap {
                 mapper: mapper_obj.clone(),
                 counter: 0,

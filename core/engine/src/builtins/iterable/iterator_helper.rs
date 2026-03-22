@@ -40,8 +40,12 @@ pub(crate) enum IteratorHelperOp {
     FlatMap {
         mapper: JsObject,
         counter: u64,
-        /// The inner iterator from the most recent call to `mapper`, if any.
         inner_iterator: Option<IteratorRecord>,
+    },
+    Concat {
+        iterables: Vec<(JsObject, JsValue)>,
+        current_index: usize,
+        inner: Option<IteratorRecord>,
     },
 }
 
@@ -66,8 +70,7 @@ pub(crate) enum IteratorHelperState {
 /// [spec]: https://tc39.es/ecma262/#sec-iterator-helper-objects
 #[derive(Debug, Finalize, Trace, JsData)]
 pub(crate) struct IteratorHelper {
-    /// `[[UnderlyingIterator]]` — the iterator record for the source iterator.
-    pub(crate) underlying_iterator: IteratorRecord,
+    pub(crate) underlying_iterators: Vec<IteratorRecord>,
 
     /// `[[GeneratorState]]` — tracks the state of this helper's internal generator.
     pub(crate) state: IteratorHelperState,
@@ -168,7 +171,7 @@ impl IteratorHelper {
     /// is complete. Using a dedicated flag avoids re-reading the `done` property via
     /// a property getter, which would trigger arbitrary user code.
     fn execute_next(object: &JsObject, context: &mut Context) -> JsResult<(JsValue, bool)> {
-        // Map arm: extract + clone what we need from op, then separately borrow underlying_iterator
+        // Map arm: extract + clone what we need from op, then separately borrow underlying_iterators
         {
             let mut helper = object
                 .downcast_mut::<Self>()
@@ -182,7 +185,7 @@ impl IteratorHelper {
                 let mut helper = object
                     .downcast_mut::<Self>()
                     .expect("object type already verified");
-                let iterated = &mut helper.underlying_iterator;
+                let iterated = &mut helper.underlying_iterators[0];
                 let value = iterated.step_value(context)?;
                 match value {
                     None => {
@@ -240,7 +243,7 @@ impl IteratorHelper {
                     let mut helper = object
                         .downcast_mut::<Self>()
                         .expect("object type already verified");
-                    let iterated = &mut helper.underlying_iterator;
+                    let iterated = &mut helper.underlying_iterators[0];
                     let value = iterated.step_value(context)?;
                     match value {
                         None => {
@@ -286,9 +289,8 @@ impl IteratorHelper {
                     let helper = object
                         .downcast_mut::<Self>()
                         .expect("object type already verified");
-                    let close_result = helper
-                        .underlying_iterator
-                        .close(Ok(JsValue::undefined()), context);
+                    let close_result =
+                        helper.underlying_iterators[0].close(Ok(JsValue::undefined()), context);
                     drop(helper);
                     close_result?;
                     return Ok((
@@ -302,7 +304,7 @@ impl IteratorHelper {
                 let mut helper = object
                     .downcast_mut::<Self>()
                     .expect("object type already verified");
-                let value = helper.underlying_iterator.step_value(context)?;
+                let value = helper.underlying_iterators[0].step_value(context)?;
                 return match value {
                     None => Ok((
                         create_iter_result_object(JsValue::undefined(), true, context),
@@ -336,7 +338,7 @@ impl IteratorHelper {
                         let mut helper = object
                             .downcast_mut::<Self>()
                             .expect("object type already verified");
-                        let value = helper.underlying_iterator.step_value(context)?;
+                        let value = helper.underlying_iterators[0].step_value(context)?;
                         if value.is_none() {
                             return Ok((
                                 create_iter_result_object(JsValue::undefined(), true, context),
@@ -349,7 +351,7 @@ impl IteratorHelper {
                 let mut helper = object
                     .downcast_mut::<Self>()
                     .expect("object type already verified");
-                let value = helper.underlying_iterator.step_value(context)?;
+                let value = helper.underlying_iterators[0].step_value(context)?;
                 return match value {
                     None => Ok((
                         create_iter_result_object(JsValue::undefined(), true, context),
@@ -357,6 +359,116 @@ impl IteratorHelper {
                     )),
                     Some(v) => Ok((create_iter_result_object(v, false, context), false)),
                 };
+            }
+        }
+
+        // Concat arm — Iterator.concat closure steps:
+        // https://tc39.es/ecma262/#sec-iterator.concat
+        {
+            let is_concat = {
+                let helper = object
+                    .downcast_mut::<Self>()
+                    .expect("object type already verified");
+                matches!(helper.op, IteratorHelperOp::Concat { .. })
+            };
+
+            if is_concat {
+                loop {
+                    let has_inner = {
+                        let helper = object
+                            .downcast_mut::<Self>()
+                            .expect("object type already verified");
+                        let IteratorHelperOp::Concat { inner, .. } = &helper.op else {
+                            unreachable!()
+                        };
+                        inner.is_some()
+                    };
+
+                    if has_inner {
+                        // Clone the inner iterator record and drop the borrow before
+                        // calling step_value, since user code may re-enter .next().
+                        let mut inner_iter = {
+                            let helper = object
+                                .downcast_mut::<Self>()
+                                .expect("object type already verified");
+                            let IteratorHelperOp::Concat { inner, .. } = &helper.op else {
+                                unreachable!()
+                            };
+                            inner.clone().expect("checked above")
+                        };
+                        // 3.b.v. Let innerValue be ? IteratorStepValue(iteratorRecord).
+                        let inner_value = inner_iter.step_value(context)?;
+                        if let Some(val) = inner_value {
+                            // 3.b.v.2. Let completion be Completion(Yield(innerValue)).
+                            return Ok((create_iter_result_object(val, false, context), false));
+                        }
+                        // 3.b.v.1. If innerValue is done, then set innerAlive to false.
+                        let mut helper = object
+                            .downcast_mut::<Self>()
+                            .expect("object type already verified");
+                        let IteratorHelperOp::Concat {
+                            inner,
+                            current_index,
+                            ..
+                        } = &mut helper.op
+                        else {
+                            unreachable!()
+                        };
+                        *inner = None;
+                        *current_index += 1;
+                        continue;
+                    }
+
+                    let iterable_data = {
+                        let helper = object
+                            .downcast_mut::<Self>()
+                            .expect("object type already verified");
+                        let IteratorHelperOp::Concat {
+                            iterables,
+                            current_index,
+                            ..
+                        } = &helper.op
+                        else {
+                            unreachable!()
+                        };
+                        if *current_index >= iterables.len() {
+                            None
+                        } else {
+                            Some((
+                                iterables[*current_index].0.clone(),
+                                iterables[*current_index].1.clone(),
+                            ))
+                        }
+                    };
+
+                    // 3.a. If current_index >= iterables.len(), return undefined, done.
+                    let Some((open_method, iterable)) = iterable_data else {
+                        return Ok((
+                            create_iter_result_object(JsValue::undefined(), true, context),
+                            true,
+                        ));
+                    };
+
+                    // 3.b.i. Let iter be ? Call(iterable.[[OpenMethod]], iterable.[[Iterable]]).
+                    let iter = open_method.call(&iterable, &[], context)?;
+                    // 3.b.ii. If iter is not an Object, throw a TypeError exception.
+                    let iter_obj = iter.as_object().ok_or_else(|| {
+                        JsNativeError::typ()
+                            .with_message("Iterator.concat: iterator is not an object")
+                    })?;
+                    // 3.b.iii. Let iteratorRecord be ? GetIteratorDirect(iter).
+                    let iterator_record = super::get_iterator_direct(&iter_obj, context)?;
+
+                    // Append iteratorRecord to O.[[UnderlyingIterators]].
+                    let mut helper = object
+                        .downcast_mut::<Self>()
+                        .expect("object type already verified");
+                    helper.underlying_iterators.push(iterator_record.clone());
+                    let IteratorHelperOp::Concat { inner, .. } = &mut helper.op else {
+                        unreachable!()
+                    };
+                    *inner = Some(iterator_record);
+                }
             }
         }
 
@@ -398,7 +510,7 @@ impl IteratorHelper {
                     *inner_iterator = None;
                 }
 
-                // Get data from op then drop borrow, then access underlying_iterator
+                // Get data from op then drop borrow, then access underlying_iterators
                 let (mapper, count) = {
                     let mut helper = object
                         .downcast_mut::<Self>()
@@ -417,7 +529,7 @@ impl IteratorHelper {
                 let mut helper = object
                     .downcast_mut::<Self>()
                     .expect("object type already verified");
-                let iterated = &mut helper.underlying_iterator;
+                let iterated = &mut helper.underlying_iterators[0];
                 let value = iterated.step_value(context)?;
 
                 match value {
@@ -452,7 +564,8 @@ impl IteratorHelper {
                                         .downcast_mut::<Self>()
                                         .expect("object type already verified");
                                     drop(
-                                        helper.underlying_iterator.close(Err(err.clone()), context),
+                                        helper.underlying_iterators[0]
+                                            .close(Err(err.clone()), context),
                                     );
                                     return Err(err);
                                 }
@@ -495,57 +608,35 @@ impl IteratorHelper {
 
         match helper.state {
             // 4. If O.[[GeneratorState]] is suspended-start, then
-            IteratorHelperState::SuspendedStart => {
+            // 5. If O.[[GeneratorState]] is suspended-yield, then
+            IteratorHelperState::SuspendedStart
+            | IteratorHelperState::SuspendedYield
+            | IteratorHelperState::Executing => {
                 // a. Set O.[[GeneratorState]] to completed.
                 helper.state = IteratorHelperState::Completed;
-
-                // b. Perform ? IteratorClose(O.[[UnderlyingIterator]], NormalCompletion(unused)).
-                let close_result = helper
-                    .underlying_iterator
-                    .close(Ok(JsValue::undefined()), context);
+                // b. Let iters be O.[[UnderlyingIterators]].
+                let iterators: Vec<IteratorRecord> =
+                    helper.underlying_iterators.drain(..).collect();
                 drop(helper);
-                close_result?;
 
-                // c. Return CreateIterResultObject(undefined, true).
+                // c. Return ? IteratorCloseAll(iters, NormalCompletion(undefined)).
+                //
+                // IteratorCloseAll (§7.4.12):
+                // 1. For each element iter of iters, in reverse List order, do
+                //    a. Set completion to Completion(IteratorClose(iter, completion)).
+                // 2. Return ? completion.
+                let mut completion: JsResult<JsValue> = Ok(JsValue::undefined());
+                for iter in iterators.iter().rev() {
+                    completion = iter.close(completion.clone(), context);
+                }
+                completion?;
                 Ok(create_iter_result_object(
                     JsValue::undefined(),
                     true,
                     context,
                 ))
             }
-            IteratorHelperState::SuspendedYield => {
-                // Set state to completed and close the underlying iterator.
-                helper.state = IteratorHelperState::Completed;
 
-                let close_result = helper
-                    .underlying_iterator
-                    .close(Ok(JsValue::undefined()), context);
-                drop(helper);
-                close_result?;
-
-                Ok(create_iter_result_object(
-                    JsValue::undefined(),
-                    true,
-                    context,
-                ))
-            }
-            IteratorHelperState::Executing => {
-                // Re-entrancy: the closure is currently executing and called .return().
-                // Set state to completed and close.
-                helper.state = IteratorHelperState::Completed;
-
-                let close_result = helper
-                    .underlying_iterator
-                    .close(Ok(JsValue::undefined()), context);
-                drop(helper);
-                close_result?;
-
-                Ok(create_iter_result_object(
-                    JsValue::undefined(),
-                    true,
-                    context,
-                ))
-            }
             IteratorHelperState::Completed => Ok(create_iter_result_object(
                 JsValue::undefined(),
                 true,
@@ -556,7 +647,7 @@ impl IteratorHelper {
 
     /// Creates a new `IteratorHelper` object.
     pub(crate) fn create(
-        underlying_iterator: IteratorRecord,
+        underlying_iterators: Vec<IteratorRecord>,
         op: IteratorHelperOp,
         context: &mut Context,
     ) -> JsObject {
@@ -568,7 +659,7 @@ impl IteratorHelper {
                 .iterator_prototypes()
                 .iterator_helper(),
             Self {
-                underlying_iterator,
+                underlying_iterators,
                 state: IteratorHelperState::SuspendedStart,
                 op,
             },
