@@ -964,21 +964,24 @@ fn array_of_neg_zero() {
 }
 
 #[test]
-fn array_prototype_map_edge_cases() {
+fn array_prototype_find_edge_cases() {
     run_test_actions([
         TestAction::run_harness(),
-        TestAction::assert(r#"arrayEquals([].map(x => x), [])"#),
-        TestAction::assert(
-            r#"arrayEquals([1, 2, 3].map(() => undefined), [undefined, undefined, undefined])"#,
-        ),
-        TestAction::run(indoc! {r#"
-            let arr = [1, , 3];
-            let result = arr.map(x => x);
+        TestAction::assert("[].find(x => x === 1) === undefined"),
+        TestAction::assert("[1, 2, 3].find(x => x === 99) === undefined"),
+        TestAction::assert("[1, 2, 1].find(x => x === 1) === 1"),
+        TestAction::assert(indoc! {r#"
+            var obj = { name: "Alice" };
+            [obj].find(x => x.name === "Alice") === obj
         "#}),
-        TestAction::assert("result.length === 3"),
-        TestAction::assert("result[0] === 1"),
-        TestAction::assert("!(1 in result)"),
-        TestAction::assert("result[2] === 3"),
-        TestAction::assert(r#"arrayEquals([1, 2, 3].map(x => x), [1, 2, 3])"#),
+        TestAction::assert(indoc! {r#"
+            var idx = -1;
+            [10, 20, 30].find((v, i) => { idx = i; return v === 20; });
+            idx === 1
+        "#}),
+        TestAction::assert(indoc! {r#"
+            let arr = [1, , 3];
+            arr.find(x => x === undefined) === undefined
+        "#}),
     ]);
 }
