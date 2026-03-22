@@ -11,12 +11,11 @@
 use crate::{
     Context, JsArgs, JsData, JsResult, JsString, JsValue,
     builtins::{
-        BuiltInBuilder, BuiltInConstructor, BuiltInObject, IntrinsicObject,
-        iterable::IteratorRecord, object::OrdinaryObject,
+        BuiltInBuilder, BuiltInConstructor, BuiltInObject, IntrinsicObject, object::OrdinaryObject,
     },
     context::intrinsics::{Intrinsics, StandardConstructor, StandardConstructors},
     error::JsNativeError,
-    js_error, js_string,
+    js_string,
     object::JsObject,
     property::Attribute,
     realm::Realm,
@@ -24,6 +23,9 @@ use crate::{
     symbol::JsSymbol,
 };
 use boa_gc::{Finalize, Trace};
+
+#[cfg(feature = "experimental")]
+use crate::{builtins::iterable::IteratorRecord, js_error};
 
 use super::{
     if_abrupt_close_iterator,
