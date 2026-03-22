@@ -676,6 +676,8 @@ fn to_precision_edge_cases() {
         TestAction::assert_eq("(0.00456).toPrecision(3)", js_str!("0.00456")),
         TestAction::assert_eq("(0.0000001).toPrecision(2)", js_str!("1.0e-7")),
         TestAction::assert_eq("(0.000000123).toPrecision(3)", js_str!("1.23e-7")),
+        TestAction::assert_eq("Number.MIN_VALUE.toPrecision(1)", js_str!("5e-324")),
+        TestAction::assert_eq("Number.MIN_VALUE.toPrecision(2)", js_str!("4.9e-324")),
         TestAction::assert_eq("(123456789).toPrecision(3)", js_str!("1.23e+8")),
         TestAction::assert_eq("(0.1 + 0.2).toPrecision(1)", js_str!("0.3")),
         TestAction::assert_eq("(123).toPrecision(3)", js_str!("123")),

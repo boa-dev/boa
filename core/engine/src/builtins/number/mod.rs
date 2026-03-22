@@ -491,14 +491,26 @@ impl Number {
             // by `format`: digits with an optional dot between two of them.
             suffix = format!("{this_num:.100}");
 
-            // a: getting an exponent
-            exponent = Self::flt_str_to_exp(&suffix);
-            // b: getting relevant digits only
-            if exponent < 0 {
-                suffix = suffix.split_off((1 - exponent) as usize);
-            } else if let Some(n) = suffix.find('.') {
-                suffix.remove(n);
+            if suffix.bytes().all(|b| matches!(b, b'0' | b'.')) {
+                let scientific = format!("{this_num:.100e}");
+                let (mantissa, scientific_exponent) = scientific
+                    .split_once('e')
+                    .expect("scientific notation must contain an exponent");
+                suffix = mantissa.chars().filter(|&c| c != '.').collect();
+                exponent = scientific_exponent
+                    .parse()
+                    .expect("scientific notation exponent must be an integer");
+            } else {
+                // a: getting an exponent
+                exponent = Self::flt_str_to_exp(&suffix);
+                // b: getting relevant digits only
+                if exponent < 0 {
+                    suffix = suffix.split_off((1 - exponent) as usize);
+                } else if let Some(n) = suffix.find('.') {
+                    suffix.remove(n);
+                }
             }
+
             // impl: having exactly `precision` digits in `suffix`
             if Self::round_to_precision(&mut suffix, precision) {
                 exponent += 1;
