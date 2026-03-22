@@ -9,18 +9,9 @@
 //! [spec]: https://tc39.es/ecma262/#sec-iterator-constructor
 
 use crate::{
-    Context, JsArgs, JsData, JsResult, JsString, JsValue,
-    builtins::{
-        BuiltInBuilder, BuiltInConstructor, BuiltInObject, IntrinsicObject, object::OrdinaryObject,
-    },
-    context::intrinsics::{Intrinsics, StandardConstructor, StandardConstructors},
-    error::JsNativeError,
-    js_string,
-    object::JsObject,
-    property::Attribute,
-    realm::Realm,
-    string::StaticJsStrings,
-    symbol::JsSymbol,
+    Context, JsArgs, JsData, JsResult, JsString, JsValue, builtins::{
+        BuiltInBuilder, BuiltInConstructor, BuiltInObject, IntrinsicObject, iterable::IteratorRecord, object::OrdinaryObject
+    }, context::intrinsics::{Intrinsics, StandardConstructor, StandardConstructors}, error::JsNativeError, js_error, js_string, object::JsObject, property::Attribute, realm::Realm, string::StaticJsStrings, symbol::JsSymbol
 };
 use boa_gc::{Finalize, Trace};
 
@@ -58,7 +49,7 @@ impl IntrinsicObject for IteratorConstructor {
         // non-enumerable get/set accessor (web-compat requirement).  We use the
         // builder's `constructor_accessor` support so the property is part of the
         // shared-shape allocation rather than a post-build override.
-        BuiltInBuilder::from_standard_constructor::<Self>(realm)
+        let builder = BuiltInBuilder::from_standard_constructor::<Self>(realm)
             .inherits(Some(
                 realm
                     .intrinsics()
@@ -90,8 +81,14 @@ impl IntrinsicObject for IteratorConstructor {
                 Attribute::CONFIGURABLE,
             )
             // Accessor: Iterator.prototype.constructor (web-compat, 2 slots)
-            .constructor_accessor(get_constructor, set_constructor)
-            .build();
+            .constructor_accessor(get_constructor, set_constructor);
+
+            #[cfg(feature = "experimental")]
+            let builder = {
+                builder.method(Self::includes, js_string!("includes"), 1)
+            };
+
+            builder.build();
     }
 
     fn get(intrinsics: &Intrinsics) -> JsObject {
@@ -645,6 +642,71 @@ impl IteratorConstructor {
     }
 
     // ==================== Prototype Methods — Eager (Consuming) ====================
+
+    /// `Iterator.prototype.includes ( searchElement [, skippedElements ] )`
+    #[cfg(feature = "experimental")] // Stage 2.7 iterator-includes proposal
+    fn includes(this: &JsValue, args: &[JsValue], context: &mut Context) -> JsResult<JsValue> {
+        // 1. Let O be the this value.
+        // 2. If O is not an Object, throw a TypeError exception.
+        let obj = this.as_object().ok_or_else(|| {
+            JsNativeError::typ().with_message("Iterator.prototype.includes called on non-object")
+        })?;
+
+        // 3. Let iterated be the Iterator Record { [[Iterator]]: O, [[NextMethod]]: undefined, [[Done]]: false }.
+        let iterated = IteratorRecord::new(obj.clone(), JsValue::undefined());
+
+        let search_element = args.get_or_undefined(0);
+
+        // 4. If skippedElements is undefined, then
+        // a. Let toSkip be 0.
+        // 5. Else,
+        // a. If skippedElements is not one of +∞𝔽, -∞𝔽, or an integral Number, then
+        // i. Let error be ThrowCompletion(a newly created TypeError object).
+        // ii. Return ? IteratorClose(iterated, error).
+        // b. Let toSkip be the extended mathematical value of skippedElements.
+        let to_skip = match args.get_or_undefined(1).map(JsValue::as_number) {
+            // Step 4.a
+            None => 0,
+            // Step 5.b
+            Some(Some(number)) if !number.is_nan() => number as i64,
+            // Step 5.a
+            _ => {
+                let error = js_error!(TypeError: "skippedElements must be a number");
+                return iterated.close(Err(error), context);
+            }
+        };
+
+        // 6. If toSkip < 0, then
+        if to_skip < 0 {
+            // a. Let error be ThrowCompletion(a newly created RangeError object).
+            let error = js_error!(RangeError: "skippedElements must be a positive number");
+            // b. Return ? IteratorClose(iterated, error).
+            return iterated.close(Err(error), context);
+        }
+
+        // 7. Let skipped be 0.
+        let mut skipped = 0;
+
+        // 8. Set iterated to ? GetIteratorDirect(O).
+        let mut iterated = super::get_iterator_direct(&obj, context)?;
+
+        // 9. Repeat,
+        while let Some(value) = iterated.step_value(context)? {
+            // a. Let value be ? IteratorStepValue(iterated).
+            // b. If value is done, return false.
+            // c. If skipped < toSkip, then
+            if skipped < to_skip {
+                // i. Set skipped to skipped + 1.
+                skipped += 1;
+            // d. Else if SameValueZero(value, searchElement) is true, then
+            } else if JsValue::same_value_zero(&value, &search_element) {
+                // i. Return ? IteratorClose(iterated, NormalCompletion(true)).
+                return iterated.close(Ok(true.into()), context);
+            }
+        }
+        // Step 9.b. return false
+        Ok(false.into())
+    }
 
     /// `Iterator.prototype.reduce ( reducer [ , initialValue ] )`
     ///
