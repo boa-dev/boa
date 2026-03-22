@@ -203,7 +203,7 @@ macro_rules! impl_argument_for_int {
         impl Argument for $t {
             #[inline(always)]
             fn encode(self, bytes: &mut Vec<u8>) {
-                paste::paste! {
+                pastey::paste! {
                     [<write_ $t>](bytes, self);
                 }
             }

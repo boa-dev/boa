@@ -25,7 +25,7 @@ icu_normalizer = { workspace = true, features = ["serde", "datagen"] }
 icu_plurals = { workspace = true, features = ["serde", "datagen", "experimental"] }
 icu_segmenter = { workspace = true, features = ["serde", "datagen"] }
 once_cell = { workspace = true, default-features = false, features = ["critical-section"] }
-paste.workspace = true
+pastey.workspace = true
 
 [features]
 default = ["std"]
