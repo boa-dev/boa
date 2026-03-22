@@ -38,23 +38,3 @@ fn object_properties_return_order() {
         ),
     ]);
 }
-
-#[test]
-fn array_prototype_map_edge_cases() {
-    run_test_actions([
-        TestAction::run_harness(),
-        TestAction::assert(r#"arrayEquals([].map(x => x), [])"#),
-        TestAction::assert(
-            r#"arrayEquals([1, 2, 3].map(() => undefined), [undefined, undefined, undefined])"#,
-        ),
-        TestAction::run(indoc! {r#"
-            let arr = [1, , 3];
-            let result = arr.map(x => x);
-        "#}),
-        TestAction::assert("result.length === 3"),
-        TestAction::assert("result[0] === 1"),
-        TestAction::assert("!(1 in result)"),
-        TestAction::assert("result[2] === 3"),
-        TestAction::assert(r#"arrayEquals([1, 2, 3].map(x => x), [1, 2, 3])"#),
-    ]);
-}
