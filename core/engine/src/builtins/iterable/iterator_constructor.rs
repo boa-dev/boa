@@ -84,9 +84,7 @@ impl IntrinsicObject for IteratorConstructor {
             .constructor_accessor(get_constructor, set_constructor);
 
             #[cfg(feature = "experimental")]
-            let builder = {
-                builder.method(Self::includes, js_string!("includes"), 1)
-            };
+            let builder = builder.method(Self::includes, js_string!("includes"), 1);
 
             builder.build();
     }
@@ -668,7 +666,7 @@ impl IteratorConstructor {
             // Step 4.a
             None => 0,
             // Step 5.b
-            Some(Some(number)) if !number.is_nan() => number as i64,
+            Some(Some(number)) if !number.is_nan() => number.clamp(i64::MIN as f64, i64::MAX as f64) as i64,
             // Step 5.a
             _ => {
                 let error = js_error!(TypeError: "skippedElements must be a number");

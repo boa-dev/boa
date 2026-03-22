@@ -445,3 +445,18 @@ fn iterator_concat_return_result_shape() {
          const r = it.return(); r.done === true && r.value === undefined",
     )]);
 }
+
+
+#[test]
+fn iterator_includes_basic() {
+    run_test_actions([
+        TestAction::run("const iter = Iterator.from([1, 3]);"),
+        TestAction::assert_eq("iter.includes(1)", true),
+        TestAction::assert_eq("iter.includes(2)", false),
+        TestAction::assert_eq("iter.includes(3)", true),
+        TestAction::assert_eq("iter.drop(1).includes(1)", false),
+        TestAction::assert_eq("iter.drop(1).includes(3)", true),
+        TestAction::assert_eq("iter.drop(2).includes(3)", false),
+    ]);
+}
+
