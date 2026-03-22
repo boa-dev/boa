@@ -7,9 +7,6 @@ use crate::{
     JsSymbol, JsValue, JsVariant,
     builtins::{
         BuiltInBuilder, BuiltInConstructor, BuiltInObject, IntrinsicObject,
-        intl::date_time_format::{
-            FormatDefaults, FormatType, create_date_time_format, format_date_time_locale,
-        },
         options::{get_option, get_options_object},
         temporal::{calendar::to_temporal_calendar_identifier, options::get_digits_option},
     },
@@ -42,6 +39,11 @@ use super::{
     create_temporal_instant, create_temporal_time, is_partial_temporal_object,
     options::{TemporalUnitGroup, get_difference_settings, get_temporal_unit},
     to_temporal_duration, to_temporal_time,
+};
+
+#[cfg(feature = "intl")]
+use crate::builtins::intl::date_time_format::{
+    FormatDefaults, FormatType, create_date_time_format, format_date_time_locale,
 };
 
 /// The `Temporal.ZonedDateTime` built-in implementation
