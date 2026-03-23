@@ -153,6 +153,10 @@ struct Opt {
     #[arg(long)]
     debug_object: bool,
 
+    /// Inject the test262 host object `$262`.
+    #[arg(long)]
+    test262_object: bool,
+
     /// Treats the input files as modules.
     #[arg(long, short = 'm', group = "mod")]
     module: bool,
@@ -560,6 +564,14 @@ fn main() -> Result<()> {
 
     if args.debug_object {
         init_boa_debug_object(context);
+    }
+
+    if args.test262_object {
+        boa_runtime::test262::register_js262(
+            boa_runtime::test262::WorkerHandles::new(),
+            true, // register `console` in $262.agent worker threads
+            context,
+        );
     }
 
     // Configure optimizer options

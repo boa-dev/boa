@@ -574,6 +574,7 @@ dependencies = [
  "base64",
  "boa_engine",
  "boa_gc",
+ "bus",
  "bytemuck",
  "either",
  "futures",
@@ -608,9 +609,7 @@ version = "1.0.0-dev"
 dependencies = [
  "bitflags",
  "boa_engine",
- "boa_gc",
  "boa_runtime",
- "bus",
  "clap",
  "color-eyre",
  "colored",
