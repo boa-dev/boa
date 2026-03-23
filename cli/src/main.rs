@@ -572,6 +572,12 @@ fn main() -> Result<()> {
             true, // register `console` in $262.agent worker threads
             context,
         );
+
+        // Add print() that test262 uses to report errors and async success.
+        // boa_tester handles it internally, but CLI should just print messages.
+        context
+            .eval(Source::from_bytes("var print = console.log.bind(console);"))
+            .expect("failed to define print");
     }
 
     // Configure optimizer options
