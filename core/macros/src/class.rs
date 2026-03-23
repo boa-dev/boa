@@ -352,9 +352,90 @@ impl Function {
         })
     }
 
+    /// Builds the body of [`boa_engine::class::Class::object_constructor`] from a
+    /// `#[boa(js_init)]` function.
+    ///
+    /// The attributed function must have exactly three parameters:
+    /// `instance: &JsObject<Self>`, `args: &[JsValue]`, and `context: &mut Context` (paths may be
+    /// qualified). It must not take `self`. The return type must be `()`, `JsResult<()>` or
+    /// omitted (treated as `()`).
+    fn js_init(fn_: &mut ImplItemFn) -> SpannedResult<TokenStream2> {
+        if fn_.sig.asyncness.is_some() {
+            error(&fn_.sig.asyncness, "Async functions are not supported.")?;
+        }
+
+        if !fn_.sig.generics.params.is_empty() {
+            error(&fn_.sig.generics, "Generic functions are not supported.")?;
+        }
+
+        if fn_.sig.inputs.len() != 3 {
+            return error(
+                &fn_.sig.inputs,
+                "js_init must have exactly 3 parameters: \
+                 instance: &JsObject<Self>, args: &[JsValue], context: &mut Context",
+            );
+        }
+
+        for input in &fn_.sig.inputs {
+            if let FnArg::Receiver(r) = input {
+                return error(r, "js_init cannot use `self`");
+            }
+        }
+
+        let fn_name = &fn_.sig.ident;
+
+        let invoke = quote! {
+            Self:: #fn_name ( instance, args, context )
+        };
+
+        let body_tail = match &fn_.sig.output {
+            ReturnType::Default => quote! {
+                #invoke;
+                Ok(())
+            },
+            ReturnType::Type(_, ty) => {
+                if type_is_empty_tuple(ty) {
+                    quote! {
+                        #invoke;
+                        Ok(())
+                    }
+                } else if type_is_js_result(ty) {
+                    quote! {
+                        #invoke
+                    }
+                } else {
+                    return error(
+                        &fn_.sig.output,
+                        "js_init return type must be `()`, `JsResult<()>` or omitted",
+                    );
+                }
+            }
+        };
+
+        Ok(quote! {
+            #body_tail
+        })
+    }
+
     pub(crate) fn body(&self) -> &TokenStream2 {
         &self.body
     }
+}
+
+/// Returns `true` if `ty` is the unit type `()`.
+fn type_is_empty_tuple(ty: &Type) -> bool {
+    matches!(ty, Type::Tuple(t) if t.elems.is_empty())
+}
+
+/// Returns `true` if `ty` is `JsResult<...>` (any `T`).
+fn type_is_js_result(ty: &Type) -> bool {
+    let Type::Path(tp) = ty else {
+        return false;
+    };
+    tp.path
+        .segments
+        .last()
+        .is_some_and(|s| s.ident == "JsResult")
 }
 
 #[derive(Debug, Default)]
@@ -454,6 +535,9 @@ struct ClassVisitor {
     // Whether we detected a constructor while visiting.
     constructor: Option<Function>,
 
+    /// Body for `Class::object_constructor`, from at most one `#[boa(js_init)]`.
+    js_init: Option<TokenStream2>,
+
     // All static functions recorded.
     statics: Vec<Function>,
 
@@ -473,6 +557,7 @@ impl ClassVisitor {
             renaming,
             type_,
             constructor: None,
+            js_init: None,
             statics: Vec::new(),
             methods: Vec::new(),
             accessors: BTreeMap::default(),
@@ -546,6 +631,17 @@ impl ClassVisitor {
         Ok(())
     }
 
+    fn js_init(&mut self, fn_: &mut ImplItemFn) -> SpannedResult<()> {
+        if self.js_init.is_some() {
+            return error(
+                fn_,
+                "Only one #[boa(js_init)] function is allowed per #[boa_class] impl.",
+            );
+        }
+        self.js_init = Some(Function::js_init(fn_)?);
+        Ok(())
+    }
+
     /// Add an error to list of errors we are recording along the way. Errors are handled
     /// at the end of the process, so this combines all errors.
     #[allow(clippy::needless_pass_by_value)]
@@ -609,6 +705,20 @@ impl ClassVisitor {
             |c| c.body.clone(),
         );
 
+        let object_constructor_impl = if let Some(body) = &self.js_init {
+            quote! {
+                fn object_constructor(
+                    instance: &boa_engine::object::JsObject<Self>,
+                    args: &[boa_engine::JsValue],
+                    context: &mut boa_engine::Context,
+                ) -> boa_engine::JsResult<()> {
+                    #body
+                }
+            }
+        } else {
+            quote! {}
+        };
+
         quote! {
             impl boa_engine::class::Class for #class_ty {
                 const NAME: &'static str = #class_name;
@@ -621,6 +731,8 @@ impl ClassVisitor {
                 ) -> boa_engine::JsResult<Self> {
                     #constructor_body
                 }
+
+                #object_constructor_impl
 
                 fn init(builder: &mut boa_engine::class::ClassBuilder) -> boa_engine::JsResult<()> {
                     // Add all statics.
@@ -645,6 +757,7 @@ impl VisitMut for ClassVisitor {
     fn visit_impl_item_fn_mut(&mut self, item: &mut ImplItemFn) {
         // If there's a `boa` argument, parse it.
         let has_ctor_attr = take_path_attr(&mut item.attrs, "constructor");
+        let has_js_init_attr = take_path_attr(&mut item.attrs, "js_init");
         let has_getter_attr = take_path_attr(&mut item.attrs, "getter");
         let has_setter_attr = take_path_attr(&mut item.attrs, "setter");
         let has_method_attr = take_path_attr(&mut item.attrs, "method");
@@ -662,11 +775,18 @@ impl VisitMut for ClassVisitor {
             self.error(span, msg);
         }
 
+        if has_js_init_attr && let Err((span, msg)) = self.js_init(item) {
+            self.error(span, msg);
+        }
+
         // A function is a method if it has a `#[boa(method)]` attribute or has no
         // method-type related attributes.
         if (has_static_attr
             || has_method_attr
-            || !(has_getter_attr || has_ctor_attr || has_setter_attr))
+            || !(has_getter_attr
+                || has_ctor_attr
+                || has_setter_attr
+                || has_js_init_attr))
             && let Err((span, msg)) = self.method(has_method_attr, has_static_attr, item)
         {
             self.error(span, msg);

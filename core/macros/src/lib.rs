@@ -76,7 +76,11 @@ pub fn embed_module_inner(input: TokenStream) -> TokenStream {
 /// 3. `#[boa(static)]` will declare a static method.
 /// 4. `#[boa(method)]` will declare a method.
 /// 5. `#[boa(constructor)]` will declare a constructor.
-/// 6. `#[boa(length = 123)]` sets the length of the function in JavaScript (ie. its
+/// 6. `#[boa(js_init)]` declares `Class::object_constructor`: run after the instance object
+///    exists to set plain JS properties on `instance` (or similar). The function must have
+///    exactly `instance: &JsObject<Self>`, `args: &[JsValue]`, and `context: &mut Context`, and
+///    return `()` or `JsResult<()>`. At most one per `impl` block.
+/// 7. `#[boa(length = 123)]` sets the length of the function in JavaScript (ie. its
 ///    number of arguments accepted).
 ///
 /// Multiple of those attributes can be added to a single method.

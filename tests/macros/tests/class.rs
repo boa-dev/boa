@@ -2,7 +2,8 @@
 #![allow(unused_crate_dependencies)]
 
 use boa_engine::{
-    Context, Finalize, JsData, JsObject, JsString, JsValue, Source, Trace, boa_class, js_string,
+    Context, Finalize, JsArgs, JsData, JsObject, JsResult, JsString, JsValue, Source, Trace,
+    boa_class, js_string,
 };
 
 #[derive(Clone, Trace, Finalize, JsData)]
@@ -69,6 +70,39 @@ impl Animal {
             AnimalType::Dog => js_string!("woof"),
             AnimalType::Other => js_string!(r"¯\_(ツ)_/¯"),
         }
+    }
+}
+
+/// Class with `#[boa(js_init)]` setting an own data property on the JS object.
+#[derive(Clone, Trace, Finalize, JsData)]
+struct Widget {
+    id: i32,
+}
+
+#[boa_class]
+impl Widget {
+    #[boa(constructor)]
+    fn new(id: i32) -> Self {
+        Self { id }
+    }
+
+    #[boa(js_init)]
+    fn init_js_object(
+        instance: &JsObject<Self>,
+        args: &[JsValue],
+        context: &mut Context,
+    ) -> JsResult<()> {
+        let label = args.get_or_undefined(1).to_string(context)?;
+        instance
+            .clone()
+            .upcast()
+            .set(js_string!("label"), JsValue::from(label), true, context)?;
+        Ok(())
+    }
+
+    #[boa(rename = "getId")]
+    fn get_id(&self) -> i32 {
+        self.id
     }
 }
 
@@ -146,6 +180,27 @@ fn boa_class() {
             assertEq(Animal.prototype.method.length, 11, "Method.length");
             assertEq(Animal.prototype.speak.length, 0, "speak.length");
             assertEq(Animal.prototype.setAge.length, 1, "setAge.length");
+     "#,
+        ))
+        .expect("Could not evaluate script");
+}
+
+#[test]
+fn boa_class_js_init_sets_own_property() {
+    let mut context = Context::default();
+
+    context.register_global_class::<Widget>().unwrap();
+
+    context
+        .eval(Source::from_bytes(ASSERT_DECL))
+        .expect("Unreachable.");
+
+    context
+        .eval(Source::from_bytes(
+            r#"
+            let w = new Widget(7, "hello");
+            assertEq(w.getId(), 7, "native id from constructor");
+            assertEq(w.label, "hello", "own property from js_init");
      "#,
         ))
         .expect("Could not evaluate script");
