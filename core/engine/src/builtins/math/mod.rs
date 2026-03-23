@@ -20,14 +20,17 @@ use crate::{
 use super::{BuiltInBuilder, IntrinsicObject};
 
 /// For very large finite `|x|`, `f64::asinh` can overflow internally when forming `x²`.
-/// In that regime `asinh(x)` is well approximated by `sign(x) · (ln|x| + ln 2)`.
+/// In that regime `asinh(x) ≈ ln(2|x|) + 1/(4x²)`; the correction is computed as `(1/(2x))²`
+/// so we never square `x` (which would overflow).
 fn asinh_f64(n: f64) -> f64 {
     if n.is_nan() || n == 0.0 || n.is_infinite() {
         return n;
     }
     let ax = n.abs();
     if (ax * ax).is_infinite() {
-        n.signum() * (ax.ln() + std::f64::consts::LN_2)
+        let ln_2x = ax.ln() + std::f64::consts::LN_2;
+        let inv_2x = 0.5 / ax;
+        n.signum() * (ln_2x + inv_2x * inv_2x)
     } else {
         n.asinh()
     }
