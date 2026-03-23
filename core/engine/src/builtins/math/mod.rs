@@ -153,7 +153,8 @@ impl Math {
     /// [spec]: https://tc39.es/ecma262/#sec-math.acosh
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Math/acosh
     pub(crate) fn acosh(_: &JsValue, args: &[JsValue], context: &mut Context) -> JsResult<JsValue> {
-        const ACOSH_LARGE_INPUT_THRESHOLD: f64 = 1e154;
+        // 1/√f64::EPSILON, as established by the Boost math library.
+        const ACOSH_LARGE_INPUT_THRESHOLD: f64 = 67_108_864.0;
 
         // 1. Let n be ? ToNumber(x).
         let n = args.get_or_undefined(0).to_number(context)?;
