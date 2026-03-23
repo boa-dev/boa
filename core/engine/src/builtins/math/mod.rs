@@ -19,6 +19,20 @@ use crate::{
 
 use super::{BuiltInBuilder, IntrinsicObject};
 
+/// For very large finite `|x|`, `f64::asinh` can overflow internally when forming `x²`.
+/// In that regime `asinh(x)` is well approximated by `sign(x) · (ln|x| + ln 2)`.
+fn asinh_f64(n: f64) -> f64 {
+    if n.is_nan() || n == 0.0 || n.is_infinite() {
+        return n;
+    }
+    let ax = n.abs();
+    if (ax * ax).is_infinite() {
+        n.signum() * (ax.ln() + std::f64::consts::LN_2)
+    } else {
+        n.asinh()
+    }
+}
+
 #[cfg(test)]
 mod tests;
 
@@ -198,14 +212,13 @@ impl Math {
     /// [spec]: https://tc39.es/ecma262/#sec-math.asinh
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Math/asinh
     pub(crate) fn asinh(_: &JsValue, args: &[JsValue], context: &mut Context) -> JsResult<JsValue> {
-        Ok(args
+        let n = args
             .get_or_undefined(0)
             // 1. Let n be ? ToNumber(x).
-            .to_number(context)?
-            // 2. If n is NaN, n is +0𝔽, n is -0𝔽, n is +∞𝔽, or n is -∞𝔽, return n.
-            // 3. Return an implementation-approximated value representing the result of the inverse hyperbolic sine of ℝ(n).
-            .asinh()
-            .into())
+            .to_number(context)?;
+        // 2. If n is NaN, n is +0𝔽, n is -0𝔽, n is +∞𝔽, or n is -∞𝔽, return n.
+        // 3. Return an implementation-approximated value representing the result of the inverse hyperbolic sine of ℝ(n).
+        Ok(asinh_f64(n).into())
     }
 
     /// Get the arctangent of a number.

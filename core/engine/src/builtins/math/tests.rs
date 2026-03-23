@@ -42,6 +42,9 @@ fn asinh() {
     run_test_actions([
         TestAction::assert_eq("Math.asinh(1)", 0.881_373_587_019_543),
         TestAction::assert_eq("Math.asinh(0)", 0.0),
+        TestAction::assert_eq("Math.asinh(1e308)", 709.889_355_822_726_f64),
+        TestAction::assert_eq("Math.asinh(Number.MAX_VALUE)", 710.475_860_073_943_9_f64),
+        TestAction::assert_eq("Math.asinh(-1e308)", -709.889_355_822_726_f64),
     ]);
 }
 
