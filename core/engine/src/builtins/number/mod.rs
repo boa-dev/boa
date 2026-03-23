@@ -231,11 +231,11 @@ impl Number {
         if !this_num.is_finite() {
             if this_num.is_nan() {
                 return Ok(JsValue::new(js_string!("NaN")));
-            } else if this_num.is_sign_positive() {
-                return Ok(JsValue::new(js_string!("Infinity")));
-            } else {
-                return Ok(JsValue::new(js_string!("-Infinity")));
             }
+            if this_num.is_sign_positive() {
+                return Ok(JsValue::new(js_string!("Infinity")));
+            }
+            return Ok(JsValue::new(js_string!("-Infinity")));
         }
         // Get rid of the '-' sign for -0.0
         let this_num = if this_num == 0. { 0. } else { this_num };
