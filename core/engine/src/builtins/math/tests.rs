@@ -24,6 +24,8 @@ fn acosh() {
         TestAction::assert_eq("Math.acosh(2)", 1.316_957_896_924_816_6),
         TestAction::assert_eq("Math.acosh(-1)", f64::NAN),
         TestAction::assert_eq("Math.acosh(0.5)", f64::NAN),
+        TestAction::assert_eq("Math.acosh(1e308)", 709.889_355_822_726_f64),
+        TestAction::assert_eq("Math.acosh(Number.MAX_VALUE)", 710.475_860_073_943_9_f64),
     ]);
 }
 
