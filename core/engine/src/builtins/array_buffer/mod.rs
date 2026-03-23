@@ -496,14 +496,7 @@ impl ArrayBuffer {
         // 1. Let O be the this value.
         // 2. Perform ? RequireInternalSlot(O, [[ArrayBufferData]]).
         // 3. If IsSharedArrayBuffer(O) is true, throw a TypeError exception.
-        let object = this.as_object();
-        let buf = object
-            .as_ref()
-            .and_then(JsObject::downcast_ref::<Self>)
-            .ok_or_else(|| {
-                JsNativeError::typ()
-                    .with_message("get ArrayBuffer.prototype.byteLength called with invalid `this`")
-            })?;
+        require_internal_slot!(buf = this, Self, "ArrayBuffer");
 
         // 4. If IsDetachedBuffer(O) is true, return +0𝔽.
         // 5. Let length be O.[[ArrayBufferByteLength]].
@@ -522,15 +515,7 @@ impl ArrayBuffer {
         // 1. Let O be the this value.
         // 2. Perform ? RequireInternalSlot(O, [[ArrayBufferData]]).
         // 3. If IsSharedArrayBuffer(O) is true, throw a TypeError exception.
-        let object = this.as_object();
-        let buf = object
-            .as_ref()
-            .and_then(JsObject::downcast_ref::<Self>)
-            .ok_or_else(|| {
-                JsNativeError::typ().with_message(
-                    "get ArrayBuffer.prototype.maxByteLength called with invalid `this`",
-                )
-            })?;
+        require_internal_slot!(buf = this, Self, "ArrayBuffer");
 
         // 4. If IsDetachedBuffer(O) is true, return +0𝔽.
         let Some(data) = buf.bytes() else {
@@ -556,14 +541,7 @@ impl ArrayBuffer {
         // 1. Let O be the this value.
         // 2. Perform ? RequireInternalSlot(O, [[ArrayBufferData]]).
         // 3. If IsSharedArrayBuffer(O) is true, throw a TypeError exception.
-        let object = this.as_object();
-        let buf = object
-            .as_ref()
-            .and_then(JsObject::downcast_ref::<Self>)
-            .ok_or_else(|| {
-                JsNativeError::typ()
-                    .with_message("get ArrayBuffer.prototype.resizable called with invalid `this`")
-            })?;
+        require_internal_slot!(buf = this, Self, "ArrayBuffer");
 
         // 4. If IsFixedLengthArrayBuffer(O) is false, return true; otherwise return false.
         Ok(JsValue::from(!buf.is_fixed_len()))
@@ -581,14 +559,7 @@ impl ArrayBuffer {
         // 1. Let O be the this value.
         // 2. Perform ? RequireInternalSlot(O, [[ArrayBufferData]]).
         // 3. If IsSharedArrayBuffer(O) is true, throw a TypeError exception.
-        let object = this.as_object();
-        let buf = object
-            .as_ref()
-            .and_then(JsObject::downcast_ref::<Self>)
-            .ok_or_else(|| {
-                JsNativeError::typ()
-                    .with_message("get ArrayBuffer.prototype.detached called with invalid `this`")
-            })?;
+        require_internal_slot!(buf = this, Self, "ArrayBuffer");
 
         // 4. Return IsDetachedBuffer(O).
         Ok(buf.is_detached().into())

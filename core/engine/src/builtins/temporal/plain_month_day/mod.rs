@@ -192,13 +192,7 @@ impl PlainMonthDay {
 impl PlainMonthDay {
     // Helper for retrieving internal fields
     fn get_internal_field(this: &JsValue, field: &DateTimeValues) -> JsResult<JsValue> {
-        let object = this.as_object();
-        let month_day = object
-            .as_ref()
-            .and_then(JsObject::downcast_ref::<Self>)
-            .ok_or_else(|| {
-                JsNativeError::typ().with_message("this value must be a PlainMonthDay object.")
-            })?;
+        require_internal_slot!(month_day = this, Self, "PlainMonthDay");
         let inner = &month_day.inner;
         match field {
             DateTimeValues::Day => Ok(inner.day().into()),
@@ -219,13 +213,7 @@ impl PlainMonthDay {
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Temporal/PlainMonthDay/calendarId
     /// [temporal_rs-docs]: https://docs.rs/temporal_rs/latest/temporal_rs/struct.PlainMonthDay.html#method.calendar
     fn get_calendar_id(this: &JsValue, _: &[JsValue], _: &mut Context) -> JsResult<JsValue> {
-        let object = this.as_object();
-        let month_day = object
-            .as_ref()
-            .and_then(JsObject::downcast_ref::<Self>)
-            .ok_or_else(|| {
-                JsNativeError::typ().with_message("this value must be a PlainMonthDay object.")
-            })?;
+        require_internal_slot!(month_day = this, Self, "PlainMonthDay");
         Ok(js_string!(month_day.inner.calendar().identifier()).into())
     }
 
@@ -277,13 +265,7 @@ impl PlainMonthDay {
     fn with(this: &JsValue, args: &[JsValue], context: &mut Context) -> JsResult<JsValue> {
         // 1. Let monthDay be the this value.
         // 2. Perform ? RequireInternalSlot(monthDay, [[InitializedTemporalMonthDay]]).
-        let object = this.as_object();
-        let month_day = object
-            .as_ref()
-            .and_then(JsObject::downcast_ref::<Self>)
-            .ok_or_else(|| {
-                JsNativeError::typ().with_message("this value must be a PlainMonthDay object.")
-            })?;
+        require_internal_slot!(month_day = this, Self, "PlainMonthDay");
 
         // 3. If ? IsPartialTemporalObject(temporalMonthDayLike) is false, throw a TypeError exception.
         let Some(object) = is_partial_temporal_object(args.get_or_undefined(0), context)? else {
@@ -317,13 +299,7 @@ impl PlainMonthDay {
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Temporal/PlainMonthDay/equals
     /// [temporal_rs-docs]: https://docs.rs/temporal_rs/latest/temporal_rs/struct.PlainMonthDay.html#impl-PartialEq-for-PlainMonthDay
     fn equals(this: &JsValue, args: &[JsValue], context: &mut Context) -> JsResult<JsValue> {
-        let object = this.as_object();
-        let month_day = object
-            .as_ref()
-            .and_then(JsObject::downcast_ref::<Self>)
-            .ok_or_else(|| {
-                JsNativeError::typ().with_message("this value must be a PlainMonthDay object.")
-            })?;
+        require_internal_slot!(month_day = this, Self, "PlainMonthDay");
 
         let other =
             to_temporal_month_day(args.get_or_undefined(0), &JsValue::undefined(), context)?;
@@ -345,13 +321,7 @@ impl PlainMonthDay {
     fn to_string(this: &JsValue, args: &[JsValue], context: &mut Context) -> JsResult<JsValue> {
         // 1. Let monthDay be the this value.
         // 2. Perform ? RequireInternalSlot(monthDay, [[InitializedTemporalMonthDay]]).
-        let object = this.as_object();
-        let month_day = object
-            .as_ref()
-            .and_then(JsObject::downcast_ref::<Self>)
-            .ok_or_else(|| {
-                JsNativeError::typ().with_message("this value must be a PlainMonthDay object.")
-            })?;
+        require_internal_slot!(month_day = this, Self, "PlainMonthDay");
 
         // 3. Set options to ? NormalizeOptionsObject(options).
         let options = get_options_object(args.get_or_undefined(0))?;
@@ -380,13 +350,7 @@ impl PlainMonthDay {
         _: &mut Context,
     ) -> JsResult<JsValue> {
         // TODO: Update for ECMA-402 compliance
-        let object = this.as_object();
-        let month_day = object
-            .as_ref()
-            .and_then(JsObject::downcast_ref::<Self>)
-            .ok_or_else(|| {
-                JsNativeError::typ().with_message("this value must be a PlainMonthDay object.")
-            })?;
+        require_internal_slot!(month_day = this, Self, "PlainMonthDay");
 
         Ok(JsString::from(month_day.inner.to_string()).into())
     }
@@ -401,13 +365,7 @@ impl PlainMonthDay {
     /// [spec]: https://tc39.es/proposal-temporal/#sec-temporal.plainmonthday.tojson
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Temporal/PlainMonthDay/toJSON
     pub(crate) fn to_json(this: &JsValue, _: &[JsValue], _: &mut Context) -> JsResult<JsValue> {
-        let object = this.as_object();
-        let month_day = object
-            .as_ref()
-            .and_then(JsObject::downcast_ref::<Self>)
-            .ok_or_else(|| {
-                JsNativeError::typ().with_message("this value must be a PlainMonthDay object.")
-            })?;
+        require_internal_slot!(month_day = this, Self, "PlainMonthDay");
 
         Ok(JsString::from(month_day.inner.to_string()).into())
     }
@@ -441,13 +399,7 @@ impl PlainMonthDay {
     fn to_plain_date(this: &JsValue, args: &[JsValue], context: &mut Context) -> JsResult<JsValue> {
         // 1. Let monthDay be the this value.
         // 2. Perform ? RequireInternalSlot(monthDay, [[InitializedTemporalMonthDay]]).
-        let object = this.as_object();
-        let month_day = object
-            .as_ref()
-            .and_then(JsObject::downcast_ref::<Self>)
-            .ok_or_else(|| {
-                JsNativeError::typ().with_message("this value must be a PlainMonthDay object.")
-            })?;
+        require_internal_slot!(month_day = this, Self, "PlainMonthDay");
 
         // 3. If item is not an Object, then
         let Some(item) = args.get_or_undefined(0).as_object() else {

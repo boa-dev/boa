@@ -286,13 +286,7 @@ impl Instant {
     ) -> JsResult<JsValue> {
         // 1. Let instant be the this value.
         // 2. Perform ? RequireInternalSlot(instant, [[InitializedTemporalInstant]]).
-        let object = this.as_object();
-        let instant = object
-            .as_ref()
-            .and_then(JsObject::downcast_ref::<Self>)
-            .ok_or_else(|| {
-                JsNativeError::typ().with_message("the this object must be an instant object.")
-            })?;
+        require_internal_slot!(instant = this, Self, "Instant");
         // 3. Let ns be instant.[[Nanoseconds]].
         // 4. Let ms be floor(ℝ(ns) / 10^6).
         // 5. Return 𝔽(ms).
@@ -317,13 +311,7 @@ impl Instant {
     ) -> JsResult<JsValue> {
         // 1. Let instant be the this value.
         // 2. Perform ? RequireInternalSlot(instant, [[InitializedTemporalInstant]]).
-        let object = this.as_object();
-        let instant = object
-            .as_ref()
-            .and_then(JsObject::downcast_ref::<Self>)
-            .ok_or_else(|| {
-                JsNativeError::typ().with_message("the this object must be an instant object.")
-            })?;
+        require_internal_slot!(instant = this, Self, "Instant");
         // 3. Let ns be instant.[[Nanoseconds]].
         // 4. Return ns.
         Ok(JsBigInt::from(instant.inner.epoch_nanoseconds().as_i128()).into())
@@ -351,13 +339,7 @@ impl Instant {
     ) -> JsResult<JsValue> {
         // 1. Let instant be the this value.
         // 2. Perform ? RequireInternalSlot(instant, [[InitializedTemporalInstant]]).
-        let object = this.as_object();
-        let instant = object
-            .as_ref()
-            .and_then(JsObject::downcast_ref::<Self>)
-            .ok_or_else(|| {
-                JsNativeError::typ().with_message("the this object must be an instant object.")
-            })?;
+        require_internal_slot!(instant = this, Self, "Instant");
 
         // 3. Return ? AddDurationToOrSubtractDurationFromInstant(add, instant, temporalDurationLike).
         let temporal_duration_like =
@@ -384,13 +366,7 @@ impl Instant {
     ) -> JsResult<JsValue> {
         // 1. Let instant be the this value.
         // 2. Perform ? RequireInternalSlot(instant, [[InitializedTemporalInstant]]).
-        let object = this.as_object();
-        let instant = object
-            .as_ref()
-            .and_then(JsObject::downcast_ref::<Self>)
-            .ok_or_else(|| {
-                JsNativeError::typ().with_message("the this object must be an instant object.")
-            })?;
+        require_internal_slot!(instant = this, Self, "Instant");
 
         // 3. Return ? AddDurationToOrSubtractDurationFromInstant(subtract, instant, temporalDurationLike).
         let temporal_duration_like =
@@ -417,13 +393,7 @@ impl Instant {
     ) -> JsResult<JsValue> {
         // 1. Let instant be the this value.
         // 2. Perform ? RequireInternalSlot(instant, [[InitializedTemporalInstant]]).
-        let object = this.as_object();
-        let instant = object
-            .as_ref()
-            .and_then(JsObject::downcast_ref::<Self>)
-            .ok_or_else(|| {
-                JsNativeError::typ().with_message("the this object must be an instant object.")
-            })?;
+        require_internal_slot!(instant = this, Self, "Instant");
 
         // 3. Return ? DifferenceTemporalInstant(until, instant, other, options).
         let other = to_temporal_instant(args.get_or_undefined(0), context)?;
@@ -453,13 +423,7 @@ impl Instant {
     ) -> JsResult<JsValue> {
         // 1. Let instant be the this value.
         // 2. Perform ? RequireInternalSlot(instant, [[InitializedTemporalInstant]]).
-        let object = this.as_object();
-        let instant = object
-            .as_ref()
-            .and_then(JsObject::downcast_ref::<Self>)
-            .ok_or_else(|| {
-                JsNativeError::typ().with_message("the this object must be an instant object.")
-            })?;
+        require_internal_slot!(instant = this, Self, "Instant");
 
         // 3. Return ? DifferenceTemporalInstant(since, instant, other, options).
         let other = to_temporal_instant(args.get_or_undefined(0), context)?;
@@ -487,13 +451,7 @@ impl Instant {
     ) -> JsResult<JsValue> {
         // 1. Let instant be the this value.
         // 2. Perform ? RequireInternalSlot(instant, [[InitializedTemporalInstant]]).
-        let object = this.as_object();
-        let instant = object
-            .as_ref()
-            .and_then(JsObject::downcast_ref::<Self>)
-            .ok_or_else(|| {
-                JsNativeError::typ().with_message("the this object must be an instant object.")
-            })?;
+        require_internal_slot!(instant = this, Self, "Instant");
 
         let round_to = match args.first().map(JsValue::variant) {
             // 3. If roundTo is undefined, then
@@ -589,13 +547,7 @@ impl Instant {
         // 2. Perform ? RequireInternalSlot(instant, [[InitializedTemporalInstant]]).
         // 4. If instant.[[Nanoseconds]] ≠ other.[[Nanoseconds]], return false.
         // 5. Return true.
-        let object = this.as_object();
-        let instant = object
-            .as_ref()
-            .and_then(JsObject::downcast_ref::<Self>)
-            .ok_or_else(|| {
-                JsNativeError::typ().with_message("the this object must be an instant object.")
-            })?;
+        require_internal_slot!(instant = this, Self, "Instant");
 
         // 3. Set other to ? ToTemporalInstant(other).
         let other = args.get_or_undefined(0);
@@ -619,14 +571,7 @@ impl Instant {
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Temporal/Instant/toString
     /// [temporal_rs-docs]: https://docs.rs/temporal_rs/latest/temporal_rs/struct.Instant.html#method.to_ixdtf_string
     fn to_string(this: &JsValue, args: &[JsValue], context: &mut Context) -> JsResult<JsValue> {
-        let object = this.as_object();
-        let instant = object
-            .as_ref()
-            .and_then(JsObject::downcast_ref::<Self>)
-            .ok_or_else(|| {
-                JsNativeError::typ()
-                    .with_message("the this object must be a Temporal.Instant object.")
-            })?;
+        require_internal_slot!(instant = this, Self, "Instant");
 
         let options = get_options_object(args.get_or_undefined(0))?;
 
@@ -666,14 +611,7 @@ impl Instant {
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Temporal/Instant/toLocaleString
     fn to_locale_string(this: &JsValue, _: &[JsValue], context: &mut Context) -> JsResult<JsValue> {
         // TODO: Update for ECMA-402 compliance
-        let object = this.as_object();
-        let instant = object
-            .as_ref()
-            .and_then(JsObject::downcast_ref::<Self>)
-            .ok_or_else(|| {
-                JsNativeError::typ()
-                    .with_message("the this object must be a Temporal.Instant object.")
-            })?;
+        require_internal_slot!(instant = this, Self, "Instant");
 
         let ixdtf = instant.inner.to_ixdtf_string_with_provider(
             None,
@@ -693,14 +631,7 @@ impl Instant {
     /// [spec]: https://tc39.es/proposal-temporal/#sec-temporal.instant.tojson
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Temporal/Instant/toJSON
     fn to_json(this: &JsValue, _: &[JsValue], context: &mut Context) -> JsResult<JsValue> {
-        let object = this.as_object();
-        let instant = object
-            .as_ref()
-            .and_then(JsObject::downcast_ref::<Self>)
-            .ok_or_else(|| {
-                JsNativeError::typ()
-                    .with_message("the this object must be a Temporal.Instant object.")
-            })?;
+        require_internal_slot!(instant = this, Self, "Instant");
 
         let ixdtf = instant.inner.to_ixdtf_string_with_provider(
             None,
@@ -743,14 +674,7 @@ impl Instant {
     ) -> JsResult<JsValue> {
         // 1. Let instant be the this value.
         // 2. Perform ? RequireInternalSlot(instant, [[InitializedTemporalInstant]]).
-        let object = this.as_object();
-        let instant = object
-            .as_ref()
-            .and_then(JsObject::downcast_ref::<Self>)
-            .ok_or_else(|| {
-                JsNativeError::typ()
-                    .with_message("the this object must be a Temporal.Instant object.")
-            })?;
+        require_internal_slot!(instant = this, Self, "Instant");
 
         // 3. Set timeZone to ? ToTemporalTimeZoneIdentifier(timeZone).
         let timezone = to_temporal_timezone_identifier(args.get_or_undefined(0), context)?;

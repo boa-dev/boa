@@ -409,13 +409,7 @@ impl BuiltinTypedArray {
         // 1. Let O be the this value.
         // 2. Perform ? RequireInternalSlot(O, [[TypedArrayName]]).
         // 3. Assert: O has a [[ViewedArrayBuffer]] internal slot.
-        let object = this.as_object();
-        let ta = object
-            .as_ref()
-            .and_then(JsObject::downcast_ref::<TypedArray>)
-            .ok_or_else(|| {
-                JsNativeError::typ().with_message("`this` is not a typed array object")
-            })?;
+        require_internal_slot!(ta = this, TypedArray, "TypedArray");
 
         // 4. Let buffer be O.[[ViewedArrayBuffer]].
         // 5. Return buffer.
@@ -432,13 +426,7 @@ impl BuiltinTypedArray {
         // 1. Let O be the this value.
         // 2. Perform ? RequireInternalSlot(O, [[TypedArrayName]]).
         // 3. Assert: O has a [[ViewedArrayBuffer]] internal slot.
-        let object = this.as_object();
-        let ta = object
-            .as_ref()
-            .and_then(JsObject::downcast_ref::<TypedArray>)
-            .ok_or_else(|| {
-                JsNativeError::typ().with_message("`this` is not a typed array object")
-            })?;
+        require_internal_slot!(ta = this, TypedArray, "TypedArray");
 
         // 4. Let taRecord be MakeTypedArrayWithBufferWitnessRecord(O, seq-cst).
         let buf_len = ta
@@ -463,13 +451,7 @@ impl BuiltinTypedArray {
         // 1. Let O be the this value.
         // 2. Perform ? RequireInternalSlot(O, [[TypedArrayName]]).
         // 3. Assert: O has a [[ViewedArrayBuffer]] internal slot.
-        let object = this.as_object();
-        let ta = object
-            .as_ref()
-            .and_then(JsObject::downcast_ref::<TypedArray>)
-            .ok_or_else(|| {
-                JsNativeError::typ().with_message("Value is not a typed array object")
-            })?;
+        require_internal_slot!(ta = this, TypedArray, "TypedArray");
 
         // 4. Let taRecord be MakeTypedArrayWithBufferWitnessRecord(O, seq-cst).
         // 5. If IsTypedArrayOutOfBounds(taRecord) is true, return +0𝔽.
@@ -1327,13 +1309,7 @@ impl BuiltinTypedArray {
         // 1. Let O be the this value.
         // 2. Perform ? RequireInternalSlot(O, [[TypedArrayName]]).
         // 3. Assert: O has [[ViewedArrayBuffer]] and [[ArrayLength]] internal slots.
-        let object = this.as_object();
-        let ta = object
-            .as_ref()
-            .and_then(JsObject::downcast_ref::<TypedArray>)
-            .ok_or_else(|| {
-                JsNativeError::typ().with_message("`this` is not a typed array object")
-            })?;
+        require_internal_slot!(ta = this, TypedArray, "TypedArray");
 
         // 4. Let taRecord be MakeTypedArrayWithBufferWitnessRecord(O, seq-cst).
         // 5. If IsTypedArrayOutOfBounds(taRecord) is true, return +0𝔽.

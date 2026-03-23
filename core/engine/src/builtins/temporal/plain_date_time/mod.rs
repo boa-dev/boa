@@ -488,13 +488,7 @@ impl PlainDateTime {
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Temporal/PlainDateTime/calendarId
     /// [temporal_rs-docs]: https://docs.rs/temporal_rs/latest/temporal_rs/struct.PlainDateTime.html#method.calendar
     fn get_calendar_id(this: &JsValue, _: &[JsValue], _: &mut Context) -> JsResult<JsValue> {
-        let object = this.as_object();
-        let dt = object
-            .as_ref()
-            .and_then(JsObject::downcast_ref::<Self>)
-            .ok_or_else(|| {
-                JsNativeError::typ().with_message("the this object must be a PlainDateTime object.")
-            })?;
+        require_internal_slot!(dt = this, Self, "PlainDateTime");
 
         Ok(JsString::from(dt.inner.calendar().identifier()).into())
     }
@@ -511,13 +505,7 @@ impl PlainDateTime {
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Temporal/PlainDateTime/era
     /// [temporal_rs-docs]: https://docs.rs/temporal_rs/latest/temporal_rs/struct.PlainDateTime.html#method.era
     fn get_era(this: &JsValue, _: &[JsValue], _: &mut Context) -> JsResult<JsValue> {
-        let object = this.as_object();
-        let dt = object
-            .as_ref()
-            .and_then(JsObject::downcast_ref::<Self>)
-            .ok_or_else(|| {
-                JsNativeError::typ().with_message("the this object must be a PlainDateTime object.")
-            })?;
+        require_internal_slot!(dt = this, Self, "PlainDateTime");
 
         Ok(dt
             .inner
@@ -538,13 +526,7 @@ impl PlainDateTime {
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Temporal/PlainDateTime/eraYear
     /// [temporal_rs-docs]: https://docs.rs/temporal_rs/latest/temporal_rs/struct.PlainDateTime.html#method.era_year
     fn get_era_year(this: &JsValue, _: &[JsValue], _: &mut Context) -> JsResult<JsValue> {
-        let object = this.as_object();
-        let dt = object
-            .as_ref()
-            .and_then(JsObject::downcast_ref::<Self>)
-            .ok_or_else(|| {
-                JsNativeError::typ().with_message("the this object must be a PlainDateTime object.")
-            })?;
+        require_internal_slot!(dt = this, Self, "PlainDateTime");
 
         Ok(dt.inner.era_year().into_or_undefined())
     }
@@ -561,13 +543,7 @@ impl PlainDateTime {
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Temporal/PlainDateTime/year
     /// [temporal_rs-docs]: https://docs.rs/temporal_rs/latest/temporal_rs/struct.PlainDateTime.html#method.year
     fn get_year(this: &JsValue, _: &[JsValue], _: &mut Context) -> JsResult<JsValue> {
-        let object = this.as_object();
-        let dt = object
-            .as_ref()
-            .and_then(JsObject::downcast_ref::<Self>)
-            .ok_or_else(|| {
-                JsNativeError::typ().with_message("the this object must be a PlainDateTime object.")
-            })?;
+        require_internal_slot!(dt = this, Self, "PlainDateTime");
 
         Ok(dt.inner.year().into())
     }
@@ -584,13 +560,7 @@ impl PlainDateTime {
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Temporal/PlainDateTime/month
     /// [temporal_rs-docs]: https://docs.rs/temporal_rs/latest/temporal_rs/struct.PlainDateTime.html
     fn get_month(this: &JsValue, _: &[JsValue], _: &mut Context) -> JsResult<JsValue> {
-        let object = this.as_object();
-        let dt = object
-            .as_ref()
-            .and_then(JsObject::downcast_ref::<Self>)
-            .ok_or_else(|| {
-                JsNativeError::typ().with_message("the this object must be a PlainDateTime object.")
-            })?;
+        require_internal_slot!(dt = this, Self, "PlainDateTime");
 
         Ok(dt.inner.month().into())
     }
@@ -607,13 +577,7 @@ impl PlainDateTime {
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Temporal/PlainDateTime/monthCode
     /// [temporal_rs-docs]: https://docs.rs/temporal_rs/latest/temporal_rs/struct.PlainDateTime.html#method.month_code
     fn get_month_code(this: &JsValue, _: &[JsValue], _: &mut Context) -> JsResult<JsValue> {
-        let object = this.as_object();
-        let dt = object
-            .as_ref()
-            .and_then(JsObject::downcast_ref::<Self>)
-            .ok_or_else(|| {
-                JsNativeError::typ().with_message("the this object must be a PlainDateTime object.")
-            })?;
+        require_internal_slot!(dt = this, Self, "PlainDateTime");
 
         Ok(JsString::from(dt.inner.month_code().as_str()).into())
     }
@@ -630,13 +594,7 @@ impl PlainDateTime {
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Temporal/PlainDateTime/day
     /// [temporal_rs-docs]: https://docs.rs/temporal_rs/latest/temporal_rs/struct.PlainDateTime.html#method.day
     fn get_day(this: &JsValue, _: &[JsValue], _: &mut Context) -> JsResult<JsValue> {
-        let object = this.as_object();
-        let dt = object
-            .as_ref()
-            .and_then(JsObject::downcast_ref::<Self>)
-            .ok_or_else(|| {
-                JsNativeError::typ().with_message("the this object must be a PlainDateTime object.")
-            })?;
+        require_internal_slot!(dt = this, Self, "PlainDateTime");
 
         Ok(dt.inner.day().into())
     }
@@ -655,13 +613,7 @@ impl PlainDateTime {
     fn get_hour(this: &JsValue, _: &[JsValue], _: &mut Context) -> JsResult<JsValue> {
         // 1. Let dateTime be the this value.
         // 2. Perform ? RequireInternalSlot(dateTime, [[InitializedTemporalDateTime]]).
-        let object = this.as_object();
-        let dt = object
-            .as_ref()
-            .and_then(JsObject::downcast_ref::<Self>)
-            .ok_or_else(|| {
-                JsNativeError::typ().with_message("the this object must be a PlainDateTime object.")
-            })?;
+        require_internal_slot!(dt = this, Self, "PlainDateTime");
 
         // 3. Return 𝔽(datedt.[[ISOHour]]).
         Ok(dt.inner.hour().into())
@@ -681,13 +633,7 @@ impl PlainDateTime {
     fn get_minute(this: &JsValue, _: &[JsValue], _: &mut Context) -> JsResult<JsValue> {
         // 1. Let dateTime be the this value.
         // 2. Perform ? RequireInternalSlot(dateTime, [[InitializedTemporalDateTime]]).
-        let object = this.as_object();
-        let dt = object
-            .as_ref()
-            .and_then(JsObject::downcast_ref::<Self>)
-            .ok_or_else(|| {
-                JsNativeError::typ().with_message("the this object must be a PlainDateTime object.")
-            })?;
+        require_internal_slot!(dt = this, Self, "PlainDateTime");
 
         // 3. Return 𝔽(datedt.[[ISOMinute]]).
         Ok(dt.inner.minute().into())
@@ -707,13 +653,7 @@ impl PlainDateTime {
     fn get_second(this: &JsValue, _: &[JsValue], _: &mut Context) -> JsResult<JsValue> {
         // 1. Let dateTime be the this value.
         // 2. Perform ? RequireInternalSlot(dateTime, [[InitializedTemporalDateTime]]).
-        let object = this.as_object();
-        let dt = object
-            .as_ref()
-            .and_then(JsObject::downcast_ref::<Self>)
-            .ok_or_else(|| {
-                JsNativeError::typ().with_message("the this object must be a PlainDateTime object.")
-            })?;
+        require_internal_slot!(dt = this, Self, "PlainDateTime");
 
         // 3. Return 𝔽(datedt.[[ISOSecond]]).
         Ok(dt.inner.second().into())
@@ -733,13 +673,7 @@ impl PlainDateTime {
     fn get_millisecond(this: &JsValue, _: &[JsValue], _: &mut Context) -> JsResult<JsValue> {
         // 1. Let dateTime be the this value.
         // 2. Perform ? RequireInternalSlot(dateTime, [[InitializedTemporalDateTime]]).
-        let object = this.as_object();
-        let dt = object
-            .as_ref()
-            .and_then(JsObject::downcast_ref::<Self>)
-            .ok_or_else(|| {
-                JsNativeError::typ().with_message("the this object must be a PlainDateTime object.")
-            })?;
+        require_internal_slot!(dt = this, Self, "PlainDateTime");
 
         // 3. Return 𝔽(datedt.[[ISOMillisecond]]).
         Ok(dt.inner.millisecond().into())
@@ -759,13 +693,7 @@ impl PlainDateTime {
     fn get_microsecond(this: &JsValue, _: &[JsValue], _: &mut Context) -> JsResult<JsValue> {
         // 1. Let dateTime be the this value.
         // 2. Perform ? RequireInternalSlot(dateTime, [[InitializedTemporalDateTime]]).
-        let object = this.as_object();
-        let dt = object
-            .as_ref()
-            .and_then(JsObject::downcast_ref::<Self>)
-            .ok_or_else(|| {
-                JsNativeError::typ().with_message("the this object must be a PlainDateTime object.")
-            })?;
+        require_internal_slot!(dt = this, Self, "PlainDateTime");
 
         // 3. Return 𝔽(datedt.[[ISOMicrosecond]]).
         Ok(dt.inner.microsecond().into())
@@ -785,13 +713,7 @@ impl PlainDateTime {
     fn get_nanosecond(this: &JsValue, _: &[JsValue], _: &mut Context) -> JsResult<JsValue> {
         // 1. Let dateTime be the this value.
         // 2. Perform ? RequireInternalSlot(dateTime, [[InitializedTemporalDateTime]]).
-        let object = this.as_object();
-        let dt = object
-            .as_ref()
-            .and_then(JsObject::downcast_ref::<Self>)
-            .ok_or_else(|| {
-                JsNativeError::typ().with_message("the this object must be a PlainDateTime object.")
-            })?;
+        require_internal_slot!(dt = this, Self, "PlainDateTime");
 
         // 3. Return 𝔽(datedt.[[ISONanosecond]]).
         Ok(dt.inner.nanosecond().into())
@@ -809,13 +731,7 @@ impl PlainDateTime {
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Temporal/PlainDateTime/dayOfWeek
     /// [temporal_rs-docs]: https://docs.rs/temporal_rs/latest/temporal_rs/struct.PlainDateTime.html#method.day_of_week
     fn get_day_of_week(this: &JsValue, _: &[JsValue], _: &mut Context) -> JsResult<JsValue> {
-        let object = this.as_object();
-        let dt = object
-            .as_ref()
-            .and_then(JsObject::downcast_ref::<Self>)
-            .ok_or_else(|| {
-                JsNativeError::typ().with_message("the this object must be a PlainDateTime object.")
-            })?;
+        require_internal_slot!(dt = this, Self, "PlainDateTime");
 
         Ok(dt.inner.day_of_week().into())
     }
@@ -832,13 +748,7 @@ impl PlainDateTime {
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Temporal/PlainDateTime/dayOfYear
     /// [temporal_rs-docs]: https://docs.rs/temporal_rs/latest/temporal_rs/struct.PlainDateTime.html#method.day_of_year
     fn get_day_of_year(this: &JsValue, _: &[JsValue], _: &mut Context) -> JsResult<JsValue> {
-        let object = this.as_object();
-        let dt = object
-            .as_ref()
-            .and_then(JsObject::downcast_ref::<Self>)
-            .ok_or_else(|| {
-                JsNativeError::typ().with_message("the this object must be a PlainDateTime object.")
-            })?;
+        require_internal_slot!(dt = this, Self, "PlainDateTime");
 
         Ok(dt.inner.day_of_year().into())
     }
@@ -855,13 +765,7 @@ impl PlainDateTime {
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Temporal/PlainDateTime/weekOfYear
     /// [temporal_rs-docs]: https://docs.rs/temporal_rs/latest/temporal_rs/struct.PlainDateTime.html#method.week_of_year
     fn get_week_of_year(this: &JsValue, _: &[JsValue], _: &mut Context) -> JsResult<JsValue> {
-        let object = this.as_object();
-        let dt = object
-            .as_ref()
-            .and_then(JsObject::downcast_ref::<Self>)
-            .ok_or_else(|| {
-                JsNativeError::typ().with_message("the this object must be a PlainDateTime object.")
-            })?;
+        require_internal_slot!(dt = this, Self, "PlainDateTime");
 
         Ok(dt.inner.week_of_year().into_or_undefined())
     }
@@ -878,13 +782,7 @@ impl PlainDateTime {
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Temporal/PlainDateTime/yearOfWeek
     /// [temporal_rs-docs]: https://docs.rs/temporal_rs/latest/temporal_rs/struct.PlainDateTime.html#method.year_of_week
     fn get_year_of_week(this: &JsValue, _: &[JsValue], _: &mut Context) -> JsResult<JsValue> {
-        let object = this.as_object();
-        let dt = object
-            .as_ref()
-            .and_then(JsObject::downcast_ref::<Self>)
-            .ok_or_else(|| {
-                JsNativeError::typ().with_message("the this object must be a PlainDateTime object.")
-            })?;
+        require_internal_slot!(dt = this, Self, "PlainDateTime");
 
         Ok(dt.inner.year_of_week().into_or_undefined())
     }
@@ -901,13 +799,7 @@ impl PlainDateTime {
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Temporal/PlainDateTime/daysInWeek
     /// [temporal_rs-docs]: https://docs.rs/temporal_rs/latest/temporal_rs/struct.PlainDateTime.html#method.days_in_week
     fn get_days_in_week(this: &JsValue, _: &[JsValue], _: &mut Context) -> JsResult<JsValue> {
-        let object = this.as_object();
-        let dt = object
-            .as_ref()
-            .and_then(JsObject::downcast_ref::<Self>)
-            .ok_or_else(|| {
-                JsNativeError::typ().with_message("the this object must be a PlainDateTime object.")
-            })?;
+        require_internal_slot!(dt = this, Self, "PlainDateTime");
 
         Ok(dt.inner.days_in_week().into())
     }
@@ -924,13 +816,7 @@ impl PlainDateTime {
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Temporal/PlainDateTime/daysInMonth
     /// [temporal_rs-docs]: https://docs.rs/temporal_rs/latest/temporal_rs/struct.PlainDateTime.html#method.days_in_month
     fn get_days_in_month(this: &JsValue, _: &[JsValue], _: &mut Context) -> JsResult<JsValue> {
-        let object = this.as_object();
-        let dt = object
-            .as_ref()
-            .and_then(JsObject::downcast_ref::<Self>)
-            .ok_or_else(|| {
-                JsNativeError::typ().with_message("the this object must be a PlainDateTime object.")
-            })?;
+        require_internal_slot!(dt = this, Self, "PlainDateTime");
 
         Ok(dt.inner.days_in_month().into())
     }
@@ -947,13 +833,7 @@ impl PlainDateTime {
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Temporal/PlainDateTime/daysInYear
     /// [temporal_rs-docs]: https://docs.rs/temporal_rs/latest/temporal_rs/struct.PlainDateTime.html#method.days_in_year
     fn get_days_in_year(this: &JsValue, _: &[JsValue], _: &mut Context) -> JsResult<JsValue> {
-        let object = this.as_object();
-        let dt = object
-            .as_ref()
-            .and_then(JsObject::downcast_ref::<Self>)
-            .ok_or_else(|| {
-                JsNativeError::typ().with_message("the this object must be a PlainDateTime object.")
-            })?;
+        require_internal_slot!(dt = this, Self, "PlainDateTime");
 
         Ok(dt.inner.days_in_year().into())
     }
@@ -970,13 +850,7 @@ impl PlainDateTime {
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Temporal/PlainDateTime/monthsInYear
     /// [temporal_rs-docs]: https://docs.rs/temporal_rs/latest/temporal_rs/struct.PlainDateTime.html#method.months_in_year
     fn get_months_in_year(this: &JsValue, _: &[JsValue], _: &mut Context) -> JsResult<JsValue> {
-        let object = this.as_object();
-        let dt = object
-            .as_ref()
-            .and_then(JsObject::downcast_ref::<Self>)
-            .ok_or_else(|| {
-                JsNativeError::typ().with_message("the this object must be a PlainDateTime object.")
-            })?;
+        require_internal_slot!(dt = this, Self, "PlainDateTime");
 
         Ok(dt.inner.months_in_year().into())
     }
@@ -993,13 +867,7 @@ impl PlainDateTime {
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Temporal/PlainDateTime/inLeapYear
     /// [temporal_rs-docs]: https://docs.rs/temporal_rs/latest/temporal_rs/struct.PlainDateTime.html#method.in_leap_year
     fn get_in_leap_year(this: &JsValue, _: &[JsValue], _: &mut Context) -> JsResult<JsValue> {
-        let object = this.as_object();
-        let dt = object
-            .as_ref()
-            .and_then(JsObject::downcast_ref::<Self>)
-            .ok_or_else(|| {
-                JsNativeError::typ().with_message("the this object must be a PlainDateTime object.")
-            })?;
+        require_internal_slot!(dt = this, Self, "PlainDateTime");
 
         Ok(dt.inner.in_leap_year().into())
     }
@@ -1083,13 +951,7 @@ impl PlainDateTime {
     fn with(this: &JsValue, args: &[JsValue], context: &mut Context) -> JsResult<JsValue> {
         // 1. Let plainDateTime be the this value.
         // 2. Perform ? RequireInternalSlot(plainDateTime, [[InitializedTemporalDateTime]]).
-        let object = this.as_object();
-        let dt = object
-            .as_ref()
-            .and_then(JsObject::downcast_ref::<Self>)
-            .ok_or_else(|| {
-                JsNativeError::typ().with_message("the this object must be a PlainDateTime object.")
-            })?;
+        require_internal_slot!(dt = this, Self, "PlainDateTime");
 
         // 3. If ? IsPartialTemporalObject(temporalDateTimeLike) is false, throw a TypeError exception.
         let Some(partial_object) =
@@ -1136,13 +998,7 @@ impl PlainDateTime {
         args: &[JsValue],
         context: &mut Context,
     ) -> JsResult<JsValue> {
-        let object = this.as_object();
-        let dt = object
-            .as_ref()
-            .and_then(JsObject::downcast_ref::<Self>)
-            .ok_or_else(|| {
-                JsNativeError::typ().with_message("the this object must be a PlainDateTime object.")
-            })?;
+        require_internal_slot!(dt = this, Self, "PlainDateTime");
 
         let time = args
             .get_or_undefined(0)
@@ -1164,13 +1020,7 @@ impl PlainDateTime {
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Temporal/PlainDateTime/withCalendar
     /// [temporal_rs-docs]: https://docs.rs/temporal_rs/latest/temporal_rs/struct.PlainDateTime.html#method.with_calendar
     fn with_calendar(this: &JsValue, args: &[JsValue], context: &mut Context) -> JsResult<JsValue> {
-        let object = this.as_object();
-        let dt = object
-            .as_ref()
-            .and_then(JsObject::downcast_ref::<Self>)
-            .ok_or_else(|| {
-                JsNativeError::typ().with_message("the this object must be a PlainDateTime object.")
-            })?;
+        require_internal_slot!(dt = this, Self, "PlainDateTime");
 
         let calendar = to_temporal_calendar_identifier(args.get_or_undefined(0))?;
 
@@ -1191,13 +1041,7 @@ impl PlainDateTime {
     fn add(this: &JsValue, args: &[JsValue], context: &mut Context) -> JsResult<JsValue> {
         // 1. Let temporalDate be the this value.
         // 2. Perform ? RequireInternalSlot(temporalDate, [[InitializedTemporalDate]]).
-        let object = this.as_object();
-        let dt = object
-            .as_ref()
-            .and_then(JsObject::downcast_ref::<Self>)
-            .ok_or_else(|| {
-                JsNativeError::typ().with_message("the this object must be a PlainDateTime object.")
-            })?;
+        require_internal_slot!(dt = this, Self, "PlainDateTime");
 
         // 3. Let duration be ? ToTemporalDuration(temporalDurationLike).
         let duration = to_temporal_duration_record(args.get_or_undefined(0), context)?;
@@ -1225,13 +1069,7 @@ impl PlainDateTime {
     fn subtract(this: &JsValue, args: &[JsValue], context: &mut Context) -> JsResult<JsValue> {
         // 1. Let temporalDate be the this value.
         // 2. Perform ? RequireInternalSlot(temporalDate, [[InitializedTemporalDate]]).
-        let object = this.as_object();
-        let dt = object
-            .as_ref()
-            .and_then(JsObject::downcast_ref::<Self>)
-            .ok_or_else(|| {
-                JsNativeError::typ().with_message("the this object must be a PlainDateTime object.")
-            })?;
+        require_internal_slot!(dt = this, Self, "PlainDateTime");
 
         // 3. Let duration be ? ToTemporalDuration(temporalDurationLike).
         let duration = to_temporal_duration_record(args.get_or_undefined(0), context)?;
@@ -1259,13 +1097,7 @@ impl PlainDateTime {
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Temporal/PlainDateTime/until
     /// [temporal_rs-docs]: https://docs.rs/temporal_rs/latest/temporal_rs/struct.PlainDateTime.html#method.until
     fn until(this: &JsValue, args: &[JsValue], context: &mut Context) -> JsResult<JsValue> {
-        let object = this.as_object();
-        let dt = object
-            .as_ref()
-            .and_then(JsObject::downcast_ref::<Self>)
-            .ok_or_else(|| {
-                JsNativeError::typ().with_message("the this object must be a PlainDateTime object.")
-            })?;
+        require_internal_slot!(dt = this, Self, "PlainDateTime");
 
         let other = to_temporal_datetime(args.get_or_undefined(0), None, context)?;
 
@@ -1287,13 +1119,7 @@ impl PlainDateTime {
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Temporal/PlainDateTime/since
     /// [temporal_rs-docs]: https://docs.rs/temporal_rs/latest/temporal_rs/struct.PlainDateTime.html#method.since
     fn since(this: &JsValue, args: &[JsValue], context: &mut Context) -> JsResult<JsValue> {
-        let object = this.as_object();
-        let dt = object
-            .as_ref()
-            .and_then(JsObject::downcast_ref::<Self>)
-            .ok_or_else(|| {
-                JsNativeError::typ().with_message("the this object must be a PlainDateTime object.")
-            })?;
+        require_internal_slot!(dt = this, Self, "PlainDateTime");
 
         let other = to_temporal_datetime(args.get_or_undefined(0), None, context)?;
 
@@ -1315,13 +1141,7 @@ impl PlainDateTime {
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Temporal/PlainDateTime/round
     /// [temporal_rs-docs]: https://docs.rs/temporal_rs/latest/temporal_rs/struct.PlainDateTime.html#method.round
     fn round(this: &JsValue, args: &[JsValue], context: &mut Context) -> JsResult<JsValue> {
-        let object = this.as_object();
-        let dt = object
-            .as_ref()
-            .and_then(JsObject::downcast_ref::<Self>)
-            .ok_or_else(|| {
-                JsNativeError::typ().with_message("the this object must be a PlainTime object.")
-            })?;
+        require_internal_slot!(dt = this, Self, "PlainDateTime");
 
         let round_to = match args.first().map(JsValue::variant) {
             // 3. If roundTo is undefined, then
@@ -1386,13 +1206,7 @@ impl PlainDateTime {
     fn equals(this: &JsValue, args: &[JsValue], context: &mut Context) -> JsResult<JsValue> {
         // 1. Let dateTime be the this value.
         // 2. Perform ? RequireInternalSlot(dateTime, [[InitializedTemporalDateTime]]).
-        let object = this.as_object();
-        let dt = object
-            .as_ref()
-            .and_then(JsObject::downcast_ref::<Self>)
-            .ok_or_else(|| {
-                JsNativeError::typ().with_message("the this object must be a PlainDateTime object.")
-            })?;
+        require_internal_slot!(dt = this, Self, "PlainDateTime");
 
         // 3. Set other to ? ToTemporalDateTime(other).
         let other = to_temporal_datetime(args.get_or_undefined(0), None, context)?;
@@ -1420,13 +1234,7 @@ impl PlainDateTime {
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Temporal/PlainDateTime/with
     /// [temporal_rs-docs]: https://docs.rs/temporal_rs/latest/temporal_rs/struct.PlainDateTime.html#method.to_ixdtf_string
     fn to_string(this: &JsValue, args: &[JsValue], context: &mut Context) -> JsResult<JsValue> {
-        let object = this.as_object();
-        let dt = object
-            .as_ref()
-            .and_then(JsObject::downcast_ref::<Self>)
-            .ok_or_else(|| {
-                JsNativeError::typ().with_message("the this object must be a PlainDateTime object.")
-            })?;
+        require_internal_slot!(dt = this, Self, "PlainDateTime");
 
         let options = get_options_object(args.get_or_undefined(0))?;
 
@@ -1460,13 +1268,7 @@ impl PlainDateTime {
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Temporal/PlainDateTime/with
     fn to_locale_string(this: &JsValue, _args: &[JsValue], _: &mut Context) -> JsResult<JsValue> {
         // TODO: Update for ECMA-402 compliance
-        let object = this.as_object();
-        let dt = object
-            .as_ref()
-            .and_then(JsObject::downcast_ref::<Self>)
-            .ok_or_else(|| {
-                JsNativeError::typ().with_message("the this object must be a PlainDateTime object.")
-            })?;
+        require_internal_slot!(dt = this, Self, "PlainDateTime");
 
         let ixdtf = dt
             .inner
@@ -1484,13 +1286,7 @@ impl PlainDateTime {
     /// [spec]: https://tc39.es/proposal-temporal/#sec-temporal.plaindatetime.prototype.with
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Temporal/PlainDateTime/with
     fn to_json(this: &JsValue, _: &[JsValue], _: &mut Context) -> JsResult<JsValue> {
-        let object = this.as_object();
-        let dt = object
-            .as_ref()
-            .and_then(JsObject::downcast_ref::<Self>)
-            .ok_or_else(|| {
-                JsNativeError::typ().with_message("the this object must be a PlainDateTime object.")
-            })?;
+        require_internal_slot!(dt = this, Self, "PlainDateTime");
 
         let ixdtf = dt
             .inner
@@ -1531,13 +1327,7 @@ impl PlainDateTime {
     ) -> JsResult<JsValue> {
         // 1. Let dateTime be the this value.
         // 2. Perform ? RequireInternalSlot(dateTime, [[InitializedTemporalDateTime]]).
-        let object = this.as_object();
-        let dt = object
-            .as_ref()
-            .and_then(JsObject::downcast_ref::<Self>)
-            .ok_or_else(|| {
-                JsNativeError::typ().with_message("the this object must be a PlainDateTime object.")
-            })?;
+        require_internal_slot!(dt = this, Self, "PlainDateTime");
         // 3. Let timeZone be ? ToTemporalTimeZoneIdentifier(temporalTimeZoneLike).
         let timezone = to_temporal_timezone_identifier(args.get_or_undefined(0), context)?;
         // 4. Let resolvedOptions be ? GetOptionsObject(options).
@@ -1570,13 +1360,7 @@ impl PlainDateTime {
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Temporal/PlainDateTime/toPlainDate
     /// [temporal_rs-docs]: https://docs.rs/temporal_rs/latest/temporal_rs/struct.PlainDateTime.html#method.to_plain_date
     fn to_plain_date(this: &JsValue, _: &[JsValue], context: &mut Context) -> JsResult<JsValue> {
-        let object = this.as_object();
-        let dt = object
-            .as_ref()
-            .and_then(JsObject::downcast_ref::<Self>)
-            .ok_or_else(|| {
-                JsNativeError::typ().with_message("the this object must be a PlainDateTime object.")
-            })?;
+        require_internal_slot!(dt = this, Self, "PlainDateTime");
 
         let result = dt.inner.to_plain_date();
         create_temporal_date(result, None, context).map(Into::into)
@@ -1594,13 +1378,7 @@ impl PlainDateTime {
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Temporal/PlainDateTime/toPlainTime
     /// [temporal_rs-docs]: https://docs.rs/temporal_rs/latest/temporal_rs/struct.PlainDateTime.html#method.to_plain_time
     fn to_plain_time(this: &JsValue, _: &[JsValue], context: &mut Context) -> JsResult<JsValue> {
-        let object = this.as_object();
-        let dt = object
-            .as_ref()
-            .and_then(JsObject::downcast_ref::<Self>)
-            .ok_or_else(|| {
-                JsNativeError::typ().with_message("the this object must be a PlainDateTime object.")
-            })?;
+        require_internal_slot!(dt = this, Self, "PlainDateTime");
 
         let result = dt.inner.to_plain_time();
         create_temporal_time(result, None, context).map(Into::into)

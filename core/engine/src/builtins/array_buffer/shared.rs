@@ -225,14 +225,7 @@ impl SharedArrayBuffer {
         // 1. Let O be the this value.
         // 2. Perform ? RequireInternalSlot(O, [[ArrayBufferData]]).
         // 3. If IsSharedArrayBuffer(O) is true, throw a TypeError exception.
-        let object = this.as_object();
-        let buf = object
-            .as_ref()
-            .and_then(JsObject::downcast_ref::<Self>)
-            .ok_or_else(|| {
-                JsNativeError::typ()
-                    .with_message("SharedArrayBuffer.byteLength called with invalid value")
-            })?;
+        require_internal_slot!(buf = this, Self, "SharedArrayBuffer");
 
         // 4. Let length be ArrayBufferByteLength(O, seq-cst).
         let len = buf.bytes(Ordering::SeqCst).len() as u64;
@@ -252,14 +245,7 @@ impl SharedArrayBuffer {
         // 1. Let O be the this value.
         // 2. Perform ? RequireInternalSlot(O, [[ArrayBufferData]]).
         // 3. If IsSharedArrayBuffer(O) is false, throw a TypeError exception.
-        let object = this.as_object();
-        let buf = object
-            .as_ref()
-            .and_then(JsObject::downcast_ref::<Self>)
-            .ok_or_else(|| {
-                JsNativeError::typ()
-                    .with_message("get SharedArrayBuffer.growable called with invalid `this`")
-            })?;
+        require_internal_slot!(buf = this, Self, "SharedArrayBuffer");
 
         // 4. If IsFixedLengthArrayBuffer(O) is false, return true; otherwise return false.
         Ok(JsValue::from(!buf.is_fixed_len()))
@@ -276,14 +262,7 @@ impl SharedArrayBuffer {
         // 1. Let O be the this value.
         // 2. Perform ? RequireInternalSlot(O, [[ArrayBufferData]]).
         // 3. If IsSharedArrayBuffer(O) is false, throw a TypeError exception.
-        let object = this.as_object();
-        let buf = object
-            .as_ref()
-            .and_then(JsObject::downcast_ref::<Self>)
-            .ok_or_else(|| {
-                JsNativeError::typ()
-                    .with_message("get SharedArrayBuffer.maxByteLength called with invalid value")
-            })?;
+        require_internal_slot!(buf = this, Self, "SharedArrayBuffer");
 
         // 4. If IsFixedLengthArrayBuffer(O) is true, then
         //     a. Let length be O.[[ArrayBufferByteLength]].

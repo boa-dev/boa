@@ -55,14 +55,7 @@ impl Segments {
     fn containing(this: &JsValue, args: &[JsValue], context: &mut Context) -> JsResult<JsValue> {
         // 1. Let segments be the this value.
         // 2. Perform ? RequireInternalSlot(segments, [[SegmentsSegmenter]]).
-        let object = this.as_object();
-        let segments = object
-            .as_ref()
-            .and_then(JsObject::downcast_ref::<Self>)
-            .ok_or_else(|| {
-                JsNativeError::typ()
-                    .with_message("`containing` can only be called on a `Segments` object")
-            })?;
+        require_internal_slot!(segments = this, Self, "Segments");
 
         // 3. Let segmenter be segments.[[SegmentsSegmenter]].
         let segmenter = segments

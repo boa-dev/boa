@@ -262,15 +262,7 @@ impl Segmenter {
     fn resolved_options(this: &JsValue, _: &[JsValue], context: &mut Context) -> JsResult<JsValue> {
         // 1. Let segmenter be the this value.
         // 2. Perform ? RequireInternalSlot(segmenter, [[InitializedSegmenter]]).
-        let object = this.as_object();
-        let segmenter = object
-            .as_ref()
-            .and_then(JsObject::downcast_ref::<Self>)
-            .ok_or_else(|| {
-                JsNativeError::typ().with_message(
-                    "`resolved_options` can only be called on an `Intl.Segmenter` object",
-                )
-            })?;
+        require_internal_slot!(segmenter = this, Self, "Segmenter");
 
         // 3. Let options be OrdinaryObjectCreate(%Object.prototype%).
         // 4. For each row of Table 19, except the header row, in table order, do

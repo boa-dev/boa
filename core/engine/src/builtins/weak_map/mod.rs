@@ -175,14 +175,7 @@ impl WeakMap {
     ) -> JsResult<JsValue> {
         // 1. Let M be the this value.
         // 2. Perform ? RequireInternalSlot(M, [[WeakMapData]]).
-        let object = this.as_object();
-        let map = object
-            .as_ref()
-            .and_then(JsObject::downcast_ref::<NativeWeakMap>)
-            .ok_or_else(|| {
-                js_error!(TypeError:
-                    "WeakMap.prototype.get: expected 'this' to be a WeakMap object")
-            })?;
+        require_internal_slot!(map = this, NativeWeakMap, "WeakMap");
 
         // 3. Let entries be M.[[WeakMapData]].
         // 4. If key is not an Object, return undefined.
@@ -217,14 +210,7 @@ impl WeakMap {
     ) -> JsResult<JsValue> {
         // 1. Let M be the this value.
         // 2. Perform ? RequireInternalSlot(M, [[WeakMapData]]).
-        let object = this.as_object();
-        let map = object
-            .as_ref()
-            .and_then(JsObject::downcast_ref::<NativeWeakMap>)
-            .ok_or_else(|| {
-                js_error!(TypeError:
-                    "WeakMap.prototype.has: expected 'this' to be a WeakMap object")
-            })?;
+        require_internal_slot!(map = this, NativeWeakMap, "WeakMap");
 
         // 3. Let entries be M.[[WeakMapData]].
         // 4. If key is not an Object, return false.

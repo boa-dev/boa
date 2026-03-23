@@ -1,5 +1,26 @@
 //! Boa's ECMAScript built-in object implementations, e.g. Object, String, Math, Array, etc.
 
+/// Downcasts `$this` (a `&JsValue`) to a `Ref<$type>`, returning a `TypeError` if the
+/// cast fails. The error message uses `$name` as the type name.
+///
+/// This centralizes the repeated this-type-check boilerplate found across
+/// all builtin methods. The macro introduces a hidden binding for the
+/// owned `JsObject` to ensure it outlives the returned `Ref`, and binds the
+/// result to `$var`.
+///
+/// Usage: `require_internal_slot!(dt = this, Self, "PlainDateTime");`
+macro_rules! require_internal_slot {
+    ($var:ident = $this:expr, $type:ty, $name:expr) => {
+        let __temporal_obj = $crate::JsValue::as_object($this);
+        let $var = __temporal_obj
+            .as_ref()
+            .and_then($crate::JsObject::downcast_ref::<$type>)
+            .ok_or_else(|| {
+                $crate::js_error!(TypeError: "the this object must be a {} object.", $name)
+            })?;
+    };
+}
+
 pub mod array;
 pub mod array_buffer;
 pub mod async_function;

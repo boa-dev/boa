@@ -232,14 +232,7 @@ impl WeakSet {
     ) -> JsResult<JsValue> {
         // 1. Let S be the this value.
         // 2. Perform ? RequireInternalSlot(S, [[WeakSetData]]).
-        let object = this.as_object();
-        let set = object
-            .as_ref()
-            .and_then(JsObject::downcast_ref::<NativeWeakSet>)
-            .ok_or_else(|| {
-                js_error!(TypeError:
-                    "WeakSet.prototype.has: expected 'this' to be a WeakSet object")
-            })?;
+        require_internal_slot!(set = this, NativeWeakSet, "WeakSet");
 
         // 3. Let entries be the List that is S.[[WeakSetData]].
         // 4. If Type(value) is not Object, return false.

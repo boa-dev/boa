@@ -446,11 +446,8 @@ impl Date {
         // 1. Let dateObject be the this value.
         // 2. Perform ? RequireInternalSlot(dateObject, [[DateValue]]).
         // 3. Let t be dateObject.[[DateValue]].
-        let t = this
-            .as_object()
-            .and_then(|obj| obj.downcast_ref::<Date>().as_deref().copied())
-            .ok_or_else(|| JsNativeError::typ().with_message("'this' is not a Date"))?
-            .0;
+        require_internal_slot!(date = this, Date, "Date");
+        let t = date.0;
 
         // 4. If t is NaN, return NaN.
         if t.is_nan() {
@@ -485,11 +482,8 @@ impl Date {
         // 1. Let dateObject be the this value.
         // 2. Perform ? RequireInternalSlot(dateObject, [[DateValue]]).
         // 3. Let t be dateObject.[[DateValue]].
-        let t = this
-            .as_object()
-            .and_then(|obj| obj.downcast_ref::<Date>().as_deref().copied())
-            .ok_or_else(|| JsNativeError::typ().with_message("'this' is not a Date"))?
-            .0;
+        require_internal_slot!(date = this, Date, "Date");
+        let t = date.0;
 
         // 4. If t is NaN, return NaN.
         if t.is_nan() {
@@ -527,11 +521,8 @@ impl Date {
         // 1. Let dateObject be the this value.
         // 2. Perform ? RequireInternalSlot(dateObject, [[DateValue]]).
         // 3. Let t be dateObject.[[DateValue]].
-        let t = this
-            .as_object()
-            .and_then(|obj| obj.downcast_ref::<Date>().as_deref().copied())
-            .ok_or_else(|| JsNativeError::typ().with_message("'this' is not a Date"))?
-            .0;
+        require_internal_slot!(date = this, Date, "Date");
+        let t = date.0;
 
         // 4. If t is NaN, return NaN.
         if t.is_nan() {
@@ -559,11 +550,8 @@ impl Date {
         // 1. Let dateObject be the this value.
         // 2. Perform ? RequireInternalSlot(dateObject, [[DateValue]]).
         // 3. Let t be dateObject.[[DateValue]].
-        let t = this
-            .as_object()
-            .and_then(|obj| obj.downcast_ref::<Date>().as_deref().copied())
-            .ok_or_else(|| JsNativeError::typ().with_message("'this' is not a Date"))?
-            .0;
+        require_internal_slot!(date = this, Date, "Date");
+        let t = date.0;
 
         // 4. If t is NaN, return NaN.
         if t.is_nan() {
@@ -597,11 +585,8 @@ impl Date {
         // 1. Let dateObject be the this value.
         // 2. Perform ? RequireInternalSlot(dateObject, [[DateValue]]).
         // 3. Let t be dateObject.[[DateValue]].
-        let t = this
-            .as_object()
-            .and_then(|obj| obj.downcast_ref::<Date>().as_deref().copied())
-            .ok_or_else(|| JsNativeError::typ().with_message("'this' is not a Date"))?
-            .0;
+        require_internal_slot!(date = this, Date, "Date");
+        let t = date.0;
 
         // 4. If t is NaN, return NaN.
         if t.is_nan() {
@@ -635,11 +620,8 @@ impl Date {
         // 1. Let dateObject be the this value.
         // 2. Perform ? RequireInternalSlot(dateObject, [[DateValue]]).
         // 3. Let t be dateObject.[[DateValue]].
-        let t = this
-            .as_object()
-            .and_then(|obj| obj.downcast_ref::<Date>().as_deref().copied())
-            .ok_or_else(|| JsNativeError::typ().with_message("'this' is not a Date"))?
-            .0;
+        require_internal_slot!(date = this, Date, "Date");
+        let t = date.0;
 
         // 4. If t is NaN, return NaN.
         if t.is_nan() {
@@ -673,11 +655,8 @@ impl Date {
         // 1. Let dateObject be the this value.
         // 2. Perform ? RequireInternalSlot(dateObject, [[DateValue]]).
         // 3. Let t be dateObject.[[DateValue]].
-        let t = this
-            .as_object()
-            .and_then(|obj| obj.downcast_ref::<Date>().as_deref().copied())
-            .ok_or_else(|| JsNativeError::typ().with_message("'this' is not a Date"))?
-            .0;
+        require_internal_slot!(date = this, Date, "Date");
+        let t = date.0;
 
         // 4. If t is NaN, return NaN.
         if t.is_nan() {
@@ -712,11 +691,8 @@ impl Date {
         // 1. Let dateObject be the this value.
         // 2. Perform ? RequireInternalSlot(dateObject, [[DateValue]]).
         // 3. Let t be dateObject.[[DateValue]].
-        let t = this
-            .as_object()
-            .and_then(|obj| obj.downcast_ref::<Date>().as_deref().copied())
-            .ok_or_else(|| JsNativeError::typ().with_message("'this' is not a Date"))?
-            .0;
+        require_internal_slot!(date = this, Date, "Date");
+        let t = date.0;
 
         // 4. If t is NaN, return NaN.
         if t.is_nan() {
@@ -750,11 +726,8 @@ impl Date {
         // 1. Let dateObject be the this value.
         // 2. Perform ? RequireInternalSlot(dateObject, [[DateValue]]).
         // 3. Let t be dateObject.[[DateValue]].
-        let t = this
-            .as_object()
-            .and_then(|obj| obj.downcast_ref::<Date>().as_deref().copied())
-            .ok_or_else(|| JsNativeError::typ().with_message("'this' is not a Date"))?
-            .0;
+        require_internal_slot!(date = this, Date, "Date");
+        let t = date.0;
 
         // 4. If t is NaN, return NaN.
         if t.is_nan() {
@@ -791,12 +764,8 @@ impl Date {
         // 1. Let dateObject be the this value.
         // 2. Perform ? RequireInternalSlot(dateObject, [[DateValue]]).
         // 3. Return dateObject.[[DateValue]].
-        Ok(this
-            .as_object()
-            .and_then(|obj| obj.downcast_ref::<Date>().as_deref().copied())
-            .ok_or_else(|| JsNativeError::typ().with_message("'this' is not a Date"))?
-            .0
-            .into())
+        require_internal_slot!(date = this, Date, "Date");
+        Ok(date.0.into())
     }
 
     /// `Date.prototype.getTimeZoneOffset()`.
@@ -818,11 +787,8 @@ impl Date {
         // 1. Let dateObject be the this value.
         // 2. Perform ? RequireInternalSlot(dateObject, [[DateValue]]).
         // 3. Let t be dateObject.[[DateValue]].
-        let t = this
-            .as_object()
-            .and_then(|obj| obj.downcast_ref::<Date>().as_deref().copied())
-            .ok_or_else(|| JsNativeError::typ().with_message("'this' is not a Date"))?
-            .0;
+        require_internal_slot!(date = this, Date, "Date");
+        let t = date.0;
 
         // 4. If t is NaN, return NaN.
         if t.is_nan() {
@@ -850,11 +816,7 @@ impl Date {
     ) -> JsResult<JsValue> {
         // 1. Let dateObject be the this value.
         // 2. Perform ? RequireInternalSlot(dateObject, [[DateValue]]).
-        let object = this.as_object();
-        let date = object
-            .as_ref()
-            .and_then(JsObject::downcast_ref::<Date>)
-            .ok_or_else(|| JsNativeError::typ().with_message("'this' is not a Date"))?;
+        require_internal_slot!(date = this, Date, "Date");
 
         // 3. Let t be dateObject.[[DateValue]].
         let mut t = date.0;
@@ -896,7 +858,9 @@ impl Date {
         let mut date_mut = object
             .as_ref()
             .and_then(JsObject::downcast_mut::<Date>)
-            .ok_or_else(|| JsNativeError::typ().with_message("'this' is not a Date"))?;
+            .ok_or_else(|| {
+                JsNativeError::typ().with_message("the this object must be a Date object.")
+            })?;
 
         // 9. Set dateObject.[[DateValue]] to u.
         date_mut.0 = u;
@@ -920,11 +884,7 @@ impl Date {
     ) -> JsResult<JsValue> {
         // 1. Let dateObject be the this value.
         // 2. Perform ? RequireInternalSlot(dateObject, [[DateValue]]).
-        let object = this.as_object();
-        let date = object
-            .as_ref()
-            .and_then(JsObject::downcast_ref::<Date>)
-            .ok_or_else(|| JsNativeError::typ().with_message("'this' is not a Date"))?;
+        require_internal_slot!(date = this, Date, "Date");
 
         // 3. Let t be dateObject.[[DateValue]].
         let t = date.0;
@@ -979,7 +939,9 @@ impl Date {
         let mut date_mut = object
             .as_ref()
             .and_then(JsObject::downcast_mut::<Date>)
-            .ok_or_else(|| JsNativeError::typ().with_message("'this' is not a Date"))?;
+            .ok_or_else(|| {
+                JsNativeError::typ().with_message("the this object must be a Date object.")
+            })?;
 
         // 10. Set dateObject.[[DateValue]] to u.
         date_mut.0 = u;
@@ -1005,11 +967,7 @@ impl Date {
     ) -> JsResult<JsValue> {
         // 1. Let dateObject be the this value.
         // 2. Perform ? RequireInternalSlot(dateObject, [[DateValue]]).
-        let object = this.as_object();
-        let date = object
-            .as_ref()
-            .and_then(JsObject::downcast_ref::<Date>)
-            .ok_or_else(|| JsNativeError::typ().with_message("'this' is not a Date"))?;
+        require_internal_slot!(date = this, Date, "Date");
 
         // 3. Let t be dateObject.[[DateValue]].
         let mut t = date.0;
@@ -1066,7 +1024,9 @@ impl Date {
         let mut date_mut = object
             .as_ref()
             .and_then(JsObject::downcast_mut::<Date>)
-            .ok_or_else(|| JsNativeError::typ().with_message("'this' is not a Date"))?;
+            .ok_or_else(|| {
+                JsNativeError::typ().with_message("the this object must be a Date object.")
+            })?;
 
         // 15. Set dateObject.[[DateValue]] to u.
         date_mut.0 = u;
@@ -1089,11 +1049,7 @@ impl Date {
     ) -> JsResult<JsValue> {
         // 1. Let dateObject be the this value.
         // 2. Perform ? RequireInternalSlot(dateObject, [[DateValue]]).
-        let object = this.as_object();
-        let date = object
-            .as_ref()
-            .and_then(JsObject::downcast_ref::<Date>)
-            .ok_or_else(|| JsNativeError::typ().with_message("'this' is not a Date"))?;
+        require_internal_slot!(date = this, Date, "Date");
 
         // 3. Let t be dateObject.[[DateValue]].
         let mut t = date.0;
@@ -1140,7 +1096,9 @@ impl Date {
         let mut date_mut = object
             .as_ref()
             .and_then(JsObject::downcast_mut::<Date>)
-            .ok_or_else(|| JsNativeError::typ().with_message("'this' is not a Date"))?;
+            .ok_or_else(|| {
+                JsNativeError::typ().with_message("the this object must be a Date object.")
+            })?;
 
         // 9. Set dateObject.[[DateValue]] to u.
         date_mut.0 = u;
@@ -1163,11 +1121,7 @@ impl Date {
     ) -> JsResult<JsValue> {
         // 1. Let dateObject be the this value.
         // 2. Perform ? RequireInternalSlot(dateObject, [[DateValue]]).
-        let object = this.as_object();
-        let date = object
-            .as_ref()
-            .and_then(JsObject::downcast_ref::<Date>)
-            .ok_or_else(|| JsNativeError::typ().with_message("'this' is not a Date"))?;
+        require_internal_slot!(date = this, Date, "Date");
 
         // 3. Let t be dateObject.[[DateValue]].
         let mut t = date.0;
@@ -1218,7 +1172,9 @@ impl Date {
         let mut date_mut = object
             .as_ref()
             .and_then(JsObject::downcast_mut::<Date>)
-            .ok_or_else(|| JsNativeError::typ().with_message("'this' is not a Date"))?;
+            .ok_or_else(|| {
+                JsNativeError::typ().with_message("the this object must be a Date object.")
+            })?;
 
         // 13. Set dateObject.[[DateValue]] to u.
         date_mut.0 = u;
@@ -1242,11 +1198,7 @@ impl Date {
     ) -> JsResult<JsValue> {
         // 1. Let dateObject be the this value.
         // 2. Perform ? RequireInternalSlot(dateObject, [[DateValue]]).
-        let object = this.as_object();
-        let date = object
-            .as_ref()
-            .and_then(JsObject::downcast_ref::<Date>)
-            .ok_or_else(|| JsNativeError::typ().with_message("'this' is not a Date"))?;
+        require_internal_slot!(date = this, Date, "Date");
 
         // 3. Let t be dateObject.[[DateValue]].
         let mut t = date.0;
@@ -1294,7 +1246,9 @@ impl Date {
         let mut date_mut = object
             .as_ref()
             .and_then(JsObject::downcast_mut::<Date>)
-            .ok_or_else(|| JsNativeError::typ().with_message("'this' is not a Date"))?;
+            .ok_or_else(|| {
+                JsNativeError::typ().with_message("the this object must be a Date object.")
+            })?;
 
         // 11. Set dateObject.[[DateValue]] to u.
         date_mut.0 = u;
@@ -1317,11 +1271,7 @@ impl Date {
     ) -> JsResult<JsValue> {
         // 1. Let dateObject be the this value.
         // 2. Perform ? RequireInternalSlot(dateObject, [[DateValue]]).
-        let object = this.as_object();
-        let date = object
-            .as_ref()
-            .and_then(JsObject::downcast_ref::<Date>)
-            .ok_or_else(|| JsNativeError::typ().with_message("'this' is not a Date"))?;
+        require_internal_slot!(date = this, Date, "Date");
 
         // 3. Let t be dateObject.[[DateValue]].
         let mut t = date.0;
@@ -1369,7 +1319,9 @@ impl Date {
         let mut date_mut = object
             .as_ref()
             .and_then(JsObject::downcast_mut::<Date>)
-            .ok_or_else(|| JsNativeError::typ().with_message("'this' is not a Date"))?;
+            .ok_or_else(|| {
+                JsNativeError::typ().with_message("the this object must be a Date object.")
+            })?;
 
         // 11. Set dateObject.[[DateValue]] to u.
         date_mut.0 = u;
@@ -1399,11 +1351,7 @@ impl Date {
     ) -> JsResult<JsValue> {
         // 1. Let dateObject be the this value.
         // 2. Perform ? RequireInternalSlot(dateObject, [[DateValue]]).
-        let object = this.as_object();
-        let date = object
-            .as_ref()
-            .and_then(JsObject::downcast_ref::<Date>)
-            .ok_or_else(|| JsNativeError::typ().with_message("'this' is not a Date"))?;
+        require_internal_slot!(date = this, Date, "Date");
 
         // 3. Let t be dateObject.[[DateValue]].
         let t = date.0;
@@ -1440,7 +1388,9 @@ impl Date {
         let mut date_mut = object
             .as_ref()
             .and_then(JsObject::downcast_mut::<Date>)
-            .ok_or_else(|| JsNativeError::typ().with_message("'this' is not a Date"))?;
+            .ok_or_else(|| {
+                JsNativeError::typ().with_message("the this object must be a Date object.")
+            })?;
 
         // 10. Set dateObject.[[DateValue]] to u.
         date_mut.0 = u;
@@ -1466,11 +1416,7 @@ impl Date {
     ) -> JsResult<JsValue> {
         // 1. Let dateObject be the this value.
         // 2. Perform ? RequireInternalSlot(dateObject, [[DateValue]]).
-        let object = this.as_object();
-        let date = object
-            .as_ref()
-            .and_then(JsObject::downcast_ref::<Date>)
-            .ok_or_else(|| JsNativeError::typ().with_message("'this' is not a Date"))?;
+        require_internal_slot!(date = this, Date, "Date");
 
         // 3. Let t be ? ToNumber(time).
         let t = args.get_or_undefined(0).to_number(context)?;
@@ -1488,7 +1434,9 @@ impl Date {
         let mut date_mut = object
             .as_ref()
             .and_then(JsObject::downcast_mut::<Date>)
-            .ok_or_else(|| JsNativeError::typ().with_message("'this' is not a Date"))?;
+            .ok_or_else(|| {
+                JsNativeError::typ().with_message("the this object must be a Date object.")
+            })?;
 
         // 5. Set dateObject.[[DateValue]] to v.
         date_mut.0 = v;
@@ -1514,11 +1462,8 @@ impl Date {
         // 1. Let dateObject be the this value.
         // 2. Perform ? RequireInternalSlot(dateObject, [[DateValue]]).
         // 3. Let tv be dateObject.[[DateValue]].
-        let tv = this
-            .as_object()
-            .and_then(|obj| obj.downcast_ref::<Date>().as_deref().copied())
-            .ok_or_else(|| JsNativeError::typ().with_message("'this' is not a Date"))?
-            .0;
+        require_internal_slot!(date = this, Date, "Date");
+        let tv = date.0;
 
         // 4. If tv is NaN, return "Invalid Date".
         if tv.is_nan() {
@@ -1551,11 +1496,8 @@ impl Date {
         // 1. Let dateObject be the this value.
         // 2. Perform ? RequireInternalSlot(dateObject, [[DateValue]]).
         // 3. Let tv be dateObject.[[DateValue]].
-        let tv = this
-            .as_object()
-            .and_then(|obj| obj.downcast_ref::<Date>().as_deref().copied())
-            .ok_or_else(|| JsNativeError::typ().with_message("'this' is not a Date"))?
-            .0;
+        require_internal_slot!(date = this, Date, "Date");
+        let tv = date.0;
 
         // 4. If tv is not finite, throw a RangeError exception.
         if !tv.is_finite() {
@@ -1663,11 +1605,8 @@ impl Date {
             // 1. Let dateObject be the this value.
             // 2. Perform ? RequireInternalSlot(dateObject, [[DateValue]]).
             // 3. Let x be dateObject.[[DateValue]].
-            let t = this
-                .as_object()
-                .and_then(|obj| obj.downcast_ref::<Date>().as_deref().copied())
-                .ok_or_else(|| JsNativeError::typ().with_message("'this' is not a Date"))?
-                .0;
+            require_internal_slot!(date = this, Date, "Date");
+            let t = date.0;
             // 4. If x is NaN, return "Invalid Date".
             if t.is_nan() {
                 return Ok(JsValue::new(js_string!("Invalid Date")));
@@ -1717,11 +1656,8 @@ impl Date {
             // 1. Let dateObject be the this value.
             // 2. Perform ? RequireInternalSlot(dateObject, [[DateValue]]).
             // 3. Let x be dateObject.[[DateValue]].
-            let t = this
-                .as_object()
-                .and_then(|obj| obj.downcast_ref::<Date>().as_deref().copied())
-                .ok_or_else(|| JsNativeError::typ().with_message("'this' is not a Date"))?
-                .0;
+            require_internal_slot!(date = this, Date, "Date");
+            let t = date.0;
             // 4. If x is NaN, return "Invalid Date".
             if t.is_nan() {
                 return Ok(JsValue::new(js_string!("Invalid Date")));
@@ -1772,11 +1708,8 @@ impl Date {
             // 1. Let dateObject be the this value.
             // 2. Perform ? RequireInternalSlot(dateObject, [[DateValue]]).
             // 3. Let x be dateObject.[[DateValue]].
-            let t = this
-                .as_object()
-                .and_then(|obj| obj.downcast_ref::<Date>().as_deref().copied())
-                .ok_or_else(|| JsNativeError::typ().with_message("'this' is not a Date"))?
-                .0;
+            require_internal_slot!(date = this, Date, "Date");
+            let t = date.0;
             // 4. If x is NaN, return "Invalid Date".
             if t.is_nan() {
                 return Ok(JsValue::new(js_string!("Invalid Date")));
@@ -1817,11 +1750,8 @@ impl Date {
         // 1. Let dateObject be the this value.
         // 2. Perform ? RequireInternalSlot(dateObject, [[DateValue]]).
         // 3. Let tv be dateObject.[[DateValue]].
-        let tv = this
-            .as_object()
-            .and_then(|obj| obj.downcast_ref::<Date>().as_deref().copied())
-            .ok_or_else(|| JsNativeError::typ().with_message("'this' is not a Date"))?
-            .0;
+        require_internal_slot!(date = this, Date, "Date");
+        let tv = date.0;
 
         // 4. Return ToDateString(tv).
         Ok(JsValue::from(to_date_string_t(
@@ -1848,11 +1778,8 @@ impl Date {
         // 1. Let dateObject be the this value.
         // 2. Perform ? RequireInternalSlot(dateObject, [[DateValue]]).
         // 3. Let tv be dateObject.[[DateValue]].
-        let tv = this
-            .as_object()
-            .and_then(|obj| obj.downcast_ref::<Date>().as_deref().copied())
-            .ok_or_else(|| JsNativeError::typ().with_message("'this' is not a Date"))?
-            .0;
+        require_internal_slot!(date = this, Date, "Date");
+        let tv = date.0;
 
         // 4. If tv is NaN, return "Invalid Date".
         if tv.is_nan() {
@@ -1886,11 +1813,8 @@ impl Date {
         // 1. Let dateObject be the this value.
         // 2. Perform ? RequireInternalSlot(dateObject, [[DateValue]]).
         // 3. Let tv be dateObject.[[DateValue]].
-        let tv = this
-            .as_object()
-            .and_then(|obj| obj.downcast_ref::<Date>().as_deref().copied())
-            .ok_or_else(|| JsNativeError::typ().with_message("'this' is not a Date"))?
-            .0;
+        require_internal_slot!(date = this, Date, "Date");
+        let tv = date.0;
 
         // 4. If tv is NaN, return "Invalid Date".
         if tv.is_nan() {
@@ -1990,12 +1914,8 @@ impl Date {
         // 1. Let dateObject be the this value.
         // 2. Perform ? RequireInternalSlot(dateObject, [[DateValue]]).
         // 3. Return dateObject.[[DateValue]].
-        Ok(this
-            .as_object()
-            .and_then(|obj| obj.downcast_ref::<Date>().as_deref().copied())
-            .ok_or_else(|| JsNativeError::typ().with_message("'this' is not a Date"))?
-            .0
-            .into())
+        require_internal_slot!(date = this, Date, "Date");
+        Ok(date.0.into())
     }
 
     /// [`Date.prototype [ @@toPrimitive ] ( hint )`][spec].
@@ -2063,11 +1983,8 @@ impl Date {
         // 1. Let dateObject be the this value.
         // 2. Perform ? RequireInternalSlot(dateObject, [[DateValue]]).
         // 3. Let t be dateObject.[[DateValue]].
-        let t = this
-            .as_object()
-            .and_then(|obj| obj.downcast_ref::<Date>().as_deref().copied())
-            .ok_or_else(|| js_error!(TypeError: "'this' is not a Date"))?
-            .0;
+        require_internal_slot!(date = this, Date, "Date");
+        let t = date.0;
 
         // 4. Let ns be ? NumberToBigInt(t) × ℤ(10**6).
         let ns = i128::from_f64(t)

@@ -103,7 +103,7 @@ fn date_this_time_value() {
     run_test_actions([TestAction::assert_native_error(
         "({toString: Date.prototype.toString}).toString()",
         JsNativeErrorKind::Type,
-        "'this' is not a Date",
+        "the this object must be a Date object.",
     )]);
 }
 
@@ -952,17 +952,17 @@ fn date_proto_to_locale_string_intl() {
         TestAction::assert_native_error(
             "Date.prototype.toLocaleString.call({})",
             JsNativeErrorKind::Type,
-            "'this' is not a Date",
+            "the this object must be a Date object.",
         ),
         TestAction::assert_native_error(
             "Date.prototype.toLocaleDateString.call({})",
             JsNativeErrorKind::Type,
-            "'this' is not a Date",
+            "the this object must be a Date object.",
         ),
         TestAction::assert_native_error(
             "Date.prototype.toLocaleTimeString.call({})",
             JsNativeErrorKind::Type,
-            "'this' is not a Date",
+            "the this object must be a Date object.",
         ),
         TestAction::assert_eq("new Date(NaN).toLocaleString()", js_str!("Invalid Date")),
         TestAction::assert("typeof new Date(2020, 6, 8).toLocaleString() === 'string'"),
