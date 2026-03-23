@@ -95,6 +95,35 @@ fn decoder_js() {
 }
 
 #[test]
+fn decoder_js_without_input() {
+    let context = &mut Context::default();
+    text::register(None, context).unwrap();
+
+    run_test_actions_with(
+        [
+            TestAction::run(indoc! {r#"
+                const d = new TextDecoder();
+                decoded = d.decode();
+                decodedUndefined = d.decode(undefined);
+            "#}),
+            TestAction::inspect_context(|context| {
+                let decoded = context
+                    .global_object()
+                    .get(js_str!("decoded"), context)
+                    .unwrap();
+                let decoded_undefined = context
+                    .global_object()
+                    .get(js_str!("decodedUndefined"), context)
+                    .unwrap();
+                assert_eq!(decoded.as_string(), Some(js_string!("")));
+                assert_eq!(decoded_undefined.as_string(), Some(js_string!("")));
+            }),
+        ],
+        context,
+    );
+}
+
+#[test]
 fn decoder_js_invalid() {
     use crate::test::{TestAction, run_test_actions_with};
     use indoc::indoc;
@@ -411,6 +440,30 @@ fn decoder_handle_typed_array_offset_and_length() {
         [
             TestAction::run(indoc! {r#"
                 var decoded = new TextDecoder().decode(Uint8Array.of(0x41, 0x43, 0x45, 0x47).subarray(1, 3));
+            "#}),
+            TestAction::inspect_context(|context| {
+                let decoded = context
+                    .global_object()
+                    .get(js_str!("decoded"), context)
+                    .unwrap();
+                assert_eq!(decoded.as_string(), Some(js_string!("CE")));
+            }),
+        ],
+        context,
+    );
+}
+
+#[test]
+fn decoder_handle_data_view_offset_and_length() {
+    let context = &mut Context::default();
+    text::register(None, context).unwrap();
+
+    run_test_actions_with(
+        [
+            TestAction::run(indoc! {r#"
+                const buffer = Uint8Array.of(0x41, 0x43, 0x45, 0x47).buffer;
+                const view = new DataView(buffer, 1, 2);
+                var decoded = new TextDecoder().decode(view);
             "#}),
             TestAction::inspect_context(|context| {
                 let decoded = context

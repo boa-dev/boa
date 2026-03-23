@@ -134,6 +134,8 @@ impl TextDecoder {
     /// The [`TextDecoder.decode()`][mdn] method returns a string containing text decoded from the
     /// buffer passed as a parameter.
     ///
+    /// If `buffer` is omitted or `undefined`, this returns an empty string.
+    ///
     /// `buffer` can be an `ArrayBuffer`, a `TypedArray` or a `DataView`.
     ///
     /// # Errors
@@ -141,6 +143,10 @@ impl TextDecoder {
     ///
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/API/TextDecoder/decode
     pub fn decode(&self, buffer: JsValue, context: &mut Context) -> JsResult<JsString> {
+        if buffer.is_undefined() {
+            return Ok(js_string!(""));
+        }
+
         let mut range = None;
         let array_buffer = if let Ok(array_buffer) = JsArrayBuffer::try_from_js(&buffer, context) {
             array_buffer
@@ -159,6 +165,13 @@ impl TextDecoder {
             let Some(obj) = data_view.buffer(context)?.as_object() else {
                 return Err(js_error!(TypeError: "Invalid buffer backing DataView."));
             };
+
+            let offset = usize::try_from(data_view.byte_offset(context)?)
+                .map_err(|_| js_error!(RangeError: "DataView offset exceeds addressable size."))?;
+            let length = usize::try_from(data_view.byte_length(context)?)
+                .map_err(|_| js_error!(RangeError: "DataView length exceeds addressable size."))?;
+
+            range = Some(offset..offset + length);
 
             JsArrayBuffer::from_object(obj)?
         } else {

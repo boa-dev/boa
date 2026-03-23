@@ -358,3 +358,90 @@ fn iterator_prototype_iterator_self() {
         "Iterator.prototype[Symbol.iterator]() === Iterator.prototype",
     )]);
 }
+
+#[test]
+fn iterator_concat_basic() {
+    run_test_actions([TestAction::assert_eq(
+        "Iterator.concat([1,2],[3,4]).toArray().join(',')",
+        js_str!("1,2,3,4"),
+    )]);
+}
+
+#[test]
+fn iterator_concat_zero_arguments() {
+    run_test_actions([TestAction::assert_eq(
+        "Iterator.concat().toArray().length",
+        0,
+    )]);
+}
+
+#[test]
+fn iterator_concat_single_argument() {
+    run_test_actions([TestAction::assert_eq(
+        "Iterator.concat([1,2]).toArray().join(',')",
+        js_str!("1,2"),
+    )]);
+}
+
+#[test]
+fn iterator_concat_three_arguments() {
+    run_test_actions([TestAction::assert_eq(
+        "Iterator.concat([1],[2],[3]).toArray().join(',')",
+        js_str!("1,2,3"),
+    )]);
+}
+
+#[test]
+fn iterator_concat_lazy_next() {
+    run_test_actions([TestAction::assert_eq(
+        "Iterator.concat([1,2],[3,4]).next().value",
+        1,
+    )]);
+}
+
+#[test]
+fn iterator_concat_non_object_throws() {
+    run_test_actions([TestAction::assert_native_error(
+        "Iterator.concat(42)",
+        JsNativeErrorKind::Type,
+        "Iterator.concat requires iterable objects",
+    )]);
+}
+
+#[test]
+fn iterator_concat_missing_iterator_throws() {
+    run_test_actions([TestAction::assert_native_error(
+        "Iterator.concat({})",
+        JsNativeErrorKind::Type,
+        "Iterator.concat requires objects with @@iterator",
+    )]);
+}
+
+#[test]
+fn iterator_concat_return_closes_inner() {
+    run_test_actions([
+        TestAction::run(
+            "let closed = false;
+             const iter = {
+                 [Symbol.iterator]() {
+                     return {
+                         next() { return { value: 1, done: false }; },
+                         return() { closed = true; return { done: true }; }
+                     };
+                 }
+             };
+             const it = Iterator.concat(iter);
+             it.next();
+             it.return();",
+        ),
+        TestAction::assert("closed"),
+    ]);
+}
+
+#[test]
+fn iterator_concat_return_result_shape() {
+    run_test_actions([TestAction::assert(
+        "const it = Iterator.concat([1,2]); it.next();
+         const r = it.return(); r.done === true && r.value === undefined",
+    )]);
+}

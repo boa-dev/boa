@@ -12,6 +12,7 @@ pub mod dataview;
 pub mod date;
 pub mod error;
 pub mod eval;
+pub mod finalization_registry;
 pub mod function;
 pub mod generator;
 pub mod generator_function;
@@ -66,6 +67,7 @@ pub(crate) use self::{
         AggregateError, EvalError, RangeError, ReferenceError, SyntaxError, TypeError, UriError,
     },
     eval::Eval,
+    finalization_registry::FinalizationRegistry,
     function::BuiltInFunctionObject,
     json::Json,
     map::Map,
@@ -316,6 +318,7 @@ impl Realm {
         WeakMap::init(self);
         WeakSet::init(self);
         Atomics::init(self);
+        FinalizationRegistry::init(self);
 
         #[cfg(feature = "annex-b")]
         {
@@ -444,6 +447,7 @@ pub(crate) fn set_default_global_bindings(context: &mut Context) -> JsResult<()>
     global_binding::<WeakSet>(context)?;
     global_binding::<IteratorConstructor>(context)?;
     global_binding::<Atomics>(context)?;
+    global_binding::<FinalizationRegistry>(context)?;
 
     #[cfg(feature = "annex-b")]
     {
