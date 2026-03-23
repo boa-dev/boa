@@ -157,6 +157,10 @@ struct Opt {
     #[arg(long)]
     test262_object: bool,
 
+    /// Disallow the main thread from blocking (e.g. `Atomics.wait`).
+    #[arg(long)]
+    no_can_block: bool,
+
     /// Treats the input files as modules.
     #[arg(long, short = 'm', group = "mod")]
     module: bool,
@@ -558,6 +562,7 @@ fn main() -> Result<()> {
     let context = &mut ContextBuilder::new()
         .job_executor(executor.clone())
         .module_loader(loader.clone())
+        .can_block(!args.no_can_block)
         .build()
         .map_err(|e| eyre!(e.to_string()))?;
 
