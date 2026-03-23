@@ -783,10 +783,7 @@ impl VisitMut for ClassVisitor {
         // method-type related attributes.
         if (has_static_attr
             || has_method_attr
-            || !(has_getter_attr
-                || has_ctor_attr
-                || has_setter_attr
-                || has_js_init_attr))
+            || !(has_getter_attr || has_ctor_attr || has_setter_attr || has_js_init_attr))
             && let Err((span, msg)) = self.method(has_method_attr, has_static_attr, item)
         {
             self.error(span, msg);
