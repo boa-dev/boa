@@ -83,7 +83,7 @@ experimental = []
 js = ["dep:web-time", "dep:getrandom", "getrandom/wasm_js", "time/wasm-bindgen"]
 
 # Enable support for Float16 typed arrays
-float16 = ["dep:float16"]
+float16 = ["dep:float16", "dep:half"]
 
 # Enable support for `Math.sumPrecise`
 xsum = ["dep:xsum"]
@@ -142,6 +142,7 @@ dynify = { workspace = true, features = ["macros"] }
 futures-concurrency.workspace = true
 oneshot = { workspace = true, features = ["async"] }
 async-channel.workspace = true
+half = { version = "2", optional = true }
 
 # intl deps
 boa_icu_provider = { workspace = true, features = ["std"], optional = true }
