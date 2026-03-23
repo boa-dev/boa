@@ -289,13 +289,18 @@ impl Drop for Counters {
 ///
 /// Returns a error of type String with a error message,
 /// if the source has a syntax or parsing error.
-fn dump<R: ReadChar>(src: Source<'_, R>, args: &Opt, context: &mut Context) -> Result<()> {
+fn dump<R: ReadChar>(
+    src: Source<'_, R>,
+    args: &Opt,
+    is_module: bool,
+    context: &mut Context,
+) -> Result<()> {
     if let Some(arg) = args.dump_ast {
         let mut counters = Counters::new(args.time);
         let arg = arg.unwrap_or_default();
         let mut parser = boa_parser::Parser::new(src);
         let dump =
-            if args.module {
+            if is_module {
                 let scope = context.realm().scope().clone();
                 let module = {
                     let _timer = counters.new_timer("Parsing");
@@ -390,7 +395,7 @@ fn evaluate_expr(
     printer: &SharedExternalPrinterLogger,
 ) -> Result<()> {
     if args.has_dump_flag() {
-        dump(Source::from_bytes(line), args, context)?;
+        dump(Source::from_bytes(line), args, args.module, context)?;
     } else if let Some(flowgraph) = args.flowgraph {
         match generate_flowgraph(
             context,
@@ -437,8 +442,11 @@ fn evaluate_file(
     loader: &SimpleModuleLoader,
     printer: &SharedExternalPrinterLogger,
 ) -> Result<()> {
+    // Treat files with .mjs extension automatically as modules.
+    let is_module = args.module || file.extension().is_some_and(|ext| ext == "mjs");
+
     if args.has_dump_flag() {
-        return dump(Source::from_filepath(file)?, args, context);
+        return dump(Source::from_filepath(file)?, args, is_module, context);
     }
 
     if let Some(flowgraph) = args.flowgraph {
@@ -454,7 +462,7 @@ fn evaluate_file(
         return Ok(());
     }
 
-    if args.module {
+    if is_module {
         let source = Source::from_filepath(file)?;
         let mut counters = Counters::new(args.time);
         let module = {
