@@ -49,6 +49,7 @@ intl = [
     "dep:icu_list",
     "dep:icu_segmenter",
     "dep:icu_decimal",
+    "dep:icu_experimental",
     "dep:writeable",
     "dep:sys-locale",
     "dep:yoke",
@@ -176,6 +177,9 @@ icu_segmenter = { workspace = true, default-features = false, features = [
     "serde",
 ], optional = true }
 icu_decimal = { workspace = true, default-features = false, features = [
+    "serde",
+], optional = true }
+icu_experimental = { workspace = true, default-features = false, features = [
     "serde",
 ], optional = true }
 writeable = { workspace = true, optional = true }
