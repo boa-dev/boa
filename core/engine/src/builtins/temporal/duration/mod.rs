@@ -1115,7 +1115,15 @@ impl Duration {
         Ok(JsString::from(result).into())
     }
 
-    /// 7.3.24 `Temporal.Duration.prototype.toLocaleString ( )`
+    /// 7.3.24 `Temporal.Duration.prototype.toLocaleString ( [ locales [ , options ] ] )`
+    ///
+    /// When the implementation includes ECMA-402, this method is defined by the Intl specification
+    /// (typically via `Intl.DurationFormat`). Boa does not implement `Intl.DurationFormat` yet, so
+    /// we use the Temporal proposal **non-ECMA-402** fallback: `TemporalDurationToString(duration, auto)`
+    /// — the same string as [`Self::to_json`].
+    ///
+    /// The `locales` and `options` arguments are accepted for API compatibility but are ignored
+    /// until locale-sensitive duration formatting is implemented.
     ///
     /// More information:
     ///
@@ -1126,23 +1134,10 @@ impl Duration {
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Temporal/Duration/toLocaleString
     pub(crate) fn to_locale_string(
         this: &JsValue,
-        _: &[JsValue],
-        _: &mut Context,
+        _args: &[JsValue],
+        context: &mut Context,
     ) -> JsResult<JsValue> {
-        // TODO: Update for ECMA-402 compliance
-        let object = this.as_object();
-        let duration = object
-            .as_ref()
-            .and_then(JsObject::downcast_ref::<Self>)
-            .ok_or_else(|| {
-                JsNativeError::typ().with_message("this value must be a Duration object.")
-            })?;
-
-        let result = duration
-            .inner
-            .as_temporal_string(ToStringRoundingOptions::default())?;
-
-        Ok(JsString::from(result).into())
+        Self::to_json(this, &[], context)
     }
 
     /// 7.3.25 `Temporal.Duration.prototype.valueOf ( )`
@@ -1156,7 +1151,11 @@ impl Duration {
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Temporal/Duration/valueOf
     pub(crate) fn value_of(_this: &JsValue, _: &[JsValue], _: &mut Context) -> JsResult<JsValue> {
         Err(JsNativeError::typ()
-            .with_message("`valueOf` not supported by Temporal built-ins. See 'compare', 'equals', or `toString`")
+            .with_message(
+                "Cannot convert a Temporal.Duration to a primitive value. \
+                 Use Temporal.Duration.compare() for comparison or \
+                 Temporal.Duration.prototype.toString() for a string representation.",
+            )
             .into())
     }
 }

@@ -1,4 +1,4 @@
-use crate::{TestAction, run_test_actions};
+use crate::{JsNativeErrorKind, TestAction, run_test_actions};
 
 #[test]
 fn duration_constructor() {
@@ -69,4 +69,24 @@ fn basic() {
         TestAction::assert_eq("dur.microseconds", 0),
         TestAction::assert_eq("dur.nanoseconds", 0),
     ]);
+}
+
+#[test]
+fn duration_to_locale_string_matches_to_json_until_intl_duration_format() {
+    run_test_actions([
+        TestAction::run("let dur = Temporal.Duration.from('P1Y2M3DT4H5M6.007008009S')"),
+        TestAction::assert("dur.toLocaleString() === dur.toJSON()"),
+        TestAction::assert(
+            "dur.toLocaleString('en-US', { style: 'narrow' }) === dur.toJSON()",
+        ),
+    ]);
+}
+
+#[test]
+fn duration_value_of_throws_type_error_with_compare_hint() {
+    run_test_actions([TestAction::assert_native_error(
+        "Temporal.Duration.from('P1D').valueOf()",
+        JsNativeErrorKind::Type,
+        "Cannot convert a Temporal.Duration to a primitive value. Use Temporal.Duration.compare() for comparison or Temporal.Duration.prototype.toString() for a string representation.",
+    )]);
 }
