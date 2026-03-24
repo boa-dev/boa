@@ -1004,6 +1004,7 @@ pub struct ContextBuilder {
     clock: Option<Rc<dyn Clock>>,
     job_executor: Option<Rc<dyn JobExecutor>>,
     module_loader: Option<Rc<dyn DynModuleLoader>>,
+    gc_config: Option<boa_gc::GcConfig>,
     can_block: bool,
     #[cfg(feature = "intl")]
     icu: Option<icu::IntlProvider>,
@@ -1036,6 +1037,13 @@ impl std::fmt::Debug for ContextBuilder {
             .field(
                 "module_loader",
                 &self.module_loader.as_ref().map(|_| ModuleLoader),
+            )
+            .field(
+                "gc_config",
+                &self
+                    .gc_config
+                    .as_ref()
+                    .map(|gc| (gc.threshold(), gc.used_space_percentage())),
             )
             .field("can_block", &self.can_block);
 
@@ -1153,6 +1161,16 @@ impl ContextBuilder {
         self
     }
 
+    /// Configures the thread-local Boa garbage collector for this context.
+    ///
+    /// This must be called before allocations happen on this thread. Since Boa's GC is
+    /// thread-local, this setting only affects contexts running on the current thread.
+    #[must_use]
+    pub const fn gc_config(mut self, gc_config: boa_gc::GcConfig) -> Self {
+        self.gc_config = Some(gc_config);
+        self
+    }
+
     /// [`AgentCanSuspend ( )`][spec] aka `[[CanBlock]]`
     ///
     /// Defines if this context can be suspended by calls to the [`Atomics.wait`][wait] function.
@@ -1186,6 +1204,10 @@ impl ContextBuilder {
     // TODO: try to use a custom error here, since most of the `JsError` APIs
     // require having a `Context` in the first place.
     pub fn build(self) -> JsResult<Context> {
+        if let Some(gc_config) = self.gc_config {
+            boa_gc::set_gc_config(gc_config);
+        }
+
         if self.can_block {
             if CANNOT_BLOCK_COUNTER.get() > 0 {
                 return Err(JsNativeError::typ()

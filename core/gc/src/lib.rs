@@ -50,24 +50,64 @@ thread_local!(static BOA_GC: RefCell<BoaGc> = RefCell::new( BoaGc {
     weak_maps: Vec::default(),
 }));
 
-#[derive(Debug, Clone, Copy)]
-struct GcConfig {
+/// Configuration for Boa's thread-local garbage collector.
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub struct GcConfig {
     /// The threshold at which the garbage collector will trigger a collection.
     threshold: usize,
     /// The percentage of used space at which the garbage collector will trigger a collection.
     used_space_percentage: usize,
 }
 
-// Setting the defaults to an arbitrary value currently.
-//
-// TODO: Add a configure later
+impl GcConfig {
+    /// Creates a new GC configuration.
+    ///
+    /// Values are normalized to safe ranges:
+    /// - `threshold` is at least `1`.
+    /// - `used_space_percentage` is clamped to `1..=100`.
+    #[must_use]
+    pub fn new(threshold: usize, used_space_percentage: usize) -> Self {
+        Self {
+            threshold: threshold.max(1),
+            used_space_percentage: used_space_percentage.clamp(1, 100),
+        }
+    }
+
+    /// Returns the allocation threshold in bytes.
+    #[must_use]
+    pub const fn threshold(self) -> usize {
+        self.threshold
+    }
+
+    /// Returns the used-space trigger percentage.
+    #[must_use]
+    pub const fn used_space_percentage(self) -> usize {
+        self.used_space_percentage
+    }
+
+    /// Sets the allocation threshold in bytes.
+    ///
+    /// A `threshold` of `0` is normalized to `1`.
+    #[must_use]
+    pub fn with_threshold(mut self, threshold: usize) -> Self {
+        self.threshold = threshold.max(1);
+        self
+    }
+
+    /// Sets the used-space trigger percentage.
+    ///
+    /// Values are clamped to `1..=100`.
+    #[must_use]
+    pub fn with_used_space_percentage(mut self, used_space_percentage: usize) -> Self {
+        self.used_space_percentage = used_space_percentage.clamp(1, 100);
+        self
+    }
+}
+
 impl Default for GcConfig {
     fn default() -> Self {
-        Self {
-            // Start at 1MB, the nursary size for V8 is ~1-8MB and SM can be up to 16MB
-            threshold: 1_048_576,
-            used_space_percentage: 70,
-        }
+        // Start at 1MB, the nursery size for V8 is ~1-8MB and SM can be up to 16MB.
+        Self::new(1_048_576, 70)
     }
 }
 
@@ -538,6 +578,23 @@ pub fn force_collect() {
         if gc.runtime.bytes_allocated > 0 {
             Collector::collect(&mut gc);
         }
+    });
+}
+
+/// Returns the current garbage collector configuration for this thread.
+///
+/// Note: the GC is thread-local, so this only affects the calling thread.
+#[must_use]
+pub fn gc_config() -> GcConfig {
+    BOA_GC.with(|current| current.borrow().config)
+}
+
+/// Updates the garbage collector configuration for this thread.
+///
+/// Note: the GC is thread-local, so this only affects the calling thread.
+pub fn set_gc_config(config: GcConfig) {
+    BOA_GC.with(|current| {
+        current.borrow_mut().config = config;
     });
 }
 
