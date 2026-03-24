@@ -1,7 +1,7 @@
 //! This module implements the global `Intl.DisplayNames` object.
 //!
 //! # TODO
-//! - Implement the constructor following `InitializeDisplayNames`` (§12.1.1)
+//! - Implement the constructor following `InitializeDisplayNames` (§12.1.1)
 //! - Implement `of()` (§12.3.3)
 //! - Implement `resolvedOptions()` (§12.3.4)
 //!
