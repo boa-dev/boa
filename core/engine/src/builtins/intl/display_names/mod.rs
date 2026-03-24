@@ -1,7 +1,7 @@
 //! This module implements the global `Intl.DisplayNames` object.
 //!
 //! # TODO
-//! - Implement the constructor following InitializeDisplayNames (§12.1.1)
+//! - Implement the constructor following `InitializeDisplayNames`` (§12.1.1)
 //! - Implement `of()` (§12.3.3)
 //! - Implement `resolvedOptions()` (§12.3.4)
 //!
@@ -94,7 +94,7 @@ impl BuiltInConstructor for DisplayNames {
     const STANDARD_CONSTRUCTOR: fn(&StandardConstructors) -> &StandardConstructor =
         StandardConstructors::display_names;
 
-    ///The DisplayNames constructor is the %Intl.DisplayNames% intrinsic object and a standard built-in property of the Intl object.
+    ///The `DisplayNames` constructor is the %Intl.DisplayNames% intrinsic object and a standard built-in property of the Intl object.
     ///
     /// More information:
     ///  - [ECMAScript reference][spec]
@@ -168,9 +168,9 @@ impl BuiltInConstructor for DisplayNames {
 }
 
 impl DisplayNames {
-    /// Intl.DisplayNames.supportedLocalesOf ( locales [ , options ] )[spec].
+    /// `Intl.DisplayNames.supportedLocalesOf` ( locales [ , options ] )[spec].
     ///
-    /// The Intl.DisplayNames.supportedLocalesOf() static method returns
+    /// The `Intl.DisplayNames.supportedLocalesOf()` static method returns
     /// an array containing those of the provided locales that are supported in
     /// display names without having to fall back to the runtime's default locale.
     ///
@@ -197,7 +197,7 @@ impl DisplayNames {
 
     /// [`Intl.DisplayNames.prototype.of ( code )`][spec].
     ///
-    /// The of() method of Intl.DisplayNames instances receives a code and returns a string
+    /// The `of()` method of Intl.DisplayNames instances receives a code and returns a string
     /// based on the locale and options provided when instantiating this Intl.DisplayNames object.
     ///
     /// More information:
