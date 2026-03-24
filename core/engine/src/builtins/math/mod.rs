@@ -200,7 +200,9 @@ impl Math {
         // 1. Let n be ? ToNumber(x).
         let n = args.get_or_undefined(0).to_number(context)?;
         if n.is_finite() && n.abs() > ASINH_LARGE_INPUT_THRESHOLD {
-            return Ok((n.signum() * (n.abs().ln() + std::f64::consts::LN_2)).into());
+            return Ok(
+                (n.signum() * (n.abs().ln() + std::f64::consts::LN_2 + (0.25 / (n * n)))).into(),
+            );
         }
 
         // 2. If n is NaN, n is +0𝔽, n is -0𝔽, n is +∞𝔽, or n is -∞𝔽, return n.
