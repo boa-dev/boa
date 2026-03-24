@@ -47,6 +47,8 @@ impl FromStr for DisplayNamesType {
 
 impl ParsableOptionType for DisplayNamesType {}
 
+// NOTE: `Style`, `Fallback`, and `LanguageDisplay` are from `icu_experimental`,
+// which may change as icu4x#3913(https://github.com/unicode-org/icu4x/issues/3913) finalizes the DisplayNames API design.
 impl OptionType for Style {
     fn from_value(value: JsValue, context: &mut Context) -> JsResult<Self> {
         match value.to_string(context)?.to_std_string_escaped().as_str() {

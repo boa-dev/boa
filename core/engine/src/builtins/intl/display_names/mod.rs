@@ -7,7 +7,6 @@
 //!
 //! [spec]: https://tc39.es/ecma402/#intl-displaynames-objects
 
-// #![allow(unused_imports)]
 use crate::{
     Context, JsArgs, JsData, JsNativeError, JsResult, JsString, JsValue,
     builtins::{
@@ -55,7 +54,11 @@ pub(crate) struct DisplayNames {
 // which only depends on locale availability. Therefore, we use
 // `LocaleDisplayNamesV1` as a general marker here, while actual
 // formatting dispatches on `type` at runtime inside `of()`.
+
 impl Service for DisplayNames {
+    //`LocaleDisplayNamesV1`
+    // is used here as a temporary stand-in for `supportedLocalesOf` locale
+    // availability only, and may be replaced by a more specific marker in the future as ICU4X's DisplayNames API design finalizes
     type LangMarker = LocaleDisplayNamesV1;
     type Preferences = EmptyPreferences;
 }
