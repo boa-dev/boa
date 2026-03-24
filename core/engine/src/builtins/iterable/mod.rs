@@ -557,7 +557,14 @@ impl IteratorRecord {
             // 5. If done is true, then
             //     a. Set iteratorRecord.[[Done]] to true.
             //     b. Return done.
-            iter.done = result.complete(context)?;
+            let done = match result.complete(context) {
+                Ok(done) => done,
+                Err(err) => {
+                    drop(iter.close(Err(err.clone()), context));
+                    return Err(err);
+                }
+            };
+            iter.done = done;
 
             iter.last_result = result;
 
@@ -586,7 +593,14 @@ impl IteratorRecord {
             // 4. If value is a throw completion, then
             //     a. Set iteratorRecord.[[Done]] to true.
             // 5. Return ? value.
-            self.value(context).map(Some)
+            let value = match self.value(context) {
+                Ok(val) => val,
+                Err(err) => {
+                    drop(self.close(Err(err.clone()), context));
+                    return Err(err);
+                }
+            };
+            Ok(Some(value))
         }
     }
 
