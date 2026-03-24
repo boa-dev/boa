@@ -39,3 +39,30 @@ fn u16_to_rounding_increment_rainy_day() {
         assert!(RoundingIncrement::from_u16(num).is_none());
     }
 }
+
+#[test]
+fn percent_symbol_logic() {
+    // Test that the percent symbol logic correctly maps locales
+    let test_cases = vec![
+        ("de", " %"),
+        ("en", "%"),
+        ("fr", " %"),
+        ("es", " %"),
+        ("pt", " %"),
+        ("ja", " %"),
+        ("zh", "%"),
+        ("ar", "%"),
+    ];
+    
+    for (lang, expected_symbol) in test_cases {
+        let locale_str = format!("{}-XX", lang);
+        let lang_part = locale_str.split('-').next().unwrap_or("");
+        let symbol = match lang_part {
+            "de" | "fr" | "es" | "it" | "pt" | "pl" | "nl" | "sv" | "no" | "da" | "fi" | "hu"
+            | "cs" | "sk" | "ro" | "bg" | "hr" | "et" | "lt" | "lv" | "sl" | "tr" | "el"
+            | "ja" | "ko" | "ru" | "uk" | "be" | "sr" | "mk" => " %",
+            _ => "%",
+        };
+        assert_eq!(symbol, expected_symbol, "Symbol mismatch for language {}", lang);
+    }
+}

@@ -68,13 +68,26 @@ impl NumberFormat {
     /// [full]: https://tc39.es/ecma402/#sec-formatnumber
     /// [parts]: https://tc39.es/ecma402/#sec-formatnumbertoparts
     pub(crate) fn format<'a>(&'a self, value: &'a mut Decimal) -> FormattedDecimal<'a> {
-        // TODO: Missing support from ICU4X for Percent/Currency/Unit formatting.
+        // TODO: Missing support from ICU4X for Currency/Unit formatting.
         // TODO: Missing support from ICU4X for Scientific/Engineering/Compact notation.
 
         self.digit_options.format_fixed_decimal(value);
         value.apply_sign_display(self.sign_display);
 
         self.formatter.format(value)
+    }
+
+    /// Returns the locale-specific percent symbol for this number format.
+    fn get_percent_symbol(&self) -> &'static str {
+        let locale_str = self.locale.to_string();
+        let lang = locale_str.split('-').next().unwrap_or("");
+        // Most European and Asian locales use space before %
+        match lang {
+            "de" | "fr" | "es" | "it" | "pt" | "pl" | "nl" | "sv" | "no" | "da" | "fi" | "hu"
+            | "cs" | "sk" | "ro" | "bg" | "hr" | "et" | "lt" | "lv" | "sl" | "tr" | "el"
+            | "ja" | "ko" | "ru" | "uk" | "be" | "sr" | "mk" => " %",
+            _ => "%",
+        }
     }
 }
 
@@ -511,8 +524,34 @@ impl NumberFormat {
                         // 4. Let x be ? ToIntlMathematicalValue(value).
                         let mut x = to_intl_mathematical_value(value, context)?;
 
+                        // Check if percent style before borrowing
+                        let is_percent = {
+                            let nf_borrow = nf.borrow();
+                            nf_borrow.data().unit_options.style() == Style::Percent
+                        };
+                        
+                        // Handle percent style by multiplying by 100
+                        if is_percent {
+                            // Convert to string, multiply by 100, convert back
+                            let formatted_str = x.to_string();
+                            if let Ok(num_value) = formatted_str.parse::<f64>() {
+                                if let Ok(scaled) = Decimal::try_from_f64(num_value * 100.0, FloatPrecision::RoundTrip) {
+                                    x = scaled;
+                                }
+                            }
+                        }
+
                         // 5. Return FormatNumeric(nf, x).
-                        Ok(js_string!(nf.borrow().data().format(&mut x).to_string()).into())
+                        let nf_borrow = nf.borrow();
+                        let formatted = nf_borrow.data().format(&mut x).to_string();
+                        
+                        let result = if is_percent {
+                            format!("{}{}", formatted, nf_borrow.data().get_percent_symbol())
+                        } else {
+                            formatted
+                        };
+                        
+                        Ok(js_string!(result).into())
                     },
                     nf_clone,
                 ),
