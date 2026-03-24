@@ -189,7 +189,7 @@ impl Iterator {
             this_obj.create_data_property_or_throw(p, v.clone(), context)?;
         } else {
             // 5. Else,
-            // a. Perform ? Set(this, p, v, true).
+            //    a. Perform ? Set(this, p, v, true).
             this_obj.set(p, v.clone(), true, context)?;
         }
 
@@ -230,7 +230,7 @@ impl Iterator {
         // 5. Set iterated to ? GetIteratorDirect(O).
         let iterated = get_iterator_direct(iterated.iterator(), context)?;
 
-        // 6-8.
+        // 6-8 are deferred to `IteratorHelper::create` and `Map::new`.
         let result = IteratorHelper::create(iterator_helper::Map::new(iterated, mapper), context);
 
         // 9. Return result.
@@ -269,7 +269,7 @@ impl Iterator {
         // 5. Set iterated to ? GetIteratorDirect(O).
         let iterated = get_iterator_direct(iterated.iterator(), context)?;
 
-        // 6-8.
+        // 6-8 are deferred to `IteratorHelper::create` and `Filter::new`.
         let result =
             IteratorHelper::create(iterator_helper::Filter::new(iterated, predicate), context);
 
@@ -330,7 +330,7 @@ impl Iterator {
         // 9. Set iterated to ? GetIteratorDirect(O).
         let iterated = get_iterator_direct(iterated.iterator(), context)?;
 
-        // 8-12. Return CreateIteratorHelper with a take closure.
+        // 10-12 are deferred to `IteratorHelper::create` and `Take::new`.
         let result =
             IteratorHelper::create(iterator_helper::Take::new(iterated, integer_limit), context);
 
@@ -390,11 +390,7 @@ impl Iterator {
         // 9. Set iterated to ? GetIteratorDirect(O).
         let iterated = get_iterator_direct(iterated.iterator(), context)?;
 
-        // 11. Let result be CreateIteratorFromClosure(
-        //         closure, "Iterator Helper", %IteratorHelperPrototype%,
-        //         « [[UnderlyingIterators]] »
-        //     ).
-        // 12. Set result.[[UnderlyingIterators]] to « iterated ».
+        // 10-12 are deferred to `IteratorHelper::create` and `Drop::new`.
         let result =
             IteratorHelper::create(iterator_helper::Drop::new(iterated, integer_limit), context);
 
@@ -434,7 +430,7 @@ impl Iterator {
         // 5. Set iterated to ? GetIteratorDirect(O).
         let iterated = get_iterator_direct(iterated.iterator(), context)?;
 
-        // 6-8.
+        // 6-8 are deferred to `IteratorHelper::create` and `FlatMap::new`.
         let helper =
             IteratorHelper::create(iterator_helper::FlatMap::new(iterated, mapper), context);
 
@@ -493,13 +489,9 @@ impl Iterator {
         };
 
         // 8. Repeat,
-        loop {
-            // a. Let value be ? IteratorStepValue(iterated).
-            // b. If value is done, return accumulator.
-            let Some(value) = iterated.step_value(context)? else {
-                return Ok(accumulator);
-            };
-
+        //    a. Let value be ? IteratorStepValue(iterated).
+        //    b. If value is done, return accumulator.
+        while let Some(value) = iterated.step_value(context)? {
             // c. Let result be Completion(Call(reducer, undefined, « accumulator, value, 𝔽(counter) »)).
             let result = reducer.call(
                 &JsValue::undefined(),
@@ -514,6 +506,9 @@ impl Iterator {
             // f. Set counter to counter + 1.
             counter += 1;
         }
+
+        // Step 8.b
+        Ok(accumulator)
     }
 
     /// `Iterator.prototype.toArray ( )`
@@ -575,8 +570,9 @@ impl Iterator {
         let mut counter = 0u64;
 
         // 7. Repeat,
+        //    a. Let value be ? IteratorStepValue(iterated).
+        //    b. If value is done, return undefined.
         while let Some(value) = iterated.step_value(context)? {
-            // a. Let value be ? IteratorStepValue(iterated).
             // c. Let result be Completion(Call(procedure, undefined, « value, 𝔽(counter) »)).
             let result = func.call(
                 &JsValue::undefined(),
@@ -591,7 +587,7 @@ impl Iterator {
             counter += 1;
         }
 
-        //    b. If value is done, return undefined.
+        // Step 7.b
         Ok(JsValue::undefined())
     }
 
@@ -629,9 +625,9 @@ impl Iterator {
         // 6. Let counter be 0.
         let mut counter = 0u64;
         // 7. Repeat,
+        //    a. Let value be ? IteratorStepValue(iterated).
+        //    b. If value is done, return false.
         while let Some(value) = iterated.step_value(context)? {
-            // a. Let value be ? IteratorStepValue(iterated).
-
             // c. Let result be Completion(Call(predicate, undefined, « value, 𝔽(counter) »)).
             let result = predicate.call(
                 &JsValue::undefined(),
@@ -650,7 +646,7 @@ impl Iterator {
             counter += 1;
         }
 
-        // b. If value is done, return false.
+        // Step 7.b
         Ok(false.into())
     }
 
@@ -689,9 +685,9 @@ impl Iterator {
         let mut counter = 0u64;
 
         // 7. Repeat,
+        //    a. Let value be ? IteratorStepValue(iterated).
+        //    b. If value is done, return true.
         while let Some(value) = iterated.step_value(context)? {
-            // a. Let value be ? IteratorStepValue(iterated).
-
             // c. Let result be Completion(Call(predicate, undefined, « value, 𝔽(counter) »)).
             let result = predicate.call(
                 &JsValue::undefined(),
@@ -710,7 +706,7 @@ impl Iterator {
             counter += 1;
         }
 
-        // b. If value is done, return true.
+        // Step 7.b
         Ok(true.into())
     }
 
@@ -748,9 +744,9 @@ impl Iterator {
         let mut counter = 0u64;
 
         // 7. Repeat,
+        //    a. Let value be ? IteratorStepValue(iterated).
+        //    b. If value is done, return undefined.
         while let Some(value) = iterated.step_value(context)? {
-            // a. Let value be ? IteratorStepValue(iterated).
-
             // c. Let result be Completion(Call(predicate, undefined, « value, 𝔽(counter) »)).
             let result = predicate.call(
                 &JsValue::undefined(),
@@ -770,7 +766,7 @@ impl Iterator {
             counter += 1;
         }
 
-        // b. If value is done, return undefined.
+        // Step 7.b
         Ok(JsValue::undefined())
     }
 }

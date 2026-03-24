@@ -116,6 +116,13 @@ impl IteratorHelper {
         // 1. Let state be ? GeneratorValidate(generator, generatorBrand).
         let helper = Self::generator_validate(this)?;
 
+        // `GeneratorValidate ( generator, generatorBrand )`
+        // <https://tc39.es/ecma262/#sec-generatorvalidate>
+        //
+        // 4. Assert: generator has a [[GeneratorContext]] internal slot.
+        // 5. Let state be generator.[[GeneratorState]].
+        // 6. If state is executing, throw a TypeError exception.
+        // 7. Return state.
         let coroutine = helper
             .borrow_mut()
             .data_mut()
@@ -172,8 +179,33 @@ impl IteratorHelper {
         _args: &[JsValue],
         context: &mut Context,
     ) -> JsResult<JsValue> {
+        // 1. Let O be this value.
+        // 2. Perform ? RequireInternalSlot(O, [[UnderlyingIterators]]).
+        // 3. Assert: O has a [[GeneratorState]] internal slot.
+        // 4. If O.[[GeneratorState]] is suspended-start, then
+        //        a. Set O.[[GeneratorState]] to completed.
+        //        b. NOTE: Once a generator enters the completed state it never leaves it and its associated execution context is never resumed. Any execution state associated with O can be discarded at this point.
+        //        c. Perform ? IteratorCloseAll(O.[[UnderlyingIterators]], NormalCompletion(unused)).
+        //        d. Return CreateIteratorResultObject(undefined, true).
+        // 5. Let C be ReturnCompletion(undefined).
+        // 6. Return ? GeneratorResumeAbrupt(O, C, "Iterator Helper").
+
+        // `GeneratorResumeAbrupt ( generator, abruptCompletion, generatorBrand )`
+        // <https://tc39.es/ecma262/#sec-generatorresumeabrupt>
+        //
+        // NOTE: This function might not map directly to the spec, since we're
+        // converting generators into state machines
+
+        // 1. Let state be ? GeneratorValidate(generator, generatorBrand).
         let helper = Self::generator_validate(this)?;
 
+        // `GeneratorValidate ( generator, generatorBrand )`
+        // <https://tc39.es/ecma262/#sec-generatorvalidate>
+        //
+        // 4. Assert: generator has a [[GeneratorContext]] internal slot.
+        // 5. Let state be generator.[[GeneratorState]].
+        // 6. If state is executing, throw a TypeError exception.
+        // 7. Return state.
         let coroutine = helper
             .borrow_mut()
             .data_mut()
@@ -185,17 +217,48 @@ impl IteratorHelper {
                 )
             })?;
 
-        // Delegate closing iterators to each transformer.
+        // 2. If state is suspended-start, then
+        //    a. Set generator.[[GeneratorState]] to completed.
+        //    b. NOTE: Once a generator enters the completed state it never leaves
+        //       it and its associated execution context is never resumed. Any
+        //       execution state associated with generator can be discarded at this point.
+        //    c. Set state to completed.
+        // 3. If state is completed, then
+        //    a. If abruptCompletion is a return completion, then
+        //       i. Return CreateIteratorResultObject(abruptCompletion.[[Value]], true).
+        //    b. Return ? abruptCompletion.
+        // 4. Assert: state is suspended-yield.
+        // 5. Let genContext be generator.[[GeneratorContext]].
+        // 6. Let methodContext be the running execution context.
+        // 7. Suspend methodContext.
+        // 8. Set generator.[[GeneratorState]] to executing.
+        // 9. Push genContext onto the execution context stack; genContext is now
+        //    the running execution context.
+        // 10. Resume the suspended evaluation of genContext using
+        //     abruptCompletion as the result of the operation that suspended it.
+        //     Let result be the Completion Record returned by the resumed
+        //     computation.
+        // 11. Assert: When we return here, genContext has already been removed
+        //     from the execution context stack and methodContext is the currently
+        //     running execution context.
+        // 12. Return ? result.
+        //
+        // ... Delegate status tracking to each transformer.
         let result = match coroutine.call(CompletionRecord::Return(JsValue::undefined()), context) {
+            // We technically would need to follow step 3.b here and return
+            // the yielded value, but our transformers shouldn't keep executing
+            // after calling `return`, so it's better to panic here to catch bugs.
             ControlFlow::Continue(_) => Err(PanicError::new(
                 "an iterator helper cannot yield after a return request",
             )
             .into()),
+            // Step 3.a, 12
             ControlFlow::Break(Ok(())) => Ok(create_iter_result_object(
                 JsValue::undefined(),
                 true,
                 context,
             )),
+            // Step 3.b, 12
             ControlFlow::Break(Err(err)) => Err(err),
         };
 
@@ -212,6 +275,12 @@ impl IteratorHelper {
     /// [spec]: https://tc39.es/ecma262/#sec-generatorvalidate
     #[track_caller]
     pub(crate) fn generator_validate(this: &JsValue) -> JsResult<JsObject<IteratorHelper>> {
+        // 1. Perform ? RequireInternalSlot(generator, [[GeneratorState]]).
+        // 2. Perform ? RequireInternalSlot(generator, [[GeneratorBrand]]).
+        // 3. If generator.[[GeneratorBrand]] is not generatorBrand, throw a TypeError exception.
+        //
+        // Slightly differs from the spec since we don't have a `[[GeneratorState]]`,
+        // and we defer checking for `Executing` to `Self::next` and `Self::return`.
         this.as_object()
             .and_then(|o| o.downcast::<Self>().ok())
             .ok_or_else(|| js_error!(TypeError: "Iterator Helper method called on non-object"))
@@ -219,6 +288,13 @@ impl IteratorHelper {
 
     /// Creates a new `IteratorHelper` object.
     pub(crate) fn create(op: NativeCoroutine, context: &mut Context) -> JsObject {
+        // All eager iterators follow the following steps:
+        //
+        // i. Let result be CreateIteratorFromClosure(
+        //         closure, "Iterator Helper",
+        //         %IteratorHelperPrototype%, « [[UnderlyingIterators]] »
+        //     ).
+        // ii. Set result.[[UnderlyingIterators]] to « iterated ».
         JsObject::from_proto_and_data_with_shared_shape(
             context.root_shape(),
             context
