@@ -241,7 +241,6 @@ impl IteratorHelper {
         // 11. Assert: When we return here, genContext has already been removed
         //     from the execution context stack and methodContext is the currently
         //     running execution context.
-        // 12. Return ? result.
         //
         // ... Delegate status tracking to each transformer.
         let result = match coroutine.call(CompletionRecord::Return(JsValue::undefined()), context) {
@@ -252,18 +251,19 @@ impl IteratorHelper {
                 "an iterator helper cannot yield after a return request",
             )
             .into()),
-            // Step 3.a, 12
+            // Step 3.a
             ControlFlow::Break(Ok(())) => Ok(create_iter_result_object(
                 JsValue::undefined(),
                 true,
                 context,
             )),
-            // Step 3.b, 12
+            // Step 3.b
             ControlFlow::Break(Err(err)) => Err(err),
         };
 
         helper.borrow_mut().data_mut().coroutine = Some(coroutine);
 
+        // 12. Return ? result.
         result
     }
 
