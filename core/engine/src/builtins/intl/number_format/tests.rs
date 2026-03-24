@@ -44,12 +44,12 @@ fn u16_to_rounding_increment_rainy_day() {
 fn percent_symbol_logic() {
     // Test that the percent symbol logic correctly maps locales
     let test_cases = vec![
-        ("de", " %"),
+        ("de", "\u{00A0}%"),
         ("en", "%"),
-        ("fr", " %"),
-        ("es", " %"),
-        ("pt", " %"),
-        ("ja", " %"),
+        ("fr", "\u{00A0}%"),
+        ("es", "\u{00A0}%"),
+        ("pt", "\u{00A0}%"),
+        ("ja", "\u{00A0}%"),
         ("zh", "%"),
         ("ar", "%"),
     ];
@@ -60,7 +60,7 @@ fn percent_symbol_logic() {
         let symbol = match lang_part {
             "de" | "fr" | "es" | "it" | "pt" | "pl" | "nl" | "sv" | "no" | "da" | "fi" | "hu"
             | "cs" | "sk" | "ro" | "bg" | "hr" | "et" | "lt" | "lv" | "sl" | "tr" | "el"
-            | "ja" | "ko" | "ru" | "uk" | "be" | "sr" | "mk" => " %",
+            | "ja" | "ko" | "ru" | "uk" | "be" | "sr" | "mk" => "\u{00A0}%",
             _ => "%",
         };
         assert_eq!(symbol, expected_symbol, "Symbol mismatch for language {}", lang);

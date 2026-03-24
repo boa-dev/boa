@@ -77,15 +77,79 @@ impl NumberFormat {
         self.formatter.format(value)
     }
 
+    /// Formats a value according to this number format and returns the final display string.
+    ///
+    /// This currently implements percent style handling in the shared formatting path
+    /// so it applies to `Intl.NumberFormat#format`, `Number#toLocaleString` and
+    /// `BigInt#toLocaleString`.
+    pub(crate) fn format_to_string(&self, value: &mut Decimal) -> String {
+        let is_percent = self.unit_options.style() == Style::Percent;
+
+        // Multiply by 100 for percent style before digit formatting, following ECMA-402.
+        if is_percent {
+            let scaled = Self::scale_decimal_string_by_100(&value.to_string());
+            if let Ok(scaled) = Decimal::try_from_str(&scaled) {
+                *value = scaled;
+            }
+        }
+
+        let formatted = self.format(value).to_string();
+
+        if is_percent {
+            format!("{}{}", formatted, self.get_percent_symbol())
+        } else {
+            formatted
+        }
+    }
+
+    /// Multiply a decimal string by 100 by shifting the decimal point 2 places right.
+    fn scale_decimal_string_by_100(input: &str) -> String {
+        let (sign, body) = match input.as_bytes().first().copied() {
+            Some(b'+') | Some(b'-') => (&input[..1], &input[1..]),
+            _ => ("", input),
+        };
+
+        let mut out = if let Some(dot_pos) = body.find('.') {
+            let mut digits = body.replace('.', "");
+            let target_pos = dot_pos + 2;
+
+            if target_pos >= digits.len() {
+                digits.push_str(&"0".repeat(target_pos - digits.len()));
+                digits
+            } else {
+                digits.insert(target_pos, '.');
+                digits
+            }
+        } else {
+            format!("{body}00")
+        };
+
+        // Normalize trailing fractional zeroes produced after shifting.
+        if let Some(dot_pos) = out.find('.') {
+            while out.ends_with('0') {
+                out.pop();
+            }
+            if out.len() == dot_pos + 1 {
+                out.pop();
+            }
+        }
+
+        if out.is_empty() {
+            format!("{sign}0")
+        } else {
+            format!("{sign}{out}")
+        }
+    }
+
     /// Returns the locale-specific percent symbol for this number format.
     fn get_percent_symbol(&self) -> &'static str {
         let locale_str = self.locale.to_string();
         let lang = locale_str.split('-').next().unwrap_or("");
-        // Most European and Asian locales use space before %
+        // Most European and Asian locales use a non-breaking space before `%`.
         match lang {
             "de" | "fr" | "es" | "it" | "pt" | "pl" | "nl" | "sv" | "no" | "da" | "fi" | "hu"
             | "cs" | "sk" | "ro" | "bg" | "hr" | "et" | "lt" | "lv" | "sl" | "tr" | "el"
-            | "ja" | "ko" | "ru" | "uk" | "be" | "sr" | "mk" => " %",
+            | "ja" | "ko" | "ru" | "uk" | "be" | "sr" | "mk" => "\u{00A0}%",
             _ => "%",
         }
     }
@@ -524,34 +588,8 @@ impl NumberFormat {
                         // 4. Let x be ? ToIntlMathematicalValue(value).
                         let mut x = to_intl_mathematical_value(value, context)?;
 
-                        // Check if percent style before borrowing
-                        let is_percent = {
-                            let nf_borrow = nf.borrow();
-                            nf_borrow.data().unit_options.style() == Style::Percent
-                        };
-                        
-                        // Handle percent style by multiplying by 100
-                        if is_percent {
-                            // Convert to string, multiply by 100, convert back
-                            let formatted_str = x.to_string();
-                            if let Ok(num_value) = formatted_str.parse::<f64>() {
-                                if let Ok(scaled) = Decimal::try_from_f64(num_value * 100.0, FloatPrecision::RoundTrip) {
-                                    x = scaled;
-                                }
-                            }
-                        }
-
                         // 5. Return FormatNumeric(nf, x).
-                        let nf_borrow = nf.borrow();
-                        let formatted = nf_borrow.data().format(&mut x).to_string();
-                        
-                        let result = if is_percent {
-                            format!("{}{}", formatted, nf_borrow.data().get_percent_symbol())
-                        } else {
-                            formatted
-                        };
-                        
-                        Ok(js_string!(result).into())
+                        Ok(js_string!(nf.borrow().data().format_to_string(&mut x)).into())
                     },
                     nf_clone,
                 ),
