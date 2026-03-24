@@ -152,3 +152,66 @@ fn request_clone_no_body_preserved() {
         }),
     ]);
 }
+
+#[test]
+fn request_clone_method_preserves_body() {
+    run_test_actions([
+        TestAction::inspect_context(|ctx| {
+            let fetcher = TestFetcher::default();
+            crate::fetch::register(fetcher, None, ctx).expect("failed to register fetch");
+        }),
+        TestAction::run(
+            r#"
+                const original = new Request("http://unit.test", {
+                    method: "POST",
+                    body: "payload",
+                });
+                globalThis.cloned = original.clone();
+            "#,
+        ),
+        TestAction::inspect_context(|ctx| {
+            let cloned = ctx.global_object().get(js_str!("cloned"), ctx).unwrap();
+            let cloned_obj = cloned.as_object().unwrap();
+            let cloned_req = cloned_obj.downcast_ref::<JsRequest>().unwrap();
+            assert_eq!(cloned_req.inner().body().as_slice(), b"payload");
+        }),
+    ]);
+}
+
+#[test]
+fn request_clone_method_is_independent() {
+    run_test_actions([
+        TestAction::inspect_context(|ctx| {
+            let fetcher = TestFetcher::default();
+            crate::fetch::register(fetcher, None, ctx).expect("failed to register fetch");
+        }),
+        TestAction::run(
+            r#"
+                const original = new Request("http://unit.test", {
+                    method: "POST",
+                    body: "original-body",
+                });
+                globalThis.original = original;
+                globalThis.cloned = original.clone();
+            "#,
+        ),
+        TestAction::inspect_context(|ctx| {
+            let original = ctx.global_object().get(js_str!("original"), ctx).unwrap();
+            let original_obj = original.as_object().unwrap();
+            let original_req = original_obj.downcast_ref::<JsRequest>().unwrap();
+
+            let cloned = ctx.global_object().get(js_str!("cloned"), ctx).unwrap();
+            let cloned_obj = cloned.as_object().unwrap();
+            let cloned_req = cloned_obj.downcast_ref::<JsRequest>().unwrap();
+
+            assert_eq!(original_req.inner().body().as_slice(), b"original-body");
+            assert_eq!(cloned_req.inner().body().as_slice(), b"original-body");
+
+            // Verify they are distinct objects (different pointers).
+            assert!(!std::ptr::eq(
+                original_req.inner().body().as_ptr(),
+                cloned_req.inner().body().as_ptr()
+            ));
+        }),
+    ]);
+}

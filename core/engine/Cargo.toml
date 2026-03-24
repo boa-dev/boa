@@ -141,6 +141,7 @@ aligned-vec.workspace = true
 dynify = { workspace = true, features = ["macros"] }
 futures-concurrency.workspace = true
 oneshot = { workspace = true, features = ["async"] }
+async-channel.workspace = true
 
 # intl deps
 boa_icu_provider = { workspace = true, features = ["std"], optional = true }

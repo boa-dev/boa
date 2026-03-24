@@ -1,0 +1,41 @@
+name: "CodeQL SAST Scanning"
+
+on:
+  workflow_dispatch:
+  schedule:
+    - cron: '0 0 * * 0' # Run weekly on Sundays
+
+permissions:
+  contents: read
+
+jobs:
+  analyze:
+    name: Analyze
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+    permissions:
+      actions: read
+      contents: read
+      security-events: write
+
+    strategy:
+      fail-fast: false
+      matrix:
+        language: [ 'rust' ]
+
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6
+      with:
+        persist-credentials: false
+
+    - name: Initialize CodeQL
+      uses: github/codeql-action/init@38697555549f1db7851b81482ff19f1fa5c4fedc # v4.34.1
+      with:
+        languages: ${{ matrix.language }}
+        build-mode: none
+
+    - name: Perform CodeQL Analysis
+      uses: github/codeql-action/analyze@38697555549f1db7851b81482ff19f1fa5c4fedc # v4.34.1
+      with:
+        category: "/language:${{matrix.language}}"

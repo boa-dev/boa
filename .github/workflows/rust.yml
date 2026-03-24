@@ -34,10 +34,12 @@ jobs:
           target=$(rustc -vV | awk '/^host/ { print $2 }' | tr [:lower:] [:upper:] | tr '-' '_')
           echo "CARGO_TARGET_${target}_RUSTFLAGS=$W_FLAGS" >> $GITHUB_ENV
       - name: Checkout repository
-        uses: actions/checkout@v6
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6
+        with:
+          persist-credentials: false
 
       - name: Install Rust toolchain
-        uses: dtolnay/rust-toolchain@stable
+        uses: dtolnay/rust-toolchain@631a55b12751854ce901bb631d5902ceb48146f7 # stable
         with:
           toolchain: stable
           components: rustfmt
@@ -51,10 +53,12 @@ jobs:
     timeout-minutes: 60
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v6
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6
+        with:
+          persist-credentials: false
 
       - name: Check for typos
-        uses: crate-ci/typos@v1.44.0
+        uses: crate-ci/typos@631208b7aac2daa8b707f55e7331f9112b0e062d # v1.44.0
 
   clippy:
     name: Lint
@@ -66,25 +70,23 @@ jobs:
           target=$(rustc -vV | awk '/^host/ { print $2 }' | tr [:lower:] [:upper:] | tr '-' '_')
           echo "CARGO_TARGET_${target}_RUSTFLAGS=$W_FLAGS" >> $GITHUB_ENV
       - name: Checkout repository
-        uses: actions/checkout@v6
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6
+        with:
+          persist-credentials: false
 
       - name: Install Rust toolchain
-        uses: dtolnay/rust-toolchain@stable
+        uses: dtolnay/rust-toolchain@631a55b12751854ce901bb631d5902ceb48146f7 # stable
         with:
           toolchain: stable
           components: clippy
 
-      - name: Cache cargo
-        uses: actions/cache@v5
-        with:
-          path: |
-            target
-            ~/.cargo/git
-            ~/.cargo/registry
-          key: ${{ runner.os }}-${{ runner.arch }}-cargo-${{ hashFiles('**/Cargo.lock') }}
+      - name: Cache Cargo
+        uses: Swatinem/rust-cache@c19371144df3bb44fab255c43d04cbc2ab54d1c4 # v2.9.1
 
       - name: Install cargo-workspaces
-        run: cargo install cargo-workspaces
+        uses: baptiste0928/cargo-install@f204293d9709061b7bc1756fec3ec4e2cd57dec0 # v3.4.0
+        with:
+          crate: cargo-workspaces
 
       - name: Clippy (All features)
         run: cargo workspaces exec cargo clippy --all-features --all-targets
@@ -109,21 +111,17 @@ jobs:
           target=$(rustc -vV | awk '/^host/ { print $2 }' | tr [:lower:] [:upper:] | tr '-' '_')
           echo "CARGO_TARGET_${target}_RUSTFLAGS=$W_FLAGS" >> $GITHUB_ENV
       - name: Checkout repository
-        uses: actions/checkout@v6
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6
+        with:
+          persist-credentials: false
 
       - name: Install Rust toolchain
-        uses: dtolnay/rust-toolchain@stable
+        uses: dtolnay/rust-toolchain@631a55b12751854ce901bb631d5902ceb48146f7 # stable
         with:
           toolchain: stable
 
-      - name: Cache cargo
-        uses: actions/cache@v5
-        with:
-          path: |
-            target
-            ~/.cargo/git
-            ~/.cargo/registry
-          key: ${{ runner.os }}-${{ runner.arch }}-cargo-${{ hashFiles('**/Cargo.lock') }}
+      - name: Cache Cargo
+        uses: Swatinem/rust-cache@c19371144df3bb44fab255c43d04cbc2ab54d1c4 # v2.9.1
 
       - name: Generate documentation
         run: cargo doc -v --document-private-items --all-features
@@ -138,7 +136,9 @@ jobs:
           target=$(rustc -vV | awk '/^host/ { print $2 }' | tr [:lower:] [:upper:] | tr '-' '_')
           echo "CARGO_TARGET_${target}_RUSTFLAGS=$W_FLAGS" >> $GITHUB_ENV
       - name: Checkout repository
-        uses: actions/checkout@v6
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6
+        with:
+          persist-credentials: false
 
       # Get the rust_version from the Cargo.toml
       - name: Get rust_version
@@ -146,7 +146,7 @@ jobs:
         run: echo "rust_version=$(grep '^rust-version' Cargo.toml | cut -d' ' -f3 | tr -d '"')" >> $GITHUB_OUTPUT
 
       - name: Install Rust toolchain
-        uses: dtolnay/rust-toolchain@stable
+        uses: dtolnay/rust-toolchain@631a55b12751854ce901bb631d5902ceb48146f7 # stable
         with:
           toolchain: ${{ steps.rust_version.outputs.rust_version }}
 
@@ -173,22 +173,18 @@ jobs:
           target=$(rustc -vV | awk '/^host/ { print $2 }' | tr [:lower:] [:upper:] | tr '-' '_')
           echo "CARGO_TARGET_${target}_RUSTFLAGS=$W_FLAGS" >> $GITHUB_ENV
       - name: Checkout repository
-        uses: actions/checkout@v6
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6
+        with:
+          persist-credentials: false
 
       - name: Install Rust toolchain
-        uses: dtolnay/rust-toolchain@stable
+        uses: dtolnay/rust-toolchain@631a55b12751854ce901bb631d5902ceb48146f7 # stable
 
-      - name: Cache cargo
-        uses: actions/cache@v5
-        with:
-          path: |
-            target
-            ~/.cargo/git
-            ~/.cargo/registry
-          key: ${{ runner.os }}-${{ runner.arch }}-cargo-${{ hashFiles('**/Cargo.lock') }}
+      - name: Cache Cargo
+        uses: Swatinem/rust-cache@c19371144df3bb44fab255c43d04cbc2ab54d1c4 # v2.9.1
 
       - name: Install cargo-tarpaulin
-        uses: baptiste0928/cargo-install@v3.4.0
+        uses: baptiste0928/cargo-install@f204293d9709061b7bc1756fec3ec4e2cd57dec0 # v3.4.0
         with:
           crate: cargo-tarpaulin
 
@@ -196,7 +192,7 @@ jobs:
         run: cargo tarpaulin --workspace --features annex-b,intl_bundled,experimental --ignore-tests --engine llvm --out xml
 
       - name: Upload to codecov.io
-        uses: codecov/codecov-action@v5
+        uses: codecov/codecov-action@1af58845a975a7985b0beb0cbe6fbbb71a41dbad # v5
 
   tests:
     name: Test
@@ -211,6 +207,7 @@ jobs:
     env:
       RUSTUP_WINDOWS_PATH_ADD_BIN: 1
     strategy:
+      fail-fast: false
       matrix:
         include:
           - os: macos-14
@@ -233,24 +230,23 @@ jobs:
           "CARGO_TARGET_${target}_RUSTFLAGS=$env:W_FLAGS" | Out-File -FilePath $env:GITHUB_ENV -Append -Encoding utf8
 
       - name: Checkout repository
-        uses: actions/checkout@v6
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6
+        with:
+          persist-credentials: false
 
       - name: Install Rust toolchain
-        uses: dtolnay/rust-toolchain@stable
+        uses: dtolnay/rust-toolchain@631a55b12751854ce901bb631d5902ceb48146f7 # stable
         with:
           toolchain: stable
 
       - name: Install Cargo insta
-        run: cargo install --locked cargo-insta
-
-      - name: Cache cargo
-        uses: actions/cache@v5
+        uses: baptiste0928/cargo-install@f204293d9709061b7bc1756fec3ec4e2cd57dec0 # v3.4.0
         with:
-          path: |
-            target
-            ~/.cargo/git
-            ~/.cargo/registry
-          key: ${{ matrix.os }}-${{ runner.arch }}-cargo-${{ hashFiles('**/Cargo.lock') }}
+          crate: cargo-insta
+          locked: true
+
+      - name: Cache Cargo
+        uses: Swatinem/rust-cache@c19371144df3bb44fab255c43d04cbc2ab54d1c4 # v2.9.1
 
       - name: Build tests
         run: cargo test --no-run --profile ci
@@ -258,7 +254,7 @@ jobs:
       - name: Build
         run: cargo build --all-targets --quiet --profile ci --features annex-b,intl_bundled,experimental,embedded_lz4
       - name: Install latest nextest
-        uses: taiki-e/install-action@nextest
+        uses: taiki-e/install-action@7cb3ba7bc31801346db00d4a6d7008aabab5e986 # nextest
       - name: Test with nextest
         run: cargo nextest run --profile ci --cargo-profile ci --features annex-b,intl_bundled,experimental,embedded_lz4
       - name: Test docs
@@ -290,28 +286,24 @@ jobs:
           echo "CARGO_TARGET_${target}_RUSTFLAGS=$W_FLAGS" >> $GITHUB_ENV
 
       - name: Checkout repository
-        uses: actions/checkout@v6
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6
+        with:
+          persist-credentials: false
 
       - name: Install Rust toolchain
-        uses: dtolnay/rust-toolchain@stable
+        uses: dtolnay/rust-toolchain@631a55b12751854ce901bb631d5902ceb48146f7 # stable
         with:
           toolchain: stable
           target: ${{ matrix.target }}
 
       - name: Install Cross
-        uses: baptiste0928/cargo-install@v3.4.0
+        uses: baptiste0928/cargo-install@f204293d9709061b7bc1756fec3ec4e2cd57dec0 # v3.4.0
         with:
           crate: cross
           git: https://github.com/cross-rs/cross
 
-      - name: Cache cargo
-        uses: actions/cache@v5
-        with:
-          path: |
-            target
-            ~/.cargo/git
-            ~/.cargo/registry
-          key: ${{ matrix.target }}-${{ runner.arch }}-cargo-${{ hashFiles('**/Cargo.lock') }}
+      - name: Cache Cargo
+        uses: Swatinem/rust-cache@c19371144df3bb44fab255c43d04cbc2ab54d1c4 # v2.9.1
 
       - name: Run tests
         run: |
@@ -340,21 +332,15 @@ jobs:
           target=$(rustc -vV | awk '/^host/ { print $2 }' | tr [:lower:] [:upper:] | tr '-' '_')
           echo "CARGO_TARGET_${target}_RUSTFLAGS=$W_FLAGS" >> $GITHUB_ENV
       - name: Checkout repository
-        uses: actions/checkout@v6
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6
+        with:
+          persist-credentials: false
 
       - name: Install Rust nightly with miri
-        uses: dtolnay/rust-toolchain@nightly
+        uses: dtolnay/rust-toolchain@631a55b12751854ce901bb631d5902ceb48146f7 # nightly
         with:
+          toolchain: nightly
           components: miri
-
-      - name: Cache cargo
-        uses: actions/cache@v5
-        with:
-          path: |
-            target
-            ~/.cargo/git
-            ~/.cargo/registry
-          key: ${{ runner.os }}-${{ runner.arch }}-cargo-miri-${{ hashFiles('**/Cargo.lock') }}
 
       - name: Setup miri
         run: cargo miri setup
@@ -378,24 +364,22 @@ jobs:
           target=$(rustc -vV | awk '/^host/ { print $2 }' | tr [:lower:] [:upper:] | tr '-' '_')
           echo "CARGO_TARGET_${target}_RUSTFLAGS=$W_FLAGS" >> $GITHUB_ENV
       - name: Checkout repository
-        uses: actions/checkout@v6
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6
+        with:
+          persist-credentials: false
 
       - name: Install Rust toolchain
-        uses: dtolnay/rust-toolchain@stable
+        uses: dtolnay/rust-toolchain@631a55b12751854ce901bb631d5902ceb48146f7 # stable
         with:
           toolchain: stable
 
-      - name: Cache cargo
-        uses: actions/cache@v5
-        with:
-          path: |
-            target
-            ~/.cargo/git
-            ~/.cargo/registry
-          key: ${{ runner.os }}-${{ runner.arch }}-cargo-${{ hashFiles('**/Cargo.lock') }}
+      - name: Cache Cargo
+        uses: Swatinem/rust-cache@c19371144df3bb44fab255c43d04cbc2ab54d1c4 # v2.9.1
 
       - name: Install cargo-fuzz
-        run: cargo install cargo-fuzz
+        uses: baptiste0928/cargo-install@f204293d9709061b7bc1756fec3ec4e2cd57dec0 # v3.4.0
+        with:
+          crate: cargo-fuzz
 
       - name: Build fuzz
         run: cd tests/fuzz && cargo fuzz build -s none --dev
@@ -416,24 +400,22 @@ jobs:
           target=$(rustc -vV | awk '/^host/ { print $2 }' | tr [:lower:] [:upper:] | tr '-' '_')
           echo "CARGO_TARGET_${target}_RUSTFLAGS=$W_FLAGS" >> $GITHUB_ENV
       - name: Checkout repository
-        uses: actions/checkout@v6
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6
+        with:
+          persist-credentials: false
 
       - name: Install Rust toolchain
-        uses: dtolnay/rust-toolchain@stable
+        uses: dtolnay/rust-toolchain@631a55b12751854ce901bb631d5902ceb48146f7 # stable
         with:
           toolchain: stable
 
-      - name: Cache cargo
-        uses: actions/cache@v5
-        with:
-          path: |
-            target
-            ~/.cargo/git
-            ~/.cargo/registry
-          key: ${{ runner.os }}-${{ runner.arch }}-cargo-${{ hashFiles('**/Cargo.lock') }}
+      - name: Cache Cargo
+        uses: Swatinem/rust-cache@c19371144df3bb44fab255c43d04cbc2ab54d1c4 # v2.9.1
 
       - name: Install cargo-workspaces
-        run: cargo install cargo-workspaces
+        uses: baptiste0928/cargo-install@f204293d9709061b7bc1756fec3ec4e2cd57dec0 # v3.4.0
+        with:
+          crate: cargo-workspaces
 
       - name: Build (All features)
         run: cargo workspaces exec cargo build --all-features --all-targets --profile ci
@@ -463,18 +445,14 @@ jobs:
           target=$(rustc -vV | awk '/^host/ { print $2 }' | tr [:lower:] [:upper:] | tr '-' '_')
           echo "CARGO_TARGET_${target}_RUSTFLAGS=$W_FLAGS" >> $GITHUB_ENV
       - name: Checkout repository
-        uses: actions/checkout@v6
-
-      - name: Cache cargo
-        uses: actions/cache@v5
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6
         with:
-          path: |
-            ~/.cargo/registry
-            ~/.cargo/git
-            target
-          key: ${{ runner.os }}-cargo-${{ hashFiles('**/Cargo.lock') }}
+          persist-credentials: false
+
+      - name: Cache Cargo
+        uses: Swatinem/rust-cache@c19371144df3bb44fab255c43d04cbc2ab54d1c4 # v2.9.1
 
       - name: Check Semver
-        uses: obi1kenobi/cargo-semver-checks-action@v2
+        uses: obi1kenobi/cargo-semver-checks-action@5b298c9520f7096a4683c0bd981a7ac5a7e249ae # v2
         with:
           exclude: boa_wintertc

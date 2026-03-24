@@ -22,11 +22,10 @@ pub type ForEachCallback = TypedJsFunction<(JsString, JsString, JsObject), ()>;
 /// Converts a JavaScript string to a valid header name (or error).
 ///
 /// # Errors
-/// If the key is not valid ASCII, an error is returned.
+/// If the key is not a valid header name, an error is returned.
 #[inline]
 fn to_header_name(key: impl AsRef<str>) -> JsResult<HeaderName> {
-    HeaderName::from_str(key.as_ref())
-        .map_err(|_| js_error!("Cannot convert key to header string as it is not valid ASCII."))
+    HeaderName::from_str(key.as_ref()).map_err(|_| js_error!(TypeError: "Invalid header name."))
 }
 
 /// Trims leading and trailing HTTP whitespace from a header value.
@@ -38,12 +37,12 @@ fn normalize_header_value(value: &str) -> &str {
 /// Converts a JavaScript string to a valid header value (or error).
 ///
 /// # Errors
-/// If the value is not valid ASCII, an error is returned.
+/// If the value is not a valid header value, an error is returned.
 #[inline]
 fn to_header_value(value: impl AsRef<str>) -> JsResult<HeaderValue> {
     normalize_header_value(value.as_ref())
         .parse()
-        .map_err(|_| js_error!("Cannot convert value to header string as it is not valid ASCII."))
+        .map_err(|_| js_error!(TypeError: "Invalid header value."))
 }
 
 /// A JavaScript wrapper for the `Headers` object.
@@ -73,6 +72,12 @@ impl JsHeaders {
     #[must_use]
     pub fn as_header_map(&self) -> Rc<RefCell<HttpHeaderMap>> {
         self.headers.clone()
+    }
+
+    pub(crate) fn deep_clone(&self) -> Self {
+        Self {
+            headers: Rc::new(RefCell::new((*self.headers.borrow()).clone())),
+        }
     }
 }
 
