@@ -382,3 +382,10 @@ impl Symbol {
         Ok(sym.into())
     }
 }
+
+/// Returns the global registry key for `sym`, if it is a registered symbol.
+#[inline]
+#[must_use]
+pub(crate) fn key_for_symbol(sym: &JsSymbol) -> Option<JsString> {
+    GLOBAL_SYMBOL_REGISTRY.get_key(sym)
+}
