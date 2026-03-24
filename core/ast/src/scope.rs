@@ -103,8 +103,9 @@ pub(crate) struct Inner {
     index: Cell<u32>,
     bindings: RefCell<Vec<Binding>>,
     function: bool,
-    // Has the `this` been accessed/escaped outside the function environment boundary.
     this_escaped: Cell<bool>,
+
+    has_using_declarations: Cell<bool>,
 
     context: Rc<ScopeContext>,
 }
@@ -121,6 +122,7 @@ impl Scope {
                 bindings: RefCell::default(),
                 function: true,
                 this_escaped: Cell::new(false),
+                has_using_declarations: Cell::new(false),
                 context: Rc::default(),
             }),
         }
@@ -136,6 +138,7 @@ impl Scope {
                 bindings: RefCell::default(),
                 function,
                 this_escaped: Cell::new(false),
+                has_using_declarations: Cell::new(false),
                 context: parent.inner.context.clone(),
                 outer: Some(parent),
             }),
@@ -145,12 +148,26 @@ impl Scope {
     /// Checks if the scope has only local bindings.
     #[must_use]
     pub fn all_bindings_local(&self) -> bool {
-        // if self.inner.function && self.inn
+        if self.inner.has_using_declarations.get() {
+            return false;
+        }
+
         self.inner
             .bindings
             .borrow()
             .iter()
             .all(|binding| !binding.escapes())
+    }
+
+    /// Mark the scope as having using declarations, to prevent `PushScope` optimization
+    pub fn set_has_using_declarations(&self) {
+        self.inner.has_using_declarations.set(true);
+    }
+
+    /// Returns true if using declarations exist in this scope
+    #[must_use]
+    pub fn has_using_declarations(&self) -> bool {
+        self.inner.has_using_declarations.get()
     }
 
     /// Marks all bindings in this scope as escaping.

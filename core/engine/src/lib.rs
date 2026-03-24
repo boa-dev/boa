@@ -105,6 +105,7 @@ pub mod value;
 pub mod vm;
 
 mod host_defined;
+mod resource_management;
 mod sys;
 
 mod spanned_source_text;

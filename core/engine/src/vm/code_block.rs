@@ -760,6 +760,8 @@ impl CodeBlock {
             | Instruction::Neg { value }
             | Instruction::IsObject { value }
             | Instruction::BindThisValue { value }
+            | Instruction::AddDisposableResource { value }
+            | Instruction::AddAsyncDisposableResource { value }
             | Instruction::BitNot { value } => {
                 format!("value:{value}")
             }
@@ -932,9 +934,7 @@ impl CodeBlock {
             | Instruction::Reserved55
             | Instruction::Reserved56
             | Instruction::Reserved57
-            | Instruction::Reserved58
-            | Instruction::Reserved59
-            | Instruction::Reserved60 => unreachable!("Reserved opcodes are unreachable"),
+            | Instruction::Reserved58 => unreachable!("Reserved opcodes are unreachable"),
         }
     }
 }

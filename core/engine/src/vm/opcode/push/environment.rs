@@ -2,6 +2,7 @@ use crate::{
     Context, JsResult,
     builtins::function::OrdinaryFunction,
     environments::PrivateEnvironment,
+    resource_management::DisposableResourceStack,
     vm::opcode::{IndexOperand, Operation, RegisterOperand},
 };
 use boa_gc::Gc;
@@ -23,6 +24,13 @@ impl PushScope {
         frame
             .environments
             .push_lexical(scope.num_bindings_non_local(), global);
+
+        // Push a fresh disposable resource stack for this lexical scope.
+        // Resources declared with `using` in this scope will be tracked here
+        // and disposed when the scope exits (PopEnvironment).
+        frame
+            .disposable_resource_stacks
+            .push(DisposableResourceStack::new());
     }
 }
 

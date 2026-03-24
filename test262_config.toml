@@ -13,7 +13,6 @@ features = [
     "Intl-enumeration",
     "Intl.DurationFormat",
     "regexp-duplicate-named-groups",
-    "explicit-resource-management",
     "joint-iteration",
 
     ### Pending proposals
@@ -91,4 +90,9 @@ tests = [
     "test/built-ins/AbstractModuleSource/prototype.js",
     "test/built-ins/AbstractModuleSource/throw-from-constructor.js",
     "test/language/module-code/source-phase-import/import-source.js",
+
+    # Explicit Resource Management (Async & Built-ins)
+    "test/built-ins/DisposableStack",
+    "test/built-ins/AsyncDisposableStack",
+    "test/language/statements/using/await-using",
 ]

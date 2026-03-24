@@ -2255,8 +2255,14 @@ generate_opcodes! {
     Reserved57 => Reserved,
     /// Reserved [`Opcode`].
     Reserved58 => Reserved,
-    /// Reserved [`Opcode`].
-    Reserved59 => Reserved,
-    /// Reserved [`Opcode`].
-    Reserved60 => Reserved,
+    /// Track a synchronous disposable resource.
+    ///
+    /// - Registers:
+    ///   - Input: value
+    AddDisposableResource { value: RegisterOperand },
+    /// Track an asynchronous disposable resource.
+    ///
+    /// - Registers:
+    ///   - Input: value
+    AddAsyncDisposableResource { value: RegisterOperand },
 }

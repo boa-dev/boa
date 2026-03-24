@@ -9,6 +9,7 @@ use crate::{
     bytecompiler::Register,
     environments::EnvironmentStack,
     realm::Realm,
+    resource_management::DisposableResourceStack,
     vm::{CodeBlock, SourcePath},
 };
 use boa_ast::Position;
@@ -80,6 +81,14 @@ pub struct CallFrame {
     // SAFETY: Nothing in `CallFrameFlags` requires tracing, so this is safe.
     #[unsafe_ignore_trace]
     pub(crate) flags: CallFrameFlags,
+
+    /// Stack of disposable resource stacks, one per lexical scope.
+    /// When a new lexical scope is entered, a fresh `DisposableResourceStack`
+    /// is pushed. When the scope exits, the top stack is popped and its
+    /// resources are disposed in reverse order.
+    ///
+    /// See: <https://tc39.es/proposal-explicit-resource-management/#sec-disposeresources>
+    pub(crate) disposable_resource_stacks: Vec<DisposableResourceStack>,
 }
 
 /// ---- `CallFrame` public API ----
@@ -155,6 +164,7 @@ impl CallFrame {
             environments,
             realm,
             flags: CallFrameFlags::empty(),
+            disposable_resource_stacks: Vec::new(),
         }
     }
 

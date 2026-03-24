@@ -30,6 +30,16 @@ pub(crate) struct PopEnvironment;
 impl PopEnvironment {
     #[inline(always)]
     pub(super) fn operation((): (), context: &mut Context) {
+        // Pop and dispose the resource stack for the exiting lexical scope.
+        // This must happen BEFORE the environment is popped, so that
+        // dispose methods can still access bindings in the current scope.
+        //
+        // See: https://tc39.es/proposal-explicit-resource-management/#sec-disposeresources
+        let popped = context.vm.frame_mut().disposable_resource_stacks.pop();
+        if let Some(mut stack) = popped {
+            crate::resource_management::dispose_resources(context, &mut stack);
+        }
+
         context.vm.frame_mut().environments.pop();
     }
 }

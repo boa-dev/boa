@@ -974,6 +974,14 @@ impl<'ast> VisitorMut<'ast> for BindingCollectorVisitor<'_> {
         let scope = match &mut node.inner.init {
             Some(ForLoopInitializer::Lexical(decl)) => {
                 let mut scope = Scope::new(self.scope.clone(), false);
+
+                if matches!(
+                    decl.declaration,
+                    LexicalDeclaration::Using(_) | LexicalDeclaration::AwaitUsing(_)
+                ) {
+                    scope.set_has_using_declarations();
+                }
+
                 let names = bound_names(&decl.declaration);
                 if decl.declaration.is_const() {
                     for name in &names {
@@ -1800,6 +1808,16 @@ fn global_declaration_instantiation(
                         env.create_immutable_binding(name, true);
                     }
                 }
+                Declaration::Lexical(
+                    LexicalDeclaration::Using(declaration)
+                    | LexicalDeclaration::AwaitUsing(declaration),
+                ) => {
+                    env.set_has_using_declarations();
+                    for name in bound_names(declaration) {
+                        let name = name.to_js_string(interner);
+                        env.create_immutable_binding(name.clone(), true);
+                    }
+                }
                 _ => {}
             }
         }
@@ -1832,6 +1850,18 @@ where
 
     // 3. For each element d of declarations, do
     for d in &declarations {
+        // Mark scope as containing `using` declarations so the bytecompiler
+        // does NOT optimize away PushScope/PopEnvironment — we need those
+        // opcodes to trigger block-scoped resource disposal.
+        if matches!(
+            d,
+            LexicallyScopedDeclaration::LexicalDeclaration(
+                LexicalDeclaration::Using(_) | LexicalDeclaration::AwaitUsing(_)
+            )
+        ) {
+            scope.set_has_using_declarations();
+        }
+
         // i. If IsConstantDeclaration of d is true, then
         if let LexicallyScopedDeclaration::LexicalDeclaration(LexicalDeclaration::Const(d)) = d {
             // a. For each element dn of the BoundNames of d, do
@@ -1861,7 +1891,7 @@ where
         }
     }
 
-    if scope.num_bindings() > 0 {
+    if scope.num_bindings() > 0 || scope.has_using_declarations() {
         Some(scope)
     } else {
         None
@@ -2180,6 +2210,16 @@ fn function_declaration_instantiation(
                         lex_env.create_immutable_binding(name, true);
                     }
                 }
+                Declaration::Lexical(
+                    LexicalDeclaration::Using(declaration)
+                    | LexicalDeclaration::AwaitUsing(declaration),
+                ) => {
+                    lex_env.set_has_using_declarations();
+                    for name in bound_names(declaration) {
+                        let name = name.to_js_string(interner);
+                        lex_env.create_immutable_binding(name.clone(), true);
+                    }
+                }
                 _ => {}
             }
         }
@@ -2255,16 +2295,14 @@ fn module_instantiation(module: &Module, env: &Scope, interner: &Interner) {
                     drop(env.create_mutable_binding(name, false));
                 }
             }
-            LexicallyScopedDeclaration::LexicalDeclaration(LexicalDeclaration::Using(u)) => {
-                for name in bound_names(u) {
+            LexicallyScopedDeclaration::LexicalDeclaration(
+                LexicalDeclaration::Using(declaration)
+                | LexicalDeclaration::AwaitUsing(declaration),
+            ) => {
+                env.set_has_using_declarations();
+                for name in bound_names(declaration) {
                     let name = name.to_js_string(interner);
-                    drop(env.create_mutable_binding(name, false));
-                }
-            }
-            LexicallyScopedDeclaration::LexicalDeclaration(LexicalDeclaration::AwaitUsing(au)) => {
-                for name in bound_names(au) {
-                    let name = name.to_js_string(interner);
-                    drop(env.create_mutable_binding(name, false));
+                    env.create_immutable_binding(name.clone(), true);
                 }
             }
             LexicallyScopedDeclaration::AssignmentExpression(expr) => {
@@ -2493,6 +2531,16 @@ pub(crate) fn eval_declaration_instantiation_scope(
                     }
                 }
                 Declaration::Lexical(LexicalDeclaration::Const(declaration)) => {
+                    for name in bound_names(declaration) {
+                        let name = name.to_js_string(interner);
+                        lex_env.create_immutable_binding(name, true);
+                    }
+                }
+                Declaration::Lexical(
+                    LexicalDeclaration::Using(declaration)
+                    | LexicalDeclaration::AwaitUsing(declaration),
+                ) => {
+                    lex_env.set_has_using_declarations();
                     for name in bound_names(declaration) {
                         let name = name.to_js_string(interner);
                         lex_env.create_immutable_binding(name, true);

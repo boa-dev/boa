@@ -338,3 +338,6 @@ impl Operation for BindThisValue {
     const INSTRUCTION: &'static str = "INST - BindThisValue";
     const COST: u8 = 6;
 }
+
+mod erm;
+pub(crate) use erm::*;

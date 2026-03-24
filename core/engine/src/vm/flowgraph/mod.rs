@@ -367,7 +367,9 @@ impl CodeBlock {
                 | Instruction::CheckReturn
                 | Instruction::BindThisValue { .. }
                 | Instruction::CreateMappedArgumentsObject { .. }
-                | Instruction::CreateUnmappedArgumentsObject { .. } => {
+                | Instruction::CreateUnmappedArgumentsObject { .. }
+                | Instruction::AddDisposableResource { .. }
+                | Instruction::AddAsyncDisposableResource { .. } => {
                     graph.add_node(previous_pc, NodeShape::None, label.into(), Color::None);
                     graph.add_edge(previous_pc, pc, None, Color::None, EdgeStyle::Line);
                 }
@@ -431,9 +433,7 @@ impl CodeBlock {
                 | Instruction::Reserved55
                 | Instruction::Reserved56
                 | Instruction::Reserved57
-                | Instruction::Reserved58
-                | Instruction::Reserved59
-                | Instruction::Reserved60 => unreachable!("Reserved opcodes are unreachable"),
+                | Instruction::Reserved58 => unreachable!("Reserved opcodes are unreachable"),
             }
         }
 

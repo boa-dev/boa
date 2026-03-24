@@ -749,6 +749,11 @@ impl Context {
 
                 env_fp = self.vm.frame().env_fp as usize;
 
+                // Drain any remaining scope-level resource stacks (fallback).
+                while let Some(mut stack) = self.vm.frame_mut().disposable_resource_stacks.pop() {
+                    crate::resource_management::dispose_resources(self, &mut stack);
+                }
+
                 let Some(f) = self.vm.pop_frame() else {
                     break;
                 };
@@ -785,6 +790,11 @@ impl Context {
             return ControlFlow::Break(CompletionRecord::Return(result));
         }
 
+        // Drain any remaining scope-level resource stacks (fallback for early returns).
+        while let Some(mut stack) = self.vm.frame_mut().disposable_resource_stacks.pop() {
+            crate::resource_management::dispose_resources(self, &mut stack);
+        }
+
         self.vm.stack.push(result);
         self.vm.pop_frame().expect("frame must exist");
         ControlFlow::Continue(())
@@ -794,6 +804,11 @@ impl Context {
         let result = self.vm.take_return_value();
         if self.vm.frame().exit_early() {
             return ControlFlow::Break(CompletionRecord::Normal(result));
+        }
+
+        // Drain any remaining scope-level resource stacks (fallback for yields).
+        while let Some(mut stack) = self.vm.frame_mut().disposable_resource_stacks.pop() {
+            crate::resource_management::dispose_resources(self, &mut stack);
         }
 
         self.vm.stack.push(result);
