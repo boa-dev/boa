@@ -761,7 +761,7 @@ impl PlainYearMonth {
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Temporal/PlainYearMonth/toLocaleString
     #[allow(
         unused_variables,
-        reason = "`args` and `context` are used when the `intl` feature is enabled"
+        reason = "`args` and `context` may be unused depending on feature flags"
     )]
     pub(crate) fn to_locale_string(
         this: &JsValue,
@@ -770,127 +770,32 @@ impl PlainYearMonth {
     ) -> JsResult<JsValue> {
         // 1. Let plainYearMonth be the this value.
         // 2. Perform ? RequireInternalSlot(plainYearMonth, [[InitializedTemporalYearMonth]]).
-        let object = this.as_object();
-        let plain_year_month = object
-            .as_ref()
-            .and_then(JsObject::downcast_ref::<Self>)
+        let () = this
+            .as_object()
+            .and_then(|o| o.downcast_ref::<Self>().map(|_| ()))
             .ok_or_else(|| {
                 JsNativeError::typ().with_message("this value must be a PlainYearMonth object.")
             })?;
 
         #[cfg(feature = "intl")]
         {
-            use crate::builtins::intl::date_time_format::{
-                FormatDefaults, FormatType, format_date_time_locale_no_implicit_styles,
-            };
-            use temporal_rs::TimeZone;
+            use crate::builtins::intl::date_time_format::handle_date_time_value;
+
             let locales = args.get_or_undefined(0);
             let options = args.get_or_undefined(1);
 
-            // From Temporal: `Temporal.PlainYearMonth.prototype.toLocaleString` steps (ECMA-402 integration).
-            // Source: https://tc39.es/proposal-temporal/#sec-temporal.plainyearmonth.tolocalestring
             // 3. Let dateFormat be ? CreateDateTimeFormat(%Intl.DateTimeFormat%, locales, options, date, date).
             // 4. Return ? FormatDateTime(dateFormat, plainYearMonth).
-            // Delegation: `format_date_time_locale_no_implicit_styles` — same as `Date`'s path but
-            // without injecting `dateStyle`/`timeStyle: "long"` (that would include the ISO reference day).
-
-            // ECMA-402 Temporal integration plumbing (HandleDateTimeTemporalYearMonth).
-            //
-            // Source: https://tc39.es/proposal-temporal/#sec-temporal-handledatetimetemporalyearmonth
-            //
-            // 1. If temporalYearMonth.[[Calendar]] is not equal to dateTimeFormat.[[Calendar]], throw a RangeError exception.
-            // 2. Let isoDateTime be CombineISODateAndTimeRecord(temporalYearMonth.[[ISODate]], NoonTimeRecord()).
-            // 3. Let epochNs be GetUTCEpochNanoseconds(isoDateTime).
-            // 4. Let format be dateTimeFormat.[[TemporalPlainYearMonthFormat]].
-            // 5. If format is null, throw a TypeError exception.
-            // 6. Return Value Format Record { [[Format]]: format, [[EpochNanoseconds]]: epochNs, [[IsPlain]]: true }.
-            //
-            // Delegation note:
-            // - In this implementation we compute epochNs (steps 2–3), validate Intl `calendar` (step 1),
-            //   and delegate the ECMA-402 formatting to `format_date_time_locale_no_implicit_styles`.
-            let temporal_calendar = plain_year_month.inner.calendar().identifier();
-
-            // Ensure Intl inputs match HandleDateTimeTemporalYearMonth expectations.
-            let options_obj = get_options_object(options)?;
-            let user_calendar = options_obj.get(js_string!("calendar"), context)?;
-
-            if user_calendar.is_undefined() {
-                options_obj.create_data_property_or_throw(
-                    js_string!("calendar"),
-                    JsValue::from(JsString::from(temporal_calendar)),
-                    context,
-                )?;
-            } else {
-                // Intl's `calendar` option is parsed from ToString, so we do the same for comparison.
-                let user_calendar = user_calendar.to_string(context)?.to_std_string_escaped();
-                if user_calendar != temporal_calendar {
-                    return Err(
-                        JsNativeError::range()
-                            .with_message("Temporal.PlainYearMonth calendar must match Intl.DateTimeFormat calendar.")
-                            .into(),
-                    );
-                }
-            }
-
-            options_obj.create_data_property_or_throw(
-                js_string!("timeZone"),
-                // Temporal plain values ignore user-provided `timeZone` and always use "+00:00".
-                JsValue::from(js_string!("+00:00")),
-                context,
-            )?;
-
-            // When no explicit style/fields are provided, supply `year` + `month` so
-            // `CreateDateTimeFormat` does not apply full date defaults (which include `day`).
-            // We use `month: "short"` (instead of `"numeric"`) because the current Intl formatter can
-            // produce compact numeric output like `12/24`, which fails Test262's full-year expectation
-            // (`default-does-not-include-day-time-and-time-zone-name.js` requires `2024` to appear).
-            let date_style = options_obj.get(js_string!("dateStyle"), context)?;
-            let time_style = options_obj.get(js_string!("timeStyle"), context)?;
-            if date_style.is_undefined() && time_style.is_undefined() {
-                if options_obj.get(js_string!("year"), context)?.is_undefined() {
-                    options_obj.create_data_property_or_throw(
-                        js_string!("year"),
-                        JsValue::from(js_string!("numeric")),
-                        context,
-                    )?;
-                }
-                if options_obj
-                    .get(js_string!("month"), context)?
-                    .is_undefined()
-                {
-                    options_obj.create_data_property_or_throw(
-                        js_string!("month"),
-                        JsValue::from(js_string!("short")),
-                        context,
-                    )?;
-                }
-            }
-
-            // Compute epochNs from isoDate + NoonTimeRecord (steps 2-3), then pass it to the shared
-            // ECMA-402 formatting pipeline as epoch milliseconds.
-            let epoch_ns = plain_year_month
-                .inner
-                .epoch_ns_for_with_provider(
-                    TimeZone::utc_with_provider(context.timezone_provider()),
-                    context.timezone_provider(),
-                )
-                .map_err(|e| JsNativeError::range().with_message(e.to_string()))?;
-            let timestamp = (epoch_ns.as_i128() as f64) / 1_000_000.0;
-
-            // Delegate the Intl formatting pipeline to the shared ECMA-402 implementation.
-            format_date_time_locale_no_implicit_styles(
-                locales,
-                &options_obj.into(),
-                FormatType::Date,
-                FormatDefaults::Date,
-                timestamp,
-                context,
-            )
+            handle_date_time_value(this, locales, options, context)
         }
 
         #[cfg(not(feature = "intl"))]
         {
-            Ok(JsString::from(plain_year_month.inner.to_string()).into())
+            let plain_year_month = this
+                .as_object()
+                .and_then(|o| o.downcast_ref::<Self>().map(|ym| ym.inner.to_string()))
+                .expect("RequireInternalSlot already validated");
+            Ok(JsString::from(plain_year_month).into())
         }
     }
 
