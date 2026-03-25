@@ -449,9 +449,9 @@ impl Iterator {
     fn includes(this: &JsValue, args: &[JsValue], context: &mut Context) -> JsResult<JsValue> {
         // 1. Let O be the this value.
         // 2. If O is not an Object, throw a TypeError exception.
-        let obj = this.as_object().ok_or_else(|| {
-            JsNativeError::typ().with_message("Iterator.prototype.includes called on non-object")
-        })?;
+        let obj = this.as_object().ok_or_else(
+            || js_error!(TypeError: "Iterator.prototype.includes called on non-object"),
+        )?;
 
         // 3. Let iterated be the Iterator Record { [[Iterator]]: O, [[NextMethod]]: undefined, [[Done]]: false }.
         let iterated = IteratorRecord::new(obj.clone(), JsValue::undefined());
@@ -491,7 +491,7 @@ impl Iterator {
         let mut skipped = 0;
 
         // 8. Set iterated to ? GetIteratorDirect(O).
-        let mut iterated = super::get_iterator_direct(&obj, context)?;
+        let mut iterated = get_iterator_direct(&obj, context)?;
 
         // 9. Repeat,
         while let Some(value) = iterated.step_value(context)? {

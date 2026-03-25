@@ -463,6 +463,22 @@ fn iterator_includes_basic() {
 }
 
 #[test]
+fn iterator_includes_generator() {
+    run_test_actions([
+        TestAction::run("function* gen() { yield 1; yield 3; }"),
+        TestAction::assert_eq("gen().includes(1)", true),
+        TestAction::assert_eq("gen().includes(2)", false),
+        TestAction::assert_eq("gen().includes(3)", true),
+        TestAction::assert_eq("gen().drop(1).includes(1)", false),
+        TestAction::assert_eq("gen().drop(1).includes(3)", true),
+        TestAction::assert_eq("gen().drop(2).includes(3)", false),
+        TestAction::assert_eq("gen().includes(1, 1)", false),
+        TestAction::assert_eq("gen().includes(3, 1)", true),
+        TestAction::assert_eq("gen().includes(3, 2)", false),
+    ]);
+}
+
+#[test]
 fn iterator_includes_errors() {
     run_test_actions([
         TestAction::run("const gen = () => Iterator.from([1, 3]);"),
