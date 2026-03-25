@@ -641,11 +641,6 @@ impl Context {
         self.module_loader.clone()
     }
 
-    /// Swaps the currently active realm with `realm`.
-    pub(crate) fn swap_realm(&mut self, realm: &mut Realm) {
-        std::mem::swap(&mut self.vm.frame_mut().realm, realm);
-    }
-
     /// Increment and get the parser identifier.
     pub(crate) fn next_parser_identifier(&mut self) -> u32 {
         self.parser_identifier += 1;
