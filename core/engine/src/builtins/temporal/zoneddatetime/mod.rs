@@ -478,9 +478,9 @@ impl ZonedDateTime {
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Temporal/ZonedDateTime/calendarId
     /// [temporal_rs-docs]: https://docs.rs/temporal_rs/latest/temporal_rs/struct.ZonedDateTime.html#method.calendar
     fn get_calendar_id(this: &JsValue, _: &[JsValue], _: &mut Context) -> JsResult<JsValue> {
-        require_internal_slot!(zdt = this, Self, "ZonedDateTime");
+        let zdt = require_internal_slot!(this, Self, "ZonedDateTime");
 
-        Ok(JsString::from(zdt.inner.calendar().identifier()).into())
+        Ok(JsString::from(zdt.borrow().data().inner.calendar().identifier()).into())
     }
 
     /// 6.3.4 get `Temporal.ZonedDateTime.prototype.timeZoneId`
@@ -495,10 +495,12 @@ impl ZonedDateTime {
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Temporal/ZonedDateTime/timeZoneId
     /// [temporal_rs-docs]: https://docs.rs/temporal_rs/latest/temporal_rs/struct.ZonedDateTime.html#method.timezone
     fn get_timezone_id(this: &JsValue, _: &[JsValue], context: &mut Context) -> JsResult<JsValue> {
-        require_internal_slot!(zdt = this, Self, "ZonedDateTime");
+        let zdt = require_internal_slot!(this, Self, "ZonedDateTime");
 
         Ok(JsString::from(
-            zdt.inner
+            zdt.borrow()
+                .data()
+                .inner
                 .time_zone()
                 .identifier_with_provider(context.timezone_provider())?,
         )
@@ -517,9 +519,9 @@ impl ZonedDateTime {
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Temporal/ZonedDateTime/era
     /// [temporal_rs-docs]: https://docs.rs/temporal_rs/latest/temporal_rs/struct.ZonedDateTime.html#method.era
     fn get_era(this: &JsValue, _: &[JsValue], _: &mut Context) -> JsResult<JsValue> {
-        require_internal_slot!(zdt = this, Self, "ZonedDateTime");
+        let zdt = require_internal_slot!(this, Self, "ZonedDateTime");
 
-        let era = zdt.inner.era();
+        let era = zdt.borrow().data().inner.era();
         Ok(era
             .map(|tinystr| JsString::from(tinystr.cow_to_lowercase()))
             .into_or_undefined())
@@ -537,9 +539,9 @@ impl ZonedDateTime {
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Temporal/ZonedDateTime/eraYear
     /// [temporal_rs-docs]: https://docs.rs/temporal_rs/latest/temporal_rs/struct.ZonedDateTime.html#method.era_year
     fn get_era_year(this: &JsValue, _: &[JsValue], _: &mut Context) -> JsResult<JsValue> {
-        require_internal_slot!(zdt = this, Self, "ZonedDateTime");
+        let zdt = require_internal_slot!(this, Self, "ZonedDateTime");
 
-        Ok(zdt.inner.era_year().into_or_undefined())
+        Ok(zdt.borrow().data().inner.era_year().into_or_undefined())
     }
 
     /// 6.3.7 get `Temporal.ZonedDateTime.prototype.year`
@@ -554,9 +556,9 @@ impl ZonedDateTime {
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Temporal/ZonedDateTime/year
     /// [temporal_rs-docs]: https://docs.rs/temporal_rs/latest/temporal_rs/struct.ZonedDateTime.html#method.year
     fn get_year(this: &JsValue, _: &[JsValue], _: &mut Context) -> JsResult<JsValue> {
-        require_internal_slot!(zdt = this, Self, "ZonedDateTime");
+        let zdt = require_internal_slot!(this, Self, "ZonedDateTime");
 
-        Ok(zdt.inner.year().into())
+        Ok(zdt.borrow().data().inner.year().into())
     }
 
     /// 6.3.8 get `Temporal.ZonedDateTime.prototype.month`
@@ -571,9 +573,9 @@ impl ZonedDateTime {
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Temporal/ZonedDateTime/month
     /// [temporal_rs-docs]: https://docs.rs/temporal_rs/latest/temporal_rs/struct.ZonedDateTime.html#method.month
     fn get_month(this: &JsValue, _: &[JsValue], _: &mut Context) -> JsResult<JsValue> {
-        require_internal_slot!(zdt = this, Self, "ZonedDateTime");
+        let zdt = require_internal_slot!(this, Self, "ZonedDateTime");
 
-        Ok(zdt.inner.month().into())
+        Ok(zdt.borrow().data().inner.month().into())
     }
 
     /// 6.3.9 get `Temporal.ZonedDateTime.prototype.monthCode`
@@ -588,9 +590,9 @@ impl ZonedDateTime {
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Temporal/ZonedDateTime/monthCode
     /// [temporal_rs-docs]: https://docs.rs/temporal_rs/latest/temporal_rs/struct.ZonedDateTime.html#method.month_code
     fn get_month_code(this: &JsValue, _: &[JsValue], _: &mut Context) -> JsResult<JsValue> {
-        require_internal_slot!(zdt = this, Self, "ZonedDateTime");
+        let zdt = require_internal_slot!(this, Self, "ZonedDateTime");
 
-        Ok(JsString::from(zdt.inner.month_code().as_str()).into())
+        Ok(JsString::from(zdt.borrow().data().inner.month_code().as_str()).into())
     }
 
     /// 6.3.10 get `Temporal.ZonedDateTime.prototype.day`
@@ -605,9 +607,9 @@ impl ZonedDateTime {
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Temporal/ZonedDateTime/day
     /// [temporal_rs-docs]: https://docs.rs/temporal_rs/latest/temporal_rs/struct.ZonedDateTime.html#method.day
     fn get_day(this: &JsValue, _: &[JsValue], _: &mut Context) -> JsResult<JsValue> {
-        require_internal_slot!(zdt = this, Self, "ZonedDateTime");
+        let zdt = require_internal_slot!(this, Self, "ZonedDateTime");
 
-        Ok(zdt.inner.day().into())
+        Ok(zdt.borrow().data().inner.day().into())
     }
 
     /// 6.3.11 get `Temporal.ZonedDateTime.prototype.hour`
@@ -622,9 +624,9 @@ impl ZonedDateTime {
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Temporal/ZonedDateTime/hour
     /// [temporal_rs-docs]: https://docs.rs/temporal_rs/latest/temporal_rs/struct.ZonedDateTime.html#method.hour
     fn get_hour(this: &JsValue, _: &[JsValue], _: &mut Context) -> JsResult<JsValue> {
-        require_internal_slot!(zdt = this, Self, "ZonedDateTime");
+        let zdt = require_internal_slot!(this, Self, "ZonedDateTime");
 
-        Ok(zdt.inner.hour().into())
+        Ok(zdt.borrow().data().inner.hour().into())
     }
 
     /// 6.3.12 get `Temporal.ZonedDateTime.prototype.minute`
@@ -639,9 +641,9 @@ impl ZonedDateTime {
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Temporal/ZonedDateTime/minute
     /// [temporal_rs-docs]: https://docs.rs/temporal_rs/latest/temporal_rs/struct.ZonedDateTime.html#method.minute
     fn get_minute(this: &JsValue, _: &[JsValue], _: &mut Context) -> JsResult<JsValue> {
-        require_internal_slot!(zdt = this, Self, "ZonedDateTime");
+        let zdt = require_internal_slot!(this, Self, "ZonedDateTime");
 
-        Ok(zdt.inner.minute().into())
+        Ok(zdt.borrow().data().inner.minute().into())
     }
 
     /// 6.3.13 get `Temporal.ZonedDateTime.prototype.second`
@@ -656,9 +658,9 @@ impl ZonedDateTime {
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Temporal/ZonedDateTime/second
     /// [temporal_rs-docs]: https://docs.rs/temporal_rs/latest/temporal_rs/struct.ZonedDateTime.html#method.second
     fn get_second(this: &JsValue, _: &[JsValue], _: &mut Context) -> JsResult<JsValue> {
-        require_internal_slot!(zdt = this, Self, "ZonedDateTime");
+        let zdt = require_internal_slot!(this, Self, "ZonedDateTime");
 
-        Ok(zdt.inner.second().into())
+        Ok(zdt.borrow().data().inner.second().into())
     }
 
     /// 6.3.14 get `Temporal.ZonedDateTime.prototype.millisecond`
@@ -673,9 +675,9 @@ impl ZonedDateTime {
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Temporal/ZonedDateTime/millisecond
     /// [temporal_rs-docs]: https://docs.rs/temporal_rs/latest/temporal_rs/struct.ZonedDateTime.html#method.millisecond
     fn get_millisecond(this: &JsValue, _: &[JsValue], _: &mut Context) -> JsResult<JsValue> {
-        require_internal_slot!(zdt = this, Self, "ZonedDateTime");
+        let zdt = require_internal_slot!(this, Self, "ZonedDateTime");
 
-        Ok(zdt.inner.millisecond().into())
+        Ok(zdt.borrow().data().inner.millisecond().into())
     }
 
     /// 6.3.15 get `Temporal.ZonedDateTime.prototype.microsecond`
@@ -690,9 +692,9 @@ impl ZonedDateTime {
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Temporal/ZonedDateTime/microsecond
     /// [temporal_rs-docs]: https://docs.rs/temporal_rs/latest/temporal_rs/struct.ZonedDateTime.html#method.microsecond
     fn get_microsecond(this: &JsValue, _: &[JsValue], _: &mut Context) -> JsResult<JsValue> {
-        require_internal_slot!(zdt = this, Self, "ZonedDateTime");
+        let zdt = require_internal_slot!(this, Self, "ZonedDateTime");
 
-        Ok(zdt.inner.microsecond().into())
+        Ok(zdt.borrow().data().inner.microsecond().into())
     }
 
     /// 6.3.16 get `Temporal.ZonedDateTime.prototype.nanosecond`
@@ -707,9 +709,9 @@ impl ZonedDateTime {
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Temporal/ZonedDateTime/nanosecond
     /// [temporal_rs-docs]: https://docs.rs/temporal_rs/latest/temporal_rs/struct.ZonedDateTime.html#method.nanosecond
     fn get_nanosecond(this: &JsValue, _: &[JsValue], _: &mut Context) -> JsResult<JsValue> {
-        require_internal_slot!(zdt = this, Self, "ZonedDateTime");
+        let zdt = require_internal_slot!(this, Self, "ZonedDateTime");
 
-        Ok(zdt.inner.nanosecond().into())
+        Ok(zdt.borrow().data().inner.nanosecond().into())
     }
 
     /// 6.3.17 get `Temporal.ZonedDateTime.prototype.epochMilliseconds`
@@ -724,9 +726,9 @@ impl ZonedDateTime {
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Temporal/ZonedDateTime/epochMilliseconds
     /// [temporal_rs-docs]: https://docs.rs/temporal_rs/latest/temporal_rs/struct.ZonedDateTime.html#method.epoch_milliseconds
     fn get_epoch_milliseconds(this: &JsValue, _: &[JsValue], _: &mut Context) -> JsResult<JsValue> {
-        require_internal_slot!(zdt = this, Self, "ZonedDateTime");
+        let zdt = require_internal_slot!(this, Self, "ZonedDateTime");
 
-        Ok(zdt.inner.epoch_milliseconds().into())
+        Ok(zdt.borrow().data().inner.epoch_milliseconds().into())
     }
 
     /// 6.3.18 get `Temporal.ZonedDateTime.prototype.epochNanoseconds`
@@ -741,9 +743,9 @@ impl ZonedDateTime {
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Temporal/ZonedDateTime/epochNanoseconds
     /// [temporal_rs-docs]: https://docs.rs/temporal_rs/latest/temporal_rs/struct.ZonedDateTime.html#method.epoch_nanoseconds
     fn get_epoch_nanoseconds(this: &JsValue, _: &[JsValue], _: &mut Context) -> JsResult<JsValue> {
-        require_internal_slot!(zdt = this, Self, "ZonedDateTime");
+        let zdt = require_internal_slot!(this, Self, "ZonedDateTime");
 
-        Ok(JsBigInt::from(zdt.inner.epoch_nanoseconds().as_i128()).into())
+        Ok(JsBigInt::from(zdt.borrow().data().inner.epoch_nanoseconds().as_i128()).into())
     }
 
     /// 6.3.19 get `Temporal.ZonedDateTime.prototype.dayOfWeek`
@@ -758,9 +760,9 @@ impl ZonedDateTime {
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Temporal/ZonedDateTime/dayOfWeek
     /// [temporal_rs-docs]: https://docs.rs/temporal_rs/latest/temporal_rs/struct.ZonedDateTime.html#method.day_of_week
     fn get_day_of_week(this: &JsValue, _: &[JsValue], _: &mut Context) -> JsResult<JsValue> {
-        require_internal_slot!(zdt = this, Self, "ZonedDateTime");
+        let zdt = require_internal_slot!(this, Self, "ZonedDateTime");
 
-        Ok(zdt.inner.day_of_week().into())
+        Ok(zdt.borrow().data().inner.day_of_week().into())
     }
 
     /// 6.3.20 get `Temporal.ZonedDateTime.prototype.dayOfYear`
@@ -775,9 +777,9 @@ impl ZonedDateTime {
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Temporal/ZonedDateTime/dayOfYear
     /// [temporal_rs-docs]: https://docs.rs/temporal_rs/latest/temporal_rs/struct.ZonedDateTime.html#method.day_of_year
     fn get_day_of_year(this: &JsValue, _: &[JsValue], _: &mut Context) -> JsResult<JsValue> {
-        require_internal_slot!(zdt = this, Self, "ZonedDateTime");
+        let zdt = require_internal_slot!(this, Self, "ZonedDateTime");
 
-        Ok(zdt.inner.day_of_year().into())
+        Ok(zdt.borrow().data().inner.day_of_year().into())
     }
 
     /// 6.3.21 get `Temporal.ZonedDateTime.prototype.weekOfYear`
@@ -792,9 +794,9 @@ impl ZonedDateTime {
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Temporal/ZonedDateTime/weekOfYear
     /// [temporal_rs-docs]: https://docs.rs/temporal_rs/latest/temporal_rs/struct.ZonedDateTime.html#method.week_of_year
     fn get_week_of_year(this: &JsValue, _: &[JsValue], _: &mut Context) -> JsResult<JsValue> {
-        require_internal_slot!(zdt = this, Self, "ZonedDateTime");
+        let zdt = require_internal_slot!(this, Self, "ZonedDateTime");
 
-        Ok(zdt.inner.week_of_year().into_or_undefined())
+        Ok(zdt.borrow().data().inner.week_of_year().into_or_undefined())
     }
 
     /// 6.3.22 get `Temporal.ZonedDateTime.prototype.yearOfWeek`
@@ -809,9 +811,9 @@ impl ZonedDateTime {
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Temporal/ZonedDateTime/yearOfWeek
     /// [temporal_rs-docs]: https://docs.rs/temporal_rs/latest/temporal_rs/struct.ZonedDateTime.html#method.year_of_week
     fn get_year_of_week(this: &JsValue, _: &[JsValue], _: &mut Context) -> JsResult<JsValue> {
-        require_internal_slot!(zdt = this, Self, "ZonedDateTime");
+        let zdt = require_internal_slot!(this, Self, "ZonedDateTime");
 
-        Ok(zdt.inner.year_of_week().into_or_undefined())
+        Ok(zdt.borrow().data().inner.year_of_week().into_or_undefined())
     }
 
     /// 6.3.23 get `Temporal.ZonedDateTime.prototype.hoursInDay`
@@ -826,9 +828,11 @@ impl ZonedDateTime {
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Temporal/ZonedDateTime/hoursInDay
     /// [temporal_rs-docs]: https://docs.rs/temporal_rs/latest/temporal_rs/struct.ZonedDateTime.html#method.hours_in_day
     fn get_hours_in_day(this: &JsValue, _: &[JsValue], context: &mut Context) -> JsResult<JsValue> {
-        require_internal_slot!(zdt = this, Self, "ZonedDateTime");
+        let zdt = require_internal_slot!(this, Self, "ZonedDateTime");
 
         Ok(zdt
+            .borrow()
+            .data()
             .inner
             .hours_in_day_with_provider(context.timezone_provider())?
             .into())
@@ -846,9 +850,9 @@ impl ZonedDateTime {
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Temporal/ZonedDateTime/daysInWeek
     /// [temporal_rs-docs]: https://docs.rs/temporal_rs/latest/temporal_rs/struct.ZonedDateTime.html#method.days_in_week
     fn get_days_in_week(this: &JsValue, _: &[JsValue], _: &mut Context) -> JsResult<JsValue> {
-        require_internal_slot!(zdt = this, Self, "ZonedDateTime");
+        let zdt = require_internal_slot!(this, Self, "ZonedDateTime");
 
-        Ok(zdt.inner.days_in_week().into())
+        Ok(zdt.borrow().data().inner.days_in_week().into())
     }
 
     /// 6.3.25 get `Temporal.ZonedDateTime.prototype.daysInMonth`
@@ -863,9 +867,9 @@ impl ZonedDateTime {
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Temporal/ZonedDateTime/daysInMonth
     /// [temporal_rs-docs]: https://docs.rs/temporal_rs/latest/temporal_rs/struct.ZonedDateTime.html#method.days_in_month
     fn get_days_in_month(this: &JsValue, _: &[JsValue], _: &mut Context) -> JsResult<JsValue> {
-        require_internal_slot!(zdt = this, Self, "ZonedDateTime");
+        let zdt = require_internal_slot!(this, Self, "ZonedDateTime");
 
-        Ok(zdt.inner.days_in_month().into())
+        Ok(zdt.borrow().data().inner.days_in_month().into())
     }
 
     /// 6.3.26 get `Temporal.ZonedDateTime.prototype.daysInYear`
@@ -880,9 +884,9 @@ impl ZonedDateTime {
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Temporal/ZonedDateTime/daysInYear
     /// [temporal_rs-docs]: https://docs.rs/temporal_rs/latest/temporal_rs/struct.ZonedDateTime.html#method.days_in_year
     fn get_days_in_year(this: &JsValue, _: &[JsValue], _: &mut Context) -> JsResult<JsValue> {
-        require_internal_slot!(zdt = this, Self, "ZonedDateTime");
+        let zdt = require_internal_slot!(this, Self, "ZonedDateTime");
 
-        Ok(zdt.inner.days_in_year().into())
+        Ok(zdt.borrow().data().inner.days_in_year().into())
     }
 
     /// 6.3.27 get `Temporal.ZonedDateTime.prototype.monthsInYear`
@@ -897,9 +901,9 @@ impl ZonedDateTime {
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Temporal/ZonedDateTime/monthsInYear
     /// [temporal_rs-docs]: https://docs.rs/temporal_rs/latest/temporal_rs/struct.ZonedDateTime.html#method.months_in_year
     fn get_months_in_year(this: &JsValue, _: &[JsValue], _: &mut Context) -> JsResult<JsValue> {
-        require_internal_slot!(zdt = this, Self, "ZonedDateTime");
+        let zdt = require_internal_slot!(this, Self, "ZonedDateTime");
 
-        Ok(zdt.inner.months_in_year().into())
+        Ok(zdt.borrow().data().inner.months_in_year().into())
     }
 
     /// 6.3.28 get `Temporal.ZonedDateTime.prototype.inLeapYear`
@@ -914,9 +918,9 @@ impl ZonedDateTime {
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Temporal/ZonedDateTime/inLeapYear
     /// [temporal_rs-docs]: https://docs.rs/temporal_rs/latest/temporal_rs/struct.ZonedDateTime.html#method.in_leap_year
     fn get_in_leap_year(this: &JsValue, _: &[JsValue], _: &mut Context) -> JsResult<JsValue> {
-        require_internal_slot!(zdt = this, Self, "ZonedDateTime");
+        let zdt = require_internal_slot!(this, Self, "ZonedDateTime");
 
-        Ok(zdt.inner.in_leap_year().into())
+        Ok(zdt.borrow().data().inner.in_leap_year().into())
     }
 
     /// 6.3.29 get Temporal.ZonedDateTime.prototype.offsetNanoseconds
@@ -931,9 +935,9 @@ impl ZonedDateTime {
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Temporal/ZonedDateTime/offsetNanoseconds
     /// [temporal_rs-docs]: https://docs.rs/temporal_rs/latest/temporal_rs/struct.ZonedDateTime.html#method.offset_nanoseconds
     fn get_offset_nanoseconds(this: &JsValue, _: &[JsValue], _: &mut Context) -> JsResult<JsValue> {
-        require_internal_slot!(zdt = this, Self, "ZonedDateTime");
+        let zdt = require_internal_slot!(this, Self, "ZonedDateTime");
 
-        Ok(zdt.inner.offset_nanoseconds().into())
+        Ok(zdt.borrow().data().inner.offset_nanoseconds().into())
     }
 
     /// 6.3.30 get Temporal.ZonedDateTime.prototype.offset
@@ -948,9 +952,9 @@ impl ZonedDateTime {
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Temporal/ZonedDateTime/offset
     /// [temporal_rs-docs]: https://docs.rs/temporal_rs/latest/temporal_rs/struct.ZonedDateTime.html#method.offset
     fn get_offset(this: &JsValue, _: &[JsValue], _: &mut Context) -> JsResult<JsValue> {
-        require_internal_slot!(zdt = this, Self, "ZonedDateTime");
+        let zdt = require_internal_slot!(this, Self, "ZonedDateTime");
 
-        Ok(JsString::from(zdt.inner.offset()).into())
+        Ok(JsString::from(zdt.borrow().data().inner.offset()).into())
     }
 }
 
@@ -1010,7 +1014,7 @@ impl ZonedDateTime {
     fn with(this: &JsValue, args: &[JsValue], context: &mut Context) -> JsResult<JsValue> {
         // 1. Let zonedDateTime be the this value.
         // 2. Perform ? RequireInternalSlot(zonedDateTime, [[InitializedTemporalZonedDateTime]]).
-        require_internal_slot!(zdt = this, Self, "ZonedDateTime");
+        let zdt = require_internal_slot!(this, Self, "ZonedDateTime");
         // 3. If ? IsPartialTemporalObject(temporalZonedDateTimeLike) is false, throw a TypeError exception.
         let Some(obj) = is_partial_temporal_object(args.get_or_undefined(0), context)? else {
             return Err(JsNativeError::typ()
@@ -1034,7 +1038,7 @@ impl ZonedDateTime {
         // 18. Set fields to CalendarMergeFields(calendar, fields, partialZonedDateTime).
         let (fields, _) = to_zoned_date_time_fields(
             &obj,
-            zdt.inner.calendar(),
+            zdt.borrow().data().inner.calendar(),
             ZdtFieldsType::NoTimeZone,
             context,
         )?;
@@ -1050,7 +1054,7 @@ impl ZonedDateTime {
         // 22. Let overflow be ? GetTemporalOverflowOption(resolvedOptions).
         let overflow = get_option::<Overflow>(&resolved_options, js_string!("overflow"), context)?;
 
-        let result = zdt.inner.with_with_provider(
+        let result = zdt.borrow().data().inner.with_with_provider(
             fields,
             disambiguation,
             offset,
@@ -1076,7 +1080,7 @@ impl ZonedDateTime {
         args: &[JsValue],
         context: &mut Context,
     ) -> JsResult<JsValue> {
-        require_internal_slot!(zdt = this, Self, "ZonedDateTime");
+        let zdt = require_internal_slot!(this, Self, "ZonedDateTime");
 
         let time = args
             .get_or_undefined(0)
@@ -1084,6 +1088,8 @@ impl ZonedDateTime {
             .transpose()?;
 
         let inner = zdt
+            .borrow()
+            .data()
             .inner
             .with_plain_time_and_provider(time, context.timezone_provider())?;
         create_temporal_zoneddatetime(inner, None, context).map(Into::into)
@@ -1101,11 +1107,13 @@ impl ZonedDateTime {
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Temporal/ZonedDateTime/withTimeZone
     /// [temporal_rs-docs]: https://docs.rs/temporal_rs/latest/temporal_rs/struct.ZonedDateTime.html#method.with_timezone
     fn with_timezone(this: &JsValue, args: &[JsValue], context: &mut Context) -> JsResult<JsValue> {
-        require_internal_slot!(zdt = this, Self, "ZonedDateTime");
+        let zdt = require_internal_slot!(this, Self, "ZonedDateTime");
 
         let timezone = to_temporal_timezone_identifier(args.get_or_undefined(0), context)?;
 
         let inner = zdt
+            .borrow()
+            .data()
             .inner
             .with_time_zone_with_provider(timezone, context.timezone_provider())?;
         create_temporal_zoneddatetime(inner, None, context).map(Into::into)
@@ -1123,11 +1131,11 @@ impl ZonedDateTime {
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Temporal/ZonedDateTime/withCalendar
     /// [temporal_rs-docs]: https://docs.rs/temporal_rs/latest/temporal_rs/struct.ZonedDateTime.html#method.with_calendar
     fn with_calendar(this: &JsValue, args: &[JsValue], context: &mut Context) -> JsResult<JsValue> {
-        require_internal_slot!(zdt = this, Self, "ZonedDateTime");
+        let zdt = require_internal_slot!(this, Self, "ZonedDateTime");
 
         let calendar = to_temporal_calendar_identifier(args.get_or_undefined(0))?;
 
-        let inner = zdt.inner.with_calendar(calendar);
+        let inner = zdt.borrow().data().inner.with_calendar(calendar);
         create_temporal_zoneddatetime(inner, None, context).map(Into::into)
     }
 
@@ -1143,16 +1151,18 @@ impl ZonedDateTime {
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Temporal/ZonedDateTime/add
     /// [temporal_rs-docs]: https://docs.rs/temporal_rs/latest/temporal_rs/struct.ZonedDateTime.html#method.add
     fn add(this: &JsValue, args: &[JsValue], context: &mut Context) -> JsResult<JsValue> {
-        require_internal_slot!(zdt = this, Self, "ZonedDateTime");
+        let zdt = require_internal_slot!(this, Self, "ZonedDateTime");
 
         let duration = to_temporal_duration(args.get_or_undefined(0), context)?;
 
         let options = get_options_object(args.get_or_undefined(1))?;
         let overflow = get_option::<Overflow>(&options, js_string!("overflow"), context)?;
 
-        let result =
-            zdt.inner
-                .add_with_provider(&duration, overflow, context.timezone_provider())?;
+        let result = zdt.borrow().data().inner.add_with_provider(
+            &duration,
+            overflow,
+            context.timezone_provider(),
+        )?;
         create_temporal_zoneddatetime(result, None, context).map(Into::into)
     }
 
@@ -1168,16 +1178,18 @@ impl ZonedDateTime {
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Temporal/ZonedDateTime/subtract
     /// [temporal_rs-docs]: https://docs.rs/temporal_rs/latest/temporal_rs/struct.ZonedDateTime.html#method.subtract
     fn subtract(this: &JsValue, args: &[JsValue], context: &mut Context) -> JsResult<JsValue> {
-        require_internal_slot!(zdt = this, Self, "ZonedDateTime");
+        let zdt = require_internal_slot!(this, Self, "ZonedDateTime");
 
         let duration = to_temporal_duration(args.get_or_undefined(0), context)?;
 
         let options = get_options_object(args.get_or_undefined(1))?;
         let overflow = get_option::<Overflow>(&options, js_string!("overflow"), context)?;
 
-        let result =
-            zdt.inner
-                .subtract_with_provider(&duration, overflow, context.timezone_provider())?;
+        let result = zdt.borrow().data().inner.subtract_with_provider(
+            &duration,
+            overflow,
+            context.timezone_provider(),
+        )?;
         create_temporal_zoneddatetime(result, None, context).map(Into::into)
     }
 
@@ -1193,16 +1205,18 @@ impl ZonedDateTime {
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Temporal/ZonedDateTime/until
     /// [temporal_rs-docs]: https://docs.rs/temporal_rs/latest/temporal_rs/struct.ZonedDateTime.html#method.until
     fn until(this: &JsValue, args: &[JsValue], context: &mut Context) -> JsResult<JsValue> {
-        require_internal_slot!(zdt = this, Self, "ZonedDateTime");
+        let zdt = require_internal_slot!(this, Self, "ZonedDateTime");
 
         let other = to_temporal_zoneddatetime(args.get_or_undefined(0), None, context)?;
 
         let options = get_options_object(args.get_or_undefined(1))?;
         let settings = get_difference_settings(&options, context)?;
 
-        let result =
-            zdt.inner
-                .until_with_provider(&other, settings, context.timezone_provider())?;
+        let result = zdt.borrow().data().inner.until_with_provider(
+            &other,
+            settings,
+            context.timezone_provider(),
+        )?;
         create_temporal_duration(result, None, context).map(Into::into)
     }
 
@@ -1218,16 +1232,18 @@ impl ZonedDateTime {
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Temporal/ZonedDateTime/since
     /// [temporal_rs-docs]: https://docs.rs/temporal_rs/latest/temporal_rs/struct.ZonedDateTime.html#method.since
     fn since(this: &JsValue, args: &[JsValue], context: &mut Context) -> JsResult<JsValue> {
-        require_internal_slot!(zdt = this, Self, "ZonedDateTime");
+        let zdt = require_internal_slot!(this, Self, "ZonedDateTime");
 
         let other = to_temporal_zoneddatetime(args.get_or_undefined(0), None, context)?;
 
         let options = get_options_object(args.get_or_undefined(1))?;
         let settings = get_difference_settings(&options, context)?;
 
-        let result =
-            zdt.inner
-                .since_with_provider(&other, settings, context.timezone_provider())?;
+        let result = zdt.borrow().data().inner.since_with_provider(
+            &other,
+            settings,
+            context.timezone_provider(),
+        )?;
         create_temporal_duration(result, None, context).map(Into::into)
     }
 
@@ -1245,7 +1261,7 @@ impl ZonedDateTime {
     fn round(this: &JsValue, args: &[JsValue], context: &mut Context) -> JsResult<JsValue> {
         // 1. Let zonedDateTime be the this value.
         // 2. Perform ? RequireInternalSlot(zonedDateTime, [[InitializedTemporalZonedDateTime]]).
-        require_internal_slot!(zdt = this, Self, "ZonedDateTime");
+        let zdt = require_internal_slot!(this, Self, "ZonedDateTime");
 
         let round_to = match args.first().map(JsValue::variant) {
             // 3. If roundTo is undefined, then
@@ -1299,6 +1315,8 @@ impl ZonedDateTime {
         )?;
 
         let result = zdt
+            .borrow()
+            .data()
             .inner
             .round_with_provider(options, context.timezone_provider())?;
         create_temporal_zoneddatetime(result, None, context).map(Into::into)
@@ -1316,10 +1334,12 @@ impl ZonedDateTime {
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Temporal/ZonedDateTime/equals
     /// [temporal_rs-docs]: https://docs.rs/temporal_rs/latest/temporal_rs/struct.ZonedDateTime.html#impl-PartialEq-for-ZonedDateTime
     fn equals(this: &JsValue, args: &[JsValue], context: &mut Context) -> JsResult<JsValue> {
-        require_internal_slot!(zdt = this, Self, "ZonedDateTime");
+        let zdt = require_internal_slot!(this, Self, "ZonedDateTime");
 
         let other = to_temporal_zoneddatetime(args.get_or_undefined(0), None, context)?;
         Ok(zdt
+            .borrow()
+            .data()
             .inner
             .equals_with_provider(&other, context.timezone_provider())?
             .into())
@@ -1337,7 +1357,7 @@ impl ZonedDateTime {
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Temporal/ZonedDateTime/toString
     /// [temporal_rs-docs]: https://docs.rs/temporal_rs/latest/temporal_rs/struct.ZonedDateTime.html#method.to_ixdtf_string
     fn to_string(this: &JsValue, args: &[JsValue], context: &mut Context) -> JsResult<JsValue> {
-        require_internal_slot!(zdt = this, Self, "ZonedDateTime");
+        let zdt = require_internal_slot!(this, Self, "ZonedDateTime");
 
         let options = get_options_object(args.get_or_undefined(0))?;
 
@@ -1360,7 +1380,7 @@ impl ZonedDateTime {
             smallest_unit,
             rounding_mode,
         };
-        let ixdtf = zdt.inner.to_ixdtf_string_with_provider(
+        let ixdtf = zdt.borrow().data().inner.to_ixdtf_string_with_provider(
             show_offset,
             display_timezone,
             show_calendar,
@@ -1382,9 +1402,9 @@ impl ZonedDateTime {
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Temporal/ZonedDateTime/toLocaleString
     fn to_locale_string(this: &JsValue, _: &[JsValue], context: &mut Context) -> JsResult<JsValue> {
         // TODO: Update for ECMA-402 compliance
-        require_internal_slot!(zdt = this, Self, "ZonedDateTime");
+        let zdt = require_internal_slot!(this, Self, "ZonedDateTime");
 
-        let ixdtf = zdt.inner.to_ixdtf_string_with_provider(
+        let ixdtf = zdt.borrow().data().inner.to_ixdtf_string_with_provider(
             DisplayOffset::Auto,
             DisplayTimeZone::Auto,
             DisplayCalendar::Auto,
@@ -1405,9 +1425,9 @@ impl ZonedDateTime {
     /// [spec]: https://tc39.es/proposal-temporal/#sec-temporal.zoneddatetime.prototype.tojson
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Temporal/ZonedDateTime/toJSON
     fn to_json(this: &JsValue, _: &[JsValue], context: &mut Context) -> JsResult<JsValue> {
-        require_internal_slot!(zdt = this, Self, "ZonedDateTime");
+        let zdt = require_internal_slot!(this, Self, "ZonedDateTime");
 
-        let ixdtf = zdt.inner.to_ixdtf_string_with_provider(
+        let ixdtf = zdt.borrow().data().inner.to_ixdtf_string_with_provider(
             DisplayOffset::Auto,
             DisplayTimeZone::Auto,
             DisplayCalendar::Auto,
@@ -1445,9 +1465,11 @@ impl ZonedDateTime {
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Temporal/ZonedDateTime/startOfDay
     /// [temporal_rs-docs]: https://docs.rs/temporal_rs/latest/temporal_rs/struct.ZonedDateTime.html#method.start_of_day
     fn start_of_day(this: &JsValue, _: &[JsValue], context: &mut Context) -> JsResult<JsValue> {
-        require_internal_slot!(zdt = this, Self, "ZonedDateTime");
+        let zdt = require_internal_slot!(this, Self, "ZonedDateTime");
 
         let new = zdt
+            .borrow()
+            .data()
             .inner
             .start_of_day_with_provider(context.timezone_provider())?;
         create_temporal_zoneddatetime(new, None, context).map(Into::into)
@@ -1472,7 +1494,7 @@ impl ZonedDateTime {
         // 1. Let zonedDateTime be the this value.
         // 2. Perform ? RequireInternalSlot(zonedDateTime, [[InitializedTemporalZonedDateTime]]).
         // 3. Let timeZone be zonedDateTime.[[TimeZone]].
-        require_internal_slot!(zdt = this, Self, "ZonedDateTime");
+        let zdt = require_internal_slot!(this, Self, "ZonedDateTime");
 
         let direction_param = args.get_or_undefined(0);
         // 4. If directionParam is undefined, throw a TypeError exception.
@@ -1509,6 +1531,8 @@ impl ZonedDateTime {
 
         // Step 8-12
         let result = zdt
+            .borrow()
+            .data()
             .inner
             .get_time_zone_transition_with_provider(direction, context.timezone_provider())?;
 
@@ -1530,9 +1554,9 @@ impl ZonedDateTime {
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Temporal/ZonedDateTime/toInstant
     /// [temporal_rs-docs]: https://docs.rs/temporal_rs/latest/temporal_rs/struct.ZonedDateTime.html#method.to_instant
     fn to_instant(this: &JsValue, _: &[JsValue], context: &mut Context) -> JsResult<JsValue> {
-        require_internal_slot!(zdt = this, Self, "ZonedDateTime");
+        let zdt = require_internal_slot!(this, Self, "ZonedDateTime");
 
-        create_temporal_instant(zdt.inner.to_instant(), None, context)
+        create_temporal_instant(zdt.borrow().data().inner.to_instant(), None, context)
     }
 
     /// 6.3.48 `Temporal.ZonedDateTime.prototype.toPlainDate ( )`
@@ -1547,9 +1571,9 @@ impl ZonedDateTime {
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Temporal/ZonedDateTime/toPlainDate
     /// [temporal_rs-docs]: https://docs.rs/temporal_rs/latest/temporal_rs/struct.ZonedDateTime.html#method.to_plain_date
     fn to_plain_date(this: &JsValue, _: &[JsValue], context: &mut Context) -> JsResult<JsValue> {
-        require_internal_slot!(zdt = this, Self, "ZonedDateTime");
+        let zdt = require_internal_slot!(this, Self, "ZonedDateTime");
 
-        let inner = zdt.inner.to_plain_date();
+        let inner = zdt.borrow().data().inner.to_plain_date();
         create_temporal_date(inner, None, context).map(Into::into)
     }
 
@@ -1565,9 +1589,9 @@ impl ZonedDateTime {
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Temporal/ZonedDateTime/toPlainTime
     /// [temporal_rs-docs]: https://docs.rs/temporal_rs/latest/temporal_rs/struct.ZonedDateTime.html#method.to_plain_time
     fn to_plain_time(this: &JsValue, _: &[JsValue], context: &mut Context) -> JsResult<JsValue> {
-        require_internal_slot!(zdt = this, Self, "ZonedDateTime");
+        let zdt = require_internal_slot!(this, Self, "ZonedDateTime");
 
-        let new = zdt.inner.to_plain_time();
+        let new = zdt.borrow().data().inner.to_plain_time();
         create_temporal_time(new, None, context).map(Into::into)
     }
 
@@ -1587,9 +1611,9 @@ impl ZonedDateTime {
         _: &[JsValue],
         context: &mut Context,
     ) -> JsResult<JsValue> {
-        require_internal_slot!(zdt = this, Self, "ZonedDateTime");
+        let zdt = require_internal_slot!(this, Self, "ZonedDateTime");
 
-        let new = zdt.inner.to_plain_date_time();
+        let new = zdt.borrow().data().inner.to_plain_date_time();
         create_temporal_datetime(new, None, context).map(Into::into)
     }
 }

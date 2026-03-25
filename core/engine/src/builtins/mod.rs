@@ -1,23 +1,24 @@
 //! Boa's ECMAScript built-in object implementations, e.g. Object, String, Math, Array, etc.
 
-/// Downcasts `$this` (a `&JsValue`) to a `Ref<$type>`, returning a `TypeError` if the
-/// cast fails. The error message uses `$name` as the type name.
+/// Downcasts `$this` (a `&JsValue`) to a `JsObject<$type>`, returning a
+/// `TypeError` if the cast fails. The error message uses `$name` as the
+/// type name.
 ///
 /// This centralizes the repeated this-type-check boilerplate found across
-/// all builtin methods. The macro introduces a hidden binding for the
-/// owned `JsObject` to ensure it outlives the returned `Ref`, and binds the
-/// result to `$var`.
+/// all builtin methods. Unlike `downcast_ref`, the returned `JsObject<T>`
+/// does **not** hold an active borrow, so callers can `.borrow()` /
+/// `.borrow_mut()` only when needed, avoiding panics from long-lived
+/// `GcRefCell` borrows.
 ///
-/// Usage: `require_internal_slot!(dt = this, Self, "PlainDateTime");`
+/// Usage: `let dt = require_internal_slot!(this, Self, "PlainDateTime");`
 macro_rules! require_internal_slot {
-    ($var:ident = $this:expr, $type:ty, $name:expr) => {
-        let __temporal_obj = $crate::JsValue::as_object($this);
-        let $var = __temporal_obj
-            .as_ref()
-            .and_then($crate::JsObject::downcast_ref::<$type>)
+    ($this:expr, $type:ty, $name:expr) => {
+        $crate::JsValue::as_object($this)
+            .map(|o| o.clone())
+            .and_then(|o| $crate::JsObject::downcast::<$type>(o).ok())
             .ok_or_else(|| {
                 $crate::js_error!(TypeError: "the this object must be a {} object.", $name)
-            })?;
+            })?
     };
 }
 

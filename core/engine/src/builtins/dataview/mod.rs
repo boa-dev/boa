@@ -331,10 +331,11 @@ impl DataView {
     ) -> JsResult<JsValue> {
         // 1. Let O be the this value.
         // 2. Perform ? RequireInternalSlot(O, [[DataView]]).
-        require_internal_slot!(view = this, Self, "DataView");
+        let view = require_internal_slot!(this, Self, "DataView");
         // 3. Assert: O has a [[ViewedArrayBuffer]] internal slot.
         // 4. Let buffer be O.[[ViewedArrayBuffer]].
-        let buffer = view.viewed_array_buffer.clone();
+        let view_data = view.borrow();
+        let buffer = view_data.data().viewed_array_buffer.clone();
         // 5. Return buffer.
         Ok(buffer.into())
     }
@@ -357,14 +358,15 @@ impl DataView {
         // 1. Let O be the this value.
         // 2. Perform ? RequireInternalSlot(O, [[DataView]]).
         // 3. Assert: O has a [[ViewedArrayBuffer]] internal slot.
-        require_internal_slot!(view = this, Self, "DataView");
+        let view = require_internal_slot!(this, Self, "DataView");
 
         // 4. Let viewRecord be MakeDataViewWithBufferWitnessRecord(O, seq-cst).
         // 5. If IsViewOutOfBounds(viewRecord) is true, throw a TypeError exception.
-        let buffer = view.viewed_array_buffer.as_buffer();
+        let view_data = view.borrow();
+        let buffer = view_data.data().viewed_array_buffer.as_buffer();
         let Some(slice) = buffer
             .bytes(Ordering::SeqCst)
-            .filter(|s| !view.is_out_of_bounds(s.len()))
+            .filter(|s| !view.borrow().data().is_out_of_bounds(s.len()))
         else {
             return Err(JsNativeError::typ()
                 .with_message("view out of bounds for its inner buffer")
@@ -372,7 +374,8 @@ impl DataView {
         };
 
         // 6. Let size be GetViewByteLength(viewRecord).
-        let size = view.byte_length(slice.len());
+        let view_data = view.borrow();
+        let size = view_data.data().byte_length(slice.len());
 
         // 7. Return 𝔽(size).
         Ok(size.into())
@@ -396,15 +399,16 @@ impl DataView {
     ) -> JsResult<JsValue> {
         // 1. Let O be the this value.
         // 2. Perform ? RequireInternalSlot(O, [[DataView]]).
-        require_internal_slot!(view = this, Self, "DataView");
+        let view = require_internal_slot!(this, Self, "DataView");
 
         // 3. Assert: O has a [[ViewedArrayBuffer]] internal slot.
-        let buffer = view.viewed_array_buffer.as_buffer();
+        let view_data = view.borrow();
+        let buffer = view_data.data().viewed_array_buffer.as_buffer();
         // 4. Let viewRecord be MakeDataViewWithBufferWitnessRecord(O, seq-cst).
         // 5. If IsViewOutOfBounds(viewRecord) is true, throw a TypeError exception.
         if buffer
             .bytes(Ordering::SeqCst)
-            .filter(|b| !view.is_out_of_bounds(b.len()))
+            .filter(|b| !view.borrow().data().is_out_of_bounds(b.len()))
             .is_none()
         {
             return Err(JsNativeError::typ()
@@ -413,7 +417,8 @@ impl DataView {
         }
 
         // 6. Let offset be O.[[ByteOffset]].
-        let offset = view.byte_offset;
+        let view_data = view.borrow();
+        let offset = view_data.data().byte_offset;
         // 7. Return 𝔽(offset).
         Ok(offset.into())
     }
@@ -436,7 +441,7 @@ impl DataView {
     ) -> JsResult<JsValue> {
         // 1. Perform ? RequireInternalSlot(view, [[DataView]]).
         // 2. Assert: view has a [[ViewedArrayBuffer]] internal slot.
-        require_internal_slot!(view = view, Self, "DataView");
+        let view = require_internal_slot!(view, Self, "DataView");
 
         // 3. Let getIndex be ? ToIndex(requestIndex).
         let get_index = request_index.to_index(context)?;
@@ -447,10 +452,11 @@ impl DataView {
         // 6. Let viewRecord be MakeDataViewWithBufferWitnessRecord(view, unordered).
         // 7. NOTE: Bounds checking is not a synchronizing operation when view's backing buffer is a growable SharedArrayBuffer.
         // 8. If IsViewOutOfBounds(viewRecord) is true, throw a TypeError exception.
-        let buffer = view.viewed_array_buffer.as_buffer();
+        let view_data = view.borrow();
+        let buffer = view_data.data().viewed_array_buffer.as_buffer();
         let Some(data) = buffer
             .bytes(Ordering::Relaxed)
-            .filter(|buf| !view.is_out_of_bounds(buf.len()))
+            .filter(|buf| !view.borrow().data().is_out_of_bounds(buf.len()))
         else {
             return Err(JsNativeError::typ()
                 .with_message("view out of bounds for its inner buffer")
@@ -458,10 +464,12 @@ impl DataView {
         };
 
         // 5. Let viewOffset be view.[[ByteOffset]].
-        let view_offset = view.byte_offset;
+        let view_data = view.borrow();
+        let view_offset = view_data.data().byte_offset;
 
         // 9. Let viewSize be GetViewByteLength(viewRecord).
-        let view_size = view.byte_length(data.len());
+        let view_data = view.borrow();
+        let view_size = view_data.data().byte_length(data.len());
 
         // 10. Let elementSize be the Element Size value specified in Table 71 for Element Type type.
         let element_size = size_of::<T>() as u64;
@@ -774,7 +782,7 @@ impl DataView {
     ) -> JsResult<JsValue> {
         // 1. Perform ? RequireInternalSlot(view, [[DataView]]).
         // 2. Assert: view has a [[ViewedArrayBuffer]] internal slot.
-        require_internal_slot!(view = view, Self, "DataView");
+        let view = require_internal_slot!(view, Self, "DataView");
 
         // 3. Let getIndex be ? ToIndex(requestIndex).
         let get_index = request_index.to_index(context)?;
@@ -789,11 +797,15 @@ impl DataView {
         // 8. Let viewRecord be MakeDataViewWithBufferWitnessRecord(view, unordered).
         // 9. NOTE: Bounds checking is not a synchronizing operation when view's backing buffer is a growable SharedArrayBuffer.
         // 10. If IsViewOutOfBounds(viewRecord) is true, throw a TypeError exception.
-        let mut buffer = view.viewed_array_buffer.as_buffer_mut();
+        let viewed_buffer = {
+            let view_data = view.borrow();
+            view_data.data().viewed_array_buffer.clone()
+        };
+        let mut buffer = viewed_buffer.as_buffer_mut();
 
         let Some(mut data) = buffer
             .bytes(Ordering::Relaxed)
-            .filter(|buf| !view.is_out_of_bounds(buf.len()))
+            .filter(|buf| !view.borrow().data().is_out_of_bounds(buf.len()))
         else {
             return Err(JsNativeError::typ()
                 .with_message("view out of bounds for its inner buffer")
@@ -801,10 +813,12 @@ impl DataView {
         };
 
         // 11. Let viewSize be GetViewByteLength(viewRecord).
-        let view_size = view.byte_length(data.len());
+        let view_data = view.borrow();
+        let view_size = view_data.data().byte_length(data.len());
 
         // 7. Let viewOffset be view.[[ByteOffset]].
-        let view_offset = view.byte_offset;
+        let view_data = view.borrow();
+        let view_offset = view_data.data().byte_offset;
 
         // 12. Let elementSize be the Element Size value specified in Table 71 for Element Type type.
         let elem_size = size_of::<T>();

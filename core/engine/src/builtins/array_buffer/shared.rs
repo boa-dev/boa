@@ -225,10 +225,10 @@ impl SharedArrayBuffer {
         // 1. Let O be the this value.
         // 2. Perform ? RequireInternalSlot(O, [[ArrayBufferData]]).
         // 3. If IsSharedArrayBuffer(O) is true, throw a TypeError exception.
-        require_internal_slot!(buf = this, Self, "SharedArrayBuffer");
+        let buf = require_internal_slot!(this, Self, "SharedArrayBuffer");
 
         // 4. Let length be ArrayBufferByteLength(O, seq-cst).
-        let len = buf.bytes(Ordering::SeqCst).len() as u64;
+        let len = buf.borrow().data().bytes(Ordering::SeqCst).len() as u64;
 
         // 5. Return 𝔽(length).
         Ok(len.into())
@@ -245,10 +245,10 @@ impl SharedArrayBuffer {
         // 1. Let O be the this value.
         // 2. Perform ? RequireInternalSlot(O, [[ArrayBufferData]]).
         // 3. If IsSharedArrayBuffer(O) is false, throw a TypeError exception.
-        require_internal_slot!(buf = this, Self, "SharedArrayBuffer");
+        let buf = require_internal_slot!(this, Self, "SharedArrayBuffer");
 
         // 4. If IsFixedLengthArrayBuffer(O) is false, return true; otherwise return false.
-        Ok(JsValue::from(!buf.is_fixed_len()))
+        Ok(JsValue::from(!buf.borrow().data().is_fixed_len()))
     }
 
     /// [`get SharedArrayBuffer.prototype.maxByteLength`][spec].
@@ -262,14 +262,14 @@ impl SharedArrayBuffer {
         // 1. Let O be the this value.
         // 2. Perform ? RequireInternalSlot(O, [[ArrayBufferData]]).
         // 3. If IsSharedArrayBuffer(O) is false, throw a TypeError exception.
-        require_internal_slot!(buf = this, Self, "SharedArrayBuffer");
+        let buf = require_internal_slot!(this, Self, "SharedArrayBuffer");
 
         // 4. If IsFixedLengthArrayBuffer(O) is true, then
         //     a. Let length be O.[[ArrayBufferByteLength]].
         // 5. Else,
         //     a. Let length be O.[[ArrayBufferMaxByteLength]].
         // 6. Return 𝔽(length).
-        Ok(buf.data.buffer.len().into())
+        Ok(buf.borrow().data().data.buffer.len().into())
     }
 
     /// [`SharedArrayBuffer.prototype.grow ( newLength )`][spec].

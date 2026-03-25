@@ -108,7 +108,7 @@ impl WeakRef {
     pub(crate) fn deref(this: &JsValue, _: &[JsValue], context: &mut Context) -> JsResult<JsValue> {
         // 1. Let weakRef be the this value.
         // 2. Perform ? RequireInternalSlot(weakRef, [[WeakRefTarget]]).
-        require_internal_slot!(weak_ref = this, WeakGc<ErasedVTableObject>, "WeakRef");
+        let weak_ref = require_internal_slot!(this, WeakGc<ErasedVTableObject>, "WeakRef");
 
         // 3. Return WeakRefDeref(weakRef).
 
@@ -116,7 +116,7 @@ impl WeakRef {
         // https://tc39.es/ecma262/multipage/managing-memory.html#sec-weakrefderef
         // 1. Let target be weakRef.[[WeakRefTarget]].
         // 2. If target is not empty, then
-        if let Some(object) = weak_ref.upgrade() {
+        if let Some(object) = weak_ref.borrow().data().upgrade() {
             let object = JsObject::from(object);
 
             // a. Perform AddToKeptObjects(target).

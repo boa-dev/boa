@@ -331,9 +331,10 @@ impl BuiltInConstructor for Duration {
 impl Duration {
     // Internal utility function for getting `Duration` field values.
     fn get_internal_field(this: &JsValue, field: &DateTimeValues) -> JsResult<JsValue> {
-        require_internal_slot!(duration = this, Self, "Duration");
+        let duration = require_internal_slot!(this, Self, "Duration");
 
-        let inner = &duration.inner;
+        let duration_data = duration.borrow();
+        let inner = &duration_data.data().inner;
 
         match field {
             DateTimeValues::Year => Ok(JsValue::new(inner.years())),
@@ -516,12 +517,12 @@ impl Duration {
     fn get_sign(this: &JsValue, _: &[JsValue], _: &mut Context) -> JsResult<JsValue> {
         // 1. Let duration be the this value.
         // 2. Perform ? RequireInternalSlot(duration, [[InitializedTemporalDuration]]).
-        require_internal_slot!(duration = this, Self, "Duration");
+        let duration = require_internal_slot!(this, Self, "Duration");
 
         // 3. Return 𝔽(! DurationSign(duration.[[Years]], duration.[[Months]], duration.[[Weeks]],
         // duration.[[Days]], duration.[[Hours]], duration.[[Minutes]], duration.[[Seconds]],
         // duration.[[Milliseconds]], duration.[[Microseconds]], duration.[[Nanoseconds]])).
-        Ok((duration.inner.sign() as i8).into())
+        Ok((duration.borrow().data().inner.sign() as i8).into())
     }
 
     /// 7.3.14 get `Temporal.Duration.prototype.blank`
@@ -538,14 +539,14 @@ impl Duration {
     fn get_blank(this: &JsValue, _: &[JsValue], _: &mut Context) -> JsResult<JsValue> {
         // 1. Let duration be the this value.
         // 2. Perform ? RequireInternalSlot(duration, [[InitializedTemporalDuration]]).
-        require_internal_slot!(duration = this, Self, "Duration");
+        let duration = require_internal_slot!(this, Self, "Duration");
 
         // 3. Let sign be ! DurationSign(duration.[[Years]], duration.[[Months]], duration.[[Weeks]],
         // duration.[[Days]], duration.[[Hours]], duration.[[Minutes]], duration.[[Seconds]],
         // duration.[[Milliseconds]], duration.[[Microseconds]], duration.[[Nanoseconds]]).
         // 4. If sign = 0, return true.
         // 5. Return false.
-        Ok(duration.inner.is_zero().into())
+        Ok(duration.borrow().data().inner.is_zero().into())
     }
 }
 
@@ -624,7 +625,7 @@ impl Duration {
     ) -> JsResult<JsValue> {
         // 1. Let duration be the this value.
         // 2. Perform ? RequireInternalSlot(duration, [[InitializedTemporalDuration]]).
-        require_internal_slot!(duration = this, Self, "Duration");
+        let duration = require_internal_slot!(this, Self, "Duration");
 
         // 3. Let temporalDurationLike be ? ToTemporalPartialDurationRecord(temporalDurationLike).
         let temporal_duration_like =
@@ -636,7 +637,7 @@ impl Duration {
         // a. Let years be duration.[[Years]].
         let years = temporal_duration_like
             .years
-            .unwrap_or(duration.inner.years());
+            .unwrap_or(duration.borrow().data().inner.years());
 
         // 6. If temporalDurationLike.[[Months]] is not undefined, then
         // a. Let months be temporalDurationLike.[[Months]].
@@ -644,7 +645,7 @@ impl Duration {
         // a. Let months be duration.[[Months]].
         let months = temporal_duration_like
             .months
-            .unwrap_or(duration.inner.months());
+            .unwrap_or(duration.borrow().data().inner.months());
 
         // 8. If temporalDurationLike.[[Weeks]] is not undefined, then
         // a. Let weeks be temporalDurationLike.[[Weeks]].
@@ -652,13 +653,15 @@ impl Duration {
         // a. Let weeks be duration.[[Weeks]].
         let weeks = temporal_duration_like
             .weeks
-            .unwrap_or(duration.inner.weeks());
+            .unwrap_or(duration.borrow().data().inner.weeks());
 
         // 10. If temporalDurationLike.[[Days]] is not undefined, then
         // a. Let days be temporalDurationLike.[[Days]].
         // 11. Else,
         // a. Let days be duration.[[Days]].
-        let days = temporal_duration_like.days.unwrap_or(duration.inner.days());
+        let days = temporal_duration_like
+            .days
+            .unwrap_or(duration.borrow().data().inner.days());
 
         // 12. If temporalDurationLike.[[Hours]] is not undefined, then
         // a. Let hours be temporalDurationLike.[[Hours]].
@@ -666,7 +669,7 @@ impl Duration {
         // a. Let hours be duration.[[Hours]].
         let hours = temporal_duration_like
             .hours
-            .unwrap_or(duration.inner.hours());
+            .unwrap_or(duration.borrow().data().inner.hours());
 
         // 14. If temporalDurationLike.[[Minutes]] is not undefined, then
         // a. Let minutes be temporalDurationLike.[[Minutes]].
@@ -674,7 +677,7 @@ impl Duration {
         // a. Let minutes be duration.[[Minutes]].
         let minutes = temporal_duration_like
             .minutes
-            .unwrap_or(duration.inner.minutes());
+            .unwrap_or(duration.borrow().data().inner.minutes());
 
         // 16. If temporalDurationLike.[[Seconds]] is not undefined, then
         // a. Let seconds be temporalDurationLike.[[Seconds]].
@@ -682,7 +685,7 @@ impl Duration {
         // a. Let seconds be duration.[[Seconds]].
         let seconds = temporal_duration_like
             .seconds
-            .unwrap_or(duration.inner.seconds());
+            .unwrap_or(duration.borrow().data().inner.seconds());
 
         // 18. If temporalDurationLike.[[Milliseconds]] is not undefined, then
         // a. Let milliseconds be temporalDurationLike.[[Milliseconds]].
@@ -690,7 +693,7 @@ impl Duration {
         // a. Let milliseconds be duration.[[Milliseconds]].
         let milliseconds = temporal_duration_like
             .milliseconds
-            .unwrap_or(duration.inner.milliseconds());
+            .unwrap_or(duration.borrow().data().inner.milliseconds());
 
         // 20. If temporalDurationLike.[[Microseconds]] is not undefined, then
         // a. Let microseconds be temporalDurationLike.[[Microseconds]].
@@ -698,7 +701,7 @@ impl Duration {
         // a. Let microseconds be duration.[[Microseconds]].
         let microseconds = temporal_duration_like
             .microseconds
-            .unwrap_or(duration.inner.microseconds());
+            .unwrap_or(duration.borrow().data().inner.microseconds());
 
         // 22. If temporalDurationLike.[[Nanoseconds]] is not undefined, then
         // a. Let nanoseconds be temporalDurationLike.[[Nanoseconds]].
@@ -706,7 +709,7 @@ impl Duration {
         // a. Let nanoseconds be duration.[[Nanoseconds]].
         let nanoseconds = temporal_duration_like
             .nanoseconds
-            .unwrap_or(duration.inner.nanoseconds());
+            .unwrap_or(duration.borrow().data().inner.nanoseconds());
 
         // 24. Return ? CreateTemporalDuration(years, months, weeks, days, hours, minutes, seconds, milliseconds, microseconds, nanoseconds).
         let new_duration = InnerDuration::new(
@@ -743,9 +746,10 @@ impl Duration {
         // 1. Let duration be the this value.
         // 2. Perform ? RequireInternalSlot(duration, [[InitializedTemporalDuration]]).
         // 3. Return ! CreateNegatedTemporalDuration(duration).
-        require_internal_slot!(duration = this, Self, "Duration");
+        let duration = require_internal_slot!(this, Self, "Duration");
 
-        create_temporal_duration(duration.inner.negated(), None, context).map(Into::into)
+        create_temporal_duration(duration.borrow().data().inner.negated(), None, context)
+            .map(Into::into)
     }
 
     /// 7.3.17 `Temporal.Duration.prototype.abs ( )`
@@ -765,9 +769,10 @@ impl Duration {
         // 3. Return ! CreateTemporalDuration(abs(duration.[[Years]]), abs(duration.[[Months]]),
         //    abs(duration.[[Weeks]]), abs(duration.[[Days]]), abs(duration.[[Hours]]), abs(duration.[[Minutes]]),
         //    abs(duration.[[Seconds]]), abs(duration.[[Milliseconds]]), abs(duration.[[Microseconds]]), abs(duration.[[Nanoseconds]])).
-        require_internal_slot!(duration = this, Self, "Duration");
+        let duration = require_internal_slot!(this, Self, "Duration");
 
-        create_temporal_duration(duration.inner.abs(), None, context).map(Into::into)
+        create_temporal_duration(duration.borrow().data().inner.abs(), None, context)
+            .map(Into::into)
     }
 
     /// 7.3.18 `Temporal.Duration.prototype.add ( other [ , options ] )`
@@ -788,12 +793,13 @@ impl Duration {
     ) -> JsResult<JsValue> {
         // 1.Let duration be the this value.
         // 2. Perform ? RequireInternalSlot(duration, [[InitializedTemporalDuration]]).
-        require_internal_slot!(duration = this, Self, "Duration");
+        let duration = require_internal_slot!(this, Self, "Duration");
 
         // 3. Return ? AddDurations(add, duration, other).
         let other = to_temporal_duration_record(args.get_or_undefined(0), context)?;
 
-        create_temporal_duration(duration.inner.add(&other)?, None, context).map(Into::into)
+        create_temporal_duration(duration.borrow().data().inner.add(&other)?, None, context)
+            .map(Into::into)
     }
 
     /// 7.3.19 `Temporal.Duration.prototype.subtract ( other [ , options ] )`
@@ -814,12 +820,17 @@ impl Duration {
     ) -> JsResult<JsValue> {
         // 1.Let duration be the this value.
         // 2. Perform ? RequireInternalSlot(duration, [[InitializedTemporalDuration]]).
-        require_internal_slot!(duration = this, Self, "Duration");
+        let duration = require_internal_slot!(this, Self, "Duration");
 
         let other = to_temporal_duration_record(args.get_or_undefined(0), context)?;
 
         // 3. Return ? AddDurations(add, duration, other).
-        create_temporal_duration(duration.inner.subtract(&other)?, None, context).map(Into::into)
+        create_temporal_duration(
+            duration.borrow().data().inner.subtract(&other)?,
+            None,
+            context,
+        )
+        .map(Into::into)
     }
 
     /// 7.3.20 `Temporal.Duration.prototype.round ( roundTo )`
@@ -840,7 +851,7 @@ impl Duration {
     ) -> JsResult<JsValue> {
         // 1. Let duration be the this value.
         // 2. Perform ? RequireInternalSlot(duration, [[InitializedTemporalDuration]]).
-        require_internal_slot!(duration = this, Self, "Duration");
+        let duration = require_internal_slot!(this, Self, "Duration");
 
         let round_to = match args.first().map(JsValue::variant) {
             // 3. If roundTo is undefined, then
@@ -911,7 +922,7 @@ impl Duration {
         // NOTE: execute step 21 earlier before initial values are shadowed.
         // 21. If smallestUnitPresent is false and largestUnitPresent is false, then
 
-        let rounded_duration = duration.inner.round_with_provider(
+        let rounded_duration = duration.borrow().data().inner.round_with_provider(
             options,
             relative_to,
             context.timezone_provider(),
@@ -937,7 +948,7 @@ impl Duration {
     ) -> JsResult<JsValue> {
         // 1. Let duration be the this value.
         // 2. Perform ? RequireInternalSlot(duration, [[InitializedTemporalDuration]]).
-        require_internal_slot!(duration = this, Self, "Duration");
+        let duration = require_internal_slot!(this, Self, "Duration");
 
         let total_of = args.get_or_undefined(0);
 
@@ -985,6 +996,8 @@ impl Duration {
         .ok_or_else(|| JsNativeError::range().with_message("unit cannot be undefined."))?;
 
         Ok(duration
+            .borrow()
+            .data()
             .inner
             .total_with_provider(unit, relative_to, context.timezone_provider())?
             .as_inner()
@@ -1007,7 +1020,7 @@ impl Duration {
         args: &[JsValue],
         context: &mut Context,
     ) -> JsResult<JsValue> {
-        require_internal_slot!(duration = this, Self, "Duration");
+        let duration = require_internal_slot!(this, Self, "Duration");
 
         let options = get_options_object(args.get_or_undefined(0))?;
         let precision = get_digits_option(&options, context)?;
@@ -1015,11 +1028,16 @@ impl Duration {
             get_option::<RoundingMode>(&options, js_string!("roundingMode"), context)?;
         let smallest_unit = get_option::<Unit>(&options, js_string!("smallestUnit"), context)?;
 
-        let result = duration.inner.as_temporal_string(ToStringRoundingOptions {
-            precision,
-            smallest_unit,
-            rounding_mode,
-        })?;
+        let result =
+            duration
+                .borrow()
+                .data()
+                .inner
+                .as_temporal_string(ToStringRoundingOptions {
+                    precision,
+                    smallest_unit,
+                    rounding_mode,
+                })?;
 
         Ok(JsString::from(result).into())
     }
@@ -1034,9 +1052,11 @@ impl Duration {
     /// [spec]: https://tc39.es/proposal-temporal/#sec-temporal.duration.prototype.tojson
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Temporal/Duration/toJSON
     pub(crate) fn to_json(this: &JsValue, _: &[JsValue], _: &mut Context) -> JsResult<JsValue> {
-        require_internal_slot!(duration = this, Self, "Duration");
+        let duration = require_internal_slot!(this, Self, "Duration");
 
         let result = duration
+            .borrow()
+            .data()
             .inner
             .as_temporal_string(ToStringRoundingOptions::default())?;
 
@@ -1058,9 +1078,11 @@ impl Duration {
         _: &mut Context,
     ) -> JsResult<JsValue> {
         // TODO: Update for ECMA-402 compliance
-        require_internal_slot!(duration = this, Self, "Duration");
+        let duration = require_internal_slot!(this, Self, "Duration");
 
         let result = duration
+            .borrow()
+            .data()
             .inner
             .as_temporal_string(ToStringRoundingOptions::default())?;
 
