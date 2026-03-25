@@ -1,4 +1,7 @@
+use indoc::indoc;
+
 use crate::builtins::intl::number_format::RoundingIncrement;
+use crate::{TestAction, js_string, run_test_actions};
 use fixed_decimal::RoundingIncrement::*;
 
 #[test]
@@ -38,4 +41,32 @@ fn u16_to_rounding_increment_rainy_day() {
     for num in INVALID_CASES {
         assert!(RoundingIncrement::from_u16(num).is_none());
     }
+}
+
+#[cfg(feature = "intl_bundled")]
+#[test]
+fn percent_style_formats_correctly() {
+    // Test case from issue #5246: percent style should multiply by 100
+    // and append a percent sign.
+    run_test_actions([
+        TestAction::run(indoc! {"
+            var nf = new Intl.NumberFormat('en-US', { style: 'percent' });
+            var result = nf.format(0.56);
+        "}),
+        TestAction::assert_eq("result", js_string!("56\u{202F}%")),
+    ]);
+}
+
+#[cfg(feature = "intl_bundled")]
+#[test]
+fn percent_style_with_significant_digits() {
+    // Test case from issue #5246: BigInt toLocaleString with percent style
+    // and maximumSignificantDigits.
+    run_test_actions([
+        TestAction::run(indoc! {"
+            var options = { maximumSignificantDigits: 4, style: 'percent' };
+            var result = (0.8877).toLocaleString('de-DE', options);
+        "}),
+        TestAction::assert_eq("result", js_string!("88,77\u{202F}%")),
+    ]);
 }

@@ -68,13 +68,34 @@ impl NumberFormat {
     /// [full]: https://tc39.es/ecma402/#sec-formatnumber
     /// [parts]: https://tc39.es/ecma402/#sec-formatnumbertoparts
     pub(crate) fn format<'a>(&'a self, value: &'a mut Decimal) -> FormattedDecimal<'a> {
-        // TODO: Missing support from ICU4X for Percent/Currency/Unit formatting.
+        // TODO: Missing support from ICU4X for Currency/Unit formatting.
         // TODO: Missing support from ICU4X for Scientific/Engineering/Compact notation.
+
+        // For percent style, multiply by 100 per the spec:
+        // https://tc39.es/ecma402/#sec-formatnumber
+        // "If the numberFormat.[[Style]] is "percent", let x be 100 × x."
+        if self.unit_options.style() == Style::Percent {
+            value.multiply_pow10(2);
+        }
 
         self.digit_options.format_fixed_decimal(value);
         value.apply_sign_display(self.sign_display);
 
         self.formatter.format(value)
+    }
+
+    /// Formats a value to a [`JsString`], including any style-specific affixes
+    /// (e.g., the percent sign for `style: "percent"`).
+    pub(crate) fn format_to_js_string(&self, value: &mut Decimal) -> JsString {
+        let formatted = self.format(value).to_string();
+
+        match self.unit_options.style() {
+            // Append the percent sign with a narrow no-break space (U+202F) for
+            // locale-neutral output. ICU4X doesn't yet provide a PercentFormatter,
+            // so this is a workaround.
+            Style::Percent => js_string!(format!("{formatted}\u{202F}%").as_str()),
+            _ => js_string!(formatted.as_str()),
+        }
     }
 }
 
@@ -512,7 +533,7 @@ impl NumberFormat {
                         let mut x = to_intl_mathematical_value(value, context)?;
 
                         // 5. Return FormatNumeric(nf, x).
-                        Ok(js_string!(nf.borrow().data().format(&mut x).to_string()).into())
+                        Ok(nf.borrow().data().format_to_js_string(&mut x).into())
                     },
                     nf_clone,
                 ),

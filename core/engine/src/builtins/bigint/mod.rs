@@ -239,7 +239,7 @@ impl BigInt {
                 .map_err(|err| JsNativeError::range().with_message(err.to_string()))?;
 
             // 3. Return FormatNumeric(numberFormat, ℝ(x)).
-            Ok(js_string!(number_format.format(x).to_string()).into())
+            Ok(number_format.format_to_js_string(x).into())
         }
 
         #[cfg(not(feature = "intl"))]
