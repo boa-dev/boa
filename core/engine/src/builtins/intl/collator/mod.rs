@@ -471,7 +471,9 @@ impl Collator {
         options
             .create_data_property_or_throw(
                 js_string!("collation"),
-                collator.borrow().data()
+                collator
+                    .borrow()
+                    .data()
                     .collation
                     .map(|co: CollationType| js_string!(co.as_str()))
                     .unwrap_or(js_string!("default")),
