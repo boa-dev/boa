@@ -54,13 +54,7 @@ pub(crate) struct SetIterator {
 impl IntrinsicObject for SetIterator {
     fn init(realm: &Realm) {
         BuiltInBuilder::with_intrinsic::<Self>(realm)
-            .prototype(
-                realm
-                    .intrinsics()
-                    .objects()
-                    .iterator_prototypes()
-                    .iterator(),
-            )
+            .prototype(realm.intrinsics().constructors().iterator().prototype())
             .static_method(Self::next, js_string!("next"), 0)
             .static_property(
                 JsSymbol::to_string_tag(),
