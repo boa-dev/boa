@@ -27,11 +27,9 @@ use crate::{
     vm::{CallFrame, CallFrameFlags, CodeBlock},
 };
 
-#[cfg(feature = "experimental")]
 mod continuation;
 
-#[cfg(feature = "experimental")]
-pub(crate) use continuation::{CoroutineState, NativeCoroutine};
+pub(crate) use continuation::{CoroutineBranch, CoroutineState, NativeCoroutine};
 
 /// The required signature for all native built-in function pointers.
 ///
