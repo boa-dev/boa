@@ -135,7 +135,7 @@ fn iterator_take_negative_throws() {
     run_test_actions([TestAction::assert_native_error(
         "Iterator.from([1]).take(-1)",
         JsNativeErrorKind::Range,
-        "Iterator.prototype.take: limit is negative",
+        "Iterator.prototype.take: limit cannot be negative",
     )]);
 }
 
@@ -144,7 +144,7 @@ fn iterator_take_nan_throws() {
     run_test_actions([TestAction::assert_native_error(
         "Iterator.from([1]).take(NaN)",
         JsNativeErrorKind::Range,
-        "Iterator.prototype.take: limit is NaN",
+        "Iterator.prototype.take: limit cannot be NaN",
     )]);
 }
 
@@ -232,7 +232,7 @@ fn iterator_reduce_empty_no_initial_throws() {
     run_test_actions([TestAction::assert_native_error(
         "Iterator.from([]).reduce((acc, x) => acc + x)",
         JsNativeErrorKind::Type,
-        "Iterator.prototype.reduce: reduce of empty iterator with no initial value",
+        "Iterator.prototype.reduce: cannot reduce empty iterator with no initial value",
     )]);
 }
 
