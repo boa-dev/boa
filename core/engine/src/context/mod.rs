@@ -517,9 +517,16 @@ impl Context {
     /// The stack trace is returned ordered with the most recent frames first.
     #[inline]
     pub fn stack_trace(&self) -> impl Iterator<Item = &CallFrame> {
+        use crate::vm::CallFrameFlags;
         // The first frame is always a dummy frame (see `Vm` implementation for more details),
-        // so skip the dummy frame and return the reversed list so that the most recent frames are first.
-        self.vm.frames.iter().skip(1).rev()
+        // so skip the dummy frame, filter out lightweight native frames, and return the reversed
+        // list so that the most recent frames are first.
+        self.vm
+            .frames
+            .iter()
+            .skip(1)
+            .filter(|f| !f.flags.contains(CallFrameFlags::NATIVE_FRAME))
+            .rev()
     }
 
     /// Replaces the currently active realm with `realm`, and returns the old realm.

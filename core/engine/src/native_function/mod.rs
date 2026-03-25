@@ -366,7 +366,7 @@ pub(crate) fn native_function_call(
         EnvironmentStack::new(),
         realm,
     )
-    .with_flags(CallFrameFlags::REGISTERS_ALREADY_PUSHED);
+    .with_flags(CallFrameFlags::REGISTERS_ALREADY_PUSHED | CallFrameFlags::NATIVE_FRAME);
     context.vm.frames.push(native_frame);
     context.vm.native_active_function = Some(this_function_object);
 
@@ -429,7 +429,7 @@ fn native_function_construct(
         EnvironmentStack::new(),
         realm,
     )
-    .with_flags(CallFrameFlags::REGISTERS_ALREADY_PUSHED);
+    .with_flags(CallFrameFlags::REGISTERS_ALREADY_PUSHED | CallFrameFlags::NATIVE_FRAME);
     context.vm.frames.push(native_frame);
     context.vm.native_active_function = Some(this_function_object);
 
