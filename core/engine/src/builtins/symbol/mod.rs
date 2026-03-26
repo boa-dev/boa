@@ -88,6 +88,17 @@ impl GlobalSymbolRegistry {
     }
 }
 
+/// Returns `true` if the given symbol is registered in the global symbol registry
+/// (i.e., it was created via `Symbol.for()`).
+///
+/// This implements the check needed for [`CanBeHeldWeakly`][spec]: a symbol can be held
+/// weakly only if `KeyForSymbol(sym)` is `undefined`, meaning it is **not** registered.
+///
+/// [spec]: https://tc39.es/ecma262/#sec-canbeheldweakly
+pub(crate) fn is_registered_symbol(sym: &JsSymbol) -> bool {
+    GLOBAL_SYMBOL_REGISTRY.get_key(sym).is_some()
+}
+
 /// The internal representation of a `Symbol` object.
 #[derive(Debug, Clone, Copy)]
 pub struct Symbol;

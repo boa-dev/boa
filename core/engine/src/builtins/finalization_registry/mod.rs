@@ -21,7 +21,10 @@ use crate::{
     string::StaticJsStrings,
 };
 
-use super::{BuiltInConstructor, BuiltInObject, IntrinsicObject, builder::BuiltInBuilder};
+use super::{
+    BuiltInConstructor, BuiltInObject, IntrinsicObject, builder::BuiltInBuilder,
+    symbol::is_registered_symbol,
+};
 
 #[cfg(test)]
 mod tests;
@@ -46,12 +49,25 @@ impl Finalize for CleanupSignaler {
     }
 }
 
+/// Helper for matching unregister tokens during `unregister()`.
+enum UnregisterTokenMatcher {
+    Object(Gc<ErasedVTableObject>),
+    Symbol(JsSymbol),
+}
+
+/// An unregister token that can be either an object or a non-registered symbol.
+#[derive(Trace, Finalize)]
+pub(crate) enum UnregisterToken {
+    Object(WeakGc<ErasedVTableObject>),
+    Symbol(#[unsafe_ignore_trace] JsSymbol),
+}
+
 ///  A cell tracked by a [`FinalizationRegistry`].
 #[derive(Trace, Finalize)]
 pub(crate) struct RegistryCell {
     target: Ephemeron<ErasedVTableObject, CleanupSignaler>,
     held_value: JsValue,
-    unregister_token: Option<WeakGc<ErasedVTableObject>>,
+    unregister_token: Option<UnregisterToken>,
 }
 
 /// Boa's implementation of ECMAScript's [`FinalizationRegistry`] builtin object.
@@ -224,13 +240,22 @@ impl FinalizationRegistry {
         // 1. If v is an Object, return true.
         // 2. If v is a Symbol and KeyForSymbol(v) is undefined, return true.
         // 3. Return false.
-        //
-        // TODO: support Symbols
-        let Some(target_obj) = target.as_object() else {
-            return Err(js_error!(
-                TypeError: "FinalizationRegistry.prototype.register: \
-                    `target` must be an Object or Symbol",
-            ));
+        let target_obj = match target.variant() {
+            JsVariant::Object(obj) => obj.clone(),
+            JsVariant::Symbol(sym) if !is_registered_symbol(&sym) => {
+                // TODO: Symbol targets require Ephemeron support for non-GC types.
+                // For now, only symbol unregister tokens are supported.
+                return Err(js_error!(
+                    TypeError: "FinalizationRegistry.prototype.register: \
+                        Symbol targets are not yet supported",
+                ));
+            }
+            _ => {
+                return Err(js_error!(
+                    TypeError: "FinalizationRegistry.prototype.register: \
+                        `target` must be an Object or a non-registered Symbol",
+                ));
+            }
         };
 
         // 4. If SameValue(target, heldValue) is true, throw a TypeError exception.
@@ -243,22 +268,23 @@ impl FinalizationRegistry {
 
         // 5. If CanBeHeldWeakly(unregisterToken) is false, then
         //
-        // // [`CanBeHeldWeakly ( v )`](https://tc39.es/ecma262/#sec-canbeheldweakly)
+        // [`CanBeHeldWeakly ( v )`](https://tc39.es/ecma262/#sec-canbeheldweakly)
         //
         // 1. If v is an Object, return true.
         // 2. If v is a Symbol and KeyForSymbol(v) is undefined, return true.
         // 3. Return false.
-        //
-        // TODO: support Symbols
         let unregister_token = match unregister_token.variant() {
-            JsVariant::Object(obj) => Some(WeakGc::new(obj.inner())),
+            JsVariant::Object(obj) => Some(UnregisterToken::Object(WeakGc::new(obj.inner()))),
+            JsVariant::Symbol(sym) if !is_registered_symbol(&sym) => {
+                Some(UnregisterToken::Symbol(sym.clone()))
+            }
             // b. Set unregisterToken to empty.
             JsVariant::Undefined => None,
             // a. If unregisterToken is not undefined, throw a TypeError exception.
             _ => {
                 return Err(js_error!(
                     TypeError: "FinalizationRegistry.prototype.register: \
-                        `unregisterToken` must be an Object, a Symbol, or undefined",
+                        `unregisterToken` must be an Object, a non-registered Symbol, or undefined",
                 ));
             }
         };
@@ -299,25 +325,26 @@ impl FinalizationRegistry {
                 )
             })?;
 
-        // 3. If CanBeHeldWeakly(unregisterToken) is false, throw a TypeError exception.\
+        // 3. If CanBeHeldWeakly(unregisterToken) is false, throw a TypeError exception.
         //
-        // // [`CanBeHeldWeakly ( v )`](https://tc39.es/ecma262/#sec-canbeheldweakly)
+        // [`CanBeHeldWeakly ( v )`](https://tc39.es/ecma262/#sec-canbeheldweakly)
         //
         // 1. If v is an Object, return true.
         // 2. If v is a Symbol and KeyForSymbol(v) is undefined, return true.
         // 3. Return false.
-        //
-        // TODO: support Symbols
-        let unregister_token = args.get_or_undefined(0).as_object();
-        let unregister_token = unregister_token
-            .as_ref()
-            .map(JsObject::inner)
-            .ok_or_else(|| {
-                js_error!(
+        let token_arg = args.get_or_undefined(0);
+        let token_matcher: UnregisterTokenMatcher = match token_arg.variant() {
+            JsVariant::Object(obj) => UnregisterTokenMatcher::Object(obj.inner().clone()),
+            JsVariant::Symbol(sym) if !is_registered_symbol(&sym) => {
+                UnregisterTokenMatcher::Symbol(sym.clone())
+            }
+            _ => {
+                return Err(js_error!(
                     TypeError: "FinalizationRegistry.prototype.unregister: \
-                                `unregisterToken` must be an Object or a Symbol.",
-                )
-            })?;
+                                `unregisterToken` must be an Object or a non-registered Symbol.",
+                ));
+            }
+        };
 
         // 4. Let removed be false.
         let mut removed = false;
@@ -327,10 +354,16 @@ impl FinalizationRegistry {
             let cell = &registry.cells[i];
 
             // a. If cell.[[UnregisterToken]] is not empty and SameValue(cell.[[UnregisterToken]], unregisterToken) is true, then
-            if let Some(tok) = cell.unregister_token.as_ref()
-                && let Some(tok) = tok.upgrade()
-                && Gc::ptr_eq(&tok, unregister_token)
-            {
+            let matches = match (&cell.unregister_token, &token_matcher) {
+                (Some(UnregisterToken::Object(tok)), UnregisterTokenMatcher::Object(arg)) => {
+                    tok.upgrade().is_some_and(|tok| Gc::ptr_eq(&tok, arg))
+                }
+                (Some(UnregisterToken::Symbol(tok)), UnregisterTokenMatcher::Symbol(arg)) => {
+                    tok == arg
+                }
+                _ => false,
+            };
+            if matches {
                 // i. Remove cell from finalizationRegistry.[[Cells]].
                 let cell = registry.cells.swap_remove(i);
                 let _key = cell.target.key();
