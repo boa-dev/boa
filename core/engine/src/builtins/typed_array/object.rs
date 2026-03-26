@@ -279,6 +279,26 @@ impl TypedArray {
         // 4. Return true.
         Some(index)
     }
+
+    /// Abstract operation `IsTypedArrayFixedLength ( O )`.
+    ///
+    /// More information:
+    ///  - [ECMAScript reference][spec]
+    ///
+    /// [spec]: https://tc39.es/ecma262/#sec-istypedarrayfixedlength
+    fn is_fixed_length(&self) -> bool {
+        // 1. If O.[[ArrayLength]] is auto, return false.
+        if self.is_auto_length() {
+            return false;
+        }
+
+        // 2. Let buffer be O.[[ViewedArrayBuffer]].
+        match self.viewed_array_buffer().as_buffer() {
+            // 3. If IsFixedLengthArrayBuffer(buffer) is false and IsSharedArrayBuffer(buffer) is false, return false.
+            BufferRef::Buffer(buf) => buf.is_fixed_len(),
+            BufferRef::SharedBuffer(_) => true,
+        }
+    }
 }
 
 // Integer-Indexed Exotic Objects [[PreventExtensions]] ( O )
@@ -290,39 +310,22 @@ pub(crate) fn typed_array_exotic_prevent_extensions(
     obj: &JsObject,
     context: &mut Context,
 ) -> JsResult<bool> {
+    let is_fixed_length = {
+        let ta = obj
+        .downcast_ref::<TypedArray>()
+        .js_expect("must be a TypedArray")?;
+
+        ta.is_fixed_length()
+    }; // Note: this block ensures that the borrow of obj is dropped
+    // so it may be re-borrowed in step 3
+
     // 1. If IsTypedArrayFixedLength(O) is false, return false.
-    if !is_typed_array_fixed_length(obj)? {
+    if !is_fixed_length {
         return Ok(false);
     }
 
     // 2. Return OrdinaryPreventExtensions(O).
     ordinary_prevent_extensions(obj, context)
-}
-
-/// Abstract operation `IsTypedArrayFixedLength ( O )`.
-///
-/// More information:
-///  - [ECMAScript reference][spec]
-///
-/// [spec]: https://tc39.es/ecma262/#sec-istypedarrayfixedlength
-fn is_typed_array_fixed_length(obj: &JsObject) -> JsResult<bool> {
-    let ta = obj
-        .downcast_ref::<TypedArray>()
-        .js_expect("must be a TypedArray")?;
-
-    // 1. If O.[[ArrayLength]] is auto, return false.
-    if ta.is_auto_length() {
-        return Ok(false);
-    }
-
-    // 2. Let buffer be O.[[ViewedArrayBuffer]].
-    let is_fixed_length = match ta.viewed_array_buffer().as_buffer() {
-        // 3. If IsFixedLengthArrayBuffer(buffer) is false and IsSharedArrayBuffer(buffer) is false, return false.
-        BufferRef::Buffer(buf) => buf.is_fixed_len(),
-        BufferRef::SharedBuffer(_) => true,
-    };
-
-    Ok(is_fixed_length)
 }
 
 /// `CanonicalNumericIndexString ( argument )`
