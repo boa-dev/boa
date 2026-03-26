@@ -959,5 +959,13 @@ pub(crate) fn format_date_time(
 
 /// 15.6.11 ToDateTimeFormattable ( value )
 fn to_date_time_formattable(value: &JsValue, context: &mut Context) -> JsResult<JsValue> {
+    if is_temporal_object(value) {
+        return Ok(value.clone());
+    }
+    Ok(JsValue::from(value.to_number(context)?))
+}
+
+/// 15.6.12 IsTemporalObject ( value )
+fn is_temporal_object(value: &JsValue) -> bool {
     todo!()
 }
