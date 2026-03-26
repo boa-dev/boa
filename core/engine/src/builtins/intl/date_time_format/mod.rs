@@ -22,6 +22,10 @@ use crate::{
             options::{IntlOptions, coerce_options_to_object},
         },
         options::get_option,
+        temporal::{
+            Instant, PlainDate, PlainDateTime, PlainMonthDay, PlainTime, PlainYearMonth,
+            ZonedDateTime,
+        },
     },
     context::intrinsics::{Intrinsics, StandardConstructor, StandardConstructors},
     error::JsNativeError,
@@ -959,13 +963,34 @@ pub(crate) fn format_date_time(
 
 /// 15.6.11 ToDateTimeFormattable ( value )
 fn to_date_time_formattable(value: &JsValue, context: &mut Context) -> JsResult<JsValue> {
+    // 1. If IsTemporalObject(value) is true, return value.
     if is_temporal_object(value) {
         return Ok(value.clone());
     }
+    // 2. Return ? ToNumber(value).
     Ok(JsValue::from(value.to_number(context)?))
 }
 
 /// 15.6.12 IsTemporalObject ( value )
 fn is_temporal_object(value: &JsValue) -> bool {
-    todo!()
+    // 1. If value is not an Object, return false.
+    let Some(obj) = value.as_object() else {
+        return false;
+    };
+    // 2. If value has an [[InitializedTemporalDate]], [[InitializedTemporalTime]],
+    // [[InitializedTemporalDateTime]], [[InitializedTemporalZonedDateTime]]
+    // [[InitializedTemporalYearMonth]], [[InitializedTemporalMonthDay]],
+    // or [[InitializedTemporalInstant]] internal slot, return false.
+    if obj.is::<PlainDate>()
+        || obj.is::<PlainTime>()
+        || obj.is::<PlainDateTime>()
+        || obj.is::<ZonedDateTime>()
+        || obj.is::<PlainYearMonth>()
+        || obj.is::<PlainMonthDay>()
+        || obj.is::<Instant>()
+    {
+        return false;
+    }
+    // 3. Return true.
+    true
 }
