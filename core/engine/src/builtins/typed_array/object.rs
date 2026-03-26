@@ -301,7 +301,7 @@ pub(crate) fn typed_array_exotic_prevent_extensions(
 
         match ta.viewed_array_buffer().as_buffer() {
             BufferRef::Buffer(buf) => !buf.is_fixed_len(),
-            _ => true
+            BufferRef::SharedBuffer(_) => true,
         }
     };
 
