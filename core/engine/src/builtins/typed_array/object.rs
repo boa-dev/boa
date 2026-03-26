@@ -4,7 +4,7 @@ use std::sync::atomic::Ordering;
 
 use crate::{
     Context, JsExpect, JsNativeError, JsResult, JsString, JsValue,
-    builtins::array_buffer::BufferObject,
+    builtins::array_buffer::{BufferObject, BufferRef},
     object::{
         JsData, JsObject,
         internal_methods::{
@@ -295,7 +295,14 @@ pub(crate) fn typed_array_exotic_prevent_extensions(
             .downcast_ref::<TypedArray>()
             .js_expect("must be a TypedArray")?;
 
-        ta.viewed_array_buffer().as_buffer().is_fixed_len()
+        if ta.is_auto_length() {
+            return Ok(false);
+        }
+
+        match ta.viewed_array_buffer().as_buffer() {
+            BufferRef::Buffer(buf) => !buf.is_fixed_len(),
+            _ => true
+        }
     };
 
     // 1. If IsTypedArrayFixedLength(O) is false, return false.
