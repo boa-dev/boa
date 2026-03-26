@@ -51,7 +51,7 @@ use icu_decimal::preferences::NumberingSystem;
 use icu_decimal::provider::DecimalSymbolsV1;
 use icu_locale::{Locale, extensions::unicode::Value};
 use icu_time::{
-    TimeZoneInfo, ZonedDateTime,
+    TimeZoneInfo,
     zone::{IanaParser, models::Base},
 };
 use timezone_provider::provider::TimeZoneId;
@@ -276,21 +276,25 @@ impl DateTimeFormat {
                             // NOTE (nekevss) i64 should be sufficient for a millisecond
                             // representation.
                             // a. Let x be ! Call(%Date.now%, undefined).
-                            context.clock().system_time_millis() as f64
+                            JsValue::from(context.clock().system_time_millis() as f64)
                         // 4. Else,
                         } else {
                             // NOTE (nekevss) The i64 covers all MAX_SAFE_INTEGER values.
-                            // a. Let x be ? ToNumber(date).
-                            date.to_number(context)?
+                            // a. Let x be ? ToDateTimeFormattable(date).
+                            to_date_time_formattable(date, context)?
                         };
 
                         // 5. Return ? FormatDateTime(dtf, x).
                         // A.O 11.5.6 PartitionDateTimePattern: 1. TimeClip(x). 2. If NaN throw. Then ToLocalTime and format.
-                        let x = time_clip(x);
-                        if x.is_nan() {
-                            return Err(js_error!(RangeError: "formatted date cannot be NaN"));
-                        }
-                        let result = format_timestamp_with_dtf(dtf.borrow().data(), x, context)?;
+                        // let x = time_clip(x);
+                        // if x.is_nan() {
+                        //     return Err(js_error!(RangeError: "formatted date cannot be NaN"));
+                        // }
+                        let result = format_date_time(
+                            dtf.borrow().data(),
+                            &x.as_object().unwrap(),
+                            context,
+                        )?;
                         Ok(JsValue::from(result))
                     },
                     dtf_clone,
@@ -831,80 +835,6 @@ pub(crate) fn create_date_time_format(
     })
 }
 
-/// Formats a timestamp (epoch milliseconds) using the given [`DateTimeFormat`] internals.
-///
-/// This is the shared implementation used by:
-/// - the bound `format` function created in `get_format`, and
-/// - [`format_date_time_locale`] used by `Date.prototype.toLocaleString` (and friends).
-///
-/// It corresponds to the *post*-`TimeClip` portion of
-/// [`FormatDateTime(dtf, x)`](https://tc39.es/ecma402/#sec-formatdatetime),
-/// and the `ToLocalTime` / `PartitionDateTimePattern` logic from
-/// [11.5.6](https://tc39.es/ecma402/#sec-partitiondatetimepattern) and
-/// [11.5.12](https://tc39.es/ecma402/#sec-tolocaltime).
-///
-/// Callers must have already applied `TimeClip` and `NaN` check
-/// (`FormatDateTime` steps 1–2). This helper implements:
-///
-/// 11.5.6 `PartitionDateTimePattern` ( dtf, x )
-/// 1. Let x be TimeClip(x). (Done by caller)
-/// 2. If x is `NaN`, throw a `RangeError` exception. (Done by caller)
-/// 3. Let epochNanoseconds be ℤ(ℝ(x) × 10^6).
-/// 4. Let timeZone be dtf.[[`TimeZone`]].
-/// 5. Let offsetNs be GetOffsetNanosecondsFor(timeZone, epochNanoseconds).
-/// 6. Let tz be 𝔽(ℝ(x) + ℝ(offsetNs) / 10^6).
-///
-/// Then calls `ToLocalTime::from_local_epoch_milliseconds` to obtain calendar fields,
-/// and formats the resulting `ZonedDateTime` with ICU4X.
-fn format_timestamp_with_dtf(
-    dtf: &DateTimeFormat,
-    timestamp: f64,
-    context: &mut Context,
-) -> JsResult<JsString> {
-    // PartitionDateTimePattern ( dtf, x ) step 3:
-    // Let epochNanoseconds be ℤ(ℝ(x) × 10^6).
-    //
-    // NOTE: `timestamp` is already `TimeClip`'d by the caller and represents *UTC epoch milliseconds*.
-    let epoch_ns = timestamp as i128 * 1_000_000;
-
-    // PartitionDateTimePattern ( dtf, x ) step 4:
-    // Let timeZone be dtf.[[`TimeZone`]].
-    let time_zone = &dtf.time_zone;
-
-    // PartitionDateTimePattern ( dtf, x ) step 5:
-    // Let offsetNs be GetOffsetNanosecondsFor(timeZone, epochNanoseconds).
-    //
-    // NOTE: the spec describes the offset in *nanoseconds*. Internally, we obtain/normalize it to
-    // seconds (and then milliseconds) for use with `ToLocalTime::from_local_epoch_milliseconds`.
-    let time_zone_offset_seconds = match time_zone {
-        FormatTimeZone::UtcOffset(offset) => offset.to_seconds(),
-        FormatTimeZone::Identifier((_, time_zone_id)) => {
-            let offset_seconds = context
-                .timezone_provider()
-                .transition_nanoseconds_for_utc_epoch_nanoseconds(*time_zone_id, epoch_ns)
-                .map_err(
-                    |_e| js_error!(RangeError: "unable to determine transition nanoseconds"),
-                )?;
-            offset_seconds.0 as i32
-        }
-    };
-
-    // PartitionDateTimePattern ( dtf, x ) step 6:
-    // Let tz be 𝔽(ℝ(x) + ℝ(offsetNs) / 10^6).
-    let tz = timestamp + f64::from(time_zone_offset_seconds * 1_000);
-    let fields = ToLocalTime::from_local_epoch_milliseconds(tz)?;
-    let dt = fields.to_formattable_datetime()?;
-    let tz_info = time_zone.to_time_zone_info();
-    let tz_info_at_time = tz_info.at_date_time_iso(dt);
-    let zdt = ZonedDateTime {
-        date: dt.date,
-        time: dt.time,
-        zone: tz_info_at_time,
-    };
-    let result = dtf.formatter.format(&zdt).to_string();
-    Ok(JsString::from(result))
-}
-
 fn date_time_style_format(
     date_style: Option<DateStyle>,
     time_style: Option<TimeStyle>,
@@ -1018,25 +948,16 @@ fn unwrap_date_time_format(
         .into())
 }
 
-/// Shared helper used by Date.prototype.toLocaleString,
-/// Date.prototype.toLocaleDateString, and Date.prototype.toLocaleTimeString.
-/// Applies `ToDateTimeOptions` defaults, calls [`create_date_time_format`], and formats
-/// the timestamp via [`format_timestamp_with_dtf`] without allocating a JS object.
-#[allow(clippy::too_many_arguments)]
-pub(crate) fn format_date_time_locale(
-    locales: &JsValue,
-    options: &JsValue,
-    format_type: FormatType,
-    defaults: FormatDefaults,
-    timestamp: f64,
+/// 15.6.6 FormatDateTime ( dateTimeFormat, x )
+pub(crate) fn format_date_time(
+    dtf: &DateTimeFormat,
+    x: &JsObject,
     context: &mut Context,
 ) -> JsResult<JsValue> {
-    let dtf = create_date_time_format(locales, options, format_type, defaults, context)?;
-    // FormatDateTime steps 1–2: TimeClip and NaN check (format_timestamp_with_dtf does ToLocalTime + format only).
-    let x = time_clip(timestamp);
-    if x.is_nan() {
-        return Err(js_error!(RangeError: "formatted date cannot be NaN"));
-    }
-    let result = format_timestamp_with_dtf(&dtf, x, context)?;
-    Ok(JsValue::from(result))
+    todo!()
+}
+
+/// 15.6.11 ToDateTimeFormattable ( value )
+fn to_date_time_formattable(value: &JsValue, context: &mut Context) -> JsResult<JsValue> {
+    todo!()
 }

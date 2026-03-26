@@ -1624,7 +1624,8 @@ impl ZonedDateTime {
         _args: &[JsValue],
         context: &mut Context,
     ) -> JsResult<JsValue> {
-        // TODO: Update for ECMA-402 compliance
+        // 1. Let zonedDateTime be the this value.
+        // 2. Perform ? RequireInternalSlot(zonedDateTime, [[InitializedTemporalZonedDateTime]]).
         let object = this.as_object();
         let zdt = object
             .as_ref()
@@ -1637,7 +1638,7 @@ impl ZonedDateTime {
         {
             let locales = _args.get_or_undefined(0);
             let options = _args.get_or_undefined(1);
-
+            // 3. Let dateTimeFormat be ? CreateDateTimeFormat(%Intl.DateTimeFormat%, locales, options, any, all, zonedDateTime.[[TimeZone]]).
             let dtf = create_date_time_format(
                 locales,
                 options,
@@ -1648,13 +1649,14 @@ impl ZonedDateTime {
 
             let cal_1 = zdt.inner.calendar();
             let cal_2 = dtf.calendar_algorithm();
-
+            // 4. If zonedDateTime.[[Calendar]] is not "iso8601" and CalendarEquals(zonedDateTime.[[Calendar]], dateTimeFormat.[[Calendar]]) is false, throw a RangeError exception.
             if !cal_1.is_iso() && cal_1.identifier() != cal_2.as_str() {
                 return Err(
                     js_error!(RangeError: "calendars {} and {} aren't compatible", cal_1.identifier(), cal_2.as_str()),
                 );
             }
-
+            // 5. Let instant be ! CreateTemporalInstant(zonedDateTime.[[EpochNanoseconds]]).
+            // 6. Return ? FormatDateTime(dateTimeFormat, instant).
             let inst = create_temporal_instant(zdt.inner.to_instant(), None, context)?;
             format_date_time(&dtf, &inst.as_object().unwrap(), context)
         }
