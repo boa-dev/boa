@@ -1825,7 +1825,7 @@ impl BuiltinTypedArray {
         //     and srcBuffer.[[ArrayBufferData]] is targetBuffer.[[ArrayBufferData]], let
         //     sameSharedArrayBuffer be true; otherwise, let sameSharedArrayBuffer be false.
         // 19. If SameValue(srcBuffer, targetBuffer) is true or sameSharedArrayBuffer is true, then
-        let src_byte_index = if BufferObject::equals(&src_buf_obj, &target_buf_obj) {
+        let mut src_byte_index = if BufferObject::equals(&src_buf_obj, &target_buf_obj) {
             // 19a. Let srcByteLength be source.[[ByteLength]].
             // see above
 
@@ -1855,7 +1855,7 @@ impl BuiltinTypedArray {
         };
 
         // 22. Let targetByteIndex be targetOffset × targetElementSize + targetByteOffset.
-        let target_byte_index = target_offset * target_element_size + target_byte_offset;
+        let mut target_byte_index = target_offset * target_element_size + target_byte_offset;
 
         let src_buffer = src_buf_obj.as_buffer();
         let src_buffer = src_buffer
@@ -1895,9 +1895,6 @@ impl BuiltinTypedArray {
         else {
             // 23. Let limit be targetByteIndex + targetElementSize × srcLength.
             let limit = target_byte_index + target_element_size * src_length;
-
-            let mut src_byte_index = src_byte_index;
-            let mut target_byte_index = target_byte_index;
 
             // a. Repeat, while targetByteIndex < limit,
             while target_byte_index < limit {
@@ -1973,9 +1970,7 @@ impl BuiltinTypedArray {
         let src = source.to_object(context)?;
 
         // 5. Let srcLength be ? LengthOfArrayLike(src).
-        let src_length = src.length_of_array_like(context)?;
-
-        let src_length = src_length.to_usize()?; // boundary conversion
+        let src_length = src.length_of_array_like(context)?.to_usize()?; // boundary conversion
 
         // 6. If targetOffset = +∞, throw a RangeError exception.
         let target_offset = match target_offset {
@@ -1985,9 +1980,8 @@ impl BuiltinTypedArray {
                     .with_message("Target offset cannot be positive infinity")
                     .into());
             }
-        };
-
-        let target_offset = target_offset.to_usize()?; // boundary conversion
+        }
+        .to_usize()?; // boundary conversion
 
         // 7. If srcLength + targetOffset > targetLength, throw a RangeError exception.
         if src_length + target_offset > target_length {
