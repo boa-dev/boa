@@ -1790,7 +1790,7 @@ impl BuiltinTypedArray {
         // 14. Let srcByteOffset be source.[[ByteOffset]].
         let src_byte_offset = src_array.data().byte_offset();
 
-        // a. Let srcByteLength be source.[[ByteLength]].
+        // 19a. Let srcByteLength be source.[[ByteLength]].
         let src_byte_length = src_array.data().byte_length(src_buf_len);
 
         drop(target_array);
@@ -1826,9 +1826,8 @@ impl BuiltinTypedArray {
         //     sameSharedArrayBuffer be true; otherwise, let sameSharedArrayBuffer be false.
         // 19. If SameValue(srcBuffer, targetBuffer) is true or sameSharedArrayBuffer is true, then
         let src_byte_index = if BufferObject::equals(&src_buf_obj, &target_buf_obj) {
-            // a. Let srcByteLength be source.[[ByteLength]].
-            let src_byte_offset = src_byte_offset;
-            let src_byte_length = src_byte_length;
+            // 19a. Let srcByteLength be source.[[ByteLength]].
+            // see above
 
             let s = {
                 let slice = src_buf_obj.as_buffer();
@@ -1870,8 +1869,6 @@ impl BuiltinTypedArray {
 
         // 24. If srcType is the same as targetType, then
         if src_type == target_type {
-            let src_byte_index = src_byte_index;
-            let target_byte_index = target_byte_index;
             let byte_count = target_element_size * src_length;
 
             // a. NOTE: If srcType and targetType are the same, the transfer must be performed in a manner that preserves the bit-level encoding of the source data.
@@ -2979,7 +2976,6 @@ impl BuiltinTypedArray {
                         .into());
                 }
 
-                let src_element_size = src_element_size;
                 let target_element_size = element_size;
 
                 // c. Let srcByteIndex be srcByteOffset.
@@ -3157,8 +3153,8 @@ impl BuiltinTypedArray {
                 buffer,
                 T::ERASED,
                 offset.to_usize()?,
-                byte_length.map(|x| x.to_usize()).transpose()?,
-                array_length.map(|x| x.to_usize()).transpose()?,
+                byte_length.map(ToUsize::to_usize).transpose()?,
+                array_length.map(ToUsize::to_usize).transpose()?,
             ),
         )
         .upcast())
