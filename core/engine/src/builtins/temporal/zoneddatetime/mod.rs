@@ -43,7 +43,7 @@ use super::{
 
 #[cfg(feature = "intl")]
 use crate::builtins::intl::date_time_format::{
-    FormatDefaults, FormatType, create_date_time_format, format_date_time_locale,
+    FormatDefaults, FormatType, create_date_time_format, format_date_time,
 };
 
 /// The `Temporal.ZonedDateTime` built-in implementation
@@ -1656,14 +1656,7 @@ impl ZonedDateTime {
             }
 
             let inst = create_temporal_instant(zdt.inner.to_instant(), None, context)?;
-            format_date_time_locale(
-                locales,
-                options,
-                FormatType::Any,
-                FormatDefaults::All,
-                zdt.inner.to_instant().epoch_milliseconds() as f64,
-                context,
-            )
+            format_date_time(&dtf, &inst.as_object().unwrap(), context)
         }
 
         #[cfg(not(feature = "intl"))]
