@@ -173,5 +173,12 @@ fn typedarray_exotic_prevent_extensions() {
         TestAction::run("Object.preventExtensions(fixedLengthWithOffset);"),
         TestAction::assert("!Object.isExtensible(fixedLength)"),
         TestAction::assert("!Object.isExtensible(fixedLengthWithOffset)"),
+        TestAction::run("const rab = new ArrayBuffer(4);"),
+        TestAction::run("const fixedLength1 = new Uint8Array(rab, 0, 4);"),
+        TestAction::run("const fixedLengthWithOffset1 = new Uint8Array(rab, 2, 2);"),
+        TestAction::run("Object.preventExtensions(fixedLength1);"),
+        TestAction::run("Object.preventExtensions(fixedLengthWithOffset1);"),
+        TestAction::assert("!Object.isExtensible(fixedLength1)"),
+        TestAction::assert("!Object.isExtensible(fixedLengthWithOffset1)"),
     ]);
 }
