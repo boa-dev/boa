@@ -1635,11 +1635,11 @@ impl BuiltinTypedArray {
         let (ta, buf_len) = TypedArray::validate(this, Ordering::SeqCst)?;
 
         // 3. Let len be TypedArrayLength(taRecord).
-        let len = ta.borrow().data().array_length(buf_len) as u64;
+        let len = ta.borrow().data().array_length(buf_len);
         let kind = ta.borrow().data().kind();
 
         // 4. Let A be ? TypedArrayCreateSameType(O, « 𝔽(length) »).
-        let new_array = Self::from_kind_and_length(kind, len, context)?;
+        let new_array = Self::from_kind_and_length(kind, len as u64, context)?;
 
         // 5. Let k be 0.
         // 6. Repeat, while k < length,
@@ -2621,7 +2621,7 @@ impl BuiltinTypedArray {
         let (ta, buf_len) = TypedArray::validate(this, Ordering::SeqCst)?;
 
         // 3. Let len be TypedArrayLength(taRecord).
-        let len = ta.borrow().data().array_length(buf_len) as u64;
+        let len = ta.borrow().data().array_length(buf_len);
         let kind = ta.borrow().data().kind();
 
         // 4. Let relativeIndex be ? ToIntegerOrInfinity(index).
@@ -2647,7 +2647,7 @@ impl BuiltinTypedArray {
         let actual_index = (|| {
             let rel = u64::try_from(relative_index)
                 .ok()
-                .or_else(|| len.checked_add_signed(relative_index))?;
+                .or_else(|| (len as u64).checked_add_signed(relative_index))?;
 
             let inner = ta.borrow();
             let buf = inner.data().viewed_array_buffer().as_buffer();
@@ -2659,14 +2659,14 @@ impl BuiltinTypedArray {
         })?;
 
         // 10. Let A be ? TypedArrayCreateSameType(O, « 𝔽(len) »).
-        let new_array = Self::from_kind_and_length(kind, len, context)?;
+        let new_array = Self::from_kind_and_length(kind, len as u64, context)?;
 
         // 11. Let k be 0.
         // 12. Repeat, while k < len,
         let ta = ta.upcast();
         for k in 0..len {
             // a. Let Pk be ! ToString(𝔽(k)).
-            let value = if k == actual_index as u64 {
+            let value = if k == actual_index {
                 // b. If k is actualIndex, let fromValue be numericValue.
                 numeric_value.clone()
             } else {
