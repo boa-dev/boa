@@ -26,6 +26,7 @@ use crate::{
             options::{IntlOptions, coerce_options_to_object},
         },
         options::get_option,
+        temporal,
     },
     context::intrinsics::{Intrinsics, StandardConstructor, StandardConstructors},
     error::JsNativeError,
@@ -295,7 +296,7 @@ impl DateTimeFormat {
                         };
 
                         // 5. Return ? FormatDateTime(dtf, x).
-                        format_date_time(dtf.borrow().data(), x, context)
+                        format_date_time(dtf.borrow().data(), &x.into(), context)
                     },
                     dtf_clone,
                 ),
@@ -341,7 +342,7 @@ impl DateTimeFormat {
             date.to_number(context)?
         };
         // 5. Return ? FormatDateTimeToParts(dtf, x).
-        format_date_time_to_parts(dtf.borrow().data(), x, context).map(JsValue::from)
+        format_date_time_to_parts(dtf.borrow().data(), &x.into(), context).map(JsValue::from)
     }
 
     // [`Intl.DateTimeFormat.prototype.formatRange ( startDate, endDate )`][spec]
@@ -931,11 +932,11 @@ pub(crate) fn create_date_time_format(
 /// [spec]: https://tc39.es/ecma402/#sec-formatdatetime
 pub(crate) fn format_date_time(
     dtf: &DateTimeFormat,
-    timestamp: f64,
+    x: &JsValue,
     context: &mut Context,
 ) -> JsResult<JsValue> {
     // 1. Let parts be ? PartitionDateTimePattern(dateTimeFormat, x).
-    let parts = partition_date_time_pattern(dtf, timestamp, context)?;
+    let parts = partition_date_time_pattern(dtf, x, context)?;
 
     // 2. Let result be the empty String.
     // 3. For each Record { [[Type]], [[Value]] } part of parts, do
@@ -946,7 +947,7 @@ pub(crate) fn format_date_time(
 
 pub(crate) fn format_date_time_to_parts(
     dtf: &DateTimeFormat,
-    timestamp: f64,
+    x: &JsValue,
     context: &mut Context,
 ) -> JsResult<JsArray> {
     #[derive(Debug, Clone)]
@@ -981,7 +982,7 @@ pub(crate) fn format_date_time_to_parts(
     }
 
     // 1. Let parts be ? PartitionDateTimePattern(dateTimeFormat, x).
-    let parts = partition_date_time_pattern(dtf, timestamp, context)?;
+    let parts = partition_date_time_pattern(dtf, x, context)?;
 
     let mut collector = PartsCollector(Vec::new());
     parts
@@ -1023,25 +1024,21 @@ pub(crate) fn format_date_time_to_parts(
 /// [spec]: https://tc39.es/ecma402/#sec-partitiondatetimepattern
 fn partition_date_time_pattern<'a>(
     dtf: &'a DateTimeFormat,
-    timestamp: f64,
+    x: &JsValue,
     context: &mut Context,
 ) -> JsResult<FormattedDateTime<'a>> {
     // 1. Set x to TimeClip(x).
-    let x = time_clip(timestamp);
+    let format_record = handle_date_time_value(dtf, x, context)?;
 
-    // 2. If x is `NaN`, throw a `RangeError` exception.
-    if x.is_nan() {
-        return Err(js_error!(RangeError: "formatted date cannot be NaN"));
-    }
-    // Let epochNanoseconds be ℤ(ℝ(x) × 10^6).
-    let epoch_ns = x as i128 * 1_000_000;
+    // 2. Let epochNanoseconds be formatRecord.[[EpochNanoseconds]].
+    let epoch_ns = format_record.epoch_nanoseconds;
 
-    // 4. Let format be dateTimeFormat.[[DateTimeFormat]].
-    // 5. If dateTimeFormat.[[HourCycle]] is "h11" or "h12", then
+    // 3. Let format be dateTimeFormat.[[DateTimeFormat]].
+    // 4. If dateTimeFormat.[[HourCycle]] is "h11" or "h12", then
     //        a. Let pattern be format.[[pattern12]].
-    // 6. Else,
+    // 5. Else,
     //        a. Let pattern be format.[[pattern]].
-    // 7. Let result be FormatDateTimePattern(dateTimeFormat, format, pattern, epochNanoseconds).
+    // 6. Let result be FormatDateTimePattern(dateTimeFormat, format, pattern, epochNanoseconds).
     //
     // NOTE: `FormatDateTimePattern` is entirely handled in icu_datetime, and the only step
     // we really do is
@@ -1260,4 +1257,83 @@ fn unwrap_date_time_format(
     Err(JsNativeError::typ()
         .with_message("object was not an initialized `Intl.DateTimeFormat` object")
         .into())
+}
+
+struct ValueFormatRecord<'a> {
+    format: &'a DateTimeFormat,
+    epoch_nanoseconds: i128,
+    is_plain: bool,
+}
+
+/// [`HandleDateTimeValue`](https://tc39.es/proposal-temporal/#sec-temporal-handledatetimevalue)
+fn handle_date_time_value<'a>(
+    dtf: &'a DateTimeFormat,
+    x: &JsValue,
+    _: &mut Context,
+) -> JsResult<ValueFormatRecord<'a>> {
+    // 1. If x is a Number, return ? HandleDateTimeOthers(dateTimeFormat, x).
+    let (epoch_nanoseconds, is_plain) = if let Some(timestamp) = x.as_number() {
+        // 1. Set x to TimeClip(x).
+        // 2. If x is `NaN`, throw a `RangeError` exception.
+        // 3. Let epochNanoseconds be ℤ(ℝ(x) × 10^6).
+        // 4. Let format be dateTimeFormat.[[DateTimeFormat]].
+        let x = time_clip(timestamp);
+        if x.is_nan() {
+            return Err(js_error!(RangeError: "formatted date cannot be NaN"));
+        }
+        (x as i128 * 1_000_000, false)
+    // 2. If x has an [[InitializedTemporalDate]] internal slot, return ? HandleDateTimeTemporalDate(dateTimeFormat, x).
+    } else if let Some(to) = x
+        .as_object()
+        .as_ref()
+        .and_then(|o| o.downcast_ref::<temporal::PlainDate>())
+    {
+        unimplemented!()
+    // 3. If x has an [[InitializedTemporalYearMonth]] internal slot, return ? HandleDateTimeTemporalYearMonth(dateTimeFormat, x).
+    } else if let Some(to) = x
+        .as_object()
+        .as_ref()
+        .and_then(|o| o.downcast_ref::<temporal::PlainYearMonth>())
+    {
+        unimplemented!()
+    // 4. If x has an [[InitializedTemporalMonthDay]] internal slot, return ? HandleDateTimeTemporalMonthDay(dateTimeFormat, x).
+    } else if let Some(to) = x
+        .as_object()
+        .as_ref()
+        .and_then(|o| o.downcast_ref::<temporal::PlainMonthDay>())
+    {
+        unimplemented!()
+    // 5. If x has an [[InitializedTemporalTime]] internal slot, return ? HandleDateTimeTemporalTime(dateTimeFormat, x).
+    } else if let Some(to) = x
+        .as_object()
+        .as_ref()
+        .and_then(|o| o.downcast_ref::<temporal::PlainTime>())
+    {
+        unimplemented!()
+    // 6. If x has an [[InitializedTemporalDateTime]] internal slot, return ? HandleDateTimeTemporalDateTime(dateTimeFormat, x).
+    } else if let Some(to) = x
+        .as_object()
+        .as_ref()
+        .and_then(|o| o.downcast_ref::<temporal::PlainDateTime>())
+    {
+        unimplemented!()
+    // 7. If x has an [[InitializedTemporalInstant]] internal slot, return HandleDateTimeTemporalInstant(dateTimeFormat, x).
+    } else if let Some(to) = x
+        .as_object()
+        .as_ref()
+        .and_then(|o| o.downcast_ref::<temporal::Instant>())
+    {
+        // 1. Let format be dateTimeFormat.[[TemporalInstantFormat]].
+        (to.inner.epoch_nanoseconds().as_i128(), false)
+    // 8. Assert: x has an [[InitializedTemporalZonedDateTime]] internal slot.
+    // 9. Throw a TypeError exception.
+    } else {
+        return Err(js_error!(TypeError: "Object is ZonedDateTime"));
+    };
+
+    Ok(ValueFormatRecord {
+        format: dtf,
+        epoch_nanoseconds,
+        is_plain,
+    })
 }
