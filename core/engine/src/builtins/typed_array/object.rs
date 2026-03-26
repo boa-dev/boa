@@ -290,28 +290,39 @@ pub(crate) fn typed_array_exotic_prevent_extensions(
     obj: &JsObject,
     context: &mut Context,
 ) -> JsResult<bool> {
-    let is_fixed_length = {
-        let ta = obj
-            .downcast_ref::<TypedArray>()
-            .js_expect("must be a TypedArray")?;
-
-        if ta.is_auto_length() {
-            return Ok(false);
-        }
-
-        match ta.viewed_array_buffer().as_buffer() {
-            BufferRef::Buffer(buf) => buf.is_fixed_len(),
-            BufferRef::SharedBuffer(_) => true,
-        }
-    };
-
     // 1. If IsTypedArrayFixedLength(O) is false, return false.
-    if !is_fixed_length {
+    if !is_typed_array_fixed_length(obj)? {
         return Ok(false);
     }
 
     // 2. Return OrdinaryPreventExtensions(O).
     ordinary_prevent_extensions(obj, context)
+}
+
+/// Abstract operation `IsTypedArrayFixedLength ( O )`.
+///
+/// More information:
+///  - [ECMAScript reference][spec]
+///
+/// [spec]: https://tc39.es/ecma262/#sec-istypedarrayfixedlength
+fn is_typed_array_fixed_length(obj: &JsObject) -> JsResult<bool> {
+    let ta = obj
+        .downcast_ref::<TypedArray>()
+        .js_expect("must be a TypedArray")?;
+
+    // 1. If O.[[ArrayLength]] is auto, return false.
+    if ta.is_auto_length() {
+        return Ok(false);
+    }
+
+    // 2. Let buffer be O.[[ViewedArrayBuffer]].
+    let is_fixed_length = match ta.viewed_array_buffer().as_buffer() {
+        // 3. If IsFixedLengthArrayBuffer(buffer) is false and IsSharedArrayBuffer(buffer) is false, return false.
+        BufferRef::Buffer(buf) => buf.is_fixed_len(),
+        BufferRef::SharedBuffer(_) => true,
+    };
+
+    Ok(is_fixed_length)
 }
 
 /// `CanonicalNumericIndexString ( argument )`
