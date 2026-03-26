@@ -312,8 +312,8 @@ pub(crate) fn typed_array_exotic_prevent_extensions(
 ) -> JsResult<bool> {
     let is_fixed_length = {
         let ta = obj
-        .downcast_ref::<TypedArray>()
-        .js_expect("must be a TypedArray")?;
+            .downcast_ref::<TypedArray>()
+            .js_expect("must be a TypedArray")?;
 
         ta.is_fixed_length()
     }; // Note: this block ensures that the borrow of obj is dropped
