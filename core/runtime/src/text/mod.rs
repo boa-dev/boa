@@ -34,6 +34,35 @@ pub enum Encoding {
     Utf16Be,
 }
 
+const TEXT_DECODER_LABELS: &[(&str, Encoding)] = &[
+    ("unicode-1-1-utf-8", Encoding::Utf8),
+    ("unicode11utf8", Encoding::Utf8),
+    ("unicode20utf8", Encoding::Utf8),
+    ("utf-8", Encoding::Utf8),
+    ("utf8", Encoding::Utf8),
+    ("x-unicode20utf8", Encoding::Utf8),
+    ("unicodefffe", Encoding::Utf16Be),
+    ("utf-16be", Encoding::Utf16Be),
+    ("csunicode", Encoding::Utf16Le),
+    ("iso-10646-ucs-2", Encoding::Utf16Le),
+    ("ucs-2", Encoding::Utf16Le),
+    ("unicode", Encoding::Utf16Le),
+    ("unicodefeff", Encoding::Utf16Le),
+    ("utf-16", Encoding::Utf16Le),
+    ("utf-16le", Encoding::Utf16Le),
+];
+
+#[inline]
+fn resolve_text_decoder_label(label: &str) -> Option<Encoding> {
+    let label = label.trim_matches(['\u{0009}', '\u{000A}', '\u{000C}', '\u{000D}', '\u{0020}']);
+
+    TEXT_DECODER_LABELS
+        .iter()
+        .find_map(|(supported, encoding)| {
+            label.eq_ignore_ascii_case(supported).then_some(*encoding)
+        })
+}
+
 /// The [`TextDecoder`][mdn] class represents an encoder for a specific method, that is
 /// a specific character encoding, like `utf-8`.
 ///
@@ -62,17 +91,12 @@ impl TextDecoder {
         let ignore_bom = options.and_then(|o| o.ignore_bom).unwrap_or(false);
 
         let encoding = match encoding {
-            Some(enc) => match enc.to_std_string_lossy().as_str() {
-                "utf-8" => Encoding::Utf8,
-                // Default encoding is Little Endian.
-                "utf-16" | "utf-16le" => Encoding::Utf16Le,
-                "utf-16be" => Encoding::Utf16Be,
-                e => {
-                    return Err(
-                        js_error!(RangeError: "The given encoding '{}' is not supported.", e),
-                    );
-                }
-            },
+            Some(enc) => {
+                let label = enc.to_std_string_lossy();
+                resolve_text_decoder_label(&label).ok_or_else(
+                    || js_error!(RangeError: "The given encoding '{}' is not supported.", label),
+                )?
+            }
             None => Encoding::default(),
         };
 
@@ -110,6 +134,8 @@ impl TextDecoder {
     /// The [`TextDecoder.decode()`][mdn] method returns a string containing text decoded from the
     /// buffer passed as a parameter.
     ///
+    /// If `buffer` is omitted or `undefined`, this returns an empty string.
+    ///
     /// `buffer` can be an `ArrayBuffer`, a `TypedArray` or a `DataView`.
     ///
     /// # Errors
@@ -117,6 +143,10 @@ impl TextDecoder {
     ///
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/API/TextDecoder/decode
     pub fn decode(&self, buffer: JsValue, context: &mut Context) -> JsResult<JsString> {
+        if buffer.is_undefined() {
+            return Ok(js_string!(""));
+        }
+
         let mut range = None;
         let array_buffer = if let Ok(array_buffer) = JsArrayBuffer::try_from_js(&buffer, context) {
             array_buffer
@@ -135,6 +165,13 @@ impl TextDecoder {
             let Some(obj) = data_view.buffer(context)?.as_object() else {
                 return Err(js_error!(TypeError: "Invalid buffer backing DataView."));
             };
+
+            let offset = usize::try_from(data_view.byte_offset(context)?)
+                .map_err(|_| js_error!(RangeError: "DataView offset exceeds addressable size."))?;
+            let length = usize::try_from(data_view.byte_length(context)?)
+                .map_err(|_| js_error!(RangeError: "DataView length exceeds addressable size."))?;
+
+            range = Some(offset..offset + length);
 
             JsArrayBuffer::from_object(obj)?
         } else {

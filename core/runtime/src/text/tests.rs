@@ -95,6 +95,35 @@ fn decoder_js() {
 }
 
 #[test]
+fn decoder_js_without_input() {
+    let context = &mut Context::default();
+    text::register(None, context).unwrap();
+
+    run_test_actions_with(
+        [
+            TestAction::run(indoc! {r#"
+                const d = new TextDecoder();
+                decoded = d.decode();
+                decodedUndefined = d.decode(undefined);
+            "#}),
+            TestAction::inspect_context(|context| {
+                let decoded = context
+                    .global_object()
+                    .get(js_str!("decoded"), context)
+                    .unwrap();
+                let decoded_undefined = context
+                    .global_object()
+                    .get(js_str!("decodedUndefined"), context)
+                    .unwrap();
+                assert_eq!(decoded.as_string(), Some(js_string!("")));
+                assert_eq!(decoded_undefined.as_string(), Some(js_string!("")));
+            }),
+        ],
+        context,
+    );
+}
+
+#[test]
 fn decoder_js_invalid() {
     use crate::test::{TestAction, run_test_actions_with};
     use indoc::indoc;
@@ -288,6 +317,59 @@ fn decoder_bom_ignore_bom_false(encoding: &'static str, bytes: &'static [u8]) {
     );
 }
 
+#[test_case("UTF-8", "utf-8"; "uppercase utf8")]
+#[test_case(" utf-8 ", "utf-8"; "spaced utf8")]
+#[test_case("\nutf-16\t", "utf-16le"; "spaced utf16")]
+#[test_case("UTF-16BE", "utf-16be"; "uppercase utf16be")]
+#[test_case("utf8", "utf-8"; "utf8 alias")]
+#[test_case("Unicode-1-1-UTF-8", "utf-8"; "unicode alias")]
+#[test_case("csUnicode", "utf-16le"; "csunicode alias")]
+#[test_case(" unicodefeff ", "utf-16le"; "unicodefeff alias")]
+#[test_case("UnicodeFFFE", "utf-16be"; "unicodefffe alias")]
+fn decoder_normalizes_supported_labels(label: &'static str, expected: &'static str) {
+    let context = &mut Context::default();
+    text::register(None, context).unwrap();
+
+    run_test_actions_with(
+        [
+            TestAction::run(format!(
+                r#"
+                const d = new TextDecoder({label:?});
+                encoding = d.encoding;
+            "#
+            )),
+            TestAction::inspect_context(move |context| {
+                let encoding = context
+                    .global_object()
+                    .get(js_str!("encoding"), context)
+                    .unwrap();
+                assert_eq!(encoding.as_string(), Some(JsString::from(expected)));
+            }),
+        ],
+        context,
+    );
+}
+
+#[test]
+fn decoder_rejects_unsupported_label_after_normalization() {
+    let context = &mut Context::default();
+    text::register(None, context).unwrap();
+
+    run_test_actions_with(
+        [TestAction::run(indoc! {r#"
+                try {
+                    new TextDecoder(" utf-32 ");
+                    throw new Error("expected RangeError");
+                } catch (e) {
+                    if (!(e instanceof RangeError)) {
+                        throw e;
+                    }
+                }
+            "#})],
+        context,
+    );
+}
+
 #[test]
 fn decoder_ignore_bom_getter() {
     let context = &mut Context::default();
@@ -358,6 +440,30 @@ fn decoder_handle_typed_array_offset_and_length() {
         [
             TestAction::run(indoc! {r#"
                 var decoded = new TextDecoder().decode(Uint8Array.of(0x41, 0x43, 0x45, 0x47).subarray(1, 3));
+            "#}),
+            TestAction::inspect_context(|context| {
+                let decoded = context
+                    .global_object()
+                    .get(js_str!("decoded"), context)
+                    .unwrap();
+                assert_eq!(decoded.as_string(), Some(js_string!("CE")));
+            }),
+        ],
+        context,
+    );
+}
+
+#[test]
+fn decoder_handle_data_view_offset_and_length() {
+    let context = &mut Context::default();
+    text::register(None, context).unwrap();
+
+    run_test_actions_with(
+        [
+            TestAction::run(indoc! {r#"
+                const buffer = Uint8Array.of(0x41, 0x43, 0x45, 0x47).buffer;
+                const view = new DataView(buffer, 1, 2);
+                var decoded = new TextDecoder().decode(view);
             "#}),
             TestAction::inspect_context(|context| {
                 let decoded = context

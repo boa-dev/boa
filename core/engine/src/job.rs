@@ -573,6 +573,34 @@ pub enum Job {
     ///
     /// See [`GenericJob`] for more information.
     GenericJob(GenericJob),
+    /// A job that will eventually cleanup a `FinalizationRegistry`.
+    ///
+    /// This job differs slightly from the [spec]; originally it's defined
+    /// as being enqueued exactly when a `FinalizationRegistry` needs to call
+    /// `FinalizationRegistry::cleanup`, but here it's defined as an async
+    /// job that suspends execution until it receives a signal from the engine
+    /// that the `FinalizationRegistry` needs to be cleaned up.
+    ///
+    /// # Execution
+    ///
+    /// As described on the [spec's section about execution][execution],
+    ///
+    /// > Because calling `HostEnqueueFinalizationRegistryCleanupJob` is optional,
+    /// > registered objects in a `FinalizationRegistry` do not necessarily hold
+    /// > that `FinalizationRegistry` live. Implementations may omit `FinalizationRegistry`
+    /// > callbacks for any reason, e.g., if the `FinalizationRegistry` itself becomes
+    /// > dead, or if the application is shutting down.
+    ///
+    /// For this reason, it is recommended to exclude `FinalizationRegistry` cleanup
+    /// jobs from any condition that exits from [`JobExecutor::run_jobs`].
+    ///
+    /// By the same token, it is recommended to execute `FinalizationRegistry` cleanup
+    /// jobs separately from all other enqueued [`NativeAsyncJob`]s, prioritizing the
+    /// execution of all other jobs if possible.
+    ///
+    /// [spec]: https://tc39.es/ecma262/#sec-weakref-host-hooks
+    /// [execution]: https://tc39.es/ecma262/#sec-weakref-execution
+    FinalizationRegistryCleanupJob(NativeAsyncJob),
 }
 
 impl From<NativeAsyncJob> for Job {
@@ -667,6 +695,7 @@ impl JobExecutor for IdleJobExecutor {
 pub struct SimpleJobExecutor {
     promise_jobs: RefCell<VecDeque<PromiseJob>>,
     async_jobs: RefCell<VecDeque<NativeAsyncJob>>,
+    finalization_registry_jobs: RefCell<VecDeque<NativeAsyncJob>>,
     timeout_jobs: RefCell<BTreeMap<JsInstant, Vec<TimeoutJob>>>,
     generic_jobs: RefCell<VecDeque<GenericJob>>,
     stop: Arc<AtomicBool>,
@@ -724,6 +753,9 @@ impl JobExecutor for SimpleJobExecutor {
                     .push(t);
             }
             Job::GenericJob(g) => self.generic_jobs.borrow_mut().push_back(g),
+            Job::FinalizationRegistryCleanupJob(fr) => {
+                self.finalization_registry_jobs.borrow_mut().push_back(fr);
+            }
         }
     }
 
@@ -736,6 +768,7 @@ impl JobExecutor for SimpleJobExecutor {
         Self: Sized,
     {
         let mut group = FutureGroup::new();
+        let mut fr_group = FutureGroup::new();
         loop {
             if self.stop.load(Ordering::Relaxed) {
                 self.stop.store(false, Ordering::Relaxed);
@@ -745,6 +778,10 @@ impl JobExecutor for SimpleJobExecutor {
 
             for job in mem::take(&mut *self.async_jobs.borrow_mut()) {
                 group.insert(job.call(context));
+            }
+
+            for job in mem::take(&mut *self.finalization_registry_jobs.borrow_mut()) {
+                fr_group.insert(job.call(context));
             }
 
             // Dispatch all past-due timeout jobs before the termination check.
@@ -773,7 +810,14 @@ impl JobExecutor for SimpleJobExecutor {
             }
 
             if self.is_empty() && group.is_empty() {
-                break;
+                match future::poll_once(fr_group.next()).await.flatten() {
+                    Some(Err(err)) => {
+                        self.clear();
+                        return Err(err);
+                    }
+                    _ if !self.is_empty() => {}
+                    _ => break,
+                }
             }
 
             if let Some(Err(err)) = future::poll_once(group.next()).await.flatten() {

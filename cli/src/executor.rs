@@ -2,7 +2,6 @@ use std::{
     cell::{Cell, RefCell},
     collections::VecDeque,
     mem,
-    ops::ControlFlow,
     pin::{Pin, pin},
     rc::Rc,
 };
@@ -13,7 +12,7 @@ use boa_engine::{
 };
 use futures_concurrency::future::FutureGroup;
 use smol::{future::FutureExt, stream::StreamExt};
-use unsend::{Event, EventListener, EventListenerRc, IntoNotification};
+use unsend::{Event, EventListener, EventListenerRc};
 
 use crate::{logger::SharedExternalPrinterLogger, uncaught_job_error};
 
@@ -21,9 +20,12 @@ pub(crate) struct Executor {
     promise_jobs: RefCell<VecDeque<PromiseJob>>,
     async_jobs: RefCell<VecDeque<NativeAsyncJob>>,
     generic_jobs: RefCell<VecDeque<GenericJob>>,
-    event: Event<ControlFlow<()>>,
-    idle_tasks_counter: Cell<u8>,
+    finalization_registry_jobs: RefCell<VecDeque<NativeAsyncJob>>,
+    wake_event: Event<()>,
+    idle_event: Event<()>,
+    idle_counter: Cell<u8>,
 
+    stop_event: Event<()>,
     printer: SharedExternalPrinterLogger,
 }
 
@@ -33,8 +35,11 @@ impl Executor {
             promise_jobs: RefCell::default(),
             async_jobs: RefCell::default(),
             generic_jobs: RefCell::default(),
-            event: Event::new(),
-            idle_tasks_counter: Cell::new(0),
+            finalization_registry_jobs: RefCell::default(),
+            wake_event: Event::new(),
+            idle_event: Event::new(),
+            idle_counter: Cell::new(0),
+            stop_event: Event::new(),
             printer,
         }
     }
@@ -43,26 +48,35 @@ impl Executor {
         self.promise_jobs.borrow_mut().clear();
         self.async_jobs.borrow_mut().clear();
         self.generic_jobs.borrow_mut().clear();
-        self.event
-            .notify(u8::MAX.tag_with(|| ControlFlow::Break(())));
+        self.finalization_registry_jobs.borrow_mut().clear();
+        self.stop_event.notify(u8::MAX);
+    }
+
+    /// Waits until there are any new jobs to be handled.
+    ///
+    /// This will also restore the provided `listener` such that it can keep
+    /// listening for more events.
+    async fn wait_for_events<'a>(&'a self, mut listener: Pin<&mut EventListener<'a, ()>>) {
+        self.idle_event.notify(u8::MAX);
+
+        self.idle_counter.update(|n| n + 1);
+        (&mut listener).await;
+        // Restore the listener after usage.
+        listener.as_mut().listen();
+        self.idle_counter.update(|n| n - 1);
     }
 
     /// Continually run all pending promise jobs, yielding to the async
     /// executor after every successful run.
     async fn run_promise_jobs(&self, context: &RefCell<&mut Context>) {
-        let mut listener = EventListener::new(&self.event);
+        let mut listener = pin!(EventListener::new(&self.wake_event));
         loop {
-            if self.promise_jobs.borrow().is_empty() {
-                if self.wait_for_events(pin!(listener)).await.is_break() {
-                    return;
-                }
-
-                // Restore the listener since it should have been consumed by
-                // `wait_for_events`.
-                listener = EventListener::new(&self.event);
+            let jobs = mem::take(&mut *self.promise_jobs.borrow_mut());
+            if jobs.is_empty() {
+                self.wait_for_events(listener.as_mut()).await;
+                continue;
             }
 
-            let jobs = mem::take(&mut *self.promise_jobs.borrow_mut());
             {
                 let context = &mut context.borrow_mut();
                 for job in jobs {
@@ -72,6 +86,7 @@ impl Executor {
                 }
                 context.clear_kept_objects();
             }
+
             smol::future::yield_now().await;
         }
     }
@@ -79,104 +94,99 @@ impl Executor {
     /// Continually run a single pending generic job, yielding to the async
     /// executor after every successful run.
     async fn run_generic_jobs(&self, context: &RefCell<&mut Context>) {
-        let mut listener = EventListener::new(&self.event);
+        let mut listener = pin!(EventListener::new(&self.wake_event));
         loop {
-            if self.generic_jobs.borrow().is_empty() {
-                if self.wait_for_events(pin!(listener)).await.is_break() {
-                    return;
-                }
-
-                // Restore the listener since it should have been consumed by
-                // `wait_for_events`.
-                listener = EventListener::new(&self.event);
-            }
-
             let job = self.generic_jobs.borrow_mut().pop_front();
-            if let Some(generic) = job
-                && let Err(err) = generic.call(&mut context.borrow_mut())
+            let Some(job) = job else {
+                self.wait_for_events(listener.as_mut()).await;
+                continue;
+            };
+
             {
-                self.printer.print(uncaught_job_error(&err));
+                let context = &mut context.borrow_mut();
+                if let Err(err) = job.call(context) {
+                    self.printer.print(uncaught_job_error(&err));
+                }
+                context.clear_kept_objects();
             }
 
-            context.borrow_mut().clear_kept_objects();
             smol::future::yield_now().await;
         }
     }
 
     /// Continually run all pending async jobs.
-    ///
+    //
     /// This does not need to yield to the async executor after every run because
-    /// it assumes that every async job will not block the execution thread.
-    async fn run_async_tasks(&self, context: &RefCell<&mut Context>) {
+    /// it assumes that every async job will not would never
+    /// exit.
+    async fn run_async_jobs(&self, context: &RefCell<&mut Context>) {
         let mut group = FutureGroup::new();
-        let mut listener = self.event.listen();
+        let mut listener = pin!(EventListener::new(&self.wake_event));
         loop {
             if self.async_jobs.borrow().is_empty() && group.is_empty() {
-                if self.wait_for_events(listener.as_mut()).await.is_break() {
-                    return;
-                }
-
-                // Restore the listener since it should have been consumed by
-                // `wait_for_events`.
-                listener = self.event.listen();
+                self.wait_for_events(listener.as_mut()).await;
             }
 
             for job in mem::take(&mut *self.async_jobs.borrow_mut()) {
                 group.insert(job.call(context));
             }
 
-            let event_listener = async {
-                let result = (&mut listener).await;
+            let wake = async {
+                (&mut listener).await;
 
                 // Restore the listener since it should have been consumed by
                 // the await.
-                listener = self.event.listen();
-                result
+                listener.as_mut().listen();
             };
 
             let next_job = async {
                 if let Some(Err(err)) = group.next().await {
                     self.printer.print(uncaught_job_error(&err));
                 }
-                ControlFlow::Continue(())
             };
 
-            // This can only exit if the main program is exiting, so
-            // it doesn't matter if we drop all pending futures.
-            if event_listener.or(next_job).await.is_break() {
-                return;
-            }
+            wake.or(next_job).await;
 
             context.borrow_mut().clear_kept_objects();
         }
     }
 
-    /// Checks for any events that need to be handled.
+    /// Continually run all finalization registry async jobs.
     ///
-    /// Returns `ControlFlow::Break` if all tasks are paused for lack
-    /// of new jobs, or if the event loop was manually stopped using the
-    /// `Executor::stop()` method.
-    async fn wait_for_events<'a>(
-        &'a self,
-        listener: Pin<&mut EventListener<'a, ControlFlow<()>>>,
-    ) -> ControlFlow<()> {
-        let idle_tasks = self.idle_tasks_counter.get();
+    /// This does not need to yield to the async executor after every run because
+    /// it assumes that every async job will not block the execution thread.
+    async fn run_finalization_registry_jobs(&self, context: &RefCell<&mut Context>) {
+        let mut group = FutureGroup::new();
+        let mut listener = pin!(EventListener::new(&self.wake_event));
+        loop {
+            if self.finalization_registry_jobs.borrow().is_empty() && group.is_empty() {
+                (&mut listener).await;
 
-        // We need to have all 3 tasks idle (counting the task executing
-        // this check) to exit from the event loop.
-        if idle_tasks >= 2 {
-            self.event
-                .notify(u8::MAX.tag_with(|| ControlFlow::Break(())));
-            return ControlFlow::Break(());
+                // Restore the listener since it should have been consumed by
+                // the await.
+                listener.as_mut().listen();
+            }
+
+            for job in mem::take(&mut *self.finalization_registry_jobs.borrow_mut()) {
+                group.insert(job.call(context));
+            }
+
+            let wake = async {
+                (&mut listener).await;
+
+                // Restore the listener since it should have been consumed by
+                // the await.
+                listener.as_mut().listen();
+            };
+
+            let next_job = async {
+                if let Some(Err(err)) = group.next().await {
+                    self.printer.print(uncaught_job_error(&err));
+                }
+            };
+
+            wake.or(next_job).await;
         }
-
-        self.idle_tasks_counter.set(idle_tasks + 1);
-        let result = listener.await;
-
-        // Cannot reuse `idle_tasks` since the counter could have updated.
-        self.idle_tasks_counter.update(|n| n - 1);
-
-        result
     }
 }
 
@@ -206,10 +216,12 @@ impl JobExecutor for Executor {
                     }));
             }
             Job::GenericJob(job) => self.generic_jobs.borrow_mut().push_back(job),
+            Job::FinalizationRegistryCleanupJob(job) => {
+                self.finalization_registry_jobs.borrow_mut().push_back(job);
+            }
             job => self.printer.print(format!("unsupported job type {job:?}")),
         }
-        self.event
-            .notify(u8::MAX.tag_with(|| ControlFlow::Continue(())));
+        self.wake_event.notify(u8::MAX);
     }
 
     fn run_jobs(self: Rc<Self>, context: &mut Context) -> JsResult<()> {
@@ -218,16 +230,49 @@ impl JobExecutor for Executor {
 
     async fn run_jobs_async(self: Rc<Self>, context: &RefCell<&mut Context>) -> JsResult<()> {
         let executor = smol::LocalExecutor::new();
-        let async_task = executor.spawn(self.run_async_tasks(context));
+        let async_task = executor.spawn(self.run_async_jobs(context));
         let generic_task = executor.spawn(self.run_generic_jobs(context));
         let promise_task = executor.spawn(self.run_promise_jobs(context));
 
-        executor
-            .run(async {
-                async_task.await;
-                generic_task.await;
-                promise_task.await;
-            })
+        let foreground = async {
+            async_task.await;
+            generic_task.await;
+            promise_task.await;
+        };
+
+        let background = async {
+            let mut listener = pin!(EventListener::new(&self.idle_event));
+            let mut run_fr_jobs = pin!(self.run_finalization_registry_jobs(context));
+            loop {
+                let idle_tasks = self.idle_counter.get();
+                // We need to have all 3 tasks idle to exit from the event loop.
+                if idle_tasks >= 3 {
+                    return;
+                }
+
+                // Since there are still pending tasks awaiting for IO
+                // (probably the async jobs), run any pending finalization registry
+                // jobs now that the thread is free to do things.
+                //
+                // We still need to handle idle event notifications though, because
+                // only awaiting the finalization registry jobs would never
+                // exit.
+                async {
+                    (&mut listener).await;
+
+                    // Restore the listener since it should have been consumed by
+                    // the await.
+                    listener.as_mut().listen();
+                }
+                .or(&mut run_fr_jobs)
+                .await;
+            }
+        };
+
+        // Stop signal has priority over everything else.
+        EventListener::new(&self.stop_event)
+            .or(executor.run(foreground))
+            .or(background)
             .await;
 
         Ok(())

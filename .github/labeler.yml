@@ -14,12 +14,13 @@ C-Benchmark:
     - 'core/engine/benches/**'
 
 C-Builtins:
-- changed-files:
-  - any-glob-to-any-file:
-    - 'core/engine/src/builtins/**'
-    - 'core/engine/src/object/builtins/**'
-  - all-globs-to-all-files:
-    - '!core/engine/src/object/builtins/intl/**'
+- all:
+  - changed-files:
+    - any-glob-to-any-file:
+        - 'core/engine/src/builtins/**'
+        - 'core/engine/src/object/builtins/**'
+    - all-globs-to-all-files:
+        - '!core/engine/src/object/builtins/intl/**'
 
 C-CLI:
 - changed-files:
