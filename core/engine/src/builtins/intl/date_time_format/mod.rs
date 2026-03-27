@@ -952,13 +952,27 @@ fn unwrap_date_time_format(
         .into())
 }
 
+///15.6.5 PartitionDateTimePattern ( dateTimeFormat, x )
+fn partition_date_time_pattern(
+    dtf: &DateTimeFormat,
+    x: &JsObject,
+    context: &mut Context,
+) -> JsResult<JsObject> {
+    todo!()
+}
+
 /// 15.6.6 FormatDateTime ( dateTimeFormat, x )
 pub(crate) fn format_date_time(
     dtf: &DateTimeFormat,
     x: &JsObject,
     context: &mut Context,
 ) -> JsResult<JsValue> {
-    todo!()
+    let parts = partition_date_time_pattern(dtf, x, context)?;
+    let mut result = String::new();
+    for part in parts {
+        result += part;
+    }
+    Ok(JsString::from(result).into())
 }
 
 /// 15.6.11 ToDateTimeFormattable ( value )
