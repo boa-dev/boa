@@ -236,7 +236,10 @@ impl PromiseCapability {
             context.intrinsics().constructors().promise().prototype(),
             Promise::new(),
         );
-        let promise_typed: JsObject<Promise> = promise.clone().downcast().expect("promise object should be a Promise");
+        let promise_typed: JsObject<Promise> = promise
+            .clone()
+            .downcast()
+            .expect("promise object should be a Promise");
         let resolving_functions = Promise::create_resolving_functions(&promise_typed, context);
         Self {
             promise,

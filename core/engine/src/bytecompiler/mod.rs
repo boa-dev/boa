@@ -32,8 +32,8 @@ use crate::{
     builtins::function::{ThisMode, arguments::MappedArguments},
     js_string,
     vm::{
-        AsyncCallCache, CallFrame, CodeBlock, CodeBlockFlags, Constant, GeneratorResumeKind, GlobalFunctionBinding,
-        Handler, CallSpreadCache, InlineCache,
+        AsyncCallCache, CallFrame, CallSpreadCache, CodeBlock, CodeBlockFlags, Constant,
+        GeneratorResumeKind, GlobalFunctionBinding, Handler, InlineCache,
         opcode::{Address, BindingOpcode, BytecodeEmitter, RegisterOperand},
         source_info::{SourceInfo, SourceMap, SourceMapBuilder, SourcePath},
     },
@@ -888,7 +888,6 @@ impl<'ctx> ByteCompiler<'ctx> {
     pub(crate) fn push_from_register(&mut self, src: &Register) {
         self.bytecode.emit_push_from_register(src.variable());
     }
-
 
     /// Pushes a new call spread inline cache to the code block.
     pub(crate) fn push_call_spread_ic(&mut self) -> u32 {

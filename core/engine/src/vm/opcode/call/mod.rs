@@ -6,12 +6,16 @@ use dynify::Dynify;
 use super::{IndexOperand, RegisterOperand};
 use crate::{
     Context, JsError, JsObject, JsResult, JsValue, NativeFunction,
-    builtins::{Promise, promise::PromiseCapability, function::{OrdinaryFunction, ThisMode}},
+    builtins::{
+        Promise,
+        function::{OrdinaryFunction, ThisMode},
+        promise::PromiseCapability,
+    },
     error::JsNativeError,
     job::NativeAsyncJob,
     module::{ImportAttribute, ModuleKind, ModuleRequest, Referrer},
     object::FunctionObjectBuilder,
-    vm::opcode::{Operation, Opcode},
+    vm::opcode::{Opcode, Operation},
 };
 
 /// `CallEval` implements the Opcode Operation for `Opcode::CallEval`
@@ -226,7 +230,7 @@ impl Call {
         JsNativeError::typ()
             .with_message("not a callable function")
             .into()
-        }
+    }
 }
 
 impl Operation for Call {
@@ -253,7 +257,9 @@ impl CallArrow {
         // In a specialized CallArrow, we assume it's a callable object.
         // We can skip the downcast if we use a more aggressive IC, but for now
         // we just show the specialized path.
-        let object = func.as_object().expect("CallArrow target must be an object");
+        let object = func
+            .as_object()
+            .expect("CallArrow target must be an object");
 
         // Skip is_class_constructor check because arrows are never class constructors.
         // Skip redundant ThisMode checks by inlining the arrow-specific part of function_call.
@@ -276,9 +282,9 @@ impl CallSpread {
     #[inline(always)]
     pub(super) fn operation(index: IndexOperand, context: &mut Context) -> JsResult<()> {
         let array = context.vm.stack.pop();
-        let array_object = array
-            .as_object()
-            .ok_or_else(|| JsError::from(JsNativeError::typ().with_message("spread arguments must be an object")))?;
+        let array_object = array.as_object().ok_or_else(|| {
+            JsError::from(JsNativeError::typ().with_message("spread arguments must be an object"))
+        })?;
 
         let array_addr = array_object.addr();
 
@@ -307,7 +313,9 @@ impl CallSpread {
                 .calling_convention_get_function(argument_count);
 
             let Some(object) = func.as_object() else {
-                return Err(JsError::from(JsNativeError::typ().with_message("not a callable function")));
+                return Err(JsError::from(
+                    JsNativeError::typ().with_message("not a callable function"),
+                ));
             };
 
             object.__call__(argument_count).resolve(context)?;
@@ -318,7 +326,11 @@ impl CallSpread {
             .borrow()
             .properties()
             .to_dense_indexed_properties()
-            .ok_or_else(|| JsError::from(JsNativeError::typ().with_message("spread arguments must be an array")))?;
+            .ok_or_else(|| {
+                JsError::from(
+                    JsNativeError::typ().with_message("spread arguments must be an array"),
+                )
+            })?;
 
         {
             let ic = &context.vm.frame().code_block().call_spread_ic[u32::from(index) as usize];
@@ -338,7 +350,9 @@ impl CallSpread {
             .calling_convention_get_function(argument_count);
 
         let Some(object) = func.as_object() else {
-            return Err(JsError::from(JsNativeError::typ().with_message("not a callable function")));
+            return Err(JsError::from(
+                JsNativeError::typ().with_message("not a callable function"),
+            ));
         };
 
         object.__call__(argument_count).resolve(context)?;

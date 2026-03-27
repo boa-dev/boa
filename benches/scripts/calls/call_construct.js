@@ -1,13 +1,19 @@
-function Test() {
-  this.val = 1;
+class Test {
+  constructor(a, b) {
+    this.a = a;
+    this.b = b;
+  }
 }
+
 // Warmup
 for (let i = 0; i < 1000; i++) {
-  new Test();
+  new Test(i, i + 1);
 }
-let sum = 0;
+
+const start = Date.now();
 for (let i = 0; i < 1000000; i++) {
-  let obj = new Test();
-  sum += obj.val;
+  new Test(i, i + 1);
 }
-console.log("Construct Call Sum:", sum);
+const end = Date.now();
+
+console.log("Time taken for 1M instantiations: " + (end - start) + "ms");

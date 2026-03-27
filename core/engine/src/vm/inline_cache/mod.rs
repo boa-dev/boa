@@ -6,7 +6,7 @@ use boa_gc::GcRefCell;
 use boa_macros::{Finalize, Trace};
 
 use crate::{
-    JsValue, JsString,
+    JsString, JsValue,
     object::shape::{Shape, WeakShape, slot::Slot},
 };
 

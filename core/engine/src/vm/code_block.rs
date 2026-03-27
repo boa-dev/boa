@@ -17,11 +17,11 @@ use itertools::Itertools;
 use std::{cell::Cell, fmt::Display, fmt::Write as _};
 use thin_vec::ThinVec;
 
-use crate::vm::{AsyncCallCache, CallSpreadCache, InlineCache};
 use super::{
     opcode::{Address, Bytecode, Instruction, InstructionIterator},
     source_info::{SourceInfo, SourceMap, SourcePath},
 };
+use crate::vm::{AsyncCallCache, CallSpreadCache, InlineCache};
 
 bitflags! {
     /// Flags for [`CodeBlock`].

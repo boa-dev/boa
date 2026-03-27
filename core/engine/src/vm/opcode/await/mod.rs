@@ -1,7 +1,6 @@
 use super::RegisterOperand;
 use crate::{
     Context, JsArgs, JsResult, JsValue,
-    vm::opcode::IndexOperand,
     builtins::{
         Promise, async_generator::AsyncGenerator, generator::GeneratorContext,
         promise::PromiseCapability,
@@ -9,6 +8,7 @@ use crate::{
     js_string,
     native_function::NativeFunction,
     object::FunctionObjectBuilder,
+    vm::opcode::IndexOperand,
     vm::{CompletionRecord, GeneratorResumeKind, opcode::Operation},
 };
 use boa_gc::Gc;

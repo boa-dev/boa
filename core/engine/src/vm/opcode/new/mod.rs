@@ -1,4 +1,8 @@
-use crate::{Context, JsResult, error::JsNativeError, vm::opcode::{IndexOperand, Operation}};
+use crate::{
+    Context, JsResult,
+    error::JsNativeError,
+    vm::opcode::{IndexOperand, Operation},
+};
 
 /// `New` implements the Opcode Operation for `Opcode::New`
 ///
@@ -32,8 +36,6 @@ impl Operation for New {
     const INSTRUCTION: &'static str = "INST - New";
     const COST: u8 = 3;
 }
-
-
 
 /// `NewSpread` implements the Opcode Operation for `Opcode::NewSpread`
 ///

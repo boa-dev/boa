@@ -185,7 +185,9 @@ impl FunctionCompiler {
         if compiler.is_async() && !compiler.is_generator() {
             // 1. Let promiseCapability be ! NewPromiseCapability(%Promise%).
             let ic_index = compiler.push_async_call_ic();
-            compiler.bytecode.emit_create_promise_capability(ic_index.into());
+            compiler
+                .bytecode
+                .emit_create_promise_capability(ic_index.into());
 
             // 2. Let declResult be Completion(FunctionDeclarationInstantiation(functionObject, argumentsList)).
             //
