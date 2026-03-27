@@ -8,9 +8,9 @@
 //! [spec]: https://tc39.es/ecma402/#datetimeformat-objects
 
 use crate::{
-    Context, JsArgs, JsData, JsExpect, JsResult, JsString, JsValue, NativeFunction,
+    Context, JsArgs, JsBigInt, JsData, JsExpect, JsResult, JsString, JsValue, NativeFunction,
     builtins::{
-        BuiltInBuilder, BuiltInConstructor, BuiltInObject, IntrinsicObject,
+        Boolean, BuiltInBuilder, BuiltInConstructor, BuiltInObject, IntrinsicObject,
         date::utils::{
             date_from_time, hour_from_time, min_from_time, month_from_time, ms_from_time,
             sec_from_time, time_clip, year_from_time,
@@ -958,6 +958,7 @@ fn partition_date_time_pattern(
     x: &JsObject,
     context: &mut Context,
 ) -> JsResult<JsObject> {
+    let format_record = handle_date_time_value(&dtf, x, context)?;
     todo!()
 }
 
@@ -1007,4 +1008,30 @@ fn is_temporal_object(value: &JsValue) -> bool {
     }
     // 3. Return true.
     true
+}
+
+/// 15.6.22 HandleDateTimeValue
+fn handle_date_time_value(
+    dtf: &DateTimeFormat,
+    x: &JsObject,
+    context: &mut Context,
+) -> JsResult<ValueFormatRecord> {
+    // if JsValue::from(x.clone()).is_number() {
+    // } else
+    if x.is::<Instant>() {
+        // 15.6.20 HandleDateTimeTemporalInstant ( dateTimeFormat, instant )
+        let format = dtf.temporal_instant_format;
+        return Ok(ValueFormatRecord {
+            format,
+            epoch_nanoseconds: JsBigInt::from(
+                x.downcast_ref::<Instant>()
+                    .unwrap()
+                    .inner
+                    .epoch_nanoseconds()
+                    .as_i128(),
+            ),
+            is_plain: Boolean::from(false),
+        });
+    }
+    Err(js_error!(TypeError: "Object is ZonedDateTime"))
 }
