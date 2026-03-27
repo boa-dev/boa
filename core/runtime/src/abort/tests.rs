@@ -118,6 +118,51 @@ fn add_event_listener_fires_on_abort() {
 }
 
 #[test]
+fn add_event_listener_ignores_unknown_event_names() {
+    run_test_actions([
+        TestAction::run(
+            r"
+            let ctrl = new AbortController();
+            let called = false;
+            ctrl.signal.addEventListener('nope', function() {
+                called = true;
+            });
+            ctrl.abort();
+            ",
+        ),
+        TestAction::inspect_context(|ctx| {
+            ctx.run_jobs().unwrap();
+        }),
+        TestAction::run(
+            r"
+            if (called) {
+                throw new Error('unknown event listener should not fire');
+            }
+            ",
+        ),
+    ]);
+}
+
+#[test]
+fn add_event_listener_ignores_unknown_event_names_after_abort() {
+    run_test_actions([TestAction::run(
+        r"
+        let ctrl = new AbortController();
+        ctrl.abort();
+
+        let called = false;
+        ctrl.signal.addEventListener('nope', function() {
+            called = true;
+        });
+
+        if (called) {
+            throw new Error('unknown event listener should not fire after abort');
+        }
+        ",
+    )]);
+}
+
+#[test]
 fn multiple_listeners() {
     run_test_actions([
         TestAction::run(

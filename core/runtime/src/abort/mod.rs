@@ -159,7 +159,7 @@ impl JsAbortSignal {
         context: &mut Context,
     ) -> JsResult<()> {
         if event_type.to_std_string_escaped() != "abort" {
-            return Err(js_error!(TypeError: "AbortSignal only supports the 'abort' event type"));
+            return Ok(());
         }
         if self.aborted.get() {
             callback.call(&JsValue::undefined(), &[], context)?;
