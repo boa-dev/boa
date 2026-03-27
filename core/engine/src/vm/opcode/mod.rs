@@ -1835,12 +1835,20 @@ generate_opcodes! {
     /// - Stack: this, func, argument_1, ... argument_n **=>** result
     Call { argument_count: IndexOperand },
 
+    /// Call an arrow function (specialized fast-path).
+    ///
+    /// - Operands:
+    ///   - argument_count: `IndexOperand`
+    /// - Stack: this, func, argument_1, ... argument_n **=>** result
+    CallArrow { argument_count: IndexOperand },
+
     /// Call a function where the arguments contain spreads.
     ///
-    /// Operands:
+    /// - Operands:
+    ///   - index: `IndexOperand`
     ///
     /// Stack: this, func, arguments_array **=>** result
-    CallSpread,
+    CallSpread { index: IndexOperand },
 
     /// Call construct on a function.
     ///
@@ -2062,7 +2070,11 @@ generate_opcodes! {
     AsyncGeneratorYield { src: RegisterOperand },
 
     /// Create a promise capacity for an async function, if not already set.
-    CreatePromiseCapability,
+    /// Create a promise capacity for an async function.
+    ///
+    /// - Operands:
+    ///   - index: `IndexOperand`
+    CreatePromiseCapability { index: IndexOperand },
 
     /// Stops the current async function and schedules it to resume later.
     ///
@@ -2257,6 +2269,4 @@ generate_opcodes! {
     Reserved58 => Reserved,
     /// Reserved [`Opcode`].
     Reserved59 => Reserved,
-    /// Reserved [`Opcode`].
-    Reserved60 => Reserved,
 }

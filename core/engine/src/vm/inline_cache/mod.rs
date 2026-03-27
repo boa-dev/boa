@@ -6,7 +6,7 @@ use boa_gc::GcRefCell;
 use boa_macros::{Finalize, Trace};
 
 use crate::{
-    JsString,
+    JsValue, JsString,
     object::shape::{Shape, WeakShape, slot::Slot},
 };
 
@@ -110,5 +110,38 @@ impl InlineCache {
         }
 
         result
+    }
+}
+
+/// A cached entry for a spread call.
+#[derive(Clone, Debug, Trace, Finalize)]
+pub(crate) struct CallSpreadCache {
+    /// The cached arguments.
+    pub(crate) arguments: GcRefCell<Option<(usize, Vec<JsValue>)>>,
+}
+
+impl CallSpreadCache {
+    /// Creates a new `CallSpreadCache`.
+    pub(crate) fn new() -> Self {
+        Self {
+            arguments: GcRefCell::new(None),
+        }
+    }
+}
+
+/// A cached entry for an async call.
+#[derive(Clone, Debug, Trace, Finalize)]
+pub(crate) struct AsyncCallCache {
+    #[allow(dead_code)]
+    #[unsafe_ignore_trace]
+    pub(crate) placeholder: Cell<bool>,
+}
+
+impl AsyncCallCache {
+    /// Creates a new `AsyncCallCache`.
+    pub(crate) fn new() -> Self {
+        Self {
+            placeholder: Cell::new(false),
+        }
     }
 }

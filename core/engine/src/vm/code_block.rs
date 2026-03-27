@@ -17,8 +17,8 @@ use itertools::Itertools;
 use std::{cell::Cell, fmt::Display, fmt::Write as _};
 use thin_vec::ThinVec;
 
+use crate::vm::{AsyncCallCache, CallSpreadCache, InlineCache};
 use super::{
-    InlineCache,
     opcode::{Address, Bytecode, Instruction, InstructionIterator},
     source_info::{SourceInfo, SourceMap, SourcePath},
 };
@@ -159,6 +159,10 @@ pub struct CodeBlock {
     /// inline caching
     pub(crate) ic: Box<[InlineCache]>,
 
+    pub(crate) call_spread_ic: Box<[CallSpreadCache]>,
+
+    pub(crate) async_call_ic: Box<[AsyncCallCache]>,
+
     /// Bytecode to source code mapping.
     pub(crate) source_info: SourceInfo,
 
@@ -193,6 +197,8 @@ impl CodeBlock {
             parameter_length: 0,
             handlers: ThinVec::default(),
             ic: Box::default(),
+            call_spread_ic: Box::default(),
+            async_call_ic: Box::default(),
             source_info: SourceInfo::new(
                 SourceMap::new(Box::default(), SourcePath::None),
                 name,
@@ -509,6 +515,7 @@ impl CodeBlock {
                 format!("scope_index:{scope_index}")
             }
             Instruction::Call { argument_count }
+            | Instruction::CallArrow { argument_count }
             | Instruction::New { argument_count }
             | Instruction::SuperCall { argument_count } => {
                 format!("argument_count:{argument_count}")
@@ -864,17 +871,17 @@ impl CodeBlock {
             | Instruction::CheckReturn
             | Instruction::Return
             | Instruction::AsyncGeneratorClose
-            | Instruction::CreatePromiseCapability
             | Instruction::PopEnvironment
             | Instruction::IncrementLoopIteration
             | Instruction::IteratorNext
             | Instruction::SuperCallDerived
-            | Instruction::CallSpread
             | Instruction::NewSpread
             | Instruction::SuperCallSpread
             | Instruction::PopPrivateEnvironment
             | Instruction::Generator
             | Instruction::AsyncGenerator => String::new(),
+            Instruction::CallSpread { index } => format!("index:{index}"),
+            Instruction::CreatePromiseCapability { index } => format!("index:{index}"),
             Instruction::Reserved1
             | Instruction::Reserved2
             | Instruction::Reserved3
@@ -933,8 +940,7 @@ impl CodeBlock {
             | Instruction::Reserved56
             | Instruction::Reserved57
             | Instruction::Reserved58
-            | Instruction::Reserved59
-            | Instruction::Reserved60 => unreachable!("Reserved opcodes are unreachable"),
+            | Instruction::Reserved59 => unreachable!("Reserved opcodes are unreachable"),
         }
     }
 }
