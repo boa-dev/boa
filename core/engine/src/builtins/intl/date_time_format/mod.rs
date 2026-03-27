@@ -1010,6 +1010,13 @@ fn is_temporal_object(value: &JsValue) -> bool {
     true
 }
 
+/// 15.6.14 Value Format Records
+struct ValueFormatRecord {
+    format: DateTimeFormatRecord,
+    epoch_nanoseconds: JsBigInt,
+    is_plain: bool,
+}
+
 /// 15.6.22 HandleDateTimeValue
 fn handle_date_time_value(
     dtf: &DateTimeFormat,
@@ -1030,7 +1037,7 @@ fn handle_date_time_value(
                     .epoch_nanoseconds()
                     .as_i128(),
             ),
-            is_plain: Boolean::from(false),
+            is_plain: false,
         });
     }
     Err(js_error!(TypeError: "Object is ZonedDateTime"))
