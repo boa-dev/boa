@@ -227,7 +227,7 @@ impl PromiseCapability {
     ///  - [ECMAScript reference][spec]
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-newpromisecapability
-
+    ///
     /// `NewPromiseCapability ( C )`
     /// Fast path for creating a promise capability for internal VM use (async functions).
     /// Bypasses the executor closure and construct call.

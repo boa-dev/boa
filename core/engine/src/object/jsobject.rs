@@ -139,7 +139,7 @@ impl JsObject {
     #[inline]
     #[must_use]
     pub fn addr(&self) -> usize {
-        let ptr: *const _ = &*self.inner;
+        let ptr: *const _ = &raw const *self.inner;
         ptr as usize
     }
 

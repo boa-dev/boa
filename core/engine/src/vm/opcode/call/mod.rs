@@ -199,21 +199,21 @@ impl Call {
 
         // --- PROTOTYPE: Call Opcode Specialization (Self-Patching) ---
         // If we detect an arrow function, we patch this call site to use CallArrow.
-        if let Some(function) = object.downcast_ref::<OrdinaryFunction>() {
-            if function.code.this_mode == ThisMode::Lexical {
-                let pc = context.vm.frame().pc as usize;
-                // The opcode is at pc - size_of(opcode) - size_of(argument_count).
-                // Or we can just look back 5 bytes (1 for opcode, 4 for u32 IndexOperand).
-                if pc >= 5 {
-                    let opcode_pos = pc - 5;
-                    let bytes = &context.vm.frame().code_block.bytecode.bytes;
-                    // SAFETY: We are in the middle of executing this bytecode.
-                    // This is a prototype for performance gains.
-                    unsafe {
-                        let bytes_ptr = bytes.as_ptr() as *mut u8;
-                        if *bytes_ptr.add(opcode_pos) == Opcode::Call as u8 {
-                            *bytes_ptr.add(opcode_pos) = Opcode::CallArrow as u8;
-                        }
+        if let Some(function) = object.downcast_ref::<OrdinaryFunction>()
+            && function.code.this_mode == ThisMode::Lexical
+        {
+            let pc = context.vm.frame().pc as usize;
+            // The opcode is at pc - size_of(opcode) - size_of(argument_count).
+            // Or we can just look back 5 bytes (1 for opcode, 4 for u32 IndexOperand).
+            if pc >= 5 {
+                let opcode_pos = pc - 5;
+                let bytes = &context.vm.frame().code_block.bytecode.bytes;
+                // SAFETY: We are in the middle of executing this bytecode.
+                // This is a prototype for performance gains.
+                unsafe {
+                    let bytes_ptr = bytes.as_ptr().cast_mut();
+                    if *bytes_ptr.add(opcode_pos) == Opcode::Call as u8 {
+                        *bytes_ptr.add(opcode_pos) = Opcode::CallArrow as u8;
                     }
                 }
             }

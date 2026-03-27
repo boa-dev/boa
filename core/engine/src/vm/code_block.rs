@@ -643,9 +643,6 @@ impl CodeBlock {
             } => {
                 format!("object:{object}, proto:{proto}, value:{value}, name_index:{name_index}")
             }
-            Instruction::ThrowMutateImmutable { index } => {
-                format!("index:{index}")
-            }
             Instruction::DeletePropertyByName { object, name_index }
             | Instruction::GetMethod { object, name_index } => {
                 format!("object:{object}, name_index:{name_index}")
@@ -880,8 +877,11 @@ impl CodeBlock {
             | Instruction::PopPrivateEnvironment
             | Instruction::Generator
             | Instruction::AsyncGenerator => String::new(),
-            Instruction::CallSpread { index } => format!("index:{index}"),
-            Instruction::CreatePromiseCapability { index } => format!("index:{index}"),
+            Instruction::ThrowMutateImmutable { index }
+            | Instruction::CallSpread { index }
+            | Instruction::CreatePromiseCapability { index } => {
+                format!("index:{index}")
+            }
             Instruction::Reserved1
             | Instruction::Reserved2
             | Instruction::Reserved3
