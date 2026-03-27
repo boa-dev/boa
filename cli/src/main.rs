@@ -664,7 +664,7 @@ fn main() -> Result<()> {
         }
         // channel was closed, so clear the executor queue to abort all
         // pending jobs and exit.
-        exec.clear();
+        exec.stop();
         Ok(JsValue::undefined())
     });
     context.enqueue_job(eval_loop.into());
