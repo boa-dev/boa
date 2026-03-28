@@ -21,7 +21,10 @@ impl ConcatToString {
             let val = context.vm.get_register(value.into()).clone();
             strings.push(val.to_string(context)?);
         }
-        let s = JsString::concat_array(&strings.iter().map(JsString::as_str).collect::<Vec<_>>());
+        let s = JsString::concat_array(&strings.iter().map(JsString::as_str).collect::<Vec<_>>())
+            .map_err(|_| {
+                crate::error::JsNativeError::range().with_message("Invalid string length")
+            })?;
         context.vm.set_register(string.into(), s.into());
         Ok(())
     }

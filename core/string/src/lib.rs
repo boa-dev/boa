@@ -48,6 +48,10 @@ use std::{
 };
 use vtable::JsStringVTable;
 
+/// Maximum string length allowed (u32::MAX).
+/// This prevents OOM crashes from exponential string growth during concatenation.
+pub const MAX_STRING_LENGTH: usize = u32::MAX as usize;
+
 fn alloc_overflow() -> ! {
     panic!("detected overflow during string allocation")
 }
@@ -628,23 +632,33 @@ impl JsString {
     }
 
     /// Creates a new [`JsString`] from the concatenation of `x` and `y`.
+    ///
+    /// # Errors
+    ///
+    /// Returns an error if the resulting string would exceed [`MAX_STRING_LENGTH`].
     #[inline]
-    #[must_use]
-    pub fn concat(x: JsStr<'_>, y: JsStr<'_>) -> Self {
+    pub fn concat(x: JsStr<'_>, y: JsStr<'_>) -> Result<Self, &'static str> {
         Self::concat_array(&[x, y])
     }
 
     /// Creates a new [`JsString`] from the concatenation of every element of
     /// `strings`.
+    ///
+    /// # Errors
+    ///
+    /// Returns an error if the resulting string would exceed [`MAX_STRING_LENGTH`].
     #[inline]
-    #[must_use]
-    pub fn concat_array(strings: &[JsStr<'_>]) -> Self {
+    pub fn concat_array(strings: &[JsStr<'_>]) -> Result<Self, &'static str> {
         let mut latin1_encoding = true;
         let mut full_count = 0usize;
         for string in strings {
             let Some(sum) = full_count.checked_add(string.len()) else {
-                alloc_overflow()
+                return Err("Invalid string length");
             };
+            // Check if the resulting string would exceed the maximum length
+            if sum > MAX_STRING_LENGTH {
+                return Err("Invalid string length");
+            }
             if !string.is_latin1() {
                 latin1_encoding = false;
             }
@@ -707,7 +721,7 @@ impl JsString {
             Self { ptr: ptr.cast() }
         };
 
-        StaticJsStrings::get_string(&string.as_str()).unwrap_or(string)
+        Ok(StaticJsStrings::get_string(&string.as_str()).unwrap_or(string))
     }
 
     /// Creates a new [`JsString`] from `data`, without checking if the string is in the interner.
@@ -853,6 +867,7 @@ impl From<&[JsString]> for JsString {
     #[inline]
     fn from(value: &[JsString]) -> Self {
         Self::concat_array(&value.iter().map(Self::as_str).collect::<Vec<_>>()[..])
+            .expect("string concatenation overflow")
     }
 }
 
@@ -860,6 +875,7 @@ impl<const N: usize> From<&[JsString; N]> for JsString {
     #[inline]
     fn from(value: &[JsString; N]) -> Self {
         Self::concat_array(&value.iter().map(Self::as_str).collect::<Vec<_>>()[..])
+            .expect("string concatenation overflow")
     }
 }
 

@@ -1,11 +1,10 @@
 use crate::{
-    Context, JsBigInt, JsResult, JsValue, JsVariant,
+    Context, JsBigInt, JsResult, JsString, JsValue, JsVariant,
     builtins::{
         Number,
         number::{f64_to_int32, f64_to_uint32},
     },
     error::JsNativeError,
-    js_string,
     value::{JsSymbol, Numeric, PreferredType},
 };
 
@@ -24,15 +23,29 @@ impl JsValue {
             (JsVariant::BigInt(x), JsVariant::BigInt(y)) => Self::new(JsBigInt::add(&x, &y)),
 
             // String concat
-            (JsVariant::String(x), JsVariant::String(y)) => Self::from(js_string!(&x, &y)),
+            (JsVariant::String(x), JsVariant::String(y)) => {
+                let result = JsString::concat(x.as_str(), y.as_str())
+                    .map_err(|_| JsNativeError::range().with_message("Invalid string length"))?;
+                Self::from(result)
+            }
 
             // Slow path:
             (_, _) => {
                 let x = self.to_primitive(context, PreferredType::Default)?;
                 let y = other.to_primitive(context, PreferredType::Default)?;
                 match (x.variant(), y.variant()) {
-                    (JsVariant::String(x), _) => Self::from(js_string!(&x, &y.to_string(context)?)),
-                    (_, JsVariant::String(y)) => Self::from(js_string!(&x.to_string(context)?, &y)),
+                    (JsVariant::String(x), _) => {
+                        let y_str = y.to_string(context)?;
+                        let result = JsString::concat(x.as_str(), y_str.as_str())
+                            .map_err(|_| JsNativeError::range().with_message("Invalid string length"))?;
+                        Self::from(result)
+                    }
+                    (_, JsVariant::String(y)) => {
+                        let x_str = x.to_string(context)?;
+                        let result = JsString::concat(x_str.as_str(), y.as_str())
+                            .map_err(|_| JsNativeError::range().with_message("Invalid string length"))?;
+                        Self::from(result)
+                    }
                     (_, _) => {
                         match (x.to_numeric(context)?, y.to_numeric(context)?) {
                             (Numeric::Number(x), Numeric::Number(y)) => Self::new(x + y),
