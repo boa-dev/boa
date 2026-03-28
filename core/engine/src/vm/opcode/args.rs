@@ -295,7 +295,11 @@ mod tests {
 
     #[test]
     fn test_tuple_round_trips() {
+        round_trip(&(0u8,));
         round_trip(&(0u8, 1u8));
+        round_trip(&(0u8, 1u8, 2u8));
+        round_trip(&(0u8, 1u8, 2u8, 3u8));
+        round_trip(&(0u8, 1u8, 2u8, 3u8, 4u8));
         round_trip(&(0u32, 1u32));
         let tuple = (Address::new(0), RegisterOperand::new(1));
         round_trip_eq(&tuple, |a, b| {
@@ -340,5 +344,93 @@ mod tests {
     fn decode_truncated_buffer_panics() {
         let bytes = [0u8; 2];
         let _ = u32::decode(&bytes, 0);
+    }
+
+    #[test]
+    #[should_panic(expected = "buffer too small")]
+    fn test_address_decode_too_few_bytes() {
+        Address::decode(&[0u8; 3], 0);
+    }
+
+    #[test]
+    #[should_panic(expected = "buffer too small")]
+    fn test_register_operand_decode_too_few_bytes() {
+        RegisterOperand::decode(&[0u8; 3], 0);
+    }
+
+    #[test]
+    #[should_panic(expected = "buffer too small")]
+    fn test_varying_operand_decode_too_few_bytes() {
+        IndexOperand::decode(&[0u8; 3], 0);
+    }
+
+    #[test]
+    #[should_panic(expected = "buffer too small")]
+    fn test_tuple1_decode_too_few_bytes() {
+        <(u32,)>::decode(&[0u8; 3], 0);
+    }
+
+    #[test]
+    #[should_panic(expected = "buffer too small")]
+    fn test_tuple2_decode_too_few_bytes() {
+        <(u32, u32)>::decode(&[0u8; 7], 0);
+    }
+
+    #[test]
+    #[should_panic(expected = "buffer too small")]
+    fn test_tuple3_decode_too_few_bytes() {
+        <(u32, u32, u32)>::decode(&[0u8; 11], 0);
+    }
+
+    #[test]
+    #[should_panic(expected = "buffer too small")]
+    fn test_tuple4_decode_too_few_bytes() {
+        <(u32, u32, u32, u32)>::decode(&[0u8; 15], 0);
+    }
+
+    #[test]
+    #[should_panic(expected = "buffer too small")]
+    fn test_tuple5_decode_too_few_bytes() {
+        <(u32, u32, u32, u32, u32)>::decode(&[0u8; 19], 0);
+    }
+
+    #[test]
+    #[should_panic(expected = "buffer too small")]
+    fn test_thin_vec_decode_length_too_few_bytes() {
+        <ThinVec<u32>>::decode(&[0u8; 3], 0);
+    }
+
+    #[test]
+    #[should_panic(expected = "buffer too small")]
+    fn test_thin_vec_decode_items_too_few_bytes() {
+        let mut bytes = Vec::new();
+        2u32.encode(&mut bytes);
+        bytes.push(0);
+        <ThinVec<u32>>::decode(&bytes, 0);
+    }
+
+    macro_rules! test_primitive_decode_panics {
+        ($($name:ident $type:ty, $size:expr);* $(;)?) => {
+            $(
+                #[test]
+                #[should_panic(expected = "buffer too small")]
+                fn $name() {
+                    let bytes = [0u8; $size];
+                    <$type>::decode(&bytes, 0);
+                }
+            )*
+        };
+    }
+
+    test_primitive_decode_panics! {
+        test_u8_decode_too_few_bytes u8, 0;
+        test_i8_decode_too_few_bytes i8, 0;
+        test_u16_decode_too_few_bytes u16, 1;
+        test_i16_decode_too_few_bytes i16, 1;
+        test_u32_decode_too_few_bytes u32, 3;
+        test_i32_decode_too_few_bytes i32, 3;
+        test_u64_decode_too_few_bytes u64, 7;
+        test_f32_decode_too_few_bytes f32, 3;
+        test_f64_decode_too_few_bytes f64, 7;
     }
 }
