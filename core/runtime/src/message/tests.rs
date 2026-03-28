@@ -54,6 +54,49 @@ fn basic() {
 }
 
 #[test]
+fn basic_error_message() {
+    let context = &mut Context::default();
+
+    let sender = OnMessageQueueSender::create(context);
+    message::register(sender, None, context).unwrap();
+
+    run_test_actions_with(
+        [
+            TestAction::harness(),
+            TestAction::run(
+                r#"
+                let latestMessage = null;
+                function onMessageQueue(message) {
+                    latestMessage = message;
+                }
+
+                const message = new Error("boom");
+                postMessage(message);
+                assert(latestMessage === null);
+            "#,
+            ),
+            TestAction::inspect_context(move |context| {
+                drop(future::block_on(future::poll_once(
+                    context
+                        .downcast_job_executor::<SimpleJobExecutor>()
+                        .expect("")
+                        .run_jobs_async(&RefCell::new(context)),
+                )));
+            }),
+            TestAction::run(
+                r#"
+                assert(latestMessage instanceof Error);
+                assert(latestMessage !== message);
+                assertEq(latestMessage.name, "Error");
+                assertEq(latestMessage.message, "boom");
+            "#,
+            ),
+        ],
+        context,
+    );
+}
+
+#[test]
 fn shared_multi_thread() {
     let (sender, receiver) = std::sync::mpsc::channel::<OnMessageQueueSender>();
 

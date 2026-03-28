@@ -96,7 +96,6 @@ enum ValueStoreInner {
     Date(f64),
 
     /// Allowed error types (see the structured clone algorithm page).
-    #[expect(unused)]
     Error {
         kind: ErrorKind,
         name: StringStore,
