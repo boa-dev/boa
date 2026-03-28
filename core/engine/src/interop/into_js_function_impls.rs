@@ -3,7 +3,7 @@
 use super::private::IntoJsFunctionSealed;
 use super::{IntoJsFunctionCopied, UnsafeIntoJsFunction};
 use crate::interop::{JsRest, TryFromJsArgument};
-use crate::{Context, JsError, NativeFunction, TryIntoJsResult, js_string};
+use crate::{Context, NativeFunction, TryIntoJsResult};
 use std::cell::RefCell;
 
 /// A token to represent the context argument in the function signature.
@@ -59,7 +59,7 @@ macro_rules! impl_into_js_function {
                         match s.try_borrow_mut() {
                             Ok(mut r) => r( $($id,)* ).try_into_js_result(ctx),
                             Err(_) => {
-                                Err(JsError::from_opaque(js_string!("recursive calls to this function not supported").into()))
+                                Err($crate::js_error!("recursive calls to this function not supported"))
                             }
                         }
                     })
@@ -85,7 +85,7 @@ macro_rules! impl_into_js_function {
                         match s.try_borrow_mut() {
                             Ok(mut r) => r( $($id,)* rest.into() ).try_into_js_result(ctx),
                             Err(_) => {
-                                Err(JsError::from_opaque(js_string!("recursive calls to this function not supported").into()))
+                                Err($crate::js_error!("recursive calls to this function not supported"))
                             }
                         }
                     })
