@@ -665,6 +665,12 @@ impl JsString {
             full_count = sum;
         }
 
+        // For UTF-16 strings, also check that the byte count doesn't overflow usize
+        // (each character is 2 bytes). This is important for 32-bit systems.
+        if !latin1_encoding && full_count.checked_mul(2).is_none() {
+            return Err("Invalid string length");
+        }
+
         let (ptr, data_offset) = if latin1_encoding {
             let p = SequenceString::<Latin1>::allocate(full_count);
             (p.cast::<u8>(), size_of::<SequenceString<Latin1>>())
