@@ -48,7 +48,7 @@ use std::{
 };
 use vtable::JsStringVTable;
 
-/// Maximum string length allowed (u32::MAX).
+/// Maximum string length allowed (`u32::MAX`).
 /// This prevents OOM crashes from exponential string growth during concatenation.
 pub const MAX_STRING_LENGTH: usize = u32::MAX as usize;
 

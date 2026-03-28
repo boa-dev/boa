@@ -23,8 +23,8 @@ impl ConcatToString {
         }
         let s = JsString::concat_array(&strings.iter().map(JsString::as_str).collect::<Vec<_>>())
             .map_err(|_| {
-                crate::error::JsNativeError::range().with_message("Invalid string length")
-            })?;
+            crate::error::JsNativeError::range().with_message("Invalid string length")
+        })?;
         context.vm.set_register(string.into(), s.into());
         Ok(())
     }

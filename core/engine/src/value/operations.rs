@@ -36,14 +36,18 @@ impl JsValue {
                 match (x.variant(), y.variant()) {
                     (JsVariant::String(x), _) => {
                         let y_str = y.to_string(context)?;
-                        let result = JsString::concat(x.as_str(), y_str.as_str())
-                            .map_err(|_| JsNativeError::range().with_message("Invalid string length"))?;
+                        let result =
+                            JsString::concat(x.as_str(), y_str.as_str()).map_err(|_| {
+                                JsNativeError::range().with_message("Invalid string length")
+                            })?;
                         Self::from(result)
                     }
                     (_, JsVariant::String(y)) => {
                         let x_str = x.to_string(context)?;
-                        let result = JsString::concat(x_str.as_str(), y.as_str())
-                            .map_err(|_| JsNativeError::range().with_message("Invalid string length"))?;
+                        let result =
+                            JsString::concat(x_str.as_str(), y.as_str()).map_err(|_| {
+                                JsNativeError::range().with_message("Invalid string length")
+                            })?;
                         Self::from(result)
                     }
                     (_, _) => {
