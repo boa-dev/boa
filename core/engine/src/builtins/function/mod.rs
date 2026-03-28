@@ -187,6 +187,61 @@ pub struct OrdinaryFunction {
     private_methods: ThinVec<(PrivateName, PrivateElement)>,
 }
 
+/// Specialized representation of a JavaScript Arrow Function Object.
+///
+/// Arrow functions have a lexical `this` and cannot be used as constructors.
+#[derive(Debug, Trace, Finalize)]
+pub struct ArrowFunction {
+    /// The code block containing the compiled function.
+    pub(crate) code: Gc<CodeBlock>,
+
+    /// The `[[Environment]]` internal slot.
+    pub(crate) environments: EnvironmentStack,
+
+    /// The `[[HomeObject]]` internal slot.
+    pub(crate) home_object: Option<JsObject>,
+
+    /// The `[[ScriptOrModule]]` internal slot.
+    pub(crate) script_or_module: Option<ActiveRunnable>,
+
+    /// The [`Realm`] the function is defined in.
+    pub(crate) realm: Realm,
+}
+
+impl ArrowFunction {
+    pub(crate) fn new(
+        code: Gc<CodeBlock>,
+        environments: EnvironmentStack,
+        script_or_module: Option<ActiveRunnable>,
+        realm: Realm,
+    ) -> Self {
+        Self {
+            code,
+            environments,
+            home_object: None,
+            script_or_module,
+            realm,
+        }
+    }
+
+    /// Gets the `Realm` from where this function originates.
+    #[must_use]
+    pub const fn realm(&self) -> &Realm {
+        &self.realm
+    }
+}
+
+impl JsData for ArrowFunction {
+    fn internal_methods(&self) -> &'static InternalObjectMethods {
+        static ARROW_FUNCTION_METHODS: InternalObjectMethods = InternalObjectMethods {
+            __call__: arrow_function_call,
+            ..ORDINARY_INTERNAL_METHODS
+        };
+
+        &ARROW_FUNCTION_METHODS
+    }
+}
+
 impl JsData for OrdinaryFunction {
     fn internal_methods(&self) -> &'static InternalObjectMethods {
         static FUNCTION_METHODS: InternalObjectMethods = InternalObjectMethods {
@@ -1087,6 +1142,77 @@ pub(crate) fn function_call(
         frame.environments.push_function(
             scope,
             FunctionSlots::new(this, function_object.clone(), None),
+            global,
+        );
+    }
+
+    Ok(CallValue::Ready)
+}
+
+/// Specialized call for arrow functions.
+///
+/// Bypasses constructor checks and this-binding logic (arrows always have lexical this).
+pub(crate) fn arrow_function_call(
+    function_object: &JsObject,
+    argument_count: usize,
+    context: &mut InternalMethodCallContext<'_>,
+) -> JsResult<CallValue> {
+    context.check_runtime_limits()?;
+
+    let function = function_object
+        .downcast_ref::<ArrowFunction>()
+        .js_expect("not an arrow function")?;
+    let realm = function.realm.clone();
+
+    let code = function.code.clone();
+    let environments = function.environments.clone();
+    let script_or_module = function.script_or_module.clone();
+
+    drop(function);
+
+    let env_fp = environments.len() as u32;
+
+    let frame = CallFrame::new(code, script_or_module, environments, realm)
+        .with_argument_count(argument_count as u32)
+        .with_env_fp(env_fp);
+
+    #[cfg(feature = "native-backtrace")]
+    {
+        let native_source_info = context.native_source_info();
+        context
+            .vm
+            .shadow_stack
+            .patch_last_native(native_source_info);
+    }
+
+    context.vm.push_frame(frame);
+    context.vm.set_return_value(JsValue::undefined());
+
+    let mut last_env = 0;
+
+    let has_binding_identifier = context.vm.frame().code_block().has_binding_identifier();
+    let has_function_scope = context.vm.frame().code_block().has_function_scope();
+
+    if has_binding_identifier {
+        let frame = context.vm.frame_mut();
+        let global = frame.realm.environment();
+        let index = frame.environments.push_lexical(1, global);
+        frame.environments.put_lexical_value(
+            BindingLocatorScope::Stack(index),
+            0,
+            function_object.clone().into(),
+            global,
+        );
+        last_env += 1;
+    }
+
+    if has_function_scope {
+        let scope = context.vm.frame().code_block().constant_scope(last_env);
+        let frame = context.vm.frame_mut();
+        let global = frame.realm.environment();
+        frame.environments.push_function(
+            scope,
+            FunctionSlots::new(ThisBindingStatus::Lexical, function_object.clone(), None),
             global,
         );
     }

@@ -6,7 +6,7 @@ use crate::{
     Context, JsBigInt, JsString, JsValue, SpannedSourceText,
     builtins::{
         OrdinaryObject,
-        function::{OrdinaryFunction, ThisMode},
+        function::{ArrowFunction, OrdinaryFunction, ThisMode},
     },
     object::JsObject,
 };
@@ -1104,12 +1104,16 @@ pub(crate) fn create_function_object(
 
     let is_async = code.is_async();
     let is_generator = code.is_generator();
-    let function = OrdinaryFunction::new(
-        code,
-        context.vm.frame().environments.snapshot_for_closure(),
-        script_or_module,
-        context.realm().clone(),
-    );
+
+    let environments = context.vm.frame().environments.snapshot_for_closure();
+    let realm = context.realm().clone();
+
+    // Arrows don't have a prototype property and have lexical this.
+    // We can use this to specialize the object type.
+    let is_arrow = !code.has_prototype_property()
+        && code.this_mode == ThisMode::Lexical
+        && !is_async
+        && !is_generator;
 
     let templates = context.intrinsics().templates();
 
@@ -1151,7 +1155,17 @@ pub(crate) fn create_function_object(
 
     template.set_prototype(prototype);
 
-    let constructor = template.create(function, storage);
+    let constructor = if is_arrow {
+        template.create(
+            ArrowFunction::new(code, environments, script_or_module, realm),
+            storage,
+        )
+    } else {
+        template.create(
+            OrdinaryFunction::new(code, environments, script_or_module, realm),
+            storage,
+        )
+    };
 
     if let Some(constructor_prototype) = &constructor_prototype {
         constructor_prototype.borrow_mut().properties_mut().storage[0] = constructor.clone().into();
@@ -1173,14 +1187,24 @@ pub(crate) fn create_function_object_fast(code: Gc<CodeBlock>, context: &mut Con
     let is_async = code.is_async();
     let is_generator = code.is_generator();
     let has_prototype_property = code.has_prototype_property();
-    let function = OrdinaryFunction::new(
-        code,
-        context.vm.frame().environments.snapshot_for_closure(),
-        script_or_module,
-        context.realm().clone(),
-    );
+
+    let environments = context.vm.frame().environments.snapshot_for_closure();
+    let realm = context.realm().clone();
+
+    // Arrows don't have a prototype property and have lexical this.
+    // We can use this to specialize the object type.
+    let is_arrow = !has_prototype_property
+        && code.this_mode == ThisMode::Lexical
+        && !is_async
+        && !is_generator;
 
     if is_generator {
+        let function = OrdinaryFunction::new(
+            code.clone(),
+            environments.clone(),
+            script_or_module.clone(),
+            realm.clone(),
+        );
         let prototype = JsObject::from_proto_and_data_with_shared_shape(
             context.root_shape(),
             if is_async {
@@ -1198,18 +1222,37 @@ pub(crate) fn create_function_object_fast(code: Gc<CodeBlock>, context: &mut Con
 
         template.create(function, vec![length, name, prototype.into()])
     } else if is_async {
+        let function = OrdinaryFunction::new(
+            code.clone(),
+            environments.clone(),
+            script_or_module.clone(),
+            realm.clone(),
+        );
         context
             .intrinsics()
             .templates()
             .async_function()
             .create(function, vec![length, name])
     } else if !has_prototype_property {
-        context
-            .intrinsics()
-            .templates()
-            .function()
-            .create(function, vec![length, name])
+        let template = context.intrinsics().templates().function();
+        if is_arrow {
+            template.create(
+                ArrowFunction::new(code, environments, script_or_module, realm),
+                vec![length, name],
+            )
+        } else {
+            template.create(
+                OrdinaryFunction::new(code, environments, script_or_module, realm),
+                vec![length, name],
+            )
+        }
     } else {
+        let function = OrdinaryFunction::new(
+            code.clone(),
+            environments.clone(),
+            script_or_module.clone(),
+            realm.clone(),
+        );
         let prototype = context
             .intrinsics()
             .templates()
