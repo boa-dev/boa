@@ -68,7 +68,10 @@ fn json_import_attributes_are_part_of_the_cache_key() {
     let result = module.load_link_evaluate(&mut context);
 
     context.run_jobs().unwrap();
-    assert_eq!(result.state(), PromiseState::Fulfilled(JsValue::undefined()));
+    assert_eq!(
+        result.state(),
+        PromiseState::Fulfilled(JsValue::undefined())
+    );
 
     let value = module
         .namespace(&mut context)
@@ -88,7 +91,9 @@ fn json_import_attributes_are_part_of_the_cache_key() {
 
     match p_obj.state() {
         PromiseState::Rejected(e) => {
-            let error = e.as_object().expect("expected rejection to be an Error object");
+            let error = e
+                .as_object()
+                .expect("expected rejection to be an Error object");
             let name = error.get(js_string!("name"), &mut context).unwrap();
             assert_eq!(name.as_string().unwrap(), js_string!("TypeError"));
             let message = error.get(js_string!("message"), &mut context).unwrap();
