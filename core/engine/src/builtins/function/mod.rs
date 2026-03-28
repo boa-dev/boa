@@ -12,7 +12,7 @@
 //! [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Function
 
 use crate::{
-    Context, JsArgs, JsExpect, JsResult, JsStr, JsString, JsValue, SpannedSourceText,
+    Context, JsArgs, JsError, JsExpect, JsResult, JsStr, JsString, JsValue, SpannedSourceText,
     builtins::{
         BuiltInBuilder, BuiltInConstructor, BuiltInObject, IntrinsicObject, OrdinaryObject,
     },
@@ -231,14 +231,61 @@ impl ArrowFunction {
     }
 }
 
-impl JsData for ArrowFunction {
-    fn internal_methods(&self) -> &'static InternalObjectMethods {
-        static ARROW_FUNCTION_METHODS: InternalObjectMethods = InternalObjectMethods {
-            __call__: arrow_function_call,
-            ..ORDINARY_INTERNAL_METHODS
-        };
+macro_rules! with_script_function {
+    ($obj:expr, $f:ident => $body:expr) => {
+        if let Some($f) = $obj.downcast_ref::<OrdinaryFunction>() {
+            $body
+        } else if let Some($f) = $obj.downcast_ref::<ArrowFunction>() {
+            $body
+        } else {
+            Err(JsNativeError::typ().with_message("not a function").into())
+        }
+    };
+}
 
-        &ARROW_FUNCTION_METHODS
+pub(crate) trait ScriptFunction {
+    fn codeblock(&self) -> Gc<CodeBlock>;
+    #[allow(dead_code)]
+    fn realm(&self) -> &Realm;
+    fn environments(&self) -> &EnvironmentStack;
+    fn script_or_module(&self) -> Option<&ActiveRunnable>;
+    #[allow(dead_code)]
+    fn home_object(&self) -> Option<&JsObject>;
+}
+
+impl ScriptFunction for OrdinaryFunction {
+    fn codeblock(&self) -> Gc<CodeBlock> {
+        self.code.clone()
+    }
+    fn realm(&self) -> &Realm {
+        &self.realm
+    }
+    fn environments(&self) -> &EnvironmentStack {
+        &self.environments
+    }
+    fn script_or_module(&self) -> Option<&ActiveRunnable> {
+        self.script_or_module.as_ref()
+    }
+    fn home_object(&self) -> Option<&JsObject> {
+        self.home_object.as_ref()
+    }
+}
+
+impl ScriptFunction for ArrowFunction {
+    fn codeblock(&self) -> Gc<CodeBlock> {
+        self.code.clone()
+    }
+    fn realm(&self) -> &Realm {
+        &self.realm
+    }
+    fn environments(&self) -> &EnvironmentStack {
+        &self.environments
+    }
+    fn script_or_module(&self) -> Option<&ActiveRunnable> {
+        self.script_or_module.as_ref()
+    }
+    fn home_object(&self) -> Option<&JsObject> {
+        self.home_object.as_ref()
     }
 }
 
@@ -283,8 +330,8 @@ impl OrdinaryFunction {
 
     /// Returns the codeblock of the function.
     #[must_use]
-    pub fn codeblock(&self) -> &CodeBlock {
-        &self.code
+    pub fn codeblock(&self) -> Gc<CodeBlock> {
+        self.code.clone()
     }
 
     /// Push a private environment to the function.
@@ -931,21 +978,20 @@ impl BuiltInFunctionObject {
             return Ok(js_string!("function () { [native code] }").into());
         }
 
-        let function = object
-            .downcast_ref::<OrdinaryFunction>()
-            .ok_or_else(|| JsNativeError::typ().with_message("not a function"))?;
+        let res: JsResult<JsValue> = with_script_function!(object, function => {
+            let code = function.codeblock();
+            if let Some(code_points) = code.source_info().text_spanned().to_code_points() {
+                return Ok(JsString::from(code_points).into());
+            }
 
-        let code = function.codeblock();
-        if let Some(code_points) = code.source_info().text_spanned().to_code_points() {
-            return Ok(JsString::from(code_points).into());
-        }
-
-        Ok(js_string!(
-            js_str!("function "),
-            code.name(),
-            js_str!("() { [native code] }")
-        )
-        .into())
+            Ok(js_string!(
+                js_str!("function "),
+                code.name(),
+                js_str!("() { [native code] }")
+            )
+            .into())
+        });
+        res
     }
 
     /// `Function.prototype [ @@hasInstance ] ( V )`
@@ -1045,27 +1091,31 @@ pub(crate) fn function_call(
 ) -> JsResult<CallValue> {
     context.check_runtime_limits()?;
 
-    let function = function_object
-        .downcast_ref::<OrdinaryFunction>()
-        .js_expect("not a function")?;
-    let realm = function.realm().clone();
-
-    if function.code.is_class_constructor() {
-        debug_assert!(
-            function.is_ordinary(),
-            "only ordinary functions can be classes"
-        );
-        return Err(JsNativeError::typ()
-            .with_message("class constructor cannot be invoked without 'new'")
-            .with_realm(realm)
-            .into());
-    }
-
-    let code = function.code.clone();
-    let environments = function.environments.clone();
-    let script_or_module = function.script_or_module.clone();
-
-    drop(function);
+    let (code, environments, script_or_module, realm): (
+        Gc<CodeBlock>,
+        EnvironmentStack,
+        Option<ActiveRunnable>,
+        Realm,
+    ) = with_script_function!(function_object, function => {
+        let realm = function.realm().clone();
+        if function.codeblock().is_class_constructor() {
+            return Err(JsNativeError::typ()
+                .with_message("class constructor cannot be invoked without 'new'")
+                .with_realm(realm)
+                .into());
+        }
+        Ok::<(
+            Gc<CodeBlock>,
+            EnvironmentStack,
+            Option<ActiveRunnable>,
+            Realm,
+        ), JsError>((
+            function.codeblock(),
+            function.environments().clone(),
+            function.script_or_module().cloned(),
+            realm,
+        ))
+    })?;
 
     let env_fp = environments.len() as u32;
 
@@ -1218,6 +1268,17 @@ pub(crate) fn arrow_function_call(
     }
 
     Ok(CallValue::Ready)
+}
+
+impl JsData for ArrowFunction {
+    fn internal_methods(&self) -> &'static InternalObjectMethods {
+        static ARROW_FUNCTION_METHODS: InternalObjectMethods = InternalObjectMethods {
+            __call__: arrow_function_call,
+            ..ORDINARY_INTERNAL_METHODS
+        };
+
+        &ARROW_FUNCTION_METHODS
+    }
 }
 
 /// Construct an instance of this object with the specified arguments.

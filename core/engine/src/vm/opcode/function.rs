@@ -1,6 +1,6 @@
 use crate::{
-    Context, JsExpect, JsResult, JsValue,
-    builtins::function::OrdinaryFunction,
+    Context, JsExpect, JsObject, JsResult, JsValue,
+    builtins::function::{ArrowFunction, OrdinaryFunction},
     vm::opcode::{IndexOperand, Operation, RegisterOperand},
 };
 
@@ -20,12 +20,17 @@ impl SetHomeObject {
         let function = context.vm.get_register(function.into());
         let home = context.vm.get_register(home.into());
 
-        function
-            .as_object()
-            .js_expect("must be object")?
-            .downcast_mut::<OrdinaryFunction>()
-            .js_expect("must be function object")?
-            .set_home_object(home.as_object().js_expect("must be object")?.clone());
+        let function_obj = function.as_object().js_expect("must be object")?;
+
+        let home_object = home.as_object().js_expect("must be object")?.clone();
+
+        if let Some(mut f) = function_obj.downcast_mut::<OrdinaryFunction>() {
+            f.set_home_object(home_object);
+        } else if let Some(mut f) = function_obj.downcast_mut::<ArrowFunction>() {
+            f.home_object = Some(home_object);
+        } else {
+            panic!("must be function object");
+        }
 
         Ok(())
     }
@@ -55,13 +60,17 @@ impl GetHomeObject {
     pub(crate) fn operation(function: RegisterOperand, context: &mut Context) -> JsResult<()> {
         let function_v = context.vm.get_register(function.into());
 
-        let home_object = function_v
-            .as_object()
-            .js_expect("must be object")?
-            .downcast_ref::<OrdinaryFunction>()
-            .js_expect("must be function object")?
-            .get_home_object()
-            .map_or_else(JsValue::null, |o| o.clone().into());
+        let function_obj = function_v.as_object().js_expect("must be object")?;
+
+        let home_object = if let Some(f) = function_obj.downcast_ref::<OrdinaryFunction>() {
+            f.get_home_object().cloned()
+        } else if let Some(f) = function_obj.downcast_ref::<ArrowFunction>() {
+            f.home_object.clone()
+        } else {
+            panic!("must be function object");
+        };
+
+        let home_object = home_object.map_or_else(JsValue::null, |o: JsObject| o.into());
 
         context.vm.set_register(function.into(), home_object);
         Ok(())

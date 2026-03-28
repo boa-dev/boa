@@ -10,8 +10,9 @@
 //! [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/eval
 
 use crate::{
-    Context, JsArgs, JsExpect, JsResult, JsString, JsValue, SpannedSourceText,
-    builtins::{BuiltInObject, function::OrdinaryFunction},
+    Context, JsArgs, JsResult, JsString, JsValue, SpannedSourceText,
+    builtins::BuiltInObject,
+    builtins::function::{ArrowFunction, OrdinaryFunction},
     bytecompiler::{ByteCompiler, prepare_eval_declaration_instantiation},
     context::intrinsics::Intrinsics,
     environments::SavedEnvironments,
@@ -147,12 +148,18 @@ impl Eval {
             // 10. If direct is true, then
             //     b. If thisEnvRec is a Function Environment Record, then
             Some(function_env) if direct => {
-                // i. Let F be thisEnvRec.[[FunctionObject]].
-                let function_object = function_env
-                    .slots()
-                    .function_object()
-                    .downcast_ref::<OrdinaryFunction>()
-                    .js_expect("must be function object")?;
+                let function_obj = function_env.slots().function_object();
+                let (is_derived, in_initializer) =
+                    if let Some(f) = function_obj.downcast_ref::<OrdinaryFunction>() {
+                        (f.is_derived_constructor(), f.in_class_field_initializer())
+                    } else if let Some(_f) = function_obj.downcast_ref::<ArrowFunction>() {
+                        // Arrow functions are never derived constructors or class field initializers themselves.
+                        // However, they inherit these from the parent, and eval in an arrow function
+                        // should use the parent's environment, which GetThisEnvironment already provides.
+                        (false, false)
+                    } else {
+                        panic!("must be function object");
+                    };
 
                 // ii. Set inFunction to true.
                 let mut flags = Flags::IN_FUNCTION;
@@ -163,13 +170,13 @@ impl Eval {
                 }
 
                 // iv. If F.[[ConstructorKind]] is derived, set inDerivedConstructor to true.
-                if function_object.is_derived_constructor() {
+                if is_derived {
                     flags |= Flags::IN_DERIVED_CONSTRUCTOR;
                 }
 
                 // v. Let classFieldInitializerName be F.[[ClassFieldInitializerName]].
                 // vi. If classFieldInitializerName is not empty, set inClassFieldInitializer to true.
-                if function_object.in_class_field_initializer() {
+                if in_initializer {
                     flags |= Flags::IN_CLASS_FIELD_INITIALIZER;
                 }
 

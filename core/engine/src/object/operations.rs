@@ -5,7 +5,9 @@ use crate::{
     Context, JsExpect, JsResult, JsSymbol, JsValue,
     builtins::{
         Array, Proxy,
-        function::{BoundFunction, ClassFieldDefinition, OrdinaryFunction, set_function_name},
+        function::{
+            ArrowFunction, BoundFunction, ClassFieldDefinition, OrdinaryFunction, set_function_name,
+        },
     },
     context::intrinsics::{StandardConstructor, StandardConstructors},
     error::JsNativeError,
@@ -859,6 +861,10 @@ impl JsObject {
     /// [spec]: https://tc39.es/ecma262/#sec-getfunctionrealm
     pub(crate) fn get_function_realm(&self, context: &mut Context) -> JsResult<Realm> {
         if let Some(fun) = self.downcast_ref::<OrdinaryFunction>() {
+            return Ok(fun.realm().clone());
+        }
+
+        if let Some(fun) = self.downcast_ref::<ArrowFunction>() {
             return Ok(fun.realm().clone());
         }
 

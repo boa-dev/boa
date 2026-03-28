@@ -1,7 +1,10 @@
 use boa_ast::scope::Scope;
 use boa_gc::{Finalize, GcRefCell, Trace, custom_trace};
 
-use crate::{JsNativeError, JsObject, JsResult, JsValue, builtins::function::OrdinaryFunction};
+use crate::{
+    JsNativeError, JsObject, JsResult, JsValue,
+    builtins::function::{ArrowFunction, OrdinaryFunction},
+};
 
 #[derive(Debug, Trace, Finalize)]
 pub(crate) struct FunctionEnvironment {
@@ -109,13 +112,14 @@ impl FunctionEnvironment {
             return false;
         }
 
-        // 2. If envRec.[[FunctionObject]].[[HomeObject]] is undefined, return false; otherwise, return true.
-        self.slots
-            .function_object
-            .downcast_ref::<OrdinaryFunction>()
-            .expect("function object must be function")
-            .get_home_object()
-            .is_some()
+        let function_obj = &self.slots.function_object;
+        if let Some(f) = function_obj.downcast_ref::<OrdinaryFunction>() {
+            f.get_home_object().is_some()
+        } else if let Some(f) = function_obj.downcast_ref::<ArrowFunction>() {
+            f.home_object.is_some()
+        } else {
+            panic!("function object must be function");
+        }
     }
 
     /// `HasThisBinding`
