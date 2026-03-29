@@ -961,9 +961,25 @@ fn partition_date_time_pattern(
     dtf: &DateTimeFormat,
     x: &JsObject,
     context: &mut Context,
-) -> JsResult<JsObject> {
+) -> JsResult<Vec<(String, String)>> {
     let format_record = handle_date_time_value(&dtf, x, context)?;
-    todo!()
+    let epoch_ns = format_record.epoch_nanoseconds;
+    let format = format_record.format;
+
+    let pattern =
+        if format.hour.is_some() && dtf.hour_cycle.is_some_and(|hc| hc != IcuHourCycle::H23) {
+            format.pattern12
+        } else {
+            format.pattern
+        };
+
+    Ok(format_date_time_pattern(
+        dtf,
+        format,
+        pattern,
+        epoch_ns,
+        format_record.is_plain,
+    ))
 }
 
 /// 15.6.6 FormatDateTime ( dateTimeFormat, x )
@@ -975,7 +991,7 @@ pub(crate) fn format_date_time(
     let parts = partition_date_time_pattern(dtf, x, context)?;
     let mut result = String::new();
     for part in parts {
-        result += part;
+        result += &part.1;
     }
     Ok(JsString::from(result).into())
 }
