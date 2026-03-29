@@ -875,6 +875,28 @@ impl Array {
                 )
                 .into());
         }
+
+        // Small optimization for arrays using dense properties
+        if o.is_array() {
+            let mut o_borrow = o.borrow_mut();
+            let extensible = o_borrow.extensible;
+            let props = o_borrow.properties_mut();
+            if !props.indexed_properties.is_sparse()
+                && (len as usize) == props.indexed_properties.len()
+                && (extensible || args.is_empty())
+            {
+                for element in args {
+                    if !props.indexed_properties.push_dense(element) {
+                        break;
+                    }
+                    len += 1;
+                }
+                drop(o_borrow);
+                Self::set_length(&o, len, context)?;
+                return Ok(len.into());
+            }
+        }
+
         // 5. For each element E of items, do
         for element in args.iter().cloned() {
             // a. Perform ? Set(O, ! ToString(𝔽(len)), E, true).
@@ -913,6 +935,16 @@ impl Array {
             Ok(JsValue::undefined())
         // 4. Else,
         } else {
+            // Small optimization for arrays using dense properties
+            if o.is_array() {
+                let mut o_borrow = o.borrow_mut();
+                if let Some(res) = o_borrow.properties_mut().indexed_properties.pop_dense() {
+                    drop(o_borrow);
+                    Self::set_length(&o, len - 1, context)?;
+                    return Ok(res);
+                }
+            }
+
             // a. Assert: len > 0.
             // b. Let newLen be 𝔽(len - 1).
             let new_len = len - 1;

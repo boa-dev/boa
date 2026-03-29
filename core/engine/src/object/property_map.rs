@@ -325,6 +325,28 @@ impl IndexedProperties {
         removed
     }
 
+    /// Returns the number of indexed properties.
+    pub(crate) fn len(&self) -> usize {
+        match self {
+            Self::DenseI32(vec) => vec.len(),
+            Self::DenseF64(vec) => vec.len(),
+            Self::DenseElement(vec) => vec.len(),
+            Self::SparseElement(map) => map.len(),
+            Self::SparseProperty(map) => map.len(),
+        }
+    }
+
+    /// Returns `true` if the indexed properties are empty.
+    #[allow(dead_code)]
+    pub(crate) fn is_empty(&self) -> bool {
+        self.len() == 0
+    }
+
+    /// Returns `true` if the indexed properties are sparse.
+    pub(crate) fn is_sparse(&self) -> bool {
+        matches!(self, Self::SparseElement(_) | Self::SparseProperty(_))
+    }
+
     /// Removes a property descriptor with the specified key.
     fn remove(&mut self, key: u32) -> bool {
         match self {
@@ -404,6 +426,19 @@ impl IndexedProperties {
                 true
             }
             Self::SparseElement(_) | Self::SparseProperty(_) => false,
+        }
+    }
+
+    /// Pops a value from the end of the dense indexed properties.
+    ///
+    /// Returns `Some(JsValue)` if the pop succeeded (storage is dense), `None` if
+    /// the storage is sparse and the caller should fall back to the slow path.
+    pub(crate) fn pop_dense(&mut self) -> Option<JsValue> {
+        match self {
+            Self::DenseI32(vec) => vec.pop().map(JsValue::from),
+            Self::DenseF64(vec) => vec.pop().map(JsValue::from),
+            Self::DenseElement(vec) => vec.pop(),
+            Self::SparseElement(_) | Self::SparseProperty(_) => None,
         }
     }
 
