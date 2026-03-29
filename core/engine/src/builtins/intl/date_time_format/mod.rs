@@ -10,14 +10,17 @@
 use crate::{
     Context, JsArgs, JsBigInt, JsData, JsExpect, JsResult, JsString, JsValue, NativeFunction,
     builtins::{
-        Boolean, BuiltInBuilder, BuiltInConstructor, BuiltInObject, IntrinsicObject,
+        BuiltInBuilder, BuiltInConstructor, BuiltInObject, IntrinsicObject,
         date::utils::{
             date_from_time, hour_from_time, min_from_time, month_from_time, ms_from_time,
             sec_from_time, time_clip, year_from_time,
         },
         intl::{
             Service,
-            date_time_format::options::{DateStyle, FormatMatcher, FormatOptions, TimeStyle},
+            date_time_format::options::{
+                DateStyle, Day, DayPeriod, Era, FormatMatcher, FormatOptions, Hour, Minute, Month,
+                Second, SubsecondDigits, TimeStyle, TimeZoneName, WeekDay, Year,
+            },
             locale::{canonicalize_locale_list, filter_locales, resolve_locale},
             options::{IntlOptions, coerce_options_to_object},
         },
@@ -96,6 +99,7 @@ pub(crate) struct DateTimeFormat {
     formatter: DateTimeFormatter<CompositeFieldSet>,
     bound_format: Option<JsFunction>,
     resolved_options: Option<JsObject>,
+    temporal_instant_format: DateTimeFormatRecord,
 }
 
 impl Service for DateTimeFormat {
@@ -1010,7 +1014,23 @@ fn is_temporal_object(value: &JsValue) -> bool {
     true
 }
 
-/// 15.6.14 Value Format Records
+#[derive(Debug, Clone)]
+struct DateTimeFormatRecord {
+    week_day: Option<WeekDay>,
+    era: Option<Era>,
+    year: Option<Year>,
+    month: Option<Month>,
+    day: Option<Day>,
+    day_period: Option<DayPeriod>,
+    hour: Option<Hour>,
+    minute: Option<Minute>,
+    second: Option<Second>,
+    fractional_second_digits: Option<SubsecondDigits>,
+    time_zone_name: Option<TimeZoneName>,
+    pattern: JsString,
+    pattern12: JsString,
+}
+
 struct ValueFormatRecord {
     format: DateTimeFormatRecord,
     epoch_nanoseconds: JsBigInt,
@@ -1027,7 +1047,7 @@ fn handle_date_time_value(
     // } else
     if x.is::<Instant>() {
         // 15.6.20 HandleDateTimeTemporalInstant ( dateTimeFormat, instant )
-        let format = dtf.temporal_instant_format;
+        let format = dtf.temporal_instant_format.clone();
         return Ok(ValueFormatRecord {
             format,
             epoch_nanoseconds: JsBigInt::from(
