@@ -865,6 +865,21 @@ impl Array {
         let o = this.to_object(context)?;
         // 2. Let len be ? LengthOfArrayLike(O).
         let mut len = o.length_of_array_like(context)?;
+
+        if len > 0 {
+            let mut obj = o.borrow_mut();
+
+            if let Some(vec) = obj.properties_mut().dense_indexed_properties_mut() {
+                if vec.len() as u64 == len {
+                    if let Some(value) = vec.pop() {
+                        drop(obj); 
+
+                        Self::set_length(&o, len - 1, context)?;
+                        return Ok(value);
+                    }
+                }
+            }
+        }
         // 3. Let argCount be the number of elements in items.
         let arg_count = args.len() as u64;
         // 4. If len + argCount > 2^53 - 1, throw a TypeError exception.
@@ -904,6 +919,17 @@ impl Array {
         let o = this.to_object(context)?;
         // 2. Let len be ? LengthOfArrayLike(O).
         let len = o.length_of_array_like(context)?;
+        if len > 0 {
+            let mut obj = o.borrow_mut();
+
+            if let Some(vec) = obj.properties_mut().dense_indexed_properties_mut() {
+                if let Some(value) = vec.pop() {
+                    Self::set_length(&o, len - 1, context)?;
+                    return Ok(value);
+                }
+            }
+        }  
+
         // 3. If len = 0, then
         if len == 0 {
             // a. Perform ? Set(O, "length", +0𝔽, true).

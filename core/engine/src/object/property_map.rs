@@ -59,6 +59,14 @@ impl Default for IndexedProperties {
 }
 
 impl IndexedProperties {
+    pub fn pop_dense(&mut self) -> Option<JsValue> {
+        match self {
+            IndexedProperties::DenseI32(vec) => vec.pop().map(JsValue::from),
+            IndexedProperties::DenseF64(vec) => vec.pop().map(JsValue::from),
+            IndexedProperties::DenseElement(vec) => vec.pop(),
+            _ => None,
+        }
+    }
     pub(crate) fn from_dense_js_value(elements: ThinVec<JsValue>) -> Self {
         if elements.is_empty() {
             return Self::default();
