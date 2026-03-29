@@ -693,14 +693,14 @@ impl Instant {
             // Converting epoch milliseconds
             let epoch_ms = instant.inner.epoch_milliseconds() as f64;
 
-            return format_date_time_locale(
+            format_date_time_locale(
                 locales,
                 options,
                 FormatType::Any,
                 FormatDefaults::All,
                 epoch_ms,
                 context,
-            );
+            )
         }
 
         #[cfg(not(feature = "intl"))]
