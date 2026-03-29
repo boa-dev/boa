@@ -101,7 +101,8 @@ enum ValueStoreInner {
         name: StringStore,
         message: StringStore,
         stack: StringStore,
-        cause: StringStore,
+        cause: Option<JsValueStore>,
+        errors: Vec<JsValueStore>,
     },
 
     /// Regular expression. We store the expression and its flags. Everything else

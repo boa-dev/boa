@@ -20,7 +20,8 @@ type ErrorStoreFields<'a> = (
     &'a StringStore,
     &'a StringStore,
     &'a StringStore,
-    &'a StringStore,
+    &'a Option<JsValueStore>,
+    &'a [JsValueStore],
 );
 
 impl ReverseSeenMap {
@@ -167,7 +168,7 @@ fn try_into_js_error(
     seen: &mut ReverseSeenMap,
     context: &mut Context,
 ) -> JsResult<JsValue> {
-    let (kind, name, message, stack, cause) = error_data;
+    let (kind, name, message, stack, cause, errors) = error_data;
     let message = message.to_js_string().to_std_string_escaped();
     let native = match kind {
         ErrorKind::Aggregate => JsNativeError::aggregate(Vec::new()),
@@ -194,9 +195,24 @@ fn try_into_js_error(
         error.set(js_string!("stack"), stack, true, context)?;
     }
 
-    let cause = cause.to_js_string();
-    if !cause.is_empty() {
+    if let Some(cause) = cause {
+        let cause = try_value_into_js(cause, seen, context)?;
         error.set(js_string!("cause"), cause, true, context)?;
+    }
+
+    if !errors.is_empty() {
+        let errors_array = JsArray::new(context)?;
+        for (index, value) in errors.iter().enumerate() {
+            let value = try_value_into_js(value, seen, context)?;
+            errors_array.set(index, value, true, context)?;
+        }
+
+        error.set(
+            js_string!("errors"),
+            JsValue::from(errors_array),
+            true,
+            context,
+        )?;
     }
 
     Ok(JsValue::from(error))
@@ -265,7 +281,13 @@ pub(super) fn try_value_into_js(
             message,
             stack,
             cause,
-        } => try_into_js_error(store, (kind, name, message, stack, cause), seen, context),
+            errors,
+        } => try_into_js_error(
+            store,
+            (kind, name, message, stack, cause, errors),
+            seen,
+            context,
+        ),
         ValueStoreInner::RegExp { source, flags } => {
             try_into_regexp(store, source, flags, seen, context)
         }

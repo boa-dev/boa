@@ -186,9 +186,13 @@ fn clone_regexp(
 
 fn clone_error(
     original: &JsObject,
+    transfer: &HashSet<JsObject>,
     seen: &mut SeenMap,
     context: &mut Context,
 ) -> JsResult<JsValueStore> {
+    let mut store = JsValueStore::empty();
+    seen.insert(original, store.clone());
+
     let native = JsError::from_opaque(JsValue::from(original.clone()))
         .try_native(context)
         .map_err(|_| unsupported_type())?;
@@ -215,17 +219,51 @@ fn clone_error(
 
     let name = to_optional_string("name", context)?;
     let stack = to_optional_string("stack", context)?;
-    let cause = to_optional_string("cause", context)?;
 
-    let stored = JsValueStore::new(ValueStoreInner::Error {
-        kind,
-        name: name.into(),
-        message: JsString::from(native.message()).into(),
-        stack: stack.into(),
-        cause: cause.into(),
-    });
-    seen.insert(original, stored.clone());
-    Ok(stored)
+    let cause = if original.has_own_property(js_string!("cause"), context)? {
+        let cause = original.get(js_string!("cause"), context)?;
+        Some(try_from_js_value(&cause, transfer, seen, context)?)
+    } else {
+        None
+    };
+
+    let errors = if matches!(kind, ErrorKind::Aggregate) {
+        let errors = original.get(js_string!("errors"), context)?;
+        if errors.is_undefined() {
+            Vec::new()
+        } else {
+            let Some(errors) = errors.as_object() else {
+                return Err(unsupported_type());
+            };
+
+            let errors = JsArray::from_object(errors).map_err(|_| unsupported_type())?;
+
+            let length = errors.length(context)?;
+            let length = usize::try_from(length).map_err(JsError::from_rust)?;
+            let mut values = Vec::with_capacity(length);
+            for i in 0..length {
+                let value = errors.get(i, context)?;
+                values.push(try_from_js_value(&value, transfer, seen, context)?);
+            }
+            values
+        }
+    } else {
+        Vec::new()
+    };
+
+    // SAFETY: This is safe as this function is the sole owner of the store.
+    unsafe {
+        store.replace(ValueStoreInner::Error {
+            kind,
+            name: name.into(),
+            message: JsString::from(native.message()).into(),
+            stack: stack.into(),
+            cause,
+            errors,
+        });
+    }
+
+    Ok(store)
 }
 
 fn try_from_map(
@@ -306,7 +344,7 @@ fn try_from_js_object_clone(
     } else if let Ok(ref date) = JsDate::from_object(object.clone()) {
         return clone_date(object, date, seen, context);
     } else if object.downcast_ref::<Error>().is_some() {
-        return clone_error(object, seen, context);
+        return clone_error(object, transfer, seen, context);
     } else if let Ok(ref regexp) = JsRegExp::from_object(object.clone()) {
         return clone_regexp(object, regexp, seen, context);
     } else if let Ok(_dataview) = JsDataView::from_object(object.clone()) {
