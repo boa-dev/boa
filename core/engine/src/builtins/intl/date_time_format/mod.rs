@@ -956,23 +956,30 @@ fn unwrap_date_time_format(
         .into())
 }
 
-///15.6.5 PartitionDateTimePattern ( dateTimeFormat, x )
+/// 15.6.5 PartitionDateTimePattern ( dateTimeFormat, x )
 fn partition_date_time_pattern(
     dtf: &DateTimeFormat,
     x: &JsObject,
     context: &mut Context,
 ) -> JsResult<Vec<(String, String)>> {
+    // 1. Let formatRecord be ? HandleDateTimeValue(dateTimeFormat, x).
+    // 2. Let epochNanoseconds be formatRecord.[[EpochNanoseconds]].
+    // 3. Let format be formatRecord.[[Format]].
     let format_record = handle_date_time_value(&dtf, x, context)?;
     let epoch_ns = format_record.epoch_nanoseconds;
     let format = format_record.format;
-
+    // 4. If format has a field [[hour]] and dateTimeFormat.[[HourCycle]] is "h11" or "h12", then
     let pattern =
         if format.hour.is_some() && dtf.hour_cycle.is_some_and(|hc| hc != IcuHourCycle::H23) {
+            // a. Let pattern be format.[[pattern12]].
             format.pattern12
+        // 5. Else,
         } else {
+            // a. Let pattern be format.[[pattern]].
             format.pattern
         };
-
+    // 5. Let result be FormatDateTimePattern(dateTimeFormat, format, pattern, epochNanoseconds, formatRecord.[[IsPlain]]).
+    // 6. Return result.
     Ok(format_date_time_pattern(
         dtf,
         format,
@@ -988,11 +995,16 @@ pub(crate) fn format_date_time(
     x: &JsObject,
     context: &mut Context,
 ) -> JsResult<JsValue> {
+    // 1. Let parts be ? PartitionDateTimePattern(dateTimeFormat, x).
+    // 2. Let result be the empty String.
     let parts = partition_date_time_pattern(dtf, x, context)?;
     let mut result = String::new();
+    // 3. For each Record { [[Type]], [[Value]] } part of parts, do
     for part in parts {
+        // a. Set result to the string-concatenation of result and part.[[Value]].
         result += &part.1;
     }
+    // 4. Return result.
     Ok(JsString::from(result).into())
 }
 
@@ -1061,9 +1073,12 @@ fn handle_date_time_value(
 ) -> JsResult<ValueFormatRecord> {
     // if JsValue::from(x.clone()).is_number() {
     // } else
+    // 7. If x has an [[InitializedTemporalInstant]] internal slot, return HandleDateTimeTemporalInstant(dateTimeFormat, x).
     if x.is::<Instant>() {
         // 15.6.20 HandleDateTimeTemporalInstant ( dateTimeFormat, instant )
+        // 1. Let format be dateTimeFormat.[[TemporalInstantFormat]].
         let format = dtf.temporal_instant_format.clone();
+        // 2. Return Value Format Record { [[Format]]: format, [[EpochNanoseconds]]: instant.[[EpochNanoseconds]], [[IsPlain]]: false }.
         return Ok(ValueFormatRecord {
             format,
             epoch_nanoseconds: JsBigInt::from(
@@ -1076,5 +1091,7 @@ fn handle_date_time_value(
             is_plain: false,
         });
     }
+    // 8. Assert: x has an [[InitializedTemporalZonedDateTime]] internal slot.
+    // 9. Throw a TypeError exception.
     Err(js_error!(TypeError: "Object is ZonedDateTime"))
 }
