@@ -122,6 +122,8 @@ async fn fetch_inner<T: Fetcher>(
 
     // The resource parsing is complicated, so we parse it in Rust here (instead of relying on
     // `TryFromJs` and friends).
+    let mut signal = signal;
+
     let request: Request<Vec<u8>> = match resource {
         Either::Left(url) => {
             let url = url.to_std_string().map_err(JsError::from_rust)?;
@@ -141,9 +143,12 @@ async fn fetch_inner<T: Fetcher>(
                 return Err(js_error!(TypeError: "Request object is already in use"));
             };
 
+            signal = signal.or_else(|| request_ref.data().signal());
             request_ref.data().inner().clone()
         }
     };
+
+    check_abort(signal.as_ref(), &mut context.borrow_mut())?;
 
     let mut request = if let Some(options) = options {
         options.into_request_builder(Some(request))?
