@@ -1053,3 +1053,70 @@ pub(crate) fn format_date_time_locale(
     let result = format_timestamp_with_dtf(&dtf, x, context)?;
     Ok(JsValue::from(result))
 }
+/// Formats a `Temporal.PlainMonthDay` using locale-sensitive formatting.
+///
+/// Used by `Temporal.PlainMonthDay.prototype.toLocaleString`.
+/// Unlike `format_date_time_locale`, this does not use a Unix timestamp —
+/// `PlainMonthDay` has no year or timezone, so we build an ICU4X `Date<Iso>`
+/// directly using the Temporal spec's reference year (1972).
+pub(crate) fn format_plain_month_day_locale(
+    locales: &JsValue,
+    options: &JsValue,
+    month: u8,
+    day: u8,
+    context: &mut Context,
+) -> JsResult<JsValue> {
+    let options_obj = coerce_options_to_object(options, context)?;
+
+    // Per ECMA-402 ToDateTimeOptions with type=date, defaults=date:
+    // if neither dateStyle nor individual month/day fields are set, default to
+    // { month: "long", day: "numeric" } — which is the most natural for a month-day.
+    let has_date_style =
+        get_option::<DateStyle>(&options_obj, js_string!("dateStyle"), context)?.is_some();
+    let has_month = options_obj
+        .has_own_property(js_string!("month"), context)?;
+    let has_day = options_obj
+        .has_own_property(js_string!("day"), context)?;
+
+    if !has_date_style && !has_month && !has_day {
+        options_obj.create_data_property_or_throw(
+            js_string!("month"),
+            JsValue::from(js_string!("long")),
+            context,
+        )?;
+        options_obj.create_data_property_or_throw(
+            js_string!("day"),
+            JsValue::from(js_string!("numeric")),
+            context,
+        )?;
+    }
+
+    let options_value = JsValue::from(options_obj);
+    let dtf = create_date_time_format(
+        locales,
+        &options_value,
+        FormatType::Date,
+        FormatDefaults::Date,
+        context,
+    )?;
+
+    // Use 1972 as the reference year — same year the Temporal spec uses for
+    // PlainMonthDay's internal ISODate when calendar is iso8601.
+    let date = Date::try_new_iso(1972, month, day)
+        .map_err(|e| JsNativeError::range().with_message(e.to_string()))?;
+    let time = Time::try_new(12, 0, 0, 0)
+        .map_err(|e| JsNativeError::range().with_message(e.to_string()))?;
+
+    // We need a ZonedDateTime for the formatter — use UTC offset zero.
+    let tz_info = FormatTimeZone::UtcOffset(UtcOffset::zero());
+    let dt = DateTime { date, time };
+    let tz_info_at_time = tz_info.to_time_zone_info().at_date_time_iso(dt);
+    let zdt = ZonedDateTime {
+        date,
+        time,
+        zone: tz_info_at_time,
+    };
+
+    let result = dtf.formatter.format(&zdt).to_string();
+    Ok(JsValue::from(JsString::from(result)))
+}
