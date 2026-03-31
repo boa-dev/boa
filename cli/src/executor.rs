@@ -117,8 +117,7 @@ impl Executor {
     /// Continually run all pending async jobs.
     //
     /// This does not need to yield to the async executor after every run because
-    /// it assumes that every async job will not would never
-    /// exit.
+    /// it assumes that every async job will eventually yield to the executor.
     async fn run_async_jobs(&self, context: &RefCell<&mut Context>) {
         let mut group = FutureGroup::new();
         let mut listener = pin!(EventListener::new(&self.wake_event));
@@ -198,7 +197,7 @@ impl JobExecutor for Executor {
             Job::TimeoutJob(job) => {
                 let event = Rc::new(Event::new());
                 let listener = EventListenerRc::new(Rc::clone(&event));
-                job.set_cancellation_callback(move || {
+                job.cancellation_token().push_callback(move |_| {
                     event.notify(u8::MAX);
                 });
                 self.async_jobs
@@ -207,6 +206,32 @@ impl JobExecutor for Executor {
                         let timer = async {
                             smol::Timer::after(job.timeout().into()).await;
                             job.call(&mut context.borrow_mut())
+                        };
+                        let cancel = async {
+                            listener.await;
+                            Ok(JsValue::undefined())
+                        };
+                        timer.or(cancel).await
+                    }));
+            }
+            Job::IntervalJob(job) => {
+                let event = Rc::new(Event::new());
+                let listener = EventListenerRc::new(Rc::clone(&event));
+                let printer = self.printer.clone();
+                job.cancellation_token().push_callback(move |_| {
+                    event.notify(u8::MAX);
+                });
+                self.async_jobs
+                    .borrow_mut()
+                    .push_back(NativeAsyncJob::new(async move |context| {
+                        let timer = async {
+                            let mut interval = smol::Timer::interval(job.interval().into());
+                            loop {
+                                interval.next().await;
+                                if let Err(err) = job.call(&mut context.borrow_mut()) {
+                                    printer.print(uncaught_job_error(&err));
+                                }
+                            }
                         };
                         let cancel = async {
                             listener.await;

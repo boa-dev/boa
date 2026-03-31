@@ -1,5 +1,6 @@
 //! The ECMAScript context.
 
+use std::any::Any;
 use std::{cell::Cell, path::Path, rc::Rc};
 
 use boa_ast::StatementList;
@@ -19,7 +20,7 @@ use crate::js_error;
 use crate::module::DynModuleLoader;
 use crate::vm::{CodeBlock, RuntimeLimits, create_function_object_fast};
 use crate::{
-    HostDefined, JsNativeError, JsResult, JsString, JsValue, NativeObject, Source, builtins,
+    HostDefined, JsNativeError, JsResult, JsString, JsValue, Source, builtins,
     class::{Class, ClassBuilder},
     job::{JobExecutor, SimpleJobExecutor},
     js_string,
@@ -129,7 +130,7 @@ pub struct Context {
     /// Unique identifier for each parser instance used during the context lifetime.
     parser_identifier: u32,
 
-    data: HostDefined,
+    data: HostDefined<dyn Any>,
 }
 
 impl std::fmt::Debug for Context {
@@ -601,29 +602,35 @@ impl Context {
         self.can_block
     }
 
+    /// Gets a mutable reference to the inner [`HostDefined`] field.
+    #[inline]
+    pub fn host_defined_mut(&mut self) -> &mut HostDefined<dyn Any> {
+        &mut self.data
+    }
+
     /// Insert a type into the context-specific [`HostDefined`] field.
     #[inline]
-    pub fn insert_data<T: NativeObject>(&mut self, value: T) -> Option<Box<T>> {
+    pub fn insert_data<T: Any>(&mut self, value: T) -> Option<Box<T>> {
         self.data.insert(value)
     }
 
     /// Check if the context-specific [`HostDefined`] has type T.
     #[inline]
     #[must_use]
-    pub fn has_data<T: NativeObject>(&self) -> bool {
+    pub fn has_data<T: Any>(&self) -> bool {
         self.data.has::<T>()
     }
 
     /// Remove type T from the context-specific [`HostDefined`], if it exists.
     #[inline]
-    pub fn remove_data<T: NativeObject>(&mut self) -> Option<Box<T>> {
+    pub fn remove_data<T: Any>(&mut self) -> Option<Box<T>> {
         self.data.remove::<T>()
     }
 
     /// Get type T from the context-specific [`HostDefined`], if it exists.
     #[inline]
     #[must_use]
-    pub fn get_data<T: NativeObject>(&self) -> Option<&T> {
+    pub fn get_data<T: Any>(&self) -> Option<&T> {
         self.data.get::<T>()
     }
 }
