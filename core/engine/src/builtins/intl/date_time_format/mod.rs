@@ -16,7 +16,7 @@ use crate::{
             sec_from_time, time_clip, year_from_time,
         },
         intl::{
-            Service,
+            NumberFormat, Service,
             date_time_format::options::{
                 DateStyle, Day, DayPeriod, Era, FormatMatcher, FormatOptions, Hour, Minute, Month,
                 Second, SubsecondDigits, TimeStyle, TimeZoneName, WeekDay, Year,
@@ -956,27 +956,125 @@ fn unwrap_date_time_format(
         .into())
 }
 
+/// 15.6.4 FormatDateTimePattern ( dateTimeFormat, format, pattern, epochNanoseconds, isPlain )
+fn format_date_time_pattern(
+    dtf: &DateTimeFormat,
+    format: &DateTimeFormatRecord,
+    pattern: &JsString,
+    epoch_ns: &JsBigInt,
+    is_plain: bool,
+    context: &mut Context,
+) -> JsResult<Vec<(JsString, JsString)>> {
+    // 1. Let locale be dateTimeFormat.[[Locale]].
+    let locale = js_string!(dtf.locale.to_string());
+    // 2. Let nfOptions be OrdinaryObjectCreate(null).
+    let nf_options = JsObject::with_null_proto();
+    // 3. Perform ! CreateDataPropertyOrThrow(nfOptions, "numberingSystem", dateTimeFormat.[[NumberingSystem]]).
+    nf_options.create_data_property_or_throw(
+        js_string!("numberingSystem"),
+        js_string!(dtf.numbering_system.unwrap().as_str()),
+        context,
+    )?;
+    // 4. Perform ! CreateDataPropertyOrThrow(nfOptions, "useGrouping", false).
+    nf_options.create_data_property_or_throw(js_string!("useGrouping"), false, context)?;
+    // 5. Let nf be ! Construct(%Intl.NumberFormat%, « locale, nfOptions »).
+    let nf = NumberFormat::new(&locale.into(), &nf_options.into(), context)?;
+    // 6. Let nf2Options be OrdinaryObjectCreate(null).
+    let nf2_options = JsObject::with_null_proto();
+    // 7. Perform ! CreateDataPropertyOrThrow(nf2Options, "minimumIntegerDigits", 2𝔽).
+    nf2_options.create_data_property_or_throw(
+        js_string!("minimumIntegerDigits"),
+        JsValue::new(2),
+        context,
+    )?;
+    // 8. Perform ! CreateDataPropertyOrThrow(nf2Options, "numberingSystem", dateTimeFormat.[[NumberingSystem]]).
+    nf2_options.create_data_property_or_throw(
+        js_string!("numberingSystem"),
+        js_string!(dtf.numbering_system.unwrap().as_str()),
+        context,
+    )?;
+    // 9. Perform ! CreateDataPropertyOrThrow(nf2Options, "useGrouping", false).
+    nf2_options.create_data_property_or_throw(js_string!("useGrouping"), false, context)?;
+    // 10. Let nf2 be ! Construct(%Intl.NumberFormat%, « locale, nf2Options »).
+    let nf2 = NumberFormat::new(&locale.into(), &nf2_options.into(), context)?;
+    // 11. If format has a field [[fractionalSecondDigits]], then
+    if format.fractional_second_digits.is_some() {
+        // a. Let fractionalSecondDigits be format.[[fractionalSecondDigits]].
+        let fsd = format.fractional_second_digits.unwrap();
+        // b. Let nf3Options be OrdinaryObjectCreate(null).
+        let nf3_options = JsObject::with_null_proto();
+        // c. Perform ! CreateDataPropertyOrThrow(nf3Options, "minimumIntegerDigits", 𝔽(fractionalSecondDigits)).
+        nf3_options.create_data_property_or_throw(
+            js_string!("minimumIntegerDigits"),
+            JsValue::new(fsd.into()),
+            context,
+        )?;
+        // d. Perform ! CreateDataPropertyOrThrow(nf3Options, "numberingSystem", dateTimeFormat.[[NumberingSystem]]).
+        nf3_options.create_data_property_or_throw(
+            js_string!("numberingSystem"),
+            js_string!(dtf.numbering_system.unwrap().as_str()),
+            context,
+        )?;
+        // e. Perform ! CreateDataPropertyOrThrow(nf3Options, "useGrouping", false).
+        nf3_options.create_data_property_or_throw(js_string!("useGrouping"), false, context)?;
+        // f. Let nf3 be ! Construct(%Intl.NumberFormat%, « locale, nf3Options »).
+        let nf3 = NumberFormat::new(&locale.into(), &nf3_options.into(), context);
+    }
+    // 12. If isPlain is true, let timeZone be "+00:00"; else let timeZone be dateTimeFormat.[[TimeZone]].
+    let tz = if is_plain {
+        "+00:00"
+    } else {
+        //TODO: Refactor this later
+        format!("{:?}", dtf.time_zone.to_time_zone_info().offset().unwrap()).as_str()
+    };
+    // 13. Let tm be ToLocalTime(epochNanoseconds, dateTimeFormat.[[Calendar]], dateTimeFormat.[[TimeZone]]timeZone).
+    //let tm = to_local_time(epoch_ns, dtf.calendar_algorithm.unwrap().as_str(), tz);
+    let tm = ToLocalTime::from_local_epoch_milliseconds(epoch_ns.to_f64() / 1e+6);
+    // 14. Let patternParts be PartitionPattern(pattern).
+    let pattern_parts = partition_pattern(pattern);
+    // 15. Let result be a new empty List.
+    let result = Vec::<(JsString, JsString)>::new();
+    // 16. For each Record { [[Type]], [[Value]] } patternPart of patternParts, do
+    for pattern_part in pattern_parts {
+        // a. Let p be patternPart.[[Type]].
+        let p = pattern_part.0;
+        // b. If p is "literal", then
+        if p == "literal" {
+            // i. Append the Record { [[Type]]: "literal", [[Value]]: patternPart.[[Value]] } to result.
+            result.push((js_string!("literal"), pattern_part.1));
+        // j. Else,
+        } else {
+            // i. Let unknown be an implementation-, locale-, and numbering system-dependent String based on epochNanoseconds and p.
+            // ii. Append the Record { [[Type]]: "unknown", [[Value]]: unknown } to result.
+            let unknown = pattern_part.1;
+            result.push((js_string!("unknown"), js_string!(unknown)));
+        }
+    }
+    // 17. Return result.
+    Ok(result)
+}
+
 /// 15.6.5 PartitionDateTimePattern ( dateTimeFormat, x )
 fn partition_date_time_pattern(
     dtf: &DateTimeFormat,
     x: &JsObject,
     context: &mut Context,
-) -> JsResult<Vec<(String, String)>> {
+) -> JsResult<Vec<(JsString, JsString)>> {
     // 1. Let formatRecord be ? HandleDateTimeValue(dateTimeFormat, x).
     // 2. Let epochNanoseconds be formatRecord.[[EpochNanoseconds]].
     // 3. Let format be formatRecord.[[Format]].
     let format_record = handle_date_time_value(&dtf, x, context)?;
-    let epoch_ns = format_record.epoch_nanoseconds;
-    let format = format_record.format;
+    let epoch_ns = &format_record.epoch_nanoseconds;
+    let format = &format_record.format;
     // 4. If format has a field [[hour]] and dateTimeFormat.[[HourCycle]] is "h11" or "h12", then
     let pattern =
         if format.hour.is_some() && dtf.hour_cycle.is_some_and(|hc| hc != IcuHourCycle::H23) {
             // a. Let pattern be format.[[pattern12]].
-            format.pattern12
+            &format.pattern12
         // 5. Else,
         } else {
             // a. Let pattern be format.[[pattern]].
-            format.pattern
+            &format.pattern
         };
     // 5. Let result be FormatDateTimePattern(dateTimeFormat, format, pattern, epochNanoseconds, formatRecord.[[IsPlain]]).
     // 6. Return result.
@@ -986,7 +1084,8 @@ fn partition_date_time_pattern(
         pattern,
         epoch_ns,
         format_record.is_plain,
-    ))
+        context,
+    )?)
 }
 
 /// 15.6.6 FormatDateTime ( dateTimeFormat, x )
@@ -998,14 +1097,14 @@ pub(crate) fn format_date_time(
     // 1. Let parts be ? PartitionDateTimePattern(dateTimeFormat, x).
     // 2. Let result be the empty String.
     let parts = partition_date_time_pattern(dtf, x, context)?;
-    let mut result = String::new();
+    let mut result = js_string!();
     // 3. For each Record { [[Type]], [[Value]] } part of parts, do
     for part in parts {
         // a. Set result to the string-concatenation of result and part.[[Value]].
-        result += &part.1;
+        result = js_string!(&result, &part.1);
     }
     // 4. Return result.
-    Ok(JsString::from(result).into())
+    Ok(result.into())
 }
 
 /// 15.6.11 ToDateTimeFormattable ( value )
@@ -1095,3 +1194,8 @@ fn handle_date_time_value(
     // 9. Throw a TypeError exception.
     Err(js_error!(TypeError: "Object is ZonedDateTime"))
 }
+
+// /// 15.6.23 ToLocalTime ( epochNs, calendar, timeZoneIdentifier )
+// fn to_local_time(epoch_ns: &JsBigInt, calendar: &JsString, tz_id: &JsString) -> ToLocalTime {
+//     todo!()
+// }
