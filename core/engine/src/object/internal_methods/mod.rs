@@ -14,8 +14,10 @@ use super::{
 use crate::{
     Context, JsNativeError, JsResult,
     context::intrinsics::{StandardConstructor, StandardConstructors},
-    object::JsObject,
-    property::{DescriptorKind, PropertyDescriptor, PropertyKey},
+    object::{JsFunction, JsObject},
+    property::{
+        CompletePropertyDescriptor, DescriptorKind, NonMaxU32, PropertyDescriptor, PropertyKey,
+    },
     value::JsValue,
     vm::source_info::NativeSourceInfo,
 };
@@ -199,7 +201,7 @@ impl JsObject {
         &self,
         key: &PropertyKey,
         context: &mut InternalMethodPropertyContext<'_>,
-    ) -> JsResult<Option<PropertyDescriptor>> {
+    ) -> JsResult<Option<CompletePropertyDescriptor>> {
         (self.vtable().__get_own_property__)(self, key, context)
     }
 
@@ -409,7 +411,7 @@ pub struct InternalObjectMethods {
         &JsObject,
         &PropertyKey,
         &mut InternalMethodPropertyContext<'_>,
-    ) -> JsResult<Option<PropertyDescriptor>>,
+    ) -> JsResult<Option<CompletePropertyDescriptor>>,
     pub(crate) __define_own_property__: fn(
         &JsObject,
         &PropertyKey,
@@ -620,7 +622,7 @@ pub(crate) fn ordinary_get_own_property(
     obj: &JsObject,
     key: &PropertyKey,
     context: &mut InternalMethodPropertyContext<'_>,
-) -> JsResult<Option<PropertyDescriptor>> {
+) -> JsResult<Option<CompletePropertyDescriptor>> {
     // 1. Assert: IsPropertyKey(P) is true.
     // 2. If O does not have an own property with key P, return undefined.
     // 3. Let D be a newly created Property Descriptor with no fields.
@@ -657,8 +659,8 @@ pub(crate) fn ordinary_define_own_property(
     let extensible = obj.__is_extensible__(context)?;
 
     // 3. Return ValidateAndApplyPropertyDescriptor(O, P, extensible, Desc, current).
-    Ok(validate_and_apply_property_descriptor(
-        Some((obj, key)),
+    Ok(validate_and_apply_property_descriptor::<true>(
+        (obj, key),
         extensible,
         desc,
         current,
@@ -727,20 +729,20 @@ pub(crate) fn ordinary_get(
                 Ok(JsValue::undefined())
             }
         }
-        Some(ref desc) => {
-            match desc.kind() {
+        Some(desc) => {
+            match desc {
                 // 4. If IsDataDescriptor(desc) is true, return desc.[[Value]].
-                DescriptorKind::Data {
-                    value: Some(value), ..
-                } => Ok(value.clone()),
+                CompletePropertyDescriptor::Data { value, .. } => Ok(value),
                 // 5. Assert: IsAccessorDescriptor(desc) is true.
                 // 6. Let getter be desc.[[Get]].
-                DescriptorKind::Accessor { get: Some(get), .. } if !get.is_undefined() => {
+                CompletePropertyDescriptor::Accessor { get, .. } => {
+                    // 7. If getter is undefined, return undefined.
+                    let Some(get) = get else {
+                        return Ok(JsValue::undefined());
+                    };
                     // 8. Return ? Call(getter, Receiver).
                     get.call(&receiver, &[], context)
                 }
-                // 7. If getter is undefined, return undefined.
-                _ => Ok(JsValue::undefined()),
             }
         }
     }
@@ -780,20 +782,20 @@ pub(crate) fn ordinary_try_get(
                 Ok(None)
             }
         }
-        Some(ref desc) => {
-            match desc.kind() {
+        Some(desc) => {
+            match desc {
                 // 4. If IsDataDescriptor(desc) is true, return desc.[[Value]].
-                DescriptorKind::Data {
-                    value: Some(value), ..
-                } => Ok(Some(value.clone())),
+                CompletePropertyDescriptor::Data { value, .. } => Ok(Some(value)),
                 // 5. Assert: IsAccessorDescriptor(desc) is true.
                 // 6. Let getter be desc.[[Get]].
-                DescriptorKind::Accessor { get: Some(get), .. } if !get.is_undefined() => {
+                CompletePropertyDescriptor::Accessor { get, .. } => {
+                    // 7. If getter is undefined, return undefined.
+                    let Some(get) = get else {
+                        return Ok(Some(JsValue::undefined()));
+                    };
                     // 8. Return ? Call(getter, Receiver).
                     get.call(&receiver, &[], context).map(Some)
                 }
-                // 7. If getter is undefined, return undefined.
-                _ => Ok(Some(JsValue::undefined())),
             }
         }
     }
@@ -846,84 +848,85 @@ pub(crate) fn ordinary_set(
 
         // i. Set ownDesc to the PropertyDescriptor { [[Value]]: undefined, [[Writable]]: true,
         // [[Enumerable]]: true, [[Configurable]]: true }.
-        PropertyDescriptor::builder()
-            .value(JsValue::undefined())
-            .writable(true)
-            .enumerable(true)
-            .configurable(true)
-            .build()
+        CompletePropertyDescriptor::Data {
+            value: JsValue::undefined(),
+            writable: true,
+            enumerable: true,
+            configurable: true,
+        }
     };
 
-    // 3. If IsDataDescriptor(ownDesc) is true, then
-    if own_desc.is_data_descriptor() {
-        // a. If ownDesc.[[Writable]] is false, return false.
-        if !own_desc.expect_writable() {
-            return Ok(false);
-        }
+    match own_desc {
+        // 3. If IsDataDescriptor(ownDesc) is true, then
+        CompletePropertyDescriptor::Data { writable, .. } => {
+            // a. If ownDesc.[[Writable]] is false, return false.
+            if !writable {
+                return Ok(false);
+            }
 
-        // b. If Type(Receiver) is not Object, return false.
-        let Some(receiver) = receiver.as_object() else {
-            return Ok(false);
-        };
+            // b. If Type(Receiver) is not Object, return false.
+            let Some(receiver) = receiver.as_object() else {
+                return Ok(false);
+            };
 
-        let obj_is_receiver = JsObject::equals(obj, &receiver);
+            let obj_is_receiver = JsObject::equals(obj, &receiver);
 
-        // NOTE(HaledOdat): If the object and receiver are not the same then it's not inline cacheable for now.
-        context
-            .slot()
-            .attributes
-            .set(SlotAttributes::NOT_CACHEABLE, !obj_is_receiver);
+            // NOTE(HaledOdat): If the object and receiver are not the same then it's not inline cacheable for now.
+            context
+                .slot()
+                .attributes
+                .set(SlotAttributes::NOT_CACHEABLE, !obj_is_receiver);
 
-        // OPTIMIZATION: If obj and receiver are the same, there's no need to call [[GetOwnProperty]](P)
-        //              again because it was already performed above.
-        let existing_descriptor = if has_own_desc && obj_is_receiver {
-            Some(own_desc)
-        } else {
+            // OPTIMIZATION: If obj and receiver are the same, there's no need to call [[GetOwnProperty]](P)
+            //              again because it was already performed above.
+            let existing_descriptor = if has_own_desc && obj_is_receiver {
+                Some(own_desc)
+            } else {
+                // c. Let existingDescriptor be ? Receiver.[[GetOwnProperty]](P).
+                receiver.__get_own_property__(&key, context)?
+            };
+
             // c. Let existingDescriptor be ? Receiver.[[GetOwnProperty]](P).
-            receiver.__get_own_property__(&key, context)?
-        };
+            // d. If existingDescriptor is not undefined, then
+            if let Some(existing_desc) = existing_descriptor {
+                // i. If IsAccessorDescriptor(existingDescriptor) is true, return false.
+                let CompletePropertyDescriptor::Data { writable, .. } = existing_desc else {
+                    return Ok(false);
+                };
 
-        // d. If existingDescriptor is not undefined, then
-        if let Some(ref existing_desc) = existing_descriptor {
-            // i. If IsAccessorDescriptor(existingDescriptor) is true, return false.
-            if existing_desc.is_accessor_descriptor() {
-                return Ok(false);
+                // ii. If existingDescriptor.[[Writable]] is false, return false.
+                if !writable {
+                    return Ok(false);
+                }
+
+                // iii. Let valueDesc be the PropertyDescriptor { [[Value]]: V }.
+                // iv. Return ? Receiver.[[DefineOwnProperty]](P, valueDesc).
+                return receiver.__define_own_property__(
+                    &key,
+                    PropertyDescriptor::builder().value(value).build(),
+                    context,
+                );
             }
 
-            // ii. If existingDescriptor.[[Writable]] is false, return false.
-            if !existing_desc.expect_writable() {
-                return Ok(false);
+            // e. Else
+            // i. Assert: Receiver does not currently have a property P.
+            // ii. Return ? CreateDataProperty(Receiver, P, V).
+            receiver.create_data_property_with_slot(key, value, context)
+        }
+        // 4. Assert: IsAccessorDescriptor(ownDesc) is true.
+        CompletePropertyDescriptor::Accessor { set, .. } => {
+            // 5. Let setter be ownDesc.[[Set]].
+            if let Some(set) = set {
+                // 7. Perform ? Call(setter, Receiver, « V »).
+                set.call(&receiver, &[value], context)?;
+
+                // 8. Return true.
+                Ok(true)
+            } else {
+                // 6. If setter is undefined, return false.
+                Ok(false)
             }
-
-            // iii. Let valueDesc be the PropertyDescriptor { [[Value]]: V }.
-            // iv. Return ? Receiver.[[DefineOwnProperty]](P, valueDesc).
-            return receiver.__define_own_property__(
-                &key,
-                PropertyDescriptor::builder().value(value).build(),
-                context,
-            );
         }
-
-        // e. Else
-        // i. Assert: Receiver does not currently have a property P.
-        // ii. Return ? CreateDataProperty(Receiver, P, V).
-        return receiver.create_data_property_with_slot(key, value, context);
-    }
-
-    // 4. Assert: IsAccessorDescriptor(ownDesc) is true.
-    debug_assert!(own_desc.is_accessor_descriptor());
-
-    // 5. Let setter be ownDesc.[[Set]].
-    match own_desc.set() {
-        Some(set) if !set.is_undefined() => {
-            // 7. Perform ? Call(setter, Receiver, « V »).
-            set.call(&receiver, &[value], context)?;
-
-            // 8. Return true.
-            Ok(true)
-        }
-        // 6. If setter is undefined, return false.
-        _ => Ok(false),
     }
 }
 
@@ -943,7 +946,7 @@ pub(crate) fn ordinary_delete(
         // 2. Let desc be ? O.[[GetOwnProperty]](P).
         match obj.__get_own_property__(key, context)? {
             // 4. If desc.[[Configurable]] is true, then
-            Some(desc) if desc.expect_configurable() => {
+            Some(desc) if desc.configurable() => {
                 // a. Remove the own property with name P from O.
                 obj.borrow_mut().remove(key);
                 // b. Return true.
@@ -999,12 +1002,19 @@ pub(crate) fn ordinary_own_property_keys(
 ///
 /// [spec]: https://tc39.es/ecma262/#sec-iscompatiblepropertydescriptor
 pub(crate) fn is_compatible_property_descriptor(
+    obj: &JsObject,
     extensible: bool,
     desc: PropertyDescriptor,
-    current: Option<PropertyDescriptor>,
+    current: Option<CompletePropertyDescriptor>,
 ) -> bool {
     // 1. Return ValidateAndApplyPropertyDescriptor(undefined, undefined, Extensible, Desc, Current).
-    validate_and_apply_property_descriptor(None, extensible, desc, current, &mut Slot::new())
+    validate_and_apply_property_descriptor::<false>(
+        (obj, &PropertyKey::Index(NonMaxU32::ZERO)),
+        extensible,
+        desc,
+        current,
+        &mut Slot::new(),
+    )
 }
 
 /// Abstract operation `ValidateAndApplyPropertyDescriptor`
@@ -1013,16 +1023,17 @@ pub(crate) fn is_compatible_property_descriptor(
 ///  - [ECMAScript reference][spec]
 ///
 /// [spec]: https://tc39.es/ecma262/#sec-validateandapplypropertydescriptor
-pub(crate) fn validate_and_apply_property_descriptor(
-    obj_and_key: Option<(&JsObject, &PropertyKey)>,
+pub(crate) fn validate_and_apply_property_descriptor<const APPLY: bool>(
+    (obj, key): (&JsObject, &PropertyKey),
     extensible: bool,
     desc: PropertyDescriptor,
-    current: Option<PropertyDescriptor>,
+    current: Option<CompletePropertyDescriptor>,
     slot: &mut Slot,
 ) -> bool {
-    // 1. Assert: If O is not undefined, then IsPropertyKey(P) is true.
+    // SKIP: 1. Assert: If O is not undefined, then IsPropertyKey(P) is true.
+    // NOTE: This is guaranteed by the Rust type-system.
 
-    let Some(mut current) = current else {
+    let Some(current) = current else {
         // 2. If current is undefined, then
         // a. If extensible is false, return false.
         if !extensible {
@@ -1031,28 +1042,44 @@ pub(crate) fn validate_and_apply_property_descriptor(
 
         // b. Assert: extensible is true.
 
-        if let Some((obj, key)) = obj_and_key {
+        if APPLY {
+            let enumerable = desc.enumerable().unwrap_or(false);
+            let configurable = desc.configurable().unwrap_or(false);
             obj.borrow_mut().properties.insert_with_slot(
                 key,
-                // c. If IsGenericDescriptor(Desc) is true or IsDataDescriptor(Desc) is true, then
-                if desc.is_generic_descriptor() || desc.is_data_descriptor() {
-                    // i. If O is not undefined, create an own data property named P of
-                    // object O whose [[Value]], [[Writable]], [[Enumerable]], and
-                    // [[Configurable]] attribute values are described by Desc.
-                    // If the value of an attribute field of Desc is absent, the attribute
-                    // of the newly created property is set to its default value.
-                    desc.into_data_defaulted()
-                }
-                // d. Else,
-                else {
-                    // i. Assert: ! IsAccessorDescriptor(Desc) is true.
-
-                    // ii. If O is not undefined, create an own accessor property named P
-                    // of object O whose [[Get]], [[Set]], [[Enumerable]], and [[Configurable]]
-                    // attribute values are described by Desc. If the value of an attribute field
-                    // of Desc is absent, the attribute of the newly created property is set to
-                    // its default value.
-                    desc.into_accessor_defaulted()
+                match desc.kind {
+                    // c. If IsAccessorDescriptor(Desc) is true, then
+                    //     i. Create an own accessor property named P of object O whose [[Get]], [[Set]], [[Enumerable]],
+                    //     and [[Configurable]] attributes are set to the value of the corresponding field in Desc if Desc has that field,
+                    //     or to the attribute's default value otherwise.
+                    DescriptorKind::Accessor { get, set } => CompletePropertyDescriptor::Accessor {
+                        get: get
+                            .as_ref()
+                            .and_then(JsValue::as_object)
+                            .map(JsFunction::from_object_unchecked),
+                        set: set
+                            .as_ref()
+                            .and_then(JsValue::as_object)
+                            .map(JsFunction::from_object_unchecked),
+                        enumerable,
+                        configurable,
+                    },
+                    // d. Else,
+                    //     i. Create an own data property named P of object O whose [[Value]], [[Writable]], [[Enumerable]],
+                    //     and [[Configurable]] attributes are set to the value of the corresponding field in Desc if Desc has that field,
+                    //     or to the attribute's default value otherwise.
+                    DescriptorKind::Data { value, writable } => CompletePropertyDescriptor::Data {
+                        value: value.unwrap_or_default(),
+                        writable: writable.unwrap_or(false),
+                        enumerable,
+                        configurable,
+                    },
+                    DescriptorKind::Generic => CompletePropertyDescriptor::Data {
+                        value: JsValue::undefined(),
+                        writable: false,
+                        enumerable,
+                        configurable,
+                    },
                 },
                 slot,
             );
@@ -1062,13 +1089,16 @@ pub(crate) fn validate_and_apply_property_descriptor(
         return true;
     };
 
-    // 3. If every field in Desc is absent, return true.
+    // SKIP: 3. Assert: current is a fully populated Property Descriptor.
+    // NOTE: This is guaranteed by the Rust type-system.
+
+    // 4. If Desc does not have any fields, return true.
     if desc.is_empty() {
         return true;
     }
 
     // 4. If current.[[Configurable]] is false, then
-    if !current.expect_configurable() {
+    if !current.configurable() {
         // a. If Desc.[[Configurable]] is present and its value is true, return false.
         if matches!(desc.configurable(), Some(true)) {
             return false;
@@ -1076,81 +1106,207 @@ pub(crate) fn validate_and_apply_property_descriptor(
 
         // b. If Desc.[[Enumerable]] is present and ! SameValue(Desc.[[Enumerable]], current.[[Enumerable]])
         // is false, return false.
-        if matches!(desc.enumerable(), Some(desc_enum) if desc_enum != current.expect_enumerable())
-        {
+        if matches!(desc.enumerable(), Some(desc_enum) if desc_enum != current.enumerable()) {
             return false;
         }
     }
 
-    // 5. If ! IsGenericDescriptor(Desc) is true, then
-    if desc.is_generic_descriptor() {
-        // a. NOTE: No further validation is required.
-    }
-    // 6. Else if ! SameValue(! IsDataDescriptor(current), ! IsDataDescriptor(Desc)) is false, then
-    else if current.is_data_descriptor() != desc.is_data_descriptor() {
-        // a. If current.[[Configurable]] is false, return false.
-        if !current.expect_configurable() {
-            return false;
-        }
+    let current = match (current, desc.kind()) {
+        // 5. If ! IsGenericDescriptor(Desc) is true, then
+        (mut current, DescriptorKind::Generic) => {
+            // a. NOTE: No further validation is required.
 
-        if obj_and_key.is_some() {
-            // b. If IsDataDescriptor(current) is true, then
-            if current.is_data_descriptor() {
-                // i. If O is not undefined, convert the property named P of object O from a data
-                // property to an accessor property. Preserve the existing values of the converted
-                // property's [[Configurable]] and [[Enumerable]] attributes and set the rest of
-                // the property's attributes to their default values.
-                current = current.into_accessor_defaulted();
+            // 9. If O is not undefined, then
+            if APPLY {
+                let (enumerable, configurable) = match &mut current {
+                    CompletePropertyDescriptor::Data {
+                        enumerable,
+                        configurable,
+                        ..
+                    }
+                    | CompletePropertyDescriptor::Accessor {
+                        enumerable,
+                        configurable,
+                        ..
+                    } => (enumerable, configurable),
+                };
+
+                *enumerable = desc.enumerable().unwrap_or(*enumerable);
+                *configurable = desc.configurable().unwrap_or(*configurable);
+
+                // SKIP: a. For each field of Desc that is present, set the corresponding attribute of the
+                // property named P of object O to the value of the field.
+                // let current = current.fill_with(desc);
+                obj.borrow_mut()
+                    .properties
+                    .insert_with_slot(key, current, slot);
+                slot.attributes |= SlotAttributes::FOUND;
             }
-            // c. Else,
-            else {
-                // i. If O is not undefined, convert the property named P of object O from an
-                // accessor property to a data property. Preserve the existing values of the
-                // converted property's [[Configurable]] and [[Enumerable]] attributes and set
-                // the rest of the property's attributes to their default values.
-                current = current.into_data_defaulted();
-            }
+
+            // 10. Return true.
+            return true;
         }
-    }
-    // 7. Else if IsDataDescriptor(current) and IsDataDescriptor(Desc) are both true, then
-    else if current.is_data_descriptor() && desc.is_data_descriptor() {
-        // a. If current.[[Configurable]] is false and current.[[Writable]] is false, then
-        if !current.expect_configurable() && !current.expect_writable() {
-            // i. If Desc.[[Writable]] is present and Desc.[[Writable]] is true, return false.
-            if matches!(desc.writable(), Some(true)) {
+        // 7. Else if IsDataDescriptor(current) and IsDataDescriptor(Desc) are both true, then
+        (
+            CompletePropertyDescriptor::Data {
+                value: current_value,
+                writable: current_writable,
+                configurable: current_configurable,
+                enumerable: current_enumerable,
+            },
+            DescriptorKind::Data {
+                value: desc_value,
+                writable: desc_writable,
+            },
+        ) => {
+            // a. If current.[[Configurable]] is false and current.[[Writable]] is false, then
+            if !current_configurable && !current_writable {
+                // i. If Desc.[[Writable]] is present and Desc.[[Writable]] is true, return false.
+                if *desc_writable == Some(true) {
+                    return false;
+                }
+                // ii. If Desc.[[Value]] is present and SameValue(Desc.[[Value]], current.[[Value]]) is false, return false.
+                if let Some(value) = desc_value
+                    && !JsValue::same_value(value, &current_value)
+                {
+                    return false;
+                }
+                // iii. Return true.
+                return true;
+            }
+
+            // 9. If O is not undefined, then
+            if APPLY {
+                // a. For each field of Desc that is present, set the corresponding attribute of the
+                // property named P of object O to the value of the field.
+                let current = CompletePropertyDescriptor::Data {
+                    value: desc_value.as_ref().unwrap_or(&current_value).clone(),
+                    writable: desc_writable.unwrap_or(current_writable),
+                    enumerable: desc.enumerable().unwrap_or(current_enumerable),
+                    configurable: desc.configurable().unwrap_or(current_configurable),
+                };
+                obj.borrow_mut()
+                    .properties
+                    .insert_with_slot(key, current, slot);
+                slot.attributes |= SlotAttributes::FOUND;
+            }
+
+            return true;
+        }
+        // 6. Else if ! SameValue(! IsDataDescriptor(current), ! IsDataDescriptor(Desc)) is false, then
+        (
+            mut current @ CompletePropertyDescriptor::Data {
+                configurable: current_configurable,
+                ..
+            },
+            DescriptorKind::Accessor { .. },
+        ) => {
+            // a. If current.[[Configurable]] is false, return false.
+            if !current_configurable {
                 return false;
             }
-            // ii. If Desc.[[Value]] is present and SameValue(Desc.[[Value]], current.[[Value]]) is false, return false.
-            if matches!(desc.value(), Some(value) if !JsValue::same_value(value, current.expect_value()))
+
+            if APPLY {
+                // b. If IsDataDescriptor(current) is true, then
+                //     i. If O is not undefined, convert the property named P of object O from a data
+                //        property to an accessor property. Preserve the existing values of the converted
+                //        property's [[Configurable]] and [[Enumerable]] attributes and set the rest of
+                //        the property's attributes to their default values.
+                current = current.into_accessor_defaulted();
+                // SKIP: c. Else,
+                // SKIP: i. If O is not undefined, convert the property named P of object O from an
+                //     accessor property to a data property. Preserve the existing values of the
+                //     converted property's [[Configurable]] and [[Enumerable]] attributes and set
+                //     the rest of the property's attributes to their default values.
+
+                // a. For each field of Desc that is present, set the corresponding attribute of the
+                // property named P of object O to the value of the field.
+                let current = current.fill_with(desc);
+                obj.borrow_mut()
+                    .properties
+                    .insert_with_slot(key, current, slot);
+                slot.attributes |= SlotAttributes::FOUND;
+            }
+
+            return true;
+        }
+        // 6. Else if ! SameValue(! IsDataDescriptor(current), ! IsDataDescriptor(Desc)) is false, then
+        (
+            mut current @ CompletePropertyDescriptor::Accessor {
+                configurable: current_configurable,
+                ..
+            },
+            DescriptorKind::Data { .. },
+        ) => {
+            // a. If current.[[Configurable]] is false, return false.
+            if !current_configurable {
+                return false;
+            }
+
+            if APPLY {
+                // SKIP: b. If IsDataDescriptor(current) is true, then
+                // SKIP:     i. If O is not undefined, convert the property named P of object O from a data
+                //              property to an accessor property. Preserve the existing values of the converted
+                //              property's [[Configurable]] and [[Enumerable]] attributes and set the rest of
+                //              the property's attributes to their default values.
+                // c. Else,
+                // i. If O is not undefined, convert the property named P of object O from an
+                //     accessor property to a data property. Preserve the existing values of the
+                //     converted property's [[Configurable]] and [[Enumerable]] attributes and set
+                //     the rest of the property's attributes to their default values.
+                current = current.into_data_defaulted();
+
+                // 9. If O is not undefined, then
+                // a. For each field of Desc that is present, set the corresponding attribute of the
+                // property named P of object O to the value of the field.
+                let current = current.fill_with(desc);
+                obj.borrow_mut()
+                    .properties
+                    .insert_with_slot(key, current, slot);
+                slot.attributes |= SlotAttributes::FOUND;
+            }
+
+            return true;
+        }
+        // 8. Else,
+        // a. Assert: ! IsAccessorDescriptor(current) and ! IsAccessorDescriptor(Desc) are both true.
+        (
+            CompletePropertyDescriptor::Accessor {
+                get: current_get,
+                set: current_set,
+                configurable: current_configurable,
+                ..
+            },
+            DescriptorKind::Accessor {
+                get: desc_get,
+                set: desc_set,
+            },
+            // b. If current.[[Configurable]] is false, then
+        ) if !current_configurable => {
+            // i. If Desc.[[Set]] is present and SameValue(Desc.[[Set]], current.[[Set]]) is false, return false.
+            if let Some(set) = desc_set
+                && set.as_object() != current_set.map(Into::into)
+            {
+                return false;
+            }
+
+            // ii. If Desc.[[Get]] is present and SameValue(Desc.[[Get]], current.[[Get]]) is false, return false.
+            if let Some(get) = desc_get
+                && get.as_object() != current_get.map(Into::into)
             {
                 return false;
             }
             // iii. Return true.
             return true;
         }
-    }
-    // 8. Else,
-    // a. Assert: ! IsAccessorDescriptor(current) and ! IsAccessorDescriptor(Desc) are both true.
-    // b. If current.[[Configurable]] is false, then
-    else if !current.expect_configurable() {
-        // i. If Desc.[[Set]] is present and SameValue(Desc.[[Set]], current.[[Set]]) is false, return false.
-        if matches!(desc.set(), Some(set) if !JsValue::same_value(set, current.expect_set())) {
-            return false;
-        }
-
-        // ii. If Desc.[[Get]] is present and SameValue(Desc.[[Get]], current.[[Get]]) is false, return false.
-        if matches!(desc.get(), Some(get) if !JsValue::same_value(get, current.expect_get())) {
-            return false;
-        }
-        // iii. Return true.
-        return true;
-    }
+        (current, _) => current,
+    };
 
     // 9. If O is not undefined, then
-    if let Some((obj, key)) = obj_and_key {
+    if APPLY {
         // a. For each field of Desc that is present, set the corresponding attribute of the
         // property named P of object O to the value of the field.
-        current.fill_with(desc);
+        let current = current.fill_with(desc);
         obj.borrow_mut()
             .properties
             .insert_with_slot(key, current, slot);
