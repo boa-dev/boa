@@ -5,6 +5,8 @@ pub struct NonMaxU32 {
 }
 
 impl NonMaxU32 {
+    pub(crate) const ZERO: Self = Self { inner: 0 };
+
     /// Creates a non-max `u32`.
     ///
     /// # Safety

@@ -113,7 +113,7 @@ impl ForInIterator {
                     )?
                 {
                     iterator.visited_keys.insert(r.clone());
-                    if desc.expect_enumerable() {
+                    if desc.enumerable() {
                         return Ok(create_iter_result_object(JsValue::new(r), false, context));
                     }
                 }

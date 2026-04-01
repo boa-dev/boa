@@ -4,7 +4,7 @@ use crate::{
     Context, JsResult,
     builtins::function::{OrdinaryFunction, set_function_name},
     object::internal_methods::InternalMethodPropertyContext,
-    property::PropertyDescriptor,
+    property::{CompletePropertyDescriptor, PropertyDescriptor},
     vm::opcode::{IndexOperand, Operation, RegisterOperand},
 };
 
@@ -43,7 +43,7 @@ impl DefineClassStaticSetterByName {
         let get = class
             .__get_own_property__(&key, &mut InternalMethodPropertyContext::new(context))?
             .as_ref()
-            .and_then(PropertyDescriptor::get)
+            .and_then(CompletePropertyDescriptor::get)
             .cloned();
 
         class.__define_own_property__(
@@ -101,7 +101,7 @@ impl DefineClassSetterByName {
         let get = class_proto
             .__get_own_property__(&key, &mut InternalMethodPropertyContext::new(context))?
             .as_ref()
-            .and_then(PropertyDescriptor::get)
+            .and_then(CompletePropertyDescriptor::get)
             .cloned();
 
         class_proto.__define_own_property__(
@@ -158,7 +158,7 @@ impl DefineClassStaticSetterByValue {
         let get = class
             .__get_own_property__(&key, &mut InternalMethodPropertyContext::new(context))?
             .as_ref()
-            .and_then(PropertyDescriptor::get)
+            .and_then(CompletePropertyDescriptor::get)
             .cloned();
 
         class.define_property_or_throw(
@@ -215,7 +215,7 @@ impl DefineClassSetterByValue {
         let get = class_proto
             .__get_own_property__(&key, &mut InternalMethodPropertyContext::new(context))?
             .as_ref()
-            .and_then(PropertyDescriptor::get)
+            .and_then(CompletePropertyDescriptor::get)
             .cloned();
 
         class_proto.__define_own_property__(

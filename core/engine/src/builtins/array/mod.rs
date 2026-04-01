@@ -26,7 +26,9 @@ use crate::{
             ordinary_get_own_property,
         },
     },
-    property::{Attribute, PropertyDescriptor, PropertyKey, PropertyNameKind},
+    property::{
+        Attribute, CompletePropertyDescriptor, PropertyDescriptor, PropertyKey, PropertyNameKind,
+    },
     realm::Realm,
     string::StaticJsStrings,
     symbol::JsSymbol,
@@ -3286,11 +3288,12 @@ impl Array {
     pub(crate) fn unscopables_object() -> JsObject {
         // 1. Let unscopableList be OrdinaryObjectCreate(null).
         let unscopable_list = JsObject::with_null_proto();
-        let true_prop = PropertyDescriptor::builder()
-            .value(true)
-            .writable(true)
-            .enumerable(true)
-            .configurable(true);
+        let true_prop = CompletePropertyDescriptor::Data {
+            value: JsValue::new(true),
+            writable: true,
+            configurable: true,
+            enumerable: true,
+        };
         {
             let mut obj = unscopable_list.borrow_mut();
             // 2. Perform ! CreateDataPropertyOrThrow(unscopableList, "at", true).
@@ -3493,21 +3496,28 @@ fn array_exotic_define_own_property(
                     .expect("the property descriptor must exist");
 
             // b. Assert: ! IsDataDescriptor(oldLenDesc) is true.
-            debug_assert!(old_len_desc.is_data_descriptor());
+            let CompletePropertyDescriptor::Data {
+                value,
+                writable,
+                enumerable,
+                configurable,
+            } = old_len_desc
+            else {
+                panic!("length is always a data property descriptor");
+            };
 
             // c. Assert: oldLenDesc.[[Configurable]] is false.
-            debug_assert!(!old_len_desc.expect_configurable());
+            debug_assert!(!configurable);
 
             // d. Let oldLen be oldLenDesc.[[Value]].
             // e. Assert: oldLen is a non-negative integral Number.
             // f. Let index be ! ToUint32(P).
-            let old_len = old_len_desc
-                .expect_value()
+            let old_len = value
                 .to_u32(context)
                 .js_expect("this ToUint32 call must not fail")?;
 
             // g. If index ≥ oldLen and oldLenDesc.[[Writable]] is false, return false.
-            if index >= old_len && !old_len_desc.expect_writable() {
+            if index >= old_len && !writable {
                 return Ok(false);
             }
 
@@ -3518,9 +3528,9 @@ fn array_exotic_define_own_property(
                     // i. Set oldLenDesc.[[Value]] to index + 1𝔽.
                     let old_len_desc = PropertyDescriptor::builder()
                         .value(new_len)
-                        .maybe_writable(old_len_desc.writable())
-                        .maybe_enumerable(old_len_desc.enumerable())
-                        .maybe_configurable(old_len_desc.configurable());
+                        .writable(writable)
+                        .enumerable(enumerable)
+                        .configurable(configurable);
 
                     // ii. Set succeeded to OrdinaryDefineOwnProperty(A, "length", oldLenDesc).
                     let succeeded = ordinary_define_own_property(
@@ -3590,13 +3600,21 @@ fn array_set_length(
         .expect("the property descriptor must exist");
 
     // 8. Assert: ! IsDataDescriptor(oldLenDesc) is true.
-    debug_assert!(old_len_desc.is_data_descriptor());
+    let CompletePropertyDescriptor::Data {
+        value,
+        writable,
+        configurable,
+        ..
+    } = old_len_desc
+    else {
+        panic!("length is always a data property descriptor");
+    };
 
     // 9. Assert: oldLenDesc.[[Configurable]] is false.
-    debug_assert!(!old_len_desc.expect_configurable());
+    debug_assert!(!configurable);
 
     // 10. Let oldLen be oldLenDesc.[[Value]].
-    let old_len = old_len_desc.expect_value();
+    let old_len = value;
 
     // 11. If newLen ≥ oldLen, then
     if new_len >= old_len.to_u32(context)? {
@@ -3610,7 +3628,7 @@ fn array_set_length(
     }
 
     // 12. If oldLenDesc.[[Writable]] is false, return false.
-    if !old_len_desc.expect_writable() {
+    if !writable {
         return Ok(false);
     }
 
