@@ -55,7 +55,7 @@ use std::{cell::RefCell, collections::VecDeque, fmt::Debug, future::Future, pin:
 /// This is basically a synchronous task that needs to be run to progress [`Promise`] objects,
 /// or unblock threads waiting on [`Atomics.waitAsync`].
 ///
-/// [Job]: https://tc39.es/ecma262/#sec-jobs
+/// [Job Abstract Closure]: https://tc39.es/ecma262/#sec-jobs
 /// [`Promise`]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Promise
 /// [`Atomics.waitAsync`]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Atomics/waitAsync
 pub struct NativeJob {
@@ -132,7 +132,7 @@ impl NativeJob {
 /// This is basically a synchronous task that needs to be run to progress [`Promise`] objects,
 /// or unblock threads waiting on [`Atomics.waitAsync`].
 ///
-/// [Job]: https://tc39.es/ecma262/#sec-jobs
+/// [Job Abstract Closure]: https://tc39.es/ecma262/#sec-jobs
 /// [`Promise`]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Promise
 /// [`Atomics.waitAsync`]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Atomics/waitAsync
 pub struct NativeJobFn {
