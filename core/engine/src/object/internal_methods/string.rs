@@ -1,7 +1,7 @@
 use crate::{
     Context, JsExpect, JsResult, JsString,
     object::{JsData, JsObject},
-    property::{PropertyDescriptor, PropertyKey},
+    property::{CompletePropertyDescriptor, PropertyDescriptor, PropertyKey},
 };
 
 use super::{InternalMethodPropertyContext, InternalObjectMethods, ORDINARY_INTERNAL_METHODS};
@@ -29,7 +29,7 @@ pub(crate) fn string_exotic_get_own_property(
     obj: &JsObject,
     key: &PropertyKey,
     context: &mut InternalMethodPropertyContext<'_>,
-) -> JsResult<Option<PropertyDescriptor>> {
+) -> JsResult<Option<CompletePropertyDescriptor>> {
     // 1. Assert: IsPropertyKey(P) is true.
     // 2. Let desc be OrdinaryGetOwnProperty(S, P).
     let desc = super::ordinary_get_own_property(obj, key, context)?;
@@ -65,6 +65,7 @@ pub(crate) fn string_exotic_define_own_property(
         let extensible = obj.borrow().extensible;
         // b. Return ! IsCompatiblePropertyDescriptor(extensible, Desc, stringDesc).
         Ok(super::is_compatible_property_descriptor(
+            obj,
             extensible,
             desc,
             Some(string_desc),
@@ -133,7 +134,10 @@ pub(crate) fn string_exotic_own_property_keys(
 ///  - [ECMAScript reference][spec]
 ///
 /// [spec]: https://tc39.es/ecma262/#sec-stringgetownproperty
-fn string_get_own_property(obj: &JsObject, key: &PropertyKey) -> Option<PropertyDescriptor> {
+fn string_get_own_property(
+    obj: &JsObject,
+    key: &PropertyKey,
+) -> Option<CompletePropertyDescriptor> {
     // 1. Assert: S is an Object that has a [[StringData]] internal slot.
     // 2. Assert: IsPropertyKey(P) is true.
     // 3. If Type(P) is not String, return undefined.
@@ -159,12 +163,10 @@ fn string_get_own_property(obj: &JsObject, key: &PropertyKey) -> Option<Property
     let result_str = string.get(pos..=pos)?;
 
     // 13. Return the PropertyDescriptor { [[Value]]: resultStr, [[Writable]]: false, [[Enumerable]]: true, [[Configurable]]: false }.
-    let desc = PropertyDescriptor::builder()
-        .value(result_str)
-        .writable(false)
-        .enumerable(true)
-        .configurable(false)
-        .build();
-
-    Some(desc)
+    Some(CompletePropertyDescriptor::Data {
+        value: result_str.into(),
+        writable: false,
+        enumerable: true,
+        configurable: false,
+    })
 }
