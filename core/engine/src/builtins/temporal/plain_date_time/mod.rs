@@ -42,7 +42,6 @@ use super::{
     options::{TemporalUnitGroup, get_difference_settings, get_digits_option, get_temporal_unit},
     to_temporal_duration_record, to_temporal_time, to_temporal_timezone_identifier,
 };
-use crate::value::JsVariant;
 
 /// The `Temporal.PlainDateTime` built-in implementation.
 ///
@@ -1323,32 +1322,30 @@ impl PlainDateTime {
                 JsNativeError::typ().with_message("the this object must be a PlainTime object.")
             })?;
 
-        let round_to = match args.first().map(JsValue::variant) {
-            // 3. If roundTo is undefined, then
-            None | Some(JsVariant::Undefined) => {
-                return Err(JsNativeError::typ()
-                    .with_message("roundTo cannot be undefined.")
-                    .into());
-            }
-            // 4. If Type(roundTo) is String, then
-            Some(JsVariant::String(rt)) => {
-                // a. Let paramString be roundTo.
-                let param_string = rt.clone();
-                // b. Set roundTo to OrdinaryObjectCreate(null).
-                let new_round_to = JsObject::with_null_proto();
-                // c. Perform ! CreateDataPropertyOrThrow(roundTo, "smallestUnit", paramString).
-                new_round_to.create_data_property_or_throw(
-                    js_string!("smallestUnit"),
-                    param_string,
-                    context,
-                )?;
-                new_round_to
-            }
+        // 3. If roundTo is undefined, then
+        let round_to_arg = args.get_or_undefined(0);
+        if round_to_arg.is_undefined() {
+            return Err(JsNativeError::typ()
+                .with_message("roundTo cannot be undefined.")
+                .into());
+        }
+        // 4. If Type(roundTo) is String, then
+        let round_to = if let Some(param_string) = round_to_arg.as_string() {
+            // a. Let paramString be roundTo.
+            let param_string = param_string.clone();
+            // b. Set roundTo to OrdinaryObjectCreate(null).
+            let new_round_to = JsObject::with_null_proto();
+            // c. Perform ! CreateDataPropertyOrThrow(roundTo, "smallestUnit", paramString).
+            new_round_to.create_data_property_or_throw(
+                js_string!("smallestUnit"),
+                param_string,
+                context,
+            )?;
+            new_round_to
+        } else {
             // 5. Else,
-            Some(round_to) => {
-                // a. Set roundTo to ? GetOptionsObject(roundTo).
-                get_options_object(&JsValue::from(round_to))?
-            }
+            // a. Set roundTo to ? GetOptionsObject(roundTo).
+            get_options_object(round_to_arg)?
         };
 
         let mut options = RoundingOptions::default();
