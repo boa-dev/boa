@@ -13,7 +13,7 @@ use crate::{
             ordinary_has_property, ordinary_prevent_extensions, ordinary_set, ordinary_try_get,
         },
     },
-    property::{PropertyDescriptor, PropertyKey},
+    property::{CompletePropertyDescriptor, PropertyDescriptor, PropertyKey},
 };
 use boa_gc::{Finalize, Trace};
 use boa_macros::js_str;
@@ -362,7 +362,7 @@ pub(crate) fn typed_array_exotic_get_own_property(
     obj: &JsObject,
     key: &PropertyKey,
     context: &mut InternalMethodPropertyContext<'_>,
-) -> JsResult<Option<PropertyDescriptor>> {
+) -> JsResult<Option<CompletePropertyDescriptor>> {
     let p = match key {
         PropertyKey::String(key) => {
             // 1.a. Let numericIndex be CanonicalNumericIndexString(P).
@@ -380,13 +380,11 @@ pub(crate) fn typed_array_exotic_get_own_property(
 
         // ii. If value is undefined, return undefined.
         // iii. Return the PropertyDescriptor { [[Value]]: value, [[Writable]]: true, [[Enumerable]]: true, [[Configurable]]: true }.
-        return Ok(value.map(|v| {
-            PropertyDescriptor::builder()
-                .value(v)
-                .writable(true)
-                .enumerable(true)
-                .configurable(true)
-                .build()
+        return Ok(value.map(|value| CompletePropertyDescriptor::Data {
+            value,
+            writable: true,
+            enumerable: true,
+            configurable: true,
         }));
     }
 

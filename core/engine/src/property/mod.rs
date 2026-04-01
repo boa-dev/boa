@@ -19,7 +19,9 @@ mod attribute;
 mod nonmaxu32;
 
 use crate::{
-    JsString, JsSymbol, JsValue, js_string, object::shape::slot::SlotAttributes, string::JsStr,
+    JsString, JsSymbol, JsValue, js_string,
+    object::{JsFunction, shape::slot::SlotAttributes},
+    string::JsStr,
 };
 use boa_gc::{Finalize, Trace};
 use std::{fmt, iter::FusedIterator};
@@ -49,14 +51,16 @@ pub use {attribute::Attribute, nonmaxu32::NonMaxU32};
 /// [spec]: https://tc39.es/ecma262/#sec-property-descriptor-specification-type
 /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object/defineProperty
 #[derive(Default, Debug, Clone, Trace, Finalize)]
+#[boa_gc(unsafe_no_drop)]
 pub struct PropertyDescriptor {
     enumerable: Option<bool>,
     configurable: Option<bool>,
-    kind: DescriptorKind,
+    pub(crate) kind: DescriptorKind,
 }
 
 /// `DescriptorKind` represents the different kinds of property descriptors.
 #[derive(Debug, Default, Clone, Trace, Finalize)]
+#[boa_gc(unsafe_no_drop)]
 pub enum DescriptorKind {
     /// A data property descriptor.
     Data {
@@ -296,6 +300,32 @@ impl PropertyDescriptor {
         self
     }
 
+    /// Creates an accessor property descriptor with default values.
+    #[inline]
+    #[must_use]
+    pub fn into_concrete_accessor_defaulted(self) -> CompletePropertyDescriptor {
+        match self.kind {
+            DescriptorKind::Accessor { set, get } => CompletePropertyDescriptor::Accessor {
+                get: get
+                    .as_ref()
+                    .and_then(JsValue::as_object)
+                    .map(JsFunction::from_object_unchecked),
+                set: set
+                    .as_ref()
+                    .and_then(JsValue::as_object)
+                    .map(JsFunction::from_object_unchecked),
+                enumerable: self.enumerable.unwrap_or(false),
+                configurable: self.configurable.unwrap_or(false),
+            },
+            _ => CompletePropertyDescriptor::Accessor {
+                get: None,
+                set: None,
+                enumerable: self.enumerable.unwrap_or(false),
+                configurable: self.configurable.unwrap_or(false),
+            },
+        }
+    }
+
     /// Creates a data property descriptor with default values.
     #[must_use]
     pub fn into_data_defaulted(mut self) -> Self {
@@ -320,75 +350,55 @@ impl PropertyDescriptor {
         self
     }
 
+    /// Creates a data property descriptor with default values.
+    #[must_use]
+    pub fn into_concrete_data_defaulted(self) -> CompletePropertyDescriptor {
+        match self.kind {
+            DescriptorKind::Data { value, writable } => CompletePropertyDescriptor::Data {
+                value: value.unwrap_or_default(),
+                writable: writable.unwrap_or(false),
+                enumerable: self.enumerable.unwrap_or(false),
+                configurable: self.configurable.unwrap_or(false),
+            },
+            _ => CompletePropertyDescriptor::Data {
+                value: JsValue::undefined(),
+                writable: false,
+                enumerable: self.enumerable.unwrap_or(false),
+                configurable: self.configurable.unwrap_or(false),
+            },
+        }
+    }
+
     /// Creates an generic property descriptor with default values.
     #[inline]
     #[must_use]
-    pub fn complete_property_descriptor(self) -> Self {
-        PropertyDescriptorBuilder { inner: self }
-            .complete_with_defaults()
-            .build()
-    }
-
-    /// Fills the fields of the `PropertyDescriptor` that are not set
-    /// with fields from the given `PropertyDescriptor`.
-    ///
-    /// # Panics
-    ///
-    /// Panics if the given `PropertyDescriptor` is not compatible with this one.
-    #[inline]
-    pub fn fill_with(&mut self, mut desc: Self) {
-        match (&mut self.kind, &mut desc.kind) {
-            (
-                DescriptorKind::Data { value, writable },
-                DescriptorKind::Data {
-                    value: desc_value,
-                    writable: desc_writable,
-                },
-            ) => {
-                if desc_value.is_some() {
-                    std::mem::swap(value, desc_value);
-                }
-                if desc_writable.is_some() {
-                    std::mem::swap(writable, desc_writable);
-                }
-            }
-            (
-                DescriptorKind::Accessor { get, set },
-                DescriptorKind::Accessor {
-                    get: desc_get,
-                    set: desc_set,
-                },
-            ) => {
-                if desc_get.is_some() {
-                    std::mem::swap(get, desc_get);
-                }
-                if desc_set.is_some() {
-                    std::mem::swap(set, desc_set);
-                }
-            }
-            (_, DescriptorKind::Generic) => {}
-            _ => panic!("Tried to fill a descriptor with an incompatible descriptor"),
+    pub fn complete_property_descriptor(self) -> CompletePropertyDescriptor {
+        match self.kind {
+            DescriptorKind::Generic => CompletePropertyDescriptor::Data {
+                value: JsValue::undefined(),
+                writable: false,
+                enumerable: self.enumerable.unwrap_or(false),
+                configurable: self.configurable.unwrap_or(false),
+            },
+            DescriptorKind::Data { value, writable } => CompletePropertyDescriptor::Data {
+                value: value.unwrap_or_default(),
+                writable: writable.unwrap_or(false),
+                enumerable: self.enumerable.unwrap_or(false),
+                configurable: self.configurable.unwrap_or(false),
+            },
+            DescriptorKind::Accessor { set, get } => CompletePropertyDescriptor::Accessor {
+                get: get
+                    .as_ref()
+                    .and_then(JsValue::as_object)
+                    .map(JsFunction::from_object_unchecked),
+                set: set
+                    .as_ref()
+                    .and_then(JsValue::as_object)
+                    .map(JsFunction::from_object_unchecked),
+                enumerable: self.enumerable.unwrap_or(false),
+                configurable: self.configurable.unwrap_or(false),
+            },
         }
-
-        if let Some(enumerable) = desc.enumerable {
-            self.enumerable = Some(enumerable);
-        }
-        if let Some(configurable) = desc.configurable {
-            self.configurable = Some(configurable);
-        }
-    }
-
-    pub(crate) fn to_slot_attributes(&self) -> SlotAttributes {
-        let mut attributes = SlotAttributes::empty();
-        attributes.set(SlotAttributes::CONFIGURABLE, self.expect_configurable());
-        attributes.set(SlotAttributes::ENUMERABLE, self.expect_enumerable());
-        if self.is_data_descriptor() {
-            attributes.set(SlotAttributes::WRITABLE, self.expect_writable());
-        } else {
-            attributes.set(SlotAttributes::GET, self.get().is_some());
-            attributes.set(SlotAttributes::SET, self.set().is_some());
-        }
-        attributes
     }
 }
 
@@ -601,6 +611,258 @@ impl PropertyDescriptorBuilder {
 impl From<PropertyDescriptorBuilder> for PropertyDescriptor {
     fn from(builder: PropertyDescriptorBuilder) -> Self {
         builder.build()
+    }
+}
+
+/// A completed [`PropertyDescriptor`].
+#[derive(Debug, Clone, Trace, Finalize)]
+#[boa_gc(unsafe_no_drop)]
+pub enum CompletePropertyDescriptor {
+    /// A data property descriptor.
+    Data {
+        /// The value of the property.
+        value: JsValue,
+        /// A boolean indicating if the property can be changed.
+        writable: bool,
+        /// A boolean indicating if the property is enumerable.
+        enumerable: bool,
+        /// A boolean indicating if the property descriptor can be changed or deleted.
+        configurable: bool,
+    },
+    /// A accessor property descriptor.
+    Accessor {
+        /// The getter function for the property.
+        get: Option<JsFunction>,
+        /// The setter function for the property.
+        set: Option<JsFunction>,
+        /// A boolean indicating if the property is enumerable.
+        enumerable: bool,
+        /// A boolean indicating if the property descriptor can be changed or deleted.
+        configurable: bool,
+    },
+}
+
+impl From<CompletePropertyDescriptor> for PropertyDescriptor {
+    fn from(value: CompletePropertyDescriptor) -> Self {
+        match value {
+            CompletePropertyDescriptor::Data {
+                value,
+                writable,
+                configurable,
+                enumerable,
+            } => PropertyDescriptor::builder()
+                .value(value)
+                .writable(writable)
+                .configurable(configurable)
+                .enumerable(enumerable)
+                .build(),
+            CompletePropertyDescriptor::Accessor {
+                get,
+                set,
+                configurable,
+                enumerable,
+            } => PropertyDescriptor::builder()
+                .get(get.map(JsValue::new).unwrap_or_default())
+                .set(set.map(JsValue::new).unwrap_or_default())
+                .configurable(configurable)
+                .enumerable(enumerable)
+                .build(),
+        }
+    }
+}
+
+impl CompletePropertyDescriptor {
+    /// Return the value of the property.
+    #[must_use]
+    pub fn value(&self) -> Option<&JsValue> {
+        if let Self::Data { value, .. } = self {
+            return Some(value);
+        }
+        None
+    }
+
+    /// Returns if the property descriptor is writable.
+    #[must_use]
+    pub fn writable(&self) -> Option<bool> {
+        match self {
+            Self::Data { writable, .. } => Some(*writable),
+            Self::Accessor { .. } => None,
+        }
+    }
+
+    /// Returns if the property descriptor is enumerable.
+    #[must_use]
+    pub fn enumerable(&self) -> bool {
+        match self {
+            Self::Data { enumerable, .. } | Self::Accessor { enumerable, .. } => *enumerable,
+        }
+    }
+
+    /// Returns if the property descriptor is configurable.
+    #[must_use]
+    pub fn configurable(&self) -> bool {
+        match self {
+            Self::Data { configurable, .. } | Self::Accessor { configurable, .. } => *configurable,
+        }
+    }
+
+    /// Returns the getter of the property descriptor.
+    #[must_use]
+    pub fn get(&self) -> Option<&JsFunction> {
+        if let Self::Accessor { get, .. } = self {
+            return get.as_ref();
+        }
+        None
+    }
+
+    /// Returns the setter of the property descriptor.
+    #[must_use]
+    pub fn set(&self) -> Option<&JsFunction> {
+        if let Self::Accessor { set, .. } = self {
+            return set.as_ref();
+        }
+        None
+    }
+
+    /// Returns `true` if this property descriptor is a data descriptor.
+    #[must_use]
+    pub fn is_data_descriptor(&self) -> bool {
+        matches!(self, Self::Data { .. })
+    }
+
+    /// Returns `true` if this property descriptor is a accessor descriptor.
+    #[must_use]
+    pub fn is_accessor_descriptor(&self) -> bool {
+        matches!(self, Self::Accessor { .. })
+    }
+
+    pub(crate) fn to_slot_attributes(&self) -> SlotAttributes {
+        let mut attributes = SlotAttributes::empty();
+        match self {
+            Self::Data {
+                writable,
+                configurable,
+                enumerable,
+                ..
+            } => {
+                attributes.set(SlotAttributes::WRITABLE, *writable);
+                attributes.set(SlotAttributes::CONFIGURABLE, *configurable);
+                attributes.set(SlotAttributes::ENUMERABLE, *enumerable);
+            }
+            Self::Accessor {
+                configurable,
+                enumerable,
+                ..
+            } => {
+                attributes.set(SlotAttributes::GET, true);
+                attributes.set(SlotAttributes::SET, true);
+                attributes.set(SlotAttributes::CONFIGURABLE, *configurable);
+                attributes.set(SlotAttributes::ENUMERABLE, *enumerable);
+            }
+        }
+        attributes
+    }
+
+    /// Creates an accessor property descriptor with default values.
+    #[inline]
+    #[must_use]
+    pub fn into_accessor_defaulted(self) -> Self {
+        match self {
+            Self::Data {
+                enumerable,
+                configurable,
+                ..
+            } => Self::Accessor {
+                get: None,
+                set: None,
+                enumerable,
+                configurable,
+            },
+            Self::Accessor { .. } => self,
+        }
+    }
+
+    /// Creates a data property descriptor with default values.
+    #[must_use]
+    pub fn into_data_defaulted(self) -> Self {
+        match self {
+            Self::Data { .. } => self,
+            Self::Accessor {
+                enumerable,
+                configurable,
+                ..
+            } => Self::Data {
+                value: JsValue::undefined(),
+                writable: false,
+                enumerable,
+                configurable,
+            },
+        }
+    }
+
+    /// Fills the fields of the `PropertyDescriptor` that are not set
+    /// with fields from the given `PropertyDescriptor`.
+    ///
+    /// # Panics
+    ///
+    /// Panics if the given `PropertyDescriptor` is not compatible with this one.
+    #[inline]
+    #[must_use]
+    pub fn fill_with(mut self, desc: PropertyDescriptor) -> Self {
+        match (&mut self, desc.kind) {
+            (
+                Self::Data {
+                    value,
+                    writable,
+                    enumerable,
+                    configurable,
+                },
+                DescriptorKind::Data {
+                    value: desc_value,
+                    writable: desc_writable,
+                },
+            ) => {
+                if let Some(desc_value) = desc_value {
+                    *value = desc_value;
+                }
+                if let Some(desc_writable) = desc_writable {
+                    *writable = desc_writable;
+                }
+                if let Some(desc_enumerable) = desc.enumerable {
+                    *enumerable = desc_enumerable;
+                }
+                if let Some(desc_configurable) = desc.configurable {
+                    *configurable = desc_configurable;
+                }
+            }
+            (
+                Self::Accessor {
+                    get,
+                    set,
+                    enumerable,
+                    configurable,
+                },
+                DescriptorKind::Accessor {
+                    get: desc_get,
+                    set: desc_set,
+                },
+            ) => {
+                if let Some(desc_get) = desc_get {
+                    *get = desc_get.as_object().map(JsFunction::from_object_unchecked);
+                }
+                if let Some(desc_set) = desc_set {
+                    *set = desc_set.as_object().map(JsFunction::from_object_unchecked);
+                }
+                if let Some(desc_enumerable) = desc.enumerable {
+                    *enumerable = desc_enumerable;
+                }
+                if let Some(desc_configurable) = desc.configurable {
+                    *configurable = desc_configurable;
+                }
+            }
+            _ => panic!("Tried to fill a descriptor with an incompatible descriptor"),
+        }
+        self
     }
 }
 
