@@ -155,6 +155,7 @@ impl CodeBlock {
                 }
                 Instruction::CallEval { .. }
                 | Instruction::Call { .. }
+                | Instruction::CallArrow { .. }
                 | Instruction::New { .. }
                 | Instruction::SuperCall { .. }
                 | Instruction::ConcatToString { .. }
@@ -345,14 +346,14 @@ impl CodeBlock {
                 | Instruction::GeneratorYield { .. }
                 | Instruction::AsyncGeneratorYield { .. }
                 | Instruction::AsyncGeneratorClose
-                | Instruction::CreatePromiseCapability
+                | Instruction::CreatePromiseCapability { .. }
                 | Instruction::PushClassField { .. }
                 | Instruction::SuperCallDerived
                 | Instruction::Await { .. }
                 | Instruction::NewTarget { .. }
                 | Instruction::ImportMeta { .. }
                 | Instruction::CallEvalSpread { .. }
-                | Instruction::CallSpread
+                | Instruction::CallSpread { .. }
                 | Instruction::NewSpread
                 | Instruction::SuperCallSpread
                 | Instruction::SetPrototype { .. }
@@ -432,8 +433,7 @@ impl CodeBlock {
                 | Instruction::Reserved56
                 | Instruction::Reserved57
                 | Instruction::Reserved58
-                | Instruction::Reserved59
-                | Instruction::Reserved60 => unreachable!("Reserved opcodes are unreachable"),
+                | Instruction::Reserved59 => unreachable!("Reserved opcodes are unreachable"),
             }
         }
 

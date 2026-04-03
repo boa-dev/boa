@@ -1,5 +1,8 @@
-use super::IndexOperand;
-use crate::{Context, JsResult, error::JsNativeError, vm::opcode::Operation};
+use crate::{
+    Context, JsResult,
+    error::JsNativeError,
+    vm::opcode::{IndexOperand, Operation},
+};
 
 /// `New` implements the Opcode Operation for `Opcode::New`
 ///

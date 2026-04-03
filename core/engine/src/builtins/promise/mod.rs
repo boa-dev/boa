@@ -227,6 +227,27 @@ impl PromiseCapability {
     ///  - [ECMAScript reference][spec]
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-newpromisecapability
+    ///
+    /// `NewPromiseCapability ( C )`
+    /// Fast path for creating a promise capability for internal VM use (async functions).
+    /// Bypasses the executor closure and construct call.
+    pub(crate) fn new_internal(context: &mut Context) -> Self {
+        let promise = JsObject::from_proto_and_data(
+            context.intrinsics().constructors().promise().prototype(),
+            Promise::new(),
+        );
+        let promise_typed: JsObject<Promise> = promise
+            .clone()
+            .downcast()
+            .expect("promise object should be a Promise");
+        let resolving_functions = Promise::create_resolving_functions(&promise_typed, context);
+        Self {
+            promise,
+            functions: resolving_functions,
+        }
+    }
+
+    /// `NewPromiseCapability ( C )`
     pub(crate) fn new(c: &JsObject, context: &mut Context) -> JsResult<Self> {
         #[derive(Debug, Clone, Trace, Finalize)]
         struct RejectResolve {

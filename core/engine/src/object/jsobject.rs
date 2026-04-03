@@ -128,11 +128,19 @@ impl JsObject {
         vtable: &'static InternalObjectMethods,
     ) -> Self {
         let inner = Gc::new(VTableObject {
-            object: GcRefCell::new(object),
             vtable,
+            object: GcRefCell::new(object),
         });
 
         JsObject { inner }.upcast()
+    }
+
+    /// Returns the address of the inner `Gc` pointer.
+    #[inline]
+    #[must_use]
+    pub fn addr(&self) -> usize {
+        let ptr: *const _ = &raw const *self.inner;
+        ptr as usize
     }
 
     /// Creates a new ordinary object with its prototype set to the `Object` prototype.

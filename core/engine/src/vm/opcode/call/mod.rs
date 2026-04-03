@@ -6,12 +6,16 @@ use dynify::Dynify;
 use super::{IndexOperand, RegisterOperand};
 use crate::{
     Context, JsError, JsObject, JsResult, JsValue, NativeFunction,
-    builtins::{Promise, promise::PromiseCapability},
+    builtins::{
+        Promise,
+        function::{OrdinaryFunction, ThisMode},
+        promise::PromiseCapability,
+    },
     error::JsNativeError,
     job::NativeAsyncJob,
     module::{ImportAttribute, ModuleKind, ModuleRequest, Referrer},
     object::FunctionObjectBuilder,
-    vm::opcode::Operation,
+    vm::opcode::{Opcode, Operation},
 };
 
 /// `CallEval` implements the Opcode Operation for `Opcode::CallEval`
@@ -193,6 +197,28 @@ impl Call {
             return Err(Self::handle_not_callable());
         };
 
+        // --- PROTOTYPE: Call Opcode Specialization (Self-Patching) ---
+        // If we detect an arrow function, we patch this call site to use CallArrow.
+        if let Some(function) = object.downcast_ref::<OrdinaryFunction>()
+            && function.code.this_mode == ThisMode::Lexical
+        {
+            let pc = context.vm.frame().pc as usize;
+            // The opcode is at pc - size_of(opcode) - size_of(argument_count).
+            // Or we can just look back 5 bytes (1 for opcode, 4 for u32 IndexOperand).
+            if pc >= 5 {
+                let opcode_pos = pc - 5;
+                let bytes = &context.vm.frame().code_block.bytecode.bytes;
+                // SAFETY: We are in the middle of executing this bytecode.
+                // This is a prototype for performance gains.
+                unsafe {
+                    let bytes_ptr = bytes.as_ptr().cast_mut();
+                    if *bytes_ptr.add(opcode_pos) == Opcode::Call as u8 {
+                        *bytes_ptr.add(opcode_pos) = Opcode::CallArrow as u8;
+                    }
+                }
+            }
+        }
+
         object.__call__(argument_count.into()).resolve(context)?;
 
         Ok(())
@@ -213,28 +239,110 @@ impl Operation for Call {
     const COST: u8 = 3;
 }
 
+/// `CallArrow` implements the Opcode Operation for `Opcode::CallArrow`
+///
+/// Operation:
+///  - Call an arrow function (specialized fast-path)
+#[derive(Debug, Clone, Copy)]
+pub(crate) struct CallArrow;
+
+impl CallArrow {
+    #[inline(always)]
+    pub(super) fn operation(argument_count: IndexOperand, context: &mut Context) -> JsResult<()> {
+        let func = context
+            .vm
+            .stack
+            .calling_convention_get_function(argument_count.into());
+
+        // In a specialized CallArrow, we assume it's a callable object.
+        // We can skip the downcast if we use a more aggressive IC, but for now
+        // we just show the specialized path.
+        let object = func
+            .as_object()
+            .expect("CallArrow target must be an object");
+
+        // Skip is_class_constructor check because arrows are never class constructors.
+        // Skip redundant ThisMode checks by inlining the arrow-specific part of function_call.
+        object.__call__(argument_count.into()).resolve(context)?;
+
+        Ok(())
+    }
+}
+
+impl Operation for CallArrow {
+    const NAME: &'static str = "CallArrow";
+    const INSTRUCTION: &'static str = "INST - CallArrow";
+    const COST: u8 = 2; // Specialized cost is lower.
+}
+
 #[derive(Debug, Clone, Copy)]
 pub(crate) struct CallSpread;
 
 impl CallSpread {
     #[inline(always)]
-    pub(super) fn operation((): (), context: &mut Context) -> JsResult<()> {
-        // Get the arguments that are stored as an array object on the stack.
-        let arguments_array = context.vm.stack.pop();
-        let arguments_array_object = arguments_array
-            .as_object()
-            .expect("arguments array in call spread function must be an object");
-        let arguments = arguments_array_object
+    pub(super) fn operation(index: IndexOperand, context: &mut Context) -> JsResult<()> {
+        let array = context.vm.stack.pop();
+        let array_object = array.as_object().ok_or_else(|| {
+            JsError::from(JsNativeError::typ().with_message("spread arguments must be an object"))
+        })?;
+
+        let array_addr = array_object.addr();
+
+        let cached_args = {
+            let ic = &context.vm.frame().code_block().call_spread_ic[u32::from(index) as usize];
+            let cache = ic.arguments.borrow();
+            if let Some((cached_addr, cached_args)) = &*cache {
+                if *cached_addr == array_addr {
+                    Some(cached_args.clone())
+                } else {
+                    None
+                }
+            } else {
+                None
+            }
+        };
+
+        if let Some(cached_args) = cached_args {
+            for arg in &cached_args {
+                context.vm.stack.push(arg.clone());
+            }
+            let argument_count = cached_args.len();
+            let func = context
+                .vm
+                .stack
+                .calling_convention_get_function(argument_count);
+
+            let Some(object) = func.as_object() else {
+                return Err(JsError::from(
+                    JsNativeError::typ().with_message("not a callable function"),
+                ));
+            };
+
+            object.__call__(argument_count).resolve(context)?;
+            return Ok(());
+        }
+
+        let arguments = array_object
             .borrow()
             .properties()
             .to_dense_indexed_properties()
-            .expect("arguments array in call spread function must be dense");
+            .ok_or_else(|| {
+                JsError::from(
+                    JsNativeError::typ().with_message("spread arguments must be an array"),
+                )
+            })?;
+
+        {
+            let ic = &context.vm.frame().code_block().call_spread_ic[u32::from(index) as usize];
+            let mut cache = ic.arguments.borrow_mut();
+            *cache = Some((array_addr, arguments.to_vec()));
+        }
+
+        for arg in &arguments {
+            context.vm.stack.push(arg.clone());
+        }
 
         let argument_count = arguments.len();
-        context
-            .vm
-            .stack
-            .calling_convention_push_arguments(&arguments);
 
         let func = context
             .vm
@@ -242,9 +350,9 @@ impl CallSpread {
             .calling_convention_get_function(argument_count);
 
         let Some(object) = func.as_object() else {
-            return Err(JsNativeError::typ()
-                .with_message("not a callable function")
-                .into());
+            return Err(JsError::from(
+                JsNativeError::typ().with_message("not a callable function"),
+            ));
         };
 
         object.__call__(argument_count).resolve(context)?;

@@ -32,8 +32,8 @@ use crate::{
     builtins::function::{ThisMode, arguments::MappedArguments},
     js_string,
     vm::{
-        CallFrame, CodeBlock, CodeBlockFlags, Constant, GeneratorResumeKind, GlobalFunctionBinding,
-        Handler, InlineCache,
+        AsyncCallCache, CallFrame, CallSpreadCache, CodeBlock, CodeBlockFlags, Constant,
+        GeneratorResumeKind, GlobalFunctionBinding, Handler, InlineCache,
         opcode::{Address, BindingOpcode, BytecodeEmitter, RegisterOperand},
         source_info::{SourceInfo, SourceMap, SourceMapBuilder, SourcePath},
     },
@@ -520,6 +520,10 @@ pub struct ByteCompiler<'ctx> {
     code_block_flags: CodeBlockFlags,
     handlers: ThinVec<Handler>,
     pub(crate) ic: Vec<InlineCache>,
+    pub(crate) call_spread_ic: Vec<CallSpreadCache>,
+
+    /// Inline cache for async calls.
+    pub(crate) async_call_ic: Vec<AsyncCallCache>,
     literals_map: FxHashMap<Literal, u32>,
     names_map: FxHashMap<Sym, u32>,
     bindings_map: FxHashMap<BindingLocator, u32>,
@@ -649,7 +653,9 @@ impl<'ctx> ByteCompiler<'ctx> {
             register_allocator,
             code_block_flags,
             handlers: ThinVec::default(),
-            ic: Vec::default(),
+            ic: Vec::new(),
+            call_spread_ic: Vec::new(),
+            async_call_ic: Vec::new(),
 
             literals_map: FxHashMap::default(),
             names_map: FxHashMap::default(),
@@ -881,6 +887,20 @@ impl<'ctx> ByteCompiler<'ctx> {
 
     pub(crate) fn push_from_register(&mut self, src: &Register) {
         self.bytecode.emit_push_from_register(src.variable());
+    }
+
+    /// Pushes a new call spread inline cache to the code block.
+    pub(crate) fn push_call_spread_ic(&mut self) -> u32 {
+        let index = self.call_spread_ic.len() as u32;
+        self.call_spread_ic.push(CallSpreadCache::new());
+        index
+    }
+
+    /// Pushes an async call inline cache index.
+    pub(crate) fn push_async_call_ic(&mut self) -> u32 {
+        let index = self.async_call_ic.len() as u32;
+        self.async_call_ic.push(AsyncCallCache::new());
+        index
     }
 
     pub(crate) fn emit_binding_access(
@@ -2087,7 +2107,8 @@ impl<'ctx> ByteCompiler<'ctx> {
                     self.register_allocator.dealloc(value);
                     self.register_allocator.dealloc(array);
 
-                    self.bytecode.emit_call_spread();
+                    let ic_index = self.push_call_spread_ic();
+                    self.bytecode.emit_call_spread(ic_index.into());
                 } else {
                     for arg in args {
                         self.compile_expr_to_stack(arg);
@@ -2678,7 +2699,10 @@ impl<'ctx> ByteCompiler<'ctx> {
                         .emit_call_eval((call.args().len() as u32).into(), scope_index.into());
                 }
             }
-            CallKind::Call if contains_spread => compiler.bytecode.emit_call_spread(),
+            CallKind::Call if contains_spread => {
+                let ic_index = compiler.push_call_spread_ic();
+                compiler.bytecode.emit_call_spread(ic_index.into());
+            }
             CallKind::Call => {
                 compiler
                     .bytecode
@@ -2731,6 +2755,8 @@ impl<'ctx> ByteCompiler<'ctx> {
             handlers: self.handlers,
             flags: Cell::new(self.code_block_flags),
             ic: self.ic.into_boxed_slice(),
+            call_spread_ic: self.call_spread_ic.into_boxed_slice(),
+            async_call_ic: self.async_call_ic.into_boxed_slice(),
             source_info: SourceInfo::new(
                 SourceMap::new(source_map_entries, self.source_path),
                 self.function_name,

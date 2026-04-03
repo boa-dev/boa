@@ -33,7 +33,7 @@ pub(crate) use {
         CodeBlockFlags, Constant, Handler, create_function_object, create_function_object_fast,
     },
     completion_record::CompletionRecord,
-    inline_cache::InlineCache,
+    inline_cache::{AsyncCallCache, CallSpreadCache, InlineCache},
 };
 
 pub use runtime_limits::RuntimeLimits;

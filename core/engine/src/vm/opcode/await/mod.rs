@@ -1,6 +1,6 @@
 use super::RegisterOperand;
 use crate::{
-    Context, JsArgs, JsExpect, JsResult, JsValue,
+    Context, JsArgs, JsResult, JsValue,
     builtins::{
         Promise, async_generator::AsyncGenerator, generator::GeneratorContext,
         promise::PromiseCapability,
@@ -8,6 +8,7 @@ use crate::{
     js_string,
     native_function::NativeFunction,
     object::FunctionObjectBuilder,
+    vm::opcode::IndexOperand,
     vm::{CompletionRecord, GeneratorResumeKind, opcode::Operation},
 };
 use boa_gc::Gc;
@@ -158,12 +159,10 @@ pub(crate) struct CreatePromiseCapability;
 
 impl CreatePromiseCapability {
     #[inline(always)]
-    pub(super) fn operation((): (), context: &mut Context) -> JsResult<()> {
-        let promise_capability = PromiseCapability::new(
-            &context.intrinsics().constructors().promise().constructor(),
-            context,
-        )
-        .js_expect("cannot fail per spec")?;
+    pub(super) fn operation(index: IndexOperand, context: &mut Context) -> JsResult<()> {
+        let _ic = &context.vm.frame().code_block.async_call_ic[usize::from(index)];
+
+        let promise_capability = PromiseCapability::new_internal(context);
 
         context.vm.set_promise_capability(promise_capability)
     }
