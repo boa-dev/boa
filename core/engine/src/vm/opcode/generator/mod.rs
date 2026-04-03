@@ -23,7 +23,7 @@ pub(crate) struct Generator;
 impl Generator {
     #[inline(always)]
     pub(super) fn operation((): (), context: &mut Context) -> ControlFlow<CompletionRecord> {
-        let active_function = context.vm.stack.get_function(context.vm.frame());
+        let active_function = context.stack_get_function();
         let this_function_object =
             active_function.expect("active function should be set to the generator");
 
@@ -46,7 +46,7 @@ impl Generator {
         generator.borrow_mut().data_mut().state =
             GeneratorState::SuspendedStart { context: gen_ctx };
 
-        context.vm.set_return_value(generator.upcast().into());
+        context.set_return_value(generator.upcast().into());
         context.handle_yield()
     }
 }
@@ -67,7 +67,7 @@ pub(crate) struct AsyncGenerator;
 impl AsyncGenerator {
     #[inline(always)]
     pub(super) fn operation((): (), context: &mut Context) -> ControlFlow<CompletionRecord> {
-        let active_function = context.vm.stack.get_function(context.vm.frame());
+        let active_function = context.stack_get_function();
         let this_function_object =
             active_function.expect("active function should be set to the generator");
 
@@ -90,7 +90,7 @@ impl AsyncGenerator {
         let gen_ctx = GeneratorContext::from_current(context, Some(generator.clone().upcast()));
         generator.borrow_mut().data_mut().context = Some(gen_ctx);
 
-        context.vm.set_return_value(generator.upcast().into());
+        context.set_return_value(generator.upcast().into());
         context.handle_yield()
     }
 }
@@ -113,7 +113,6 @@ impl AsyncGeneratorClose {
     pub(super) fn operation((): (), context: &mut Context) -> JsResult<()> {
         // Step 3.e-g in [AsyncGeneratorStart](https://tc39.es/ecma262/#sec-asyncgeneratorstart)
         let generator = context
-            .vm
             .async_generator_object()
             .expect("There should be a object")
             .downcast::<NativeAsyncGenerator>()
@@ -129,12 +128,10 @@ impl AsyncGeneratorClose {
 
         // h. If result is a normal completion, set result to NormalCompletion(undefined).
         // i. If result is a return completion, set result to NormalCompletion(result.[[Value]]).
-        let return_value = context.vm.take_return_value();
+        let return_value = context.take_return_value();
 
         let result = context
-            .vm
-            .pending_exception
-            .take()
+            .take_pending_exception()
             .map_or(Ok(return_value), Err);
 
         drop(r#gen);

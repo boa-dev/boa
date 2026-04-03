@@ -20,9 +20,9 @@ pub(crate) struct TypeOf;
 impl TypeOf {
     #[inline(always)]
     pub(super) fn operation(value: RegisterOperand, context: &mut Context) {
-        context.vm.set_register(
+        context.set_register(
             value.into(),
-            context.vm.get_register(value.into()).js_type_of().into(),
+            context.get_register(value.into()).js_type_of().into(),
         );
     }
 }
@@ -49,7 +49,7 @@ impl Pos {
             .clone()
             .to_number(context)?
             .into();
-        context.vm.set_register(value.into(), v);
+        context.set_register(value.into(), v);
         Ok(())
     }
 }
@@ -76,7 +76,7 @@ impl Neg {
             .clone()
             .to_numeric(context)?
         {
-            Numeric::Number(number) => context.vm.set_register(value.into(), number.neg().into()),
+            Numeric::Number(number) => context.set_register(value.into(), number.neg().into()),
             Numeric::BigInt(bigint) => context
                 .vm
                 .set_register(value.into(), JsBigInt::neg(&bigint).into()),

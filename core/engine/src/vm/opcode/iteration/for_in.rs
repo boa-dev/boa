@@ -14,7 +14,7 @@ pub(crate) struct CreateForInIterator;
 impl CreateForInIterator {
     #[inline(always)]
     pub(crate) fn operation(value: RegisterOperand, context: &mut Context) -> JsResult<()> {
-        let object = context.vm.get_register(value.into()).clone();
+        let object = context.get_register(value.into()).clone();
         let object = object.to_object(context)?;
         let (iterator, next_method) =
             ForInIterator::create_for_in_iterator(JsValue::new(object), context);

@@ -17,8 +17,8 @@ impl SetPrototype {
         (object, value): (RegisterOperand, RegisterOperand),
         context: &mut Context,
     ) -> JsResult<()> {
-        let object = context.vm.get_register(object.into()).clone();
-        let value = context.vm.get_register(value.into());
+        let object = context.get_register(object.into()).clone();
+        let value = context.get_register(value.into());
 
         let prototype = if let Some(prototype) = value.as_object() {
             Some(prototype.clone())
@@ -63,7 +63,7 @@ impl GetPrototype {
             .__get_prototype_of__(context)?
             .map_or_else(JsValue::null, JsValue::from);
 
-        context.vm.set_register(object.into(), proto_object);
+        context.set_register(object.into(), proto_object);
         Ok(())
     }
 }

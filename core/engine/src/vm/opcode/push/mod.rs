@@ -29,7 +29,7 @@ macro_rules! implement_store_generics {
         impl $name {
             #[inline(always)]
             pub(super) fn operation(dst: RegisterOperand,  context: &mut Context) {
-                context.vm.set_register(dst.into(), $push_value.into());
+                context.set_register(dst.into(), $push_value.into());
             }
         }
 

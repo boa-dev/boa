@@ -18,10 +18,10 @@ impl DefVar {
     #[inline(always)]
     pub(super) fn operation(index: IndexOperand, context: &mut Context) {
         // TODO: spec specifies to return `empty` on empty vars, but we're trying to initialize.
-        let binding_locator = context.vm.frame().code_block.bindings[usize::from(index)].clone();
+        let binding_locator = context.frame().code_block.bindings[usize::from(index)].clone();
 
         {
-            let frame = context.vm.frame_mut();
+            let frame = context.frame_mut();
             let global = frame.realm.environment();
             frame.environments.put_value_if_uninitialized(
                 binding_locator.scope(),
@@ -52,8 +52,8 @@ impl DefInitVar {
         (value, index): (RegisterOperand, IndexOperand),
         context: &mut Context,
     ) -> JsResult<()> {
-        let value = context.vm.get_register(value.into()).clone();
-        let frame = context.vm.frame();
+        let value = context.get_register(value.into()).clone();
+        let frame = context.frame();
         let strict = frame.code_block.strict();
         let mut binding_locator = frame.code_block.bindings[usize::from(index)].clone();
         context.find_runtime_binding(&mut binding_locator)?;
@@ -82,10 +82,10 @@ impl PutLexicalValue {
         (value, index): (RegisterOperand, IndexOperand),
         context: &mut Context,
     ) {
-        let value = context.vm.get_register(value.into()).clone();
-        let binding_locator = context.vm.frame().code_block.bindings[usize::from(index)].clone();
+        let value = context.get_register(value.into()).clone();
+        let binding_locator = context.frame().code_block.bindings[usize::from(index)].clone();
         {
-            let frame = context.vm.frame_mut();
+            let frame = context.frame_mut();
             let global = frame.realm.environment();
             frame.environments.put_lexical_value(
                 binding_locator.scope(),

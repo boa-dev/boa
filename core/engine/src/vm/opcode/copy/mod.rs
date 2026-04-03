@@ -15,11 +15,11 @@ impl CopyDataProperties {
         (object, source, keys): (RegisterOperand, RegisterOperand, ThinVec<RegisterOperand>),
         context: &mut Context,
     ) -> JsResult<()> {
-        let object = context.vm.get_register(object.into()).clone();
-        let source = context.vm.get_register(source.into()).clone();
+        let object = context.get_register(object.into()).clone();
+        let source = context.get_register(source.into()).clone();
         let mut excluded_keys = Vec::with_capacity(keys.len());
         for key in keys {
-            let key = context.vm.get_register(key.into()).clone();
+            let key = context.get_register(key.into()).clone();
             excluded_keys.push(
                 key.to_property_key(context)
                     .expect("key must be property key"),

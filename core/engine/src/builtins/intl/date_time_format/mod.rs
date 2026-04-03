@@ -197,7 +197,7 @@ impl BuiltInConstructor for DateTimeFormat {
         // ChainDateTimeFormat ( dateTimeFormat, newTarget, this )
         // <https://tc39.es/ecma402/#sec-chaindatetimeformat>
 
-        let this = context.vm.stack.get_this(context.vm.frame());
+        let this = context.stack_get_this();
         let Some(this_obj) = this.as_object() else {
             return Ok(date_time_format.into());
         };

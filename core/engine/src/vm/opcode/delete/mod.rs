@@ -18,9 +18,9 @@ impl DeletePropertyByName {
         (object_register, index): (RegisterOperand, IndexOperand),
         context: &mut Context,
     ) -> JsResult<()> {
-        let object = context.vm.take_register(object_register.into());
+        let object = context.take_register(object_register.into());
         let object = object.to_object(context)?;
-        let code_block = context.vm.frame().code_block();
+        let code_block = context.frame().code_block();
         let key = code_block.constant_string(index.into()).into();
         let strict = code_block.strict();
 
@@ -56,8 +56,8 @@ impl DeletePropertyByValue {
         (object_register, key): (RegisterOperand, RegisterOperand),
         context: &mut Context,
     ) -> JsResult<()> {
-        let object = context.vm.get_register(object_register.into()).clone();
-        let key = context.vm.get_register(key.into()).clone();
+        let object = context.get_register(object_register.into()).clone();
+        let key = context.get_register(key.into()).clone();
         let object = object.to_object(context)?;
         let property_key = key.to_property_key(context)?;
 
@@ -65,7 +65,7 @@ impl DeletePropertyByValue {
             &property_key,
             &mut InternalMethodPropertyContext::new(context),
         )?;
-        if !result && context.vm.frame().code_block().strict() {
+        if !result && context.frame().code_block().strict() {
             return Err(JsNativeError::typ()
                 .with_message("Cannot delete property")
                 .into());
@@ -96,11 +96,10 @@ impl DeleteName {
         (value, index): (RegisterOperand, IndexOperand),
         context: &mut Context,
     ) -> JsResult<()> {
-        let mut binding_locator =
-            context.vm.frame().code_block.bindings[usize::from(index)].clone();
+        let mut binding_locator = context.frame().code_block.bindings[usize::from(index)].clone();
         context.find_runtime_binding(&mut binding_locator)?;
         let deleted = context.delete_binding(&binding_locator)?;
-        context.vm.set_register(value.into(), deleted.into());
+        context.set_register(value.into(), deleted.into());
         Ok(())
     }
 }

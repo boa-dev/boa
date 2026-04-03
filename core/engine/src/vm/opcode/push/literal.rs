@@ -17,13 +17,13 @@ pub(crate) struct StoreLiteral;
 impl StoreLiteral {
     #[inline(always)]
     pub(crate) fn operation((dst, index): (RegisterOperand, IndexOperand), context: &mut Context) {
-        let constant = &context.vm.frame().code_block().constants[usize::from(index)];
+        let constant = &context.frame().code_block().constants[usize::from(index)];
         let value: JsValue = match constant {
             Constant::BigInt(v) => v.clone().into(),
             Constant::String(v) => v.clone().into(),
             _ => unreachable!("constant should be a string or bigint"),
         };
-        context.vm.set_register(dst.into(), value);
+        context.set_register(dst.into(), value);
     }
 }
 
@@ -46,11 +46,11 @@ impl StoreRegexp {
         (dst, pattern_index, flags_index): (RegisterOperand, IndexOperand, IndexOperand),
         context: &mut Context,
     ) -> JsResult<()> {
-        let code_block = context.vm.frame().code_block();
+        let code_block = context.frame().code_block();
         let pattern = code_block.constant_string(pattern_index.into());
         let flags = code_block.constant_string(flags_index.into());
         let regexp = JsRegExp::new(pattern, flags, context)?;
-        context.vm.set_register(dst.into(), regexp.into());
+        context.set_register(dst.into(), regexp.into());
         Ok(())
     }
 }

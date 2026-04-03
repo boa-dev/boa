@@ -19,7 +19,7 @@ impl StoreEmptyObject {
             .templates()
             .ordinary_object()
             .create(OrdinaryObject, Vec::default());
-        context.vm.set_register(dst.into(), o.into());
+        context.set_register(dst.into(), o.into());
     }
 }
 

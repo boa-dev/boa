@@ -23,7 +23,7 @@ impl GetFunctionObject {
         context: &mut Context,
     ) -> JsResult<()> {
         let env = {
-            let frame = context.vm.frame();
+            let frame = context.frame();
             frame
                 .environments
                 .get_this_environment(frame.realm.environment())
@@ -33,9 +33,7 @@ impl GetFunctionObject {
 
         let function_object_v = env.slots().function_object().clone().into();
 
-        context
-            .vm
-            .set_register(function_object.into(), function_object_v);
+        context.set_register(function_object.into(), function_object_v);
 
         Ok(())
     }
@@ -57,24 +55,20 @@ pub(crate) struct This;
 impl This {
     #[inline(always)]
     pub(super) fn operation(dst: RegisterOperand, context: &mut Context) -> JsResult<()> {
-        if context.vm.frame().has_this_value_cached() {
-            let this = context.vm.stack.get_this(context.vm.frame());
-            context.vm.set_register(dst.into(), this);
+        if context.frame().has_this_value_cached() {
+            let this = context.stack_get_this();
+            context.set_register(dst.into(), this);
             return Ok(());
         }
 
         let this = context
-            .vm
             .frame()
             .environments
             .get_this_binding()?
             .unwrap_or(context.realm().global_this().clone().into());
-        context.vm.frame_mut().flags |= CallFrameFlags::THIS_VALUE_CACHED;
-        context.vm.stack.set_this(
-            context.vm.frames.last().expect("frame must exist"),
-            this.clone(),
-        );
-        context.vm.set_register(dst.into(), this);
+        context.frame_mut().flags |= CallFrameFlags::THIS_VALUE_CACHED;
+        context.stack_set_this(this.clone());
+        context.set_register(dst.into(), this);
         Ok(())
     }
 }
@@ -98,11 +92,11 @@ impl ThisForObjectEnvironmentName {
         (dst, index): (RegisterOperand, IndexOperand),
         context: &mut Context,
     ) -> JsResult<()> {
-        let binding_locator = context.vm.frame().code_block.bindings[usize::from(index)].clone();
+        let binding_locator = context.frame().code_block.bindings[usize::from(index)].clone();
         let this = context
             .this_from_object_environment_binding(&binding_locator)?
             .map_or(JsValue::undefined(), Into::into);
-        context.vm.set_register(dst.into(), this);
+        context.set_register(dst.into(), this);
         Ok(())
     }
 }
@@ -124,9 +118,7 @@ impl SuperCall {
     #[inline(always)]
     pub(super) fn operation(argument_count: IndexOperand, context: &mut Context) -> JsResult<()> {
         let super_constructor = context
-            .vm
-            .stack
-            .calling_convention_get_function(argument_count.into())
+            .stack_calling_convention_get_function(argument_count.into())
             .clone();
 
         let Some(super_constructor) = super_constructor.as_constructor() else {
@@ -136,7 +128,7 @@ impl SuperCall {
         };
 
         let this_env = {
-            let frame = context.vm.frame();
+            let frame = context.frame();
             frame
                 .environments
                 .get_this_environment(frame.realm.environment())
@@ -150,7 +142,7 @@ impl SuperCall {
             .expect("must have new.target")
             .clone();
 
-        context.vm.stack.push(new_target);
+        context.stack_push(new_target);
 
         super_constructor
             .__construct__(argument_count.into())
@@ -176,7 +168,7 @@ impl SuperCallSpread {
     #[inline(always)]
     pub(super) fn operation((): (), context: &mut Context) -> JsResult<()> {
         // Get the arguments that are stored as an array object on the stack.
-        let arguments_array = context.vm.stack.pop();
+        let arguments_array = context.stack_pop();
         let arguments_array_object = arguments_array
             .as_object()
             .expect("arguments array in call spread function must be an object");
@@ -186,7 +178,7 @@ impl SuperCallSpread {
             .to_dense_indexed_properties()
             .expect("arguments array in call spread function must be dense");
 
-        let super_constructor = context.vm.stack.pop();
+        let super_constructor = context.stack_pop();
 
         let Some(super_constructor) = super_constructor.as_constructor() else {
             return Err(JsNativeError::typ()
@@ -194,15 +186,12 @@ impl SuperCallSpread {
                 .into());
         };
 
-        context.vm.stack.push(super_constructor.clone());
+        context.stack_push(super_constructor.clone());
 
-        context
-            .vm
-            .stack
-            .calling_convention_push_arguments(&arguments);
+        context.stack_calling_convention_push_arguments(&arguments);
 
         let this_env = {
-            let frame = context.vm.frame();
+            let frame = context.frame();
             frame
                 .environments
                 .get_this_environment(frame.realm.environment())
@@ -216,7 +205,7 @@ impl SuperCallSpread {
             .expect("must have new.target")
             .clone();
 
-        context.vm.stack.push(new_target);
+        context.stack_push(new_target);
 
         super_constructor
             .__construct__(arguments.len())
@@ -242,7 +231,7 @@ impl SuperCallDerived {
     #[inline(always)]
     pub(super) fn operation((): (), context: &mut Context) -> JsResult<()> {
         let this_env = {
-            let frame = context.vm.frame();
+            let frame = context.frame();
             frame
                 .environments
                 .get_this_environment(frame.realm.environment())
@@ -266,15 +255,15 @@ impl SuperCallDerived {
                 .into());
         }
 
-        context.vm.stack.push(JsValue::undefined());
-        context.vm.stack.push(super_constructor.clone());
-        for argument in Vec::from(context.vm.stack.get_arguments(context.vm.frame())) {
-            context.vm.stack.push(argument.clone());
+        context.stack_push(JsValue::undefined());
+        context.stack_push(super_constructor.clone());
+        for argument in Vec::from(context.stack_get_arguments()) {
+            context.stack_push(argument.clone());
         }
-        context.vm.stack.push(new_target);
+        context.stack_push(new_target);
 
         super_constructor
-            .__construct__(context.vm.frame().argument_count as usize)
+            .__construct__(context.frame().argument_count as usize)
             .resolve(context)?;
         Ok(())
     }
@@ -301,7 +290,6 @@ impl BindThisValue {
         // <https://tc39.es/ecma262/#sec-super-keyword-runtime-semantics-evaluation>
 
         let result = context
-            .vm
             .get_register(value.into())
             .as_object()
             .expect("construct result should be an object")
@@ -309,7 +297,7 @@ impl BindThisValue {
 
         // 7. Let thisER be GetThisEnvironment().
         let this_env = {
-            let frame = context.vm.frame();
+            let frame = context.frame();
             frame
                 .environments
                 .get_this_environment(frame.realm.environment())
@@ -328,7 +316,7 @@ impl BindThisValue {
         result.initialize_instance_elements(&active_function, context)?;
 
         // 12. Return result.
-        context.vm.set_register(value.into(), result.into());
+        context.set_register(value.into(), result.into());
         Ok(())
     }
 }

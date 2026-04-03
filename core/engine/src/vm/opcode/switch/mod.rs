@@ -18,10 +18,10 @@ impl Case {
         (address, value, condition): (Address, RegisterOperand, RegisterOperand),
         context: &mut Context,
     ) {
-        let value = context.vm.get_register(value.into());
-        let condition = context.vm.get_register(condition.into());
+        let value = context.get_register(value.into());
+        let condition = context.get_register(condition.into());
         if value.strict_equals(condition) {
-            context.vm.frame_mut().pc = u32::from(address);
+            context.frame_mut().pc = u32::from(address);
         }
     }
 }

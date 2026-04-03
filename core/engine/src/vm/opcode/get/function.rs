@@ -22,7 +22,7 @@ impl GetFunction {
             .code_block()
             .constant_function(index.into());
         let function = create_function_object_fast(code, context);
-        context.vm.set_register(dst.into(), function.into());
+        context.set_register(dst.into(), function.into());
     }
 }
 

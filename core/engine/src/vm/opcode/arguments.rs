@@ -14,16 +14,14 @@ pub(crate) struct CreateMappedArgumentsObject;
 impl CreateMappedArgumentsObject {
     #[inline(always)]
     pub(super) fn operation(value: RegisterOperand, context: &mut Context) {
-        let frame = context.vm.frame();
+        let frame = context.frame();
         let function_object = context
-            .vm
-            .stack
-            .get_function(context.vm.frame())
+            .stack_get_function()
             .expect("there should be a function object");
         let code = frame.code_block().clone();
-        let args = context.vm.stack.get_arguments(context.vm.frame());
+        let args = context.stack_get_arguments();
         let env = {
-            let frame = context.vm.frame();
+            let frame = context.frame();
             frame
                 .environments
                 .current_declarative_ref(frame.realm.environment())
@@ -37,7 +35,7 @@ impl CreateMappedArgumentsObject {
             &env,
             context,
         );
-        context.vm.set_register(value.into(), arguments.into());
+        context.set_register(value.into(), arguments.into());
     }
 }
 
@@ -57,9 +55,9 @@ pub(crate) struct CreateUnmappedArgumentsObject;
 impl CreateUnmappedArgumentsObject {
     #[inline(always)]
     pub(super) fn operation(dst: RegisterOperand, context: &mut Context) {
-        let args = context.vm.stack.get_arguments(context.vm.frame()).to_vec();
+        let args = context.stack_get_arguments().to_vec();
         let arguments = UnmappedArguments::new(&args, context);
-        context.vm.set_register(dst.into(), arguments.into());
+        context.set_register(dst.into(), arguments.into());
     }
 }
 

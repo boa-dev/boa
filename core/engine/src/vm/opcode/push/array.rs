@@ -20,7 +20,7 @@ impl StoreNewArray {
             .templates()
             .array()
             .create(Array, Vec::from([JsValue::new(0)]));
-        context.vm.set_register(array.into(), value.into());
+        context.set_register(array.into(), value.into());
     }
 }
 
@@ -43,7 +43,7 @@ impl PushValueToArray {
         (value, array): (RegisterOperand, RegisterOperand),
         context: &mut Context,
     ) {
-        let value = context.vm.get_register(value.into()).clone();
+        let value = context.get_register(value.into()).clone();
         let o = context
             .vm
             .get_register(array.into())
@@ -87,7 +87,7 @@ pub(crate) struct PushElisionToArray;
 impl PushElisionToArray {
     #[inline(always)]
     pub(crate) fn operation(array: RegisterOperand, context: &mut Context) -> JsResult<()> {
-        let array = context.vm.get_register(array.into()).clone();
+        let array = context.get_register(array.into()).clone();
         let o = array.as_object().expect("should always be an object");
         let len = o
             .length_of_array_like(context)
@@ -117,7 +117,7 @@ pub(crate) struct PushIteratorToArray;
 impl PushIteratorToArray {
     #[inline(always)]
     pub(crate) fn operation(array: RegisterOperand, context: &mut Context) -> JsResult<()> {
-        let array = context.vm.get_register(array.into()).clone();
+        let array = context.get_register(array.into()).clone();
         let mut iterator = context
             .vm
             .frame_mut()

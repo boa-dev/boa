@@ -17,8 +17,8 @@ impl SetHomeObject {
         (function, home): (RegisterOperand, RegisterOperand),
         context: &mut Context,
     ) -> JsResult<()> {
-        let function = context.vm.get_register(function.into());
-        let home = context.vm.get_register(home.into());
+        let function = context.get_register(function.into());
+        let home = context.get_register(home.into());
 
         function
             .as_object()
@@ -53,7 +53,7 @@ pub(crate) struct GetHomeObject;
 impl GetHomeObject {
     #[inline(always)]
     pub(crate) fn operation(function: RegisterOperand, context: &mut Context) -> JsResult<()> {
-        let function_v = context.vm.get_register(function.into());
+        let function_v = context.get_register(function.into());
 
         let home_object = function_v
             .as_object()
@@ -63,7 +63,7 @@ impl GetHomeObject {
             .get_home_object()
             .map_or_else(JsValue::null, |o| o.clone().into());
 
-        context.vm.set_register(function.into(), home_object);
+        context.set_register(function.into(), home_object);
         Ok(())
     }
 }
@@ -94,13 +94,13 @@ impl GetMethod {
         (object, name_index): (RegisterOperand, IndexOperand),
         context: &mut Context,
     ) -> JsResult<()> {
-        let function_val = context.vm.take_register(object.into());
-        let code_block = context.vm.frame().code_block();
+        let function_val = context.take_register(object.into());
+        let code_block = context.frame().code_block();
         let key = code_block.constant_string(name_index.into());
 
         let method = function_val.get_method(key, context)?;
 
-        context.vm.set_register(
+        context.set_register(
             object.into(),
             method.map_or_else(JsValue::undefined, JsValue::from),
         );

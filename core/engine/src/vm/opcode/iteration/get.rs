@@ -14,9 +14,9 @@ pub(crate) struct GetIterator;
 impl GetIterator {
     #[inline(always)]
     pub(crate) fn operation(value: RegisterOperand, context: &mut Context) -> JsResult<()> {
-        let value = context.vm.get_register(value.into()).clone();
+        let value = context.get_register(value.into()).clone();
         let iterator = value.get_iterator(IteratorHint::Sync, context)?;
-        context.vm.frame_mut().iterators.push(iterator);
+        context.frame_mut().iterators.push(iterator);
         Ok(())
     }
 }
@@ -37,9 +37,9 @@ pub(crate) struct GetAsyncIterator;
 impl GetAsyncIterator {
     #[inline(always)]
     pub(crate) fn operation(value: RegisterOperand, context: &mut Context) -> JsResult<()> {
-        let value = context.vm.get_register(value.into()).clone();
+        let value = context.get_register(value.into()).clone();
         let iterator = value.get_iterator(IteratorHint::Async, context)?;
-        context.vm.frame_mut().iterators.push(iterator);
+        context.frame_mut().iterators.push(iterator);
         Ok(())
     }
 }

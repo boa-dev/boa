@@ -50,8 +50,8 @@ impl SetName {
         (value, index): (RegisterOperand, IndexOperand),
         context: &mut Context,
     ) -> JsResult<()> {
-        let value = context.vm.get_register(value.into()).clone();
-        let code_block = context.vm.frame().code_block();
+        let value = context.get_register(value.into()).clone();
+        let code_block = context.frame().code_block();
         let mut binding_locator = code_block.bindings[usize::from(index)].clone();
         let strict = code_block.strict();
 
@@ -81,13 +81,13 @@ pub(crate) struct SetNameByLocator;
 impl SetNameByLocator {
     #[inline(always)]
     pub(crate) fn operation(value: RegisterOperand, context: &mut Context) -> JsResult<()> {
-        let frame = context.vm.frame_mut();
+        let frame = context.frame_mut();
         let strict = frame.code_block.strict();
         let binding_locator = frame
             .binding_stack
             .pop()
             .expect("locator should have been popped before");
-        let value = context.vm.get_register(value.into()).clone();
+        let value = context.get_register(value.into()).clone();
 
         verify_initialized(&binding_locator, context)?;
 
@@ -107,7 +107,7 @@ impl Operation for SetNameByLocator {
 fn verify_initialized(locator: &BindingLocator, context: &mut Context) -> JsResult<()> {
     if !context.is_initialized_binding(locator)? {
         let key = locator.name();
-        let strict = context.vm.frame().code_block.strict();
+        let strict = context.frame().code_block.strict();
 
         let message = match locator.scope() {
             BindingLocatorScope::GlobalObject if strict => Some(format!(

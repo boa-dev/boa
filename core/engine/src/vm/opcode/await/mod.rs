@@ -26,7 +26,7 @@ impl Await {
         value: RegisterOperand,
         context: &mut Context,
     ) -> ControlFlow<CompletionRecord> {
-        let value = context.vm.get_register(value.into());
+        let value = context.get_register(value.into());
 
         // 2. Let promise be ? PromiseResolve(%Promise%, value).
         let promise = match Promise::promise_resolve(
@@ -138,7 +138,7 @@ impl Await {
             context,
         );
 
-        context.vm.set_return_value(return_value);
+        context.set_return_value(return_value);
         context.handle_yield()
     }
 }
@@ -165,7 +165,7 @@ impl CreatePromiseCapability {
         )
         .js_expect("cannot fail per spec")?;
 
-        context.vm.set_promise_capability(promise_capability)
+        context.set_promise_capability(promise_capability)
     }
 }
 

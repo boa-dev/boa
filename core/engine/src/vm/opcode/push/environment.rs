@@ -17,8 +17,8 @@ pub(crate) struct PushScope;
 impl PushScope {
     #[inline(always)]
     pub(crate) fn operation(index: IndexOperand, context: &mut Context) {
-        let scope = context.vm.frame().code_block().constant_scope(index.into());
-        let frame = context.vm.frame_mut();
+        let scope = context.frame().code_block().constant_scope(index.into());
+        let frame = context.frame_mut();
         let global = frame.realm.environment();
         frame
             .environments
@@ -42,9 +42,9 @@ pub(crate) struct PushObjectEnvironment;
 impl PushObjectEnvironment {
     #[inline(always)]
     pub(crate) fn operation(value: RegisterOperand, context: &mut Context) -> JsResult<()> {
-        let object = context.vm.get_register(value.into()).clone();
+        let object = context.get_register(value.into()).clone();
         let object = object.to_object(context)?;
-        context.vm.frame_mut().environments.push_object(object);
+        context.frame_mut().environments.push_object(object);
         Ok(())
     }
 }
@@ -68,7 +68,7 @@ impl PushPrivateEnvironment {
         (class, name_indices): (RegisterOperand, ThinVec<u32>),
         context: &mut Context,
     ) {
-        let class = context.vm.get_register(class.into());
+        let class = context.get_register(class.into());
         let class = class.as_object().expect("should be a object");
         let mut names = Vec::with_capacity(name_indices.len());
         for index in name_indices {
@@ -111,7 +111,7 @@ pub(crate) struct PopPrivateEnvironment;
 impl PopPrivateEnvironment {
     #[inline(always)]
     pub(crate) fn operation((): (), context: &mut Context) {
-        context.vm.frame_mut().environments.pop_private();
+        context.frame_mut().environments.pop_private();
     }
 }
 

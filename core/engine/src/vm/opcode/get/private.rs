@@ -21,7 +21,7 @@ impl GetPrivateField {
             .frame()
             .code_block()
             .constant_string(index.into());
-        let object = context.vm.get_register(object.into()).clone();
+        let object = context.get_register(object.into()).clone();
         let object = object.to_object(context)?;
         let name = context
             .vm
@@ -31,7 +31,7 @@ impl GetPrivateField {
             .expect("private name must be in environment");
 
         let result = object.private_get(&name, context)?;
-        context.vm.set_register(dst.into(), result);
+        context.set_register(dst.into(), result);
         Ok(())
     }
 }

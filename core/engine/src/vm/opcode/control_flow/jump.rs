@@ -14,7 +14,7 @@ pub(crate) struct Jump;
 impl Jump {
     #[inline(always)]
     pub(crate) fn operation(address: Address, context: &mut Context) {
-        context.vm.frame_mut().pc = u32::from(address);
+        context.frame_mut().pc = u32::from(address);
     }
 }
 
@@ -34,9 +34,9 @@ pub(crate) struct JumpIfTrue;
 impl JumpIfTrue {
     #[inline(always)]
     pub(crate) fn operation((address, value): (Address, RegisterOperand), context: &mut Context) {
-        let value = context.vm.get_register(value.into());
+        let value = context.get_register(value.into());
         if value.to_boolean() {
-            context.vm.frame_mut().pc = u32::from(address);
+            context.frame_mut().pc = u32::from(address);
         }
     }
 }
@@ -57,9 +57,9 @@ pub(crate) struct JumpIfFalse;
 impl JumpIfFalse {
     #[inline(always)]
     pub(crate) fn operation((address, value): (Address, RegisterOperand), context: &mut Context) {
-        let value = context.vm.get_register(value.into());
+        let value = context.get_register(value.into());
         if !value.to_boolean() {
-            context.vm.frame_mut().pc = u32::from(address);
+            context.frame_mut().pc = u32::from(address);
         }
     }
 }
@@ -80,9 +80,9 @@ pub(crate) struct JumpIfNotUndefined;
 impl JumpIfNotUndefined {
     #[inline(always)]
     pub(crate) fn operation((address, value): (Address, RegisterOperand), context: &mut Context) {
-        let value = context.vm.get_register(value.into());
+        let value = context.get_register(value.into());
         if !value.is_undefined() {
-            context.vm.frame_mut().pc = u32::from(address);
+            context.frame_mut().pc = u32::from(address);
         }
     }
 }
@@ -103,9 +103,9 @@ pub(crate) struct JumpIfNullOrUndefined;
 impl JumpIfNullOrUndefined {
     #[inline(always)]
     pub(crate) fn operation((address, value): (Address, RegisterOperand), context: &mut Context) {
-        let value = context.vm.get_register(value.into());
+        let value = context.get_register(value.into());
         if value.is_null_or_undefined() {
-            context.vm.frame_mut().pc = u32::from(address);
+            context.frame_mut().pc = u32::from(address);
         }
     }
 }
@@ -129,18 +129,18 @@ impl JumpIfNotLessThan {
         (address, lhs, rhs): (Address, RegisterOperand, RegisterOperand),
         context: &mut Context,
     ) -> JsResult<()> {
-        let lhs = context.vm.get_register(lhs.into());
-        let rhs = context.vm.get_register(rhs.into());
+        let lhs = context.get_register(lhs.into());
+        let rhs = context.get_register(rhs.into());
         if let Some(result) = lhs.lt_fast(rhs) {
             if !result {
-                context.vm.frame_mut().pc = u32::from(address);
+                context.frame_mut().pc = u32::from(address);
             }
             return Ok(());
         }
         let lhs = lhs.clone();
         let rhs = rhs.clone();
         if !lhs.lt(&rhs, context)? {
-            context.vm.frame_mut().pc = u32::from(address);
+            context.frame_mut().pc = u32::from(address);
         }
         Ok(())
     }
@@ -165,18 +165,18 @@ impl JumpIfNotLessThanOrEqual {
         (address, lhs, rhs): (Address, RegisterOperand, RegisterOperand),
         context: &mut Context,
     ) -> JsResult<()> {
-        let lhs = context.vm.get_register(lhs.into());
-        let rhs = context.vm.get_register(rhs.into());
+        let lhs = context.get_register(lhs.into());
+        let rhs = context.get_register(rhs.into());
         if let Some(result) = lhs.le_fast(rhs) {
             if !result {
-                context.vm.frame_mut().pc = u32::from(address);
+                context.frame_mut().pc = u32::from(address);
             }
             return Ok(());
         }
         let lhs = lhs.clone();
         let rhs = rhs.clone();
         if !lhs.le(&rhs, context)? {
-            context.vm.frame_mut().pc = u32::from(address);
+            context.frame_mut().pc = u32::from(address);
         }
         Ok(())
     }
@@ -201,18 +201,18 @@ impl JumpIfNotGreaterThan {
         (address, lhs, rhs): (Address, RegisterOperand, RegisterOperand),
         context: &mut Context,
     ) -> JsResult<()> {
-        let lhs = context.vm.get_register(lhs.into());
-        let rhs = context.vm.get_register(rhs.into());
+        let lhs = context.get_register(lhs.into());
+        let rhs = context.get_register(rhs.into());
         if let Some(result) = lhs.gt_fast(rhs) {
             if !result {
-                context.vm.frame_mut().pc = u32::from(address);
+                context.frame_mut().pc = u32::from(address);
             }
             return Ok(());
         }
         let lhs = lhs.clone();
         let rhs = rhs.clone();
         if !lhs.gt(&rhs, context)? {
-            context.vm.frame_mut().pc = u32::from(address);
+            context.frame_mut().pc = u32::from(address);
         }
         Ok(())
     }
@@ -237,18 +237,18 @@ impl JumpIfNotGreaterThanOrEqual {
         (address, lhs, rhs): (Address, RegisterOperand, RegisterOperand),
         context: &mut Context,
     ) -> JsResult<()> {
-        let lhs = context.vm.get_register(lhs.into());
-        let rhs = context.vm.get_register(rhs.into());
+        let lhs = context.get_register(lhs.into());
+        let rhs = context.get_register(rhs.into());
         if let Some(result) = lhs.ge_fast(rhs) {
             if !result {
-                context.vm.frame_mut().pc = u32::from(address);
+                context.frame_mut().pc = u32::from(address);
             }
             return Ok(());
         }
         let lhs = lhs.clone();
         let rhs = rhs.clone();
         if !lhs.ge(&rhs, context)? {
-            context.vm.frame_mut().pc = u32::from(address);
+            context.frame_mut().pc = u32::from(address);
         }
         Ok(())
     }
@@ -273,10 +273,10 @@ impl JumpIfNotEqual {
         (address, lhs, rhs): (Address, RegisterOperand, RegisterOperand),
         context: &mut Context,
     ) {
-        let lhs = context.vm.get_register(lhs.into());
-        let rhs = context.vm.get_register(rhs.into());
+        let lhs = context.get_register(lhs.into());
+        let rhs = context.get_register(rhs.into());
         if lhs != rhs {
-            context.vm.frame_mut().pc = u32::from(address);
+            context.frame_mut().pc = u32::from(address);
         }
     }
 }
@@ -297,7 +297,7 @@ pub(crate) struct JumpTable;
 impl JumpTable {
     #[inline(always)]
     pub(crate) fn operation((index, addresses): (u32, ThinVec<Address>), context: &mut Context) {
-        let value = context.vm.get_register(index as usize);
+        let value = context.get_register(index as usize);
         let Some(offset) = value.as_i32().map(|i| i as usize) else {
             return;
         };
@@ -306,7 +306,7 @@ impl JumpTable {
             return;
         };
 
-        context.vm.frame_mut().pc = u32::from(pc);
+        context.frame_mut().pc = u32::from(pc);
     }
 }
 

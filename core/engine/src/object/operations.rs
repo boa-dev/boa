@@ -437,28 +437,28 @@ impl JsObject {
         // NOTE(HalidOdat): For object's that are not callable we implement a special __call__ internal method
         //                  that throws on call.
 
-        context.vm.stack.push(this.clone()); // this
-        context.vm.stack.push(self.clone()); // func
+        context.stack_push(this.clone()); // this
+        context.stack_push(self.clone()); // func
         let argument_count = args.len();
-        context.vm.stack.calling_convention_push_arguments(args);
+        context.stack_calling_convention_push_arguments(args);
 
         // 3. Return ? F.[[Call]](V, argumentsList).
-        let frame_index = context.vm.frames.len();
+        let frame_index = context.frames().len();
         if self.__call__(argument_count).resolve(context)? {
-            return Ok(context.vm.stack.pop());
+            return Ok(context.stack_pop());
         }
 
-        if frame_index + 1 == context.vm.frames.len() {
-            context.vm.frame_mut().set_exit_early(true);
+        if frame_index + 1 == context.frames().len() {
+            context.frame_mut().set_exit_early(true);
         } else {
-            context.vm.frames[frame_index + 1].set_exit_early(true);
+            context.frames_mut()[frame_index + 1].set_exit_early(true);
         }
 
-        context.vm.host_call_depth += 1;
+        context.inc_host_call_depth();
         let result = context.run().consume();
-        context.vm.host_call_depth = context.vm.host_call_depth.saturating_sub(1);
+        context.dec_host_call_depth();
 
-        context.vm.pop_frame().js_expect("frame must exist")?;
+        context.pop_frame().js_expect("frame must exist")?;
 
         result
     }
@@ -486,35 +486,35 @@ impl JsObject {
         // 1. If newTarget is not present, set newTarget to F.
         let new_target = new_target.unwrap_or(self);
 
-        context.vm.stack.push(JsValue::undefined());
-        context.vm.stack.push(self.clone()); // func
+        context.stack_push(JsValue::undefined());
+        context.stack_push(self.clone()); // func
         let argument_count = args.len();
-        context.vm.stack.calling_convention_push_arguments(args);
-        context.vm.stack.push(new_target.clone());
+        context.stack_calling_convention_push_arguments(args);
+        context.stack_push(new_target.clone());
 
         // 2. If argumentsList is not present, set argumentsList to a new empty List.
         // 3. Return ? F.[[Construct]](argumentsList, newTarget).
-        let frame_index = context.vm.frames.len();
+        let frame_index = context.frames().len();
 
         if self.__construct__(argument_count).resolve(context)? {
-            let result = context.vm.stack.pop();
+            let result = context.stack_pop();
             return Ok(result
                 .as_object()
                 .js_expect("construct value should be an object")?
                 .clone());
         }
 
-        if frame_index + 1 == context.vm.frames.len() {
-            context.vm.frame_mut().set_exit_early(true);
+        if frame_index + 1 == context.frames().len() {
+            context.frame_mut().set_exit_early(true);
         } else {
-            context.vm.frames[frame_index + 1].set_exit_early(true);
+            context.frames_mut()[frame_index + 1].set_exit_early(true);
         }
 
-        context.vm.host_call_depth += 1;
+        context.inc_host_call_depth();
         let result = context.run().consume();
-        context.vm.host_call_depth = context.vm.host_call_depth.saturating_sub(1);
+        context.dec_host_call_depth();
 
-        context.vm.pop_frame().js_expect("frame must exist")?;
+        context.pop_frame().js_expect("frame must exist")?;
 
         Ok(result?
             .as_object()

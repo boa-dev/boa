@@ -1232,9 +1232,9 @@ impl JsPromise {
         use std::ops::ControlFlow;
 
         // Clone the stack since we split it.
-        let stack = context.vm.stack.clone();
+        let stack = context.stack_clone();
         let gen_ctx = GeneratorContext::from_current(context, None);
-        context.vm.stack = stack;
+        context.stack_replace(stack);
 
         // 3. Let fulfilledClosure be a new Abstract Closure with parameters (value) that captures asyncContext and performs the following steps when called:
         // 4. Let onFulfilled be CreateBuiltinFunction(fulfilledClosure, 1, "", « »).
@@ -1253,16 +1253,16 @@ impl JsPromise {
                     // NOTE: We need to get the object before resuming, since it could clear the stack.
                     let async_generator = r#gen.async_generator_object()?;
 
-                    std::mem::swap(&mut context.vm.stack, &mut r#gen.stack);
+                    context.stack_swap(&mut r#gen.stack);
                     let frame = r#gen
                         .call_frame
                         .take()
                         .js_expect("should have a call frame")?;
                     let fp = frame.fp;
                     let rp = frame.rp;
-                    context.vm.push_frame(frame);
-                    context.vm.frame_mut().fp = fp;
-                    context.vm.frame_mut().rp = rp;
+                    context.push_frame(frame);
+                    context.frame_mut().fp = fp;
+                    context.frame_mut().rp = rp;
 
                     match continuation.call(
                         CompletionRecord::Normal(args.get_or_undefined(0).clone()),
@@ -1274,8 +1274,8 @@ impl JsPromise {
                         ControlFlow::Break(Ok(())) => {}
                     }
 
-                    std::mem::swap(&mut context.vm.stack, &mut r#gen.stack);
-                    r#gen.call_frame = context.vm.pop_frame();
+                    context.stack_swap(&mut r#gen.stack);
+                    r#gen.call_frame = context.pop_frame();
                     assert!(r#gen.call_frame.is_some());
 
                     if let Some(async_generator) = async_generator {
@@ -1296,9 +1296,9 @@ impl JsPromise {
         .length(1)
         .build();
 
-        let stack = context.vm.stack.clone();
+        let stack = context.stack_clone();
         let gen_ctx = GeneratorContext::from_current(context, None);
-        context.vm.stack = stack;
+        context.stack_replace(stack);
 
         // 5. Let rejectedClosure be a new Abstract Closure with parameters (reason) that captures asyncContext and performs the following steps when called:
         // 6. Let onRejected be CreateBuiltinFunction(rejectedClosure, 1, "", « »).
@@ -1319,16 +1319,16 @@ impl JsPromise {
                     // NOTE: We need to get the object before resuming, since it could clear the stack.
                     let async_generator = r#gen.async_generator_object()?;
 
-                    std::mem::swap(&mut context.vm.stack, &mut r#gen.stack);
+                    context.stack_swap(&mut r#gen.stack);
                     let frame = r#gen
                         .call_frame
                         .take()
                         .js_expect("should have a call frame")?;
                     let fp = frame.fp;
                     let rp = frame.rp;
-                    context.vm.push_frame(frame);
-                    context.vm.frame_mut().fp = fp;
-                    context.vm.frame_mut().rp = rp;
+                    context.push_frame(frame);
+                    context.frame_mut().fp = fp;
+                    context.frame_mut().rp = rp;
 
                     match continuation.call(
                         CompletionRecord::Throw(JsError::from_opaque(
@@ -1342,8 +1342,8 @@ impl JsPromise {
                         ControlFlow::Break(Ok(())) => {}
                     }
 
-                    std::mem::swap(&mut context.vm.stack, &mut r#gen.stack);
-                    r#gen.call_frame = context.vm.pop_frame();
+                    context.stack_swap(&mut r#gen.stack);
+                    r#gen.call_frame = context.pop_frame();
                     assert!(r#gen.call_frame.is_some());
 
                     if let Some(async_generator) = async_generator {

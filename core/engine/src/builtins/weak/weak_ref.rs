@@ -91,7 +91,7 @@ impl BuiltInConstructor for WeakRef {
         );
 
         // 4. Perform AddToKeptObjects(target).
-        context.kept_alive.push(target.clone());
+        context.add_kept_alive(target.clone());
 
         // 6. Return weakRef.
         Ok(weak_ref.into())
@@ -128,7 +128,7 @@ impl WeakRef {
             let object = JsObject::from(object);
 
             // a. Perform AddToKeptObjects(target).
-            context.kept_alive.push(object.clone());
+            context.add_kept_alive(object.clone());
 
             // b. Return target.
             Ok(object.into())

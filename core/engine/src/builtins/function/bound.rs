@@ -151,7 +151,7 @@ fn bound_function_exotic_construct(
     argument_count: usize,
     context: &mut InternalMethodCallContext<'_>,
 ) -> JsResult<CallValue> {
-    let new_target = context.vm.stack.pop();
+    let new_target = context.stack_pop();
 
     debug_assert!(new_target.is_object(), "new.target should be an object");
 
@@ -182,6 +182,6 @@ fn bound_function_exotic_construct(
     };
 
     // 6. Return ? Construct(target, args, newTarget).
-    context.vm.stack.push(new_target);
+    context.stack_push(new_target);
     Ok(target.__construct__(bound_args.len() + argument_count))
 }

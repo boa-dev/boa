@@ -21,13 +21,13 @@ impl Throw {
         value: RegisterOperand,
         context: &mut Context,
     ) -> ControlFlow<CompletionRecord> {
-        let value = context.vm.get_register(value.into());
+        let value = context.get_register(value.into());
         let error = JsError::from_opaque(value.clone());
-        context.vm.pending_exception = Some(error);
+        context.set_pending_exception(error);
 
         // Note: -1 because we increment after fetching the opcode.
-        let pc = context.vm.frame().pc - 1;
-        if context.vm.handle_exception_at(pc) {
+        let pc = context.frame().pc - 1;
+        if context.handle_exception_at(pc) {
             return ControlFlow::Continue(());
         }
 
@@ -52,8 +52,8 @@ impl ReThrow {
     #[inline(always)]
     pub(crate) fn operation((): (), context: &mut Context) -> ControlFlow<CompletionRecord> {
         // Note: -1 because we increment after fetching the opcode.
-        let pc = context.vm.frame().pc.saturating_sub(1);
-        if context.vm.handle_exception_at(pc) {
+        let pc = context.frame().pc.saturating_sub(1);
+        if context.handle_exception_at(pc) {
             return ControlFlow::Continue(());
         }
 
@@ -62,7 +62,7 @@ impl ReThrow {
         //
         // Note: If we reached this stage then we there is no handler to handle this,
         //       so return (only for generators).
-        if context.vm.pending_exception.is_none() {
+        if !context.has_pending_exception() {
             return context.handle_return();
         }
 
@@ -89,12 +89,12 @@ impl Exception {
         dst: RegisterOperand,
         context: &mut Context,
     ) -> ControlFlow<CompletionRecord> {
-        if let Some(error) = context.vm.pending_exception.take() {
+        if let Some(error) = context.take_pending_exception() {
             let error = match error.into_opaque(context) {
                 Ok(e) => e,
                 Err(e) => return context.handle_error(e),
             };
-            context.vm.set_register(dst.into(), error);
+            context.set_register(dst.into(), error);
             return ControlFlow::Continue(());
         }
 
@@ -126,12 +126,12 @@ impl MaybeException {
         (has_exception, exception): (RegisterOperand, RegisterOperand),
         context: &mut Context,
     ) -> JsResult<()> {
-        if let Some(error) = context.vm.pending_exception.take() {
+        if let Some(error) = context.take_pending_exception() {
             let error = error.into_opaque(context)?;
-            context.vm.set_register(exception.into(), error);
-            context.vm.set_register(has_exception.into(), true.into());
+            context.set_register(exception.into(), error);
+            context.set_register(has_exception.into(), true.into());
         } else {
-            context.vm.set_register(has_exception.into(), false.into());
+            context.set_register(has_exception.into(), false.into());
         }
         Ok(())
     }
@@ -153,11 +153,7 @@ pub(crate) struct ThrowNewTypeError;
 impl ThrowNewTypeError {
     #[inline(always)]
     pub(crate) fn operation(index: IndexOperand, context: &mut Context) -> JsError {
-        let msg = context
-            .vm
-            .frame()
-            .code_block()
-            .constant_string(index.into());
+        let msg = context.frame().code_block().constant_string(index.into());
         let msg = msg
             .to_std_string()
             .expect("throw message must be an ASCII string");
@@ -181,11 +177,7 @@ pub(crate) struct ThrowNewReferenceError;
 impl ThrowNewReferenceError {
     #[inline(always)]
     pub(crate) fn operation(index: IndexOperand, context: &mut Context) -> JsError {
-        let msg = context
-            .vm
-            .frame()
-            .code_block()
-            .constant_string(index.into());
+        let msg = context.frame().code_block().constant_string(index.into());
         let msg = msg
             .to_std_string()
             .expect("throw message must be an ASCII string");

@@ -1857,7 +1857,7 @@ impl SourceTextModule {
                     // i. Let namespace be GetModuleNamespace(importedModule).
                     let namespace = module.namespace(context);
                     {
-                        let frame = context.vm.frame_mut();
+                        let frame = context.frame_mut();
                         let global = frame.realm.environment();
                         frame.environments.put_lexical_value(
                             locator.scope(),
@@ -1872,7 +1872,7 @@ impl SourceTextModule {
                     export_locator,
                 } => match export_locator.binding_name() {
                     BindingName::Name(name) => {
-                        let frame = context.vm.frame();
+                        let frame = context.frame();
                         frame
                             .environments
                             .current_declarative_ref(frame.realm.environment())
@@ -1888,7 +1888,7 @@ impl SourceTextModule {
                     }
                     BindingName::Namespace => {
                         let namespace = export_locator.module.namespace(context);
-                        let frame = context.vm.frame_mut();
+                        let frame = context.frame_mut();
                         let global = frame.realm.environment();
                         frame.environments.put_lexical_value(
                             locator.scope(),
@@ -1908,7 +1908,7 @@ impl SourceTextModule {
             let function = create_function_object_fast(code, context);
 
             {
-                let frame = context.vm.frame_mut();
+                let frame = context.frame_mut();
                 let global = frame.realm.environment();
                 frame.environments.put_lexical_value(
                     locator.scope(),
@@ -1993,7 +1993,7 @@ impl SourceTextModule {
             .push_frame_with_stack(callframe, JsValue::undefined(), JsValue::null());
 
         if let Some(capability) = capability {
-            context.vm.set_promise_capability(capability)?;
+            context.set_promise_capability(capability)?;
         }
 
         // 9. If module.[[HasTLA]] is false, then
@@ -2007,7 +2007,7 @@ impl SourceTextModule {
         //    b. Perform AsyncBlockStart(capability, module.[[ECMAScriptCode]], moduleContext).
         let result = context.run();
 
-        context.vm.pop_frame();
+        context.pop_frame();
 
         //     f. If result is an abrupt completion, then
         if let CompletionRecord::Throw(err) = result {

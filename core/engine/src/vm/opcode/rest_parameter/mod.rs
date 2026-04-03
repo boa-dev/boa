@@ -11,21 +11,17 @@ pub(crate) struct RestParameterInit;
 impl RestParameterInit {
     #[inline(always)]
     pub(super) fn operation(dst: RegisterOperand, context: &mut Context) {
-        let array = if let Some(rest) = context
-            .vm
-            .stack
-            .pop_rest_arguments(context.vm.frames.last().expect("frame must exist"))
-        {
+        let array = if let Some(rest) = context.stack_pop_rest_arguments() {
             let rest_count = rest.len() as u32;
             let array = Array::create_array_from_list(rest, context);
-            context.vm.frame_mut().argument_count -= rest_count;
+            context.frame_mut().argument_count -= rest_count;
             // Adjust rp since draining rest arguments shifted the register slots down.
-            context.vm.frame_mut().rp -= rest_count;
+            context.frame_mut().rp -= rest_count;
             array
         } else {
             Array::array_create(0, None, context).expect("could not create an empty array")
         };
-        context.vm.set_register(dst.into(), array.into());
+        context.set_register(dst.into(), array.into());
     }
 }
 
