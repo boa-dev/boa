@@ -155,7 +155,7 @@ icu_locale = { version = "~2.1.1", default-features = false }
 icu_locale_core = { version = "~2.1.1", default-features = false }
 icu_datetime = { version = "~2.1.1", default-features = false }
 icu_time = { version = "~2.1.1", default-features = false }
-icu_calendar = { version = "~2.1.1", default-features = false }
+icu_calendar = { version = "~2.2.1", default-features = false }
 icu_collator = { version = "~2.1.1", default-features = false }
 icu_plurals = { version = "~2.1.1", default-features = false }
 icu_list = { version = "~2.1.1", default-features = false }
