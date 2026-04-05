@@ -1136,6 +1136,26 @@ impl RegExp {
         // 9. If flags contains "u" or flags contains "v", let fullUnicode be true; else let fullUnicode be false.
         let full_unicode = flags.contains(b'u') || flags.contains(b'v');
 
+        // When the /u or /v flag is active, the input string is modeled as a sequence
+        // of Unicode code points (§22.2.2). Since `last_index` is a UTF-16 code unit
+        // index, it may point to the trailing half of a surrogate pair, which is not
+        // a valid code point boundary. In that case, we adjust the matcher start
+        // position to the preceding lead surrogate so matching begins at a valid
+        // code point boundary.
+        // Ref: https://tc39.es/ecma262/#sec-pattern-semantics
+        let mut start_index = last_index;
+        if full_unicode && start_index > 0 {
+            if let Some(cu) = input.code_unit_at(start_index as usize) {
+                if (0xDC00..=0xDFFF).contains(&cu) {
+                    if let Some(prev_cu) = input.code_unit_at(start_index as usize - 1) {
+                        if (0xD800..=0xDBFF).contains(&prev_cu) {
+                            start_index -= 1;
+                        }
+                    }
+                }
+            }
+        }
+
         // NOTE: The following steps are take care of by regress:
         //
         // SKIP: 10. Let matchSucceeded be false.
@@ -1163,13 +1183,13 @@ impl RegExp {
                 let input = input.to_vec();
 
                 // NOTE: We can use the faster ucs2 variant since there will never be two byte unicode.
-                matcher.find_from_ucs2(&input, last_index as usize).next()
+                matcher.find_from_ucs2(&input, start_index as usize).next()
             }
             (true, JsStrVariant::Utf16(input)) => {
-                matcher.find_from_utf16(input, last_index as usize).next()
+                matcher.find_from_utf16(input, start_index as usize).next()
             }
             (false, JsStrVariant::Utf16(input)) => {
-                matcher.find_from_ucs2(input, last_index as usize).next()
+                matcher.find_from_ucs2(input, start_index as usize).next()
             }
         };
 
