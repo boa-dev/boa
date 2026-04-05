@@ -1144,16 +1144,14 @@ impl RegExp {
         // code point boundary.
         // Ref: https://tc39.es/ecma262/#sec-pattern-semantics
         let mut start_index = last_index;
-        if full_unicode && start_index > 0 {
-            if let Some(cu) = input.code_unit_at(start_index as usize) {
-                if (0xDC00..=0xDFFF).contains(&cu) {
-                    if let Some(prev_cu) = input.code_unit_at(start_index as usize - 1) {
-                        if (0xD800..=0xDBFF).contains(&prev_cu) {
-                            start_index -= 1;
-                        }
-                    }
-                }
-            }
+        if full_unicode
+            && start_index > 0
+            && let Some(cu) = input.code_unit_at(start_index as usize)
+            && (0xDC00..=0xDFFF).contains(&cu)
+            && let Some(prev_cu) = input.code_unit_at(start_index as usize - 1)
+            && (0xD800..=0xDBFF).contains(&prev_cu)
+        {
+            start_index -= 1;
         }
 
         // NOTE: The following steps are take care of by regress:
