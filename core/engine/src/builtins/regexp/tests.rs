@@ -267,9 +267,8 @@ fn regexp_no_panic_on_empty_class_quantifier() {
 fn regexp_exec_coercion_order() {
     // ECMAScript §21.2.5.2.1 — RegExpExec
     // Ensures ToString(input) happens before accessing lastIndex
-    run_test_actions([
-        TestAction::assert_eq(
-            indoc! {r#"
+    run_test_actions([TestAction::assert_eq(
+        indoc! {r#"
                 let log = [];
                 let re = /a/g;
 
@@ -284,35 +283,30 @@ fn regexp_exec_coercion_order() {
                 re.exec(str);
                 log.join(",");
             "#},
-            js_str!("string,lastIndex"),
-        ),
-    ]);
+        js_str!("string,lastIndex"),
+    )]);
 }
 
 #[test]
 fn regexp_unicode_lastindex_surrogate_boundary() {
-    run_test_actions([
-        TestAction::assert_eq(
-            indoc! {r#"
+    run_test_actions([TestAction::assert_eq(
+        indoc! {r#"
                 let re = /./gu;
                 re.lastIndex = 1;
                 re.exec("💩")[0];
             "#},
-            js_str!("💩"),
-        ),
-    ]);
+        js_str!("💩"),
+    )]);
 }
 
 #[test]
 fn regexp_unicode_lastindex_no_adjustment() {
-    run_test_actions([
-        TestAction::assert_eq(
-            indoc! {r#"
+    run_test_actions([TestAction::assert_eq(
+        indoc! {r#"
                 let re = /./gu;
                 re.lastIndex = 0;
                 re.exec("💩")[0];
             "#},
-            js_str!("💩"),
-        ),
-    ]);
+        js_str!("💩"),
+    )]);
 }
