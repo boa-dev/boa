@@ -12,8 +12,14 @@ use crate::{
     object::JsFunction,
     realm::Realm,
     script::Script,
-    vm::opcode::{OPCODE_HANDLERS, OPCODE_HANDLERS_BUDGET},
 };
+
+#[cfg(not(all(feature = "tailcall", boa_nightly)))]
+use crate::vm::opcode::{OPCODE_HANDLERS, OPCODE_HANDLERS_BUDGET};
+
+#[cfg(all(feature = "tailcall", boa_nightly))]
+use crate::vm::opcode::OPCODE_HANDLERS_BUDGET;
+
 use boa_gc::{Finalize, Gc, Trace, custom_trace};
 use shadow_stack::ShadowStack;
 use std::{future::Future, ops::ControlFlow, path::Path, pin::Pin, task};
@@ -634,9 +640,16 @@ impl Context {
             "{msg:-^width$}",
             width = Self::COLUMN_WIDTH * Self::NUMBER_OF_COLUMNS - 10
         );
+
+        let time_header = if cfg!(all(feature = "tailcall", boa_nightly)) {
+            "ΔTime(prev)"
+        } else {
+            "Time"
+        };
+
         println!(
             "{:<TIME_COLUMN_WIDTH$} {:<OPCODE_COLUMN_WIDTH$} {:<OPERAND_COLUMN_WIDTH$} Stack\n",
-            "Time",
+            time_header,
             "Opcode",
             "Operands",
             TIME_COLUMN_WIDTH = Self::TIME_COLUMN_WIDTH,
@@ -892,6 +905,8 @@ impl Context {
 
             if runtime_budget == 0 {
                 runtime_budget = budget;
+                // TODO: change the approach of yielding so we may yield in the middle tailcalling
+                // maybe can be done by adding Yield to the ControlFlow enum?
                 yield_now().await;
             }
         }
@@ -900,6 +915,7 @@ impl Context {
     }
 
     pub(crate) fn run(&mut self) -> CompletionRecord {
+        #[cfg(not(all(feature = "tailcall", boa_nightly)))]
         while let Some(byte) = self
             .vm
             .frame()
@@ -923,8 +939,11 @@ impl Context {
                 ControlFlow::Break(value) => return value,
             }
         }
+        #[cfg(not(all(feature = "tailcall", boa_nightly)))]
+        return CompletionRecord::Throw(JsError::from_native(JsNativeError::error()));
 
-        CompletionRecord::Throw(JsError::from_native(JsNativeError::error()))
+        #[cfg(all(feature = "tailcall", boa_nightly))]
+        return self.dispatch_next(self.vm.frame().pc as usize);
     }
 
     /// Checks if we haven't exceeded the defined runtime limits.
