@@ -53,6 +53,7 @@ fetch = [
     "dep:either",
     "dep:http",
     "dep:serde_json",
+    "dep:url",
     "boa_engine/either",
 ]
 reqwest-blocking = ["dep:reqwest", "reqwest/blocking"]
