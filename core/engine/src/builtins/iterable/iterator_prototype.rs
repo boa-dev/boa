@@ -39,7 +39,7 @@ impl IntrinsicObject for Iterator {
         let set_to_string_tag = BuiltInBuilder::callable(realm, Self::set_to_string_tag)
             .name(js_string!("set [Symbol.toStringTag]"))
             .build();
-        BuiltInBuilder::with_intrinsic::<Self>(realm)
+        let builder = BuiltInBuilder::with_intrinsic::<Self>(realm)
             .static_method(|v, _, _| Ok(v.clone()), JsSymbol::iterator(), 0)
             .static_method(Self::map, js_string!("map"), 1)
             .static_method(Self::filter, js_string!("filter"), 1)
@@ -63,8 +63,12 @@ impl IntrinsicObject for Iterator {
                 Some(get_constructor),
                 Some(set_constructor),
                 Attribute::CONFIGURABLE,
-            )
-            .build();
+            );
+
+        #[cfg(feature = "experimental")]
+        let builder = builder.static_method(Self::includes, js_string!("includes"), 1);
+
+        builder.build();
     }
 
     fn get(intrinsics: &Intrinsics) -> JsObject {
@@ -439,6 +443,73 @@ impl Iterator {
     }
 
     // ==================== Prototype Methods — Eager (Consuming) ====================
+
+    /// `Iterator.prototype.includes ( searchElement [, skippedElements ] )`
+    #[cfg(feature = "experimental")] // Stage 2.7 iterator-includes proposal
+    fn includes(this: &JsValue, args: &[JsValue], context: &mut Context) -> JsResult<JsValue> {
+        // 1. Let O be the this value.
+        // 2. If O is not an Object, throw a TypeError exception.
+        let obj = this.as_object().ok_or_else(
+            || js_error!(TypeError: "Iterator.prototype.includes called on non-object"),
+        )?;
+
+        // 3. Let iterated be the Iterator Record { [[Iterator]]: O, [[NextMethod]]: undefined, [[Done]]: false }.
+        let iterated = IteratorRecord::new(obj.clone(), JsValue::undefined());
+
+        let search_element = args.get_or_undefined(0);
+
+        // 4. If skippedElements is undefined, then
+        // a. Let toSkip be 0.
+        // 5. Else,
+        // a. If skippedElements is not one of +∞𝔽, -∞𝔽, or an integral Number, then
+        // i. Let error be ThrowCompletion(a newly created TypeError object).
+        // ii. Return ? IteratorClose(iterated, error).
+        // b. Let toSkip be the extended mathematical value of skippedElements.
+        let to_skip = match args.get_or_undefined(1).map(JsValue::as_number) {
+            // Step 4.a
+            None => 0,
+            // Step 5.b
+            Some(Some(number)) if !number.is_nan() => {
+                number.clamp(i64::MIN as f64, i64::MAX as f64) as i64
+            }
+            // Step 5.a
+            _ => {
+                let error = js_error!(TypeError: "skippedElements must be a number");
+                return iterated.close(Err(error), context);
+            }
+        };
+
+        // 6. If toSkip < 0, then
+        if to_skip < 0 {
+            // a. Let error be ThrowCompletion(a newly created RangeError object).
+            let error = js_error!(RangeError: "skippedElements must be a positive number");
+            // b. Return ? IteratorClose(iterated, error).
+            return iterated.close(Err(error), context);
+        }
+
+        // 7. Let skipped be 0.
+        let mut skipped = 0;
+
+        // 8. Set iterated to ? GetIteratorDirect(O).
+        let mut iterated = get_iterator_direct(&obj, context)?;
+
+        // 9. Repeat,
+        while let Some(value) = iterated.step_value(context)? {
+            // a. Let value be ? IteratorStepValue(iterated).
+            // b. If value is done, return false.
+            // c. If skipped < toSkip, then
+            if skipped < to_skip {
+                // i. Set skipped to skipped + 1.
+                skipped += 1;
+            // d. Else if SameValueZero(value, searchElement) is true, then
+            } else if JsValue::same_value_zero(&value, search_element) {
+                // i. Return ? IteratorClose(iterated, NormalCompletion(true)).
+                return iterated.close(Ok(true.into()), context);
+            }
+        }
+        // Step 9.b. return false
+        Ok(false.into())
+    }
 
     /// `Iterator.prototype.reduce ( reducer [ , initialValue ] )`
     ///
