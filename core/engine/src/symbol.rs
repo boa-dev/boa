@@ -399,7 +399,8 @@ mod tests {
     use boa_macros::js_str;
 
     use crate::{
-        Context, JsObject, JsValue, TestAction, builtins::Json, run_test_actions, value::TryIntoJs,
+        Context, JsObject, JsValue, TestAction, builtins::Json, run_test_actions, string::JsString,
+        value::TryIntoJs,
     };
 
     use super::JsSymbol;
@@ -485,7 +486,7 @@ mod tests {
         assert_eq!(
             sym.description()
                 .as_ref()
-                .map(|s| s.to_std_string_escaped()),
+                .map(JsString::to_std_string_escaped),
             Some(String::from("foo"))
         );
     }
@@ -553,7 +554,7 @@ mod tests {
             assert_eq!(
                 sym.description()
                     .as_ref()
-                    .map(|s| s.to_std_string_escaped()),
+                    .map(JsString::to_std_string_escaped),
                 Some(String::from(*expected_desc)),
                 "Well-known symbol description mismatch for {expected_desc}"
             );
@@ -579,8 +580,13 @@ mod tests {
         assert_eq!(sym, cloned);
         assert_eq!(sym.hash(), cloned.hash());
         assert_eq!(
-            sym.description().map(|s| s.to_std_string_escaped()),
-            cloned.description().map(|s| s.to_std_string_escaped())
+            sym.description()
+                .as_ref()
+                .map(JsString::to_std_string_escaped),
+            cloned
+                .description()
+                .as_ref()
+                .map(JsString::to_std_string_escaped)
         );
     }
 

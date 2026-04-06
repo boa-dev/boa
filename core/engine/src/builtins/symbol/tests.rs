@@ -35,6 +35,8 @@ fn symbol_access() {
 
 #[test]
 fn symbol_for_and_key_for() {
+    use crate::Context;
+    use std::thread;
     run_test_actions([
         TestAction::run(indoc! {r#"
                 var s1 = Symbol.for("shared");
@@ -49,8 +51,6 @@ fn symbol_for_and_key_for() {
     ]);
 
     // Test that globally registered symbols are preserved across threads
-    use crate::Context;
-    use std::thread;
 
     let handle = thread::spawn(|| {
         let mut context = Context::default();
