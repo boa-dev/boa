@@ -643,7 +643,7 @@ fn has_calendar_data_for_locale<C: CldrCalendar>(
 where
     IntlProvider: DryDataProvider<C::YearNamesV1>,
 {
-    use icu_datetime::provider::neo::marker_attrs;
+    use icu_datetime::provider::semantic_skeletons::marker_attrs;
     use icu_provider::prelude::{
         DataIdentifierBorrowed, DataRequest, DataRequestMetadata,
         icu_locale_core::preferences::LocalePreferences,

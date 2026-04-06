@@ -1,6 +1,6 @@
 use std::cell::Cell;
 
-use boa_gc::{Finalize, Trace};
+use boa_gc::{Finalize, Trace, custom_trace};
 use fixed_decimal::{Decimal, FloatPrecision, SignDisplay};
 use icu_decimal::{
     DecimalFormatter, DecimalFormatterPreferences, FormattedDecimal,
@@ -44,9 +44,8 @@ use crate::{js_error, value::JsVariant};
 #[cfg(test)]
 mod tests;
 
-#[derive(Debug, Trace, Finalize, JsData)]
+#[derive(Debug, Finalize, JsData)]
 // Safety: `NumberFormat` only contains non-traceable types.
-#[boa_gc(unsafe_empty_trace)]
 pub(crate) struct NumberFormat {
     locale: Locale,
     formatter: DecimalFormatter,
@@ -57,6 +56,16 @@ pub(crate) struct NumberFormat {
     use_grouping: GroupingStrategy,
     sign_display: SignDisplay,
     bound_format: Option<JsFunction>,
+}
+
+// SAFETY: the implementation correctly traces the only field
+// that needs tracing.
+unsafe impl Trace for NumberFormat {
+    custom_trace!(this, mark, {
+        if let Some(f) = &this.bound_format {
+            mark(f);
+        }
+    });
 }
 
 impl NumberFormat {

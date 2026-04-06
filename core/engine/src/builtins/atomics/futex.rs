@@ -588,7 +588,7 @@ pub(super) unsafe fn wait_async<E: Element + PartialEq>(
             timeout,
         );
 
-        let tc = job.cancelled_flag();
+        let tc = job.cancellation_token();
 
         // 4. Perform HostEnqueueTimeoutJob(timeoutJob, currentRealm, 𝔽(waiterRecord.[[TimeoutTime]]) - now).
         context.enqueue_job(job.into());
@@ -618,8 +618,8 @@ pub(super) unsafe fn wait_async<E: Element + PartialEq>(
                 // resolve a promise in a thread that is panicking.
             }
 
-            if let Some(flag) = timeout_cancel {
-                flag.set();
+            if let Some(token) = timeout_cancel {
+                token.cancel();
             }
 
             Ok(JsValue::undefined())

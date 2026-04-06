@@ -96,11 +96,11 @@ impl TryIntoJs for ResponseType {
     }
 }
 
-/// A null body status is a status that is 101, 103, 204, or 304.
+/// A null body status is a status that is 101, 103, 204, 205, or 304.
 ///
 /// See <https://fetch.spec.whatwg.org/#null-body-status>
 fn is_null_body_status(status: u16) -> bool {
-    matches!(status, 101 | 103 | 204 | 304)
+    matches!(status, 101 | 103 | 204 | 205 | 304)
 }
 
 /// Validates that a string matches the `reason-phrase` token production.
@@ -239,7 +239,7 @@ fn initialize_response(
         // Step 6.1: If response's status is a null body status, throw a TypeError.
         if is_null_body_status(status) {
             return Err(
-                js_error!(TypeError: "Response body is not allowed for null body status codes (101, 103, 204, 304)."),
+                js_error!(TypeError: "Response body is not allowed for null body status codes (101, 103, 204, 205, 304)."),
             );
         }
 
