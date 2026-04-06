@@ -429,7 +429,7 @@ dependencies = [
  "num-traits",
  "num_enum",
  "oneshot",
- "paste",
+ "pastey",
  "portable-atomic",
  "rand",
  "regress",
@@ -507,7 +507,7 @@ dependencies = [
  "icu_segmenter",
  "icu_time",
  "once_cell",
- "paste",
+ "pastey",
 ]
 
 [[package]]
@@ -596,7 +596,7 @@ version = "1.0.0-dev"
 dependencies = [
  "fast-float2",
  "itoa",
- "paste",
+ "pastey",
  "rustc-hash 2.1.2",
  "ryu-js",
  "static_assertions",
@@ -2892,10 +2892,10 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "052ff849639942444955d93311f17caa86c9d77164a3dfc3b477b066246a5a79"
 
 [[package]]
-name = "paste"
-version = "1.0.15"
+name = "pastey"
+version = "0.2.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "57c0d7b74b563b49d38dae00a0c37d4d6de9b432382b2892f0574ddcae73fd0a"
+checksum = "b867cad97c0791bbd3aaa6472142568c6c9e8f71937e98379f584cfb0cf35bec"
 
 [[package]]
 name = "percent-encoding"
