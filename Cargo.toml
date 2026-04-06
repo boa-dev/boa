@@ -129,7 +129,7 @@ cfg-if = "1.0.4"
 either = "1.15.0"
 sys-locale = "0.3.2"
 timezone_provider = { version = "0.2.3" }
-temporal_rs = { version = "0.2.1", default-features = false, features = ["float64_representable_durations"] }
+temporal_rs = { version = "0.2.3", default-features = false, features = ["float64_representable_durations"] }
 web-time = "1.1.0"
 criterion = "0.8.1"
 float-cmp = "0.10.0"
@@ -148,31 +148,33 @@ unsend = { version = "0.2.1", default-features = false }
 husky-rs = "0.3.2"
 async-channel = "2.5.0"
 
-# ICU4X
+# ICU4X core
 
-icu_provider = { version = "~2.1.1", default-features = false }
-icu_locale = { version = "~2.1.1", default-features = false }
-icu_locale_core = { version = "~2.2.0", default-features = false }
-icu_datetime = { version = "~2.1.1", default-features = false }
-icu_time = { version = "~2.1.1", default-features = false }
-icu_calendar = { version = "~2.1.1", default-features = false }
-icu_collator = { version = "~2.1.1", default-features = false }
-icu_plurals = { version = "~2.1.1", default-features = false }
-icu_list = { version = "~2.1.1", default-features = false }
-icu_casemap = { version = "~2.1.1", default-features = false }
-icu_segmenter = { version = "~2.1.2", default-features = false }
-icu_provider_export = { version = "~2.1.1", default-features = false }
-icu_provider_source = { version = "~2.1.2", default-features = false }
-icu_provider_adapters = { version = "~2.1.1", default-features = false }
-icu_provider_blob = { version = "~2.1.1", default-features = false }
-icu_properties = { version = "~2.1.2", default-features = true }
-icu_normalizer = { version = "~2.1.1", default-features = false }
-icu_decimal = { version = "~2.1.1", default-features = false }
-writeable = "~0.6.2"
-tinystr = "~0.8.2"
-yoke = "~0.8.1"
-zerofrom = "~0.1.7"
-fixed_decimal = "~0.7.2"
+icu_provider = { version = "2.2.0", default-features = false }
+icu_locale_core = { version = "2.2.0", default-features = false }
+
+# ICU4X component
+icu_locale = { version = "~2.2.0", default-features = false }
+icu_datetime = { version = "~2.2.0", default-features = false }
+icu_time = { version = "~2.2.0", default-features = false }
+icu_calendar = { version = "~2.2.1", default-features = false }
+icu_collator = { version = "~2.2.0", default-features = false }
+icu_plurals = { version = "~2.2.0", default-features = false }
+icu_list = { version = "~2.2.0", default-features = false }
+icu_casemap = { version = "~2.2.0", default-features = false }
+icu_segmenter = { version = "~2.2.0", default-features = false }
+icu_provider_export = { version = "~2.2.0", default-features = false }
+icu_provider_source = { version = "~2.2.0", default-features = false }
+icu_provider_adapters = { version = "~2.2.0", default-features = false }
+icu_provider_blob = { version = "~2.2.0", default-features = false }
+icu_properties = { version = "~2.2.0", default-features = true }
+icu_normalizer = { version = "~2.2.0", default-features = false }
+icu_decimal = { version = "~2.2.0", default-features = false }
+writeable = "0.6.2"
+tinystr = "0.8.2"
+yoke = "0.8.1"
+zerofrom = "0.1.7"
+fixed_decimal = "0.7.2"
 
 [workspace.metadata.workspaces]
 allow_branch = "main"
