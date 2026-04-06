@@ -1,6 +1,6 @@
 //! Data extraction helpers for `console.table()`.
 //!
-//! This module converts a JS value into [`TableData`] that the [`Logger`]
+//! This module converts a JS value into [`TableData`] that the [`super::Logger`]
 //! backend can render however it likes (terminal box-drawing, HTML, etc.).
 
 use boa_engine::builtins::object::OrdinaryObject;
