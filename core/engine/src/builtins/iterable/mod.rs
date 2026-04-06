@@ -6,21 +6,25 @@ use crate::{
     context::intrinsics::Intrinsics,
     error::JsNativeError,
     js_string,
+    native_function::{CoroutineBranch, CoroutineState},
     object::JsObject,
     realm::Realm,
     symbol::JsSymbol,
+    vm::CompletionRecord,
 };
 use boa_gc::{Finalize, Trace};
 
 mod async_from_sync_iterator;
 pub(crate) mod iterator_constructor;
 pub(crate) mod iterator_helper;
+mod iterator_prototype;
 pub(crate) mod wrap_for_valid_iterator;
 
 #[cfg(test)]
 mod tests;
 
 pub(crate) use async_from_sync_iterator::AsyncFromSyncIterator;
+pub(crate) use iterator_prototype::Iterator;
 
 #[cfg(feature = "experimental")]
 mod zip_iterator;
@@ -123,13 +127,6 @@ impl IteratorPrototypes {
         self.array.clone()
     }
 
-    /// Returns the `IteratorPrototype` object.
-    #[inline]
-    #[must_use]
-    pub fn iterator(&self) -> JsObject {
-        self.iterator.clone()
-    }
-
     /// Returns the `AsyncIteratorPrototype` object.
     #[inline]
     #[must_use]
@@ -200,26 +197,6 @@ impl IteratorPrototypes {
     #[cfg(feature = "experimental")]
     pub fn zip_iterator(&self) -> JsObject {
         self.zip_iterator.clone()
-    }
-}
-
-/// `%IteratorPrototype%` object
-///
-/// More information:
-///  - [ECMA reference][spec]
-///
-/// [spec]: https://tc39.es/ecma262/#sec-%iteratorprototype%-object
-pub(crate) struct Iterator;
-
-impl IntrinsicObject for Iterator {
-    fn init(realm: &Realm) {
-        BuiltInBuilder::with_intrinsic::<Self>(realm)
-            .static_method(|v, _, _| Ok(v.clone()), JsSymbol::iterator(), 0)
-            .build();
-    }
-
-    fn get(intrinsics: &Intrinsics) -> JsObject {
-        intrinsics.objects().iterator_prototypes().iterator()
     }
 }
 
@@ -606,6 +583,28 @@ impl IteratorRecord {
             //     a. Set iteratorRecord.[[Done]] to true.
             // 5. Return ? value.
             self.value(context).map(Some)
+        }
+    }
+
+    /// [`IfAbruptCloseIterator( value, iteratorRecord )`][spec], but
+    /// adapted to be used inside `NativeCoroutine`.
+    ///
+    /// [spec]: https://tc39.es/ecma262/#sec-ifabruptcloseiterator
+    pub(crate) fn if_abrupt_close_iterator(
+        &self,
+        completion: CompletionRecord,
+        context: &mut Context,
+    ) -> CoroutineState {
+        // 1. Assert: value is a Completion Record.
+        // 2. If value is an abrupt completion, return ? IteratorClose(iteratorRecord, value).
+        // 3. Set value to ! value.
+        match completion {
+            CompletionRecord::Return(value) => {
+                self.close(Ok(value), context).branch()?;
+                CoroutineState::Break(Ok(()))
+            }
+            CompletionRecord::Throw(err) => self.close(Err(err), context).branch(),
+            CompletionRecord::Normal(value) => CoroutineState::Continue(value),
         }
     }
 

@@ -1,0 +1,20 @@
+[LINE COMMENT 2026-03-16T11:40:19Z] zhuzhu81998: not sure how fast your fast path actually is if you shift the entire array once per added element (this looks like O(n*k) instead of O(n))
+----------------------------------------
+[LINE COMMENT 2026-03-16T23:04:58Z] jedel1043: Yeah definitely. It is kinda not obvious but if you do `dense.splice(0..0, &items)`, you'll essentially insert all elements of `items` at the start of `dense` in a very efficent way: allocating the full required allocation, then moving all the old elements `arg_count` spaces to the right at once, then finally pushing `items` to the start of `dense` to fill the "holes" left
+----------------------------------------
+[LINE COMMENT 2026-03-17T17:57:15Z] zhuzhu81998: `set` accounts for the status of the object (e.g. frozen or not). and your fast path skips that check, causing the tests to fail
+----------------------------------------
+[LINE COMMENT 2026-03-18T22:08:36Z] jedel1043: This fixes the test, but not the underlying issue. For example, this correctly throws on main:
+```javascript
+var array = [1];
+
+Object.defineProperty(Array.prototype, "1", {
+  set(_val) {
+    Object.freeze(array);
+  },
+});
+
+array.unshift(0);
+```
+However, it returns `2` on this PR, which is the wrong behaviour.
+----------------------------------------

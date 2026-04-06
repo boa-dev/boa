@@ -74,18 +74,14 @@ pub fn resolve_module_specifier(
         if let Some(r_path) = referrer_dir {
             base_path.join(r_path).join(short_path)
         } else {
-            return Err(JsError::from_opaque(
-                js_string!("relative path without referrer").into(),
-            ));
+            return Err(js_error!(TypeError: "relative path without referrer"));
         }
     } else {
         base_path.join(&*specifier)
     };
 
     if long_path.is_relative() && base.is_some() {
-        return Err(JsError::from_opaque(
-            js_string!("resolved path is relative").into(),
-        ));
+        return Err(js_error!(TypeError: "resolved path is relative"));
     }
 
     // Normalize the path. We cannot use `canonicalize` here because it will fail
@@ -96,9 +92,7 @@ pub fn resolve_module_specifier(
         .try_fold(PathBuf::new(), |mut acc, c| {
             if c == Component::ParentDir {
                 if acc.as_os_str().is_empty() {
-                    return Err(JsError::from_opaque(
-                        js_string!("path is outside the module root").into(),
-                    ));
+                    return Err(js_error!(TypeError: "path is outside the module root"));
                 }
                 acc.pop();
             } else {
@@ -110,9 +104,7 @@ pub fn resolve_module_specifier(
     if path.starts_with(&base_path) {
         Ok(path)
     } else {
-        Err(JsError::from_opaque(
-            js_string!("path is outside the module root").into(),
-        ))
+        Err(js_error!(TypeError: "path is outside the module root"))
     }
 }
 
@@ -320,7 +312,7 @@ impl SimpleModuleLoader {
         let absolute = root.canonicalize().map_err(|e| {
             JsNativeError::typ()
                 .with_message(format!("could not set module root `{}`", root.display()))
-                .with_cause(JsError::from_opaque(js_string!(e.to_string()).into()))
+                .with_cause(JsError::from_rust(e))
         })?;
         Ok(Self {
             root: absolute,
@@ -416,9 +408,7 @@ impl ModuleLoader for SimpleModuleLoader {
                         let json_content = std::fs::read_to_string(&path).map_err(|err| {
                             JsNativeError::typ()
                                 .with_message(format!("could not open file `{short_path}`"))
-                                .with_cause(JsError::from_opaque(
-                                    js_string!(err.to_string()).into(),
-                                ))
+                                .with_cause(JsError::from_rust(err))
                         })?;
                         let json_string = js_string!(json_content.as_str());
                         Module::parse_json(json_string, &mut context.borrow_mut()).map_err(
@@ -445,7 +435,7 @@ impl ModuleLoader for SimpleModuleLoader {
                 let source = Source::from_filepath(&path).map_err(|err| {
                     JsNativeError::typ()
                         .with_message(format!("could not open file `{short_path}`"))
-                        .with_cause(JsError::from_opaque(js_string!(err.to_string()).into()))
+                        .with_cause(JsError::from_rust(err))
                 })?;
                 Module::parse(source, None, &mut context.borrow_mut()).map_err(|err| {
                     JsNativeError::syntax()

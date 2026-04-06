@@ -8,4 +8,4 @@ edition.workspace = true
 boa_engine = { workspace = true }
 
 [dev-dependencies]
-insta = { version = "1.46.3", features = ["filters", "glob"] }
+insta = { version = "1.47.0", features = ["filters", "glob"] }
