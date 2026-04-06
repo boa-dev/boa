@@ -1,5 +1,18 @@
 #![allow(clippy::inline_always)]
 #![allow(clippy::doc_markdown)]
+//! Boa's VM opcode definitions and bytecode dispatch.
+//!
+//! The bytecompiler lowers ECMAScript runtime semantics into these opcode families, which are then
+//! executed by the virtual machine. Most opcode submodules mirror a part of the specification,
+//! such as function calls, environment records, iteration, property access, or class evaluation.
+//! See the general runtime semantics overview in the [specification][spec].
+//!
+//! When the specification marks an abstract operation as infallible with `!`, Boa treats the
+//! corresponding condition as an internal bytecode invariant. In those cases, malformed
+//! bytecode is treated as an engine bug and may trip an assertion instead of returning a
+//! recoverable JavaScript exception.
+//!
+//! [spec]: https://tc39.es/ecma262/#sec-runtime-semantics-evaluation
 use crate::{
     Context,
     vm::{completion_record::CompletionRecord, completion_record::IntoCompletionRecord},

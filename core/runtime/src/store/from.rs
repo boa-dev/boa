@@ -9,12 +9,12 @@ use boa_engine::object::builtins::{
 };
 use boa_engine::property::PropertyKey;
 use boa_engine::{Context, JsError, JsObject, JsResult, JsString, JsValue, JsVariant, js_error};
-use std::collections::{HashMap, HashSet};
+use rustc_hash::{FxHashMap, FxHashSet};
 
 /// A Map of seen objects when walking through the value. We use the address
 /// of the inner object as it is unique per JavaScript value.
 #[derive(Default)]
-pub(super) struct SeenMap(HashMap<usize, JsValueStore>);
+pub(super) struct SeenMap(FxHashMap<usize, JsValueStore>);
 
 impl SeenMap {
     fn get(&self, object: &JsObject) -> Option<JsValueStore> {
@@ -37,7 +37,7 @@ pub(super) fn is_transferable(object: &JsObject) -> bool {
 /// The core logic of the [`JsValueStore::try_from_js`] function.
 fn try_from_js_object(
     value: &JsObject,
-    transfer: &HashSet<JsObject>,
+    transfer: &FxHashSet<JsObject>,
     seen: &mut SeenMap,
     context: &mut Context,
 ) -> JsResult<JsValueStore> {
@@ -79,7 +79,7 @@ fn try_from_js_object_transfer(
 
 fn try_from_array_clone(
     array: &JsArray,
-    transfer: &HashSet<JsObject>,
+    transfer: &FxHashSet<JsObject>,
     seen: &mut SeenMap,
     context: &mut Context,
 ) -> JsResult<JsValueStore> {
@@ -139,7 +139,7 @@ fn try_from_shared_array_buffer(
 fn clone_typed_array(
     original: &JsObject,
     buffer: &JsTypedArray,
-    transfer: &HashSet<JsObject>,
+    transfer: &FxHashSet<JsObject>,
     seen: &mut SeenMap,
     context: &mut Context,
 ) -> JsResult<JsValueStore> {
@@ -184,7 +184,7 @@ fn clone_regexp(
 fn try_from_map(
     original: &JsObject,
     map: &JsMap,
-    transfer: &HashSet<JsObject>,
+    transfer: &FxHashSet<JsObject>,
     seen: &mut SeenMap,
     context: &mut Context,
 ) -> JsResult<JsValueStore> {
@@ -211,7 +211,7 @@ fn try_from_map(
 fn try_from_set(
     original: &JsObject,
     set: &JsSet,
-    transfer: &HashSet<JsObject>,
+    transfer: &FxHashSet<JsObject>,
     seen: &mut SeenMap,
     context: &mut Context,
 ) -> JsResult<JsValueStore> {
@@ -236,7 +236,7 @@ fn try_from_set(
 
 fn try_from_js_object_clone(
     object: &JsObject,
-    transfer: &HashSet<JsObject>,
+    transfer: &FxHashSet<JsObject>,
     seen: &mut SeenMap,
     context: &mut Context,
 ) -> JsResult<JsValueStore> {
@@ -297,7 +297,7 @@ fn try_from_js_object_clone(
 
 pub(super) fn try_from_js_value(
     value: &JsValue,
-    transfer: &HashSet<JsObject>,
+    transfer: &FxHashSet<JsObject>,
     seen: &mut SeenMap,
     context: &mut Context,
 ) -> JsResult<JsValueStore> {

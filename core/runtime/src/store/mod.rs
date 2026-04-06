@@ -5,7 +5,7 @@ use boa_engine::builtins::error::ErrorKind;
 use boa_engine::builtins::typed_array::TypedArrayKind;
 use boa_engine::value::TryIntoJs;
 use boa_engine::{Context, JsError, JsResult, JsString, JsValue, JsVariant, js_error};
-use std::collections::HashSet;
+use rustc_hash::FxHashSet;
 use std::sync::Arc;
 
 mod from;
@@ -211,7 +211,7 @@ impl JsValueStore {
                 JsVariant::Object(o) if from::is_transferable(&o) => Ok(o),
                 _ => Err(unsupported_transfer()),
             })
-            .collect::<Result<HashSet<_>, _>>()?;
+            .collect::<Result<FxHashSet<_>, _>>()?;
 
         let v = from::try_from_js_value(value, &transfer, &mut seen, context)?;
         Ok(v)

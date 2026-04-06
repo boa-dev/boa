@@ -162,7 +162,7 @@ icu_collator = { workspace = true, default-features = false, features = [
 ], optional = true }
 icu_plurals = { workspace = true, default-features = false, features = [
     "serde",
-    "experimental",
+    "unstable",
 ], optional = true }
 icu_list = { workspace = true, default-features = false, features = [
     "serde",

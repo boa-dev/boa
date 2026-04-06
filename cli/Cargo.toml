@@ -26,7 +26,8 @@ dhat = { workspace = true, optional = true }
 color-eyre.workspace = true
 cow-utils.workspace = true
 futures-concurrency.workspace = true
-futures-lite.workspace = true
+smol.workspace = true
+unsend = { workspace = true, features = ["alloc"] }
 async-channel.workspace = true
 rustls.workspace = true
 
