@@ -1,16 +1,28 @@
 //! All methods for deserializing a [`JsValueStore`] into a [`JsValue`].
 use crate::store::{JsValueStore, StringStore, ValueStoreInner, unsupported_type};
 use boa_engine::builtins::array_buffer::{AlignedVec, SharedArrayBuffer};
+use boa_engine::builtins::error::ErrorKind;
 use boa_engine::builtins::typed_array::TypedArrayKind;
 use boa_engine::object::builtins::{
     JsArray, JsArrayBuffer, JsDataView, JsDate, JsMap, JsRegExp, JsSet, JsSharedArrayBuffer,
     js_typed_array_from_kind,
 };
-use boa_engine::{Context, JsBigInt, JsObject, JsResult, JsString, JsValue, js_error};
+use boa_engine::{
+    Context, JsBigInt, JsNativeError, JsObject, JsResult, JsString, JsValue, js_string,
+};
 use std::collections::HashMap;
 
 #[derive(Default)]
 pub(super) struct ReverseSeenMap(HashMap<usize, JsObject>);
+
+type ErrorStoreFields<'a> = (
+    &'a ErrorKind,
+    &'a StringStore,
+    &'a StringStore,
+    &'a StringStore,
+    &'a Option<JsValueStore>,
+    &'a [JsValueStore],
+);
 
 impl ReverseSeenMap {
     fn get(&self, object: &JsValueStore) -> Option<JsObject> {
@@ -150,6 +162,62 @@ fn try_into_js_date(
     Ok(JsValue::from(date))
 }
 
+fn try_into_js_error(
+    store: &JsValueStore,
+    error_data: ErrorStoreFields<'_>,
+    seen: &mut ReverseSeenMap,
+    context: &mut Context,
+) -> JsResult<JsValue> {
+    let (kind, name, message, stack, cause, errors) = error_data;
+    let message = message.to_js_string().to_std_string_escaped();
+    let native = match kind {
+        ErrorKind::Aggregate => JsNativeError::aggregate(Vec::new()),
+        ErrorKind::Eval => JsNativeError::eval(),
+        ErrorKind::Type => JsNativeError::typ(),
+        ErrorKind::Range => JsNativeError::range(),
+        ErrorKind::Reference => JsNativeError::reference(),
+        ErrorKind::Syntax => JsNativeError::syntax(),
+        ErrorKind::Uri => JsNativeError::uri(),
+        _ => JsNativeError::error(),
+    }
+    .with_message(message);
+
+    let error = native.into_opaque(context);
+    seen.insert(store, error.clone());
+
+    let name = name.to_js_string();
+    if !name.is_empty() {
+        error.set(js_string!("name"), name, true, context)?;
+    }
+
+    let stack = stack.to_js_string();
+    if !stack.is_empty() {
+        error.set(js_string!("stack"), stack, true, context)?;
+    }
+
+    if let Some(cause) = cause {
+        let cause = try_value_into_js(cause, seen, context)?;
+        error.set(js_string!("cause"), cause, true, context)?;
+    }
+
+    if !errors.is_empty() {
+        let errors_array = JsArray::new(context)?;
+        for (index, value) in errors.iter().enumerate() {
+            let value = try_value_into_js(value, seen, context)?;
+            errors_array.set(index, value, true, context)?;
+        }
+
+        error.set(
+            js_string!("errors"),
+            JsValue::from(errors_array),
+            true,
+            context,
+        )?;
+    }
+
+    Ok(JsValue::from(error))
+}
+
 fn try_into_regexp(
     store: &JsValueStore,
     source: &str,
@@ -207,7 +275,19 @@ pub(super) fn try_value_into_js(
         ValueStoreInner::Set(values) => try_into_js_set(store, values, seen, context),
         ValueStoreInner::Array(items) => try_items_into_js_array(store, items, seen, context),
         ValueStoreInner::Date(msec) => try_into_js_date(store, *msec, seen, context),
-        ValueStoreInner::Error { .. } => Err(js_error!("Not yet implemented.")),
+        ValueStoreInner::Error {
+            kind,
+            name,
+            message,
+            stack,
+            cause,
+            errors,
+        } => try_into_js_error(
+            store,
+            (kind, name, message, stack, cause, errors),
+            seen,
+            context,
+        ),
         ValueStoreInner::RegExp { source, flags } => {
             try_into_regexp(store, source, flags, seen, context)
         }

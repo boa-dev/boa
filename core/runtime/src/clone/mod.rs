@@ -7,6 +7,9 @@ use boa_engine::realm::Realm;
 use boa_engine::value::TryFromJs;
 use boa_engine::{Context, JsResult, JsValue, boa_module};
 
+#[cfg(test)]
+mod tests;
+
 /// Options used by `structuredClone`. This is currently unused.
 #[derive(Debug, Clone, TryFromJs)]
 pub struct StructuredCloneOptions {

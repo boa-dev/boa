@@ -96,13 +96,13 @@ enum ValueStoreInner {
     Date(f64),
 
     /// Allowed error types (see the structured clone algorithm page).
-    #[expect(unused)]
     Error {
         kind: ErrorKind,
         name: StringStore,
         message: StringStore,
         stack: StringStore,
-        cause: StringStore,
+        cause: Option<JsValueStore>,
+        errors: Vec<JsValueStore>,
     },
 
     /// Regular expression. We store the expression and its flags. Everything else
