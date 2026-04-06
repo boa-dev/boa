@@ -25,6 +25,9 @@ fn basic_disposal() {
         ",
     ));
 
+    if let Err(ref e) = result {
+        eprintln!("Error: {e:?}");
+    }
     assert!(result.is_ok());
     let value = result.unwrap();
     assert_eq!(value, JsValue::from(true));
@@ -99,7 +102,6 @@ fn disposal_with_no_method() {
 }
 
 #[test]
-#[ignore = "Disposal on exception requires try-finally integration - will be implemented in next phase"]
 fn disposal_on_exception() {
     let mut context = Context::default();
 
@@ -185,4 +187,80 @@ fn multiple_resources_in_one_declaration() {
     let value = result.unwrap();
     // Should dispose in reverse order: b, then a
     assert_eq!(value.to_string(&mut context).unwrap(), "b,a");
+}
+
+#[test]
+fn disposal_on_return() {
+    let mut context = Context::default();
+
+    let result = context.eval(Source::from_bytes(
+        r"
+        let disposed = false;
+        function test() {
+            using x = {
+                [Symbol.dispose]() {
+                    disposed = true;
+                }
+            };
+            return 'early';
+        }
+        test();
+        // Return the disposed flag
+        disposed;
+        ",
+    ));
+
+    assert!(result.is_ok());
+    let value = result.unwrap();
+    assert_eq!(value, JsValue::from(true));
+}
+
+#[test]
+fn disposal_on_break() {
+    let mut context = Context::default();
+
+    let result = context.eval(Source::from_bytes(
+        r"
+        let disposed = false;
+        while (true) {
+            using x = {
+                [Symbol.dispose]() {
+                    disposed = true;
+                }
+            };
+            break;
+        }
+        disposed;
+        ",
+    ));
+
+    assert!(result.is_ok());
+    let value = result.unwrap();
+    assert_eq!(value, JsValue::from(true));
+}
+
+#[test]
+fn disposal_on_continue() {
+    let mut context = Context::default();
+
+    let result = context.eval(Source::from_bytes(
+        r"
+        let disposed = false;
+        let count = 0;
+        while (count < 2) {
+            count++;
+            using x = {
+                [Symbol.dispose]() {
+                    disposed = true;
+                }
+            };
+            continue;
+        }
+        disposed;
+        ",
+    ));
+
+    assert!(result.is_ok());
+    let value = result.unwrap();
+    assert_eq!(value, JsValue::from(true));
 }
