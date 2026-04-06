@@ -483,7 +483,9 @@ mod tests {
     fn new_with_description() {
         let sym = JsSymbol::new(Some(crate::js_string!("foo"))).unwrap();
         assert_eq!(
-            sym.description().as_ref().map(|s| s.to_std_string_escaped()),
+            sym.description()
+                .as_ref()
+                .map(|s| s.to_std_string_escaped()),
             Some(String::from("foo"))
         );
     }
@@ -515,7 +517,10 @@ mod tests {
     #[test]
     fn descriptive_string_with_description() {
         let sym = JsSymbol::new(Some(crate::js_string!("foo"))).unwrap();
-        assert_eq!(sym.descriptive_string().to_std_string_escaped(), "Symbol(foo)");
+        assert_eq!(
+            sym.descriptive_string().to_std_string_escaped(),
+            "Symbol(foo)"
+        );
     }
 
     #[test]
@@ -529,7 +534,10 @@ mod tests {
         let cases = [
             (JsSymbol::async_iterator(), "Symbol.asyncIterator"),
             (JsSymbol::has_instance(), "Symbol.hasInstance"),
-            (JsSymbol::is_concat_spreadable(), "Symbol.isConcatSpreadable"),
+            (
+                JsSymbol::is_concat_spreadable(),
+                "Symbol.isConcatSpreadable",
+            ),
             (JsSymbol::iterator(), "Symbol.iterator"),
             (JsSymbol::r#match(), "Symbol.match"),
             (JsSymbol::match_all(), "Symbol.matchAll"),
@@ -613,8 +621,8 @@ mod tests {
 
     #[test]
     fn hash_consistency() {
-        use std::hash::{Hash, Hasher};
         use std::collections::hash_map::DefaultHasher;
+        use std::hash::{Hash, Hasher};
 
         let sym = JsSymbol::new(Some(crate::js_string!("hashme"))).unwrap();
         let cloned = sym.clone();
@@ -627,7 +635,9 @@ mod tests {
         Hash::hash(&cloned, &mut hasher2);
         let hash2 = hasher2.finish();
 
-        assert_eq!(hash1, hash2, "Hash trait should produce consistent results for equal symbols");
+        assert_eq!(
+            hash1, hash2,
+            "Hash trait should produce consistent results for equal symbols"
+        );
     }
 }
-

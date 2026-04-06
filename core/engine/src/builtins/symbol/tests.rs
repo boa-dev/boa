@@ -54,9 +54,7 @@ fn symbol_for_and_key_for() {
 
     let handle = thread::spawn(|| {
         let mut context = Context::default();
-        let result = context.eval(crate::Source::from_bytes(
-            r#"Symbol.for("cross_thread")"#,
-        ));
+        let result = context.eval(crate::Source::from_bytes(r#"Symbol.for("cross_thread")"#));
         result
             .unwrap()
             .as_symbol()
@@ -67,9 +65,7 @@ fn symbol_for_and_key_for() {
     let sym_from_thread = handle.join().expect("thread panicked");
 
     let mut context = Context::default();
-    let result = context.eval(crate::Source::from_bytes(
-        r#"Symbol.for("cross_thread")"#,
-    ));
+    let result = context.eval(crate::Source::from_bytes(r#"Symbol.for("cross_thread")"#));
     let sym_from_main = result
         .unwrap()
         .as_symbol()
@@ -142,4 +138,3 @@ fn well_known_symbols_exist() {
         TestAction::assert_eq("typeof Symbol.unscopables", js_str!("symbol")),
     ]);
 }
-
