@@ -21,7 +21,7 @@ use self::consts::{
 
 use super::{BuiltInBuilder, BuiltInObject, IntrinsicObject};
 use crate::{
-    Context, JsArgs, JsNativeError, JsResult, JsString, JsValue,
+    Context, JsArgs, JsExpect, JsNativeError, JsResult, JsString, JsValue,
     context::intrinsics::Intrinsics,
     js_string,
     object::{JsFunction, JsObject},
@@ -297,7 +297,7 @@ where
     let str_len = string.len();
 
     // 2. Let R be the empty String.
-    let mut r = Vec::new();
+    let mut r = Vec::with_capacity(str_len);
 
     // 3. Let k be 0.
     let mut k = 0;
@@ -309,7 +309,7 @@ where
         }
 
         // b. Let C be the code unit at index k within string.
-        let c = string.code_unit_at(k).expect("Bounds were verified");
+        let c = string.code_unit_at(k).js_expect("Bounds were verified")?;
 
         // c. If C is in unescapedSet, then
         if unescaped_set(c) {
@@ -370,7 +370,7 @@ where
     // 1. Let strLen be the length of string.
     let str_len = string.len();
     // 2. Let R be the empty String.
-    let mut r = Vec::new();
+    let mut r = Vec::with_capacity(str_len);
 
     let mut octets = Vec::with_capacity(4);
 
@@ -379,12 +379,10 @@ where
     // 4. Repeat,
     loop {
         // a. If k = strLen, return R.
-        if k == str_len {
-            return Ok(js_string!(&r[..]));
-        }
-
         // b. Let C be the code unit at index k within string.
-        let c = string.code_point_at(k).as_u32() as u16;
+        let Some(c) = string.code_unit_at(k) else {
+            return Ok(js_string!(&r[..]));
+        };
 
         // c. If C is not the code unit 0x0025 (PERCENT SIGN), then
         #[allow(clippy::if_not_else)]
@@ -587,6 +585,20 @@ mod tests {
         let s = js_string!("%E7%9A%8");
         let err = decode(&s, |_| false).expect_err("should error on incomplete escape");
         let native = err.as_native().expect("error should be native");
-        assert!(matches!(native.kind, JsNativeErrorKind::Uri));
+        assert!(matches!(native.kind(), JsNativeErrorKind::Uri));
+    }
+
+    #[test]
+    fn decode_preserves_non_bmp_characters() {
+        let s = js_string!("\u{1F600}");
+        let decoded = decode(&s, |_| false).expect("decode should succeed");
+        assert_eq!(decoded, s);
+    }
+
+    #[test]
+    fn decode_preserves_non_bmp_characters_for_decode_uri_set() {
+        let s = js_string!("\u{1F600}");
+        let decoded = decode(&s, is_uri_reserved_or_number_sign).expect("decode should succeed");
+        assert_eq!(decoded, s);
     }
 }

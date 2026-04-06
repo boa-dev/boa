@@ -168,6 +168,10 @@ pub struct CodeBlock {
 
     // Used for identifying anonymous functions in compiled output and call frames.
     pub(crate) debug_id: u64,
+
+    #[cfg(feature = "trace")]
+    #[unsafe_ignore_trace]
+    pub(crate) traced: Cell<bool>,
 }
 
 /// ---- `CodeBlock` public API ----
@@ -198,6 +202,8 @@ impl CodeBlock {
             global_fns: Box::default(),
             global_vars: Box::default(),
             debug_id: CodeBlock::get_next_codeblock_id(),
+            #[cfg(feature = "trace")]
+            traced: Cell::new(false),
         }
     }
 
@@ -373,15 +379,15 @@ impl CodeBlock {
         match instruction {
             Instruction::SetRegisterFromAccumulator { dst }
             | Instruction::PopIntoRegister { dst }
-            | Instruction::PushZero { dst }
-            | Instruction::PushOne { dst }
-            | Instruction::PushNan { dst }
-            | Instruction::PushPositiveInfinity { dst }
-            | Instruction::PushNegativeInfinity { dst }
-            | Instruction::PushNull { dst }
-            | Instruction::PushTrue { dst }
-            | Instruction::PushFalse { dst }
-            | Instruction::PushUndefined { dst }
+            | Instruction::StoreZero { dst }
+            | Instruction::StoreOne { dst }
+            | Instruction::StoreNan { dst }
+            | Instruction::StorePositiveInfinity { dst }
+            | Instruction::StoreNegativeInfinity { dst }
+            | Instruction::StoreNull { dst }
+            | Instruction::StoreTrue { dst }
+            | Instruction::StoreFalse { dst }
+            | Instruction::StoreUndefined { dst }
             | Instruction::Exception { dst }
             | Instruction::This { dst }
             | Instruction::NewTarget { dst }
@@ -389,7 +395,7 @@ impl CodeBlock {
             | Instruction::CreateMappedArgumentsObject { dst }
             | Instruction::CreateUnmappedArgumentsObject { dst }
             | Instruction::RestParameterInit { dst }
-            | Instruction::PushNewArray { dst } => format!("dst:{dst}"),
+            | Instruction::StoreNewArray { dst } => format!("dst:{dst}"),
             Instruction::Add { lhs, rhs, dst }
             | Instruction::Sub { lhs, rhs, dst }
             | Instruction::Div { lhs, rhs, dst }
@@ -438,22 +444,22 @@ impl CodeBlock {
                     }
                 )
             }
-            Instruction::PushInt8 { value, dst } => {
+            Instruction::StoreInt8 { value, dst } => {
                 format!("value:{value}, dst:{dst}")
             }
-            Instruction::PushInt16 { value, dst } => {
+            Instruction::StoreInt16 { value, dst } => {
                 format!("value:{value}, dst:{dst}")
             }
-            Instruction::PushInt32 { value, dst } => {
+            Instruction::StoreInt32 { value, dst } => {
                 format!("value:{value}, dst:{dst}")
             }
-            Instruction::PushFloat { value, dst } => {
+            Instruction::StoreFloat { value, dst } => {
                 format!("value:{value}, dst:{dst}")
             }
-            Instruction::PushDouble { value, dst } => {
+            Instruction::StoreDouble { value, dst } => {
                 format!("value:{value}, dst:{dst}")
             }
-            Instruction::PushLiteral { index, dst }
+            Instruction::StoreLiteral { index, dst }
             | Instruction::ThisForObjectEnvironmentName { index, dst }
             | Instruction::GetFunction { index, dst }
             | Instruction::GetArgument { index, dst } => {
@@ -461,7 +467,7 @@ impl CodeBlock {
             }
             Instruction::ThrowNewTypeError { message }
             | Instruction::ThrowNewReferenceError { message } => format!("message:{message}"),
-            Instruction::PushRegexp {
+            Instruction::StoreRegexp {
                 pattern_index,
                 flags_index,
                 dst,
@@ -715,7 +721,7 @@ impl CodeBlock {
             Instruction::CreateIteratorResult { value, done } => {
                 format!("value:{value}, done:{done}")
             }
-            Instruction::PushClassPrototype {
+            Instruction::StoreClassPrototype {
                 dst,
                 class,
                 superclass,
@@ -757,8 +763,18 @@ impl CodeBlock {
             | Instruction::BitNot { value } => {
                 format!("value:{value}")
             }
-            Instruction::ImportCall { specifier, options } => {
-                format!("specifier:{specifier}, options:{options}")
+            Instruction::ImportCall {
+                specifier,
+                options,
+                phase,
+            } => {
+                let phase_str = match u32::from(*phase) {
+                    0 => "evaluation",
+                    1 => "defer",
+                    2 => "source",
+                    _ => "unknown",
+                };
+                format!("specifier:{specifier}, options:{options}, phase:{phase_str}")
             }
             Instruction::PushClassField {
                 object,
@@ -802,7 +818,7 @@ impl CodeBlock {
             | Instruction::IteratorResult { dst }
             | Instruction::IteratorToArray { dst }
             | Instruction::IteratorStackEmpty { dst }
-            | Instruction::PushEmptyObject { dst } => {
+            | Instruction::StoreEmptyObject { dst } => {
                 format!("dst:{dst}")
             }
             Instruction::IteratorFinishAsyncNext { resume_kind, value } => {
@@ -1090,7 +1106,7 @@ pub(crate) fn create_function_object(
     let is_generator = code.is_generator();
     let function = OrdinaryFunction::new(
         code,
-        context.vm.frame().environments.clone(),
+        context.vm.frame().environments.snapshot_for_closure(),
         script_or_module,
         context.realm().clone(),
     );
@@ -1159,7 +1175,7 @@ pub(crate) fn create_function_object_fast(code: Gc<CodeBlock>, context: &mut Con
     let has_prototype_property = code.has_prototype_property();
     let function = OrdinaryFunction::new(
         code,
-        context.vm.frame().environments.clone(),
+        context.vm.frame().environments.snapshot_for_closure(),
         script_or_module,
         context.realm().clone(),
     );

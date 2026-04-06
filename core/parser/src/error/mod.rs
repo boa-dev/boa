@@ -16,7 +16,6 @@ pub(crate) trait ErrorContext {
     fn set_context(self, context: &'static str) -> Self;
 
     /// Gets the context of the error, if any.
-    #[allow(dead_code)]
     fn context(&self) -> Option<&'static str>;
 }
 
@@ -26,7 +25,29 @@ impl<T> ErrorContext for ParseResult<T> {
     }
 
     fn context(&self) -> Option<&'static str> {
-        self.as_ref().err().and_then(Error::context)
+        self.as_ref().err().and_then(ErrorContext::context)
+    }
+}
+
+impl ErrorContext for Error {
+    fn set_context(self, new_context: &'static str) -> Self {
+        match self {
+            Self::Expected {
+                expected,
+                found,
+                span,
+                ..
+            } => Self::expected(expected, found, span, new_context),
+            e => e,
+        }
+    }
+
+    fn context(&self) -> Option<&'static str> {
+        if let Self::Expected { context, .. } = self {
+            Some(context)
+        } else {
+            None
+        }
     }
 }
 
@@ -93,29 +114,6 @@ pub enum Error {
 }
 
 impl Error {
-    /// Changes the context of the error, if any.
-    fn set_context(self, new_context: &'static str) -> Self {
-        match self {
-            Self::Expected {
-                expected,
-                found,
-                span,
-                ..
-            } => Self::expected(expected, found, span, new_context),
-            e => e,
-        }
-    }
-
-    /// Gets the context of the error, if any.
-    #[allow(unused)] // TODO: context method is unused, candidate for removal?
-    const fn context(&self) -> Option<&'static str> {
-        if let Self::Expected { context, .. } = self {
-            Some(context)
-        } else {
-            None
-        }
-    }
-
     /// Creates an `Expected` parsing error.
     pub(crate) fn expected<E, F>(expected: E, found: F, span: Span, context: &'static str) -> Self
     where
@@ -197,7 +195,7 @@ impl fmt::Display for Error {
                 expected,
                 found,
                 span,
-                context,
+                ..
             } => {
                 write!(f, "expected ")?;
                 match &**expected {
@@ -216,12 +214,21 @@ impl fmt::Display for Error {
                         }
                     }
                 }
-                write!(
-                    f,
-                    ", got '{found}' in {context} at line {}, col {}",
-                    span.start().line_number(),
-                    span.start().column_number()
-                )
+                if let Some(context) = self.context() {
+                    write!(
+                        f,
+                        ", got '{found}' in {context} at line {}, col {}",
+                        span.start().line_number(),
+                        span.start().column_number()
+                    )
+                } else {
+                    write!(
+                        f,
+                        ", got '{found}' at line {}, col {}",
+                        span.start().line_number(),
+                        span.start().column_number()
+                    )
+                }
             }
             Self::Unexpected {
                 found,

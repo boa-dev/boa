@@ -519,15 +519,14 @@ where
     });
 }
 
-impl<T: Trace> Finalize for Cell<Option<T>> {}
-// SAFETY: Taking and setting is done in a single action, and recursive traces should find a `None`
+impl<T: Trace + Default> Finalize for Cell<T> {}
+// SAFETY: Taking and setting is done in a single action, and recursive traces should find a default
 // value instead of the original `T`, making this safe.
-unsafe impl<T: Trace> Trace for Cell<Option<T>> {
+unsafe impl<T: Trace + Default> Trace for Cell<T> {
     custom_trace!(this, mark, {
-        if let Some(v) = this.take() {
-            mark(&v);
-            this.set(Some(v));
-        }
+        let v = this.take();
+        mark(&v);
+        this.set(v);
     });
 }
 

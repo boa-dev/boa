@@ -68,7 +68,7 @@ where
         if let Some(tok) = cursor.peek(0, interner)?
             && tok.kind() == &TokenKind::Punctuator(Punctuator::Question)
         {
-            let lhs = lhs.expect_expression();
+            let lhs = lhs.try_into_expression()?;
 
             cursor.advance(interner);
             let then_clause = AssignmentExpression::new(true, self.allow_yield, self.allow_await)

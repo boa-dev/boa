@@ -13,16 +13,14 @@ use crate::{
     realm::Realm,
     script::Script,
     vm::opcode::{OPCODE_HANDLERS, OPCODE_HANDLERS_BUDGET},
+    vm::shadow_stack::ErrorStack,
 };
 use boa_gc::{Finalize, Gc, Trace, custom_trace};
 use shadow_stack::ShadowStack;
-use std::{future::Future, ops::ControlFlow, pin::Pin, task};
+use std::{future::Future, ops::ControlFlow, path::Path, pin::Pin, task};
 
 #[cfg(feature = "trace")]
 use crate::sys::time::Instant;
-
-#[cfg(feature = "trace")]
-use std::fmt::Write as _;
 
 #[allow(unused_imports)]
 pub(crate) use opcode::{Instruction, InstructionIterator, Opcode};
@@ -100,6 +98,8 @@ pub struct Vm {
 
     #[cfg(feature = "trace")]
     pub(crate) trace: bool,
+    #[cfg(feature = "trace")]
+    pub(crate) current_frame: Option<*const CallFrame>,
 }
 
 /// The stack holds the [`JsValue`]s for the calling convention and registers.
@@ -275,34 +275,110 @@ impl Stack {
     }
 
     #[cfg(feature = "trace")]
-    /// Display the stack trace of the current frame.
+    const MAX_VALUE_LEN: usize = 18;
+    #[cfg(feature = "trace")]
+    const MAX_STACK_WIDTH: usize = 68;
+
+    #[cfg(feature = "trace")]
+    fn raw_value(value: &JsValue) -> String {
+        match value {
+            v if v.is_callable() => "func".to_string(),
+            v if v.is_object() => "obj".to_string(),
+            v if v.is_undefined() => "und".to_string(),
+            v if v.is_null() => "null".to_string(),
+            v => v.display().to_string(),
+        }
+    }
+
+    #[cfg(feature = "trace")]
+    fn truncate_display(val: &str) -> String {
+        if val.len() <= Self::MAX_VALUE_LEN {
+            return val.to_string();
+        }
+        let mut end = Self::MAX_VALUE_LEN - 2;
+        while !val.is_char_boundary(end) && end > 0 {
+            end -= 1;
+        }
+        format!("{}..", &val[..end])
+    }
+
+    #[cfg(feature = "trace")]
     fn display_trace(&self, frame: &CallFrame, frame_count: usize) -> String {
-        let mut string = String::from("[ ");
-        for (i, (j, value)) in self.stack.iter().enumerate().rev().enumerate() {
-            match value {
-                value if value.is_callable() => string.push_str("[function]"),
-                value if value.is_object() => string.push_str("[object]"),
-                value => string.push_str(&value.display().to_string()),
-            }
-
-            if frame.frame_pointer() == j {
-                let _ = write!(string, " |{frame_count}|");
-            } else if i + 1 != self.stack.len() {
-                string.push(',');
-            }
-
-            string.push(' ');
+        let total = self.stack.len();
+        if total == 0 {
+            return "[ <empty> ]".to_string();
         }
 
-        string.push(']');
+        let mut groups: Vec<(String, usize, Option<usize>)> = Vec::new();
+        let mut force_truncate = false;
+
+        // Lazily group values to avoid eagerly evaluating `raw_value` for the entire stack.
+        for (idx, v) in self.stack.iter().enumerate().rev() {
+            let is_frame = frame.frame_pointer() == idx;
+            let raw = Self::raw_value(v);
+
+            if !is_frame
+                && let Some(last) = groups.last_mut()
+                && last.0 == raw
+                && last.2.is_none()
+            {
+                last.1 += 1;
+            } else {
+                let marker = if is_frame { Some(frame_count) } else { None };
+                groups.push((raw, 1, marker));
+
+                // If groups is large enough to mathematically guarantee overflowing the display width,
+                // we can stop evaluating to save instruction budget / time.
+                if groups.len() > Self::MAX_STACK_WIDTH / 2 {
+                    force_truncate = true;
+                    break;
+                }
+            }
+        }
+
+        let mut string = String::from("[ ");
+        let mut truncated = force_truncate;
+        let suffix = format!(".. ({total} total) ]");
+
+        for (i, (val, count, marker)) in groups.iter().enumerate() {
+            let display_val = Self::truncate_display(val);
+            let part = if *count > 1 {
+                format!("{display_val} (x{count})")
+            } else {
+                display_val
+            };
+
+            let separator = if let Some(fc) = marker {
+                format!(" |{fc}|")
+            } else if i + 1 < groups.len() {
+                ",".to_string()
+            } else {
+                String::new()
+            };
+
+            let addition = format!("{part}{separator} ");
+            if string.len() + addition.len() + suffix.len() > Self::MAX_STACK_WIDTH {
+                truncated = true;
+                break;
+            }
+            string.push_str(&addition);
+        }
+
+        if truncated {
+            string.push_str(&suffix);
+        } else {
+            string.push(']');
+        }
         string
     }
 }
 
 /// Active runnable in the current vm context.
 #[derive(Debug, Clone, Finalize)]
-pub(crate) enum ActiveRunnable {
+pub enum ActiveRunnable {
+    /// A [**Script Record**](https://tc39.es/ecma262/#sec-script-records)
     Script(Script),
+    /// A [**Source Text Module Record**](https://tc39.es/ecma262/#sec-source-text-module-records).
     Module(Module),
 }
 
@@ -315,6 +391,17 @@ unsafe impl Trace for ActiveRunnable {
     });
 }
 
+impl ActiveRunnable {
+    /// Gets the path of the runnable, if it has one.
+    #[must_use]
+    pub fn path(&self) -> Option<&Path> {
+        match self {
+            Self::Script(script) => script.path(),
+            Self::Module(module) => module.path(),
+        }
+    }
+}
+
 impl Vm {
     /// Creates a new virtual machine.
     pub(crate) fn new(realm: Realm) -> Self {
@@ -322,7 +409,7 @@ impl Vm {
         frames.push(CallFrame::new(
             Gc::new(CodeBlock::new(JsString::default(), 0, true)),
             None,
-            EnvironmentStack::new(realm.environment().clone()),
+            EnvironmentStack::new(),
             realm,
         ));
         Self {
@@ -336,6 +423,8 @@ impl Vm {
             shadow_stack: ShadowStack::default(),
             #[cfg(feature = "trace")]
             trace: false,
+            #[cfg(feature = "trace")]
+            current_frame: None,
         }
     }
 
@@ -608,7 +697,11 @@ impl Context {
             )
         };
 
-        println!("{}", frame.code_block);
+        // Only print a functions compiled output if it has not been printed already
+        if !frame.code_block.traced.get() {
+            println!("{}", frame.code_block);
+            frame.code_block.traced.set(true);
+        }
         println!(
             "{msg:-^width$}",
             width = Self::COLUMN_WIDTH * Self::NUMBER_OF_COLUMNS - 10
@@ -632,6 +725,11 @@ impl Context {
     where
         F: FnOnce(&mut Context, Opcode) -> ControlFlow<CompletionRecord>,
     {
+        if self.vm.current_frame != Some(self.vm.frame()) {
+            println!();
+            self.trace_call_frame();
+            self.vm.current_frame = Some(self.vm.frame());
+        }
         let frame = self.vm.frame();
         let (instruction, _) = frame
             .code_block
@@ -642,22 +740,6 @@ impl Context {
             .frame()
             .code_block()
             .instruction_operands(&instruction);
-
-        match opcode {
-            Opcode::Call
-            | Opcode::CallSpread
-            | Opcode::CallEval
-            | Opcode::CallEvalSpread
-            | Opcode::New
-            | Opcode::NewSpread
-            | Opcode::Return
-            | Opcode::SuperCall
-            | Opcode::SuperCallSpread
-            | Opcode::SuperCallDerived => {
-                println!();
-            }
-            _ => {}
-        }
 
         let instant = Instant::now();
         let result = self.execute_instruction(f, opcode);
@@ -751,6 +833,17 @@ impl Context {
             return ControlFlow::Break(CompletionRecord::Throw(err));
         }
 
+        if let Some(native) = err.as_native_mut()
+            && let ErrorStack::Position(position) = &mut native.stack.0
+        {
+            let backtrace = self.vm.shadow_stack.take_and_push(
+                self.vm.runtime_limits.backtrace_limit(),
+                self.vm.frame().pc,
+                position.clone(),
+            );
+            native.stack.0 = ErrorStack::Backtrace(backtrace);
+        }
+
         // Note: -1 because we increment after fetching the opcode.
         let pc = self.vm.frame().pc.saturating_sub(1);
         if self.vm.handle_exception_at(pc) {
@@ -772,7 +865,7 @@ impl Context {
 
         let result = self.vm.take_return_value();
         if exit_early {
-            return ControlFlow::Break(CompletionRecord::Normal(result));
+            return ControlFlow::Break(CompletionRecord::Return(result));
         }
 
         self.vm.stack.push(result);
@@ -783,7 +876,7 @@ impl Context {
     fn handle_yield(&mut self) -> ControlFlow<CompletionRecord> {
         let result = self.vm.take_return_value();
         if self.vm.frame().exit_early() {
-            return ControlFlow::Break(CompletionRecord::Return(result));
+            return ControlFlow::Break(CompletionRecord::Normal(result));
         }
 
         self.vm.stack.push(result);
@@ -855,11 +948,6 @@ impl Context {
     /// "clock cycles" have passed.
     #[allow(clippy::future_not_send)]
     pub(crate) async fn run_async_with_budget(&mut self, budget: u32) -> CompletionRecord {
-        #[cfg(feature = "trace")]
-        if self.vm.trace {
-            self.trace_call_frame();
-        }
-
         let mut runtime_budget: u32 = budget;
 
         while let Some(byte) = self
@@ -895,11 +983,6 @@ impl Context {
     }
 
     pub(crate) fn run(&mut self) -> CompletionRecord {
-        #[cfg(feature = "trace")]
-        if self.vm.trace {
-            self.trace_call_frame();
-        }
-
         while let Some(byte) = self
             .vm
             .frame()

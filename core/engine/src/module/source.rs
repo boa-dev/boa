@@ -26,8 +26,8 @@ use indexmap::IndexSet;
 use rustc_hash::{FxHashMap, FxHashSet, FxHasher};
 
 use crate::{
-    Context, JsArgs, JsError, JsNativeError, JsObject, JsResult, JsString, JsValue, NativeFunction,
-    SpannedSourceText,
+    Context, JsArgs, JsError, JsExpect, JsNativeError, JsObject, JsResult, JsString, JsValue,
+    NativeFunction, SpannedSourceText,
     builtins::{Promise, promise::PromiseCapability},
     bytecompiler::{BindingAccessOpcode, ByteCompiler, FunctionSpec, ToJsString},
     environments::{DeclarativeEnvironment, EnvironmentStack},
@@ -47,53 +47,50 @@ use super::{
     SourceText,
 };
 
-/// Information for the [**Depth-first search**] algorithm used in the
-/// [`Module::link`] and [`Module::evaluate`] methods.
-#[derive(Clone, Copy, Debug, Trace, Finalize)]
-#[boa_gc(empty_trace)]
-pub(super) struct DfsInfo {
-    dfs_index: usize,
-    dfs_ancestor_index: usize,
-}
-
 /// Current status of a [`SourceTextModule`].
 ///
 /// Roughly corresponds to the `[[Status]]` field of [**Cyclic Module Records**][cyclic],
 /// but with a state machine-like design for better correctness.
 ///
 /// [cyclic]: https://tc39.es/ecma262/#table-cyclic-module-fields
-#[derive(Debug, Trace, Finalize, Default)]
+#[derive(Debug, Trace, Finalize)]
 #[boa_gc(unsafe_no_drop)]
 enum ModuleStatus {
-    #[default]
-    Unlinked,
+    Unlinked {
+        #[unsafe_ignore_trace]
+        source: boa_ast::Module,
+        source_text: SourceText,
+    },
     Linking {
-        info: DfsInfo,
+        #[unsafe_ignore_trace]
+        source: boa_ast::Module,
+        source_text: SourceText,
+        ancestor_index: usize,
     },
     PreLinked {
         environment: Gc<DeclarativeEnvironment>,
         context: SourceTextContext,
-        info: DfsInfo,
+        ancestor_index: usize,
     },
     Linked {
         environment: Gc<DeclarativeEnvironment>,
         context: SourceTextContext,
-        info: DfsInfo,
+        ancestor_index: usize,
     },
     Evaluating {
         environment: Gc<DeclarativeEnvironment>,
         context: SourceTextContext,
         top_level_capability: Option<PromiseCapability>,
         cycle_root: Module,
-        info: DfsInfo,
-        async_eval_index: Option<usize>,
+        ancestor_index: usize,
+        async_evaluation_order: Option<usize>,
     },
     EvaluatingAsync {
         environment: Gc<DeclarativeEnvironment>,
         context: SourceTextContext,
         top_level_capability: Option<PromiseCapability>,
         cycle_root: Module,
-        async_eval_index: usize,
+        async_evaluation_order: usize,
         pending_async_dependencies: usize,
     },
     Evaluated {
@@ -111,30 +108,49 @@ impl ModuleStatus {
     where
         F: FnOnce(Self) -> Self,
     {
-        *self = f(std::mem::take(self));
+        *self = f(std::mem::replace(
+            self,
+            ModuleStatus::Unlinked {
+                source: boa_ast::Module::default(),
+                source_text: SourceText::default(),
+            },
+        ));
     }
 
-    /// Gets the current index info of the module within the dependency graph, or `None` if the
+    /// Gets the ancestor index of the current module within the dependency graph, or `None` if the
     /// module is not in a state executing the dfs algorithm.
-    const fn dfs_info(&self) -> Option<&DfsInfo> {
-        match self {
-            Self::Unlinked | Self::EvaluatingAsync { .. } | Self::Evaluated { .. } => None,
-            Self::Linking { info }
-            | Self::PreLinked { info, .. }
-            | Self::Linked { info, .. }
-            | Self::Evaluating { info, .. } => Some(info),
+    const fn ancestor_index(&self) -> Option<usize> {
+        match *self {
+            Self::Unlinked { .. } | Self::EvaluatingAsync { .. } | Self::Evaluated { .. } => None,
+            Self::Linking { ancestor_index, .. }
+            | Self::PreLinked { ancestor_index, .. }
+            | Self::Linked { ancestor_index, .. }
+            | Self::Evaluating { ancestor_index, .. } => Some(ancestor_index),
         }
     }
 
-    /// Gets a mutable reference to the current index info of the module within the dependency graph,
-    /// or `None` if the module is not in a state executing the dfs algorithm.
-    fn dfs_info_mut(&mut self) -> Option<&mut DfsInfo> {
+    /// Gets a mutable reference to the current ancestor index of the module
+    /// within the dependency graph, or `None` if the module is not in a state
+    /// executing the dfs algorithm.
+    fn ancestor_index_mut(&mut self) -> Option<&mut usize> {
         match self {
-            Self::Unlinked | Self::EvaluatingAsync { .. } | Self::Evaluated { .. } => None,
-            Self::Linking { info }
-            | Self::PreLinked { info, .. }
-            | Self::Linked { info, .. }
-            | Self::Evaluating { info, .. } => Some(info),
+            Self::Unlinked { .. } | Self::EvaluatingAsync { .. } | Self::Evaluated { .. } => None,
+            Self::Linking {
+                ancestor_index: info,
+                ..
+            }
+            | Self::PreLinked {
+                ancestor_index: info,
+                ..
+            }
+            | Self::Linked {
+                ancestor_index: info,
+                ..
+            }
+            | Self::Evaluating {
+                ancestor_index: info,
+                ..
+            } => Some(info),
         }
     }
 
@@ -142,7 +158,7 @@ impl ModuleStatus {
     /// level capability.
     const fn top_level_capability(&self) -> Option<&PromiseCapability> {
         match &self {
-            Self::Unlinked
+            Self::Unlinked { .. }
             | Self::Linking { .. }
             | Self::PreLinked { .. }
             | Self::Linked { .. } => None,
@@ -182,12 +198,28 @@ impl ModuleStatus {
     /// Gets the declarative environment from the module status.
     fn environment(&self) -> Option<Gc<DeclarativeEnvironment>> {
         match self {
-            ModuleStatus::Unlinked | ModuleStatus::Linking { .. } => None,
+            ModuleStatus::Unlinked { .. } | ModuleStatus::Linking { .. } => None,
             ModuleStatus::PreLinked { environment, .. }
             | ModuleStatus::Linked { environment, .. }
             | ModuleStatus::Evaluating { environment, .. }
             | ModuleStatus::EvaluatingAsync { environment, .. }
             | ModuleStatus::Evaluated { environment, .. } => Some(environment.clone()),
+        }
+    }
+
+    /// If this module is in the unlinked or linking states, gets its source.
+    fn source(&self) -> Option<(&boa_ast::Module, &SourceText)> {
+        match self {
+            ModuleStatus::Unlinked {
+                source,
+                source_text,
+            }
+            | ModuleStatus::Linking {
+                source,
+                source_text,
+                ..
+            } => Some((source, source_text)),
+            _ => None,
         }
     }
 }
@@ -242,8 +274,6 @@ impl std::fmt::Debug for SourceTextModule {
 struct ModuleCode {
     has_tla: bool,
     requested_modules: IndexSet<super::ModuleRequest, BuildHasherDefault<FxHasher>>,
-    source: RefCell<Option<boa_ast::Module>>,
-    source_text: RefCell<Option<SourceText>>,
     path: Option<PathBuf>,
     import_entries: Vec<ImportEntry>,
     local_export_entries: Vec<LocalExportEntry>,
@@ -307,7 +337,7 @@ impl SourceTextModule {
     ///
     /// [parse]: https://tc39.es/ecma262/#sec-parsemodule
     pub(super) fn new(
-        code: boa_ast::Module,
+        source: boa_ast::Module,
         interner: &Interner,
         source_text: SourceText,
         path: Option<PathBuf>,
@@ -320,11 +350,11 @@ impl SourceTextModule {
                 interner,
                 requests: IndexSet::default(),
             };
-            let _ = visitor.visit_module(&code);
+            let _ = visitor.visit_module(&source);
             visitor.requests
         };
         // 4. Let importEntries be ImportEntries of body.
-        let import_entries = code.items().import_entries();
+        let import_entries = source.items().import_entries();
 
         // 5. Let importedBoundNames be ImportedLocalNames(importEntries).
         // Can be ignored because this is just a simple `Iter::map`
@@ -337,38 +367,67 @@ impl SourceTextModule {
         let mut star_export_entries = Vec::new();
 
         // 10. For each ExportEntry Record ee of exportEntries, do
-        for ee in code.items().export_entries() {
+        for ee in source.items().export_entries() {
+            // a. If ee.[[ModuleRequest]] is null, then
             match ee {
-                // a. If ee.[[ModuleRequest]] is null, then
+                // ii. Else,
                 ExportEntry::Ordinary(entry) => {
-                    // ii. Else,
-                    //     1. Let ie be the element of importEntries whose [[LocalName]] is ee.[[LocalName]].
-                    if let Some((module, import, attrs)) =
-                        import_entries.iter().find_map(|ie| match ie.import_name() {
-                            ImportName::Name(name) if ie.local_name() == entry.local_name() => {
-                                Some((ie.module_request(), name, ie.attributes()))
-                            }
-                            _ => None,
-                        })
+                    if let Some(ie) = import_entries
+                        .iter()
+                        .find(|ie| ie.local_name() == entry.local_name())
                     {
-                        // 3. Else,
-                        //    a. NOTE: This is a re-export of a single name.
-                        //    b. Append the ExportEntry Record { [[ModuleRequest]]: ie.[[ModuleRequest]],
-                        //       [[ImportName]]: ie.[[ImportName]], [[LocalName]]: null,
-                        //       [[ExportName]]: ee.[[ExportName]] } to indirectExportEntries.
-                        indirect_export_entries.push(IndirectExportEntry::new(
-                            module,
-                            ReExportImportName::Name(import),
-                            entry.export_name(),
-                            attrs.to_vec().into_boxed_slice(),
-                        ));
+                        // 1. NOTE: When exporting a binding or namespace object
+                        //    which was originally imported from another module,
+                        //    the ExportEntry Record is rewritten to match the form
+                        //    it would have if the binding or namespace object had
+                        //    been re-exported directly from the original module
+                        //    rather than imported then exported. This allows
+                        //    conflicts which arise from exporting the same binding
+                        //    or namespace twice under the same name through export
+                        //    * from to be ignored rather than being treated as
+                        //    ambiguous in step 9.e.iii of the ResolveExport
+                        //    concrete method of Source Text Module Records.
+                        //
+                        // 2. Let ie be the element of importEntries whose
+                        //    [[LocalName]] is ee.[[LocalName]].
+                        //
+                        match ie.import_name() {
+                            // 3. If ie.[[ImportName]] is namespace-object, then
+                            ImportName::Namespace => {
+                                // a. NOTE: This is a re-export of an imported module namespace object.
+                                // b. Append the ExportEntry Record {
+                                //        [[ModuleRequest]]: ie.[[ModuleRequest]],
+                                //        [[ImportName]]: all,
+                                //        [[LocalName]]: null,
+                                //        [[ExportName]]: ee.[[ExportName]]
+                                //    } to indirectExportEntries.
+                                indirect_export_entries.push(IndirectExportEntry::new(
+                                    ie.module_request(),
+                                    ReExportImportName::Star,
+                                    entry.export_name(),
+                                    ie.attributes().to_vec().into_boxed_slice(),
+                                ));
+                            }
+                            // 4. Else,
+                            ImportName::Name(import) => {
+                                // a. NOTE: This is a re-export of a single name.
+                                // b. Append the ExportEntry Record {
+                                //        [[ModuleRequest]]: ie.[[ModuleRequest]],
+                                //        [[ImportName]]: ie.[[ImportName]],
+                                //        [[LocalName]]: null,
+                                //        [[ExportName]]: ee.[[ExportName]]
+                                //    } to indirectExportEntries.
+                                indirect_export_entries.push(IndirectExportEntry::new(
+                                    ie.module_request(),
+                                    ReExportImportName::Name(import),
+                                    entry.export_name(),
+                                    ie.attributes().to_vec().into_boxed_slice(),
+                                ));
+                            }
+                        }
                     } else {
                         // i. If importedBoundNames does not contain ee.[[LocalName]], then
                         //    1. Append ee to localExportEntries.
-
-                        //    2. If ie.[[ImportName]] is namespace-object, then
-                        //       a. NOTE: This is a re-export of an imported module namespace object.
-                        //       b. Append ee to localExportEntries.
                         local_export_entries.push(entry);
                     }
                 }
@@ -393,7 +452,7 @@ impl SourceTextModule {
         }
 
         // 11. Let async be body Contains await.
-        let has_tla = contains(&code, ContainsSymbol::AwaitExpression);
+        let has_tla = contains(&source, ContainsSymbol::AwaitExpression);
 
         // 12. Return Source Text Module Record {
         //     [[Realm]]: realm, [[Environment]]: empty, [[Namespace]]: empty, [[CycleRoot]]: empty,
@@ -409,16 +468,17 @@ impl SourceTextModule {
         // }.
         // Most of this can be ignored, since `Status` takes care of the remaining state.
         Self {
-            status: GcRefCell::default(),
+            status: GcRefCell::new(ModuleStatus::Unlinked {
+                source,
+                source_text,
+            }),
             loaded_modules: GcRefCell::default(),
             async_parent_modules: GcRefCell::default(),
             import_meta: GcRefCell::default(),
             code: ModuleCode {
-                source: RefCell::new(Some(code)),
-                source_text: RefCell::new(Some(source_text)),
-                path,
-                requested_modules,
                 has_tla,
+                requested_modules,
+                path,
                 import_entries,
                 local_export_entries,
                 indirect_export_entries,
@@ -512,7 +572,7 @@ impl SourceTextModule {
                         .capability
                         .reject()
                         .call(&JsValue::undefined(), &[err], &mut context.borrow_mut())
-                        .expect("cannot fail for the default reject function");
+                        .js_expect("cannot fail for the default reject function")?;
                 }
             }
 
@@ -523,7 +583,7 @@ impl SourceTextModule {
         // 2. If module is a Cyclic Module Record, module.[[Status]] is new, and state.[[Visited]] does not contain
         //    module, then
         // a. Append module to state.[[Visited]].
-        if matches!(&*self.status.borrow(), ModuleStatus::Unlinked)
+        if matches!(&*self.status.borrow(), ModuleStatus::Unlinked { .. })
             && state.visited.borrow_mut().insert(module_self.clone())
         {
             // b. Let requestedModulesCount be the number of elements in module.[[RequestedModules]].
@@ -765,7 +825,7 @@ impl SourceTextModule {
         // 1. Assert: module.[[Status]] is one of unlinked, linked, evaluating-async, or evaluated.
         debug_assert!(matches!(
             &*self.status.borrow(),
-            ModuleStatus::Unlinked
+            ModuleStatus::Unlinked { .. }
                 | ModuleStatus::Linked { .. }
                 | ModuleStatus::EvaluatingAsync { .. }
                 | ModuleStatus::Evaluated { .. }
@@ -780,12 +840,24 @@ impl SourceTextModule {
             // a. For each Cyclic Module Record m of stack, do
             for m in stack.iter().filter_map(|cmr| cmr.kind().as_source_text()) {
                 // i. Assert: m.[[Status]] is linking.
-                debug_assert!(matches!(&*m.status.borrow(), ModuleStatus::Linking { .. }));
                 // ii. Set m.[[Status]] to unlinked.
-                *m.status.borrow_mut() = ModuleStatus::Unlinked;
+                m.status.borrow_mut().transition(|status| match status {
+                    ModuleStatus::Linking {
+                        source,
+                        source_text,
+                        ..
+                    } => ModuleStatus::Unlinked {
+                        source,
+                        source_text,
+                    },
+                    _ => unreachable!("i. Assert: m.[[Status]] is linking."),
+                });
             }
             // b. Assert: module.[[Status]] is unlinked.
-            debug_assert!(matches!(&*self.status.borrow(), ModuleStatus::Unlinked));
+            debug_assert!(matches!(
+                &*self.status.borrow(),
+                ModuleStatus::Unlinked { .. }
+            ));
             // c. Return ? result.
             return Err(err);
         }
@@ -827,18 +899,22 @@ impl SourceTextModule {
             return Ok(index);
         }
 
-        // 3. Assert: module.[[Status]] is unlinked.
-        debug_assert!(matches!(&*self.status.borrow(), ModuleStatus::Unlinked));
-
         // 4. Set module.[[Status]] to linking.
-        // 5. Set module.[[DFSIndex]] to index.
+        // 5. Let moduleIndex be index.
         // 6. Set module.[[DFSAncestorIndex]] to index.
-        *self.status.borrow_mut() = ModuleStatus::Linking {
-            info: DfsInfo {
-                dfs_index: index,
-                dfs_ancestor_index: index,
+        self.status.borrow_mut().transition(|status| match status {
+            ModuleStatus::Unlinked {
+                source,
+                source_text,
+            } => ModuleStatus::Linking {
+                source,
+                source_text,
+                ancestor_index: index,
             },
-        };
+            _ => unreachable!("3. Assert: module.[[Status]] is unlinked."),
+        });
+
+        let module_index = index;
 
         // 7. Set index to index + 1.
         index += 1;
@@ -846,8 +922,7 @@ impl SourceTextModule {
         // 8. Append module to stack.
         stack.push(module_self.clone());
 
-        // 9. For each String required of module.[[RequestedModules]], do
-
+        // 9. For each ModuleRequest Record request of module.[[RequestedModules]], do
         for required in &self.code.requested_modules {
             // a. Let requiredModule be GetImportedModule(module, required).
             let required_module = self.loaded_modules.borrow()[required].clone();
@@ -868,30 +943,23 @@ impl SourceTextModule {
                 });
 
                 // iii. If requiredModule.[[Status]] is linking, then
-                let required_index = if let ModuleStatus::Linking {
-                    info:
-                        DfsInfo {
-                            dfs_ancestor_index, ..
-                        },
-                } = &*required_module_src.status.borrow()
+                let required_index = if let ModuleStatus::Linking { ancestor_index, .. } =
+                    &*required_module_src.status.borrow()
                 {
-                    // 1. Set module.[[DFSAncestorIndex]] to min(module.[[DFSAncestorIndex]],
-                    //    requiredModule.[[DFSAncestorIndex]]).
-
-                    Some(*dfs_ancestor_index)
+                    Some(*ancestor_index)
                 } else {
                     None
                 };
 
                 if let Some(required_index) = required_index {
+                    // 1. Set module.[[DFSAncestorIndex]] to
+                    //    min(module.[[DFSAncestorIndex]], requiredModule.[[DFSAncestorIndex]]).
                     let mut status = self.status.borrow_mut();
 
-                    let DfsInfo {
-                        dfs_ancestor_index, ..
-                    } = status
-                        .dfs_info_mut()
-                        .expect("should be on the linking state");
-                    *dfs_ancestor_index = usize::min(*dfs_ancestor_index, required_index);
+                    let ancestor_index = status
+                        .ancestor_index_mut()
+                        .js_expect("should be on the linking state")?;
+                    *ancestor_index = usize::min(*ancestor_index, required_index);
                 }
             }
         }
@@ -904,30 +972,24 @@ impl SourceTextModule {
             stack.iter().filter(|module| *module == module_self).count(),
             1
         );
-        // 12. Assert: module.[[DFSAncestorIndex]] ≤ module.[[DFSIndex]].
+        // 12. Assert: module.[[DFSAncestorIndex]] ≤ moduleIndex.
         debug_assert!({
-            let DfsInfo {
-                dfs_ancestor_index,
-                dfs_index,
-            } = self
-                .status
+            self.status
                 .borrow()
-                .dfs_info()
-                .copied()
-                .expect("should be linking");
-            dfs_ancestor_index <= dfs_index
+                .ancestor_index()
+                .expect("should be linking")
+                <= module_index
         });
 
-        let info = self.status.borrow().dfs_info().copied();
-        match info {
-            // 13. If module.[[DFSAncestorIndex]] = module.[[DFSIndex]], then
-
+        let ancestor_index = self.status.borrow().ancestor_index();
+        match ancestor_index {
+            // 13. If module.[[DFSAncestorIndex]] = moduleIndex, then
             //     a. Let done be false.
             //     b. Repeat, while done is false,
-            Some(info) if info.dfs_ancestor_index == info.dfs_index => loop {
+            Some(ancestor_index) if ancestor_index == module_index => loop {
                 //    i. Let requiredModule be the last element of stack.
                 //    ii. Remove the last element of stack.
-                let last = stack.pop().expect("should have at least one element");
+                let last = stack.pop().js_expect("should have at least one element")?;
                 let ModuleKind::SourceText(last_src) = last.kind() else {
                     unreachable!("iii. Assert: requiredModule is a Cyclic Module Record.")
                 };
@@ -938,11 +1000,11 @@ impl SourceTextModule {
                     .borrow_mut()
                     .transition(|current| match current {
                         ModuleStatus::PreLinked {
-                            info,
+                            ancestor_index: info,
                             context,
                             environment,
                         } => ModuleStatus::Linked {
-                            info,
+                            ancestor_index: info,
                             context,
                             environment,
                         },
@@ -976,7 +1038,7 @@ impl SourceTextModule {
         // 1. Assert: This call to Evaluate is not happening at the same time as another call to Evaluate within the surrounding agent.
         let (module, promise) = {
             match &*self.status.borrow() {
-                ModuleStatus::Unlinked
+                ModuleStatus::Unlinked { .. }
                 | ModuleStatus::Linking { .. }
                 | ModuleStatus::PreLinked { .. }
                 | ModuleStatus::Evaluating { .. } => {
@@ -997,10 +1059,14 @@ impl SourceTextModule {
                     ..
                 } => (
                     cycle_root.clone(),
-                    top_level_capability.as_ref().map(|cap| {
-                        JsPromise::from_object(cap.promise().clone())
-                            .expect("promise created from the %Promise% intrinsic is always native")
-                    }),
+                    top_level_capability
+                        .as_ref()
+                        .map(|cap| {
+                            JsPromise::from_object(cap.promise().clone()).js_expect(
+                                "promise created from the %Promise% intrinsic is always native",
+                            )
+                        })
+                        .transpose()?,
                 ),
             }
         };
@@ -1020,7 +1086,9 @@ impl SourceTextModule {
             &context.intrinsics().constructors().promise().constructor(),
             context,
         )
-        .expect("capability creation must always succeed when using the `%Promise%` intrinsic");
+        .js_expect(
+            "capability creation must always succeed when using the `%Promise%` intrinsic",
+        )?;
 
         // 8. Let result be Completion(InnerModuleEvaluation(module, stack, 0)).
         let ModuleKind::SourceText(module_src) = module.kind() else {
@@ -1047,7 +1115,7 @@ impl SourceTextModule {
                     capability
                         .resolve()
                         .call(&JsValue::undefined(), &[], context)
-                        .expect("cannot fail for the default resolve function");
+                        .js_expect("cannot fail for the default resolve function")?;
                 }
 
                 //     d. Assert: stack is empty.
@@ -1094,13 +1162,13 @@ impl SourceTextModule {
                 capability
                     .reject()
                     .call(&JsValue::undefined(), &[err.into_opaque(context)?], context)
-                    .expect("cannot fail for the default reject function");
+                    .js_expect("cannot fail for the default reject function")?;
             }
         }
 
         // 11. Return capability.[[Promise]].
         Ok(JsPromise::from_object(capability.promise().clone())
-            .expect("promise created from the %Promise% intrinsic is always native"))
+            .js_expect("promise created from the %Promise% intrinsic is always native")?)
     }
 
     /// Abstract operation [`InnerModuleEvaluation ( module, stack, index )`][spec]
@@ -1114,14 +1182,20 @@ impl SourceTextModule {
         capability: Option<PromiseCapability>,
         context: &mut Context,
     ) -> JsResult<usize> {
-        /// Gets the next evaluation index of an async module.
+        // TODO: this count should be part of the `context` instead, and we should
+        // reset it after the last module has executed.
+        /// [`IncrementModuleAsyncEvaluationCount ( )`][spec]
         ///
-        /// Returns an error if there's no more available indices.
-        fn get_async_eval_index() -> JsResult<usize> {
+        /// [spec]: https://tc39.es/ecma262/#sec-IncrementModuleAsyncEvaluationCount
+        fn increment_module_async_evaluation_count() -> JsResult<usize> {
             thread_local! {
                 static ASYNC_EVAL_QUEUE_INDEX: Cell<usize> = const { Cell::new(0) };
             }
 
+            // 1. Let AR be the Agent Record of the surrounding agent.
+            // 2. Let count be AR.[[ModuleAsyncEvaluationCount]].
+            // 3. Set AR.[[ModuleAsyncEvaluationCount]] to count + 1.
+            // 4. Return count.
             ASYNC_EVAL_QUEUE_INDEX
                 .with(|idx| {
                     let next = idx.get().checked_add(1)?;
@@ -1153,7 +1227,7 @@ impl SourceTextModule {
         }
 
         // 5. Set module.[[Status]] to evaluating.
-        // 6. Set module.[[DFSIndex]] to index.
+        // 6. Set moduleIndex to index.
         // 7. Set module.[[DFSAncestorIndex]] to index.
         // 8. Set module.[[PendingAsyncDependencies]] to 0.
         self.status.borrow_mut().transition(|status| match status {
@@ -1166,14 +1240,13 @@ impl SourceTextModule {
                 context,
                 top_level_capability: capability,
                 cycle_root: module_self.clone(),
-                info: DfsInfo {
-                    dfs_index: index,
-                    dfs_ancestor_index: index,
-                },
-                async_eval_index: None,
+                ancestor_index: index,
+                async_evaluation_order: None,
             },
             _ => unreachable!("already asserted that this state is `Linked`. "),
         });
+
+        let module_index = index;
 
         // 9. Set index to index + 1.
         index += 1;
@@ -1182,7 +1255,7 @@ impl SourceTextModule {
         // 10. Append module to stack.
         stack.push(module_self.clone());
 
-        // 11. For each String required of module.[[RequestedModules]], do
+        // 11. 11. For each ModuleRequest Record request of module.[[RequestedModules]], do
         for required in &self.code.requested_modules {
             // a. Let requiredModule be GetImportedModule(module, required).
             let required_module = self.loaded_modules.borrow()[required].clone();
@@ -1199,21 +1272,21 @@ impl SourceTextModule {
                     _ => false,
                 });
 
-                let (required_module, async_eval, req_info) = match &*required_module_src
+                let (required_module, async_eval, req_ancestor) = match &*required_module_src
                     .status
                     .borrow()
                 {
                     // iii. If requiredModule.[[Status]] is evaluating, then
                     ModuleStatus::Evaluating {
-                        info,
-                        async_eval_index,
+                        ancestor_index,
+                        async_evaluation_order,
                         ..
                     } => {
-                        // 1. Set module.[[DFSAncestorIndex]] to min(module.[[DFSAncestorIndex]], requiredModule.[[DFSAncestorIndex]]).
+                        // Continues after the borrow to avoid a borrow panic
                         (
                             required_module.clone(),
-                            async_eval_index.is_some(),
-                            Some(*info),
+                            async_evaluation_order.is_some(),
+                            Some(*ancestor_index),
                         )
                     }
                     // iv. Else,
@@ -1248,16 +1321,17 @@ impl SourceTextModule {
                     unreachable!("required_module must be a source text module");
                 };
 
-                if let Some(req_info) = req_info {
+                if let Some(req_ancestor) = req_ancestor {
                     let mut status = self.status.borrow_mut();
-                    let info = status
-                        .dfs_info_mut()
-                        .expect("self should still be in the evaluating state");
-                    info.dfs_ancestor_index =
-                        usize::min(info.dfs_ancestor_index, req_info.dfs_ancestor_index);
+                    let ancestor_index = status
+                        .ancestor_index_mut()
+                        .js_expect("self should still be in the evaluating state")?;
+
+                    // 1. Set module.[[DFSAncestorIndex]] to min(module.[[DFSAncestorIndex]], requiredModule.[[DFSAncestorIndex]]).
+                    *ancestor_index = usize::min(*ancestor_index, req_ancestor);
                 }
 
-                // v. If requiredModule.[[AsyncEvaluation]] is true, then
+                // v. If requiredModule.[[AsyncEvaluationOrder]] is an integer, then
                 if async_eval {
                     // 1. Set module.[[PendingAsyncDependencies]] to module.[[PendingAsyncDependencies]] + 1.
                     pending_async_dependencies += 1;
@@ -1272,18 +1346,20 @@ impl SourceTextModule {
 
         // 12. If module.[[PendingAsyncDependencies]] > 0 or module.[[HasTLA]] is true, then
         if pending_async_dependencies > 0 || self.code.has_tla {
-            // a. Assert: module.[[AsyncEvaluation]] is false and was never previously set to true.
             {
                 let ModuleStatus::Evaluating {
-                    async_eval_index, ..
+                    async_evaluation_order,
+                    ..
                 } = &mut *self.status.borrow_mut()
                 else {
                     unreachable!("self should still be in the evaluating state")
                 };
 
-                // b. Set module.[[AsyncEvaluation]] to true.
-                // c. NOTE: The order in which module records have their [[AsyncEvaluation]] fields transition to true is significant. (See 16.2.1.5.3.4.)
-                *async_eval_index = Some(get_async_eval_index()?);
+                // a. Assert: module.[[AsyncEvaluationOrder]] is unset.
+                debug_assert!(async_evaluation_order.is_none());
+
+                // b. Set module.[[AsyncEvaluationOrder]] to IncrementModuleAsyncEvaluationCount().
+                *async_evaluation_order = Some(increment_module_async_evaluation_count()?);
             }
 
             //     d. If module.[[PendingAsyncDependencies]] = 0, perform ExecuteAsyncModule(module).
@@ -1296,17 +1372,17 @@ impl SourceTextModule {
             self.execute(module_self, None, context)?;
         }
 
-        let dfs_info = self.status.borrow().dfs_info().copied().expect(
-            "haven't transitioned from the `Evaluating` state, so it should have its dfs info",
-        );
+        let ancestor_index = self.status.borrow().ancestor_index().js_expect(
+            "haven't transitioned from the `Evaluating` state, so it should have its ancestor index",
+        )?;
 
         // 14. Assert: module occurs exactly once in stack.
         debug_assert_eq!(stack.iter().filter(|m| *m == module_self).count(), 1);
-        // 15. Assert: module.[[DFSAncestorIndex]] ≤ module.[[DFSIndex]].
-        assert!(dfs_info.dfs_ancestor_index <= dfs_info.dfs_index);
+        // 15. Assert: module.[[DFSAncestorIndex]] ≤ moduleIndex.
+        assert!(ancestor_index <= module_index);
 
-        // 16. If module.[[DFSAncestorIndex]] = module.[[DFSIndex]], then
-        if dfs_info.dfs_ancestor_index == dfs_info.dfs_index {
+        // 16. If module.[[DFSAncestorIndex]] = moduleIndex, then
+        if ancestor_index == module_index {
             // a. Let done be false.
             // b. Repeat, while done is false,
             loop {
@@ -1314,7 +1390,7 @@ impl SourceTextModule {
                 // ii. Remove the last element of stack.
                 let required_module = stack
                     .pop()
-                    .expect("should at least have `self` in the stack");
+                    .js_expect("should at least have `self` in the stack")?;
                 let is_self = module_self == &required_module;
 
                 let ModuleKind::SourceText(required_module_src) = required_module.kind() else {
@@ -1325,26 +1401,26 @@ impl SourceTextModule {
                             environment,
                             top_level_capability,
                             cycle_root,
-                            async_eval_index,
+                            async_evaluation_order,
                             context,
                             ..
-                        } => if let Some(async_eval_index) = async_eval_index {
-                            // v. Otherwise, set requiredModule.[[Status]] to evaluating-async.
+                        } => if let Some(async_evaluation_order) = async_evaluation_order {
+                            // vi. Else, set requiredModule.[[Status]] to evaluating-async.
                             ModuleStatus::EvaluatingAsync {
                                 environment,
                                 top_level_capability,
-                                // vii. Set requiredModule.[[CycleRoot]] to module.
+                                // viii. Set requiredModule.[[CycleRoot]] to module.
                                 cycle_root: if is_self {
                                     cycle_root
                                 } else {
                                     module_self.clone()
                                 },
-                                async_eval_index,
+                                async_evaluation_order,
                                 pending_async_dependencies,
                                 context
                             }
                         } else {
-                            // iv. If requiredModule.[[AsyncEvaluation]] is false, set requiredModule.[[Status]] to evaluated.
+                            // v. If requiredModule.[[AsyncEvaluationOrder]] is unset, set requiredModule.[[Status]] to evaluated.
                             ModuleStatus::Evaluated {
                                 environment,
                                 top_level_capability,
@@ -1362,7 +1438,7 @@ impl SourceTextModule {
                     }
                 );
 
-                // vi. If requiredModule and module are the same Module Record, set done to true.
+                // vii. If requiredModule and module are the same Module Record, set done to true.
                 if is_self {
                     break;
                 }
@@ -1421,7 +1497,7 @@ impl SourceTextModule {
                 |_, args, module, context| {
                     let error = JsError::from_opaque(args.get_or_undefined(0).clone());
                     // a. Perform AsyncModuleExecutionRejected(module, error).
-                    async_module_execution_rejected(module, error, context)?;
+                    async_module_execution_rejected(module, &error, context)?;
                     // b. Return undefined.
                     Ok(JsValue::undefined())
                 },
@@ -1559,25 +1635,16 @@ impl SourceTextModule {
         // 4. Assert: realm is not undefined.
         let realm = module_self.realm().clone();
 
-        // Take the AST and source text — they are only needed during compilation.
-        // Dropping them here frees the parse tree after linking is complete.
-        let source = self
-            .code
-            .source
-            .take()
-            .expect("module source consumed before initialize_environment");
-        let source_text = self
-            .code
-            .source_text
-            .take()
-            .expect("module source_text consumed before initialize_environment");
+        let status = self.status.borrow();
+        let (source, source_text) = status
+            .source()
+            .js_expect("module can only initialize its environment in the linking phase")?;
 
         // 5. Let env be NewModuleEnvironment(realm.[[GlobalEnv]]).
         // 6. Set module.[[Environment]] to env.
-        let global_env = realm.environment().clone();
         let env = source.scope().clone();
 
-        let spanned_source_text = SpannedSourceText::new_source_only(source_text);
+        let spanned_source_text = SpannedSourceText::new_source_only(source_text.clone());
         let mut compiler = ByteCompiler::new(
             js_string!("<main>"),
             true,
@@ -1629,7 +1696,9 @@ impl SourceTextModule {
                     // 2. Perform ! env.CreateImmutableBinding(in.[[LocalName]], true).
                     // 3. Perform ! env.InitializeBinding(in.[[LocalName]], namespace).
                     let local_name = entry.local_name().to_js_string(compiler.interner());
-                    let locator = env.get_binding(&local_name).expect("binding must exist");
+                    let locator = env
+                        .get_binding(&local_name)
+                        .js_expect("binding must exist")?;
 
                     if let BindingName::Name(_) = resolution.binding_name() {
                         // 1. Perform env.CreateImportBinding(in.[[LocalName]], resolution.[[Module]],
@@ -1652,7 +1721,7 @@ impl SourceTextModule {
                     //    ii. Perform ! env.CreateImmutableBinding(in.[[LocalName]], true).
                     //    iii. Perform ! env.InitializeBinding(in.[[LocalName]], namespace).
                     let name = entry.local_name().to_js_string(compiler.interner());
-                    let locator = env.get_binding(&name).expect("binding must exist");
+                    let locator = env.get_binding(&name).js_expect("binding must exist")?;
 
                     //    i. Let namespace be GetModuleNamespace(importedModule).
                     //       deferred to initialization below
@@ -1665,7 +1734,7 @@ impl SourceTextModule {
 
             // 18. Let code be module.[[ECMAScriptCode]].
             // 19. Let varDeclarations be the VarScopedDeclarations of code.
-            let var_declarations = var_scoped_declarations(&source);
+            let var_declarations = var_scoped_declarations(source);
             // 20. Let declaredVarNames be a new empty List.
             let mut declared_var_names = Vec::new();
             // 21. For each element d of varDeclarations, do
@@ -1680,7 +1749,7 @@ impl SourceTextModule {
                         // 2. Perform ! env.InitializeBinding(dn, undefined).
                         let binding = env
                             .get_binding_reference(&name)
-                            .expect("binding must exist");
+                            .js_expect("binding must exist")?;
                         let index = compiler.insert_binding(binding);
                         compiler.emit_binding_access(
                             BindingAccessOpcode::DefInitVar,
@@ -1696,7 +1765,7 @@ impl SourceTextModule {
 
             // 22. Let lexDeclarations be the LexicallyScopedDeclarations of code.
             // 23. Let privateEnv be null.
-            let lex_declarations = lexically_scoped_declarations(&source);
+            let lex_declarations = lexically_scoped_declarations(source);
             let mut functions = Vec::new();
             // 24. For each element d of lexDeclarations, do
             for declaration in lex_declarations {
@@ -1713,25 +1782,25 @@ impl SourceTextModule {
                 let (spec, locator): (FunctionSpec<'_>, _) = match declaration {
                     LexicallyScopedDeclaration::FunctionDeclaration(f) => {
                         let name = bound_names(f)[0].to_js_string(compiler.interner());
-                        let locator = env.get_binding(&name).expect("binding must exist");
+                        let locator = env.get_binding(&name).js_expect("binding must exist")?;
 
                         (f.into(), locator)
                     }
                     LexicallyScopedDeclaration::GeneratorDeclaration(g) => {
                         let name = bound_names(g)[0].to_js_string(compiler.interner());
-                        let locator = env.get_binding(&name).expect("binding must exist");
+                        let locator = env.get_binding(&name).js_expect("binding must exist")?;
 
                         (g.into(), locator)
                     }
                     LexicallyScopedDeclaration::AsyncFunctionDeclaration(af) => {
                         let name = bound_names(af)[0].to_js_string(compiler.interner());
-                        let locator = env.get_binding(&name).expect("binding must exist");
+                        let locator = env.get_binding(&name).js_expect("binding must exist")?;
 
                         (af.into(), locator)
                     }
                     LexicallyScopedDeclaration::AsyncGeneratorDeclaration(ag) => {
                         let name = bound_names(ag)[0].to_js_string(compiler.interner());
-                        let locator = env.get_binding(&name).expect("binding must exist");
+                        let locator = env.get_binding(&name).js_expect("binding must exist")?;
 
                         (ag.into(), locator)
                     }
@@ -1758,8 +1827,9 @@ impl SourceTextModule {
         };
 
         // 8. Let moduleContext be a new ECMAScript code execution context.
-        let mut envs = EnvironmentStack::new(global_env);
+        let mut envs = EnvironmentStack::new();
         envs.push_module(source.scope().clone());
+        drop(status);
 
         // 9. Set the Function of moduleContext to null.
         // 10. Assert: module.[[Realm]] is not undefined.
@@ -1786,36 +1856,45 @@ impl SourceTextModule {
                 ImportBinding::Namespace { locator, module } => {
                     // i. Let namespace be GetModuleNamespace(importedModule).
                     let namespace = module.namespace(context);
-                    context.vm.frame_mut().environments.put_lexical_value(
-                        locator.scope(),
-                        locator.binding_index(),
-                        namespace.into(),
-                    );
+                    {
+                        let frame = context.vm.frame_mut();
+                        let global = frame.realm.environment();
+                        frame.environments.put_lexical_value(
+                            locator.scope(),
+                            locator.binding_index(),
+                            namespace.into(),
+                            global,
+                        );
+                    }
                 }
                 ImportBinding::Single {
                     locator,
                     export_locator,
                 } => match export_locator.binding_name() {
-                    BindingName::Name(name) => context
-                        .vm
-                        .frame()
-                        .environments
-                        .current_declarative_ref()
-                        .expect("must be declarative")
-                        .kind()
-                        .as_module()
-                        .expect("last environment should be the module env")
-                        .set_indirect(
-                            locator.binding_index(),
-                            export_locator.module().clone(),
-                            name.clone(),
-                        ),
+                    BindingName::Name(name) => {
+                        let frame = context.vm.frame();
+                        frame
+                            .environments
+                            .current_declarative_ref(frame.realm.environment())
+                            .js_expect("must be declarative")?
+                            .kind()
+                            .as_module()
+                            .js_expect("last environment should be the module env")?
+                            .set_indirect(
+                                locator.binding_index(),
+                                export_locator.module().clone(),
+                                name.clone(),
+                            );
+                    }
                     BindingName::Namespace => {
                         let namespace = export_locator.module.namespace(context);
-                        context.vm.frame_mut().environments.put_lexical_value(
+                        let frame = context.vm.frame_mut();
+                        let global = frame.realm.environment();
+                        frame.environments.put_lexical_value(
                             locator.scope(),
                             locator.binding_index(),
                             namespace.into(),
+                            global,
                         );
                     }
                 },
@@ -1828,30 +1907,35 @@ impl SourceTextModule {
 
             let function = create_function_object_fast(code, context);
 
-            context.vm.frame_mut().environments.put_lexical_value(
-                locator.scope(),
-                locator.binding_index(),
-                function.into(),
-            );
+            {
+                let frame = context.vm.frame_mut();
+                let global = frame.realm.environment();
+                frame.environments.put_lexical_value(
+                    locator.scope(),
+                    locator.binding_index(),
+                    function.into(),
+                    global,
+                );
+            }
         }
 
         // 25. Remove moduleContext from the execution context stack.
         let frame = context
             .vm
             .pop_frame()
-            .expect("There should be a call frame");
+            .js_expect("There should be a call frame")?;
 
         let env = frame
             .environments
-            .current_declarative_ref()
+            .current_declarative_ref(frame.realm.environment())
             .cloned()
-            .expect("frame must have a declarative environment");
+            .js_expect("frame must have a declarative environment")?;
 
         // 16. Set module.[[Context]] to moduleContext.
         self.status.borrow_mut().transition(|state| match state {
-            ModuleStatus::Linking { info } => ModuleStatus::PreLinked {
+            ModuleStatus::Linking { ancestor_index, .. } => ModuleStatus::PreLinked {
                 environment: env,
-                info,
+                ancestor_index,
                 context: SourceTextContext {
                     codeblock,
                     environments: frame.environments.clone(),
@@ -1964,15 +2048,15 @@ fn async_module_execution_fulfilled(module: &Module, context: &mut Context) -> J
     // 1. If module.[[Status]] is evaluated, then
     if let ModuleStatus::Evaluated { error, .. } = &*module_src.status.borrow() {
         //     a. Assert: module.[[EvaluationError]] is not empty.
-        assert!(error.is_some());
+        debug_assert!(error.is_some());
         //     b. Return unused.
         return Ok(());
     }
 
     // 2. Assert: module.[[Status]] is evaluating-async.
-    // 3. Assert: module.[[AsyncEvaluation]] is true.
+    // 3. Assert: module.[[AsyncEvaluationOrder]] is an integer.
     // 4. Assert: module.[[EvaluationError]] is empty.
-    // 5. Set module.[[AsyncEvaluation]] to false.
+    // 5. Set module.[[AsyncEvaluationOrder]] to done.
     // 6. Set module.[[Status]] to evaluated.
     module_src
         .status
@@ -1994,13 +2078,13 @@ fn async_module_execution_fulfilled(module: &Module, context: &mut Context) -> J
 
     // 7. If module.[[TopLevelCapability]] is not empty, then
     if let Some(cap) = module_src.status.borrow().top_level_capability() {
-        // a. Assert: module.[[CycleRoot]] is module.
+        // a. Assert: module.[[CycleRoot]] and module are the same Module Record.
         debug_assert_eq!(module_src.status.borrow().cycle_root(), Some(module));
 
         // b. Perform ! Call(module.[[TopLevelCapability]].[[Resolve]], undefined, « undefined »).
         cap.resolve()
             .call(&JsValue::undefined(), &[], context)
-            .expect("default `resolve` function cannot fail");
+            .js_expect("default `resolve` function cannot fail")?;
     }
 
     // 8. Let execList be a new empty List.
@@ -2009,27 +2093,33 @@ fn async_module_execution_fulfilled(module: &Module, context: &mut Context) -> J
     // 9. Perform GatherAvailableAncestors(module, execList).
     module_src.gather_available_ancestors(&mut ancestors);
 
-    // 11. Assert: All elements of sortedExecList have their [[AsyncEvaluation]] field set to true, [[PendingAsyncDependencies]] field set to 0, and [[EvaluationError]] field set to empty.
-    let mut ancestors = ancestors.into_iter().collect::<Vec<_>>();
-
-    // 10. Let sortedExecList be a List whose elements are the elements of execList, in the order in which they had their [[AsyncEvaluation]] fields set to true in InnerModuleEvaluation.
-    ancestors.sort_by_cached_key(|m| {
+    // 10. 10. Assert: All elements of execList have their
+    // [[AsyncEvaluationOrder]] field set to an integer,
+    // [[PendingAsyncDependencies]] field set to 0, and [[EvaluationError]]
+    // field set to empty.
+    //
+    // 11. Let sortedExecList be a List whose elements are the elements of
+    // execList, sorted by their [[AsyncEvaluationOrder]] field in ascending
+    // order.
+    let mut sorted_exec_list = ancestors.into_iter().collect::<Vec<_>>();
+    sorted_exec_list.sort_by_cached_key(|m| {
         let ModuleKind::SourceText(m_src) = m.kind() else {
             unreachable!("ancestors must only be source text modules");
         };
 
         let ModuleStatus::EvaluatingAsync {
-            async_eval_index, ..
+            async_evaluation_order,
+            ..
         } = &*m_src.status.borrow()
         else {
             unreachable!("GatherAvailableAncestors: i. Assert: m.[[Status]] is evaluating-async.");
         };
 
-        *async_eval_index
+        *async_evaluation_order
     });
 
     // 12. For each Cyclic Module Record m of sortedExecList, do
-    for m in ancestors {
+    for m in sorted_exec_list {
         let ModuleKind::SourceText(m_src) = m.kind() else {
             continue;
         };
@@ -2037,7 +2127,7 @@ fn async_module_execution_fulfilled(module: &Module, context: &mut Context) -> J
         // a. If m.[[Status]] is evaluated, then
         if let ModuleStatus::Evaluated { error, .. } = &*m_src.status.borrow() {
             // i. Assert: m.[[EvaluationError]] is not empty.
-            assert!(error.is_some());
+            debug_assert!(error.is_some());
             continue;
         }
 
@@ -2046,45 +2136,52 @@ fn async_module_execution_fulfilled(module: &Module, context: &mut Context) -> J
         if has_tla {
             // i. Perform ExecuteAsyncModule(m).
             m_src.execute_async(&m, context);
-        } else {
-            // c. Else,
-            //    i. Let result be m.ExecuteModule().
-            let result = m_src.execute(&m, None, context);
+            continue;
+        }
+        // c. Else,
+        // c.i. Let result be m.ExecuteModule().
+        let result = m_src.execute(&m, None, context);
 
-            //    ii. If result is an abrupt completion, then
-            if let Err(e) = result {
-                //    1. Perform AsyncModuleExecutionRejected(m, result.[[Value]]).
-                async_module_execution_rejected(module, e, context)?;
-            } else {
-                // iii. Else,
-                //    1. Set m.[[Status]] to evaluated.
-                m_src.status.borrow_mut().transition(|status| match status {
-                    ModuleStatus::EvaluatingAsync {
-                        environment,
-                        top_level_capability,
-                        cycle_root,
-                        ..
-                    } => ModuleStatus::Evaluated {
-                        environment,
-                        top_level_capability,
-                        cycle_root,
-                        error: None,
-                    },
-                    _ => unreachable!(),
-                });
+        // c.ii. If result is an abrupt completion, then
+        if let Err(e) = result {
+            // eagerly convert to an opaque error so that we can exit immediately
+            // if there was an EngineError.
+            let e = &JsError::from_opaque(e.into_opaque(context)?);
 
-                let status = m_src.status.borrow();
-                // 2. If m.[[TopLevelCapability]] is not empty, then
-                if let Some(cap) = status.top_level_capability() {
-                    // a. Assert: m.[[CycleRoot]] is m.
-                    assert_eq!(status.cycle_root(), Some(&m));
+            // 1. Perform AsyncModuleExecutionRejected(m, result.[[Value]]).
+            async_module_execution_rejected(module, e, context)?;
+            continue;
+        }
 
-                    // b. Perform ! Call(m.[[TopLevelCapability]].[[Resolve]], undefined, « undefined »).
-                    cap.resolve()
-                        .call(&JsValue::undefined(), &[], context)
-                        .expect("default `resolve` function cannot fail");
-                }
-            }
+        // iii. Else,
+        // iii.1. Set m.[[AsyncEvaluationOrder]] to done.
+        // iii.2. Set m.[[Status]] to evaluated.
+        m_src.status.borrow_mut().transition(|status| match status {
+            ModuleStatus::EvaluatingAsync {
+                environment,
+                top_level_capability,
+                cycle_root,
+                ..
+            } => ModuleStatus::Evaluated {
+                environment,
+                top_level_capability,
+                cycle_root,
+                error: None,
+            },
+            _ => unreachable!(),
+        });
+
+        let status = m_src.status.borrow();
+
+        // 3. If m.[[TopLevelCapability]] is not empty, then
+        if let Some(cap) = status.top_level_capability() {
+            // a. Assert: m.[[CycleRoot]] and m are the same Module Record..
+            debug_assert_eq!(status.cycle_root(), Some(&m));
+
+            // b. Perform ! Call(m.[[TopLevelCapability]].[[Resolve]], undefined, « undefined »).
+            cap.resolve()
+                .call(&JsValue::undefined(), &[JsValue::undefined()], context)
+                .js_expect("default `resolve` function cannot fail")?;
         }
     }
     // 13. Return unused.
@@ -2096,7 +2193,7 @@ fn async_module_execution_fulfilled(module: &Module, context: &mut Context) -> J
 /// [spec]: https://tc39.es/ecma262/#sec-async-module-execution-rejected
 fn async_module_execution_rejected(
     module: &Module,
-    error: JsError,
+    error: &JsError,
     context: &mut Context,
 ) -> JsResult<()> {
     let ModuleKind::SourceText(module_src) = module.kind() else {
@@ -2105,16 +2202,17 @@ fn async_module_execution_rejected(
     // 1. If module.[[Status]] is evaluated, then
     if let ModuleStatus::Evaluated { error, .. } = &*module_src.status.borrow() {
         //     a. Assert: module.[[EvaluationError]] is not empty.
-        assert!(error.is_some());
+        debug_assert!(error.is_some());
         //     b. Return unused.
         return Ok(());
     }
 
     // 2. Assert: module.[[Status]] is evaluating-async.
-    // 3. Assert: module.[[AsyncEvaluation]] is true.
+    // 3. Assert: module.[[AsyncEvaluationOrder]] is an integer..
     // 4. Assert: module.[[EvaluationError]] is empty.
     // 5. Set module.[[EvaluationError]] to ThrowCompletion(error).
     // 6. Set module.[[Status]] to evaluated.
+    // 7. Set module.[[AsyncEvaluationOrder]] to done.
     module_src
         .status
         .borrow_mut()
@@ -2133,27 +2231,35 @@ fn async_module_execution_rejected(
             _ => unreachable!(),
         });
 
-    // 7. For each Cyclic Module Record m of module.[[AsyncParentModules]], do
+    // 8. NOTE: module.[[AsyncEvaluationOrder]] is set to done for symmetry with
+    //    AsyncModuleExecutionFulfilled. In InnerModuleEvaluation, the value of a
+    //    module's [[AsyncEvaluationOrder]] internal slot is unused when its
+    //    [[EvaluationError]] internal slot is not empty.
+
+    {
+        let status = module_src.status.borrow();
+
+        // 9. If module.[[TopLevelCapability]] is not empty, then
+        if let Some(cap) = status.top_level_capability() {
+            // a. Assert: module.[[CycleRoot]] is module.
+            debug_assert_eq!(status.cycle_root(), Some(module));
+
+            // b. Perform ! Call(module.[[TopLevelCapability]].[[Reject]], undefined, « error »).
+            cap.reject()
+                .call(
+                    &JsValue::undefined(),
+                    &[error.clone().into_opaque(context)?],
+                    context,
+                )
+                .js_expect("default `reject` function cannot fail")?;
+        }
+    }
+
+    // 10. For each Cyclic Module Record m of module.[[AsyncParentModules]], do
     for m in std::mem::take(&mut *module_src.async_parent_modules.borrow_mut()) {
         // a. Perform AsyncModuleExecutionRejected(m, error).
-        async_module_execution_rejected(&m, error.clone(), context)?;
+        async_module_execution_rejected(&m, error, context)?;
     }
-
-    let status = module_src.status.borrow();
-    // 8. If module.[[TopLevelCapability]] is not empty, then
-    if let Some(cap) = status.top_level_capability() {
-        // a. Assert: module.[[CycleRoot]] is module.
-        assert_eq!(status.cycle_root(), Some(module));
-
-        // b. Perform ! Call(module.[[TopLevelCapability]].[[Reject]], undefined, « error »).
-        cap.reject()
-            .call(
-                &JsValue::undefined(),
-                &[error.into_opaque(context)?],
-                context,
-            )
-            .expect("default `reject` function cannot fail");
-    }
-    // 9. Return unused.
+    // 11. Return unused.
     Ok(())
 }

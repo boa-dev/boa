@@ -4,7 +4,7 @@ use rustc_hash::FxHashSet;
 
 use super::{BindingName, ResolveExportError, ResolvedBinding};
 use crate::{
-    Context, JsNativeError, JsResult, JsString, JsValue, Module, SpannedSourceText,
+    Context, JsExpect, JsNativeError, JsResult, JsString, JsValue, Module, SpannedSourceText,
     builtins::promise::ResolvingFunctions,
     bytecompiler::ByteCompiler,
     class::{Class, ClassBuilder},
@@ -208,7 +208,7 @@ impl SyntheticModule {
         let locator = env
             .kind()
             .as_module()
-            .expect("must be module environment")
+            .js_expect("must be module environment")?
             .compile()
             .get_binding(export_name)
             .ok_or_else(|| {
@@ -337,7 +337,7 @@ impl SyntheticModule {
 
         let cb = Gc::new(compiler.finish());
 
-        let mut envs = EnvironmentStack::new(global_env);
+        let mut envs = EnvironmentStack::new();
         envs.push_module(module_scope);
 
         for locator in exports {
@@ -346,11 +346,12 @@ impl SyntheticModule {
                 locator.scope(),
                 locator.binding_index(),
                 JsValue::undefined(),
+                &global_env,
             );
         }
 
         let env = envs
-            .current_declarative_ref()
+            .current_declarative_ref(&global_env)
             .cloned()
             .expect("should have the module environment");
 
@@ -384,7 +385,7 @@ impl SyntheticModule {
                             .into()],
                         context,
                     )
-                    .expect("native resolving functions cannot throw");
+                    .js_expect("native resolving functions cannot throw")?;
                 return Ok(promise);
             }
             ModuleStatus::Linked { eval_context, .. } => eval_context.clone(),
@@ -420,7 +421,10 @@ impl SyntheticModule {
 
         // 11. Suspend moduleContext and remove it from the execution context stack.
         // 12. Resume the context that is now on the top of the execution context stack as the running execution context.
-        let frame = context.vm.pop_frame().expect("there should be a frame");
+        let frame = context
+            .vm
+            .pop_frame()
+            .js_expect("there should be a frame")?;
         context.vm.stack.truncate_to_frame(&frame);
 
         // 13. Let pc be ! NewPromiseCapability(%Promise%).
@@ -432,7 +436,7 @@ impl SyntheticModule {
             // 14. IfAbruptRejectPromise(result, pc).
             Err(err) => reject.call(&JsValue::undefined(), &[err.into_opaque(context)?], context),
         }
-        .expect("default resolving functions cannot throw");
+        .js_expect("default resolving functions cannot throw")?;
 
         self.state.borrow_mut().transition(|state| match state {
             ModuleStatus::Linked { environment, .. } => ModuleStatus::Evaluated {

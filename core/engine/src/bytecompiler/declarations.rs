@@ -1111,7 +1111,7 @@ impl ByteCompiler<'_> {
                         // 3. If parameterBindings does not contain n, or if functionNames contains n, then
                         if !parameter_bindings.contains(&n) || function_names.contains(&n) {
                             // a. Let initialValue be undefined.
-                            self.bytecode.emit_push_undefined(value.variable());
+                            self.bytecode.emit_store_undefined(value.variable());
                         }
                         // 4. Else,
                         else {
@@ -1127,7 +1127,7 @@ impl ByteCompiler<'_> {
                         let index = self.insert_binding(binding);
 
                         // TODO: What?
-                        self.bytecode.emit_push_undefined(value.variable());
+                        self.bytecode.emit_store_undefined(value.variable());
                         self.emit_binding_access(BindingAccessOpcode::DefInitVar, &index, &value);
                         self.register_allocator.dealloc(value);
 

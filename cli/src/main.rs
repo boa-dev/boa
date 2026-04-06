@@ -17,7 +17,7 @@ use crate::logger::SharedExternalPrinterLogger;
 use async_channel::Sender;
 use boa_engine::JsValue;
 use boa_engine::error::JsErasedError;
-use boa_engine::job::{JobExecutor, NativeAsyncJob};
+use boa_engine::job::NativeAsyncJob;
 use boa_engine::{
     Context, JsError, Source,
     builtins::promise::PromiseState,
@@ -35,9 +35,7 @@ use color_eyre::{
 };
 use colored::Colorize;
 use debug::init_boa_debug_object;
-use futures_lite::future;
 use rustyline::{EditMode, Editor, config::Config, error::ReadlineError};
-use std::cell::RefCell;
 use std::time::{Duration, Instant};
 use std::{
     fs::OpenOptions,
@@ -530,6 +528,10 @@ fn main() -> Result<()> {
         .display_env_section(false)
         .install()?;
 
+    rustls::crypto::ring::default_provider()
+        .install_default()
+        .map_err(|_| eyre!("could not install ring as the default crypto provider"))?;
+
     #[cfg(feature = "dhat")]
     let _profiler = dhat::Profiler::new_heap();
 
@@ -662,13 +664,12 @@ fn main() -> Result<()> {
         }
         // channel was closed, so clear the executor queue to abort all
         // pending jobs and exit.
-        exec.clear();
+        exec.stop();
         Ok(JsValue::undefined())
     });
     context.enqueue_job(eval_loop.into());
 
-    let result = future::block_on(executor.run_jobs_async(&RefCell::new(context)))
-        .map_err(|e| e.into_erased(context));
+    let result = context.run_jobs().map_err(|e| e.into_erased(context));
 
     handle.join().expect("failed to join thread");
 
