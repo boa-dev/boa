@@ -8,11 +8,22 @@
 use boa_engine::{
     Context, JsData, JsResult, JsString, JsValue, boa_class,
     builtins::iterable::create_iter_result_object, error::JsNativeError, interop::JsClass,
-    object::JsObject, object::builtins::JsArray, property::PropertyNameKind,
+    object::JsObject, object::builtins::JsArray,
 };
 use boa_gc::{Finalize, Trace};
 
 use super::headers::JsHeaders;
+
+/// The `IterationKind` enum represents the different kinds of iteration that can be performed.
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub(crate) enum IterationKind {
+    /// Iterates over the keys.
+    Key,
+    /// Iterates over the values.
+    Value,
+    /// Iterates over the keys and values.
+    KeyAndValue,
+}
 
 /// The Headers Iterator object represents an iteration over a Headers object.
 /// It implements the iterator protocol.
@@ -26,7 +37,7 @@ pub(crate) struct HeadersIterator {
     iterated_headers: JsObject<JsHeaders>,
     next_index: usize,
     #[unsafe_ignore_trace]
-    iteration_kind: PropertyNameKind,
+    iteration_kind: IterationKind,
 }
 
 #[boa_class(rename = "Headers Iterator")]
@@ -51,7 +62,8 @@ impl HeadersIterator {
             .iterated_headers
             .borrow()
             .data()
-            .headers_map()
+            .headers
+            .borrow()
             .iter()
             .nth(self.next_index)
             .map(|(k, v)| {
@@ -65,9 +77,9 @@ impl HeadersIterator {
             self.next_index += 1;
 
             return match item_kind {
-                PropertyNameKind::Key => create_iter_result_object(key, false, context),
-                PropertyNameKind::Value => create_iter_result_object(value, false, context),
-                PropertyNameKind::KeyAndValue => {
+                IterationKind::Key => create_iter_result_object(key, false, context),
+                IterationKind::Value => create_iter_result_object(value, false, context),
+                IterationKind::KeyAndValue => {
                     let result = JsArray::from_iter([key, value], context);
                     create_iter_result_object(result.into(), false, context)
                 }
@@ -89,9 +101,9 @@ impl HeadersIterator {
     /// Creates a new iterator over the given `Headers` object.
     pub(crate) fn create_headers_iterator(
         headers: JsObject<JsHeaders>,
-        kind: PropertyNameKind,
+        kind: IterationKind,
         context: &mut Context,
-    ) -> JsValue {
+    ) -> JsResult<JsValue> {
         let iter = Self {
             iterated_headers: headers,
             next_index: 0,
@@ -101,10 +113,10 @@ impl HeadersIterator {
         let proto = context
             .realm()
             .get_class::<Self>()
-            .expect("Headers Iterator not registered")
+            .ok_or_else(|| boa_engine::js_error!(Error: "Headers Iterator not registered"))?
             .prototype();
 
         let headers_iterator = JsObject::from_proto_and_data(proto, iter);
-        headers_iterator.into()
+        Ok(headers_iterator.into())
     }
 }

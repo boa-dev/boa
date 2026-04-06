@@ -8,11 +8,11 @@
 //! [mdn]: https://developer.mozilla.org/en-US/docs/Web/API/fetch
 
 use crate::fetch::headers::JsHeaders;
+use crate::fetch::headers_iterator::{HeadersIterator, IterationKind};
 use crate::fetch::request::{JsRequest, RequestInit};
 use crate::fetch::response::JsResponse;
 use boa_engine::class::Class;
 use boa_engine::object::FunctionObjectBuilder;
-use boa_engine::object::builtins::JsArray;
 use boa_engine::property::PropertyDescriptor;
 use boa_engine::realm::Realm;
 use boa_engine::{
@@ -25,6 +25,7 @@ use std::cell::RefCell;
 use std::rc::Rc;
 
 pub mod headers;
+pub mod headers_iterator;
 pub mod request;
 pub mod response;
 pub mod tests;
@@ -183,6 +184,7 @@ pub mod js_module {
     type JsHeaders = super::JsHeaders;
     type JsRequest = super::JsRequest;
     type JsResponse = super::JsResponse;
+    type HeadersIterator = super::headers_iterator::HeadersIterator;
 
     /// The `fetch` function.
     ///
@@ -202,21 +204,26 @@ pub mod js_module {
     }
 }
 
-#[doc(inline)]
-pub use js_module::fetch;
+fn headers_symbol_iterator(
+    this: &JsValue,
+    _: &[JsValue],
+    context: &mut Context,
+) -> JsResult<JsValue> {
+    let this_object = this.as_object().ok_or_else(
+        || js_error!(TypeError: "`Headers.prototype[Symbol.iterator]` requires a `Headers` object"),
+    )?;
 
-fn headers_iterator(this: &JsValue, _: &[JsValue], context: &mut Context) -> JsResult<JsValue> {
-    let this_object = this.as_object();
-    let headers = this_object
-        .as_ref()
-        .and_then(JsObject::downcast_ref::<JsHeaders>)
-        .ok_or_else(|| {
-            js_error!(TypeError: "`Headers.prototype[Symbol.iterator]` requires a `Headers` object")
-        })?;
+    if !this_object.is::<JsHeaders>() {
+        return Err(
+            js_error!(TypeError: "`Headers.prototype[Symbol.iterator]` requires a `Headers` object"),
+        );
+    }
 
-    let entries = headers.entries(context);
-    let entries_array = JsArray::from_object(entries.to_object(context)?)?;
-    entries_array.values(context)
+    HeadersIterator::create_headers_iterator(
+        this_object.clone().downcast().expect("checked above"),
+        IterationKind::KeyAndValue,
+        context,
+    )
 }
 
 /// Register the `fetch` function in the realm, as well as ALL supporting classes.
@@ -247,7 +254,7 @@ pub fn register<F: Fetcher>(
 
     let iterator = FunctionObjectBuilder::new(
         context.realm(),
-        NativeFunction::from_fn_ptr(headers_iterator),
+        NativeFunction::from_fn_ptr(headers_symbol_iterator),
     )
     .name(js_string!("[Symbol.iterator]"))
     .length(0)
