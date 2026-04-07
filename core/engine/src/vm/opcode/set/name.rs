@@ -1,7 +1,7 @@
 use boa_ast::scope::{BindingLocator, BindingLocatorScope};
 
 use crate::{
-    Context, JsError, JsNativeError, JsResult,
+    Context, JsError, JsExpect, JsNativeError, JsResult,
     environments::Environment,
     vm::opcode::{IndexOperand, Operation, RegisterOperand},
 };
@@ -86,7 +86,7 @@ impl SetNameByLocator {
         let binding_locator = frame
             .binding_stack
             .pop()
-            .expect("locator should have been popped before");
+            .js_expect("locator should have been popped before")?;
         let value = context.vm.get_register(value.into()).clone();
 
         verify_initialized(&binding_locator, context)?;

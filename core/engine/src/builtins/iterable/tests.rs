@@ -607,7 +607,6 @@ fn iterator_concat_return_result_shape() {
          const r = it.return(); r.done === true && r.value === undefined",
     )]);
 }
-
 #[cfg(feature = "experimental")]
 #[test]
 fn iterator_zip_keyed_longest_mode() {
@@ -795,4 +794,58 @@ fn iterator_zip_longest_with_three_iterators() {
         "#,
         js_str!("[[1,10,100],[null,20,200],[null,null,300]]"),
     )]);
+}
+
+#[test]
+fn iterator_includes_basic() {
+    run_test_actions([
+        TestAction::run("const gen = () => Iterator.from([1, 3]);"),
+        TestAction::assert_eq("gen().includes(1)", true),
+        TestAction::assert_eq("gen().includes(2)", false),
+        TestAction::assert_eq("gen().includes(3)", true),
+        TestAction::assert_eq("gen().drop(1).includes(1)", false),
+        TestAction::assert_eq("gen().drop(1).includes(3)", true),
+        TestAction::assert_eq("gen().drop(2).includes(3)", false),
+        TestAction::assert_eq("gen().includes(1, 1)", false),
+        TestAction::assert_eq("gen().includes(3, 1)", true),
+        TestAction::assert_eq("gen().includes(3, 2)", false),
+    ]);
+}
+
+#[test]
+fn iterator_includes_generator() {
+    run_test_actions([
+        TestAction::run("function* gen() { yield 1; yield 3; }"),
+        TestAction::assert_eq("gen().includes(1)", true),
+        TestAction::assert_eq("gen().includes(2)", false),
+        TestAction::assert_eq("gen().includes(3)", true),
+        TestAction::assert_eq("gen().drop(1).includes(1)", false),
+        TestAction::assert_eq("gen().drop(1).includes(3)", true),
+        TestAction::assert_eq("gen().drop(2).includes(3)", false),
+        TestAction::assert_eq("gen().includes(1, 1)", false),
+        TestAction::assert_eq("gen().includes(3, 1)", true),
+        TestAction::assert_eq("gen().includes(3, 2)", false),
+    ]);
+}
+
+#[test]
+fn iterator_includes_errors() {
+    run_test_actions([
+        TestAction::run("const gen = () => Iterator.from([1, 3]);"),
+        TestAction::assert_native_error(
+            "gen().includes(1, NaN)",
+            JsNativeErrorKind::Type,
+            "skippedElements must be a number",
+        ),
+        TestAction::assert_native_error(
+            "gen().includes(1, 'a string')",
+            JsNativeErrorKind::Type,
+            "skippedElements must be a number",
+        ),
+        TestAction::assert_native_error(
+            "gen().includes(1, -1)",
+            JsNativeErrorKind::Range,
+            "skippedElements must be a positive number",
+        ),
+    ]);
 }

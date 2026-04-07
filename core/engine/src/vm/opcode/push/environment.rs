@@ -1,5 +1,5 @@
 use crate::{
-    Context, JsResult,
+    Context, JsExpect, JsResult,
     builtins::function::OrdinaryFunction,
     environments::PrivateEnvironment,
     vm::opcode::{IndexOperand, Operation, RegisterOperand},
@@ -67,9 +67,9 @@ impl PushPrivateEnvironment {
     pub(crate) fn operation(
         (class, name_indices): (RegisterOperand, ThinVec<u32>),
         context: &mut Context,
-    ) {
+    ) -> JsResult<()> {
         let class = context.vm.get_register(class.into());
-        let class = class.as_object().expect("should be a object");
+        let class = class.as_object().js_expect("should be a object")?;
         let mut names = Vec::with_capacity(name_indices.len());
         for index in name_indices {
             let name = context
@@ -85,13 +85,14 @@ impl PushPrivateEnvironment {
 
         class
             .downcast_mut::<OrdinaryFunction>()
-            .expect("class object must be function")
+            .js_expect("class object must be function")?
             .push_private_environment(environment.clone());
         context
             .vm
             .frame_mut()
             .environments
             .push_private(environment);
+        Ok(())
     }
 }
 
