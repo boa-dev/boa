@@ -1099,7 +1099,6 @@ impl ByteCompiler<'_> {
                 for n in var_names {
                     // i. If instantiatedVarNames does not contain n, then
                     if instantiated_var_names.insert(n) {
-
                         let n_string = n.to_js_string(self.interner());
 
                         // 2. Perform ! varEnv.CreateMutableBinding(n, false).
@@ -1146,7 +1145,6 @@ impl ByteCompiler<'_> {
                 for n in var_names {
                     // i. If instantiatedVarNames does not contain n, then
                     if instantiated_var_names.insert(n) {
-
                         let n = n.to_js_string(self.interner());
 
                         // 2. Perform ! env.CreateMutableBinding(n, false).
