@@ -50,6 +50,7 @@ impl RequestInit {
         if let Some(r) = request {
             let (parts, body) = r.into_parts();
             is_get_or_head_method = matches!(parts.method, http::Method::GET | http::Method::HEAD);
+            // https://fetch.spec.whatwg.org/#dom-request - "Let inputBody be input's request's body if input is a Request object; otherwise null."
             has_inherited_body = parts.extensions.get::<HasBody>().is_some() || !body.is_empty();
             builder = builder
                 .method(parts.method)
@@ -94,6 +95,7 @@ impl RequestInit {
             builder = builder.method(method.as_str());
         }
 
+        // https://fetch.spec.whatwg.org/#dom-request - "If either init["body"] exists and is non-null or inputBody is non-null, and request's method is GET or HEAD, then throw a TypeError."
         if is_get_or_head_method && (self.body.is_some() || has_inherited_body) {
             return Err(js_error!(TypeError: "Request with GET/HEAD method cannot have body."));
         }
