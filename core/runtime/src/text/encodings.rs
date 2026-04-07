@@ -21,61 +21,66 @@ pub(crate) mod utf8 {
     }
 }
 
+/// Decodes an iterator of UTF-16 code units into a well-formed `JsString`,
+/// replacing any unpaired surrogates with U+FFFD.
+///
+/// If `dangling_byte` is true and the last decoded code unit is not a high
+/// surrogate (which would already have been replaced), an additional U+FFFD
+/// is appended for the truncated trailing byte.
+fn decode_utf16_units(
+    code_units: impl IntoIterator<Item = u16>,
+    dangling_byte: bool,
+) -> boa_engine::JsString {
+    let mut string = String::new();
+    let mut last_code_unit = None;
+    string.extend(
+        std::char::decode_utf16(code_units.into_iter().inspect(|code_unit| {
+            last_code_unit = Some(*code_unit);
+        }))
+        .map(|result| result.unwrap_or('\u{FFFD}')),
+    );
+    let trailing_high_surrogate =
+        last_code_unit.is_some_and(|code_unit| (0xD800..=0xDBFF).contains(&code_unit));
+    if dangling_byte && !trailing_high_surrogate {
+        string.push('\u{FFFD}');
+    }
+    boa_engine::JsString::from(string)
+}
+
 pub(crate) mod utf16le {
-    use boa_engine::{JsString, js_string};
+    use boa_engine::JsString;
 
     pub(crate) fn decode(mut input: &[u8], strip_bom: bool) -> JsString {
         if strip_bom {
             input = input.strip_prefix(&[0xFF, 0xFE]).unwrap_or(input);
         }
 
-        // After this point, input is of even length.
-        let dangling = if input.len().is_multiple_of(2) {
-            false
-        } else {
+        let dangling_byte = !input.len().is_multiple_of(2);
+        if dangling_byte {
             input = &input[0..input.len() - 1];
-            true
-        };
-
-        let input: &[u16] = bytemuck::cast_slice(input);
-
-        if dangling {
-            JsString::from(&[JsString::from(input), js_string!("\u{FFFD}")])
-        } else {
-            JsString::from(input)
         }
+
+        let code_units: &[u16] = bytemuck::cast_slice(input);
+        super::decode_utf16_units(code_units.iter().copied(), dangling_byte)
     }
 }
 
 pub(crate) mod utf16be {
-    use boa_engine::{JsString, js_string};
+    use boa_engine::JsString;
 
-    pub(crate) fn decode(mut input: Vec<u8>, strip_bom: bool) -> JsString {
-        if strip_bom && input.starts_with(&[0xFE, 0xFF]) {
-            input.drain(..2);
+    pub(crate) fn decode(mut input: &[u8], strip_bom: bool) -> JsString {
+        if strip_bom && let Some(rest) = input.strip_prefix(&[0xFE, 0xFF]) {
+            input = rest;
         }
 
-        let mut input = input.as_mut_slice();
-        // After this point, input is of even length.
-        let dangling = if input.len().is_multiple_of(2) {
-            false
-        } else {
-            let new_len = input.len() - 1;
-            input = &mut input[0..new_len];
-            true
-        };
-
-        let input: &mut [u16] = bytemuck::cast_slice_mut(input);
-
-        // Swap the bytes.
-        for b in &mut *input {
-            *b = b.swap_bytes();
+        let dangling_byte = !input.len().is_multiple_of(2);
+        if dangling_byte {
+            input = &input[0..input.len() - 1];
         }
 
-        if dangling {
-            JsString::from(&[JsString::from(&*input), js_string!("\u{FFFD}")])
-        } else {
-            JsString::from(&*input)
-        }
+        let code_units = input
+            .chunks_exact(2)
+            .map(|pair| u16::from_be_bytes([pair[0], pair[1]]));
+        super::decode_utf16_units(code_units, dangling_byte)
     }
 }
