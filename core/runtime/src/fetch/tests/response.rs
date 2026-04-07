@@ -33,6 +33,28 @@ fn response_error() {
 }
 
 #[test]
+fn response_constructor_null_body_status_throws() {
+    run_test_actions([
+        TestAction::harness(),
+        TestAction::inspect_context(|ctx| register(&[], ctx)),
+        TestAction::run(
+            r#"
+                for (const status of [204, 205, 304]) {
+                    try {
+                        new Response("x", { status });
+                        throw Error("expected the call above to throw");
+                    } catch (e) {
+                        if (!(e instanceof TypeError)) {
+                            throw e;
+                        }
+                    }
+                }
+            "#,
+        ),
+    ]);
+}
+
+#[test]
 fn response_text() {
     run_test_actions([
         TestAction::harness(),
@@ -166,6 +188,20 @@ fn response_redirect_default_status() {
                 const response = Response.redirect("http://example.com/");
                 assertEq(response.status, 302);
                 assertEq(response.headers.get("location"), "http://example.com/");
+            "#,
+        ),
+    ]);
+}
+
+#[test]
+fn response_redirect_type_default() {
+    run_test_actions([
+        TestAction::harness(),
+        TestAction::inspect_context(|ctx| register(&[], ctx)),
+        TestAction::run(
+            r#"
+                assertEq(Response.redirect("http://unit.test").type, "default");
+                assertEq(Response.redirect("http://unit.test", 301).type, "default");
             "#,
         ),
     ]);

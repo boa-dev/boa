@@ -135,7 +135,7 @@ fn iterator_take_negative_throws() {
     run_test_actions([TestAction::assert_native_error(
         "Iterator.from([1]).take(-1)",
         JsNativeErrorKind::Range,
-        "Iterator.prototype.take: limit is negative",
+        "Iterator.prototype.take: limit cannot be negative",
     )]);
 }
 
@@ -144,7 +144,7 @@ fn iterator_take_nan_throws() {
     run_test_actions([TestAction::assert_native_error(
         "Iterator.from([1]).take(NaN)",
         JsNativeErrorKind::Range,
-        "Iterator.prototype.take: limit is NaN",
+        "Iterator.prototype.take: limit cannot be NaN",
     )]);
 }
 
@@ -232,7 +232,7 @@ fn iterator_reduce_empty_no_initial_throws() {
     run_test_actions([TestAction::assert_native_error(
         "Iterator.from([]).reduce((acc, x) => acc + x)",
         JsNativeErrorKind::Type,
-        "Iterator.prototype.reduce: reduce of empty iterator with no initial value",
+        "Iterator.prototype.reduce: cannot reduce empty iterator with no initial value",
     )]);
 }
 
@@ -444,4 +444,58 @@ fn iterator_concat_return_result_shape() {
         "const it = Iterator.concat([1,2]); it.next();
          const r = it.return(); r.done === true && r.value === undefined",
     )]);
+}
+
+#[test]
+fn iterator_includes_basic() {
+    run_test_actions([
+        TestAction::run("const gen = () => Iterator.from([1, 3]);"),
+        TestAction::assert_eq("gen().includes(1)", true),
+        TestAction::assert_eq("gen().includes(2)", false),
+        TestAction::assert_eq("gen().includes(3)", true),
+        TestAction::assert_eq("gen().drop(1).includes(1)", false),
+        TestAction::assert_eq("gen().drop(1).includes(3)", true),
+        TestAction::assert_eq("gen().drop(2).includes(3)", false),
+        TestAction::assert_eq("gen().includes(1, 1)", false),
+        TestAction::assert_eq("gen().includes(3, 1)", true),
+        TestAction::assert_eq("gen().includes(3, 2)", false),
+    ]);
+}
+
+#[test]
+fn iterator_includes_generator() {
+    run_test_actions([
+        TestAction::run("function* gen() { yield 1; yield 3; }"),
+        TestAction::assert_eq("gen().includes(1)", true),
+        TestAction::assert_eq("gen().includes(2)", false),
+        TestAction::assert_eq("gen().includes(3)", true),
+        TestAction::assert_eq("gen().drop(1).includes(1)", false),
+        TestAction::assert_eq("gen().drop(1).includes(3)", true),
+        TestAction::assert_eq("gen().drop(2).includes(3)", false),
+        TestAction::assert_eq("gen().includes(1, 1)", false),
+        TestAction::assert_eq("gen().includes(3, 1)", true),
+        TestAction::assert_eq("gen().includes(3, 2)", false),
+    ]);
+}
+
+#[test]
+fn iterator_includes_errors() {
+    run_test_actions([
+        TestAction::run("const gen = () => Iterator.from([1, 3]);"),
+        TestAction::assert_native_error(
+            "gen().includes(1, NaN)",
+            JsNativeErrorKind::Type,
+            "skippedElements must be a number",
+        ),
+        TestAction::assert_native_error(
+            "gen().includes(1, 'a string')",
+            JsNativeErrorKind::Type,
+            "skippedElements must be a number",
+        ),
+        TestAction::assert_native_error(
+            "gen().includes(1, -1)",
+            JsNativeErrorKind::Range,
+            "skippedElements must be a positive number",
+        ),
+    ]);
 }

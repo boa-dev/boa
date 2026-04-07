@@ -176,7 +176,7 @@ impl FormatOptions {
         context: &mut Context,
     ) -> JsResult<Self> {
         // Below is adapted and inlined from Step 24 of `CreateDateTimeFormat`
-        let week_day = get_option::<WeekDay>(options, js_string!("weekDay"), context)?;
+        let week_day = get_option::<WeekDay>(options, js_string!("weekday"), context)?;
         let era = get_option::<Era>(options, js_string!("era"), context)?;
         let year = get_option::<Year>(options, js_string!("year"), context)?;
         let month = get_option::<Month>(options, js_string!("month"), context)?;
@@ -643,7 +643,7 @@ fn has_calendar_data_for_locale<C: CldrCalendar>(
 where
     IntlProvider: DryDataProvider<C::YearNamesV1>,
 {
-    use icu_datetime::provider::neo::marker_attrs;
+    use icu_datetime::provider::semantic_skeletons::marker_attrs;
     use icu_provider::prelude::{
         DataIdentifierBorrowed, DataRequest, DataRequestMetadata,
         icu_locale_core::preferences::LocalePreferences,

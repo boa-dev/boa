@@ -1,3 +1,12 @@
+//! Lowering for ECMAScript expressions.
+//!
+//! The functions in this module implement the bytecompiler side of expression evaluation. They
+//! preserve the source language evaluation order while translating AST nodes into opcode sequences
+//! that the VM can execute later. See the ECMAScript expression grammar and runtime semantics in
+//! the [specification][spec].
+//!
+//! [spec]: https://tc39.es/ecma262/#sec-ecmascript-language-expressions
+
 mod assign;
 mod binary;
 mod object_literal;
