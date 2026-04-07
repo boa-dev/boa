@@ -4,9 +4,12 @@ use crate::{
 };
 use boa_ast::{
     Expression,
-    expression::operator::{
-        Binary, BinaryInPrivate,
-        binary::{ArithmeticOp, BinaryOp, BitwiseOp, LogicalOp, RelationalOp},
+    expression::{
+        literal::LiteralKind,
+        operator::{
+            Binary, BinaryInPrivate,
+            binary::{ArithmeticOp, BinaryOp, BitwiseOp, LogicalOp, RelationalOp},
+        },
     },
 };
 
@@ -15,7 +18,14 @@ impl ByteCompiler<'_> {
         match binary.op() {
             BinaryOp::Arithmetic(op) => {
                 self.compile_expr_operand(binary.lhs(), |self_, lhs| {
-                    self_.compile_binary_arithmetic(op, binary.rhs(), dst, lhs);
+                    if op == ArithmeticOp::Sub
+                        && let Expression::Literal(literal) = binary.rhs().flatten()
+                        && let LiteralKind::Int(1) = literal.kind()
+                    {
+                        self_.bytecode.emit_dec(dst.variable(), lhs);
+                    } else {
+                        self_.compile_binary_arithmetic(op, binary.rhs(), dst, lhs);
+                    }
                 });
             }
             BinaryOp::Bitwise(op) => {
