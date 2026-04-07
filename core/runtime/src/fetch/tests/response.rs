@@ -194,6 +194,20 @@ fn response_redirect_default_status() {
 }
 
 #[test]
+fn response_redirect_type_default() {
+    run_test_actions([
+        TestAction::harness(),
+        TestAction::inspect_context(|ctx| register(&[], ctx)),
+        TestAction::run(
+            r#"
+                assertEq(Response.redirect("http://unit.test").type, "default");
+                assertEq(Response.redirect("http://unit.test", 301).type, "default");
+            "#,
+        ),
+    ]);
+}
+
+#[test]
 fn response_redirect_custom_status_and_coercion() {
     run_test_actions([
         TestAction::harness(),
