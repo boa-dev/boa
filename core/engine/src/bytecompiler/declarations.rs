@@ -435,8 +435,7 @@ impl ByteCompiler<'_> {
         functions_to_initialize.reverse();
 
         // 9. Let declaredVarNames be a new empty List.
-        let mut declared_var_names = Vec::new();
-        let mut declared_var_names_set = FxHashSet::default();
+        let mut declared_var_names = FxHashSet::default();
 
         // 10. For each element d of varDeclarations, do
         //     a. If d is either a VariableDeclaration, a ForBinding, or a BindingIdentifier, then
@@ -457,10 +456,8 @@ impl ByteCompiler<'_> {
                     // for this check.
 
                     // c. If declaredVarNames does not contain vn, then
-                    if declared_var_names_set.insert(name) {
-                        // i. Append vn to declaredVarNames.
-                        declared_var_names.push(name);
-                    }
+                    // i. Append vn to declaredVarNames.
+                    declared_var_names.insert(name);
                 }
             }
         }
@@ -709,8 +706,7 @@ impl ByteCompiler<'_> {
         }
 
         // 12. Let declaredVarNames be a new empty List.
-        let mut declared_var_names = Vec::new();
-        let mut declared_var_names_set = FxHashSet::default();
+        let mut declared_var_names = FxHashSet::default();
 
         // 13. For each element d of varDeclarations, do
         for declaration in var_declarations {
@@ -732,10 +728,8 @@ impl ByteCompiler<'_> {
                     //    for this check.
 
                     // b. If declaredVarNames does not contain vn, then
-                    if declared_var_names_set.insert(name) {
-                        // i. Append vn to declaredVarNames.
-                        declared_var_names.push(name);
-                    }
+                    // i. Append vn to declaredVarNames.
+                    declared_var_names.insert(name);
                 }
             }
         }
