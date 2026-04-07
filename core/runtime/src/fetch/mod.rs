@@ -213,17 +213,13 @@ fn headers_symbol_iterator(
         || js_error!(TypeError: "`Headers.prototype[Symbol.iterator]` requires a `Headers` object"),
     )?;
 
-    if !this_object.is::<JsHeaders>() {
+    let Ok(headers) = this_object.clone().downcast::<JsHeaders>() else {
         return Err(
             js_error!(TypeError: "`Headers.prototype[Symbol.iterator]` requires a `Headers` object"),
         );
-    }
+    };
 
-    HeadersIterator::create_headers_iterator(
-        this_object.clone().downcast().expect("checked above"),
-        IterationKind::KeyAndValue,
-        context,
-    )
+    HeadersIterator::create_headers_iterator(headers, IterationKind::KeyAndValue, context)
 }
 
 /// Register the `fetch` function in the realm, as well as ALL supporting classes.
