@@ -1,16 +1,20 @@
 //! A Rust API wrapper for Boa's `AsyncGenerator` Builtin ECMAScript Object
 use super::JsPromise;
 use crate::{
-    Context, JsNativeError, JsResult, JsValue, builtins::async_generator::AsyncGenerator,
-    object::JsObject, value::TryFromJs,
+    Context, JsNativeError, JsResult, JsValue,
+    builtins::{async_generator::AsyncGenerator, promise::PromiseCapability},
+    js_error,
+    object::JsObject,
+    value::TryFromJs,
 };
 use boa_gc::{Finalize, Trace};
 use std::ops::Deref;
 
 /// `JsAsyncGenerator` provides a wrapper for Boa's implementation of the ECMAScript `AsyncGenerator` builtin object.
 #[derive(Debug, Clone, Trace, Finalize)]
+#[boa_gc(unsafe_no_drop)]
 pub struct JsAsyncGenerator {
-    inner: JsObject,
+    inner: JsObject<AsyncGenerator>,
 }
 
 impl JsAsyncGenerator {
@@ -22,13 +26,10 @@ impl JsAsyncGenerator {
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/AsyncGenerator
     #[inline]
     pub fn from_object(object: JsObject) -> JsResult<Self> {
-        if object.is::<AsyncGenerator>() {
-            Ok(Self { inner: object })
-        } else {
-            Err(JsNativeError::typ()
-                .with_message("object is not an AsyncGenerator")
-                .into())
-        }
+        object
+            .downcast::<AsyncGenerator>()
+            .map(|inner| Self { inner })
+            .map_err(|_| js_error!(TypeError: "object is not an AsyncGenerator object"))
     }
 
     /// Calls `AsyncGenerator.prototype.next()`.
@@ -41,14 +42,14 @@ impl JsAsyncGenerator {
     where
         T: Into<JsValue>,
     {
-        let value = AsyncGenerator::next(&self.inner.clone().into(), &[value.into()], context)?;
-        let obj = value
-            .as_object()
-            .ok_or_else(|| {
-                JsNativeError::typ().with_message("async generator did not return a Promise")
-            })?
-            .clone();
-        JsPromise::from_object(obj)
+        let (typed_promise, functions) = JsPromise::new_pending(context);
+        let capability = PromiseCapability {
+            functions,
+            promise: JsObject::clone(&typed_promise).clone().upcast(),
+        };
+        AsyncGenerator::inner_next(&self.inner, capability, value.into(), context)?;
+
+        Ok(typed_promise)
     }
 
     /// Calls `AsyncGenerator.prototype.return()`.
@@ -61,14 +62,13 @@ impl JsAsyncGenerator {
     where
         T: Into<JsValue>,
     {
-        let value = AsyncGenerator::r#return(&self.inner.clone().into(), &[value.into()], context)?;
-        let obj = value
-            .as_object()
-            .ok_or_else(|| {
-                JsNativeError::typ().with_message("async generator did not return a Promise")
-            })?
-            .clone();
-        JsPromise::from_object(obj)
+        let (typed_promise, functions) = JsPromise::new_pending(context);
+        let capability = PromiseCapability {
+            functions,
+            promise: JsObject::clone(&typed_promise).upcast(),
+        };
+        AsyncGenerator::inner_return(&self.inner, capability, value.into(), context)?;
+        Ok(typed_promise)
     }
 
     /// Calls `AsyncGenerator.prototype.throw()`.
@@ -81,21 +81,20 @@ impl JsAsyncGenerator {
     where
         T: Into<JsValue>,
     {
-        let value = AsyncGenerator::throw(&self.inner.clone().into(), &[value.into()], context)?;
-        let obj = value
-            .as_object()
-            .ok_or_else(|| {
-                JsNativeError::typ().with_message("async generator did not return a Promise")
-            })?
-            .clone();
-        JsPromise::from_object(obj)
+        let (typed_promise, functions) = JsPromise::new_pending(context);
+        let capability = PromiseCapability {
+            functions,
+            promise: JsObject::clone(&typed_promise).clone().upcast(),
+        };
+        AsyncGenerator::inner_throw(&self.inner, capability, value.into(), context)?;
+        Ok(typed_promise)
     }
 }
 
 impl From<JsAsyncGenerator> for JsObject {
     #[inline]
     fn from(o: JsAsyncGenerator) -> Self {
-        o.inner.clone()
+        o.inner.upcast()
     }
 }
 
@@ -107,7 +106,7 @@ impl From<JsAsyncGenerator> for JsValue {
 }
 
 impl Deref for JsAsyncGenerator {
-    type Target = JsObject;
+    type Target = JsObject<AsyncGenerator>;
 
     #[inline]
     fn deref(&self) -> &Self::Target {
