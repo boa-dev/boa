@@ -293,11 +293,7 @@ impl UrlSearchParamsIterator {
                 kind,
                 done: false,
             },
-            context
-                .intrinsics()
-                .objects()
-                .iterator_prototypes()
-                .iterator(),
+            context.intrinsics().constructors().iterator().prototype(),
             context,
         )
         .function(
