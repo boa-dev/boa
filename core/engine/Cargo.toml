@@ -176,7 +176,7 @@ icu_segmenter = { workspace = true, default-features = false, features = [
     "serde",
 ], optional = true }
 icu_decimal = { workspace = true, default-features = false, features = [
-    "serde",
+    "serde", "unstable"
 ], optional = true }
 writeable = { workspace = true, optional = true }
 yoke = { workspace = true, optional = true }
