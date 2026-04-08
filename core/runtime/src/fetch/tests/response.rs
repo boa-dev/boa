@@ -179,6 +179,83 @@ fn response_getter() {
 }
 
 #[test]
+fn fetch_request_uses_request_signal() {
+    run_test_actions([
+        TestAction::harness(),
+        TestAction::inspect_context(|ctx| {
+            register(
+                &[("http://unit.test", Response::new(b"Hello World".to_vec()))],
+                ctx,
+            );
+        }),
+        TestAction::run(
+            r#"
+                globalThis.response = (async () => {
+                    const ctrl = new AbortController();
+                    const request = new Request("http://unit.test", { signal: ctrl.signal });
+                    ctrl.abort("stop");
+
+                    try {
+                        await fetch(request);
+                        return "fulfilled";
+                    } catch (e) {
+                        return e;
+                    }
+                })();
+            "#,
+        ),
+        TestAction::inspect_context(|ctx| {
+            let response = ctx.global_object().get(js_str!("response"), ctx).unwrap();
+            let response = response.as_promise().unwrap().await_blocking(ctx).unwrap();
+            assert_eq!(
+                response.as_string().map(|s| s.to_std_string_escaped()),
+                Some("stop".into())
+            );
+        }),
+    ]);
+}
+
+#[test]
+fn fetch_options_signal_overrides_request_signal() {
+    run_test_actions([
+        TestAction::harness(),
+        TestAction::inspect_context(|ctx| {
+            register(
+                &[("http://unit.test", Response::new(b"Hello World".to_vec()))],
+                ctx,
+            );
+        }),
+        TestAction::run(
+            r#"
+                globalThis.response = (async () => {
+                    const requestCtrl = new AbortController();
+                    const fetchCtrl = new AbortController();
+                    const request = new Request("http://unit.test", {
+                        signal: requestCtrl.signal,
+                    });
+                    fetchCtrl.abort("fetch stop");
+
+                    try {
+                        await fetch(request, { signal: fetchCtrl.signal });
+                        return "fulfilled";
+                    } catch (e) {
+                        return e;
+                    }
+                })();
+            "#,
+        ),
+        TestAction::inspect_context(|ctx| {
+            let response = ctx.global_object().get(js_str!("response"), ctx).unwrap();
+            let response = response.as_promise().unwrap().await_blocking(ctx).unwrap();
+            assert_eq!(
+                response.as_string().map(|s| s.to_std_string_escaped()),
+                Some("fetch stop".into())
+            );
+        }),
+    ]);
+}
+
+#[test]
 fn response_redirect_default_status() {
     run_test_actions([
         TestAction::harness(),
