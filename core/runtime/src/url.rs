@@ -18,7 +18,7 @@
 #[cfg(test)]
 mod tests;
 
-use boa_engine::builtins::iterable::create_iter_result_object;
+use boa_engine::builtins::iterable::{IteratorRecord, create_iter_result_object};
 use boa_engine::builtins::object::OrdinaryObject;
 use boa_engine::class::Class;
 use boa_engine::interop::{JsClass, TryFromJsArgument};
@@ -103,110 +103,8 @@ impl<'a> TryFromJsArgument<'a> for OptionalArg {
     }
 }
 
-#[derive(Debug, Clone)]
-struct SyncIterator {
-    iterator: JsObject,
-    next: JsObject,
-    done: bool,
-}
-
-#[derive(Debug, Clone)]
-struct IteratorStep {
-    done: bool,
-    value: JsValue,
-}
-
-impl SyncIterator {
-    fn from_method(
-        value: &JsValue,
-        iterator_method: &JsObject,
-        context: &mut Context,
-    ) -> JsResult<Self> {
-        let iterator = iterator_method.call(value, &[], context)?;
-        let Some(iterator) = iterator.as_object() else {
-            return Err(js_error!(TypeError: "returned iterator is not an object"));
-        };
-
-        let next = iterator.get(js_string!("next"), context)?;
-        let Some(next) = next.as_object().filter(JsObject::is_callable) else {
-            return Err(js_error!(
-                TypeError: "value returned for property of object is not a function"
-            ));
-        };
-
-        Ok(Self {
-            iterator: iterator.clone(),
-            next: next.clone(),
-            done: false,
-        })
-    }
-
-    fn next_result(
-        &mut self,
-        value: Option<&JsValue>,
-        context: &mut Context,
-    ) -> JsResult<IteratorStep> {
-        let result = self
-            .next
-            .call(
-                &self.iterator.clone().into(),
-                value.map_or(&[], std::slice::from_ref),
-                context,
-            )
-            .inspect_err(|_| {
-                self.done = true;
-            })?;
-
-        let Some(result) = result.as_object() else {
-            self.done = true;
-            return Err(js_error!(TypeError: "next value should be an object"));
-        };
-
-        let done = result
-            .get(js_string!("done"), context)
-            .inspect_err(|_| {
-                self.done = true;
-            })?
-            .to_boolean();
-        let value = result.get(js_string!("value"), context).inspect_err(|_| {
-            self.done = true;
-        })?;
-
-        self.done = done;
-
-        Ok(IteratorStep { done, value })
-    }
-
-    fn step_value(&mut self, context: &mut Context) -> JsResult<Option<JsValue>> {
-        let result = self.next_result(None, context)?;
-        Ok((!result.done).then_some(result.value))
-    }
-
-    fn close(&self, completion: JsResult<JsValue>, context: &mut Context) -> JsResult<JsValue> {
-        let return_method = match self.iterator.get_method(js_string!("return"), context) {
-            Ok(Some(return_method)) => {
-                return_method.call(&self.iterator.clone().into(), &[], context)
-            }
-            Ok(None) => return completion,
-            Err(err) => {
-                completion?;
-                return Err(err);
-            }
-        };
-
-        let completion = completion?;
-        let return_value = return_method?;
-
-        if return_value.is_object() {
-            Ok(completion)
-        } else {
-            Err(js_error!(TypeError: "inner result was not an object"))
-        }
-    }
-}
-
 fn close_iterator_with_error<T>(
-    iterator: &SyncIterator,
+    iterator: &IteratorRecord,
     error: JsError,
     context: &mut Context,
 ) -> JsResult<T> {
@@ -226,8 +124,8 @@ fn collect_sequence_item_pair(
         ));
     };
 
-    let mut pair_iterator =
-        SyncIterator::from_method(&item.clone().into(), &iterator_method, context)?;
+    let item_value = JsValue::from(item.clone());
+    let mut pair_iterator = item_value.get_iterator_from_method(&iterator_method, context)?;
 
     let Some(name) = pair_iterator.step_value(context)? else {
         return Err(js_error!(
@@ -267,7 +165,7 @@ fn collect_sequence_pairs(
     iterator_method: &JsObject,
     context: &mut Context,
 ) -> JsResult<Vec<(JsString, JsString)>> {
-    let mut items = SyncIterator::from_method(init, iterator_method, context)?;
+    let mut items = init.get_iterator_from_method(iterator_method, context)?;
     let mut pairs = Vec::new();
 
     while let Some(item) = items.step_value(context)? {
