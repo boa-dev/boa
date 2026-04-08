@@ -575,7 +575,7 @@ impl IteratorRecord {
     ///  - [ECMA reference][spec]
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-iteratorstepvalue
-    pub(crate) fn step_value(&mut self, context: &mut Context) -> JsResult<Option<JsValue>> {
+    pub fn step_value(&mut self, context: &mut Context) -> JsResult<Option<JsValue>> {
         // 1. Let result be ? IteratorStep(iteratorRecord).
         if self.step(context)? {
             // 2. If result is done, then
@@ -601,11 +601,7 @@ impl IteratorRecord {
     ///  - [ECMA reference][spec]
     ///
     ///  [spec]: https://tc39.es/ecma262/#sec-iteratorclose
-    pub(crate) fn close(
-        &self,
-        completion: JsResult<JsValue>,
-        context: &mut Context,
-    ) -> JsResult<JsValue> {
+    pub fn close(&self, completion: JsResult<JsValue>, context: &mut Context) -> JsResult<JsValue> {
         // 1. Assert: Type(iteratorRecord.[[Iterator]]) is Object.
 
         // 2. Let iterator be iteratorRecord.[[Iterator]].
