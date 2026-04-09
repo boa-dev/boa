@@ -204,8 +204,14 @@ impl JobExecutor for Executor {
                 self.async_jobs
                     .borrow_mut()
                     .push_back(NativeAsyncJob::new(async move |context| {
+                        // Clamp timeout to prevent setTimeout(fn, 0) loops
+                        // from starving the main event loop. 1ms to match Node:
+                        // https://nodejs.org/api/timers.html#settimeoutcallback-delay-args
+                        const MIN_TIMEOUT: std::time::Duration =
+                            std::time::Duration::from_millis(1);
+                        let timeout = std::cmp::max(job.timeout().into(), MIN_TIMEOUT);
                         let timer = async {
-                            smol::Timer::after(job.timeout().into()).await;
+                            smol::Timer::after(timeout).await;
                             job.call(&mut context.borrow_mut())
                         };
                         let cancel = async {
