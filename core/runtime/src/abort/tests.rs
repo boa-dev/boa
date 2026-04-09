@@ -144,22 +144,91 @@ fn add_event_listener_ignores_unknown_event_names() {
 }
 
 #[test]
-fn add_event_listener_ignores_unknown_event_names_after_abort() {
-    run_test_actions([TestAction::run(
-        r"
-        let ctrl = new AbortController();
-        ctrl.abort();
+fn add_event_listener_does_not_fire_abort_listener_added_after_abort() {
+    run_test_actions([
+        TestAction::run(
+            r"
+            let ctrl = new AbortController();
+            ctrl.abort();
 
-        let called = false;
-        ctrl.signal.addEventListener('nope', function() {
-            called = true;
-        });
+            let called = false;
+            ctrl.signal.addEventListener('abort', function() {
+                called = true;
+            });
+            ",
+        ),
+        TestAction::inspect_context(|ctx| {
+            ctx.run_jobs().unwrap();
+        }),
+        TestAction::run(
+            r"
+            if (called) {
+                throw new Error('abort listener should not fire when added after abort');
+            }
+            ",
+        ),
+    ]);
+}
 
-        if (called) {
-            throw new Error('unknown event listener should not fire after abort');
-        }
-        ",
-    )]);
+#[test]
+fn add_event_listener_deduplicates_same_type_and_callback() {
+    run_test_actions([
+        TestAction::run(
+            r"
+            let ctrl = new AbortController();
+            let count = 0;
+
+            function onAbort() {
+                count += 1;
+            }
+
+            ctrl.signal.addEventListener('abort', onAbort);
+            ctrl.signal.addEventListener('abort', onAbort);
+            ctrl.abort();
+            ",
+        ),
+        TestAction::inspect_context(|ctx| {
+            ctx.run_jobs().unwrap();
+        }),
+        TestAction::run(
+            r"
+            if (count !== 1) {
+                throw new Error('expected duplicate abort listener to fire once, got: ' + count);
+            }
+            ",
+        ),
+    ]);
+}
+
+#[test]
+fn remove_event_listener_uses_event_type() {
+    run_test_actions([
+        TestAction::run(
+            r"
+            let ctrl = new AbortController();
+            let count = 0;
+
+            function listener() {
+                count += 1;
+            }
+
+            ctrl.signal.addEventListener('nope', listener);
+            ctrl.signal.addEventListener('abort', listener);
+            ctrl.signal.removeEventListener('nope', listener);
+            ctrl.abort();
+            ",
+        ),
+        TestAction::inspect_context(|ctx| {
+            ctx.run_jobs().unwrap();
+        }),
+        TestAction::run(
+            r"
+            if (count !== 1) {
+                throw new Error('removing a different event type should not remove the abort listener');
+            }
+            ",
+        ),
+    ]);
 }
 
 #[test]
