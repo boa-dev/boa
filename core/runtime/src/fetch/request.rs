@@ -96,6 +96,7 @@ impl RequestInit {
 pub struct JsRequest {
     #[unsafe_ignore_trace]
     inner: HttpRequest<Vec<u8>>,
+    signal: Option<JsObject>,
 }
 
 impl JsRequest {
@@ -104,9 +105,21 @@ impl JsRequest {
         mem::replace(&mut self.inner, HttpRequest::new(Vec::new()))
     }
 
+    /// Split this request into its HTTP request and abort signal.
+    fn into_parts(mut self) -> (HttpRequest<Vec<u8>>, Option<JsObject>) {
+        let request = mem::replace(&mut self.inner, HttpRequest::new(Vec::new()));
+        let signal = self.signal.take();
+        (request, signal)
+    }
+
     /// Get a reference to the inner `http::Request` object.
     pub fn inner(&self) -> &HttpRequest<Vec<u8>> {
         &self.inner
+    }
+
+    /// Get the abort signal associated with this request, if any.
+    pub(crate) fn signal(&self) -> Option<JsObject> {
+        self.signal.clone()
     }
 
     /// Get the URI of the request.
@@ -123,33 +136,41 @@ impl JsRequest {
         input: Either<JsString, JsRequest>,
         options: Option<RequestInit>,
     ) -> JsResult<Self> {
-        let request = match input {
+        let (request, signal) = match input {
             Either::Left(uri) => {
                 let uri = http::Uri::try_from(
                     uri.to_std_string()
                         .map_err(|_| js_error!(URIError: "URI cannot have unpaired surrogates"))?,
                 )
                 .map_err(|_| js_error!(URIError: "Invalid URI"))?;
-                http::request::Request::builder()
+                let request = http::request::Request::builder()
                     .uri(uri)
                     .body(Vec::<u8>::new())
-                    .map_err(|_| js_error!(Error: "Cannot construct request"))?
+                    .map_err(|_| js_error!(Error: "Cannot construct request"))?;
+                (request, None)
             }
-            Either::Right(r) => r.into_inner(),
+            Either::Right(r) => r.into_parts(),
         };
 
-        if let Some(options) = options {
+        if let Some(mut options) = options {
+            let signal = options.take_signal().or(signal);
             let inner = options.into_request_builder(Some(request))?;
-            Ok(Self { inner })
+            Ok(Self { inner, signal })
         } else {
-            Ok(Self { inner: request })
+            Ok(Self {
+                inner: request,
+                signal,
+            })
         }
     }
 }
 
 impl From<HttpRequest<Vec<u8>>> for JsRequest {
     fn from(inner: HttpRequest<Vec<u8>>) -> Self {
-        Self { inner }
+        Self {
+            inner,
+            signal: None,
+        }
     }
 }
 
@@ -181,8 +202,6 @@ impl JsRequest {
 
     #[boa(rename = "clone")]
     fn clone_request(&self) -> Self {
-        Self {
-            inner: self.inner.clone(),
-        }
+        self.clone()
     }
 }
