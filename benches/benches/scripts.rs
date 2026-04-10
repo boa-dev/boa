@@ -44,6 +44,11 @@ fn prepare_script_bench(path: &Path) -> PreparedScriptBench {
 }
 
 fn bench_scripts(c: &mut Criterion) {
+    let args: Vec<String> = std::env::args().collect();
+    let is_list = args.iter().any(|arg| arg == "--list");
+    let filter = args.iter().skip(1).find(|arg| !arg.starts_with('-'));
+    let filter_re = filter.and_then(|f| regex::Regex::new(f).ok());
+
     let scripts_dir = Path::new(env!("CARGO_MANIFEST_DIR")).join("scripts");
 
     let scripts: Vec<_> = walkdir::WalkDir::new(&scripts_dir)
@@ -70,15 +75,25 @@ fn bench_scripts(c: &mut Criterion) {
             group.measurement_time(Duration::from_secs(5));
         }
 
-        let path = path.to_path_buf();
-        let mut prepared: Option<PreparedScriptBench> = None;
+        let should_run = !is_list
+            && filter.is_none_or(|f| {
+                let full_name = format!("{name}/Execution");
+                if let Some(re) = &filter_re {
+                    re.is_match(&full_name)
+                } else {
+                    full_name.contains(f)
+                }
+            });
+
+        let mut prepared = should_run.then(|| prepare_script_bench(path));
 
         group.bench_function("Execution", move |b| {
-            let prepared = prepared.get_or_insert_with(|| prepare_script_bench(&path));
-            let function = prepared.function.clone();
-            let context = &mut prepared.context;
+            if let Some(prepared) = prepared.as_mut() {
+                let function = prepared.function.clone();
+                let context = &mut prepared.context;
 
-            b.iter(|| function.call(&JsValue::undefined(), &[], context));
+                b.iter(|| function.call(&JsValue::undefined(), &[], context));
+            }
         });
         group.finish();
     }
