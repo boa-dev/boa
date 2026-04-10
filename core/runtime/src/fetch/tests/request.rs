@@ -5,6 +5,7 @@ use crate::test::{TestAction, run_test_actions};
 use boa_engine::{JsObject, js_str, js_string};
 use either::Either;
 use http::{Response, Uri};
+use indoc::indoc;
 
 #[test]
 fn request_constructor() {
@@ -45,6 +46,28 @@ fn request_constructor() {
                     .unwrap();
             assert_eq!(request.uri().to_string(), "http://example.com/");
         }),
+    ]);
+}
+
+#[test]
+fn request_constructor_forbidden_method_throws() {
+    run_test_actions([
+        TestAction::inspect_context(|ctx| {
+            let fetcher = TestFetcher::default();
+            crate::fetch::register(fetcher, None, ctx).expect("failed to register fetch");
+        }),
+        TestAction::run(indoc! {r#"
+            for (const method of ["CONNECT", "TRACE", "TRACK", "connect"]) {
+                try {
+                    new Request("http://unit.test", { method });
+                    throw Error("expected the call above to throw");
+                } catch (e) {
+                    if (!(e instanceof TypeError)) {
+                        throw e;
+                    }
+                }
+            }
+        "#}),
     ]);
 }
 
