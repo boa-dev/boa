@@ -66,6 +66,12 @@ impl RequestInit {
                 |_| js_error!(TypeError: "Request constructor: {} is an invalid method", method.to_std_string_escaped()),
             )?;
 
+            // 25. If init["method"] exists, then:
+            //     1. Let method be init["method"].
+            //     2. If method is not a method or method is a forbidden method, throw a TypeError.
+            //     3. Normalize method.
+            //     4. Set request's method to method.
+            // https://fetch.spec.whatwg.org/#dom-request
             if method.eq_ignore_ascii_case("CONNECT")
                 || method.eq_ignore_ascii_case("TRACE")
                 || method.eq_ignore_ascii_case("TRACK")
