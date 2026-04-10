@@ -100,6 +100,50 @@ fn implicit_constructor_return_does_not_leak_completion_value_from_same_eval() {
     ]);
 }
 
+/// Regression test for issue #4485.
+/// Checks that generator resumption via `g.next(f())` is not affected
+/// by resetting the accumulator in `push_frame`.
+#[test]
+fn generator_resumption_not_affected_by_return_value_reset() {
+    run_test_actions([TestAction::assert(indoc! {r#"
+        let seen;
+
+        function* gen() {
+            seen = yield 1;
+        }
+
+        function f() {}
+
+        5;
+        var g = gen();
+        g.next();
+        g.next(f());
+        seen === undefined;
+    "#})]);
+}
+
+/// Regression test for issue #4485.
+/// Checks that generator resumption via `g.next(new f())` receives
+/// the constructed object, not a stale caller expression.
+#[test]
+fn generator_resumption_with_constructor_not_affected_by_return_value_reset() {
+    run_test_actions([TestAction::assert(indoc! {r#"
+        let seen;
+
+        function* gen() {
+            seen = yield 1;
+        }
+
+        function f() {}
+
+        ({});
+        var g = gen();
+        g.next();
+        g.next(new f());
+        Object.getPrototypeOf(seen) === f.prototype;
+    "#})]);
+}
+
 #[test]
 fn property_accessor_member_expression_dot_notation_on_function() {
     run_test_actions([TestAction::assert_eq(
