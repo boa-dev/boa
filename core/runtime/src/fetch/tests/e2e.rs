@@ -51,6 +51,16 @@ impl crate::fetch::Fetcher for E2eFetcher {
     ) -> JsResult<JsResponse> {
         match request.uri().path() {
             "/headers" => Self::headers(&request, &mut context.borrow_mut()),
+             "/redirect" => Ok(JsResponse::basic(
+                JsString::from("http://unit.test/target"),
+                true,
+                Response::new(b"redirected body".to_vec()),
+            )),
+            "/target" => Ok(JsResponse::basic(
+                JsString::from("http://unit.test/target"),
+                false,
+                Response::new(b"target body".to_vec()),
+            )),
             _ => Err(js_error!("Invalid request.")),
         }
     }
@@ -83,6 +93,28 @@ fn custom_header() {
 
                     const text = await response.text();
                     assertEq(text, "");
+                })();
+            "#,
+        ),
+        TestAction::inspect_context(await_response),
+    ]);
+}
+
+#[test]
+fn response_redirected_flag() {
+    run_test_actions([
+        TestAction::harness(),
+        TestAction::inspect_context(register),
+        TestAction::run(
+            r#"
+                globalThis.response = (async () => {
+                    const r = await fetch("http://unit.test/redirect");
+                    assertEq(r.redirected, true);
+                    assertEq(r.url, "http://unit.test/target");
+
+                    const r2 = await fetch("http://unit.test/target");
+                    assertEq(r2.redirected, false);
+                    assertEq(r2.url, "http://unit.test/target");
                 })();
             "#,
         ),
