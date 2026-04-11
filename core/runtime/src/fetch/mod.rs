@@ -24,6 +24,7 @@ use http::{HeaderName, HeaderValue, Request as HttpRequest, Request};
 use std::cell::RefCell;
 use std::rc::Rc;
 
+mod body;
 pub mod headers;
 pub mod headers_iterator;
 pub mod request;
