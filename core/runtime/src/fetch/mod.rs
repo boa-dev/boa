@@ -125,6 +125,9 @@ async fn fetch_inner<T: Fetcher>(
     // The resource parsing is complicated, so we parse it in Rust here (instead of relying on
     // `TryFromJs` and friends).
     let mut signal = signal;
+    let mut source_request = None;
+    let mut reuse_source_body = false;
+    let body_overridden = options.as_ref().is_some_and(RequestInit::has_body);
 
     let request: Request<Vec<u8>> = match resource {
         Either::Left(url) => {
@@ -145,7 +148,13 @@ async fn fetch_inner<T: Fetcher>(
                 return Err(js_error!(TypeError: "Request object is already in use"));
             };
 
+            if !body_overridden {
+                request_ref.data().ensure_body_unused()?;
+            }
+
             signal = signal.or_else(|| request_ref.data().signal());
+            reuse_source_body = !body_overridden && request_ref.data().has_body();
+            source_request = Some(request.clone());
             request_ref.data().inner().clone()
         }
     };
@@ -166,6 +175,10 @@ async fn fetch_inner<T: Fetcher>(
     ) {
         let lang = HeaderValue::from_static("en-US");
         request.headers_mut().append("Accept-Language", lang);
+    }
+
+    if reuse_source_body && let Some(source_request) = source_request {
+        source_request.borrow().data().mark_body_used();
     }
 
     let response = fetcher
