@@ -403,7 +403,7 @@ dependencies = [
  "futures-concurrency",
  "futures-lite",
  "getrandom 0.4.2",
- "hashbrown 0.16.1",
+ "hashbrown 0.17.0",
  "husky-rs",
  "iana-time-zone",
  "icu_calendar",
@@ -484,7 +484,7 @@ dependencies = [
  "boa_macros",
  "boa_string",
  "either",
- "hashbrown 0.16.1",
+ "hashbrown 0.17.0",
  "icu_locale_core",
  "thin-vec",
 ]
@@ -517,7 +517,7 @@ dependencies = [
  "arbitrary",
  "boa_gc",
  "boa_macros",
- "hashbrown 0.16.1",
+ "hashbrown 0.17.0",
  "indexmap",
  "once_cell",
  "phf",
@@ -1673,6 +1673,17 @@ name = "hashbrown"
 version = "0.16.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "841d1cc9bed7f9236f321df977030373f4a4163ae1a7dbfe1a51a2c1a51d9100"
+dependencies = [
+ "allocator-api2",
+ "equivalent",
+ "foldhash 0.2.0",
+]
+
+[[package]]
+name = "hashbrown"
+version = "0.17.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "4f467dd6dccf739c208452f8014c75c18bb8301b050ad1cfb27153803edb0f51"
 dependencies = [
  "allocator-api2",
  "equivalent",
