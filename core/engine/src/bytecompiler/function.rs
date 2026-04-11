@@ -219,7 +219,7 @@ impl FunctionCompiler {
 
         {
             let mut compiler = compiler.position_guard(body);
-            
+
             // Check if the function body contains `using` declarations
             #[cfg(feature = "experimental")]
             let using_count: u32 = {
@@ -227,7 +227,7 @@ impl FunctionCompiler {
                     declaration::LexicalDeclaration,
                     operations::{LexicallyScopedDeclaration, lexically_scoped_declarations},
                 };
-                
+
                 lexically_scoped_declarations(body.statement_list())
                     .iter()
                     .filter_map(|decl| {
@@ -250,13 +250,17 @@ impl FunctionCompiler {
                 #[cfg(feature = "experimental")]
                 {
                     use crate::bytecompiler::jump_control::JumpControlInfoFlags;
-                    
+
                     // Function body with `using` declarations needs try-finally semantics
                     let finally_re_throw = compiler.register_allocator.alloc();
                     let finally_jump_index = compiler.register_allocator.alloc();
 
-                    compiler.bytecode.emit_store_true(finally_re_throw.variable());
-                    compiler.bytecode.emit_store_zero(finally_jump_index.variable());
+                    compiler
+                        .bytecode
+                        .emit_store_true(finally_re_throw.variable());
+                    compiler
+                        .bytecode
+                        .emit_store_zero(finally_jump_index.variable());
 
                     // Push jump control info to handle break/continue/return through disposal
                     compiler.push_try_with_finally_control_info(
@@ -272,7 +276,9 @@ impl FunctionCompiler {
                     compiler.compile_statement_list(body.statement_list(), false, false);
 
                     // Normal exit: mark that we don't need to re-throw
-                    compiler.bytecode.emit_store_false(finally_re_throw.variable());
+                    compiler
+                        .bytecode
+                        .emit_store_false(finally_re_throw.variable());
 
                     let finally_jump = compiler.jump();
 
@@ -283,7 +289,9 @@ impl FunctionCompiler {
                     let catch_handler = compiler.push_handler();
                     let error = compiler.register_allocator.alloc();
                     compiler.bytecode.emit_exception(error.variable());
-                    compiler.bytecode.emit_store_true(finally_re_throw.variable());
+                    compiler
+                        .bytecode
+                        .emit_store_true(finally_re_throw.variable());
 
                     let no_throw = compiler.jump();
                     compiler.patch_handler(catch_handler);
@@ -293,14 +301,16 @@ impl FunctionCompiler {
 
                     // Finally block: dispose resources
                     let finally_start = compiler.next_opcode_location();
-                    compiler.jump_info
+                    compiler
+                        .jump_info
                         .last_mut()
                         .expect("there should be a jump control info")
                         .flags |= JumpControlInfoFlags::IN_FINALLY;
 
                     // Save accumulator
                     let value = compiler.register_allocator.alloc();
-                    compiler.bytecode
+                    compiler
+                        .bytecode
                         .emit_set_register_from_accumulator(value.variable());
 
                     // Emit disposal logic
