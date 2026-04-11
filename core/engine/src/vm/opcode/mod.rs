@@ -1,5 +1,18 @@
 #![allow(clippy::inline_always)]
 #![allow(clippy::doc_markdown)]
+//! Boa's VM opcode definitions and bytecode dispatch.
+//!
+//! The bytecompiler lowers ECMAScript runtime semantics into these opcode families, which are then
+//! executed by the virtual machine. Most opcode submodules mirror a part of the specification,
+//! such as function calls, environment records, iteration, property access, or class evaluation.
+//! See the general runtime semantics overview in the [specification][spec].
+//!
+//! When the specification marks an abstract operation as infallible with `!`, Boa treats the
+//! corresponding condition as an internal bytecode invariant. In those cases, malformed
+//! bytecode is treated as an engine bug and may trip an assertion instead of returning a
+//! recoverable JavaScript exception.
+//!
+//! [spec]: https://tc39.es/ecma262/#sec-runtime-semantics-evaluation
 use crate::{
     Context,
     vm::{completion_record::CompletionRecord, completion_record::IntoCompletionRecord},
@@ -384,7 +397,7 @@ macro_rules! generate_opcodes {
 
         impl BytecodeEmitter {
             $(
-                paste::paste! {
+                pastey::paste! {
                     #[allow(unused)]
                     pub(crate) fn [<emit_ $Variant:snake>](&mut self $( $(, $FieldName: $FieldType)* )? ) {
                         encode_instruction(
@@ -402,7 +415,7 @@ macro_rules! generate_opcodes {
         pub(crate) const OPCODE_HANDLERS: [OpcodeHandler; 256] = {
             [
                 $(
-                    paste::paste! { [<handle_ $Variant:snake>] },
+                    pastey::paste! { [<handle_ $Variant:snake>] },
                 )*
             ]
         };
@@ -412,13 +425,13 @@ macro_rules! generate_opcodes {
         pub(crate) const OPCODE_HANDLERS_BUDGET: [OpcodeHandlerBudget; 256] = {
             [
                 $(
-                    paste::paste! { [<handle_ $Variant:snake _budget>] },
+                    pastey::paste! { [<handle_ $Variant:snake _budget>] },
                 )*
             ]
         };
 
         $(
-            paste::paste! {
+            pastey::paste! {
                 #[inline(always)]
                 #[allow(unused_parens)]
                 fn [<handle_ $Variant:snake>](context: &mut Context, pc: usize) -> ControlFlow<CompletionRecord> {
@@ -432,7 +445,7 @@ macro_rules! generate_opcodes {
         )*
 
         $(
-            paste::paste! {
+            pastey::paste! {
                 #[inline(always)]
                 #[allow(unused_parens)]
                 fn [<handle_ $Variant:snake _budget>](context: &mut Context, pc: usize, budget: &mut u32) -> ControlFlow<CompletionRecord> {

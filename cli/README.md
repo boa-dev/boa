@@ -58,6 +58,7 @@ Options:
       --flowgraph [<FORMAT>]          Generate instruction flowgraph. Default is Graphviz [possible values: graphviz, mermaid]
       --flowgraph-direction <FORMAT>  Specifies the direction of the flowgraph. Default is top-top-bottom [possible values: top-to-bottom, bottom-to-top, left-to-right, right-to-left]
       --debug-object                  Inject debugging object `$boa`
+      --test262-object                Inject the test262 host object `$262`
   -m, --module                        Treats the input files as modules
   -r, --root <ROOT>                   Root path from where the module resolver will try to load the modules [default: .]
   -e, --expression <EXPR>             Execute a JavaScript expression then exit

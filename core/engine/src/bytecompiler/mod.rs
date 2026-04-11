@@ -7,6 +7,18 @@
 //! producing code blocks that are later executed by the VM.
 //!
 //! This module provides the necessary functionality to compile JavaScript code into bytecode.
+//! Conceptually, it is the bridge between the spec's runtime semantics and Boa's opcode-based VM.
+//! When the ECMAScript algorithms use the `!` prefix for an abstract operation, Boa treats the
+//! corresponding assumption as an internal compiler or bytecode invariant, and documents that
+//! mapping near the assertion sites that rely on it.
+//!
+//! Relevant specification entry points include [script evaluation][script],
+//! [module evaluation][module], and the expression and statement [runtime semantics][evaluation]
+//! that eventually feed into those top-level algorithms.
+//!
+//! [script]: https://tc39.es/ecma262/#sec-runtime-semantics-scriptevaluation
+//! [module]: https://tc39.es/ecma262/#sec-moduleevaluation
+//! [evaluation]: https://tc39.es/ecma262/#sec-runtime-semantics-evaluation
 
 mod class;
 mod declaration;
