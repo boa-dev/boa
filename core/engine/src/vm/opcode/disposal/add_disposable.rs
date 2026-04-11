@@ -26,9 +26,11 @@ impl AddDisposableResource {
         let key = crate::JsSymbol::dispose();
         let dispose_method = value.get_method(key, context)?;
 
-        // If dispose method is None, return
+        // If dispose method is None, throw TypeError (per spec)
         let Some(dispose_method) = dispose_method else {
-            return Ok(());
+            return Err(crate::JsNativeError::typ()
+                .with_message("The value is not disposable")
+                .into());
         };
 
         // Add to disposal stack

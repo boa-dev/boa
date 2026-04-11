@@ -1,5 +1,5 @@
 use crate::{
-    Context, JsError, JsNativeError, JsResult,
+    Context, JsError, JsValue,
     vm::opcode::{IndexOperand, Operation},
 };
 
@@ -13,7 +13,7 @@ use crate::{
 pub(crate) struct DisposeResources;
 
 impl DisposeResources {
-    pub(crate) fn operation(count: IndexOperand, context: &mut Context) -> JsResult<()> {
+    pub(crate) fn operation(count: IndexOperand, context: &mut Context) -> crate::JsResult<()> {
         let count = u32::from(count) as usize;
         let mut suppressed_error: Option<JsError> = None;
 
@@ -46,15 +46,28 @@ impl Operation for DisposeResources {
 }
 
 /// Helper function to create a SuppressedError
-fn create_suppressed_error(
-    _error: JsError,
-    suppressed: &JsError,
-    _context: &mut Context,
-) -> JsError {
-    // For now, we'll create a simple error that contains both errors
-    // TODO: Implement proper SuppressedError builtin in Phase 2
-    let message = format!("An error was suppressed during disposal: {suppressed}");
+fn create_suppressed_error(error: JsError, suppressed: &JsError, context: &mut Context) -> JsError {
+    // Create a proper SuppressedError using the builtin constructor
+    // Call SuppressedError(error, suppressed)
+    let Ok(error_val) = error.into_opaque(context) else {
+        // If we can't convert the error, just return it
+        return suppressed.clone();
+    };
+    let Ok(suppressed_val) = suppressed.clone().into_opaque(context) else {
+        return JsError::from_opaque(error_val);
+    };
 
-    // This is a temporary solution until SuppressedError is implemented
-    JsNativeError::error().with_message(message).into()
+    let args = [error_val, suppressed_val];
+
+    let suppressed_error_constructor = context
+        .intrinsics()
+        .constructors()
+        .suppressed_error()
+        .constructor();
+
+    // Call the constructor as a function
+    match suppressed_error_constructor.call(&JsValue::undefined(), &args, context) {
+        Ok(obj) => JsError::from_opaque(obj),
+        Err(e) => e, // Fallback if construction fails
+    }
 }

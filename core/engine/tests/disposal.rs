@@ -96,9 +96,10 @@ fn disposal_with_no_method() {
         ",
     ));
 
-    assert!(result.is_ok());
-    let value = result.unwrap();
-    assert_eq!(value.to_string(&mut context).unwrap(), "ok");
+    // Should throw TypeError for missing dispose method
+    assert!(result.is_err());
+    let err = result.unwrap_err();
+    assert!(err.to_string().contains("not disposable"));
 }
 
 #[test]
@@ -263,4 +264,45 @@ fn disposal_on_continue() {
     assert!(result.is_ok());
     let value = result.unwrap();
     assert_eq!(value, JsValue::from(true));
+}
+
+#[test]
+fn suppressed_error_on_multiple_dispose_errors() {
+    let mut context = Context::default();
+
+    let result = context.eval(Source::from_bytes(
+        r"
+        let errors = [];
+        try {
+            using x = {
+                [Symbol.dispose]() {
+                    throw new Error('first error');
+                }
+            };
+            using y = {
+                [Symbol.dispose]() {
+                    throw new Error('second error');
+                }
+            };
+        } catch (e) {
+            errors.push(e.name);
+            if (e.error) {
+                errors.push(e.error.message);
+            }
+            if (e.suppressed) {
+                errors.push(e.suppressed.message);
+            }
+        }
+        errors.join('|');
+        ",
+    ));
+
+    assert!(result.is_ok());
+    let value = result.unwrap();
+    let result_str = value.to_string(&mut context).unwrap();
+    let result_str = result_str.to_std_string().unwrap();
+    // Should have SuppressedError with first error and suppressed second error
+    assert!(result_str.contains("SuppressedError"));
+    assert!(result_str.contains("first error"));
+    assert!(result_str.contains("second error"));
 }
