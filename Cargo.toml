@@ -61,7 +61,7 @@ fast-float2 = "0.2.3"
 hashbrown = "0.16.1"
 http = { version = "1.4.0" }
 iana-time-zone = "0.1.65"
-indexmap = { version = "2.13.1", default-features = false }
+indexmap = { version = "2.14.0", default-features = false }
 indoc = "2.0.7"
 itoa = "1.0.18"
 jemallocator = "0.5.4"
@@ -82,7 +82,7 @@ serde_json = "1.0.149"
 serde = "1.0.219"
 static_assertions = "1.1.0"
 textwrap = "0.16.2"
-thin-vec = "0.2.14"
+thin-vec = "0.2.15"
 time = { version = "0.3.47", default-features = false, features = [
     "local-offset",
     "large-dates",
@@ -137,7 +137,7 @@ futures-lite = "2.6.1"
 test-case = "3.3.1"
 rstest = "0.26.1"
 url = "2.5.8"
-tokio = { version = "1.51.0", default-features = false }
+tokio = { version = "1.51.1", default-features = false }
 futures-concurrency = "7.7.1"
 dynify = "0.1.2"
 futures-channel = "0.3.32"
