@@ -17,6 +17,7 @@ boa_gc.workspace = true
 bus = { workspace = true, optional = true }
 bytemuck.workspace = true
 either = { workspace = true, optional = true }
+form_urlencoded = { workspace = true, optional = true }
 futures = "0.3.32"
 futures-lite.workspace = true
 http = { workspace = true, optional = true }
@@ -52,6 +53,7 @@ all = ["default", "reqwest-blocking"]
 url = ["dep:url"]
 fetch = [
     "dep:either",
+    "dep:form_urlencoded",
     "dep:http",
     "dep:serde_json",
     "boa_engine/either",
