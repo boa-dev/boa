@@ -1,11 +1,12 @@
 pub(crate) mod yield_stm;
 
 use crate::{
-    Context, JsObject, JsResult,
+    Context, JsExpect, JsObject, JsResult,
     builtins::{
         async_generator::{AsyncGenerator as NativeAsyncGenerator, AsyncGeneratorState},
         generator::{Generator as NativeGenerator, GeneratorContext, GeneratorState},
     },
+    error::PanicError,
     object::PROTOTYPE,
     vm::{CompletionRecord, opcode::Operation},
 };
@@ -23,14 +24,16 @@ pub(crate) struct Generator;
 impl Generator {
     #[inline(always)]
     pub(super) fn operation((): (), context: &mut Context) -> ControlFlow<CompletionRecord> {
-        let active_function = context.vm.stack.get_function(context.vm.frame());
-        let this_function_object =
-            active_function.expect("active function should be set to the generator");
+        let Some(this_function_object) = context.vm.stack.get_function(context.vm.frame()) else {
+            return context.handle_error(
+                PanicError::new("active function should be set to the generator").into(),
+            );
+        };
 
         let proto = this_function_object
             .get(PROTOTYPE, context)
-            .expect("generator must have a prototype property")
-            .as_object()
+            .ok()
+            .and_then(|v| v.as_object())
             .unwrap_or_else(|| context.intrinsics().objects().generator());
 
         let generator = JsObject::from_proto_and_data_with_shared_shape(
@@ -67,14 +70,16 @@ pub(crate) struct AsyncGenerator;
 impl AsyncGenerator {
     #[inline(always)]
     pub(super) fn operation((): (), context: &mut Context) -> ControlFlow<CompletionRecord> {
-        let active_function = context.vm.stack.get_function(context.vm.frame());
-        let this_function_object =
-            active_function.expect("active function should be set to the generator");
+        let Some(this_function_object) = context.vm.stack.get_function(context.vm.frame()) else {
+            return context.handle_error(
+                PanicError::new("active function should be set to the generator").into(),
+            );
+        };
 
         let proto = this_function_object
             .get(PROTOTYPE, context)
-            .expect("generator must have a prototype property")
-            .as_object()
+            .ok()
+            .and_then(|v| v.as_object())
             .unwrap_or_else(|| context.intrinsics().objects().async_generator());
 
         let generator = JsObject::from_proto_and_data_with_shared_shape(
@@ -115,9 +120,10 @@ impl AsyncGeneratorClose {
         let generator = context
             .vm
             .async_generator_object()
-            .expect("There should be a object")
+            .js_expect("There should be a object")?
             .downcast::<NativeAsyncGenerator>()
-            .expect("must be async generator");
+            .ok()
+            .js_expect("must be async generator")?;
 
         let mut r#gen = generator.borrow_mut();
 

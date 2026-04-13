@@ -287,6 +287,23 @@ impl ModuleLoader for MapModuleLoader {
     }
 }
 
+#[derive(Debug, Clone, PartialEq, Eq, Hash)]
+struct ModuleCacheKey {
+    path: PathBuf,
+    attributes: Box<[ImportAttribute]>,
+}
+
+impl ModuleCacheKey {
+    fn new(path: PathBuf, attributes: &[ImportAttribute]) -> Self {
+        let mut attributes = attributes.to_vec();
+        attributes.sort_unstable_by(|left, right| left.key().cmp(right.key()));
+        Self {
+            path,
+            attributes: attributes.into_boxed_slice(),
+        }
+    }
+}
+
 /// A simple module loader that loads modules relative to a root path.
 ///
 /// # Note
@@ -297,7 +314,7 @@ impl ModuleLoader for MapModuleLoader {
 #[derive(Debug)]
 pub struct SimpleModuleLoader {
     root: PathBuf,
-    module_map: GcRefCell<FxHashMap<PathBuf, Module>>,
+    module_map: GcRefCell<FxHashMap<ModuleCacheKey, Module>>,
 }
 
 impl SimpleModuleLoader {
@@ -323,38 +340,39 @@ impl SimpleModuleLoader {
     /// Inserts a new module onto the module map.
     #[inline]
     pub fn insert(&self, path: PathBuf, module: Module) {
-        self.module_map.borrow_mut().insert(path, module);
+        self.insert_with_attributes(path, &[], module);
     }
 
     /// Inserts a new module onto the module map with the given attributes.
-    ///
-    /// This is an alias for `insert` in this implementation, as it ignores attributes.
     #[inline]
     pub fn insert_with_attributes(
         &self,
         path: PathBuf,
-        _attributes: &[ImportAttribute],
+        attributes: &[ImportAttribute],
         module: Module,
     ) {
-        self.insert(path, module);
+        self.module_map
+            .borrow_mut()
+            .insert(ModuleCacheKey::new(path, attributes), module);
     }
 
     /// Gets a module from its original path.
     #[inline]
     pub fn get(&self, path: &Path) -> Option<Module> {
-        self.module_map.borrow().get(path).cloned()
+        self.get_with_attributes(path, &[])
     }
 
     /// Gets a module from its original path and attributes.
-    ///
-    /// This is an alias for `get` in this implementation, as it ignores attributes.
     #[inline]
     pub fn get_with_attributes(
         &self,
         path: &Path,
-        _attributes: &[ImportAttribute],
+        attributes: &[ImportAttribute],
     ) -> Option<Module> {
-        self.get(path)
+        self.module_map
+            .borrow()
+            .get(&ModuleCacheKey::new(path.to_path_buf(), attributes))
+            .cloned()
     }
 }
 

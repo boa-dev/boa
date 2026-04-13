@@ -1,5 +1,5 @@
 use crate::{
-    Context, JsResult, JsValue,
+    Context, JsExpect, JsResult, JsValue,
     error::JsNativeError,
     object::PROTOTYPE,
     vm::opcode::{Operation, RegisterOperand},
@@ -62,7 +62,7 @@ impl StoreClassPrototype {
                 .into());
         };
 
-        let class_object = class.as_object().expect("class must be object");
+        let class_object = class.as_object().js_expect("class must be object")?;
 
         if let Some(constructor_parent) = constructor_parent {
             class_object.set_prototype(Some(constructor_parent));

@@ -1,6 +1,6 @@
 //! Execution module for the test runner.
 
-mod js262;
+use boa_runtime::test262 as js262;
 
 use crate::{
     Harness, Outcome, Phase, SpecEdition, Statistics, SuiteResult, Test, TestFlags,
@@ -23,7 +23,7 @@ use rayon::prelude::*;
 use rustc_hash::FxHashSet;
 use std::{cell::RefCell, eprintln, path::Path, rc::Rc};
 
-use self::js262::WorkerHandles;
+use js262::WorkerHandles;
 
 impl TestSuite {
     /// Runs the test suite.

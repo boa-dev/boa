@@ -15,8 +15,6 @@ use std::{
     ops::{Add, AddAssign},
     path::{Path, PathBuf},
     process::Command,
-    sync::OnceLock,
-    time::Instant,
 };
 
 use bitflags::bitflags;
@@ -45,8 +43,6 @@ mod edition;
 mod exec;
 mod read;
 mod results;
-
-static START: OnceLock<Instant> = OnceLock::new();
 
 /// Structure that contains the configuration of the tester.
 #[derive(Debug, Deserialize)]
@@ -187,11 +183,6 @@ const DEFAULT_TEST262_DIRECTORY: &str = "test262";
 /// Program entry point.
 fn main() -> Result<()> {
     color_eyre::install()?;
-
-    // initializes the monotonic clock.
-    START
-        .set(Instant::now())
-        .map_err(|_| eyre!("could not initialize the monotonic clock"))?;
 
     match Cli::parse() {
         Cli::Run {

@@ -888,7 +888,7 @@ fn format_timestamp_with_dtf(
     let fields = ToLocalTime::from_local_epoch_milliseconds(tz)?;
     let dt = fields.to_formattable_datetime()?;
     let tz_info = time_zone.to_time_zone_info();
-    let tz_info_at_time = tz_info.at_date_time_iso(dt);
+    let tz_info_at_time = tz_info.at_date_time(dt);
     let zdt = ZonedDateTime {
         date: dt.date,
         time: dt.time,

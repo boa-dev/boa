@@ -15,6 +15,8 @@
 
 use std::{borrow::Cow, iter::once};
 
+use rustc_hash::FxHashSet;
+
 use boa_ast::scope::Scope;
 use boa_gc::{Finalize, Gc, Trace};
 use boa_macros::utf16;
@@ -623,13 +625,10 @@ impl Json {
         args: &[JsValue],
         context: &mut Context,
     ) -> JsResult<JsValue> {
-        // 1. Let stack be a new empty List.
-        let stack = Vec::new();
-
-        // 2. Let indent be the empty String.
+        // 1. Let indent be the empty String.
         let indent = js_string!();
 
-        // 3. Let PropertyList and ReplacerFunction be undefined.
+        // 2. Let PropertyList and ReplacerFunction be undefined.
         let mut property_list = None;
         let mut replacer_function = None;
 
@@ -747,7 +746,7 @@ impl Json {
         // 11. Let state be the Record { [[ReplacerFunction]]: ReplacerFunction, [[Stack]]: stack, [[Indent]]: indent, [[Gap]]: gap, [[PropertyList]]: PropertyList }.
         let mut state = StateRecord {
             replacer_function,
-            stack,
+            stack_set: FxHashSet::default(),
             indent,
             gap,
             property_list,
@@ -965,14 +964,11 @@ impl Json {
         context: &mut Context,
     ) -> JsResult<JsString> {
         // 1. If state.[[Stack]] contains value, throw a TypeError exception because the structure is cyclical.
-        if state.stack.contains(value) {
+        if !state.stack_set.insert(value.clone()) {
             return Err(JsNativeError::typ()
                 .with_message("cyclic object value")
                 .into());
         }
-
-        // 2. Append value to state.[[Stack]].
-        state.stack.push(value.clone());
 
         // 3. Let stepback be state.[[Indent]].
         let stepback = state.indent.clone();
@@ -987,14 +983,32 @@ impl Json {
         // 6. Else,
         } else {
             // a. Let K be ? EnumerableOwnPropertyNames(value, key).
-            let keys = value.enumerable_own_property_names(PropertyNameKind::Key, context)?;
+            let keys = value.enumerable_own_property_names(PropertyNameKind::Key, context);
+            // 11. Remove value from state.[[Stack]] on error.
+            let keys = match keys {
+                Ok(k) => k,
+                Err(e) => {
+                    let removed = state.stack_set.remove(value);
+                    debug_assert!(removed);
+                    return Err(e);
+                }
+            };
             // Unwrap is safe, because EnumerableOwnPropertyNames with kind "key" only returns string values.
-            keys.iter()
+            match keys
+                .iter()
                 .map(|v| {
                     v.to_string(context)
                         .js_expect("EnumerableOwnPropertyNames only returns strings")
                 })
-                .collect::<Result<Vec<_>, _>>()?
+                .collect::<Result<Vec<_>, _>>()
+            {
+                Ok(k) => k,
+                Err(e) => {
+                    let removed = state.stack_set.remove(value);
+                    debug_assert!(removed);
+                    return Err(e.into());
+                }
+            }
         };
 
         // 7. Let partial be a new empty List.
@@ -1003,7 +1017,15 @@ impl Json {
         // 8. For each element P of K, do
         for p in &k {
             // a. Let strP be ? SerializeJSONProperty(state, P, value).
-            let str_p = Self::serialize_json_property(state, p.clone(), value, context)?;
+            let str_p = Self::serialize_json_property(state, p.clone(), value, context);
+            let str_p = match str_p {
+                Ok(v) => v,
+                Err(e) => {
+                    let removed = state.stack_set.remove(value);
+                    debug_assert!(removed);
+                    return Err(e);
+                }
+            };
 
             // b. If strP is not undefined, then
             if let Some(str_p) = str_p {
@@ -1078,11 +1100,12 @@ impl Json {
             }
         };
 
-        // 11. Remove the last element of state.[[Stack]].
-        state.stack.pop();
-
         // 12. Set state.[[Indent]] to stepback.
         state.indent = stepback;
+
+        // 11. Remove value from state.[[Stack]].
+        let removed = state.stack_set.remove(value);
+        debug_assert!(removed);
 
         // 13. Return final.
         Ok(r#final)
@@ -1100,14 +1123,11 @@ impl Json {
         context: &mut Context,
     ) -> JsResult<JsString> {
         // 1. If state.[[Stack]] contains value, throw a TypeError exception because the structure is cyclical.
-        if state.stack.contains(value) {
+        if !state.stack_set.insert(value.clone()) {
             return Err(JsNativeError::typ()
                 .with_message("cyclic object value")
                 .into());
         }
-
-        // 2. Append value to state.[[Stack]].
-        state.stack.push(value.clone());
 
         // 3. Let stepback be state.[[Indent]].
         let stepback = state.indent.clone();
@@ -1116,7 +1136,14 @@ impl Json {
         state.indent = js_string!(&state.indent, &state.gap);
 
         // 6. Let len be ? LengthOfArrayLike(value).
-        let len = value.length_of_array_like(context)?;
+        let len = match value.length_of_array_like(context) {
+            Ok(n) => n,
+            Err(e) => {
+                let removed = state.stack_set.remove(value);
+                debug_assert!(removed);
+                return Err(e);
+            }
+        };
 
         // 5. Let partial be a new empty List.
         let mut partial = Vec::with_capacity(len as usize);
@@ -1127,7 +1154,15 @@ impl Json {
         // 8. Repeat, while index < len,
         while index < len {
             // a. Let strP be ? SerializeJSONProperty(state, ! ToString(𝔽(index)), value).
-            let str_p = Self::serialize_json_property(state, index.into(), value, context)?;
+            let str_p = Self::serialize_json_property(state, index.into(), value, context);
+            let str_p = match str_p {
+                Ok(v) => v,
+                Err(e) => {
+                    let removed = state.stack_set.remove(value);
+                    debug_assert!(removed);
+                    return Err(e);
+                }
+            };
 
             // b. If strP is undefined, then
             if let Some(str_p) = str_p {
@@ -1192,11 +1227,12 @@ impl Json {
             }
         };
 
-        // 11. Remove the last element of state.[[Stack]].
-        state.stack.pop();
-
         // 12. Set state.[[Indent]] to stepback.
         state.indent = stepback;
+
+        // 11. Remove value from state.[[Stack]].
+        let removed = state.stack_set.remove(value);
+        debug_assert!(removed);
 
         // 13. Return final.
         Ok(r#final)
@@ -1205,7 +1241,7 @@ impl Json {
 
 struct StateRecord {
     replacer_function: Option<JsObject>,
-    stack: Vec<JsObject>,
+    stack_set: FxHashSet<JsObject>,
     indent: JsString,
     gap: JsString,
     property_list: Option<Vec<JsString>>,
