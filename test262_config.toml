@@ -12,7 +12,6 @@ features = [
     "Intl.RelativeTimeFormat",
     "Intl-enumeration",
     "Intl.DurationFormat",
-    "regexp-duplicate-named-groups",
     "explicit-resource-management",
     "joint-iteration",
 
@@ -79,8 +78,6 @@ tests = [
     "test/intl402/Locale/prototype/calendar/canonicalize.js",
     "test/intl402/Locale/constructor-non-iana-canon.js",
     "test/intl402/Locale/constructor-options-canonicalized.js",
-    # TODO: Remove this once regress fixes the named groups parsing issue.
-    "test/built-ins/RegExp/named-groups/non-unicode-property-names-valid.js",
     # Source Phase Imports: AbstractModuleSource built-in and static `import source` not yet implemented.
     "test/built-ins/AbstractModuleSource/proto.js",
     "test/built-ins/AbstractModuleSource/name.js",
