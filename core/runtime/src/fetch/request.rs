@@ -73,6 +73,12 @@ impl RequestInit {
                 |_| js_error!(TypeError: "Request constructor: {} is an invalid method", method.to_std_string_escaped()),
             )?;
 
+            // 25. If init["method"] exists, then:
+            //     1. Let method be init["method"].
+            //     2. If method is not a method or method is a forbidden method, throw a TypeError.
+            //     3. Normalize method.
+            //     4. Set request's method to method.
+            // https://fetch.spec.whatwg.org/#dom-request
             if method.eq_ignore_ascii_case("CONNECT")
                 || method.eq_ignore_ascii_case("TRACE")
                 || method.eq_ignore_ascii_case("TRACK")
@@ -87,6 +93,7 @@ impl RequestInit {
         }
 
         if let Some(body) = &self.body {
+            // TODO: add more support types.
             if let Some(body) = body.as_string() {
                 let body = body.to_std_string().map_err(
                     |_| js_error!(TypeError: "Request constructor: body is not a valid string"),
@@ -110,7 +117,7 @@ impl RequestInit {
 /// The `Request` interface of the [Fetch API][mdn] represents a resource request.
 ///
 /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/API/Fetch_API
-#[derive(Debug, JsData, Trace, Finalize)]
+#[derive(Clone, Debug, JsData, Trace, Finalize)]
 pub struct JsRequest {
     #[unsafe_ignore_trace]
     inner: HttpRequest<Vec<u8>>,
@@ -119,17 +126,6 @@ pub struct JsRequest {
     has_body: bool,
     #[unsafe_ignore_trace]
     body_used: Cell<bool>,
-}
-
-impl Clone for JsRequest {
-    fn clone(&self) -> Self {
-        Self {
-            inner: self.inner.clone(),
-            signal: self.signal.clone(),
-            has_body: self.has_body,
-            body_used: Cell::new(self.body_used.get()),
-        }
-    }
 }
 
 impl JsRequest {
@@ -147,6 +143,7 @@ impl JsRequest {
         mem::replace(&mut self.inner, HttpRequest::new(Vec::new()))
     }
 
+    /// Split this request into its HTTP request, abort signal, and body state.
     fn into_parts(mut self) -> (HttpRequest<Vec<u8>>, Option<JsObject>, bool) {
         let request = mem::replace(&mut self.inner, HttpRequest::new(Vec::new()));
         let signal = self.signal.take();
@@ -158,6 +155,7 @@ impl JsRequest {
         &self.inner
     }
 
+    /// Get the abort signal associated with this request, if any.
     pub(crate) fn signal(&self) -> Option<JsObject> {
         self.signal.clone()
     }
@@ -179,6 +177,17 @@ impl JsRequest {
         }
     }
 
+    // The consume body algorithm, given an object that includes Body and an
+    // algorithm that converts bytes to a JavaScript value, runs these steps:
+    // 1. If object is unusable, then return a promise rejected with a TypeError.
+    // TODO: 2-3. Create a promise and wire its success and error steps.
+    // 4. If object's body is null, then run successSteps with an empty byte sequence.
+    // TODO: 5. Fully read object's body stream.
+    //
+    // Boa currently models request bodies as eagerly buffered bytes, so after
+    // checking whether the body is unusable, we can return the stored bytes
+    // directly to the callers that build the resulting promise.
+    // See <https://fetch.spec.whatwg.org/#concept-body-consume-body>.
     fn consume_body(&self) -> JsResult<Rc<Vec<u8>>> {
         self.ensure_body_unused()?;
         self.mark_body_used();
@@ -285,13 +294,26 @@ impl JsRequest {
         Ok(request)
     }
 
+    /// Returns whether the request body has been consumed.
+    ///
+    /// See <https://fetch.spec.whatwg.org/#dom-body-bodyused>.
     #[boa(getter)]
     fn body_used(&self) -> bool {
+        // The bodyUsed getter steps are to return true if this's body is
+        // non-null and this's body's stream is disturbed; otherwise false.
         self.is_body_used()
     }
 
+    /// Returns a copy of this request.
+    ///
+    /// See <https://fetch.spec.whatwg.org/#dom-request-clone>.
     #[boa(rename = "clone")]
     fn clone_request(&self) -> JsResult<Self> {
+        // The clone() method steps are:
+        // 1. If this is unusable, then throw a TypeError.
+        // 2. Let clonedRequest be the result of cloning this's request.
+        // TODO: 4-6. Clone the associated signal by creating a dependent abort signal.
+        // 7. Return the cloned request object.
         self.ensure_body_unused()?;
         Ok(self.clone())
     }
