@@ -88,3 +88,31 @@ fn date_to_locale_string() {
         TestAction::assert_eq("result === '6:07\u{202f}AM'", true),
     ]);
 }
+
+#[cfg(feature = "intl_bundled")]
+#[test]
+fn dtf_ctor_observable_behavior() {
+    run_test_actions([
+        TestAction::run(indoc! {"
+            const expected = [];
+
+            const proxyConstructor = new Proxy(Intl.DateTimeFormat, {
+              get(target, prop) {
+                if (prop === 'prototype') {
+                  expected.push('prototype-access');
+                }
+                return target[prop];
+              }
+            });
+
+            try {
+              new proxyConstructor('en', { timeZone: 'Invalid/Zone' });
+            } catch (e) {
+              expected.push('error-thrown');
+            }
+        "}),
+        TestAction::assert_eq("expected.length === 2", true),
+        TestAction::assert_eq("expected[0] === 'prototype-access'", true),
+        TestAction::assert_eq("expected[1] === 'error-thrown'", true),
+    ]);
+}

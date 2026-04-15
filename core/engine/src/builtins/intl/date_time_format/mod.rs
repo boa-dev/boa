@@ -177,16 +177,16 @@ impl BuiltInConstructor for DateTimeFormat {
         let options = args.get_or_undefined(1);
 
         // 2. Let dateTimeFormat be ? CreateDateTimeFormat(newTarget, locales, options, any, date).
+        let prototype = get_prototype_from_constructor(
+            new_target_inner,
+            StandardConstructors::date_time_format,
+            context,
+        )?;
         let dtf = create_date_time_format(
             locales,
             options,
             FormatType::Any,
             FormatDefaults::Date,
-            context,
-        )?;
-        let prototype = get_prototype_from_constructor(
-            new_target_inner,
-            StandardConstructors::date_time_format,
             context,
         )?;
         let date_time_format = JsObject::from_proto_and_data(prototype, dtf);
@@ -534,6 +534,11 @@ pub(crate) fn create_date_time_format(
     defaults: FormatDefaults,
     context: &mut Context,
 ) -> JsResult<DateTimeFormat> {
+    // NOTE: The below step's code was moved out into constructor to prevent unnecessary JsObject allocation when we create dtf internally
+    // (e.g. toLocaleString methods of Date and Temporal objects)
+    // 1. Let dateTimeFormat be ? OrdinaryCreateFromConstructor(newTarget, "%Intl.DateTimeFormat.prototype%",
+    // « [[InitializedDateTimeFormat]], [[Locale]], [[Calendar]], [[NumberingSystem]], [[TimeZone]],
+    // [[HourCycle]], [[DateStyle]], [[TimeStyle]], [[DateTimeFormat]], [[BoundFormat]] »).
     // 2. Let hour12 be undefined. <- TODO
     // 3. Let modifyResolutionOptions be a new Abstract Closure with parameters (options) that captures hour12 and performs the following steps when called:
     //        a. Set hour12 to options.[[hour12]].
