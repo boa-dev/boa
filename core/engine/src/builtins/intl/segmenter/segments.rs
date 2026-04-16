@@ -55,24 +55,22 @@ impl Segments {
     fn containing(this: &JsValue, args: &[JsValue], context: &mut Context) -> JsResult<JsValue> {
         // 1. Let segments be the this value.
         // 2. Perform ? RequireInternalSlot(segments, [[SegmentsSegmenter]]).
-        let object = this.as_object();
-        let segments = object
-            .as_ref()
-            .and_then(JsObject::downcast_ref::<Self>)
-            .ok_or_else(|| {
-                JsNativeError::typ()
-                    .with_message("`containing` can only be called on a `Segments` object")
-            })?;
+        let segments = require_internal_slot!(this, Self, "Segments");
 
         // 3. Let segmenter be segments.[[SegmentsSegmenter]].
-        let segmenter = segments
-            .segmenter
+        // 4. Let string be segments.[[SegmentsString]].
+        let (segmenter_obj, string) = {
+            let seg_data = segments.borrow();
+            let seg_data = seg_data.data();
+            (seg_data.segmenter.clone(), seg_data.string.clone())
+        };
+
+        let segmenter = segmenter_obj
             .downcast_ref::<Segmenter>()
             .js_expect("segments object should contain a segmenter")?;
 
-        // 4. Let string be segments.[[SegmentsString]].
         // 5. Let len be the length of string.
-        let len = segments.string.len() as i64;
+        let len = string.len() as i64;
 
         // 6. Let n be ? ToIntegerOrInfinity(index).
         let Some(n) = args
@@ -89,8 +87,8 @@ impl Segments {
         // 8. Let startIndex be ! FindBoundary(segmenter, string, n, before).
         // 9. Let endIndex be ! FindBoundary(segmenter, string, n, after).
         let (range, is_word_like) = {
-            let mut segments = segmenter.native.segment(segments.string.variant());
-            std::iter::from_fn(|| segments.next().map(|i| (i, segments.is_word_like())))
+            let mut seg_iter = segmenter.native.segment(string.variant());
+            std::iter::from_fn(|| seg_iter.next().map(|i| (i, seg_iter.is_word_like())))
                 .tuple_windows()
                 .find(|((i, _), (j, _))| (*i..*j).contains(&n))
                 .map(|((i, _), (j, word))| ((i..j), word))
@@ -98,10 +96,7 @@ impl Segments {
         };
 
         // 10. Return ! CreateSegmentDataObject(segmenter, string, startIndex, endIndex).
-        Ok(
-            create_segment_data_object(segments.string.clone(), range, is_word_like, context)
-                .into(),
-        )
+        Ok(create_segment_data_object(string, range, is_word_like, context).into())
     }
 
     /// [`%SegmentsPrototype% [ @@iterator ] ( )`][spec]

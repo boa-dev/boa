@@ -297,14 +297,9 @@ impl PlainYearMonth {
 impl PlainYearMonth {
     // Helper for retrieving internal fields
     fn get_internal_field(this: &JsValue, field: &DateTimeValues) -> JsResult<JsValue> {
-        let object = this.as_object();
-        let year_month = object
-            .as_ref()
-            .and_then(JsObject::downcast_ref::<Self>)
-            .ok_or_else(|| {
-                JsNativeError::typ().with_message("this value must be a PlainYearMonth object.")
-            })?;
-        let inner = &year_month.inner;
+        let year_month = require_internal_slot!(this, Self, "PlainYearMonth");
+        let year_month_data = year_month.borrow();
+        let inner = &year_month_data.data().inner;
         match field {
             DateTimeValues::Year => Ok(inner.year().into()),
             DateTimeValues::Month => Ok(inner.month().into()),
@@ -353,15 +348,11 @@ impl PlainYearMonth {
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Temporal/PlainYearMonth/era
     /// [temporal_rs-docs]: https://docs.rs/temporal_rs/latest/temporal_rs/struct.PlainYearMonth.html#method.era
     fn get_era(this: &JsValue, _: &[JsValue], _: &mut Context) -> JsResult<JsValue> {
-        let object = this.as_object();
-        let year_month = object
-            .as_ref()
-            .and_then(JsObject::downcast_ref::<Self>)
-            .ok_or_else(|| {
-                JsNativeError::typ().with_message("this value must be a PlainYearMonth object.")
-            })?;
+        let year_month = require_internal_slot!(this, Self, "PlainYearMonth");
 
         Ok(year_month
+            .borrow()
+            .data()
             .inner
             .era()
             .map(|s| JsString::from(s.as_str()))
@@ -380,14 +371,13 @@ impl PlainYearMonth {
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Temporal/PlainYearMonth/eraYear
     /// [temporal_rs-docs]: https://docs.rs/temporal_rs/latest/temporal_rs/struct.PlainYearMonth.html#method.era_year
     fn get_era_year(this: &JsValue, _: &[JsValue], _: &mut Context) -> JsResult<JsValue> {
-        let object = this.as_object();
-        let year_month = object
-            .as_ref()
-            .and_then(JsObject::downcast_ref::<Self>)
-            .ok_or_else(|| {
-                JsNativeError::typ().with_message("this value must be a PlainYearMonth object.")
-            })?;
-        Ok(year_month.inner.era_year().into_or_undefined())
+        let year_month = require_internal_slot!(this, Self, "PlainYearMonth");
+        Ok(year_month
+            .borrow()
+            .data()
+            .inner
+            .era_year()
+            .into_or_undefined())
     }
 
     /// 9.3.6 get `Temporal.PlainYearMonth.prototype.year`
@@ -447,14 +437,9 @@ impl PlainYearMonth {
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Temporal/PlainYearMonth/daysInYear
     /// [temporal_rs-docs]: https://docs.rs/temporal_rs/latest/temporal_rs/struct.PlainYearMonth.html#method.days_in_year
     fn get_days_in_year(this: &JsValue, _: &[JsValue], _: &mut Context) -> JsResult<JsValue> {
-        let object = this.as_object();
-        let year_month = object
-            .as_ref()
-            .and_then(JsObject::downcast_ref::<Self>)
-            .ok_or_else(|| {
-                JsNativeError::typ().with_message("this value must be a PlainYearMonth object.")
-            })?;
-        let inner = &year_month.inner;
+        let year_month = require_internal_slot!(this, Self, "PlainYearMonth");
+        let year_month_data = year_month.borrow();
+        let inner = &year_month_data.data().inner;
         Ok(inner.days_in_year().into())
     }
 
@@ -470,14 +455,9 @@ impl PlainYearMonth {
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Temporal/PlainYearMonth/daysInMonth
     /// [temporal_rs-docs]: https://docs.rs/temporal_rs/latest/temporal_rs/struct.PlainYearMonth.html#method.days_in_month
     fn get_days_in_month(this: &JsValue, _: &[JsValue], _: &mut Context) -> JsResult<JsValue> {
-        let object = this.as_object();
-        let year_month = object
-            .as_ref()
-            .and_then(JsObject::downcast_ref::<Self>)
-            .ok_or_else(|| {
-                JsNativeError::typ().with_message("this value must be a PlainYearMonth object.")
-            })?;
-        let inner = &year_month.inner;
+        let year_month = require_internal_slot!(this, Self, "PlainYearMonth");
+        let year_month_data = year_month.borrow();
+        let inner = &year_month_data.data().inner;
         Ok(inner.days_in_month().into())
     }
 
@@ -493,14 +473,9 @@ impl PlainYearMonth {
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Temporal/PlainYearMonth/monthsInYear
     /// [temporal_rs-docs]: https://docs.rs/temporal_rs/latest/temporal_rs/struct.PlainYearMonth.html#method.months_in_year
     fn get_months_in_year(this: &JsValue, _: &[JsValue], _: &mut Context) -> JsResult<JsValue> {
-        let object = this.as_object();
-        let year_month = object
-            .as_ref()
-            .and_then(JsObject::downcast_ref::<Self>)
-            .ok_or_else(|| {
-                JsNativeError::typ().with_message("this value must be a PlainYearMonth object.")
-            })?;
-        let inner = &year_month.inner;
+        let year_month = require_internal_slot!(this, Self, "PlainYearMonth");
+        let year_month_data = year_month.borrow();
+        let inner = &year_month_data.data().inner;
         Ok(inner.months_in_year().into())
     }
 
@@ -516,15 +491,9 @@ impl PlainYearMonth {
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Temporal/PlainYearMonth/inLeapYear
     /// [temporal_rs-docs]: https://docs.rs/temporal_rs/latest/temporal_rs/struct.PlainYearMonth.html#method.in_leap_year
     fn get_in_leap_year(this: &JsValue, _: &[JsValue], _: &mut Context) -> JsResult<JsValue> {
-        let object = this.as_object();
-        let year_month = object
-            .as_ref()
-            .and_then(JsObject::downcast_ref::<Self>)
-            .ok_or_else(|| {
-                JsNativeError::typ().with_message("this value must be a PlainYearMonth object.")
-            })?;
+        let year_month = require_internal_slot!(this, Self, "PlainYearMonth");
 
-        Ok(year_month.inner.in_leap_year().into())
+        Ok(year_month.borrow().data().inner.in_leap_year().into())
     }
 }
 
@@ -545,13 +514,7 @@ impl PlainYearMonth {
     fn with(this: &JsValue, args: &[JsValue], context: &mut Context) -> JsResult<JsValue> {
         // 1. Let yearMonth be the this value.
         // 2. Perform ? RequireInternalSlot(yearMonth, [[InitializedTemporalYearMonth]]).
-        let object = this.as_object();
-        let year_month = object
-            .as_ref()
-            .and_then(JsObject::downcast_ref::<Self>)
-            .ok_or_else(|| {
-                JsNativeError::typ().with_message("this value must be a PlainYearMonth object.")
-            })?;
+        let year_month = require_internal_slot!(this, Self, "PlainYearMonth");
 
         // 3. If ? IsPartialTemporalObject(temporalYearMonthLike) is false, throw a TypeError exception.
         let Some(obj) = is_partial_temporal_object(args.get_or_undefined(0), context)? else {
@@ -563,7 +526,11 @@ impl PlainYearMonth {
         // 5. Let fields be ISODateToFields(calendar, yearMonth.[[ISODate]], year-month).
         // 6. Let partialYearMonth be ? PrepareCalendarFields(calendar, temporalYearMonthLike, « year, month, month-code », « », partial).
         // 7. Set fields to CalendarMergeFields(calendar, fields, partialYearMonth).
-        let fields = to_year_month_calendar_fields(&obj, year_month.inner.calendar(), context)?;
+        let fields = to_year_month_calendar_fields(
+            &obj,
+            year_month.borrow().data().inner.calendar(),
+            context,
+        )?;
         // NOTE: Update temporal_rs to handle this.
         if fields.is_empty() {
             return Err(JsNativeError::typ()
@@ -576,7 +543,11 @@ impl PlainYearMonth {
         let overflow = get_option::<Overflow>(&resolved_options, js_string!("overflow"), context)?
             .unwrap_or_default();
         // 10. Let isoDate be ? CalendarYearMonthFromFields(calendar, fields, overflow).
-        let result = year_month.inner.with(fields, Some(overflow))?;
+        let result = year_month
+            .borrow()
+            .data()
+            .inner
+            .with(fields, Some(overflow))?;
         // 11. Return ! CreateTemporalYearMonth(isoDate, calendar).
         create_temporal_year_month(result, None, context)
     }
@@ -629,17 +600,11 @@ impl PlainYearMonth {
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Temporal/PlainYearMonth/until
     /// [temporal_rs-docs]: https://docs.rs/temporal_rs/latest/temporal_rs/struct.PlainYearMonth.html#method.until
     fn until(this: &JsValue, args: &[JsValue], context: &mut Context) -> JsResult<JsValue> {
-        let object = this.as_object();
-        let year_month = object
-            .as_ref()
-            .and_then(JsObject::downcast_ref::<Self>)
-            .ok_or_else(|| {
-                JsNativeError::typ().with_message("this value must be a PlainYearMonth object.")
-            })?;
+        let year_month = require_internal_slot!(this, Self, "PlainYearMonth");
 
         let other = to_temporal_year_month(args.get_or_undefined(0), None, context)?;
 
-        if year_month.inner.calendar() != other.calendar() {
+        if year_month.borrow().data().inner.calendar() != other.calendar() {
             return Err(JsNativeError::range()
                 .with_message("calendars are not the same.")
                 .into());
@@ -648,7 +613,7 @@ impl PlainYearMonth {
         let resolved_options = get_options_object(args.get_or_undefined(1))?;
         // TODO: Disallowed units must be rejected in `temporal_rs`.
         let settings = get_difference_settings(&resolved_options, context)?;
-        let result = year_month.inner.until(&other, settings)?;
+        let result = year_month.borrow().data().inner.until(&other, settings)?;
         create_temporal_duration(result, None, context).map(Into::into)
     }
 
@@ -664,17 +629,11 @@ impl PlainYearMonth {
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Temporal/PlainYearMonth/since
     /// [temporal_rs-docs]: https://docs.rs/temporal_rs/latest/temporal_rs/struct.PlainYearMonth.html#method.since
     fn since(this: &JsValue, args: &[JsValue], context: &mut Context) -> JsResult<JsValue> {
-        let object = this.as_object();
-        let year_month = object
-            .as_ref()
-            .and_then(JsObject::downcast_ref::<Self>)
-            .ok_or_else(|| {
-                JsNativeError::typ().with_message("this value must be a PlainYearMonth object.")
-            })?;
+        let year_month = require_internal_slot!(this, Self, "PlainYearMonth");
 
         let other = to_temporal_year_month(args.get_or_undefined(0), None, context)?;
 
-        if year_month.inner.calendar() != other.calendar() {
+        if year_month.borrow().data().inner.calendar() != other.calendar() {
             return Err(JsNativeError::range()
                 .with_message("calendars are not the same.")
                 .into());
@@ -683,7 +642,7 @@ impl PlainYearMonth {
         let resolved_options = get_options_object(args.get_or_undefined(1))?;
         // TODO: Disallowed units must be rejected in `temporal_rs`.
         let settings = get_difference_settings(&resolved_options, context)?;
-        let result = year_month.inner.since(&other, settings)?;
+        let result = year_month.borrow().data().inner.since(&other, settings)?;
         create_temporal_duration(result, None, context).map(Into::into)
     }
 
@@ -699,17 +658,11 @@ impl PlainYearMonth {
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Temporal/PlainYearMonth/equals
     /// [temporal_rs-docs]: https://docs.rs/temporal_rs/latest/temporal_rs/struct.PlainYearMonth.html#impl-PartialEq-for-PlainYearMonth
     fn equals(this: &JsValue, args: &[JsValue], context: &mut Context) -> JsResult<JsValue> {
-        let object = this.as_object();
-        let year_month = object
-            .as_ref()
-            .and_then(JsObject::downcast_ref::<Self>)
-            .ok_or_else(|| {
-                JsNativeError::typ().with_message("this value must be a PlainYearMonth object.")
-            })?;
+        let year_month = require_internal_slot!(this, Self, "PlainYearMonth");
 
         let other = to_temporal_year_month(args.get_or_undefined(0), None, context)?;
 
-        Ok((year_month.inner == other).into())
+        Ok((year_month.borrow().data().inner == other).into())
     }
 
     /// 9.3.19 `Temporal.PlainYearMonth.prototype.toString ( [ options ] )`
@@ -726,13 +679,7 @@ impl PlainYearMonth {
     fn to_string(this: &JsValue, args: &[JsValue], context: &mut Context) -> JsResult<JsValue> {
         // 1. Let YearMonth be the this value.
         // 2. Perform ? RequireInternalSlot(yearMonth, [[InitializedTemporalYearMonth]]).
-        let object = this.as_object();
-        let year_month = object
-            .as_ref()
-            .and_then(JsObject::downcast_ref::<Self>)
-            .ok_or_else(|| {
-                JsNativeError::typ().with_message("this value must be a PlainYearMonth object.")
-            })?;
+        let year_month = require_internal_slot!(this, Self, "PlainYearMonth");
 
         // 3. Set options to ? NormalizeOptionsObject(options).
         let options = get_options_object(args.get_or_undefined(0))?;
@@ -742,7 +689,11 @@ impl PlainYearMonth {
             get_option::<DisplayCalendar>(&options, js_string!("calendarName"), context)?
                 .unwrap_or(DisplayCalendar::Auto);
 
-        let ixdtf = year_month.inner.to_ixdtf_string(show_calendar);
+        let ixdtf = year_month
+            .borrow()
+            .data()
+            .inner
+            .to_ixdtf_string(show_calendar);
         Ok(JsString::from(ixdtf).into())
     }
 
@@ -761,15 +712,9 @@ impl PlainYearMonth {
         _: &mut Context,
     ) -> JsResult<JsValue> {
         // TODO: Update for ECMA-402 compliance
-        let object = this.as_object();
-        let year_month = object
-            .as_ref()
-            .and_then(JsObject::downcast_ref::<Self>)
-            .ok_or_else(|| {
-                JsNativeError::typ().with_message("this value must be a PlainYearMonth object.")
-            })?;
+        let year_month = require_internal_slot!(this, Self, "PlainYearMonth");
 
-        Ok(JsString::from(year_month.inner.to_string()).into())
+        Ok(JsString::from(year_month.borrow().data().inner.to_string()).into())
     }
 
     /// 9.3.21 `Temporal.PlainYearMonth.prototype.toJSON ( )`
@@ -782,15 +727,9 @@ impl PlainYearMonth {
     /// [spec]: https://tc39.es/proposal-temporal/#sec-temporal.plainyearmonth.tojson
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Temporal/PlainYearMonth/toJSON
     pub(crate) fn to_json(this: &JsValue, _: &[JsValue], _: &mut Context) -> JsResult<JsValue> {
-        let object = this.as_object();
-        let year_month = object
-            .as_ref()
-            .and_then(JsObject::downcast_ref::<Self>)
-            .ok_or_else(|| {
-                JsNativeError::typ().with_message("this value must be a PlainYearMonth object.")
-            })?;
+        let year_month = require_internal_slot!(this, Self, "PlainYearMonth");
 
-        Ok(JsString::from(year_month.inner.to_string()).into())
+        Ok(JsString::from(year_month.borrow().data().inner.to_string()).into())
     }
 
     /// 9.3.22 `Temporal.PlainYearMonth.prototype.valueOf ( )`
@@ -822,13 +761,7 @@ impl PlainYearMonth {
     fn to_plain_date(this: &JsValue, args: &[JsValue], context: &mut Context) -> JsResult<JsValue> {
         // 1. Let yearMonth be the this value.
         // 2. Perform ? RequireInternalSlot(yearMonth, [[InitializedTemporalYearMonth]]).
-        let object = this.as_object();
-        let year_month = object
-            .as_ref()
-            .and_then(JsObject::downcast_ref::<Self>)
-            .ok_or_else(|| {
-                JsNativeError::typ().with_message("this value must be a PlainYearMonth object.")
-            })?;
+        let year_month = require_internal_slot!(this, Self, "PlainYearMonth");
 
         // 3. If item is not an Object, then
         let Some(obj) = args.get_or_undefined(0).as_object() else {
@@ -854,7 +787,11 @@ impl PlainYearMonth {
 
         // 7. Let mergedFields be CalendarMergeFields(calendar, fields, inputFields).
         // 8. Let isoDate be ? CalendarDateFromFields(calendar, mergedFields, constrain).
-        let result = year_month.inner.to_plain_date(Some(fields))?;
+        let result = year_month
+            .borrow()
+            .data()
+            .inner
+            .to_plain_date(Some(fields))?;
         // 9. Return ! CreateTemporalDate(isoDate, calendar).
         create_temporal_date(result, None, context).map(Into::into)
     }

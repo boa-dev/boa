@@ -413,14 +413,7 @@ impl Collator {
     fn resolved_options(this: &JsValue, _: &[JsValue], context: &mut Context) -> JsResult<JsValue> {
         // 1. Let collator be the this value.
         // 2. Perform ? RequireInternalSlot(collator, [[InitializedCollator]]).
-        let object = this.as_object();
-        let collator = object
-            .as_ref()
-            .and_then(JsObject::downcast_ref::<Self>)
-            .ok_or_else(|| {
-                JsNativeError::typ()
-                    .with_message("`resolvedOptions` can only be called on a `Collator` object")
-            })?;
+        let collator = require_internal_slot!(this, Self, "Collator");
 
         // 3. Let options be OrdinaryObjectCreate(%Object.prototype%).
         let options = context
@@ -442,14 +435,14 @@ impl Collator {
         options
             .create_data_property_or_throw(
                 js_string!("locale"),
-                js_string!(collator.locale.to_string()),
+                js_string!(collator.borrow().data().locale.to_string()),
                 context,
             )
             .js_expect("operation must not fail per the spec")?;
         options
             .create_data_property_or_throw(
                 js_string!("usage"),
-                match collator.usage {
+                match collator.borrow().data().usage {
                     Usage::Search => js_string!("search"),
                     Usage::Sort => js_string!("sort"),
                 },
@@ -459,7 +452,7 @@ impl Collator {
         options
             .create_data_property_or_throw(
                 js_string!("sensitivity"),
-                match collator.sensitivity {
+                match collator.borrow().data().sensitivity {
                     Sensitivity::Base => js_string!("base"),
                     Sensitivity::Accent => js_string!("accent"),
                     Sensitivity::Case => js_string!("case"),
@@ -471,7 +464,7 @@ impl Collator {
         options
             .create_data_property_or_throw(
                 js_string!("ignorePunctuation"),
-                collator.ignore_punctuation,
+                collator.borrow().data().ignore_punctuation,
                 context,
             )
             .js_expect("operation must not fail per the spec")?;
@@ -479,16 +472,22 @@ impl Collator {
             .create_data_property_or_throw(
                 js_string!("collation"),
                 collator
+                    .borrow()
+                    .data()
                     .collation
-                    .map(|co| js_string!(co.as_str()))
+                    .map(|co: CollationType| js_string!(co.as_str()))
                     .unwrap_or(js_string!("default")),
                 context,
             )
             .js_expect("operation must not fail per the spec")?;
         options
-            .create_data_property_or_throw(js_string!("numeric"), collator.numeric, context)
+            .create_data_property_or_throw(
+                js_string!("numeric"),
+                collator.borrow().data().numeric,
+                context,
+            )
             .js_expect("operation must not fail per the spec")?;
-        if let Some(kf) = collator.case_first {
+        if let Some(kf) = collator.borrow().data().case_first {
             options
                 .create_data_property_or_throw(
                     js_string!("caseFirst"),

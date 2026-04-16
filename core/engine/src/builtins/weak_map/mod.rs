@@ -175,14 +175,7 @@ impl WeakMap {
     ) -> JsResult<JsValue> {
         // 1. Let M be the this value.
         // 2. Perform ? RequireInternalSlot(M, [[WeakMapData]]).
-        let object = this.as_object();
-        let map = object
-            .as_ref()
-            .and_then(JsObject::downcast_ref::<NativeWeakMap>)
-            .ok_or_else(|| {
-                js_error!(TypeError:
-                    "WeakMap.prototype.get: expected 'this' to be a WeakMap object")
-            })?;
+        let map = require_internal_slot!(this, NativeWeakMap, "WeakMap");
 
         // 3. Let entries be M.[[WeakMapData]].
         // 4. If key is not an Object, return undefined.
@@ -193,7 +186,7 @@ impl WeakMap {
         // 5. For each Record { [[Key]], [[Value]] } p of entries, do
         // a. If p.[[Key]] is not empty and SameValue(p.[[Key]], key) is true, return p.[[Value]].
         // 6. Return undefined.
-        if let Some(entry) = map.get(key.inner())
+        if let Some(entry) = map.borrow().data().get(key.inner())
             && let Some(val) = entry.value()
         {
             Ok(val.clone())
@@ -217,14 +210,7 @@ impl WeakMap {
     ) -> JsResult<JsValue> {
         // 1. Let M be the this value.
         // 2. Perform ? RequireInternalSlot(M, [[WeakMapData]]).
-        let object = this.as_object();
-        let map = object
-            .as_ref()
-            .and_then(JsObject::downcast_ref::<NativeWeakMap>)
-            .ok_or_else(|| {
-                js_error!(TypeError:
-                    "WeakMap.prototype.has: expected 'this' to be a WeakMap object")
-            })?;
+        let map = require_internal_slot!(this, NativeWeakMap, "WeakMap");
 
         // 3. Let entries be M.[[WeakMapData]].
         // 4. If key is not an Object, return false.
@@ -235,7 +221,7 @@ impl WeakMap {
         // 5. For each Record { [[Key]], [[Value]] } p of entries, do
         // a. If p.[[Key]] is not empty and SameValue(p.[[Key]], key) is true, return true.
         // 6. Return false.
-        Ok(map.contains_key(key.inner()).into())
+        Ok(map.borrow().data().contains_key(key.inner()).into())
     }
 
     /// `WeakMap.prototype.set ( key, value )`

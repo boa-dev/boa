@@ -192,14 +192,9 @@ impl PlainMonthDay {
 impl PlainMonthDay {
     // Helper for retrieving internal fields
     fn get_internal_field(this: &JsValue, field: &DateTimeValues) -> JsResult<JsValue> {
-        let object = this.as_object();
-        let month_day = object
-            .as_ref()
-            .and_then(JsObject::downcast_ref::<Self>)
-            .ok_or_else(|| {
-                JsNativeError::typ().with_message("this value must be a PlainMonthDay object.")
-            })?;
-        let inner = &month_day.inner;
+        let month_day = require_internal_slot!(this, Self, "PlainMonthDay");
+        let month_day_data = month_day.borrow();
+        let inner = &month_day_data.data().inner;
         match field {
             DateTimeValues::Day => Ok(inner.day().into()),
             DateTimeValues::MonthCode => Ok(js_string!(inner.month_code().as_str()).into()),
@@ -219,14 +214,8 @@ impl PlainMonthDay {
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Temporal/PlainMonthDay/calendarId
     /// [temporal_rs-docs]: https://docs.rs/temporal_rs/latest/temporal_rs/struct.PlainMonthDay.html#method.calendar
     fn get_calendar_id(this: &JsValue, _: &[JsValue], _: &mut Context) -> JsResult<JsValue> {
-        let object = this.as_object();
-        let month_day = object
-            .as_ref()
-            .and_then(JsObject::downcast_ref::<Self>)
-            .ok_or_else(|| {
-                JsNativeError::typ().with_message("this value must be a PlainMonthDay object.")
-            })?;
-        Ok(js_string!(month_day.inner.calendar().identifier()).into())
+        let month_day = require_internal_slot!(this, Self, "PlainMonthDay");
+        Ok(js_string!(month_day.borrow().data().inner.calendar().identifier()).into())
     }
 
     /// 10.3.4 get `Temporal.PlainMonthDay.prototype.day`
@@ -277,13 +266,7 @@ impl PlainMonthDay {
     fn with(this: &JsValue, args: &[JsValue], context: &mut Context) -> JsResult<JsValue> {
         // 1. Let monthDay be the this value.
         // 2. Perform ? RequireInternalSlot(monthDay, [[InitializedTemporalMonthDay]]).
-        let object = this.as_object();
-        let month_day = object
-            .as_ref()
-            .and_then(JsObject::downcast_ref::<Self>)
-            .ok_or_else(|| {
-                JsNativeError::typ().with_message("this value must be a PlainMonthDay object.")
-            })?;
+        let month_day = require_internal_slot!(this, Self, "PlainMonthDay");
 
         // 3. If ? IsPartialTemporalObject(temporalMonthDayLike) is false, throw a TypeError exception.
         let Some(object) = is_partial_temporal_object(args.get_or_undefined(0), context)? else {
@@ -294,7 +277,8 @@ impl PlainMonthDay {
         // 4. Let calendar be monthDay.[[Calendar]].
         // 5. Let fields be ISODateToFields(calendar, monthDay.[[ISODate]], month-day).
         // 6. Let partialMonthDay be ? PrepareCalendarFields(calendar, temporalMonthDayLike, « year, month, month-code, day », « », partial).
-        let fields = to_calendar_fields(&object, month_day.inner.calendar(), context)?;
+        let fields =
+            to_calendar_fields(&object, month_day.borrow().data().inner.calendar(), context)?;
         // 7. Set fields to CalendarMergeFields(calendar, fields, partialMonthDay).
         // 8. Let resolvedOptions be ? GetOptionsObject(options).
         let resolved_options = get_options_object(args.get_or_undefined(1))?;
@@ -302,7 +286,11 @@ impl PlainMonthDay {
         let overflow = get_option::<Overflow>(&resolved_options, js_string!("overflow"), context)?;
         // 10. Let isoDate be ? CalendarMonthDayFromFields(calendar, fields, overflow).
         // 11. Return ! CreateTemporalMonthDay(isoDate, calendar).
-        create_temporal_month_day(month_day.inner.with(fields, overflow)?, None, context)
+        create_temporal_month_day(
+            month_day.borrow().data().inner.with(fields, overflow)?,
+            None,
+            context,
+        )
     }
 
     /// 10.3.7 `Temporal.PlainMonthDay.prototype.equals ( other )`
@@ -317,18 +305,12 @@ impl PlainMonthDay {
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Temporal/PlainMonthDay/equals
     /// [temporal_rs-docs]: https://docs.rs/temporal_rs/latest/temporal_rs/struct.PlainMonthDay.html#impl-PartialEq-for-PlainMonthDay
     fn equals(this: &JsValue, args: &[JsValue], context: &mut Context) -> JsResult<JsValue> {
-        let object = this.as_object();
-        let month_day = object
-            .as_ref()
-            .and_then(JsObject::downcast_ref::<Self>)
-            .ok_or_else(|| {
-                JsNativeError::typ().with_message("this value must be a PlainMonthDay object.")
-            })?;
+        let month_day = require_internal_slot!(this, Self, "PlainMonthDay");
 
         let other =
             to_temporal_month_day(args.get_or_undefined(0), &JsValue::undefined(), context)?;
 
-        Ok((month_day.inner == other).into())
+        Ok((month_day.borrow().data().inner == other).into())
     }
 
     /// 10.3.8 `Temporal.PlainMonthDay.prototype.toString ( [ options ] )`
@@ -345,13 +327,7 @@ impl PlainMonthDay {
     fn to_string(this: &JsValue, args: &[JsValue], context: &mut Context) -> JsResult<JsValue> {
         // 1. Let monthDay be the this value.
         // 2. Perform ? RequireInternalSlot(monthDay, [[InitializedTemporalMonthDay]]).
-        let object = this.as_object();
-        let month_day = object
-            .as_ref()
-            .and_then(JsObject::downcast_ref::<Self>)
-            .ok_or_else(|| {
-                JsNativeError::typ().with_message("this value must be a PlainMonthDay object.")
-            })?;
+        let month_day = require_internal_slot!(this, Self, "PlainMonthDay");
 
         // 3. Set options to ? NormalizeOptionsObject(options).
         let options = get_options_object(args.get_or_undefined(0))?;
@@ -361,7 +337,11 @@ impl PlainMonthDay {
             get_option::<DisplayCalendar>(&options, js_string!("calendarName"), context)?
                 .unwrap_or(DisplayCalendar::Auto);
 
-        let ixdtf = month_day.inner.to_ixdtf_string(show_calendar);
+        let ixdtf = month_day
+            .borrow()
+            .data()
+            .inner
+            .to_ixdtf_string(show_calendar);
         Ok(JsString::from(ixdtf).into())
     }
 
@@ -380,15 +360,9 @@ impl PlainMonthDay {
         _: &mut Context,
     ) -> JsResult<JsValue> {
         // TODO: Update for ECMA-402 compliance
-        let object = this.as_object();
-        let month_day = object
-            .as_ref()
-            .and_then(JsObject::downcast_ref::<Self>)
-            .ok_or_else(|| {
-                JsNativeError::typ().with_message("this value must be a PlainMonthDay object.")
-            })?;
+        let month_day = require_internal_slot!(this, Self, "PlainMonthDay");
 
-        Ok(JsString::from(month_day.inner.to_string()).into())
+        Ok(JsString::from(month_day.borrow().data().inner.to_string()).into())
     }
 
     /// 10.3.10 `Temporal.PlainMonthDay.prototype.toJSON ( )`
@@ -401,15 +375,9 @@ impl PlainMonthDay {
     /// [spec]: https://tc39.es/proposal-temporal/#sec-temporal.plainmonthday.tojson
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Temporal/PlainMonthDay/toJSON
     pub(crate) fn to_json(this: &JsValue, _: &[JsValue], _: &mut Context) -> JsResult<JsValue> {
-        let object = this.as_object();
-        let month_day = object
-            .as_ref()
-            .and_then(JsObject::downcast_ref::<Self>)
-            .ok_or_else(|| {
-                JsNativeError::typ().with_message("this value must be a PlainMonthDay object.")
-            })?;
+        let month_day = require_internal_slot!(this, Self, "PlainMonthDay");
 
-        Ok(JsString::from(month_day.inner.to_string()).into())
+        Ok(JsString::from(month_day.borrow().data().inner.to_string()).into())
     }
 
     /// 9.3.11 `Temporal.PlainMonthDay.prototype.valueOf ( )`
@@ -441,13 +409,7 @@ impl PlainMonthDay {
     fn to_plain_date(this: &JsValue, args: &[JsValue], context: &mut Context) -> JsResult<JsValue> {
         // 1. Let monthDay be the this value.
         // 2. Perform ? RequireInternalSlot(monthDay, [[InitializedTemporalMonthDay]]).
-        let object = this.as_object();
-        let month_day = object
-            .as_ref()
-            .and_then(JsObject::downcast_ref::<Self>)
-            .ok_or_else(|| {
-                JsNativeError::typ().with_message("this value must be a PlainMonthDay object.")
-            })?;
+        let month_day = require_internal_slot!(this, Self, "PlainMonthDay");
 
         // 3. If item is not an Object, then
         let Some(item) = args.get_or_undefined(0).as_object() else {
@@ -474,7 +436,11 @@ impl PlainMonthDay {
         // 7. Let mergedFields be CalendarMergeFields(calendar, fields, inputFields).
         // 8. Let isoDate be ? CalendarDateFromFields(calendar, mergedFields, constrain).
         // 9. Return ! CreateTemporalDate(isoDate, calendar).
-        let result = month_day.inner.to_plain_date(Some(fields))?;
+        let result = month_day
+            .borrow()
+            .data()
+            .inner
+            .to_plain_date(Some(fields))?;
         create_temporal_date(result, None, context).map(Into::into)
     }
 }

@@ -409,17 +409,11 @@ impl BuiltinTypedArray {
         // 1. Let O be the this value.
         // 2. Perform ? RequireInternalSlot(O, [[TypedArrayName]]).
         // 3. Assert: O has a [[ViewedArrayBuffer]] internal slot.
-        let object = this.as_object();
-        let ta = object
-            .as_ref()
-            .and_then(JsObject::downcast_ref::<TypedArray>)
-            .ok_or_else(|| {
-                JsNativeError::typ().with_message("`this` is not a typed array object")
-            })?;
+        let ta = require_internal_slot!(this, TypedArray, "TypedArray");
 
         // 4. Let buffer be O.[[ViewedArrayBuffer]].
         // 5. Return buffer.
-        Ok(ta.viewed_array_buffer().clone().into())
+        Ok(ta.borrow().data().viewed_array_buffer().clone().into())
     }
 
     /// `get %TypedArray%.prototype.byteLength`
@@ -432,16 +426,12 @@ impl BuiltinTypedArray {
         // 1. Let O be the this value.
         // 2. Perform ? RequireInternalSlot(O, [[TypedArrayName]]).
         // 3. Assert: O has a [[ViewedArrayBuffer]] internal slot.
-        let object = this.as_object();
-        let ta = object
-            .as_ref()
-            .and_then(JsObject::downcast_ref::<TypedArray>)
-            .ok_or_else(|| {
-                JsNativeError::typ().with_message("`this` is not a typed array object")
-            })?;
+        let ta = require_internal_slot!(this, TypedArray, "TypedArray");
 
         // 4. Let taRecord be MakeTypedArrayWithBufferWitnessRecord(O, seq-cst).
-        let buf_len = ta
+        let ta_data = ta.borrow();
+        let ta_data = ta_data.data();
+        let buf_len = ta_data
             .viewed_array_buffer()
             .as_buffer()
             .bytes(Ordering::SeqCst)
@@ -450,7 +440,7 @@ impl BuiltinTypedArray {
 
         // 5. Let size be TypedArrayByteLength(taRecord).
         // 6. Return 𝔽(size).
-        Ok(ta.byte_length(buf_len).into())
+        Ok(ta_data.byte_length(buf_len).into())
     }
 
     /// `get %TypedArray%.prototype.byteOffset`
@@ -463,29 +453,27 @@ impl BuiltinTypedArray {
         // 1. Let O be the this value.
         // 2. Perform ? RequireInternalSlot(O, [[TypedArrayName]]).
         // 3. Assert: O has a [[ViewedArrayBuffer]] internal slot.
-        let object = this.as_object();
-        let ta = object
-            .as_ref()
-            .and_then(JsObject::downcast_ref::<TypedArray>)
-            .ok_or_else(|| {
-                JsNativeError::typ().with_message("Value is not a typed array object")
-            })?;
+        let ta = require_internal_slot!(this, TypedArray, "TypedArray");
 
         // 4. Let taRecord be MakeTypedArrayWithBufferWitnessRecord(O, seq-cst).
         // 5. If IsTypedArrayOutOfBounds(taRecord) is true, return +0𝔽.
-        if ta
-            .viewed_array_buffer()
-            .as_buffer()
-            .bytes(Ordering::SeqCst)
-            .filter(|s| !ta.is_out_of_bounds(s.len()))
-            .is_none()
         {
-            return Ok(0.into());
+            let ta_data = ta.borrow();
+            let ta_data = ta_data.data();
+            if ta_data
+                .viewed_array_buffer()
+                .as_buffer()
+                .bytes(Ordering::SeqCst)
+                .filter(|s| !ta_data.is_out_of_bounds(s.len()))
+                .is_none()
+            {
+                return Ok(0.into());
+            }
         }
 
         // 6. Let offset be O.[[ByteOffset]].
         // 7. Return 𝔽(offset).
-        Ok(ta.byte_offset().into())
+        Ok(ta.borrow().data().byte_offset().into())
     }
 
     /// `%TypedArray%.prototype.copyWithin ( target, start [ , end ] )`
@@ -1327,27 +1315,23 @@ impl BuiltinTypedArray {
         // 1. Let O be the this value.
         // 2. Perform ? RequireInternalSlot(O, [[TypedArrayName]]).
         // 3. Assert: O has [[ViewedArrayBuffer]] and [[ArrayLength]] internal slots.
-        let object = this.as_object();
-        let ta = object
-            .as_ref()
-            .and_then(JsObject::downcast_ref::<TypedArray>)
-            .ok_or_else(|| {
-                JsNativeError::typ().with_message("`this` is not a typed array object")
-            })?;
+        let ta = require_internal_slot!(this, TypedArray, "TypedArray");
 
         // 4. Let taRecord be MakeTypedArrayWithBufferWitnessRecord(O, seq-cst).
         // 5. If IsTypedArrayOutOfBounds(taRecord) is true, return +0𝔽.
-        let buf = ta.viewed_array_buffer().as_buffer();
+        let ta_data = ta.borrow();
+        let ta_data = ta_data.data();
+        let buf = ta_data.viewed_array_buffer().as_buffer();
         let Some(buf) = buf
             .bytes(Ordering::SeqCst)
-            .filter(|s| !ta.is_out_of_bounds(s.len()))
+            .filter(|s| !ta_data.is_out_of_bounds(s.len()))
         else {
             return Ok(0.into());
         };
 
         // 6. Let length be TypedArrayLength(taRecord).
         // 7. Return 𝔽(length).
-        Ok(ta.array_length(buf.len()).into())
+        Ok(ta.borrow().data().array_length(buf.len()).into())
     }
 
     /// `%TypedArray%.prototype.map ( callbackfn [ , thisArg ] )`

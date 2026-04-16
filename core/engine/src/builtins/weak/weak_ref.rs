@@ -108,15 +108,7 @@ impl WeakRef {
     pub(crate) fn deref(this: &JsValue, _: &[JsValue], context: &mut Context) -> JsResult<JsValue> {
         // 1. Let weakRef be the this value.
         // 2. Perform ? RequireInternalSlot(weakRef, [[WeakRefTarget]]).
-        let object = this.as_object();
-        let weak_ref = object
-            .as_ref()
-            .and_then(JsObject::downcast_ref::<WeakGc<ErasedVTableObject>>)
-            .ok_or_else(|| {
-                JsNativeError::typ().with_message(
-                    "WeakRef.prototype.deref: expected `this` to be a `WeakRef` object",
-                )
-            })?;
+        let weak_ref = require_internal_slot!(this, WeakGc<ErasedVTableObject>, "WeakRef");
 
         // 3. Return WeakRefDeref(weakRef).
 
@@ -124,7 +116,7 @@ impl WeakRef {
         // https://tc39.es/ecma262/multipage/managing-memory.html#sec-weakrefderef
         // 1. Let target be weakRef.[[WeakRefTarget]].
         // 2. If target is not empty, then
-        if let Some(object) = weak_ref.upgrade() {
+        if let Some(object) = weak_ref.borrow().data().upgrade() {
             let object = JsObject::from(object);
 
             // a. Perform AddToKeptObjects(target).
@@ -229,7 +221,7 @@ mod tests {
         run_test_actions([TestAction::assert_native_error(
             "WeakRef.prototype.deref.call({})",
             JsNativeErrorKind::Type,
-            "WeakRef.prototype.deref: expected `this` to be a `WeakRef` object",
+            "the this object must be a WeakRef object.",
         )]);
     }
 

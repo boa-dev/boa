@@ -331,15 +331,9 @@ impl PlainDate {
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Temporal/PlainDate/calendarId
     /// [temporal_rs-docs]: https://docs.rs/temporal_rs/latest/temporal_rs/struct.PlainDate.html#method.calendar
     fn get_calendar_id(this: &JsValue, _: &[JsValue], _: &mut Context) -> JsResult<JsValue> {
-        let object = this.as_object();
-        let date = object
-            .as_ref()
-            .and_then(JsObject::downcast_ref::<Self>)
-            .ok_or_else(|| {
-                JsNativeError::typ().with_message("the this object must be a PlainDate object.")
-            })?;
+        let date = require_internal_slot!(this, Self, "PlainDate");
 
-        Ok(JsString::from(date.inner.calendar().identifier()).into())
+        Ok(JsString::from(date.borrow().data().inner.calendar().identifier()).into())
     }
 
     /// 3.3.4 get `Temporal.PlainDate.prototype.era`
@@ -801,15 +795,9 @@ impl PlainDate {
     ) -> JsResult<JsValue> {
         // 1. Let temporalDate be the this value.
         // 2. Perform ? RequireInternalSlot(temporalDate, [[InitializedTemporalDate]]).
-        let object = this.as_object();
-        let date = object
-            .as_ref()
-            .and_then(JsObject::downcast_ref::<Self>)
-            .ok_or_else(|| {
-                JsNativeError::typ().with_message("the this object must be a PlainDate object.")
-            })?;
+        let date = require_internal_slot!(this, Self, "PlainDate");
 
-        let year_month = date.inner.to_plain_year_month()?;
+        let year_month = date.borrow().data().inner.to_plain_year_month()?;
         create_temporal_year_month(year_month, None, context)
     }
 
@@ -831,15 +819,9 @@ impl PlainDate {
     ) -> JsResult<JsValue> {
         // 1. Let temporalDate be the this value.
         // 2. Perform ? RequireInternalSlot(temporalDate, [[InitializedTemporalDate]]).
-        let object = this.as_object();
-        let date = object
-            .as_ref()
-            .and_then(JsObject::downcast_ref::<Self>)
-            .ok_or_else(|| {
-                JsNativeError::typ().with_message("the this object must be a PlainDate object.")
-            })?;
+        let date = require_internal_slot!(this, Self, "PlainDate");
 
-        let month_day = date.inner.to_plain_month_day()?;
+        let month_day = date.borrow().data().inner.to_plain_month_day()?;
         create_temporal_month_day(month_day, None, context)
     }
 
@@ -857,13 +839,7 @@ impl PlainDate {
     fn add(this: &JsValue, args: &[JsValue], context: &mut Context) -> JsResult<JsValue> {
         // 1. Let temporalDate be the this value.
         // 2. Perform ? RequireInternalSlot(temporalDate, [[InitializedTemporalDate]]).
-        let object = this.as_object();
-        let date = object
-            .as_ref()
-            .and_then(JsObject::downcast_ref::<Self>)
-            .ok_or_else(|| {
-                JsNativeError::typ().with_message("the this object must be a PlainDate object.")
-            })?;
+        let date = require_internal_slot!(this, Self, "PlainDate");
 
         // 3. Let duration be ? ToTemporalDuration(temporalDurationLike).
         let duration = to_temporal_duration_record(args.get_or_undefined(0), context)?;
@@ -875,7 +851,7 @@ impl PlainDate {
 
         // 5. Let calendarRec be ? CreateCalendarMethodsRecord(temporalDate.[[Calendar]], « date-add »).
         // 6. Return ? AddDate(calendarRec, temporalDate, duration, options).
-        let resolved_date = date.inner.add(&duration, overflow)?;
+        let resolved_date = date.borrow().data().inner.add(&duration, overflow)?;
         create_temporal_date(resolved_date, None, context).map(Into::into)
     }
 
@@ -893,13 +869,7 @@ impl PlainDate {
     fn subtract(this: &JsValue, args: &[JsValue], context: &mut Context) -> JsResult<JsValue> {
         // 1. Let temporalDate be the this value.
         // 2. Perform ? RequireInternalSlot(temporalDate, [[InitializedTemporalDate]]).
-        let object = this.as_object();
-        let date = object
-            .as_ref()
-            .and_then(JsObject::downcast_ref::<Self>)
-            .ok_or_else(|| {
-                JsNativeError::typ().with_message("the this object must be a PlainDate object.")
-            })?;
+        let date = require_internal_slot!(this, Self, "PlainDate");
 
         // 3. Let duration be ? ToTemporalDuration(temporalDurationLike).
         let duration = to_temporal_duration_record(args.get_or_undefined(0), context)?;
@@ -911,7 +881,7 @@ impl PlainDate {
         // 5. Let negatedDuration be CreateNegatedTemporalDuration(duration).
         // 6. Let calendarRec be ? CreateCalendarMethodsRecord(temporalDate.[[Calendar]], « date-add »).
         // 7. Return ? AddDate(calendarRec, temporalDate, negatedDuration, options).
-        let resolved_date = date.inner.subtract(&duration, overflow)?;
+        let resolved_date = date.borrow().data().inner.subtract(&duration, overflow)?;
         create_temporal_date(resolved_date, None, context).map(Into::into)
     }
 
@@ -929,13 +899,7 @@ impl PlainDate {
     fn with(this: &JsValue, args: &[JsValue], context: &mut Context) -> JsResult<JsValue> {
         // 1. Let temporalDate be the this value.
         // 2. Perform ? RequireInternalSlot(temporalDate, [[InitializedTemporalDate]]).
-        let object = this.as_object();
-        let date = object
-            .as_ref()
-            .and_then(JsObject::downcast_ref::<Self>)
-            .ok_or_else(|| {
-                JsNativeError::typ().with_message("the this object must be a PlainDate object.")
-            })?;
+        let date = require_internal_slot!(this, Self, "PlainDate");
 
         // 3. If ? IsPartialTemporalObject(temporalDateLike) is false, throw a TypeError exception.
         let Some(partial_object) =
@@ -951,7 +915,11 @@ impl PlainDate {
         // 5. Let fields be ISODateToFields(calendar, temporalDate.[[ISODate]], date).
         // 6. Let partialDate be ? PrepareCalendarFields(calendar, temporalDateLike, « year, month, month-code, day », « », partial).
         // 7. Set fields to CalendarMergeFields(calendar, fields, partialDate).
-        let fields = to_calendar_fields(&partial_object, date.inner.calendar(), context)?;
+        let fields = to_calendar_fields(
+            &partial_object,
+            date.borrow().data().inner.calendar(),
+            context,
+        )?;
 
         // 8. Let resolvedOptions be ? GetOptionsObject(options).
         let options = get_options_object(args.get_or_undefined(1))?;
@@ -959,7 +927,7 @@ impl PlainDate {
         let overflow = get_option::<Overflow>(&options, js_string!("overflow"), context)?;
 
         // 10. Return ? CalendarDateFromFields(calendarRec, fields, resolvedOptions).
-        let resolved_date = date.inner.with(fields, overflow)?;
+        let resolved_date = date.borrow().data().inner.with(fields, overflow)?;
         create_temporal_date(resolved_date, None, context).map(Into::into)
     }
 
@@ -977,19 +945,13 @@ impl PlainDate {
     /// [temporal_rs-docs]: https://docs.rs/temporal_rs/latest/temporal_rs/struct.PlainDate.html#method.with_calendar
     fn with_calendar(this: &JsValue, args: &[JsValue], context: &mut Context) -> JsResult<JsValue> {
         // 1. Let plainDate be the this value.
-        let object = this.as_object();
         // 2. Perform ? RequireInternalSlot(plainDate, [[InitializedTemporalDate]]).
-        let date = object
-            .as_ref()
-            .and_then(JsObject::downcast_ref::<Self>)
-            .ok_or_else(|| {
-                JsNativeError::typ().with_message("the this object must be a PlainDate object.")
-            })?;
+        let date = require_internal_slot!(this, Self, "PlainDate");
 
         // 3. Let calendar be ? ToTemporalCalendarIdentifier(calendarLike).
         let calendar = to_temporal_calendar_identifier(args.get_or_undefined(0))?;
         // 4. Return ! CreateTemporalDate(plainDate.[[ISODate]], calendar).
-        let resolved_date = date.inner.with_calendar(calendar);
+        let resolved_date = date.borrow().data().inner.with_calendar(calendar);
         create_temporal_date(resolved_date, None, context).map(Into::into)
     }
 
@@ -1007,13 +969,7 @@ impl PlainDate {
     fn until(this: &JsValue, args: &[JsValue], context: &mut Context) -> JsResult<JsValue> {
         // 1. Let temporalDate be the this value.
         // 2. Perform ? RequireInternalSlot(temporalDate, [[InitializedTemporalDate]]).
-        let object = this.as_object();
-        let date = object
-            .as_ref()
-            .and_then(JsObject::downcast_ref::<Self>)
-            .ok_or_else(|| {
-                JsNativeError::typ().with_message("the this object must be a PlainDate object.")
-            })?;
+        let date = require_internal_slot!(this, Self, "PlainDate");
 
         let other = to_temporal_date(args.get_or_undefined(0), None, context)?;
 
@@ -1021,7 +977,12 @@ impl PlainDate {
         let options = get_options_object(args.get_or_undefined(1))?;
         let settings = get_difference_settings(&options, context)?;
 
-        create_temporal_duration(date.inner.until(&other, settings)?, None, context).map(Into::into)
+        create_temporal_duration(
+            date.borrow().data().inner.until(&other, settings)?,
+            None,
+            context,
+        )
+        .map(Into::into)
     }
 
     /// 3.3.26 `Temporal.PlainDate.prototype.since ( other [ , options ] )`
@@ -1038,13 +999,7 @@ impl PlainDate {
     fn since(this: &JsValue, args: &[JsValue], context: &mut Context) -> JsResult<JsValue> {
         // 1. Let temporalDate be the this value.
         // 2. Perform ? RequireInternalSlot(temporalDate, [[InitializedTemporalDate]]).
-        let object = this.as_object();
-        let date = object
-            .as_ref()
-            .and_then(JsObject::downcast_ref::<Self>)
-            .ok_or_else(|| {
-                JsNativeError::typ().with_message("the this object must be a PlainDate object.")
-            })?;
+        let date = require_internal_slot!(this, Self, "PlainDate");
 
         // 3. Return ? DifferenceTemporalPlainDate(since, temporalDate, other, options).
         let other = to_temporal_date(args.get_or_undefined(0), None, context)?;
@@ -1052,7 +1007,12 @@ impl PlainDate {
         let options = get_options_object(args.get_or_undefined(1))?;
         let settings = get_difference_settings(&options, context)?;
 
-        create_temporal_duration(date.inner.since(&other, settings)?, None, context).map(Into::into)
+        create_temporal_duration(
+            date.borrow().data().inner.since(&other, settings)?,
+            None,
+            context,
+        )
+        .map(Into::into)
     }
 
     /// 3.3.27 `Temporal.PlainDate.prototype.equals ( other )`
@@ -1067,17 +1027,11 @@ impl PlainDate {
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Temporal/PlainDate/equals
     /// [temporal_rs-docs]: https://docs.rs/temporal_rs/latest/temporal_rs/struct.PlainDate.html#impl-Eq-for-PlainDate
     fn equals(this: &JsValue, args: &[JsValue], context: &mut Context) -> JsResult<JsValue> {
-        let object = this.as_object();
-        let date = object
-            .as_ref()
-            .and_then(JsObject::downcast_ref::<Self>)
-            .ok_or_else(|| {
-                JsNativeError::typ().with_message("the this object must be a PlainDate object.")
-            })?;
+        let date = require_internal_slot!(this, Self, "PlainDate");
 
         let other = to_temporal_date(args.get_or_undefined(0), None, context)?;
 
-        Ok((date.inner == other).into())
+        Ok((date.borrow().data().inner == other).into())
     }
 
     /// 3.3.28 `Temporal.PlainDate.prototype.toPlainDateTime ( [ temporalTime ] )`
@@ -1098,13 +1052,7 @@ impl PlainDate {
     ) -> JsResult<JsValue> {
         // 1. Let temporalDate be the this value.
         // 2. Perform ? RequireInternalSlot(temporalDate, [[InitializedTemporalDate]]).
-        let object = this.as_object();
-        let date = object
-            .as_ref()
-            .and_then(JsObject::downcast_ref::<Self>)
-            .ok_or_else(|| {
-                JsNativeError::typ().with_message("the this object must be a PlainDate object.")
-            })?;
+        let date = require_internal_slot!(this, Self, "PlainDate");
 
         // 3. Set temporalTime to ? ToTemporalTimeOrMidnight(temporalTime).
         let time = args
@@ -1112,8 +1060,12 @@ impl PlainDate {
             .map(|v| to_temporal_time(v, None, context))
             .transpose()?;
         // 4. Return ? CreateTemporalDateTime(temporalDate.[[ISOYear]], temporalDate.[[ISOMonth]], temporalDate.[[ISODay]], temporalTime.[[ISOHour]], temporalTime.[[ISOMinute]], temporalTime.[[ISOSecond]], temporalTime.[[ISOMillisecond]], temporalTime.[[ISOMicrosecond]], temporalTime.[[ISONanosecond]], temporalDate.[[Calendar]]).
-        create_temporal_datetime(date.inner.to_plain_date_time(time)?, None, context)
-            .map(Into::into)
+        create_temporal_datetime(
+            date.borrow().data().inner.to_plain_date_time(time)?,
+            None,
+            context,
+        )
+        .map(Into::into)
     }
 
     /// 3.3.29 `Temporal.PlainDate.prototype.toZonedDateTime ( item )`
@@ -1134,13 +1086,7 @@ impl PlainDate {
     ) -> JsResult<JsValue> {
         // 1. Let temporalDate be the this value.
         // 2. Perform ? RequireInternalSlot(temporalDate, [[InitializedTemporalDate]]).
-        let object = this.as_object();
-        let date = object
-            .as_ref()
-            .and_then(JsObject::downcast_ref::<Self>)
-            .ok_or_else(|| {
-                JsNativeError::typ().with_message("the this object must be a PlainDate object.")
-            })?;
+        let date = require_internal_slot!(this, Self, "PlainDate");
 
         let item = args.get_or_undefined(0);
         // 3. If item is an Object, then
@@ -1174,11 +1120,11 @@ impl PlainDate {
             (to_temporal_timezone_identifier(item, context)?, None)
         };
 
-        let result = date.inner.to_zoned_date_time_with_provider(
-            timezone,
-            time,
-            context.timezone_provider(),
-        )?;
+        let result = date
+            .borrow()
+            .data()
+            .inner
+            .to_zoned_date_time_with_provider(timezone, time, context.timezone_provider())?;
 
         // 7. Return ! CreateTemporalZonedDateTime(epochNs, timeZone, temporalDate.[[Calendar]]).
         create_temporal_zoneddatetime(result, None, context).map(Into::into)
@@ -1196,19 +1142,13 @@ impl PlainDate {
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Temporal/PlainDate/toString
     /// [temporal_rs-docs]: https://docs.rs/temporal_rs/latest/temporal_rs/struct.PlainDate.html#method.to_ixdtf_string
     fn to_string(this: &JsValue, args: &[JsValue], context: &mut Context) -> JsResult<JsValue> {
-        let object = this.as_object();
-        let date = object
-            .as_ref()
-            .and_then(JsObject::downcast_ref::<Self>)
-            .ok_or_else(|| {
-                JsNativeError::typ().with_message("the this object must be a PlainDate object.")
-            })?;
+        let date = require_internal_slot!(this, Self, "PlainDate");
 
         let options = get_options_object(args.get_or_undefined(0))?;
         let display_calendar =
             get_option::<DisplayCalendar>(&options, js_string!("calendarName"), context)?
                 .unwrap_or(DisplayCalendar::Auto);
-        Ok(JsString::from(date.inner.to_ixdtf_string(display_calendar)).into())
+        Ok(JsString::from(date.borrow().data().inner.to_ixdtf_string(display_calendar)).into())
     }
 
     /// 3.3.31 `Temporal.PlainDate.prototype.toLocaleString ( [ locales [ , options ] ] )`
@@ -1222,15 +1162,9 @@ impl PlainDate {
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Temporal/PlainDate/toLocaleString
     fn to_locale_string(this: &JsValue, _: &[JsValue], _: &mut Context) -> JsResult<JsValue> {
         // TODO: Update for ECMA-402 compliance
-        let object = this.as_object();
-        let date = object
-            .as_ref()
-            .and_then(JsObject::downcast_ref::<Self>)
-            .ok_or_else(|| {
-                JsNativeError::typ().with_message("the this object must be a PlainDate object.")
-            })?;
+        let date = require_internal_slot!(this, Self, "PlainDate");
 
-        Ok(JsString::from(date.inner.to_string()).into())
+        Ok(JsString::from(date.borrow().data().inner.to_string()).into())
     }
 
     /// 3.3.32 `Temporal.PlainDate.prototype.toJSON ( )`
@@ -1243,15 +1177,9 @@ impl PlainDate {
     /// [spec]: https://tc39.es/proposal-temporal/#sec-temporal.plaindate.prototype.toJSON
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Temporal/PlainDate/toJSON
     fn to_json(this: &JsValue, _: &[JsValue], _: &mut Context) -> JsResult<JsValue> {
-        let object = this.as_object();
-        let date = object
-            .as_ref()
-            .and_then(JsObject::downcast_ref::<Self>)
-            .ok_or_else(|| {
-                JsNativeError::typ().with_message("the this object must be a PlainDate object.")
-            })?;
+        let date = require_internal_slot!(this, Self, "PlainDate");
 
-        Ok(JsString::from(date.inner.to_string()).into())
+        Ok(JsString::from(date.borrow().data().inner.to_string()).into())
     }
 
     /// 3.3.33 `Temporal.PlainDate.prototype.valueOf ( )`
