@@ -89,13 +89,11 @@ pub(crate) fn global_declaration_instantiation_context(
         };
 
         // a.iv. If declaredFunctionNames does not contain fn, then
+        // SKIP:     1. Let fnDefinable be ? env.CanDeclareGlobalFunction(fn).
+        // SKIP:     2. If fnDefinable is false, throw a TypeError exception.
         // 3. Append fn to declaredFunctionNames.
-        if declared_function_names.insert(name.sym()) {
-            // SKIP: 1. Let fnDefinable be ? env.CanDeclareGlobalFunction(fn).
-            // SKIP: 2. If fnDefinable is false, throw a TypeError exception.
-
-            // SKIP: 4. Insert d as the first element of functionsToInitialize.
-        }
+        // SKIP:     4. Insert d as the first element of functionsToInitialize.
+        declared_function_names.insert(name.sym());
     }
 
     // // 9. Let declaredVarNames be a new empty List.
@@ -256,12 +254,10 @@ pub(crate) fn prepare_eval_declaration_instantiation(
         };
 
         // a.iv. If declaredFunctionNames does not contain fn, then
+        // SKIP:     1. If varEnv is a Global Environment Record, then
         // 2. Append fn to declaredFunctionNames.
-        if declared_function_names.insert(name.sym()) {
-            // SKIP: 1. If varEnv is a Global Environment Record, then
-
-            // SKIP: 3. Insert d as the first element of functionsToInitialize.
-        }
+        // SKIP:     3. Insert d as the first element of functionsToInitialize.
+        declared_function_names.insert(name.sym());
     }
 
     // 11. NOTE: Annex B.3.2.3 adds additional steps at this point.
