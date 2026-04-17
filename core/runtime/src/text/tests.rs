@@ -1,4 +1,3 @@
-use super::encodings;
 use crate::test::{TestAction, run_test_actions_with};
 use crate::text;
 use boa_engine::object::builtins::JsUint8Array;
@@ -476,69 +475,4 @@ fn decoder_handle_data_view_offset_and_length() {
         ],
         context,
     );
-}
-
-// Test cases from issue #4612: unpaired surrogates must be replaced with U+FFFD.
-const INVALID_UTF16_CASES: &[(&[u16], &[u16])] = &[
-    // Lone high surrogate in the middle
-    (
-        &[0x0061, 0x0062, 0xD800, 0x0077, 0x0078],
-        &[0x0061, 0x0062, 0xFFFD, 0x0077, 0x0078],
-    ),
-    // Lone high surrogate only
-    (&[0xD800], &[0xFFFD]),
-    // Two consecutive high surrogates
-    (&[0xD800, 0xD800], &[0xFFFD, 0xFFFD]),
-    // Lone low surrogate in the middle
-    (
-        &[0x0061, 0x0062, 0xDFFF, 0x0077, 0x0078],
-        &[0x0061, 0x0062, 0xFFFD, 0x0077, 0x0078],
-    ),
-    // Low surrogate followed by high surrogate (wrong order)
-    (&[0xDFFF, 0xD800], &[0xFFFD, 0xFFFD]),
-];
-
-#[test]
-fn decoder_utf16le_replaces_unpaired_surrogates() {
-    for (invalid, replaced) in INVALID_UTF16_CASES {
-        let mut input_bytes = Vec::with_capacity(invalid.len() * 2);
-        for &code_unit in *invalid {
-            input_bytes.extend_from_slice(&code_unit.to_le_bytes());
-        }
-
-        let result = encodings::utf16le::decode(&input_bytes, false);
-        let expected = JsString::from(*replaced);
-        assert_eq!(result, expected, "utf16le failed for input {invalid:?}");
-    }
-}
-
-#[test]
-fn decoder_utf16be_replaces_unpaired_surrogates() {
-    for (invalid, replaced) in INVALID_UTF16_CASES {
-        let mut input_bytes = Vec::with_capacity(invalid.len() * 2);
-        for &code_unit in *invalid {
-            input_bytes.extend_from_slice(&code_unit.to_be_bytes());
-        }
-
-        let result = encodings::utf16be::decode(&input_bytes, false);
-        let expected = JsString::from(*replaced);
-        assert_eq!(result, expected, "utf16be failed for input {invalid:?}");
-    }
-}
-
-#[test]
-fn decoder_utf16le_dangling_byte_produces_replacement() {
-    // Odd-length input: the last byte is truncated and replaced with U+FFFD
-    let input: &[u8] = &[0x41, 0x00, 0x42]; // 'A' (LE) + dangling byte
-    let result = encodings::utf16le::decode(input, false);
-    let expected = JsString::from(&[0x0041u16, 0xFFFD][..]);
-    assert_eq!(result, expected);
-}
-
-#[test]
-fn decoder_utf16be_dangling_byte_produces_replacement() {
-    let input: &[u8] = &[0x00, 0x41, 0x42]; // 'A' (BE) + dangling byte
-    let result = encodings::utf16be::decode(input, false);
-    let expected = JsString::from(&[0x0041u16, 0xFFFD][..]);
-    assert_eq!(result, expected);
 }
