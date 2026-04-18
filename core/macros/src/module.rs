@@ -187,14 +187,14 @@ fn module_impl_impl(_args: ModuleArguments, mut mod_: ItemMod) -> SpannedResult<
             | Item::TraitAlias(ItemTraitAlias { attrs, .. })
             | Item::Type(ItemType { attrs, .. })
             | Item::Union(ItemUnion { attrs, .. })
-            | Item::Use(ItemUse { attrs, .. }) => {
-                if take_path_attr(attrs, "skip") {
-                    original_module_decl = quote! {
-                        #original_module_decl
-                        #item
-                    };
-                    continue;
-                }
+            | Item::Use(ItemUse { attrs, .. })
+                if take_path_attr(attrs, "skip") =>
+            {
+                original_module_decl = quote! {
+                    #original_module_decl
+                    #item
+                };
+                continue;
             }
             _ => {}
         }
