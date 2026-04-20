@@ -19,7 +19,7 @@ impl FunctionEnvironment {
         Self {
             bindings: GcRefCell::new(vec![None; bindings_count as usize]),
             slots: Box::new(slots),
-            scope,
+            scope: scope.deep_clone(),
         }
     }
 
