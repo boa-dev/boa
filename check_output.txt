@@ -1,3 +1,0 @@
-    Checking boa_engine v1.0.0-dev (C:\Users\ayushraj\OneDrive\Desktop\boa\core\engine)
-error: could not compile `boa_engine` (lib)
-^C
