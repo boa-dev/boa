@@ -129,12 +129,8 @@ fn unescape(_: &JsValue, args: &[JsValue], context: &mut Context) -> JsResult<Js
     // 2. Let len be the length of string.
     // 4. Let k be 0.
     // 5. Repeat, while k < len,
-    loop {
-        // a. Let C be the code unit at index k within string.
-        let Some(cp) = codepoints.next() else {
-            break;
-        };
-
+    // a. Let C be the code unit at index k within string.
+    while let Some(cp) = codepoints.next() {
         // b. If C is the code unit 0x0025 (PERCENT SIGN), then
         if cp != u16::from(b'%') {
             vec.push(cp);

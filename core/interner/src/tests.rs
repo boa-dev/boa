@@ -54,14 +54,11 @@ fn check_static_resolve() {
         .into_iter()
         .copied()
         .zip(COMMON_STRINGS_UTF16.iter().copied())
-        .chain(
-            [
-                ("my test str", utf16!("my test str")),
-                ("hello world", utf16!("hello world")),
-                (";", utf16!(";")),
-            ]
-            .into_iter(),
-        )
+        .chain([
+            ("my test str", utf16!("my test str")),
+            ("hello world", utf16!("hello world")),
+            (";", utf16!(";")),
+        ])
     {
         let sym = interner.get_or_intern_static(utf8, utf16);
         let resolved = interner.resolve(sym).unwrap();
