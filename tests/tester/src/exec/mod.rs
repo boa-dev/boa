@@ -586,7 +586,7 @@ impl Test {
                 .ok_or_else(|| format!("could not find the {include_name} include file."))?;
             let source = Source::from_reader(include.content.as_bytes(), Some(&include.path));
             context.eval(source).map_err(|e| {
-                format!("could not run the harness `{include_name}`:\nUncaught {e}",)
+                format!("could not run the harness `{include_name}`:\nUncaught {e}")
             })?;
         }
 
