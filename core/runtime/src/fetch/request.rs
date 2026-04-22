@@ -194,9 +194,18 @@ impl JsRequest {
 
     /// Get a reference to the inner `http::Request` object.
     /// Note: the body in the returned request is always empty; use
-    /// `body_bytes()` to access the body.
+    /// [`Self::body_bytes`] to access the body.
     pub fn inner(&self) -> &HttpRequest<Vec<u8>> {
         &self.inner
+    }
+
+    /// Returns the body bytes when the body is already `Ready`, or `None` if
+    /// the body is still `Pending` (not yet resolved from a lazy future).
+    pub fn body_bytes(&self) -> Option<Vec<u8>> {
+        match &*self.body.borrow() {
+            BodyState::Ready(b) => Some(b.clone()),
+            BodyState::Pending(_) => None,
+        }
     }
 
     /// Get the abort signal associated with this request, if any.
@@ -361,9 +370,9 @@ impl JsRequest {
 
     /// Clones the request.
     ///
-    /// The clone shares the same `body` state via `Rc`: if the body future has
-    /// not yet been awaited, the first of the two to call `text()` / `json()` /
-    /// `formData()` will await it and cache the result for the other.
+    /// The body state is shared via `Rc`: if the body future has not yet been
+    /// awaited, the first of the two to call `text()` / `json()` / `formData()`
+    /// will await it and cache the result for the other.
     #[boa(rename = "clone")]
     fn clone_request(&self) -> Self {
         self.clone()

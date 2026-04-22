@@ -93,7 +93,7 @@ fn request_clone_preserves_body_without_override() {
             let request = ctx.global_object().get(js_str!("cloned"), ctx).unwrap();
             let request_obj = request.as_object().unwrap();
             let request = request_obj.downcast_ref::<JsRequest>().unwrap();
-            assert_eq!(request.inner().body().as_slice(), b"payload");
+            assert_eq!(request.body_bytes().unwrap(), b"payload");
         }),
     ]);
 }
@@ -147,7 +147,7 @@ fn request_clone_body_override() {
             let request = ctx.global_object().get(js_str!("cloned"), ctx).unwrap();
             let request_obj = request.as_object().unwrap();
             let request = request_obj.downcast_ref::<JsRequest>().unwrap();
-            assert_eq!(request.inner().body().as_slice(), b"override");
+            assert_eq!(request.body_bytes().unwrap(), b"override");
         }),
     ]);
 }
@@ -196,7 +196,7 @@ fn request_clone_method_preserves_body() {
             let cloned = ctx.global_object().get(js_str!("cloned"), ctx).unwrap();
             let cloned_obj = cloned.as_object().unwrap();
             let cloned_req = cloned_obj.downcast_ref::<JsRequest>().unwrap();
-            assert_eq!(cloned_req.inner().body().as_slice(), b"payload");
+            assert_eq!(cloned_req.body_bytes().unwrap(), b"payload");
         }),
     ]);
 }
@@ -227,14 +227,14 @@ fn request_clone_method_is_independent() {
             let cloned_obj = cloned.as_object().unwrap();
             let cloned_req = cloned_obj.downcast_ref::<JsRequest>().unwrap();
 
-            assert_eq!(original_req.inner().body().as_slice(), b"original-body");
-            assert_eq!(cloned_req.inner().body().as_slice(), b"original-body");
+            let orig_body = original_req.body_bytes().unwrap();
+            let cloned_body = cloned_req.body_bytes().unwrap();
 
-            // Verify they are distinct objects (different pointers).
-            assert!(!std::ptr::eq(
-                original_req.inner().body().as_ptr(),
-                cloned_req.inner().body().as_ptr()
-            ));
+            assert_eq!(orig_body, b"original-body");
+            assert_eq!(cloned_body, b"original-body");
+
+            // Verify the two allocations are independent (different heap pointers).
+            assert!(!std::ptr::eq(orig_body.as_ptr(), cloned_body.as_ptr()));
         }),
     ]);
 }
