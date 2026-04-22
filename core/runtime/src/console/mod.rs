@@ -97,7 +97,7 @@ impl Logger for DefaultLogger {
     #[inline]
     fn log(&self, msg: String, state: &ConsoleState, _context: &mut Context) -> JsResult<()> {
         let indent = state.indent();
-        writeln!(std::io::stdout(), "{msg:>indent$}").map_err(JsError::from_rust)
+        writeln!(std::io::stdout(), "{:indent$}{msg}", "").map_err(JsError::from_rust)
     }
 
     #[inline]
@@ -113,7 +113,7 @@ impl Logger for DefaultLogger {
     #[inline]
     fn error(&self, msg: String, state: &ConsoleState, _context: &mut Context) -> JsResult<()> {
         let indent = state.indent();
-        writeln!(std::io::stderr(), "{msg:>indent$}").map_err(JsError::from_rust)
+        writeln!(std::io::stderr(), "{:indent$}{msg}", "").map_err(JsError::from_rust)
     }
 }
 
@@ -384,6 +384,11 @@ impl Console {
             0,
         )
         .function(
+            console_method(Self::error, state.clone(), logger.clone()),
+            js_string!("exception"),
+            0,
+        )
+        .function(
             console_method(Self::warn, state.clone(), logger.clone()),
             js_string!("warn"),
             0,
@@ -434,8 +439,23 @@ impl Console {
             0,
         )
         .function(
-            console_method(Self::dir, state, logger.clone()),
+            console_method(Self::dir, state.clone(), logger.clone()),
             js_string!("dirxml"),
+            0,
+        )
+        .function(
+            console_method(Self::time_stamp, state.clone(), logger.clone()),
+            js_string!("timeStamp"),
+            0,
+        )
+        .function(
+            console_method(Self::profile, state.clone(), logger.clone()),
+            js_string!("profile"),
+            0,
+        )
+        .function(
+            console_method(Self::profile_end, state, logger.clone()),
+            js_string!("profileEnd"),
             0,
         )
         .build()
@@ -915,6 +935,45 @@ impl Console {
             &console.state,
             context,
         )?;
+        Ok(JsValue::undefined())
+    }
+
+    /// `console.timeStamp(label)`
+    ///
+    /// This method is a no-op in Boa.
+    fn time_stamp(
+        _: &JsValue,
+        _: &[JsValue],
+        _: &Self,
+        _: &impl Logger,
+        _: &mut Context,
+    ) -> JsResult<JsValue> {
+        Ok(JsValue::undefined())
+    }
+
+    /// `console.profile(label)`
+    ///
+    /// This method is a no-op in Boa.
+    fn profile(
+        _: &JsValue,
+        _: &[JsValue],
+        _: &Self,
+        _: &impl Logger,
+        _: &mut Context,
+    ) -> JsResult<JsValue> {
+        Ok(JsValue::undefined())
+    }
+
+    /// `console.profileEnd(label)`
+    ///
+    /// This method is a no-op in Boa.
+    fn profile_end(
+        _: &JsValue,
+        _: &[JsValue],
+        _: &Self,
+        _: &impl Logger,
+        _: &mut Context,
+    ) -> JsResult<JsValue> {
         Ok(JsValue::undefined())
     }
 }

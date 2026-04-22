@@ -123,7 +123,7 @@ impl Logger for RecordingLogger {
     fn log(&self, msg: String, state: &ConsoleState, _: &mut Context) -> JsResult<()> {
         use std::fmt::Write;
         let indent = state.indent();
-        writeln!(self.log.borrow_mut(), "{msg:>indent$}").map_err(JsError::from_rust)
+        writeln!(self.log.borrow_mut(), "{:indent$}{msg}", "").map_err(JsError::from_rust)
     }
 
     fn info(&self, msg: String, state: &ConsoleState, context: &mut Context) -> JsResult<()> {
