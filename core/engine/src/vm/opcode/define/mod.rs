@@ -1,5 +1,6 @@
 use super::{IndexOperand, RegisterOperand};
 use crate::{Context, JsResult, JsValue, vm::opcode::Operation};
+use boa_ast::scope::BindingLocatorScope;
 
 pub(crate) mod class;
 pub(crate) mod own_property;
@@ -19,6 +20,14 @@ impl DefVar {
     pub(super) fn operation(index: IndexOperand, context: &mut Context) {
         // TODO: spec specifies to return `empty` on empty vars, but we're trying to initialize.
         let binding_locator = context.vm.frame().code_block.bindings[usize::from(index)].clone();
+
+        if let BindingLocatorScope::Stack(index) = binding_locator.scope()
+            && let crate::environments::Environment::Declarative(env) =
+                context.environment_expect(index)
+            && env.is_deleted_binding(binding_locator.binding_index())
+        {
+            return;
+        }
 
         {
             let frame = context.vm.frame_mut();
