@@ -410,33 +410,42 @@ fn evaluate_expr(
             Ok(v) => println!("{v}"),
             Err(v) => eprintln!("{v:?}"),
         }
-    } else {
-        let mut counters = Counters::new(args.time);
-        let script = {
-            let _timer = counters.new_timer("Parsing");
-            Script::parse(Source::from_bytes(line), None, context)
-        };
-
-        match script {
-            Ok(script) => {
-                let result = {
-                    let _timer = counters.new_timer("Execution");
-                    let result = script.evaluate(context);
-                    if let Err(err) = context.run_jobs() {
-                        printer.print(uncaught_job_error(&err));
-                    }
-                    result
-                };
-                match result {
-                    Ok(v) => printer.print(format!("{}\n", v.display())),
-                    Err(ref v) => printer.print(uncaught_error(v)),
-                }
-            }
-            Err(ref v) => printer.print(uncaught_error(v)),
-        }
+        return Ok(());
     }
 
-    Ok(())
+    let mut counters = Counters::new(args.time);
+    let script = {
+        let _timer = counters.new_timer("Parsing");
+        Script::parse(Source::from_bytes(line), None, context)
+    };
+
+    match script {
+        Ok(script) => {
+            let result = {
+                let _timer = counters.new_timer("Execution");
+                let result = script.evaluate(context);
+                if let Err(err) = context.run_jobs() {
+                    printer.print(uncaught_job_error(&err));
+                    return Err(eyre!("Job evaluation failed"));
+                }
+                result
+            };
+            match result {
+                Ok(v) => {
+                    printer.print(format!("{}\n", v.display()));
+                    Ok(())
+                }
+                Err(ref v) => {
+                    printer.print(uncaught_error(v));
+                    Err(eyre!("Expression execution failed"))
+                }
+            }
+        }
+        Err(ref v) => {
+            printer.print(uncaught_error(v));
+            Err(eyre!("Parsing failed"))
+        }
+    }
 }
 
 fn evaluate_file(
@@ -518,11 +527,13 @@ fn evaluate_file(
             if !v.is_undefined() {
                 println!("{}", v.display());
             }
+            Ok(())
         }
-        Err(v) => printer.print(uncaught_error(&v)),
+        Err(v) => {
+            printer.print(uncaught_error(&v));
+            Err(eyre!("Script execution failed"))
+        }
     }
-
-    Ok(())
 }
 
 fn evaluate_files(
