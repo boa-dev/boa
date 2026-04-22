@@ -416,8 +416,8 @@ impl DataView {
         // 5. If IsViewOutOfBounds(viewRecord) is true, throw a TypeError exception.
         if buffer
             .bytes(Ordering::SeqCst)
-            .filter(|b| !view.is_out_of_bounds(b.len()))
-            .is_none()
+            .as_ref()
+            .is_none_or(|b| view.is_out_of_bounds(b.len()))
         {
             return Err(JsNativeError::typ()
                 .with_message("data view is outside the bounds of its inner buffer")
