@@ -40,6 +40,7 @@
             nativeBuildInputs = [
               rust-toolchain
               pkg-config
+              cargo-make
             ];
             # Required for jemalloc, see https://github.com/NixOS/nixpkgs/issues/370494 .
             CFLAGS = "-DJEMALLOC_STRERROR_R_RETURNS_CHAR_WITH_GNU_SOURCE";
