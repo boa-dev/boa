@@ -138,6 +138,7 @@ test-case = "3.3.1"
 rstest = "0.26.1"
 url = "2.5.8"
 tokio = { version = "1.51.1", default-features = false }
+form_urlencoded = "1.2"
 futures-concurrency = "7.7.1"
 dynify = "0.1.2"
 futures-channel = "0.3.32"
