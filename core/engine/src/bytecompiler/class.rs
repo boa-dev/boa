@@ -112,13 +112,34 @@ impl ByteCompiler<'_> {
 
         let value = compiler.register_allocator.alloc();
         if let Some(expr) = &class.constructor {
-            compiler.code_block_flags |= CodeBlockFlags::HAS_FUNCTION_SCOPE;
-            let _ = compiler.push_scope(expr.scopes().function_scope());
-
+            // function.rs の FunctionCompiler と同じロジックでスコープをpush
+            if let Some(name_scope) = class.name_scope {
+                if !name_scope.all_bindings_local() {
+                    compiler.code_block_flags |= CodeBlockFlags::HAS_BINDING_IDENTIFIER;
+                    let _ = compiler.push_scope(name_scope);
+                }
+            }
+        
+            let contains_direct_eval = expr.contains_direct_eval();
+            if contains_direct_eval || !expr.scopes().function_scope().all_bindings_local() {
+                compiler.code_block_flags |= CodeBlockFlags::HAS_FUNCTION_SCOPE;
+            } else {
+                compiler.code_block_flags.set(
+                    CodeBlockFlags::HAS_FUNCTION_SCOPE,
+                    expr.scopes().requires_function_scope(),
+                );
+            }
+        
+            if compiler.code_block_flags.has_function_scope() {
+                let _ = compiler.push_scope(expr.scopes().function_scope());
+            } else {
+                compiler.variable_scope = expr.scopes().function_scope().clone();
+                compiler.lexical_scope = expr.scopes().function_scope().clone();
+            }
+        
             compiler.length = expr.parameters().length();
             compiler.params = expr.parameters().clone();
             compiler.parameter_scope = expr.scopes().parameter_scope();
-
             compiler.function_declaration_instantiation(
                 expr.body(),
                 expr.parameters(),
