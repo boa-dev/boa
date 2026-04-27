@@ -113,11 +113,11 @@ impl ByteCompiler<'_> {
         let value = compiler.register_allocator.alloc();
         if let Some(expr) = &class.constructor {
             // function.rs の FunctionCompiler と同じロジックでスコープをpush
-            if let Some(name_scope) = class.name_scope {
-                if !name_scope.all_bindings_local() {
-                    compiler.code_block_flags |= CodeBlockFlags::HAS_BINDING_IDENTIFIER;
-                    let _ = compiler.push_scope(name_scope);
-                }
+            if let Some(name_scope) = class.name_scope
+                && !name_scope.all_bindings_local()
+            {
+                compiler.code_block_flags |= CodeBlockFlags::HAS_BINDING_IDENTIFIER;
+                let _ = compiler.push_scope(name_scope);
             }
 
             let contains_direct_eval = expr.contains_direct_eval();
