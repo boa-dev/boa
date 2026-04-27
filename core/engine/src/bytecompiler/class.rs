@@ -119,7 +119,7 @@ impl ByteCompiler<'_> {
                     let _ = compiler.push_scope(name_scope);
                 }
             }
-        
+
             let contains_direct_eval = expr.contains_direct_eval();
             if contains_direct_eval || !expr.scopes().function_scope().all_bindings_local() {
                 compiler.code_block_flags |= CodeBlockFlags::HAS_FUNCTION_SCOPE;
@@ -129,14 +129,14 @@ impl ByteCompiler<'_> {
                     expr.scopes().requires_function_scope(),
                 );
             }
-        
+
             if compiler.code_block_flags.has_function_scope() {
                 let _ = compiler.push_scope(expr.scopes().function_scope());
             } else {
                 compiler.variable_scope = expr.scopes().function_scope().clone();
                 compiler.lexical_scope = expr.scopes().function_scope().clone();
             }
-        
+
             compiler.length = expr.parameters().length();
             compiler.params = expr.parameters().clone();
             compiler.parameter_scope = expr.scopes().parameter_scope();

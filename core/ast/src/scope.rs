@@ -218,7 +218,7 @@ impl Scope {
     pub fn num_bindings_non_local(&self) -> u32 {
         let arguments = JsString::from("arguments");
         let bindings = self.inner.bindings.borrow();
-        
+
         drop(bindings);
         self.inner
             .bindings
