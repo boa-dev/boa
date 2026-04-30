@@ -2,9 +2,10 @@ use super::TestFetcher;
 use crate::fetch::request::JsRequest;
 use crate::fetch::response::JsResponse;
 use crate::test::{TestAction, run_test_actions};
-use boa_engine::{js_str, js_string};
+use boa_engine::{JsObject, js_str, js_string};
 use either::Either;
 use http::{Response, Uri};
+use indoc::indoc;
 
 #[test]
 fn request_constructor() {
@@ -45,6 +46,28 @@ fn request_constructor() {
                     .unwrap();
             assert_eq!(request.uri().to_string(), "http://example.com/");
         }),
+    ]);
+}
+
+#[test]
+fn request_constructor_forbidden_method_throws() {
+    run_test_actions([
+        TestAction::inspect_context(|ctx| {
+            let fetcher = TestFetcher::default();
+            crate::fetch::register(fetcher, None, ctx).expect("failed to register fetch");
+        }),
+        TestAction::run(indoc! {r#"
+            for (const method of ["CONNECT", "TRACE", "TRACK", "connect"]) {
+                try {
+                    new Request("http://unit.test", { method });
+                    throw Error("expected the call above to throw");
+                } catch (e) {
+                    if (!(e instanceof TypeError)) {
+                        throw e;
+                    }
+                }
+            }
+        "#}),
     ]);
 }
 
@@ -212,6 +235,122 @@ fn request_clone_method_is_independent() {
                 original_req.inner().body().as_ptr(),
                 cloned_req.inner().body().as_ptr()
             ));
+        }),
+    ]);
+}
+
+#[test]
+fn request_stores_signal() {
+    run_test_actions([
+        TestAction::inspect_context(|ctx| {
+            let fetcher = TestFetcher::default();
+            crate::fetch::register(fetcher, None, ctx).expect("failed to register fetch");
+        }),
+        TestAction::run(
+            r#"
+                globalThis.ctrl = new AbortController();
+                globalThis.request = new Request("http://unit.test", {
+                    signal: ctrl.signal,
+                });
+            "#,
+        ),
+        TestAction::inspect_context(|ctx| {
+            let request = ctx.global_object().get(js_str!("request"), ctx).unwrap();
+            let request_obj = request.as_object().unwrap();
+            let request = request_obj.downcast_ref::<JsRequest>().unwrap();
+
+            let signal = ctx.global_object().get(js_str!("ctrl"), ctx).unwrap();
+            let signal = signal
+                .as_object()
+                .unwrap()
+                .get(js_str!("signal"), ctx)
+                .unwrap()
+                .as_object()
+                .unwrap();
+
+            let stored_signal = request.signal().expect("request should keep its signal");
+            assert!(JsObject::equals(&stored_signal, &signal));
+        }),
+    ]);
+}
+
+#[test]
+fn request_clone_preserves_signal_without_override() {
+    run_test_actions([
+        TestAction::inspect_context(|ctx| {
+            let fetcher = TestFetcher::default();
+            crate::fetch::register(fetcher, None, ctx).expect("failed to register fetch");
+        }),
+        TestAction::run(
+            r#"
+                globalThis.ctrl = new AbortController();
+                const original = new Request("http://unit.test", {
+                    signal: ctrl.signal,
+                });
+                globalThis.cloned = new Request(original, {
+                    headers: { "x-test": "1" },
+                });
+            "#,
+        ),
+        TestAction::inspect_context(|ctx| {
+            let cloned = ctx.global_object().get(js_str!("cloned"), ctx).unwrap();
+            let cloned_obj = cloned.as_object().unwrap();
+            let cloned = cloned_obj.downcast_ref::<JsRequest>().unwrap();
+
+            let signal = ctx.global_object().get(js_str!("ctrl"), ctx).unwrap();
+            let signal = signal
+                .as_object()
+                .unwrap()
+                .get(js_str!("signal"), ctx)
+                .unwrap()
+                .as_object()
+                .unwrap();
+
+            let stored_signal = cloned
+                .signal()
+                .expect("cloned request should keep its signal");
+            assert!(JsObject::equals(&stored_signal, &signal));
+        }),
+    ]);
+}
+
+#[test]
+fn request_clone_signal_override() {
+    run_test_actions([
+        TestAction::inspect_context(|ctx| {
+            let fetcher = TestFetcher::default();
+            crate::fetch::register(fetcher, None, ctx).expect("failed to register fetch");
+        }),
+        TestAction::run(
+            r#"
+                globalThis.ctrl1 = new AbortController();
+                globalThis.ctrl2 = new AbortController();
+                const original = new Request("http://unit.test", {
+                    signal: ctrl1.signal,
+                });
+                globalThis.cloned = new Request(original, {
+                    signal: ctrl2.signal,
+                });
+            "#,
+        ),
+        TestAction::inspect_context(|ctx| {
+            let cloned = ctx.global_object().get(js_str!("cloned"), ctx).unwrap();
+            let cloned_obj = cloned.as_object().unwrap();
+            let cloned = cloned_obj.downcast_ref::<JsRequest>().unwrap();
+
+            let signal = ctx.global_object().get(js_str!("ctrl2"), ctx).unwrap();
+            let signal = signal
+                .as_object()
+                .unwrap()
+                .get(js_str!("signal"), ctx)
+                .unwrap()
+                .as_object()
+                .unwrap();
+
+            let stored_signal = cloned
+                .signal()
+                .expect("overridden request should keep the new signal");
+            assert!(JsObject::equals(&stored_signal, &signal));
         }),
     ]);
 }

@@ -118,7 +118,7 @@ ryu-js.workspace = true
 fast-float2.workspace = true
 tap.workspace = true
 small_btree.workspace = true
-paste.workspace = true
+pastey.workspace = true
 thiserror.workspace = true
 dashmap.workspace = true
 num_enum.workspace = true
@@ -162,7 +162,7 @@ icu_collator = { workspace = true, default-features = false, features = [
 ], optional = true }
 icu_plurals = { workspace = true, default-features = false, features = [
     "serde",
-    "experimental",
+    "unstable",
 ], optional = true }
 icu_list = { workspace = true, default-features = false, features = [
     "serde",
@@ -176,7 +176,7 @@ icu_segmenter = { workspace = true, default-features = false, features = [
     "serde",
 ], optional = true }
 icu_decimal = { workspace = true, default-features = false, features = [
-    "serde",
+    "serde", "unstable"
 ], optional = true }
 writeable = { workspace = true, optional = true }
 yoke = { workspace = true, optional = true }

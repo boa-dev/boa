@@ -123,6 +123,9 @@ pub mod microtask;
 #[cfg(feature = "process")]
 pub mod process;
 pub mod store;
+/// Support for the `$262` test262 harness object.
+#[cfg(feature = "test262")]
+pub mod test262;
 pub mod text;
 #[cfg(feature = "url")]
 pub mod url;
