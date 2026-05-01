@@ -1,10 +1,8 @@
 use std::collections::HashSet;
 use std::fmt::{self, Display, Write};
 
-use crate::{
-    JsObject, JsString, JsValue, js_string,
-    property::{DescriptorKind, PropertyKey},
-};
+use crate::property::CompletePropertyDescriptor;
+use crate::{JsObject, JsString, JsValue, js_string, property::PropertyKey};
 
 fn print_obj_value_internals(
     f: &mut fmt::Formatter<'_>,
@@ -59,17 +57,25 @@ fn print_obj_value_props(
             .expect("There should be a value");
 
         write!(f, "{:>width$}{}: ", "", key, width = indent)?;
-        if val.is_data_descriptor() {
-            let v = val.expect_value();
-            log_object_to_internal(f, v, encounters, indent.wrapping_add(4), print_internals)?;
-        } else {
-            let display = match (val.set().is_some(), val.get().is_some()) {
-                (true, true) => "Getter & Setter",
-                (true, false) => "Setter",
-                (false, true) => "Getter",
-                _ => "No Getter/Setter",
-            };
-            write!(f, "{display}")?;
+        match &val {
+            CompletePropertyDescriptor::Data { value, .. } => {
+                log_object_to_internal(
+                    f,
+                    value,
+                    encounters,
+                    indent.wrapping_add(4),
+                    print_internals,
+                )?;
+            }
+            CompletePropertyDescriptor::Accessor { get, set, .. } => {
+                let display = match (set.is_some(), get.is_some()) {
+                    (true, true) => "Getter & Setter",
+                    (true, false) => "Setter",
+                    (false, true) => "Getter",
+                    _ => "No Getter/Setter",
+                };
+                write!(f, "{display}")?;
+            }
         }
     }
     f.write_char('\n')?;
@@ -194,21 +200,17 @@ pub(super) fn log_plain_object_compact(
         write!(f, "{key}: ")?;
 
         if let Some(val) = obj.borrow().properties().get(key) {
-            match val.kind() {
-                DescriptorKind::Data { value, .. } => {
-                    if let Some(value) = value {
-                        super::value::log_value_compact(
-                            f,
-                            value,
-                            depth + 1,
-                            print_internals,
-                            encounters,
-                        )?;
-                    } else {
-                        f.write_str("undefined")?;
-                    }
+            match &val {
+                CompletePropertyDescriptor::Data { value, .. } => {
+                    super::value::log_value_compact(
+                        f,
+                        value,
+                        depth + 1,
+                        print_internals,
+                        encounters,
+                    )?;
                 }
-                DescriptorKind::Accessor { get, set } => {
+                CompletePropertyDescriptor::Accessor { get, set, .. } => {
                     let display = match (get.is_some(), set.is_some()) {
                         (true, true) => "[Getter/Setter]",
                         (true, false) => "[Getter]",
@@ -216,9 +218,6 @@ pub(super) fn log_plain_object_compact(
                         _ => "[No Getter/Setter]",
                     };
                     f.write_str(display)?;
-                }
-                DescriptorKind::Generic => {
-                    f.write_str("undefined")?;
                 }
             }
         }

@@ -18,6 +18,7 @@ use timezone_provider::experimental_tzif::ZeroCompiledTzdbProvider;
 use crate::job::Job;
 use crate::js_error;
 use crate::module::DynModuleLoader;
+use crate::property::CompletePropertyDescriptor;
 use crate::vm::{CodeBlock, RuntimeLimits, create_function_object_fast};
 use crate::{
     HostDefined, JsNativeError, JsResult, JsString, JsValue, Source, builtins,
@@ -680,14 +681,16 @@ impl Context {
         };
 
         // 5. If existingProp.[[Configurable]] is true, return true.
-        if existing_prop.configurable() == Some(true) {
+        if existing_prop.configurable() {
             return Ok(true);
         }
 
         // 6. If IsDataDescriptor(existingProp) is true and existingProp has attribute values { [[Writable]]: true, [[Enumerable]]: true }, return true.
-        if existing_prop.is_data_descriptor()
-            && existing_prop.writable() == Some(true)
-            && existing_prop.enumerable() == Some(true)
+        if let CompletePropertyDescriptor::Data {
+            writable: true,
+            enumerable: true,
+            ..
+        } = existing_prop
         {
             return Ok(true);
         }
@@ -783,9 +786,7 @@ impl Context {
             global_object.__get_own_property__(&name.clone().into(), &mut self.into())?;
 
         // 4. If existingProp is undefined or existingProp.[[Configurable]] is true, then
-        let desc = if existing_prop.is_none()
-            || existing_prop.and_then(|p| p.configurable()) == Some(true)
-        {
+        let desc = if existing_prop.is_none() || existing_prop.is_some_and(|p| p.configurable()) {
             // a. Let desc be the PropertyDescriptor { [[Value]]: V, [[Writable]]: true, [[Enumerable]]: true, [[Configurable]]: D }.
             PropertyDescriptor::builder()
                 .value(function.clone())
@@ -835,7 +836,7 @@ impl Context {
         };
 
         // 5. If existingProp.[[Configurable]] is true, return false.
-        if existing_prop.configurable() == Some(true) {
+        if existing_prop.configurable() {
             return Ok(false);
         }
 

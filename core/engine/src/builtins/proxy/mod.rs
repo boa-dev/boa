@@ -13,6 +13,7 @@
 use super::{BuiltInBuilder, BuiltInConstructor, IntrinsicObject, OrdinaryObject};
 use crate::JsExpect;
 use crate::object::internal_methods::InternalMethodCallContext;
+use crate::property::CompletePropertyDescriptor;
 use crate::value::JsVariant;
 use crate::{
     Context, JsArgs, JsResult, JsString, JsValue,
@@ -468,7 +469,7 @@ pub(crate) fn proxy_exotic_get_own_property(
     obj: &JsObject,
     key: &PropertyKey,
     context: &mut InternalMethodPropertyContext<'_>,
-) -> JsResult<Option<PropertyDescriptor>> {
+) -> JsResult<Option<CompletePropertyDescriptor>> {
     context.slot().attributes |= SlotAttributes::NOT_CACHEABLE;
 
     // 1. Let handler be O.[[ProxyHandler]].
@@ -508,7 +509,7 @@ pub(crate) fn proxy_exotic_get_own_property(
     if trap_result_obj.is_undefined() {
         if let Some(desc) = target_desc {
             // b. If targetDesc.[[Configurable]] is false, throw a TypeError exception.
-            if !desc.expect_configurable() {
+            if !desc.configurable() {
                 return Err(JsNativeError::typ()
                     .with_message(
                         "Proxy trap result is undefined and target result is not configurable",
@@ -543,8 +544,9 @@ pub(crate) fn proxy_exotic_get_own_property(
     // 14. Let valid be IsCompatiblePropertyDescriptor(extensibleTarget, resultDesc, targetDesc).
     // 15. If valid is false, throw a TypeError exception.
     if !is_compatible_property_descriptor(
+        obj,
         extensible_target,
-        result_desc.clone(),
+        PropertyDescriptor::from(result_desc.clone()),
         target_desc.clone(),
     ) {
         return Err(JsNativeError::typ()
@@ -553,14 +555,17 @@ pub(crate) fn proxy_exotic_get_own_property(
     }
 
     // 16. If resultDesc.[[Configurable]] is false, then
-    if !result_desc.expect_configurable() {
+    if !result_desc.configurable() {
         // a. If targetDesc is undefined or targetDesc.[[Configurable]] is true, then
         match &target_desc {
-            Some(desc) if !desc.expect_configurable() => {
+            Some(desc) if !desc.configurable() => {
                 // b. If resultDesc has a [[Writable]] field and resultDesc.[[Writable]] is false, then
-                if result_desc.writable() == Some(false) {
+                if let CompletePropertyDescriptor::Data {
+                    writable: false, ..
+                } = result_desc
+                {
                     // i. If targetDesc.[[Writable]] is true, throw a TypeError exception.
-                    if desc.expect_writable() {
+                    if let CompletePropertyDescriptor::Data { writable: true, .. } = desc {
                         return
                             Err(JsNativeError::typ().with_message("Proxy trap result is writable and not configurable while target result is not configurable").into())
                         ;
@@ -658,6 +663,7 @@ pub(crate) fn proxy_exotic_define_own_property(
         Some(target_desc) => {
             // a. If IsCompatiblePropertyDescriptor(extensibleTarget, Desc, targetDesc) is false, throw a TypeError exception.
             if !is_compatible_property_descriptor(
+                obj,
                 extensible_target,
                 desc.clone(),
                 Some(target_desc.clone()),
@@ -668,16 +674,18 @@ pub(crate) fn proxy_exotic_define_own_property(
             }
 
             // b. If settingConfigFalse is true and targetDesc.[[Configurable]] is true, throw a TypeError exception.
-            if setting_config_false && target_desc.expect_configurable() {
+            if setting_config_false && target_desc.configurable() {
                 return Err(JsNativeError::typ()
                     .with_message("Proxy trap set property with unexpected configurable field")
                     .into());
             }
 
             // c. If IsDataDescriptor(targetDesc) is true, targetDesc.[[Configurable]] is false, and targetDesc.[[Writable]] is true, then
-            if target_desc.is_data_descriptor()
-                && !target_desc.expect_configurable()
-                && target_desc.expect_writable()
+            if let CompletePropertyDescriptor::Data {
+                configurable: false,
+                writable: true,
+                ..
+            } = target_desc
             {
                 // i. If Desc has a [[Writable]] field and Desc.[[Writable]] is false, throw a TypeError exception.
                 if let Some(writable) = desc.writable()
@@ -741,7 +749,7 @@ pub(crate) fn proxy_exotic_has_property(
         // b. If targetDesc is not undefined, then
         if let Some(target_desc) = target_desc {
             // i. If targetDesc.[[Configurable]] is false, throw a TypeError exception.
-            if !target_desc.expect_configurable() {
+            if !target_desc.configurable() {
                 return Err(JsNativeError::typ()
                     .with_message("Proxy trap returned unexpected property")
                     .into());
@@ -828,26 +836,32 @@ pub(crate) fn proxy_exotic_get(
 
     // 9. If targetDesc is not undefined and targetDesc.[[Configurable]] is false, then
     if let Some(target_desc) = target_desc
-        && !target_desc.expect_configurable()
+        && !target_desc.configurable()
     {
-        // a. If IsDataDescriptor(targetDesc) is true and targetDesc.[[Writable]] is false, then
-        if target_desc.is_data_descriptor() && !target_desc.expect_writable() {
-            // i. If SameValue(trapResult, targetDesc.[[Value]]) is false, throw a TypeError exception.
-            if !JsValue::same_value(&trap_result, target_desc.expect_value()) {
-                return Err(JsNativeError::typ()
-                    .with_message("Proxy trap returned unexpected data descriptor")
-                    .into());
+        match target_desc {
+            // a. If IsDataDescriptor(targetDesc) is true and targetDesc.[[Writable]] is false, then
+            CompletePropertyDescriptor::Data {
+                writable: false,
+                value: target_value,
+                ..
+            } => {
+                // i. If SameValue(trapResult, targetDesc.[[Value]]) is false, throw a TypeError exception.
+                if !JsValue::same_value(&trap_result, &target_value) {
+                    return Err(JsNativeError::typ()
+                        .with_message("Proxy trap returned unexpected data descriptor")
+                        .into());
+                }
             }
-        }
-
-        // b. If IsAccessorDescriptor(targetDesc) is true and targetDesc.[[Get]] is undefined, then
-        if target_desc.is_accessor_descriptor() && target_desc.expect_get().is_undefined() {
-            // i. If trapResult is not undefined, throw a TypeError exception.
-            if !trap_result.is_undefined() {
-                return Err(JsNativeError::typ()
-                    .with_message("Proxy trap returned unexpected accessor descriptor")
-                    .into());
+            // b. If IsAccessorDescriptor(targetDesc) is true and targetDesc.[[Get]] is undefined, then
+            CompletePropertyDescriptor::Accessor { get: None, .. } => {
+                // i. If trapResult is not undefined, throw a TypeError exception.
+                if !trap_result.is_undefined() {
+                    return Err(JsNativeError::typ()
+                        .with_message("Proxy trap returned unexpected accessor descriptor")
+                        .into());
+                }
             }
+            _ => {}
         }
     }
 
@@ -909,29 +923,32 @@ pub(crate) fn proxy_exotic_set(
 
     // 10. If targetDesc is not undefined and targetDesc.[[Configurable]] is false, then
     if let Some(target_desc) = target_desc
-        && !target_desc.expect_configurable()
+        && !target_desc.configurable()
     {
-        // a. If IsDataDescriptor(targetDesc) is true and targetDesc.[[Writable]] is false, then
-        if target_desc.is_data_descriptor() && !target_desc.expect_writable() {
-            // i. If SameValue(V, targetDesc.[[Value]]) is false, throw a TypeError exception.
-            if !JsValue::same_value(&value, target_desc.expect_value()) {
-                return Err(JsNativeError::typ()
-                    .with_message("Proxy trap set unexpected data descriptor")
-                    .into());
+        match target_desc {
+            // a. If IsDataDescriptor(targetDesc) is true and targetDesc.[[Writable]] is false, then
+            CompletePropertyDescriptor::Data {
+                writable: false,
+                value: target_value,
+                ..
+            } => {
+                // i. If SameValue(V, targetDesc.[[Value]]) is false, throw a TypeError exception.
+                if !JsValue::same_value(&value, &target_value) {
+                    return Err(JsNativeError::typ()
+                        .with_message("Proxy trap set unexpected data descriptor")
+                        .into());
+                }
             }
-        }
-
-        // b. If IsAccessorDescriptor(targetDesc) is true, then
-        if target_desc.is_accessor_descriptor() {
-            // i. If targetDesc.[[Set]] is undefined, throw a TypeError exception.
-            match target_desc.set().map(JsValue::is_undefined) {
-                None | Some(true) => {
+            // b. If IsAccessorDescriptor(targetDesc) is true, then
+            CompletePropertyDescriptor::Accessor { set, .. } => {
+                // i. If targetDesc.[[Set]] is undefined, throw a TypeError exception.
+                if set.is_none() {
                     return Err(JsNativeError::typ()
                         .with_message("Proxy trap set unexpected accessor descriptor")
                         .into());
                 }
-                _ => {}
             }
+            CompletePropertyDescriptor::Data { .. } => {}
         }
     }
 
@@ -985,7 +1002,7 @@ pub(crate) fn proxy_exotic_delete(
         None => return Ok(true),
         // 11. If targetDesc.[[Configurable]] is false, throw a TypeError exception.
         Some(target_desc) => {
-            if !target_desc.expect_configurable() {
+            if !target_desc.configurable() {
                 return Err(JsNativeError::typ()
                     .with_message("Proxy trap failed to delete property")
                     .into());
@@ -1081,7 +1098,7 @@ pub(crate) fn proxy_exotic_own_property_keys(
         // a. Let desc be ? target.[[GetOwnProperty]](key).
         match target.__get_own_property__(&key, &mut context.into())? {
             // b. If desc is not undefined and desc.[[Configurable]] is false, then
-            Some(desc) if !desc.expect_configurable() => {
+            Some(desc) if !desc.configurable() => {
                 // i. Append key as an element of targetNonconfigurableKeys.
                 target_nonconfigurable_keys.push(key);
             }

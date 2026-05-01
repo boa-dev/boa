@@ -10,7 +10,7 @@ use crate::{
             ordinary_set, ordinary_try_get,
         },
     },
-    property::{DescriptorKind, PropertyDescriptor, PropertyKey},
+    property::{CompletePropertyDescriptor, DescriptorKind, PropertyDescriptor, PropertyKey},
 };
 use boa_ast::{function::FormalParameterList, operations::bound_names, scope::Scope};
 use boa_gc::{Finalize, Gc, Trace};
@@ -283,7 +283,7 @@ pub(crate) fn arguments_exotic_get_own_property(
     obj: &JsObject,
     key: &PropertyKey,
     context: &mut InternalMethodPropertyContext<'_>,
-) -> JsResult<Option<PropertyDescriptor>> {
+) -> JsResult<Option<CompletePropertyDescriptor>> {
     // 1. Let desc be OrdinaryGetOwnProperty(args, P).
     // 2. If desc is undefined, return desc.
     let Some(desc) = ordinary_get_own_property(obj, key, context)? else {
@@ -300,14 +300,12 @@ pub(crate) fn arguments_exotic_get_own_property(
             .get(index.get())
     {
         // a. Set desc.[[Value]] to Get(map, P).
-        return Ok(Some(
-            PropertyDescriptor::builder()
-                .value(value)
-                .maybe_writable(desc.writable())
-                .maybe_enumerable(desc.enumerable())
-                .maybe_configurable(desc.configurable())
-                .build(),
-        ));
+        return Ok(Some(CompletePropertyDescriptor::Data {
+            value,
+            writable: desc.writable().unwrap_or(false),
+            enumerable: desc.enumerable(),
+            configurable: desc.configurable(),
+        }));
     }
 
     // 6. Return desc.
