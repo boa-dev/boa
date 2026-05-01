@@ -316,6 +316,24 @@ impl Eval {
             )
             .map_err(|e| JsNativeError::syntax().with_message(e))?;
 
+        let deletable_binding_indices =
+            bindings
+                .new_annex_b_function_names
+                .iter()
+                .map(|binding| binding.locator().binding_index())
+                .chain(bindings.new_function_names.values().filter_map(
+                    |(binding, binding_exists)| {
+                        (!*binding_exists).then_some(binding.locator().binding_index())
+                    },
+                ))
+                .chain(
+                    bindings
+                        .new_var_names
+                        .iter()
+                        .map(|binding| binding.locator().binding_index()),
+                )
+                .collect::<Vec<_>>();
+
         compiler.eval_declaration_instantiation(&body, strict, &variable_scope, bindings);
 
         compiler.compile_statement_list(body.statements(), true, false);
@@ -326,6 +344,7 @@ impl Eval {
         // function environment before evaluating.
         if !strict {
             var_environment.extend_from_compile();
+            var_environment.mark_deletable_bindings(deletable_binding_indices);
         }
 
         let env_fp = context.vm.frame().environments.len() as u32;

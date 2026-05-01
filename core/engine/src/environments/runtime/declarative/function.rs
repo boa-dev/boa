@@ -1,7 +1,15 @@
 use boa_ast::scope::Scope;
 use boa_gc::{Finalize, GcRefCell, Trace, custom_trace};
+use rustc_hash::FxHashSet;
+use std::cell::RefCell;
 
 use crate::{JsNativeError, JsObject, JsResult, JsValue, builtins::function::OrdinaryFunction};
+
+#[derive(Debug, Default)]
+struct BindingDeletionState {
+    deletable_bindings: FxHashSet<u32>,
+    deleted_bindings: FxHashSet<u32>,
+}
 
 #[derive(Debug, Trace, Finalize)]
 pub(crate) struct FunctionEnvironment {
@@ -11,6 +19,9 @@ pub(crate) struct FunctionEnvironment {
     // Safety: Nothing in `Scope` needs tracing.
     #[unsafe_ignore_trace]
     scope: Scope,
+
+    #[unsafe_ignore_trace]
+    binding_deletion_state: Box<RefCell<BindingDeletionState>>,
 }
 
 impl FunctionEnvironment {
@@ -20,6 +31,7 @@ impl FunctionEnvironment {
             bindings: GcRefCell::new(vec![None; bindings_count as usize]),
             slots: Box::new(slots),
             scope,
+            binding_deletion_state: Box::default(),
         }
     }
 
@@ -56,6 +68,41 @@ impl FunctionEnvironment {
     /// Gets the bindings of this poisonable environment.
     pub(crate) const fn bindings(&self) -> &GcRefCell<Vec<Option<JsValue>>> {
         &self.bindings
+    }
+
+    pub(crate) fn mark_deletable_bindings<I>(&self, bindings: I)
+    where
+        I: IntoIterator<Item = u32>,
+    {
+        self.binding_deletion_state
+            .borrow_mut()
+            .deletable_bindings
+            .extend(bindings);
+    }
+
+    pub(crate) fn is_deleted_binding(&self, index: u32) -> bool {
+        self.binding_deletion_state
+            .borrow()
+            .deleted_bindings
+            .contains(&index)
+    }
+
+    #[track_caller]
+    pub(crate) fn delete_binding(&self, index: u32) -> bool {
+        if !self
+            .binding_deletion_state
+            .borrow()
+            .deletable_bindings
+            .contains(&index)
+        {
+            return false;
+        }
+        self.bindings.borrow_mut()[index as usize] = None;
+        self.binding_deletion_state
+            .borrow_mut()
+            .deleted_bindings
+            .insert(index);
+        true
     }
 
     /// `BindThisValue`
