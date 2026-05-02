@@ -182,3 +182,29 @@ fn typedarray_exotic_prevent_extensions() {
         TestAction::assert("!Object.isExtensible(fixedLengthWithOffset1)"),
     ]);
 }
+
+#[test]
+fn uint8array_from_base64_rejects_concatenated_padded_input() {
+    run_test_actions([TestAction::assert_native_error(
+        "Uint8Array.fromBase64('AQ==AQ==')",
+        JsNativeErrorKind::Syntax,
+        "Invalid base64 string",
+    )]);
+}
+
+#[test]
+fn uint8array_from_base64_allows_trailing_whitespace_after_padding() {
+    run_test_actions([TestAction::assert_eq(
+        "Uint8Array.fromBase64('AQ== ')[0]",
+        1,
+    )]);
+}
+
+#[test]
+fn uint8array_from_base64_rejects_trailing_non_whitespace_after_padding() {
+    run_test_actions([TestAction::assert_native_error(
+        "Uint8Array.fromBase64('AQ== AQ==')",
+        JsNativeErrorKind::Syntax,
+        "Invalid base64 string",
+    )]);
+}

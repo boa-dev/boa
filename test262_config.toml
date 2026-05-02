@@ -37,10 +37,6 @@ features = [
     # https://github.com/tc39/proposal-decorators
     "decorators",
 
-    # Uint8Array Base64
-    # https://github.com/tc39/proposal-arraybuffer-base64
-    "uint8array-base64",
-
     # Source Phase Imports
     # test262 special specifier
     "source-phase-imports-module-source",
