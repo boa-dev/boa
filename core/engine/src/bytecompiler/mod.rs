@@ -1000,10 +1000,12 @@ impl<'ctx> ByteCompiler<'ctx> {
         let ic_index = self.ic.len() as u32;
 
         let name_index = self.get_or_insert_name(ident);
-        let Constant::String(ref name) = self.constants[name_index as usize].clone() else {
+        let Constant::String(name) = &self.constants[name_index as usize] else {
             unreachable!("there should be a string at index")
         };
-        self.ic.push(InlineCache::new(name.clone()));
+        let is_length = *name == StaticJsStrings::LENGTH;
+        let name = name.clone();
+        self.ic.push(InlineCache::new(name));
 
         if let Some(receiver) = receiver {
             self.bytecode.emit_get_property_by_name_with_this(
@@ -1012,7 +1014,7 @@ impl<'ctx> ByteCompiler<'ctx> {
                 value.variable(),
                 ic_index.into(),
             );
-        } else if name == &StaticJsStrings::LENGTH {
+        } else if is_length {
             self.bytecode.emit_get_length_property(
                 dst.variable(),
                 value.variable(),
@@ -1037,10 +1039,11 @@ impl<'ctx> ByteCompiler<'ctx> {
         let ic_index = self.ic.len() as u32;
 
         let name_index = self.get_or_insert_name(ident);
-        let Constant::String(ref name) = self.constants[name_index as usize].clone() else {
+        let Constant::String(name) = &self.constants[name_index as usize] else {
             unreachable!("there should be a string at index")
         };
-        self.ic.push(InlineCache::new(name.clone()));
+        let name = name.clone();
+        self.ic.push(InlineCache::new(name));
 
         if let Some(receiver) = receiver {
             self.bytecode.emit_set_property_by_name_with_this(
