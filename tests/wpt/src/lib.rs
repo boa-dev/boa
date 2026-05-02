@@ -1,7 +1,6 @@
 //! Integration tests running the Web Platform Tests (WPT) for the `boa_runtime` crate.
 #![allow(unused_crate_dependencies)]
 
-use boa_engine::class::Class;
 use boa_engine::interop::ContextData;
 use boa_engine::parser::source::UTF16Input;
 use boa_engine::property::Attribute;
@@ -417,8 +416,6 @@ fn url(
     #[base_dir = "${WPT_ROOT}"]
     #[files("url/url-*.any.js")]
     #[exclude("idlharness")]
-    // "Base URL about:blank cannot be a base"
-    #[exclude("url-searchparams.any.js")]
     // "fetch is not defined"
     #[exclude("url-origin.any.js")]
     #[exclude("url-setters.any.js")]
