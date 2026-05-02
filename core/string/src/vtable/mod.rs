@@ -1,39 +1,73 @@
-//! Module defining the [`JsString`] `VTable` and kinds of strings.
 use crate::iter::CodePointsIter;
-use crate::{JsStr, JsString, JsStringKind};
+use crate::{JsStr, JsStringKind};
 use std::ptr::NonNull;
 
-mod sequence;
-pub(crate) use sequence::SequenceString;
+/// Sequential string implementation.
+pub mod sequence;
+pub use sequence::SequenceString;
+pub(crate) use sequence::{LATIN1_VTABLE, UTF16_VTABLE};
 
-pub(crate) mod slice;
-pub(crate) use slice::SliceString;
+/// Slice string implementation.
+pub mod slice;
+pub use slice::SliceString;
 
 pub(crate) mod r#static;
 pub use r#static::StaticString;
 
-/// Embedded vtable for `JsString` operations. This is stored directly in each string
-/// struct (not as a reference) to eliminate one level of indirection on hot paths.
-#[derive(Debug, Copy, Clone)]
+/// Rope string implementation.
+pub mod rope;
+pub use rope::RopeString;
+
+/// Header for all `JsString` allocations.
+///
+/// This is stored at the beginning of every string allocation.
+/// By using a reference to a static vtable, we reduce the header size
+/// and improve cache locality for common operations.
+#[repr(C, align(8))]
+#[derive(Debug, Clone, Copy)]
+pub struct JsStringHeader {
+    /// Reference to the static vtable for this string kind.
+    pub vtable: &'static JsStringVTable,
+    /// Length of the string in code units.
+    pub(crate) len: usize,
+    /// Reference count for this string.
+    pub(crate) refcount: usize,
+    /// Explicit padding to ensure `hash` is 8-byte aligned on 32-bit platforms.
+    #[cfg(target_pointer_width = "32")]
+    pub(crate) _padding: u32,
+    /// Cached hash of the string content.
+    pub(crate) hash: u64,
+}
+
+impl JsStringHeader {
+    /// Create a new `JsStringHeader`.
+    pub(crate) const fn new(vtable: &'static JsStringVTable, len: usize, refcount: usize) -> Self {
+        Self {
+            vtable,
+            len,
+            refcount,
+            #[cfg(target_pointer_width = "32")]
+            _padding: 0,
+            hash: 0,
+        }
+    }
+}
+
+/// Static vtable for `JsString` operations.
+///
+/// This contains function pointers for polymorphic operations and static metadata.
 #[repr(C)]
-pub(crate) struct JsStringVTable {
-    /// Clone the string, incrementing the refcount.
-    pub clone: fn(NonNull<JsStringVTable>) -> JsString,
-    /// Drop the string, decrementing the refcount and freeing if needed.
-    pub drop: fn(NonNull<JsStringVTable>),
-    /// Get the string as a `JsStr`. Although this is marked as `'static`, this is really
-    /// of the lifetime of the string itself. This is conveyed by the [`JsString`] API
-    /// itself rather than this vtable.
-    pub as_str: fn(NonNull<JsStringVTable>) -> JsStr<'static>,
-    /// Get an iterator of code points. This is the basic form of character access.
-    /// Although this is marked as `'static`, this is really of the lifetime of the string
-    /// itself. This is conveyed by the [`JsString`] API itself rather than this vtable.
-    pub code_points: fn(NonNull<JsStringVTable>) -> CodePointsIter<'static>,
-    /// Get the refcount, if applicable.
-    pub refcount: fn(NonNull<JsStringVTable>) -> Option<usize>,
-    /// Get the length of the string. Since a string is immutable, this does not need
-    /// to be a call, can be calculated at construction.
-    pub len: usize,
-    /// Kind tag to identify the string type.
+#[derive(Debug, Copy, Clone)]
+pub struct JsStringVTable {
+    /// Get the string as a `JsStr`.
+    pub as_str: for<'a> fn(&'a JsStringHeader) -> JsStr<'a>,
+    /// Get an iterator of code points.
+    pub code_points: for<'a> fn(&'a JsStringHeader) -> CodePointsIter<'a>,
+    /// Get the code unit at the given index.
+    pub code_unit_at: fn(&JsStringHeader, usize) -> Option<u16>,
+    /// Deallocate the string.
+    pub dealloc: fn(NonNull<JsStringHeader>),
+
+    /// Kind tag to identify the string type. Shared across all strings of this vtable.
     pub kind: JsStringKind,
 }

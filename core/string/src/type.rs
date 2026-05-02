@@ -1,6 +1,6 @@
 //! Module containing string types public and crate-specific.
+use crate::JsStr;
 use crate::vtable::SequenceString;
-use crate::{JsStr, JsStringKind};
 use std::alloc::Layout;
 
 mod sealed {
@@ -11,12 +11,12 @@ mod sealed {
 /// Internal trait for crate-specific usage. Contains implementation details
 /// that should not leak through the API.
 #[allow(private_interfaces)]
-pub(crate) trait InternalStringType: StringType {
+pub trait InternalStringType: StringType {
     /// The offset to the data field in the sequence string struct.
     const DATA_OFFSET: usize;
 
-    /// The kind of string produced by this string type.
-    const KIND: JsStringKind;
+    /// The static vtable for this string type.
+    const VTABLE: &'static crate::vtable::JsStringVTable;
 
     /// Create the base layout for the sequence string header.
     fn base_layout() -> Layout;
@@ -45,7 +45,7 @@ impl StringType for Latin1 {
 
 impl InternalStringType for Latin1 {
     const DATA_OFFSET: usize = size_of::<SequenceString<Self>>();
-    const KIND: JsStringKind = JsStringKind::Latin1Sequence;
+    const VTABLE: &'static crate::vtable::JsStringVTable = &crate::vtable::LATIN1_VTABLE;
 
     fn base_layout() -> Layout {
         Layout::new::<SequenceString<Self>>()
@@ -69,7 +69,7 @@ impl StringType for Utf16 {
 
 impl InternalStringType for Utf16 {
     const DATA_OFFSET: usize = size_of::<SequenceString<Self>>();
-    const KIND: JsStringKind = JsStringKind::Utf16Sequence;
+    const VTABLE: &'static crate::vtable::JsStringVTable = &crate::vtable::UTF16_VTABLE;
 
     fn base_layout() -> Layout {
         Layout::new::<SequenceString<Self>>()

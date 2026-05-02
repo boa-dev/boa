@@ -1,6 +1,6 @@
 //! Display implementations for [`JsString`].
 
-use crate::{CodePoint, JsStr, JsStrVariant, JsString, JsStringKind, SliceString};
+use crate::{CodePoint, JsStr, JsString, JsStringKind, SliceString};
 use std::cell::RefCell;
 use std::fmt;
 use std::fmt::Write;
@@ -14,19 +14,21 @@ pub struct JsStrDisplayEscaped<'a> {
 
 impl fmt::Display for JsStrDisplayEscaped<'_> {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        match self.inner.variant() {
-            // SAFETY: `JsStrVariant::Latin1` does not contain any unpaired surrogates, so need to check.
-            JsStrVariant::Latin1(v) => v
+        match self.inner.as_str() {
+            // SAFETY: `JsStr::Latin1` does not contain any unpaired surrogates, so need to check.
+            JsStr::Latin1(v) => v
                 .iter()
                 .copied()
                 .map(char::from)
                 .try_for_each(|c| f.write_char(c)),
-            JsStrVariant::Utf16(_) => self.inner.code_points().try_for_each(|r| match r {
-                CodePoint::Unicode(c) => f.write_char(c),
-                CodePoint::UnpairedSurrogate(c) => {
-                    write!(f, "\\u{c:04X}")
-                }
-            }),
+            JsStr::Utf16(_) | JsStr::Rope(_) => {
+                self.inner.code_points().try_for_each(|r| match r {
+                    CodePoint::Unicode(c) => f.write_char(c),
+                    CodePoint::UnpairedSurrogate(c) => {
+                        write!(f, "\\u{c:04X}")
+                    }
+                })
+            }
         }
     }
 }
@@ -92,7 +94,7 @@ impl fmt::Debug for JsStringDebugInfo<'_> {
 
         // Show kind specific fields from string.
         match self.inner.kind() {
-            JsStringKind::Latin1Sequence | JsStringKind::Utf16Sequence => {
+            JsStringKind::Latin1Sequence | JsStringKind::Utf16Sequence | JsStringKind::Rope => {
                 if let Some(rc) = self.inner.refcount() {
                     dbg.borrow_mut().field("refcount", &rc);
                 }
