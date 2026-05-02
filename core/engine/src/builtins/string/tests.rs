@@ -975,3 +975,20 @@ fn match_with_overridden_exec() {
         js_str!("fake"),
     )]);
 }
+
+#[test]
+fn concat_max_length_overflow() {
+    // Test for issue #4409: Repeated string concatenation should throw RangeError
+    // instead of causing OOM crash
+    run_test_actions([TestAction::assert_native_error(
+        indoc! {r"
+            var s = '\u1234--synchronized-----';
+            for (var i = 0; i < 17; i++) {
+                s += s; 
+                s += s;
+            }
+        "},
+        JsNativeErrorKind::Range,
+        "Invalid string length",
+    )]);
+}
