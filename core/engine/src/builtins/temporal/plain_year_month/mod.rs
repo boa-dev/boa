@@ -33,6 +33,10 @@ use super::{
     to_temporal_duration,
 };
 
+#[cfg(feature = "temporal")]
+#[cfg(test)]
+mod tests;
+
 /// The `Temporal.PlainYearMonth` built-in implementation
 ///
 /// More information:
@@ -755,21 +759,44 @@ impl PlainYearMonth {
     ///
     /// [spec]: https://tc39.es/proposal-temporal/#sec-temporal.plainyearmonth.tolocalestring
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Temporal/PlainYearMonth/toLocaleString
+    #[allow(
+        unused_variables,
+        reason = "`args` and `context` may be unused depending on feature flags"
+    )]
     pub(crate) fn to_locale_string(
         this: &JsValue,
-        _: &[JsValue],
-        _: &mut Context,
+        args: &[JsValue],
+        context: &mut Context,
     ) -> JsResult<JsValue> {
-        // TODO: Update for ECMA-402 compliance
-        let object = this.as_object();
-        let year_month = object
-            .as_ref()
-            .and_then(JsObject::downcast_ref::<Self>)
+        // 1. Let plainYearMonth be the this value.
+        // 2. Perform ? RequireInternalSlot(plainYearMonth, [[InitializedTemporalYearMonth]]).
+        let () = this
+            .as_object()
+            .and_then(|o| o.downcast_ref::<Self>().map(|_| ()))
             .ok_or_else(|| {
                 JsNativeError::typ().with_message("this value must be a PlainYearMonth object.")
             })?;
 
-        Ok(JsString::from(year_month.inner.to_string()).into())
+        #[cfg(feature = "intl")]
+        {
+            use crate::builtins::intl::date_time_format::handle_date_time_value;
+
+            let locales = args.get_or_undefined(0);
+            let options = args.get_or_undefined(1);
+
+            // 3. Let dateFormat be ? CreateDateTimeFormat(%Intl.DateTimeFormat%, locales, options, date, date).
+            // 4. Return ? FormatDateTime(dateFormat, plainYearMonth).
+            handle_date_time_value(this, locales, options, context)
+        }
+
+        #[cfg(not(feature = "intl"))]
+        {
+            let plain_year_month = this
+                .as_object()
+                .and_then(|o| o.downcast_ref::<Self>().map(|ym| ym.inner.to_string()))
+                .expect("RequireInternalSlot already validated");
+            Ok(JsString::from(plain_year_month).into())
+        }
     }
 
     /// 9.3.21 `Temporal.PlainYearMonth.prototype.toJSON ( )`
