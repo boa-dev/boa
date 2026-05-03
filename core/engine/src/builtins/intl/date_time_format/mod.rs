@@ -1025,24 +1025,6 @@ pub(crate) fn format_date_time_locale(
     context: &mut Context,
 ) -> JsResult<JsValue> {
     let options = coerce_options_to_object(options, context)?;
-    if format_type != FormatType::Time
-        && get_option::<DateStyle>(&options, js_string!("dateStyle"), context)?.is_none()
-    {
-        options.create_data_property_or_throw(
-            js_string!("dateStyle"),
-            JsValue::from(js_string!("long")),
-            context,
-        )?;
-    }
-    if format_type != FormatType::Date
-        && get_option::<TimeStyle>(&options, js_string!("timeStyle"), context)?.is_none()
-    {
-        options.create_data_property_or_throw(
-            js_string!("timeStyle"),
-            JsValue::from(js_string!("long")),
-            context,
-        )?;
-    }
     let options_value = options.into();
     let dtf = create_date_time_format(locales, &options_value, format_type, defaults, context)?;
     // FormatDateTime steps 1–2: TimeClip and NaN check (format_timestamp_with_dtf does ToLocalTime + format only).
