@@ -349,4 +349,203 @@ mod tests {
         let bytes = [0u8; 2];
         let _ = u32::decode(&bytes, 0);
     }
+    // --- Direct `read` function tests ---
+    // These test the low-level `read` fn directly, not just via encode/decode.
+
+    #[test]
+    fn read_u8_direct() {
+        use super::read;
+        let bytes: &[u8] = &[0x2A];
+        let (val, next) = read::<u8>(bytes, 0);
+        assert_eq!(val, 42u8);
+        assert_eq!(next, 1);
+    }
+
+    #[test]
+    fn read_u16_little_endian() {
+        // Verifies little-endian byte order: 0x0105 = 261
+        use super::read;
+        let bytes: &[u8] = &[0x05, 0x01];
+        let (val, next) = read::<u16>(bytes, 0);
+        assert_eq!(val, 261u16);
+        assert_eq!(next, 2);
+    }
+
+    #[test]
+    fn read_u32_little_endian() {
+        // 0x01000000 in little-endian is [0x00, 0x00, 0x00, 0x01]
+        use super::read;
+        let bytes: &[u8] = &[0x00, 0x00, 0x00, 0x01];
+        let (val, next) = read::<u32>(bytes, 0);
+        assert_eq!(val, 0x0100_0000u32);
+        assert_eq!(next, 4);
+    }
+
+    #[test]
+    fn read_at_non_zero_offset() {
+        // First 2 bytes are padding, real u32 starts at offset 2
+        use super::read;
+        let bytes: &[u8] = &[0x00, 0x00, 0x05, 0x00, 0x00, 0x00];
+        let (val, next) = read::<u32>(bytes, 2);
+        assert_eq!(val, 5u32);
+        assert_eq!(next, 6);
+    }
+
+    #[test]
+    fn read_i8_negative() {
+        use super::read;
+        let bytes: &[u8] = &[0xFF]; // -1 as i8
+        let (val, next) = read::<i8>(bytes, 0);
+        assert_eq!(val, -1i8);
+        assert_eq!(next, 1);
+    }
+
+    #[test]
+    fn read_i16_negative() {
+        use super::read;
+        // -1 as i16 in little-endian: [0xFF, 0xFF]
+        let bytes: &[u8] = &[0xFF, 0xFF];
+        let (val, next) = read::<i16>(bytes, 0);
+        assert_eq!(val, -1i16);
+        assert_eq!(next, 2);
+    }
+
+    #[test]
+    fn read_i32_negative() {
+        use super::read;
+        // i32::MIN in little-endian: [0x00, 0x00, 0x00, 0x80]
+        let bytes: &[u8] = &[0x00, 0x00, 0x00, 0x80];
+        let (val, next) = read::<i32>(bytes, 0);
+        assert_eq!(val, i32::MIN);
+        assert_eq!(next, 4);
+    }
+
+    // --- Argument decode at non-zero offset ---
+
+    #[test]
+    fn decode_at_non_zero_offset() {
+        // Encode two u32s back to back, decode the second one
+        let mut bytes = Vec::new();
+        (42u32).encode(&mut bytes);
+        (99u32).encode(&mut bytes);
+        // skip the first u32 (4 bytes), decode from offset 4
+        let (val, pos) = u32::decode(&bytes, 4);
+        assert_eq!(val, 99u32);
+        assert_eq!(pos, 8);
+    }
+
+    #[test]
+    fn register_operand_large_value() {
+        round_trip_eq(&RegisterOperand::new(u32::MAX), |a, b| {
+            u32::from(*a) == u32::from(*b)
+        });
+    }
+
+    #[test]
+    fn index_operand_mid_value() {
+        round_trip_eq(&IndexOperand::new(1000), |a, b| {
+            u32::from(*a) == u32::from(*b)
+        });
+    }
+
+    #[test]
+    fn address_max_value() {
+        round_trip_eq(&Address::new(u32::MAX), |a, b| {
+            u32::from(*a) == u32::from(*b)
+        });
+    }
+
+    // --- More primitive edge cases ---
+
+    #[test]
+    fn test_i8_max() {
+        round_trip(&i8::MAX);
+    }
+
+    #[test]
+    fn test_i16_min_max() {
+        round_trip(&i16::MAX);
+        round_trip(&i16::MIN);
+    }
+
+    #[test]
+    fn test_i32_max() {
+        round_trip(&i32::MAX);
+    }
+
+    #[test]
+    fn test_u8_mid_value() {
+        round_trip(&42u8);
+    }
+
+    #[test]
+    fn test_f32_special_values() {
+        round_trip_eq(&f32::INFINITY, |a, b| a.to_bits() == b.to_bits());
+        round_trip_eq(&f32::NEG_INFINITY, |a, b| a.to_bits() == b.to_bits());
+        round_trip_eq(&f32::NAN, |a, b| a.to_bits() == b.to_bits());
+    }
+
+    #[test]
+    fn test_f64_special_values() {
+        round_trip_eq(&f64::INFINITY, |a, b| a.to_bits() == b.to_bits());
+        round_trip_eq(&f64::NEG_INFINITY, |a, b| a.to_bits() == b.to_bits());
+        round_trip_eq(&f64::NAN, |a, b| a.to_bits() == b.to_bits());
+    }
+
+    // --- More tuple combinations ---
+
+    #[test]
+    fn test_triple_tuple_round_trip() {
+        round_trip(&(1u8, 2u8, 3u8));
+        round_trip(&(100u32, 200u32, 300u32));
+    }
+
+    #[test]
+    fn test_five_tuple_round_trip() {
+        round_trip(&(1u8, 2u8, 3u8, 4u8, 5u8));
+    }
+
+    // --- More panic / truncation cases ---
+
+    #[test]
+    #[should_panic(expected = "buffer too small")]
+    fn decode_u16_truncated_panics() {
+        let bytes = [0u8; 1]; // need 2 bytes for u16
+        let _ = u16::decode(&bytes, 0);
+    }
+
+    #[test]
+    #[should_panic(expected = "buffer too small")]
+    fn decode_u64_truncated_panics() {
+        let bytes = [0u8; 4]; // need 8 bytes for u64
+        let _ = u64::decode(&bytes, 0);
+    }
+
+    #[test]
+    #[should_panic(expected = "buffer too small")]
+    fn decode_at_offset_past_end_panics() {
+        let bytes = [0u8; 4];
+        let _ = u32::decode(&bytes, 2); // offset 2 + 4 bytes = needs 6, only 4 available
+    }
+
+    // --- ThinVec additional cases ---
+
+    #[test]
+    fn test_thin_vec_single_element() {
+        let v: ThinVec<u32> = [42u32].into_iter().collect();
+        round_trip(&v);
+    }
+
+    #[test]
+    fn test_thin_vec_index_operand() {
+        let v: ThinVec<IndexOperand> = [IndexOperand::new(0), IndexOperand::new(u32::MAX)]
+            .into_iter()
+            .collect();
+        round_trip_eq(&v, |a, b| {
+            a.len() == b.len()
+                && a.iter()
+                    .zip(b.iter())
+                    .all(|(x, y)| u32::from(*x) == u32::from(*y))
+        });
+    }
 }
