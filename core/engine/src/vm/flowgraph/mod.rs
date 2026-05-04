@@ -374,6 +374,14 @@ impl CodeBlock {
                 Instruction::Return => {
                     graph.add_node(previous_pc, NodeShape::Diamond, label.into(), Color::Red);
                 }
+                Instruction::AddDisposableResource { value } => {
+                    let label = format!("AddDisposableResource value: {value}");
+                    graph.add_node(previous_pc, NodeShape::None, label.into(), Color::None);
+                }
+                Instruction::DisposeResources { count } => {
+                    let label = format!("DisposeResources count: {count}");
+                    graph.add_node(previous_pc, NodeShape::None, label.into(), Color::None);
+                }
                 Instruction::Reserved1
                 | Instruction::Reserved2
                 | Instruction::Reserved3
@@ -431,9 +439,7 @@ impl CodeBlock {
                 | Instruction::Reserved55
                 | Instruction::Reserved56
                 | Instruction::Reserved57
-                | Instruction::Reserved58
-                | Instruction::Reserved59
-                | Instruction::Reserved60 => unreachable!("Reserved opcodes are unreachable"),
+                | Instruction::Reserved58 => unreachable!("Reserved opcodes are unreachable"),
             }
         }
 
