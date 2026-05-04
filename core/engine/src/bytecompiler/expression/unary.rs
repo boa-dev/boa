@@ -1,5 +1,6 @@
 use crate::bytecompiler::{Access, BindingAccessOpcode, ByteCompiler, Register, ToJsString};
 use boa_ast::Expression;
+use boa_ast::expression::literal::Number;
 use boa_ast::expression::operator::{Unary, unary::UnaryOp};
 
 impl ByteCompiler<'_> {
@@ -18,8 +19,19 @@ impl ByteCompiler<'_> {
                 }
             }
             UnaryOp::Minus => {
-                self.compile_expr(unary.target(), dst);
-                self.bytecode.emit_neg(dst.variable());
+                if let Expression::Literal(literal) = unary.target().flatten()
+                    && let Some(number) = literal.kind().as_number()
+                {
+                    match number {
+                        // Handles special case -0
+                        Number::Int(0) => self.emit_store_rational(-0.0, dst),
+                        Number::Int(value) => self.emit_store_integer(-value, dst),
+                        Number::Num(value) => self.emit_store_rational(-value, dst),
+                    }
+                } else {
+                    self.compile_expr(unary.target(), dst);
+                    self.bytecode.emit_neg(dst.variable());
+                }
             }
             UnaryOp::Plus => {
                 self.compile_expr(unary.target(), dst);
