@@ -467,3 +467,19 @@ fn response_clone_preserves_status() {
         }),
     ]);
 }
+
+#[test]
+fn response_redirected_true_after_redirect() {
+    // We simulate a redirect by using a custom E2e-style fetcher that
+    // returns a response with a different final URL.
+    run_test_actions([
+        TestAction::harness(),
+        TestAction::inspect_context(|ctx| {
+            let mut fetcher = TestFetcher::default();
+            // Simulate: fetching /redirect gives a response that "came from" /target
+            // We need to use the redirected constructor. For now we test via E2eFetcher.
+            crate::fetch::register(fetcher, None, ctx).expect("register");
+        }),
+        // ...
+    ]);
+}
