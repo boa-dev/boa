@@ -59,7 +59,7 @@ fn try_from_js_object(
 /// Transfer an object into a store instead of cloning it. See [mdn].
 ///
 /// Only [transferable objects][to] can be transferred. Anything else will return an
-/// error. Since any object t
+/// error.
 ///
 /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/API/Web_Workers_API/Transferable_objects
 /// [to]: https://developer.mozilla.org/en-US/docs/Web/API/Web_Workers_API/Transferable_objects#supported_objects
