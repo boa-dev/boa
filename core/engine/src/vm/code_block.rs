@@ -396,6 +396,7 @@ impl CodeBlock {
             | Instruction::CreateUnmappedArgumentsObject { dst }
             | Instruction::RestParameterInit { dst }
             | Instruction::StoreNewArray { dst } => format!("dst:{dst}"),
+            Instruction::ToInt32 { dst, src } => format!("dst:{dst}, src:{src}"),
             Instruction::Add { lhs, rhs, dst }
             | Instruction::Sub { lhs, rhs, dst }
             | Instruction::Div { lhs, rhs, dst }
@@ -933,8 +934,7 @@ impl CodeBlock {
             | Instruction::Reserved56
             | Instruction::Reserved57
             | Instruction::Reserved58
-            | Instruction::Reserved59
-            | Instruction::Reserved60 => unreachable!("Reserved opcodes are unreachable"),
+            | Instruction::Reserved59 => unreachable!("Reserved opcodes are unreachable"),
         }
     }
 }
