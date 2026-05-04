@@ -14,6 +14,7 @@ use super::{
 use crate::{
     Context, JsNativeError, JsResult,
     context::intrinsics::{StandardConstructor, StandardConstructors},
+    error::PanicError,
     object::JsObject,
     property::{DescriptorKind, PropertyDescriptor, PropertyKey},
     value::JsValue,
@@ -588,7 +589,10 @@ pub(crate) fn ordinary_set_prototype_of(
 #[allow(clippy::unnecessary_wraps)]
 pub(crate) fn ordinary_is_extensible(obj: &JsObject, _context: &mut Context) -> JsResult<bool> {
     // 1. Return O.[[Extensible]].
-    Ok(obj.borrow().extensible)
+    Ok(obj
+        .try_borrow()
+        .map_err(|e| PanicError::new(e.to_string()))?
+        .extensible)
 }
 
 /// Abstract operation `OrdinaryPreventExtensions`.
@@ -603,7 +607,9 @@ pub(crate) fn ordinary_prevent_extensions(
     _context: &mut Context,
 ) -> JsResult<bool> {
     // 1. Set O.[[Extensible]] to false.
-    obj.borrow_mut().extensible = false;
+    obj.try_borrow_mut()
+        .map_err(|e| PanicError::new(e.to_string()))?
+        .extensible = false;
 
     // 2. Return true.
     Ok(true)
@@ -635,7 +641,11 @@ pub(crate) fn ordinary_get_own_property(
     // 7. Set D.[[Enumerable]] to the value of X's [[Enumerable]] attribute.
     // 8. Set D.[[Configurable]] to the value of X's [[Configurable]] attribute.
     // 9. Return D.
-    Ok(obj.borrow().properties.get_with_slot(key, context.slot()))
+    Ok(obj
+        .try_borrow()
+        .map_err(|e| PanicError::new(e.to_string()))?
+        .properties
+        .get_with_slot(key, context.slot()))
 }
 
 /// Abstract operation `OrdinaryDefineOwnProperty`.
@@ -945,7 +955,9 @@ pub(crate) fn ordinary_delete(
             // 4. If desc.[[Configurable]] is true, then
             Some(desc) if desc.expect_configurable() => {
                 // a. Remove the own property with name P from O.
-                obj.borrow_mut().remove(key);
+                obj.try_borrow_mut()
+                    .map_err(|e| PanicError::new(e.to_string()))?
+                    .remove(key);
                 // b. Return true.
                 true
             }
@@ -972,7 +984,12 @@ pub(crate) fn ordinary_own_property_keys(
     let mut keys = Vec::new();
 
     let ordered_indexes = {
-        let mut indexes: Vec<_> = obj.borrow().properties.index_property_keys().collect();
+        let mut indexes: Vec<_> = obj
+            .try_borrow()
+            .map_err(|e| PanicError::new(e.to_string()))?
+            .properties
+            .index_property_keys()
+            .collect();
         indexes.sort_unstable();
         indexes
     };
@@ -986,7 +1003,13 @@ pub(crate) fn ordinary_own_property_keys(
     //
     // 4. For each own property key P of O such that Type(P) is Symbol, in ascending chronological order of property creation, do
     //     a. Add P as the last element of keys.
-    keys.extend(obj.borrow().properties.shape.keys());
+    keys.extend(
+        obj.try_borrow()
+            .map_err(|e| PanicError::new(e.to_string()))?
+            .properties
+            .shape
+            .keys(),
+    );
 
     // 5. Return keys.
     Ok(keys)
