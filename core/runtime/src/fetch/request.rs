@@ -4,19 +4,22 @@
 //!
 //! [mdn]: https://developer.mozilla.org/en-US/docs/Web/API/Request
 use super::HttpRequest;
+use super::body;
 use super::headers::JsHeaders;
+use boa_engine::object::builtins::JsPromise;
 use boa_engine::value::{Convert, TryFromJs};
 use boa_engine::{
-    Finalize, JsData, JsObject, JsResult, JsString, JsValue, Trace, boa_class, js_error,
+    Context, Finalize, JsData, JsObject, JsResult, JsString, JsValue, Trace, boa_class, js_error,
 };
 use either::Either;
+use std::cell::Cell;
 use std::mem;
+use std::rc::Rc;
 
 /// A [RequestInit][mdn] object. This is a JavaScript object (not a
 /// class) that can be used as options for creating a [`JsRequest`].
 ///
 /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/API/RequestInit
-// TODO: This class does not contain all fields that are defined in the spec.
 #[derive(Debug, Clone, TryFromJs, Trace, Finalize)]
 pub struct RequestInit {
     body: Option<JsValue>,
@@ -29,6 +32,10 @@ impl RequestInit {
     /// Takes the abort signal from the options, if present.
     pub fn take_signal(&mut self) -> Option<JsObject> {
         self.signal.take()
+    }
+
+    pub(crate) fn has_body(&self) -> bool {
+        self.body.is_some()
     }
 
     /// Create an [`http::request::Builder`] object and return both the
@@ -115,19 +122,32 @@ pub struct JsRequest {
     #[unsafe_ignore_trace]
     inner: HttpRequest<Vec<u8>>,
     signal: Option<JsObject>,
+    #[unsafe_ignore_trace]
+    has_body: bool,
+    #[unsafe_ignore_trace]
+    body_used: Cell<bool>,
 }
 
 impl JsRequest {
+    fn new(inner: HttpRequest<Vec<u8>>, signal: Option<JsObject>, has_body: bool) -> Self {
+        Self {
+            inner,
+            signal,
+            has_body,
+            body_used: Cell::new(false),
+        }
+    }
+
     /// Get the inner `http::Request` object. This drops the body (if any).
     pub fn into_inner(mut self) -> HttpRequest<Vec<u8>> {
         mem::replace(&mut self.inner, HttpRequest::new(Vec::new()))
     }
 
-    /// Split this request into its HTTP request and abort signal.
-    fn into_parts(mut self) -> (HttpRequest<Vec<u8>>, Option<JsObject>) {
+    /// Split this request into its HTTP request, abort signal, and body state.
+    fn into_parts(mut self) -> (HttpRequest<Vec<u8>>, Option<JsObject>, bool) {
         let request = mem::replace(&mut self.inner, HttpRequest::new(Vec::new()));
         let signal = self.signal.take();
-        (request, signal)
+        (request, signal, self.has_body)
     }
 
     /// Get a reference to the inner `http::Request` object.
@@ -138,6 +158,44 @@ impl JsRequest {
     /// Get the abort signal associated with this request, if any.
     pub(crate) fn signal(&self) -> Option<JsObject> {
         self.signal.clone()
+    }
+
+    pub(crate) fn has_body(&self) -> bool {
+        self.has_body
+    }
+
+    pub(crate) fn ensure_body_unused(&self) -> JsResult<()> {
+        if self.is_body_used() {
+            return Err(js_error!(TypeError: "Body has already been used"));
+        }
+        Ok(())
+    }
+
+    pub(crate) fn mark_body_used(&self) {
+        if self.has_body {
+            self.body_used.set(true);
+        }
+    }
+
+    // The consume body algorithm, given an object that includes Body and an
+    // algorithm that converts bytes to a JavaScript value, runs these steps:
+    // 1. If object is unusable, then return a promise rejected with a TypeError.
+    // TODO: 2-3. Create a promise and wire its success and error steps.
+    // 4. If object's body is null, then run successSteps with an empty byte sequence.
+    // TODO: 5. Fully read object's body stream.
+    //
+    // Boa currently models request bodies as eagerly buffered bytes, so after
+    // checking whether the body is unusable, we can return the stored bytes
+    // directly to the callers that build the resulting promise.
+    // See <https://fetch.spec.whatwg.org/#concept-body-consume-body>.
+    fn consume_body(&self) -> JsResult<Rc<Vec<u8>>> {
+        self.ensure_body_unused()?;
+        self.mark_body_used();
+        Ok(Rc::new(self.inner.body().clone()))
+    }
+
+    fn is_body_used(&self) -> bool {
+        self.has_body && self.body_used.get()
     }
 
     /// Get the URI of the request.
@@ -154,7 +212,9 @@ impl JsRequest {
         input: Either<JsString, JsRequest>,
         options: Option<RequestInit>,
     ) -> JsResult<Self> {
-        let (request, signal) = match input {
+        let body_overridden = options.as_ref().is_some_and(RequestInit::has_body);
+
+        let (request, signal, has_body) = match input {
             Either::Left(uri) => {
                 let uri = http::Uri::try_from(
                     uri.to_std_string()
@@ -165,30 +225,30 @@ impl JsRequest {
                     .uri(uri)
                     .body(Vec::<u8>::new())
                     .map_err(|_| js_error!(Error: "Cannot construct request"))?;
-                (request, None)
+                (request, None, false)
             }
-            Either::Right(r) => r.into_parts(),
+            Either::Right(r) => {
+                if !body_overridden {
+                    r.ensure_body_unused()?;
+                }
+                r.into_parts()
+            }
         };
 
         if let Some(mut options) = options {
             let signal = options.take_signal().or(signal);
             let inner = options.into_request_builder(Some(request))?;
-            Ok(Self { inner, signal })
+            Ok(Self::new(inner, signal, body_overridden || has_body))
         } else {
-            Ok(Self {
-                inner: request,
-                signal,
-            })
+            Ok(Self::new(request, signal, has_body))
         }
     }
 }
 
 impl From<HttpRequest<Vec<u8>>> for JsRequest {
     fn from(inner: HttpRequest<Vec<u8>>) -> Self {
-        Self {
-            inner,
-            signal: None,
-        }
+        let has_body = !inner.body().is_empty();
+        Self::new(inner, None, has_body)
     }
 }
 
@@ -203,23 +263,70 @@ impl JsRequest {
         input: Either<JsString, JsObject>,
         options: Option<RequestInit>,
     ) -> JsResult<Self> {
-        // Need to use a match as `Either::map_right` does not have an equivalent
-        // `Either::map_right_ok`.
+        let body_overridden = options.as_ref().is_some_and(RequestInit::has_body);
+        let mut source_request = None;
         let input = match input {
             Either::Right(r) => {
-                if let Ok(request) = r.clone().downcast::<JsRequest>() {
-                    Either::Right(request.borrow().data().clone())
+                if let Ok(request_obj) = r.clone().downcast::<JsRequest>() {
+                    {
+                        let request_ref = request_obj.borrow();
+                        let request = request_ref.data();
+                        if !body_overridden {
+                            request.ensure_body_unused()?;
+                        }
+                        source_request = Some(request_obj.clone());
+                    }
+
+                    let request = request_obj.borrow();
+                    Either::Right(request.data().clone())
                 } else {
                     return Err(js_error!(TypeError: "invalid input argument"));
                 }
             }
             Either::Left(i) => Either::Left(i),
         };
-        JsRequest::create_from_js(input, options)
+        let request = JsRequest::create_from_js(input, options)?;
+
+        if !body_overridden && let Some(source_request) = source_request {
+            source_request.borrow().data().mark_body_used();
+        }
+
+        Ok(request)
     }
 
+    /// Returns whether the request body has been consumed.
+    ///
+    /// See <https://fetch.spec.whatwg.org/#dom-body-bodyused>.
+    #[boa(getter)]
+    fn body_used(&self) -> bool {
+        // The bodyUsed getter steps are to return true if this's body is
+        // non-null and this's body's stream is disturbed; otherwise false.
+        self.is_body_used()
+    }
+
+    /// Returns a copy of this request.
+    ///
+    /// See <https://fetch.spec.whatwg.org/#dom-request-clone>.
     #[boa(rename = "clone")]
-    fn clone_request(&self) -> Self {
-        self.clone()
+    fn clone_request(&self) -> JsResult<Self> {
+        // The clone() method steps are:
+        // 1. If this is unusable, then throw a TypeError.
+        // 2. Let clonedRequest be the result of cloning this's request.
+        // TODO: 4-6. Clone the associated signal by creating a dependent abort signal.
+        // 7. Return the cloned request object.
+        self.ensure_body_unused()?;
+        Ok(self.clone())
+    }
+
+    fn bytes(&self, context: &mut Context) -> JsResult<JsPromise> {
+        Ok(body::bytes(self.consume_body()?, context))
+    }
+
+    fn text(&self, context: &mut Context) -> JsResult<JsPromise> {
+        Ok(body::text(self.consume_body()?, context))
+    }
+
+    fn json(&self, context: &mut Context) -> JsResult<JsPromise> {
+        Ok(body::json(self.consume_body()?, context))
     }
 }
