@@ -216,3 +216,6 @@ impl JsValueStore {
         Ok(v)
     }
 }
+
+#[cfg(test)]
+mod tests;

@@ -158,10 +158,11 @@ fn clone_dataview(
     seen: &mut SeenMap,
     context: &mut Context,
 ) -> JsResult<JsValueStore> {
-    let buffer_value = dataview.buffer(context)?;
-    let buffer = try_from_js_value(&buffer_value, transfer, seen, context)?;
     let byte_length = dataview.byte_length(context)?;
     let byte_offset = dataview.byte_offset(context)?;
+    
+    let buffer_value = dataview.buffer(context)?;
+    let buffer = try_from_js_value(&buffer_value, transfer, seen, context)?;
 
     let dolly = JsValueStore::new(ValueStoreInner::DataView {
         buffer,
