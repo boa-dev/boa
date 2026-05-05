@@ -216,11 +216,15 @@ impl Scope {
     #[must_use]
     #[allow(clippy::cast_possible_truncation)]
     pub fn num_bindings_non_local(&self) -> u32 {
+        let arguments = JsString::from("arguments");
+        let bindings = self.inner.bindings.borrow();
+
+        drop(bindings);
         self.inner
             .bindings
             .borrow()
             .iter()
-            .filter(|binding| binding.escapes())
+            .filter(|binding| binding.escapes() || binding.name == arguments)
             .count() as u32
     }
 
