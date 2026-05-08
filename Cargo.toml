@@ -65,7 +65,7 @@ indexmap = { version = "2.14.0", default-features = false }
 indoc = "2.0.7"
 itoa = "1.0.18"
 jemallocator = "0.5.4"
-mimalloc-safe = "0.1.57"
+mimalloc-safe = "0.1.58"
 lz4_flex = "0.13.0"
 num-bigint = "0.4.6"
 num-traits = "0.2.19"
@@ -75,14 +75,14 @@ phf = { version = "0.13.1", default-features = false }
 pollster = "0.4.0"
 regex = "1.12.3"
 regress = { version = "0.11.1", features = ["utf16"] }
-reqwest = { version = "0.13.2", default-features = false, features = ["rustls-no-provider"] }
-rustls = { version = "0.23.39", default-features = false, features = ["ring"] }
+reqwest = { version = "0.13.3", default-features = false, features = ["rustls-no-provider"] }
+rustls = { version = "0.23.40", default-features = false, features = ["ring"] }
 rustc-hash = { version = "2.1.2", default-features = false }
 serde_json = "1.0.149"
 serde = "1.0.219"
 static_assertions = "1.1.0"
 textwrap = "0.16.2"
-thin-vec = "0.2.16"
+thin-vec = "0.2.18"
 time = { version = "0.3.47", default-features = false, features = [
     "local-offset",
     "large-dates",
