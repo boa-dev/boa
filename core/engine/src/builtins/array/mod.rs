@@ -2321,6 +2321,73 @@ impl Array {
                 .into());
         }
 
+        // Dense fast path: operate directly on the underlying storage vec.
+        // Only safe when itemCount <= actualDeleteCount, since inserting more
+        // items than deleted would create new indices beyond `len - 1` where
+        // prototype chain setters could fire (see #3407, #5076).
+        // Also requires the default array shape so that ArraySpeciesCreate
+        // would return a plain Array (no subclass with custom @@species).
+        if o.is_array() && item_count <= actual_delete_count {
+            let start = actual_start as usize;
+            let delete_count = actual_delete_count as usize;
+            let default_shape = context
+                .intrinsics()
+                .templates()
+                .array()
+                .shape()
+                .to_addr_usize();
+            let mut o_borrow = o.borrow_mut();
+            let has_default_shape = o_borrow.properties().shape.to_addr_usize() == default_shape;
+            let indexed = &mut o_borrow.properties_mut().indexed_properties;
+
+            let range = start..start + delete_count;
+            let maybe_deleted: Option<ThinVec<JsValue>> = if has_default_shape {
+                match indexed {
+                    IndexedProperties::DenseI32(vec) if len <= vec.len() as u64 => {
+                        let all_i32: Option<Vec<i32>> = items.iter().map(JsValue::as_i32).collect();
+                        if let Some(i32_items) = all_i32 {
+                            // Items fit the storage type: splice in one pass.
+                            Some(vec.splice(range, i32_items).map(JsValue::from).collect())
+                        } else {
+                            // Type transition: convert to DenseElement, then splice.
+                            let mut new_vec: ThinVec<JsValue> =
+                                vec.iter().copied().map(JsValue::from).collect();
+                            let deleted = new_vec.splice(range, items.iter().cloned()).collect();
+                            *indexed = IndexedProperties::DenseElement(new_vec);
+                            Some(deleted)
+                        }
+                    }
+                    IndexedProperties::DenseF64(vec) if len <= vec.len() as u64 => {
+                        let all_f64: Option<Vec<f64>> =
+                            items.iter().map(JsValue::as_number).collect();
+                        if let Some(f64_items) = all_f64 {
+                            Some(vec.splice(range, f64_items).map(JsValue::from).collect())
+                        } else {
+                            let mut new_vec: ThinVec<JsValue> =
+                                vec.iter().copied().map(JsValue::from).collect();
+                            let deleted = new_vec.splice(range, items.iter().cloned()).collect();
+                            *indexed = IndexedProperties::DenseElement(new_vec);
+                            Some(deleted)
+                        }
+                    }
+                    IndexedProperties::DenseElement(vec) if len <= vec.len() as u64 => {
+                        Some(vec.splice(range, items.iter().cloned()).collect())
+                    }
+                    _ => None,
+                }
+            } else {
+                None
+            };
+
+            if let Some(deleted) = maybe_deleted {
+                drop(o_borrow);
+                let new_len = len - actual_delete_count + item_count;
+                Self::set_length(&o, new_len, context)?;
+                let arr = Self::create_array_from_list(deleted, context);
+                return Ok(arr.into());
+            }
+        }
+
         // 12. Let A be ? ArraySpeciesCreate(O, actualDeleteCount).
         let arr = Self::array_species_create(&o, actual_delete_count, context)?;
 
