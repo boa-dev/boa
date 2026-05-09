@@ -136,11 +136,67 @@ fn eval_created_bindings_can_be_deleted_5333() {
         TestAction::assert_eq(
             indoc! {r#"
                 (function() {
+                    delete globalThis.x;
                     eval('delete x; var x = 1;');
-                    return typeof globalThis.x + ':' + String(globalThis.x);
+                    var result = typeof globalThis.x + ':' + String(globalThis.x);
+                    delete globalThis.x;
+                    return result;
                 }());
             "#},
             js_str!("number:1"),
+        ),
+        TestAction::assert_eq(
+            indoc! {r#"
+                (function() {
+                    delete globalThis.x;
+                    var result = eval('var x = delete x; x;');
+                    var global = globalThis.x;
+                    delete globalThis.x;
+                    return String(result) + ':' + String(global);
+                }());
+            "#},
+            js_str!("true:true"),
+        ),
+        TestAction::assert_eq(
+            indoc! {r#"
+                (function() {
+                    delete globalThis.x;
+                    var x = 'outer';
+                    var result = (function() {
+                        return eval('var x = delete x; x;');
+                    }());
+                    var global = globalThis.x;
+                    delete globalThis.x;
+                    return String(result) + ':' + String(x) + ':' + String(global);
+                }());
+            "#},
+            js_str!("true:true:undefined"),
+        ),
+        TestAction::assert_eq(
+            indoc! {r#"
+                (function() {
+                    delete globalThis.x;
+                    eval('var x; delete x;');
+                    eval('var x = 2;');
+                    var result = String(x) + ':' + String(globalThis.x);
+                    delete globalThis.x;
+                    return result;
+                }());
+            "#},
+            js_str!("2:undefined"),
+        ),
+        TestAction::assert_eq(
+            indoc! {r#"
+                (function() {
+                    delete globalThis.f;
+                    eval('function f() {}; delete f;');
+                    eval('function f() { return 2; }');
+                    var result = String(f()) + ':' + String(globalThis.f);
+                    delete globalThis.f;
+                    return result;
+                }());
+            "#},
+            js_str!("2:undefined"),
         ),
     ]);
 }

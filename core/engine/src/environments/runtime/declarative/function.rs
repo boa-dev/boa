@@ -1,27 +1,18 @@
 use boa_ast::scope::Scope;
 use boa_gc::{Finalize, GcRefCell, Trace, custom_trace};
-use rustc_hash::FxHashSet;
-use std::cell::RefCell;
 
 use crate::{JsNativeError, JsObject, JsResult, JsValue, builtins::function::OrdinaryFunction};
-
-#[derive(Debug, Default)]
-struct BindingDeletionState {
-    deletable_bindings: FxHashSet<u32>,
-    deleted_bindings: FxHashSet<u32>,
-}
 
 #[derive(Debug, Trace, Finalize)]
 pub(crate) struct FunctionEnvironment {
     bindings: GcRefCell<Vec<Option<JsValue>>>,
+    deletable_bindings: GcRefCell<Vec<bool>>,
+    deleted_bindings: GcRefCell<Vec<bool>>,
     slots: Box<FunctionSlots>,
 
     // Safety: Nothing in `Scope` needs tracing.
     #[unsafe_ignore_trace]
     scope: Scope,
-
-    #[unsafe_ignore_trace]
-    binding_deletion_state: Box<RefCell<BindingDeletionState>>,
 }
 
 impl FunctionEnvironment {
@@ -29,9 +20,10 @@ impl FunctionEnvironment {
     pub(crate) fn new(bindings_count: u32, slots: FunctionSlots, scope: Scope) -> Self {
         Self {
             bindings: GcRefCell::new(vec![None; bindings_count as usize]),
+            deletable_bindings: GcRefCell::new(vec![false; bindings_count as usize]),
+            deleted_bindings: GcRefCell::new(vec![false; bindings_count as usize]),
             slots: Box::new(slots),
             scope,
-            binding_deletion_state: Box::default(),
         }
     }
 
@@ -65,43 +57,68 @@ impl FunctionEnvironment {
         self.bindings.borrow_mut()[index as usize] = Some(value);
     }
 
-    /// Gets the bindings of this poisonable environment.
-    pub(crate) const fn bindings(&self) -> &GcRefCell<Vec<Option<JsValue>>> {
-        &self.bindings
-    }
+    pub(crate) fn extend_from_compile(&self) {
+        let compile_bindings_len = self.scope.num_bindings() as usize;
+        let mut bindings = self.bindings.borrow_mut();
+        let bindings_len = bindings.len();
 
-    pub(crate) fn mark_deletable_bindings<I>(&self, bindings: I)
-    where
-        I: IntoIterator<Item = u32>,
-    {
-        self.binding_deletion_state
+        if compile_bindings_len <= bindings_len {
+            return;
+        }
+
+        bindings.resize(compile_bindings_len, None);
+
+        let mut deletable_bindings = self.deletable_bindings.borrow_mut();
+        deletable_bindings.resize(compile_bindings_len, false);
+        deletable_bindings[bindings_len..].fill(true);
+
+        self.deleted_bindings
             .borrow_mut()
-            .deletable_bindings
-            .extend(bindings);
+            .resize(compile_bindings_len, false);
     }
 
     pub(crate) fn is_deleted_binding(&self, index: u32) -> bool {
-        self.binding_deletion_state
+        self.deleted_bindings
             .borrow()
-            .deleted_bindings
-            .contains(&index)
+            .get(index as usize)
+            .copied()
+            .unwrap_or_default()
+    }
+
+    #[track_caller]
+    pub(crate) fn restore_deleted_binding(&self, index: u32) {
+        let index = index as usize;
+        if let Some(deleted) = self.deleted_bindings.borrow_mut().get_mut(index) {
+            *deleted = false;
+        }
     }
 
     #[track_caller]
     pub(crate) fn delete_binding(&self, index: u32) -> bool {
-        if !self
-            .binding_deletion_state
+        let index = index as usize;
+
+        if self
+            .deleted_bindings
             .borrow()
+            .get(index)
+            .copied()
+            .unwrap_or_default()
+        {
+            return true;
+        }
+
+        if !self
             .deletable_bindings
-            .contains(&index)
+            .borrow()
+            .get(index)
+            .copied()
+            .unwrap_or_default()
         {
             return false;
         }
-        self.bindings.borrow_mut()[index as usize] = None;
-        self.binding_deletion_state
-            .borrow_mut()
-            .deleted_bindings
-            .insert(index);
+
+        self.bindings.borrow_mut()[index] = None;
+        self.deleted_bindings.borrow_mut()[index] = true;
         true
     }
 

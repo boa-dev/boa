@@ -100,6 +100,11 @@ impl DeclarativeEnvironment {
         self.kind.is_deleted_binding(index)
     }
 
+    #[track_caller]
+    pub(crate) fn restore_deleted_binding(&self, index: u32) {
+        self.kind.restore_deleted_binding(index);
+    }
+
     /// `GetThisBinding`
     ///
     /// Returns the `this` binding of this environment.
@@ -142,20 +147,7 @@ impl DeclarativeEnvironment {
     /// Extends the environment with the bindings from the compile time environment.
     pub(crate) fn extend_from_compile(&self) {
         if let Some(env) = self.kind().as_function() {
-            let compile_bindings_number = env.compile().num_bindings() as usize;
-            let mut bindings = env.bindings().borrow_mut();
-            if compile_bindings_number > bindings.len() {
-                bindings.resize(compile_bindings_number, None);
-            }
-        }
-    }
-
-    pub(crate) fn mark_deletable_bindings<I>(&self, bindings: I)
-    where
-        I: IntoIterator<Item = u32>,
-    {
-        if let Some(env) = self.kind().as_function() {
-            env.mark_deletable_bindings(bindings);
+            env.extend_from_compile();
         }
     }
 }
@@ -244,6 +236,13 @@ impl DeclarativeEnvironmentKind {
         match self {
             Self::Function(inner) => inner.is_deleted_binding(index),
             Self::Lexical(_) | Self::Global(_) | Self::Module(_) => false,
+        }
+    }
+
+    #[track_caller]
+    pub(crate) fn restore_deleted_binding(&self, index: u32) {
+        if let Self::Function(inner) = self {
+            inner.restore_deleted_binding(index);
         }
     }
 

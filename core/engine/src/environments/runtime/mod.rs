@@ -460,13 +460,7 @@ impl Context {
     /// are completely removed of runtime checks because the specification guarantees that runtime
     /// semantics cannot add or remove lexical bindings.
     pub(crate) fn find_runtime_binding(&mut self, locator: &mut BindingLocator) -> JsResult<()> {
-        let deleted_binding = match locator.scope() {
-            BindingLocatorScope::Stack(index) => matches!(
-                self.environment_expect(index),
-                Environment::Declarative(env) if env.is_deleted_binding(locator.binding_index())
-            ),
-            BindingLocatorScope::GlobalObject | BindingLocatorScope::GlobalDeclarative => false,
-        };
+        let deleted_binding = self.is_deleted_binding(locator);
 
         let global = self.vm.frame().realm.environment();
         if let Some(env) = self.vm.frame().environments.current_declarative_ref(global)
@@ -491,12 +485,7 @@ impl Context {
                         if let Some(env) = env.kind().as_function()
                             && let Some(b) = env.compile().get_binding(locator.name())
                         {
-                            if deleted_binding
-                                && self
-                                    .environment_expect(index)
-                                    .as_declarative()
-                                    .is_some_and(|env| env.is_deleted_binding(b.binding_index()))
-                            {
+                            if env.is_deleted_binding(b.binding_index()) {
                                 continue;
                             }
                             locator.set_scope(b.scope());
@@ -627,6 +616,24 @@ impl Context {
                     obj.has_property(key, self)
                 }
             },
+        }
+    }
+
+    pub(crate) fn is_deleted_binding(&self, locator: &BindingLocator) -> bool {
+        match locator.scope() {
+            BindingLocatorScope::Stack(index) => matches!(
+                self.environment_expect(index),
+                Environment::Declarative(env) if env.is_deleted_binding(locator.binding_index())
+            ),
+            BindingLocatorScope::GlobalObject | BindingLocatorScope::GlobalDeclarative => false,
+        }
+    }
+
+    pub(crate) fn restore_deleted_binding(&self, locator: &BindingLocator) {
+        if let BindingLocatorScope::Stack(index) = locator.scope()
+            && let Environment::Declarative(env) = self.environment_expect(index)
+        {
+            env.restore_deleted_binding(locator.binding_index());
         }
     }
 

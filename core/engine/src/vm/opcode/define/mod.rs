@@ -1,6 +1,5 @@
 use super::{IndexOperand, RegisterOperand};
 use crate::{Context, JsResult, JsValue, vm::opcode::Operation};
-use boa_ast::scope::BindingLocatorScope;
 
 pub(crate) mod class;
 pub(crate) mod own_property;
@@ -21,14 +20,6 @@ impl DefVar {
         // TODO: spec specifies to return `empty` on empty vars, but we're trying to initialize.
         let binding_locator = context.vm.frame().code_block.bindings[usize::from(index)].clone();
 
-        if let BindingLocatorScope::Stack(index) = binding_locator.scope()
-            && let crate::environments::Environment::Declarative(env) =
-                context.environment_expect(index)
-            && env.is_deleted_binding(binding_locator.binding_index())
-        {
-            return;
-        }
-
         {
             let frame = context.vm.frame_mut();
             let global = frame.realm.environment();
@@ -45,6 +36,37 @@ impl DefVar {
 impl Operation for DefVar {
     const NAME: &'static str = "DefVar";
     const INSTRUCTION: &'static str = "INST - DefVar";
+    const COST: u8 = 3;
+}
+
+#[derive(Debug, Clone, Copy)]
+pub(crate) struct DefEvalVar;
+
+impl DefEvalVar {
+    #[inline(always)]
+    pub(super) fn operation(index: IndexOperand, context: &mut Context) {
+        let binding_locator = context.vm.frame().code_block.bindings[usize::from(index)].clone();
+
+        if context.is_deleted_binding(&binding_locator) {
+            context.restore_deleted_binding(&binding_locator);
+        }
+
+        {
+            let frame = context.vm.frame_mut();
+            let global = frame.realm.environment();
+            frame.environments.put_value_if_uninitialized(
+                binding_locator.scope(),
+                binding_locator.binding_index(),
+                JsValue::undefined(),
+                global,
+            );
+        }
+    }
+}
+
+impl Operation for DefEvalVar {
+    const NAME: &'static str = "DefEvalVar";
+    const INSTRUCTION: &'static str = "INST - DefEvalVar";
     const COST: u8 = 3;
 }
 
@@ -65,6 +87,11 @@ impl DefInitVar {
         let frame = context.vm.frame();
         let strict = frame.code_block.strict();
         let mut binding_locator = frame.code_block.bindings[usize::from(index)].clone();
+
+        if context.is_deleted_binding(&binding_locator) {
+            context.restore_deleted_binding(&binding_locator);
+        }
+
         context.find_runtime_binding(&mut binding_locator)?;
         context.set_binding(&binding_locator, value.clone(), strict)?;
 
