@@ -15,6 +15,7 @@ pub(crate) struct FunctionEnvironment {
 
 impl FunctionEnvironment {
     /// Creates a new `FunctionEnvironment`.
+    #[allow(clippy::needless_pass_by_value)]
     pub(crate) fn new(bindings_count: u32, slots: FunctionSlots, scope: Scope) -> Self {
         Self {
             bindings: GcRefCell::new(vec![None; bindings_count as usize]),
