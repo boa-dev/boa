@@ -654,7 +654,7 @@ impl CodeBlock {
                 ic_index,
             } => {
                 let ic = &self.ic[u32::from(*ic_index) as usize];
-                format!("dst:{dst}, value:{value}, ic:{ic}",)
+                format!("dst:{dst}, value:{value}, ic:{ic}")
             }
             Instruction::GetPropertyByNameWithThis {
                 dst,
@@ -663,7 +663,7 @@ impl CodeBlock {
                 ic_index,
             } => {
                 let ic = &self.ic[u32::from(*ic_index) as usize];
-                format!("dst:{dst}, receiver:{receiver}, value:{value}, ic:{ic}",)
+                format!("dst:{dst}, receiver:{receiver}, value:{value}, ic:{ic}")
             }
             Instruction::SetPropertyByName {
                 value,
@@ -671,7 +671,7 @@ impl CodeBlock {
                 ic_index,
             } => {
                 let ic = &self.ic[u32::from(*ic_index) as usize];
-                format!("object:{object}, value:{value}, ic:{ic}",)
+                format!("object:{object}, value:{value}, ic:{ic}")
             }
             Instruction::SetPropertyByNameWithThis {
                 value,

@@ -394,8 +394,8 @@ where
 
                 let init = if cursor
                     .peek(0, interner)?
-                    .filter(|t| *t.kind() == TokenKind::Punctuator(Punctuator::Assign))
-                    .is_some()
+                    .as_ref()
+                    .is_some_and(|t| *t.kind() == TokenKind::Punctuator(Punctuator::Assign))
                 {
                     Some(
                         Initializer::new(self.allow_in, self.allow_yield, self.allow_await)
@@ -435,8 +435,8 @@ where
 
                 let init = if cursor
                     .peek(0, interner)?
-                    .filter(|t| *t.kind() == TokenKind::Punctuator(Punctuator::Assign))
-                    .is_some()
+                    .as_ref()
+                    .is_some_and(|t| *t.kind() == TokenKind::Punctuator(Punctuator::Assign))
                 {
                     Some(
                         Initializer::new(self.allow_in, self.allow_yield, self.allow_await)
@@ -470,8 +470,8 @@ where
 
                 let init = if cursor
                     .peek(0, interner)?
-                    .filter(|t| *t.kind() == TokenKind::Punctuator(Punctuator::Assign))
-                    .is_some()
+                    .as_ref()
+                    .is_some_and(|t| *t.kind() == TokenKind::Punctuator(Punctuator::Assign))
                 {
                     let mut init =
                         Initializer::new(self.allow_in, self.allow_yield, self.allow_await)

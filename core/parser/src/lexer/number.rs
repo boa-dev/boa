@@ -141,12 +141,10 @@ where
             Some(0x5F /* _ */) if !separator_allowed => {
                 return Err(Error::syntax("separator is not allowed", pos));
             }
-            Some(c) => {
-                if char::from_u32(c).is_some_and(|ch| ch.is_digit(kind.base())) {
-                    prev_is_underscore = false;
-                    #[allow(clippy::cast_possible_truncation)]
-                    buf.push(c as u8);
-                }
+            Some(c) if char::from_u32(c).is_some_and(|ch| ch.is_digit(kind.base())) => {
+                prev_is_underscore = false;
+                #[allow(clippy::cast_possible_truncation)]
+                buf.push(c as u8);
             }
             _ => (),
         }

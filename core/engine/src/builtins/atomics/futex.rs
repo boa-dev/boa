@@ -588,7 +588,7 @@ pub(super) unsafe fn wait_async<E: Element + PartialEq>(
             timeout,
         );
 
-        let tc = job.cancellation_token();
+        let tc = job.cancellation_token().clone();
 
         // 4. Perform HostEnqueueTimeoutJob(timeoutJob, currentRealm, 𝔽(waiterRecord.[[TimeoutTime]]) - now).
         context.enqueue_job(job.into());
@@ -619,7 +619,7 @@ pub(super) unsafe fn wait_async<E: Element + PartialEq>(
             }
 
             if let Some(token) = timeout_cancel {
-                token.cancel();
+                token.cancel(&mut context.borrow_mut());
             }
 
             Ok(JsValue::undefined())
