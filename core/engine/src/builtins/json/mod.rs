@@ -476,8 +476,7 @@ impl Json {
                     // String: compare parsed string value
                     if let Some(js_str) = val.as_string() {
                         serde_json::from_str::<String>(s)
-                            .map(|parsed| js_str.to_std_string_escaped() == parsed)
-                            .unwrap_or(false)
+                            .is_ok_and(|parsed| js_str.to_std_string_escaped() == parsed)
                     } else {
                         false
                     }
@@ -488,7 +487,7 @@ impl Json {
                     // value was replaced by the reviver, not approximate equality.
                     #[allow(clippy::float_cmp)]
                     if let Some(n) = val.as_number() {
-                        s.parse::<f64>().map(|parsed| n == parsed).unwrap_or(false)
+                        s.parse::<f64>().is_ok_and(|parsed| n == parsed)
                     } else {
                         false
                     }

@@ -1100,25 +1100,6 @@ impl std::str::FromStr for NotationKind {
 
 impl ParsableOptionType for NotationKind {}
 
-#[derive(Debug, Copy, Clone, Eq, PartialEq)]
-pub(crate) enum Notation {
-    Standard,
-    Scientific,
-    Engineering,
-    Compact { display: CompactDisplay },
-}
-
-impl Notation {
-    pub(crate) fn kind(self) -> NotationKind {
-        match self {
-            Notation::Standard => NotationKind::Standard,
-            Notation::Scientific => NotationKind::Scientific,
-            Notation::Engineering => NotationKind::Engineering,
-            Notation::Compact { .. } => NotationKind::Compact,
-        }
-    }
-}
-
 #[derive(Debug, Copy, Clone, Default, Eq, PartialEq)]
 pub(crate) enum RoundingPriority {
     #[default]
