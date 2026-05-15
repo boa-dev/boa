@@ -47,7 +47,24 @@ fn flowgraph_parse_direction_option(value: &JsValue) -> JsResult<Direction> {
         .into())
 }
 
-/// Get functions instruction flowgraph
+/// Returns the instruction flowgraph of a function in the specified format.
+///
+/// Supports multiple output formats: `"mermaid"` (default) and `"graphviz"`.
+/// The direction can be configured via the options object with `"LeftRight"` (default),
+/// `"RightLeft"`, `"TopBottom"`, or `"BottomTop"`.
+///
+/// # Errors
+///
+/// Returns a `TypeError` if the first argument is not a function, or if the format
+/// or direction string is invalid.
+///
+/// # Examples
+///
+/// ```ignore
+/// $boa.function.flowgraph(myFunc);
+/// $boa.function.flowgraph(myFunc, "graphviz");
+/// $boa.function.flowgraph(myFunc, { format: "mermaid", direction: "TopBottom" });
+/// ```
 fn flowgraph(_this: &JsValue, args: &[JsValue], context: &mut Context) -> JsResult<JsValue> {
     let Some(value) = args.first() else {
         return Err(JsNativeError::typ()
@@ -86,6 +103,27 @@ fn flowgraph(_this: &JsValue, args: &[JsValue], context: &mut Context) -> JsResu
     Ok(JsValue::new(js_string!(result)))
 }
 
+/// Returns the compiled bytecode of a function as a formatted string.
+///
+/// Prints the bytecode dump to stdout, showing opcodes, operands, constants,
+/// bindings, and exception handler tables for the given function's compiled body.
+///
+/// # Errors
+///
+/// Returns a `TypeError` if the first argument is not an ordinary function object.
+///
+/// # Examples
+///
+/// ```ignore
+/// function add(x, y) { return x + y; }
+/// $boa.function.bytecode(add);
+/// // Prints:
+/// // ------------------------Compiled Output: 'add'------------------------
+/// // Location  Count    Handler    Opcode                     Operands
+/// // 000000    0000      none      CreateMappedArgumentsObject
+/// // 000001    0001      none      PutLexicalValue                           2: 0
+/// // ...
+/// ```
 fn bytecode(_: &JsValue, args: &[JsValue], _: &mut Context) -> JsResult<JsValue> {
     let Some(value) = args.first() else {
         return Err(JsNativeError::typ()
@@ -121,7 +159,34 @@ fn set_trace_flag_in_function_object(object: &JsObject, value: bool) -> JsResult
     Ok(())
 }
 
-/// Trace function.
+/// Executes a function with instruction-level tracing enabled.
+///
+/// Traces every bytecode instruction executed by the given function, logging
+/// opcode, operands, accumulator values, and timing information to stdout.
+/// Tracing is enabled only for the duration of this single call — the function
+/// is not permanently marked as traceable.
+///
+/// The `this` value and additional arguments are forwarded to the traced function.
+///
+/// # Errors
+///
+/// Returns a `TypeError` if the first argument is not callable.
+/// Propagates any error thrown by the traced function.
+///
+/// # Examples
+///
+/// ```ignore
+/// const add = (a, b) => a + b;
+/// let result = $boa.function.trace(add, undefined, 1, 2);
+/// // Traces:
+/// // 5μs  DefInitArg    0000: 'a'     2
+/// // 4μs  DefInitArg    0001: 'b'     <empty>
+/// // 3μs  GetName       0000: 'a'     1
+/// // 1μs  GetName       0001: 'b'     2
+/// // 2μs  Add                        3
+/// // 1μs  Return                     3
+/// // result === 3
+/// ```
 fn trace(_: &JsValue, args: &[JsValue], context: &mut Context) -> JsResult<JsValue> {
     let value = args.get_or_undefined(0);
     let this = args.get_or_undefined(1);
@@ -141,6 +206,30 @@ fn trace(_: &JsValue, args: &[JsValue], context: &mut Context) -> JsResult<JsVal
     result
 }
 
+/// Marks a function as traceable across all future invocations.
+///
+/// Unlike `$boa.function.trace()` which runs a single traced call, `traceable`
+/// permanently sets or clears the trace flag on the function's compiled code.
+/// This is essential for tracing functions that suspend execution (async functions,
+/// generators, async generators) where a single call may span multiple discrete
+/// execution phases.
+///
+/// # Errors
+///
+/// Returns a `TypeError` if the first argument is not an ordinary function object.
+///
+/// # Examples
+///
+/// ```ignore
+/// function* g() {
+///     yield 1;
+///     yield 2;
+/// }
+/// $boa.function.traceable(g, true);
+/// let iter = g();
+/// iter.next();  // traced
+/// iter.next();  // traced
+/// ```
 fn traceable(_: &JsValue, args: &[JsValue], _: &mut Context) -> JsResult<JsValue> {
     let value = args.get_or_undefined(0);
     let traceable = args.get_or_undefined(1).to_boolean();

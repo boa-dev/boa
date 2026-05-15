@@ -3,7 +3,22 @@ use boa_engine::{
     object::{IndexProperties, ObjectInitializer},
 };
 
-/// Returns objects pointer in memory.
+/// Returns the memory address of an object as a hex-formatted string.
+///
+/// Useful for identity debugging — determining whether two variables reference
+/// the same underlying object, or inspecting object identity across operations.
+///
+/// # Errors
+///
+/// Returns a `TypeError` if the argument is not an object.
+///
+/// # Examples
+///
+/// ```ignore
+/// let o = { x: 10, y: 20 };
+/// $boa.object.id(o);    // '0x7F5B3251B718'
+/// $boa.object.id($boa); // '0x7F5B3251B5D8'
+/// ```
 fn id(_: &JsValue, args: &[JsValue], _: &mut Context) -> JsResult<JsValue> {
     let Some(value) = args.first() else {
         return Err(JsNativeError::typ()
@@ -21,7 +36,36 @@ fn id(_: &JsValue, args: &[JsValue], _: &mut Context) -> JsResult<JsValue> {
     Ok(js_string!(format!("0x{:X}", ptr.cast::<()>() as usize)).into())
 }
 
-/// Returns objects pointer in memory.
+/// Returns the internal indexed storage type of an object.
+///
+/// The returned string indicates how the engine stores numerically-indexed
+/// properties internally, transitioning to more flexible (but slower)
+/// representations as the access pattern changes:
+///
+/// | Storage Type | Description |
+/// |---|---|
+/// | `DenseI32` | All integer elements, compact array storage |
+/// | `DenseF64` | All floating-point elements |
+/// | `DenseElement` | Mixed-type elements, dense array |
+/// | `SparseElement` | Holey array with gaps (`undefined` holes) |
+/// | `SparseProperty` | Non-default property descriptors present |
+///
+/// # Errors
+///
+/// Returns a `TypeError` if the argument is not an object.
+///
+/// # Examples
+///
+/// ```ignore
+/// let a = [1, 2];
+/// $boa.object.indexedStorageType(a);             // 'DenseI32'
+/// a.push(0.5);
+/// $boa.object.indexedStorageType(a);             // 'DenseF64'
+/// a.push("Hello");
+/// $boa.object.indexedStorageType(a);             // 'DenseElement'
+/// a[100] = 100;
+/// $boa.object.indexedStorageType(a);             // 'SparseElement'
+/// ```
 fn indexed_storage_type(_: &JsValue, args: &[JsValue], _: &mut Context) -> JsResult<JsValue> {
     let Some(value) = args.first() else {
         return Err(JsNativeError::typ()
