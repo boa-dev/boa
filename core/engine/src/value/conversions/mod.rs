@@ -76,7 +76,7 @@ macro_rules! impl_from_integer {
     };
 }
 
-impl_from_integer!(u8, i8, u16, i16, u32, i32, u64, i64, usize, isize);
+impl_from_integer!(u8, i8, u16, i16, u32, i32, u64, i64, u128, i128, usize, isize);
 
 impl From<JsBigInt> for JsValue {
     #[inline]
