@@ -45,7 +45,7 @@ Utility functions for inspecting and debugging function execution.
 
 ### Function `$boa.function.bytecode(func)`
 
-Returns the compiled bytecode of a function as a formatted string, printed to stdout. Shows opcodes, operands, constants, bindings, and exception handler tables.
+Prints the compiled bytecode of a function to stdout as a formatted dump. Shows opcodes, operands, constants, bindings, and exception handler tables. Returns `undefined`.
 
 ```JavaScript
 >> function add(x, y) {

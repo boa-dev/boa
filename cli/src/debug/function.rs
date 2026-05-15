@@ -103,10 +103,10 @@ fn flowgraph(_this: &JsValue, args: &[JsValue], context: &mut Context) -> JsResu
     Ok(JsValue::new(js_string!(result)))
 }
 
-/// Returns the compiled bytecode of a function as a formatted string.
+/// Prints the compiled bytecode of a function to stdout as a formatted dump.
 ///
-/// Prints the bytecode dump to stdout, showing opcodes, operands, constants,
-/// bindings, and exception handler tables for the given function's compiled body.
+/// The output shows opcodes, operands, constants, bindings, and exception
+/// handler tables for the given function's compiled body. Returns `undefined`.
 ///
 /// # Errors
 ///
