@@ -181,6 +181,177 @@ implementations in Boa
 If anything in the specification is confusing, don’t hesitate to ask in the
 [Boa Matrix](https://matrix.to/#/#boa:matrix.org) channel.
 
+## Unsafe Code Guidelines
+
+Boa's core crates use `unsafe` Rust in carefully scoped locations where performance
+requirements justify it — primarily in the garbage collector (`boa_gc`), string
+representation (`boa_string`), and the NaN-boxed value type. All unsafe code must
+follow these guidelines.
+
+### General Principles
+
+1. **Unsafe is a last resort.** Exhaust safe alternatives first. Only use `unsafe`
+   when a safe equivalent is measurably slower or impossible in current Rust.
+2. **Every `unsafe` block must be justified.** If you cannot explain *why* it's
+   safe in a sentence, redesign to avoid the unsafe.
+3. **Unsafe code must be tested more thoroughly.** Plan for additional unit tests
+   that exercise the unsafe invariants. All unsafe code should be tested with
+   [MIRI](https://github.com/rust-lang/miri).
+
+### Required Documentation
+
+#### `unsafe fn` declarations
+
+Every `unsafe fn` must have a `# Safety` section in its doc comment describing the
+invariants callers must uphold:
+
+```rust
+/// [... description ...]
+///
+/// # Safety
+///
+/// - The caller must ensure that `ptr` is non-null, aligned, and points to a
+///   valid, initialized `JsBigInt`.
+/// - The caller must ensure that no other mutable reference to the same data
+///   exists for the lifetime `'a`.
+unsafe fn as_bigint_unchecked(&self) -> ManuallyDrop<JsBigInt> { ... }
+```
+
+See `core/engine/src/value/inner/nan_boxed.rs` for consistent examples of this pattern.
+
+#### `unsafe { }` blocks
+
+Every `unsafe { }` block must have a preceding `// SAFETY:` comment explaining
+**why** the operation is safe at this call site — not just restating what the
+unsafe operation does:
+
+```rust
+// SAFETY: We verified the tag is `MASK_STRING` via `self.is_string()`,
+// so `as_string_unchecked` will return a valid `JsString`.
+unsafe { Some((*self.as_string_unchecked()).clone()) }
+```
+
+Bad — does not explain why:
+```rust
+// SAFETY: unsafe but ok.
+unsafe { ptr::copy_nonoverlapping(src, dest, count) }
+```
+
+Good — explains the invariant:
+```rust
+// SAFETY: src has at least `count` bytes (allocated at line 120), dest
+// was freshly allocated with `count` bytes, and the regions don't overlap
+// because `dest` was allocated from a separate arena. Verified by the caller
+// through `check_bounds(dest, src, count)` above.
+unsafe { ptr::copy_nonoverlapping(src, dest, count) }
+```
+
+#### Unsafe match arms
+
+When matching on a discriminant that guarantees a variant's validity, each `unsafe`
+arm should document why the discriminant check ensures safety:
+
+```rust
+match self.value() & bits::MASK_KIND {
+    bits::MASK_STRING => {
+        // SAFETY: tag confirmed this is a String.
+        unsafe { !self.as_string_unchecked().is_empty() }
+    }
+    bits::MASK_BIGINT => {
+        // SAFETY: tag confirmed this is a BigInt.
+        unsafe { ... }
+    }
+    // ...
+}
+```
+
+#### `unsafe impl Trait`
+
+Document what contract the implementor must uphold. For the GC's `Trace` trait
+(used extensively), explain why the type doesn't contain `Gc` pointers, or how
+it correctly traces them:
+
+```rust
+/// SAFETY: `JsString` contains no `Gc`-allocated data.
+/// All reachable memory is owned by the string's inline buffer or heap allocation,
+/// neither of which need GC tracing.
+unsafe impl Trace for JsString { ... }
+```
+
+### Enforcing with Lints
+
+Enable these lints in any crate that contains unsafe code:
+
+```rust
+#![deny(
+    unsafe_op_in_unsafe_fn,
+    clippy::undocumented_unsafe_blocks,
+    clippy::missing_safety_doc
+)]
+```
+
+- `unsafe_op_in_unsafe_fn` — prevents implicit unsafe operations inside `unsafe fn`.
+  Every unsafe operation must be wrapped in its own `unsafe { }` block with a
+  `// SAFETY:` comment.
+- `clippy::undocumented_unsafe_blocks` — ensures no `unsafe { }` block lacks a
+  `// SAFETY:` comment.
+- `clippy::missing_safety_doc` — ensures every `unsafe fn` has a `# Safety` section.
+
+Currently, `core/string` enforces all three. Other crates with unsafe code should
+adopt these lints incrementally.
+
+### Patterns Specific to Boa
+
+#### `#[repr(C)]` for type-punning
+
+Types that participate in pointer erasure (e.g., `GcBox<T>`, `Object<T>`, vtable
+types) must be `#[repr(C)]` to guarantee field layout. The corresponding pointer
+casts must be documented with the layout invariant:
+
+```rust
+// SAFETY: `GcBox<T>` is `#[repr(C)]` with `header` as the first field,
+// so casting `*const GcBox<T>` to `*const GcHeader` is valid.
+let header = unsafe { &*(this as *const GcBox<T> as *const GcHeader) };
+```
+
+#### `unsafe fn` convention: `_unchecked` suffix
+
+Public unsafe accessors that skip runtime validation should use the `_unchecked`
+suffix to signal to callers that bounds checking or tag checking is bypassed:
+
+```rust
+pub unsafe fn downcast_unchecked<T: Trace + 'static>(self) -> Gc<T>;
+pub unsafe fn slice_unchecked(data: &JsString, start: usize, end: usize) -> Self;
+```
+
+Safe wrappers that call `_unchecked` after validation must still have a `// SAFETY:`
+comment:
+
+```rust
+pub fn as_bigint(&self) -> Option<JsBigInt> {
+    if self.is_bigint() {
+        // SAFETY: `is_bigint()` returned true, so the inner tag is BigInt.
+        unsafe { Some((*self.as_bigint_unchecked()).clone()) }
+    } else {
+        None
+    }
+}
+```
+
+### Testing Unsafe Code
+
+1. **Unit tests must cover error paths.** Test the invariants explicitly — pass
+   invalid indices, dangling pointers (in controlled test harnesses), and edge
+   cases around the documented safety preconditions.
+2. **Run MIRI on all unsafe code.** Boa's CI includes MIRI jobs. Before submitting
+   a PR that touches `unsafe`:
+   ```shell
+   cargo +nightly miri test -p boa_gc
+   cargo +nightly miri test -p boa_string
+   ```
+3. **Document test coverage for each unsafe block.** If a block relies on invariant
+   `X`, there should be a test that would fail if `X` is violated.
+
 ## Learning Resources
 
 For contributors looking to learn JavaScript and how it works, check out the [Mozilla Developer Guided Tours](https://www.youtube.com/playlist?list=PLo3w8EB99pqJVPhmYbYdInBvAGarDavh-).
