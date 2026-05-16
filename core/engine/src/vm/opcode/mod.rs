@@ -33,6 +33,7 @@ mod control_flow;
 mod copy;
 mod define;
 mod delete;
+mod disposal;
 mod environment;
 mod function;
 mod generator;
@@ -71,6 +72,8 @@ pub(crate) use copy::*;
 pub(crate) use define::*;
 #[doc(inline)]
 pub(crate) use delete::*;
+#[doc(inline)]
+pub(crate) use disposal::*;
 #[doc(inline)]
 pub(crate) use environment::*;
 #[doc(inline)]
@@ -2152,6 +2155,23 @@ generate_opcodes! {
     ///   - Output: dst
     CreateUnmappedArgumentsObject { dst: RegisterOperand },
 
+    /// Add a disposable resource to the disposal stack.
+    ///
+    /// This opcode implements the AddDisposableResource abstract operation.
+    /// It gets the dispose method from the value and adds it to the disposal stack.
+    ///
+    /// - Registers:
+    ///   - Input: value
+    AddDisposableResource { #[allow(dead_code)] value: RegisterOperand },
+
+    /// Dispose all resources in the current disposal stack.
+    ///
+    /// This opcode implements the DisposeResources abstract operation.
+    /// It calls the last `count` dispose methods in reverse order (LIFO).
+    /// The count is statically determined by the bytecompiler.
+    ///
+    /// - Stack: **=>**
+    DisposeResources { count: IndexOperand },
     /// Reserved [`Opcode`].
     Reserved1 => Reserved,
     /// Reserved [`Opcode`].
@@ -2268,8 +2288,4 @@ generate_opcodes! {
     Reserved57 => Reserved,
     /// Reserved [`Opcode`].
     Reserved58 => Reserved,
-    /// Reserved [`Opcode`].
-    Reserved59 => Reserved,
-    /// Reserved [`Opcode`].
-    Reserved60 => Reserved,
 }

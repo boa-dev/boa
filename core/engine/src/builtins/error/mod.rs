@@ -34,6 +34,7 @@ pub(crate) mod aggregate;
 pub(crate) mod eval;
 pub(crate) mod range;
 pub(crate) mod reference;
+pub(crate) mod suppressed;
 pub(crate) mod syntax;
 pub(crate) mod r#type;
 pub(crate) mod uri;
@@ -45,6 +46,7 @@ pub(crate) use self::aggregate::AggregateError;
 pub(crate) use self::eval::EvalError;
 pub(crate) use self::range::RangeError;
 pub(crate) use self::reference::ReferenceError;
+pub(crate) use self::suppressed::SuppressedError;
 pub(crate) use self::syntax::SyntaxError;
 pub(crate) use self::r#type::TypeError;
 pub(crate) use self::uri::UriError;
@@ -65,6 +67,14 @@ pub enum ErrorKind {
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-aggregate-error-objects
     Aggregate,
+
+    /// The `SuppressedError` object type.
+    ///
+    /// More information:
+    ///  - [TC39 proposal][spec]
+    ///
+    /// [spec]: https://tc39.es/proposal-explicit-resource-management/#sec-suppressederror-objects
+    Suppressed,
 
     /// The `Error` object type.
     ///

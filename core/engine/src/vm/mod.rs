@@ -96,6 +96,12 @@ pub struct Vm {
 
     pub(crate) shadow_stack: ShadowStack,
 
+    /// Stack of disposable resources for explicit resource management.
+    ///
+    /// Resources are added via `using` declarations and disposed in reverse order (LIFO)
+    /// when the scope exits.
+    pub(crate) disposal_stack: Vec<(JsValue, JsValue)>,
+
     #[cfg(feature = "trace")]
     pub(crate) trace: bool,
     #[cfg(feature = "trace")]
@@ -421,6 +427,7 @@ impl Vm {
             native_active_function: None,
             host_call_depth: 0,
             shadow_stack: ShadowStack::default(),
+            disposal_stack: Vec::new(),
             #[cfg(feature = "trace")]
             trace: false,
             #[cfg(feature = "trace")]
@@ -672,6 +679,16 @@ impl Vm {
 
     pub(crate) fn take_return_value(&mut self) -> JsValue {
         std::mem::take(&mut self.return_value)
+    }
+
+    /// Push a disposable resource onto the disposal stack.
+    pub(crate) fn push_disposable_resource(&mut self, value: JsValue, method: JsValue) {
+        self.disposal_stack.push((value, method));
+    }
+
+    /// Pop a disposable resource from the disposal stack.
+    pub(crate) fn pop_disposable_resource(&mut self) -> Option<(JsValue, JsValue)> {
+        self.disposal_stack.pop()
     }
 }
 

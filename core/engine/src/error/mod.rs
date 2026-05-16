@@ -601,6 +601,11 @@ impl JsError {
                     ErrorKind::Reference => JsNativeErrorKind::Reference,
                     ErrorKind::Syntax => JsNativeErrorKind::Syntax,
                     ErrorKind::Uri => JsNativeErrorKind::Uri,
+                    ErrorKind::Suppressed => {
+                        // SuppressedError is treated as a generic Error for native conversion
+                        // The .error and .suppressed properties are preserved on the JS object
+                        JsNativeErrorKind::Error
+                    }
                     ErrorKind::Aggregate => {
                         let errors = obj.get(js_string!("errors"), context).map_err(|e| {
                             TryNativeError::InaccessibleProperty {
