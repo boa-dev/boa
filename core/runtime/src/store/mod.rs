@@ -117,7 +117,6 @@ enum ValueStoreInner {
     SharedArrayBuffer(SharedArrayBuffer),
 
     /// Dataview.
-    #[expect(unused)]
     DataView {
         buffer: JsValueStore,
         byte_length: u64,
@@ -217,3 +216,6 @@ impl JsValueStore {
         Ok(v)
     }
 }
+
+#[cfg(test)]
+mod tests;
