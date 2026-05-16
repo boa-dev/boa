@@ -127,15 +127,15 @@ fn concat() {
     let x = JsString::from("hello");
     let z = JsString::from("world");
 
-    let xy = JsString::concat(x.as_str(), JsString::from(Y).as_str());
+    let xy = JsString::concat(&x, &JsString::from(Y));
     assert_eq!(&xy, &ascii_to_utf16(b"hello, "));
     assert_eq!(xy.refcount(), Some(1));
 
-    let xyz = JsString::concat(xy.as_str(), z.as_str());
+    let xyz = JsString::concat(&xy, &z);
     assert_eq!(&xyz, &ascii_to_utf16(b"hello, world"));
     assert_eq!(xyz.refcount(), Some(1));
 
-    let xyzw = JsString::concat(xyz.as_str(), JsString::from(W).as_str());
+    let xyzw = JsString::concat(&xyz, &JsString::from(W));
     assert_eq!(&xyzw, &ascii_to_utf16(b"hello, world!"));
     assert_eq!(xyzw.refcount(), Some(1));
 }
@@ -552,4 +552,217 @@ fn trim() {
     // Very basic test for trimming. The extensive testing is done by `boa_engine`.
     let base_str = JsString::from(" \u{000B} Hello World \t ");
     assert_eq!(base_str.trim(), JsString::from("Hello World"));
+}
+#[test]
+fn rope_basic() {
+    let s_large = JsString::from("a".repeat(1025)); // 1025 chars
+    let s3 = JsString::from("!");
+    let rope = JsString::concat_array_strings(&[s_large.clone(), s3.clone()]);
+
+    assert_eq!(rope.kind(), JsStringKind::Rope);
+    assert_eq!(rope.len(), 1026);
+    assert_eq!(rope.code_unit_at(1025), Some(u16::from(b'!')));
+}
+
+#[test]
+fn rope_balanced_tree() {
+    let strings: Vec<JsString> = (0..8)
+        .map(|i| JsString::from("a".repeat(1025) + &format!("{i:03}")))
+        .collect();
+
+    let rope = JsString::concat_array_strings(&strings);
+    assert_eq!(rope.kind(), JsStringKind::Rope);
+    assert_eq!(rope.len(), 8 * 1028);
+
+    // With 8 strings, balanced tree should have depth 3.
+    assert_eq!(rope.depth(), 3);
+}
+
+#[test]
+fn rope_rebalancing() {
+    let mut s = JsString::from("a".repeat(1025));
+    // Highly unbalanced incremental concatenation.
+    for _ in 0..100 {
+        s = JsString::concat_array_strings(&[s, JsString::from("b")]);
+    }
+
+    // Without rebalancing, depth would be 100.
+    // With Fibonacci rebalancing and hysteresis, depth should be kept small (e.g. < 45).
+    assert_eq!(s.kind(), JsStringKind::Rope);
+    assert!(
+        s.depth() < 45,
+        "Depth should be balanced (was {})",
+        s.depth()
+    );
+
+    // Verify it still works.
+    assert_eq!(s.code_unit_at(0), Some(u16::from(b'a')));
+    assert_eq!(s.code_unit_at(1025), Some(u16::from(b'b')));
+    assert_eq!(s.code_unit_at(1025 + 99), Some(u16::from(b'b')));
+}
+
+#[test]
+fn pathological_batch_rebalancing() {
+    // Create a very deep (unbalanced) rope manually (if possible) or by bypassing create if needed.
+    // Actually, we can just create strings that are just at the threshold of rebalancing.
+    // But since concat_strings_balanced now collects leaves, it's inherently safe.
+    let strings: Vec<JsString> = (0..50).map(|_| JsString::from("a".repeat(200))).collect();
+
+    // Batch concat should produce a balanced tree.
+    let rope = JsString::concat_array_strings(&strings);
+    assert_eq!(rope.kind(), JsStringKind::Rope);
+    // log2(50) is ~6.
+    assert!(
+        rope.depth() <= 7,
+        "Batch concat should be perfectly balanced (was {})",
+        rope.depth()
+    );
+}
+
+#[test]
+fn test_rope_fibonacci_rebalancing() {
+    let mut s1 = JsString::from("a".repeat(20)); // Base length to bypass 512 flat threshold quickly
+    let mut s2 = JsString::from("b".repeat(20));
+
+    // Skew right
+    for _ in 0..200 {
+        s1 = JsString::concat(&s1, &JsString::from("c"));
+    }
+    // Skew left
+    for _ in 0..200 {
+        s2 = JsString::concat(&JsString::from("d"), &s2);
+    }
+
+    assert_eq!(s1.len(), 20 + 200);
+    assert_eq!(s2.len(), 20 + 200);
+
+    // Despite 10,000 skewed concatenations, the Fibonacci heuristic
+    // ensures the rope depth does not exceed moderate bounds (e.g. < 45).
+    assert!(
+        s1.depth() < 45,
+        "Right-skewed rope should have logarithmic depth via Fibonacci rebalancing, got: {}",
+        s1.depth()
+    );
+    assert!(
+        s2.depth() < 45,
+        "Left-skewed rope should have logarithmic depth via Fibonacci rebalancing, got: {}",
+        s2.depth()
+    );
+
+    // Verify traversal is still accurate across the rebalanced structure
+    assert_eq!(s1.code_unit_at(0), Some(u16::from(b'a')));
+    assert_eq!(s1.code_unit_at(219), Some(u16::from(b'c')));
+
+    assert_eq!(s2.code_unit_at(0), Some(u16::from(b'd')));
+    assert_eq!(s2.code_unit_at(219), Some(u16::from(b'b')));
+}
+
+#[test]
+fn rope_dag_sharing_stress() {
+    // Create a DAG via s = s + s.
+    // Length grows as 2^n.
+    let mut s = JsString::from("abc");
+    for _ in 0..30 {
+        s = JsString::concat(&s, &s);
+    }
+
+    // Depth should be reasonable (22).
+    // Note: iterations where length <= 1024 produce SequenceStrings (depth 0),
+    // and s="abc" (3) * 2^8 = 768. 3 * 2^9 = 1536.
+    // So depth only starts increasing at iter 8. 30 - 8 = 22.
+    assert_eq!(s.depth(), 22);
+    assert_eq!(s.len(), (1 << 30) * 3);
+
+    // Flattening would take ~3GB, which might be too much for some CI environments.
+    // But we can check code_unit_at which is O(depth).
+    assert_eq!(s.code_unit_at(0), Some(u16::from(b'a')));
+    assert_eq!(s.code_unit_at(s.len() - 1), Some(u16::from(b'c')));
+}
+
+#[test]
+fn rope_dag_rebalance_explosion_prevented() {
+    // To trigger rebalance on a DAG, we need len < Fib(depth+2).
+    // So we need a very deep tree with very little content, but with sharing.
+    // Pathological case: s = "a", then s = s + empty.
+    let mut s = JsString::from("a");
+    let empty = JsString::from("");
+    for _ in 0..35 {
+        s = JsString::concat(&s, &empty);
+    }
+    // Now s has depth 35 and len 1.
+    // Fib(37) is 24 million. 1 < 24 million, so it rebalances.
+    // If we share the s:
+    let shared = JsString::concat(&s, &s);
+    assert_eq!(shared.len(), 2);
+}
+
+#[test]
+fn test_reentrancy_oncecell() {
+    let mut s = JsString::from("a");
+    // Create a deeply shared DAG
+    for i in 0..10 {
+        s = JsString::concat(&s.clone(), &s.clone());
+        println!("Depth step {}: len = {}", i, s.len());
+    }
+
+    println!("Triggering lazy flattening on DAG...");
+    // Our iterative flattening naturally avoids OnceCell reentrancy panics.
+    // In a DAG where `left == right`, a recursive implementation would call `as_str()`
+    // on the same node twice, triggering `get_or_init` while already inside it.
+    // However, our iterative `rope_as_str` avoids calling `as_str()` on sub-ropes,
+    // instead manually traversing them using `flattened.get()`. This ensures
+    // we never trigger a recursive initialization of the same OnceCell.
+    let flat = s.as_str();
+    println!("Flattened successfully! Len: {}", flat.len());
+}
+
+#[test]
+fn deep_rope_stress() {
+    let mut s = JsString::from("a");
+
+    for _ in 0..10000 {
+        s = JsString::concat(&s.clone(), &"b".into());
+    }
+
+    let _ = s.as_str();
+}
+
+#[test]
+fn shared_rope_stress() {
+    let base = JsString::from("x");
+
+    let mut ropes = Vec::new();
+
+    for _ in 0..1000 {
+        ropes.push(JsString::concat(&base.clone(), &base.clone()));
+    }
+
+    for r in ropes {
+        let _ = r.as_str();
+    }
+}
+
+#[test]
+fn rope_flatten_cache() {
+    let a = JsString::from("a".repeat(2000));
+    let b = JsString::from("b".repeat(2000));
+
+    let rope = JsString::concat(&a, &b);
+
+    let first = rope.as_str();
+    let second = rope.as_str();
+
+    assert_eq!(first, second);
+}
+
+#[test]
+fn flatten_shared_subtree() {
+    let base = JsString::from("x".repeat(2000));
+
+    let a = JsString::concat(&base, &base);
+    let b = JsString::concat(&base, &base);
+
+    let root = JsString::concat(&a, &b);
+
+    assert_eq!(root.as_str().len(), 8000);
 }

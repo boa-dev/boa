@@ -653,18 +653,19 @@ impl String {
         let this = this.require_object_coercible()?;
 
         // 2. Let S be ? ToString(O).
-        let mut string = this.to_string(context)?;
+        let mut strings = Vec::with_capacity(args.len() + 1);
+        strings.push(this.to_string(context)?);
 
         // 3. Let R be S.
         // 4. For each element next of args, do
         for arg in args {
             // a. Let nextString be ? ToString(next).
             // b. Set R to the string-concatenation of R and nextString.
-            string = js_string!(&string, &arg.to_string(context)?);
+            strings.push(arg.to_string(context)?);
         }
 
         // 5. Return R.
-        Ok(JsValue::new(string))
+        Ok(JsValue::new(JsString::concat_array_strings(&strings)))
     }
 
     /// `String.prototype.repeat( count )`
