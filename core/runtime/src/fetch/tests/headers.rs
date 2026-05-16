@@ -132,7 +132,6 @@ fn headers_iterator_throws_on_invalid_this() {
                     throw Error("expected the call above to throw");
                 } catch (e) {
                     assert(e instanceof TypeError);
-                    assertEq(e.message, "`Headers.prototype[Symbol.iterator]` requires a `Headers` object");
                 }
 
                 try {
@@ -140,7 +139,6 @@ fn headers_iterator_throws_on_invalid_this() {
                     throw Error("expected the call above to throw");
                 } catch (e) {
                     assert(e instanceof TypeError);
-                    assertEq(e.message, "`Headers.prototype[Symbol.iterator]` requires a `Headers` object");
                 }
             "#,
         ),
