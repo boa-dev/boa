@@ -576,6 +576,7 @@ dependencies = [
  "boa_gc",
  "bus",
  "bytemuck",
+ "comfy-table",
  "either",
  "futures",
  "futures-lite",
