@@ -1,7 +1,7 @@
 use boa_string::StaticJsStrings;
 
 use crate::{
-    Context, JsResult, JsValue, js_string,
+    Context, JsExpect, JsResult, JsValue, js_string,
     object::{internal_methods::InternalMethodPropertyContext, shape::slot::SlotAttributes},
     property::PropertyKey,
     vm::opcode::{IndexOperand, Operation, RegisterOperand},
@@ -41,7 +41,7 @@ fn get_by_name<const LENGTH: bool>(
     let object_borrowed = object.borrow();
     if let Some((shape, slot)) = ic.get(object_borrowed.shape()) {
         let mut result = if slot.attributes.contains(SlotAttributes::PROTOTYPE) {
-            let prototype = shape.prototype().expect("prototype should have value");
+            let prototype = shape.prototype().js_expect("prototype should have value")?;
             let prototype = prototype.borrow();
             prototype.properties().storage[slot.index as usize].clone()
         } else {
@@ -50,11 +50,10 @@ fn get_by_name<const LENGTH: bool>(
 
         drop(object_borrowed);
         if slot.attributes.has_get() && result.is_object() {
-            result =
-                result
-                    .as_object()
-                    .expect("should contain getter")
-                    .call(receiver, &[], context)?;
+            result = result
+                .as_object()
+                .js_expect("should contain getter")?
+                .call(receiver, &[], context)?;
         }
         context.vm.set_register(dst.into(), result);
         return Ok(());
