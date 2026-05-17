@@ -123,7 +123,7 @@ fn is_valid_reason_phrase(s: &str) -> bool {
 #[derive(Clone, Debug, Trace, Finalize, JsData)]
 pub struct JsResponse {
     url: JsString,
-
+    redirected: bool,
     #[unsafe_ignore_trace]
     r#type: ResponseType,
 
@@ -155,6 +155,7 @@ impl JsResponse {
 
         Self {
             url,
+            redirected,
             r#type: ResponseType::Basic,
             status,
             status_text,
@@ -170,6 +171,7 @@ impl JsResponse {
     pub fn error() -> Self {
         Self {
             url: js_string!(""),
+            redirected: false, 
             r#type: ResponseType::Error,
             // A network error's status is always 0.
             // See https://fetch.spec.whatwg.org/#concept-network-error
@@ -443,13 +445,14 @@ impl JsResponse {
     fn redirected(&self) -> bool {
         // The spec says: return true if this's response's URL list's size is greater than 1.
         // TODO: track the full URL list to implement this properly.
-        false
+        self.redirected
     }
 
     #[boa(rename = "clone")]
     fn clone_response(&self) -> Self {
         Self {
             url: self.url.clone(),
+            redirected: self.redirected,
             r#type: self.r#type,
             status: self.status,
             status_text: self.status_text.clone(),
