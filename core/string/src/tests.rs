@@ -127,15 +127,15 @@ fn concat() {
     let x = JsString::from("hello");
     let z = JsString::from("world");
 
-    let xy = JsString::concat(x.as_str(), JsString::from(Y).as_str());
+    let xy = JsString::concat(x.as_str(), JsString::from(Y).as_str()).unwrap();
     assert_eq!(&xy, &ascii_to_utf16(b"hello, "));
     assert_eq!(xy.refcount(), Some(1));
 
-    let xyz = JsString::concat(xy.as_str(), z.as_str());
+    let xyz = JsString::concat(xy.as_str(), z.as_str()).unwrap();
     assert_eq!(&xyz, &ascii_to_utf16(b"hello, world"));
     assert_eq!(xyz.refcount(), Some(1));
 
-    let xyzw = JsString::concat(xyz.as_str(), JsString::from(W).as_str());
+    let xyzw = JsString::concat(xyz.as_str(), JsString::from(W).as_str()).unwrap();
     assert_eq!(&xyzw, &ascii_to_utf16(b"hello, world!"));
     assert_eq!(xyzw.refcount(), Some(1));
 }
