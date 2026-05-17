@@ -71,13 +71,23 @@ impl AsyncGeneratorYield {
         let value = context.vm.get_register(value.into());
         let completion = Ok(value.clone());
 
-        // TODO: 6. Assert: The execution context stack has at least two elements.
-        // TODO: 7. Let previousContext be the second to top element of the execution context stack.
-        // TODO: 8. Let previousRealm be previousContext's Realm.
+        // 6. Assert: The execution context stack has at least two elements.
+        // 7. Let previousContext be the second to top element of the execution context stack.
+        // 8. Let previousRealm be previousContext's Realm.
+        let previous_realm = context
+            .vm
+            .frames
+            .get(context.vm.frames.len() - 2)
+            .map(|frame| frame.realm.clone());
+
         // 9. Perform AsyncGeneratorCompleteStep(generator, completion, false, previousRealm).
-        if let Err(err) =
-            AsyncGenerator::complete_step(&async_generator_object, completion, false, None, context)
-        {
+        if let Err(err) = AsyncGenerator::complete_step(
+            &async_generator_object,
+            completion,
+            false,
+            previous_realm,
+            context,
+        ) {
             return context.handle_error(err);
         }
 
@@ -119,8 +129,9 @@ impl AsyncGeneratorYield {
         //     a. Set generator.[[AsyncGeneratorState]] to suspended-yield.
         r#gen.data_mut().state = AsyncGeneratorState::SuspendedYield;
 
-        //     TODO: b. Remove genContext from the execution context stack and restore the execution context that is at the top of the execution context stack as the running execution context.
-        //     TODO: c. Let callerContext be the running execution context.
+        //     b. Remove genContext from the execution context stack and restore the execution context
+        //        that is at the top of the execution context stack as the running execution context.
+        //     c. Let callerContext be the running execution context.
         //     d. Resume callerContext passing undefined. If genContext is ever resumed again, let resumptionValue be the Completion Record with which it is resumed.
         //     e. Assert: If control reaches here, then genContext is the running execution context again.
         //     f. Return ? AsyncGeneratorUnwrapYieldResumption(resumptionValue).
