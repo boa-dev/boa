@@ -26,6 +26,11 @@ mod tests;
 pub(crate) use async_from_sync_iterator::AsyncFromSyncIterator;
 pub(crate) use iterator_prototype::Iterator;
 
+#[cfg(feature = "experimental")]
+mod zip_iterator;
+#[cfg(feature = "experimental")]
+pub(crate) use zip_iterator::ZipIterator;
+
 /// `IfAbruptCloseIterator ( value, iteratorRecord )`
 ///
 /// `IfAbruptCloseIterator` is a shorthand for a sequence of algorithm steps that use an `Iterator`
@@ -87,6 +92,10 @@ pub struct IteratorPrototypes {
 
     /// The `%WrapForValidIteratorPrototype%` prototype object.
     wrap_for_valid_iterator: JsObject,
+
+    /// The `ZipIteratorPrototype` prototype object.
+    #[cfg(feature = "experimental")]
+    zip_iterator: JsObject,
 }
 
 impl Default for IteratorPrototypes {
@@ -104,6 +113,8 @@ impl Default for IteratorPrototypes {
             segment: JsObject::with_null_proto(),
             iterator_helper: JsObject::with_null_proto(),
             wrap_for_valid_iterator: JsObject::with_null_proto(),
+            #[cfg(feature = "experimental")]
+            zip_iterator: JsObject::with_null_proto(),
         }
     }
 }
@@ -178,6 +189,14 @@ impl IteratorPrototypes {
     #[must_use]
     pub fn wrap_for_valid_iterator(&self) -> JsObject {
         self.wrap_for_valid_iterator.clone()
+    }
+
+    /// Returns the `ZipIteratorPrototype` object.
+    #[inline]
+    #[must_use]
+    #[cfg(feature = "experimental")]
+    pub fn zip_iterator(&self) -> JsObject {
+        self.zip_iterator.clone()
     }
 }
 
