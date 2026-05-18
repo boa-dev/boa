@@ -261,3 +261,64 @@ fn set_interval_delay() {
         context,
     );
 }
+
+#[test]
+fn timer_ids_are_positive_and_unique() {
+    let clock = Rc::new(FixedClock::default());
+    let context = &mut create_context(clock);
+
+    run_test_actions_with(
+        [
+            TestAction::run(indoc! {r#"
+                id1 = setTimeout(() => {}, 0);
+                id2 = setInterval(() => {}, 100);
+                id3 = setTimeout(() => {}, 0);
+            "#}),
+            TestAction::inspect_context(|ctx| {
+                let id1 = ctx.global_object().get(js_str!("id1"), ctx).unwrap();
+                let id2 = ctx.global_object().get(js_str!("id2"), ctx).unwrap();
+                let id3 = ctx.global_object().get(js_str!("id3"), ctx).unwrap();
+
+                let id1 = id1.as_i32().expect("id1 should be an integer");
+                let id2 = id2.as_i32().expect("id2 should be an integer");
+                let id3 = id3.as_i32().expect("id3 should be an integer");
+
+                assert!(id1 > 0, "setTimeout must return ID > 0, got {id1}");
+                assert!(id2 > 0, "setInterval must return ID > 0, got {id2}");
+                assert!(id3 > 0, "subsequent timer ID must be > 0, got {id3}");
+
+                assert_ne!(id1, id2, "timer IDs must be unique");
+                assert_ne!(id2, id3, "timer IDs must be unique");
+                assert_ne!(id1, id3, "timer IDs must be unique");
+            }),
+        ],
+        context,
+    );
+}
+
+#[test]
+fn no_callback_returns_zero_sentinel() {
+    let clock = Rc::new(FixedClock::default());
+    let context = &mut create_context(clock);
+
+    run_test_actions_with(
+        [
+            TestAction::run(indoc! {r#"
+                id_valid = setTimeout(() => {}, 0);
+                id_no_cb = setTimeout();
+            "#}),
+            TestAction::inspect_context(|ctx| {
+                let id_valid = ctx.global_object().get(js_str!("id_valid"), ctx).unwrap();
+                let id_no_cb = ctx.global_object().get(js_str!("id_no_cb"), ctx).unwrap();
+
+                assert_eq!(id_no_cb.as_i32(), Some(0), "no-callback sentinel must be 0");
+                assert_ne!(
+                    id_valid.as_i32(),
+                    Some(0),
+                    "valid timer ID must not collide with sentinel"
+                );
+            }),
+        ],
+        context,
+    );
+}
