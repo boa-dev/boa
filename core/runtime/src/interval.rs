@@ -8,16 +8,25 @@ use boa_engine::object::builtins::JsFunction;
 use boa_engine::value::{IntegerOrInfinity, Nullable};
 use boa_engine::{Context, IntoJsFunctionCopied, JsResult, JsValue, js_error, js_string};
 use std::collections::HashMap;
+use std::num::NonZeroU32;
 
 #[cfg(test)]
 mod tests;
 
 /// The internal state of the interval module. The value is whether the interval
 /// function is still active.
-#[derive(Default)]
 struct IntervalInnerState {
-    active_map: HashMap<u32, CancellationToken>,
-    id: u32,
+    active_map: HashMap<NonZeroU32, CancellationToken>,
+    id: NonZeroU32,
+}
+
+impl Default for IntervalInnerState {
+    fn default() -> Self {
+        Self {
+            active_map: HashMap::new(),
+            id: NonZeroU32::MIN,
+        }
+    }
 }
 
 impl IntervalInnerState {
@@ -35,7 +44,7 @@ impl IntervalInnerState {
     }
 
     /// Create an interval ID.
-    fn next_id(&mut self) -> JsResult<u32> {
+    fn next_id(&mut self) -> JsResult<NonZeroU32> {
         self.active_map.retain(|_, v| !v.revoked());
         let id = self.id;
         self.id = id
@@ -45,7 +54,7 @@ impl IntervalInnerState {
     }
 
     /// Delete an interval ID from the active map.
-    fn clear_interval(&mut self, id: u32) -> Option<CancellationToken> {
+    fn clear_interval(&mut self, id: NonZeroU32) -> Option<CancellationToken> {
         self.active_map.retain(|_, v| !v.revoked());
         self.active_map.remove(&id)
     }
@@ -103,7 +112,7 @@ pub fn set_timeout(
 
     context.enqueue_job(job.into());
 
-    Ok(id)
+    Ok(id.get())
 }
 
 /// Call a given function on an interval with the given delay.
@@ -152,7 +161,7 @@ pub fn set_interval(
 
     context.enqueue_job(job.into());
 
-    Ok(id)
+    Ok(id.get())
 }
 
 /// Clears a timeout or interval currently running.
@@ -163,6 +172,9 @@ pub fn set_interval(
 /// used interchangeably.
 pub fn clear_timeout(id: Nullable<Option<u32>>, context: &mut Context) {
     let Some(id) = id.flatten() else {
+        return;
+    };
+    let Some(id) = NonZeroU32::new(id) else {
         return;
     };
     let handler_map = IntervalInnerState::from_context(context);
