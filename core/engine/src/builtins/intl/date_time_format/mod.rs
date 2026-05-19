@@ -1011,6 +1011,25 @@ fn unwrap_date_time_format(
         .into())
 }
 
+fn format_date_time_locale_after_coerce(
+    locales: &JsValue,
+    options: JsObject,
+    format_type: FormatType,
+    defaults: FormatDefaults,
+    timestamp: f64,
+    context: &mut Context,
+) -> JsResult<JsValue> {
+    // `options` is already normalized/coerced by the caller.
+    let options_value = options.into();
+    let dtf = create_date_time_format(locales, &options_value, format_type, defaults, context)?;
+    let x = time_clip(timestamp);
+    if x.is_nan() {
+        return Err(js_error!(RangeError: "formatted date cannot be NaN"));
+    }
+    let result = format_timestamp_with_dtf(&dtf, x, context)?;
+    Ok(JsValue::from(result))
+}
+
 /// Shared helper used by Date.prototype.toLocaleString,
 /// Date.prototype.toLocaleDateString, and Date.prototype.toLocaleTimeString.
 /// Applies `ToDateTimeOptions` defaults, calls [`create_date_time_format`], and formats
@@ -1025,31 +1044,192 @@ pub(crate) fn format_date_time_locale(
     context: &mut Context,
 ) -> JsResult<JsValue> {
     let options = coerce_options_to_object(options, context)?;
-    if format_type != FormatType::Time
-        && get_option::<DateStyle>(&options, js_string!("dateStyle"), context)?.is_none()
-    {
-        options.create_data_property_or_throw(
-            js_string!("dateStyle"),
-            JsValue::from(js_string!("long")),
+    format_date_time_locale_after_coerce(
+        locales,
+        options,
+        format_type,
+        defaults,
+        timestamp,
+        context,
+    )
+}
+
+/// 15.6.16 `HandleDateTimeTemporalYearMonth ( dateTimeFormat, temporalYearMonth )`
+///
+/// Prepares a `Temporal.PlainYearMonth` for formatting by `Intl.DateTimeFormat`.
+///
+/// NOTE: This structure mirrors the spec steps to allow reuse of the same
+/// pattern across other Temporal type handlers (`PlainDate`, `PlainMonthDay`, etc.).
+///
+/// [spec]: https://tc39.es/proposal-temporal/#sec-temporal-handledatetimetemporalyearmonth
+fn handle_date_time_temporal_year_month(
+    temporal_year_month: &JsValue,
+    locales: &JsValue,
+    options: &JsValue,
+    context: &mut Context,
+) -> JsResult<JsValue> {
+    use crate::builtins::temporal::PlainYearMonth;
+    use temporal_rs::TimeZone;
+
+    let object = temporal_year_month.as_object();
+    let plain_year_month = object
+        .as_ref()
+        .and_then(JsObject::downcast_ref::<PlainYearMonth>)
+        .ok_or_else(|| {
+            JsNativeError::typ().with_message("this value must be a PlainYearMonth object.")
+        })?;
+
+    // 1. If temporalYearMonth.[[Calendar]] is not equal to dateTimeFormat.[[Calendar]],
+    //    throw a RangeError exception.
+    let temporal_calendar = plain_year_month.inner.calendar().identifier();
+
+    let options_obj = coerce_options_to_object(options, context)?;
+    let user_calendar = options_obj.get(js_string!("calendar"), context)?;
+
+    if user_calendar.is_undefined() {
+        options_obj.create_data_property_or_throw(
+            js_string!("calendar"),
+            JsValue::from(JsString::from(temporal_calendar)),
             context,
         )?;
+    } else {
+        let user_calendar = user_calendar.to_string(context)?.to_std_string_escaped();
+        if user_calendar != temporal_calendar {
+            return Err(JsNativeError::range()
+                .with_message(
+                    "Temporal.PlainYearMonth calendar must match Intl.DateTimeFormat calendar.",
+                )
+                .into());
+        }
     }
-    if format_type != FormatType::Date
-        && get_option::<TimeStyle>(&options, js_string!("timeStyle"), context)?.is_none()
-    {
-        options.create_data_property_or_throw(
-            js_string!("timeStyle"),
-            JsValue::from(js_string!("long")),
-            context,
-        )?;
+
+    // Implementation note: Temporal plain values always use UTC.
+    // Override any user-provided timeZone before CreateDateTimeFormat.
+    options_obj.create_data_property_or_throw(
+        js_string!("timeZone"),
+        JsValue::from(js_string!("+00:00")),
+        context,
+    )?;
+
+    // Implementation note: When no explicit style/fields are provided, supply
+    // year + month so CreateDateTimeFormat does not apply full date defaults
+    // (which include day).
+    let date_style = options_obj.get(js_string!("dateStyle"), context)?;
+    let time_style = options_obj.get(js_string!("timeStyle"), context)?;
+    if date_style.is_undefined() && time_style.is_undefined() {
+        if options_obj.get(js_string!("year"), context)?.is_undefined() {
+            options_obj.create_data_property_or_throw(
+                js_string!("year"),
+                JsValue::from(js_string!("numeric")),
+                context,
+            )?;
+        }
+        if options_obj
+            .get(js_string!("month"), context)?
+            .is_undefined()
+        {
+            options_obj.create_data_property_or_throw(
+                js_string!("month"),
+                JsValue::from(js_string!("short")),
+                context,
+            )?;
+        }
     }
-    let options_value = options.into();
-    let dtf = create_date_time_format(locales, &options_value, format_type, defaults, context)?;
-    // FormatDateTime steps 1–2: TimeClip and NaN check (format_timestamp_with_dtf does ToLocalTime + format only).
-    let x = time_clip(timestamp);
-    if x.is_nan() {
-        return Err(js_error!(RangeError: "formatted date cannot be NaN"));
+
+    // 2. Let isoDateTime be CombineISODateAndTimeRecord(temporalYearMonth.[[ISODate]], NoonTimeRecord()).
+    // 3. Let epochNs be GetUTCEpochNanoseconds(isoDateTime).
+    let epoch_ns = plain_year_month
+        .inner
+        .epoch_ns_for_with_provider(
+            TimeZone::utc_with_provider(context.timezone_provider()),
+            context.timezone_provider(),
+        )
+        .map_err(|e: temporal_rs::TemporalError| {
+            JsNativeError::range().with_message(e.to_string())
+        })?;
+    let timestamp = (epoch_ns.as_i128() as f64) / 1_000_000.0;
+
+    // 4. Let format be dateTimeFormat.[[TemporalPlainYearMonthFormat]].
+    // 5. If format is null, throw a TypeError exception.
+    // 6. Return Value Format Record { [[Format]]: format, [[EpochNanoseconds]]: epochNs, [[IsPlain]]: true }.
+    //
+    // These steps are delegated to the ECMA-402 formatting pipeline via
+    // `format_date_time_locale_after_coerce`, which handles CreateDateTimeFormat
+    // and FormatDateTime internally.
+    format_date_time_locale_after_coerce(
+        locales,
+        options_obj,
+        FormatType::Date,
+        FormatDefaults::Date,
+        timestamp,
+        context,
+    )
+}
+
+/// 15.6.22 `HandleDateTimeValue ( dateTimeFormat, x )`
+///
+/// Dispatches `x` to the appropriate handler based on its Temporal type for
+/// formatting by `dateTimeFormat`.
+///
+/// [spec]: https://tc39.es/proposal-temporal/#sec-temporal-handledatetimevalue
+pub(crate) fn handle_date_time_value(
+    x: &JsValue,
+    locales: &JsValue,
+    options: &JsValue,
+    context: &mut Context,
+) -> JsResult<JsValue> {
+    use crate::builtins::temporal::{
+        Instant, PlainDate, PlainDateTime, PlainMonthDay, PlainTime, PlainYearMonth, ZonedDateTime,
+    };
+
+    let Some(obj) = x.as_object() else {
+        return Err(JsNativeError::typ()
+            .with_message("value is not a Temporal object")
+            .into());
+    };
+
+    // 1. If x is a Number, return ? HandleDateTimeOthers(dateTimeFormat, x).
+    // NOTE: Not applicable — callers pass Temporal objects, not Numbers.
+
+    // 2. If x has an [[InitializedTemporalDate]] internal slot, return ? HandleDateTimeTemporalDate(dateTimeFormat, x).
+    if obj.downcast_ref::<PlainDate>().is_some() {
+        return Err(js_error!(Error: "HandleDateTimeTemporalDate is not yet implemented"));
     }
-    let result = format_timestamp_with_dtf(&dtf, x, context)?;
-    Ok(JsValue::from(result))
+
+    // 3. If x has an [[InitializedTemporalYearMonth]] internal slot, return ? HandleDateTimeTemporalYearMonth(dateTimeFormat, x).
+    if obj.downcast_ref::<PlainYearMonth>().is_some() {
+        return handle_date_time_temporal_year_month(x, locales, options, context);
+    }
+
+    // 4. If x has an [[InitializedTemporalMonthDay]] internal slot, return ? HandleDateTimeTemporalMonthDay(dateTimeFormat, x).
+    if obj.downcast_ref::<PlainMonthDay>().is_some() {
+        return Err(js_error!(Error: "HandleDateTimeTemporalMonthDay is not yet implemented"));
+    }
+
+    // 5. If x has an [[InitializedTemporalTime]] internal slot, return ? HandleDateTimeTemporalTime(dateTimeFormat, x).
+    if obj.downcast_ref::<PlainTime>().is_some() {
+        return Err(js_error!(Error: "HandleDateTimeTemporalTime is not yet implemented"));
+    }
+
+    // 6. If x has an [[InitializedTemporalDateTime]] internal slot, return ? HandleDateTimeTemporalDateTime(dateTimeFormat, x).
+    if obj.downcast_ref::<PlainDateTime>().is_some() {
+        return Err(js_error!(Error: "HandleDateTimeTemporalDateTime is not yet implemented"));
+    }
+
+    // 7. If x has an [[InitializedTemporalInstant]] internal slot, return HandleDateTimeTemporalInstant(dateTimeFormat, x).
+    if obj.downcast_ref::<Instant>().is_some() {
+        return Err(js_error!(Error: "HandleDateTimeTemporalInstant is not yet implemented"));
+    }
+
+    // 8. Assert: x has an [[InitializedTemporalZonedDateTime]] internal slot.
+    // 9. Throw a TypeError exception.
+    if obj.downcast_ref::<ZonedDateTime>().is_some() {
+        return Err(JsNativeError::typ()
+            .with_message("Temporal.ZonedDateTime is not allowed in Intl.DateTimeFormat")
+            .into());
+    }
+
+    Err(JsNativeError::typ()
+        .with_message("value is not a recognized Temporal object")
+        .into())
 }
