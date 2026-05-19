@@ -31,6 +31,9 @@ use temporal_rs::{
     options::{RoundingIncrement, RoundingMode, RoundingOptions},
 };
 
+#[cfg(test)]
+mod tests;
+
 /// The `Temporal.Instant` built-in implementation
 ///
 /// More information:
@@ -660,8 +663,11 @@ impl Instant {
     ///
     /// [spec]: https://tc39.es/proposal-temporal/#sec-temporal.instant.tolocalestring
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Temporal/Instant/toLocaleString
-    fn to_locale_string(this: &JsValue, _: &[JsValue], context: &mut Context) -> JsResult<JsValue> {
-        // TODO: Update for ECMA-402 compliance
+    fn to_locale_string(
+        this: &JsValue,
+        args: &[JsValue],
+        context: &mut Context,
+    ) -> JsResult<JsValue> {
         let object = this.as_object();
         let instant = object
             .as_ref()
@@ -671,12 +677,37 @@ impl Instant {
                     .with_message("the this object must be a Temporal.Instant object.")
             })?;
 
-        let ixdtf = instant.inner.to_ixdtf_string_with_provider(
-            None,
-            ToStringRoundingOptions::default(),
-            context.timezone_provider(),
-        )?;
-        Ok(JsString::from(ixdtf).into())
+        #[cfg(feature = "intl")]
+        {
+            use crate::builtins::intl::date_time_format::{
+                FormatDefaults, FormatType, format_date_time_locale,
+            };
+
+            let locales = args.get_or_undefined(0);
+            let options = args.get_or_undefined(1);
+
+            // Converting epoch milliseconds
+            let epoch_ms = instant.inner.epoch_milliseconds() as f64;
+
+            format_date_time_locale(
+                locales,
+                options,
+                FormatType::Any,
+                FormatDefaults::All,
+                epoch_ms,
+                context,
+            )
+        }
+
+        #[cfg(not(feature = "intl"))]
+        {
+            let ixdtf = instant.inner.to_ixdtf_string_with_provider(
+                None,
+                ToStringRoundingOptions::default(),
+                context.timezone_provider(),
+            )?;
+            Ok(JsString::from(ixdtf).into())
+        }
     }
 
     /// 8.3.13 `Temporal.Instant.prototype.toJSON ( )`
