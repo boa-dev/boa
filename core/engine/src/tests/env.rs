@@ -94,3 +94,109 @@ fn indirect_eval_function_var_binding_4350() {
         js_str!("[object Object],[object Object],[object Object]"),
     )]);
 }
+
+#[test]
+// https://github.com/boa-dev/boa/issues/5333
+fn eval_created_bindings_can_be_deleted_5333() {
+    run_test_actions([
+        TestAction::assert_eq(
+            indoc! {r#"
+                (function() {
+                    var initial = null;
+                    var deleted = null;
+                    var postDeletion;
+                    eval('initial = x; deleted = delete x; postDeletion = function() { x; }; var x;');
+                    try {
+                        postDeletion();
+                        return 'no throw';
+                    } catch (e) {
+                        return String(initial) + ':' + String(deleted) + ':' + e.name;
+                    }
+                }());
+            "#},
+            js_str!("undefined:true:ReferenceError"),
+        ),
+        TestAction::assert_eq(
+            indoc! {r#"
+                (function() {
+                    var initial;
+                    var deleted = null;
+                    var postDeletion;
+                    eval('initial = f; deleted = delete f; postDeletion = function() { f; }; function f() { return 33; }');
+                    try {
+                        postDeletion();
+                        return 'no throw';
+                    } catch (e) {
+                        return typeof initial + ':' + String(initial()) + ':' + String(deleted) + ':' + e.name;
+                    }
+                }());
+            "#},
+            js_str!("function:33:true:ReferenceError"),
+        ),
+        TestAction::assert_eq(
+            indoc! {r#"
+                (function() {
+                    delete globalThis.x;
+                    eval('delete x; var x = 1;');
+                    var result = typeof globalThis.x + ':' + String(globalThis.x);
+                    delete globalThis.x;
+                    return result;
+                }());
+            "#},
+            js_str!("number:1"),
+        ),
+        TestAction::assert_eq(
+            indoc! {r#"
+                (function() {
+                    delete globalThis.x;
+                    var result = eval('var x = delete x; x;');
+                    var global = globalThis.x;
+                    delete globalThis.x;
+                    return String(result) + ':' + String(global);
+                }());
+            "#},
+            js_str!("true:true"),
+        ),
+        TestAction::assert_eq(
+            indoc! {r#"
+                (function() {
+                    delete globalThis.x;
+                    var x = 'outer';
+                    var result = (function() {
+                        return eval('var x = delete x; x;');
+                    }());
+                    var global = globalThis.x;
+                    delete globalThis.x;
+                    return String(result) + ':' + String(x) + ':' + String(global);
+                }());
+            "#},
+            js_str!("true:true:undefined"),
+        ),
+        TestAction::assert_eq(
+            indoc! {r#"
+                (function() {
+                    delete globalThis.x;
+                    eval('var x; delete x;');
+                    eval('var x = 2;');
+                    var result = String(x) + ':' + String(globalThis.x);
+                    delete globalThis.x;
+                    return result;
+                }());
+            "#},
+            js_str!("2:undefined"),
+        ),
+        TestAction::assert_eq(
+            indoc! {r#"
+                (function() {
+                    delete globalThis.f;
+                    eval('function f() {}; delete f;');
+                    eval('function f() { return 2; }');
+                    var result = String(f()) + ':' + String(globalThis.f);
+                    delete globalThis.f;
+                    return result;
+                }());
+            "#},
+            js_str!("2:undefined"),
+        ),
+    ]);
+}
