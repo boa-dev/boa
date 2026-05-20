@@ -9,6 +9,7 @@ boa_engine = { path = "../../core/engine" }
 boa_gc = { path = "../../core/gc" }
 boa_runtime = { path = "../../core/runtime", features = ["all"] }
 rstest = "0.25.0"
+rustls = { version = "0.23", default-features = false, features = ["ring"] }
 url = { version = "2.5.4", features = [] }
 
 [build-dependencies]

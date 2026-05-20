@@ -5,7 +5,7 @@ use boa_engine::interop::JsRest;
 use boa_engine::job::{CancellationToken, IntervalJob, NativeJobFn};
 use boa_engine::job::{NativeJob, TimeoutJob};
 use boa_engine::object::builtins::JsFunction;
-use boa_engine::value::{IntegerOrInfinity, Nullable};
+
 use boa_engine::{Context, IntoJsFunctionCopied, JsResult, JsValue, js_error, js_string};
 use std::collections::HashMap;
 use std::num::NonZeroU32;
@@ -54,8 +54,9 @@ impl IntervalInnerState {
     }
 
     /// Delete an interval ID from the active map.
-    fn clear_interval(&mut self, id: NonZeroU32) -> Option<CancellationToken> {
+    fn clear_interval(&mut self, id: u32) -> Option<CancellationToken> {
         self.active_map.retain(|_, v| !v.revoked());
+        let id = NonZeroU32::new(id)?;
         self.active_map.remove(&id)
     }
 }
@@ -78,13 +79,10 @@ pub fn set_timeout(
         return Ok(0);
     };
 
-    // Spec says if delay is not a number, it should be equal to 0.
-    let delay = delay_in_msec
-        .unwrap_or_default()
-        .to_integer_or_infinity(context)
-        .unwrap_or(IntegerOrInfinity::Integer(0));
-    // The spec converts the delay to a 32-bit signed integer.
-    let delay = u64::from(delay.clamp_finite(0, u32::MAX));
+    // The spec converts the delay to a WebIDL `long`, which maps to `i32`.
+    // Negative values are clamped to 0.
+    let delay_i32 = delay_in_msec.unwrap_or_default().to_i32(context)?;
+    let delay = u64::from(u32::try_from(delay_i32).unwrap_or(0));
 
     let state = IntervalInnerState::from_context(context);
     let id = state.next_id()?;
@@ -133,12 +131,10 @@ pub fn set_interval(
         return Ok(0);
     };
 
-    // Spec says if delay is not a number, it should be equal to 0.
-    let delay = delay_in_msec
-        .unwrap_or_default()
-        .to_integer_or_infinity(context)
-        .unwrap_or(IntegerOrInfinity::Integer(0));
-    let delay = u64::from(delay.clamp_finite(0, u32::MAX));
+    // The spec converts the delay to a WebIDL `long`, which maps to `i32`.
+    // Negative values are clamped to 0.
+    let delay_i32 = delay_in_msec.unwrap_or_default().to_i32(context)?;
+    let delay = u64::from(u32::try_from(delay_i32).unwrap_or(0));
 
     let state = IntervalInnerState::from_context(context);
     let id = state.next_id()?;
@@ -169,18 +165,20 @@ pub fn set_interval(
 /// See [MDN](https://developer.mozilla.org/en-US/docs/Web/API/Window/clearTimeout).
 ///
 /// Please note that this is the same exact method as `clearInterval`, as both can be
-/// used interchangeably.
-pub fn clear_timeout(id: Nullable<Option<u32>>, context: &mut Context) {
-    let Some(id) = id.flatten() else {
-        return;
-    };
-    let Some(id) = NonZeroU32::new(id) else {
-        return;
-    };
-    let handler_map = IntervalInnerState::from_context(context);
-    if let Some(token) = handler_map.clear_interval(id) {
-        token.cancel(context);
+/// used interchangeably. Invalid, zero, or negative IDs are silently ignored,
+/// matching browser behavior.
+///
+/// # Errors
+/// Returns an error if the `id` argument cannot be converted to an `i32`.
+pub fn clear_timeout(id: Option<JsValue>, context: &mut Context) -> JsResult<JsValue> {
+    let id = id.unwrap_or_default().to_i32(context)?;
+    if id > 0 {
+        let handler_map = IntervalInnerState::from_context(context);
+        if let Some(token) = handler_map.clear_interval(id.cast_unsigned()) {
+            token.cancel(context);
+        }
     }
+    Ok(JsValue::undefined())
 }
 
 /// Register the interval module into the given context.

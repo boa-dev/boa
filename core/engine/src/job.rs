@@ -815,6 +815,9 @@ pub trait JobExecutor: Any {
     {
         self.run_jobs(&mut context.borrow_mut())
     }
+
+    /// Clears all queued jobs.
+    fn clear_jobs(&self) {}
 }
 
 /// A job executor that does nothing.
@@ -944,6 +947,11 @@ impl JobExecutor for SimpleJobExecutor {
 
     fn run_jobs(self: Rc<Self>, context: &mut Context) -> JsResult<()> {
         future::block_on(self.run_jobs_async(&RefCell::new(context)))
+    }
+
+    fn clear_jobs(&self) {
+        self.clear();
+        self.stop.store(true, Ordering::Release);
     }
 
     async fn run_jobs_async(self: Rc<Self>, context: &RefCell<&mut Context>) -> JsResult<()>
