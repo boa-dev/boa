@@ -1,13 +1,16 @@
 use boa_ast::scope::Scope;
 use boa_gc::{Finalize, GcRefCell, Trace, custom_trace};
+use std::cell::RefCell;
 
 use crate::{JsNativeError, JsObject, JsResult, JsValue, builtins::function::OrdinaryFunction};
 
 #[derive(Debug, Trace, Finalize)]
 pub(crate) struct FunctionEnvironment {
     bindings: GcRefCell<Vec<Option<JsValue>>>,
-    deletable_bindings: GcRefCell<Vec<bool>>,
-    deleted_bindings: GcRefCell<Vec<bool>>,
+    #[unsafe_ignore_trace]
+    deletable_bindings: RefCell<Vec<bool>>,
+    #[unsafe_ignore_trace]
+    deleted_bindings: RefCell<Vec<bool>>,
     slots: Box<FunctionSlots>,
 
     // Safety: Nothing in `Scope` needs tracing.
@@ -20,8 +23,8 @@ impl FunctionEnvironment {
     pub(crate) fn new(bindings_count: u32, slots: FunctionSlots, scope: Scope) -> Self {
         Self {
             bindings: GcRefCell::new(vec![None; bindings_count as usize]),
-            deletable_bindings: GcRefCell::new(vec![false; bindings_count as usize]),
-            deleted_bindings: GcRefCell::new(vec![false; bindings_count as usize]),
+            deletable_bindings: RefCell::new(vec![false; bindings_count as usize]),
+            deleted_bindings: RefCell::new(vec![false; bindings_count as usize]),
             slots: Box::new(slots),
             scope,
         }
