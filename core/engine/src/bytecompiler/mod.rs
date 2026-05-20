@@ -449,6 +449,7 @@ pub(crate) enum BindingAccessOpcode {
     DeleteName,
     GetLocator,
     DefVar,
+    DefEvalVar,
 }
 
 /// Manages the source position scope, push on creation, pop on drop.
@@ -918,6 +919,9 @@ impl<'ctx> ByteCompiler<'ctx> {
                 }
                 BindingAccessOpcode::GetLocator => self.bytecode.emit_get_locator((*index).into()),
                 BindingAccessOpcode::DefVar => self.bytecode.emit_def_var((*index).into()),
+                BindingAccessOpcode::DefEvalVar => {
+                    self.bytecode.emit_def_eval_var((*index).into());
+                }
                 BindingAccessOpcode::PutLexicalValue => self
                     .bytecode
                     .emit_put_lexical_value(value.variable(), (*index).into()),
@@ -943,6 +947,9 @@ impl<'ctx> ByteCompiler<'ctx> {
                 }
                 BindingAccessOpcode::GetLocator => self.bytecode.emit_get_locator((*index).into()),
                 BindingAccessOpcode::DefVar => self.bytecode.emit_def_var((*index).into()),
+                BindingAccessOpcode::DefEvalVar => {
+                    self.bytecode.emit_def_eval_var((*index).into());
+                }
                 BindingAccessOpcode::PutLexicalValue => self
                     .bytecode
                     .emit_put_lexical_value(value.variable(), (*index).into()),
@@ -978,7 +985,9 @@ impl<'ctx> ByteCompiler<'ctx> {
                 | BindingAccessOpcode::GetNameAndLocator => {
                     self.bytecode.emit_move(value.variable(), (*index).into());
                 }
-                BindingAccessOpcode::GetLocator | BindingAccessOpcode::DefVar => {}
+                BindingAccessOpcode::GetLocator
+                | BindingAccessOpcode::DefVar
+                | BindingAccessOpcode::DefEvalVar => {}
                 BindingAccessOpcode::SetName
                 | BindingAccessOpcode::DefInitVar
                 | BindingAccessOpcode::PutLexicalValue
