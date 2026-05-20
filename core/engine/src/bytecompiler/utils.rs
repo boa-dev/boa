@@ -15,8 +15,7 @@ impl ByteCompiler<'_> {
     pub(super) fn iterator_close(&mut self, async_: bool) {
         let value = self.register_allocator.alloc();
         let called = self.register_allocator.alloc();
-        self.bytecode
-            .emit_iterator_return(value.variable(), called.variable());
+        self.iterator_return(&value, &called);
 
         // `iterator` didn't have a `return` method, is already done or is not on the iterator stack.
         let early_exit = self.jump_if_false(&called);

@@ -1988,14 +1988,6 @@ generate_opcodes! {
     /// - Iterator Stack: `iterator` **=>** `iterator`
     IteratorDone { dst: RegisterOperand },
 
-    /// Finishes the call to `Opcode::IteratorNext` within a `for await` loop by setting the current
-    /// result of the current iterator.
-    ///
-    /// - Registers:
-    ///   - Input: resume_kind, value
-    /// - Iterator Stack: `iterator` **=>** `iterator`
-    IteratorFinishAsyncNext { resume_kind: RegisterOperand, value: RegisterOperand },
-
     /// Gets the `value` property of the current iterator record.
     ///
     /// - Registers:
@@ -2010,14 +2002,7 @@ generate_opcodes! {
     /// - Iterator Stack: `iterator` **=>** `iterator`
     IteratorResult { dst: RegisterOperand },
 
-    /// Consume the iterator and construct and array with all the values.
-    ///
-    /// - Registers:
-    ///   - Output: dst
-    /// - Iterator Stack: `iterator` **=>** `iterator`
-    IteratorToArray { dst: RegisterOperand },
-
-    /// Store `true` in dst if the iterator stack is empty.
+    /// Pushes `true` to the stack if the iterator stack is empty.
     ///
     /// - Registers:
     ///   - Output: dst
@@ -2032,13 +2017,6 @@ generate_opcodes! {
     ///   - Input: value
     ///   - Output: value
     CreateIteratorResult { value: RegisterOperand, done: IndexOperand },
-
-    /// Calls `return` on the current iterator and returns the result.
-    ///
-    /// - Registers:
-    ///   - Output: value, called
-    /// - Iterator Stack: `iterator` **=>**
-    IteratorReturn { value: RegisterOperand, called: RegisterOperand },
 
     /// Concat multiple stack objects into a string.
     ///
@@ -2272,4 +2250,10 @@ generate_opcodes! {
     Reserved59 => Reserved,
     /// Reserved [`Opcode`].
     Reserved60 => Reserved,
+    /// Reserved [`Opcode`].
+    Reserved61 => Reserved,
+    /// Reserved [`Opcode`].
+    Reserved62 => Reserved,
+    /// Reserved [`Opcode`].
+    Reserved63 => Reserved,
 }
