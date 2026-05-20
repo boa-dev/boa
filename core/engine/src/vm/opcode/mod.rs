@@ -767,6 +767,13 @@ generate_opcodes! {
     ///   - Input: array
     PushIteratorToArray { array: RegisterOperand },
 
+    /// Convert the value into a int32.
+    ///
+    /// - Registers
+    ///   - Input: src
+    ///   - Output: dst
+    ToInt32 { dst: RegisterOperand, src: RegisterOperand },
+
     /// Binary `+` operator.
     ///
     /// - Registers
@@ -2270,6 +2277,4 @@ generate_opcodes! {
     Reserved58 => Reserved,
     /// Reserved [`Opcode`].
     Reserved59 => Reserved,
-    /// Reserved [`Opcode`].
-    Reserved60 => Reserved,
 }
