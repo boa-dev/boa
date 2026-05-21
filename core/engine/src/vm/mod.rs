@@ -986,6 +986,15 @@ impl Context {
     }
 
     pub(crate) fn run(&mut self) -> CompletionRecord {
+        // Call HostHooks::on_tick every TICK_INTERVAL bytecode instructions so
+        // embedders can enforce wall-clock budgets and cancellation against
+        // pure-JS loops (`while(true){}`, etc.) that otherwise have no
+        // interruption point. 1024 keeps per-instruction overhead at a single
+        // increment + compare while bounding the worst-case "still running"
+        // window after a deadline expires.
+        const TICK_INTERVAL: u32 = 1024;
+        let mut tick_counter: u32 = 0;
+
         while let Some(byte) = self
             .vm
             .frame()
@@ -994,6 +1003,14 @@ impl Context {
             .bytes
             .get(self.vm.frame().pc as usize)
         {
+            tick_counter += 1;
+            if tick_counter >= TICK_INTERVAL {
+                tick_counter = 0;
+                if let Err(err) = self.host_hooks().on_tick() {
+                    return CompletionRecord::Throw(err);
+                }
+            }
+
             let opcode = Opcode::decode(*byte);
 
             match self.execute_one(

@@ -197,6 +197,18 @@ pub trait HostHooks {
         now.unix_timestamp() * 1000 + i64::from(now.millisecond())
     }
 
+    /// Called periodically by the synchronous interpreter (every ~1024
+    /// bytecode instructions). Return `Err` to terminate execution with the
+    /// given [`JsError`]. Embedders use this to enforce wall-clock budgets
+    /// and cancellation against pure-JS loops (`while(true){}`) that
+    /// otherwise have no interruption point.
+    ///
+    /// The default implementation is a no-op; the cost of the periodic call
+    /// itself is one increment + one compare per instruction.
+    fn on_tick(&self) -> JsResult<()> {
+        Ok(())
+    }
+
     /// Returns the offset of the local timezone to the `utc` timezone in seconds.
     fn local_timezone_offset_seconds(&self, unix_time_seconds: i64) -> i32 {
         OffsetDateTime::from_unix_timestamp(unix_time_seconds)
