@@ -59,6 +59,11 @@ impl IntervalInnerState {
         let id = NonZeroU32::new(id)?;
         self.active_map.remove(&id)
     }
+
+    /// Drains and returns every active timer/interval token.
+    fn drain_tokens(&mut self) -> Vec<CancellationToken> {
+        std::mem::take(&mut self.active_map).into_values().collect()
+    }
 }
 
 /// Set a timeout to call the given function after the given delay.
@@ -179,6 +184,26 @@ pub fn clear_timeout(id: Option<JsValue>, context: &mut Context) -> JsResult<JsV
         }
     }
     Ok(JsValue::undefined())
+}
+
+/// Cancels every currently active timer and interval registered through
+/// this module's `setTimeout` / `setInterval`.
+///
+/// Intended for test teardown and graceful shutdown: after this call, any
+/// pending [`boa_engine::job::TimeoutJob`] / [`boa_engine::job::IntervalJob`]
+/// in the executor's queue will be skipped on its next tick, allowing
+/// `run_jobs_async` to exit naturally without disturbing unrelated
+/// `PromiseJob`, `NativeAsyncJob`, or `GenericJob` work.
+///
+/// Note: timers scheduled *after* this call returns are not affected.
+pub fn clear_all(context: &mut Context) {
+    let state = IntervalInnerState::from_context(context);
+    // Drain first to avoid re-entrant mutation: each token's cancel callback
+    // tries to remove its own id from `active_map`.
+    let tokens = state.drain_tokens();
+    for token in tokens {
+        token.cancel(context);
+    }
 }
 
 /// Register the interval module into the given context.

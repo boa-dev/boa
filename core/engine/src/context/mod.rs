@@ -500,12 +500,6 @@ impl Context {
         self.job_executor().run_jobs(self)
     }
 
-    /// Clears all queued jobs from the job executor.
-    #[inline]
-    pub fn clear_jobs(&mut self) {
-        self.job_executor().clear_jobs();
-    }
-
     /// Abstract operation [`ClearKeptObjects`][clear].
     ///
     /// Clears all objects maintained alive by calls to the [`AddToKeptObjects`][add] abstract

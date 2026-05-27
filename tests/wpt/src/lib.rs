@@ -249,7 +249,11 @@ fn result_callback__(
 #[track_caller]
 fn complete_callback__(ContextData(test_done): ContextData<TestCompletion>, context: &mut Context) {
     test_done.done();
-    context.clear_jobs();
+    // Cancel only timers/intervals, leaving unrelated PromiseJob / NativeAsyncJob
+    // work intact. `run_jobs_async` will then exit naturally once the timer
+    // queue drains. If anything else keeps it alive, that's a real bug worth
+    // surfacing rather than masking by wholesale cancelling all queued jobs.
+    boa_runtime::interval::clear_all(context);
 }
 
 #[derive(Debug, Clone, Trace, Finalize, JsData)]
@@ -274,6 +278,9 @@ impl TestCompletion {
 // in clippy.
 #[allow(unused)]
 fn execute_test_file(path: &Path) {
+    // Workspace `reqwest` uses `rustls-no-provider`; install ring as the
+    // process-wide CryptoProvider so `BlockingReqwestFetcher` construction
+    // in `create_context` doesn't panic with `No provider set`.
     rustls::crypto::ring::default_provider().install_default().ok();
     let dir = path.parent().unwrap();
     let wpt_path = PathBuf::from(
@@ -385,8 +392,8 @@ fn console(
 fn encoding(
     #[base_dir = "${WPT_ROOT}"]
     #[files("encoding/api-*.any.js")]
+    #[files("encoding/textencoder-constructor-non-utf.any.js")]
     // TODO: re-enable those when better encoding and options are supported.
-    // #[files("encoding/textencoder-constructor-non-utf.any.js")]
     // #[files("encoding/textdecoder-*.any.js")]
     // #[files("encoding/textencoder-*.any.js")]
     #[exclude("idlharness")]
