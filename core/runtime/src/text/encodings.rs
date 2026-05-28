@@ -22,8 +22,17 @@ pub(crate) mod utf8 {
 }
 
 pub(crate) mod utf16le {
+    use boa_engine::string::JsStr;
     use boa_engine::{JsString, js_string};
 
+    #[allow(dead_code)]
+    pub(crate) fn encode(input: &JsString) -> Vec<u8> {
+        match input.as_str() {
+            JsStr::Latin1(l) => l.iter().flat_map(|c| [*c, 0]).collect(),
+            JsStr::Utf16(s) => bytemuck::cast_slice(s).to_vec(),
+            JsStr::Rope(_) => input.iter().flat_map(u16::to_le_bytes).collect(),
+        }
+    }
     pub(crate) fn decode(mut input: &[u8], strip_bom: bool) -> JsString {
         if strip_bom {
             input = input.strip_prefix(&[0xFF, 0xFE]).unwrap_or(input);
@@ -48,8 +57,17 @@ pub(crate) mod utf16le {
 }
 
 pub(crate) mod utf16be {
+    use boa_engine::string::JsStr;
     use boa_engine::{JsString, js_string};
 
+    #[allow(dead_code)]
+    pub(crate) fn encode(input: &JsString) -> Vec<u8> {
+        match input.as_str() {
+            JsStr::Latin1(l) => l.iter().flat_map(|c| [0, *c]).collect(),
+            JsStr::Utf16(s) => s.iter().flat_map(|b| b.to_be_bytes()).collect::<Vec<_>>(),
+            JsStr::Rope(_) => input.iter().flat_map(u16::to_be_bytes).collect(),
+        }
+    }
     pub(crate) fn decode(mut input: Vec<u8>, strip_bom: bool) -> JsString {
         if strip_bom && input.starts_with(&[0xFE, 0xFF]) {
             input.drain(..2);

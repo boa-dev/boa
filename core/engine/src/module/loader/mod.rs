@@ -3,6 +3,8 @@ use std::cell::RefCell;
 use std::path::{Component, Path, PathBuf};
 use std::rc::Rc;
 
+#[cfg(target_family = "windows")]
+use cow_utils::CowUtils;
 use dynify::dynify;
 use rustc_hash::FxHashMap;
 
@@ -62,7 +64,7 @@ pub fn resolve_module_specifier(
 
     // On Windows, also replace `/` with `\`. JavaScript imports use `/` as path separator.
     #[cfg(target_family = "windows")]
-    let specifier = cow_utils::CowUtils::cow_replace(&*specifier, '/', "\\");
+    let specifier = specifier.cow_replace('/', "\\");
 
     let short_path = Path::new(&*specifier);
 

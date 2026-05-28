@@ -5,33 +5,37 @@ use std::{
     slice::SliceIndex,
 };
 
-/// Inner representation of a [`JsStr`].
+/// A view into a rope string.
 #[derive(Debug, Clone, Copy)]
-pub enum JsStrVariant<'a> {
-    /// Latin1 string representation.
-    Latin1(&'a [u8]),
-
-    /// U16 string representation.
-    Utf16(&'a [u16]),
+pub struct RopeSlice<'a> {
+    pub header: &'a crate::vtable::JsStringHeader,
+    pub(crate) start: usize,
+    pub(crate) end: usize,
 }
 
-impl JsStrVariant<'_> {
-    pub(crate) const fn len(&self) -> usize {
-        match self {
-            JsStrVariant::Latin1(data) => data.len(),
-            JsStrVariant::Utf16(data) => data.len(),
-        }
+impl RopeSlice<'_> {
+    /// Get the length of the slice.
+    #[inline]
+    #[must_use]
+    pub const fn len(&self) -> usize {
+        self.end - self.start
     }
 }
 
 /// This is equivalent to Rust's `&str`.
 #[derive(Clone, Copy)]
-#[repr(align(8))]
-pub struct JsStr<'a> {
-    inner: JsStrVariant<'a>,
+pub enum JsStr<'a> {
+    /// Latin1 string representation.
+    Latin1(&'a [u8]),
+
+    /// U16 string representation.
+    Utf16(&'a [u16]),
+
+    /// A view into a rope string.
+    Rope(RopeSlice<'a>),
 }
 
-// SAFETY: Inner<'_> has only immutable references to Sync types (u8/u16), so this is safe.
+// SAFETY: JsStr<'_> has only immutable references to Sync types, so this is safe.
 unsafe impl Sync for JsStr<'_> {}
 
 // SAFETY: It's read-only, sending this reference to another thread doesn't
@@ -40,54 +44,61 @@ unsafe impl Send for JsStr<'_> {}
 
 impl<'a> JsStr<'a> {
     /// This represents an empty string.
-    pub const EMPTY: Self = Self::latin1("".as_bytes());
+    pub const EMPTY: Self = Self::Latin1("".as_bytes());
 
     /// Creates a [`JsStr`] from codepoints that can fit in a `u8`.
     #[inline]
     #[must_use]
     pub const fn latin1(value: &'a [u8]) -> Self {
-        Self {
-            inner: JsStrVariant::Latin1(value),
-        }
+        Self::Latin1(value)
     }
 
     /// Creates a [`JsStr`] from utf16 encoded string.
     #[inline]
     #[must_use]
     pub const fn utf16(value: &'a [u16]) -> Self {
-        Self {
-            inner: JsStrVariant::Utf16(value),
-        }
+        Self::Utf16(value)
+    }
+
+    /// Creates a [`JsStr`] from a rope slice.
+    #[inline]
+    #[must_use]
+    pub const fn rope(slice: RopeSlice<'a>) -> Self {
+        Self::Rope(slice)
+    }
+
+    /// Return the inner variant of the [`JsStr`].
+    #[inline]
+    #[must_use]
+    pub const fn variant(self) -> Self {
+        self
     }
 
     /// Get the length of the [`JsStr`].
     #[inline]
     #[must_use]
     pub const fn len(&self) -> usize {
-        self.inner.len()
-    }
-
-    /// Return the inner [`JsStrVariant`] variant of the [`JsStr`].
-    #[inline]
-    #[must_use]
-    pub const fn variant(self) -> JsStrVariant<'a> {
-        self.inner
+        match self {
+            Self::Latin1(data) => data.len(),
+            Self::Utf16(data) => data.len(),
+            Self::Rope(rope) => rope.len(),
+        }
     }
 
     /// Check if the [`JsStr`] is latin1 encoded.
     #[inline]
     #[must_use]
     pub const fn is_latin1(&self) -> bool {
-        matches!(self.inner, JsStrVariant::Latin1(_))
+        matches!(self, Self::Latin1(_))
     }
 
     /// Returns [`u8`] slice if the [`JsStr`] is latin1 encoded, otherwise [`None`].
     #[inline]
     #[must_use]
     pub const fn as_latin1(&self) -> Option<&[u8]> {
-        match &self.inner {
-            JsStrVariant::Latin1(v) => Some(v),
-            JsStrVariant::Utf16(_) => None,
+        match self {
+            Self::Latin1(v) => Some(v),
+            _ => None,
         }
     }
 
@@ -99,21 +110,29 @@ impl<'a> JsStr<'a> {
     #[inline]
     #[must_use]
     pub unsafe fn as_static(self) -> JsStr<'static> {
-        let inner: JsStrVariant<'static> = match self.inner {
-            JsStrVariant::Latin1(v) => {
+        match self {
+            Self::Latin1(v) => {
                 // SAFETY: Caller is responsible for ensuring the lifetime of this slice.
                 let static_v: &'static [u8] =
                     unsafe { std::slice::from_raw_parts(v.as_ptr(), v.len()) };
-                JsStrVariant::<'static>::Latin1(static_v)
+                JsStr::<'static>::Latin1(static_v)
             }
-            JsStrVariant::Utf16(v) => {
+            Self::Utf16(v) => {
                 // SAFETY: Caller is responsible for ensuring the lifetime of this slice.
                 let static_v: &'static [u16] =
                     unsafe { std::slice::from_raw_parts(v.as_ptr(), v.len()) };
-                JsStrVariant::<'static>::Utf16(static_v)
+                JsStr::<'static>::Utf16(static_v)
             }
-        };
-        JsStr::<'static> { inner }
+            Self::Rope(r) => {
+                JsStr::<'static>::Rope(RopeSlice {
+                    // SAFETY: The `JsStr` is a view into a string that is guaranteed to stay alive for 'static
+                    // if the caller ensures the lifetime requirements.
+                    header: unsafe { &*std::ptr::from_ref(r.header) },
+                    start: r.start,
+                    end: r.end,
+                })
+            }
+        }
     }
 
     /// Iterate over the codepoints of the string.
@@ -172,7 +191,7 @@ impl<'a> JsStr<'a> {
     where
         I: JsSliceIndex<'a>,
     {
-        // Safety: Caller must ensure the index is not out of bounds
+        // SAFETY: Caller must ensure the index is not out of bounds
         unsafe { JsSliceIndex::get_unchecked(self, index) }
     }
 
@@ -180,9 +199,10 @@ impl<'a> JsStr<'a> {
     #[inline]
     #[must_use]
     pub fn to_vec(&self) -> Vec<u16> {
-        match self.variant() {
-            JsStrVariant::Latin1(v) => v.iter().copied().map(u16::from).collect(),
-            JsStrVariant::Utf16(v) => v.to_vec(),
+        match self {
+            Self::Latin1(v) => v.iter().copied().map(u16::from).collect(),
+            Self::Utf16(v) => v.to_vec(),
+            Self::Rope(_) => self.iter().collect(),
         }
     }
 
@@ -270,8 +290,8 @@ impl<'a> JsStr<'a> {
         // position >= 0 ensured by position: usize
         assert!(position < size);
 
-        match self.variant() {
-            JsStrVariant::Latin1(v) => {
+        match self {
+            Self::Latin1(v) => {
                 let code_point = v.get(position).expect("Already checked the size");
                 CodePoint::Unicode(*code_point as char)
             }
@@ -285,7 +305,7 @@ impl<'a> JsStr<'a> {
             // 8. If second is not a trailing surrogate, then
             // a. Return the Record { [[CodePoint]]: cp, [[CodeUnitCount]]: 1, [[IsUnpairedSurrogate]]: true }.
             // 9. Set cp to ! UTF16SurrogatePairToCodePoint(first, second).
-            JsStrVariant::Utf16(v) => {
+            Self::Utf16(v) => {
                 // We can skip the checks and instead use the `char::decode_utf16` function to take care of that for us.
                 let code_point = v
                     .get(position..=position + 1)
@@ -299,6 +319,10 @@ impl<'a> JsStr<'a> {
                     Err(e) => CodePoint::UnpairedSurrogate(e.unpaired_surrogate()),
                 }
             }
+            Self::Rope(_) => self
+                .code_points()
+                .nth(position)
+                .expect("Already checked the size"),
         }
     }
 
@@ -376,9 +400,10 @@ impl<'a> JsStr<'a> {
     #[inline]
     #[must_use]
     pub fn contains(&self, element: u8) -> bool {
-        match self.variant() {
-            JsStrVariant::Latin1(v) => v.contains(&element),
-            JsStrVariant::Utf16(v) => v.contains(&u16::from(element)),
+        match self {
+            Self::Latin1(v) => v.contains(&element),
+            Self::Utf16(v) => v.contains(&u16::from(element)),
+            Self::Rope(_) => self.iter().any(|u| u == u16::from(element)),
         }
     }
 
@@ -397,9 +422,10 @@ impl<'a> JsStr<'a> {
     /// [`FromUtf16Error`][std::string::FromUtf16Error] if it contains any invalid data.
     #[inline]
     pub fn to_std_string(&self) -> Result<String, std::string::FromUtf16Error> {
-        match self.variant() {
-            JsStrVariant::Latin1(v) => Ok(v.iter().copied().map(char::from).collect()),
-            JsStrVariant::Utf16(v) => String::from_utf16(v),
+        match self {
+            Self::Latin1(v) => Ok(v.iter().copied().map(char::from).collect()),
+            Self::Utf16(v) => String::from_utf16(v),
+            Self::Rope(_) => String::from_utf16(&self.to_vec()),
         }
     }
 
@@ -425,31 +451,46 @@ impl<'a> JsStr<'a> {
 impl Hash for JsStr<'_> {
     #[inline]
     fn hash<H: Hasher>(&self, state: &mut H) {
-        // NOTE: The hash function has been inlined to ensure that a hash of latin1 and U16
-        // encoded strings remains the same if they have the same characters
-        match self.variant() {
-            JsStrVariant::Latin1(s) => {
-                state.write_usize(s.len());
+        state.write_u64(self.content_hash());
+    }
+}
+
+impl JsStr<'_> {
+    /// Computes the hash of the string content.
+    #[inline]
+    #[must_use]
+    pub fn content_hash(&self) -> u64 {
+        let mut h = rustc_hash::FxHasher::default();
+        match *self {
+            Self::Latin1(s) => {
+                h.write_usize(s.len());
                 for elem in s {
-                    state.write_u16(u16::from(*elem));
+                    h.write_u16(u16::from(*elem));
                 }
             }
-            JsStrVariant::Utf16(s) => {
-                state.write_usize(s.len());
+            Self::Utf16(s) => {
+                h.write_usize(s.len());
                 for elem in s {
-                    state.write_u16(*elem);
+                    h.write_u16(*elem);
+                }
+            }
+            Self::Rope(_) => {
+                h.write_usize(self.len());
+                for elem in self.iter() {
+                    h.write_u16(elem);
                 }
             }
         }
+        h.finish()
     }
 }
 
 impl Ord for JsStr<'_> {
     #[inline]
     fn cmp(&self, other: &Self) -> std::cmp::Ordering {
-        match (self.variant(), other.variant()) {
-            (JsStrVariant::Latin1(x), JsStrVariant::Latin1(y)) => x.cmp(y),
-            (JsStrVariant::Utf16(x), JsStrVariant::Utf16(y)) => x.cmp(y),
+        match (self, other) {
+            (Self::Latin1(x), Self::Latin1(y)) => x.cmp(y),
+            (Self::Utf16(x), Self::Utf16(y)) => x.cmp(y),
             _ => self.iter().cmp(other.iter()),
         }
     }
@@ -460,9 +501,9 @@ impl Eq for JsStr<'_> {}
 impl PartialEq for JsStr<'_> {
     #[inline]
     fn eq(&self, other: &Self) -> bool {
-        match (self.variant(), other.variant()) {
-            (JsStrVariant::Latin1(lhs), JsStrVariant::Latin1(rhs)) => return lhs == rhs,
-            (JsStrVariant::Utf16(lhs), JsStrVariant::Utf16(rhs)) => return lhs == rhs,
+        match (self, other) {
+            (Self::Latin1(lhs), Self::Latin1(rhs)) => return lhs == rhs,
+            (Self::Utf16(lhs), Self::Utf16(rhs)) => return lhs == rhs,
             _ => {}
         }
         if self.len() != other.len() {
@@ -480,9 +521,10 @@ impl PartialEq for JsStr<'_> {
 impl PartialEq<str> for JsStr<'_> {
     #[inline]
     fn eq(&self, other: &str) -> bool {
-        match self.variant() {
-            JsStrVariant::Latin1(v) => v == other.as_bytes(),
-            JsStrVariant::Utf16(v) => other.encode_utf16().zip(v).all(|(a, b)| a == *b),
+        match *self {
+            Self::Latin1(v) => v == other.as_bytes(),
+            Self::Utf16(v) => other.encode_utf16().zip(v).all(|(a, b)| a == *b),
+            Self::Rope(_) => other.encode_utf16().zip(self.iter()).all(|(a, b)| a == b),
         }
     }
 }
@@ -529,9 +571,16 @@ impl<'a> JsSliceIndex<'a> for usize {
 
     #[inline]
     fn get(value: JsStr<'a>, index: Self) -> Option<Self::Value> {
-        match value.variant() {
-            JsStrVariant::Latin1(v) => v.get(index).copied().map(u16::from),
-            JsStrVariant::Utf16(v) => v.get(index).copied(),
+        match value {
+            JsStr::Latin1(v) => v.get(index).copied().map(u16::from),
+            JsStr::Utf16(v) => v.get(index).copied(),
+            JsStr::Rope(_) => {
+                if index < value.len() {
+                    Some(value.iter().nth(index).expect("Already checked the size"))
+                } else {
+                    None
+                }
+            }
         }
     }
 
@@ -540,11 +589,12 @@ impl<'a> JsSliceIndex<'a> for usize {
     /// Caller must ensure the index is not out of bounds
     #[inline]
     unsafe fn get_unchecked(value: JsStr<'a>, index: Self) -> Self::Value {
-        // Safety: Caller must ensure the index is not out of bounds
+        // SAFETY: Caller must ensure the index is not out of bounds.
         unsafe {
-            match value.variant() {
-                JsStrVariant::Latin1(v) => u16::from(*v.get_unchecked(index)),
-                JsStrVariant::Utf16(v) => *v.get_unchecked(index),
+            match value {
+                JsStr::Latin1(v) => u16::from(*v.get_unchecked(index)),
+                JsStr::Utf16(v) => *v.get_unchecked(index),
+                JsStr::Rope(_) => value.iter().nth(index).expect("Already checked the size"),
             }
         }
     }
@@ -555,9 +605,20 @@ impl<'a> JsSliceIndex<'a> for std::ops::Range<usize> {
 
     #[inline]
     fn get(value: JsStr<'a>, index: Self) -> Option<Self::Value> {
-        match value.variant() {
-            JsStrVariant::Latin1(v) => v.get(index).map(JsStr::latin1),
-            JsStrVariant::Utf16(v) => v.get(index).map(JsStr::utf16),
+        match value {
+            JsStr::Latin1(v) => v.get(index).map(JsStr::latin1),
+            JsStr::Utf16(v) => v.get(index).map(JsStr::utf16),
+            JsStr::Rope(r) => {
+                if index.start <= index.end && index.end <= r.len() {
+                    Some(JsStr::Rope(RopeSlice {
+                        header: r.header,
+                        start: r.start + index.start,
+                        end: r.start + index.end,
+                    }))
+                } else {
+                    None
+                }
+            }
         }
     }
 
@@ -566,12 +627,16 @@ impl<'a> JsSliceIndex<'a> for std::ops::Range<usize> {
     /// Caller must ensure the index is not out of bounds
     #[inline]
     unsafe fn get_unchecked(value: JsStr<'a>, index: Self) -> Self::Value {
-        // Safety: Caller must ensure the index is not out of bounds
-        unsafe {
-            match value.variant() {
-                JsStrVariant::Latin1(v) => JsStr::latin1(v.get_unchecked(index)),
-                JsStrVariant::Utf16(v) => JsStr::utf16(v.get_unchecked(index)),
-            }
+        match value {
+            // SAFETY: Caller must ensure the index is not out of bounds.
+            JsStr::Latin1(v) => unsafe { JsStr::latin1(v.get_unchecked(index)) },
+            // SAFETY: Caller must ensure the index is not out of bounds.
+            JsStr::Utf16(v) => unsafe { JsStr::utf16(v.get_unchecked(index)) },
+            JsStr::Rope(r) => JsStr::Rope(RopeSlice {
+                header: r.header,
+                start: r.start + index.start,
+                end: r.start + index.end,
+            }),
         }
     }
 }
@@ -581,10 +646,10 @@ impl<'a> JsSliceIndex<'a> for std::ops::RangeInclusive<usize> {
 
     #[inline]
     fn get(value: JsStr<'a>, index: Self) -> Option<Self::Value> {
-        match value.variant() {
-            JsStrVariant::Latin1(v) => v.get(index).map(JsStr::latin1),
-            JsStrVariant::Utf16(v) => v.get(index).map(JsStr::utf16),
+        if *index.end() == usize::MAX {
+            return None;
         }
+        JsSliceIndex::get(value, *index.start()..*index.end() + 1)
     }
 
     /// # Safety
@@ -593,12 +658,7 @@ impl<'a> JsSliceIndex<'a> for std::ops::RangeInclusive<usize> {
     #[inline]
     unsafe fn get_unchecked(value: JsStr<'a>, index: Self) -> Self::Value {
         // Safety: Caller must ensure the index is not out of bounds
-        unsafe {
-            match value.variant() {
-                JsStrVariant::Latin1(v) => JsStr::latin1(v.get_unchecked(index)),
-                JsStrVariant::Utf16(v) => JsStr::utf16(v.get_unchecked(index)),
-            }
-        }
+        unsafe { JsSliceIndex::get_unchecked(value, *index.start()..*index.end() + 1) }
     }
 }
 
@@ -607,10 +667,7 @@ impl<'a> JsSliceIndex<'a> for std::ops::RangeFrom<usize> {
 
     #[inline]
     fn get(value: JsStr<'a>, index: Self) -> Option<Self::Value> {
-        match value.variant() {
-            JsStrVariant::Latin1(v) => v.get(index).map(JsStr::latin1),
-            JsStrVariant::Utf16(v) => v.get(index).map(JsStr::utf16),
-        }
+        JsSliceIndex::get(value, index.start..value.len())
     }
 
     /// # Safety
@@ -619,12 +676,7 @@ impl<'a> JsSliceIndex<'a> for std::ops::RangeFrom<usize> {
     #[inline]
     unsafe fn get_unchecked(value: JsStr<'a>, index: Self) -> Self::Value {
         // Safety: Caller must ensure the index is not out of bounds
-        unsafe {
-            match value.variant() {
-                JsStrVariant::Latin1(v) => JsStr::latin1(v.get_unchecked(index)),
-                JsStrVariant::Utf16(v) => JsStr::utf16(v.get_unchecked(index)),
-            }
-        }
+        unsafe { JsSliceIndex::get_unchecked(value, index.start..value.len()) }
     }
 }
 
@@ -633,10 +685,7 @@ impl<'a> JsSliceIndex<'a> for std::ops::RangeTo<usize> {
 
     #[inline]
     fn get(value: JsStr<'a>, index: Self) -> Option<Self::Value> {
-        match value.variant() {
-            JsStrVariant::Latin1(v) => v.get(index).map(JsStr::latin1),
-            JsStrVariant::Utf16(v) => v.get(index).map(JsStr::utf16),
-        }
+        JsSliceIndex::get(value, 0..index.end)
     }
 
     /// # Safety
@@ -645,12 +694,7 @@ impl<'a> JsSliceIndex<'a> for std::ops::RangeTo<usize> {
     #[inline]
     unsafe fn get_unchecked(value: JsStr<'a>, index: Self) -> Self::Value {
         // Safety: Caller must ensure the index is not out of bounds
-        unsafe {
-            match value.variant() {
-                JsStrVariant::Latin1(v) => JsStr::latin1(v.get_unchecked(index)),
-                JsStrVariant::Utf16(v) => JsStr::utf16(v.get_unchecked(index)),
-            }
-        }
+        unsafe { JsSliceIndex::get_unchecked(value, 0..index.end) }
     }
 }
 
