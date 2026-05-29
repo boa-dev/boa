@@ -68,7 +68,6 @@ impl<D: InternalStringType> JsStringBuilder<D> {
         self.cap
     }
 
-
     /// Returns the capacity calculated from given layout.
     #[must_use]
     const fn capacity_from_layout(layout: Layout) -> usize {
@@ -199,7 +198,10 @@ impl<D: InternalStringType> JsStringBuilder<D> {
     /// Caller should ensure the capacity is large enough to hold elements.
     #[inline]
     pub const unsafe fn extend_from_slice_unchecked(&mut self, v: &[D::Byte]) {
-        // SAFETY: Caller should ensure the capacity is large enough to hold elements.
+        // SAFETY:
+        // 1. Caller must ensure `self.len() + v.len() <= self.capacity()` so the destination pointer is in-bounds.
+        // 2. Pointers are aligned: `v` is aligned by Rust's slice guarantee; `self.data()` is aligned because the allocation layout was padded to `D::Byte`'s alignment.
+        // 3. Regions do not overlap because `v` is an immutable reference and `self` is an exclusive mutable reference.
         unsafe {
             ptr::copy_nonoverlapping(v.as_ptr(), self.data().add(self.len()), v.len());
         }
@@ -301,8 +303,6 @@ impl<D: InternalStringType> JsStringBuilder<D> {
     pub fn is_empty(&self) -> bool {
         self.len() == 0
     }
-
-
 
     /// Extracts a slice containing the elements in the inner `RawJsString`.
     #[inline]
