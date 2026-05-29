@@ -14,10 +14,18 @@ mod tests;
 
 /// The internal state of the interval module. The value is whether the interval
 /// function is still active.
-#[derive(Default)]
 struct IntervalInnerState {
     active_map: HashMap<u32, CancellationToken>,
     id: u32,
+}
+
+impl Default for IntervalInnerState {
+    fn default() -> Self {
+        Self {
+            active_map: HashMap::default(),
+            id: 1,
+        }
+    }
 }
 
 impl IntervalInnerState {
