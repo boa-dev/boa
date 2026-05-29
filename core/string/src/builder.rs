@@ -68,11 +68,6 @@ impl<D: InternalStringType> JsStringBuilder<D> {
         self.cap
     }
 
-    /// Returns the allocated byte of inner `RawJsString`'s data.
-    #[must_use]
-    const fn allocated_data_byte_len(&self) -> usize {
-        self.len() * Self::DATA_SIZE
-    }
 
     /// Returns the capacity calculated from given layout.
     #[must_use]
@@ -305,18 +300,7 @@ impl<D: InternalStringType> JsStringBuilder<D> {
         self.len() == 0
     }
 
-    /// Checks if all bytes in inner `RawJsString`'s data are ascii.
-    #[inline]
-    #[must_use]
-    pub fn is_ascii(&self) -> bool {
-        // SAFETY:
-        // `NonNull` verified for us that the pointer returned by `alloc` is valid,
-        // meaning we can read to its pointed memory.
-        let data = unsafe {
-            std::slice::from_raw_parts(self.data().cast::<u8>(), self.allocated_data_byte_len())
-        };
-        data.is_ascii()
-    }
+
 
     /// Extracts a slice containing the elements in the inner `RawJsString`.
     #[inline]
@@ -519,6 +503,24 @@ impl<D: InternalStringType> Clone for JsStringBuilder<D> {
 
         // SAFETY: source_len has checked to be less or equal to self's capacity.
         unsafe { self.set_len(source_len) };
+    }
+}
+
+impl JsStringBuilder<Latin1> {
+    /// Checks if all bytes in inner `RawJsString`'s data are ascii.
+    #[inline]
+    #[must_use]
+    pub fn is_ascii(&self) -> bool {
+        self.as_slice().is_ascii()
+    }
+}
+
+impl JsStringBuilder<Utf16> {
+    /// Checks if all u16 in inner `RawJsString`'s data are ascii (<= 0x7F).
+    #[inline]
+    #[must_use]
+    pub fn is_ascii(&self) -> bool {
+        self.as_slice().iter().all(|&c| c <= 0x7F)
     }
 }
 
