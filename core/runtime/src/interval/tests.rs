@@ -261,3 +261,70 @@ fn set_interval_delay() {
         context,
     );
 }
+
+#[test]
+fn clear_all_cancels_pending_timers_and_intervals() {
+    let clock = Rc::new(FixedClock::default());
+    let context = &mut create_context(clock.clone());
+
+    run_test_actions_with(
+        [
+            // Arm one of each timer kind: a one-shot `setTimeout` and a
+            // recurring `setInterval`, both due at t+100ms. `clear_all` must
+            // cancel both, regardless of whether a timer fires once or repeats.
+            TestAction::run(indoc! {r#"
+                timeout_fired = false;
+                interval_fired = false;
+                setTimeout(() => { timeout_fired = true; }, 100);
+                setInterval(() => { interval_fired = true; }, 100);
+            "#}),
+            TestAction::inspect_context_async(async move |ctx| {
+                let job_executor = ctx.downcast_job_executor::<SimpleJobExecutor>().unwrap();
+                let ctx = &RefCell::new(ctx);
+
+                // Drive the event loop once. With the clock still short of the
+                // 100ms deadline, both timers stay pending and the loop parks
+                // (`is_none`) rather than completing.
+                let mut event_loop = pin!(poll_once(job_executor.run_jobs_async(ctx)));
+                clock.forward(50);
+                assert!(
+                    event_loop.as_mut().await.is_none(),
+                    "timers are not yet due; event loop must keep waiting",
+                );
+
+                // Cancel everything while the jobs are still queued. This is
+                // the behaviour under test.
+                interval::clear_all(&mut ctx.borrow_mut());
+
+                // Advance well past both deadlines. Because the queue was
+                // drained, no callback runs and the loop has no remaining work,
+                // so `run_jobs_async` completes (`is_some`) on its next tick.
+                clock.forward(100);
+                assert!(
+                    event_loop.as_mut().await.is_some(),
+                    "after clear_all the queue is empty; event loop must exit",
+                );
+
+                // Neither callback should have produced an observable effect.
+                let global = ctx.borrow().global_object();
+                let timeout_fired = global
+                    .get(js_str!("timeout_fired"), &mut ctx.borrow_mut())
+                    .unwrap();
+                let interval_fired = global
+                    .get(js_str!("interval_fired"), &mut ctx.borrow_mut())
+                    .unwrap();
+                assert_eq!(
+                    timeout_fired.as_boolean(),
+                    Some(false),
+                    "cleared setTimeout callback must not run",
+                );
+                assert_eq!(
+                    interval_fired.as_boolean(),
+                    Some(false),
+                    "cleared setInterval callback must not run",
+                );
+            }),
+        ],
+        context,
+    );
+}
