@@ -114,7 +114,9 @@ impl<D: InternalStringType> JsStringBuilder<D> {
     #[must_use]
     unsafe fn current_layout(&self) -> Layout {
         // SAFETY:
-        // Caller should ensure that the inner is allocated.
+        // 1. Caller should ensure that the inner is allocated.
+        // 2. `unwrap_unchecked` is safe because this layout was successfully
+        //    allocated previously with the same capacity, so it cannot overflow.
         unsafe {
             Layout::for_value(self.inner.as_ref())
                 .extend(Layout::array::<D::Byte>(self.capacity()).unwrap_unchecked())
