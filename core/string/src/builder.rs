@@ -613,15 +613,15 @@ pub enum Segment<'a> {
 }
 
 impl Segment<'_> {
-    /// Checks if the segment consists solely of `ASCII` characters.
+    /// Checks if the segment can be represented as `Latin1` characters.
     #[inline]
     #[must_use]
-    fn is_ascii(&self) -> bool {
+    fn can_be_latin1(&self) -> bool {
         match self {
             Segment::String(s) => s.as_str().is_latin1(),
             Segment::Str(s) => s.is_latin1(),
-            Segment::Latin1(b) => *b <= 0x7f,
-            Segment::CodePoint(ch) => *ch as u32 <= 0x7F,
+            Segment::Latin1(_) => true,
+            Segment::CodePoint(ch) => *ch as u32 <= 0xFF,
         }
     }
 }
@@ -726,11 +726,11 @@ impl<'seg, 'ref_str: 'seg> CommonJsStringBuilder<'seg> {
         self.segments.push(seg.into());
     }
 
-    /// Checks if all string segments contains only `ASCII` bytes.
+    /// Checks if all string segments can be represented as `Latin1` characters.
     #[inline]
     #[must_use]
-    pub fn is_ascii(&self) -> bool {
-        self.segments.iter().all(Segment::is_ascii)
+    pub fn can_be_latin1(&self) -> bool {
+        self.segments.iter().all(Segment::can_be_latin1)
     }
 
     /// Returns the number of string segment in inner vector.
@@ -832,16 +832,16 @@ impl<'seg, 'ref_str: 'seg> CommonJsStringBuilder<'seg> {
     ///
     /// This function first checks if the instance is empty:
     /// - If it is empty, it returns the default `JsString`.
-    /// - If it contains only ASCII characters, it safely encodes it as `Latin1`.
-    /// - If it contains non-ASCII characters, it falls back to encoding using `UTF-16`.
+    /// - If it can be represented as Latin1 characters, it safely encodes it as `Latin1`.
+    /// - Otherwise, it falls back to encoding using `UTF-16`.
     #[inline]
     #[must_use]
     pub fn build(self) -> JsString {
         if self.is_empty() {
             JsString::default()
-        } else if self.is_ascii() {
+        } else if self.can_be_latin1() {
             // SAFETY:
-            // All string segment contains only ascii byte, so this can be encoded as `Latin1`.
+            // All string segments can be represented as Latin1, so this can be encoded as `Latin1`.
             unsafe { self.build_as_latin1() }
         } else {
             self.build_from_utf16()
