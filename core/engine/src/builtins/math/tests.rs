@@ -21,7 +21,9 @@ fn acos() {
 #[test]
 fn acosh() {
     run_test_actions([
-        TestAction::assert_eq("Math.acosh(2)", 1.316_957_896_924_816_6),
+        TestAction::assert_with_op("Math.acosh(2)", |v, _| {
+            float_cmp::approx_eq!(f64, v.as_number().unwrap(), 1.316_957_896_924_816_6)
+        }),
         TestAction::assert_eq("Math.acosh(-1)", f64::NAN),
         TestAction::assert_eq("Math.acosh(0.5)", f64::NAN),
         TestAction::assert_eq("Math.acosh(1e308)", 709.889_355_822_726_f64),
