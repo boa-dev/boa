@@ -58,7 +58,7 @@ jobs:
           persist-credentials: false
 
       - name: Check for typos
-        uses: crate-ci/typos@bbaefadf97b0ec5fdc942684b647f1a6ab250274 # v1.46.0
+        uses: crate-ci/typos@f8a58b6b53f2279f71eb605f03a4ae4d10608f45 # v1.47.0
 
   clippy:
     name: Lint
@@ -192,7 +192,7 @@ jobs:
         run: cargo tarpaulin --workspace --features annex-b,intl_bundled,experimental --ignore-tests --engine llvm --out xml
 
       - name: Upload to codecov.io
-        uses: codecov/codecov-action@57e3a136b779b570ffcdbf80b3bdc90e7fab3de2 # v5
+        uses: codecov/codecov-action@e79a6962e0d4c0c17b229090214935d2e33f8354 # v5
 
   tests:
     name: Test
