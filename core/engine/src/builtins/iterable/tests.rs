@@ -447,6 +447,7 @@ fn iterator_concat_return_result_shape() {
 }
 
 #[test]
+#[cfg(feature = "experimental")]
 fn iterator_includes_basic() {
     run_test_actions([
         TestAction::run("const gen = () => Iterator.from([1, 3]);"),
@@ -463,6 +464,7 @@ fn iterator_includes_basic() {
 }
 
 #[test]
+#[cfg(feature = "experimental")]
 fn iterator_includes_generator() {
     run_test_actions([
         TestAction::run("function* gen() { yield 1; yield 3; }"),
@@ -479,6 +481,7 @@ fn iterator_includes_generator() {
 }
 
 #[test]
+#[cfg(feature = "experimental")]
 fn iterator_includes_errors() {
     run_test_actions([
         TestAction::run("const gen = () => Iterator.from([1, 3]);"),
