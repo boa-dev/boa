@@ -1,0 +1,70 @@
+---
+source: tests/insta-bytecode/src/lib.rs
+expression: output
+input_file: tests/insta-bytecode/scripts/try-finally.js
+---
+-------------------------- Compiled Output: '<main>' ---------------------------
+Location     Handler      Opcode                            Operands
+  000000                    StoreZero                         dst:r01
+  000005                    PutLexicalValue                   src:r01, binding_index:0
+  00000e                    StoreZero                         dst:r02
+  000013                    StoreInt8                         value:5, dst:r03
+  000019                    Jump                              address:000028
+  00001e                    IncrementLoopIteration            
+  00001f                    Inc                               src:r02, dst:r02
+  000028                    JumpIfNotLessThan                 lhs:r02, rhs:r03, address:000147
+  000035                    StoreTrue                         dst:r04
+  00003a                    StoreZero                         dst:r05
+  00003f    > 0: 0000aa     StoreInt8                         value:2, dst:r07
+  000045      0: 0000aa     StrictEq                          lhs:r02, rhs:r07, dst:r06
+  000052      0: 0000aa     JumpIfFalse                       value:r06, address:00006f
+  00005b      0: 0000aa     StoreFalse                        dst:r04
+  000060      0: 0000aa     StoreOne                          dst:r05
+  000065      0: 0000aa     Jump                              address:0000b9
+  00006a      0: 0000aa     Jump                              address:00006f
+  00006f      0: 0000aa     StoreInt8                         value:4, dst:r07
+  000075      0: 0000aa     StrictEq                          lhs:r02, rhs:r07, dst:r06
+  000082      0: 0000aa     JumpIfFalse                       value:r06, address:0000a0
+  00008b      0: 0000aa     StoreFalse                        dst:r04
+  000090      0: 0000aa     StoreInt8                         value:2, dst:r05
+  000096      0: 0000aa     Jump                              address:0000b9
+  00009b      0: 0000aa     Jump                              address:0000a0
+  0000a0      0: 0000aa     StoreFalse                        dst:r04
+  0000a5    < 0: 0000aa     Jump                              address:0000b9
+  0000aa    > 1: 0000b9     Exception                         dst:r06
+  0000af      1: 0000b9     StoreTrue                         dst:r04
+  0000b4    < 1: 0000b9     Jump                              address:0000b9
+  0000b9                    SetRegisterFromAccumulator        dst:r07
+  0000be                    GetName                           dst:r08, binding_index:0
+  0000c7                    Move                              src:r02, dst:r09
+  0000d0                    Add                               lhs:r08, rhs:r09, dst:r08
+  0000dd                    SetName                           src:r08, binding_index:0
+  0000e6                    SetAccumulator                    src:r07
+  0000eb                    JumpIfFalse                       value:r04, address:0000f9
+  0000f4                    Throw                             src:r06
+  0000f9                    JumpTable                         index:5, jump_table:(00011d, 000113, 000118)
+  00010e                    Jump                              address:00011d
+  000113                    Jump                              address:00001e
+  000118                    Jump                              address:000147
+  00011d                    GetName                           dst:r04, binding_index:0
+  000126                    StoreInt8                         value:100, dst:r05
+  00012c                    Add                               lhs:r04, rhs:r05, dst:r04
+  000139                    SetName                           src:r04, binding_index:0
+  000142                    Jump                              address:00001e
+  000147                    GetName                           dst:r03, binding_index:0
+  000150                    SetAccumulator                    src:r03
+  000155                    CheckReturn                       
+  000156                    Return                            
+
+Register Count: 10, Flags: CodeBlockFlags(HAS_PROTOTYPE_PROPERTY)
+Constants:
+    0000: [STRING] "total"
+Bindings:
+    0000: total, scope: GlobalDeclarative
+Handlers:
+    0000: Range: [00003f, 0000aa): Handler: 0000aa, Environment: 00
+    0001: Range: [0000aa, 0000b9): Handler: 0000b9, Environment: 00
+Source Map:
+    0000: 31..190: (7, 24)
+    0001: 190..285: (12, 5)
+    0002: 285..322: (14, 3)
