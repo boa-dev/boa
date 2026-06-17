@@ -401,6 +401,11 @@ impl<R> Lexer<R> {
     pub(super) fn take_source(&mut self) -> boa_ast::SourceText {
         self.cursor.take_source()
     }
+
+    /// Gets the current linear position of the lexer.
+    pub(crate) fn linear_pos(&self) -> boa_ast::LinearPosition {
+        self.cursor.linear_pos()
+    }
 }
 
 impl<'a> From<&'a [u8]> for Lexer<UTF8Input<&'a [u8]>> {
