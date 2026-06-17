@@ -2,7 +2,6 @@ use arrayvec::ArrayVec;
 use itertools::Itertools;
 use std::{cell::Cell, fmt};
 
-use boa_gc::GcRefCell;
 use boa_macros::{Finalize, Trace};
 
 use crate::{
@@ -25,17 +24,43 @@ pub(crate) struct CacheEntry {
 }
 
 /// An inline cache entry for a property access.
-#[derive(Clone, Debug, Trace, Finalize)]
+#[derive(Trace, Finalize)]
 pub(crate) struct InlineCache {
     /// The property that is accessed.
     pub(crate) name: JsString,
 
     /// Multiple cached shape-to-slot entries.
-    pub(crate) entries: GcRefCell<ArrayVec<CacheEntry, PIC_CAPACITY>>,
+    pub(crate) entries: Cell<ArrayVec<CacheEntry, PIC_CAPACITY>>,
 
     /// Whether this access site has seen too many shapes and should no longer be cached.
     #[unsafe_ignore_trace]
     pub(crate) megamorphic: Cell<bool>,
+}
+
+impl Clone for InlineCache {
+    fn clone(&self) -> Self {
+        let entries = self.entries.take();
+        let cloned_entries = entries.clone();
+        self.entries.set(entries);
+        Self {
+            name: self.name.clone(),
+            entries: Cell::new(cloned_entries),
+            megamorphic: self.megamorphic.clone(),
+        }
+    }
+}
+
+impl fmt::Debug for InlineCache {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        let entries = self.entries.take();
+        let result = f.debug_struct("InlineCache")
+            .field("name", &self.name)
+            .field("entries", &entries)
+            .field("megamorphic", &self.megamorphic)
+            .finish();
+        self.entries.set(entries);
+        result
+    }
 }
 
 impl fmt::Display for InlineCache {
@@ -46,10 +71,12 @@ impl fmt::Display for InlineCache {
             return write!(f, "(megamorphic))");
         }
 
-        let entries = self.entries.borrow();
-        let entries = entries.iter().map(|e| e.shape.to_addr_usize()).format(", ");
+        let entries = self.entries.take();
+        let formatted = entries.iter().map(|e| e.shape.to_addr_usize()).format(", ");
+        let result = write!(f, "({formatted:#x}))");
+        self.entries.set(entries);
 
-        write!(f, "({entries:#x}))")
+        result
     }
 }
 
@@ -57,9 +84,17 @@ impl InlineCache {
     pub(crate) fn new(name: JsString) -> Self {
         Self {
             name,
-            entries: GcRefCell::new(ArrayVec::new()),
+            entries: Cell::new(ArrayVec::new()),
             megamorphic: Cell::new(false),
         }
+    }
+
+    #[cfg(test)]
+    pub(crate) fn entries(&self) -> ArrayVec<CacheEntry, PIC_CAPACITY> {
+        let entries = self.entries.take();
+        let cloned = entries.clone();
+        self.entries.set(entries);
+        cloned
     }
 
     pub(crate) fn set(&self, shape: &Shape, slot: Slot) {
@@ -67,7 +102,7 @@ impl InlineCache {
             return;
         }
 
-        let mut entries = self.entries.borrow_mut();
+        let mut entries = self.entries.take();
 
         // Add a new entry if there's space.
         if entries
@@ -81,6 +116,8 @@ impl InlineCache {
             self.megamorphic.set(true);
             entries.clear();
         }
+
+        self.entries.set(entries);
     }
 
     /// Returns the cached `(Shape, Slot)` if a matching shape exists in the inline cache.
@@ -91,7 +128,7 @@ impl InlineCache {
             return None;
         }
 
-        let mut entries = self.entries.borrow_mut();
+        let mut entries = self.entries.take();
         let mut i = 0;
         let mut result = None;
         let shape_addr = shape.to_addr_usize();
@@ -109,6 +146,7 @@ impl InlineCache {
             }
         }
 
+        self.entries.set(entries);
         result
     }
 }
