@@ -110,25 +110,28 @@ impl ByteCompiler<'_> {
             Expression::PropertyAccess(access) => self.access_get(Access::Property { access }, dst),
             Expression::Conditional(op) => self.compile_conditional(op, dst),
             Expression::ArrayLiteral(literal) => {
-                let value = self.register_allocator.alloc();
-
-                self.bytecode.emit_store_new_array(dst.variable());
+                let dst_op = dst.variable();
+                self.bytecode.emit_store_new_array(dst_op);
 
                 for element in literal.as_ref() {
-                    if let Some(element) = element {
-                        self.compile_expr(element, &value);
-                        if let Expression::Spread(_) = element {
+                    match element {
+                        Some(Expression::Spread(spread)) => {
+                            let value = self.register_allocator.alloc();
+                            self.compile_expr(spread.target(), &value);
                             self.bytecode.emit_get_iterator(value.variable());
-                            self.bytecode.emit_push_iterator_to_array(dst.variable());
-                        } else {
-                            self.bytecode
-                                .emit_push_value_to_array(value.variable(), dst.variable());
+                            self.bytecode.emit_push_iterator_to_array(dst_op);
+                            self.register_allocator.dealloc(value);
                         }
-                    } else {
-                        self.bytecode.emit_push_elision_to_array(dst.variable());
+                        Some(elem) => {
+                            self.compile_expr_operand(elem, |this, op| {
+                                this.bytecode.emit_push_value_to_array(op, dst_op);
+                            });
+                        }
+                        None => {
+                            self.bytecode.emit_push_elision_to_array(dst_op);
+                        }
                     }
                 }
-                self.register_allocator.dealloc(value);
             }
             Expression::This(_this) => self.access_get(Access::This, dst),
             Expression::Spread(spread) => self.compile_expr(spread.target(), dst),
@@ -354,24 +357,25 @@ impl ByteCompiler<'_> {
 
                 if contains_spread {
                     let array = self.register_allocator.alloc();
-                    let value = self.register_allocator.alloc();
+                    let array_op = array.variable();
 
-                    self.bytecode.emit_store_new_array(array.variable());
+                    self.bytecode.emit_store_new_array(array_op);
 
                     for arg in super_call.arguments() {
-                        self.compile_expr(arg, &value);
-                        if let Expression::Spread(_) = arg {
+                        if let Expression::Spread(spread) = arg {
+                            let value = self.register_allocator.alloc();
+                            self.compile_expr(spread.target(), &value);
                             self.bytecode.emit_get_iterator(value.variable());
-                            self.bytecode.emit_push_iterator_to_array(array.variable());
+                            self.bytecode.emit_push_iterator_to_array(array_op);
+                            self.register_allocator.dealloc(value);
                         } else {
-                            self.bytecode
-                                .emit_push_value_to_array(value.variable(), array.variable());
+                            self.compile_expr_operand(arg, |this, op| {
+                                this.bytecode.emit_push_value_to_array(op, array_op);
+                            });
                         }
                     }
 
                     self.push_from_register(&array);
-
-                    self.register_allocator.dealloc(value);
                     self.register_allocator.dealloc(array);
                 } else {
                     for arg in super_call.arguments() {

@@ -18,25 +18,39 @@ use boa_engine::{
 };
 use bus::BusReader;
 
-use crate::START;
-
-pub(super) enum WorkerResult {
+/// Result of a worker thread execution.
+#[derive(Debug)]
+pub enum WorkerResult {
+    /// The worker completed successfully.
     Ok,
+    /// The worker returned an error.
     Err(String),
+    /// The worker panicked.
     Panic(String),
 }
 
-pub(super) type WorkerHandle = JoinHandle<Result<(), String>>;
+type WorkerHandle = JoinHandle<Result<(), String>>;
 
+/// Handles for worker threads spawned by `$262.agent.start()`.
 #[derive(Debug, Clone)]
-pub(super) struct WorkerHandles(Rc<RefCell<Vec<WorkerHandle>>>);
+pub struct WorkerHandles(Rc<RefCell<Vec<WorkerHandle>>>);
+
+impl Default for WorkerHandles {
+    fn default() -> Self {
+        Self::new()
+    }
+}
 
 impl WorkerHandles {
-    pub(super) fn new() -> Self {
+    /// Creates a new empty set of worker handles.
+    #[must_use]
+    pub fn new() -> Self {
         Self(Rc::default())
     }
 
-    pub(super) fn join_all(&mut self) -> Vec<WorkerResult> {
+    /// Joins all worker threads and returns their results.
+    #[allow(clippy::print_stderr)]
+    pub fn join_all(&mut self) -> Vec<WorkerResult> {
         let handles = std::mem::take(&mut *self.0.borrow_mut());
 
         handles
@@ -70,12 +84,12 @@ impl Drop for WorkerHandles {
     }
 }
 
-/// Creates the object $262 in the context.
-pub(super) fn register_js262(
-    handles: WorkerHandles,
-    console: bool,
-    context: &mut Context,
-) -> JsObject {
+/// Creates the object `$262` in the context.
+///
+/// # Panics
+///
+/// Panics if any of the expected global properties cannot be defined.
+pub fn register_js262(handles: WorkerHandles, console: bool, context: &mut Context) -> JsObject {
     let global_obj = context.global_object();
 
     let agent = agent_obj(handles, console, context);
@@ -201,11 +215,11 @@ fn sleep(_: &JsValue, args: &[JsValue], context: &mut Context) -> JsResult<JsVal
 
 /// The `$262.agent.monotonicNow()` function.
 #[allow(clippy::unnecessary_wraps)]
-fn monotonic_now(_: &JsValue, _: &[JsValue], _: &mut Context) -> JsResult<JsValue> {
-    let clock = START
-        .get()
-        .ok_or_else(|| JsNativeError::typ().with_message("could not get the monotonic clock"))?;
-    Ok(JsValue::from(clock.elapsed().as_millis() as f64))
+fn monotonic_now(_: &JsValue, _: &[JsValue], context: &mut Context) -> JsResult<JsValue> {
+    #[allow(clippy::cast_precision_loss)]
+    Ok(JsValue::from(
+        context.clock().now().millis_since_epoch() as f64
+    ))
 }
 
 /// Initializes the `$262.agent` object in the main agent.
@@ -235,14 +249,10 @@ fn agent_obj(handles: WorkerHandles, console: bool, context: &mut Context) -> Js
                 register_js262_worker(rx, tx, context);
 
                 if console {
-                    let console = boa_runtime::Console::init(context);
+                    let console = crate::Console::init(context);
 
                     context
-                        .register_global_property(
-                            boa_runtime::Console::NAME,
-                            console,
-                            Attribute::all(),
-                        )
+                        .register_global_property(crate::Console::NAME, console, Attribute::all())
                         .expect("the console builtin shouldn't exist");
                 }
 

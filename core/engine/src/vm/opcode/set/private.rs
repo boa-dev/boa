@@ -1,5 +1,5 @@
 use crate::{
-    Context, JsResult, js_str, js_string,
+    Context, JsExpect, JsResult, js_str, js_string,
     object::PrivateElement,
     property::PropertyDescriptor,
     vm::opcode::{IndexOperand, Operation, RegisterOperand},
@@ -31,7 +31,7 @@ impl SetPrivateField {
             .frame()
             .environments
             .resolve_private_identifier(name)
-            .expect("private name must be in environment");
+            .js_expect("private name must be in environment")?;
 
         base_obj.private_set(&name, value.clone(), context)?;
         Ok(())
@@ -67,7 +67,7 @@ impl DefinePrivateField {
 
         let object = object
             .as_object()
-            .expect("class prototype must be an object");
+            .js_expect("class prototype must be an object")?;
 
         let name = object.private_name(name);
         object.private_field_add(&name, value, context)?;

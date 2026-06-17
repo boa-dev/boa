@@ -2,96 +2,68 @@
 //! timeouts.
 
 use boa_engine::interop::JsRest;
+use boa_engine::job::{CancellationToken, IntervalJob, NativeJobFn};
 use boa_engine::job::{NativeJob, TimeoutJob};
 use boa_engine::object::builtins::JsFunction;
-use boa_engine::value::{IntegerOrInfinity, Nullable};
-use boa_engine::{
-    Context, Finalize, IntoJsFunctionCopied, JsData, JsResult, JsValue, Trace, js_error, js_string,
-};
-use boa_gc::{Gc, GcRefCell};
-use std::collections::HashSet;
+
+use boa_engine::{Context, IntoJsFunctionCopied, JsResult, JsValue, js_error, js_string};
+use std::collections::HashMap;
+use std::num::NonZeroU32;
 
 #[cfg(test)]
 mod tests;
 
 /// The internal state of the interval module. The value is whether the interval
 /// function is still active.
-#[derive(Default, Trace, Finalize, JsData)]
 struct IntervalInnerState {
-    active_map: HashSet<u32>,
-    next_id: u32,
+    active_map: HashMap<NonZeroU32, CancellationToken>,
+    id: NonZeroU32,
+}
+
+impl Default for IntervalInnerState {
+    fn default() -> Self {
+        Self {
+            active_map: HashMap::new(),
+            id: NonZeroU32::MIN,
+        }
+    }
 }
 
 impl IntervalInnerState {
     /// Get the interval handler map from the context, or add it to the context if not
     /// present.
-    fn from_context(context: &mut Context) -> Gc<GcRefCell<Self>> {
-        if !context.has_data::<Gc<GcRefCell<IntervalInnerState>>>() {
-            context.insert_data(Gc::new(GcRefCell::new(Self::default())));
+    fn from_context(context: &mut Context) -> &mut Self {
+        if !context.has_data::<Self>() {
+            context.insert_data(Self::default());
         }
 
         context
-            .get_data::<Gc<GcRefCell<Self>>>()
+            .host_defined_mut()
+            .get_mut::<Self>()
             .expect("Should have inserted.")
-            .clone()
     }
 
-    /// Get whether an interval is still active.
-    #[inline]
-    fn is_interval_valid(&self, id: u32) -> bool {
-        self.active_map.contains(&id)
-    }
-
-    /// Create an interval ID, insert it in the active map and return it.
-    fn new_interval(&mut self) -> JsResult<u32> {
-        if self.next_id == u32::MAX {
-            return Err(js_error!(Error: "Interval ID overflow"));
-        }
-        self.next_id += 1;
-        self.active_map.insert(self.next_id);
-        Ok(self.next_id)
+    /// Create an interval ID.
+    fn next_id(&mut self) -> JsResult<NonZeroU32> {
+        self.active_map.retain(|_, v| !v.revoked());
+        let id = self.id;
+        self.id = id
+            .checked_add(1)
+            .ok_or_else(|| js_error!(Error: "Interval ID overflow"))?;
+        Ok(id)
     }
 
     /// Delete an interval ID from the active map.
-    fn clear_interval(&mut self, id: u32) {
-        self.active_map.remove(&id);
-    }
-}
-
-/// Inner handler function for handling intervals and timeout.
-#[allow(clippy::too_many_arguments)]
-fn handle(
-    handler_map: Gc<GcRefCell<IntervalInnerState>>,
-    id: u32,
-    function_ref: JsFunction,
-    args: Vec<JsValue>,
-    reschedule: Option<u64>,
-    context: &mut Context,
-) -> JsResult<JsValue> {
-    // Check if it's still valid.
-    if !handler_map.borrow().is_interval_valid(id) {
-        return Ok(JsValue::undefined());
+    fn clear_interval(&mut self, id: u32) -> Option<CancellationToken> {
+        self.active_map.retain(|_, v| !v.revoked());
+        let id = NonZeroU32::new(id)?;
+        self.active_map.remove(&id)
     }
 
-    // Call the handler function.
-    // The spec says we should still reschedule an interval even if the function
-    // throws an error.
-    let result = function_ref.call(&JsValue::undefined(), &args, context);
-    if let Some(delay) = reschedule {
-        if handler_map.borrow().is_interval_valid(id) {
-            let job = TimeoutJob::recurring(
-                NativeJob::new(move |context| {
-                    handle(handler_map, id, function_ref, args, reschedule, context)
-                }),
-                delay,
-            );
-            context.enqueue_job(job.into());
-        }
-        return result;
+    /// Drains and returns every active timer/interval token.
+    fn drain_tokens(&mut self) -> Vec<CancellationToken> {
+        std::mem::take(&mut self.active_map).into_values().collect()
     }
-
-    handler_map.borrow_mut().clear_interval(id);
-    result
 }
 
 /// Set a timeout to call the given function after the given delay.
@@ -112,27 +84,38 @@ pub fn set_timeout(
         return Ok(0);
     };
 
-    let handler_map = IntervalInnerState::from_context(context);
-    let id = handler_map.borrow_mut().new_interval()?;
+    // The spec converts the delay to a WebIDL `long`, which maps to `i32`.
+    // Negative values are clamped to 0.
+    let delay_i32 = delay_in_msec.unwrap_or_default().to_i32(context)?;
+    let delay = u64::from(u32::try_from(delay_i32).unwrap_or(0));
 
-    // Spec says if delay is not a number, it should be equal to 0.
-    let delay = delay_in_msec
-        .unwrap_or_default()
-        .to_integer_or_infinity(context)
-        .unwrap_or(IntegerOrInfinity::Integer(0));
-    // The spec converts the delay to a 32-bit signed integer.
-    let delay = u64::from(delay.clamp_finite(0, u32::MAX));
+    let state = IntervalInnerState::from_context(context);
+    let id = state.next_id()?;
 
     // Get ownership of rest arguments.
     let rest = rest.to_vec();
 
     let job = TimeoutJob::new(
-        NativeJob::new(move |context| handle(handler_map, id, function_ref, rest, None, context)),
+        NativeJob::new(move |context| {
+            let result = function_ref.call(&JsValue::undefined(), &rest, context);
+            let state = IntervalInnerState::from_context(context);
+            state.active_map.remove(&id);
+            result
+        }),
         delay,
     );
+    let token = job.cancellation_token().clone();
+
+    token.push_callback(move |context| {
+        let state = IntervalInnerState::from_context(context);
+        state.active_map.remove(&id);
+    });
+
+    state.active_map.insert(id, token);
+
     context.enqueue_job(job.into());
 
-    Ok(id)
+    Ok(id.get())
 }
 
 /// Call a given function on an interval with the given delay.
@@ -153,28 +136,33 @@ pub fn set_interval(
         return Ok(0);
     };
 
-    let handler_map = IntervalInnerState::from_context(context);
-    let id = handler_map.borrow_mut().new_interval()?;
+    // The spec converts the delay to a WebIDL `long`, which maps to `i32`.
+    // Negative values are clamped to 0.
+    let delay_i32 = delay_in_msec.unwrap_or_default().to_i32(context)?;
+    let delay = u64::from(u32::try_from(delay_i32).unwrap_or(0));
 
-    // Spec says if delay is not a number, it should be equal to 0.
-    let delay = delay_in_msec
-        .unwrap_or_default()
-        .to_integer_or_infinity(context)
-        .unwrap_or(IntegerOrInfinity::Integer(0));
-    let delay = u64::from(delay.clamp_finite(0, u32::MAX));
+    let state = IntervalInnerState::from_context(context);
+    let id = state.next_id()?;
 
     // Get ownership of rest arguments.
     let rest = rest.to_vec();
 
-    let job = TimeoutJob::new(
-        NativeJob::new(move |context| {
-            handle(handler_map, id, function_ref, rest, Some(delay), context)
-        }),
+    let job = IntervalJob::new(
+        NativeJobFn::new(move |context| function_ref.call(&JsValue::undefined(), &rest, context)),
         delay,
     );
+    let token = job.cancellation_token().clone();
+
+    token.push_callback(move |context| {
+        let state = IntervalInnerState::from_context(context);
+        state.active_map.remove(&id);
+    });
+
+    state.active_map.insert(id, token);
+
     context.enqueue_job(job.into());
 
-    Ok(id)
+    Ok(id.get())
 }
 
 /// Clears a timeout or interval currently running.
@@ -182,13 +170,40 @@ pub fn set_interval(
 /// See [MDN](https://developer.mozilla.org/en-US/docs/Web/API/Window/clearTimeout).
 ///
 /// Please note that this is the same exact method as `clearInterval`, as both can be
-/// used interchangeably.
-pub fn clear_timeout(id: Nullable<Option<u32>>, context: &mut Context) {
-    let Some(id) = id.flatten() else {
-        return;
-    };
-    let handler_map = IntervalInnerState::from_context(context);
-    handler_map.borrow_mut().clear_interval(id);
+/// used interchangeably. Invalid, zero, or negative IDs are silently ignored,
+/// matching browser behavior.
+///
+/// # Errors
+/// Returns an error if the `id` argument cannot be converted to an `i32`.
+pub fn clear_timeout(id: Option<JsValue>, context: &mut Context) -> JsResult<JsValue> {
+    let id = id.unwrap_or_default().to_i32(context)?;
+    if id > 0 {
+        let handler_map = IntervalInnerState::from_context(context);
+        if let Some(token) = handler_map.clear_interval(id.cast_unsigned()) {
+            token.cancel(context);
+        }
+    }
+    Ok(JsValue::undefined())
+}
+
+/// Cancels every currently active timer and interval registered through
+/// this module's `setTimeout` / `setInterval`.
+///
+/// Intended for test teardown and graceful shutdown: after this call, any
+/// pending [`boa_engine::job::TimeoutJob`] / [`boa_engine::job::IntervalJob`]
+/// in the executor's queue will be skipped on its next tick, allowing
+/// `run_jobs_async` to exit naturally without disturbing unrelated
+/// `PromiseJob`, `NativeAsyncJob`, or `GenericJob` work.
+///
+/// Note: timers scheduled *after* this call returns are not affected.
+pub fn clear_all(context: &mut Context) {
+    let state = IntervalInnerState::from_context(context);
+    // Drain first to avoid re-entrant mutation: each token's cancel callback
+    // tries to remove its own id from `active_map`.
+    let tokens = state.drain_tokens();
+    for token in tokens {
+        token.cancel(context);
+    }
 }
 
 /// Register the interval module into the given context.

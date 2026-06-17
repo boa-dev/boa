@@ -319,7 +319,7 @@ impl JsResponse {
 
         Ok(Self {
             url: js_string!(""),
-            r#type: ResponseType::Basic,
+            r#type: ResponseType::Default,
             status: status_code.as_u16(),
             status_text: JsString::from(status_code.canonical_reason().unwrap_or("")),
             headers: JsHeaders::from_http(headers),

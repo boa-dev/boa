@@ -3,18 +3,17 @@ use std::cell::Cell;
 use boa_gc::{Finalize, Trace, custom_trace};
 use fixed_decimal::{Decimal, FloatPrecision, SignDisplay};
 use icu_decimal::{
-    DecimalFormatter, DecimalFormatterPreferences, FormattedDecimal,
+    CompactDecimalFormatter, DecimalFormatter, DecimalFormatterPreferences, FormattedDecimal,
     options::{DecimalFormatterOptions, GroupingStrategy},
     preferences::NumberingSystem,
     provider::{DecimalDigitsV1, DecimalSymbolsV1},
 };
 
-mod options;
 use icu_locale::{Locale, extensions::unicode::Value};
 use icu_provider::{DataMarker, DataMarkerAttributes, DynamicDataProvider, buf::BufferMarker};
 use num_bigint::BigInt;
 use num_traits::Num;
-pub(crate) use options::*;
+use writeable::Writeable;
 
 use super::{
     Service,
@@ -41,18 +40,84 @@ use crate::{
 };
 use crate::{js_error, value::JsVariant};
 
+mod options;
+pub(crate) use options::*;
+
 #[cfg(test)]
 mod tests;
+
+pub(crate) enum FormattedNumber<'a, T> {
+    Decimal(FormattedDecimal<'a>),
+    Compact(T),
+}
+
+impl<T: Writeable> Writeable for FormattedNumber<'_, T> {
+    fn write_to<W: core::fmt::Write + ?Sized>(&self, sink: &mut W) -> core::fmt::Result {
+        match self {
+            FormattedNumber::Decimal(d) => d.write_to(sink),
+            FormattedNumber::Compact(c) => c.write_to(sink),
+        }
+    }
+
+    fn write_to_parts<S: writeable::PartsWrite + ?Sized>(&self, sink: &mut S) -> core::fmt::Result {
+        match self {
+            FormattedNumber::Decimal(d) => d.write_to_parts(sink),
+            FormattedNumber::Compact(c) => c.write_to_parts(sink),
+        }
+    }
+
+    fn writeable_length_hint(&self) -> writeable::LengthHint {
+        match self {
+            FormattedNumber::Decimal(d) => d.writeable_length_hint(),
+            FormattedNumber::Compact(c) => c.writeable_length_hint(),
+        }
+    }
+
+    fn writeable_borrow(&self) -> Option<&str> {
+        match self {
+            FormattedNumber::Decimal(d) => d.writeable_borrow(),
+            FormattedNumber::Compact(c) => c.writeable_borrow(),
+        }
+    }
+
+    fn write_to_string(&self) -> std::borrow::Cow<'_, str> {
+        match self {
+            FormattedNumber::Decimal(d) => d.write_to_string(),
+            FormattedNumber::Compact(c) => c.write_to_string(),
+        }
+    }
+}
+
+#[derive(Debug)]
+enum Formatter {
+    Standard(DecimalFormatter),
+    Scientific(DecimalFormatter),
+    Engineering(DecimalFormatter),
+    Compact {
+        inner: CompactDecimalFormatter,
+        display: CompactDisplay,
+    },
+}
+
+impl Formatter {
+    fn format<'l>(&'l self, decimal: &'l Decimal) -> FormattedNumber<'l, impl Writeable> {
+        match self {
+            Formatter::Standard(fmt) | Formatter::Scientific(fmt) | Formatter::Engineering(fmt) => {
+                FormattedNumber::Decimal(fmt.format(decimal))
+            }
+            Formatter::Compact { inner, .. } => FormattedNumber::Compact(inner.format(decimal)),
+        }
+    }
+}
 
 #[derive(Debug, Finalize, JsData)]
 // Safety: `NumberFormat` only contains non-traceable types.
 pub(crate) struct NumberFormat {
     locale: Locale,
-    formatter: DecimalFormatter,
+    formatter: Formatter,
     numbering_system: NumberingSystem,
     unit_options: UnitFormatOptions,
     digit_options: DigitFormatOptions,
-    notation: Notation,
     use_grouping: GroupingStrategy,
     sign_display: SignDisplay,
     bound_format: Option<JsFunction>,
@@ -76,9 +141,12 @@ impl NumberFormat {
     ///
     /// [full]: https://tc39.es/ecma402/#sec-formatnumber
     /// [parts]: https://tc39.es/ecma402/#sec-formatnumbertoparts
-    pub(crate) fn format<'a>(&'a self, value: &'a mut Decimal) -> FormattedDecimal<'a> {
+    pub(crate) fn format<'l>(
+        &'l self,
+        value: &'l mut Decimal,
+    ) -> FormattedNumber<'l, impl Writeable> {
         // TODO: Missing support from ICU4X for Percent/Currency/Unit formatting.
-        // TODO: Missing support from ICU4X for Scientific/Engineering/Compact notation.
+        // TODO: Missing support from ICU4X for Scientific/Engineering notation.
 
         self.digit_options.format_fixed_decimal(value);
         value.apply_sign_display(self.sign_display);
@@ -328,22 +396,13 @@ impl NumberFormat {
             get_option(&options, js_string!("compactDisplay"), context)?.unwrap_or_default();
 
         // 22. Let defaultUseGrouping be "auto".
-        let mut default_use_grouping = GroupingStrategy::Auto;
-
-        let notation = match notation {
-            NotationKind::Standard => Notation::Standard,
-            NotationKind::Scientific => Notation::Scientific,
-            NotationKind::Engineering => Notation::Engineering,
-            // 23. If notation is "compact", then
-            NotationKind::Compact => {
-                // b. Set defaultUseGrouping to "min2".
-                default_use_grouping = GroupingStrategy::Min2;
-
-                // a. Set numberFormat.[[CompactDisplay]] to compactDisplay.
-                Notation::Compact {
-                    display: compact_display,
-                }
-            }
+        // 23. If notation is "compact", then
+        //     b. Set defaultUseGrouping to "min2".
+        //     a. Set numberFormat.[[CompactDisplay]] to compactDisplay.
+        let default_use_grouping = if notation == NotationKind::Compact {
+            GroupingStrategy::Min2
+        } else {
+            GroupingStrategy::Auto
         };
 
         // 24. NOTE: For historical reasons, the strings "true" and "false" are accepted and replaced with the default value.
@@ -426,12 +485,52 @@ impl NumberFormat {
                 inner: context.intl_provider().erased_provider(),
                 nu: Cell::new(None),
             };
-            let formatter = DecimalFormatter::try_new_with_buffer_provider(
-                &inspector,
-                (&locale).into(),
-                options,
-            )
-            .map_err(|err| JsNativeError::typ().with_message(err.to_string()))?;
+
+            let formatter = match (notation, compact_display) {
+                // TODO: change when scientific/engineering have their own formatters.
+                (NotationKind::Standard, _) => Formatter::Standard(
+                    DecimalFormatter::try_new_with_buffer_provider(
+                        &inspector,
+                        (&locale).into(),
+                        options,
+                    )
+                    .map_err(|err| js_error!(TypeError: "{}", err.to_string()))?,
+                ),
+                (NotationKind::Scientific, _) => Formatter::Scientific(
+                    DecimalFormatter::try_new_with_buffer_provider(
+                        &inspector,
+                        (&locale).into(),
+                        options,
+                    )
+                    .map_err(|err| js_error!(TypeError: "{}", err.to_string()))?,
+                ),
+                (NotationKind::Engineering, _) => Formatter::Engineering(
+                    DecimalFormatter::try_new_with_buffer_provider(
+                        &inspector,
+                        (&locale).into(),
+                        options,
+                    )
+                    .map_err(|err| js_error!(TypeError: "{}", err.to_string()))?,
+                ),
+                (NotationKind::Compact, CompactDisplay::Long) => Formatter::Compact {
+                    inner: CompactDecimalFormatter::try_new_long_with_buffer_provider(
+                        &inspector,
+                        (&locale).into(),
+                        options.into(),
+                    )
+                    .map_err(|err| js_error!(TypeError: "{}", err.to_string()))?,
+                    display: CompactDisplay::Long,
+                },
+                (NotationKind::Compact, CompactDisplay::Short) => Formatter::Compact {
+                    inner: CompactDecimalFormatter::try_new_short_with_buffer_provider(
+                        &inspector,
+                        (&locale).into(),
+                        options.into(),
+                    )
+                    .map_err(|err| js_error!(TypeError: "{}", err.to_string()))?,
+                    display: CompactDisplay::Short,
+                },
+            };
 
             let nu = (|| {
                 let nu = inspector.nu.into_inner()?;
@@ -453,7 +552,6 @@ impl NumberFormat {
             formatter,
             unit_options,
             digit_options,
-            notation,
             use_grouping,
             sign_display,
             bound_format: None,
@@ -521,7 +619,7 @@ impl NumberFormat {
                         let mut x = to_intl_mathematical_value(value, context)?;
 
                         // 5. Return FormatNumeric(nf, x).
-                        Ok(js_string!(nf.borrow().data().format(&mut x).to_string()).into())
+                        Ok(js_string!(nf.borrow().data().format(&mut x).write_to_string()).into())
                     },
                     nf_clone,
                 ),
@@ -667,15 +765,22 @@ impl NumberFormat {
             }
         };
 
-        options
-            .property(js_string!("useGrouping"), use_grouping, Attribute::all())
-            .property(
-                js_string!("notation"),
-                nf.notation.kind().to_js_string(),
-                Attribute::all(),
-            );
+        options.property(js_string!("useGrouping"), use_grouping, Attribute::all());
 
-        if let Notation::Compact { display } = nf.notation {
+        let (notation, compact_display) = match &nf.formatter {
+            Formatter::Standard(_) => (NotationKind::Standard, None),
+            Formatter::Scientific(_) => (NotationKind::Scientific, None),
+            Formatter::Engineering(_) => (NotationKind::Engineering, None),
+            Formatter::Compact { display, .. } => (NotationKind::Compact, Some(*display)),
+        };
+
+        options.property(
+            js_string!("notation"),
+            notation.to_js_string(),
+            Attribute::all(),
+        );
+
+        if let Some(display) = compact_display {
             options.property(
                 js_string!("compactDisplay"),
                 display.to_js_string(),

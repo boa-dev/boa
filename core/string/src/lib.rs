@@ -221,17 +221,12 @@ impl JsString {
 
             let mut string = String::from(char);
 
-            loop {
-                let Some(cp) = iter.peek().and_then(|cp| match cp {
-                    CodePoint::Unicode(c) => Some(*c),
-                    CodePoint::UnpairedSurrogate(_) => None,
-                }) else {
-                    break;
-                };
-
+            while let Some(cp) = iter.peek().and_then(|cp| match cp {
+                CodePoint::Unicode(c) => Some(*c),
+                CodePoint::UnpairedSurrogate(_) => None,
+            }) {
                 string.push(cp);
-
-                iter.next().expect("should exist by the check above");
+                iter.next().expect("iter.peek() ensures that next is Some");
             }
 
             Some(Ok(string))
@@ -437,7 +432,7 @@ impl JsString {
     // We check the size, so this should never panic.
     #[allow(clippy::missing_panics_doc)]
     pub fn ends_with(&self, needle: JsStr<'_>) -> bool {
-        self.as_str().starts_with(needle)
+        self.as_str().ends_with(needle)
     }
 
     /// Get the `u16` code unit at index. This does not parse any characters if there

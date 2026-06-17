@@ -477,8 +477,8 @@ impl BuiltinTypedArray {
             .viewed_array_buffer()
             .as_buffer()
             .bytes(Ordering::SeqCst)
-            .filter(|s| !ta.is_out_of_bounds(s.len()))
-            .is_none()
+            .as_ref()
+            .is_none_or(|s| ta.is_out_of_bounds(s.len()))
         {
             return Ok(0.into());
         }

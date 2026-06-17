@@ -394,7 +394,7 @@ macro_rules! generate_opcodes {
 
         impl BytecodeEmitter {
             $(
-                paste::paste! {
+                pastey::paste! {
                     #[allow(unused)]
                     pub(crate) fn [<emit_ $Variant:snake>](&mut self $( $(, $FieldName: $FieldType)* )? ) {
                         encode_instruction(
@@ -412,7 +412,7 @@ macro_rules! generate_opcodes {
         pub(crate) const OPCODE_HANDLERS: [OpcodeHandler; 256] = {
             [
                 $(
-                    paste::paste! { [<handle_ $Variant:snake>] },
+                    pastey::paste! { [<handle_ $Variant:snake>] },
                 )*
             ]
         };
@@ -422,13 +422,13 @@ macro_rules! generate_opcodes {
         pub(crate) const OPCODE_HANDLERS_BUDGET: [OpcodeHandlerBudget; 256] = {
             [
                 $(
-                    paste::paste! { [<handle_ $Variant:snake _budget>] },
+                    pastey::paste! { [<handle_ $Variant:snake _budget>] },
                 )*
             ]
         };
 
         $(
-            paste::paste! {
+            pastey::paste! {
                 #[inline(always)]
                 #[allow(unused_parens)]
                 fn [<handle_ $Variant:snake>](context: &mut Context, pc: usize) -> ControlFlow<CompletionRecord> {
@@ -442,7 +442,7 @@ macro_rules! generate_opcodes {
         )*
 
         $(
-            paste::paste! {
+            pastey::paste! {
                 #[inline(always)]
                 #[allow(unused_parens)]
                 fn [<handle_ $Variant:snake _budget>](context: &mut Context, pc: usize, budget: &mut u32) -> ControlFlow<CompletionRecord> {
@@ -2270,6 +2270,9 @@ generate_opcodes! {
     Reserved58 => Reserved,
     /// Reserved [`Opcode`].
     Reserved59 => Reserved,
-    /// Reserved [`Opcode`].
-    Reserved60 => Reserved,
+    /// Declare `var` type variable during eval declaration instantiation.
+    ///
+    /// - Operands:
+    ///   - binding_index: `IndexOperand`
+    DefEvalVar { binding_index: IndexOperand },
 }

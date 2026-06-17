@@ -553,3 +553,15 @@ fn trim() {
     let base_str = JsString::from(" \u{000B} Hello World \t ");
     assert_eq!(base_str.trim(), JsString::from("Hello World"));
 }
+
+#[test]
+fn starts_with_and_ends_with_basic() {
+    let basic = JsString::from("abcdef");
+    let start_needle = JsStr::latin1("abc".as_bytes());
+    assert!(basic.starts_with(start_needle));
+    assert!(!basic.ends_with(start_needle));
+
+    let end_needle = JsStr::latin1("def".as_bytes());
+    assert!(!basic.starts_with(end_needle));
+    assert!(basic.ends_with(end_needle));
+}

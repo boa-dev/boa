@@ -1,5 +1,5 @@
 use super::IndexOperand;
-use crate::{Context, JsResult, error::JsNativeError, vm::opcode::Operation};
+use crate::{Context, JsExpect, JsResult, error::JsNativeError, vm::opcode::Operation};
 
 /// `New` implements the Opcode Operation for `Opcode::New`
 ///
@@ -48,12 +48,12 @@ impl NewSpread {
         let arguments_array = context.vm.stack.pop();
         let arguments_array_object = arguments_array
             .as_object()
-            .expect("arguments array in call spread function must be an object");
+            .js_expect("arguments array in call spread function must be an object")?;
         let arguments = arguments_array_object
             .borrow()
             .properties()
             .to_dense_indexed_properties()
-            .expect("arguments array in call spread function must be dense");
+            .js_expect("arguments array in call spread function must be dense")?;
 
         let func = context.vm.stack.pop();
 

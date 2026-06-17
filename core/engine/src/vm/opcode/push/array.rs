@@ -1,5 +1,5 @@
 use crate::{
-    Context, JsResult, JsValue,
+    Context, JsExpect, JsResult, JsValue,
     builtins::Array,
     string::StaticJsStrings,
     vm::opcode::{Operation, RegisterOperand},
@@ -42,13 +42,13 @@ impl PushValueToArray {
     pub(crate) fn operation(
         (value, array): (RegisterOperand, RegisterOperand),
         context: &mut Context,
-    ) {
+    ) -> JsResult<()> {
         let value = context.vm.get_register(value.into()).clone();
         let o = context
             .vm
             .get_register(array.into())
             .as_object()
-            .expect("should be an object");
+            .js_expect("should be an object")?;
 
         // Fast path: push directly to dense indexed storage.
         {
@@ -58,16 +58,17 @@ impl PushValueToArray {
                 && o_mut.properties_mut().indexed_properties.push_dense(&value)
             {
                 o_mut.properties_mut().storage[0] = JsValue::new(len + 1);
-                return;
+                return Ok(());
             }
         }
 
         // Slow path: fall through to the generic property machinery.
         let len = o
             .length_of_array_like(context)
-            .expect("should have 'length' property");
+            .js_expect("should have 'length' property")?;
         o.create_data_property_or_throw(len, value, context)
-            .expect("should be able to create new data property");
+            .js_expect("should be able to create new data property")?;
+        Ok(())
     }
 }
 
@@ -88,10 +89,10 @@ impl PushElisionToArray {
     #[inline(always)]
     pub(crate) fn operation(array: RegisterOperand, context: &mut Context) -> JsResult<()> {
         let array = context.vm.get_register(array.into()).clone();
-        let o = array.as_object().expect("should always be an object");
+        let o = array.as_object().js_expect("should always be an object")?;
         let len = o
             .length_of_array_like(context)
-            .expect("arrays should always have a 'length' property");
+            .js_expect("arrays should always have a 'length' property")?;
         o.set(StaticJsStrings::LENGTH, len + 1, true, context)?;
         o.borrow_mut()
             .properties_mut()
@@ -123,7 +124,7 @@ impl PushIteratorToArray {
             .frame_mut()
             .iterators
             .pop()
-            .expect("iterator stack should have at least an iterator");
+            .js_expect("iterator stack should have at least an iterator")?;
         while let Some(next) = iterator.step_value(context)? {
             Array::push(&array, &[next], context)?;
         }
