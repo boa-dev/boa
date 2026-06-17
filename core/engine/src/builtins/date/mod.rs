@@ -32,6 +32,11 @@ use crate::{
 use boa_gc::{Finalize, Trace};
 use boa_macros::js_str;
 
+#[cfg(feature = "intl")]
+use crate::builtins::intl::date_time_format::{
+    FormatDefaults, FormatType, format_date_time_locale,
+};
+
 pub(crate) mod utils;
 
 #[cfg(test)]
@@ -1657,9 +1662,6 @@ impl Date {
     ) -> JsResult<JsValue> {
         #[cfg(feature = "intl")]
         {
-            use crate::builtins::intl::date_time_format::{
-                FormatDefaults, FormatType, format_date_time_locale,
-            };
             // 1. Let dateObject be the this value.
             // 2. Perform ? RequireInternalSlot(dateObject, [[DateValue]]).
             // 3. Let x be dateObject.[[DateValue]].
@@ -1711,9 +1713,6 @@ impl Date {
     ) -> JsResult<JsValue> {
         #[cfg(feature = "intl")]
         {
-            use crate::builtins::intl::date_time_format::{
-                FormatDefaults, FormatType, format_date_time_locale,
-            };
             // 1. Let dateObject be the this value.
             // 2. Perform ? RequireInternalSlot(dateObject, [[DateValue]]).
             // 3. Let x be dateObject.[[DateValue]].
@@ -1766,9 +1765,6 @@ impl Date {
     ) -> JsResult<JsValue> {
         #[cfg(feature = "intl")]
         {
-            use crate::builtins::intl::date_time_format::{
-                FormatDefaults, FormatType, format_date_time_locale,
-            };
             // 1. Let dateObject be the this value.
             // 2. Perform ? RequireInternalSlot(dateObject, [[DateValue]]).
             // 3. Let x be dateObject.[[DateValue]].
