@@ -1665,13 +1665,13 @@ impl Date {
             // 1. Let dateObject be the this value.
             // 2. Perform ? RequireInternalSlot(dateObject, [[DateValue]]).
             // 3. Let x be dateObject.[[DateValue]].
-            let t = this
+            let x = this
                 .as_object()
                 .and_then(|obj| obj.downcast_ref::<Date>().as_deref().copied())
                 .ok_or_else(|| JsNativeError::typ().with_message("'this' is not a Date"))?
                 .0;
             // 4. If x is NaN, return "Invalid Date".
-            if t.is_nan() {
+            if x.is_nan() {
                 return Ok(JsValue::new(js_string!("Invalid Date")));
             }
             // 5. Let dateFormat be ? CreateDateTimeFormat(%Intl.DateTimeFormat%, locales, options, date, date).
@@ -1683,7 +1683,7 @@ impl Date {
                 options,
                 FormatType::Date,
                 FormatDefaults::Date,
-                t,
+                x,
                 context,
             )
         }
@@ -1716,13 +1716,13 @@ impl Date {
             // 1. Let dateObject be the this value.
             // 2. Perform ? RequireInternalSlot(dateObject, [[DateValue]]).
             // 3. Let x be dateObject.[[DateValue]].
-            let t = this
+            let x = this
                 .as_object()
                 .and_then(|obj| obj.downcast_ref::<Date>().as_deref().copied())
                 .ok_or_else(|| JsNativeError::typ().with_message("'this' is not a Date"))?
                 .0;
             // 4. If x is NaN, return "Invalid Date".
-            if t.is_nan() {
+            if x.is_nan() {
                 return Ok(JsValue::new(js_string!("Invalid Date")));
             }
             // 5. Let dateFormat be ? CreateDateTimeFormat(%Intl.DateTimeFormat%, locales, options, any, all).
@@ -1734,7 +1734,7 @@ impl Date {
                 options,
                 FormatType::Any,
                 FormatDefaults::All,
-                t,
+                x,
                 context,
             )
         }
@@ -1768,13 +1768,13 @@ impl Date {
             // 1. Let dateObject be the this value.
             // 2. Perform ? RequireInternalSlot(dateObject, [[DateValue]]).
             // 3. Let x be dateObject.[[DateValue]].
-            let t = this
+            let x = this
                 .as_object()
                 .and_then(|obj| obj.downcast_ref::<Date>().as_deref().copied())
                 .ok_or_else(|| JsNativeError::typ().with_message("'this' is not a Date"))?
                 .0;
             // 4. If x is NaN, return "Invalid Date".
-            if t.is_nan() {
+            if x.is_nan() {
                 return Ok(JsValue::new(js_string!("Invalid Date")));
             }
             // 5. Let timeFormat be ? CreateDateTimeFormat(%Intl.DateTimeFormat%, locales, options, time, time).
@@ -1786,7 +1786,7 @@ impl Date {
                 options,
                 FormatType::Time,
                 FormatDefaults::Time,
-                t,
+                x,
                 context,
             )
         }
