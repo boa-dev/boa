@@ -53,7 +53,8 @@ impl Clone for InlineCache {
 impl fmt::Debug for InlineCache {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         let entries = self.entries.take();
-        let result = f.debug_struct("InlineCache")
+        let result = f
+            .debug_struct("InlineCache")
             .field("name", &self.name)
             .field("entries", &entries)
             .field("megamorphic", &self.megamorphic)
