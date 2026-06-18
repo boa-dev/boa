@@ -455,3 +455,399 @@ fn trace_with_stack_trace() {
         "# }
     );
 }
+
+// ---- console.table tests ----
+//
+// These test the `console.table()` implementation against common edge cases
+// drawn from the Node.js and Bun test suites.
+
+/// Helper: runs JS code with a `RecordingLogger` and returns the captured log.
+macro_rules! run_table_test {
+    ($js:expr) => {{
+        let mut context = Context::default();
+        let logger = RecordingLogger::default();
+        Console::register_with_logger(logger.clone(), &mut context).unwrap();
+
+        run_test_actions_with(
+            [TestAction::run(TEST_HARNESS), TestAction::run($js)],
+            &mut context,
+        );
+
+        logger.log.borrow().clone()
+    }};
+}
+
+/// Primitives (null, undefined, false, number, string, Symbol) should fall
+/// back to plain `console.log` output — no table rendered.
+#[test]
+fn console_table_primitives_fall_back_to_log() {
+    let logs = run_table_test!(indoc! {r#"
+        console.table(null);
+        console.table(undefined);
+        console.table(false);
+        console.table(42);
+        console.table("hello");
+        console.table(Symbol("test"));
+    "#});
+
+    assert_eq!(
+        logs,
+        indoc! { r#"
+            null
+            undefined
+            false
+            42
+            hello
+            Symbol(test)
+        "# }
+    );
+}
+
+/// `console.table()` with no arguments falls back to `console.log()` with
+/// no data, which outputs an empty line.
+#[test]
+fn console_table_no_args() {
+    let logs = run_table_test!("console.table();");
+    assert_eq!(logs, "\n");
+}
+
+/// Empty array and empty object should fall back to log (no rows to tabulate).
+#[test]
+fn console_table_empty_collections() {
+    let logs = run_table_test!(indoc! {r#"
+        console.table([]);
+    "#});
+    // Empty array falls back to console.log, which prints "[]"
+    assert!(
+        !logs.contains("(index)"),
+        "empty array should not render a table"
+    );
+
+    let logs = run_table_test!(indoc! {r#"
+        console.table({});
+    "#});
+    assert!(
+        !logs.contains("(index)"),
+        "empty object should not render a table"
+    );
+}
+
+/// Array of objects: each object's properties become columns.
+#[test]
+fn console_table_array_of_objects() {
+    let logs = run_table_test!(indoc! {r#"
+        console.table([{a: 1, b: 2}, {a: 3, b: 4}]);
+    "#});
+
+    assert!(logs.contains("(index)"));
+    assert!(logs.contains(" a "));
+    assert!(logs.contains(" b "));
+    // Should NOT have a "Value" column (all elements are objects).
+    assert!(!logs.contains("Values"));
+    // Row data present.
+    assert!(logs.contains('0'));
+    assert!(logs.contains('1'));
+    assert!(logs.contains('3'));
+    assert!(logs.contains('4'));
+}
+
+/// Properties filter restricts which columns are shown.
+#[test]
+fn console_table_with_properties_filter() {
+    let logs = run_table_test!(indoc! {r#"
+        console.table([{a: 1, b: 2}, {a: 3, b: 4}], ["a"]);
+    "#});
+
+    assert!(logs.contains("(index)"));
+    assert!(logs.contains(" a "));
+    // Value "2" from column b should not appear.
+    assert!(
+        !logs.contains(" 2 "),
+        "filtered column b data should be absent"
+    );
+    assert!(
+        !logs.contains(" 4 "),
+        "filtered column b data should be absent"
+    );
+}
+
+/// Empty properties filter: only the (index) column should appear.
+#[test]
+fn console_table_empty_properties_filter() {
+    let logs = run_table_test!(indoc! {r#"
+        console.table([{a: 1, b: 2}], []);
+    "#});
+
+    assert!(logs.contains("(index)"));
+    assert!(!logs.contains(" a "), "no data columns with empty filter");
+    assert!(!logs.contains(" b "), "no data columns with empty filter");
+}
+
+/// Non-existent property in filter: only (index) column appears since "x"
+/// doesn't match any actual property.
+#[test]
+fn console_table_nonexistent_property_filter() {
+    let logs = run_table_test!(indoc! {r#"
+        console.table({a: 1}, ["x"]);
+    "#});
+
+    assert!(logs.contains("(index)"));
+    assert!(logs.contains(" a "), "key 'a' should appear as index value");
+}
+
+/// Array of primitive values: shows (index) + Value columns.
+#[test]
+fn console_table_primitive_array() {
+    let logs = run_table_test!(indoc! {r#"
+        console.table([10, 20, 30]);
+    "#});
+
+    assert!(logs.contains("(index)"));
+    assert!(logs.contains("Values"));
+    assert!(logs.contains("10"));
+    assert!(logs.contains("20"));
+    assert!(logs.contains("30"));
+}
+
+/// Object with primitive values: keys become (index), values go in Value column.
+#[test]
+fn console_table_object_with_primitive_values() {
+    let logs = run_table_test!(indoc! {r#"
+        console.table({name: "Alice", age: 30});
+    "#});
+
+    assert!(logs.contains("(index)"));
+    assert!(logs.contains("Values"));
+    assert!(logs.contains("name"));
+    assert!(logs.contains("age"));
+    assert!(logs.contains("30"));
+}
+
+/// Object of objects: outer keys are indices, inner properties are columns.
+#[test]
+fn console_table_nested_objects() {
+    let logs = run_table_test!(indoc! {r#"
+        console.table({a: {x: 1, y: 2}, b: {x: 3, y: 4}});
+    "#});
+
+    assert!(logs.contains("(index)"));
+    assert!(logs.contains(" x "));
+    assert!(logs.contains(" y "));
+    assert!(logs.contains(" a "));
+    assert!(logs.contains(" b "));
+    assert!(
+        !logs.contains("Values"),
+        "nested objects should not produce Values column"
+    );
+}
+
+/// Mixed array: objects and primitives together. Should have both named
+/// columns (from objects) and a Value column (for primitives).
+#[test]
+fn console_table_mixed_array() {
+    let logs = run_table_test!(indoc! {r#"
+        console.table([{a: 1}, 42]);
+    "#});
+
+    assert!(logs.contains("(index)"));
+    assert!(logs.contains(" a "), "column from object element");
+    assert!(
+        logs.contains("Value"),
+        "Values column for primitive element"
+    );
+    assert!(logs.contains('1'));
+    assert!(logs.contains("42"));
+}
+
+/// Sparse columns: objects with different property sets. Missing cells
+/// should be empty.
+#[test]
+fn console_table_sparse_columns() {
+    let logs = run_table_test!(indoc! {r#"
+        console.table([{a: 1}, {b: 2}]);
+    "#});
+
+    assert!(logs.contains("(index)"));
+    assert!(logs.contains(" a "));
+    assert!(logs.contains(" b "));
+    assert!(logs.contains('1'));
+    assert!(logs.contains('2'));
+}
+
+/// Security: using `__proto__` as a property filter must NOT cause prototype
+/// pollution.
+#[test]
+fn console_table_proto_safety() {
+    // This should not throw — if __proto__ pollution occurred, the JS assertion
+    // would fail and the test action would panic.
+    let _logs = run_table_test!(indoc! {r#"
+        console.table([{foo: 10}, {foo: 20}], ["__proto__"]);
+        if ("0" in Object.prototype) {
+            throw new Error("prototype pollution detected!");
+        }
+        if ("1" in Object.prototype) {
+            throw new Error("prototype pollution detected!");
+        }
+    "#});
+}
+
+/// Map: should display with `(iteration index)`, `Key`, and `Values` columns.
+#[test]
+fn console_table_map() {
+    let logs = run_table_test!(indoc! {r#"
+        console.table(new Map([["a", 1], ["b", 2]]));
+    "#});
+
+    assert!(logs.contains("(iteration index)"));
+    assert!(logs.contains("Key"));
+    assert!(logs.contains("Values"));
+    assert!(logs.contains("\"a\""));
+    assert!(logs.contains("\"b\""));
+    assert!(logs.contains('1'));
+    assert!(logs.contains('2'));
+}
+
+/// Set: should display with `(iteration index)` and `Values` columns.
+#[test]
+fn console_table_set() {
+    let logs = run_table_test!(indoc! {r#"
+        console.table(new Set([1, 2, 3]));
+    "#});
+
+    assert!(logs.contains("(iteration index)"));
+    assert!(logs.contains("Values"));
+    assert!(logs.contains('1'));
+    assert!(logs.contains('2'));
+    assert!(logs.contains('3'));
+    assert!(!logs.contains("Key"), "Set should not have a Key column");
+}
+
+/// Empty Map should fall back to console.log (no rows).
+#[test]
+fn console_table_empty_map() {
+    let logs = run_table_test!(indoc! {r#"
+        console.table(new Map());
+    "#});
+
+    assert!(
+        !logs.contains("(iteration index)"),
+        "empty Map should not render a table"
+    );
+}
+
+/// `TypedArray` should work like a regular array.
+#[test]
+fn console_table_typed_array() {
+    let logs = run_table_test!(indoc! {r#"
+        console.table(new Uint8Array([1, 2, 3]));
+    "#});
+
+    assert!(logs.contains("(index)"));
+    assert!(logs.contains("Values"));
+    assert!(logs.contains('1'));
+    assert!(logs.contains('2'));
+    assert!(logs.contains('3'));
+}
+
+/// Deeply nested objects should render inline on a single line in cells,
+/// not as multi-line pretty-print.
+#[test]
+fn console_table_deeply_nested_inline() {
+    let logs = run_table_test!(indoc! {r#"
+        console.table({a: {x: {nested: true}}});
+    "#});
+
+    assert!(logs.contains("(index)"));
+    assert!(logs.contains(" x "));
+    // The nested object should be on one line, not split across multiple rows.
+    assert!(
+        logs.contains("{ nested: true }"),
+        "nested object should be displayed inline"
+    );
+}
+
+/// Invalid second argument (non-array) should throw a `TypeError`.
+#[test]
+fn console_table_invalid_properties_throws() {
+    let _logs = run_table_test!(indoc! {r#"
+        assert_throws_js(TypeError, () => {
+            console.table([], false);
+        });
+        assert_throws_js(TypeError, () => {
+            console.table([], "bad");
+        });
+        assert_throws_js(TypeError, () => {
+            console.table([], {});
+        });
+    "#});
+}
+
+/// Duplicate entries in the properties filter should be deduplicated.
+#[test]
+fn console_table_duplicate_property_filter() {
+    let logs = run_table_test!(indoc! {r#"
+        console.table([{a: 1, b: 2}], ["a", "b", "a"]);
+    "#});
+
+    assert!(logs.contains("(index)"));
+    assert!(logs.contains(" a "));
+    assert!(logs.contains(" b "));
+    // Count occurrences of " a " — should appear exactly twice:
+    // once in header, once in data separator. If duplicated, there would be more.
+    let a_col_count = logs.matches(" a ").count();
+    assert!(
+        a_col_count <= 3,
+        "column 'a' should not be duplicated, found {a_col_count} occurrences"
+    );
+}
+
+/// The properties filter should control column *order*, matching the filter
+/// array's order rather than the data's property discovery order.
+#[test]
+fn console_table_properties_filter_controls_order() {
+    let logs = run_table_test!(indoc! {r#"
+        console.table([{a: 1, b: 2}], ["b", "a"]);
+    "#});
+
+    // "b" should appear before "a" in the output.
+    let b_pos = logs.find(" b ").expect("should have column b");
+    let a_pos = logs.find(" a ").expect("should have column a");
+    assert!(b_pos < a_pos, "column b should appear before column a");
+}
+
+/// Properties that don't exist in the data should still appear as empty columns.
+#[test]
+fn console_table_nonexistent_property_shows_empty_column() {
+    let logs = run_table_test!(indoc! {r#"
+        console.table([1, 2], ["foo"]);
+    "#});
+
+    assert!(logs.contains("(index)"));
+    assert!(
+        logs.contains("foo"),
+        "nonexistent property should appear as a column"
+    );
+}
+
+/// Map should ignore the properties filter and keep its fixed column layout.
+#[test]
+fn console_table_map_ignores_properties_filter() {
+    let logs = run_table_test!(indoc! {r#"
+        console.table(new Map([["x", 1]]), ["a"]);
+    "#});
+
+    assert!(logs.contains("(iteration index)"));
+    assert!(logs.contains("Key"));
+    assert!(logs.contains("Values"));
+}
+
+/// Set should ignore the properties filter and keep its fixed column layout.
+#[test]
+fn console_table_set_ignores_properties_filter() {
+    let logs = run_table_test!(indoc! {r#"
+        console.table(new Set([1, 2]), ["a"]);
+    "#});
+
+    assert!(logs.contains("(iteration index)"));
+    assert!(logs.contains("Values"));
+}

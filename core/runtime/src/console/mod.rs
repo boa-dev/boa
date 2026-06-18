@@ -11,18 +11,23 @@
 //! [spec]: https://console.spec.whatwg.org/
 //! [mdn]: https://developer.mozilla.org/en-US/docs/Web/API/Console
 
+mod table;
 #[cfg(test)]
 pub(crate) mod tests;
+
+pub use table::TableData;
 
 use boa_engine::JsVariant;
 use boa_engine::property::Attribute;
 use boa_engine::{
-    Context, JsArgs, JsData, JsError, JsResult, JsString, JsSymbol, js_str, js_string,
+    Context, JsArgs, JsData, JsError, JsNativeError, JsResult, JsString, JsSymbol, js_str,
+    js_string,
     native_function::NativeFunction,
     object::{JsObject, ObjectInitializer},
     value::{JsValue, Numeric},
 };
 use boa_gc::{Finalize, Trace};
+use comfy_table::{Cell, Table};
 use rustc_hash::FxHashMap;
 use std::{
     cell::RefCell, collections::hash_map::Entry, fmt::Write as _, io::Write, rc::Rc,
@@ -83,6 +88,29 @@ pub trait Logger: Trace {
     /// # Errors
     /// Returning an error will throw an exception in JavaScript.
     fn error(&self, msg: String, state: &ConsoleState, context: &mut Context) -> JsResult<()>;
+
+    /// Log tabular data (`console.table`). The default implementation renders
+    /// the table with `comfy-table` and passes the result to [`Logger::log`].
+    ///
+    /// # Errors
+    /// Returning an error will throw an exception in JavaScript.
+    fn table(&self, data: TableData, state: &ConsoleState, context: &mut Context) -> JsResult<()> {
+        let mut table = Table::new();
+        table.load_preset(comfy_table::presets::UTF8_FULL);
+        table.set_content_arrangement(comfy_table::ContentArrangement::Dynamic);
+        table.set_header(&data.col_names);
+
+        for row in &data.rows {
+            let cells: Vec<Cell> = data
+                .col_names
+                .iter()
+                .map(|name| Cell::new(row.get(name).cloned().unwrap_or_default()))
+                .collect();
+            table.add_row(cells);
+        }
+
+        self.log(table.to_string(), state, context)
+    }
 }
 
 /// The default implementation for logging from the console.
@@ -434,8 +462,13 @@ impl Console {
             0,
         )
         .function(
-            console_method(Self::dir, state, logger.clone()),
+            console_method(Self::dir, state.clone(), logger.clone()),
             js_string!("dirxml"),
+            0,
+        )
+        .function(
+            console_method(Self::table, state, logger.clone()),
+            js_string!("table"),
             0,
         )
         .build()
@@ -915,6 +948,61 @@ impl Console {
             &console.state,
             context,
         )?;
+        Ok(JsValue::undefined())
+    }
+
+    /// `console.table(tabularData, properties)`
+    ///
+    /// Prints a table with the columns of the properties of `tabularData`
+    /// (or a subset given by `properties`) and rows of `tabularData`.
+    /// Falls back to `console.log` if the data cannot be parsed as tabular.
+    ///
+    /// More information:
+    ///  - [MDN documentation][mdn]
+    ///  - [WHATWG `console` specification][spec]
+    ///
+    /// [spec]: https://console.spec.whatwg.org/#table
+    /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/API/console/table_static
+    fn table(
+        _: &JsValue,
+        args: &[JsValue],
+        console: &Self,
+        logger: &impl Logger,
+        context: &mut Context,
+    ) -> JsResult<JsValue> {
+        let tabular_data = args.get_or_undefined(0);
+
+        // Non-objects fall back to console.log.
+        let Some(obj) = tabular_data.as_object() else {
+            return Self::log(&JsValue::undefined(), args, console, logger, context);
+        };
+
+        // Validate the optional `properties` argument (must be an array if present).
+        let properties = match args.get(1) {
+            Some(props) if !props.is_undefined() => {
+                let obj =
+                    props.as_object().ok_or_else(|| {
+                        JsError::from_native(JsNativeError::typ().with_message(
+                            "The \"properties\" argument must be an instance of Array",
+                        ))
+                    })?;
+                if !obj.is_array() {
+                    return Err(JsError::from_native(JsNativeError::typ().with_message(
+                        "The \"properties\" argument must be an instance of Array",
+                    )));
+                }
+                Some(obj.clone())
+            }
+            _ => None,
+        };
+
+        let data = table::build_table_data(&obj, properties.as_ref(), context)?;
+
+        match data {
+            Some(td) => logger.table(td, &console.state, context)?,
+            None => return Self::log(&JsValue::undefined(), args, console, logger, context),
+        }
+
         Ok(JsValue::undefined())
     }
 }
