@@ -24,28 +24,32 @@ pub(crate) struct CacheEntry {
 }
 
 /// An inline cache entry for a property access.
+#[repr(C)]
 #[derive(Trace, Finalize)]
 pub(crate) struct InlineCache {
+    /// Whether this access site has seen too many shapes and should no longer be cached.
+    #[unsafe_ignore_trace]
+    pub(crate) megamorphic: Cell<bool>,
+
     /// The property that is accessed.
     pub(crate) name: JsString,
 
     /// Multiple cached shape-to-slot entries.
     pub(crate) entries: Cell<ArrayVec<CacheEntry, PIC_CAPACITY>>,
-
-    /// Whether this access site has seen too many shapes and should no longer be cached.
-    #[unsafe_ignore_trace]
-    pub(crate) megamorphic: Cell<bool>,
 }
 
 impl Clone for InlineCache {
     fn clone(&self) -> Self {
-        let entries = self.entries.take();
-        let cloned_entries = entries.clone();
-        self.entries.set(entries);
+        // SAFETY: `entries` is only ever accessed through `&self`/`&mut self`
+        // on this single-threaded cache, and cloning `CacheEntry` doesn't
+        // reenter this `Cell`, so it's safe to read through the raw pointer
+        // for the duration of this borrow without disturbing the cell's contents.
+        let cloned_entries = unsafe { (*self.entries.as_ptr()).clone() };
+
         Self {
+            megamorphic: self.megamorphic.clone(),
             name: self.name.clone(),
             entries: Cell::new(cloned_entries),
-            megamorphic: self.megamorphic.clone(),
         }
     }
 }
@@ -84,9 +88,9 @@ impl fmt::Display for InlineCache {
 impl InlineCache {
     pub(crate) fn new(name: JsString) -> Self {
         Self {
+            megamorphic: Cell::new(false),
             name,
             entries: Cell::new(ArrayVec::new()),
-            megamorphic: Cell::new(false),
         }
     }
 
