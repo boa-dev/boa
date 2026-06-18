@@ -167,6 +167,10 @@ impl ObjectLiteral {
                                     default_init: Some(assign.rhs().clone()),
                                 });
                             }
+                            // Annex B: a Call as assignment target is never a valid
+                            // destructuring element — treat as invalid pattern.
+                            #[cfg(feature = "annex-b")]
+                            AssignTarget::Call(_) => return None,
                         }
                     }
                     (_, Expression::PropertyAccess(access)) => {
