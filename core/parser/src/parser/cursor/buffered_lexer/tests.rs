@@ -306,7 +306,8 @@ fn html_close_comment_first_line() {
 #[test]
 #[cfg(feature = "annex-b")]
 fn html_close_comment_first_line_with_spaces_and_comments() {
-    let mut cur = BufferedLexer::from(&b"  /* comment */ /*another*/--> this is a comment\nthrow"[..]);
+    let mut cur =
+        BufferedLexer::from(&b"  /* comment */ /*another*/--> this is a comment\nthrow"[..]);
     let interner = &mut Interner::default();
 
     assert_eq!(
