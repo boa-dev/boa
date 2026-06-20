@@ -283,8 +283,7 @@ impl DateTimeFormat {
                         if x.is_nan() {
                             return Err(js_error!(RangeError: "formatted date cannot be NaN"));
                         }
-                        let result = format_timestamp_with_dtf(dtf.borrow().data(), x, context)?;
-                        Ok(JsValue::from(result))
+                        format_timestamp_with_dtf(dtf.borrow().data(), x, context)
                     },
                     dtf_clone,
                 ),
@@ -849,11 +848,11 @@ pub(crate) fn create_date_time_format(
 ///
 /// Then calls `ToLocalTime::from_local_epoch_milliseconds` to obtain calendar fields,
 /// and formats the resulting `ZonedDateTime` with ICU4X.
-fn format_timestamp_with_dtf(
+pub(crate) fn format_timestamp_with_dtf(
     dtf: &DateTimeFormat,
     timestamp: f64,
     context: &mut Context,
-) -> JsResult<JsString> {
+) -> JsResult<JsValue> {
     // PartitionDateTimePattern ( dtf, x ) step 3:
     // Let epochNanoseconds be ℤ(ℝ(x) × 10^6).
     //
@@ -895,7 +894,7 @@ fn format_timestamp_with_dtf(
         zone: tz_info_at_time,
     };
     let result = dtf.formatter.format(&zdt).to_string();
-    Ok(JsString::from(result))
+    Ok(JsString::from(result).into())
 }
 
 fn date_time_style_format(
@@ -1011,27 +1010,26 @@ fn unwrap_date_time_format(
         .into())
 }
 
-/// Shared helper used by Date.prototype.toLocaleString,
-/// Date.prototype.toLocaleDateString, and Date.prototype.toLocaleTimeString.
-/// Applies `ToDateTimeOptions` defaults, calls [`create_date_time_format`], and formats
-/// the timestamp via [`format_timestamp_with_dtf`] without allocating a JS object.
-#[allow(clippy::too_many_arguments)]
-pub(crate) fn format_date_time_locale(
-    locales: &JsValue,
-    options: &JsValue,
-    format_type: FormatType,
-    defaults: FormatDefaults,
-    timestamp: f64,
-    context: &mut Context,
-) -> JsResult<JsValue> {
-    let options = coerce_options_to_object(options, context)?;
-    let options_value = options.into();
-    let dtf = create_date_time_format(locales, &options_value, format_type, defaults, context)?;
-    // FormatDateTime steps 1–2: TimeClip and NaN check (format_timestamp_with_dtf does ToLocalTime + format only).
-    let x = time_clip(timestamp);
-    if x.is_nan() {
-        return Err(js_error!(RangeError: "formatted date cannot be NaN"));
-    }
-    let result = format_timestamp_with_dtf(&dtf, x, context)?;
-    Ok(JsValue::from(result))
-}
+// /// Shared helper used by Date.prototype.toLocaleString,
+// /// Date.prototype.toLocaleDateString, and Date.prototype.toLocaleTimeString.
+// /// Applies `ToDateTimeOptions` defaults, calls [`create_date_time_format`], and formats
+// /// the timestamp via [`format_timestamp_with_dtf`] without allocating a JS object.
+// #[allow(clippy::too_many_arguments)]
+// pub(crate) fn format_date_time_locale(
+//     locales: &JsValue,
+//     options: &JsValue,
+//     format_type: FormatType,
+//     defaults: FormatDefaults,
+//     timestamp: f64,
+//     context: &mut Context,
+// ) -> JsResult<JsValue> {
+//     let options = coerce_options_to_object(options, context)?;
+//     let options_value = options.into();
+//     // FormatDateTime steps 1–2: TimeClip and NaN check (format_timestamp_with_dtf does ToLocalTime + format only).
+//     let x = time_clip(timestamp);
+//     if x.is_nan() {
+//         return Err(js_error!(RangeError: "formatted date cannot be NaN"));
+//     }
+//     let result = format_timestamp_with_dtf(&dtf, x, context)?;
+//     Ok(JsValue::from(result))
+// }
