@@ -192,10 +192,7 @@ pub(super) fn try_value_into_js(
     }
 
     // Match the value
-    match &*store.0 {
-        ValueStoreInner::Empty => {
-            unreachable!("ValueStoreInner::Empty should not exist after storage.");
-        }
+    match store.0.get().expect("ValueStoreInner must be initialized") {
         ValueStoreInner::Null => Ok(JsValue::null()),
         ValueStoreInner::Undefined => Ok(JsValue::undefined()),
         ValueStoreInner::Boolean(b) => Ok(JsValue::from(*b)),
