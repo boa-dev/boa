@@ -86,7 +86,7 @@ fn try_from_array_clone(
     // Create an empty clone, we will replace its inner values after we gather them.
     // To stop the recursion, we need to add the right value to the seen map prior,
     // though.
-    let mut dolly = JsValueStore::empty();
+    let dolly = JsValueStore::empty();
     seen.insert(&JsObject::from(array.clone()), dolly.clone());
 
     let length = array.length(context)?;
@@ -106,10 +106,7 @@ fn try_from_array_clone(
         }
     }
 
-    // SAFETY: This is safe as this function is the sole owner of the store.
-    unsafe {
-        dolly.replace(ValueStoreInner::Array(inner));
-    }
+    dolly.replace(ValueStoreInner::Array(inner));
     Ok(dolly)
 }
 
@@ -189,7 +186,7 @@ fn try_from_map(
     context: &mut Context,
 ) -> JsResult<JsValueStore> {
     let mut new_map = Vec::new();
-    let mut store = JsValueStore::new(ValueStoreInner::Empty);
+    let store = JsValueStore::empty();
     seen.insert(original, store.clone());
 
     map.for_each_native(|k, v| {
@@ -200,10 +197,7 @@ fn try_from_map(
         Ok(())
     })?;
 
-    // SAFETY: This is safe as this function is the sole owner of the store.
-    unsafe {
-        store.replace(ValueStoreInner::Map(new_map));
-    }
+    store.replace(ValueStoreInner::Map(new_map));
 
     Ok(store)
 }
@@ -216,7 +210,7 @@ fn try_from_set(
     context: &mut Context,
 ) -> JsResult<JsValueStore> {
     let mut new_set = Vec::new();
-    let mut store = JsValueStore::new(ValueStoreInner::Empty);
+    let store = JsValueStore::empty();
     seen.insert(original, store.clone());
 
     set.for_each_native(|v| {
@@ -226,10 +220,7 @@ fn try_from_set(
         Ok(())
     })?;
 
-    // SAFETY: This is safe as this function is the sole owner of the store.
-    unsafe {
-        store.replace(ValueStoreInner::Set(new_set));
-    }
+    store.replace(ValueStoreInner::Set(new_set));
 
     Ok(store)
 }
@@ -271,7 +262,7 @@ fn try_from_js_object_clone(
 
     // Create a new object and add own properties to it. This does not preserve
     // the prototype (nor do we want to).
-    let mut dolly = JsValueStore::empty();
+    let dolly = JsValueStore::empty();
     seen.insert(object, dolly.clone());
 
     let keys = object.own_property_keys(context)?;
@@ -288,10 +279,7 @@ fn try_from_js_object_clone(
         fields.push((key, v));
     }
 
-    // SAFETY: This is safe as this function is the sole owner of the store.
-    unsafe {
-        dolly.replace(ValueStoreInner::Object(fields));
-    }
+    dolly.replace(ValueStoreInner::Object(fields));
     Ok(dolly)
 }
 
